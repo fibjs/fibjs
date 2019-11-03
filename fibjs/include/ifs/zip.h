@@ -48,8 +48,8 @@ public:
     }
 
 public:
-    static void s_isZipFile(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isZipFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_open(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(zip_base, isZipFile, exlib::string, bool);
@@ -67,10 +67,10 @@ namespace fibjs {
 inline ClassInfo& zip_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "isZipFile", s_isZipFile, true },
-        { "isZipFileSync", s_isZipFile, true },
-        { "open", s_open, true },
-        { "openSync", s_open, true }
+        { "isZipFile", s_static_isZipFile, true },
+        { "isZipFileSync", s_static_isZipFile, true },
+        { "open", s_static_open, true },
+        { "openSync", s_static_open, true }
     };
 
     static ClassData::ClassConst s_const[] = {
@@ -88,7 +88,7 @@ inline ClassInfo& zip_base::class_info()
     return s_ci;
 }
 
-inline void zip_base::s_isZipFile(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void zip_base::s_static_isZipFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
@@ -108,7 +108,7 @@ inline void zip_base::s_isZipFile(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 
-inline void zip_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void zip_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<ZipFile_base> vr;
 

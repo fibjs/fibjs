@@ -59,23 +59,23 @@ public:
     }
 
 public:
-    static void s_get_Master(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_global(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_require(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_argv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get___filename(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get___dirname(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_setTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_clearTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_setInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_clearInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_setHrInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_clearHrInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_setImmediate(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_clearImmediate(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_GC(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_repl(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_Master(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_global(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_run(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_require(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_argv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get___filename(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get___dirname(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_setTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_clearTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_setInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_clearInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_setHrInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_clearHrInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_setImmediate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_clearImmediate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_GC(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_repl(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -90,18 +90,18 @@ namespace fibjs {
 inline ClassInfo& global_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "run", s_run, true },
-        { "require", s_require, true },
-        { "setTimeout", s_setTimeout, true },
-        { "clearTimeout", s_clearTimeout, true },
-        { "setInterval", s_setInterval, true },
-        { "clearInterval", s_clearInterval, true },
-        { "setHrInterval", s_setHrInterval, true },
-        { "clearHrInterval", s_clearHrInterval, true },
-        { "setImmediate", s_setImmediate, true },
-        { "clearImmediate", s_clearImmediate, true },
-        { "GC", s_GC, true },
-        { "repl", s_repl, true }
+        { "run", s_static_run, true },
+        { "require", s_static_require, true },
+        { "setTimeout", s_static_setTimeout, true },
+        { "clearTimeout", s_static_clearTimeout, true },
+        { "setInterval", s_static_setInterval, true },
+        { "clearInterval", s_static_clearInterval, true },
+        { "setHrInterval", s_static_setHrInterval, true },
+        { "clearHrInterval", s_static_clearHrInterval, true },
+        { "setImmediate", s_static_setImmediate, true },
+        { "clearImmediate", s_static_clearImmediate, true },
+        { "GC", s_static_GC, true },
+        { "repl", s_static_repl, true }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -111,11 +111,11 @@ inline ClassInfo& global_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "Master", s_get_Master, block_set, true },
-        { "global", s_get_global, block_set, true },
-        { "argv", s_get_argv, block_set, true },
-        { "__filename", s_get___filename, block_set, true },
-        { "__dirname", s_get___dirname, block_set, true }
+        { "Master", s_static_get_Master, block_set, true },
+        { "global", s_static_get_global, block_set, true },
+        { "argv", s_static_get_argv, block_set, true },
+        { "__filename", s_static_get___filename, block_set, true },
+        { "__dirname", s_static_get___dirname, block_set, true }
     };
 
     static ClassData s_cd = {
@@ -128,7 +128,7 @@ inline ClassInfo& global_base::class_info()
     return s_ci;
 }
 
-inline void global_base::s_get_Master(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void global_base::s_static_get_Master(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Worker_base> vr;
 
@@ -140,7 +140,7 @@ inline void global_base::s_get_Master(v8::Local<v8::Name> property, const v8::Pr
     METHOD_RETURN();
 }
 
-inline void global_base::s_get_global(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void global_base::s_static_get_global(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
@@ -152,7 +152,7 @@ inline void global_base::s_get_global(v8::Local<v8::Name> property, const v8::Pr
     METHOD_RETURN();
 }
 
-inline void global_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void global_base::s_static_run(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("global.run");
     METHOD_ENTER();
@@ -167,7 +167,7 @@ inline void global_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void global_base::s_require(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void global_base::s_static_require(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Value> vr;
 
@@ -183,7 +183,7 @@ inline void global_base::s_require(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 
-inline void global_base::s_get_argv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void global_base::s_static_get_argv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
@@ -195,7 +195,7 @@ inline void global_base::s_get_argv(v8::Local<v8::Name> property, const v8::Prop
     METHOD_RETURN();
 }
 
-inline void global_base::s_get___filename(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void global_base::s_static_get___filename(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -207,7 +207,7 @@ inline void global_base::s_get___filename(v8::Local<v8::Name> property, const v8
     METHOD_RETURN();
 }
 
-inline void global_base::s_get___dirname(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void global_base::s_static_get___dirname(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -219,7 +219,7 @@ inline void global_base::s_get___dirname(v8::Local<v8::Name> property, const v8:
     METHOD_RETURN();
 }
 
-inline void global_base::s_setTimeout(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void global_base::s_static_setTimeout(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Timer_base> vr;
 
@@ -237,7 +237,7 @@ inline void global_base::s_setTimeout(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_RETURN();
 }
 
-inline void global_base::s_clearTimeout(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void global_base::s_static_clearTimeout(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("global.clearTimeout");
     METHOD_ENTER();
@@ -251,7 +251,7 @@ inline void global_base::s_clearTimeout(const v8::FunctionCallbackInfo<v8::Value
     METHOD_VOID();
 }
 
-inline void global_base::s_setInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void global_base::s_static_setInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Timer_base> vr;
 
@@ -269,7 +269,7 @@ inline void global_base::s_setInterval(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_RETURN();
 }
 
-inline void global_base::s_clearInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void global_base::s_static_clearInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("global.clearInterval");
     METHOD_ENTER();
@@ -283,7 +283,7 @@ inline void global_base::s_clearInterval(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_VOID();
 }
 
-inline void global_base::s_setHrInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void global_base::s_static_setHrInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Timer_base> vr;
 
@@ -301,7 +301,7 @@ inline void global_base::s_setHrInterval(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_RETURN();
 }
 
-inline void global_base::s_clearHrInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void global_base::s_static_clearHrInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("global.clearHrInterval");
     METHOD_ENTER();
@@ -315,7 +315,7 @@ inline void global_base::s_clearHrInterval(const v8::FunctionCallbackInfo<v8::Va
     METHOD_VOID();
 }
 
-inline void global_base::s_setImmediate(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void global_base::s_static_setImmediate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Timer_base> vr;
 
@@ -332,7 +332,7 @@ inline void global_base::s_setImmediate(const v8::FunctionCallbackInfo<v8::Value
     METHOD_RETURN();
 }
 
-inline void global_base::s_clearImmediate(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void global_base::s_static_clearImmediate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("global.clearImmediate");
     METHOD_ENTER();
@@ -346,7 +346,7 @@ inline void global_base::s_clearImmediate(const v8::FunctionCallbackInfo<v8::Val
     METHOD_VOID();
 }
 
-inline void global_base::s_GC(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void global_base::s_static_GC(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("global.GC");
     METHOD_ENTER();
@@ -358,7 +358,7 @@ inline void global_base::s_GC(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void global_base::s_repl(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void global_base::s_static_repl(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("global.repl");
     METHOD_ENTER();

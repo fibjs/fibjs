@@ -38,8 +38,8 @@ public:
     }
 
 public:
-    static void s_format(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_parse(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_format(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -49,8 +49,8 @@ namespace fibjs {
 inline ClassInfo& url_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "format", s_format, true },
-        { "parse", s_parse, true }
+        { "format", s_static_format, true },
+        { "parse", s_static_parse, true }
     };
 
     static ClassData s_cd = {
@@ -63,7 +63,7 @@ inline ClassInfo& url_base::class_info()
     return s_ci;
 }
 
-inline void url_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void url_base::s_static_format(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -79,7 +79,7 @@ inline void url_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void url_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void url_base::s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<UrlObject_base> vr;
 

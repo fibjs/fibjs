@@ -570,8 +570,11 @@ describe('Buffer', () => {
         assert.equal(buf.equals(new Buffer("abcd")), true);
         assert.equal(buf.equals(new Buffer("abc")), false);
         assert.equal(buf.compare(new Buffer("abcd")), 0);
+        assert.equal(Buffer.compare(buf, "abcd"), 0);
         assert.greaterThan(buf.compare(new Buffer("abc")), 0);
+        assert.greaterThan(Buffer.compare(buf, "abc"), 0);
         assert.lessThan(buf.compare(new Buffer("abcde")), 0);
+        assert.lessThan(Buffer.compare(buf, "abcde"), 0);
 
         buf = new Buffer([1, 0, 1]);
         assert.equal(buf.equals(new Buffer([1, 0, 1])), true);

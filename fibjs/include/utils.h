@@ -389,6 +389,24 @@ public:                                       \
     static RootModule_##name s_RootModule_##name; \
     RootModule* Module_##name = &s_RootModule_##name;
 
+#define DECLARE_MODULE_WITH_CONSTRUCTOR_EX(mname, module) \
+    class RootModule_##mname : public RootModule {        \
+    public:                                               \
+        RootModule_##mname();                             \
+                                                          \
+    public:                                               \
+        virtual ClassInfo& class_info()                   \
+        {                                                 \
+            return module##_base::class_info();           \
+        }                                                 \
+        virtual const char* name()                        \
+        {                                                 \
+            return #mname;                                \
+        }                                                 \
+    };                                                    \
+    static RootModule_##mname s_RootModule_##mname;       \
+    RootModule* Module_##mname = &s_RootModule_##mname;
+
 #define DECLARE_MODULE_EX(mname, module)            \
     class RootModule_##mname : public RootModule {  \
     public:                                         \

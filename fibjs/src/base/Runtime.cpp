@@ -15,7 +15,7 @@
 #include "HttpClient.h"
 #include "console.h"
 #include "LruCache.h"
-#include "Trigger.h"
+#include "EventEmitter.h"
 #include "ifs/global.h"
 #include "ifs/os.h"
 #include "ifs/process.h"

@@ -53,8 +53,8 @@ public:
     }
 
 public:
-    static void s_parse(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_serialize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_serialize(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -66,8 +66,8 @@ namespace fibjs {
 inline ClassInfo& xml_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "parse", s_parse, true },
-        { "serialize", s_serialize, true }
+        { "parse", s_static_parse, true },
+        { "serialize", s_static_serialize, true }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -95,7 +95,7 @@ inline ClassInfo& xml_base::class_info()
     return s_ci;
 }
 
-inline void xml_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void xml_base::s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<XmlDocument_base> vr;
 
@@ -119,7 +119,7 @@ inline void xml_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void xml_base::s_serialize(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void xml_base::s_static_serialize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 

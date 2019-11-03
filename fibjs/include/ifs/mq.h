@@ -42,8 +42,8 @@ public:
     }
 
 public:
-    static void s_nullHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_invoke(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_nullHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_invoke(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATIC2(mq_base, invoke, Handler_base*, object_base*);
@@ -60,9 +60,9 @@ namespace fibjs {
 inline ClassInfo& mq_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "nullHandler", s_nullHandler, true },
-        { "invoke", s_invoke, true },
-        { "invokeSync", s_invoke, true }
+        { "nullHandler", s_static_nullHandler, true },
+        { "invoke", s_static_invoke, true },
+        { "invokeSync", s_static_invoke, true }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -83,7 +83,7 @@ inline ClassInfo& mq_base::class_info()
     return s_ci;
 }
 
-inline void mq_base::s_nullHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void mq_base::s_static_nullHandler(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Handler_base> vr;
 
@@ -97,7 +97,7 @@ inline void mq_base::s_nullHandler(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 
-inline void mq_base::s_invoke(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void mq_base::s_static_invoke(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("mq.invoke");
     METHOD_ENTER();

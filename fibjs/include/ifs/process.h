@@ -71,32 +71,32 @@ public:
     }
 
 public:
-    static void s_get_argv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_execArgv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_version(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_versions(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_execPath(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_env(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_arch(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_platform(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_pid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_ppid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_stdin(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_stdout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_stderr(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_exitCode(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_exitCode(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_umask(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_hrtime(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_exit(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_cwd(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_chdir(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_nextTick(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_argv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_execArgv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_version(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_versions(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_execPath(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_env(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_arch(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_platform(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_pid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_ppid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_stdin(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_stdout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_stderr(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_exitCode(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_set_exitCode(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_static_umask(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_hrtime(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_exit(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_cwd(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_chdir(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_uptime(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_nextTick(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_open(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_start(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_run(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE4(process_base, run, exlib::string, v8::Local<v8::Array>, v8::Local<v8::Object>, int32_t);
@@ -111,35 +111,35 @@ namespace fibjs {
 inline ClassInfo& process_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "umask", s_umask, true },
-        { "hrtime", s_hrtime, true },
-        { "exit", s_exit, true },
-        { "cwd", s_cwd, true },
-        { "chdir", s_chdir, true },
-        { "uptime", s_uptime, true },
-        { "memoryUsage", s_memoryUsage, true },
-        { "nextTick", s_nextTick, true },
-        { "open", s_open, true },
-        { "start", s_start, true },
-        { "run", s_run, true },
-        { "runSync", s_run, true }
+        { "umask", s_static_umask, true },
+        { "hrtime", s_static_hrtime, true },
+        { "exit", s_static_exit, true },
+        { "cwd", s_static_cwd, true },
+        { "chdir", s_static_chdir, true },
+        { "uptime", s_static_uptime, true },
+        { "memoryUsage", s_static_memoryUsage, true },
+        { "nextTick", s_static_nextTick, true },
+        { "open", s_static_open, true },
+        { "start", s_static_start, true },
+        { "run", s_static_run, true },
+        { "runSync", s_static_run, true }
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "argv", s_get_argv, block_set, true },
-        { "execArgv", s_get_execArgv, block_set, true },
-        { "version", s_get_version, block_set, true },
-        { "versions", s_get_versions, block_set, true },
-        { "execPath", s_get_execPath, block_set, true },
-        { "env", s_get_env, block_set, true },
-        { "arch", s_get_arch, block_set, true },
-        { "platform", s_get_platform, block_set, true },
-        { "pid", s_get_pid, block_set, true },
-        { "ppid", s_get_ppid, block_set, true },
-        { "stdin", s_get_stdin, block_set, true },
-        { "stdout", s_get_stdout, block_set, true },
-        { "stderr", s_get_stderr, block_set, true },
-        { "exitCode", s_get_exitCode, s_set_exitCode, true }
+        { "argv", s_static_get_argv, block_set, true },
+        { "execArgv", s_static_get_execArgv, block_set, true },
+        { "version", s_static_get_version, block_set, true },
+        { "versions", s_static_get_versions, block_set, true },
+        { "execPath", s_static_get_execPath, block_set, true },
+        { "env", s_static_get_env, block_set, true },
+        { "arch", s_static_get_arch, block_set, true },
+        { "platform", s_static_get_platform, block_set, true },
+        { "pid", s_static_get_pid, block_set, true },
+        { "ppid", s_static_get_ppid, block_set, true },
+        { "stdin", s_static_get_stdin, block_set, true },
+        { "stdout", s_static_get_stdout, block_set, true },
+        { "stderr", s_static_get_stderr, block_set, true },
+        { "exitCode", s_static_get_exitCode, s_static_set_exitCode, true }
     };
 
     static ClassData s_cd = {
@@ -152,7 +152,7 @@ inline ClassInfo& process_base::class_info()
     return s_ci;
 }
 
-inline void process_base::s_get_argv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_argv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
@@ -164,7 +164,7 @@ inline void process_base::s_get_argv(v8::Local<v8::Name> property, const v8::Pro
     METHOD_RETURN();
 }
 
-inline void process_base::s_get_execArgv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_execArgv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
@@ -176,7 +176,7 @@ inline void process_base::s_get_execArgv(v8::Local<v8::Name> property, const v8:
     METHOD_RETURN();
 }
 
-inline void process_base::s_get_version(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_version(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -188,7 +188,7 @@ inline void process_base::s_get_version(v8::Local<v8::Name> property, const v8::
     METHOD_RETURN();
 }
 
-inline void process_base::s_get_versions(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_versions(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
@@ -200,7 +200,7 @@ inline void process_base::s_get_versions(v8::Local<v8::Name> property, const v8:
     METHOD_RETURN();
 }
 
-inline void process_base::s_get_execPath(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_execPath(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -212,7 +212,7 @@ inline void process_base::s_get_execPath(v8::Local<v8::Name> property, const v8:
     METHOD_RETURN();
 }
 
-inline void process_base::s_get_env(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_env(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
@@ -224,7 +224,7 @@ inline void process_base::s_get_env(v8::Local<v8::Name> property, const v8::Prop
     METHOD_RETURN();
 }
 
-inline void process_base::s_get_arch(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_arch(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -236,7 +236,7 @@ inline void process_base::s_get_arch(v8::Local<v8::Name> property, const v8::Pro
     METHOD_RETURN();
 }
 
-inline void process_base::s_get_platform(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_platform(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -248,7 +248,7 @@ inline void process_base::s_get_platform(v8::Local<v8::Name> property, const v8:
     METHOD_RETURN();
 }
 
-inline void process_base::s_get_pid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_pid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -260,7 +260,7 @@ inline void process_base::s_get_pid(v8::Local<v8::Name> property, const v8::Prop
     METHOD_RETURN();
 }
 
-inline void process_base::s_get_ppid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_ppid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -272,7 +272,7 @@ inline void process_base::s_get_ppid(v8::Local<v8::Name> property, const v8::Pro
     METHOD_RETURN();
 }
 
-inline void process_base::s_get_stdin(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_stdin(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<File_base> vr;
 
@@ -284,7 +284,7 @@ inline void process_base::s_get_stdin(v8::Local<v8::Name> property, const v8::Pr
     METHOD_RETURN();
 }
 
-inline void process_base::s_get_stdout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_stdout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<File_base> vr;
 
@@ -296,7 +296,7 @@ inline void process_base::s_get_stdout(v8::Local<v8::Name> property, const v8::P
     METHOD_RETURN();
 }
 
-inline void process_base::s_get_stderr(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_stderr(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<File_base> vr;
 
@@ -308,7 +308,7 @@ inline void process_base::s_get_stderr(v8::Local<v8::Name> property, const v8::P
     METHOD_RETURN();
 }
 
-inline void process_base::s_get_exitCode(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_exitCode(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -320,7 +320,7 @@ inline void process_base::s_get_exitCode(v8::Local<v8::Name> property, const v8:
     METHOD_RETURN();
 }
 
-inline void process_base::s_set_exitCode(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void process_base::s_static_set_exitCode(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("process.exitCode");
     PROPERTY_ENTER();
@@ -331,7 +331,7 @@ inline void process_base::s_set_exitCode(v8::Local<v8::Name> property, v8::Local
     PROPERTY_SET_LEAVE();
 }
 
-inline void process_base::s_umask(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_umask(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -357,7 +357,7 @@ inline void process_base::s_umask(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 
-inline void process_base::s_hrtime(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_hrtime(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
@@ -373,7 +373,7 @@ inline void process_base::s_hrtime(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 
-inline void process_base::s_exit(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_exit(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("process.exit");
     METHOD_ENTER();
@@ -391,7 +391,7 @@ inline void process_base::s_exit(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_VOID();
 }
 
-inline void process_base::s_cwd(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_cwd(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -405,7 +405,7 @@ inline void process_base::s_cwd(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void process_base::s_chdir(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_chdir(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("process.chdir");
     METHOD_ENTER();
@@ -419,7 +419,7 @@ inline void process_base::s_chdir(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_VOID();
 }
 
-inline void process_base::s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_uptime(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     double vr;
 
@@ -433,7 +433,7 @@ inline void process_base::s_uptime(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 
-inline void process_base::s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
@@ -447,7 +447,7 @@ inline void process_base::s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value
     METHOD_RETURN();
 }
 
-inline void process_base::s_nextTick(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_nextTick(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("process.nextTick");
     METHOD_ENTER();
@@ -462,7 +462,7 @@ inline void process_base::s_nextTick(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_VOID();
 }
 
-inline void process_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<SubProcess_base> vr;
 
@@ -487,7 +487,7 @@ inline void process_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_RETURN();
 }
 
-inline void process_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_start(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<SubProcess_base> vr;
 
@@ -512,7 +512,7 @@ inline void process_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 
-inline void process_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_run(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 

@@ -36,8 +36,8 @@ public:
     }
 
 public:
-    static void s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_lookup(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_lookup(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(dns_base, resolve, exlib::string, obj_ptr<NArray>);
@@ -49,10 +49,10 @@ namespace fibjs {
 inline ClassInfo& dns_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "resolve", s_resolve, true },
-        { "resolveSync", s_resolve, true },
-        { "lookup", s_lookup, true },
-        { "lookupSync", s_lookup, true }
+        { "resolve", s_static_resolve, true },
+        { "resolveSync", s_static_resolve, true },
+        { "lookup", s_static_lookup, true },
+        { "lookupSync", s_static_lookup, true }
     };
 
     static ClassData s_cd = {
@@ -65,7 +65,7 @@ inline ClassInfo& dns_base::class_info()
     return s_ci;
 }
 
-inline void dns_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void dns_base::s_static_resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<NArray> vr;
 
@@ -85,7 +85,7 @@ inline void dns_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void dns_base::s_lookup(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void dns_base::s_static_lookup(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 

@@ -69,24 +69,24 @@ public:
     }
 
 public:
-    static void s_createDeflate(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_createDeflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_createGunzip(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_createGzip(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_createInflate(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_createInflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_deflate(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_deflateTo(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_inflate(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_inflateTo(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_gzip(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_gzipTo(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_gunzip(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_gunzipTo(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_deflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_deflateRawTo(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_inflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_inflateRawTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createDeflate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createDeflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createGunzip(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createGzip(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createInflate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createInflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_deflate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_deflateTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_inflate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_inflateTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_gzip(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_gzipTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_gunzip(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_gunzipTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_deflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_deflateRawTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_inflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_inflateRawTo(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE3(zlib_base, deflate, Buffer_base*, int32_t, obj_ptr<Buffer_base>);
@@ -117,36 +117,36 @@ namespace fibjs {
 inline ClassInfo& zlib_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "createDeflate", s_createDeflate, true },
-        { "createDeflateRaw", s_createDeflateRaw, true },
-        { "createGunzip", s_createGunzip, true },
-        { "createGzip", s_createGzip, true },
-        { "createInflate", s_createInflate, true },
-        { "createInflateRaw", s_createInflateRaw, true },
-        { "deflate", s_deflate, true },
-        { "deflateSync", s_deflate, true },
-        { "deflateTo", s_deflateTo, true },
-        { "deflateToSync", s_deflateTo, true },
-        { "inflate", s_inflate, true },
-        { "inflateSync", s_inflate, true },
-        { "inflateTo", s_inflateTo, true },
-        { "inflateToSync", s_inflateTo, true },
-        { "gzip", s_gzip, true },
-        { "gzipSync", s_gzip, true },
-        { "gzipTo", s_gzipTo, true },
-        { "gzipToSync", s_gzipTo, true },
-        { "gunzip", s_gunzip, true },
-        { "gunzipSync", s_gunzip, true },
-        { "gunzipTo", s_gunzipTo, true },
-        { "gunzipToSync", s_gunzipTo, true },
-        { "deflateRaw", s_deflateRaw, true },
-        { "deflateRawSync", s_deflateRaw, true },
-        { "deflateRawTo", s_deflateRawTo, true },
-        { "deflateRawToSync", s_deflateRawTo, true },
-        { "inflateRaw", s_inflateRaw, true },
-        { "inflateRawSync", s_inflateRaw, true },
-        { "inflateRawTo", s_inflateRawTo, true },
-        { "inflateRawToSync", s_inflateRawTo, true }
+        { "createDeflate", s_static_createDeflate, true },
+        { "createDeflateRaw", s_static_createDeflateRaw, true },
+        { "createGunzip", s_static_createGunzip, true },
+        { "createGzip", s_static_createGzip, true },
+        { "createInflate", s_static_createInflate, true },
+        { "createInflateRaw", s_static_createInflateRaw, true },
+        { "deflate", s_static_deflate, true },
+        { "deflateSync", s_static_deflate, true },
+        { "deflateTo", s_static_deflateTo, true },
+        { "deflateToSync", s_static_deflateTo, true },
+        { "inflate", s_static_inflate, true },
+        { "inflateSync", s_static_inflate, true },
+        { "inflateTo", s_static_inflateTo, true },
+        { "inflateToSync", s_static_inflateTo, true },
+        { "gzip", s_static_gzip, true },
+        { "gzipSync", s_static_gzip, true },
+        { "gzipTo", s_static_gzipTo, true },
+        { "gzipToSync", s_static_gzipTo, true },
+        { "gunzip", s_static_gunzip, true },
+        { "gunzipSync", s_static_gunzip, true },
+        { "gunzipTo", s_static_gunzipTo, true },
+        { "gunzipToSync", s_static_gunzipTo, true },
+        { "deflateRaw", s_static_deflateRaw, true },
+        { "deflateRawSync", s_static_deflateRaw, true },
+        { "deflateRawTo", s_static_deflateRawTo, true },
+        { "deflateRawToSync", s_static_deflateRawTo, true },
+        { "inflateRaw", s_static_inflateRaw, true },
+        { "inflateRawSync", s_static_inflateRaw, true },
+        { "inflateRawTo", s_static_inflateRawTo, true },
+        { "inflateRawToSync", s_static_inflateRawTo, true }
     };
 
     static ClassData::ClassConst s_const[] = {
@@ -166,7 +166,7 @@ inline ClassInfo& zlib_base::class_info()
     return s_ci;
 }
 
-inline void zlib_base::s_createDeflate(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void zlib_base::s_static_createDeflate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stream_base> vr;
 
@@ -182,7 +182,7 @@ inline void zlib_base::s_createDeflate(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_RETURN();
 }
 
-inline void zlib_base::s_createDeflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void zlib_base::s_static_createDeflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stream_base> vr;
 
@@ -198,7 +198,7 @@ inline void zlib_base::s_createDeflateRaw(const v8::FunctionCallbackInfo<v8::Val
     METHOD_RETURN();
 }
 
-inline void zlib_base::s_createGunzip(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void zlib_base::s_static_createGunzip(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stream_base> vr;
 
@@ -215,7 +215,7 @@ inline void zlib_base::s_createGunzip(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_RETURN();
 }
 
-inline void zlib_base::s_createGzip(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void zlib_base::s_static_createGzip(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stream_base> vr;
 
@@ -231,7 +231,7 @@ inline void zlib_base::s_createGzip(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_RETURN();
 }
 
-inline void zlib_base::s_createInflate(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void zlib_base::s_static_createInflate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stream_base> vr;
 
@@ -248,7 +248,7 @@ inline void zlib_base::s_createInflate(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_RETURN();
 }
 
-inline void zlib_base::s_createInflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void zlib_base::s_static_createInflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stream_base> vr;
 
@@ -265,7 +265,7 @@ inline void zlib_base::s_createInflateRaw(const v8::FunctionCallbackInfo<v8::Val
     METHOD_RETURN();
 }
 
-inline void zlib_base::s_deflate(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void zlib_base::s_static_deflate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
@@ -286,7 +286,7 @@ inline void zlib_base::s_deflate(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_RETURN();
 }
 
-inline void zlib_base::s_deflateTo(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void zlib_base::s_static_deflateTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("zlib.deflateTo");
     METHOD_ENTER();
@@ -318,7 +318,7 @@ inline void zlib_base::s_deflateTo(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_VOID();
 }
 
-inline void zlib_base::s_inflate(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void zlib_base::s_static_inflate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
@@ -339,7 +339,7 @@ inline void zlib_base::s_inflate(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_RETURN();
 }
 
-inline void zlib_base::s_inflateTo(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void zlib_base::s_static_inflateTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("zlib.inflateTo");
     METHOD_ENTER();
@@ -371,7 +371,7 @@ inline void zlib_base::s_inflateTo(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_VOID();
 }
 
-inline void zlib_base::s_gzip(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void zlib_base::s_static_gzip(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
@@ -391,7 +391,7 @@ inline void zlib_base::s_gzip(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void zlib_base::s_gzipTo(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void zlib_base::s_static_gzipTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("zlib.gzipTo");
     METHOD_ENTER();
@@ -421,7 +421,7 @@ inline void zlib_base::s_gzipTo(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void zlib_base::s_gunzip(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void zlib_base::s_static_gunzip(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
@@ -442,7 +442,7 @@ inline void zlib_base::s_gunzip(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void zlib_base::s_gunzipTo(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void zlib_base::s_static_gunzipTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("zlib.gunzipTo");
     METHOD_ENTER();
@@ -474,7 +474,7 @@ inline void zlib_base::s_gunzipTo(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_VOID();
 }
 
-inline void zlib_base::s_deflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void zlib_base::s_static_deflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
@@ -495,7 +495,7 @@ inline void zlib_base::s_deflateRaw(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_RETURN();
 }
 
-inline void zlib_base::s_deflateRawTo(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void zlib_base::s_static_deflateRawTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("zlib.deflateRawTo");
     METHOD_ENTER();
@@ -527,7 +527,7 @@ inline void zlib_base::s_deflateRawTo(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_VOID();
 }
 
-inline void zlib_base::s_inflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void zlib_base::s_static_inflateRaw(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
@@ -548,7 +548,7 @@ inline void zlib_base::s_inflateRaw(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_RETURN();
 }
 
-inline void zlib_base::s_inflateRawTo(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void zlib_base::s_static_inflateRawTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("zlib.inflateRawTo");
     METHOD_ENTER();

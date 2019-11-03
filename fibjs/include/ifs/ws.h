@@ -53,7 +53,7 @@ public:
     }
 
 public:
-    static void s_upgrade(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_upgrade(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -65,7 +65,7 @@ namespace fibjs {
 inline ClassInfo& ws_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "upgrade", s_upgrade, true }
+        { "upgrade", s_static_upgrade, true }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -96,7 +96,7 @@ inline ClassInfo& ws_base::class_info()
     return s_ci;
 }
 
-inline void ws_base::s_upgrade(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void ws_base::s_static_upgrade(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Handler_base> vr;
 

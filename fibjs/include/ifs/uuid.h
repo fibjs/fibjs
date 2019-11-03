@@ -51,13 +51,13 @@ public:
     }
 
 public:
-    static void s_node(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_md5(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_random(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_sha1(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_snowflake(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_hostID(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_hostID(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_static_node(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_md5(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_random(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_sha1(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_snowflake(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_hostID(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_set_hostID(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 };
 }
 
@@ -67,15 +67,15 @@ namespace fibjs {
 inline ClassInfo& uuid_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "node", s_node, true },
-        { "md5", s_md5, true },
-        { "random", s_random, true },
-        { "sha1", s_sha1, true },
-        { "snowflake", s_snowflake, true }
+        { "node", s_static_node, true },
+        { "md5", s_static_md5, true },
+        { "random", s_static_random, true },
+        { "sha1", s_static_sha1, true },
+        { "snowflake", s_static_snowflake, true }
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "hostID", s_get_hostID, s_set_hostID, true }
+        { "hostID", s_static_get_hostID, s_static_set_hostID, true }
     };
 
     static ClassData::ClassConst s_const[] = {
@@ -95,7 +95,7 @@ inline ClassInfo& uuid_base::class_info()
     return s_ci;
 }
 
-inline void uuid_base::s_node(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void uuid_base::s_static_node(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
@@ -109,7 +109,7 @@ inline void uuid_base::s_node(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void uuid_base::s_md5(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void uuid_base::s_static_md5(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
@@ -126,7 +126,7 @@ inline void uuid_base::s_md5(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void uuid_base::s_random(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void uuid_base::s_static_random(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
@@ -140,7 +140,7 @@ inline void uuid_base::s_random(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void uuid_base::s_sha1(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void uuid_base::s_static_sha1(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
@@ -157,7 +157,7 @@ inline void uuid_base::s_sha1(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void uuid_base::s_snowflake(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void uuid_base::s_static_snowflake(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
@@ -171,7 +171,7 @@ inline void uuid_base::s_snowflake(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 
-inline void uuid_base::s_get_hostID(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void uuid_base::s_static_get_hostID(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -183,7 +183,7 @@ inline void uuid_base::s_get_hostID(v8::Local<v8::Name> property, const v8::Prop
     METHOD_RETURN();
 }
 
-inline void uuid_base::s_set_hostID(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void uuid_base::s_static_set_hostID(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("uuid.hostID");
     PROPERTY_ENTER();

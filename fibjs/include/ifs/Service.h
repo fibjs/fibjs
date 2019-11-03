@@ -57,13 +57,13 @@ public:
     static void s_set_onpause(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_oncontinue(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_oncontinue(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_install(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_stop(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_restart(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_isInstalled(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_isRunning(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_install(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_start(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_stop(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_restart(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isInstalled(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isRunning(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBER0(Service_base, run);
@@ -76,13 +76,13 @@ inline ClassInfo& Service_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "run", s_run, false },
         { "runSync", s_run, false },
-        { "install", s_install, true },
-        { "remove", s_remove, true },
-        { "start", s_start, true },
-        { "stop", s_stop, true },
-        { "restart", s_restart, true },
-        { "isInstalled", s_isInstalled, true },
-        { "isRunning", s_isRunning, true }
+        { "install", s_static_install, true },
+        { "remove", s_static_remove, true },
+        { "start", s_static_start, true },
+        { "stop", s_static_stop, true },
+        { "restart", s_static_restart, true },
+        { "isInstalled", s_static_isInstalled, true },
+        { "isRunning", s_static_isRunning, true }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -244,7 +244,7 @@ inline void Service_base::s_set_oncontinue(v8::Local<v8::Name> property, v8::Loc
     PROPERTY_SET_LEAVE();
 }
 
-inline void Service_base::s_install(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void Service_base::s_static_install(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("Service.install");
     METHOD_ENTER();
@@ -261,7 +261,7 @@ inline void Service_base::s_install(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_VOID();
 }
 
-inline void Service_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void Service_base::s_static_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("Service.remove");
     METHOD_ENTER();
@@ -275,7 +275,7 @@ inline void Service_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_VOID();
 }
 
-inline void Service_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void Service_base::s_static_start(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("Service.start");
     METHOD_ENTER();
@@ -289,7 +289,7 @@ inline void Service_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_VOID();
 }
 
-inline void Service_base::s_stop(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void Service_base::s_static_stop(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("Service.stop");
     METHOD_ENTER();
@@ -303,7 +303,7 @@ inline void Service_base::s_stop(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_VOID();
 }
 
-inline void Service_base::s_restart(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void Service_base::s_static_restart(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("Service.restart");
     METHOD_ENTER();
@@ -317,7 +317,7 @@ inline void Service_base::s_restart(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_VOID();
 }
 
-inline void Service_base::s_isInstalled(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void Service_base::s_static_isInstalled(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
@@ -333,7 +333,7 @@ inline void Service_base::s_isInstalled(const v8::FunctionCallbackInfo<v8::Value
     METHOD_RETURN();
 }
 
-inline void Service_base::s_isRunning(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void Service_base::s_static_isRunning(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 

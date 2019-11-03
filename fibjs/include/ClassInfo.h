@@ -336,8 +336,9 @@ private:
             int32_t i;
 
             for (i = 0; i < m_cd.mc; i++)
-                pt->Set(isolate->NewString(m_cd.cms[i].name),
-                    v8::FunctionTemplate::New(isolate->m_isolate, m_cd.cms[i].invoker));
+                if (!m_cd.cms[i].is_static)
+                    pt->Set(isolate->NewString(m_cd.cms[i].name),
+                        v8::FunctionTemplate::New(isolate->m_isolate, m_cd.cms[i].invoker));
 
             for (i = 0; i < m_cd.oc; i++) {
                 cache* _cache1 = m_cd.cos[i].invoker()._init(isolate);
@@ -346,9 +347,10 @@ private:
             }
 
             for (i = 0; i < m_cd.pc; i++)
-                pt->SetAccessor(isolate->NewString(m_cd.cps[i].name),
-                    m_cd.cps[i].getter, m_cd.cps[i].setter,
-                    v8::Local<v8::Value>(), v8::DEFAULT, v8::DontDelete);
+                if (!m_cd.cps[i].is_static)
+                    pt->SetAccessor(isolate->NewString(m_cd.cps[i].name),
+                        m_cd.cps[i].getter, m_cd.cps[i].setter,
+                        v8::Local<v8::Value>(), v8::DEFAULT, v8::DontDelete);
 
             for (i = 0; i < m_cd.cc; i++) {
                 pt->Set(isolate->NewString(m_cd.ccs[i].name),

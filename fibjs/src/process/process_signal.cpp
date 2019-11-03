@@ -8,7 +8,7 @@
 #include "object.h"
 #include "ifs/process.h"
 #include "Fiber.h"
-#include "Trigger.h"
+#include "EventEmitter.h"
 #include <signal.h>
 
 #ifdef _WIN32

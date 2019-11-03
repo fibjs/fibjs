@@ -71,26 +71,26 @@ public:
     }
 
 public:
-    static void s_digest(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_md2(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_md4(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_md5(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_sha1(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_sha224(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_sha256(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_sha384(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_sha512(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_ripemd160(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_hmac(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_hmac_md2(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_hmac_md4(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_hmac_md5(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_hmac_sha1(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_hmac_sha224(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_hmac_sha256(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_hmac_sha384(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_hmac_sha512(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_hmac_ripemd160(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_digest(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_md2(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_md4(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_md5(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_sha1(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_sha224(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_sha256(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_sha384(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_sha512(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_ripemd160(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_hmac(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_hmac_md2(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_hmac_md4(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_hmac_md5(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_hmac_sha1(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_hmac_sha224(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_hmac_sha256(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_hmac_sha384(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_hmac_sha512(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_hmac_ripemd160(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -101,26 +101,26 @@ namespace fibjs {
 inline ClassInfo& hash_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "digest", s_digest, true },
-        { "md2", s_md2, true },
-        { "md4", s_md4, true },
-        { "md5", s_md5, true },
-        { "sha1", s_sha1, true },
-        { "sha224", s_sha224, true },
-        { "sha256", s_sha256, true },
-        { "sha384", s_sha384, true },
-        { "sha512", s_sha512, true },
-        { "ripemd160", s_ripemd160, true },
-        { "hmac", s_hmac, true },
-        { "hmac_md2", s_hmac_md2, true },
-        { "hmac_md4", s_hmac_md4, true },
-        { "hmac_md5", s_hmac_md5, true },
-        { "hmac_sha1", s_hmac_sha1, true },
-        { "hmac_sha224", s_hmac_sha224, true },
-        { "hmac_sha256", s_hmac_sha256, true },
-        { "hmac_sha384", s_hmac_sha384, true },
-        { "hmac_sha512", s_hmac_sha512, true },
-        { "hmac_ripemd160", s_hmac_ripemd160, true }
+        { "digest", s_static_digest, true },
+        { "md2", s_static_md2, true },
+        { "md4", s_static_md4, true },
+        { "md5", s_static_md5, true },
+        { "sha1", s_static_sha1, true },
+        { "sha224", s_static_sha224, true },
+        { "sha256", s_static_sha256, true },
+        { "sha384", s_static_sha384, true },
+        { "sha512", s_static_sha512, true },
+        { "ripemd160", s_static_ripemd160, true },
+        { "hmac", s_static_hmac, true },
+        { "hmac_md2", s_static_hmac_md2, true },
+        { "hmac_md4", s_static_hmac_md4, true },
+        { "hmac_md5", s_static_hmac_md5, true },
+        { "hmac_sha1", s_static_hmac_sha1, true },
+        { "hmac_sha224", s_static_hmac_sha224, true },
+        { "hmac_sha256", s_static_hmac_sha256, true },
+        { "hmac_sha384", s_static_hmac_sha384, true },
+        { "hmac_sha512", s_static_hmac_sha512, true },
+        { "hmac_ripemd160", s_static_hmac_ripemd160, true }
     };
 
     static ClassData::ClassConst s_const[] = {
@@ -145,7 +145,7 @@ inline ClassInfo& hash_base::class_info()
     return s_ci;
 }
 
-inline void hash_base::s_digest(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void hash_base::s_static_digest(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
@@ -168,7 +168,7 @@ inline void hash_base::s_digest(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void hash_base::s_md2(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void hash_base::s_static_md2(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
@@ -184,7 +184,7 @@ inline void hash_base::s_md2(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void hash_base::s_md4(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void hash_base::s_static_md4(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
@@ -200,7 +200,7 @@ inline void hash_base::s_md4(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void hash_base::s_md5(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void hash_base::s_static_md5(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
@@ -216,7 +216,7 @@ inline void hash_base::s_md5(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void hash_base::s_sha1(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void hash_base::s_static_sha1(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
@@ -232,7 +232,7 @@ inline void hash_base::s_sha1(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void hash_base::s_sha224(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void hash_base::s_static_sha224(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
@@ -248,7 +248,7 @@ inline void hash_base::s_sha224(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void hash_base::s_sha256(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void hash_base::s_static_sha256(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
@@ -264,7 +264,7 @@ inline void hash_base::s_sha256(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void hash_base::s_sha384(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void hash_base::s_static_sha384(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
@@ -280,7 +280,7 @@ inline void hash_base::s_sha384(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void hash_base::s_sha512(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void hash_base::s_static_sha512(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
@@ -296,7 +296,7 @@ inline void hash_base::s_sha512(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void hash_base::s_ripemd160(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void hash_base::s_static_ripemd160(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
@@ -312,7 +312,7 @@ inline void hash_base::s_ripemd160(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 
-inline void hash_base::s_hmac(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void hash_base::s_static_hmac(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
@@ -329,7 +329,7 @@ inline void hash_base::s_hmac(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void hash_base::s_hmac_md2(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void hash_base::s_static_hmac_md2(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
@@ -345,7 +345,7 @@ inline void hash_base::s_hmac_md2(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 
-inline void hash_base::s_hmac_md4(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void hash_base::s_static_hmac_md4(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
@@ -361,7 +361,7 @@ inline void hash_base::s_hmac_md4(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 
-inline void hash_base::s_hmac_md5(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void hash_base::s_static_hmac_md5(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
@@ -377,7 +377,7 @@ inline void hash_base::s_hmac_md5(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 
-inline void hash_base::s_hmac_sha1(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void hash_base::s_static_hmac_sha1(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
@@ -393,7 +393,7 @@ inline void hash_base::s_hmac_sha1(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 
-inline void hash_base::s_hmac_sha224(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void hash_base::s_static_hmac_sha224(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
@@ -409,7 +409,7 @@ inline void hash_base::s_hmac_sha224(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_RETURN();
 }
 
-inline void hash_base::s_hmac_sha256(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void hash_base::s_static_hmac_sha256(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
@@ -425,7 +425,7 @@ inline void hash_base::s_hmac_sha256(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_RETURN();
 }
 
-inline void hash_base::s_hmac_sha384(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void hash_base::s_static_hmac_sha384(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
@@ -441,7 +441,7 @@ inline void hash_base::s_hmac_sha384(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_RETURN();
 }
 
-inline void hash_base::s_hmac_sha512(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void hash_base::s_static_hmac_sha512(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
@@ -457,7 +457,7 @@ inline void hash_base::s_hmac_sha512(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_RETURN();
 }
 
-inline void hash_base::s_hmac_ripemd160(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void hash_base::s_static_hmac_ripemd160(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 

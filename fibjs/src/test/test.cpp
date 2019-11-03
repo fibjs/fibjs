@@ -440,49 +440,49 @@ result_t test_base::setup()
             assert_base::class_info().getModule(isolate))
         .IsJust();
 
-    func = isolate->NewFunction("describe", s_describe);
+    func = isolate->NewFunction("describe", s_static_describe);
     glob->DefineOwnProperty(_context, isolate->NewString("describe"), func)
         .IsJust();
 
-    func1 = isolate->NewFunction("xdescribe", s_xdescribe);
+    func1 = isolate->NewFunction("xdescribe", s_static_xdescribe);
     glob->DefineOwnProperty(_context, isolate->NewString("xdescribe"), func1)
         .IsJust();
     func->DefineOwnProperty(_context, isolate->NewString("skip"), func1)
         .IsJust();
 
-    func1 = isolate->NewFunction("odescribe", s_odescribe);
+    func1 = isolate->NewFunction("odescribe", s_static_odescribe);
     glob->DefineOwnProperty(_context, isolate->NewString("odescribe"), func1)
         .IsJust();
     func->DefineOwnProperty(_context, isolate->NewString("only"), func1)
         .IsJust();
 
-    func = isolate->NewFunction("it", s_it);
+    func = isolate->NewFunction("it", s_static_it);
     glob->DefineOwnProperty(_context, isolate->NewString("it"), func)
         .IsJust();
 
-    func1 = isolate->NewFunction("xit", s_xit);
+    func1 = isolate->NewFunction("xit", s_static_xit);
     glob->DefineOwnProperty(_context, isolate->NewString("xit"), func1)
         .IsJust();
     func->DefineOwnProperty(_context, isolate->NewString("skip"), func1)
         .IsJust();
 
-    func1 = isolate->NewFunction("oit", s_oit);
+    func1 = isolate->NewFunction("oit", s_static_oit);
     glob->DefineOwnProperty(_context, isolate->NewString("oit"), func1)
         .IsJust();
     func->DefineOwnProperty(_context, isolate->NewString("only"), func1)
         .IsJust();
 
     glob->DefineOwnProperty(_context, isolate->NewString("before"),
-            isolate->NewFunction("before", s_before))
+            isolate->NewFunction("before", s_static_before))
         .IsJust();
     glob->DefineOwnProperty(_context, isolate->NewString("after"),
-            isolate->NewFunction("after", s_after))
+            isolate->NewFunction("after", s_static_after))
         .IsJust();
     glob->DefineOwnProperty(_context, isolate->NewString("beforeEach"),
-            isolate->NewFunction("beforeEach", s_beforeEach))
+            isolate->NewFunction("beforeEach", s_static_beforeEach))
         .IsJust();
     glob->DefineOwnProperty(_context, isolate->NewString("afterEach"),
-            isolate->NewFunction("afterEach", s_afterEach))
+            isolate->NewFunction("afterEach", s_static_afterEach))
         .IsJust();
 
     return 0;

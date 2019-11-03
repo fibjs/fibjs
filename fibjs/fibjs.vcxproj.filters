@@ -162,6 +162,9 @@
     <ClInclude Include="include\Event.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\EventEmitter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="include\EventInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -343,9 +346,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Timer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Trigger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Url.h">
@@ -876,7 +876,7 @@
     <ClInclude Include="include\version.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\db\sql\trans.h">
+    <ClInclude Include="src\db\sql\db_api.h">
       <Filter>Source Files\db\sql</Filter>
     </ClInclude>
     <ClInclude Include="src\gui\windows\WebView.h">
@@ -890,6 +890,9 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\base\EventEmitter.cpp">
+      <Filter>Source Files\base</Filter>
+    </ClCompile>
     <ClCompile Include="src\base\Runtime.cpp">
       <Filter>Source Files\base</Filter>
     </ClCompile>
@@ -903,6 +906,9 @@
       <Filter>Source Files\base</Filter>
     </ClCompile>
     <ClCompile Include="src\base\date_cache.cpp">
+      <Filter>Source Files\base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\base\events.cpp">
       <Filter>Source Files\base</Filter>
     </ClCompile>
     <ClCompile Include="src\base\fibjs_main.cpp">
@@ -978,9 +984,6 @@
       <Filter>Source Files\coroutine</Filter>
     </ClCompile>
     <ClCompile Include="src\coroutine\Semaphore.cpp">
-      <Filter>Source Files\coroutine</Filter>
-    </ClCompile>
-    <ClCompile Include="src\coroutine\Trigger.cpp">
       <Filter>Source Files\coroutine</Filter>
     </ClCompile>
     <ClCompile Include="src\coroutine\Worker.cpp">

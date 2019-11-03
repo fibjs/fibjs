@@ -40,7 +40,7 @@ public:
     }
 
 public:
-    static void s_createSocket(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createSocket(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -50,7 +50,7 @@ namespace fibjs {
 inline ClassInfo& dgram_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "createSocket", s_createSocket, true }
+        { "createSocket", s_static_createSocket, true }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -67,7 +67,7 @@ inline ClassInfo& dgram_base::class_info()
     return s_ci;
 }
 
-inline void dgram_base::s_createSocket(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void dgram_base::s_static_createSocket(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<DgramSocket_base> vr;
 

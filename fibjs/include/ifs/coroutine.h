@@ -54,16 +54,16 @@ public:
     }
 
 public:
-    static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_parallel(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_current(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_sleep(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_fibers(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_spareFibers(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_spareFibers(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_vmid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_loglevel(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_loglevel(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_static_start(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_parallel(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_current(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_sleep(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_fibers(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_spareFibers(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_set_spareFibers(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_static_get_vmid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_loglevel(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_set_loglevel(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 
 public:
     ASYNC_STATIC1(coroutine_base, sleep, int32_t);
@@ -81,11 +81,11 @@ namespace fibjs {
 inline ClassInfo& coroutine_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "start", s_start, true },
-        { "parallel", s_parallel, true },
-        { "current", s_current, true },
-        { "sleep", s_sleep, true },
-        { "sleepSync", s_sleep, true }
+        { "start", s_static_start, true },
+        { "parallel", s_static_parallel, true },
+        { "current", s_static_current, true },
+        { "sleep", s_static_sleep, true },
+        { "sleepSync", s_static_sleep, true }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -97,10 +97,10 @@ inline ClassInfo& coroutine_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "fibers", s_get_fibers, block_set, true },
-        { "spareFibers", s_get_spareFibers, s_set_spareFibers, true },
-        { "vmid", s_get_vmid, block_set, true },
-        { "loglevel", s_get_loglevel, s_set_loglevel, true }
+        { "fibers", s_static_get_fibers, block_set, true },
+        { "spareFibers", s_static_get_spareFibers, s_static_set_spareFibers, true },
+        { "vmid", s_static_get_vmid, block_set, true },
+        { "loglevel", s_static_get_loglevel, s_static_set_loglevel, true }
     };
 
     static ClassData s_cd = {
@@ -113,7 +113,7 @@ inline ClassInfo& coroutine_base::class_info()
     return s_ci;
 }
 
-inline void coroutine_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void coroutine_base::s_static_start(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Fiber_base> vr;
 
@@ -130,7 +130,7 @@ inline void coroutine_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_RETURN();
 }
 
-inline void coroutine_base::s_parallel(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void coroutine_base::s_static_parallel(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
@@ -169,7 +169,7 @@ inline void coroutine_base::s_parallel(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_RETURN();
 }
 
-inline void coroutine_base::s_current(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void coroutine_base::s_static_current(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Fiber_base> vr;
 
@@ -183,7 +183,7 @@ inline void coroutine_base::s_current(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_RETURN();
 }
 
-inline void coroutine_base::s_sleep(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void coroutine_base::s_static_sleep(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("coroutine.sleep");
     METHOD_ENTER();
@@ -201,7 +201,7 @@ inline void coroutine_base::s_sleep(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_VOID();
 }
 
-inline void coroutine_base::s_get_fibers(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void coroutine_base::s_static_get_fibers(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
@@ -213,7 +213,7 @@ inline void coroutine_base::s_get_fibers(v8::Local<v8::Name> property, const v8:
     METHOD_RETURN();
 }
 
-inline void coroutine_base::s_get_spareFibers(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void coroutine_base::s_static_get_spareFibers(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -225,7 +225,7 @@ inline void coroutine_base::s_get_spareFibers(v8::Local<v8::Name> property, cons
     METHOD_RETURN();
 }
 
-inline void coroutine_base::s_set_spareFibers(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void coroutine_base::s_static_set_spareFibers(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("coroutine.spareFibers");
     PROPERTY_ENTER();
@@ -236,7 +236,7 @@ inline void coroutine_base::s_set_spareFibers(v8::Local<v8::Name> property, v8::
     PROPERTY_SET_LEAVE();
 }
 
-inline void coroutine_base::s_get_vmid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void coroutine_base::s_static_get_vmid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -248,7 +248,7 @@ inline void coroutine_base::s_get_vmid(v8::Local<v8::Name> property, const v8::P
     METHOD_RETURN();
 }
 
-inline void coroutine_base::s_get_loglevel(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void coroutine_base::s_static_get_loglevel(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -260,7 +260,7 @@ inline void coroutine_base::s_get_loglevel(v8::Local<v8::Name> property, const v
     METHOD_RETURN();
 }
 
-inline void coroutine_base::s_set_loglevel(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void coroutine_base::s_static_set_loglevel(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("coroutine.loglevel");
     PROPERTY_ENTER();

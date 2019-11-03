@@ -574,6 +574,15 @@ result_t Buffer::indexOf(exlib::string v, int32_t offset, int32_t& retVal)
     return 0;
 }
 
+result_t Buffer_base::compare(Buffer_base* buf1, Buffer_base* buf2, int32_t& retVal)
+{
+    obj_ptr<Buffer> cmpl = dynamic_cast<Buffer*>(buf1);
+    obj_ptr<Buffer> cmp2 = dynamic_cast<Buffer*>(buf2);
+
+    buf1->compare(buf2, retVal);
+    return 0;
+}
+
 result_t Buffer::compare(Buffer_base* buf, int32_t& retVal)
 {
     obj_ptr<Buffer> cmpdata = dynamic_cast<Buffer*>(buf);

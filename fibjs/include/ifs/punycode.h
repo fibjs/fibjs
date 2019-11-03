@@ -38,10 +38,10 @@ public:
     }
 
 public:
-    static void s_encode(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_decode(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_toASCII(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_toUnicode(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_encode(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_decode(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_toASCII(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_toUnicode(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -49,10 +49,10 @@ namespace fibjs {
 inline ClassInfo& punycode_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "encode", s_encode, true },
-        { "decode", s_decode, true },
-        { "toASCII", s_toASCII, true },
-        { "toUnicode", s_toUnicode, true }
+        { "encode", s_static_encode, true },
+        { "decode", s_static_decode, true },
+        { "toASCII", s_static_toASCII, true },
+        { "toUnicode", s_static_toUnicode, true }
     };
 
     static ClassData s_cd = {
@@ -65,7 +65,7 @@ inline ClassInfo& punycode_base::class_info()
     return s_ci;
 }
 
-inline void punycode_base::s_encode(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void punycode_base::s_static_encode(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -81,7 +81,7 @@ inline void punycode_base::s_encode(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_RETURN();
 }
 
-inline void punycode_base::s_decode(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void punycode_base::s_static_decode(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -97,7 +97,7 @@ inline void punycode_base::s_decode(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_RETURN();
 }
 
-inline void punycode_base::s_toASCII(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void punycode_base::s_static_toASCII(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -113,7 +113,7 @@ inline void punycode_base::s_toASCII(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_RETURN();
 }
 
-inline void punycode_base::s_toUnicode(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void punycode_base::s_static_toUnicode(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 

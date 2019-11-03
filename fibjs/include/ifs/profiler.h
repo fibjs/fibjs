@@ -67,11 +67,11 @@ public:
     }
 
 public:
-    static void s_saveSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_loadSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_takeSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_diff(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_saveSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_loadSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_takeSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_diff(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_start(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -82,11 +82,11 @@ namespace fibjs {
 inline ClassInfo& profiler_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "saveSnapshot", s_saveSnapshot, true },
-        { "loadSnapshot", s_loadSnapshot, true },
-        { "takeSnapshot", s_takeSnapshot, true },
-        { "diff", s_diff, true },
-        { "start", s_start, true }
+        { "saveSnapshot", s_static_saveSnapshot, true },
+        { "loadSnapshot", s_static_loadSnapshot, true },
+        { "takeSnapshot", s_static_takeSnapshot, true },
+        { "diff", s_static_diff, true },
+        { "start", s_static_start, true }
     };
 
     static ClassData::ClassConst s_const[] = {
@@ -123,7 +123,7 @@ inline ClassInfo& profiler_base::class_info()
     return s_ci;
 }
 
-inline void profiler_base::s_saveSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void profiler_base::s_static_saveSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("profiler.saveSnapshot");
     METHOD_ENTER();
@@ -137,7 +137,7 @@ inline void profiler_base::s_saveSnapshot(const v8::FunctionCallbackInfo<v8::Val
     METHOD_VOID();
 }
 
-inline void profiler_base::s_loadSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void profiler_base::s_static_loadSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<HeapSnapshot_base> vr;
 
@@ -153,7 +153,7 @@ inline void profiler_base::s_loadSnapshot(const v8::FunctionCallbackInfo<v8::Val
     METHOD_RETURN();
 }
 
-inline void profiler_base::s_takeSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void profiler_base::s_static_takeSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<HeapSnapshot_base> vr;
 
@@ -167,7 +167,7 @@ inline void profiler_base::s_takeSnapshot(const v8::FunctionCallbackInfo<v8::Val
     METHOD_RETURN();
 }
 
-inline void profiler_base::s_diff(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void profiler_base::s_static_diff(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
@@ -183,7 +183,7 @@ inline void profiler_base::s_diff(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 
-inline void profiler_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void profiler_base::s_static_start(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Timer_base> vr;
 
