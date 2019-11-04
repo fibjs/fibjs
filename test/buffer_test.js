@@ -578,6 +578,7 @@ describe('Buffer', () => {
 
         buf = new Buffer([1, 0, 1]);
         assert.equal(buf.equals(new Buffer([1, 0, 1])), true);
+        assert.equal(Buffer.compare(buf, new Buffer([1, 0, 1])), 0);
         assert.equal(buf.equals(new Buffer([1, 0, 2])), false);
     });
 
