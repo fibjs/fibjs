@@ -10,7 +10,8 @@ var { chdirAndDo, ensureDirectoryExisted, readJson } = require('../../_helpers/p
 
 const processRunOptions = {
     env: {
-        FIBJS_SILENT_INSALL: 1
+        FIBJS_SILENT_INSALL: process.env.hasOwnProperty('FIBJS_SILENT_INSALL') ? process.env.FIBJS_SILENT_INSALL : 1,
+        fibjs_install_http_proxy: process.env.fibjs_install_http_proxy,
     }
 }
 
@@ -24,7 +25,7 @@ describe('opt_tools/install from raw', () => {
     var rmdirr;
     // deps for this test :end
 
-    function clean_pkgjson () {
+    function clean_pkgjson() {
         const _p = path.resolve(__dirname, './package.json')
         if (fs.exists(_p))
             fs.unlink(_p)
@@ -45,7 +46,7 @@ describe('opt_tools/install from raw', () => {
 
     after(() => {
         clean_pkgjson();
-    })
+    });
 
     ;[
         ['default registry: regitry.npmjs.org'],
@@ -73,6 +74,34 @@ describe('opt_tools/install from raw', () => {
                         resolveNodeModules(installTarget, 'ejs')
                     ));
 
+                    assert.notOk(
+                        fs.exists(pkgJson)
+                    );
+                });
+
+                it('install --save public normal package', () => {
+                    chdirAndDo(installTarget, () => {
+                        process.run(bin, ['--install', '--save', 'ejs'], processRunOptions)
+                    })();
+
+                    assert.ok(fs.exists(
+                        resolveNodeModules(installTarget, 'ejs')
+                    ));
+
+                    assert.ok(
+                        readJson(pkgJson).dependencies['ejs']
+                    );
+                });
+
+                it('install -S public normal package', () => {
+                    chdirAndDo(installTarget, () => {
+                        process.run(bin, ['--install', '-S', 'ejs'], processRunOptions)
+                    })();
+
+                    assert.ok(fs.exists(
+                        resolveNodeModules(installTarget, 'ejs')
+                    ));
+
                     assert.ok(
                         readJson(pkgJson).dependencies['ejs']
                     );
@@ -87,6 +116,34 @@ describe('opt_tools/install from raw', () => {
                         resolveNodeModules(installTarget, '@fibjs/chalk')
                     ));
 
+                    assert.notOk(
+                        fs.exists(pkgJson)
+                    );
+                });
+
+                it('install --save public @scope package', () => {
+                    chdirAndDo(installTarget, () => {
+                        process.run(bin, ['--install', '--save', '@fibjs/chalk'], processRunOptions)
+                    })()
+
+                    assert.ok(fs.exists(
+                        resolveNodeModules(installTarget, '@fibjs/chalk')
+                    ));
+
+                    assert.ok(
+                        readJson(pkgJson).dependencies['@fibjs/chalk']
+                    );
+                });
+
+                it('install -S public @scope package', () => {
+                    chdirAndDo(installTarget, () => {
+                        process.run(bin, ['--install', '-S', '@fibjs/chalk'], processRunOptions)
+                    })()
+
+                    assert.ok(fs.exists(
+                        resolveNodeModules(installTarget, '@fibjs/chalk')
+                    ));
+
                     assert.ok(
                         readJson(pkgJson).dependencies['@fibjs/chalk']
                     );
@@ -94,19 +151,19 @@ describe('opt_tools/install from raw', () => {
 
                 it('install package --save-dev/-D', () => {
                     chdirAndDo(installTarget, () => {
-                        process.run(bin, ['--install', '@fibjs/chalk', '--save-dev'], processRunOptions)
+                        process.run(bin, ['--install', '--save-dev', 'ejs'], processRunOptions)
                     })();
 
                     assert.ok(fs.exists(
-                        resolveNodeModules(installTarget, '@fibjs/chalk')
+                        resolveNodeModules(installTarget, 'ejs')
                     ));
 
                     assert.ok(
-                        !require(pkgJson).dependencies
+                        fs.exists(pkgJson)
                     );
 
                     assert.ok(
-                        require(pkgJson).devDependencies['@fibjs/chalk']
+                        readJson(pkgJson).devDependencies['ejs']
                     );
                 });
             });
@@ -170,10 +227,56 @@ describe('opt_tools/install from raw', () => {
                     resolveNodeModules(installTarget, pkg_name)
                 ));
 
+                assert.notOk(
+                    fs.exists(pkgJson)
+                );
+            });
+
+            it(`[--save] ${desc}`, () => {
+                chdirAndDo(installTarget, () => {
+                    process.run(bin, ['--install', '--save', target], processRunOptions)
+                })();
+
+                assert.ok(fs.exists(
+                    resolveNodeModules(installTarget, pkg_name)
+                ));
+
                 assert.equal(readJson(pkgJson).version, '1.0.0');
 
                 assert.ok(
                     readJson(pkgJson).dependencies[pkg_name]
+                );
+            });
+
+            it(`[-S] ${desc}`, () => {
+                chdirAndDo(installTarget, () => {
+                    process.run(bin, ['--install', '-S', target], processRunOptions)
+                })();
+
+                assert.ok(fs.exists(
+                    resolveNodeModules(installTarget, pkg_name)
+                ));
+
+                assert.equal(readJson(pkgJson).version, '1.0.0');
+
+                assert.ok(
+                    readJson(pkgJson).dependencies[pkg_name]
+                );
+            });
+
+            it(`[-D] ${desc}`, () => {
+                chdirAndDo(installTarget, () => {
+                    process.run(bin, ['--install', '-D', target], processRunOptions)
+                })();
+
+                assert.ok(fs.exists(
+                    resolveNodeModules(installTarget, pkg_name)
+                ));
+
+                assert.equal(readJson(pkgJson).version, '1.0.0');
+
+                assert.ok(
+                    readJson(pkgJson).devDependencies[pkg_name]
                 );
             });
         });
