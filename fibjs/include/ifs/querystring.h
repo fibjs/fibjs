@@ -40,10 +40,10 @@ public:
     }
 
 public:
-    static void s_escape(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_unescape(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_parse(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_stringify(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_escape(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_unescape(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_stringify(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -53,10 +53,10 @@ namespace fibjs {
 inline ClassInfo& querystring_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "escape", s_escape, true },
-        { "unescape", s_unescape, true },
-        { "parse", s_parse, true },
-        { "stringify", s_stringify, true }
+        { "escape", s_static_escape, true },
+        { "unescape", s_static_unescape, true },
+        { "parse", s_static_parse, true },
+        { "stringify", s_static_stringify, true }
     };
 
     static ClassData s_cd = {
@@ -69,7 +69,7 @@ inline ClassInfo& querystring_base::class_info()
     return s_ci;
 }
 
-inline void querystring_base::s_escape(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void querystring_base::s_static_escape(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -85,7 +85,7 @@ inline void querystring_base::s_escape(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_RETURN();
 }
 
-inline void querystring_base::s_unescape(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void querystring_base::s_static_unescape(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -101,7 +101,7 @@ inline void querystring_base::s_unescape(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_RETURN();
 }
 
-inline void querystring_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void querystring_base::s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<HttpCollection_base> vr;
 
@@ -120,7 +120,7 @@ inline void querystring_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_RETURN();
 }
 
-inline void querystring_base::s_stringify(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void querystring_base::s_static_stringify(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 

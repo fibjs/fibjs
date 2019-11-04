@@ -97,41 +97,41 @@ public:
     }
 
 public:
-    static void s_get_loglevel(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_loglevel(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_width(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_height(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_add(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_reset(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_log(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_debug(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_info(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_notice(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_warn(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_error(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_crit(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_alert(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_dir(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_time(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_timeElapse(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_timeEnd(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_trace(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s__assert(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_print(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_moveTo(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_hideCursor(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_showCursor(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_clear(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_keyDown(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_keyUp(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_keyTap(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_typeString(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_moveMouse(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_mouseUp(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_mouseDown(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_clickMouse(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_readLine(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_getpass(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_loglevel(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_set_loglevel(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_static_get_width(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_height(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_add(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_reset(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_log(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_debug(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_info(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_notice(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_warn(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_error(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_crit(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_alert(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_dir(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_time(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_timeElapse(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_timeEnd(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_trace(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static__assert(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_print(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_moveTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_hideCursor(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_showCursor(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_clear(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_keyDown(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_keyUp(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_keyTap(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_typeString(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_moveMouse(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_mouseUp(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_mouseDown(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_clickMouse(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_readLine(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_getpass(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(console_base, readLine, exlib::string, exlib::string);
@@ -143,45 +143,45 @@ namespace fibjs {
 inline ClassInfo& console_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "add", s_add, true },
-        { "reset", s_reset, true },
-        { "log", s_log, true },
-        { "debug", s_debug, true },
-        { "info", s_info, true },
-        { "notice", s_notice, true },
-        { "warn", s_warn, true },
-        { "error", s_error, true },
-        { "crit", s_crit, true },
-        { "alert", s_alert, true },
-        { "dir", s_dir, true },
-        { "time", s_time, true },
-        { "timeElapse", s_timeElapse, true },
-        { "timeEnd", s_timeEnd, true },
-        { "trace", s_trace, true },
-        { "assert", s__assert, true },
-        { "print", s_print, true },
-        { "moveTo", s_moveTo, true },
-        { "hideCursor", s_hideCursor, true },
-        { "showCursor", s_showCursor, true },
-        { "clear", s_clear, true },
-        { "keyDown", s_keyDown, true },
-        { "keyUp", s_keyUp, true },
-        { "keyTap", s_keyTap, true },
-        { "typeString", s_typeString, true },
-        { "moveMouse", s_moveMouse, true },
-        { "mouseUp", s_mouseUp, true },
-        { "mouseDown", s_mouseDown, true },
-        { "clickMouse", s_clickMouse, true },
-        { "readLine", s_readLine, true },
-        { "readLineSync", s_readLine, true },
-        { "getpass", s_getpass, true },
-        { "getpassSync", s_getpass, true }
+        { "add", s_static_add, true },
+        { "reset", s_static_reset, true },
+        { "log", s_static_log, true },
+        { "debug", s_static_debug, true },
+        { "info", s_static_info, true },
+        { "notice", s_static_notice, true },
+        { "warn", s_static_warn, true },
+        { "error", s_static_error, true },
+        { "crit", s_static_crit, true },
+        { "alert", s_static_alert, true },
+        { "dir", s_static_dir, true },
+        { "time", s_static_time, true },
+        { "timeElapse", s_static_timeElapse, true },
+        { "timeEnd", s_static_timeEnd, true },
+        { "trace", s_static_trace, true },
+        { "assert", s_static__assert, true },
+        { "print", s_static_print, true },
+        { "moveTo", s_static_moveTo, true },
+        { "hideCursor", s_static_hideCursor, true },
+        { "showCursor", s_static_showCursor, true },
+        { "clear", s_static_clear, true },
+        { "keyDown", s_static_keyDown, true },
+        { "keyUp", s_static_keyUp, true },
+        { "keyTap", s_static_keyTap, true },
+        { "typeString", s_static_typeString, true },
+        { "moveMouse", s_static_moveMouse, true },
+        { "mouseUp", s_static_mouseUp, true },
+        { "mouseDown", s_static_mouseDown, true },
+        { "clickMouse", s_static_clickMouse, true },
+        { "readLine", s_static_readLine, true },
+        { "readLineSync", s_static_readLine, true },
+        { "getpass", s_static_getpass, true },
+        { "getpassSync", s_static_getpass, true }
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "loglevel", s_get_loglevel, s_set_loglevel, true },
-        { "width", s_get_width, block_set, true },
-        { "height", s_get_height, block_set, true }
+        { "loglevel", s_static_get_loglevel, s_static_set_loglevel, true },
+        { "width", s_static_get_width, block_set, true },
+        { "height", s_static_get_height, block_set, true }
     };
 
     static ClassData::ClassConst s_const[] = {
@@ -207,7 +207,7 @@ inline ClassInfo& console_base::class_info()
     return s_ci;
 }
 
-inline void console_base::s_get_loglevel(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_get_loglevel(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -219,7 +219,7 @@ inline void console_base::s_get_loglevel(v8::Local<v8::Name> property, const v8:
     METHOD_RETURN();
 }
 
-inline void console_base::s_set_loglevel(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void console_base::s_static_set_loglevel(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
     METHOD_NAME("console.loglevel");
     PROPERTY_ENTER();
@@ -230,7 +230,7 @@ inline void console_base::s_set_loglevel(v8::Local<v8::Name> property, v8::Local
     PROPERTY_SET_LEAVE();
 }
 
-inline void console_base::s_get_width(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_get_width(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -242,7 +242,7 @@ inline void console_base::s_get_width(v8::Local<v8::Name> property, const v8::Pr
     METHOD_RETURN();
 }
 
-inline void console_base::s_get_height(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_get_height(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -254,7 +254,7 @@ inline void console_base::s_get_height(v8::Local<v8::Name> property, const v8::P
     METHOD_RETURN();
 }
 
-inline void console_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_add(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.add");
     METHOD_ENTER();
@@ -280,7 +280,7 @@ inline void console_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void console_base::s_reset(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_reset(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.reset");
     METHOD_ENTER();
@@ -292,7 +292,7 @@ inline void console_base::s_reset(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_VOID();
 }
 
-inline void console_base::s_log(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_log(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.log");
     METHOD_ENTER();
@@ -313,7 +313,7 @@ inline void console_base::s_log(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void console_base::s_debug(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_debug(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.debug");
     METHOD_ENTER();
@@ -334,7 +334,7 @@ inline void console_base::s_debug(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_VOID();
 }
 
-inline void console_base::s_info(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_info(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.info");
     METHOD_ENTER();
@@ -355,7 +355,7 @@ inline void console_base::s_info(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_VOID();
 }
 
-inline void console_base::s_notice(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_notice(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.notice");
     METHOD_ENTER();
@@ -376,7 +376,7 @@ inline void console_base::s_notice(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_VOID();
 }
 
-inline void console_base::s_warn(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_warn(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.warn");
     METHOD_ENTER();
@@ -397,7 +397,7 @@ inline void console_base::s_warn(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_VOID();
 }
 
-inline void console_base::s_error(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_error(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.error");
     METHOD_ENTER();
@@ -418,7 +418,7 @@ inline void console_base::s_error(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_VOID();
 }
 
-inline void console_base::s_crit(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_crit(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.crit");
     METHOD_ENTER();
@@ -439,7 +439,7 @@ inline void console_base::s_crit(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_VOID();
 }
 
-inline void console_base::s_alert(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_alert(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.alert");
     METHOD_ENTER();
@@ -460,7 +460,7 @@ inline void console_base::s_alert(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_VOID();
 }
 
-inline void console_base::s_dir(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_dir(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.dir");
     METHOD_ENTER();
@@ -474,7 +474,7 @@ inline void console_base::s_dir(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void console_base::s_time(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_time(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.time");
     METHOD_ENTER();
@@ -488,7 +488,7 @@ inline void console_base::s_time(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_VOID();
 }
 
-inline void console_base::s_timeElapse(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_timeElapse(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.timeElapse");
     METHOD_ENTER();
@@ -502,7 +502,7 @@ inline void console_base::s_timeElapse(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_VOID();
 }
 
-inline void console_base::s_timeEnd(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_timeEnd(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.timeEnd");
     METHOD_ENTER();
@@ -516,7 +516,7 @@ inline void console_base::s_timeEnd(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_VOID();
 }
 
-inline void console_base::s_trace(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_trace(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.trace");
     METHOD_ENTER();
@@ -530,7 +530,7 @@ inline void console_base::s_trace(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_VOID();
 }
 
-inline void console_base::s__assert(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static__assert(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.assert");
     METHOD_ENTER();
@@ -545,7 +545,7 @@ inline void console_base::s__assert(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_VOID();
 }
 
-inline void console_base::s_print(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_print(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.print");
     METHOD_ENTER();
@@ -566,7 +566,7 @@ inline void console_base::s_print(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_VOID();
 }
 
-inline void console_base::s_moveTo(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_moveTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.moveTo");
     METHOD_ENTER();
@@ -581,7 +581,7 @@ inline void console_base::s_moveTo(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_VOID();
 }
 
-inline void console_base::s_hideCursor(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_hideCursor(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.hideCursor");
     METHOD_ENTER();
@@ -593,7 +593,7 @@ inline void console_base::s_hideCursor(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_VOID();
 }
 
-inline void console_base::s_showCursor(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_showCursor(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.showCursor");
     METHOD_ENTER();
@@ -605,7 +605,7 @@ inline void console_base::s_showCursor(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_VOID();
 }
 
-inline void console_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.clear");
     METHOD_ENTER();
@@ -617,7 +617,7 @@ inline void console_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_VOID();
 }
 
-inline void console_base::s_keyDown(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_keyDown(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.keyDown");
     METHOD_ENTER();
@@ -639,7 +639,7 @@ inline void console_base::s_keyDown(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_VOID();
 }
 
-inline void console_base::s_keyUp(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_keyUp(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.keyUp");
     METHOD_ENTER();
@@ -661,7 +661,7 @@ inline void console_base::s_keyUp(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_VOID();
 }
 
-inline void console_base::s_keyTap(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_keyTap(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.keyTap");
     METHOD_ENTER();
@@ -683,7 +683,7 @@ inline void console_base::s_keyTap(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_VOID();
 }
 
-inline void console_base::s_typeString(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_typeString(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.typeString");
     METHOD_ENTER();
@@ -697,7 +697,7 @@ inline void console_base::s_typeString(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_VOID();
 }
 
-inline void console_base::s_moveMouse(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_moveMouse(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.moveMouse");
     METHOD_ENTER();
@@ -712,7 +712,7 @@ inline void console_base::s_moveMouse(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_VOID();
 }
 
-inline void console_base::s_mouseUp(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_mouseUp(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.mouseUp");
     METHOD_ENTER();
@@ -726,7 +726,7 @@ inline void console_base::s_mouseUp(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_VOID();
 }
 
-inline void console_base::s_mouseDown(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_mouseDown(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.mouseDown");
     METHOD_ENTER();
@@ -740,7 +740,7 @@ inline void console_base::s_mouseDown(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_VOID();
 }
 
-inline void console_base::s_clickMouse(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_clickMouse(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("console.clickMouse");
     METHOD_ENTER();
@@ -755,7 +755,7 @@ inline void console_base::s_clickMouse(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_VOID();
 }
 
-inline void console_base::s_readLine(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_readLine(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -775,7 +775,7 @@ inline void console_base::s_readLine(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_RETURN();
 }
 
-inline void console_base::s_getpass(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void console_base::s_static_getpass(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 

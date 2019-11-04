@@ -9,6 +9,9 @@
 #define EVENT_H_
 
 #include "ifs/EventEmitter.h"
+#include "Fiber.h"
+#include "ifs/coroutine.h"
+#include "QuickArray.h"
 
 namespace fibjs {
 

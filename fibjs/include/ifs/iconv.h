@@ -39,9 +39,9 @@ public:
     }
 
 public:
-    static void s_encode(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_decode(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_isEncoding(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_encode(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_decode(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isEncoding(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -51,9 +51,9 @@ namespace fibjs {
 inline ClassInfo& iconv_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "encode", s_encode, true },
-        { "decode", s_decode, true },
-        { "isEncoding", s_isEncoding, true }
+        { "encode", s_static_encode, true },
+        { "decode", s_static_decode, true },
+        { "isEncoding", s_static_isEncoding, true }
     };
 
     static ClassData s_cd = {
@@ -66,7 +66,7 @@ inline ClassInfo& iconv_base::class_info()
     return s_ci;
 }
 
-inline void iconv_base::s_encode(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void iconv_base::s_static_encode(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
@@ -83,7 +83,7 @@ inline void iconv_base::s_encode(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_RETURN();
 }
 
-inline void iconv_base::s_decode(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void iconv_base::s_static_decode(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -100,7 +100,7 @@ inline void iconv_base::s_decode(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_RETURN();
 }
 
-inline void iconv_base::s_isEncoding(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void iconv_base::s_static_isEncoding(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 

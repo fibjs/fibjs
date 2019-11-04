@@ -144,6 +144,13 @@ interface Buffer : object
      */
     static Integer byteLength(Buffer str, String codec = "utf8");
 
+    /*! @brief 比较 buf1 和 buf2, 往往用于 Buffer 实例之间的排序. 该方式等价于 buf1.compare(buf2).
+    @param buf1 待比较的 buf
+    @param buf2 待比较的 buf
+    @return 返回比较字节长度
+     */
+    static Integer compare(Buffer buf1, Buffer buf2);
+
     /*! @brief 检测编码格式是否被支持
      @param codec 待检测的编码格式
      @return 是否支持

@@ -82,15 +82,15 @@ public:
     }
 
 public:
-    static void s_create(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_load(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_rgb(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_rgba(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_hsl(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_hsla(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_hsb(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_hsba(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_color(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_create(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_load(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_rgb(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_rgba(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_hsl(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_hsla(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_hsb(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_hsba(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_color(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE4(gd_base, create, int32_t, int32_t, int32_t, obj_ptr<Image_base>);
@@ -108,17 +108,17 @@ namespace fibjs {
 inline ClassInfo& gd_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "create", s_create, true },
-        { "createSync", s_create, true },
-        { "load", s_load, true },
-        { "loadSync", s_load, true },
-        { "rgb", s_rgb, true },
-        { "rgba", s_rgba, true },
-        { "hsl", s_hsl, true },
-        { "hsla", s_hsla, true },
-        { "hsb", s_hsb, true },
-        { "hsba", s_hsba, true },
-        { "color", s_color, true }
+        { "create", s_static_create, true },
+        { "createSync", s_static_create, true },
+        { "load", s_static_load, true },
+        { "loadSync", s_static_load, true },
+        { "rgb", s_static_rgb, true },
+        { "rgba", s_static_rgba, true },
+        { "hsl", s_static_hsl, true },
+        { "hsla", s_static_hsla, true },
+        { "hsb", s_static_hsb, true },
+        { "hsba", s_static_hsba, true },
+        { "color", s_static_color, true }
     };
 
     static ClassData::ClassConst s_const[] = {
@@ -163,7 +163,7 @@ inline ClassInfo& gd_base::class_info()
     return s_ci;
 }
 
-inline void gd_base::s_create(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void gd_base::s_static_create(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Image_base> vr;
 
@@ -185,7 +185,7 @@ inline void gd_base::s_create(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void gd_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void gd_base::s_static_load(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Image_base> vr;
 
@@ -225,7 +225,7 @@ inline void gd_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void gd_base::s_rgb(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void gd_base::s_static_rgb(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -243,7 +243,7 @@ inline void gd_base::s_rgb(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void gd_base::s_rgba(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void gd_base::s_static_rgba(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -262,7 +262,7 @@ inline void gd_base::s_rgba(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void gd_base::s_hsl(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void gd_base::s_static_hsl(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -280,7 +280,7 @@ inline void gd_base::s_hsl(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void gd_base::s_hsla(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void gd_base::s_static_hsla(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -299,7 +299,7 @@ inline void gd_base::s_hsla(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void gd_base::s_hsb(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void gd_base::s_static_hsb(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -317,7 +317,7 @@ inline void gd_base::s_hsb(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void gd_base::s_hsba(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void gd_base::s_static_hsba(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -336,7 +336,7 @@ inline void gd_base::s_hsba(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void gd_base::s_color(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void gd_base::s_static_color(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 

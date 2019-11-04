@@ -48,8 +48,8 @@ public:
     }
 
 public:
-    static void s_setVersion(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_setVersion(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_open(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -59,8 +59,8 @@ namespace fibjs {
 inline ClassInfo& gui_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "setVersion", s_setVersion, true },
-        { "open", s_open, true }
+        { "setVersion", s_static_setVersion, true },
+        { "open", s_static_open, true }
     };
 
     static ClassData::ClassConst s_const[] = {
@@ -82,7 +82,7 @@ inline ClassInfo& gui_base::class_info()
     return s_ci;
 }
 
-inline void gui_base::s_setVersion(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void gui_base::s_static_setVersion(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("gui.setVersion");
     METHOD_ENTER();
@@ -96,7 +96,7 @@ inline void gui_base::s_setVersion(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_VOID();
 }
 
-inline void gui_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void gui_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<WebView_base> vr;
 

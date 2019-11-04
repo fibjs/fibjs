@@ -57,11 +57,11 @@ public:
     }
 
 public:
-    static void s_listSubKey(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_listValue(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_set(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_del(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_listSubKey(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_listValue(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_set(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_del(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -71,11 +71,11 @@ namespace fibjs {
 inline ClassInfo& registry_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "listSubKey", s_listSubKey, true },
-        { "listValue", s_listValue, true },
-        { "get", s_get, true },
-        { "set", s_set, true },
-        { "del", s_del, true }
+        { "listSubKey", s_static_listSubKey, true },
+        { "listValue", s_static_listValue, true },
+        { "get", s_static_get, true },
+        { "set", s_static_set, true },
+        { "del", s_static_del, true }
     };
 
     static ClassData::ClassConst s_const[] = {
@@ -100,7 +100,7 @@ inline ClassInfo& registry_base::class_info()
     return s_ci;
 }
 
-inline void registry_base::s_listSubKey(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void registry_base::s_static_listSubKey(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<NArray> vr;
 
@@ -117,7 +117,7 @@ inline void registry_base::s_listSubKey(const v8::FunctionCallbackInfo<v8::Value
     METHOD_RETURN();
 }
 
-inline void registry_base::s_listValue(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void registry_base::s_static_listValue(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<NArray> vr;
 
@@ -134,7 +134,7 @@ inline void registry_base::s_listValue(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_RETURN();
 }
 
-inline void registry_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void registry_base::s_static_get(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Value> vr;
 
@@ -151,7 +151,7 @@ inline void registry_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_RETURN();
 }
 
-inline void registry_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void registry_base::s_static_set(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("registry.set");
     METHOD_ENTER();
@@ -193,7 +193,7 @@ inline void registry_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_VOID();
 }
 
-inline void registry_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void registry_base::s_static_del(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("registry.del");
     METHOD_ENTER();

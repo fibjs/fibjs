@@ -55,17 +55,17 @@ public:
     }
 
 public:
-    static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_openMySQL(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_openMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_openSQLite(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_openMongoDB(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_openLevelDB(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_openRedis(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_format(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_formatMySQL(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_formatMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_escape(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_open(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_openMySQL(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_openMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_openSQLite(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_openMongoDB(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_openLevelDB(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_openRedis(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_format(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_formatMySQL(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_formatMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_escape(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(db_base, open, exlib::string, obj_ptr<object_base>);
@@ -89,24 +89,24 @@ namespace fibjs {
 inline ClassInfo& db_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "open", s_open, true },
-        { "openSync", s_open, true },
-        { "openMySQL", s_openMySQL, true },
-        { "openMySQLSync", s_openMySQL, true },
-        { "openMSSQL", s_openMSSQL, true },
-        { "openMSSQLSync", s_openMSSQL, true },
-        { "openSQLite", s_openSQLite, true },
-        { "openSQLiteSync", s_openSQLite, true },
-        { "openMongoDB", s_openMongoDB, true },
-        { "openMongoDBSync", s_openMongoDB, true },
-        { "openLevelDB", s_openLevelDB, true },
-        { "openLevelDBSync", s_openLevelDB, true },
-        { "openRedis", s_openRedis, true },
-        { "openRedisSync", s_openRedis, true },
-        { "format", s_format, true },
-        { "formatMySQL", s_formatMySQL, true },
-        { "formatMSSQL", s_formatMSSQL, true },
-        { "escape", s_escape, true }
+        { "open", s_static_open, true },
+        { "openSync", s_static_open, true },
+        { "openMySQL", s_static_openMySQL, true },
+        { "openMySQLSync", s_static_openMySQL, true },
+        { "openMSSQL", s_static_openMSSQL, true },
+        { "openMSSQLSync", s_static_openMSSQL, true },
+        { "openSQLite", s_static_openSQLite, true },
+        { "openSQLiteSync", s_static_openSQLite, true },
+        { "openMongoDB", s_static_openMongoDB, true },
+        { "openMongoDBSync", s_static_openMongoDB, true },
+        { "openLevelDB", s_static_openLevelDB, true },
+        { "openLevelDBSync", s_static_openLevelDB, true },
+        { "openRedis", s_static_openRedis, true },
+        { "openRedisSync", s_static_openRedis, true },
+        { "format", s_static_format, true },
+        { "formatMySQL", s_static_formatMySQL, true },
+        { "formatMSSQL", s_static_formatMSSQL, true },
+        { "escape", s_static_escape, true }
     };
 
     static ClassData s_cd = {
@@ -119,7 +119,7 @@ inline ClassInfo& db_base::class_info()
     return s_ci;
 }
 
-inline void db_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void db_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<object_base> vr;
 
@@ -139,7 +139,7 @@ inline void db_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void db_base::s_openMySQL(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void db_base::s_static_openMySQL(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<MySQL_base> vr;
 
@@ -159,7 +159,7 @@ inline void db_base::s_openMySQL(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_RETURN();
 }
 
-inline void db_base::s_openMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void db_base::s_static_openMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<MSSQL_base> vr;
 
@@ -179,7 +179,7 @@ inline void db_base::s_openMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_RETURN();
 }
 
-inline void db_base::s_openSQLite(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void db_base::s_static_openSQLite(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<SQLite_base> vr;
 
@@ -199,7 +199,7 @@ inline void db_base::s_openSQLite(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 
-inline void db_base::s_openMongoDB(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void db_base::s_static_openMongoDB(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<MongoDB_base> vr;
 
@@ -219,7 +219,7 @@ inline void db_base::s_openMongoDB(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 
-inline void db_base::s_openLevelDB(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void db_base::s_static_openLevelDB(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<LevelDB_base> vr;
 
@@ -239,7 +239,7 @@ inline void db_base::s_openLevelDB(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 
-inline void db_base::s_openRedis(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void db_base::s_static_openRedis(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Redis_base> vr;
 
@@ -259,7 +259,7 @@ inline void db_base::s_openRedis(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_RETURN();
 }
 
-inline void db_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void db_base::s_static_format(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -283,7 +283,7 @@ inline void db_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void db_base::s_formatMySQL(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void db_base::s_static_formatMySQL(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -307,7 +307,7 @@ inline void db_base::s_formatMySQL(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 
-inline void db_base::s_formatMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void db_base::s_static_formatMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -331,7 +331,7 @@ inline void db_base::s_formatMSSQL(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 
-inline void db_base::s_escape(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void db_base::s_static_escape(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 

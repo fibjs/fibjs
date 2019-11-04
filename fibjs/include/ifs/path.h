@@ -48,20 +48,20 @@ public:
     }
 
 public:
-    static void s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_basename(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_extname(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_dirname(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_fullpath(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_isAbsolute(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_join(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_relative(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_toNamespacedPath(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_sep(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_delimiter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_posix(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_win32(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_normalize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_basename(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_extname(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_dirname(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_fullpath(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isAbsolute(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_join(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_relative(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_toNamespacedPath(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_sep(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_delimiter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_posix(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_win32(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -69,23 +69,23 @@ namespace fibjs {
 inline ClassInfo& path_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "normalize", s_normalize, true },
-        { "basename", s_basename, true },
-        { "extname", s_extname, true },
-        { "dirname", s_dirname, true },
-        { "fullpath", s_fullpath, true },
-        { "isAbsolute", s_isAbsolute, true },
-        { "join", s_join, true },
-        { "resolve", s_resolve, true },
-        { "relative", s_relative, true },
-        { "toNamespacedPath", s_toNamespacedPath, true }
+        { "normalize", s_static_normalize, true },
+        { "basename", s_static_basename, true },
+        { "extname", s_static_extname, true },
+        { "dirname", s_static_dirname, true },
+        { "fullpath", s_static_fullpath, true },
+        { "isAbsolute", s_static_isAbsolute, true },
+        { "join", s_static_join, true },
+        { "resolve", s_static_resolve, true },
+        { "relative", s_static_relative, true },
+        { "toNamespacedPath", s_static_toNamespacedPath, true }
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "sep", s_get_sep, block_set, true },
-        { "delimiter", s_get_delimiter, block_set, true },
-        { "posix", s_get_posix, block_set, true },
-        { "win32", s_get_win32, block_set, true }
+        { "sep", s_static_get_sep, block_set, true },
+        { "delimiter", s_static_get_delimiter, block_set, true },
+        { "posix", s_static_get_posix, block_set, true },
+        { "win32", s_static_get_win32, block_set, true }
     };
 
     static ClassData s_cd = {
@@ -98,7 +98,7 @@ inline ClassInfo& path_base::class_info()
     return s_ci;
 }
 
-inline void path_base::s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void path_base::s_static_normalize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -114,7 +114,7 @@ inline void path_base::s_normalize(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 
-inline void path_base::s_basename(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void path_base::s_static_basename(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -131,7 +131,7 @@ inline void path_base::s_basename(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 
-inline void path_base::s_extname(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void path_base::s_static_extname(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -147,7 +147,7 @@ inline void path_base::s_extname(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_RETURN();
 }
 
-inline void path_base::s_dirname(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void path_base::s_static_dirname(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -163,7 +163,7 @@ inline void path_base::s_dirname(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_RETURN();
 }
 
-inline void path_base::s_fullpath(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void path_base::s_static_fullpath(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -179,7 +179,7 @@ inline void path_base::s_fullpath(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 
-inline void path_base::s_isAbsolute(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void path_base::s_static_isAbsolute(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
@@ -195,7 +195,7 @@ inline void path_base::s_isAbsolute(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_RETURN();
 }
 
-inline void path_base::s_join(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void path_base::s_static_join(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -211,7 +211,7 @@ inline void path_base::s_join(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void path_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void path_base::s_static_resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -227,7 +227,7 @@ inline void path_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_RETURN();
 }
 
-inline void path_base::s_relative(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void path_base::s_static_relative(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -244,7 +244,7 @@ inline void path_base::s_relative(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 
-inline void path_base::s_toNamespacedPath(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void path_base::s_static_toNamespacedPath(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Value> vr;
 
@@ -260,7 +260,7 @@ inline void path_base::s_toNamespacedPath(const v8::FunctionCallbackInfo<v8::Val
     METHOD_RETURN();
 }
 
-inline void path_base::s_get_sep(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void path_base::s_static_get_sep(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -272,7 +272,7 @@ inline void path_base::s_get_sep(v8::Local<v8::Name> property, const v8::Propert
     METHOD_RETURN();
 }
 
-inline void path_base::s_get_delimiter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void path_base::s_static_get_delimiter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -284,7 +284,7 @@ inline void path_base::s_get_delimiter(v8::Local<v8::Name> property, const v8::P
     METHOD_RETURN();
 }
 
-inline void path_base::s_get_posix(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void path_base::s_static_get_posix(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
@@ -296,7 +296,7 @@ inline void path_base::s_get_posix(v8::Local<v8::Name> property, const v8::Prope
     METHOD_RETURN();
 }
 
-inline void path_base::s_get_win32(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void path_base::s_static_get_win32(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 

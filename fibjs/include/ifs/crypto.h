@@ -85,18 +85,18 @@ public:
     }
 
 public:
-    static void s_createHash(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_createHmac(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_loadPKey(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_loadCert(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_loadCrl(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_loadReq(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_randomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_simpleRandomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_pseudoRandomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_randomArt(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_pbkdf1(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_pbkdf2(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createHash(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createHmac(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_loadPKey(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_loadCert(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_loadCrl(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_loadReq(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_randomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_simpleRandomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_pseudoRandomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_randomArt(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_pbkdf1(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(crypto_base, randomBytes, int32_t, obj_ptr<Buffer_base>);
@@ -121,23 +121,23 @@ namespace fibjs {
 inline ClassInfo& crypto_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "createHash", s_createHash, true },
-        { "createHmac", s_createHmac, true },
-        { "loadPKey", s_loadPKey, true },
-        { "loadCert", s_loadCert, true },
-        { "loadCrl", s_loadCrl, true },
-        { "loadReq", s_loadReq, true },
-        { "randomBytes", s_randomBytes, true },
-        { "randomBytesSync", s_randomBytes, true },
-        { "simpleRandomBytes", s_simpleRandomBytes, true },
-        { "simpleRandomBytesSync", s_simpleRandomBytes, true },
-        { "pseudoRandomBytes", s_pseudoRandomBytes, true },
-        { "pseudoRandomBytesSync", s_pseudoRandomBytes, true },
-        { "randomArt", s_randomArt, true },
-        { "pbkdf1", s_pbkdf1, true },
-        { "pbkdf1Sync", s_pbkdf1, true },
-        { "pbkdf2", s_pbkdf2, true },
-        { "pbkdf2Sync", s_pbkdf2, true }
+        { "createHash", s_static_createHash, true },
+        { "createHmac", s_static_createHmac, true },
+        { "loadPKey", s_static_loadPKey, true },
+        { "loadCert", s_static_loadCert, true },
+        { "loadCrl", s_static_loadCrl, true },
+        { "loadReq", s_static_loadReq, true },
+        { "randomBytes", s_static_randomBytes, true },
+        { "randomBytesSync", s_static_randomBytes, true },
+        { "simpleRandomBytes", s_static_simpleRandomBytes, true },
+        { "simpleRandomBytesSync", s_static_simpleRandomBytes, true },
+        { "pseudoRandomBytes", s_static_pseudoRandomBytes, true },
+        { "pseudoRandomBytesSync", s_static_pseudoRandomBytes, true },
+        { "randomArt", s_static_randomArt, true },
+        { "pbkdf1", s_static_pbkdf1, true },
+        { "pbkdf1Sync", s_static_pbkdf1, true },
+        { "pbkdf2", s_static_pbkdf2, true },
+        { "pbkdf2Sync", s_static_pbkdf2, true }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -186,7 +186,7 @@ inline ClassInfo& crypto_base::class_info()
     return s_ci;
 }
 
-inline void crypto_base::s_createHash(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void crypto_base::s_static_createHash(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
@@ -202,7 +202,7 @@ inline void crypto_base::s_createHash(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_RETURN();
 }
 
-inline void crypto_base::s_createHmac(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void crypto_base::s_static_createHmac(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
 
@@ -219,7 +219,7 @@ inline void crypto_base::s_createHmac(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_RETURN();
 }
 
-inline void crypto_base::s_loadPKey(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void crypto_base::s_static_loadPKey(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<PKey_base> vr;
 
@@ -236,7 +236,7 @@ inline void crypto_base::s_loadPKey(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_RETURN();
 }
 
-inline void crypto_base::s_loadCert(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void crypto_base::s_static_loadCert(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<X509Cert_base> vr;
 
@@ -252,7 +252,7 @@ inline void crypto_base::s_loadCert(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_RETURN();
 }
 
-inline void crypto_base::s_loadCrl(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void crypto_base::s_static_loadCrl(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<X509Crl_base> vr;
 
@@ -268,7 +268,7 @@ inline void crypto_base::s_loadCrl(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 
-inline void crypto_base::s_loadReq(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void crypto_base::s_static_loadReq(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<X509Req_base> vr;
 
@@ -284,7 +284,7 @@ inline void crypto_base::s_loadReq(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 
-inline void crypto_base::s_randomBytes(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void crypto_base::s_static_randomBytes(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
@@ -304,7 +304,7 @@ inline void crypto_base::s_randomBytes(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_RETURN();
 }
 
-inline void crypto_base::s_simpleRandomBytes(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void crypto_base::s_static_simpleRandomBytes(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
@@ -324,7 +324,7 @@ inline void crypto_base::s_simpleRandomBytes(const v8::FunctionCallbackInfo<v8::
     METHOD_RETURN();
 }
 
-inline void crypto_base::s_pseudoRandomBytes(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void crypto_base::s_static_pseudoRandomBytes(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
@@ -344,7 +344,7 @@ inline void crypto_base::s_pseudoRandomBytes(const v8::FunctionCallbackInfo<v8::
     METHOD_RETURN();
 }
 
-inline void crypto_base::s_randomArt(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void crypto_base::s_static_randomArt(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -362,7 +362,7 @@ inline void crypto_base::s_randomArt(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_RETURN();
 }
 
-inline void crypto_base::s_pbkdf1(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void crypto_base::s_static_pbkdf1(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
@@ -400,7 +400,7 @@ inline void crypto_base::s_pbkdf1(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 
-inline void crypto_base::s_pbkdf2(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void crypto_base::s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 

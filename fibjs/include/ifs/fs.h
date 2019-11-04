@@ -83,43 +83,43 @@ public:
     }
 
 public:
-    static void s_get_constants(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_exists(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_access(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_link(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_unlink(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_mkdir(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_rmdir(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_rename(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_copy(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_lchmod(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_chown(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_lchown(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_stat(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_lstat(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_readlink(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_realpath(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_symlink(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_read(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_fchmod(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_fchown(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_fdatasync(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_fsync(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_readdir(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_openFile(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_open(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_openTextStream(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_readTextFile(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_readFile(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_readLines(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_writeTextFile(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_writeFile(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_appendFile(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_setZipFS(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_clearZipFS(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_constants(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_exists(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_access(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_link(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_unlink(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_mkdir(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_rmdir(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_rename(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_copy(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_chmod(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_lchmod(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_chown(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_lchown(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_stat(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_lstat(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_readlink(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_realpath(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_symlink(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_truncate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_read(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_fchmod(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_fchown(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_fdatasync(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_fsync(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_readdir(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_openFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_open(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_close(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_openTextStream(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_readTextFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_readFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_readLines(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_writeTextFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_writeFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_appendFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_setZipFS(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_clearZipFS(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(fs_base, exists, exlib::string, bool);
@@ -167,79 +167,79 @@ namespace fibjs {
 inline ClassInfo& fs_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "exists", s_exists, true },
-        { "existsSync", s_exists, true },
-        { "access", s_access, true },
-        { "accessSync", s_access, true },
-        { "link", s_link, true },
-        { "linkSync", s_link, true },
-        { "unlink", s_unlink, true },
-        { "unlinkSync", s_unlink, true },
-        { "mkdir", s_mkdir, true },
-        { "mkdirSync", s_mkdir, true },
-        { "rmdir", s_rmdir, true },
-        { "rmdirSync", s_rmdir, true },
-        { "rename", s_rename, true },
-        { "renameSync", s_rename, true },
-        { "copy", s_copy, true },
-        { "copySync", s_copy, true },
-        { "chmod", s_chmod, true },
-        { "chmodSync", s_chmod, true },
-        { "lchmod", s_lchmod, true },
-        { "lchmodSync", s_lchmod, true },
-        { "chown", s_chown, true },
-        { "chownSync", s_chown, true },
-        { "lchown", s_lchown, true },
-        { "lchownSync", s_lchown, true },
-        { "stat", s_stat, true },
-        { "statSync", s_stat, true },
-        { "lstat", s_lstat, true },
-        { "lstatSync", s_lstat, true },
-        { "readlink", s_readlink, true },
-        { "readlinkSync", s_readlink, true },
-        { "realpath", s_realpath, true },
-        { "realpathSync", s_realpath, true },
-        { "symlink", s_symlink, true },
-        { "symlinkSync", s_symlink, true },
-        { "truncate", s_truncate, true },
-        { "truncateSync", s_truncate, true },
-        { "read", s_read, true },
-        { "readSync", s_read, true },
-        { "fchmod", s_fchmod, true },
-        { "fchmodSync", s_fchmod, true },
-        { "fchown", s_fchown, true },
-        { "fchownSync", s_fchown, true },
-        { "fdatasync", s_fdatasync, true },
-        { "fdatasyncSync", s_fdatasync, true },
-        { "fsync", s_fsync, true },
-        { "fsyncSync", s_fsync, true },
-        { "readdir", s_readdir, true },
-        { "readdirSync", s_readdir, true },
-        { "openFile", s_openFile, true },
-        { "openFileSync", s_openFile, true },
-        { "open", s_open, true },
-        { "openSync", s_open, true },
-        { "close", s_close, true },
-        { "closeSync", s_close, true },
-        { "openTextStream", s_openTextStream, true },
-        { "openTextStreamSync", s_openTextStream, true },
-        { "readTextFile", s_readTextFile, true },
-        { "readTextFileSync", s_readTextFile, true },
-        { "readFile", s_readFile, true },
-        { "readFileSync", s_readFile, true },
-        { "readLines", s_readLines, true },
-        { "writeTextFile", s_writeTextFile, true },
-        { "writeTextFileSync", s_writeTextFile, true },
-        { "writeFile", s_writeFile, true },
-        { "writeFileSync", s_writeFile, true },
-        { "appendFile", s_appendFile, true },
-        { "appendFileSync", s_appendFile, true },
-        { "setZipFS", s_setZipFS, true },
-        { "clearZipFS", s_clearZipFS, true }
+        { "exists", s_static_exists, true },
+        { "existsSync", s_static_exists, true },
+        { "access", s_static_access, true },
+        { "accessSync", s_static_access, true },
+        { "link", s_static_link, true },
+        { "linkSync", s_static_link, true },
+        { "unlink", s_static_unlink, true },
+        { "unlinkSync", s_static_unlink, true },
+        { "mkdir", s_static_mkdir, true },
+        { "mkdirSync", s_static_mkdir, true },
+        { "rmdir", s_static_rmdir, true },
+        { "rmdirSync", s_static_rmdir, true },
+        { "rename", s_static_rename, true },
+        { "renameSync", s_static_rename, true },
+        { "copy", s_static_copy, true },
+        { "copySync", s_static_copy, true },
+        { "chmod", s_static_chmod, true },
+        { "chmodSync", s_static_chmod, true },
+        { "lchmod", s_static_lchmod, true },
+        { "lchmodSync", s_static_lchmod, true },
+        { "chown", s_static_chown, true },
+        { "chownSync", s_static_chown, true },
+        { "lchown", s_static_lchown, true },
+        { "lchownSync", s_static_lchown, true },
+        { "stat", s_static_stat, true },
+        { "statSync", s_static_stat, true },
+        { "lstat", s_static_lstat, true },
+        { "lstatSync", s_static_lstat, true },
+        { "readlink", s_static_readlink, true },
+        { "readlinkSync", s_static_readlink, true },
+        { "realpath", s_static_realpath, true },
+        { "realpathSync", s_static_realpath, true },
+        { "symlink", s_static_symlink, true },
+        { "symlinkSync", s_static_symlink, true },
+        { "truncate", s_static_truncate, true },
+        { "truncateSync", s_static_truncate, true },
+        { "read", s_static_read, true },
+        { "readSync", s_static_read, true },
+        { "fchmod", s_static_fchmod, true },
+        { "fchmodSync", s_static_fchmod, true },
+        { "fchown", s_static_fchown, true },
+        { "fchownSync", s_static_fchown, true },
+        { "fdatasync", s_static_fdatasync, true },
+        { "fdatasyncSync", s_static_fdatasync, true },
+        { "fsync", s_static_fsync, true },
+        { "fsyncSync", s_static_fsync, true },
+        { "readdir", s_static_readdir, true },
+        { "readdirSync", s_static_readdir, true },
+        { "openFile", s_static_openFile, true },
+        { "openFileSync", s_static_openFile, true },
+        { "open", s_static_open, true },
+        { "openSync", s_static_open, true },
+        { "close", s_static_close, true },
+        { "closeSync", s_static_close, true },
+        { "openTextStream", s_static_openTextStream, true },
+        { "openTextStreamSync", s_static_openTextStream, true },
+        { "readTextFile", s_static_readTextFile, true },
+        { "readTextFileSync", s_static_readTextFile, true },
+        { "readFile", s_static_readFile, true },
+        { "readFileSync", s_static_readFile, true },
+        { "readLines", s_static_readLines, true },
+        { "writeTextFile", s_static_writeTextFile, true },
+        { "writeTextFileSync", s_static_writeTextFile, true },
+        { "writeFile", s_static_writeFile, true },
+        { "writeFileSync", s_static_writeFile, true },
+        { "appendFile", s_static_appendFile, true },
+        { "appendFileSync", s_static_appendFile, true },
+        { "setZipFS", s_static_setZipFS, true },
+        { "clearZipFS", s_static_clearZipFS, true }
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "constants", s_get_constants, block_set, true }
+        { "constants", s_static_get_constants, block_set, true }
     };
 
     static ClassData::ClassConst s_const[] = {
@@ -258,7 +258,7 @@ inline ClassInfo& fs_base::class_info()
     return s_ci;
 }
 
-inline void fs_base::s_get_constants(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_get_constants(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
@@ -270,7 +270,7 @@ inline void fs_base::s_get_constants(v8::Local<v8::Name> property, const v8::Pro
     METHOD_RETURN();
 }
 
-inline void fs_base::s_exists(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_exists(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
@@ -290,7 +290,7 @@ inline void fs_base::s_exists(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void fs_base::s_access(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_access(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("fs.access");
     METHOD_ENTER();
@@ -309,7 +309,7 @@ inline void fs_base::s_access(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void fs_base::s_link(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_link(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("fs.link");
     METHOD_ENTER();
@@ -328,7 +328,7 @@ inline void fs_base::s_link(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void fs_base::s_unlink(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_unlink(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("fs.unlink");
     METHOD_ENTER();
@@ -346,7 +346,7 @@ inline void fs_base::s_unlink(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void fs_base::s_mkdir(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_mkdir(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("fs.mkdir");
     METHOD_ENTER();
@@ -365,7 +365,7 @@ inline void fs_base::s_mkdir(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void fs_base::s_rmdir(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_rmdir(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("fs.rmdir");
     METHOD_ENTER();
@@ -383,7 +383,7 @@ inline void fs_base::s_rmdir(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void fs_base::s_rename(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_rename(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("fs.rename");
     METHOD_ENTER();
@@ -402,7 +402,7 @@ inline void fs_base::s_rename(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void fs_base::s_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("fs.copy");
     METHOD_ENTER();
@@ -421,7 +421,7 @@ inline void fs_base::s_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void fs_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("fs.chmod");
     METHOD_ENTER();
@@ -440,7 +440,7 @@ inline void fs_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void fs_base::s_lchmod(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_lchmod(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("fs.lchmod");
     METHOD_ENTER();
@@ -459,7 +459,7 @@ inline void fs_base::s_lchmod(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void fs_base::s_chown(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_chown(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("fs.chown");
     METHOD_ENTER();
@@ -479,7 +479,7 @@ inline void fs_base::s_chown(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void fs_base::s_lchown(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_lchown(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("fs.lchown");
     METHOD_ENTER();
@@ -499,7 +499,7 @@ inline void fs_base::s_lchown(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void fs_base::s_stat(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_stat(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stat_base> vr;
 
@@ -519,7 +519,7 @@ inline void fs_base::s_stat(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void fs_base::s_lstat(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_lstat(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stat_base> vr;
 
@@ -539,7 +539,7 @@ inline void fs_base::s_lstat(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void fs_base::s_readlink(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_readlink(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -559,7 +559,7 @@ inline void fs_base::s_readlink(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void fs_base::s_realpath(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_realpath(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -579,7 +579,7 @@ inline void fs_base::s_realpath(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void fs_base::s_symlink(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_symlink(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("fs.symlink");
     METHOD_ENTER();
@@ -599,7 +599,7 @@ inline void fs_base::s_symlink(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void fs_base::s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_truncate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("fs.truncate");
     METHOD_ENTER();
@@ -618,7 +618,7 @@ inline void fs_base::s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void fs_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_read(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -642,7 +642,7 @@ inline void fs_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void fs_base::s_fchmod(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_fchmod(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("fs.fchmod");
     METHOD_ENTER();
@@ -661,7 +661,7 @@ inline void fs_base::s_fchmod(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void fs_base::s_fchown(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_fchown(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("fs.fchown");
     METHOD_ENTER();
@@ -681,7 +681,7 @@ inline void fs_base::s_fchown(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void fs_base::s_fdatasync(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_fdatasync(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("fs.fdatasync");
     METHOD_ENTER();
@@ -699,7 +699,7 @@ inline void fs_base::s_fdatasync(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_VOID();
 }
 
-inline void fs_base::s_fsync(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_fsync(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("fs.fsync");
     METHOD_ENTER();
@@ -717,7 +717,7 @@ inline void fs_base::s_fsync(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void fs_base::s_readdir(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_readdir(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<NArray> vr;
 
@@ -737,7 +737,7 @@ inline void fs_base::s_readdir(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void fs_base::s_openFile(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_openFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<SeekableStream_base> vr;
 
@@ -758,7 +758,7 @@ inline void fs_base::s_openFile(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void fs_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -780,7 +780,7 @@ inline void fs_base::s_open(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void fs_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("fs.close");
     METHOD_ENTER();
@@ -798,7 +798,7 @@ inline void fs_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void fs_base::s_openTextStream(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_openTextStream(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<BufferedStream_base> vr;
 
@@ -819,7 +819,7 @@ inline void fs_base::s_openTextStream(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_RETURN();
 }
 
-inline void fs_base::s_readTextFile(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_readTextFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -839,7 +839,7 @@ inline void fs_base::s_readTextFile(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_RETURN();
 }
 
-inline void fs_base::s_readFile(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_readFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     Variant vr;
 
@@ -860,7 +860,7 @@ inline void fs_base::s_readFile(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void fs_base::s_readLines(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_readLines(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
@@ -877,7 +877,7 @@ inline void fs_base::s_readLines(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_RETURN();
 }
 
-inline void fs_base::s_writeTextFile(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_writeTextFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("fs.writeTextFile");
     METHOD_ENTER();
@@ -896,7 +896,7 @@ inline void fs_base::s_writeTextFile(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_VOID();
 }
 
-inline void fs_base::s_writeFile(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_writeFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("fs.writeFile");
     METHOD_ENTER();
@@ -915,7 +915,7 @@ inline void fs_base::s_writeFile(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_VOID();
 }
 
-inline void fs_base::s_appendFile(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_appendFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("fs.appendFile");
     METHOD_ENTER();
@@ -934,7 +934,7 @@ inline void fs_base::s_appendFile(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_VOID();
 }
 
-inline void fs_base::s_setZipFS(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_setZipFS(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("fs.setZipFS");
     METHOD_ENTER();
@@ -949,7 +949,7 @@ inline void fs_base::s_setZipFS(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void fs_base::s_clearZipFS(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_clearZipFS(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("fs.clearZipFS");
     METHOD_ENTER();

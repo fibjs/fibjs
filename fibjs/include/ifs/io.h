@@ -40,8 +40,8 @@ public:
     }
 
 public:
-    static void s_copyStream(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_bridge(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_copyStream(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_bridge(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE4(io_base, copyStream, Stream_base*, Stream_base*, int64_t, int64_t);
@@ -57,10 +57,10 @@ namespace fibjs {
 inline ClassInfo& io_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "copyStream", s_copyStream, true },
-        { "copyStreamSync", s_copyStream, true },
-        { "bridge", s_bridge, true },
-        { "bridgeSync", s_bridge, true }
+        { "copyStream", s_static_copyStream, true },
+        { "copyStreamSync", s_static_copyStream, true },
+        { "bridge", s_static_bridge, true },
+        { "bridgeSync", s_static_bridge, true }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -78,7 +78,7 @@ inline ClassInfo& io_base::class_info()
     return s_ci;
 }
 
-inline void io_base::s_copyStream(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void io_base::s_static_copyStream(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int64_t vr;
 
@@ -100,7 +100,7 @@ inline void io_base::s_copyStream(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 
-inline void io_base::s_bridge(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void io_base::s_static_bridge(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("io.bridge");
     METHOD_ENTER();

@@ -37,8 +37,8 @@ public:
     }
 
 public:
-    static void s_encode(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_decode(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_encode(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_decode(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -46,8 +46,8 @@ namespace fibjs {
 inline ClassInfo& base64vlq_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "encode", s_encode, true },
-        { "decode", s_decode, true }
+        { "encode", s_static_encode, true },
+        { "decode", s_static_decode, true }
     };
 
     static ClassData s_cd = {
@@ -60,7 +60,7 @@ inline ClassInfo& base64vlq_base::class_info()
     return s_ci;
 }
 
-inline void base64vlq_base::s_encode(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void base64vlq_base::s_static_encode(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -82,7 +82,7 @@ inline void base64vlq_base::s_encode(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_RETURN();
 }
 
-inline void base64vlq_base::s_decode(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void base64vlq_base::s_static_decode(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 

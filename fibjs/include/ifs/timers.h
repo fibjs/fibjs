@@ -45,15 +45,15 @@ public:
     }
 
 public:
-    static void s_setTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_clearTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_setInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_clearInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_setHrInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_clearHrInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_setImmediate(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_clearImmediate(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_call(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_setTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_clearTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_setInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_clearInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_setHrInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_clearHrInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_setImmediate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_clearImmediate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_call(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -63,15 +63,15 @@ namespace fibjs {
 inline ClassInfo& timers_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "setTimeout", s_setTimeout, true },
-        { "clearTimeout", s_clearTimeout, true },
-        { "setInterval", s_setInterval, true },
-        { "clearInterval", s_clearInterval, true },
-        { "setHrInterval", s_setHrInterval, true },
-        { "clearHrInterval", s_clearHrInterval, true },
-        { "setImmediate", s_setImmediate, true },
-        { "clearImmediate", s_clearImmediate, true },
-        { "call", s_call, true }
+        { "setTimeout", s_static_setTimeout, true },
+        { "clearTimeout", s_static_clearTimeout, true },
+        { "setInterval", s_static_setInterval, true },
+        { "clearInterval", s_static_clearInterval, true },
+        { "setHrInterval", s_static_setHrInterval, true },
+        { "clearHrInterval", s_static_clearHrInterval, true },
+        { "setImmediate", s_static_setImmediate, true },
+        { "clearImmediate", s_static_clearImmediate, true },
+        { "call", s_static_call, true }
     };
 
     static ClassData s_cd = {
@@ -84,7 +84,7 @@ inline ClassInfo& timers_base::class_info()
     return s_ci;
 }
 
-inline void timers_base::s_setTimeout(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void timers_base::s_static_setTimeout(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Timer_base> vr;
 
@@ -102,7 +102,7 @@ inline void timers_base::s_setTimeout(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_RETURN();
 }
 
-inline void timers_base::s_clearTimeout(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void timers_base::s_static_clearTimeout(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("timers.clearTimeout");
     METHOD_ENTER();
@@ -116,7 +116,7 @@ inline void timers_base::s_clearTimeout(const v8::FunctionCallbackInfo<v8::Value
     METHOD_VOID();
 }
 
-inline void timers_base::s_setInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void timers_base::s_static_setInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Timer_base> vr;
 
@@ -134,7 +134,7 @@ inline void timers_base::s_setInterval(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_RETURN();
 }
 
-inline void timers_base::s_clearInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void timers_base::s_static_clearInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("timers.clearInterval");
     METHOD_ENTER();
@@ -148,7 +148,7 @@ inline void timers_base::s_clearInterval(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_VOID();
 }
 
-inline void timers_base::s_setHrInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void timers_base::s_static_setHrInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Timer_base> vr;
 
@@ -166,7 +166,7 @@ inline void timers_base::s_setHrInterval(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_RETURN();
 }
 
-inline void timers_base::s_clearHrInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void timers_base::s_static_clearHrInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("timers.clearHrInterval");
     METHOD_ENTER();
@@ -180,7 +180,7 @@ inline void timers_base::s_clearHrInterval(const v8::FunctionCallbackInfo<v8::Va
     METHOD_VOID();
 }
 
-inline void timers_base::s_setImmediate(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void timers_base::s_static_setImmediate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Timer_base> vr;
 
@@ -197,7 +197,7 @@ inline void timers_base::s_setImmediate(const v8::FunctionCallbackInfo<v8::Value
     METHOD_RETURN();
 }
 
-inline void timers_base::s_clearImmediate(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void timers_base::s_static_clearImmediate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("timers.clearImmediate");
     METHOD_ENTER();
@@ -211,7 +211,7 @@ inline void timers_base::s_clearImmediate(const v8::FunctionCallbackInfo<v8::Val
     METHOD_VOID();
 }
 
-inline void timers_base::s_call(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void timers_base::s_static_call(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Value> vr;
 

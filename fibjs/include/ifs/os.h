@@ -61,30 +61,30 @@ public:
     }
 
 public:
-    static void s_hostname(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_endianness(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_type(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_release(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_homedir(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_arch(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_timezone(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_EOL(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_loadavg(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_totalmem(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_freemem(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_cpus(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_cpuNumbers(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_tmpdir(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_userInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_networkInterfaces(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_printerInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_openPrinter(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_platform(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_time(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_dateAdd(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_execPath(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_hostname(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_endianness(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_type(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_release(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_homedir(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_arch(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_timezone(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_EOL(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_uptime(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_loadavg(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_totalmem(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_freemem(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_cpus(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_cpuNumbers(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_tmpdir(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_userInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_networkInterfaces(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_printerInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_openPrinter(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_platform(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_time(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_dateAdd(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_execPath(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(os_base, openPrinter, exlib::string, obj_ptr<BufferedStream_base>);
@@ -98,28 +98,28 @@ namespace fibjs {
 inline ClassInfo& os_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "hostname", s_hostname, true },
-        { "endianness", s_endianness, true },
-        { "type", s_type, true },
-        { "release", s_release, true },
-        { "homedir", s_homedir, true },
-        { "arch", s_arch, true },
-        { "uptime", s_uptime, true },
-        { "loadavg", s_loadavg, true },
-        { "totalmem", s_totalmem, true },
-        { "freemem", s_freemem, true },
-        { "cpus", s_cpus, true },
-        { "cpuNumbers", s_cpuNumbers, true },
-        { "tmpdir", s_tmpdir, true },
-        { "userInfo", s_userInfo, true },
-        { "networkInterfaces", s_networkInterfaces, true },
-        { "printerInfo", s_printerInfo, true },
-        { "openPrinter", s_openPrinter, true },
-        { "openPrinterSync", s_openPrinter, true },
-        { "platform", s_platform, true },
-        { "time", s_time, true },
-        { "dateAdd", s_dateAdd, true },
-        { "memoryUsage", s_memoryUsage, true }
+        { "hostname", s_static_hostname, true },
+        { "endianness", s_static_endianness, true },
+        { "type", s_static_type, true },
+        { "release", s_static_release, true },
+        { "homedir", s_static_homedir, true },
+        { "arch", s_static_arch, true },
+        { "uptime", s_static_uptime, true },
+        { "loadavg", s_static_loadavg, true },
+        { "totalmem", s_static_totalmem, true },
+        { "freemem", s_static_freemem, true },
+        { "cpus", s_static_cpus, true },
+        { "cpuNumbers", s_static_cpuNumbers, true },
+        { "tmpdir", s_static_tmpdir, true },
+        { "userInfo", s_static_userInfo, true },
+        { "networkInterfaces", s_static_networkInterfaces, true },
+        { "printerInfo", s_static_printerInfo, true },
+        { "openPrinter", s_static_openPrinter, true },
+        { "openPrinterSync", s_static_openPrinter, true },
+        { "platform", s_static_platform, true },
+        { "time", s_static_time, true },
+        { "dateAdd", s_static_dateAdd, true },
+        { "memoryUsage", s_static_memoryUsage, true }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -127,9 +127,9 @@ inline ClassInfo& os_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "timezone", s_get_timezone, block_set, true },
-        { "EOL", s_get_EOL, block_set, true },
-        { "execPath", s_get_execPath, block_set, true }
+        { "timezone", s_static_get_timezone, block_set, true },
+        { "EOL", s_static_get_EOL, block_set, true },
+        { "execPath", s_static_get_execPath, block_set, true }
     };
 
     static ClassData s_cd = {
@@ -142,7 +142,7 @@ inline ClassInfo& os_base::class_info()
     return s_ci;
 }
 
-inline void os_base::s_hostname(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_hostname(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -156,7 +156,7 @@ inline void os_base::s_hostname(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void os_base::s_endianness(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_endianness(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -170,7 +170,7 @@ inline void os_base::s_endianness(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 
-inline void os_base::s_type(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_type(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -184,7 +184,7 @@ inline void os_base::s_type(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void os_base::s_release(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_release(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -198,7 +198,7 @@ inline void os_base::s_release(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void os_base::s_homedir(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_homedir(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -212,7 +212,7 @@ inline void os_base::s_homedir(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void os_base::s_arch(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_arch(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -226,7 +226,7 @@ inline void os_base::s_arch(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void os_base::s_get_timezone(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_get_timezone(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -238,7 +238,7 @@ inline void os_base::s_get_timezone(v8::Local<v8::Name> property, const v8::Prop
     METHOD_RETURN();
 }
 
-inline void os_base::s_get_EOL(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_get_EOL(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -250,7 +250,7 @@ inline void os_base::s_get_EOL(v8::Local<v8::Name> property, const v8::PropertyC
     METHOD_RETURN();
 }
 
-inline void os_base::s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_uptime(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     double vr;
 
@@ -264,7 +264,7 @@ inline void os_base::s_uptime(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void os_base::s_loadavg(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_loadavg(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
@@ -278,7 +278,7 @@ inline void os_base::s_loadavg(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void os_base::s_totalmem(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_totalmem(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int64_t vr;
 
@@ -292,7 +292,7 @@ inline void os_base::s_totalmem(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void os_base::s_freemem(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_freemem(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int64_t vr;
 
@@ -306,7 +306,7 @@ inline void os_base::s_freemem(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void os_base::s_cpus(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_cpus(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
@@ -320,7 +320,7 @@ inline void os_base::s_cpus(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void os_base::s_cpuNumbers(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_cpuNumbers(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -334,7 +334,7 @@ inline void os_base::s_cpuNumbers(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 
-inline void os_base::s_tmpdir(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_tmpdir(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -348,7 +348,7 @@ inline void os_base::s_tmpdir(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void os_base::s_userInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_userInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
@@ -364,7 +364,7 @@ inline void os_base::s_userInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void os_base::s_networkInterfaces(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_networkInterfaces(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
@@ -378,7 +378,7 @@ inline void os_base::s_networkInterfaces(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_RETURN();
 }
 
-inline void os_base::s_printerInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_printerInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
@@ -392,7 +392,7 @@ inline void os_base::s_printerInfo(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 
-inline void os_base::s_openPrinter(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_openPrinter(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<BufferedStream_base> vr;
 
@@ -412,7 +412,7 @@ inline void os_base::s_openPrinter(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 
-inline void os_base::s_platform(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_platform(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -426,7 +426,7 @@ inline void os_base::s_platform(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void os_base::s_time(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_time(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     date_t vr;
 
@@ -442,7 +442,7 @@ inline void os_base::s_time(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void os_base::s_dateAdd(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_dateAdd(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     date_t vr;
 
@@ -460,7 +460,7 @@ inline void os_base::s_dateAdd(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void os_base::s_get_execPath(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_get_execPath(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -472,7 +472,7 @@ inline void os_base::s_get_execPath(v8::Local<v8::Name> property, const v8::Prop
     METHOD_RETURN();
 }
 
-inline void os_base::s_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 

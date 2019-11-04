@@ -46,10 +46,10 @@ public:
     }
 
 public:
-    static void s_jsstr(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_encodeURI(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_encodeURIComponent(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_decodeURI(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_jsstr(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_encodeURI(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_encodeURIComponent(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_decodeURI(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -65,10 +65,10 @@ namespace fibjs {
 inline ClassInfo& encoding_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "jsstr", s_jsstr, true },
-        { "encodeURI", s_encodeURI, true },
-        { "encodeURIComponent", s_encodeURIComponent, true },
-        { "decodeURI", s_decodeURI, true }
+        { "jsstr", s_static_jsstr, true },
+        { "encodeURI", s_static_encodeURI, true },
+        { "encodeURIComponent", s_static_encodeURIComponent, true },
+        { "decodeURI", s_static_decodeURI, true }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -91,7 +91,7 @@ inline ClassInfo& encoding_base::class_info()
     return s_ci;
 }
 
-inline void encoding_base::s_jsstr(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void encoding_base::s_static_jsstr(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -108,7 +108,7 @@ inline void encoding_base::s_jsstr(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 
-inline void encoding_base::s_encodeURI(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void encoding_base::s_static_encodeURI(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -124,7 +124,7 @@ inline void encoding_base::s_encodeURI(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_RETURN();
 }
 
-inline void encoding_base::s_encodeURIComponent(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void encoding_base::s_static_encodeURIComponent(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
@@ -140,7 +140,7 @@ inline void encoding_base::s_encodeURIComponent(const v8::FunctionCallbackInfo<v
     METHOD_RETURN();
 }
 
-inline void encoding_base::s_decodeURI(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void encoding_base::s_static_decodeURI(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 

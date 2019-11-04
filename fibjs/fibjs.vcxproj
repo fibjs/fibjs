@@ -34,6 +34,7 @@
     <ClInclude Include="include\DgramSocket.h" />
     <ClInclude Include="include\Digest.h" />
     <ClInclude Include="include\Event.h" />
+    <ClInclude Include="include\EventEmitter.h" />
     <ClInclude Include="include\EventInfo.h" />
     <ClInclude Include="include\Fiber.h" />
     <ClInclude Include="include\File.h" />
@@ -95,7 +96,6 @@
     <ClInclude Include="include\TcpServer.h" />
     <ClInclude Include="include\TextColor.h" />
     <ClInclude Include="include\Timer.h" />
-    <ClInclude Include="include\Trigger.h" />
     <ClInclude Include="include\Url.h" />
     <ClInclude Include="include\Variant.h" />
     <ClInclude Include="include\WebSocket.h" />
@@ -272,17 +272,19 @@
     <ClInclude Include="include\utils.h" />
     <ClInclude Include="include\v8_api.h" />
     <ClInclude Include="include\version.h" />
-    <ClInclude Include="src\db\sql\trans.h" />
+    <ClInclude Include="src\db\sql\db_api.h" />
     <ClInclude Include="src\gui\windows\WebView.h" />
     <ClInclude Include="src\process\process_win.h" />
     <ClInclude Include="src\sandbox\loaders\loaders.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\base\EventEmitter.cpp" />
     <ClCompile Include="src\base\Runtime.cpp" />
     <ClCompile Include="src\base\Variant.cpp" />
     <ClCompile Include="src\base\acPool.cpp" />
     <ClCompile Include="src\base\date.cpp" />
     <ClCompile Include="src\base\date_cache.cpp" />
+    <ClCompile Include="src\base\events.cpp" />
     <ClCompile Include="src\base\fibjs_main.cpp" />
     <ClCompile Include="src\base\fuck_sym.cpp" />
     <ClCompile Include="src\base\opt_tools.cpp" />
@@ -308,7 +310,6 @@
     <ClCompile Include="src\coroutine\Fiber.cpp" />
     <ClCompile Include="src\coroutine\Lock.cpp" />
     <ClCompile Include="src\coroutine\Semaphore.cpp" />
-    <ClCompile Include="src\coroutine\Trigger.cpp" />
     <ClCompile Include="src\coroutine\Worker.cpp" />
     <ClCompile Include="src\coroutine\WorkerMessage.cpp" />
     <ClCompile Include="src\coroutine\coroutine.cpp" />

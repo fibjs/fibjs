@@ -7,61 +7,12 @@
 
 #include "object.h"
 #include "Fiber.h"
-#include "Trigger.h"
+#include "EventEmitter.h"
 #include "ifs/coroutine.h"
-#include "ifs/EventEmitter.h"
 #include "QuickArray.h"
 #include <vector>
 
 namespace fibjs {
-
-class RootModule_events : public RootModule {
-public:
-    RootModule_events()
-    {
-        static ClassData::ClassMethod s_method[] = {
-            { "on", JSTrigger::s_on, true },
-            { "addListener", JSTrigger::s_on, true },
-            { "prependListener", JSTrigger::s_prependListener, true },
-            { "once", JSTrigger::s_once, true },
-            { "prependOnceListener", JSTrigger::s_prependOnceListener, true },
-            { "off", JSTrigger::s_off, true },
-            { "removeListener", JSTrigger::s_off, true },
-            { "removeAllListeners", JSTrigger::s_removeAllListeners, true },
-            { "setMaxListeners", JSTrigger::s_setMaxListeners, true },
-            { "getMaxListeners", JSTrigger::s_getMaxListeners, true },
-            { "listeners", JSTrigger::s_listeners, true },
-            { "listenerCount", JSTrigger::s_listenerCount, true },
-            { "eventNames", JSTrigger::s_eventNames, true },
-            { "emit", JSTrigger::s_emit, true }
-        };
-
-        static ClassData::ClassProperty s_property[] = {
-            { "defaultMaxListeners", JSTrigger::s_get_defaultMaxListeners, JSTrigger::s_set_defaultMaxListeners, true }
-        };
-
-        ClassData& cd = EventEmitter_base::class_info().data();
-
-        cd.cor = JSTrigger::s__new;
-        cd.mc = ARRAYSIZE(s_method);
-        cd.cms = s_method;
-        cd.pc = ARRAYSIZE(s_property);
-        cd.cps = s_property;
-    }
-
-    virtual ClassInfo& class_info()
-    {
-        return EventEmitter_base::class_info();
-    }
-
-    virtual const char* name()
-    {
-        return "events";
-    }
-};
-static RootModule_events s_RootModule_events;
-RootModule* Module_events = &s_RootModule_events;
-
 result_t EventEmitter_base::_new(obj_ptr<EventEmitter_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new EventEmitter();

@@ -42,6 +42,8 @@ public:
     static result_t byteLength(v8::Local<v8::ArrayBuffer> str, exlib::string codec, int32_t& retVal);
     static result_t byteLength(v8::Local<v8::ArrayBufferView> str, exlib::string codec, int32_t& retVal);
     static result_t byteLength(Buffer_base* str, exlib::string codec, int32_t& retVal);
+    static result_t compare(Buffer_base* buf1, Buffer_base* buf2, int32_t& retVal);
+    virtual result_t compare(Buffer_base* buf, int32_t& retVal) = 0;
     static result_t isEncoding(exlib::string codec, bool& retVal);
     virtual result_t _indexed_getter(uint32_t index, int32_t& retVal) = 0;
     virtual result_t _indexed_setter(uint32_t index, int32_t newVal) = 0;
@@ -58,7 +60,6 @@ public:
     virtual result_t indexOf(int32_t v, int32_t offset, int32_t& retVal) = 0;
     virtual result_t indexOf(Buffer_base* v, int32_t offset, int32_t& retVal) = 0;
     virtual result_t indexOf(exlib::string v, int32_t offset, int32_t& retVal) = 0;
-    virtual result_t compare(Buffer_base* buf, int32_t& retVal) = 0;
     virtual result_t copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t& retVal) = 0;
     virtual result_t readUInt8(int32_t offset, bool noAssert, int32_t& retVal) = 0;
     virtual result_t readUInt16LE(int32_t offset, bool noAssert, int32_t& retVal) = 0;
@@ -121,14 +122,16 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_isBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_from(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_concat(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_alloc(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_allocUnsafe(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_allocUnsafeSlow(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_isEncoding(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isBuffer(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_from(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_concat(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_alloc(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_allocUnsafe(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_allocUnsafeSlow(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_compare(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_compare(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isEncoding(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_length(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -137,7 +140,6 @@ public:
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_fill(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_indexOf(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_compare(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_copy(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readUInt8(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readUInt16LE(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -197,20 +199,21 @@ namespace fibjs {
 inline ClassInfo& Buffer_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "isBuffer", s_isBuffer, true },
-        { "from", s_from, true },
-        { "concat", s_concat, true },
-        { "alloc", s_alloc, true },
-        { "allocUnsafe", s_allocUnsafe, true },
-        { "allocUnsafeSlow", s_allocUnsafeSlow, true },
-        { "byteLength", s_byteLength, true },
-        { "isEncoding", s_isEncoding, true },
+        { "isBuffer", s_static_isBuffer, true },
+        { "from", s_static_from, true },
+        { "concat", s_static_concat, true },
+        { "alloc", s_static_alloc, true },
+        { "allocUnsafe", s_static_allocUnsafe, true },
+        { "allocUnsafeSlow", s_static_allocUnsafeSlow, true },
+        { "byteLength", s_static_byteLength, true },
+        { "compare", s_compare, false },
+        { "compare", s_static_compare, true },
+        { "isEncoding", s_static_isEncoding, true },
         { "resize", s_resize, false },
         { "append", s_append, false },
         { "write", s_write, false },
         { "fill", s_fill, false },
         { "indexOf", s_indexOf, false },
-        { "compare", s_compare, false },
         { "copy", s_copy, false },
         { "readUInt8", s_readUInt8, false },
         { "readUInt16LE", s_readUInt16LE, false },
@@ -343,7 +346,7 @@ void Buffer_base::__new(const T& args)
     CONSTRUCT_RETURN();
 }
 
-inline void Buffer_base::s_isBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void Buffer_base::s_static_isBuffer(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
@@ -359,7 +362,7 @@ inline void Buffer_base::s_isBuffer(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_RETURN();
 }
 
-inline void Buffer_base::s_from(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void Buffer_base::s_static_from(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
@@ -392,7 +395,7 @@ inline void Buffer_base::s_from(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void Buffer_base::s_concat(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void Buffer_base::s_static_concat(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
@@ -409,7 +412,7 @@ inline void Buffer_base::s_concat(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 
-inline void Buffer_base::s_alloc(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void Buffer_base::s_static_alloc(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
@@ -443,7 +446,7 @@ inline void Buffer_base::s_alloc(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_RETURN();
 }
 
-inline void Buffer_base::s_allocUnsafe(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void Buffer_base::s_static_allocUnsafe(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
@@ -459,7 +462,7 @@ inline void Buffer_base::s_allocUnsafe(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_RETURN();
 }
 
-inline void Buffer_base::s_allocUnsafeSlow(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void Buffer_base::s_static_allocUnsafeSlow(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
@@ -475,7 +478,7 @@ inline void Buffer_base::s_allocUnsafeSlow(const v8::FunctionCallbackInfo<v8::Va
     METHOD_RETURN();
 }
 
-inline void Buffer_base::s_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void Buffer_base::s_static_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
@@ -513,7 +516,41 @@ inline void Buffer_base::s_byteLength(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_RETURN();
 }
 
-inline void Buffer_base::s_isEncoding(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void Buffer_base::s_static_compare(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_NAME("Buffer.compare");
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+
+    hr = compare(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Buffer_base::s_compare(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_NAME("Buffer.compare");
+    METHOD_INSTANCE(Buffer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+
+    hr = pInst->compare(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Buffer_base::s_static_isEncoding(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
@@ -704,23 +741,6 @@ inline void Buffer_base::s_indexOf(const v8::FunctionCallbackInfo<v8::Value>& ar
     OPT_ARG(int32_t, 1, 0);
 
     hr = pInst->indexOf(v0, v1, vr);
-
-    METHOD_RETURN();
-}
-
-inline void Buffer_base::s_compare(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    int32_t vr;
-
-    METHOD_NAME("Buffer.compare");
-    METHOD_INSTANCE(Buffer_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-
-    hr = pInst->compare(v0, vr);
 
     METHOD_RETURN();
 }

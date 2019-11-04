@@ -35,7 +35,7 @@ public:
     }
 
 public:
-    static void s_isatty(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_isatty(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -43,7 +43,7 @@ namespace fibjs {
 inline ClassInfo& tty_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "isatty", s_isatty, true }
+        { "isatty", s_static_isatty, true }
     };
 
     static ClassData s_cd = {
@@ -56,7 +56,7 @@ inline ClassInfo& tty_base::class_info()
     return s_ci;
 }
 
-inline void tty_base::s_isatty(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void tty_base::s_static_isatty(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 

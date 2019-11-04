@@ -13,7 +13,7 @@
 #include "ifs/global.h"
 #include "ifs/util.h"
 #include "Fiber.h"
-#include "Trigger.h"
+#include "EventEmitter.h"
 #include "File.h"
 #include "BufferedStream.h"
 #include "SubProcess.h"
