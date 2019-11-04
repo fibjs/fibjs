@@ -18,10 +18,16 @@ const CST = require('internal/constant');
 
 const DEPENDENCIES = 'dependencies';
 const DEVDEPENDENCIES = 'devDependencies';
-const DEV_KEY_TUPLE = [ DEPENDENCIES, DEVDEPENDENCIES ];
+const DEP_KEY_TUPLE = [DEPENDENCIES, DEVDEPENDENCIES];
 const SEP = path.sep;
 
 const install_log = process.env.FIBJS_SILENT_INSALL ? () => undefined : console.log.bind(console)
+
+const hc = new http.Client();
+if (process.env.fibjs_install_http_proxy) {
+    hc.proxyAgent = process.env.fibjs_install_http_proxy;
+    console.log(`[install] http client using proxyAgent: ${hc.proxyAgent}`);
+}
 
 const json_format = (function () {
     let p = [],
@@ -156,9 +162,14 @@ function http_get(u, { quit_if_error = true } = {}) {
 
     while (cnt++ < 3)
         try {
-            return http.get(u);
+            const res = hc.get(u);
+            if (!res.body)
+                throw new Error(`[http_get] get nothing from url ${u}`);
+
+            return res
         } catch (e) {
-            console.warn(`download error. retry ${cnt}: ${u}`);
+            console.warn(`[http_get] download error, info: ${e}`);
+            console.warn(`[http_get] retry ${cnt}: ${u}`);
         }
 
     console.error("download error.", u);
@@ -166,7 +177,7 @@ function http_get(u, { quit_if_error = true } = {}) {
         process.exit(-1);
 }
 
-function json_parse_response (http_response) {
+function json_parse_response(http_response) {
     return JSON.parse(http_response.body.readAll().toString())
 }
 
@@ -180,7 +191,7 @@ function find_version(m, v, parent) {
     }
 }
 
-function normalize_registry_origin (registry) {
+function normalize_registry_origin(registry) {
     const urlObj = url.parse(registry)
 
     const protocol = urlObj.protocol || 'https:'
@@ -194,7 +205,7 @@ const pkg_registrytype_module_infos = {};
 const pkg_githubtype_module_infos = {};
 function fetch_leveled_module_info(m, v, parent) {
     const pkg_install_typeinfo = helpers_pkg.parse_pkg_installname(m, v);
-    
+
     switch (pkg_install_typeinfo.type) {
         case 'registry':
             let info = pkg_registrytype_module_infos[m];
@@ -250,7 +261,7 @@ function fetch_leveled_module_info(m, v, parent) {
 
                 if (git_r.statusCode !== 200)
                     throw new Error(`Could not install from "${ctx.new_pkgname || git_pkgjson_uri}" as it does not contain a package.json file.`)
-                
+
                 try {
                     install_log('fetch package.json:', m, "=>", git_pkgjson_uri);
                     pkg_githubtype_module_infos[m] = pkgjson_info = json_parse_response(git_r);
@@ -258,7 +269,7 @@ function fetch_leveled_module_info(m, v, parent) {
                     console.warn(`error occured when try to fetch package.json from '${git_pkgjson_uri}' for '${m}'`)
                     throw new Error(`[package/${m}] error detail: \n${error.message}\n${error.stack}`)
                 }
-                
+
             }
 
             return {
@@ -338,7 +349,7 @@ function walkthrough_deps(level_info, need_dev_deps = false) {
                         /**
                          * @todo deal with special installation name, such as 'fibjs/fib-graphql'
                          */
-                        if (child_level_info && child_level_info.name !== dname) {                            
+                        if (child_level_info && child_level_info.name !== dname) {
                             const pkg_name = child_level_info.name;
                             const installnation_name = dname;
                             child_level_info = level_info.node_modules[pkg_name] = level_info.node_modules[dname]
@@ -405,7 +416,7 @@ function generate_mv_paths(level_info, parent_p) {
 
             if (lmod.new_module) {
                 const mv = k + '@' + lmod.version;
-                
+
                 let ps = mv_paths[mv];
                 if (ps === undefined) {
                     switch (lmod.pkg_install_typeinfo.type) {
@@ -445,10 +456,10 @@ function download_module() {
             const registry_i_tuples = [];
             const git_i_tuples = [];
             const existed_dirs = {};
-            function ensure_dir (dirname) {
+            function ensure_dir(dirname) {
                 if (process.platform === 'win32')
-                    if (existed_dirs[dirname]) return ;
-                
+                    if (existed_dirs[dirname]) return;
+
                 existed_dirs[dirname] = true;
                 helpers_fs.mkdirp(dirname);
             }
@@ -483,16 +494,16 @@ function download_module() {
                             helpers_string.find_least_common_str(untar_files[0].filename, untar_files[1].filename)
                         )
                     }
-                
+
                     mvm.path.forEach(bp => {
                         coroutine.parallel(untar_files, (file) => {
                             const relpath = file.filename.slice(archive_root_name.length);
 
-                            if (!relpath) return ;
+                            if (!relpath) return;
 
                             const tpath = path.join(bp, relpath);
                             helpers_fs.mkdirp(path.dirname(tpath));
-                            
+
                             fs.writeFile(tpath, file.fileData);
                         })
                     });
@@ -520,14 +531,14 @@ function download_module() {
                     mvm.path.forEach(bp => {
                         namelist.forEach((member) => {
                             const relpath = member.slice(archive_root_name.length);
-                            if (!relpath) return ;
+                            if (!relpath) return;
 
                             const tpath = path.join(bp, relpath);
 
                             // skip directory
-                            if (tpath.endsWith(SEP)) return ;
+                            if (tpath.endsWith(SEP)) return;
                             ensure_dir(path.dirname(tpath));
-                            
+
                             git_i_tuples.push([
                                 member, tpath
                             ]);
@@ -565,45 +576,49 @@ function dump_snap() {
 }
 
 function update_pkgjson(rootsnap) {
+    if (!need_add_newpkg_to_pkgjson) return;
+
     const pkgjson = rootsnap.pkgjson;
 
-    const [ real_pkgname, special_source_installation_name ] = [
+    const [real_pkgname, special_source_installation_name] = [
         name_maps_installation2pkg[ctx.new_pkgname] ? name_maps_installation2pkg[ctx.new_pkgname] : ctx.new_pkgname,
         ctx.new_pkgname
     ];
 
-    if (need_dev_deps_for_root) {
-        ctx.dep_against_k = DEV_KEY_TUPLE[0];
-        ctx.depk = DEV_KEY_TUPLE[1];
-    } else if (rootsnap.dep_vs && rootsnap.dep_vs[real_pkgname]) {
-        ctx.depk = DEV_KEY_TUPLE[0];
-        ctx.dep_against_k = DEV_KEY_TUPLE[1];
-    } else if (rootsnap.dev_dep_vs && rootsnap.dev_dep_vs[real_pkgname]) {
-        ctx.dep_against_k = DEV_KEY_TUPLE[0];
-        ctx.depk = DEV_KEY_TUPLE[1];
+    if (!real_pkgname) return;
+
+    if (need_add_newpkg_to_pkgjson === DEVDEPENDENCIES) {
+        if (!rootsnap.dev_dep_vs || !rootsnap.dev_dep_vs[real_pkgname])
+            throw new Error(`[update_pkgjson] no version specified for devDependency ${real_pkgname}`)
+
+        ctx.dep_against_k = DEP_KEY_TUPLE[0];
+        ctx.depk = DEP_KEY_TUPLE[1];
+    } else {
+        if (!rootsnap.dep_vs || !rootsnap.dep_vs[real_pkgname])
+            throw new Error(`[update_pkgjson] no version specified for dependency ${real_pkgname}`)
+
+        ctx.depk = DEP_KEY_TUPLE[0];
+        ctx.dep_against_k = DEP_KEY_TUPLE[1];
     }
-    
-    if (real_pkgname) {
-        try {
-            delete pkgjson[ctx.dep_against_k][real_pkgname];
-        } catch (error) {};
 
-        if (!pkgjson[ctx.depk])
-            pkgjson[ctx.depk] = {};
+    try {
+        delete pkgjson[ctx.dep_against_k][real_pkgname];
+    } catch (error) { };
 
-        if (!pkgjson[ctx.depk][real_pkgname]) {
-            if (special_source_installation_name !== real_pkgname) {
-                pkgjson[ctx.depk][real_pkgname] = special_source_installation_name;
-            } else {
-                pkgjson[ctx.depk][real_pkgname] = `^${rootsnap.node_modules[real_pkgname].version}`;
-            }
+    if (!pkgjson[ctx.depk]) pkgjson[ctx.depk] = {};
+
+    if (!pkgjson[ctx.depk][real_pkgname]) {
+        if (special_source_installation_name !== real_pkgname) {
+            pkgjson[ctx.depk][real_pkgname] = special_source_installation_name;
+        } else {
+            pkgjson[ctx.depk][real_pkgname] = `^${rootsnap.node_modules[real_pkgname].version}`;
         }
-
-        fs.writeFile('package.json', json_format(pkgjson, {
-            type: 'space',
-            size: 2
-        }));
     }
+
+    fs.writeFile('package.json', json_format(pkgjson, {
+        type: 'space',
+        size: 2
+    }));
 }
 
 const ctx = {};
@@ -613,14 +628,11 @@ const ctx = {};
  */
 ctx.depk = ctx.dep_against_k = ''
 
-let need_dev_deps_for_root = false
+let need_add_newpkg_to_pkgjson = false
 if (process.argv.indexOf('--save', 2) > -1 || process.argv.indexOf('-S', 2) > -1) {
-    ctx.depk = DEPENDENCIES;
-    ctx.dep_against_k = DEVDEPENDENCIES;
+    need_add_newpkg_to_pkgjson = true;
 } else if (process.argv.indexOf('--save-dev', 2) > -1 || process.argv.indexOf('-D', 2) > -1) {
-    ctx.depk = DEVDEPENDENCIES;
-    ctx.dep_against_k = DEPENDENCIES;
-    need_dev_deps_for_root = true;
+    need_add_newpkg_to_pkgjson = DEVDEPENDENCIES;
 } else {
     ctx.depk = DEPENDENCIES;
 }
@@ -629,34 +641,35 @@ ssl.loadRootCerts();
 
 const rootsnap = get_root_snapshot();
 // when specified new_pkgname, install it only
-ctx.new_pkgname = process.argv[2];
+ctx.new_pkgname = (process.argv).filter(x => !x.startsWith('-'))[1];
 
-;(function process_new_pkgname () {
+// process_new_pkgname
+(() => {
     const new_pkginstall_typeinfo = helpers_pkg.parse_pkg_installname(ctx.new_pkgname || '');
+    const dep_type = need_add_newpkg_to_pkgjson === DEVDEPENDENCIES ? 'dev_dep_vs' : 'dep_vs';
 
     switch (new_pkginstall_typeinfo.type) {
         case 'git':
-            if (new_pkginstall_typeinfo.from_http) {
+            if (new_pkginstall_typeinfo.from_http)
                 ctx.new_pkgname = `${new_pkginstall_typeinfo.git_path}#${new_pkginstall_typeinfo.git_reference}`;
-            }
-    
-            if (rootsnap.dep_vs[ctx.new_pkgname] === undefined)
-                rootsnap.dep_vs[ctx.new_pkgname] = '*';
+
+            if (ctx.new_pkgname && rootsnap[dep_type][ctx.new_pkgname] === undefined)
+                rootsnap[dep_type][ctx.new_pkgname] = '*';
             break
         case 'registry':
             if (new_pkginstall_typeinfo.registry_semver) {
-                rootsnap.dep_vs[new_pkginstall_typeinfo.package_name] = new_pkginstall_typeinfo.registry_semver
+                rootsnap[dep_type][new_pkginstall_typeinfo.package_name] = new_pkginstall_typeinfo.registry_semver
 
                 ctx.new_pkgname = new_pkginstall_typeinfo.registry_pkg_path
             }
-    
-            if (rootsnap.dep_vs[ctx.new_pkgname] === undefined)
-                rootsnap.dep_vs[ctx.new_pkgname] = '*';
+
+
+            if (ctx.new_pkgname && rootsnap[dep_type][ctx.new_pkgname] === undefined) rootsnap[dep_type][ctx.new_pkgname] = '*';
             break
     }
 })();
 
-walkthrough_deps(rootsnap, need_dev_deps_for_root);
+walkthrough_deps(rootsnap, need_add_newpkg_to_pkgjson === DEVDEPENDENCIES);
 move_up(rootsnap);
 generate_mv_paths(rootsnap, process.cwd());
 download_module();

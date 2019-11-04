@@ -3,15 +3,18 @@ test.setup();
 
 var fs = require("fs");
 var path = require("path");
+var http = require("http");
 
 var bin = process.execPath;
 
 var { chdirAndDo, ensureDirectoryExisted, readJson } = require('../../_helpers/process');
+const { is_special_installname } = require('../../../fibjs/scripts/internal/helpers/package')
 
 const processRunOptions = {
     env: {
         // all required environment would fallback to the parent's one
-        FIBJS_SILENT_INSALL: 1
+        FIBJS_SILENT_INSALL: process.env.hasOwnProperty('FIBJS_SILENT_INSALL') ? process.env.FIBJS_SILENT_INSALL : 1,
+        fibjs_install_http_proxy: process.env.fibjs_install_http_proxy,
     }
 }
 
@@ -48,7 +51,6 @@ describe('opt_tools/install from package.json', () => {
 
     describe('helpers', () => {
         it('is_special_installname', () => {
-            const { is_special_installname } = require('internal/helpers/package')
             assert.isTrue(is_special_installname('fibjs/fib-pool'))
             assert.isTrue(is_special_installname('fibjs/fib-pool#vnormal'))
             assert.isTrue(is_special_installname('https://github.comfibjs/fib-graphql'))
@@ -61,6 +63,7 @@ describe('opt_tools/install from package.json', () => {
     ;[
         ['default registry: regitry.npmjs.org'],
         ['specify registry: https://registry.yarnpkg.com', 'https://registry.yarnpkg.com'],
+        // ['specify registry: http://r.cnpmjs.org/', 'http://r.cnpmjs.org/'],
         // ['specify registry: https://registry.npm.taobao.org/', '//registry.npm.taobao.org/'],
     ].forEach(
         ([desc, registry]) => {
@@ -76,12 +79,40 @@ describe('opt_tools/install from package.json', () => {
                 });
 
                 afterEach(() => {
-                    rmdirr(installTarget)
+                    rmdirr(installTarget);
                 });
 
                 it('install public normal package', () => {
                     chdirAndDo(installTarget, () => {
                         process.run(bin, ['--install', 'ejs'], processRunOptions)
+                    })();
+
+                    assert.ok(fs.exists(
+                        resolveNodeModules(installTarget, 'ejs')
+                    ));
+
+                    assert.notOk(
+                        readJson(pkgJson).dependencies
+                    );
+                });
+
+                it('install --save public normal package', () => {
+                    chdirAndDo(installTarget, () => {
+                        process.run(bin, ['--install', '--save', 'ejs'], processRunOptions)
+                    })();
+
+                    assert.ok(fs.exists(
+                        resolveNodeModules(installTarget, 'ejs')
+                    ));
+
+                    assert.ok(
+                        readJson(pkgJson).dependencies['ejs']
+                    );
+                });
+
+                it('install -S public normal package', () => {
+                    chdirAndDo(installTarget, () => {
+                        process.run(bin, ['--install', '-S', 'ejs'], processRunOptions)
                     })();
 
                     assert.ok(fs.exists(
@@ -102,6 +133,34 @@ describe('opt_tools/install from package.json', () => {
                         resolveNodeModules(installTarget, '@fibjs/chalk')
                     ));
 
+                    assert.notOk(
+                        readJson(pkgJson).dependencies
+                    );
+                });
+
+                it('install --save public @scope package', () => {
+                    chdirAndDo(installTarget, () => {
+                        process.run(bin, ['--install', '--save', '@fibjs/chalk'], processRunOptions)
+                    })()
+
+                    assert.ok(fs.exists(
+                        resolveNodeModules(installTarget, '@fibjs/chalk')
+                    ));
+
+                    assert.ok(
+                        readJson(pkgJson).dependencies['@fibjs/chalk']
+                    );
+                });
+
+                it('install -S public @scope package', () => {
+                    chdirAndDo(installTarget, () => {
+                        process.run(bin, ['--install', '-S', '@fibjs/chalk'], processRunOptions)
+                    })()
+
+                    assert.ok(fs.exists(
+                        resolveNodeModules(installTarget, '@fibjs/chalk')
+                    ));
+
                     assert.ok(
                         readJson(pkgJson).dependencies['@fibjs/chalk']
                     );
@@ -109,19 +168,19 @@ describe('opt_tools/install from package.json', () => {
 
                 it('install package --save-dev/-D', () => {
                     chdirAndDo(installTarget, () => {
-                        process.run(bin, ['--install', '@fibjs/chalk', '--save-dev'], processRunOptions)
+                        process.run(bin, ['--install', '--save-dev', '@fibjs/chalk'], processRunOptions)
                     })();
 
                     assert.ok(fs.exists(
                         resolveNodeModules(installTarget, '@fibjs/chalk')
                     ));
 
-                    assert.ok(
-                        !require(pkgJson).dependencies
+                    assert.notOk(
+                        readJson(pkgJson).dependencies
                     );
 
                     assert.ok(
-                        require(pkgJson).devDependencies['@fibjs/chalk']
+                        readJson(pkgJson).devDependencies['@fibjs/chalk']
                     );
                 });
             });
@@ -187,8 +246,50 @@ describe('opt_tools/install from package.json', () => {
                     resolveNodeModules(installTarget, pkg_name)
                 ));
 
+                assert.notOk(
+                    readJson(pkgJson).dependencies
+                );
+            });
+
+            it(`[--save] ${desc}`, () => {
+                chdirAndDo(installTarget, () => {
+                    process.run(bin, ['--install', '--save', target], processRunOptions)
+                })();
+
+                assert.ok(fs.exists(
+                    resolveNodeModules(installTarget, pkg_name)
+                ));
+
                 assert.ok(
                     readJson(pkgJson).dependencies[pkg_name]
+                );
+            });
+
+            it(`[-S] ${desc}`, () => {
+                chdirAndDo(installTarget, () => {
+                    process.run(bin, ['--install', '-S', target], processRunOptions)
+                })();
+
+                assert.ok(fs.exists(
+                    resolveNodeModules(installTarget, pkg_name)
+                ));
+
+                assert.ok(
+                    readJson(pkgJson).dependencies[pkg_name]
+                );
+            });
+
+            it(`[-D] ${desc}`, () => {
+                chdirAndDo(installTarget, () => {
+                    process.run(bin, ['--install', '-D', target], processRunOptions)
+                })();
+
+                assert.ok(fs.exists(
+                    resolveNodeModules(installTarget, pkg_name)
+                ));
+
+                assert.ok(
+                    readJson(pkgJson).devDependencies[pkg_name]
                 );
             });
         });
@@ -225,10 +326,6 @@ describe('opt_tools/install from package.json', () => {
                 assert.ok(fs.exists(
                     resolveNodeModules(installTarget, pkgName)
                 ));
-
-                assert.ok(fs.exists(
-                    resolveNodeModules(installTarget, pkgName)
-                ));
             });
         });
 
@@ -242,10 +339,45 @@ describe('opt_tools/install from package.json', () => {
                 '@fibjs/ci'
             ],
         ].forEach(([target, pkg_name]) => {
-
             it(`install ${pkg_name} from command line`, () => {
                 chdirAndDo(installTarget, () => {
                     process.run(bin, ['--install', target], processRunOptions)
+                })();
+
+                assert.ok(fs.exists(
+                    resolveNodeModules(installTarget, pkg_name)
+                ));
+
+                assert.ok(fs.exists(
+                    resolveNodeModules(installTarget, pkg_name)
+                ));
+
+                assert.notOk(
+                    readJson(pkgJson).dependencies[pkg_name]
+                );
+            });
+
+            it(`[--save] install ${pkg_name} from command line`, () => {
+                chdirAndDo(installTarget, () => {
+                    process.run(bin, ['--install', '--save', target], processRunOptions)
+                })();
+
+                assert.ok(fs.exists(
+                    resolveNodeModules(installTarget, pkg_name)
+                ));
+
+                assert.ok(fs.exists(
+                    resolveNodeModules(installTarget, pkg_name)
+                ));
+
+                assert.ok(
+                    readJson(pkgJson).dependencies[pkg_name]
+                );
+            });
+
+            it(`[-S] install ${pkg_name} from command line`, () => {
+                chdirAndDo(installTarget, () => {
+                    process.run(bin, ['--install', '-S', target], processRunOptions)
                 })();
 
                 assert.ok(fs.exists(
