@@ -2,13 +2,14 @@ const assert = require('assert');
 
 if (process.platform === 'win32') {
     [
+        "SYSTEMROOT",
         "SystemRoot",
         "TEMP",
         "TMP",
-        "CommonProgramFiles",
+        // "CommonProgramFiles",
         "CommonProgramFiles(x86)",
         "CommonProgramW6432",
-        "ProgramFiles",
+        // "ProgramFiles",
         "ProgramFiles(x86)",
         "ProgramW6432",
     ].forEach(key => {

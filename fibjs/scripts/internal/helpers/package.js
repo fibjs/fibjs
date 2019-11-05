@@ -1,5 +1,4 @@
 const url = require('url');
-const semver = require('internal/helpers/semver');
 
 const CST = require('internal/constant');
 const helpers_string = require('internal/helpers/string')

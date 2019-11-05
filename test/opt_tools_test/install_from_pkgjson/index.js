@@ -8,7 +8,7 @@ var http = require("http");
 var bin = process.execPath;
 
 var { chdirAndDo, ensureDirectoryExisted, readJson } = require('../../_helpers/process');
-const { is_special_installname } = require('../../../fibjs/scripts/internal/helpers/package')
+const { is_special_installname } = require('internal/helpers/package')
 
 const processRunOptions = {
     env: {

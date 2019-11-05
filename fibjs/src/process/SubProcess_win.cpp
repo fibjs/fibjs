@@ -19,6 +19,7 @@
 namespace fibjs {
 
 static const char* DEFT_ENV_KEYS[] = {
+    "SYSTEMROOT",
     "SystemRoot",
     "TEMP",
     "TMP",
@@ -147,8 +148,6 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
         si.dwFlags |= STARTF_USESTDHANDLES;
     }
 
-    exlib::wstring envstr;
-
     v8::Local<v8::Object> cur_envs;
     hr = process_base::get_env(cur_envs);
     if (hr < 0)
@@ -162,31 +161,41 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
         return hr;
 
     v8::Local<v8::Object> opt_envs = opt_envs_v->ToObject();
-    v8::Local<v8::Value> dflt_k;
-    bool has_k;
+    v8::Local<v8::String> dflt_k;
+
+    bool has_dflt_k;
     for (int32_t i = 0; i < (int32_t)ARRAYSIZE(DEFT_ENV_KEYS); i++) {
-        util_base::has(opt_envs, DEFT_ENV_KEYS[i], has_k);
-        if (!has_k) {
+        util_base::has(opt_envs, DEFT_ENV_KEYS[i], has_dflt_k);
+        if (!has_dflt_k) {
             dflt_k = isolate->NewString(DEFT_ENV_KEYS[i]);
-            opt_envs->Set(dflt_k, JSValue(cur_envs->Get(dflt_k)));
+            opt_envs->Set(dflt_k, v8::Local<v8::Value>(cur_envs->Get(dflt_k)));
         }
     }
 
     JSArray keys = opt_envs->GetPropertyNames();
     len = (int32_t)keys->Length();
 
+    exlib::wstring envstr;
     for (i = 0; i < len; i++) {
         JSValue k = keys->Get(i);
-        JSValue v = opt_envs->Get(k);
+        v8::Local<v8::Value> v = opt_envs->Get(k);
         exlib::string ks, vs;
 
         hr = GetArgumentValue(k, ks);
         if (hr < 0)
             return hr;
 
-        hr = GetArgumentValue(v, vs);
-        if (hr < 0)
-            return hr;
+        bool is_v_nil;
+        util_base::isNullOrUndefined(v, is_v_nil);
+        if (is_v_nil) {
+            vs = exlib::string("");
+        } else {
+            hr = GetArgumentValue(v, vs);
+            if (hr < 0)
+                return hr;
+        }
+        if (!qstrcmp(ks.c_str(), "ProgramFiles"))
+            vs = "";
 
         ks.append(1, '=');
         ks.append(vs);

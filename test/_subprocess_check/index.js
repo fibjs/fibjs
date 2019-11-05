@@ -15,6 +15,7 @@ describe("Run other Test Case In SubProcess", () => {
             const retcode = process.run(cmd, [path.join(__dirname, '../main.js')], {
                 env1: {
                     ...util.pick(process.env, [
+                        "SYSTEMROOT",
                         "SystemRoot",
                         "TEMP",
                         "TMP",

@@ -23,6 +23,7 @@ const SEP = path.sep;
 
 const install_log = process.env.FIBJS_SILENT_INSALL ? () => undefined : console.log.bind(console)
 
+ssl.loadRootCerts();
 const hc = new http.Client();
 if (process.env.fibjs_install_http_proxy) {
     hc.proxyAgent = process.env.fibjs_install_http_proxy;
@@ -168,7 +169,7 @@ function http_get(u, { quit_if_error = true } = {}) {
 
             return res
         } catch (e) {
-            console.warn(`[http_get] download error, info: ${e}`);
+            console.error(e);
             console.warn(`[http_get] retry ${cnt}: ${u}`);
         }
 
@@ -636,8 +637,6 @@ if (process.argv.indexOf('--save', 2) > -1 || process.argv.indexOf('-S', 2) > -1
 } else {
     ctx.depk = DEPENDENCIES;
 }
-
-ssl.loadRootCerts();
 
 const rootsnap = get_root_snapshot();
 // when specified new_pkgname, install it only

@@ -390,13 +390,14 @@ describe('process', () => {
 
         if (process.platform === 'win32') {
             const win_keys = [
+                'SYSTEMROOT',
                 'SystemRoot',
                 'TEMP',
                 'TMP',
-                'CommonProgramFiles',
+                // 'CommonProgramFiles',
                 'CommonProgramFiles(x86)',
                 'CommonProgramW6432',
-                'ProgramFiles',
+                // 'ProgramFiles',
                 'ProgramFiles(x86)',
                 'ProgramW6432',
             ];
@@ -407,18 +408,7 @@ describe('process', () => {
 
                 assert.deepEqual(
                     bs.stdout.readLines(),
-                    Math.random(0, 1) < 0.5 ?
-                    win_keys.map(key => `process.env['${key}']=${process.env[key]}`) : [
-                        `process.env['SystemRoot']=${process.env['SystemRoot']}`,
-                        `process.env['TEMP']=${process.env['TEMP']}`,
-                        `process.env['TMP']=${process.env['TMP']}`,
-                        `process.env['CommonProgramFiles']=${process.env['CommonProgramFiles']}`,
-                        `process.env['CommonProgramFiles(x86)']=${process.env['CommonProgramFiles(x86)']}`,
-                        `process.env['CommonProgramW6432']=${process.env['CommonProgramW6432']}`,
-                        `process.env['ProgramFiles']=${process.env['ProgramFiles']}`,
-                        `process.env['ProgramFiles(x86)']=${process.env['ProgramFiles(x86)']}`,
-                        `process.env['ProgramW6432']=${process.env['ProgramW6432']}`,
-                    ]
+                    win_keys.map(key => `process.env['${key}']=${process.env[key] || ''}`)
                 );
             });
 
@@ -440,7 +430,7 @@ describe('process', () => {
 
                 assert.deepEqual(
                     bs.stdout.readLines(),
-                    win_keys.map(key => `process.env['${key}']=${process.env[key]}`)
+                    win_keys.map(key => `process.env['${key}']=${process.env[key] || ''}`)
                 )
             });
         }
