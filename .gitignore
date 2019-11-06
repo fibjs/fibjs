@@ -5,3 +5,6 @@
 *.sdf
 *.suo
 node_modules
+out
+.vs
+fibjs.vcxproj.user

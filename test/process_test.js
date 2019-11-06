@@ -229,7 +229,7 @@ describe('process', () => {
                 try {
                     net.connect('tcp://127.0.0.1:28080');
                     break;
-                } catch (e) {}
+                } catch (e) { }
             }
 
             assert.equal(p.stdout.readLine(), "700");
@@ -390,13 +390,14 @@ describe('process', () => {
 
         if (process.platform === 'win32') {
             const win_keys = [
+                'SYSTEMROOT',
                 'SystemRoot',
                 'TEMP',
                 'TMP',
-                'CommonProgramFiles',
+                // 'CommonProgramFiles',
                 'CommonProgramFiles(x86)',
                 'CommonProgramW6432',
-                'ProgramFiles',
+                // 'ProgramFiles',
                 'ProgramFiles(x86)',
                 'ProgramW6432',
             ];
@@ -407,18 +408,7 @@ describe('process', () => {
 
                 assert.deepEqual(
                     bs.stdout.readLines(),
-                    Math.random(0, 1) < 0.5 ?
-                    win_keys.map(key => `process.env['${key}']=${process.env[key]}`) : [
-                        `process.env['SystemRoot']=${process.env['SystemRoot']}`,
-                        `process.env['TEMP']=${process.env['TEMP']}`,
-                        `process.env['TMP']=${process.env['TMP']}`,
-                        `process.env['CommonProgramFiles']=${process.env['CommonProgramFiles']}`,
-                        `process.env['CommonProgramFiles(x86)']=${process.env['CommonProgramFiles(x86)']}`,
-                        `process.env['CommonProgramW6432']=${process.env['CommonProgramW6432']}`,
-                        `process.env['ProgramFiles']=${process.env['ProgramFiles']}`,
-                        `process.env['ProgramFiles(x86)']=${process.env['ProgramFiles(x86)']}`,
-                        `process.env['ProgramW6432']=${process.env['ProgramW6432']}`,
-                    ]
+                    win_keys.map(key => `process.env['${key}']=${process.env[key] || ''}`)
                 );
             });
 
@@ -440,8 +430,55 @@ describe('process', () => {
 
                 assert.deepEqual(
                     bs.stdout.readLines(),
-                    win_keys.map(key => `process.env['${key}']=${process.env[key]}`)
+                    win_keys.map(key => `process.env['${key}']=${process.env[key] || ''}`)
                 )
+            });
+
+            win_keys.forEach(win_key => {
+                it(`override required reserve env vars - ${win_key}`, () => {
+                    var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')], {
+                        env: { [win_key]: undefined }
+                    });
+                    bs.wait();
+
+                    assert.deepEqual(
+                        bs.stdout.readLines(),
+                        win_keys.map(key => {
+                            if (key !== win_key)
+                                return `process.env['${key}']=${process.env[key] || ''}`
+                            else
+                                return `process.env['${key}']=`
+                        })
+                    );
+
+                    var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')], {
+                        env: { [win_key]: 'foo' }
+                    });
+                    bs.wait();
+
+                    assert.deepEqual(
+                        bs.stdout.readLines(),
+                        win_keys.map(key => {
+                            if (key !== win_key)
+                                return `process.env['${key}']=${process.env[key] || ''}`
+                            else
+                                return `process.env['${key}']=foo`
+                        })
+                    );
+                });
+            });
+
+            win_keys.forEach(win_key => {
+                if (win_key.toUpperCase() === 'SYSTEMROOT') return;
+
+                it(`cancel reserve env var - ${win_key}`, () => {
+                    var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.win32_envs.js')], {
+                        env: { [win_key]: process.env[win_key] }
+                    });
+                    bs.wait();
+
+                    assert.deepEqual(bs.stdout.readLines(), []);
+                });
             });
         }
 
@@ -453,8 +490,8 @@ describe('process', () => {
                 assert.deepEqual(
                     bs.stdout.readLines(),
                     [
-                        `process.env.HOME=${process.env.HOME}`,
-                        `process.env.TMPDIR=${process.env.TMPDIR}`,
+                        `process.env.HOME=${process.env.HOME || ''}`,
+                        `process.env.TMPDIR=${process.env.TMPDIR || ''}`,
                     ]
                 )
             });
@@ -490,8 +527,8 @@ describe('process', () => {
                 assert.deepEqual(
                     bs.stdout.readLines(),
                     [
-                        `process.env.HOME=${process.env.HOME}`,
-                        `process.env.TMPDIR=${process.env.TMPDIR}`,
+                        `process.env.HOME=${process.env.HOME || ''}`,
+                        `process.env.TMPDIR=${process.env.TMPDIR || ''}`,
                     ]
                 )
             });
@@ -519,6 +556,12 @@ describe('process', () => {
             });
         }
 
+        /**
+         * in win32, socket/nslookup require system win32 api, some ENV variable is required
+         * - SYSTEMROOT
+         * if case below cannot executed normally, check your implementation about environment variables in 
+         * sub process
+         */
         it("dns.resolve", () => {
             var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.dns.js')]);
             bs.wait()

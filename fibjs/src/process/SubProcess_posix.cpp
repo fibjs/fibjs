@@ -192,9 +192,14 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
         if (hr < 0)
             return hr;
 
-        hr = GetArgumentValue(v, vs);
-        if (hr < 0)
-            return hr;
+        bool is_v_nil;
+        util_base::isNullOrUndefined(v, is_v_nil);
+        if (!is_v_nil) {
+            hr = GetArgumentValue(v, vs);
+            if (hr < 0)
+                return hr;
+        } else
+            vs = exlib::string("");
 
         ks.append(1, '=');
         ks.append(vs);

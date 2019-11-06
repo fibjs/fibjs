@@ -1,5 +1,5 @@
 var fs = require('fs');
-var path = require('path');
+var path = require('path').posix;
 var encoding = require('encoding');
 var zlib = require('zlib');
 

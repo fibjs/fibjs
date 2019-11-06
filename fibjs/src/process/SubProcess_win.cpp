@@ -19,6 +19,7 @@
 namespace fibjs {
 
 static const char* DEFT_ENV_KEYS[] = {
+    "SYSTEMROOT",
     "SystemRoot",
     "TEMP",
     "TMP",
@@ -147,8 +148,6 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
         si.dwFlags |= STARTF_USESTDHANDLES;
     }
 
-    exlib::wstring envstr;
-
     v8::Local<v8::Object> cur_envs;
     hr = process_base::get_env(cur_envs);
     if (hr < 0)
@@ -162,31 +161,52 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
         return hr;
 
     v8::Local<v8::Object> opt_envs = opt_envs_v->ToObject();
-    v8::Local<v8::Value> dflt_k;
-    bool has_k;
-    for (int32_t i = 0; i < (int32_t)ARRAYSIZE(DEFT_ENV_KEYS); i++) {
-        util_base::has(opt_envs, DEFT_ENV_KEYS[i], has_k);
-        if (!has_k) {
-            dflt_k = isolate->NewString(DEFT_ENV_KEYS[i]);
-            opt_envs->Set(dflt_k, JSValue(cur_envs->Get(dflt_k)));
+
+    JSArray cur_keys = cur_envs->GetPropertyNames();
+    len = (int32_t)cur_keys->Length();
+    bool has_reverse_key;
+    exlib::string envs_k;
+    v8::Local<v8::String> js_envs_k;
+    v8::Local<v8::Value> js_v_in_cur;
+
+    for (int32_t i = 0, reverse_key_len = (int32_t)ARRAYSIZE(DEFT_ENV_KEYS); i < len; i++) {
+        GetArgumentValue(cur_keys->Get(i), envs_k);
+
+        for (int32_t j = 0; j < reverse_key_len; j++) {
+            if (qstricmp(DEFT_ENV_KEYS[j], envs_k.c_str()))
+                continue;
+
+            util_base::has(opt_envs, DEFT_ENV_KEYS[j], has_reverse_key);
+            js_envs_k = isolate->NewString(DEFT_ENV_KEYS[j]);
+            js_v_in_cur = cur_envs->Get(js_envs_k);
+
+            if (!js_v_in_cur->IsNullOrUndefined()) {
+                if (has_reverse_key)
+                    continue;
+                opt_envs->Set(js_envs_k, js_v_in_cur);
+            }
         }
     }
 
     JSArray keys = opt_envs->GetPropertyNames();
     len = (int32_t)keys->Length();
 
+    exlib::wstring envstr;
     for (i = 0; i < len; i++) {
         JSValue k = keys->Get(i);
-        JSValue v = opt_envs->Get(k);
+        v8::Local<v8::Value> v = opt_envs->Get(k);
         exlib::string ks, vs;
 
         hr = GetArgumentValue(k, ks);
         if (hr < 0)
             return hr;
 
-        hr = GetArgumentValue(v, vs);
-        if (hr < 0)
-            return hr;
+        if (!v->IsNullOrUndefined()) {
+            hr = GetArgumentValue(v, vs);
+            if (hr < 0)
+                return hr;
+        } else
+            vs = exlib::string("");
 
         ks.append(1, '=');
         ks.append(vs);
