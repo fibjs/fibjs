@@ -150,7 +150,7 @@ if [ ! -e ${OUT_PATH} ]; then
 	mkdir ${OUT_PATH}
 fi
 
-GIT_INFO=`git describe`
+GIT_INFO=`git describe --tags`
 
 cd ${OUT_PATH}
 cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DBUILD_TYPE=${BUILD_TYPE} -DBUILD_OPTION="${BUILD_OPTION}" -DGIT_INFO=$GIT_INFO ${FIBJS_PATH} > CMake.log
