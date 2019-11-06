@@ -13,16 +13,16 @@ if (process.platform === 'win32') {
         "ProgramFiles(x86)",
         "ProgramW6432",
     ].forEach(key => {
-        console.log(`process.env['${key}']=${process.env[key]}`)
+        console.log(`process.env['${key}']=${process.env[key] || ''}`)
     })
 }
 
 if (process.platform === 'darwin') {
-    console.log(`process.env.HOME=${process.env.HOME}`)
-    console.log(`process.env.TMPDIR=${process.env.TMPDIR}`)
+    console.log(`process.env.HOME=${process.env.HOME || ''}`)
+    console.log(`process.env.TMPDIR=${process.env.TMPDIR || ''}`)
 }
 
 if (process.platform === 'linux') {
-    console.log(`process.env.HOME=${process.env.HOME}`)
-    console.log(`process.env.TMPDIR=${process.env.TMPDIR}`)
+    console.log(`process.env.HOME=${process.env.HOME || ''}`)
+    console.log(`process.env.TMPDIR=${process.env.TMPDIR || ''}`)
 }
