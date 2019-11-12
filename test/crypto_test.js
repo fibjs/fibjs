@@ -213,6 +213,15 @@ describe('crypto', () => {
         test_cipher(crypto.ARC4, "arc4");
 
         // test_cipher(crypto.ARIA, "aria");
+
+        it('DES bug fix', () => {
+            let passwd = "vio7t449";
+            let key = "5KLPqC7pAUUfL";
+            let cipher = new crypto.Cipher(crypto.DES, crypto.CBC, new Buffer(passwd));
+            let encrypted = cipher.encrypt(new Buffer(key)).hex();
+
+            assert.equal(key, cipher.decrypt(new Buffer(encrypted, "hex")).toString("utf8"));
+        });
     });
 
     describe("PKey", () => {
