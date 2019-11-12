@@ -236,7 +236,7 @@ result_t Cipher::process(const mbedtls_operation_t operation, Buffer_base* data,
     if (block_size == 1)
         block_size = sizeof(buffer);
 
-    for (offset = 0; offset < data_size; offset += olen) {
+    for (offset = 0; offset < data_size; offset += block_size) {
         ilen = ((uint32_t)(data_size - offset) > block_size) ? block_size : (uint32_t)(data_size - offset);
 
         ret = mbedtls_cipher_update(&m_ctx, (unsigned char*)input.c_str() + offset,
