@@ -666,6 +666,8 @@ ctx.new_pkgname = (process.argv).filter(x => !x.startsWith('-'))[1];
             if (ctx.new_pkgname && rootsnap[dep_type][ctx.new_pkgname] === undefined) rootsnap[dep_type][ctx.new_pkgname] = '*';
             break
     }
+
+    if (ctx.new_pkgname) rootsnap[dep_type] = { [ctx.new_pkgname]: rootsnap[dep_type][ctx.new_pkgname] }
 })();
 
 walkthrough_deps(rootsnap, need_add_newpkg_to_pkgjson === DEVDEPENDENCIES);
