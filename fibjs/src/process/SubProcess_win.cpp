@@ -100,6 +100,7 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
     int32_t i;
     HANDLE cin_pipe[2] = { 0 };
     HANDLE cout_pipe[2] = { 0 };
+    HANDLE cerr_pipe[2] = { 0 };
     int32_t timeout;
 
     exlib::wstring wstr;
@@ -142,7 +143,18 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
             return hr;
         }
 
-        si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+        hr = create_name_pipe(&cerr_pipe[0], &cerr_pipe[1], false);
+        if (hr < 0) {
+            ::CloseHandle(cin_pipe[0]);
+            ::CloseHandle(cin_pipe[1]);
+
+            ::CloseHandle(cout_pipe[0]);
+            ::CloseHandle(cout_pipe[1]);
+
+            return hr;
+        }
+
+        si.hStdError = cerr_pipe[1];
         si.hStdOutput = cout_pipe[1];
         si.hStdInput = cin_pipe[1];
         si.dwFlags |= STARTF_USESTDHANDLES;
@@ -224,6 +236,9 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
         ::CloseHandle(cout_pipe[0]);
         ::CloseHandle(cout_pipe[1]);
 
+        ::CloseHandle(cerr_pipe[0]);
+        ::CloseHandle(cerr_pipe[1]);
+
         return CHECK_ERROR(LastError());
     }
 
@@ -235,9 +250,11 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
     if (redirect) {
         ::CloseHandle(cin_pipe[1]);
         ::CloseHandle(cout_pipe[1]);
+        ::CloseHandle(cerr_pipe[1]);
 
         wrap_pipe((intptr_t)cin_pipe[0], sub->m_stdin);
         wrap_pipe((intptr_t)cout_pipe[0], sub->m_stdout);
+        wrap_pipe((intptr_t)cerr_pipe[0], sub->m_stderr);
     }
 
     if (timeout > 0) {
