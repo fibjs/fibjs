@@ -5,7 +5,7 @@ var hash = require("hash");
 var path = require("path");
 
 var baseDir = process.cwd();
-var prjName = path.basename(baseDir);
+var prjName = path.basename(baseDir) + 'lib';
 
 var Includes = {};
 var Compiles = {};

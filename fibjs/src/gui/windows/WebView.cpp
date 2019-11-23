@@ -833,8 +833,8 @@ result_t WebView::postClose(_variant_t& retVal)
 result_t WebView::postMessage(exlib::string msg, _variant_t& retVal)
 {
     if (_onmessage) {
-        _variant_t msg(UTF8_W(msg));
-        DISPPARAMS params = { &msg, NULL, 1, 0 };
+        _variant_t _msg(UTF8_W(msg));
+        DISPPARAMS params = { &_msg, NULL, 1, 0 };
 
         _onmessage->Invoke(DISPID_VALUE, IID_NULL, LOCALE_USER_DEFAULT,
             DISPATCH_METHOD, &params, &retVal, NULL, NULL);

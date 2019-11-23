@@ -22,7 +22,7 @@ public:
     }
 
 public:
-    void setField(int32_t i, exlib::string& s)
+    void setField(int32_t i, const exlib::string& s)
     {
         m_keys[i] = s;
     }
