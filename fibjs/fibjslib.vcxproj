@@ -461,7 +461,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{238FDB2A-C47D-44E2-94A3-D0FA2BF3C965}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>fibjs</RootNamespace>
+    <RootNamespace>fibjslib</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -490,7 +490,21 @@
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PositionIndependentCode>false</PositionIndependentCode>
+      <AdditionalOptions Condition="'$(Platform)'=='Win32'">-fms-compatibility %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Lib>
+      <DEFAULTLIB>false</DEFAULTLIB>
+    </Lib>
+  </ItemDefinitionGroup>
+  <PropertyGroup Label="LLVMConfig">
+    <UseMultiToolTask>true</UseMultiToolTask>
+    <VCToolsVersion>14.16.27023</VCToolsVersion>
+  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="$(MSBuildThisFileDirectory)\..\vender\.VCTargets\Toolset-llvm-vs2017.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -509,22 +523,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)bin\Windows_i386_debug\</OutDir>
-    <IntDir>$(SolutionDir)out\Windows_i386_debug\fibjs\</IntDir>
+    <IntDir>$(SolutionDir)out\Windows_i386_debug\fibjslib\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)bin\Windows_amd64_debug\</OutDir>
-    <IntDir>$(SolutionDir)out\Windows_amd64_debug\fibjs\</IntDir>
+    <IntDir>$(SolutionDir)out\Windows_amd64_debug\fibjslib\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)bin\Windows_i386_release\</OutDir>
-    <IntDir>$(SolutionDir)out\Windows_i386_release\fibjs\</IntDir>
+    <IntDir>$(SolutionDir)out\Windows_i386_release\fibjslib\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)bin\Windows_amd64_release\</OutDir>
-    <IntDir>$(SolutionDir)out\Windows_amd64_release\fibjs\</IntDir>
+    <IntDir>$(SolutionDir)out\Windows_amd64_release\fibjslib\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -582,6 +596,7 @@
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <AdditionalOptions>%(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4091;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -592,6 +607,7 @@
     <Lib>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalOptions>/ignore:4221%(AdditionalOptions)</AdditionalOptions>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -607,9 +623,9 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>%(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4091;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -623,6 +639,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)\..\vender\.VCTargets\Toolset-llvm-vs2017.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>

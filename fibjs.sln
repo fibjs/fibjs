@@ -29,7 +29,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fibjs", "fibjs\program\fibj
 		{1F77AB58-706B-4BB5-BE73-000110032391} = {1F77AB58-706B-4BB5-BE73-000110032391}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fiblib", "fibjs\fibjs.vcxproj", "{238FDB2A-C47D-44E2-94A3-D0FA2BF3C965}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fibjslib", "fibjs\fibjslib.vcxproj", "{238FDB2A-C47D-44E2-94A3-D0FA2BF3C965}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "exlib", "vender\exlib\exlib.vcxproj", "{1F77AB58-706B-4BB5-BE73-0000000E211B}"
 EndProject

@@ -370,8 +370,8 @@ result_t console_base::moveTo(int32_t row, int32_t column)
         return CHECK_ERROR(LastError());
 
     COORD pos = {
-        (short)column - 1,
-        (short)row - 1 + info.srWindow.Top
+        (short)(column - 1),
+        (short)(row - 1 + info.srWindow.Top)
     };
 
     SetConsoleCursorPosition(hd, pos);

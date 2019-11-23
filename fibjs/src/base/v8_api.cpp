@@ -9,6 +9,7 @@
 #pragma warning(disable : 4800)
 #pragma warning(disable : 4101)
 #pragma warning(disable : 4244)
+#pragma comment(lib, "vcruntime.lib")
 #endif
 
 #include "v8.h"
