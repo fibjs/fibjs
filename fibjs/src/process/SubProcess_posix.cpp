@@ -109,6 +109,7 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
     int32_t i;
     int32_t cin_pipe[2];
     int32_t cout_pipe[2];
+    int32_t cerr_pipe[2];
     int32_t timeout;
 
     Isolate* isolate = Isolate::current();
@@ -136,9 +137,19 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
         if (pipe(cout_pipe))
             return CHECK_ERROR(LastError());
 
+        if (pipe(cerr_pipe)) {
+            ::close(cout_pipe[0]);
+            ::close(cout_pipe[1]);
+
+            return CHECK_ERROR(LastError());
+        }
+
         if (pipe(cin_pipe)) {
             ::close(cout_pipe[0]);
             ::close(cout_pipe[1]);
+
+            ::close(cerr_pipe[0]);
+            ::close(cerr_pipe[1]);
             return CHECK_ERROR(LastError());
         }
 
@@ -146,12 +157,16 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
 
         posix_spawn_file_actions_adddup2(&fops, cin_pipe[0], 0);
         posix_spawn_file_actions_adddup2(&fops, cout_pipe[1], 1);
+        posix_spawn_file_actions_adddup2(&fops, cerr_pipe[1], 2);
 
         posix_spawn_file_actions_addclose(&fops, cin_pipe[0]);
         posix_spawn_file_actions_addclose(&fops, cin_pipe[1]);
 
         posix_spawn_file_actions_addclose(&fops, cout_pipe[0]);
         posix_spawn_file_actions_addclose(&fops, cout_pipe[1]);
+
+        posix_spawn_file_actions_addclose(&fops, cerr_pipe[0]);
+        posix_spawn_file_actions_addclose(&fops, cerr_pipe[1]);
     }
 
     std::vector<exlib::string> envstr;
@@ -241,6 +256,7 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
         if (redirect) {
             ::close(cin_pipe[1]);
             ::close(cout_pipe[0]);
+            ::close(cerr_pipe[0]);
         }
 
         return CHECK_ERROR(-err);
@@ -256,6 +272,7 @@ result_t SubProcess::create(exlib::string command, v8::Local<v8::Array> args, v8
     if (redirect) {
         wrap_pipe(cin_pipe[1], sub->m_stdin);
         wrap_pipe(cout_pipe[0], sub->m_stdout);
+        wrap_pipe(cerr_pipe[0], sub->m_stderr);
     }
 
     if (timeout > 0) {

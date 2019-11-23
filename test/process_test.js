@@ -80,6 +80,49 @@ describe('process', () => {
         assert.closeTo(new Date().getTime() - t0, 2000, 500);
     });
 
+    describe("stdout/stderr", () => {
+        it("SubProcess::stderr/stdout exist", () => {
+            var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.js')]);
+
+            assert.exist(bs.stdout);
+            assert.exist(bs.stderr);
+        });
+
+        it("stdout output", () => {
+            var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.stdout.js')]);
+
+            assert.equal(bs.stdout.readLine(), "exec testing....");
+
+            var t0 = new Date().getTime();
+
+            bs.stdout.readLine();
+            var offsets = []
+            offsets[0] = new Date().getTime() - t0;
+            assert.closeTo(offsets[0], 1000, 500);
+
+            bs.stdout.readLine();
+            offsets[1] = new Date().getTime() - t0;
+            assert.closeTo(offsets[1], 2000, 1000);
+        });
+
+        it("stderr output", () => {
+            var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.stderr.js')]);
+
+            assert.equal(bs.stderr.readLine(), "exec testing....");
+
+            var t0 = new Date().getTime();
+
+            bs.stderr.readLine();
+            var offsets = []
+            offsets[0] = new Date().getTime() - t0;
+            assert.closeTo(offsets[0], 1000, 500);
+
+            bs.stderr.readLine();
+            offsets[1] = new Date().getTime() - t0;
+            assert.closeTo(offsets[1], 2000, 1000);
+        });
+    });
+
     it("stdin/stdout", () => {
         var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec1.js')]);
 

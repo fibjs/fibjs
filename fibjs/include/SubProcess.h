@@ -41,6 +41,7 @@ public:
     virtual result_t get_ppid(int32_t& retVal);
     virtual result_t get_stdin(obj_ptr<BufferedStream_base>& retVal);
     virtual result_t get_stdout(obj_ptr<BufferedStream_base>& retVal);
+    virtual result_t get_stderr(obj_ptr<BufferedStream_base>& retVal);
 
 public:
     static result_t create(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts,
@@ -118,6 +119,7 @@ private:
     obj_ptr<Timer> m_timer;
     obj_ptr<BufferedStream_base> m_stdin;
     obj_ptr<BufferedStream_base> m_stdout;
+    obj_ptr<BufferedStream_base> m_stderr;
 
     intptr_t m_pid;
     intptr_t m_ppid;
