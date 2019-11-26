@@ -88,7 +88,7 @@ inline result_t _jsonDecode(exlib::string data,
 {
     class json_parser {
     public:
-        json_parser(exlib::string source)
+        json_parser(exlib::string& source)
             : isolate(Isolate::current())
             , source_(source.c_str())
             , source_length_((int32_t)source.length())
