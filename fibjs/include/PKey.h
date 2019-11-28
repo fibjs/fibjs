@@ -31,6 +31,7 @@ public:
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal);
     virtual result_t genRsaKey(int32_t size, AsyncEvent* ac);
     virtual result_t genEcKey(exlib::string curve, AsyncEvent* ac);
+    virtual result_t genSm2Key(AsyncEvent* ac);
     virtual result_t isPrivate(bool& retVal);
     virtual result_t clone(obj_ptr<PKey_base>& retVal);
     virtual result_t importKey(Buffer_base* DerKey, exlib::string password);
