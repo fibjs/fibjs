@@ -222,6 +222,7 @@ describe('crypto', () => {
         test_cipher(crypto.DES_EDE3, "des_ede3");
         test_cipher(crypto.BLOWFISH, "blowfish");
         test_cipher(crypto.ARC4, "arc4");
+        test_cipher(crypto.SM4, "sm4");
 
         // test_cipher(crypto.ARIA, "aria");
 

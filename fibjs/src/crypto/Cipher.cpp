@@ -43,7 +43,8 @@ static struct _cipher_size {
     { { "ARIA-128", {} },
         { "ARIA-192", {} },
         { "ARIA-256", {} } },
-    { { "CHACHA20", {} } }
+    { { "CHACHA20", {} } },
+    { { "SM4", {} } }
 };
 
 #define PROVIDER_COUNT ARRAYSIZE(s_sizes)
@@ -70,7 +71,7 @@ result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base* key,
     Buffer_base* iv, obj_ptr<Cipher_base>& retVal,
     v8::Local<v8::Object> This)
 {
-    if (provider < crypto_base::_AES || provider > crypto_base::_CHACHA20)
+    if (provider < crypto_base::_AES || provider > crypto_base::_SM4)
         return CHECK_ERROR(Runtime::setError("Cipher: Invalid provider"));
     if (mode < crypto_base::_ECB || mode > crypto_base::_POLY1305)
         return CHECK_ERROR(Runtime::setError("Cipher: Invalid mode"));
