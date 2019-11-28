@@ -1,0 +1,12 @@
+[
+    ["SM4-ECB Encrypt Test Vector #1", "encrypt", "ECB", "0123456789abcdeffedcba9876543210", "0123456789abcdeffedcba9876543210", "681edf34d206965e86b3e94f536e4246"],
+    ["SM4-ECB Encrypt Test Vector #2", "encrypt", "ECB", "00000000000000000000000000000000", "0123456789abcdeffedcba9876543210", "29c8bccac865d43db25596e2b59be9af"],
+    ["SM4-ECB Encrypt Test Vector #3", "encrypt", "ECB", "00000000000000000000000000000000", "00000000000000000000000000000000", "9f1f7bff6f5511384d9430531e538fd3"],
+    ["SM4-ECB Decrypt Test Vector #1", "decrypt", "ECB", "0123456789abcdeffedcba9876543210", "681edf34d206965e86b3e94f536e4246", "0123456789abcdeffedcba9876543210"],
+    ["SM4-ECB Decrypt Test Vector #2", "decrypt", "ECB", "00000000000000000000000000000000", "29c8bccac865d43db25596e2b59be9af", "0123456789abcdeffedcba9876543210"],
+    ["SM4-ECB Decrypt Test Vector #3", "decrypt", "ECB", "00000000000000000000000000000000", "9f1f7bff6f5511384d9430531e538fd3", "00000000000000000000000000000000"],
+    ["SM4-CBC Encrypt Test Vector #1", "encrypt", "CBC", "0123456789abcdeffedcba9876543210", "0123456789abcdeffedcba9876543210", "681edf34d206965e86b3e94f536e4246", "00000000000000000000000000000000"],
+    ["SM4-CBC Encrypt Test Vector #2", "encrypt", "CBC", "0123456789abcdeffedcba9876543210", "0123456789abcdeffedcba9876543210", "e27ac663bca9ab60175886a5e3a67aeb", "fffffffffffffe000000000000000000"],
+    ["SM4-CBC Decrypt Test Vector #1", "decrypt", "CBC", "0123456789abcdeffedcba9876543210", "681edf34d206965e86b3e94f536e4246", "0123456789abcdeffedcba9876543210", "00000000000000000000000000000000"],
+    ["SM4-CBC Decrypt Test Vector #2", "decrypt", "CBC", "0123456789abcdeffedcba9876543210", "e27ac663bca9ab60175886a5e3a67aeb", "0123456789abcdeffedcba9876543210", "fffffffffffffe000000000000000000"]
+]
