@@ -37,7 +37,8 @@ static const curve_info supported_curves[] = {
     { MBEDTLS_ECP_DP_BP512R1, "brainpoolP512r1" },
     { MBEDTLS_ECP_DP_SECP192K1, "secp192k1" },
     { MBEDTLS_ECP_DP_SECP224K1, "secp224k1" },
-    { MBEDTLS_ECP_DP_SECP256K1, "secp256k1" }
+    { MBEDTLS_ECP_DP_SECP256K1, "secp256k1" },
+    { MBEDTLS_ECP_DP_SM2P256R1, "sm2p256r1" },
 };
 
 mbedtls_ecp_group_id get_curve_id(exlib::string& curve)
@@ -151,7 +152,7 @@ result_t PKey::genEcKey(exlib::string curve, AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     mbedtls_ecp_group_id id = get_curve_id(curve);
-    if (id == MBEDTLS_ECP_DP_NONE)
+    if (id == MBEDTLS_ECP_DP_NONE || id == MBEDTLS_ECP_DP_SM2P256R1)
         return CHECK_ERROR(Runtime::setError("PKey: Unknown curve"));
 
     int32_t ret;
@@ -170,6 +171,27 @@ result_t PKey::genEcKey(exlib::string curve, AsyncEvent* ac)
     return 0;
 }
 
+result_t PKey::genSm2Key(AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int32_t ret;
+
+    clear();
+
+    ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_SM2));
+    if (ret != 0)
+        return CHECK_ERROR(_ssl::setError(ret));
+
+    ret = mbedtls_ecp_gen_key(MBEDTLS_ECP_DP_SM2P256R1, mbedtls_pk_ec(m_key),
+        mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
+    if (ret != 0)
+        return CHECK_ERROR(_ssl::setError(ret));
+
+    return 0;
+}
+
 result_t PKey::isPrivate(bool& retVal)
 {
     mbedtls_pk_type_t type = mbedtls_pk_get_type(&m_key);
@@ -179,7 +201,7 @@ result_t PKey::isPrivate(bool& retVal)
         return 0;
     }
 
-    if (type == MBEDTLS_PK_ECKEY) {
+    if (type == MBEDTLS_PK_ECKEY || type == MBEDTLS_PK_SM2) {
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
         retVal = mbedtls_ecp_check_privkey(&ecp->grp, &ecp->d) == 0;
         return 0;
@@ -228,12 +250,12 @@ result_t PKey::get_publicKey(obj_ptr<PKey_base>& retVal)
         return 0;
     }
 
-    if (type == MBEDTLS_PK_ECKEY) {
+    if (type == MBEDTLS_PK_ECKEY || type == MBEDTLS_PK_SM2) {
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
 
         obj_ptr<PKey> pk1 = new PKey();
 
-        ret = mbedtls_pk_setup(&pk1->m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
+        ret = mbedtls_pk_setup(&pk1->m_key, mbedtls_pk_info_from_type(type));
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
@@ -276,10 +298,10 @@ result_t PKey::copy(const mbedtls_pk_context& key)
         return 0;
     }
 
-    if (type == MBEDTLS_PK_ECKEY) {
+    if (type == MBEDTLS_PK_ECKEY || type == MBEDTLS_PK_SM2) {
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(key);
 
-        ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
+        ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(type));
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
@@ -454,7 +476,7 @@ result_t PKey::importKey(v8::Local<v8::Object> jsonKey)
         return 0;
     }
 
-    if (kty == "EC") {
+    if (kty == "EC" || kty == "SM2") {
         exlib::string curve;
 
         hr = GetConfigValue(isolate->m_isolate, jsonKey, "crv", curve);
@@ -464,8 +486,10 @@ result_t PKey::importKey(v8::Local<v8::Object> jsonKey)
         mbedtls_ecp_group_id id = get_curve_id(curve);
         if (id == MBEDTLS_ECP_DP_NONE)
             return CHECK_ERROR(Runtime::setError("PKey: Unknown curve"));
-
-        ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
+        if (kty == "SM2")
+            ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_SM2));
+        else
+            ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
@@ -618,12 +642,12 @@ result_t PKey::exportJson(v8::Local<v8::Object>& retVal)
         return 0;
     }
 
-    if (type == MBEDTLS_PK_ECKEY) {
+    if (type == MBEDTLS_PK_ECKEY || type == MBEDTLS_PK_SM2) {
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
         const char* _name = get_curve_name(ecp->grp.id);
 
-        o->Set(isolate->NewString("kty"), isolate->NewString("EC"));
+        o->Set(isolate->NewString("kty"), isolate->NewString(mbedtls_pk_get_name(&m_key)));
 
         if (_name)
             o->Set(isolate->NewString("crv"), isolate->NewString(_name));
@@ -757,7 +781,9 @@ result_t PKey::verify(Buffer_base* data, Buffer_base* sign,
     ret = mbedtls_pk_verify(&m_key, (mbedtls_md_type_t)alg,
         (const unsigned char*)str.c_str(), str.length(),
         (const unsigned char*)strsign.c_str(), strsign.length());
-    if (ret == MBEDTLS_ERR_ECP_VERIFY_FAILED || ret == MBEDTLS_ERR_RSA_VERIFY_FAILED) {
+    if (ret == MBEDTLS_ERR_ECP_VERIFY_FAILED || ret == MBEDTLS_ERR_RSA_VERIFY_FAILED ||
+        ret == MBEDTLS_ERR_SM2_BAD_SIGNATURE) 
+    {
         retVal = false;
         return 0;
     }

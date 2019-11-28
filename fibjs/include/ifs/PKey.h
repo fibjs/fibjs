@@ -32,6 +32,7 @@ public:
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal) = 0;
     virtual result_t genRsaKey(int32_t size, AsyncEvent* ac) = 0;
     virtual result_t genEcKey(exlib::string curve, AsyncEvent* ac) = 0;
+    virtual result_t genSm2Key(AsyncEvent* ac) = 0;
     virtual result_t isPrivate(bool& retVal) = 0;
     virtual result_t clone(obj_ptr<PKey_base>& retVal) = 0;
     virtual result_t importKey(Buffer_base* DerKey, exlib::string password) = 0;
@@ -57,6 +58,7 @@ public:
     static void s_get_publicKey(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_genRsaKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_genEcKey(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_genSm2Key(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isPrivate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clone(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_importKey(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -72,6 +74,7 @@ public:
 public:
     ASYNC_MEMBER1(PKey_base, genRsaKey, int32_t);
     ASYNC_MEMBER1(PKey_base, genEcKey, exlib::string);
+    ASYNC_MEMBER0(PKey_base, genSm2Key);
     ASYNC_MEMBERVALUE2(PKey_base, encrypt, Buffer_base*, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE2(PKey_base, decrypt, Buffer_base*, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE3(PKey_base, sign, Buffer_base*, int32_t, obj_ptr<Buffer_base>);
@@ -89,6 +92,8 @@ inline ClassInfo& PKey_base::class_info()
         { "genRsaKeySync", s_genRsaKey, false },
         { "genEcKey", s_genEcKey, false },
         { "genEcKeySync", s_genEcKey, false },
+        { "genSm2Key", s_genSm2Key, false },
+        { "genSm2KeySync", s_genSm2Key, false },
         { "isPrivate", s_isPrivate, false },
         { "clone", s_clone, false },
         { "importKey", s_importKey, false },
@@ -236,6 +241,23 @@ inline void PKey_base::s_genEcKey(const v8::FunctionCallbackInfo<v8::Value>& arg
         hr = CALL_RETURN_NULL;
     } else
         hr = pInst->ac_genEcKey(v0);
+
+    METHOD_VOID();
+}
+
+inline void PKey_base::s_genSm2Key(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("PKey.genSm2Key");
+    METHOD_INSTANCE(PKey_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty()) {
+        pInst->acb_genSm2Key(cb);
+        hr = CALL_RETURN_NULL;
+    } else
+        hr = pInst->ac_genSm2Key();
 
     METHOD_VOID();
 }

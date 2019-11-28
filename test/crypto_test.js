@@ -47,6 +47,17 @@ var pub_ec_pem = "-----BEGIN PUBLIC KEY-----\n" +
     "/GiQGRsMjRz3l/p/hdQ=\n" +
     "-----END PUBLIC KEY-----\n";
 
+var sm2_pem = "-----BEGIN EC PRIVATE KEY-----\n" +
+    "MHcCAQEEIH3EUWpWsnLGl6SkGBnG5lPEIvdyql56aHQMCCt7xDqCoAoGCCqBHM9V\n" +
+    "AYItoUQDQgAE1KnIoMvdNODUrcEzQNnHbplwxNNyuHwIUnU0oNQ/0R1z97YIe/k8\n" +
+    "HX6wrPMUazfS1PVd/A9R8gadvlURQ3lufg==\n" +
+    "-----END EC PRIVATE KEY-----\n";
+
+var pub_sm2_pem = "-----BEGIN PUBLIC KEY-----\n" +
+    "MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAE1KnIoMvdNODUrcEzQNnHbplwxNNy\n" +
+    "uHwIUnU0oNQ/0R1z97YIe/k8HX6wrPMUazfS1PVd/A9R8gadvlURQ3lufg==\n" +
+    "-----END PUBLIC KEY-----\n";
+
 var ca1 = "-----BEGIN CERTIFICATE-----\n" +
     "MIIDcjCCAlqgAwIBAgIBETANBgkqhkiG9w0BAQUFADA7MQswCQYDVQQGEwJOTDER\n" +
     "MA8GA1UEChMIUG9sYXJTU0wxGTAXBgNVBAMTEFBvbGFyU1NMIFRlc3QgQ0EwHhcN\n" +
@@ -483,12 +494,160 @@ describe('crypto', () => {
                 var md = hash.md5("abcdefg").digest();
                 var md1 = hash.md5("abcdefg1").digest();
                 var d = pk.sign(md, hash.MD5);
-                assert.isTrue(pk1.verify(md, d, hash.MD5MD5));
+                assert.isTrue(pk1.verify(md, d, hash.MD5));
                 assert.isFalse(pk1.verify(md1, d, hash.MD5));
 
                 assert.throws(() => {
                     pk1.sign(md);
                 });
+            });
+        });
+
+        describe("SM2", () => {
+            it("PEM import/export", () => {
+                var pk = new crypto.PKey();
+                pk.importKey(sm2_pem);
+                assert.equal(pk.exportPem(), sm2_pem);
+
+                pk = new crypto.PKey(sm2_pem);
+                assert.equal(pk.exportPem(), sm2_pem);
+            });
+
+            it("toString", () => {
+                var pk = new crypto.PKey();
+                pk.importKey(sm2_pem);
+                assert.equal(pk, sm2_pem);
+            });
+
+            it("Der import/export", () => {
+                var pk = new crypto.PKey();
+                pk.importKey(sm2_pem);
+                var der = pk.exportDer();
+                pk.importKey(der);
+                assert.equal(pk.exportPem(), sm2_pem);
+
+                pk = new crypto.PKey(der);
+                assert.equal(pk.exportPem(), sm2_pem);
+            });
+
+            it("Json import/export", () => {
+                var pk = new crypto.PKey();
+                pk.importKey(sm2_pem);
+                var json = pk.exportJson();
+
+                assert.deepEqual(json, {
+                    "kty": "SM2",
+                    "crv": "sm2p256r1",
+                    "x": "1KnIoMvdNODUrcEzQNnHbplwxNNyuHwIUnU0oNQ_0R0=",
+                    "y": "c_e2CHv5PB1-sKzzFGs30tT1XfwPUfIGnb5VEUN5bn4=",
+                    "d": "fcRRalaycsaXpKQYGcbmU8Qi93KqXnpodAwIK3vEOoI="
+                  });
+
+                pk.importKey(json);
+                assert.equal(pk.exportPem(), sm2_pem);
+
+                var pk = new crypto.PKey();
+                pk.importKey(pub_sm2_pem);
+                var json = pk.exportJson();
+
+                assert.deepEqual(json,{
+                    "kty": "SM2",
+                    "crv": "sm2p256r1",
+                    "x": "1KnIoMvdNODUrcEzQNnHbplwxNNyuHwIUnU0oNQ_0R0=",
+                    "y": "c_e2CHv5PB1-sKzzFGs30tT1XfwPUfIGnb5VEUN5bn4=",
+                  });
+
+                pk.importKey(json);
+                assert.equal(pk.exportPem(), pub_sm2_pem);
+
+                var pk = new crypto.PKey(json);
+                assert.equal(pk.exportPem(), pub_sm2_pem);
+            });
+
+            it("import publicKey", () => {
+                var pk = new crypto.PKey();
+                pk.importKey(pub_sm2_pem);
+                assert.isFalse(pk.isPrivate());
+
+                assert.equal(pk, pub_sm2_pem);
+
+                var pk1 = new crypto.PKey();
+                pk1.importKey(pk.exportDer());
+                assert.isFalse(pk1.isPrivate());
+
+                assert.equal(pk1.exportPem(), pub_sm2_pem);
+            });
+
+            it("publicKey", () => {
+                var pk = new crypto.PKey();
+                pk.importKey(sm2_pem);
+                assert.isTrue(pk.isPrivate());
+
+                var pk1 = pk.publicKey;
+                assert.isFalse(pk1.isPrivate());
+
+                assert.equal(pk1, pub_sm2_pem);
+            });
+
+            it("clone", () => {
+                var pk = new crypto.PKey();
+                pk.importKey(sm2_pem);
+
+                var pk1 = pk.clone();
+
+                assert.equal(pk1.exportPem(), pk.exportPem());
+            });
+
+            it("gen_key", () => {
+                var pk = new crypto.PKey();
+                var pk1 = new crypto.PKey();
+                pk.genSm2Key();
+                pk1.genSm2Key();
+
+                assert.notEqual(pk.exportPem(), pk1.exportPem());
+            });
+
+            it("sign/verify", () => {
+                var pk = new crypto.PKey();
+                pk.importKey(sm2_pem);
+
+                var pk1 = pk.publicKey;
+
+                var md = hash.md5("abcdefg").digest();
+                var md1 = hash.md5("abcdefg1").digest();
+                var d = pk.sign(md, hash.MD5);
+                assert.isTrue(pk1.verify(md, d, hash.MD5));
+                assert.isFalse(pk1.verify(md1, d, hash.MD5));
+
+                assert.throws(() => {
+                    pk1.sign(md);
+                });
+            });
+
+            it("encrypt/decrypt", () => {
+                var pk = new crypto.PKey();
+                pk.importKey(sm2_pem);
+
+                var pk1 = pk.publicKey;
+
+                var d = pk1.encrypt("abcdefg");
+                assert.equal(pk.decrypt(d).toString(), "abcdefg");
+
+                assert.throws(() => {
+                    pk1.decrypt(d);
+                });
+            });
+
+            it("sign/verify with same key", () => {
+                var pk = new crypto.PKey();
+                var pk1 = new crypto.PKey();
+                pk.genSm2Key();
+                var json = pk.exportJson();
+                pk1.importKey(json);
+
+                var md = hash.md5("abcdefg").digest();
+                var d = pk.sign(md, hash.MD5);
+                assert.isTrue(pk1.verify(md, d, hash.MD5));
             });
         });
 
@@ -502,6 +661,9 @@ describe('crypto', () => {
 
             pk.importKey(ec_pem);
             assert.equal(pk.name, "EC");
+
+            pk.importKey(sm2_pem);
+            assert.equal(pk.name, "SM2");
         });
 
         it("keySize", () => {
@@ -514,6 +676,9 @@ describe('crypto', () => {
 
             pk.importKey(ec_pem);
             assert.equal(pk.keySize, 521);
+
+            pk.importKey(sm2_pem);
+            assert.equal(pk.keySize, 256);
         });
 
     });
