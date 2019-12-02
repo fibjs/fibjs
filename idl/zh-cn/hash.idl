@@ -28,6 +28,9 @@ module hash
     /*! @brief RIPEMD160 信息摘要算法标识常量 */
     const RIPEMD160 = 9;
 
+    /*! @brief SM3 信息摘要算法标识常量 */
+    const SM3 = 10;
+
     /*! @brief 根据指定的算法标识创建一个信息摘要运算对象
      @param algo 指定摘要运算算法
      @param data 创建同时更新的二进制数据
@@ -95,6 +98,12 @@ module hash
      */
     static Digest ripemd160(Buffer data);
 
+     /*! @brief 创建一个 SM3 信息摘要运算对象
+     @param data 创建同时更新的二进制数据
+     @return 返回构造的信息摘要对象
+     */
+    static Digest sm3(Buffer data);
+
     /*! @brief 根据指定的算法标识创建一个信息摘要签名运算对象
      @param algo 指定摘要运算算法
      @param key 二进制签名密钥
@@ -155,4 +164,10 @@ module hash
      @return 返回构造的信息摘要对象
      */
     static Digest hmac_ripemd160(Buffer key);
+
+    /*! @brief 创建一个 SM3 信息摘要签名运算对象
+     @param key 二进制签名密钥
+     @return 返回构造的信息摘要对象
+     */
+    static Digest hmac_sm3(Buffer key);
 };

@@ -32,7 +32,8 @@ public:
         _SHA256 = 6,
         _SHA384 = 7,
         _SHA512 = 8,
-        _RIPEMD160 = 9
+        _RIPEMD160 = 9,
+        _SM3 = 10
     };
 
 public:
@@ -48,6 +49,7 @@ public:
     static result_t sha384(Buffer_base* data, obj_ptr<Digest_base>& retVal);
     static result_t sha512(Buffer_base* data, obj_ptr<Digest_base>& retVal);
     static result_t ripemd160(Buffer_base* data, obj_ptr<Digest_base>& retVal);
+    static result_t sm3(Buffer_base* data, obj_ptr<Digest_base>& retVal);
     static result_t hmac(int32_t algo, Buffer_base* key, obj_ptr<Digest_base>& retVal);
     static result_t hmac_md2(Buffer_base* key, obj_ptr<Digest_base>& retVal);
     static result_t hmac_md4(Buffer_base* key, obj_ptr<Digest_base>& retVal);
@@ -58,6 +60,7 @@ public:
     static result_t hmac_sha384(Buffer_base* key, obj_ptr<Digest_base>& retVal);
     static result_t hmac_sha512(Buffer_base* key, obj_ptr<Digest_base>& retVal);
     static result_t hmac_ripemd160(Buffer_base* key, obj_ptr<Digest_base>& retVal);
+    static result_t hmac_sm3(Buffer_base* key, obj_ptr<Digest_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -81,6 +84,7 @@ public:
     static void s_static_sha384(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_sha512(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_ripemd160(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_sm3(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_hmac(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_hmac_md2(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_hmac_md4(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -91,6 +95,7 @@ public:
     static void s_static_hmac_sha384(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_hmac_sha512(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_hmac_ripemd160(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_hmac_sm3(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -111,6 +116,7 @@ inline ClassInfo& hash_base::class_info()
         { "sha384", s_static_sha384, true },
         { "sha512", s_static_sha512, true },
         { "ripemd160", s_static_ripemd160, true },
+        { "sm3", s_static_sm3, true },
         { "hmac", s_static_hmac, true },
         { "hmac_md2", s_static_hmac_md2, true },
         { "hmac_md4", s_static_hmac_md4, true },
@@ -120,7 +126,8 @@ inline ClassInfo& hash_base::class_info()
         { "hmac_sha256", s_static_hmac_sha256, true },
         { "hmac_sha384", s_static_hmac_sha384, true },
         { "hmac_sha512", s_static_hmac_sha512, true },
-        { "hmac_ripemd160", s_static_hmac_ripemd160, true }
+        { "hmac_ripemd160", s_static_hmac_ripemd160, true },
+        { "hmac_sm3", s_static_hmac_sm3, true }
     };
 
     static ClassData::ClassConst s_const[] = {
@@ -132,7 +139,8 @@ inline ClassInfo& hash_base::class_info()
         { "SHA256", _SHA256 },
         { "SHA384", _SHA384 },
         { "SHA512", _SHA512 },
-        { "RIPEMD160", _RIPEMD160 }
+        { "RIPEMD160", _RIPEMD160 },
+        { "SM3", _SM3 }
     };
 
     static ClassData s_cd = {
@@ -312,6 +320,22 @@ inline void hash_base::s_static_ripemd160(const v8::FunctionCallbackInfo<v8::Val
     METHOD_RETURN();
 }
 
+inline void hash_base::s_static_sm3(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Digest_base> vr;
+
+    METHOD_NAME("hash.sm3");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+
+    hr = sm3(v0, vr);
+
+    METHOD_RETURN();
+}
+
 inline void hash_base::s_static_hmac(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
@@ -469,6 +493,22 @@ inline void hash_base::s_static_hmac_ripemd160(const v8::FunctionCallbackInfo<v8
     ARG(obj_ptr<Buffer_base>, 0);
 
     hr = hmac_ripemd160(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void hash_base::s_static_hmac_sm3(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Digest_base> vr;
+
+    METHOD_NAME("hash.hmac_sm3");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+
+    hr = hmac_sm3(v0, vr);
 
     METHOD_RETURN();
 }

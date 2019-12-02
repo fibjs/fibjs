@@ -283,6 +283,27 @@ describe("hash", () => {
         digest_case.forEach(hash_test);
     });
 
+    it("sm3", () => {
+        var digest_case = [{
+            name: 'SM3',
+            text: '',
+            hash: '1ab21d8355cfa17f8e61194831e81a8f22bec8c728fefb747ed035eb5082aa2b',
+            base64: 'GrIdg1XPoX+OYRlIMegajyK+yMco/vt0ftA161CCqis='
+        },{
+            name: 'SM3',
+            text: 'The quick brown fox jumps over the lazy dog',
+            hash: '5fdfe814b8573ca021983970fc79b2218c9570369b4859684e2e4c3fc76cb8ea',
+            base64: 'X9/oFLhXPKAhmDlw/HmyIYyVcDabSFloTi5MP8dsuOo='
+        },{
+            name: 'SM3',
+            text: 'The quick brown fox jumps over the lazy cog',
+            hash: 'ca27d14a42fc04c1e5ecf574a95a8c2d70ecb5805e9b429026ccac8f28b20098',
+            base64: 'yifRSkL8BMHl7PV0qVqMLXDstYBem0KQJsysjyiyAJg='
+        }];
+
+        digest_case.forEach(hash_test);
+    });
+
     it("md5_hmac", () => {
         var hmac_case = [{
             name: 'MD5',
@@ -344,6 +365,24 @@ describe("hash", () => {
             text: 'what do ya want for nothing?',
             hmac: 'dda6c0213a485a9e24f4742064a7f033b43c4069',
             base64: '3abAITpIWp4k9HQgZKfwM7Q8QGk='
+        }];
+
+        hmac_case.forEach(hmac_test);
+    });
+
+    it("sm3_hmac", () => {
+        var hmac_case = [{
+            name: 'SM3',
+            key: '',
+            text: '',
+            hmac: '0d23f72ba15e9c189a879aefc70996b06091de6e64d31b7a84004356dd915261',
+            base64: 'DSP3K6FenBiah5rvxwmWsGCR3m5k0xt6hABDVt2RUmE='
+        }, {
+            name: 'SM3',
+            key: 'key',
+            text: 'The quick brown fox jumps over the lazy dog',
+            hmac: 'bd4a34077888162b210645b8ebf74b9af357303789357a27c7fc457244ebd398',
+            base64: 'vUo0B3iIFishBkW46/dLmvNXMDeJNXonx/xFckTr05g='
         }];
 
         hmac_case.forEach(hmac_test);
