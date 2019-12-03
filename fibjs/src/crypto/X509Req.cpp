@@ -91,7 +91,7 @@ result_t X509Req::create(exlib::string subject, PKey_base* key, int32_t hash)
     int32_t ret;
     mbedtls_x509write_csr_init(&csr);
 
-    if (hash < MBEDTLS_MD_MD2 || hash > MBEDTLS_MD_RIPEMD160)
+    if (hash < MBEDTLS_MD_MD2 || hash > MBEDTLS_MD_SM3)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     mbedtls_x509write_csr_set_md_alg(&csr, (mbedtls_md_type_t)hash);
@@ -281,7 +281,7 @@ result_t X509Req::sign(exlib::string issuer, PKey_base* key,
         else if (hr < 0)
             goto exit;
 
-        if (hash < MBEDTLS_MD_MD2 || hash > MBEDTLS_MD_RIPEMD160) {
+        if (hash < MBEDTLS_MD_MD2 || hash > MBEDTLS_MD_SM3) {
             hr = CALL_E_INVALIDARG;
             goto exit;
         }
