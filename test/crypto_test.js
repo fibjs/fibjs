@@ -101,6 +101,18 @@ var ca2 = "-----BEGIN CERTIFICATE-----\n" +
     "nR8L9gv4/ud83sEgt/xpE7riYZulYg==\n" +
     "-----END CERTIFICATE-----\n";
 
+var ca3 = "-----BEGIN CERTIFICATE-----\n" +
+    "MIIBiTCCATSgAwIBAgIBATAMBggqgRzPVQGDdgUAMB8xCzAJBgNVBAYTAkNOMRAw\n" +
+    "DgYDVQQKEwdiYW96LmNuMB4XDTE5MTIwMzA3MDE1OFoXDTIwMTIwMzA3MDE1OFow\n" +
+    "MTELMAkGA1UEBhMCQ04xEDAOBgNVBAoTB2Jhb3ouY24xEDAOBgNVBAMTB2Jhb3ou\n" +
+    "bWUwWTATBgcqhkjOPQIBBggqgRzPVQGCLQNCAATUqcigy9004NStwTNA2cdumXDE\n" +
+    "03K4fAhSdTSg1D/RHXP3tgh7+TwdfrCs8xRrN9LU9V38D1HyBp2+VRFDeW5+o00w\n" +
+    "SzAJBgNVHRMEAjAAMB0GA1UdDgQWBBSr7lpWpgygM4V6wgXDSpwXBWffXzAfBgNV\n" +
+    "HSMEGDAWgBSr7lpWpgygM4V6wgXDSpwXBWffXzAMBggqgRzPVQGDdgUAA0EA2eb6\n" +
+    "MBVIaMFVbDpUj4O/Umpskcx0yIG3yDH8HrH2JThVK4kcN5jQu+WYZ9fk1Rs/2oVg\n" +
+    "j3U6JanA9EXDi7dezQ==\n" +
+    "-----END CERTIFICATE-----\n";
+
 var pk = "-----BEGIN PUBLIC KEY-----\n" +
     "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuTxKxcijjpAXpJ5SqnF1\n" +
     "JmGA58e1bYz/qrZBJre+Ea1ccxYMZBFIBP/W4TsF24m7s5cJ1RwU3WiHObA9ccvi\n" +
@@ -120,6 +132,14 @@ var req1 = "-----BEGIN CERTIFICATE REQUEST-----\n" +
     "A4GBACx6pUvyyU3YmwR42MjRT9q2cN5KVt5oWCdSgOC+WTNi4FeMRCxPC8ExNkzN\n" +
     "mn71AolBNc1ve5cgyr3CGN3mYK86heH2y0x4xApN/IJeUCdAtzMFvLbvkEBSLtkz\n" +
     "G3f1zTP01fknEN1WH762dXrisQONk6qmbga6ytMo7KbJ0Xgl\n" +
+    "-----END CERTIFICATE REQUEST-----\n"
+
+var sm2_req = "-----BEGIN CERTIFICATE REQUEST-----\n" +
+    "MIHnMIGTAgEAMDExCzAJBgNVBAYTAkNOMRAwDgYDVQQKEwdiYW96LmNuMRAwDgYD\n" +
+    "VQQDEwdiYW96Lm1lMFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAE1KnIoMvdNODU\n" +
+    "rcEzQNnHbplwxNNyuHwIUnU0oNQ/0R1z97YIe/k8HX6wrPMUazfS1PVd/A9R8gad\n" +
+    "vlURQ3lufqAAMAwGCCqBHM9VAYN2BQADQQDzqeEAzhohe1R/chlIdKMFgWLmcZ52\n" +
+    "9UImdf5/efmrsL6X6hZyKhGy6vypOr8FpwaRC98o9fOL41Gl8/MBr6vJ\n" +
     "-----END CERTIFICATE REQUEST-----\n"
 
 var rsa_pub_key = "-----BEGIN RSA PUBLIC KEY-----\n" +
@@ -172,6 +192,7 @@ var art3 = "+01234567890123456+\n" +
     "+-----------------+\n";
 
 describe('crypto', () => {
+
     it("random", () => {
         assert.notEqual(crypto.randomBytes(8).hex(), crypto.randomBytes(8).hex());
     });
@@ -542,7 +563,7 @@ describe('crypto', () => {
                     "x": "1KnIoMvdNODUrcEzQNnHbplwxNNyuHwIUnU0oNQ_0R0=",
                     "y": "c_e2CHv5PB1-sKzzFGs30tT1XfwPUfIGnb5VEUN5bn4=",
                     "d": "fcRRalaycsaXpKQYGcbmU8Qi93KqXnpodAwIK3vEOoI="
-                  });
+                });
 
                 pk.importKey(json);
                 assert.equal(pk.exportPem(), sm2_pem);
@@ -551,12 +572,12 @@ describe('crypto', () => {
                 pk.importKey(pub_sm2_pem);
                 var json = pk.exportJson();
 
-                assert.deepEqual(json,{
+                assert.deepEqual(json, {
                     "kty": "SM2",
                     "crv": "sm2p256r1",
                     "x": "1KnIoMvdNODUrcEzQNnHbplwxNNyuHwIUnU0oNQ_0R0=",
                     "y": "c_e2CHv5PB1-sKzzFGs30tT1XfwPUfIGnb5VEUN5bn4=",
-                  });
+                });
 
                 pk.importKey(json);
                 assert.equal(pk.exportPem(), pub_sm2_pem);
@@ -829,6 +850,19 @@ describe('crypto', () => {
             assert.equal(cert1.usage, "");
             assert.equal(cert1.type, "");
             assert.equal(cert1.publicKey, pk);
+
+            cert.load(ca3);
+
+            var cert2 = cert1.next;
+            assert.equal(cert2.issuer, "C=CN, O=baoz.cn");
+            assert.equal(cert2.subject, "C=CN, O=baoz.cn, CN=baoz.me");
+            assert.deepEqual(cert2.notBefore, new Date("Tue Dec 03 2019 15:01:58 GMT+0800 (CST)"));
+            assert.deepEqual(cert2.notAfter, new Date("Thu Dec 03 2020 15:01:58 GMT+0800 (CST)"));
+            assert.equal(cert2.ca, false);
+            assert.equal(cert2.pathlen, 0);
+            assert.equal(cert2.usage, "");
+            assert.equal(cert2.type, "");
+            assert.equal(cert2.publicKey, pub_sm2_pem);
         });
     });
 
@@ -884,37 +918,36 @@ describe('crypto', () => {
 
     describe("X509 Req", () => {
         var req = new crypto.X509Req();
-
-        it("load", () => {
-            var fl = fs.readdir(path.join(__dirname, 'req_files'));
-            fl.forEach((s) => {
+        var fl = fs.readdir(path.join(__dirname, 'req_files'));
+        fl.forEach((s) => {
+            it("load", () => {
                 if (s.match(/\.req/))
                     req.load(fs.readTextFile(path.join(__dirname, 'req_files', s)));
             });
-        });
 
-        it("toString", () => {
-            assert.equal(req.exportPem(), req);
-        });
+            it("toString", () => {
+                assert.equal(req.exportPem(), req);
+            });
 
-        it("import/export pem", () => {
-            var s = req.exportPem();
+            it("import/export pem", () => {
+                var s = req.exportPem();
 
-            var req1 = new crypto.X509Req();
-            req1.load(s);
+                var req1 = new crypto.X509Req();
+                req1.load(s);
 
-            assert.equal(req1.exportPem(), s);
-            assert.equal(new crypto.X509Req(s).exportPem(), s);
-        });
+                assert.equal(req1.exportPem(), s);
+                assert.equal(new crypto.X509Req(s).exportPem(), s);
+            });
 
-        it("import/export der", () => {
-            var s = req.exportDer();
+            it("import/export der", () => {
+                var s = req.exportDer();
 
-            var req1 = new crypto.X509Req();
-            req1.load(s);
+                var req1 = new crypto.X509Req();
+                req1.load(s);
 
-            assert.deepEqual(req1.exportDer(), s);
-            assert.deepEqual(new crypto.X509Req(s).exportDer(), s);
+                assert.deepEqual(req1.exportDer(), s);
+                assert.deepEqual(new crypto.X509Req(s).exportDer(), s);
+            });
         });
 
         it("create", () => {
@@ -930,6 +963,13 @@ describe('crypto', () => {
             assert.equal(req.subject, "C=CN, O=baoz.cn, CN=baoz.me");
             assert.equal(req.publicKey, pub_rsa1024_pem);
         });
+
+        it("sm2 info", () => {
+            req.load(sm2_req);
+            assert.equal(req.subject, "C=CN, O=baoz.cn, CN=baoz.me");
+            assert.equal(req.publicKey, pub_sm2_pem);
+        });
+
     });
 
     describe("CA sign/verify", () => {
@@ -937,111 +977,119 @@ describe('crypto', () => {
         var ca;
         var pk;
 
-        before(() => {
-            pk = new crypto.PKey();
-            pk.importKey(rsa1024_pem);
-            req = new crypto.X509Req("C=CN, O=baoz.cn, CN=baoz.me", pk);
-        });
-
-        it("sign", () => {
-            var cert = req.sign("C=CN, O=baoz.cn", pk);
-            assert.equal(cert.issuer, "C=CN, O=baoz.cn");
-            assert.equal(cert.subject, "C=CN, O=baoz.cn, CN=baoz.me");
-            assert.equal(cert.publicKey, pub_rsa1024_pem);
-            assert.equal(cert.serial, "1");
-        });
-
-        it("ca/pathlen", () => {
-            var cert = req.sign("C=CN, O=baoz.cn", pk);
-            assert.isFalse(cert.ca);
-            assert.equal(cert.pathlen, 0);
-
-            cert = req.sign("C=CN, O=baoz.cn", pk, {
-                ca: true,
-                pathlen: 10
+        function ca_test(private_pem, public_pem, md_alg) {
+            it("create", () => {
+                pk = new crypto.PKey();
+                pk.importKey(private_pem);
+                req = new crypto.X509Req("C=CN, O=baoz.cn, CN=baoz.me", pk, md_alg);
             });
-            assert.isTrue(cert.ca);
-            assert.equal(cert.pathlen, 11);
-        });
 
-        it("before/after", () => {
-            var cert = req.sign("C=CN, O=baoz.cn", pk);
-            assert.deepEqual(os.dateAdd(cert.notBefore, 1, "year"), cert.notAfter);
-
-            cert = req.sign("C=CN, O=baoz.cn", pk, {
-                notBefore: new Date("2014-12-20 20:20:20")
+            it("sign", () => {
+                var cert = req.sign("C=CN, O=baoz.cn", pk);
+                assert.equal(cert.issuer, "C=CN, O=baoz.cn");
+                assert.equal(cert.subject, "C=CN, O=baoz.cn, CN=baoz.me");
+                assert.equal(cert.publicKey, public_pem);
+                assert.equal(cert.serial, "1");
             });
-            assert.deepEqual(cert.notBefore, new Date("2014-12-20 20:20:20"));
-            assert.deepEqual(cert.notAfter, new Date("2015-12-20 20:20:20"));
 
-            cert = req.sign("C=CN, O=baoz.cn", pk, {
-                notBefore: new Date("2014-12-20 20:20:20"),
-                notAfter: new Date("2018-12-20 20:20:20")
+            it("ca/pathlen", () => {
+                var cert = req.sign("C=CN, O=baoz.cn", pk);
+                assert.isFalse(cert.ca);
+                assert.equal(cert.pathlen, 0);
+
+                cert = req.sign("C=CN, O=baoz.cn", pk, {
+                    ca: true,
+                    pathlen: 10
+                });
+                assert.isTrue(cert.ca);
+                assert.equal(cert.pathlen, 11);
             });
-            assert.deepEqual(cert.notBefore, new Date("2014-12-20 20:20:20"));
-            assert.deepEqual(cert.notAfter, new Date("2018-12-20 20:20:20"));
-        });
 
-        it("usage/type", () => {
-            var cert = req.sign("C=CN, O=baoz.cn", pk);
-            assert.equal(cert.usage, "");
-            assert.equal(cert.type, "");
+            it("before/after", () => {
+                var cert = req.sign("C=CN, O=baoz.cn", pk);
+                assert.deepEqual(os.dateAdd(cert.notBefore, 1, "year"), cert.notAfter);
 
-            cert = req.sign("C=CN, O=baoz.cn", pk, {
-                usage: "",
-                type: ""
+                cert = req.sign("C=CN, O=baoz.cn", pk, {
+                    notBefore: new Date("2014-12-20 20:20:20")
+                });
+                assert.deepEqual(cert.notBefore, new Date("2014-12-20 20:20:20"));
+                assert.deepEqual(cert.notAfter, new Date("2015-12-20 20:20:20"));
+
+                cert = req.sign("C=CN, O=baoz.cn", pk, {
+                    notBefore: new Date("2014-12-20 20:20:20"),
+                    notAfter: new Date("2018-12-20 20:20:20")
+                });
+                assert.deepEqual(cert.notBefore, new Date("2014-12-20 20:20:20"));
+                assert.deepEqual(cert.notAfter, new Date("2018-12-20 20:20:20"));
             });
-            assert.equal(cert.usage, "");
-            assert.equal(cert.type, "");
 
-            cert = req.sign("C=CN, O=baoz.cn", pk, {
-                usage: "digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign, cRLSign",
-                type: "client, server, email, objsign, reserved, sslCA, emailCA, objCA"
+            it("usage/type", () => {
+                var cert = req.sign("C=CN, O=baoz.cn", pk);
+                assert.equal(cert.usage, "");
+                assert.equal(cert.type, "");
+
+                cert = req.sign("C=CN, O=baoz.cn", pk, {
+                    usage: "",
+                    type: ""
+                });
+                assert.equal(cert.usage, "");
+                assert.equal(cert.type, "");
+
+                cert = req.sign("C=CN, O=baoz.cn", pk, {
+                    usage: "digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign, cRLSign",
+                    type: "client, server, email, objsign, reserved, sslCA, emailCA, objCA"
+                });
+                assert.equal(cert.usage, "digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign, cRLSign");
+                assert.equal(cert.type, "client, server, email, objsign, reserved, sslCA, emailCA, objCA");
             });
-            assert.equal(cert.usage, "digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign, cRLSign");
-            assert.equal(cert.type, "client, server, email, objsign, reserved, sslCA, emailCA, objCA");
-        });
 
-        it("self-sign", () => {
-            req = new crypto.X509Req("C=CN, O=baoz.cn, CN=baoz.me", pk);
-            ca = req.sign("C=CN, O=baoz.cn, CN=baoz.me", pk, {
-                ca: true,
-                notBefore: new Date(new Date().getTime() - 1000)
+            it("self-sign", () => {
+                req = new crypto.X509Req("C=CN, O=baoz.cn, CN=baoz.me", pk);
+                ca = req.sign("C=CN, O=baoz.cn, CN=baoz.me", pk, {
+                    ca: true,
+                    notBefore: new Date(new Date().getTime() - 1000)
+                });
             });
-        });
 
-        it("verify", () => {
-            assert.isTrue(ca.verify(ca));
-            assert.isFalse(ca.verify(req.sign("C=CN, O=baoz.cn", pk)));
-        });
+            it("verify", () => {
+                assert.isTrue(ca.verify(ca));
+                assert.isFalse(ca.verify(req.sign("C=CN, O=baoz.cn", pk)));
+            });
+        }
+        ca_test(rsa1024_pem, pub_rsa1024_pem, hash.SHA1);
+        ca_test(sm2_pem, pub_sm2_pem, hash.SM3);
     });
 
     it('pbkdf1', () => {
         var tests = [
             [hash.SHA1, 'password', 'salt', 1, 20,
-                hex.decode('c88e9c67041a74e0357befdff93f87dde0904214'),
+            hex.decode('c88e9c67041a74e0357befdff93f87dde0904214'),
                 'sha1'
             ],
             [hash.SHA256, 'password', 'salt', 2, 20,
-                hex.decode('a6b9d96cc74d52749372886896349c07e2137fe8'),
+            hex.decode('a6b9d96cc74d52749372886896349c07e2137fe8'),
                 'sha256'
             ],
             [hash.MD5, 'password', '', 1, 32,
-                hex.decode('5F4DCC3B5AA765D61D8327DEB882CF992B95990A9151374ABD8FF8C5A7A0FE08'),
+            hex.decode('5F4DCC3B5AA765D61D8327DEB882CF992B95990A9151374ABD8FF8C5A7A0FE08'),
                 'md5'
             ],
             [hash.MD5, '', '', 1, 32,
-                hex.decode('D41D8CD98F00B204E9800998ECF8427E59ADB24EF3CDBE0297F05B395827453F'),
+            hex.decode('D41D8CD98F00B204E9800998ECF8427E59ADB24EF3CDBE0297F05B395827453F'),
                 'md5'
             ],
             [hash.MD5, '', hex.decode('E3936A9A8ACFE9BE'), 1, 32,
-                hex.decode('E9FAB75961E5DE62D6982C3F569114A5652D875150F652F75154666E1FD0E8AC'),
+            hex.decode('E9FAB75961E5DE62D6982C3F569114A5652D875150F652F75154666E1FD0E8AC'),
                 'md5'
             ],
             [hash.MD5, '012345678910111231415161717',
-                hex.decode('F7560045C70A96DB'), 1, 32,
-                hex.decode('2E14B2EC7E2F8CDC18F15BB773CCD6F25C8AADA268F9B86F960DF0464AE5E981'),
+            hex.decode('F7560045C70A96DB'), 1, 32,
+            hex.decode('2E14B2EC7E2F8CDC18F15BB773CCD6F25C8AADA268F9B86F960DF0464AE5E981'),
                 'md5'
+            ],
+            [hash.SM3, 'password', 'salt', 1, 20,
+            hex.decode('e974b457cc9790eead63a178dc5e3dd861d2a36d'),
+                'sm3'
             ]
         ];
 
