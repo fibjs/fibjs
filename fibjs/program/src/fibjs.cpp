@@ -63,6 +63,10 @@ void importModule()
     IMPORT_MODULE(gui);
     IMPORT_MODULE(registry);
 #endif
+
+#ifdef __APPLE__
+    IMPORT_MODULE(gui);
+#endif
 }
 
 void main(int32_t argc, char** argv)

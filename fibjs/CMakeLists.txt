@@ -56,8 +56,11 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tools/gitinfo.h.in ${CMAKE_CURRENT_BI
 set(flags "-fsigned-char -fmessage-length=0 -fdata-sections -ffunction-sections -D_FILE_OFFSET_BITS=64")
 set(ccflags "${ccflags} ${CXX_STD_VER_FLAG}")
 
+set(WEBVIEW_LIBS "")
+
 if(${OS} STREQUAL "Darwin")
-	set(flags "${flags} -mmacosx-version-min=10.9")
+	set(WEBVIEW_LIBS "-framework WebKit")
+	set(flags "${flags} -mmacosx-version-min=10.9 ${WEBVIEW_LIBS}")
 endif()
 
 if(${BUILD_TYPE} STREQUAL "release")

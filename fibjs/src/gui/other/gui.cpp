@@ -6,6 +6,7 @@
  */
 
 #ifndef _WIN32
+#ifndef __APPLE__
 
 #include "object.h"
 
@@ -23,5 +24,5 @@ void putGuiPool(AsyncEvent* ac)
 {
 }
 }
-
-#endif
+#endif /* __APPLE__ */
+#endif /* _WIN32 */

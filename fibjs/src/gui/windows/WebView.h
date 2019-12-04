@@ -4,14 +4,16 @@
  *  Created on: Sep 23, 2016
  *      Author: lion
  */
+#ifdef _WIN32
+#define _WIN32
 
 #include "ifs/WebView.h"
 #include <comdef.h>
 #include <Exdisp.h>
 #include <mshtmhst.h>
 
-#ifndef WEBVIEW_H_
-#define WEBVIEW_H_
+#ifndef WEBVIEW_WIN32_H_
+#define WEBVIEW_WIN32_H_
 
 namespace fibjs {
 
@@ -217,4 +219,5 @@ protected:
 };
 
 } /* namespace fibjs */
-#endif /* WEBVIEW_H_ */
+#endif /* WEBVIEW_WIN32_H_ */
+#endif /* _WIN32 */
