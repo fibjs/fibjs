@@ -63,13 +63,14 @@ set(flags "-fsigned-char -fmessage-length=0 -fdata-sections -ffunction-sections 
 set(ccflags "${ccflags} ${CXX_STD_VER_FLAG}")
 
 if(${OS} STREQUAL "Darwin")
-	# set(cflags "-x objective-c")
-	set(DARWIN_LINK_FLAGS "-framework WebKit")
-	set(flags "${flags} -mmacosx-version-min=10.9 ${DARWIN_LINK_FLAGS}")
-	set(cflags "${cflags} -DOBJC_OLD_DISPATCH_PROTOTYPES=1")
-	set(ccflags "${ccflags} -DOBJC_OLD_DISPATCH_PROTOTYPES=1")
+	set(WEBVIEW_LIBS "-framework WebKit")
+	
+	set(cflags "${cflags} -DWEBVIEW_COCOA=1 -DOBJC_OLD_DISPATCH_PROTOTYPES=1")
+	set(ccflags "${ccflags} -DWEBVIEW_COCOA=1 -DOBJC_OLD_DISPATCH_PROTOTYPES=1")
+	set(link_flags "${link_flags} -mmacosx-version-min=10.9 ${WEBVIEW_LIBS}")
 	
 	set_source_files_properties(${src_platform_list} PROPERTIES COMPILE_FLAGS "-x objective-c++")
+	set(flags "${flags} -mmacosx-version-min=10.9")
 endif()
 
 if(${BUILD_TYPE} STREQUAL "release")

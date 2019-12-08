@@ -50,10 +50,14 @@ if (win || darwin) {
 
       var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/");
 
+      console.log("[JSSide::after gui.open]");
+
       var cnt = 0;
 
       win.onmessage = m => {
         cnt++;
+
+        console.log("[JSSide::win::onmessage]", m);
 
         if (m === "try close") {
           win.close();

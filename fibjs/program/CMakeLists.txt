@@ -98,9 +98,6 @@ if(${BUILD_TYPE} STREQUAL "debug")
 	add_definitions(-DDEBUG=1)
 endif()
 
-set(CMAKE_C_FLAGS "${flags}")
-set(CMAKE_CXX_FLAGS "${flags} ${ccflags}")
-
 include_directories("${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/../include" "${PROJECT_SOURCE_DIR}/../../vender" "${PROJECT_SOURCE_DIR}/../../vender/v8" "${PROJECT_SOURCE_DIR}/../../vender/v8/include" "${PROJECT_SOURCE_DIR}/../../vender/mbedtls" "${PROJECT_SOURCE_DIR}/../../vender/zlib/include" "${CMAKE_CURRENT_BINARY_DIR}")
 
 if(${OS} STREQUAL "Windows")
@@ -121,7 +118,12 @@ if(NOT ${OS} STREQUAL "Windows")
 endif()
 
 if(${OS} STREQUAL "Darwin")
-	set(link_flags "${link_flags} -mmacosx-version-min=10.9 -framework Carbon -framework IOKit")
+	set(WEBVIEW_LIBS "-framework WebKit")
+
+	set(cflags "${cflags} -DWEBVIEW_COCOA=1 -DOBJC_OLD_DISPATCH_PROTOTYPES=1")
+	set(ccflags "${ccflags} -DWEBVIEW_COCOA=1 -DOBJC_OLD_DISPATCH_PROTOTYPES=1")
+	set(link_flags "${link_flags} -mmacosx-version-min=10.9 -framework Carbon -framework IOKit ${WEBVIEW_LIBS}")
+
 	set(flags "${flags} -mmacosx-version-min=10.9")
 	target_link_libraries(fibjs dl iconv stdc++)
 endif()
@@ -138,6 +140,8 @@ if(${OS} STREQUAL "Windows")
 		set(flags "${flags} -m32")
 	endif()
 endif()
+set(CMAKE_C_FLAGS "${flags}")
+set(CMAKE_CXX_FLAGS "${flags} ${ccflags}")
 
 if(${OS} STREQUAL "Linux")
 	target_link_libraries(fibjs dl rt)
