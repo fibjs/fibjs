@@ -14,7 +14,13 @@ if(CCACHE_FOUND)
 endif(CCACHE_FOUND)
 
 file(GLOB_RECURSE src_list "src/*.c*")
-add_library(fibjs ${src_list})
+if(${OS} STREQUAL "Darwin")
+	file(GLOB_RECURSE src_platform_list "src/*.m*")
+else()
+	file(GLOB_RECURSE src_platform_list "")
+endif()
+
+add_library(fibjs ${src_list} ${src_platform_list})
 
 set(BIN_DIR ${PROJECT_SOURCE_DIR}/../bin/${OS}_${ARCH}_${BUILD_TYPE})
 set(LIBRARY_OUTPUT_PATH ${BIN_DIR})
@@ -56,11 +62,14 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tools/gitinfo.h.in ${CMAKE_CURRENT_BI
 set(flags "-fsigned-char -fmessage-length=0 -fdata-sections -ffunction-sections -D_FILE_OFFSET_BITS=64")
 set(ccflags "${ccflags} ${CXX_STD_VER_FLAG}")
 
-set(WEBVIEW_LIBS "")
-
 if(${OS} STREQUAL "Darwin")
-	set(WEBVIEW_LIBS "-framework WebKit")
-	set(flags "${flags} -mmacosx-version-min=10.9 ${WEBVIEW_LIBS}")
+	# set(cflags "-x objective-c")
+	set(DARWIN_LINK_FLAGS "-framework WebKit")
+	set(flags "${flags} -mmacosx-version-min=10.9 ${DARWIN_LINK_FLAGS}")
+	set(cflags "${cflags} -DOBJC_OLD_DISPATCH_PROTOTYPES=1")
+	set(ccflags "${ccflags} -DOBJC_OLD_DISPATCH_PROTOTYPES=1")
+	
+	set_source_files_properties(${src_platform_list} PROPERTIES COMPILE_FLAGS "-x objective-c++")
 endif()
 
 if(${BUILD_TYPE} STREQUAL "release")
@@ -80,7 +89,7 @@ if(${BUILD_TYPE} STREQUAL "debug")
 	add_definitions(-DDEBUG=1)
 endif()
 
-set(CMAKE_C_FLAGS "${flags}")
+set(CMAKE_C_FLAGS "${flags} ${cflags}")
 set(CMAKE_CXX_FLAGS "${flags} ${ccflags}")
 
 include_directories("${PROJECT_SOURCE_DIR}/include"

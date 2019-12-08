@@ -58,48 +58,157 @@ public:
     void Invoke(id self, SEL cmd, id contentController, id message);
 
 public:
-    exlib::string get_url()
+    const char* get_url()
     {
-        return m_url;
+        return m_url.c_str();
     };
 
 private:
     void clear();
 
 public:
+    typedef void (*external_invoke_cb_t)(WebView* w, const char* arg);
+    id nso;
     // Cocoa infos
-    struct webview * winfo;
-    id scriptMessageHandler;
-    id downloadDelegate;
-    id wkPref;
-    id nsTitle;
-    id nsURL;
-    id navDel;
-    id uiDel;
+    // struct fibjs::webview winfo;
+    /* priv about: start */;
+    id priv_pool;
+    id priv_window;
+    id priv_webview;
+    id priv_windowDelegate;
+    int priv_should_exit;
+    /* priv about: end */
+
+    /* webview about :start */
+    const char* webview__url;
+    const char* webview__title;
+    int webview__width;
+    int webview__height;
+    int webview__resizable;
+    int webview__debug;
+    WebView::external_invoke_cb_t webview__external_invoke_cb;
+    void* webview__userdata;
+    /* webview about :end */
+
+    objc_id userController;
+    objc_id scriptMessageHandler;
+    objc_id downloadDelegate;
+    objc_id wkPref;
+    objc_id nsTitle;
+    objc_id nsURL;
+    objc_id navDel;
+    objc_id uiDel;
     // @WKWebViewConfiguration
-    id wkconfig;
-    id processPool;
+    objc_id wkconfig;
+    objc_id processPool;
 
     CGRect rect;
 
-    webview_external_invoke_cb_t _onmessage;
-    webview_external_invoke_cb_t _onclose;
-
-    void terminate();
+    WebView::external_invoke_cb_t _onmessage;
+    WebView::external_invoke_cb_t _onclose;
 
 public:
     // Cocoa internal call
     // void webview_init();
-    
+
     // void RegNSApplication();
-    void initDownloadDelegate();
-    void initPreference();
+    int32_t init();
+    void customizeWKScriptMessage();
+    void customizeWKDownloadDelegate();
+    void customizeWKPreference();
     void initUserController();
     void initParentWindow();
     void initNavigation();
     void initWKWebView();
     void finishSetupApplication();
     void finishSetupMenu();
+
+    int32_t loop();
+    void exit();
+
+    void terminate();
+
+public:
+    // handlers
+    static void run_open_panel(id self, SEL cmd, id wkWebView, id parameters,
+        id frame, void (^completionHandler)(id))
+    {
+        printf("run_open_panel \n");
+        id openPanel = objc_msgSend((id)objc_getClass("NSOpenPanel"),
+            sel_registerName("openPanel"));
+
+        objc_msgSend(
+            openPanel, sel_registerName("setAllowsMultipleSelection:"),
+            objc_msgSend(parameters, sel_registerName("allowsMultipleSelection")));
+
+        objc_msgSend(openPanel, sel_registerName("setCanChooseFiles:"), 1);
+        objc_msgSend(
+            openPanel, sel_registerName("beginWithCompletionHandler:"), ^(id result) {
+                if (result == (id)NSModalResponseOK) {
+                    completionHandler(objc_msgSend(openPanel, sel_registerName("URLs")));
+                } else {
+                    completionHandler(nil);
+                }
+            });
+    }
+
+    static void run_alert_panel(id self, SEL cmd, id wkWebView, id message, id frame,
+        void (^completionHandler)(void))
+    {
+        id alert = objc_msgSend((id)objc_getClass("NSAlert"), sel_registerName("new"));
+        objc_msgSend(alert, sel_registerName("setIcon:"),
+            objc_msgSend((id)objc_getClass("NSImage"),
+                sel_registerName("imageNamed:"),
+                get_nsstring("NSCaution")));
+        objc_msgSend(alert, sel_registerName("setShowsHelp:"), 0);
+        objc_msgSend(alert, sel_registerName("setInformativeText:"), message);
+        objc_msgSend(alert, sel_registerName("addButtonWithTitle:"),
+            get_nsstring("OK"));
+        objc_msgSend(alert, sel_registerName("runModal"));
+        objc_msgSend(alert, sel_registerName("release"));
+        completionHandler();
+    }
+
+    static void run_confirmation_panel(id self, SEL cmd, id webView, id message,
+        id frame, void (^completionHandler)(bool))
+    {
+
+        id alert = objc_msgSend((id)objc_getClass("NSAlert"), sel_registerName("new"));
+        objc_msgSend(alert, sel_registerName("setIcon:"),
+            objc_msgSend((id)objc_getClass("NSImage"),
+                sel_registerName("imageNamed:"),
+                get_nsstring("NSCaution")));
+        objc_msgSend(alert, sel_registerName("setShowsHelp:"), 0);
+        objc_msgSend(alert, sel_registerName("setInformativeText:"), message);
+        objc_msgSend(alert, sel_registerName("addButtonWithTitle:"),
+            get_nsstring("OK"));
+        objc_msgSend(alert, sel_registerName("addButtonWithTitle:"),
+            get_nsstring("Cancel"));
+        if (objc_msgSend(alert, sel_registerName("runModal")) == (id)NSAlertFirstButtonReturn) {
+            completionHandler(true);
+        } else {
+            completionHandler(false);
+        }
+        objc_msgSend(alert, sel_registerName("release"));
+    }
+
+    static void webview_window_will_close(id self, SEL cmd, id notification)
+    {
+        WebView* w = (WebView*)objc_getAssociatedObject(self, "webview");
+        assert(w != NULL);
+
+        w->terminate();
+    }
+
+    static void webview_external_invoke(id self, SEL cmd, id contentController, id message)
+    {
+        WebView* w = (WebView*)objc_getAssociatedObject(contentController, "webview");
+        if (w == NULL || w->webview__external_invoke_cb == NULL) {
+            return;
+        }
+
+        w->webview__external_invoke_cb(w, (const char*)objc_msgSend(objc_msgSend(message, sel_registerName("body")), sel_registerName("UTF8String")));
+    }
 
 protected:
     exlib::string m_url;
