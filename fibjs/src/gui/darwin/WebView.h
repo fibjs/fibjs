@@ -22,9 +22,17 @@ public:
     WebView(exlib::string url, NObject* opt);
     ~WebView();
 
-    result_t openFromAsyncCall();
-
     EVENT_SUPPORT();
+
+public:
+    // async call handler & real executation.
+    result_t openFromAsyncCall();
+    static result_t async_open(obj_ptr<fibjs::WebView> w)
+    {
+        printf("[WebView::async_open]\n");
+        w->openFromAsyncCall();
+        return 0;
+    }
 
 public:
     // WebView_base
@@ -67,54 +75,60 @@ private:
     void clear();
 
 public:
-    typedef void (*external_invoke_cb_t)(WebView* w, const char* arg);
-    id nso;
-    // Cocoa infos
-    // struct fibjs::webview winfo;
-    /* priv about: start */;
-    id priv_pool;
-    id priv_window;
-    id priv_webview;
-    id priv_windowDelegate;
-    int priv_should_exit;
-    /* priv about: end */
+    // typedef void (*external_invoke_cb_t)(WebView* w, const char* arg);
+    // id nso;
+    // // Cocoa infos
+    // // struct fibjs::webview winfo;
+    // /* priv about: start */;
+    // id priv_pool;
+    // id priv_window;
+    // id priv_webview;
+    // id priv_windowDelegate;
+    // int priv_should_exit;
+    // /* priv about: end */
 
-    /* webview about :start */
-    const char* webview__url;
-    const char* webview__title;
-    int webview__width;
-    int webview__height;
-    int webview__resizable;
-    int webview__debug;
-    WebView::external_invoke_cb_t webview__external_invoke_cb;
-    void* webview__userdata;
-    /* webview about :end */
+    // /* webview about :start */
+    // const char* webview__url;
+    // const char* webview__title;
+    // int webview__width;
+    // int webview__height;
+    // int webview__resizable;
+    // int webview__debug;
+    // WebView::external_invoke_cb_t webview__external_invoke_cb;
+    // void* webview__userdata;
+    // /* webview about :end */
 
-    id userController;
-    id scriptMessageHandler;
-    id downloadDelegate;
-    id wkPref;
-    id nsTitle;
-    id nsURL;
-    id navDel;
-    id uiDel;
-    // @WKWebViewConfiguration
-    id wkconfig;
-    id processPool;
+    // id userController;
+    // id scriptMessageHandler;
+    // id downloadDelegate;
+    // id wkPref;
+    // id nsTitle;
+    // id nsURL;
+    // id navDel;
+    // id uiDel;
+    // // @WKWebViewConfiguration
+    // id wkconfig;
+    // id processPool;
 
-    CGRect rect;
+    // CGRect rect;
 
-    WebView::external_invoke_cb_t _onmessage;
-    WebView::external_invoke_cb_t _onclose;
+    // WebView::external_invoke_cb_t _onmessage;
+    // WebView::external_invoke_cb_t _onclose;
 
 protected:
+    exlib::string m_title;
     exlib::string m_url;
+
+    int32_t m_WinW;
+    int32_t m_WinH;
+    int32_t m_bResizable;
+    bool m_bDebug;
+
     obj_ptr<NObject> m_opt;
 
     bool m_visible;
     bool m_maximize;
     bool m_bSilent;
-    bool m_isdebug;
 
     AsyncEvent* m_ac;
 };
