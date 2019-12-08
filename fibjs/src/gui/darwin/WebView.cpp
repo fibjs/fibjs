@@ -7,8 +7,6 @@
 
 #ifdef __APPLE__
 
-#define OBJC_OLD_DISPATCH_PROTOTYPES 1
-
 #include "object.h"
 #include "ifs/gui.h"
 #include "ifs/fs.h"
@@ -26,8 +24,6 @@ DECLARE_MODULE(gui);
 static exlib::LockedList<AsyncEvent> s_uiPool;
 static pthread_t s_thread;
 static void webview_external_invoke(id self, SEL cmd, id contentController, id message);
-
-extern exlib::LockedList<Isolate> s_isolates;
 
 void putGuiPool(AsyncEvent* ac)
 {
@@ -63,7 +59,6 @@ private:
             // 在有 s_activeWin 的时候, 跟 s_activeWin 发生交互, 获取信息存到 msg;
             // 通过类似 webview_dispatch 的方式, 把消息推入 NS 应用队列
             if (s_activeWin) {
-                
             }
         }
 
@@ -115,27 +110,6 @@ static result_t async_open(obj_ptr<fibjs::WebView> w)
     return 0;
 }
 
-void send_open_event () {
-    id until = objc_msgSend((id)objc_getClass("NSDate"),
-        sel_registerName("distantFuture"));
-
-    id event = objc_msgSend(
-        objc_msgSend((id)objc_getClass("NSApplication"),
-            sel_registerName("sharedApplication")),
-        sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:"),
-        ULONG_MAX, until,
-        objc_msgSend((id)objc_getClass("NSString"),
-            sel_registerName("stringWithUTF8String:"),
-            "kCFRunLoopDefaultMode"),
-        true);
-
-    if (event) {
-        objc_msgSend(objc_msgSend((id)objc_getClass("NSApplication"),
-                        sel_registerName("sharedApplication")),
-            sel_registerName("sendEvent:"), event);
-    }
-}
-
 // In Javascript Thread
 result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
@@ -156,30 +130,21 @@ result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<We
     return 0;
 };
 
-static result_t RegNSApplication(obj_ptr<fibjs::WebView> wv)
+static result_t RegNSApplication(fibjs::WebView* wv)
 {
     static bool s_init = false;
 
     if (!s_init) {
         s_init = true;
 
-        wv->winfo->priv.pool = objc_msgSend((id)objc_getClass("NSAutoreleasePool"),
-                                    sel_registerName("new"));
+        wv->priv_pool = objc_msgSend((id)objc_getClass("NSAutoreleasePool"),
+            sel_registerName("new"));
         objc_msgSend((id)objc_getClass("NSApplication"),
-                    sel_registerName("sharedApplication"));
+            sel_registerName("sharedApplication"));
 
-        Class __WKScriptMessageHandler = objc_allocateClassPair(
-            objc_getClass("NSObject"), "__WKScriptMessageHandler", 0);
-        class_addMethod(
-            __WKScriptMessageHandler,
-            sel_registerName("userContentController:didReceiveScriptMessage:"),
-            (IMP)(webview_external_invoke), "v@:@@");
-        objc_registerClassPair(__WKScriptMessageHandler);
-
-        wv->scriptMessageHandler = objc_msgSend((id)__WKScriptMessageHandler, sel_registerName("new"));
-        
-        wv->initDownloadDelegate();
-        // initPreference();
+        wv->customizeWKScriptMessage();
+        wv->customizeWKPreference();
+        wv->customizeWKDownloadDelegate();
 
         printf("[WebView::WebView] mid\n");
 
@@ -192,7 +157,7 @@ static result_t RegNSApplication(obj_ptr<fibjs::WebView> wv)
         wv->finishSetupApplication();
         wv->finishSetupMenu();
 
-        wv->winfo->priv.should_exit = 0;
+        wv->priv_should_exit = 0;
     }
 
     return 0;
@@ -207,27 +172,31 @@ WebView::WebView(exlib::string url, NObject* opt)
     m_url = url;
     m_opt = opt;
 
-    struct fibjs::webview webview;
-    memset(&webview, 0, sizeof(webview));
-    webview.title = exlib::string("测试").c_str();
-    webview.url = m_url.c_str();
-    webview.width = 640;
-    webview.height = 400;
-    webview.resizable = false;
+    // this->nso = objc_msgSend((id)objc_getClass("NSObject"), sel_registerName("new"));
+    // this->nso = objc_msgSend((id)objc_getClass("WKUserContentController"), sel_registerName("new"));
 
-    winfo = &webview;
+    this->webview__title = exlib::string("测试2").c_str();
+    this->webview__url = "http://fibjs.org";
+    this->webview__width = 640;
+    this->webview__height = 400;
+    this->webview__resizable = true;
+
+    // winfo.parent = this;
+    // winfo.priv_windowDelegate = NULL;
+
     m_isdebug = false;
 
     m_ac = NULL;
     _onmessage = NULL;
     _onclose = NULL;
-    winfo->priv.windowDelegate = NULL;
-
-    obj_ptr<WebView> self = this;
-    asyncCall(RegNSApplication, self, CALL_E_GUICALL);
 
     m_visible = true;
-    holder()->UnRef();
+
+    // // navite to target url
+    // Navigate(m_url.c_str());
+
+    // do it when exit;
+    // holder()->Unref();
     printf("[WebView::WebView] after\n");
 }
 
@@ -237,7 +206,51 @@ WebView::~WebView()
 }
 
 // Cocoa
-void WebView::initDownloadDelegate()
+int32_t WebView::init()
+{
+    RegNSApplication(this);
+
+    return 0;
+}
+
+void WebView::customizeWKScriptMessage()
+{
+    Class __WKScriptMessageHandler = objc_allocateClassPair(
+        objc_getClass("NSObject"), "__WKScriptMessageHandler", 0);
+    class_addMethod(
+        __WKScriptMessageHandler,
+        sel_registerName("userContentController:didReceiveScriptMessage:"),
+        (IMP)(WebView::webview_external_invoke), "v@:@@");
+    objc_registerClassPair(__WKScriptMessageHandler);
+
+    scriptMessageHandler = objc_msgSend((id)__WKScriptMessageHandler, sel_registerName("new"));
+}
+
+void WebView::customizeWKPreference()
+{
+    Class __WKPreferences = objc_allocateClassPair(
+        objc_getClass("NSObject"), "__WKPreferences", 0);
+    class_addProtocol(__WKPreferences,
+        objc_getProtocol("WKPreferences"));
+
+    objc_property_attribute_t type = { "T", "c" };
+    objc_property_attribute_t ownership = { "N", "" };
+    objc_property_attribute_t attrs[] = { type, ownership };
+    class_replaceProperty(__WKPreferences, "developerExtrasEnabled", attrs, 2);
+    objc_registerClassPair(__WKPreferences);
+    this->wkPref = objc_msgSend((id)__WKPreferences, sel_registerName("new"));
+    // objc_msgSend(
+    //     this->wkPref,
+    //     sel_registerName("setValue:forKey:"),
+    //     objc_msgSend((id)objc_getClass("NSNumber"),
+    //         sel_registerName("numberWithBool:"),
+    //         !!this->webview__debug),
+    //     objc_msgSend((id)objc_getClass("NSString"),
+    //         sel_registerName("stringWithUTF8String:"),
+    //         "developerExtrasEnabled"));
+}
+
+void WebView::customizeWKDownloadDelegate()
 {
     /***
         _WKDownloadDelegate is an undocumented/private protocol with methods called
@@ -262,33 +275,17 @@ void WebView::initDownloadDelegate()
     downloadDelegate = objc_msgSend((id)__WKDownloadDelegate, sel_registerName("new"));
 }
 
-void WebView::initPreference()
-{
-    Class __WKPreferences = objc_allocateClassPair(objc_getClass("WKPreferences"),
-        "__WKPreferences", 0);
-    objc_property_attribute_t type = { "T", "c" };
-    objc_property_attribute_t ownership = { "N", "" };
-    objc_property_attribute_t attrs[] = { type, ownership };
-    class_replaceProperty(__WKPreferences, "developerExtrasEnabled", attrs, 2);
-    objc_registerClassPair(__WKPreferences);
-    wkPref = objc_msgSend((id)__WKPreferences, sel_registerName("new"));
-
-    objc_msgSend(wkPref, sel_registerName("setValue:forKey:"),
-        objc_msgSend((id)objc_getClass("NSNumber"),
-            sel_registerName("numberWithBool:"), true /* !!m_isdebug */),
-        objc_msgSend((id)objc_getClass("NSString"),
-            sel_registerName("stringWithUTF8String:"),
-            "developerExtrasEnabled"));
-}
 void WebView::initUserController()
 {
-    printf("[WebView::initUserController] 1\n");
-    printf("[WebView::initUserController] 1 --- check winfo %s \n", winfo->title);
+    printf("[WebView::initUserController] 1 --- check winfo %s \n", this->webview__title);
 
-    id userController = objc_msgSend((id)objc_getClass("WKUserContentController"),
+    userController = objc_msgSend((id)objc_getClass("WKUserContentController"),
         sel_registerName("new"));
-    objc_setAssociatedObject(userController, "webview", (id)(winfo),
-        OBJC_ASSOCIATION_ASSIGN);
+
+    printf("[WebView::initUserController] 1.1 --- check %s \n", this->webview__url);
+
+    // objc_setAssociatedObject(userController, "webview", (id)(this), OBJC_ASSOCIATION_ASSIGN);
+
     printf("[WebView::initUserController] 2\n");
     objc_msgSend(
         userController, sel_registerName("addScriptMessageHandler:name:"),
@@ -320,20 +317,19 @@ void WebView::initUserController()
     objc_msgSend(processPool, sel_registerName("_setDownloadDelegate:"),
         downloadDelegate);
     objc_msgSend(wkconfig, sel_registerName("setProcessPool:"), processPool);
-    objc_msgSend(wkconfig, sel_registerName("setUserContentController:"),
-        userController);
-    objc_msgSend(wkconfig, sel_registerName("setPreferences:"), wkPref);
+    objc_msgSend(wkconfig, sel_registerName("setUserContentController:"), userController);
+    // objc_msgSend(wkconfig, sel_registerName("setPreferences:"), this->wkPref);
 
     Class __NSWindowDelegate = objc_allocateClassPair(objc_getClass("NSObject"),
         "__NSWindowDelegate", 0);
     class_addProtocol(__NSWindowDelegate, objc_getProtocol("NSWindowDelegate"));
     class_replaceMethod(__NSWindowDelegate, sel_registerName("windowWillClose:"),
-        (IMP)(webview_window_will_close), "v@:@");
+        (IMP)(WebView::webview_window_will_close), "v@:@");
     objc_registerClassPair(__NSWindowDelegate);
 
-    winfo->priv.windowDelegate = objc_msgSend((id)__NSWindowDelegate, sel_registerName("new"));
+    this->priv_windowDelegate = objc_msgSend((id)__NSWindowDelegate, sel_registerName("new"));
 
-    objc_setAssociatedObject(winfo->priv.windowDelegate, "webview", (id)winfo,
+    objc_setAssociatedObject(this->priv_windowDelegate, "webview", (id)(this),
         OBJC_ASSOCIATION_ASSIGN);
     printf("[WebView::initUserController] after\n");
 }
@@ -341,42 +337,42 @@ void WebView::initUserController()
 void WebView::initParentWindow()
 {
     nsTitle = objc_msgSend((id)objc_getClass("NSString"),
-        sel_registerName("stringWithUTF8String:"), (id)(winfo->title));
+        sel_registerName("stringWithUTF8String:"), (id)(this->webview__title));
 
     // Create Rect for webview
-    rect = CGRectMake(0, 0, winfo->width, winfo->height);
+    rect = CGRectMake(0, 0, this->webview__width, this->webview__height);
 
     unsigned int style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
-    if (winfo->resizable) {
+    if (this->webview__resizable) {
         style = style | NSWindowStyleMaskResizable;
     }
 
-    winfo->priv.window = objc_msgSend((id)objc_getClass("NSWindow"), sel_registerName("alloc"));
-    objc_msgSend(winfo->priv.window,
+    this->priv_window = objc_msgSend((id)objc_getClass("NSWindow"), sel_registerName("alloc"));
+    objc_msgSend(this->priv_window,
         sel_registerName("initWithContentRect:styleMask:backing:defer:"),
         rect, style, NSBackingStoreBuffered, 0);
 
-    objc_msgSend(winfo->priv.window, sel_registerName("autorelease"));
-    objc_msgSend(winfo->priv.window, sel_registerName("setTitle:"), nsTitle);
-    objc_msgSend(winfo->priv.window, sel_registerName("setDelegate:"),
-        winfo->priv.windowDelegate);
-    objc_msgSend(winfo->priv.window, sel_registerName("center"));
+    objc_msgSend(this->priv_window, sel_registerName("autorelease"));
+    objc_msgSend(this->priv_window, sel_registerName("setTitle:"), nsTitle);
+    objc_msgSend(this->priv_window, sel_registerName("setDelegate:"),
+        this->priv_windowDelegate);
+    objc_msgSend(this->priv_window, sel_registerName("center"));
 
     Class __WKUIDelegate = objc_allocateClassPair(objc_getClass("NSObject"), "__WKUIDelegate", 0);
     class_addProtocol(__WKUIDelegate, objc_getProtocol("WKUIDelegate"));
     class_addMethod(__WKUIDelegate,
         sel_registerName("webView:runOpenPanelWithParameters:"
                          "initiatedByFrame:completionHandler:"),
-        (IMP)run_open_panel, "v@:@@@?");
+        (IMP)WebView::run_open_panel, "v@:@@@?");
     class_addMethod(__WKUIDelegate,
         sel_registerName("webView:runJavaScriptAlertPanelWithMessage:"
                          "initiatedByFrame:completionHandler:"),
-        (IMP)run_alert_panel, "v@:@@@?");
+        (IMP)WebView::run_alert_panel, "v@:@@@?");
     class_addMethod(
         __WKUIDelegate,
         sel_registerName("webView:runJavaScriptConfirmPanelWithMessage:"
                          "initiatedByFrame:completionHandler:"),
-        (IMP)run_confirmation_panel, "v@:@@@?");
+        (IMP)WebView::run_confirmation_panel, "v@:@@@?");
     objc_registerClassPair(__WKUIDelegate);
     uiDel = objc_msgSend((id)__WKUIDelegate, sel_registerName("new"));
 }
@@ -396,27 +392,27 @@ void WebView::initNavigation()
     navDel = objc_msgSend((id)__WKNavigationDelegate, sel_registerName("new"));
     nsURL = objc_msgSend((id)objc_getClass("NSURL"),
         sel_registerName("URLWithString:"),
-        get_nsstring(webview_check_url(get_url().c_str())));
+        get_nsstring(webview_check_url(get_url())));
 }
 
 void WebView::initWKWebView()
 {
-    winfo->priv.webview = objc_msgSend((id)objc_getClass("WKWebView"), sel_registerName("alloc"));
-    objc_msgSend(winfo->priv.webview,
+    this->priv_webview = objc_msgSend((id)objc_getClass("WKWebView"), sel_registerName("alloc"));
+    objc_msgSend(this->priv_webview,
         sel_registerName("initWithFrame:configuration:"), rect, wkconfig);
-    objc_msgSend(winfo->priv.webview, sel_registerName("setUIDelegate:"), uiDel);
-    objc_msgSend(winfo->priv.webview, sel_registerName("setNavigationDelegate:"),
+    objc_msgSend(this->priv_webview, sel_registerName("setUIDelegate:"), uiDel);
+    objc_msgSend(this->priv_webview, sel_registerName("setNavigationDelegate:"),
         navDel);
 
-    objc_msgSend(winfo->priv.webview, sel_registerName("loadRequest:"),
+    objc_msgSend(this->priv_webview, sel_registerName("loadRequest:"),
         objc_msgSend((id)objc_getClass("NSURLRequest"),
             sel_registerName("requestWithURL:"), nsURL));
-    objc_msgSend(winfo->priv.webview, sel_registerName("setAutoresizesSubviews:"), 1);
-    objc_msgSend(winfo->priv.webview, sel_registerName("setAutoresizingMask:"),
+    objc_msgSend(this->priv_webview, sel_registerName("setAutoresizesSubviews:"), 1);
+    objc_msgSend(this->priv_webview, sel_registerName("setAutoresizingMask:"),
         (NSViewWidthSizable | NSViewHeightSizable));
-    objc_msgSend(objc_msgSend(winfo->priv.window, sel_registerName("contentView")),
-        sel_registerName("addSubview:"), winfo->priv.webview);
-    objc_msgSend(winfo->priv.window, sel_registerName("orderFrontRegardless"));
+    objc_msgSend(objc_msgSend(this->priv_window, sel_registerName("contentView")),
+        sel_registerName("addSubview:"), this->priv_webview);
+    objc_msgSend(this->priv_window, sel_registerName("orderFrontRegardless"));
 }
 
 void WebView::finishSetupApplication()
@@ -433,6 +429,8 @@ void WebView::finishSetupApplication()
     objc_msgSend(objc_msgSend((id)objc_getClass("NSApplication"),
                      sel_registerName("sharedApplication")),
         sel_registerName("activateIgnoringOtherApps:"), 1);
+
+    printf("[WebView::finishSetupApplication] after \n");
 }
 
 void WebView::finishSetupMenu()
@@ -485,29 +483,69 @@ void WebView::finishSetupMenu()
         sel_registerName("setMainMenu:"), menubar);
 }
 
+int32_t WebView::loop()
+{
+    // printf("[WebView::loop] entry \n");
+
+    id until = objc_msgSend((id)objc_getClass("NSDate"),
+        sel_registerName("distantFuture"));
+
+    id event = objc_msgSend(
+        objc_msgSend((id)objc_getClass("NSApplication"),
+            sel_registerName("sharedApplication")),
+        sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:"),
+        ULONG_MAX, until,
+        objc_msgSend((id)objc_getClass("NSString"),
+            sel_registerName("stringWithUTF8String:"),
+            "kCFRunLoopDefaultMode"),
+        true);
+
+    if (event) {
+        objc_msgSend(objc_msgSend((id)objc_getClass("NSApplication"),
+                         sel_registerName("sharedApplication")),
+            sel_registerName("sendEvent:"), event);
+    }
+
+    return this->priv_should_exit;
+}
+
+void WebView::exit()
+{
+    id app = objc_msgSend((id)objc_getClass("NSApplication"),
+        sel_registerName("sharedApplication"));
+    objc_msgSend(app, sel_registerName("terminate:"), app);
+}
+
 void WebView::terminate()
 {
-    winfo->priv.should_exit = 1;
+    this->priv_should_exit = 1;
 }
 
 result_t WebView::open()
 {
-    printf("[here] WebView::open");
+    printf("[here] WebView::open\n");
     m_bSilent = false;
     m_maximize = false;
 
     if (m_opt) {
     }
 
-    // mount webview to it
     AddRef();
+
+    // just debug cross thread utf8 variable
+    // this->webview__title = exlib::string("测试2").c_str();
+
+    result_t hr = init();
+    if (hr != 0)
+        return hr;
+
+    while (loop() == 0) {
+    }
+    this->exit();
 
     // check if slicent
 
     // show window
-
-    // navite to target url
-    Navigate(m_url.c_str());
     return 0;
 }
 
@@ -528,10 +566,10 @@ void WebView::clear()
         m_ac = NULL;
     }
 
-    if (s_activeWin == winfo->priv.windowDelegate)
+    if (s_activeWin == this->priv_windowDelegate)
         s_activeWin = NULL;
 
-    winfo->priv.windowDelegate = NULL;
+    this->priv_windowDelegate = NULL;
 }
 
 result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
@@ -620,7 +658,5 @@ result_t WebView::Release(void)
 
 extern const wchar_t* g_console_js;
 }
-
-#undef OBJC_OLD_DISPATCH_PROTOTYPES
 
 #endif /* __APPLE__ */
