@@ -90,27 +90,17 @@ result_t gui_base::setVersion(int32_t ver)
     return 0;
 }
 
-static result_t async_open(obj_ptr<fibjs::WebView> w)
-{
-    printf("[here] async_open\n");
-    w->openFromAsyncCall();
-    return 0;
-}
-
 // In Javascript Thread
 result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
     printf("--- [here] gui_base::open 1 --- \n");
     obj_ptr<NObject> o = new NObject();
     o->add(opt);
-    printf("--- [here] gui_base::open 2 --- \n");
 
     obj_ptr<WebView> w = new WebView(url, o);
-    printf("--- [here] gui_base::open 2.1 --- \n");
     w->wrap();
 
-    printf("--- [here] gui_base::open 3 --- \n");
-    asyncCall(async_open, w, CALL_E_GUICALL);
+    asyncCall(WebView::async_open, w, CALL_E_GUICALL);
     printf("--- [here] gui_base::open 4 --- \n");
     retVal = w;
 
@@ -126,23 +116,20 @@ WebView::WebView(exlib::string url, NObject* opt)
     m_url = url;
     m_opt = opt;
 
-    // this->nso = objc_msgSend((id)objc_getClass("NSObject"), sel_registerName("new"));
-    // this->nso = objc_msgSend((id)objc_getClass("WKUserContentController"), sel_registerName("new"));
-
-    this->webview__title = exlib::string("测试2").c_str();
-    this->webview__url = "http://fibjs.org";
-    this->webview__width = 640;
-    this->webview__height = 400;
-    this->webview__resizable = true;
+    this->m_title = "[WIP] Darwin WebView";
+    this->m_url = "http://fibjs.org";
+    this->m_WinW = 640;
+    this->m_WinH = 400;
+    this->m_bResizable = true;
 
     // winfo.parent = this;
     // winfo.priv_windowDelegate = NULL;
 
-    m_isdebug = false;
+    m_bDebug = false;
 
     m_ac = NULL;
-    _onmessage = NULL;
-    _onclose = NULL;
+    // _onmessage = NULL;
+    // _onclose = NULL;
 
     m_visible = true;
 
@@ -172,11 +159,12 @@ result_t WebView::openFromAsyncCall()
 
     // Timer timer;
     struct webview webview = {};
-    webview.title = "[WIP] Darwin WebView";
-    webview.url = "http://fibjs.org";
-    webview.width = 640;
-    webview.height = 400;
-    webview.resizable = 1;
+    webview.title = m_title.c_str();
+    webview.url = m_url.c_str();
+    webview.width = m_WinW;
+    webview.height = m_WinH;
+    webview.resizable = m_bResizable;
+    webview.debug = m_bDebug;
     // webview.external_invoke_cb = timer_cb;
     // webview.userdata = &timer;
 
@@ -191,25 +179,25 @@ result_t WebView::openFromAsyncCall()
 
 void WebView::clear()
 {
-    if (_onmessage) {
-        // _onmessage->Release();
-        _onmessage = NULL;
-    }
+    // if (_onmessage) {
+    //     // _onmessage->Release();
+    //     _onmessage = NULL;
+    // }
 
-    if (_onclose) {
-        // _onclose->Release();
-        _onclose = NULL;
-    }
+    // if (_onclose) {
+    //     // _onclose->Release();
+    //     _onclose = NULL;
+    // }
 
     if (m_ac) {
         m_ac->post(0);
         m_ac = NULL;
     }
 
-    if (s_activeWin == this->priv_windowDelegate)
-        s_activeWin = NULL;
+    // if (s_activeWin == this->priv_windowDelegate)
+    //     s_activeWin = NULL;
 
-    this->priv_windowDelegate = NULL;
+    // this->priv_windowDelegate = NULL;
 }
 
 result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
