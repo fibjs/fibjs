@@ -10,6 +10,8 @@ var darwin = process.platform === "darwin";
 
 var html = `<html>
 <script>
+    external.postMessage('lalala');
+
     external.onmessage = function(m) {
         external.postMessage('send back: ' + m)
     };
@@ -24,6 +26,16 @@ var html = `<html>
         }
     }
 </script>
+<body>
+    <div id="app">click button to load...</div>
+    <button id="btn" onclick="updateAppContent()">load</button>
+    <script type="text/javascript">
+      function updateAppContent(n) {
+        document.getElementById('app').innerText = 'test in test/gui_test.js';
+        document.getElementById('btn').remove();
+      }
+    </script>
+</body>
 </html>`;
 
 if (win || darwin) {

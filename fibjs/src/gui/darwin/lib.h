@@ -53,6 +53,19 @@ struct webview_priv {
 
 struct webview;
 
+typedef void (*webview_external_cb_t)(struct webview* w,
+    const char* arg);
+
+struct webview_msgHandlers {
+    // load;
+    void (*webview_windowDidMove)(id self, SEL cmd, id notification);
+    // resize;
+    void (*webview_external_postMessage)(id self, SEL cmd, id userContentController, id message);
+    // will close
+    void (*webview_windowWillClose)(id self, SEL cmd, id notification);
+    // closed;
+};
+
 typedef void (*webview_external_invoke_cb_t)(struct webview* w,
     const char* arg);
 
@@ -63,7 +76,8 @@ struct webview {
     int height;
     int resizable;
     int debug;
-    webview_external_invoke_cb_t external_invoke_cb;
+    void* clsWebView;
+    webview_msgHandlers objc_msgHandlers;
     struct webview_priv priv;
     void* userdata;
 };
@@ -249,17 +263,6 @@ static void webview_window_will_close(id self, SEL cmd, id notification)
     webview_terminate(w);
 }
 
-static void webview_external_invoke(id self, SEL cmd, id contentController,
-    id message)
-{
-    struct webview* w = (struct webview*)objc_getAssociatedObject(contentController, "webview");
-    if (w == NULL || w->external_invoke_cb == NULL) {
-        return;
-    }
-
-    w->external_invoke_cb(w, (const char*)objc_msgSend(objc_msgSend(message, sel_registerName("body")), sel_registerName("UTF8String")));
-}
-
 static void run_open_panel(id self, SEL cmd, id webView, id parameters,
     id frame, void (^completionHandler)(id))
 {
@@ -370,10 +373,11 @@ WEBVIEW_API int webview_init(struct webview* w)
 
     Class __WKScriptMessageHandler = objc_allocateClassPair(
         objc_getClass("NSObject"), "__WKScriptMessageHandler", 0);
+    assert(w->objc_msgHandlers.webview_external_postMessage != NULL);
     class_addMethod(
         __WKScriptMessageHandler,
         sel_registerName("userContentController:didReceiveScriptMessage:"),
-        (IMP)webview_external_invoke, "v@:@@");
+        (IMP)w->objc_msgHandlers.webview_external_postMessage, "v@:@@");
     objc_registerClassPair(__WKScriptMessageHandler);
 
     id scriptMessageHandler = objc_msgSend((id)__WKScriptMessageHandler, sel_registerName("new"));
@@ -407,13 +411,13 @@ WEBVIEW_API int webview_init(struct webview* w)
     objc_property_attribute_t attrs[] = { type, ownership };
     class_replaceProperty(__WKPreferences, "developerExtrasEnabled", attrs, 2);
     objc_registerClassPair(__WKPreferences);
-    // id wkPref = objc_msgSend((id)__WKPreferences, sel_registerName("new"));
-    // objc_msgSend(wkPref, sel_registerName("setValue:forKey:"),
-    //     objc_msgSend((id)objc_getClass("NSNumber"),
-    //         sel_registerName("numberWithBool:"), !!w->debug),
-    //     objc_msgSend((id)objc_getClass("NSString"),
-    //         sel_registerName("stringWithUTF8String:"),
-    //         "developerExtrasEnabled"));
+    id wkPref = objc_msgSend((id)__WKPreferences, sel_registerName("new"));
+    objc_msgSend(wkPref, sel_registerName("setValue:forKey:"),
+        objc_msgSend((id)objc_getClass("NSNumber"),
+            sel_registerName("numberWithBool:"), !!w->debug),
+        objc_msgSend((id)objc_getClass("NSString"),
+            sel_registerName("stringWithUTF8String:"),
+            "developerExtrasEnabled"));
 
     id userController = objc_msgSend((id)objc_getClass("WKUserContentController"),
         sel_registerName("new"));
@@ -424,20 +428,19 @@ WEBVIEW_API int webview_init(struct webview* w)
         scriptMessageHandler,
         objc_msgSend((id)objc_getClass("NSString"),
             sel_registerName("stringWithUTF8String:"), "invoke"));
-
     /***
-   In order to maintain compatibility with the other 'webviews' we need to
-   override window.external.invoke to call
-   webkit.messageHandlers.invoke.postMessage
-   ***/
-
+     In order to maintain compatibility with the other 'webviews' we need to
+        override window.external.invoke to call
+        webkit.messageHandlers.invoke.postMessage
+    ***/
     id windowExternalOverrideScript = objc_msgSend(
         (id)objc_getClass("WKUserScript"), sel_registerName("alloc"));
     objc_msgSend(
         windowExternalOverrideScript,
         sel_registerName("initWithSource:injectionTime:forMainFrameOnly:"),
-        get_nsstring("window.external = this; invoke = function(arg){ "
-                     "webkit.messageHandlers.invoke.postMessage(arg); };"),
+        get_nsstring("window.external = this;"
+                     "postMessage = function(arg){ webkit.messageHandlers.invoke.postMessage(arg); };"
+                     "invoke = postMessage.bind(this);"),
         WKUserScriptInjectionTimeAtDocumentStart, 0);
 
     objc_msgSend(userController, sel_registerName("addUserScript:"),
@@ -451,13 +454,24 @@ WEBVIEW_API int webview_init(struct webview* w)
     objc_msgSend(config, sel_registerName("setProcessPool:"), processPool);
     objc_msgSend(config, sel_registerName("setUserContentController:"),
         userController);
-    // objc_msgSend(config, sel_registerName("setPreferences:"), wkPref);
+    objc_msgSend(config, sel_registerName("setPreferences:"), wkPref);
 
     Class __NSWindowDelegate = objc_allocateClassPair(objc_getClass("NSObject"),
         "__NSWindowDelegate", 0);
+    /**
+     * @see https://developer.apple.com/documentation/appkit/nswindowdelegate
+     */
     class_addProtocol(__NSWindowDelegate, objc_getProtocol("NSWindowDelegate"));
+
+    // if (w->objc_msgHandlers.webview_windowWillClose != NULL)
+    //     class_replaceMethod(__NSWindowDelegate, sel_registerName("windowDidMove:"),
+    //         (IMP)w->objc_msgHandlers.webview_windowWillClose, "v@:@");
+    // else
     class_replaceMethod(__NSWindowDelegate, sel_registerName("windowWillClose:"),
         (IMP)webview_window_will_close, "v@:@");
+    if (w->objc_msgHandlers.webview_windowDidMove != NULL)
+        class_replaceMethod(__NSWindowDelegate, sel_registerName("windowDidMove:"),
+            (IMP)w->objc_msgHandlers.webview_windowDidMove, "v@:@");
     objc_registerClassPair(__NSWindowDelegate);
 
     w->priv.windowDelegate = objc_msgSend((id)__NSWindowDelegate, sel_registerName("new"));

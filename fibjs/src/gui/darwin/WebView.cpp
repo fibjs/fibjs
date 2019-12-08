@@ -116,11 +116,10 @@ WebView::WebView(exlib::string url, NObject* opt)
     m_url = url;
     m_opt = opt;
 
-    this->m_title = "[WIP] Darwin WebView";
-    this->m_url = "http://fibjs.org";
-    this->m_WinW = 640;
-    this->m_WinH = 400;
-    this->m_bResizable = true;
+    m_title = "[WIP] Darwin WebView";
+    m_WinW = 640;
+    m_WinH = 400;
+    m_bResizable = true;
 
     // winfo.parent = this;
     // winfo.priv_windowDelegate = NULL;
@@ -165,7 +164,14 @@ result_t WebView::openFromAsyncCall()
     webview.height = m_WinH;
     webview.resizable = m_bResizable;
     webview.debug = m_bDebug;
-    // webview.external_invoke_cb = timer_cb;
+    webview.clsWebView = this;
+
+    {
+        webview.objc_msgHandlers = {};
+        webview.objc_msgHandlers.webview_external_postMessage = WebView::webview_external_postMessage;
+        webview.objc_msgHandlers.webview_windowDidMove = WebView::webview_windowDidMove;
+        webview.objc_msgHandlers.webview_windowWillClose = WebView::webview_windowWillClose;
+    }
     // webview.userdata = &timer;
 
     webview_init(&webview);
@@ -228,6 +234,7 @@ result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
+
     return 0;
 }
 
