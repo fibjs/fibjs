@@ -24,6 +24,9 @@ DECLARE_MODULE(gui);
 static exlib::LockedList<AsyncEvent> s_uiPool;
 static pthread_t s_thread;
 
+/**
+ * would be called when asyncCall(xx, xx, CALL_E_GUICALL)
+ */
 void putGuiPool(AsyncEvent* ac)
 {
     printf("putGuiPool\n");
@@ -40,7 +43,18 @@ public:
         // initialize one fibjs runtime
         Runtime rt(NULL);
 
-        webview("Minimal webview example", "http://fibjs.org", 800, 600, 1);
+        while (true) {
+            AsyncEvent* p = s_uiPool.getHead();
+            if (p)
+                p->invoke();
+
+            if (s_activeWin) {
+                // get webview from s_activeWin(@windowDelegate)
+            }
+        }
+
+        // just call
+        // webview("Minimal webview example", "http://fibjs.org", 800, 600, 1);
 
         printf("gui_thread->Run 2\n");
     }
@@ -67,11 +81,7 @@ void run_gui()
     s_gui_t = _thGUI;
     s_thread = _thGUI->thread_;
 
-    gui_base::setVersion(99999);
-    printf("[here] run_gui pre\n");
-
     _thGUI->Run();
-    printf("[here] run_gui post\n");
 }
 
 // useless for darwin
@@ -83,7 +93,7 @@ result_t gui_base::setVersion(int32_t ver)
 static result_t async_open(obj_ptr<fibjs::WebView> w)
 {
     printf("[here] async_open\n");
-    w->open();
+    w->openFromAsyncCall();
     return 0;
 }
 
@@ -149,7 +159,7 @@ WebView::~WebView()
     clear();
 }
 
-result_t WebView::open()
+result_t WebView::openFromAsyncCall()
 {
     printf("[here] WebView::open\n");
     m_bSilent = false;
@@ -160,20 +170,21 @@ result_t WebView::open()
 
     AddRef();
 
-    // struct webview webview = {};
-
-    // webview.title = "Timer";
-    // webview.url = "http://fibjs.org";
-    // webview.width = 400;
-    // webview.height = 300;
-    // webview.resizable = 0;
+    // Timer timer;
+    struct webview webview = {};
+    webview.title = "[WIP] Darwin WebView";
+    webview.url = "http://fibjs.org";
+    webview.width = 640;
+    webview.height = 400;
+    webview.resizable = 1;
     // webview.external_invoke_cb = timer_cb;
     // webview.userdata = &timer;
 
-    // webview_init(&webview);
-    // while (webview_loop(&webview, 1) == 0)
-    //     ;
-    // webview_exit(&webview);
+    webview_init(&webview);
+
+    while (webview_loop(&webview, 1) == 0)
+        ;
+    webview_exit(&webview);
 
     return 0;
 }

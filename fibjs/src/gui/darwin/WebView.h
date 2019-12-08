@@ -22,7 +22,7 @@ public:
     WebView(exlib::string url, NObject* opt);
     ~WebView();
 
-    result_t open();
+    result_t openFromAsyncCall();
 
     EVENT_SUPPORT();
 
