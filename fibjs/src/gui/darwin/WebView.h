@@ -15,6 +15,13 @@
 
 namespace fibjs {
 
+class WebView;
+
+WebView* getClsWebView(struct webview* w)
+{
+    return (WebView*)w->clsWebView;
+}
+
 class WebView : public WebView_base {
     FIBER_FREE();
 
@@ -23,16 +30,6 @@ public:
     ~WebView();
 
     EVENT_SUPPORT();
-
-public:
-    // async call handler & real executation.
-    result_t openFromAsyncCall();
-    static result_t async_open(obj_ptr<fibjs::WebView> w)
-    {
-        printf("[WebView::async_open]\n");
-        w->openFromAsyncCall();
-        return 0;
-    }
 
 public:
     // WebView_base
@@ -61,20 +58,97 @@ public:
     result_t Release(void);
 
 public:
-    // Message Flow
-    // static id GetIDsOfNames(REFIID riid, OLECHAR** rgszNames, unsigned int cNames, LCID lcid, DISPID* rgdispid);
-    void Invoke(id self, SEL cmd, id contentController, id message);
-
-public:
-    const char* get_url()
+    // async call handler & real executation.
+    result_t openFromAsyncCall();
+    static result_t async_open(obj_ptr<fibjs::WebView> w)
     {
-        return m_url.c_str();
-    };
+        printf("[WebView::async_open]\n");
+        w->openFromAsyncCall();
+        return 0;
+    }
 
 private:
     void clear();
 
 public:
+    // static std::string url_encode(const std::string& value)
+    // {
+    //     const char hex[] = "0123456789ABCDEF";
+    //     std::string escaped;
+    //     for (char c : value) {
+    //         if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~' || c == '=') {
+    //             escaped = escaped + c;
+    //         } else {
+    //             escaped = escaped + '%' + hex[(c >> 4) & 0xf] + hex[c & 0xf];
+    //         }
+    //     }
+    //     return escaped;
+    // }
+
+public:
+    // interact with webview_** api
+    static void onExternalLoad(struct webview* w, const char* arg)
+    {
+        printf("[onExternalLoad], %s \n", arg);
+        WebView* wv = (WebView*)w->clsWebView;
+        wv->_emit("load", arg);
+    }
+    static void onExternalInvoke(struct webview* w, const char* arg)
+    {
+        printf("[onExternalInvoke], %s \n", arg);
+        WebView* wv = (WebView*)w->clsWebView;
+        wv->_emit("invoke", arg);
+    }
+
+    static void webview_windowDidMove(id self, SEL cmd, id didMoveNotification)
+    {
+        struct webview* w = (struct webview*)objc_getAssociatedObject(self, "webview");
+        if (w == NULL)
+            return;
+
+        WebView* wv = getClsWebView(w);
+        if (wv == NULL)
+            return;
+
+        // TODO: use information in didMoveNotification
+        printf("[onWindowDidMove]\n");
+        wv->_emit("move");
+    }
+
+    static void webview_external_postMessage(id self, SEL cmd, id userContentController, id message)
+    {
+        printf("[webview_external_postMessage] \n");
+        struct webview* w = (struct webview*)objc_getAssociatedObject(userContentController, "webview");
+        if (w == NULL)
+            return;
+
+        WebView* wv = getClsWebView(w);
+        if (wv == NULL)
+            return;
+        const char* arg = (const char*)objc_msgSend(objc_msgSend(message, sel_registerName("body")), sel_registerName("UTF8String"));
+        // normalize to one function
+        wv->_emit("message", arg);
+    }
+
+    static void webview_windowWillClose(id self, SEL cmd, id willCloseNotification)
+    {
+        printf("[webview_windowWillClose] \n");
+        struct webview* w = (struct webview*)objc_getAssociatedObject(self, "webview");
+
+        WebView* wv = getClsWebView(w);
+        wv->_emit("close");
+
+        webview_terminate(w);
+        // TODO: use new fiber?
+        wv->_emit("closed");
+    }
+
+    static void onExternalClosed(struct webview* w, const char* arg)
+    {
+        printf("[onExternalClosed], %s \n", arg);
+        WebView* wv = (WebView*)w->clsWebView;
+        wv->_emit("closed", arg);
+    }
     // typedef void (*external_invoke_cb_t)(WebView* w, const char* arg);
     // id nso;
     // // Cocoa infos
