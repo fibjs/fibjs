@@ -59,7 +59,44 @@ public:
 
 public:
     // async call handler & real executation.
-    result_t openFromAsyncCall();
+    result_t openFromAsyncCall()
+    {
+        printf("[openFromAsyncCall] before \n");
+        m_bSilent = false;
+        m_maximize = false;
+
+        if (m_opt) {
+        }
+
+        AddRef();
+
+        struct webview webview = {};
+        webview.title = m_title.c_str();
+        webview.url = m_url.c_str();
+        webview.width = m_WinW;
+        webview.height = m_WinH;
+        webview.resizable = m_bResizable;
+        webview.debug = m_bDebug;
+        webview.clsWebView = this;
+
+        {
+            webview.objc_msgHandlers = {};
+            webview.objc_msgHandlers.webview_external_postMessage = WebView::webview_external_postMessage;
+            webview.objc_msgHandlers.webview_windowDidMove = WebView::webview_windowDidMove;
+            webview.objc_msgHandlers.webview_windowWillClose = WebView::webview_windowWillClose;
+        }
+
+        webview_init(&webview);
+
+        while (webview_loop(&webview, 0) == 0)
+            ;
+        // webview_exit(/* &webview */);
+
+        Unref();
+        printf("[openFromAsyncCall] after");
+
+        return CALL_E_NOASYNC;
+    }
     static result_t async_open(obj_ptr<fibjs::WebView> w)
     {
         printf("[WebView::async_open]\n");
@@ -69,6 +106,7 @@ public:
 
 private:
     void clear();
+    // result_t WebView::postClose();
 
 public:
     // static std::string url_encode(const std::string& value)
@@ -86,6 +124,55 @@ public:
     // }
 
 public:
+    static void webview_applicationDidFinishLaunching(id applicationDidFinishLaunching)
+    {
+        printf("[webview_applicationDidFinishLaunching] 看看 appDelegate 生效没\n");
+    }
+    static void webview_applicationWillTerminate(id applicationWillTerminate)
+    {
+        printf("[webview_applicationWillTerminate] 看看 appDelegate 生效没 \n");
+        return;
+    }
+    static int webview_applicationShouldTerminate(id applicationShouldTerminate)
+    {
+        printf("[webview_applicationShouldTerminate] 看看 appDelegate 生效没 \n");
+        // NSTerminateNow = 1
+        // NSTerminateLater = 2
+        return 1;
+    }
+    static bool webview_applicationShouldTerminateAfterLastWindowClosed(id app)
+    {
+        printf("[webview_applicationShouldTerminateAfterLastWindowClosed] 看看 appDelegate 生效没 \n");
+        return false;
+    }
+
+    // only run it in GUI Thread
+    static void RegStopTerminateAfterLastWindowClosed()
+    {
+        Class __NSApplicationDelegate = objc_allocateClassPair(objc_getClass("NSObject"),
+            "__NSApplicationDelegate", 0);
+        /**
+         * @see https://developer.apple.com/documentation/appkit/nsapplicationdelegate
+         */
+        // class_addProtocol(__NSApplicationDelegate, objc_getProtocol("NSApplicationDelegate"));
+        class_addMethod(__NSApplicationDelegate, sel_registerName("applicationWillTerminate:"),
+            (IMP)WebView::webview_applicationWillTerminate, "v@:@");
+        class_addMethod(__NSApplicationDelegate, sel_registerName("applicationDidFinishLaunching:"),
+            (IMP)WebView::webview_applicationDidFinishLaunching, "v@:@");
+        class_addMethod(__NSApplicationDelegate, sel_registerName("applicationShouldTerminate:"),
+            (IMP)WebView::webview_applicationShouldTerminate, "v@:@");
+        class_addMethod(__NSApplicationDelegate, sel_registerName("applicationShouldTerminateAfterLastWindowClosed:"),
+            (IMP)WebView::webview_applicationShouldTerminateAfterLastWindowClosed, "v@:@");
+
+        objc_registerClassPair(__NSApplicationDelegate);
+
+        id appDelegate = objc_msgSend((id)__NSApplicationDelegate, sel_registerName("new"));
+        objc_msgSend(objc_msgSend((id)objc_getClass("NSApplication"),
+                         sel_registerName("sharedApplication")),
+            sel_registerName("setDelegate:"), appDelegate);
+        // objc_msgSend((id)objc_getClass("NSApp"),
+        //     sel_registerName("setDelegate:"), appDelegate);
+    }
     // interact with webview_** api
     static void onExternalLoad(struct webview* w, const char* arg)
     {
@@ -136,11 +223,17 @@ public:
         struct webview* w = (struct webview*)objc_getAssociatedObject(self, "webview");
 
         WebView* wv = getClsWebView(w);
+
+        // wv->postClose();
         wv->_emit("close");
 
-        webview_terminate(w);
+        // webview_terminate(w);
         // TODO: use new fiber?
         wv->_emit("closed");
+
+        wv->holder()->Unref();
+        wv->clear();
+        wv->Release();
     }
 
     static void onExternalClosed(struct webview* w, const char* arg)
@@ -149,45 +242,6 @@ public:
         WebView* wv = (WebView*)w->clsWebView;
         wv->_emit("closed", arg);
     }
-    // typedef void (*external_invoke_cb_t)(WebView* w, const char* arg);
-    // id nso;
-    // // Cocoa infos
-    // // struct fibjs::webview winfo;
-    // /* priv about: start */;
-    // id priv_pool;
-    // id priv_window;
-    // id priv_webview;
-    // id priv_windowDelegate;
-    // int priv_should_exit;
-    // /* priv about: end */
-
-    // /* webview about :start */
-    // const char* webview__url;
-    // const char* webview__title;
-    // int webview__width;
-    // int webview__height;
-    // int webview__resizable;
-    // int webview__debug;
-    // WebView::external_invoke_cb_t webview__external_invoke_cb;
-    // void* webview__userdata;
-    // /* webview about :end */
-
-    // id userController;
-    // id scriptMessageHandler;
-    // id downloadDelegate;
-    // id wkPref;
-    // id nsTitle;
-    // id nsURL;
-    // id navDel;
-    // id uiDel;
-    // // @WKWebViewConfiguration
-    // id wkconfig;
-    // id processPool;
-
-    // CGRect rect;
-
-    // WebView::external_invoke_cb_t _onmessage;
-    // WebView::external_invoke_cb_t _onclose;
 
 protected:
     exlib::string m_title;
