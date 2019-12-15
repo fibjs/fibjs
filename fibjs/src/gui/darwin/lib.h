@@ -48,6 +48,7 @@ struct webview_priv {
     id window;
     id webview;
     id windowDelegate;
+    id appDelegate;
     int should_exit;
 };
 
@@ -145,7 +146,7 @@ WEBVIEW_API void webview_dialog(struct webview* w,
 WEBVIEW_API void webview_dispatch(struct webview* w, webview_dispatch_fn fn,
     void* arg);
 WEBVIEW_API void webview_terminate(struct webview* w);
-WEBVIEW_API void webview_exit(struct webview* w);
+WEBVIEW_API void webview_exit(/* struct webview* w */);
 WEBVIEW_API void webview_debug(const char* format, ...);
 WEBVIEW_API void webview_print_log(const char* s);
 
@@ -165,7 +166,7 @@ WEBVIEW_API int webview(const char* title, const char* url, int width,
     }
     while (webview_loop(&webview, 1) == 0) {
     }
-    webview_exit(&webview);
+    webview_exit(/* &webview */);
     return 0;
 }
 
@@ -364,12 +365,33 @@ static void make_nav_policy_decision(id self, SEL cmd, id webView, id response,
     }
 }
 
+static bool webview_windowShouldClose(id window)
+{
+    printf("[webview_windowShouldClose] 看看 winDelegate 生效没 \n");
+
+    // id alert = objc_msgSend((id)objc_getClass("NSAlert"), sel_registerName("new"));
+    // objc_msgSend(alert, sel_registerName("setAlertStyle:"), NSAlertStyleWarning);
+    // objc_msgSend(alert, sel_registerName("setMessageText:"), get_nsstring("确定退出吗?"));
+    // objc_msgSend(alert, sel_registerName("addButtonWithTitle:"), get_nsstring("退出"));
+    // objc_msgSend(alert, sel_registerName("addButtonWithTitle:"), get_nsstring("取消"));
+
+    // unsigned long result = (unsigned long)objc_msgSend(alert, sel_registerName("runModal"));
+    // objc_msgSend(alert, sel_registerName("release"));
+
+    // if (result != NSAlertFirstButtonReturn) {
+    //     return NO;
+    // }
+    return YES;
+}
+
 WEBVIEW_API int webview_init(struct webview* w)
 {
     w->priv.pool = objc_msgSend((id)objc_getClass("NSAutoreleasePool"),
         sel_registerName("new"));
     objc_msgSend((id)objc_getClass("NSApplication"),
         sel_registerName("sharedApplication"));
+
+    w->priv.webview = objc_msgSend((id)objc_getClass("WKWebView"), sel_registerName("alloc"));
 
     Class __WKScriptMessageHandler = objc_allocateClassPair(
         objc_getClass("NSObject"), "__WKScriptMessageHandler", 0);
@@ -463,19 +485,21 @@ WEBVIEW_API int webview_init(struct webview* w)
      */
     class_addProtocol(__NSWindowDelegate, objc_getProtocol("NSWindowDelegate"));
 
-    // if (w->objc_msgHandlers.webview_windowWillClose != NULL)
-    //     class_replaceMethod(__NSWindowDelegate, sel_registerName("windowDidMove:"),
-    //         (IMP)w->objc_msgHandlers.webview_windowWillClose, "v@:@");
+    if (w->objc_msgHandlers.webview_windowWillClose != NULL)
+        class_replaceMethod(__NSWindowDelegate, sel_registerName("windowWillClose:"),
+            (IMP)w->objc_msgHandlers.webview_windowWillClose, "v@:@");
     // else
-    class_replaceMethod(__NSWindowDelegate, sel_registerName("windowWillClose:"),
-        (IMP)webview_window_will_close, "v@:@");
+    //     class_replaceMethod(__NSWindowDelegate, sel_registerName("windowWillClose:"),
+    //         (IMP)webview_window_will_close, "v@:@");
     if (w->objc_msgHandlers.webview_windowDidMove != NULL)
         class_replaceMethod(__NSWindowDelegate, sel_registerName("windowDidMove:"),
             (IMP)w->objc_msgHandlers.webview_windowDidMove, "v@:@");
+    class_replaceMethod(__NSWindowDelegate, sel_registerName("windowShouldClose:"),
+        (IMP)webview_windowShouldClose, "v@:@");
+
     objc_registerClassPair(__NSWindowDelegate);
 
     w->priv.windowDelegate = objc_msgSend((id)__NSWindowDelegate, sel_registerName("new"));
-
     objc_setAssociatedObject(w->priv.windowDelegate, "webview", (id)(w),
         OBJC_ASSOCIATION_ASSIGN);
 
@@ -797,10 +821,12 @@ WEBVIEW_API void webview_terminate(struct webview* w)
     w->priv.should_exit = 1;
 }
 
-WEBVIEW_API void webview_exit(struct webview* w)
+WEBVIEW_API void webview_exit(/* struct webview* w */)
 {
     id app = objc_msgSend((id)objc_getClass("NSApplication"),
         sel_registerName("sharedApplication"));
+
+    // objc_msgSend(app, sel_registerName("stop:"), app);
     objc_msgSend(app, sel_registerName("terminate:"), app);
 }
 

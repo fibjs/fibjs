@@ -22,7 +22,7 @@ namespace fibjs {
 DECLARE_MODULE(gui);
 
 static exlib::LockedList<AsyncEvent> s_uiPool;
-static pthread_t s_thread;
+// static pthread_t s_thread;
 
 /**
  * would be called when asyncCall(xx, xx, CALL_E_GUICALL)
@@ -37,11 +37,14 @@ static id s_activeWin = NULL;
 
 class gui_thread : public exlib::OSThread {
 public:
+    // Run In GUI Thread, get AsyncEvent from s_uiPool to invoke
     virtual void Run()
     {
         printf("gui_thread->Run 1\n");
         // initialize one fibjs runtime
         Runtime rt(NULL);
+
+        WebView::RegStopTerminateAfterLastWindowClosed();
 
         while (true) {
             AsyncEvent* p = s_uiPool.getHead();
@@ -71,17 +74,15 @@ public:
     }
 };
 
-static gui_thread* s_gui_t = NULL;
-
 void run_gui()
 {
     gui_thread* _thGUI = new gui_thread();
 
     _thGUI->bindCurrent();
-    s_gui_t = _thGUI;
-    s_thread = _thGUI->thread_;
+    // s_thread = _thGUI->thread_;
 
     _thGUI->Run();
+    // _thGUI->suspend(); // _thGUI->m_sem.Wait();
 }
 
 // useless for darwin
@@ -132,6 +133,8 @@ WebView::WebView(exlib::string url, NObject* opt)
 
     m_visible = true;
 
+    // mark Application would not terminated after lasted window closed here
+
     // // navite to target url
     // Navigate(m_url.c_str());
 
@@ -143,44 +146,6 @@ WebView::WebView(exlib::string url, NObject* opt)
 WebView::~WebView()
 {
     clear();
-}
-
-result_t WebView::openFromAsyncCall()
-{
-    printf("[here] WebView::open\n");
-    m_bSilent = false;
-    m_maximize = false;
-
-    if (m_opt) {
-    }
-
-    AddRef();
-
-    // Timer timer;
-    struct webview webview = {};
-    webview.title = m_title.c_str();
-    webview.url = m_url.c_str();
-    webview.width = m_WinW;
-    webview.height = m_WinH;
-    webview.resizable = m_bResizable;
-    webview.debug = m_bDebug;
-    webview.clsWebView = this;
-
-    {
-        webview.objc_msgHandlers = {};
-        webview.objc_msgHandlers.webview_external_postMessage = WebView::webview_external_postMessage;
-        webview.objc_msgHandlers.webview_windowDidMove = WebView::webview_windowDidMove;
-        webview.objc_msgHandlers.webview_windowWillClose = WebView::webview_windowWillClose;
-    }
-    // webview.userdata = &timer;
-
-    webview_init(&webview);
-
-    while (webview_loop(&webview, 1) == 0)
-        ;
-    webview_exit(&webview);
-
-    return 0;
 }
 
 void WebView::clear()
@@ -202,8 +167,6 @@ void WebView::clear()
 
     // if (s_activeWin == this->priv_windowDelegate)
     //     s_activeWin = NULL;
-
-    // this->priv_windowDelegate = NULL;
 }
 
 result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
@@ -224,6 +187,8 @@ result_t WebView::print(int32_t mode, AsyncEvent* ac)
 
 result_t WebView::close(AsyncEvent* ac)
 {
+    isolate_unref();
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
