@@ -88,14 +88,14 @@ public:
 
         webview_init(&webview);
 
-        while (webview_loop(&webview, 0) == 0)
+        while (WebView::webview_loop(&webview, 0) == 0)
             ;
         // webview_exit(/* &webview */);
 
         Unref();
-        printf("[openFromAsyncCall] after");
+        printf("[openFromAsyncCall] after\n");
 
-        return CALL_E_NOASYNC;
+        return CALL_E_NOSYNC;
     }
     static result_t async_open(obj_ptr<fibjs::WebView> w)
     {
@@ -109,19 +109,40 @@ private:
     // result_t WebView::postClose();
 
 public:
-    // static std::string url_encode(const std::string& value)
-    // {
-    //     const char hex[] = "0123456789ABCDEF";
-    //     std::string escaped;
-    //     for (char c : value) {
-    //         if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~' || c == '=') {
-    //             escaped = escaped + c;
-    //         } else {
-    //             escaped = escaped + '%' + hex[(c >> 4) & 0xf] + hex[c & 0xf];
-    //         }
-    //     }
-    //     return escaped;
-    // }
+    int webview_loop(struct webview* w, int blocking)
+    {
+        id until = (blocking ? objc_msgSend((id)objc_getClass("NSDate"),
+                                   sel_registerName("distantFuture"))
+                             : objc_msgSend((id)objc_getClass("NSDate"),
+                                   sel_registerName("distantPast")));
+
+        id event = objc_msgSend(
+            objc_msgSend((id)objc_getClass("NSApplication"),
+                sel_registerName("sharedApplication")),
+            sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:"),
+            ULONG_MAX, until,
+            objc_msgSend((id)objc_getClass("NSString"),
+                sel_registerName("stringWithUTF8String:"),
+                "kCFRunLoopDefaultMode"),
+            true);
+
+        if (event) {
+            objc_msgSend(objc_msgSend((id)objc_getClass("NSApplication"),
+                             sel_registerName("sharedApplication")),
+                sel_registerName("sendEvent:"), event);
+        }
+
+        return w->priv.should_exit;
+    }
+
+    // useless
+    void webview_exit()
+    {
+        id app = objc_msgSend((id)objc_getClass("NSApplication"),
+            sel_registerName("sharedApplication"));
+
+        objc_msgSend(app, sel_registerName("terminate:"), app);
+    }
 
 public:
     static void webview_applicationDidFinishLaunching(id applicationDidFinishLaunching)
@@ -227,7 +248,7 @@ public:
         // wv->postClose();
         wv->_emit("close");
 
-        // webview_terminate(w);
+        webview_terminate(w);
         // TODO: use new fiber?
         wv->_emit("closed");
 

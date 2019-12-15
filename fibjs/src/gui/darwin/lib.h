@@ -132,7 +132,6 @@ WEBVIEW_API int webview(const char* title, const char* url, int width,
     int height, int resizable);
 
 WEBVIEW_API int webview_init(struct webview* w);
-WEBVIEW_API int webview_loop(struct webview* w, int blocking);
 WEBVIEW_API int webview_eval(struct webview* w, const char* js);
 WEBVIEW_API int webview_inject_css(struct webview* w, const char* css);
 WEBVIEW_API void webview_set_title(struct webview* w, const char* title);
@@ -146,29 +145,8 @@ WEBVIEW_API void webview_dialog(struct webview* w,
 WEBVIEW_API void webview_dispatch(struct webview* w, webview_dispatch_fn fn,
     void* arg);
 WEBVIEW_API void webview_terminate(struct webview* w);
-WEBVIEW_API void webview_exit(/* struct webview* w */);
 WEBVIEW_API void webview_debug(const char* format, ...);
 WEBVIEW_API void webview_print_log(const char* s);
-
-WEBVIEW_API int webview(const char* title, const char* url, int width,
-    int height, int resizable)
-{
-    struct webview webview;
-    memset(&webview, 0, sizeof(webview));
-    webview.title = title;
-    webview.url = url;
-    webview.width = width;
-    webview.height = height;
-    webview.resizable = resizable;
-    int r = webview_init(&webview);
-    if (r != 0) {
-        return r;
-    }
-    while (webview_loop(&webview, 1) == 0) {
-    }
-    webview_exit(/* &webview */);
-    return 0;
-}
 
 WEBVIEW_API void webview_debug(const char* format, ...)
 {
@@ -256,12 +234,6 @@ static id create_menu_item(id title, const char* action, const char* key)
     objc_msgSend(item, sel_registerName("autorelease"));
 
     return item;
-}
-
-static void webview_window_will_close(id self, SEL cmd, id notification)
-{
-    struct webview* w = (struct webview*)objc_getAssociatedObject(self, "webview");
-    webview_terminate(w);
 }
 
 static void run_open_panel(id self, SEL cmd, id webView, id parameters,
@@ -488,9 +460,7 @@ WEBVIEW_API int webview_init(struct webview* w)
     if (w->objc_msgHandlers.webview_windowWillClose != NULL)
         class_replaceMethod(__NSWindowDelegate, sel_registerName("windowWillClose:"),
             (IMP)w->objc_msgHandlers.webview_windowWillClose, "v@:@");
-    // else
-    //     class_replaceMethod(__NSWindowDelegate, sel_registerName("windowWillClose:"),
-    //         (IMP)webview_window_will_close, "v@:@");
+
     if (w->objc_msgHandlers.webview_windowDidMove != NULL)
         class_replaceMethod(__NSWindowDelegate, sel_registerName("windowDidMove:"),
             (IMP)w->objc_msgHandlers.webview_windowDidMove, "v@:@");
@@ -637,32 +607,6 @@ WEBVIEW_API int webview_init(struct webview* w)
 
     w->priv.should_exit = 0;
     return 0;
-}
-
-WEBVIEW_API int webview_loop(struct webview* w, int blocking)
-{
-    id until = (blocking ? objc_msgSend((id)objc_getClass("NSDate"),
-                               sel_registerName("distantFuture"))
-                         : objc_msgSend((id)objc_getClass("NSDate"),
-                               sel_registerName("distantPast")));
-
-    id event = objc_msgSend(
-        objc_msgSend((id)objc_getClass("NSApplication"),
-            sel_registerName("sharedApplication")),
-        sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:"),
-        ULONG_MAX, until,
-        objc_msgSend((id)objc_getClass("NSString"),
-            sel_registerName("stringWithUTF8String:"),
-            "kCFRunLoopDefaultMode"),
-        true);
-
-    if (event) {
-        objc_msgSend(objc_msgSend((id)objc_getClass("NSApplication"),
-                         sel_registerName("sharedApplication")),
-            sel_registerName("sendEvent:"), event);
-    }
-
-    return w->priv.should_exit;
 }
 
 WEBVIEW_API int webview_eval(struct webview* w, const char* js)
@@ -819,15 +763,6 @@ WEBVIEW_API void webview_dispatch(struct webview* w, webview_dispatch_fn fn,
 WEBVIEW_API void webview_terminate(struct webview* w)
 {
     w->priv.should_exit = 1;
-}
-
-WEBVIEW_API void webview_exit(/* struct webview* w */)
-{
-    id app = objc_msgSend((id)objc_getClass("NSApplication"),
-        sel_registerName("sharedApplication"));
-
-    // objc_msgSend(app, sel_registerName("stop:"), app);
-    objc_msgSend(app, sel_registerName("terminate:"), app);
 }
 
 WEBVIEW_API void webview_print_log(const char* s) { printf("%s\n", s); }

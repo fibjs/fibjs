@@ -33,8 +33,6 @@ void putGuiPool(AsyncEvent* ac)
     s_uiPool.putTail(ac);
 }
 
-static id s_activeWin = NULL;
-
 class gui_thread : public exlib::OSThread {
 public:
     // Run In GUI Thread, get AsyncEvent from s_uiPool to invoke
@@ -50,15 +48,7 @@ public:
             AsyncEvent* p = s_uiPool.getHead();
             if (p)
                 p->invoke();
-
-            if (s_activeWin) {
-                // get webview from s_activeWin(@windowDelegate)
-            }
         }
-
-        // just call
-        // webview("Minimal webview example", "http://fibjs.org", 800, 600, 1);
-
         printf("gui_thread->Run 2\n");
     }
 
