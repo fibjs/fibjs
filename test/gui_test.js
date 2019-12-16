@@ -87,6 +87,8 @@ if (win || darwin) {
         console.log("[JSSide::win::onload]");
 
         win.postMessage("hello");
+
+        console.log("[JSSide::win::onload] after");
       };
 
       for (var i = 0; i < 1000 && !check; i++) coroutine.sleep(10);
