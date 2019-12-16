@@ -57,16 +57,6 @@ struct webview;
 typedef void (*webview_external_cb_t)(struct webview* w,
     const char* arg);
 
-struct webview_msgHandlers {
-    // load;
-    void (*webview_windowDidMove)(id self, SEL cmd, id notification);
-    // resize;
-    void (*webview_external_postMessage)(id self, SEL cmd, id userContentController, id message);
-    // will close
-    void (*webview_windowWillClose)(id self, SEL cmd, id notification);
-    // closed;
-};
-
 typedef void (*webview_external_invoke_cb_t)(struct webview* w,
     const char* arg);
 
@@ -78,7 +68,6 @@ struct webview {
     int resizable;
     int debug;
     void* clsWebView;
-    webview_msgHandlers objc_msgHandlers;
     struct webview_priv priv;
     void* userdata;
 };
