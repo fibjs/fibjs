@@ -42,7 +42,8 @@ public:
         // initialize one fibjs runtime
         Runtime rt(NULL);
 
-        WebView::RegStopTerminateAfterLastWindowClosed();
+        WebView::RegNSApplicationDelegations();
+        WebView::SetupAppMenubar();
 
         while (true) {
             AsyncEvent* p = s_uiPool.getHead();
