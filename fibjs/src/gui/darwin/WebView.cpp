@@ -27,22 +27,46 @@ public:
     virtual void Run()
     {
         printf("gui_thread->Run 1\n");
-        // initialize one fibjs runtime
-        Runtime rt(NULL);
-
         WebView::RegNSApplicationDelegations();
         WebView::SetupAppMenubar();
+
+        // initialize one fibjs runtime
+        Runtime rt(NULL);
 
         while (true) {
             AsyncEvent* p = s_uiPool.getHead();
             if (p)
                 p->invoke();
 
-            // get message from main event loop, check if WebView existed
-            if (s_activeWin) {
-                WebView* wv = WebView::getCurrentWebViewInstance();
-                if (wv /*  && (webView1->TranslateAccelerator(&msg) == S_OK) */)
-                    continue;
+            struct webview* w = WebView::getCurrentWebViewStruct();
+
+            // webview_dispatch(w,
+            //     [](struct webview* w, void* arg) {
+            //         printf("just here \n");
+            //     },
+            //     this);
+
+            if (w) {
+                printf("just here \n");
+                // asyncCall(
+                //     [](struct webview* w) {
+                //         result_t hr = WebView::webview_loop(w, 1);
+                //         if (hr > 0) {
+                //             WebView::webview_terminate(w);
+                //             return CALL_E_NOSYNC;
+                //         }
+                //         return hr;
+                //     },
+                //     w, CALL_E_GUICALL);
+
+                // while ((WebView::webview_loop(w, 1)) == 0)
+                //     ;
+
+                // WebView* wv = WebView::getCurrentWebViewInstance();
+
+                // if (wv) {
+                //     continue;
+                // }
             }
         }
         printf("gui_thread->Run 2\n");
@@ -65,7 +89,7 @@ void run_gui()
     gui_thread* _thGUI = new gui_thread();
 
     _thGUI->bindCurrent();
-    s_thread = _thGUI->thread_;
+    s_thGUI = _thGUI;
 
     _thGUI->Run();
     // _thGUI->suspend();
@@ -136,6 +160,7 @@ WebView::~WebView()
 
 void WebView::clear()
 {
+    printf("[WebView::clear] \n");
     // if (_onmessage) {
     //     // _onmessage->Release();
     //     _onmessage = NULL;
@@ -189,24 +214,53 @@ result_t WebView::close(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
+result_t WebView::postMessage(exlib::string msg)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_GUICALL);
-
-    printf("[native] want to postMessage to Javascript \n");
-    WebView* wv = WebView::getCurrentWebViewInstance();
-    if (wv) {
-        printf("[native] Now I would post message to Javascript \n");
-        exlib::string jsstr = "if (typeof this.onmessage === 'function') { this.onmessage(";
+    struct webview* w = WebView::getCurrentWebViewStruct();
+    if (w != NULL) {
+        exlib::string jsstr = "if (typeof external.onmessage === 'function') { external.onmessage(";
         // TODO: maybe escape here?
+        jsstr.append("\"");
         jsstr.append(msg.c_str());
+        jsstr.append("\"");
         jsstr.append("); }");
 
-        this->callJavascriptFunction(wv->m_webview, jsstr.c_str());
+        printf("simple WebView::postMessage %s \n", jsstr.c_str());
+
+        webview_eval(w, jsstr.c_str());
+    } else {
+        printf("no webview struct \n");
     }
 
     return 0;
+}
+
+result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        printf("I would go int CALL_E_GUICALL");
+        return CHECK_ERROR(CALL_E_GUICALL);
+    }
+
+    return postMessage(msg);
+
+    // struct tmp {
+    //     WebView* wv;
+    //     exlib::string& jscode;
+    // } _tmp = { this, jsstr };
+
+    // asyncCall(
+    //     [](tmp* _tmp) {
+    //         WebView* wv = _tmp->wv;
+    //         exlib::string jscode = _tmp->jscode;
+
+    //         printf("here ??? %s \n", jscode.c_str());
+
+    //         return 0;
+    //     },
+    //     &_tmp, CALL_E_GUICALL);
+
+    // return 0;
 }
 
 result_t WebView::get_visible(bool& retVal)

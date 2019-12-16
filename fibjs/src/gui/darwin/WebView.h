@@ -19,13 +19,15 @@ const char* WEBVIEW_MSG_HANDLER_NAME = "invoke";
 
 static exlib::LockedList<AsyncEvent> s_uiPool;
 static pthread_t s_thread;
+class gui_thread;
+static gui_thread* s_thGUI;
 
 /**
  * would be called when asyncCall(xx, xx, CALL_E_GUICALL)
  */
 void putGuiPool(AsyncEvent* ac)
 {
-    printf("putGuiPool\n");
+    // printf("putGuiPool\n");
     s_uiPool.putTail(ac);
 }
 
@@ -75,9 +77,9 @@ public:
 
 public:
     // async call handler & real executation.
-    result_t openFromAsyncCall()
+    result_t open()
     {
-        printf("[openFromAsyncCall] before \n");
+        printf("[WebView::open] before \n");
         m_bSilent = false;
         m_maximize = false;
 
@@ -104,25 +106,26 @@ public:
         while ((hr = WebView::webview_loop(m_webview, 0)) == 0)
             ;
 
-        Unref();
-        printf("[openFromAsyncCall] after\n");
+        // Unref();
+        printf("[WebView::open] after\n");
 
-        return hr;
+        return 0;
     }
     static result_t async_open(obj_ptr<fibjs::WebView> w)
     {
         printf("[WebView::async_open]\n");
-        w->openFromAsyncCall();
+        w->open();
         return 0;
     }
 
 private:
     void clear();
+    result_t postMessage(exlib::string msg);
     // result_t WebView::postClose();
 
-private:
+public:
     // pure C API about webview
-    int webview_loop(struct webview* w, int blocking)
+    static int webview_loop(struct webview* w, int blocking)
     {
         id until = (blocking ? objc_msgSend((id)objc_getClass("NSDate"),
                                    sel_registerName("distantFuture"))
@@ -134,9 +137,7 @@ private:
                 sel_registerName("sharedApplication")),
             sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:"),
             ULONG_MAX, until,
-            objc_msgSend((id)objc_getClass("NSString"),
-                sel_registerName("stringWithUTF8String:"),
-                "kCFRunLoopDefaultMode"),
+            get_nsstring("kCFRunLoopDefaultMode"),
             true);
 
         if (event) {
@@ -436,7 +437,7 @@ private:
         return 0;
     }
 
-    void webview_terminate(struct webview* w)
+    static void webview_terminate(struct webview* w)
     {
         w->priv.should_exit = 1;
     }
@@ -465,6 +466,7 @@ public:
         // TODO: replace the hook a better one?
         class_addMethod(__NSApplicationDelegate, sel_registerName("applicationDidFinishLaunching:"),
             (IMP)WebView::webview_applicationDidFinishLaunching, "v@:@");
+
         class_addMethod(__NSApplicationDelegate, sel_registerName("applicationShouldTerminate:"),
             (IMP)WebView::webview_applicationShouldTerminate, "v@:@");
         class_addMethod(__NSApplicationDelegate, sel_registerName("applicationShouldTerminateAfterLastWindowClosed:"),
@@ -476,8 +478,8 @@ public:
         objc_msgSend(objc_msgSend((id)objc_getClass("NSApplication"),
                          sel_registerName("sharedApplication")),
             sel_registerName("setDelegate:"), appDelegate);
-        // objc_msgSend((id)objc_getClass("NSApp"),
-        //     sel_registerName("setDelegate:"), appDelegate);
+
+        WebView::SetupAppMenubar();
     }
 
     static void SetupAppMenubar()
@@ -550,12 +552,20 @@ public:
         // }
         return YES;
     }
-    static WebView* getCurrentWebViewInstance()
+
+    static struct webview* getCurrentWebViewStruct()
     {
         if (!s_activeWin)
             return NULL;
 
         struct webview* w = (struct webview*)objc_getAssociatedObject(s_activeWin, "webview");
+
+        return w;
+    }
+    static WebView* getCurrentWebViewInstance()
+    {
+
+        struct webview* w = getCurrentWebViewStruct();
         if (w == NULL)
             return NULL;
 
@@ -570,7 +580,14 @@ public:
 
         WebView* wv = WebView::getCurrentWebViewInstance();
         if (wv)
-            wv->_emit("load");
+            syncCall(
+                wv->holder(),
+                [](WebView* wv) {
+                    wv->_emit("load");
+
+                    return 0;
+                },
+                wv);
     }
     static void webview_applicationWillTerminate(id applicationWillTerminate)
     {
@@ -589,19 +606,6 @@ public:
         printf("[webview_applicationShouldTerminateAfterLastWindowClosed] 看看 appDelegate 生效没 \n");
         return false;
     }
-    // interact with webview_** api
-    static void onExternalLoad(struct webview* w, const char* arg)
-    {
-        printf("[onExternalLoad], %s \n", arg);
-        WebView* wv = (WebView*)w->clsWebView;
-        wv->_emit("load", arg);
-    }
-    static void onExternalInvoke(struct webview* w, const char* arg)
-    {
-        printf("[onExternalInvoke], %s \n", arg);
-        WebView* wv = (WebView*)w->clsWebView;
-        wv->_emit("invoke", arg);
-    }
 
     static void webview_windowDidMove(id self, SEL cmd, id didMoveNotification)
     {
@@ -615,6 +619,7 @@ public:
 
         // TODO: use information in didMoveNotification
         printf("[onWindowDidMove]\n");
+
         wv->_emit("move");
     }
 
@@ -665,6 +670,9 @@ public:
         wv->_emit("closed", arg);
     }
 
+public:
+    struct webview* m_webview;
+
 protected:
     exlib::string m_title;
     exlib::string m_url;
@@ -679,8 +687,6 @@ protected:
     bool m_visible;
     bool m_maximize;
     bool m_bSilent;
-
-    struct webview* m_webview;
 
     // id webviewid_scriptMessageHandler;
     // id webviewid_downloadDelegate;
