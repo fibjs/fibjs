@@ -21,18 +21,6 @@ namespace fibjs {
 
 DECLARE_MODULE(gui);
 
-static exlib::LockedList<AsyncEvent> s_uiPool;
-// static pthread_t s_thread;
-
-/**
- * would be called when asyncCall(xx, xx, CALL_E_GUICALL)
- */
-void putGuiPool(AsyncEvent* ac)
-{
-    printf("putGuiPool\n");
-    s_uiPool.putTail(ac);
-}
-
 class gui_thread : public exlib::OSThread {
 public:
     // Run In GUI Thread, get AsyncEvent from s_uiPool to invoke
@@ -49,6 +37,13 @@ public:
             AsyncEvent* p = s_uiPool.getHead();
             if (p)
                 p->invoke();
+
+            // get message from main event loop, check if WebView existed
+            if (s_activeWin) {
+                WebView* wv = WebView::getCurrentWebViewInstance();
+                if (wv /*  && (webView1->TranslateAccelerator(&msg) == S_OK) */)
+                    continue;
+            }
         }
         printf("gui_thread->Run 2\n");
     }
@@ -70,10 +65,10 @@ void run_gui()
     gui_thread* _thGUI = new gui_thread();
 
     _thGUI->bindCurrent();
-    // s_thread = _thGUI->thread_;
+    s_thread = _thGUI->thread_;
 
     _thGUI->Run();
-    // _thGUI->suspend(); // _thGUI->m_sem.Wait();
+    // _thGUI->suspend();
 }
 
 // useless for darwin
@@ -85,7 +80,7 @@ result_t gui_base::setVersion(int32_t ver)
 // In Javascript Thread
 result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
-    printf("--- [here] gui_base::open 1 --- \n");
+    // printf("--- [here] gui_base::open 1 --- \n");
     obj_ptr<NObject> o = new NObject();
     o->add(opt);
 
@@ -93,7 +88,7 @@ result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<We
     w->wrap();
 
     asyncCall(WebView::async_open, w, CALL_E_GUICALL);
-    printf("--- [here] gui_base::open 4 --- \n");
+    // printf("--- [here] gui_base::open 4 --- \n");
     retVal = w;
 
     return 0;
@@ -156,6 +151,14 @@ void WebView::clear()
         m_ac = NULL;
     }
 
+    if (m_webview) {
+        m_webview = NULL;
+    }
+
+    if (s_activeWin) {
+        s_activeWin = NULL;
+    }
+
     // if (s_activeWin == this->priv_windowDelegate)
     //     s_activeWin = NULL;
 }
@@ -190,6 +193,18 @@ result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
+
+    printf("[native] want to postMessage to Javascript \n");
+    WebView* wv = WebView::getCurrentWebViewInstance();
+    if (wv) {
+        printf("[native] Now I would post message to Javascript \n");
+        exlib::string jsstr = "if (typeof this.onmessage === 'function') { this.onmessage(";
+        // TODO: maybe escape here?
+        jsstr.append(msg.c_str());
+        jsstr.append("); }");
+
+        this->callJavascriptFunction(wv->m_webview, jsstr.c_str());
+    }
 
     return 0;
 }

@@ -15,6 +15,22 @@
 
 namespace fibjs {
 
+const char* WEBVIEW_MSG_HANDLER_NAME = "invoke";
+
+static exlib::LockedList<AsyncEvent> s_uiPool;
+static pthread_t s_thread;
+
+/**
+ * would be called when asyncCall(xx, xx, CALL_E_GUICALL)
+ */
+void putGuiPool(AsyncEvent* ac)
+{
+    printf("putGuiPool\n");
+    s_uiPool.putTail(ac);
+}
+
+static id s_activeWin = NULL;
+
 class WebView;
 
 WebView* getClsWebView(struct webview* w)
@@ -79,24 +95,19 @@ public:
         webview.debug = m_bDebug;
         webview.clsWebView = this;
 
-        {
-            webview.objc_msgHandlers = {};
-            webview.objc_msgHandlers.webview_external_postMessage = WebView::webview_external_postMessage;
-            webview.objc_msgHandlers.webview_windowDidMove = WebView::webview_windowDidMove;
-            webview.objc_msgHandlers.webview_windowWillClose = WebView::webview_windowWillClose;
-        }
+        m_webview = &webview;
 
-        objc_nsAppInit(&webview);
-        webview_init(&webview);
+        objc_nsAppInit(m_webview);
+        webview_init(m_webview);
 
-        while (WebView::webview_loop(&webview, 0) == 0)
+        result_t hr = 0;
+        while ((hr = WebView::webview_loop(m_webview, 0)) == 0)
             ;
-        // webview_exit(/* &webview */);
 
         Unref();
         printf("[openFromAsyncCall] after\n");
 
-        return CALL_E_NOSYNC;
+        return hr;
     }
     static result_t async_open(obj_ptr<fibjs::WebView> w)
     {
@@ -145,15 +156,14 @@ private:
             sel_registerName("sharedApplication"));
     }
 
-    id prepareWKScriptMessageHandler(struct webview* w)
+    id prepareWKScriptMessageHandler()
     {
         Class __WKScriptMessageHandler = objc_allocateClassPair(
             objc_getClass("NSObject"), "__WKScriptMessageHandler", 0);
-        assert(w->objc_msgHandlers.webview_external_postMessage != NULL);
         class_addMethod(
             __WKScriptMessageHandler,
             sel_registerName("userContentController:didReceiveScriptMessage:"),
-            (IMP)w->objc_msgHandlers.webview_external_postMessage, "v@:@@");
+            (IMP)webview_external_postMessage, "v@:@@");
         objc_registerClassPair(__WKScriptMessageHandler);
 
         return objc_msgSend((id)__WKScriptMessageHandler, sel_registerName("new"));
@@ -214,27 +224,21 @@ private:
             OBJC_ASSOCIATION_ASSIGN);
         objc_msgSend(
             webviewid_wkUserController, sel_registerName("addScriptMessageHandler:name:"),
-            prepareWKScriptMessageHandler(w),
-            objc_msgSend((id)objc_getClass("NSString"),
-                sel_registerName("stringWithUTF8String:"), "invoke"));
+            prepareWKScriptMessageHandler(),
+            get_nsstring(WEBVIEW_MSG_HANDLER_NAME));
+        // objc_msgSend((id)objc_getClass("NSString"),
+        //     // TODO: should I make it customizable?
+        //     sel_registerName("stringWithUTF8String:"), WEBVIEW_MSG_HANDLER_NAME));
 
-        /***
-         In order to maintain compatibility with the other 'webviews' we need to
-            override window.external.invoke to call
-            webkit.messageHandlers.invoke.postMessage
-        ***/
-        id windowExternalOverrideScript = objc_msgSend(
-            (id)objc_getClass("WKUserScript"), sel_registerName("alloc"));
+        id windowExternalOverrideScript = objc_msgSend((id)objc_getClass("WKUserScript"), sel_registerName("alloc"));
         objc_msgSend(
             windowExternalOverrideScript,
             sel_registerName("initWithSource:injectionTime:forMainFrameOnly:"),
             get_nsstring("window.external = this;"
-                         "postMessage = function(arg){ webkit.messageHandlers.invoke.postMessage(arg); };"
-                         "invoke = postMessage.bind(this);"),
+                         "postMessage = function(arg){ webkit.messageHandlers.invoke.postMessage(arg); };"),
             WKUserScriptInjectionTimeAtDocumentStart, 0);
 
-        objc_msgSend(webviewid_wkUserController, sel_registerName("addUserScript:"),
-            windowExternalOverrideScript);
+        objc_msgSend(webviewid_wkUserController, sel_registerName("addUserScript:"), windowExternalOverrideScript);
 
         return webviewid_wkUserController;
     }
@@ -264,7 +268,8 @@ private:
             style = style | NSWindowStyleMaskResizable;
         }
 
-        w->priv.window = objc_msgSend((id)objc_getClass("NSWindow"), sel_registerName("alloc"));
+        s_activeWin = w->priv.window = objc_msgSend((id)objc_getClass("NSWindow"), sel_registerName("alloc"));
+        objc_setAssociatedObject(s_activeWin, "webview", (id)(w), OBJC_ASSOCIATION_ASSIGN);
         objc_msgSend(w->priv.window,
             sel_registerName("initWithContentRect:styleMask:backing:defer:"),
             this->webview_window_rect, style, NSBackingStoreBuffered, 0);
@@ -274,31 +279,25 @@ private:
 
     void setupWindowDelegation(struct webview* w)
     {
-        Class __NSWindowDelegate = objc_allocateClassPair(objc_getClass("NSObject"),
-            "__NSWindowDelegate", 0);
+        Class __NSWindowDelegate = objc_allocateClassPair(objc_getClass("NSObject"), "__NSWindowDelegate", 0);
         /**
          * @see https://developer.apple.com/documentation/appkit/nswindowdelegate
          */
         class_addProtocol(__NSWindowDelegate, objc_getProtocol("NSWindowDelegate"));
 
-        if (w->objc_msgHandlers.webview_windowWillClose != NULL)
-            class_replaceMethod(__NSWindowDelegate, sel_registerName("windowWillClose:"),
-                (IMP)w->objc_msgHandlers.webview_windowWillClose, "v@:@");
-
-        if (w->objc_msgHandlers.webview_windowDidMove != NULL)
-            class_replaceMethod(__NSWindowDelegate, sel_registerName("windowDidMove:"),
-                (IMP)w->objc_msgHandlers.webview_windowDidMove, "v@:@");
+        class_replaceMethod(__NSWindowDelegate, sel_registerName("windowWillClose:"),
+            (IMP)WebView::webview_windowWillClose, "v@:@");
+        class_replaceMethod(__NSWindowDelegate, sel_registerName("windowDidMove:"),
+            (IMP)WebView::webview_windowDidMove, "v@:@");
         class_replaceMethod(__NSWindowDelegate, sel_registerName("windowShouldClose:"),
             (IMP)WebView::webview_windowShouldClose, "v@:@");
 
         objc_registerClassPair(__NSWindowDelegate);
 
         w->priv.windowDelegate = objc_msgSend((id)__NSWindowDelegate, sel_registerName("new"));
-        objc_setAssociatedObject(w->priv.windowDelegate, "webview", (id)(w),
-            OBJC_ASSOCIATION_ASSIGN);
+        objc_setAssociatedObject(w->priv.windowDelegate, "webview", (id)(w), OBJC_ASSOCIATION_ASSIGN);
 
-        objc_msgSend(w->priv.window, sel_registerName("setDelegate:"),
-            w->priv.windowDelegate);
+        objc_msgSend(w->priv.window, sel_registerName("setDelegate:"), w->priv.windowDelegate);
     }
 
     void setupWindowTitle(struct webview* w)
@@ -402,6 +401,13 @@ private:
             sel_registerName("activateIgnoringOtherApps:"), 1);
     }
 
+    void linkAppWithWebView(struct webview* w)
+    {
+        // id app = objc_msgSend((id)objc_getClass("NSApplication"),
+        //     sel_registerName("sharedApplication"));
+        // objc_setAssociatedObject(app, "webview", (id)(w), OBJC_ASSOCIATION_ASSIGN);
+    }
+
     int webview_init(struct webview* w)
     {
         initWindowRect(w);
@@ -420,6 +426,8 @@ private:
         linkWindowWithWebview(w);
 
         putWindowToTopOrder(w);
+
+        linkAppWithWebView(w);
         activeApp();
 
         SetupAppMenubar();
@@ -433,7 +441,7 @@ private:
         w->priv.should_exit = 1;
     }
 
-    // useless
+    // useless, it means end up sharedApplication.
     void webview_exit()
     {
         id app = objc_msgSend((id)objc_getClass("NSApplication"),
@@ -454,6 +462,7 @@ public:
         // class_addProtocol(__NSApplicationDelegate, objc_getProtocol("NSApplicationDelegate"));
         class_addMethod(__NSApplicationDelegate, sel_registerName("applicationWillTerminate:"),
             (IMP)WebView::webview_applicationWillTerminate, "v@:@");
+        // TODO: replace the hook a better one?
         class_addMethod(__NSApplicationDelegate, sel_registerName("applicationDidFinishLaunching:"),
             (IMP)WebView::webview_applicationDidFinishLaunching, "v@:@");
         class_addMethod(__NSApplicationDelegate, sel_registerName("applicationShouldTerminate:"),
@@ -541,10 +550,27 @@ public:
         // }
         return YES;
     }
+    static WebView* getCurrentWebViewInstance()
+    {
+        if (!s_activeWin)
+            return NULL;
+
+        struct webview* w = (struct webview*)objc_getAssociatedObject(s_activeWin, "webview");
+        if (w == NULL)
+            return NULL;
+
+        WebView* wv = getClsWebView(w);
+
+        return wv;
+    }
     // objc Delegation
-    static void webview_applicationDidFinishLaunching(id applicationDidFinishLaunching)
+    static void webview_applicationDidFinishLaunching(id app)
     {
         printf("[webview_applicationDidFinishLaunching] 看看 appDelegate 生效没\n");
+
+        WebView* wv = WebView::getCurrentWebViewInstance();
+        if (wv)
+            wv->_emit("load");
     }
     static void webview_applicationWillTerminate(id applicationWillTerminate)
     {
@@ -592,6 +618,11 @@ public:
         wv->_emit("move");
     }
 
+    static void callJavascriptFunction(struct webview* w, const char* js)
+    {
+        webview_eval(w, js);
+    }
+
     static void webview_external_postMessage(id self, SEL cmd, id userContentController, id message)
     {
         printf("[webview_external_postMessage] \n");
@@ -609,7 +640,7 @@ public:
 
     static void webview_windowWillClose(id self, SEL cmd, id willCloseNotification)
     {
-        printf("[webview_windowWillClose] \n");
+        printf("[webview_windowWillClose] before \n");
         struct webview* w = (struct webview*)objc_getAssociatedObject(self, "webview");
 
         WebView* wv = getClsWebView(w);
@@ -624,6 +655,7 @@ public:
         wv->holder()->Unref();
         wv->clear();
         wv->Release();
+        printf("[webview_windowWillClose] after \n");
     }
 
     static void onExternalClosed(struct webview* w, const char* arg)
@@ -647,6 +679,8 @@ protected:
     bool m_visible;
     bool m_maximize;
     bool m_bSilent;
+
+    struct webview* m_webview;
 
     // id webviewid_scriptMessageHandler;
     // id webviewid_downloadDelegate;
