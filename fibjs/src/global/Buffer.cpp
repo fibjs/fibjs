@@ -504,7 +504,7 @@ result_t Buffer::fill(Buffer_base* v, int32_t offset, int32_t end, obj_ptr<Buffe
     if (hr < 0)
         return CHECK_ERROR(hr);
 
-    obj_ptr<Buffer> v_data = dynamic_cast<Buffer*>(v);
+    obj_ptr<Buffer> v_data = static_cast<Buffer*>(v);
     int32_t length = end - offset;
     int32_t v_length = (int32_t)v_data->m_data.length();
 
@@ -550,7 +550,7 @@ result_t Buffer::indexOf(Buffer_base* v, int32_t offset, int32_t& retVal)
     if (hr < 0)
         return CHECK_ERROR(hr);
 
-    obj_ptr<Buffer> v_data = dynamic_cast<Buffer*>(v);
+    obj_ptr<Buffer> v_data = static_cast<Buffer*>(v);
     exlib::string vstr;
     v_data->toString(vstr);
 
@@ -581,7 +581,7 @@ result_t Buffer_base::compare(Buffer_base* buf1, Buffer_base* buf2, int32_t& ret
 
 result_t Buffer::compare(Buffer_base* buf, int32_t& retVal)
 {
-    obj_ptr<Buffer> cmpdata = dynamic_cast<Buffer*>(buf);
+    obj_ptr<Buffer> cmpdata = static_cast<Buffer*>(buf);
     int32_t pos_length = (int32_t)m_data.length();
     int32_t neg_length = (int32_t)cmpdata->m_data.length();
 
