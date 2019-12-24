@@ -26,47 +26,42 @@ public:
     // Run In GUI Thread, get AsyncEvent from s_uiPool to invoke
     virtual void Run()
     {
+        // initialize one fibjs runtime
+        Runtime rt(NULL);
+
         printf("gui_thread->Run 1\n");
         WebView::RegNSApplicationDelegations();
         WebView::SetupAppMenubar();
 
-        // initialize one fibjs runtime
-        Runtime rt(NULL);
-
+        /**
+         * 目前是: 
+         * - 另一方面, 关闭窗口后, 从 webview_windowWillClose 回调中执行了 WebView::clear, 之后, 这个 Loop 又开始运行了(如果此时系统中还有 isolate 在运行的话)
+         */
         while (true) {
             AsyncEvent* p = s_uiPool.getHead();
-            if (p)
+
+            if (p) {
+                // printf("[gui_thread::Run] in loop, it's p \n");
                 p->invoke();
+                // p->js_invoke();
+            }
+            // 从 sharedApplication 的事件循环中中取得事件
+            id event = WebView::webview_get_event_from_mainloop(0);
+            WebView::send_event_to_sharedApplicatoin_and_check_should_exit(event);
 
             struct webview* w = WebView::getCurrentWebViewStruct();
 
-            // webview_dispatch(w,
-            //     [](struct webview* w, void* arg) {
-            //         printf("just here \n");
-            //     },
-            //     this);
-
             if (w) {
-                printf("just here \n");
-                // asyncCall(
-                //     [](struct webview* w) {
-                //         result_t hr = WebView::webview_loop(w, 1);
-                //         if (hr > 0) {
-                //             WebView::webview_terminate(w);
-                //             return CALL_E_NOSYNC;
-                //         }
-                //         return hr;
-                //     },
-                //     w, CALL_E_GUICALL);
+                // printf("[gui_thread::Run] in loop, webview struct not NULL \n");
 
-                // while ((WebView::webview_loop(w, 1)) == 0)
-                //     ;
+                if (!WebView::should_exit(w))
+                    continue;
 
-                // WebView* wv = WebView::getCurrentWebViewInstance();
-
-                // if (wv) {
+                // if (WebView::webview_loop(w, 0) == 0)
                 //     continue;
-                // }
+
+                // if (WebView::should_exit(w) == 0)
+                //     continue;
             }
         }
         printf("gui_thread->Run 2\n");
@@ -108,12 +103,12 @@ result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<We
     obj_ptr<NObject> o = new NObject();
     o->add(opt);
 
-    obj_ptr<WebView> w = new WebView(url, o);
-    w->wrap();
+    obj_ptr<WebView> wv = new WebView(url, o);
+    wv->wrap();
 
-    asyncCall(WebView::async_open, w, CALL_E_GUICALL);
+    asyncCall(WebView::async_open, wv, CALL_E_GUICALL);
     // printf("--- [here] gui_base::open 4 --- \n");
-    retVal = w;
+    retVal = wv;
 
     return 0;
 };
@@ -132,9 +127,6 @@ WebView::WebView(exlib::string url, NObject* opt)
     m_WinH = 400;
     m_bResizable = true;
 
-    // winfo.parent = this;
-    // winfo.priv_windowDelegate = NULL;
-
     m_bDebug = false;
 
     m_ac = NULL;
@@ -143,13 +135,6 @@ WebView::WebView(exlib::string url, NObject* opt)
 
     m_visible = true;
 
-    // mark Application would not terminated after lasted window closed here
-
-    // // navite to target url
-    // Navigate(m_url.c_str());
-
-    // do it when exit;
-    // holder()->Unref();
     printf("[WebView::WebView] after\n");
 }
 
@@ -180,12 +165,13 @@ void WebView::clear()
         m_webview = NULL;
     }
 
-    if (s_activeWin) {
-        s_activeWin = NULL;
+    if (s_activeWinObjcId) {
+        s_activeWinObjcId = NULL;
+        printf("[WebView::clear]s_activeWinObjcId set as NULL \n");
     }
 
-    // if (s_activeWin == this->priv_windowDelegate)
-    //     s_activeWin = NULL;
+    // if (s_activeWinObjcId == this->priv_windowDelegate)
+    //     s_activeWinObjcId = NULL;
 }
 
 result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
@@ -214,22 +200,35 @@ result_t WebView::close(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::postMessage(exlib::string msg)
+static int async_webview_eval(const char* jsscript)
 {
     struct webview* w = WebView::getCurrentWebViewStruct();
     if (w != NULL) {
-        exlib::string jsstr = "if (typeof external.onmessage === 'function') { external.onmessage(";
+        printf("[async_webview_eval] would eval \n");
+        webview_eval(w, jsscript);
+    }
+
+    return 0;
+}
+
+result_t WebView::postMessage(exlib::string msg)
+{
+    printf("[WebView::postMessage] view view argument %s \n", msg.c_str());
+
+    struct webview* w = WebView::getCurrentWebViewStruct();
+    if (w != NULL) {
+        exlib::string jsstr = "if (this.onmessage) { this.onmessage(";
         // TODO: maybe escape here?
         jsstr.append("\"");
         jsstr.append(msg.c_str());
         jsstr.append("\"");
         jsstr.append("); }");
 
-        printf("simple WebView::postMessage %s \n", jsstr.c_str());
+        printf("[WebView::postMessage] simple WebView::postMessage %s \n", jsstr.c_str());
 
-        webview_eval(w, jsstr.c_str());
+        asyncCall(async_webview_eval, jsstr.c_str(), CALL_E_GUICALL);
     } else {
-        printf("no webview struct \n");
+        printf("[WebView::postMessage] no s_activeWinObjcId, no webview struct \n");
     }
 
     return 0;
@@ -238,29 +237,11 @@ result_t WebView::postMessage(exlib::string msg)
 result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
 {
     if (ac->isSync()) {
-        printf("I would go int CALL_E_GUICALL");
+        printf("[WebView::postMessage] I would go into CALL_E_GUICALL\n");
         return CHECK_ERROR(CALL_E_GUICALL);
     }
 
     return postMessage(msg);
-
-    // struct tmp {
-    //     WebView* wv;
-    //     exlib::string& jscode;
-    // } _tmp = { this, jsstr };
-
-    // asyncCall(
-    //     [](tmp* _tmp) {
-    //         WebView* wv = _tmp->wv;
-    //         exlib::string jscode = _tmp->jscode;
-
-    //         printf("here ??? %s \n", jscode.c_str());
-
-    //         return 0;
-    //     },
-    //     &_tmp, CALL_E_GUICALL);
-
-    // return 0;
 }
 
 result_t WebView::get_visible(bool& retVal)

@@ -11,6 +11,7 @@
 #define WEBVIEW_APPLE_H_
 
 #include "ifs/WebView.h"
+#include "EventInfo.h"
 #include "lib.h"
 
 namespace fibjs {
@@ -31,7 +32,7 @@ void putGuiPool(AsyncEvent* ac)
     s_uiPool.putTail(ac);
 }
 
-static id s_activeWin = NULL;
+static id s_activeWinObjcId = NULL;
 
 class WebView;
 
@@ -86,8 +87,6 @@ public:
         if (m_opt) {
         }
 
-        AddRef();
-
         struct webview webview = {};
         webview.title = m_title.c_str();
         webview.url = m_url.c_str();
@@ -102,19 +101,21 @@ public:
         objc_nsAppInit(m_webview);
         webview_init(m_webview);
 
-        result_t hr = 0;
-        while ((hr = WebView::webview_loop(m_webview, 0)) == 0)
-            ;
+        AddRef();
 
-        // Unref();
+        // result_t hr = 0;
+        // while ((hr = WebView::webview_loop(m_webview, 0)) == 0)
+        //     ;
+
         printf("[WebView::open] after\n");
 
         return 0;
     }
     static result_t async_open(obj_ptr<fibjs::WebView> w)
     {
-        printf("[WebView::async_open]\n");
+        // printf("[WebView::async_open] before \n");
         w->open();
+        // printf("[WebView::async_open] after\n");
         return 0;
     }
 
@@ -124,8 +125,7 @@ private:
     // result_t WebView::postClose();
 
 public:
-    // pure C API about webview
-    static int webview_loop(struct webview* w, int blocking)
+    static id webview_get_event_from_mainloop(int blocking = 0)
     {
         id until = (blocking ? objc_msgSend((id)objc_getClass("NSDate"),
                                    sel_registerName("distantFuture"))
@@ -137,16 +137,34 @@ public:
                 sel_registerName("sharedApplication")),
             sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:"),
             ULONG_MAX, until,
-            get_nsstring("kCFRunLoopDefaultMode"),
+            get_nsstring("kCFRunLoopDefaultMode"), // get_nsstring("NSEventTrackingRunLoopMode"),
             true);
 
+        return event;
+    }
+
+    static void send_event_to_sharedApplicatoin_and_check_should_exit(id event)
+    {
         if (event) {
             objc_msgSend(objc_msgSend((id)objc_getClass("NSApplication"),
                              sel_registerName("sharedApplication")),
                 sel_registerName("sendEvent:"), event);
         }
+    }
 
+    static result_t should_exit(struct webview* w)
+    {
         return w->priv.should_exit;
+    }
+
+    // pure C API about webview
+    static int webview_loop(struct webview* w, int blocking)
+    {
+        id event = WebView::webview_get_event_from_mainloop(blocking);
+
+        WebView::send_event_to_sharedApplicatoin_and_check_should_exit(event);
+
+        return WebView::should_exit(w);
     }
 
     void objc_nsAppInit(struct webview* w)
@@ -269,8 +287,9 @@ public:
             style = style | NSWindowStyleMaskResizable;
         }
 
-        s_activeWin = w->priv.window = objc_msgSend((id)objc_getClass("NSWindow"), sel_registerName("alloc"));
-        objc_setAssociatedObject(s_activeWin, "webview", (id)(w), OBJC_ASSOCIATION_ASSIGN);
+        s_activeWinObjcId = w->priv.window = objc_msgSend((id)objc_getClass("NSWindow"), sel_registerName("alloc"));
+        printf("[WebView::initWindow] s_activeWinObjcId assigned");
+        objc_setAssociatedObject(s_activeWinObjcId, "webview", (id)(w), OBJC_ASSOCIATION_ASSIGN);
         objc_msgSend(w->priv.window,
             sel_registerName("initWithContentRect:styleMask:backing:defer:"),
             this->webview_window_rect, style, NSBackingStoreBuffered, 0);
@@ -534,6 +553,31 @@ public:
     }
 
 public:
+    static struct webview* getCurrentWebViewStruct()
+    {
+        if (!s_activeWinObjcId)
+            return NULL;
+
+        // printf("s_activeWinObjcId is not NULL \n");
+
+        struct webview* w = (struct webview*)objc_getAssociatedObject(s_activeWinObjcId, "webview");
+
+        return w;
+    }
+    static WebView* getCurrentWebViewInstance()
+    {
+
+        struct webview* w = getCurrentWebViewStruct();
+        if (w == NULL)
+            return NULL;
+
+        WebView* wv = getClsWebView(w);
+
+        return wv;
+    }
+
+public:
+    // objc handlers of delegations
     static bool webview_windowShouldClose(id window)
     {
         printf("[webview_windowShouldClose] 看看 winDelegate 生效没 \n");
@@ -551,27 +595,6 @@ public:
         //     return NO;
         // }
         return YES;
-    }
-
-    static struct webview* getCurrentWebViewStruct()
-    {
-        if (!s_activeWin)
-            return NULL;
-
-        struct webview* w = (struct webview*)objc_getAssociatedObject(s_activeWin, "webview");
-
-        return w;
-    }
-    static WebView* getCurrentWebViewInstance()
-    {
-
-        struct webview* w = getCurrentWebViewStruct();
-        if (w == NULL)
-            return NULL;
-
-        WebView* wv = getClsWebView(w);
-
-        return wv;
     }
     // objc Delegation
     static void webview_applicationDidFinishLaunching(id app)
@@ -620,12 +643,10 @@ public:
         // TODO: use information in didMoveNotification
         printf("[onWindowDidMove]\n");
 
-        wv->_emit("move");
-    }
+        // obj_ptr<EventInfo> ei = new EventInfo(wv, "move");
+        // wv->_emit("move", ei);
 
-    static void callJavascriptFunction(struct webview* w, const char* js)
-    {
-        webview_eval(w, js);
+        wv->_emit("move");
     }
 
     static void webview_external_postMessage(id self, SEL cmd, id userContentController, id message)
@@ -638,9 +659,11 @@ public:
         WebView* wv = getClsWebView(w);
         if (wv == NULL)
             return;
-        const char* arg = (const char*)objc_msgSend(objc_msgSend(message, sel_registerName("body")), sel_registerName("UTF8String"));
+        const char* msg = (const char*)objc_msgSend(objc_msgSend(message, sel_registerName("body")), sel_registerName("UTF8String"));
         // normalize to one function
-        wv->_emit("message", arg);
+        printf("[webview_external_postMessage] view view msg %s \n", w->title);
+
+        // wv->_emit("message", msg);
     }
 
     static void webview_windowWillClose(id self, SEL cmd, id willCloseNotification)
@@ -648,19 +671,30 @@ public:
         printf("[webview_windowWillClose] before \n");
         struct webview* w = (struct webview*)objc_getAssociatedObject(self, "webview");
 
+        if (w != NULL)
+            WebView::on_webview_say_close(w);
+
+        // asyncCall(WebView::on_webview_say_close, w, CALL_E_GUICALL);
+        printf("[webview_windowWillClose] after \n");
+    }
+
+    static int on_webview_say_close(struct webview* w)
+    {
         WebView* wv = getClsWebView(w);
 
-        // wv->postClose();
-        wv->_emit("close");
+        if (wv) {
+            // wv->postClose();
+            wv->_emit("close");
 
-        wv->webview_terminate(w);
-        // TODO: use new fiber?
-        wv->_emit("closed");
+            wv->webview_terminate(w);
+            // TODO: use new fiber?
+            wv->_emit("closed");
 
-        wv->holder()->Unref();
-        wv->clear();
-        wv->Release();
-        printf("[webview_windowWillClose] after \n");
+            wv->holder()->Unref();
+            wv->clear();
+            wv->Release();
+        }
+        return 0;
     }
 
     static void onExternalClosed(struct webview* w, const char* arg)
