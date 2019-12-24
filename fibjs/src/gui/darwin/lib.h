@@ -86,6 +86,33 @@ enum webview_dialog_type {
 #define WEBVIEW_DIALOG_FLAG_ERROR (3 << 1)
 #define WEBVIEW_DIALOG_FLAG_ALERT_MASK (3 << 1)
 
+typedef void (*gui_dispatch_fn)(id event, void* arg);
+
+struct guid_dispatch_arg {
+    gui_dispatch_fn fn;
+    id event;
+    void* arg;
+};
+
+static void gui_dispatch_cb(void* arg)
+{
+    struct guid_dispatch_arg* context = (struct guid_dispatch_arg*)arg;
+    (context->fn)(context->event, context->arg);
+    free(context);
+}
+static void gui_dispatch(
+    id event,
+    gui_dispatch_fn fn,
+    void* arg)
+{
+    struct guid_dispatch_arg* context = (struct guid_dispatch_arg*)malloc(
+        sizeof(struct guid_dispatch_arg));
+    context->event = event;
+    context->arg = arg;
+    context->fn = fn;
+    dispatch_async_f(dispatch_get_main_queue(), context, gui_dispatch_cb);
+}
+
 typedef void (*webview_dispatch_fn)(struct webview* w, void* arg);
 
 struct webview_dispatch_arg {
@@ -117,7 +144,7 @@ static const char* webview_check_url(const char* url)
     return url;
 }
 
-WEBVIEW_API int webview_eval(struct webview* w, const char* js);
+static int webview_eval(struct webview* w, const char* js);
 WEBVIEW_API int webview_inject_css(struct webview* w, const char* css);
 WEBVIEW_API void webview_set_title(struct webview* w, const char* title);
 WEBVIEW_API void webview_set_fullscreen(struct webview* w, int fullscreen);
@@ -322,7 +349,7 @@ static void make_nav_policy_decision(id self, SEL cmd, id webView, id response,
     }
 }
 
-WEBVIEW_API int webview_eval(struct webview* w, const char* js)
+static int webview_eval(struct webview* w, const char* js)
 {
     objc_msgSend(w->priv.webview,
         sel_registerName("evaluateJavaScript:completionHandler:"),
