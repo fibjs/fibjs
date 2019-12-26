@@ -117,6 +117,9 @@ void asyncLog(int32_t priority, exlib::string msg);
 
 bool colors(int32_t type)
 {
+    if(!Isolate::current()->m_console_colored)
+        return false;
+
     if (type <= console_base::_NOTICE)
         return false;
 
