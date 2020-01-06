@@ -4,13 +4,17 @@ platform:
   - x64
   - x86
 
+configuration: Release
+
 install:
+  - call "%APPVEYOR_BUILD_FOLDER%\.appveyor\install-llvm.cmd"
+  - call "%APPVEYOR_BUILD_FOLDER%\.appveyor\set-llvm.cmd"
   - git submodule init
   - git submodule update
 
-test_script:
-  - IF /I "%PLATFORM%" == "x64" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat" && ECHO "x64 building..." && build release amd64 && cd test && ..\bin\Windows_amd64_release\fibjs.exe --prof main.js
-  - IF /I "%PLATFORM%" == "x86" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat" && ECHO "x86 building..." && build release i386 && cd test && ..\bin\Windows_i386_release\fibjs.exe --prof main.js
+build_script:
+  - IF /I "%PLATFORM%" == "x64" ECHO "x64 building..." && build release amd64 && cd test && ..\bin\Windows_amd64_release\fibjs.exe --prof main.js
+  - IF /I "%PLATFORM%" == "x86" ECHO "x86 building..." && build release i386 && cd test && ..\bin\Windows_i386_release\fibjs.exe --prof main.js
   - IF /I "%APPVEYOR_REPO_TAG%" == "false" set APPVEYOR_REPO_TAG_NAME=dist
   - mkdir %APPVEYOR_REPO_TAG_NAME%
   - IF /I "%PLATFORM%" == "x64" copy .\bin\Windows_amd64_release\fibjs.exe .\%APPVEYOR_REPO_TAG_NAME%\fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-x64.exe
@@ -21,6 +25,8 @@ test_script:
   - IF /I "%PLATFORM%" == "x86" copy .\bin\Windows_i386_release\fibjs_gui.exe .\%APPVEYOR_REPO_TAG_NAME%\fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-gui-x86.exe
   - IF /I "%PLATFORM%" == "x86" copy .\bin\Windows_i386_release\installer.exe .\%APPVEYOR_REPO_TAG_NAME%\installer-%APPVEYOR_REPO_TAG_NAME%-windows-x86.exe
   - IF /I "%PLATFORM%" == "x86" copy .\bin\Windows_i386_release\fibjs.cab .\%APPVEYOR_REPO_TAG_NAME%\fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-x86.cab
+test: off
+
 matrix:
   fast_finish: true
 artifacts:
@@ -48,4 +54,3 @@ deploy:
     prerelease: false
     on:
       appveyor_repo_tag: true
-build: off

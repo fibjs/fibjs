@@ -14,9 +14,7 @@ case "${ARCH}" in
 esac
 
 if [[ -z $TRAVIS_TAG && $TRAVIS_BRANCH == "beta" ]]; then
-  GIT_COMMIT_SHORTCUTS=$(git log --format=%h -1)
-  GIT_COMMIT_TIME=$(git show -s --format="%cd" --date=format:%Y%m%d%H%M%S $TRAVIS_BRANCH)
-  TRAVIS_TAG="$GIT_COMMIT_TIME-$GIT_COMMIT_SHORTCUTS"
+  TRAVIS_TAG=$(git describe --match "v[0-9]*.[0-9]*.[0-9]*")
   echo "TRAVIS_TAG is $TRAVIS_TAG";
 fi
 

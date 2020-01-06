@@ -30,6 +30,7 @@ public:
     virtual result_t get_ppid(int32_t& retVal) = 0;
     virtual result_t get_stdin(obj_ptr<BufferedStream_base>& retVal) = 0;
     virtual result_t get_stdout(obj_ptr<BufferedStream_base>& retVal) = 0;
+    virtual result_t get_stderr(obj_ptr<BufferedStream_base>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -50,6 +51,7 @@ public:
     static void s_get_ppid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_stdin(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_stdout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_stderr(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE1(SubProcess_base, wait, int32_t);
@@ -72,7 +74,8 @@ inline ClassInfo& SubProcess_base::class_info()
         { "pid", s_get_pid, block_set, false },
         { "ppid", s_get_ppid, block_set, false },
         { "stdin", s_get_stdin, block_set, false },
-        { "stdout", s_get_stdout, block_set, false }
+        { "stdout", s_get_stdout, block_set, false },
+        { "stderr", s_get_stderr, block_set, false }
     };
 
     static ClassData s_cd = {
@@ -184,6 +187,19 @@ inline void SubProcess_base::s_get_stdout(v8::Local<v8::Name> property, const v8
     PROPERTY_ENTER();
 
     hr = pInst->get_stdout(vr);
+
+    METHOD_RETURN();
+}
+
+inline void SubProcess_base::s_get_stderr(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<BufferedStream_base> vr;
+
+    METHOD_NAME("SubProcess.stderr");
+    METHOD_INSTANCE(SubProcess_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_stderr(vr);
 
     METHOD_RETURN();
 }

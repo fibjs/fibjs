@@ -60,17 +60,10 @@ script:
     ./.travis/release.sh;
     fi
 before_deploy:
-  - export GIT_COMMIT_SHORTCUTS=$(git log --format=%h -1)
-  - export GIT_COMMIT_TIME=$(git show -s --format="%cd" --date=format:%Y%m%d%H%M%S $TRAVIS_BRANCH)
   - if [[ -z $TRAVIS_TAG ]]; then
-    export TRAVIS_TAG="$GIT_COMMIT_TIME-$GIT_COMMIT_SHORTCUTS";
-    if [ $(git tag --list | egrep "^$TRAVIS_TAG$") ]; then
-    echo "tag $TRAVIS_TAG existed";
-    else
-    git tag "$TRAVIS_TAG" "$GIT_COMMIT_SHORTCUTS";
-    echo "created new tag $TRAVIS_TAG";
+    export TRAVIS_TAG=$(git describe --match "v[0-9]*.[0-9]*.[0-9]*");
     fi
-    fi
+  - export GIT_COMMIT_SHORTCUTS=$(git log --format=%h -1)
   - echo "$TRAVIS_TAG" "$GIT_COMMIT_SHORTCUTS"
 deploy:
   - provider: releases
@@ -84,7 +77,7 @@ deploy:
       tags: true
       repo: fibjs/fibjs
   - provider: releases
-    name: beta
+    name: ${TRAVIS_TAG}-beta
     body: Automated release from Travis CI on beta (${TRAVIS_COMMIT})
     prerelease: true
     api_key:

@@ -136,6 +136,7 @@ public:
     int32_t m_flake_host;
     int32_t m_flake_count;
 
+    bool m_console_colored;
     int32_t m_loglevel;
 
     int32_t m_defaultMaxListeners;

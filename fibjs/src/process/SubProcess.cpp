@@ -44,4 +44,14 @@ result_t SubProcess::get_stdout(obj_ptr<BufferedStream_base>& retVal)
 
     return 0;
 }
+
+result_t SubProcess::get_stderr(obj_ptr<BufferedStream_base>& retVal)
+{
+    if (m_stderr == NULL)
+        return CHECK_ERROR(CALL_RETURN_NULL);
+
+    retVal = m_stderr;
+
+    return 0;
+}
 }

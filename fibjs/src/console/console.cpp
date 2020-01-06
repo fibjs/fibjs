@@ -117,6 +117,9 @@ void asyncLog(int32_t priority, exlib::string msg);
 
 bool colors(int32_t type)
 {
+    if(!Isolate::current()->m_console_colored)
+        return false;
+
     if (type <= console_base::_NOTICE)
         return false;
 
@@ -370,8 +373,8 @@ result_t console_base::moveTo(int32_t row, int32_t column)
         return CHECK_ERROR(LastError());
 
     COORD pos = {
-        (short)column - 1,
-        (short)row - 1 + info.srWindow.Top
+        (short)(column - 1),
+        (short)(row - 1 + info.srWindow.Top)
     };
 
     SetConsoleCursorPosition(hd, pos);
