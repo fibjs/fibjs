@@ -105,11 +105,14 @@ Local<String> JSON_Stringify(Isolate* isolate,
     i::Isolate* v8_isolate = reinterpret_cast<i::Isolate*>(isolate);
     CallDepthScope<false> call_depth_scope(v8_isolate, isolate->GetCurrentContext());
 
+    Local<String> result;
+    if(*json_object == nullptr || *json_replacer == nullptr)
+        return result;
+
     i::Handle<i::Object> object = Utils::OpenHandle(*json_object);
     i::Handle<i::Object> replacer = Utils::OpenHandle(*json_replacer);
     i::Handle<i::String> gap_string = v8_isolate->factory()->empty_string();
     i::Handle<i::Object> maybe;
-    Local<String> result;
 
     if (i::JsonStringifier(v8_isolate)
             .Stringify(object, replacer, gap_string)
