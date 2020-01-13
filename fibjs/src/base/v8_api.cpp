@@ -135,6 +135,7 @@ V8FrameInfo save_fi(Isolate* isolate)
 {
     i::Isolate* v8_isolate = (i::Isolate*)isolate;
     V8FrameInfo fi;
+    
 
     fi.entry_fp = (void*)*v8_isolate->c_entry_fp_address();
     fi.handle = (void*)*v8_isolate->handler_address();
