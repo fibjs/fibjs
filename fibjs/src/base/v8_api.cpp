@@ -44,6 +44,7 @@ public:
                   : i::InterruptsScope::kNoop)
     {
         // TODO(dcarney): remove this when blink stops crashing.
+
         DCHECK(!isolate_->external_caught_exception());
         isolate_->handle_scope_implementer()->IncrementCallDepth();
         isolate_->set_next_v8_call_is_safe_for_termination(false);
@@ -106,7 +107,7 @@ Local<String> JSON_Stringify(Isolate* isolate,
     CallDepthScope<false> call_depth_scope(v8_isolate, isolate->GetCurrentContext());
 
     Local<String> result;
-    if(*json_object == nullptr || *json_replacer == nullptr)
+    if (*json_object == nullptr || *json_replacer == nullptr)
         return result;
 
     i::Handle<i::Object> object = Utils::OpenHandle(*json_object);
@@ -135,7 +136,6 @@ V8FrameInfo save_fi(Isolate* isolate)
 {
     i::Isolate* v8_isolate = (i::Isolate*)isolate;
     V8FrameInfo fi;
-    
 
     fi.entry_fp = (void*)*v8_isolate->c_entry_fp_address();
     fi.handle = (void*)*v8_isolate->handler_address();
