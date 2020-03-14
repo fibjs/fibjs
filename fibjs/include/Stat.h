@@ -59,15 +59,25 @@ namespace fibjs {
 
 class Stat : public Stat_base {
 public:
-    // Stat_base
     virtual result_t get_name(exlib::string& retVal);
-    virtual result_t get_size(int64_t& retVal);
+    virtual result_t get_dev(int32_t& retVal);
+    virtual result_t get_ino(int32_t& retVal);
     virtual result_t get_mode(int32_t& retVal);
-    virtual result_t get_mtime(date_t& retVal);
-    virtual result_t get_atime(date_t& retVal);
-    virtual result_t get_ctime(date_t& retVal);
+    virtual result_t get_nlink(int32_t& retVal);
     virtual result_t get_uid(int32_t& retVal);
     virtual result_t get_gid(int32_t& retVal);
+    virtual result_t get_rdev(int32_t& retVal);
+    virtual result_t get_size(double& retVal);
+    virtual result_t get_blksize(int32_t& retVal);
+    virtual result_t get_blocks(int32_t& retVal);
+    virtual result_t get_mtime(date_t& retVal);
+    virtual result_t get_mtimeMs(double& retVal);
+    virtual result_t get_atime(date_t& retVal);
+    virtual result_t get_atimeMs(double& retVal);
+    virtual result_t get_ctime(date_t& retVal);
+    virtual result_t get_ctimeMs(double& retVal);
+    virtual result_t get_birthtime(date_t& retVal);
+    virtual result_t get_birthtimeMs(double& retVal);
     virtual result_t isWritable(bool& retVal);
     virtual result_t isReadable(bool& retVal);
     virtual result_t isExecutable(bool& retVal);
@@ -92,11 +102,17 @@ public:
 
 public:
     exlib::string name;
+    int64_t dev, rdev;
+    int64_t ino;
+    int64_t mode;
+    int64_t nlink;
+    int64_t uid, gid;
     int64_t size;
-    int32_t mode;
-    date_t mtime, atime, ctime;
-    int32_t uid;
-    int32_t gid;
+    int64_t blksize;
+    int64_t blocks;
+    date_t mtime, atime, ctime, birthtime;
+    int64_t mtimeNs, atimeNs, ctimeNs, birthtimeNs;
+    bool m_isBlockDevice, m_isCharacterDevice, m_isFIFO;
     bool m_isWritable, m_isReadable, m_isExecutable, m_isHidden;
     bool m_isDirectory, m_isFile, m_isSymbolicLink;
     bool m_isMemory, m_isSocket;

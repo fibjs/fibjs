@@ -15,6 +15,7 @@
 #include "Url.h"
 #include "Buffer.h"
 #include "MemoryStream.h"
+#include "Stat.h"
 
 namespace fibjs {
 
@@ -1261,7 +1262,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             } else {
                 exlib::string name, ds, ss;
                 date_t d;
-                int64_t sz;
+                double sz;
                 bool is_dir = false;
                 int32_t padding_len;
 

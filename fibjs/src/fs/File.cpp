@@ -221,14 +221,8 @@ result_t File::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    BY_HANDLE_FILE_INFORMATION fdata;
-
-    if (!GetFileInformationByHandle((HANDLE)_get_osfhandle(m_fd), &fdata))
-        return CHECK_ERROR(LastError());
-
     obj_ptr<Stat> pStat = new Stat();
-
-    pStat->fill(name, fdata);
+    pStat->getStat(name);
 
     retVal = pStat;
 

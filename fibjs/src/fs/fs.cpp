@@ -458,21 +458,24 @@ result_t fs_base::appendFile(exlib::string fname, Buffer_base* data, AsyncEvent*
     return hr;
 }
 
-result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal,
-    AsyncEvent* ac)
+result_t get_fs_stat(exlib::string fname, obj_ptr<Stat_base>& retVal, bool use_lstat = false)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
     obj_ptr<Stat> pStat = new Stat();
 
-    result_t hr = pStat->getStat(path);
+    result_t hr = !use_lstat ? pStat->getStat(fname) : pStat->getLstat(fname);
     if (hr < 0)
         return hr;
 
     retVal = pStat;
-
     return 0;
+}
+
+result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return get_fs_stat(path, retVal);
 }
 
 result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
@@ -480,15 +483,7 @@ result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEve
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<Stat> pStat = new Stat();
-
-    result_t hr = pStat->getLstat(path);
-    if (hr < 0)
-        return hr;
-
-    retVal = pStat;
-
-    return 0;
+    return get_fs_stat(path, retVal, true);
 }
 
 result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t length,

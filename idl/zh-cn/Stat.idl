@@ -8,26 +8,59 @@ interface Stat : object
     /*! @brief 文件名称 */
     readonly String name;
 
-    /*! @brief 文件尺寸 */
-    readonly Long size;
+    /*! @brief 包含该文件的设备 ID */
+    readonly Integer dev;
+
+    /*! @brief 文件中的 Inode 数量 */
+    readonly Integer ino;
 
     /*! @brief 文件权限，Windows 不支持此属性 */
     readonly Integer mode;
 
-    /*! @brief 文件最后修改时间 */
-    readonly Date mtime;
-
-    /*! @brief 文件最后访问时间 */
-    readonly Date atime;
-
-    /*! @brief 文件创建时间 */
-    readonly Date ctime;
+    /*! @brief 与此文件相关联的硬链接数量 */
+    readonly Integer nlink;
 
     /*! @brief 文件拥有者的id */
     readonly Integer uid;
     
     /*! @brief 文件所属的组id */
     readonly Integer gid;
+    
+    /*! @brief 对于特殊类型的文件, 包含该文件的设备 ID */
+    readonly Integer rdev;
+
+    /*! @brief 文件尺寸 */
+    readonly Number size;
+
+    /*! @brief 在 I/O 操作中文件系统区块大小 */
+    readonly Integer blksize;
+
+    /*! @brief 分配给该文件的区块数量 */
+    readonly Integer blocks;
+
+    /*! @brief 文件最后修改时间 */
+    readonly Date mtime;
+
+    /*! @brief 文件最后修改时间(ms) */
+    readonly Number mtimeMs;
+
+    /*! @brief 文件最后访问时间 */
+    readonly Date atime;
+
+    /*! @brief 文件最后访问时间(ms) */
+    readonly Number atimeMs;
+
+    /*! @brief 文件创建时间 */
+    readonly Date ctime;
+
+    /*! @brief 文件创建时间(ms) */
+    readonly Number ctimeMs;
+
+    /*! @brief 文件产生时间 */
+    readonly Date birthtime;
+
+    /*! @brief 文件产生时间(ms) */
+    readonly Number birthtimeMs;
 
     /*! @brief 查询文件是否有写入权限
      @return 为 true 则有写入权限

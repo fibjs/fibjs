@@ -876,6 +876,9 @@
     <ClInclude Include="include\version.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\winapi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\db\sql\db_api.h">
       <Filter>Source Files\db\sql</Filter>
     </ClInclude>

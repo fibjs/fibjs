@@ -22,13 +22,24 @@ class Stat_base : public object_base {
 public:
     // Stat_base
     virtual result_t get_name(exlib::string& retVal) = 0;
-    virtual result_t get_size(int64_t& retVal) = 0;
+    virtual result_t get_dev(int32_t& retVal) = 0;
+    virtual result_t get_ino(int32_t& retVal) = 0;
     virtual result_t get_mode(int32_t& retVal) = 0;
-    virtual result_t get_mtime(date_t& retVal) = 0;
-    virtual result_t get_atime(date_t& retVal) = 0;
-    virtual result_t get_ctime(date_t& retVal) = 0;
+    virtual result_t get_nlink(int32_t& retVal) = 0;
     virtual result_t get_uid(int32_t& retVal) = 0;
     virtual result_t get_gid(int32_t& retVal) = 0;
+    virtual result_t get_rdev(int32_t& retVal) = 0;
+    virtual result_t get_size(double& retVal) = 0;
+    virtual result_t get_blksize(int32_t& retVal) = 0;
+    virtual result_t get_blocks(int32_t& retVal) = 0;
+    virtual result_t get_mtime(date_t& retVal) = 0;
+    virtual result_t get_mtimeMs(double& retVal) = 0;
+    virtual result_t get_atime(date_t& retVal) = 0;
+    virtual result_t get_atimeMs(double& retVal) = 0;
+    virtual result_t get_ctime(date_t& retVal) = 0;
+    virtual result_t get_ctimeMs(double& retVal) = 0;
+    virtual result_t get_birthtime(date_t& retVal) = 0;
+    virtual result_t get_birthtimeMs(double& retVal) = 0;
     virtual result_t isWritable(bool& retVal) = 0;
     virtual result_t isReadable(bool& retVal) = 0;
     virtual result_t isExecutable(bool& retVal) = 0;
@@ -52,13 +63,24 @@ public:
 
 public:
     static void s_get_name(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_size(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_dev(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_ino(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_mode(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_mtime(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_atime(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_ctime(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_nlink(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_uid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_gid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_rdev(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_size(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_blksize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_blocks(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_mtime(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_mtimeMs(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_atime(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_atimeMs(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_ctime(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_ctimeMs(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_birthtime(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_birthtimeMs(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_isWritable(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isReadable(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isExecutable(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -88,13 +110,24 @@ inline ClassInfo& Stat_base::class_info()
 
     static ClassData::ClassProperty s_property[] = {
         { "name", s_get_name, block_set, false },
-        { "size", s_get_size, block_set, false },
+        { "dev", s_get_dev, block_set, false },
+        { "ino", s_get_ino, block_set, false },
         { "mode", s_get_mode, block_set, false },
-        { "mtime", s_get_mtime, block_set, false },
-        { "atime", s_get_atime, block_set, false },
-        { "ctime", s_get_ctime, block_set, false },
+        { "nlink", s_get_nlink, block_set, false },
         { "uid", s_get_uid, block_set, false },
-        { "gid", s_get_gid, block_set, false }
+        { "gid", s_get_gid, block_set, false },
+        { "rdev", s_get_rdev, block_set, false },
+        { "size", s_get_size, block_set, false },
+        { "blksize", s_get_blksize, block_set, false },
+        { "blocks", s_get_blocks, block_set, false },
+        { "mtime", s_get_mtime, block_set, false },
+        { "mtimeMs", s_get_mtimeMs, block_set, false },
+        { "atime", s_get_atime, block_set, false },
+        { "atimeMs", s_get_atimeMs, block_set, false },
+        { "ctime", s_get_ctime, block_set, false },
+        { "ctimeMs", s_get_ctimeMs, block_set, false },
+        { "birthtime", s_get_birthtime, block_set, false },
+        { "birthtimeMs", s_get_birthtimeMs, block_set, false }
     };
 
     static ClassData s_cd = {
@@ -120,15 +153,28 @@ inline void Stat_base::s_get_name(v8::Local<v8::Name> property, const v8::Proper
     METHOD_RETURN();
 }
 
-inline void Stat_base::s_get_size(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Stat_base::s_get_dev(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
-    int64_t vr;
+    int32_t vr;
 
-    METHOD_NAME("Stat.size");
+    METHOD_NAME("Stat.dev");
     METHOD_INSTANCE(Stat_base);
     PROPERTY_ENTER();
 
-    hr = pInst->get_size(vr);
+    hr = pInst->get_dev(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stat_base::s_get_ino(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_NAME("Stat.ino");
+    METHOD_INSTANCE(Stat_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_ino(vr);
 
     METHOD_RETURN();
 }
@@ -146,41 +192,15 @@ inline void Stat_base::s_get_mode(v8::Local<v8::Name> property, const v8::Proper
     METHOD_RETURN();
 }
 
-inline void Stat_base::s_get_mtime(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Stat_base::s_get_nlink(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
-    date_t vr;
+    int32_t vr;
 
-    METHOD_NAME("Stat.mtime");
+    METHOD_NAME("Stat.nlink");
     METHOD_INSTANCE(Stat_base);
     PROPERTY_ENTER();
 
-    hr = pInst->get_mtime(vr);
-
-    METHOD_RETURN();
-}
-
-inline void Stat_base::s_get_atime(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    date_t vr;
-
-    METHOD_NAME("Stat.atime");
-    METHOD_INSTANCE(Stat_base);
-    PROPERTY_ENTER();
-
-    hr = pInst->get_atime(vr);
-
-    METHOD_RETURN();
-}
-
-inline void Stat_base::s_get_ctime(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    date_t vr;
-
-    METHOD_NAME("Stat.ctime");
-    METHOD_INSTANCE(Stat_base);
-    PROPERTY_ENTER();
-
-    hr = pInst->get_ctime(vr);
+    hr = pInst->get_nlink(vr);
 
     METHOD_RETURN();
 }
@@ -207,6 +227,162 @@ inline void Stat_base::s_get_gid(v8::Local<v8::Name> property, const v8::Propert
     PROPERTY_ENTER();
 
     hr = pInst->get_gid(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stat_base::s_get_rdev(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_NAME("Stat.rdev");
+    METHOD_INSTANCE(Stat_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_rdev(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stat_base::s_get_size(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    double vr;
+
+    METHOD_NAME("Stat.size");
+    METHOD_INSTANCE(Stat_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_size(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stat_base::s_get_blksize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_NAME("Stat.blksize");
+    METHOD_INSTANCE(Stat_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_blksize(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stat_base::s_get_blocks(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_NAME("Stat.blocks");
+    METHOD_INSTANCE(Stat_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_blocks(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stat_base::s_get_mtime(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    date_t vr;
+
+    METHOD_NAME("Stat.mtime");
+    METHOD_INSTANCE(Stat_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_mtime(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stat_base::s_get_mtimeMs(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    double vr;
+
+    METHOD_NAME("Stat.mtimeMs");
+    METHOD_INSTANCE(Stat_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_mtimeMs(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stat_base::s_get_atime(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    date_t vr;
+
+    METHOD_NAME("Stat.atime");
+    METHOD_INSTANCE(Stat_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_atime(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stat_base::s_get_atimeMs(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    double vr;
+
+    METHOD_NAME("Stat.atimeMs");
+    METHOD_INSTANCE(Stat_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_atimeMs(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stat_base::s_get_ctime(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    date_t vr;
+
+    METHOD_NAME("Stat.ctime");
+    METHOD_INSTANCE(Stat_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_ctime(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stat_base::s_get_ctimeMs(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    double vr;
+
+    METHOD_NAME("Stat.ctimeMs");
+    METHOD_INSTANCE(Stat_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_ctimeMs(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stat_base::s_get_birthtime(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    date_t vr;
+
+    METHOD_NAME("Stat.birthtime");
+    METHOD_INSTANCE(Stat_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_birthtime(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stat_base::s_get_birthtimeMs(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    double vr;
+
+    METHOD_NAME("Stat.birthtimeMs");
+    METHOD_INSTANCE(Stat_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_birthtimeMs(vr);
 
     METHOD_RETURN();
 }
