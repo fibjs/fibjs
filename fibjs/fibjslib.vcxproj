@@ -272,6 +272,7 @@
     <ClInclude Include="include\utils.h" />
     <ClInclude Include="include\v8_api.h" />
     <ClInclude Include="include\version.h" />
+    <ClInclude Include="include\winapi.h" />
     <ClInclude Include="src\db\sql\db_api.h" />
     <ClInclude Include="src\gui\windows\WebView.h" />
     <ClInclude Include="src\process\process_win.h" />
