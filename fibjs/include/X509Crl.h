@@ -16,6 +16,7 @@ namespace fibjs {
 class X509Crl : public X509Crl_base {
 public:
     X509Crl();
+    X509Crl(X509Crl* root, int32_t no);
     ~X509Crl();
 
 public:
@@ -30,9 +31,15 @@ public:
     virtual result_t get_serials(v8::Local<v8::Array>& retVal);
     virtual result_t get_thisUpdate(date_t& retVal);
     virtual result_t get_nextUpdate(date_t& retVal);
+    virtual result_t get_next(obj_ptr<X509Crl_base>& retVal);
+
+private:
+    mbedtls_x509_crl* get_crl();
 
 private:
     mbedtls_x509_crl m_crl;
+    obj_ptr<X509Crl> m_root;
+    int32_t m_no;
 };
 }
 

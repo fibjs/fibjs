@@ -60,4 +60,7 @@ interface X509Crl : object
 
     /*! @brief 获取证书的下次更新时间 */
     readonly Date nextUpdate;
+
+    /*! @brief 获取证书链中得下一个证书 */
+    readonly X509Crl next;
 };

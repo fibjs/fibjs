@@ -49,13 +49,23 @@ X509Crl::X509Crl()
     mbedtls_x509_crl_init(&m_crl);
 }
 
+X509Crl::X509Crl(X509Crl* root, int32_t no)
+{
+    m_root = root;
+    m_no = no;
+}
+
 X509Crl::~X509Crl()
 {
-    mbedtls_x509_crl_free(&m_crl);
+    if (!m_root)
+        mbedtls_x509_crl_free(&m_crl);
 }
 
 result_t X509Crl::load(Buffer_base* derCrl)
 {
+    if (m_root)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     int32_t ret;
 
     exlib::string crl;
@@ -71,6 +81,9 @@ result_t X509Crl::load(Buffer_base* derCrl)
 
 result_t X509Crl::load(exlib::string pemCrl)
 {
+    if (m_root)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     int32_t ret;
 
     ret = mbedtls_x509_crl_parse(&m_crl, (const unsigned char*)pemCrl.c_str(),
@@ -83,6 +96,9 @@ result_t X509Crl::load(exlib::string pemCrl)
 
 result_t X509Crl::loadFile(exlib::string filename)
 {
+    if (m_root)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     result_t hr;
     exlib::string data;
     obj_ptr<Buffer> buf;
@@ -103,6 +119,9 @@ result_t X509Crl::loadFile(exlib::string filename)
 
 result_t X509Crl::dump(bool pem, v8::Local<v8::Array>& retVal)
 {
+    if (m_root)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     Isolate* isolate = holder();
     retVal = v8::Array::New(isolate->m_isolate);
 
@@ -135,25 +154,51 @@ result_t X509Crl::dump(bool pem, v8::Local<v8::Array>& retVal)
 
 result_t X509Crl::clear()
 {
+    if (m_root)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     mbedtls_x509_crl_free(&m_crl);
     mbedtls_x509_crl_init(&m_crl);
+
     return 0;
+}
+
+mbedtls_x509_crl* X509Crl::get_crl()
+{
+    if (!m_root)
+        return &m_crl;
+
+    int32_t n = m_no;
+    mbedtls_x509_crl* crl = &m_root->m_crl;
+
+    while (n && (crl = crl->next))
+        n--;
+
+    return crl;
 }
 
 result_t X509Crl::get_version(int32_t& retVal)
 {
-    retVal = m_crl.version;
+    mbedtls_x509_crl* crl = get_crl();
+    if (!crl)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    retVal = crl->version;
     return 0;
 }
 
 result_t X509Crl::get_issuer(exlib::string& retVal)
 {
+    mbedtls_x509_crl* crl = get_crl();
+    if (!crl)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     int32_t ret;
     exlib::string buf;
 
     buf.resize(1024);
 
-    ret = mbedtls_x509_dn_gets(&buf[0], buf.length(), &m_crl.issuer);
+    ret = mbedtls_x509_dn_gets(&buf[0], buf.length(), &crl->issuer);
     if (ret < 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
@@ -165,7 +210,11 @@ result_t X509Crl::get_issuer(exlib::string& retVal)
 
 result_t X509Crl::get_serials(v8::Local<v8::Array>& retVal)
 {
-    const mbedtls_x509_crl_entry* cur = &m_crl.entry;
+    mbedtls_x509_crl* crl = get_crl();
+    if (!crl)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    const mbedtls_x509_crl_entry* cur = &crl->entry;
     int32_t n = 0;
     exlib::string str;
     Isolate* isolate = holder();
@@ -199,19 +248,44 @@ result_t X509Crl::get_serials(v8::Local<v8::Array>& retVal)
 
 result_t X509Crl::get_thisUpdate(date_t& retVal)
 {
-    retVal.create(m_crl.this_update.year, m_crl.this_update.mon,
-        m_crl.this_update.day, m_crl.this_update.hour,
-        m_crl.this_update.min, m_crl.this_update.sec, 0);
+    mbedtls_x509_crl* crl = get_crl();
+    if (!crl)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    retVal.create(crl->this_update.year, crl->this_update.mon,
+        crl->this_update.day, crl->this_update.hour,
+        crl->this_update.min, crl->this_update.sec, 0);
 
     return 0;
 }
 
 result_t X509Crl::get_nextUpdate(date_t& retVal)
 {
-    retVal.create(m_crl.next_update.year, m_crl.next_update.mon,
-        m_crl.next_update.day, m_crl.next_update.hour,
-        m_crl.next_update.min, m_crl.next_update.sec, 0);
+    mbedtls_x509_crl* crl = get_crl();
+    if (!crl)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
+    retVal.create(crl->next_update.year, crl->next_update.mon,
+        crl->next_update.day, crl->next_update.hour,
+        crl->next_update.min, crl->next_update.sec, 0);
+
+    return 0;
+}
+
+result_t X509Crl::get_next(obj_ptr<X509Crl_base>& retVal)
+{
+    if (m_root) {
+        mbedtls_x509_crl* crl = get_crl();
+        if (!crl || !crl->next)
+            return CALL_RETURN_NULL;
+
+        retVal = new X509Crl(m_root, m_no + 1);
+    } else {
+        if (!m_crl.next)
+            return CALL_RETURN_NULL;
+
+        retVal = new X509Crl(this, 1);
+    }
     return 0;
 }
 }
