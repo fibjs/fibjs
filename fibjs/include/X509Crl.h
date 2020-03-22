@@ -25,6 +25,11 @@ public:
     virtual result_t loadFile(exlib::string filename);
     virtual result_t dump(bool pem, v8::Local<v8::Array>& retVal);
     virtual result_t clear();
+    virtual result_t get_version(int32_t& retVal);
+    virtual result_t get_issuer(exlib::string& retVal);
+    virtual result_t get_serials(v8::Local<v8::Array>& retVal);
+    virtual result_t get_thisUpdate(date_t& retVal);
+    virtual result_t get_nextUpdate(date_t& retVal);
 
 private:
     mbedtls_x509_crl m_crl;

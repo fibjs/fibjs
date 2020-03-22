@@ -139,4 +139,79 @@ result_t X509Crl::clear()
     mbedtls_x509_crl_init(&m_crl);
     return 0;
 }
+
+result_t X509Crl::get_version(int32_t& retVal)
+{
+    retVal = m_crl.version;
+    return 0;
+}
+
+result_t X509Crl::get_issuer(exlib::string& retVal)
+{
+    int32_t ret;
+    exlib::string buf;
+
+    buf.resize(1024);
+
+    ret = mbedtls_x509_dn_gets(&buf[0], buf.length(), &m_crl.issuer);
+    if (ret < 0)
+        return CHECK_ERROR(_ssl::setError(ret));
+
+    buf.resize(ret);
+    retVal = buf;
+
+    return 0;
+}
+
+result_t X509Crl::get_serials(v8::Local<v8::Array>& retVal)
+{
+    const mbedtls_x509_crl_entry* cur = &m_crl.entry;
+    int32_t n = 0;
+    exlib::string str;
+    Isolate* isolate = holder();
+
+    retVal = v8::Array::New(isolate->m_isolate);
+    str.resize(8192);
+
+    while (cur != NULL && cur->serial.len != 0) {
+        int32_t ret;
+        mbedtls_mpi serial;
+
+        mbedtls_mpi_init(&serial);
+        ret = mbedtls_mpi_read_binary(&serial, cur->serial.p, cur->serial.len);
+        if (ret != 0)
+            return CHECK_ERROR(_ssl::setError(ret));
+
+        size_t sz = str.length();
+
+        ret = mbedtls_mpi_write_string(&serial, 10, &str[0], sz, &sz);
+        mbedtls_mpi_free(&serial);
+        if (ret != 0)
+            return CHECK_ERROR(_ssl::setError(ret));
+
+        retVal->Set(n++, isolate->NewString(str.c_str(), (int32_t)sz - 1));
+
+        cur = cur->next;
+    }
+
+    return 0;
+}
+
+result_t X509Crl::get_thisUpdate(date_t& retVal)
+{
+    retVal.create(m_crl.this_update.year, m_crl.this_update.mon,
+        m_crl.this_update.day, m_crl.this_update.hour,
+        m_crl.this_update.min, m_crl.this_update.sec, 0);
+
+    return 0;
+}
+
+result_t X509Crl::get_nextUpdate(date_t& retVal)
+{
+    retVal.create(m_crl.next_update.year, m_crl.next_update.mon,
+        m_crl.next_update.day, m_crl.next_update.hour,
+        m_crl.next_update.min, m_crl.next_update.sec, 0);
+
+    return 0;
+}
 }

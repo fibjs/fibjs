@@ -31,6 +31,11 @@ public:
     virtual result_t loadFile(exlib::string filename) = 0;
     virtual result_t dump(bool pem, v8::Local<v8::Array>& retVal) = 0;
     virtual result_t clear() = 0;
+    virtual result_t get_version(int32_t& retVal) = 0;
+    virtual result_t get_issuer(exlib::string& retVal) = 0;
+    virtual result_t get_serials(v8::Local<v8::Array>& retVal) = 0;
+    virtual result_t get_thisUpdate(date_t& retVal) = 0;
+    virtual result_t get_nextUpdate(date_t& retVal) = 0;
 
 public:
     template <typename T>
@@ -42,6 +47,11 @@ public:
     static void s_loadFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_dump(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clear(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_version(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_issuer(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_serials(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_thisUpdate(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_nextUpdate(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -57,9 +67,17 @@ inline ClassInfo& X509Crl_base::class_info()
         { "clear", s_clear, false }
     };
 
+    static ClassData::ClassProperty s_property[] = {
+        { "version", s_get_version, block_set, false },
+        { "issuer", s_get_issuer, block_set, false },
+        { "serials", s_get_serials, block_set, false },
+        { "thisUpdate", s_get_thisUpdate, block_set, false },
+        { "nextUpdate", s_get_nextUpdate, block_set, false }
+    };
+
     static ClassData s_cd = {
         "X509Crl", false, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &object_base::class_info()
     };
 
@@ -164,6 +182,71 @@ inline void X509Crl_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& arg
     hr = pInst->clear();
 
     METHOD_VOID();
+}
+
+inline void X509Crl_base::s_get_version(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_NAME("X509Crl.version");
+    METHOD_INSTANCE(X509Crl_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_version(vr);
+
+    METHOD_RETURN();
+}
+
+inline void X509Crl_base::s_get_issuer(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_NAME("X509Crl.issuer");
+    METHOD_INSTANCE(X509Crl_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_issuer(vr);
+
+    METHOD_RETURN();
+}
+
+inline void X509Crl_base::s_get_serials(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Array> vr;
+
+    METHOD_NAME("X509Crl.serials");
+    METHOD_INSTANCE(X509Crl_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_serials(vr);
+
+    METHOD_RETURN();
+}
+
+inline void X509Crl_base::s_get_thisUpdate(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    date_t vr;
+
+    METHOD_NAME("X509Crl.thisUpdate");
+    METHOD_INSTANCE(X509Crl_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_thisUpdate(vr);
+
+    METHOD_RETURN();
+}
+
+inline void X509Crl_base::s_get_nextUpdate(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    date_t vr;
+
+    METHOD_NAME("X509Crl.nextUpdate");
+    METHOD_INSTANCE(X509Crl_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_nextUpdate(vr);
+
+    METHOD_RETURN();
 }
 }
 
