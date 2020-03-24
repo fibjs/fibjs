@@ -970,6 +970,37 @@ describe('ws', () => {
                 test_util.gc();
                 assert.equal(test_util.countObject('WebSocket'), no1 + 1);
             });
+
+            it("gc on event socket", () => {
+                var t = false;
+
+                test_util.gc();
+
+                var httpd = new http.Server(8818 + base_port, {
+                    "/ws": ws.upgrade((s, req) => {})
+                });
+
+                test_util.push(httpd.socket);
+                httpd.start();
+
+                var no1 = test_util.countObject('Socket');
+
+                var s = new ws.Socket("ws://127.0.0.1:" + (8818 + base_port) + "/ws", "test");
+
+                s.onopen = () => {
+                    s.close();
+                    s = undefined;
+                    t = true;
+                };
+
+                for (var i = 0; i < 1000 && !t; i++)
+                    coroutine.sleep(1);
+
+                test_util.gc();
+                coroutine.sleep(10);
+                test_util.gc();
+                assert.equal(test_util.countObject('Socket'), no1);
+            });
         });
     });
 });

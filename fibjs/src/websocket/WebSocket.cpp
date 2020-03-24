@@ -350,6 +350,17 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
     return 0;
 }
 
+WebSocket::~WebSocket()
+{
+    if (m_closeState.xchg(ws_base::_CLOSED) != ws_base::_CLOSED) {
+        if (m_stream)
+            m_stream->cc_close();
+
+        if (m_ac)
+            m_ac->post(CALL_RETURN_NULL);
+    }
+}
+
 void WebSocket::startRecv(Isolate* isolate)
 {
     class asyncRead : public AsyncState {
@@ -449,14 +460,14 @@ void WebSocket::endConnect(int32_t code, exlib::string reason)
                 m_reason = reason;
             }
 
-            if (m_stream)
-                m_stream->cc_close();
-
-            if (m_ac)
-                m_ac->post(CALL_RETURN_NULL);
-
             _emit("close", new EventInfo(this, "close", m_code, m_reason));
         }
+
+        if (m_stream)
+            m_stream->cc_close();
+
+        if (m_ac)
+            m_ac->post(CALL_RETURN_NULL);
     }
 }
 

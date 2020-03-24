@@ -42,6 +42,8 @@ public:
     {
     }
 
+    ~WebSocket();
+
     EVENT_SUPPORT();
 
 public:
