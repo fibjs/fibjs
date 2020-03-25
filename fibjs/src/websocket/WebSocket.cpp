@@ -33,6 +33,8 @@ public:
         , m_this(pThis)
         , m_type(type)
     {
+        m_this->m_ioState.inc();
+
         obj_ptr<Buffer_base> _data = new Buffer(data);
         m_msg = new WebSocketMessage(type, m_this->m_masked, m_this->m_compress, 0);
         m_msg->cc_write(_data);
@@ -45,6 +47,8 @@ public:
         , m_this(pThis)
         , m_type(type)
     {
+        m_this->m_ioState.inc();
+
         m_msg = new WebSocketMessage(type, m_this->m_masked, m_this->m_compress, 0);
         m_msg->cc_write(data);
 
@@ -56,6 +60,8 @@ public:
         , m_this(pThis)
         , m_type(ws_base::_CLOSE)
     {
+        m_this->m_ioState.inc();
+
         exlib::string buf = "  " + reason;
 
         buf[0] = (code >> 8) & 255;
@@ -74,6 +80,8 @@ public:
         , m_this(pThis)
         , m_type(type)
     {
+        m_this->m_ioState.inc();
+
         m_msg = new WebSocketMessage(type, m_this->m_masked, m_this->m_compress, 0);
         if (body)
             m_msg->set_body(body);
@@ -84,6 +92,7 @@ public:
     ~asyncSend()
     {
         m_this->m_lockSend.unlock(this);
+        m_this->free_mem();
     }
 
     ON_STATE(asyncSend, start)
@@ -100,6 +109,9 @@ public:
     {
         if (!m_this->m_buffer)
             m_this->m_buffer = new MemoryStream();
+
+        if (m_this->m_compress && !m_this->m_deflate)
+            m_this->m_deflate = new defraw(NULL);
 
         return m_msg->sendTo(m_this->m_buffer, m_this, next(encode_ok));
     }
@@ -361,6 +373,19 @@ WebSocket::~WebSocket()
     }
 }
 
+void WebSocket::free_mem()
+{
+    if (m_ioState.dec() == 0) {
+        m_deflate.Release();
+        m_inflate.Release();
+        m_flushTail.Release();
+
+        m_buffer.Release();
+
+        m_holder.Release();
+    }
+}
+
 void WebSocket::startRecv(Isolate* isolate)
 {
     class asyncRead : public AsyncState {
@@ -377,12 +402,15 @@ void WebSocket::startRecv(Isolate* isolate)
 
         ~asyncRead()
         {
-            m_this->m_holder.Release();
+            m_this->free_mem();
             m_this->isolate_unref();
         }
 
         ON_STATE(asyncRead, recv)
         {
+            if (m_this->m_compress && !m_this->m_inflate)
+                m_this->m_inflate = new infraw(NULL, m_this->m_maxSize);
+
             m_msg = new WebSocketMessage(ws_base::_TEXT, false, false, m_this->m_maxSize);
             return m_msg->readFrom(m_this->m_stream, m_this, next(event));
         }
@@ -501,8 +529,6 @@ void WebSocket::endConnect(SeekableStream_base* body)
 void WebSocket::enableCompress()
 {
     m_compress = true;
-    m_deflate = new defraw(NULL);
-    m_inflate = new infraw(NULL, m_maxSize);
     m_flushTail = new Buffer("\x0\x0\xff\xff", 4);
 }
 

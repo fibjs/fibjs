@@ -27,6 +27,7 @@ public:
         , m_maxSize(67108864)
         , m_readyState(ws_base::_CONNECTING)
         , m_closeState(ws_base::_OPEN)
+        , m_ioState(1)
     {
     }
 
@@ -39,6 +40,7 @@ public:
         , m_maxSize(67108864)
         , m_readyState(ws_base::_OPEN)
         , m_closeState(ws_base::_OPEN)
+        , m_ioState(1)
     {
     }
 
@@ -85,6 +87,8 @@ public:
     void endConnect(SeekableStream_base* body);
     void enableCompress();
 
+    void free_mem();
+
 public:
     obj_ptr<Stream_base> m_stream;
     AsyncEvent* m_ac;
@@ -109,6 +113,7 @@ public:
     exlib::atomic m_readyState;
     exlib::atomic m_readState;
     exlib::atomic m_closeState;
+    exlib::atomic m_ioState;
 
     int32_t m_code;
     exlib::string m_reason;
