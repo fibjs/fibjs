@@ -140,14 +140,22 @@ result_t _ssl::setError(int32_t ret)
 result_t ssl_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal,
     AsyncEvent* ac)
 {
+    return connect(url, g_ssl.m_crt, g_ssl.m_key, timeout, retVal, ac);
+}
+
+result_t ssl_base::connect(exlib::string url, X509Cert_base* crt, PKey_base* key, int32_t timeout,
+    obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+{
     class asyncConnect : public AsyncState {
     public:
-        asyncConnect(const exlib::string host, int32_t port, bool ipv6, int32_t timeout,
-            obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
+        asyncConnect(const exlib::string host, int32_t port, bool ipv6, X509Cert_base* crt, PKey_base* key,
+            int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
             : AsyncState(ac)
             , m_host(host)
             , m_port(port)
             , m_ipv6(ipv6)
+            , m_crt(crt)
+            , m_key(key)
             , m_timeout(timeout)
             , m_retVal(retVal)
         {
@@ -168,8 +176,8 @@ result_t ssl_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
         {
             m_ssl_sock = new SslSocket();
 
-            if (g_ssl.m_crt && g_ssl.m_key) {
-                result_t hr = m_ssl_sock->setCert("", g_ssl.m_crt, g_ssl.m_key);
+            if (m_crt && m_key) {
+                result_t hr = m_ssl_sock->setCert("", m_crt, m_key);
                 if (hr < 0)
                     return hr;
             }
@@ -187,6 +195,8 @@ result_t ssl_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
         const exlib::string m_host;
         int32_t m_port;
         bool m_ipv6;
+        obj_ptr<X509Cert_base> m_crt;
+        obj_ptr<PKey_base> m_key;
         int32_t m_timeout;
         obj_ptr<Stream_base>& m_retVal;
         obj_ptr<Socket> m_sock;
@@ -211,7 +221,7 @@ result_t ssl_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
 
     int32_t nPort = atoi(u->m_port.c_str());
 
-    return (new asyncConnect(u->m_hostname, nPort, u->m_ipv6, timeout,
+    return (new asyncConnect(u->m_hostname, nPort, u->m_ipv6, crt, key, timeout,
                 retVal, ac))
         ->post(0);
 }

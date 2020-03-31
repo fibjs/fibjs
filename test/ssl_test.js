@@ -122,6 +122,11 @@ describe('ssl', () => {
         s.close();
     }
 
+    function test_connect_cert() {
+        var ss = ssl.connect('ssl://localhost:' + (9080 + base_port), crt, pk);
+        ss.close();
+    }
+
     function test_hostname(server) {
         var s = new net.Socket();
         s.connect("127.0.0.1", 9080 + base_port);
@@ -193,6 +198,12 @@ describe('ssl', () => {
         assert.equal("GET / HTTP/1.0", ss.read());
 
         ss.close();
+    });
+
+    it("ssl.connect verify", () => {
+        sss.verification = ssl.VERIFY_REQUIRED;
+        test_connect_cert();
+        sss.verification = ssl.VERIFY_NONE;
     });
 
     it("net.connect", () => {
