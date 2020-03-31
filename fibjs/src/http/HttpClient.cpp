@@ -341,6 +341,14 @@ result_t HttpClient::get_cookie(exlib::string url, exlib::string& retVal)
     return 0;
 }
 
+result_t HttpClient::setClientCert(X509Cert_base* crt, PKey_base* key)
+{
+    m_crt = crt;
+    m_key = key;
+
+    return 0;
+}
+
 result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
     obj_ptr<HttpResponse_base>& retVal,
     AsyncEvent* ac)
@@ -530,9 +538,13 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             if (m_hc->get_conn(m_connUrl, m_conn))
                 return next(connected);
 
-            if (m_hc->m_proxyConnUrl.empty())
-                return net_base::connect(m_connUrl, m_hc->m_timeout, m_conn, next(connected));
-            else {
+            if (m_hc->m_proxyConnUrl.empty()) {
+                if (ssl && m_hc->m_crt && m_hc->m_key)
+                    return ssl_base::connect(m_connUrl, m_hc->m_crt, m_hc->m_key, m_hc->m_timeout,
+                        m_conn, next(connected));
+                else
+                    return net_base::connect(m_connUrl, m_hc->m_timeout, m_conn, next(connected));
+            } else {
                 if (ssl) {
                     exlib::string host = m_connUrl.substr(6);
                     m_reqConn = new HttpRequest();
@@ -582,7 +594,11 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             obj_ptr<Stream_base> conn = m_conn;
             m_conn = ss;
 
-            if (g_ssl.m_crt && g_ssl.m_key) {
+            if (m_hc->m_crt && m_hc->m_key) {
+                result_t hr = ss->setCert("", m_hc->m_crt, m_hc->m_key);
+                if (hr < 0)
+                    return hr;
+            } else if (g_ssl.m_crt && g_ssl.m_key) {
                 result_t hr = ss->setCert("", g_ssl.m_crt, g_ssl.m_key);
                 if (hr < 0)
                     return hr;

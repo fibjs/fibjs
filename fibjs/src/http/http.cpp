@@ -144,6 +144,11 @@ result_t http_base::set_proxyAgent(exlib::string newVal)
     return get_httpClient()->set_proxyAgent(newVal);
 }
 
+result_t http_base::setClientCert(X509Cert_base* crt, PKey_base* key)
+{
+    return get_httpClient()->setClientCert(crt, key);
+}
+
 result_t http_base::request(Stream_base* conn, HttpRequest_base* req,
     obj_ptr<HttpResponse_base>& retVal,
     AsyncEvent* ac)

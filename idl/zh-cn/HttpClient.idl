@@ -45,6 +45,12 @@ interface HttpClient : object
     /*! @brief 查询和设置代理服务器 */
     String proxyAgent;
 
+    /*! @brief 设定缺省客户端证书
+    @param crt X509Cert 证书，用于客户端验证服务器
+    @param key PKey 私钥，用于与客户端会话
+   */
+    setClientCert(X509Cert crt, PKey key);
+
     /*! @brief 发送 http 请求到指定的流对象，并返回结果
      @param conn 指定处理请求的流对象
      @param req 要发送的 HttpRequest 对象

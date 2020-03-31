@@ -51,6 +51,7 @@ public:
     virtual result_t set_poolTimeout(int32_t newVal);
     virtual result_t get_proxyAgent(exlib::string& retVal);
     virtual result_t set_proxyAgent(exlib::string newVal);
+    virtual result_t setClientCert(X509Cert_base* crt, PKey_base* key);
     virtual result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     virtual result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     virtual result_t get(exlib::string url, v8::Local<v8::Object> headers, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
@@ -136,6 +137,8 @@ private:
     int32_t m_maxBodySize;
     exlib::string m_userAgent;
     exlib::string m_proxyConnUrl;
+    obj_ptr<X509Cert_base> m_crt;
+    obj_ptr<PKey_base> m_key;
 
 private:
     class Conn : public obj_base {

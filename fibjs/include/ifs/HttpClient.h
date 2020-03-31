@@ -16,6 +16,8 @@
 
 namespace fibjs {
 
+class X509Cert_base;
+class PKey_base;
 class HttpResponse_base;
 class Stream_base;
 class HttpRequest_base;
@@ -45,6 +47,7 @@ public:
     virtual result_t set_poolTimeout(int32_t newVal) = 0;
     virtual result_t get_proxyAgent(exlib::string& retVal) = 0;
     virtual result_t set_proxyAgent(exlib::string newVal) = 0;
+    virtual result_t setClientCert(X509Cert_base* crt, PKey_base* key) = 0;
     virtual result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t get(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
@@ -78,6 +81,7 @@ public:
     static void s_set_poolTimeout(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_proxyAgent(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_proxyAgent(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_setClientCert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_request(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_post(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -96,6 +100,8 @@ public:
 };
 }
 
+#include "ifs/X509Cert.h"
+#include "ifs/PKey.h"
 #include "ifs/HttpResponse.h"
 #include "ifs/Stream.h"
 #include "ifs/HttpRequest.h"
@@ -104,6 +110,7 @@ namespace fibjs {
 inline ClassInfo& HttpClient_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
+        { "setClientCert", s_setClientCert, false },
         { "request", s_request, false },
         { "requestSync", s_request, false },
         { "get", s_get, false },
@@ -398,6 +405,22 @@ inline void HttpClient_base::s_set_proxyAgent(v8::Local<v8::Name> property, v8::
     hr = pInst->set_proxyAgent(v0);
 
     PROPERTY_SET_LEAVE();
+}
+
+inline void HttpClient_base::s_setClientCert(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("HttpClient.setClientCert");
+    METHOD_INSTANCE(HttpClient_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<X509Cert_base>, 0);
+    ARG(obj_ptr<PKey_base>, 1);
+
+    hr = pInst->setClientCert(v0, v1);
+
+    METHOD_VOID();
 }
 
 inline void HttpClient_base::s_request(const v8::FunctionCallbackInfo<v8::Value>& args)
