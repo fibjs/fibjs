@@ -153,7 +153,7 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
             : AsyncState(ac)
             , m_pThis(pThis)
             , m_stm(stm)
-            , m_contentLength(0)
+            , m_contentLength(-1)
             , m_bChunked(false)
             , m_headCount(0)
         {
@@ -173,7 +173,7 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
 
                     if ((m_contentLength < 0)
                         || (m_pThis->m_maxBodySize >= 0
-                               && m_contentLength > m_pThis->m_maxBodySize * 1024 * 1024))
+                            && m_contentLength > m_pThis->m_maxBodySize * 1024 * 1024))
                         return CHECK_ERROR(Runtime::setError("HttpMessage: body is too huge."));
                 } else if (!qstricmp(m_strLine.c_str(),
                                "transfer-encoding:", 18)) {
@@ -202,14 +202,15 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
                 if (m_pThis->m_maxBodySize == 0)
                     return next();
 
-                if (m_contentLength)
+                if (m_contentLength > 0)
                     return CHECK_ERROR(CALL_E_INVALID_DATA);
+                m_contentLength = 0;
 
                 m_pThis->get_body(m_body);
                 return next(chunk_head);
             }
 
-            if (!m_pThis->m_bNoBody && m_contentLength > 0) {
+            if (!m_pThis->m_bNoBody && (m_contentLength > 0 || (m_pThis->m_bResponse && !m_pThis->m_keepAlive && m_contentLength == -1))) {
                 m_pThis->get_body(m_body);
                 return m_stm->copyTo(m_body, m_contentLength, m_copySize, next(body));
             }
@@ -219,7 +220,7 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
 
         ON_STATE(asyncReadFrom, body)
         {
-            if (!m_pThis->m_bNoBody && m_contentLength != m_copySize)
+            if (!m_pThis->m_bNoBody && m_contentLength > 0 && m_contentLength != m_copySize)
                 return CHECK_ERROR(Runtime::setError("HttpMessage: body is not complete."));
 
             m_body->rewind();

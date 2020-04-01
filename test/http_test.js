@@ -510,6 +510,24 @@ describe("http", () => {
             assert.equal(r.statusCode, 200);
             assert.equal(r.statusMessage, "ok");
             assert.equal(r.protocol, 'HTTP/1.0');
+
+            var r = get_response("HTTP/1.0 200 ok\r\n\r\n123456");
+            assert.equal(r.statusCode, 200);
+            assert.equal(r.statusMessage, "ok");
+            assert.equal(r.protocol, 'HTTP/1.0');
+            assert.equal('123456', r.body.read());
+
+            var r = get_response("HTTP/1.1 200 ok\r\n\r\n123456");
+            assert.equal(r.statusCode, 200);
+            assert.equal(r.statusMessage, "ok");
+            assert.equal(r.protocol, 'HTTP/1.1');
+            assert.isNull(r.body.read());
+
+            var r = get_response("HTTP/1.1 200 ok\r\nconnection: close\r\n\r\n123456");
+            assert.equal(r.statusCode, 200);
+            assert.equal(r.statusMessage, "ok");
+            assert.equal(r.protocol, 'HTTP/1.1');
+            assert.equal('123456', r.body.read());
         });
 
         it("keep-alive", () => {
