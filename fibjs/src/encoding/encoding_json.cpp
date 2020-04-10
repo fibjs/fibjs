@@ -11,6 +11,10 @@
 #include "Buffer.h"
 #include "utf8.h"
 #include <stdlib.h>
+#include "v8_api.h"
+#include "src/objects/string-inl.h"
+
+using namespace v8;
 
 namespace fibjs {
 
@@ -32,10 +36,11 @@ static result_t BigInt_fromJSON(Isolate* isolate, v8::Local<v8::Value> data, v8:
 
 struct _from {
     const char* name;
+    size_t sz;
     result_t (*from)(Isolate*, v8::Local<v8::Value>, v8::Local<v8::Value>&);
 } s_from[] = {
-    { "Buffer", Buffer::fromJSON },
-    { "BigInt", BigInt_fromJSON },
+    { "Buffer", 6, Buffer::fromJSON },
+    { "BigInt", 6, BigInt_fromJSON },
     { NULL }
 };
 
@@ -83,6 +88,17 @@ inline int32_t AsciiAlphaToLower(char c)
     return c | 0x20;
 }
 
+inline int32_t qstrcmp(const exlib::wchar* s1, const char* s2, int32_t sz = -1)
+{
+    int32_t n = 0;
+
+    while (*s1 && !(n = *s1++ - (exlib::wchar)*s2++))
+        if ((sz > 0) && (!--sz))
+            return 0;
+
+    return n ? n : -*s2;
+}
+
 inline result_t _jsonDecode(exlib::string data,
     v8::Local<v8::Value>& retVal)
 {
@@ -90,6 +106,10 @@ inline result_t _jsonDecode(exlib::string data,
     public:
         json_parser(exlib::string& source)
             : isolate(Isolate::current())
+            , v8_isolate((i::Isolate*)isolate->m_isolate)
+            , zone_(v8_isolate->allocator(), ZONE_NAME)
+            , object_constructor_(v8_isolate->native_context()->object_function(),
+                  v8_isolate)
             , source_(source.c_str())
             , source_length_((int32_t)source.length())
             , position_(-1)
@@ -134,7 +154,14 @@ inline result_t _jsonDecode(exlib::string data,
             return false;
         }
 
-        result_t ParseJsonNumber(v8::Local<v8::Value>& retVal)
+        result_t ReportUnexpectedCharacter()
+        {
+            exlib::string s = "Unexpected token ";
+            s.append(1, c0_);
+            return CHECK_ERROR(Runtime::setError(s));
+        }
+
+        result_t ParseJsonNumber(i::MaybeHandle<i::Object>& retVal)
         {
             bool negative = false;
             int32_t beg_pos = position_;
@@ -162,7 +189,7 @@ inline result_t _jsonDecode(exlib::string data,
 
                 if (c0_ != '.' && c0_ != 'e' && c0_ != 'E' && digits < 10) {
                     SkipWhitespace();
-                    retVal = v8::Int32::New(isolate->m_isolate, negative ? -i : i);
+                    retVal = factory()->NewNumberFromInt(negative ? -i : i);
                     return 0;
                 }
             }
@@ -195,14 +222,12 @@ inline result_t _jsonDecode(exlib::string data,
 
             number = atof(chars.c_str());
             SkipWhitespace();
-            retVal = v8::Number::New(isolate->m_isolate, number);
+            retVal = factory()->NewNumber(number);
             return 0;
         }
 
-        result_t ParseJsonString(v8::Local<v8::Value>& retVal)
+        result_t ParseJsonString(i::MaybeHandle<i::Object>& retVal, exlib::wstring& str)
         {
-            exlib::wstring str;
-
             Advance();
             while (c0_ != '"') {
                 if (c0_ == 0 || c0_ == '\r' || c0_ == '\n')
@@ -216,7 +241,15 @@ inline result_t _jsonDecode(exlib::string data,
                         if (c0_ == 0 || c0_ == '\r' || c0_ == '\n')
                             return ReportUnexpectedCharacter();
                     }
-                    str.append(utf8to16String(source_ + beg_pos, position_ - beg_pos));
+
+                    const char* src = source_ + beg_pos;
+                    int32_t srclen = position_ - beg_pos;
+
+                    int32_t n = utf_convert(src, srclen, (exlib::wchar*)NULL, 0);
+                    int32_t n1 = (int32_t)str.length();
+
+                    str.resize(n + n1);
+                    utf_convert(src, srclen, &str[n1], n);
                 } else {
                     Advance();
                     switch (c0_) {
@@ -262,16 +295,14 @@ inline result_t _jsonDecode(exlib::string data,
 
             AdvanceSkipWhitespace();
 
-            retVal = v8::String::NewFromTwoByte(isolate->m_isolate,
-                (const uint16_t*)str.c_str(),
-                v8::String::kNormalString,
-                (int32_t)str.length());
+            i::Vector<const uint16_t> data_((const uint16_t*)str.c_str(), (int32_t)str.length());
+            retVal = factory()->NewStringFromTwoByte(data_, i::TENURED);
             return 0;
         }
 
-        result_t ParseJsonArray(v8::Local<v8::Value>& retVal)
+        result_t ParseJsonArray(i::MaybeHandle<i::Object>& retVal)
         {
-            v8::Local<v8::Array> elements = v8::Array::New(isolate->m_isolate);
+            i::ZoneVector<i::Handle<i::Object>> els(&zone_);
             int32_t cnt = 0;
             result_t hr;
 
@@ -279,11 +310,16 @@ inline result_t _jsonDecode(exlib::string data,
 
             if (c0_ != ']') {
                 do {
-                    v8::Local<v8::Value> element;
-                    hr = ParseJsonValue(element);
+                    i::MaybeHandle<i::Object> el;
+                    i::Handle<i::Object> el1;
+
+                    hr = ParseJsonValue(el);
                     if (hr < 0)
                         return hr;
-                    elements->Set(cnt++, element);
+
+                    el.ToHandle(&el1);
+
+                    els.push_back(el1);
                 } while (MatchSkipWhiteSpace(','));
 
                 if (c0_ != ']')
@@ -291,14 +327,23 @@ inline result_t _jsonDecode(exlib::string data,
             }
 
             AdvanceSkipWhitespace();
-            retVal = elements;
+
+            i::Handle<i::Object> json_array;
+            int elements_size = static_cast<int>(els.size());
+
+            i::Handle<i::FixedArray> elems = factory()->NewFixedArray(elements_size, i::TENURED);
+            for (int i = 0; i < elements_size; i++)
+                elems->set(i, *els[i]);
+            retVal = factory()->NewJSArrayWithElements(elems);
             return 0;
         }
 
-        result_t ParseJsonObject(v8::Local<v8::Value>& retVal)
+        result_t ParseJsonObject(i::MaybeHandle<i::Object>& retVal)
         {
-            v8::Local<v8::Object> json_object = v8::Object::New(isolate->m_isolate);
+            i::Handle<i::JSObject> json_object = factory()->NewJSObject(object_constructor_);
             result_t hr;
+            i::Handle<i::String> type;
+            i::Handle<i::Object> data;
 
             AdvanceSkipWhitespace();
             if (c0_ != '}') {
@@ -306,10 +351,11 @@ inline result_t _jsonDecode(exlib::string data,
                     if (c0_ != '"')
                         return ReportUnexpectedCharacter();
 
-                    v8::Local<v8::Value> key;
-                    v8::Local<v8::Value> value;
+                    exlib::wstring str;
+                    i::MaybeHandle<i::Object> key;
+                    i::MaybeHandle<i::Object> value;
 
-                    hr = ParseJsonString(key);
+                    hr = ParseJsonString(key, str);
                     if (hr < 0)
                         return hr;
 
@@ -322,7 +368,21 @@ inline result_t _jsonDecode(exlib::string data,
                     if (hr < 0)
                         return hr;
 
-                    json_object->Set(key, value);
+                    i::Handle<i::String> name = i::Object::ToString(v8_isolate, key.ToHandleChecked()).ToHandleChecked();
+
+                    i::JSObject::DefinePropertyOrElementIgnoreAttributes(json_object,
+                        name, value.ToHandleChecked())
+                        .Check();
+
+                    if (str.length() == 4) {
+                        if (!qstrcmp(str.c_str(), "type", 4)) {
+                            i::MaybeHandle<i::String> type_ = i::Object::ToString(v8_isolate, value.ToHandleChecked());
+
+                            if (!type_.is_null())
+                                type = type_.ToHandleChecked();
+                        } else if (!qstrcmp(str.c_str(), "data", 4))
+                            data = value.ToHandleChecked();
+                    }
                 } while (MatchSkipWhiteSpace(','));
 
                 if (c0_ != '}')
@@ -331,33 +391,36 @@ inline result_t _jsonDecode(exlib::string data,
 
             AdvanceSkipWhitespace();
 
-            JSValue type = json_object->Get(isolate->NewString("type"));
-            JSValue data = json_object->Get(isolate->NewString("data"));
+            if (!type.is_null() && !data.is_null()) {
+                int32_t i;
+                i::Vector<const uint8_t> type_ = type->GetCharVector<uint8_t>();
 
-            if (!IsEmpty(type) && !IsEmpty(data)) {
-                v8::String::Utf8Value str(type);
+                for (i = 0; s_from[i].name; i++)
+                    if (type_.size() == s_from[i].sz
+                        && !memcmp(type_.start(), s_from[i].name, s_from[i].sz)) {
+                        v8::Local<v8::Value> data_;
+                        v8::Local<v8::Value> obj_;
 
-                if (*str) {
-                    int32_t i;
-
-                    for (i = 0; s_from[i].name; i++)
-                        if (!qstrcmp(*str, s_from[i].name)) {
-                            hr = s_from[i].from(isolate, data, retVal);
-                            if (hr >= 0)
-                                return 0;
-                            break;
+                        v8::ToLocal(data, &data_);
+                        hr = s_from[i].from(isolate, data_, obj_);
+                        if (hr >= 0) {
+                            retVal = v8::Utils::OpenHandle(*obj_);
+                            return 0;
                         }
-                }
+                        break;
+                    }
             }
 
             retVal = json_object;
             return 0;
         }
 
-        result_t ParseJsonValue(v8::Local<v8::Value>& retVal)
+        result_t ParseJsonValue(i::MaybeHandle<i::Object>& retVal)
         {
-            if (c0_ == '"')
-                return ParseJsonString(retVal);
+            if (c0_ == '"') {
+                exlib::wstring str;
+                return ParseJsonString(retVal, str);
+            }
 
             if ((c0_ >= '0' && c0_ <= '9') || c0_ == '-')
                 return ParseJsonNumber(retVal);
@@ -371,7 +434,7 @@ inline result_t _jsonDecode(exlib::string data,
             if (c0_ == 'f') {
                 if (AdvanceGetChar() == 'a' && AdvanceGetChar() == 'l' && AdvanceGetChar() == 's' && AdvanceGetChar() == 'e') {
                     AdvanceSkipWhitespace();
-                    retVal = v8::False(isolate->m_isolate);
+                    retVal = factory()->false_value();
 
                     return 0;
                 }
@@ -381,7 +444,7 @@ inline result_t _jsonDecode(exlib::string data,
             if (c0_ == 't') {
                 if (AdvanceGetChar() == 'r' && AdvanceGetChar() == 'u' && AdvanceGetChar() == 'e') {
                     AdvanceSkipWhitespace();
-                    retVal = v8::True(isolate->m_isolate);
+                    retVal = factory()->true_value();
 
                     return 0;
                 }
@@ -391,7 +454,7 @@ inline result_t _jsonDecode(exlib::string data,
             if (c0_ == 'n') {
                 if (AdvanceGetChar() == 'u' && AdvanceGetChar() == 'l' && AdvanceGetChar() == 'l') {
                     AdvanceSkipWhitespace();
-                    retVal = v8::Null(isolate->m_isolate);
+                    retVal = factory()->null_value();
 
                     return 0;
                 }
@@ -401,11 +464,15 @@ inline result_t _jsonDecode(exlib::string data,
             return ReportUnexpectedCharacter();
         }
 
-        result_t ReportUnexpectedCharacter()
+        result_t ParseJsonValue(v8::Local<v8::Value>& retVal)
         {
-            exlib::string s = "Unexpected token ";
-            s.append(1, c0_);
-            return CHECK_ERROR(Runtime::setError(s));
+            i::MaybeHandle<i::Object> maybe;
+            result_t hr = ParseJsonValue(maybe);
+            if (hr < 0)
+                return hr;
+
+            v8::ToLocal(maybe, &retVal);
+            return 0;
         }
 
         result_t ParseJson(v8::Local<v8::Value>& retVal)
@@ -414,8 +481,16 @@ inline result_t _jsonDecode(exlib::string data,
             return ParseJsonValue(retVal);
         }
 
+        i::Factory* factory()
+        {
+            return v8_isolate->factory();
+        }
+
     private:
         Isolate* isolate;
+        i::Isolate* v8_isolate;
+        i::Zone zone_;
+        i::Handle<i::JSFunction> object_constructor_;
         const char* source_;
         int32_t source_length_;
         int32_t position_;

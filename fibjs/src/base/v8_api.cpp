@@ -11,19 +11,11 @@
 #pragma warning(disable : 4244)
 #endif
 
-#include "v8.h"
-#include "v8/src/utils.h"
-#include "v8/src/api.h"
-#include "v8/src/isolate.h"
-#include "v8/src/frames.h"
-#include "v8/src/frames-inl.h"
+#include "exlib/include/qstring.h"
+#include "v8_api.h"
 #include "v8/src/json-stringifier.h"
 #include "v8/src/debug/debug-interface.h"
 
-#include "exlib/include/qstring.h"
-#include "v8_api.h"
-
-namespace i = i;
 using namespace v8;
 
 namespace fibjs {
@@ -39,8 +31,8 @@ public:
         , interrupts_scope_(isolate_, i::StackGuard::TERMINATE_EXECUTION,
               isolate_->only_terminate_in_safe_scope()
                   ? (safe_for_termination_
-                            ? i::InterruptsScope::kRunInterrupts
-                            : i::InterruptsScope::kPostponeInterrupts)
+                          ? i::InterruptsScope::kRunInterrupts
+                          : i::InterruptsScope::kPostponeInterrupts)
                   : i::InterruptsScope::kNoop)
     {
         // TODO(dcarney): remove this when blink stops crashing.
@@ -106,7 +98,7 @@ Local<String> JSON_Stringify(Isolate* isolate,
     CallDepthScope<false> call_depth_scope(v8_isolate, isolate->GetCurrentContext());
 
     Local<String> result;
-    if(*json_object == nullptr || *json_replacer == nullptr)
+    if (*json_object == nullptr || *json_replacer == nullptr)
         return result;
 
     i::Handle<i::Object> object = Utils::OpenHandle(*json_object);
@@ -317,12 +309,5 @@ void WriteLcovData(Isolate* isolate, FILE* file)
     }
 
     fclose(file);
-}
-
-bool isFrozen(Handle<Object> object)
-{
-    auto obj = Utils::OpenHandle(*object);
-    Maybe<bool> test = i::JSReceiver::TestIntegrityLevel(obj, i::FROZEN);
-    return test.ToChecked();
 }
 }
