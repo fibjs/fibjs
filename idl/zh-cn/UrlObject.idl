@@ -97,4 +97,8 @@ interface UrlObject : object
     /*! @brief 查询和设置当前 UrlObject 对象中的请求锚点（含“\#”）
      */
     String hash;
+
+    /*! @brief 查询当前 UrlObject 对象中的请求字符串（ 不含“?”）
+     */
+    readonly HttpCollection searchParams;
 };

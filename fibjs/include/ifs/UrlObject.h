@@ -16,6 +16,8 @@
 
 namespace fibjs {
 
+class HttpCollection_base;
+
 class UrlObject_base : public object_base {
     DECLARE_CLASS(UrlObject_base);
 
@@ -55,6 +57,7 @@ public:
     virtual result_t set_query(v8::Local<v8::Value> newVal) = 0;
     virtual result_t get_hash(exlib::string& retVal) = 0;
     virtual result_t set_hash(exlib::string newVal) = 0;
+    virtual result_t get_searchParams(obj_ptr<HttpCollection_base>& retVal) = 0;
 
 public:
     template <typename T>
@@ -94,8 +97,11 @@ public:
     static void s_set_query(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_hash(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_hash(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_searchParams(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 };
 }
+
+#include "ifs/HttpCollection.h"
 
 namespace fibjs {
 inline ClassInfo& UrlObject_base::class_info()
@@ -121,7 +127,8 @@ inline ClassInfo& UrlObject_base::class_info()
         { "pathname", s_get_pathname, s_set_pathname, false },
         { "search", s_get_search, s_set_search, false },
         { "query", s_get_query, s_set_query, false },
-        { "hash", s_get_hash, s_set_hash, false }
+        { "hash", s_get_hash, s_set_hash, false },
+        { "searchParams", s_get_searchParams, block_set, false }
     };
 
     static ClassData s_cd = {
@@ -575,6 +582,19 @@ inline void UrlObject_base::s_set_hash(v8::Local<v8::Name> property, v8::Local<v
     hr = pInst->set_hash(v0);
 
     PROPERTY_SET_LEAVE();
+}
+
+inline void UrlObject_base::s_get_searchParams(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<HttpCollection_base> vr;
+
+    METHOD_NAME("UrlObject.searchParams");
+    METHOD_INSTANCE(UrlObject_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_searchParams(vr);
+
+    METHOD_RETURN();
 }
 }
 

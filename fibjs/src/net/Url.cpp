@@ -115,7 +115,7 @@ void Url::parseProtocol(const char*& url)
 
     while ((ch = *p)
         && (qisascii(ch) || qisdigit(ch) || ch == '.' || ch == '+'
-               || ch == '-'))
+            || ch == '-'))
         p++;
 
     if (ch == ':') {
@@ -831,6 +831,18 @@ result_t Url::get_query(v8::Local<v8::Value>& retVal)
         retVal = m_queryParsed->wrap();
     else
         retVal = GetReturnValue(holder()->m_isolate, m_query);
+
+    return 0;
+}
+
+result_t Url::get_searchParams(obj_ptr<HttpCollection_base>& retVal)
+{
+    if (!m_queryParsed) {
+        m_queryParsed = new HttpCollection();
+        m_queryParsed->parse(m_query);
+    }
+
+    retVal = m_queryParsed;
 
     return 0;
 }

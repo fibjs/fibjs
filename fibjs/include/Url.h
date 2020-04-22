@@ -61,6 +61,7 @@ public:
     virtual result_t set_query(v8::Local<v8::Value> newVal);
     virtual result_t get_hash(exlib::string& retVal);
     virtual result_t set_hash(exlib::string newVal);
+    virtual result_t get_searchParams(obj_ptr<HttpCollection_base>& retVal);
 
 public:
     result_t parse(exlib::string url)
