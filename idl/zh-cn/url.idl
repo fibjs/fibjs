@@ -14,4 +14,7 @@ module url
      @return 返回包含解析数据的对象
      */
     static UrlObject parse(String url, Boolean parseQueryString = false, Boolean slashesDenoteHost = false);
+
+    /*! @brief 创建一个 UrlObject 请求对象，参见 UrlObject */
+    static UrlObject new URL();
 };
