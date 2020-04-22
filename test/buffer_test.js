@@ -614,6 +614,21 @@ describe('Buffer', () => {
 
     });
 
+    it('set', () => {
+        var buf = new Buffer([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+
+        buf.set([1, 2, 3], 3);
+        assert.deepEqual(buf, new Buffer([0, 0, 0, 1, 2, 3, 0, 0, 0, 0]));
+
+        assert.throws(() => {
+            buf.set([1, 2, 3], -1);
+        });
+
+        assert.throws(() => {
+            buf.set([1, 2, 3], 9);
+        });
+    });
+
     it("readNumber", () => {
         var buf = new Buffer([0x23, 0x42]);
 

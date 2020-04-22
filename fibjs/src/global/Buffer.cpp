@@ -597,7 +597,7 @@ result_t Buffer::copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t so
     int32_t sourceEnd, int32_t& retVal)
 {
     if (targetStart < 0 || sourceStart < 0)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        return CHECK_ERROR(CALL_E_OUTRANGE);
 
     if (sourceStart > (int32_t)m_data.length())
         return CHECK_ERROR(CALL_E_OUTRANGE);
@@ -624,6 +624,17 @@ result_t Buffer::copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t so
     retVal = sz;
 
     return 0;
+}
+
+result_t Buffer::set(Buffer_base* src, int32_t start, int32_t& retVal)
+{
+    int32_t len;
+
+    src->get_length(len);
+    if (len + start > (int32_t)m_data.length())
+        return CHECK_ERROR(Runtime::setError("Buffer: Source is too large."));
+
+    return src->copy(this, start, 0, -1, retVal);
 }
 
 result_t Buffer::readNumber(int32_t offset, char* buf, int32_t size, bool noAssert, bool le)

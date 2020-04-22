@@ -59,6 +59,7 @@ public:
     virtual result_t indexOf(Buffer_base* v, int32_t offset, int32_t& retVal);
     virtual result_t compare(Buffer_base* buf, int32_t& retVal);
     virtual result_t copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t& retVal);
+    virtual result_t set(Buffer_base* src, int32_t start, int32_t& retVal);
     virtual result_t readUInt8(int32_t offset, bool noAssert, int32_t& retVal);
     virtual result_t readUInt16LE(int32_t offset, bool noAssert, int32_t& retVal);
     virtual result_t readUInt16BE(int32_t offset, bool noAssert, int32_t& retVal);

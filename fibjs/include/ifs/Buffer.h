@@ -61,6 +61,7 @@ public:
     virtual result_t indexOf(Buffer_base* v, int32_t offset, int32_t& retVal) = 0;
     virtual result_t indexOf(exlib::string v, int32_t offset, int32_t& retVal) = 0;
     virtual result_t copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t& retVal) = 0;
+    virtual result_t set(Buffer_base* src, int32_t start, int32_t& retVal) = 0;
     virtual result_t readUInt8(int32_t offset, bool noAssert, int32_t& retVal) = 0;
     virtual result_t readUInt16LE(int32_t offset, bool noAssert, int32_t& retVal) = 0;
     virtual result_t readUInt16BE(int32_t offset, bool noAssert, int32_t& retVal) = 0;
@@ -141,6 +142,7 @@ public:
     static void s_fill(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_indexOf(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_copy(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readUInt8(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readUInt16LE(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_readUInt16BE(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -215,6 +217,7 @@ inline ClassInfo& Buffer_base::class_info()
         { "fill", s_fill, false },
         { "indexOf", s_indexOf, false },
         { "copy", s_copy, false },
+        { "set", s_set, false },
         { "readUInt8", s_readUInt8, false },
         { "readUInt16LE", s_readUInt16LE, false },
         { "readUInt16BE", s_readUInt16BE, false },
@@ -761,6 +764,24 @@ inline void Buffer_base::s_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
     OPT_ARG(int32_t, 3, -1);
 
     hr = pInst->copy(v0, v1, v2, v3, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Buffer_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_NAME("Buffer.set");
+    METHOD_INSTANCE(Buffer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(int32_t, 1);
+
+    hr = pInst->set(v0, v1, vr);
 
     METHOD_RETURN();
 }

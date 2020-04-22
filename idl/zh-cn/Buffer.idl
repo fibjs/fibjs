@@ -263,6 +263,13 @@ interface Buffer : object
      */
     Integer copy(Buffer targetBuffer, Integer targetStart = 0, Integer sourceStart = 0, Integer sourceEnd = -1);
 
+    /*! @brief 从源缓存对象区域拷贝数据到目标缓存对象区域
+     @param src 目标缓存对象
+     @param start 源缓存对象开始字节位置
+     @return 拷贝的数据字节长度
+     */
+    Integer set(Buffer src, Integer start);
+
     /*! @brief 从缓存对象读取一个 8 位无符号整型数值
      @param offset 指定读取的起始位置，缺省为 0
      @param noAssert 指定读取越界时不抛出错误，缺省为 flase，抛出
