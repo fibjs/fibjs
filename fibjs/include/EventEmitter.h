@@ -302,12 +302,14 @@ public:
     {
         v8::Local<v8::Array> esa = GetHiddenList(ev);
 
-        removeFunction(esa, func, ev);
+        if (!esa.IsEmpty()) {
+            removeFunction(esa, func, ev);
 
-        int32_t len = esa->Length();
+            int32_t len = esa->Length();
 
-        if (len == 0)
-            DeletePrivate(ev);
+            if (len == 0)
+                DeletePrivate(ev);
+        }
 
         retVal = o;
         return 0;

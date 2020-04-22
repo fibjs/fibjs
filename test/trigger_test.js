@@ -397,6 +397,11 @@ describe("Trigger/EventEmitter", () => {
 
     evevt_test("events.EventEmitter.call", new MyEmitter2());
 
+    it('bugfix: crash when off function on new Emitter', () => {
+        var ev = new events.EventEmitter();
+        ev.off('a', () => {});
+    })
+
     describe("defaultMaxListeners", () => {
         it('getter', () => {
             assert.equal(events.defaultMaxListeners, 10);
