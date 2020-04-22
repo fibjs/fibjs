@@ -20,12 +20,15 @@
 namespace fibjs {
 
 class SslSocket : public SslSocket_base {
+    FIBER_FREE();
+
 private:
     class asyncSsl : public AsyncState {
     public:
         asyncSsl(SslSocket* pThis, AsyncEvent* ac)
             : AsyncState(ac)
             , m_pThis(pThis)
+            , m_s(pThis->m_s)
             , m_ret(0)
         {
             next(process);
@@ -104,38 +107,13 @@ private:
     protected:
         obj_ptr<SslSocket> m_pThis;
         obj_ptr<Buffer_base> m_buf;
+        obj_ptr<Stream_base> m_s;
         int32_t m_ret;
     };
 
 public:
     SslSocket();
     ~SslSocket();
-
-public:
-    virtual bool enterTask(exlib::Task_base* current)
-    {
-        if (!m_s)
-            return true;
-
-        return object_base::enterTask(current);
-    }
-
-    virtual void enter()
-    {
-        if (!m_s)
-            return;
-
-        object_base::enter();
-    }
-
-    virtual void leave(exlib::Task_base* current = NULL)
-    {
-        if (!m_s)
-            return;
-
-        if (m_lock.owned(current))
-            m_lock.unlock(current);
-    }
 
 public:
     // Stream_base

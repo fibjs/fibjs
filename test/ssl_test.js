@@ -313,6 +313,23 @@ describe('ssl', () => {
             s1.close();
         }
     });
+
+    it("bugfix: socket stream not close in ssl.Socket.close", () => {
+        var s2;
+        var svr = new ssl.Server(crt, pk, 9085 + base_port, (s) => {
+            s2 = s;
+            s.read();
+        });
+        test_util.push(svr.socket);
+        svr.start();
+
+        ssl.verification = ssl.VERIFY_NONE;
+        var s1 = ssl.connect('ssl://127.0.0.1:' + (9085 + base_port));
+        for (var i = 0; i < 100 && !s2; i++)
+            coroutine.sleep(100);
+
+        s2.close();
+    });
 });
 
 require.main === module && test.run(console.DEBUG);

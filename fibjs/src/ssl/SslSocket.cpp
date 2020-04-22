@@ -290,6 +290,11 @@ result_t SslSocket::close(AsyncEvent* ac)
         {
             return mbedtls_ssl_close_notify(&m_pThis->m_ssl);
         }
+
+        virtual int32_t finally()
+        {
+            return m_pThis->m_s->close(this);
+        }
     };
 
     if (!m_s)
