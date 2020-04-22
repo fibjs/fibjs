@@ -36,6 +36,11 @@ addons:
   apt:
     packages:
       - ccache
+      - unzip
+  homebrew:
+    packages:
+      - xz
+      - unzip
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
     rvm install ruby-2.4.0;

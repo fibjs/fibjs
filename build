@@ -164,12 +164,14 @@ export BUILD_JOBS
 export BUILD_VERBOSE
 
 if [ -d vender ]; then 
+	if [ -z $USE_VENDER_DIST ]; then
 	cd vender
 	sh build $BUILD_TYPE $TARGET_ARCH
 	if [ $? != 0 ]; then
 		exit 1
 	fi
 	cd ..
+	fi
 else
 	inform
 fi
