@@ -210,7 +210,16 @@ void HttpUploadCollection::parse(exlib::string& str, const char* boundary)
 
 result_t HttpUploadCollection::clear()
 {
+    int32_t i;
+
+    for (i = 0; i < m_count; i++) {
+        pair& _pair = m_map[i];
+        _pair.first.clear();
+        _pair.second.clear();
+    }
+
     m_count = 0;
+
     return 0;
 }
 
@@ -259,6 +268,9 @@ result_t HttpUploadCollection::all(exlib::string name, obj_ptr<NObject>& retVal)
 
 result_t HttpUploadCollection::add(exlib::string name, Variant value)
 {
+    if (m_map.size() < m_count + 1)
+        m_map.resize(m_count + 1);
+
     m_map[m_count] = pair(name, value);
     m_count++;
 
@@ -356,6 +368,46 @@ result_t HttpUploadCollection::remove(exlib::string name)
 
     m_count = p;
 
+    return 0;
+}
+
+result_t HttpUploadCollection::_delete(exlib::string name)
+{
+    return remove(name);
+}
+
+result_t HttpUploadCollection::sort()
+{
+    if (m_count)
+        std::sort(m_map.begin(), m_map.begin() + m_count, [](pair& a, pair& b) {
+            return a.first < b.first;
+        });
+
+    return 0;
+}
+
+result_t HttpUploadCollection::keys(obj_ptr<NArray>& retVal)
+{
+    obj_ptr<NArray> _keys = new NArray();
+    int i;
+
+    for (i = 0; i < m_count; i++)
+        _keys->append(m_map[i].first);
+
+    retVal = _keys;
+
+    return 0;
+}
+
+result_t HttpUploadCollection::values(obj_ptr<NArray>& retVal)
+{
+    obj_ptr<NArray> _keys = new NArray();
+    int i;
+
+    for (i = 0; i < m_count; i++)
+        _keys->append(m_map[i].second);
+
+    retVal = _keys;
     return 0;
 }
 

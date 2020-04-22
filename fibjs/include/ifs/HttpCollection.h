@@ -32,6 +32,10 @@ public:
     virtual result_t set(exlib::string name, v8::Local<v8::Array> values) = 0;
     virtual result_t set(exlib::string name, Variant value) = 0;
     virtual result_t remove(exlib::string name) = 0;
+    virtual result_t _delete(exlib::string name) = 0;
+    virtual result_t sort() = 0;
+    virtual result_t keys(obj_ptr<NArray>& retVal) = 0;
+    virtual result_t values(obj_ptr<NArray>& retVal) = 0;
     virtual result_t _named_getter(exlib::string property, Variant& retVal) = 0;
     virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;
     virtual result_t _named_setter(exlib::string property, Variant newVal) = 0;
@@ -56,6 +60,10 @@ public:
     static void s_add(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s__delete(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_sort(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_keys(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_values(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array>& args);
     static void i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -73,7 +81,11 @@ inline ClassInfo& HttpCollection_base::class_info()
         { "all", s_all, false },
         { "add", s_add, false },
         { "set", s_set, false },
-        { "remove", s_remove, false }
+        { "remove", s_remove, false },
+        { "delete", s__delete, false },
+        { "sort", s_sort, false },
+        { "keys", s_keys, false },
+        { "values", s_values, false }
     };
 
     static ClassData::ClassNamed s_named = {
@@ -225,6 +237,64 @@ inline void HttpCollection_base::s_remove(const v8::FunctionCallbackInfo<v8::Val
     hr = pInst->remove(v0);
 
     METHOD_VOID();
+}
+
+inline void HttpCollection_base::s__delete(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("HttpCollection.delete");
+    METHOD_INSTANCE(HttpCollection_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->_delete(v0);
+
+    METHOD_VOID();
+}
+
+inline void HttpCollection_base::s_sort(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("HttpCollection.sort");
+    METHOD_INSTANCE(HttpCollection_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->sort();
+
+    METHOD_VOID();
+}
+
+inline void HttpCollection_base::s_keys(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<NArray> vr;
+
+    METHOD_NAME("HttpCollection.keys");
+    METHOD_INSTANCE(HttpCollection_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->keys(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpCollection_base::s_values(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<NArray> vr;
+
+    METHOD_NAME("HttpCollection.values");
+    METHOD_INSTANCE(HttpCollection_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->values(vr);
+
+    METHOD_RETURN();
 }
 
 inline void HttpCollection_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)

@@ -162,6 +162,61 @@ describe("http", () => {
             assert.deepEqual(a, ["300", "700"]);
         });
 
+        it("keys/values", () => {
+            assert.deepEqual(d.keys(), [
+                "b",
+                "d",
+                "d",
+                "c",
+                "d",
+                "b",
+                "f",
+                "f",
+                "g",
+                "g"
+            ]);
+            assert.deepEqual(d.values(), [
+                "200",
+                "500",
+                "700",
+                "800",
+                "900",
+                "1000",
+                "200",
+                "400",
+                "300",
+                "700"
+            ]);
+        });
+
+        it("sort({})", () => {
+            assert.deepEqual(d.keys(), [
+                "b",
+                "d",
+                "d",
+                "c",
+                "d",
+                "b",
+                "f",
+                "f",
+                "g",
+                "g"
+            ]);
+            d.sort();
+            assert.deepEqual(d.keys(), [
+                "b",
+                "b",
+                "c",
+                "d",
+                "d",
+                "d",
+                "f",
+                "f",
+                "g",
+                "g"
+            ]);
+        });
+
         it("set({})", () => {
             d.set({
                 d: "900",

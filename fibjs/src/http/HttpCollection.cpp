@@ -60,7 +60,16 @@ size_t HttpCollection::getData(char* buf, size_t sz)
 
 result_t HttpCollection::clear()
 {
+    int32_t i;
+
+    for (i = 0; i < m_count; i++) {
+        pair& _pair = m_map[i];
+        _pair.first.clear();
+        _pair.second.clear();
+    }
+
     m_count = 0;
+
     return 0;
 }
 
@@ -228,11 +237,7 @@ result_t HttpCollection::add(exlib::string name, Variant value)
     exlib::string s;
 
     value.toString(s);
-
-    m_map[m_count] = pair(name, s);
-    m_count++;
-
-    return 0;
+    return add(name, s);
 }
 
 result_t HttpCollection::add(v8::Local<v8::Object> map)
@@ -326,6 +331,46 @@ result_t HttpCollection::remove(exlib::string name)
 
     m_count = p;
 
+    return 0;
+}
+
+result_t HttpCollection::_delete(exlib::string name)
+{
+    return remove(name);
+}
+
+result_t HttpCollection::sort()
+{
+    if (m_count)
+        std::sort(m_map.begin(), m_map.begin() + m_count, [](pair& a, pair& b) {
+            return a.first < b.first;
+        });
+
+    return 0;
+}
+
+result_t HttpCollection::keys(obj_ptr<NArray>& retVal)
+{
+    obj_ptr<NArray> _keys = new NArray();
+    int i;
+
+    for (i = 0; i < m_count; i++)
+        _keys->append(m_map[i].first);
+
+    retVal = _keys;
+
+    return 0;
+}
+
+result_t HttpCollection::values(obj_ptr<NArray>& retVal)
+{
+    obj_ptr<NArray> _keys = new NArray();
+    int i;
+
+    for (i = 0; i < m_count; i++)
+        _keys->append(m_map[i].second);
+
+    retVal = _keys;
     return 0;
 }
 

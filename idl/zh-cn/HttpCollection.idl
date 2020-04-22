@@ -62,6 +62,25 @@ interface HttpCollection : object
      */
     remove(String name);
 
+    /*! @brief 删除指定键值的全部值
+     @param name 指定要删除的键值
+     */
+    delete(String name);
+
+    /*! @brief 按照键值排序容器内的内容
+     */
+    sort();
+
+    /*! @brief 查询容器内的键值
+     @return 返回包含所有键值的数组
+     */
+    NArray keys();
+
+    /*! @brief 查询容器内的数值
+     @return 返回包含所有数值的数组
+     */
+    NArray values();
+
     /*! @brief 允许使用键值下标直接访问数值 */
     Variant operator[String];
 };

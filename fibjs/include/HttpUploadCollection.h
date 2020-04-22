@@ -18,6 +18,7 @@ public:
     HttpUploadCollection()
         : m_count(0)
     {
+        m_map.resize(16);
     }
 
 public:
@@ -33,6 +34,10 @@ public:
     virtual result_t set(exlib::string name, v8::Local<v8::Array> values);
     virtual result_t set(exlib::string name, Variant value);
     virtual result_t remove(exlib::string name);
+    virtual result_t _delete(exlib::string name);
+    virtual result_t sort();
+    virtual result_t keys(obj_ptr<NArray>& retVal);
+    virtual result_t values(obj_ptr<NArray>& retVal);
     virtual result_t _named_getter(exlib::string property, Variant& retVal);
     virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal);
     virtual result_t _named_setter(exlib::string property, Variant newVal);
@@ -73,7 +78,7 @@ public:
 
 private:
     typedef std::pair<exlib::string, VariantEx> pair;
-    QuickArray<pair> m_map;
+    std::vector<pair> m_map;
     int32_t m_count;
 };
 
