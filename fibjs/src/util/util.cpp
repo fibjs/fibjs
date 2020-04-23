@@ -830,4 +830,12 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
 
     return 0;
 }
+
+result_t util_base::deprecate(v8::Local<v8::Function> fn, exlib::string msg,
+    exlib::string code, v8::Local<v8::Function>& retVal)
+{
+    retVal = fn;
+    return 0;
+}
+
 }

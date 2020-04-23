@@ -28,6 +28,7 @@ public:
     static result_t format(OptArgs args, exlib::string& retVal);
     static result_t inherits(v8::Local<v8::Value> constructor, v8::Local<v8::Value> superConstructor);
     static result_t inspect(v8::Local<v8::Object> obj, v8::Local<v8::Object> options, exlib::string& retVal);
+    static result_t deprecate(v8::Local<v8::Function> fn, exlib::string msg, exlib::string code, v8::Local<v8::Function>& retVal);
     static result_t isEmpty(v8::Local<v8::Value> v, bool& retVal);
     static result_t isArray(v8::Local<v8::Value> v, bool& retVal);
     static result_t isBoolean(v8::Local<v8::Value> v, bool& retVal);
@@ -96,6 +97,7 @@ public:
     static void s_static_format(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_inherits(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_inspect(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_deprecate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_isEmpty(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_isArray(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_isBoolean(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -159,6 +161,7 @@ inline ClassInfo& util_base::class_info()
         { "format", s_static_format, true },
         { "inherits", s_static_inherits, true },
         { "inspect", s_static_inspect, true },
+        { "deprecate", s_static_deprecate, true },
         { "isEmpty", s_static_isEmpty, true },
         { "isArray", s_static_isArray, true },
         { "isBoolean", s_static_isBoolean, true },
@@ -276,6 +279,24 @@ inline void util_base::s_static_inspect(const v8::FunctionCallbackInfo<v8::Value
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
     hr = inspect(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_static_deprecate(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_NAME("util.deprecate");
+    METHOD_ENTER();
+
+    METHOD_OVER(3, 2);
+
+    ARG(v8::Local<v8::Function>, 0);
+    ARG(exlib::string, 1);
+    OPT_ARG(exlib::string, 2, "");
+
+    hr = deprecate(v0, v1, v2, vr);
 
     METHOD_RETURN();
 }
