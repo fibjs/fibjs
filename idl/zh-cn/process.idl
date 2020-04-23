@@ -154,6 +154,12 @@ module process : EventEmitter
      */
     static nextTick(Function func, ...args);
 
+    /*! @brief 获取指定名称的内部模块
+     @param name 指定要查询的内部模块名称
+     @return 返回指定的内部模块
+     */
+    static Value binding(String name);
+
     /*! @brief 运行指定的命令行，接管进程输入输出流，并返回进程对象
 
      opts 支持的选项如下：

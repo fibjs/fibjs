@@ -331,6 +331,28 @@ result_t process_base::nextTick(v8::Local<v8::Function> func, OptArgs args)
     return JSFiber::New(func, args, retVal);
 }
 
+result_t process_base::binding(exlib::string name, v8::Local<v8::Value>& retVal)
+{
+    Isolate* isolate = Isolate::current();
+
+    if (name == "EventEmitter")
+        retVal = EventEmitter_base::class_info().getModule(isolate);
+    else if (name == "Buffer")
+        retVal = Buffer_base::class_info().getModule(isolate);
+    else {
+        RootModule* pModule = RootModule::g_root;
+
+        while (pModule)
+            if (name == pModule->name()) {
+                retVal = pModule->getModule(isolate);
+                break;
+            } else
+                pModule = pModule->m_next;
+    }
+
+    return 0;
+}
+
 result_t process_base::open(exlib::string command, v8::Local<v8::Array> args,
     v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal)
 {

@@ -272,7 +272,7 @@ describe('process', () => {
                 try {
                     net.connect('tcp://127.0.0.1:28080');
                     break;
-                } catch (e) { }
+                } catch (e) {}
             }
 
             assert.equal(p.stdout.readLine(), "700");
@@ -401,6 +401,10 @@ describe('process', () => {
         });
     }
 
+    it('binding', () => {
+        assert.equal(process.binding('process'), process);
+    })
+
     describe("Event", () => {
         it("beforeExit", () => {
             var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec15.js')]);
@@ -480,7 +484,9 @@ describe('process', () => {
             win_keys.forEach(win_key => {
                 it(`override required reserve env vars - ${win_key}`, () => {
                     var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')], {
-                        env: { [win_key]: undefined }
+                        env: {
+                            [win_key]: undefined
+                        }
                     });
                     bs.wait();
 
@@ -495,7 +501,9 @@ describe('process', () => {
                     );
 
                     var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')], {
-                        env: { [win_key]: 'foo' }
+                        env: {
+                            [win_key]: 'foo'
+                        }
                     });
                     bs.wait();
 
@@ -516,7 +524,9 @@ describe('process', () => {
 
                 it(`cancel reserve env var - ${win_key}`, () => {
                     var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.win32_envs.js')], {
-                        env: { [win_key]: process.env[win_key] }
+                        env: {
+                            [win_key]: process.env[win_key]
+                        }
                     });
                     bs.wait();
 

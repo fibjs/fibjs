@@ -52,6 +52,7 @@ public:
     static result_t uptime(double& retVal);
     static result_t memoryUsage(v8::Local<v8::Object>& retVal);
     static result_t nextTick(v8::Local<v8::Function> func, OptArgs args);
+    static result_t binding(exlib::string name, v8::Local<v8::Value>& retVal);
     static result_t open(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
     static result_t open(exlib::string command, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
     static result_t start(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
@@ -94,6 +95,7 @@ public:
     static void s_static_uptime(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_nextTick(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_binding(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_open(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_start(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_run(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -119,6 +121,7 @@ inline ClassInfo& process_base::class_info()
         { "uptime", s_static_uptime, true },
         { "memoryUsage", s_static_memoryUsage, true },
         { "nextTick", s_static_nextTick, true },
+        { "binding", s_static_binding, true },
         { "open", s_static_open, true },
         { "start", s_static_start, true },
         { "run", s_static_run, true },
@@ -460,6 +463,22 @@ inline void process_base::s_static_nextTick(const v8::FunctionCallbackInfo<v8::V
     hr = nextTick(v0, v1);
 
     METHOD_VOID();
+}
+
+inline void process_base::s_static_binding(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> vr;
+
+    METHOD_NAME("process.binding");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = binding(v0, vr);
+
+    METHOD_RETURN();
 }
 
 inline void process_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& args)
