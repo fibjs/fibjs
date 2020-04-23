@@ -108,6 +108,7 @@ void SandBox::initGlobal(v8::Local<v8::Object> global)
 }
 
 RootModule* RootModule::g_root = NULL;
+RootModule* RootModule::g_last = NULL;
 
 void SandBox::initRoot()
 {

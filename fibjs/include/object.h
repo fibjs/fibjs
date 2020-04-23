@@ -444,8 +444,12 @@ public:
 public:
     void install()
     {
-        m_next = g_root;
-        g_root = this;
+        if (!g_root)
+            g_root = this;
+        else
+            g_last->m_next = this;
+
+        g_last = this;
     }
 
 public:
@@ -464,6 +468,7 @@ public:
 public:
     RootModule* m_next;
     static RootModule* g_root;
+    static RootModule* g_last;
 };
 
 inline void* ClassInfo::getInstance(void* o)
