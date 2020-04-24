@@ -18,7 +18,7 @@ interface EventEmitter : object
     /*! @brief 绑定一个事件处理函数到对象
     @param ev 指定事件的名称
     @param func 指定事件处理函数
-    @return 返回成功绑定的数量，如果函数已绑定则返回 0
+    @return 返回事件对象本身，便于链式调用
    */
     Object on(String ev, Function func);
 
@@ -44,13 +44,13 @@ interface EventEmitter : object
     /*! @brief 绑定一个事件处理函数到对象起始
     @param ev 指定事件的名称
     @param func 指定事件处理函数
-    @return 返回成功绑定的数量，如果函数已绑定则返回 0
+    @return 返回事件对象本身，便于链式调用
    */
     Object prependListener(String ev, Function func);
 
     /*! @brief 绑定一个事件处理函数到对象起始
     @param map 指定事件映射关系，对象属性名称将作为事件名称，属性的值将作为事件处理函数
-    @return 返回成功绑定的数量，如果函数已绑定则返回 0
+    @return 返回事件对象本身，便于链式调用
    */
     Object prependListener(Object map);
 
@@ -70,13 +70,13 @@ interface EventEmitter : object
     /*! @brief 绑定一个事件处理函数到对象起始
     @param ev 指定事件的名称
     @param func 指定事件处理函数
-    @return 返回成功绑定的数量，如果函数已绑定则返回 0
+    @return 返回事件对象本身，便于链式调用
    */
     Object prependOnceListener(String ev, Function func);
 
     /*! @brief 绑定一个事件处理函数到对象起始
     @param map 指定事件映射关系，对象属性名称将作为事件名称，属性的值将作为事件处理函数
-    @return 返回成功绑定的数量，如果函数已绑定则返回 0
+    @return 返回事件对象本身，便于链式调用
    */
     Object prependOnceListener(Object map);
 
