@@ -19,13 +19,30 @@
 
 namespace fibjs {
 
-result_t ws_base::upgrade(v8::Local<v8::Function> accept, obj_ptr<Handler_base>& retVal)
+result_t ws_base::upgrade(v8::Local<v8::Object> opts, v8::Local<v8::Function> accept, obj_ptr<Handler_base>& retVal)
 {
-    retVal = new WebSocketHandler(accept);
+    Isolate* isolate = Isolate::current();
+    bool perMessageDeflate = true;
+    int32_t maxPayload = WS_DEF_SIZE;
+
+    GetConfigValue(isolate->m_isolate, opts, "perMessageDeflate", perMessageDeflate);
+    GetConfigValue(isolate->m_isolate, opts, "maxPayload", maxPayload);
+
+    retVal = new WebSocketHandler(accept, perMessageDeflate, maxPayload);
     return 0;
 }
 
-WebSocketHandler::WebSocketHandler(v8::Local<v8::Function> accept)
+result_t ws_base::upgrade(v8::Local<v8::Function> accept, obj_ptr<Handler_base>& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
+
+    return upgrade(opts, accept, retVal);
+}
+
+WebSocketHandler::WebSocketHandler(v8::Local<v8::Function> accept, bool enableCompress, int32_t maxSize)
+    : m_enableCompress(enableCompress)
+    , m_maxSize(maxSize)
 {
     v8::Local<v8::Object> r;
     on("accept", accept, r);
@@ -107,7 +124,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             if (hr < 0)
                 return hr;
 
-            if (hr != CALL_RETURN_NULL && !qstricmp(v.c_str(), "permessage-deflate", 18)) {
+            if (hr != CALL_RETURN_NULL && m_pThis->m_enableCompress && !qstricmp(v.c_str(), "permessage-deflate", 18)) {
                 m_httprep->addHeader("Sec-WebSocket-Extensions", "permessage-deflate");
                 m_compress = true;
             }
@@ -118,7 +135,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         ON_STATE(asyncInvoke, accept)
         {
             obj_ptr<WebSocketHandler> pHandler = m_pThis;
-            obj_ptr<WebSocket> sock = new WebSocket(m_stm, "", this);
+            obj_ptr<WebSocket> sock = new WebSocket(m_stm, "", this, m_pThis->m_enableCompress, m_pThis->m_maxSize);
             if (m_compress)
                 sock->enableCompress();
 

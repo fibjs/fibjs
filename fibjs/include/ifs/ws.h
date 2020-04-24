@@ -40,6 +40,7 @@ public:
 public:
     // ws_base
     static result_t upgrade(v8::Local<v8::Function> accept, obj_ptr<Handler_base>& retVal);
+    static result_t upgrade(v8::Local<v8::Object> opts, v8::Local<v8::Function> accept, obj_ptr<Handler_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -108,6 +109,13 @@ inline void ws_base::s_static_upgrade(const v8::FunctionCallbackInfo<v8::Value>&
     ARG(v8::Local<v8::Function>, 0);
 
     hr = upgrade(v0, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Function>, 1);
+
+    hr = upgrade(v0, v1, vr);
 
     METHOD_RETURN();
 }

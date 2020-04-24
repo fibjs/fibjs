@@ -225,7 +225,9 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
             m_headers->add("Upgrade", "websocket");
             m_headers->add("Connection", "Upgrade");
             m_headers->add("Sec-WebSocket-Version", "13");
-            m_headers->add("Sec-WebSocket-Extensions", "permessage-deflate");
+
+            if (m_this->m_enableCompress)
+                m_headers->add("Sec-WebSocket-Extensions", "permessage-deflate");
 
             if (!m_this->m_origin.empty())
                 m_headers->add("Origin", m_this->m_origin);
@@ -307,7 +309,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
             if (hr < 0)
                 return hr;
 
-            if (hr != CALL_RETURN_NULL && !qstricmp(v.c_str(), "permessage-deflate", 18))
+            if (hr != CALL_RETURN_NULL && m_this->m_enableCompress && !qstricmp(v.c_str(), "permessage-deflate", 18))
                 m_this->enableCompress();
 
             m_httprep->get_stream(m_this->m_stream);
@@ -340,19 +342,23 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
     Isolate* isolate = Isolate::current();
     exlib::string origin = "";
     exlib::string protocol = "";
+    bool perMessageDeflate = true;
+    int32_t maxPayload = WS_DEF_SIZE;
     v8::Local<v8::Object> v;
     obj_ptr<NObject> headers = new NObject();
     obj_ptr<HttpClient_base> hc = NULL;
 
     GetConfigValue(isolate->m_isolate, opts, "protocol", protocol);
     GetConfigValue(isolate->m_isolate, opts, "origin", origin);
+    GetConfigValue(isolate->m_isolate, opts, "perMessageDeflate", perMessageDeflate);
+    GetConfigValue(isolate->m_isolate, opts, "maxPayload", maxPayload);
 
     if (GetConfigValue(isolate->m_isolate, opts, "headers", v) >= 0)
         headers->add(v);
 
     GetConfigValue(isolate->m_isolate, opts, "httpClient", hc);
 
-    obj_ptr<WebSocket> sock = new WebSocket(url, protocol, origin);
+    obj_ptr<WebSocket> sock = new WebSocket(url, protocol, origin, perMessageDeflate, maxPayload);
     sock->m_holder = new ValueHolder(sock->wrap(This));
 
     (new asyncConnect(sock, headers, hc, sock->holder()))->apost(0);

@@ -490,7 +490,11 @@ describe('ws', () => {
                 "/ws": ws.upgrade((s, req) => {
                     assert.equal(req.firstHeader("upgrade"), "websocket");
                     s.onmessage = function (msg) {
-                        assert.isTrue(msg.compress);
+                        if (msg.data === "perMessageDeflate")
+                            assert.isFalse(msg.compress);
+                        else
+                            assert.isTrue(msg.compress);
+
                         if (msg.data === "Going Away")
                             msg.stream.close();
                         else if (msg.data === "close")
@@ -681,6 +685,65 @@ describe('ws', () => {
             s.close();
 
             assert.equal(sz, 1024 * 1025 * 64);
+        });
+
+        it('perMessageDeflate', () => {
+            var t = false;
+            var msg;
+            var s = new ws.Socket("ws://127.0.0.1:" + (8814 + base_port) + "/ws", {
+                perMessageDeflate: false
+            });
+            s.onopen = () => {
+                s.send('perMessageDeflate');
+            };
+
+            s.onmessage = (m) => {
+                assert.isFalse(m.compress);
+                msg = m;
+                t = true;
+            };
+
+            for (var i = 0; i < 1000 && !t; i++)
+                coroutine.sleep(1);
+
+            assert.equal(msg.data, 'perMessageDeflate');
+
+            s.close();
+        });
+
+        it('upgrade perMessageDeflate', () => {
+            var httpd = new http.Server(8819 + base_port, {
+                "/ws": ws.upgrade({
+                    perMessageDeflate: false
+                }, (s) => {
+                    s.on("message", function (msg) {
+                        assert.isFalse(msg.compress);
+                        this.send(msg.data);
+                    });
+                })
+            });
+            test_util.push(httpd.socket);
+            httpd.start();
+
+            var t = false;
+            var msg;
+            var s = new ws.Socket("ws://127.0.0.1:" + (8819 + base_port) + "/ws");
+            s.onopen = () => {
+                s.send('perMessageDeflate');
+            };
+
+            s.onmessage = (m) => {
+                assert.isFalse(m.compress);
+                msg = m;
+                t = true;
+            };
+
+            for (var i = 0; i < 1000 && !t; i++)
+                coroutine.sleep(1);
+
+            assert.equal(msg.data, 'perMessageDeflate');
+
+            s.close();
         });
 
         it('send/on("message")', () => {

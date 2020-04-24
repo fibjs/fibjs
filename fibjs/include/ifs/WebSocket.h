@@ -125,10 +125,10 @@ void WebSocket_base::__new(const T& args)
 
     hr = _new(v0, v1, v2, vr, args.This());
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    ARG(v8::Local<v8::Object>, 1);
 
     hr = _new(v0, v1, vr, args.This());
 

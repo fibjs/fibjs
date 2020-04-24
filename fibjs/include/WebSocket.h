@@ -15,29 +15,33 @@
 
 namespace fibjs {
 
+#define WS_DEF_SIZE 67108864
+
 class WebSocket : public WebSocket_base {
 public:
-    WebSocket(exlib::string url, exlib::string protocol, exlib::string origin)
+    WebSocket(exlib::string url, exlib::string protocol, exlib::string origin, bool enableCompress, int32_t maxSize)
         : m_ac(NULL)
         , m_url(url)
         , m_protocol(protocol)
         , m_origin(origin)
         , m_masked(true)
         , m_compress(false)
-        , m_maxSize(67108864)
+        , m_enableCompress(enableCompress)
+        , m_maxSize(maxSize)
         , m_readyState(ws_base::_CONNECTING)
         , m_closeState(ws_base::_OPEN)
         , m_ioState(1)
     {
     }
 
-    WebSocket(Stream_base* stream, exlib::string protocol, AsyncEvent* ac)
+    WebSocket(Stream_base* stream, exlib::string protocol, AsyncEvent* ac, bool enableCompress, int32_t maxSize)
         : m_stream(stream)
         , m_ac(ac)
         , m_protocol(protocol)
         , m_masked(false)
         , m_compress(false)
-        , m_maxSize(67108864)
+        , m_enableCompress(enableCompress)
+        , m_maxSize(maxSize)
         , m_readyState(ws_base::_OPEN)
         , m_closeState(ws_base::_OPEN)
         , m_ioState(1)
@@ -108,6 +112,7 @@ public:
 
     bool m_masked;
     bool m_compress;
+    bool m_enableCompress;
     int32_t m_maxSize;
 
     exlib::atomic m_readyState;

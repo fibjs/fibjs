@@ -64,9 +64,23 @@ module ws
     static WebSocket new Socket();
 
     /*! @brief 创建一个 websocket 协议处理器，从 http 接收 upgrade 请求并握手，生成 WebSocket 对象
-     accept 函数调用时，将传递两个参数，第一个参数为接收到的 WebSocket 对象，第二个参数为握手时的 HttpRequest 对象。
-     @param accept 连接成功处理函数
+     ```
+     @param accept 连接成功处理函数，回调将传递两个参数，第一个参数为接收到的 WebSocket 对象，第二个参数为握手时的 HttpRequest 对象
      @return 返回协议处理器，可与 HttpServer, Chain, Routing 等对接
      */
     static Handler upgrade(Function accept);
+
+    /*! @brief 创建一个 websocket 协议处理器，从 http 接收 upgrade 请求并握手，生成 WebSocket 对象
+     opts 包含请求的附加选项，支持的内容如下：
+     ```JavaScript
+     {
+         "perMessageDeflate": true, // 指定是否支持压缩，缺省支持
+         "maxPayload": 67108864 // 指定最大数据包尺寸，缺省为 67108864
+     }
+     ```
+     @param opts 连接选项，缺省是 {}
+     @param accept 连接成功处理函数，回调将传递两个参数，第一个参数为接收到的 WebSocket 对象，第二个参数为握手时的 HttpRequest 对象
+     @return 返回协议处理器，可与 HttpServer, Chain, Routing 等对接
+     */
+    static Handler upgrade(Object opts, Function accept);
 };

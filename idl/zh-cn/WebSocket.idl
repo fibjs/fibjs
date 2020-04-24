@@ -35,14 +35,21 @@ interface WebSocket : EventEmitter
     WebSocket(String url, String protocol = "", String origin = "");
     
     /*! @brief WebSocket 构造函数
+     opts 包含请求的附加选项，支持的内容如下：
+     ```JavaScript
+     {
+         "protocol": "", // 指定握手协议，缺省为空
+         "origin": "", // 指定握手时模拟的源，缺省为空
+         "perMessageDeflate": true, // 指定是否支持压缩，缺省支持
+         "maxPayload": 67108864, // 指定最大数据包尺寸，缺省为 67108864
+         "httpClient": hc, // 自定义 httpClient 对象，缺省使用全局 httpClient
+         "headers": // 指定 http(s) 连接时携带的 header，缺省为 {}，
+     }
+     ```
      @param url 指定连接的服务器
-     @param opts 连接选项，缺省是 {}，支持的字段有 "protocol", "origin", "headers", "httpClient"。 
-     其中 protocol 指定握手协议，缺省为 ""，
-     origin 指定握手时模拟的源，缺省为 ""，
-     headers 是 http(s) 连接时携带的 header 缺省为 {}，
-     httpClient 使用指定 httpClient 实例的 cookie，缺省为 undefined 默认使用全局 cookie，参见 HttpClient
+     @param opts 连接选项，缺省是 {}
     */
-    WebSocket(String url, Object opts = {});
+    WebSocket(String url, Object opts);
 
     /*! @brief 查询当前对象连接的服务器 */
     readonly String url;
