@@ -22,6 +22,8 @@ namespace fibjs {
 
 DECLARE_MODULE(ws);
 
+#define WS_DEFALTE_BUF_SIZE (32 * 1024)
+
 result_t http_request2(HttpClient_base* httpClient, exlib::string method, exlib::string url,
     SeekableStream_base* body, NObject* headers,
     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
@@ -389,6 +391,9 @@ void WebSocket::free_mem()
         m_buffer.Release();
 
         m_holder.Release();
+
+        if (m_compress)
+            extMemory(-WS_DEFALTE_BUF_SIZE);
     }
 }
 
@@ -536,6 +541,7 @@ void WebSocket::enableCompress()
 {
     m_compress = true;
     m_flushTail = new Buffer("\x0\x0\xff\xff", 4);
+    extMemory(WS_DEFALTE_BUF_SIZE);
 }
 
 result_t WebSocket::get_url(exlib::string& retVal)
