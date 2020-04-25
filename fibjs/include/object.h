@@ -431,6 +431,20 @@ public:
     }
 
 public:
+    virtual void Unref()
+    {
+        if (internalUnref() == 0)
+            syncCall(holder(), _release, this);
+    }
+
+private:
+    static result_t _release(ValueHolder* pThis)
+    {
+        delete pThis;
+        return 0;
+    }
+
+public:
     v8::Global<v8::Value> m_v;
 };
 
