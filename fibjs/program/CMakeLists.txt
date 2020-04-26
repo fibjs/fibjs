@@ -49,7 +49,7 @@ check_c_source_compiles("void fcntl();
 	__asm__(\".symver fcntl,fcntl@GLIBC_2.17\");
 	void main(void){fcntl();}" HAVE_GLIB_C_FCNTL_217_H)
 
-set(flags "-fsigned-char -fmessage-length=0 -fdata-sections -ffunction-sections -fno-exceptions -D_FILE_OFFSET_BITS=64")
+set(flags "-fsigned-char -fmessage-length=0 -fdata-sections -ffunction-sections -D_FILE_OFFSET_BITS=64")
 set(ccflags "-std=c++11")
 set(link_flags " ")
 
@@ -85,7 +85,7 @@ set(CMAKE_CXX_FLAGS "${flags} ${ccflags}")
 
 include_directories("${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/../include" "${PROJECT_SOURCE_DIR}/../../vender" "${PROJECT_SOURCE_DIR}/../../vender/v8" "${PROJECT_SOURCE_DIR}/../../vender/v8/include" "${PROJECT_SOURCE_DIR}/../../vender/mbedtls" "${PROJECT_SOURCE_DIR}/../../vender/zlib/include" "${CMAKE_CURRENT_BINARY_DIR}")
 
-set(libs fibjs expat gumbo gd tiff jpeg png webp zlib leveldb snappy ev pcre sqlite mongo umysql uuid exif mbedtls v8 unzip editline exlib)
+set(libs fibjs expat gumbo gd tiff jpeg png webp zlib leveldb snappy ev pcre sqlite mongo umysql uuid exif mbedtls v8 unzip editline exlib jemalloc)
 
 foreach(lib ${libs})
 	target_link_libraries(fibjs "${BIN_DIR}/lib${lib}.a")
