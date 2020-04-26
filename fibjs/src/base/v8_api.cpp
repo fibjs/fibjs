@@ -11,14 +11,28 @@
 #pragma warning(disable : 4244)
 #endif
 
-#include "exlib/include/qstring.h"
-#include "v8_api.h"
+#include "v8.h"
+#include "v8/src/utils.h"
+#include "v8/src/api.h"
+#include "v8/src/isolate.h"
+#include "v8/src/frames.h"
+#include "v8/src/frames-inl.h"
 #include "v8/src/json-stringifier.h"
 #include "v8/src/debug/debug-interface.h"
+
+#include "exlib/include/qstring.h"
+#include "v8_api.h"
 
 using namespace v8;
 
 namespace fibjs {
+
+bool isFrozen(v8::Handle<v8::Object> object)
+{
+    auto obj = v8::Utils::OpenHandle(*object);
+    v8::Maybe<bool> test = i::JSReceiver::TestIntegrityLevel(obj, i::FROZEN);
+    return test.ToChecked();
+}
 
 template <bool do_callback>
 class CallDepthScope {

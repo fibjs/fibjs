@@ -8,12 +8,6 @@
 #ifndef _V8_API_H_
 #define _V8_API_H_
 
-#include "v8.h"
-#include "v8/src/utils.h"
-#include "v8/src/api.h"
-#include "v8/src/isolate.h"
-#include "v8/src/frames-inl.h"
-
 namespace fibjs {
 
 v8::Local<v8::String> JSON_Stringify(v8::Isolate* isolate,
@@ -35,12 +29,7 @@ void beginCoverage(v8::Isolate* isolate);
 void pauseCoverage(v8::Isolate* isolate);
 void WriteLcovData(v8::Isolate* isolate, FILE* file);
 
-inline bool isFrozen(v8::Handle<v8::Object> object)
-{
-    auto obj = v8::Utils::OpenHandle(*object);
-    v8::Maybe<bool> test = i::JSReceiver::TestIntegrityLevel(obj, i::FROZEN);
-    return test.ToChecked();
-}
+bool isFrozen(v8::Handle<v8::Object> object);
 
 } /* namespace fibjs */
 

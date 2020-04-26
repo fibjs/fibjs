@@ -11,6 +11,14 @@
 #include "Buffer.h"
 #include "utf8.h"
 #include <stdlib.h>
+
+#include "v8.h"
+#include "v8/src/utils.h"
+#include "v8/src/api.h"
+#include "v8/src/isolate.h"
+#include "v8/src/frames.h"
+#include "v8/src/frames-inl.h"
+
 #include "v8_api.h"
 #include "src/objects/string-inl.h"
 
