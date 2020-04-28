@@ -91,6 +91,9 @@
     <ProjectReference Include="$(SolutionDir)vender\gtest\gtest.vcxproj">
       <Project>{1F77AB58-706B-4BB5-BE73-00111039117e}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)vender\msgpack\msgpack.vcxproj">
+      <Project>{7AD9A1F1-3BFF-49DB-A1EF-07D903617B99}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>
@@ -107,7 +110,7 @@
     <Image Include="res\fibjs.ico" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{05654A7E-DBAF-4211-886A-C23565833D05}</ProjectGuid>
+    <ProjectGuid>{E86C788B-0810-4E08-A184-421054A3FD03}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>fibjs_gui</RootNamespace>
   </PropertyGroup>

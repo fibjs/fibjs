@@ -49,6 +49,7 @@ fi
 
 if [ ! -e $BIN_DIR/$VENDER_ASSETS_FILE ]; then
     echo "no built vender found"
+    unset USE_VENDER_DIST
 else
     echo "built vender found, would extract it";
     unzip $BIN_DIR/$VENDER_ASSETS_FILE -d $BIN_DIR/;

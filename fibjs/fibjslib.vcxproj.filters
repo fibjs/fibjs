@@ -762,6 +762,9 @@
     <ClInclude Include="include\ifs\mq.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
+    <ClInclude Include="include\ifs\msgpack.h">
+      <Filter>Header Files\ifs</Filter>
+    </ClInclude>
     <ClInclude Include="include\ifs\net.h">
       <Filter>Header Files\ifs</Filter>
     </ClInclude>
@@ -1077,6 +1080,9 @@
       <Filter>Source Files\encoding</Filter>
     </ClCompile>
     <ClCompile Include="src\encoding\encoding_json.cpp">
+      <Filter>Source Files\encoding</Filter>
+    </ClCompile>
+    <ClCompile Include="src\encoding\encoding_msgpack.cpp">
       <Filter>Source Files\encoding</Filter>
     </ClCompile>
     <ClCompile Include="src\fs\File.cpp">
