@@ -79,4 +79,11 @@ endif()
 set(CMAKE_C_FLAGS "${flags}")
 set(CMAKE_CXX_FLAGS "${flags} ${ccflags}")
 
-include_directories("${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/../vender" "${PROJECT_SOURCE_DIR}/../vender/v8" "${PROJECT_SOURCE_DIR}/../vender/v8/include" "${PROJECT_SOURCE_DIR}/../vender/mbedtls" "${PROJECT_SOURCE_DIR}/../vender/zlib/include" "${CMAKE_CURRENT_BINARY_DIR}")
+include_directories("${PROJECT_SOURCE_DIR}/include"
+	"${PROJECT_SOURCE_DIR}/../vender"
+	"${PROJECT_SOURCE_DIR}/../vender/v8"
+	"${PROJECT_SOURCE_DIR}/../vender/v8/include"
+	"${PROJECT_SOURCE_DIR}/../vender/mbedtls"
+	"${PROJECT_SOURCE_DIR}/../vender/zlib/include"
+	"${PROJECT_SOURCE_DIR}/../vender/msgpack/include"
+	"${CMAKE_CURRENT_BINARY_DIR}")

@@ -84,6 +84,23 @@ public:
         return *this;
     }
 
+    template <typename ts>
+    void set_timestamp(const ts& v)
+    {
+        d = (double)v.tv_sec * 1000ll + (double)v.tv_nsec / 1000000.0;
+    }
+
+    template <typename ts>
+    void get_timestamp(ts& v)
+    {
+        v.tv_sec = floor(d / 1000);
+        v.tv_nsec = (d - v.tv_sec * 1000ll) * 1000000ll;
+
+        int64_t sec1 = floor((double)v.tv_nsec / 1000000000ll);
+        v.tv_sec += sec1;
+        v.tv_nsec -= sec1 * 1000000000ll;
+    }
+
     v8::Local<v8::Value> value(v8::Isolate* isolate) const
     {
         return v8::Date::New(isolate, d);

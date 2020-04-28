@@ -25,6 +25,9 @@ module encoding
     /*! @brief json 编码与解码模块 */
     static json;
 
+    /*! @brief msgpack 编码与解码模块 */
+    static msgpack;
+
     /*! @brief bson 编码与解码模块 */
     static bson;
 

@@ -35,6 +35,7 @@ void importModule()
     IMPORT_MODULE(iconv);
     IMPORT_MODULE(io);
     IMPORT_MODULE(json);
+    IMPORT_MODULE(msgpack);
     IMPORT_MODULE(mq);
     IMPORT_MODULE(net);
     IMPORT_MODULE(os);
