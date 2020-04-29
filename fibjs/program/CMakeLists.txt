@@ -27,27 +27,31 @@ check_include_files(iconv.h HAVE_ICONV_H)
 
 check_c_source_compiles("void posix_spawnp();
 	__asm__(\".symver posix_spawnp,posix_spawnp@GLIBC_2.2.5\");
-	void main(void){posix_spawnp();}" HAVE_GLIB_C_225_H)
+	int main(void){posix_spawnp();return 0;}" HAVE_GLIB_C_225_H)
 
 check_c_source_compiles("void posix_spawnp();
 	__asm__(\".symver posix_spawnp,posix_spawnp@GLIBC_2.2\");
-	void main(void){posix_spawnp();}" HAVE_GLIB_C_22_H)
+	int main(void){posix_spawnp();return 0;}" HAVE_GLIB_C_22_H)
 
 check_c_source_compiles("void fcntl();
 	__asm__(\".symver fcntl,fcntl@GLIBC_2.2.5\");
-	void main(void){fcntl();}" HAVE_GLIB_C_FCNTL_225_H)
+	int main(void){fcntl();return 0;}" HAVE_GLIB_C_FCNTL_225_H)
 
 check_c_source_compiles("void fcntl();
 	__asm__(\".symver fcntl,fcntl@GLIBC_2.0\");
-	void main(void){fcntl();}" HAVE_GLIB_C_FCNTL_2_H)
+	int main(void){fcntl();return 0;}" HAVE_GLIB_C_FCNTL_2_H)
 
 check_c_source_compiles("void fcntl();
 	__asm__(\".symver fcntl,fcntl@GLIBC_2.4\");
-	void main(void){fcntl();}" HAVE_GLIB_C_FCNTL_24_H)
+	int main(void){fcntl();return 0;}" HAVE_GLIB_C_FCNTL_24_H)
 
 check_c_source_compiles("void fcntl();
 	__asm__(\".symver fcntl,fcntl@GLIBC_2.17\");
-	void main(void){fcntl();}" HAVE_GLIB_C_FCNTL_217_H)
+	int main(void){fcntl();return 0;}" HAVE_GLIB_C_FCNTL_217_H)
+
+check_c_source_compiles("#include <stdatomic.h>
+	atomic_int a;
+	int main(void){atomic_load(&a);return 0;}" HAVE_GLIB_C_ATOMIC_H)
 
 set(flags "-fsigned-char -fmessage-length=0 -fdata-sections -ffunction-sections -D_FILE_OFFSET_BITS=64")
 set(ccflags "-std=c++11")
@@ -106,6 +110,10 @@ endif()
 if(${OS} STREQUAL "FreeBSD")
 	find_library(execinfo execinfo "/usr/local/lib" "/usr/lib")
 	target_link_libraries(fibjs ${execinfo})
+endif()
+
+if(NOT HAVE_GLIB_C_ATOMIC_H)
+	target_link_libraries(fibjs atomic)
 endif()
 
 set_target_properties(fibjs PROPERTIES LINK_FLAGS ${link_flags})
