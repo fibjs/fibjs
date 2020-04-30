@@ -3,6 +3,11 @@
 SETLOCAL ENABLEDELAYEDEXPANSION
 
 if defined ProgramFiles(x86) (set HOST_ARCH=amd64) else (set HOST_ARCH=i386)
+
+if /I "%HOST_ARCH%" == "" (
+    if /I "%PROCESSOR_ARCHITECTURE%" == "AMD64" ( @set HOST_ARCH=amd64 ) else ( @set HOST_ARCH=i386 )
+)
+
 set TARGET_ARCH=!HOST_ARCH!
 
 set BUILD_TYPE=release
