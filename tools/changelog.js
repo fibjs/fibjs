@@ -2,14 +2,27 @@ var path = require('path');
 
 process.chdir(path.join(__dirname, '..'));
 
-var describe = process.open('git', ['describe']).readLines();
+function pick_subprocess_out_lines(popen_r) {
+    var lines = [];;
+    if (popen_r.stdout) {
+        lines = popen_r.stdout.readLines();
+    } else if (typeof popen_r.readLines === 'function') {
+        lines = popen_r.readLines();
+    }
+
+    return lines;
+}
+
+var describe = pick_subprocess_out_lines(process.open('git', ['describe']));
 var info = (/^(v[\d\.]+)-(\d+)-g([a-f\d]+)/g).exec(describe);
 
-var logs = process.open('git', [
-    'log',
-    '--pretty=format:%H-%s(%an)',
-    '-' + (new Number(info[2] - 1))
-]).readLines();
+var logs = pick_subprocess_out_lines(
+    process.open('git', [
+        'log',
+        '--pretty=format:%H-%s(%an)',
+        '-' + (new Number(info[2] - 1))
+    ])
+);
 
 var commits = [];
 var changes = {};

@@ -1,3 +1,122 @@
+## 2020-05-01, Version 0.30.0 
+* **feature** :
+    * Buffer - support Buffer.set(xicilion)
+    * build:
+      - import explicitly llvm-about config for fibjslib msbuild(richardo2016)
+      - support msgpack module on windows(richardo2016)
+      - use all tags(including lightweight one) when building.(Richardo2016)
+    * ci:
+      - support use built vender assets.(Richardo2016)
+      - use descriptive info as release.(Richardo2016)
+    * console - configurable colored console within different isolate(Yuanhang)
+    * core:
+      - use jemalloc to manage memory.(xicilion)
+      - release js value immediately when ValueHolder is discarded.(xicilion)
+      - initialize modules according to the order of import.(xicilion)
+    * crypto:
+      - support X509Crl.next.(xicilion)
+      - export X509Crl detailed properties.(xicilion)
+      - support SM2, SM3 in X509(limingkun)
+      - support SM3 in hash(limingkun)
+      - support SM4 in Cipher(limingkun)
+      - support SM2 in Pkey(limingkun)
+    * fs - better Stat Object, better `fs.(l)stat`.(Ray Chan)
+    * http:
+      - support delete/sort/keys/values on HttpCollection.(xicilion)
+      - support isolated client cert in HttpClient.(xicilion)
+    * module - add msgpack module.(xicilion)
+    * process - support process.binding.(xicilion)
+    * ssl - support custom cert param in ssl.connect.(xicilion)
+    * SubProcess - support stderr. (#538)(Ray)
+    * url:
+      - support url.URL.(xicilion)
+      - support Url.get_searchParams.(xicilion)
+    * util:
+      - fake node version.(xicilion)
+      - fake util.deprecate.(xicilion)
+    * vender:
+      - use vender in dev branch(limingkun)
+      - use vender#dev-lang, replace msvc with clang++ as compiler on window.(richardo2016)
+    * websocket - support perMessageDeflate/maxPayload in opts.(xicilion)
+    * ws - report memory usage to v8 in WebSocket.(xicilion)
+
+* **bugfix** :
+    * base - exceptional crashes when json_replacer or json_object is null(Yuanhang)
+    * build:
+      - fixup compilation error on windows.(richardo2016)
+      - remove hard dependency on vcruntime-about dll for windows.(richardo2016)
+    * ci - fixup compilation error on appveryor for i386 arch.(richardo2016)
+    * docs - fix document error of EventEmitter.(xicilion)
+    * encoding - use input's reference in json_parser to keep it alive. (#540)(Ray)
+    * events - crash when off function on new Emitter.(xicilion)
+    * http - body will be lost when connection header of response is close.(xicilion)
+    * jemalloc:
+      - runtime error on i386.(xicilion)
+      - jemalloc compile error on arm/mips.(xicilion)
+    * ssl:
+      - crash when close SslSocket.(xicilion)
+      - socket stream not close in ssl.Socket.close.(xicilion)
+    * websocket:
+      - optimize memory usage in compressed mode.(xicilion)
+      - the socket is not released when no event is bound on the websocket.(xicilion)
+
+* **refactor** :
+    * encoding - refactor json.decode, use internal api to increase speed.(xicilion)
+
+* **fix** :
+    * crypto - buffer mojibake. (#536)(Yuanhang Luo)
+    * tools - install only one package if specified. (#537)(Ray)
+
+### Commits
+* [[`278289699e`](https://github.com/fibjs/fibjs/commit/278289699e)] - **ci, bugfix**: fixup compilation error on appveryor for i386 arch.(richardo2016)
+* [[`298fe433a0`](https://github.com/fibjs/fibjs/commit/298fe433a0)] - **ssl, bugfix**: crash when close SslSocket.(xicilion)
+* [[`b5bf883a3d`](https://github.com/fibjs/fibjs/commit/b5bf883a3d)] - **build, feat**: import explicitly llvm-about config for fibjslib msbuild(richardo2016)
+* [[`14aed4a987`](https://github.com/fibjs/fibjs/commit/14aed4a987)] - **jemalloc, bugfix**: runtime error on i386.(xicilion)
+* [[`e7386daea8`](https://github.com/fibjs/fibjs/commit/e7386daea8)] - **build, feat**: support msgpack module on windows(richardo2016)
+* [[`60310b5f96`](https://github.com/fibjs/fibjs/commit/60310b5f96)] - **module, feat**: add msgpack module.(xicilion)
+* [[`67b3af0e4e`](https://github.com/fibjs/fibjs/commit/67b3af0e4e)] - **build, bugfix**: fixup compilation error on windows.(richardo2016)
+* [[`7839a4c787`](https://github.com/fibjs/fibjs/commit/7839a4c787)] - **jemalloc, bugfix**: jemalloc compile error on arm/mips.(xicilion)
+* [[`201e52a2ee`](https://github.com/fibjs/fibjs/commit/201e52a2ee)] - **core, feat**: use jemalloc to manage memory.(xicilion)
+* [[`13ce7d189a`](https://github.com/fibjs/fibjs/commit/13ce7d189a)] - **ws, feat**: report memory usage to v8 in WebSocket.(xicilion)
+* [[`8afac317e6`](https://github.com/fibjs/fibjs/commit/8afac317e6)] - **core, feat**: release js value immediately when ValueHolder is discarded.(xicilion)
+* [[`f6805e4360`](https://github.com/fibjs/fibjs/commit/f6805e4360)] - **ci, feat**: support use built vender assets.(Richardo2016)
+* [[`975a56bbad`](https://github.com/fibjs/fibjs/commit/975a56bbad)] - **websocket, feat**: support perMessageDeflate/maxPayload in opts.(xicilion)
+* [[`795f57157d`](https://github.com/fibjs/fibjs/commit/795f57157d)] - **docs, bugfix**: fix document error of EventEmitter.(xicilion)
+* [[`bac0205c2f`](https://github.com/fibjs/fibjs/commit/bac0205c2f)] - **process, feat**: support process.binding.(xicilion)
+* [[`445b43f9f4`](https://github.com/fibjs/fibjs/commit/445b43f9f4)] - **core, feat**: initialize modules according to the order of import.(xicilion)
+* [[`1353a85d54`](https://github.com/fibjs/fibjs/commit/1353a85d54)] - **util, feat**: fake node version.(xicilion)
+* [[`c6836d261c`](https://github.com/fibjs/fibjs/commit/c6836d261c)] - **util, feat**: fake util.deprecate.(xicilion)
+* [[`60d1cefa3b`](https://github.com/fibjs/fibjs/commit/60d1cefa3b)] - **ssl, bugfix**: socket stream not close in ssl.Socket.close.(xicilion)
+* [[`d0ad03147f`](https://github.com/fibjs/fibjs/commit/d0ad03147f)] - **url, feat**: support url.URL.(xicilion)
+* [[`e38bfefa51`](https://github.com/fibjs/fibjs/commit/e38bfefa51)] - **url, feat**: support Url.get_searchParams.(xicilion)
+* [[`a828a2f4a1`](https://github.com/fibjs/fibjs/commit/a828a2f4a1)] - **http, feat**: support delete/sort/keys/values on HttpCollection.(xicilion)
+* [[`01e3ccd3e2`](https://github.com/fibjs/fibjs/commit/01e3ccd3e2)] - **events, bugfix**: crash when off function on new Emitter.(xicilion)
+* [[`c54335d412`](https://github.com/fibjs/fibjs/commit/c54335d412)] - **Buffer, feat**: support Buffer.set(xicilion)
+* [[`eff0aaab2d`](https://github.com/fibjs/fibjs/commit/eff0aaab2d)] - **encoding, refactor**: refactor json.decode, use internal api to increase speed.(xicilion)
+* [[`b75d0d3fcc`](https://github.com/fibjs/fibjs/commit/b75d0d3fcc)] - **fs, feat**: better Stat Object, better `fs.(l)stat`.(Ray Chan)
+* [[`96dc9a1216`](https://github.com/fibjs/fibjs/commit/96dc9a1216)] - **http, bugfix**: body will be lost when connection header of response is close.(xicilion)
+* [[`6db5998446`](https://github.com/fibjs/fibjs/commit/6db5998446)] - **http, feat**: support isolated client cert in HttpClient.(xicilion)
+* [[`94fc6157c9`](https://github.com/fibjs/fibjs/commit/94fc6157c9)] - **ssl, feat**: support custom cert param in ssl.connect.(xicilion)
+* [[`db830f8e6c`](https://github.com/fibjs/fibjs/commit/db830f8e6c)] - **websocket, bugfix**: optimize memory usage in compressed mode.(xicilion)
+* [[`959d584cba`](https://github.com/fibjs/fibjs/commit/959d584cba)] - **websocket, bugfix**: the socket is not released when no event is bound on the websocket.(xicilion)
+* [[`fe8eeb090c`](https://github.com/fibjs/fibjs/commit/fe8eeb090c)] - **crypto, feat**: support X509Crl.next.(xicilion)
+* [[`150d4cb9e8`](https://github.com/fibjs/fibjs/commit/150d4cb9e8)] - **crypto, feat**: export X509Crl detailed properties.(xicilion)
+* [[`7d0a307da6`](https://github.com/fibjs/fibjs/commit/7d0a307da6)] - **vender, feat**: use vender in dev branch(limingkun)
+* [[`455ebd55e6`](https://github.com/fibjs/fibjs/commit/455ebd55e6)] - **crypto, feat**: support SM2, SM3 in X509(limingkun)
+* [[`21bde57c0c`](https://github.com/fibjs/fibjs/commit/21bde57c0c)] - **crypto, feat**: support SM3 in hash(limingkun)
+* [[`152f9e5935`](https://github.com/fibjs/fibjs/commit/152f9e5935)] - **crypto, feat**: support SM4 in Cipher(limingkun)
+* [[`eb43cb14c3`](https://github.com/fibjs/fibjs/commit/eb43cb14c3)] - **crypto, feat**: support SM2 in Pkey(limingkun)
+* [[`63ab2dad0f`](https://github.com/fibjs/fibjs/commit/63ab2dad0f)] - **base, bugfix**: exceptional crashes when json_replacer or json_object is null(Yuanhang)
+* [[`d6d1d80f31`](https://github.com/fibjs/fibjs/commit/d6d1d80f31)] - **console, feat**: configurable colored console within different isolate(Yuanhang)
+* [[`a86cc346a8`](https://github.com/fibjs/fibjs/commit/a86cc346a8)] - **build, bugfix**: remove hard dependency on vcruntime-about dll for windows.(richardo2016)
+* [[`2d3c9d0988`](https://github.com/fibjs/fibjs/commit/2d3c9d0988)] - **encoding, bugfix**: use input's reference in json_parser to keep it alive. (#540)(Ray)
+* [[`8a356027f8`](https://github.com/fibjs/fibjs/commit/8a356027f8)] - **vender, feat**: use vender#dev-lang, replace msvc with clang++ as compiler on window.(richardo2016)
+* [[`ea65280c85`](https://github.com/fibjs/fibjs/commit/ea65280c85)] - **SubProcess, feat**: support stderr. (#538)(Ray)
+* [[`b29bf81d2e`](https://github.com/fibjs/fibjs/commit/b29bf81d2e)] - **ci, feat**: use descriptive info as release.(Richardo2016)
+* [[`b5d04723e4`](https://github.com/fibjs/fibjs/commit/b5d04723e4)] - **tools, fix**: install only one package if specified. (#537)(Ray)
+* [[`205994b18b`](https://github.com/fibjs/fibjs/commit/205994b18b)] - **crypto, fix**: buffer mojibake. (#536)(Yuanhang Luo)
+* [[`d47e89414e`](https://github.com/fibjs/fibjs/commit/d47e89414e)] - **build, feat**: use all tags(including lightweight one) when building.(Richardo2016)
+
 ## 2019-11-06, Version 0.29.0 
 * **feature** :
     * Buffer:

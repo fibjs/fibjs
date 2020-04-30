@@ -13,8 +13,10 @@ install:
   - git submodule update
 
 build_script:
-  - IF /I "%PLATFORM%" == "x64" ECHO "x64 building..." && build release amd64 && cd test && ..\bin\Windows_amd64_release\fibjs.exe --prof main.js
-  - IF /I "%PLATFORM%" == "x86" ECHO "x86 building..." && build release i386 && cd test && ..\bin\Windows_i386_release\fibjs.exe --prof main.js
+  - IF /I "%PLATFORM%" == "x64" ECHO "x64 building..." && build release amd64
+  - IF /I "%PLATFORM%" == "x64" IF /I "%APPVEYOR_REPO_TAG%" == "false" ( cd test && ..\bin\Windows_amd64_release\fibjs.exe --prof main.js )
+  - IF /I "%PLATFORM%" == "x86" ECHO "x86 building..." && build release i386
+  - IF /I "%PLATFORM%" == "x86" IF /I "%APPVEYOR_REPO_TAG%" == "false" ( cd test && ..\bin\Windows_i386_release\fibjs.exe --prof main.js )
   - IF /I "%APPVEYOR_REPO_TAG%" == "false" set APPVEYOR_REPO_TAG_NAME=dist
   - mkdir %APPVEYOR_REPO_TAG_NAME%
   - IF /I "%PLATFORM%" == "x64" copy .\bin\Windows_amd64_release\fibjs.exe .\%APPVEYOR_REPO_TAG_NAME%\fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-x64.exe
