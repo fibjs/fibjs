@@ -38,7 +38,7 @@ private:
         virtual int32_t process() = 0;
         virtual int32_t finally()
         {
-            return 0;
+            return next();
         }
 
         ON_STATE(asyncSsl, process)
@@ -57,7 +57,7 @@ private:
                 if (m_pThis->m_send.length() > 0)
                     return next(flush);
                 else
-                    return next(finally());
+                    return finally();
             }
 
             if (m_ret == MBEDTLS_ERR_SSL_WANT_READ || m_ret == MBEDTLS_ERR_SSL_WANT_WRITE)
@@ -101,7 +101,7 @@ private:
 
         ON_STATE(asyncSsl, end)
         {
-            return next(finally());
+            return finally();
         }
 
     protected:

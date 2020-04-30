@@ -206,7 +206,7 @@ result_t SslSocket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
         virtual int32_t finally()
         {
-            return m_retVal ? 0 : CALL_RETURN_NULL;
+            return next(m_retVal ? 0 : CALL_RETURN_NULL);
         }
 
     private:
@@ -293,7 +293,7 @@ result_t SslSocket::close(AsyncEvent* ac)
 
         virtual int32_t finally()
         {
-            return m_pThis->m_s->close(this);
+            return m_pThis->m_s->close(next());
         }
     };
 
@@ -390,7 +390,7 @@ result_t SslSocket::handshake(int32_t* retVal, AsyncEvent* ac)
             if (m_retVal)
                 *m_retVal = mbedtls_ssl_get_verify_result(&m_pThis->m_ssl);
 
-            return 0;
+            return next();
         }
 
     private:
