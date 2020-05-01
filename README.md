@@ -1,4 +1,15 @@
-# ![fibjs Logo](logo/fibjs-small.png?raw=true)  JavaScript on Fiber
+# FIBJS - JavaScript on Fiber
+```
+    _______ _________ ______  _________ _______ 
+   (  ____ \\__   __/(  ___ \ \__    _/(  ____ \
+   | (    \/   ) (   | (   ) )   )  (  | (    \/
+   | (__       | |   | (__/ /    |  |  | (_____ 
+   |  __)      | |   |  __ (     |  |  (_____  )
+   | (         | |   | (  \ \    |  |        ) |
+   | (_     ___) (___| (___) )/\_)  )  /\____) |
+   (__/     \_______/(______/ \____/   \_______)
+```
+fibjs is a JavaScript runtime built on Chrome's V8 JavaScript engine.  fibjs uses [fibers-switch](https://en.wikipedia.org/wiki/Fiber_(computer_science))  , sync style & non-blocking IO model to build scalable system. 
 
 [![travis build status][travis-image]][travis-url]
 [![appveyor build status][appveyor-image]][appveyor-url]
@@ -10,8 +21,6 @@
 [appveyor-url]: https://ci.appveyor.com/project/fibjs/fibjs
 [gitter-image]: https://badges.gitter.im/fibjs/fibjs.svg
 [gitter-url]: https://gitter.im/fibjs/fibjs?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
-
-fibjs is a JavaScript runtime built on Chrome's V8 JavaScript engine.  fibjs uses [fibers-switch](https://en.wikipedia.org/wiki/Fiber_(computer_science))  , sync style & non-blocking IO model to build scalable system. 
 
 ## Get Started
 
