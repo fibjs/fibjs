@@ -1062,6 +1062,10 @@ describe('util', () => {
         it("fix: crash on error.", () => {
             util.format(new mq.Message());
         });
+
+        it("fix: crash on %d.", () => {
+            util.format("%d", 2n);
+        });
     });
 
     describe('sync', () => {

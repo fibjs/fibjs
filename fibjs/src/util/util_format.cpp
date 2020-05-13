@@ -308,12 +308,14 @@ result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string&
     char ch;
     int32_t argc = args.Length();
     int32_t idx = 0;
-    v8::Local<v8::Context> _context = Isolate::current()->context();
 
     if (argc == 0) {
         retVal = fmt;
         return 0;
     }
+
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> _context = isolate->context();
 
     const char* s = fmt.c_str();
     const char* s_end = s + fmt.length();
@@ -340,9 +342,15 @@ result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string&
                 break;
             case 'd':
                 if (idx < argc) {
-                    v8::String::Utf8Value s(args[idx++]->ToNumber(_context).ToLocalChecked());
-                    if (*s)
-                        retVal.append(*s, s.length());
+                    v8::String::Utf8Value s(args[idx++]);
+                    if (*s) {
+                        int64_t n = atoi(*s);
+                        v8::Local<v8::Value> v = v8::Number::New(isolate->m_isolate, n);
+
+                        exlib::string s;
+                        s = json_format(v, color);
+                        retVal.append(s);
+                    }
                 } else
                     retVal.append("%d", 2);
                 break;
