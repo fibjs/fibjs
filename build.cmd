@@ -67,20 +67,27 @@ if "!BUILD_TYPE!"=="clean" (
 
 if "!TARGET_ARCH!"=="amd64" (set TargetPlatform=x64) else (set TargetPlatform=Win32)
 
+SET VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe
+@rem Visual Studio 2017
+FOR /f "delims=" %%A IN ('"%VSWHERE%" -property installationPath -prerelease -version [15.0^,16.0^)') DO (
+    SET VSINSTALLPATH=%%A
+    echo "VSINSTALLPATH is !VSINSTALLPATH!"
+)
+
+REM Run vcvars*.bat to set environment variables, to tell clang use vc tool chains on vs 2017 rather than post one(if existed.)
 IF "%__VCVARSALL_VER%" == "" (
     IF /I "%TargetPlatform%" == "x64" (
-        call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+        call "!VSINSTALLPATH!\VC\Auxiliary\Build\vcvars64.bat"
         ECHO "x64 building..."
     ) 
     IF /I "%TargetPlatform%" == "Win32" (
-        call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat"
+        call "!VSINSTALLPATH!\VC\Auxiliary\Build\vcvars32.bat"
         ECHO "x86 building..."
     )
 )
 
-set BUILD_CMD="msbuild fibjs.sln /t:Build /p:Configuration=!BUILD_TYPE!;Platform=!TargetPlatform! !MT!"
-echo "start build: !BUILD_CMD!"
-call "!BUILD_CMD!"
+REM we have set two essential env-vars: BUILD_TYPE, TARGET_ARCH, which would be passed transparently and used in Unix shell file .\build
+"C:\Program Files\Git\bin\sh.exe" .\build !TARGET_ARCH!
     
 if "!BUILD_TYPE!"=="release" (
 	cd bin\Windows_!TARGET_ARCH!_!BUILD_TYPE!
@@ -91,7 +98,7 @@ if "!BUILD_TYPE!"=="release" (
     cd ..
 )
 
-goto out
+goto finished
 
 :usage
 echo.
@@ -109,4 +116,4 @@ echo   -h, --help:
 echo       Print this message and exit.
 echo.
 
-:out
+:finished

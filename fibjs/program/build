@@ -1,5 +1,9 @@
 #!/bin/bash
 
+. ../../vender/scripts/get_env.sh --source-only
+
+get_build_env;
+
 usage()
 {
 	echo ""
@@ -18,35 +22,6 @@ usage()
 	echo ""
 	exit 0
 }
-
-HOST_OS=`uname`
-HOST_ARCH=`uname -m`
-
-case ${HOST_ARCH} in
-	i386|i686) HOST_ARCH="i386"
-		;;
-	x86_64|amd64) HOST_ARCH="amd64"
-		;;
-	armv6|armv7|armv7s|armv7l) HOST_ARCH="arm"
-		;;
-	aarch64) HOST_ARCH="arm64"
-		;;
-	mips|mipsel) HOST_ARCH="mips"
-		;;
-	mips64) HOST_ARCH="mips64"
-		;;
-	powerpc) HOST_ARCH="ppc"
-		;;
-	ppc64) HOST_ARCH="ppc64"
-		;;
-esac
-
-TARGET_OS=$HOST_OS
-TARGET_ARCH=$HOST_ARCH
-BUILD_TYPE="release"
-BUILD_PREFIX=""
-BUILD_OPTION=""
-GCC_VERSION=`gcc -dumpversion`
 
 for i in "$@"
 do
@@ -144,6 +119,9 @@ if [ ! -e "${OUT_PATH}" ]; then
 	mkdir "${OUT_PATH}"
 fi
 
+. ../../scripts/filters.sh --source-only
+filter_cmake_build_type;
+
 OUT_PATH=${OUT_PATH}/${TARGET_OS}_${TARGET_ARCH}_${BUILD_TYPE}
 if [ ! -e ${OUT_PATH} ]; then
 	mkdir ${OUT_PATH}
@@ -155,9 +133,23 @@ if [ ! -e ${OUT_PATH} ]; then
 fi
 
 cd ${OUT_PATH}
-cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DBUILD_TYPE=${BUILD_TYPE} -DBUILD_OPTION="${BUILD_OPTION}" ${FIBJS_PATH} > CMake.log
+cmake \
+	-DCMAKE_MAKE_PROGRAM=make \
+	-G "Unix Makefiles" \
+	-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
+	-DCMAKE_C_COMPILER=clang \
+	-DCMAKE_CXX_COMPILER=clang++ \
+	-DBUILD_TYPE=${BUILD_TYPE} \
+	-DBUILD_OPTION="${BUILD_OPTION}" \
+	${FIBJS_PATH} > CMake.log
+
 if [ $? != 0 ]; then
 	exit 1
+fi
+
+if [ $HOST_OS == "Windows" ]; then
+	get_windows_vctool_install_path;
+	export VCToolsInstallDir;
 fi
 
 if [ ! "$BUILD_JOBS" = "" ]; then
@@ -169,7 +161,7 @@ if [ $? != 0 ]; then
 	exit 1
 fi
 
-if [ "${BUILD_TYPE}" = "release" ]; then
+if [ "${TARGET_OS}" != "Windows" ] && [ "${BUILD_TYPE}" = "release" ]; then
 	cd "${BIN_PATH}"
 	cp "${FIBJS_PATH}/installer.txt" "installer.sh"
 	tar -zcf fibjs.tar.gz fibjs

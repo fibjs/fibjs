@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 
 include(tools/arch.cmake)
 include(tools/os.cmake)
+include(tools/platform.cmake)
 include(tools/subdirs.cmake)
 
 project(fibjs)
@@ -53,7 +54,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tools/config.h.in ${CMAKE_CURRENT_BIN
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tools/gitinfo.h.in ${CMAKE_CURRENT_BINARY_DIR}/gitinfo.h)
 
 set(flags "-fsigned-char -fmessage-length=0 -fdata-sections -ffunction-sections -D_FILE_OFFSET_BITS=64")
-set(ccflags "-std=c++11")
+set(ccflags "${ccflags} ${CXX_STD_VER_FLAG}")
 
 if(${OS} STREQUAL "Darwin")
 	set(flags "${flags} -mmacosx-version-min=10.9")

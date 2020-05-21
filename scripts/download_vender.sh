@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
 
-. scripts/env.sh --source-only
+. vender/scripts/get_env.sh --source-only
 
-get_build_envs;
+get_build_env;
 
 VENDER_ARCH=${HOST_ARCH}
 if [ ! -z $ARCH ]; then

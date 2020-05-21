@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 
 include(../tools/arch.cmake)
 include(../tools/os.cmake)
+include(../tools/platform.cmake)
 include(../tools/subdirs.cmake)
 
 project(fibjs)
@@ -13,7 +14,20 @@ if(CCACHE_FOUND)
 endif(CCACHE_FOUND)
 
 file(GLOB_RECURSE src_list "src/*.c*")
-add_executable(fibjs ${src_list})
+
+if (${OS} STREQUAL "Windows")
+	# add quote to all paths in CMAKE_RC_COMPILE_OBJECT to make it robustic on Windows.
+	#
+	# BTW, sh.exe cannot deal with args of `llvm-rc.exe` correctly
+	# @see https://stackoverflow.com/questions/34647591/passing-windows-slash-based-parameters-to-a-program-from-bash-script
+	set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> //l 0x409 \"<SOURCE>\" //nologo //fo <OBJECT>")
+	set(CMAKE_RC_COMPILER llvm-rc)
+
+	add_executable(fibjs ${src_list} res/fibjs.rc)
+	add_executable(fibjs_gui WIN32 ${src_list} res/fibjs.rc)
+else()
+	add_executable(fibjs ${src_list})
+endif()
 
 set(BIN_DIR ${PROJECT_SOURCE_DIR}/../../bin/${OS}_${ARCH}_${BUILD_TYPE})
 set(EXECUTABLE_OUTPUT_PATH ${BIN_DIR})
@@ -54,7 +68,7 @@ check_c_source_compiles("#include <stdatomic.h>
 	int main(void){atomic_load(&a);return 0;}" HAVE_GLIB_C_ATOMIC_H)
 
 set(flags "-fsigned-char -fmessage-length=0 -fdata-sections -ffunction-sections -D_FILE_OFFSET_BITS=64")
-set(ccflags "-std=c++11")
+set(ccflags "${ccflags} ${CXX_STD_VER_FLAG}")
 set(link_flags " ")
 
 if(${BUILD_TYPE} STREQUAL "release")
@@ -89,18 +103,40 @@ set(CMAKE_CXX_FLAGS "${flags} ${ccflags}")
 
 include_directories("${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/../include" "${PROJECT_SOURCE_DIR}/../../vender" "${PROJECT_SOURCE_DIR}/../../vender/v8" "${PROJECT_SOURCE_DIR}/../../vender/v8/include" "${PROJECT_SOURCE_DIR}/../../vender/mbedtls" "${PROJECT_SOURCE_DIR}/../../vender/zlib/include" "${CMAKE_CURRENT_BINARY_DIR}")
 
-set(libs fibjs expat gumbo gd tiff jpeg png webp zlib leveldb snappy msgpack ev pcre sqlite mongo umysql uuid exif mbedtls v8 unzip editline exlib jemalloc)
+if(${OS} STREQUAL "Windows")
+	set(libs fibjs expat gumbo gd tiff jpeg png webp zlib leveldb snappy msgpack pcre sqlite mongo umysql uuid exif mbedtls v8 unzip exlib winiconv)
+else()
+	set(libs fibjs expat gumbo gd tiff jpeg png webp zlib leveldb snappy msgpack pcre sqlite mongo umysql uuid exif mbedtls v8 unzip exlib ev editline jemalloc)
+endif()
 
 foreach(lib ${libs})
-	target_link_libraries(fibjs "${BIN_DIR}/lib${lib}.a")
+	target_link_libraries(fibjs "${BIN_DIR}/lib${lib}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+	if(${OS} STREQUAL "Windows")
+		target_link_libraries(fibjs_gui "${BIN_DIR}/lib${lib}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+	endif()
 endforeach()
 
-target_link_libraries(fibjs pthread)
+if(NOT ${OS} STREQUAL "Windows")
+	target_link_libraries(fibjs pthread)
+endif()
 
 if(${OS} STREQUAL "Darwin")
 	set(link_flags "${link_flags} -mmacosx-version-min=10.9 -framework Carbon -framework IOKit")
 	set(flags "${flags} -mmacosx-version-min=10.9")
 	target_link_libraries(fibjs dl iconv stdc++)
+endif()
+
+if(${OS} STREQUAL "Windows")
+	add_definitions(-DWIN32 -D_LIB -D_CRT_SECURE_NO_WARNINGS -D_CRT_RAND_S -DNOMINMAX)
+	set(flags "${flags} -fms-extensions -fmsc-version=1910 -frtti")
+	set(link_flags "${link_flags} -lwinmm -lws2_32 -lpsapi -ldbghelp -lshlwapi -lurlmon -luserenv -ladvapi32 -lkernel32")
+	set(link_flags "${link_flags} -Xlinker //OPT:ICF -Xlinker //ERRORREPORT:PROMPT -Xlinker //NOLOGO -Xlinker //TLBID:1")
+
+	if(${ARCH} STREQUAL "amd64")
+		set(flags "${flags} -m64")
+	elseif(${ARCH} STREQUAL "i386")
+		set(flags "${flags} -m32")
+	endif()
 endif()
 
 if(${OS} STREQUAL "Linux")
@@ -112,8 +148,16 @@ if(${OS} STREQUAL "FreeBSD")
 	target_link_libraries(fibjs ${execinfo})
 endif()
 
-if(NOT HAVE_GLIB_C_ATOMIC_H)
+if((NOT ${OS} STREQUAL "Windows") AND (NOT HAVE_GLIB_C_ATOMIC_H))
 	target_link_libraries(fibjs atomic)
 endif()
 
-set_target_properties(fibjs PROPERTIES LINK_FLAGS ${link_flags})
+if(${OS} STREQUAL "Windows")
+	target_compile_definitions(fibjs PUBLIC -D_CONSOLE)
+	set_target_properties(fibjs PROPERTIES LINK_FLAGS "${link_flags} -Xlinker //SUBSYSTEM:CONSOLE")
+	
+	target_compile_definitions(fibjs_gui PUBLIC -D_WINDOWS)
+	set_target_properties(fibjs_gui PROPERTIES LINK_FLAGS "${link_flags} -Xlinker //SUBSYSTEM:WINDOWS")
+else()
+	set_target_properties(fibjs PROPERTIES LINK_FLAGS ${link_flags})
+endif()

@@ -1,5 +1,9 @@
 #!/bin/bash
 
+. vender/scripts/get_env.sh --source-only
+
+get_build_env;
+
 usage()
 {
 	echo ""
@@ -21,34 +25,6 @@ usage()
 	echo ""
 	exit 0
 }
-
-HOST_OS=`uname`
-HOST_ARCH=`uname -m`
-
-case ${HOST_ARCH} in
-	i386|i686) HOST_ARCH="i386"
-		;;
-	x86_64|amd64) HOST_ARCH="amd64"
-		;;
-	armv6|armv7|armv7s|armv7l) HOST_ARCH="arm"
-		;;
-	aarch64) HOST_ARCH="arm64"
-		;;
-	mips|mipsel) HOST_ARCH="mips"
-		;;
-	mips64) HOST_ARCH="mips64"
-		;;
-	powerpc) HOST_ARCH="ppc"
-		;;
-	ppc64) HOST_ARCH="ppc64"
-		;;
-esac
-
-TARGET_OS=$HOST_OS
-TARGET_ARCH=$HOST_ARCH
-BUILD_TYPE="release"
-BUILD_OPTION=""
-GCC_VERSION=`gcc -dumpversion`
 
 for i in "$@"
 do
@@ -165,12 +141,12 @@ export BUILD_VERBOSE
 
 if [ -d vender ]; then 
 	if [ -z $USE_VENDER_DIST ]; then
-	cd vender
-	sh build $BUILD_TYPE $TARGET_ARCH
-	if [ $? != 0 ]; then
-		exit 1
-	fi
-	cd ..
+		cd vender
+		sh build $BUILD_TYPE $TARGET_ARCH
+		if [ $? != 0 ]; then
+			exit 1
+		fi
+		cd ..
 	fi
 else
 	inform
