@@ -1,5 +1,9 @@
 image: Visual Studio 2017
 
+environment:
+  CI: 'ci'
+  CMAKE_RC_COMPILER: 'llvm-rc.exe'
+
 platform:
   - x64
   - x86
@@ -7,16 +11,18 @@ platform:
 configuration: Release
 
 install:
+  - call "%APPVEYOR_BUILD_FOLDER%\.appveyor\set-git-bash.cmd"
   - call "%APPVEYOR_BUILD_FOLDER%\.appveyor\install-llvm.cmd"
   - call "%APPVEYOR_BUILD_FOLDER%\.appveyor\set-llvm.cmd"
   - git submodule init
   - git submodule update
+  - call "%APPVEYOR_BUILD_FOLDER%\.appveyor\set-vender.cmd"
 
 build_script:
   - IF /I "%PLATFORM%" == "x64" ECHO "x64 building..." && build release amd64
-  - IF /I "%PLATFORM%" == "x64" IF /I "%APPVEYOR_REPO_TAG%" == "false" ( cd test && ..\bin\Windows_amd64_release\fibjs.exe --prof main.js )
+  - IF /I "%PLATFORM%" == "x64" IF /I "%APPVEYOR_REPO_TAG%" == "false" ( .\bin\Windows_amd64_release\fibjs.exe --prof .\test\main.js )
   - IF /I "%PLATFORM%" == "x86" ECHO "x86 building..." && build release i386
-  - IF /I "%PLATFORM%" == "x86" IF /I "%APPVEYOR_REPO_TAG%" == "false" ( cd test && ..\bin\Windows_i386_release\fibjs.exe --prof main.js )
+  - IF /I "%PLATFORM%" == "x86" IF /I "%APPVEYOR_REPO_TAG%" == "false" ( .\bin\Windows_i386_release\fibjs.exe --prof .\test\main.js )
   - IF /I "%APPVEYOR_REPO_TAG%" == "false" set APPVEYOR_REPO_TAG_NAME=dist
   - mkdir %APPVEYOR_REPO_TAG_NAME%
   - IF /I "%PLATFORM%" == "x64" copy .\bin\Windows_amd64_release\fibjs.exe .\%APPVEYOR_REPO_TAG_NAME%\fibjs-%APPVEYOR_REPO_TAG_NAME%-windows-x64.exe
