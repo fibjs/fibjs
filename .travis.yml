@@ -8,29 +8,29 @@ matrix:
     - os: osx
       osx_image: xcode9
       env:
-        - ARCH=amd64
+        - TARGET_ARCH=amd64
     - os: osx
       osx_image: xcode9
       env:
-        - ARCH=i386
+        - TARGET_ARCH=i386
     - os: linux
       env:
-        - ARCH=amd64
+        - TARGET_ARCH=amd64
     - os: linux
       env:
-        - ARCH=i386
+        - TARGET_ARCH=i386
     - os: linux
       env:
-        - ARCH=arm
+        - TARGET_ARCH=arm
     - os: linux
       env:
-        - ARCH=arm64
+        - TARGET_ARCH=arm64
     - os: linux
       env:
-        - ARCH=mips
+        - TARGET_ARCH=mips
     - os: linux
       env:
-        - ARCH=mips64
+        - TARGET_ARCH=mips64
 cache: ccache
 addons:
   apt:
@@ -57,7 +57,7 @@ install:
     brew install xz;
     fi
 script:
-  - echo "${ARCH}"
+  - echo "${TARGET_ARCH}"
   - ./.travis/build.sh
   - if [[ -z $TRAVIS_TAG && $TRAVIS_BRANCH != "beta" ]]; then
     ./.travis/test.sh;

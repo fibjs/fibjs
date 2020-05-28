@@ -4,9 +4,10 @@
 
 get_build_env;
 
-VENDER_ARCH=${HOST_ARCH}
-if [ ! -z $ARCH ]; then
-  VENDER_ARCH=${ARCH}
+if [ ! -z $TARGET_ARCH ]; then
+  VENDER_ARCH=${TARGET_ARCH}
+else
+  VENDER_ARCH=${HOST_ARCH}
 fi
 VENDER_OS=`echo "$HOST_OS" | tr "[:upper:]" "[:lower:]"`
 

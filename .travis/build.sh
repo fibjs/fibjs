@@ -12,9 +12,9 @@ if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
     sudo docker run \
         --env USE_VENDER_DIST="$USE_VENDER_DIST" \
         -it -v ${DIR}:/home/ci \
-        fibjs/build-env:clang /bin/sh -c "cd /home/ci; sh build -j2 ${ARCH} ci"
+        fibjs/build-env:clang /bin/sh -c "cd /home/ci; sh build -j2 ${TARGET_ARCH} ci"
 else
-    sh build -j2 ${ARCH} ci
+    sh build -j2 ${TARGET_ARCH} ci
 fi
 
 exit 0;
