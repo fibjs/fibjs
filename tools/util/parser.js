@@ -3,7 +3,6 @@ var fs = require("fs");
 var path = require("path");
 
 var _ppegjs = path.resolve(__dirname, './idl-def.pegjs')
-// fs.writeTextFile(_ppegjs, grammar_orig);
 
 var grammar = fs.readTextFile(_ppegjs);
 
@@ -131,7 +130,9 @@ module.exports = function (baseFolder, defs) {
     }
   }
 
-  delete defs2['object'].declare.extend;
+  if (defs2['object'] && defs2['object'].declare) {
+    delete defs2['object'].declare.extend;
+  }
 
   return defs2;
 };
