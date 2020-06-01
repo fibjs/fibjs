@@ -45,6 +45,9 @@ interface HttpClient : object
     /*! @brief 查询和设置代理服务器 */
     String proxyAgent;
 
+    /*! @brief 查询和设置连接 https 时的证书验证模式, 参考 ssl 模块的 VERIFY_* 常量, 默认值为 ssl.verification */
+    Integer sslVerification;
+
     /*! @brief 设定缺省客户端证书
     @param crt X509Cert 证书，用于客户端验证服务器
     @param key PKey 私钥，用于与客户端会话
