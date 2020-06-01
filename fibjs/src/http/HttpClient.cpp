@@ -179,6 +179,25 @@ result_t HttpClient::set_proxyAgent(exlib::string newVal)
     return 0;
 }
 
+result_t HttpClient::get_sslVerification(int32_t& retVal)
+{
+    retVal = m_sslVerification;
+
+    if (retVal == NULL)
+        return CALL_RETURN_NULL;
+
+    return 0;
+}
+
+result_t HttpClient::set_sslVerification(int32_t newVal)
+{
+    if (newVal < ssl_base::_VERIFY_NONE || newVal > ssl_base::_VERIFY_REQUIRED)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    m_sslVerification = newVal;
+    return 0;
+}
+
 result_t HttpClient::update(HttpCookie_base* cookie)
 {
     int32_t length, i;
@@ -591,6 +610,11 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             m_retVal.Release();
 
             obj_ptr<SslSocket> ss = new SslSocket();
+            int32_t sslVerfication;
+            m_hc->get_sslVerification(sslVerfication);
+            if (sslVerfication == NULL)
+                ssl_base::get_verification(sslVerfication);
+            ss->set_verification(sslVerfication);
             obj_ptr<Stream_base> conn = m_conn;
             m_conn = ss;
 

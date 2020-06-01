@@ -2504,6 +2504,99 @@ describe("http", () => {
         });
 
     });
+    
+    
+
+    describe("sslVerification", () => {
+        var hc;
+
+        beforeEach(() => {
+            ssl.loadRootCerts();
+        });
+
+        afterEach(() => {
+            ssl.ca.clear();
+        });
+
+        it("use ssl.VERIFY_REQUIRED by default", () => {
+            hc = new http.Client();
+            assert.strictEqual(hc.sslVerification, null);
+        });
+
+        it("request https error by default", () => {
+            hc = new http.Client();
+
+            try {
+                hc.get('https://registry.npmjs.org')
+            } catch (error) {
+                assert.ok(error.message.includes('Certificate verification failed'))
+            }
+        });
+
+        it("make https verification optional", () => {
+            hc = new http.Client();
+
+            hc.sslVerification = ssl.VERIFY_OPTIONAL
+
+            var resp = hc.get('https://registry.npmjs.org');
+
+            assert.equal(resp.statusCode, 200);
+            assert.isObject(resp.json())
+        });
+
+        it("disable https verification", () => {
+            hc = new http.Client();
+
+            hc.sslVerification = ssl.VERIFY_NONE
+
+            var resp = hc.get('https://registry.npmjs.org');
+
+            assert.equal(resp.statusCode, 200);
+            assert.isObject(resp.json())
+        });
+
+        function testEffectBySsl(verification, cb) {
+            const orig = ssl.verification
+            if (verification !== undefined)
+                ssl.verification = verification;
+            cb();
+            ssl.verification = orig
+        }
+
+        describe("affected by ssl.verification", () => {
+            it("default", () => {
+                testEffectBySsl(undefined, () => {
+                    try {
+                        hc.get('https://registry.npmjs.org')
+                    } catch (error) {
+                        assert.ok(error.message.includes('Certificate verification failed'))
+                    }
+                });
+            });
+
+            it("ssl.VERIFY_NONE", () => {
+                testEffectBySsl(ssl.VERIFY_NONE, () => {
+                    hc = new http.Client();
+
+                    var resp = hc.get('https://registry.npmjs.org');
+
+                    assert.equal(resp.statusCode, 200);
+                    assert.isObject(resp.json())
+                });
+            });
+
+            it("ssl.VERIFY_OPTIONAL", () => {
+                testEffectBySsl(ssl.VERIFY_OPTIONAL, () => {
+                    hc = new http.Client();
+
+                    var resp = hc.get('https://registry.npmjs.org');
+
+                    assert.equal(resp.statusCode, 200);
+                    assert.isObject(resp.json())
+                });
+            });
+        });
+    });
 });
 
 require.main === module && test.run(console.DEBUG);

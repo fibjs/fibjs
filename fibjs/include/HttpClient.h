@@ -9,6 +9,7 @@
 
 #include "ifs/HttpClient.h"
 #include "HttpCookie.h"
+#include "ifs/ssl.h"
 #include "Url.h"
 
 namespace fibjs {
@@ -22,6 +23,7 @@ public:
         , m_enableCookie(true)
         , m_autoRedirect(true)
         , m_enableEncoding(true)
+        , m_sslVerification(NULL)
         , m_maxBodySize(-1)
         , m_poolSize(128)
         , m_poolTimeout(10000)
@@ -51,6 +53,8 @@ public:
     virtual result_t set_poolTimeout(int32_t newVal);
     virtual result_t get_proxyAgent(exlib::string& retVal);
     virtual result_t set_proxyAgent(exlib::string newVal);
+    virtual result_t get_sslVerification(int32_t& retVal);
+    virtual result_t set_sslVerification(int32_t newVal);
     virtual result_t setClientCert(X509Cert_base* crt, PKey_base* key);
     virtual result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     virtual result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
@@ -134,6 +138,7 @@ private:
     bool m_enableCookie;
     bool m_autoRedirect;
     bool m_enableEncoding;
+    int32_t m_sslVerification;
     int32_t m_maxBodySize;
     exlib::string m_userAgent;
     exlib::string m_proxyConnUrl;
