@@ -227,21 +227,7 @@ public:
 
     void putWindowToTopOrder(struct webview* w);
 
-    void activeApp()
-    {
-        objc_msgSend(objc_msgSend((id)objc_getClass("NSApplication"),
-                         sel_registerName("sharedApplication")),
-            sel_registerName("setActivationPolicy:"),
-            NSApplicationActivationPolicyRegular);
-
-        objc_msgSend(objc_msgSend((id)objc_getClass("NSApplication"),
-                         sel_registerName("sharedApplication")),
-            sel_registerName("finishLaunching"));
-
-        objc_msgSend(objc_msgSend((id)objc_getClass("NSApplication"),
-                         sel_registerName("sharedApplication")),
-            sel_registerName("activateIgnoringOtherApps:"), 1);
-    }
+    void activeApp();
 
     void linkAppWithWebView(struct webview* w)
     {
