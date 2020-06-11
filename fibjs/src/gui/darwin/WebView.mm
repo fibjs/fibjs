@@ -189,11 +189,6 @@ id WebView::prepareWKScriptMessageHandler()
     return objc_msgSend((id)__WKScriptMessageHandler, sel_registerName("new"));
 }
 
-id WebView::prepareWKDownloadDelegate()
-{
-    return [__WKDownloadDelegate new];
-}
-
 id WebView::prepareWKPreferences(struct webview* w)
 {
     Class __WKPreferences
@@ -243,7 +238,7 @@ id WebView::prepareWKWebViewConfig(struct webview* w)
     id webviewid_wkwebviewconfig = [WKWebViewConfiguration new];
 
     id processPool = [webviewid_wkwebviewconfig processPool];
-    [processPool _setDownloadDelegate:prepareWKDownloadDelegate()];
+    [processPool _setDownloadDelegate:[__WKDownloadDelegate new]];
     [webviewid_wkwebviewconfig setProcessPool:processPool];
     [webviewid_wkwebviewconfig setUserContentController:getWKUserController(w)];
     [webviewid_wkwebviewconfig setPreferences:prepareWKPreferences(w)];

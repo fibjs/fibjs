@@ -155,8 +155,6 @@ public:
 
     id prepareWKScriptMessageHandler();
 
-    id prepareWKDownloadDelegate();
-
     id prepareWKPreferences(struct webview* w);
 
     id getWKUserController(struct webview* w);
