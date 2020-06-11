@@ -9,9 +9,7 @@
 // #import <objc/objc-runtime.h>
 // #import <objc/message.h>
 
-#if __cplusplus
-extern "C" {
-#endif
+FIBJS_EXTERN_C_START
 
 id get_nsstring(const char* c_str)
 {
@@ -290,6 +288,4 @@ void webview_dispatch(struct webview* w, webview_dispatch_fn fn,
     dispatch_async_f(dispatch_get_main_queue(), context, webview_dispatch_cb);
 }
 
-#if __cplusplus
-}
-#endif
+FIBJS_EXTERN_C_END
