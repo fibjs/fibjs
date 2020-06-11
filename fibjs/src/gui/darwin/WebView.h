@@ -153,18 +153,7 @@ public:
 
     void objc_nsAppInit(struct webview* w);
 
-    id prepareWKScriptMessageHandler()
-    {
-        Class __WKScriptMessageHandler = objc_allocateClassPair(
-            objc_getClass("NSObject"), "__WKScriptMessageHandler", 0);
-        class_addMethod(
-            __WKScriptMessageHandler,
-            sel_registerName("userContentController:didReceiveScriptMessage:"),
-            (IMP)webview_external_postMessage, "v@:@@");
-        objc_registerClassPair(__WKScriptMessageHandler);
-
-        return objc_msgSend((id)__WKScriptMessageHandler, sel_registerName("new"));
-    }
+    id prepareWKScriptMessageHandler();
 
     id prepareWKDownloadDelegate()
     {
