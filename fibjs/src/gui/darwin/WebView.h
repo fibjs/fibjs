@@ -125,23 +125,7 @@ private:
     // result_t WebView::postClose();
 
 public:
-    static id webview_get_event_from_mainloop(int blocking = 0)
-    {
-        id until = (blocking ? objc_msgSend((id)objc_getClass("NSDate"),
-                                   sel_registerName("distantFuture"))
-                             : objc_msgSend((id)objc_getClass("NSDate"),
-                                   sel_registerName("distantPast")));
-
-        id event = objc_msgSend(
-            objc_msgSend((id)objc_getClass("NSApplication"),
-                sel_registerName("sharedApplication")),
-            sel_registerName("nextEventMatchingMask:untilDate:inMode:dequeue:"),
-            ULONG_MAX, until,
-            get_nsstring("kCFRunLoopDefaultMode"), // get_nsstring("NSEventTrackingRunLoopMode"),
-            true);
-
-        return event;
-    }
+    static id webview_get_event_from_mainloop(int blocking = 0);
 
     static void send_event_to_sharedApplicatoin_and_check_should_exit(id event)
     {
@@ -472,34 +456,7 @@ public:
 
 public:
     // static registration methods, ONLY run it in GUI Thread
-    static void RegNSApplicationDelegations()
-    {
-        Class __NSApplicationDelegate = objc_allocateClassPair(objc_getClass("NSObject"),
-            "__NSApplicationDelegate", 0);
-        /**
-         * @see https://developer.apple.com/documentation/appkit/nsapplicationdelegate
-         */
-        // class_addProtocol(__NSApplicationDelegate, objc_getProtocol("NSApplicationDelegate"));
-        class_addMethod(__NSApplicationDelegate, sel_registerName("applicationWillTerminate:"),
-            (IMP)WebView::webview_applicationWillTerminate, "v@:@");
-        // TODO: replace the hook a better one?
-        class_addMethod(__NSApplicationDelegate, sel_registerName("applicationDidFinishLaunching:"),
-            (IMP)WebView::webview_applicationDidFinishLaunching, "v@:@");
-
-        class_addMethod(__NSApplicationDelegate, sel_registerName("applicationShouldTerminate:"),
-            (IMP)WebView::webview_applicationShouldTerminate, "v@:@");
-        class_addMethod(__NSApplicationDelegate, sel_registerName("applicationShouldTerminateAfterLastWindowClosed:"),
-            (IMP)WebView::webview_applicationShouldTerminateAfterLastWindowClosed, "v@:@");
-
-        objc_registerClassPair(__NSApplicationDelegate);
-
-        id appDelegate = objc_msgSend((id)__NSApplicationDelegate, sel_registerName("new"));
-        objc_msgSend(objc_msgSend((id)objc_getClass("NSApplication"),
-                         sel_registerName("sharedApplication")),
-            sel_registerName("setDelegate:"), appDelegate);
-
-        WebView::SetupAppMenubar();
-    }
+    static void RegNSApplicationDelegations();
 
     static void SetupAppMenubar()
     {
@@ -595,39 +552,6 @@ public:
         //     return NO;
         // }
         return YES;
-    }
-    // objc Delegation
-    static void webview_applicationDidFinishLaunching(id app)
-    {
-        printf("[webview_applicationDidFinishLaunching] 看看 appDelegate 生效没\n");
-
-        // WebView* wv = WebView::getCurrentWebViewInstance();
-        // if (wv)
-        //     syncCall(
-        //         wv->holder(),
-        //         [](WebView* wv) {
-        //             wv->_emit("load");
-
-        //             return 0;
-        //         },
-        //         wv);
-    }
-    static void webview_applicationWillTerminate(id applicationWillTerminate)
-    {
-        printf("[webview_applicationWillTerminate] 看看 appDelegate 生效没 \n");
-        return;
-    }
-    static int webview_applicationShouldTerminate(id applicationShouldTerminate)
-    {
-        printf("[webview_applicationShouldTerminate] 看看 appDelegate 生效没 \n");
-        // NSTerminateNow = 1
-        // NSTerminateLater = 2
-        return 1;
-    }
-    static bool webview_applicationShouldTerminateAfterLastWindowClosed(id app)
-    {
-        printf("[webview_applicationShouldTerminateAfterLastWindowClosed] 看看 appDelegate 生效没 \n");
-        return false;
     }
 
     static void webview_windowDidMove(id self, SEL cmd, id didMoveNotification)
