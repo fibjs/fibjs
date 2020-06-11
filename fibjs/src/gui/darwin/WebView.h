@@ -221,17 +221,7 @@ public:
 
     id prepareWkWebViewNavDelegation();
 
-    id getWKWebView(struct webview* w)
-    {
-        id webview = objc_msgSend((id)objc_getClass("WKWebView"), sel_registerName("alloc"));
-
-        objc_msgSend(webview,
-            sel_registerName("initWithFrame:configuration:"), this->webview_window_rect, prepareWKWebViewConfig(w));
-        objc_msgSend(webview, sel_registerName("setUIDelegate:"), prepareWKWebViewUIDelegation());
-        objc_msgSend(webview, sel_registerName("setNavigationDelegate:"), prepareWkWebViewNavDelegation());
-
-        return webview;
-    }
+    id getWKWebView(struct webview* w);
 
     void navigateWKWebView(struct webview* w)
     {
