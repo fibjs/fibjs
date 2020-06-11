@@ -204,4 +204,9 @@ decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler
 }
 @end
 
+// @interface __WKPreferences : NSObject<WKPreferences>
+// @end
+// @implementation __WKPreferences
+// @end
+
 #endif // __APPLE__

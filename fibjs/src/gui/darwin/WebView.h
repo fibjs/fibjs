@@ -180,27 +180,7 @@ public:
         return objc_msgSend((id)__WKDownloadDelegate, sel_registerName("new"));
     }
 
-    id prepareWKPreferences(struct webview* w)
-    {
-
-        Class __WKPreferences
-            = objc_allocateClassPair(objc_getClass("WKPreferences"),
-                "__WKPreferences", 0);
-        objc_property_attribute_t type = { "T", "c" };
-        objc_property_attribute_t ownership = { "N", "" };
-        objc_property_attribute_t attrs[] = { type, ownership };
-        class_replaceProperty(__WKPreferences, "developerExtrasEnabled", attrs, 2);
-        objc_registerClassPair(__WKPreferences);
-        id webviewid_wkPref = objc_msgSend((id)__WKPreferences, sel_registerName("new"));
-        objc_msgSend(webviewid_wkPref, sel_registerName("setValue:forKey:"),
-            objc_msgSend((id)objc_getClass("NSNumber"),
-                sel_registerName("numberWithBool:"), !!w->debug),
-            objc_msgSend((id)objc_getClass("NSString"),
-                sel_registerName("stringWithUTF8String:"),
-                "developerExtrasEnabled"));
-
-        return webviewid_wkPref;
-    }
+    id prepareWKPreferences(struct webview* w);
 
     id getWKUserController(struct webview* w);
 
