@@ -151,13 +151,7 @@ public:
         return WebView::should_exit(w);
     }
 
-    void objc_nsAppInit(struct webview* w)
-    {
-        w->priv.pool = objc_msgSend((id)objc_getClass("NSAutoreleasePool"),
-            sel_registerName("new"));
-        objc_msgSend((id)objc_getClass("NSApplication"),
-            sel_registerName("sharedApplication"));
-    }
+    void objc_nsAppInit(struct webview* w);
 
     id prepareWKScriptMessageHandler()
     {
