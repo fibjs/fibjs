@@ -241,9 +241,6 @@ static int webview_js_encode(const char* s, char* esc, size_t n)
 #ifndef NSModalResponseOK
 #define NSModalResponseOK 1
 #endif
-#ifndef WKNavigationActionPolicyDownload
-#define WKNavigationActionPolicyDownload 2
-#endif
 #ifndef WKNavigationResponsePolicyAllow
 #define WKNavigationResponsePolicyAllow 1
 #endif
