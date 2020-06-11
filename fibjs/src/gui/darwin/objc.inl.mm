@@ -204,6 +204,28 @@ decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler
 }
 @end
 
+@interface __WKScriptMessageHandler : NSObject
+@end
+@implementation __WKScriptMessageHandler
+- (void)userContentController:(WKUserContentController *)userContentController 
+      didReceiveScriptMessage:(WKScriptMessage *)message
+{
+    printf("[webview_external_postMessage] \n");
+    struct webview* w = (struct webview*)objc_getAssociatedObject(userContentController, "webview");
+    if (w == NULL)
+        return;
+
+    // WebView* wv = getClsWebView(w);
+    // if (wv == NULL)
+    //     return;
+    const char* msg = (const char*)objc_msgSend(objc_msgSend(message, sel_registerName("body")), sel_registerName("UTF8String"));
+    // normalize to one function
+    printf("[webview_external_postMessage] view view msg %s \n", w->title);
+
+    // wv->_emit("message", msg);
+}
+@end
+
 // @interface __WKPreferences : NSObject<WKPreferences>
 // @end
 // @implementation __WKPreferences

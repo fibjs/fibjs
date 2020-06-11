@@ -153,8 +153,6 @@ public:
 
     void objc_nsAppInit(struct webview* w);
 
-    id prepareWKScriptMessageHandler();
-
     id prepareWKPreferences(struct webview* w);
 
     id getWKUserController(struct webview* w);
@@ -313,23 +311,6 @@ public:
     }
 
 public:
-    static void webview_external_postMessage(id self, SEL cmd, id userContentController, id message)
-    {
-        printf("[webview_external_postMessage] \n");
-        struct webview* w = (struct webview*)objc_getAssociatedObject(userContentController, "webview");
-        if (w == NULL)
-            return;
-
-        WebView* wv = getClsWebView(w);
-        if (wv == NULL)
-            return;
-        const char* msg = (const char*)objc_msgSend(objc_msgSend(message, sel_registerName("body")), sel_registerName("UTF8String"));
-        // normalize to one function
-        printf("[webview_external_postMessage] view view msg %s \n", w->title);
-
-        // wv->_emit("message", msg);
-    }
-
     static int on_webview_say_close(struct webview* w)
     {
         WebView* wv = getClsWebView(w);
