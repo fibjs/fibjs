@@ -270,6 +270,12 @@ id WebView::getWKWebView(struct webview* w)
     return webview;
 }
 
+void WebView::navigateWKWebView(struct webview* w)
+{
+    id nsURL = [NSURL URLWithString:get_nsstring(webview_check_url(w->url))];
+    [w->priv.webview loadRequest:[NSURLRequest requestWithURL:nsURL]];
+}
+
 void WebView::clear()
 {
     printf("[WebView::clear] \n");

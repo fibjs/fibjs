@@ -219,16 +219,7 @@ public:
 
     id getWKWebView(struct webview* w);
 
-    void navigateWKWebView(struct webview* w)
-    {
-        id nsURL = objc_msgSend((id)objc_getClass("NSURL"),
-            sel_registerName("URLWithString:"),
-            get_nsstring(webview_check_url(w->url)));
-
-        objc_msgSend(w->priv.webview, sel_registerName("loadRequest:"),
-            objc_msgSend((id)objc_getClass("NSURLRequest"),
-                sel_registerName("requestWithURL:"), nsURL));
-    }
+    void navigateWKWebView(struct webview* w);
 
     void setWKWebViewStyle(id webview)
     {
