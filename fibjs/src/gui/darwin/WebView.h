@@ -601,16 +601,16 @@ public:
     {
         printf("[webview_applicationDidFinishLaunching] 看看 appDelegate 生效没\n");
 
-        WebView* wv = WebView::getCurrentWebViewInstance();
-        if (wv)
-            syncCall(
-                wv->holder(),
-                [](WebView* wv) {
-                    wv->_emit("load");
+        // WebView* wv = WebView::getCurrentWebViewInstance();
+        // if (wv)
+        //     syncCall(
+        //         wv->holder(),
+        //         [](WebView* wv) {
+        //             wv->_emit("load");
 
-                    return 0;
-                },
-                wv);
+        //             return 0;
+        //         },
+        //         wv);
     }
     static void webview_applicationWillTerminate(id applicationWillTerminate)
     {
@@ -646,7 +646,7 @@ public:
         // obj_ptr<EventInfo> ei = new EventInfo(wv, "move");
         // wv->_emit("move", ei);
 
-        wv->_emit("move");
+        // wv->_emit("move");
     }
 
     static void webview_external_postMessage(id self, SEL cmd, id userContentController, id message)
@@ -669,10 +669,10 @@ public:
     static void webview_windowWillClose(id self, SEL cmd, id willCloseNotification)
     {
         printf("[webview_windowWillClose] before \n");
-        struct webview* w = (struct webview*)objc_getAssociatedObject(self, "webview");
+        // struct webview* w = (struct webview*)objc_getAssociatedObject(self, "webview");
 
-        if (w != NULL)
-            WebView::on_webview_say_close(w);
+        // if (w != NULL)
+        //     WebView::on_webview_say_close(w);
 
         // asyncCall(WebView::on_webview_say_close, w, CALL_E_GUICALL);
         printf("[webview_windowWillClose] after \n");
