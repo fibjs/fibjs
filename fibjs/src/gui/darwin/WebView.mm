@@ -250,6 +250,13 @@ void WebView::setupWindowDelegation(struct webview* w)
     objc_msgSend(w->priv.window, sel_registerName("setDelegate:"), w->priv.windowDelegate);
 }
 
+void WebView::setupWindowTitle(struct webview* w)
+{
+    [w->priv.window
+        setTitle:[NSString stringWithUTF8String:w->title]
+    ];
+}
+
 void WebView::clear()
 {
     printf("[WebView::clear] \n");

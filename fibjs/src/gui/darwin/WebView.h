@@ -215,13 +215,7 @@ public:
 
     void setupWindowDelegation(struct webview* w);
 
-    void setupWindowTitle(struct webview* w)
-    {
-        // title
-        id nsTitle = objc_msgSend((id)objc_getClass("NSString"),
-            sel_registerName("stringWithUTF8String:"), w->title);
-        objc_msgSend(w->priv.window, sel_registerName("setTitle:"), nsTitle);
-    }
+    void setupWindowTitle(struct webview* w);
 
     id prepareWKWebViewUIDelegation()
     {
