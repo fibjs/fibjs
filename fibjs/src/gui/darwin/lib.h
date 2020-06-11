@@ -52,14 +52,6 @@ struct webview_priv {
     int should_exit;
 };
 
-struct webview;
-
-typedef void (*webview_external_cb_t)(struct webview* w,
-    const char* arg);
-
-typedef void (*webview_external_invoke_cb_t)(struct webview* w,
-    const char* arg);
-
 struct webview {
     const char* url;
     const char* title;
@@ -86,41 +78,6 @@ enum webview_dialog_type {
 #define WEBVIEW_DIALOG_FLAG_ERROR (3 << 1)
 #define WEBVIEW_DIALOG_FLAG_ALERT_MASK (3 << 1)
 
-typedef void (*gui_dispatch_fn)(id event, void* arg);
-
-struct guid_dispatch_arg {
-    gui_dispatch_fn fn;
-    id event;
-    void* arg;
-};
-
-static void gui_dispatch_cb(void* arg)
-{
-    struct guid_dispatch_arg* context = (struct guid_dispatch_arg*)arg;
-    (context->fn)(context->event, context->arg);
-    free(context);
-}
-static void gui_dispatch(
-    id event,
-    gui_dispatch_fn fn,
-    void* arg)
-{
-    struct guid_dispatch_arg* context = (struct guid_dispatch_arg*)malloc(
-        sizeof(struct guid_dispatch_arg));
-    context->event = event;
-    context->arg = arg;
-    context->fn = fn;
-    dispatch_async_f(dispatch_get_main_queue(), context, gui_dispatch_cb);
-}
-
-typedef void (*webview_dispatch_fn)(struct webview* w, void* arg);
-
-struct webview_dispatch_arg {
-    webview_dispatch_fn fn;
-    struct webview* w;
-    void* arg;
-};
-
 #define DEFAULT_URL                                                              \
     "data:text/"                                                                 \
     "html,%3C%21DOCTYPE%20html%3E%0A%3Chtml%20lang=%22en%22%3E%0A%3Chead%3E%"    \
@@ -142,54 +99,6 @@ static const char* webview_check_url(const char* url)
         return DEFAULT_URL;
     }
     return url;
-}
-
-int webview_eval(struct webview* w, const char* js);
-int webview_inject_css(struct webview* w, const char* css);
-void webview_set_title(struct webview* w, const char* title);
-void webview_set_fullscreen(struct webview* w, int fullscreen);
-void webview_set_color(struct webview* w, uint8_t r, uint8_t g,
-    uint8_t b, uint8_t a);
-void webview_dialog(struct webview* w,
-    enum webview_dialog_type dlgtype, int flags,
-    const char* title, const char* arg,
-    char* result, size_t resultsz);
-void webview_dispatch(struct webview* w, webview_dispatch_fn fn,
-    void* arg);
-// void webview_terminate(struct webview* w);
-WEBVIEW_API void webview_print_log(const char* s) { printf("%s\n", s); }
-
-WEBVIEW_API void webview_debug(const char* format, ...)
-{
-    char buf[4096];
-    va_list ap;
-    va_start(ap, format);
-    vsnprintf(buf, sizeof(buf), format, ap);
-    webview_print_log(buf);
-    va_end(ap);
-}
-
-static int webview_js_encode(const char* s, char* esc, size_t n)
-{
-    int r = 1; /* At least one byte for trailing zero */
-    for (; *s; s++) {
-        const unsigned char c = *s;
-        if (c >= 0x20 && c < 0x80 && strchr("<>\\'\"", c) == NULL) {
-            if (n > 0) {
-                *esc++ = c;
-                n--;
-            }
-            r++;
-        } else {
-            if (n > 0) {
-                snprintf(esc, n, "\\x%02x", (int)c);
-                esc += 4;
-                n -= 4;
-            }
-            r += 4;
-        }
-    }
-    return r;
 }
 
 #ifndef NSAlertStyleWarning
@@ -254,15 +163,6 @@ static int webview_js_encode(const char* s, char* esc, size_t n)
 // #endif
 
 id get_nsstring(const char* c_str);
-
-id create_menu_item(id title, const char* action, const char* key);
-
-static void webview_dispatch_cb(void* arg)
-{
-    struct webview_dispatch_arg* context = (struct webview_dispatch_arg*)arg;
-    (context->fn)(context->w, context->arg);
-    free(context);
-}
 
 FIBJS_EXTERN_C_END
 
