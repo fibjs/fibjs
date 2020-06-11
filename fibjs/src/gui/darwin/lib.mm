@@ -20,28 +20,6 @@ id create_menu_item(id title, const char* action, const char* key)
     return item;
 }
 
-void run_open_panel(id self, SEL cmd, id webView, id parameters,
-    id frame, void (^completionHandler)(id))
-{
-
-    id openPanel = objc_msgSend((id)objc_getClass("NSOpenPanel"),
-        sel_registerName("openPanel"));
-
-    objc_msgSend(
-        openPanel, sel_registerName("setAllowsMultipleSelection:"),
-        objc_msgSend(parameters, sel_registerName("allowsMultipleSelection")));
-
-    objc_msgSend(openPanel, sel_registerName("setCanChooseFiles:"), 1);
-    objc_msgSend(
-        openPanel, sel_registerName("beginWithCompletionHandler:"), ^(id result) {
-            if (result == (id)NSModalResponseOK) {
-                completionHandler(objc_msgSend(openPanel, sel_registerName("URLs")));
-            } else {
-                completionHandler(nil);
-            }
-        });
-}
-
 void run_save_panel(id self, SEL cmd, id download, id filename,
     void (^completionHandler)(int allowOverwrite,
         id destination))
@@ -61,46 +39,6 @@ void run_save_panel(id self, SEL cmd, id download, id filename,
                 completionHandler(NO, nil);
             }
         });
-}
-
-void run_confirmation_panel(id self, SEL cmd, id webView, id message,
-    id frame, void (^completionHandler)(bool))
-{
-
-    id alert = objc_msgSend((id)objc_getClass("NSAlert"), sel_registerName("new"));
-    objc_msgSend(alert, sel_registerName("setIcon:"),
-        objc_msgSend((id)objc_getClass("NSImage"),
-            sel_registerName("imageNamed:"),
-            get_nsstring("NSCaution")));
-    objc_msgSend(alert, sel_registerName("setShowsHelp:"), 0);
-    objc_msgSend(alert, sel_registerName("setInformativeText:"), message);
-    objc_msgSend(alert, sel_registerName("addButtonWithTitle:"),
-        get_nsstring("OK"));
-    objc_msgSend(alert, sel_registerName("addButtonWithTitle:"),
-        get_nsstring("Cancel"));
-    if (objc_msgSend(alert, sel_registerName("runModal")) == (id)NSAlertFirstButtonReturn) {
-        completionHandler(true);
-    } else {
-        completionHandler(false);
-    }
-    objc_msgSend(alert, sel_registerName("release"));
-}
-
-void run_alert_panel(id self, SEL cmd, id webView, id message, id frame,
-    void (^completionHandler)(void))
-{
-    id alert = objc_msgSend((id)objc_getClass("NSAlert"), sel_registerName("new"));
-    objc_msgSend(alert, sel_registerName("setIcon:"),
-        objc_msgSend((id)objc_getClass("NSImage"),
-            sel_registerName("imageNamed:"),
-            get_nsstring("NSCaution")));
-    objc_msgSend(alert, sel_registerName("setShowsHelp:"), 0);
-    objc_msgSend(alert, sel_registerName("setInformativeText:"), message);
-    objc_msgSend(alert, sel_registerName("addButtonWithTitle:"),
-        get_nsstring("OK"));
-    objc_msgSend(alert, sel_registerName("runModal"));
-    objc_msgSend(alert, sel_registerName("release"));
-    completionHandler();
 }
 
 void make_nav_policy_decision(id self, SEL cmd, id webView, id response,

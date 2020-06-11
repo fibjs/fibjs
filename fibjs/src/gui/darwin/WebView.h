@@ -217,26 +217,7 @@ public:
 
     void setupWindowTitle(struct webview* w);
 
-    id prepareWKWebViewUIDelegation()
-    {
-        Class __WKUIDelegate = objc_allocateClassPair(objc_getClass("NSObject"), "__WKUIDelegate", 0);
-        class_addProtocol(__WKUIDelegate, objc_getProtocol("WKUIDelegate"));
-        class_addMethod(__WKUIDelegate,
-            sel_registerName("webView:runOpenPanelWithParameters:"
-                             "initiatedByFrame:completionHandler:"),
-            (IMP)run_open_panel, "v@:@@@?");
-        class_addMethod(__WKUIDelegate,
-            sel_registerName("webView:runJavaScriptAlertPanelWithMessage:"
-                             "initiatedByFrame:completionHandler:"),
-            (IMP)run_alert_panel, "v@:@@@?");
-        class_addMethod(
-            __WKUIDelegate,
-            sel_registerName("webView:runJavaScriptConfirmPanelWithMessage:"
-                             "initiatedByFrame:completionHandler:"),
-            (IMP)run_confirmation_panel, "v@:@@@?");
-        objc_registerClassPair(__WKUIDelegate);
-        return objc_msgSend((id)__WKUIDelegate, sel_registerName("new"));
-    }
+    id prepareWKWebViewUIDelegation();
 
     id prepareWkWebViewNavDelegation()
     {

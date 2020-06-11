@@ -257,6 +257,11 @@ void WebView::setupWindowTitle(struct webview* w)
     ];
 }
 
+id WebView::prepareWKWebViewUIDelegation()
+{
+    return [__WKUIDelegate new];
+}
+
 void WebView::clear()
 {
     printf("[WebView::clear] \n");
