@@ -187,4 +187,21 @@ completionHandler:(void (^)(BOOL result))completionHandler;
 }
 @end
 
+@interface __WKNavigationDelegate : NSObject<WKNavigationDelegate>
+@end
+
+@implementation __WKNavigationDelegate
+- (void)webView:(WKWebView *)webView 
+decidePolicyForNavigationResponse:(WKNavigationResponse *)navigationResponse 
+decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler
+{
+    if ([navigationResponse canShowMIMEType] == 0) {
+        // decisionHandler(WKNavigationActionPolicyDownload);
+        decisionHandler(WKNavigationResponsePolicyCancel);
+    } else {
+        decisionHandler(WKNavigationResponsePolicyAllow);
+    }
+}
+@end
+
 #endif // __APPLE__
