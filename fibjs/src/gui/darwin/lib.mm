@@ -20,35 +20,6 @@ id create_menu_item(id title, const char* action, const char* key)
     return item;
 }
 
-void run_save_panel(id self, SEL cmd, id download, id filename,
-    void (^completionHandler)(int allowOverwrite,
-        id destination))
-{
-    id savePanel = objc_msgSend((id)objc_getClass("NSSavePanel"),
-        sel_registerName("savePanel"));
-    objc_msgSend(savePanel, sel_registerName("setCanCreateDirectories:"), 1);
-    objc_msgSend(savePanel, sel_registerName("setNameFieldStringValue:"),
-        filename);
-    objc_msgSend(savePanel, sel_registerName("beginWithCompletionHandler:"),
-        ^(id result) {
-            if (result == (id)NSModalResponseOK) {
-                id url = objc_msgSend(savePanel, sel_registerName("URL"));
-                id path = objc_msgSend(url, sel_registerName("path"));
-                completionHandler(1, path);
-            } else {
-                completionHandler(NO, nil);
-            }
-        });
-}
-
-void download_failed(id self, SEL cmd, id download, id error)
-{
-    printf("%s",
-        (const char*)objc_msgSend(
-            objc_msgSend(error, sel_registerName("localizedDescription")),
-            sel_registerName("UTF8String")));
-}
-
 int webview_eval(struct webview* w, const char* js)
 {
     [w->priv.webview

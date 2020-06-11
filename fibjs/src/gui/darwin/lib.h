@@ -257,12 +257,6 @@ id get_nsstring(const char* c_str);
 
 id create_menu_item(id title, const char* action, const char* key);
 
-void run_save_panel(id self, SEL cmd, id download, id filename,
-    void (^completionHandler)(int allowOverwrite,
-        id destination));
-
-void download_failed(id self, SEL cmd, id download, id error);
-
 static void webview_dispatch_cb(void* arg)
 {
     struct webview_dispatch_arg* context = (struct webview_dispatch_arg*)arg;
