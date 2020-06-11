@@ -289,6 +289,11 @@ void WebView::linkWindowWithWebview(struct webview* w)
     ];
 }
 
+void WebView::putWindowToTopOrder(struct webview* w)
+{
+    [w->priv.window orderFrontRegardless];
+}
+
 void WebView::clear()
 {
     printf("[WebView::clear] \n");

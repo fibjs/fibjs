@@ -225,10 +225,7 @@ public:
 
     void linkWindowWithWebview(struct webview* w);
 
-    void putWindowToTopOrder(struct webview* w)
-    {
-        objc_msgSend(w->priv.window, sel_registerName("orderFrontRegardless"));
-    }
+    void putWindowToTopOrder(struct webview* w);
 
     void activeApp()
     {
