@@ -371,7 +371,7 @@ static int async_webview_eval(const char* jsscript)
     struct webview* w = WebView::getCurrentWebViewStruct();
     if (w != NULL) {
         printf("[async_webview_eval] would eval \n");
-        webview_eval(w, jsscript);
+        WebView::webview_eval(w, jsscript);
     }
 
     return 0;
