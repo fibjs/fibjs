@@ -294,6 +294,14 @@ void WebView::putWindowToTopOrder(struct webview* w)
     [w->priv.window orderFrontRegardless];
 }
 
+void WebView::activeApp()
+{
+    id app = [NSApplication sharedApplication];
+    [app setActivationPolicy:NSApplicationActivationPolicyRegular];
+    [app finishLaunching];
+    [app activateIgnoringOtherApps:YES];
+}
+
 void WebView::clear()
 {
     printf("[WebView::clear] \n");
