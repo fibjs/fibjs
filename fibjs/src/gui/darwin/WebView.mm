@@ -226,6 +226,23 @@ id WebView::prepareWKWebViewConfig(struct webview* w)
     return webviewid_wkwebviewconfig;
 }
 
+void WebView::initWindow(struct webview* w)
+{
+    unsigned int style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
+    if (w->resizable) style = style | NSWindowStyleMaskResizable;
+
+    s_activeWinObjcId = w->priv.window = [[NSWindow alloc]
+        initWithContentRect:this->webview_window_rect
+        styleMask:style
+        backing:NSBackingStoreBuffered
+        defer:FALSE
+    ];
+    printf("[WebView::initWindow] s_activeWinObjcId assigned\n");
+    objc_setAssociatedObject(s_activeWinObjcId, "webview", (id)(w), OBJC_ASSOCIATION_ASSIGN);
+
+    [w->priv.window autorelease];
+}
+
 void WebView::clear()
 {
     printf("[WebView::clear] \n");

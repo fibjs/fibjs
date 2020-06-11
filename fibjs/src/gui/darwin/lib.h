@@ -217,9 +217,9 @@ static int webview_js_encode(const char* s, char* esc, size_t n)
 #ifndef NSViewHeightSizable
 #define NSViewHeightSizable 16
 #endif
-#ifndef NSBackingStoreBuffered
-#define NSBackingStoreBuffered 2
-#endif
+// #ifndef NSBackingStoreBuffered
+// #define NSBackingStoreBuffered 2
+// #endif
 #ifndef NSEventMaskAny
 #define NSEventMaskAny ULONG_MAX
 #endif

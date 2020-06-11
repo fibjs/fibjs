@@ -211,22 +211,7 @@ public:
         this->webview_window_rect = CGRectMake(0, 0, w->width, w->height);
     }
 
-    void initWindow(struct webview* w)
-    {
-        unsigned int style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
-        if (w->resizable) {
-            style = style | NSWindowStyleMaskResizable;
-        }
-
-        s_activeWinObjcId = w->priv.window = objc_msgSend((id)objc_getClass("NSWindow"), sel_registerName("alloc"));
-        printf("[WebView::initWindow] s_activeWinObjcId assigned");
-        objc_setAssociatedObject(s_activeWinObjcId, "webview", (id)(w), OBJC_ASSOCIATION_ASSIGN);
-        objc_msgSend(w->priv.window,
-            sel_registerName("initWithContentRect:styleMask:backing:defer:"),
-            this->webview_window_rect, style, NSBackingStoreBuffered, 0);
-
-        objc_msgSend(w->priv.window, sel_registerName("autorelease"));
-    }
+    void initWindow(struct webview* w);
 
     void setupWindowDelegation(struct webview* w)
     {
