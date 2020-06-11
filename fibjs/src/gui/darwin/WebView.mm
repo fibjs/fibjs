@@ -243,6 +243,13 @@ void WebView::initWindow(struct webview* w)
     [w->priv.window autorelease];
 }
 
+void WebView::setupWindowDelegation(struct webview* w)
+{
+    w->priv.windowDelegate = [__NSWindowDelegate new];
+    objc_setAssociatedObject(w->priv.windowDelegate, "webview", (id)(w), OBJC_ASSOCIATION_ASSIGN);
+    objc_msgSend(w->priv.window, sel_registerName("setDelegate:"), w->priv.windowDelegate);
+}
+
 void WebView::clear()
 {
     printf("[WebView::clear] \n");

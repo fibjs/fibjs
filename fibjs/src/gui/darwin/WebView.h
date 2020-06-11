@@ -213,28 +213,7 @@ public:
 
     void initWindow(struct webview* w);
 
-    void setupWindowDelegation(struct webview* w)
-    {
-        Class __NSWindowDelegate = objc_allocateClassPair(objc_getClass("NSObject"), "__NSWindowDelegate", 0);
-        /**
-         * @see https://developer.apple.com/documentation/appkit/nswindowdelegate
-         */
-        class_addProtocol(__NSWindowDelegate, objc_getProtocol("NSWindowDelegate"));
-
-        class_replaceMethod(__NSWindowDelegate, sel_registerName("windowWillClose:"),
-            (IMP)WebView::webview_windowWillClose, "v@:@");
-        class_replaceMethod(__NSWindowDelegate, sel_registerName("windowDidMove:"),
-            (IMP)WebView::webview_windowDidMove, "v@:@");
-        class_replaceMethod(__NSWindowDelegate, sel_registerName("windowShouldClose:"),
-            (IMP)WebView::webview_windowShouldClose, "v@:@");
-
-        objc_registerClassPair(__NSWindowDelegate);
-
-        w->priv.windowDelegate = objc_msgSend((id)__NSWindowDelegate, sel_registerName("new"));
-        objc_setAssociatedObject(w->priv.windowDelegate, "webview", (id)(w), OBJC_ASSOCIATION_ASSIGN);
-
-        objc_msgSend(w->priv.window, sel_registerName("setDelegate:"), w->priv.windowDelegate);
-    }
+    void setupWindowDelegation(struct webview* w);
 
     void setupWindowTitle(struct webview* w)
     {
@@ -466,45 +445,6 @@ public:
     }
 
 public:
-    // objc handlers of delegations
-    static bool webview_windowShouldClose(id window)
-    {
-        printf("[webview_windowShouldClose] 看看 winDelegate 生效没 \n");
-
-        // id alert = objc_msgSend((id)objc_getClass("NSAlert"), sel_registerName("new"));
-        // objc_msgSend(alert, sel_registerName("setAlertStyle:"), NSAlertStyleWarning);
-        // objc_msgSend(alert, sel_registerName("setMessageText:"), get_nsstring("确定退出吗?"));
-        // objc_msgSend(alert, sel_registerName("addButtonWithTitle:"), get_nsstring("退出"));
-        // objc_msgSend(alert, sel_registerName("addButtonWithTitle:"), get_nsstring("取消"));
-
-        // unsigned long result = (unsigned long)objc_msgSend(alert, sel_registerName("runModal"));
-        // objc_msgSend(alert, sel_registerName("release"));
-
-        // if (result != NSAlertFirstButtonReturn) {
-        //     return NO;
-        // }
-        return YES;
-    }
-
-    static void webview_windowDidMove(id self, SEL cmd, id didMoveNotification)
-    {
-        struct webview* w = (struct webview*)objc_getAssociatedObject(self, "webview");
-        if (w == NULL)
-            return;
-
-        WebView* wv = getClsWebView(w);
-        if (wv == NULL)
-            return;
-
-        // TODO: use information in didMoveNotification
-        printf("[onWindowDidMove]\n");
-
-        // obj_ptr<EventInfo> ei = new EventInfo(wv, "move");
-        // wv->_emit("move", ei);
-
-        // wv->_emit("move");
-    }
-
     static void webview_external_postMessage(id self, SEL cmd, id userContentController, id message)
     {
         printf("[webview_external_postMessage] \n");
@@ -520,18 +460,6 @@ public:
         printf("[webview_external_postMessage] view view msg %s \n", w->title);
 
         // wv->_emit("message", msg);
-    }
-
-    static void webview_windowWillClose(id self, SEL cmd, id willCloseNotification)
-    {
-        printf("[webview_windowWillClose] before \n");
-        // struct webview* w = (struct webview*)objc_getAssociatedObject(self, "webview");
-
-        // if (w != NULL)
-        //     WebView::on_webview_say_close(w);
-
-        // asyncCall(WebView::on_webview_say_close, w, CALL_E_GUICALL);
-        printf("[webview_windowWillClose] after \n");
     }
 
     static int on_webview_say_close(struct webview* w)
