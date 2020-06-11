@@ -217,10 +217,6 @@ public:
 
     void setupWindowTitle(struct webview* w);
 
-    id prepareWKWebViewUIDelegation();
-
-    id prepareWkWebViewNavDelegation();
-
     id getWKWebView(struct webview* w);
 
     void navigateWKWebView(struct webview* w)

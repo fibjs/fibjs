@@ -257,16 +257,6 @@ void WebView::setupWindowTitle(struct webview* w)
     ];
 }
 
-id WebView::prepareWKWebViewUIDelegation()
-{
-    return [__WKUIDelegate new];
-}
-
-id WebView::prepareWkWebViewNavDelegation()
-{
-    return [__WKNavigationDelegate new];
-}
-
 id WebView::getWKWebView(struct webview* w)
 {
     id webview = [
@@ -274,8 +264,8 @@ id WebView::getWKWebView(struct webview* w)
         initWithFrame:this->webview_window_rect configuration:prepareWKWebViewConfig(w)
     ];
 
-    [webview setUIDelegate:prepareWKWebViewUIDelegation()];
-    [webview setNavigationDelegate:prepareWkWebViewNavDelegation()];
+    [webview setUIDelegate:[__WKUIDelegate new]];
+    [webview setNavigationDelegate:[__WKNavigationDelegate new]];
 
     return webview;
 }
