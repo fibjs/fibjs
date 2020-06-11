@@ -202,32 +202,7 @@ public:
         return webviewid_wkPref;
     }
 
-    id getWKUserController(struct webview* w)
-    {
-        id webviewid_wkUserController = objc_msgSend((id)objc_getClass("WKUserContentController"),
-            sel_registerName("new"));
-        objc_setAssociatedObject(webviewid_wkUserController, "webview", (id)(w),
-            OBJC_ASSOCIATION_ASSIGN);
-        objc_msgSend(
-            webviewid_wkUserController, sel_registerName("addScriptMessageHandler:name:"),
-            prepareWKScriptMessageHandler(),
-            get_nsstring(WEBVIEW_MSG_HANDLER_NAME));
-        // objc_msgSend((id)objc_getClass("NSString"),
-        //     // TODO: should I make it customizable?
-        //     sel_registerName("stringWithUTF8String:"), WEBVIEW_MSG_HANDLER_NAME));
-
-        id windowExternalOverrideScript = objc_msgSend((id)objc_getClass("WKUserScript"), sel_registerName("alloc"));
-        objc_msgSend(
-            windowExternalOverrideScript,
-            sel_registerName("initWithSource:injectionTime:forMainFrameOnly:"),
-            get_nsstring("window.external = this;"
-                         "postMessage = function(arg){ webkit.messageHandlers.invoke.postMessage(arg); };"),
-            WKUserScriptInjectionTimeAtDocumentStart, 0);
-
-        objc_msgSend(webviewid_wkUserController, sel_registerName("addUserScript:"), windowExternalOverrideScript);
-
-        return webviewid_wkUserController;
-    }
+    id getWKUserController(struct webview* w);
 
     id prepareWKWebViewConfig(struct webview* w)
     {
