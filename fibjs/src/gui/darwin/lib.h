@@ -24,15 +24,13 @@
 #ifndef WEBVIEW_COCOA_H
 #define WEBVIEW_COCOA_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+FIBJS_EXTERN_C_START
 
-#ifdef WEBVIEW_STATIC
+// #ifdef WEBVIEW_STATIC
 #define WEBVIEW_API static
-#else
-#define WEBVIEW_API extern
-#endif
+// #else
+// #define WEBVIEW_API extern
+// #endif
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -144,21 +142,20 @@ static const char* webview_check_url(const char* url)
     return url;
 }
 
-static int webview_eval(struct webview* w, const char* js);
-WEBVIEW_API int webview_inject_css(struct webview* w, const char* css);
-WEBVIEW_API void webview_set_title(struct webview* w, const char* title);
-WEBVIEW_API void webview_set_fullscreen(struct webview* w, int fullscreen);
-WEBVIEW_API void webview_set_color(struct webview* w, uint8_t r, uint8_t g,
+int webview_eval(struct webview* w, const char* js);
+int webview_inject_css(struct webview* w, const char* css);
+void webview_set_title(struct webview* w, const char* title);
+void webview_set_fullscreen(struct webview* w, int fullscreen);
+void webview_set_color(struct webview* w, uint8_t r, uint8_t g,
     uint8_t b, uint8_t a);
-WEBVIEW_API void webview_dialog(struct webview* w,
+void webview_dialog(struct webview* w,
     enum webview_dialog_type dlgtype, int flags,
     const char* title, const char* arg,
     char* result, size_t resultsz);
-WEBVIEW_API void webview_dispatch(struct webview* w, webview_dispatch_fn fn,
+void webview_dispatch(struct webview* w, webview_dispatch_fn fn,
     void* arg);
-WEBVIEW_API void webview_terminate(struct webview* w);
-WEBVIEW_API void webview_debug(const char* format, ...);
-WEBVIEW_API void webview_print_log(const char* s);
+// void webview_terminate(struct webview* w);
+WEBVIEW_API void webview_print_log(const char* s) { printf("%s\n", s); }
 
 WEBVIEW_API void webview_debug(const char* format, ...)
 {
@@ -193,294 +190,92 @@ static int webview_js_encode(const char* s, char* esc, size_t n)
     return r;
 }
 
-WEBVIEW_API int webview_inject_css(struct webview* w, const char* css)
-{
-    int n = webview_js_encode(css, NULL, 0);
-    char* esc = (char*)calloc(1, sizeof(CSS_INJECT_FUNCTION) + n + 4);
-    if (esc == NULL) {
-        return -1;
-    }
-    char* js = (char*)calloc(1, n);
-    webview_js_encode(css, js, n);
-    snprintf(esc, sizeof(CSS_INJECT_FUNCTION) + n + 4, "%s(\"%s\")",
-        CSS_INJECT_FUNCTION, js);
-    int r = webview_eval(w, esc);
-    free(js);
-    free(esc);
-    return r;
-}
-
+#ifndef NSAlertStyleWarning
 #define NSAlertStyleWarning 0
+#endif
+#ifndef NSAlertStyleCritical
 #define NSAlertStyleCritical 2
+#endif
+#ifndef NSWindowStyleMaskResizable
 #define NSWindowStyleMaskResizable 8
+#endif
+#ifndef NSWindowStyleMaskMiniaturizable
 #define NSWindowStyleMaskMiniaturizable 4
+#endif
+#ifndef NSWindowStyleMaskTitled
 #define NSWindowStyleMaskTitled 1
+#endif
+#ifndef NSWindowStyleMaskClosable
 #define NSWindowStyleMaskClosable 2
+#endif
+#ifndef NSWindowStyleMaskFullScreen
 #define NSWindowStyleMaskFullScreen (1 << 14)
+#endif
+#ifndef NSViewWidthSizable
 #define NSViewWidthSizable 2
+#endif
+#ifndef NSViewHeightSizable
 #define NSViewHeightSizable 16
+#endif
+#ifndef NSBackingStoreBuffered
 #define NSBackingStoreBuffered 2
+#endif
+#ifndef NSEventMaskAny
 #define NSEventMaskAny ULONG_MAX
+#endif
+#ifndef NSEventModifierFlagCommand
 #define NSEventModifierFlagCommand (1 << 20)
+#endif
+#ifndef NSEventModifierFlagOption
 #define NSEventModifierFlagOption (1 << 19)
+#endif
+#ifndef NSAlertStyleInformational
 #define NSAlertStyleInformational 1
+#endif
+#ifndef NSAlertFirstButtonReturn
 #define NSAlertFirstButtonReturn 1000
+#endif
+#ifndef WKNavigationActionPolicyDownload
 #define WKNavigationActionPolicyDownload 2
+#endif
+#ifndef NSModalResponseOK
 #define NSModalResponseOK 1
+#endif
+#ifndef WKNavigationActionPolicyDownload
 #define WKNavigationActionPolicyDownload 2
+#endif
+#ifndef WKNavigationResponsePolicyAllow
 #define WKNavigationResponsePolicyAllow 1
+#endif
+#ifndef WKUserScriptInjectionTimeAtDocumentStart
 #define WKUserScriptInjectionTimeAtDocumentStart 0
+#endif
+#ifndef NSApplicationActivationPolicyRegular
 #define NSApplicationActivationPolicyRegular 0
+#endif
 
-static id get_nsstring(const char* c_str)
-{
-    return objc_msgSend((id)objc_getClass("NSString"),
-        sel_registerName("stringWithUTF8String:"), c_str);
-}
+id get_nsstring(const char* c_str);
 
-static id create_menu_item(id title, const char* action, const char* key)
-{
-    id item = objc_msgSend((id)objc_getClass("NSMenuItem"), sel_registerName("alloc"));
-    objc_msgSend(item, sel_registerName("initWithTitle:action:keyEquivalent:"),
-        title, sel_registerName(action), get_nsstring(key));
-    objc_msgSend(item, sel_registerName("autorelease"));
+id create_menu_item(id title, const char* action, const char* key);
 
-    return item;
-}
+void run_open_panel(id self, SEL cmd, id webView, id parameters,
+    id frame, void (^completionHandler)(id));
 
-static void run_open_panel(id self, SEL cmd, id webView, id parameters,
-    id frame, void (^completionHandler)(id))
-{
-
-    id openPanel = objc_msgSend((id)objc_getClass("NSOpenPanel"),
-        sel_registerName("openPanel"));
-
-    objc_msgSend(
-        openPanel, sel_registerName("setAllowsMultipleSelection:"),
-        objc_msgSend(parameters, sel_registerName("allowsMultipleSelection")));
-
-    objc_msgSend(openPanel, sel_registerName("setCanChooseFiles:"), 1);
-    objc_msgSend(
-        openPanel, sel_registerName("beginWithCompletionHandler:"), ^(id result) {
-            if (result == (id)NSModalResponseOK) {
-                completionHandler(objc_msgSend(openPanel, sel_registerName("URLs")));
-            } else {
-                completionHandler(nil);
-            }
-        });
-}
-
-static void run_save_panel(id self, SEL cmd, id download, id filename,
+void run_save_panel(id self, SEL cmd, id download, id filename,
     void (^completionHandler)(int allowOverwrite,
-        id destination))
-{
-    id savePanel = objc_msgSend((id)objc_getClass("NSSavePanel"),
-        sel_registerName("savePanel"));
-    objc_msgSend(savePanel, sel_registerName("setCanCreateDirectories:"), 1);
-    objc_msgSend(savePanel, sel_registerName("setNameFieldStringValue:"),
-        filename);
-    objc_msgSend(savePanel, sel_registerName("beginWithCompletionHandler:"),
-        ^(id result) {
-            if (result == (id)NSModalResponseOK) {
-                id url = objc_msgSend(savePanel, sel_registerName("URL"));
-                id path = objc_msgSend(url, sel_registerName("path"));
-                completionHandler(1, path);
-            } else {
-                completionHandler(NO, nil);
-            }
-        });
-}
+        id destination));
 
-static void run_confirmation_panel(id self, SEL cmd, id webView, id message,
-    id frame, void (^completionHandler)(bool))
-{
+void run_confirmation_panel(id self, SEL cmd, id webView, id message,
+    id frame, void (^completionHandler)(bool));
 
-    id alert = objc_msgSend((id)objc_getClass("NSAlert"), sel_registerName("new"));
-    objc_msgSend(alert, sel_registerName("setIcon:"),
-        objc_msgSend((id)objc_getClass("NSImage"),
-            sel_registerName("imageNamed:"),
-            get_nsstring("NSCaution")));
-    objc_msgSend(alert, sel_registerName("setShowsHelp:"), 0);
-    objc_msgSend(alert, sel_registerName("setInformativeText:"), message);
-    objc_msgSend(alert, sel_registerName("addButtonWithTitle:"),
-        get_nsstring("OK"));
-    objc_msgSend(alert, sel_registerName("addButtonWithTitle:"),
-        get_nsstring("Cancel"));
-    if (objc_msgSend(alert, sel_registerName("runModal")) == (id)NSAlertFirstButtonReturn) {
-        completionHandler(true);
-    } else {
-        completionHandler(false);
-    }
-    objc_msgSend(alert, sel_registerName("release"));
-}
+void run_alert_panel(id self, SEL cmd, id webView, id message, id frame,
+    void (^completionHandler)(void));
 
-static void run_alert_panel(id self, SEL cmd, id webView, id message, id frame,
-    void (^completionHandler)(void))
-{
-    id alert = objc_msgSend((id)objc_getClass("NSAlert"), sel_registerName("new"));
-    objc_msgSend(alert, sel_registerName("setIcon:"),
-        objc_msgSend((id)objc_getClass("NSImage"),
-            sel_registerName("imageNamed:"),
-            get_nsstring("NSCaution")));
-    objc_msgSend(alert, sel_registerName("setShowsHelp:"), 0);
-    objc_msgSend(alert, sel_registerName("setInformativeText:"), message);
-    objc_msgSend(alert, sel_registerName("addButtonWithTitle:"),
-        get_nsstring("OK"));
-    objc_msgSend(alert, sel_registerName("runModal"));
-    objc_msgSend(alert, sel_registerName("release"));
-    completionHandler();
-}
+void download_failed(id self, SEL cmd, id download, id error);
 
-static void download_failed(id self, SEL cmd, id download, id error)
-{
-    printf("%s",
-        (const char*)objc_msgSend(
-            objc_msgSend(error, sel_registerName("localizedDescription")),
-            sel_registerName("UTF8String")));
-}
+void make_nav_policy_decision(id self, SEL cmd, id webView, id response,
+    void (^decisionHandler)(int));
 
-static void make_nav_policy_decision(id self, SEL cmd, id webView, id response,
-    void (^decisionHandler)(int))
-{
-    if (objc_msgSend(response, sel_registerName("canShowMIMEType")) == 0) {
-        decisionHandler(WKNavigationActionPolicyDownload);
-    } else {
-        decisionHandler(WKNavigationResponsePolicyAllow);
-    }
-}
-
-static int webview_eval(struct webview* w, const char* js)
-{
-    objc_msgSend(w->priv.webview,
-        sel_registerName("evaluateJavaScript:completionHandler:"),
-        get_nsstring(js), NULL);
-
-    return 0;
-}
-
-WEBVIEW_API void webview_set_title(struct webview* w, const char* title)
-{
-    objc_msgSend(w->priv.window, sel_registerName("setTitle"),
-        get_nsstring(title));
-}
-
-WEBVIEW_API void webview_set_fullscreen(struct webview* w, int fullscreen)
-{
-    unsigned long windowStyleMask = (unsigned long)objc_msgSend(
-        w->priv.window, sel_registerName("styleMask"));
-    int b = (((windowStyleMask & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen)
-            ? 1
-            : 0);
-    if (b != fullscreen) {
-        objc_msgSend(w->priv.window, sel_registerName("toggleFullScreen:"), NULL);
-    }
-}
-
-WEBVIEW_API void webview_set_color(struct webview* w, uint8_t r, uint8_t g,
-    uint8_t b, uint8_t a)
-{
-
-    id color = objc_msgSend((id)objc_getClass("NSColor"),
-        sel_registerName("colorWithRed:green:blue:alpha:"),
-        (float)r / 255.0, (float)g / 255.0, (float)b / 255.0,
-        (float)a / 255.0);
-
-    objc_msgSend(w->priv.window, sel_registerName("setBackgroundColor:"), color);
-
-    if (0.5 >= ((r / 255.0 * 299.0) + (g / 255.0 * 587.0) + (b / 255.0 * 114.0)) / 1000.0) {
-        objc_msgSend(w->priv.window, sel_registerName("setAppearance:"),
-            objc_msgSend((id)objc_getClass("NSAppearance"),
-                sel_registerName("appearanceNamed:"),
-                get_nsstring("NSAppearanceNameVibrantDark")));
-    } else {
-        objc_msgSend(w->priv.window, sel_registerName("setAppearance:"),
-            objc_msgSend((id)objc_getClass("NSAppearance"),
-                sel_registerName("appearanceNamed:"),
-                get_nsstring("NSAppearanceNameVibrantLight")));
-    }
-    objc_msgSend(w->priv.window, sel_registerName("setOpaque:"), 0);
-    objc_msgSend(w->priv.window,
-        sel_registerName("setTitlebarAppearsTransparent:"), 1);
-}
-
-WEBVIEW_API void webview_dialog(struct webview* w,
-    enum webview_dialog_type dlgtype, int flags,
-    const char* title, const char* arg,
-    char* result, size_t resultsz)
-{
-    if (dlgtype == WEBVIEW_DIALOG_TYPE_OPEN || dlgtype == WEBVIEW_DIALOG_TYPE_SAVE) {
-        id panel = (id)objc_getClass("NSSavePanel");
-        if (dlgtype == WEBVIEW_DIALOG_TYPE_OPEN) {
-            id openPanel = objc_msgSend((id)objc_getClass("NSOpenPanel"),
-                sel_registerName("openPanel"));
-            if (flags & WEBVIEW_DIALOG_FLAG_DIRECTORY) {
-                objc_msgSend(openPanel, sel_registerName("setCanChooseFiles:"), 0);
-                objc_msgSend(openPanel, sel_registerName("setCanChooseDirectories:"),
-                    1);
-            } else {
-                objc_msgSend(openPanel, sel_registerName("setCanChooseFiles:"), 1);
-                objc_msgSend(openPanel, sel_registerName("setCanChooseDirectories:"),
-                    0);
-            }
-            objc_msgSend(openPanel, sel_registerName("setResolvesAliases:"), 0);
-            objc_msgSend(openPanel, sel_registerName("setAllowsMultipleSelection:"),
-                0);
-            panel = openPanel;
-        } else {
-            panel = objc_msgSend((id)objc_getClass("NSSavePanel"),
-                sel_registerName("savePanel"));
-        }
-
-        objc_msgSend(panel, sel_registerName("setCanCreateDirectories:"), 1);
-        objc_msgSend(panel, sel_registerName("setShowsHiddenFiles:"), 1);
-        objc_msgSend(panel, sel_registerName("setExtensionHidden:"), 0);
-        objc_msgSend(panel, sel_registerName("setCanSelectHiddenExtension:"), 0);
-        objc_msgSend(panel, sel_registerName("setTreatsFilePackagesAsDirectories:"),
-            1);
-        objc_msgSend(
-            panel, sel_registerName("beginSheetModalForWindow:completionHandler:"),
-            w->priv.window, ^(id result) {
-                objc_msgSend(objc_msgSend((id)objc_getClass("NSApplication"),
-                                 sel_registerName("sharedApplication")),
-                    sel_registerName("stopModalWithCode:"), result);
-            });
-
-        if (objc_msgSend(objc_msgSend((id)objc_getClass("NSApplication"),
-                             sel_registerName("sharedApplication")),
-                sel_registerName("runModalForWindow:"),
-                panel)
-            == (id)NSModalResponseOK) {
-            id url = objc_msgSend(panel, sel_registerName("URL"));
-            id path = objc_msgSend(url, sel_registerName("path"));
-            const char* filename = (const char*)objc_msgSend(path, sel_registerName("UTF8String"));
-            strlcpy(result, filename, resultsz);
-        }
-    } else if (dlgtype == WEBVIEW_DIALOG_TYPE_ALERT) {
-        id a = objc_msgSend((id)objc_getClass("NSAlert"), sel_registerName("new"));
-        switch (flags & WEBVIEW_DIALOG_FLAG_ALERT_MASK) {
-        case WEBVIEW_DIALOG_FLAG_INFO:
-            objc_msgSend(a, sel_registerName("setAlertStyle:"),
-                NSAlertStyleInformational);
-            break;
-        case WEBVIEW_DIALOG_FLAG_WARNING:
-            printf("Warning\n");
-            objc_msgSend(a, sel_registerName("setAlertStyle:"), NSAlertStyleWarning);
-            break;
-        case WEBVIEW_DIALOG_FLAG_ERROR:
-            printf("Error\n");
-            objc_msgSend(a, sel_registerName("setAlertStyle:"), NSAlertStyleCritical);
-            break;
-        }
-        objc_msgSend(a, sel_registerName("setShowsHelp:"), 0);
-        objc_msgSend(a, sel_registerName("setShowsSuppressionButton:"), 0);
-        objc_msgSend(a, sel_registerName("setMessageText:"), get_nsstring(title));
-        objc_msgSend(a, sel_registerName("setInformativeText:"), get_nsstring(arg));
-        objc_msgSend(a, sel_registerName("addButtonWithTitle:"),
-            get_nsstring("OK"));
-        objc_msgSend(a, sel_registerName("runModal"));
-        objc_msgSend(a, sel_registerName("release"));
-    }
-}
 
 static void webview_dispatch_cb(void* arg)
 {
@@ -489,21 +284,6 @@ static void webview_dispatch_cb(void* arg)
     free(context);
 }
 
-WEBVIEW_API void webview_dispatch(struct webview* w, webview_dispatch_fn fn,
-    void* arg)
-{
-    struct webview_dispatch_arg* context = (struct webview_dispatch_arg*)malloc(
-        sizeof(struct webview_dispatch_arg));
-    context->w = w;
-    context->arg = arg;
-    context->fn = fn;
-    dispatch_async_f(dispatch_get_main_queue(), context, webview_dispatch_cb);
-}
-
-WEBVIEW_API void webview_print_log(const char* s) { printf("%s\n", s); }
-
-#ifdef __cplusplus
-}
-#endif
+FIBJS_EXTERN_C_END
 
 #endif /* WEBVIEW_COCOA_H */

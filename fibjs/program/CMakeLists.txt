@@ -118,11 +118,11 @@ if(NOT ${OS} STREQUAL "Windows")
 endif()
 
 if(${OS} STREQUAL "Darwin")
-	set(WEBVIEW_LIBS "-framework WebKit")
+	set(DARWIN_LIBS "-framework WebKit -framework Cocoa")
 
 	set(cflags "${cflags} -DWEBVIEW_COCOA=1 -DOBJC_OLD_DISPATCH_PROTOTYPES=1")
 	set(ccflags "${ccflags} -DWEBVIEW_COCOA=1 -DOBJC_OLD_DISPATCH_PROTOTYPES=1")
-	set(link_flags "${link_flags} -mmacosx-version-min=10.9 -framework Carbon -framework IOKit ${WEBVIEW_LIBS}")
+	set(link_flags "${link_flags} -mmacosx-version-min=10.9 -framework Carbon -framework IOKit ${DARWIN_LIBS}")
 
 	set(flags "${flags} -mmacosx-version-min=10.9")
 	target_link_libraries(fibjs dl iconv stdc++)
