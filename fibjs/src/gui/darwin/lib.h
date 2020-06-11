@@ -244,9 +244,9 @@ static int webview_js_encode(const char* s, char* esc, size_t n)
 #ifndef WKNavigationResponsePolicyAllow
 #define WKNavigationResponsePolicyAllow 1
 #endif
-#ifndef WKUserScriptInjectionTimeAtDocumentStart
-#define WKUserScriptInjectionTimeAtDocumentStart 0
-#endif
+// #ifndef WKUserScriptInjectionTimeAtDocumentStart
+// #define WKUserScriptInjectionTimeAtDocumentStart 0
+// #endif
 #ifndef NSApplicationActivationPolicyRegular
 #define NSApplicationActivationPolicyRegular 0
 #endif

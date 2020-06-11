@@ -9,6 +9,7 @@
 #ifdef __APPLE__
 
 #include <Cocoa/Cocoa.h>
+#include <Webkit/Webkit.h>
 
 #include "object.h"
 #include "ifs/gui.h"
@@ -186,6 +187,29 @@ id WebView::prepareWKScriptMessageHandler()
     objc_registerClassPair(__WKScriptMessageHandler);
 
     return objc_msgSend((id)__WKScriptMessageHandler, sel_registerName("new"));
+}
+
+id WebView::getWKUserController(struct webview* w)
+{
+    id webviewid_wkUserController = [WKUserContentController new];
+
+    objc_setAssociatedObject(webviewid_wkUserController, "webview", (id)(w),
+        OBJC_ASSOCIATION_ASSIGN);
+
+    [webviewid_wkUserController
+        addScriptMessageHandler:prepareWKScriptMessageHandler()
+        name:get_nsstring(WEBVIEW_MSG_HANDLER_NAME)
+    ];
+
+    id windowExternalOverrideScript = [[WKUserScript alloc]
+        initWithSource:@"window.external = this;postMessage = function(arg){ webkit.messageHandlers.invoke.postMessage(arg); };"
+        injectionTime:WKUserScriptInjectionTimeAtDocumentStart
+        forMainFrameOnly:FALSE
+    ];
+
+    [webviewid_wkUserController addUserScript:windowExternalOverrideScript];
+
+    return webviewid_wkUserController;
 }
 
 void WebView::clear()
