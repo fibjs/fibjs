@@ -176,19 +176,6 @@ void WebView::objc_nsAppInit(struct webview* w)
     [NSApplication sharedApplication];
 }
 
-id WebView::prepareWKScriptMessageHandler()
-{
-    Class __WKScriptMessageHandler = objc_allocateClassPair(
-        objc_getClass("NSObject"), "__WKScriptMessageHandler", 0);
-    class_addMethod(
-        __WKScriptMessageHandler,
-        sel_registerName("userContentController:didReceiveScriptMessage:"),
-        (IMP)webview_external_postMessage, "v@:@@");
-    objc_registerClassPair(__WKScriptMessageHandler);
-
-    return objc_msgSend((id)__WKScriptMessageHandler, sel_registerName("new"));
-}
-
 id WebView::prepareWKPreferences(struct webview* w)
 {
     Class __WKPreferences
@@ -217,7 +204,7 @@ id WebView::getWKUserController(struct webview* w)
         OBJC_ASSOCIATION_ASSIGN);
 
     [webviewid_wkUserController
-        addScriptMessageHandler:prepareWKScriptMessageHandler()
+        addScriptMessageHandler:[__WKScriptMessageHandler new]
         name:get_nsstring(WEBVIEW_MSG_HANDLER_NAME)
     ];
 
