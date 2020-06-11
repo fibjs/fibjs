@@ -41,16 +41,6 @@ void run_save_panel(id self, SEL cmd, id download, id filename,
         });
 }
 
-void make_nav_policy_decision(id self, SEL cmd, id webView, id response,
-    void (^decisionHandler)(int))
-{
-    if (objc_msgSend(response, sel_registerName("canShowMIMEType")) == 0) {
-        decisionHandler(WKNavigationActionPolicyDownload);
-    } else {
-        decisionHandler(WKNavigationResponsePolicyAllow);
-    }
-}
-
 void download_failed(id self, SEL cmd, id download, id error)
 {
     printf("%s",

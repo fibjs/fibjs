@@ -243,9 +243,9 @@ static int webview_js_encode(const char* s, char* esc, size_t n)
 #ifndef NSModalResponseOK
 #define NSModalResponseOK 1
 #endif
-#ifndef WKNavigationResponsePolicyAllow
-#define WKNavigationResponsePolicyAllow 1
-#endif
+// #ifndef WKNavigationResponsePolicyAllow
+// #define WKNavigationResponsePolicyAllow 1
+// #endif
 // #ifndef WKUserScriptInjectionTimeAtDocumentStart
 // #define WKUserScriptInjectionTimeAtDocumentStart 0
 // #endif
@@ -257,24 +257,11 @@ id get_nsstring(const char* c_str);
 
 id create_menu_item(id title, const char* action, const char* key);
 
-void run_open_panel(id self, SEL cmd, id webView, id parameters,
-    id frame, void (^completionHandler)(id));
-
 void run_save_panel(id self, SEL cmd, id download, id filename,
     void (^completionHandler)(int allowOverwrite,
         id destination));
 
-void run_confirmation_panel(id self, SEL cmd, id webView, id message,
-    id frame, void (^completionHandler)(bool));
-
-void run_alert_panel(id self, SEL cmd, id webView, id message, id frame,
-    void (^completionHandler)(void));
-
 void download_failed(id self, SEL cmd, id download, id error);
-
-void make_nav_policy_decision(id self, SEL cmd, id webView, id response,
-    void (^decisionHandler)(int));
-
 
 static void webview_dispatch_cb(void* arg)
 {

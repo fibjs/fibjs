@@ -219,20 +219,7 @@ public:
 
     id prepareWKWebViewUIDelegation();
 
-    id prepareWkWebViewNavDelegation()
-    {
-        Class __WKNavigationDelegate = objc_allocateClassPair(
-            objc_getClass("NSObject"), "__WKNavigationDelegate", 0);
-        class_addProtocol(__WKNavigationDelegate,
-            objc_getProtocol("WKNavigationDelegate"));
-        class_addMethod(
-            __WKNavigationDelegate,
-            sel_registerName(
-                "webView:decidePolicyForNavigationResponse:decisionHandler:"),
-            (IMP)make_nav_policy_decision, "v@:@@?");
-        objc_registerClassPair(__WKNavigationDelegate);
-        return objc_msgSend((id)__WKNavigationDelegate, sel_registerName("new"));
-    }
+    id prepareWkWebViewNavDelegation();
 
     id getWKWebView(struct webview* w)
     {

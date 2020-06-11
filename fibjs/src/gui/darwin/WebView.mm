@@ -262,6 +262,11 @@ id WebView::prepareWKWebViewUIDelegation()
     return [__WKUIDelegate new];
 }
 
+id WebView::prepareWkWebViewNavDelegation()
+{
+    return [__WKNavigationDelegate new];
+}
+
 void WebView::clear()
 {
     printf("[WebView::clear] \n");
