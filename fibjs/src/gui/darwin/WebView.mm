@@ -189,6 +189,26 @@ id WebView::prepareWKScriptMessageHandler()
     return objc_msgSend((id)__WKScriptMessageHandler, sel_registerName("new"));
 }
 
+id WebView::prepareWKPreferences(struct webview* w)
+{
+    Class __WKPreferences
+        = objc_allocateClassPair(objc_getClass("WKPreferences"),
+            "__WKPreferences", 0);
+    objc_property_attribute_t type = { "T", "c" };
+    objc_property_attribute_t ownership = { "N", "" };
+    objc_property_attribute_t attrs[] = { type, ownership };
+    class_replaceProperty(__WKPreferences, "developerExtrasEnabled", attrs, 2);
+    objc_registerClassPair(__WKPreferences);
+
+    id webviewid_wkPref = [__WKPreferences new];
+    [webviewid_wkPref
+        setValue:[NSNumber numberWithBool:!!w->debug]
+        forKey:[NSString stringWithUTF8String:"developerExtrasEnabled"]
+    ];
+
+    return webviewid_wkPref;
+}
+
 id WebView::getWKUserController(struct webview* w)
 {
     id webviewid_wkUserController = [WKUserContentController new];
