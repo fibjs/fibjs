@@ -63,11 +63,11 @@ set(flags "-fsigned-char -fmessage-length=0 -fdata-sections -ffunction-sections 
 set(ccflags "${ccflags} ${CXX_STD_VER_FLAG}")
 
 if(${OS} STREQUAL "Darwin")
-	set(WEBVIEW_LIBS "-framework WebKit")
+	set(DARWIN_LIBS "-framework WebKit -framework Cocoa")
 	
 	set(cflags "${cflags} -DWEBVIEW_COCOA=1 -DOBJC_OLD_DISPATCH_PROTOTYPES=1")
 	set(ccflags "${ccflags} -DWEBVIEW_COCOA=1 -DOBJC_OLD_DISPATCH_PROTOTYPES=1")
-	set(link_flags "${link_flags} -mmacosx-version-min=10.9 ${WEBVIEW_LIBS}")
+	set(link_flags "${link_flags} -mmacosx-version-min=10.9 ${DARWIN_LIBS} ${FOUNDATION_LIBS} ${COCOA_LIBS}")
 	
 	set_source_files_properties(${src_platform_list} PROPERTIES COMPILE_FLAGS "-x objective-c++")
 	set(flags "${flags} -mmacosx-version-min=10.9")
