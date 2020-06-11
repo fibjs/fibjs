@@ -221,12 +221,7 @@ public:
 
     void navigateWKWebView(struct webview* w);
 
-    void setWKWebViewStyle(id webview)
-    {
-        objc_msgSend(webview, sel_registerName("setAutoresizesSubviews:"), 1);
-        objc_msgSend(webview, sel_registerName("setAutoresizingMask:"),
-            (NSViewWidthSizable | NSViewHeightSizable));
-    }
+    void setWKWebViewStyle(id webview);
 
     void linkWindowWithWebview(struct webview* w)
     {
