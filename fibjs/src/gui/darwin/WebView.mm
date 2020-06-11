@@ -212,6 +212,20 @@ id WebView::getWKUserController(struct webview* w)
     return webviewid_wkUserController;
 }
 
+id WebView::prepareWKWebViewConfig(struct webview* w)
+{
+    // id webviewid_wkwebviewconfig = objc_msgSend((id)objc_getClass("WKWebViewConfiguration"), sel_registerName("new"));
+    id webviewid_wkwebviewconfig = [WKWebViewConfiguration new];
+
+    id processPool = [webviewid_wkwebviewconfig processPool];
+    [processPool _setDownloadDelegate:prepareWKDownloadDelegate()];
+    [webviewid_wkwebviewconfig setProcessPool:processPool];
+    [webviewid_wkwebviewconfig setUserContentController:getWKUserController(w)];
+    [webviewid_wkwebviewconfig setPreferences:prepareWKPreferences(w)];
+
+    return webviewid_wkwebviewconfig;
+}
+
 void WebView::clear()
 {
     printf("[WebView::clear] \n");

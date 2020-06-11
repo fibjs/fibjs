@@ -204,18 +204,7 @@ public:
 
     id getWKUserController(struct webview* w);
 
-    id prepareWKWebViewConfig(struct webview* w)
-    {
-        id webviewid_wkwebviewconfig = objc_msgSend((id)objc_getClass("WKWebViewConfiguration"),
-            sel_registerName("new"));
-        id processPool = objc_msgSend(webviewid_wkwebviewconfig, sel_registerName("processPool"));
-        objc_msgSend(processPool, sel_registerName("_setDownloadDelegate:"), prepareWKDownloadDelegate());
-        objc_msgSend(webviewid_wkwebviewconfig, sel_registerName("setProcessPool:"), processPool);
-        objc_msgSend(webviewid_wkwebviewconfig, sel_registerName("setUserContentController:"), getWKUserController(w));
-        objc_msgSend(webviewid_wkwebviewconfig, sel_registerName("setPreferences:"), prepareWKPreferences(w));
-
-        return webviewid_wkwebviewconfig;
-    }
+    id prepareWKWebViewConfig(struct webview* w);
 
     void initWindowRect(struct webview* w)
     {
