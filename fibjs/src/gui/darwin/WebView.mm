@@ -267,6 +267,19 @@ id WebView::prepareWkWebViewNavDelegation()
     return [__WKNavigationDelegate new];
 }
 
+id WebView::getWKWebView(struct webview* w)
+{
+    id webview = [
+        [WKWebView alloc]
+        initWithFrame:this->webview_window_rect configuration:prepareWKWebViewConfig(w)
+    ];
+
+    [webview setUIDelegate:prepareWKWebViewUIDelegation()];
+    [webview setNavigationDelegate:prepareWkWebViewNavDelegation()];
+
+    return webview;
+}
+
 void WebView::clear()
 {
     printf("[WebView::clear] \n");
