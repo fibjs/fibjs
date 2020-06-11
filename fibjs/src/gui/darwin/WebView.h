@@ -223,11 +223,7 @@ public:
 
     void setWKWebViewStyle(id webview);
 
-    void linkWindowWithWebview(struct webview* w)
-    {
-        objc_msgSend(objc_msgSend(w->priv.window, sel_registerName("contentView")),
-            sel_registerName("addSubview:"), w->priv.webview);
-    }
+    void linkWindowWithWebview(struct webview* w);
 
     void putWindowToTopOrder(struct webview* w)
     {

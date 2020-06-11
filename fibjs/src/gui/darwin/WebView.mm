@@ -282,6 +282,13 @@ void WebView::setWKWebViewStyle(id webview)
     [webview setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
 }
 
+void WebView::linkWindowWithWebview(struct webview* w)
+{
+    [[w->priv.window contentView]
+        addSubview:w->priv.webview
+    ];
+}
+
 void WebView::clear()
 {
     printf("[WebView::clear] \n");
