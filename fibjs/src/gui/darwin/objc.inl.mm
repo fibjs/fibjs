@@ -147,22 +147,17 @@ runOpenPanelWithParameters:(WKOpenPanelParameters *)parameters
 initiatedByFrame:(WKFrameInfo *)frame 
 completionHandler:(void (^)(NSArray<NSURL *> *URLs))completionHandler
 {
-    id openPanel = objc_msgSend((id)objc_getClass("NSOpenPanel"),
-        sel_registerName("openPanel"));
-
-    objc_msgSend(
-        openPanel, sel_registerName("setAllowsMultipleSelection:"),
-        objc_msgSend(parameters, sel_registerName("allowsMultipleSelection")));
-
-    objc_msgSend(openPanel, sel_registerName("setCanChooseFiles:"), 1);
-    objc_msgSend(
-        openPanel, sel_registerName("beginWithCompletionHandler:"), ^(id result) {
-            if (result == (id)NSModalResponseOK) {
-                completionHandler(objc_msgSend(openPanel, sel_registerName("URLs")));
+    id openPanel = [NSOpenPanel openPanel];
+    [openPanel setAllowsMultipleSelection:[parameters allowsMultipleSelection]];
+    [openPanel setCanChooseFiles:1];
+    [openPanel
+        beginWithCompletionHandler:^(NSInteger result) {
+            if (result == NSModalResponseOK) {
+                completionHandler([openPanel URLs]);
             } else {
                 completionHandler(nil);
             }
-        });
+        }];
 }
 
 - (void)webView:(WKWebView *)webView 
@@ -170,17 +165,15 @@ runJavaScriptAlertPanelWithMessage:(NSString *)message
 initiatedByFrame:(WKFrameInfo *)frame 
 completionHandler:(void (^)(void))completionHandler
 {
-    id alert = objc_msgSend((id)objc_getClass("NSAlert"), sel_registerName("new"));
-    objc_msgSend(alert, sel_registerName("setIcon:"),
-        objc_msgSend((id)objc_getClass("NSImage"),
-            sel_registerName("imageNamed:"),
-            get_nsstring("NSCaution")));
-    objc_msgSend(alert, sel_registerName("setShowsHelp:"), 0);
-    objc_msgSend(alert, sel_registerName("setInformativeText:"), message);
-    objc_msgSend(alert, sel_registerName("addButtonWithTitle:"),
-        get_nsstring("OK"));
-    objc_msgSend(alert, sel_registerName("runModal"));
-    objc_msgSend(alert, sel_registerName("release"));
+    id alert = [NSAlert new];
+    
+    [alert setIcon:[NSImage imageNamed:@"NSCaution"]];
+    
+    [alert setShowsHelp:FALSE];
+    [alert setInformativeText:message];
+    [alert addButtonWithTitle:@"OK"];
+    [alert runModal];
+    [alert release];
     completionHandler();
 }
 
@@ -189,22 +182,21 @@ runJavaScriptConfirmPanelWithMessage:(NSString *)message
 initiatedByFrame:(WKFrameInfo *)frame 
 completionHandler:(void (^)(BOOL result))completionHandler;
 {
-    id alert = objc_msgSend((id)objc_getClass("NSAlert"), sel_registerName("new"));
-    objc_msgSend(alert, sel_registerName("setIcon:"),
-        objc_msgSend((id)objc_getClass("NSImage"),
-            sel_registerName("imageNamed:"),
-            get_nsstring("NSCaution")));
-    objc_msgSend(alert, sel_registerName("setShowsHelp:"), 0);
-    objc_msgSend(alert, sel_registerName("setInformativeText:"), message);
-    objc_msgSend(alert, sel_registerName("addButtonWithTitle:"),
-        get_nsstring("OK"));
-    objc_msgSend(alert, sel_registerName("addButtonWithTitle:"),
-        get_nsstring("Cancel"));
-    if (objc_msgSend(alert, sel_registerName("runModal")) == (id)NSAlertFirstButtonReturn) {
+    id alert = [NSAlert new];
+
+    [alert setIcon:[NSImage imageNamed:@"NSCaution"]];
+    
+    [alert setShowsHelp:FALSE];
+    [alert setInformativeText:message];
+    [alert addButtonWithTitle:@"OK"];
+    [alert addButtonWithTitle:@"Cancel"];
+    
+    if ([alert runModal] == NSAlertFirstButtonReturn) {
         completionHandler(true);
     } else {
         completionHandler(false);
     }
+    [alert release];
     objc_msgSend(alert, sel_registerName("release"));
 }
 @end
