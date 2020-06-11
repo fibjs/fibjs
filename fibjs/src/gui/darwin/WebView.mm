@@ -211,6 +211,12 @@ void WebView::RegNSApplicationDelegations() {
     WebView::SetupAppMenubar();
 }
 
+void WebView::objc_nsAppInit(struct webview* w)
+{
+    w->priv.pool = [NSAutoreleasePool new];
+    [NSApplication sharedApplication];
+}
+
 void WebView::clear()
 {
     printf("[WebView::clear] \n");
