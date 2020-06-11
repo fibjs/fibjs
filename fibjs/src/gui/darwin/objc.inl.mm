@@ -122,26 +122,10 @@
 @end
 
 @interface __WKUIDelegate : NSObject<WKUIDelegate>
-// run_open_panel
--(void)webView:(WKWebView *)webView 
-runOpenPanelWithParameters:(WKOpenPanelParameters *)parameters 
-initiatedByFrame:(WKFrameInfo *)frame 
-completionHandler:(void (^)(NSArray<NSURL *> *URLs))completionHandler;
-
-// run_alert_panel
-- (void)webView:(WKWebView *)webView 
-runJavaScriptAlertPanelWithMessage:(NSString *)message 
-initiatedByFrame:(WKFrameInfo *)frame 
-completionHandler:(void (^)(void))completionHandler;
-
-// run_confirmation_panel
-- (void)webView:(WKWebView *)webView 
-runJavaScriptConfirmPanelWithMessage:(NSString *)message 
-initiatedByFrame:(WKFrameInfo *)frame 
-completionHandler:(void (^)(BOOL result))completionHandler;
 @end
 
 @implementation __WKUIDelegate
+// run_open_panel
 -(void)webView:(WKWebView *)webView 
 runOpenPanelWithParameters:(WKOpenPanelParameters *)parameters 
 initiatedByFrame:(WKFrameInfo *)frame 
@@ -160,7 +144,8 @@ completionHandler:(void (^)(NSArray<NSURL *> *URLs))completionHandler
         }];
 }
 
-- (void)webView:(WKWebView *)webView 
+// run_alert_panel
+-(void)webView:(WKWebView *)webView 
 runJavaScriptAlertPanelWithMessage:(NSString *)message 
 initiatedByFrame:(WKFrameInfo *)frame 
 completionHandler:(void (^)(void))completionHandler
@@ -177,7 +162,8 @@ completionHandler:(void (^)(void))completionHandler
     completionHandler();
 }
 
-- (void)webView:(WKWebView *)webView 
+// run_confirmation_panel
+-(void)webView:(WKWebView *)webView 
 runJavaScriptConfirmPanelWithMessage:(NSString *)message 
 initiatedByFrame:(WKFrameInfo *)frame 
 completionHandler:(void (^)(BOOL result))completionHandler;
