@@ -209,4 +209,46 @@ decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler
 // @implementation __WKPreferences
 // @end
 
+@interface __WKDownloadDelegate : NSObject/* <NSURLDownloadDelegate> */
+@end
+@implementation __WKDownloadDelegate
+/***
+    _WKDownloadDelegate is an undocumented/private protocol with methods called
+    from WKNavigationDelegate
+    References:
+    https://github.com/WebKit/webkit/blob/master/Source/WebKit/UIProcess/API/Cocoa/_WKDownload.h
+    https://github.com/WebKit/webkit/blob/master/Source/WebKit/UIProcess/API/Cocoa/_WKDownloadDelegate.h
+    https://github.com/WebKit/webkit/blob/master/Tools/TestWebKitAPI/Tests/WebKitCocoa/Download.mm
+***/
+- (void)download:(NSURLDownload *)download 
+decideDestinationWithSuggestedFilename:(NSString *)filename
+completionHandler:(void (^)(int allowOverwrite, id destination))completionHandler
+{
+    id savePanel = objc_msgSend((id)objc_getClass("NSSavePanel"),
+        sel_registerName("savePanel"));
+    objc_msgSend(savePanel, sel_registerName("setCanCreateDirectories:"), 1);
+    objc_msgSend(savePanel, sel_registerName("setNameFieldStringValue:"),
+        filename);
+    objc_msgSend(savePanel, sel_registerName("beginWithCompletionHandler:"),
+        ^(id result) {
+            if (result == (id)NSModalResponseOK) {
+                id url = objc_msgSend(savePanel, sel_registerName("URL"));
+                id path = objc_msgSend(url, sel_registerName("path"));
+                completionHandler(1, path);
+            } else {
+                completionHandler(NO, nil);
+            }
+        });
+}
+
+- (void)download:(NSURLDownload *)download 
+didFailWithError:(NSError *)error
+{
+    printf("%s",
+        (const char*)objc_msgSend(
+            objc_msgSend(error, sel_registerName("localizedDescription")),
+            sel_registerName("UTF8String")));
+}
+@end
+
 #endif // __APPLE__

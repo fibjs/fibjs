@@ -189,6 +189,11 @@ id WebView::prepareWKScriptMessageHandler()
     return objc_msgSend((id)__WKScriptMessageHandler, sel_registerName("new"));
 }
 
+id WebView::prepareWKDownloadDelegate()
+{
+    return [__WKDownloadDelegate new];
+}
+
 id WebView::prepareWKPreferences(struct webview* w)
 {
     Class __WKPreferences

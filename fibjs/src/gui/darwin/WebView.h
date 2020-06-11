@@ -155,30 +155,7 @@ public:
 
     id prepareWKScriptMessageHandler();
 
-    id prepareWKDownloadDelegate()
-    {
-        /***
-            _WKDownloadDelegate is an undocumented/private protocol with methods called
-            from WKNavigationDelegate
-            References:
-            https://github.com/WebKit/webkit/blob/master/Source/WebKit/UIProcess/API/Cocoa/_WKDownload.h
-            https://github.com/WebKit/webkit/blob/master/Source/WebKit/UIProcess/API/Cocoa/_WKDownloadDelegate.h
-            https://github.com/WebKit/webkit/blob/master/Tools/TestWebKitAPI/Tests/WebKitCocoa/Download.mm
-        ***/
-
-        Class __WKDownloadDelegate = objc_allocateClassPair(
-            objc_getClass("NSObject"), "__WKDownloadDelegate", 0);
-        class_addMethod(
-            __WKDownloadDelegate,
-            sel_registerName("_download:decideDestinationWithSuggestedFilename:"
-                             "completionHandler:"),
-            (IMP)run_save_panel, "v@:@@?");
-        class_addMethod(__WKDownloadDelegate,
-            sel_registerName("_download:didFailWithError:"),
-            (IMP)download_failed, "v@:@@");
-        objc_registerClassPair(__WKDownloadDelegate);
-        return objc_msgSend((id)__WKDownloadDelegate, sel_registerName("new"));
-    }
+    id prepareWKDownloadDelegate();
 
     id prepareWKPreferences(struct webview* w);
 
