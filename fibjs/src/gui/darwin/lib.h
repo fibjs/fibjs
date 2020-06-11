@@ -24,6 +24,8 @@
 #ifndef WEBVIEW_COCOA_H
 #define WEBVIEW_COCOA_H
 
+#include "utils.h"
+
 FIBJS_EXTERN_C_START
 
 // #ifdef WEBVIEW_STATIC
