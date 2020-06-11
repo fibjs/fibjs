@@ -276,6 +276,12 @@ void WebView::navigateWKWebView(struct webview* w)
     [w->priv.webview loadRequest:[NSURLRequest requestWithURL:nsURL]];
 }
 
+void WebView::setWKWebViewStyle(id webview)
+{
+    [webview setAutoresizesSubviews:TRUE];
+    [webview setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+}
+
 void WebView::clear()
 {
     printf("[WebView::clear] \n");
