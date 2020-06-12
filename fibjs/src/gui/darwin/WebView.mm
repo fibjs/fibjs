@@ -53,7 +53,7 @@ public:
             id event = WebView::webview_get_event_from_mainloop(0);
             WebView::send_event_to_sharedApplicatoin_and_check_should_exit(event);
 
-            // struct webview* w = WebView::getCurrentWebViewStruct_deprecated();
+            // WebView* w = WebView::getCurrentWebViewStruct_deprecated();
 
             // if (w) {
             //     // printf("[gui_thread::Run] in loop, webview struct not NULL \n");
@@ -360,34 +360,36 @@ void WebView::activeApp()
     [app activateIgnoringOtherApps:YES];
 }
 
-int WebView::webview_eval(struct webview* w, const char* js)
+int WebView::webview_eval(WebView* w, const char* js)
 {
-    [w->priv.webview
-        evaluateJavaScript:get_nsstring(js)
-        completionHandler:NULL
-    ];
+    // [w->priv.webview
+    //     evaluateJavaScript:get_nsstring(js)
+    //     completionHandler:NULL
+    // ];
 
     return 0;
 }
 
-int WebView::webview_inject_css(struct webview* w, const char* css)
+int WebView::webview_inject_css(WebView* w, const char* css)
 {
-    int n = webview_js_encode(css, NULL, 0);
-    char* esc = (char*)calloc(1, sizeof(CSS_INJECT_FUNCTION) + n + 4);
-    if (esc == NULL) {
-        return -1;
-    }
-    char* js = (char*)calloc(1, n);
-    webview_js_encode(css, js, n);
-    snprintf(esc, sizeof(CSS_INJECT_FUNCTION) + n + 4, "%s(\"%s\")",
-        CSS_INJECT_FUNCTION, js);
-    int r = webview_eval(w, esc);
-    free(js);
-    free(esc);
-    return r;
+    // int n = webview_js_encode(css, NULL, 0);
+    // char* esc = (char*)calloc(1, sizeof(CSS_INJECT_FUNCTION) + n + 4);
+    // if (esc == NULL) {
+    //     return -1;
+    // }
+    // char* js = (char*)calloc(1, n);
+    // webview_js_encode(css, js, n);
+    // snprintf(esc, sizeof(CSS_INJECT_FUNCTION) + n + 4, "%s(\"%s\")",
+    //     CSS_INJECT_FUNCTION, js);
+    // int r = webview_eval(w, esc);
+    // free(js);
+    // free(esc);
+    // return r;
+
+    return 0;
 }
 
-void WebView::webview_set_fullscreen(struct webview* w, int fullscreen)
+void WebView::webview_set_fullscreen(WebView* w, int fullscreen)
 {
     // unsigned long windowStyleMask = (unsigned long)[w->priv.window styleMask];
     // int b = (((windowStyleMask & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen)
@@ -398,7 +400,7 @@ void WebView::webview_set_fullscreen(struct webview* w, int fullscreen)
     // }
 }
 
-void WebView::webview_set_color(struct webview* w, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+void WebView::webview_set_color(WebView* w, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
     // id color = [NSColor
     //     colorWithRed:((float)r / 255.0)
@@ -423,7 +425,7 @@ void WebView::webview_set_color(struct webview* w, uint8_t r, uint8_t g, uint8_t
     // [w->priv.window setTitlebarAppearsTransparent:YES];
 }
 
-void WebView::webview_dialog(struct webview* w, enum webview_dialog_type dlgtype, int flags, const char* title, const char* arg, char* result, size_t resultsz)
+void WebView::webview_dialog(WebView* w, enum webview_dialog_type dlgtype, int flags, const char* title, const char* arg, char* result, size_t resultsz)
 {
     // if (dlgtype == WEBVIEW_DIALOG_TYPE_OPEN || dlgtype == WEBVIEW_DIALOG_TYPE_SAVE) {
     //     id panel = (id)objc_getClass("NSSavePanel");
@@ -546,10 +548,6 @@ void WebView::clear()
         m_ac = NULL;
     }
 
-    if (m_webview) {
-        m_webview = NULL;
-    }
-
     if (s_activeWinObjcId) {
         s_activeWinObjcId = NULL;
         printf("[WebView::clear]s_activeWinObjcId set as NULL \n");
@@ -587,7 +585,7 @@ result_t WebView::close(AsyncEvent* ac)
 
 // static int async_webview_eval(const char* jsscript)
 // {
-//     struct webview* w = WebView::getCurrentWebViewStruct_deprecated();
+//     WebView* w = WebView::getCurrentWebViewStruct_deprecated();
 //     if (w != NULL) {
 //         printf("[async_webview_eval] would eval \n");
 //         WebView::webview_eval(w, jsscript);
@@ -600,7 +598,7 @@ result_t WebView::postMessage(exlib::string msg)
 {
     // printf("[WebView::postMessage] view view argument %s \n", msg.c_str());
 
-    // struct webview* w = WebView::getCurrentWebViewStruct_deprecated();
+    // WebView* w = WebView::getCurrentWebViewStruct_deprecated();
     // if (w != NULL) {
     //     exlib::string jsstr = "if (this.onmessage) { this.onmessage(";
     //     // TODO: maybe escape here?
