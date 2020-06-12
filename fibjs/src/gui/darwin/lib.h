@@ -101,12 +101,12 @@ static const char* webview_check_url(const char* url)
     return url;
 }
 
-#ifndef NSAlertStyleWarning
-#define NSAlertStyleWarning 0
-#endif
-#ifndef NSAlertStyleCritical
-#define NSAlertStyleCritical 2
-#endif
+// #ifndef NSAlertStyleWarning
+// #define NSAlertStyleWarning 0
+// #endif
+// #ifndef NSAlertStyleCritical
+// #define NSAlertStyleCritical 2
+// #endif
 #ifndef NSWindowStyleMaskResizable
 #define NSWindowStyleMaskResizable 8
 #endif
@@ -140,9 +140,9 @@ static const char* webview_check_url(const char* url)
 #ifndef NSEventModifierFlagOption
 #define NSEventModifierFlagOption (1 << 19)
 #endif
-#ifndef NSAlertStyleInformational
-#define NSAlertStyleInformational 1
-#endif
+// #ifndef NSAlertStyleInformational
+// #define NSAlertStyleInformational 1
+// #endif
 #ifndef NSAlertFirstButtonReturn
 #define NSAlertFirstButtonReturn 1000
 #endif
