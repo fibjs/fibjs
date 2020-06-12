@@ -246,30 +246,30 @@ decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler
 decideDestinationWithSuggestedFilename:(NSString *)filename
 completionHandler:(void (^)(int allowOverwrite, id destination))completionHandler
 {
-    id savePanel = objc_msgSend((id)objc_getClass("NSSavePanel"),
-        sel_registerName("savePanel"));
-    objc_msgSend(savePanel, sel_registerName("setCanCreateDirectories:"), 1);
-    objc_msgSend(savePanel, sel_registerName("setNameFieldStringValue:"),
-        filename);
-    objc_msgSend(savePanel, sel_registerName("beginWithCompletionHandler:"),
-        ^(id result) {
-            if (result == (id)NSModalResponseOK) {
+    id savePanel = [NSSavePanel savePanel];
+    [savePanel setCanCreateDirectories:YES];
+    [savePanel setNameFieldStringValue:filename];
+
+    [savePanel
+        beginWithCompletionHandler:^(NSModalResponse result) {
+            if (result == NSModalResponseOK) {
                 id url = objc_msgSend(savePanel, sel_registerName("URL"));
                 id path = objc_msgSend(url, sel_registerName("path"));
                 completionHandler(1, path);
             } else {
                 completionHandler(NO, nil);
             }
-        });
+        }
+    ];
 }
 
 - (void)download:(NSURLDownload *)download 
 didFailWithError:(NSError *)error
 {
+    
     printf("%s",
-        (const char*)objc_msgSend(
-            objc_msgSend(error, sel_registerName("localizedDescription")),
-            sel_registerName("UTF8String")));
+        (const char*)[[error localizedDescription] UTF8String]
+    );
 }
 @end
 

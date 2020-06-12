@@ -127,14 +127,7 @@ private:
 public:
     static id webview_get_event_from_mainloop(int blocking = 0);
 
-    static void send_event_to_sharedApplicatoin_and_check_should_exit(id event)
-    {
-        if (event) {
-            objc_msgSend(objc_msgSend((id)objc_getClass("NSApplication"),
-                             sel_registerName("sharedApplication")),
-                sel_registerName("sendEvent:"), event);
-        }
-    }
+    static void send_event_to_sharedApplicatoin_and_check_should_exit(id event);
 
     static result_t should_exit(struct webview* w)
     {
