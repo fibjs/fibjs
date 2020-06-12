@@ -84,9 +84,9 @@
 }
 -(void)windowDidMove:(id)didMoveNotification
 {
-    struct webview* w = (struct webview*)objc_getAssociatedObject(self, "webview");
-    if (w == NULL)
-        return;
+    // struct webview* w = (struct webview*)objc_getAssociatedObject(self, "webview");
+    // if (w == NULL)
+    //     return;
 
     // WebView* wv = getClsWebView(w);
     // if (wv == NULL)
@@ -100,23 +100,23 @@
 
     // wv->_emit("move");
 }
-// webview_windowShouldClose
 -(bool)windowShouldClose:(id)window
 {
     printf("[webview_windowShouldClose] 看看 winDelegate 生效没 \n");
 
-    // id alert = objc_msgSend((id)objc_getClass("NSAlert"), sel_registerName("new"));
-    // objc_msgSend(alert, sel_registerName("setAlertStyle:"), NSAlertStyleWarning);
-    // objc_msgSend(alert, sel_registerName("setMessageText:"), get_nsstring("确定退出吗?"));
-    // objc_msgSend(alert, sel_registerName("addButtonWithTitle:"), get_nsstring("退出"));
-    // objc_msgSend(alert, sel_registerName("addButtonWithTitle:"), get_nsstring("取消"));
+    id alert = [NSAlert new];
+    [alert setAlertStyle:NSAlertStyleWarning];
+    [alert setMessageText:get_nsstring("确定退出吗?")];
+    [alert addButtonWithTitle:get_nsstring("退出")];
+    [alert addButtonWithTitle:get_nsstring("取消")];
 
-    // unsigned long result = (unsigned long)objc_msgSend(alert, sel_registerName("runModal"));
-    // objc_msgSend(alert, sel_registerName("release"));
+    unsigned long result = (unsigned long)[alert runModal];
+    [alert release];
 
-    // if (result != NSAlertFirstButtonReturn) {
-    //     return NO;
-    // }
+    if (result != NSAlertFirstButtonReturn) {
+        return NO;
+    }
+
     return YES;
 }
 @end
