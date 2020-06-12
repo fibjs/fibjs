@@ -88,12 +88,12 @@ public:
         }
 
         struct webview webview = {};
-        webview.title = m_title.c_str();
-        webview.url = m_url.c_str();
-        webview.width = m_WinW;
-        webview.height = m_WinH;
-        webview.resizable = m_bResizable;
-        webview.debug = m_bDebug;
+        // webview.title = m_title.c_str();
+        // webview.url = m_url.c_str();
+        // webview.width = m_WinW;
+        // webview.height = m_WinH;
+        // webview.resizable = m_bResizable;
+        // webview.debug = m_bDebug;
         webview.clsWebView = this;
 
         m_webview = &webview;
@@ -180,7 +180,7 @@ public:
 
     void initWindowRect(struct webview* w)
     {
-        this->webview_window_rect = CGRectMake(0, 0, w->width, w->height);
+        this->webview_window_rect = CGRectMake(0, 0, m_WinW, m_WinH);
     }
 
     void initWindow(struct webview* w);
@@ -251,27 +251,12 @@ public:
     static void SetupAppMenubar();
 
 public:
-    static struct webview* getCurrentWebViewStruct()
+    static struct webview* getCurrentWebViewStruct_deprecated()
     {
         if (!s_activeWinObjcId)
             return NULL;
 
-        // printf("s_activeWinObjcId is not NULL \n");
-
-        struct webview* w = (struct webview*)objc_getAssociatedObject(s_activeWinObjcId, "webview");
-
-        return w;
-    }
-    static WebView* getCurrentWebViewInstance()
-    {
-
-        struct webview* w = getCurrentWebViewStruct();
-        if (w == NULL)
-            return NULL;
-
-        WebView* wv = getClsWebView(w);
-
-        return wv;
+        return (struct webview*)objc_getAssociatedObject(s_activeWinObjcId, "webview");
     }
 
 public:

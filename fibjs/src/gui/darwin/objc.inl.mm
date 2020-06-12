@@ -110,12 +110,12 @@
     [alert addButtonWithTitle:get_nsstring("退出")];
     [alert addButtonWithTitle:get_nsstring("取消")];
 
-    unsigned long result = (unsigned long)[alert runModal];
-    [alert release];
+    // unsigned long result = (unsigned long)[alert runModal];
+    // [alert release];
 
-    if (result != NSAlertFirstButtonReturn) {
-        return NO;
-    }
+    // if (result != NSAlertFirstButtonReturn) {
+    //     return NO;
+    // }
 
     return YES;
 }
@@ -220,7 +220,7 @@ decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler
     //     return;
     const char* msg = (const char*)objc_msgSend(objc_msgSend(message, sel_registerName("body")), sel_registerName("UTF8String"));
     // normalize to one function
-    printf("[webview_external_postMessage] view view msg %s \n", w->title);
+    // printf("[webview_external_postMessage] view view msg %s \n", w->title);
 
     // wv->_emit("message", msg);
 }
