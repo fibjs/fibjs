@@ -187,17 +187,17 @@ public:
 
     id getWKWebView();
 
-    void navigateWKWebView(struct webview* w);
+    void navigateWKWebView();
 
     void setWKWebViewStyle();
 
     void linkWindowWithWebview();
 
-    void putWindowToTopOrder(struct webview* w);
+    void putWindowToTopOrder();
 
     void activeApp();
 
-    void linkAppWithWebView(struct webview* w)
+    void linkAppWithWebView()
     {
         // id app = objc_msgSend((id)objc_getClass("NSApplication"),
         //     sel_registerName("sharedApplication"));
@@ -216,14 +216,14 @@ public:
         objc_msgSend(m_nsWindow, sel_registerName("center"));
 
         w->priv.webview = m_wkWebView = getWKWebView();
-        navigateWKWebView(w);
+        navigateWKWebView();
 
         setWKWebViewStyle();
         linkWindowWithWebview();
 
-        putWindowToTopOrder(w);
+        putWindowToTopOrder();
 
-        linkAppWithWebView(w);
+        linkAppWithWebView();
         activeApp();
 
         SetupAppMenubar();

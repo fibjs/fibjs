@@ -326,14 +326,14 @@ id WebView::getWKWebView()
     return webview;
 }
 
-void WebView::navigateWKWebView(struct webview* w)
+void WebView::navigateWKWebView()
 {
     id nsURL = [NSURL
         URLWithString:get_nsstring(
             webview_check_url(m_url.c_str())
         )
     ];
-    [w->priv.webview loadRequest:[NSURLRequest requestWithURL:nsURL]];
+    [m_wkWebView loadRequest:[NSURLRequest requestWithURL:nsURL]];
 }
 
 void WebView::setWKWebViewStyle()
@@ -344,14 +344,12 @@ void WebView::setWKWebViewStyle()
 
 void WebView::linkWindowWithWebview()
 {
-    [[m_nsWindow contentView]
-        addSubview:m_wkWebView
-    ];
+    [[m_nsWindow contentView] addSubview:m_wkWebView];
 }
 
-void WebView::putWindowToTopOrder(struct webview* w)
+void WebView::putWindowToTopOrder()
 {
-    [w->priv.window orderFrontRegardless];
+    [m_nsWindow orderFrontRegardless];
 }
 
 void WebView::activeApp()
