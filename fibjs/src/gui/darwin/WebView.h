@@ -37,13 +37,6 @@ void putGuiPool(AsyncEvent* ac)
 
 static id s_activeWinObjcId = NULL;
 
-class WebView;
-
-// WebView* getClsWebView(struct webview* w)
-// {
-//     return (WebView*)w->clsWebView;
-// }
-
 class WebView : public WebView_base {
     FIBER_FREE();
 
@@ -90,18 +83,10 @@ public:
         if (m_opt) {
         }
 
-        struct webview webview = {};
-
-        m_webview = &webview;
-
         objc_nsAppInit();
         webview_init();
 
         AddRef();
-
-        // result_t hr = 0;
-        // while ((hr = WebView::webview_loop(m_webview, 0)) == 0)
-        //     ;
 
         printf("[WebView::open] after\n");
 
@@ -125,20 +110,15 @@ public:
 
     static void send_event_to_sharedApplicatoin_and_check_should_exit(id event);
 
-    // static result_t should_exit(struct webview* w)
-    // {
-    //     return w->priv.should_exit;
-    // }
+    static int webview_eval(WebView* w, const char* js);
 
-    static int webview_eval(struct webview* w, const char* js);
+    static int webview_inject_css(WebView* w, const char* css);
 
-    static int webview_inject_css(struct webview* w, const char* css);
+    static void webview_set_fullscreen(WebView* w, int fullscreen);
 
-    static void webview_set_fullscreen(struct webview* w, int fullscreen);
+    static void webview_set_color(WebView* w, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 
-    static void webview_set_color(struct webview* w, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
-
-    static void webview_dialog(struct webview* w, enum webview_dialog_type dlgtype, int flags, const char* title, const char* arg, char* result, size_t resultsz);
+    static void webview_dialog(WebView* w, enum webview_dialog_type dlgtype, int flags, const char* title, const char* arg, char* result, size_t resultsz);
 
     static void webview_print_log(const char* s) { printf("%s\n", s); }
 
@@ -222,11 +202,6 @@ public:
         return 0;
     }
 
-    // static void webview_terminate(struct webview* w)
-    // {
-    //     w->priv.should_exit = 1;
-    // }
-
     // useless, it means end up sharedApplication.
     void webview_exit();
 
@@ -237,12 +212,12 @@ public:
     static void SetupAppMenubar();
 
 public:
-    static struct webview* getCurrentWebViewStruct_deprecated()
+    static WebView* getCurrentWebViewStruct_deprecated()
     {
         if (!s_activeWinObjcId)
             return NULL;
 
-        return (struct webview*)objc_getAssociatedObject(s_activeWinObjcId, "webview");
+        return (WebView*)objc_getAssociatedObject(s_activeWinObjcId, "webview");
     }
 
 public:
@@ -265,7 +240,7 @@ public:
     //     return 0;
     // }
 
-    static void onExternalClosed(struct webview* w, const char* arg)
+    static void onExternalClosed(WebView* w, const char* arg)
     {
         printf("[onExternalClosed], %s \n", arg);
         // WebView* wv = (WebView*)w->clsWebView;
@@ -273,8 +248,6 @@ public:
     }
 
 public:
-    struct webview* m_webview;
-
     NSWindow* m_nsWindow;
     WKWebView* m_wkWebView;
     NSAutoreleasePool* m_nsPool;
@@ -293,15 +266,8 @@ protected:
     bool m_visible;
     bool m_maximize;
     bool m_bSilent;
-
-    // id webviewid_scriptMessageHandler;
-    // id webviewid_downloadDelegate;
-    // id webviewid_wkPref;
-    // id webviewid_wkUserController;
-    // id webviewid_wkwebviewconfig;
+    
     CGRect m_webview_window_rect;
-    // id webviewid_wkwebviewuiDel;
-    // id webivewid_wkwebviewnavDel;
 
     AsyncEvent* m_ac;
 };

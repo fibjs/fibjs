@@ -43,26 +43,6 @@ FIBJS_EXTERN_C_START
 #include <CoreGraphics/CoreGraphics.h>
 #include <limits.h>
 
-struct webview_priv {
-    // id pool;
-    id window;
-    id webview;
-    // id appDelegate;
-    // int should_exit;
-};
-
-struct webview {
-    // const char* url;
-    // const char* title;
-    // int width;
-    // int height;
-    // int resizable;
-    // int debug;
-    // void* clsWebView;
-    struct webview_priv priv;
-    // void* userdata;
-};
-
 enum webview_dialog_type {
     WEBVIEW_DIALOG_TYPE_OPEN = 0,
     WEBVIEW_DIALOG_TYPE_SAVE = 1,
