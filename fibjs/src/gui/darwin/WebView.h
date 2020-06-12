@@ -185,13 +185,13 @@ public:
 
     void setupWindowTitle();
 
-    id getWKWebView(struct webview* w);
+    id getWKWebView();
 
     void navigateWKWebView(struct webview* w);
 
-    void setWKWebViewStyle(id webview);
+    void setWKWebViewStyle();
 
-    void linkWindowWithWebview(struct webview* w);
+    void linkWindowWithWebview();
 
     void putWindowToTopOrder(struct webview* w);
 
@@ -215,11 +215,11 @@ public:
         // make it center
         objc_msgSend(m_nsWindow, sel_registerName("center"));
 
-        w->priv.webview = getWKWebView(w);
+        w->priv.webview = m_wkWebView = getWKWebView();
         navigateWKWebView(w);
 
-        setWKWebViewStyle(w->priv.webview);
-        linkWindowWithWebview(w);
+        setWKWebViewStyle();
+        linkWindowWithWebview();
 
         putWindowToTopOrder(w);
 
@@ -286,6 +286,7 @@ public:
     struct webview* m_webview;
 
     NSWindow* m_nsWindow;
+    WKWebView* m_wkWebView;
     NSAutoreleasePool* m_nsPool;
 
 protected:
