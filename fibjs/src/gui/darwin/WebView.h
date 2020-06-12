@@ -95,7 +95,7 @@ public:
         m_webview = &webview;
 
         objc_nsAppInit();
-        webview_init(m_webview);
+        webview_init();
 
         AddRef();
 
@@ -125,20 +125,10 @@ public:
 
     static void send_event_to_sharedApplicatoin_and_check_should_exit(id event);
 
-    static result_t should_exit(struct webview* w)
-    {
-        return w->priv.should_exit;
-    }
-
-    // pure C API about webview
-    static int webview_loop(struct webview* w, int blocking)
-    {
-        id event = WebView::webview_get_event_from_mainloop(blocking);
-
-        WebView::send_event_to_sharedApplicatoin_and_check_should_exit(event);
-
-        return WebView::should_exit(w);
-    }
+    // static result_t should_exit(struct webview* w)
+    // {
+    //     return w->priv.should_exit;
+    // }
 
     static int webview_eval(struct webview* w, const char* js);
 
@@ -179,7 +169,7 @@ public:
         m_webview_window_rect = CGRectMake(0, 0, m_WinW, m_WinH);
     }
 
-    void initWindow(struct webview* w);
+    void initWindow();
 
     void setupWindowDelegation();
 
@@ -204,18 +194,18 @@ public:
         // objc_setAssociatedObject(app, "webview", (id)(w), OBJC_ASSOCIATION_ASSIGN);
     }
 
-    int webview_init(struct webview* w)
+    int webview_init()
     {
         initWindowRect();
 
-        initWindow(w);
+        initWindow();
         setupWindowDelegation();
         setupWindowTitle();
 
         // make it center
         objc_msgSend(m_nsWindow, sel_registerName("center"));
 
-        w->priv.webview = m_wkWebView = getWKWebView();
+        m_wkWebView = getWKWebView();
         navigateWKWebView();
 
         setWKWebViewStyle();
@@ -228,14 +218,14 @@ public:
 
         SetupAppMenubar();
 
-        w->priv.should_exit = 0;
+        // w->priv.should_exit = 0;
         return 0;
     }
 
-    static void webview_terminate(struct webview* w)
-    {
-        w->priv.should_exit = 1;
-    }
+    // static void webview_terminate(struct webview* w)
+    // {
+    //     w->priv.should_exit = 1;
+    // }
 
     // useless, it means end up sharedApplication.
     void webview_exit();

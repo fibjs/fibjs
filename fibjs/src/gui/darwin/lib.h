@@ -48,7 +48,7 @@ struct webview_priv {
     id window;
     id webview;
     // id appDelegate;
-    int should_exit;
+    // int should_exit;
 };
 
 struct webview {
