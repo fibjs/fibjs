@@ -312,7 +312,7 @@ void WebView::setupWindowTitle()
     [m_nsWindow setTitle:[NSString stringWithUTF8String:m_title.c_str()]];
 }
 
-id WebView::getWKWebView(struct webview* w)
+id WebView::getWKWebView()
 {
     id webview = [
         [WKWebView alloc]
@@ -336,16 +336,16 @@ void WebView::navigateWKWebView(struct webview* w)
     [w->priv.webview loadRequest:[NSURLRequest requestWithURL:nsURL]];
 }
 
-void WebView::setWKWebViewStyle(id webview)
+void WebView::setWKWebViewStyle()
 {
-    [webview setAutoresizesSubviews:TRUE];
-    [webview setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+    [m_wkWebView setAutoresizesSubviews:TRUE];
+    [m_wkWebView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
 }
 
-void WebView::linkWindowWithWebview(struct webview* w)
+void WebView::linkWindowWithWebview()
 {
-    [[w->priv.window contentView]
-        addSubview:w->priv.webview
+    [[m_nsWindow contentView]
+        addSubview:m_wkWebView
     ];
 }
 
