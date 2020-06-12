@@ -161,6 +161,13 @@ id WebView::webview_get_event_from_mainloop(int blocking)
     ];
 }
 
+void WebView::send_event_to_sharedApplicatoin_and_check_should_exit(id event)
+{
+    if (event) {
+        [[NSApplication sharedApplication] sendEvent:event];
+    }
+}
+
 void WebView::RegNSApplicationDelegations() {
     // id appDelegate = [[__NSApplicationDelegate alloc] init];
     id appDelegate = [__NSApplicationDelegate new];
@@ -254,14 +261,12 @@ void WebView::setupWindowDelegation(struct webview* w)
 {
     w->priv.windowDelegate = [__NSWindowDelegate new];
     objc_setAssociatedObject(w->priv.windowDelegate, "webview", (id)(w), OBJC_ASSOCIATION_ASSIGN);
-    objc_msgSend(w->priv.window, sel_registerName("setDelegate:"), w->priv.windowDelegate);
+    [w->priv.window setDelegate:w->priv.windowDelegate];
 }
 
 void WebView::setupWindowTitle(struct webview* w)
 {
-    [w->priv.window
-        setTitle:[NSString stringWithUTF8String:w->title]
-    ];
+    [w->priv.window setTitle:[NSString stringWithUTF8String:w->title]];
 }
 
 id WebView::getWKWebView(struct webview* w)
