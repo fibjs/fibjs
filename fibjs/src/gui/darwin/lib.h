@@ -47,8 +47,7 @@ struct webview_priv {
     id pool;
     id window;
     id webview;
-    id windowDelegate;
-    id appDelegate;
+    // id appDelegate;
     int should_exit;
 };
 
@@ -59,7 +58,7 @@ struct webview {
     // int height;
     // int resizable;
     // int debug;
-    void* clsWebView;
+    // void* clsWebView;
     struct webview_priv priv;
     // void* userdata;
 };

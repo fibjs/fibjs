@@ -13,6 +13,9 @@
 #include "ifs/WebView.h"
 #include "EventInfo.h"
 #include "lib.h"
+#include <Cocoa/Cocoa.h>
+
+#include "objc.inl.mm"
 
 namespace fibjs {
 
@@ -36,10 +39,10 @@ static id s_activeWinObjcId = NULL;
 
 class WebView;
 
-WebView* getClsWebView(struct webview* w)
-{
-    return (WebView*)w->clsWebView;
-}
+// WebView* getClsWebView(struct webview* w)
+// {
+//     return (WebView*)w->clsWebView;
+// }
 
 class WebView : public WebView_base {
     FIBER_FREE();
@@ -94,7 +97,7 @@ public:
         // webview.height = m_WinH;
         // webview.resizable = m_bResizable;
         // webview.debug = m_bDebug;
-        webview.clsWebView = this;
+        // webview.clsWebView = this;
 
         m_webview = &webview;
 
@@ -172,22 +175,22 @@ public:
 
     void objc_nsAppInit(struct webview* w);
 
-    id prepareWKPreferences(struct webview* w);
+    id prepareWKPreferences();
 
-    id getWKUserController(struct webview* w);
+    id getWKUserController();
 
-    id prepareWKWebViewConfig(struct webview* w);
+    id prepareWKWebViewConfig();
 
-    void initWindowRect(struct webview* w)
+    void initWindowRect()
     {
-        this->webview_window_rect = CGRectMake(0, 0, m_WinW, m_WinH);
+        m_webview_window_rect = CGRectMake(0, 0, m_WinW, m_WinH);
     }
 
     void initWindow(struct webview* w);
 
-    void setupWindowDelegation(struct webview* w);
+    void setupWindowDelegation();
 
-    void setupWindowTitle(struct webview* w);
+    void setupWindowTitle();
 
     id getWKWebView(struct webview* w);
 
@@ -210,11 +213,11 @@ public:
 
     int webview_init(struct webview* w)
     {
-        initWindowRect(w);
+        initWindowRect();
 
         initWindow(w);
-        setupWindowDelegation(w);
-        setupWindowTitle(w);
+        setupWindowDelegation();
+        setupWindowTitle();
 
         // make it center
         objc_msgSend(w->priv.window, sel_registerName("center"));
@@ -260,34 +263,36 @@ public:
     }
 
 public:
-    static int on_webview_say_close(struct webview* w)
-    {
-        WebView* wv = getClsWebView(w);
+    // static int on_webview_say_close(struct webview* w)
+    // {
+    //     WebView* wv = getClsWebView(w);
 
-        if (wv) {
-            // wv->postClose();
-            wv->_emit("close");
+    //     if (wv) {
+    //         // wv->postClose();
+    //         wv->_emit("close");
 
-            wv->webview_terminate(w);
-            // TODO: use new fiber?
-            wv->_emit("closed");
+    //         wv->webview_terminate(w);
+    //         // TODO: use new fiber?
+    //         wv->_emit("closed");
 
-            wv->holder()->Unref();
-            wv->clear();
-            wv->Release();
-        }
-        return 0;
-    }
+    //         wv->holder()->Unref();
+    //         wv->clear();
+    //         wv->Release();
+    //     }
+    //     return 0;
+    // }
 
     static void onExternalClosed(struct webview* w, const char* arg)
     {
         printf("[onExternalClosed], %s \n", arg);
-        WebView* wv = (WebView*)w->clsWebView;
-        wv->_emit("closed", arg);
+        // WebView* wv = (WebView*)w->clsWebView;
+        // wv->_emit("closed", arg);
     }
 
 public:
     struct webview* m_webview;
+
+    NSWindow* m_nsWindow;
 
 protected:
     exlib::string m_title;
@@ -309,7 +314,7 @@ protected:
     // id webviewid_wkPref;
     // id webviewid_wkUserController;
     // id webviewid_wkwebviewconfig;
-    CGRect webview_window_rect;
+    CGRect m_webview_window_rect;
     // id webviewid_wkwebviewuiDel;
     // id webivewid_wkwebviewnavDel;
 
