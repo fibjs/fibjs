@@ -213,7 +213,7 @@ public:
         setupWindowTitle();
 
         // make it center
-        objc_msgSend(w->priv.window, sel_registerName("center"));
+        objc_msgSend(m_nsWindow, sel_registerName("center"));
 
         w->priv.webview = getWKWebView(w);
         navigateWKWebView(w);
