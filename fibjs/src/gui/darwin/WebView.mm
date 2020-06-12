@@ -285,12 +285,12 @@ id WebView::prepareWKWebViewConfig()
     return webviewid_wkwebviewconfig;
 }
 
-void WebView::initWindow(struct webview* w)
+void WebView::initWindow()
 {
     unsigned int style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
     if (m_bResizable) style = style | NSWindowStyleMaskResizable;
 
-    s_activeWinObjcId = w->priv.window = m_nsWindow = [[NSWindow alloc]
+    s_activeWinObjcId = m_nsWindow = [[NSWindow alloc]
         initWithContentRect:m_webview_window_rect
         styleMask:style
         backing:NSBackingStoreBuffered
@@ -389,108 +389,108 @@ int WebView::webview_inject_css(struct webview* w, const char* css)
 
 void WebView::webview_set_fullscreen(struct webview* w, int fullscreen)
 {
-    unsigned long windowStyleMask = (unsigned long)[w->priv.window styleMask];
-    int b = (((windowStyleMask & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen)
-            ? 1
-            : 0);
-    if (b != fullscreen) {
-        [w->priv.window toggleFullScreen:NULL];
-    }
+    // unsigned long windowStyleMask = (unsigned long)[w->priv.window styleMask];
+    // int b = (((windowStyleMask & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen)
+    //         ? 1
+    //         : 0);
+    // if (b != fullscreen) {
+    //     [w->priv.window toggleFullScreen:NULL];
+    // }
 }
 
 void WebView::webview_set_color(struct webview* w, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
-    id color = [NSColor
-        colorWithRed:((float)r / 255.0)
-        green:((float)g / 255.0)
-        blue:((float)b / 255.0)
-        alpha:((float)a / 255.0)
-    ];
+    // id color = [NSColor
+    //     colorWithRed:((float)r / 255.0)
+    //     green:((float)g / 255.0)
+    //     blue:((float)b / 255.0)
+    //     alpha:((float)a / 255.0)
+    // ];
 
-    [w->priv.window setBackgroundColor:color];
+    // [w->priv.window setBackgroundColor:color];
 
-    if (0.5 >= ((r / 255.0 * 299.0) + (g / 255.0 * 587.0) + (b / 255.0 * 114.0)) / 1000.0) {
-        [w->priv.window
-            setAppearance:[NSAppearance appearanceNamed:get_nsstring("NSAppearanceNameVibrantDark")]
-        ];
-    } else {
-        [w->priv.window
-            setAppearance:[NSAppearance appearanceNamed:get_nsstring("NSAppearanceNameVibrantLight")]
-        ];
-    }
+    // if (0.5 >= ((r / 255.0 * 299.0) + (g / 255.0 * 587.0) + (b / 255.0 * 114.0)) / 1000.0) {
+    //     [w->priv.window
+    //         setAppearance:[NSAppearance appearanceNamed:get_nsstring("NSAppearanceNameVibrantDark")]
+    //     ];
+    // } else {
+    //     [w->priv.window
+    //         setAppearance:[NSAppearance appearanceNamed:get_nsstring("NSAppearanceNameVibrantLight")]
+    //     ];
+    // }
 
-    [w->priv.window setOpaque:FALSE];
-    [w->priv.window setTitlebarAppearsTransparent:YES];
+    // [w->priv.window setOpaque:FALSE];
+    // [w->priv.window setTitlebarAppearsTransparent:YES];
 }
 
 void WebView::webview_dialog(struct webview* w, enum webview_dialog_type dlgtype, int flags, const char* title, const char* arg, char* result, size_t resultsz)
 {
-    if (dlgtype == WEBVIEW_DIALOG_TYPE_OPEN || dlgtype == WEBVIEW_DIALOG_TYPE_SAVE) {
-        id panel = (id)objc_getClass("NSSavePanel");
-        if (dlgtype == WEBVIEW_DIALOG_TYPE_OPEN) {
-            id openPanel = [NSOpenPanel openPanel];
+    // if (dlgtype == WEBVIEW_DIALOG_TYPE_OPEN || dlgtype == WEBVIEW_DIALOG_TYPE_SAVE) {
+    //     id panel = (id)objc_getClass("NSSavePanel");
+    //     if (dlgtype == WEBVIEW_DIALOG_TYPE_OPEN) {
+    //         id openPanel = [NSOpenPanel openPanel];
             
-            if (flags & WEBVIEW_DIALOG_FLAG_DIRECTORY) {
-                [openPanel setCanChooseFiles:FALSE];
-                [openPanel setCanChooseDirectories:TRUE];
-            } else {
-                [openPanel setCanChooseFiles:TRUE];
-                [openPanel setCanChooseDirectories:FALSE];
-            }
+    //         if (flags & WEBVIEW_DIALOG_FLAG_DIRECTORY) {
+    //             [openPanel setCanChooseFiles:FALSE];
+    //             [openPanel setCanChooseDirectories:TRUE];
+    //         } else {
+    //             [openPanel setCanChooseFiles:TRUE];
+    //             [openPanel setCanChooseDirectories:FALSE];
+    //         }
 
-            [openPanel setResolvesAliases:FALSE];
-            [openPanel setAllowsMultipleSelection:FALSE];
-            panel = openPanel;
-        } else {
-            panel = [NSSavePanel savePanel];
-        }
+    //         [openPanel setResolvesAliases:FALSE];
+    //         [openPanel setAllowsMultipleSelection:FALSE];
+    //         panel = openPanel;
+    //     } else {
+    //         panel = [NSSavePanel savePanel];
+    //     }
 
-        [panel setCanCreateDirectories:TRUE];
-        [panel setShowsHiddenFiles:TRUE];
-        [panel setExtensionHidden:FALSE];
-        [panel setCanSelectHiddenExtension:FALSE];
-        [panel setTreatsFilePackagesAsDirectories:TRUE];
+    //     [panel setCanCreateDirectories:TRUE];
+    //     [panel setShowsHiddenFiles:TRUE];
+    //     [panel setExtensionHidden:FALSE];
+    //     [panel setCanSelectHiddenExtension:FALSE];
+    //     [panel setTreatsFilePackagesAsDirectories:TRUE];
 
-        [panel
-            beginSheetModalForWindow:w->priv.window
-            completionHandler:^(NSModalResponse result) {
-                [[NSApplication sharedApplication] stopModalWithCode:result];
-            }
-        ];
+    //     [panel
+    //         beginSheetModalForWindow:w->priv.window
+    //         completionHandler:^(NSModalResponse result) {
+    //             [[NSApplication sharedApplication] stopModalWithCode:result];
+    //         }
+    //     ];
 
-        if (
-            [[NSApplication sharedApplication] runModalForWindow:panel] == NSModalResponseOK
-        ) {
-            id url = [panel URL];
-            id path = [url path];
-            const char* filename = (const char*)[path UTF8String];
-            strlcpy(result, filename, resultsz);
-        }
-    } else if (dlgtype == WEBVIEW_DIALOG_TYPE_ALERT) {
-        id a = [NSAlert new];
-        switch (flags & WEBVIEW_DIALOG_FLAG_ALERT_MASK) {
-        case WEBVIEW_DIALOG_FLAG_INFO:
-            [a setAlertStyle:NSAlertStyleInformational];
-            break;
-        case WEBVIEW_DIALOG_FLAG_WARNING:
-            printf("Warning\n");
-            [a setAlertStyle:NSAlertStyleWarning];
-            break;
-        case WEBVIEW_DIALOG_FLAG_ERROR:
-            printf("Error\n");
-            [a setAlertStyle:NSAlertStyleCritical];
-            break;
-        }
+    //     if (
+    //         [[NSApplication sharedApplication] runModalForWindow:panel] == NSModalResponseOK
+    //     ) {
+    //         id url = [panel URL];
+    //         id path = [url path];
+    //         const char* filename = (const char*)[path UTF8String];
+    //         strlcpy(result, filename, resultsz);
+    //     }
+    // } else if (dlgtype == WEBVIEW_DIALOG_TYPE_ALERT) {
+    //     id a = [NSAlert new];
+    //     switch (flags & WEBVIEW_DIALOG_FLAG_ALERT_MASK) {
+    //     case WEBVIEW_DIALOG_FLAG_INFO:
+    //         [a setAlertStyle:NSAlertStyleInformational];
+    //         break;
+    //     case WEBVIEW_DIALOG_FLAG_WARNING:
+    //         printf("Warning\n");
+    //         [a setAlertStyle:NSAlertStyleWarning];
+    //         break;
+    //     case WEBVIEW_DIALOG_FLAG_ERROR:
+    //         printf("Error\n");
+    //         [a setAlertStyle:NSAlertStyleCritical];
+    //         break;
+    //     }
 
-        [a setShowsHelp:FALSE];
-        [a setShowsSuppressionButton:FALSE];
-        [a setMessageText:get_nsstring(title)];
-        [a setInformativeText:get_nsstring(arg)];
+    //     [a setShowsHelp:FALSE];
+    //     [a setShowsSuppressionButton:FALSE];
+    //     [a setMessageText:get_nsstring(title)];
+    //     [a setInformativeText:get_nsstring(arg)];
 
-        [a addButtonWithTitle:get_nsstring("OK")];
-        [a runModal];
-        [a release];
-    }
+    //     [a addButtonWithTitle:get_nsstring("OK")];
+    //     [a runModal];
+    //     [a release];
+    // }
 }
 
 int WebView::webview_js_encode(const char* s, char* esc, size_t n)
