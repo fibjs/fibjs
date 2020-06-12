@@ -146,34 +146,9 @@ public:
 
     static int webview_eval(struct webview* w, const char* js);
 
-    static int webview_inject_css(struct webview* w, const char* css)
-    {
-        int n = webview_js_encode(css, NULL, 0);
-        char* esc = (char*)calloc(1, sizeof(CSS_INJECT_FUNCTION) + n + 4);
-        if (esc == NULL) {
-            return -1;
-        }
-        char* js = (char*)calloc(1, n);
-        webview_js_encode(css, js, n);
-        snprintf(esc, sizeof(CSS_INJECT_FUNCTION) + n + 4, "%s(\"%s\")",
-            CSS_INJECT_FUNCTION, js);
-        int r = webview_eval(w, esc);
-        free(js);
-        free(esc);
-        return r;
-    }
+    static int webview_inject_css(struct webview* w, const char* css);
 
-    static void webview_set_fullscreen(struct webview* w, int fullscreen)
-    {
-        unsigned long windowStyleMask = (unsigned long)objc_msgSend(
-            w->priv.window, sel_registerName("styleMask"));
-        int b = (((windowStyleMask & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen)
-                ? 1
-                : 0);
-        if (b != fullscreen) {
-            objc_msgSend(w->priv.window, sel_registerName("toggleFullScreen:"), NULL);
-        }
-    }
+    static void webview_set_fullscreen(struct webview* w, int fullscreen);
 
     static void webview_set_color(struct webview* w, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 
@@ -267,68 +242,13 @@ public:
     }
 
     // useless, it means end up sharedApplication.
-    void webview_exit()
-    {
-        id app = objc_msgSend((id)objc_getClass("NSApplication"),
-            sel_registerName("sharedApplication"));
-
-        objc_msgSend(app, sel_registerName("terminate:"), app);
-    }
+    void webview_exit();
 
 public:
     // static registration methods, ONLY run it in GUI Thread
     static void RegNSApplicationDelegations();
 
-    static void SetupAppMenubar()
-    {
-        id menubar = objc_msgSend((id)objc_getClass("NSMenu"), sel_registerName("alloc"));
-        objc_msgSend(menubar, sel_registerName("initWithTitle:"), get_nsstring(""));
-        objc_msgSend(menubar, sel_registerName("autorelease"));
-
-        // id appName = objc_msgSend(objc_msgSend((id)objc_getClass("NSProcessInfo"),
-        //                               sel_registerName("processInfo")),
-        //     sel_registerName("processName"));
-        id appName = get_nsstring("喵喵喵");
-
-        id appMenuItem = objc_msgSend((id)objc_getClass("NSMenuItem"), sel_registerName("alloc"));
-        objc_msgSend(appMenuItem,
-            sel_registerName("initWithTitle:action:keyEquivalent:"), appName,
-            NULL, get_nsstring(""));
-
-        id appMenu = objc_msgSend((id)objc_getClass("NSMenu"), sel_registerName("alloc"));
-        objc_msgSend(appMenu, sel_registerName("initWithTitle:"), appName);
-        objc_msgSend(appMenu, sel_registerName("autorelease"));
-
-        objc_msgSend(appMenuItem, sel_registerName("setSubmenu:"), appMenu);
-        objc_msgSend(menubar, sel_registerName("addItem:"), appMenuItem);
-
-        id title = objc_msgSend(get_nsstring("Hide "),
-            sel_registerName("stringByAppendingString:"), appName);
-        id item = create_menu_item(title, "hide:", "h");
-        objc_msgSend(appMenu, sel_registerName("addItem:"), item);
-
-        item = create_menu_item(get_nsstring("Hide Others"),
-            "hideOtherApplications:", "h");
-        objc_msgSend(item, sel_registerName("setKeyEquivalentModifierMask:"),
-            (NSEventModifierFlagOption | NSEventModifierFlagCommand));
-        objc_msgSend(appMenu, sel_registerName("addItem:"), item);
-
-        item = create_menu_item(get_nsstring("Show All"), "unhideAllApplications:", "");
-        objc_msgSend(appMenu, sel_registerName("addItem:"), item);
-
-        objc_msgSend(appMenu, sel_registerName("addItem:"),
-            objc_msgSend((id)objc_getClass("NSMenuItem"),
-                sel_registerName("separatorItem")));
-
-        title = objc_msgSend(get_nsstring("Quit "),
-            sel_registerName("stringByAppendingString:"), appName);
-        item = create_menu_item(title, "terminate:", "q");
-        objc_msgSend(appMenu, sel_registerName("addItem:"), item);
-
-        objc_msgSend(objc_msgSend((id)objc_getClass("NSApplication"),
-                         sel_registerName("sharedApplication")),
-            sel_registerName("setMainMenu:"), menubar);
-    }
+    static void SetupAppMenubar();
 
 public:
     static struct webview* getCurrentWebViewStruct()
