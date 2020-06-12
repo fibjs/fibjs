@@ -91,17 +91,10 @@ public:
         }
 
         struct webview webview = {};
-        // webview.title = m_title.c_str();
-        // webview.url = m_url.c_str();
-        // webview.width = m_WinW;
-        // webview.height = m_WinH;
-        // webview.resizable = m_bResizable;
-        // webview.debug = m_bDebug;
-        // webview.clsWebView = this;
 
         m_webview = &webview;
 
-        objc_nsAppInit(m_webview);
+        objc_nsAppInit();
         webview_init(m_webview);
 
         AddRef();
@@ -173,7 +166,7 @@ public:
 
     static id create_menu_item(id title, const char* action, const char* key);
 
-    void objc_nsAppInit(struct webview* w);
+    void objc_nsAppInit();
 
     id prepareWKPreferences();
 
@@ -293,6 +286,7 @@ public:
     struct webview* m_webview;
 
     NSWindow* m_nsWindow;
+    NSAutoreleasePool* m_nsPool;
 
 protected:
     exlib::string m_title;

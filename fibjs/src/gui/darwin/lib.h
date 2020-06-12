@@ -44,7 +44,7 @@ FIBJS_EXTERN_C_START
 #include <limits.h>
 
 struct webview_priv {
-    id pool;
+    // id pool;
     id window;
     id webview;
     // id appDelegate;

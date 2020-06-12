@@ -220,9 +220,9 @@ void WebView::SetupAppMenubar()
     [[NSApplication sharedApplication] setMainMenu:menubar];
 }
 
-void WebView::objc_nsAppInit(struct webview* w)
+void WebView::objc_nsAppInit()
 {
-    w->priv.pool = [NSAutoreleasePool new];
+    m_nsPool = [NSAutoreleasePool new];
     [NSApplication sharedApplication];
 }
 
