@@ -21,8 +21,6 @@
 #include "utf8.h"
 #include <exlib/include/thread.h>
 
-#include "objc.inl.mm"
-
 namespace fibjs {
 
 DECLARE_MODULE(gui);
@@ -175,10 +173,7 @@ void WebView::webview_exit()
 }
 
 void WebView::RegNSApplicationDelegations() {
-    // id appDelegate = [[__NSApplicationDelegate alloc] init];
-    id appDelegate = [__NSApplicationDelegate new];
-
-    [[NSApplication sharedApplication] setDelegate:appDelegate];
+    [[NSApplication sharedApplication] setDelegate:[__NSApplicationDelegate new]];
 
     WebView::SetupAppMenubar();
 }
@@ -231,7 +226,7 @@ void WebView::objc_nsAppInit(struct webview* w)
     [NSApplication sharedApplication];
 }
 
-id WebView::prepareWKPreferences(struct webview* w)
+id WebView::prepareWKPreferences()
 {
     Class __WKPreferences
         = objc_allocateClassPair(objc_getClass("WKPreferences"),
@@ -251,15 +246,15 @@ id WebView::prepareWKPreferences(struct webview* w)
     return webviewid_wkPref;
 }
 
-id WebView::getWKUserController(struct webview* w)
+id WebView::getWKUserController()
 {
     id webviewid_wkUserController = [WKUserContentController new];
 
-    objc_setAssociatedObject(webviewid_wkUserController, "JSWebView", (id)(this),
-        OBJC_ASSOCIATION_ASSIGN);
+    // objc_setAssociatedObject(webviewid_wkUserController, "JSWebView", (id)(this),
+    //     OBJC_ASSOCIATION_ASSIGN);
 
-    objc_setAssociatedObject(webviewid_wkUserController, "webview", (id)(w),
-        OBJC_ASSOCIATION_ASSIGN);
+    // objc_setAssociatedObject(webviewid_wkUserController, "webview", (id)(w),
+    //     OBJC_ASSOCIATION_ASSIGN);
 
     [webviewid_wkUserController
         addScriptMessageHandler:[__WKScriptMessageHandler new]
@@ -277,15 +272,15 @@ id WebView::getWKUserController(struct webview* w)
     return webviewid_wkUserController;
 }
 
-id WebView::prepareWKWebViewConfig(struct webview* w)
+id WebView::prepareWKWebViewConfig()
 {
     id webviewid_wkwebviewconfig = [WKWebViewConfiguration new];
 
     id processPool = [webviewid_wkwebviewconfig processPool];
     [processPool _setDownloadDelegate:[__WKDownloadDelegate new]];
     [webviewid_wkwebviewconfig setProcessPool:processPool];
-    [webviewid_wkwebviewconfig setUserContentController:getWKUserController(w)];
-    [webviewid_wkwebviewconfig setPreferences:prepareWKPreferences(w)];
+    [webviewid_wkwebviewconfig setUserContentController:getWKUserController()];
+    [webviewid_wkwebviewconfig setPreferences:prepareWKPreferences()];
 
     return webviewid_wkwebviewconfig;
 }
@@ -295,36 +290,34 @@ void WebView::initWindow(struct webview* w)
     unsigned int style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
     if (m_bResizable) style = style | NSWindowStyleMaskResizable;
 
-    s_activeWinObjcId = w->priv.window = [[NSWindow alloc]
-        initWithContentRect:this->webview_window_rect
+    s_activeWinObjcId = w->priv.window = m_nsWindow = [[NSWindow alloc]
+        initWithContentRect:m_webview_window_rect
         styleMask:style
         backing:NSBackingStoreBuffered
         defer:FALSE
     ];
     printf("[WebView::initWindow] s_activeWinObjcId assigned\n");
-    objc_setAssociatedObject(s_activeWinObjcId, "webview", (id)(w), OBJC_ASSOCIATION_ASSIGN);
+    // objc_setAssociatedObject(s_activeWinObjcId, "webview", (id)(w), OBJC_ASSOCIATION_ASSIGN);
 
-    [w->priv.window autorelease];
+    [m_nsWindow autorelease];
 }
 
-void WebView::setupWindowDelegation(struct webview* w)
+void WebView::setupWindowDelegation()
 {
-    w->priv.windowDelegate = [__NSWindowDelegate new];
-    objc_setAssociatedObject(w->priv.windowDelegate, "webview", (id)(w), OBJC_ASSOCIATION_ASSIGN);
-    [w->priv.window setDelegate:w->priv.windowDelegate];
+    [m_nsWindow setDelegate:[__NSWindowDelegate new]];
 }
 
-void WebView::setupWindowTitle(struct webview* w)
+void WebView::setupWindowTitle()
 {
-    [w->priv.window setTitle:[NSString stringWithUTF8String:m_title.c_str()]];
+    [m_nsWindow setTitle:[NSString stringWithUTF8String:m_title.c_str()]];
 }
 
 id WebView::getWKWebView(struct webview* w)
 {
     id webview = [
         [WKWebView alloc]
-        initWithFrame:this->webview_window_rect
-        configuration:prepareWKWebViewConfig(w)
+        initWithFrame:m_webview_window_rect
+        configuration:prepareWKWebViewConfig()
     ];
 
     [webview setUIDelegate:[__WKUIDelegate new]];

@@ -211,14 +211,14 @@ decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler
       didReceiveScriptMessage:(WKScriptMessage *)message
 {
     printf("[webview_external_postMessage] \n");
-    struct webview* w = (struct webview*)objc_getAssociatedObject(userContentController, "webview");
-    if (w == NULL)
-        return;
+    // struct webview* w = (struct webview*)objc_getAssociatedObject(userContentController, "webview");
+    // if (w == NULL)
+    //     return;
 
     // WebView* wv = getClsWebView(w);
     // if (wv == NULL)
     //     return;
-    const char* msg = (const char*)objc_msgSend(objc_msgSend(message, sel_registerName("body")), sel_registerName("UTF8String"));
+    // const char* msg = (const char*)objc_msgSend(objc_msgSend(message, sel_registerName("body")), sel_registerName("UTF8String"));
     // normalize to one function
     // printf("[webview_external_postMessage] view view msg %s \n", w->title);
 
