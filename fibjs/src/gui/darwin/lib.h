@@ -53,15 +53,15 @@ struct webview_priv {
 };
 
 struct webview {
-    const char* url;
-    const char* title;
-    int width;
-    int height;
-    int resizable;
-    int debug;
+    // const char* url;
+    // const char* title;
+    // int width;
+    // int height;
+    // int resizable;
+    // int debug;
     void* clsWebView;
     struct webview_priv priv;
-    void* userdata;
+    // void* userdata;
 };
 
 enum webview_dialog_type {

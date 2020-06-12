@@ -55,20 +55,20 @@ public:
             id event = WebView::webview_get_event_from_mainloop(0);
             WebView::send_event_to_sharedApplicatoin_and_check_should_exit(event);
 
-            struct webview* w = WebView::getCurrentWebViewStruct();
+            // struct webview* w = WebView::getCurrentWebViewStruct_deprecated();
 
-            if (w) {
-                // printf("[gui_thread::Run] in loop, webview struct not NULL \n");
+            // if (w) {
+            //     // printf("[gui_thread::Run] in loop, webview struct not NULL \n");
 
-                if (!WebView::should_exit(w))
-                    continue;
+            //     if (!WebView::should_exit(w))
+            //         continue;
 
-                // if (WebView::webview_loop(w, 0) == 0)
-                //     continue;
+            //     // if (WebView::webview_loop(w, 0) == 0)
+            //     //     continue;
 
-                // if (WebView::should_exit(w) == 0)
-                //     continue;
-            }
+            //     // if (WebView::should_exit(w) == 0)
+            //     //     continue;
+            // }
         }
         printf("gui_thread->Run 2\n");
     }
@@ -244,7 +244,7 @@ id WebView::prepareWKPreferences(struct webview* w)
 
     id webviewid_wkPref = [__WKPreferences new];
     [webviewid_wkPref
-        setValue:[NSNumber numberWithBool:!!w->debug]
+        setValue:[NSNumber numberWithBool:!!m_bDebug]
         forKey:[NSString stringWithUTF8String:"developerExtrasEnabled"]
     ];
 
@@ -254,6 +254,9 @@ id WebView::prepareWKPreferences(struct webview* w)
 id WebView::getWKUserController(struct webview* w)
 {
     id webviewid_wkUserController = [WKUserContentController new];
+
+    objc_setAssociatedObject(webviewid_wkUserController, "JSWebView", (id)(this),
+        OBJC_ASSOCIATION_ASSIGN);
 
     objc_setAssociatedObject(webviewid_wkUserController, "webview", (id)(w),
         OBJC_ASSOCIATION_ASSIGN);
@@ -290,7 +293,7 @@ id WebView::prepareWKWebViewConfig(struct webview* w)
 void WebView::initWindow(struct webview* w)
 {
     unsigned int style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
-    if (w->resizable) style = style | NSWindowStyleMaskResizable;
+    if (m_bResizable) style = style | NSWindowStyleMaskResizable;
 
     s_activeWinObjcId = w->priv.window = [[NSWindow alloc]
         initWithContentRect:this->webview_window_rect
@@ -313,14 +316,15 @@ void WebView::setupWindowDelegation(struct webview* w)
 
 void WebView::setupWindowTitle(struct webview* w)
 {
-    [w->priv.window setTitle:[NSString stringWithUTF8String:w->title]];
+    [w->priv.window setTitle:[NSString stringWithUTF8String:m_title.c_str()]];
 }
 
 id WebView::getWKWebView(struct webview* w)
 {
     id webview = [
         [WKWebView alloc]
-        initWithFrame:this->webview_window_rect configuration:prepareWKWebViewConfig(w)
+        initWithFrame:this->webview_window_rect
+        configuration:prepareWKWebViewConfig(w)
     ];
 
     [webview setUIDelegate:[__WKUIDelegate new]];
@@ -331,7 +335,11 @@ id WebView::getWKWebView(struct webview* w)
 
 void WebView::navigateWKWebView(struct webview* w)
 {
-    id nsURL = [NSURL URLWithString:get_nsstring(webview_check_url(w->url))];
+    id nsURL = [NSURL
+        URLWithString:get_nsstring(
+            webview_check_url(m_url.c_str())
+        )
+    ];
     [w->priv.webview loadRequest:[NSURLRequest requestWithURL:nsURL]];
 }
 
@@ -586,36 +594,36 @@ result_t WebView::close(AsyncEvent* ac)
     return 0;
 }
 
-static int async_webview_eval(const char* jsscript)
-{
-    struct webview* w = WebView::getCurrentWebViewStruct();
-    if (w != NULL) {
-        printf("[async_webview_eval] would eval \n");
-        WebView::webview_eval(w, jsscript);
-    }
+// static int async_webview_eval(const char* jsscript)
+// {
+//     struct webview* w = WebView::getCurrentWebViewStruct_deprecated();
+//     if (w != NULL) {
+//         printf("[async_webview_eval] would eval \n");
+//         WebView::webview_eval(w, jsscript);
+//     }
 
-    return 0;
-}
+//     return 0;
+// }
 
 result_t WebView::postMessage(exlib::string msg)
 {
-    printf("[WebView::postMessage] view view argument %s \n", msg.c_str());
+    // printf("[WebView::postMessage] view view argument %s \n", msg.c_str());
 
-    struct webview* w = WebView::getCurrentWebViewStruct();
-    if (w != NULL) {
-        exlib::string jsstr = "if (this.onmessage) { this.onmessage(";
-        // TODO: maybe escape here?
-        jsstr.append("\"");
-        jsstr.append(msg.c_str());
-        jsstr.append("\"");
-        jsstr.append("); }");
+    // struct webview* w = WebView::getCurrentWebViewStruct_deprecated();
+    // if (w != NULL) {
+    //     exlib::string jsstr = "if (this.onmessage) { this.onmessage(";
+    //     // TODO: maybe escape here?
+    //     jsstr.append("\"");
+    //     jsstr.append(msg.c_str());
+    //     jsstr.append("\"");
+    //     jsstr.append("); }");
 
-        printf("[WebView::postMessage] simple WebView::postMessage %s \n", jsstr.c_str());
+    //     printf("[WebView::postMessage] simple WebView::postMessage %s \n", jsstr.c_str());
 
-        asyncCall(async_webview_eval, jsstr.c_str(), CALL_E_GUICALL);
-    } else {
-        printf("[WebView::postMessage] no s_activeWinObjcId, no webview struct \n");
-    }
+    //     asyncCall(async_webview_eval, jsstr.c_str(), CALL_E_GUICALL);
+    // } else {
+    //     printf("[WebView::postMessage] no s_activeWinObjcId, no webview struct \n");
+    // }
 
     return 0;
 }
