@@ -151,8 +151,6 @@ public:
 
     void initWindow();
 
-    void setupWindowDelegation();
-
     void setupWindowTitle();
 
     id getWKWebView();
@@ -174,33 +172,7 @@ public:
         // objc_setAssociatedObject(app, "webview", (id)(w), OBJC_ASSOCIATION_ASSIGN);
     }
 
-    int webview_init()
-    {
-        initWindowRect();
-
-        initWindow();
-        setupWindowDelegation();
-        setupWindowTitle();
-
-        // make it center
-        objc_msgSend(m_nsWindow, sel_registerName("center"));
-
-        m_wkWebView = getWKWebView();
-        navigateWKWebView();
-
-        setWKWebViewStyle();
-        linkWindowWithWebview();
-
-        putWindowToTopOrder();
-
-        linkAppWithWebView();
-        activeApp();
-
-        SetupAppMenubar();
-
-        // w->priv.should_exit = 0;
-        return 0;
-    }
+    int webview_init();
 
     // useless, it means end up sharedApplication.
     void webview_exit();
@@ -210,15 +182,6 @@ public:
     static void RegNSApplicationDelegations();
 
     static void SetupAppMenubar();
-
-public:
-    static WebView* getCurrentWebViewStruct_deprecated()
-    {
-        if (!s_activeWinObjcId)
-            return NULL;
-
-        return (WebView*)objc_getAssociatedObject(s_activeWinObjcId, "webview");
-    }
 
 public:
     // static int on_webview_say_close(struct webview* w)

@@ -53,7 +53,7 @@ public:
             id event = WebView::webview_get_event_from_mainloop(0);
             WebView::send_event_to_sharedApplicatoin_and_check_should_exit(event);
 
-            // WebView* w = WebView::getCurrentWebViewStruct_deprecated();
+            // WebView* w;
 
             // if (w) {
             //     // printf("[gui_thread::Run] in loop, webview struct not NULL \n");
@@ -302,11 +302,6 @@ void WebView::initWindow()
     [m_nsWindow autorelease];
 }
 
-void WebView::setupWindowDelegation()
-{
-    [m_nsWindow setDelegate:[__NSWindowDelegate new]];
-}
-
 void WebView::setupWindowTitle()
 {
     [m_nsWindow setTitle:[NSString stringWithUTF8String:m_title.c_str()]];
@@ -358,6 +353,34 @@ void WebView::activeApp()
     [app setActivationPolicy:NSApplicationActivationPolicyRegular];
     [app finishLaunching];
     [app activateIgnoringOtherApps:YES];
+}
+
+int WebView::webview_init()
+{
+    initWindowRect();
+
+    initWindow();
+    [m_nsWindow setDelegate:[__NSWindowDelegate new]];
+    setupWindowTitle();
+
+    // make it center
+    objc_msgSend(m_nsWindow, sel_registerName("center"));
+
+    m_wkWebView = getWKWebView();
+    navigateWKWebView();
+
+    setWKWebViewStyle();
+    linkWindowWithWebview();
+
+    putWindowToTopOrder();
+
+    linkAppWithWebView();
+    activeApp();
+
+    SetupAppMenubar();
+
+    // w->priv.should_exit = 0;
+    return 0;
 }
 
 int WebView::webview_eval(WebView* w, const char* js)
