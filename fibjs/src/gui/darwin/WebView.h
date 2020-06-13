@@ -151,8 +151,6 @@ public:
 
     void initWindow();
 
-    void setupWindowTitle();
-
     id getWKWebView();
 
     void navigateWKWebView();
