@@ -302,11 +302,6 @@ void WebView::initWindow()
     [m_nsWindow autorelease];
 }
 
-void WebView::setupWindowTitle()
-{
-    [m_nsWindow setTitle:[NSString stringWithUTF8String:m_title.c_str()]];
-}
-
 id WebView::getWKWebView()
 {
     id webview = [
@@ -361,10 +356,10 @@ int WebView::webview_init()
 
     initWindow();
     [m_nsWindow setDelegate:[__NSWindowDelegate new]];
-    setupWindowTitle();
+    [m_nsWindow setTitle:[NSString stringWithUTF8String:m_title.c_str()]];
 
     // make it center
-    objc_msgSend(m_nsWindow, sel_registerName("center"));
+    [m_nsWindow center];
 
     m_wkWebView = getWKWebView();
     navigateWKWebView();
