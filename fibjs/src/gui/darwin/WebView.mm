@@ -203,29 +203,27 @@ void WebView::setupAppMenubar()
     [[NSApplication sharedApplication] setMainMenu:menubar];
 }
 
-void WebView::onWKWebViewExternalMessage(WKScriptMessage* message)
+void WebView::onWKWebViewPostMessage(WKScriptMessage* message)
 {
-    printf("[WebView::onWKWebViewExternalMessage] 1 \n");
+    printf("[WebView::onWKWebViewPostMessage] 1 \n");
 
     // TODO: escape it.
-    const char* msg = (const char*)([[message body] UTF8String]);
-    exlib::string c_jsstr;
-    c_jsstr.append("external.onmessage('");
-    c_jsstr.append(msg);
-    c_jsstr.append("')");
+    const char* wvJsMsg = (const char*)([[message body] UTF8String]);
 
-    // evaluateWebviewJS(c_jsstr.c_str());
+    printf("[WebView::onWKWebViewPostMessage] view view wvJsMsg: %s \n", wvJsMsg);
 
-    printf("[webview_external_postMessage] view view msg: %s \n", msg);
-
-    // wv->_emit("message", msg);
+    _emit("message", wvJsMsg);
 }
 
 void WebView::onWKWebViewInwardMessage(WKScriptMessage* message)
 {
-    printf("[WebView::onWKWebViewInwardMessage] 1 \n");
+    const char* inwardMsg = (const char*)([[message body] UTF8String]);
+    printf("[WebView::onWKWebViewInwardMessage] 1 %s \n", inwardMsg);
 
-    // wv->_emit("load", msg);
+    if (!strcmp(inwardMsg, "inward:window.load")) {
+        _emit("load");
+    }
+
 }
 
 id WebView::getWKPreferences()
@@ -265,7 +263,7 @@ id WebView::getWKUserContentController()
     [wkUserCtrl addUserScript:windowScript_RegExternal];
 
     [wkUserCtrl addUserScript:[[WKUserScript alloc]
-        initWithSource:@"window.addEventListener('load', function() { webkit.messageHandlers.__inward.postMessage('loaded'); } )"
+        initWithSource:@"window.addEventListener('load', function() { webkit.messageHandlers.__inward.postMessage('inward:window.load'); } )"
         injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
         forMainFrameOnly:TRUE
     ]];
@@ -589,46 +587,24 @@ result_t WebView::close(AsyncEvent* ac)
     return 0;
 }
 
-// static int async_webview_eval(const char* jsscript)
-// {
-//     WebView* w = WebView::getCurrentWebViewStruct_deprecated();
-//     if (w != NULL) {
-//         printf("[async_webview_eval] would eval \n");
-//         WebView::evaluateWebviewJS(w, jsscript);
-//     }
-
-//     return 0;
-// }
-
 result_t WebView::postMessage(exlib::string msg)
 {
-    // printf("[WebView::postMessage] view view argument %s \n", msg.c_str());
+    printf("[WebView::postMessage] view view argument %s \n", msg.c_str());
 
-    // WebView* w = WebView::getCurrentWebViewStruct_deprecated();
-    // if (w != NULL) {
-    //     exlib::string jsstr = "if (this.onmessage) { this.onmessage(";
-    //     // TODO: maybe escape here?
-    //     jsstr.append("\"");
-    //     jsstr.append(msg.c_str());
-    //     jsstr.append("\"");
-    //     jsstr.append("); }");
+    exlib::string c_jsstr;
+    c_jsstr.append("external.onmessage('");
+    c_jsstr.append(msg);
+    c_jsstr.append("')");
 
-    //     printf("[WebView::postMessage] simple WebView::postMessage %s \n", jsstr.c_str());
-
-    //     asyncCall(async_webview_eval, jsstr.c_str(), CALL_E_GUICALL);
-    // } else {
-    //     printf("[WebView::postMessage] no s_activeWinObjcId, no webview struct \n");
-    // }
+    evaluateWebviewJS(c_jsstr.c_str());
 
     return 0;
 }
 
 result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
 {
-    if (ac->isSync()) {
-        printf("[WebView::postMessage] I would go into CALL_E_GUICALL\n");
+    if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
-    }
 
     return postMessage(msg);
 }

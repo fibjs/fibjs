@@ -189,7 +189,7 @@ public:
         // this->Release();
     }
 
-    void onWKWebViewExternalMessage(WKScriptMessage* message);
+    void onWKWebViewPostMessage(WKScriptMessage* message);
     void onWKWebViewInwardMessage(WKScriptMessage* message);
 
     static void onExternalClosed(WebView* w, const char* arg)
