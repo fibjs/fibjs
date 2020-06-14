@@ -157,8 +157,6 @@ public:
 
     void setWKWebViewStyle();
 
-    void linkWindowWithWebview();
-
     void putWindowToTopOrder();
 
     void activeApp();
