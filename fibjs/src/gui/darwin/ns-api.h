@@ -31,7 +31,7 @@
 @interface __NSWindowDelegate : NSObject<NSWindowDelegate>
 -(void)windowWillClose:(NSNotification *)willCloseNotification;
 -(void)windowDidMove:(NSNotification *)didMoveNotification;
--(bool)windowShouldClose:(id)window;
+-(bool)windowShouldClose:(NSWindow *)window;
 @end
 
 @interface __WKUIDelegate : NSObject<WKUIDelegate>

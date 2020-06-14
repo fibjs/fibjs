@@ -95,12 +95,12 @@ public:
 private:
     void clear();
     result_t postMessage(exlib::string msg);
-    // result_t WebView::postClose();
 
 public:
     static id fetchEventFromNSMainLoop(int blocking = 0);
 
-    void evaluateWebviewJS(const char* js);
+    typedef void (^JsEvaluateResultHdlr)(id result, NSError * _Nullable error);
+    void evaluateWebviewJS(const char* js, JsEvaluateResultHdlr hdlr = NULL);
 
     static int webview_inject_css(WebView* w, const char* css);
 
@@ -177,27 +177,96 @@ public:
     static void setupAppMenubar();
 
 public:
-    void onNSWindowClose()
+    void onNSWindowWillClose()
     {
-        _emit("close");
-
         _emit("closed");
 
         holder()->Unref();
 
         Release();
-        // this->Release();
+    }
+
+public:
+    // template <typename TRESULT = bool>
+    // class asyncWaitEvaluteJavascript : public AsyncState {
+    //     public:
+    //         asyncWaitEvaluteJavascript(
+    //             WebView* pThis,
+    //             exlib::string js,
+    //             TRESULT& evaluteResult
+    //         )
+    //             : AsyncState(NULL)
+    //             , m_pThis(pThis)
+    //             , m_retVal(evaluteResult)
+    //             , m_js(js)
+    //         {
+    //             next(waitEval);
+    //         }
+
+    //         ON_STATE(asyncWaitEvaluteJavascript, waitEval)
+    //         {
+    //             next(onResult);
+    //             asyncWaitEvaluteJavascript* ac = this;
+    //             m_pThis->evaluateWebviewJS(m_js.c_str(), ^(id result, NSError * _Nullable error) {
+    //                 printf("[asyncWaitEvaluteJavascript::waitEval] \n");
+    //                 ac->apost(0);
+    //                 if (error != nil) {
+    //                     NSLog(@"evaluateJavaScript error : %@", error.localizedDescription);
+    //                     next(CALL_E_INTERNAL);
+    //                     return ;
+    //                 }
+
+    //                 m_retVal = result;
+    //                 printf("[asyncWaitEvaluteJavascript::waitEval] m_retVal is %s \n", m_retVal ? "true" : "false");
+    //             });
+
+    //             return CALL_E_PENDDING;
+    //         }
+
+    //         ON_STATE(asyncWaitEvaluteJavascript, onResult)
+    //         {
+    //             printf("[asyncWaitEvaluteJavascript::onResult] m_retVal is %s \n", m_retVal ? "true" : "false");
+
+    //             next();
+    //         }
+    //     private:
+    //         obj_ptr<WebView> m_pThis;
+    //         exlib::string m_js;
+    //         TRESULT m_retVal;
+    // };
+
+    bool onNSWindowShouldClose(bool initshouldClose)
+    {
+        __block bool shouldClose = initshouldClose;
+        exlib::string m_js = "external.onclose()";
+
+        // TODO: use fibjs native API to resolve it.
+        __block BOOL finished = NO;
+        evaluateWebviewJS(m_js.c_str(), ^(id result, NSError * _Nullable error) {
+            if (error != nil) {
+                NSLog(@"evaluateJavaScript error : %@", error.localizedDescription);
+                finished = YES;
+                return ;
+            }
+
+            if (result == nil)
+                shouldClose = true;
+            else if ([result boolValue] != NO)
+                shouldClose = true;
+
+            finished = YES;
+            printf("[asyncWaitEvaluteJavascript::waitEval] shouldClose is %s \n", shouldClose ? "true" : "false");
+        });
+        while (!finished) {
+            [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
+        }
+
+        printf("[onNSWindowShouldClose] shouldClose is %s \n", shouldClose ? "true" : "false");
+        return shouldClose;
     }
 
     void onWKWebViewPostMessage(WKScriptMessage* message);
     void onWKWebViewInwardMessage(WKScriptMessage* message);
-
-    static void onExternalClosed(WebView* w, const char* arg)
-    {
-        printf("[onExternalClosed], %s \n", arg);
-        // WebView* wv = (WebView*)w->clsWebView;
-        // wv->_emit("closed", arg);
-    }
 
 public:
     NSWindow* m_nsWindow;

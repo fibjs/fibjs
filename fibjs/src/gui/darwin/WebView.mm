@@ -370,13 +370,17 @@ int WebView::createWKWebView()
     return 0;
 }
 
-void WebView::evaluateWebviewJS(const char* js)
+
+void WebView::evaluateWebviewJS(const char* js, JsEvaluateResultHdlr hdlr)
 {
+    if (hdlr == NULL) {
+        hdlr = ^(id item, NSError * _Nullable error) {
+            printf("[WebView::evaluateWebviewJS] client JS executed \n");
+        };
+    }
     [m_wkWebView
         evaluateJavaScript:get_nsstring(js)
-        completionHandler:^(id item, NSError * _Nullable error) {
-            printf("[WebView::evaluateWebviewJS] client JS executed \n");
-        }
+        completionHandler:hdlr
     ];
 
     // return 0;
@@ -545,15 +549,6 @@ id WebView::create_menu_item(id title, const char* action, const char* key)
 void WebView::clear()
 {
     printf("[WebView::clear] \n");
-    // if (_onmessage) {
-    //     // _onmessage->Release();
-    //     _onmessage = NULL;
-    // }
-
-    // if (_onclose) {
-    //     // _onclose->Release();
-    //     _onclose = NULL;
-    // }
 
     if (m_ac) {
         m_ac->post(0);
@@ -579,10 +574,11 @@ result_t WebView::print(int32_t mode, AsyncEvent* ac)
 
 result_t WebView::close(AsyncEvent* ac)
 {
-    isolate_unref();
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
+
+    printf("prepare to close \n");
+    [m_nsWindow performClose:m_nsWindow];
 
     return 0;
 }
@@ -593,6 +589,7 @@ result_t WebView::postMessage(exlib::string msg)
 
     exlib::string c_jsstr;
     c_jsstr.append("external.onmessage('");
+    // TODO: we should escape it.
     c_jsstr.append(msg);
     c_jsstr.append("')");
 

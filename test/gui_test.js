@@ -79,7 +79,7 @@ if (win || darwin) {
       };
 
       win.onclosed = () => {
-        // console.log("[JSSide::win::onclosed]");
+        console.log("[JSSide::win::onclosed]");
 
         closed = true;
         win = undefined;
