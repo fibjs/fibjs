@@ -87,7 +87,7 @@ public:
 
         return 0;
     }
-    static result_t async_open(obj_ptr<fibjs::WebView> wv)
+    static result_t openWebViewInGUIThread(obj_ptr<fibjs::WebView> wv)
     {
         wv->open();
         return 0;
@@ -129,12 +129,6 @@ public:
 
     void activeNSApp();
 
-    id prepareWKPreferences();
-
-    id getWKUserController();
-
-    id prepareWKWebViewConfig();
-
     void initWindowRect()
     {
         m_webview_window_rect = CGRectMake(0, 0, m_WinW, m_WinH);
@@ -159,18 +153,29 @@ public:
         return (WebView* )objc_getAssociatedObject(win, "webview");
     }
 
+    static fibjs::WebView* getWebViewFromWKUserContentController(WKUserContentController* userCtrl) {
+        return (WebView* )objc_getAssociatedObject(userCtrl, "webview");
+    }
+
 private:
     id getWKWebView();
+
+    id getWKPreferences();
+
+    id getWKUserContentController();
+
+    id prepareWKWebViewConfig();
 
     void assignToToNSWindow(NSWindow* win) {
         objc_setAssociatedObject(win, "webview", (id)this, OBJC_ASSOCIATION_ASSIGN);
     }
 
-public:
-    // static registration methods, ONLY run it in GUI Thread
-    static void RegNSApplicationDelegations();
+    void assignToWKUserContentController(WKUserContentController* userCtrl) {
+        objc_setAssociatedObject(userCtrl, "webview", (id)this, OBJC_ASSOCIATION_ASSIGN);
+    }
 
-    static void SetupAppMenubar();
+public:
+    static void setupAppMenubar();
 
 public:
     void onNSWindowClose()
@@ -184,6 +189,8 @@ public:
         Release();
         // this->Release();
     }
+
+    void onWKWebViewMessage(WKScriptMessage* message);
 
     static void onExternalClosed(WebView* w, const char* arg)
     {

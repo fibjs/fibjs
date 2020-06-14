@@ -12,6 +12,9 @@
 
 #import "WebView.h"
 
+using fibjs::obj_ptr;
+using fibjs::EventInfo;
+
 @implementation __NSApplicationDelegate
 -(void)applicationWillTerminate:(id)app
 {
@@ -66,7 +69,7 @@
 
     printf("[onWindowDidMove]\n");
 
-    fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(wv, "move");
+    obj_ptr<EventInfo> ei = new EventInfo(wv, "move");
     wv->_emit("move", ei);
 }
 -(bool)windowShouldClose:(id)window
@@ -90,7 +93,19 @@
 }
 @end
 
+@implementation __WKScriptMessageHandler
+- (void)userContentController:(WKUserContentController *)userContentController 
+      didReceiveScriptMessage:(WKScriptMessage *)message
+{
+    printf("[webview_external_postMessage] \n");
+    fibjs::WebView* wv = fibjs::WebView::getWebViewFromWKUserContentController(userContentController);
 
+    if (wv == NULL)
+        return;
+
+    wv->onWKWebViewMessage(message);
+}
+@end
 
 @implementation __WKUIDelegate
 // run_open_panel
@@ -166,26 +181,6 @@ decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler
     } else {
         decisionHandler(WKNavigationResponsePolicyAllow);
     }
-}
-@end
-
-@implementation __WKScriptMessageHandler
-- (void)userContentController:(WKUserContentController *)userContentController 
-      didReceiveScriptMessage:(WKScriptMessage *)message
-{
-    printf("[webview_external_postMessage] \n");
-    // struct webview* w = (struct webview*)objc_getAssociatedObject(userContentController, "webview");
-    // if (w == NULL)
-    //     return;
-
-    // WebView* wv = getClsWebView(w);
-    // if (wv == NULL)
-    //     return;
-    // const char* msg = (const char*)objc_msgSend(objc_msgSend(message, sel_registerName("body")), sel_registerName("UTF8String"));
-    // normalize to one function
-    // printf("[webview_external_postMessage] view view msg %s \n", w->title);
-
-    // wv->_emit("message", msg);
 }
 @end
 
