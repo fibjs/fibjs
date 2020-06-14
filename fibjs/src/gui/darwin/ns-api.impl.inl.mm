@@ -56,23 +56,18 @@
     if (wv != NULL)
         wv->onNSWindowClose();
 }
--(void)windowDidMove:(id)didMoveNotification
+-(void)windowDidMove:(NSNotification *)didMoveNotification
 {
-    // struct webview* w = (struct webview*)objc_getAssociatedObject(self, "webview");
-    // if (w == NULL)
-    //     return;
+    NSWindow *currentWindow = didMoveNotification.object;
+    fibjs::WebView* wv = fibjs::WebView::getWebViewFromNSWindow(currentWindow);
 
-    // WebView* wv = getClsWebView(w);
-    // if (wv == NULL)
-    //     return;
+    if (wv == NULL)
+        return;
 
-    // TODO: use information in didMoveNotification
     printf("[onWindowDidMove]\n");
 
-    // obj_ptr<EventInfo> ei = new EventInfo(wv, "move");
-    // wv->_emit("move", ei);
-
-    // wv->_emit("move");
+    fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(wv, "move");
+    wv->_emit("move", ei);
 }
 -(bool)windowShouldClose:(id)window
 {

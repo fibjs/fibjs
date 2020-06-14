@@ -94,6 +94,10 @@ if (win || darwin) {
         console.log("[JSSide::win::onload] after");
       };
 
+      win.onmove = () => {
+        console.log("[JSSide::win::onmove]");
+      }
+
       for (var i = 0; i < 1000 && !check; i++) coroutine.sleep(10);
 
       assert.ok(check);
