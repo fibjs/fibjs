@@ -23,8 +23,6 @@ enum webview_dialog_type {
 
 namespace fibjs {
 
-static const char* WEBVIEW_MSG_HANDLER_NAME = "invoke";
-
 static exlib::LockedList<AsyncEvent> s_uiPool;
 static pthread_t s_thread;
 class gui_thread;
@@ -87,6 +85,7 @@ public:
 
         return 0;
     }
+    
     static result_t openWebViewInGUIThread(obj_ptr<fibjs::WebView> wv)
     {
         wv->open();
@@ -101,7 +100,7 @@ private:
 public:
     static id fetchEventFromNSMainLoop(int blocking = 0);
 
-    static int webview_eval(WebView* w, const char* js);
+    void evaluateWebviewJS(const char* js);
 
     static int webview_inject_css(WebView* w, const char* css);
 
@@ -190,7 +189,8 @@ public:
         // this->Release();
     }
 
-    void onWKWebViewMessage(WKScriptMessage* message);
+    void onWKWebViewExternalMessage(WKScriptMessage* message);
+    void onWKWebViewInwardMessage(WKScriptMessage* message);
 
     static void onExternalClosed(WebView* w, const char* arg)
     {

@@ -80,7 +80,7 @@ if (win || darwin) {
       };
 
       win.onclosed = () => {
-        console.log("[JSSide::win::onclosed]");
+        // console.log("[JSSide::win::onclosed]");
 
         closed = true;
         win = undefined;
@@ -95,7 +95,7 @@ if (win || darwin) {
       };
 
       win.onmove = () => {
-        console.log("[JSSide::win::onmove]");
+        // console.log("[JSSide::win::onmove]");
       }
 
       for (var i = 0; i < 1000 && !check; i++) coroutine.sleep(10);

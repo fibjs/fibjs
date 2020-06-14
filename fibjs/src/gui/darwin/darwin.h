@@ -137,6 +137,9 @@ static const char* webview_check_url(const char* url)
 
 id get_nsstring(const char* c_str);
 
+static const char* WEBVIEW_MSG_HANDLER_NAME_INVOKE = "invoke";
+static const char* WEBVIEW_MSG_HANDLER_NAME_INWARD = "__inward";
+
 FIBJS_EXTERN_C_END
 
 #endif /* WEBVIEW_COCOA_H */

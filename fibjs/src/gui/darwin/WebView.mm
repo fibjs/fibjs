@@ -203,19 +203,29 @@ void WebView::setupAppMenubar()
     [[NSApplication sharedApplication] setMainMenu:menubar];
 }
 
-void WebView::onWKWebViewMessage(WKScriptMessage* message)
+void WebView::onWKWebViewExternalMessage(WKScriptMessage* message)
 {
-    printf("[WebView::onWKWebViewMessage] 1 \n");
+    printf("[WebView::onWKWebViewExternalMessage] 1 \n");
 
+    // TODO: escape it.
     const char* msg = (const char*)([[message body] UTF8String]);
-    // const char* msg = (const char*)objc_msgSend(
-    //     objc_msgSend(message, sel_registerName("body")),
-    //     sel_registerName("UTF8String")
-    // );
+    exlib::string c_jsstr;
+    c_jsstr.append("external.onmessage('");
+    c_jsstr.append(msg);
+    c_jsstr.append("')");
+
+    // evaluateWebviewJS(c_jsstr.c_str());
 
     printf("[webview_external_postMessage] view view msg: %s \n", msg);
 
     // wv->_emit("message", msg);
+}
+
+void WebView::onWKWebViewInwardMessage(WKScriptMessage* message)
+{
+    printf("[WebView::onWKWebViewInwardMessage] 1 \n");
+
+    // wv->_emit("load", msg);
 }
 
 id WebView::getWKPreferences()
@@ -244,18 +254,21 @@ id WebView::getWKUserContentController()
 
     assignToWKUserContentController(wkUserCtrl);
 
-    [wkUserCtrl
-        addScriptMessageHandler:[__WKScriptMessageHandler new]
-        name:get_nsstring(WEBVIEW_MSG_HANDLER_NAME)
-    ];
+    [wkUserCtrl addScriptMessageHandler:[__WKScriptMessageHandler new] name:get_nsstring(WEBVIEW_MSG_HANDLER_NAME_INVOKE)];
+    [wkUserCtrl addScriptMessageHandler:[__WKScriptMessageHandler new] name:get_nsstring(WEBVIEW_MSG_HANDLER_NAME_INWARD)];
 
-    WKUserScript* windowExternalOverrideScript = [[WKUserScript alloc]
+    WKUserScript* windowScript_RegExternal = [[WKUserScript alloc]
         initWithSource:@"window.external = this;postMessage = function(arg){ webkit.messageHandlers.invoke.postMessage(arg); };"
         injectionTime:WKUserScriptInjectionTimeAtDocumentStart
-        forMainFrameOnly:FALSE
+        forMainFrameOnly:TRUE
     ];
+    [wkUserCtrl addUserScript:windowScript_RegExternal];
 
-    [wkUserCtrl addUserScript:windowExternalOverrideScript];
+    [wkUserCtrl addUserScript:[[WKUserScript alloc]
+        initWithSource:@"window.addEventListener('load', function() { webkit.messageHandlers.__inward.postMessage('loaded'); } )"
+        injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
+        forMainFrameOnly:TRUE
+    ]];
 
     return wkUserCtrl;
 }
@@ -359,14 +372,16 @@ int WebView::createWKWebView()
     return 0;
 }
 
-int WebView::webview_eval(WebView* w, const char* js)
+void WebView::evaluateWebviewJS(const char* js)
 {
-    // [w->priv.webview
-    //     evaluateJavaScript:get_nsstring(js)
-    //     completionHandler:NULL
-    // ];
+    [m_wkWebView
+        evaluateJavaScript:get_nsstring(js)
+        completionHandler:^(id item, NSError * _Nullable error) {
+            printf("[WebView::evaluateWebviewJS] client JS executed \n");
+        }
+    ];
 
-    return 0;
+    // return 0;
 }
 
 int WebView::webview_inject_css(WebView* w, const char* css)
@@ -380,7 +395,7 @@ int WebView::webview_inject_css(WebView* w, const char* css)
     // webview_js_encode(css, js, n);
     // snprintf(esc, sizeof(CSS_INJECT_FUNCTION) + n + 4, "%s(\"%s\")",
     //     CSS_INJECT_FUNCTION, js);
-    // int r = webview_eval(w, esc);
+    // int r = evaluateWebviewJS(w, esc);
     // free(js);
     // free(esc);
     // return r;
@@ -579,7 +594,7 @@ result_t WebView::close(AsyncEvent* ac)
 //     WebView* w = WebView::getCurrentWebViewStruct_deprecated();
 //     if (w != NULL) {
 //         printf("[async_webview_eval] would eval \n");
-//         WebView::webview_eval(w, jsscript);
+//         WebView::evaluateWebviewJS(w, jsscript);
 //     }
 
 //     return 0;
