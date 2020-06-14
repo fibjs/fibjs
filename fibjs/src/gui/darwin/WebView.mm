@@ -21,6 +21,8 @@
 #include "utf8.h"
 #include <exlib/include/thread.h>
 
+#include "objc.h.mm"
+
 namespace fibjs {
 
 DECLARE_MODULE(gui);
@@ -220,7 +222,7 @@ void WebView::SetupAppMenubar()
     [[NSApplication sharedApplication] setMainMenu:menubar];
 }
 
-void WebView::objc_nsAppInit()
+void WebView::activeNSApp()
 {
     m_nsPool = [NSAutoreleasePool new];
     [NSApplication sharedApplication];
@@ -340,7 +342,7 @@ void WebView::activeApp()
     [app activateIgnoringOtherApps:YES];
 }
 
-int WebView::webview_init()
+int WebView::createWKWebView()
 {
     initWindowRect();
 

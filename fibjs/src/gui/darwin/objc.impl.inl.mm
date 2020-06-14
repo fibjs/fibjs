@@ -1,30 +1,14 @@
 /**
  * @author Richard
  * @email ricahrdo2016@mail.com
- * @create date 2020-06-12 04:26:38
- * @modify date 2020-06-12 04:26:38
- * @desc 
+ * @create date 2020-06-12 04:25:25
+ * @modify date 2020-06-12 04:25:25
+ * @desc WebView Implementation in OSX
  */
-
 
 #ifdef __APPLE__
 
-#import <Webkit/Webkit.h>
-#import <Cocoa/Cocoa.h>
-#import <objc/runtime.h>
-#import <objc/message.h>
-
-#import "lib.h"
-
-/**
- * @see https://developer.apple.com/documentation/appkit/nsapplicationdelegate
- */
-@interface __NSApplicationDelegate : NSObject/* , NSApplicationDelegate */
--(void)applicationWillTerminate:(id)app;
--(void)applicationDidFinishLaunching:(id)app;
--(void)applicationShouldTerminate:(id)app;
--(void)applicationShouldTerminateAfterLastWindowClosed:(id)app;
-@end
+#import "objc.h.mm"
 
 @implementation __NSApplicationDelegate
 -(void)applicationWillTerminate:(id)app
@@ -61,19 +45,11 @@
 }
 @end
 
-/**
- * @see https://developer.apple.com/documentation/appkit/nswindowdelegate
- */
-@interface __NSWindowDelegate : NSObject<NSWindowDelegate>
--(void)windowWillClose:(id)willCloseNotification;
--(void)windowDidMove:(id)didMoveNotification;
--(bool)windowShouldClose:(id)window;
-@end
-
 @implementation __NSWindowDelegate
 -(void)windowWillClose:(id)willCloseNotification
 {
     printf("[webview_windowWillClose] before \n");
+    // fibjs::WebView::getWebViewFromNSWindow(self);
     // struct webview* w = (struct webview*)objc_getAssociatedObject(self, "webview");
 
     // if (w != NULL)
@@ -121,8 +97,7 @@
 }
 @end
 
-@interface __WKUIDelegate : NSObject<WKUIDelegate>
-@end
+
 
 @implementation __WKUIDelegate
 // run_open_panel
@@ -187,9 +162,6 @@ completionHandler:(void (^)(BOOL result))completionHandler;
 }
 @end
 
-@interface __WKNavigationDelegate : NSObject<WKNavigationDelegate>
-@end
-
 @implementation __WKNavigationDelegate
 - (void)webView:(WKWebView *)webView 
 decidePolicyForNavigationResponse:(WKNavigationResponse *)navigationResponse 
@@ -204,8 +176,6 @@ decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler
 }
 @end
 
-@interface __WKScriptMessageHandler : NSObject
-@end
 @implementation __WKScriptMessageHandler
 - (void)userContentController:(WKUserContentController *)userContentController 
       didReceiveScriptMessage:(WKScriptMessage *)message
@@ -226,13 +196,6 @@ decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler
 }
 @end
 
-// @interface __WKPreferences : NSObject<WKPreferences>
-// @end
-// @implementation __WKPreferences
-// @end
-
-@interface __WKDownloadDelegate : NSObject/* <NSURLDownloadDelegate> */
-@end
 @implementation __WKDownloadDelegate
 /***
     _WKDownloadDelegate is an undocumented/private protocol with methods called
