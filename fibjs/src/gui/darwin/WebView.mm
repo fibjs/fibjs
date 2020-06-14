@@ -25,12 +25,8 @@
 
 namespace fibjs {
 
-/**
- * would be called when asyncCall(xx, xx, CALL_E_GUICALL)
- */
 void putGuiPool(AsyncEvent* ac)
 {
-    // printf("putGuiPool\n");
     s_uiPool.putTail(ac);
 }
 
@@ -307,10 +303,14 @@ void WebView::initWindow()
         backing:NSBackingStoreBuffered
         defer:FALSE
     ];
-    printf("[WebView::initWindow] s_activeWinObjcId assigned\n");
-    // objc_setAssociatedObject(s_activeWinObjcId, "webview", (id)(w), OBJC_ASSOCIATION_ASSIGN);
 
     [m_nsWindow autorelease];
+
+    [m_nsWindow setDelegate:[__NSWindowDelegate new]];
+    [m_nsWindow setTitle:[NSString stringWithUTF8String:m_title.c_str()]];
+
+    printf("[WebView::initWindow] assign self to m_nsWindow\n");
+    assignToToNSWindow(m_nsWindow);
 }
 
 id WebView::getWKWebView()
@@ -356,8 +356,6 @@ int WebView::createWKWebView()
     initWindowRect();
 
     initWindow();
-    [m_nsWindow setDelegate:[__NSWindowDelegate new]];
-    [m_nsWindow setTitle:[NSString stringWithUTF8String:m_title.c_str()]];
 
     // make it center
     [m_nsWindow center];
@@ -372,7 +370,6 @@ int WebView::createWKWebView()
     // putWindowToTopOrder
     [m_nsWindow orderFrontRegardless];
 
-    linkAppWithWebView();
     activeApp();
 
     SetupAppMenubar();

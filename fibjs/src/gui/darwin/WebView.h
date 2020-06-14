@@ -87,11 +87,9 @@ public:
 
         return 0;
     }
-    static result_t async_open(obj_ptr<fibjs::WebView> w)
+    static result_t async_open(obj_ptr<fibjs::WebView> wv)
     {
-        // printf("[WebView::async_open] before \n");
-        w->open();
-        // printf("[WebView::async_open] after\n");
+        wv->open();
         return 0;
     }
 
@@ -146,8 +144,6 @@ public:
 
     void initWindow();
 
-    id getWKWebView();
-
     void navigateWKWebView();
 
     void setWKWebViewStyle();
@@ -155,13 +151,6 @@ public:
     void putWindowToTopOrder();
 
     void activeApp();
-
-    void linkAppWithWebView()
-    {
-        // id app = objc_msgSend((id)objc_getClass("NSApplication"),
-        //     sel_registerName("sharedApplication"));
-        // objc_setAssociatedObject(app, "webview", (id)(w), OBJC_ASSOCIATION_ASSIGN);
-    }
 
     int createWKWebView();
 
@@ -171,6 +160,9 @@ public:
     static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win) {
         return (WebView* )objc_getAssociatedObject(win, "webview");
     }
+
+private:
+    id getWKWebView();
 
     void assignToToNSWindow(NSWindow* win) {
         objc_setAssociatedObject(win, "webview", (id)this, OBJC_ASSOCIATION_ASSIGN);
@@ -183,24 +175,16 @@ public:
     static void SetupAppMenubar();
 
 public:
-    // static int on_webview_say_close(struct webview* w)
-    // {
-    //     WebView* wv = getClsWebView(w);
+    void onNSWindowClose()
+    {
+        this->_emit("close");
 
-    //     if (wv) {
-    //         // wv->postClose();
-    //         wv->_emit("close");
+        this->_emit("closed");
 
-    //         wv->webview_terminate(w);
-    //         // TODO: use new fiber?
-    //         wv->_emit("closed");
-
-    //         wv->holder()->Unref();
-    //         wv->clear();
-    //         wv->Release();
-    //     }
-    //     return 0;
-    // }
+        this->holder()->Unref();
+        this->clear();
+        // this->Release();
+    }
 
     static void onExternalClosed(WebView* w, const char* arg)
     {
