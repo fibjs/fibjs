@@ -57,8 +57,9 @@ public:
                 // p->js_invoke();
             }
             // 从 sharedApplication 的事件循环中中取得事件
-            id event = WebView::webview_get_event_from_mainloop(0);
-            WebView::send_event_to_sharedApplicatoin_and_check_should_exit(event);
+            id event = WebView::fetchEventFromNSMainLoop(0);
+            if (event)
+                [[NSApplication sharedApplication] sendEvent:event];
 
             // WebView* w;
 
@@ -155,7 +156,7 @@ WebView::~WebView()
     clear();
 }
 
-id WebView::webview_get_event_from_mainloop(int blocking)
+id WebView::fetchEventFromNSMainLoop(int blocking)
 {
     id until = blocking ? [NSDate distantFuture] : [NSDate distantPast];
 
@@ -167,17 +168,10 @@ id WebView::webview_get_event_from_mainloop(int blocking)
     ];
 }
 
-void WebView::send_event_to_sharedApplicatoin_and_check_should_exit(id event)
-{
-    if (event) {
-        [[NSApplication sharedApplication] sendEvent:event];
-    }
-}
-
 void WebView::webview_exit()
 {
-    id app = [NSApplication sharedApplication];
-    [app terminate:app];
+    // id app = [NSApplication sharedApplication];
+    // [app terminate:app];
 }
 
 void WebView::RegNSApplicationDelegations() {

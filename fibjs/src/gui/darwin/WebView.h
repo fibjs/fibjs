@@ -99,9 +99,7 @@ private:
     // result_t WebView::postClose();
 
 public:
-    static id webview_get_event_from_mainloop(int blocking = 0);
-
-    static void send_event_to_sharedApplicatoin_and_check_should_exit(id event);
+    static id fetchEventFromNSMainLoop(int blocking = 0);
 
     static int webview_eval(WebView* w, const char* js);
 

@@ -59,11 +59,7 @@ if (win || darwin) {
       svr.start();
       test_util.push(svr.socket);
 
-      // console.log("js side, would gui.open");
-
       var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/");
-
-      // console.log("[JSSide::after gui.open]");
 
       var cnt = 0;
 
