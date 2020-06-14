@@ -15,8 +15,6 @@
 #include "lib.h"
 #include <Cocoa/Cocoa.h>
 
-#include "objc.inl.mm"
-
 namespace fibjs {
 
 const char* WEBVIEW_MSG_HANDLER_NAME = "invoke";
@@ -83,8 +81,8 @@ public:
         if (m_opt) {
         }
 
-        objc_nsAppInit();
-        webview_init();
+        activeNSApp();
+        createWKWebView();
 
         AddRef();
 
@@ -136,7 +134,7 @@ public:
 
     static id create_menu_item(id title, const char* action, const char* key);
 
-    void objc_nsAppInit();
+    void activeNSApp();
 
     id prepareWKPreferences();
 
@@ -168,10 +166,18 @@ public:
         // objc_setAssociatedObject(app, "webview", (id)(w), OBJC_ASSOCIATION_ASSIGN);
     }
 
-    int webview_init();
+    int createWKWebView();
 
     // useless, it means end up sharedApplication.
     void webview_exit();
+
+    static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win) {
+        return (WebView* )objc_getAssociatedObject(win, "webview");
+    }
+
+    void assignToToNSWindow(NSWindow* win) {
+        objc_setAssociatedObject(win, "webview", (id)this, OBJC_ASSOCIATION_ASSIGN);
+    }
 
 public:
     // static registration methods, ONLY run it in GUI Thread
