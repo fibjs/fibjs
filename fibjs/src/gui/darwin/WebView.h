@@ -161,9 +161,6 @@ public:
 
     int createWKWebView();
 
-    // useless, it means end up sharedApplication.
-    void webview_exit();
-
     static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win) {
         return (WebView* )objc_getAssociatedObject(win, "webview");
     }
