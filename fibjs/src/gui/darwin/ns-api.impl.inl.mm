@@ -18,11 +18,9 @@ using fibjs::EventInfo;
 @implementation __NSApplicationDelegate
 -(void)applicationWillTerminate:(id)app
 {
-    // printf("[webview_applicationWillTerminate] 看看 appDelegate 生效没 \n");
 }
 -(void)applicationDidFinishLaunching:(id)app
 {
-    // printf("[webview_applicationDidFinishLaunching] 看看 appDelegate 生效没\n");
 }
 -(int)applicationShouldTerminate:(id)app
 {
@@ -33,7 +31,6 @@ using fibjs::EventInfo;
 }
 -(bool)applicationShouldTerminateAfterLastWindowClosed:(id)app
 {
-    // printf("[webview_applicationShouldTerminateAfterLastWindowClosed] 看看 appDelegate 生效没 \n");
     return false;
 }
 @end
@@ -41,11 +38,12 @@ using fibjs::EventInfo;
 @implementation __NSWindowDelegate
 -(void)windowWillClose:(NSNotification *)willCloseNotification
 {
+    printf("[__NSWindowDelegate::windowWillClose] \n");
     NSWindow *currentWindow = willCloseNotification.object;
     fibjs::WebView* wv = fibjs::WebView::getWebViewFromNSWindow(currentWindow);
 
     if (wv != NULL)
-        wv->onNSWindowClose();
+        wv->onNSWindowWillClose();
 }
 -(void)windowDidMove:(NSNotification *)didMoveNotification
 {
@@ -60,15 +58,21 @@ using fibjs::EventInfo;
     obj_ptr<EventInfo> ei = new EventInfo(wv, "move");
     wv->_emit("move", ei);
 }
--(bool)windowShouldClose:(id)window
+-(bool)windowShouldClose:(NSWindow *)window
 {
-    printf("[webview_windowShouldClose] 看看 winDelegate 生效没 \n");
+    printf("[__NSWindowDelegate::windowShouldClose] \n");
+    fibjs::WebView* wv = fibjs::WebView::getWebViewFromNSWindow(window);
 
-    id alert = [NSAlert new];
-    [alert setAlertStyle:NSAlertStyleWarning];
-    [alert setMessageText:get_nsstring("确定退出吗?")];
-    [alert addButtonWithTitle:get_nsstring("退出")];
-    [alert addButtonWithTitle:get_nsstring("取消")];
+    if (wv == NULL)
+        return YES;
+
+    bool shouldClose = wv->onNSWindowShouldClose(false);
+
+    // id alert = [NSAlert new];
+    // [alert setAlertStyle:NSAlertStyleWarning];
+    // [alert setMessageText:get_nsstring("确定退出吗?")];
+    // [alert addButtonWithTitle:get_nsstring("退出")];
+    // [alert addButtonWithTitle:get_nsstring("取消")];
 
     // unsigned long result = (unsigned long)[alert runModal];
     // [alert release];
@@ -76,8 +80,9 @@ using fibjs::EventInfo;
     // if (result != NSAlertFirstButtonReturn) {
     //     return NO;
     // }
+    printf("[__NSWindowDelegate::windowShouldClose] after %s \n", shouldClose ? "true" : "false");
 
-    return YES;
+    return shouldClose;
 }
 @end
 
