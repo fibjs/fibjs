@@ -43,12 +43,6 @@ FIBJS_EXTERN_C_START
 #include <CoreGraphics/CoreGraphics.h>
 #include <limits.h>
 
-enum webview_dialog_type {
-    WEBVIEW_DIALOG_TYPE_OPEN = 0,
-    WEBVIEW_DIALOG_TYPE_SAVE = 1,
-    WEBVIEW_DIALOG_TYPE_ALERT = 2
-};
-
 #define WEBVIEW_DIALOG_FLAG_FILE (0 << 0)
 #define WEBVIEW_DIALOG_FLAG_DIRECTORY (1 << 0)
 

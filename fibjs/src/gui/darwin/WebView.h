@@ -12,26 +12,23 @@
 
 #include "ifs/WebView.h"
 #include "EventInfo.h"
-#include "lib.h"
 #include <Cocoa/Cocoa.h>
+#include "darwin.h" 
+
+enum webview_dialog_type {
+    WEBVIEW_DIALOG_TYPE_OPEN = 0,
+    WEBVIEW_DIALOG_TYPE_SAVE = 1,
+    WEBVIEW_DIALOG_TYPE_ALERT = 2
+};
 
 namespace fibjs {
 
-const char* WEBVIEW_MSG_HANDLER_NAME = "invoke";
+static const char* WEBVIEW_MSG_HANDLER_NAME = "invoke";
 
 static exlib::LockedList<AsyncEvent> s_uiPool;
 static pthread_t s_thread;
 class gui_thread;
 static gui_thread* s_thGUI;
-
-/**
- * would be called when asyncCall(xx, xx, CALL_E_GUICALL)
- */
-void putGuiPool(AsyncEvent* ac)
-{
-    // printf("putGuiPool\n");
-    s_uiPool.putTail(ac);
-}
 
 static id s_activeWinObjcId = NULL;
 

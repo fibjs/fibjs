@@ -21,9 +21,18 @@
 #include "utf8.h"
 #include <exlib/include/thread.h>
 
-#include "objc.h.mm"
+#include "ns-api.h"
 
 namespace fibjs {
+
+/**
+ * would be called when asyncCall(xx, xx, CALL_E_GUICALL)
+ */
+void putGuiPool(AsyncEvent* ac)
+{
+    // printf("putGuiPool\n");
+    s_uiPool.putTail(ac);
+}
 
 DECLARE_MODULE(gui);
 
