@@ -32,34 +32,6 @@ void putGuiPool(AsyncEvent* ac)
     s_uiPool.putTail(ac);
 }
 
-// Run In GUI Thread, get AsyncEvent from s_uiPool to invoke
-void gui_thread::Run()
-{
-    // initialize one fibjs runtime
-    Runtime rt(NULL);
-
-    printf("gui_thread->Run 1\n");
-    [[NSApplication sharedApplication] setDelegate:[__NSApplicationDelegate new]];
-    WebView::setupAppMenubar();
-
-    /**
-        * 目前是: 
-        * - 另一方面, 关闭窗口后, 从 webview_windowWillClose 回调中执行了 WebView::clear, 之后, 这个 Loop 又开始运行了(如果此时系统中还有 isolate 在运行的话)
-        */
-    while (true) {
-        AsyncEvent* p = s_uiPool.getHead();
-
-        if (p) {
-            p->invoke();
-        }
-        // 从 sharedApplication 的事件循环中中取得事件
-        id event = WebView::fetchEventFromNSMainLoop(0);
-        if (event)
-            [[NSApplication sharedApplication] sendEvent:event];
-    }
-    printf("gui_thread->Run 2\n");
-}
-
 void run_gui()
 {
     gui_thread* _thGUI = new gui_thread();
@@ -69,6 +41,28 @@ void run_gui()
 
     _thGUI->Run();
     // _thGUI->suspend();
+}
+
+void gui_thread::Run()
+{
+    // initialize one fibjs runtime
+    Runtime rt(NULL);
+
+    printf("gui_thread->Run 1\n");
+    [[NSApplication sharedApplication] setDelegate:[__NSApplicationDelegate new]];
+    WebView::setupAppMenubar();
+
+    while (true) {
+        AsyncEvent* p = s_uiPool.getHead();
+
+        if (p) {
+            p->invoke();
+        }
+
+        id event = WebView::fetchEventFromNSMainLoop(0);
+        if (event)
+            [[NSApplication sharedApplication] sendEvent:event];
+    }
 }
 
 // useless for darwin
@@ -133,12 +127,6 @@ id WebView::fetchEventFromNSMainLoop(int blocking)
         inMode:@"kCFRunLoopDefaultMode"
         dequeue:true
     ];
-}
-
-void WebView::webview_exit()
-{
-    // id app = [NSApplication sharedApplication];
-    // [app terminate:app];
 }
 
 void WebView::activeNSApp()
