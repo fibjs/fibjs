@@ -332,16 +332,6 @@ void WebView::setWKWebViewStyle()
     [m_wkWebView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
 }
 
-void WebView::linkWindowWithWebview()
-{
-    [[m_nsWindow contentView] addSubview:m_wkWebView];
-}
-
-void WebView::putWindowToTopOrder()
-{
-    [m_nsWindow orderFrontRegardless];
-}
-
 void WebView::activeApp()
 {
     id app = [NSApplication sharedApplication];
@@ -365,9 +355,11 @@ int WebView::webview_init()
     navigateWKWebView();
 
     setWKWebViewStyle();
-    linkWindowWithWebview();
+    // linkWindowWithWebview
+    [[m_nsWindow contentView] addSubview:m_wkWebView];
 
-    putWindowToTopOrder();
+    // putWindowToTopOrder
+    [m_nsWindow orderFrontRegardless];
 
     linkAppWithWebView();
     activeApp();
