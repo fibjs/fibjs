@@ -177,12 +177,13 @@ public:
 public:
     void onNSWindowClose()
     {
-        this->_emit("close");
+        _emit("close");
 
-        this->_emit("closed");
+        _emit("closed");
 
-        this->holder()->Unref();
-        this->clear();
+        holder()->Unref();
+
+        Release();
         // this->Release();
     }
 

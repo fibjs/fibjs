@@ -151,6 +151,7 @@ WebView::WebView(exlib::string url, NObject* opt)
 
 WebView::~WebView()
 {
+    printf("[WebView::]~WebView");
     clear();
 }
 
@@ -297,7 +298,7 @@ void WebView::initWindow()
     unsigned int style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
     if (m_bResizable) style = style | NSWindowStyleMaskResizable;
 
-    s_activeWinObjcId = m_nsWindow = [[NSWindow alloc]
+    /* s_activeWinObjcId =  */m_nsWindow = [[NSWindow alloc]
         initWithContentRect:m_webview_window_rect
         styleMask:style
         backing:NSBackingStoreBuffered
@@ -565,14 +566,6 @@ void WebView::clear()
         m_ac->post(0);
         m_ac = NULL;
     }
-
-    if (s_activeWinObjcId) {
-        s_activeWinObjcId = NULL;
-        printf("[WebView::clear]s_activeWinObjcId set as NULL \n");
-    }
-
-    // if (s_activeWinObjcId == this->priv_windowDelegate)
-    //     s_activeWinObjcId = NULL;
 }
 
 result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
