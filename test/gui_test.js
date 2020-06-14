@@ -9,9 +9,9 @@ var win = process.platform === "win32";
 var darwin = process.platform === "darwin";
 
 var html = `<html>
+<head>
 <script>
-    external.postMessage('12333');
-
+    // external.postMessage('12333');
     external.onmessage = function(m) {
         window.alert('[JSSide] external.onmessage invoked: ' + m);
         external.postMessage('send back: ' + m)
@@ -26,7 +26,11 @@ var html = `<html>
             return false;
         }
     }
+
+    // alert('test: ' + webkit ? 'true' : 'false');
+    // alert('test messageHandlers: ' + webkit.messageHandlers ? 'true' : 'false');
 </script>
+</head>
 <body>
     <div id="app">click button to load...</div>
     <button id="btn" onclick="updateAppContent()">load</button>

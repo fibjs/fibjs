@@ -41,8 +41,8 @@ public:
         Runtime rt(NULL);
 
         printf("gui_thread->Run 1\n");
-        WebView::RegNSApplicationDelegations();
-        WebView::SetupAppMenubar();
+        [[NSApplication sharedApplication] setDelegate:[__NSApplicationDelegate new]];
+        WebView::setupAppMenubar();
 
         /**
          * 目前是: 
@@ -52,29 +52,12 @@ public:
             AsyncEvent* p = s_uiPool.getHead();
 
             if (p) {
-                // printf("[gui_thread::Run] in loop, it's p \n");
                 p->invoke();
-                // p->js_invoke();
             }
             // 从 sharedApplication 的事件循环中中取得事件
             id event = WebView::fetchEventFromNSMainLoop(0);
             if (event)
                 [[NSApplication sharedApplication] sendEvent:event];
-
-            // WebView* w;
-
-            // if (w) {
-            //     // printf("[gui_thread::Run] in loop, webview struct not NULL \n");
-
-            //     if (!WebView::should_exit(w))
-            //         continue;
-
-            //     // if (WebView::webview_loop(w, 0) == 0)
-            //     //     continue;
-
-            //     // if (WebView::should_exit(w) == 0)
-            //     //     continue;
-            // }
         }
         printf("gui_thread->Run 2\n");
     }
@@ -111,15 +94,13 @@ result_t gui_base::setVersion(int32_t ver)
 // In Javascript Thread
 result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
-    // printf("--- [here] gui_base::open 1 --- \n");
     obj_ptr<NObject> o = new NObject();
     o->add(opt);
 
     obj_ptr<WebView> wv = new WebView(url, o);
     wv->wrap();
 
-    asyncCall(WebView::async_open, wv, CALL_E_GUICALL);
-    // printf("--- [here] gui_base::open 4 --- \n");
+    asyncCall(WebView::openWebViewInGUIThread, wv, CALL_E_GUICALL);
     retVal = wv;
 
     return 0;
@@ -163,7 +144,7 @@ id WebView::fetchEventFromNSMainLoop(int blocking)
     return [[NSApplication sharedApplication]
         nextEventMatchingMask:ULONG_MAX
         untilDate:until
-        inMode:get_nsstring("kCFRunLoopDefaultMode")
+        inMode:@"kCFRunLoopDefaultMode"
         dequeue:true
     ];
 }
@@ -174,13 +155,13 @@ void WebView::webview_exit()
     // [app terminate:app];
 }
 
-void WebView::RegNSApplicationDelegations() {
-    [[NSApplication sharedApplication] setDelegate:[__NSApplicationDelegate new]];
-
-    WebView::SetupAppMenubar();
+void WebView::activeNSApp()
+{
+    m_nsPool = [NSAutoreleasePool new];
+    [NSApplication sharedApplication];
 }
 
-void WebView::SetupAppMenubar()
+void WebView::setupAppMenubar()
 {
     id menubar = [NSMenu alloc];
     [menubar initWithTitle:@""];
@@ -222,13 +203,22 @@ void WebView::SetupAppMenubar()
     [[NSApplication sharedApplication] setMainMenu:menubar];
 }
 
-void WebView::activeNSApp()
+void WebView::onWKWebViewMessage(WKScriptMessage* message)
 {
-    m_nsPool = [NSAutoreleasePool new];
-    [NSApplication sharedApplication];
+    printf("[WebView::onWKWebViewMessage] 1 \n");
+
+    const char* msg = (const char*)([[message body] UTF8String]);
+    // const char* msg = (const char*)objc_msgSend(
+    //     objc_msgSend(message, sel_registerName("body")),
+    //     sel_registerName("UTF8String")
+    // );
+
+    printf("[webview_external_postMessage] view view msg: %s \n", msg);
+
+    // wv->_emit("message", msg);
 }
 
-id WebView::prepareWKPreferences()
+id WebView::getWKPreferences()
 {
     Class __WKPreferences
         = objc_allocateClassPair(objc_getClass("WKPreferences"),
@@ -239,52 +229,48 @@ id WebView::prepareWKPreferences()
     class_replaceProperty(__WKPreferences, "developerExtrasEnabled", attrs, 2);
     objc_registerClassPair(__WKPreferences);
 
-    id webviewid_wkPref = [__WKPreferences new];
-    [webviewid_wkPref
+    id wkPreferences = [__WKPreferences new];
+    [wkPreferences
         setValue:[NSNumber numberWithBool:!!m_bDebug]
         forKey:[NSString stringWithUTF8String:"developerExtrasEnabled"]
     ];
 
-    return webviewid_wkPref;
+    return wkPreferences;
 }
 
-id WebView::getWKUserController()
+id WebView::getWKUserContentController()
 {
-    id webviewid_wkUserController = [WKUserContentController new];
+    WKUserContentController* wkUserCtrl = [WKUserContentController new];
 
-    // objc_setAssociatedObject(webviewid_wkUserController, "JSWebView", (id)(this),
-    //     OBJC_ASSOCIATION_ASSIGN);
+    assignToWKUserContentController(wkUserCtrl);
 
-    // objc_setAssociatedObject(webviewid_wkUserController, "webview", (id)(w),
-    //     OBJC_ASSOCIATION_ASSIGN);
-
-    [webviewid_wkUserController
+    [wkUserCtrl
         addScriptMessageHandler:[__WKScriptMessageHandler new]
         name:get_nsstring(WEBVIEW_MSG_HANDLER_NAME)
     ];
 
-    id windowExternalOverrideScript = [[WKUserScript alloc]
+    WKUserScript* windowExternalOverrideScript = [[WKUserScript alloc]
         initWithSource:@"window.external = this;postMessage = function(arg){ webkit.messageHandlers.invoke.postMessage(arg); };"
         injectionTime:WKUserScriptInjectionTimeAtDocumentStart
         forMainFrameOnly:FALSE
     ];
 
-    [webviewid_wkUserController addUserScript:windowExternalOverrideScript];
+    [wkUserCtrl addUserScript:windowExternalOverrideScript];
 
-    return webviewid_wkUserController;
+    return wkUserCtrl;
 }
 
 id WebView::prepareWKWebViewConfig()
 {
-    id webviewid_wkwebviewconfig = [WKWebViewConfiguration new];
+    id wkWebViewConfig = [WKWebViewConfiguration new];
 
-    id processPool = [webviewid_wkwebviewconfig processPool];
+    id processPool = [wkWebViewConfig processPool];
     [processPool _setDownloadDelegate:[__WKDownloadDelegate new]];
-    [webviewid_wkwebviewconfig setProcessPool:processPool];
-    [webviewid_wkwebviewconfig setUserContentController:getWKUserController()];
-    [webviewid_wkwebviewconfig setPreferences:prepareWKPreferences()];
+    [wkWebViewConfig setProcessPool:processPool];
+    [wkWebViewConfig setUserContentController:getWKUserContentController()];
+    [wkWebViewConfig setPreferences:getWKPreferences()];
 
-    return webviewid_wkwebviewconfig;
+    return wkWebViewConfig;
 }
 
 void WebView::initWindow()
@@ -367,7 +353,7 @@ int WebView::createWKWebView()
 
     activeApp();
 
-    SetupAppMenubar();
+    setupAppMenubar();
 
     // w->priv.should_exit = 0;
     return 0;
