@@ -25,54 +25,40 @@
 
 namespace fibjs {
 
+DECLARE_MODULE(gui);
+
 void putGuiPool(AsyncEvent* ac)
 {
     s_uiPool.putTail(ac);
 }
 
-DECLARE_MODULE(gui);
+// Run In GUI Thread, get AsyncEvent from s_uiPool to invoke
+void gui_thread::Run()
+{
+    // initialize one fibjs runtime
+    Runtime rt(NULL);
 
-class gui_thread : public exlib::OSThread {
-public:
-    // Run In GUI Thread, get AsyncEvent from s_uiPool to invoke
-    virtual void Run()
-    {
-        // initialize one fibjs runtime
-        Runtime rt(NULL);
+    printf("gui_thread->Run 1\n");
+    [[NSApplication sharedApplication] setDelegate:[__NSApplicationDelegate new]];
+    WebView::setupAppMenubar();
 
-        printf("gui_thread->Run 1\n");
-        [[NSApplication sharedApplication] setDelegate:[__NSApplicationDelegate new]];
-        WebView::setupAppMenubar();
+    /**
+        * 目前是: 
+        * - 另一方面, 关闭窗口后, 从 webview_windowWillClose 回调中执行了 WebView::clear, 之后, 这个 Loop 又开始运行了(如果此时系统中还有 isolate 在运行的话)
+        */
+    while (true) {
+        AsyncEvent* p = s_uiPool.getHead();
 
-        /**
-         * 目前是: 
-         * - 另一方面, 关闭窗口后, 从 webview_windowWillClose 回调中执行了 WebView::clear, 之后, 这个 Loop 又开始运行了(如果此时系统中还有 isolate 在运行的话)
-         */
-        while (true) {
-            AsyncEvent* p = s_uiPool.getHead();
-
-            if (p) {
-                p->invoke();
-            }
-            // 从 sharedApplication 的事件循环中中取得事件
-            id event = WebView::fetchEventFromNSMainLoop(0);
-            if (event)
-                [[NSApplication sharedApplication] sendEvent:event];
+        if (p) {
+            p->invoke();
         }
-        printf("gui_thread->Run 2\n");
+        // 从 sharedApplication 的事件循环中中取得事件
+        id event = WebView::fetchEventFromNSMainLoop(0);
+        if (event)
+            [[NSApplication sharedApplication] sendEvent:event];
     }
-
-public:
-    // OTHERS
-    result_t AddRef(void)
-    {
-        return 1;
-    }
-    result_t Release(void)
-    {
-        return 1;
-    }
-};
+    printf("gui_thread->Run 2\n");
+}
 
 void run_gui()
 {
@@ -201,6 +187,40 @@ void WebView::setupAppMenubar()
     [appMenu addItem:item];
 
     [[NSApplication sharedApplication] setMainMenu:menubar];
+}
+
+ bool WebView::onNSWindowShouldClose(bool initshouldClose)
+{
+    __block bool shouldClose = initshouldClose;
+    exlib::string m_js = "external.onclose()";
+
+    // TODO: use fibjs native API to resolve it.
+    evaluateWebviewJS(m_js.c_str(), ^(id result, NSError * _Nullable error) {
+        if (error != nil) {
+            NSLog(@"evaluateJavaScript error : %@", error.localizedDescription);
+            s_thGUI->m_sem.Post();
+            return ;
+        }
+
+        if (result == nil)
+            shouldClose = true;
+        else if ([result boolValue] != NO)
+            shouldClose = true;
+
+        s_thGUI->m_sem.Post();
+        printf("[asyncWaitEvaluteJavascript::waitEval] shouldClose is %s \n", shouldClose ? "true" : "false");
+    });
+
+    while (s_thGUI->m_sem.TryWait()) {
+        _waitAsyncOperationInCurrentLoop();
+    }
+
+    printf("[onNSWindowShouldClose] shouldClose is %s \n", shouldClose ? "true" : "false");
+    return shouldClose;
+}
+
+void WebView::_waitAsyncOperationInCurrentLoop() {
+    [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
 }
 
 void WebView::onWKWebViewPostMessage(WKScriptMessage* message)
