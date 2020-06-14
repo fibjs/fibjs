@@ -8,7 +8,9 @@
 
 #ifdef __APPLE__
 
-#import "objc.h.mm"
+#import "ns-api.h"
+
+#import "WebView.h"
 
 @implementation __NSApplicationDelegate
 -(void)applicationWillTerminate:(id)app

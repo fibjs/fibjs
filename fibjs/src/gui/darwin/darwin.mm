@@ -1,7 +1,7 @@
 #import <Cocoa/Cocoa.h>
 
 #import "utils.h"
-#import "lib.h"
+#import "darwin.h"
 
 FIBJS_EXTERN_C_START
 

@@ -3,7 +3,7 @@
  * @email ricahrdo2016@mail.com
  * @create date 2020-06-12 04:26:38
  * @modify date 2020-06-12 04:26:38
- 
+
  * @desc 
  */
 #ifdef __APPLE__
@@ -13,7 +13,7 @@
 #import <objc/runtime.h>
 #import <objc/message.h>
 
-#import "lib.h"
+#import "darwin.h"
 
 /**
  * @see https://developer.apple.com/documentation/appkit/nsapplicationdelegate
