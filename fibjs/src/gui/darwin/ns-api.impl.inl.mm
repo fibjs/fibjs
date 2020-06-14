@@ -103,7 +103,12 @@ using fibjs::EventInfo;
     if (wv == NULL)
         return;
 
-    wv->onWKWebViewMessage(message);
+    const char* wkScriptName = [[message name] UTF8String];
+    if (!strcmp(wkScriptName, WEBVIEW_MSG_HANDLER_NAME_INVOKE)) {
+        wv->onWKWebViewExternalMessage(message);
+    } else if (!strcmp(wkScriptName, WEBVIEW_MSG_HANDLER_NAME_INWARD)) {
+        wv->onWKWebViewInwardMessage(message);
+    }
 }
 @end
 
