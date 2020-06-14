@@ -11,9 +11,8 @@ var darwin = process.platform === "darwin";
 var html = `<html>
 <head>
 <script>
-    // external.postMessage('12333');
     external.onmessage = function(m) {
-        window.alert('[JSSide] external.onmessage invoked: ' + m);
+        // window.alert('[JSSide] external.onmessage invoked: ' + m);
         external.postMessage('send back: ' + m)
     };
 

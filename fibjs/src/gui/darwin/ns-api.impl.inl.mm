@@ -18,34 +18,22 @@ using fibjs::EventInfo;
 @implementation __NSApplicationDelegate
 -(void)applicationWillTerminate:(id)app
 {
-    printf("[webview_applicationWillTerminate] 看看 appDelegate 生效没 \n");
-    return;
+    // printf("[webview_applicationWillTerminate] 看看 appDelegate 生效没 \n");
 }
 -(void)applicationDidFinishLaunching:(id)app
 {
-    printf("[webview_applicationDidFinishLaunching] 看看 appDelegate 生效没\n");
-
-    // WebView* wv = WebView::getCurrentWebViewInstance();
-    // if (wv)
-    //     syncCall(
-    //         wv->holder(),
-    //         [](WebView* wv) {
-    //             wv->_emit("load");
-
-    //             return 0;
-    //         },
-    //         wv);
+    // printf("[webview_applicationDidFinishLaunching] 看看 appDelegate 生效没\n");
 }
 -(int)applicationShouldTerminate:(id)app
 {
-    printf("[webview_applicationShouldTerminate] 看看 appDelegate 生效没 \n");
+    // printf("[webview_applicationShouldTerminate] 看看 appDelegate 生效没 \n");
     // NSTerminateNow = 1
     // NSTerminateLater = 2
     return 1;
 }
 -(bool)applicationShouldTerminateAfterLastWindowClosed:(id)app
 {
-    printf("[webview_applicationShouldTerminateAfterLastWindowClosed] 看看 appDelegate 生效没 \n");
+    // printf("[webview_applicationShouldTerminateAfterLastWindowClosed] 看看 appDelegate 生效没 \n");
     return false;
 }
 @end
@@ -97,7 +85,6 @@ using fibjs::EventInfo;
 - (void)userContentController:(WKUserContentController *)userContentController 
       didReceiveScriptMessage:(WKScriptMessage *)message
 {
-    printf("[webview_external_postMessage] \n");
     fibjs::WebView* wv = fibjs::WebView::getWebViewFromWKUserContentController(userContentController);
 
     if (wv == NULL)
@@ -105,7 +92,7 @@ using fibjs::EventInfo;
 
     const char* wkScriptName = [[message name] UTF8String];
     if (!strcmp(wkScriptName, WEBVIEW_MSG_HANDLER_NAME_INVOKE)) {
-        wv->onWKWebViewExternalMessage(message);
+        wv->onWKWebViewPostMessage(message);
     } else if (!strcmp(wkScriptName, WEBVIEW_MSG_HANDLER_NAME_INWARD)) {
         wv->onWKWebViewInwardMessage(message);
     }
