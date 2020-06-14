@@ -29,7 +29,7 @@
  * @see https://developer.apple.com/documentation/appkit/nswindowdelegate
  */
 @interface __NSWindowDelegate : NSObject<NSWindowDelegate>
--(void)windowWillClose:(id)willCloseNotification;
+-(void)windowWillClose:(NSNotification *)willCloseNotification;
 -(void)windowDidMove:(id)didMoveNotification;
 -(bool)windowShouldClose:(id)window;
 @end

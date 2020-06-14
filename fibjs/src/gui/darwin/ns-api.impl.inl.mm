@@ -48,17 +48,13 @@
 @end
 
 @implementation __NSWindowDelegate
--(void)windowWillClose:(id)willCloseNotification
+-(void)windowWillClose:(NSNotification *)willCloseNotification
 {
-    printf("[webview_windowWillClose] before \n");
-    // fibjs::WebView::getWebViewFromNSWindow(self);
-    // struct webview* w = (struct webview*)objc_getAssociatedObject(self, "webview");
+    NSWindow *currentWindow = willCloseNotification.object;
+    fibjs::WebView* wv = fibjs::WebView::getWebViewFromNSWindow(currentWindow);
 
-    // if (w != NULL)
-    //     WebView::on_webview_say_close(w);
-
-    // asyncCall(WebView::on_webview_say_close, w, CALL_E_GUICALL);
-    printf("[webview_windowWillClose] after \n");
+    if (wv != NULL)
+        wv->onNSWindowClose();
 }
 -(void)windowDidMove:(id)didMoveNotification
 {
