@@ -224,7 +224,7 @@ void asyncLog(int32_t priority, exlib::string msg);
 
 static int32_t asyncOutputMessageFromWKWebview(exlib::string& jsonFmt)
 {
-    printf("asyncOutputMessageFromWKWebview [1] %s \n", jsonFmt.c_str());
+    // printf("asyncOutputMessageFromWKWebview [1] %s \n", jsonFmt.c_str());
     JSValue _logInfo;
     json_base::decode(jsonFmt, _logInfo);
     v8::Local<v8::Object> logInfo = v8::Local<v8::Object>::Cast(_logInfo);
@@ -247,11 +247,11 @@ void WebView::onWKWebViewExternalLogMessage(WKScriptMessage* message)
     const char* externalLogMsg = (const char*)([[message body] UTF8String]);
     exlib::string payload(externalLogMsg);
 
-    printf("[WebView::externalLogMsg] external try to log\n");
+    // printf("[WebView::externalLogMsg] external try to log\n");
 
-    NSLog(@"[WebView::externalLogMsg] message name : %@", [message name]);
-    NSLog(@"[WebView::externalLogMsg] message body : %@", [message body]);
-    NSLog(@"[WebView::externalLogMsg] message frameInfo : %@", [message frameInfo]);
+    // NSLog(@"[WebView::externalLogMsg] message name : %@", [message name]);
+    // NSLog(@"[WebView::externalLogMsg] message body : %@", [message body]);
+    // NSLog(@"[WebView::externalLogMsg] message frameInfo : %@", [message frameInfo]);
 
     syncCall(holder(), asyncOutputMessageFromWKWebview, payload);
 }
