@@ -264,7 +264,7 @@ id WebView::getWKUserContentController()
     [wkUserCtrl addScriptMessageHandler:[__WKScriptMessageHandler new] name:get_nsstring(WEBVIEW_MSG_HANDLER_NAME_INWARD)];
 
     WKUserScript* windowScript_RegExternal = [[WKUserScript alloc]
-        initWithSource:@"window.external = this;postMessage = function(arg){ webkit.messageHandlers.invoke.postMessage(arg); };"
+        initWithSource:@"window.external = this;Object.defineProperty(window, 'postMessage', { writable: false, value: function(arg){ webkit.messageHandlers.invoke.postMessage(arg); } });"
         injectionTime:WKUserScriptInjectionTimeAtDocumentStart
         forMainFrameOnly:TRUE
     ];
