@@ -160,8 +160,6 @@ private:
 
     id getWKWebView();
 
-    id createWKPreferences();
-
     id createWKUserContentController();
 
     id createWKWebViewConfig();

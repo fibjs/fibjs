@@ -256,24 +256,6 @@ void WebView::onWKWebViewExternalLogMessage(WKScriptMessage* message)
     syncCall(holder(), asyncOutputMessageFromWKWebview, payload);
 }
 
-id WebView::createWKPreferences()
-{
-    Class __WKPreferences = objc_allocateClassPair(objc_getClass("WKPreferences"), "__WKPreferences", 0);
-    objc_property_attribute_t type = { "T", "c" };
-    objc_property_attribute_t ownership = { "N", "" };
-    objc_property_attribute_t attrs[] = { type, ownership };
-    class_replaceProperty(__WKPreferences, "developerExtrasEnabled", attrs, 2);
-    objc_registerClassPair(__WKPreferences);
-
-    id wkPreferences = [__WKPreferences new];
-    [wkPreferences
-        setValue:[NSNumber numberWithBool:!!m_bDebug]
-        forKey:[NSString stringWithUTF8String:"developerExtrasEnabled"]
-    ];
-
-    return wkPreferences;
-}
-
 extern const wchar_t* g_console_js;
 
 extern const wchar_t* script_regExternal;
@@ -320,15 +302,20 @@ id WebView::createWKUserContentController()
 
 id WebView::createWKWebViewConfig()
 {
-    id wkWebViewConfig = [WKWebViewConfiguration new];
+    WKWebViewConfiguration* configuration = [WKWebViewConfiguration new];
 
-    id processPool = [wkWebViewConfig processPool];
+    id processPool = [configuration processPool];
     [processPool _setDownloadDelegate:[__WKDownloadDelegate new]];
-    [wkWebViewConfig setProcessPool:processPool];
-    [wkWebViewConfig setUserContentController:createWKUserContentController()];
-    // [wkWebViewConfig setPreferences:createWKPreferences()];
+    [configuration setProcessPool:processPool];
+    [configuration setUserContentController:createWKUserContentController()];
 
-    return wkWebViewConfig;
+    WKPreferences *preferences = [WKPreferences new];
+    preferences.javaScriptCanOpenWindowsAutomatically = YES;
+    preferences.tabFocusesLinks = FALSE;
+    // preferences.minimumFontSize = 40.0;
+    configuration.preferences = preferences;
+
+    return configuration;
 }
 
 void WebView::initNSWindow()
