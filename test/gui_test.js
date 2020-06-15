@@ -118,21 +118,21 @@ if (win || darwin) {
       it("close right away", () => {
         var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/");
 
-        win.onmessage = () => {
-          console.log('[JSSide::onmessage]')
-        }
+        win.onload = () => {
+          console.log('123123123')
+          win.close();
+        };
 
-        for (var i = 0; i < 1000 && test_util.countObject("WebView"); i++)
-          test_util.gc();
-        // win.close();
+        // for (var i = 0; i < 20 && test_util.countObject("WebView"); i++)
+        //   test_util.gc();
+        win.close();
       });
 
-      xit("fullscreen", () => {
+      it("close directly", () => {
         var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/");
 
-        console.warn('here');
-        assert.isFalse(win.fullscreen);
-        win.fullscreen = true;
+        win.close();
+        win.close();
       });
     });
 

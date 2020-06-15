@@ -61,8 +61,6 @@ public:
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
     virtual result_t get_visible(bool& retVal);
     virtual result_t set_visible(bool newVal);
-    virtual result_t get_fullscreen(bool& retVal);
-    virtual result_t set_fullscreen(bool newVal);
 
 public:
     EVENT_FUNC(load);
@@ -112,8 +110,6 @@ private:
     result_t postMessage(exlib::string msg);
 
 public:
-    static id fetchEventFromNSMainLoop(int blocking = 0);
-
     typedef void (^JsEvaluateResultHdlr)(id result, NSError * _Nullable error);
     void evaluateWebviewJS(const char* js, JsEvaluateResultHdlr hdlr = NULL);
 
@@ -213,7 +209,7 @@ private:
 public:
     NSWindow* m_nsWindow;
     WKWebView* m_wkWebView;
-    NSAutoreleasePool* m_nsPool;
+    // NSAutoreleasePool* m_nsPool;
 
 protected:
     exlib::string m_title;
