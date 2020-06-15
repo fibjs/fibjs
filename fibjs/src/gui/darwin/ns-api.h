@@ -30,8 +30,8 @@
  */
 @interface __NSWindowDelegate : NSObject<NSWindowDelegate>
 - (void)windowWillClose:(NSNotification *)willCloseNotification;
-- (void)windowDidMove:(NSNotification *)didMoveNotification;
 - (bool)windowShouldClose:(NSWindow *)window;
+- (void)windowDidMove:(NSNotification *)didMoveNotification;
 - (void)windowWillStartLiveResize:(NSNotification *)notification;
 - (void)windowDidEndLiveResize:(NSNotification *)notification;
 - (void)windowDidResize:(NSNotification *)notification;
