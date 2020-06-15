@@ -140,6 +140,7 @@ id w_get_nsstring(const wchar_t* c_str);
 
 static const char* WEBVIEW_MSG_HANDLER_NAME_INVOKE = "invoke";
 static const char* WEBVIEW_MSG_HANDLER_NAME_INWARD = "__inward";
+static const char* WEBVIEW_MSG_HANDLER_NAME_EXTERNALLOG = "__externalLog";
 
 FIBJS_EXTERN_C_END
 

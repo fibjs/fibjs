@@ -15,6 +15,7 @@
 #include "ifs/gui.h"
 #include "ifs/fs.h"
 #include "ifs/os.h"
+#include "ifs/json.h"
 #include "path.h"
 #include "WebView.h"
 #include "EventInfo.h"
@@ -40,7 +41,7 @@ void run_gui()
     s_thGUI = _thGUI;
 
     _thGUI->Run();
-    // _thGUI->suspend();
+    _thGUI->suspend();
 }
 
 void gui_thread::Run()
@@ -173,12 +174,14 @@ void WebView::setupAppMenubar()
  bool WebView::onNSWindowShouldClose(bool initshouldClose)
 {
     __block bool shouldClose = initshouldClose;
-    exlib::string m_js = "external.onclose()";
 
+    WebView* wv = this;
     // TODO: use fibjs native API to resolve it.
-    evaluateWebviewJS(m_js.c_str(), ^(id result, NSError * _Nullable error) {
+    evaluateWebviewJS("external.onclose()", ^(id result, NSError * _Nullable error) {
         if (error != nil) {
             NSLog(@"evaluateJavaScript error : %@", error.localizedDescription);
+            shouldClose = true;
+            wv->forceCloseWindow();
             s_thGUI->m_sem.Post();
             return ;
         }
@@ -191,9 +194,7 @@ void WebView::setupAppMenubar()
         s_thGUI->m_sem.Post();
     });
 
-    while (s_thGUI->m_sem.TryWait()) {
-        _waitAsyncOperationInCurrentLoop();
-    }
+    while (s_thGUI->m_sem.TryWait()) _waitAsyncOperationInCurrentLoop();
 
     return shouldClose;
 }
@@ -219,6 +220,42 @@ void WebView::onWKWebViewInwardMessage(WKScriptMessage* message)
     }
 }
 
+void asyncLog(int32_t priority, exlib::string msg);
+
+static int32_t asyncOutputMessageFromWKWebview(exlib::string& jsonFmt)
+{
+    printf("asyncOutputMessageFromWKWebview [1] %s \n", jsonFmt.c_str());
+    JSValue _logInfo;
+    json_base::decode(jsonFmt, _logInfo);
+    v8::Local<v8::Object> logInfo = v8::Local<v8::Object>::Cast(_logInfo);
+
+    Isolate* isolate = Isolate::current(); 
+    JSArray ks = logInfo->GetPropertyNames();
+    
+    int32_t logLevel = JSValue(logInfo->Get(isolate->NewString("level")))->IntegerValue();
+
+    v8::Local<v8::Value> _fmtMessage = logInfo->Get(isolate->NewString("fmt"));
+    exlib::string fmtMessage(ToCString(v8::String::Utf8Value(_fmtMessage)));
+
+    asyncLog(logLevel, fmtMessage);
+
+    return 0;
+}
+
+void WebView::onWKWebViewExternalLogMessage(WKScriptMessage* message)
+{
+    const char* externalLogMsg = (const char*)([[message body] UTF8String]);
+    exlib::string payload(externalLogMsg);
+
+    printf("[WebView::externalLogMsg] external try to log\n");
+
+    NSLog(@"[WebView::externalLogMsg] message name : %@", [message name]);
+    NSLog(@"[WebView::externalLogMsg] message body : %@", [message body]);
+    NSLog(@"[WebView::externalLogMsg] message frameInfo : %@", [message frameInfo]);
+
+    syncCall(holder(), asyncOutputMessageFromWKWebview, payload);
+}
+
 id WebView::createWKPreferences()
 {
     Class __WKPreferences
@@ -240,8 +277,10 @@ id WebView::createWKPreferences()
 }
 
 extern const wchar_t* g_console_js;
+
 extern const wchar_t* script_regExternal;
 extern const wchar_t* script_inwardPostMessage;
+extern const wchar_t* script_default;
 
 id WebView::createWKUserContentController()
 {
@@ -251,11 +290,25 @@ id WebView::createWKUserContentController()
 
     [wkUserCtrl addScriptMessageHandler:[__WKScriptMessageHandler new] name:get_nsstring(WEBVIEW_MSG_HANDLER_NAME_INVOKE)];
     [wkUserCtrl addScriptMessageHandler:[__WKScriptMessageHandler new] name:get_nsstring(WEBVIEW_MSG_HANDLER_NAME_INWARD)];
+    [wkUserCtrl addScriptMessageHandler:[__WKScriptMessageHandler new] name:get_nsstring(WEBVIEW_MSG_HANDLER_NAME_EXTERNALLOG)];
+
+    [wkUserCtrl addUserScript:[[WKUserScript alloc]
+        initWithSource:w_get_nsstring(g_console_js)
+        injectionTime:WKUserScriptInjectionTimeAtDocumentStart
+        forMainFrameOnly:FALSE
+    ]];
+
+    [wkUserCtrl addUserScript:[[WKUserScript alloc]
+        initWithSource:w_get_nsstring(script_default)
+        injectionTime:WKUserScriptInjectionTimeAtDocumentStart
+        // injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
+        forMainFrameOnly:TRUE
+    ]];
 
     [wkUserCtrl addUserScript:[[WKUserScript alloc]
         initWithSource:w_get_nsstring(script_regExternal)
         injectionTime:WKUserScriptInjectionTimeAtDocumentStart
-        forMainFrameOnly:TRUE
+        forMainFrameOnly:FALSE
     ]];
 
     [wkUserCtrl addUserScript:[[WKUserScript alloc]
@@ -379,8 +432,6 @@ void WebView::evaluateWebviewJS(const char* js, JsEvaluateResultHdlr hdlr)
         evaluateJavaScript:get_nsstring(js)
         completionHandler:hdlr
     ];
-
-    // return 0;
 }
 
 int WebView::injectCSS(WebView* w, const char* css)
@@ -575,6 +626,11 @@ result_t WebView::close(AsyncEvent* ac)
     [m_nsWindow performClose:m_nsWindow];
 
     return 0;
+}
+
+void WebView::forceCloseWindow()
+{
+    [m_nsWindow close];
 }
 
 result_t WebView::postMessage(exlib::string msg)
