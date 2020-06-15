@@ -90,6 +90,7 @@
     w.console = {
         debug: bind_log(7),
         log: bind_log(6),
+        info: bind_log(6),
         notice: bind_log(5),
         warn: bind_log(4),
         error: bind_log(3),

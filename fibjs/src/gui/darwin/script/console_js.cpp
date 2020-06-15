@@ -15,8 +15,8 @@ const wchar_t* g_console_js = L"!function(t){function c(t){return null!==t&&\"ob
 "o=0;o<i.length;o++){var r=i[o];\"object\"==typeof r&&\"function\"!=typeof r.toJSON?n"
 "+=\" \"+c(r):n+=\" \"+r}n=n.replace(/%{2,2}/g,\"%\"),external.log(t,\"\"+n)}.apply(this,"
 "t)}}i.prototype.toJSON=function(){return 0==--this.count&&(this.parent[this.k]=t"
-"his.val),\"[Circular]\"},t.console={debug:n(7),log:n(6),notice:n(5),warn:n(4),erro"
-"r:n(3),crit:n(2),alert:n(1),fatal:n(0)}}(this);";
+"his.val),\"[Circular]\"},t.console={debug:n(7),log:n(6),info:n(6),notice:n(5),warn"
+":n(4),error:n(3),crit:n(2),alert:n(1),fatal:n(0)}}(this);";
 const wchar_t* script_regExternal = L"!function(){var e=window.external={};e.onmessage=e.onmessage||function(){},e.onc"
 "lose=e.onclose||function(){},Object.defineProperty(e,\"postMessage\",{writable:!1,"
 "value:function(e){window.webkit.messageHandlers.invoke.postMessage(e)}}),Object."

@@ -29,7 +29,11 @@ var html = `<html>
       console.log('errMsg', errMsg)
     }
 
-    console.log('test')
+    console.log('test log')
+    console.warn('test warn')
+    console.info('test info')
+    console.notice('test notice')
+    console.error('test error')
 </script>
 </head>
 <body>
