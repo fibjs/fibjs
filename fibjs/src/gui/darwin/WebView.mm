@@ -122,7 +122,7 @@ id WebView::fetchEventFromNSMainLoop(int blocking)
     ];
 }
 
-void WebView::activeNSApp()
+void WebView::initNSEnvironment()
 {
     m_nsPool = [NSAutoreleasePool new];
     [NSApplication sharedApplication];
@@ -219,7 +219,7 @@ void WebView::onWKWebViewInwardMessage(WKScriptMessage* message)
     }
 }
 
-id WebView::getWKPreferences()
+id WebView::createWKPreferences()
 {
     Class __WKPreferences
         = objc_allocateClassPair(objc_getClass("WKPreferences"),
@@ -243,7 +243,7 @@ extern const wchar_t* g_console_js;
 extern const wchar_t* script_regExternal;
 extern const wchar_t* script_inwardPostMessage;
 
-id WebView::getWKUserContentController()
+id WebView::createWKUserContentController()
 {
     WKUserContentController* wkUserCtrl = [WKUserContentController new];
 
@@ -267,20 +267,20 @@ id WebView::getWKUserContentController()
     return wkUserCtrl;
 }
 
-id WebView::prepareWKWebViewConfig()
+id WebView::createWKWebViewConfig()
 {
     id wkWebViewConfig = [WKWebViewConfiguration new];
 
     id processPool = [wkWebViewConfig processPool];
     [processPool _setDownloadDelegate:[__WKDownloadDelegate new]];
     [wkWebViewConfig setProcessPool:processPool];
-    [wkWebViewConfig setUserContentController:getWKUserContentController()];
-    [wkWebViewConfig setPreferences:getWKPreferences()];
+    [wkWebViewConfig setUserContentController:createWKUserContentController()];
+    [wkWebViewConfig setPreferences:createWKPreferences()];
 
     return wkWebViewConfig;
 }
 
-void WebView::initWindow()
+void WebView::initNSWindow()
 {
     unsigned int style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
     if (m_bResizable) style = style | NSWindowStyleMaskResizable;
@@ -310,7 +310,7 @@ id WebView::getWKWebView()
     id webview = [
         [WKWebView alloc]
         initWithFrame:m_webview_window_rect
-        configuration:prepareWKWebViewConfig()
+        configuration:createWKWebViewConfig()
     ];
 
     [webview setUIDelegate:[__WKUIDelegate new]];
@@ -343,11 +343,11 @@ void WebView::activeApp()
     [app activateIgnoringOtherApps:YES];
 }
 
-int WebView::createWKWebView()
+int WebView::setupGUIApp()
 {
-    initWindowRect();
+    initNSWindowRect();
 
-    initWindow();
+    initNSWindow();
 
     centralizeWindow();
 
@@ -383,15 +383,15 @@ void WebView::evaluateWebviewJS(const char* js, JsEvaluateResultHdlr hdlr)
     // return 0;
 }
 
-int WebView::webview_inject_css(WebView* w, const char* css)
+int WebView::injectCSS(WebView* w, const char* css)
 {
-    // int n = webview_js_encode(css, NULL, 0);
+    // int n = helperEncodeJS(css, NULL, 0);
     // char* esc = (char*)calloc(1, sizeof(CSS_INJECT_FUNCTION) + n + 4);
     // if (esc == NULL) {
     //     return -1;
     // }
     // char* js = (char*)calloc(1, n);
-    // webview_js_encode(css, js, n);
+    // helperEncodeJS(css, js, n);
     // snprintf(esc, sizeof(CSS_INJECT_FUNCTION) + n + 4, "%s(\"%s\")",
     //     CSS_INJECT_FUNCTION, js);
     // int r = evaluateWebviewJS(w, esc);
@@ -402,15 +402,15 @@ int WebView::webview_inject_css(WebView* w, const char* css)
     return 0;
 }
 
-void WebView::webview_set_fullscreen(WebView* w, int fullscreen)
+void WebView::toggleFullScreen(int nextFull)
 {
-    // unsigned long windowStyleMask = (unsigned long)[w->priv.window styleMask];
-    // int b = (((windowStyleMask & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen)
-    //         ? 1
-    //         : 0);
-    // if (b != fullscreen) {
-    //     [w->priv.window toggleFullScreen:NULL];
-    // }
+    unsigned long windowStyleMask = (unsigned long)[m_nsWindow styleMask];
+    int b = (((windowStyleMask & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen)
+            ? 1
+            : 0);
+    if (b != nextFull) {
+        [m_nsWindow toggleFullScreen:NULL];
+    }
 }
 
 void WebView::webview_set_color(WebView* w, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
@@ -508,7 +508,7 @@ void WebView::webview_dialog(WebView* w, enum webview_dialog_type dlgtype, int f
     // }
 }
 
-int WebView::webview_js_encode(const char* s, char* esc, size_t n)
+int WebView::helperEncodeJS(const char* s, char* esc, size_t n)
 {
     int r = 1; /* At least one byte for trailing zero */
     for (; *s; s++) {
