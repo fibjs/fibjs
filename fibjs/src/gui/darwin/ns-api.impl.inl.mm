@@ -110,7 +110,7 @@ void assignWinSizeInfoToResizeAboutEventInfo (CGSize ws, EventInfo* ei) {
 @end
 
 @implementation __WKScriptMessageHandler
-- (void)userContentController:(WKUserContentController *)userContentController 
+- (void)userContentController:(WKUserContentController *)userContentController
       didReceiveScriptMessage:(WKScriptMessage *)message
 {
     fibjs::WebView* wv = fibjs::WebView::getWebViewFromWKUserContentController(userContentController);
@@ -119,7 +119,7 @@ void assignWinSizeInfoToResizeAboutEventInfo (CGSize ws, EventInfo* ei) {
         return;
 
     const char* wkScriptName = [[message name] UTF8String];
-    
+
     if (!strcmp(wkScriptName, WEBVIEW_MSG_HANDLER_NAME_INVOKE)) {
         wv->onWKWebViewPostMessage(message);
     } else if (!strcmp(wkScriptName, WEBVIEW_MSG_HANDLER_NAME_INWARD)) {
@@ -132,9 +132,9 @@ void assignWinSizeInfoToResizeAboutEventInfo (CGSize ws, EventInfo* ei) {
 
 @implementation __WKUIDelegate
 // run_open_panel
--(void)webView:(WKWebView *)webView 
-runOpenPanelWithParameters:(WKOpenPanelParameters *)parameters 
-initiatedByFrame:(WKFrameInfo *)frame 
+-(void)webView:(WKWebView *)webView
+runOpenPanelWithParameters:(WKOpenPanelParameters *)parameters
+initiatedByFrame:(WKFrameInfo *)frame
 completionHandler:(void (^)(NSArray<NSURL *> *URLs))completionHandler
 {
     id openPanel = [NSOpenPanel openPanel];
@@ -151,15 +151,15 @@ completionHandler:(void (^)(NSArray<NSURL *> *URLs))completionHandler
 }
 
 // run_alert_panel
--(void)webView:(WKWebView *)webView 
-runJavaScriptAlertPanelWithMessage:(NSString *)message 
-initiatedByFrame:(WKFrameInfo *)frame 
+-(void)webView:(WKWebView *)webView
+runJavaScriptAlertPanelWithMessage:(NSString *)message
+initiatedByFrame:(WKFrameInfo *)frame
 completionHandler:(void (^)(void))completionHandler
 {
     id alert = [NSAlert new];
-    
+
     [alert setIcon:[NSImage imageNamed:@"NSCaution"]];
-    
+
     [alert setShowsHelp:FALSE];
     [alert setInformativeText:message];
     [alert addButtonWithTitle:@"OK"];
@@ -169,20 +169,20 @@ completionHandler:(void (^)(void))completionHandler
 }
 
 // run_confirmation_panel
--(void)webView:(WKWebView *)webView 
-runJavaScriptConfirmPanelWithMessage:(NSString *)message 
-initiatedByFrame:(WKFrameInfo *)frame 
+-(void)webView:(WKWebView *)webView
+runJavaScriptConfirmPanelWithMessage:(NSString *)message
+initiatedByFrame:(WKFrameInfo *)frame
 completionHandler:(void (^)(BOOL result))completionHandler;
 {
     id alert = [NSAlert new];
 
     [alert setIcon:[NSImage imageNamed:@"NSCaution"]];
-    
+
     [alert setShowsHelp:FALSE];
     [alert setInformativeText:message];
     [alert addButtonWithTitle:@"OK"];
     [alert addButtonWithTitle:@"Cancel"];
-    
+
     if ([alert runModal] == NSAlertFirstButtonReturn) {
         completionHandler(true);
     } else {
@@ -194,8 +194,8 @@ completionHandler:(void (^)(BOOL result))completionHandler;
 @end
 
 @implementation __WKNavigationDelegate
-- (void)webView:(WKWebView *)webView 
-decidePolicyForNavigationResponse:(WKNavigationResponse *)navigationResponse 
+- (void)webView:(WKWebView *)webView
+decidePolicyForNavigationResponse:(WKNavigationResponse *)navigationResponse
 decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler
 {
     if ([navigationResponse canShowMIMEType] == 0) {
@@ -216,7 +216,7 @@ decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler
     https://github.com/WebKit/webkit/blob/master/Source/WebKit/UIProcess/API/Cocoa/_WKDownloadDelegate.h
     https://github.com/WebKit/webkit/blob/master/Tools/TestWebKitAPI/Tests/WebKitCocoa/Download.mm
 ***/
-- (void)download:(NSURLDownload *)download 
+- (void)download:(NSURLDownload *)download
 decideDestinationWithSuggestedFilename:(NSString *)filename
 completionHandler:(void (^)(int allowOverwrite, id destination))completionHandler
 {
@@ -237,10 +237,9 @@ completionHandler:(void (^)(int allowOverwrite, id destination))completionHandle
     ];
 }
 
-- (void)download:(NSURLDownload *)download 
+- (void)download:(NSURLDownload *)download
 didFailWithError:(NSError *)error
 {
-    
     printf("%s",
         (const char*)[[error localizedDescription] UTF8String]
     );
