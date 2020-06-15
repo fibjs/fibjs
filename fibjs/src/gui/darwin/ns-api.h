@@ -18,7 +18,7 @@
 /**
  * @see https://developer.apple.com/documentation/appkit/nsapplicationdelegate
  */
-@interface __NSApplicationDelegate : NSObject/* , NSApplicationDelegate */
+@interface __NSApplicationDelegate : NSObject<NSApplicationDelegate>
 - (void)applicationWillTerminate:(id)app;
 - (void)applicationDidFinishLaunching:(id)app;
 - (void)applicationShouldTerminate:(id)app;
@@ -43,12 +43,12 @@
 @interface __WKNavigationDelegate : NSObject<WKNavigationDelegate>
 @end
 
-@interface __WKScriptMessageHandler : NSObject
+@interface __WKScriptMessageHandler : NSObject<WKScriptMessageHandler>
+- (void)userContentController:(WKUserContentController *)userContentController 
+      didReceiveScriptMessage:(WKScriptMessage *)message;
 @end
 
 // @interface __WKPreferences : NSObject<WKPreferences>
-// @end
-// @implementation __WKPreferences
 // @end
 
 @interface __WKDownloadDelegate : NSObject/* <NSURLDownloadDelegate> */

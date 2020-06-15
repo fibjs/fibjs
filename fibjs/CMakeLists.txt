@@ -65,6 +65,7 @@ set(ccflags "${ccflags} ${CXX_STD_VER_FLAG}")
 if(${OS} STREQUAL "Darwin")
 	set(DARWIN_LIBS "-framework WebKit -framework Cocoa")
 	
+	set(flags "${flags} -Wno-nullability-completeness")
 	set(cflags "${cflags} -DWEBVIEW_COCOA=1 -DOBJC_OLD_DISPATCH_PROTOTYPES=1")
 	set(ccflags "${ccflags} -DWEBVIEW_COCOA=1 -DOBJC_OLD_DISPATCH_PROTOTYPES=1")
 	set(link_flags "${link_flags} -mmacosx-version-min=10.9 ${DARWIN_LIBS} ${FOUNDATION_LIBS} ${COCOA_LIBS}")
