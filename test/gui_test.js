@@ -104,6 +104,15 @@ if (win || darwin) {
 
         assert.isTrue(events.onmove)
       });
+
+      xit("fullscreen", () => {
+        var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/");
+
+        assert.isFalse(win.fullscreen);
+        win.fullscreen = true;
+
+        win.close();
+      });
     });
 
     it("log", () => {
