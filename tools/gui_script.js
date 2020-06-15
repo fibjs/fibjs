@@ -10,7 +10,8 @@ var platforms = {
         IFMACRO: '__APPLE__',
         scripts: {
             'script_regExternal': 'script_regExternal.js',
-            'script_inwardPostMessage': 'script_inwardPostMessage.js'
+            'script_inwardPostMessage': 'script_inwardPostMessage.js',
+            'script_default': 'script_default.js'
         }
     },
     'linux': {

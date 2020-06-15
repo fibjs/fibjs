@@ -24,6 +24,12 @@ var html = `<html>
             return false;
         }
     }
+
+    window.onerror = function(errMsg) {
+      console.log('errMsg', errMsg)
+    }
+
+    console.log('test')
 </script>
 </head>
 <body>
@@ -61,7 +67,7 @@ if (win || darwin) {
         test_util.push(svr.socket);
       })
 
-      it("basic", () => {
+      xit("basic", () => {
         var closed = false;
         var events = {};
         var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/");
@@ -105,13 +111,24 @@ if (win || darwin) {
         assert.isTrue(events.onmove)
       });
 
+      it("close right away", () => {
+        var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/");
+
+        win.onmessage = () => {
+          console.log('[JSSide::onmessage]')
+        }
+
+        for (var i = 0; i < 1000 && test_util.countObject("WebView"); i++)
+          test_util.gc();
+        // win.close();
+      });
+
       xit("fullscreen", () => {
         var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/");
 
+        console.warn('here');
         assert.isFalse(win.fullscreen);
         win.fullscreen = true;
-
-        win.close();
       });
     });
 

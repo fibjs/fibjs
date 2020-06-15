@@ -98,6 +98,8 @@ public:
 
         return 0;
     }
+
+    void forceCloseWindow();
     
     static result_t openWebViewInGUIThread(obj_ptr<fibjs::WebView> wv)
     {
@@ -203,6 +205,7 @@ public:
 
     void onWKWebViewPostMessage(WKScriptMessage* message);
     void onWKWebViewInwardMessage(WKScriptMessage* message);
+    void onWKWebViewExternalLogMessage(WKScriptMessage* message);
 
 private:
     void _waitAsyncOperationInCurrentLoop();

@@ -17,10 +17,15 @@ const wchar_t* g_console_js = L"!function(t){function c(t){return null!==t&&\"ob
 "t)}}i.prototype.toJSON=function(){return 0==--this.count&&(this.parent[this.k]=t"
 "his.val),\"[Circular]\"},t.console={debug:n(7),log:n(6),notice:n(5),warn:n(4),erro"
 "r:n(3),crit:n(2),alert:n(1),fatal:n(0)}}(this);";
-const wchar_t* script_regExternal = L"!function(){window.external=this,Object.defineProperty(window,\"postMessage\",{wri"
-"table:!1,value:function(e){webkit.messageHandlers.invoke.postMessage(e)}})}();";
+const wchar_t* script_regExternal = L"!function(){var e=window.external={};e.onmessage=e.onmessage||function(){},e.onc"
+"lose=e.onclose||function(){},Object.defineProperty(e,\"postMessage\",{writable:!1,"
+"value:function(e){window.webkit.messageHandlers.invoke.postMessage(e)}}),Object."
+"defineProperty(e,\"log\",{writable:!1,value:function(e,n){window.webkit.messageHan"
+"dlers.__externalLog.postMessage(JSON.stringify({level:e,fmt:n}))}}),window.exter"
+"nal=e}();";
 const wchar_t* script_inwardPostMessage = L"window.addEventListener(\"load\",function(){webkit.messageHandlers.__inward.postMe"
 "ssage(\"inward:window.load\")});";
+const wchar_t* script_default = L"";
 }
 
 #endif
