@@ -267,12 +267,11 @@ id WebView::getWKUserContentController()
     [wkUserCtrl addScriptMessageHandler:[__WKScriptMessageHandler new] name:get_nsstring(WEBVIEW_MSG_HANDLER_NAME_INVOKE)];
     [wkUserCtrl addScriptMessageHandler:[__WKScriptMessageHandler new] name:get_nsstring(WEBVIEW_MSG_HANDLER_NAME_INWARD)];
 
-    WKUserScript* windowScript_RegExternal = [[WKUserScript alloc]
+    [wkUserCtrl addUserScript:[[WKUserScript alloc]
         initWithSource:w_get_nsstring(script_regExternal)
         injectionTime:WKUserScriptInjectionTimeAtDocumentStart
         forMainFrameOnly:TRUE
-    ];
-    [wkUserCtrl addUserScript:windowScript_RegExternal];
+    ]];
 
     [wkUserCtrl addUserScript:[[WKUserScript alloc]
         initWithSource:w_get_nsstring(script_inwardPostMessage)
