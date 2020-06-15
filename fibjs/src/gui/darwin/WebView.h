@@ -91,8 +91,8 @@ public:
         if (m_opt) {
         }
 
-        activeNSApp();
-        createWKWebView();
+        initNSEnvironment();
+        setupGUIApp();
 
         AddRef();
 
@@ -115,9 +115,9 @@ public:
     typedef void (^JsEvaluateResultHdlr)(id result, NSError * _Nullable error);
     void evaluateWebviewJS(const char* js, JsEvaluateResultHdlr hdlr = NULL);
 
-    static int webview_inject_css(WebView* w, const char* css);
+    static int injectCSS(WebView* w, const char* css);
 
-    static void webview_set_fullscreen(WebView* w, int fullscreen);
+    void toggleFullScreen(int fullscreen);
 
     static void webview_set_color(WebView* w, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 
@@ -135,47 +135,38 @@ public:
         va_end(ap);
     }
 
-    static int webview_js_encode(const char* s, char* esc, size_t n);
+    static int helperEncodeJS(const char* s, char* esc, size_t n);
 
     static id create_menu_item(id title, const char* action, const char* key);
 
-    void activeNSApp();
+    void initNSEnvironment();
 
-    void initWindow();
-
-    void centralizeWindow();
-
-    void initWindowRect()
-    {
-        m_webview_window_rect = CGRectMake(0, 0, m_WinW, m_WinH);
-    }
+    void initNSWindow();
 
     void navigateWKWebView();
-
-    void setWKWebViewStyle();
 
     void putWindowToTopOrder();
 
     void activeApp();
 
-    int createWKWebView();
-
-    static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win) {
+    static WebView* getWebViewFromNSWindow(NSWindow* win) {
         return (WebView* )objc_getAssociatedObject(win, "webview");
     }
 
-    static fibjs::WebView* getWebViewFromWKUserContentController(WKUserContentController* userCtrl) {
+    static WebView* getWebViewFromWKUserContentController(WKUserContentController* userCtrl) {
         return (WebView* )objc_getAssociatedObject(userCtrl, "webview");
     }
 
 private:
+    int setupGUIApp();
+
     id getWKWebView();
 
-    id getWKPreferences();
+    id createWKPreferences();
 
-    id getWKUserContentController();
+    id createWKUserContentController();
 
-    id prepareWKWebViewConfig();
+    id createWKWebViewConfig();
 
     void assignToToNSWindow(NSWindow* win) {
         objc_setAssociatedObject(win, "webview", (id)this, OBJC_ASSOCIATION_ASSIGN);
@@ -183,6 +174,15 @@ private:
 
     void assignToWKUserContentController(WKUserContentController* userCtrl) {
         objc_setAssociatedObject(userCtrl, "webview", (id)this, OBJC_ASSOCIATION_ASSIGN);
+    }
+
+    void setWKWebViewStyle();
+
+    void centralizeWindow();
+
+    void initNSWindowRect()
+    {
+        m_webview_window_rect = CGRectMake(0, 0, m_WinW, m_WinH);
     }
 
 public:
