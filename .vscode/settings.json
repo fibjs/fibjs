@@ -2,11 +2,7 @@
 {
     "editor.formatOnSave": true,
     "files.associations": {
-        "*.tpl": "ejs",
-        "*.js": "javascript",
         "*.idl": "java",
-        "**/fibjs/tools/proj.txt": "xml",
-        "**/fibjs/tools/filter.txt": "xml",
         "**/gui/darwin/ns-api.h": "objective-cpp",
         "**/gui/darwin/WebView.h": "cpp",
     },
