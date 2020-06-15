@@ -108,7 +108,14 @@ WebView::WebView(exlib::string url, NObject* opt)
     m_url = url;
     m_opt = opt;
 
-    m_title = "[WIP] Darwin WebView";
+    if (m_opt) {
+        Variant v;
+
+        if (m_opt->get("title", v) == 0)
+            m_title = v.string();
+        else
+            m_title = "[WIP] Darwin WebView";
+    }
     m_WinW = 640;
     m_WinH = 400;
     m_bResizable = true;
@@ -171,36 +178,43 @@ void WebView::setupAppMenubar()
     [[NSApplication sharedApplication] setMainMenu:menubar];
 }
 
- bool WebView::onNSWindowShouldClose(bool initshouldClose)
+void _waitAsyncOperationInCurrentLoop(bool blocking = false) {
+    if (blocking)
+        [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
+    else
+        [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantPast]];
+}
+
+bool WebView::onNSWindowShouldClose(bool initshouldClose)
 {
     __block bool shouldClose = initshouldClose;
 
     WebView* wv = this;
+    __block bool finished = false;
     // TODO: use fibjs native API to resolve it.
     evaluateWebviewJS("external.onclose()", ^(id result, NSError * _Nullable error) {
         if (error != nil) {
             NSLog(@"evaluateJavaScript error : %@", error.localizedDescription);
-            shouldClose = true;
+            // shouldClose = true;
             wv->forceCloseWindow();
-            s_thGUI->m_sem.Post();
-            return ;
+        } else {
+            if (result == nil)
+                shouldClose = true;
+            else if ([result boolValue] != NO)
+                shouldClose = true;
+            NSLog(@"evaluateJavaScript result : %@", result);
         }
 
-        if (result == nil)
-            shouldClose = true;
-        else if ([result boolValue] != NO)
-            shouldClose = true;
-
         s_thGUI->m_sem.Post();
+        finished = true;
     });
 
-    while (s_thGUI->m_sem.TryWait()) _waitAsyncOperationInCurrentLoop();
+    do {
+        _waitAsyncOperationInCurrentLoop(true);
+    // } while (!finished);
+    } while (s_thGUI->m_sem.TryWait());
 
     return shouldClose;
-}
-
-void WebView::_waitAsyncOperationInCurrentLoop() {
-    [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
 }
 
 void WebView::onWKWebViewPostMessage(WKScriptMessage* message)

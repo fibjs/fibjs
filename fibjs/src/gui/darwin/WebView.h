@@ -66,6 +66,8 @@ public:
     EVENT_FUNC(load);
     EVENT_FUNC(move);
     EVENT_FUNC(resize);
+    EVENT_FUNC(resizestart);
+    EVENT_FUNC(resizeend);
     EVENT_FUNC(closed);
     EVENT_FUNC(message);
 
@@ -200,9 +202,6 @@ public:
     void onWKWebViewPostMessage(WKScriptMessage* message);
     void onWKWebViewInwardMessage(WKScriptMessage* message);
     void onWKWebViewExternalLogMessage(WKScriptMessage* message);
-
-private:
-    void _waitAsyncOperationInCurrentLoop();
 
 public:
     NSWindow* m_nsWindow;
