@@ -44,8 +44,6 @@ public:
 
 static gui_thread* s_thGUI;
 
-static id s_activeWinObjcId = NULL;
-
 class WebView : public WebView_base {
     FIBER_FREE();
 
@@ -63,6 +61,8 @@ public:
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
     virtual result_t get_visible(bool& retVal);
     virtual result_t set_visible(bool newVal);
+    virtual result_t get_fullscreen(bool& retVal);
+    virtual result_t set_fullscreen(bool newVal);
 
 public:
     EVENT_FUNC(load);
@@ -224,6 +224,8 @@ protected:
     obj_ptr<NObject> m_opt;
 
     bool m_visible;
+    bool m_fullscreen;
+
     bool m_maximize;
     bool m_bSilent;
     

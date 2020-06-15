@@ -285,7 +285,7 @@ void WebView::initNSWindow()
     unsigned int style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
     if (m_bResizable) style = style | NSWindowStyleMaskResizable;
 
-    /* s_activeWinObjcId =  */m_nsWindow = [[NSWindow alloc]
+    m_nsWindow = [[NSWindow alloc]
         initWithContentRect:m_webview_window_rect
         styleMask:style
         backing:NSBackingStoreBuffered
@@ -402,16 +402,16 @@ int WebView::injectCSS(WebView* w, const char* css)
     return 0;
 }
 
-void WebView::toggleFullScreen(int nextFull)
-{
-    unsigned long windowStyleMask = (unsigned long)[m_nsWindow styleMask];
-    int b = (((windowStyleMask & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen)
-            ? 1
-            : 0);
-    if (b != nextFull) {
-        [m_nsWindow toggleFullScreen:NULL];
-    }
-}
+// void WebView::toggleFullScreen(int nextFull)
+// {
+//     unsigned long windowStyleMask = (unsigned long)[m_nsWindow styleMask];
+//     int b = (((windowStyleMask & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen)
+//             ? 1
+//             : 0);
+//     if (b != nextFull) {
+//         [m_nsWindow toggleFullScreen:NULL];
+//     }
+// }
 
 void WebView::webview_set_color(WebView* w, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
@@ -596,6 +596,26 @@ result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_GUICALL);
 
     return postMessage(msg);
+}
+
+result_t WebView::get_fullscreen(bool& retVal)
+{
+    unsigned long windowStyleMask = (unsigned long)[m_nsWindow styleMask];
+
+    retVal = !!(windowStyleMask & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen;
+    return 0;
+}
+
+result_t WebView::set_fullscreen(bool newVal)
+{
+    bool bNowFull;
+    get_fullscreen(bNowFull);
+    if (bNowFull == newVal)
+        return 0;
+
+    m_fullscreen = newVal;
+
+    return 0;
 }
 
 result_t WebView::get_visible(bool& retVal)
