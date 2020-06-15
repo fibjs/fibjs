@@ -1,7 +1,7 @@
 #ifdef __APPLE__
 
 namespace fibjs {
-const char* g_console_js = "!function(t){function o(t){return t<10?\"0\"+t:t}t.JSON||(t.JSON={}),\"function\"!=t"
+const wchar_t* g_console_js = L"!function(t){function o(t){return t<10?\"0\"+t:t}t.JSON||(t.JSON={}),\"function\"!=t"
 "ypeof Date.prototype.toJSON&&(Date.prototype.toJSON=function(t){return isFinite("
 "this.valueOf())?this.getUTCFullYear()+\"-\"+o(this.getUTCMonth()+1)+\"-\"+o(this.get"
 "UTCDate())+\"T\"+o(this.getUTCHours())+\":\"+o(this.getUTCMinutes())+\":\"+o(this.getU"
@@ -23,6 +23,10 @@ const char* g_console_js = "!function(t){function o(t){return t<10?\"0\"+t:t}t.J
 "=function(){return 0==--this.count&&(this.parent[this.k]=this.val),\"[Circular]\"}"
 ",t.console={debug:o(7),log:o(6),notice:o(5),warn:o(4),error:o(3),crit:o(2),alert"
 ":o(1),fatal:o(0)}}(this);";
+const wchar_t* script_regExternal = L"!function(){window.external=this,Object.defineProperty(window,\"postMessage\",{wri"
+"table:!1,value:function(e){webkit.messageHandlers.invoke.postMessage(e)}})}();";
+const wchar_t* script_inwardPostMessage = L"window.addEventListener(\"load\",function(){webkit.messageHandlers.__inward.postMe"
+"ssage(\"inward:window.load\")});";
 }
 
 #endif

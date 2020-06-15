@@ -254,6 +254,10 @@ id WebView::getWKPreferences()
     return wkPreferences;
 }
 
+extern const wchar_t* g_console_js;
+extern const wchar_t* script_regExternal;
+extern const wchar_t* script_inwardPostMessage;
+
 id WebView::getWKUserContentController()
 {
     WKUserContentController* wkUserCtrl = [WKUserContentController new];
@@ -264,14 +268,14 @@ id WebView::getWKUserContentController()
     [wkUserCtrl addScriptMessageHandler:[__WKScriptMessageHandler new] name:get_nsstring(WEBVIEW_MSG_HANDLER_NAME_INWARD)];
 
     WKUserScript* windowScript_RegExternal = [[WKUserScript alloc]
-        initWithSource:@"window.external = this;Object.defineProperty(window, 'postMessage', { writable: false, value: function(arg){ webkit.messageHandlers.invoke.postMessage(arg); } });"
+        initWithSource:w_get_nsstring(script_regExternal)
         injectionTime:WKUserScriptInjectionTimeAtDocumentStart
         forMainFrameOnly:TRUE
     ];
     [wkUserCtrl addUserScript:windowScript_RegExternal];
 
     [wkUserCtrl addUserScript:[[WKUserScript alloc]
-        initWithSource:@"window.addEventListener('load', function() { webkit.messageHandlers.__inward.postMessage('inward:window.load'); } )"
+        initWithSource:w_get_nsstring(script_inwardPostMessage)
         injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
         forMainFrameOnly:TRUE
     ]];
@@ -667,7 +671,6 @@ result_t WebView::Release(void)
     return 1;
 }
 
-extern const wchar_t* g_console_js;
 }
 
 #endif /* __APPLE__ */

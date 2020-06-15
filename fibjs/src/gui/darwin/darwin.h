@@ -136,6 +136,7 @@ static const char* webview_check_url(const char* url)
 // #endif
 
 id get_nsstring(const char* c_str);
+id w_get_nsstring(const wchar_t* c_str);
 
 static const char* WEBVIEW_MSG_HANDLER_NAME_INVOKE = "invoke";
 static const char* WEBVIEW_MSG_HANDLER_NAME_INWARD = "__inward";
