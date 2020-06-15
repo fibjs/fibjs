@@ -85,7 +85,6 @@ public:
     // async call handler & real executation.
     result_t open()
     {
-        printf("[WebView::open] before \n");
         m_bSilent = false;
         m_maximize = false;
 
@@ -96,8 +95,6 @@ public:
         createWKWebView();
 
         AddRef();
-
-        printf("[WebView::open] after\n");
 
         return 0;
     }
@@ -144,12 +141,14 @@ public:
 
     void activeNSApp();
 
+    void initWindow();
+
+    void centralizeWindow();
+
     void initWindowRect()
     {
         m_webview_window_rect = CGRectMake(0, 0, m_WinW, m_WinH);
     }
-
-    void initWindow();
 
     void navigateWKWebView();
 
