@@ -12,7 +12,6 @@ var html = `<html>
 <head>
 <script>
     external.onmessage = function(m) {
-        // window.alert('[JSSide] external.onmessage invoked: ' + m);
         external.postMessage('send back: ' + m)
     };
 
@@ -25,9 +24,6 @@ var html = `<html>
             return false;
         }
     }
-
-    // alert('test: ' + webkit ? 'true' : 'false');
-    // alert('test messageHandlers: ' + webkit.messageHandlers ? 'true' : 'false');
 </script>
 </head>
 <body>
@@ -52,61 +48,62 @@ if (win || darwin) {
   describe("gui", () => {
     after(test_util.cleanup);
 
-    oit("webview", () => {
+    describe.only("webview", () => {
+      after(test_util.cleanup);
       var check = false;
-      var closed = false;
-      var svr = new http.Server(8999 + base_port, r => {
-        check = true;
-        r.response.write(html);
-      });
-      svr.start();
-      test_util.push(svr.socket);
 
-      var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/");
+      before(() => {
+        var svr = new http.Server(8999 + base_port, r => {
+          check = true;
+          r.response.write(html);
+        });
+        svr.start();
+        test_util.push(svr.socket);
+      })
 
-      var cnt = 0;
+      it("basic", () => {
+        var closed = false;
+        var events = {};
+        var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/");
 
-      win.onmessage = m => {
-        cnt++;
+        var cnt = 0;
 
-        console.log("[JSSide::win::onmessage]", m);
+        win.onmessage = m => {
+          cnt++;
 
-        if (m === "try close") {
-          win.close();
-        } else {
-          win.close();
+          if (m === "try close") {
+            win.close();
+          } else {
+            win.close();
+          }
+        };
+
+        win.onclosed = () => {
+          closed = true;
+          win = undefined;
+        };
+
+        win.onload = () => {
+          win.postMessage("hello");
+        };
+
+        win.onmove = () => {
+          events.onmove = true;
         }
-      };
 
-      win.onclosed = () => {
-        console.log("[JSSide::win::onclosed]");
+        for (var i = 0; i < 1000 && !check; i++) coroutine.sleep(10);
 
-        closed = true;
-        win = undefined;
-      };
+        assert.ok(check);
 
-      win.onload = () => {
-        console.log("[JSSide::win::onload]");
+        for (var i = 0; i < 1000 && test_util.countObject("WebView"); i++)
+          test_util.gc();
 
-        win.postMessage("hello");
+        assert.equal(test_util.countObject("WebView"), 0);
+        assert.equal(closed, true);
+        assert.equal(cnt, 2);
 
-        console.log("[JSSide::win::onload] after");
-      };
-
-      win.onmove = () => {
-        // console.log("[JSSide::win::onmove]");
-      }
-
-      for (var i = 0; i < 1000 && !check; i++) coroutine.sleep(10);
-
-      assert.ok(check);
-
-      for (var i = 0; i < 1000 && test_util.countObject("WebView"); i++)
-        test_util.gc();
-
-      assert.equal(test_util.countObject("WebView"), 0);
-      assert.equal(closed, true);
-      assert.equal(cnt, 2);
+        assert.isTrue(events.onmove)
+      });
     });
 
     it("log", () => {

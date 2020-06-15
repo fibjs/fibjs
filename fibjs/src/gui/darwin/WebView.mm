@@ -48,7 +48,6 @@ void gui_thread::Run()
     // initialize one fibjs runtime
     Runtime rt(NULL);
 
-    printf("gui_thread->Run 1\n");
     [[NSApplication sharedApplication] setDelegate:[__NSApplicationDelegate new]];
     WebView::setupAppMenubar();
 
@@ -89,7 +88,6 @@ result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<We
 // Would Call In Javascript Thread
 WebView::WebView(exlib::string url, NObject* opt)
 {
-    printf("[WebView::WebView] before\n");
     holder()->Ref();
 
     m_url = url;
@@ -103,17 +101,12 @@ WebView::WebView(exlib::string url, NObject* opt)
     m_bDebug = false;
 
     m_ac = NULL;
-    // _onmessage = NULL;
-    // _onclose = NULL;
 
     m_visible = true;
-
-    printf("[WebView::WebView] after\n");
 }
 
 WebView::~WebView()
 {
-    printf("[WebView::]~WebView");
     clear();
 }
 
@@ -196,14 +189,12 @@ void WebView::setupAppMenubar()
             shouldClose = true;
 
         s_thGUI->m_sem.Post();
-        printf("[asyncWaitEvaluteJavascript::waitEval] shouldClose is %s \n", shouldClose ? "true" : "false");
     });
 
     while (s_thGUI->m_sem.TryWait()) {
         _waitAsyncOperationInCurrentLoop();
     }
 
-    printf("[onNSWindowShouldClose] shouldClose is %s \n", shouldClose ? "true" : "false");
     return shouldClose;
 }
 
@@ -213,12 +204,8 @@ void WebView::_waitAsyncOperationInCurrentLoop() {
 
 void WebView::onWKWebViewPostMessage(WKScriptMessage* message)
 {
-    printf("[WebView::onWKWebViewPostMessage] 1 \n");
-
     // TODO: escape it.
     const char* wvJsMsg = (const char*)([[message body] UTF8String]);
-
-    printf("[WebView::onWKWebViewPostMessage] view view wvJsMsg: %s \n", wvJsMsg);
 
     _emit("message", wvJsMsg);
 }
@@ -226,12 +213,10 @@ void WebView::onWKWebViewPostMessage(WKScriptMessage* message)
 void WebView::onWKWebViewInwardMessage(WKScriptMessage* message)
 {
     const char* inwardMsg = (const char*)([[message body] UTF8String]);
-    printf("[WebView::onWKWebViewInwardMessage] 1 %s \n", inwardMsg);
 
     if (!strcmp(inwardMsg, "inward:window.load")) {
         _emit("load");
     }
-
 }
 
 id WebView::getWKPreferences()
@@ -312,8 +297,12 @@ void WebView::initWindow()
     [m_nsWindow setDelegate:[__NSWindowDelegate new]];
     [m_nsWindow setTitle:[NSString stringWithUTF8String:m_title.c_str()]];
 
-    printf("[WebView::initWindow] assign self to m_nsWindow\n");
     assignToToNSWindow(m_nsWindow);
+}
+
+void WebView::centralizeWindow()
+{
+    [m_nsWindow center];
 }
 
 id WebView::getWKWebView()
@@ -360,8 +349,7 @@ int WebView::createWKWebView()
 
     initWindow();
 
-    // make it center
-    [m_nsWindow center];
+    centralizeWindow();
 
     m_wkWebView = getWKWebView();
     navigateWKWebView();
@@ -385,9 +373,7 @@ int WebView::createWKWebView()
 void WebView::evaluateWebviewJS(const char* js, JsEvaluateResultHdlr hdlr)
 {
     if (hdlr == NULL) {
-        hdlr = ^(id item, NSError * _Nullable error) {
-            printf("[WebView::evaluateWebviewJS] client JS executed \n");
-        };
+        hdlr = ^(id item, NSError * _Nullable error) {};
     }
     [m_wkWebView
         evaluateJavaScript:get_nsstring(js)
@@ -559,8 +545,6 @@ id WebView::create_menu_item(id title, const char* action, const char* key)
 
 void WebView::clear()
 {
-    printf("[WebView::clear] \n");
-
     if (m_ac) {
         m_ac->post(0);
         m_ac = NULL;
@@ -588,7 +572,6 @@ result_t WebView::close(AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
-    printf("prepare to close \n");
     [m_nsWindow performClose:m_nsWindow];
 
     return 0;
@@ -596,11 +579,9 @@ result_t WebView::close(AsyncEvent* ac)
 
 result_t WebView::postMessage(exlib::string msg)
 {
-    printf("[WebView::postMessage] view view argument %s \n", msg.c_str());
-
     exlib::string c_jsstr;
-    c_jsstr.append("external.onmessage('");
     // TODO: we should escape it.
+    c_jsstr.append("external.onmessage('");
     c_jsstr.append(msg);
     c_jsstr.append("')");
 
