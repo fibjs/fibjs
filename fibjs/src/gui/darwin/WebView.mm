@@ -393,17 +393,14 @@ int WebView::setupGUIApp()
     navigateWKWebView();
 
     setWKWebViewStyle();
-    // linkWindowWithWebview
-    [[m_nsWindow contentView] addSubview:m_wkWebView];
 
-    // putWindowToTopOrder
+    [[m_nsWindow contentView] addSubview:m_wkWebView];
     [m_nsWindow orderFrontRegardless];
 
     activeApp();
 
     setupAppMenubar();
 
-    // w->priv.should_exit = 0;
     return 0;
 }
 
