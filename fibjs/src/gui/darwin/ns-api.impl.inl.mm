@@ -15,6 +15,11 @@
 using fibjs::obj_ptr;
 using fibjs::EventInfo;
 
+void assignWinSizeInfoToResizeAboutEventInfo (CGSize ws, EventInfo* ei) {
+    ei->add("width", ws.width);
+    ei->add("height", ws.height);
+}
+
 @implementation __NSApplicationDelegate
 -(void)applicationWillTerminate:(id)app
 {
@@ -60,6 +65,43 @@ using fibjs::EventInfo;
         return YES;
 
     return wv->onNSWindowShouldClose(false);
+}
+-(void)windowWillStartLiveResize:(NSNotification *)notification
+{
+    NSWindow *currentWindow = notification.object;
+    fibjs::WebView* wv = fibjs::WebView::getWebViewFromNSWindow(currentWindow);
+
+    if (wv == NULL)
+        return ;
+
+    obj_ptr<EventInfo> ei = new EventInfo(wv, "resizestart");
+    assignWinSizeInfoToResizeAboutEventInfo(currentWindow.frame.size, ei);
+    wv->_emit("resizestart", ei);
+}
+-(void)windowDidEndLiveResize:(NSNotification *)notification
+{
+    NSWindow *currentWindow = notification.object;
+    fibjs::WebView* wv = fibjs::WebView::getWebViewFromNSWindow(currentWindow);
+
+    if (wv == NULL)
+        return ;
+
+    obj_ptr<EventInfo> ei = new EventInfo(wv, "resizeend");
+    assignWinSizeInfoToResizeAboutEventInfo(currentWindow.frame.size, ei);
+    wv->_emit("resizeend", ei);
+}
+-(void)windowDidResize:(NSNotification *)notification
+{
+    NSWindow *currentWindow = notification.object;
+    fibjs::WebView* wv = fibjs::WebView::getWebViewFromNSWindow(currentWindow);
+
+    if (wv == NULL)
+        return ;
+
+    obj_ptr<EventInfo> ei = new EventInfo(wv, "resize");
+    assignWinSizeInfoToResizeAboutEventInfo(currentWindow.frame.size, ei);
+
+    wv->_emit("resize", ei);
 }
 @end
 

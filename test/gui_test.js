@@ -36,7 +36,7 @@ if (win || darwin) {
       test_util.push(svr.socket);
     });
 
-    describe.only("webview", () => {
+    describe("webview", () => {
       after(test_util.cleanup);
 
       it("basic", () => {
@@ -86,10 +86,53 @@ if (win || darwin) {
     });
 
     describe.only("close", () => {
-      it("close directly", () => {
+      it("close directly by default", () => {
         var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/close-directly.html");
 
         win.close();
+      });
+    });
+
+    darwin && describe.only("resize", () => {
+      var events_resize = {};
+
+      it("resiable", () => {
+        var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/resizable.html", {
+          title: "Resizable"
+        });
+
+        var MAX_RESIZE_CNT = 5;
+        var resize_cnt = 0;
+
+        win.onload = () => {
+          console.log('window onload');
+        }
+
+        win.on('resizestart', () => {
+          console.log('window onresizestart');
+        })
+
+        win.on('resizeend', () => {
+          console.log('window onresizeend');
+          // if (++resize_cnt >= MAX_RESIZE_CNT)
+          win.close()
+          win = undefined
+        });
+
+        win.onresize = (evt) => {
+          events_resize.onresize = true;
+          console.log('window onresize, w: %s', evt.width);
+
+          events_resize.onresize_width_ok = evt.hasOwnProperty('width');
+          events_resize.onresize_height_ok = evt.hasOwnProperty('height');
+        }
+
+        for (var i = 0; i < 1000 && test_util.countObject("WebView"); i++)
+          test_util.gc();
+
+        assert.isTrue(events_resize.onresize)
+        assert.isTrue(events_resize.onresize_width_ok)
+        assert.isTrue(events_resize.onresize_height_ok)
       });
     });
 
