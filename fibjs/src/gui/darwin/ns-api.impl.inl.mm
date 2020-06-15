@@ -119,7 +119,7 @@ void assignWinSizeInfoToResizeAboutEventInfo (CGSize ws, EventInfo* ei) {
         return;
 
     const char* wkScriptName = [[message name] UTF8String];
-    printf("wkScriptName is %s\n", wkScriptName);
+    
     if (!strcmp(wkScriptName, WEBVIEW_MSG_HANDLER_NAME_INVOKE)) {
         wv->onWKWebViewPostMessage(message);
     } else if (!strcmp(wkScriptName, WEBVIEW_MSG_HANDLER_NAME_INWARD)) {

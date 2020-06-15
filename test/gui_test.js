@@ -36,7 +36,7 @@ if (win || darwin) {
       test_util.push(svr.socket);
     });
 
-    describe("webview", () => {
+    describe.only("webview", () => {
       after(test_util.cleanup);
 
       it("basic", () => {
