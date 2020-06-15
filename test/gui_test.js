@@ -93,6 +93,34 @@ if (win || darwin) {
       });
     });
 
+    darwin && describe.only("move", () => {
+      var events_resize = {};
+
+      it("onmove by default on darwin", () => {
+        var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/onmove.html", {
+          title: "onmove"
+        });
+
+        win.onmove = (evt) => {
+          events_resize.onmove = true;
+          console.log('window onmove, origin: {x: %s, y: %s}', evt.x, evt.y);
+
+          events_resize.onmove_x_ok = evt.hasOwnProperty('x');
+          events_resize.onmove_y_ok = evt.hasOwnProperty('y');
+
+          win.close();
+          win = undefined;
+        }
+
+        for (var i = 0; i < 1000 && test_util.countObject("WebView"); i++)
+          test_util.gc();
+
+        assert.isTrue(events_resize.onmove)
+        assert.isTrue(events_resize.onmove_x_ok)
+        assert.isTrue(events_resize.onmove_y_ok)
+      });
+    });
+
     darwin && describe.only("resize", () => {
       var events_resize = {};
 
@@ -114,25 +142,32 @@ if (win || darwin) {
 
         win.on('resizeend', () => {
           console.log('window onresizeend');
-          // if (++resize_cnt >= MAX_RESIZE_CNT)
           win.close()
           win = undefined
         });
 
         win.onresize = (evt) => {
           events_resize.onresize = true;
-          console.log('window onresize, w: %s', evt.width);
 
           events_resize.onresize_width_ok = evt.hasOwnProperty('width');
           events_resize.onresize_height_ok = evt.hasOwnProperty('height');
         }
 
+        var timeouted = false
+        setTimeout(() => {
+          timeouted = true
+          win.close()
+          win = undefined
+        }, 500);
+
         for (var i = 0; i < 1000 && test_util.countObject("WebView"); i++)
           test_util.gc();
 
-        assert.isTrue(events_resize.onresize)
-        assert.isTrue(events_resize.onresize_width_ok)
-        assert.isTrue(events_resize.onresize_height_ok)
+        if (!timeouted) {
+          assert.isTrue(events_resize.onresize)
+          assert.isTrue(events_resize.onresize_width_ok)
+          assert.isTrue(events_resize.onresize_height_ok)
+        }
       });
     });
 

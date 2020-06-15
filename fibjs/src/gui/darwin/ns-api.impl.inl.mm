@@ -46,6 +46,15 @@ void assignWinSizeInfoToResizeAboutEventInfo (CGSize ws, EventInfo* ei) {
     if (wv != NULL)
         wv->onNSWindowWillClose();
 }
+-(bool)windowShouldClose:(NSWindow *)window
+{
+    fibjs::WebView* wv = fibjs::WebView::getWebViewFromNSWindow(window);
+
+    if (wv == NULL)
+        return YES;
+
+    return wv->onNSWindowShouldClose(false);
+}
 -(void)windowDidMove:(NSNotification *)didMoveNotification
 {
     NSWindow *currentWindow = didMoveNotification.object;
@@ -55,16 +64,11 @@ void assignWinSizeInfoToResizeAboutEventInfo (CGSize ws, EventInfo* ei) {
         return;
 
     obj_ptr<EventInfo> ei = new EventInfo(wv, "move");
+    CGPoint wcoord = currentWindow.frame.origin;
+    ei->add("x", wcoord.x);
+    ei->add("y", wcoord.y);
+
     wv->_emit("move", ei);
-}
--(bool)windowShouldClose:(NSWindow *)window
-{
-    fibjs::WebView* wv = fibjs::WebView::getWebViewFromNSWindow(window);
-
-    if (wv == NULL)
-        return YES;
-
-    return wv->onNSWindowShouldClose(false);
 }
 -(void)windowWillStartLiveResize:(NSNotification *)notification
 {
