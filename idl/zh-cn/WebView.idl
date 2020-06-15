@@ -69,9 +69,6 @@ interface WebView : EventEmitter
 	*/
     postMessage(String msg) async;
 
-    /*! @brief 查询和设置窗口是否全屏 */
-    Boolean fullscreen;
-
     /*! @brief 查询和设置窗口是否显示 */
     Boolean visible;
 

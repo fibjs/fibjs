@@ -35,13 +35,27 @@ void putGuiPool(AsyncEvent* ac)
 
 void run_gui()
 {
+    [NSAutoreleasePool new];
+    [NSApplication sharedApplication];
+
     gui_thread* _thGUI = new gui_thread();
 
     _thGUI->bindCurrent();
     s_thGUI = _thGUI;
 
     _thGUI->Run();
-    _thGUI->suspend();
+}
+
+id fetchEventFromNSMainLoop(int blocking)
+{
+    id until = blocking ? [NSDate distantFuture] : [NSDate distantPast];
+
+    return [[NSApplication sharedApplication]
+        nextEventMatchingMask:ULONG_MAX
+        untilDate:until
+        inMode:@"kCFRunLoopDefaultMode"
+        dequeue:true
+    ];
 }
 
 void gui_thread::Run()
@@ -59,7 +73,7 @@ void gui_thread::Run()
             p->invoke();
         }
 
-        id event = WebView::fetchEventFromNSMainLoop(0);
+        id event = fetchEventFromNSMainLoop(0);
         if (event)
             [[NSApplication sharedApplication] sendEvent:event];
     }
@@ -111,22 +125,8 @@ WebView::~WebView()
     clear();
 }
 
-id WebView::fetchEventFromNSMainLoop(int blocking)
-{
-    id until = blocking ? [NSDate distantFuture] : [NSDate distantPast];
-
-    return [[NSApplication sharedApplication]
-        nextEventMatchingMask:ULONG_MAX
-        untilDate:until
-        inMode:@"kCFRunLoopDefaultMode"
-        dequeue:true
-    ];
-}
-
 void WebView::initNSEnvironment()
 {
-    m_nsPool = [NSAutoreleasePool new];
-    [NSApplication sharedApplication];
 }
 
 void WebView::setupAppMenubar()
@@ -258,9 +258,7 @@ void WebView::onWKWebViewExternalLogMessage(WKScriptMessage* message)
 
 id WebView::createWKPreferences()
 {
-    Class __WKPreferences
-        = objc_allocateClassPair(objc_getClass("WKPreferences"),
-            "__WKPreferences", 0);
+    Class __WKPreferences = objc_allocateClassPair(objc_getClass("WKPreferences"), "__WKPreferences", 0);
     objc_property_attribute_t type = { "T", "c" };
     objc_property_attribute_t ownership = { "N", "" };
     objc_property_attribute_t attrs[] = { type, ownership };
@@ -328,7 +326,7 @@ id WebView::createWKWebViewConfig()
     [processPool _setDownloadDelegate:[__WKDownloadDelegate new]];
     [wkWebViewConfig setProcessPool:processPool];
     [wkWebViewConfig setUserContentController:createWKUserContentController()];
-    [wkWebViewConfig setPreferences:createWKPreferences()];
+    // [wkWebViewConfig setPreferences:createWKPreferences()];
 
     return wkWebViewConfig;
 }
@@ -654,25 +652,25 @@ result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
     return postMessage(msg);
 }
 
-result_t WebView::get_fullscreen(bool& retVal)
-{
-    unsigned long windowStyleMask = (unsigned long)[m_nsWindow styleMask];
+// result_t WebView::get_fullscreen(bool& retVal)
+// {
+//     unsigned long windowStyleMask = (unsigned long)[m_nsWindow styleMask];
 
-    retVal = !!(windowStyleMask & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen;
-    return 0;
-}
+//     retVal = !!(windowStyleMask & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen;
+//     return 0;
+// }
 
-result_t WebView::set_fullscreen(bool newVal)
-{
-    bool bNowFull;
-    get_fullscreen(bNowFull);
-    if (bNowFull == newVal)
-        return 0;
+// result_t WebView::set_fullscreen(bool newVal)
+// {
+//     bool bNowFull;
+//     get_fullscreen(bNowFull);
+//     if (bNowFull == newVal)
+//         return 0;
 
-    m_fullscreen = newVal;
+//     m_fullscreen = newVal;
 
-    return 0;
-}
+//     return 0;
+// }
 
 result_t WebView::get_visible(bool& retVal)
 {
