@@ -6,13 +6,13 @@ var test_util = require("./test_util");
 var fs = require("fs");
 var path = require("path");
 
-var win = process.platform === "win32";
+var win32 = process.platform === "win32";
 var darwin = process.platform === "darwin";
 
 var htmlDir = path.resolve(__dirname, './gui_files/html');
 var html = fs.readTextFile(path.resolve(htmlDir, './basic-loop.html'));
 
-if (win || darwin) {
+if (win32 || darwin) {
   var http = require("http");
   var gui = require("gui");
   var coroutine = require("coroutine");
@@ -124,7 +124,7 @@ if (win || darwin) {
     darwin && describe("resize", () => {
       var events_resize = {};
 
-      it("resiable", () => {
+      it("resiable (default)", () => {
         var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/resizable.html", {
           title: "Resizable"
         });
@@ -191,10 +191,9 @@ if (win || darwin) {
         assert.isFalse(win.visible);
 
         win.visible = true;
-        setTimeout(() => {
-          assert.isTrue(win.visible);
-          win.close();
-        }, 2000);
+        coroutine.sleep(500);
+        assert.isTrue(win.visible);
+        win.close();
       });
 
       it("maxmize", () => {
@@ -204,9 +203,15 @@ if (win || darwin) {
         });
 
         assert.isTrue(win.visible);
-        setTimeout(() => {
-          win.close();
-        }, 2000);
+        coroutine.sleep(500);
+        win.close();
+      });
+
+      process.env.MANUAL && it("manual", () => {
+        var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/normal.html", {
+          title: "Manual Test",
+          resizable: false
+        });
       });
     });
 
