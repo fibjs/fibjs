@@ -88,16 +88,21 @@ public:
         m_bSilent = false;
         m_maximize = false;
         m_visible = true;
-        m_nsWinStyle = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable;
-        m_nsViewStyle = NSViewWidthSizable | NSViewHeightSizable;
+        m_nsWinStyle = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable
+            | NSWindowStyleMaskTexturedBackground
+            | NSWindowStyleMaskFullSizeContentView
+            | NSWindowStyleMaskUtilityWindow
+            // | NSWindowStyleMaskUnifiedTitleAndToolbar
+            | NSWindowStyleMaskResizable;
+        m_wkViewStyle = NSViewWidthSizable | NSViewHeightSizable;
 
         m_bDebug = false;
 
         if (m_opt) {
             Variant v;
 
-            if (m_opt->get("border", v) == 0 && !v.boolVal())
-                m_nsWinStyle |= NSWindowStyleMaskBorderless;
+            // if (m_opt->get("border", v) == 0 && !v.boolVal())
+            //     m_nsWinStyle |= NSWindowStyleMaskBorderless;
             
             if (m_opt->get("title", v) == 0)
                 m_title = v.string();
@@ -110,8 +115,10 @@ public:
 
             if (m_opt->get("resizable", v) == 0 && !v.isUndefined() && !v.boolVal()) {
                 m_nsWinStyle ^= NSWindowStyleMaskResizable;
-                // m_nsViewStyle |= NSViewNotSizable;
             }
+
+            if (m_opt->get("fullscreenable", v) == 0)
+                m_fullscreenable = v.boolVal();
 
             if (m_opt->get("maximize", v) == 0)
                 m_maximize = v.boolVal();
@@ -209,7 +216,7 @@ private:
 
     void initNSWindowRect()
     {
-        m_webview_window_rect = CGRectMake(0, 0, m_WinW, m_WinH);
+        m_nsWindowRect = CGRectMake(0, 0, m_WinW, m_WinH);
     }
 
 public:
@@ -235,8 +242,8 @@ public:
 public:
     NSWindow* m_nsWindow;
     WKWebView* m_wkWebView;
-    unsigned int m_nsWinStyle;
-    unsigned int m_nsViewStyle;
+    NSUInteger m_nsWinStyle;
+    NSUInteger m_wkViewStyle;
 
 protected:
     exlib::string m_title;
@@ -249,12 +256,12 @@ protected:
     obj_ptr<NObject> m_opt;
 
     bool m_visible;
-    bool m_fullscreen;
+    bool m_fullscreenable;
 
     bool m_maximize;
     bool m_bSilent;
     
-    CGRect m_webview_window_rect;
+    CGRect m_nsWindowRect;
 
     AsyncEvent* m_ac;
 };

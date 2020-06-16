@@ -29,11 +29,11 @@ void assignWinSizeInfoToResizeAboutEventInfo (CGSize ws, EventInfo* ei) {
 }
 -(int)applicationShouldTerminate:(id)app
 {
-    return 1;
+    return NO;
 }
 -(bool)applicationShouldTerminateAfterLastWindowClosed:(id)app
 {
-    return false;
+    return NO;
 }
 @end
 

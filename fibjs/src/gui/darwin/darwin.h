@@ -92,9 +92,9 @@ static const char* webview_check_url(const char* url)
 // #ifndef NSWindowStyleMaskClosable
 // #define NSWindowStyleMaskClosable 2
 // #endif
-#ifndef NSWindowStyleMaskFullScreen
-#define NSWindowStyleMaskFullScreen (1 << 14)
-#endif
+// #ifndef NSWindowStyleMaskFullScreen
+// #define NSWindowStyleMaskFullScreen (1 << 14)
+// #endif
 // #ifndef NSViewWidthSizable
 // #define NSViewWidthSizable 2
 // #endif
