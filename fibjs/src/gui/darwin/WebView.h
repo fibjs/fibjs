@@ -216,7 +216,7 @@ private:
 
     void initNSWindowRect()
     {
-        m_nsWindowRect = CGRectMake(0, 0, m_WinW, m_WinH);
+        m_nsWindowFrame = CGRectMake(0, 0, m_WinW, m_WinH);
     }
 
 public:
@@ -261,7 +261,8 @@ protected:
     bool m_maximize;
     bool m_bSilent;
     
-    CGRect m_nsWindowRect;
+    CGRect m_nsWindowFrame;
+    bool m_iUseContentViewController;
 
     AsyncEvent* m_ac;
 };
