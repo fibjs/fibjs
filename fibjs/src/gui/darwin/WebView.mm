@@ -392,7 +392,6 @@ int WebView::initialize()
     initNSWindowRect();
 
     initNSWindow();
-
     centralizeWindow();
 
     initWKWebView();
