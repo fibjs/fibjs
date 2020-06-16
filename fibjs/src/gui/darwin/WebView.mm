@@ -24,6 +24,17 @@
 
 #include "ns-api.h"
 
+@interface WVViewController: NSViewController
+-(void)loadView;
+@end
+
+@implementation WVViewController
+-(void)loadView
+{
+    self.view = [NSView new];
+}
+@end
+
 namespace fibjs {
 
 DECLARE_MODULE(gui);
@@ -116,6 +127,7 @@ result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<We
 WebView::WebView(exlib::string url, NObject* opt)
     : m_WinW(640)
     , m_WinH(400)
+    , m_iUseContentViewController(true)
 {
     holder()->Ref();
 
@@ -328,7 +340,7 @@ id WebView::createWKWebViewConfig()
 void WebView::initNSWindow()
 {
     m_nsWindow = [[NSWindow alloc]
-        initWithContentRect:m_nsWindowRect
+        initWithContentRect:m_nsWindowFrame
         styleMask:m_nsWinStyle
         backing:NSBackingStoreBuffered
         defer:YES
@@ -338,7 +350,6 @@ void WebView::initNSWindow()
         [m_nsWindow setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
 
     [m_nsWindow autorelease];
-    [m_nsWindow makeKeyWindow];
 
     [m_nsWindow setDelegate:[__NSWindowDelegate new]];
     [m_nsWindow setTitle:[NSString stringWithUTF8String:m_title.c_str()]];
@@ -355,7 +366,7 @@ void WebView::initWKWebView()
 {
     m_wkWebView = [
         [WKWebView alloc]
-        initWithFrame:m_nsWindowRect
+        initWithFrame:m_nsWindowFrame
         configuration:createWKWebViewConfig()
     ];
 
@@ -390,7 +401,13 @@ void WebView::startWKUI()
     [m_wkWebView setAutoresizesSubviews:TRUE];
     [m_wkWebView setAutoresizingMask:m_wkViewStyle];
 
-    [[m_nsWindow contentView] addSubview:m_wkWebView];
+    if (m_iUseContentViewController) {
+        WVViewController* contentViewController = [WVViewController new];
+        contentViewController.view = m_wkWebView;
+        m_nsWindow.contentViewController = contentViewController;
+    } else {
+        [[m_nsWindow contentView] addSubview:m_wkWebView];
+    }
 
     [m_nsWindow makeKeyWindow];
     [m_nsWindow orderFrontRegardless];

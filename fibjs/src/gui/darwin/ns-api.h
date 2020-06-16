@@ -21,8 +21,8 @@
 @interface __NSApplicationDelegate : NSObject<NSApplicationDelegate>
 - (void)applicationWillTerminate:(id)app;
 - (void)applicationDidFinishLaunching:(id)app;
-- (void)applicationShouldTerminate:(id)app;
-- (void)applicationShouldTerminateAfterLastWindowClosed:(id)app;
+- (bool)applicationShouldTerminate:(id)app;
+- (bool)applicationShouldTerminateAfterLastWindowClosed:(id)app;
 @end
 
 /**
