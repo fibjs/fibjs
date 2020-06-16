@@ -36,7 +36,7 @@ if (win || darwin) {
       test_util.push(svr.socket);
     });
 
-    describe.only("webview", () => {
+    describe("webview", () => {
       after(test_util.cleanup);
 
       it("basic", () => {
@@ -85,7 +85,7 @@ if (win || darwin) {
       });
     });
 
-    describe.only("close", () => {
+    describe("close", () => {
       it("close directly by default", () => {
         var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/close-directly.html");
 
@@ -93,7 +93,7 @@ if (win || darwin) {
       });
     });
 
-    darwin && describe.only("move", () => {
+    darwin && describe("move", () => {
       var events_resize = {};
 
       it("onmove by default on darwin", () => {
@@ -121,7 +121,7 @@ if (win || darwin) {
       });
     });
 
-    darwin && describe.only("resize", () => {
+    darwin && describe("resize", () => {
       var events_resize = {};
 
       it("resiable", () => {
@@ -171,18 +171,46 @@ if (win || darwin) {
       });
     });
 
-    darwin && describe.only("options", () => {
-      it("maxmize", () => {
-        var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/maxmize.html", {
-          title: "Normal",
-          maxmize: true,
+    darwin && describe("options", () => {
+      it("visible", () => {
+        var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/normal.html", {
+          title: "Normal - visible",
+          visible: true,
         });
 
-        // win.close()
+        assert.isTrue(win.visible);
+        win.close();
+      });
+
+      it("invisible", () => {
+        var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/normal.html", {
+          title: "Normal - invisible",
+          visible: false,
+        });
+
+        assert.isFalse(win.visible);
+
+        win.visible = true;
+        setTimeout(() => {
+          assert.isTrue(win.visible);
+          win.close();
+        }, 2000);
+      });
+
+      it("maxmize", () => {
+        var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/normal.html", {
+          title: "Maxmize",
+          maximize: true,
+        });
+
+        assert.isTrue(win.visible);
+        setTimeout(() => {
+          win.close();
+        }, 2000);
       });
     });
 
-    it("log", () => {
+    it.skip("log", () => {
       var p = process.open(process.execPath, [
         path.join(__dirname, "gui_files", "gui1.js")
       ]);
@@ -192,7 +220,7 @@ if (win || darwin) {
       assert.ok(r[2].startsWith("WebView Error:"));
     });
 
-    it("debug", () => {
+    it.skip("debug", () => {
       var p = process.open(process.execPath, [
         path.join(__dirname, "gui_files", "gui2.js")
       ]);
