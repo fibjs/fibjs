@@ -171,6 +171,17 @@ if (win || darwin) {
       });
     });
 
+    darwin && describe.only("options", () => {
+      it("maxmize", () => {
+        var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/maxmize.html", {
+          title: "Normal",
+          maxmize: true,
+        });
+
+        // win.close()
+      });
+    });
+
     it("log", () => {
       var p = process.open(process.execPath, [
         path.join(__dirname, "gui_files", "gui1.js")

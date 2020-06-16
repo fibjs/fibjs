@@ -80,9 +80,9 @@ static const char* webview_check_url(const char* url)
 // #ifndef NSAlertStyleCritical
 // #define NSAlertStyleCritical 2
 // #endif
-#ifndef NSWindowStyleMaskResizable
-#define NSWindowStyleMaskResizable 8
-#endif
+// #ifndef NSWindowStyleMaskResizable
+// #define NSWindowStyleMaskResizable 8
+// #endif
 #ifndef NSWindowStyleMaskMiniaturizable
 #define NSWindowStyleMaskMiniaturizable 4
 #endif
@@ -95,12 +95,12 @@ static const char* webview_check_url(const char* url)
 #ifndef NSWindowStyleMaskFullScreen
 #define NSWindowStyleMaskFullScreen (1 << 14)
 #endif
-#ifndef NSViewWidthSizable
-#define NSViewWidthSizable 2
-#endif
-#ifndef NSViewHeightSizable
-#define NSViewHeightSizable 16
-#endif
+// #ifndef NSViewWidthSizable
+// #define NSViewWidthSizable 2
+// #endif
+// #ifndef NSViewHeightSizable
+// #define NSViewHeightSizable 16
+// #endif
 // #ifndef NSBackingStoreBuffered
 // #define NSBackingStoreBuffered 2
 // #endif

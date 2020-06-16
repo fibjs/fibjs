@@ -44,6 +44,11 @@ void run_gui()
     s_thGUI = _thGUI;
 
     _thGUI->Run();
+
+    id app = [NSApplication sharedApplication];
+    [app setActivationPolicy:NSApplicationActivationPolicyRegular];
+    [app finishLaunching];
+    [app activateIgnoringOtherApps:YES];
 }
 
 id fetchEventFromNSMainLoop(int blocking)
@@ -85,6 +90,10 @@ result_t gui_base::setVersion(int32_t ver)
     return 0;
 }
 
+void maxmizeNSWindow (NSWindow* win) {
+    [win setFrame:[[NSScreen mainScreen] visibleFrame] display:YES];
+}
+
 // In Javascript Thread
 result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
@@ -102,38 +111,22 @@ result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<We
 
 // Would Call In Javascript Thread
 WebView::WebView(exlib::string url, NObject* opt)
+    : m_WinW(640)
+    , m_WinH(400)
 {
     holder()->Ref();
 
     m_url = url;
     m_opt = opt;
 
-    if (m_opt) {
-        Variant v;
-
-        if (m_opt->get("title", v) == 0)
-            m_title = v.string();
-        else
-            m_title = "[WIP] Darwin WebView";
-    }
-    m_WinW = 640;
-    m_WinH = 400;
-    m_bResizable = true;
-
-    m_bDebug = false;
+    m_visible = true;
 
     m_ac = NULL;
-
-    m_visible = true;
 }
 
 WebView::~WebView()
 {
     clear();
-}
-
-void WebView::initNSEnvironment()
-{
 }
 
 void WebView::setupAppMenubar()
@@ -334,12 +327,9 @@ id WebView::createWKWebViewConfig()
 
 void WebView::initNSWindow()
 {
-    unsigned int style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
-    if (m_bResizable) style = style | NSWindowStyleMaskResizable;
-
     m_nsWindow = [[NSWindow alloc]
         initWithContentRect:m_webview_window_rect
-        styleMask:style
+        styleMask:m_nsStyle
         backing:NSBackingStoreBuffered
         defer:FALSE
     ];
@@ -357,18 +347,16 @@ void WebView::centralizeWindow()
     [m_nsWindow center];
 }
 
-id WebView::getWKWebView()
+void WebView::initWKWebView()
 {
-    id webview = [
+    m_wkWebView = [
         [WKWebView alloc]
         initWithFrame:m_webview_window_rect
         configuration:createWKWebViewConfig()
     ];
 
-    [webview setUIDelegate:[__WKUIDelegate new]];
-    [webview setNavigationDelegate:[__WKNavigationDelegate new]];
-
-    return webview;
+    [m_wkWebView setUIDelegate:[__WKUIDelegate new]];
+    [m_wkWebView setNavigationDelegate:[__WKNavigationDelegate new]];
 }
 
 void WebView::navigateWKWebView()
@@ -381,18 +369,13 @@ void WebView::navigateWKWebView()
     [m_wkWebView loadRequest:[NSURLRequest requestWithURL:nsURL]];
 }
 
-void WebView::setWKWebViewStyle()
+void WebView::startWKUI()
 {
     [m_wkWebView setAutoresizesSubviews:TRUE];
     [m_wkWebView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
-}
 
-void WebView::activeApp()
-{
-    id app = [NSApplication sharedApplication];
-    [app setActivationPolicy:NSApplicationActivationPolicyRegular];
-    [app finishLaunching];
-    [app activateIgnoringOtherApps:YES];
+    [[m_nsWindow contentView] addSubview:m_wkWebView];
+    [m_nsWindow orderFrontRegardless];
 }
 
 int WebView::setupGUIApp()
@@ -403,17 +386,12 @@ int WebView::setupGUIApp()
 
     centralizeWindow();
 
-    m_wkWebView = getWKWebView();
+    initWKWebView();
     navigateWKWebView();
 
-    setWKWebViewStyle();
-
-    [[m_nsWindow contentView] addSubview:m_wkWebView];
-    [m_nsWindow orderFrontRegardless];
-
-    activeApp();
-
     setupAppMenubar();
+
+    startWKUI();
 
     return 0;
 }
