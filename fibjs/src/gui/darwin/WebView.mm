@@ -327,7 +327,7 @@ void WebView::initNSWindow()
 {
     m_nsWindow = [[NSWindow alloc]
         initWithContentRect:m_webview_window_rect
-        styleMask:m_nsStyle
+        styleMask:m_nsWinStyle
         backing:NSBackingStoreBuffered
         defer:FALSE
     ];
