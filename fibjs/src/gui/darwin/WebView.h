@@ -87,7 +87,7 @@ public:
     {
         m_bSilent = false;
         m_maximize = false;
-
+        m_visible = true;
         m_nsStyle |= NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
 
         m_bDebug = false;
@@ -196,6 +196,8 @@ private:
     }
 
     void startWKUI();
+
+    void toggleNSWindowVisible(BOOL nextVisible);
 
     void centralizeWindow();
 

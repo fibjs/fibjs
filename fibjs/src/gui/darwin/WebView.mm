@@ -91,7 +91,10 @@ result_t gui_base::setVersion(int32_t ver)
 }
 
 void maxmizeNSWindow (NSWindow* win) {
-    [win setFrame:[[NSScreen mainScreen] visibleFrame] display:YES];
+    [win setFrame:
+        [[NSScreen mainScreen] visibleFrame]
+        display:YES
+    ];
 }
 
 // In Javascript Thread
@@ -183,7 +186,6 @@ bool WebView::onNSWindowShouldClose(bool initshouldClose)
     __block bool shouldClose = initshouldClose;
 
     WebView* wv = this;
-    __block bool finished = false;
     // TODO: use fibjs native API to resolve it.
     evaluateWebviewJS("external.onclose()", ^(id result, NSError * _Nullable error) {
         if (error != nil) {
@@ -199,12 +201,10 @@ bool WebView::onNSWindowShouldClose(bool initshouldClose)
         }
 
         s_thGUI->m_sem.Post();
-        finished = true;
     });
 
     do {
         _waitAsyncOperationInCurrentLoop(true);
-    // } while (!finished);
     } while (s_thGUI->m_sem.TryWait());
 
     return shouldClose;
@@ -231,13 +231,11 @@ void asyncLog(int32_t priority, exlib::string msg);
 
 static int32_t asyncOutputMessageFromWKWebview(exlib::string& jsonFmt)
 {
-    // printf("asyncOutputMessageFromWKWebview [1] %s \n", jsonFmt.c_str());
     JSValue _logInfo;
     json_base::decode(jsonFmt, _logInfo);
     v8::Local<v8::Object> logInfo = v8::Local<v8::Object>::Cast(_logInfo);
 
     Isolate* isolate = Isolate::current(); 
-    JSArray ks = logInfo->GetPropertyNames();
     
     int32_t logLevel = JSValue(logInfo->Get(isolate->NewString("level")))->IntegerValue();
 
@@ -369,6 +367,16 @@ void WebView::navigateWKWebView()
     [m_wkWebView loadRequest:[NSURLRequest requestWithURL:nsURL]];
 }
 
+void WebView::toggleNSWindowVisible(BOOL nextVisible = NULL)
+{
+    if (nextVisible == NULL)
+        nextVisible = !m_visible;
+
+    [m_nsWindow setIsVisible:(nextVisible ? YES : NO)];
+    if (m_maximize)
+        maxmizeNSWindow(m_nsWindow);
+}
+
 void WebView::startWKUI()
 {
     [m_wkWebView setAutoresizesSubviews:TRUE];
@@ -376,6 +384,8 @@ void WebView::startWKUI()
 
     [[m_nsWindow contentView] addSubview:m_wkWebView];
     [m_nsWindow orderFrontRegardless];
+
+    toggleNSWindowVisible(m_visible);
 }
 
 int WebView::initialize()
