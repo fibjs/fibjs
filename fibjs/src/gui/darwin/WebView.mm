@@ -123,6 +123,7 @@ WebView::WebView(exlib::string url, NObject* opt)
     m_opt = opt;
 
     m_visible = true;
+    m_fullscreenable = true;
 
     m_ac = NULL;
 }
@@ -317,6 +318,7 @@ id WebView::createWKWebViewConfig()
     WKPreferences *preferences = [WKPreferences new];
     preferences.javaScriptCanOpenWindowsAutomatically = YES;
     preferences.tabFocusesLinks = FALSE;
+    // preferences._setFullScreenEnabled(true);
     // preferences.minimumFontSize = 40.0;
     configuration.preferences = preferences;
 
@@ -326,13 +328,17 @@ id WebView::createWKWebViewConfig()
 void WebView::initNSWindow()
 {
     m_nsWindow = [[NSWindow alloc]
-        initWithContentRect:m_webview_window_rect
+        initWithContentRect:m_nsWindowRect
         styleMask:m_nsWinStyle
         backing:NSBackingStoreBuffered
-        defer:FALSE
+        defer:YES
     ];
 
+    if (m_fullscreenable)
+        [m_nsWindow setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+
     [m_nsWindow autorelease];
+    [m_nsWindow makeKeyWindow];
 
     [m_nsWindow setDelegate:[__NSWindowDelegate new]];
     [m_nsWindow setTitle:[NSString stringWithUTF8String:m_title.c_str()]];
@@ -349,7 +355,7 @@ void WebView::initWKWebView()
 {
     m_wkWebView = [
         [WKWebView alloc]
-        initWithFrame:m_webview_window_rect
+        initWithFrame:m_nsWindowRect
         configuration:createWKWebViewConfig()
     ];
 
@@ -373,17 +379,20 @@ void WebView::toggleNSWindowVisible(BOOL nextVisible = NULL)
         nextVisible = !m_visible;
 
     [m_nsWindow setIsVisible:(nextVisible ? YES : NO)];
-    if (nextVisible && m_maximize)
-        maxmizeNSWindow(m_nsWindow);
+    if (nextVisible) {
+        if (m_maximize)
+            maxmizeNSWindow(m_nsWindow);
+    }
 }
 
 void WebView::startWKUI()
 {
     [m_wkWebView setAutoresizesSubviews:TRUE];
-    [m_wkWebView setAutoresizingMask:m_nsViewStyle];
+    [m_wkWebView setAutoresizingMask:m_wkViewStyle];
 
     [[m_nsWindow contentView] addSubview:m_wkWebView];
 
+    [m_nsWindow makeKeyWindow];
     [m_nsWindow orderFrontRegardless];
 }
 

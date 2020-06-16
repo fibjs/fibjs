@@ -237,7 +237,7 @@ if (win32 || darwin) {
         }
 
         coroutine.sleep(500);
-        win.close();
+        // win.close();
       });
     });
 
