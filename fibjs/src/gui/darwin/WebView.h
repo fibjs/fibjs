@@ -88,16 +88,16 @@ public:
         m_bSilent = false;
         m_maximize = false;
         m_visible = true;
-        m_nsWinStyle |= NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
-        m_nsWinStyle ^= NSWindowStyleMaskBorderless;
+        m_nsWinStyle = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable;
+        m_nsViewStyle = NSViewWidthSizable | NSViewHeightSizable;
 
         m_bDebug = false;
 
         if (m_opt) {
             Variant v;
 
-            // if (m_opt->get("border", v) == 0 && !v.boolVal())
-            //     m_nsWinStyle |= NSWindowStyleMaskBorderless;
+            if (m_opt->get("border", v) == 0 && !v.boolVal())
+                m_nsWinStyle |= NSWindowStyleMaskBorderless;
             
             if (m_opt->get("title", v) == 0)
                 m_title = v.string();
@@ -108,8 +108,9 @@ public:
             if (m_opt->get("height", v) == 0)
                 m_WinH = v.intVal();
 
-            if (!(m_opt->get("resizable", v) == 0 && !v.boolVal()))
-                m_nsWinStyle |= NSWindowStyleMaskResizable;
+            if (m_opt->get("resizable", v) == 0 && !v.isUndefined() && !v.boolVal()) {
+                m_nsViewStyle |= NSViewNotSizable;
+            }
 
             if (m_opt->get("maximize", v) == 0)
                 m_maximize = v.boolVal();
@@ -233,8 +234,8 @@ public:
 public:
     NSWindow* m_nsWindow;
     WKWebView* m_wkWebView;
-    NSUInteger m_nsWinStyle;
-    // NSAutoreleasePool* m_nsPool;
+    /* NSUInteger */unsigned int m_nsWinStyle;
+    /* NSUInteger */unsigned int m_nsViewStyle;
 
 protected:
     exlib::string m_title;

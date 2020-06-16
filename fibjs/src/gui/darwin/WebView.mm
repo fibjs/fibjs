@@ -373,19 +373,18 @@ void WebView::toggleNSWindowVisible(BOOL nextVisible = NULL)
         nextVisible = !m_visible;
 
     [m_nsWindow setIsVisible:(nextVisible ? YES : NO)];
-    if (m_maximize)
+    if (nextVisible && m_maximize)
         maxmizeNSWindow(m_nsWindow);
 }
 
 void WebView::startWKUI()
 {
     [m_wkWebView setAutoresizesSubviews:TRUE];
-    [m_wkWebView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
+    [m_wkWebView setAutoresizingMask:m_nsViewStyle];
 
     [[m_nsWindow contentView] addSubview:m_wkWebView];
-    [m_nsWindow orderFrontRegardless];
 
-    toggleNSWindowVisible(m_visible);
+    [m_nsWindow orderFrontRegardless];
 }
 
 int WebView::initialize()
@@ -667,6 +666,7 @@ result_t WebView::get_visible(bool& retVal)
 result_t WebView::set_visible(bool newVal)
 {
     m_visible = newVal;
+    toggleNSWindowVisible(m_visible);
 
     return 0;
 }
