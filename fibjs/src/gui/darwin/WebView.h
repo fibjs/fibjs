@@ -88,10 +88,35 @@ public:
         m_bSilent = false;
         m_maximize = false;
 
+        m_nsStyle |= NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
+
+        m_bDebug = false;
+
         if (m_opt) {
+            Variant v;
+
+            if (m_opt->get("title", v) == 0)
+                m_title = v.string();
+
+            if (m_opt->get("width", v) == 0)
+                m_WinW = v.intVal();
+
+            if (m_opt->get("height", v) == 0)
+                m_WinH = v.intVal();
+
+            if (!(m_opt->get("resizable", v) == 0 && !v.boolVal()))
+                m_nsStyle |= NSWindowStyleMaskResizable;
+
+            if (m_opt->get("maximize", v) == 0)
+                m_maximize = v.boolVal();
+
+            if (m_opt->get("visible", v) == 0)
+                m_visible = v.boolVal();
+
+            if (m_opt->get("debug", v) == 0)
+                m_bSilent = v.boolVal();
         }
 
-        initNSEnvironment();
         setupGUIApp();
 
         AddRef();
@@ -139,15 +164,11 @@ public:
 
     static id create_menu_item(id title, const char* action, const char* key);
 
-    void initNSEnvironment();
-
     void initNSWindow();
 
     void navigateWKWebView();
 
     void putWindowToTopOrder();
-
-    void activeApp();
 
     static WebView* getWebViewFromNSWindow(NSWindow* win) {
         return (WebView* )objc_getAssociatedObject(win, "webview");
@@ -160,7 +181,7 @@ public:
 private:
     int setupGUIApp();
 
-    id getWKWebView();
+    void initWKWebView();
 
     id createWKUserContentController();
 
@@ -174,7 +195,7 @@ private:
         objc_setAssociatedObject(userCtrl, "webview", (id)this, OBJC_ASSOCIATION_ASSIGN);
     }
 
-    void setWKWebViewStyle();
+    void startWKUI();
 
     void centralizeWindow();
 
@@ -206,6 +227,7 @@ public:
 public:
     NSWindow* m_nsWindow;
     WKWebView* m_wkWebView;
+    NSUInteger m_nsStyle;
     // NSAutoreleasePool* m_nsPool;
 
 protected:
@@ -214,7 +236,6 @@ protected:
 
     int32_t m_WinW;
     int32_t m_WinH;
-    int32_t m_bResizable;
     bool m_bDebug;
 
     obj_ptr<NObject> m_opt;
