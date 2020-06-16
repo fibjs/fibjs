@@ -17,28 +17,30 @@ if (win32 || darwin) {
   var gui = require("gui");
   var coroutine = require("coroutine");
 
+  var htmlHandler = new http.fileHandler(htmlDir);
   var base_port = coroutine.vmid * 10000;
 
   describe("gui", () => {
     after(test_util.cleanup);
 
     var check = false;
+    var svr;
 
     before(() => {
-      var svr = new http.Server(8999 + base_port, {
+      svr = new http.Server(8999 + base_port, {
+        '/(.+\.html$)': r => {
+          htmlHandler.invoke(r)
+        },
         '/': r => {
           check = true;
           r.response.write(html);
         },
-        '/(.+)\.html': http.fileHandler(htmlDir)
       });
       svr.start();
       test_util.push(svr.socket);
     });
 
     describe("webview", () => {
-      after(test_util.cleanup);
-
       it("basic", () => {
         var closed = false;
         var events = {};
@@ -206,12 +208,36 @@ if (win32 || darwin) {
         coroutine.sleep(500);
         win.close();
       });
+    });
 
-      process.env.MANUAL && it("manual", () => {
+    process.env.MANUAL && describe.only("manual", () => {
+      var prevWin
+      var closePreWin = () => {
+        if (prevWin) prevWin.close()
+        prevWin = undefined
+      }
+      it("not resizable", () => {
         var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/normal.html", {
-          title: "Manual Test",
+          title: "Manual Test - not resizable",
           resizable: false
         });
+
+        coroutine.sleep(500);
+        win.close();
+      });
+
+      it("resizable", () => {
+        var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/normal.html", {
+          title: "Manual Test - resizable",
+        });
+
+        win.onload = () => {
+          console.log('[resizable] win.onload');
+          closePreWin()
+        }
+
+        coroutine.sleep(500);
+        win.close();
       });
     });
 

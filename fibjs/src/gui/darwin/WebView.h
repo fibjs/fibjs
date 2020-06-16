@@ -109,7 +109,8 @@ public:
                 m_WinH = v.intVal();
 
             if (m_opt->get("resizable", v) == 0 && !v.isUndefined() && !v.boolVal()) {
-                m_nsViewStyle |= NSViewNotSizable;
+                m_nsWinStyle ^= NSWindowStyleMaskResizable;
+                // m_nsViewStyle |= NSViewNotSizable;
             }
 
             if (m_opt->get("maximize", v) == 0)
@@ -234,8 +235,8 @@ public:
 public:
     NSWindow* m_nsWindow;
     WKWebView* m_wkWebView;
-    /* NSUInteger */unsigned int m_nsWinStyle;
-    /* NSUInteger */unsigned int m_nsViewStyle;
+    unsigned int m_nsWinStyle;
+    unsigned int m_nsViewStyle;
 
 protected:
     exlib::string m_title;
