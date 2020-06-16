@@ -378,7 +378,7 @@ void WebView::startWKUI()
     [m_nsWindow orderFrontRegardless];
 }
 
-int WebView::setupGUIApp()
+int WebView::initialize()
 {
     initNSWindowRect();
 

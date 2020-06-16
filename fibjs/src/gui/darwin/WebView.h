@@ -117,7 +117,7 @@ public:
                 m_bSilent = v.boolVal();
         }
 
-        setupGUIApp();
+        initialize();
 
         AddRef();
 
@@ -179,7 +179,7 @@ public:
     }
 
 private:
-    int setupGUIApp();
+    int initialize();
 
     void initWKWebView();
 
