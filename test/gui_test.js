@@ -210,14 +210,33 @@ if (win32 || darwin) {
       });
     });
 
-    process.env.MANUAL && describe.only("manual", () => {
+    darwin && describe.only("html5", () => {
+      it("input.value", () => {
+        var postedMsg
+        var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/normal-html5.html", {
+          title: "Manual Test - html5",
+        });
+
+        win.onmessage = (msg) => {
+          postedMsg = msg
+        }
+
+        coroutine.sleep(500);
+
+        assert.equal(postedMsg, 'input.value: initText')
+
+        win.close();
+      })
+    });
+
+    false && process.env.MANUAL && describe.only("manual", () => {
       var prevWin
       var closePreWin = () => {
         if (prevWin) prevWin.close()
         prevWin = undefined
       }
       it("not resizable", () => {
-        var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/normal.html", {
+        var win = prevWin = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/normal.html", {
           title: "Manual Test - not resizable",
           resizable: false
         });
@@ -227,17 +246,20 @@ if (win32 || darwin) {
       });
 
       it("resizable", () => {
-        var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/normal-copy.html", {
+        var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/normal.html", {
           title: "Manual Test - resizable",
         });
 
         win.onload = () => {
-          console.log('[resizable] win.onload');
           closePreWin()
         }
 
         coroutine.sleep(500);
-        // win.close();
+        win.close();
+        win = undefined;
+
+        // for (var i = 0; i < 1000 && test_util.countObject("WebView"); i++)
+        //   test_util.gc();
       });
     });
 
