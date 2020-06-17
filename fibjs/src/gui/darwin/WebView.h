@@ -24,7 +24,7 @@ enum webview_dialog_type {
 namespace fibjs {
 
 static exlib::LockedList<AsyncEvent> s_uiPool;
-class gui_thread : public exlib::OSThread {
+class NSAppMainLoopThread : public exlib::OSThread {
 public:
     virtual void Run();
 
@@ -42,7 +42,7 @@ public:
     exlib::OSSemaphore m_sem;
 };
 
-static gui_thread* s_thNSMainLoop;
+static NSAppMainLoopThread* s_thNSMainLoop;
 
 class WebView : public WebView_base {
     FIBER_FREE();
