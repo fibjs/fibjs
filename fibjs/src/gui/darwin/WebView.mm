@@ -28,8 +28,7 @@
 -(void)loadView
 {
     self.view = [NSView new];
-
-    // [self.view setWantsLayer:YES];
+    [self.view setWantsLayer:YES];
 }
 -(void)viewDidAppear
 {
@@ -55,7 +54,11 @@
 }
 #pragma mark - keyboard event
 -(void)keyDown:(NSEvent *)event{
-    NSLog(@"WVViewController::keyDown %s", __FUNCTION__);
+    NSLog(@"WVViewController::keyDown %@", event);
+    [super keyDown:event];
+}
+-(BOOL)acceptsFirstResponder {
+    return YES;
 }
 @end
 
@@ -78,13 +81,11 @@ void run_gui()
     _thMainLoop->bindCurrent();
     s_thNSMainLoop = _thMainLoop;
 
-    _thMainLoop->Run();
-
     id app = [NSApplication sharedApplication];
     [app setActivationPolicy:NSApplicationActivationPolicyRegular];
-    // [app activateIgnoringOtherApps:YES];
-    
-    [app run];
+    [app activateIgnoringOtherApps:YES];
+
+    _thMainLoop->Run();
     // [app finishLaunching];
 }
 
@@ -100,6 +101,9 @@ id fetchEventFromNSMainLoop(int blocking)
     ];
 }
 
+/**
+ * replace [[NSApplication shareApplication] run] in GUI Thread;
+ */
 void NSAppMainLoopThread::Run()
 {
     // initialize one fibjs runtime
@@ -438,11 +442,10 @@ void WebView::startWKUI()
         contentViewController.view = m_wkWebView;
         m_nsWindow.contentViewController = contentViewController;
     } else {
-        // [m_nsWindow.contentView addSubview:m_wkWebView];
-        m_nsWindow.contentView = m_wkWebView;
+        [m_nsWindow.contentView addSubview:m_wkWebView];
+        // m_nsWindow.contentView = m_wkWebView;
         [m_nsWindow.contentView setWantsLayer:YES];
     }
-    // NSWindowController* windowController = [NSWindowController initWithWindow:m_nsWindow];
 
     // [m_nsWindow makeKeyWindow];
     [m_nsWindow makeKeyAndOrderFront:nil];
@@ -451,7 +454,6 @@ void WebView::startWKUI()
 
     // [[NSApplication sharedApplication].mainWindow addChildWindow:m_nsWindow ordered:NSWindowAbove];
 
-    [[NSApplication sharedApplication].mainWindow makeKeyAndOrderFront:nil];
     [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
 
 }
