@@ -138,12 +138,6 @@ public:
     }
 
     void forceCloseWindow();
-    
-    static result_t openWebViewInGUIThread(obj_ptr<fibjs::WebView> wv)
-    {
-        wv->open();
-        return 0;
-    }
 
 private:
     void clear();

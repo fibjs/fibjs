@@ -252,14 +252,22 @@ if (win32 || darwin) {
 
         win.onload = () => {
           closePreWin()
+          assert.isTrue(win.visible)
         }
 
         coroutine.sleep(500);
         win.close();
         win = undefined;
+      });
 
-        // for (var i = 0; i < 1000 && test_util.countObject("WebView"); i++)
-        //   test_util.gc();
+      it("log", () => {
+        var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/normal-log.html", {
+          title: "Manual Test - log",
+        });
+
+        coroutine.sleep(500/*  * 1e4 */);
+        win.close();
+        win = undefined;
       });
     });
 
