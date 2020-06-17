@@ -11,7 +11,7 @@ var platforms = {
         scripts: {
             'script_regExternal': 'script_regExternal.js',
             'script_inwardPostMessage': 'script_inwardPostMessage.js',
-            'script_default': 'script_default.js'
+            'script_afterInternal': 'script_afterInternal.js'
         }
     },
     'linux': {

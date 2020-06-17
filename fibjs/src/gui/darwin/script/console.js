@@ -78,7 +78,7 @@
                 fmt += ' ' + arg;
         }
         fmt = fmt.replace(/%{2,2}/g, '%');
-        external.log(level, '' + fmt);
+        window.external.log(level, '' + fmt);
     }
 
     function bind_log(level) {

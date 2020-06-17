@@ -85,52 +85,7 @@ public:
     // async call handler & real executation.
     result_t open()
     {
-        m_bDebug = false;
-        m_maximize = false;
-        m_visible = true;
-        m_nsWinStyle = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSResizableWindowMask
-            // | NSWindowStyleMaskTexturedBackground
-            // | NSWindowStyleMaskFullSizeContentView
-            // | NSWindowStyleMaskUtilityWindow
-            // | NSWindowStyleMaskUnifiedTitleAndToolbar
-            | NSWindowStyleMaskResizable;
-        m_wkViewStyle = NSViewWidthSizable | NSViewHeightSizable;
-
-        m_bDebug = false;
-
-        if (m_opt) {
-            Variant v;
-
-            // if (m_opt->get("border", v) == 0 && !v.boolVal())
-            //     m_nsWinStyle |= NSWindowStyleMaskBorderless;
-            
-            if (m_opt->get("title", v) == 0)
-                m_title = v.string();
-
-            if (m_opt->get("width", v) == 0)
-                m_WinW = v.intVal();
-
-            if (m_opt->get("height", v) == 0)
-                m_WinH = v.intVal();
-
-            if (m_opt->get("resizable", v) == 0 && !v.isUndefined() && !v.boolVal()) {
-                m_nsWinStyle ^= NSWindowStyleMaskResizable;
-            }
-
-            if (m_opt->get("fullscreenable", v) == 0)
-                m_fullscreenable = v.boolVal();
-
-            if (m_opt->get("maximize", v) == 0)
-                m_maximize = v.boolVal();
-
-            if (m_opt->get("visible", v) == 0)
-                m_visible = v.boolVal();
-
-            if (m_opt->get("debug", v) == 0)
-                m_bDebug = v.boolVal();
-        }
-
-        initialize();
+        initializeWebView();
 
         AddRef();
 
@@ -186,7 +141,7 @@ public:
     }
 
 private:
-    int initialize();
+    int initializeWebView();
 
     void initWKWebView();
 
@@ -203,8 +158,6 @@ private:
     }
 
     void startWKUI();
-
-    void toggleNSWindowVisible(BOOL nextVisible);
 
     void centralizeWindow();
 
@@ -227,7 +180,7 @@ public:
     }
 
 public:
-    bool onNSWindowShouldClose(bool initshouldClose);
+    bool onNSWindowShouldClose();
 
     void onWKWebViewPostMessage(WKScriptMessage* message);
     void onWKWebViewInwardMessage(WKScriptMessage* message);
@@ -240,17 +193,22 @@ public:
     NSUInteger m_nsWinStyle;
     NSUInteger m_wkViewStyle;
 
+public:
+    bool isInternalScriptLoaded () { return m_bIScriptLoaded; }
+private:
+    bool m_bIScriptLoaded;
+
 protected:
     exlib::string m_title;
     exlib::string m_url;
 
     int32_t m_WinW;
     int32_t m_WinH;
+    bool m_visible;
     bool m_bDebug;
 
     obj_ptr<NObject> m_opt;
 
-    bool m_visible;
     bool m_fullscreenable;
 
     bool m_maximize;
