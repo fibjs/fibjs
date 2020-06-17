@@ -32,7 +32,7 @@
 }
 -(void)viewDidAppear
 {
-    printf("viewDidAppear \n");
+    // printf("viewDidAppear \n");
     [super viewDidAppear];
     // [self showResponsederInfo];
 }
@@ -420,16 +420,11 @@ void WebView::navigateWKWebView()
     [m_wkWebView loadRequest:[NSURLRequest requestWithURL:nsURL]];
 }
 
-void WebView::toggleNSWindowVisible(BOOL nextVisible = NULL)
+void WebView::toggleNSWindowVisible(BOOL nextVisible)
 {
-    if (nextVisible == NULL)
-        nextVisible = !m_visible;
-
     [m_nsWindow setIsVisible:(nextVisible ? YES : NO)];
-    if (nextVisible) {
-        if (m_maximize)
-            maxmizeNSWindow(m_nsWindow);
-    }
+    if (nextVisible && m_maximize)
+        maxmizeNSWindow(m_nsWindow);
 }
 
 void WebView::startWKUI()
@@ -447,15 +442,11 @@ void WebView::startWKUI()
         [m_nsWindow.contentView setWantsLayer:YES];
     }
 
-    // [m_nsWindow makeKeyWindow];
-    [m_nsWindow makeKeyAndOrderFront:nil];
+    [m_nsWindow makeKeyWindow];
+    // [m_nsWindow makeKeyAndOrderFront:nil];
     [m_nsWindow orderFrontRegardless];
-    // [m_nsWindow orderFront:nil];
-
-    // [[NSApplication sharedApplication].mainWindow addChildWindow:m_nsWindow ordered:NSWindowAbove];
 
     [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
-
 }
 
 int WebView::initialize()
@@ -736,6 +727,9 @@ result_t WebView::get_visible(bool& retVal)
 result_t WebView::set_visible(bool newVal)
 {
     m_visible = newVal;
+    if (m_visible)
+        m_maximize = false;
+
     toggleNSWindowVisible(m_visible);
 
     return 0;
