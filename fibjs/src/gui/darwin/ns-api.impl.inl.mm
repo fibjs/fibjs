@@ -20,14 +20,21 @@ void assignWinSizeInfoToResizeAboutEventInfo (CGSize ws, EventInfo* ei) {
     ei->add("height", ws.height);
 }
 
+@implementation FibjsNSWindow : NSWindow
+- (BOOL)acceptsFirstMouse:(NSEvent *)event
+{
+    return YES;
+}
+@end
+
 @implementation __NSApplicationDelegate
--(void)applicationWillTerminate:(id)app
-{
-}
--(void)applicationDidFinishLaunching:(id)app
-{
-}
--(int)applicationShouldTerminate:(id)app
+// -(void)applicationWillTerminate:(id)app
+// {
+// }
+// -(void)applicationDidFinishLaunching:(id)app
+// {
+// }
+-(bool)applicationShouldTerminate:(id)app
 {
     return NO;
 }
@@ -106,6 +113,12 @@ void assignWinSizeInfoToResizeAboutEventInfo (CGSize ws, EventInfo* ei) {
     assignWinSizeInfoToResizeAboutEventInfo(currentWindow.frame.size, ei);
 
     wv->_emit("resize", ei);
+}
+-(void)mouseDown:(NSEvent *)event{
+    NSLog(@"[__NSWindowDelegate::mouseDown] %s", __FUNCTION__);
+}
+-(void)keyDown:(NSEvent *)event{
+    NSLog(@"[__NSWindowDelegate::keyDown] %s", __FUNCTION__);
 }
 @end
 
