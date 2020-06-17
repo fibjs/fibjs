@@ -137,6 +137,15 @@ void maxmizeNSWindow (NSWindow* win) {
     ];
 }
 
+result_t openWebViewInGUIThread(obj_ptr<fibjs::WebView> wv)
+{
+    @autoreleasepool {
+        wv->open();
+    }
+
+    return 0;
+}
+
 // In Javascript Thread
 result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
@@ -146,7 +155,7 @@ result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<We
     obj_ptr<WebView> wv = new WebView(url, o);
     wv->wrap();
 
-    asyncCall(WebView::openWebViewInGUIThread, wv, CALL_E_GUICALL);
+    asyncCall(openWebViewInGUIThread, wv, CALL_E_GUICALL);
     retVal = wv;
 
     return 0;
@@ -404,10 +413,10 @@ void WebView::initWKWebView()
         configuration:createWKWebViewConfig()
     ];
 
-    // [m_wkWebView setWantsLayer:YES];
-
     [m_wkWebView setUIDelegate:[__WKUIDelegate new]];
     [m_wkWebView setNavigationDelegate:[__WKNavigationDelegate new]];
+
+    [m_wkWebView autorelease];
 }
 
 void WebView::navigateWKWebView()
@@ -437,8 +446,7 @@ void WebView::startWKUI()
         contentViewController.view = m_wkWebView;
         m_nsWindow.contentViewController = contentViewController;
     } else {
-        [m_nsWindow.contentView addSubview:m_wkWebView];
-        // m_nsWindow.contentView = m_wkWebView;
+        m_nsWindow.contentView = m_wkWebView;
         [m_nsWindow.contentView setWantsLayer:YES];
     }
 
