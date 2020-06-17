@@ -1,0 +1,1 @@
+require('gui').open('http://fibjs.org')

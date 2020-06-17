@@ -165,6 +165,9 @@ result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<We
 WebView::WebView(exlib::string url, NObject* opt)
     : m_WinW(640)
     , m_WinH(400)
+    , m_visible(true)
+    , m_bDebug(false)
+    , m_bIScriptLoaded(false)
     , m_iUseContentViewController(true)
 {
     holder()->Ref();
@@ -172,8 +175,50 @@ WebView::WebView(exlib::string url, NObject* opt)
     m_url = url;
     m_opt = opt;
 
-    m_visible = true;
     m_fullscreenable = true;
+
+    m_visible = true;
+    m_bDebug = false;
+    m_maximize = false;
+    m_nsWinStyle = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSResizableWindowMask
+        // | NSWindowStyleMaskTexturedBackground
+        // | NSWindowStyleMaskFullSizeContentView
+        // | NSWindowStyleMaskUtilityWindow
+        // | NSWindowStyleMaskUnifiedTitleAndToolbar
+        | NSWindowStyleMaskResizable;
+    m_wkViewStyle = NSViewWidthSizable | NSViewHeightSizable;
+
+    if (m_opt) {
+        Variant v;
+
+        // if (m_opt->get("border", v) == 0 && !v.boolVal())
+        //     m_nsWinStyle |= NSWindowStyleMaskBorderless;
+        
+        if (m_opt->get("title", v) == 0)
+            m_title = v.string();
+
+        if (m_opt->get("width", v) == 0)
+            m_WinW = v.intVal();
+
+        if (m_opt->get("height", v) == 0)
+            m_WinH = v.intVal();
+
+        if (m_opt->get("resizable", v) == 0 && !v.isUndefined() && !v.boolVal()) {
+            m_nsWinStyle ^= NSWindowStyleMaskResizable;
+        }
+
+        if (m_opt->get("fullscreenable", v) == 0)
+            m_fullscreenable = v.boolVal();
+
+        if (m_opt->get("maximize", v) == 0 && v.boolVal())
+            m_maximize = true;
+
+        if (m_opt->get("visible", v) == 0 && !v.boolVal())
+            m_visible = false;
+
+        if (m_opt->get("debug", v) == 0)
+            m_bDebug = v.boolVal();
+    }
 
     m_ac = NULL;
 }
@@ -232,15 +277,21 @@ void _waitAsyncOperationInCurrentLoop(bool blocking = false) {
         [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantPast]];
 }
 
-bool WebView::onNSWindowShouldClose(bool initshouldClose)
+bool WebView::onNSWindowShouldClose()
 {
-    __block bool shouldClose = initshouldClose;
+    __block bool shouldClose = false;
 
     WebView* wv = this;
+    if (!isInternalScriptLoaded()) {
+        forceCloseWindow();
+        return false;
+    }
+
     // TODO: use fibjs native API to resolve it.
-    evaluateWebviewJS("external.onclose()", ^(id result, NSError * _Nullable error) {
+    evaluateWebviewJS("!window.external || typeof window.external.onclose !== 'function' ? false : window.external.onclose()", ^(id result, NSError * _Nullable error) {
         if (error != nil) {
-            NSLog(@"evaluateJavaScript error : %@", error.localizedDescription);
+            // NSLog(@"evaluateJavaScript error : %@", error.localizedDescription);
+            NSLog(@"evaluateJavaScript error : %@", error);
             // shouldClose = true;
             wv->forceCloseWindow();
         } else {
@@ -275,6 +326,8 @@ void WebView::onWKWebViewInwardMessage(WKScriptMessage* message)
 
     if (!strcmp(inwardMsg, "inward:window.load")) {
         _emit("load");
+    } else if (!strcmp(inwardMsg, "inward:internal-script-loaded")) {
+        m_bIScriptLoaded = true;
     }
 }
 
@@ -303,12 +356,6 @@ void WebView::onWKWebViewExternalLogMessage(WKScriptMessage* message)
     const char* externalLogMsg = (const char*)([[message body] UTF8String]);
     exlib::string payload(externalLogMsg);
 
-    // printf("[WebView::externalLogMsg] external try to log\n");
-
-    // NSLog(@"[WebView::externalLogMsg] message name : %@", [message name]);
-    // NSLog(@"[WebView::externalLogMsg] message body : %@", [message body]);
-    // NSLog(@"[WebView::externalLogMsg] message frameInfo : %@", [message frameInfo]);
-
     syncCall(holder(), asyncOutputMessageFromWKWebview, payload);
 }
 
@@ -316,7 +363,7 @@ extern const wchar_t* g_console_js;
 
 extern const wchar_t* script_regExternal;
 extern const wchar_t* script_inwardPostMessage;
-extern const wchar_t* script_default;
+extern const wchar_t* script_afterInternal;
 
 id WebView::createWKUserContentController()
 {
@@ -329,26 +376,25 @@ id WebView::createWKUserContentController()
     [wkUserCtrl addScriptMessageHandler:[__WKScriptMessageHandler new] name:get_nsstring(WEBVIEW_MSG_HANDLER_NAME_EXTERNALLOG)];
 
     [wkUserCtrl addUserScript:[[WKUserScript alloc]
-        initWithSource:w_get_nsstring(g_console_js)
-        injectionTime:WKUserScriptInjectionTimeAtDocumentStart
-        forMainFrameOnly:FALSE
-    ]];
-
-    [wkUserCtrl addUserScript:[[WKUserScript alloc]
-        initWithSource:w_get_nsstring(script_default)
-        injectionTime:WKUserScriptInjectionTimeAtDocumentStart
-        // injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
-        forMainFrameOnly:TRUE
-    ]];
-
-    [wkUserCtrl addUserScript:[[WKUserScript alloc]
         initWithSource:w_get_nsstring(script_regExternal)
         injectionTime:WKUserScriptInjectionTimeAtDocumentStart
         forMainFrameOnly:FALSE
     ]];
 
     [wkUserCtrl addUserScript:[[WKUserScript alloc]
+        initWithSource:w_get_nsstring(g_console_js)
+        injectionTime:WKUserScriptInjectionTimeAtDocumentStart
+        forMainFrameOnly:FALSE
+    ]];
+
+    [wkUserCtrl addUserScript:[[WKUserScript alloc]
         initWithSource:w_get_nsstring(script_inwardPostMessage)
+        injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
+        forMainFrameOnly:TRUE
+    ]];
+
+    [wkUserCtrl addUserScript:[[WKUserScript alloc]
+        initWithSource:w_get_nsstring(script_afterInternal)
         injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
         forMainFrameOnly:TRUE
     ]];
@@ -429,13 +475,6 @@ void WebView::navigateWKWebView()
     [m_wkWebView loadRequest:[NSURLRequest requestWithURL:nsURL]];
 }
 
-void WebView::toggleNSWindowVisible(BOOL nextVisible)
-{
-    [m_nsWindow setIsVisible:(nextVisible ? YES : NO)];
-    if (nextVisible && m_maximize)
-        maxmizeNSWindow(m_nsWindow);
-}
-
 void WebView::startWKUI()
 {
     [m_wkWebView setAutoresizesSubviews:TRUE];
@@ -457,7 +496,7 @@ void WebView::startWKUI()
     [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
 }
 
-int WebView::initialize()
+int WebView::initializeWebView()
 {
     initNSWindowRect();
 
@@ -675,7 +714,7 @@ result_t WebView::close(AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
-    [m_nsWindow performClose:m_nsWindow];
+    [m_nsWindow performClose:nil];
 
     return 0;
 }
@@ -728,6 +767,8 @@ result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
 
 result_t WebView::get_visible(bool& retVal)
 {
+    printf("WebView::get_visible [1] : %s \n", m_visible ? "yes" : "no");
+
     retVal = m_visible;
     return 0;
 }
@@ -735,10 +776,16 @@ result_t WebView::get_visible(bool& retVal)
 result_t WebView::set_visible(bool newVal)
 {
     m_visible = newVal;
-    if (m_visible)
-        m_maximize = false;
 
-    toggleNSWindowVisible(m_visible);
+    printf("WebView::set_visible [1] : %s \n", newVal ? "yes" : "no");
+    printf("WebView::set_visible [2] : %s \n", m_visible ? "yes" : "no");
+
+    if (m_visible) {
+        if (m_maximize) maxmizeNSWindow(m_nsWindow);
+        m_maximize = false;
+    }
+
+    [m_nsWindow setIsVisible:(m_visible ? YES : NO)];
 
     return 0;
 }

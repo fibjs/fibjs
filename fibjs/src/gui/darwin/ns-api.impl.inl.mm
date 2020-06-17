@@ -60,7 +60,7 @@ void assignWinSizeInfoToResizeAboutEventInfo (CGSize ws, EventInfo* ei) {
     if (wv == NULL)
         return YES;
 
-    return wv->onNSWindowShouldClose(false);
+    return wv->onNSWindowShouldClose();
 }
 -(void)windowDidMove:(NSNotification *)didMoveNotification
 {
