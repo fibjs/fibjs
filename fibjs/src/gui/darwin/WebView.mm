@@ -24,14 +24,38 @@
 
 #include "ns-api.h"
 
-@interface WVViewController: NSViewController
--(void)loadView;
-@end
-
 @implementation WVViewController
 -(void)loadView
 {
     self.view = [NSView new];
+
+    // [self.view setWantsLayer:YES];
+}
+-(void)viewDidAppear
+{
+    printf("viewDidAppear \n");
+    [super viewDidAppear];
+    // [self showResponsederInfo];
+}
+-(void)showResponsederInfo
+{
+    NSResponder *responder = self.view.nextResponder;
+
+    int i = 0;
+    while (responder) {
+        NSLog(@"%d responder - %@", i, responder);
+        
+        responder = responder.nextResponder;
+    }
+}
+#pragma mark - mouse event
+-(void)mouseDown:(NSEvent *)event{
+    NSLog(@"WVViewController::mouseDown %s", __FUNCTION__);
+    [self showResponsederInfo];
+}
+#pragma mark - keyboard event
+-(void)keyDown:(NSEvent *)event{
+    NSLog(@"WVViewController::keyDown %s", __FUNCTION__);
 }
 @end
 
@@ -49,17 +73,19 @@ void run_gui()
     [NSAutoreleasePool new];
     [NSApplication sharedApplication];
 
-    gui_thread* _thGUI = new gui_thread();
+    NSAppMainLoopThread* _thMainLoop = new NSAppMainLoopThread();
 
-    _thGUI->bindCurrent();
-    s_thGUI = _thGUI;
+    _thMainLoop->bindCurrent();
+    s_thNSMainLoop = _thMainLoop;
 
-    _thGUI->Run();
+    _thMainLoop->Run();
 
     id app = [NSApplication sharedApplication];
     [app setActivationPolicy:NSApplicationActivationPolicyRegular];
-    [app finishLaunching];
-    [app activateIgnoringOtherApps:YES];
+    // [app activateIgnoringOtherApps:YES];
+    
+    [app run];
+    // [app finishLaunching];
 }
 
 id fetchEventFromNSMainLoop(int blocking)
@@ -67,14 +93,14 @@ id fetchEventFromNSMainLoop(int blocking)
     id until = blocking ? [NSDate distantFuture] : [NSDate distantPast];
 
     return [[NSApplication sharedApplication]
-        nextEventMatchingMask:ULONG_MAX
+        nextEventMatchingMask:NSEventMaskAny
         untilDate:until
         inMode:@"kCFRunLoopDefaultMode"
-        dequeue:true
+        dequeue:YES
     ];
 }
 
-void gui_thread::Run()
+void NSAppMainLoopThread::Run()
 {
     // initialize one fibjs runtime
     Runtime rt(NULL);
@@ -85,9 +111,8 @@ void gui_thread::Run()
     while (true) {
         AsyncEvent* p = s_uiPool.getHead();
 
-        if (p) {
+        if (p)
             p->invoke();
-        }
 
         id event = fetchEventFromNSMainLoop(0);
         if (event)
@@ -213,12 +238,12 @@ bool WebView::onNSWindowShouldClose(bool initshouldClose)
             NSLog(@"evaluateJavaScript result : %@", result);
         }
 
-        s_thGUI->m_sem.Post();
+        s_thNSMainLoop->m_sem.Post();
     });
 
     do {
         _waitAsyncOperationInCurrentLoop(true);
-    } while (s_thGUI->m_sem.TryWait());
+    } while (s_thNSMainLoop->m_sem.TryWait());
 
     return shouldClose;
 }
@@ -330,8 +355,13 @@ id WebView::createWKWebViewConfig()
     WKPreferences *preferences = [WKPreferences new];
     preferences.javaScriptCanOpenWindowsAutomatically = YES;
     preferences.tabFocusesLinks = FALSE;
+    if (m_bDebug) {
+        [preferences setValue:@TRUE forKey:@"allowFileAccessFromFileURLs"];
+        [preferences setValue:@TRUE forKey:@"developerExtrasEnabled"];
+    }
     // preferences._setFullScreenEnabled(true);
     // preferences.minimumFontSize = 40.0;
+
     configuration.preferences = preferences;
 
     return configuration;
@@ -370,6 +400,8 @@ void WebView::initWKWebView()
         configuration:createWKWebViewConfig()
     ];
 
+    // [m_wkWebView setWantsLayer:YES];
+
     [m_wkWebView setUIDelegate:[__WKUIDelegate new]];
     [m_wkWebView setNavigationDelegate:[__WKNavigationDelegate new]];
 }
@@ -406,11 +438,22 @@ void WebView::startWKUI()
         contentViewController.view = m_wkWebView;
         m_nsWindow.contentViewController = contentViewController;
     } else {
-        [[m_nsWindow contentView] addSubview:m_wkWebView];
+        // [m_nsWindow.contentView addSubview:m_wkWebView];
+        m_nsWindow.contentView = m_wkWebView;
+        [m_nsWindow.contentView setWantsLayer:YES];
     }
+    // NSWindowController* windowController = [NSWindowController initWithWindow:m_nsWindow];
 
-    [m_nsWindow makeKeyWindow];
+    // [m_nsWindow makeKeyWindow];
+    [m_nsWindow makeKeyAndOrderFront:nil];
     [m_nsWindow orderFrontRegardless];
+    // [m_nsWindow orderFront:nil];
+
+    // [[NSApplication sharedApplication].mainWindow addChildWindow:m_nsWindow ordered:NSWindowAbove];
+
+    [[NSApplication sharedApplication].mainWindow makeKeyAndOrderFront:nil];
+    [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
+
 }
 
 int WebView::initialize()

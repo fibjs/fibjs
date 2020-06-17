@@ -13,7 +13,7 @@
 #include "ifs/WebView.h"
 #include "EventInfo.h"
 #include <Cocoa/Cocoa.h>
-#include "darwin.h" 
+#include "ns-api.h"
 
 enum webview_dialog_type {
     WEBVIEW_DIALOG_TYPE_OPEN = 0,
@@ -42,7 +42,7 @@ public:
     exlib::OSSemaphore m_sem;
 };
 
-static gui_thread* s_thGUI;
+static gui_thread* s_thNSMainLoop;
 
 class WebView : public WebView_base {
     FIBER_FREE();
@@ -85,13 +85,13 @@ public:
     // async call handler & real executation.
     result_t open()
     {
-        m_bSilent = false;
+        m_bDebug = false;
         m_maximize = false;
         m_visible = true;
-        m_nsWinStyle = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable
-            | NSWindowStyleMaskTexturedBackground
-            | NSWindowStyleMaskFullSizeContentView
-            | NSWindowStyleMaskUtilityWindow
+        m_nsWinStyle = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSResizableWindowMask
+            // | NSWindowStyleMaskTexturedBackground
+            // | NSWindowStyleMaskFullSizeContentView
+            // | NSWindowStyleMaskUtilityWindow
             // | NSWindowStyleMaskUnifiedTitleAndToolbar
             | NSWindowStyleMaskResizable;
         m_wkViewStyle = NSViewWidthSizable | NSViewHeightSizable;
@@ -127,7 +127,7 @@ public:
                 m_visible = v.boolVal();
 
             if (m_opt->get("debug", v) == 0)
-                m_bSilent = v.boolVal();
+                m_bDebug = v.boolVal();
         }
 
         initialize();
@@ -241,6 +241,7 @@ public:
 
 public:
     NSWindow* m_nsWindow;
+    // FibjsNSWindow* m_nsWindow;
     WKWebView* m_wkWebView;
     NSUInteger m_nsWinStyle;
     NSUInteger m_wkViewStyle;
@@ -259,7 +260,6 @@ protected:
     bool m_fullscreenable;
 
     bool m_maximize;
-    bool m_bSilent;
     
     CGRect m_nsWindowFrame;
     bool m_iUseContentViewController;

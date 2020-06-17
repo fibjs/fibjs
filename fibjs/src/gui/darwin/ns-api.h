@@ -8,6 +8,9 @@
  */
 #ifdef __APPLE__
 
+#ifndef WEBVIEW_NS_API_H
+#define WEBVIEW_NS_API_H
+
 #import <Webkit/Webkit.h>
 #import <Cocoa/Cocoa.h>
 #import <objc/runtime.h>
@@ -15,12 +18,15 @@
 
 #import "darwin.h"
 
+@interface FibjsNSWindow : NSWindow
+@end
+
 /**
  * @see https://developer.apple.com/documentation/appkit/nsapplicationdelegate
  */
 @interface __NSApplicationDelegate : NSObject<NSApplicationDelegate>
-- (void)applicationWillTerminate:(id)app;
-- (void)applicationDidFinishLaunching:(id)app;
+// - (void)applicationWillTerminate:(id)app;
+// - (void)applicationDidFinishLaunching:(id)app;
 - (bool)applicationShouldTerminate:(id)app;
 - (bool)applicationShouldTerminateAfterLastWindowClosed:(id)app;
 @end
@@ -40,6 +46,9 @@
 @interface __WKUIDelegate : NSObject<WKUIDelegate>
 @end
 
+// @interface __WKWindowFeatures : NSObject<WKWindowFeatures>
+// @end
+
 @interface __WKNavigationDelegate : NSObject<WKNavigationDelegate>
 @end
 
@@ -53,5 +62,11 @@
 
 @interface __WKDownloadDelegate : NSObject/* <NSURLDownloadDelegate> */
 @end
+
+@interface WVViewController: NSViewController
+-(void)loadView;
+@end
+
+#endif // WEBVIEW_NS_API_H
 
 #endif // __APPLE__

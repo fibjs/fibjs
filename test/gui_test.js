@@ -227,7 +227,7 @@ if (win32 || darwin) {
       });
 
       it("resizable", () => {
-        var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/normal.html", {
+        var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/normal-copy.html", {
           title: "Manual Test - resizable",
         });
 
