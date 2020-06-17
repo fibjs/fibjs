@@ -210,7 +210,7 @@ if (win32 || darwin) {
       });
     });
 
-    darwin && describe.only("html5", () => {
+    darwin && describe("html5", () => {
       it("input.value", () => {
         var postedMsg
         var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/normal-html5.html", {
@@ -229,7 +229,7 @@ if (win32 || darwin) {
       })
     });
 
-    false && process.env.MANUAL && describe.only("manual", () => {
+    process.env.MANUAL && describe("manual", () => {
       var prevWin
       var closePreWin = () => {
         if (prevWin) prevWin.close()
