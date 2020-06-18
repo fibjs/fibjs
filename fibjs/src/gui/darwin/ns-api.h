@@ -57,9 +57,6 @@
       didReceiveScriptMessage:(WKScriptMessage *)message;
 @end
 
-// @interface __WKPreferences : NSObject<WKPreferences>
-// @end
-
 @interface __WKDownloadDelegate : NSObject/* <NSURLDownloadDelegate> */
 @end
 

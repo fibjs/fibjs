@@ -212,6 +212,8 @@ protected:
     bool m_fullscreenable;
 
     bool m_maximize;
+
+    exlib::string m_initScriptDocAfter;
     
     CGRect m_nsWindowFrame;
     bool m_iUseContentViewController;
