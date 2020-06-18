@@ -62,6 +62,13 @@
 }
 @end
 
+@implementation __WKPreferences : WKPreferences
+-(bool)_fullScreenEnabled
+{
+    return true;
+}
+@end
+
 namespace fibjs {
 
 DECLARE_MODULE(gui);
@@ -167,6 +174,7 @@ WebView::WebView(exlib::string url, NObject* opt)
     , m_WinH(400)
     , m_visible(true)
     , m_bDebug(false)
+    , m_initScriptDocAfter("")
     , m_bIScriptLoaded(false)
     , m_iUseContentViewController(true)
 {
@@ -218,6 +226,9 @@ WebView::WebView(exlib::string url, NObject* opt)
 
         if (m_opt->get("debug", v) == 0)
             m_bDebug = v.boolVal();
+
+        if (m_opt->get("script_after", v) == 0)
+            m_initScriptDocAfter = v.string();
     }
 
     m_ac = NULL;
@@ -399,6 +410,13 @@ id WebView::createWKUserContentController()
         forMainFrameOnly:TRUE
     ]];
 
+    // TODO: support inject javascript
+    [wkUserCtrl addUserScript:[[WKUserScript alloc]
+        initWithSource:get_nsstring(m_initScriptDocAfter.c_str())
+        injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
+        forMainFrameOnly:TRUE
+    ]];
+
     return wkUserCtrl;
 }
 
@@ -418,10 +436,15 @@ id WebView::createWKWebViewConfig()
         [preferences setValue:@TRUE forKey:@"allowFileAccessFromFileURLs"];
         [preferences setValue:@TRUE forKey:@"developerExtrasEnabled"];
     }
-    // preferences._setFullScreenEnabled(true);
     // preferences.minimumFontSize = 40.0;
 
     configuration.preferences = preferences;
+
+    configuration.applicationNameForUserAgent = @"Chrome/83.0.4103.97 Safari/537.36";
+
+    // "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36";
+    // "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36"
+    
 
     return configuration;
 }
