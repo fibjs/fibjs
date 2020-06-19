@@ -75,6 +75,16 @@ static void printHelp()
          "Documentation can be found at http://fibjs.org\n");
 }
 
+#ifdef DEBUG
+void asyncLog(int32_t priority, exlib::string msg);
+void DcheckHandler(const char* file, int line, const char* message)
+{
+    char p_msg[256];
+    sprintf(p_msg, "Assert(DCheck) in %s, line %d: %s", file, line, message);
+    asyncLog(console_base::_DEBUG, p_msg);
+}
+#endif
+
 void options(int32_t& pos, char* argv[])
 {
     int32_t argc = pos;
@@ -149,5 +159,8 @@ void options(int32_t& pos, char* argv[])
         argc -= df;
 
     v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
+#ifdef DEBUG
+    v8::V8::SetDcheckErrorHandler(DcheckHandler);
+#endif
 }
 }
