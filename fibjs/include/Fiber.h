@@ -17,10 +17,10 @@ namespace fibjs {
 class JSFiber : public Fiber_base,
                 public exlib::linkitem {
 public:
-    class scope {
+    class EnterJsScope {
     public:
-        scope(JSFiber* fb = NULL);
-        ~scope();
+        EnterJsScope(JSFiber* fb = NULL);
+        ~EnterJsScope();
 
         JSFiber* operator->()
         {
@@ -60,7 +60,7 @@ public:
     virtual result_t get_caller(obj_ptr<Fiber_base>& retVal);
 
 public:
-    static void fiber_proc(void* p);
+    static void FiberProcRunJavascript(void* p);
     void start();
 
     void set_caller(Fiber_base* caller);

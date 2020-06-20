@@ -35,7 +35,7 @@ static const char* DEFT_ENV_KEYS[] = {
 
 void init_signal();
 
-void init_process()
+void SubscribeProcessSignal()
 {
     init_signal();
 }

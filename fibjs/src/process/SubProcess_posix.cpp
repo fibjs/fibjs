@@ -64,7 +64,7 @@ static void async_init_sprocess(void* v)
     ev_signal_start(s_loop, &signal_chld);
 }
 
-void init_process()
+void SubscribeProcessSignal()
 {
     init_signal();
     AsyncIO::run(async_init_sprocess);

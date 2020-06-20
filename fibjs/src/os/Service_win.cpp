@@ -249,7 +249,7 @@ static void WINAPI service_ctrl(DWORD dwCtrlCode)
 
 static result_t service_worker(Service* srv)
 {
-    JSFiber::scope s;
+    JSFiber::EnterJsScope s;
     v8::Local<v8::Value> v;
     v8::Local<v8::Function> func;
 

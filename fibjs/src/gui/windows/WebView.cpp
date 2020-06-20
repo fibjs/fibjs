@@ -285,7 +285,7 @@ private:
 public:
     virtual void Run()
     {
-        Runtime rt(NULL);
+        Runtime rtForThread(NULL);
 
         OleInitialize(NULL);
 

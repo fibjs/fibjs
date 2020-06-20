@@ -65,14 +65,14 @@ private:
         };
 
         if (m_bThread)
-            (new _thread(worker_proc, this))->start();
+            (new _thread(FiberProcWorker, this))->start();
         else
-            exlib::Service::Create(worker_proc, this, WORKER_STACK_SIZE * 1024, "WorkerFiber");
+            exlib::Service::CreateFiber(FiberProcWorker, this, WORKER_STACK_SIZE * 1024, "WorkerFiber");
     }
 
-    void worker_proc()
+    void FiberProcWorker()
     {
-        Runtime rt(NULL);
+        Runtime rtForThread(NULL);
         AsyncEvent* p;
 
         m_idleWorkers.dec();
@@ -94,9 +94,9 @@ private:
         }
     }
 
-    static void worker_proc(void* ptr)
+    static void FiberProcWorker(void* ptr)
     {
-        ((acPool*)ptr)->worker_proc();
+        ((acPool*)ptr)->FiberProcWorker();
     }
 
 private:
@@ -161,7 +161,7 @@ void AsyncCallBack::fillRetVal(std::vector<v8::Local<v8::Value>>& args, NType* v
 
 result_t AsyncCallBack::syncFunc(AsyncCallBack* pThis)
 {
-    JSFiber::scope s;
+    JSFiber::EnterJsScope s;
     Isolate* isolate = pThis->m_isolate;
 
     v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate, pThis->m_cb);
@@ -196,7 +196,7 @@ result_t AsyncCallBack::syncFunc(AsyncCallBack* pThis)
     return 0;
 }
 
-void init_acThread()
+void InitializeAcPool()
 {
     s_lsPool = new acPool(2, true);
     s_acPool = new acPool(2);

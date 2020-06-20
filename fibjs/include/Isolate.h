@@ -37,19 +37,19 @@ class ValueHolder;
 
 class Isolate : public exlib::linkitem {
 public:
-    class rt_base {
+    class SnapshotJsScope {
     public:
-        rt_base(Isolate* cur = NULL);
-        ~rt_base();
+        SnapshotJsScope(Isolate* cur = NULL);
+        ~SnapshotJsScope();
 
     protected:
         Isolate* m_isolate;
     };
 
-    class rt : public rt_base {
+    class LeaveJsScope : public SnapshotJsScope {
     public:
-        rt(Isolate* cur = NULL)
-            : rt_base(cur)
+        LeaveJsScope(Isolate* cur = NULL)
+            : SnapshotJsScope(cur)
             , unlocker(m_isolate->m_isolate)
         {
         }
@@ -59,7 +59,7 @@ public:
     };
 
 public:
-    Isolate(exlib::string fname);
+    Isolate(exlib::string jsFilename);
 
 public:
     static Isolate* current();

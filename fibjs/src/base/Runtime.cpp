@@ -27,10 +27,10 @@
 
 namespace fibjs {
 
-void init_date();
-void init_acThread();
-void init_aio();
-void init_process();
+void InitializeDateUtils();
+void InitializeAcPool();
+void InitializeAsyncIOThread();
+void SubscribeProcessSignal();
 void init_sym();
 
 void init_argv(int32_t argc, char** argv);
@@ -40,7 +40,7 @@ result_t ifZipFile(exlib::string filename, bool& retVal);
 
 exlib::string s_root;
 
-static void init(v8::Platform* (*get_platform)())
+static void createBasisForFiberLoop(v8::Platform* (*get_platform)())
 {
     ::setlocale(LC_ALL, "");
 
@@ -54,10 +54,10 @@ static void init(v8::Platform* (*get_platform)())
 
     exlib::Service::init(cpus + 1);
 
-    init_date();
-    init_acThread();
-    init_aio();
-    init_process();
+    InitializeDateUtils();
+    InitializeAcPool();
+    InitializeAsyncIOThread();
+    SubscribeProcessSignal();
 
 #ifdef Linux
     init_sym();
@@ -65,36 +65,29 @@ static void init(v8::Platform* (*get_platform)())
 
     srand((unsigned int)time(0));
 
-    v8::Platform* platform;
-
-    if (get_platform != NULL)
-        platform = get_platform();
-    else
-        platform = v8::platform::CreateDefaultPlatform();
-
+    v8::Platform* platform = get_platform != NULL ? get_platform() : v8::platform::CreateDefaultPlatform();
     v8::V8::InitializePlatform(platform);
-
     v8::V8::Initialize();
 }
 
-void start(int32_t argc, char** argv, result_t (*main)(Isolate*), v8::Platform* (*get_platform)())
+void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), v8::Platform* (*get_platform)())
 {
-    class MainThread : public exlib::OSThread {
+    class EntryThread : public exlib::OSThread {
     public:
-        MainThread(int32_t argc, char** argv, result_t (*main)(Isolate*), v8::Platform* (*get_platform)())
+        EntryThread(int32_t argc, char** argv, result_t (*jsFiber)(Isolate*), v8::Platform* (*get_platform)())
             : m_argc(argc)
             , m_argv(argv)
-            , m_main(main)
+            , m_jsFiber(jsFiber)
             , m_get_platform(get_platform)
         {
         }
 
     public:
-        static void start_fiber(void* p)
+        static void FirstFiber(void* p)
         {
-            MainThread* th = (MainThread*)p;
-            Isolate* isolate = new Isolate(th->m_start);
-            syncCall(isolate, th->m_main, isolate);
+            EntryThread* th = (EntryThread*)p;
+            Isolate* isolate = new Isolate(th->m_fibjsEntry);
+            syncCall(isolate, th->m_jsFiber, isolate);
         }
 
         virtual void Run()
@@ -130,14 +123,14 @@ void start(int32_t argc, char** argv, result_t (*main)(Isolate*), v8::Platform* 
             int32_t pos = argc;
             options(pos, argv);
 
-            init(m_get_platform);
+            createBasisForFiberLoop(m_get_platform);
 
             if (pos < argc) {
                 if (argv[pos][0] == '-')
-                    m_start = argv[pos];
+                    m_fibjsEntry = argv[pos];
                 else {
-                    m_start = s_root;
-                    resolvePath(m_start, argv[pos]);
+                    m_fibjsEntry = s_root;
+                    resolvePath(m_fibjsEntry, argv[pos]);
                 }
 
                 if (pos != 1) {
@@ -149,7 +142,7 @@ void start(int32_t argc, char** argv, result_t (*main)(Isolate*), v8::Platform* 
             }
 
             init_argv(argc, argv);
-            exlib::Service::Create(start_fiber, this, 256 * 1024, "start");
+            exlib::Service::CreateFiber(FirstFiber, this, 256 * 1024, "start");
 
             m_sem.Post();
             exlib::Service::dispatch();
@@ -161,15 +154,15 @@ void start(int32_t argc, char** argv, result_t (*main)(Isolate*), v8::Platform* 
     private:
         int32_t m_argc;
         char** m_argv;
-        exlib::string m_start;
-        result_t (*m_main)(Isolate*);
+        exlib::string m_fibjsEntry;
+        result_t (*m_jsFiber)(Isolate*);
         v8::Platform* (*m_get_platform)();
     };
 
-    MainThread* main_thread = new MainThread(argc, argv, main, get_platform);
-    main_thread->start();
+    EntryThread* entryThread = new EntryThread(argc, argv, jsEntryFiber, get_platform);
+    entryThread->start();
 
-    main_thread->m_sem.Wait();
+    entryThread->m_sem.Wait();
 }
 
 static int32_t s_tls_rt;
@@ -182,7 +175,7 @@ public:
     }
 } s_rt_initer;
 
-void Runtime::reg()
+void Runtime::RegInThread()
 {
     exlib::Fiber::tlsPut(s_tls_rt, this);
 }
@@ -215,7 +208,7 @@ exlib::LockedList<Isolate> s_isolates;
 exlib::atomic s_iso_id;
 exlib::atomic s_iso_ref;
 
-Isolate::rt_base::rt_base(Isolate* cur)
+Isolate::SnapshotJsScope::SnapshotJsScope(Isolate* cur)
     : m_isolate((cur ? cur : Isolate::current()))
 {
     JSFiber* fb = JSFiber::current();
@@ -225,7 +218,7 @@ Isolate::rt_base::rt_base(Isolate* cur)
     fb->m_handler_ = _fi.handle;
 }
 
-Isolate::rt_base::~rt_base()
+Isolate::SnapshotJsScope::~SnapshotJsScope()
 {
 }
 
@@ -248,16 +241,16 @@ static void fb_GCCallback(v8::Isolate* js_isolate, v8::GCType type, v8::GCCallba
     }
 }
 
-void init_proc(void* p)
+static void FiberProcIsolate(void* p)
 {
     Isolate* isolate = (Isolate*)p;
-    Runtime rt(isolate);
+    Runtime rtForThread(isolate);
 
     isolate->init();
-    JSFiber::fiber_proc(p);
+    JSFiber::FiberProcRunJavascript(p);
 }
 
-Isolate::Isolate(exlib::string fname)
+Isolate::Isolate(exlib::string jsFilename)
     : m_id((int32_t)s_iso_id.inc())
     , m_hr(0)
     , m_test(NULL)
@@ -267,15 +260,15 @@ Isolate::Isolate(exlib::string fname)
     , m_flake_tm(0)
     , m_flake_host(0)
     , m_flake_count(0)
-    , m_loglevel(console_base::_NOTSET)
     , m_console_colored(true)
+    , m_loglevel(console_base::_NOTSET)
     , m_defaultMaxListeners(10)
     , m_exitCode(0)
     , m_enable_FileSystem(true)
     , m_safe_buffer(false)
     , m_max_buffer_size(-1)
 {
-    m_fname = fname;
+    m_fname = jsFilename;
 
     static v8::Isolate::CreateParams create_params;
     static ShellArrayBufferAllocator array_buffer_allocator;
@@ -301,7 +294,7 @@ Isolate::Isolate(exlib::string fname)
     m_currentFibers++;
     m_idleFibers++;
 
-    exlib::Service::Create(init_proc, this, stack_size * 1024, "JSFiber");
+    exlib::Service::CreateFiber(FiberProcIsolate, this, stack_size * 1024, "JSFiber");
 }
 
 Isolate* Isolate::current()
@@ -321,7 +314,7 @@ void Isolate::init()
     v8::Isolate::Scope isolate_scope(m_isolate);
     v8::HandleScope handle_scope(m_isolate);
 
-    JSFiber::scope s;
+    JSFiber::EnterJsScope s;
 
     v8::Local<v8::Context> _context = v8::Context::New(m_isolate);
     m_context.Reset(m_isolate, _context);
@@ -370,7 +363,7 @@ void Isolate::init()
 static result_t syncExit(Isolate* isolate)
 {
     v8::HandleScope handle_scope(isolate->m_isolate);
-    JSFiber::scope s;
+    JSFiber::EnterJsScope s;
     JSTrigger t(isolate->m_isolate, process_base::class_info().getModule(isolate));
     v8::Local<v8::Value> code = v8::Number::New(isolate->m_isolate, isolate->m_exitCode);
     bool r;
@@ -412,7 +405,7 @@ void Isolate::start_profiler()
 void InvokeApiInterruptCallbacks(v8::Isolate* isolate);
 static result_t js_timer(Isolate* isolate)
 {
-    JSFiber::scope s;
+    JSFiber::EnterJsScope s;
     isolate->m_has_timer = 0;
     InvokeApiInterruptCallbacks(isolate->m_isolate);
     return 0;
