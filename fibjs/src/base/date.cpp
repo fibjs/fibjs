@@ -15,7 +15,7 @@ namespace fibjs {
 
 static DateCache* s_dc;
 
-void init_date()
+void InitializeDateUtils()
 {
     s_dc = new DateCache();
 }

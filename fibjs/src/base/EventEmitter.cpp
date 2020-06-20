@@ -151,7 +151,7 @@ public:
 public:
     static result_t jsEmit(jsTrigger* p)
     {
-        JSFiber::scope s;
+        JSFiber::EnterJsScope s;
         size_t i;
 
         std::vector<v8::Local<v8::Value>> argv;

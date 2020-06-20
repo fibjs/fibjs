@@ -73,7 +73,7 @@ public:
     virtual void enter()
     {
         if (!m_lock.trylock()) {
-            Isolate::rt _rt(holder());
+            Isolate::LeaveJsScope _rt(holder());
             m_lock.lock();
         }
     }

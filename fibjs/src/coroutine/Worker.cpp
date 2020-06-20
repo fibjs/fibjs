@@ -38,7 +38,7 @@ void Worker::start()
 
 void Worker::_main()
 {
-    JSFiber::scope s;
+    JSFiber::EnterJsScope s;
 
     m_isolate->start_profiler();
 

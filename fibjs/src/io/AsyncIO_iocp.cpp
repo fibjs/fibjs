@@ -133,7 +133,7 @@ public:
         DWORD dwBytes, dwError;
         LPOVERLAPPED pOverlap;
 
-        Runtime rt(NULL);
+        Runtime rtForThread(NULL);
 
         while (true) {
             v = 0;
@@ -155,7 +155,7 @@ public:
     }
 };
 
-void init_aio()
+void InitializeAsyncIOThread()
 {
     static _acIO s_acIO;
     s_acIO.start();
@@ -189,9 +189,9 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Time
 
                 if (SOCKET_ERROR
                     == WSAIoctl(m_s, SIO_GET_EXTENSION_FUNCTION_POINTER,
-                           &guidConnectEx, sizeof(guidConnectEx),
-                           &ConnectEx, sizeof(ConnectEx), &dwBytes, NULL,
-                           NULL)) {
+                        &guidConnectEx, sizeof(guidConnectEx),
+                        &ConnectEx, sizeof(ConnectEx), &dwBytes, NULL,
+                        NULL)) {
                     if (m_timer) {
                         m_timer->clear();
                         m_timer.Release();
@@ -290,8 +290,8 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
 
                 if (SOCKET_ERROR
                     == WSAIoctl(m_s, SIO_GET_EXTENSION_FUNCTION_POINTER,
-                           &guidAcceptEx, sizeof(guidAcceptEx), &AcceptEx,
-                           sizeof(AcceptEx), &dwBytes, NULL, NULL))
+                        &guidAcceptEx, sizeof(guidAcceptEx), &AcceptEx,
+                        sizeof(AcceptEx), &dwBytes, NULL, NULL))
                     return CHECK_ERROR(SocketError());
             }
 
@@ -352,13 +352,13 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
             , m_bRead(bRead)
             , m_timer(timer)
         {
-            m_buf.resize(bytes > 0 ? bytes : SOCKET_BUFF_SIZE);  
+            m_buf.resize(bytes > 0 ? bytes : SOCKET_BUFF_SIZE);
         }
 
         virtual result_t process()
         {
             int32_t nError;
-            
+
             DWORD len = (DWORD)m_buf.length() - m_pos;
             if (ReadFile((HANDLE)m_s, &m_buf[m_pos], (len <= 65536) ? len : 65536, NULL, this))
                 return CHECK_ERROR(CALL_E_PENDDING);

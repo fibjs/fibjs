@@ -27,13 +27,13 @@ public:
     }
 } s_fiber_initer;
 
-void JSFiber::fiber_proc(void* p)
+void JSFiber::FiberProcRunJavascript(void* p)
 {
     result_t hr = 0;
     Isolate* isolate = (Isolate*)p;
 
     {
-        Runtime rt(isolate);
+        Runtime rtForThread(isolate);
         v8::Locker locker(isolate->m_isolate);
         v8::Isolate::Scope isolate_scope(isolate->m_isolate);
 
@@ -62,7 +62,7 @@ void JSFiber::fiber_proc(void* p)
                 isolate->m_currentFibers++;
                 isolate->m_idleFibers++;
 
-                exlib::Service::Create(fiber_proc, isolate, stack_size * 1024, "JSFiber");
+                exlib::Service::CreateFiber(FiberProcRunJavascript, isolate, stack_size * 1024, "JSFiber");
             }
 
             {
@@ -116,7 +116,7 @@ void JSFiber::start()
 result_t JSFiber::join()
 {
     if (!m_quit.isSet()) {
-        Isolate::rt _rt(holder());
+        Isolate::LeaveJsScope _rt(holder());
         m_quit.wait();
     }
 
@@ -187,7 +187,7 @@ JSFiber* JSFiber::current()
 
 result_t JSFiber::js_invoke()
 {
-    scope s(this);
+    EnterJsScope s(this);
     v8::Local<v8::Value> retVal;
 
     size_t i;
@@ -212,7 +212,7 @@ result_t JSFiber::js_invoke()
     return 0;
 }
 
-JSFiber::scope::scope(JSFiber* fb)
+JSFiber::EnterJsScope::EnterJsScope(JSFiber* fb)
     : m_hr(0)
     , m_pFiber(fb)
 {
@@ -223,7 +223,7 @@ JSFiber::scope::scope(JSFiber* fb)
     m_pFiber->holder()->m_fibers.putTail(m_pFiber);
 }
 
-JSFiber::scope::~scope()
+JSFiber::EnterJsScope::~EnterJsScope()
 {
     m_pFiber->holder()->m_isolate->RunMicrotasks();
 

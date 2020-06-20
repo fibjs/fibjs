@@ -210,7 +210,7 @@ public:
 
     virtual void Run()
     {
-        Runtime rt(NULL);
+        Runtime rtForThread(NULL);
 
         ev_async_init(&s_asEvent, as_cb);
         ev_async_start(s_loop, &s_asEvent);
@@ -236,7 +236,7 @@ public:
     exlib::spinlock m_lock;
 };
 
-void init_aio()
+void InitializeAsyncIOThread()
 {
     static _acIO s_acIO;
 

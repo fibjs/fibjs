@@ -69,7 +69,7 @@ void main(int32_t argc, char** argv)
 {
     importModule();
 
-    start(argc, argv, main_fiber);
+    start(argc, argv, FiberProcJsEntry);
     run_gui();
 }
 }

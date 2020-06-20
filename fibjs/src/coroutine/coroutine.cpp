@@ -33,7 +33,7 @@ private:
         v8::Local<v8::Array> retVal = v8::Local<v8::Array>::New(m_isolate->m_isolate, m_retVal);
 
         while (m_pos < m_count) {
-            JSFiber::scope s;
+            JSFiber::EnterJsScope s;
             v8::Local<v8::Value> v;
             int32_t pos = m_pos;
 

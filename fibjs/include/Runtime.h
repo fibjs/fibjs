@@ -17,7 +17,7 @@ public:
     Runtime(Isolate* isolate)
         : m_isolate(isolate)
     {
-        reg();
+        RegInThread();
     }
 
 public:
@@ -84,7 +84,7 @@ public:
     }
 
 private:
-    void reg();
+    void RegInThread();
 
 private:
     result_t m_code;
