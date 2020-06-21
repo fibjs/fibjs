@@ -36,29 +36,29 @@ exlib::string clean_string(exlib::string s)
     return s1;
 }
 
-void setOption(intptr_t& s)
+void setOption(intptr_t& sockfd)
 {
     int32_t keepAlive = 1;
-    setsockopt(s, SOL_SOCKET, SO_KEEPALIVE, (void*)&keepAlive,
+    setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, (void*)&keepAlive,
         sizeof(keepAlive));
 
 #ifdef TCP_KEEPIDLE
     int32_t keepIdle = KEEPALIVE_TIMEOUT;
-    setsockopt(s, SOL_TCP, TCP_KEEPIDLE, (void*)&keepIdle, sizeof(keepIdle));
+    setsockopt(sockfd, SOL_TCP, TCP_KEEPIDLE, (void*)&keepIdle, sizeof(keepIdle));
 #endif
 
 #ifdef TCP_KEEPINTVL
     int32_t keepInterval = 20;
     int32_t keepCount = 10;
 
-    setsockopt(s, SOL_TCP, TCP_KEEPINTVL, (void*)&keepInterval,
+    setsockopt(sockfd, SOL_TCP, TCP_KEEPINTVL, (void*)&keepInterval,
         sizeof(keepInterval));
-    setsockopt(s, SOL_TCP, TCP_KEEPCNT, (void*)&keepCount, sizeof(keepCount));
+    setsockopt(sockfd, SOL_TCP, TCP_KEEPCNT, (void*)&keepCount, sizeof(keepCount));
 #endif
 
     int32_t noDelay = 1;
 
-    setsockopt(s, IPPROTO_TCP, TCP_NODELAY, (void*)&noDelay, sizeof(noDelay));
+    setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, (void*)&noDelay, sizeof(noDelay));
 }
 
 static struct ev_loop* s_loop;
@@ -89,21 +89,21 @@ result_t net_base::backend(exlib::string& retVal)
     return 0;
 }
 
-class asyncEv;
+class evAsyncEvent;
 
-static ev_async s_asEvent;
-static exlib::LockedList<asyncEv> s_evWait;
+static ev_async s_evAsyncWatcher;
+static exlib::LockedList<evAsyncEvent> s_evWait;
 
-class asyncEv : public exlib::Task_base {
+class evAsyncEvent : public exlib::Task_base {
 public:
-    virtual ~asyncEv()
+    virtual ~evAsyncEvent()
     {
     }
 
     void post()
     {
         s_evWait.putTail(this);
-        ev_async_send(s_loop, &s_asEvent);
+        ev_async_send(s_loop, &s_evAsyncWatcher);
     }
 
     virtual void start()
@@ -117,11 +117,11 @@ public:
     }
 };
 
-class asyncProc : public asyncEv {
+class AsyncSockProc : public evAsyncEvent {
 public:
-    asyncProc(intptr_t& s, int32_t op, AsyncEvent* ac, exlib::Locker& locker, void*& opt)
-        : m_s(s)
-        , m_op(op)
+    AsyncSockProc(intptr_t& sockfd, int32_t ev_op_t, AsyncEvent* ac, exlib::Locker& locker, void*& opt)
+        : m_sockfd(sockfd)
+        , m_ev_op_t(ev_op_t)
         , m_ac(ac)
         , m_locker(locker)
         , m_opt(opt)
@@ -130,7 +130,7 @@ public:
 
     virtual void start()
     {
-        if (m_s == SOCKET_ERROR) {
+        if (m_sockfd == SOCKET_ERROR) {
             m_ac->apost(SOCKET_ERROR);
             delete this;
             return;
@@ -138,12 +138,12 @@ public:
 
         m_opt = this;
 
-        ev_io_init(&m_io, io_cb, m_s, m_op);
-        ev_io_start(s_loop, &m_io);
+        ev_io_init(&m_io_watcher, io_cb, m_sockfd, m_ev_op_t);
+        ev_io_start(s_loop, &m_io_watcher);
     }
 
 public:
-    result_t call()
+    result_t request()
     {
         if (m_locker.lock(this)) {
             result_t hr = process();
@@ -165,7 +165,7 @@ public:
         return 0;
     }
 
-    virtual void proc()
+    virtual void after_unwatch()
     {
         ready(process());
     }
@@ -178,25 +178,25 @@ public:
         delete this;
     }
 
-    void onready()
+    void on_watched()
     {
-        ev_io_stop(s_loop, &m_io);
-        proc();
+        ev_io_stop(s_loop, &m_io_watcher);
+        after_unwatch();
     }
 
 public:
-    intptr_t& m_s;
-    int32_t m_op;
+    intptr_t& m_sockfd;
+    int32_t m_ev_op_t;
     AsyncEvent* m_ac;
     exlib::Locker& m_locker;
     void*& m_opt;
-    ev_io m_io;
+    ev_io m_io_watcher;
 
 private:
     static void io_cb(struct ev_loop* loop, struct ev_io* watcher, int32_t revents)
     {
-        asyncProc* p = NULL;
-        ((asyncProc*)((intptr_t)watcher - (intptr_t)&p->m_io))->onready();
+        AsyncSockProc* p = NULL;
+        ((AsyncSockProc*)((intptr_t)watcher - (intptr_t)&p->m_io_watcher))->on_watched();
     }
 };
 
@@ -212,8 +212,8 @@ public:
     {
         Runtime rtForThread(NULL);
 
-        ev_async_init(&s_asEvent, as_cb);
-        ev_async_start(s_loop, &s_asEvent);
+        ev_async_init(&s_evAsyncWatcher, as_cb);
+        ev_async_start(s_loop, &s_evAsyncWatcher);
 
         m_lock.unlock();
         ev_run(s_loop, 0);
@@ -223,8 +223,8 @@ private:
     static void as_cb(struct ev_loop* loop, struct ev_async* watcher,
         int32_t revents)
     {
-        exlib::List<asyncEv> jobs;
-        asyncEv* p1;
+        exlib::List<evAsyncEvent> jobs;
+        evAsyncEvent* p1;
 
         s_evWait.getList(jobs);
 
@@ -246,27 +246,27 @@ void InitializeAsyncIOThread()
 
 result_t AsyncIO::close(AsyncEvent* ac)
 {
-    class asyncClose : public asyncEv {
+    class asyncClose : public evAsyncEvent {
     public:
-        asyncClose(intptr_t& s, void*& opt1, void*& opt2, AsyncEvent* ac)
+        asyncClose(intptr_t& sockfd, void*& recvProc, void*& sendProc, AsyncEvent* ac)
             : m_ac(ac)
-            , m_s(s)
-            , m_opt1(opt1)
-            , m_opt2(opt2)
+            , m_sockfd(sockfd)
+            , m_pRecvProc(recvProc)
+            , m_pSendProc(sendProc)
         {
         }
 
         virtual void start()
         {
-            if (m_s != INVALID_SOCKET) {
-                ::closesocket(m_s);
-                m_s = INVALID_SOCKET;
+            if (m_sockfd != INVALID_SOCKET) {
+                ::closesocket(m_sockfd);
+                m_sockfd = INVALID_SOCKET;
 
-                if (m_opt1)
-                    ((asyncProc*)m_opt1)->onready();
+                if (m_pRecvProc)
+                    ((AsyncSockProc*)m_pRecvProc)->on_watched();
 
-                if (m_opt2)
-                    ((asyncProc*)m_opt2)->onready();
+                if (m_pSendProc)
+                    ((AsyncSockProc*)m_pSendProc)->on_watched();
             }
 
             m_ac->apost(0);
@@ -275,9 +275,9 @@ result_t AsyncIO::close(AsyncEvent* ac)
 
     public:
         AsyncEvent* m_ac;
-        intptr_t& m_s;
-        void*& m_opt1;
-        void*& m_opt2;
+        intptr_t& m_sockfd;
+        void*& m_pRecvProc;
+        void*& m_pSendProc;
     };
 
     (new asyncClose(m_fd, m_RecvOpt, m_SendOpt, ac))->post();
@@ -286,11 +286,10 @@ result_t AsyncIO::close(AsyncEvent* ac)
 
 result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Timer_base* timer)
 {
-    class asyncConnect : public asyncProc {
+    class asyncConnect : public AsyncSockProc {
     public:
-        asyncConnect(intptr_t& s, inetAddr& ai, AsyncEvent* ac, exlib::Locker& locker, void*& opt,
-            Timer_base* timer)
-            : asyncProc(s, EV_WRITE, ac, locker, opt)
+        asyncConnect(intptr_t& sockfd, inetAddr& ai, AsyncEvent* ac, exlib::Locker& locker, void*& opt, Timer_base* timer)
+            : AsyncSockProc(sockfd, EV_WRITE, ac, locker, opt)
             , m_ai(ai)
             , m_timer(timer)
         {
@@ -298,7 +297,7 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Time
 
         virtual result_t process()
         {
-            int32_t n = ::connect(m_s, (struct sockaddr*)&m_ai, m_ai.size());
+            int32_t n = ::connect(m_sockfd, (struct sockaddr*)&m_ai, m_ai.size());
             if (n == SOCKET_ERROR) {
                 int32_t nError = errno;
                 if (nError == EINPROGRESS)
@@ -318,7 +317,7 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Time
             return 0;
         }
 
-        virtual void proc()
+        virtual void after_unwatch()
         {
             inetAddr addr_info;
             socklen_t sz1 = sizeof(addr_info);
@@ -327,10 +326,10 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Time
                 m_timer->clear();
                 m_timer.Release();
             }
-            if (::getpeername(m_s, (sockaddr*)&addr_info, &sz1) == SOCKET_ERROR)
+            if (::getpeername(m_sockfd, (sockaddr*)&addr_info, &sz1) == SOCKET_ERROR)
                 ready(-ECONNREFUSED);
             else {
-                setOption(m_s);
+                setOption(m_sockfd);
                 ready(0);
             }
         }
@@ -369,16 +368,16 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Time
         }
     }
 
-    return (new asyncConnect(m_fd, addr_info, ac, m_lockRecv, m_RecvOpt, timer))->call();
+    return (new asyncConnect(m_fd, addr_info, ac, m_lockRecv, m_RecvOpt, timer))->request();
 }
 
 result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
 {
-    class asyncAccept : public asyncProc {
+    class asyncAccept : public AsyncSockProc {
     public:
-        asyncAccept(intptr_t& s, obj_ptr<Socket_base>& retVal,
+        asyncAccept(intptr_t& sockfd, obj_ptr<Socket_base>& retVal,
             AsyncEvent* ac, exlib::Locker& locker, void*& opt)
-            : asyncProc(s, EV_READ, ac, locker, opt)
+            : AsyncSockProc(sockfd, EV_READ, ac, locker, opt)
             , m_retVal(retVal)
         {
         }
@@ -387,7 +386,7 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
         {
             inetAddr ai;
             socklen_t sz = sizeof(ai);
-            intptr_t c = ::accept(m_s, (sockaddr*)&ai, &sz);
+            intptr_t c = ::accept(m_sockfd, (sockaddr*)&ai, &sz);
             if (c == INVALID_SOCKET) {
                 int32_t nError = errno;
                 return CHECK_ERROR((nError == EWOULDBLOCK) ? CALL_E_PENDDING : -nError);
@@ -421,17 +420,17 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncAccept(m_fd, retVal, ac, m_lockRecv, m_RecvOpt))->call();
+    return (new asyncAccept(m_fd, retVal, ac, m_lockRecv, m_RecvOpt))->request();
 }
 
 result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac, bool bRead, Timer_base* timer)
 {
-    class asyncRecv : public asyncProc {
+    class asyncRecv : public AsyncSockProc {
     public:
-        asyncRecv(intptr_t& s, int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac,
+        asyncRecv(intptr_t& sockfd, int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac,
             int32_t family, bool bRead, exlib::Locker& locker, void*& opt, Timer_base* timer)
-            : asyncProc(s, EV_READ, ac, locker, opt)
+            : AsyncSockProc(sockfd, EV_READ, ac, locker, opt)
             , m_retVal(retVal)
             , m_pos(0)
             , m_bytes(bytes > 0 ? bytes : SOCKET_BUFF_SIZE)
@@ -450,10 +449,10 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
                 int32_t n;
 
                 if (m_family)
-                    n = (int32_t)::recv(m_s, &m_buf[m_pos], m_buf.length() - m_pos,
+                    n = (int32_t)::recv(m_sockfd, &m_buf[m_pos], m_buf.length() - m_pos,
                         MSG_NOSIGNAL);
                 else
-                    n = (int32_t)::read(m_s, &m_buf[m_pos], m_buf.length() - m_pos);
+                    n = (int32_t)::read(m_sockfd, &m_buf[m_pos], m_buf.length() - m_pos);
                 if (n == SOCKET_ERROR) {
                     int32_t nError = errno;
                     if (nError == ECONNRESET)
@@ -494,7 +493,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
             return 0;
         }
 
-        virtual void proc()
+        virtual void after_unwatch()
         {
             result_t hr = process();
 
@@ -528,15 +527,15 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncRecv(m_fd, bytes, retVal, ac, m_family, bRead, m_lockRecv, m_RecvOpt, timer))->call();
+    return (new asyncRecv(m_fd, bytes, retVal, ac, m_family, bRead, m_lockRecv, m_RecvOpt, timer))->request();
 }
 
 result_t AsyncIO::write(Buffer_base* data, AsyncEvent* ac)
 {
-    class asyncSend : public asyncProc {
+    class asyncSend : public AsyncSockProc {
     public:
-        asyncSend(intptr_t& s, Buffer_base* data, AsyncEvent* ac, int32_t family, exlib::Locker& locker, void*& opt)
-            : asyncProc(s, EV_WRITE, ac, locker, opt)
+        asyncSend(intptr_t& sockfd, Buffer_base* data, AsyncEvent* ac, int32_t family, exlib::Locker& locker, void*& opt)
+            : AsyncSockProc(sockfd, EV_WRITE, ac, locker, opt)
             , m_family(family)
         {
             data->toString(m_buf);
@@ -553,9 +552,9 @@ result_t AsyncIO::write(Buffer_base* data, AsyncEvent* ac)
                 int32_t n;
 
                 if (m_family)
-                    n = (int32_t)::send(m_s, m_p, m_sz, MSG_NOSIGNAL);
+                    n = (int32_t)::send(m_sockfd, m_p, m_sz, MSG_NOSIGNAL);
                 else
-                    n = (int32_t)::write(m_s, m_p, m_sz);
+                    n = (int32_t)::write(m_sockfd, m_p, m_sz);
                 if (n == SOCKET_ERROR) {
                     int32_t nError = errno;
                     return CHECK_ERROR((nError == EWOULDBLOCK) ? CALL_E_PENDDING : -nError);
@@ -568,7 +567,7 @@ result_t AsyncIO::write(Buffer_base* data, AsyncEvent* ac)
             return 0;
         }
 
-        virtual void proc()
+        virtual void after_unwatch()
         {
             result_t hr = process();
 
@@ -591,17 +590,17 @@ result_t AsyncIO::write(Buffer_base* data, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncSend(m_fd, data, ac, m_family, m_lockSend, m_SendOpt))->call();
+    return (new asyncSend(m_fd, data, ac, m_family, m_lockSend, m_SendOpt))->request();
 }
 
 result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<NObject>& retVal,
     AsyncEvent* ac)
 {
-    class asyncRecvFrom : public asyncProc {
+    class asyncRecvFrom : public AsyncSockProc {
     public:
-        asyncRecvFrom(intptr_t& s, int32_t bytes, obj_ptr<NObject>& retVal, AsyncEvent* ac,
+        asyncRecvFrom(intptr_t& sockfd, int32_t bytes, obj_ptr<NObject>& retVal, AsyncEvent* ac,
             exlib::Locker& locker, void*& opt)
-            : asyncProc(s, EV_READ, ac, locker, opt)
+            : AsyncSockProc(sockfd, EV_READ, ac, locker, opt)
             , m_retVal(retVal)
             , m_bytes(bytes > 0 ? bytes : SOCKET_BUFF_SIZE)
         {
@@ -616,7 +615,7 @@ result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<NObject>& retVal,
             inetAddr addr_info;
             socklen_t sz = sizeof(addr_info);
 
-            n = (int32_t)::recvfrom(m_s, &m_buf[0], m_buf.length(), MSG_NOSIGNAL,
+            n = (int32_t)::recvfrom(m_sockfd, &m_buf[0], m_buf.length(), MSG_NOSIGNAL,
                 (sockaddr*)&addr_info, &sz);
             if (n == SOCKET_ERROR) {
                 int32_t nError = errno;
@@ -637,7 +636,7 @@ result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<NObject>& retVal,
             return 0;
         }
 
-        virtual void proc()
+        virtual void after_unwatch()
         {
             result_t hr = process();
 
@@ -659,15 +658,15 @@ result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<NObject>& retVal,
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncRecvFrom(m_fd, bytes, retVal, ac, m_lockRecv, m_RecvOpt))->call();
+    return (new asyncRecvFrom(m_fd, bytes, retVal, ac, m_lockRecv, m_RecvOpt))->request();
 }
 
-void AsyncIO::run(void (*proc)(void*))
+void AsyncIO::run(void (*watchProc)(void*))
 {
-    class asyncRun : public asyncEv {
+    class asyncRun : public evAsyncEvent {
     public:
-        asyncRun(void (*proc)(void*))
-            : m_proc(proc)
+        asyncRun(void (*watchProc)(void*))
+            : m_proc(watchProc)
         {
         }
 
@@ -681,7 +680,7 @@ void AsyncIO::run(void (*proc)(void*))
         void (*m_proc)(void*);
     };
 
-    (new asyncRun(proc))->post();
+    (new asyncRun(watchProc))->post();
 }
 }
 
