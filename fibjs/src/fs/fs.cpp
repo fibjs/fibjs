@@ -14,6 +14,7 @@
 #include "BufferedStream.h"
 #include "MemoryStream.h"
 #include "ZipFile.h"
+#include "FSWatcher.h"
 
 #ifndef _WIN32
 #include <dirent.h>
@@ -537,5 +538,58 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
     }
 
     return buffer->write(strBuf, offset, (int32_t)strBuf.length(), "utf8", retVal);
+}
+
+result_t fs_base::watch(exlib::string fname, obj_ptr<FSWatcher_base>& retVal)
+{
+    return watch(fname, v8::Local<v8::Function>(), retVal);
+}
+
+result_t fs_base::watch(exlib::string fname, v8::Local<v8::Function> callback, obj_ptr<FSWatcher_base>& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
+
+    return watch(fname, opts, callback, retVal);
+}
+
+result_t fs_base::watch(exlib::string fname, v8::Local<v8::Object> options, obj_ptr<FSWatcher_base>& retVal)
+{
+    return watch(fname, options, v8::Local<v8::Function>(), retVal);
+}
+
+result_t fs_base::watch(exlib::string fname, v8::Local<v8::Object> options, v8::Local<v8::Function> callback, obj_ptr<FSWatcher_base>& retVal)
+{
+    obj_ptr<File> pFile = new File();
+
+    result_t hr;
+    exlib::string safe_name;
+    path_base::normalize(fname, safe_name);
+    bool is_abs;
+    path_base::isAbsolute(safe_name, is_abs);
+
+    if (!is_abs) {
+        hr = _resolve(safe_name);
+        if (hr < 0)
+            return hr;
+    }
+
+    Isolate* isolate = Isolate::current();
+    bool persistent = true;
+    hr = GetConfigValue(isolate->m_isolate, options, "persistent", persistent, true);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    bool recursive = false;
+    hr = GetConfigValue(isolate->m_isolate, options, "recursive", recursive, true);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    obj_ptr<FSWatcher> pFW = new FSWatcher(safe_name, callback, persistent, recursive);
+    retVal = pFW;
+
+    pFW->start();
+
+    return 0;
 }
 }

@@ -25,6 +25,7 @@ run("./fibmod_test.js");
 run("./trigger_test.js");
 run("./lock_test.js");
 run("./fs_test.js");
+run("./fswatch_test.js");
 run("./ms_test.js");
 run("./io_test.js");
 run("./os_test.js");

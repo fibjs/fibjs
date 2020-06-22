@@ -1,0 +1,32 @@
+
+/*! @brief 基础消息对象
+
+ 当调用成功时, `fs.watch()` 返回该类型对象
+ ```JavaScript
+ var fs = require("fs");
+ var watcher = new fs.watch();
+
+ watcher.close();
+
+ // 带回调地调用
+ fs.watch('./tmp', { encoding: 'buffer' }, (eventType, filename) => {
+  if (filename) {
+    console.log(filename);
+    // Prints: <Buffer ...>
+  }
+});
+ ```
+*/
+interface FSWatcher : EventEmitter
+{
+  /*! @brief 查询和绑定"文件改变"事件，相当于 on("change", func); */
+  Function onchange;
+
+  /*! @brief 查询和绑定"watcher 关闭"的事件，相当于 on("close", func); */
+  Function onclose;
+
+  /*! @brief 查询和绑定"错误发生"的事件，相当于 on("error", func); */
+  Function onerror;
+
+  close();
+};
