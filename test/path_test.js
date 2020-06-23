@@ -237,6 +237,137 @@ describe('path', () => {
         assert.strictEqual(path.posix.extname('file.\\\\'), '.\\\\');
     });
 
+    describe('parse', () => {
+        function checkParseFormat(path, paths) {
+            paths.forEach(([element, root]) => {
+                const output = path.parse(element);
+                assert.strictEqual(typeof output.root, 'string');
+                assert.strictEqual(typeof output.dir, 'string');
+                assert.strictEqual(typeof output.base, 'string');
+                assert.strictEqual(typeof output.ext, 'string');
+                assert.strictEqual(typeof output.name, 'string');
+                assert.strictEqual(path.format(output), element);
+                assert.strictEqual(output.root, root);
+                assert(output.dir.startsWith(output.root));
+                assert.strictEqual(output.dir, output.dir ? path.dirname(element) : '');
+                assert.strictEqual(output.base, path.basename(element));
+                assert.strictEqual(output.ext, path.extname(element));
+            });
+        }
+
+        it('parse - win32', () => {
+            const winPaths = [
+                // [path, root]
+                ['C:\\path\\dir\\index.html', 'C:\\'],
+                ['C:\\another_path\\DIR\\1\\2\\33\\\\index', 'C:\\'],
+                ['another_path\\DIR with spaces\\1\\2\\33\\index', ''],
+                ['\\', '\\'],
+                ['\\foo\\C:', '\\'],
+                ['file', ''],
+                ['file:stream', ''],
+                ['.\\file', ''],
+                ['C:', 'C:'],
+                ['C:.', 'C:'],
+                ['C:..', 'C:'],
+                ['C:abc', 'C:'],
+                ['C:\\', 'C:\\'],
+                ['C:\\abc', 'C:\\'],
+                ['', ''],
+
+                // unc
+                ['\\\\server\\share\\file_path', '\\\\server\\share\\'],
+                ['\\\\server two\\shared folder\\file path.zip',
+                    '\\\\server two\\shared folder\\'],
+                ['\\\\teela\\admin$\\system32', '\\\\teela\\admin$\\'],
+                ['\\\\?\\UNC\\server\\share', '\\\\?\\UNC\\']
+            ];
+
+            checkParseFormat(path.win32, winPaths);
+        })
+
+        it('parse - unix', () => {
+            const unixPaths = [
+                // [path, root]
+                ['/home/user/dir/file.txt', '/'],
+                ['/home/user/a dir/another File.zip', '/'],
+                ['/home/user/a dir//another&File.', '/'],
+                ['/home/user/a$$$dir//another File.zip', '/'],
+                ['user/dir/another File.zip', ''],
+                ['file', ''],
+                ['.\\file', ''],
+                ['./file', ''],
+                ['C:\\foo', ''],
+                ['/', '/'],
+                ['', ''],
+                ['.', ''],
+                ['..', ''],
+                ['/foo', '/'],
+                ['/foo.', '/'],
+                ['/foo.bar', '/'],
+                ['/.', '/'],
+                ['/.foo', '/'],
+                ['/.foo.bar', '/'],
+                ['/foo/bar.baz', '/']
+            ];
+
+            checkParseFormat(path.posix, unixPaths);
+        })
+    });
+
+    describe('format', () => {
+        function checkFormat(path, testCases) {
+            testCases.forEach(([element, expect]) => {
+                assert.strictEqual(path.format(element), expect);
+            });
+        }
+
+        it('specialCaseFormat - win32', () => {
+            const winSpecialCaseFormatTests = [
+                [{ dir: 'some\\dir' }, 'some\\dir\\'],
+                [{ base: 'index.html' }, 'index.html'],
+                [{ root: 'C:\\' }, 'C:\\'],
+                [{ name: 'index', ext: '.html' }, 'index.html'],
+                [{ dir: 'some\\dir', name: 'index', ext: '.html' }, 'some\\dir\\index.html'],
+                [{ root: 'C:\\', name: 'index', ext: '.html' }, 'C:\\index.html'],
+                [{}, '']
+            ];
+
+            checkFormat(path.win32, winSpecialCaseFormatTests);
+        });
+
+        it('specialCaseFormat - posix', () => {
+            const unixSpecialCaseFormatTests = [
+                [{ dir: 'some/dir' }, 'some/dir/'],
+                [{ base: 'index.html' }, 'index.html'],
+                [{ root: '/' }, '/'],
+                [{ name: 'index', ext: '.html' }, 'index.html'],
+                [{ dir: 'some/dir', name: 'index', ext: '.html' }, 'some/dir/index.html'],
+                [{ root: '/', name: 'index', ext: '.html' }, '/index.html'],
+                [{}, '']
+            ];
+
+            checkFormat(path.posix, unixSpecialCaseFormatTests);
+        });
+    });
+
+    describe('parse/format', () => {
+        function checkSpecialCaseParseFormat(path, testCases) {
+            testCases.forEach(([element, expect]) => {
+                // assert.deepStrictEqual(path.parse(element), expect);
+                assert.deepEqual(path.parse(element), expect);
+            });
+        }
+
+        it('SpecialCaseParseFormat - win32', () => {
+            const winSpecialCaseParseTests = [
+                ['t', { base: 't', name: 't', root: '', dir: '', ext: '' }],
+                ['/foo/bar', { root: '/', dir: '/foo', base: 'bar', ext: '', name: 'bar' }],
+            ];
+
+            checkSpecialCaseParseFormat(path.win32, winSpecialCaseParseTests);
+        });
+    });
+
     it('dirname', () => {
         function testPosix(fn) {
             assert.strictEqual(fn('/a/b/'), '/a');

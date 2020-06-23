@@ -1220,6 +1220,34 @@ inline bool isWin32PathSlash(char ch)
     return ch == '/' || ch == '\\';
 }
 
+/* some char ascii map constants :start */
+/* A */
+#define CHAR_UPPERCASE_A 65
+/* a */
+#define CHAR_LOWERCASE_A 97
+/* Z */
+#define CHAR_UPPERCASE_Z 90
+/* z */
+#define CHAR_LOWERCASE_Z 122
+/* / */
+#define CHAR_FORWARD_SLASH 47
+/* \ */
+#define CHAR_BACKWARD_SLASH 92
+/* . */
+#define CHAR_DOT 46
+/* : */
+#define CHAR_COLON 58
+
+inline bool isWindowsDeviceRoot(char ch)
+{
+    return (ch >= CHAR_UPPERCASE_A && ch <= CHAR_UPPERCASE_Z) || (ch >= CHAR_LOWERCASE_A && ch <= CHAR_LOWERCASE_Z);
+}
+
+inline bool isPathSeparator(char ch)
+{
+    return (ch == CHAR_FORWARD_SLASH) || (ch == CHAR_BACKWARD_SLASH);
+}
+
 inline bool isPosixPathSlash(char ch)
 {
     return ch == '/';

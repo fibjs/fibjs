@@ -24,6 +24,8 @@ public:
     static result_t normalize(exlib::string path, exlib::string& retVal);
     static result_t basename(exlib::string path, exlib::string ext, exlib::string& retVal);
     static result_t extname(exlib::string path, exlib::string& retVal);
+    static result_t format(v8::Local<v8::Object> pathObject, exlib::string& retVal);
+    static result_t parse(exlib::string path, obj_ptr<NObject>& retVal);
     static result_t dirname(exlib::string path, exlib::string& retVal);
     static result_t fullpath(exlib::string path, exlib::string& retVal);
     static result_t isAbsolute(exlib::string path, bool& retVal);
@@ -51,6 +53,8 @@ public:
     static void s_static_normalize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_basename(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_extname(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_format(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_dirname(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_fullpath(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_isAbsolute(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -72,6 +76,8 @@ inline ClassInfo& path_win32_base::class_info()
         { "normalize", s_static_normalize, true },
         { "basename", s_static_basename, true },
         { "extname", s_static_extname, true },
+        { "format", s_static_format, true },
+        { "parse", s_static_parse, true },
         { "dirname", s_static_dirname, true },
         { "fullpath", s_static_fullpath, true },
         { "isAbsolute", s_static_isAbsolute, true },
@@ -143,6 +149,38 @@ inline void path_win32_base::s_static_extname(const v8::FunctionCallbackInfo<v8:
     ARG(exlib::string, 0);
 
     hr = extname(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void path_win32_base::s_static_format(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_NAME("path_win32.format");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
+
+    hr = format(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void path_win32_base::s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<NObject> vr;
+
+    METHOD_NAME("path_win32.parse");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = parse(v0, vr);
 
     METHOD_RETURN();
 }
