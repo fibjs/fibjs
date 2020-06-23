@@ -31,6 +31,18 @@ result_t path_win32_base::basename(exlib::string path, exlib::string ext, exlib:
     return _basename_win32(path, ext, retVal);
 }
 
+result_t path_win32_base::format(v8::Local<v8::Object> pathObject, exlib::string& retVal)
+{
+    exlib::string sep;
+    get_sep(sep);
+    return _universal_format(sep, pathObject, retVal);
+}
+
+result_t path_win32_base::parse(exlib::string path, obj_ptr<NObject>& retVal)
+{
+    return _parse_win32(path, retVal);
+}
+
 result_t path_win32_base::extname(exlib::string path, exlib::string& retVal)
 {
     return _extname_win32(path, retVal);

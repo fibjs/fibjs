@@ -31,6 +31,18 @@ result_t path_posix_base::basename(exlib::string path, exlib::string ext, exlib:
     return _basename(path, ext, retVal);
 }
 
+result_t path_posix_base::format(v8::Local<v8::Object> pathObject, exlib::string& retVal)
+{
+    exlib::string sep;
+    get_sep(sep);
+    return _universal_format(sep, pathObject, retVal);
+}
+
+result_t path_posix_base::parse(exlib::string path, obj_ptr<NObject>& retVal)
+{
+    return _parse(path, retVal);
+}
+
 result_t path_posix_base::extname(exlib::string path, exlib::string& retVal)
 {
     return _extname(path, retVal);

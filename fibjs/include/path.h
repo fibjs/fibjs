@@ -13,6 +13,7 @@
 #include "ifs/process.h"
 #include "utf8.h"
 #include "vector"
+#include "SimpleObject.h"
 
 namespace fibjs {
 
@@ -486,6 +487,267 @@ inline result_t _extname_win32(exlib::string path, exlib::string& retVal)
     if (p4 > p2 + 1)
         retVal.assign(p4 - 1, (int32_t)(p3 - p4 + 1));
 
+    return 0;
+}
+
+inline result_t _universal_format(exlib::string sep, v8::Local<v8::Object> pathObject, exlib::string& retVal)
+{
+    result_t hr;
+    Isolate* isolate = Isolate::current();
+
+    exlib::string dir;
+    hr = GetConfigValue(isolate->m_isolate, pathObject, "dir", dir, true);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    exlib::string root;
+
+    hr = GetConfigValue(isolate->m_isolate, pathObject, "root", root, true);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    bool dirFromRoot = false;
+    if (!dir.length()) {
+        dir = root;
+        dirFromRoot = true;
+    }
+
+    exlib::string base;
+    hr = GetConfigValue(isolate->m_isolate, pathObject, "base", base, true);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    if (!base.length()) {
+        exlib::string tmp;
+        hr = GetConfigValue(isolate->m_isolate, pathObject, "name", tmp, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+
+        base += tmp;
+
+        hr = GetConfigValue(isolate->m_isolate, pathObject, "ext", tmp, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+
+        base += tmp;
+    }
+
+    if (!dir.length())
+        retVal = base;
+    else
+        retVal = (dirFromRoot || dir == root) ? (dir + base) : (dir + sep + base);
+
+    return 0;
+}
+
+inline void fillPathObject(obj_ptr<NObject>& po)
+{
+    po->add("root", "");
+    po->add("dir", "");
+    po->add("base", "");
+    po->add("ext", "");
+    po->add("name", "");
+}
+
+inline result_t castPathObject(obj_ptr<NObject> po, obj_ptr<NObject>& retVal)
+{
+    retVal = po;
+
+    return 0;
+}
+
+inline result_t _parse(exlib::string path, obj_ptr<NObject>& retVal)
+{
+    obj_ptr<NObject> ret = new NObject();
+    fillPathObject(ret);
+
+    if (!path.length()) {
+        retVal = ret;
+        return 0;
+    }
+
+    bool isAbsolute = path[0] == CHAR_FORWARD_SLASH;
+    int start;
+    if (isAbsolute) {
+        ret->add("root", "/");
+        start = 1;
+    } else
+        start = 0;
+    int startDot = -1;
+    int startPart = 0;
+    int end = -1;
+    bool matchedSlash = true;
+    int i = path.length() - 1;
+
+    int preDotState = 0;
+
+    for (; i >= start; --i) {
+        int code = path[i];
+        if (code == CHAR_FORWARD_SLASH) {
+            if (!matchedSlash) {
+                startPart = i + 1;
+                break;
+            }
+            continue;
+        }
+        if (end == -1) {
+            matchedSlash = false;
+            end = i + 1;
+        }
+        if (code == CHAR_DOT) {
+            if (startDot == -1)
+                startDot = i;
+            else if (preDotState != 1)
+                preDotState = 1;
+        } else if (startDot != -1)
+            preDotState = -1;
+    }
+
+    if (end != -1) {
+        int start = startPart == 0 && isAbsolute ? 1 : startPart;
+        if (startDot == -1 || preDotState == 0 || (preDotState == 1 && startDot == end - 1 && startDot == startPart + 1)) {
+            exlib::string tmp = path.substr(start, end - start);
+            ret->add("base", tmp);
+            ret->add("name", tmp);
+        } else {
+            ret->add("name", path.substr(start, startDot - start));
+            ret->add("base", path.substr(start, end - start));
+            ret->add("ext", path.substr(startDot, end - startDot));
+        }
+    }
+
+    if (startPart > 0)
+        ret->add("dir", path.substr(0, startPart - 1));
+    else if (isAbsolute)
+        ret->add("dir", "/");
+
+    retVal = ret;
+    return 0;
+}
+
+inline result_t _parse_win32(exlib::string path, obj_ptr<NObject>& retVal)
+{
+    obj_ptr<NObject> ret = new NObject();
+    fillPathObject(ret);
+
+    if (!path.length()) {
+        retVal = ret;
+        return 0;
+    }
+
+    int len = path.length();
+    int rootEnd = 0;
+    int code = path[0];
+
+    if (len == 1) {
+        if (isPathSeparator(code)) {
+            ret->add("root", path);
+            ret->add("dir", path);
+        } else {
+            ret->add("base", path);
+            ret->add("name", path);
+        }
+
+        retVal = ret;
+        return 0;
+    }
+    if (isPathSeparator(code)) {
+        rootEnd = 1;
+        if (isPathSeparator(path[1])) {
+            int j = 2;
+            int last = j;
+            while (j < len && !isPathSeparator(path[j]))
+                j++;
+            if (j < len && j != last) {
+                last = j;
+                while (j < len && isPathSeparator(path[j]))
+                    j++;
+                if (j < len && j != last) {
+                    last = j;
+                    while (j < len && !isPathSeparator(path[j]))
+                        j++;
+                    if (j == len)
+                        rootEnd = j;
+                    else if (j != last)
+                        rootEnd = j + 1;
+                }
+            }
+        }
+    } else if (isWindowsDeviceRoot(code) && path[1] == CHAR_COLON) {
+        if (len <= 2) {
+            ret->add("root", path);
+            ret->add("dir", path);
+
+            retVal = ret;
+            return 0;
+        }
+        rootEnd = 2;
+        if (isPathSeparator(path[2])) {
+            if (len == 3) {
+                ret->add("root", path);
+                ret->add("dir", path);
+
+                retVal = ret;
+                return 0;
+            }
+            rootEnd = 3;
+        }
+    }
+    if (rootEnd > 0)
+        ret->add("root", path.substr(0, rootEnd));
+
+    int startDot = -1;
+    int startPart = rootEnd;
+    int end = -1;
+    int matchedSlash = true;
+    int i = path.length() - 1;
+
+    int preDotState = 0;
+
+    for (; i >= rootEnd; --i) {
+        code = path[i];
+        if (isPathSeparator(code)) {
+            if (!matchedSlash) {
+                startPart = i + 1;
+                break;
+            }
+            continue;
+        }
+        if (end == -1) {
+            matchedSlash = false;
+            end = i + 1;
+        }
+        if (code == CHAR_DOT) {
+            if (startDot == -1)
+                startDot = i;
+            else if (preDotState != 1)
+                preDotState = 1;
+        } else if (startDot != -1)
+            preDotState = -1;
+    }
+
+    if (end != -1) {
+        if (startDot == -1 || preDotState == 0 || (preDotState == 1 && startDot == end - 1 && startDot == startPart + 1)) {
+
+            exlib::string tmp = path.substr(startPart, end);
+            ret->add("base", tmp);
+            ret->add("name", tmp);
+        } else {
+            ret->add("name", path.substr(startPart, startDot));
+            ret->add("base", path.substr(startPart, end));
+            ret->add("ext", path.substr(startDot, end));
+        }
+    }
+
+    if (startPart > 0 && startPart != rootEnd)
+        ret->add("dir", path.substr(0, startPart - 1));
+    else {
+        Variant v;
+        ret->get("root", v);
+        ret->add("dir", v.string());
+    }
+
+    retVal = ret;
     return 0;
 }
 

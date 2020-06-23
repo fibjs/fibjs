@@ -30,6 +30,25 @@ module path_win32
      */
     static String extname(String path);
 
+    /*! @brief 尝试将一个对象格式化为路径
+
+     @param path pathObject 对象
+        path.dir 
+        path.root 
+        path.base 
+        path.name 
+        path.ext 
+     @return 返回格式化后的路径
+     */
+    static String format(Object pathObject);
+
+    /*! @brief 解析路径为路径对象
+
+     @param path 路径
+     @return 返回pathObject 对象
+     */
+    static NObject parse(String path);
+
     /*! @brief 查询路径中的目录路径
 
      @param path 给定查询的路径
