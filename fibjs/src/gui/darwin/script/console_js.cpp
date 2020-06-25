@@ -17,15 +17,19 @@ const wchar_t* g_console_js = L"!function(t){function c(t){return null!==t&&\"ob
 "y(this,t)}}i.prototype.toJSON=function(){return 0==--this.count&&(this.parent[th"
 "is.k]=this.val),\"[Circular]\"},t.console={debug:n(7),log:n(6),info:n(6),notice:n("
 "5),warn:n(4),error:n(3),crit:n(2),alert:n(1),fatal:n(0)}}(this);";
-const wchar_t* script_regExternal = L"!function(){var e=window.external={};e.onmessage=e.onmessage||function(){},e.onc"
+const wchar_t* scriptStart_regExternal = L"!function(){var e=window.external={};e.onmessage=e.onmessage||function(){},e.onc"
 "lose=e.onclose||function(){},Object.defineProperty(e,\"postMessage\",{writable:!1,"
 "value:function(e){window.webkit.messageHandlers.invoke.postMessage(e)}}),Object."
 "defineProperty(e,\"log\",{writable:!1,value:function(e,n){window.webkit.messageHan"
-"dlers.__externalLog.postMessage(JSON.stringify({level:e,fmt:n}))}}),window.exter"
-"nal=e}();";
-const wchar_t* script_inwardPostMessage = L"window.addEventListener(\"load\",function(){webkit.messageHandlers.__inward.postMe"
-"ssage(\"inward:window.load\")});";
-const wchar_t* script_afterInternal = L"webkit.messageHandlers.__inward.postMessage(\"inward:internal-script-loaded\");";
+"dlers.__externalLog.postMessage(JSON.stringify({level:e,fmt:n}))}}),Object.defin"
+"eProperty(window,\"external\",{writable:!1,configurable:!1,value:e}),window.onerro"
+"r=function(e){var n=e+\"\\n    at \"+new Error(e).stack;console.error(n)};var n=win"
+"dow.close.bind(window);Object.defineProperty(window,\"close\",{writable:!1,configu"
+"rable:!1,value:function(){n.apply(window,arguments),window.webkit.messageHandler"
+"s.__inward.postMessage(\"inward:window.doClose\")}})}();";
+const wchar_t* scriptEnd_inwardPostMessage = L"window.addEventListener(\"load\",function(){window.webkit.messageHandlers.__inward"
+".postMessage(\"inward:window.onLoad\")});";
+const wchar_t* scriptEnd_afterInternal = L"webkit.messageHandlers.__inward.postMessage(\"inward:internal-script-loaded\");";
 }
 
 #endif

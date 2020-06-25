@@ -296,17 +296,18 @@ if (win32 || darwin) {
       });
     });
 
-    it.skip("log", () => {
+    it.only("log", () => {
       var p = process.open(process.execPath, [
         path.join(__dirname, "gui_files", "gui1.js")
       ]);
       var r = p.stdout.readLines();
       assert.equal(r[0], "this is.a log");
       assert.equal(r[1], "this is.a warn");
+
       assert.ok(r[2].startsWith("WebView Error:"));
     });
 
-    it.skip("debug", () => {
+    it.only("debug", () => {
       var p = process.open(process.execPath, [
         path.join(__dirname, "gui_files", "gui2.js")
       ]);

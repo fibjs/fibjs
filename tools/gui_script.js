@@ -9,9 +9,9 @@ var platforms = {
     'darwin': {
         IFMACRO: '__APPLE__',
         scripts: {
-            'script_regExternal': 'script_regExternal.js',
-            'script_inwardPostMessage': 'script_inwardPostMessage.js',
-            'script_afterInternal': 'script_afterInternal.js'
+            'scriptStart_regExternal': 'scriptStart_regExternal.js',
+            'scriptEnd_inwardPostMessage': 'scriptEnd_inwardPostMessage.js',
+            'scriptEnd_afterInternal': 'scriptEnd_afterInternal.js'
         }
     },
     'linux': {

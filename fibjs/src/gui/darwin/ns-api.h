@@ -18,6 +18,10 @@
 
 #import "darwin.h"
 
+static exlib::string NSStringToExString(NSString* str) {
+      return exlib::string((const char*)([str UTF8String]));
+}
+
 @interface FibjsNSWindow : NSWindow
 @end
 
@@ -25,8 +29,6 @@
  * @see https://developer.apple.com/documentation/appkit/nsapplicationdelegate
  */
 @interface __NSApplicationDelegate : NSObject<NSApplicationDelegate>
-// - (void)applicationWillTerminate:(id)app;
-// - (void)applicationDidFinishLaunching:(id)app;
 - (bool)applicationShouldTerminate:(id)app;
 - (bool)applicationShouldTerminateAfterLastWindowClosed:(id)app;
 @end
@@ -61,7 +63,14 @@
 @end
 
 @interface WVViewController: NSViewController
--(void)loadView;
+- (void)loadView;
+@end
+
+@interface FileSystemWKURLSchemeHandler: NSObject<WKURLSchemeHandler>
+- (void)webView:(WKWebView *)webView 
+      startURLSchemeTask:(id<WKURLSchemeTask>)urlSchemeTask;
+- (void)webView:(WKWebView *)webView 
+      stopURLSchemeTask:(id<WKURLSchemeTask>)urlSchemeTask;
 @end
 
 #endif // WEBVIEW_NS_API_H

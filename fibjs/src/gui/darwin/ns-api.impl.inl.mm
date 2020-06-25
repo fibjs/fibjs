@@ -257,6 +257,69 @@ didFailWithError:(NSError *)error
         (const char*)[[error localizedDescription] UTF8String]
     );
 }
-@end
+@end /* __WKDownloadDelegate */
+
+@implementation FileSystemWKURLSchemeHandler
+-(void)webView:(WKWebView *)webView 
+      startURLSchemeTask:(id<WKURLSchemeTask>)urlSchemeTask
+{
+    NSLog(@"拦截到请求的URL：%@", urlSchemeTask.request.URL);
+    NSLog(@"absoluteString ：%@", [urlSchemeTask.request.URL absoluteString]);
+    NSLog(@"absoluteURL ：%@", [urlSchemeTask.request.URL absoluteURL]);
+    
+    // cut 'fs://' from input
+    NSString* localFileName = [[urlSchemeTask.request.URL absoluteString] substringFromIndex:5];
+
+    NSLog(@"localFileName %@", localFileName);
+
+    NSHTTPURLResponse *response;
+    if (![[[NSFileManager alloc] init] fileExistsAtPath:localFileName]) {
+        response = [[NSHTTPURLResponse alloc]
+            initWithURL:[NSURL URLWithString:[urlSchemeTask.request.URL absoluteString]]
+            statusCode: 404
+            HTTPVersion:@"HTTP/1.1"
+        ];
+
+        [urlSchemeTask didReceiveResponse:response];
+    } else {
+        NSFileHandle *file = [NSFileHandle fileHandleForReadingAtPath:localFileName];
+        NSData *data = [file readDataToEndOfFile];
+        [file closeFile];
+        NSString* fileMIME = [self getMIMETypeWithCAPIAtFilePath:localFileName];
+        NSDictionary *responseHeader = @{
+            @"Content-type":fileMIME,
+            @"Content-length":[NSString stringWithFormat:@"%lu", (unsigned long)[data length]]
+        };
+        response = [[NSHTTPURLResponse alloc]
+            initWithURL:[NSURL URLWithString:[urlSchemeTask.request.URL absoluteString]]
+            statusCode: 200
+            HTTPVersion:@"HTTP/1.1"
+            headerFields:responseHeader
+        ];
+    
+        [urlSchemeTask didReceiveResponse:response];
+        [urlSchemeTask didReceiveData:data];
+    }
+
+    [urlSchemeTask didFinish];
+}
+// - (void)webView:(WKWebView *)webView 
+//       stopURLSchemeTask:(id<WKURLSchemeTask>)urlSchemeTask
+// {
+// }
+- (NSString *) getMIMETypeWithCAPIAtFilePath:(NSString *)path
+{
+    if (![[[NSFileManager alloc] init] fileExistsAtPath:path]) {
+        return nil;
+    }
+    CFStringRef UTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, (__bridge CFStringRef)[path pathExtension], NULL);
+    CFStringRef MIMEType = UTTypeCopyPreferredTagWithClass (UTI, kUTTagClassMIMEType);
+    CFRelease(UTI);
+    if (!MIMEType) {
+        return @"application/octet-stream";
+    }
+    return (__bridge NSString *)(MIMEType);
+}
+@end /* FileSystemWKURLSchemeHandler */
 
 #endif // __APPLE__

@@ -16,6 +16,7 @@
 #include "ifs/fs.h"
 #include "ifs/os.h"
 #include "ifs/json.h"
+#include "ifs/console.h"
 #include "path.h"
 #include "WebView.h"
 #include "EventInfo.h"
@@ -59,13 +60,6 @@
 }
 -(BOOL)acceptsFirstResponder {
     return YES;
-}
-@end
-
-@implementation __WKPreferences : WKPreferences
--(bool)_fullScreenEnabled
-{
-    return true;
 }
 @end
 
@@ -173,7 +167,7 @@ WebView::WebView(exlib::string url, NObject* opt)
     : m_WinW(640)
     , m_WinH(400)
     , m_visible(true)
-    , m_bDebug(false)
+    , m_bDebug(true)
     , m_initScriptDocAfter("")
     , m_bIScriptLoaded(false)
     , m_iUseContentViewController(true)
@@ -186,7 +180,7 @@ WebView::WebView(exlib::string url, NObject* opt)
     m_fullscreenable = true;
 
     m_visible = true;
-    m_bDebug = false;
+    m_bDebug = true;
     m_maximize = false;
     m_nsWinStyle = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSResizableWindowMask
         // | NSWindowStyleMaskTexturedBackground
@@ -224,7 +218,7 @@ WebView::WebView(exlib::string url, NObject* opt)
         if (m_opt->get("visible", v) == 0 && !v.boolVal())
             m_visible = false;
 
-        if (m_opt->get("debug", v) == 0)
+        if (m_opt->get("debug", v) == 0 && !v.isUndefined())
             m_bDebug = v.boolVal();
 
         if (m_opt->get("script_after", v) == 0)
@@ -295,30 +289,31 @@ bool WebView::onNSWindowShouldClose()
     WebView* wv = this;
     if (!isInternalScriptLoaded()) {
         forceCloseWindow();
-        return false;
+        return shouldClose;
     }
 
-    // TODO: use fibjs native API to resolve it.
-    evaluateWebviewJS("!window.external || typeof window.external.onclose !== 'function' ? false : window.external.onclose()", ^(id result, NSError * _Nullable error) {
-        if (error != nil) {
-            // NSLog(@"evaluateJavaScript error : %@", error.localizedDescription);
-            NSLog(@"evaluateJavaScript error : %@", error);
-            // shouldClose = true;
-            wv->forceCloseWindow();
-        } else {
-            if (result == nil)
-                shouldClose = true;
-            else if ([result boolValue] != NO)
-                shouldClose = true;
-            NSLog(@"evaluateJavaScript result : %@", result);
-        }
+    evaluateWebviewJS(
+        "!window.external || typeof window.external.onclose !== 'function' ? false : window.external.onclose()",
+        ^(id result, NSError * _Nullable error) {
+            if (error != nil) {
+                NSLog(@"evaluateJavaScript error : %@", error);
+                // shouldClose = true;
+                wv->forceCloseWindow();
+            } else {
+                if (result == nil)
+                    shouldClose = true;
+                else if ([result boolValue] != NO)
+                    shouldClose = true;
+                NSLog(@"evaluateJavaScript result : %@", result);
+            }
 
-        s_thNSMainLoop->m_sem.Post();
-    });
+            s_thNSMainLoop->m_sem.Post();
+        }
+    );
 
     do {
         _waitAsyncOperationInCurrentLoop(true);
-    } while (s_thNSMainLoop->m_sem.TryWait());
+    } while (!s_thNSMainLoop->m_sem.TryWait());
 
     return shouldClose;
 }
@@ -335,8 +330,11 @@ void WebView::onWKWebViewInwardMessage(WKScriptMessage* message)
 {
     const char* inwardMsg = (const char*)([[message body] UTF8String]);
 
-    if (!strcmp(inwardMsg, "inward:window.load")) {
+    if (!strcmp(inwardMsg, "inward:window.onLoad")) {
         _emit("load");
+    } else if (!strcmp(inwardMsg, "inward:window.doClose")) {
+        if (onNSWindowShouldClose())
+            forceCloseWindow();
     } else if (!strcmp(inwardMsg, "inward:internal-script-loaded")) {
         m_bIScriptLoaded = true;
     }
@@ -356,6 +354,9 @@ static int32_t asyncOutputMessageFromWKWebview(exlib::string& jsonFmt)
 
     v8::Local<v8::Value> _fmtMessage = logInfo->Get(isolate->NewString("fmt"));
     exlib::string fmtMessage(ToCString(v8::String::Utf8Value(_fmtMessage)));
+    
+    if (logLevel == console_base::_ERROR)
+        fmtMessage = ("WebView Error: " + fmtMessage);
 
     asyncLog(logLevel, fmtMessage);
 
@@ -364,6 +365,9 @@ static int32_t asyncOutputMessageFromWKWebview(exlib::string& jsonFmt)
 
 void WebView::onWKWebViewExternalLogMessage(WKScriptMessage* message)
 {
+    if (!m_bDebug)
+        return ;
+
     const char* externalLogMsg = (const char*)([[message body] UTF8String]);
     exlib::string payload(externalLogMsg);
 
@@ -372,9 +376,9 @@ void WebView::onWKWebViewExternalLogMessage(WKScriptMessage* message)
 
 extern const wchar_t* g_console_js;
 
-extern const wchar_t* script_regExternal;
-extern const wchar_t* script_inwardPostMessage;
-extern const wchar_t* script_afterInternal;
+extern const wchar_t* scriptStart_regExternal;
+extern const wchar_t* scriptEnd_inwardPostMessage;
+extern const wchar_t* scriptEnd_afterInternal;
 
 id WebView::createWKUserContentController()
 {
@@ -387,7 +391,7 @@ id WebView::createWKUserContentController()
     [wkUserCtrl addScriptMessageHandler:[__WKScriptMessageHandler new] name:get_nsstring(WEBVIEW_MSG_HANDLER_NAME_EXTERNALLOG)];
 
     [wkUserCtrl addUserScript:[[WKUserScript alloc]
-        initWithSource:w_get_nsstring(script_regExternal)
+        initWithSource:w_get_nsstring(scriptStart_regExternal)
         injectionTime:WKUserScriptInjectionTimeAtDocumentStart
         forMainFrameOnly:FALSE
     ]];
@@ -399,13 +403,13 @@ id WebView::createWKUserContentController()
     ]];
 
     [wkUserCtrl addUserScript:[[WKUserScript alloc]
-        initWithSource:w_get_nsstring(script_inwardPostMessage)
+        initWithSource:w_get_nsstring(scriptEnd_inwardPostMessage)
         injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
         forMainFrameOnly:TRUE
     ]];
 
     [wkUserCtrl addUserScript:[[WKUserScript alloc]
-        initWithSource:w_get_nsstring(script_afterInternal)
+        initWithSource:w_get_nsstring(scriptEnd_afterInternal)
         injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
         forMainFrameOnly:TRUE
     ]];
@@ -424,26 +428,40 @@ id WebView::createWKWebViewConfig()
 {
     WKWebViewConfiguration* configuration = [WKWebViewConfiguration new];
 
-    id processPool = [configuration processPool];
-    [processPool _setDownloadDelegate:[__WKDownloadDelegate new]];
-    [configuration setProcessPool:processPool];
+    // WKProcessPool* processPool = [configuration processPool];
+    // [configuration setProcessPool:processPool];
     [configuration setUserContentController:createWKUserContentController()];
 
     WKPreferences *preferences = [WKPreferences new];
     preferences.javaScriptCanOpenWindowsAutomatically = YES;
     preferences.tabFocusesLinks = FALSE;
+    [preferences setValue:@TRUE forKey:@"allowFileAccessFromFileURLs"];
     if (m_bDebug) {
-        [preferences setValue:@TRUE forKey:@"allowFileAccessFromFileURLs"];
         [preferences setValue:@TRUE forKey:@"developerExtrasEnabled"];
     }
     // preferences.minimumFontSize = 40.0;
 
     configuration.preferences = preferences;
 
+    /**
+     * WKWebViewConfiguration would put the field value:
+     * `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) {applicationNameForUserAgent}`
+     * 
+     * we could set the field `applicationNameForUserAgent` to customize our AppName, like this
+     * "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36"
+     * @real safari
+     * "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36"
+     */
     configuration.applicationNameForUserAgent = @"Chrome/83.0.4103.97 Safari/537.36";
 
-    // "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36";
-    // "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36"
+    /**
+     * register customized protocol `fs://`
+     * @warning `setURLSchemeHandler:forURLScheme:` is only available on macOS 10.13 or newer
+     */
+    NSOperatingSystemVersion macOS10_13 = (NSOperatingSystemVersion){10, 13, 0};
+    if ([[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:macOS10_13]) {
+        [configuration setURLSchemeHandler:[FileSystemWKURLSchemeHandler new] forURLScheme:@"fs"];
+    }
     
 
     return configuration;
@@ -542,6 +560,7 @@ void WebView::evaluateWebviewJS(const char* js, JsEvaluateResultHdlr hdlr)
     if (hdlr == NULL) {
         hdlr = ^(id item, NSError * _Nullable error) {};
     }
+
     [m_wkWebView
         evaluateJavaScript:get_nsstring(js)
         completionHandler:hdlr
