@@ -9,6 +9,8 @@ if [ ! -z $TARGET_ARCH ]; then
 else
   VENDER_ARCH=${HOST_ARCH}
 fi
+
+echo "VENDER_ARCH to downloaed is $VENDER_ARCH";
 VENDER_OS=`echo "$HOST_OS" | tr "[:upper:]" "[:lower:]"`
 
 case "${VENDER_ARCH}" in

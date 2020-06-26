@@ -1,1 +1,0 @@
-"C:\Program Files\Git\bin\sh.exe" .\.appveyor\install-vender.sh

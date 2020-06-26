@@ -5,18 +5,19 @@ environment:
   CMAKE_RC_COMPILER: 'llvm-rc.exe'
 
 platform:
-  - x64
   - x86
+  - x64
 
 configuration: Release
 
 install:
   - call "%APPVEYOR_BUILD_FOLDER%\.appveyor\set-git-bash.cmd"
-  - call "%APPVEYOR_BUILD_FOLDER%\.appveyor\install-llvm.cmd"
-  - call "%APPVEYOR_BUILD_FOLDER%\.appveyor\set-llvm.cmd"
   - git submodule init
   - git submodule update
-  - call "%APPVEYOR_BUILD_FOLDER%\.appveyor\set-vender.cmd"
+  - IF /I "%PLATFORM%" == "x64" ("C:\Program Files\Git\bin\sh.exe" "%APPVEYOR_BUILD_FOLDER%\.appveyor\install-vender-x64.sh")
+  - IF /I "%PLATFORM%" == "x86" ("C:\Program Files\Git\bin\sh.exe" "%APPVEYOR_BUILD_FOLDER%\.appveyor\install-vender-x86.sh")
+  - call "%APPVEYOR_BUILD_FOLDER%\.appveyor\install-llvm.cmd"
+  - call "%APPVEYOR_BUILD_FOLDER%\.appveyor\set-llvm.cmd"
 
 build_script:
   - IF /I "%PLATFORM%" == "x64" ECHO "x64 building..." && build release amd64
