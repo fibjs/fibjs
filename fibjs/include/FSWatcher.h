@@ -20,11 +20,12 @@ public:
         v8::Local<v8::Function> callback,
         bool persistent = true,
         bool recursive = false)
-        : m_filename(target)
+        : m_closed(false)
+        , m_filename(target)
         , m_Persistent(persistent)
         , m_recursiveForDir(recursive)
-        , m_closed(false)
         , m_proc(NULL)
+        , m_vholder(NULL)
     {
         if (!callback.IsEmpty()) {
             exlib::string _chname = "change";
@@ -60,7 +61,7 @@ public:
 
         virtual void invoke();
 
-        void on_watched(int events, int status)
+        void on_watched(const char* fullfname, int events, int status)
         {
             Variant v[2];
             exlib::string only_evtType;
@@ -79,43 +80,54 @@ public:
                 v[0] = "rename";
             } else {
                 m_watcher->onError(CALL_E_INVALID_CALL, "Unknown change event type");
-                m_watcher->close();
                 return;
             }
 
-#ifdef Darwin
-            if (m_fs_handle.realpath)
-                v[1] = m_fs_handle.realpath;
-            else if (m_fs_handle.path)
-                v[1] = m_fs_handle.path;
-#else
-            v[1] = m_fs_handle.path;
-#endif
+            v[1] = fullfname;
 
             m_watcher->_emit("change", v, 2);
             if (only_evtType.length() > 0)
                 m_watcher->_emit(only_evtType, v, 2);
         }
 
-        void finished()
+        static void freeSelfAfterUVHandleStop(uv_handle_t* handle)
         {
-            uv_fs_event_stop(&m_fs_handle);
-
-            delete this;
+            AsyncWatchFSProc* proc = (AsyncWatchFSProc*)(handle->data);
+            delete proc;
         }
 
     public:
         FSWatcher* m_watcher;
         uv_fs_event_t m_fs_handle;
+        exlib::Locker m_locker;
 
     private:
-        static void fs_event_cb(uv_fs_event_t* handle, const char* filename, int events, int status)
+        static void fs_event_cb(uv_fs_event_t* fs_event, const char* filename, int events, int status)
         {
             AsyncWatchFSProc* p = NULL;
-            p = ((AsyncWatchFSProc*)((intptr_t)handle - (intptr_t)&p->m_fs_handle));
+            p = (AsyncWatchFSProc*)((intptr_t)fs_event - (intptr_t)&p->m_fs_handle);
 
-            assert(&p->m_fs_handle == handle);
-            p->on_watched(events, status);
+            assert(fs_event == &p->m_fs_handle);
+
+            if (!p)
+                return;
+
+            p->m_locker.lock(p);
+
+            uv_handle_t* handle = (uv_handle_t*)fs_event;
+            if (p->m_watcher->m_closed) {
+                handle->data = (void*)p;
+                uv_close(handle, AsyncWatchFSProc::freeSelfAfterUVHandleStop);
+            } else {
+                size_t size = 2074;
+                char fullname[size + 1];
+
+                uv_fs_event_getpath(fs_event, fullname, &size);
+                fullname[size] = '\0';
+
+                p->on_watched(fullname, events, status);
+            }
+            p->m_locker.unlock(p);
         }
     };
 
@@ -133,32 +145,15 @@ public:
             return;
         }
 
+        m_vholder = new ValueHolder(wrap());
+
         if (m_Persistent)
             isolate_ref();
 
-        asyncCall(asyncStart, this);
-    };
-    // FSWatcher_base
-    virtual result_t close()
-    {
-        if (m_closed)
-            return 0;
-
-        if (m_Persistent)
-            isolate_unref();
-
-        m_closed = true;
-
-        _emit("close");
-
-        if (m_proc)
-            m_proc->finished();
-
-        return 0;
+        asyncCall(startWatchInNativeThread, this);
     };
 
-public:
-    static result_t asyncStart(FSWatcher* watcher)
+    static result_t startWatchInNativeThread(FSWatcher* watcher)
     {
         (new AsyncWatchFSProc(watcher))->post(0);
 
@@ -166,18 +161,40 @@ public:
     }
 
 public:
+    // FSWatcher_base
+    virtual result_t close()
+    {
+        if (m_closed)
+            return 0;
+
+        m_closed = true;
+
+        if (isPersistent())
+            isolate_unref();
+
+        if (m_vholder)
+            m_vholder.Release();
+
+        _emit("close");
+
+        return 0;
+    };
+
+public:
     const char* get_target() { return m_filename.c_str(); }
     bool isPersistent() { return m_Persistent; }
     bool isRecursiveForDir() { return m_recursiveForDir; }
     void setProc(AsyncWatchFSProc* proc) { m_proc = proc; }
+
+    exlib::atomic m_closed;
 
 protected:
     exlib::string m_filename;
 
     bool m_Persistent;
     bool m_recursiveForDir;
-    bool m_closed;
     AsyncWatchFSProc* m_proc;
+    obj_ptr<ValueHolder> m_vholder;
 };
 }
 

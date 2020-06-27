@@ -52,7 +52,7 @@ describe('fs.watch*', () => {
     }
 
     describe("::close", () => {
-        it("robust: allow multiple times close(though it's pointless)", () => {
+        it("robust: multiple times close(though it's pointless)", () => {
             const relpath = `./fswatch_files/nogit-${uuid.snowflake().hex()}.txt`
             // ensure it existed
             writeFile(resolve_reltocwd(relpath), '')
@@ -66,6 +66,23 @@ describe('fs.watch*', () => {
         });
 
         it("robust: allow multiple times close(though it's pointless)", () => {
+            const relpath = `./fswatch_files/nogit-${uuid.snowflake().hex()}.txt`
+            // ensure it existed
+            writeFile(resolve_reltocwd(relpath), '')
+
+            var j = 0;
+            while (++j < 20) {
+                const watcher = fs.watch(
+                    resolve_reltocwd(relpath)
+                )
+
+                coroutine.sleep(1);
+                for (let i = 0; i < 10; i++)
+                    watcher.close();
+            }
+        });
+
+        it("robust: allow multiple times close(it's pointless)", () => {
             var triggedCallback = false;
             const relpath = `./fswatch_files/nogit-${uuid.snowflake().hex()}.txt`
             // ensure it existed

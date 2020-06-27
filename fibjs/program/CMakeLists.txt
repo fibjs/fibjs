@@ -131,7 +131,16 @@ endif()
 if(${OS} STREQUAL "Windows")
 	add_definitions(-DWIN32 -D_LIB -D_CRT_SECURE_NO_WARNINGS -D_CRT_RAND_S -DNOMINMAX)
 	set(flags "${flags} -fms-extensions -fmsc-version=1910 -frtti")
-	set(link_flags "${link_flags} -lwinmm -lws2_32 -lpsapi -ldbghelp -lshlwapi -lurlmon -luserenv -ladvapi32 -lkernel32")
+	list(APPEND win_libs winmm ws2_32 psapi dbghelp shlwapi urlmon userenv advapi32 kernel32)
+	foreach(lib ${win_libs})
+		set(link_flags "${link_flags} -l${lib}")
+	endforeach()
+	
+	list(APPEND uv_libraries psapi iphlpapi userenv ws2_32)
+	foreach(lib ${uv_libraries})
+		set(link_flags "${link_flags} -l${lib}")
+	endforeach()
+	
 	set(link_flags "${link_flags} -Xlinker //OPT:ICF -Xlinker //ERRORREPORT:PROMPT -Xlinker //NOLOGO -Xlinker //TLBID:1")
 
 	if(${ARCH} STREQUAL "amd64")

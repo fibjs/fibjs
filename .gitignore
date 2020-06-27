@@ -7,5 +7,7 @@
 node_modules
 out
 
+/*.dmp
+
 .vs
 *.vcxproj.user
