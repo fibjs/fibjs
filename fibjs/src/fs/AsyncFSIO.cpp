@@ -16,6 +16,8 @@ int32_t FSWatcher::AsyncWatchFSProc::post(int32_t v)
 {
     s_uvWait.putTail(this);
     uv_async_send(&s_uv_asyncWatcher);
+
+    return 0;
 }
 
 void FSWatcher::AsyncWatchFSProc::invoke()
@@ -38,7 +40,7 @@ public:
 
     virtual void Run()
     {
-        Runtime rt(NULL);
+        Runtime rtForThread(NULL);
 
         uv_async_init(s_uv_loop, &s_uv_asyncWatcher, AsyncEventCallback);
 
@@ -69,5 +71,7 @@ void initializeUVAsyncThread()
 {
     static UVAsyncThread s_afsIO;
     s_afsIO.start();
+
+    s_afsIO.m_lock.lock();
 }
 }

@@ -560,8 +560,6 @@ result_t fs_base::watch(exlib::string fname, v8::Local<v8::Object> options, obj_
 
 result_t fs_base::watch(exlib::string fname, v8::Local<v8::Object> options, v8::Local<v8::Function> callback, obj_ptr<FSWatcher_base>& retVal)
 {
-    obj_ptr<File> pFile = new File();
-
     result_t hr;
     exlib::string safe_name;
     path_base::normalize(fname, safe_name);
