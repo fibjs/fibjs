@@ -1,10 +1,15 @@
 
-/*! @brief 基础消息对象
+/*! @brief 文件系统观察对象
 
- 当调用成功时, `fs.watch()` 返回该类型对象
+ 当调用 `fs.watch(target)` 成功时, 返回该类型对象
  ```JavaScript
  var fs = require("fs");
- var watcher = new fs.watch();
+ var watcher = fs.watch((eventType, filename) => {
+    if (filename) {
+      console.log(filename);
+      // Prints: <Buffer ...>
+    }
+ });
 
  watcher.close();
 
@@ -27,6 +32,7 @@ interface FSWatcher : EventEmitter
 
   /*! @brief 查询和绑定"错误发生"的事件，相当于 on("error", func); */
   Function onerror;
-
+  
+  /*! @brief 关闭该 Watcher, 不再接收对应的文件变化处理事件 */
   close();
 };
