@@ -1,3 +1,11 @@
+/**
+ * @author Richard
+ * @email ricahrdo2016@mail.com
+ * @create date 2020-06-28 16:15:41
+ * @modify date 2020-06-28 16:15:41
+ * @desc 
+ */
+
 #include "ifs/FSWatcher.h"
 #include "ifs/fs.h"
 #include "EventEmitter.h"
@@ -6,6 +14,7 @@
 #include "Timer.h"
 #include "utf8.h"
 #include "Stat.h"
+#include "AsyncUV.h"
 
 #ifndef _fj_FSWATCHER_H
 #define _fj_FSWATCHER_H
@@ -45,7 +54,7 @@ public:
     EVENT_FUNC(error);
 
 public:
-    class AsyncWatchFSProc : public AsyncEvent {
+    class AsyncWatchFSProc : public AsyncUVTask {
     public:
         AsyncWatchFSProc(FSWatcher* watcher)
             : m_watcher(watcher)
@@ -99,7 +108,6 @@ public:
     public:
         FSWatcher* m_watcher;
         uv_fs_event_t m_fs_handle;
-        exlib::Locker m_locker;
 
     private:
         static void fs_event_cb(uv_fs_event_t* fs_event, const char* filename, int events, int status)
@@ -111,8 +119,6 @@ public:
 
             if (!p)
                 return;
-
-            p->m_locker.lock(p);
 
             uv_handle_t* handle = (uv_handle_t*)fs_event;
             if (p->m_watcher->m_closed) {
@@ -127,7 +133,6 @@ public:
 
                 p->on_watched(fullname, events, status);
             }
-            p->m_locker.unlock(p);
         }
     };
 

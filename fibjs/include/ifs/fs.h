@@ -21,6 +21,7 @@ class Buffer_base;
 class SeekableStream_base;
 class BufferedStream_base;
 class FSWatcher_base;
+class StatsWatcher_base;
 
 class fs_base : public object_base {
     DECLARE_CLASS(fs_base);
@@ -75,6 +76,10 @@ public:
     static result_t watch(exlib::string fname, v8::Local<v8::Function> callback, obj_ptr<FSWatcher_base>& retVal);
     static result_t watch(exlib::string fname, v8::Local<v8::Object> options, obj_ptr<FSWatcher_base>& retVal);
     static result_t watch(exlib::string fname, v8::Local<v8::Object> options, v8::Local<v8::Function> callback, obj_ptr<FSWatcher_base>& retVal);
+    static result_t watchFile(exlib::string fname, v8::Local<v8::Function> callback, obj_ptr<StatsWatcher_base>& retVal);
+    static result_t watchFile(exlib::string fname, v8::Local<v8::Object> options, v8::Local<v8::Function> callback, obj_ptr<StatsWatcher_base>& retVal);
+    static result_t unwatchFile(exlib::string fname);
+    static result_t unwatchFile(exlib::string fname, v8::Local<v8::Function> callback);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -126,6 +131,8 @@ public:
     static void s_static_setZipFS(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_clearZipFS(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_watch(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_watchFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_unwatchFile(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(fs_base, exists, exlib::string, bool);
@@ -169,6 +176,7 @@ public:
 #include "ifs/SeekableStream.h"
 #include "ifs/BufferedStream.h"
 #include "ifs/FSWatcher.h"
+#include "ifs/StatsWatcher.h"
 
 namespace fibjs {
 inline ClassInfo& fs_base::class_info()
@@ -243,7 +251,9 @@ inline ClassInfo& fs_base::class_info()
         { "appendFileSync", s_static_appendFile, true },
         { "setZipFS", s_static_setZipFS, true },
         { "clearZipFS", s_static_clearZipFS, true },
-        { "watch", s_static_watch, true }
+        { "watch", s_static_watch, true },
+        { "watchFile", s_static_watchFile, true },
+        { "unwatchFile", s_static_unwatchFile, true }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -1007,6 +1017,52 @@ inline void fs_base::s_static_watch(const v8::FunctionCallbackInfo<v8::Value>& a
     hr = watch(v0, v1, v2, vr);
 
     METHOD_RETURN();
+}
+
+inline void fs_base::s_static_watchFile(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<StatsWatcher_base> vr;
+
+    METHOD_NAME("fs.watchFile");
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Function>, 1);
+
+    hr = watchFile(v0, v1, vr);
+
+    METHOD_OVER(3, 3);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Object>, 1);
+    ARG(v8::Local<v8::Function>, 2);
+
+    hr = watchFile(v0, v1, v2, vr);
+
+    METHOD_RETURN();
+}
+
+inline void fs_base::s_static_unwatchFile(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("fs.unwatchFile");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = unwatchFile(v0);
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Function>, 1);
+
+    hr = unwatchFile(v0, v1);
+
+    METHOD_VOID();
 }
 }
 
