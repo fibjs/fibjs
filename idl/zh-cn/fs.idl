@@ -9,6 +9,8 @@
  一些注意点:
 
  - 运行 `fs.watch(filename)` 会返回一个继承自 EventEmitter 的 watcher, 它支持 'change', 'changeonly', 'renameonly' 三个事件
+ - `fs.watchFile(target)` 和 `fs.unwatchFile(target)` 依然可以成对使用
+ - `fs.watchFile(target)` 会返回一个继承自 EventEmitter 的 StatsWatcher 对象, 调用 `fs.unwatchFile(target)` 等价于调用 `StatsWatcher.close()`.
  */
 module fs
 {
@@ -279,7 +281,7 @@ module fs
 
     /*! @brief 观察一个文件, 返回对应的 watcher 对象
      @param fname 指定要观察的文件对象
-     @param callback 当文件对象发生变化时的处理回调
+     @param callback(evtType: 'change' | 'rename', filename: string) 当文件对象发生变化时的处理回调
      */
     static FSWatcher watch(String fname, Function callback);
 
@@ -298,7 +300,36 @@ module fs
      @param options.persistent {boolean} default: true 是否只要目标文件还在被观察, 进程就不退出
      @param options.recursive {boolean} default: false 对于 fname 为文件夹的情况, 是否递归地观察其下所有的子目录
      @param options.encoding {enum} default: 'utf8' 指定解析传入的 fname 的字符编码
-     @param callback 当文件对象发生变化时的处理回调
+     @param callback(evtType: 'change' | 'rename', filename: string) 当文件对象发生变化时的处理回调
      */
     static FSWatcher watch(String fname, Object options, Function callback);
+
+    /*! @brief 观察一个文件, 返回对应的 StatsWatcher 对象
+     @param fname 指定要观察的文件对象
+     @param callback(curStats: Stats, prevStats: Stats) 当文件对象的 stats 发生变化时的处理回调
+     */
+    static StatsWatcher watchFile(String fname, Function callback);
+
+    /*! @brief 观察一个文件, 返回对应的 StatsWatcher 对象
+     @param fname 指定要观察的文件对象
+     @param options 观察选项
+     @param options.persistent {boolean} default: true 是否只要目标文件还在被观察, 进程就不退出
+     @param options.recursive {boolean} default: false 对于 fname 为文件夹的情况, 是否递归地观察其下所有的子目录
+     @param options.encoding {enum} default: 'utf8' 指定解析传入的 fname 的字符编码
+     @param callback(curStats: Stats, prevStats: Stats) 当文件对象的 stats 发生变化时的处理回调
+     */
+    static StatsWatcher watchFile(String fname, Object options, Function callback);
+
+    /*! @brief 从观察 fname 的 StatsWatcher 中移除所有观察事件的回调
+     @param fname 指定要观察的文件对象
+     */
+    static unwatchFile(String fname);
+    
+    /*! @brief 从观察 fname 的 StatsWatcher 的观察事件回调中移除 `callback` 回调
+    即便 callback 不再 StatsWatcher 的观察事件回调中也不会报错
+
+     @param fname 指定要观察的文件对象
+     @param callback 要移除的回调
+     */
+    static unwatchFile(String fname, Function callback);
 };
