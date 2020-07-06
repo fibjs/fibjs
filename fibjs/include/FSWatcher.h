@@ -156,6 +156,7 @@ public:
             isolate_ref();
 
         asyncCall(startWatchInNativeThread, this);
+        watcherReadyWaitor.wait();
     };
 
     static result_t startWatchInNativeThread(FSWatcher* watcher)
@@ -192,6 +193,8 @@ public:
     void setProc(AsyncWatchFSProc* proc) { m_proc = proc; }
 
     exlib::atomic m_closed;
+
+    exlib::Event watcherReadyWaitor;
 
 protected:
     exlib::string m_filename;
