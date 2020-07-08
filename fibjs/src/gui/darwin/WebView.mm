@@ -72,22 +72,27 @@ void putGuiPool(AsyncEvent* ac)
     s_uiPool.putTail(ac);
 }
 
+result_t asyncFinishedLaunchingApp(NSApplication* app)
+{
+    [app setActivationPolicy:NSApplicationActivationPolicyRegular];
+    [app activateIgnoringOtherApps:YES];
+    [app finishLaunching];
+
+    return 0;
+}
+
 void run_gui()
 {
     @autoreleasepool {
-        // [NSAutoreleasePool new];
         [NSApplication sharedApplication];
         [[NSApplication sharedApplication] setDelegate:[__NSApplicationDelegate new]];
 
         NSAppMainLoopThread* _thMainLoop = new NSAppMainLoopThread();
 
+        asyncCall(asyncFinishedLaunchingApp, [NSApplication sharedApplication]);
+
         _thMainLoop->bindCurrent();
         s_thNSMainLoop = _thMainLoop;
-
-        // id app = [NSApplication sharedApplication];
-        // [app setActivationPolicy:NSApplicationActivationPolicyRegular];
-        // [app activateIgnoringOtherApps:YES];
-        // [app finishLaunching];
 
         _thMainLoop->Run();
     }

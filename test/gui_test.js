@@ -296,7 +296,7 @@ if (win32 || darwin) {
       });
     });
 
-    describe.only("fs://", () => {
+    describe("fs://", () => {
       it("respond 404 info when trying to open one invalid html file", () => {
         var win = gui.open("fs://" + __dirname + "/gui_files/non-existed.html", {
           debug: false
