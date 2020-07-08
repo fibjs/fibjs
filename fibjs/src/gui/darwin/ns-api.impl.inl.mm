@@ -12,8 +12,16 @@
 
 #import "WebView.h"
 
+#include "ifs/fs.h"
+#include "path.h"
+#include "Buffer.h"
+
 using fibjs::obj_ptr;
 using fibjs::EventInfo;
+using fibjs::fs_base;
+using fibjs::path_base;
+using fibjs::result_t;
+using fibjs::Buffer_base;
 
 void assignWinSizeInfoToResizeAboutEventInfo (CGSize ws, EventInfo* ei) {
     ei->add("width", ws.width);
@@ -272,34 +280,69 @@ didFailWithError:(NSError *)error
 
     NSLog(@"localFileName %@", localFileName);
 
+    exlib::string target = (const char*)[localFileName UTF8String];
+    path_base::normalize(target, target);
+
+    size_t pos = target.find('$');
+    bool isFromZip = pos != exlib::string::npos && target[pos + 1] == PATH_SLASH;
+    
+    exlib::string urlString = !isFromZip ? target : target.substr(0, pos);
+
+    exlib::string baseName;
+    path_base::basename(target, "", baseName);
+
+    fibjs::WebView* wv = fibjs::WebView::getWebViewFromWKWebView(webView);
+    
+    fibjs::Variant varContent;
+    exlib::string bufStr("");
+
+    result_t hr = fs_base::cc_readFile(target, "utf8", varContent, wv->holder());
+
     NSHTTPURLResponse *response;
-    if (![[[NSFileManager alloc] init] fileExistsAtPath:localFileName]) {
+    NSData* data;
+
+    if (hr == CALL_E_FILE_NOT_FOUND) {
+        NSDictionary *responseHeader = @{
+            @"Content-length":[NSString stringWithFormat:@"%lu", (unsigned long)0]
+        };
+            
         response = [[NSHTTPURLResponse alloc]
             initWithURL:[NSURL URLWithString:[urlSchemeTask.request.URL absoluteString]]
             statusCode: 404
             HTTPVersion:@"HTTP/1.1"
-        ];
-
-        [urlSchemeTask didReceiveResponse:response];
-    } else {
-        NSFileHandle *file = [NSFileHandle fileHandleForReadingAtPath:localFileName];
-        NSData *data = [file readDataToEndOfFile];
-        [file closeFile];
-        NSString* fileMIME = [self getMIMETypeWithCAPIAtFilePath:localFileName];
-        NSDictionary *responseHeader = @{
-            @"Content-type":fileMIME,
-            @"Content-length":[NSString stringWithFormat:@"%lu", (unsigned long)[data length]]
-        };
-        response = [[NSHTTPURLResponse alloc]
-            initWithURL:[NSURL URLWithString:[urlSchemeTask.request.URL absoluteString]]
-            statusCode: 200
-            HTTPVersion:@"HTTP/1.1"
             headerFields:responseHeader
         ];
-    
+        // TODO: try to use DEFAULT_URL
+        data = [(get_nsstring("")) dataUsingEncoding:NSUTF8StringEncoding];
+
         [urlSchemeTask didReceiveResponse:response];
         [urlSchemeTask didReceiveData:data];
+
+        [urlSchemeTask didFinish];
+        return ;
     }
+
+    if (hr == CALL_RETURN_NULL)
+        hr = 0;
+    else
+        bufStr = varContent.string();
+
+    data = [get_nsstring(bufStr.c_str()) dataUsingEncoding:NSUTF8StringEncoding];
+
+    NSString* fileMIME = [self getMIMETypeWithCAPIAtFilePath:localFileName];
+    NSDictionary *responseHeader = @{
+        @"Content-type":fileMIME,
+        @"Content-length":[NSString stringWithFormat:@"%lu", (unsigned long)[data length]]
+    };
+    response = [[NSHTTPURLResponse alloc]
+        initWithURL:[NSURL URLWithString:[urlSchemeTask.request.URL absoluteString]]
+        statusCode: 200
+        HTTPVersion:@"HTTP/1.1"
+        headerFields:responseHeader
+    ];
+
+    [urlSchemeTask didReceiveResponse:response];
+    [urlSchemeTask didReceiveData:data];
 
     [urlSchemeTask didFinish];
 }
@@ -307,9 +350,14 @@ didFailWithError:(NSError *)error
 //       stopURLSchemeTask:(id<WKURLSchemeTask>)urlSchemeTask
 // {
 // }
-- (NSString *) getMIMETypeWithCAPIAtFilePath:(NSString *)path
+- (NSString *)getMIMETypeWithCAPIAtFilePath:(NSString *)path
 {
-    if (![[[NSFileManager alloc] init] fileExistsAtPath:path]) {
+    return [self getMIMETypeWithCAPIAtFilePath:path allowNonExisted:true];
+}
+- (NSString *)getMIMETypeWithCAPIAtFilePath:(NSString *)path
+    allowNonExisted:(bool)isAllowNonExisted
+{
+    if (![[[NSFileManager alloc] init] fileExistsAtPath:path] && !isAllowNonExisted) {
         return nil;
     }
     CFStringRef UTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, (__bridge CFStringRef)[path pathExtension], NULL);

@@ -69,8 +69,8 @@ static exlib::string NSStringToExString(NSString* str) {
 @interface FileSystemWKURLSchemeHandler: NSObject<WKURLSchemeHandler>
 - (void)webView:(WKWebView *)webView 
       startURLSchemeTask:(id<WKURLSchemeTask>)urlSchemeTask;
-- (void)webView:(WKWebView *)webView 
-      stopURLSchemeTask:(id<WKURLSchemeTask>)urlSchemeTask;
+// - (void)webView:(WKWebView *)webView 
+//       stopURLSchemeTask:(id<WKURLSchemeTask>)urlSchemeTask;
 @end
 
 #endif // WEBVIEW_NS_API_H

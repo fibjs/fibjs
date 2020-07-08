@@ -38,6 +38,7 @@ public:
     {
         return 1;
     }
+
 public:
     exlib::OSSemaphore m_sem;
 };
@@ -99,7 +100,7 @@ private:
     result_t postMessage(exlib::string msg);
 
 public:
-    typedef void (^JsEvaluateResultHdlr)(id result, NSError * _Nullable error);
+    typedef void (^JsEvaluateResultHdlr)(id result, NSError* _Nullable error);
     void evaluateWebviewJS(const char* js, JsEvaluateResultHdlr hdlr = NULL);
 
     static int injectCSS(WebView* w, const char* css);
@@ -132,12 +133,19 @@ public:
 
     void putWindowToTopOrder();
 
-    static WebView* getWebViewFromNSWindow(NSWindow* win) {
-        return (WebView* )objc_getAssociatedObject(win, "webview");
+    static WebView* getWebViewFromNSWindow(NSWindow* win)
+    {
+        return (WebView*)objc_getAssociatedObject(win, "webview");
     }
 
-    static WebView* getWebViewFromWKUserContentController(WKUserContentController* userCtrl) {
-        return (WebView* )objc_getAssociatedObject(userCtrl, "webview");
+    static WebView* getWebViewFromWKUserContentController(WKUserContentController* userCtrl)
+    {
+        return (WebView*)objc_getAssociatedObject(userCtrl, "webview");
+    }
+
+    static WebView* getWebViewFromWKWebView(WKWebView* wkwv)
+    {
+        return (WebView*)objc_getAssociatedObject(wkwv, "webview");
     }
 
 private:
@@ -149,12 +157,19 @@ private:
 
     id createWKWebViewConfig();
 
-    void assignToToNSWindow(NSWindow* win) {
+    void assignToToNSWindow(NSWindow* win)
+    {
         objc_setAssociatedObject(win, "webview", (id)this, OBJC_ASSOCIATION_ASSIGN);
     }
 
-    void assignToWKUserContentController(WKUserContentController* userCtrl) {
+    void assignToWKUserContentController(WKUserContentController* userCtrl)
+    {
         objc_setAssociatedObject(userCtrl, "webview", (id)this, OBJC_ASSOCIATION_ASSIGN);
+    }
+
+    void assignToWKWebView(WKWebView* wkwv)
+    {
+        objc_setAssociatedObject(wkwv, "webview", (id)this, OBJC_ASSOCIATION_ASSIGN);
     }
 
     void startWKUI();
@@ -167,7 +182,7 @@ private:
     }
 
 public:
-    static void setupAppMenubar();
+    void setupAppMenubar();
 
 public:
     void onNSWindowWillClose()
@@ -194,7 +209,8 @@ public:
     NSUInteger m_wkViewStyle;
 
 public:
-    bool isInternalScriptLoaded () { return m_bIScriptLoaded; }
+    bool isInternalScriptLoaded() { return m_bIScriptLoaded; }
+
 private:
     bool m_bIScriptLoaded;
 
@@ -214,7 +230,7 @@ protected:
     bool m_maximize;
 
     exlib::string m_initScriptDocAfter;
-    
+
     CGRect m_nsWindowFrame;
     bool m_iUseContentViewController;
 

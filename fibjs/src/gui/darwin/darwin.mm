@@ -5,12 +5,12 @@
 
 FIBJS_EXTERN_C_START
 
-id get_nsstring(const char* c_str)
+NSString* get_nsstring(const char* c_str)
 {
-    return (id)[NSString stringWithUTF8String:c_str];
+    return [NSString stringWithUTF8String:c_str];
 }
 
-id w_get_nsstring(const wchar_t* wstr)
+NSString* w_get_nsstring(const wchar_t* wstr)
 {
     return [[NSString alloc]
         initWithBytes:wstr

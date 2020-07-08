@@ -74,20 +74,23 @@ void putGuiPool(AsyncEvent* ac)
 
 void run_gui()
 {
-    [NSAutoreleasePool new];
-    [NSApplication sharedApplication];
+    @autoreleasepool {
+        // [NSAutoreleasePool new];
+        [NSApplication sharedApplication];
+        [[NSApplication sharedApplication] setDelegate:[__NSApplicationDelegate new]];
 
-    NSAppMainLoopThread* _thMainLoop = new NSAppMainLoopThread();
+        NSAppMainLoopThread* _thMainLoop = new NSAppMainLoopThread();
 
-    _thMainLoop->bindCurrent();
-    s_thNSMainLoop = _thMainLoop;
+        _thMainLoop->bindCurrent();
+        s_thNSMainLoop = _thMainLoop;
 
-    id app = [NSApplication sharedApplication];
-    [app setActivationPolicy:NSApplicationActivationPolicyRegular];
-    [app activateIgnoringOtherApps:YES];
+        // id app = [NSApplication sharedApplication];
+        // [app setActivationPolicy:NSApplicationActivationPolicyRegular];
+        // [app activateIgnoringOtherApps:YES];
+        // [app finishLaunching];
 
-    _thMainLoop->Run();
-    // [app finishLaunching];
+        _thMainLoop->Run();
+    }
 }
 
 id fetchEventFromNSMainLoop(int blocking)
@@ -109,9 +112,6 @@ void NSAppMainLoopThread::Run()
 {
     // initialize one fibjs runtime
     Runtime rt(NULL);
-
-    [[NSApplication sharedApplication] setDelegate:[__NSApplicationDelegate new]];
-    WebView::setupAppMenubar();
 
     while (true) {
         AsyncEvent* p = s_uiPool.getHead();
@@ -140,9 +140,7 @@ void maxmizeNSWindow (NSWindow* win) {
 
 result_t openWebViewInGUIThread(obj_ptr<fibjs::WebView> wv)
 {
-    @autoreleasepool {
-        wv->open();
-    }
+    wv->open();
 
     return 0;
 }
@@ -499,6 +497,8 @@ void WebView::initWKWebView()
         initWithFrame:m_nsWindowFrame
         configuration:createWKWebViewConfig()
     ];
+
+    assignToWKWebView(m_wkWebView);
 
     [m_wkWebView setUIDelegate:[__WKUIDelegate new]];
     [m_wkWebView setNavigationDelegate:[__WKNavigationDelegate new]];

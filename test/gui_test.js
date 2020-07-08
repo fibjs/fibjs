@@ -203,7 +203,7 @@ if (win32 || darwin) {
         /**
          * in C++ layer of previous version fibjs(<=0.30.x), on Windows platform,
          * some internal variables of WebView would be re-initialized when WebView::open(),
-         * such as `m_visible`, which determined the value of `webview.visible`.
+         * such as `m_visible`, which determined by the value of `webview.visible`.
          * 
          * we could't create one `WebView` object by calling `new WebView()`, but
          * by calling `gui.open(...)` instead. On ther other hand, `gui.open()` is asynchoronous in C++ layer,
@@ -296,7 +296,31 @@ if (win32 || darwin) {
       });
     });
 
-    it.only("log", () => {
+    describe.only("fs://", () => {
+      it("respond 404 info when trying to open one invalid html file", () => {
+        var win = gui.open("fs://" + __dirname + "/gui_files/non-existed.html", {
+          debug: false
+        });
+
+        setTimeout(() => {
+          win.close()
+        }, 500);
+      });
+
+      it("open one automatic-close html file", () => {
+        gui.open("fs://" + __dirname + "/gui_files/t1000.html", {
+          debug: false
+        });
+      });
+
+      it("open one automatic-close html file in zip file", () => {
+        gui.open("fs://" + __dirname + "/gui_files/t1000.zip$/t1000.html", {
+          debug: false
+        });
+      });
+    });
+
+    it("log", () => {
       var p = process.open(process.execPath, [
         path.join(__dirname, "gui_files", "gui1.js")
       ]);
@@ -307,7 +331,7 @@ if (win32 || darwin) {
       assert.ok(r[2].startsWith("WebView Error:"));
     });
 
-    it.only("debug", () => {
+    it("debug", () => {
       var p = process.open(process.execPath, [
         path.join(__dirname, "gui_files", "gui2.js")
       ]);
