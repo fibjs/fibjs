@@ -19,7 +19,7 @@ file(GLOB_RECURSE src_list "src/*.c*")
 if(${OS} STREQUAL "Darwin" AND ${IS_DARWIN_64})
 	file(GLOB_RECURSE src_platform_list "src/*.m*")
 else()
-	add_compile_definitions(FIBJS_DISABLE_GUI=1)
+	add_definitions(-DFIBJS_DISABLE_GUI=1)
 	file(GLOB_RECURSE src_platform_list "")
 endif()
 

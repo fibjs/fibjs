@@ -17,7 +17,7 @@ endif(CCACHE_FOUND)
 
 file(GLOB_RECURSE src_list "src/*.c*")
 if(${OS} STREQUAL "Darwin" AND NOT ${IS_DARWIN_64})
-	add_compile_definitions(FIBJS_DISABLE_GUI=1)
+	add_definitions(-DFIBJS_DISABLE_GUI=1)
 endif()
 
 if (${OS} STREQUAL "Windows")
