@@ -717,8 +717,6 @@ result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
 
 result_t WebView::get_visible(bool& retVal)
 {
-    printf("WebView::get_visible [1] : %s \n", m_visible ? "yes" : "no");
-
     retVal = m_visible;
     return 0;
 }
