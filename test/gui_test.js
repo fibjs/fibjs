@@ -313,7 +313,7 @@ if (win32 || darwin) {
         });
       });
 
-      it("open one automatic-close html file in zip file", () => {
+      darwin && it("open one automatic-close html file in zip file", () => {
         gui.open("fs://" + __dirname + "/gui_files/t1000.zip$/t1000.html", {
           debug: false
         });
