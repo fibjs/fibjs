@@ -7,6 +7,8 @@ include(tools/subdirs.cmake)
 
 project(fibjs)
 
+set(IS_DARWIN_64 ${OS} STREQUAL "Darwin" AND ${ARCH} STREQUAL "amd64")
+
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
 	set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
@@ -14,9 +16,10 @@ if(CCACHE_FOUND)
 endif(CCACHE_FOUND)
 
 file(GLOB_RECURSE src_list "src/*.c*")
-if(${OS} STREQUAL "Darwin")
+if(${OS} STREQUAL "Darwin" AND ${IS_DARWIN_64})
 	file(GLOB_RECURSE src_platform_list "src/*.m*")
 else()
+	add_compile_definitions(FIBJS_DISABLE_GUI=1)
 	file(GLOB_RECURSE src_platform_list "")
 endif()
 
@@ -63,15 +66,19 @@ set(flags "-fsigned-char -fmessage-length=0 -fdata-sections -ffunction-sections 
 set(ccflags "${ccflags} ${CXX_STD_VER_FLAG}")
 
 if(${OS} STREQUAL "Darwin")
-	set(DARWIN_LIBS "-framework WebKit -framework Cocoa")
-	
 	set(flags "${flags} -Wno-nullability-completeness")
 	set(cflags "${cflags} -DOBJC_OLD_DISPATCH_PROTOTYPES=1")
 	set(ccflags "${ccflags} -DOBJC_OLD_DISPATCH_PROTOTYPES=1")
-	set(link_flags "${link_flags} -mmacosx-version-min=10.9 ${DARWIN_LIBS} ${FOUNDATION_LIBS} ${COCOA_LIBS}")
+	set(link_flags "${link_flags} -framework WebKit -framework Cocoa")
 	
 	set_source_files_properties(${src_platform_list} PROPERTIES COMPILE_FLAGS "-x objective-c++")
 	set(flags "${flags} -mmacosx-version-min=10.9")
+
+	if(${ARCH} STREQUAL "amd64")
+		set(flags "${flags} -m64")
+	elseif(${ARCH} STREQUAL "i386")
+		set(flags "${flags} -m32")
+	endif()
 endif()
 
 if(${BUILD_TYPE} STREQUAL "release")

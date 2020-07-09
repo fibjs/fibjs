@@ -3,8 +3,6 @@
 
 #include "utils.h"
 
-FIBJS_EXTERN_C_START
-
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,13 +35,22 @@ static const char* webview_check_url(const char* url)
     return url;
 }
 
-NSString* get_nsstring(const char* c_str);
-NSString* w_get_nsstring(const wchar_t* c_str);
+static NSString* get_nsstring(const char* c_str)
+{
+    return [NSString stringWithUTF8String:c_str];
+}
+
+static NSString* w_get_nsstring(const wchar_t* wstr)
+{
+    return [[NSString alloc]
+        initWithBytes:wstr
+        length:wcslen(wstr)*sizeof(*wstr)
+        encoding:NSUTF32LittleEndianStringEncoding
+    ];
+}
 
 static const char* WEBVIEW_MSG_HANDLER_NAME_INVOKE = "invoke";
 static const char* WEBVIEW_MSG_HANDLER_NAME_INWARD = "__inward";
 static const char* WEBVIEW_MSG_HANDLER_NAME_EXTERNALLOG = "__externalLog";
-
-FIBJS_EXTERN_C_END
 
 #endif /* WEBVIEW_DARWIN_H */

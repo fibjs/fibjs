@@ -108,15 +108,6 @@ typedef int32_t SOCKET;
 #undef _DEBUG
 #endif // _DEBUG
 
-#ifdef __cplusplus
-#define FIBJS_EXTERN_C_START extern "C" {
-#define FIBJS_EXTERN_C_END }
-#else
-#define FIBJS_EXTERN_C_START
-#define FIBJS_EXTERN_C_END
-#endif
-
-
 namespace fibjs {
 
 typedef int32_t result_t;

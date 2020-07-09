@@ -64,9 +64,9 @@ void importModule()
     IMPORT_MODULE(registry);
 #endif
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(FIBJS_DISABLE_GUI)
     IMPORT_MODULE(gui);
-#endif
+#endif /* __APPLE__ */
 }
 
 void main(int32_t argc, char** argv)

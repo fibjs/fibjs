@@ -6,7 +6,7 @@
  */
 
 #ifndef _WIN32
-#ifndef __APPLE__
+#if !defined(__APPLE__) || defined(FIBJS_DISABLE_GUI)
 
 #include "object.h"
 

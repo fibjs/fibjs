@@ -6,7 +6,7 @@
  * @desc WebView Implementation in OSX
  */
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(FIBJS_DISABLE_GUI)
 
 #import "ns-api.h"
 

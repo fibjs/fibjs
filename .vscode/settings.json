@@ -3,6 +3,7 @@
     "editor.formatOnSave": true,
     "files.associations": {
         "*.idl": "java",
+        "**/gui/darwin/darwin.h": "objective-cpp",
         "**/gui/darwin/ns-api.h": "objective-cpp",
         "**/gui/darwin/WebView.h": "cpp",
     },

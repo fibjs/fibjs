@@ -7,6 +7,8 @@ include(../tools/subdirs.cmake)
 
 project(fibjs)
 
+set(IS_DARWIN_64 ${OS} STREQUAL "Darwin" AND ${ARCH} STREQUAL "amd64")
+
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
 	set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
@@ -14,6 +16,9 @@ if(CCACHE_FOUND)
 endif(CCACHE_FOUND)
 
 file(GLOB_RECURSE src_list "src/*.c*")
+if(${OS} STREQUAL "Darwin" AND NOT ${IS_DARWIN_64})
+	add_compile_definitions(FIBJS_DISABLE_GUI=1)
+endif()
 
 if (${OS} STREQUAL "Windows")
 	# add quote to all paths in CMAKE_RC_COMPILE_OBJECT to make it robustic on Windows.

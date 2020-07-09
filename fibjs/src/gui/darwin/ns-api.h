@@ -6,7 +6,7 @@
 
  * @desc 
  */
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(FIBJS_DISABLE_GUI)
 
 #ifndef WEBVIEW_NS_API_H
 #define WEBVIEW_NS_API_H

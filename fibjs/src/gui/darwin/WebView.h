@@ -5,7 +5,7 @@
  * @modify date 2018-04-23 03:25:42
  * @desc WebView Object for Mac OSX
  */
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(FIBJS_DISABLE_GUI)
 
 #ifndef WEBVIEW_APPLE_H_
 #define WEBVIEW_APPLE_H_
