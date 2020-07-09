@@ -28,13 +28,6 @@ void assignWinSizeInfoToResizeAboutEventInfo (CGSize ws, EventInfo* ei) {
     ei->add("height", ws.height);
 }
 
-@implementation FibjsNSWindow : NSWindow
-- (BOOL)acceptsFirstMouse:(NSEvent *)event
-{
-    return YES;
-}
-@end
-
 @implementation __NSApplicationDelegate
 // -(void)applicationWillTerminate:(id)app
 // {
@@ -158,7 +151,7 @@ runOpenPanelWithParameters:(WKOpenPanelParameters *)parameters
 initiatedByFrame:(WKFrameInfo *)frame
 completionHandler:(void (^)(NSArray<NSURL *> *URLs))completionHandler
 {
-    id openPanel = [NSOpenPanel openPanel];
+    NSOpenPanel* openPanel = [NSOpenPanel openPanel];
     [openPanel setAllowsMultipleSelection:[parameters allowsMultipleSelection]];
     [openPanel setCanChooseFiles:1];
     [openPanel
@@ -177,7 +170,7 @@ runJavaScriptAlertPanelWithMessage:(NSString *)message
 initiatedByFrame:(WKFrameInfo *)frame
 completionHandler:(void (^)(void))completionHandler
 {
-    id alert = [NSAlert new];
+    NSAlert* alert = [NSAlert new];
 
     [alert setIcon:[NSImage imageNamed:@"NSCaution"]];
 
@@ -195,7 +188,7 @@ runJavaScriptConfirmPanelWithMessage:(NSString *)message
 initiatedByFrame:(WKFrameInfo *)frame
 completionHandler:(void (^)(BOOL result))completionHandler;
 {
-    id alert = [NSAlert new];
+    NSAlert* alert = [NSAlert new];
 
     [alert setIcon:[NSImage imageNamed:@"NSCaution"]];
 
@@ -241,16 +234,16 @@ decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler
 decideDestinationWithSuggestedFilename:(NSString *)filename
 completionHandler:(void (^)(int allowOverwrite, id destination))completionHandler
 {
-    id savePanel = [NSSavePanel savePanel];
+    NSSavePanel* savePanel = [NSSavePanel savePanel];
     [savePanel setCanCreateDirectories:YES];
     [savePanel setNameFieldStringValue:filename];
 
     [savePanel
         beginWithCompletionHandler:^(NSModalResponse result) {
             if (result == NSModalResponseOK) {
-                id url = objc_msgSend(savePanel, sel_registerName("URL"));
-                id path = objc_msgSend(url, sel_registerName("path"));
-                completionHandler(1, path);
+                NSString* path = [[savePanel URL] path];
+                
+                completionHandler(1, [[savePanel URL] path]);
             } else {
                 completionHandler(NO, nil);
             }
@@ -271,14 +264,9 @@ didFailWithError:(NSError *)error
 -(void)webView:(WKWebView *)webView 
       startURLSchemeTask:(id<WKURLSchemeTask>)urlSchemeTask
 {
-    NSLog(@"拦截到请求的URL：%@", urlSchemeTask.request.URL);
-    NSLog(@"absoluteString ：%@", [urlSchemeTask.request.URL absoluteString]);
-    NSLog(@"absoluteURL ：%@", [urlSchemeTask.request.URL absoluteURL]);
-    
     // cut 'fs://' from input
     NSString* localFileName = [[urlSchemeTask.request.URL absoluteString] substringFromIndex:5];
 
-    NSLog(@"localFileName %@", localFileName);
 
     exlib::string target = (const char*)[localFileName UTF8String];
     path_base::normalize(target, target);
@@ -312,8 +300,8 @@ didFailWithError:(NSError *)error
             HTTPVersion:@"HTTP/1.1"
             headerFields:responseHeader
         ];
-        // TODO: try to use DEFAULT_URL
-        data = [(get_nsstring("")) dataUsingEncoding:NSUTF8StringEncoding];
+        
+        data = [@"" dataUsingEncoding:NSUTF8StringEncoding];
 
         [urlSchemeTask didReceiveResponse:response];
         [urlSchemeTask didReceiveData:data];
@@ -346,10 +334,6 @@ didFailWithError:(NSError *)error
 
     [urlSchemeTask didFinish];
 }
-// - (void)webView:(WKWebView *)webView 
-//       stopURLSchemeTask:(id<WKURLSchemeTask>)urlSchemeTask
-// {
-// }
 - (NSString *)getMIMETypeWithCAPIAtFilePath:(NSString *)path
 {
     return [self getMIMETypeWithCAPIAtFilePath:path allowNonExisted:true];

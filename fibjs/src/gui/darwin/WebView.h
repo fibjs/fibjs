@@ -181,7 +181,6 @@ public:
 
 public:
     NSWindow* m_nsWindow;
-    // FibjsNSWindow* m_nsWindow;
     WKWebView* m_wkWebView;
     NSUInteger m_nsWinStyle;
     NSUInteger m_wkViewStyle;
