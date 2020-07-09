@@ -725,9 +725,6 @@ result_t WebView::set_visible(bool newVal)
 {
     m_visible = newVal;
 
-    printf("WebView::set_visible [1] : %s \n", newVal ? "yes" : "no");
-    printf("WebView::set_visible [2] : %s \n", m_visible ? "yes" : "no");
-
     if (m_visible) {
         if (m_maximize) maxmizeNSWindow(m_nsWindow);
         m_maximize = false;
