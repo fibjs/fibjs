@@ -7,14 +7,14 @@ var fs = require("fs");
 var path = require("path");
 
 var win32 = process.platform === "win32";
-var darwin = process.platform === "darwin";
+var darwin64 = process.platform === "darwin" && process.arch === 'x64';
 
 var htmlDir = path.resolve(__dirname, './gui_files/html');
 var html = fs.readTextFile(path.resolve(htmlDir, './basic-loop.html'));
 
 const isCI = !!process.env.CI;
 
-if (win32 || darwin) {
+if (win32 || darwin64) {
   var http = require("http");
   var gui = require("gui");
   var coroutine = require("coroutine");
@@ -71,7 +71,7 @@ if (win32 || darwin) {
 
         // In Dardinw, WebView would auto-centralize its window by default, it trigger once emit("move")
         win.onmove = () => {
-          if (darwin) events.onmove = true;
+          if (darwin64) events.onmove = true;
         }
 
         for (var i = 0; i < 1000 && !check; i++) coroutine.sleep(10);
@@ -97,7 +97,7 @@ if (win32 || darwin) {
       });
     });
 
-    darwin && describe("move", () => {
+    darwin64 && describe("move", () => {
       var events_resize = {};
 
       /**
@@ -128,7 +128,7 @@ if (win32 || darwin) {
       });
     });
 
-    darwin && false && describe("resize", () => {
+    darwin64 && false && describe("resize", () => {
       var events_resize = {};
 
       // TODO: trigger it by msg posted to NSWindow, tell it use internal darwin API
@@ -181,7 +181,7 @@ if (win32 || darwin) {
       });
     });
 
-    darwin && describe("options", () => {
+    darwin64 && describe("options", () => {
       it("visible", () => {
         var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/normal.html", {
           title: "Normal - visible",
@@ -237,7 +237,7 @@ if (win32 || darwin) {
       });
     });
 
-    darwin && describe("html5", () => {
+    darwin64 && describe("html5", () => {
       it("input.value", () => {
         var postedMsg
         var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/normal-html5.html", {
@@ -299,7 +299,7 @@ if (win32 || darwin) {
     });
 
     describe("fs://", () => {
-      const protocolPrefix = darwin ? 'fs://' : 'fs:'
+      const protocolPrefix = darwin64 ? 'fs://' : 'fs:'
 
       it("respond 404 info when trying to open one invalid html file", () => {
         var win = gui.open(`${protocolPrefix}` + __dirname + "/gui_files/non-existed.html", {
@@ -317,7 +317,7 @@ if (win32 || darwin) {
         });
       });
 
-      !isCI && darwin && it("open one automatic-close html file in zip file", () => {
+      !isCI && darwin64 && it("open one automatic-close html file in zip file", () => {
         gui.open(`${protocolPrefix}` + __dirname + "/gui_files/t1000.zip$/t1000.html", {
           debug: false
         });
