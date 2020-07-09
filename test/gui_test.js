@@ -225,7 +225,7 @@ if (win32 || darwin) {
         win.close();
       });
 
-      !isCI && it("maxmize", () => {
+      it("maxmize", () => {
         var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/normal.html", {
           title: "Maxmize",
           maximize: true,

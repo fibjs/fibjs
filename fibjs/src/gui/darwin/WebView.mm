@@ -721,14 +721,14 @@ result_t WebView::get_visible(bool& retVal)
     return 0;
 }
 
-result_t asyncToggleVisible(WebView* wv)
+result_t WebView::asyncToggleVisible(WebView* wv)
 {
-    if (wv->isVisible()) {
-        if (wv->isMaximize()) maxmizeNSWindow(wv->m_nsWindow);
-        wv->setMaximize(false);
+    if (wv->m_visible) {
+        if (wv->m_maximize) maxmizeNSWindow(wv->m_nsWindow);
+        wv->m_maximize = false;
     }
 
-    [wv->m_nsWindow setIsVisible:(wv->isVisible() ? YES : NO)];
+    [wv->m_nsWindow setIsVisible:(wv->m_visible ? YES : NO)];
 
     return 0;
 }

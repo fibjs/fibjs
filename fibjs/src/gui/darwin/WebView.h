@@ -186,15 +186,13 @@ public:
     NSUInteger m_wkViewStyle;
 
 public:
+    static result_t asyncToggleVisible(WebView* wv);
+
+public:
     bool isInternalScriptLoaded() { return m_bIScriptLoaded; }
 
 private:
     bool m_bIScriptLoaded;
-
-public:
-    bool isVisible () { return m_visible; }
-    bool isMaximize () { return m_maximize; }
-    void setMaximize (bool nextVal) { m_maximize = nextVal; }
 
 protected:
     exlib::string m_title;
