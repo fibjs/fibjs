@@ -67,6 +67,8 @@ namespace fibjs {
 
 DECLARE_MODULE(gui);
 
+void asyncLog(int32_t priority, exlib::string msg);
+
 void putGuiPool(AsyncEvent* ac)
 {
     s_uiPool.putTail(ac);
@@ -299,15 +301,15 @@ bool WebView::onNSWindowShouldClose()
         "!window.external || typeof window.external.onclose !== 'function' ? false : window.external.onclose()",
         ^(id result, NSError * _Nullable error) {
             if (error != nil) {
-                NSLog(@"evaluateJavaScript error : %@", error);
-                // shouldClose = true;
+                if (wv->m_bDebug)
+                    asyncLog(console_base::_DEBUG, NSStringToExString([error localizedDescription]));
+                    
                 wv->forceCloseWindow();
             } else {
                 if (result == nil)
                     shouldClose = true;
                 else if ([result boolValue] != NO)
                     shouldClose = true;
-                NSLog(@"evaluateJavaScript result : %@", result);
             }
 
             s_thNSMainLoop->m_sem.Post();
@@ -342,8 +344,6 @@ void WebView::onWKWebViewInwardMessage(WKScriptMessage* message)
         m_bIScriptLoaded = true;
     }
 }
-
-void asyncLog(int32_t priority, exlib::string msg);
 
 static int32_t asyncOutputMessageFromWKWebview(exlib::string& jsonFmt)
 {

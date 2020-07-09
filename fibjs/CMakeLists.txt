@@ -16,11 +16,14 @@ if(CCACHE_FOUND)
 endif(CCACHE_FOUND)
 
 file(GLOB_RECURSE src_list "src/*.c*")
-if(${OS} STREQUAL "Darwin" AND ${IS_DARWIN_64})
+if(${OS} STREQUAL "Darwin")
 	file(GLOB_RECURSE src_platform_list "src/*.m*")
 else()
-	add_definitions(-DFIBJS_DISABLE_GUI=1)
 	file(GLOB_RECURSE src_platform_list "")
+endif()
+
+if(${OS} STREQUAL "Darwin" AND NOT ${IS_DARWIN_64})
+	add_definitions(-DFIBJS_DISABLE_GUI=1)
 endif()
 
 add_library(fibjs ${src_list} ${src_platform_list})
