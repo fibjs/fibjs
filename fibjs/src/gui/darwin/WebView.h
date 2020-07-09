@@ -15,12 +15,6 @@
 #include <Cocoa/Cocoa.h>
 #include "ns-api.h"
 
-enum webview_dialog_type {
-    WEBVIEW_DIALOG_TYPE_OPEN = 0,
-    WEBVIEW_DIALOG_TYPE_SAVE = 1,
-    WEBVIEW_DIALOG_TYPE_ALERT = 2
-};
-
 namespace fibjs {
 
 static exlib::LockedList<AsyncEvent> s_uiPool;
@@ -103,29 +97,13 @@ public:
     typedef void (^JsEvaluateResultHdlr)(id result, NSError* _Nullable error);
     void evaluateWebviewJS(const char* js, JsEvaluateResultHdlr hdlr = NULL);
 
-    static int injectCSS(WebView* w, const char* css);
-
     void toggleFullScreen(int fullscreen);
 
-    static void webview_set_color(WebView* w, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
-
-    static void webview_dialog(WebView* w, enum webview_dialog_type dlgtype, int flags, const char* title, const char* arg, char* result, size_t resultsz);
-
-    static void webview_print_log(const char* s) { printf("%s\n", s); }
-
-    static void webview_debug(const char* format, ...)
-    {
-        char buf[4096];
-        va_list ap;
-        va_start(ap, format);
-        vsnprintf(buf, sizeof(buf), format, ap);
-        webview_print_log(buf);
-        va_end(ap);
-    }
+    void setWindowColor(WebView* w, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 
     static int helperEncodeJS(const char* s, char* esc, size_t n);
 
-    static id create_menu_item(id title, const char* action, const char* key);
+    static NSMenuItem* createMenuItem(id title, const char* action, const char* key);
 
     void initNSWindow();
 

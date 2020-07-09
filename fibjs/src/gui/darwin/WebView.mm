@@ -238,41 +238,41 @@ WebView::~WebView()
 
 void WebView::setupAppMenubar()
 {
-    id menubar = [NSMenu alloc];
+    NSMenu* menubar = [NSMenu alloc];
     [menubar initWithTitle:@""];
     [menubar autorelease];
 
-    id appName = [[NSProcessInfo processInfo] processName];
+    NSString* appName = [[NSProcessInfo processInfo] processName];
 
-    id appMenuItem = [NSMenuItem alloc];
+    NSMenuItem* appMenuItem = [NSMenuItem alloc];
     [appMenuItem
         initWithTitle:appName
         action:NULL
         keyEquivalent:get_nsstring("")
     ];
 
-    id appMenu = [NSMenu alloc];
+    NSMenu* appMenu = [NSMenu alloc];
     [appMenu initWithTitle:appName];
     [appMenu autorelease];
 
     [appMenuItem setSubmenu:appMenu];
     [menubar addItem:appMenuItem];
 
-    id title = [get_nsstring("Hide ") stringByAppendingString:appName];
-    id item = create_menu_item(title, "hide:", "h");
+    NSString* title = [get_nsstring("Hide ") stringByAppendingString:appName];
+    NSMenuItem* item = createMenuItem(title, "hide:", "h");
     [appMenu addItem:item];
 
-    item = create_menu_item(get_nsstring("Hide Others"), "hideOtherApplications:", "h");
+    item = createMenuItem(get_nsstring("Hide Others"), "hideOtherApplications:", "h");
     [item setKeyEquivalentModifierMask:(NSEventModifierFlagOption | NSEventModifierFlagCommand)];
     [appMenu addItem:item];
 
-    item = create_menu_item(get_nsstring("Show All"), "unhideAllApplications:", "");
+    item = createMenuItem(get_nsstring("Show All"), "unhideAllApplications:", "");
     [appMenu addItem:item];
 
     [appMenu addItem:[NSMenuItem separatorItem]];
 
     title = [get_nsstring("Quit ") stringByAppendingString:appName];
-    item = create_menu_item(title, "terminate:", "q");
+    item = createMenuItem(title, "terminate:", "q");
     [appMenu addItem:item];
 
     [[NSApplication sharedApplication] setMainMenu:menubar];
@@ -513,7 +513,7 @@ void WebView::initWKWebView()
 
 void WebView::navigateWKWebView()
 {
-    id nsURL = [NSURL
+    NSURL* nsURL = [NSURL
         URLWithString:get_nsstring(
             webview_check_url(m_url.c_str())
         )
@@ -552,7 +552,7 @@ int WebView::initializeWebView()
     initWKWebView();
     navigateWKWebView();
 
-    setupAppMenubar();
+    // setupAppMenubar();
 
     startWKUI();
 
@@ -572,129 +572,29 @@ void WebView::evaluateWebviewJS(const char* js, JsEvaluateResultHdlr hdlr)
     ];
 }
 
-int WebView::injectCSS(WebView* w, const char* css)
+void WebView::setWindowColor(WebView* w, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
-    // int n = helperEncodeJS(css, NULL, 0);
-    // char* esc = (char*)calloc(1, sizeof(CSS_INJECT_FUNCTION) + n + 4);
-    // if (esc == NULL) {
-    //     return -1;
-    // }
-    // char* js = (char*)calloc(1, n);
-    // helperEncodeJS(css, js, n);
-    // snprintf(esc, sizeof(CSS_INJECT_FUNCTION) + n + 4, "%s(\"%s\")",
-    //     CSS_INJECT_FUNCTION, js);
-    // int r = evaluateWebviewJS(w, esc);
-    // free(js);
-    // free(esc);
-    // return r;
+    NSColor* color = [NSColor
+        colorWithRed:((float)r / 255.0)
+        green:((float)g / 255.0)
+        blue:((float)b / 255.0)
+        alpha:((float)a / 255.0)
+    ];
 
-    return 0;
-}
+    [m_nsWindow setBackgroundColor:color];
 
-// void WebView::toggleFullScreen(int nextFull)
-// {
-//     unsigned long windowStyleMask = (unsigned long)[m_nsWindow styleMask];
-//     int b = (((windowStyleMask & NSWindowStyleMaskFullScreen) == NSWindowStyleMaskFullScreen)
-//             ? 1
-//             : 0);
-//     if (b != nextFull) {
-//         [m_nsWindow toggleFullScreen:NULL];
-//     }
-// }
+    if (0.5 >= ((r / 255.0 * 299.0) + (g / 255.0 * 587.0) + (b / 255.0 * 114.0)) / 1000.0) {
+        [m_nsWindow
+            setAppearance:[NSAppearance appearanceNamed:@"NSAppearanceNameVibrantDark"]
+        ];
+    } else {
+        [m_nsWindow
+            setAppearance:[NSAppearance appearanceNamed:@"NSAppearanceNameVibrantLight"]
+        ];
+    }
 
-void WebView::webview_set_color(WebView* w, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
-{
-    // id color = [NSColor
-    //     colorWithRed:((float)r / 255.0)
-    //     green:((float)g / 255.0)
-    //     blue:((float)b / 255.0)
-    //     alpha:((float)a / 255.0)
-    // ];
-
-    // [w->priv.window setBackgroundColor:color];
-
-    // if (0.5 >= ((r / 255.0 * 299.0) + (g / 255.0 * 587.0) + (b / 255.0 * 114.0)) / 1000.0) {
-    //     [w->priv.window
-    //         setAppearance:[NSAppearance appearanceNamed:get_nsstring("NSAppearanceNameVibrantDark")]
-    //     ];
-    // } else {
-    //     [w->priv.window
-    //         setAppearance:[NSAppearance appearanceNamed:get_nsstring("NSAppearanceNameVibrantLight")]
-    //     ];
-    // }
-
-    // [w->priv.window setOpaque:FALSE];
-    // [w->priv.window setTitlebarAppearsTransparent:YES];
-}
-
-void WebView::webview_dialog(WebView* w, enum webview_dialog_type dlgtype, int flags, const char* title, const char* arg, char* result, size_t resultsz)
-{
-    // if (dlgtype == WEBVIEW_DIALOG_TYPE_OPEN || dlgtype == WEBVIEW_DIALOG_TYPE_SAVE) {
-    //     id panel = (id)objc_getClass("NSSavePanel");
-    //     if (dlgtype == WEBVIEW_DIALOG_TYPE_OPEN) {
-    //         id openPanel = [NSOpenPanel openPanel];
-            
-    //         if (flags & WEBVIEW_DIALOG_FLAG_DIRECTORY) {
-    //             [openPanel setCanChooseFiles:FALSE];
-    //             [openPanel setCanChooseDirectories:TRUE];
-    //         } else {
-    //             [openPanel setCanChooseFiles:TRUE];
-    //             [openPanel setCanChooseDirectories:FALSE];
-    //         }
-
-    //         [openPanel setResolvesAliases:FALSE];
-    //         [openPanel setAllowsMultipleSelection:FALSE];
-    //         panel = openPanel;
-    //     } else {
-    //         panel = [NSSavePanel savePanel];
-    //     }
-
-    //     [panel setCanCreateDirectories:TRUE];
-    //     [panel setShowsHiddenFiles:TRUE];
-    //     [panel setExtensionHidden:FALSE];
-    //     [panel setCanSelectHiddenExtension:FALSE];
-    //     [panel setTreatsFilePackagesAsDirectories:TRUE];
-
-    //     [panel
-    //         beginSheetModalForWindow:w->priv.window
-    //         completionHandler:^(NSModalResponse result) {
-    //             [[NSApplication sharedApplication] stopModalWithCode:result];
-    //         }
-    //     ];
-
-    //     if (
-    //         [[NSApplication sharedApplication] runModalForWindow:panel] == NSModalResponseOK
-    //     ) {
-    //         id url = [panel URL];
-    //         id path = [url path];
-    //         const char* filename = (const char*)[path UTF8String];
-    //         strlcpy(result, filename, resultsz);
-    //     }
-    // } else if (dlgtype == WEBVIEW_DIALOG_TYPE_ALERT) {
-    //     id a = [NSAlert new];
-    //     switch (flags & WEBVIEW_DIALOG_FLAG_ALERT_MASK) {
-    //     case WEBVIEW_DIALOG_FLAG_INFO:
-    //         [a setAlertStyle:NSAlertStyleInformational];
-    //         break;
-    //     case WEBVIEW_DIALOG_FLAG_WARNING:
-    //         printf("Warning\n");
-    //         [a setAlertStyle:NSAlertStyleWarning];
-    //         break;
-    //     case WEBVIEW_DIALOG_FLAG_ERROR:
-    //         printf("Error\n");
-    //         [a setAlertStyle:NSAlertStyleCritical];
-    //         break;
-    //     }
-
-    //     [a setShowsHelp:FALSE];
-    //     [a setShowsSuppressionButton:FALSE];
-    //     [a setMessageText:get_nsstring(title)];
-    //     [a setInformativeText:get_nsstring(arg)];
-
-    //     [a addButtonWithTitle:get_nsstring("OK")];
-    //     [a runModal];
-    //     [a release];
-    // }
+    [m_nsWindow setOpaque:FALSE];
+    [m_nsWindow setTitlebarAppearsTransparent:YES];
 }
 
 int WebView::helperEncodeJS(const char* s, char* esc, size_t n)
@@ -720,7 +620,7 @@ int WebView::helperEncodeJS(const char* s, char* esc, size_t n)
     return r;
 }
 
-id WebView::create_menu_item(id title, const char* action, const char* key)
+NSMenuItem* WebView::createMenuItem(id title, const char* action, const char* key)
 {    
     id item = [[NSMenuItem alloc]
         initWithTitle:title
@@ -745,15 +645,18 @@ result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
+    [m_wkWebView loadHTMLString:get_nsstring(html.c_str()) baseURL:nil];
+
     return 0;
 }
 
+// TODO: support it.
 result_t WebView::print(int32_t mode, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
-    return 0;
+    return CHECK_ERROR(CALL_E_EXCEPTION);
 }
 
 result_t WebView::close(AsyncEvent* ac)
