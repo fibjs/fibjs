@@ -12,6 +12,8 @@ var darwin = process.platform === "darwin";
 var htmlDir = path.resolve(__dirname, './gui_files/html');
 var html = fs.readTextFile(path.resolve(htmlDir, './basic-loop.html'));
 
+const isCI = !!process.env.CI;
+
 if (win32 || darwin) {
   var http = require("http");
   var gui = require("gui");
@@ -190,7 +192,7 @@ if (win32 || darwin) {
         win.close();
       });
 
-      it("invisible", () => {
+      !isCI && it("invisible", () => {
         var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/normal.html", {
           title: "Normal - invisible",
           visible: false,
@@ -223,7 +225,7 @@ if (win32 || darwin) {
         win.close();
       });
 
-      it("maxmize", () => {
+      !isCI && it("maxmize", () => {
         var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/normal.html", {
           title: "Maxmize",
           maximize: true,
@@ -315,7 +317,7 @@ if (win32 || darwin) {
         });
       });
 
-      it("open one automatic-close html file in zip file", () => {
+      !isCI && darwin && it("open one automatic-close html file in zip file", () => {
         gui.open(`${protocolPrefix}` + __dirname + "/gui_files/t1000.zip$/t1000.html", {
           debug: false
         });
