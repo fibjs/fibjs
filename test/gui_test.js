@@ -192,7 +192,7 @@ if (win32 || darwin) {
         win.close();
       });
 
-      !isCI && it("invisible", () => {
+      it("invisible", () => {
         var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/normal.html", {
           title: "Normal - invisible",
           visible: false,
