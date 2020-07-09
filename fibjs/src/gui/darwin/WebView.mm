@@ -721,16 +721,23 @@ result_t WebView::get_visible(bool& retVal)
     return 0;
 }
 
+result_t asyncToggleVisible(WebView* wv)
+{
+    if (wv->isVisible()) {
+        if (wv->isMaximize()) maxmizeNSWindow(wv->m_nsWindow);
+        wv->setMaximize(false);
+    }
+
+    [wv->m_nsWindow setIsVisible:(wv->isVisible() ? YES : NO)];
+
+    return 0;
+}
+
 result_t WebView::set_visible(bool newVal)
 {
     m_visible = newVal;
 
-    if (m_visible) {
-        if (m_maximize) maxmizeNSWindow(m_nsWindow);
-        m_maximize = false;
-    }
-
-    [m_nsWindow setIsVisible:(m_visible ? YES : NO)];
+    asyncCall(asyncToggleVisible, this, CALL_E_GUICALL);
 
     return 0;
 }

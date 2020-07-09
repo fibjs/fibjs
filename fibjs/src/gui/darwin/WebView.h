@@ -191,6 +191,11 @@ public:
 private:
     bool m_bIScriptLoaded;
 
+public:
+    bool isVisible () { return m_visible; }
+    bool isMaximize () { return m_maximize; }
+    void setMaximize (bool nextVal) { m_maximize = nextVal; }
+
 protected:
     exlib::string m_title;
     exlib::string m_url;
