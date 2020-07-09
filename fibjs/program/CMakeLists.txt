@@ -7,7 +7,9 @@ include(../tools/subdirs.cmake)
 
 project(fibjs)
 
-set(IS_DARWIN_64 ${OS} STREQUAL "Darwin" AND ${ARCH} STREQUAL "amd64")
+if(${OS} STREQUAL "Darwin" AND ${ARCH} STREQUAL "amd64")
+	set(IS_DARWIN_64 true)
+endif()
 
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
