@@ -7,10 +7,6 @@ include(tools/subdirs.cmake)
 
 project(fibjs)
 
-if(${OS} STREQUAL "Darwin" AND ${ARCH} STREQUAL "amd64")
-	set(IS_DARWIN_64 true)
-endif()
-
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
 	set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
@@ -18,13 +14,13 @@ if(CCACHE_FOUND)
 endif(CCACHE_FOUND)
 
 file(GLOB_RECURSE src_list "src/*.c*")
-if(${OS} STREQUAL "Darwin" AND ${IS_DARWIN_64})
+if(${OS} STREQUAL "Darwin" AND ${ARCH} STREQUAL "amd64")
 	file(GLOB_RECURSE src_platform_list "src/*.m*")
 else()
 	file(GLOB_RECURSE src_platform_list "")
 endif()
 
-if(${OS} STREQUAL "Darwin" AND NOT ${IS_DARWIN_64})
+if(${OS} STREQUAL "Darwin" AND NOT ${ARCH} STREQUAL "amd64")
 	add_definitions(-DFIBJS_DISABLE_GUI=1)
 endif()
 
