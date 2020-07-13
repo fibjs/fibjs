@@ -1,0 +1,34 @@
+<html>
+
+<head>
+    <script>
+        console.notice('normal')
+
+        function onTextareaKeydown(evt) {
+            if (evt.keyCode === 65 && evt.metaKey) {
+                var input = evt.target;
+                input.selectionStart = 0;
+                input.selectionEnd = 9999;
+                input.setSelectionRange(0, 9999);
+                console.notice('input.value: ' + input.value)
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div id="app">
+        normal-selectAll.html
+
+        <input style="min-height: 55px;" placeholder="test" value="initText" />
+    </div>
+    <script>
+        var input = document.querySelector('#app > input');
+        input.onkeydown = onTextareaKeydown;
+
+        if (external)
+            external.postMessage('input.value: ' + input.value)
+    </script>
+</body>
+
+</html>

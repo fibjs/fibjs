@@ -1,0 +1,17 @@
+<html>
+
+<script>
+    external.postMessage("test");
+    setTimeout(function () {
+        window.close();
+    }, 1000);
+    console.log("this is.a log");
+    console.warn("this is.a warn");
+    console.log(_not_exists)
+</script>
+
+<body>
+    timeout 1000 ms
+</body>
+
+</html>

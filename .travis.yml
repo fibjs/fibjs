@@ -6,11 +6,11 @@ services:
 matrix:
   include:
     - os: osx
-      osx_image: xcode9
+      osx_image: xcode10.1
       env:
         - TARGET_ARCH=amd64
     - os: osx
-      osx_image: xcode9
+      osx_image: xcode9.2
       env:
         - TARGET_ARCH=i386
     - os: linux
@@ -54,7 +54,6 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
     brew install ccache;
     export PATH="/usr/local/opt/ccache/libexec:$PATH";
-    brew install xz;
     fi
 script:
   - echo "${TARGET_ARCH}"
