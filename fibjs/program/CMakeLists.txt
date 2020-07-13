@@ -15,6 +15,10 @@ endif(CCACHE_FOUND)
 
 file(GLOB_RECURSE src_list "src/*.c*")
 
+if(${OS} STREQUAL "Darwin" AND NOT ${ARCH} STREQUAL "amd64")
+	add_definitions(-DFIBJS_DISABLE_GUI=1)
+endif()
+
 if (${OS} STREQUAL "Windows")
 	# add quote to all paths in CMAKE_RC_COMPILE_OBJECT to make it robustic on Windows.
 	#
@@ -98,9 +102,6 @@ if(${BUILD_TYPE} STREQUAL "debug")
 	add_definitions(-DDEBUG=1)
 endif()
 
-set(CMAKE_C_FLAGS "${flags}")
-set(CMAKE_CXX_FLAGS "${flags} ${ccflags}")
-
 include_directories("${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/../include" "${PROJECT_SOURCE_DIR}/../../vender" "${PROJECT_SOURCE_DIR}/../../vender/v8" "${PROJECT_SOURCE_DIR}/../../vender/v8/include" "${PROJECT_SOURCE_DIR}/../../vender/mbedtls" "${PROJECT_SOURCE_DIR}/../../vender/zlib/include" "${CMAKE_CURRENT_BINARY_DIR}")
 
 set(libs fibjs expat gumbo gd tiff jpeg png webp zlib leveldb snappy msgpack pcre sqlite mongo umysql uuid exif mbedtls v8 unzip uv exlib)
@@ -123,7 +124,12 @@ if(NOT ${OS} STREQUAL "Windows")
 endif()
 
 if(${OS} STREQUAL "Darwin")
-	set(link_flags "${link_flags} -mmacosx-version-min=10.9 -framework Carbon -framework IOKit")
+	set(DARWIN_LIBS "-framework WebKit -framework Cocoa")
+
+	set(cflags "${cflags} -DOBJC_OLD_DISPATCH_PROTOTYPES=1")
+	set(ccflags "${ccflags} -DOBJC_OLD_DISPATCH_PROTOTYPES=1")
+	set(link_flags "${link_flags} -mmacosx-version-min=10.9 -framework Carbon -framework IOKit ${DARWIN_LIBS}")
+
 	set(flags "${flags} -mmacosx-version-min=10.9")
 	target_link_libraries(fibjs dl iconv stdc++)
 endif()
@@ -149,6 +155,8 @@ if(${OS} STREQUAL "Windows")
 		set(flags "${flags} -m32")
 	endif()
 endif()
+set(CMAKE_C_FLAGS "${flags}")
+set(CMAKE_CXX_FLAGS "${flags} ${ccflags}")
 
 if(${OS} STREQUAL "Linux")
 	target_link_libraries(fibjs dl rt)
