@@ -85,7 +85,8 @@ if (win32 || darwin64) {
         assert.equal(closed, true);
         assert.equal(cnt, 2);
 
-        assert.isTrue(events.onmove)
+        if (darwin64)
+          assert.isTrue(events.onmove)
       });
     });
 
@@ -299,10 +300,8 @@ if (win32 || darwin64) {
     });
 
     describe("fs://", () => {
-      const protocolPrefix = darwin64 ? 'fs://' : 'fs:'
-
       it("respond 404 info when trying to open one invalid html file", () => {
-        var win = gui.open(`${protocolPrefix}` + __dirname + "/gui_files/non-existed.html", {
+        var win = gui.open("fs://" + __dirname + "/gui_files/non-existed.html", {
           debug: false
         });
 
@@ -312,13 +311,13 @@ if (win32 || darwin64) {
       });
 
       it("open one automatic-close html file", () => {
-        gui.open(`${protocolPrefix}` + __dirname + "/gui_files/t1000.html", {
+        gui.open("fs://" + __dirname + "/gui_files/t1000.html", {
           debug: false
         });
       });
 
-      !isCI && darwin64 && it("open one automatic-close html file in zip file", () => {
-        gui.open(`${protocolPrefix}` + __dirname + "/gui_files/t1000.zip$/t1000.html", {
+      !isCI && it("open one automatic-close html file in zip file", () => {
+        gui.open("fs://" + __dirname + "/gui_files/t1000.zip$/t1000.html", {
           debug: false
         });
       });
