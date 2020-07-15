@@ -73,16 +73,12 @@ private:
     void Navigate(exlib::string szUrl);
 
 public:
-    result_t AddRef(void);
-    result_t Release(void);
-
-public:
     // async call handler & real executation.
     result_t open()
     {
         initializeWebView();
 
-        AddRef();
+        Ref();
 
         return 0;
     }
@@ -169,7 +165,7 @@ public:
 
         holder()->Unref();
 
-        Release();
+        Unref();
     }
 
 public:

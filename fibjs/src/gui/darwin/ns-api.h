@@ -48,18 +48,12 @@ static exlib::string NSStringToExString(NSString* str) {
 @interface __WKUIDelegate : NSObject<WKUIDelegate>
 @end
 
-// @interface __WKWindowFeatures : NSObject<WKWindowFeatures>
-// @end
-
 @interface __WKNavigationDelegate : NSObject<WKNavigationDelegate>
 @end
 
 @interface __WKScriptMessageHandler : NSObject<WKScriptMessageHandler>
 - (void)userContentController:(WKUserContentController *)userContentController 
       didReceiveScriptMessage:(WKScriptMessage *)message;
-@end
-
-@interface __WKDownloadDelegate : NSObject/* <NSURLDownloadDelegate> */
 @end
 
 @interface WVViewController: NSViewController

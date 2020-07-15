@@ -33,30 +33,7 @@
 }
 -(void)viewDidAppear
 {
-    // printf("viewDidAppear \n");
     [super viewDidAppear];
-    // [self showResponsederInfo];
-}
--(void)showResponsederInfo
-{
-    NSResponder *responder = self.view.nextResponder;
-
-    int i = 0;
-    while (responder) {
-        NSLog(@"%d responder - %@", i, responder);
-        
-        responder = responder.nextResponder;
-    }
-}
-#pragma mark - mouse event
--(void)mouseDown:(NSEvent *)event{
-    NSLog(@"WVViewController::mouseDown %s", __FUNCTION__);
-    [self showResponsederInfo];
-}
-#pragma mark - keyboard event
--(void)keyDown:(NSEvent *)event{
-    NSLog(@"WVViewController::keyDown %@", event);
-    [super keyDown:event];
 }
 -(BOOL)acceptsFirstResponder {
     return YES;
@@ -536,7 +513,6 @@ void WebView::startWKUI()
     }
 
     [m_nsWindow makeKeyWindow];
-    // [m_nsWindow makeKeyAndOrderFront:nil];
     [m_nsWindow orderFrontRegardless];
 
     [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
@@ -743,7 +719,6 @@ result_t WebView::set_visible(bool newVal)
 }
 
 // ----- Control methods -----
-
 void WebView::GoBack()
 {
     // DO REAL THING
@@ -752,34 +727,20 @@ void WebView::GoBack()
 
 void WebView::GoForward()
 {
-    // DO REAL THING
+    // NOT IMPLEMENTED
     return;
 }
 
 void WebView::Refresh()
 {
-    // DO REAL THING
+    // NOT IMPLEMENTED
     return;
 }
 
 void WebView::Navigate(exlib::string szUrl)
 {
-    // bstr_t url(UTF8_W(szUrl));
-    // variant_t flags(0x02u); //navNoHistory
-    // DO REAL THING
+    // NOT IMPLEMENTED
     return;
-}
-
-result_t WebView::AddRef(void)
-{
-    Ref();
-    return 1;
-}
-
-result_t WebView::Release(void)
-{
-    Unref();
-    return 1;
 }
 
 }
