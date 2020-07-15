@@ -115,12 +115,6 @@ void assignWinSizeInfoToResizeAboutEventInfo (CGSize ws, EventInfo* ei) {
 
     wv->_emit("resize", ei);
 }
--(void)mouseDown:(NSEvent *)event{
-    NSLog(@"[__NSWindowDelegate::mouseDown] %s", __FUNCTION__);
-}
--(void)keyDown:(NSEvent *)event{
-    NSLog(@"[__NSWindowDelegate::keyDown] %s", __FUNCTION__);
-}
 @end
 
 @implementation __WKScriptMessageHandler
@@ -221,45 +215,6 @@ decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler
 }
 @end
 
-@implementation __WKDownloadDelegate
-/***
-    _WKDownloadDelegate is an undocumented/private protocol with methods called
-    from WKNavigationDelegate
-    References:
-    https://github.com/WebKit/webkit/blob/master/Source/WebKit/UIProcess/API/Cocoa/_WKDownload.h
-    https://github.com/WebKit/webkit/blob/master/Source/WebKit/UIProcess/API/Cocoa/_WKDownloadDelegate.h
-    https://github.com/WebKit/webkit/blob/master/Tools/TestWebKitAPI/Tests/WebKitCocoa/Download.mm
-***/
-- (void)download:(NSURLDownload *)download
-decideDestinationWithSuggestedFilename:(NSString *)filename
-completionHandler:(void (^)(int allowOverwrite, id destination))completionHandler
-{
-    NSSavePanel* savePanel = [NSSavePanel savePanel];
-    [savePanel setCanCreateDirectories:YES];
-    [savePanel setNameFieldStringValue:filename];
-
-    [savePanel
-        beginWithCompletionHandler:^(NSModalResponse result) {
-            if (result == NSModalResponseOK) {
-                NSString* path = [[savePanel URL] path];
-                
-                completionHandler(1, [[savePanel URL] path]);
-            } else {
-                completionHandler(NO, nil);
-            }
-        }
-    ];
-}
-
-- (void)download:(NSURLDownload *)download
-didFailWithError:(NSError *)error
-{
-    printf("%s",
-        (const char*)[[error localizedDescription] UTF8String]
-    );
-}
-@end /* __WKDownloadDelegate */
-
 @implementation FileSystemWKURLSchemeHandler
 -(void)webView:(WKWebView *)webView 
       startURLSchemeTask:(id<WKURLSchemeTask>)urlSchemeTask
@@ -267,14 +222,8 @@ didFailWithError:(NSError *)error
     // cut 'fs://' from input
     NSString* localFileName = [[urlSchemeTask.request.URL absoluteString] substringFromIndex:5];
 
-
     exlib::string target = (const char*)[localFileName UTF8String];
     path_base::normalize(target, target);
-
-    size_t pos = target.find('$');
-    bool isFromZip = pos != exlib::string::npos && target[pos + 1] == PATH_SLASH;
-    
-    exlib::string urlString = !isFromZip ? target : target.substr(0, pos);
 
     exlib::string baseName;
     path_base::basename(target, "", baseName);
