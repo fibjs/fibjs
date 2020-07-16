@@ -101,7 +101,7 @@ private:
             m_pProtSink = pIProtSink;
             m_pProtSink->AddRef();
 
-            result_t hr = fs_base::cc_openFile(utf16to8String(szUrl + 3), "r", m_file, s_isolates.head());
+            result_t hr = fs_base::cc_openFile(utf16to8String(szUrl + 5), "r", m_file, s_isolates.head());
             if (hr < 0)
                 return INET_E_OBJECT_NOT_FOUND;
 
@@ -206,8 +206,8 @@ private:
         {
             switch (ParseAction) {
             case PARSE_SECURITY_DOMAIN:
-                wcscpy(pwzResult, L"fs:");
-                *pcchResult = 6;
+                wcscpy(pwzResult, L"fs://");
+                *pcchResult = 10;
                 return S_OK;
             }
 
@@ -221,7 +221,7 @@ private:
             if (pwzBaseUrl == NULL || pwzRelativeUrl == NULL || pwzResult == NULL || pcchResult == NULL)
                 return E_POINTER;
 
-            if (qstrcmp(pwzBaseUrl, L"fs:", 3))
+            if (qstrcmp(pwzBaseUrl, L"fs://", 5))
                 return INET_E_DEFAULT_ACTION;
 
             LPCWSTR ptr = pwzRelativeUrl;
@@ -236,7 +236,7 @@ private:
                     return INET_E_DEFAULT_ACTION;
             }
 
-            exlib::string base(utf16to8String(pwzBaseUrl + 3));
+            exlib::string base(utf16to8String(pwzBaseUrl + 5));
             exlib::string path;
             exlib::string out;
 
@@ -244,7 +244,7 @@ private:
             resolvePath(path, utf16to8String(pwzRelativeUrl));
             path_base::normalize(path, out);
 
-            exlib::wstring outw = utf8to16String("fs:" + out);
+            exlib::wstring outw = utf8to16String("fs://" + out);
 
             if (cchResult < outw.length() + 1)
                 return E_POINTER;

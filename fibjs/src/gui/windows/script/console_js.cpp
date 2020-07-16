@@ -54,8 +54,8 @@ const wchar_t* g_console_js = L"!function(w){function f(t){return t<10?\"0\"+t:t
 "f[n];\"object\"==typeof r&&\"function\"!=typeof r.toJSON?e+=\" \"+u(r):e+=\" \"+r}e=e.re"
 "place(/%{2,2}/g,\"%\"),external.log(t,\"\"+e)}.apply(this,t)}}f.prototype.toJSON=fun"
 "ction(){return 0==--this.count&&(this.parent[this.k]=this.val),\"[Circular]\"},t.c"
-"onsole={debug:e(7),log:e(6),notice:e(5),warn:e(4),error:e(3),crit:e(2),alert:e(1"
-"),fatal:e(0)}}(this);";
+"onsole={debug:e(7),log:e(6),info:e(6),notice:e(5),warn:e(4),error:e(3),crit:e(2)"
+",alert:e(1),fatal:e(0)}}(this);";
 }
 
 #endif
