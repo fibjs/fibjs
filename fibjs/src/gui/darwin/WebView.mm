@@ -53,8 +53,14 @@ void putGuiPool(AsyncEvent* ac)
 
 result_t asyncFinishedLaunchingApp(NSApplication* app)
 {
-    [app setActivationPolicy:NSApplicationActivationPolicyRegular];
-    [app activateIgnoringOtherApps:YES];
+    /**
+     * @see https://developer.apple.com/documentation/appkit/nsapplicationactivationpolicy/nsapplicationactivationpolicyregular?language=objc
+     *
+     * @enum NSApplicationActivationPolicyRegular default, can be overrided by Info.plist
+     * @enum NSApplicationActivationPolicyAccessory The application doesn’t appear in the Dock and doesn’t have a menu bar, but it may be activated programmatically or by clicking on one of its windows.
+     * @enum NSApplicationActivationPolicyProhibited The application doesn’t appear in the Dock and may not create windows or be activated.
+     */
+    [app setActivationPolicy: NSApplicationActivationPolicyAccessory];
     [app finishLaunching];
 
     return 0;
