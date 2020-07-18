@@ -1,13 +1,43 @@
 # Building fibjs
 
-## Prerequisites (unix)
+## Prerequisites
 
-- CLang 3.8 or newer
-- CMake 2.6 or newer
-- GNU Make 3.81 or newer
+| Dependencies | Windows | Linux | Darwin |
+|--|--|--|--|
+| cmake >= 3.12 | √ | √ | √ |
+| clang/LLVM {8.x, 9.x} | √ | √ | √ |
+| visual studio 2017 (with C++ Tool) | √ ||
+| gnu make | √ | √ | √ |
+| bash | √ (by **git-bash**) | √ | √ |
+
+Others:
+- git-bash with make.exe (Windows only)
+	- download [make-4.3-without-guile-w32-bin.zip](https://netix.dl.sourceforge.net/project/ezwinports/make-4.3-without-guile-w32-bin.zip), it's recommended to extract whole zip file to, 
+		- (for 64 bit): extract to `C:/Program Files/Git/mingw64/`
+		- (for 32 bit): extract to `C:/Program Files/Git/mingw32/`
+	- make sure `sh.exe` and `make.exe` are in you `%PATH%` environtment variable.
 - libexecinfo (FreeBSD and OpenBSD only)
 
 ----------------------------------
+### on Windows:
+
+Run bat to install clang/LLVM.
+
+```bat
+REM for x64
+curl -Ls -o "llvm-installer.exe" "https://github.com/llvm/llvm-project/releases/download/llvmorg-8.0.1/LLVM-8.0.1-win64.exe"
+REM for x86
+curl -Ls -o "llvm-installer.exe" "https://github.com/llvm/llvm-project/releases/download/llvmorg-8.0.1/LLVM-8.0.1-win32.exe"
+
+START /WAIT llvm-installer.exe /S /D=C:\"Program Files\LLVM"
+
+EXIT
+```
+
+You can also install clang/LLVM manually from [official releases](https://releases.llvm.org/download.html#9.0.1).
+
+Then add `"C:\Program Files\LLVM\bin"` to your environment variable `%PATH%`
+
 ### on ubuntu:
 
 ```sh
@@ -128,14 +158,8 @@ git submodule update --init --recursive
 ### on unix:
 	sh build -j
 
-### on Windows (Visual Studio 2015 Express):
-	Start
-	  All Programs
-	    Visual Studio 2015
-	      Visual Studio Tools
-	        Developer Command Prompt for VS2015
-
-	build
+### on Windows (Visual Studio 2017 Community):
+	./build.cmd
 
 ----------------------------------
 
