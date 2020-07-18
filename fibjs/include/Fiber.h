@@ -32,6 +32,7 @@ public:
 
     public:
         obj_ptr<JSFiber> m_pFiber;
+        v8::Global<v8::Object> m_fiber;
         TryCatch try_catch;
     };
 

@@ -221,6 +221,8 @@ JSFiber::EnterJsScope::EnterJsScope(JSFiber* fb)
 
     exlib::Fiber::tlsPut(g_tlsCurrent, m_pFiber);
     m_pFiber->holder()->m_fibers.putTail(m_pFiber);
+
+    m_fiber.Reset(m_pFiber->holder()->m_isolate, m_pFiber->wrap());
 }
 
 JSFiber::EnterJsScope::~EnterJsScope()

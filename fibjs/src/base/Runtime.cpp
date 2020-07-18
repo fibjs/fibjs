@@ -316,12 +316,14 @@ void Isolate::init()
     v8::Isolate::Scope isolate_scope(m_isolate);
     v8::HandleScope handle_scope(m_isolate);
 
-    JSFiber::EnterJsScope s;
-
     v8::Local<v8::Context> _context = v8::Context::New(m_isolate);
     m_context.Reset(m_isolate, _context);
 
     v8::Context::Scope context_scope(_context);
+
+    Fiber_base::class_info().getModule(this);
+
+    JSFiber::EnterJsScope s;
 
     if (g_cov && m_id == 1)
         beginCoverage(m_isolate);
