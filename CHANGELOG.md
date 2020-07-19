@@ -1,3 +1,124 @@
+## 2020-07-19, Version 0.31.0 
+* **feature** :
+    * build:
+      - stop support for vsmake. (#561)(Ray)
+      - use cmake as building tool by default.(richardo2016)
+      - import explicitly llvm-about config for fibjslib msbuild(richardo2016)
+      - support msgpack module on windows(richardo2016)
+    * ci - support use built vender assets.(Richardo2016)
+    * core:
+      - make ev-based AsyncIO more reable.(Ray Chan)
+      - make Fiber management more semantic.(Ray Chan)
+      - SetDcheckErrorHandler for DEBUG mode.(Ray Chan)
+      - use jemalloc to manage memory.(xicilion)
+      - release js value immediately when ValueHolder is discarded.(xicilion)
+      - initialize modules according to the order of import.(xicilion)
+    * doc - update BUILDING.md.(Ray Chan)
+    * docs - update readme.(xicilion)
+    * fs:
+      - hold `FSWatcher->start()` before uv binding finished.(Ray Chan)
+      - support `fs.watchFile`/`fs.unwatchFile`.(Ray Chan)
+      - support fs.watch(Ray Chan)
+    * gui:
+      - for darwin, don't display fibjs in dock by default, neither no menubar.(Ray Chan)
+      - rename protocol 'fs:' to 'fs://' (#589)(Ray)
+      - simplify implementation of WebView in darwin.(Ray Chan)
+      - support WebView on darwin platform.(Ray Chan)
+    * http - support delete/sort/keys/values on HttpCollection.(xicilion)
+    * HttpClient - support `sslVerification` getter/setter on HttpClient.(Ray Chan)
+    * module - add msgpack module.(xicilion)
+    * path - support path.format/path.parse(richardo2016)
+    * process - support process.binding.(xicilion)
+    * tools - allow idl parser work on idl directory without `object.idl`.(Ray Chan)
+    * url:
+      - support url.URL.(xicilion)
+      - support Url.get_searchParams.(xicilion)
+    * util:
+      - fake node version.(xicilion)
+      - fake util.deprecate.(xicilion)
+    * websocket - support perMessageDeflate/maxPayload in opts.(xicilion)
+    * ws - report memory usage to v8 in WebSocket.(xicilion)
+
+* **bugfix** :
+    * build:
+      - fixup `filter_cmake_build_type` on shell.(richardo2016)
+      - fixup compilation error on windows.(richardo2016)
+    * ci:
+      - fix appveyor build config.(Ray Chan)
+      - fixup compilation error on appveryor for i386 arch.(richardo2016)
+    * coroutine - do not recycle fiber objects during GC.(xicilion)
+    * docs - fix document error of EventEmitter.(xicilion)
+    * events - crash when off function on new Emitter.(xicilion)
+    * fs - robust change, avoid potential core-dump when calling `fs.watch()`.(Ray Chan)
+    * jemalloc:
+      - runtime error on i386.(xicilion)
+      - jemalloc compile error on arm/mips.(xicilion)
+    * ssl:
+      - crash when close SslSocket.(xicilion)
+      - socket stream not close in ssl.Socket.close.(xicilion)
+    * util - crash when %d in util.format.(xicilion)
+
+* **refactor** :
+    * core - refactor jsTrigger, replace pointless subclass of AsyncEvent with call to `syncCall`.(richardo2016)
+
+* **chore** :
+    * ci - upgrade travis ci config.(richardo2016)
+
+* **others** :
+    * dev v0.31.0(richardo2016)
+    * Release v0.30.0(richardo2016)
+
+### Commits
+* [[`6e216de42a`](https://github.com/fibjs/fibjs/commit/6e216de42a)] - **doc, feat**: update BUILDING.md.(Ray Chan)
+* [[`8901d43345`](https://github.com/fibjs/fibjs/commit/8901d43345)] - **gui, feat**: for darwin, don't display fibjs in dock by default, neither no menubar.(Ray Chan)
+* [[`63b20f7504`](https://github.com/fibjs/fibjs/commit/63b20f7504)] - **coroutine, bugfix**: do not recycle fiber objects during GC.(xicilion)
+* [[`b614656c0c`](https://github.com/fibjs/fibjs/commit/b614656c0c)] - **gui, feat**: rename protocol 'fs:' to 'fs://' (#589)(Ray)
+* [[`bf21223b9c`](https://github.com/fibjs/fibjs/commit/bf21223b9c)] - **gui, feat**: simplify implementation of WebView in darwin.(Ray Chan)
+* [[`5b3d01ca51`](https://github.com/fibjs/fibjs/commit/5b3d01ca51)] - **gui, feat**: support WebView on darwin platform.(Ray Chan)
+* [[`c36ab705ba`](https://github.com/fibjs/fibjs/commit/c36ab705ba)] - **fs, feat**: hold `FSWatcher->start()` before uv binding finished.(Ray Chan)
+* [[`03bb2e0bca`](https://github.com/fibjs/fibjs/commit/03bb2e0bca)] - **fs, feat**: support `fs.watchFile`/`fs.unwatchFile`.(Ray Chan)
+* [[`65d94ef2bf`](https://github.com/fibjs/fibjs/commit/65d94ef2bf)] - **fs, bugfix**: robust change, avoid potential core-dump when calling `fs.watch()`.(Ray Chan)
+* [[`d11dbca547`](https://github.com/fibjs/fibjs/commit/d11dbca547)] - **ci, bugfix**: fix appveyor build config.(Ray Chan)
+* [[`7783b831b0`](https://github.com/fibjs/fibjs/commit/7783b831b0)] - **fs, feat**: support fs.watch(Ray Chan)
+* [[`0faf3599b0`](https://github.com/fibjs/fibjs/commit/0faf3599b0)] - **path, feat**: support path.format/path.parse(richardo2016)
+* [[`f1e2fd8aea`](https://github.com/fibjs/fibjs/commit/f1e2fd8aea)] - **core, feat**: make ev-based AsyncIO more reable.(Ray Chan)
+* [[`e3827f8537`](https://github.com/fibjs/fibjs/commit/e3827f8537)] - **core, feat**: make Fiber management more semantic.(Ray Chan)
+* [[`35eda9cfaf`](https://github.com/fibjs/fibjs/commit/35eda9cfaf)] - **core, feat**: SetDcheckErrorHandler for DEBUG mode.(Ray Chan)
+* [[`8e9af2748d`](https://github.com/fibjs/fibjs/commit/8e9af2748d)] - **core, refactor**: refactor jsTrigger, replace pointless subclass of AsyncEvent with call to `syncCall`.(richardo2016)
+* [[`8338069131`](https://github.com/fibjs/fibjs/commit/8338069131)] - **HttpClient, feat**: support `sslVerification` getter/setter on HttpClient.(Ray Chan)
+* [[`6372ddb70d`](https://github.com/fibjs/fibjs/commit/6372ddb70d)] - **tools, feat**: allow idl parser work on idl directory without `object.idl`.(Ray Chan)
+* [[`bd7ba2979d`](https://github.com/fibjs/fibjs/commit/bd7ba2979d)] - **build, bugfix**: fixup `filter_cmake_build_type` on shell.(richardo2016)
+* [[`0d39f89d8e`](https://github.com/fibjs/fibjs/commit/0d39f89d8e)] - **ci, chore**: upgrade travis ci config.(richardo2016)
+* [[`af4e4a7f1f`](https://github.com/fibjs/fibjs/commit/af4e4a7f1f)] - **build, feat**: stop support for vsmake. (#561)(Ray)
+* [[`afe22e51cf`](https://github.com/fibjs/fibjs/commit/afe22e51cf)] - **build, feat**: use cmake as building tool by default.(richardo2016)
+* [[`7cb8cc97c2`](https://github.com/fibjs/fibjs/commit/7cb8cc97c2)] - **util, bugfix**: crash when %d in util.format.(xicilion)
+* [[`86c7e0d75c`](https://github.com/fibjs/fibjs/commit/86c7e0d75c)] - **docs, feat**: update readme.(xicilion)
+* [[`270f969dcc`](https://github.com/fibjs/fibjs/commit/270f969dcc)] - dev v0.31.0(richardo2016)
+* [[`006645a00e`](https://github.com/fibjs/fibjs/commit/006645a00e)] - Release v0.30.0(richardo2016)
+* [[`278289699e`](https://github.com/fibjs/fibjs/commit/278289699e)] - **ci, bugfix**: fixup compilation error on appveryor for i386 arch.(richardo2016)
+* [[`298fe433a0`](https://github.com/fibjs/fibjs/commit/298fe433a0)] - **ssl, bugfix**: crash when close SslSocket.(xicilion)
+* [[`b5bf883a3d`](https://github.com/fibjs/fibjs/commit/b5bf883a3d)] - **build, feat**: import explicitly llvm-about config for fibjslib msbuild(richardo2016)
+* [[`14aed4a987`](https://github.com/fibjs/fibjs/commit/14aed4a987)] - **jemalloc, bugfix**: runtime error on i386.(xicilion)
+* [[`e7386daea8`](https://github.com/fibjs/fibjs/commit/e7386daea8)] - **build, feat**: support msgpack module on windows(richardo2016)
+* [[`60310b5f96`](https://github.com/fibjs/fibjs/commit/60310b5f96)] - **module, feat**: add msgpack module.(xicilion)
+* [[`67b3af0e4e`](https://github.com/fibjs/fibjs/commit/67b3af0e4e)] - **build, bugfix**: fixup compilation error on windows.(richardo2016)
+* [[`7839a4c787`](https://github.com/fibjs/fibjs/commit/7839a4c787)] - **jemalloc, bugfix**: jemalloc compile error on arm/mips.(xicilion)
+* [[`201e52a2ee`](https://github.com/fibjs/fibjs/commit/201e52a2ee)] - **core, feat**: use jemalloc to manage memory.(xicilion)
+* [[`13ce7d189a`](https://github.com/fibjs/fibjs/commit/13ce7d189a)] - **ws, feat**: report memory usage to v8 in WebSocket.(xicilion)
+* [[`8afac317e6`](https://github.com/fibjs/fibjs/commit/8afac317e6)] - **core, feat**: release js value immediately when ValueHolder is discarded.(xicilion)
+* [[`f6805e4360`](https://github.com/fibjs/fibjs/commit/f6805e4360)] - **ci, feat**: support use built vender assets.(Richardo2016)
+* [[`975a56bbad`](https://github.com/fibjs/fibjs/commit/975a56bbad)] - **websocket, feat**: support perMessageDeflate/maxPayload in opts.(xicilion)
+* [[`795f57157d`](https://github.com/fibjs/fibjs/commit/795f57157d)] - **docs, bugfix**: fix document error of EventEmitter.(xicilion)
+* [[`bac0205c2f`](https://github.com/fibjs/fibjs/commit/bac0205c2f)] - **process, feat**: support process.binding.(xicilion)
+* [[`445b43f9f4`](https://github.com/fibjs/fibjs/commit/445b43f9f4)] - **core, feat**: initialize modules according to the order of import.(xicilion)
+* [[`1353a85d54`](https://github.com/fibjs/fibjs/commit/1353a85d54)] - **util, feat**: fake node version.(xicilion)
+* [[`c6836d261c`](https://github.com/fibjs/fibjs/commit/c6836d261c)] - **util, feat**: fake util.deprecate.(xicilion)
+* [[`60d1cefa3b`](https://github.com/fibjs/fibjs/commit/60d1cefa3b)] - **ssl, bugfix**: socket stream not close in ssl.Socket.close.(xicilion)
+* [[`d0ad03147f`](https://github.com/fibjs/fibjs/commit/d0ad03147f)] - **url, feat**: support url.URL.(xicilion)
+* [[`e38bfefa51`](https://github.com/fibjs/fibjs/commit/e38bfefa51)] - **url, feat**: support Url.get_searchParams.(xicilion)
+* [[`a828a2f4a1`](https://github.com/fibjs/fibjs/commit/a828a2f4a1)] - **http, feat**: support delete/sort/keys/values on HttpCollection.(xicilion)
+* [[`01e3ccd3e2`](https://github.com/fibjs/fibjs/commit/01e3ccd3e2)] - **events, bugfix**: crash when off function on new Emitter.(xicilion)
+
 ## 2020-05-01, Version 0.30.0 
 * **feature** :
     * Buffer - support Buffer.set(xicilion)

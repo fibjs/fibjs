@@ -13,7 +13,10 @@ function pick_subprocess_out_lines(popen_r) {
     return lines;
 }
 
-var describe = pick_subprocess_out_lines(process.open('git', ['describe']));
+var hash = pick_subprocess_out_lines(
+    process.open('git', 'rev-list --tags --max-count=1'.split(' '))
+)[0]
+var describe = pick_subprocess_out_lines(process.open('git', ['describe', '--match', 'v[0-9]*.[0-9]*.[0-9]*', hash]));
 var info = (/^(v[\d\.]+)-(\d+)-g([a-f\d]+)/g).exec(describe);
 
 var logs = pick_subprocess_out_lines(
