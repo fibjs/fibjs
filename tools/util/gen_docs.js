@@ -84,6 +84,19 @@ module.exports = function (defs, docsFolder) {
 
         function link_line(t) {
             t = t.replace(/(\w+)(\.(\w+))?/g, function (k, k1, k2, k3) {
+                var tidx = t.indexOf(k)
+                // in code quotation
+                if (tidx > 0 && t[tidx - 1] === '`') {
+                    // like `fs.watch(...`
+                    switch (t[tidx + k.length]) {
+                        case '(':
+                        case '`':
+                            return k;
+                        default:
+                            break;
+                    }
+                }
+
                 var def1 = defs[k1];
                 if (keyworks[k] && def1 && def1.declare && (def1 != def || k3)) {
                     var nk = '[' + k + '](';

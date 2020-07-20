@@ -19,8 +19,8 @@ module dgram
      {
          "type": "udp4" | "udp6",   // 必填
          "reuseAddr": true | false, //若设置为 true，socket.bind() 则会重用地址，即时另一个进程已经在其上面绑定了一个套接字。 默认是 false
-         "recvBufferSize": ###,     // 设置 SO_RCVBUF 套接字值
-         "sendBufferSize": ###      //设置 SO_RCVBUF 套接字值
+         "recvBufferSize": 1024,     // 设置 SO_RCVBUF 套接字值
+         "sendBufferSize": 1024      //设置 SO_RCVBUF 套接字值
      }
      ```
      @param opts
