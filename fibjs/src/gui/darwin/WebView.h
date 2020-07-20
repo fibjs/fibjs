@@ -18,7 +18,7 @@
 namespace fibjs {
 
 static exlib::LockedList<AsyncEvent> s_uiPool;
-class NSAppMainLoopThread : public exlib::OSThread {
+class NSAppMainRunLoopThread : public exlib::OSThread {
 public:
     virtual void Run();
 
@@ -37,7 +37,7 @@ public:
     exlib::OSSemaphore m_sem;
 };
 
-static NSAppMainLoopThread* s_thNSMainLoop;
+static NSAppMainRunLoopThread* s_thNSMainLoop;
 
 class WebView : public WebView_base {
     FIBER_FREE();
