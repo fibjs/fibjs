@@ -46,9 +46,26 @@ DECLARE_MODULE(gui);
 
 void asyncLog(int32_t priority, exlib::string msg);
 
+NSEvent* getEmptyCustomNSEvent () {
+    return [NSEvent otherEventWithType: NSApplicationDefined
+        location: NSMakePoint(0,0)
+        modifierFlags: 0
+        timestamp: 0.0
+        windowNumber: 0
+        context: nil
+        subtype: 0
+        data1: 0
+        data2: 0];
+}
+
 void putGuiPool(AsyncEvent* ac)
 {
     s_uiPool.putTail(ac);
+
+    [[NSApplication sharedApplication]
+        postEvent:getEmptyCustomNSEvent()
+        atStart:YES
+    ];
 }
 
 result_t asyncFinishedLaunchingApp(NSApplication* app)
@@ -72,7 +89,7 @@ void run_gui()
         [NSApplication sharedApplication];
         [[NSApplication sharedApplication] setDelegate:[__NSApplicationDelegate new]];
 
-        NSAppMainLoopThread* _thMainLoop = new NSAppMainLoopThread();
+        NSAppMainRunLoopThread* _thMainLoop = new NSAppMainRunLoopThread();
 
         asyncCall(asyncFinishedLaunchingApp, [NSApplication sharedApplication]);
 
@@ -83,7 +100,7 @@ void run_gui()
     }
 }
 
-id fetchEventFromNSMainLoop(int blocking)
+id fetchEventFromNSRunLoop(int blocking)
 {
     id until = blocking ? [NSDate distantFuture] : [NSDate distantPast];
 
@@ -98,7 +115,7 @@ id fetchEventFromNSMainLoop(int blocking)
 /**
  * replace [[NSApplication shareApplication] run] in GUI Thread;
  */
-void NSAppMainLoopThread::Run()
+void NSAppMainRunLoopThread::Run()
 {
     // initialize one fibjs runtime
     Runtime rt(NULL);
@@ -109,9 +126,8 @@ void NSAppMainLoopThread::Run()
         if (p)
             p->invoke();
 
-        id event = fetchEventFromNSMainLoop(0);
-        if (event)
-            [[NSApplication sharedApplication] sendEvent:event];
+        id event = fetchEventFromNSRunLoop(1);
+        [[NSApplication sharedApplication] sendEvent:event];
     }
 }
 
