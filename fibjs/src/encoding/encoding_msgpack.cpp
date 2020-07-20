@@ -36,8 +36,8 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
                 return CHECK_ERROR(CALL_E_BADVARTYPE);
             else if (element->IsNull() || element->IsUndefined())
                 msgpack_pack_nil(&pk);
-            else if (element->IsBoolean()) {
-                if (element->IsTrue())
+            else if (element->IsBoolean() || element->IsBooleanObject()) {
+                if (element->BooleanValue())
                     msgpack_pack_true(&pk);
                 else
                     msgpack_pack_false(&pk);
@@ -51,7 +51,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
                 msgpack_pack_timestamp(&pk, &_d);
             } else if (element->IsArray())
                 return pack(v8::Local<v8::Array>::Cast(element));
-            else if (element->IsObject())
+            else if (element->IsObject() && !element->IsStringObject())
                 return pack(element->ToObject());
             else {
                 v8::String::Utf8Value v(element);
