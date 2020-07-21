@@ -1,0 +1,102 @@
+/*! @brief Windows 注册表访问模块
+
+ 引用方式：
+ ```JavaScript
+ var reg = require('winreg');
+ var val = reg.get("HKCU\SoftWare\XXX\YYY", "ValueName");
+ ```
+ 
+ key 支持以下格式(不区分大小写):  
+
+``` 
+ <ROOT>\path\path\..
+ <ROOT>/path/path/..
+``` 
+ 
+ <ROOT>必须为以下固定字符串之一(不区分大小写):
+ 
+``` 
+ HKEY_CLASSES_ROOT     (可简写为 HKCR) 
+ HKEY_CURRENT_USER     (可简写为 HKCU) 
+ HKEY_LOCAL_MACHINE    (可简写为 HKLM) 
+ HKEY_USERS            (可简写为 HKU) 
+ HKEY_CURRENT_CONFIG   (可简写为 HKCC) 
+ HKEY_PERFORMANCE_DATA (可简写为 HKPD) 
+``` 
+*/
+
+module winreg
+{
+    /*! @brief 返回指定键值下的所有子健
+     @param key 指定键
+     @return 返回该键值下所有子键名
+     */
+    static NArray listSubKey(String key);
+
+    /*! @brief 返回指定键值下的所有数据的健
+     @param key 指定键
+     @return 返回该键值下所有数据的name
+     */
+    static NArray listValueName(String key);
+
+    /*! @brief 查询指定键值的数值
+     @param key  指定键
+     @param name 指定值名
+     @return 返回指定值名的数值，根据具体数据类型，返回 Number, Bigint, String, Array, Buffer
+     */
+    static Value get(String key, String name);
+
+    /*! @brief 设置指定键值为DWORD
+     @param key   指定键名
+     @param name  指定值名
+     @param value 指定值
+     */
+    static set_dword(String key, String name, Integer value);
+
+    /*! @brief 设置指定键值为QWORD
+     @param key   指定键名
+     @param name  指定值名
+     @param value 指定值
+     */
+    static set_qword(String key, String name, Long value);
+
+    /*! @brief 设置指定键值为SZ
+     @param key   指定键名
+     @param name  指定值名
+     @param value 指定值
+     */
+    static set_sz(String key, String name, String value);
+
+    /*! @brief 设置指定键值为EXPAND_SZ
+     @param key   指定键名
+     @param name  指定值名
+     @param value 指定值
+     */
+    static set_expand_sz(String key, String name, String value);
+
+    /*! @brief 设置指定键值为MULTI_SZ
+     @param key   指定键名
+     @param name  指定值名
+     @param value 指定值
+     */
+    static set_multi_sz(String key, String name, Array value);
+
+    /*! @brief 设置指定键值为BINARY
+     @param key   指定键名
+     @param name  指定值名
+     @param value 指定值
+     */
+    static set_binary(String key, String name, Buffer value);
+
+    /*! @brief 删除指定的键(包括所有子键和值)
+     @param key 指定键名
+     */
+    static delKey(String key);
+    
+    /*! @brief 删除指定的值
+     @param key   指定键名
+     @param name  指定值名
+     */
+    static delValue(String key, String name);
+       
+};
