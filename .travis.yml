@@ -10,7 +10,7 @@ matrix:
       env:
         - TARGET_ARCH=amd64
     - os: osx
-      osx_image: xcode9.2
+      osx_image: xcode10.1
       env:
         - TARGET_ARCH=i386
     - os: linux
