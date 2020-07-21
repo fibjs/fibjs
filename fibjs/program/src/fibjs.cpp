@@ -62,7 +62,6 @@ void importModule()
 #ifdef _WIN32
     IMPORT_MODULE(gui);
     IMPORT_MODULE(registry);
-	IMPORT_MODULE(winreg);
 #endif
 
 #if defined(__APPLE__) && !defined(FIBJS_DISABLE_GUI)
