@@ -203,6 +203,12 @@ result_t msgpack_base::decode(Buffer_base* data, v8::Local<v8::Value>& retVal)
             case MSGPACK_OBJECT_FLOAT64:
                 v = v8::Number::New(isolate->m_isolate, o->via.f64);
                 break;
+            case MSGPACK_OBJECT_NEGATIVE_INTEGER:
+                v = v8::Number::New(isolate->m_isolate, o->via.i64);
+                break;
+            case MSGPACK_OBJECT_POSITIVE_INTEGER:
+                v = v8::Number::New(isolate->m_isolate, o->via.u64);
+                break;
             case MSGPACK_OBJECT_STR:
                 v = isolate->NewString(o->via.str.ptr, (int32_t)o->via.str.size);
                 break;
