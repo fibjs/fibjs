@@ -22,6 +22,7 @@ extern int32_t g_prof_interval;
 extern FILE* g_cov;
 
 extern bool g_tcpdump;
+extern bool g_ssldump;
 
 struct OptData {
     const char* name;

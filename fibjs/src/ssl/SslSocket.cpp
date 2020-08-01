@@ -7,9 +7,11 @@
 
 #include "object.h"
 #include "ifs/io.h"
+#include "ifs/console.h"
 #include "SslSocket.h"
 #include "PKey.h"
 #include <string.h>
+#include "options.h"
 
 namespace fibjs {
 
@@ -194,6 +196,8 @@ result_t SslSocket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
             if (ret > 0) {
                 m_buf.resize(ret);
                 m_retVal = new Buffer(m_buf);
+                if (g_ssldump)
+                    outLog(console_base::_NOTICE, clean_string(m_buf));
                 return 0;
             }
 
@@ -232,6 +236,8 @@ result_t SslSocket::write(Buffer_base* data, AsyncEvent* ac)
             : asyncSsl(pThis, ac)
         {
             data->toString(m_buf);
+            if (g_ssldump)
+                outLog(console_base::_WARN, clean_string(m_buf));
             m_pos = 0;
         }
 
