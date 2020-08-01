@@ -320,14 +320,28 @@ result_t Smtp::login(exlib::string username, exlib::string password,
     return (new asyncLogin(this, username, password, ac))->post(0);
 }
 
+inline exlib::string verify_address(exlib::string& addr)
+{
+    if (addr.find('<') != exlib::string::npos)
+        return addr;
+
+    exlib::string str;
+
+    str.append(1, '<');
+    str.append(addr);
+    str.append(1, '>');
+
+    return str;
+}
+
 result_t Smtp::from(exlib::string address, AsyncEvent* ac)
 {
-    return command("MAIL FROM", address, ac);
+    return command("MAIL FROM:", verify_address(address), ac);
 }
 
 result_t Smtp::to(exlib::string address, AsyncEvent* ac)
 {
-    return command("RCPT TO", address, ac);
+    return command("RCPT TO:", verify_address(address), ac);
 }
 
 result_t Smtp::data(exlib::string txt, AsyncEvent* ac)
