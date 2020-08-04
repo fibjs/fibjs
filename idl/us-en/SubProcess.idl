@@ -22,10 +22,6 @@ interface SubProcess : BufferedStream
 	 */
 	readonly Integer pid;
 
-	/*! @brief The readonly id of parent process of current chid process object's.
-	 */
-	readonly Integer ppid;
-
 	/*! @brief The readonly stdin object of process reffered by current child process object.
 	 */
 	readonly BufferedStream stdin;

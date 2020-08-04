@@ -27,10 +27,6 @@ interface SubProcess : object
     /*! @brief 读取当前对象指向的进程的 id
      */
     readonly Integer pid;
-    
-    /*! @brief 读取当前对象指向的父进程的 id
-     */
-    readonly Integer ppid;
 
     /*! @brief 读取当前对象指向的进程的标准输入对象
      */

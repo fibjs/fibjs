@@ -27,7 +27,6 @@ public:
     virtual result_t wait(int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t findWindow(exlib::string name, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t get_pid(int32_t& retVal) = 0;
-    virtual result_t get_ppid(int32_t& retVal) = 0;
     virtual result_t get_stdin(obj_ptr<BufferedStream_base>& retVal) = 0;
     virtual result_t get_stdout(obj_ptr<BufferedStream_base>& retVal) = 0;
     virtual result_t get_stderr(obj_ptr<BufferedStream_base>& retVal) = 0;
@@ -48,7 +47,6 @@ public:
     static void s_wait(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_findWindow(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_pid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_ppid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_stdin(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_stdout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_stderr(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -72,7 +70,6 @@ inline ClassInfo& SubProcess_base::class_info()
 
     static ClassData::ClassProperty s_property[] = {
         { "pid", s_get_pid, block_set, false },
-        { "ppid", s_get_ppid, block_set, false },
         { "stdin", s_get_stdin, block_set, false },
         { "stdout", s_get_stdout, block_set, false },
         { "stderr", s_get_stderr, block_set, false }
@@ -148,19 +145,6 @@ inline void SubProcess_base::s_get_pid(v8::Local<v8::Name> property, const v8::P
     PROPERTY_ENTER();
 
     hr = pInst->get_pid(vr);
-
-    METHOD_RETURN();
-}
-
-inline void SubProcess_base::s_get_ppid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    int32_t vr;
-
-    METHOD_NAME("SubProcess.ppid");
-    METHOD_INSTANCE(SubProcess_base);
-    PROPERTY_ENTER();
-
-    hr = pInst->get_ppid(vr);
 
     METHOD_RETURN();
 }

@@ -38,7 +38,6 @@ public:
     virtual result_t wait(int32_t& retVal, AsyncEvent* ac);
     virtual result_t findWindow(exlib::string name, v8::Local<v8::Value>& retVal);
     virtual result_t get_pid(int32_t& retVal);
-    virtual result_t get_ppid(int32_t& retVal);
     virtual result_t get_stdin(obj_ptr<BufferedStream_base>& retVal);
     virtual result_t get_stdout(obj_ptr<BufferedStream_base>& retVal);
     virtual result_t get_stderr(obj_ptr<BufferedStream_base>& retVal);
