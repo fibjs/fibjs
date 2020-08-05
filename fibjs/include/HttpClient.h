@@ -23,7 +23,7 @@ public:
         , m_enableCookie(true)
         , m_autoRedirect(true)
         , m_enableEncoding(true)
-        , m_sslVerification(NULL)
+        , m_sslVerification(0)
         , m_maxBodySize(-1)
         , m_poolSize(128)
         , m_poolTimeout(10000)

@@ -183,7 +183,7 @@ result_t HttpClient::get_sslVerification(int32_t& retVal)
 {
     retVal = m_sslVerification;
 
-    if (retVal == NULL)
+    if (retVal == 0)
         return CALL_RETURN_NULL;
 
     return 0;
@@ -612,7 +612,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             obj_ptr<SslSocket> ss = new SslSocket();
             int32_t sslVerfication;
             m_hc->get_sslVerification(sslVerfication);
-            if (sslVerfication == NULL)
+            if (sslVerfication == 0)
                 ssl_base::get_verification(sslVerfication);
             ss->set_verification(sslVerfication);
             obj_ptr<Stream_base> conn = m_conn;

@@ -703,7 +703,6 @@ result_t _format_update(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     JSArray ks = o->GetPropertyNames();
     int32_t len = ks->Length();
     int32_t i;
-    bool bAnd = true;
 
     for (i = 0; i < len; i++) {
         JSValue k = ks->Get(i);
@@ -765,7 +764,6 @@ result_t _format_insert(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     JSArray ks = o->GetPropertyNames();
     int32_t len = ks->Length();
     int32_t i;
-    bool bAnd = true;
 
     for (i = 0; i < len; i++) {
         JSValue k = ks->Get(i);

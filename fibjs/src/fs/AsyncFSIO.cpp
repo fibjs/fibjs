@@ -28,7 +28,7 @@ void FSWatcher::AsyncWatchFSProc::invoke()
 
     m_watcher->watcherReadyWaitor.set();
 
-    int32_t uv_err_no = uv_fs_event_start(&m_fs_handle, fs_event_cb, m_watcher->get_target(), m_watcher->isRecursiveForDir() ? UV_FS_EVENT_RECURSIVE : NULL);
+    int32_t uv_err_no = uv_fs_event_start(&m_fs_handle, fs_event_cb, m_watcher->get_target(), m_watcher->isRecursiveForDir() ? UV_FS_EVENT_RECURSIVE : 0);
     if (uv_err_no != 0) {
         m_watcher->onError(CALL_E_INVALID_CALL, uv_strerror(uv_err_no));
         m_watcher->close();

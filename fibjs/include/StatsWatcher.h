@@ -35,11 +35,11 @@ public:
         bool persistent = true,
         int32_t interval = DEFAULT_STATS_WATCH_INTERVAL,
         bool useBigInt = false)
-        : m_target(target)
+        : m_closed(false)
+        , m_target(target)
         , m_Persistent(persistent)
         , m_intervalMS(interval)
         , m_useBigInt(useBigInt)
-        , m_closed(false)
     {
         if (m_intervalMS < 20)
             m_intervalMS = DEFAULT_STATS_WATCH_INTERVAL;
@@ -52,7 +52,7 @@ public:
         tmp = new Stat();
         tmp->init();
         cur = tmp;
-        
+
         setTargetWatcher(m_target, this);
     }
 
@@ -189,7 +189,7 @@ public:
     void bindChangeHandler(v8::Local<v8::Function> callback)
     {
         assert(!callback.IsEmpty());
-        
+
         exlib::string _chname = "change";
         JSTrigger self = JSTrigger(this);
         self.putFunction(self.GetHiddenList(_chname, true), callback, _chname);
@@ -209,7 +209,7 @@ public:
     {
         v8::Local<v8::Object> triggers;
         this->off(exlib::string("change"), triggers);
-        
+
         close();
     }
 
@@ -301,7 +301,7 @@ public:
     exlib::atomic m_closed;
 
     exlib::Event watcherReadyWaitor;
-    
+
 protected:
     exlib::string m_target;
 

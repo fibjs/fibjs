@@ -311,7 +311,6 @@ inline result_t _jsonDecode(exlib::string data,
         result_t ParseJsonArray(i::MaybeHandle<i::Object>& retVal)
         {
             i::ZoneVector<i::Handle<i::Object>> els(&zone_);
-            int32_t cnt = 0;
             result_t hr;
 
             AdvanceSkipWhitespace();

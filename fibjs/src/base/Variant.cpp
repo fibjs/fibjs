@@ -35,7 +35,6 @@ Variant& Variant::operator=(v8::Local<v8::Value> v)
         m_Val.boolVal = v->BooleanValue();
     } else if (v->IsNumber() || v->IsNumberObject()) {
         double n = v->NumberValue();
-        int64_t num = (int64_t)n;
 
         set_type(VT_Number);
         m_Val.dblVal = n;
