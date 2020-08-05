@@ -91,10 +91,9 @@ inline void io_base::s_static_copyStream(const v8::FunctionCallbackInfo<v8::Valu
     ARG(obj_ptr<Stream_base>, 1);
     OPT_ARG(int64_t, 2, -1);
 
-    if (!cb.IsEmpty()) {
-        acb_copyStream(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_copyStream(v0, v1, v2, cb, args);
+    else
         hr = ac_copyStream(v0, v1, v2, vr);
 
     METHOD_RETURN();
@@ -110,10 +109,9 @@ inline void io_base::s_static_bridge(const v8::FunctionCallbackInfo<v8::Value>& 
     ARG(obj_ptr<Stream_base>, 0);
     ARG(obj_ptr<Stream_base>, 1);
 
-    if (!cb.IsEmpty()) {
-        acb_bridge(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_bridge(v0, v1, cb, args);
+    else
         hr = ac_bridge(v0, v1);
 
     METHOD_VOID();

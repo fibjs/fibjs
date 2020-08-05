@@ -153,10 +153,9 @@ inline void ssl_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>
     ARG(exlib::string, 0);
     OPT_ARG(int32_t, 1, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_connect(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_connect(v0, v1, cb, args);
+    else
         hr = ac_connect(v0, v1, vr);
 
     ASYNC_METHOD_OVER(4, 3);
@@ -166,10 +165,9 @@ inline void ssl_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>
     ARG(obj_ptr<PKey_base>, 2);
     OPT_ARG(int32_t, 3, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_connect(v0, v1, v2, v3, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_connect(v0, v1, v2, v3, cb, args);
+    else
         hr = ac_connect(v0, v1, v2, v3, vr);
 
     METHOD_RETURN();

@@ -176,10 +176,9 @@ inline void gd_base::s_static_create(const v8::FunctionCallbackInfo<v8::Value>& 
     ARG(int32_t, 1);
     OPT_ARG(int32_t, 2, gd_base::_TRUECOLOR);
 
-    if (!cb.IsEmpty()) {
-        acb_create(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_create(v0, v1, v2, cb, args);
+    else
         hr = ac_create(v0, v1, v2, vr);
 
     METHOD_RETURN();
@@ -196,30 +195,27 @@ inline void gd_base::s_static_load(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_load(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_load(v0, cb, args);
+    else
         hr = ac_load(v0, vr);
 
     ASYNC_METHOD_OVER(1, 1);
 
     ARG(obj_ptr<SeekableStream_base>, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_load(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_load(v0, cb, args);
+    else
         hr = ac_load(v0, vr);
 
     ASYNC_METHOD_OVER(1, 1);
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_load(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_load(v0, cb, args);
+    else
         hr = ac_load(v0, vr);
 
     METHOD_RETURN();

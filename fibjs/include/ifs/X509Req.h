@@ -211,10 +211,9 @@ inline void X509Req_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args
     ARG(obj_ptr<PKey_base>, 1);
     OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_sign(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_sign(v0, v1, v2, cb, args);
+    else
         hr = pInst->ac_sign(v0, v1, v2, vr);
 
     METHOD_RETURN();

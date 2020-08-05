@@ -113,10 +113,9 @@ inline void SubProcess_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ASYNC_METHOD_OVER(0, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_wait(cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_wait(cb, args);
+    else
         hr = pInst->ac_wait(vr);
 
     METHOD_RETURN();

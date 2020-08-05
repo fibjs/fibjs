@@ -544,10 +544,9 @@ inline void process_base::s_static_run(const v8::FunctionCallbackInfo<v8::Value>
     ARG(v8::Local<v8::Array>, 1);
     OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
-    if (!cb.IsEmpty()) {
-        acb_run(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_run(v0, v1, v2, cb, args);
+    else
         hr = ac_run(v0, v1, v2, vr);
 
     ASYNC_METHOD_OVER(2, 1);
@@ -555,10 +554,9 @@ inline void process_base::s_static_run(const v8::FunctionCallbackInfo<v8::Value>
     ARG(exlib::string, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
-    if (!cb.IsEmpty()) {
-        acb_run(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_run(v0, v1, cb, args);
+    else
         hr = ac_run(v0, v1, vr);
 
     METHOD_RETURN();

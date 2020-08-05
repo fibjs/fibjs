@@ -132,10 +132,9 @@ inline void BufferedStream_base::s_readText(const v8::FunctionCallbackInfo<v8::V
 
     ARG(int32_t, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_readText(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_readText(v0, cb, args);
+    else
         hr = pInst->ac_readText(v0, vr);
 
     METHOD_RETURN();
@@ -153,10 +152,9 @@ inline void BufferedStream_base::s_readLine(const v8::FunctionCallbackInfo<v8::V
 
     OPT_ARG(int32_t, 0, -1);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_readLine(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_readLine(v0, cb, args);
+    else
         hr = pInst->ac_readLine(v0, vr);
 
     METHOD_RETURN();
@@ -192,10 +190,9 @@ inline void BufferedStream_base::s_readUntil(const v8::FunctionCallbackInfo<v8::
     ARG(exlib::string, 0);
     OPT_ARG(int32_t, 1, -1);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_readUntil(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_readUntil(v0, v1, cb, args);
+    else
         hr = pInst->ac_readUntil(v0, v1, vr);
 
     METHOD_RETURN();
@@ -211,10 +208,9 @@ inline void BufferedStream_base::s_writeText(const v8::FunctionCallbackInfo<v8::
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_writeText(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_writeText(v0, cb, args);
+    else
         hr = pInst->ac_writeText(v0);
 
     METHOD_VOID();
@@ -230,10 +226,9 @@ inline void BufferedStream_base::s_writeLine(const v8::FunctionCallbackInfo<v8::
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_writeLine(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_writeLine(v0, cb, args);
+    else
         hr = pInst->ac_writeLine(v0);
 
     METHOD_VOID();

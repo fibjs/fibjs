@@ -162,10 +162,9 @@ inline void SeekableStream_base::s_readAll(const v8::FunctionCallbackInfo<v8::Va
 
     ASYNC_METHOD_OVER(0, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_readAll(cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_readAll(cb, args);
+    else
         hr = pInst->ac_readAll(vr);
 
     METHOD_RETURN();
@@ -181,10 +180,9 @@ inline void SeekableStream_base::s_truncate(const v8::FunctionCallbackInfo<v8::V
 
     ARG(int64_t, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_truncate(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_truncate(v0, cb, args);
+    else
         hr = pInst->ac_truncate(v0);
 
     METHOD_VOID();
@@ -215,10 +213,9 @@ inline void SeekableStream_base::s_stat(const v8::FunctionCallbackInfo<v8::Value
 
     ASYNC_METHOD_OVER(0, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_stat(cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_stat(cb, args);
+    else
         hr = pInst->ac_stat(vr);
 
     METHOD_RETURN();

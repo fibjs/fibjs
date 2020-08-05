@@ -86,10 +86,9 @@ inline void MySQL_base::s_use(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_use(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_use(v0, cb, args);
+    else
         hr = pInst->ac_use(v0);
 
     METHOD_VOID();

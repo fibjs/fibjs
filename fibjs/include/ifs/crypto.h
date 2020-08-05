@@ -297,10 +297,9 @@ inline void crypto_base::s_static_randomBytes(const v8::FunctionCallbackInfo<v8:
 
     ARG(int32_t, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_randomBytes(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_randomBytes(v0, cb, args);
+    else
         hr = ac_randomBytes(v0, vr);
 
     METHOD_RETURN();
@@ -317,10 +316,9 @@ inline void crypto_base::s_static_simpleRandomBytes(const v8::FunctionCallbackIn
 
     ARG(int32_t, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_simpleRandomBytes(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_simpleRandomBytes(v0, cb, args);
+    else
         hr = ac_simpleRandomBytes(v0, vr);
 
     METHOD_RETURN();
@@ -337,10 +335,9 @@ inline void crypto_base::s_static_pseudoRandomBytes(const v8::FunctionCallbackIn
 
     ARG(int32_t, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_pseudoRandomBytes(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_pseudoRandomBytes(v0, cb, args);
+    else
         hr = ac_pseudoRandomBytes(v0, vr);
 
     METHOD_RETURN();
@@ -379,10 +376,9 @@ inline void crypto_base::s_static_pbkdf1(const v8::FunctionCallbackInfo<v8::Valu
     ARG(int32_t, 3);
     ARG(int32_t, 4);
 
-    if (!cb.IsEmpty()) {
-        acb_pbkdf1(v0, v1, v2, v3, v4, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_pbkdf1(v0, v1, v2, v3, v4, cb, args);
+    else
         hr = ac_pbkdf1(v0, v1, v2, v3, v4, vr);
 
     ASYNC_METHOD_OVER(5, 5);
@@ -393,10 +389,9 @@ inline void crypto_base::s_static_pbkdf1(const v8::FunctionCallbackInfo<v8::Valu
     ARG(int32_t, 3);
     ARG(exlib::string, 4);
 
-    if (!cb.IsEmpty()) {
-        acb_pbkdf1(v0, v1, v2, v3, v4, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_pbkdf1(v0, v1, v2, v3, v4, cb, args);
+    else
         hr = ac_pbkdf1(v0, v1, v2, v3, v4, vr);
 
     METHOD_RETURN();
@@ -417,10 +412,9 @@ inline void crypto_base::s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Valu
     ARG(int32_t, 3);
     ARG(int32_t, 4);
 
-    if (!cb.IsEmpty()) {
-        acb_pbkdf2(v0, v1, v2, v3, v4, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_pbkdf2(v0, v1, v2, v3, v4, cb, args);
+    else
         hr = ac_pbkdf2(v0, v1, v2, v3, v4, vr);
 
     ASYNC_METHOD_OVER(5, 5);
@@ -431,10 +425,9 @@ inline void crypto_base::s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Valu
     ARG(int32_t, 3);
     ARG(exlib::string, 4);
 
-    if (!cb.IsEmpty()) {
-        acb_pbkdf2(v0, v1, v2, v3, v4, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_pbkdf2(v0, v1, v2, v3, v4, cb, args);
+    else
         hr = ac_pbkdf2(v0, v1, v2, v3, v4, vr);
 
     METHOD_RETURN();

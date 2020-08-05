@@ -466,10 +466,9 @@ inline void HttpClient_base::s_request(const v8::FunctionCallbackInfo<v8::Value>
     ARG(obj_ptr<Stream_base>, 0);
     ARG(obj_ptr<HttpRequest_base>, 1);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_request(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_request(v0, v1, cb, args);
+    else
         hr = pInst->ac_request(v0, v1, vr);
 
     ASYNC_METHOD_OVER(3, 2);
@@ -478,10 +477,9 @@ inline void HttpClient_base::s_request(const v8::FunctionCallbackInfo<v8::Value>
     ARG(exlib::string, 1);
     OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_request(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_request(v0, v1, v2, cb, args);
+    else
         hr = pInst->ac_request(v0, v1, v2, vr);
 
     METHOD_RETURN();
@@ -500,10 +498,9 @@ inline void HttpClient_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& ar
     ARG(exlib::string, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_get(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_get(v0, v1, cb, args);
+    else
         hr = pInst->ac_get(v0, v1, vr);
 
     METHOD_RETURN();
@@ -522,10 +519,9 @@ inline void HttpClient_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG(exlib::string, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_post(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_post(v0, v1, cb, args);
+    else
         hr = pInst->ac_post(v0, v1, vr);
 
     METHOD_RETURN();
@@ -544,10 +540,9 @@ inline void HttpClient_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& ar
     ARG(exlib::string, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_del(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_del(v0, v1, cb, args);
+    else
         hr = pInst->ac_del(v0, v1, vr);
 
     METHOD_RETURN();
@@ -566,10 +561,9 @@ inline void HttpClient_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& ar
     ARG(exlib::string, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_put(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_put(v0, v1, cb, args);
+    else
         hr = pInst->ac_put(v0, v1, vr);
 
     METHOD_RETURN();
@@ -588,10 +582,9 @@ inline void HttpClient_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& 
     ARG(exlib::string, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_patch(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_patch(v0, v1, cb, args);
+    else
         hr = pInst->ac_patch(v0, v1, vr);
 
     METHOD_RETURN();

@@ -76,10 +76,9 @@ inline void dns_base::s_static_resolve(const v8::FunctionCallbackInfo<v8::Value>
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_resolve(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_resolve(v0, cb, args);
+    else
         hr = ac_resolve(v0, vr);
 
     METHOD_RETURN();
@@ -96,10 +95,9 @@ inline void dns_base::s_static_lookup(const v8::FunctionCallbackInfo<v8::Value>&
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_lookup(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_lookup(v0, cb, args);
+    else
         hr = ac_lookup(v0, vr);
 
     METHOD_RETURN();

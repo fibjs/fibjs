@@ -91,7 +91,12 @@ function gen_code(cls, def, baseFolder) {
                 });
             },
             "stub": fn => {
-                var { fncallee_ovs, new_ovs, static_ovs, inst_mem_ovs } = vary_overs(fn, def);
+                var {
+                    fncallee_ovs,
+                    new_ovs,
+                    static_ovs,
+                    inst_mem_ovs
+                } = vary_overs(fn, def);
 
                 const recorder = record_exist();
                 line = null
@@ -118,7 +123,12 @@ function gen_code(cls, def, baseFolder) {
                 });
             },
             "stub_func": fn => {
-                var { fncallee_ovs, new_ovs, static_ovs, inst_mem_ovs } = vary_overs(fn, def);
+                var {
+                    fncallee_ovs,
+                    new_ovs,
+                    static_ovs,
+                    inst_mem_ovs
+                } = vary_overs(fn, def);
 
                 function make_ov_params(tp_overs) {
                     tp_overs.forEach(ov => {
@@ -175,10 +185,10 @@ function gen_code(cls, def, baseFolder) {
                             txts.push('    DEPRECATED_SOON("' + cls + '.' + ov.name + '");\n');
 
                         if (ov.async) {
-                            args.push('cb');
-                            ; ([
-                                `    if (!cb.IsEmpty()) {\n        ${(ov.static ? 'acb_' : 'pInst->acb_')}${get_name(ov.name, ov, def)}(${args.join(', ')});`,
-                                `        hr = CALL_RETURN_NULL;\n    } else`,
+                            args.push('cb');;
+                            ([
+                                `    if (!cb.IsEmpty())\n        hr = ${(ov.static ? 'acb_' : 'pInst->acb_')}${get_name(ov.name, ov, def)}(${args.join(', ')}, args);`,
+                                `    else`,
                                 `        hr = ${(ov.static ? 'ac_' : 'pInst->ac_')}${get_name(ov.name, ov, def)}(${args_call.join(', ')});\n`,
                             ]).forEach(line => txts.push(line))
                         } else {
@@ -346,14 +356,14 @@ function gen_code(cls, def, baseFolder) {
             }
         },
         "object": {
-            "declare": () => { },
-            "stub": () => { },
-            "stub_func": () => { }
+            "declare": () => {},
+            "stub": () => {},
+            "stub_func": () => {}
         },
         "const": {
-            "declare": () => { },
-            "stub": fn => { },
-            "stub_func": fn => { }
+            "declare": () => {},
+            "stub": fn => {},
+            "stub_func": fn => {}
         },
         "operator": {
             "declare": fn => {
@@ -491,8 +501,13 @@ function gen_code(cls, def, baseFolder) {
         return typeMap[t] || (`obj_ptr<${t}_base>`);
     }
 
-    function is_func_Function(fn, def) { return fn.name === 'Function' }
-    function is_func_new(fn, def) { return get_specname(fn.name) === def.declare.name && !fn.static/*  && !fn.type */ }
+    function is_func_Function(fn, def) {
+        return fn.name === 'Function'
+    }
+
+    function is_func_new(fn, def) {
+        return get_specname(fn.name) === def.declare.name && !fn.static /*  && !fn.type */
+    }
 
     function get_specname(n) {
         var ckws = {
@@ -539,6 +554,7 @@ function gen_code(cls, def, baseFolder) {
 
         return base
     }
+
     function get_stub_func_prefix(fn, def) {
         var base = 's_'
 
@@ -630,6 +646,9 @@ function gen_code(cls, def, baseFolder) {
                     var name = fn.name;
                     name = name.substr(0, 1).toUpperCase() + name.substr(1) + "Type";
                     fn.type.name = name;
+                    fn.overs.forEach(ofun => {
+                        ofun.type.name = name;
+                    })
 
                     ts.push(`    class ${name} : public NType {`);
 
@@ -780,7 +799,10 @@ function gen_code(cls, def, baseFolder) {
             def.members.forEach(fn => {
                 var fname = fn.name;
 
-                var { inst_mem_ovs, static_ovs } = vary_overs(fn, def);
+                var {
+                    inst_mem_ovs,
+                    static_ovs
+                } = vary_overs(fn, def);
 
                 const recorder_insts = record_exist();
                 inst_mem_ovs.forEach(ov => {
@@ -955,6 +977,26 @@ function gen_code(cls, def, baseFolder) {
         var method_defs = {};
         var deflist = [];
 
+        function check_type(t1, t2) {
+            if (t1 == t2)
+                return true;
+
+            if (!util.isArray(t1) || !util.isArray(t2))
+                return false;
+
+            if (t1.length != t2.length)
+                return false;
+
+            for (var i = 0; i < t1.length; i++) {
+                if (t1[i].type != t2[i].type)
+                    return false;
+                if (t1[i].name != t2[i].name)
+                    return false;
+            }
+
+            return true;
+        }
+
         def.members.forEach(fn => {
             var fname = fn.name;
             var fstatic = fn.static;
@@ -974,7 +1016,7 @@ function gen_code(cls, def, baseFolder) {
 
             if (
                 fn.memType != fn1.memType ||
-                fn.type != fn1.type
+                !check_type(fn.type, fn1.type)
             ) {
                 throw new Error(`Override function '${fname}' with different return-type.`);
             }

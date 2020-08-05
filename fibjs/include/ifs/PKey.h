@@ -217,10 +217,9 @@ inline void PKey_base::s_genRsaKey(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     ARG(int32_t, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_genRsaKey(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_genRsaKey(v0, cb, args);
+    else
         hr = pInst->ac_genRsaKey(v0);
 
     METHOD_VOID();
@@ -236,10 +235,9 @@ inline void PKey_base::s_genEcKey(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     OPT_ARG(exlib::string, 0, "secp521r1");
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_genEcKey(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_genEcKey(v0, cb, args);
+    else
         hr = pInst->ac_genEcKey(v0);
 
     METHOD_VOID();
@@ -253,10 +251,9 @@ inline void PKey_base::s_genSm2Key(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     ASYNC_METHOD_OVER(0, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_genSm2Key(cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_genSm2Key(cb, args);
+    else
         hr = pInst->ac_genSm2Key();
 
     METHOD_VOID();
@@ -394,10 +391,9 @@ inline void PKey_base::s_encrypt(const v8::FunctionCallbackInfo<v8::Value>& args
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_encrypt(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_encrypt(v0, cb, args);
+    else
         hr = pInst->ac_encrypt(v0, vr);
 
     METHOD_RETURN();
@@ -415,10 +411,9 @@ inline void PKey_base::s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& args
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_decrypt(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_decrypt(v0, cb, args);
+    else
         hr = pInst->ac_decrypt(v0, vr);
 
     METHOD_RETURN();
@@ -437,10 +432,9 @@ inline void PKey_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
     ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(int32_t, 1, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_sign(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_sign(v0, v1, cb, args);
+    else
         hr = pInst->ac_sign(v0, v1, vr);
 
     METHOD_RETURN();
@@ -460,10 +454,9 @@ inline void PKey_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& args)
     ARG(obj_ptr<Buffer_base>, 1);
     OPT_ARG(int32_t, 2, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_verify(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_verify(v0, v1, v2, cb, args);
+    else
         hr = pInst->ac_verify(v0, v1, v2, vr);
 
     METHOD_RETURN();

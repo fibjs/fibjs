@@ -403,10 +403,9 @@ inline void os_base::s_static_openPrinter(const v8::FunctionCallbackInfo<v8::Val
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_openPrinter(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_openPrinter(v0, cb, args);
+    else
         hr = ac_openPrinter(v0, vr);
 
     METHOD_RETURN();

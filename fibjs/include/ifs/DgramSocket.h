@@ -114,20 +114,18 @@ inline void DgramSocket_base::s_bind(const v8::FunctionCallbackInfo<v8::Value>& 
     OPT_ARG(int32_t, 0, 0);
     OPT_ARG(exlib::string, 1, "");
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_bind(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_bind(v0, v1, cb, args);
+    else
         hr = pInst->ac_bind(v0, v1);
 
     ASYNC_METHOD_OVER(1, 1);
 
     ARG(v8::Local<v8::Object>, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_bind(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_bind(v0, cb, args);
+    else
         hr = pInst->ac_bind(v0);
 
     METHOD_VOID();
@@ -147,10 +145,9 @@ inline void DgramSocket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& 
     ARG(int32_t, 1);
     OPT_ARG(exlib::string, 2, "");
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_send(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_send(v0, v1, v2, cb, args);
+    else
         hr = pInst->ac_send(v0, v1, v2, vr);
 
     ASYNC_METHOD_OVER(5, 4);
@@ -161,10 +158,9 @@ inline void DgramSocket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& 
     ARG(int32_t, 3);
     OPT_ARG(exlib::string, 4, "");
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_send(v0, v1, v2, v3, v4, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_send(v0, v1, v2, v3, v4, cb, args);
+    else
         hr = pInst->ac_send(v0, v1, v2, v3, v4, vr);
 
     METHOD_RETURN();

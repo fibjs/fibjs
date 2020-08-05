@@ -204,10 +204,9 @@ inline void Cipher_base::s_encrypt(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_encrypt(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_encrypt(v0, cb, args);
+    else
         hr = pInst->ac_encrypt(v0, vr);
 
     METHOD_RETURN();
@@ -225,10 +224,9 @@ inline void Cipher_base::s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_decrypt(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_decrypt(v0, cb, args);
+    else
         hr = pInst->ac_decrypt(v0, vr);
 
     METHOD_RETURN();

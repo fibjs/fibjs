@@ -237,10 +237,9 @@ inline void HttpResponse_base::s_sendHeader(const v8::FunctionCallbackInfo<v8::V
 
     ARG(obj_ptr<Stream_base>, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_sendHeader(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_sendHeader(v0, cb, args);
+    else
         hr = pInst->ac_sendHeader(v0);
 
     METHOD_VOID();

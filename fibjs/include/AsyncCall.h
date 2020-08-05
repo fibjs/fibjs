@@ -76,6 +76,7 @@ public:
 
 public:
     std::vector<Variant> m_ctx;
+    obj_ptr<object_base> m_ctxo;
 
 protected:
     Isolate* m_isolate;
@@ -413,13 +414,7 @@ public:
         return m_isolate;
     }
 
-    void check_result(int32_t hr)
-    {
-        if (hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)
-            callback(hr);
-        else
-            async_call(hr);
-    }
+    int32_t check_result(int32_t hr, const v8::FunctionCallbackInfo<v8::Value>& args);
 
 protected:
     void fillRetVal(std::vector<v8::Local<v8::Value>>& args, object_base* obj);

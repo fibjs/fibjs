@@ -196,6 +196,21 @@ result_t AsyncCallBack::syncFunc(AsyncCallBack* pThis)
     return 0;
 }
 
+int32_t AsyncCallBack::check_result(int32_t hr, const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    if (hr != CALL_E_NOSYNC && hr != CALL_E_LONGSYNC && hr != CALL_E_GUICALL)
+        callback(hr);
+    else
+        async_call(hr);
+
+    if (m_ctxo)
+        args.GetReturnValue().Set(V8_RETURN(GetReturnValue(m_isolate->m_isolate, m_ctxo)));
+    else
+        args.GetReturnValue().SetUndefined();
+
+    return CALL_RETURN_CALLBACK;
+}
+
 void InitializeAcPool()
 {
     s_lsPool = new acPool(2, true);

@@ -299,10 +299,9 @@ inline void fs_base::s_static_exists(const v8::FunctionCallbackInfo<v8::Value>& 
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_exists(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_exists(v0, cb, args);
+    else
         hr = ac_exists(v0, vr);
 
     METHOD_RETURN();
@@ -318,10 +317,9 @@ inline void fs_base::s_static_access(const v8::FunctionCallbackInfo<v8::Value>& 
     ARG(exlib::string, 0);
     OPT_ARG(int32_t, 1, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_access(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_access(v0, v1, cb, args);
+    else
         hr = ac_access(v0, v1);
 
     METHOD_VOID();
@@ -337,10 +335,9 @@ inline void fs_base::s_static_link(const v8::FunctionCallbackInfo<v8::Value>& ar
     ARG(exlib::string, 0);
     ARG(exlib::string, 1);
 
-    if (!cb.IsEmpty()) {
-        acb_link(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_link(v0, v1, cb, args);
+    else
         hr = ac_link(v0, v1);
 
     METHOD_VOID();
@@ -355,10 +352,9 @@ inline void fs_base::s_static_unlink(const v8::FunctionCallbackInfo<v8::Value>& 
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_unlink(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_unlink(v0, cb, args);
+    else
         hr = ac_unlink(v0);
 
     METHOD_VOID();
@@ -374,10 +370,9 @@ inline void fs_base::s_static_mkdir(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG(exlib::string, 0);
     OPT_ARG(int32_t, 1, 0777);
 
-    if (!cb.IsEmpty()) {
-        acb_mkdir(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_mkdir(v0, v1, cb, args);
+    else
         hr = ac_mkdir(v0, v1);
 
     METHOD_VOID();
@@ -392,10 +387,9 @@ inline void fs_base::s_static_rmdir(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_rmdir(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_rmdir(v0, cb, args);
+    else
         hr = ac_rmdir(v0);
 
     METHOD_VOID();
@@ -411,10 +405,9 @@ inline void fs_base::s_static_rename(const v8::FunctionCallbackInfo<v8::Value>& 
     ARG(exlib::string, 0);
     ARG(exlib::string, 1);
 
-    if (!cb.IsEmpty()) {
-        acb_rename(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_rename(v0, v1, cb, args);
+    else
         hr = ac_rename(v0, v1);
 
     METHOD_VOID();
@@ -430,10 +423,9 @@ inline void fs_base::s_static_copy(const v8::FunctionCallbackInfo<v8::Value>& ar
     ARG(exlib::string, 0);
     ARG(exlib::string, 1);
 
-    if (!cb.IsEmpty()) {
-        acb_copy(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_copy(v0, v1, cb, args);
+    else
         hr = ac_copy(v0, v1);
 
     METHOD_VOID();
@@ -449,10 +441,9 @@ inline void fs_base::s_static_chmod(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG(exlib::string, 0);
     ARG(int32_t, 1);
 
-    if (!cb.IsEmpty()) {
-        acb_chmod(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_chmod(v0, v1, cb, args);
+    else
         hr = ac_chmod(v0, v1);
 
     METHOD_VOID();
@@ -468,10 +459,9 @@ inline void fs_base::s_static_lchmod(const v8::FunctionCallbackInfo<v8::Value>& 
     ARG(exlib::string, 0);
     ARG(int32_t, 1);
 
-    if (!cb.IsEmpty()) {
-        acb_lchmod(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_lchmod(v0, v1, cb, args);
+    else
         hr = ac_lchmod(v0, v1);
 
     METHOD_VOID();
@@ -488,10 +478,9 @@ inline void fs_base::s_static_chown(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG(int32_t, 1);
     ARG(int32_t, 2);
 
-    if (!cb.IsEmpty()) {
-        acb_chown(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_chown(v0, v1, v2, cb, args);
+    else
         hr = ac_chown(v0, v1, v2);
 
     METHOD_VOID();
@@ -508,10 +497,9 @@ inline void fs_base::s_static_lchown(const v8::FunctionCallbackInfo<v8::Value>& 
     ARG(int32_t, 1);
     ARG(int32_t, 2);
 
-    if (!cb.IsEmpty()) {
-        acb_lchown(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_lchown(v0, v1, v2, cb, args);
+    else
         hr = ac_lchown(v0, v1, v2);
 
     METHOD_VOID();
@@ -528,10 +516,9 @@ inline void fs_base::s_static_stat(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_stat(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_stat(v0, cb, args);
+    else
         hr = ac_stat(v0, vr);
 
     METHOD_RETURN();
@@ -548,10 +535,9 @@ inline void fs_base::s_static_lstat(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_lstat(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_lstat(v0, cb, args);
+    else
         hr = ac_lstat(v0, vr);
 
     METHOD_RETURN();
@@ -568,10 +554,9 @@ inline void fs_base::s_static_readlink(const v8::FunctionCallbackInfo<v8::Value>
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_readlink(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_readlink(v0, cb, args);
+    else
         hr = ac_readlink(v0, vr);
 
     METHOD_RETURN();
@@ -588,10 +573,9 @@ inline void fs_base::s_static_realpath(const v8::FunctionCallbackInfo<v8::Value>
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_realpath(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_realpath(v0, cb, args);
+    else
         hr = ac_realpath(v0, vr);
 
     METHOD_RETURN();
@@ -608,10 +592,9 @@ inline void fs_base::s_static_symlink(const v8::FunctionCallbackInfo<v8::Value>&
     ARG(exlib::string, 1);
     OPT_ARG(exlib::string, 2, "file");
 
-    if (!cb.IsEmpty()) {
-        acb_symlink(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_symlink(v0, v1, v2, cb, args);
+    else
         hr = ac_symlink(v0, v1, v2);
 
     METHOD_VOID();
@@ -627,10 +610,9 @@ inline void fs_base::s_static_truncate(const v8::FunctionCallbackInfo<v8::Value>
     ARG(exlib::string, 0);
     ARG(int32_t, 1);
 
-    if (!cb.IsEmpty()) {
-        acb_truncate(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_truncate(v0, v1, cb, args);
+    else
         hr = ac_truncate(v0, v1);
 
     METHOD_VOID();
@@ -651,10 +633,9 @@ inline void fs_base::s_static_read(const v8::FunctionCallbackInfo<v8::Value>& ar
     OPT_ARG(int32_t, 3, 0);
     OPT_ARG(int32_t, 4, -1);
 
-    if (!cb.IsEmpty()) {
-        acb_read(v0, v1, v2, v3, v4, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_read(v0, v1, v2, v3, v4, cb, args);
+    else
         hr = ac_read(v0, v1, v2, v3, v4, vr);
 
     METHOD_RETURN();
@@ -670,10 +651,9 @@ inline void fs_base::s_static_fchmod(const v8::FunctionCallbackInfo<v8::Value>& 
     ARG(int32_t, 0);
     ARG(int32_t, 1);
 
-    if (!cb.IsEmpty()) {
-        acb_fchmod(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_fchmod(v0, v1, cb, args);
+    else
         hr = ac_fchmod(v0, v1);
 
     METHOD_VOID();
@@ -690,10 +670,9 @@ inline void fs_base::s_static_fchown(const v8::FunctionCallbackInfo<v8::Value>& 
     ARG(int32_t, 1);
     ARG(int32_t, 2);
 
-    if (!cb.IsEmpty()) {
-        acb_fchown(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_fchown(v0, v1, v2, cb, args);
+    else
         hr = ac_fchown(v0, v1, v2);
 
     METHOD_VOID();
@@ -708,10 +687,9 @@ inline void fs_base::s_static_fdatasync(const v8::FunctionCallbackInfo<v8::Value
 
     ARG(int32_t, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_fdatasync(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_fdatasync(v0, cb, args);
+    else
         hr = ac_fdatasync(v0);
 
     METHOD_VOID();
@@ -726,10 +704,9 @@ inline void fs_base::s_static_fsync(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ARG(int32_t, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_fsync(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_fsync(v0, cb, args);
+    else
         hr = ac_fsync(v0);
 
     METHOD_VOID();
@@ -746,10 +723,9 @@ inline void fs_base::s_static_readdir(const v8::FunctionCallbackInfo<v8::Value>&
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_readdir(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_readdir(v0, cb, args);
+    else
         hr = ac_readdir(v0, vr);
 
     METHOD_RETURN();
@@ -767,10 +743,9 @@ inline void fs_base::s_static_openFile(const v8::FunctionCallbackInfo<v8::Value>
     ARG(exlib::string, 0);
     OPT_ARG(exlib::string, 1, "r");
 
-    if (!cb.IsEmpty()) {
-        acb_openFile(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_openFile(v0, v1, cb, args);
+    else
         hr = ac_openFile(v0, v1, vr);
 
     METHOD_RETURN();
@@ -789,10 +764,9 @@ inline void fs_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& ar
     OPT_ARG(exlib::string, 1, "r");
     OPT_ARG(int32_t, 2, 0666);
 
-    if (!cb.IsEmpty()) {
-        acb_open(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_open(v0, v1, v2, cb, args);
+    else
         hr = ac_open(v0, v1, v2, vr);
 
     METHOD_RETURN();
@@ -807,10 +781,9 @@ inline void fs_base::s_static_close(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ARG(int32_t, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_close(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_close(v0, cb, args);
+    else
         hr = ac_close(v0);
 
     METHOD_VOID();
@@ -828,10 +801,9 @@ inline void fs_base::s_static_openTextStream(const v8::FunctionCallbackInfo<v8::
     ARG(exlib::string, 0);
     OPT_ARG(exlib::string, 1, "r");
 
-    if (!cb.IsEmpty()) {
-        acb_openTextStream(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_openTextStream(v0, v1, cb, args);
+    else
         hr = ac_openTextStream(v0, v1, vr);
 
     METHOD_RETURN();
@@ -848,10 +820,9 @@ inline void fs_base::s_static_readTextFile(const v8::FunctionCallbackInfo<v8::Va
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_readTextFile(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_readTextFile(v0, cb, args);
+    else
         hr = ac_readTextFile(v0, vr);
 
     METHOD_RETURN();
@@ -869,10 +840,9 @@ inline void fs_base::s_static_readFile(const v8::FunctionCallbackInfo<v8::Value>
     ARG(exlib::string, 0);
     OPT_ARG(exlib::string, 1, "");
 
-    if (!cb.IsEmpty()) {
-        acb_readFile(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_readFile(v0, v1, cb, args);
+    else
         hr = ac_readFile(v0, v1, vr);
 
     METHOD_RETURN();
@@ -905,10 +875,9 @@ inline void fs_base::s_static_writeTextFile(const v8::FunctionCallbackInfo<v8::V
     ARG(exlib::string, 0);
     ARG(exlib::string, 1);
 
-    if (!cb.IsEmpty()) {
-        acb_writeTextFile(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_writeTextFile(v0, v1, cb, args);
+    else
         hr = ac_writeTextFile(v0, v1);
 
     METHOD_VOID();
@@ -924,10 +893,9 @@ inline void fs_base::s_static_writeFile(const v8::FunctionCallbackInfo<v8::Value
     ARG(exlib::string, 0);
     ARG(obj_ptr<Buffer_base>, 1);
 
-    if (!cb.IsEmpty()) {
-        acb_writeFile(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_writeFile(v0, v1, cb, args);
+    else
         hr = ac_writeFile(v0, v1);
 
     METHOD_VOID();
@@ -943,10 +911,9 @@ inline void fs_base::s_static_appendFile(const v8::FunctionCallbackInfo<v8::Valu
     ARG(exlib::string, 0);
     ARG(obj_ptr<Buffer_base>, 1);
 
-    if (!cb.IsEmpty()) {
-        acb_appendFile(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_appendFile(v0, v1, cb, args);
+    else
         hr = ac_appendFile(v0, v1);
 
     METHOD_VOID();

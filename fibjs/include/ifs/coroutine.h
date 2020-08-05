@@ -192,10 +192,9 @@ inline void coroutine_base::s_static_sleep(const v8::FunctionCallbackInfo<v8::Va
 
     OPT_ARG(int32_t, 0, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_sleep(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_sleep(v0, cb, args);
+    else
         hr = ac_sleep(v0);
 
     METHOD_VOID();

@@ -104,10 +104,9 @@ inline void MongoCursor_base::s_skip(const v8::FunctionCallbackInfo<v8::Value>& 
 
     ARG(int32_t, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_skip(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_skip(v0, cb, args);
+    else
         hr = pInst->ac_skip(v0, vr);
 
     METHOD_RETURN();
@@ -125,10 +124,9 @@ inline void MongoCursor_base::s_limit(const v8::FunctionCallbackInfo<v8::Value>&
 
     ARG(int32_t, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_limit(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_limit(v0, cb, args);
+    else
         hr = pInst->ac_limit(v0, vr);
 
     METHOD_RETURN();

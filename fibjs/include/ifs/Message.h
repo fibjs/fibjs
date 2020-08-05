@@ -276,10 +276,9 @@ inline void Message_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args
 
     OPT_ARG(int32_t, 0, -1);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_read(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_read(v0, cb, args);
+    else
         hr = pInst->ac_read(v0, vr);
 
     METHOD_RETURN();
@@ -295,10 +294,9 @@ inline void Message_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ASYNC_METHOD_OVER(0, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_readAll(cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_readAll(cb, args);
+    else
         hr = pInst->ac_readAll(vr);
 
     METHOD_RETURN();
@@ -314,10 +312,9 @@ inline void Message_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_write(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_write(v0, cb, args);
+    else
         hr = pInst->ac_write(v0);
 
     METHOD_VOID();
@@ -408,10 +405,9 @@ inline void Message_base::s_sendTo(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     ARG(obj_ptr<Stream_base>, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_sendTo(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_sendTo(v0, cb, args);
+    else
         hr = pInst->ac_sendTo(v0);
 
     METHOD_VOID();
@@ -427,10 +423,9 @@ inline void Message_base::s_readFrom(const v8::FunctionCallbackInfo<v8::Value>& 
 
     ARG(obj_ptr<Stream_base>, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_readFrom(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_readFrom(v0, cb, args);
+    else
         hr = pInst->ac_readFrom(v0);
 
     METHOD_VOID();

@@ -183,10 +183,9 @@ inline void MongoDB_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     ASYNC_METHOD_OVER(0, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_close(cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_close(cb, args);
+    else
         hr = pInst->ac_close();
 
     METHOD_VOID();

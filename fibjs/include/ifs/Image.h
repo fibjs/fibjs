@@ -431,10 +431,9 @@ inline void Image_base::s_getData(const v8::FunctionCallbackInfo<v8::Value>& arg
     OPT_ARG(int32_t, 0, gd_base::_PNG);
     OPT_ARG(int32_t, 1, 85);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_getData(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_getData(v0, v1, cb, args);
+    else
         hr = pInst->ac_getData(v0, v1, vr);
 
     METHOD_RETURN();
@@ -452,10 +451,9 @@ inline void Image_base::s_save(const v8::FunctionCallbackInfo<v8::Value>& args)
     OPT_ARG(int32_t, 1, gd_base::_PNG);
     OPT_ARG(int32_t, 2, 85);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_save(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_save(v0, v1, v2, cb, args);
+    else
         hr = pInst->ac_save(v0, v1, v2);
 
     ASYNC_METHOD_OVER(3, 1);
@@ -464,10 +462,9 @@ inline void Image_base::s_save(const v8::FunctionCallbackInfo<v8::Value>& args)
     OPT_ARG(int32_t, 1, gd_base::_PNG);
     OPT_ARG(int32_t, 2, 85);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_save(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_save(v0, v1, v2, cb, args);
+    else
         hr = pInst->ac_save(v0, v1, v2);
 
     METHOD_VOID();
@@ -1035,10 +1032,9 @@ inline void Image_base::s_colorReplace(const v8::FunctionCallbackInfo<v8::Value>
     ARG(int32_t, 0);
     ARG(int32_t, 1);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_colorReplace(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_colorReplace(v0, v1, cb, args);
+    else
         hr = pInst->ac_colorReplace(v0, v1);
 
     METHOD_VOID();
@@ -1054,10 +1050,9 @@ inline void Image_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     ASYNC_METHOD_OVER(0, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_clone(cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_clone(cb, args);
+    else
         hr = pInst->ac_clone(vr);
 
     METHOD_RETURN();
@@ -1076,10 +1071,9 @@ inline void Image_base::s_resample(const v8::FunctionCallbackInfo<v8::Value>& ar
     ARG(int32_t, 0);
     ARG(int32_t, 1);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_resample(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_resample(v0, v1, cb, args);
+    else
         hr = pInst->ac_resample(v0, v1, vr);
 
     METHOD_RETURN();
@@ -1100,10 +1094,9 @@ inline void Image_base::s_crop(const v8::FunctionCallbackInfo<v8::Value>& args)
     ARG(int32_t, 2);
     ARG(int32_t, 3);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_crop(v0, v1, v2, v3, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_crop(v0, v1, v2, v3, cb, args);
+    else
         hr = pInst->ac_crop(v0, v1, v2, v3, vr);
 
     METHOD_RETURN();
@@ -1119,10 +1112,9 @@ inline void Image_base::s_flip(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     OPT_ARG(int32_t, 0, gd_base::_HORIZONTAL);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_flip(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_flip(v0, cb, args);
+    else
         hr = pInst->ac_flip(v0);
 
     METHOD_VOID();
@@ -1138,10 +1130,9 @@ inline void Image_base::s_rotate(const v8::FunctionCallbackInfo<v8::Value>& args
 
     ARG(int32_t, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_rotate(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_rotate(v0, cb, args);
+    else
         hr = pInst->ac_rotate(v0);
 
     METHOD_VOID();
@@ -1157,10 +1148,9 @@ inline void Image_base::s_convert(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     OPT_ARG(int32_t, 0, gd_base::_TRUECOLOR);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_convert(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_convert(v0, cb, args);
+    else
         hr = pInst->ac_convert(v0);
 
     METHOD_VOID();
@@ -1182,10 +1172,9 @@ inline void Image_base::s_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
     ARG(int32_t, 5);
     ARG(int32_t, 6);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_copy(v0, v1, v2, v3, v4, v5, v6, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_copy(v0, v1, v2, v3, v4, v5, v6, cb, args);
+    else
         hr = pInst->ac_copy(v0, v1, v2, v3, v4, v5, v6);
 
     METHOD_VOID();
@@ -1208,10 +1197,9 @@ inline void Image_base::s_copyMerge(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG(int32_t, 6);
     ARG(int32_t, 7);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_copyMerge(v0, v1, v2, v3, v4, v5, v6, v7, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_copyMerge(v0, v1, v2, v3, v4, v5, v6, v7, cb, args);
+    else
         hr = pInst->ac_copyMerge(v0, v1, v2, v3, v4, v5, v6, v7);
 
     METHOD_VOID();
@@ -1234,10 +1222,9 @@ inline void Image_base::s_copyMergeGray(const v8::FunctionCallbackInfo<v8::Value
     ARG(int32_t, 6);
     ARG(int32_t, 7);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_copyMergeGray(v0, v1, v2, v3, v4, v5, v6, v7, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_copyMergeGray(v0, v1, v2, v3, v4, v5, v6, v7, cb, args);
+    else
         hr = pInst->ac_copyMergeGray(v0, v1, v2, v3, v4, v5, v6, v7);
 
     METHOD_VOID();
@@ -1261,10 +1248,9 @@ inline void Image_base::s_copyResized(const v8::FunctionCallbackInfo<v8::Value>&
     ARG(int32_t, 7);
     ARG(int32_t, 8);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_copyResized(v0, v1, v2, v3, v4, v5, v6, v7, v8, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_copyResized(v0, v1, v2, v3, v4, v5, v6, v7, v8, cb, args);
+    else
         hr = pInst->ac_copyResized(v0, v1, v2, v3, v4, v5, v6, v7, v8);
 
     METHOD_VOID();
@@ -1288,10 +1274,9 @@ inline void Image_base::s_copyResampled(const v8::FunctionCallbackInfo<v8::Value
     ARG(int32_t, 7);
     ARG(int32_t, 8);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_copyResampled(v0, v1, v2, v3, v4, v5, v6, v7, v8, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_copyResampled(v0, v1, v2, v3, v4, v5, v6, v7, v8, cb, args);
+    else
         hr = pInst->ac_copyResampled(v0, v1, v2, v3, v4, v5, v6, v7, v8);
 
     METHOD_VOID();
@@ -1314,10 +1299,9 @@ inline void Image_base::s_copyRotated(const v8::FunctionCallbackInfo<v8::Value>&
     ARG(int32_t, 6);
     ARG(double, 7);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_copyRotated(v0, v1, v2, v3, v4, v5, v6, v7, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_copyRotated(v0, v1, v2, v3, v4, v5, v6, v7, cb, args);
+    else
         hr = pInst->ac_copyRotated(v0, v1, v2, v3, v4, v5, v6, v7);
 
     METHOD_VOID();
@@ -1337,10 +1321,9 @@ inline void Image_base::s_filter(const v8::FunctionCallbackInfo<v8::Value>& args
     OPT_ARG(double, 3, 0);
     OPT_ARG(double, 4, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_filter(v0, v1, v2, v3, v4, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_filter(v0, v1, v2, v3, v4, cb, args);
+    else
         hr = pInst->ac_filter(v0, v1, v2, v3, v4);
 
     METHOD_VOID();
@@ -1362,10 +1345,9 @@ inline void Image_base::s_affine(const v8::FunctionCallbackInfo<v8::Value>& args
     OPT_ARG(int32_t, 3, -1);
     OPT_ARG(int32_t, 4, -1);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_affine(v0, v1, v2, v3, v4, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_affine(v0, v1, v2, v3, v4, cb, args);
+    else
         hr = pInst->ac_affine(v0, v1, v2, v3, v4, vr);
 
     METHOD_RETURN();
@@ -1381,10 +1363,9 @@ inline void Image_base::s_gaussianBlur(const v8::FunctionCallbackInfo<v8::Value>
 
     ARG(int32_t, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_gaussianBlur(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_gaussianBlur(v0, cb, args);
+    else
         hr = pInst->ac_gaussianBlur(v0);
 
     METHOD_VOID();

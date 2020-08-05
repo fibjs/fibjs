@@ -129,10 +129,9 @@ inline void TcpServer_base::s_stop(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     ASYNC_METHOD_OVER(0, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_stop(cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_stop(cb, args);
+    else
         hr = pInst->ac_stop();
 
     METHOD_VOID();

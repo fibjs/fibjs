@@ -212,10 +212,9 @@ inline void X509Cert_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ARG(obj_ptr<X509Cert_base>, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_verify(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_verify(v0, cb, args);
+    else
         hr = pInst->ac_verify(v0, vr);
 
     METHOD_RETURN();

@@ -139,10 +139,9 @@ inline void DbConnection_base::s_close(const v8::FunctionCallbackInfo<v8::Value>
 
     ASYNC_METHOD_OVER(0, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_close(cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_close(cb, args);
+    else
         hr = pInst->ac_close();
 
     METHOD_VOID();
@@ -156,10 +155,9 @@ inline void DbConnection_base::s_begin(const v8::FunctionCallbackInfo<v8::Value>
 
     ASYNC_METHOD_OVER(0, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_begin(cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_begin(cb, args);
+    else
         hr = pInst->ac_begin();
 
     METHOD_VOID();
@@ -173,10 +171,9 @@ inline void DbConnection_base::s_commit(const v8::FunctionCallbackInfo<v8::Value
 
     ASYNC_METHOD_OVER(0, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_commit(cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_commit(cb, args);
+    else
         hr = pInst->ac_commit();
 
     METHOD_VOID();
@@ -190,10 +187,9 @@ inline void DbConnection_base::s_rollback(const v8::FunctionCallbackInfo<v8::Val
 
     ASYNC_METHOD_OVER(0, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_rollback(cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_rollback(cb, args);
+    else
         hr = pInst->ac_rollback();
 
     METHOD_VOID();
@@ -229,10 +225,9 @@ inline void DbConnection_base::s_execute(const v8::FunctionCallbackInfo<v8::Valu
     ARG(exlib::string, 0);
     ARG_LIST(1);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_execute(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_execute(v0, v1, cb, args);
+    else
         hr = pInst->ac_execute(v0, v1, vr);
 
     METHOD_RETURN();
@@ -250,10 +245,9 @@ inline void DbConnection_base::s_insert(const v8::FunctionCallbackInfo<v8::Value
 
     ARG(v8::Local<v8::Object>, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_insert(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_insert(v0, cb, args);
+    else
         hr = pInst->ac_insert(v0, vr);
 
     METHOD_RETURN();
@@ -271,10 +265,9 @@ inline void DbConnection_base::s_find(const v8::FunctionCallbackInfo<v8::Value>&
 
     ARG(v8::Local<v8::Object>, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_find(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_find(v0, cb, args);
+    else
         hr = pInst->ac_find(v0, vr);
 
     METHOD_RETURN();
@@ -292,10 +285,9 @@ inline void DbConnection_base::s_count(const v8::FunctionCallbackInfo<v8::Value>
 
     ARG(v8::Local<v8::Object>, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_count(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_count(v0, cb, args);
+    else
         hr = pInst->ac_count(v0, vr);
 
     METHOD_RETURN();
@@ -313,10 +305,9 @@ inline void DbConnection_base::s_update(const v8::FunctionCallbackInfo<v8::Value
 
     ARG(v8::Local<v8::Object>, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_update(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_update(v0, cb, args);
+    else
         hr = pInst->ac_update(v0, vr);
 
     METHOD_RETURN();
@@ -334,10 +325,9 @@ inline void DbConnection_base::s_remove(const v8::FunctionCallbackInfo<v8::Value
 
     ARG(v8::Local<v8::Object>, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_remove(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_remove(v0, cb, args);
+    else
         hr = pInst->ac_remove(v0, vr);
 
     METHOD_RETURN();

@@ -135,10 +135,9 @@ inline void Service_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     ASYNC_METHOD_OVER(0, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_run(cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_run(cb, args);
+    else
         hr = pInst->ac_run();
 
     METHOD_VOID();

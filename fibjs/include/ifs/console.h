@@ -766,10 +766,9 @@ inline void console_base::s_static_readLine(const v8::FunctionCallbackInfo<v8::V
 
     OPT_ARG(exlib::string, 0, "");
 
-    if (!cb.IsEmpty()) {
-        acb_readLine(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_readLine(v0, cb, args);
+    else
         hr = ac_readLine(v0, vr);
 
     METHOD_RETURN();
@@ -786,10 +785,9 @@ inline void console_base::s_static_getpass(const v8::FunctionCallbackInfo<v8::Va
 
     OPT_ARG(exlib::string, 0, "");
 
-    if (!cb.IsEmpty()) {
-        acb_getpass(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_getpass(v0, cb, args);
+    else
         hr = ac_getpass(v0, vr);
 
     METHOD_RETURN();

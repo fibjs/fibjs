@@ -99,10 +99,9 @@ inline void zip_base::s_static_isZipFile(const v8::FunctionCallbackInfo<v8::Valu
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_isZipFile(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_isZipFile(v0, cb, args);
+    else
         hr = ac_isZipFile(v0, vr);
 
     METHOD_RETURN();
@@ -121,10 +120,9 @@ inline void zip_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& a
     OPT_ARG(exlib::string, 1, "r");
     OPT_ARG(int32_t, 2, _ZIP_DEFLATED);
 
-    if (!cb.IsEmpty()) {
-        acb_open(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_open(v0, v1, v2, cb, args);
+    else
         hr = ac_open(v0, v1, v2, vr);
 
     ASYNC_METHOD_OVER(3, 1);
@@ -133,10 +131,9 @@ inline void zip_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& a
     OPT_ARG(exlib::string, 1, "r");
     OPT_ARG(int32_t, 2, _ZIP_DEFLATED);
 
-    if (!cb.IsEmpty()) {
-        acb_open(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_open(v0, v1, v2, cb, args);
+    else
         hr = ac_open(v0, v1, v2, vr);
 
     ASYNC_METHOD_OVER(3, 1);
@@ -145,10 +142,9 @@ inline void zip_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& a
     OPT_ARG(exlib::string, 1, "r");
     OPT_ARG(int32_t, 2, _ZIP_DEFLATED);
 
-    if (!cb.IsEmpty()) {
-        acb_open(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_open(v0, v1, v2, cb, args);
+    else
         hr = ac_open(v0, v1, v2, vr);
 
     METHOD_RETURN();

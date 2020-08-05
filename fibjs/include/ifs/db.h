@@ -130,10 +130,9 @@ inline void db_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_open(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_open(v0, cb, args);
+    else
         hr = ac_open(v0, vr);
 
     METHOD_RETURN();
@@ -150,10 +149,9 @@ inline void db_base::s_static_openMySQL(const v8::FunctionCallbackInfo<v8::Value
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_openMySQL(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_openMySQL(v0, cb, args);
+    else
         hr = ac_openMySQL(v0, vr);
 
     METHOD_RETURN();
@@ -170,10 +168,9 @@ inline void db_base::s_static_openMSSQL(const v8::FunctionCallbackInfo<v8::Value
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_openMSSQL(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_openMSSQL(v0, cb, args);
+    else
         hr = ac_openMSSQL(v0, vr);
 
     METHOD_RETURN();
@@ -190,10 +187,9 @@ inline void db_base::s_static_openSQLite(const v8::FunctionCallbackInfo<v8::Valu
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_openSQLite(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_openSQLite(v0, cb, args);
+    else
         hr = ac_openSQLite(v0, vr);
 
     METHOD_RETURN();
@@ -210,10 +206,9 @@ inline void db_base::s_static_openMongoDB(const v8::FunctionCallbackInfo<v8::Val
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_openMongoDB(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_openMongoDB(v0, cb, args);
+    else
         hr = ac_openMongoDB(v0, vr);
 
     METHOD_RETURN();
@@ -230,10 +225,9 @@ inline void db_base::s_static_openLevelDB(const v8::FunctionCallbackInfo<v8::Val
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_openLevelDB(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_openLevelDB(v0, cb, args);
+    else
         hr = ac_openLevelDB(v0, vr);
 
     METHOD_RETURN();
@@ -250,10 +244,9 @@ inline void db_base::s_static_openRedis(const v8::FunctionCallbackInfo<v8::Value
 
     ARG(exlib::string, 0);
 
-    if (!cb.IsEmpty()) {
-        acb_openRedis(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = acb_openRedis(v0, cb, args);
+    else
         hr = ac_openRedis(v0, vr);
 
     METHOD_RETURN();

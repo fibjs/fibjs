@@ -259,10 +259,9 @@ inline void Socket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& ar
     ARG(exlib::string, 0);
     ARG(int32_t, 1);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_connect(v0, v1, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_connect(v0, v1, cb, args);
+    else
         hr = pInst->ac_connect(v0, v1);
 
     METHOD_VOID();
@@ -317,10 +316,9 @@ inline void Socket_base::s_accept(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     ASYNC_METHOD_OVER(0, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_accept(cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_accept(cb, args);
+    else
         hr = pInst->ac_accept(vr);
 
     METHOD_RETURN();
@@ -338,10 +336,9 @@ inline void Socket_base::s_recv(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     OPT_ARG(int32_t, 0, -1);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_recv(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_recv(v0, cb, args);
+    else
         hr = pInst->ac_recv(v0, vr);
 
     METHOD_RETURN();
@@ -359,10 +356,9 @@ inline void Socket_base::s_recvfrom(const v8::FunctionCallbackInfo<v8::Value>& a
 
     OPT_ARG(int32_t, 0, -1);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_recvfrom(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_recvfrom(v0, cb, args);
+    else
         hr = pInst->ac_recvfrom(v0, vr);
 
     METHOD_RETURN();
@@ -378,10 +374,9 @@ inline void Socket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_send(v0, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_send(v0, cb, args);
+    else
         hr = pInst->ac_send(v0);
 
     METHOD_VOID();
@@ -399,10 +394,9 @@ inline void Socket_base::s_sendto(const v8::FunctionCallbackInfo<v8::Value>& arg
     ARG(exlib::string, 1);
     ARG(int32_t, 2);
 
-    if (!cb.IsEmpty()) {
-        pInst->acb_sendto(v0, v1, v2, cb);
-        hr = CALL_RETURN_NULL;
-    } else
+    if (!cb.IsEmpty())
+        hr = pInst->acb_sendto(v0, v1, v2, cb, args);
+    else
         hr = pInst->ac_sendto(v0, v1, v2);
 
     METHOD_VOID();

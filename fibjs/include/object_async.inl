@@ -23,7 +23,7 @@
 	return ac.check_result(m(&ac)); \
 	}
 #define ASYNC_STATIC0_ACB(cls, m) \
-	static void acb_##m(v8::Local<v8::Function> cb) { \
+	static result_t acb_##m(v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) { \
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(v8::Local<v8::Function> cb) : \
@@ -38,7 +38,7 @@
 	private: \
 	}; \
 	_t* ac = new _t(cb); \
-	ac->check_result(m(ac)); \
+	return ac->check_result(m(ac), args); \
 	}
 #define ASYNC_STATIC0(cls, m) \
 	ASYNC_STATIC0_AC(cls, m) \
@@ -72,7 +72,7 @@
 	return ac.check_result(m(&ac)); \
 	}
 #define ASYNC_MEMBER0_ACB(cls, m) \
-	void acb_##m(v8::Local<v8::Function> cb) { \
+	result_t acb_##m(v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) { \
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, v8::Local<v8::Function> cb) : \
@@ -87,7 +87,7 @@
 	private: \
 	}; \
 	_t* ac = new _t(this, cb); \
-	ac->check_result(m(ac)); \
+	return ac->check_result(m(ac), args); \
 	}
 #define ASYNC_MEMBER0(cls, m) \
 	ASYNC_MEMBER0_AC(cls, m) \
@@ -123,7 +123,7 @@
 	return ac.check_result(m(v0, &ac)); \
 	}
 #define ASYNC_STATICVALUE1_ACB(cls, m, T0) \
-	static void acb_##m(v8::Local<v8::Function> cb) { \
+	static result_t acb_##m(v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) { \
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(v8::Local<v8::Function> cb) : \
@@ -142,7 +142,7 @@
 	private: \
 	}; \
 	_t* ac = new _t(cb); \
-	ac->check_result(m(ac->retVal, ac)); \
+	return ac->check_result(m(ac->retVal, ac), args); \
 	}
 #define ASYNC_STATICVALUE1(cls, m, T0) \
 	ASYNC_STATICVALUE1_AC(cls, m, T0) \
@@ -178,7 +178,7 @@
 	return ac.check_result(m(v0, &ac)); \
 	}
 #define ASYNC_MEMBERVALUE1_ACB(cls, m, T0) \
-	void acb_##m(v8::Local<v8::Function> cb) { \
+	result_t acb_##m(v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) { \
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, v8::Local<v8::Function> cb) : \
@@ -197,7 +197,7 @@
 	private: \
 	}; \
 	_t* ac = new _t(this, cb); \
-	ac->check_result(m(ac->retVal, ac)); \
+	return ac->check_result(m(ac->retVal, ac), args); \
 	}
 #define ASYNC_MEMBERVALUE1(cls, m, T0) \
 	ASYNC_MEMBERVALUE1_AC(cls, m, T0) \
@@ -233,8 +233,8 @@
 	return ac.check_result(m(v0, &ac)); \
 	}
 #define ASYNC_STATIC1_ACB(cls, m, T0) \
-	static void acb_##m( \
-		T0 v0, v8::Local<v8::Function> cb) {\
+	static result_t acb_##m( \
+		T0 v0, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, v8::Local<v8::Function> cb) : \
@@ -250,7 +250,7 @@
 		_at<T0> m_v0; \
 	}; \
 	_t* ac = new _t(v0, cb); \
-	ac->check_result(m(v0, ac)); \
+	return ac->check_result(m(v0, ac), args); \
 	}
 #define ASYNC_STATIC1(cls, m, T0) \
 	ASYNC_STATIC1_AC(cls, m, T0) \
@@ -286,8 +286,8 @@
 	return ac.check_result(m(v0, &ac)); \
 	}
 #define ASYNC_MEMBER1_ACB(cls, m, T0) \
-	void acb_##m( \
-		T0 v0, v8::Local<v8::Function> cb) {\
+	result_t acb_##m( \
+		T0 v0, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, v8::Local<v8::Function> cb) : \
@@ -303,7 +303,7 @@
 		_at<T0> m_v0; \
 	}; \
 	_t* ac = new _t(this, v0, cb); \
-	ac->check_result(m(v0, ac)); \
+	return ac->check_result(m(v0, ac), args); \
 	}
 #define ASYNC_MEMBER1(cls, m, T0) \
 	ASYNC_MEMBER1_AC(cls, m, T0) \
@@ -339,8 +339,8 @@
 	return ac.check_result(m(v0, v1, &ac)); \
 	}
 #define ASYNC_STATICVALUE2_ACB(cls, m, T0, T1) \
-	static void acb_##m( \
-		T0 v0, v8::Local<v8::Function> cb) {\
+	static result_t acb_##m( \
+		T0 v0, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, v8::Local<v8::Function> cb) : \
@@ -360,7 +360,7 @@
 		_at<T0> m_v0; \
 	}; \
 	_t* ac = new _t(v0, cb); \
-	ac->check_result(m(v0, ac->retVal, ac)); \
+	return ac->check_result(m(v0, ac->retVal, ac), args); \
 	}
 #define ASYNC_STATICVALUE2(cls, m, T0, T1) \
 	ASYNC_STATICVALUE2_AC(cls, m, T0, T1) \
@@ -396,8 +396,8 @@
 	return ac.check_result(m(v0, v1, &ac)); \
 	}
 #define ASYNC_MEMBERVALUE2_ACB(cls, m, T0, T1) \
-	void acb_##m( \
-		T0 v0, v8::Local<v8::Function> cb) {\
+	result_t acb_##m( \
+		T0 v0, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, v8::Local<v8::Function> cb) : \
@@ -417,7 +417,7 @@
 		_at<T0> m_v0; \
 	}; \
 	_t* ac = new _t(this, v0, cb); \
-	ac->check_result(m(v0, ac->retVal, ac)); \
+	return ac->check_result(m(v0, ac->retVal, ac), args); \
 	}
 #define ASYNC_MEMBERVALUE2(cls, m, T0, T1) \
 	ASYNC_MEMBERVALUE2_AC(cls, m, T0, T1) \
@@ -453,8 +453,8 @@
 	return ac.check_result(m(v0, v1, &ac)); \
 	}
 #define ASYNC_STATIC2_ACB(cls, m, T0, T1) \
-	static void acb_##m( \
-		T0 v0, T1 v1, v8::Local<v8::Function> cb) {\
+	static result_t acb_##m( \
+		T0 v0, T1 v1, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, v8::Local<v8::Function> cb) : \
@@ -471,7 +471,7 @@
 		_at<T1> m_v1; \
 	}; \
 	_t* ac = new _t(v0, v1, cb); \
-	ac->check_result(m(v0, v1, ac)); \
+	return ac->check_result(m(v0, v1, ac), args); \
 	}
 #define ASYNC_STATIC2(cls, m, T0, T1) \
 	ASYNC_STATIC2_AC(cls, m, T0, T1) \
@@ -507,8 +507,8 @@
 	return ac.check_result(m(v0, v1, &ac)); \
 	}
 #define ASYNC_MEMBER2_ACB(cls, m, T0, T1) \
-	void acb_##m( \
-		T0 v0, T1 v1, v8::Local<v8::Function> cb) {\
+	result_t acb_##m( \
+		T0 v0, T1 v1, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, v8::Local<v8::Function> cb) : \
@@ -525,7 +525,7 @@
 		_at<T1> m_v1; \
 	}; \
 	_t* ac = new _t(this, v0, v1, cb); \
-	ac->check_result(m(v0, v1, ac)); \
+	return ac->check_result(m(v0, v1, ac), args); \
 	}
 #define ASYNC_MEMBER2(cls, m, T0, T1) \
 	ASYNC_MEMBER2_AC(cls, m, T0, T1) \
@@ -561,8 +561,8 @@
 	return ac.check_result(m(v0, v1, v2, &ac)); \
 	}
 #define ASYNC_STATICVALUE3_ACB(cls, m, T0, T1, T2) \
-	static void acb_##m( \
-		T0 v0, T1 v1, v8::Local<v8::Function> cb) {\
+	static result_t acb_##m( \
+		T0 v0, T1 v1, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, v8::Local<v8::Function> cb) : \
@@ -583,7 +583,7 @@
 		_at<T1> m_v1; \
 	}; \
 	_t* ac = new _t(v0, v1, cb); \
-	ac->check_result(m(v0, v1, ac->retVal, ac)); \
+	return ac->check_result(m(v0, v1, ac->retVal, ac), args); \
 	}
 #define ASYNC_STATICVALUE3(cls, m, T0, T1, T2) \
 	ASYNC_STATICVALUE3_AC(cls, m, T0, T1, T2) \
@@ -619,8 +619,8 @@
 	return ac.check_result(m(v0, v1, v2, &ac)); \
 	}
 #define ASYNC_MEMBERVALUE3_ACB(cls, m, T0, T1, T2) \
-	void acb_##m( \
-		T0 v0, T1 v1, v8::Local<v8::Function> cb) {\
+	result_t acb_##m( \
+		T0 v0, T1 v1, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, v8::Local<v8::Function> cb) : \
@@ -641,7 +641,7 @@
 		_at<T1> m_v1; \
 	}; \
 	_t* ac = new _t(this, v0, v1, cb); \
-	ac->check_result(m(v0, v1, ac->retVal, ac)); \
+	return ac->check_result(m(v0, v1, ac->retVal, ac), args); \
 	}
 #define ASYNC_MEMBERVALUE3(cls, m, T0, T1, T2) \
 	ASYNC_MEMBERVALUE3_AC(cls, m, T0, T1, T2) \
@@ -677,8 +677,8 @@
 	return ac.check_result(m(v0, v1, v2, &ac)); \
 	}
 #define ASYNC_STATIC3_ACB(cls, m, T0, T1, T2) \
-	static void acb_##m( \
-		T0 v0, T1 v1, T2 v2, v8::Local<v8::Function> cb) {\
+	static result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, T2& v2, v8::Local<v8::Function> cb) : \
@@ -696,7 +696,7 @@
 		_at<T2> m_v2; \
 	}; \
 	_t* ac = new _t(v0, v1, v2, cb); \
-	ac->check_result(m(v0, v1, v2, ac)); \
+	return ac->check_result(m(v0, v1, v2, ac), args); \
 	}
 #define ASYNC_STATIC3(cls, m, T0, T1, T2) \
 	ASYNC_STATIC3_AC(cls, m, T0, T1, T2) \
@@ -732,8 +732,8 @@
 	return ac.check_result(m(v0, v1, v2, &ac)); \
 	}
 #define ASYNC_MEMBER3_ACB(cls, m, T0, T1, T2) \
-	void acb_##m( \
-		T0 v0, T1 v1, T2 v2, v8::Local<v8::Function> cb) {\
+	result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, T2& v2, v8::Local<v8::Function> cb) : \
@@ -751,7 +751,7 @@
 		_at<T2> m_v2; \
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, cb); \
-	ac->check_result(m(v0, v1, v2, ac)); \
+	return ac->check_result(m(v0, v1, v2, ac), args); \
 	}
 #define ASYNC_MEMBER3(cls, m, T0, T1, T2) \
 	ASYNC_MEMBER3_AC(cls, m, T0, T1, T2) \
@@ -787,8 +787,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, &ac)); \
 	}
 #define ASYNC_STATICVALUE4_ACB(cls, m, T0, T1, T2, T3) \
-	static void acb_##m( \
-		T0 v0, T1 v1, T2 v2, v8::Local<v8::Function> cb) {\
+	static result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, T2& v2, v8::Local<v8::Function> cb) : \
@@ -810,7 +810,7 @@
 		_at<T2> m_v2; \
 	}; \
 	_t* ac = new _t(v0, v1, v2, cb); \
-	ac->check_result(m(v0, v1, v2, ac->retVal, ac)); \
+	return ac->check_result(m(v0, v1, v2, ac->retVal, ac), args); \
 	}
 #define ASYNC_STATICVALUE4(cls, m, T0, T1, T2, T3) \
 	ASYNC_STATICVALUE4_AC(cls, m, T0, T1, T2, T3) \
@@ -846,8 +846,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, &ac)); \
 	}
 #define ASYNC_MEMBERVALUE4_ACB(cls, m, T0, T1, T2, T3) \
-	void acb_##m( \
-		T0 v0, T1 v1, T2 v2, v8::Local<v8::Function> cb) {\
+	result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, T2& v2, v8::Local<v8::Function> cb) : \
@@ -869,7 +869,7 @@
 		_at<T2> m_v2; \
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, cb); \
-	ac->check_result(m(v0, v1, v2, ac->retVal, ac)); \
+	return ac->check_result(m(v0, v1, v2, ac->retVal, ac), args); \
 	}
 #define ASYNC_MEMBERVALUE4(cls, m, T0, T1, T2, T3) \
 	ASYNC_MEMBERVALUE4_AC(cls, m, T0, T1, T2, T3) \
@@ -905,8 +905,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, &ac)); \
 	}
 #define ASYNC_STATIC4_ACB(cls, m, T0, T1, T2, T3) \
-	static void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Function> cb) {\
+	static result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, T2& v2, T3& v3, v8::Local<v8::Function> cb) : \
@@ -925,7 +925,7 @@
 		_at<T3> m_v3; \
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, cb); \
-	ac->check_result(m(v0, v1, v2, v3, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, ac), args); \
 	}
 #define ASYNC_STATIC4(cls, m, T0, T1, T2, T3) \
 	ASYNC_STATIC4_AC(cls, m, T0, T1, T2, T3) \
@@ -961,8 +961,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, &ac)); \
 	}
 #define ASYNC_MEMBER4_ACB(cls, m, T0, T1, T2, T3) \
-	void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Function> cb) {\
+	result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, v8::Local<v8::Function> cb) : \
@@ -981,7 +981,7 @@
 		_at<T3> m_v3; \
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, cb); \
-	ac->check_result(m(v0, v1, v2, v3, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, ac), args); \
 	}
 #define ASYNC_MEMBER4(cls, m, T0, T1, T2, T3) \
 	ASYNC_MEMBER4_AC(cls, m, T0, T1, T2, T3) \
@@ -1017,8 +1017,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, v4, &ac)); \
 	}
 #define ASYNC_STATICVALUE5_ACB(cls, m, T0, T1, T2, T3, T4) \
-	static void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Function> cb) {\
+	static result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, T2& v2, T3& v3, v8::Local<v8::Function> cb) : \
@@ -1041,7 +1041,7 @@
 		_at<T3> m_v3; \
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, cb); \
-	ac->check_result(m(v0, v1, v2, v3, ac->retVal, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, ac->retVal, ac), args); \
 	}
 #define ASYNC_STATICVALUE5(cls, m, T0, T1, T2, T3, T4) \
 	ASYNC_STATICVALUE5_AC(cls, m, T0, T1, T2, T3, T4) \
@@ -1077,8 +1077,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, v4, &ac)); \
 	}
 #define ASYNC_MEMBERVALUE5_ACB(cls, m, T0, T1, T2, T3, T4) \
-	void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Function> cb) {\
+	result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, v8::Local<v8::Function> cb) : \
@@ -1101,7 +1101,7 @@
 		_at<T3> m_v3; \
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, cb); \
-	ac->check_result(m(v0, v1, v2, v3, ac->retVal, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, ac->retVal, ac), args); \
 	}
 #define ASYNC_MEMBERVALUE5(cls, m, T0, T1, T2, T3, T4) \
 	ASYNC_MEMBERVALUE5_AC(cls, m, T0, T1, T2, T3, T4) \
@@ -1137,8 +1137,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, v4, &ac)); \
 	}
 #define ASYNC_STATIC5_ACB(cls, m, T0, T1, T2, T3, T4) \
-	static void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Function> cb) {\
+	static result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, v8::Local<v8::Function> cb) : \
@@ -1158,7 +1158,7 @@
 		_at<T4> m_v4; \
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, v4, cb); \
-	ac->check_result(m(v0, v1, v2, v3, v4, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, v4, ac), args); \
 	}
 #define ASYNC_STATIC5(cls, m, T0, T1, T2, T3, T4) \
 	ASYNC_STATIC5_AC(cls, m, T0, T1, T2, T3, T4) \
@@ -1194,8 +1194,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, v4, &ac)); \
 	}
 #define ASYNC_MEMBER5_ACB(cls, m, T0, T1, T2, T3, T4) \
-	void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Function> cb) {\
+	result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, v8::Local<v8::Function> cb) : \
@@ -1215,7 +1215,7 @@
 		_at<T4> m_v4; \
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, v4, cb); \
-	ac->check_result(m(v0, v1, v2, v3, v4, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, v4, ac), args); \
 	}
 #define ASYNC_MEMBER5(cls, m, T0, T1, T2, T3, T4) \
 	ASYNC_MEMBER5_AC(cls, m, T0, T1, T2, T3, T4) \
@@ -1251,8 +1251,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, &ac)); \
 	}
 #define ASYNC_STATICVALUE6_ACB(cls, m, T0, T1, T2, T3, T4, T5) \
-	static void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Function> cb) {\
+	static result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, v8::Local<v8::Function> cb) : \
@@ -1276,7 +1276,7 @@
 		_at<T4> m_v4; \
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, v4, cb); \
-	ac->check_result(m(v0, v1, v2, v3, v4, ac->retVal, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, v4, ac->retVal, ac), args); \
 	}
 #define ASYNC_STATICVALUE6(cls, m, T0, T1, T2, T3, T4, T5) \
 	ASYNC_STATICVALUE6_AC(cls, m, T0, T1, T2, T3, T4, T5) \
@@ -1312,8 +1312,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, &ac)); \
 	}
 #define ASYNC_MEMBERVALUE6_ACB(cls, m, T0, T1, T2, T3, T4, T5) \
-	void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Function> cb) {\
+	result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, v8::Local<v8::Function> cb) : \
@@ -1337,7 +1337,7 @@
 		_at<T4> m_v4; \
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, v4, cb); \
-	ac->check_result(m(v0, v1, v2, v3, v4, ac->retVal, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, v4, ac->retVal, ac), args); \
 	}
 #define ASYNC_MEMBERVALUE6(cls, m, T0, T1, T2, T3, T4, T5) \
 	ASYNC_MEMBERVALUE6_AC(cls, m, T0, T1, T2, T3, T4, T5) \
@@ -1373,8 +1373,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, &ac)); \
 	}
 #define ASYNC_STATIC6_ACB(cls, m, T0, T1, T2, T3, T4, T5) \
-	static void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Function> cb) {\
+	static result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, v8::Local<v8::Function> cb) : \
@@ -1395,7 +1395,7 @@
 		_at<T5> m_v5; \
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, v4, v5, cb); \
-	ac->check_result(m(v0, v1, v2, v3, v4, v5, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, v4, v5, ac), args); \
 	}
 #define ASYNC_STATIC6(cls, m, T0, T1, T2, T3, T4, T5) \
 	ASYNC_STATIC6_AC(cls, m, T0, T1, T2, T3, T4, T5) \
@@ -1431,8 +1431,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, &ac)); \
 	}
 #define ASYNC_MEMBER6_ACB(cls, m, T0, T1, T2, T3, T4, T5) \
-	void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Function> cb) {\
+	result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, v8::Local<v8::Function> cb) : \
@@ -1453,7 +1453,7 @@
 		_at<T5> m_v5; \
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, v4, v5, cb); \
-	ac->check_result(m(v0, v1, v2, v3, v4, v5, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, v4, v5, ac), args); \
 	}
 #define ASYNC_MEMBER6(cls, m, T0, T1, T2, T3, T4, T5) \
 	ASYNC_MEMBER6_AC(cls, m, T0, T1, T2, T3, T4, T5) \
@@ -1489,8 +1489,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, &ac)); \
 	}
 #define ASYNC_STATICVALUE7_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6) \
-	static void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Function> cb) {\
+	static result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, v8::Local<v8::Function> cb) : \
@@ -1515,7 +1515,7 @@
 		_at<T5> m_v5; \
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, v4, v5, cb); \
-	ac->check_result(m(v0, v1, v2, v3, v4, v5, ac->retVal, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, v4, v5, ac->retVal, ac), args); \
 	}
 #define ASYNC_STATICVALUE7(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	ASYNC_STATICVALUE7_AC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
@@ -1551,8 +1551,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, &ac)); \
 	}
 #define ASYNC_MEMBERVALUE7_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6) \
-	void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Function> cb) {\
+	result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, v8::Local<v8::Function> cb) : \
@@ -1577,7 +1577,7 @@
 		_at<T5> m_v5; \
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, v4, v5, cb); \
-	ac->check_result(m(v0, v1, v2, v3, v4, v5, ac->retVal, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, v4, v5, ac->retVal, ac), args); \
 	}
 #define ASYNC_MEMBERVALUE7(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	ASYNC_MEMBERVALUE7_AC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
@@ -1613,8 +1613,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, &ac)); \
 	}
 #define ASYNC_STATIC7_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6) \
-	static void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Function> cb) {\
+	static result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, v8::Local<v8::Function> cb) : \
@@ -1636,7 +1636,7 @@
 		_at<T6> m_v6; \
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, v4, v5, v6, cb); \
-	ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, ac), args); \
 	}
 #define ASYNC_STATIC7(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	ASYNC_STATIC7_AC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
@@ -1672,8 +1672,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, &ac)); \
 	}
 #define ASYNC_MEMBER7_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6) \
-	void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Function> cb) {\
+	result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, v8::Local<v8::Function> cb) : \
@@ -1695,7 +1695,7 @@
 		_at<T6> m_v6; \
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, v4, v5, v6, cb); \
-	ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, ac), args); \
 	}
 #define ASYNC_MEMBER7(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	ASYNC_MEMBER7_AC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
@@ -1731,8 +1731,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, &ac)); \
 	}
 #define ASYNC_STATICVALUE8_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
-	static void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Function> cb) {\
+	static result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, v8::Local<v8::Function> cb) : \
@@ -1758,7 +1758,7 @@
 		_at<T6> m_v6; \
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, v4, v5, v6, cb); \
-	ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, ac->retVal, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, ac->retVal, ac), args); \
 	}
 #define ASYNC_STATICVALUE8(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	ASYNC_STATICVALUE8_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
@@ -1794,8 +1794,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, &ac)); \
 	}
 #define ASYNC_MEMBERVALUE8_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
-	void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Function> cb) {\
+	result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, v8::Local<v8::Function> cb) : \
@@ -1821,7 +1821,7 @@
 		_at<T6> m_v6; \
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, v4, v5, v6, cb); \
-	ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, ac->retVal, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, ac->retVal, ac), args); \
 	}
 #define ASYNC_MEMBERVALUE8(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	ASYNC_MEMBERVALUE8_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
@@ -1857,8 +1857,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, &ac)); \
 	}
 #define ASYNC_STATIC8_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
-	static void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Function> cb) {\
+	static result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, v8::Local<v8::Function> cb) : \
@@ -1881,7 +1881,7 @@
 		_at<T7> m_v7; \
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, v4, v5, v6, v7, cb); \
-	ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, ac), args); \
 	}
 #define ASYNC_STATIC8(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	ASYNC_STATIC8_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
@@ -1917,8 +1917,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, &ac)); \
 	}
 #define ASYNC_MEMBER8_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
-	void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Function> cb) {\
+	result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, v8::Local<v8::Function> cb) : \
@@ -1941,7 +1941,7 @@
 		_at<T7> m_v7; \
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, v4, v5, v6, v7, cb); \
-	ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, ac), args); \
 	}
 #define ASYNC_MEMBER8(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	ASYNC_MEMBER8_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
@@ -1977,8 +1977,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, &ac)); \
 	}
 #define ASYNC_STATICVALUE9_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
-	static void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Function> cb) {\
+	static result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, v8::Local<v8::Function> cb) : \
@@ -2005,7 +2005,7 @@
 		_at<T7> m_v7; \
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, v4, v5, v6, v7, cb); \
-	ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, ac->retVal, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, ac->retVal, ac), args); \
 	}
 #define ASYNC_STATICVALUE9(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	ASYNC_STATICVALUE9_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
@@ -2041,8 +2041,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, &ac)); \
 	}
 #define ASYNC_MEMBERVALUE9_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
-	void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Function> cb) {\
+	result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, v8::Local<v8::Function> cb) : \
@@ -2069,7 +2069,7 @@
 		_at<T7> m_v7; \
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, v4, v5, v6, v7, cb); \
-	ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, ac->retVal, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, ac->retVal, ac), args); \
 	}
 #define ASYNC_MEMBERVALUE9(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	ASYNC_MEMBERVALUE9_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
@@ -2105,8 +2105,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, &ac)); \
 	}
 #define ASYNC_STATIC9_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
-	static void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Function> cb) {\
+	static result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8, v8::Local<v8::Function> cb) : \
@@ -2130,7 +2130,7 @@
 		_at<T8> m_v8; \
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, v4, v5, v6, v7, v8, cb); \
-	ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, ac), args); \
 	}
 #define ASYNC_STATIC9(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	ASYNC_STATIC9_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
@@ -2166,8 +2166,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, &ac)); \
 	}
 #define ASYNC_MEMBER9_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
-	void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Function> cb) {\
+	result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8, v8::Local<v8::Function> cb) : \
@@ -2191,7 +2191,7 @@
 		_at<T8> m_v8; \
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, v4, v5, v6, v7, v8, cb); \
-	ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, ac), args); \
 	}
 #define ASYNC_MEMBER9(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	ASYNC_MEMBER9_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
@@ -2227,8 +2227,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, &ac)); \
 	}
 #define ASYNC_STATICVALUE10_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
-	static void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Function> cb) {\
+	static result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8, v8::Local<v8::Function> cb) : \
@@ -2256,7 +2256,7 @@
 		_at<T8> m_v8; \
 	}; \
 	_t* ac = new _t(v0, v1, v2, v3, v4, v5, v6, v7, v8, cb); \
-	ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, ac->retVal, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, ac->retVal, ac), args); \
 	}
 #define ASYNC_STATICVALUE10(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
 	ASYNC_STATICVALUE10_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
@@ -2292,8 +2292,8 @@
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, &ac)); \
 	}
 #define ASYNC_MEMBERVALUE10_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
-	void acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Function> cb) {\
+	result_t acb_##m( \
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
 		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8, v8::Local<v8::Function> cb) : \
@@ -2321,7 +2321,7 @@
 		_at<T8> m_v8; \
 	}; \
 	_t* ac = new _t(this, v0, v1, v2, v3, v4, v5, v6, v7, v8, cb); \
-	ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, ac->retVal, ac)); \
+	return ac->check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, ac->retVal, ac), args); \
 	}
 #define ASYNC_MEMBERVALUE10(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
 	ASYNC_MEMBERVALUE10_AC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \

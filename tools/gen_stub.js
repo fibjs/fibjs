@@ -115,7 +115,7 @@ function gen_stub(argn, bInst, bRet) {
             argn1--;
 
         if (argn1 > 0) {
-            txt.push((bInst ? '	' : '	static ') + 'void acb_##m( \\');
+            txt.push((bInst ? '	' : '	static ') + 'result_t acb_##m( \\');
 
             s = '		';
             a = [];
@@ -123,10 +123,10 @@ function gen_stub(argn, bInst, bRet) {
                 a.push('T' + i + ' v' + i);
 
             s += a.join(', ');
-            s += ', v8::Local<v8::Function> cb) {\\';
+            s += ', v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\\';
             txt.push(s);
         } else
-            txt.push((bInst ? '	' : '	static ') + 'void acb_##m(v8::Local<v8::Function> cb) { \\');
+            txt.push((bInst ? '	' : '	static ') + 'result_t acb_##m(v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) { \\');
 
         txt.push('	class _t: public AsyncCallBack { \\\n	public: \\');
         s = '		_t(' + (bInst ? 'cls* pThis, ' : '');
@@ -176,7 +176,7 @@ function gen_stub(argn, bInst, bRet) {
         s += 'cb); \\';
         txt.push(s);
 
-        s = '	ac->check_result(m(';
+        s = '	return ac->check_result(m(';
 
         a = [];
         for (i = 0; i < argn1; i++)
@@ -188,7 +188,7 @@ function gen_stub(argn, bInst, bRet) {
         a.push('ac');
         s += a.join(', ');
 
-        txt.push(s + ')); \\\n	}');
+        txt.push(s + '), args); \\\n	}');
     }
 
     gen_define('_AC');
