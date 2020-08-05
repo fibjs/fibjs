@@ -10,19 +10,19 @@
 #define ASYNCUV_H_
 
 #include "AsyncCall.h"
+#include <uv/include/uv.h>
 
 namespace fibjs {
-    class AsyncUVTask: public AsyncEvent
-    {
-    public:
-        AsyncUVTask(): AsyncEvent(NULL)
-        {
-        };
-        ~AsyncUVTask()
-        {
-        };
-    };
+class AsyncUVTask : public AsyncEvent {
+public:
+    AsyncUVTask()
+        : AsyncEvent(NULL) {};
+    ~AsyncUVTask() {};
+};
 
+void uv_call(std::function<void(void)> proc);
+
+extern uv_loop_t* s_uv_loop;
 }
 
 #endif // ASYNCUV_H_

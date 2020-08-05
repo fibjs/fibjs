@@ -9,10 +9,10 @@
 
 namespace fibjs {
 
-static uv_loop_t* s_uv_loop = (uv_loop_t*)malloc(sizeof(uv_loop_t));
+uv_loop_t* s_uv_loop = (uv_loop_t*)malloc(sizeof(uv_loop_t));
 
 static uv_async_t s_uv_asyncWatcher;
-static exlib::LockedList<AsyncUVTask> s_uvAsyncUVTasks;
+static exlib::LockedList<AsyncEvent> s_uvAsyncUVTasks;
 
 int32_t FSWatcher::AsyncWatchFSProc::post(int32_t v)
 {
@@ -27,7 +27,7 @@ void FSWatcher::AsyncWatchFSProc::invoke()
     uv_fs_event_init(s_uv_loop, &m_fs_handle);
 
     m_watcher->watcherReadyWaitor.set();
-    
+
     int32_t uv_err_no = uv_fs_event_start(&m_fs_handle, fs_event_cb, m_watcher->get_target(), m_watcher->isRecursiveForDir() ? UV_FS_EVENT_RECURSIVE : NULL);
     if (uv_err_no != 0) {
         m_watcher->onError(CALL_E_INVALID_CALL, uv_strerror(uv_err_no));
@@ -51,6 +51,35 @@ void StatsWatcher::AsyncMonitorStatsChangeProc::invoke()
         m_watcher->onError(CALL_E_INVALID_CALL, uv_strerror(uv_err_no));
         m_watcher->close();
     }
+}
+
+void uv_call(std::function<void(void)> proc)
+{
+    class UVCall : public AsyncEvent {
+    public:
+        UVCall(std::function<void(void)> proc)
+            : AsyncEvent(NULL)
+            , m_proc(proc)
+        {
+        }
+
+        void invoke()
+        {
+            m_proc();
+            m_event.set();
+        }
+
+    public:
+        std::function<void(void)> m_proc;
+        exlib::Event m_event;
+    };
+
+    UVCall uvc(proc);
+
+    s_uvAsyncUVTasks.putTail(&uvc);
+    uv_async_send(&s_uv_asyncWatcher);
+
+    uvc.m_event.wait();
 }
 
 class UVAsyncThread : public exlib::OSThread {
@@ -77,8 +106,8 @@ private:
     {
         assert(handle == &s_uv_asyncWatcher);
 
-        exlib::List<AsyncUVTask> jobs;
-        AsyncUVTask* p1;
+        exlib::List<AsyncEvent> jobs;
+        AsyncEvent* p1;
 
         s_uvAsyncUVTasks.getList(jobs);
 
