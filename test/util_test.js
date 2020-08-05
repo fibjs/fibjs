@@ -1068,6 +1068,70 @@ describe('util', () => {
         });
     });
 
+    describe('parseArgs', () => {
+        it("a single key", () => {
+            assert.deepEqual(util.parseArgs("-test"), ["-test"]);
+        });
+
+        it("a single key with a value", () => {
+            assert.deepEqual(util.parseArgs("-test testing"), ["-test", "testing"]);
+        });
+
+        it("a single key=value", () => {
+            assert.deepEqual(util.parseArgs("-test=testing"), ["-test=testing"]);
+        });
+
+        it("a single value with quotes", () => {
+            assert.deepEqual(util.parseArgs('"test quotes"'), ["test quotes"]);
+        });
+
+        it("a single value with empty quotes", () => {
+            assert.deepEqual(util.parseArgs('""'), [""]);
+        });
+
+        it("a complex string with quotes", () => {
+            assert.deepEqual(util.parseArgs('-testing test -valid=true --quotes "test quotes"'), [
+                "-testing",
+                "test",
+                "-valid=true",
+                "--quotes",
+                "test quotes",
+            ]);
+
+            assert.deepEqual(util.parseArgs('fibjs test "aaa "aaa "sss"'), [
+                "fibjs",
+                "test",
+                "aaa aaa sss"
+            ]);
+
+            assert.deepEqual(util.parseArgs('fibjs test "home aaaa" "bbb bb"'), [
+                "fibjs",
+                "test",
+                "home aaaa",
+                "bbb bb"
+            ]);
+        });
+
+        it("a complex string with empty quotes", () => {
+            assert.deepEqual(util.parseArgs('-testing test -valid=true --quotes ""'), [
+                "-testing",
+                "test",
+                "-valid=true",
+                "--quotes",
+                "",
+            ]);
+        });
+
+        it("a complex string include escape", () => {
+            assert.deepEqual(util.parseArgs('fibjs test\\"quote test\\ space "aaa \\"  sss"'), [
+                "fibjs",
+                "test\"quote",
+                "test space",
+                "aaa \"  sss"
+            ]);
+        });
+    });
+
     describe('sync', () => {
         it('callback', () => {
             var t = 0;

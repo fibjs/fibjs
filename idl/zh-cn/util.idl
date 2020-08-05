@@ -404,6 +404,12 @@ module util
     /*! @brief LRU(least recently used) 缓存对象，参见 LruCache 对象。*/
     static LruCache;
 
+    /*! @brief 解析命令行字符串返回参数列表
+     @param command 指定要解析的命令行字符串
+     @return 返回解析出的参数列表
+     */
+    static NArray parseArgs(String command);
+
     /*! @brief 编译脚本为二进制代码
      util.compile 可以将脚本编译为 v8 内部运行数据块(非机器执行代码)。编译以后的代码，保存为 *.jsc 后，可以由 run 和 require 直接加载执行。
      

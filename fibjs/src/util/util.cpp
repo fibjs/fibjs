@@ -9,6 +9,8 @@
 #include "ifs/util.h"
 #include "ifs/encoding.h"
 #include "QuickArray.h"
+#include "parse.h"
+#include "SimpleObject.h"
 #include <map>
 
 namespace fibjs {
@@ -835,6 +837,53 @@ result_t util_base::deprecate(v8::Local<v8::Function> fn, exlib::string msg,
     exlib::string code, v8::Local<v8::Function>& retVal)
 {
     retVal = fn;
+    return 0;
+}
+
+result_t util_base::parseArgs(exlib::string command, obj_ptr<NArray>& retVal)
+{
+    obj_ptr<NArray> arr = new NArray;
+    _parser p(command);
+
+    while (!p.end()) {
+        exlib::string s;
+
+        if (p.want('\"')) {
+            while (!p.end()) {
+                exlib::string s1;
+
+                p.getString(s1, '\"', '\\');
+                s.append(s1);
+
+                if (p.get() == '\\') {
+                    p.skip();
+                    if (!p.end())
+                        s.append(1, p.getChar());
+                } else {
+                    p.skip();
+                    if (qisspace(p.get()))
+                        break;
+                }
+            }
+        } else {
+            while (!p.end() && !qisspace(p.get())) {
+                exlib::string s1;
+
+                p.getWord(s1, '\\');
+                s.append(s1);
+
+                if (p.get() == '\\') {
+                    p.skip();
+                    if (!p.end())
+                        s.append(1, p.getChar());
+                }
+            }
+        }
+
+        arr->append(s);
+    }
+
+    retVal = arr;
     return 0;
 }
 

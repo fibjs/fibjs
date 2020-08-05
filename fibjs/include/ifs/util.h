@@ -78,6 +78,7 @@ public:
     static result_t each(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> context, v8::Local<v8::Value>& retVal);
     static result_t map(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> context, v8::Local<v8::Array>& retVal);
     static result_t reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> iterator, v8::Local<v8::Value> memo, v8::Local<v8::Value> context, v8::Local<v8::Value>& retVal);
+    static result_t parseArgs(exlib::string command, obj_ptr<NArray>& retVal);
     static result_t compile(exlib::string srcname, exlib::string script, int32_t mode, obj_ptr<Buffer_base>& retVal);
     static result_t sync(v8::Local<v8::Function> func, bool async_func, v8::Local<v8::Function>& retVal);
     static result_t buildInfo(v8::Local<v8::Object>& retVal);
@@ -145,6 +146,7 @@ public:
     static void s_static_each(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_map(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_reduce(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_parseArgs(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_compile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_sync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_buildInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -209,6 +211,7 @@ inline ClassInfo& util_base::class_info()
         { "each", s_static_each, true },
         { "map", s_static_map, true },
         { "reduce", s_static_reduce, true },
+        { "parseArgs", s_static_parseArgs, true },
         { "compile", s_static_compile, true },
         { "sync", s_static_sync, true },
         { "buildInfo", s_static_buildInfo, true }
@@ -1077,6 +1080,22 @@ inline void util_base::s_static_reduce(const v8::FunctionCallbackInfo<v8::Value>
     OPT_ARG(v8::Local<v8::Value>, 3, v8::Undefined(isolate));
 
     hr = reduce(v0, v1, v2, v3, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_static_parseArgs(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<NArray> vr;
+
+    METHOD_NAME("util.parseArgs");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = parseArgs(v0, vr);
 
     METHOD_RETURN();
 }
