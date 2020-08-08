@@ -1,0 +1,42 @@
+
+/*! @brief 子进程对象
+
+ ```JavaScript
+ var child_process = require("child_process");
+ var child = child_process.spwan("ls");
+ ```
+ */
+interface ChildProcess : EventEmitter
+{
+    /*! @brief 杀掉当前对象指向的进程，并传递信号
+      @param signal 传递的信号
+     */
+    kill(Integer signal);
+
+    /*! @brief 等待当前对象指向的进程结束，并返回进程结束代码
+      @return 进程的结束代码
+     */
+    join() async;
+
+    /*! @brief 读取当前对象指向的进程的 id
+     */
+    readonly Integer pid;
+
+    /*! @brief 查询和设置当前进程的退出码 */
+    readonly Integer exitCode;
+
+    /*! @brief 读取当前对象指向的进程的标准输入对象
+     */
+    readonly Stream stdin;
+
+    /*! @brief 读取当前对象指向的进程的标准输出对象
+     */
+    readonly Stream stdout;
+
+    /*! @brief 读取当前对象指向的进程的标准错误对象
+     */
+    readonly Stream stderr;
+
+    /*! @brief 查询和绑定进程退出事件，相当于 on("exit", func); */
+    Function onexit;
+};

@@ -23,6 +23,7 @@ public:
 public:
     virtual void resume()
     {
+        apost(0);
     }
 
 public:

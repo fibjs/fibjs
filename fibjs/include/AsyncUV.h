@@ -11,6 +11,7 @@
 
 #include "AsyncCall.h"
 #include <uv/include/uv.h>
+#include <functional>
 
 namespace fibjs {
 class AsyncUVTask : public AsyncEvent {

@@ -1,0 +1,500 @@
+var test = require("test");
+test.setup();
+
+var test_util = require('./test_util');
+
+const child_process = require('child_process');
+var coroutine = require("coroutine");
+var path = require('path');
+var json = require('json');
+var ws = require('ws');
+var net = require('net');
+var http = require('http');
+var io = require('io');
+var os = require('os');
+
+describe("child_process", () => {
+    var cmd;
+
+    before(() => {
+        cmd = process.execPath;
+    });
+
+    after(test_util.cleanup);
+
+    it("stdout", () => {
+        var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.js')]);
+        var stdout = new io.BufferedStream(bs.stdout);
+
+        assert.equal(stdout.readLine(), "exec testing....");
+
+        var t0 = new Date().getTime();
+
+        stdout.readLine();
+        assert.equal(stdout.readLine(), "console.print....");
+        assert.closeTo(new Date().getTime() - t0, 1000, 500);
+
+        stdout.readLine();
+        assert.equal(stdout.readLine(), "console.print....");
+        assert.closeTo(new Date().getTime() - t0, 2000, 500);
+    });
+
+    describe("stdout/stderr", () => {
+        it("SubProcess::stderr/stdout exist", () => {
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.js')]);
+
+            assert.exist(bs.stdout);
+            assert.exist(bs.stderr);
+        });
+
+        it("stdout output", () => {
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.stdout.js')]);
+            var stdout = new io.BufferedStream(bs.stdout);
+
+            assert.equal(stdout.readLine(), "exec testing....");
+
+            var t0 = new Date().getTime();
+
+            stdout.readLine();
+            var offsets = []
+            offsets[0] = new Date().getTime() - t0;
+            assert.closeTo(offsets[0], 1000, 500);
+
+            stdout.readLine();
+            offsets[1] = new Date().getTime() - t0;
+            assert.closeTo(offsets[1], 2000, 1000);
+        });
+
+        it("stderr output", () => {
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.stderr.js')]);
+            var stderr = new io.BufferedStream(bs.stderr);
+
+            assert.equal(stderr.readLine(), "exec testing....");
+
+            var t0 = new Date().getTime();
+
+            stderr.readLine();
+            var offsets = []
+            offsets[0] = new Date().getTime() - t0;
+            assert.closeTo(offsets[0], 1000, 500);
+
+            stderr.readLine();
+            offsets[1] = new Date().getTime() - t0;
+            assert.closeTo(offsets[1], 2000, 1000);
+        });
+    });
+
+    it("stdin/stdout", () => {
+        var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec1.js')]);
+        var stdout = new io.BufferedStream(bs.stdout);
+
+        bs.stdin.write("hello, exec1" + os.EOL);
+        assert.equal(stdout.readLine(), "hello, exec1");
+    });
+
+    it("stdin/stdout stream", () => {
+        var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.chargeable.js')]);
+        var stdout = new io.BufferedStream(bs.stdout);
+        var outputs = []
+
+        process.nextTick(() => {
+            var oline = null
+
+            while (true) {
+                oline = stdout.readLine()
+                if (oline === 'exit') {
+                    break
+                }
+
+                if (oline) {
+                    outputs.push(oline)
+                }
+            }
+        });
+
+        process.nextTick(() => {
+            bs.stdin.write('line1' + os.EOL)
+            bs.stdin.write('line2' + os.EOL)
+            bs.stdin.write('.exit' + os.EOL)
+        })
+
+        bs.join()
+
+        assert.deepEqual(
+            outputs,
+            [
+                `> your input is: line1`,
+                `> your input is: line2`,
+            ]
+        )
+    });
+
+    it("run", () => {
+        assert.equal(child_process.run(cmd, [path.join(__dirname, 'process', 'exec.js')]), 100);
+    });
+
+    it("exitCode", () => {
+        assert.equal(child_process.run(cmd, [path.join(__dirname, 'process', 'exec13.js')]), 100);
+        assert.equal(child_process.run(cmd, [path.join(__dirname, 'process', 'exec14.js')]), 101);
+    });
+
+    if (require("os").type() != "Linux")
+        it("run throw error", () => {
+            assert.throws(() => {
+                child_process.run("not_exists_exec_file");
+            });
+        });
+
+    it("multi run", () => {
+        coroutine.parallel([1, 2, 3, 4, 5, 6], (n) => {
+            assert.equal(child_process.run(cmd, [path.join(__dirname, 'process', 'exec6.js'), n]), n);
+        });
+    });
+
+    describe('process holding', () => {
+        it("multi fiber", () => {
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec7.js')]);
+            var stdout = new io.BufferedStream(p.stdout);
+            assert.equal(stdout.readLine(), "100");
+            p.join();
+            assert.equal(p.exitCode, 7);
+        });
+
+        it("pendding callback", () => {
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec8.js')]);
+            var stdout = new io.BufferedStream(p.stdout);
+            assert.equal(stdout.readLine(), "200");
+            p.join();
+            assert.equal(p.exitCode, 8);
+        });
+
+        it("setTimeout", () => {
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec9.js')]);
+            var stdout = new io.BufferedStream(p.stdout);
+            assert.equal(stdout.readLine(), "300");
+            p.join();
+            assert.equal(p.exitCode, 9);
+        });
+
+        it("setTimeout unref", () => {
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec9.1.js')]);
+            var stdout = new io.BufferedStream(p.stdout);
+            assert.equal(stdout.readLine(), "301");
+            p.join();
+            assert.equal(p.exitCode, 0);
+        });
+
+        it("setTimeout ref", () => {
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec9.2.js')]);
+            var stdout = new io.BufferedStream(p.stdout);
+            assert.equal(stdout.readLine(), "302");
+            p.join();
+            assert.equal(p.exitCode, 9);
+        });
+
+        it("setInterval", () => {
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec10.js')]);
+            var stdout = new io.BufferedStream(p.stdout);
+            assert.equal(stdout.readLine(), "400");
+            p.join();
+            assert.equal(p.exitCode, 10);
+        });
+
+        it("setImmediate", () => {
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec11.js')]);
+            var stdout = new io.BufferedStream(p.stdout);
+            assert.equal(stdout.readLine(), "500");
+            p.join();
+            assert.equal(p.exitCode, 11);
+        });
+
+        it("websocket connect", () => {
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec18.js')]);
+            var stdout = new io.BufferedStream(p.stdout);
+            p.join();
+            assert.equal(p.exitCode, 81);
+        });
+
+        it("websocket disconnect", () => {
+            var httpd = new http.Server(8899, {
+                "/ws": ws.upgrade((s) => {
+                    s.onmessage = function (msg) {
+                        s.send(msg);
+                    };
+                })
+            });
+            test_util.push(httpd.socket);
+            httpd.start();
+
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec19.js')]);
+            var stdout = new io.BufferedStream(p.stdout);
+            assert.equal(stdout.readLine(), "1900");
+            p.join();
+            assert.equal(p.exitCode, 19);
+        });
+
+        it("worker", () => {
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec20.js')]);
+            var stdout = new io.BufferedStream(p.stdout);
+            assert.equal(stdout.readLine(), "2000");
+            p.join();
+            assert.equal(p.exitCode, 20);
+        });
+
+        it("bugfix: multi fiber async", () => {
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec12.js')]);
+            var stdout = new io.BufferedStream(p.stdout);
+            assert.equal(stdout.readLine(), "600");
+            p.join();
+            assert.equal(p.exitCode, 12);
+        });
+
+        it("tcp server", () => {
+            var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec21.js')]);
+            var stdout = new io.BufferedStream(p.stdout);
+
+            for (var i = 0; i < 100; i++) {
+                coroutine.sleep(10);
+                try {
+                    net.connect('tcp://127.0.0.1:28080');
+                    break;
+                } catch (e) {}
+            }
+
+            assert.equal(stdout.readLine(), "700");
+            p.join();
+            assert.equal(p.exitCode, 21);
+        });
+    });
+
+    it("start", () => {
+        var t1 = new Date().getTime();
+        child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.js')], {
+            stdio: 'inherit'
+        });
+        assert.lessThan(new Date().getTime() - t1, 100);
+    });
+
+    it("kill", () => {
+        var t1 = new Date().getTime();
+        var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.js')], {
+            stdio: 'inherit'
+        });
+        coroutine.sleep(500);
+        p.kill(15);
+        p.join();
+        assert.lessThan(new Date().getTime() - t1, 1000);
+    });
+
+    describe("SubProcess Spec", () => {
+        it("default kvs", () => {
+            var retcode = child_process.run(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')]);
+            assert.equal(retcode, 0)
+        });
+
+        if (process.platform === 'win32') {
+            const win_keys = [
+                'SYSTEMROOT',
+                'SystemRoot',
+                'TEMP',
+                'TMP',
+                // 'CommonProgramFiles',
+                'CommonProgramFiles(x86)',
+                'CommonProgramW6432',
+                // 'ProgramFiles',
+                'ProgramFiles(x86)',
+                'ProgramW6432',
+            ];
+
+            it(`default kvs: win32`, () => {
+                var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')]);
+                var stdout = new io.BufferedStream(bs.stdout);
+                bs.join()
+
+                assert.deepEqual(
+                    stdout.readLines(),
+                    win_keys.map(key => `process.env['${key}']=${process.env[key] || ''}`)
+                );
+            });
+
+            it(`specify kvs: win32`, () => {
+                const envs = {};
+                /**
+                 * @notice win32's program lifecycle depends on some reserve environment, never override them
+                 */
+                win_keys.forEach(key => envs[`nothing_${key}`] = `nothing_${key}`);
+
+                Object.keys(envs).forEach(x => {
+                    assert.notEqual(x, process.env[x])
+                });
+
+                var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')], {
+                    env: envs
+                });
+                var stdout = new io.BufferedStream(bs.stdout);
+                bs.join()
+
+                assert.deepEqual(
+                    stdout.readLines(),
+                    win_keys.map(key => `process.env['${key}']=${process.env[key] || ''}`)
+                )
+            });
+
+            win_keys.forEach(win_key => {
+                it(`override required reserve env vars - ${win_key}`, () => {
+                    var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')], {
+                        env: {
+                            [win_key]: undefined
+                        }
+                    });
+                    var stdout = new io.BufferedStream(bs.stdout);
+                    bs.join();
+
+                    assert.deepEqual(
+                        stdout.readLines(),
+                        win_keys.map(key => {
+                            if (key !== win_key)
+                                return `process.env['${key}']=${process.env[key] || ''}`
+                            else
+                                return `process.env['${key}']=`
+                        })
+                    );
+
+                    var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')], {
+                        env: {
+                            [win_key]: 'foo'
+                        }
+                    });
+                    var stdout = new io.BufferedStream(bs.stdout);
+                    bs.join();
+
+                    assert.deepEqual(
+                        stdout.readLines(),
+                        win_keys.map(key => {
+                            if (key !== win_key)
+                                return `process.env['${key}']=${process.env[key] || ''}`
+                            else
+                                return `process.env['${key}']=foo`
+                        })
+                    );
+                });
+            });
+
+            win_keys.forEach(win_key => {
+                if (win_key.toUpperCase() === 'SYSTEMROOT') return;
+
+                it(`cancel reserve env var - ${win_key}`, () => {
+                    var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.win32_envs.js')], {
+                        env: {
+                            [win_key]: process.env[win_key]
+                        }
+                    });
+                    var stdout = new io.BufferedStream(bs.stdout);
+                    bs.join();
+
+                    assert.deepEqual(stdout.readLines(), []);
+                });
+            });
+        }
+
+        if (process.platform === 'darwin') {
+            it(`default kvs: darwin`, () => {
+                var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')]);
+                var stdout = new io.BufferedStream(bs.stdout);
+                bs.join()
+
+                assert.deepEqual(
+                    stdout.readLines(),
+                    [
+                        `process.env.HOME=${process.env.HOME || ''}`,
+                        `process.env.TMPDIR=${process.env.TMPDIR || ''}`,
+                    ]
+                )
+            });
+
+            it(`specify kvs: darwin`, () => {
+                const envs = {
+                    HOME: 'noHome',
+                    TMPDIR: 'noTMPDIR'
+                };
+
+                var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')], {
+                    env: envs
+                });
+                var stdout = new io.BufferedStream(bs.stdout);
+                bs.join()
+
+                assert.deepEqual(
+                    stdout.readLines(),
+                    [
+                        `process.env.HOME=${envs.HOME}`,
+                        `process.env.TMPDIR=${envs.TMPDIR}`,
+                    ]
+                )
+
+                Object.keys(envs).forEach(x => assert.notEqual(x, process.env[x]))
+            });
+        }
+
+        if (process.platform === 'linux') {
+            it(`default kvs: linux`, () => {
+                var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')]);
+                var stdout = new io.BufferedStream(bs.stdout);
+                bs.join()
+
+                assert.deepEqual(
+                    stdout.readLines(),
+                    [
+                        `process.env.HOME=${process.env.HOME || ''}`,
+                        `process.env.TMPDIR=${process.env.TMPDIR || ''}`,
+                    ]
+                )
+            });
+
+            it(`specify kvs: linux`, () => {
+                const envs = {
+                    HOME: 'noHome',
+                    TMPDIR: 'noTMPDIR'
+                };
+
+                var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')], {
+                    env: envs
+                });
+                var stdout = new io.BufferedStream(bs.stdout);
+                bs.join()
+
+                assert.deepEqual(
+                    stdout.readLines(),
+                    [
+                        `process.env.HOME=${envs.HOME}`,
+                        `process.env.TMPDIR=${envs.TMPDIR}`,
+                    ]
+                )
+
+                Object.keys(envs).forEach(x => assert.notEqual(x, process.env[x]))
+            });
+        }
+
+        /**
+         * in win32, socket/nslookup require system win32 api, some ENV variable is required
+         * - SYSTEMROOT
+         * if case below cannot executed normally, check your implementation about environment variables in 
+         * sub process
+         */
+        it("dns.resolve", () => {
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.dns.js')]);
+            var stdout = new io.BufferedStream(bs.stdout);
+            bs.join()
+
+            assert.deepEqual(
+                stdout.readLines(),
+                [
+                    `resolve domain success!`,
+                    `lookup domain success!`,
+                ]
+            )
+        });
+    });
+});
+
+require.main === module && test.run(console.DEBUG);

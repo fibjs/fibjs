@@ -1,5 +1,5 @@
 {
-    "System": ["console", "coroutine", "global", "gui", "os", "process", "registry", "timers", "tty"],
+    "System": ["child_process", "console", "coroutine", "global", "gui", "os", "process", "registry", "timers", "tty"],
     "File System": ["fs", "io", "path", "path_posix", "path_win32"],
     "Network": ["dgram", "dns", "http", "mq", "net", "punycode", "querystring", "ssl", "url", "ws"],
     "Encoding": ["base32", "base64", "base64vlq", "bson", "encoding", "hex", "iconv", "json", "msgpack", "string_decoder"],

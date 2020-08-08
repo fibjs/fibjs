@@ -564,6 +564,15 @@ public:                                                  \
     ((sizeof(a) / sizeof(*(a))) / static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
 #endif
 
+#ifndef offsetof
+#define offsetof(TYPE, MEMBER) ((size_t) & ((TYPE*)0)->MEMBER)
+#endif
+
+#ifndef container_of
+#define container_of(ptr, TYPE, MEMBER) \
+    ((TYPE*)((char*)(ptr)-offsetof(TYPE, MEMBER)))
+#endif
+
 inline result_t GetArgumentValue(v8::Local<v8::Value> v, exlib::string& n, bool bStrict = false)
 {
     if (v.IsEmpty())
@@ -1190,6 +1199,7 @@ v8::Local<v8::Value> ThrowResult(result_t hr);
 exlib::string ReportException(TryCatch& try_catch, result_t hr, bool repl = false);
 exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl = false);
 result_t throwSyntaxError(TryCatch& try_catch);
+const char* signo_string(int signo);
 
 #ifdef _WIN32
 

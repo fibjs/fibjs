@@ -18,6 +18,7 @@ void importModule()
     IMPORT_MODULE(base64vlq);
     IMPORT_MODULE(bson);
     IMPORT_MODULE(buffer);
+    IMPORT_MODULE(child_process);
     IMPORT_MODULE(coroutine);
     IMPORT_MODULE(constants);
     IMPORT_MODULE(crypto);
