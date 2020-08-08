@@ -21,20 +21,6 @@
 
 namespace fibjs {
 
-exlib::string clean_string(exlib::string s)
-{
-    exlib::string s1(s);
-
-    char* c_buf = s1.c_buffer();
-    int32_t len = (int32_t)s1.length();
-
-    for (int32_t i = 0; i < len; i++)
-        if ((c_buf[i] < 32 && c_buf[i] != 0xd && c_buf[i] != 0xa) || c_buf[i] > 127)
-            c_buf[i] = '.';
-
-    return s1;
-}
-
 void setOption(SOCKET s)
 {
     int32_t keepAlive = 1;
