@@ -63,7 +63,7 @@ module child_process
      ```
      @param command 指定要运行的命令
      @param options 指定创建参数
-     @return 返回子进程的 stdin 输出内容
+     @return 返回子进程的 stdio 输出内容
      */
     static (Variant stdout, Variant stderr) exec(String command, Object options = {}) async;
 
@@ -83,7 +83,7 @@ module child_process
      @param command 指定要运行的命令
      @param args 指定字符串参数列表
      @param options 指定创建参数
-     @return 返回子进程的 stdin 输出内容
+     @return 返回子进程的 stdio 输出内容
      */
     static (Variant stdout, Variant stderr) execFile(String command, Array args, Object options = {}) async;
 
@@ -102,7 +102,7 @@ module child_process
      ```
      @param command 指定要运行的命令
      @param options 指定创建参数
-     @return 返回子进程的 stdin 输出内容
+     @return 返回子进程的 stdio 输出内容
      */
     static (Variant stdout, Variant stderr) execFile(String command, Object options = {}) async;
 
