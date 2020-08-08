@@ -7,7 +7,7 @@
  */
 module child_process
 {
-    /*! @brief 用给定的命令发布一个子进程，带有 ‘args’ 命令行参数，如果省略的话，‘args’ 默认为一个空数组
+    /*! @brief 用给定的命令发布一个子进程
     options 支持的内容如下：
      ```JavaScript
      {
@@ -28,7 +28,7 @@ module child_process
      */
     static ChildProcess spawn(String command, Array args, Object options = {});
 
-    /*! @brief 用给定的命令发布一个子进程，带有 ‘args’ 命令行参数，如果省略的话，‘args’ 默认为一个空数组
+    /*! @brief 用给定的命令发布一个子进程
     options 支持的内容如下：
      ```JavaScript
      {
@@ -48,7 +48,7 @@ module child_process
      */
     static ChildProcess spawn(String command, Object options = {});
 
-    /*! @brief 在 shell 中执行一个命令并缓冲输出
+    /*! @brief 在 shell 中执行一个命令并缓冲输出，当以回调方式执行时，函数将返回子进程对象
     options 支持的内容如下：
      ```JavaScript
      {
@@ -63,11 +63,11 @@ module child_process
      ```
      @param command 指定要运行的命令
      @param options 指定创建参数
-     @return 返回子进程对象
+     @return 返回子进程的 stdin 输出内容
      */
     static (Variant stdout, Variant stderr) exec(String command, Object options = {}) async;
 
-    /*! @brief 直接执行所指定的文件并缓冲输出
+    /*! @brief 直接执行所指定的文件并缓冲输出，当以回调方式执行时，函数将返回子进程对象
     options 支持的内容如下：
      ```JavaScript
      {
@@ -83,11 +83,11 @@ module child_process
      @param command 指定要运行的命令
      @param args 指定字符串参数列表
      @param options 指定创建参数
-     @return 返回子进程对象
+     @return 返回子进程的 stdin 输出内容
      */
     static (Variant stdout, Variant stderr) execFile(String command, Array args, Object options = {}) async;
 
-    /*! @brief 直接执行所指定的文件并缓冲输出
+    /*! @brief 直接执行所指定的文件并缓冲输出，当以回调方式执行时，函数将返回子进程对象
     options 支持的内容如下：
      ```JavaScript
      {
@@ -102,11 +102,11 @@ module child_process
      ```
      @param command 指定要运行的命令
      @param options 指定创建参数
-     @return 返回子进程对象
+     @return 返回子进程的 stdin 输出内容
      */
     static (Variant stdout, Variant stderr) execFile(String command, Object options = {}) async;
 
-    /*! @brief 直接执行所指定的文件并返回 exitCode
+    /*! @brief 直接执行所指定的文件并返回 exitCode，当以回调方式执行时，函数将返回子进程对象
     options 支持的内容如下：
      ```JavaScript
      {
@@ -122,11 +122,11 @@ module child_process
      @param command 指定要运行的命令
      @param args 指定字符串参数列表
      @param options 指定创建参数
-     @return 返回子进程对象
+     @return 返回子进程的 exitCode
      */
     static Integer run(String command, Array args, Object options = {}) async;
 
-    /*! @brief 直接执行所指定的文件并返回 exitCode
+    /*! @brief 直接执行所指定的文件并返回 exitCode，当以回调方式执行时，函数将返回子进程对象
     options 支持的内容如下：
      ```JavaScript
      {
@@ -141,7 +141,7 @@ module child_process
      ```
      @param command 指定要运行的命令
      @param options 指定创建参数
-     @return 返回子进程对象
+     @return 返回子进程的 exitCode
      */
     static Integer run(String command, Object options = {}) async;
 };
