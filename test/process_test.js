@@ -53,15 +53,6 @@ describe('process', () => {
             assert.strictEqual(_pid, `${sp.pid}`);
             assert.strictEqual(_ppid, `${process.pid}`);
         });
-
-        it("SubProcess::ppid equals to its parent process's `pid`", () => {
-            var sp = process.open(cmd, [path.join(__dirname, 'process', 'exec.ppid.js')]);
-            var [_ppid, _pid] = sp.stdout.readLines();
-
-            assert.strictEqual(_pid, `${sp.pid}`);
-            assert.strictEqual(_ppid, `${sp.ppid}`);
-            assert.strictEqual(sp.ppid, process.pid);
-        });
     });
 
     it("stdout", () => {

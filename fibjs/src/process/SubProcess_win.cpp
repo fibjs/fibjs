@@ -273,12 +273,6 @@ result_t SubProcess::get_pid(int32_t& retVal)
     return 0;
 }
 
-result_t SubProcess::get_ppid(int32_t& retVal)
-{
-    retVal = (int32_t)m_ppid;
-    return 0;
-}
-
 result_t SubProcess::kill(int32_t signal)
 {
     if (m_timer)
