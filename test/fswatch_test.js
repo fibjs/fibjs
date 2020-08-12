@@ -1,6 +1,8 @@
 var test = require("test");
 
 var fs = require('fs');
+var io = require('io');
+var child_process = require('child_process');
 var path = require('path');
 var coroutine = require('coroutine');
 var uuid = require('uuid');
@@ -112,10 +114,12 @@ describe('fs.watch*', () => {
         })
 
         it("hold process if last watcher not close", () => {
-            var p = process.open(process.execPath, [path.join(__dirname, 'fswatch_test', 'hold1.js')]);
-            assert.equal(p.stdout.readLine(), "after start watching");
-            assert.equal(p.stdout.readLine(), "watched");
-            assert.equal(p.wait(), 9);
+            var bs = child_process.spawn(process.execPath, [path.join(__dirname, 'fswatch_test', 'hold1.js')]);
+            var p = new io.BufferedStream(bs.stdout);
+            assert.equal(p.readLine(), "after start watching");
+            assert.equal(p.readLine(), "watched");
+            bs.join();
+            assert.equal(bs.exitCode, 9);
         });
 
         describe("write file", () => {
@@ -425,17 +429,25 @@ describe('fs.watch*', () => {
         })
 
         it("hold process if last watcher not close", () => {
-            var p = process.open(process.execPath, [path.join(__dirname, 'fswatch_test', 'hold2.js')], { timeout: 1e4 });
-            assert.equal(p.stdout.readLine(), "after start watching");
-            assert.equal(p.stdout.readLine(), "watched");
-            assert.equal(p.wait(), 9);
+            var bs = child_process.spawn(process.execPath, [path.join(__dirname, 'fswatch_test', 'hold2.js')], {
+                timeout: 1e4
+            });
+            var p = new io.BufferedStream(bs.stdout);
+            assert.equal(p.readLine(), "after start watching");
+            assert.equal(p.readLine(), "watched");
+            bs.join()
+            assert.equal(bs.exitCode, 9);
         });
 
         it("hold process if last watcher hasn't been unref-ed", () => {
-            var p = process.open(process.execPath, [path.join(__dirname, 'fswatch_test', 'hold3.js'), { timeout: 1e4 }]);
-            assert.equal(p.stdout.readLine(), "after start watching");
-            assert.equal(p.stdout.readLine(), "watched");
-            assert.equal(p.wait(), 9);
+            var bs = child_process.spawn(process.execPath, [path.join(__dirname, 'fswatch_test', 'hold3.js'), {
+                timeout: 1e4
+            }]);
+            var p = new io.BufferedStream(bs.stdout);
+            assert.equal(p.readLine(), "after start watching");
+            assert.equal(p.readLine(), "watched");
+            bs.join();
+            assert.equal(bs.exitCode, 9);
         });
 
         describe("you can watchFile/unwatchFile one non-existed target", () => {

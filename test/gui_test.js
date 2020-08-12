@@ -5,6 +5,8 @@ var test_util = require("./test_util");
 
 var fs = require("fs");
 var path = require("path");
+var io = require('io');
+var child_process = require('child_process');
 
 var win32 = process.platform === "win32";
 var darwin64 = process.platform === "darwin" && process.arch === 'x64';
@@ -324,10 +326,11 @@ if (win32 || darwin64) {
     });
 
     it("log", () => {
-      var p = process.open(process.execPath, [
+      var bs = child_process.spawn(process.execPath, [
         path.join(__dirname, "gui_files", "gui1.js")
       ]);
-      var r = p.stdout.readLines();
+      var p = new io.BufferedStream(bs.stdout);
+      var r = p.readLines();
       assert.equal(r[0], "this is.a log");
       assert.equal(r[1], "this is.a warn");
 
@@ -335,10 +338,11 @@ if (win32 || darwin64) {
     });
 
     it("debug", () => {
-      var p = process.open(process.execPath, [
+      var bs = child_process.spawn(process.execPath, [
         path.join(__dirname, "gui_files", "gui2.js")
       ]);
-      var r = p.stdout.readLines();
+      var p = new io.BufferedStream(bs.stdout);
+      var r = p.readLines();
       assert.equal(r.length, 0);
     });
   });

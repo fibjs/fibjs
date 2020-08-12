@@ -41,12 +41,6 @@ describe("v8 test", () => {
     it('for (var n in {}) {}', () => {
         for (var n in {}) {}
     });
-
-    if (global.full_test)
-        it('hash seed', () => {
-            assert.notEqual(process.open(process.execPath, [path.join(__dirname, 'v8_seed_test.js')]).readLine(),
-                process.open(process.execPath, [path.join(__dirname, 'v8_seed_test.js')]).readLine());
-        });
 });
 
 require.main === module && test.run(console.DEBUG);

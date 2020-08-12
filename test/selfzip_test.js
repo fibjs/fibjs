@@ -5,6 +5,7 @@ var fs = require('fs');
 var io = require('io');
 var path = require('path');
 var process = require('process');
+var child_process = require('child_process');
 var zip = require('zip');
 var util = require('util');
 var coroutine = require('coroutine');
@@ -36,7 +37,7 @@ describe("selfzip", () => {
             if (process.platform !== 'win32')
                 fs.chmod(unicodeTestPath, 511);
 
-            var r = process.run(unicodeTestPath, argv);
+            var r = child_process.run(unicodeTestPath, argv);
 
             for (var i = 0; i < 100; i++) {
                 try {
@@ -66,7 +67,7 @@ describe("selfzip", () => {
             if (process.platform !== 'win32')
                 fs.chmod(testPath, 511);
 
-            var r = process.run(testPath, argv);
+            var r = child_process.run(testPath, argv);
 
             for (var i = 0; i < 100; i++) {
                 try {
@@ -118,7 +119,7 @@ describe("selfzip", () => {
             if (process.platform !== 'win32')
                 fs.chmod(unicodeTestPath, 511);
 
-            var r = process.run(unicodeTestPath, argv);
+            var r = child_process.run(unicodeTestPath, argv);
 
             for (var i = 0; i < 100; i++) {
                 try {
@@ -148,7 +149,7 @@ describe("selfzip", () => {
             if (process.platform !== 'win32')
                 fs.chmod(testPath, 511);
 
-            var r = process.run(testPath, argv);
+            var r = child_process.run(testPath, argv);
 
             for (var i = 0; i < 100; i++) {
                 try {

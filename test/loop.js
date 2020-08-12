@@ -1,3 +1,4 @@
 var process = require('process');
+var child_process = require('child_process');
 
-while (process.run(process.execPath, ['test']) == 0);
+while (child_process.run(process.execPath, ['test']) == 0);
