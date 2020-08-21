@@ -54,6 +54,7 @@ module child_process
      {
         "cwd": "", // 子进程的当前的工作目录，缺省使用当前目录
         "env": {}, // 环境变量的键值对
+        "encoding": "utf8", // 指定返回结果的编码，缺省为 utf8
         "detached": false, // 子进程将会变成一个进程组的领导者，缺省为 false
         "uid": 0, // 设置用户进程的ID
         "gid": 0, // 设置进程组的ID
@@ -73,6 +74,7 @@ module child_process
      {
         "cwd": "", // 子进程的当前的工作目录，缺省使用当前目录
         "env": {}, // 环境变量的键值对
+        "encoding": "utf8", // 指定返回结果的编码，缺省为 utf8
         "detached": false, // 子进程将会变成一个进程组的领导者，缺省为 false
         "uid": 0, // 设置用户进程的ID
         "gid": 0, // 设置进程组的ID
@@ -93,6 +95,7 @@ module child_process
      {
         "cwd": "", // 子进程的当前的工作目录，缺省使用当前目录
         "env": {}, // 环境变量的键值对
+        "encoding": "utf8", // 指定返回结果的编码，缺省为 utf8
         "detached": false, // 子进程将会变成一个进程组的领导者，缺省为 false
         "uid": 0, // 设置用户进程的ID
         "gid": 0, // 设置进程组的ID
