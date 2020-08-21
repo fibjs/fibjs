@@ -138,12 +138,11 @@ describe("child_process", () => {
         assert.equal(child_process.run(cmd, [path.join(__dirname, 'process', 'exec14.js')]), 101);
     });
 
-    if (require("os").type() != "Linux")
-        it("run throw error", () => {
-            assert.throws(() => {
-                child_process.run("not_exists_exec_file");
-            });
+    it("run throw error", () => {
+        assert.throws(() => {
+            child_process.run("not_exists_exec_file");
         });
+    });
 
     it("multi run", () => {
         coroutine.parallel([1, 2, 3, 4, 5, 6], (n) => {
@@ -267,7 +266,7 @@ describe("child_process", () => {
         });
     });
 
-    it("start", () => {
+    it("spawn", () => {
         var t1 = new Date().getTime();
         child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.js')], {
             stdio: 'inherit'
@@ -286,7 +285,120 @@ describe("child_process", () => {
         assert.lessThan(new Date().getTime() - t1, 1000);
     });
 
-    describe("SubProcess Spec", () => {
+    it("argv", () => {
+        assert.deepEqual(json.decode(child_process.execFile(cmd, [
+            path.join(__dirname, "process", "exec2.js"),
+            "arg1",
+            "arg2"
+        ]).stdout), [
+            cmd, path.join(__dirname, "process", "exec2.js"), "arg1", "arg2"
+        ]);
+    });
+
+    it("argv 1", () => {
+        assert.deepEqual(json.decode(child_process.execFile(cmd, [
+            "--use_strict",
+            "--test1",
+            path.join(__dirname, "process", "exec2.js"),
+            "arg1",
+            "arg2"
+        ]).stdout), [
+            cmd, path.join(__dirname, "process", "exec2.js"), "arg1", "arg2"
+        ]);
+    });
+
+    it("argv utf8", () => {
+        assert.deepEqual(json.decode(child_process.execFile(cmd, [
+            path.join(__dirname, "process", "exec2.js"),
+            "参数1",
+            "参数2"
+        ]).stdout), [
+            cmd, path.join(__dirname, "process", "exec2.js"), "参数1", "参数2"
+        ]);
+    });
+
+    it("execArgv", () => {
+        assert.deepEqual(json.decode(child_process.execFile(cmd, [
+            "--use_strict",
+            "--test",
+            path.join(__dirname, "process", "exec3.js"),
+            "arg1",
+            "arg2"
+        ]).stdout), [
+            "--use_strict",
+            "--test",
+        ]);
+    });
+
+    it("env", () => {
+        process.env.abc = 123;
+        assert.equal(json.decode(child_process.execFile(cmd, [
+            path.join(__dirname, "process", "exec4.js")
+        ]).stdout).abc, "123");
+    });
+
+    it("env1", () => {
+        var env = json.decode(child_process.execFile(cmd, [
+            path.join(__dirname, "process", "exec4.js")
+        ], {
+            env: {
+                abcd: "234"
+            }
+        }).stdout);
+
+        assert.isUndefined(env.abc);
+        assert.equal(env.abcd, "234");
+    });
+
+    if (process.platform != "win32") {
+        it("PATH env", () => {
+            assert.equal(child_process.run("ls", [path.join(__dirname, "process")]), 0)
+            assert.ok(child_process.execFile("ls", ["-a", path.join(__dirname, "process")]).stdout);
+        });
+
+        it("umask()", () => {
+            const mask = '0664';
+            assert.equal(process.umask(), 0);
+
+            const old = process.umask(mask);
+            assert.equal(parseInt(mask, 8), process.umask(old));
+
+            // confirm reading the umask does not modify it.
+            // 1. If the test fails, this call will succeed, but the mask will be set to 0
+            assert.equal(old, process.umask());
+            // 2. If the test fails, process.umask() will return 0
+            assert.equal(old, process.umask());
+        });
+    }
+
+    describe("Event", () => {
+        it("beforeExit", () => {
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec15.js')]);
+            var stdout = new io.BufferedStream(bs.stdout);
+            assert.deepEqual(stdout.readLines(), [
+                "beforeExit 101",
+                "other beforeExit 101",
+                "new work 101",
+                "beforeExit 101",
+                "other beforeExit 101"
+            ]);
+
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec16.js')]);
+            var stdout = new io.BufferedStream(bs.stdout);
+            assert.deepEqual(stdout.readLines(), []);
+        });
+
+        it("exit", () => {
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec17.js')]);
+            var stdout = new io.BufferedStream(bs.stdout);
+            assert.deepEqual(stdout.readLines(), [
+                "exit 101",
+                "other exit 101"
+            ]);
+        });
+    });
+
+    describe("ChildProcess Spec", () => {
         it("default kvs", () => {
             var retcode = child_process.run(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')]);
             assert.equal(retcode, 0)
@@ -309,8 +421,6 @@ describe("child_process", () => {
             it(`default kvs: win32`, () => {
                 var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')]);
                 var stdout = new io.BufferedStream(bs.stdout);
-                bs.join()
-
                 assert.deepEqual(
                     stdout.readLines(),
                     win_keys.map(key => `process.env['${key}']=${process.env[key] || ''}`)
@@ -332,8 +442,6 @@ describe("child_process", () => {
                     env: envs
                 });
                 var stdout = new io.BufferedStream(bs.stdout);
-                bs.join()
-
                 assert.deepEqual(
                     stdout.readLines(),
                     win_keys.map(key => `process.env['${key}']=${process.env[key] || ''}`)
@@ -348,8 +456,6 @@ describe("child_process", () => {
                         }
                     });
                     var stdout = new io.BufferedStream(bs.stdout);
-                    bs.join();
-
                     assert.deepEqual(
                         stdout.readLines(),
                         win_keys.map(key => {
@@ -366,8 +472,6 @@ describe("child_process", () => {
                         }
                     });
                     var stdout = new io.BufferedStream(bs.stdout);
-                    bs.join();
-
                     assert.deepEqual(
                         stdout.readLines(),
                         win_keys.map(key => {
@@ -390,8 +494,6 @@ describe("child_process", () => {
                         }
                     });
                     var stdout = new io.BufferedStream(bs.stdout);
-                    bs.join();
-
                     assert.deepEqual(stdout.readLines(), []);
                 });
             });
@@ -401,8 +503,6 @@ describe("child_process", () => {
             it(`default kvs: darwin`, () => {
                 var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')]);
                 var stdout = new io.BufferedStream(bs.stdout);
-                bs.join()
-
                 assert.deepEqual(
                     stdout.readLines(),
                     [
@@ -422,8 +522,6 @@ describe("child_process", () => {
                     env: envs
                 });
                 var stdout = new io.BufferedStream(bs.stdout);
-                bs.join()
-
                 assert.deepEqual(
                     stdout.readLines(),
                     [
@@ -440,8 +538,6 @@ describe("child_process", () => {
             it(`default kvs: linux`, () => {
                 var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')]);
                 var stdout = new io.BufferedStream(bs.stdout);
-                bs.join()
-
                 assert.deepEqual(
                     stdout.readLines(),
                     [
@@ -461,8 +557,6 @@ describe("child_process", () => {
                     env: envs
                 });
                 var stdout = new io.BufferedStream(bs.stdout);
-                bs.join()
-
                 assert.deepEqual(
                     stdout.readLines(),
                     [
@@ -484,8 +578,6 @@ describe("child_process", () => {
         it("dns.resolve", () => {
             var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.dns.js')]);
             var stdout = new io.BufferedStream(bs.stdout);
-            bs.join()
-
             assert.deepEqual(
                 stdout.readLines(),
                 [

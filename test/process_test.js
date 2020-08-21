@@ -40,7 +40,7 @@ describe('process', () => {
         assert.ok(process.pid);
     });
 
-    describe("ppid", () => {
+    xdescribe("ppid", () => {
         it("basic", () => {
             assert.property(process, 'ppid');
             assert.isNumber(process.ppid);
@@ -55,7 +55,7 @@ describe('process', () => {
         });
     });
 
-    it("stdout", () => {
+    xit("stdout", () => {
         var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.js')]);
 
         assert.equal(bs.stdout.readLine(), "exec testing....");
@@ -71,7 +71,7 @@ describe('process', () => {
         assert.closeTo(new Date().getTime() - t0, 2000, 500);
     });
 
-    describe("stdout/stderr", () => {
+    xdescribe("stdout/stderr", () => {
         it("SubProcess::stderr/stdout exist", () => {
             var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.js')]);
 
@@ -114,14 +114,14 @@ describe('process', () => {
         });
     });
 
-    it("stdin/stdout", () => {
+    xit("stdin/stdout", () => {
         var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec1.js')]);
 
         bs.stdin.writeLine("hello, exec1");
         assert.equal(bs.stdout.readLine(), "hello, exec1");
     });
 
-    it("stdin/stdout stream", () => {
+    xit("stdin/stdout stream", () => {
         var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec.chargeable.js')]);
         var outputs = []
 
@@ -157,29 +157,29 @@ describe('process', () => {
         )
     });
 
-    it("run", () => {
+    xit("run", () => {
         assert.equal(process.run(cmd, [path.join(__dirname, 'process', 'exec.js')]), 100);
     });
 
-    it("exitCode", () => {
+    xit("exitCode", () => {
         assert.equal(process.run(cmd, [path.join(__dirname, 'process', 'exec13.js')]), 100);
         assert.equal(process.run(cmd, [path.join(__dirname, 'process', 'exec14.js')]), 101);
     });
 
     if (require("os").type() != "Linux")
-        it("run throw error", () => {
+        xit("run throw error", () => {
             assert.throws(() => {
                 process.run("not_exists_exec_file");
             });
         });
 
-    it("multi run", () => {
+    xit("multi run", () => {
         coroutine.parallel([1, 2, 3, 4, 5, 6], (n) => {
             assert.equal(process.run(cmd, [path.join(__dirname, 'process', 'exec6.js'), n]), n);
         });
     });
 
-    describe('process holding', () => {
+    xdescribe('process holding', () => {
         it("multi fiber", () => {
             var p = process.open(cmd, [path.join(__dirname, 'process', 'exec7.js')]);
             assert.equal(p.stdout.readLine(), "100");
@@ -272,13 +272,13 @@ describe('process', () => {
 
     });
 
-    it("start", () => {
+    xit("start", () => {
         var t1 = new Date().getTime();
         process.start(cmd, [path.join(__dirname, 'process', 'exec.js')]);
         assert.lessThan(new Date().getTime() - t1, 100);
     });
 
-    it("kill", () => {
+    xit("kill", () => {
         var t1 = new Date().getTime();
         var p = process.start(cmd, [path.join(__dirname, 'process', 'exec.js')]);
         coroutine.sleep(500);
@@ -290,8 +290,8 @@ describe('process', () => {
     it("memoryUsage", () => {
         console.dir(process.memoryUsage());
     });
-
-    it("argv", () => {
+    //==================================================
+    xit("argv", () => {
         assert.deepEqual(json.decode(process.open(cmd, [
             path.join(__dirname, "process", "exec2.js"),
             "arg1",
@@ -301,7 +301,7 @@ describe('process', () => {
         ]);
     });
 
-    it("argv 1", () => {
+    xit("argv 1", () => {
         assert.deepEqual(json.decode(process.open(cmd, [
             "--use_strict",
             "--test1",
@@ -313,7 +313,7 @@ describe('process', () => {
         ]);
     });
 
-    it("argv utf8", () => {
+    xit("argv utf8", () => {
         assert.deepEqual(json.decode(process.open(cmd, [
             path.join(__dirname, "process", "exec2.js"),
             "参数1",
@@ -323,7 +323,7 @@ describe('process', () => {
         ]);
     });
 
-    it("execArgv", () => {
+    xit("execArgv", () => {
         assert.deepEqual(json.decode(process.open(cmd, [
             "--use_strict",
             "--test",
@@ -336,14 +336,14 @@ describe('process', () => {
         ]);
     });
 
-    it("env", () => {
+    xit("env", () => {
         process.env.abc = 123;
         assert.equal(json.decode(process.open(cmd, [
             path.join(__dirname, "process", "exec4.js")
         ]).stdout.readLine()).abc, "123");
     });
 
-    it("env1", () => {
+    xit("env1", () => {
         var env = json.decode(process.open(cmd, [
             path.join(__dirname, "process", "exec4.js")
         ], {
@@ -356,7 +356,7 @@ describe('process', () => {
         assert.equal(env.abcd, "234");
     });
 
-    it("timeout", () => {
+    xit("timeout", () => {
         var d = new Date();
         process.run(cmd, [
             path.join(__dirname, "process", "exec5.js")
@@ -372,12 +372,12 @@ describe('process', () => {
     });
 
     if (process.platform != "win32") {
-        it("PATH env", () => {
+        xit("PATH env", () => {
             assert.equal(process.run("ls", [path.join(__dirname, "process")]), 0)
             assert.ok(process.open("ls", ["-a", path.join(__dirname, "process")]).stdout.readLine());
         });
 
-        it("umask()", () => {
+        xit("umask()", () => {
             const mask = '0664';
             assert.equal(process.umask(), 0);
 
@@ -396,7 +396,7 @@ describe('process', () => {
         assert.equal(process.binding('process'), process);
     })
 
-    describe("Event", () => {
+    xdescribe("Event", () => {
         it("beforeExit", () => {
             var bs = process.open(cmd, [path.join(__dirname, 'process', 'exec15.js')]);
             assert.deepEqual(bs.stdout.readLines(), [
@@ -420,7 +420,7 @@ describe('process', () => {
         });
     });
 
-    describe("SubProcess Spec", () => {
+    xdescribe("SubProcess Spec", () => {
         it("default kvs", () => {
             var retcode = process.run(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')]);
             assert.equal(retcode, 0)
