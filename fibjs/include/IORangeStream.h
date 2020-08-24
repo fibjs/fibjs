@@ -1,6 +1,6 @@
 /**
- * @author Richard
- * @email richardo2016@gmail.com
+ * @author gmxyb
+ * @email gmxyb@163.com
  * @create date 2020-08-24 17:49:40
  * @modify date 2020-08-24 17:49:40
  * @desc File Range R/W strem
@@ -15,6 +15,46 @@
 
 namespace fibjs {
 
+static int32_t _parseRange(exlib::string range, int64_t fsize, int64_t& bpos, int64_t& epos)
+{
+    exlib::string r = range;
+    if (0 != qstricmp(r.c_str(), "bytes=", 6))
+        return -1;
+    r = r.substr(6);
+
+    int32_t p;
+    p = (int32_t)r.find(',', 0);
+    if (p >= 0)
+        return -2;
+    p = (int32_t)r.find('-', 0);
+    if (p < 0)
+        return -3;
+
+    exlib::string b = r.substr(0, p);
+    exlib::string e = r.substr(p + 1);
+
+    if (b.empty() && e.empty())
+        return -4;
+    if (!b.empty() && e.empty()) {
+        bpos = atoll(b.c_str());
+        epos = fsize;
+    }
+    if (b.empty() && !e.empty()) {
+        int64_t t = atoll(e.c_str());
+        bpos = fsize - t;
+        epos = fsize;
+    }
+    if (!b.empty() && !e.empty()) {
+        bpos = atoll(b.c_str());
+        epos = atoll(e.c_str()) + 1;
+    }
+
+    if (bpos < 0 || bpos > epos || epos > fsize)
+        return -5;
+
+    return 0;
+}
+
 class IORangeStream : public IORangeStream_base {
 public:
     IORangeStream(obj_ptr<SeekableStream_base> stream, int64_t begin, int64_t end)
@@ -22,17 +62,31 @@ public:
         m_stream = stream;
         b_pos = begin;
         e_pos = end;
-        m_stream->seek(b_pos, fs_base::_SEEK_SET);
-        c_pos = b_pos;
+
+        rewind();
+    }
+
+private:
+    int64_t get_c_pos()
+    {
+        int64_t pos;
+        m_stream->tell(pos);
+        return pos;
     }
 
 public:
     // Stream_base
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     {
-        int64_t sz = e_pos - c_pos;
-        if (bytes < 0 || bytes > sz)
-            return m_stream->read(sz, retVal, ac);
+        int64_t c_pos = get_c_pos();
+        if (e_pos < c_pos || b_pos > c_pos)
+            return CALL_RETURN_NULL;
+
+        int64_t rest_sz = e_pos - c_pos;
+
+        if (bytes < 0 || bytes > rest_sz)
+            return m_stream->read(rest_sz, retVal, ac);
+
         return m_stream->read(bytes, retVal, ac);
     }
     virtual result_t write(Buffer_base* data, AsyncEvent* ac)
@@ -56,34 +110,17 @@ public:
     // SeekableStream_base
     virtual result_t seek(int64_t offset, int32_t whence)
     {
-        if (whence == fs_base::_SEEK_SET)
-            c_pos = b_pos + offset;
-        else if (whence == fs_base::_SEEK_CUR)
-            c_pos = c_pos + offset;
-        else if (whence == fs_base::_SEEK_END)
-            c_pos = e_pos + offset;
-        else
-            return CHECK_ERROR(CALL_E_INVALIDARG);
-
-        if (c_pos < b_pos)
-            c_pos = b_pos;
-        else if (c_pos > e_pos)
-            c_pos = e_pos;
-
-        return 0;
+        return m_stream->seek(offset, fs_base::_SEEK_SET);
     }
     virtual result_t tell(int64_t& retVal)
     {
-        retVal = c_pos - b_pos;
+        retVal = get_c_pos() - b_pos;
 
         return 0;
     }
     virtual result_t rewind()
     {
-        m_stream->seek(b_pos, fs_base::_SEEK_SET);
-        c_pos = b_pos;
-
-        return 0;
+        return m_stream->seek(b_pos, fs_base::_SEEK_SET);
     }
     virtual result_t size(int64_t& retVal)
     {
@@ -101,7 +138,7 @@ public:
     }
     virtual result_t eof(bool& retVal)
     {
-        retVal = c_pos >= e_pos;
+        retVal = get_c_pos() >= e_pos;
 
         return 0;
     }
@@ -116,12 +153,41 @@ public:
         return 0;
     }
 
+public:
+    // IORangeStream_base
+    virtual result_t get_begin(int32_t& retVal)
+    {
+        retVal = b_pos;
+        return 0;
+    };
+    virtual result_t get_end(int32_t& retVal)
+    {
+        retVal = e_pos;
+        return 0;
+    };
+
 private:
     obj_ptr<SeekableStream_base> m_stream;
     int64_t b_pos; // begin pos
-    int64_t c_pos; // current pos
     int64_t e_pos; // end pos
 };
+
+result_t IORangeStream_base::_new(SeekableStream_base* stm, exlib::string range, obj_ptr<IORangeStream_base>& retVal, v8::Local<v8::Object> This)
+{
+    int64_t sz, begin, end;
+
+    stm->size(sz);
+
+    int32_t pr;
+    if ((pr = _parseRange(range, sz, begin, end)) == -1)
+        pr = _parseRange("bytes=" + range, sz, begin, end);
+
+    if (pr != 0)
+        return CALL_E_INVALIDARG;
+
+    retVal = new IORangeStream(stm, begin, end);
+    return 0;
+}
 
 result_t IORangeStream_base::_new(SeekableStream_base* stm, int32_t begin, int32_t end, obj_ptr<IORangeStream_base>& retVal, v8::Local<v8::Object> This)
 {

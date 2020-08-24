@@ -1177,46 +1177,6 @@ static int32_t mt_cmp(const void* p, const void* q)
     return qstricmp(*(const char**)p, *(const char**)q);
 }
 
-static int32_t _parseRange(exlib::string range, int64_t fsize, int64_t& bpos, int64_t& epos)
-{
-    exlib::string r = range;
-    if (0 != qstricmp(r.c_str(), "bytes=", 6))
-        return -1;
-    r = r.substr(6);
-
-    int32_t p;
-    p = (int32_t)r.find(',', 0);
-    if (p >= 0)
-        return -2;
-    p = (int32_t)r.find('-', 0);
-    if (p < 0)
-        return -3;
-
-    exlib::string b = r.substr(0, p);
-    exlib::string e = r.substr(p + 1);
-
-    if (b.empty() && e.empty())
-        return -4;
-    if (!b.empty() && e.empty()) {
-        bpos = atoll(b.c_str());
-        epos = fsize;
-    }
-    if (b.empty() && !e.empty()) {
-        int64_t t = atoll(e.c_str());
-        bpos = fsize - t;
-        epos = fsize;
-    }
-    if (!b.empty() && !e.empty()) {
-        bpos = atoll(b.c_str());
-        epos = atoll(e.c_str()) + 1;
-    }
-
-    if (bpos < 0 || bpos > epos || epos > fsize)
-        return -5;
-
-    return 0;
-}
-
 result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     AsyncEvent* ac)
 {

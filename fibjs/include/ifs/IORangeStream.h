@@ -18,15 +18,16 @@
 namespace fibjs {
 
 class SeekableStream_base;
-class Stat_base;
 
 class IORangeStream_base : public SeekableStream_base {
     DECLARE_CLASS(IORangeStream_base);
 
 public:
     // IORangeStream_base
+    static result_t _new(SeekableStream_base* stm, exlib::string range, obj_ptr<IORangeStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(SeekableStream_base* stm, int32_t begin, int32_t end, obj_ptr<IORangeStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t get_begin(int32_t& retVal) = 0;
+    virtual result_t get_end(int32_t& retVal) = 0;
 
 public:
     template <typename T>
@@ -34,26 +35,22 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_stat(const v8::FunctionCallbackInfo<v8::Value>& args);
-
-public:
-    ASYNC_MEMBERVALUE1(IORangeStream_base, stat, obj_ptr<Stat_base>);
+    static void s_get_begin(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_end(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 };
 }
-
-#include "ifs/Stat.h"
 
 namespace fibjs {
 inline ClassInfo& IORangeStream_base::class_info()
 {
-    static ClassData::ClassMethod s_method[] = {
-        { "stat", s_stat, false },
-        { "statSync", s_stat, false }
+    static ClassData::ClassProperty s_property[] = {
+        { "begin", s_get_begin, block_set, false },
+        { "end", s_get_end, block_set, false }
     };
 
     static ClassData s_cd = {
         "IORangeStream", false, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
+        0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &SeekableStream_base::class_info()
     };
 
@@ -75,6 +72,13 @@ void IORangeStream_base::__new(const T& args)
     METHOD_NAME("new IORangeStream()");
     CONSTRUCT_ENTER();
 
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<SeekableStream_base>, 0);
+    ARG(exlib::string, 1);
+
+    hr = _new(v0, v1, vr, args.This());
+
     METHOD_OVER(3, 3);
 
     ARG(obj_ptr<SeekableStream_base>, 0);
@@ -86,20 +90,28 @@ void IORangeStream_base::__new(const T& args)
     CONSTRUCT_RETURN();
 }
 
-inline void IORangeStream_base::s_stat(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void IORangeStream_base::s_get_begin(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<Stat_base> vr;
+    int32_t vr;
 
-    METHOD_NAME("IORangeStream.stat");
+    METHOD_NAME("IORangeStream.begin");
     METHOD_INSTANCE(IORangeStream_base);
-    METHOD_ENTER();
+    PROPERTY_ENTER();
 
-    ASYNC_METHOD_OVER(0, 0);
+    hr = pInst->get_begin(vr);
 
-    if (!cb.IsEmpty())
-        hr = pInst->acb_stat(cb, args);
-    else
-        hr = pInst->ac_stat(vr);
+    METHOD_RETURN();
+}
+
+inline void IORangeStream_base::s_get_end(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_NAME("IORangeStream.end");
+    METHOD_INSTANCE(IORangeStream_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_end(vr);
 
     METHOD_RETURN();
 }
