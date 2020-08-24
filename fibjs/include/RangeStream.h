@@ -74,6 +74,19 @@ private:
         return pos;
     }
 
+    int64_t valid_end()
+    {
+        int64_t sz;
+        m_stream->size(sz);
+
+        return sz > e_pos ? e_pos : sz;
+    }
+
+    int64_t valid_start()
+    {
+        return b_pos > 0 ? b_pos : 0;
+    }
+
 public:
     // Stream_base
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
@@ -121,6 +134,9 @@ public:
             return CALL_E_INVALIDARG;
         }
 
+        if (offset < b_pos || offset > e_pos)
+            return CALL_E_OUTRANGE;
+
         return m_stream->seek(offset, whence);
     }
     virtual result_t tell(int64_t& retVal)
@@ -135,7 +151,7 @@ public:
     }
     virtual result_t size(int64_t& retVal)
     {
-        retVal = e_pos - b_pos;
+        retVal = valid_end() - valid_start();
 
         return 0;
     }
@@ -149,7 +165,7 @@ public:
     }
     virtual result_t eof(bool& retVal)
     {
-        retVal = get_c_pos() >= e_pos;
+        retVal = get_c_pos() >= valid_end();
 
         return 0;
     }

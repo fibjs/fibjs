@@ -125,20 +125,42 @@ describe('io', () => {
         });
 
         describe('robust case', () => {
-            it("io.RangeStream::begin > filesize", () => {
+            it("ALLOW: io.RangeStream::begin > filesize", () => {
                 var file = fs.openFile(filePath);
                 var stm = new io.RangeStream(file, 0, file.size());
 
                 assert.equal(stm.end, file.size());
             });
 
-            it("io.RangeStream::end = filesize", () => {
+            it("ALLOW: io.RangeStream::end = filesize", () => {
                 var file = fs.openFile(filePath);
                 var stm = new io.RangeStream(file, 0, file.size());
 
                 stm.seek(0, fs.SEEK_END);
 
                 assert.equal(null, stm.readAll());
+            });
+
+            it("range[begin, end] never change", () => {
+                var file = fs.openFile(filePath);
+                var sz = Number(file.size());
+                var begin = Math.floor(sz / 2);
+                var stm = new io.RangeStream(file, begin, sz * 2);
+
+                assert.equal(begin, begin);
+                assert.equal(stm.end, sz * 2);
+
+                stm.seek(-sz, fs.SEEK_END);
+                assert.equal(begin, begin);
+                assert.equal(stm.end, sz * 2);
+
+                stm.seek(-sz * 2 + begin, fs.SEEK_END);
+                assert.equal(begin, begin);
+                assert.equal(stm.end, sz * 2);
+
+                stm.rewind();
+                assert.equal(begin, begin);
+                assert.equal(stm.end, sz * 2);
             });
 
             it("range intersect with filesize", () => {
@@ -149,6 +171,48 @@ describe('io', () => {
                 stm.seek(0, fs.SEEK_END);
 
                 assert.equal(null, stm.readAll());
+            });
+
+            it("allow stream.end > stream.size()", () => {
+                var file = fs.openFile(filePath);
+                var sz = Number(file.size());
+                var begin = Math.floor(sz / 2);
+                var stm = new io.RangeStream(file, begin, sz * 2);
+
+                assert.equal(begin, stm.begin);
+                assert.equal(sz * 2, stm.end);
+
+                assert.ok(stm.end - stm.begin > Number(stm.size()));
+                assert.equal(sz - begin, Number(stm.size()));
+            });
+
+            it("seek relative to begin as SEEK_SET", () => {
+                var file = fs.openFile(filePath);
+                var sz = Number(file.size());
+                var begin = Math.floor(sz / 2);
+                var stm = new io.RangeStream(file, begin, sz * 2);
+
+                stm.seek(0, fs.SEEK_SET);
+
+                assert.equal(sz - begin, Number(stm.size()));
+                assert.equal(sz - begin, stm.readAll().length);
+            });
+
+            it("seek relative to end as SEEK_END, but never out range", () => {
+                var file = fs.openFile(filePath);
+                var sz = Number(file.size());
+                var begin = Math.floor(sz / 2);
+                var stm = new io.RangeStream(file, begin, sz * 2);
+
+                assert.equal(stm.end, sz * 2);
+                stm.seek(-sz, fs.SEEK_END);
+
+                assert.equal(stm.tell(), file.tell() - BigInt(stm.begin));
+
+                stm.seek(-sz * 2 + begin, fs.SEEK_END);
+                assert.throws(() => {
+                    stm.seek(-sz * 2 + begin - 1, fs.SEEK_END);
+                })
             });
         });
     });
