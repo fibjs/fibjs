@@ -1,5 +1,5 @@
 
-/*! @brief 缓存读取对象
+/*! @brief Range 查询流读取对象
 
  RangeStream 对象用于对 SeekableStream 对象数据进行截取。创建方法：
  ```JavaScript
