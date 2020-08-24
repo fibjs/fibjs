@@ -108,9 +108,20 @@ public:
 
 public:
     // SeekableStream_base
-    virtual result_t seek(int64_t offset, int32_t whence)
+    virtual result_t seek(int64_t offset, int32_t whence = fs_base::_SEEK_SET)
     {
-        return m_stream->seek(offset, fs_base::_SEEK_SET);
+        switch (whence) {
+        case fs_base::_SEEK_SET:
+            offset += b_pos;
+            break;
+        case fs_base::_SEEK_END:
+            offset += e_pos;
+            break;
+        default:
+            return CALL_E_INVALIDARG;
+        }
+
+        return m_stream->seek(offset, whence);
     }
     virtual result_t tell(int64_t& retVal)
     {
@@ -120,7 +131,7 @@ public:
     }
     virtual result_t rewind()
     {
-        return m_stream->seek(b_pos, fs_base::_SEEK_SET);
+        return seek(0, fs_base::_SEEK_SET);
     }
     virtual result_t size(int64_t& retVal)
     {
@@ -191,6 +202,15 @@ result_t IORangeStream_base::_new(SeekableStream_base* stm, exlib::string range,
 
 result_t IORangeStream_base::_new(SeekableStream_base* stm, int32_t begin, int32_t end, obj_ptr<IORangeStream_base>& retVal, v8::Local<v8::Object> This)
 {
+    if (begin < 0)
+        return CALL_E_INVALIDARG;
+
+    int64_t sz;
+    stm->size(sz);
+
+    if (begin > sz)
+        return CALL_E_INVALIDARG;
+
     retVal = new IORangeStream(stm, begin, end);
     return 0;
 }

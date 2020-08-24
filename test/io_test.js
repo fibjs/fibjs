@@ -69,13 +69,31 @@ describe('io', () => {
         var fsize = Number(file.size());
 
         describe('invalid constructor params', () => {
-            it('over file size', () => {
+            it('NOT ALLOWED: negative begin', () => {
                 assert.throws(() => {
-                    new io.RangeStream(file, `0-${Number(file.size())}`);
+                    new io.RangeStream(fs.openFile(filePath), -100, 0);
+                })
+            });
+
+            it('NOT ALLOWED: infinite begin', () => {
+                assert.throws(() => {
+                    new io.RangeStream(file, Infinity, file.size());
+                })
+            });
+
+            it('NOT ALLOWED: infinite end', () => {
+                assert.throws(() => {
+                    new io.RangeStream(file, 0, Infinity);
+                })
+            });
+
+            it('NOT ALLOWED: over file size when use range string', () => {
+                assert.throws(() => {
+                    new io.RangeStream(file, `0-${fsize}`);
                 });
             });
 
-            it('bad range format', () => {
+            it('NOT ALLOWED: bad range format', () => {
                 assert.throws(() => {
                     new io.RangeStream(file, ``);
                 });
@@ -84,7 +102,6 @@ describe('io', () => {
 
         describe('valid constructor params', () => {
             it("accept range string", () => {
-                var file = fs.openFile(filePath);
                 var stm = new io.RangeStream(fs.openFile(filePath), '2-10');
 
                 assert.equal(stm.begin, 2);
@@ -104,6 +121,34 @@ describe('io', () => {
                 file.seek(stm.begin, fs.SEEK_SET);
                 stm.rewind();
                 assert.equal(0, file.read(stm.end - stm.begin).compare(stm.readAll()));
+            });
+        });
+
+        describe('robust case', () => {
+            it("io.RangeStream::begin > filesize", () => {
+                var file = fs.openFile(filePath);
+                var stm = new io.RangeStream(file, 0, file.size());
+
+                assert.equal(stm.end, file.size());
+            });
+
+            it("io.RangeStream::end = filesize", () => {
+                var file = fs.openFile(filePath);
+                var stm = new io.RangeStream(file, 0, file.size());
+
+                stm.seek(0, fs.SEEK_END);
+
+                assert.equal(null, stm.readAll());
+            });
+
+            it("range intersect with filesize", () => {
+                var file = fs.openFile(filePath);
+                var sz = Number(file.size());
+                var stm = new io.RangeStream(file, sz / 2, sz * 2);
+
+                stm.seek(0, fs.SEEK_END);
+
+                assert.equal(null, stm.readAll());
             });
         });
     });
