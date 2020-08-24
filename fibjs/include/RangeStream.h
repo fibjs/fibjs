@@ -7,7 +7,7 @@
  */
 #include "ifs/fs.h"
 #include "ifs/io.h"
-#include "ifs/IORangeStream.h"
+#include "ifs/RangeStream.h"
 #include "Stat.h"
 
 #ifndef IORANGESTREAM_H_
@@ -55,9 +55,9 @@ static int32_t _parseRange(exlib::string range, int64_t fsize, int64_t& bpos, in
     return 0;
 }
 
-class IORangeStream : public IORangeStream_base {
+class RangeStream : public RangeStream_base {
 public:
-    IORangeStream(obj_ptr<SeekableStream_base> stream, int64_t begin, int64_t end)
+    RangeStream(obj_ptr<SeekableStream_base> stream, int64_t begin, int64_t end)
     {
         m_stream = stream;
         b_pos = begin;
@@ -165,7 +165,7 @@ public:
     }
 
 public:
-    // IORangeStream_base
+    // RangeStream_base
     virtual result_t get_begin(int32_t& retVal)
     {
         retVal = b_pos;
@@ -183,7 +183,7 @@ private:
     int64_t e_pos; // end pos
 };
 
-result_t IORangeStream_base::_new(SeekableStream_base* stm, exlib::string range, obj_ptr<IORangeStream_base>& retVal, v8::Local<v8::Object> This)
+result_t RangeStream_base::_new(SeekableStream_base* stm, exlib::string range, obj_ptr<RangeStream_base>& retVal, v8::Local<v8::Object> This)
 {
     int64_t sz, begin, end;
 
@@ -196,11 +196,11 @@ result_t IORangeStream_base::_new(SeekableStream_base* stm, exlib::string range,
     if (pr != 0)
         return CALL_E_INVALIDARG;
 
-    retVal = new IORangeStream(stm, begin, end);
+    retVal = new RangeStream(stm, begin, end);
     return 0;
 }
 
-result_t IORangeStream_base::_new(SeekableStream_base* stm, int32_t begin, int32_t end, obj_ptr<IORangeStream_base>& retVal, v8::Local<v8::Object> This)
+result_t RangeStream_base::_new(SeekableStream_base* stm, int32_t begin, int32_t end, obj_ptr<RangeStream_base>& retVal, v8::Local<v8::Object> This)
 {
     if (begin < 0)
         return CALL_E_INVALIDARG;
@@ -211,7 +211,7 @@ result_t IORangeStream_base::_new(SeekableStream_base* stm, int32_t begin, int32
     if (begin > sz)
         return CALL_E_INVALIDARG;
 
-    retVal = new IORangeStream(stm, begin, end);
+    retVal = new RangeStream(stm, begin, end);
     return 0;
 }
 

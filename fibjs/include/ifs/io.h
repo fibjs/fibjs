@@ -18,7 +18,7 @@ namespace fibjs {
 
 class MemoryStream_base;
 class BufferedStream_base;
-class IORangeStream_base;
+class RangeStream_base;
 class Stream_base;
 
 class io_base : public object_base {
@@ -52,7 +52,7 @@ public:
 
 #include "ifs/MemoryStream.h"
 #include "ifs/BufferedStream.h"
-#include "ifs/IORangeStream.h"
+#include "ifs/RangeStream.h"
 #include "ifs/Stream.h"
 
 namespace fibjs {
@@ -68,7 +68,7 @@ inline ClassInfo& io_base::class_info()
     static ClassData::ClassObject s_object[] = {
         { "MemoryStream", MemoryStream_base::class_info },
         { "BufferedStream", BufferedStream_base::class_info },
-        { "RangeStream", IORangeStream_base::class_info }
+        { "RangeStream", RangeStream_base::class_info }
     };
 
     static ClassData s_cd = {

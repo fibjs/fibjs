@@ -12,7 +12,7 @@
 #include "ifs/io.h"
 #include "path.h"
 #include "HttpFileHandler.h"
-#include "IORangeStream.h"
+#include "RangeStream.h"
 #include "HttpRequest.h"
 #include "Url.h"
 #include "Buffer.h"
@@ -1387,7 +1387,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
                     m_rep->set_statusCode(206);
                     m_rep->addHeader("Content-Range", s);
-                    m_file = new IORangeStream(m_file, bpos, epos);
+                    m_file = new RangeStream(m_file, bpos, epos);
                     m_rep->set_body(m_file);
 
                     return next(CALL_RETURN_NULL);
