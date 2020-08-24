@@ -9,8 +9,10 @@
 #include "ifs/http.h"
 #include "ifs/fs.h"
 #include "ifs/os.h"
+#include "ifs/io.h"
 #include "path.h"
 #include "HttpFileHandler.h"
+#include "IORangeStream.h"
 #include "HttpRequest.h"
 #include "Url.h"
 #include "Buffer.h"
@@ -1175,6 +1177,46 @@ static int32_t mt_cmp(const void* p, const void* q)
     return qstricmp(*(const char**)p, *(const char**)q);
 }
 
+static int32_t _parseRange(exlib::string range, int64_t fsize, int64_t& bpos, int64_t& epos)
+{
+    exlib::string r = range;
+    if (0 != qstricmp(r.c_str(), "bytes=", 6))
+        return -1;
+    r = r.substr(6);
+
+    int32_t p;
+    p = (int32_t)r.find(',', 0);
+    if (p >= 0)
+        return -2;
+    p = (int32_t)r.find('-', 0);
+    if (p < 0)
+        return -3;
+
+    exlib::string b = r.substr(0, p);
+    exlib::string e = r.substr(p + 1);
+
+    if (b.empty() && e.empty())
+        return -4;
+    if (!b.empty() && e.empty()) {
+        bpos = atoll(b.c_str());
+        epos = fsize;
+    }
+    if (b.empty() && !e.empty()) {
+        int64_t t = atoll(e.c_str());
+        bpos = fsize - t;
+        epos = fsize;
+    }
+    if (!b.empty() && !e.empty()) {
+        bpos = atoll(b.c_str());
+        epos = atoll(e.c_str()) + 1;
+    }
+
+    if (bpos < 0 || bpos > epos || epos > fsize)
+        return -5;
+
+    return 0;
+}
+
 result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     AsyncEvent* ac)
 {
@@ -1342,6 +1384,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                         m_rep->addHeader("Content-Type", pMimeType->type);
                     }
                 }
+                m_rep->addHeader("Accept-Ranges", "bytes");
             }
 
             return m_file->stat(m_stat, next(stat));
@@ -1372,8 +1415,31 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             d.toGMTString(lastModified);
 
             m_rep->addHeader("Last-Modified", lastModified);
-            m_rep->set_body(m_file);
-            return next(CALL_RETURN_NULL);
+
+            exlib::string range;
+            if (m_req->firstHeader("Range", range) != CALL_RETURN_NULL) {
+                int64_t fsz, bpos, epos;
+                m_file->size(fsz);
+                int32_t pr = _parseRange(range, fsz, bpos, epos);
+                if (pr == 0) {
+                    char s[256] = { 0 };
+                    sprintf(s, "bytes %lld-%lld/%lld\0", bpos, epos - 1, fsz);
+
+                    m_rep->set_statusCode(206);
+                    m_rep->addHeader("Content-Range", s);
+                    m_file = new IORangeStream(m_file, bpos, epos);
+                    m_rep->set_body(m_file);
+
+                    return next(CALL_RETURN_NULL);
+                } else {
+                    m_rep->set_statusCode(416);
+
+                    return next(CALL_RETURN_NULL);
+                }
+            } else {
+                m_rep->set_body(m_file);
+                return next(CALL_RETURN_NULL);
+            }
         }
 
         virtual int32_t error(int32_t v)

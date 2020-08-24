@@ -7,8 +7,6 @@ var io = require('io');
 var fs = require('fs');
 var http = require('http');
 var net = require('net');
-var encoding = require('encoding');
-var zlib = require('zlib');
 var zip = require('zip');
 var coroutine = require("coroutine");
 var path = require("path");
@@ -1223,10 +1221,10 @@ describe("http", () => {
         function clean() {
             try {
                 fs.unlink(filePath);
-            } catch (e) {};
+            } catch (e) { };
             try {
                 fs.unlink(filePath + '.gz');
-            } catch (e) {};
+            } catch (e) { };
         }
 
         before(clean);
@@ -1315,6 +1313,61 @@ describe("http", () => {
             assert.equal(404, rep.statusCode);
         });
 
+        describe("206 Range", () => {
+            var mp4File = fs.openFile(path.resolve(__dirname, "./http_files/range_test/cat_rat.mp4"));
+
+            it("invalid Range header", () => {
+                var rep = hfh_test("http_files/range_test/cat_rat.mp4", {
+                    "Range": "0-10"
+                });
+                assert.equal(416, rep.statusCode);
+
+                var rep = hfh_test("http_files/range_test/cat_rat.mp4", {
+                    "Range": "bytes 0-10"
+                });
+                assert.equal(416, rep.statusCode);
+            });
+
+            it("valid Range header, but outside file size", () => {
+                var rep = hfh_test("http_files/range_test/cat_rat.mp4", {
+                    "Range": `bytes=0-${Number(mp4File.size())}`
+                });
+                assert.equal(416, rep.statusCode);
+
+                var rep = hfh_test("http_files/range_test/cat_rat.mp4", {
+                    "Range": `bytes=0-${Number(mp4File.size()) * 2}`
+                });
+                assert.equal(416, rep.statusCode);
+            });
+
+            describe("Partial Content from mp4", () => {
+                [
+                    '0-10',
+                    '0-',
+                    '-10',
+                    '-1-10',
+                    '0-999999',
+                    `0-${Number(mp4File.size()) - 1}`
+                ].forEach((range) => {
+                    it(`Range: bytes=${range}`, () => {
+                        var rep = hfh_test("http_files/range_test/cat_rat.mp4", {
+                            "Range": `bytes=${range}`
+                        });
+                        assert.equal(206, rep.statusCode);
+
+                        var [_, bpos, epos, fsize] = rep.firstHeader('Content-Range').match(/bytes ([0-9]+)\-([0-9]+)\/([0-9]+)/);
+
+                        assert.equal(fsize, Number(mp4File.size()));
+
+                        mp4File.seek(bpos, fs.SEEK_SET);
+                        var buf = mp4File.read(epos - bpos + 1);
+
+                        assert.equal(0, buf.compare(rep.readAll()));
+                    });
+                })
+            });
+        });
+
         describe("zip virtual file", () => {
             var zurl = base_port + 'test.html.zip$/test.html';
 
@@ -1327,7 +1380,7 @@ describe("http", () => {
             after(() => {
                 try {
                     fs.unlink(filePath + '.zip');
-                } catch (e) {};
+                } catch (e) { };
             });
 
             it("normal", () => {
@@ -1576,44 +1629,44 @@ describe("http", () => {
 
             it("urlencode", () => {
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request_query:", {
-                        query: {
-                            test_field: "field"
-                        }
-                    }).body.read().toString(),
+                    query: {
+                        test_field: "field"
+                    }
+                }).body.read().toString(),
                     "/request_query:field");
             });
 
             it("body", () => {
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
-                        body: "body"
-                    }).body.read().toString(),
+                    body: "body"
+                }).body.read().toString(),
                     "/request:body");
                 assert.equal(cookie_for['_'], "root=value2");
 
                 var ms = new io.MemoryStream();
                 ms.write("body");
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
-                        body: ms
-                    }).body.read().toString(),
+                    body: ms
+                }).body.read().toString(),
                     "/request:body");
                 assert.equal(cookie_for['_'], "root=value2");
             });
 
             it("urlencode", () => {
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request_url:", {
-                        body: {
-                            test_field: "field"
-                        }
-                    }).body.read().toString(),
+                    body: {
+                        test_field: "field"
+                    }
+                }).body.read().toString(),
                     "/request_url:field");
             });
 
             it("json", () => {
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request_json:", {
-                        json: {
-                            test_field: "field"
-                        }
-                    }).body.read().toString(),
+                    json: {
+                        test_field: "field"
+                    }
+                }).body.read().toString(),
                     "/request_json:field");
             });
 
@@ -1657,10 +1710,10 @@ describe("http", () => {
                     "test agent");
 
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/agent", {
-                        headers: {
-                            "user-agent": "agent in headers"
-                        }
-                    }).body.read().toString(),
+                    headers: {
+                        "user-agent": "agent in headers"
+                    }
+                }).body.read().toString(),
                     "agent in headers");
 
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/agent").body.read().toString(),
@@ -1796,8 +1849,8 @@ describe("http", () => {
         describe("post", () => {
             it("body", () => {
                 assert.equal(http.post("http://127.0.0.1:" + (8882 + base_port) + "/request:", {
-                        body: "body"
-                    }).body.read().toString(),
+                    body: "body"
+                }).body.read().toString(),
                     "/request:body");
             });
 
@@ -1898,8 +1951,8 @@ describe("http", () => {
 
             it("body", () => {
                 assert.equal(http.request("GET", "https://localhost:" + (8883 + base_port) + "/request:", {
-                        body: "body"
-                    }).body.read().toString(),
+                    body: "body"
+                }).body.read().toString(),
                     "/request:body");
             });
 
@@ -1973,20 +2026,20 @@ describe("http", () => {
         describe("post", () => {
             it("body", () => {
                 assert.equal(http.post(
-                        "https://localhost:" + (8883 + base_port) + "/request:", {
-                            body: "body"
-                        }).body
+                    "https://localhost:" + (8883 + base_port) + "/request:", {
+                    body: "body"
+                }).body
                     .read().toString(), "/request:body");
             });
 
             it("header", () => {
                 assert.equal(http.post(
                     "https://localhost:" + (8883 + base_port) + "/request:", {
-                        body: "",
-                        headers: {
-                            "test_header": "header"
-                        }
-                    }).body.read().toString(), "/request:header");
+                    body: "",
+                    headers: {
+                        "test_header": "header"
+                    }
+                }).body.read().toString(), "/request:header");
             });
         });
     });
@@ -2126,8 +2179,8 @@ describe("http", () => {
 
             it("body", () => {
                 assert.equal(client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/request:", {
-                        body: "body"
-                    }).body.readAll().toString(),
+                    body: "body"
+                }).body.readAll().toString(),
                     "/request:body");
             });
 
@@ -2447,7 +2500,7 @@ describe("http", () => {
                     r.stream.write('HTTP/1.1 200 Connected\r\n\r\n');
                     try {
                         sslhdr.invoke(r.stream);
-                    } catch (e) {};
+                    } catch (e) { };
                     return;
                 }
 
@@ -2504,8 +2557,8 @@ describe("http", () => {
         });
 
     });
-    
-    
+
+
 
     describe("sslVerification", () => {
         var hc;

@@ -1,0 +1,14 @@
+
+/*! @brief 缓存读取对象
+
+ IORangeStream 对象用于对 SeekableStream 对象数据进行截取。该对象不可通过 JS 直接创建.
+ */
+interface IORangeStream : SeekableStream
+{
+    /*! @brief IORangeStream 构造函数
+      @param stm IORangeStream 的二进制基础流对象
+     */
+    IORangeStream(SeekableStream stm, Integer begin, Integer end);
+
+    Stat stat() async;
+};
