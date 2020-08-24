@@ -73,13 +73,13 @@ module process : EventEmitter
     static readonly Integer ppid;
 
     /*! @brief 查询当前进程标准输入对象 */
-    static readonly File stdin;
+    static readonly Stream stdin;
     
     /*! @brief 查询当前进程标准输出对象 */
-    static readonly File stdout;
+    static readonly Stream stdout;
 
     /*! @brief 查询当前进程标准错误输出对象 */
-    static readonly File stderr;
+    static readonly Stream stderr;
 
     /*! @brief 查询和设置当前进程的退出码 */
     static Integer exitCode;

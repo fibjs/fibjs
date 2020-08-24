@@ -20,12 +20,8 @@ namespace fibjs {
 
 File::~File()
 {
-    if (m_fd != -1) {
-        if (m_pipe)
-            asyncCall(pclose, m_pipe);
-        else
-            asyncCall(::_close, m_fd);
-    }
+    if (m_fd != -1)
+        asyncCall(::_close, m_fd);
 }
 
 result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
@@ -40,27 +36,23 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     exlib::string strBuf;
 
     if (bytes < 0) {
-        if (m_pipe)
-            bytes = STREAM_BUFF_SIZE;
-        else {
-            int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
-            if (p < 0)
-                return CHECK_ERROR(LastError());
+        int64_t p = _lseeki64(m_fd, 0, SEEK_CUR);
+        if (p < 0)
+            return CHECK_ERROR(LastError());
 
-            int64_t sz = _lseeki64(m_fd, 0, SEEK_END);
-            if (sz < 0)
-                return CHECK_ERROR(LastError());
+        int64_t sz = _lseeki64(m_fd, 0, SEEK_END);
+        if (sz < 0)
+            return CHECK_ERROR(LastError());
 
-            if (_lseeki64(m_fd, p, SEEK_SET) < 0)
-                return CHECK_ERROR(LastError());
+        if (_lseeki64(m_fd, p, SEEK_SET) < 0)
+            return CHECK_ERROR(LastError());
 
-            sz -= p;
+        sz -= p;
 
-            if (sz > STREAM_BUFF_SIZE)
-                sz = STREAM_BUFF_SIZE;
+        if (sz > STREAM_BUFF_SIZE)
+            sz = STREAM_BUFF_SIZE;
 
-            bytes = (int32_t)sz;
-        }
+        bytes = (int32_t)sz;
     }
 
     if (bytes > 0) {
@@ -77,9 +69,6 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
             sz -= n;
             p += n;
-
-            if (m_pipe)
-                break;
         }
 
         strBuf.resize(bytes - sz);
@@ -342,13 +331,8 @@ result_t File::flush(AsyncEvent* ac)
 result_t File::close()
 {
     if (m_fd != -1) {
-        if (m_pipe)
-            pclose(m_pipe);
-        else
-            ::_close(m_fd);
-
+        ::_close(m_fd);
         m_fd = -1;
-        m_pipe = NULL;
     }
 
     return 0;

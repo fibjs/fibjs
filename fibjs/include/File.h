@@ -34,20 +34,12 @@ namespace fibjs {
 class File : public File_base {
 public:
     File()
-        : m_pipe(NULL)
-        , m_fd(-1)
+        : m_fd(-1)
     {
     }
 
     File(int32_t fd)
-        : m_pipe(NULL)
-        , m_fd(fd)
-    {
-    }
-
-    File(FILE* pipe)
-        : m_pipe(pipe)
-        , m_fd(_fileno(pipe))
+        : m_fd(fd)
     {
     }
 
@@ -97,7 +89,6 @@ public:
 
 protected:
     exlib::string name;
-    FILE* m_pipe;
     int32_t m_fd;
 };
 

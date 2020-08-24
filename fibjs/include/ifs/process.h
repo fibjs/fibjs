@@ -18,7 +18,7 @@
 namespace fibjs {
 
 class EventEmitter_base;
-class File_base;
+class Stream_base;
 class SubProcess_base;
 
 class process_base : public EventEmitter_base {
@@ -36,9 +36,9 @@ public:
     static result_t get_platform(exlib::string& retVal);
     static result_t get_pid(int32_t& retVal);
     static result_t get_ppid(int32_t& retVal);
-    static result_t get_stdin(obj_ptr<File_base>& retVal);
-    static result_t get_stdout(obj_ptr<File_base>& retVal);
-    static result_t get_stderr(obj_ptr<File_base>& retVal);
+    static result_t get_stdin(obj_ptr<Stream_base>& retVal);
+    static result_t get_stdout(obj_ptr<Stream_base>& retVal);
+    static result_t get_stderr(obj_ptr<Stream_base>& retVal);
     static result_t get_exitCode(int32_t& retVal);
     static result_t set_exitCode(int32_t newVal);
     static result_t umask(int32_t mask, int32_t& retVal);
@@ -106,7 +106,7 @@ public:
 };
 }
 
-#include "ifs/File.h"
+#include "ifs/Stream.h"
 #include "ifs/SubProcess.h"
 
 namespace fibjs {
@@ -277,7 +277,7 @@ inline void process_base::s_static_get_ppid(v8::Local<v8::Name> property, const 
 
 inline void process_base::s_static_get_stdin(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<File_base> vr;
+    obj_ptr<Stream_base> vr;
 
     METHOD_NAME("process.stdin");
     PROPERTY_ENTER();
@@ -289,7 +289,7 @@ inline void process_base::s_static_get_stdin(v8::Local<v8::Name> property, const
 
 inline void process_base::s_static_get_stdout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<File_base> vr;
+    obj_ptr<Stream_base> vr;
 
     METHOD_NAME("process.stdout");
     PROPERTY_ENTER();
@@ -301,7 +301,7 @@ inline void process_base::s_static_get_stdout(v8::Local<v8::Name> property, cons
 
 inline void process_base::s_static_get_stderr(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<File_base> vr;
+    obj_ptr<Stream_base> vr;
 
     METHOD_NAME("process.stderr");
     PROPERTY_ENTER();

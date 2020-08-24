@@ -15,6 +15,7 @@
 #include "Fiber.h"
 #include "EventEmitter.h"
 #include "File.h"
+#include "UVStream.h"
 #include "BufferedStream.h"
 #include "SubProcess.h"
 #include <vector>
@@ -244,34 +245,34 @@ result_t process_base::get_ppid(int32_t& retVal)
     return 0;
 }
 
-result_t process_base::get_stdin(obj_ptr<File_base>& retVal)
+result_t process_base::get_stdin(obj_ptr<Stream_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
 
     if (!isolate->m_stdin)
-        isolate->m_stdin = new File(stdin);
+        isolate->m_stdin = new UVStream(fileno(stdin));
     retVal = isolate->m_stdin;
 
     return 0;
 }
 
-result_t process_base::get_stdout(obj_ptr<File_base>& retVal)
+result_t process_base::get_stdout(obj_ptr<Stream_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
 
     if (!isolate->m_stdout)
-        isolate->m_stdout = new File(stdout);
+        isolate->m_stdout = new UVStream(fileno(stdout));
     retVal = isolate->m_stdout;
 
     return 0;
 }
 
-result_t process_base::get_stderr(obj_ptr<File_base>& retVal)
+result_t process_base::get_stderr(obj_ptr<Stream_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
 
     if (!isolate->m_stderr)
-        isolate->m_stderr = new File(stderr);
+        isolate->m_stderr = new UVStream(fileno(stderr));
     retVal = isolate->m_stderr;
 
     return 0;
