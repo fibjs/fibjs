@@ -4,6 +4,7 @@ test.setup();
 const io = require("io");
 const fs = require("fs");
 const path = require("path");
+const coroutine = require("coroutine");
 
 const LF = `\n`
 const CRLF = `\r\n`
@@ -125,6 +126,45 @@ describe('io', () => {
         });
 
         describe('robust case', () => {
+            var file;
+            const ranges = [
+                [1, 10],
+                [5, 15],
+                [10, 20],
+            ];
+
+            before(() => {
+                file = fs.openFile(filePath)
+            });
+
+            describe("ALLOW: multiple range upon the same file in order", () => {
+                ranges.forEach(([begin, end]) => {
+                    it(`[${begin}, ${end}]`, () => {
+                        var stm = new io.RangeStream(file, begin, end);
+
+                        assert.equal(stm.begin, begin);
+                        assert.equal(stm.end, end);
+
+                        file.seek(stm.begin, fs.SEEK_SET);
+                        stm.rewind();
+                        assert.equal(0, file.read(stm.end - stm.begin).compare(stm.readAll()));
+                    });
+                });
+            });
+
+            it.skip('BAD CASE: parallel read upon SAME FILE INVALID!!', () => {
+                coroutine.parallel(ranges, ([begin, end]) => {
+                    var stm = new io.RangeStream(file, begin, end);
+
+                    assert.equal(stm.begin, begin);
+                    assert.equal(stm.end, end);
+
+                    file.seek(stm.begin, fs.SEEK_SET);
+                    stm.rewind();
+                    assert.equal(0, file.read(stm.end - stm.begin).compare(stm.readAll()));
+                });
+            });
+
             it("ALLOW: io.RangeStream::begin > filesize", () => {
                 var file = fs.openFile(filePath);
                 var stm = new io.RangeStream(file, 0, file.size());

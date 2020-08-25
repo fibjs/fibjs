@@ -63,7 +63,7 @@ public:
         b_pos = begin;
         e_pos = end;
 
-        rewind();
+        real_pos = get_c_pos();
     }
 
 private:
@@ -91,16 +91,25 @@ public:
     // Stream_base
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     {
-        int64_t c_pos = get_c_pos();
-        if (e_pos < c_pos || b_pos > c_pos)
+        if (e_pos < real_pos || b_pos > real_pos)
             return CALL_RETURN_NULL;
+        
+        int64_t c_pos_snap = get_c_pos();
+        if (c_pos_snap != real_pos)
+            m_stream->seek(real_pos, fs_base::_SEEK_SET);
 
-        int64_t rest_sz = e_pos - c_pos;
+        int64_t rest_sz = e_pos - real_pos;
 
-        if (bytes < 0 || bytes > rest_sz)
-            return m_stream->read(rest_sz, retVal, ac);
+        result_t hr;
+        if (bytes < 0 || bytes > rest_sz) {
+            hr = m_stream->read(rest_sz, retVal, ac);
+        } else {
+            hr = m_stream->read(bytes, retVal, ac);
+        }
 
-        return m_stream->read(bytes, retVal, ac);
+        m_stream->seek(c_pos_snap, fs_base::_SEEK_SET);
+
+        return hr;
     }
     virtual result_t write(Buffer_base* data, AsyncEvent* ac)
     {
@@ -112,7 +121,7 @@ public:
     }
     virtual result_t close(AsyncEvent* ac)
     {
-        return m_stream->close(ac);
+        return CALL_E_INVALID_CALL;
     }
     virtual result_t copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncEvent* ac)
     {
@@ -127,6 +136,9 @@ public:
         case fs_base::_SEEK_SET:
             offset += b_pos;
             break;
+        case fs_base::_SEEK_CUR:
+            offset += real_pos;
+            break;
         case fs_base::_SEEK_END:
             offset += e_pos;
             break;
@@ -137,7 +149,9 @@ public:
         if (offset < b_pos || offset > e_pos)
             return CALL_E_OUTRANGE;
 
-        return m_stream->seek(offset, whence);
+        real_pos = offset;
+
+        return 0;
     }
     virtual result_t tell(int64_t& retVal)
     {
@@ -196,6 +210,7 @@ public:
 private:
     obj_ptr<SeekableStream_base> m_stream;
     int64_t b_pos; // begin pos
+    int64_t real_pos; // real_pos pos
     int64_t e_pos; // end pos
 };
 
