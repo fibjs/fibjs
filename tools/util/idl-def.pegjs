@@ -90,7 +90,8 @@ object
       comments: comments.join(""),
       deprecated: deprecated,
       name: name,
-      type: type
+      type: type,
+      newable: true
     };
   }
 

@@ -1,0 +1,7 @@
+/*<%-_translate(declare.comments)%>*/
+module <%-declare.name%><%-declare.extend && declare.extend !== 'object' ? ` : ${declare.extend}` : ''%>
+{<% Object.values(members).forEach(function (member_def, idx) {%>
+    <%-render_member_block(member_def, idx)%><%
+    });
+%>
+};
