@@ -14,6 +14,9 @@ module io
     /*! @brief 创建一个缓存流读取对象，参见 BufferedStream */
     static BufferedStream new BufferedStream();
 
+    /*! @brief 创建一个 Range 查询流读取对象，参见 RangeStream */
+    static RangeStream new RangeStream();
+
     /*! @brief 复制流数据到目标流中
      @param from 源流对象
      @param to 目标流对象
