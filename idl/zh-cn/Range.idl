@@ -1,0 +1,59 @@
+/*! @brief Range 查询流读取对象
+
+ Range 对象用于对 SeekableStream 对象数据进行截取。创建方法：
+ ```JavaScript
+ var stm = new io.Range(stream, '0-10');
+ stm.end // 11
+
+ var stm = new io.Range(stream, 0, 10);
+ stm.end // 10
+ ```
+ */
+interface Range : object
+{
+    /*! @brief Range 构造函数
+      @param stm Range 的二进制基础流对象, 必须是 SeekableStream
+      @param range 描述 range 的字符串, 格式为 'begin-[end]', '[begin]-end'
+     */
+    Range(SeekableStream stm, String range);
+
+    /*! @brief Range 构造函数
+      @param stm Range 的二进制基础流对象, 必须是 SeekableStream
+      @param begin 从 stm 读取内容的起始位置
+      @param end 从 stm 读取内容的结束位置
+     */
+    Range(SeekableStream stm, Integer begin, Integer end);
+
+    /*! @brief 从 Range 所关联的 SeekableStream 对象截取 Range 所表示的部分, 生成新的 SeekableStream 对象. */
+    SeekableStream clone() async;
+
+    /*! @brief 移动文件当前操作位置
+      @param offset 指定新的位置
+      @param whence 指定位置基准，允许的值为：fs.SEEK_SET, fs.SEEK_CUR, fs.SEEK_END
+     */
+    seek(Long offset, Integer whence);
+
+    /*! @brief 查询 Range 在所关联的 SeekableStream 流中的的当前位置
+
+     @return 返回当前位置
+     */
+    Long current();
+
+    /*! @brief 移动当前位置到流开头 */
+    rewind();
+
+    /*! @brief 从 Range 所关联的 SeekableStream 对象截取 Range 所表示的 Buffer. */
+    Buffer slice();
+
+    /*! @brief 根据 Range 获取所关联的 SeekableStream 对象中由 Range 截取的实际尺寸.
+
+      @return 返回流尺寸
+     */
+    Long size();
+
+    /*! @brief 查询 range 开始值 */
+    readonly Integer begin;
+
+    /*! @brief 查询 range 结束值 */
+    readonly Integer end;
+};
