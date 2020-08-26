@@ -31,12 +31,19 @@ module path
 
     /*! @brief 尝试将一个对象格式化为路径
 
+     pathObject 支持的参数如下：
+     ```JavaScript
+     {
+        "root": "/",
+        "dir": "/a/b",
+        "base": "c.ext",
+        "ext": ".ext",
+        "name": "c"
+     }
+     ```
+
      @param pathObject 对象
-     @param pathObject.dir 
-     @param pathObject.root 
-     @param pathObject.base 
-     @param pathObject.name 
-     @param pathObject.ext 
+     
      @return 返回格式化后的路径
      */
     static String format(Object pathObject);
