@@ -1,4 +1,3 @@
-
 /*! @brief 文件系统处理模块
 
  使用方法：
@@ -338,7 +337,7 @@ module fs
      @return StatsWatcher 对象
      */
     static unwatchFile(String fname);
-    
+
     /*! @brief 从观察 fname 的 StatsWatcher 的观察事件回调中移除 `callback` 回调
     即便 callback 不再 StatsWatcher 的观察事件回调中也不会报错
 

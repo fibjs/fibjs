@@ -33,7 +33,7 @@ interface WebSocket : EventEmitter
      @param origin 指定握手时模拟的源，缺省为 ""
     */
     WebSocket(String url, String protocol = "", String origin = "");
-    
+
     /*! @brief WebSocket 构造函数
      opts 包含请求的附加选项，支持的内容如下：
      ```JavaScript

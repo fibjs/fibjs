@@ -1,6 +1,5 @@
-
 /*! @brief XmlAttr 对象表示 XmlElement 对象的属性 */
-interface XmlAttr
+interface XmlAttr : object
 {
     /*! @brief 查询元素的本地名称。如果选定的节点无命名空间，则该属性等同于 nodeName
     */

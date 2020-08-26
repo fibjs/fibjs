@@ -1,4 +1,3 @@
-
 /*! @brief XmlProcessingInstruction 对象表示 xml 处理指令
  */
 interface XmlProcessingInstruction : XmlNode

@@ -1,4 +1,3 @@
-
 /*! @brief 可移动当前指针的流对象接口 */
 interface SeekableStream : Stream
 {
@@ -35,7 +34,7 @@ interface SeekableStream : Stream
      @return 返回 True 表示结尾
      */
     Boolean eof();
-    
+
     /*! @brief 查询当前文件的基础信息
      @return 返回 Stat 对象描述文件信息
      */

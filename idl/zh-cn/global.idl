@@ -1,4 +1,3 @@
-
 /*! @brief 全局对象，所有脚本均可以访问的基础对象*/
 module global
 {
@@ -141,7 +140,7 @@ module global
      @return 返回定时器对象
     */
     static Timer setHrInterval(Function callback, Number timeout, ...args);
-    
+
     /*! @brief 清除指定的定时器
      @param t 指定要清除的定时器
     */

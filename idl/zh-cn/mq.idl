@@ -1,4 +1,3 @@
-
 /*! @brief 消息队列模块 */
 module mq
 {

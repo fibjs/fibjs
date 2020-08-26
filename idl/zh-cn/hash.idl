@@ -98,7 +98,7 @@ module hash
      */
     static Digest ripemd160(Buffer data);
 
-     /*! @brief 创建一个 SM3 信息摘要运算对象
+    /*! @brief 创建一个 SM3 信息摘要运算对象
      @param data 创建同时更新的二进制数据
      @return 返回构造的信息摘要对象
      */

@@ -1,4 +1,3 @@
-
 /*! @brief http 响应消息对象 */
 interface HttpResponse : HttpMessage
 {

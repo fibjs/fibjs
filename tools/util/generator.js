@@ -53,9 +53,6 @@ const _formatParamTypeName = (param) => {
 }
 
 const _formatConstructorObject = (member) => {
-    // if (member.name === member.type)
-    //     return '';
-
     return ` new ${member.name}()`;
 }
 
@@ -184,6 +181,15 @@ module.exports = (
     idlLang = IDL_LANG,
     langDirname = idlLang
 ) => {
+    // dump defs as json;
+    var snapshotsDir = path.resolve(__dirname, '../../idl/__snapshots__');
+    try { fs.mkdir(snapshotsDir) } catch (error) { };
+
+    fs.writeTextFile(
+        path.resolve(snapshotsDir, `./defs_${idlLang}.json`),
+        JSON.stringify(defs, null, '  ')
+    )
+
     coroutine.parallel(
         Object.entries(defs),
         ([dname, def]) => {

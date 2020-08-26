@@ -1,4 +1,3 @@
-
 /*! @brief HeapGraphNode表示堆视图中的一个节点 */
 interface HeapGraphNode : object
 {

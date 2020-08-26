@@ -1,4 +1,3 @@
-
 /*! @brief XmlCDATASection 对象表示文档中的 CDATA 区段
 
 XmlCDATASection 接口是 XmlText 接口的子接口，没有定义任何自己的属性和方法。通过从 XmlNode 接口继承 nodeValue 属性，或通过从 XmlCharacterData 接口继承 data 属性，可以访问 CDATA Section 的文本内容。
@@ -11,4 +10,6 @@ CDATA 区段包含了不会被解析器解析的文本。CDATA 区段中的标�
 
 在一个 CDATA 中唯一被识别的分隔符是 "]]>"，它可标示 CDATA 区段的结束。CDATA 区段不能进行嵌套。
 */
-interface XmlCDATASection : XmlText{};
+interface XmlCDATASection : XmlText
+{
+};
