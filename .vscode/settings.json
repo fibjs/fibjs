@@ -1,6 +1,9 @@
 // Place your settings in this file to overwrite the default settings
 {
     "editor.formatOnSave": true,
+    "[html]": {
+        "editor.formatOnSave": false
+    },
     "files.associations": {
         "*.idl": "java",
         "**/gui/darwin/darwin.h": "objective-cpp",

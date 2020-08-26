@@ -1,4 +1,3 @@
-
 /*! @brief 对称加密算法对象
 
  Cipher 对象属于 crypto 模块，创建：

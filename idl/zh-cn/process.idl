@@ -74,7 +74,7 @@ module process : EventEmitter
 
     /*! @brief 查询当前进程标准输入对象 */
     static readonly Stream stdin;
-    
+
     /*! @brief 查询当前进程标准输出对象 */
     static readonly Stream stdout;
 

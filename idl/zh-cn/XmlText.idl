@@ -1,4 +1,3 @@
-
 /*! @brief XmlText 对象表示元素或属性的文本内容
 
 XmlText 节点表示 XML 文档中的一系列纯文本。因为纯文本出现在 XML 的元素和属性中，所以 XmlText 节点通常作为 XmlElement 节点和 XmlAttr 节点的子节点出现。

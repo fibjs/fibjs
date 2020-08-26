@@ -1,4 +1,3 @@
-
 /*! @brief 纤程信号量对象
 
  信号量对象管理一个内部计数器，此计数器调用 acquire 或者 wait 后减一，调用 release 或者 post 后加一。

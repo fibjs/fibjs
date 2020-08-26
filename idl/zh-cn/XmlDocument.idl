@@ -1,4 +1,3 @@
-
 /*! @brief XmlDocument 对象代表整个 XML 文档
 
 XmlDocument 对象是一棵文档树的根，可为我们提供对文档数据的最初（或最顶层）的访问入口。

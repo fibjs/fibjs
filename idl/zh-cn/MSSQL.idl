@@ -1,4 +1,3 @@
-
 /*! @brief SQL Server 数据库连接对象
 
  使用 db.open 或 db.openMySQL 创建，创建方式：

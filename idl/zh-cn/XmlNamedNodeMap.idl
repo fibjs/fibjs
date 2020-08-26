@@ -1,7 +1,6 @@
-
 /*! @brief XmlNamedNodeMap 对象表示一个无顺序的属性列表
 */
-interface XmlNamedNodeMap
+interface XmlNamedNodeMap : object
 {
     /*! @brief 返回属性列表中的属性数目
     */

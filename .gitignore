@@ -11,3 +11,5 @@ out
 
 .vs
 *.vcxproj.user
+
+idl/__snapshots__
