@@ -23,7 +23,7 @@ public:
         memset(&m_pipe, 0, sizeof(uv_pipe_t));
         uv_call([&] {
             uv_pipe_init(s_uv_loop, &m_pipe, 0);
-            uv_pipe_open(&m_pipe, fd);
+            return uv_pipe_open(&m_pipe, fd);
         });
     }
 
@@ -31,7 +31,7 @@ public:
     {
         memset(&m_pipe, 0, sizeof(uv_pipe_t));
         uv_call([&] {
-            uv_pipe_init(s_uv_loop, &m_pipe, 0);
+            return uv_pipe_init(s_uv_loop, &m_pipe, 0);
         });
     }
 
@@ -127,9 +127,8 @@ public:
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
-        int ret;
-        uv_call([&] {
-            ret = (new AsyncRead(this, bytes, retVal, ac))->start();
+        int ret = uv_call([&] {
+            return (new AsyncRead(this, bytes, retVal, ac))->start();
         });
 
         if (ret != 0)
@@ -166,10 +165,9 @@ public:
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
-        int ret;
         write_req* req = new write_req(data, ac);
-        uv_call([&] {
-            ret = uv_write(req, (uv_stream_t*)&m_pipe, &req->buf, 1, write_req::on_write);
+        int ret = uv_call([&] {
+            return uv_write(req, (uv_stream_t*)&m_pipe, &req->buf, 1, write_req::on_write);
         });
 
         if (ret != 0)
@@ -196,17 +194,14 @@ public:
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
-        result_t hr = CALL_E_PENDDING;
-        uv_call([&] {
+        return uv_call([&] {
             if (uv_is_closing((uv_handle_t*)&m_pipe))
-                hr = CALL_E_INVALID_CALL;
-            else {
-                ac_close = ac;
-                uv_close((uv_handle_t*)&m_pipe, on_close);
-            }
-        });
+                return CALL_E_INVALID_CALL;
 
-        return hr;
+            ac_close = ac;
+            uv_close((uv_handle_t*)&m_pipe, on_close);
+            return CALL_E_PENDDING;
+        });
     }
 
     virtual result_t copyTo(Stream_base* stm, int64_t bytes,

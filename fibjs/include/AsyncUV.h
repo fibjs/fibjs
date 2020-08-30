@@ -21,7 +21,7 @@ public:
     ~AsyncUVTask() {};
 };
 
-void uv_call(std::function<void(void)> proc);
+int uv_call(std::function<int(void)> proc);
 
 extern uv_loop_t* s_uv_loop;
 }

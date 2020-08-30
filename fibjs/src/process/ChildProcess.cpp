@@ -281,9 +281,8 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
     isolate->Ref();
     m_vholder = new ValueHolder(wrap());
 
-    int32_t err;
-    uv_call([&] {
-        err = ::uv_spawn(s_uv_loop, &m_process, &uv_options);
+    int32_t err = uv_call([&] {
+        return ::uv_spawn(s_uv_loop, &m_process, &uv_options);
     });
     if (err < 0) {
         m_vholder.Release();

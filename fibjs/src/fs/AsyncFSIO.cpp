@@ -53,33 +53,38 @@ void StatsWatcher::AsyncMonitorStatsChangeProc::invoke()
     }
 }
 
-void uv_call(std::function<void(void)> proc)
+int uv_call(std::function<int(void)> proc)
 {
     class UVCall : public AsyncEvent {
     public:
-        UVCall(std::function<void(void)> proc)
+        UVCall(std::function<int(void)>& proc, int& res)
             : AsyncEvent(NULL)
             , m_proc(proc)
+            , m_res(res)
         {
         }
 
         void invoke()
         {
-            m_proc();
+            m_res = m_proc();
             m_event.set();
         }
 
     public:
-        std::function<void(void)> m_proc;
+        std::function<int(void)> m_proc;
+        int& m_res;
         exlib::Event m_event;
     };
 
-    UVCall uvc(proc);
+    int res;
+    UVCall uvc(proc, res);
 
     s_uvAsyncUVTasks.putTail(&uvc);
     uv_async_send(&s_uv_asyncWatcher);
 
     uvc.m_event.wait();
+
+    return res;
 }
 
 class UVAsyncThread : public exlib::OSThread {
