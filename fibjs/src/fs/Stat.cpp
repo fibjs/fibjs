@@ -347,6 +347,47 @@ void Stat::init()
     m_isSocket = false;
 }
 
+void Stat::init(Stat_base* st)
+{
+    st->get_name(name);
+
+    double d_tmp;
+    int32_t i32_tmp;
+
+    st->get_size(d_tmp);
+    size = d_tmp;
+
+    st->get_mode(i32_tmp);
+    mode = i32_tmp;
+
+    st->get_mtime(mtime);
+    st->get_atime(atime);
+    st->get_ctime(ctime);
+    st->get_mtime(mtime);
+
+    st->get_gid(i32_tmp);
+    gid = i32_tmp;
+
+    st->get_uid(i32_tmp);
+    uid = i32_tmp;
+
+    // st->isBlockDevice(m_isBlockDevice);
+    // st->isCharacterDevice(m_isCharacterDevice);
+    // st->isFIFO(m_isFIFO);
+
+    st->isReadable(m_isReadable);
+    st->isWritable(m_isWritable);
+    st->isExecutable(m_isExecutable);
+
+    st->isDirectory(m_isDirectory);
+    st->isFile(m_isFile);
+
+    st->isSymbolicLink(m_isSymbolicLink);
+
+    st->isMemory(m_isMemory);
+    st->isSocket(m_isSocket);
+}
+
 result_t Stat::get_name(exlib::string& retVal)
 {
     retVal = name;
