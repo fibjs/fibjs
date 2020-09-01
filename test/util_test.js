@@ -1287,6 +1287,26 @@ describe('util', () => {
             assert.property(util.buildInfo(), 'modules');
         });
 
+        it('venders', () => {
+            assert.property(util.buildInfo().vender, 'ev');
+            assert.property(util.buildInfo().vender, 'uv');
+            assert.property(util.buildInfo().vender, 'expat');
+            assert.property(util.buildInfo().vender, 'gd');
+            assert.property(util.buildInfo().vender, 'jpeg');
+            assert.property(util.buildInfo().vender, 'png');
+            assert.property(util.buildInfo().vender, 'leveldb');
+            assert.property(util.buildInfo().vender, 'mongo');
+            assert.property(util.buildInfo().vender, 'pcre');
+            assert.property(util.buildInfo().vender, 'mbedtls');
+            assert.property(util.buildInfo().vender, 'snappy');
+            assert.property(util.buildInfo().vender, 'sqlite');
+            assert.property(util.buildInfo().vender, 'tiff');
+            assert.property(util.buildInfo().vender, 'uuid');
+            assert.property(util.buildInfo().vender, 'v8');
+            assert.property(util.buildInfo().vender, 'v8-snapshot');
+            assert.property(util.buildInfo().vender, 'zlib');
+        });
+
         it('modules', () => {
             const modules = util.buildInfo().modules;
 

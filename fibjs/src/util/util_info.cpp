@@ -11,6 +11,7 @@
 #include <zlib/include/zlib.h>
 #include <sqlite/sqlite3.h>
 #include <ev/ev.h>
+#include <uv/include/uv.h>
 #include <gd/include/gd.h>
 #include <jpeg/include/jpeglib.h>
 #include <png/include/png.h>
@@ -78,6 +79,7 @@ public:
             char str[64];
 
             g_vender->add("ev", STR(EV_VERSION_MAJOR) "." STR(EV_VERSION_MINOR));
+            g_vender->add("uv", uv_version_string());
 
             g_vender->add("expat", STR(XML_MAJOR_VERSION) "." STR(XML_MINOR_VERSION) "." STR(XML_MICRO_VERSION));
 
