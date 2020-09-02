@@ -99,6 +99,7 @@ public:
 #endif
 
     void init();
+    void init(Stat_base* st);
 
 public:
     exlib::string name;
