@@ -22,11 +22,11 @@ interface RangeStream : SeekableStream
       @param begin 从 stm 读取内容的起始位置
       @param end 从 stm 读取内容的结束位置
      */
-    RangeStream(SeekableStream stm, Integer begin, Integer end);
+    RangeStream(SeekableStream stm, Long begin, Long end);
 
     /*! @brief 查询 range 开始值 */
-    readonly Integer begin;
+    readonly Long begin;
 
     /*! @brief 查询 range 结束值 */
-    readonly Integer end;
+    readonly Long end;
 };

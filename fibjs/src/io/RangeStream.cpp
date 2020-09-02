@@ -67,7 +67,7 @@ result_t RangeStream_base::_new(SeekableStream_base* stm, exlib::string range, o
     return 0;
 }
 
-result_t RangeStream_base::_new(SeekableStream_base* stm, int32_t begin, int32_t end, obj_ptr<RangeStream_base>& retVal, v8::Local<v8::Object> This)
+result_t RangeStream_base::_new(SeekableStream_base* stm, int64_t begin, int64_t end, obj_ptr<RangeStream_base>& retVal, v8::Local<v8::Object> This)
 {
     if (begin < 0)
         return Runtime::setError("'begin' must be non-negative integer!");
@@ -286,13 +286,13 @@ result_t RangeStream::eof(bool& retVal)
     return 0;
 }
 
-result_t RangeStream::get_begin(int32_t& retVal)
+result_t RangeStream::get_begin(int64_t& retVal)
 {
     retVal = b_pos;
     return 0;
 }
 
-result_t RangeStream::get_end(int32_t& retVal)
+result_t RangeStream::get_end(int64_t& retVal)
 {
     retVal = e_pos;
     return 0;

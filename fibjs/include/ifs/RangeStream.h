@@ -25,9 +25,9 @@ class RangeStream_base : public SeekableStream_base {
 public:
     // RangeStream_base
     static result_t _new(SeekableStream_base* stm, exlib::string range, obj_ptr<RangeStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(SeekableStream_base* stm, int32_t begin, int32_t end, obj_ptr<RangeStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t get_begin(int32_t& retVal) = 0;
-    virtual result_t get_end(int32_t& retVal) = 0;
+    static result_t _new(SeekableStream_base* stm, int64_t begin, int64_t end, obj_ptr<RangeStream_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t get_begin(int64_t& retVal) = 0;
+    virtual result_t get_end(int64_t& retVal) = 0;
 
 public:
     template <typename T>
@@ -82,8 +82,8 @@ void RangeStream_base::__new(const T& args)
     METHOD_OVER(3, 3);
 
     ARG(obj_ptr<SeekableStream_base>, 0);
-    ARG(int32_t, 1);
-    ARG(int32_t, 2);
+    ARG(int64_t, 1);
+    ARG(int64_t, 2);
 
     hr = _new(v0, v1, v2, vr, args.This());
 
@@ -92,7 +92,7 @@ void RangeStream_base::__new(const T& args)
 
 inline void RangeStream_base::s_get_begin(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
-    int32_t vr;
+    int64_t vr;
 
     METHOD_NAME("RangeStream.begin");
     METHOD_INSTANCE(RangeStream_base);
@@ -105,7 +105,7 @@ inline void RangeStream_base::s_get_begin(v8::Local<v8::Name> property, const v8
 
 inline void RangeStream_base::s_get_end(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
-    int32_t vr;
+    int64_t vr;
 
     METHOD_NAME("RangeStream.end");
     METHOD_INSTANCE(RangeStream_base);

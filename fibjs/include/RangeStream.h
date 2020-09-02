@@ -45,8 +45,8 @@ public:
 
 public:
     // RangeStream_base
-    virtual result_t get_begin(int32_t& retVal);
-    virtual result_t get_end(int32_t& retVal);
+    virtual result_t get_begin(int64_t& retVal);
+    virtual result_t get_end(int64_t& retVal);
 
 private:
     obj_ptr<SeekableStream_base> m_stream;
