@@ -114,10 +114,10 @@ if (win32 || darwin64) {
 
         win.onmove = (evt) => {
           events_resize.onmove = true;
-          console.log('window onmove, origin: {x: %s, y: %s}', evt.x, evt.y);
+          console.log('window onmove, origin: {left: %s, top: %s}', evt.left, evt.top);
 
-          events_resize.onmove_x_ok = evt.hasOwnProperty('x');
-          events_resize.onmove_y_ok = evt.hasOwnProperty('y');
+          events_resize.onmove_left_ok = evt.hasOwnProperty('left');
+          events_resize.onmove_top_ok = evt.hasOwnProperty('top');
 
           win.close();
           win = undefined
@@ -126,8 +126,8 @@ if (win32 || darwin64) {
         coroutine.sleep(2000);
 
         assert.isTrue(events_resize.onmove)
-        assert.isTrue(events_resize.onmove_x_ok)
-        assert.isTrue(events_resize.onmove_y_ok)
+        assert.isTrue(events_resize.onmove_left_ok)
+        assert.isTrue(events_resize.onmove_top_ok)
       });
     });
 
@@ -295,7 +295,7 @@ if (win32 || darwin64) {
           title: "Manual Test - log",
         });
 
-        coroutine.sleep(500/*  * 1e4 */);
+        coroutine.sleep(500 /*  * 1e4 */ );
         win.close();
         win = undefined;
       });

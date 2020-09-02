@@ -73,8 +73,8 @@ void assignWinSizeInfoToResizeAboutEventInfo (CGSize ws, EventInfo* ei) {
 
     obj_ptr<EventInfo> ei = new EventInfo(wv, "move");
     CGPoint wcoord = currentWindow.frame.origin;
-    ei->add("x", wcoord.x);
-    ei->add("y", wcoord.y);
+    ei->add("left", wcoord.x);
+    ei->add("top", wcoord.y);
 
     wv->_emit("move", ei);
 }
