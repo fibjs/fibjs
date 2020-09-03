@@ -175,7 +175,7 @@ int32_t SslSocket::my_send(void* ctx, const unsigned char* buf, size_t len)
 result_t SslSocket::get_fd(int32_t& retVal)
 {
     if (!m_s)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(CALL_E_CLOSED);
 
     return m_s->get_fd(retVal);
 }
@@ -228,7 +228,7 @@ result_t SslSocket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     };
 
     if (!m_s)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(CALL_E_CLOSED);
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -272,7 +272,7 @@ result_t SslSocket::write(Buffer_base* data, AsyncEvent* ac)
     };
 
     if (!m_s)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(CALL_E_CLOSED);
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -312,7 +312,7 @@ result_t SslSocket::close(AsyncEvent* ac)
     };
 
     if (!m_s)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(CALL_E_CLOSED);
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -324,7 +324,7 @@ result_t SslSocket::copyTo(Stream_base* stm, int64_t bytes,
     int64_t& retVal, AsyncEvent* ac)
 {
     if (!m_s)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+        return CHECK_ERROR(CALL_E_CLOSED);
 
     return io_base::copyStream(this, stm, bytes, retVal, ac);
 }
