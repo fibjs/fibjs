@@ -108,6 +108,11 @@ public:
 
 public:
     // Stream_base
+    result_t get_fd(int32_t& retVal)
+    {
+        return CALL_E_INVALID_CALL;
+    }
+
     result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     {
         return CALL_E_INVALID_CALL;

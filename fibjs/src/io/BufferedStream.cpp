@@ -69,6 +69,11 @@ result_t BufferedStream_base::_new(Stream_base* stm,
     return 0;
 }
 
+result_t BufferedStream::get_fd(int32_t& retVal)
+{
+    return m_stm->get_fd(retVal);
+}
+
 result_t BufferedStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
@@ -310,7 +315,7 @@ result_t BufferedStream::readUntil(exlib::string mk, int32_t maxlen,
 
             if (maxlen > 0
                 && ((int32_t)pThis->m_strbuf.size() + (pos - pThis->m_pos)
-                       > maxlen + mklen))
+                    > maxlen + mklen))
                 return CHECK_ERROR(CALL_E_INVALID_DATA);
 
             pThis->append(pos - pThis->m_pos);

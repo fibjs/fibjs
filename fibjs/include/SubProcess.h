@@ -68,6 +68,12 @@ public:
 
     public:
         // Stream_base
+        virtual result_t get_fd(int32_t& retVal)
+        {
+            retVal = m_aio.m_fd;
+            return 0;
+        }
+
         virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
             AsyncEvent* ac)
         {

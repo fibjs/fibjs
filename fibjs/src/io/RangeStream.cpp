@@ -86,8 +86,19 @@ RangeStream::RangeStream(SeekableStream_base* stream, int64_t begin, int64_t end
     real_pos = get_c_pos();
 }
 
+result_t RangeStream::get_fd(int32_t& retVal)
+{
+    if (!m_stream)
+        return CALL_E_INVALID_CALL;
+
+    return m_stream->get_fd(retVal);
+}
+
 result_t RangeStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
+    if (!m_stream)
+        return CALL_E_INVALID_CALL;
+
     if (e_pos < real_pos || b_pos > real_pos)
         return CALL_RETURN_NULL;
 
@@ -181,6 +192,9 @@ result_t RangeStream::close(AsyncEvent* ac)
 
 result_t RangeStream::copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, AsyncEvent* ac)
 {
+    if (!m_stream)
+        return CALL_E_INVALID_CALL;
+
     return io_base::copyStream(this, stm, bytes, retVal, ac);
 }
 
@@ -210,6 +224,9 @@ result_t RangeStream::seek(int64_t offset, int32_t whence)
 
 result_t RangeStream::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
 {
+    if (!m_stream)
+        return CALL_E_INVALID_CALL;
+
     if (ac->isSync())
         return CALL_E_NOSYNC;
 
@@ -247,6 +264,9 @@ result_t RangeStream::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
 
 result_t RangeStream::tell(int64_t& retVal)
 {
+    if (!m_stream)
+        return CALL_E_INVALID_CALL;
+
     retVal = get_c_pos() - b_pos;
 
     return 0;
@@ -259,6 +279,9 @@ result_t RangeStream::rewind()
 
 result_t RangeStream::size(int64_t& retVal)
 {
+    if (!m_stream)
+        return CALL_E_INVALID_CALL;
+
     retVal = valid_end() - valid_start();
 
     return 0;
@@ -276,6 +299,9 @@ result_t RangeStream::truncate(int64_t bytes, AsyncEvent* ac)
 
 result_t RangeStream::eof(bool& retVal)
 {
+    if (!m_stream)
+        return CALL_E_INVALID_CALL;
+
     retVal = get_c_pos() >= valid_end();
 
     return 0;

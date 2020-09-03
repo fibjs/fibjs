@@ -121,6 +121,19 @@ public:
         exlib::string m_buf;
     };
 
+    virtual result_t get_fd(int32_t& retVal)
+    {
+        uv_os_fd_t fileno;
+
+        int ret = uv_fileno((uv_handle_t*)&m_pipe, &fileno);
+        if (ret != 0)
+            return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
+
+        retVal = fileno;
+
+        return 0;
+    };
+
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         AsyncEvent* ac)
     {

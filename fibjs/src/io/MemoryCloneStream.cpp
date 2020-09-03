@@ -13,6 +13,11 @@
 
 namespace fibjs {
 
+result_t MemoryStream::CloneStream::get_fd(int32_t& retVal)
+{
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
+}
+
 result_t MemoryStream::CloneStream::read(int32_t bytes,
     obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {

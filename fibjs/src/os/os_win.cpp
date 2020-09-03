@@ -472,6 +472,13 @@ result_t os_base::openPrinter(exlib::string name, obj_ptr<BufferedStream_base>& 
 
     public:
         // Stream_base
+        result_t get_fd(int32_t& retVal)
+        {
+            retVal = m_hPrinter;
+
+            return 0;
+        }
+
         result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
         {
             return CALL_E_INVALID_CALL;

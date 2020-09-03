@@ -40,6 +40,23 @@ describe('process', () => {
         assert.ok(process.pid);
     });
 
+    describe("process.std[xx].fd", () => {
+        it("process.stdin.fd", () => {
+            assert.isDefined(process.stdin.fd);
+            assert.equal(process.stdin.fd, 0);
+        });
+
+        it("process.stdout.fd", () => {
+            assert.isDefined(process.stdout.fd);
+            assert.equal(process.stdout.fd, 1);
+        });
+
+        it("process.stderr.fd", () => {
+            assert.isDefined(process.stderr.fd);
+            assert.equal(process.stderr.fd, 2);
+        });
+    });
+
     xdescribe("ppid", () => {
         it("basic", () => {
             assert.property(process, 'ppid');
@@ -263,7 +280,7 @@ describe('process', () => {
                 try {
                     net.connect('tcp://127.0.0.1:28080');
                     break;
-                } catch (e) {}
+                } catch (e) { }
             }
 
             assert.equal(p.stdout.readLine(), "700");
