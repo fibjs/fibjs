@@ -14,7 +14,6 @@
 #include "ifs/util.h"
 #include "Fiber.h"
 #include "EventEmitter.h"
-#include "File.h"
 #include "UVStream.h"
 #include "BufferedStream.h"
 #include "SubProcess.h"
