@@ -3,6 +3,9 @@
 Stream 为基础对象，用于为流处理定义标准借口，不能独立创建 */
 interface Stream : object
 {
+    /*! @brief 查询 Stream 对应的文件描述符值, 由子类实现 */
+    readonly Integer fd;
+
     /*! @brief 从流内读取指定大小的数据
      @param bytes 指定要读取的数据量，缺省为读取随机大小的数据块，读出的数据尺寸取决于设备
      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null

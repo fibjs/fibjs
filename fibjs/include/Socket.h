@@ -45,6 +45,7 @@ public:
 
 public:
     // Stream_base
+    virtual result_t get_fd(int32_t& retVal);
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         AsyncEvent* ac);
     virtual result_t write(Buffer_base* data, AsyncEvent* ac);

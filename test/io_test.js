@@ -161,6 +161,48 @@ describe('io', () => {
                 file = fs.openFile(filePath)
             });
 
+            it("actions after close RangeStream", () => {
+                var file = fs.openFile(filePath);
+                var stm = new io.RangeStream(file, 0, file.size());
+
+                // seekable
+                stm.seek(0, fs.SEEK_SET);
+                // readable
+                stm.read(1);
+                // query current position
+                assert.equal(stm.tell(), 0);
+                // get size of range
+                assert.equal(stm.size(), file.size());
+                // get the real stream's fd
+                assert.isDefined(stm.fd);
+
+                // but after close it
+                stm.close();
+
+                // you can call `.seek()` still.
+                stm.seek(0, fs.SEEK_SET);
+
+                // but you cannot read from it.
+                assert_error_msg(() => {
+                    stm.read(1);
+                }, `[-100009] Invalid procedure call.`)
+
+                // nor query current positoin
+                assert_error_msg(() => {
+                    stm.tell();
+                }, `[-100009] Invalid procedure call.`)
+
+                // not allowed to get size of it.
+                assert_error_msg(() => {
+                    stm.size();
+                }, `[-100009] Invalid procedure call.`)
+
+                // not allowed to get fd of it.
+                assert_error_msg(() => {
+                    stm.fd;
+                }, `[-100009] Invalid procedure call.`)
+            });
+
             describe("ALLOW: multiple range upon the same file in order", () => {
                 ranges.forEach(([begin, end]) => {
                     it(`[${begin}, ${end}]`, () => {

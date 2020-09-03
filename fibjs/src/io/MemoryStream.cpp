@@ -19,6 +19,11 @@ result_t MemoryStream_base::_new(obj_ptr<MemoryStream_base>& retVal, v8::Local<v
     return 0;
 }
 
+result_t MemoryStream::get_fd(int32_t& retVal)
+{
+    return CALL_E_INVALID_CALL;
+}
+
 result_t MemoryStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {

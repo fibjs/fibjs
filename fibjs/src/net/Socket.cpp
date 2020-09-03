@@ -97,6 +97,13 @@ result_t Socket::create(int32_t family, int32_t type)
     return 0;
 }
 
+result_t Socket::get_fd(int32_t& retVal)
+{
+    retVal = m_aio.m_fd;
+
+    return 0;
+}
+
 result_t Socket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {

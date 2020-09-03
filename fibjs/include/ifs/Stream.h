@@ -23,6 +23,7 @@ class Stream_base : public object_base {
 
 public:
     // Stream_base
+    virtual result_t get_fd(int32_t& retVal) = 0;
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t write(Buffer_base* data, AsyncEvent* ac) = 0;
     virtual result_t flush(AsyncEvent* ac) = 0;
@@ -41,6 +42,7 @@ public:
     }
 
 public:
+    static void s_get_fd(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_read(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_flush(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -74,14 +76,31 @@ inline ClassInfo& Stream_base::class_info()
         { "copyToSync", s_copyTo, false }
     };
 
+    static ClassData::ClassProperty s_property[] = {
+        { "fd", s_get_fd, block_set, false }
+    };
+
     static ClassData s_cd = {
         "Stream", false, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &object_base::class_info()
     };
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
+}
+
+inline void Stream_base::s_get_fd(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_NAME("Stream.fd");
+    METHOD_INSTANCE(Stream_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_fd(vr);
+
+    METHOD_RETURN();
 }
 
 inline void Stream_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
