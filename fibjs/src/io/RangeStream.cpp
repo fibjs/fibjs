@@ -11,24 +11,20 @@
 
 namespace fibjs {
 
-// follow HTTP 206 Range Request RFC
+// follow HTTP 206 Range Request RFC, but should cut off `bytes=` token firstly
 // @see https://tools.ietf.org/html/rfc7233
 result_t _parseRange(exlib::string range, int64_t fsize, int64_t& bpos, int64_t& epos)
 {
-    exlib::string r = range;
-    if (!qstricmp(r.c_str(), "bytes=", 6))
-        r = r.substr(6);
-
     int32_t p;
-    p = (int32_t)r.find(',', 0);
+    p = (int32_t)range.find(',', 0);
     if (p >= 0)
         return Runtime::setError("Parse Range-String Error, unexpected token ','!");
-    p = (int32_t)r.find('-', 0);
+    p = (int32_t)range.find('-', 0);
     if (p < 0)
         return Runtime::setError("Parse Range-String Error, expect next token '-'!");
 
-    exlib::string b = r.substr(0, p);
-    exlib::string e = r.substr(p + 1);
+    exlib::string b = range.substr(0, p);
+    exlib::string e = range.substr(p + 1);
 
     if (b.empty() && e.empty())
         return Runtime::setError("Parse Range-String Error, first-byte-pos required!");
@@ -47,7 +43,7 @@ result_t _parseRange(exlib::string range, int64_t fsize, int64_t& bpos, int64_t&
     }
 
     if (bpos < 0 || bpos > epos || epos > fsize)
-        return Runtime::setError("Parse Range-String Error, invalid range string '" + r + "' which is out of file size range!");
+        return Runtime::setError("Parse Range-String Error, invalid range string '" + range + "' which is out of file size range!");
 
     return 0;
 }
@@ -55,7 +51,6 @@ result_t _parseRange(exlib::string range, int64_t fsize, int64_t& bpos, int64_t&
 result_t RangeStream_base::_new(SeekableStream_base* stm, exlib::string range, obj_ptr<RangeStream_base>& retVal, v8::Local<v8::Object> This)
 {
     int64_t sz, begin, end;
-
     stm->size(sz);
 
     result_t hr = _parseRange(range, sz, begin, end);

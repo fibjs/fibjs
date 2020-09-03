@@ -126,6 +126,17 @@ describe('io', () => {
                 assert.equal(0, file.read(stm.end - stm.begin).compare(stm.readAll()));
             });
 
+            it("http 206 range string(but weired for RangeStream)", () => {
+                var stm = new io.RangeStream(fs.openFile(filePath), 'bytes=2-10');
+
+                assert.equal(stm.begin, 0);
+                assert.equal(stm.end, 11);
+
+                file.seek(stm.begin, fs.SEEK_SET);
+                stm.rewind();
+                assert.equal(0, file.read(stm.end - stm.begin).compare(stm.readAll()));
+            });
+
             it("accept numberic begin_pos, end_pos", () => {
                 var stm = new io.RangeStream(fs.openFile(filePath), 0, 10);
 
