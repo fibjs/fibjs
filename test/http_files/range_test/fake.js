@@ -6,8 +6,8 @@ const MAX_SZ = 5 * 1024 * 1024;
 /**
  * just one file
  */
-exports.generateFakeMp4 = () => {
-    const target = path.resolve(__dirname, './fake.mp4')
+exports.generateFakeMp4 = (name = 'fake.mp4') => {
+    const target = path.resolve(__dirname, `./${name}`)
     const file = fs.openFile(target, "w")
 
     while (file.size() < MAX_SZ) {

@@ -11,6 +11,7 @@
 #include "ifs/os.h"
 #include "path.h"
 #include "HttpFileHandler.h"
+#include "RangeStream.h"
 #include "HttpRequest.h"
 #include "Url.h"
 #include "Buffer.h"
@@ -1342,6 +1343,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                         m_rep->addHeader("Content-Type", pMimeType->type);
                     }
                 }
+                m_rep->addHeader("Accept-Ranges", "bytes");
             }
 
             return m_file->stat(m_stat, next(stat));
@@ -1372,7 +1374,43 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             d.toGMTString(lastModified);
 
             m_rep->addHeader("Last-Modified", lastModified);
+
+            exlib::string range;
+            if (m_req->firstHeader("Range", range) != CALL_RETURN_NULL) {
+                if (qstricmp(range.c_str(), "bytes=", 6)) {
+                    m_rep->set_statusCode(416);
+
+                    return next(CALL_RETURN_NULL);
+                }
+
+                range = range.substr(6);
+
+                obj_ptr<RangeStream_base> stm;
+                if (RangeStream_base::_new(m_file, range, stm) != 0) {
+                    m_rep->set_statusCode(416);
+
+                    return next(CALL_RETURN_NULL);
+                }
+
+                int64_t fsz, bpos, epos;
+
+                m_file->size(fsz);
+                stm->get_begin(bpos);
+                stm->get_end(epos);
+
+                m_rep->set_statusCode(206);
+
+                char s[256];
+                sprintf(s, "bytes %lld-%lld/%lld\0", bpos, epos - 1, fsz);
+                m_rep->addHeader("Content-Range", s);
+
+                m_rep->set_body(stm);
+
+                return next(CALL_RETURN_NULL);
+            }
+
             m_rep->set_body(m_file);
+
             return next(CALL_RETURN_NULL);
         }
 
