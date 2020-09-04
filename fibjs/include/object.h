@@ -427,19 +427,19 @@ private:
     static void s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
-class ValueHolder : public object_base {
+class ValueHolder : public obj_base {
 public:
     ValueHolder(v8::Local<v8::Value> v)
     {
-        m_v.Reset(holder()->m_isolate, v);
-        setJSObject();
+        m_isolate = Isolate::current();
+        m_v.Reset(m_isolate->m_isolate, v);
     }
 
 public:
     virtual void Unref()
     {
         if (internalUnref() == 0)
-            syncCall(holder(), _release, this);
+            syncCall(m_isolate, _release, this);
     }
 
 private:
@@ -449,8 +449,9 @@ private:
         return 0;
     }
 
-public:
+private:
     v8::Global<v8::Value> m_v;
+    Isolate* m_isolate;
 };
 
 class RootModule {
