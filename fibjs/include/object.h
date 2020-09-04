@@ -57,8 +57,13 @@ public:
                 isolate->m_weak.putTail(&m_weak);
                 isolate->m_weakLock.unlock();
             } else
-                delete this;
+                Delete();
         }
+    }
+
+    virtual void Delete()
+    {
+        delete this;
     }
 
 private:
@@ -95,7 +100,7 @@ public:
         pThis = (object_base*)((char*)node
             - ((char*)&pThis->m_weak - (char*)0));
 
-        delete pThis;
+        pThis->Delete();
     }
 
 private:
@@ -146,7 +151,7 @@ private:
             v8_isolate->AdjustAmountOfExternalAllocatedMemory(-m_nExtMemory);
 
             if (internalUnref() == 0)
-                delete this;
+                Delete();
         }
     }
 
