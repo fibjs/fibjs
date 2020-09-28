@@ -2302,6 +2302,10 @@ describe("http", () => {
                 } else if (r.address === '/cookie/test') {
                     r.response.addCookie(new http.Cookie("test1", "value1"));
                     r.response.json(r.allHeader());
+                } else if (r.address === '/repeaterQueryString') {
+                    return new http.Repeater(`http://127.0.0.1:${svr.socket.localPort}/dump`).invoke(r);
+                } else if (r.address === '/dump/repeaterQueryString') {
+                    r.response.write(`queryString:${r.queryString}`)
                 } else {
                     r.response.write(r.address);
                 }
@@ -2412,6 +2416,12 @@ describe("http", () => {
                     "http://127.0.0.1/test1",
                     "http://127.0.0.1/test2"
                 ]);
+            });
+            
+            it('queryString not send ok', () => {
+                var a = http.get("http://127.0.0.1:"+svr.socket.localPort+"/dump/repeaterQueryString",{query:{a:"aaa"}}).data.toString();
+                var b = http.get("http://127.0.0.1:"+svr.socket.localPort+"/repeaterQueryString",{query:{a:"aaa"}}).data.toString();
+                assert.equal(a, b);
             });
         });
 
