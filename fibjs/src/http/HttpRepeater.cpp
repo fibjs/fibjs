@@ -144,6 +144,7 @@ result_t HttpRepeater::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             u->m_pathname.append(v);
             u->normalize();
 
+            req->get_queryString(u->m_query);
             u->toString(m_url);
 
             req->get_method(m_method);

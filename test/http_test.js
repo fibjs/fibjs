@@ -14,7 +14,9 @@ var path = require("path");
 var ssl = require("ssl");
 var crypto = require("crypto");
 
-const { generateFakeMp4 } = require('./http_files/range_test/fake');
+const {
+    generateFakeMp4
+} = require('./http_files/range_test/fake');
 
 var base_port = coroutine.vmid * 10000;
 
@@ -1204,7 +1206,7 @@ describe("http", () => {
         });
     });
 
-    describe.only("file handler", () => {
+    describe("file handler", () => {
         var baseFolder = __dirname;
         var hfHandler = new http.fileHandler(baseFolder);
         var url = base_port + 'test.html';
@@ -1223,10 +1225,10 @@ describe("http", () => {
         function clean() {
             try {
                 fs.unlink(filePath);
-            } catch (e) { };
+            } catch (e) {};
             try {
                 fs.unlink(filePath + '.gz');
-            } catch (e) { };
+            } catch (e) {};
         }
 
         before(clean);
@@ -1315,11 +1317,12 @@ describe("http", () => {
             assert.equal(404, rep.statusCode);
         });
 
-        describe.only("206 Range", () => {
+        describe("206 Range", () => {
             const fakePath = generateFakeMp4('fake_http_206.mp4').target;
             var mp4File = fs.openFile(fakePath);
 
-            ;[
+            ;
+            [
                 "0-10",
                 "0-333",
                 "bytes 0-10",
@@ -1390,7 +1393,7 @@ describe("http", () => {
             after(() => {
                 try {
                     fs.unlink(filePath + '.zip');
-                } catch (e) { };
+                } catch (e) {};
             });
 
             it("normal", () => {
@@ -1639,44 +1642,44 @@ describe("http", () => {
 
             it("urlencode", () => {
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request_query:", {
-                    query: {
-                        test_field: "field"
-                    }
-                }).body.read().toString(),
+                        query: {
+                            test_field: "field"
+                        }
+                    }).body.read().toString(),
                     "/request_query:field");
             });
 
             it("body", () => {
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
-                    body: "body"
-                }).body.read().toString(),
+                        body: "body"
+                    }).body.read().toString(),
                     "/request:body");
                 assert.equal(cookie_for['_'], "root=value2");
 
                 var ms = new io.MemoryStream();
                 ms.write("body");
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request:", {
-                    body: ms
-                }).body.read().toString(),
+                        body: ms
+                    }).body.read().toString(),
                     "/request:body");
                 assert.equal(cookie_for['_'], "root=value2");
             });
 
             it("urlencode", () => {
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request_url:", {
-                    body: {
-                        test_field: "field"
-                    }
-                }).body.read().toString(),
+                        body: {
+                            test_field: "field"
+                        }
+                    }).body.read().toString(),
                     "/request_url:field");
             });
 
             it("json", () => {
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request_json:", {
-                    json: {
-                        test_field: "field"
-                    }
-                }).body.read().toString(),
+                        json: {
+                            test_field: "field"
+                        }
+                    }).body.read().toString(),
                     "/request_json:field");
             });
 
@@ -1720,10 +1723,10 @@ describe("http", () => {
                     "test agent");
 
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/agent", {
-                    headers: {
-                        "user-agent": "agent in headers"
-                    }
-                }).body.read().toString(),
+                        headers: {
+                            "user-agent": "agent in headers"
+                        }
+                    }).body.read().toString(),
                     "agent in headers");
 
                 assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/agent").body.read().toString(),
@@ -1859,8 +1862,8 @@ describe("http", () => {
         describe("post", () => {
             it("body", () => {
                 assert.equal(http.post("http://127.0.0.1:" + (8882 + base_port) + "/request:", {
-                    body: "body"
-                }).body.read().toString(),
+                        body: "body"
+                    }).body.read().toString(),
                     "/request:body");
             });
 
@@ -1961,8 +1964,8 @@ describe("http", () => {
 
             it("body", () => {
                 assert.equal(http.request("GET", "https://localhost:" + (8883 + base_port) + "/request:", {
-                    body: "body"
-                }).body.read().toString(),
+                        body: "body"
+                    }).body.read().toString(),
                     "/request:body");
             });
 
@@ -2036,20 +2039,20 @@ describe("http", () => {
         describe("post", () => {
             it("body", () => {
                 assert.equal(http.post(
-                    "https://localhost:" + (8883 + base_port) + "/request:", {
-                    body: "body"
-                }).body
+                        "https://localhost:" + (8883 + base_port) + "/request:", {
+                            body: "body"
+                        }).body
                     .read().toString(), "/request:body");
             });
 
             it("header", () => {
                 assert.equal(http.post(
                     "https://localhost:" + (8883 + base_port) + "/request:", {
-                    body: "",
-                    headers: {
-                        "test_header": "header"
-                    }
-                }).body.read().toString(), "/request:header");
+                        body: "",
+                        headers: {
+                            "test_header": "header"
+                        }
+                    }).body.read().toString(), "/request:header");
             });
         });
     });
@@ -2189,8 +2192,8 @@ describe("http", () => {
 
             it("body", () => {
                 assert.equal(client.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/request:", {
-                    body: "body"
-                }).body.readAll().toString(),
+                        body: "body"
+                    }).body.readAll().toString(),
                     "/request:body");
             });
 
@@ -2302,6 +2305,8 @@ describe("http", () => {
                 } else if (r.address === '/cookie/test') {
                     r.response.addCookie(new http.Cookie("test1", "value1"));
                     r.response.json(r.allHeader());
+                } else if (r.address === '/query/test') {
+                    r.response.write(r.queryString)
                 } else {
                     r.response.write(r.address);
                 }
@@ -2445,6 +2450,14 @@ describe("http", () => {
                 return r.response.json();
             }
 
+            function req_query(hr, p, q) {
+                var r = new http.Request();
+                r.address = r.value = p;
+                r.queryString = q;
+                hr.invoke(r);
+                return r.response.read().toString();
+            }
+
             it("basic repeater", () => {
                 var hr = new http.Repeater('http://127.0.0.1:' + (8885 + base_port) + '/path');
                 assert.equal(req_path(hr, 'path'), '/path/path');
@@ -2486,6 +2499,12 @@ describe("http", () => {
                 });
             });
 
+            it('queryString not send ok', () => {
+                var hr = new http.Repeater('http://127.0.0.1:' + (8885 + base_port) + '/query');
+                req_query(hr, 'test', 'a=100');
+                assert.deepEqual(req_query(hr, 'test', 'a=100'), 'a=100');
+            });
+
             it("bad end", () => {
                 var hr = new http.Repeater('http://127.0.0.1:' + (10000 + base_port) + '/path');
                 assert.throws(() => {
@@ -2510,7 +2529,7 @@ describe("http", () => {
                     r.stream.write('HTTP/1.1 200 Connected\r\n\r\n');
                     try {
                         sslhdr.invoke(r.stream);
-                    } catch (e) { };
+                    } catch (e) {};
                     return;
                 }
 
