@@ -243,15 +243,18 @@ result_t RangeStream::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
     public:
         ON_STATE(asyncStat, stat)
         {
-            result_t hr = m_pThis->m_stream->stat(m_retVal, next());
-            if (hr != 0)
-                return hr;
+            return m_pThis->m_stream->stat(m_retVal, next(stat_ok));
+        }
 
+        ON_STATE(asyncStat, stat_ok)
+        {
             obj_ptr<Stat> st = new Stat();
             st->init(m_retVal);
             m_pThis->size(st->size);
 
             m_retVal = st;
+
+            return next();
         }
 
     private:
