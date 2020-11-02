@@ -134,6 +134,12 @@ describe('dgram', () => {
         c.close();
         s.close();
     });
+
+    it('FIX: crash in send', () => {
+        const c = dgram.createSocket('udp4');
+        c.send('123456', 1, 2, 10005);
+        c.close();
+    });
 });
 
 require.main === module && test.run(console.DEBUG);

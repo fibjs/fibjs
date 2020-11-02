@@ -317,6 +317,16 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t offset, int32_t length, int
     if (offset < 0 || length <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
+    if (m_closed)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    result_t hr;
+    if (!m_bound) {
+        hr = bind(0, "", ac);
+        if (hr < 0)
+            return hr;
+    }
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
