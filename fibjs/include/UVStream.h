@@ -20,6 +20,9 @@ class UVStream : public Stream_base {
 public:
     UVStream(int32_t fd)
     {
+#ifdef _WIN32
+        m_fd = fd;
+#endif
         memset(&m_pipe, 0, sizeof(uv_pipe_t));
         uv_call([&] {
             uv_pipe_init(s_uv_loop, &m_pipe, 0);
@@ -29,6 +32,9 @@ public:
 
     UVStream()
     {
+#ifdef _WIN32
+        m_fd = -1;
+#endif
         memset(&m_pipe, 0, sizeof(uv_pipe_t));
         uv_call([&] {
             return uv_pipe_init(s_uv_loop, &m_pipe, 0);
@@ -123,13 +129,24 @@ public:
 
     virtual result_t get_fd(int32_t& retVal)
     {
+#ifdef _WIN32
+        if (m_fd >= 0 && m_fd <= 2) {
+            retVal = m_fd;
+
+            return 0;
+        }
+#endif
         uv_os_fd_t fileno;
 
         int ret = uv_fileno((uv_handle_t*)&m_pipe, &fileno);
         if (ret != 0)
             return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
 
+#ifdef _WIN32
+        retVal = (int32_t)&fileno;
+#else
         retVal = fileno;
+#endif
 
         return 0;
     };
@@ -222,6 +239,11 @@ public:
     {
         return io_base::copyStream(this, stm, bytes, retVal, ac);
     }
+
+private:
+#ifdef _WIN32
+    int32_t m_fd;
+#endif
 
 public:
     uv_pipe_t m_pipe;

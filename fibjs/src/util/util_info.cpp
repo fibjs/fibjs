@@ -11,7 +11,6 @@
 #include <zlib/include/zlib.h>
 #include <sqlite/sqlite3.h>
 #include <ev/ev.h>
-#include <uv/include/uv.h>
 #include <gd/include/gd.h>
 #include <jpeg/include/jpeglib.h>
 #include <png/include/png.h>
@@ -22,6 +21,7 @@
 #include <snappy/include/snappy.h>
 #include <leveldb/db.h>
 #include <expat/include/expat.h>
+#include <uv/include/uv/version.h>
 
 namespace v8 {
 namespace internal {
@@ -44,6 +44,10 @@ obj_ptr<NObject> g_vender;
 
 #define _STR(s) #s
 #define STR(s) _STR(s)
+
+#define UV_VERSION_STRING_BASE \
+    STR(UV_VERSION_MAJOR)      \
+    "." STR(UV_VERSION_MINOR) "." STR(UV_VERSION_PATCH)
 
 class init_info {
 public:
@@ -79,7 +83,12 @@ public:
             char str[64];
 
             g_vender->add("ev", STR(EV_VERSION_MAJOR) "." STR(EV_VERSION_MINOR));
-            g_vender->add("uv", uv_version_string());
+
+#if UV_VERSION_IS_RELEASE
+            g_vender->add("uv", UV_VERSION_STRING_BASE);
+#else
+            g_vender->add("uv", UV_VERSION_STRING_BASE "-" UV_VERSION_SUFFIX);
+#endif
 
             g_vender->add("expat", STR(XML_MAJOR_VERSION) "." STR(XML_MINOR_VERSION) "." STR(XML_MICRO_VERSION));
 
