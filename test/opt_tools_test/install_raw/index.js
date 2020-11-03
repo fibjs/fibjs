@@ -3,6 +3,7 @@ test.setup();
 
 var fs = require("fs");
 var path = require("path");
+var child_process = require("child_process");
 
 var bin = process.execPath;
 
@@ -38,7 +39,7 @@ describe('opt_tools/install from raw', () => {
             path.resolve(__dirname),
             () => {
                 // ensure dependencies of this test existed
-                process.run(bin, ['--install', '@fibjs/rmdirr']);
+                child_process.run(bin, ['--install', '@fibjs/rmdirr']);
                 rmdirr = require('@fibjs/rmdirr');
             }
         )()
@@ -67,7 +68,7 @@ describe('opt_tools/install from raw', () => {
 
                 it('install public normal package', () => {
                     chdirAndDo(installTarget, () => {
-                        process.run(bin, ['--install', 'ejs'], processRunOptions)
+                        child_process.run(bin, ['--install', 'ejs'], processRunOptions)
                     })();
 
                     assert.ok(fs.exists(
@@ -81,7 +82,7 @@ describe('opt_tools/install from raw', () => {
 
                 it('install --save public normal package', () => {
                     chdirAndDo(installTarget, () => {
-                        process.run(bin, ['--install', '--save', 'ejs'], processRunOptions)
+                        child_process.run(bin, ['--install', '--save', 'ejs'], processRunOptions)
                     })();
 
                     assert.ok(fs.exists(
@@ -95,7 +96,7 @@ describe('opt_tools/install from raw', () => {
 
                 it('install -S public normal package', () => {
                     chdirAndDo(installTarget, () => {
-                        process.run(bin, ['--install', '-S', 'ejs'], processRunOptions)
+                        child_process.run(bin, ['--install', '-S', 'ejs'], processRunOptions)
                     })();
 
                     assert.ok(fs.exists(
@@ -109,7 +110,7 @@ describe('opt_tools/install from raw', () => {
 
                 it('install public @scope package', () => {
                     chdirAndDo(installTarget, () => {
-                        process.run(bin, ['--install', '@fibjs/chalk'], processRunOptions)
+                        child_process.run(bin, ['--install', '@fibjs/chalk'], processRunOptions)
                     })()
 
                     assert.ok(fs.exists(
@@ -123,7 +124,7 @@ describe('opt_tools/install from raw', () => {
 
                 it('install --save public @scope package', () => {
                     chdirAndDo(installTarget, () => {
-                        process.run(bin, ['--install', '--save', '@fibjs/chalk'], processRunOptions)
+                        child_process.run(bin, ['--install', '--save', '@fibjs/chalk'], processRunOptions)
                     })()
 
                     assert.ok(fs.exists(
@@ -137,7 +138,7 @@ describe('opt_tools/install from raw', () => {
 
                 it('install -S public @scope package', () => {
                     chdirAndDo(installTarget, () => {
-                        process.run(bin, ['--install', '-S', '@fibjs/chalk'], processRunOptions)
+                        child_process.run(bin, ['--install', '-S', '@fibjs/chalk'], processRunOptions)
                     })()
 
                     assert.ok(fs.exists(
@@ -151,7 +152,7 @@ describe('opt_tools/install from raw', () => {
 
                 it('install package --save-dev/-D', () => {
                     chdirAndDo(installTarget, () => {
-                        process.run(bin, ['--install', '--save-dev', 'ejs'], processRunOptions)
+                        child_process.run(bin, ['--install', '--save-dev', 'ejs'], processRunOptions)
                     })();
 
                     assert.ok(fs.exists(
@@ -220,7 +221,7 @@ describe('opt_tools/install from raw', () => {
         ].forEach(([desc, target, pkg_name]) => {
             it(desc, () => {
                 chdirAndDo(installTarget, () => {
-                    process.run(bin, ['--install', target], processRunOptions)
+                    child_process.run(bin, ['--install', target], processRunOptions)
                 })();
 
                 assert.ok(fs.exists(
@@ -234,7 +235,7 @@ describe('opt_tools/install from raw', () => {
 
             it(`[--save] ${desc}`, () => {
                 chdirAndDo(installTarget, () => {
-                    process.run(bin, ['--install', '--save', target], processRunOptions)
+                    child_process.run(bin, ['--install', '--save', target], processRunOptions)
                 })();
 
                 assert.ok(fs.exists(
@@ -250,7 +251,7 @@ describe('opt_tools/install from raw', () => {
 
             it(`[-S] ${desc}`, () => {
                 chdirAndDo(installTarget, () => {
-                    process.run(bin, ['--install', '-S', target], processRunOptions)
+                    child_process.run(bin, ['--install', '-S', target], processRunOptions)
                 })();
 
                 assert.ok(fs.exists(
@@ -266,7 +267,7 @@ describe('opt_tools/install from raw', () => {
 
             it(`[-D] ${desc}`, () => {
                 chdirAndDo(installTarget, () => {
-                    process.run(bin, ['--install', '-D', target], processRunOptions)
+                    child_process.run(bin, ['--install', '-D', target], processRunOptions)
                 })();
 
                 assert.ok(fs.exists(
