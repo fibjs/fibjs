@@ -6,7 +6,9 @@ const coroutine = require("coroutine");
 ssl.loadRootCerts();
 
 // use socket :start
-http.get('http://fibjs.org');
+http.get('https://stackoverflow.com');
+http.get('https://github.com');
+// http.get('https://fibjs.org');
 const base_port = coroutine.vmid * 10000;
 
 svr = new net.TcpServer(8881 + base_port, {});
