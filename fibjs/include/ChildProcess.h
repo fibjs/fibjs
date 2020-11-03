@@ -71,7 +71,6 @@ public:
 
     int32_t m_exitCode;
 
-    std::vector<exlib::string> envstr;
     std::vector<char*> envp;
 
     std::vector<exlib::string> argStr;

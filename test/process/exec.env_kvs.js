@@ -1,18 +1,7 @@
-const assert = require('assert');
+const envKeys = require('./const.env_keys');
 
 if (process.platform === 'win32') {
-    [
-        "SYSTEMROOT",
-        "SystemRoot",
-        "TEMP",
-        "TMP",
-        // "CommonProgramFiles",
-        "CommonProgramFiles(x86)",
-        "CommonProgramW6432",
-        // "ProgramFiles",
-        "ProgramFiles(x86)",
-        "ProgramW6432",
-    ].forEach(key => {
+    envKeys.win32.forEach(key => {
         console.log(`process.env['${key}']=${process.env[key] || ''}`)
     })
 }

@@ -13,6 +13,8 @@ var http = require('http');
 var io = require('io');
 var os = require('os');
 
+var envKeys = require('./process/const.env_keys.js');
+
 describe("child_process", () => {
     var cmd;
 
@@ -37,6 +39,32 @@ describe("child_process", () => {
         stdout.readLine();
         assert.equal(stdout.readLine(), "console.print....");
         assert.closeTo(new Date().getTime() - t0, 2000, 500);
+    });
+
+    describe("ChildProcess::std[xx].fd", () => {
+        it("ChildProcess::stdin.fd", () => {
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.js')]);
+            var stdin = new io.BufferedStream(bs.stdin);
+
+            assert.isDefined(stdin.fd);
+            assert.ok(stdin.fd > 2 || stdin.fd < 0);
+        });
+
+        it("ChildProcess::stdout.fd", () => {
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.js')]);
+            var stdout = new io.BufferedStream(bs.stdout);
+
+            assert.isDefined(stdout.fd);
+            assert.ok(stdout.fd > 2 || stdout.fd < 0);
+        });
+
+        it("ChildProcess::stderr.fd", () => {
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.js')]);
+            var stderr = new io.BufferedStream(bs.stderr);
+
+            assert.isDefined(stderr.fd);
+            assert.ok(stderr.fd > 2 || stderr.fd < 0);
+        });
     });
 
     describe("stdout/stderr", () => {
@@ -92,7 +120,7 @@ describe("child_process", () => {
         assert.equal(stdout.readLine(), "hello, exec1");
     });
 
-    it("stdin/stdout stream", () => {
+    xit("stdin/stdout stream", () => {
         var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.chargeable.js')]);
         var stdout = new io.BufferedStream(bs.stdout);
         var outputs = []
@@ -257,7 +285,7 @@ describe("child_process", () => {
                 try {
                     net.connect('tcp://127.0.0.1:28080');
                     break;
-                } catch (e) {}
+                } catch (e) { }
             }
 
             assert.equal(stdout.readLine(), "700");
@@ -332,6 +360,7 @@ describe("child_process", () => {
 
     it("env", () => {
         process.env.abc = 123;
+
         assert.equal(json.decode(child_process.execFile(cmd, [
             path.join(__dirname, "process", "exec4.js")
         ]).stdout).abc, "123");
@@ -398,31 +427,31 @@ describe("child_process", () => {
         });
     });
 
+    // leave here to tuning manually
+    xit("print child process's env items", () => {
+        var retcode = child_process.run(cmd, [path.join(__dirname, 'process', 'exec.print_kvs.js')]);
+        assert.equal(retcode, 0)
+    });
+
     describe("ChildProcess Spec", () => {
         it("default kvs", () => {
             var retcode = child_process.run(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')]);
             assert.equal(retcode, 0)
         });
 
+        // filter extra line in fibjs dev version
+        function filterLinePrintProcessEnv(line) {
+            return line.startsWith('process.env')
+        }
+
         if (process.platform === 'win32') {
-            const win_keys = [
-                'SYSTEMROOT',
-                'SystemRoot',
-                'TEMP',
-                'TMP',
-                // 'CommonProgramFiles',
-                'CommonProgramFiles(x86)',
-                'CommonProgramW6432',
-                // 'ProgramFiles',
-                'ProgramFiles(x86)',
-                'ProgramW6432',
-            ];
+            const win_keys = envKeys.win32;
 
             it(`default kvs: win32`, () => {
                 var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')]);
                 var stdout = new io.BufferedStream(bs.stdout);
                 assert.deepEqual(
-                    stdout.readLines(),
+                    stdout.readLines().filter(filterLinePrintProcessEnv),
                     win_keys.map(key => `process.env['${key}']=${process.env[key] || ''}`)
                 );
             });
@@ -443,13 +472,13 @@ describe("child_process", () => {
                 });
                 var stdout = new io.BufferedStream(bs.stdout);
                 assert.deepEqual(
-                    stdout.readLines(),
+                    stdout.readLines().filter(filterLinePrintProcessEnv),
                     win_keys.map(key => `process.env['${key}']=${process.env[key] || ''}`)
                 )
             });
 
             win_keys.forEach(win_key => {
-                it(`override required reserve env vars - ${win_key}`, () => {
+                it(`override required reserve env vars with undefined - ${win_key}`, () => {
                     var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')], {
                         env: {
                             [win_key]: undefined
@@ -457,15 +486,14 @@ describe("child_process", () => {
                     });
                     var stdout = new io.BufferedStream(bs.stdout);
                     assert.deepEqual(
-                        stdout.readLines(),
+                        stdout.readLines().filter(filterLinePrintProcessEnv),
                         win_keys.map(key => {
-                            if (key !== win_key)
-                                return `process.env['${key}']=${process.env[key] || ''}`
-                            else
-                                return `process.env['${key}']=`
+                            return `process.env['${key}']=${process.env[key] || ''}`
                         })
                     );
+                });
 
+                it(`override required reserve env vars with 'foo' - ${win_key}`, () => {
                     var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')], {
                         env: {
                             [win_key]: 'foo'
@@ -473,7 +501,7 @@ describe("child_process", () => {
                     });
                     var stdout = new io.BufferedStream(bs.stdout);
                     assert.deepEqual(
-                        stdout.readLines(),
+                        stdout.readLines().filter(filterLinePrintProcessEnv),
                         win_keys.map(key => {
                             if (key !== win_key)
                                 return `process.env['${key}']=${process.env[key] || ''}`
@@ -504,7 +532,7 @@ describe("child_process", () => {
                 var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')]);
                 var stdout = new io.BufferedStream(bs.stdout);
                 assert.deepEqual(
-                    stdout.readLines(),
+                    stdout.readLines().filter(filterLinePrintProcessEnv),
                     [
                         `process.env.HOME=${process.env.HOME || ''}`,
                         `process.env.TMPDIR=${process.env.TMPDIR || ''}`,
@@ -523,7 +551,7 @@ describe("child_process", () => {
                 });
                 var stdout = new io.BufferedStream(bs.stdout);
                 assert.deepEqual(
-                    stdout.readLines(),
+                    stdout.readLines().filter(filterLinePrintProcessEnv),
                     [
                         `process.env.HOME=${envs.HOME}`,
                         `process.env.TMPDIR=${envs.TMPDIR}`,
@@ -539,7 +567,7 @@ describe("child_process", () => {
                 var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')]);
                 var stdout = new io.BufferedStream(bs.stdout);
                 assert.deepEqual(
-                    stdout.readLines(),
+                    stdout.readLines().filter(filterLinePrintProcessEnv),
                     [
                         `process.env.HOME=${process.env.HOME || ''}`,
                         `process.env.TMPDIR=${process.env.TMPDIR || ''}`,
@@ -558,7 +586,7 @@ describe("child_process", () => {
                 });
                 var stdout = new io.BufferedStream(bs.stdout);
                 assert.deepEqual(
-                    stdout.readLines(),
+                    stdout.readLines().filter(filterLinePrintProcessEnv),
                     [
                         `process.env.HOME=${envs.HOME}`,
                         `process.env.TMPDIR=${envs.TMPDIR}`,
