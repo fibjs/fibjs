@@ -22,6 +22,10 @@
 
 #ifdef _WIN32
 #include <psapi.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <io.h>
+
 #include "utf8.h"
 #include "process_win.h"
 #else
