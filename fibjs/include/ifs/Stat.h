@@ -44,7 +44,10 @@ public:
     virtual result_t isReadable(bool& retVal) = 0;
     virtual result_t isExecutable(bool& retVal) = 0;
     virtual result_t isHidden(bool& retVal) = 0;
+    virtual result_t isBlockDevice(bool& retVal) = 0;
+    virtual result_t isCharacterDevice(bool& retVal) = 0;
     virtual result_t isDirectory(bool& retVal) = 0;
+    virtual result_t isFIFO(bool& retVal) = 0;
     virtual result_t isFile(bool& retVal) = 0;
     virtual result_t isSymbolicLink(bool& retVal) = 0;
     virtual result_t isMemory(bool& retVal) = 0;
@@ -85,7 +88,10 @@ public:
     static void s_isReadable(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isExecutable(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isHidden(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isBlockDevice(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isCharacterDevice(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isDirectory(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isFIFO(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isSymbolicLink(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isMemory(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -101,7 +107,10 @@ inline ClassInfo& Stat_base::class_info()
         { "isReadable", s_isReadable, false },
         { "isExecutable", s_isExecutable, false },
         { "isHidden", s_isHidden, false },
+        { "isBlockDevice", s_isBlockDevice, false },
+        { "isCharacterDevice", s_isCharacterDevice, false },
         { "isDirectory", s_isDirectory, false },
+        { "isFIFO", s_isFIFO, false },
         { "isFile", s_isFile, false },
         { "isSymbolicLink", s_isSymbolicLink, false },
         { "isMemory", s_isMemory, false },
@@ -447,6 +456,36 @@ inline void Stat_base::s_isHidden(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 
+inline void Stat_base::s_isBlockDevice(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_NAME("Stat.isBlockDevice");
+    METHOD_INSTANCE(Stat_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->isBlockDevice(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stat_base::s_isCharacterDevice(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_NAME("Stat.isCharacterDevice");
+    METHOD_INSTANCE(Stat_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->isCharacterDevice(vr);
+
+    METHOD_RETURN();
+}
+
 inline void Stat_base::s_isDirectory(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
@@ -458,6 +497,21 @@ inline void Stat_base::s_isDirectory(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_OVER(0, 0);
 
     hr = pInst->isDirectory(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Stat_base::s_isFIFO(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_NAME("Stat.isFIFO");
+    METHOD_INSTANCE(Stat_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->isFIFO(vr);
 
     METHOD_RETURN();
 }
