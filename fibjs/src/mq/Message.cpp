@@ -10,6 +10,7 @@
 #include "MemoryStream.h"
 #include "Buffer.h"
 #include "ifs/json.h"
+#include "ifs/msgpack.h"
 
 namespace fibjs {
 
@@ -146,6 +147,37 @@ result_t Message::json(v8::Local<v8::Value>& retVal)
     data->toString(str);
 
     return json_base::decode(str, retVal);
+}
+
+result_t Message::pack(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
+{
+    m_body = new MemoryStream();
+
+    obj_ptr<Buffer_base> buf;
+    result_t hr = msgpack_base::encode(data, buf);
+    if (hr < 0)
+        return hr;
+
+    return m_body->ac_write(buf);
+}
+
+result_t Message::pack(v8::Local<v8::Value>& retVal)
+{
+    if (m_body == NULL)
+        return CALL_RETURN_NULL;
+
+    result_t hr;
+    obj_ptr<Buffer_base> data;
+
+    m_body->rewind();
+    hr = m_body->ac_readAll(data);
+    if (hr < 0)
+        return hr;
+
+    if (hr == CALL_RETURN_NULL)
+        return CALL_RETURN_NULL;
+
+    return msgpack_base::decode(data, retVal);
 }
 
 result_t Message::get_length(int64_t& retVal)

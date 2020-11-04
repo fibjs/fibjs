@@ -38,6 +38,8 @@ public:
     virtual result_t write(Buffer_base* data, AsyncEvent* ac);
     virtual result_t json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal);
     virtual result_t json(v8::Local<v8::Value>& retVal);
+    virtual result_t pack(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal);
+    virtual result_t pack(v8::Local<v8::Value>& retVal);
     virtual result_t get_length(int64_t& retVal);
     virtual result_t end();
     virtual result_t isEnded(bool& retVal);

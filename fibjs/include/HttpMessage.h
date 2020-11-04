@@ -32,6 +32,8 @@ public:
     // Message_base
     virtual result_t json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal);
     virtual result_t json(v8::Local<v8::Value>& retVal);
+    virtual result_t pack(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal);
+    virtual result_t pack(v8::Local<v8::Value>& retVal);
 
 public:
     result_t get_protocol(exlib::string& retVal);

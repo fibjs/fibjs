@@ -126,6 +126,29 @@ result_t HttpMessage::json(v8::Local<v8::Value>& retVal)
     return Message::json(retVal);
 }
 
+result_t HttpMessage::pack(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
+{
+    setHeader("Content-Type", "application/msgpack");
+    return Message::pack(data, retVal);
+}
+
+result_t HttpMessage::pack(v8::Local<v8::Value>& retVal)
+{
+    exlib::string strType;
+
+    if (firstHeader("Content-Type", strType) == CALL_RETURN_NULL)
+        return CHECK_ERROR(Runtime::setError("HttpRequest: Content-Type is missing."));
+
+    size_t pos = strType.find(';');
+    if (pos != exlib::string::npos)
+        strType = strType.substr(0, pos);
+
+    if (strType != "application/msgpack")
+        return CHECK_ERROR(Runtime::setError("HttpMessage: Invalid content type."));
+
+    return Message::pack(retVal);
+}
+
 result_t HttpMessage::sendTo(Stream_base* stm, exlib::string& strCommand,
     AsyncEvent* ac)
 {

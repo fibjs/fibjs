@@ -59,6 +59,17 @@ interface Message : object
      */
     Value json();
 
+    /*! @brief 以 msgpack 编码写入给定的数据
+     @param data 给定要写入的数据
+     @return 此方法不会返回数据
+     */
+    Value pack(Value data);
+
+    /*! @brief 以 msgpack 编码解析消息中的数据
+     @return 返回解析的结果
+     */
+    Value pack();
+
     /*! @brief 消息数据部分的长度 */
     readonly Long length;
 

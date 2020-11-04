@@ -69,6 +69,16 @@ result_t HttpRequest::json(v8::Local<v8::Value>& retVal)
     return m_message->json(retVal);
 }
 
+result_t HttpRequest::pack(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
+{
+    return m_message->pack(data, retVal);
+}
+
+result_t HttpRequest::pack(v8::Local<v8::Value>& retVal)
+{
+    return m_message->pack(retVal);
+}
+
 result_t HttpRequest::get_length(int64_t& retVal)
 {
     return m_message->get_length(retVal);

@@ -902,6 +902,52 @@ describe("http", () => {
         assert.deepEqual(rep.json(), v);
     });
 
+    it('pack', () => {
+        var v = {
+            a: 100
+        };
+
+        var req = new http.Request();
+
+        assert.throws(() => {
+            req.pack();
+        });
+        req.setHeader('Content-Type', "application/msg");
+        assert.throws(() => {
+            req.pack();
+        });
+
+        req.pack(v);
+        assert.equal(req.firstHeader('Content-Type'), "application/msgpack");
+        // assert.equal(req.data.toString(), '{"a":100}');
+
+        assert.deepEqual(req.pack(), v);
+
+        req.setHeader('Content-Type', "application/msgpack; utf-8");
+        assert.equal(req.firstHeader('Content-Type'), "application/msgpack; utf-8");
+        assert.deepEqual(req.pack(), v);
+
+        var rep = new http.Response();
+
+        assert.throws(() => {
+            rep.pack();
+        });
+        req.setHeader('Content-Type', "application/msg");
+        assert.throws(() => {
+            req.pack();
+        });
+
+        rep.pack(v);
+        assert.equal(rep.firstHeader('Content-Type'), "application/msgpack");
+        // assert.equal(rep.data.toString(), '{"a":100}');
+
+        assert.deepEqual(rep.pack(), v);
+
+        rep.setHeader('Content-Type', "application/msgpack; utf-8");
+        assert.equal(rep.firstHeader('Content-Type'), "application/msgpack; utf-8");
+        assert.deepEqual(rep.pack(), v);
+    });
+
     describe("encode", () => {
         it("request", () => {
             var rep = new http.Request();
