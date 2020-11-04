@@ -12,301 +12,93 @@
 #include "path.h"
 #include "utf8.h"
 #include "winapi.h"
+#include "AsyncUV.h"
 
 namespace fibjs {
 
-#ifdef _WIN32
-
-inline double FileTimeToJSTime(FILETIME& ft)
-{
-    return (double)(*(int64_t*)&ft - 116444736000000000) / 10000;
-}
-#define MILLIONu (1000U * 1000U)
-#define BILLIONu (1000U * 1000U * 1000U)
-
-#define FILETIME_TO_UINT(filetime) \
-    (*((uint64_t*)&(filetime)) - (uint64_t)116444736 * BILLIONu)
-
-#define FILETIME_TO_TIME_T(filetime) \
-    (FILETIME_TO_UINT(filetime) / (10u * MILLIONu))
-
-#define FILETIME_TO_TIME_NS(filetime, secs) \
-    ((FILETIME_TO_UINT(filetime) - (secs * (uint64_t)10 * MILLIONu)) * 100U)
-
-#define FILETIME_TO_TIMESPEC(ts, filetime)                               \
-    do {                                                                 \
-        (ts).tv_sec = (long)FILETIME_TO_TIME_T(filetime);                \
-        (ts).tv_nsec = (long)FILETIME_TO_TIME_NS(filetime, (ts).tv_sec); \
-    } while (0)
-
-#define TIME_T_TO_FILETIME(time, filetime_ptr)                                                              \
-    do {                                                                                                    \
-        uint64_t bigtime = ((uint64_t)((time) * (uint64_t)10 * MILLIONu)) + (uint64_t)116444736 * BILLIONu; \
-        (filetime_ptr)->dwLowDateTime = bigtime & 0xFFFFFFFF;                                               \
-        (filetime_ptr)->dwHighDateTime = bigtime >> 32;                                                     \
-    } while (0)
-
-bool tryFillStatByNtApi(HANDLE handle, obj_ptr<Stat> statobj)
-{
-    HMODULE hNtdll;
-    sNtQueryInformationFile pNtQueryInformationFile;
-
-    hNtdll = LoadLibrary(TEXT("ntdll.dll"));
-    if (!hNtdll)
-        return false;
-
-    pNtQueryInformationFile = (sNtQueryInformationFile)GetProcAddress(hNtdll, "NtQueryInformationFile");
-    if (!pNtQueryInformationFile)
-        return false;
-
-    FILE_ALL_INFORMATION file_info;
-    FILE_FS_VOLUME_INFORMATION volume_info;
-    NTSTATUS nt_status = -1;
-    IO_STATUS_BLOCK io_status;
-
-    nt_status = pNtQueryInformationFile(handle,
-        &io_status,
-        &file_info,
-        sizeof file_info,
-        FileAllInformation);
-
-    if (io_status.Status == STATUS_NOT_IMPLEMENTED) {
-        statobj->dev = 0;
-    } else if (NT_ERROR(nt_status)) {
-        sRtlNtStatusToDosError pRtlNtStatusToDosError;
-        pRtlNtStatusToDosError = (sRtlNtStatusToDosError)GetProcAddress(hNtdll, "RtlNtStatusToDosError");
-        if (!pRtlNtStatusToDosError)
-            return false;
-        SetLastError(pRtlNtStatusToDosError(nt_status));
-        return false;
-    } else {
-        statobj->dev = volume_info.VolumeSerialNumber;
-    }
-
-    timespec ts_tmp;
-
-    FILETIME_TO_TIMESPEC(ts_tmp, file_info.BasicInformation.LastWriteTime);
-    statobj->mtimeNs = (double)ts_tmp.tv_nsec;
-    statobj->mtime = (double)ts_tmp.tv_sec * 1000ll + (statobj->mtimeNs / 1000000000.0);
-
-    FILETIME_TO_TIMESPEC(ts_tmp, file_info.BasicInformation.LastAccessTime);
-    statobj->atimeNs = (double)ts_tmp.tv_nsec;
-    statobj->atime = (double)ts_tmp.tv_sec * 1000ll + (statobj->atimeNs / 1000000000.0);
-
-    FILETIME_TO_TIMESPEC(ts_tmp, file_info.BasicInformation.ChangeTime);
-    statobj->ctimeNs = (double)ts_tmp.tv_nsec;
-    statobj->ctime = (double)ts_tmp.tv_sec * 1000ll + (statobj->ctimeNs / 1000000000.0);
-
-    FILETIME_TO_TIMESPEC(ts_tmp, file_info.BasicInformation.CreationTime);
-    statobj->birthtimeNs = (double)ts_tmp.tv_nsec;
-    statobj->birthtime = (double)ts_tmp.tv_sec * 1000ll + (statobj->birthtimeNs / 1000000000.0);
-
-    statobj->ino = file_info.InternalInformation.IndexNumber.QuadPart;
-
-    statobj->blocks = (uint64_t)file_info.StandardInformation.AllocationSize.QuadPart >> 9;
-
-    statobj->nlink = file_info.StandardInformation.NumberOfLinks;
-
-    statobj->blksize = 4096;
-    statobj->gid = 0;
-    statobj->uid = 0;
-    statobj->rdev = 0;
-
-    return true;
-}
-
-void Stat::fill(exlib::string path, WIN32_FIND_DATAW& fd)
-{
-    exlib::string strPath;
-    name = utf16to8String(fd.cFileName);
-
-    size = ((int64_t)fd.nFileSizeHigh << 32 | fd.nFileSizeLow);
-    mode = S_IREAD | S_IEXEC;
-
-    mtime = FileTimeToJSTime(fd.ftLastWriteTime);
-    atime = FileTimeToJSTime(fd.ftLastAccessTime);
-    ctime = FileTimeToJSTime(fd.ftCreationTime);
-
-    uid = 0;
-    gid = 0;
-
-    if ((m_isDirectory = (FILE_ATTRIBUTE_DIRECTORY & fd.dwFileAttributes) != 0) == true)
-        mode |= S_IFDIR;
-    if ((m_isFile = (FILE_ATTRIBUTE_DIRECTORY & fd.dwFileAttributes) == 0) == true)
-        mode |= S_IFREG;
-
-    m_isReadable = true;
-    if ((m_isWritable = (FILE_ATTRIBUTE_READONLY & fd.dwFileAttributes) == 0) == true)
-        mode |= S_IWRITE;
-    m_isExecutable = true;
-
-    m_isSymbolicLink = false;
-    if (fs_base::cc_readlink(path, strPath) == 0)
-        m_isSymbolicLink = true;
-
-    m_isMemory = false;
-    m_isSocket = false;
-}
-
-void Stat::fill(exlib::string safe_name, BY_HANDLE_FILE_INFORMATION& fd)
-{
-    path_base::basename(safe_name, "", name);
-
-    size = ((int64_t)fd.nFileSizeHigh << 32 | fd.nFileSizeLow);
-    ino = ((int64_t)fd.nFileIndexHigh << 32 | fd.nFileIndexLow);
-    mode = S_IREAD | S_IEXEC;
-
-    mtime = FileTimeToJSTime(fd.ftLastWriteTime);
-    atime = FileTimeToJSTime(fd.ftLastAccessTime);
-    ctime = FileTimeToJSTime(fd.ftCreationTime);
-    nlink = fd.nNumberOfLinks;
-    dev = fd.dwVolumeSerialNumber;
-
-    uid = 0;
-    gid = 0;
-
-    if ((m_isDirectory = (FILE_ATTRIBUTE_DIRECTORY & fd.dwFileAttributes) != 0) == true)
-        mode |= S_IFDIR;
-    if ((m_isFile = (FILE_ATTRIBUTE_DIRECTORY & fd.dwFileAttributes) == 0) == true)
-        mode |= S_IFREG;
-
-    m_isReadable = true;
-    if ((m_isWritable = (FILE_ATTRIBUTE_READONLY & fd.dwFileAttributes) == 0) == true)
-        mode |= S_IWRITE;
-    m_isExecutable = true;
-
-    m_isSymbolicLink = false;
-    exlib::string strLinkPath;
-    if (fs_base::cc_readlink(safe_name, strLinkPath) == 0)
-        m_isSymbolicLink = true;
-
-    m_isMemory = false;
-    m_isSocket = false;
-}
-
 result_t Stat::getStat(exlib::string path)
 {
-    result_t hr = path_base::normalize(path, path);
-    if (hr < 0)
-        return hr;
+    uv_fs_t stat_req;
 
-    if (path.length() > 0 && isWin32PathSlash(path.c_str()[path.length() - 1]))
-        path.resize(path.length() - 1);
+    int ret = uv_call([&] {
+        return uv_fs_stat(s_uv_loop, &stat_req, path.c_str(), NULL);
+    });
 
-    WIN32_FIND_DATAW fd;
-    HANDLE hFind;
+    if (ret != 0)
+        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
 
-    hFind = FindFirstFileW(UTF8_W(path), &fd);
-    if (hFind == INVALID_HANDLE_VALUE)
-        return CHECK_ERROR(LastError());
-
-    fill(path, fd);
-    FindClose(hFind);
-
-    if (!m_isFile)
-        return 0;
-
-    int32_t f_fd;
-    hr = file_open(path, "r", mode, f_fd);
-    if (hr < 0)
-        return hr;
-
-    BY_HANDLE_FILE_INFORMATION fdata;
-    HANDLE fHandle = (HANDLE)_get_osfhandle(f_fd);
-    if (!GetFileInformationByHandle(fHandle, &fdata))
-        return CHECK_ERROR(LastError());
-
-    fill(path, fdata);
-    tryFillStatByNtApi(fHandle, this);
-    ::_close(f_fd);
+    fill(path, &stat_req.statbuf);
 
     return 0;
 }
 
 result_t Stat::getLstat(exlib::string path)
 {
-    return getStat(path);
-}
+    uv_fs_t stat_req;
 
-#else
+    int ret = uv_call([&] {
+        return uv_fs_lstat(s_uv_loop, &stat_req, path.c_str(), NULL);
+    });
 
-result_t Stat::getStat(exlib::string path)
-{
-    struct stat64 st;
-    if (::stat64(path.c_str(), &st))
-        return CHECK_ERROR(LastError());
+    if (ret != 0)
+        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
 
-    fill(path, st);
+    fill(path, &stat_req.statbuf);
 
     return 0;
 }
 
-result_t Stat::getLstat(exlib::string path)
-{
-    struct stat64 st;
-    if (::lstat64(path.c_str(), &st))
-        return CHECK_ERROR(LastError());
-
-    fill(path, st);
-    return 0;
-}
-
-#endif
-
-void Stat::fill(exlib::string path, struct stat64& st)
+void Stat::fill(exlib::string path, uv_stat_t* statbuf)
 {
     path_base::basename(path, "", name);
 
-    dev = st.st_dev;
-    ino = st.st_ino;
-    mode = st.st_mode;
+    dev = statbuf->st_dev;
+    ino = statbuf->st_ino;
+    mode = statbuf->st_mode;
 
-    nlink = st.st_nlink;
+    nlink = statbuf->st_nlink;
 
-    uid = st.st_uid;
-    gid = st.st_gid;
+    uid = statbuf->st_uid;
+    gid = statbuf->st_gid;
 
-    rdev = st.st_rdev;
+    rdev = statbuf->st_rdev;
 
-    size = st.st_size;
-#ifndef _WIN32
-    blksize = st.st_blksize;
-    blocks = st.st_blocks;
-#ifdef Darwin
-    mtimeNs = (double)st.st_mtimespec.tv_nsec;
-    mtime = (double)st.st_mtimespec.tv_sec * 1000ll + (mtimeNs / 1000000000.0);
+    size = statbuf->st_size;
 
-    atimeNs = (double)st.st_atimespec.tv_nsec;
-    atime = (double)st.st_atimespec.tv_sec * 1000ll + (atimeNs / 1000000000.0);
+    blksize = statbuf->st_blksize;
+    blocks = statbuf->st_blocks;
 
-    ctimeNs = (double)st.st_ctimespec.tv_nsec;
-    ctime = (double)st.st_ctimespec.tv_sec * 1000ll + (ctimeNs / 1000000000.0);
+    mtimeNs = (double)statbuf->st_mtim.tv_nsec;
+    mtime = (double)statbuf->st_mtim.tv_sec * 1000ll + (mtimeNs / 1000000000.0);
 
-    birthtimeNs = (double)st.st_birthtimespec.tv_nsec;
-    birthtime = (double)st.st_birthtimespec.tv_sec * 1000ll + (birthtimeNs / 1000000000.0);
-#else /* Darwin */
-    mtime = (double)st.st_mtime * 1000ll;
-    mtimeNs = (uint64_t)(st.st_mtime * 1000000) % 1000000 * 1000;
-    atime = (double)st.st_atime * 1000ll;
-    atimeNs = (uint64_t)(st.st_atime * 1000000) % 1000000 * 1000;
-    ctime = (double)st.st_ctime * 1000ll;
-    ctimeNs = (uint64_t)(st.st_ctime * 1000000) % 1000000 * 1000;
-    birthtime = ctime.date();
-    birthtimeNs = ctimeNs;
-#endif /* Darwin */
-    m_isBlockDevice = S_ISBLK(st.st_mode);
-    m_isCharacterDevice = S_ISCHR(st.st_mode);
-    m_isFIFO = S_ISFIFO(st.st_mode);
+    atimeNs = (double)statbuf->st_atim.tv_nsec;
+    atime = (double)statbuf->st_atim.tv_sec * 1000ll + (atimeNs / 1000000000.0);
+
+    ctimeNs = (double)statbuf->st_ctim.tv_nsec;
+    ctime = (double)statbuf->st_ctim.tv_sec * 1000ll + (ctimeNs / 1000000000.0);
+
+    birthtimeNs = (double)statbuf->st_birthtim.tv_nsec;
+    birthtime = (double)statbuf->st_birthtim.tv_sec * 1000ll + (birthtimeNs / 1000000000.0);
+
+#ifdef _WIN32
+    m_isBlockDevice = false;
+
+    m_isCharacterDevice = false;
+    m_isFIFO = false;
+#else
+    m_isBlockDevice = S_ISBLK(statbuf->st_mode);
+    m_isCharacterDevice = S_ISCHR(statbuf->st_mode);
+    m_isFIFO = S_ISFIFO(statbuf->st_mode);
 #endif
 
-    m_isReadable = (S_IRUSR & st.st_mode) != 0;
-    m_isWritable = (S_IWUSR & st.st_mode) != 0;
-    m_isExecutable = (S_IXUSR & st.st_mode) != 0;
+    m_isReadable = (S_IRUSR & statbuf->st_mode) != 0;
+    m_isWritable = (S_IWUSR & statbuf->st_mode) != 0;
+    m_isExecutable = (S_IXUSR & statbuf->st_mode) != 0;
 
-    m_isDirectory = (S_IFDIR & st.st_mode) != 0;
-    m_isFile = (S_IFREG & st.st_mode) != 0;
+    m_isDirectory = (S_IFDIR & statbuf->st_mode) != 0;
+    m_isFile = (S_IFREG & statbuf->st_mode) != 0;
 
-    m_isSymbolicLink = S_ISLNK(st.st_mode);
+    m_isSymbolicLink = S_ISLNK(statbuf->st_mode);
 
     m_isMemory = false;
     m_isSocket = false;

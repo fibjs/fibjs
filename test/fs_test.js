@@ -65,7 +65,11 @@ describe('fs', () => {
 
             assert.equal(st.isDirectory(), true);
             assert.equal(st.isFile(), false);
-            assert.equal(st.isExecutable(), true);
+            if (process.platform === 'win32') {
+                assert.equal(st.isExecutable(), false);
+            } else {
+                assert.equal(st.isExecutable(), true);
+            }
             assert.equal(st.isReadable(), true);
             assert.equal(st.isWritable(), true);
 
@@ -74,7 +78,11 @@ describe('fs', () => {
 
             assert.equal(st.isDirectory(), true);
             assert.equal(st.isFile(), false);
-            assert.equal(st.isExecutable(), true);
+            if (process.platform === 'win32') {
+                assert.equal(st.isExecutable(), false);
+            } else {
+                assert.equal(st.isExecutable(), true);
+            }
             assert.equal(st.isReadable(), true);
             assert.equal(st.isWritable(), true);
         });
@@ -91,7 +99,11 @@ describe('fs', () => {
 
             assert.equal(st.isDirectory(), true);
             assert.equal(st.isFile(), false);
-            assert.equal(st.isExecutable(), true);
+            if (process.platform === 'win32') {
+                assert.equal(st.isExecutable(), false);
+            } else {
+                assert.equal(st.isExecutable(), true);
+            }
             assert.equal(st.isReadable(), true);
             assert.equal(st.isWritable(), true);
         });

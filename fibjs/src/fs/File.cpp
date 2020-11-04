@@ -200,8 +200,6 @@ result_t File::get_fd(int32_t& retVal)
     return 0;
 }
 
-#ifdef _WIN32
-
 result_t File::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
 {
     if (m_fd == -1)
@@ -217,25 +215,6 @@ result_t File::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
 
     return 0;
 }
-#else
-result_t File::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
-{
-    if (m_fd == -1)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    struct stat64 st;
-    fstat64(m_fd, &st);
-
-    obj_ptr<Stat> pStat = new Stat();
-    pStat->fill(name, st);
-    retVal = pStat;
-
-    return 0;
-}
-#endif
 
 result_t File::size(int64_t& retVal)
 {
