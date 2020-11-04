@@ -10,6 +10,7 @@
 
 #include "ifs/Stat.h"
 #include <sys/stat.h>
+#include "AsyncUV.h"
 
 #ifdef _WIN32
 
@@ -91,12 +92,7 @@ public:
 public:
     result_t getStat(exlib::string path);
     result_t getLstat(exlib::string path);
-    void fill(exlib::string path, struct stat64& st);
-
-#ifdef _WIN32
-    void fill(exlib::string path, WIN32_FIND_DATAW& fd);
-    void fill(exlib::string path, BY_HANDLE_FILE_INFORMATION& fd);
-#endif
+    void fill(exlib::string path, uv_stat_t* statbuf);
 
     void init();
     void init(Stat_base* st);
