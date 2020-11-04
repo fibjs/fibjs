@@ -54,7 +54,7 @@ void Stat::fill(exlib::string path, uv_stat_t* statbuf)
 
     dev = statbuf->st_dev;
     ino = statbuf->st_ino;
-    mode = statbuf->st_mode;
+    m_mode = statbuf->st_mode;
 
     nlink = statbuf->st_nlink;
 
@@ -80,26 +80,6 @@ void Stat::fill(exlib::string path, uv_stat_t* statbuf)
     birthtimeNs = (double)statbuf->st_birthtim.tv_nsec;
     birthtime = (double)statbuf->st_birthtim.tv_sec * 1000ll + (birthtimeNs / 1000000000.0);
 
-#ifdef _WIN32
-    m_isBlockDevice = false;
-
-    m_isCharacterDevice = false;
-    m_isFIFO = false;
-#else
-    m_isBlockDevice = S_ISBLK(statbuf->st_mode);
-    m_isCharacterDevice = S_ISCHR(statbuf->st_mode);
-    m_isFIFO = S_ISFIFO(statbuf->st_mode);
-#endif
-
-    m_isReadable = (S_IRUSR & statbuf->st_mode) != 0;
-    m_isWritable = (S_IWUSR & statbuf->st_mode) != 0;
-    m_isExecutable = (S_IXUSR & statbuf->st_mode) != 0;
-
-    m_isDirectory = (S_IFDIR & statbuf->st_mode) != 0;
-    m_isFile = (S_IFREG & statbuf->st_mode) != 0;
-
-    m_isSymbolicLink = S_ISLNK(statbuf->st_mode);
-
     m_isMemory = false;
     m_isSocket = false;
 }
@@ -108,7 +88,7 @@ void Stat::init()
 {
     name.resize(0);
     size = 0;
-    mode = 0;
+    m_mode = 0;
 
     mtime = 0;
     mtimeNs = 0;
@@ -121,22 +101,6 @@ void Stat::init()
 
     gid = 0;
     uid = 0;
-
-    m_isBlockDevice = false;
-    m_isCharacterDevice = false;
-    m_isFIFO = false;
-
-    m_isReadable = false;
-    m_isWritable = false;
-    m_isExecutable = false;
-
-    m_isDirectory = false;
-    m_isFile = false;
-
-    m_isSymbolicLink = false;
-
-    m_isMemory = false;
-    m_isSocket = false;
 }
 
 void Stat::init(Stat_base* st)
@@ -150,7 +114,7 @@ void Stat::init(Stat_base* st)
     size = d_tmp;
 
     st->get_mode(i32_tmp);
-    mode = i32_tmp;
+    m_mode = i32_tmp;
 
     st->get_mtime(mtime);
     st->get_atime(atime);
@@ -162,19 +126,6 @@ void Stat::init(Stat_base* st)
 
     st->get_uid(i32_tmp);
     uid = i32_tmp;
-
-    // st->isBlockDevice(m_isBlockDevice);
-    // st->isCharacterDevice(m_isCharacterDevice);
-    // st->isFIFO(m_isFIFO);
-
-    st->isReadable(m_isReadable);
-    st->isWritable(m_isWritable);
-    st->isExecutable(m_isExecutable);
-
-    st->isDirectory(m_isDirectory);
-    st->isFile(m_isFile);
-
-    st->isSymbolicLink(m_isSymbolicLink);
 
     st->isMemory(m_isMemory);
     st->isSocket(m_isSocket);
@@ -200,7 +151,7 @@ result_t Stat::get_ino(int32_t& retVal)
 
 result_t Stat::get_mode(int32_t& retVal)
 {
-    retVal = mode;
+    retVal = m_mode;
     return 0;
 };
 
@@ -296,19 +247,22 @@ result_t Stat::get_birthtimeMs(double& retVal)
 
 result_t Stat::isWritable(bool& retVal)
 {
-    retVal = m_isWritable;
+    retVal = (S_IWUSR & m_mode) != 0;
+
     return 0;
 }
 
 result_t Stat::isReadable(bool& retVal)
 {
-    retVal = m_isReadable;
+    retVal = (S_IRUSR & m_mode) != 0;
+
     return 0;
 }
 
 result_t Stat::isExecutable(bool& retVal)
 {
-    retVal = m_isExecutable;
+    retVal = (S_IXUSR & m_mode) != 0;
+
     return 0;
 }
 
@@ -318,33 +272,71 @@ result_t Stat::isHidden(bool& retVal)
     return 0;
 }
 
+result_t Stat::isBlockDevice(bool& retVal)
+{
+#ifdef _WIN32
+    retVal = false;
+#else
+    retVal = S_ISBLK(m_mode);
+#endif
+
+    return 0;
+}
+
+result_t Stat::isCharacterDevice(bool& retVal)
+{
+#ifdef _WIN32
+    retVal = false;
+#else
+    retVal = S_ISCHR(m_mode);
+#endif
+
+    return 0;
+}
+
 result_t Stat::isDirectory(bool& retVal)
 {
-    retVal = m_isDirectory;
+    retVal = (S_IFDIR & m_mode) != 0;
+
+    return 0;
+}
+
+result_t Stat::isFIFO(bool& retVal)
+{
+#ifdef _WIN32
+    retVal = false;
+#else
+    retVal = S_ISFIFO(m_mode);
+#endif
+
     return 0;
 }
 
 result_t Stat::isFile(bool& retVal)
 {
-    retVal = m_isFile;
+    retVal = (S_IFREG & m_mode) != 0;
+
     return 0;
 }
 
 result_t Stat::isSymbolicLink(bool& retVal)
 {
-    retVal = m_isSymbolicLink;
+    retVal = S_ISLNK(m_mode);
+
     return 0;
 }
 
 result_t Stat::isMemory(bool& retVal)
 {
     retVal = m_isMemory;
+
     return 0;
 }
 
 result_t Stat::isSocket(bool& retVal)
 {
     retVal = m_isSocket;
+
     return 0;
 }
 }

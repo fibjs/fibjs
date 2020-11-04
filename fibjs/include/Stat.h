@@ -83,8 +83,11 @@ public:
     virtual result_t isReadable(bool& retVal);
     virtual result_t isExecutable(bool& retVal);
     virtual result_t isHidden(bool& retVal);
+    virtual result_t isBlockDevice(bool& retVal);
+    virtual result_t isCharacterDevice(bool& retVal);
     virtual result_t isDirectory(bool& retVal);
     virtual result_t isFile(bool& retVal);
+    virtual result_t isFIFO(bool& retVal);
     virtual result_t isSymbolicLink(bool& retVal);
     virtual result_t isMemory(bool& retVal);
     virtual result_t isSocket(bool& retVal);
@@ -97,21 +100,21 @@ public:
     void init();
     void init(Stat_base* st);
 
-public:
-    exlib::string name;
+private:
     int64_t dev, rdev;
     int64_t ino;
-    int64_t mode;
+    uint64_t m_mode;
     int64_t nlink;
     int64_t uid, gid;
-    int64_t size;
     int64_t blksize;
     int64_t blocks;
+
+public:
+    exlib::string name;
+    int64_t size;
     date_t mtime, atime, ctime, birthtime;
     int64_t mtimeNs, atimeNs, ctimeNs, birthtimeNs;
-    bool m_isBlockDevice, m_isCharacterDevice, m_isFIFO;
-    bool m_isWritable, m_isReadable, m_isExecutable, m_isHidden;
-    bool m_isDirectory, m_isFile, m_isSymbolicLink;
+    bool m_isHidden;
     bool m_isMemory, m_isSocket;
 };
 }

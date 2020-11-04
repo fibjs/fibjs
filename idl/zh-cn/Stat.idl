@@ -81,10 +81,25 @@ interface Stat : object
      */
     Boolean isHidden();
 
+    /*! @brief 查询 Stat 是否描述了一个 block device
+     @return 为 true 表示描述了一个 block device
+     */
+    Boolean isBlockDevice();
+
+    /*! @brief 查询 Stat 是否描述了一个 character device
+     @return 为 true 表示描述了一个 character device
+     */
+    Boolean isCharacterDevice();
+
     /*! @brief 查询文件是否是目录
      @return 为 true 则是目录
      */
     Boolean isDirectory();
+
+    /*! @brief 查询 Stat 是否描述了一个 FIFO 管道
+     @return 为 true 表示描述了一个 FIFO 管道
+     */
+    Boolean isFIFO();
 
     /*! @brief 查询文件是否是文件
      @return 为 true 则是文件
