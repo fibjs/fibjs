@@ -2670,15 +2670,45 @@ describe("http", () => {
             assert.isObject(resp.json())
         });
 
-        it("disable https verification", () => {
+        function testEffectByHttpClient(sslVerification, cb) {
+            const orig = ssl.verification
+
             hc = new http.Client();
+            if (sslVerification !== undefined)
+                hc.sslVerification = sslVerification;
 
-            hc.sslVerification = ssl.VERIFY_NONE
+            cb(hc);
 
-            var resp = hc.get('https://registry.npmjs.org');
+            ssl.verification = orig
+        }
 
-            assert.equal(resp.statusCode, 200);
-            assert.isObject(resp.json())
+        describe("disable https verification", () => {
+            it("get + ssl.VERIFY_NONE", () => {
+                testEffectByHttpClient(ssl.VERIFY_NONE, hc => {
+                    var resp = hc.get('https://registry.npmjs.org');
+
+                    assert.equal(resp.statusCode, 200);
+                    assert.isObject(resp.json());
+                });
+            });
+
+            it("post + ssl.VERIFY_NONE", () => {
+                testEffectByHttpClient(ssl.VERIFY_NONE, hc => {
+                    var resp = hc.post('https://registry.npmjs.org');
+
+                    assert.equal(resp.statusCode, 405);
+                    assert.isObject(resp.json());
+                });
+            });
+
+            it("post + ssl.VERIFY_OPTIONAL", () => {
+                testEffectByHttpClient(ssl.VERIFY_OPTIONAL, hc => {
+                    var resp = hc.post('https://registry.npmjs.org');
+
+                    assert.equal(resp.statusCode, 405);
+                    assert.isObject(resp.json());
+                });
+            });
         });
 
         function testEffectBySsl(verification, cb) {
