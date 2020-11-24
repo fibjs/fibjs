@@ -14,7 +14,7 @@
 #include "ifs/util.h"
 #include "Fiber.h"
 #include "EventEmitter.h"
-#include "UVStream.h"
+#include "File.h"
 #include "BufferedStream.h"
 #include "SubProcess.h"
 #include <vector>
@@ -22,10 +22,6 @@
 
 #ifdef _WIN32
 #include <psapi.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <io.h>
-
 #include "utf8.h"
 #include "process_win.h"
 #else
@@ -248,34 +244,34 @@ result_t process_base::get_ppid(int32_t& retVal)
     return 0;
 }
 
-result_t process_base::get_stdin(obj_ptr<Stream_base>& retVal)
+result_t process_base::get_stdin(obj_ptr<File_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
 
     if (!isolate->m_stdin)
-        isolate->m_stdin = new UVStream(fileno(stdin));
+        isolate->m_stdin = new File(fileno(stdin));
     retVal = isolate->m_stdin;
 
     return 0;
 }
 
-result_t process_base::get_stdout(obj_ptr<Stream_base>& retVal)
+result_t process_base::get_stdout(obj_ptr<File_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
 
     if (!isolate->m_stdout)
-        isolate->m_stdout = new UVStream(fileno(stdout));
+        isolate->m_stdout = new File(fileno(stdout));
     retVal = isolate->m_stdout;
 
     return 0;
 }
 
-result_t process_base::get_stderr(obj_ptr<Stream_base>& retVal)
+result_t process_base::get_stderr(obj_ptr<File_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
 
     if (!isolate->m_stderr)
-        isolate->m_stderr = new UVStream(fileno(stderr));
+        isolate->m_stderr = new File(fileno(stderr));
     retVal = isolate->m_stderr;
 
     return 0;

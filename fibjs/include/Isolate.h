@@ -32,7 +32,7 @@ class SandBox;
 class JSFiber;
 class HttpClient;
 class LruCache;
-class Stream_base;
+class File_base;
 class ValueHolder;
 
 class Isolate : public exlib::linkitem {
@@ -115,9 +115,9 @@ public:
     obj_ptr<SandBox> m_topSandbox;
     obj_ptr<HttpClient> m_httpclient;
 
-    obj_ptr<Stream_base> m_stdin;
-    obj_ptr<Stream_base> m_stdout;
-    obj_ptr<Stream_base> m_stderr;
+    obj_ptr<File_base> m_stdin;
+    obj_ptr<File_base> m_stdout;
+    obj_ptr<File_base> m_stderr;
 
     exlib::List<exlib::linkitem> m_fibers;
 
