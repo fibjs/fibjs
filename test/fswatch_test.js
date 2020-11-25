@@ -457,8 +457,10 @@ describe('fs.watch*', () => {
 
             it("fs.watchFile nil", () => {
                 let nilTuple = []
+                let onlyOnceCount = 0;
                 const watcher = fs.watchFile(relfile, { interval: 50 }, (cur, prev) => {
                     triggeredThoughWatchNil = true;
+                    onlyOnceCount++;
                     nilTuple = [cur, prev]
                 })
 
@@ -469,6 +471,7 @@ describe('fs.watch*', () => {
                 assert.ok(nilTuple.length === 2);
                 assert.ok(nilTuple[0].ctimeMs === 0);
                 assert.ok(nilTuple[1].ctimeMs === 0);
+                assert.equal(onlyOnceCount, 1);
             });
 
             it("fs.unwatchFile nil", () => {

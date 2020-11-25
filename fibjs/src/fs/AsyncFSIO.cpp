@@ -35,24 +35,6 @@ void FSWatcher::AsyncWatchFSProc::invoke()
     }
 }
 
-int32_t StatsWatcher::AsyncMonitorStatsChangeProc::post(int32_t v)
-{
-    s_uvAsyncUVTasks.putTail(this);
-    uv_async_send(&s_uv_asyncWatcher);
-
-    return 0;
-}
-
-void StatsWatcher::AsyncMonitorStatsChangeProc::invoke()
-{
-    uv_timer_init(s_uv_loop, &m_timer_req);
-    int32_t uv_err_no = uv_timer_start(&m_timer_req, timer_callback, 0, m_watcher->getIntervalMS());
-    if (uv_err_no != 0) {
-        m_watcher->onError(CALL_E_INVALID_CALL, uv_strerror(uv_err_no));
-        m_watcher->close();
-    }
-}
-
 int uv_call(std::function<int(void)> proc)
 {
     class UVCall : public AsyncEvent {
