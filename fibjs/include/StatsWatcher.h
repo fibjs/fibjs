@@ -67,15 +67,6 @@ public:
     EVENT_FUNC(error);
 
 public:
-    static bool isTargetBeingWatched(exlib::string& target)
-    {
-        s_TargetWatcherMapLock.lock();
-        bool watching = (bool)s_TargetWatcherMap.count(target);
-        s_TargetWatcherMapLock.unlock();
-
-        return watching;
-    }
-
     static bool setTargetWatcher(exlib::string& target, StatsWatcher* watcher)
     {
         s_TargetWatcherMapLock.lock();
@@ -102,12 +93,10 @@ public:
 
     static void removeTargetWatcher(exlib::string& target)
     {
-        if (!isTargetBeingWatched(target))
-            return;
-
         s_TargetWatcherMapLock.lock();
 
-        s_TargetWatcherMap.erase(target);
+        if ((bool)s_TargetWatcherMap.count(target))
+            s_TargetWatcherMap.erase(target);
 
         s_TargetWatcherMapLock.unlock();
     }
