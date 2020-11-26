@@ -14,6 +14,11 @@
 
 namespace fibjs {
 
+inline bool is_stdio_fd(int32_t fd)
+{
+    return fd >= 0 && fd <= 2;
+}
+
 class UVStream : public Stream_base {
     FIBER_FREE();
 
@@ -26,7 +31,13 @@ public:
         memset(&m_pipe, 0, sizeof(uv_pipe_t));
         uv_call([&] {
             uv_pipe_init(s_uv_loop, &m_pipe, 0);
-            return uv_pipe_open(&m_pipe, fd);
+
+            int ret = uv_pipe_open(&m_pipe, fd);
+
+            if (ret == 0 && is_stdio_fd(fd))
+                ret = uv_stream_set_blocking((uv_stream_t*)&m_pipe, 1);
+
+            return ret;
         });
     }
 
@@ -130,7 +141,7 @@ public:
     virtual result_t get_fd(int32_t& retVal)
     {
 #ifdef _WIN32
-        if (m_fd >= 0 && m_fd <= 2) {
+        if (is_stdio_fd(m_fd)) {
             retVal = m_fd;
 
             return 0;

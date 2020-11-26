@@ -57,6 +57,53 @@ describe('process', () => {
         });
     });
 
+    /**
+     * @why issues: #620, #622
+     */
+    describe("access process.std[xx]", () => {
+        const child_process = require('child_process');
+        const io = require('io');
+        const os = require('os');
+
+        process.env.CI && it("test process.stdout in this proc", () => {
+            // access it
+            process.stdout;
+
+            const LEN = 100
+            console.log(`you could see ${LEN} lines to ouput 1~${LEN}`)
+            const str = Array.apply(null, { length: LEN }).fill(undefined).map((_, idx) => {
+                return `${idx + 1}`
+            })
+
+            console.log(str)
+        });
+
+        it("test process.stdin in child process", () => {
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.blocking_stdin.js')]);
+            var stdin = new io.BufferedStream(bs.stdin);
+            var stdout = new io.BufferedStream(bs.stdout);
+
+            stdin.write("hello, blocking_std" + os.EOL);
+            assert.equal(stdout.readLine(), "hello, blocking_std");
+        });
+
+        it("test process.stdout in child process", () => {
+            const COUNT_LEN = 500;
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.blocking_stdout.js')], {
+                env: {
+                    COUNT_LEN
+                }
+            });
+            var stdout = new io.BufferedStream(bs.stdout);
+
+            var strs = Array.apply(null, { length: COUNT_LEN }).fill(undefined).map((_, idx) => {
+                return `${idx + 1}`
+            })
+
+            assert.deepEqual(stdout.readLines(), strs);
+        });
+    });
+
     xdescribe("ppid", () => {
         it("basic", () => {
             assert.property(process, 'ppid');
