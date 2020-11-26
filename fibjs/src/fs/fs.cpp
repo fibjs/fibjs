@@ -634,14 +634,17 @@ result_t fs_base::watchFile(exlib::string fname, v8::Local<v8::Object> options, 
         pSW = new StatsWatcher(safe_name, persistent, interval, useBigInt);
         retVal = pSW;
 
-        pSW->start();
+        hr = pSW->start();
+
+        if (hr < 0)
+            return hr;
     }
 
     pSW->bindChangeHandler(callback);
 
     retVal = pSW;
 
-    return 0;
+    return hr;
 }
 
 result_t fs_base::unwatchFile(exlib::string fname)
