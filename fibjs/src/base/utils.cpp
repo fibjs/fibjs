@@ -54,11 +54,11 @@ exlib::string getResultMessage(result_t hr)
         // CALL_E_EMPTY
         "Collection is empty.",
         // CALL_E_PENDDING
-        "Operation not support synchronous call.",
-        // CALL_E_NOASYNC
         "Operation now in progress.",
-        // CALL_E_NOSYNC
+        // CALL_E_NOASYNC
         "Operation not support asynchronous call.",
+        // CALL_E_NOSYNC
+        "Operation not support synchronous call.",
         // CALL_E_LONGSYNC
         "Operation is long synchronous call.",
         // CALL_E_GUICALL
