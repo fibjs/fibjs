@@ -47,7 +47,7 @@ result_t JsLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::strin
             return throwSyntaxError(try_catch1);
         }
 
-        throwSyntaxError(try_catch);
+        return throwSyntaxError(try_catch);
     }
 
     return 0;

@@ -52,6 +52,12 @@ describe("module", () => {
         });
     });
 
+    it("require compile error", () => {
+        assert.throws(() => {
+            require('./module/require_bug');
+        });
+    });
+
     it("share require", () => {
         a = require('./module/a3');
         b = require('./b');

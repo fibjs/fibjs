@@ -1,0 +1,1 @@
+const require = 100;
