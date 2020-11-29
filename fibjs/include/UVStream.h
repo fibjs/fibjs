@@ -52,6 +52,26 @@ public:
         });
     }
 
+    static void on_delete(uv_handle_t* handle)
+    {
+        UVStream* pThis = container_of(handle, UVStream, m_pipe);
+        delete pThis;
+    }
+
+    virtual void Delete()
+    {
+        result_t hr = uv_call([&] {
+            if (uv_is_closing((uv_handle_t*)&m_pipe))
+                return CALL_E_INVALID_CALL;
+
+            uv_close((uv_handle_t*)&m_pipe, on_delete);
+            return CALL_E_PENDDING;
+        });
+
+        if (hr != CALL_E_PENDDING)
+            delete this;
+    }
+
 public:
     // Stream_base
     class AsyncRead : public AsyncEvent {
