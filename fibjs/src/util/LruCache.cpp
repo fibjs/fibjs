@@ -170,10 +170,11 @@ inline result_t _map(LruCache* o, v8::Local<v8::Object> m,
     JSArray ks = m->GetPropertyNames();
     int32_t len = ks->Length();
     int32_t i;
+    Isolate* isolate = o->holder();
 
     for (i = 0; i < len; i++) {
         JSValue k = ks->Get(i);
-        (o->*fn)(ToCString(v8::String::Utf8Value(k)), JSValue(m->Get(k)));
+        (o->*fn)(ToCString(v8::String::Utf8Value(isolate->m_isolate, k)), JSValue(m->Get(k)));
     }
 
     return 0;

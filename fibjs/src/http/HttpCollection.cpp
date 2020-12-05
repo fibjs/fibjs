@@ -245,6 +245,7 @@ result_t HttpCollection::add(v8::Local<v8::Object> map)
     JSArray ks = map->GetPropertyNames();
     int32_t len = ks->Length();
     int32_t i;
+    Isolate* isolate = holder();
 
     for (i = 0; i < len; i++) {
         JSValue k = ks->Get(i);
@@ -254,9 +255,9 @@ result_t HttpCollection::add(v8::Local<v8::Object> map)
             return CALL_E_JAVASCRIPT;
 
         if (v->IsArray())
-            add(ToCString(v8::String::Utf8Value(k)), v8::Local<v8::Array>::Cast(v));
+            add(ToCString(v8::String::Utf8Value(isolate->m_isolate, k)), v8::Local<v8::Array>::Cast(v));
         else
-            add(ToCString(v8::String::Utf8Value(k)), (Variant)v);
+            add(ToCString(v8::String::Utf8Value(isolate->m_isolate, k)), (Variant)v);
     }
 
     return 0;
@@ -284,6 +285,7 @@ result_t HttpCollection::set(v8::Local<v8::Object> map)
     JSArray ks = map->GetPropertyNames();
     int32_t len = ks->Length();
     int32_t i;
+    Isolate* isolate = holder();
 
     for (i = 0; i < len; i++) {
         JSValue k = ks->Get(i);
@@ -293,9 +295,9 @@ result_t HttpCollection::set(v8::Local<v8::Object> map)
             return CALL_E_JAVASCRIPT;
 
         if (v->IsArray())
-            set(ToCString(v8::String::Utf8Value(k)), v8::Local<v8::Array>::Cast(v));
+            set(ToCString(v8::String::Utf8Value(isolate->m_isolate, k)), v8::Local<v8::Array>::Cast(v));
         else
-            set(ToCString(v8::String::Utf8Value(k)), (Variant)v);
+            set(ToCString(v8::String::Utf8Value(isolate->m_isolate, k)), (Variant)v);
     }
 
     return 0;

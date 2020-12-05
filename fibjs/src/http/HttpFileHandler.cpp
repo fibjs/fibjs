@@ -1152,6 +1152,7 @@ result_t HttpFileHandler::set_mimes(v8::Local<v8::Object> mimes)
     int32_t len = keys->Length();
     int32_t i;
     result_t hr;
+    Isolate* isolate = holder();
 
     for (i = 0; i < len; i++) {
         JSValue ks = keys->Get(i);
@@ -1165,7 +1166,7 @@ result_t HttpFileHandler::set_mimes(v8::Local<v8::Object> mimes)
         if (hr < 0)
             return CHECK_ERROR(hr);
 
-        m_mimes.insert(std::pair<exlib::string, exlib::string>(ToCString(v8::String::Utf8Value(ks)), s));
+        m_mimes.insert(std::pair<exlib::string, exlib::string>(ToCString(v8::String::Utf8Value(isolate->m_isolate, ks)), s));
     }
 
     return 0;

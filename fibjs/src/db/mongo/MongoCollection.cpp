@@ -262,6 +262,7 @@ result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
     JSArray ks = keys->GetPropertyNames();
     int32_t len = (int32_t)ks->Length();
     int32_t i;
+    Isolate* isolate = holder();
 
     for (i = 0; i < len; i++) {
         JSValue k = ks->Get(i);
@@ -270,8 +271,8 @@ result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
         if (!v->IsNumber() && !v->IsNumberObject())
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
-        v8::String::Utf8Value sk(k);
-        v8::String::Utf8Value sv(v);
+        v8::String::Utf8Value sk(isolate->m_isolate, k);
+        v8::String::Utf8Value sv(isolate->m_isolate, v);
 
         if (name.length())
             name += '_';
@@ -281,7 +282,6 @@ result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
         name.append(*sv, sv.length());
     }
 
-    Isolate* isolate = holder();
     v8::Local<v8::Object> idx = v8::Object::New(isolate->m_isolate);
 
     idx->Set(isolate->NewString("name"), isolate->NewString(name));

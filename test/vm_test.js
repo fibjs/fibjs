@@ -91,7 +91,12 @@ describe("vm", () => {
 
         var bin3 = util.compile("tc4.js", "\n\n\nmodule.exports = \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nfunction() {\nreturn new Error().stack;}");
         var b = sbox.addScript("tc4.jsc", bin3);
-        assert.equal(b().split('\n')[1].trim(), "at module.exports (tc4.js:26:8)");
+        // assert.equal(b().split('\n')[1].trim(), "at module.exports (tc4.js:26:8)");
+        assert.equal(b().split('\n')[1].trim(), "at tc4.js:26:8");
+
+        var bin5 = util.compile("tc5.js", "\n\n\nmodule.exports = \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nfunction func_name () {\nreturn new Error().stack;}");
+        var b = sbox.addScript("tc5.jsc", bin5);
+        assert.equal(b().split('\n')[1].trim(), "at func_name (tc5.js:26:8)");
     });
 
     it("require jsc", () => {
@@ -173,7 +178,7 @@ describe("vm", () => {
         })
         sbox.require('./vm_test/custom_ext.abc', __dirname);
 
-        sbox.setModuleCompiler('.abc', function (buf) {});
+        sbox.setModuleCompiler('.abc', function (buf) { });
         sbox.require('./vm_test/custom_ext', __dirname);
     })
 
@@ -559,7 +564,7 @@ describe("vm", () => {
     });
 
     it("standalone global", () => {
-        function _t() {}
+        function _t() { }
         var sbox1 = new vm.SandBox({}, {
             var1: 100,
             func: _t

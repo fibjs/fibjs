@@ -427,7 +427,7 @@ bool getString(Isolate* isolate, v8::Local<v8::Object>& args,
     JSValue v = args->Get(isolate->NewString(key));
 
     if (!v.IsEmpty() && (v->IsString() || v->IsStringObject())) {
-        retVal = ToCString(v8::String::Utf8Value(v));
+        retVal = ToCString(v8::String::Utf8Value(isolate->m_isolate, v));
         return true;
     }
 
@@ -853,7 +853,8 @@ result_t Url::set_query(v8::Local<v8::Value> newVal)
 
     if (!newVal.IsEmpty()) {
         if (newVal->IsString() || newVal->IsStringObject()) {
-            m_query = ToCString(v8::String::Utf8Value(newVal));
+            Isolate* isolate = holder();
+            m_query = ToCString(v8::String::Utf8Value(isolate->m_isolate, newVal));
 
             if (m_queryParsed) {
                 m_queryParsed = new HttpCollection();

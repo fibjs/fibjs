@@ -64,10 +64,10 @@ public:
     static void s_sort(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_keys(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_values(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void i_NamedGetter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array>& args);
-    static void i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean>& args);
+    static void i_NamedSetter(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void i_NamedDeleter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& args);
 };
 }
 
@@ -297,7 +297,7 @@ inline void HttpCollection_base::s_values(const v8::FunctionCallbackInfo<v8::Val
     METHOD_RETURN();
 }
 
-inline void HttpCollection_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpCollection_base::i_NamedGetter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     Variant vr;
 
@@ -330,7 +330,7 @@ inline void HttpCollection_base::i_NamedEnumerator(const v8::PropertyCallbackInf
     METHOD_RETURN1();
 }
 
-inline void HttpCollection_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpCollection_base::i_NamedSetter(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("HttpCollection[]");
     METHOD_INSTANCE(HttpCollection_base);
@@ -349,7 +349,7 @@ inline void HttpCollection_base::i_NamedSetter(v8::Local<v8::String> property, v
     METHOD_VOID();
 }
 
-inline void HttpCollection_base::i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean>& args)
+inline void HttpCollection_base::i_NamedDeleter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& args)
 {
     v8::Local<v8::Boolean> vr;
 

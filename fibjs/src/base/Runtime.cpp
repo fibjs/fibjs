@@ -359,8 +359,9 @@ void Isolate::init()
                            "}"
                            "AssertionError;";
 
-    v8::Local<v8::Script> script = v8::Script::Compile(NewString(assertion_error));
-    v8::Local<v8::Object> AssertionError = script->Run().As<v8::Object>();
+    v8::Local<v8::Script> script = v8::Script::Compile(_context, NewString(assertion_error)).ToLocalChecked();
+    v8::MaybeLocal<v8::Value> result = script->Run(_context);
+    v8::Local<v8::Object> AssertionError = result.ToLocalChecked().As<v8::Object>();
     m_AssertionError.Reset(m_isolate, AssertionError);
 }
 

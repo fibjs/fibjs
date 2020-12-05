@@ -220,9 +220,11 @@ result_t LevelDB::mset(v8::Local<v8::Object> map)
     int32_t i;
     result_t hr;
 
+    Isolate* isolate = holder();
+
     for (i = 0; i < len; i++) {
         JSValue k = ks->Get(i);
-        v8::String::Utf8Value uk(k);
+        v8::String::Utf8Value uk(isolate->m_isolate, k);
         exlib::string key(*uk, uk.length());
 
         exlib::string value1;

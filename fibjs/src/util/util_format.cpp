@@ -73,16 +73,16 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
         if (v.IsEmpty())
             strBuffer.append(color_string(COLOR_TITLE, "undefined", color));
         else if (v->IsUndefined() || v->IsNull())
-            strBuffer.append(color_string(COLOR_TITLE, ToCString(v8::String::Utf8Value(v)), color));
+            strBuffer.append(color_string(COLOR_TITLE, ToCString(v8::String::Utf8Value(isolate->m_isolate, v)), color));
         else if (v->IsDate())
-            strBuffer.append(color_string(COLOR_MAGENTA, ToCString(v8::String::Utf8Value(v)), color));
+            strBuffer.append(color_string(COLOR_MAGENTA, ToCString(v8::String::Utf8Value(isolate->m_isolate, v)), color));
         else if (v->IsBoolean() || v->IsBooleanObject())
-            strBuffer.append(color_string(COLOR_YELLOW, ToCString(v8::String::Utf8Value(v)), color));
+            strBuffer.append(color_string(COLOR_YELLOW, ToCString(v8::String::Utf8Value(isolate->m_isolate, v)), color));
         else if (v->IsNumber() || v->IsNumberObject()) {
-            exlib::string s(ToCString(v8::String::Utf8Value(v->ToNumber(_context).ToLocalChecked())));
+            exlib::string s(ToCString(v8::String::Utf8Value(isolate->m_isolate, v->ToNumber(_context).ToLocalChecked())));
             strBuffer.append(color_string(COLOR_YELLOW, s, color));
         } else if (v->IsBigInt() || v->IsBigIntObject()) {
-            exlib::string s(ToCString(v8::String::Utf8Value(v->ToBigInt(_context).ToLocalChecked())));
+            exlib::string s(ToCString(v8::String::Utf8Value(isolate->m_isolate, v->ToBigInt(_context).ToLocalChecked())));
             strBuffer.append(color_string(COLOR_YELLOW, s + 'n', color));
         } else if (v->IsString() || v->IsStringObject())
             string_format(strBuffer, v, color);
@@ -93,7 +93,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
             v8::RegExp::Flags flgs = re->GetFlags();
 
             s.append(1, '/');
-            s.append(ToCString(v8::String::Utf8Value(src)));
+            s.append(ToCString(v8::String::Utf8Value(isolate->m_isolate, src)));
             s.append(1, '/');
 
             if (flgs & v8::RegExp::kIgnoreCase)
@@ -109,7 +109,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
                 v8::Local<v8::Object> obj = v->ToObject();
 
                 if (obj->IsNativeError()) {
-                    exlib::string s(ToCString(v8::String::Utf8Value(JSValue(obj->Get(isolate->NewString("stack"))))));
+                    exlib::string s(ToCString(v8::String::Utf8Value(isolate->m_isolate, JSValue(obj->Get(isolate->NewString("stack"))))));
                     strBuffer.append(color_string(COLOR_LIGHTRED, s, color));
                     break;
                 }
@@ -149,7 +149,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
 
                 if (v->IsFunction() && keys->Length() == 0) {
                     exlib::string s("[Function");
-                    v8::String::Utf8Value n(v8::Local<v8::Function>::Cast(v)->GetName());
+                    v8::String::Utf8Value n(isolate->m_isolate, v8::Local<v8::Function>::Cast(v)->GetName());
 
                     if (n.length()) {
                         s.append(1, ' ');
@@ -334,7 +334,7 @@ result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string&
             switch (ch = *s++) {
             case 's':
                 if (idx < argc) {
-                    v8::String::Utf8Value s(args[idx++]);
+                    v8::String::Utf8Value s(isolate->m_isolate, args[idx++]);
                     if (*s)
                         retVal.append(*s, s.length());
                 } else
@@ -342,7 +342,7 @@ result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string&
                 break;
             case 'd':
                 if (idx < argc) {
-                    v8::String::Utf8Value s(args[idx++]);
+                    v8::String::Utf8Value s(isolate->m_isolate, args[idx++]);
                     if (*s) {
                         int64_t n = atoi(*s);
                         v8::Local<v8::Value> v = v8::Number::New(isolate->m_isolate, n);
@@ -382,7 +382,7 @@ result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string&
         util_base::isString(v, bIsStr);
 
         if (bIsStr) {
-            v8::String::Utf8Value s(v);
+            v8::String::Utf8Value s(isolate->m_isolate, v);
             retVal.append(*s, s.length());
         } else {
             exlib::string s;

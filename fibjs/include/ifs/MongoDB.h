@@ -46,7 +46,7 @@ public:
 public:
     static void s_getCollection(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_runCommand(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void i_NamedGetter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array>& args);
     static void s_oid(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -125,7 +125,7 @@ inline void MongoDB_base::s_runCommand(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_RETURN();
 }
 
-inline void MongoDB_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void MongoDB_base::i_NamedGetter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<MongoCollection_base> vr;
 

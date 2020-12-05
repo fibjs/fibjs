@@ -210,7 +210,8 @@ result_t X509Req::parseString(v8::Local<v8::Value> v, const X509Cert::_name* pNa
     int32_t num = 0;
 
     if (!IsEmpty(v)) {
-        v8::String::Utf8Value str(v);
+        Isolate* isolate = holder();
+        v8::String::Utf8Value str(isolate->m_isolate, v);
         const char* ptr = ToCString(str);
 
         if (!ptr)
@@ -290,7 +291,7 @@ result_t X509Req::sign(exlib::string issuer, PKey_base* key,
 
         v = opts->Get(isolate->NewString("serial", 6));
         if (!IsEmpty(v)) {
-            v8::String::Utf8Value str(v);
+            v8::String::Utf8Value str(isolate->m_isolate, v);
 
             if (!*str) {
                 hr = CHECK_ERROR(_ssl::setError(MBEDTLS_ERR_MPI_BAD_INPUT_DATA));

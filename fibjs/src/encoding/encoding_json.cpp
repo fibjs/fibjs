@@ -14,6 +14,7 @@
 
 #include "v8.h"
 #include "v8/src/utils.h"
+#include "v8/src/api-inl.h"
 #include "v8/src/api.h"
 #include "v8/src/isolate.h"
 #include "v8/src/frames.h"

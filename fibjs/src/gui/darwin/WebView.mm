@@ -355,7 +355,7 @@ static int32_t asyncOutputMessageFromWKWebview(exlib::string& jsonFmt)
     int32_t logLevel = JSValue(logInfo->Get(isolate->NewString("level")))->IntegerValue();
 
     v8::Local<v8::Value> _fmtMessage = logInfo->Get(isolate->NewString("fmt"));
-    exlib::string fmtMessage(ToCString(v8::String::Utf8Value(_fmtMessage)));
+    exlib::string fmtMessage(ToCString(v8::String::Utf8Value(isolate->m_isolate, _fmtMessage)));
     
     if (logLevel == console_base::_ERROR)
         fmtMessage = ("WebView Error: " + fmtMessage);

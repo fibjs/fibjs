@@ -31,14 +31,17 @@ result_t JsLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::strin
     exlib::string src1 = arg_names + strScript + "\n});";
 
     TryCatch try_catch;
-    script = v8::Script::Compile(
-        isolate->NewString(src1), soname);
-    if (script.IsEmpty()) {
+    v8::ScriptOrigin so_origin(soname);
+    v8::MaybeLocal<v8::Script> lscript = v8::Script::Compile(
+        isolate->m_isolate->GetCurrentContext(),
+        isolate->NewString(src1), &so_origin);
+
+    if (lscript.IsEmpty()) {
         TryCatch try_catch1;
 
         v8::ScriptCompiler::Source script_source(
             isolate->NewString(strScript),
-            v8::ScriptOrigin(soname));
+            so_origin);
 
         if (v8::ScriptCompiler::CompileUnboundScript(
                 isolate->m_isolate, &script_source)
@@ -49,6 +52,8 @@ result_t JsLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::strin
 
         return throwSyntaxError(try_catch);
     }
+
+    script = lscript.ToLocalChecked();
 
     return 0;
 }

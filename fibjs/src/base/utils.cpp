@@ -131,16 +131,16 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
     if (try_catch.HasCaught()) {
         v8::Local<v8::Value> err = try_catch.Exception();
         v8::Local<v8::Object> err_obj = err.As<v8::Object>();
-        v8::String::Utf8Value exception(err_obj);
+        v8::String::Utf8Value exception(isolate->m_isolate, err_obj);
         v8::Local<v8::Message> message = try_catch.Message();
 
         if (message.IsEmpty())
             return ToCString(exception);
 
         exlib::string strError;
-        v8::String::Utf8Value filename(message->GetScriptResourceName());
+        v8::String::Utf8Value filename(isolate->m_isolate, message->GetScriptResourceName());
         strError.append(ToCString(filename));
-        int32_t lineNumber = message->GetLineNumber();
+        int32_t lineNumber = message->GetLineNumber(context).ToChecked();
         if (lineNumber > 0) {
             char numStr[32];
             strError.append(1, ':');
@@ -195,7 +195,7 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
 
             if (message.IsEmpty() || message->IsUndefined() || name.IsEmpty() || name->IsUndefined()) {
                 // Not an error object. Just print as-is.
-                v8::String::Utf8Value message(err);
+                v8::String::Utf8Value message(isolate->m_isolate, err);
                 strError.append(ToCString(message));
                 strError.append("\n");
             } else {
@@ -215,7 +215,8 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
 
 result_t throwSyntaxError(TryCatch& try_catch)
 {
-    v8::String::Utf8Value exception(try_catch.Exception());
+    Isolate* isolate = Isolate::current();
+    v8::String::Utf8Value exception(isolate->m_isolate, try_catch.Exception());
 
     v8::Local<v8::Message> message = try_catch.Message();
     if (message.IsEmpty())
@@ -244,9 +245,10 @@ result_t CheckConfig(v8::Local<v8::Object> opts, const char** keys)
     JSArray ks = opts->GetPropertyNames();
     int32_t len = ks->Length();
     int32_t i;
+    Isolate* isolate = Isolate::current();
 
     for (i = 0; i < len; i++) {
-        v8::String::Utf8Value k(JSValue(ks->Get(i)));
+        v8::String::Utf8Value k(isolate->m_isolate, JSValue(ks->Get(i)));
         const char** p = keys;
 
         while (p[0]) {
