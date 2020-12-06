@@ -13,3 +13,5 @@ out
 *.vcxproj.user
 
 idl/__snapshots__
+
+/.vscode/launch.json

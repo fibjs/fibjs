@@ -129,7 +129,7 @@ if [ ! -e ${OUT_PATH} ]; then
 	mkdir ${OUT_PATH}
 fi
 
-GIT_INFO=`git describe --tags`
+GIT_INFO=`git describe --tags --always`
 
 cd ${OUT_PATH}
 cmake \

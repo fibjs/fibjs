@@ -22,7 +22,7 @@ case "${VENDER_ARCH}" in
       ;;
 esac
 
-VENDER_ASSETS_FILE="vender-$VENDER_OS-$VENDER_ARCH-release.zip"
+VENDER_ASSETS_FILE="vender-$VENDER_OS-$VENDER_ARCH-$BUILD_TYPE.zip"
 
 # get vender name
 

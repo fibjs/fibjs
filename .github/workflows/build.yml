@@ -1,0 +1,214 @@
+name: Build/release
+
+on:
+  push:
+    # Sequence of patterns matched against refs/heads
+    branches:
+      - 'ci/**'
+      - 'ci-**'
+      - 'releases/**'
+      - 'feat/**'
+      - 'dev'
+      - 'master'
+      - 'test_ci'
+    tags:
+      - v0.*.*
+      - v1.*.*
+      - test_github_actions_*
+  pull_request:
+    branches:
+      - 'dev'
+  # release:
+  #   # Only use the types keyword to narrow down the activity types that will trigger your workflow.
+  #   types: [published, created, edited]
+
+env:
+  USE_VENDER_DIST: 1
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-16.04]
+        target_arch: [amd64, i386, arm, arm64, mips, mips64]
+        build_type: [release]
+        include:
+          - os: windows-2016
+            target_arch: amd64
+            build_type: release
+          - os: windows-2016
+            target_arch: i386
+            build_type: release
+          - os: macos-10.15
+            target_arch: amd64
+            build_type: release
+          - os: macos-10.15
+            target_arch: amd64
+            build_type: debug
+
+    steps:
+      - name: Switch XCode to 10.3
+        uses: maxim-lobanov/setup-xcode@v1
+        if: runner.os == 'macOS'
+        with:
+          xcode-version: '10'
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Set Env Variables
+        id: set-env-vars
+        shell: bash
+        run: |
+          bash .github/workflows/set-env-vars.sh
+        env:
+          TARGET_ARCH: ${{ matrix.target_arch }}
+          BUILD_TYPE: ${{ matrix.build_type }}
+
+      - name: Setup LLVM on Windows
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          if NOT EXIST llvm-installer.exe (
+              IF /I "%TARGET_ARCH%" == "amd64" (
+                  curl -Ls -o "llvm-installer.exe" "https://github.com/llvm/llvm-project/releases/download/llvmorg-8.0.1/LLVM-8.0.1-win64.exe"
+                  ECHO "install llvm win64 for x64"
+              )
+              IF /I "%TARGET_ARCH%" == "i386" (
+                  curl -Ls -o "llvm-installer.exe" "https://github.com/llvm/llvm-project/releases/download/llvmorg-8.0.1/LLVM-8.0.1-win32.exe"
+                  ECHO "install llvm win32 for x86"
+              )
+          )
+
+          START /WAIT llvm-installer.exe /S /D=C:\"Program Files\LLVM"
+        env:
+          TARGET_ARCH: ${{ matrix.target_arch }}
+          BUILD_TYPE: ${{ matrix.build_type }}
+
+      - name: Prepare on Windows
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          # install make.exe
+          CUR_DIR=`pwd`
+          cd "C:/Program Files/Git/mingw64/"
+          if [ ! -e make.zip ]; then
+              curl -sL -o "make.zip" https://netix.dl.sourceforge.net/project/ezwinports/make-4.3-without-guile-w32-bin.zip
+          fi
+          unzip -n "make.zip"
+          cd $CUR_DIR;
+
+          # add LLVM bin to system path
+          echo "C:\Program Files\LLVM\bin" >> $GITHUB_PATH
+
+          # download venders
+          if [[ ! -z $USE_VENDER_DIST ]]; then
+            ./scripts/download_vender.sh;
+          fi
+        env:
+          TARGET_ARCH: ${{ matrix.target_arch }}
+          BUILD_TYPE: ${{ matrix.build_type }}
+
+      - name: Build/Release on Posix
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          bash .github/workflows/build.sh
+
+          if [[ ! -z "$IS_UPLOAD_ASSETS" && "$BUILD_TYPE" == 'release' ]]; then
+            bash .github/workflows/release.sh;
+          fi
+        env:
+          TARGET_ARCH: ${{ matrix.target_arch }}
+          BUILD_TYPE: ${{ matrix.build_type }}
+          TARGET_OS: ${{ steps.set-env-vars.outputs.TARGET_OS }}
+          GIT_BRANCH: ${{ steps.set-env-vars.outputs.GIT_BRANCH }}
+          RELEASE_TAG: ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
+          TARGET_OS_NAME: ${{ steps.set-env-vars.outputs.TARGET_OS_NAME }}
+          GIT_TAG: ${{ steps.set-env-vars.outputs.GIT_TAG }}
+          DIST_DIR: ${{ steps.set-env-vars.outputs.DIST_DIR }}
+          DIST_ARCH: ${{ steps.set-env-vars.outputs.DIST_ARCH }}
+          IS_UPLOAD_ASSETS: ${{ steps.set-env-vars.outputs.IS_UPLOAD_ASSETS }}
+
+      - name: Build on Windows
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          IF /I "%DIST_ARCH%" == "x64" ECHO "x64 building..." && .\build.cmd release amd64
+          IF /I "%DIST_ARCH%" == "x86" ECHO "x86 building..." && .\build.cmd release i386
+        env:
+          TARGET_ARCH: ${{ matrix.target_arch }}
+          BUILD_TYPE: ${{ matrix.build_type }}
+          HOST_ARCH: ${{ steps.set-env-vars.outputs.HOST_ARCH }}
+          TARGET_OS: ${{ steps.set-env-vars.outputs.TARGET_OS }}
+          DIST_ARCH: ${{ steps.set-env-vars.outputs.DIST_ARCH }}
+          DIST_DIR: ${{ steps.set-env-vars.outputs.DIST_DIR }}
+          RELEASE_TAG: ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
+          CI: 'ci'
+      - name: Release on Windows
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          mkdir -p $RELEASE_TAG
+          cp ./bin/$DIST_DIR/fibjs.exe ./$RELEASE_TAG/fibjs-$RELEASE_TAG-windows-$DIST_ARCH.exe
+          cp ./bin/$DIST_DIR/fibjs_gui.exe ./$RELEASE_TAG/fibjs-$RELEASE_TAG-windows-gui-$DIST_ARCH.exe
+          cp ./bin/$DIST_DIR/installer.exe ./$RELEASE_TAG/installer-$RELEASE_TAG-windows-$DIST_ARCH.exe
+          cp ./bin/$DIST_DIR/fibjs.cab ./$RELEASE_TAG/fibjs-$RELEASE_TAG-windows-$DIST_ARCH.cab
+        env:
+          DIST_ARCH: ${{ steps.set-env-vars.outputs.DIST_ARCH }}
+          DIST_DIR: ${{ steps.set-env-vars.outputs.DIST_DIR }}
+          RELEASE_TAG: ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
+
+      - name: Test
+        # only test for release version now, some test cases cannot passed in debug mode
+        if: ${{ matrix.build_type == 'release' }}
+        continue-on-error: true
+        shell: bash
+        run: |
+          if [[ -z $GIT_TAG && $GIT_BRANCH != "beta" ]]; then
+            bash .github/workflows/test.sh;
+          fi
+        env:
+          TARGET_ARCH: ${{ matrix.target_arch }}
+          BUILD_TYPE: ${{ matrix.build_type }}
+          RELEASE_TAG: ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
+          TARGET_OS: ${{ steps.set-env-vars.outputs.TARGET_OS }}
+          TARGET_OS_NAME: ${{ steps.set-env-vars.outputs.TARGET_OS_NAME }}
+          GIT_TAG: ${{ steps.set-env-vars.outputs.GIT_TAG }}
+          GIT_BRANCH: ${{ steps.set-env-vars.outputs.GIT_BRANCH }}
+          DIST_DIR: ${{ steps.set-env-vars.outputs.DIST_DIR }}
+          DIST_ARCH: ${{ steps.set-env-vars.outputs.DIST_ARCH }}
+          IS_UPLOAD_ASSETS: ${{ steps.set-env-vars.outputs.IS_UPLOAD_ASSETS }}
+          
+      - name: Create Release For non-git-tagged Commitish Only
+        id: create_release
+        uses: actions/create-release@v1
+        # notice: we create release programmatically for non-production release
+        if: ${{ steps.set-env-vars.outputs.IS_UPLOAD_ASSETS != '' && matrix.build_type == 'release' && steps.set-env-vars.outputs.RELEASE_TAG_FROM_GIT_ORIGIN == '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+        with:
+          tag_name: ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
+          release_name: Release ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
+          body: ${{ steps.set-env-vars.outputs.GIT_COMMIT_HEAD_MSG }}
+          draft: false
+          prerelease: ${{ steps.set-env-vars.outputs.IS_GIT_TAG_MATCH_SEMVER != 'true'  }}
+
+      - name: Upload Release Assets For Production Only
+        # notice: we upload files to release (if it's not existed, create it automatically)
+        if: ${{ steps.set-env-vars.outputs.IS_UPLOAD_ASSETS != '' && matrix.build_type == 'release' }}
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./${{ steps.set-env-vars.outputs.RELEASE_TAG }}/*
+          file_glob: true
+          tag: ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
+          release_name: ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
+          asset_name: ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
+          overwrite: true
+          body: Release ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
+          prerelease: ${{ steps.set-env-vars.outputs.IS_GIT_TAG_MATCH_SEMVER != 'true'  }}
