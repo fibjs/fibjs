@@ -53,6 +53,8 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
                 return pack(v8::Local<v8::Array>::Cast(element));
             else if (element->IsObject() && !element->IsStringObject())
                 return pack(element->ToObject());
+            else if (element->IsBigInt() && element->IsBigIntObject())
+                msgpack_pack_int64(&pk, element->IntegerValue());
             else {
                 v8::String::Utf8Value v(element);
 
