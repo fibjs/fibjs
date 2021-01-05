@@ -414,6 +414,17 @@ describe('encoding', () => {
             assert.isNumber(msgpack.decode(msgpack.encode(123456782345245)));
         });
 
+        it('test bigint approaching 2^64', () => {
+            assert.deepEqual(
+                2666666666666666666n,
+                msgpack.decode(msgpack.encode(2666666666666666666n))
+            );
+            assert.deepEqual(
+                -2666666666666666666n,
+                msgpack.decode(msgpack.encode(-2666666666666666666n))
+            );
+        });
+
         it('test for numeric array', () => {
             assert.deepEqual([1, 2, 3], msgpack.decode(msgpack.encode([1, 2, 3])));
             assert.isArray(msgpack.decode(msgpack.encode([1, 2, 3])));
