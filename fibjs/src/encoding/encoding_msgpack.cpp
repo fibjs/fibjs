@@ -44,7 +44,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
             } else if (element->IsNumber() || element->IsNumberObject())
                 msgpack_pack_double(&pk, element->NumberValue());
             else if (element->IsBigInt() || element->IsBigIntObject())
-                msgpack_pack_int64(&pk, element->IntegerValue());
+                msgpack_pack_int64(&pk, element->Int64Value());
             else if (element->IsDate()) {
                 date_t d = element->NumberValue();
                 msgpack_timestamp _d;
