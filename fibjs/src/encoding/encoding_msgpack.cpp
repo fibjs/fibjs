@@ -43,6 +43,8 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
                     msgpack_pack_false(&pk);
             } else if (element->IsNumber() || element->IsNumberObject())
                 msgpack_pack_double(&pk, element->NumberValue());
+            else if (element->IsBigInt() || element->IsBigIntObject())
+                msgpack_pack_int64(&pk, element->Int64Value());
             else if (element->IsDate()) {
                 date_t d = element->NumberValue();
                 msgpack_timestamp _d;
@@ -204,10 +206,10 @@ result_t msgpack_base::decode(Buffer_base* data, v8::Local<v8::Value>& retVal)
                 v = v8::Number::New(isolate->m_isolate, o->via.f64);
                 break;
             case MSGPACK_OBJECT_NEGATIVE_INTEGER:
-                v = v8::Number::New(isolate->m_isolate, o->via.i64);
+                v = v8::BigInt::New(isolate->m_isolate, o->via.i64);
                 break;
             case MSGPACK_OBJECT_POSITIVE_INTEGER:
-                v = v8::Number::New(isolate->m_isolate, o->via.u64);
+                v = v8::BigInt::New(isolate->m_isolate, o->via.u64);
                 break;
             case MSGPACK_OBJECT_STR:
                 v = isolate->NewString(o->via.str.ptr, (int32_t)o->via.str.size);
