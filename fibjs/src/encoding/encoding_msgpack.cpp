@@ -43,9 +43,13 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
                     msgpack_pack_false(&pk);
             } else if (element->IsNumber() || element->IsNumberObject())
                 msgpack_pack_double(&pk, element->NumberValue());
-            else if (element->IsBigInt() || element->IsBigIntObject())
-                msgpack_pack_int64(&pk, element->Int64Value());
-            else if (element->IsDate()) {
+            else if (element->IsBigInt() || element->IsBigIntObject()) {
+                v8::MaybeLocal<v8::BigInt> mv;
+                bool less;
+
+                mv = element->ToBigInt(Isolate::current()->context());
+                msgpack_pack_int64(&pk, mv.ToLocalChecked()->Int64Value(&less));
+            } else if (element->IsDate()) {
                 date_t d = element->NumberValue();
                 msgpack_timestamp _d;
 
