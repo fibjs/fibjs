@@ -523,8 +523,7 @@ result_t _format_table(v8::Local<v8::Object> opts, exlib::string& retVal)
         return _format_name_list(v, retVal);
 }
 
-result_t _format_find(v8::Local<v8::Object> opts, bool mysql, bool mssql,
-    exlib::string& retVal)
+result_t _format_find(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib::string& retVal)
 {
     result_t hr;
     exlib::string str("SELECT ");
@@ -627,8 +626,7 @@ result_t _format_find(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     return 0;
 }
 
-result_t _format_count(v8::Local<v8::Object> opts, bool mysql, bool mssql,
-    exlib::string& retVal)
+result_t _format_count(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib::string& retVal)
 {
     result_t hr;
     exlib::string str;
@@ -677,8 +675,7 @@ result_t _format_count(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     return 0;
 }
 
-result_t _format_update(v8::Local<v8::Object> opts, bool mysql, bool mssql,
-    exlib::string& retVal)
+result_t _format_update(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib::string& retVal)
 {
     result_t hr;
     exlib::string str;
@@ -737,8 +734,7 @@ result_t _format_update(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     return 0;
 }
 
-result_t _format_insert(v8::Local<v8::Object> opts, bool mysql, bool mssql,
-    exlib::string& retVal)
+result_t _format_insert(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib::string& retVal)
 {
     result_t hr;
     exlib::string str;
@@ -789,8 +785,7 @@ result_t _format_insert(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     return 0;
 }
 
-result_t _format_remove(v8::Local<v8::Object> opts, bool mysql, bool mssql,
-    exlib::string& retVal)
+result_t _format_remove(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib::string& retVal)
 {
     result_t hr;
     exlib::string str;
@@ -821,10 +816,201 @@ result_t _format_remove(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     return 0;
 }
 
+result_t _format_create(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib::string& retVal)
+{
+    result_t hr;
+    exlib::string str;
+    Isolate* isolate = Isolate::current();
+    exlib::string table;
+
+    hr = _format_table(opts, table);
+    if (hr < 0)
+        return hr;
+
+    str.append("CREATE TABLE " + table + "(");
+
+    v8::Local<v8::Object> o;
+    hr = GetConfigValue(isolate->m_isolate, opts, "fields", o, true);
+    if (hr == CALL_E_PARAMNOTOPTIONAL)
+        return CHECK_ERROR(Runtime::setError("db: No table fields specified."));
+    if (hr < 0)
+        return hr;
+
+    exlib::string _fields;
+
+    JSArray ks = o->GetPropertyNames();
+    int32_t len = ks->Length();
+    int32_t i;
+
+    for (i = 0; i < len; i++) {
+        JSValue k = ks->Get(i);
+        JSValue v = o->Get(k);
+        exlib::string type;
+        v8::Local<v8::Object> prop;
+
+        hr = GetArgumentValue(v, type, true);
+        if (hr < 0) {
+            if (!IsJSObject(v))
+                return CHECK_ERROR(Runtime::setError("db: No field type specified."));
+            prop = v8::Local<v8::Object>::Cast(v);
+
+            hr = GetConfigValue(isolate->m_isolate, prop, "type", type, true);
+            if (hr == CALL_E_PARAMNOTOPTIONAL)
+                return CHECK_ERROR(Runtime::setError("db: No field type specified."));
+            if (hr < 0)
+                return hr;
+        }
+
+        _fields.append(_escape_field(k));
+        _fields.append(1, ' ');
+
+        if (type == "text") {
+            int32_t size = 0;
+
+            if (!prop.IsEmpty()) {
+                hr = GetConfigValue(isolate->m_isolate, prop, "size", size, true);
+                if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+                    return hr;
+            }
+
+            if (size > 0) {
+                char str[32];
+
+                sprintf(str, "%d", size);
+                _fields.append("VARCHAR(");
+                _fields.append((const char*)str);
+                _fields.append(1, ')');
+            } else
+                _fields.append(mysql ? "LONGTEXT" : "TEXT");
+        } else if (type == "number") {
+            int32_t size = 8;
+
+            if (!prop.IsEmpty()) {
+                hr = GetConfigValue(isolate->m_isolate, prop, "size", size, true);
+                if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+                    return hr;
+            }
+
+            if (size == 4)
+                _fields.append("FLOAT");
+            else if (size == 8)
+                _fields.append(mssql ? "REAL" : "DOUBLE");
+            else
+                return CHECK_ERROR(Runtime::setError("db: Number size must be 4|8."));
+        } else if (type == "integer") {
+            int32_t size = 4;
+
+            if (!prop.IsEmpty()) {
+                hr = GetConfigValue(isolate->m_isolate, prop, "size", size, true);
+                if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+                    return hr;
+            }
+
+            if (size == 1)
+                _fields.append("TINYINT");
+            else if (size == 2)
+                _fields.append("SMALLINT");
+            else if (size == 4)
+                _fields.append("INT");
+            else if (size == 8)
+                _fields.append("BIGINT");
+            else
+                return CHECK_ERROR(Runtime::setError("db: Integer size must be 1|2|4|8."));
+        } else if (type == "date") {
+            bool _time = false;
+
+            if (!prop.IsEmpty()) {
+                hr = GetConfigValue(isolate->m_isolate, prop, "time", _time, true);
+                if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+                    return hr;
+            }
+
+            _fields.append(_time ? "DATETIME" : "DATE");
+        } else if (type == "binary") {
+            bool big = 0;
+
+            if (!prop.IsEmpty()) {
+                hr = GetConfigValue(isolate->m_isolate, prop, "big", big, true);
+                if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+                    return hr;
+            }
+
+            if (mssql)
+                _fields.append(big ? "IMAGE" : "VARBINARY(MAX)");
+            else
+                _fields.append(big ? "LONGBLOB" : "BLOB");
+        } else
+            _fields.append(type);
+
+        if (!prop.IsEmpty()) {
+            bool required = false;
+            hr = GetConfigValue(isolate->m_isolate, prop, "required", required, true);
+            if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+                return hr;
+
+            if (hr != CALL_E_PARAMNOTOPTIONAL)
+                _fields.append(required ? " NOT NULL" : " NULL");
+
+            v = prop->Get(isolate->NewString("defaultValue"));
+            if (!IsEmpty(v)) {
+                _fields.append(" DEFAULT ");
+                _appendValue(_fields, v, mysql, mssql);
+            }
+
+            bool unique = false;
+            hr = GetConfigValue(isolate->m_isolate, prop, "unique", unique, true);
+            if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+                return hr;
+
+            if (unique)
+                _fields.append(" UNIQUE");
+
+            bool key = false;
+            hr = GetConfigValue(isolate->m_isolate, prop, "key", key, true);
+            if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+                return hr;
+
+            if (key)
+                _fields.append(" PRIMARY KEY");
+        }
+
+        if (i + 1 < len)
+            _fields.append(", ", 2);
+    }
+
+    if (_fields.empty())
+        return CHECK_ERROR(Runtime::setError("db: No table fields specified."));
+    str.append(_fields);
+    str.append(1, ')');
+
+    retVal = str;
+    return 0;
+}
+
+result_t _format_drop(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib::string& retVal)
+{
+    result_t hr;
+    exlib::string str;
+    exlib::string table;
+
+    hr = _format_table(opts, table);
+    if (hr < 0)
+        return hr;
+
+    str.append("DROP TABLE " + table);
+
+    retVal = str;
+    return 0;
+}
+
 result_t db_format(exlib::string method, v8::Local<v8::Object> opts, bool mysql, bool mssql,
     exlib::string& retVal)
 {
-    if (method == "find")
+    if (method == "create")
+        return _format_create(opts, mysql, mssql, retVal);
+    else if (method == "drop")
+        return _format_drop(opts, mysql, mssql, retVal);
+    else if (method == "find")
         return _format_find(opts, mysql, mssql, retVal);
     else if (method == "count")
         return _format_count(opts, mysql, mssql, retVal);

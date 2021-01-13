@@ -35,6 +35,18 @@ interface DbConnection : object
      */
     NArray execute(String sql, ...args) async;
 
+    /*! @brief 创建数据表
+
+     @param opts 参数列表
+     */
+    create(Object opts) async;
+
+    /*! @brief 删除数据表
+
+     @param opts 参数列表
+     */
+    drop(Object opts) async;
+
     /*! @brief 插入新记录
 
      @param opts 参数列表

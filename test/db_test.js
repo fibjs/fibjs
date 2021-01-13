@@ -29,6 +29,7 @@ describe("db", () => {
     });
 
     describe("format.find", () => {
+
         it('basic', () => {
             assert.equal(db.format("find", {
                 table: "test"
@@ -405,6 +406,73 @@ describe("db", () => {
         }), "DELETE FROM `test` WHERE `a`=200");
     });
 
+    it("format.create", () => {
+        var opts = {
+            table: "test",
+            fields: {
+                t: 'text',
+                t1: {
+                    type: "text",
+                    size: 100
+                },
+                n: 'number',
+                n1: {
+                    type: "number",
+                    size: 4
+                },
+                i: 'integer',
+                i1: {
+                    type: "integer",
+                    size: 1
+                },
+                i2: {
+                    type: "integer",
+                    size: 2
+                },
+                i3: {
+                    type: "integer",
+                    size: 8
+                },
+                d: 'date',
+                d1: {
+                    type: "date",
+                    time: true
+                },
+                b: 'binary',
+                b1: {
+                    type: "binary",
+                    big: true
+                },
+                def: {
+                    type: 'integer',
+                    defaultValue: 123
+                },
+                required: {
+                    type: 'integer',
+                    required: true
+                },
+                unique: {
+                    type: 'integer',
+                    unique: true
+                },
+                key: {
+                    type: 'integer',
+                    key: true
+                }
+            }
+        };
+
+        assert.equal(db.format("create", opts), "CREATE TABLE `test`(`t` TEXT, `t1` VARCHAR(100), `n` DOUBLE, `n1` FLOAT, `i` INT, `i1` TINYINT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` BLOB, `b1` LONGBLOB, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
+        assert.equal(db.formatMySQL("create", opts), "CREATE TABLE `test`(`t` LONGTEXT, `t1` VARCHAR(100), `n` DOUBLE, `n1` FLOAT, `i` INT, `i1` TINYINT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` BLOB, `b1` LONGBLOB, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
+        assert.equal(db.formatMSSQL("create", opts), "CREATE TABLE `test`(`t` TEXT, `t1` VARCHAR(100), `n` REAL, `n1` FLOAT, `i` INT, `i1` TINYINT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` VARBINARY(MAX), `b1` IMAGE, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
+    });
+
+    it("format.drop", () => {
+        assert.equal(db.format("drop", {
+            table: "test"
+        }), "DROP TABLE `test`");
+    });
+
     function _test(conn_str) {
         var conn;
         var tables = ['test', 'test_null', 'test2', 'test3'];
@@ -455,6 +523,17 @@ describe("db", () => {
 
             conn.execute('create table test2(t1 varchar(10), t2 varchar(10));');
             conn.execute('create table test3(t1 varchar(10), t2 varchar(10));');
+
+            conn.create({
+                table: "test4",
+                fields: {
+                    t: 'text',
+                    t1: {
+                        type: "text",
+                        size: 100
+                    }
+                }
+            });
         });
 
         it("insert", () => {

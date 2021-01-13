@@ -55,6 +55,20 @@ result_t db_execute(T* pThis, exlib::string method, v8::Local<v8::Object> opts,
 }
 
 template <typename T>
+result_t db_create(T* pThis, v8::Local<v8::Object> opts, AsyncEvent* ac)
+{
+    obj_ptr<NArray> _retVal;
+    return db_execute(pThis, "create", opts, _retVal, ac);
+}
+
+template <typename T>
+result_t db_drop(T* pThis, v8::Local<v8::Object> opts, AsyncEvent* ac)
+{
+    obj_ptr<NArray> _retVal;
+    return db_execute(pThis, "drop", opts, _retVal, ac);
+}
+
+template <typename T>
 result_t db_insert(T* pThis, v8::Local<v8::Object> opts, double& retVal, AsyncEvent* ac)
 {
     obj_ptr<NArray> _retVal;

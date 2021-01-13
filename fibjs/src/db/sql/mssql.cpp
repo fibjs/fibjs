@@ -316,31 +316,37 @@ result_t mssql::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal
     return db_execute(this, sql, args, retVal, ac);
 }
 
+result_t mssql::create(v8::Local<v8::Object> opts, AsyncEvent* ac)
+{
+    return db_create(this, opts, ac);
+}
+
+result_t mssql::drop(v8::Local<v8::Object> opts, AsyncEvent* ac)
+{
+    return db_drop(this, opts, ac);
+}
+
 result_t mssql::insert(v8::Local<v8::Object> opts, double& retVal, AsyncEvent* ac)
 {
     return db_insert(this, opts, retVal, ac);
 }
 
-result_t mssql::find(v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal,
-    AsyncEvent* ac)
+result_t mssql::find(v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     return db_find(this, opts, retVal, ac);
 }
 
-result_t mssql::count(v8::Local<v8::Object> opts, int32_t& retVal,
-    AsyncEvent* ac)
+result_t mssql::count(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
 {
     return db_count(this, opts, retVal, ac);
 }
 
-result_t mssql::update(v8::Local<v8::Object> opts, int32_t& retVal,
-    AsyncEvent* ac)
+result_t mssql::update(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
 {
     return db_update(this, opts, retVal, ac);
 }
 
-result_t mssql::remove(v8::Local<v8::Object> opts, int32_t& retVal,
-    AsyncEvent* ac)
+result_t mssql::remove(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
 {
     return db_remove(this, opts, retVal, ac);
 }
@@ -350,8 +356,7 @@ result_t mssql::format(exlib::string method, v8::Local<v8::Object> opts, exlib::
     return db_base::formatMSSQL(method, opts, retVal);
 }
 
-result_t mssql::format(exlib::string sql, OptArgs args,
-    exlib::string& retVal)
+result_t mssql::format(exlib::string sql, OptArgs args, exlib::string& retVal)
 {
     return db_base::formatMSSQL(sql, args, retVal);
 }

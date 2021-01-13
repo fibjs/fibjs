@@ -33,6 +33,8 @@ public:
     virtual result_t rollback(AsyncEvent* ac);
     virtual result_t trans(v8::Local<v8::Function> func, bool& retVal);
     virtual result_t execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal, AsyncEvent* ac);
+    virtual result_t create(v8::Local<v8::Object> opts, AsyncEvent* ac);
+    virtual result_t drop(v8::Local<v8::Object> opts, AsyncEvent* ac);
     virtual result_t insert(v8::Local<v8::Object> opts, double& retVal, AsyncEvent* ac);
     virtual result_t find(v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac);
     virtual result_t count(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac);

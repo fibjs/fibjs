@@ -258,19 +258,19 @@ result_t SQLite::execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal)
                             const char* type = sqlite3_column_decltype(stmt, i);
                             if (type
                                 && (!qstricmp(type, "blob", 4)
-                                       || !qstricmp(type, "tinyblob", 8)
-                                       || !qstricmp(type, "mediumblob", 10)
-                                       || !qstricmp(type, "longblob", 8)
-                                       || !qstricmp(type, "binary", 6)
-                                       || !qstricmp(type, "varbinary", 9))) {
+                                    || !qstricmp(type, "tinyblob", 8)
+                                    || !qstricmp(type, "mediumblob", 10)
+                                    || !qstricmp(type, "longblob", 8)
+                                    || !qstricmp(type, "binary", 6)
+                                    || !qstricmp(type, "varbinary", 9))) {
                                 const char* data = (const char*)sqlite3_column_blob(stmt, i);
                                 int32_t size = sqlite3_column_bytes(stmt, i);
 
                                 v = new Buffer(data, size);
                             } else if (type
                                 && (!qstricmp(type, "datetime")
-                                       || !qstricmp(type, "date")
-                                       || !qstricmp(type, "time"))) {
+                                    || !qstricmp(type, "date")
+                                    || !qstricmp(type, "time"))) {
                                 const char* data = (const char*)sqlite3_column_text(stmt, i);
                                 int32_t size = sqlite3_column_bytes(stmt, i);
 
@@ -353,6 +353,16 @@ result_t SQLite::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVa
     return db_execute(this, sql, args, retVal, ac);
 }
 
+result_t SQLite::create(v8::Local<v8::Object> opts, AsyncEvent* ac)
+{
+    return db_create(this, opts, ac);
+}
+
+result_t SQLite::drop(v8::Local<v8::Object> opts, AsyncEvent* ac)
+{
+    return db_drop(this, opts, ac);
+}
+
 result_t SQLite::insert(v8::Local<v8::Object> opts, double& retVal, AsyncEvent* ac)
 {
     return db_insert(this, opts, retVal, ac);
@@ -364,20 +374,17 @@ result_t SQLite::find(v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal,
     return db_find(this, opts, retVal, ac);
 }
 
-result_t SQLite::count(v8::Local<v8::Object> opts, int32_t& retVal,
-    AsyncEvent* ac)
+result_t SQLite::count(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
 {
     return db_count(this, opts, retVal, ac);
 }
 
-result_t SQLite::update(v8::Local<v8::Object> opts, int32_t& retVal,
-    AsyncEvent* ac)
+result_t SQLite::update(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
 {
     return db_update(this, opts, retVal, ac);
 }
 
-result_t SQLite::remove(v8::Local<v8::Object> opts, int32_t& retVal,
-    AsyncEvent* ac)
+result_t SQLite::remove(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
 {
     return db_remove(this, opts, retVal, ac);
 }
@@ -387,8 +394,7 @@ result_t SQLite::format(exlib::string method, v8::Local<v8::Object> opts, exlib:
     return db_base::format(method, opts, retVal);
 }
 
-result_t SQLite::format(exlib::string sql, OptArgs args,
-    exlib::string& retVal)
+result_t SQLite::format(exlib::string sql, OptArgs args, exlib::string& retVal)
 {
     return db_base::format(sql, args, retVal);
 }
