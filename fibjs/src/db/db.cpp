@@ -506,13 +506,13 @@ result_t _format_name_list(v8::Local<v8::Value> v, exlib::string& retVal)
     return 0;
 }
 
-result_t _format_table(v8::Local<v8::Object> opts, exlib::string& retVal)
+result_t _format_name(v8::Local<v8::Object> opts, exlib::string name, exlib::string& retVal)
 {
     Isolate* isolate = Isolate::current();
     result_t hr;
     v8::Local<v8::Value> v;
 
-    hr = GetConfigValue(isolate->m_isolate, opts, "table", v);
+    hr = GetConfigValue(isolate->m_isolate, opts, name.c_str(), v);
     if (hr < 0)
         return hr;
 
@@ -532,7 +532,7 @@ result_t _format_find(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib:
     v8::Local<v8::Array> a;
     exlib::string table;
 
-    hr = _format_table(opts, table);
+    hr = _format_name(opts, "table", table);
     if (hr < 0)
         return hr;
 
@@ -634,7 +634,7 @@ result_t _format_count(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib
     v8::Local<v8::Value> v;
     exlib::string table;
 
-    hr = _format_table(opts, table);
+    hr = _format_name(opts, "table", table);
     if (hr < 0)
         return hr;
 
@@ -682,7 +682,7 @@ result_t _format_update(v8::Local<v8::Object> opts, bool mysql, bool mssql, exli
     Isolate* isolate = Isolate::current();
     exlib::string table;
 
-    hr = _format_table(opts, table);
+    hr = _format_name(opts, "table", table);
     if (hr < 0)
         return hr;
 
@@ -741,7 +741,7 @@ result_t _format_insert(v8::Local<v8::Object> opts, bool mysql, bool mssql, exli
     Isolate* isolate = Isolate::current();
     exlib::string table;
 
-    hr = _format_table(opts, table);
+    hr = _format_name(opts, "table", table);
     if (hr < 0)
         return hr;
 
@@ -792,7 +792,7 @@ result_t _format_remove(v8::Local<v8::Object> opts, bool mysql, bool mssql, exli
     Isolate* isolate = Isolate::current();
     exlib::string table;
 
-    hr = _format_table(opts, table);
+    hr = _format_name(opts, "table", table);
     if (hr < 0)
         return hr;
 
@@ -816,14 +816,14 @@ result_t _format_remove(v8::Local<v8::Object> opts, bool mysql, bool mssql, exli
     return 0;
 }
 
-result_t _format_create(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib::string& retVal)
+result_t _format_createTable(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib::string& retVal)
 {
     result_t hr;
     exlib::string str;
     Isolate* isolate = Isolate::current();
     exlib::string table;
 
-    hr = _format_table(opts, table);
+    hr = _format_name(opts, "table", table);
     if (hr < 0)
         return hr;
 
@@ -987,13 +987,13 @@ result_t _format_create(v8::Local<v8::Object> opts, bool mysql, bool mssql, exli
     return 0;
 }
 
-result_t _format_drop(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib::string& retVal)
+result_t _format_dropTable(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib::string& retVal)
 {
     result_t hr;
     exlib::string str;
     exlib::string table;
 
-    hr = _format_table(opts, table);
+    hr = _format_name(opts, "table", table);
     if (hr < 0)
         return hr;
 
@@ -1003,13 +1003,91 @@ result_t _format_drop(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib:
     return 0;
 }
 
+result_t _format_createIndex(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib::string& retVal)
+{
+    result_t hr;
+    exlib::string str;
+    Isolate* isolate = Isolate::current();
+    exlib::string table, index;
+
+    hr = _format_name(opts, "table", table);
+    if (hr < 0)
+        return hr;
+
+    hr = _format_name(opts, "index", index);
+    if (hr < 0)
+        return hr;
+
+    str.append("CREATE INDEX " + index + " ON " + table + "(");
+
+    v8::Local<v8::Object> o;
+    hr = GetConfigValue(isolate->m_isolate, opts, "keys", o, true);
+    if (hr == CALL_E_PARAMNOTOPTIONAL)
+        return CHECK_ERROR(Runtime::setError("db: No index keys specified."));
+    if (hr < 0)
+        return hr;
+
+    exlib::string _keys;
+
+    JSArray ks = o->GetPropertyNames();
+    int32_t len = ks->Length();
+    int32_t i;
+
+    for (i = 0; i < len; i++) {
+        JSValue k = ks->Get(i);
+        JSValue v = o->Get(k);
+        int32_t order;
+
+        hr = GetArgumentValue(v, order, true);
+        if (hr < 0)
+            if (hr < 0)
+                return hr;
+
+        _keys.append(_escape_field(k));
+
+        if (order < 0)
+            _keys.append(" DESC");
+
+        if (i + 1 < len)
+            _keys.append(", ", 2);
+    }
+
+    if (_keys.empty())
+        return CHECK_ERROR(Runtime::setError("db: No index keys specified."));
+    str.append(_keys);
+    str.append(1, ')');
+
+    retVal = str;
+    return 0;
+}
+
+result_t _format_dropIndex(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib::string& retVal)
+{
+    result_t hr;
+    exlib::string str;
+    exlib::string index;
+
+    hr = _format_name(opts, "index", index);
+    if (hr < 0)
+        return hr;
+
+    str.append("DROP INDEX " + index);
+
+    retVal = str;
+    return 0;
+}
+
 result_t db_format(exlib::string method, v8::Local<v8::Object> opts, bool mysql, bool mssql,
     exlib::string& retVal)
 {
-    if (method == "create")
-        return _format_create(opts, mysql, mssql, retVal);
-    else if (method == "drop")
-        return _format_drop(opts, mysql, mssql, retVal);
+    if (method == "createTable")
+        return _format_createTable(opts, mysql, mssql, retVal);
+    else if (method == "dropTable")
+        return _format_dropTable(opts, mysql, mssql, retVal);
+    else if (method == "createIndex")
+        return _format_createIndex(opts, mysql, mssql, retVal);
+    else if (method == "dropIndex")
+        return _format_dropIndex(opts, mysql, mssql, retVal);
     else if (method == "find")
         return _format_find(opts, mysql, mssql, retVal);
     else if (method == "count")

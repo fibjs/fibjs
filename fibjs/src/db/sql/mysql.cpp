@@ -312,14 +312,24 @@ result_t mysql::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal
     return db_execute(this, sql, args, retVal, ac);
 }
 
-result_t mysql::create(v8::Local<v8::Object> opts, AsyncEvent* ac)
+result_t mysql::createTable(v8::Local<v8::Object> opts, AsyncEvent* ac)
 {
-    return db_create(this, opts, ac);
+    return db_createTable(this, opts, ac);
 }
 
-result_t mysql::drop(v8::Local<v8::Object> opts, AsyncEvent* ac)
+result_t mysql::dropTable(v8::Local<v8::Object> opts, AsyncEvent* ac)
 {
-    return db_drop(this, opts, ac);
+    return db_dropTable(this, opts, ac);
+}
+
+result_t mysql::createIndex(v8::Local<v8::Object> opts, AsyncEvent* ac)
+{
+    return db_createIndex(this, opts, ac);
+}
+
+result_t mysql::dropIndex(v8::Local<v8::Object> opts, AsyncEvent* ac)
+{
+    return db_dropIndex(this, opts, ac);
 }
 
 result_t mysql::insert(v8::Local<v8::Object> opts, double& retVal, AsyncEvent* ac)

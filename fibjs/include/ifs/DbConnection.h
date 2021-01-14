@@ -28,8 +28,10 @@ public:
     virtual result_t rollback(AsyncEvent* ac) = 0;
     virtual result_t trans(v8::Local<v8::Function> func, bool& retVal) = 0;
     virtual result_t execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t create(v8::Local<v8::Object> opts, AsyncEvent* ac) = 0;
-    virtual result_t drop(v8::Local<v8::Object> opts, AsyncEvent* ac) = 0;
+    virtual result_t createTable(v8::Local<v8::Object> opts, AsyncEvent* ac) = 0;
+    virtual result_t dropTable(v8::Local<v8::Object> opts, AsyncEvent* ac) = 0;
+    virtual result_t createIndex(v8::Local<v8::Object> opts, AsyncEvent* ac) = 0;
+    virtual result_t dropIndex(v8::Local<v8::Object> opts, AsyncEvent* ac) = 0;
     virtual result_t insert(v8::Local<v8::Object> opts, double& retVal, AsyncEvent* ac) = 0;
     virtual result_t find(v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
     virtual result_t count(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac) = 0;
@@ -57,8 +59,10 @@ public:
     static void s_rollback(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_trans(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_execute(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_create(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_drop(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_createTable(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_dropTable(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_createIndex(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_dropIndex(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_insert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_find(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_count(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -72,8 +76,10 @@ public:
     ASYNC_MEMBER0(DbConnection_base, commit);
     ASYNC_MEMBER0(DbConnection_base, rollback);
     ASYNC_MEMBERVALUE3(DbConnection_base, execute, exlib::string, OptArgs, obj_ptr<NArray>);
-    ASYNC_MEMBER1(DbConnection_base, create, v8::Local<v8::Object>);
-    ASYNC_MEMBER1(DbConnection_base, drop, v8::Local<v8::Object>);
+    ASYNC_MEMBER1(DbConnection_base, createTable, v8::Local<v8::Object>);
+    ASYNC_MEMBER1(DbConnection_base, dropTable, v8::Local<v8::Object>);
+    ASYNC_MEMBER1(DbConnection_base, createIndex, v8::Local<v8::Object>);
+    ASYNC_MEMBER1(DbConnection_base, dropIndex, v8::Local<v8::Object>);
     ASYNC_MEMBERVALUE2(DbConnection_base, insert, v8::Local<v8::Object>, double);
     ASYNC_MEMBERVALUE2(DbConnection_base, find, v8::Local<v8::Object>, obj_ptr<NArray>);
     ASYNC_MEMBERVALUE2(DbConnection_base, count, v8::Local<v8::Object>, int32_t);
@@ -97,10 +103,14 @@ inline ClassInfo& DbConnection_base::class_info()
         { "trans", s_trans, false },
         { "execute", s_execute, false },
         { "executeSync", s_execute, false },
-        { "create", s_create, false },
-        { "createSync", s_create, false },
-        { "drop", s_drop, false },
-        { "dropSync", s_drop, false },
+        { "createTable", s_createTable, false },
+        { "createTableSync", s_createTable, false },
+        { "dropTable", s_dropTable, false },
+        { "dropTableSync", s_dropTable, false },
+        { "createIndex", s_createIndex, false },
+        { "createIndexSync", s_createIndex, false },
+        { "dropIndex", s_dropIndex, false },
+        { "dropIndexSync", s_dropIndex, false },
         { "insert", s_insert, false },
         { "insertSync", s_insert, false },
         { "find", s_find, false },
@@ -243,9 +253,9 @@ inline void DbConnection_base::s_execute(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_RETURN();
 }
 
-inline void DbConnection_base::s_create(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void DbConnection_base::s_createTable(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("DbConnection.create");
+    METHOD_NAME("DbConnection.createTable");
     METHOD_INSTANCE(DbConnection_base);
     METHOD_ENTER();
 
@@ -254,16 +264,16 @@ inline void DbConnection_base::s_create(const v8::FunctionCallbackInfo<v8::Value
     ARG(v8::Local<v8::Object>, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_create(v0, cb, args);
+        hr = pInst->acb_createTable(v0, cb, args);
     else
-        hr = pInst->ac_create(v0);
+        hr = pInst->ac_createTable(v0);
 
     METHOD_VOID();
 }
 
-inline void DbConnection_base::s_drop(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void DbConnection_base::s_dropTable(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("DbConnection.drop");
+    METHOD_NAME("DbConnection.dropTable");
     METHOD_INSTANCE(DbConnection_base);
     METHOD_ENTER();
 
@@ -272,9 +282,45 @@ inline void DbConnection_base::s_drop(const v8::FunctionCallbackInfo<v8::Value>&
     ARG(v8::Local<v8::Object>, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_drop(v0, cb, args);
+        hr = pInst->acb_dropTable(v0, cb, args);
     else
-        hr = pInst->ac_drop(v0);
+        hr = pInst->ac_dropTable(v0);
+
+    METHOD_VOID();
+}
+
+inline void DbConnection_base::s_createIndex(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("DbConnection.createIndex");
+    METHOD_INSTANCE(DbConnection_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_createIndex(v0, cb, args);
+    else
+        hr = pInst->ac_createIndex(v0);
+
+    METHOD_VOID();
+}
+
+inline void DbConnection_base::s_dropIndex(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("DbConnection.dropIndex");
+    METHOD_INSTANCE(DbConnection_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_dropIndex(v0, cb, args);
+    else
+        hr = pInst->ac_dropIndex(v0);
 
     METHOD_VOID();
 }

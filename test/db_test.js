@@ -406,7 +406,7 @@ describe("db", () => {
         }), "DELETE FROM `test` WHERE `a`=200");
     });
 
-    it("format.create", () => {
+    it("format.createTable", () => {
         var opts = {
             table: "test",
             fields: {
@@ -462,15 +462,32 @@ describe("db", () => {
             }
         };
 
-        assert.equal(db.format("create", opts), "CREATE TABLE `test`(`t` TEXT, `t1` VARCHAR(100), `n` DOUBLE, `n1` FLOAT, `i` INT, `i1` TINYINT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` BLOB, `b1` LONGBLOB, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
-        assert.equal(db.formatMySQL("create", opts), "CREATE TABLE `test`(`t` LONGTEXT, `t1` VARCHAR(100), `n` DOUBLE, `n1` FLOAT, `i` INT, `i1` TINYINT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` BLOB, `b1` LONGBLOB, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
-        assert.equal(db.formatMSSQL("create", opts), "CREATE TABLE `test`(`t` TEXT, `t1` VARCHAR(100), `n` REAL, `n1` FLOAT, `i` INT, `i1` TINYINT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` VARBINARY(MAX), `b1` IMAGE, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
+        assert.equal(db.format("createTable", opts), "CREATE TABLE `test`(`t` TEXT, `t1` VARCHAR(100), `n` DOUBLE, `n1` FLOAT, `i` INT, `i1` TINYINT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` BLOB, `b1` LONGBLOB, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
+        assert.equal(db.formatMySQL("createTable", opts), "CREATE TABLE `test`(`t` LONGTEXT, `t1` VARCHAR(100), `n` DOUBLE, `n1` FLOAT, `i` INT, `i1` TINYINT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` BLOB, `b1` LONGBLOB, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
+        assert.equal(db.formatMSSQL("createTable", opts), "CREATE TABLE `test`(`t` TEXT, `t1` VARCHAR(100), `n` REAL, `n1` FLOAT, `i` INT, `i1` TINYINT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` VARBINARY(MAX), `b1` IMAGE, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
     });
 
-    it("format.drop", () => {
-        assert.equal(db.format("drop", {
+    it("format.dropTable", () => {
+        assert.equal(db.format("dropTable", {
             table: "test"
         }), "DROP TABLE `test`");
+    });
+
+    it("format.createIndex", () => {
+        assert.equal(db.format("createIndex", {
+            table: "test",
+            index: "idx_test", 
+            keys: {
+                t: 1,
+                t1: -1
+            }
+        }), "CREATE INDEX `idx_test` ON `test`(`t`, `t1` DESC)");
+    });
+
+    it("format.dropIndex", () => {
+        assert.equal(db.format("dropIndex", {
+            index: "test"
+        }), "DROP INDEX `test`");
     });
 
     function _test(conn_str) {
@@ -503,7 +520,7 @@ describe("db", () => {
             })
         });
 
-        it("empty sql", () => {
+        it("empty sql args", () => {
             var rs = conn.execute('select "?" as v');
             assert.equal(rs[0].v, '?');
         });
@@ -524,7 +541,7 @@ describe("db", () => {
             conn.execute('create table test2(t1 varchar(10), t2 varchar(10));');
             conn.execute('create table test3(t1 varchar(10), t2 varchar(10));');
 
-            conn.create({
+            conn.createTable({
                 table: "test4",
                 fields: {
                     t: 'text',
@@ -532,6 +549,17 @@ describe("db", () => {
                         type: "text",
                         size: 100
                     }
+                }
+            });
+        });
+
+        it("create index", () => {
+            conn.createIndex({
+                table: "test4",
+                index: "idx_test4",
+                keys: {
+                    t: 1,
+                    t1: -1
                 }
             });
         });

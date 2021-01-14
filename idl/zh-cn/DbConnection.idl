@@ -39,13 +39,25 @@ interface DbConnection : object
 
      @param opts 参数列表
      */
-    create(Object opts) async;
+    createTable(Object opts) async;
 
     /*! @brief 删除数据表
 
      @param opts 参数列表
      */
-    drop(Object opts) async;
+    dropTable(Object opts) async;
+
+    /*! @brief 创建数据表索引
+
+     @param opts 参数列表
+     */
+    createIndex(Object opts) async;
+
+    /*! @brief 删除数据表索引
+
+     @param opts 参数列表
+     */
+    dropIndex(Object opts) async;
 
     /*! @brief 插入新记录
 

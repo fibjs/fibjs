@@ -353,14 +353,24 @@ result_t SQLite::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVa
     return db_execute(this, sql, args, retVal, ac);
 }
 
-result_t SQLite::create(v8::Local<v8::Object> opts, AsyncEvent* ac)
+result_t SQLite::createTable(v8::Local<v8::Object> opts, AsyncEvent* ac)
 {
-    return db_create(this, opts, ac);
+    return db_createTable(this, opts, ac);
 }
 
-result_t SQLite::drop(v8::Local<v8::Object> opts, AsyncEvent* ac)
+result_t SQLite::dropTable(v8::Local<v8::Object> opts, AsyncEvent* ac)
 {
-    return db_drop(this, opts, ac);
+    return db_dropTable(this, opts, ac);
+}
+
+result_t SQLite::createIndex(v8::Local<v8::Object> opts, AsyncEvent* ac)
+{
+    return db_createIndex(this, opts, ac);
+}
+
+result_t SQLite::dropIndex(v8::Local<v8::Object> opts, AsyncEvent* ac)
+{
+    return db_dropIndex(this, opts, ac);
 }
 
 result_t SQLite::insert(v8::Local<v8::Object> opts, double& retVal, AsyncEvent* ac)
