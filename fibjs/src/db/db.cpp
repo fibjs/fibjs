@@ -523,6 +523,43 @@ result_t _format_name(v8::Local<v8::Object> opts, exlib::string name, exlib::str
         return _format_name_list(v, retVal);
 }
 
+result_t _format_order(v8::Local<v8::Array> orders, exlib::string& retVal)
+{
+    int32_t len = orders->Length();
+    int32_t i;
+    exlib::string str;
+
+    if (len > 0) {
+        for (i = 0; i < len; i++) {
+            JSValue ov = orders->Get(i);
+            v8::String::Utf8Value s(ov);
+            exlib::string key;
+            bool desc = false;
+
+            if (s.length() == 0)
+                return CHECK_ERROR(Runtime::setError("db: Field name cannot be empty."));
+            if (**s == '-') {
+                if (s.length() == 1)
+                    return CHECK_ERROR(Runtime::setError("db: Field name cannot be empty."));
+                key = _escape_field(*s + 1, s.length() - 1);
+                desc = true;
+            } else
+                key = _escape_field(*s, s.length());
+
+            str.append(key);
+            if (desc)
+                str.append(" DESC");
+
+            if (i + 1 < len)
+                str.append(", ", 2);
+        }
+    }
+
+    retVal = str;
+
+    return 0;
+}
+
 result_t _format_find(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib::string& retVal)
 {
     result_t hr;
@@ -570,37 +607,18 @@ result_t _format_find(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib:
     v8::Local<v8::Array> orders;
     hr = GetConfigValue(isolate->m_isolate, opts, "order", orders, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
+        exlib::string order;
+
         if (hr < 0)
             return hr;
 
-        int32_t len = orders->Length();
-        int32_t i;
+        hr = _format_order(orders, order);
+        if (hr < 0)
+            return hr;
 
-        if (len > 0) {
+        if (!order.empty()) {
             str.append(" ORDER BY ");
-            for (i = 0; i < len; i++) {
-                JSValue ov = orders->Get(i);
-                v8::String::Utf8Value s(ov);
-                exlib::string key;
-                bool desc = false;
-
-                if (s.length() == 0)
-                    return CHECK_ERROR(Runtime::setError("db: Field name cannot be empty."));
-                if (**s == '-') {
-                    if (s.length() == 1)
-                        return CHECK_ERROR(Runtime::setError("db: Field name cannot be empty."));
-                    key = _escape_field(*s + 1, s.length() - 1);
-                    desc = true;
-                } else
-                    key = _escape_field(*s, s.length());
-
-                str.append(key);
-                if (desc)
-                    str.append(" DESC");
-
-                if (i + 1 < len)
-                    str.append(", ", 2);
-            }
+            str.append(order);
         }
     }
 
@@ -1020,8 +1038,8 @@ result_t _format_createIndex(v8::Local<v8::Object> opts, bool mysql, bool mssql,
 
     str.append("CREATE INDEX " + index + " ON " + table + "(");
 
-    v8::Local<v8::Object> o;
-    hr = GetConfigValue(isolate->m_isolate, opts, "keys", o, true);
+    v8::Local<v8::Array> keys;
+    hr = GetConfigValue(isolate->m_isolate, opts, "keys", keys, true);
     if (hr == CALL_E_PARAMNOTOPTIONAL)
         return CHECK_ERROR(Runtime::setError("db: No index keys specified."));
     if (hr < 0)
@@ -1029,28 +1047,9 @@ result_t _format_createIndex(v8::Local<v8::Object> opts, bool mysql, bool mssql,
 
     exlib::string _keys;
 
-    JSArray ks = o->GetPropertyNames();
-    int32_t len = ks->Length();
-    int32_t i;
-
-    for (i = 0; i < len; i++) {
-        JSValue k = ks->Get(i);
-        JSValue v = o->Get(k);
-        int32_t order;
-
-        hr = GetArgumentValue(v, order, true);
-        if (hr < 0)
-            if (hr < 0)
-                return hr;
-
-        _keys.append(_escape_field(k));
-
-        if (order < 0)
-            _keys.append(" DESC");
-
-        if (i + 1 < len)
-            _keys.append(", ", 2);
-    }
+    hr = _format_order(keys, _keys);
+    if (hr < 0)
+        return hr;
 
     if (_keys.empty())
         return CHECK_ERROR(Runtime::setError("db: No index keys specified."));

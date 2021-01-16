@@ -477,10 +477,7 @@ describe("db", () => {
         assert.equal(db.format("createIndex", {
             table: "test",
             index: "idx_test", 
-            keys: {
-                t: 1,
-                t1: -1
-            }
+            keys: ['t', '-t1']
         }), "CREATE INDEX `idx_test` ON `test`(`t`, `t1` DESC)");
     });
 
@@ -557,10 +554,7 @@ describe("db", () => {
             conn.createIndex({
                 table: "test4",
                 index: "idx_test4",
-                keys: {
-                    t: 1,
-                    t1: -1
-                }
+                keys: ['t', '-t1']
             });
         });
 
