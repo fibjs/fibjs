@@ -281,7 +281,7 @@ describe("db", () => {
                     a: 200
                 },
                 skip: 100
-            }), "SELECT * FROM `test` WHERE `a`=200 SKIP 100");
+            }), "SELECT * FROM `test` WHERE `a`=200 OFFSET 100");
         });
 
         it('limit', () => {
@@ -302,7 +302,7 @@ describe("db", () => {
                 },
                 skip: 100,
                 limit: 100
-            }), "SELECT * FROM `test` WHERE `a`=200 SKIP 100 LIMIT 100");
+            }), "SELECT * FROM `test` WHERE `a`=200 LIMIT 100 OFFSET 100");
         });
 
         it('order', () => {
@@ -313,7 +313,7 @@ describe("db", () => {
                 },
                 limit: 100,
                 order: ['a', 'b', '-c']
-            }), "SELECT * FROM `test` WHERE `a`=200 LIMIT 100 ORDER BY `a`, `b`, `c` DESC");
+            }), "SELECT * FROM `test` WHERE `a`=200 ORDER BY `a`, `b`, `c` DESC LIMIT 100");
         });
 
         it('multi table', () => {

@@ -567,24 +567,6 @@ result_t _format_find(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib:
             str.append(" WHERE " + _where);
     }
 
-    int64_t skip;
-    hr = GetConfigValue(isolate->m_isolate, opts, "skip", skip);
-    if (hr != CALL_E_PARAMNOTOPTIONAL) {
-        if (hr < 0)
-            return hr;
-
-        str.append(" SKIP " + std::to_string(skip));
-    }
-
-    int64_t limit;
-    hr = GetConfigValue(isolate->m_isolate, opts, "limit", limit);
-    if (hr != CALL_E_PARAMNOTOPTIONAL) {
-        if (hr < 0)
-            return hr;
-
-        str.append(" LIMIT " + std::to_string(limit));
-    }
-
     v8::Local<v8::Array> orders;
     hr = GetConfigValue(isolate->m_isolate, opts, "order", orders, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
@@ -620,6 +602,24 @@ result_t _format_find(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib:
                     str.append(", ", 2);
             }
         }
+    }
+
+    int64_t limit;
+    hr = GetConfigValue(isolate->m_isolate, opts, "limit", limit);
+    if (hr != CALL_E_PARAMNOTOPTIONAL) {
+        if (hr < 0)
+            return hr;
+
+        str.append(" LIMIT " + std::to_string(limit));
+    }
+
+    int64_t skip;
+    hr = GetConfigValue(isolate->m_isolate, opts, "skip", skip);
+    if (hr != CALL_E_PARAMNOTOPTIONAL) {
+        if (hr < 0)
+            return hr;
+
+        str.append(" OFFSET " + std::to_string(skip));
     }
 
     retVal = str;
