@@ -273,7 +273,7 @@ result_t _format_where(v8::Local<v8::Array> o, bool bAnd, bool mysql, bool mssql
         exlib::string s;
 
         JSValue v = o->Get(i);
-        if (!v->IsObject())
+        if (!IsJSObject(v))
             return CHECK_ERROR(Runtime::setError("db: The argument of the [or/and] operation must be an object."));
 
         rAnd = bAnd;
@@ -307,7 +307,7 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
     if (val->IsArray())
         return _format_where(v8::Local<v8::Array>::Cast(val), true, mysql, mssql, retVal, retAnd);
 
-    if (!val->IsObject())
+    if (!IsJSObject(val))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(val);
@@ -336,7 +336,7 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
 
             if (v->IsArray())
                 return _format_where(v8::Local<v8::Array>::Cast(v), bAnd, mysql, mssql, retVal, retAnd);
-            else if (v->IsObject()) {
+            else if (IsJSObject(v)) {
                 o = v8::Local<v8::Object>::Cast(v);
                 ks = o->GetPropertyNames();
                 len = ks->Length();
@@ -351,7 +351,7 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
                 return CHECK_ERROR(Runtime::setError("db: The argument of the [or/and] operation must be an object or an array."));
         }
 
-        if (v->IsObject()) {
+        if (IsJSObject(v)) {
             v8::Local<v8::Object> ops = v8::Local<v8::Object>::Cast(v);
             JSArray opks = ops->GetPropertyNames();
             int32_t oplen = opks->Length();
@@ -400,7 +400,7 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
 
             v = ops->Get(opv);
 
-            if (!bField && !bIn && !bBetween && v->IsObject()) {
+            if (!bField && !bIn && !bBetween && IsJSObject(v)) {
                 ops = v8::Local<v8::Object>::Cast(v);
                 opks = ops->GetPropertyNames();
                 oplen = opks->Length();
@@ -426,7 +426,7 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
             str.append(key + op + _escape_field(v));
         } else {
             if (bIn) {
-                if (!v->IsObject())
+                if (!IsJSObject(v) && !v->IsArray())
                     return CHECK_ERROR(Runtime::setError("db: The argument of the [in/not_in] operation must be an array or a query."));
             } else if (bBetween) {
                 if (!v->IsArray())
@@ -439,10 +439,10 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
 
                 v = vals->Get(0);
                 v1 = vals->Get(1);
-            } else if (v->IsObject())
+            } else if (IsJSObject(v))
                 return CHECK_ERROR(Runtime::setError("db: The argument of the [" + op + "] operation can not be a object."));
 
-            if (v->IsObject() && !v->IsArray()) {
+            if (IsJSObject(v)) {
                 exlib::string sub_query;
                 result_t hr = db_format("find", v8::Local<v8::Object>::Cast(v), mysql, mssql, sub_query);
                 if (hr < 0)
@@ -486,7 +486,7 @@ result_t _format_name_list(v8::Local<v8::Value> v, exlib::string& retVal)
                     table.append(", ", 2);
             }
         }
-    } else if (v->IsObject()) {
+    } else if (IsJSObject(v)) {
         v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
         JSArray ks = o->GetPropertyNames();
         int32_t len = ks->Length();
