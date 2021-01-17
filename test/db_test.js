@@ -780,7 +780,7 @@ describe("db", () => {
 
             describe("trans()", () => {
                 it("auto commit", () => {
-                    var res = conn.trans(function () {
+                    var res = conn.trans(function (conn1) {
                         assert.equal(this, conn);
                         this.execute("update test set t2='test101.2' where t1=101");
                     });
@@ -792,8 +792,10 @@ describe("db", () => {
                 });
 
                 it("auto commit with fiber", () => {
-                    var res = conn.trans(function () {
+                    var res = conn.trans(function (conn1) {
+                        assert.equal(this, conn1);
                         assert.equal(this, conn);
+                        
                         coroutine.parallel(() => {
                             this.execute("update test set t2='test101.2.1' where t1=101");
                         });
@@ -805,7 +807,7 @@ describe("db", () => {
                 });
 
                 it("auto rollback", () => {
-                    var res = conn.trans(function () {
+                    var res = conn.trans(function (conn1) {
                         this.execute("update test set t2='test101.3' where t1=101");
                         return false;
                     });
@@ -817,7 +819,7 @@ describe("db", () => {
 
                 it("rollback when throw", () => {
                     assert.throws(() => {
-                        conn.trans(function () {
+                        conn.trans(function (conn1) {
                             this.execute("update test set t2='test101.3' where t1=101");
                             throw 100;
                         });

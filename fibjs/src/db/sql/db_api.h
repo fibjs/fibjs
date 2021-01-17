@@ -188,6 +188,7 @@ result_t db_rollback(T* pThis, AsyncEvent* ac)
 template <typename T>
 inline result_t db_trans(T* pThis, v8::Local<v8::Function> func, bool& retVal)
 {
+    v8::Local<v8::Value> v = pThis->wrap();
     result_t hr = 0;
     retVal = false;
 
@@ -196,7 +197,7 @@ inline result_t db_trans(T* pThis, v8::Local<v8::Function> func, bool& retVal)
         return hr;
 
     pThis->leave();
-    v8::Local<v8::Value> result = func->Call(pThis->wrap(), 0, NULL);
+    v8::Local<v8::Value> result = func->Call(pThis->wrap(), 1, &v);
     pThis->enter();
 
     if (result.IsEmpty()) {
