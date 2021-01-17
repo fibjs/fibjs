@@ -286,24 +286,29 @@ result_t mysql::execute(const char* sql, int32_t sLen,
     return 0;
 }
 
-result_t mysql::begin(AsyncEvent* ac)
+result_t mysql::begin(exlib::string point, AsyncEvent* ac)
 {
-    return db_begin(this, ac);
+    return db_begin(this, point, ac);
 }
 
-result_t mysql::commit(AsyncEvent* ac)
+result_t mysql::commit(exlib::string point, AsyncEvent* ac)
 {
-    return db_commit(this, ac);
+    return db_commit(this, point, ac);
 }
 
-result_t mysql::rollback(AsyncEvent* ac)
+result_t mysql::rollback(exlib::string point, AsyncEvent* ac)
 {
-    return db_rollback(this, ac);
+    return db_rollback(this, point, ac);
 }
 
 result_t mysql::trans(v8::Local<v8::Function> func, bool& retVal)
 {
-    return db_trans(this, func, retVal);
+    return trans("", func, retVal);
+}
+
+result_t mysql::trans(exlib::string point, v8::Local<v8::Function> func, bool& retVal)
+{
+    return db_trans(this, point, func, retVal);
 }
 
 result_t mysql::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal,

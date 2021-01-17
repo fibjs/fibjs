@@ -290,24 +290,29 @@ result_t mssql::execute(const char* sql, int32_t sLen,
     return 0;
 }
 
-result_t mssql::begin(AsyncEvent* ac)
+result_t mssql::begin(exlib::string point, AsyncEvent* ac)
 {
-    return db_begin(this, ac);
+    return db_begin(this, point, ac, true);
 }
 
-result_t mssql::commit(AsyncEvent* ac)
+result_t mssql::commit(exlib::string point, AsyncEvent* ac)
 {
-    return db_commit(this, ac);
+    return db_commit(this, point, ac, true);
 }
 
-result_t mssql::rollback(AsyncEvent* ac)
+result_t mssql::rollback(exlib::string point, AsyncEvent* ac)
 {
-    return db_rollback(this, ac);
+    return db_rollback(this, point, ac, true);
 }
 
 result_t mssql::trans(v8::Local<v8::Function> func, bool& retVal)
 {
-    return db_trans(this, func, retVal);
+    return trans("", func, retVal);
+}
+
+result_t mssql::trans(exlib::string point, v8::Local<v8::Function> func, bool& retVal)
+{
+    return db_trans(this, point, func, retVal);
 }
 
 result_t mssql::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal,

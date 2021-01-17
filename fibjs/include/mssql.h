@@ -29,10 +29,11 @@ public:
     // DbConnection_base
     virtual result_t get_type(exlib::string& retVal);
     virtual result_t close(AsyncEvent* ac);
-    virtual result_t begin(AsyncEvent* ac);
-    virtual result_t commit(AsyncEvent* ac);
-    virtual result_t rollback(AsyncEvent* ac);
+    virtual result_t begin(exlib::string point, AsyncEvent* ac);
+    virtual result_t commit(exlib::string point, AsyncEvent* ac);
+    virtual result_t rollback(exlib::string point, AsyncEvent* ac);
     virtual result_t trans(v8::Local<v8::Function> func, bool& retVal);
+    virtual result_t trans(exlib::string point, v8::Local<v8::Function> func, bool& retVal);
     virtual result_t execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal, AsyncEvent* ac);
     virtual result_t createTable(v8::Local<v8::Object> opts, AsyncEvent* ac);
     virtual result_t dropTable(v8::Local<v8::Object> opts, AsyncEvent* ac);

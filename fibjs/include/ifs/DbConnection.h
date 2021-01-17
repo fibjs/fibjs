@@ -23,10 +23,11 @@ public:
     // DbConnection_base
     virtual result_t get_type(exlib::string& retVal) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
-    virtual result_t begin(AsyncEvent* ac) = 0;
-    virtual result_t commit(AsyncEvent* ac) = 0;
-    virtual result_t rollback(AsyncEvent* ac) = 0;
+    virtual result_t begin(exlib::string point, AsyncEvent* ac) = 0;
+    virtual result_t commit(exlib::string point, AsyncEvent* ac) = 0;
+    virtual result_t rollback(exlib::string point, AsyncEvent* ac) = 0;
     virtual result_t trans(v8::Local<v8::Function> func, bool& retVal) = 0;
+    virtual result_t trans(exlib::string point, v8::Local<v8::Function> func, bool& retVal) = 0;
     virtual result_t execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
     virtual result_t createTable(v8::Local<v8::Object> opts, AsyncEvent* ac) = 0;
     virtual result_t dropTable(v8::Local<v8::Object> opts, AsyncEvent* ac) = 0;
@@ -72,9 +73,9 @@ public:
 
 public:
     ASYNC_MEMBER0(DbConnection_base, close);
-    ASYNC_MEMBER0(DbConnection_base, begin);
-    ASYNC_MEMBER0(DbConnection_base, commit);
-    ASYNC_MEMBER0(DbConnection_base, rollback);
+    ASYNC_MEMBER1(DbConnection_base, begin, exlib::string);
+    ASYNC_MEMBER1(DbConnection_base, commit, exlib::string);
+    ASYNC_MEMBER1(DbConnection_base, rollback, exlib::string);
     ASYNC_MEMBERVALUE3(DbConnection_base, execute, exlib::string, OptArgs, obj_ptr<NArray>);
     ASYNC_MEMBER1(DbConnection_base, createTable, v8::Local<v8::Object>);
     ASYNC_MEMBER1(DbConnection_base, dropTable, v8::Local<v8::Object>);
@@ -173,12 +174,14 @@ inline void DbConnection_base::s_begin(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_INSTANCE(DbConnection_base);
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(0, 0);
+    ASYNC_METHOD_OVER(1, 0);
+
+    OPT_ARG(exlib::string, 0, "");
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_begin(cb, args);
+        hr = pInst->acb_begin(v0, cb, args);
     else
-        hr = pInst->ac_begin();
+        hr = pInst->ac_begin(v0);
 
     METHOD_VOID();
 }
@@ -189,12 +192,14 @@ inline void DbConnection_base::s_commit(const v8::FunctionCallbackInfo<v8::Value
     METHOD_INSTANCE(DbConnection_base);
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(0, 0);
+    ASYNC_METHOD_OVER(1, 0);
+
+    OPT_ARG(exlib::string, 0, "");
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_commit(cb, args);
+        hr = pInst->acb_commit(v0, cb, args);
     else
-        hr = pInst->ac_commit();
+        hr = pInst->ac_commit(v0);
 
     METHOD_VOID();
 }
@@ -205,12 +210,14 @@ inline void DbConnection_base::s_rollback(const v8::FunctionCallbackInfo<v8::Val
     METHOD_INSTANCE(DbConnection_base);
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(0, 0);
+    ASYNC_METHOD_OVER(1, 0);
+
+    OPT_ARG(exlib::string, 0, "");
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_rollback(cb, args);
+        hr = pInst->acb_rollback(v0, cb, args);
     else
-        hr = pInst->ac_rollback();
+        hr = pInst->ac_rollback(v0);
 
     METHOD_VOID();
 }
@@ -228,6 +235,13 @@ inline void DbConnection_base::s_trans(const v8::FunctionCallbackInfo<v8::Value>
     ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->trans(v0, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Function>, 1);
+
+    hr = pInst->trans(v0, v1, vr);
 
     METHOD_RETURN();
 }

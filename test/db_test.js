@@ -769,6 +769,34 @@ describe("db", () => {
                 assert.equal(rs[0].t2, "test101.1");
             });
 
+            describe("savepoint", () => {
+                it("begin/commit", () => {
+                    conn.begin();
+
+                    conn.begin('p0');
+                    conn.execute("update test set t2='test101.100' where t1=101");
+                    conn.commit('p0');
+
+                    var rs = conn.execute("select * from test where t1=101");
+                    assert.equal(rs[0].t2, "test101.100");
+
+                    conn.rollback();
+                });
+
+                it("begin/rollback", () => {
+                    conn.begin();
+
+                    conn.begin('p0');
+                    conn.execute("update test set t2='test101.100' where t1=101");
+                    conn.rollback('p0');
+
+                    var rs = conn.execute("select * from test where t1=101");
+                    assert.equal(rs[0].t2, "test101.1");
+
+                    conn.rollback();
+                });
+            });
+
             it("begin/rollback", () => {
                 conn.begin();
                 conn.execute("update test set t2='test101.2' where t1=101");
@@ -827,6 +855,20 @@ describe("db", () => {
 
                     var rs = conn.execute("select * from test where t1=101");
                     assert.equal(rs[0].t2, "test101.2.1");
+                });
+
+                it("trans savepoint", () => {
+                    conn.trans(function (conn1) {
+                        conn.trans("point", function (conn2) {
+                            this.execute("update test set t2='test101.300' where t1=101");
+                            return false;
+                        });
+
+                        var rs = conn.execute("select * from test where t1=101");
+                        assert.equal(rs[0].t2, "test101.2.1");
+
+                        return false;
+                    });
                 });
             });
         });

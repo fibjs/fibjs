@@ -7,14 +7,23 @@ interface DbConnection : object
     /*! @brief 关闭当前数据库连接 */
     close() async;
 
-    /*! @brief 在当前数据库连接上启动一个事务 */
-    begin() async;
+    /*! @brief 在当前数据库连接上启动一个事务
+    
+     @param point 指定事务的名称，缺省不指定
+    */
+    begin(String point = "") async;
 
-    /*! @brief 提交当前数据库连接上的事务 */
-    commit() async;
+    /*! @brief 提交当前数据库连接上的事务
+    
+     @param point 指定事务的名称，缺省不指定
+    */
+    commit(String point = "") async;
 
-    /*! @brief 回滚当前数据库连接上的事务 */
-    rollback() async;
+    /*! @brief 回滚当前数据库连接上的事务
+    
+     @param point 指定事务的名称，缺省不指定
+    */
+    rollback(String point = "") async;
 
     /*! @brief 进入事务执行一个函数，并根据函数执行情况提交或者回滚 
      func 执行有三种结果：
@@ -26,6 +35,18 @@ interface DbConnection : object
      @return 返回事务是否提交，正常 commit 时返回 true, rollback 时返回 false，如果事务出错则抛出错误
     */
     Boolean trans(Function func);
+
+    /*! @brief 进入事务执行一个函数，并根据函数执行情况提交或者回滚 
+     func 执行有三种结果：
+     * 函数正常返回，包括运行结束和主动 return，此时事务将自动提交
+     * 函数返回 false，此时事务将回滚
+     * 函数运行错误，事务自动回滚
+
+     @param point 指定事务的名称
+     @param func 以事务方式执行的函数
+     @return 返回事务是否提交，正常 commit 时返回 true, rollback 时返回 false，如果事务出错则抛出错误
+    */
+    Boolean trans(String point, Function func);
 
     /*! @brief 执行一个 sql 命令，并返回执行结果，可根据参数格式化字符串
 

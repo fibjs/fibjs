@@ -147,7 +147,7 @@ result_t db_remove(T* pThis, v8::Local<v8::Object> opts, int32_t& retVal,
 }
 
 template <typename T>
-result_t db_begin(T* pThis, AsyncEvent* ac)
+result_t db_begin(T* pThis, exlib::string point, AsyncEvent* ac, bool mssql = false)
 {
     if (!pThis->m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -156,11 +156,17 @@ result_t db_begin(T* pThis, AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<NArray> retVal;
-    return pThis->execute("BEGIN", 5, retVal);
+
+    if (point.empty())
+        return pThis->execute("BEGIN", 5, retVal);
+    else {
+        exlib::string str((mssql ? "SAVE TRANSACTION " : "SAVEPOINT ") + point);
+        return pThis->execute(str.c_str(), str.length(), retVal);
+    }
 }
 
 template <typename T>
-result_t db_commit(T* pThis, AsyncEvent* ac)
+result_t db_commit(T* pThis, exlib::string point, AsyncEvent* ac, bool mssql = false)
 {
     if (!pThis->m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -169,11 +175,17 @@ result_t db_commit(T* pThis, AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<NArray> retVal;
-    return pThis->execute("COMMIT", 6, retVal);
+
+    if (point.empty())
+        return pThis->execute("COMMIT", 6, retVal);
+    else {
+        exlib::string str((mssql ? "COMMIT TRANSACTION " : "RELEASE SAVEPOINT ") + point);
+        return pThis->execute(str.c_str(), str.length(), retVal);
+    }
 }
 
 template <typename T>
-result_t db_rollback(T* pThis, AsyncEvent* ac)
+result_t db_rollback(T* pThis, exlib::string point, AsyncEvent* ac, bool mssql = false)
 {
     if (!pThis->m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -182,17 +194,23 @@ result_t db_rollback(T* pThis, AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<NArray> retVal;
-    return pThis->execute("ROLLBACK", 8, retVal);
+
+    if (point.empty())
+        return pThis->execute("ROLLBACK", 8, retVal);
+    else {
+        exlib::string str((mssql ? "ROLLBACK TRANSACTION " : "ROLLBACK TO ") + point);
+        return pThis->execute(str.c_str(), str.length(), retVal);
+    }
 }
 
 template <typename T>
-inline result_t db_trans(T* pThis, v8::Local<v8::Function> func, bool& retVal)
+inline result_t db_trans(T* pThis, exlib::string point, v8::Local<v8::Function> func, bool& retVal)
 {
     v8::Local<v8::Value> v = pThis->wrap();
     result_t hr = 0;
     retVal = false;
 
-    hr = pThis->ac_begin();
+    hr = pThis->ac_begin(point);
     if (hr < 0)
         return hr;
 
@@ -201,15 +219,15 @@ inline result_t db_trans(T* pThis, v8::Local<v8::Function> func, bool& retVal)
     pThis->enter();
 
     if (result.IsEmpty()) {
-        pThis->ac_rollback();
+        pThis->ac_rollback(point);
         return CALL_E_JAVASCRIPT;
     }
 
     if (result->IsFalse())
-        return pThis->ac_rollback();
+        return pThis->ac_rollback(point);
     else {
         retVal = true;
-        return pThis->ac_commit();
+        return pThis->ac_commit(point);
     }
 }
 }

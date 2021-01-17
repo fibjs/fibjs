@@ -327,24 +327,29 @@ result_t SQLite::execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal)
     return 0;
 }
 
-result_t SQLite::begin(AsyncEvent* ac)
+result_t SQLite::begin(exlib::string point, AsyncEvent* ac)
 {
-    return db_begin(this, ac);
+    return db_begin(this, point, ac);
 }
 
-result_t SQLite::commit(AsyncEvent* ac)
+result_t SQLite::commit(exlib::string point, AsyncEvent* ac)
 {
-    return db_commit(this, ac);
+    return db_commit(this, point, ac);
 }
 
-result_t SQLite::rollback(AsyncEvent* ac)
+result_t SQLite::rollback(exlib::string point, AsyncEvent* ac)
 {
-    return db_rollback(this, ac);
+    return db_rollback(this, point, ac);
 }
 
 result_t SQLite::trans(v8::Local<v8::Function> func, bool& retVal)
 {
-    return db_trans(this, func, retVal);
+    return trans("", func, retVal);
+}
+
+result_t SQLite::trans(exlib::string point, v8::Local<v8::Function> func, bool& retVal)
+{
+    return db_trans(this, point, func, retVal);
 }
 
 result_t SQLite::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal,
