@@ -476,7 +476,7 @@ describe("db", () => {
     it("format.createIndex", () => {
         assert.equal(db.format("createIndex", {
             table: "test",
-            index: "idx_test", 
+            index: "idx_test",
             keys: ['t', '-t1']
         }), "CREATE INDEX `idx_test` ON `test`(`t`, `t1` DESC)");
     });
@@ -489,7 +489,7 @@ describe("db", () => {
 
     function _test(conn_str) {
         var conn;
-        var tables = ['test', 'test_null', 'test2', 'test3'];
+        var tables = ['test', 'test_null', 'test2', 'test3', 'test4'];
 
         before(() => {
             conn = db.open(conn_str);
@@ -554,7 +554,7 @@ describe("db", () => {
             conn.createIndex({
                 table: "test4",
                 index: "idx_test4",
-                keys: ['t', '-t1']
+                keys: ['-t1']
             });
         });
 
@@ -823,7 +823,7 @@ describe("db", () => {
                     var res = conn.trans(function (conn1) {
                         assert.equal(this, conn1);
                         assert.equal(this, conn);
-                        
+
                         coroutine.parallel(() => {
                             this.execute("update test set t2='test101.2.1' where t1=101");
                         });
