@@ -293,6 +293,33 @@ result_t crypto_base::randomArt(Buffer_base* data, exlib::string title,
     return 0;
 }
 
+result_t crypto_base::genRsaKey(int32_t size, obj_ptr<PKey_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    retVal = new PKey();
+    return retVal->genRsaKey(size, ac);
+}
+
+result_t crypto_base::genEcKey(exlib::string curve, obj_ptr<PKey_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    retVal = new PKey();
+    return retVal->genEcKey(curve, ac);
+}
+
+result_t crypto_base::genSm2Key(obj_ptr<PKey_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    retVal = new PKey();
+    return retVal->genSm2Key(ac);
+}
+
 inline int pkcs5_pbkdf1(mbedtls_md_context_t* ctx, const unsigned char* password,
     size_t plen, const unsigned char* salt, size_t slen,
     unsigned int iteration_count,

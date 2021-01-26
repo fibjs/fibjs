@@ -166,6 +166,23 @@ module crypto
      */
     static String randomArt(Buffer data, String title, Integer size = 8);
 
+    /*! @brief 生成一个 RSA 私钥
+     @param size 指定 RSA 密钥长度，bit 为单位
+     @return 返回包含生成私钥的对象
+    */
+    static PKey genRsaKey(Integer size) async;
+
+    /*! @brief 生成一个 EC 私钥
+     @param curve 指定预置椭圆曲线，可选值为："secp521r1", "brainpoolP512r1", "secp384r1", "brainpoolP384r1", "secp256r1", "secp256k1", "brainpoolP256r1", "secp224r1", "secp224k1", "secp192r1", "secp192k1"
+     @return 返回包含生成私钥的对象
+    */
+    static PKey genEcKey(String curve = "secp521r1") async;
+
+    /*! @brief 生成一个 SM2 私钥
+     @return 返回包含生成私钥的对象
+    */
+    static PKey genSm2Key() async;
+
     /*! @brief 依据 pbkdf1 根据明文 password 生成要求的二进制钥匙
      @param password 指定使用的密码
      @param salt 指定 hmac 使用的 salt
