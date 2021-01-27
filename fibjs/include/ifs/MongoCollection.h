@@ -71,7 +71,7 @@ public:
     static void s_dropIndexes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getIndexes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getCollection(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void i_NamedGetter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array>& args);
 };
 }
@@ -375,7 +375,7 @@ inline void MongoCollection_base::s_getCollection(const v8::FunctionCallbackInfo
     METHOD_RETURN();
 }
 
-inline void MongoCollection_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void MongoCollection_base::i_NamedGetter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<MongoCollection_base> vr;
 

@@ -55,7 +55,7 @@ static void sync_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(args.Data());
 
     exlib::string str("util.sync(");
-    str += ToCString(v8::String::Utf8Value(func->GetName()));
+    str += ToCString(v8::String::Utf8Value(isolate->m_isolate, func->GetName()));
     str += ")";
 
     METHOD_NAME(str.c_str());

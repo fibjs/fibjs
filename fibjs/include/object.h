@@ -286,7 +286,7 @@ private:
 
 public:
     template <typename T>
-    static void __new(const T& args) {}
+    static void __new(const T& args) { }
 
 public:
     v8::Local<v8::Object> GetPrivateObject()
@@ -386,7 +386,7 @@ public:
 
         exlib::string strError = "Property \'";
 
-        strError += ToCString(v8::String::Utf8Value(property));
+        strError += ToCString(v8::String::Utf8Value(isolate->m_isolate, property));
         strError += "\' is read-only.";
         isolate->m_isolate->ThrowException(
             isolate->NewString(strError));
@@ -401,7 +401,7 @@ public:
             isolate->NewString("Indexed Property is read-only."));
     }
 
-    static void i_NamedSetter(v8::Local<v8::String> property,
+    static void i_NamedSetter(v8::Local<v8::Name> property,
         v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info)
     {
         Isolate* isolate = Isolate::current();
@@ -411,7 +411,7 @@ public:
     }
 
     static void i_NamedDeleter(
-        v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean>& info)
+        v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& info)
     {
         Isolate* isolate = Isolate::current();
 

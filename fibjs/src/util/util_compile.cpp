@@ -67,11 +67,11 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
         v8::MaybeLocal<v8::UnboundScript> ubs = v8::ScriptCompiler::CompileUnboundScript(
             isolate->m_isolate, &script_source,
             v8::ScriptCompiler::kEagerCompile);
+
         if (ubs.IsEmpty())
             return throwSyntaxError(try_catch);
 
-        const v8::ScriptCompiler::CachedData* cache;
-        cache = v8::ScriptCompiler::CreateCodeCache(ubs.ToLocalChecked(), v8src);
+        const v8::ScriptCompiler::CachedData* cache = v8::ScriptCompiler::CreateCodeCache(ubs.ToLocalChecked());
 
         exlib::string buf((const char*)cache->data, cache->length);
 

@@ -450,8 +450,9 @@ double valcmp(v8::Local<v8::Value>& val1, v8::Local<v8::Value>& val2)
             return v1 - val2->NumberValue();
     }
 
-    v8::String::Utf8Value s1(val1);
-    v8::String::Utf8Value s2(val2);
+    Isolate* isolate = Isolate::current();
+    v8::String::Utf8Value s1(isolate->m_isolate, val1);
+    v8::String::Utf8Value s2(isolate->m_isolate, val2);
 
     if (!*s1 || !*s2)
         return NAN;
@@ -746,7 +747,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Object> v = object->ToObject();
-    v8::String::Utf8Value s(prop);
+    v8::String::Utf8Value s(isolate->m_isolate, prop);
     const char *p, *p1;
 
     p = ToCString(s);
@@ -851,7 +852,7 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Object> v = object->ToObject();
-    v8::String::Utf8Value s(prop);
+    v8::String::Utf8Value s(isolate->m_isolate, prop);
     const char *p, *p1;
 
     p = ToCString(s);

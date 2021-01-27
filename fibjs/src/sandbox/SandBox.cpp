@@ -148,9 +148,11 @@ result_t SandBox::add(v8::Local<v8::Object> mods)
     int32_t i;
     result_t hr;
 
+    Isolate* isolate = holder();
+
     for (i = 0; i < len; i++) {
         JSValue k = ks->Get(i);
-        hr = add(ToCString(v8::String::Utf8Value(k)), mods->Get(k));
+        hr = add(ToCString(v8::String::Utf8Value(isolate->m_isolate, k)), mods->Get(k));
         if (hr < 0)
             return hr;
     }

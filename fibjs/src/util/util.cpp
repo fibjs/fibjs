@@ -118,7 +118,7 @@ result_t util_base::clone(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
             retVal = v8::StringObject::New(v->ToString());
         else if (v->IsRegExp()) {
             v8::Local<v8::RegExp> re = v8::Local<v8::RegExp>::Cast(v);
-            retVal = v8::RegExp::New(re->GetSource(), re->GetFlags());
+            retVal = v8::RegExp::New(isolate->m_isolate->GetCurrentContext(), re->GetSource(), re->GetFlags()).ToLocalChecked();
         } else if (v->IsFunction() || v->IsArray() || IsJSObject(v))
             retVal = v8::Local<v8::Object>::Cast(v)->Clone();
         else
@@ -284,7 +284,7 @@ result_t util_base::omit(v8::Local<v8::Value> v, OptArgs keys,
     for (i = 0; i < len; i++) {
         JSValue key = keys1->Get(i);
 
-        if (_map.find(ToCString(v8::String::Utf8Value(key))) == _map.end()) {
+        if (_map.find(ToCString(v8::String::Utf8Value(isolate->m_isolate, key))) == _map.end()) {
             JSValue value = obj->Get(key);
             obj1->Set(key, value);
         }

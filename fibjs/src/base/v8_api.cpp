@@ -12,6 +12,7 @@
 #endif
 
 #include "v8.h"
+#include "v8/src/api-inl.h"
 #include "v8/src/utils.h"
 #include "v8/src/api.h"
 #include "v8/src/isolate.h"
@@ -120,8 +121,7 @@ Local<String> JSON_Stringify(Isolate* isolate,
     i::Handle<i::String> gap_string = v8_isolate->factory()->empty_string();
     i::Handle<i::Object> maybe;
 
-    if (i::JsonStringifier(v8_isolate)
-            .Stringify(object, replacer, gap_string)
+    if (i::JsonStringify(v8_isolate, object, replacer, gap_string)
             .ToHandle(&maybe))
         ToLocal<String>(i::Object::ToString(v8_isolate, maybe), &result);
 
@@ -173,7 +173,7 @@ exlib::string traceInfo(Isolate* isolate, int32_t deep, void* entry_fp, void* ha
             strBuffer.append(bFirst ? "    at " : "\n    at ");
             bFirst = false;
 
-            String::Utf8Value funcname(Utils::ToLocal(summ.FunctionName()));
+            String::Utf8Value funcname(isolate, Utils::ToLocal(summ.FunctionName()));
             if (*funcname) {
                 strBuffer.append(*funcname);
                 strBuffer.append(" (", 2);
@@ -191,7 +191,7 @@ exlib::string traceInfo(Isolate* isolate, int32_t deep, void* entry_fp, void* ha
             }
 
             i::Handle<i::Object> name(script->name(), v8_isolate);
-            String::Utf8Value filename(Utils::ToLocal(name));
+            String::Utf8Value filename(isolate, Utils::ToLocal(name));
 
             char numStr[32];
 

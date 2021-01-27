@@ -128,7 +128,7 @@ result_t console_base::add(v8::Local<v8::Object> cfg)
     if (IsEmpty(type))
         return CHECK_ERROR(Runtime::setError("console: Missing log type."));
 
-    v8::String::Utf8Value s(type);
+    v8::String::Utf8Value s(isolate->m_isolate, type);
     if (!*s)
         return CHECK_ERROR(Runtime::setError("console: Unknown log type."));
 

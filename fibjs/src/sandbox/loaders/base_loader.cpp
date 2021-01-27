@@ -82,14 +82,14 @@ result_t SandBox::ExtLoader::run(Context* ctx, Buffer_base* src, exlib::string n
     if (hr < 0)
         return hr;
 
-    v8::Local<v8::Value> v = script->Run();
+    Isolate* isolate = ctx->m_sb->holder();
+    v8::Local<v8::Value> v = script->Run(isolate->m_isolate->GetCurrentContext()).ToLocalChecked();
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
     v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(v);
     util_base::sync(func, true, func);
 
-    Isolate* isolate = ctx->m_sb->holder();
     v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(args[5]);
     module->SetPrivate(module->CreationContext(),
         v8::Private::ForApi(isolate->m_isolate, isolate->NewString("entry")),

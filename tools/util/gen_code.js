@@ -385,11 +385,11 @@ function gen_code(cls, def, baseFolder) {
             },
             "stub": fn => {
                 if (fn.index) {
-                    txts.push("    static void i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args);");
+                    txts.push("    static void i_NamedGetter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);");
                     txts.push("    static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array>& args);");
                     if (!fn.readonly) {
-                        txts.push("    static void i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args);");
-                        txts.push("    static void i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean>& args);");
+                        txts.push("    static void i_NamedSetter(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args);");
+                        txts.push("    static void i_NamedDeleter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& args);");
                     }
                 } else {
                     txts.push("    static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args);");
@@ -399,7 +399,7 @@ function gen_code(cls, def, baseFolder) {
             },
             "stub_func": fn => {
                 if (fn.index) {
-                    txts.push(`inline void ${cls}_base::i_NamedGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args)\n{\n    ${get_rtype(fn.type)} vr;\n`);
+                    txts.push(`inline void ${cls}_base::i_NamedGetter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)\n{\n    ${get_rtype(fn.type)} vr;\n`);
                     txts.push(`    METHOD_NAME("${cls}[]");`);
                     txts.push(`    METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
                     txts.push('    exlib::string k;\n    GetArgumentValue(isolate, property, k);\n    if (class_info().has(k.c_str()))\n        return;\n');
@@ -414,7 +414,7 @@ function gen_code(cls, def, baseFolder) {
                     txts.push('    METHOD_RETURN1();\n}\n');
 
                     if (!fn.readonly) {
-                        txts.push(`inline void ${cls}_base::i_NamedSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args)\n{`);
+                        txts.push(`inline void ${cls}_base::i_NamedSetter(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args)\n{`);
                         txts.push(`    METHOD_NAME("${cls}[]");`);
                         txts.push(`    METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
                         txts.push(`    PROPERTY_VAL(${get_rtype(fn.type)});\n    exlib::string k;\n    GetArgumentValue(isolate, property, k);\n    if (class_info().has(k.c_str()))\n        return;\n`);
@@ -422,7 +422,7 @@ function gen_code(cls, def, baseFolder) {
                             txts.push(`    DEPRECATED_SOON("${cls}${fn.name}");\n`);
                         txts.push('    hr = pInst->_named_setter(k, v0);\n    if (hr == CALL_RETURN_NULL)\n        return;\n');
                         txts.push('    METHOD_VOID();\n}\n');
-                        txts.push(`inline void ${cls}_base::i_NamedDeleter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Boolean>& args)\n{\n    v8::Local<v8::Boolean> vr;\n`);
+                        txts.push(`inline void ${cls}_base::i_NamedDeleter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& args)\n{\n    v8::Local<v8::Boolean> vr;\n`);
                         txts.push(`    METHOD_NAME("${cls}[]");`);
                         txts.push(`    METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
                         txts.push('    exlib::string k;\n    GetArgumentValue(isolate, property, k);\n    if (class_info().has(k.c_str())) {\n        args.GetReturnValue().Set(v8::False(isolate));\n        return;\n    }\n');

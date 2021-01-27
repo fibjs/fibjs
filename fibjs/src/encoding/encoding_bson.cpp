@@ -60,7 +60,7 @@ void encodeValue(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Val
 
         *p = 0;
 
-        bson_append_regex(bb, name, ToCString(v8::String::Utf8Value(src)), flgStr);
+        bson_append_regex(bb, name, ToCString(v8::String::Utf8Value(isolate->m_isolate, src)), flgStr);
     } else if (element->IsObject()) {
         {
             obj_ptr<Buffer_base> buf = Buffer_base::getInstance(element);
@@ -88,7 +88,9 @@ void encodeValue(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Val
 
         encodeObject(isolate, bb, name, element, doJson);
     } else {
-        v8::String::Utf8Value v(element);
+        Isolate* isolate = Isolate::current();
+
+        v8::String::Utf8Value v(isolate->m_isolate, element);
         bson_append_string(bb, name, ToCString(v));
     }
 }
@@ -141,7 +143,7 @@ bool encodeObject(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Va
 
     if (!name
         && (object->IsDate() || object->IsArray() || object->IsRegExp()
-               || Buffer_base::getInstance(object)))
+            || Buffer_base::getInstance(object)))
         return false;
 
     if (name)
@@ -153,7 +155,7 @@ bool encodeObject(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Va
         JSValue prop_name = properties->Get(i);
         JSValue prop_val = object->Get(prop_name);
 
-        v8::String::Utf8Value n(prop_name);
+        v8::String::Utf8Value n(isolate->m_isolate, prop_name);
         const char* pname = ToCString(n);
 
         encodeValue(isolate, bb, pname, prop_val);
@@ -261,9 +263,13 @@ void decodeValue(Isolate* isolate, v8::Local<v8::Object> obj, bson_iterator* it)
             else if (ch == 'i')
                 flgs = (v8::RegExp::Flags)(flgs | v8::RegExp::kIgnoreCase);
 
-        obj->Set(isolate->NewString(key),
-            v8::RegExp::New(isolate->NewString(bson_iterator_regex(it)),
-                flgs));
+        obj->Set(
+            isolate->NewString(key),
+            v8::RegExp::New(
+                isolate->m_isolate->GetCurrentContext(),
+                isolate->NewString(bson_iterator_regex(it)),
+                flgs)
+                .ToLocalChecked());
         break;
     }
     case BSON_OBJECT:

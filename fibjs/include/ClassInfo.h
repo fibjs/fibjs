@@ -48,10 +48,10 @@ struct ClassData {
     };
 
     struct ClassNamed {
-        v8::NamedPropertyGetterCallback getter;
-        v8::NamedPropertySetterCallback setter;
-        v8::NamedPropertyDeleterCallback remover;
-        v8::NamedPropertyEnumeratorCallback enumerator;
+        v8::GenericNamedPropertyGetterCallback getter;
+        v8::GenericNamedPropertySetterCallback setter;
+        v8::GenericNamedPropertyDeleterCallback remover;
+        v8::GenericNamedPropertyEnumeratorCallback enumerator;
     };
 
     const char* name;
@@ -373,10 +373,11 @@ private:
             while (pcd && !pcd->cns)
                 pcd = pcd->base ? &pcd->base->m_cd : NULL;
 
-            if (pcd)
-                ot->SetNamedPropertyHandler(pcd->cns->getter, pcd->cns->setter,
-                    NULL, pcd->cns->remover, pcd->cns->enumerator);
-
+            if (pcd) {
+                ot->SetHandler(v8::NamedPropertyHandlerConfiguration(
+                    pcd->cns->getter, pcd->cns->setter, nullptr, pcd->cns->remover, pcd->cns->enumerator, v8::Local<v8::Value>(),
+                    v8::PropertyHandlerFlags::kOnlyInterceptStrings));
+            }
             if (m_cd.caf)
                 ot->SetCallAsFunctionHandler(m_cd.caf);
 

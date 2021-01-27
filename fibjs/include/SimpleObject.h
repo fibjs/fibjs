@@ -43,10 +43,11 @@ public:
         JSArray ks = m->GetPropertyNames();
         int32_t len = ks->Length();
         int32_t i;
+        Isolate* isolate = holder();
 
         for (i = 0; i < len; i++) {
             JSValue k = ks->Get(i);
-            add(ToCString(v8::String::Utf8Value(k)), m->Get(k));
+            add(ToCString(v8::String::Utf8Value(isolate->m_isolate, k)), m->Get(k));
         }
 
         return 0;

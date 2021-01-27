@@ -146,7 +146,9 @@ void _appendValue(exlib::string& str, v8::Local<v8::Value>& v, bool mysql, bool 
         str += ')';
     } else if (v->IsNumber() || v->IsNumberObject()
         || v->IsBigInt() || v->IsBigIntObject()) {
-        v8::String::Utf8Value s1(v);
+        Isolate* isolate = Isolate::current();
+
+        v8::String::Utf8Value s1(isolate->m_isolate, v);
         str.append(*s1, s1.length());
     } else if (v->IsUndefined() || v->IsNull()) {
         str.append("NULL", 4);
@@ -158,7 +160,8 @@ void _appendValue(exlib::string& str, v8::Local<v8::Value>& v, bool mysql, bool 
             date_t d = v;
             d.sqlString(s);
         } else {
-            v8::String::Utf8Value s1(v);
+            Isolate* isolate = Isolate::current();
+            v8::String::Utf8Value s1(isolate->m_isolate, v);
             s = _escape(*s1, s1.length(), mysql);
         }
         str.append(s);
@@ -251,7 +254,9 @@ inline exlib::string _escape_field(const char* str, int32_t sz)
 
 inline exlib::string _escape_field(v8::Local<v8::Value> v)
 {
-    v8::String::Utf8Value s(v);
+    Isolate* isolate = Isolate::current();
+
+    v8::String::Utf8Value s(isolate->m_isolate, v);
     return _escape_field(*s, s.length());
 }
 
@@ -298,8 +303,10 @@ result_t _format_where(v8::Local<v8::Array> o, bool bAnd, bool mysql, bool mssql
 
 result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::string& retVal, bool& retAnd)
 {
+    Isolate* isolate = Isolate::current();
+
     if (val->IsString() || val->IsStringObject()) {
-        v8::String::Utf8Value s(val);
+        v8::String::Utf8Value s(isolate->m_isolate, val);
         retVal.assign(*s, s.length());
         return 0;
     }
@@ -360,7 +367,7 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
                 return CHECK_ERROR(Runtime::setError("db: The condition of the field " + key + " is illegal."));
 
             JSValue opv = opks->Get(0);
-            v8::String::Utf8Value _ops(opv);
+            v8::String::Utf8Value _ops(isolate->m_isolate, opv);
 
             if (!*_ops)
                 return CHECK_ERROR(Runtime::setError("db: The condition of the field " + key + " is illegal."));
@@ -409,7 +416,7 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
                     return CHECK_ERROR(Runtime::setError("db: The condition of the field " + key + " is illegal."));
 
                 opv = opks->Get(0);
-                v8::String::Utf8Value _ops(opv);
+                v8::String::Utf8Value _ops(isolate->m_isolate, opv);
 
                 if (qstrcmp(*_ops, "$field"))
                     return CHECK_ERROR(Runtime::setError("db: The condition of the field " + key + " is illegal."));
@@ -523,7 +530,7 @@ result_t _format_name(v8::Local<v8::Object> opts, exlib::string name, exlib::str
         return _format_name_list(v, retVal);
 }
 
-result_t _format_order(v8::Local<v8::Array> orders, exlib::string& retVal)
+result_t _format_order(Isolate* isolate, v8::Local<v8::Array> orders, exlib::string& retVal)
 {
     int32_t len = orders->Length();
     int32_t i;
@@ -532,7 +539,7 @@ result_t _format_order(v8::Local<v8::Array> orders, exlib::string& retVal)
     if (len > 0) {
         for (i = 0; i < len; i++) {
             JSValue ov = orders->Get(i);
-            v8::String::Utf8Value s(ov);
+            v8::String::Utf8Value s(isolate->m_isolate, ov);
             exlib::string key;
             bool desc = false;
 
@@ -577,7 +584,7 @@ result_t _format_find(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib:
     if (hr == CALL_E_PARAMNOTOPTIONAL)
         str.append("*");
     else if (v->IsString() || v->IsStringObject()) {
-        v8::String::Utf8Value s(v);
+        v8::String::Utf8Value s(isolate->m_isolate, v);
         str.append(*s, s.length());
     } else {
         exlib::string str1;
@@ -612,7 +619,7 @@ result_t _format_find(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib:
         if (hr < 0)
             return hr;
 
-        hr = _format_order(orders, order);
+        hr = _format_order(isolate, orders, order);
         if (hr < 0)
             return hr;
 
@@ -1047,7 +1054,7 @@ result_t _format_createIndex(v8::Local<v8::Object> opts, bool mysql, bool mssql,
 
     exlib::string _keys;
 
-    hr = _format_order(keys, _keys);
+    hr = _format_order(isolate, keys, _keys);
     if (hr < 0)
         return hr;
 

@@ -60,7 +60,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
             else if (element->IsObject() && !element->IsStringObject())
                 return pack(element->ToObject());
             else {
-                v8::String::Utf8Value v(element);
+                v8::String::Utf8Value v(isolate->m_isolate, element);
 
                 msgpack_pack_str(&pk, v.length());
                 msgpack_pack_str_body(&pk, ToCString(v), v.length());
