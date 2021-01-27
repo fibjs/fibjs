@@ -73,7 +73,7 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options)
 {
     result_t hr;
     Isolate* isolate = Isolate::current();
-    int32_t len, i;
+    int32_t i;
 
     Variant stddefs[3];
     v8::Local<v8::Value> v;
@@ -270,7 +270,6 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
 {
     result_t hr;
     Isolate* isolate = Isolate::current();
-    int32_t len, i;
 
     hr = fill_stdio(options);
     if (hr < 0)
