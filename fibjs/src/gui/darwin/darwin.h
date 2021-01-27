@@ -27,7 +27,7 @@
     "css'),t.styleSheet?t.styleSheet.cssText=e:t.appendChild(document." \
     "createTextNode(e)),d.appendChild(t)})"
 
-static const char* webview_check_url(const char* url)
+inline const char* webview_check_url(const char* url)
 {
     if (url == NULL || strlen(url) == 0)
         return DEFAULT_URL;
@@ -35,12 +35,12 @@ static const char* webview_check_url(const char* url)
     return url;
 }
 
-static NSString* get_nsstring(const char* c_str)
+inline NSString* get_nsstring(const char* c_str)
 {
     return [NSString stringWithUTF8String:c_str];
 }
 
-static NSString* w_get_nsstring(const wchar_t* wstr)
+inline NSString* w_get_nsstring(const wchar_t* wstr)
 {
     return [[NSString alloc]
         initWithBytes:wstr

@@ -18,7 +18,7 @@
 
 #import "darwin.h"
 
-static exlib::string NSStringToExString(NSString* str) {
+inline exlib::string NSStringToExString(NSString* str) {
       return exlib::string((const char*)([str UTF8String]));
 }
 
