@@ -2,101 +2,7 @@
 
 . ../../vender/scripts/get_env.sh --source-only
 
-get_build_env;
-
-usage()
-{
-	echo ""
-	echo "Usage: `basename $0` [options] [-jn] [-v] [-h]"
-	echo "Options:"
-	echo "  release, debug: "
-	echo "      Specifies the build type."
-	echo "  i386, amd64, arm, arm64, mips, mips64, ppc, ppc64:"
-	echo "      Specifies the architecture for code generation."
-	echo "  clean: "
-	echo "      Clean the build folder."
-	echo "  ci: "
-	echo "      Specifies the environment is CI."
-	echo "  -h, --help:"
-	echo "      Print this message and exit."
-	echo ""
-	exit 0
-}
-
-for i in "$@"
-do
-	case $i in
-		i386|amd64|arm|arm64|mips|mips64|ppc|ppc64) TARGET_ARCH=$i
-			;;
-		release|debug|clean) BUILD_TYPE=$i
-			;;
-		ci) CI="ci"
-			;;
-		--help|-h) usage
-			;;
-		*) echo "illegal option $i"
-			usage
-			;;
-	esac
-done
-
-case $TARGET_ARCH in
-	i386)
-		if [ $HOST_ARCH = "amd64" ]; then
-			BUILD_OPTION="-m32"
-		else
-			usage
-		fi
-		;;
-	arm)
-		if [ $TARGET_OS = "Linux" ]; then
-			BUILD_PREFIX="arm-linux-gnueabihf-"
-			BUILD_OPTION="-march=armv7-a -mfpu=vfp3 -marm --target=arm-linux-gnueabihf -L/usr/lib/gcc-cross/arm-linux-gnueabihf/${GCC_VERSION} -L/usr/arm-linux-gnueabihf/lib -I/usr/arm-linux-gnueabihf/include -I/usr/arm-linux-gnueabihf/include/c++/${GCC_VERSION} -I/usr/arm-linux-gnueabihf/include/c++/${GCC_VERSION}/arm-linux-gnueabihf"
-		else
-			usage
-		fi
-		;;
-	arm64)
-		if [ $TARGET_OS = "Linux" ]; then
-			BUILD_PREFIX="aarch64-linux-gnu-"
-			BUILD_OPTION="--target=aarch64-linux-gnu -L/usr/lib/gcc-cross/aarch64-linux-gnu/${GCC_VERSION} -L/usr/aarch64-linux-gnu/lib -I/usr/aarch64-linux-gnu/include -I/usr/aarch64-linux-gnu/include/c++/${GCC_VERSION} -I/usr/aarch64-linux-gnu/include/c++/${GCC_VERSION}/aarch64-linux-gnu"
-		else
-			usage
-		fi
-		;;
-	mips)
-		if [ $TARGET_OS = "Linux" ]; then
-			BUILD_PREFIX="mips-linux-gnu-"
-			BUILD_OPTION="--target=mips-linux-gnu -L/usr/lib/gcc-cross/mips-linux-gnu/${GCC_VERSION} -L/usr/mips-linux-gnu/lib -I/usr/mips-linux-gnu/include -I/usr/mips-linux-gnu/include/c++/${GCC_VERSION} -I/usr/mips-linux-gnu/include/c++/${GCC_VERSION}/mips-linux-gnu"
-		else
-			usage
-		fi
-		;;
-	mips64)
-		if [ $TARGET_OS = "Linux" ]; then
-			BUILD_PREFIX="mips64-linux-gnuabi64-"
-			BUILD_OPTION="--target=mips64-linux-gnuabi64 -L/usr/lib/gcc-cross/mips64-linux-gnuabi64/${GCC_VERSION} -L/usr/mips64-linux-gnuabi64/lib -I/usr/mips64-linux-gnuabi64/include -I/usr/mips64-linux-gnuabi64/include/c++/${GCC_VERSION} -I/usr/mips64-linux-gnuabi64/include/c++/${GCC_VERSION}/mips64-linux-gnuabi64"
-		else
-			usage
-		fi
-		;;
-	ppc)
-		if [ $TARGET_OS = "Linux" ]; then
-			BUILD_PREFIX="powerpc-linux-gnu-"
-			BUILD_OPTION="--target=powerpc-linux-gnu -L/usr/lib/gcc-cross/powerpc-linux-gnu/${GCC_VERSION} -L/usr/powerpc-linux-gnu/lib -I/usr/powerpc-linux-gnu/include -I/usr/powerpc-linux-gnu/include/c++/${GCC_VERSION} -I/usr/powerpc-linux-gnu/include/c++/${GCC_VERSION}/powerpc-linux-gnu"
-		else
-			usage
-		fi
-		;;
-	ppc64)
-		if [ $TARGET_OS = "Linux" ]; then
-			BUILD_PREFIX="powerpc64-linux-gnu-"
-			BUILD_OPTION="--target=powerpc64-linux-gnu -L/usr/lib/gcc-cross/powerpc64-linux-gnu/${GCC_VERSION} -L/usr/powerpc64-linux-gnu/lib -I/usr/powerpc64-linux-gnu/include -I/usr/powerpc64-linux-gnu/include/c++/${GCC_VERSION} -I/usr/powerpc64-linux-gnu/include/c++/${GCC_VERSION}/powerpc64-linux-gnu"
-		else
-			usage
-		fi
-		;;
-esac
+get_build_env "$@";
 
 FIBJS_PATH=`pwd`
 OUT_PATH=${FIBJS_PATH}/../../out
@@ -119,9 +25,6 @@ if [ ! -e "${OUT_PATH}" ]; then
 	mkdir "${OUT_PATH}"
 fi
 
-. ../../scripts/filters.sh --source-only
-filter_cmake_build_type;
-
 OUT_PATH=${OUT_PATH}/${TARGET_OS}_${TARGET_ARCH}_${BUILD_TYPE}
 if [ ! -e ${OUT_PATH} ]; then
 	mkdir ${OUT_PATH}
@@ -134,22 +37,14 @@ fi
 
 cd ${OUT_PATH}
 cmake \
-	-DCMAKE_MAKE_PROGRAM=make \
-	-G "Unix Makefiles" \
-	-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
 	-DCMAKE_C_COMPILER=clang \
 	-DCMAKE_CXX_COMPILER=clang++ \
+	-DARCH=${TARGET_ARCH} \
 	-DBUILD_TYPE=${BUILD_TYPE} \
-	-DBUILD_OPTION="${BUILD_OPTION}" \
 	${FIBJS_PATH} > CMake.log
 
 if [ $? != 0 ]; then
 	exit 1
-fi
-
-if [ "$HOST_OS" = "Windows" ]; then
-	get_windows_vctool_install_path;
-	export VCToolsInstallDir;
 fi
 
 if [ ! "$BUILD_JOBS" = "" ]; then

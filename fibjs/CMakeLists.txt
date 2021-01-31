@@ -1,9 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 
-include(tools/arch.cmake)
-include(tools/os.cmake)
-include(tools/platform.cmake)
-include(tools/subdirs.cmake)
+include(../vender/tools/option.cmake)
+include(../vender/tools/subdirs.cmake)
 
 project(fibjs)
 
@@ -14,25 +12,23 @@ if(CCACHE_FOUND)
 endif(CCACHE_FOUND)
 
 file(GLOB_RECURSE src_list "src/*.c*")
-if(${OS} STREQUAL "Darwin" AND ${ARCH} STREQUAL "amd64")
+if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin" AND ${ARCH} STREQUAL "amd64")
 	file(GLOB_RECURSE src_platform_list "src/*.m*")
 else()
 	file(GLOB_RECURSE src_platform_list "")
 endif()
 
-if(${OS} STREQUAL "Darwin" AND NOT ${ARCH} STREQUAL "amd64")
+if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin" AND NOT ${ARCH} STREQUAL "amd64")
 	add_definitions(-DFIBJS_DISABLE_GUI=1)
 endif()
 
 add_library(fibjs ${src_list} ${src_platform_list})
 
-set(BIN_DIR ${PROJECT_SOURCE_DIR}/../bin/${OS}_${ARCH}_${BUILD_TYPE})
+set(BIN_DIR ${PROJECT_SOURCE_DIR}/../bin/${CMAKE_HOST_SYSTEM_NAME}_${ARCH}_${BUILD_TYPE})
 set(LIBRARY_OUTPUT_PATH ${BIN_DIR})
 
 include(CheckIncludeFiles)
 include(CheckCSourceCompiles)
-
-set(CMAKE_C_FLAGS "${BUILD_OPTION}")
 
 check_include_files(iconv.h HAVE_ICONV_H)
 
@@ -66,7 +62,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tools/gitinfo.h.in ${CMAKE_CURRENT_BI
 set(flags "-fsigned-char -fmessage-length=0 -fdata-sections -ffunction-sections -D_FILE_OFFSET_BITS=64")
 set(ccflags "${ccflags} ${CXX_STD_VER_FLAG}")
 
-if(${OS} STREQUAL "Darwin")
+if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
 	set(flags "${flags} -Wno-nullability-completeness")
 	set(cflags "${cflags} -DOBJC_OLD_DISPATCH_PROTOTYPES=1")
 	set(ccflags "${ccflags} -DOBJC_OLD_DISPATCH_PROTOTYPES=1")
@@ -85,7 +81,7 @@ endif()
 if(${BUILD_TYPE} STREQUAL "release")
 	set(flags "${flags} -O3 -s ${BUILD_OPTION} -w -fvisibility=hidden")
 
-	if(${OS} STREQUAL "FreeBSD")
+	if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "FreeBSD")
 		set(flags "${flags} -fno-omit-frame-pointer")
 	else()
 		set(flags "${flags} -fomit-frame-pointer")

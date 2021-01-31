@@ -1,9 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 
-include(../tools/arch.cmake)
-include(../tools/os.cmake)
-include(../tools/platform.cmake)
-include(../tools/subdirs.cmake)
+include(../../vender/tools/option.cmake)
+include(../../vender/tools/subdirs.cmake)
 
 project(fibjs)
 
@@ -15,11 +13,11 @@ endif(CCACHE_FOUND)
 
 file(GLOB_RECURSE src_list "src/*.c*")
 
-if(${OS} STREQUAL "Darwin" AND NOT ${ARCH} STREQUAL "amd64")
+if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin" AND NOT ${ARCH} STREQUAL "amd64")
 	add_definitions(-DFIBJS_DISABLE_GUI=1)
 endif()
 
-if (${OS} STREQUAL "Windows")
+if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 	# add quote to all paths in CMAKE_RC_COMPILE_OBJECT to make it robustic on Windows.
 	#
 	# BTW, sh.exe cannot deal with args of `llvm-rc.exe` correctly
@@ -33,7 +31,7 @@ else()
 	add_executable(fibjs ${src_list})
 endif()
 
-set(BIN_DIR ${PROJECT_SOURCE_DIR}/../../bin/${OS}_${ARCH}_${BUILD_TYPE})
+set(BIN_DIR ${PROJECT_SOURCE_DIR}/../../bin/${CMAKE_HOST_SYSTEM_NAME}_${ARCH}_${BUILD_TYPE})
 set(EXECUTABLE_OUTPUT_PATH ${BIN_DIR})
 
 include(CheckIncludeFiles)
@@ -78,7 +76,7 @@ set(link_flags " ")
 if(${BUILD_TYPE} STREQUAL "release")
 	set(flags "${flags} -O3 -s ${BUILD_OPTION} -w -fvisibility=hidden")
 
-	if(${OS} STREQUAL "FreeBSD")
+	if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "FreeBSD")
 		set(flags "${flags} -fno-omit-frame-pointer")
 	else()
 		set(flags "${flags} -fomit-frame-pointer")
@@ -87,7 +85,7 @@ if(${BUILD_TYPE} STREQUAL "release")
 	set(link_flags "${link_flags} ${BUILD_OPTION} -static-libstdc++")
 	add_definitions(-DNDEBUG=1)
 
-	if(${OS} STREQUAL "Linux")
+	if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
 		set(link_flags "${link_flags} ${link_flags} -static-libgcc")
 	endif()
 
@@ -106,7 +104,7 @@ include_directories("${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/../in
 
 set(libs fibjs expat gumbo gd tiff jpeg png webp zlib leveldb snappy msgpack pcre sqlite mongo umysql uuid exif mbedtls v8 unzip uv exlib)
 
-if(${OS} STREQUAL "Windows")
+if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 	list(APPEND libs winiconv)
 else()
 	list(APPEND libs ev editline jemalloc)
@@ -114,16 +112,16 @@ endif()
 
 foreach(lib ${libs})
 	target_link_libraries(fibjs "${BIN_DIR}/lib${lib}${CMAKE_STATIC_LIBRARY_SUFFIX}")
-	if(${OS} STREQUAL "Windows")
+	if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 		target_link_libraries(fibjs_gui "${BIN_DIR}/lib${lib}${CMAKE_STATIC_LIBRARY_SUFFIX}")
 	endif()
 endforeach()
 
-if(NOT ${OS} STREQUAL "Windows")
+if(NOT ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 	target_link_libraries(fibjs pthread)
 endif()
 
-if(${OS} STREQUAL "Darwin")
+if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
 	set(DARWIN_LIBS "-framework WebKit -framework Cocoa")
 
 	set(cflags "${cflags} -DOBJC_OLD_DISPATCH_PROTOTYPES=1")
@@ -134,7 +132,7 @@ if(${OS} STREQUAL "Darwin")
 	target_link_libraries(fibjs dl iconv stdc++)
 endif()
 
-if(${OS} STREQUAL "Windows")
+if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 	add_definitions(-DWIN32 -D_LIB -D_CRT_SECURE_NO_WARNINGS -D_CRT_RAND_S -DNOMINMAX)
 	set(flags "${flags} -fms-extensions -fmsc-version=1910 -frtti")
 	list(APPEND win_libs winmm ws2_32 psapi dbghelp shlwapi urlmon userenv advapi32 kernel32)
@@ -158,20 +156,20 @@ endif()
 set(CMAKE_C_FLAGS "${flags}")
 set(CMAKE_CXX_FLAGS "${flags} ${ccflags}")
 
-if(${OS} STREQUAL "Linux")
+if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
 	target_link_libraries(fibjs dl rt)
 endif()
 
-if(${OS} STREQUAL "FreeBSD")
+if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "FreeBSD")
 	find_library(execinfo execinfo "/usr/local/lib" "/usr/lib")
 	target_link_libraries(fibjs ${execinfo})
 endif()
 
-if((NOT ${OS} STREQUAL "Windows") AND (NOT HAVE_GLIB_C_ATOMIC_H))
+if((NOT ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows") AND (NOT HAVE_GLIB_C_ATOMIC_H))
 	target_link_libraries(fibjs atomic)
 endif()
 
-if(${OS} STREQUAL "Windows")
+if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 	target_compile_definitions(fibjs PUBLIC -D_CONSOLE)
 	set_target_properties(fibjs PROPERTIES LINK_FLAGS "${link_flags} -Xlinker //SUBSYSTEM:CONSOLE")
 	
