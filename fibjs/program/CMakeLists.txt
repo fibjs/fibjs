@@ -5,12 +5,6 @@ include(../../vender/tools/subdirs.cmake)
 
 project(fibjs)
 
-find_program(CCACHE_FOUND ccache)
-if(CCACHE_FOUND)
-	set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-	set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
-endif(CCACHE_FOUND)
-
 file(GLOB_RECURSE src_list "src/*.c*")
 
 if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin" AND NOT ${ARCH} STREQUAL "amd64")
