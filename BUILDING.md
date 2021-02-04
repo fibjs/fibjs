@@ -10,16 +10,9 @@
 | gnu make | √ | √ | √ |
 | bash | √ (by **git-bash**) | √ | √ |
 
-Others:
-- git-bash with make.exe (Windows only)
-	- download [make-4.3-without-guile-w32-bin.zip](https://netix.dl.sourceforge.net/project/ezwinports/make-4.3-without-guile-w32-bin.zip), it's recommended to extract whole zip file to, 
-		- (for 64 bit): extract to `C:/Program Files/Git/mingw64/`
-		- (for 32 bit): extract to `C:/Program Files/Git/mingw32/`
-	- make sure `sh.exe` and `make.exe` are in you `%PATH%` environtment variable.
-- libexecinfo (FreeBSD and OpenBSD only)
-
 ----------------------------------
-### on Windows:
+### on Windows
+#### Install LLVM
 
 Run bat to install clang/LLVM.
 
@@ -34,9 +27,22 @@ START /WAIT llvm-installer.exe /S /D=C:\"Program Files\LLVM"
 EXIT
 ```
 
-You can also install clang/LLVM manually from [official releases](https://releases.llvm.org/download.html#9.0.1).
+You can also install clang/LLVM manually from [official releases](https://releases.llvm.org/download.html#9.0.1) (https://releases.llvm.org/download.html).
 
-Then add `"C:\Program Files\LLVM\bin"` to your environment variable `%PATH%`
+Then add `"C:\Program Files\LLVM\bin"` to your environment variable `%PATH%`.
+
+#### Install git (with git-bash)
+
+[`git-downloads`]:https://git-scm.com/downloads
+
+Download git installation from [`git-downloads`]: https://git-scm.com/downloads.
+
+After install git, you should do more setup:
+
+1. download [make-4.3-without-guile-w32-bin.zip](https://netix.dl.sourceforge.net/project/ezwinports/make-4.3-without-guile-w32-bin.zip) from https://netix.dl.sourceforge.net/project/ezwinports/make-4.3-without-guile-w32-bin.zip, it's recommended to extract whole zip file to, 
+	- (for 64 bit): extract to `C:/Program Files/Git/mingw64/`
+	- (for 32 bit): extract to `C:/Program Files/Git/mingw32/`
+1. make sure `sh.exe` and `make.exe` are in you `%PATH%` environtment variable.
 
 ### on ubuntu:
 
