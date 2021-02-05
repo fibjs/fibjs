@@ -1,9 +1,5 @@
 #!/bin/bash
 
-. vender/scripts/get_env.sh --source-only
-
-get_build_env "$@";
-
 inform()
 {
 	echo ""
@@ -15,13 +11,10 @@ inform()
 	exit 1
 }
 
-export BUILD_JOBS
-export BUILD_VERBOSE
-
 if [ -d vender ]; then 
 	if [ -z $USE_VENDER_DIST ]; then
 		cd vender
-		sh build $BUILD_TYPE $TARGET_ARCH
+		sh build "$@"
 		if [ $? != 0 ]; then
 			exit 1
 		fi
@@ -32,14 +25,14 @@ else
 fi
 
 cd fibjs
-sh build $BUILD_TYPE $TARGET_ARCH $CI
+sh build "$@"
 if [ $? != 0 ]; then
 	exit 1
 fi
 cd ..
 
 cd fibjs/program
-sh build $BUILD_TYPE $TARGET_ARCH $CI
+sh build "$@"
 if [ $? != 0 ]; then
 	exit 1
 fi

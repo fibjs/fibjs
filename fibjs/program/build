@@ -1,64 +1,20 @@
 #!/bin/bash
 
-. ../../vender/scripts/get_env.sh --source-only
+DIR=`pwd`;
+FIBJS_ROOT=$DIR/../..
+
+. $FIBJS_ROOT/vender/scripts/get_env.sh --source-only
 
 get_build_env "$@";
 
-FIBJS_PATH=`pwd`
-OUT_PATH=${FIBJS_PATH}/../../out
-BIN_ROOT=${FIBJS_PATH}/../../bin
-BIN_PATH=${FIBJS_PATH}/../../bin/${TARGET_OS}_${TARGET_ARCH}_${BUILD_TYPE}
-
-if [ ${BUILD_TYPE} = 'clean' ]; then
-	if [ -e "${OUT_PATH}" ]; then
-		rm -rf ${OUT_PATH}
-	fi
-
-	if [ -e "${BIN_ROOT}" ]; then
-		rm -rf ${BIN_ROOT}
-	fi
-
-	exit 0
-fi
-
-if [ ! -e "${OUT_PATH}" ]; then
-	mkdir "${OUT_PATH}"
-fi
-
-OUT_PATH=${OUT_PATH}/${TARGET_OS}_${TARGET_ARCH}_${BUILD_TYPE}
-if [ ! -e ${OUT_PATH} ]; then
-	mkdir ${OUT_PATH}
-fi
-
-OUT_PATH=${OUT_PATH}/program
-if [ ! -e ${OUT_PATH} ]; then
-	mkdir ${OUT_PATH}
-fi
-
-cd ${OUT_PATH}
-cmake \
-	-DCMAKE_C_COMPILER=clang \
-	-DCMAKE_CXX_COMPILER=clang++ \
-	-DARCH=${TARGET_ARCH} \
-	-DBUILD_TYPE=${BUILD_TYPE} \
-	${FIBJS_PATH} > CMake.log
-
-if [ $? != 0 ]; then
-	exit 1
-fi
-
-if [ ! "$BUILD_JOBS" = "" ]; then
-	sh -c "${BUILD_VERBOSE} make -j${BUILD_JOBS}"
-else
-	sh -c "${BUILD_VERBOSE} make"
-fi
-if [ $? != 0 ]; then
-	exit 1
-fi
+. $FIBJS_ROOT/vender/build
 
 if [ "${TARGET_OS}" != "Windows" ] && [ "${BUILD_TYPE}" = "release" ]; then
+	PROGRAM_SRC_PATH=$FIBJS_ROOT/fibjs/program
+	BIN_PATH=$FIBJS_ROOT/bin/${TARGET_OS}_${TARGET_ARCH}_${BUILD_TYPE}
+
 	cd "${BIN_PATH}"
-	cp "${FIBJS_PATH}/installer.txt" "installer.sh"
+	cp "${PROGRAM_SRC_PATH}/installer.txt" "installer.sh"
 	tar -zcf fibjs.tar.gz fibjs
 	echo '[100%] Built target fibjs.tar.gz'
 	cat fibjs.tar.gz >> installer.sh
@@ -66,6 +22,21 @@ if [ "${TARGET_OS}" != "Windows" ] && [ "${BUILD_TYPE}" = "release" ]; then
 	echo '[100%] Built target install.sh'
 
 	if [ $TARGET_OS = "Linux" ]; then
+		case $TARGET_ARCH in
+			arm) BUILD_PREFIX="arm-linux-gnueabihf-"
+				;;
+			arm64) BUILD_PREFIX="aarch64-linux-gnu-"
+				;;
+			mips) BUILD_PREFIX="mips-linux-gnu-"
+				;;
+			mips64) BUILD_PREFIX="mips64-linux-gnuabi64-"
+				;;
+			ppc) BUILD_PREFIX="powerpc-linux-gnu-"
+				;;
+			ppc64) BUILD_PREFIX="powerpc64-linux-gnu-"
+				;;
+		esac
+
 		echo ''
 		echo '==== GLIBC ===='
 		${BUILD_PREFIX}objdump fibjs -p | grep GLIBCX*_[0-9.]* -o | sort | uniq
@@ -76,5 +47,3 @@ if [ "${TARGET_OS}" != "Windows" ] && [ "${BUILD_TYPE}" = "release" ]; then
 		echo '[100%] Built target fibjs.xz'
 	fi
 fi
-
-cd "${FIBJS_PATH}"

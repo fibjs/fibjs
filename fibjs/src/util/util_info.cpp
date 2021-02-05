@@ -33,9 +33,7 @@ namespace internal {
 }
 }
 
-#ifndef _WIN32
 #include "gitinfo.h"
-#endif
 
 namespace fibjs {
 

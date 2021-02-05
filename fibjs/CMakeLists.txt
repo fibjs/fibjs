@@ -24,6 +24,8 @@ set(LIBRARY_OUTPUT_PATH ${BIN_DIR})
 include(CheckIncludeFiles)
 include(CheckCSourceCompiles)
 
+set(CMAKE_C_FLAGS "${BUILD_OPTION}")
+
 check_include_files(iconv.h HAVE_ICONV_H)
 
 check_c_source_compiles("void posix_spawnp();
