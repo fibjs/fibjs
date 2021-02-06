@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 
 include(../vender/tools/option.cmake)
-include(../vender/tools/subdirs.cmake)
 include(./tools/check.cmake)
 
 project(fibjs)
@@ -23,6 +22,12 @@ set(BIN_DIR ${PROJECT_SOURCE_DIR}/../bin/${CMAKE_HOST_SYSTEM_NAME}_${ARCH}_${BUI
 set(LIBRARY_OUTPUT_PATH ${BIN_DIR})
 
 check_env("${BUILD_OPTION}")
+
+execute_process(WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+	COMMAND git -C ${CMAKE_CURRENT_SOURCE_DIR} describe --tags --always
+	OUTPUT_VARIABLE GIT_INFO
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tools/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tools/gitinfo.h.in ${CMAKE_CURRENT_BINARY_DIR}/gitinfo.h)

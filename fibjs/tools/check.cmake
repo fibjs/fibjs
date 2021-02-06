@@ -42,5 +42,4 @@ function(check_env c_flags)
         atomic_int a;
         int main(void){atomic_load(&a);return 0;}" HAVE_GLIB_C_ATOMIC_H)
     set(HAVE_GLIB_C_ATOMIC_H ${HAVE_GLIB_C_ATOMIC_H} PARENT_SCOPE)
-
 endfunction()

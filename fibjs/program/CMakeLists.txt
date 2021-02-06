@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 
 include(../../vender/tools/option.cmake)
-include(../../vender/tools/subdirs.cmake)
 include(../tools/check.cmake)
 
 project(fibjs)
