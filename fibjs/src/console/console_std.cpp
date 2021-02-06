@@ -21,12 +21,8 @@ void std_logger::out(exlib::string& txt)
         color_out()
         {
             tty_base::isatty(_fileno(stdout), m_tty);
-
-            if (!m_tty) {
-                m_handle = GetStdHandle(STD_OUTPUT_HANDLE);
-                m_Now = m_wAttr = 0x7;
-                m_wLight = m_wAttr & FOREGROUND_INTENSITY;
-            }
+            m_handle = NULL;
+            m_ansi = false;
         }
 
         void WriteConsole(exlib::wchar* ptr, size_t sz)
@@ -43,6 +39,17 @@ void std_logger::out(exlib::string& txt)
             }
         }
 
+        void set_ansi()
+        {
+            DWORD consoleMode = 0;
+
+            GetConsoleMode(m_handle, &consoleMode);
+            if ((consoleMode & ENABLE_VIRTUAL_TERMINAL_PROCESSING) == ENABLE_VIRTUAL_TERMINAL_PROCESSING)
+                m_ansi = true;
+            else if (SetConsoleMode(m_handle, consoleMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING))
+                m_ansi = true;
+        }
+
         void out(exlib::string& s)
         {
             static HANDLE s_console;
@@ -54,13 +61,19 @@ void std_logger::out(exlib::string& txt)
 
             if (!m_handle) {
                 if (!s_console) {
-                    AllocConsole();
-
-                    freopen("CONIN$", "r", stdin);
-                    freopen("CONOUT$", "w", stdout);
-                    freopen("CONOUT$", "w", stderr);
-
                     s_console = GetStdHandle(STD_OUTPUT_HANDLE);
+
+                    if (s_console == NULL) {
+                        AllocConsole();
+
+                        s_console = GetStdHandle(STD_OUTPUT_HANDLE);
+                        set_ansi();
+
+                        freopen("CONIN$", "r", stdin);
+                        freopen("CONOUT$", "w", stdout);
+                        freopen("CONOUT$", "w", stderr);
+                    } else
+                        set_ansi();
                 }
 
                 m_handle = s_console;
@@ -73,6 +86,11 @@ void std_logger::out(exlib::string& txt)
             exlib::wchar* pend = ptr + ws.length();
             exlib::wchar* ptr1;
             exlib::wchar* ptr2;
+
+            if (m_ansi) {
+                WriteConsole(ptr, ws.length());
+                return;
+            }
 
             while (ptr1 = (exlib::wchar*)qstrstr(ptr, L"\x1b[")) {
                 for (ptr2 = ptr1 + 2; *ptr2 == ';' || qisdigit(ptr2[0]); ptr2++)
@@ -131,6 +149,7 @@ void std_logger::out(exlib::string& txt)
         WORD m_wAttr, m_Now;
         WORD m_wLight;
         bool m_tty;
+        bool m_ansi;
     };
 
     static color_out s_out;
