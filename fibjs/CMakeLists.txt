@@ -1,9 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 
-include(../vender/tools/option.cmake)
-include(./tools/check.cmake)
-
-project(fibjs)
+set(name "fibjs")
+project(${name})
 
 file(GLOB_RECURSE src_list "src/*.c*")
 if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin" AND ${ARCH} STREQUAL "amd64")
@@ -12,64 +10,15 @@ else()
 	file(GLOB_RECURSE src_platform_list "")
 endif()
 
+add_library(${name} ${src_list} ${src_platform_list})
+
 if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin" AND NOT ${ARCH} STREQUAL "amd64")
 	add_definitions(-DFIBJS_DISABLE_GUI=1)
 endif()
 
-add_library(fibjs ${src_list} ${src_platform_list})
+set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/../../../bin/${CMAKE_HOST_SYSTEM_NAME}_${ARCH}_${BUILD_TYPE})
 
-set(BIN_DIR ${PROJECT_SOURCE_DIR}/../bin/${CMAKE_HOST_SYSTEM_NAME}_${ARCH}_${BUILD_TYPE})
-set(LIBRARY_OUTPUT_PATH ${BIN_DIR})
-
-check_env("${BUILD_OPTION}")
-
-execute_process(WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-	COMMAND git -C ${CMAKE_CURRENT_SOURCE_DIR} describe --tags --always
-	OUTPUT_VARIABLE GIT_INFO
-	OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tools/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tools/gitinfo.h.in ${CMAKE_CURRENT_BINARY_DIR}/gitinfo.h)
-
-set(flags "-fsigned-char -fmessage-length=0 -fdata-sections -ffunction-sections -D_FILE_OFFSET_BITS=64")
-set(ccflags "${ccflags} ${CXX_STD_VER_FLAG}")
-
-if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
-	set(flags "${flags} -Wno-nullability-completeness")
-	set(cflags "${cflags} -DOBJC_OLD_DISPATCH_PROTOTYPES=1")
-	set(ccflags "${ccflags} -DOBJC_OLD_DISPATCH_PROTOTYPES=1")
-	set(link_flags "${link_flags} -framework WebKit -framework Cocoa")
-	
-	set_source_files_properties(${src_platform_list} PROPERTIES COMPILE_FLAGS "-x objective-c++")
-	set(flags "${flags} -mmacosx-version-min=10.9")
-
-	if(${ARCH} STREQUAL "amd64")
-		set(flags "${flags} -m64")
-	elseif(${ARCH} STREQUAL "i386")
-		set(flags "${flags} -m32")
-	endif()
-endif()
-
-if(${BUILD_TYPE} STREQUAL "release")
-	set(flags "${flags} -O3 -s ${BUILD_OPTION} -w -fvisibility=hidden")
-
-	if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "FreeBSD")
-		set(flags "${flags} -fno-omit-frame-pointer")
-	else()
-		set(flags "${flags} -fomit-frame-pointer")
-	endif()
-
-	add_definitions(-DNDEBUG=1)
-endif()
-
-if(${BUILD_TYPE} STREQUAL "debug")
-	set(flags "${flags} -g -O0 ${BUILD_OPTION} -Wall -Wno-overloaded-virtual")
-	add_definitions(-DDEBUG=1)
-endif()
-
-set(CMAKE_C_FLAGS "${flags} ${cflags}")
-set(CMAKE_CXX_FLAGS "${flags} ${ccflags}")
+include(../vender/tools/option.cmake)
 
 include_directories("${PROJECT_SOURCE_DIR}/include"
 	"${PROJECT_SOURCE_DIR}/../vender"

@@ -11,32 +11,34 @@ inform()
 	exit 1
 }
 
-if [ -d vender ]; then 
+export WORK_ROOT=`pwd`
+
+SOURCE_ROOT="`dirname \"$0\"`"
+SOURCE_ROOT="`( cd \"$SOURCE_ROOT\" && pwd )`"
+
+if [ -d "${SOURCE_ROOT}/vender" ]; then 
 	if [ -z $USE_VENDER_DIST ]; then
-		cd vender
+		cd "${SOURCE_ROOT}/vender"
 		sh build "$@"
 		if [ $? != 0 ]; then
 			exit 1
 		fi
-		cd ..
 	fi
 else
 	inform
 fi
 
-cd fibjs
+cd "${SOURCE_ROOT}/fibjs"
 sh build "$@"
 if [ $? != 0 ]; then
 	exit 1
 fi
-cd ..
 
-cd fibjs/program
+cd "${SOURCE_ROOT}/fibjs/program"
 sh build "$@"
 if [ $? != 0 ]; then
 	exit 1
 fi
-cd ../..
 
 txtbld=$(tput bold)
 bldred=${txtbld}$(tput setaf 1)
