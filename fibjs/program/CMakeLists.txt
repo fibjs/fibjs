@@ -34,13 +34,17 @@ else()
 endif()
 
 foreach(lib ${libs})
-	target_link_libraries(${name} "${EXECUTABLE_OUTPUT_PATH}/lib${lib}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+	target_link_libraries(${name} "${EXECUTABLE_OUTPUT_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}${lib}${CMAKE_STATIC_LIBRARY_SUFFIX}")
 	if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-		target_link_libraries(${name}_gui "${EXECUTABLE_OUTPUT_PATH}/lib${lib}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+		target_link_libraries(${name}_gui "${EXECUTABLE_OUTPUT_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}${lib}${CMAKE_STATIC_LIBRARY_SUFFIX}")
 	endif()
 endforeach()
 
-include(../../vender/tools/option_libs.cmake)
+link_libraries(${name})
+
+if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
+	link_libraries(${name}_gui)
+endif()
 
 if(HAVE_GLIB_C_225_H)
 	set(link_flags "${link_flags} -Wl,--wrap=memcpy")
