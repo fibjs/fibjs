@@ -125,8 +125,8 @@ public:
                 handle->data = (void*)p;
                 uv_close(handle, AsyncWatchFSProc::freeSelfAfterUVHandleStop);
             } else {
-                size_t size = 2074;
-                char fullname[size + 1];
+                char fullname[2048];
+                size_t size = sizeof(fullname);
 
                 uv_fs_event_getpath(fs_event, fullname, &size);
                 fullname[size] = '\0';
