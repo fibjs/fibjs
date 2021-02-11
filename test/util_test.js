@@ -1272,8 +1272,8 @@ describe('util', () => {
             assert.property(util.buildInfo(), 'fibjs');
             switch (process.platform) {
                 case 'win32':
-                    // assert.property(util.buildInfo(), 'msvc');
-                    // break
+                    assert.property(util.buildInfo(), 'msvc');
+                    break
                 case 'darwin':
                 case 'freebsd':
                 case 'linux':

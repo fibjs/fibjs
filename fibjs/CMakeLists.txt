@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 2.6)
 set(name "fibjs")
 project(${name})
 
+include(../vender/tools/option.cmake)
+
 file(GLOB_RECURSE src_list "src/*.c*")
 if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin" AND ${ARCH} STREQUAL "amd64")
 	file(GLOB_RECURSE src_platform_list "src/*.m*")
@@ -18,8 +20,6 @@ endif()
 
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/../../../bin/${CMAKE_HOST_SYSTEM_NAME}_${ARCH}_${BUILD_TYPE})
 
-include(../vender/tools/option.cmake)
-
 include_directories("${PROJECT_SOURCE_DIR}/include"
 	"${PROJECT_SOURCE_DIR}/../vender"
 	"${PROJECT_SOURCE_DIR}/../vender/v8"
@@ -30,3 +30,5 @@ include_directories("${PROJECT_SOURCE_DIR}/include"
 	"${PROJECT_SOURCE_DIR}/../vender/zlib/include"
 	"${PROJECT_SOURCE_DIR}/../vender/msgpack/include"
 	"${CMAKE_CURRENT_BINARY_DIR}")
+
+link_libraries(${name})

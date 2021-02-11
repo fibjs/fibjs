@@ -8,6 +8,7 @@
 #include "object.h"
 #include "version.h"
 #include "ifs/util.h"
+#include "ifs/os.h"
 #include <zlib/include/zlib.h>
 #include <sqlite/sqlite3.h>
 #include <ev/ev.h>
@@ -55,6 +56,14 @@ public:
 
         g_info->add("fibjs", fibjs_version);
         g_info->add("node", "0.0.0");
+
+        exlib::string str;
+
+        os_base::platform(str);
+        g_info->add("platform", str);
+
+        os_base::arch(str);
+        g_info->add("arch", str);
 
 #ifdef GIT_INFO
         g_info->add("git", GIT_INFO);

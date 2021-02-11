@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 2.6)
 set(name "fibjs")
 project(${name})
 
+include(${CMAKE_CURRENT_LIST_DIR}/../../vender/tools/option.cmake)
+
 file(GLOB_RECURSE src_list "src/*.c*")
 
 if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
@@ -20,8 +22,6 @@ else()
 endif()
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/../../../bin/${CMAKE_HOST_SYSTEM_NAME}_${ARCH}_${BUILD_TYPE})
-
-include(../../vender/tools/option.cmake)
 
 include_directories("${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/../include" "${PROJECT_SOURCE_DIR}/../../vender" "${PROJECT_SOURCE_DIR}/../../vender/v8" "${PROJECT_SOURCE_DIR}/../../vender/v8/include" "${PROJECT_SOURCE_DIR}/../../vender/mbedtls" "${PROJECT_SOURCE_DIR}/../../vender/zlib/include" "${CMAKE_CURRENT_BINARY_DIR}")
 
@@ -52,10 +52,7 @@ endif()
 
 if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 	target_compile_definitions(${name} PUBLIC -D_CONSOLE)
-	set_target_properties(${name} PROPERTIES LINK_FLAGS "${link_flags} -Xlinker //SUBSYSTEM:CONSOLE")
-	
 	target_compile_definitions(${name}_gui PUBLIC -D_WINDOWS)
-	set_target_properties(${name}_gui PROPERTIES LINK_FLAGS "${link_flags} -Xlinker //SUBSYSTEM:WINDOWS")
 else()
 	set_target_properties(${name} PROPERTIES LINK_FLAGS ${link_flags})
 endif()
