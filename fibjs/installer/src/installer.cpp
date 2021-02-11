@@ -5,11 +5,7 @@
 #include <tchar.h>
 #include <windows.h>
 
-#if defined(_M_X64)
-#include "..\bin\Windows_amd64_release\js.h"
-#elif defined(_M_IX86)
-#include "..\bin\Windows_i386_release\js.h"
-#endif
+#include "js.h"
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -22,14 +18,14 @@ int _tmain(int argc, _TCHAR* argv[])
     BOOL fSuccess = FALSE;
     HANDLE hTempFile = INVALID_HANDLE_VALUE;
 
-    dwRetVal = GetSystemDirectory(szSysDir, MAX_PATH);
+    dwRetVal = GetSystemDirectoryW(szSysDir, MAX_PATH);
     if (dwRetVal > MAX_PATH || (dwRetVal == 0)) {
         puts("GetWindowsDirectory failed");
         return (1);
     }
 
     //  Gets the temp path env string (no guarantee it's a valid path).
-    dwRetVal = GetTempPath(MAX_PATH, // length of the buffer
+    dwRetVal = GetTempPathW(MAX_PATH, // length of the buffer
         lpTempPathBuffer); // buffer for path
     if (dwRetVal > MAX_PATH || (dwRetVal == 0)) {
         puts("GetTempPath failed");
@@ -37,7 +33,7 @@ int _tmain(int argc, _TCHAR* argv[])
     }
 
     //  Generates a temporary file name.
-    uRetVal = GetTempFileName(lpTempPathBuffer, // directory for tmp files
+    uRetVal = GetTempFileNameW(lpTempPathBuffer, // directory for tmp files
         L"CAB_", // temp file name prefix
         0, // create unique name
         szTempFileName); // buffer for name
@@ -47,7 +43,7 @@ int _tmain(int argc, _TCHAR* argv[])
     }
 
     //  Creates the new file to write to for the upper-case version.
-    hTempFile = CreateFile((LPTSTR)szTempFileName, // file name
+    hTempFile = CreateFileW(szTempFileName, // file name
         GENERIC_WRITE, // open for write
         0, // do not share
         NULL, // default security
@@ -98,7 +94,7 @@ int _tmain(int argc, _TCHAR* argv[])
     ShellExecuteExW(&ShExecInfo);
     WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
 
-    DeleteFile(szTempFileName);
+    DeleteFileW(szTempFileName);
 
     return 0;
 }
