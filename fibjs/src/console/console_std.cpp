@@ -39,14 +39,14 @@ void std_logger::out(exlib::string& txt)
             }
         }
 
-        void set_ansi()
+        void set_ansi(HANDLE _handle)
         {
             DWORD consoleMode = 0;
 
-            GetConsoleMode(m_handle, &consoleMode);
+            GetConsoleMode(_handle, &consoleMode);
             if ((consoleMode & ENABLE_VIRTUAL_TERMINAL_PROCESSING) == ENABLE_VIRTUAL_TERMINAL_PROCESSING)
                 m_ansi = true;
-            else if (SetConsoleMode(m_handle, consoleMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING))
+            else if (SetConsoleMode(_handle, consoleMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING))
                 m_ansi = true;
         }
 
@@ -67,13 +67,13 @@ void std_logger::out(exlib::string& txt)
                         AllocConsole();
 
                         s_console = GetStdHandle(STD_OUTPUT_HANDLE);
-                        set_ansi();
+                        set_ansi(s_console);
 
                         freopen("CONIN$", "r", stdin);
                         freopen("CONOUT$", "w", stdout);
                         freopen("CONOUT$", "w", stderr);
                     } else
-                        set_ansi();
+                        set_ansi(s_console);
                 }
 
                 m_handle = s_console;
