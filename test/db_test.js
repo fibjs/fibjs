@@ -782,6 +782,9 @@ describe("db", () => {
                     assert.equal(rs[0].t2, "test101.100");
 
                     conn.rollback();
+
+                    var rs = conn.execute("select * from test where t1=101");
+                    assert.equal(rs[0].t2, "test101.1");
                 });
 
                 it("begin/rollback", () => {
@@ -795,6 +798,36 @@ describe("db", () => {
                     assert.equal(rs[0].t2, "test101.1");
 
                     conn.rollback();
+                });
+
+                it("multi trans", () => {
+                    conn.begin();
+
+                    conn.begin('p0');
+                    conn.execute("update test set t2='test101.100' where t1=101");
+                    conn.commit('p0');
+
+                    var rs = conn.execute("select * from test where t1=101");
+                    assert.equal(rs[0].t2, "test101.100");
+
+                    conn.begin('p0');
+                    conn.execute("update test set t2='test101.200' where t1=101");
+                    conn.rollback('p0');
+
+                    var rs = conn.execute("select * from test where t1=101");
+                    assert.equal(rs[0].t2, "test101.100");
+
+                    conn.begin('p0');
+                    conn.execute("update test set t2='test101.300' where t1=101");
+                    conn.commit('p0');
+
+                    var rs = conn.execute("select * from test where t1=101");
+                    assert.equal(rs[0].t2, "test101.300");
+
+                    conn.rollback();
+
+                    var rs = conn.execute("select * from test where t1=101");
+                    assert.equal(rs[0].t2, "test101.1");
                 });
             });
 

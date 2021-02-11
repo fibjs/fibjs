@@ -158,7 +158,7 @@ result_t db_begin(T* pThis, exlib::string point, AsyncEvent* ac, bool mssql = fa
     obj_ptr<NArray> retVal;
 
     if (point.empty())
-        return pThis->execute("BEGIN", 5, retVal);
+        return pThis->execute("BEGIN TRANSACTION", 17, retVal);
     else {
         exlib::string str((mssql ? "SAVE TRANSACTION " : "SAVEPOINT ") + point);
         return pThis->execute(str.c_str(), str.length(), retVal);
@@ -179,6 +179,8 @@ result_t db_commit(T* pThis, exlib::string point, AsyncEvent* ac, bool mssql = f
     if (point.empty())
         return pThis->execute("COMMIT", 6, retVal);
     else {
+        if(mssql)
+            return 0;
         exlib::string str((mssql ? "COMMIT TRANSACTION " : "RELEASE SAVEPOINT ") + point);
         return pThis->execute(str.c_str(), str.length(), retVal);
     }
