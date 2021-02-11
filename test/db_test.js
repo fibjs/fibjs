@@ -464,7 +464,7 @@ describe("db", () => {
 
         assert.equal(db.format("createTable", opts), "CREATE TABLE `test`(`t` TEXT, `t1` VARCHAR(100), `n` DOUBLE, `n1` FLOAT, `i` INT, `i1` TINYINT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` BLOB, `b1` LONGBLOB, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
         assert.equal(db.formatMySQL("createTable", opts), "CREATE TABLE `test`(`t` LONGTEXT, `t1` VARCHAR(100), `n` DOUBLE, `n1` FLOAT, `i` INT, `i1` TINYINT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` BLOB, `b1` LONGBLOB, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
-        assert.equal(db.formatMSSQL("createTable", opts), "CREATE TABLE `test`(`t` TEXT, `t1` VARCHAR(100), `n` REAL, `n1` FLOAT, `i` INT, `i1` TINYINT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` VARBINARY(MAX), `b1` IMAGE, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
+        assert.equal(db.formatMSSQL("createTable", opts), "CREATE TABLE [test]([t] TEXT, [t1] VARCHAR(100), [n] REAL, [n1] FLOAT, [i] INT, [i1] TINYINT, [i2] SMALLINT, [i3] BIGINT, [d] DATE, [d1] DATETIME, [b] VARBINARY(MAX), [b1] IMAGE, [def] INT DEFAULT 123, [required] INT NOT NULL, [unique] INT UNIQUE, [key] INT PRIMARY KEY)");
     });
 
     it("format.dropTable", () => {
@@ -512,13 +512,14 @@ describe("db", () => {
         });
 
         it("empty sql", () => {
-            assert.throws(() => {
-                conn.execute("  ");
-            })
+            if (conn.type != 'mssql')
+                assert.throws(() => {
+                    conn.execute("  ");
+                })
         });
 
         it("empty sql args", () => {
-            var rs = conn.execute('select "?" as v');
+            var rs = conn.execute(`select '?' as v`);
             assert.equal(rs[0].v, '?');
         });
 
@@ -693,7 +694,7 @@ describe("db", () => {
                 values: {
                     t2: "2200"
                 }
-            }), 2);
+            }), conn.type != 'mssql' ? 2 : 0);
 
             assert.equal(conn.remove({
                 table: "test",

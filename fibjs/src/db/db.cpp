@@ -226,43 +226,48 @@ result_t db_base::formatMSSQL(exlib::string sql, OptArgs args,
     return db_format(sql.c_str(), args, false, true, retVal);
 }
 
-inline exlib::string _escape_field(const char* str, int32_t sz)
+inline exlib::string _escape_field(const char* str, int32_t sz, bool mysql, bool mssql)
 {
     exlib::string retVal;
 
     retVal.resize(sz * 2 + 2);
     char* ptr = retVal.c_buffer();
+    char quote_left = mssql ? '[' : '`';
+    char quote_right = mssql ? ']' : '`';
 
-    *ptr++ = '`';
+    *ptr++ = quote_left;
     while (sz--) {
         char ch = *str++;
-        if (ch == '`') {
+        if (mssql && ch == quote_right) {
+            *ptr++ = '\\';
+            *ptr++ = quote_right;
+        } else if (!mssql && ch == '`') {
             *ptr++ = '`';
             *ptr++ = '`';
         } else if (ch == '.') {
-            *ptr++ = '`';
+            *ptr++ = quote_right;
             *ptr++ = '.';
-            *ptr++ = '`';
+            *ptr++ = quote_left;
         } else
             *ptr++ = ch;
     }
-    *ptr++ = '`';
+    *ptr++ = quote_right;
 
     retVal.resize(ptr - retVal.c_buffer());
     return retVal;
 }
 
-inline exlib::string _escape_field(v8::Local<v8::Value> v)
+inline exlib::string _escape_field(v8::Local<v8::Value> v, bool mysql, bool mssql)
 {
     Isolate* isolate = Isolate::current();
 
     v8::String::Utf8Value s(isolate->m_isolate, v);
-    return _escape_field(*s, s.length());
+    return _escape_field(*s, s.length(), mysql, mssql);
 }
 
-inline exlib::string _escape_field(exlib::string s)
+inline exlib::string _escape_field(exlib::string s, bool mysql, bool mssql)
 {
-    return _escape_field(s.c_str(), (int32_t)s.length());
+    return _escape_field(s.c_str(), (int32_t)s.length(), mysql, mssql);
 }
 
 result_t _format_where(v8::Local<v8::Value> o, bool mysql, bool mssql, exlib::string& retVal, bool& retAnd);
@@ -333,12 +338,14 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
         bool bField = false;
         exlib::string op("=");
         exlib::string key;
+        const char* or_str = mssql ? "[$or]" : "`$or`";
+        const char* and_str = mssql ? "[$and]" : "`$and`";
 
         if (v->IsFunction())
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
-        key = _escape_field(k);
-        while (len == 1 && (!qstrcmp(key.c_str(), "`$or`", 5) || !qstrcmp(key.c_str(), "`$and`", 6))) {
+        key = _escape_field(k, mysql, mssql);
+        while (len == 1 && (!qstrcmp(key.c_str(), or_str, 5) || !qstrcmp(key.c_str(), and_str, 6))) {
             bAnd = key[2] == 'a';
 
             if (v->IsArray())
@@ -353,7 +360,7 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
                 k = ks->Get(0);
                 v = o->Get(k);
 
-                key = _escape_field(k);
+                key = _escape_field(k, mysql, mssql);
             } else
                 return CHECK_ERROR(Runtime::setError("db: The argument of the [or/and] operation must be an object or an array."));
         }
@@ -430,7 +437,7 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
             if (!v->IsString() && !v->IsStringObject())
                 return CHECK_ERROR(Runtime::setError("db: field must be a string."));
 
-            str.append(key + op + _escape_field(v));
+            str.append(key + op + _escape_field(v, mysql, mssql));
         } else {
             if (bIn) {
                 if (!IsJSObject(v) && !v->IsArray())
@@ -476,7 +483,7 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
     return 0;
 }
 
-result_t _format_name_list(v8::Local<v8::Value> v, exlib::string& retVal)
+result_t _format_name_list(v8::Local<v8::Value> v, exlib::string& retVal, bool mysql, bool mssql)
 {
     exlib::string table;
 
@@ -488,7 +495,7 @@ result_t _format_name_list(v8::Local<v8::Value> v, exlib::string& retVal)
 
         if (len > 0) {
             for (i = 0; i < len; i++) {
-                table.append(_escape_field(tables->Get(i)));
+                table.append(_escape_field(tables->Get(i), mysql, mssql));
                 if (i + 1 < len)
                     table.append(", ", 2);
             }
@@ -502,7 +509,7 @@ result_t _format_name_list(v8::Local<v8::Value> v, exlib::string& retVal)
         for (i = 0; i < len; i++) {
             JSValue k = ks->Get(i);
 
-            table.append(_escape_field(k) + " AS " + _escape_field(o->Get(k)));
+            table.append(_escape_field(k, mysql, mssql) + " AS " + _escape_field(o->Get(k), mysql, mssql));
             if (i + 1 < len)
                 table.append(", ", 2);
         }
@@ -513,7 +520,7 @@ result_t _format_name_list(v8::Local<v8::Value> v, exlib::string& retVal)
     return 0;
 }
 
-result_t _format_name(v8::Local<v8::Object> opts, exlib::string name, exlib::string& retVal)
+result_t _format_name(v8::Local<v8::Object> opts, exlib::string name, exlib::string& retVal, bool mysql, bool mssql)
 {
     Isolate* isolate = Isolate::current();
     result_t hr;
@@ -524,13 +531,13 @@ result_t _format_name(v8::Local<v8::Object> opts, exlib::string name, exlib::str
         return hr;
 
     if (v->IsString() || v->IsStringObject()) {
-        retVal = _escape_field(v);
+        retVal = _escape_field(v, mysql, mssql);
         return 0;
     } else
-        return _format_name_list(v, retVal);
+        return _format_name_list(v, retVal, mysql, mssql);
 }
 
-result_t _format_order(Isolate* isolate, v8::Local<v8::Array> orders, exlib::string& retVal)
+result_t _format_order(Isolate* isolate, v8::Local<v8::Array> orders, exlib::string& retVal, bool mysql, bool mssql)
 {
     int32_t len = orders->Length();
     int32_t i;
@@ -548,10 +555,10 @@ result_t _format_order(Isolate* isolate, v8::Local<v8::Array> orders, exlib::str
             if (**s == '-') {
                 if (s.length() == 1)
                     return CHECK_ERROR(Runtime::setError("db: Field name cannot be empty."));
-                key = _escape_field(*s + 1, s.length() - 1);
+                key = _escape_field(*s + 1, s.length() - 1, mysql, mssql);
                 desc = true;
             } else
-                key = _escape_field(*s, s.length());
+                key = _escape_field(*s, s.length(), mysql, mssql);
 
             str.append(key);
             if (desc)
@@ -576,7 +583,7 @@ result_t _format_find(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib:
     v8::Local<v8::Array> a;
     exlib::string table;
 
-    hr = _format_name(opts, "table", table);
+    hr = _format_name(opts, "table", table, mysql, mssql);
     if (hr < 0)
         return hr;
 
@@ -589,7 +596,7 @@ result_t _format_find(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib:
     } else {
         exlib::string str1;
 
-        hr = _format_name_list(v, str1);
+        hr = _format_name_list(v, str1, mysql, mssql);
         if (hr < 0)
             return hr;
 
@@ -619,7 +626,7 @@ result_t _format_find(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib:
         if (hr < 0)
             return hr;
 
-        hr = _format_order(isolate, orders, order);
+        hr = _format_order(isolate, orders, order, mysql, mssql);
         if (hr < 0)
             return hr;
 
@@ -659,7 +666,7 @@ result_t _format_count(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib
     v8::Local<v8::Value> v;
     exlib::string table;
 
-    hr = _format_name(opts, "table", table);
+    hr = _format_name(opts, "table", table, mysql, mssql);
     if (hr < 0)
         return hr;
 
@@ -707,7 +714,7 @@ result_t _format_update(v8::Local<v8::Object> opts, bool mysql, bool mssql, exli
     Isolate* isolate = Isolate::current();
     exlib::string table;
 
-    hr = _format_name(opts, "table", table);
+    hr = _format_name(opts, "table", table, mysql, mssql);
     if (hr < 0)
         return hr;
 
@@ -730,7 +737,7 @@ result_t _format_update(v8::Local<v8::Object> opts, bool mysql, bool mssql, exli
         JSValue k = ks->Get(i);
         JSValue v = o->Get(k);
 
-        _values.append(_escape_field(k) + "=");
+        _values.append(_escape_field(k, mysql, mssql) + "=");
         _appendValue(_values, v, mysql, mssql);
 
         if (i + 1 < len)
@@ -766,7 +773,7 @@ result_t _format_insert(v8::Local<v8::Object> opts, bool mysql, bool mssql, exli
     Isolate* isolate = Isolate::current();
     exlib::string table;
 
-    hr = _format_name(opts, "table", table);
+    hr = _format_name(opts, "table", table, mysql, mssql);
     if (hr < 0)
         return hr;
 
@@ -790,7 +797,7 @@ result_t _format_insert(v8::Local<v8::Object> opts, bool mysql, bool mssql, exli
         JSValue k = ks->Get(i);
         JSValue v = o->Get(k);
 
-        _fields.append(_escape_field(k));
+        _fields.append(_escape_field(k, mysql, mssql));
         _appendValue(_values, v, mysql, mssql);
 
         if (i + 1 < len) {
@@ -817,7 +824,7 @@ result_t _format_remove(v8::Local<v8::Object> opts, bool mysql, bool mssql, exli
     Isolate* isolate = Isolate::current();
     exlib::string table;
 
-    hr = _format_name(opts, "table", table);
+    hr = _format_name(opts, "table", table, mysql, mssql);
     if (hr < 0)
         return hr;
 
@@ -848,7 +855,7 @@ result_t _format_createTable(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     Isolate* isolate = Isolate::current();
     exlib::string table;
 
-    hr = _format_name(opts, "table", table);
+    hr = _format_name(opts, "table", table, mysql, mssql);
     if (hr < 0)
         return hr;
 
@@ -886,7 +893,7 @@ result_t _format_createTable(v8::Local<v8::Object> opts, bool mysql, bool mssql,
                 return hr;
         }
 
-        _fields.append(_escape_field(k));
+        _fields.append(_escape_field(k, mysql, mssql));
         _fields.append(1, ' ');
 
         if (type == "text") {
@@ -1018,7 +1025,7 @@ result_t _format_dropTable(v8::Local<v8::Object> opts, bool mysql, bool mssql, e
     exlib::string str;
     exlib::string table;
 
-    hr = _format_name(opts, "table", table);
+    hr = _format_name(opts, "table", table, mysql, mssql);
     if (hr < 0)
         return hr;
 
@@ -1035,11 +1042,11 @@ result_t _format_createIndex(v8::Local<v8::Object> opts, bool mysql, bool mssql,
     Isolate* isolate = Isolate::current();
     exlib::string table, index;
 
-    hr = _format_name(opts, "table", table);
+    hr = _format_name(opts, "table", table, mysql, mssql);
     if (hr < 0)
         return hr;
 
-    hr = _format_name(opts, "index", index);
+    hr = _format_name(opts, "index", index, mysql, mssql);
     if (hr < 0)
         return hr;
 
@@ -1054,7 +1061,7 @@ result_t _format_createIndex(v8::Local<v8::Object> opts, bool mysql, bool mssql,
 
     exlib::string _keys;
 
-    hr = _format_order(isolate, keys, _keys);
+    hr = _format_order(isolate, keys, _keys, mysql, mssql);
     if (hr < 0)
         return hr;
 
@@ -1073,7 +1080,7 @@ result_t _format_dropIndex(v8::Local<v8::Object> opts, bool mysql, bool mssql, e
     exlib::string str;
     exlib::string index;
 
-    hr = _format_name(opts, "index", index);
+    hr = _format_name(opts, "index", index, mysql, mssql);
     if (hr < 0)
         return hr;
 
