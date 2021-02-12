@@ -37,3 +37,22 @@ cd "%SOURCE_ROOT%"
 exit /B 1
 
 :finished
+echo.
+echo.
+echo          _______ _________ ______  _________ _______ 
+echo         (  ____ \\__   __/(  ___ \ \__    _/(  ____ \
+echo         ^| (    \/   ) (   ^| (   ) )   )  (  ^| (    \/
+echo         ^| (__       ^| ^|   ^| (__/ /    ^|  ^|  ^| (_____ 
+echo         ^|  __)      ^| ^|   ^|  __ (     ^|  ^|  (_____  )
+echo         ^| (         ^| ^|   ^| (  \ \    ^|  ^|        ) ^|
+echo         ^| (_     ___) (___^| (___) )/\_)  )  /\____) ^|
+echo         (__/     \_______/(______/ \____/   \_______)
+echo.
+echo.
+echo         FIBJS has been successfully built.
+echo.
+echo         For more information:
+echo         website: http://fibjs.org
+echo         repository: https://github.com/fibjs
+echo.
+echo.
