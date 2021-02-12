@@ -173,9 +173,8 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
     v8::Local<v8::Value> dflt_k;
     bool has_k;
     for (int32_t i = 0; i < (int32_t)ARRAYSIZE(PLATFORM_RESERVER_ENV_KEYS); i++) {
-        util_base::has(opt_envs, PLATFORM_RESERVER_ENV_KEYS[i], has_k);
         dflt_k = isolate->NewString(PLATFORM_RESERVER_ENV_KEYS[i]);
-        if (!has_k || opt_envs->Get(dflt_k)->IsUndefined()) {
+        if (opt_envs->Get(dflt_k)->IsUndefined()) {
             dflt_k = isolate->NewString(PLATFORM_RESERVER_ENV_KEYS[i]);
             opt_envs->Set(dflt_k, JSValue(cur_envs->Get(dflt_k)));
         }
@@ -184,12 +183,14 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
     JSArray keys = opt_envs->GetPropertyNames();
     len = (int32_t)keys->Length();
 
-    uv_options.env = new char*[len + 1];
+    envStr.resize(len);
+    _envs.resize(len + 1);
 
     for (i = 0; i < len; i++) {
         JSValue k = keys->Get(i);
         JSValue v = opt_envs->Get(k);
-        exlib::string ks, vs;
+        exlib::string vs;
+        exlib::string& ks = envStr[i];
 
         hr = GetArgumentValue(k, ks);
         if (hr < 0)
@@ -206,10 +207,11 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
         ks.append(vs);
         ks.append(1, 0);
 
-        uv_options.env[i] = strdup(ks.c_str());
+        _envs[i] = &envStr[i][0];
     }
 
-    uv_options.env[len] = nullptr;
+    _envs[i] = NULL;
+    uv_options.env = _envs.data();
 
     return 0;
 }
@@ -397,5 +399,4 @@ void ChildProcess::close_pipe()
 
     (new asyncClose(this))->post(0);
 }
-
 }

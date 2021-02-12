@@ -76,9 +76,11 @@ public:
     std::vector<exlib::string> argStr;
     std::vector<char*> _args;
 
+    std::vector<exlib::string> envStr;
+    std::vector<char*> _envs;
+
     exlib::string cwd;
 };
-
 }
 
 #endif // _CHILDPROCESS_H
