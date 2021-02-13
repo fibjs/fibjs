@@ -682,7 +682,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             if (hr < 0)
                 return hr;
 
-            if (!m_hc->m_autoRedirect || (status != 302 && status != 301))
+            if (!m_hc->m_autoRedirect || (status != 301 && status != 302 && status != 307))
                 return next();
 
             hr = m_retVal->firstHeader("location", location);
