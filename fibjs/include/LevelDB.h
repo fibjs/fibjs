@@ -87,6 +87,24 @@ private:
         return m_db->Delete(leveldb::WriteOptions(), key);
     }
 
+    result_t error(leveldb::Status& s)
+    {
+#ifdef WIN32
+        std::string str = s.ToString();
+
+        int wchars_num = MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.length(), NULL, 0);
+        wchar_t* wstr = new wchar_t[wchars_num];
+        MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.length(), wstr, wchars_num);
+
+        result_t hr = Runtime::setError(utf16to8String(wstr, wchars_num - 1));
+        delete[] wstr;
+
+        return hr;
+#else
+        return Runtime::setError(s.ToString());
+#endif
+    }
+
 #define ITER_BLOCK_SIZE 32
 
     class Iter : public object_base {

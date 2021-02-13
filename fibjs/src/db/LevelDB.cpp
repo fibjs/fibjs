@@ -40,7 +40,7 @@ result_t LevelDB::open(const char* connString)
     options.create_if_missing = true;
     leveldb::Status s = leveldb::DB::Open(options, connString, &m_db);
     if (!s.ok())
-        return CHECK_ERROR(Runtime::setError(s.ToString()));
+        return CHECK_ERROR(error(s));
 
     return 0;
 }
@@ -79,7 +79,7 @@ result_t LevelDB::has(Buffer_base* key, bool& retVal, AsyncEvent* ac)
         retVal = false;
         return 0;
     } else if (!s.ok())
-        return CHECK_ERROR(Runtime::setError(s.ToString()));
+        return CHECK_ERROR(error(s));
 
     retVal = true;
 
@@ -104,7 +104,7 @@ result_t LevelDB::get(Buffer_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent
     if (s.IsNotFound())
         return CALL_RETURN_NULL;
     else if (!s.ok())
-        return CHECK_ERROR(Runtime::setError(s.ToString()));
+        return CHECK_ERROR(error(s));
 
     retVal = new Buffer(value);
 
@@ -130,7 +130,7 @@ result_t LevelDB::_mget(std::vector<exlib::string>* keys,
         if (s.IsNotFound())
             list->append(nil);
         else if (!s.ok())
-            return CHECK_ERROR(Runtime::setError(s.ToString()));
+            return CHECK_ERROR(error(s));
         else {
             obj_ptr<Buffer_base> buf = new Buffer(value);
             list->append(buf);
@@ -180,7 +180,7 @@ result_t LevelDB::_commit(leveldb::WriteBatch* batch, AsyncEvent* ac)
 
     leveldb::Status s = db()->Write(leveldb::WriteOptions(), batch);
     if (!s.ok())
-        return CHECK_ERROR(Runtime::setError(s.ToString()));
+        return CHECK_ERROR(error(s));
 
     return 0;
 }
@@ -202,7 +202,7 @@ result_t LevelDB::set(Buffer_base* key, Buffer_base* value, AsyncEvent* ac)
     leveldb::Status s = Set(leveldb::Slice(key1.c_str(), key1.length()),
         leveldb::Slice(value1.c_str(), value1.length()));
     if (!s.ok())
-        return CHECK_ERROR(Runtime::setError(s.ToString()));
+        return CHECK_ERROR(error(s));
 
     return 0;
 }
@@ -283,7 +283,7 @@ result_t LevelDB::remove(Buffer_base* key, AsyncEvent* ac)
     exlib::string value;
     leveldb::Status s = Delete(leveldb::Slice(key1.c_str(), key1.length()));
     if (!s.ok())
-        return CHECK_ERROR(Runtime::setError(s.ToString()));
+        return CHECK_ERROR(error(s));
 
     return 0;
 }
