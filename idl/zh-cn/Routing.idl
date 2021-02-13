@@ -11,7 +11,7 @@
      '/help': r => r.response.write('help')
  });
 
- svr.run();
+ svr.start();
  ```
  如果需要更复杂的路由定制，可以自行创建 Routing 对象并根据需要处理路由策略：
  ```JavaScript
@@ -36,7 +36,7 @@
  });
 
  var svr = new http.Server(8080, app);
- svr.run();
+ svr.start();
  ```
  路由对象根据设定的规则匹配消息，将消息传递给符合规则的第一个处理器。后加入的路由规则优先匹配。创建方法：
  ```JavaScript

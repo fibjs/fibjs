@@ -14,7 +14,7 @@
          conn.onmessage = e => console.log(e.data);
      })
  });
- svr.run();
+ svr.start();
  ```
  使用 WebSocket 客户端：
  ```JavaScript
