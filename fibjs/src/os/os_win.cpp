@@ -378,7 +378,7 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
         if (adapter_address->OperStatus != IfOperStatusUp)
             continue;
 
-        name = isolate->NewString(UTF8_A(adapter_address->FriendlyName));
+        name = isolate->NewString(utf16to8String(adapter_address->FriendlyName));
 
         ret = v8::Array::New(isolate->m_isolate);
         retVal->Set(name, ret);
@@ -435,8 +435,8 @@ result_t os_base::printerInfo(v8::Local<v8::Array>& retVal)
     for (DWORD i = 0; i < dwReturned; i++) {
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
         PRINTER_INFO_5W* pItem = &pinfo[i];
-        o->Set(isolate->NewString("name"), isolate->NewString(UTF8_A(pItem->pPrinterName)));
-        o->Set(isolate->NewString("port"), isolate->NewString(UTF8_A(pItem->pPortName)));
+        o->Set(isolate->NewString("name"), isolate->NewString(utf16to8String(pItem->pPrinterName)));
+        o->Set(isolate->NewString("port"), isolate->NewString(utf16to8String(pItem->pPortName)));
         if (PRINTER_ATTRIBUTE_LOCAL & pItem->Attributes)
             o->Set(isolate->NewString("type"), isolate->NewString("local"));
         else if (PRINTER_ATTRIBUTE_NETWORK & pItem->Attributes)
@@ -637,7 +637,7 @@ result_t os_base::tmpdir(exlib::string& retVal)
         if (sz == 0)
             return CHECK_ERROR(LastError());
 
-        retVal = UTF8_A(buf);
+        retVal = utf16to8String(buf);
     } while (false);
 
     path_base::normalize(retVal, retVal);

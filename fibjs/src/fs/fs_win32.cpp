@@ -607,7 +607,7 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncEven
 
     do {
         if (qstrcmp(fd.cFileName, L".") && qstrcmp(fd.cFileName, L"..")) {
-            exlib::string name = UTF8_A(fd.cFileName);
+            exlib::string name = utf16to8String(fd.cFileName);
             oa->append(name);
         }
     } while (FindNextFileW(hFind, &fd));
