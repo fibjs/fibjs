@@ -105,6 +105,9 @@ describe('fs.watch*', () => {
                 for (let i = 0; i < 10; i++)
                     writeFile(resolve_reltocwd(relpath), 'abc')
 
+                for (let i = 0; i < 10 && !triggedCallback; i++)
+                    coroutine.sleep(50);
+
                 coroutine.sleep(50);
                 for (let i = 0; i < 10; i++)
                     watcher.close();
