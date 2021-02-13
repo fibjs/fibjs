@@ -504,7 +504,15 @@ result_t HttpResponse::addCookie(HttpCookie_base* cookie)
 
 result_t HttpResponse::redirect(exlib::string url)
 {
-    m_statusCode = 302;
+    return redirect(302, url);
+}
+
+result_t HttpResponse::redirect(int32_t statusCode, exlib::string url)
+{
+    if (statusCode != 301 && statusCode != 302 && statusCode != 307)
+        return CHECK_ERROR(Runtime::setError("HttpResponse: Invalid statusCode"));
+
+    m_statusCode = statusCode;
     setHeader("Location", url);
     return 0;
 }

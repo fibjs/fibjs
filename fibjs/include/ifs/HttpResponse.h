@@ -36,6 +36,7 @@ public:
     virtual result_t get_cookies(obj_ptr<NArray>& retVal) = 0;
     virtual result_t addCookie(HttpCookie_base* cookie) = 0;
     virtual result_t redirect(exlib::string url) = 0;
+    virtual result_t redirect(int32_t statusCode, exlib::string url) = 0;
     virtual result_t sendHeader(Stream_base* stm, AsyncEvent* ac) = 0;
 
 public:
@@ -223,6 +224,13 @@ inline void HttpResponse_base::s_redirect(const v8::FunctionCallbackInfo<v8::Val
     ARG(exlib::string, 0);
 
     hr = pInst->redirect(v0);
+
+    METHOD_OVER(2, 2);
+
+    ARG(int32_t, 0);
+    ARG(exlib::string, 1);
+
+    hr = pInst->redirect(v0, v1);
 
     METHOD_VOID();
 }

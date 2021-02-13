@@ -86,6 +86,7 @@ public:
     virtual result_t get_cookies(obj_ptr<NArray>& retVal);
     virtual result_t addCookie(HttpCookie_base* cookie);
     virtual result_t redirect(exlib::string url);
+    virtual result_t redirect(int32_t statusCode, exlib::string url);
     virtual result_t sendHeader(Stream_base* stm, AsyncEvent* ac);
 
 public:

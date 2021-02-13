@@ -36,6 +36,12 @@ interface HttpResponse : HttpMessage
      */
     redirect(String url);
 
+    /*! @brief 发送重定向到客户端
+     @param statusCode 指定响应消息的返回状态，接受的状态为：301, 302, 307
+     @param url 重定向的地址
+     */
+    redirect(Integer statusCode, String url);
+
     /*! @brief 仅发送格式化 http 头到给定的流对象
      @param stm 指定接收格式化消息的流对象
      */
