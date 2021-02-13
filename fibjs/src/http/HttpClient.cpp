@@ -554,8 +554,11 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             else
                 m_sslhost.clear();
 
-            if (m_hc->get_conn(m_connUrl, m_conn))
+            m_reuse = false;
+            if (m_hc->get_conn(m_connUrl, m_conn)) {
+                m_reuse = true;
                 return next(connected);
+            }
 
             if (m_hc->m_proxyConnUrl.empty()) {
                 if (ssl && m_hc->m_crt && m_hc->m_key)
@@ -577,8 +580,10 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
                         m_reqConn->addHeader("User-Agent", a);
                 }
 
-                if (m_hc->get_conn(m_hc->m_proxyConnUrl, m_conn))
+                if (m_hc->get_conn(m_hc->m_proxyConnUrl, m_conn)) {
+                    m_reuse = true;
                     return next(ssl ? ssl_connect : connected);
+                }
 
                 return net_base::connect(m_hc->m_proxyConnUrl,
                     m_hc->m_timeout, m_conn, next(ssl ? ssl_connect : connected));
@@ -697,6 +702,17 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             return next(prepare);
         }
 
+        virtual int32_t error(int32_t v)
+        {
+            if (m_reuse && (at(ssl_connect) || at(connected))) {
+                m_reuse = false;
+                next(prepare);
+                return 0;
+            }
+
+            return v;
+        }
+
     private:
         exlib::string m_method;
         exlib::string m_url;
@@ -711,6 +727,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
         exlib::string m_connUrl;
         obj_ptr<HttpClient> m_hc;
         int32_t m_temp;
+        bool m_reuse;
     };
 
     if (ac->isSync())

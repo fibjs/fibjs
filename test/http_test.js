@@ -2136,6 +2136,7 @@ describe("http", () => {
                     r.response.addHeader("set-cookie", "name=value; domain=127.0.0.1:" + port + "; path=/name");
                     r.response.write(r.address);
                 } else if (r.address == "/redirect") {
+                    r.response.addHeader("test", "test1");
                     r.response.redirect("request");
                 } else if (r.address == "/redirect/a/b/c") {
                     r.response.redirect("/d");
@@ -2150,6 +2151,13 @@ describe("http", () => {
                     coroutine.sleep(100);
                     var n1 = pcnt++;
                     r.response.write(new String(n1 - n - 1));
+                } else if (r.address == "/disconnect_test") {
+                    console.log("/disconnect_test");
+                    var _stream = r.stream;
+                    r.response.write(r.address);
+                    setTimeout(() => {
+                        _stream.close();
+                    }, 10);
                 } else if (r.address != "/gzip_test") {
                     r.response.addHeader("set-cookie", "request=value; domain=127.0.0.1; path=/request");
                     r.response.addHeader("set-cookie", "request1=value; domain=127.0.0.1; path=/request");
@@ -2267,19 +2275,29 @@ describe("http", () => {
             });
         });
 
-        describe("disable client cookie", () => {
+        it("disable client cookie", () => {
             var client = new http.Client();
 
-            it("disable cookie", () => {
-                assert.equal(client.enableCookie, true);
-                client.enableCookie = false;
-                assert.equal(client.request('GET', "http://127.0.0.1:" + (8884 + base_port) + "/name").body.readAll().toString(),
-                    "/name");
-                assert.equal(cookie_for['_'], undefined);
+            assert.equal(client.enableCookie, true);
+            client.enableCookie = false;
+            assert.equal(client.request('GET', "http://127.0.0.1:" + (8884 + base_port) + "/name").body.readAll().toString(),
+                "/name");
+            assert.equal(cookie_for['_'], undefined);
 
-                client.request('GET', "http://127.0.0.1:" + (8884 + base_port) + "/name");
-                assert.equal(cookie_for['_'], undefined);
-            })
+            client.request('GET', "http://127.0.0.1:" + (8884 + base_port) + "/name");
+            assert.equal(cookie_for['_'], undefined);
+        });
+
+        it("remote disconnect", () => {
+            var client = new http.Client();
+
+            assert.equal(client.request('GET', "http://127.0.0.1:" + (8884 + base_port) + "/disconnect_test").body.readAll().toString(),
+                "/disconnect_test");
+
+            coroutine.sleep(100);
+
+            assert.equal(client.request('GET', "http://127.0.0.1:" + (8884 + base_port) + "/disconnect_test").body.readAll().toString(),
+                "/disconnect_test");
         });
 
         describe("client timeout & global client timeout", () => {
@@ -2333,7 +2351,7 @@ describe("http", () => {
                 http.autoRedirect = false;
                 var resp = http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect');
                 assert.equal(resp.headers.location, "request");
-                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/redirect").firstHeader("test"),
+                assert.equal(http.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/redirect").firstHeader("test"),
                     "test1");
             })
         });
