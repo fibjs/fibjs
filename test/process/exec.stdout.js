@@ -9,7 +9,7 @@ var coroutine = require("coroutine");
 
 process.on("SIGTERM", () => {
   log_stdout("killed");
-  process.exit(0);
+  process.exit(1);
 });
 
 for (var i = 0; i < 2; i++) {
@@ -19,5 +19,5 @@ for (var i = 0; i < 2; i++) {
   log_stdout();
 }
 
-process.exit(2);
+process.exit();
 log_stdout("not output");

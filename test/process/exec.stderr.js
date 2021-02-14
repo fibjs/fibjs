@@ -7,11 +7,6 @@ log_err("exec testing....");
 
 var coroutine = require("coroutine");
 
-process.on("SIGTERM", () => {
-  log_err("killed");
-  process.exit(0);
-});
-
 for (var i = 0; i < 2; i++) {
   coroutine.sleep(1000);
   log_err(new Date());
@@ -19,5 +14,5 @@ for (var i = 0; i < 2; i++) {
   log_err();
 }
 
-process.exit(2);
+process.exit();
 log_err("not output");

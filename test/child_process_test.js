@@ -110,6 +110,11 @@ describe("child_process", () => {
             offsets[1] = new Date().getTime() - t0;
             assert.closeTo(offsets[1], 2000, 1000);
         });
+
+        it("console stdout output", () => {
+            var status = child_process.run(cmd, [path.join(__dirname, 'process', 'exec.stdout.js')]);
+            assert.equal(status, 0);
+        });
     });
 
     it("stdin/stdout", () => {
@@ -285,7 +290,7 @@ describe("child_process", () => {
                 try {
                     net.connect('tcp://127.0.0.1:28080');
                     break;
-                } catch (e) { }
+                } catch (e) {}
             }
 
             assert.equal(stdout.readLine(), "700");

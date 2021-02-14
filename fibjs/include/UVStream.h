@@ -25,28 +25,24 @@ class UVStream : public Stream_base {
 public:
     UVStream(int32_t fd)
     {
-#ifdef _WIN32
         m_fd = fd;
-#endif
-        memset(&m_pipe, 0, sizeof(uv_pipe_t));
+
         uv_call([&] {
+            if (is_stdio_fd(fd)) {
+                uv_handle_type type = uv_guess_handle(fd);
+                if (type == UV_TTY)
+                    return uv_tty_init(s_uv_loop, &m_tty, fd, fd == 0);
+            }
+
             uv_pipe_init(s_uv_loop, &m_pipe, 0);
-
-            int ret = uv_pipe_open(&m_pipe, fd);
-
-            if (ret == 0 && is_stdio_fd(fd))
-                ret = uv_stream_set_blocking((uv_stream_t*)&m_pipe, 1);
-
-            return ret;
+            return uv_pipe_open(&m_pipe, fd);
         });
     }
 
     UVStream()
     {
-#ifdef _WIN32
         m_fd = -1;
-#endif
-        memset(&m_pipe, 0, sizeof(uv_pipe_t));
+
         uv_call([&] {
             return uv_pipe_init(s_uv_loop, &m_pipe, 0);
         });
@@ -54,17 +50,17 @@ public:
 
     static void on_delete(uv_handle_t* handle)
     {
-        UVStream* pThis = container_of(handle, UVStream, m_pipe);
+        UVStream* pThis = container_of(handle, UVStream, m_handle);
         delete pThis;
     }
 
     virtual void Delete()
     {
         result_t hr = uv_call([&] {
-            if (uv_is_closing((uv_handle_t*)&m_pipe))
+            if (uv_is_closing(&m_handle))
                 return CALL_E_INVALID_CALL;
 
-            uv_close((uv_handle_t*)&m_pipe, on_delete);
+            uv_close(&m_handle, on_delete);
             return CALL_E_PENDDING;
         });
 
@@ -90,7 +86,7 @@ public:
         {
             m_this->queue_read.putTail(this);
             if (m_this->queue_read.count() == 1)
-                return uv_read_start((uv_stream_t*)&m_this->m_pipe, on_alloc, on_read);
+                return uv_read_start(&m_this->m_stream, on_alloc, on_read);
 
             return 0;
         }
@@ -98,7 +94,7 @@ public:
     public:
         static void on_alloc(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf)
         {
-            AsyncRead* ar = container_of(handle, UVStream, m_pipe)->queue_read.head();
+            AsyncRead* ar = container_of(handle, UVStream, m_handle)->queue_read.head();
 
             if (ar->m_buf.empty()) {
                 if (ar->m_bytes > 0)
@@ -112,7 +108,7 @@ public:
 
         static void on_read(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf)
         {
-            UVStream* pThis = container_of(stream, UVStream, m_pipe);
+            UVStream* pThis = container_of(stream, UVStream, m_handle);
             AsyncRead* ar;
 
             if (nread < 0) {
@@ -131,7 +127,7 @@ public:
                 ar->post_data();
 
                 if (pThis->queue_read.count() == 0)
-                    uv_read_stop((uv_stream_t*)&pThis->m_pipe);
+                    uv_read_stop(&pThis->m_stream);
             }
         }
 
@@ -160,24 +156,17 @@ public:
 
     virtual result_t get_fd(int32_t& retVal)
     {
-#ifdef _WIN32
         if (is_stdio_fd(m_fd)) {
             retVal = m_fd;
-
             return 0;
         }
-#endif
+
         uv_os_fd_t fileno;
 
-        int ret = uv_fileno((uv_handle_t*)&m_pipe, &fileno);
+        int ret = uv_fileno(&m_handle, &fileno);
         if (ret != 0)
             return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
-
-#ifdef _WIN32
-        retVal = (int32_t)&fileno;
-#else
-        retVal = fileno;
-#endif
+        retVal = (int32_t)fileno;
 
         return 0;
     };
@@ -228,7 +217,7 @@ public:
 
         write_req* req = new write_req(data, ac);
         int ret = uv_call([&] {
-            return uv_write(req, (uv_stream_t*)&m_pipe, &req->buf, 1, write_req::on_write);
+            return uv_write(req, &m_stream, &req->buf, 1, write_req::on_write);
         });
 
         if (ret != 0)
@@ -243,10 +232,10 @@ public:
 
     static void on_close(uv_handle_t* handle)
     {
-        UVStream* pThis = container_of(handle, UVStream, m_pipe);
+        UVStream* pThis = container_of(handle, UVStream, m_handle);
 
         if (pThis->queue_read.count())
-            AsyncRead::on_read((uv_stream_t*)handle, -1, NULL);
+            AsyncRead::on_read(&pThis->m_stream, -1, NULL);
         pThis->ac_close->apost(0);
     }
 
@@ -256,11 +245,11 @@ public:
             return CHECK_ERROR(CALL_E_NOSYNC);
 
         return uv_call([&] {
-            if (uv_is_closing((uv_handle_t*)&m_pipe))
+            if (uv_is_closing(&m_handle))
                 return CALL_E_INVALID_CALL;
 
             ac_close = ac;
-            uv_close((uv_handle_t*)&m_pipe, on_close);
+            uv_close(&m_handle, on_close);
             return CALL_E_PENDDING;
         });
     }
@@ -272,16 +261,18 @@ public:
     }
 
 private:
-#ifdef _WIN32
     int32_t m_fd;
-#endif
 
 public:
-    uv_pipe_t m_pipe;
+    union {
+        uv_handle_t m_handle;
+        uv_stream_t m_stream;
+        uv_pipe_t m_pipe;
+        uv_tty_t m_tty;
+    };
     exlib::List<AsyncRead> queue_read;
     AsyncEvent* ac_close;
 };
-
 }
 
 #endif // _UVSTREAM_H
