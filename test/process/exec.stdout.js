@@ -1,5 +1,7 @@
+var os = require('os');
+
 function log_stdout(input = "") {
-  process.stdout.write(input + `\n`);
+  process.stdout.write(input + os.EOL);
 }
 log_stdout("exec testing....");
 

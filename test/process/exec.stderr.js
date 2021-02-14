@@ -1,5 +1,7 @@
+var os = require('os');
+
 function log_err(input = "") {
-  process.stderr.write(input + `\n`);
+  process.stderr.write(input + os.EOL);
 }
 log_err("exec testing....");
 
