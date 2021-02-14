@@ -13,36 +13,6 @@
 
 namespace fibjs {
 
-#ifdef _WIN32
-static const char* PLATFORM_RESERVER_ENV_KEYS[] = {
-    "HOMEDRIVE",
-    "HOMEPATH",
-    "LOGONSERVER",
-    "PATH",
-    "SYSTEMDRIVE",
-    "SYSTEMROOT",
-    "TEMP",
-    "USERDOMAIN",
-    "USERNAME",
-    "USERPROFILE",
-    "WINDIR",
-
-    // for registry :start
-    "CommonProgramFiles",
-    "CommonProgramFiles(x86)",
-    "CommonProgramW6432",
-    "ProgramFiles",
-    "ProgramFiles(x86)",
-    "ProgramW6432"
-    // for registry :end
-};
-#else
-static const char* PLATFORM_RESERVER_ENV_KEYS[] = {
-    "HOME",
-    "TMPDIR"
-};
-#endif
-
 void ChildProcess::on_uv_close(uv_handle_t* handle)
 {
     ChildProcess* cp = container_of(handle, ChildProcess, m_process);
@@ -154,31 +124,14 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
         uv_options.gid = (uv_gid_t)gid;
     }
 
-    v8::Local<v8::Object> cur_envs;
-    hr = process_base::get_env(cur_envs);
-    if (hr < 0)
-        return hr;
-
     v8::Local<v8::Object> opt_envs;
     hr = GetConfigValue(isolate->m_isolate, options, "env", opt_envs, true);
     if (hr == CALL_E_PARAMNOTOPTIONAL) {
-        /**
-         * @warning: we shouldn't leave `uv_options.env = NULL` here! 
-         * Because cur_envs may be assigned other fields by user.
-         */
-        opt_envs = cur_envs->ToObject();
+        hr = process_base::get_env(opt_envs);
+        if (hr < 0)
+            return hr;
     } else if (hr < 0)
         return hr;
-
-    v8::Local<v8::Value> dflt_k;
-    bool has_k;
-    for (int32_t i = 0; i < (int32_t)ARRAYSIZE(PLATFORM_RESERVER_ENV_KEYS); i++) {
-        dflt_k = isolate->NewString(PLATFORM_RESERVER_ENV_KEYS[i]);
-        if (opt_envs->Get(dflt_k)->IsUndefined()) {
-            dflt_k = isolate->NewString(PLATFORM_RESERVER_ENV_KEYS[i]);
-            opt_envs->Set(dflt_k, JSValue(cur_envs->Get(dflt_k)));
-        }
-    }
 
     JSArray keys = opt_envs->GetPropertyNames();
     len = (int32_t)keys->Length();

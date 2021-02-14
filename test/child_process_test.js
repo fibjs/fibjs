@@ -433,7 +433,7 @@ describe("child_process", () => {
         assert.equal(retcode, 0)
     });
 
-    describe("ChildProcess Spec", () => {
+    xdescribe("ChildProcess Spec", () => {
         it("default kvs", () => {
             var retcode = child_process.run(cmd, [path.join(__dirname, 'process', 'exec.env_kvs.js')]);
             assert.equal(retcode, 0)
