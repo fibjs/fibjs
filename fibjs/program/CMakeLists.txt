@@ -51,9 +51,15 @@ if(HAVE_GLIB_C_225_H)
 endif()
 
 if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
+	if(link_flags)
+		set_target_properties(${name} PROPERTIES LINK_FLAGS ${link_flags})
+		set_target_properties(${name}_gui PROPERTIES LINK_FLAGS ${link_flags})
+	endif()
+
 	target_compile_definitions(${name} PUBLIC -D_CONSOLE)
 	target_compile_definitions(${name}_gui PUBLIC -D_WINDOWS)
 else()
-	set_target_properties(${name} PROPERTIES LINK_FLAGS ${link_flags})
+	if(link_flags)
+		set_target_properties(${name} PROPERTIES LINK_FLAGS ${link_flags})
+	endif()
 endif()
-
