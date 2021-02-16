@@ -26,7 +26,7 @@ void ChildProcess::OnExit(uv_process_t* handle, int64_t exit_status, int term_si
     ChildProcess* cp = container_of(handle, ChildProcess, m_process);
     Variant args[2];
 
-    cp->m_exitCode = exit_status;
+    cp->m_exitCode = (int32_t)exit_status;
     cp->m_ev.set();
 
     args[0] = (double)exit_status;

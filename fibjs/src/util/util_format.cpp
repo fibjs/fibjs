@@ -345,7 +345,7 @@ result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string&
                     v8::String::Utf8Value s(isolate->m_isolate, args[idx++]);
                     if (*s) {
                         int64_t n = atoi(*s);
-                        v8::Local<v8::Value> v = v8::Number::New(isolate->m_isolate, n);
+                        v8::Local<v8::Value> v = v8::Number::New(isolate->m_isolate, (int32_t)n);
 
                         exlib::string s;
                         s = json_format(v, color);

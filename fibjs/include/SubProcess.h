@@ -70,7 +70,7 @@ public:
         // Stream_base
         virtual result_t get_fd(int32_t& retVal)
         {
-            retVal = m_aio.m_fd;
+            retVal = *(int32_t*)&m_aio.m_fd;
             return 0;
         }
 

@@ -103,7 +103,7 @@ public:
             }
 
             buf->base = ar->m_buf.c_buffer() + ar->m_pos;
-            buf->len = ar->m_buf.length() - ar->m_pos;
+            buf->len = (uint32_t)ar->m_buf.length() - ar->m_pos;
         }
 
         static void on_read(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf)
@@ -120,7 +120,7 @@ public:
             }
 
             ar = pThis->queue_read.head();
-            ar->m_pos += nread;
+            ar->m_pos += (int32_t)nread;
 
             if ((ar->m_bytes < 0) || (ar->m_bytes == ar->m_pos)) {
                 pThis->queue_read.getHead();
@@ -166,7 +166,7 @@ public:
         int ret = uv_fileno(&m_handle, &fileno);
         if (ret != 0)
             return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
-        retVal = (int32_t)fileno;
+        retVal = *(int32_t*)&fileno;
 
         return 0;
     };
@@ -195,7 +195,7 @@ public:
             {
                 data->toString(strBuf);
                 buf.base = (char*)strBuf.c_str();
-                buf.len = strBuf.length();
+                buf.len = (uint32_t)strBuf.length();
             }
 
         public:

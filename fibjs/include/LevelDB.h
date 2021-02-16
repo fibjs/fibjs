@@ -92,9 +92,9 @@ private:
 #ifdef WIN32
         std::string str = s.ToString();
 
-        int wchars_num = MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.length(), NULL, 0);
+        int wchars_num = (int)MultiByteToWideChar(CP_ACP, 0, str.c_str(), (int)str.length(), NULL, 0);
         wchar_t* wstr = new wchar_t[wchars_num];
-        MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.length(), wstr, wchars_num);
+        MultiByteToWideChar(CP_ACP, 0, str.c_str(), (int)str.length(), wstr, wchars_num);
 
         result_t hr = Runtime::setError(utf16to8String(wstr, wchars_num - 1));
         delete[] wstr;

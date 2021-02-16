@@ -5,7 +5,6 @@
  *      Author: lion
  */
 #ifdef _WIN32
-#define _WIN32
 
 #include "ifs/WebView.h"
 #include <comdef.h>

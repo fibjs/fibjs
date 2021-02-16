@@ -474,7 +474,7 @@ result_t os_base::openPrinter(exlib::string name, obj_ptr<BufferedStream_base>& 
         // Stream_base
         result_t get_fd(int32_t& retVal)
         {
-            retVal = (int32_t)m_hPrinter;
+            retVal = *(int32_t*)&m_hPrinter;
 
             return 0;
         }

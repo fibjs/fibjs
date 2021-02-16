@@ -99,7 +99,7 @@ result_t Socket::create(int32_t family, int32_t type)
 
 result_t Socket::get_fd(int32_t& retVal)
 {
-    retVal = m_aio.m_fd;
+    retVal = (int32_t)m_aio.m_fd;
 
     return 0;
 }

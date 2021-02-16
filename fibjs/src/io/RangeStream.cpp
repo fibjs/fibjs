@@ -124,7 +124,7 @@ result_t RangeStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEve
             int64_t rest_sz = m_pThis->e_pos - m_pThis->real_pos;
 
             if (m_bytes < 0 || m_bytes > rest_sz)
-                return m_pThis->m_stream->read(rest_sz, m_retVal, next(ready));
+                return m_pThis->m_stream->read((int32_t)rest_sz, m_retVal, next(ready));
             else
                 return m_pThis->m_stream->read(m_bytes, m_retVal, next(ready));
         }
@@ -321,5 +321,4 @@ result_t RangeStream::get_end(int64_t& retVal)
     retVal = e_pos;
     return 0;
 }
-
 }

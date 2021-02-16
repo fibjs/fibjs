@@ -68,16 +68,16 @@ void Stat::fill(exlib::string path, uv_stat_t* statbuf)
     blksize = statbuf->st_blksize;
     blocks = statbuf->st_blocks;
 
-    mtimeNs = (double)statbuf->st_mtim.tv_nsec;
+    mtimeNs = statbuf->st_mtim.tv_nsec;
     mtime = (double)statbuf->st_mtim.tv_sec * 1000ll + (mtimeNs / 1000000000.0);
 
-    atimeNs = (double)statbuf->st_atim.tv_nsec;
+    atimeNs = statbuf->st_atim.tv_nsec;
     atime = (double)statbuf->st_atim.tv_sec * 1000ll + (atimeNs / 1000000000.0);
 
-    ctimeNs = (double)statbuf->st_ctim.tv_nsec;
+    ctimeNs = statbuf->st_ctim.tv_nsec;
     ctime = (double)statbuf->st_ctim.tv_sec * 1000ll + (ctimeNs / 1000000000.0);
 
-    birthtimeNs = (double)statbuf->st_birthtim.tv_nsec;
+    birthtimeNs = statbuf->st_birthtim.tv_nsec;
     birthtime = (double)statbuf->st_birthtim.tv_sec * 1000ll + (birthtimeNs / 1000000000.0);
 
     m_isMemory = false;
@@ -111,7 +111,7 @@ void Stat::init(Stat_base* st)
     int32_t i32_tmp;
 
     st->get_size(d_tmp);
-    size = d_tmp;
+    size = (int64_t)d_tmp;
 
     st->get_mode(i32_tmp);
     m_mode = i32_tmp;
@@ -139,61 +139,61 @@ result_t Stat::get_name(exlib::string& retVal)
 
 result_t Stat::get_dev(int32_t& retVal)
 {
-    retVal = dev;
+    retVal = (int32_t)dev;
     return 0;
 };
 
 result_t Stat::get_ino(int32_t& retVal)
 {
-    retVal = ino;
+    retVal = (int32_t)ino;
     return 0;
 };
 
 result_t Stat::get_mode(int32_t& retVal)
 {
-    retVal = m_mode;
+    retVal = (int32_t)m_mode;
     return 0;
 };
 
 result_t Stat::get_nlink(int32_t& retVal)
 {
-    retVal = nlink;
+    retVal = (int32_t)nlink;
     return 0;
 };
 
 result_t Stat::get_uid(int32_t& retVal)
 {
-    retVal = uid;
+    retVal = (int32_t)uid;
     return 0;
 };
 
 result_t Stat::get_gid(int32_t& retVal)
 {
-    retVal = gid;
+    retVal = (int32_t)gid;
     return 0;
 };
 
 result_t Stat::get_rdev(int32_t& retVal)
 {
-    retVal = rdev;
+    retVal = (int32_t)rdev;
     return 0;
 };
 
 result_t Stat::get_size(double& retVal)
 {
-    retVal = size;
+    retVal = (int32_t)size;
     return 0;
 };
 
 result_t Stat::get_blksize(int32_t& retVal)
 {
-    retVal = blksize;
+    retVal = (int32_t)blksize;
     return 0;
 };
 
 result_t Stat::get_blocks(int32_t& retVal)
 {
-    retVal = blocks;
+    retVal = (int32_t)blocks;
     return 0;
 };
 

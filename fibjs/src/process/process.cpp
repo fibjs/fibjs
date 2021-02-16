@@ -33,14 +33,15 @@
 #include <unistd.h>
 #include "editline/include/editline.h"
 
+extern "C" char** environ;
+
+#define _fileno fileno
 inline int32_t _umask(int32_t m)
 {
     return ::umask(m);
 }
 
 #endif
-
-extern "C" char** environ;
 
 namespace fibjs {
 
@@ -253,7 +254,7 @@ result_t process_base::get_stdin(obj_ptr<Stream_base>& retVal)
     Isolate* isolate = Isolate::current();
 
     if (!isolate->m_stdin)
-        isolate->m_stdin = new UVStream(fileno(stdin));
+        isolate->m_stdin = new UVStream(_fileno(stdin));
     retVal = isolate->m_stdin;
 
     return 0;
@@ -264,7 +265,7 @@ result_t process_base::get_stdout(obj_ptr<Stream_base>& retVal)
     Isolate* isolate = Isolate::current();
 
     if (!isolate->m_stdout)
-        isolate->m_stdout = new UVStream(fileno(stdout));
+        isolate->m_stdout = new UVStream(_fileno(stdout));
     retVal = isolate->m_stdout;
 
     return 0;
@@ -275,7 +276,7 @@ result_t process_base::get_stderr(obj_ptr<Stream_base>& retVal)
     Isolate* isolate = Isolate::current();
 
     if (!isolate->m_stderr)
-        isolate->m_stderr = new UVStream(fileno(stderr));
+        isolate->m_stderr = new UVStream(_fileno(stderr));
     retVal = isolate->m_stderr;
 
     return 0;
@@ -304,7 +305,7 @@ result_t process_base::exit()
 #ifdef _WIN32
     TerminateProcess(GetCurrentProcess(), code);
 #else
-    if (g_in_readline && isatty(fileno(stdin)))
+    if (g_in_readline && isatty(_fileno(stdin)))
         rl_deprep_terminal();
     ::_exit(code);
 #endif

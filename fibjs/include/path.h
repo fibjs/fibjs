@@ -577,7 +577,7 @@ inline result_t _parse(exlib::string path, obj_ptr<NObject>& retVal)
     int startPart = 0;
     int end = -1;
     bool matchedSlash = true;
-    int i = path.length() - 1;
+    int i = (int)path.length() - 1;
 
     int preDotState = 0;
 
@@ -635,7 +635,7 @@ inline result_t _parse_win32(exlib::string path, obj_ptr<NObject>& retVal)
         return 0;
     }
 
-    int len = path.length();
+    int len = (int)path.length();
     int rootEnd = 0;
     int code = path[0];
 
@@ -700,7 +700,7 @@ inline result_t _parse_win32(exlib::string path, obj_ptr<NObject>& retVal)
     int startPart = rootEnd;
     int end = -1;
     int matchedSlash = true;
-    int i = path.length() - 1;
+    int i = (int)path.length() - 1;
 
     int preDotState = 0;
 
