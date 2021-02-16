@@ -26,16 +26,17 @@
 #include "ns-api.h"
 
 @implementation WVViewController
--(void)loadView
+- (void)loadView
 {
     self.view = [NSView new];
     [self.view setWantsLayer:YES];
 }
--(void)viewDidAppear
+- (void)viewDidAppear
 {
     [super viewDidAppear];
 }
--(BOOL)acceptsFirstResponder {
+- (BOOL)acceptsFirstResponder
+{
     return YES;
 }
 @end
@@ -46,16 +47,17 @@ DECLARE_MODULE(gui);
 
 void asyncLog(int32_t priority, exlib::string msg);
 
-NSEvent* getEmptyCustomNSEvent () {
-    return [NSEvent otherEventWithType: NSApplicationDefined
-        location: NSMakePoint(0,0)
-        modifierFlags: 0
-        timestamp: 0.0
-        windowNumber: 0
-        context: nil
-        subtype: 0
-        data1: 0
-        data2: 0];
+NSEvent* getEmptyCustomNSEvent()
+{
+    return [NSEvent otherEventWithType:NSApplicationDefined
+                              location:NSMakePoint(0, 0)
+                         modifierFlags:0
+                             timestamp:0.0
+                          windowNumber:0
+                               context:nil
+                               subtype:0
+                                 data1:0
+                                 data2:0];
 }
 
 void putGuiPool(AsyncEvent* ac)
@@ -64,23 +66,7 @@ void putGuiPool(AsyncEvent* ac)
 
     [[NSApplication sharedApplication]
         postEvent:getEmptyCustomNSEvent()
-        atStart:YES
-    ];
-}
-
-result_t asyncFinishedLaunchingApp(NSApplication* app)
-{
-    /**
-     * @see https://developer.apple.com/documentation/appkit/nsapplicationactivationpolicy/nsapplicationactivationpolicyregular?language=objc
-     *
-     * @enum NSApplicationActivationPolicyRegular default, can be overrided by Info.plist
-     * @enum NSApplicationActivationPolicyAccessory The application doesn’t appear in the Dock and doesn’t have a menu bar, but it may be activated programmatically or by clicking on one of its windows.
-     * @enum NSApplicationActivationPolicyProhibited The application doesn’t appear in the Dock and may not create windows or be activated.
-     */
-    [app setActivationPolicy: NSApplicationActivationPolicyAccessory];
-    [app finishLaunching];
-
-    return 0;
+          atStart:YES];
 }
 
 void run_gui()
@@ -91,7 +77,8 @@ void run_gui()
 
         NSAppMainRunLoopThread* _thMainLoop = new NSAppMainRunLoopThread();
 
-        asyncCall(asyncFinishedLaunchingApp, [NSApplication sharedApplication]);
+        [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyAccessory];
+        [[NSApplication sharedApplication] finishLaunching];
 
         _thMainLoop->bindCurrent();
         s_thNSMainLoop = _thMainLoop;
@@ -106,10 +93,9 @@ id fetchEventFromNSRunLoop(int blocking)
 
     return [[NSApplication sharedApplication]
         nextEventMatchingMask:NSEventMaskAny
-        untilDate:until
-        inMode:@"kCFRunLoopDefaultMode"
-        dequeue:YES
-    ];
+                    untilDate:until
+                       inMode:@"kCFRunLoopDefaultMode"
+                      dequeue:YES];
 }
 
 /**
@@ -137,11 +123,11 @@ result_t gui_base::setVersion(int32_t ver)
     return 0;
 }
 
-void maxmizeNSWindow (NSWindow* win) {
+void maxmizeNSWindow(NSWindow* win)
+{
     [win setFrame:
-        [[NSScreen mainScreen] visibleFrame]
-        display:YES
-    ];
+             [[NSScreen mainScreen] visibleFrame]
+          display:YES];
 }
 
 result_t openWebViewInGUIThread(obj_ptr<fibjs::WebView> wv)
@@ -199,7 +185,7 @@ WebView::WebView(exlib::string url, NObject* opt)
 
         // if (m_opt->get("border", v) == 0 && !v.boolVal())
         //     m_nsWinStyle |= NSWindowStyleMaskBorderless;
-        
+
         if (m_opt->get("title", v) == 0)
             m_title = v.string();
 
@@ -248,9 +234,8 @@ void WebView::setupAppMenubar()
     NSMenuItem* appMenuItem = [NSMenuItem alloc];
     [appMenuItem
         initWithTitle:appName
-        action:NULL
-        keyEquivalent:get_nsstring("")
-    ];
+               action:NULL
+        keyEquivalent:get_nsstring("")];
 
     NSMenu* appMenu = [NSMenu alloc];
     [appMenu initWithTitle:appName];
@@ -279,7 +264,8 @@ void WebView::setupAppMenubar()
     [[NSApplication sharedApplication] setMainMenu:menubar];
 }
 
-void _waitAsyncOperationInCurrentLoop(bool blocking = false) {
+void _waitAsyncOperationInCurrentLoop(bool blocking = false)
+{
     if (blocking)
         [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
     else
@@ -298,11 +284,11 @@ bool WebView::onNSWindowShouldClose()
 
     evaluateWebviewJS(
         "!window.external || typeof window.external.onclose !== 'function' ? false : window.external.onclose()",
-        ^(id result, NSError * _Nullable error) {
+        ^(id result, NSError* _Nullable error) {
             if (error != nil) {
                 if (wv->m_bDebug)
                     asyncLog(console_base::_DEBUG, NSStringToExString([error localizedDescription]));
-                    
+
                 wv->forceCloseWindow();
             } else {
                 if (result == nil)
@@ -312,8 +298,7 @@ bool WebView::onNSWindowShouldClose()
             }
 
             s_thNSMainLoop->m_sem.Post();
-        }
-    );
+        });
 
     do {
         _waitAsyncOperationInCurrentLoop(true);
@@ -350,13 +335,13 @@ static int32_t asyncOutputMessageFromWKWebview(exlib::string& jsonFmt)
     json_base::decode(jsonFmt, _logInfo);
     v8::Local<v8::Object> logInfo = v8::Local<v8::Object>::Cast(_logInfo);
 
-    Isolate* isolate = Isolate::current(); 
-    
+    Isolate* isolate = Isolate::current();
+
     int32_t logLevel = JSValue(logInfo->Get(isolate->NewString("level")))->IntegerValue();
 
     v8::Local<v8::Value> _fmtMessage = logInfo->Get(isolate->NewString("fmt"));
     exlib::string fmtMessage(ToCString(v8::String::Utf8Value(isolate->m_isolate, _fmtMessage)));
-    
+
     if (logLevel == console_base::_ERROR)
         fmtMessage = ("WebView Error: " + fmtMessage);
 
@@ -368,7 +353,7 @@ static int32_t asyncOutputMessageFromWKWebview(exlib::string& jsonFmt)
 void WebView::onWKWebViewExternalLogMessage(WKScriptMessage* message)
 {
     if (!m_bDebug)
-        return ;
+        return;
 
     const char* externalLogMsg = (const char*)([[message body] UTF8String]);
     exlib::string payload(externalLogMsg);
@@ -393,35 +378,30 @@ id WebView::createWKUserContentController()
     [wkUserCtrl addScriptMessageHandler:[__WKScriptMessageHandler new] name:get_nsstring(WEBVIEW_MSG_HANDLER_NAME_EXTERNALLOG)];
 
     [wkUserCtrl addUserScript:[[WKUserScript alloc]
-        initWithSource:w_get_nsstring(scriptStart_regExternal)
-        injectionTime:WKUserScriptInjectionTimeAtDocumentStart
-        forMainFrameOnly:FALSE
-    ]];
+                                    initWithSource:w_get_nsstring(scriptStart_regExternal)
+                                     injectionTime:WKUserScriptInjectionTimeAtDocumentStart
+                                  forMainFrameOnly:FALSE]];
 
     [wkUserCtrl addUserScript:[[WKUserScript alloc]
-        initWithSource:w_get_nsstring(g_console_js)
-        injectionTime:WKUserScriptInjectionTimeAtDocumentStart
-        forMainFrameOnly:FALSE
-    ]];
+                                    initWithSource:w_get_nsstring(g_console_js)
+                                     injectionTime:WKUserScriptInjectionTimeAtDocumentStart
+                                  forMainFrameOnly:FALSE]];
 
     [wkUserCtrl addUserScript:[[WKUserScript alloc]
-        initWithSource:w_get_nsstring(scriptEnd_inwardPostMessage)
-        injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
-        forMainFrameOnly:TRUE
-    ]];
+                                    initWithSource:w_get_nsstring(scriptEnd_inwardPostMessage)
+                                     injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
+                                  forMainFrameOnly:TRUE]];
 
     [wkUserCtrl addUserScript:[[WKUserScript alloc]
-        initWithSource:w_get_nsstring(scriptEnd_afterInternal)
-        injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
-        forMainFrameOnly:TRUE
-    ]];
+                                    initWithSource:w_get_nsstring(scriptEnd_afterInternal)
+                                     injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
+                                  forMainFrameOnly:TRUE]];
 
     // TODO: support inject javascript
     [wkUserCtrl addUserScript:[[WKUserScript alloc]
-        initWithSource:get_nsstring(m_initScriptDocAfter.c_str())
-        injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
-        forMainFrameOnly:TRUE
-    ]];
+                                    initWithSource:get_nsstring(m_initScriptDocAfter.c_str())
+                                     injectionTime:WKUserScriptInjectionTimeAtDocumentEnd
+                                  forMainFrameOnly:TRUE]];
 
     return wkUserCtrl;
 }
@@ -434,7 +414,7 @@ id WebView::createWKWebViewConfig()
     // [configuration setProcessPool:processPool];
     [configuration setUserContentController:createWKUserContentController()];
 
-    WKPreferences *preferences = [WKPreferences new];
+    WKPreferences* preferences = [WKPreferences new];
     preferences.javaScriptCanOpenWindowsAutomatically = YES;
     preferences.tabFocusesLinks = FALSE;
     [preferences setValue:@TRUE forKey:@"allowFileAccessFromFileURLs"];
@@ -460,11 +440,10 @@ id WebView::createWKWebViewConfig()
      * register customized protocol `fs://`
      * @warning `setURLSchemeHandler:forURLScheme:` is only available on macOS 10.13 or newer
      */
-    NSOperatingSystemVersion macOS10_13 = (NSOperatingSystemVersion){10, 13, 0};
+    NSOperatingSystemVersion macOS10_13 = (NSOperatingSystemVersion){ 10, 13, 0 };
     if ([[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:macOS10_13]) {
         [configuration setURLSchemeHandler:[FileSystemWKURLSchemeHandler new] forURLScheme:@"fs"];
     }
-    
 
     return configuration;
 }
@@ -473,10 +452,9 @@ void WebView::initNSWindow()
 {
     m_nsWindow = [[NSWindow alloc]
         initWithContentRect:m_nsWindowFrame
-        styleMask:m_nsWinStyle
-        backing:NSBackingStoreBuffered
-        defer:YES
-    ];
+                  styleMask:m_nsWinStyle
+                    backing:NSBackingStoreBuffered
+                      defer:YES];
 
     if (m_fullscreenable)
         [m_nsWindow setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
@@ -499,8 +477,7 @@ void WebView::initWKWebView()
     m_wkWebView = [
         [WKWebView alloc]
         initWithFrame:m_nsWindowFrame
-        configuration:createWKWebViewConfig()
-    ];
+        configuration:createWKWebViewConfig()];
 
     assignToWKWebView(m_wkWebView);
 
@@ -514,9 +491,7 @@ void WebView::navigateWKWebView()
 {
     NSURL* nsURL = [NSURL
         URLWithString:get_nsstring(
-            webview_check_url(m_url.c_str())
-        )
-    ];
+                          webview_check_url(m_url.c_str()))];
     [m_wkWebView loadRequest:[NSURLRequest requestWithURL:nsURL]];
 }
 
@@ -557,38 +532,34 @@ int WebView::initializeWebView()
     return 0;
 }
 
-
 void WebView::evaluateWebviewJS(const char* js, JsEvaluateResultHdlr hdlr)
 {
     if (hdlr == NULL) {
-        hdlr = ^(id item, NSError * _Nullable error) {};
+        hdlr = ^(id item, NSError* _Nullable error) {
+        };
     }
 
     [m_wkWebView
         evaluateJavaScript:get_nsstring(js)
-        completionHandler:hdlr
-    ];
+         completionHandler:hdlr];
 }
 
 void WebView::setWindowColor(WebView* w, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
     NSColor* color = [NSColor
         colorWithRed:((float)r / 255.0)
-        green:((float)g / 255.0)
-        blue:((float)b / 255.0)
-        alpha:((float)a / 255.0)
-    ];
+               green:((float)g / 255.0)
+                blue:((float)b / 255.0)
+               alpha:((float)a / 255.0)];
 
     [m_nsWindow setBackgroundColor:color];
 
     if (0.5 >= ((r / 255.0 * 299.0) + (g / 255.0 * 587.0) + (b / 255.0 * 114.0)) / 1000.0) {
         [m_nsWindow
-            setAppearance:[NSAppearance appearanceNamed:@"NSAppearanceNameVibrantDark"]
-        ];
+            setAppearance:[NSAppearance appearanceNamed:@"NSAppearanceNameVibrantDark"]];
     } else {
         [m_nsWindow
-            setAppearance:[NSAppearance appearanceNamed:@"NSAppearanceNameVibrantLight"]
-        ];
+            setAppearance:[NSAppearance appearanceNamed:@"NSAppearanceNameVibrantLight"]];
     }
 
     [m_nsWindow setOpaque:FALSE];
@@ -619,12 +590,11 @@ int WebView::helperEncodeJS(const char* s, char* esc, size_t n)
 }
 
 NSMenuItem* WebView::createMenuItem(id title, const char* action, const char* key)
-{    
+{
     id item = [[NSMenuItem alloc]
         initWithTitle:title
-        action:sel_registerName(action)
-        keyEquivalent:get_nsstring(key)
-    ];
+               action:sel_registerName(action)
+        keyEquivalent:get_nsstring(key)];
     [item autorelease];
 
     return item;
@@ -722,7 +692,8 @@ result_t WebView::get_visible(bool& retVal)
 result_t WebView::asyncToggleVisible(WebView* wv)
 {
     if (wv->m_visible) {
-        if (wv->m_maximize) maxmizeNSWindow(wv->m_nsWindow);
+        if (wv->m_maximize)
+            maxmizeNSWindow(wv->m_nsWindow);
         wv->m_maximize = false;
     }
 
@@ -764,7 +735,6 @@ void WebView::Navigate(exlib::string szUrl)
     // NOT IMPLEMENTED
     return;
 }
-
 }
 
 #endif /* __APPLE__ */
