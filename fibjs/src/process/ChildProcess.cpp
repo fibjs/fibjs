@@ -244,17 +244,15 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
 
     isolate->Ref();
     m_vholder = new ValueHolder(wrap());
+    return uv_call([&] {
+        int32_t err = ::uv_spawn(s_uv_loop, &m_process, &uv_options);
+        if (err < 0) {
+            uv_close((uv_handle_t*)&m_process, on_uv_close);
+            return CHECK_ERROR(Runtime::setError(uv_strerror(err)));
+        }
 
-    int32_t err = uv_call([&] {
-        return ::uv_spawn(s_uv_loop, &m_process, &uv_options);
+        return 0;
     });
-    if (err < 0) {
-        m_vholder.Release();
-        isolate->Unref();
-        return CHECK_ERROR(err);
-    }
-
-    return 0;
 }
 
 result_t ChildProcess::kill(int32_t signal)
