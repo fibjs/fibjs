@@ -311,43 +311,4 @@ result_t ChildProcess::get_stderr(obj_ptr<Stream_base>& retVal)
 
     return 0;
 }
-
-void ChildProcess::close_pipe()
-{
-    class asyncClose : public AsyncState {
-    public:
-        asyncClose(ChildProcess* cp)
-            : AsyncState(NULL)
-            , idx(0)
-        {
-            for (int32_t i = 0; i < 3; i++)
-                m_stdio[i] = cp->m_stdio[i];
-
-            next(close);
-        }
-
-    public:
-        ON_STATE(asyncClose, close)
-        {
-            while (idx < 3 && !m_stdio[idx])
-                idx++;
-
-            if (idx == 3)
-                return next();
-
-            return m_stdio[idx++]->close(this);
-        }
-
-        virtual int32_t error(int32_t v)
-        {
-            return 0;
-        }
-
-    private:
-        int32_t idx;
-        obj_ptr<Stream_base> m_stdio[3];
-    };
-
-    (new asyncClose(this))->post(0);
-}
 }

@@ -22,13 +22,7 @@ public:
         uv_options.exit_cb = OnExit;
     }
 
-    ~ChildProcess()
-    {
-        close_pipe();
-    }
-
     FIBER_FREE();
-
     EVENT_SUPPORT();
 
 public:
@@ -43,7 +37,6 @@ public:
 
 public:
     static int32_t spawn(uv_process_t* process, const uv_process_options_t* options);
-    void close_pipe();
 
 public:
     EVENT_FUNC(exit);
