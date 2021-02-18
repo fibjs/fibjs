@@ -40,10 +40,10 @@ foreach(lib ${libs})
 	endif()
 endforeach()
 
-link_libraries(${name})
+setup_result_library(${name})
 
 if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-	link_libraries(${name}_gui)
+	setup_result_library(${name}_gui)
 endif()
 
 if(HAVE_GLIB_C_225_H)

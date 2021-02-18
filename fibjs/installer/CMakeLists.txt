@@ -11,4 +11,4 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/../../../bin/${CMAKE_HOST_SYSTE
 
 include_directories("${EXECUTABLE_OUTPUT_PATH}")
 
-link_libraries(${name})
+setup_result_library(${name})
