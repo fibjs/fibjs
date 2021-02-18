@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.0)
 
 if(NOT "${CLEAN_BUILD}" STREQUAL "true")
     include(../../vender/tools/get_env.cmake)
