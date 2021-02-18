@@ -4,24 +4,24 @@ set WORK_ROOT=%cd%
 set SOURCE_ROOT=%~dp0
 
 if exist "%SOURCE_ROOT%/vender" (
-    cd "%SOURCE_ROOT%/vender"
+    cd /d "%SOURCE_ROOT%/vender"
     call build %*%
     if ERRORLEVEL 1 goto exitbuild
 )else goto inform
 
-cd "%SOURCE_ROOT%/fibjs"
+cd /d "%SOURCE_ROOT%/fibjs"
 call build %*%
 if ERRORLEVEL 1 goto exitbuild
 
-cd "%SOURCE_ROOT%/fibjs/program"
+cd /d "%SOURCE_ROOT%/fibjs/program"
 call build %*%
 if ERRORLEVEL 1 goto exitbuild
 
-cd "%SOURCE_ROOT%/fibjs/installer"
+cd /d "%SOURCE_ROOT%/fibjs/installer"
 call build %*%
 if ERRORLEVEL 1 goto exitbuild
 
-cd "%SOURCE_ROOT%"
+cd /d "%SOURCE_ROOT%"
 goto finished
 
 :inform
@@ -33,7 +33,7 @@ goto finished
 	echo.
 
 :exitbuild
-cd "%SOURCE_ROOT%"
+cd /d "%SOURCE_ROOT%"
 exit /B 1
 
 :finished
