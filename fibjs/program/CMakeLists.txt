@@ -6,12 +6,14 @@ project(${name})
 include(${CMAKE_CURRENT_LIST_DIR}/../../vender/tools/option.cmake)
 
 if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-	# add quote to all paths in CMAKE_RC_COMPILE_OBJECT to make it robustic on Windows.
-	#
-	# BTW, sh.exe cannot deal with args of `llvm-rc.exe` correctly
-	# @see https://stackoverflow.com/questions/34647591/passing-windows-slash-based-parameters-to-a-program-from-bash-script
-	set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> //l 0x409 \"<SOURCE>\" //nologo //fo <OBJECT>")
-	set(CMAKE_RC_COMPILER llvm-rc)
+	if(NOT MSVC)
+		# add quote to all paths in CMAKE_RC_COMPILE_OBJECT to make it robustic on Windows.
+		#
+		# BTW, sh.exe cannot deal with args of `llvm-rc.exe` correctly
+		# @see https://stackoverflow.com/questions/34647591/passing-windows-slash-based-parameters-to-a-program-from-bash-script
+		set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> //l 0x409 \"<SOURCE>\" //nologo //fo <OBJECT>")
+		set(CMAKE_RC_COMPILER llvm-rc)
+	endif()
 
 	add_executable(${name} ${src_list} res/fibjs.rc)
 	add_executable(${name}_gui WIN32 ${src_list} res/fibjs.rc)
