@@ -5,13 +5,6 @@ project(${name})
 
 include(../vender/tools/option.cmake)
 
-file(GLOB_RECURSE src_list "src/*.c*")
-if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin" AND ${ARCH} STREQUAL "amd64")
-	file(GLOB_RECURSE src_platform_list "src/*.m*")
-else()
-	file(GLOB_RECURSE src_platform_list "")
-endif()
-
 add_library(${name} ${src_list} ${src_platform_list})
 
 if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin" AND NOT ${ARCH} STREQUAL "amd64")

@@ -5,8 +5,6 @@ project(${name})
 
 include(${CMAKE_CURRENT_LIST_DIR}/../../vender/tools/option.cmake)
 
-file(GLOB_RECURSE src_list "src/*.c*")
-
 if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 	# add quote to all paths in CMAKE_RC_COMPILE_OBJECT to make it robustic on Windows.
 	#
