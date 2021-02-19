@@ -123,7 +123,7 @@ public:
 
             if (nread < 0) {
                 uv_read_stop(&pThis->m_stream);
-                post_all_data(pThis);
+                post_all_result(pThis, nread);
                 return;
             }
 
@@ -131,29 +131,33 @@ public:
             ar->m_pos += (int32_t)nread;
             if ((ar->m_bytes < 0) || (ar->m_bytes == ar->m_pos)) {
                 pThis->queue_read.getHead();
-                ar->post_data();
+                ar->post_result(0);
 
                 if (pThis->queue_read.count() == 0)
                     uv_read_stop(&pThis->m_stream);
             }
         }
 
-        static void post_all_data(UVStream* pThis)
+        static void post_all_result(UVStream* pThis, int status)
         {
             while (pThis->queue_read.count())
-                pThis->queue_read.getHead()->post_data();
+                pThis->queue_read.getHead()->post_result(status);
         }
 
-        void post_data()
+        void post_result(int status)
         {
-            if (m_pos) {
-                if (m_pos < m_buf.length())
-                    m_buf.resize(m_pos);
+            if (status < 0 && status != UV_EOF) {
+                m_ac->apost(CHECK_ERROR(Runtime::setError(uv_strerror(status))));
+            } else {
+                if (m_pos) {
+                    if (m_pos < m_buf.length())
+                        m_buf.resize(m_pos);
 
-                m_retVal = new Buffer(m_buf);
-                m_ac->apost(0);
-            } else
-                m_ac->apost(CALL_RETURN_NULL);
+                    m_retVal = new Buffer(m_buf);
+                    m_ac->apost(0);
+                } else
+                    m_ac->apost(CALL_RETURN_NULL);
+            }
 
             delete this;
         }
@@ -219,17 +223,17 @@ public:
 
         static void post_all_result(UVStream* pThis, int status)
         {
-            if (!pThis->queue_write.count())
-                return;
-
-            result_t hr = Runtime::setError(uv_strerror(status));
             while (pThis->queue_write.count())
-                pThis->queue_write.getHead()->post_result(hr);
+                pThis->queue_write.getHead()->post_result(status);
         }
 
-        void post_result(result_t hr)
+        void post_result(int status)
         {
-            m_ac->apost(hr);
+            if (status < 0)
+                m_ac->apost(Runtime::setError(uv_strerror(status)));
+            else
+                m_ac->apost(0);
+
             delete this;
         }
 
@@ -283,8 +287,8 @@ public:
     {
         UVStream* pThis = container_of(handle, UVStream, m_handle);
 
-        AsyncRead::post_all_data(pThis);
-        AsyncWrite::post_all_result(pThis, EPIPE);
+        AsyncRead::post_all_result(pThis, UV_EPIPE);
+        AsyncWrite::post_all_result(pThis, UV_EPIPE);
 
         pThis->ac_close->apost(0);
     }
