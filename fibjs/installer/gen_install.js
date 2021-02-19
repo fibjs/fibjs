@@ -1,5 +1,5 @@
 var fs = require("fs");
-var process = require("process");
+var child_process = require("child_process");
 
 var build = false;
 var st1 = fs.stat("fibjs.exe");
@@ -11,8 +11,10 @@ else {
 }
 
 if (build) {
-	process.run("makecab", ["fibjs.exe", "fibjs.cab"]);
+	child_process.run("makecab", ["fibjs.exe", "fibjs.cab"]);
 	var st2 = fs.stat("fibjs.cab");
+	console.log();
+	console.log();
 }
 
 build = false;
