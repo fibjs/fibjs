@@ -24,4 +24,4 @@ include_directories("${PROJECT_SOURCE_DIR}/include"
 	"${PROJECT_SOURCE_DIR}/../vender/msgpack/include"
 	"${CMAKE_CURRENT_BINARY_DIR}")
 
-link_libraries(${name})
+setup_result_library(${name})
