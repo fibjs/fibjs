@@ -28,10 +28,12 @@ public:
         m_fd = fd;
 
         uv_call([&] {
-            if (is_stdio_fd(fd)) {
-                uv_handle_type type = uv_guess_handle(fd);
-                if (type == UV_TTY)
-                    return uv_tty_init(s_uv_loop, &m_tty, fd, fd == 0);
+            if (is_stdio_fd(fd) && uv_guess_handle(fd) == UV_TTY) {
+                int ret = uv_tty_init(s_uv_loop, &m_tty, fd, 0);
+                if (ret != 0)
+                    return ret;
+
+                return uv_stream_set_blocking(&m_stream, 1);
             }
 
             uv_pipe_init(s_uv_loop, &m_pipe, 0);
