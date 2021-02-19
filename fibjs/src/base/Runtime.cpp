@@ -31,7 +31,7 @@ void InitializeDateUtils();
 void InitializeAcPool();
 void InitializeAsyncIOThread();
 void initializeUVAsyncThread();
-void SubscribeProcessSignal();
+void init_signal();
 void init_sym();
 
 void init_argv(int32_t argc, char** argv);
@@ -59,7 +59,7 @@ static void createBasisForFiberLoop(v8::Platform* (*get_platform)())
     InitializeAcPool();
     InitializeAsyncIOThread();
     initializeUVAsyncThread();
-    SubscribeProcessSignal();
+    init_signal();
 
 #ifdef Linux
     init_sym();
