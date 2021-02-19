@@ -115,6 +115,20 @@ describe("child_process", () => {
             var status = child_process.run(cmd, [path.join(__dirname, 'process', 'exec.stdout.js')]);
             assert.equal(status, 0);
         });
+
+        it("parallel stdin", () => {
+            var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.parallel_stdin.js')]);
+            var str = "";
+            coroutine.sleep(100);
+            for (var i = 0; i < 10; i++) {
+                coroutine.sleep(10);
+                var id = test_util.makeid(10);
+                str += id;
+                bs.stdin.write(id);
+            }
+            var str1 = bs.stdout.read(100).toString();
+            assert.equal(str, str1);
+        })
     });
 
     it("stdin/stdout", () => {

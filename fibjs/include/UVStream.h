@@ -72,7 +72,7 @@ public:
 
 public:
     // Stream_base
-    class AsyncRead : public AsyncEvent {
+    class AsyncRead : public exlib::linkitem {
     public:
         AsyncRead(UVStream* pThis, int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
             : m_this(pThis)
@@ -84,13 +84,21 @@ public:
         }
 
     public:
-        int start()
+        result_t start()
         {
-            m_this->queue_read.putTail(this);
-            if (m_this->queue_read.count() == 1)
-                return uv_read_start(&m_this->m_stream, on_alloc, on_read);
+            return uv_call([&] {
+                m_this->queue_read.putTail(this);
+                if (m_this->queue_read.count() == 1) {
+                    int ret = uv_read_start(&m_this->m_stream, on_alloc, on_read);
+                    if (ret) {
+                        m_this->queue_read.getHead();
+                        delete this;
+                        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
+                    }
+                }
 
-            return 0;
+                return CALL_E_PENDDING;
+            });
         }
 
     public:
@@ -114,16 +122,13 @@ public:
             AsyncRead* ar;
 
             if (nread < 0) {
-                while (pThis->queue_read.count()) {
-                    ar = pThis->queue_read.getHead();
-                    ar->post_data();
-                }
+                uv_read_stop(&pThis->m_stream);
+                post_all_data(pThis);
                 return;
             }
 
             ar = pThis->queue_read.head();
             ar->m_pos += (int32_t)nread;
-
             if ((ar->m_bytes < 0) || (ar->m_bytes == ar->m_pos)) {
                 pThis->queue_read.getHead();
                 ar->post_data();
@@ -131,6 +136,12 @@ public:
                 if (pThis->queue_read.count() == 0)
                     uv_read_stop(&pThis->m_stream);
             }
+        }
+
+        static void post_all_data(UVStream* pThis)
+        {
+            while (pThis->queue_read.count())
+                pThis->queue_read.getHead()->post_data();
         }
 
         void post_data()
@@ -156,6 +167,80 @@ public:
         exlib::string m_buf;
     };
 
+    class AsyncWrite : public exlib::linkitem {
+    public:
+        AsyncWrite(UVStream* pThis, Buffer_base* data, AsyncEvent* ac)
+            : m_this(pThis)
+            , m_ac(ac)
+        {
+            data->toString(m_strBuf);
+            m_buf.base = (char*)m_strBuf.c_str();
+            m_buf.len = (uint32_t)m_strBuf.length();
+        }
+
+    public:
+        result_t start()
+        {
+            return uv_call([&] {
+                m_this->queue_write.putTail(this);
+                if (m_this->queue_write.count() == 1) {
+                    int ret = uv_write(&m_req, &m_this->m_stream, &m_buf, 1, on_write);
+                    if (ret) {
+                        m_this->queue_write.getHead();
+                        delete this;
+                        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
+                    }
+                }
+
+                return CALL_E_PENDDING;
+            });
+        }
+
+    public:
+        static void on_write(uv_write_t* req, int status)
+        {
+            UVStream* pThis = container_of(req->handle, UVStream, m_handle);
+            AsyncWrite* wr;
+
+            if (status < 0) {
+                post_all_result(pThis, status);
+                return;
+            }
+
+            pThis->queue_write.getHead()->post_result(0);
+
+            if (pThis->queue_write.count() > 0) {
+                wr = pThis->queue_write.head();
+                int ret = uv_write(&wr->m_req, &pThis->m_stream, &wr->m_buf, 1, on_write);
+                if (ret)
+                    post_all_result(pThis, ret);
+            }
+        }
+
+        static void post_all_result(UVStream* pThis, int status)
+        {
+            if (!pThis->queue_write.count())
+                return;
+
+            result_t hr = Runtime::setError(uv_strerror(status));
+            while (pThis->queue_write.count())
+                pThis->queue_write.getHead()->post_result(hr);
+        }
+
+        void post_result(result_t hr)
+        {
+            m_ac->apost(hr);
+            delete this;
+        }
+
+    private:
+        obj_ptr<UVStream> m_this;
+        AsyncEvent* m_ac;
+        exlib::string m_strBuf;
+        uv_buf_t m_buf;
+        uv_write_t m_req;
+    };
+
     virtual result_t get_fd(int32_t& retVal)
     {
         if (is_stdio_fd(m_fd)) {
@@ -164,7 +249,6 @@ public:
         }
 
         uv_os_fd_t fileno;
-
         int ret = uv_fileno(&m_handle, &fileno);
         if (ret != 0)
             return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
@@ -179,52 +263,15 @@ public:
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
-        int ret = uv_call([&] {
-            return (new AsyncRead(this, bytes, retVal, ac))->start();
-        });
-
-        if (ret != 0)
-            return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
-        return CALL_E_PENDDING;
+        return (new AsyncRead(this, bytes, retVal, ac))->start();
     }
 
     virtual result_t write(Buffer_base* data, AsyncEvent* ac)
     {
-        class write_req : public uv_write_t {
-        public:
-            write_req(Buffer_base* data, AsyncEvent* ac)
-                : m_ac(ac)
-            {
-                data->toString(strBuf);
-                buf.base = (char*)strBuf.c_str();
-                buf.len = (uint32_t)strBuf.length();
-            }
-
-        public:
-            static void on_write(uv_write_t* req, int status)
-            {
-                write_req* r = (write_req*)req;
-                r->m_ac->apost(0);
-                delete r;
-            }
-
-        public:
-            exlib::string strBuf;
-            AsyncEvent* m_ac;
-            uv_buf_t buf;
-        };
-
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
-        write_req* req = new write_req(data, ac);
-        int ret = uv_call([&] {
-            return uv_write(req, &m_stream, &req->buf, 1, write_req::on_write);
-        });
-
-        if (ret != 0)
-            return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
-        return CALL_E_PENDDING;
+        return (new AsyncWrite(this, data, ac))->start();
     }
 
     virtual result_t flush(AsyncEvent* ac)
@@ -236,8 +283,9 @@ public:
     {
         UVStream* pThis = container_of(handle, UVStream, m_handle);
 
-        if (pThis->queue_read.count())
-            AsyncRead::on_read(&pThis->m_stream, -1, NULL);
+        AsyncRead::post_all_data(pThis);
+        AsyncWrite::post_all_result(pThis, EPIPE);
+
         pThis->ac_close->apost(0);
     }
 
@@ -273,6 +321,7 @@ public:
         uv_tty_t m_tty;
     };
     exlib::List<AsyncRead> queue_read;
+    exlib::List<AsyncWrite> queue_write;
     AsyncEvent* ac_close;
 };
 }
