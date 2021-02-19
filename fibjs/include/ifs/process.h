@@ -19,7 +19,6 @@ namespace fibjs {
 
 class EventEmitter_base;
 class Stream_base;
-class SubProcess_base;
 
 class process_base : public EventEmitter_base {
     DECLARE_CLASS(process_base);
@@ -53,12 +52,6 @@ public:
     static result_t memoryUsage(v8::Local<v8::Object>& retVal);
     static result_t nextTick(v8::Local<v8::Function> func, OptArgs args);
     static result_t binding(exlib::string name, v8::Local<v8::Value>& retVal);
-    static result_t open(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
-    static result_t open(exlib::string command, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
-    static result_t start(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
-    static result_t start(exlib::string command, v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal);
-    static result_t run(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac);
-    static result_t run(exlib::string command, v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -96,18 +89,10 @@ public:
     static void s_static_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_nextTick(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_binding(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_open(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_start(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_run(const v8::FunctionCallbackInfo<v8::Value>& args);
-
-public:
-    ASYNC_STATICVALUE4(process_base, run, exlib::string, v8::Local<v8::Array>, v8::Local<v8::Object>, int32_t);
-    ASYNC_STATICVALUE3(process_base, run, exlib::string, v8::Local<v8::Object>, int32_t);
 };
 }
 
 #include "ifs/Stream.h"
-#include "ifs/SubProcess.h"
 
 namespace fibjs {
 inline ClassInfo& process_base::class_info()
@@ -121,11 +106,7 @@ inline ClassInfo& process_base::class_info()
         { "uptime", s_static_uptime, true },
         { "memoryUsage", s_static_memoryUsage, true },
         { "nextTick", s_static_nextTick, true },
-        { "binding", s_static_binding, true },
-        { "open", s_static_open, true },
-        { "start", s_static_start, true },
-        { "run", s_static_run, true },
-        { "runSync", s_static_run, true }
+        { "binding", s_static_binding, true }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -477,87 +458,6 @@ inline void process_base::s_static_binding(const v8::FunctionCallbackInfo<v8::Va
     ARG(exlib::string, 0);
 
     hr = binding(v0, vr);
-
-    METHOD_RETURN();
-}
-
-inline void process_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<SubProcess_base> vr;
-
-    METHOD_NAME("process.open");
-    METHOD_ENTER();
-
-    METHOD_OVER(3, 2);
-
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Array>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
-
-    hr = open(v0, v1, v2, vr);
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
-
-    hr = open(v0, v1, vr);
-
-    METHOD_RETURN();
-}
-
-inline void process_base::s_static_start(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<SubProcess_base> vr;
-
-    METHOD_NAME("process.start");
-    METHOD_ENTER();
-
-    METHOD_OVER(3, 2);
-
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Array>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
-
-    hr = start(v0, v1, v2, vr);
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
-
-    hr = start(v0, v1, vr);
-
-    METHOD_RETURN();
-}
-
-inline void process_base::s_static_run(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    int32_t vr;
-
-    METHOD_NAME("process.run");
-    METHOD_ENTER();
-
-    ASYNC_METHOD_OVER(3, 2);
-
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Array>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
-
-    if (!cb.IsEmpty())
-        hr = acb_run(v0, v1, v2, cb, args);
-    else
-        hr = ac_run(v0, v1, v2, vr);
-
-    ASYNC_METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
-
-    if (!cb.IsEmpty())
-        hr = acb_run(v0, v1, cb, args);
-    else
-        hr = ac_run(v0, v1, vr);
 
     METHOD_RETURN();
 }

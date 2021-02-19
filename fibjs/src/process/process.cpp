@@ -16,7 +16,6 @@
 #include "EventEmitter.h"
 #include "UVStream.h"
 #include "BufferedStream.h"
-#include "SubProcess.h"
 #include <vector>
 #include "options.h"
 
@@ -356,70 +355,5 @@ result_t process_base::binding(exlib::string name, v8::Local<v8::Value>& retVal)
     }
 
     return 0;
-}
-
-result_t process_base::open(exlib::string command, v8::Local<v8::Array> args,
-    v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal)
-{
-    return SubProcess::create(command, args, opts, true, retVal);
-}
-
-result_t process_base::open(exlib::string command, v8::Local<v8::Object> opts,
-    obj_ptr<SubProcess_base>& retVal)
-{
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Array> args = v8::Array::New(isolate->m_isolate);
-
-    return open(command, args, opts, retVal);
-}
-
-result_t process_base::start(exlib::string command, v8::Local<v8::Array> args,
-    v8::Local<v8::Object> opts, obj_ptr<SubProcess_base>& retVal)
-{
-    return SubProcess::create(command, args, opts, false, retVal);
-}
-
-result_t process_base::start(exlib::string command, v8::Local<v8::Object> opts,
-    obj_ptr<SubProcess_base>& retVal)
-{
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Array> args = v8::Array::New(isolate->m_isolate);
-
-    return start(command, args, opts, retVal);
-}
-
-result_t process_base::run(exlib::string command, v8::Local<v8::Array> args,
-    v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
-{
-    obj_ptr<SubProcess_base> _sub;
-
-    if (ac->isSync()) {
-        result_t hr;
-
-        hr = SubProcess::create(command, args, opts, false, _sub);
-        if (hr < 0)
-            return hr;
-
-        ac->m_ctx.resize(1);
-        ac->m_ctx[0] = _sub;
-
-        return CHECK_ERROR(CALL_E_NOSYNC);
-    }
-
-    _sub = SubProcess_base::getInstance(ac->m_ctx[0].object());
-    return _sub->wait(retVal, ac);
-}
-
-result_t process_base::run(exlib::string command, v8::Local<v8::Object> opts,
-    int32_t& retVal, AsyncEvent* ac)
-{
-    v8::Local<v8::Array> args;
-
-    if (ac->isSync()) {
-        Isolate* isolate = Isolate::current();
-        args = v8::Array::New(isolate->m_isolate);
-    }
-
-    return run(command, args, opts, retVal, ac);
 }
 }
