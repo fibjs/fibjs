@@ -197,7 +197,6 @@ completionHandler:(void (^)(BOOL result))completionHandler;
         completionHandler(false);
     }
     [alert release];
-    objc_msgSend(alert, sel_registerName("release"));
 }
 @end
 
