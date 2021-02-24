@@ -29,6 +29,7 @@ void importModule()
     IMPORT_MODULE(events);
     IMPORT_MODULE(fs);
     IMPORT_MODULE(gd);
+    IMPORT_MODULE(gui);
     IMPORT_MODULE(hash);
     IMPORT_MODULE(hex);
     IMPORT_MODULE(http);
@@ -61,13 +62,8 @@ void importModule()
     IMPORT_MODULE(zlib);
 
 #ifdef _WIN32
-    IMPORT_MODULE(gui);
     IMPORT_MODULE(registry);
 #endif
-
-#if defined(__APPLE__) && !defined(FIBJS_DISABLE_GUI)
-    IMPORT_MODULE(gui);
-#endif /* __APPLE__ */
 }
 
 void main(int32_t argc, char** argv)
@@ -75,7 +71,7 @@ void main(int32_t argc, char** argv)
     importModule();
 
     start(argc, argv, FiberProcJsEntry);
-    run_gui();
+    run_gui(argc, argv);
 }
 }
 

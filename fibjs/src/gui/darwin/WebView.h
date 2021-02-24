@@ -17,28 +17,6 @@
 
 namespace fibjs {
 
-static exlib::LockedList<AsyncEvent> s_uiPool;
-class NSAppMainRunLoopThread : public exlib::OSThread {
-public:
-    virtual void Run();
-
-public:
-    // OTHERS
-    result_t AddRef(void)
-    {
-        return 1;
-    }
-    result_t Release(void)
-    {
-        return 1;
-    }
-
-public:
-    exlib::OSSemaphore m_sem;
-};
-
-static NSAppMainRunLoopThread* s_thNSMainLoop;
-
 class WebView : public WebView_base {
     FIBER_FREE();
 
@@ -50,6 +28,7 @@ public:
 
 public:
     // WebView_base
+    virtual result_t loadUrl(exlib::string url, AsyncEvent* ac);
     virtual result_t setHtml(exlib::string html, AsyncEvent* ac);
     virtual result_t print(int32_t mode, AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
@@ -58,6 +37,7 @@ public:
     virtual result_t set_visible(bool newVal);
 
 public:
+    EVENT_FUNC(open);
     EVENT_FUNC(load);
     EVENT_FUNC(move);
     EVENT_FUNC(resize);
@@ -103,7 +83,7 @@ public:
 
     void initNSWindow();
 
-    void navigateWKWebView();
+    void navigateWKWebView(exlib::string url);
 
     void putWindowToTopOrder();
 

@@ -78,10 +78,11 @@ void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), v8::Pl
     public:
         EntryThread(int32_t argc, char** argv, result_t (*jsFiber)(Isolate*), v8::Platform* (*get_platform)())
             : m_argc(argc)
-            , m_argv(argv)
             , m_jsFiber(jsFiber)
             , m_get_platform(get_platform)
         {
+            for (int32_t i = 0; i < argc; i++)
+                m_argv.push_back(argv[i]);
         }
 
     public:
@@ -95,7 +96,7 @@ void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), v8::Pl
         virtual void Run()
         {
             int32_t argc = m_argc;
-            char** argv = m_argv;
+            char** argv = m_argv.data();
 
             exlib::string exePath;
             std::vector<char*> ptrArg;
@@ -125,29 +126,32 @@ void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), v8::Pl
             int32_t pos = argc;
             options(pos, argv);
 
-            createBasisForFiberLoop(m_get_platform);
-
-            if (pos < argc) {
-                if (argv[pos][0] == '-')
-                    m_fibjsEntry = argv[pos];
-                else {
-                    m_fibjsEntry = s_root;
-                    resolvePath(m_fibjsEntry, argv[pos]);
-                }
-
-                if (pos != 1) {
-                    int32_t p = 1;
-                    for (; pos < argc; pos++)
-                        argv[p++] = argv[pos];
-                    argc = p;
-                }
-            }
-
-            init_argv(argc, argv);
-            exlib::Service::CreateFiber(FirstFiber, this, 256 * 1024, "start");
-
             m_sem.Post();
-            exlib::Service::dispatch();
+
+            if (!g_cefprocess) {
+                createBasisForFiberLoop(m_get_platform);
+
+                if (pos < argc) {
+                    if (argv[pos][0] == '-')
+                        m_fibjsEntry = argv[pos];
+                    else {
+                        m_fibjsEntry = s_root;
+                        resolvePath(m_fibjsEntry, argv[pos]);
+                    }
+
+                    if (pos != 1) {
+                        int32_t p = 1;
+                        for (; pos < argc; pos++)
+                            argv[p++] = argv[pos];
+                        argc = p;
+                    }
+                }
+
+                init_argv(argc, argv);
+
+                exlib::Service::CreateFiber(FirstFiber, this, 256 * 1024, "start");
+                exlib::Service::dispatch();
+            }
         }
 
     public:
@@ -155,7 +159,7 @@ void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), v8::Pl
 
     private:
         int32_t m_argc;
-        char** m_argv;
+        std::vector<char*> m_argv;
         exlib::string m_fibjsEntry;
         result_t (*m_jsFiber)(Isolate*);
         v8::Platform* (*m_get_platform)();

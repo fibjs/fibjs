@@ -19,17 +19,16 @@
 #include <exlib/include/thread.h>
 #include <exdispid.h>
 #include <mshtml.h>
+#include "../os_gui.h"
 
 namespace fibjs {
-
-DECLARE_MODULE(gui);
 
 static exlib::LockedList<AsyncEvent> s_uiPool;
 static uint32_t s_thread;
 
 extern exlib::LockedList<Isolate> s_isolates;
 
-void putGuiPool(AsyncEvent* ac)
+void os_putGuiPool(AsyncEvent* ac)
 {
     s_uiPool.putTail(ac);
     PostThreadMessage(s_thread, WM_USER + 1000, 0, 0);
@@ -37,8 +36,7 @@ void putGuiPool(AsyncEvent* ac)
 
 static HWND s_activeWin = NULL;
 
-class gui_thread : public exlib::OSThread,
-                   public IClassFactory {
+class gui_worker : public IClassFactory {
 private:
     class FSProtocol : public IInternetProtocol,
                        public IInternetProtocolInfo {
@@ -368,19 +366,18 @@ public:
     }
 };
 
-void run_gui()
+void run_os_gui()
 {
-    gui_thread* _thGUI = new gui_thread();
+    os_gui_setVersion(99999);
 
-    _thGUI->bindCurrent();
+    exlib::OSThread* _thGUI = exlib::OSThread::current();
     s_thread = _thGUI->thread_id;
 
-    gui_base::setVersion(99999);
-
-    _thGUI->Run();
+    gui_worker _gui;
+    _gui.Run();
 }
 
-result_t gui_base::setVersion(int32_t ver)
+result_t os_gui_setVersion(int32_t ver)
 {
     exlib::string p, exe;
 
@@ -400,7 +397,7 @@ static result_t async_open(obj_ptr<WebView> w)
     return 0;
 }
 
-result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
+result_t os_gui_open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
     obj_ptr<NObject> o = new NObject();
     o->add(opt);
@@ -586,6 +583,8 @@ HRESULT WebView::open()
 
     Navigate(m_url.c_str());
 
+    _emit("open");
+
     return 0;
 }
 
@@ -736,10 +735,26 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
     return DefWindowProcW(hWnd, uMsg, wParam, lParam);
 }
 
+result_t WebView::loadUrl(exlib::string url, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_GUICALL);
+
+    if (!webBrowser2)
+        return 0;
+
+    Navigate(url);
+
+    return 0;
+}
+
 result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
+
+    if (!webBrowser2)
+        return 0;
 
     HGLOBAL hTextHandle = ::GlobalAlloc(GPTR, html.length() + 1);
     if (0 == hTextHandle)
@@ -775,36 +790,76 @@ result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
     return 0;
 }
 
+result_t WebView::refresh(AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_GUICALL);
+
+    if (!webBrowser2)
+        return 0;
+
+    webBrowser2->Refresh();
+
+    return 0;
+}
+
+result_t WebView::goBack(AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_GUICALL);
+
+    if (!webBrowser2)
+        return 0;
+
+    webBrowser2->GoBack();
+
+    return 0;
+}
+
+result_t WebView::goForward(AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_GUICALL);
+
+    if (!webBrowser2)
+        return 0;
+
+    webBrowser2->GoForward();
+
+    return 0;
+}
+
 result_t WebView::print(int32_t mode, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
-    switch (mode) {
-    case 0:
-        oleCommandTarget->Exec(NULL,
-            OLECMDID_PRINT,
-            OLECMDEXECOPT_DONTPROMPTUSER,
-            NULL,
-            NULL);
-        break;
-    case 1:
-        oleCommandTarget->Exec(NULL,
-            OLECMDID_PRINT,
-            OLECMDEXECOPT_PROMPTUSER,
-            NULL,
-            NULL);
-        break;
-    case 2:
-        oleCommandTarget->Exec(NULL,
-            OLECMDID_PRINTPREVIEW,
-            OLECMDEXECOPT_PROMPTUSER,
-            NULL,
-            NULL);
-        break;
-    default:
-        return CHECK_ERROR(CALL_E_INVALIDARG);
-    }
+    if (webBrowser2)
+        switch (mode) {
+        case 0:
+            oleCommandTarget->Exec(NULL,
+                OLECMDID_PRINT,
+                OLECMDEXECOPT_DONTPROMPTUSER,
+                NULL,
+                NULL);
+            break;
+        case 1:
+            oleCommandTarget->Exec(NULL,
+                OLECMDID_PRINT,
+                OLECMDEXECOPT_PROMPTUSER,
+                NULL,
+                NULL);
+            break;
+        case 2:
+            oleCommandTarget->Exec(NULL,
+                OLECMDID_PRINTPREVIEW,
+                OLECMDEXECOPT_PROMPTUSER,
+                NULL,
+                NULL);
+            break;
+        default:
+            return CHECK_ERROR(CALL_E_INVALIDARG);
+        }
 
     return 0;
 }
@@ -912,30 +967,12 @@ void WebView::SetRect(const RECT& _rc)
         oleInPlaceObject->SetObjectRects(&rObject, &rObject);
 }
 
-// ----- Control methods -----
-
-void WebView::GoBack()
-{
-    webBrowser2->GoBack();
-}
-
-void WebView::GoForward()
-{
-    webBrowser2->GoForward();
-}
-
-void WebView::Refresh()
-{
-    webBrowser2->Refresh();
-}
-
 void WebView::Navigate(exlib::string szUrl)
 {
     bstr_t url(UTF8_W(szUrl));
     variant_t flags(0x02u); //navNoHistory
     webBrowser2->Navigate(url, &flags, 0, 0, 0);
 }
-
 // IUnknown
 HRESULT WebView::QueryInterface(REFIID riid, void** ppvObject)
 {

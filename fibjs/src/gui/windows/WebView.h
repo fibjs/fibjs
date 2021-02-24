@@ -46,7 +46,11 @@ public:
 
 public:
     // WebView_base
+    virtual result_t loadUrl(exlib::string url, AsyncEvent* ac);
     virtual result_t setHtml(exlib::string html, AsyncEvent* ac);
+    virtual result_t refresh(AsyncEvent* ac);
+    virtual result_t goBack(AsyncEvent* ac);
+    virtual result_t goForward(AsyncEvent* ac);
     virtual result_t print(int32_t mode, AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
@@ -54,6 +58,7 @@ public:
     virtual result_t set_visible(bool newVal);
 
 public:
+    EVENT_FUNC(open);
     EVENT_FUNC(load);
     EVENT_FUNC(move);
     EVENT_FUNC(resize);
@@ -61,11 +66,7 @@ public:
     EVENT_FUNC(message);
 
 private:
-    void GoBack();
-    void GoForward();
-    void Refresh();
     void Navigate(exlib::string szUrl);
-
 public:
     // IUnknown
     STDMETHODIMP QueryInterface(REFIID riid, void** ppvObject);

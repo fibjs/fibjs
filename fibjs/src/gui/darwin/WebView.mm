@@ -22,6 +22,7 @@
 #include "EventInfo.h"
 #include "utf8.h"
 #include <exlib/include/thread.h>
+#include "../os_gui.h"
 
 #include "ns-api.h"
 
@@ -43,8 +44,6 @@
 
 namespace fibjs {
 
-DECLARE_MODULE(gui);
-
 void asyncLog(int32_t priority, exlib::string msg);
 
 NSEvent* getEmptyCustomNSEvent()
@@ -60,31 +59,16 @@ NSEvent* getEmptyCustomNSEvent()
                                  data2:0];
 }
 
-void putGuiPool(AsyncEvent* ac)
+static exlib::LockedList<AsyncEvent> s_uiPool;
+static exlib::OSThread* s_thNSMainLoop;
+
+void os_putGuiPool(AsyncEvent* ac)
 {
     s_uiPool.putTail(ac);
 
     [[NSApplication sharedApplication]
         postEvent:getEmptyCustomNSEvent()
           atStart:YES];
-}
-
-void run_gui()
-{
-    @autoreleasepool {
-        [NSApplication sharedApplication];
-        [[NSApplication sharedApplication] setDelegate:[__NSApplicationDelegate new]];
-
-        NSAppMainRunLoopThread* _thMainLoop = new NSAppMainRunLoopThread();
-
-        [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyAccessory];
-        [[NSApplication sharedApplication] finishLaunching];
-
-        _thMainLoop->bindCurrent();
-        s_thNSMainLoop = _thMainLoop;
-
-        _thMainLoop->Run();
-    }
 }
 
 id fetchEventFromNSRunLoop(int blocking)
@@ -98,27 +82,31 @@ id fetchEventFromNSRunLoop(int blocking)
                       dequeue:YES];
 }
 
-/**
- * replace [[NSApplication shareApplication] run] in GUI Thread;
- */
-void NSAppMainRunLoopThread::Run()
+void run_os_gui()
 {
-    // initialize one fibjs runtime
-    Runtime rt(NULL);
+    @autoreleasepool {
+        [NSApplication sharedApplication];
+        [[NSApplication sharedApplication] setDelegate:[__NSApplicationDelegate new]];
 
-    while (true) {
-        AsyncEvent* p = s_uiPool.getHead();
+        [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyAccessory];
+        [[NSApplication sharedApplication] finishLaunching];
 
-        if (p)
-            p->invoke();
+        s_thNSMainLoop = exlib::OSThread::current();
 
-        id event = fetchEventFromNSRunLoop(1);
-        [[NSApplication sharedApplication] sendEvent:event];
+        while (true) {
+            AsyncEvent* p = s_uiPool.getHead();
+
+            if (p)
+                p->invoke();
+
+            id event = fetchEventFromNSRunLoop(1);
+            [[NSApplication sharedApplication] sendEvent:event];
+        }
     }
 }
 
 // useless for darwin
-result_t gui_base::setVersion(int32_t ver)
+result_t os_gui_setVersion(int32_t ver)
 {
     return 0;
 }
@@ -138,7 +126,7 @@ result_t openWebViewInGUIThread(obj_ptr<fibjs::WebView> wv)
 }
 
 // In Javascript Thread
-result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
+result_t os_gui_open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
     obj_ptr<NObject> o = new NObject();
     o->add(opt);
@@ -487,11 +475,11 @@ void WebView::initWKWebView()
     [m_wkWebView autorelease];
 }
 
-void WebView::navigateWKWebView()
+void WebView::navigateWKWebView(exlib::string url)
 {
     NSURL* nsURL = [NSURL
         URLWithString:get_nsstring(
-                          webview_check_url(m_url.c_str()))];
+                          webview_check_url(url.c_str()))];
     [m_wkWebView loadRequest:[NSURLRequest requestWithURL:nsURL]];
 }
 
@@ -523,11 +511,13 @@ int WebView::initializeWebView()
     centralizeWindow();
 
     initWKWebView();
-    navigateWKWebView();
+    navigateWKWebView(m_url);
 
     // setupAppMenubar();
 
     startWKUI();
+
+    _emit("open");
 
     return 0;
 }
@@ -606,6 +596,16 @@ void WebView::clear()
         m_ac->post(0);
         m_ac = NULL;
     }
+}
+
+result_t WebView::loadUrl(exlib::string url, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_GUICALL);
+
+    navigateWKWebView(url);
+
+    return 0;
 }
 
 result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)

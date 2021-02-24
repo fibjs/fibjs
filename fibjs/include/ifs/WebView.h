@@ -24,12 +24,15 @@ class WebView_base : public EventEmitter_base {
 
 public:
     // WebView_base
+    virtual result_t loadUrl(exlib::string url, AsyncEvent* ac) = 0;
     virtual result_t setHtml(exlib::string html, AsyncEvent* ac) = 0;
     virtual result_t print(int32_t mode, AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac) = 0;
     virtual result_t get_visible(bool& retVal) = 0;
     virtual result_t set_visible(bool newVal) = 0;
+    virtual result_t get_onopen(v8::Local<v8::Function>& retVal) = 0;
+    virtual result_t set_onopen(v8::Local<v8::Function> newVal) = 0;
     virtual result_t get_onload(v8::Local<v8::Function>& retVal) = 0;
     virtual result_t set_onload(v8::Local<v8::Function> newVal) = 0;
     virtual result_t get_onmove(v8::Local<v8::Function>& retVal) = 0;
@@ -53,12 +56,15 @@ public:
     }
 
 public:
+    static void s_loadUrl(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setHtml(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_print(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_visible(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_visible(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_onopen(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_onopen(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_onload(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_onload(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_onmove(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -71,6 +77,7 @@ public:
     static void s_set_onmessage(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 
 public:
+    ASYNC_MEMBER1(WebView_base, loadUrl, exlib::string);
     ASYNC_MEMBER1(WebView_base, setHtml, exlib::string);
     ASYNC_MEMBER1(WebView_base, print, int32_t);
     ASYNC_MEMBER0(WebView_base, close);
@@ -82,6 +89,8 @@ namespace fibjs {
 inline ClassInfo& WebView_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
+        { "loadUrl", s_loadUrl, false },
+        { "loadUrlSync", s_loadUrl, false },
         { "setHtml", s_setHtml, false },
         { "setHtmlSync", s_setHtml, false },
         { "print", s_print, false },
@@ -94,6 +103,7 @@ inline ClassInfo& WebView_base::class_info()
 
     static ClassData::ClassProperty s_property[] = {
         { "visible", s_get_visible, s_set_visible, false },
+        { "onopen", s_get_onopen, s_set_onopen, false },
         { "onload", s_get_onload, s_set_onload, false },
         { "onmove", s_get_onmove, s_set_onmove, false },
         { "onresize", s_get_onresize, s_set_onresize, false },
@@ -109,6 +119,24 @@ inline ClassInfo& WebView_base::class_info()
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
+}
+
+inline void WebView_base::s_loadUrl(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("WebView.loadUrl");
+    METHOD_INSTANCE(WebView_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_loadUrl(v0, cb, args);
+    else
+        hr = pInst->ac_loadUrl(v0);
+
+    METHOD_VOID();
 }
 
 inline void WebView_base::s_setHtml(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -202,6 +230,31 @@ inline void WebView_base::s_set_visible(v8::Local<v8::Name> property, v8::Local<
     PROPERTY_VAL(bool);
 
     hr = pInst->set_visible(v0);
+
+    PROPERTY_SET_LEAVE();
+}
+
+inline void WebView_base::s_get_onopen(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_NAME("WebView.onopen");
+    METHOD_INSTANCE(WebView_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_onopen(vr);
+
+    METHOD_RETURN();
+}
+
+inline void WebView_base::s_set_onopen(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_NAME("WebView.onopen");
+    METHOD_INSTANCE(WebView_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(v8::Local<v8::Function>);
+
+    hr = pInst->set_onopen(v0);
 
     PROPERTY_SET_LEAVE();
 }

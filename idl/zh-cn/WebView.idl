@@ -51,6 +51,11 @@
  */
 interface WebView : EventEmitter
 {
+    /*! @brief 加载指定 url 的页面
+	 @param url 指定的 url
+	 */
+    loadUrl(String url) async;
+
     /*! @brief 设置 webview 的页面 html
 	 @param html 设置的 html
 	 */
@@ -72,6 +77,9 @@ interface WebView : EventEmitter
 
     /*! @brief 查询和设置窗口是否显示 */
     Boolean visible;
+
+    /*! @brief 查询和绑定加载成功事件，相当于 on("open", func); */
+    Function onopen;
 
     /*! @brief 查询和绑定加载成功事件，相当于 on("load", func); */
     Function onload;
