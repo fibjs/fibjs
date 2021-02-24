@@ -11,15 +11,10 @@
 #include "include/cef_browser.h"
 #include "include/cef_app.h"
 #include "gui_handler.h"
+#include "CefWebView.h"
 
-@interface GuiAppDelegate : NSObject <NSApplicationDelegate> {
-@private
-    bool with_chrome_runtime_;
-}
-
-- (id)initWithChromeRuntime:(bool)with_chrome_runtime;
+@interface GuiAppDelegate : NSObject <NSApplicationDelegate>
 - (void)createApplication:(id)object;
-- (void)tryToTerminateApplication:(NSApplication*)app;
 @end
 
 @interface GuiApplication : NSApplication <CefAppProtocol> {
@@ -44,51 +39,29 @@
     CefScopedSendingEvent sendingEventScoper;
     [super sendEvent:event];
 }
-
-- (void)terminate:(id)sender
-{
-    GuiAppDelegate* delegate = static_cast<GuiAppDelegate*>([NSApp delegate]);
-    [delegate tryToTerminateApplication:self];
-}
 @end
 
 @implementation GuiAppDelegate
-
-- (id)initWithChromeRuntime:(bool)with_chrome_runtime
-{
-    if (self = [super init]) {
-        with_chrome_runtime_ = with_chrome_runtime;
-    }
-    return self;
-}
-
 - (void)createApplication:(id)object
 {
-    if (!with_chrome_runtime_) {
-
-        [[NSBundle mainBundle] loadNibNamed:@"MainMenu"
-                                      owner:NSApp
-                            topLevelObjects:nil];
-    }
-
-    [[NSApplication sharedApplication] setDelegate:self];
-}
-
-- (void)tryToTerminateApplication:(NSApplication*)app
-{
-    // fibjs::GuiHandler* handler = fibjs::GuiHandler::GetInstance();
-    // if (handler && !handler->IsClosing())
-    //     handler->CloseAllBrowsers(false);
-}
-
-- (NSApplicationTerminateReply)applicationShouldTerminate:
-    (NSApplication*)sender
-{
-    return NSTerminateNow;
 }
 @end
 
 namespace fibjs {
+
+void CefWebView::open()
+{
+    static CefRefPtr<GuiHandler> handler;
+    if (handler == NULL)
+        handler = new GuiHandler();
+
+    handler->browser_list_.push_back(this);
+
+    CefWindowInfo window_info;
+    m_browser = CefBrowserHost::CreateBrowserSync(window_info, handler, m_url.c_str(), browser_settings,
+        nullptr, nullptr);
+    _emit("open");
+}
 
 void MacRunMessageLoop(const CefMainArgs& args, const CefSettings& settings, CefRefPtr<CefApp> application)
 {
@@ -97,7 +70,7 @@ void MacRunMessageLoop(const CefMainArgs& args, const CefSettings& settings, Cef
 
         CefInitialize(args, settings, application, nullptr);
 
-        NSObject* delegate = [[GuiAppDelegate alloc] initWithChromeRuntime:false];
+        NSObject* delegate = [GuiAppDelegate alloc];
         [delegate performSelectorOnMainThread:@selector(createApplication:)
                                    withObject:nil
                                 waitUntilDone:NO];
