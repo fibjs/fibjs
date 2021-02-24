@@ -140,6 +140,39 @@ result_t CefWebView::setHtml(exlib::string html, AsyncEvent* ac)
     return 0;
 }
 
+result_t CefWebView::reload(AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_GUICALL);
+
+    if (m_browser)
+        m_browser->Reload();
+
+    return 0;
+}
+
+result_t CefWebView::goBack(AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_GUICALL);
+
+    if (m_browser)
+        m_browser->GoBack();
+
+    return 0;
+}
+
+result_t CefWebView::goForward(AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_GUICALL);
+
+    if (m_browser)
+        m_browser->GoForward();
+
+    return 0;
+}
+
 result_t CefWebView::print(int32_t mode, AsyncEvent* ac)
 {
     if (ac->isSync())

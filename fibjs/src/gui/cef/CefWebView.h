@@ -24,6 +24,9 @@ public:
     // WebView_base
     virtual result_t loadUrl(exlib::string url, AsyncEvent* ac);
     virtual result_t setHtml(exlib::string html, AsyncEvent* ac);
+    virtual result_t reload(AsyncEvent* ac);
+    virtual result_t goBack(AsyncEvent* ac);
+    virtual result_t goForward(AsyncEvent* ac);
     virtual result_t print(int32_t mode, AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);

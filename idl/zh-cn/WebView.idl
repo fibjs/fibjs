@@ -61,6 +61,15 @@ interface WebView : EventEmitter
 	 */
     setHtml(String html) async;
 
+    /*! @brief 刷新当前页面 */
+    reload() async;
+
+    /*! @brief 退回到上一个页面 */
+    goBack() async;
+
+    /*! @brief 前进到下一个页面 */
+    goForward() async;
+
     /*! @brief 打印当前窗口文档
 	 @param mode 打印参数，0: 快速打印; 1: 标准打印; 2: 打印预览。缺省为 1
 	 */

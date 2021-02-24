@@ -790,7 +790,7 @@ result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::refresh(AsyncEvent* ac)
+result_t WebView::reload(AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);

@@ -26,6 +26,9 @@ public:
     // WebView_base
     virtual result_t loadUrl(exlib::string url, AsyncEvent* ac) = 0;
     virtual result_t setHtml(exlib::string html, AsyncEvent* ac) = 0;
+    virtual result_t reload(AsyncEvent* ac) = 0;
+    virtual result_t goBack(AsyncEvent* ac) = 0;
+    virtual result_t goForward(AsyncEvent* ac) = 0;
     virtual result_t print(int32_t mode, AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac) = 0;
@@ -58,6 +61,9 @@ public:
 public:
     static void s_loadUrl(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setHtml(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_reload(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_goBack(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_goForward(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_print(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -79,6 +85,9 @@ public:
 public:
     ASYNC_MEMBER1(WebView_base, loadUrl, exlib::string);
     ASYNC_MEMBER1(WebView_base, setHtml, exlib::string);
+    ASYNC_MEMBER0(WebView_base, reload);
+    ASYNC_MEMBER0(WebView_base, goBack);
+    ASYNC_MEMBER0(WebView_base, goForward);
     ASYNC_MEMBER1(WebView_base, print, int32_t);
     ASYNC_MEMBER0(WebView_base, close);
     ASYNC_MEMBER1(WebView_base, postMessage, exlib::string);
@@ -93,6 +102,12 @@ inline ClassInfo& WebView_base::class_info()
         { "loadUrlSync", s_loadUrl, false },
         { "setHtml", s_setHtml, false },
         { "setHtmlSync", s_setHtml, false },
+        { "reload", s_reload, false },
+        { "reloadSync", s_reload, false },
+        { "goBack", s_goBack, false },
+        { "goBackSync", s_goBack, false },
+        { "goForward", s_goForward, false },
+        { "goForwardSync", s_goForward, false },
         { "print", s_print, false },
         { "printSync", s_print, false },
         { "close", s_close, false },
@@ -153,6 +168,54 @@ inline void WebView_base::s_setHtml(const v8::FunctionCallbackInfo<v8::Value>& a
         hr = pInst->acb_setHtml(v0, cb, args);
     else
         hr = pInst->ac_setHtml(v0);
+
+    METHOD_VOID();
+}
+
+inline void WebView_base::s_reload(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("WebView.reload");
+    METHOD_INSTANCE(WebView_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_reload(cb, args);
+    else
+        hr = pInst->ac_reload();
+
+    METHOD_VOID();
+}
+
+inline void WebView_base::s_goBack(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("WebView.goBack");
+    METHOD_INSTANCE(WebView_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_goBack(cb, args);
+    else
+        hr = pInst->ac_goBack();
+
+    METHOD_VOID();
+}
+
+inline void WebView_base::s_goForward(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("WebView.goForward");
+    METHOD_INSTANCE(WebView_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_goForward(cb, args);
+    else
+        hr = pInst->ac_goForward();
 
     METHOD_VOID();
 }

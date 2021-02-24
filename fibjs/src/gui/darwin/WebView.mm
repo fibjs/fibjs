@@ -603,6 +603,9 @@ result_t WebView::loadUrl(exlib::string url, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
+    if(!m_wkWebView)
+        return 0;
+
     navigateWKWebView(url);
 
     return 0;
@@ -613,7 +616,49 @@ result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
+    if(!m_wkWebView)
+        return 0;
+
     [m_wkWebView loadHTMLString:get_nsstring(html.c_str()) baseURL:nil];
+
+    return 0;
+}
+
+result_t WebView::reload(AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_GUICALL);
+
+    if(!m_wkWebView)
+        return 0;
+
+    [m_wkWebView reload];
+
+    return 0;
+}
+
+result_t WebView::goBack(AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_GUICALL);
+
+    if(!m_wkWebView)
+        return 0;
+
+    [m_wkWebView goBack];
+
+    return 0;
+}
+
+result_t WebView::goForward(AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_GUICALL);
+
+    if(!m_wkWebView)
+        return 0;
+
+    [m_wkWebView goForward];
 
     return 0;
 }
@@ -631,6 +676,9 @@ result_t WebView::close(AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
+
+    if(!m_nsWindow)
+        return 0;
 
     [m_nsWindow performClose:nil];
 
@@ -711,30 +759,6 @@ result_t WebView::set_visible(bool newVal)
     return 0;
 }
 
-// ----- Control methods -----
-void WebView::GoBack()
-{
-    // DO REAL THING
-    return;
-}
-
-void WebView::GoForward()
-{
-    // NOT IMPLEMENTED
-    return;
-}
-
-void WebView::Refresh()
-{
-    // NOT IMPLEMENTED
-    return;
-}
-
-void WebView::Navigate(exlib::string szUrl)
-{
-    // NOT IMPLEMENTED
-    return;
-}
 }
 
 #endif /* __APPLE__ */
