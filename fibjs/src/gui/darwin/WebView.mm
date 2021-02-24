@@ -603,7 +603,7 @@ result_t WebView::loadUrl(exlib::string url, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
-    if(!m_wkWebView)
+    if (!m_wkWebView)
         return 0;
 
     navigateWKWebView(url);
@@ -616,7 +616,7 @@ result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
-    if(!m_wkWebView)
+    if (!m_wkWebView)
         return 0;
 
     [m_wkWebView loadHTMLString:get_nsstring(html.c_str()) baseURL:nil];
@@ -629,7 +629,7 @@ result_t WebView::reload(AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
-    if(!m_wkWebView)
+    if (!m_wkWebView)
         return 0;
 
     [m_wkWebView reload];
@@ -642,7 +642,7 @@ result_t WebView::goBack(AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
-    if(!m_wkWebView)
+    if (!m_wkWebView)
         return 0;
 
     [m_wkWebView goBack];
@@ -655,7 +655,7 @@ result_t WebView::goForward(AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
-    if(!m_wkWebView)
+    if (!m_wkWebView)
         return 0;
 
     [m_wkWebView goForward];
@@ -669,7 +669,12 @@ result_t WebView::print(int32_t mode, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
-    return CHECK_ERROR(CALL_E_EXCEPTION);
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
+}
+
+result_t WebView::printToPDF(exlib::string file, AsyncEvent* ac)
+{
+    return CALL_E_INVALID_CALL;
 }
 
 result_t WebView::close(AsyncEvent* ac)
@@ -677,7 +682,7 @@ result_t WebView::close(AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
-    if(!m_nsWindow)
+    if (!m_nsWindow)
         return 0;
 
     [m_nsWindow performClose:nil];
@@ -758,7 +763,6 @@ result_t WebView::set_visible(bool newVal)
 
     return 0;
 }
-
 }
 
 #endif /* __APPLE__ */

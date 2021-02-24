@@ -30,6 +30,7 @@ public:
     virtual result_t goBack(AsyncEvent* ac) = 0;
     virtual result_t goForward(AsyncEvent* ac) = 0;
     virtual result_t print(int32_t mode, AsyncEvent* ac) = 0;
+    virtual result_t printToPDF(exlib::string file, AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac) = 0;
     virtual result_t get_visible(bool& retVal) = 0;
@@ -65,6 +66,7 @@ public:
     static void s_goBack(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_goForward(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_print(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_printToPDF(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_visible(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -89,6 +91,7 @@ public:
     ASYNC_MEMBER0(WebView_base, goBack);
     ASYNC_MEMBER0(WebView_base, goForward);
     ASYNC_MEMBER1(WebView_base, print, int32_t);
+    ASYNC_MEMBER1(WebView_base, printToPDF, exlib::string);
     ASYNC_MEMBER0(WebView_base, close);
     ASYNC_MEMBER1(WebView_base, postMessage, exlib::string);
 };
@@ -110,6 +113,8 @@ inline ClassInfo& WebView_base::class_info()
         { "goForwardSync", s_goForward, false },
         { "print", s_print, false },
         { "printSync", s_print, false },
+        { "printToPDF", s_printToPDF, false },
+        { "printToPDFSync", s_printToPDF, false },
         { "close", s_close, false },
         { "closeSync", s_close, false },
         { "postMessage", s_postMessage, false },
@@ -234,6 +239,24 @@ inline void WebView_base::s_print(const v8::FunctionCallbackInfo<v8::Value>& arg
         hr = pInst->acb_print(v0, cb, args);
     else
         hr = pInst->ac_print(v0);
+
+    METHOD_VOID();
+}
+
+inline void WebView_base::s_printToPDF(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("WebView.printToPDF");
+    METHOD_INSTANCE(WebView_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_printToPDF(v0, cb, args);
+    else
+        hr = pInst->ac_printToPDF(v0);
 
     METHOD_VOID();
 }

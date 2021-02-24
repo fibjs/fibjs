@@ -179,6 +179,40 @@ result_t CefWebView::print(int32_t mode, AsyncEvent* ac)
     return 0;
 }
 
+result_t CefWebView::printToPDF(exlib::string file, AsyncEvent* ac)
+{
+    class GuiPdfPrintCallback : public CefPdfPrintCallback {
+    public:
+        GuiPdfPrintCallback(AsyncEvent* ac)
+            : m_ac(ac)
+        {
+        }
+
+    public:
+        virtual void OnPdfPrintFinished(const CefString& path, bool ok)
+        {
+            m_ac->apost(ok ? 0 : CALL_E_INTERNAL);
+        }
+
+    private:
+        AsyncEvent* m_ac;
+
+    private:
+        IMPLEMENT_REFCOUNTING(GuiPdfPrintCallback);
+    };
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_GUICALL);
+
+    if (!m_browser)
+        return 0;
+
+    CefPdfPrintSettings settings;
+    m_browser->GetHost()->PrintToPDF(file.c_str(), settings, new GuiPdfPrintCallback(ac));
+
+    return CALL_E_PENDDING;
+}
+
 result_t CefWebView::close(AsyncEvent* ac)
 {
     if (ac->isSync())

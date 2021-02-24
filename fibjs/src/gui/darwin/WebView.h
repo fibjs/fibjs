@@ -34,6 +34,7 @@ public:
     virtual result_t goBack(AsyncEvent* ac);
     virtual result_t goForward(AsyncEvent* ac);
     virtual result_t print(int32_t mode, AsyncEvent* ac);
+    virtual result_t printToPDF(exlib::string file, AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
     virtual result_t get_visible(bool& retVal);

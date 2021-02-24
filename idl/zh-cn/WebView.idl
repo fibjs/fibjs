@@ -75,6 +75,11 @@ interface WebView : EventEmitter
 	 */
     print(Integer mode = 1) async;
 
+    /*! @brief 打印当前窗口文档到 PDF 文件
+	 @param file 指定 pdf 路径
+	 */
+    printToPDF(String file) async;
+
     /*! @brief 关闭当前窗口 */
     close() async;
 

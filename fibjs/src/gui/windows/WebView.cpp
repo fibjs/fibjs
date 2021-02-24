@@ -864,6 +864,11 @@ result_t WebView::print(int32_t mode, AsyncEvent* ac)
     return 0;
 }
 
+result_t WebView::printToPDF(exlib::string file, AsyncEvent* ac)
+{
+    return CALL_E_INVALID_CALL;
+}
+
 result_t WebView::close(AsyncEvent* ac)
 {
     if (ac->isSync())
