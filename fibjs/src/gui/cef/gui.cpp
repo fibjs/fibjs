@@ -45,7 +45,6 @@ private:
 };
 
 static bool s_has_cef;
-static bool s_start_gui;
 
 const char* cef_path()
 {
@@ -78,7 +77,6 @@ const char* cef_path()
 #endif
     }
 
-    s_start_gui = true;
     fs_base::cc_exists(str_cef, s_has_cef);
     if (!s_has_cef) {
         s_gui.wait();

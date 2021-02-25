@@ -5,13 +5,13 @@
  *      Author: lion
  */
 
-#include "gui_handler.h"
 #import <Cocoa/Cocoa.h>
 #include "include/cef_application_mac.h"
 #include "include/cef_browser.h"
 #include "include/cef_app.h"
 #include "gui_handler.h"
 #include "CefWebView.h"
+#include "../os_gui.h"
 
 @interface GuiAppDelegate : NSObject <NSApplicationDelegate>
 - (void)createApplication:(id)object;
@@ -48,18 +48,22 @@
 @end
 
 namespace fibjs {
-
 void CefWebView::open()
 {
     static CefRefPtr<GuiHandler> handler;
     if (handler == NULL)
         handler = new GuiHandler();
 
-    handler->browser_list_.push_back(this);
-
     CefWindowInfo window_info;
+    handler->browser_list_.push_back(this);
     m_browser = CefBrowserHost::CreateBrowserSync(window_info, handler, m_url.c_str(), browser_settings,
         nullptr, nullptr);
+
+    NSView* view = CAST_CEF_WINDOW_HANDLE_TO_NSVIEW(m_browser->GetHost()->GetWindowHandle());
+    NSWindow* window = [view window];
+
+    os_config_window(this, window, m_opt);
+
     _emit("open");
 }
 

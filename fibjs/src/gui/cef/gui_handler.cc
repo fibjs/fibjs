@@ -59,6 +59,10 @@ void GuiHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
 #endif
 }
 
+void GuiHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
+{
+}
+
 GuiHandler::BrowserList::iterator GuiHandler::fromBrowser(CefRefPtr<CefBrowser> browser)
 {
     BrowserList::iterator bit = browser_list_.begin();

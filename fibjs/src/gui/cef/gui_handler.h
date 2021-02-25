@@ -42,15 +42,20 @@ public:
     }
 
 public:
-    virtual void OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString& title) OVERRIDE;
+    // CefLifeSpanHandler
+    virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) OVERRIDE;
     virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
+
+public:
+    // CefDisplayHandler
+    virtual void OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString& title) OVERRIDE;
     virtual bool OnConsoleMessage(CefRefPtr<CefBrowser> browser, cef_log_severity_t level,
         const CefString& message, const CefString& source, int line);
 
 public:
+    // CefLoadHandler
     virtual void OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
         ErrorCode errorCode, const CefString& errorText, const CefString& failedUrl) OVERRIDE;
-
     virtual void OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
         int httpStatusCode) OVERRIDE;
 
