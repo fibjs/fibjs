@@ -677,6 +677,19 @@ result_t WebView::printToPDF(exlib::string file, AsyncEvent* ac)
     return CALL_E_INVALID_CALL;
 }
 
+result_t WebView::executeJavaScript(exlib::string code, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_GUICALL);
+
+    if (!m_nsWindow)
+        return 0;
+
+    evaluateWebviewJS(code.c_str(), nil);
+
+    return 0;
+}
+
 result_t WebView::close(AsyncEvent* ac)
 {
     if (ac->isSync())

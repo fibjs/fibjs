@@ -213,6 +213,20 @@ result_t CefWebView::printToPDF(exlib::string file, AsyncEvent* ac)
     return CALL_E_PENDDING;
 }
 
+result_t CefWebView::executeJavaScript(exlib::string code, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_GUICALL);
+
+    if (!m_browser)
+        return 0;
+
+    CefRefPtr<CefFrame> frame = m_browser->GetMainFrame();
+    frame->ExecuteJavaScript(code.c_str(), frame->GetURL(), 0);
+
+    return 0;
+}
+
 result_t CefWebView::close(AsyncEvent* ac)
 {
     if (ac->isSync())

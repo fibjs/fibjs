@@ -53,10 +53,14 @@ public:
     virtual result_t goForward(AsyncEvent* ac);
     virtual result_t print(int32_t mode, AsyncEvent* ac);
     virtual result_t printToPDF(exlib::string file, AsyncEvent* ac);
+    virtual result_t executeJavaScript(exlib::string code, AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
     virtual result_t get_visible(bool& retVal);
     virtual result_t set_visible(bool newVal);
+
+private:
+    static void exec_js(IWebBrowser2* frame, const wchar_t* code);
 
 public:
     EVENT_FUNC(open);

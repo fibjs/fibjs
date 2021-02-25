@@ -869,6 +869,19 @@ result_t WebView::printToPDF(exlib::string file, AsyncEvent* ac)
     return CALL_E_INVALID_CALL;
 }
 
+result_t WebView::executeJavaScript(exlib::string code, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_GUICALL);
+
+    if (!webBrowser2)
+        return 0;
+
+    exec_js(webBrowser2, UTF8_W(code));
+
+    return 0;
+}
+
 result_t WebView::close(AsyncEvent* ac)
 {
     if (ac->isSync())
@@ -1639,13 +1652,8 @@ HRESULT WebView::OnDownloadComplete(DISPPARAMS* pDispParams)
     return E_NOTIMPL;
 }
 
-extern const wchar_t* g_console_js;
-
-HRESULT WebView::OnNavigateComplete2(DISPPARAMS* pDispParams)
+void WebView::exec_js(IWebBrowser2* frame, const wchar_t* code)
 {
-    IWebBrowser2* frame = NULL;
-    pDispParams->rgvarg[1].pdispVal->QueryInterface(&frame);
-
     HRESULT hr;
     IDispatch* pHtmlDoc = NULL;
 
@@ -1665,7 +1673,7 @@ HRESULT WebView::OnNavigateComplete2(DISPPARAMS* pDispParams)
             LOCALE_USER_DEFAULT, &dispid);
 
         if (dispid != -1) {
-            _variant_t arg = g_console_js;
+            _variant_t arg = code;
             _variant_t result;
             DISPPARAMS dispparams;
             dispparams.rgvarg = &arg;
@@ -1676,7 +1684,7 @@ HRESULT WebView::OnNavigateComplete2(DISPPARAMS* pDispParams)
                 &dispparams, &result, NULL, NULL);
         } else {
             _variant_t result;
-            _bstr_t s = g_console_js;
+            _bstr_t s = code;
             _bstr_t l = L"JavaScript";
 
             pDoc->get_parentWindow(&pWindow);
@@ -1689,7 +1697,16 @@ HRESULT WebView::OnNavigateComplete2(DISPPARAMS* pDispParams)
         pHtmlDoc->Release();
         pDoc->Release();
     }
+}
 
+extern const wchar_t* g_console_js;
+
+HRESULT WebView::OnNavigateComplete2(DISPPARAMS* pDispParams)
+{
+    IWebBrowser2* frame = NULL;
+
+    pDispParams->rgvarg[1].pdispVal->QueryInterface(&frame);
+    exec_js(frame, g_console_js);
     frame->Release();
 
     return E_NOTIMPL;

@@ -80,6 +80,11 @@ interface WebView : EventEmitter
 	 */
     printToPDF(String file) async;
 
+    /*! @brief 在当前窗口运行一段 JavaScript 代码
+	 @param code 指定要执行的 JavaScript 代码
+	 */
+    executeJavaScript(String code) async;
+
     /*! @brief 关闭当前窗口 */
     close() async;
 
