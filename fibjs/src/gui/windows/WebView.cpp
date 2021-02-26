@@ -824,16 +824,6 @@ result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
     return postMessage(msg, vResult);
 }
 
-result_t WebView::get_visible(bool& retVal)
-{
-    return 0;
-}
-
-result_t WebView::set_visible(bool newVal)
-{
-    return 0;
-}
-
 HRESULT WebView::TranslateAccelerator(MSG* msg)
 {
     return oleInPlaceActiveObject->TranslateAccelerator(msg);

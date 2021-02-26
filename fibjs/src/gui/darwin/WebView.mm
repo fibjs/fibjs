@@ -512,16 +512,6 @@ result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
 
     return 0;
 }
-
-result_t WebView::get_visible(bool& retVal)
-{
-    return 0;
-}
-
-result_t WebView::set_visible(bool newVal)
-{
-    return 0;
-}
 }
 
 #endif /* __APPLE__ */

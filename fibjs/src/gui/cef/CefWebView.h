@@ -32,8 +32,6 @@ public:
     virtual result_t executeJavaScript(exlib::string code, AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
-    virtual result_t get_visible(bool& retVal);
-    virtual result_t set_visible(bool newVal);
 
     void open();
     void config_window();

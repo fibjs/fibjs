@@ -251,14 +251,4 @@ result_t CefWebView::postMessage(exlib::string msg, AsyncEvent* ac)
 {
     return 0;
 }
-
-result_t CefWebView::get_visible(bool& retVal)
-{
-    return 0;
-}
-
-result_t CefWebView::set_visible(bool newVal)
-{
-    return 0;
-}
 }

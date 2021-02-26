@@ -34,8 +34,6 @@ public:
     virtual result_t executeJavaScript(exlib::string code, AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac) = 0;
-    virtual result_t get_visible(bool& retVal) = 0;
-    virtual result_t set_visible(bool newVal) = 0;
     virtual result_t get_onopen(v8::Local<v8::Function>& retVal) = 0;
     virtual result_t set_onopen(v8::Local<v8::Function> newVal) = 0;
     virtual result_t get_onload(v8::Local<v8::Function>& retVal) = 0;
@@ -71,8 +69,6 @@ public:
     static void s_executeJavaScript(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_visible(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_visible(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_onopen(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_onopen(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_onload(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -127,7 +123,6 @@ inline ClassInfo& WebView_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "visible", s_get_visible, s_set_visible, false },
         { "onopen", s_get_onopen, s_set_onopen, false },
         { "onload", s_get_onload, s_set_onload, false },
         { "onmove", s_get_onmove, s_set_onmove, false },
@@ -316,31 +311,6 @@ inline void WebView_base::s_postMessage(const v8::FunctionCallbackInfo<v8::Value
         hr = pInst->ac_postMessage(v0);
 
     METHOD_VOID();
-}
-
-inline void WebView_base::s_get_visible(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    bool vr;
-
-    METHOD_NAME("WebView.visible");
-    METHOD_INSTANCE(WebView_base);
-    PROPERTY_ENTER();
-
-    hr = pInst->get_visible(vr);
-
-    METHOD_RETURN();
-}
-
-inline void WebView_base::s_set_visible(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
-{
-    METHOD_NAME("WebView.visible");
-    METHOD_INSTANCE(WebView_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(bool);
-
-    hr = pInst->set_visible(v0);
-
-    PROPERTY_SET_LEAVE();
 }
 
 inline void WebView_base::s_get_onopen(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
