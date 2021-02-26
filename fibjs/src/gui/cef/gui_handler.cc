@@ -100,6 +100,10 @@ bool GuiHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
         console_base::_FATAL
     };
 
+    BrowserList::iterator bit = fromBrowser(browser);
+    if (bit != browser_list_.end() && !(*bit)->m_bDebug)
+        return true;
+
     outLog(console_level[level], message.ToString());
     return true;
 }

@@ -130,10 +130,8 @@ WebView::WebView(exlib::string url, NObject* opt)
 {
     holder()->Ref();
 
-    m_url = url;
     m_opt = opt;
-
-    m_bDebug = true;
+    m_url = url;
 
     if (m_opt) {
         Variant v;

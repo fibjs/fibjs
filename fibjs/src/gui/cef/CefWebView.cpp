@@ -77,13 +77,21 @@ private:
 };
 
 CefWebView::CefWebView(exlib::string url, NObject* opt)
-    : m_url(url)
-    , m_opt(opt)
+    : m_opt(opt)
+    , m_url(url)
+    , m_bDebug(true)
 {
     holder()->Ref();
 
-    m_url = url;
     m_opt = opt;
+    m_url = url;
+
+    if (m_opt) {
+        Variant v;
+
+        if (m_opt->get("debug", v) == 0 && !v.isUndefined())
+            m_bDebug = v.boolVal();
+    }
 }
 
 CefWebView::~CefWebView()

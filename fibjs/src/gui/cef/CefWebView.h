@@ -46,10 +46,11 @@ public:
 
 public:
     CefRefPtr<CefBrowser> m_browser;
-    obj_ptr<NObject> m_opt;
 
-private:
+    obj_ptr<NObject> m_opt;
     exlib::string m_url;
+
+    bool m_bDebug;
 };
 }
 
