@@ -36,6 +36,7 @@ public:
     virtual result_t set_visible(bool newVal);
 
     void open();
+    void config_window();
 
 public:
     EVENT_FUNC(open);
@@ -47,7 +48,6 @@ public:
 
 public:
     CefRefPtr<CefBrowser> m_browser;
-    CefBrowserSettings browser_settings;
 
 private:
     exlib::string m_url;

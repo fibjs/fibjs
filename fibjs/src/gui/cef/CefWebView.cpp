@@ -89,15 +89,16 @@ CefWebView::~CefWebView()
 {
 }
 
-#ifndef Darwin
 void CefWebView::open()
 {
+    CefBrowserSettings browser_settings;
     static CefRefPtr<GuiHandler> handler;
     if (handler == NULL)
         handler = new GuiHandler();
 
     handler->browser_list_.push_back(this);
 
+#ifndef Darwin
     static CefRefPtr<GuiBrowserViewDelegate> view_delegate;
     if (view_delegate == NULL)
         view_delegate = new GuiBrowserViewDelegate();
@@ -105,8 +106,14 @@ void CefWebView::open()
     CefRefPtr<CefBrowserView> browser_view = CefBrowserView::CreateBrowserView(handler, m_url.c_str(), browser_settings,
         nullptr, nullptr, view_delegate);
     CefWindow::CreateTopLevelWindow(new GuiWindowDelegate(browser_view, this));
-}
+#else
+    CefWindowInfo window_info;
+    m_browser = CefBrowserHost::CreateBrowserSync(window_info, handler, m_url.c_str(), browser_settings,
+        nullptr, nullptr);
+    config_window();
+    _emit("open");
 #endif
+}
 
 result_t CefWebView::loadUrl(exlib::string url, AsyncEvent* ac)
 {

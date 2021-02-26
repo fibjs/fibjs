@@ -47,16 +47,13 @@ GuiHandler* GuiHandler::GetInstance()
 void GuiHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
     const CefString& title)
 {
-#ifdef Darwin
-    PlatformTitleChange(browser, title);
-#else
     CefRefPtr<CefBrowserView> browser_view = CefBrowserView::GetForBrowser(browser);
     if (browser_view) {
         CefRefPtr<CefWindow> window = browser_view->GetWindow();
         if (window)
             window->SetTitle(title);
-    }
-#endif
+    }else
+        PlatformTitleChange(browser, title);
 }
 
 void GuiHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
