@@ -29,7 +29,6 @@ public:
         if (m_webview) {
             m_webview->m_browser = browser_view_->GetBrowser();
             os_config_window(m_webview, window->GetWindowHandle(), m_webview->m_opt);
-            m_webview->_emit("open");
         }
 
         window->Show();
@@ -113,7 +112,6 @@ void CefWebView::open()
     m_browser = CefBrowserHost::CreateBrowserSync(window_info, handler, m_url.c_str(), browser_settings,
         nullptr, nullptr);
     config_window();
-    _emit("open");
 #endif
 }
 
@@ -238,11 +236,13 @@ result_t CefWebView::executeJavaScript(exlib::string code, AsyncEvent* ac)
 
 result_t CefWebView::close(AsyncEvent* ac)
 {
-    if (ac->isSync())
+    if (ac && ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
-    if (m_browser)
-        m_browser->GetHost()->TryCloseBrowser();
+    if (!m_browser)
+        return 0;
+
+    m_browser->GetHost()->TryCloseBrowser();
 
     return 0;
 }

@@ -9,16 +9,18 @@
 #import <objc/runtime.h>
 #include "object.h"
 #include "EventInfo.h"
+#include "ifs/WebView.h"
 
 NSRect s_screen_rect;
 
-static fibjs::object_base* getWebViewFromNSWindow(NSWindow* win)
+static fibjs::WebView_base* getWebViewFromNSWindow(NSWindow* win)
 {
-    return (fibjs::object_base*)objc_getAssociatedObject(win, "webview");
+    return (fibjs::WebView_base*)objc_getAssociatedObject(win, "webview");
 }
 
 @interface GuiWindowDelegate : NSObject <NSWindowDelegate>
 - (void)windowWillClose:(NSNotification*)willCloseNotification;
+- (bool)windowShouldClose:(NSWindow*)window;
 - (void)windowDidMove:(NSNotification*)didMoveNotification;
 - (void)windowDidResize:(NSNotification*)notification;
 @end
@@ -27,7 +29,7 @@ static fibjs::object_base* getWebViewFromNSWindow(NSWindow* win)
 - (void)windowWillClose:(NSNotification*)willCloseNotification
 {
     NSWindow* currentWindow = willCloseNotification.object;
-    fibjs::object_base* wv = getWebViewFromNSWindow(currentWindow);
+    fibjs::WebView_base* wv = getWebViewFromNSWindow(currentWindow);
 
     if (wv == NULL)
         return;
@@ -37,10 +39,21 @@ static fibjs::object_base* getWebViewFromNSWindow(NSWindow* win)
     wv->Unref();
 }
 
+- (bool)windowShouldClose:(NSWindow*)window
+{
+    fibjs::WebView_base* wv = getWebViewFromNSWindow(window);
+
+    if (wv == NULL)
+        return YES;
+
+    wv->close(nil);
+    return NO;
+}
+
 - (void)windowDidMove:(NSNotification*)didMoveNotification
 {
     NSWindow* currentWindow = didMoveNotification.object;
-    fibjs::object_base* wv = getWebViewFromNSWindow(currentWindow);
+    fibjs::WebView_base* wv = getWebViewFromNSWindow(currentWindow);
 
     if (wv == NULL)
         return;
@@ -56,7 +69,7 @@ static fibjs::object_base* getWebViewFromNSWindow(NSWindow* win)
 - (void)windowDidResize:(NSNotification*)notification
 {
     NSWindow* currentWindow = notification.object;
-    fibjs::object_base* wv = getWebViewFromNSWindow(currentWindow);
+    fibjs::WebView_base* wv = getWebViewFromNSWindow(currentWindow);
 
     if (wv == NULL)
         return;
@@ -74,7 +87,7 @@ namespace fibjs {
 
 #define CW_USEDEFAULT -1
 
-void os_config_window(object_base* webview, void* _window, NObject* opt)
+void os_config_window(WebView_base* webview, void* _window, NObject* opt)
 {
     NSWindow* window = (NSWindow*)_window;
     int32_t x = CW_USEDEFAULT;
@@ -133,8 +146,9 @@ void os_config_window(object_base* webview, void* _window, NObject* opt)
         [window setFrame:CGRectMake(x, y, nWidth, nHeight) display:YES];
 
     objc_setAssociatedObject(window, "webview", (id)webview, OBJC_ASSOCIATION_ASSIGN);
-    webview->Ref();
-
     [window setDelegate:[GuiWindowDelegate new]];
+
+    webview->Ref();
+    webview->_emit("open");
 }
 }

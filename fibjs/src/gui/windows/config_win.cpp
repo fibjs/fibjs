@@ -7,6 +7,7 @@
 
 #include "object.h"
 #include "EventInfo.h"
+#include "ifs/WebView.h"
 
 #ifdef WIN32
 #include <commctrl.h>
@@ -23,7 +24,7 @@ void GetDPI(HWND hWndParent, int* dpix, int* dpiy)
 
 LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 {
-    object_base* webView1 = (object_base*)dwRefData;
+    WebView_base* webView1 = (WebView_base*)dwRefData;
     switch (uMsg) {
     case WM_MOVE: {
         RECT rcWin;
@@ -54,6 +55,9 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         break;
     }
     case WM_CLOSE:
+        webView1->close(NULL);
+        return 0;
+    case WM_DESTROY:
         webView1->_emit("closed");
         webView1->holder()->Unref();
         webView1->Unref();
@@ -63,7 +67,7 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 }
 
-void os_config_window(object_base* webview, void* _window, NObject* opt)
+void os_config_window(WebView_base* webview, void* _window, NObject* opt)
 {
     HWND hWndParent = (HWND)_window;
     DWORD dwStyle = WS_POPUP | WS_VISIBLE;
@@ -130,6 +134,7 @@ void os_config_window(object_base* webview, void* _window, NObject* opt)
 
     SetWindowSubclass(hWndParent, &mySubClassProc, 1, (DWORD_PTR)webview);
     webview->Ref();
+    webview->_emit("open");
 }
 }
 

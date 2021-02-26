@@ -517,8 +517,6 @@ HRESULT WebView::open()
 
     Navigate(m_url.c_str());
 
-    _emit("open");
-
     return 0;
 }
 
@@ -602,7 +600,6 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
         } else
             s_activeWin = hWnd;
         break;
-
     case WM_SETFOCUS:
         webView1 = (WebView*)GetWindowLongPtr(hWnd, 0);
         if (webView1 != 0)
@@ -616,13 +613,11 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
             webView1->SetRect(rcClient);
         }
         break;
-    case WM_CLOSE:
+    case WM_DESTROY:
         webView1 = (WebView*)GetWindowLongPtr(hWnd, 0);
         if (webView1 != 0) {
-            _variant_t vResult;
-            webView1->postClose(vResult);
-            if (vResult.vt == VT_BOOL && vResult.boolVal == VARIANT_FALSE)
-                return 0;
+            webView1->clear();
+            webView1->Unref();
         }
         break;
     }
@@ -779,10 +774,19 @@ result_t WebView::executeJavaScript(exlib::string code, AsyncEvent* ac)
 
 result_t WebView::close(AsyncEvent* ac)
 {
-    if (ac->isSync())
+    if (ac && ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
-    PostMessage(hWndParent, WM_CLOSE, 0, 0);
+    if (!webBrowser2)
+        return 0;
+
+    _variant_t vResult;
+    postClose(vResult);
+    if (vResult.vt == VT_BOOL && vResult.boolVal == VARIANT_FALSE)
+        return 0;
+
+    DestroyWindow(hWndParent);
+
     return 0;
 }
 
