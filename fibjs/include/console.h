@@ -199,7 +199,7 @@ public:
 
     static exlib::string warn()
     {
-        return COLOR_YELLOW;
+        return COLOR_LIGHTYELLOW;
     }
 
     static exlib::string error()

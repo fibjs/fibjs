@@ -77,13 +77,13 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
         else if (v->IsDate())
             strBuffer.append(color_string(COLOR_MAGENTA, ToCString(v8::String::Utf8Value(isolate->m_isolate, v)), color));
         else if (v->IsBoolean() || v->IsBooleanObject())
-            strBuffer.append(color_string(COLOR_YELLOW, ToCString(v8::String::Utf8Value(isolate->m_isolate, v)), color));
+            strBuffer.append(color_string(COLOR_LIGHTYELLOW, ToCString(v8::String::Utf8Value(isolate->m_isolate, v)), color));
         else if (v->IsNumber() || v->IsNumberObject()) {
             exlib::string s(ToCString(v8::String::Utf8Value(isolate->m_isolate, v->ToNumber(_context).ToLocalChecked())));
-            strBuffer.append(color_string(COLOR_YELLOW, s, color));
+            strBuffer.append(color_string(COLOR_LIGHTYELLOW, s, color));
         } else if (v->IsBigInt() || v->IsBigIntObject()) {
             exlib::string s(ToCString(v8::String::Utf8Value(isolate->m_isolate, v->ToBigInt(_context).ToLocalChecked())));
-            strBuffer.append(color_string(COLOR_YELLOW, s + 'n', color));
+            strBuffer.append(color_string(COLOR_LIGHTYELLOW, s + 'n', color));
         } else if (v->IsString() || v->IsStringObject())
             string_format(strBuffer, v, color);
         else if (v->IsRegExp()) {
