@@ -46,8 +46,7 @@ static fibjs::WebView_base* getWebViewFromNSWindow(NSWindow* win)
     if (wv == NULL)
         return YES;
 
-    wv->close(nil);
-    return NO;
+    return wv->close(nil) ? YES : NO;
 }
 
 - (void)windowDidMove:(NSNotification*)didMoveNotification

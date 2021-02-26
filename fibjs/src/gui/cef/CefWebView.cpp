@@ -242,9 +242,7 @@ result_t CefWebView::close(AsyncEvent* ac)
     if (!m_browser)
         return 0;
 
-    m_browser->GetHost()->TryCloseBrowser();
-
-    return 0;
+    return m_browser->GetHost()->TryCloseBrowser();
 }
 
 result_t CefWebView::postMessage(exlib::string msg, AsyncEvent* ac)
