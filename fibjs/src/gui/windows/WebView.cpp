@@ -455,8 +455,6 @@ WebView::WebView(exlib::string url, NObject* opt)
     _onclose = NULL;
     hWndParent = NULL;
 
-    m_visible = true;
-
     RegMainClass();
 }
 
@@ -467,82 +465,18 @@ WebView::~WebView()
 
 HRESULT WebView::open()
 {
-    DWORD dwStyle = WS_POPUP;
-    int x = CW_USEDEFAULT;
-    int y = CW_USEDEFAULT;
-    int nWidth = CW_USEDEFAULT;
-    int nHeight = CW_USEDEFAULT;
-
     m_bSilent = false;
-    m_maximize = false;
 
     if (m_opt) {
         Variant v;
 
-        if (m_opt->get("left", v) == 0)
-            x = v.intVal();
-        if (m_opt->get("top", v) == 0)
-            y = v.intVal();
-        if (m_opt->get("width", v) == 0)
-            nWidth = v.intVal();
-        if (m_opt->get("height", v) == 0)
-            nHeight = v.intVal();
-
-        if (!(m_opt->get("border", v) == 0 && !v.boolVal())) {
-            dwStyle |= WS_BORDER;
-
-            if (!(m_opt->get("caption", v) == 0 && !v.boolVal()))
-                dwStyle ^= WS_POPUP | WS_CAPTION | WS_SYSMENU;
-
-            if (!(m_opt->get("resizable", v) == 0 && !v.boolVal()))
-                dwStyle ^= WS_THICKFRAME | WS_BORDER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
-
-            if (m_opt->get("maximize", v) == 0 && v.boolVal()) {
-                m_maximize = true;
-                dwStyle |= WS_MAXIMIZE;
-            }
-
-            if (m_opt->get("visible", v) == 0 && !v.boolVal())
-                m_visible = false;
-        }
-
         if (m_opt->get("debug", v) == 0 && !v.boolVal())
             m_bSilent = true;
-    } else
-        dwStyle = WS_OVERLAPPEDWINDOW;
-
-    int dpix = 0, dpiy = 0;
-    GetDPI(&dpix, &dpiy);
-
-    RECT actualDesktop;
-    GetWindowRect(GetDesktopWindow(), &actualDesktop);
-
-    if (nWidth != CW_USEDEFAULT)
-        nWidth = nWidth * dpix / 96;
-    else
-        nWidth = actualDesktop.right * 3 / 4;
-
-    if (nHeight != CW_USEDEFAULT)
-        nHeight = nHeight * dpix / 96;
-    else
-        nHeight = actualDesktop.bottom * 3 / 4;
-
-    if (x != CW_USEDEFAULT)
-        x = x * dpix / 96;
-    else
-        x = (actualDesktop.right - nWidth) / 2;
-
-    if (y != CW_USEDEFAULT)
-        y = y * dpix / 96;
-    else
-        y = (actualDesktop.bottom - nHeight) / 2;
-
-    hWndParent = CreateWindowExW(0, szWndClassMain, L"", dwStyle, x, y, nWidth, nHeight,
-        NULL, NULL, GetModuleHandle(NULL), NULL);
-    if (m_visible) {
-        ShowWindow(hWndParent, m_maximize ? SW_MAXIMIZE : SW_SHOW);
-        m_maximize = false;
     }
+
+    hWndParent = CreateWindowExW(0, szWndClassMain, L"", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
+        CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, GetModuleHandle(NULL), NULL);
+    os_config_window(this, hWndParent, m_opt);
 
     ::SetRect(&rObject, -300, -300, 300, 300);
 
@@ -674,60 +608,21 @@ LRESULT CALLBACK WebView::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
         if (webView1 != 0)
             webView1->OnDocumentComplete(NULL);
         break;
-    case WM_MOVE:
-        webView1 = (WebView*)GetWindowLongPtr(hWnd, 0);
-        if (webView1 != 0) {
-            RECT rcWin;
-            GetWindowRect(hWnd, &rcWin);
-
-            int dpix = 0, dpiy = 0;
-            webView1->GetDPI(&dpix, &dpiy);
-
-            obj_ptr<EventInfo> ei = new EventInfo(webView1, "move");
-            ei->add("left", (int32_t)rcWin.left * 96 / dpix);
-            ei->add("top", (int32_t)rcWin.top * 96 / dpiy);
-
-            webView1->_emit("move", ei);
-        }
-        break;
     case WM_SIZE:
         webView1 = (WebView*)GetWindowLongPtr(hWnd, 0);
         if (webView1 != 0) {
             RECT rcClient;
             GetClientRect(hWnd, &rcClient);
             webView1->SetRect(rcClient);
-
-            RECT rcWin;
-            GetWindowRect(hWnd, &rcWin);
-            Variant vars[2];
-
-            int dpix = 0, dpiy = 0;
-            webView1->GetDPI(&dpix, &dpiy);
-
-            obj_ptr<EventInfo> ei = new EventInfo(webView1, "resize");
-            ei->add("width", (int32_t)(rcWin.right - rcWin.left) * 96 / dpix);
-            ei->add("height", (int32_t)(rcWin.bottom - rcWin.top) * 96 / dpiy);
-
-            webView1->_emit("resize", ei);
         }
         break;
     case WM_CLOSE:
         webView1 = (WebView*)GetWindowLongPtr(hWnd, 0);
         if (webView1 != 0) {
-
             _variant_t vResult;
             webView1->postClose(vResult);
             if (vResult.vt == VT_BOOL && vResult.boolVal == VARIANT_FALSE)
                 return 0;
-
-            SetWindowLongPtr(hWnd, 0, 0);
-
-            webView1->_emit("closed");
-
-            webView1->holder()->Unref();
-
-            webView1->clear();
-            webView1->Release();
         }
         break;
     }
@@ -927,20 +822,11 @@ result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
 
 result_t WebView::get_visible(bool& retVal)
 {
-    retVal = m_visible;
     return 0;
 }
 
 result_t WebView::set_visible(bool newVal)
 {
-    m_visible = newVal;
-
-    if (m_visible) {
-        ShowWindow(hWndParent, m_maximize ? SW_MAXIMIZE : SW_SHOW);
-        m_maximize = false;
-    } else
-        ShowWindow(hWndParent, SW_HIDE);
-
     return 0;
 }
 

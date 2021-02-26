@@ -217,8 +217,6 @@ protected:
     HWND hWndParent;
     HWND hWndControl;
 
-    bool m_visible;
-    bool m_maximize;
     bool m_bSilent;
 
     AsyncEvent* m_ac;
