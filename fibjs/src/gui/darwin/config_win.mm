@@ -1,5 +1,5 @@
 /*
- * gui_mac.mm
+ * config_win.mm
  *
  *  Created on: Feb 24, 2021
  *      Author: lion
@@ -18,11 +18,25 @@ static fibjs::object_base* getWebViewFromNSWindow(NSWindow* win)
 }
 
 @interface GuiWindowDelegate : NSObject <NSWindowDelegate>
+- (void)windowWillClose:(NSNotification*)willCloseNotification;
 - (void)windowDidMove:(NSNotification*)didMoveNotification;
 - (void)windowDidResize:(NSNotification*)notification;
 @end
 
 @implementation GuiWindowDelegate
+- (void)windowWillClose:(NSNotification*)willCloseNotification
+{
+    NSWindow* currentWindow = willCloseNotification.object;
+    fibjs::object_base* wv = getWebViewFromNSWindow(currentWindow);
+
+    if (wv == NULL)
+        return;
+
+    wv->_emit("closed");
+    wv->holder()->Unref();
+    wv->Unref();
+}
+
 - (void)windowDidMove:(NSNotification*)didMoveNotification
 {
     NSWindow* currentWindow = didMoveNotification.object;
@@ -119,6 +133,8 @@ void os_config_window(object_base* webview, void* _window, NObject* opt)
         [window setFrame:CGRectMake(x, y, nWidth, nHeight) display:YES];
 
     objc_setAssociatedObject(window, "webview", (id)webview, OBJC_ASSOCIATION_ASSIGN);
+    webview->Ref();
+
     [window setDelegate:[GuiWindowDelegate new]];
 }
 }

@@ -47,13 +47,16 @@ GuiHandler* GuiHandler::GetInstance()
 void GuiHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
     const CefString& title)
 {
+#ifndef Darwin
     CefRefPtr<CefBrowserView> browser_view = CefBrowserView::GetForBrowser(browser);
     if (browser_view) {
         CefRefPtr<CefWindow> window = browser_view->GetWindow();
         if (window)
             window->SetTitle(title);
-    }else
-        PlatformTitleChange(browser, title);
+    }
+#else
+    PlatformTitleChange(browser, title);
+#endif
 }
 
 void GuiHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
@@ -76,8 +79,10 @@ void GuiHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 {
     BrowserList::iterator bit = fromBrowser(browser);
     if (bit != browser_list_.end()) {
+#ifdef Linux
         (*bit)->_emit("closed");
         (*bit)->holder()->Unref();
+#endif
         browser_list_.erase(bit);
     }
 }

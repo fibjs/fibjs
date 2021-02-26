@@ -48,10 +48,10 @@ public:
 
 public:
     CefRefPtr<CefBrowser> m_browser;
+    obj_ptr<NObject> m_opt;
 
 private:
     exlib::string m_url;
-    obj_ptr<NObject> m_opt;
 };
 }
 

@@ -10,6 +10,7 @@
 #include "include/cef_parser.h"
 #include "include/views/cef_window.h"
 #include "include/views/cef_browser_view.h"
+#include "../os_gui.h"
 
 namespace fibjs {
 
@@ -24,14 +25,15 @@ public:
     void OnWindowCreated(CefRefPtr<CefWindow> window) OVERRIDE
     {
         window->AddChildView(browser_view_);
-        window->Show();
-
-        browser_view_->RequestFocus();
 
         if (m_webview) {
             m_webview->m_browser = browser_view_->GetBrowser();
+            os_config_window(m_webview, window->GetWindowHandle(), m_webview->m_opt);
             m_webview->_emit("open");
         }
+
+        window->Show();
+        browser_view_->RequestFocus();
     }
 
     void OnWindowDestroyed(CefRefPtr<CefWindow> window) OVERRIDE

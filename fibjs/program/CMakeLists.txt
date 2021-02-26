@@ -60,6 +60,9 @@ if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 		set_target_properties(${name}_gui PROPERTIES LINK_FLAGS ${link_flags})
 	endif()
 
+	target_link_libraries(${name} comctl32)
+	target_link_libraries(${name}_gui comctl32)
+
 	target_compile_definitions(${name} PUBLIC -D_CONSOLE)
 	target_compile_definitions(${name}_gui PUBLIC -D_WINDOWS)
 else()
