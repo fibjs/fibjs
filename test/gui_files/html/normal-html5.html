@@ -2,7 +2,7 @@
 
 <head>
     <script>
-        console.notice('normal')
+        console.error('normal')
 
         function onTextareaKeydown(evt) {
             if (evt.keyCode === 65 && evt.metaKey) {
@@ -10,7 +10,7 @@
                 input.selectionStart = 0;
                 input.selectionEnd = 9999;
                 input.setSelectionRange(0, 9999);
-                console.notice('input.value: ' + input.value)
+                console.error('input.value: ' + input.value)
             }
         }
     </script>

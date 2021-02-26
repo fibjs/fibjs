@@ -86,9 +86,6 @@ if (win32 || darwin64) {
         assert.equal(test_util.countObject("WebView"), 0);
         assert.equal(closed, true);
         assert.equal(cnt, 2);
-
-        if (darwin64)
-          assert.isTrue(events.onmove)
       });
     });
 
@@ -107,7 +104,7 @@ if (win32 || darwin64) {
        * NOTICE: emit for `move` trigged by NSWindow's centered method could delay, improve that.
        * 
        */
-      it("onmove by default on darwin", () => {
+      xit("onmove by default on darwin", () => {
         var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/onmove.html", {
           title: "onmove"
         });
@@ -184,7 +181,7 @@ if (win32 || darwin64) {
       });
     });
 
-    darwin64 && describe("options", () => {
+    darwin64 && xdescribe("options", () => {
       it("visible", () => {
         var win = gui.open("http://127.0.0.1:" + (8999 + base_port) + "/normal.html", {
           title: "Normal - visible",

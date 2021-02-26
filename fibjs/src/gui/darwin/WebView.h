@@ -46,8 +46,6 @@ public:
     EVENT_FUNC(load);
     EVENT_FUNC(move);
     EVENT_FUNC(resize);
-    EVENT_FUNC(resizestart);
-    EVENT_FUNC(resizeend);
     EVENT_FUNC(closed);
     EVENT_FUNC(message);
 
@@ -56,40 +54,18 @@ public:
     result_t open()
     {
         initializeWebView();
-
-        Ref();
-
         return 0;
     }
 
     void forceCloseWindow();
 
-private:
-    void clear();
-    result_t postMessage(exlib::string msg);
-
 public:
     typedef void (^JsEvaluateResultHdlr)(id result, NSError* _Nullable error);
     void evaluateWebviewJS(const char* js, JsEvaluateResultHdlr hdlr = NULL);
 
-    void toggleFullScreen(int fullscreen);
-
-    void setWindowColor(WebView* w, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
-
-    static int helperEncodeJS(const char* s, char* esc, size_t n);
-
-    static NSMenuItem* createMenuItem(id title, const char* action, const char* key);
-
     void initNSWindow();
 
     void navigateWKWebView(exlib::string url);
-
-    void putWindowToTopOrder();
-
-    static WebView* getWebViewFromNSWindow(NSWindow* win)
-    {
-        return (WebView*)objc_getAssociatedObject(win, "webview");
-    }
 
     static WebView* getWebViewFromWKUserContentController(WKUserContentController* userCtrl)
     {
@@ -110,11 +86,6 @@ private:
 
     id createWKWebViewConfig();
 
-    void assignToToNSWindow(NSWindow* win)
-    {
-        objc_setAssociatedObject(win, "webview", (id)this, OBJC_ASSOCIATION_ASSIGN);
-    }
-
     void assignToWKUserContentController(WKUserContentController* userCtrl)
     {
         objc_setAssociatedObject(userCtrl, "webview", (id)this, OBJC_ASSOCIATION_ASSIGN);
@@ -127,29 +98,6 @@ private:
 
     void startWKUI();
 
-    void centralizeWindow();
-
-    void initNSWindowRect()
-    {
-        m_nsWindowFrame = CGRectMake(0, 0, m_WinW, m_WinH);
-    }
-
-public:
-    void setupAppMenubar();
-
-public:
-    void onNSWindowWillClose()
-    {
-        _emit("closed");
-
-        m_nsWindow = nil;
-        m_wkWebView = nil;
-
-        holder()->Unref();
-
-        Unref();
-    }
-
 public:
     bool onNSWindowShouldClose();
 
@@ -160,11 +108,6 @@ public:
 public:
     NSWindow* m_nsWindow;
     WKWebView* m_wkWebView;
-    NSUInteger m_nsWinStyle;
-    NSUInteger m_wkViewStyle;
-
-public:
-    static result_t asyncToggleVisible(WebView* wv);
 
 public:
     bool isInternalScriptLoaded() { return m_bIScriptLoaded; }
@@ -173,26 +116,12 @@ private:
     bool m_bIScriptLoaded;
 
 protected:
-    exlib::string m_title;
+    obj_ptr<NObject> m_opt;
     exlib::string m_url;
 
-    int32_t m_WinW;
-    int32_t m_WinH;
-    bool m_visible;
     bool m_bDebug;
 
-    obj_ptr<NObject> m_opt;
-
-    bool m_fullscreenable;
-
-    bool m_maximize;
-
     exlib::string m_initScriptDocAfter;
-
-    CGRect m_nsWindowFrame;
-    bool m_iUseContentViewController;
-
-    AsyncEvent* m_ac;
 };
 } /* namespace fibjs */
 
