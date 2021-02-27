@@ -28,7 +28,7 @@ public:
 
         if (m_webview) {
             m_webview->m_browser = browser_view_->GetBrowser();
-            os_config_window(m_webview, (void*)window->GetWindowHandle(), m_webview->m_opt);
+            m_webview->config_window();
         }
 
         window->Show();
@@ -81,6 +81,7 @@ CefWebView::CefWebView(exlib::string url, NObject* opt)
     , m_url(url)
     , m_bDebug(true)
     , m_bPopup(true)
+    , m_bHeadless(false)
 {
     holder()->Ref();
 
@@ -95,6 +96,9 @@ CefWebView::CefWebView(exlib::string url, NObject* opt)
 
         if (m_opt->get("popup", v) == 0)
             m_bPopup = v.boolVal();
+
+        if (m_opt->get("headless", v) == 0)
+            m_bHeadless = v.boolVal();
     }
 }
 
@@ -104,28 +108,50 @@ CefWebView::~CefWebView()
 
 void CefWebView::open()
 {
-    CefBrowserSettings browser_settings;
-    static CefRefPtr<GuiHandler> handler;
-    if (handler == NULL)
-        handler = new GuiHandler();
+    static CefRefPtr<GuiHandler> gui_handler;
 
-    handler->browser_list_.push_back(this);
+    if (gui_handler == NULL)
+        gui_handler = new GuiHandler();
+
+#ifdef Darwin
+    bool use_view = false;
+#else
+    bool use_view = !m_bHeadless;
+#endif
+
+    gui_handler->browser_list_.push_back(this);
+
+    CefBrowserSettings browser_settings;
+    if (use_view) {
+        static CefRefPtr<GuiBrowserViewDelegate> view_delegate;
+        if (view_delegate == NULL)
+            view_delegate = new GuiBrowserViewDelegate();
+
+        CefRefPtr<CefBrowserView> browser_view = CefBrowserView::CreateBrowserView(gui_handler, m_url.c_str(), browser_settings,
+            nullptr, nullptr, view_delegate);
+        CefWindow::CreateTopLevelWindow(new GuiWindowDelegate(browser_view, this));
+    } else {
+        CefWindowInfo window_info;
+
+        if (m_bHeadless)
+            window_info.windowless_rendering_enabled = true;
+
+        m_browser = CefBrowserHost::CreateBrowserSync(window_info, gui_handler, m_url.c_str(), browser_settings,
+            nullptr, nullptr);
+
+        if (!m_bHeadless)
+            config_window();
+        else
+            _emit("open");
+    }
+}
 
 #ifndef Darwin
-    static CefRefPtr<GuiBrowserViewDelegate> view_delegate;
-    if (view_delegate == NULL)
-        view_delegate = new GuiBrowserViewDelegate();
-
-    CefRefPtr<CefBrowserView> browser_view = CefBrowserView::CreateBrowserView(handler, m_url.c_str(), browser_settings,
-        nullptr, nullptr, view_delegate);
-    CefWindow::CreateTopLevelWindow(new GuiWindowDelegate(browser_view, this));
-#else
-    CefWindowInfo window_info;
-    m_browser = CefBrowserHost::CreateBrowserSync(window_info, handler, m_url.c_str(), browser_settings,
-        nullptr, nullptr);
-    config_window();
-#endif
+void CefWebView::config_window()
+{
+    os_config_window(this, (void*)m_browser->GetHost()->GetWindowHandle(), m_opt);
 }
+#endif
 
 result_t CefWebView::loadUrl(exlib::string url, AsyncEvent* ac)
 {

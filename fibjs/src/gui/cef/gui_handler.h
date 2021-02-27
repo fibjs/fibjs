@@ -5,8 +5,8 @@
  *      Author: lion
  */
 
-#ifndef CEF_TESTS_CEFSIMPLE_SIMPLE_HANDLER_H_
-#define CEF_TESTS_CEFSIMPLE_SIMPLE_HANDLER_H_
+#ifndef GUI_HANDLER_H
+#define GUI_HANDLER_H
 
 #include "include/cef_client.h"
 #include "CefWebView.h"
@@ -18,14 +18,13 @@ namespace fibjs {
 class GuiHandler : public CefClient,
                    public CefDisplayHandler,
                    public CefLifeSpanHandler,
-                   public CefLoadHandler {
+                   public CefLoadHandler,
+                   public CefRenderHandler {
 public:
     explicit GuiHandler();
     ~GuiHandler();
 
 public:
-    static GuiHandler* GetInstance();
-
     virtual CefRefPtr<CefDisplayHandler> GetDisplayHandler() OVERRIDE
     {
         return this;
@@ -37,6 +36,11 @@ public:
     }
 
     virtual CefRefPtr<CefLoadHandler> GetLoadHandler() OVERRIDE
+    {
+        return this;
+    }
+
+    virtual CefRefPtr<CefRenderHandler> GetRenderHandler() OVERRIDE
     {
         return this;
     }
@@ -62,6 +66,13 @@ public:
         ErrorCode errorCode, const CefString& errorText, const CefString& failedUrl) OVERRIDE;
     virtual void OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
         int httpStatusCode) OVERRIDE;
+
+public:
+    // CefRenderHandler
+    virtual void GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) OVERRIDE;
+    virtual void OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type,
+        const CefRenderHandler::RectList& dirtyRects, const void* buffer, int width,
+        int height) OVERRIDE;
 
 public:
     typedef std::list<obj_ptr<CefWebView>> BrowserList;

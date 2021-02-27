@@ -22,8 +22,6 @@
 
 namespace fibjs {
 
-GuiHandler* g_instance = nullptr;
-
 inline std::string GetDataURI(const std::string& data, const std::string& mime_type)
 {
     return "data:" + mime_type + ";base64," + CefURIEncode(CefBase64Encode(data.data(), data.size()), false).ToString();
@@ -31,17 +29,10 @@ inline std::string GetDataURI(const std::string& data, const std::string& mime_t
 
 GuiHandler::GuiHandler()
 {
-    g_instance = this;
 }
 
 GuiHandler::~GuiHandler()
 {
-    g_instance = nullptr;
-}
-
-GuiHandler* GuiHandler::GetInstance()
-{
-    return g_instance;
 }
 
 void GuiHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
@@ -92,10 +83,15 @@ void GuiHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 {
     BrowserList::iterator bit = fromBrowser(browser);
     if (bit != browser_list_.end()) {
+        if ((*bit)->m_bHeadless) {
+            (*bit)->_emit("closed");
+            (*bit)->holder()->Unref();
+        } else {
 #ifdef Linux
-        (*bit)->_emit("closed");
-        (*bit)->holder()->Unref();
+            (*bit)->_emit("closed");
+            (*bit)->holder()->Unref();
 #endif
+        }
         browser_list_.erase(bit);
     }
 }
@@ -143,5 +139,17 @@ void GuiHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> fr
         if (bit != browser_list_.end())
             (*bit)->_emit("load");
     }
+}
+
+void GuiHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
+{
+    rect.x = rect.y = 0;
+    rect.width = 800;
+    rect.height = 600;
+}
+
+void GuiHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type, const RectList& dirtyRects,
+    const void* buffer, int width, int height)
+{
 }
 }

@@ -52,6 +52,7 @@ public:
 
     bool m_bDebug;
     bool m_bPopup;
+    bool m_bHeadless;
 };
 }
 
