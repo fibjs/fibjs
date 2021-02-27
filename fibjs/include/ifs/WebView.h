@@ -32,7 +32,7 @@ public:
     virtual result_t print(int32_t mode, AsyncEvent* ac) = 0;
     virtual result_t printToPDF(exlib::string file, AsyncEvent* ac) = 0;
     virtual result_t executeJavaScript(exlib::string code, AsyncEvent* ac) = 0;
-    virtual result_t executeDevToolsMethod(exlib::string method, v8::Local<v8::Object> params, exlib::string& retVal, AsyncEvent* ac) = 0;
+    virtual result_t executeDevToolsMethod(exlib::string method, v8::Local<v8::Object> params, Variant& retVal, AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac) = 0;
     virtual result_t get_onopen(v8::Local<v8::Function>& retVal) = 0;
@@ -93,7 +93,7 @@ public:
     ASYNC_MEMBER1(WebView_base, print, int32_t);
     ASYNC_MEMBER1(WebView_base, printToPDF, exlib::string);
     ASYNC_MEMBER1(WebView_base, executeJavaScript, exlib::string);
-    ASYNC_MEMBERVALUE3(WebView_base, executeDevToolsMethod, exlib::string, v8::Local<v8::Object>, exlib::string);
+    ASYNC_MEMBERVALUE3(WebView_base, executeDevToolsMethod, exlib::string, v8::Local<v8::Object>, Variant);
     ASYNC_MEMBER0(WebView_base, close);
     ASYNC_MEMBER1(WebView_base, postMessage, exlib::string);
 };
@@ -286,16 +286,16 @@ inline void WebView_base::s_executeJavaScript(const v8::FunctionCallbackInfo<v8:
 
 inline void WebView_base::s_executeDevToolsMethod(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    exlib::string vr;
+    Variant vr;
 
     METHOD_NAME("WebView.executeDevToolsMethod");
     METHOD_INSTANCE(WebView_base);
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 2);
+    ASYNC_METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
     if (!cb.IsEmpty())
         hr = pInst->acb_executeDevToolsMethod(v0, v1, cb, args);

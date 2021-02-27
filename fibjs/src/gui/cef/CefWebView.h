@@ -6,6 +6,7 @@
  */
 
 #include "ifs/WebView.h"
+#include "ifs/json.h"
 #include "include/cef_client.h"
 
 #ifndef WEBVIEW_CEF_H_
@@ -31,7 +32,7 @@ public:
     virtual result_t print(int32_t mode, AsyncEvent* ac);
     virtual result_t printToPDF(exlib::string file, AsyncEvent* ac);
     virtual result_t executeJavaScript(exlib::string code, AsyncEvent* ac);
-    virtual result_t executeDevToolsMethod(exlib::string method, v8::Local<v8::Object> params, exlib::string& retVal, AsyncEvent* ac);
+    virtual result_t executeDevToolsMethod(exlib::string method, v8::Local<v8::Object> params, Variant& retVal, AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
 
@@ -89,16 +90,34 @@ public:
     bool m_bHeadless;
 
 private:
+    class JSONValue : public object_base {
+    public:
+        JSONValue(exlib::string s)
+            : m_json(s)
+        {
+        }
+
+    public:
+        // object_base
+        virtual result_t valueOf(v8::Local<v8::Value>& retVal)
+        {
+            return json_base::decode(m_json, retVal);
+        }
+
+    private:
+        exlib::string m_json;
+    };
+
     class ac_method {
     public:
-        ac_method(exlib::string& retVal, AsyncEvent* ac)
+        ac_method(Variant& retVal, AsyncEvent* ac)
             : m_retVal(retVal)
             , m_ac(ac)
         {
         }
 
     public:
-        exlib::string& m_retVal;
+        Variant& m_retVal;
         AsyncEvent* m_ac;
     };
 

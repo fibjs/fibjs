@@ -284,7 +284,7 @@ void CefWebView::OnDevToolsMethodResult(CefRefPtr<CefBrowser> browser, int messa
 
     it_method = m_method.find(message_id);
     if (it_method != m_method.end()) {
-        it_method->second.m_retVal.assign((const char*)result, result_size);
+        it_method->second.m_retVal = new JSONValue(exlib::string((const char*)result, result_size));
         it_method->second.m_ac->apost(0);
         m_method.erase(it_method);
     }
@@ -293,14 +293,12 @@ void CefWebView::OnDevToolsMethodResult(CefRefPtr<CefBrowser> browser, int messa
 void CefWebView::OnDevToolsEvent(CefRefPtr<CefBrowser> browser, const CefString& method,
     const void* params, size_t params_size)
 {
-    exlib::string strParam((const char*)params, params_size);
-    Variant v = strParam;
-
+    Variant v = new JSONValue(exlib::string((const char*)params, params_size));
     _emit(method.ToString(), &v, 1);
 }
 
 result_t CefWebView::executeDevToolsMethod(exlib::string method, v8::Local<v8::Object> params,
-    exlib::string& retVal, AsyncEvent* ac)
+    Variant& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
         exlib::string strParam;

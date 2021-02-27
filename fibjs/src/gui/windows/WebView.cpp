@@ -773,7 +773,7 @@ result_t WebView::executeJavaScript(exlib::string code, AsyncEvent* ac)
 }
 
 result_t WebView::executeDevToolsMethod(exlib::string method, v8::Local<v8::Object> params,
-    exlib::string& retVal, AsyncEvent* ac)
+    Variant& retVal, AsyncEvent* ac)
 {
     return 0;
 }

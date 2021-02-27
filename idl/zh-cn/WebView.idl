@@ -90,7 +90,7 @@ interface WebView : EventEmitter
      @param params 指定命令的参数
      @return 返回执行的结果
 	 */
-    String executeDevToolsMethod(String method, Object params) async;
+    Variant executeDevToolsMethod(String method, Object params = {}) async;
 
     /*! @brief 关闭当前窗口 */
     close() async;
