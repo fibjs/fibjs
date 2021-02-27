@@ -28,7 +28,7 @@ public:
 
         if (m_webview) {
             m_webview->m_browser = browser_view_->GetBrowser();
-            os_config_window(m_webview, window->GetWindowHandle(), m_webview->m_opt);
+            os_config_window(m_webview, (void*)window->GetWindowHandle(), m_webview->m_opt);
         }
 
         window->Show();
