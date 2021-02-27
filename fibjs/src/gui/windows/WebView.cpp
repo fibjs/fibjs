@@ -772,6 +772,12 @@ result_t WebView::executeJavaScript(exlib::string code, AsyncEvent* ac)
     return 0;
 }
 
+result_t WebView::executeDevToolsMethod(exlib::string method, v8::Local<v8::Object> params,
+    exlib::string& retVal, AsyncEvent* ac)
+{
+    return 0;
+}
+
 result_t WebView::close(AsyncEvent* ac)
 {
     if (ac && ac->isSync())

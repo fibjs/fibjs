@@ -85,6 +85,13 @@ interface WebView : EventEmitter
 	 */
     executeJavaScript(String code) async;
 
+    /*! @brief 在当前窗口执行 DevTools 命令，并返回结果
+	 @param method 指定要执行的 DevTools 命令
+     @param params 指定命令的参数
+     @return 返回执行的结果
+	 */
+    String executeDevToolsMethod(String method, Object params) async;
+
     /*! @brief 关闭当前窗口 */
     close() async;
 

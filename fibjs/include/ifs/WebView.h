@@ -32,6 +32,7 @@ public:
     virtual result_t print(int32_t mode, AsyncEvent* ac) = 0;
     virtual result_t printToPDF(exlib::string file, AsyncEvent* ac) = 0;
     virtual result_t executeJavaScript(exlib::string code, AsyncEvent* ac) = 0;
+    virtual result_t executeDevToolsMethod(exlib::string method, v8::Local<v8::Object> params, exlib::string& retVal, AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac) = 0;
     virtual result_t get_onopen(v8::Local<v8::Function>& retVal) = 0;
@@ -67,6 +68,7 @@ public:
     static void s_print(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_printToPDF(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_executeJavaScript(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_executeDevToolsMethod(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_onopen(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -91,6 +93,7 @@ public:
     ASYNC_MEMBER1(WebView_base, print, int32_t);
     ASYNC_MEMBER1(WebView_base, printToPDF, exlib::string);
     ASYNC_MEMBER1(WebView_base, executeJavaScript, exlib::string);
+    ASYNC_MEMBERVALUE3(WebView_base, executeDevToolsMethod, exlib::string, v8::Local<v8::Object>, exlib::string);
     ASYNC_MEMBER0(WebView_base, close);
     ASYNC_MEMBER1(WebView_base, postMessage, exlib::string);
 };
@@ -116,6 +119,8 @@ inline ClassInfo& WebView_base::class_info()
         { "printToPDFSync", s_printToPDF, false },
         { "executeJavaScript", s_executeJavaScript, false },
         { "executeJavaScriptSync", s_executeJavaScript, false },
+        { "executeDevToolsMethod", s_executeDevToolsMethod, false },
+        { "executeDevToolsMethodSync", s_executeDevToolsMethod, false },
         { "close", s_close, false },
         { "closeSync", s_close, false },
         { "postMessage", s_postMessage, false },
@@ -277,6 +282,27 @@ inline void WebView_base::s_executeJavaScript(const v8::FunctionCallbackInfo<v8:
         hr = pInst->ac_executeJavaScript(v0);
 
     METHOD_VOID();
+}
+
+inline void WebView_base::s_executeDevToolsMethod(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_NAME("WebView.executeDevToolsMethod");
+    METHOD_INSTANCE(WebView_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Object>, 1);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_executeDevToolsMethod(v0, v1, cb, args);
+    else
+        hr = pInst->ac_executeDevToolsMethod(v0, v1, vr);
+
+    METHOD_RETURN();
 }
 
 inline void WebView_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -5,6 +5,7 @@
  *      Author: lion
  */
 
+#include "ifs/json.h"
 #include "CefWebView.h"
 #include "gui_handler.h"
 #include "include/cef_parser.h"
@@ -28,6 +29,8 @@ public:
 
         if (m_webview) {
             m_webview->m_browser = browser_view_->GetBrowser();
+            m_webview->bindDevToolsMessageObserver();
+
             m_webview->config_window();
         }
 
@@ -82,6 +85,7 @@ CefWebView::CefWebView(exlib::string url, NObject* opt)
     , m_bDebug(true)
     , m_bPopup(true)
     , m_bHeadless(false)
+    , m_eid(0)
 {
     holder()->Ref();
 
@@ -138,6 +142,7 @@ void CefWebView::open()
 
         m_browser = CefBrowserHost::CreateBrowserSync(window_info, gui_handler, m_url.c_str(), browser_settings,
             nullptr, nullptr);
+        bindDevToolsMessageObserver();
 
         if (!m_bHeadless)
             config_window();
@@ -270,6 +275,56 @@ result_t CefWebView::executeJavaScript(exlib::string code, AsyncEvent* ac)
     frame->ExecuteJavaScript(code.c_str(), frame->GetURL(), 0);
 
     return 0;
+}
+
+void CefWebView::OnDevToolsMethodResult(CefRefPtr<CefBrowser> browser, int message_id,
+    bool success, const void* result, size_t result_size)
+{
+    std::map<int32_t, ac_method>::iterator it_method;
+
+    it_method = m_method.find(message_id);
+    if (it_method != m_method.end()) {
+        it_method->second.m_retVal.assign((const char*)result, result_size);
+        it_method->second.m_ac->apost(0);
+        m_method.erase(it_method);
+    }
+}
+
+void CefWebView::OnDevToolsEvent(CefRefPtr<CefBrowser> browser, const CefString& method,
+    const void* params, size_t params_size)
+{
+    exlib::string strParam((const char*)params, params_size);
+    Variant v = strParam;
+
+    _emit(method.ToString(), &v, 1);
+}
+
+result_t CefWebView::executeDevToolsMethod(exlib::string method, v8::Local<v8::Object> params,
+    exlib::string& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        exlib::string strParam;
+
+        json_base::encode(params, strParam);
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = strParam;
+
+        return CHECK_ERROR(CALL_E_GUICALL);
+    }
+
+    if (!m_browser)
+        return 0;
+
+    exlib::string strParam = ac->m_ctx[0].string();
+    CefRefPtr<CefValue> _params = CefParseJSON(strParam.c_str(), strParam.length(),
+        JSON_PARSER_ALLOW_TRAILING_COMMAS);
+
+    int32_t rid = m_browser->GetHost()->ExecuteDevToolsMethod(m_eid++, method.c_str(), _params->GetDictionary());
+    if (rid == 0)
+        return CALL_E_INTERNAL;
+
+    m_method.insert(std::pair<int32_t, ac_method>(rid, ac_method(retVal, ac)));
+    return CALL_E_PENDDING;
 }
 
 result_t CefWebView::close(AsyncEvent* ac)

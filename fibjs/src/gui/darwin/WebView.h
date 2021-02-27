@@ -36,6 +36,7 @@ public:
     virtual result_t print(int32_t mode, AsyncEvent* ac);
     virtual result_t printToPDF(exlib::string file, AsyncEvent* ac);
     virtual result_t executeJavaScript(exlib::string code, AsyncEvent* ac);
+    virtual result_t executeDevToolsMethod(exlib::string method, v8::Local<v8::Object> params, exlib::string& retVal, AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
 
