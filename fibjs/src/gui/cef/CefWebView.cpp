@@ -80,6 +80,7 @@ CefWebView::CefWebView(exlib::string url, NObject* opt)
     : m_opt(opt)
     , m_url(url)
     , m_bDebug(true)
+    , m_bPopup(true)
 {
     holder()->Ref();
 
@@ -89,8 +90,11 @@ CefWebView::CefWebView(exlib::string url, NObject* opt)
     if (m_opt) {
         Variant v;
 
-        if (m_opt->get("debug", v) == 0 && !v.isUndefined())
+        if (m_opt->get("debug", v) == 0)
             m_bDebug = v.boolVal();
+
+        if (m_opt->get("popup", v) == 0)
+            m_bPopup = v.boolVal();
     }
 }
 

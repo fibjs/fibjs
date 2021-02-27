@@ -51,6 +51,7 @@ public:
     exlib::string m_url;
 
     bool m_bDebug;
+    bool m_bPopup;
 };
 }
 

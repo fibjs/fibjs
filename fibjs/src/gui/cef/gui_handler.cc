@@ -59,6 +59,19 @@ void GuiHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
 #endif
 }
 
+bool GuiHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
+    const CefString& target_url, const CefString& target_frame_name, WindowOpenDisposition target_disposition,
+    bool user_gesture, const CefPopupFeatures& popupFeatures, CefWindowInfo& windowInfo, CefRefPtr<CefClient>& client,
+    CefBrowserSettings& settings, CefRefPtr<CefDictionaryValue>& extra_info, bool* no_javascript_access)
+{
+    bool stop_popup = false;
+    BrowserList::iterator bit = fromBrowser(browser);
+    if (bit != browser_list_.end())
+        stop_popup = !(*bit)->m_bPopup;
+
+    return stop_popup;
+}
+
 void GuiHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
 }
