@@ -45,7 +45,7 @@ module gui
          "maximize": false, // 是否最大化显示，缺省不最大化
          "debug": true, // 是否输出 WebView 内的错误和 console 信息，缺省显示
          "popup": true, // 是否允许弹出新的网页，缺省允许
-         "headless": false // 是否使用无窗口模式加载页面，缺省不使用
+         "headless": false // 是否使用无窗口模式加载页面，缺省不使用无窗口，当命令行指定 --headless 时，此属性将被忽略
      }
      ```
      当设定 width 和 height，而未设定 left 或 right 时，窗口将自动居中

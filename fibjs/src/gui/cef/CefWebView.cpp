@@ -6,6 +6,7 @@
  */
 
 #include "ifs/json.h"
+#include "options.h"
 #include "CefWebView.h"
 #include "gui_handler.h"
 #include "include/cef_parser.h"
@@ -82,7 +83,7 @@ CefWebView::CefWebView(exlib::string url, NObject* opt)
     , m_url(url)
     , m_bDebug(true)
     , m_bPopup(true)
-    , m_bHeadless(false)
+    , m_bHeadless(g_cefheadless)
     , m_eid(0)
 {
     holder()->Ref();
@@ -99,7 +100,7 @@ CefWebView::CefWebView(exlib::string url, NObject* opt)
         if (m_opt->get("popup", v) == 0)
             m_bPopup = v.boolVal();
 
-        if (m_opt->get("headless", v) == 0)
+        if (!m_bHeadless && m_opt->get("headless", v) == 0)
             m_bHeadless = v.boolVal();
     }
 }

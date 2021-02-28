@@ -25,6 +25,7 @@ extern bool g_tcpdump;
 extern bool g_ssldump;
 
 extern bool g_cefprocess;
+extern bool g_cefheadless;
 
 struct OptData {
     const char* name;
