@@ -29,8 +29,6 @@ public:
 
         if (m_webview) {
             m_webview->m_browser = browser_view_->GetBrowser();
-            m_webview->bindDevToolsMessageObserver();
-
             m_webview->config_window();
         }
 
@@ -142,7 +140,6 @@ void CefWebView::open()
 
         m_browser = CefBrowserHost::CreateBrowserSync(window_info, gui_handler, m_url.c_str(), browser_settings,
             nullptr, nullptr);
-        bindDevToolsMessageObserver();
 
         if (!m_bHeadless)
             config_window();
@@ -329,6 +326,9 @@ result_t CefWebView::executeDevToolsMethod(exlib::string method, v8::Local<v8::O
 
     if (!m_browser)
         return 0;
+
+    if (!m_reg.get())
+        m_reg = m_browser->GetHost()->AddDevToolsMessageObserver(this);
 
     exlib::string strParam = ac->m_ctx[0].string();
     CefRefPtr<CefValue> _params = CefParseJSON(strParam.c_str(), strParam.length(),

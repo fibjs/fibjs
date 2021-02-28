@@ -75,11 +75,6 @@ public:
 public:
     void open();
     void config_window();
-    void bindDevToolsMessageObserver()
-    {
-        m_reg = m_browser->GetHost()->AddDevToolsMessageObserver(this);
-    }
-
     void clear();
 
 public:
