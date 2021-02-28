@@ -29,7 +29,7 @@ public:
 
         uv_call([&] {
             if (is_stdio_fd(fd) && uv_guess_handle(fd) == UV_TTY) {
-                int ret = uv_tty_init(s_uv_loop, &m_tty, fd, 0);
+                int32_t ret = uv_tty_init(s_uv_loop, &m_tty, fd, 0);
                 if (ret != 0)
                     return ret;
 
@@ -89,7 +89,7 @@ public:
             return uv_call([&] {
                 m_this->queue_read.putTail(this);
                 if (m_this->queue_read.count() == 1) {
-                    int ret = uv_read_start(&m_this->m_stream, on_alloc, on_read);
+                    int32_t ret = uv_read_start(&m_this->m_stream, on_alloc, on_read);
                     if (ret) {
                         m_this->queue_read.getHead();
                         delete this;
@@ -123,7 +123,7 @@ public:
 
             if (nread < 0) {
                 uv_read_stop(&pThis->m_stream);
-                post_all_result(pThis, nread);
+                post_all_result(pThis, (int32_t)nread);
                 return;
             }
 
@@ -138,13 +138,13 @@ public:
             }
         }
 
-        static void post_all_result(UVStream* pThis, int status)
+        static void post_all_result(UVStream* pThis, int32_t status)
         {
             while (pThis->queue_read.count())
                 pThis->queue_read.getHead()->post_result(status);
         }
 
-        void post_result(int status)
+        void post_result(int32_t status)
         {
             if (status < 0 && status != UV_EOF) {
                 m_ac->apost(CHECK_ERROR(Runtime::setError(uv_strerror(status))));
@@ -188,7 +188,7 @@ public:
             return uv_call([&] {
                 m_this->queue_write.putTail(this);
                 if (m_this->queue_write.count() == 1) {
-                    int ret = uv_write(&m_req, &m_this->m_stream, &m_buf, 1, on_write);
+                    int32_t ret = uv_write(&m_req, &m_this->m_stream, &m_buf, 1, on_write);
                     if (ret) {
                         m_this->queue_write.getHead();
                         delete this;
@@ -201,7 +201,7 @@ public:
         }
 
     public:
-        static void on_write(uv_write_t* req, int status)
+        static void on_write(uv_write_t* req, int32_t status)
         {
             UVStream* pThis = container_of(req->handle, UVStream, m_handle);
             AsyncWrite* wr;
@@ -215,19 +215,19 @@ public:
 
             if (pThis->queue_write.count() > 0) {
                 wr = pThis->queue_write.head();
-                int ret = uv_write(&wr->m_req, &pThis->m_stream, &wr->m_buf, 1, on_write);
+                int32_t ret = uv_write(&wr->m_req, &pThis->m_stream, &wr->m_buf, 1, on_write);
                 if (ret)
                     post_all_result(pThis, ret);
             }
         }
 
-        static void post_all_result(UVStream* pThis, int status)
+        static void post_all_result(UVStream* pThis, int32_t status)
         {
             while (pThis->queue_write.count())
                 pThis->queue_write.getHead()->post_result(status);
         }
 
-        void post_result(int status)
+        void post_result(int32_t status)
         {
             if (status < 0)
                 m_ac->apost(Runtime::setError(uv_strerror(status)));
@@ -253,7 +253,7 @@ public:
         }
 
         uv_os_fd_t fileno;
-        int ret = uv_fileno(&m_handle, &fileno);
+        int32_t ret = uv_fileno(&m_handle, &fileno);
         if (ret != 0)
             return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
         retVal = *(int32_t*)&fileno;

@@ -78,7 +78,8 @@ public:
     virtual CefSize GetPdfPaperSize(int device_units_per_inch)
         OVERRIDE
     {
-        return CefSize(8.27 * device_units_per_inch, 11.75 * device_units_per_inch);
+        return CefSize((int32_t)(8.27 * device_units_per_inch),
+            (int32_t)(11.75 * device_units_per_inch));
     }
 
 private:
@@ -89,12 +90,12 @@ static bool s_has_cef;
 
 const char* cef_path()
 {
-#ifdef Linux
-    const char* s_cef_sdk = "./libcef.so";
+#if defined(Darwin)
+    const char* s_cef_sdk = "../Frameworks/Chromium Embedded Framework.framework/Chromium Embedded Framework";
 #elif defined(Windows)
     const char* s_cef_sdk = "./libcef.dll";
 #else
-    const char* s_cef_sdk = "../Frameworks/Chromium Embedded Framework.framework/Chromium Embedded Framework";
+    const char* s_cef_sdk = "./libcef.so";
 #endif
 
     static exlib::string str_cef;
