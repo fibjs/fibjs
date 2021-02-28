@@ -101,6 +101,9 @@ interface WebView : EventEmitter
 	*/
     postMessage(String msg) async;
 
+    /*! @brief DevTools 访问对象 */
+    readonly Value dev;
+
     /*! @brief 查询和绑定加载成功事件，相当于 on("open", func); */
     Function onopen;
 

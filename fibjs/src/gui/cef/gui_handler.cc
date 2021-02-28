@@ -83,6 +83,8 @@ void GuiHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 {
     BrowserList::iterator bit = fromBrowser(browser);
     if (bit != browser_list_.end()) {
+        (*bit)->clear();
+
         if ((*bit)->m_bHeadless) {
             (*bit)->_emit("closed");
             (*bit)->holder()->Unref();

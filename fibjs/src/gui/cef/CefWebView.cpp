@@ -151,6 +151,11 @@ void CefWebView::open()
     }
 }
 
+void CefWebView::clear()
+{
+    m_domain.clear();
+}
+
 #ifndef Darwin
 void CefWebView::config_window()
 {
@@ -294,7 +299,19 @@ void CefWebView::OnDevToolsEvent(CefRefPtr<CefBrowser> browser, const CefString&
     const void* params, size_t params_size)
 {
     Variant v = new JSONValue(exlib::string((const char*)params, params_size));
-    _emit(method.ToString(), &v, 1);
+    exlib::string name = method.ToString();
+    size_t pos = name.find('.');
+
+    if (pos != exlib::string::npos) {
+        exlib::string dom_name = name.substr(0, pos);
+        std::map<exlib::string, obj_ptr<EventEmitter_base>>::iterator it_dom;
+
+        it_dom = m_domain.find(dom_name);
+        if (it_dom != m_domain.end())
+            it_dom->second->_emit(name.substr(pos + 1), &v, 1);
+    }
+
+    _emit(name, &v, 1);
 }
 
 result_t CefWebView::executeDevToolsMethod(exlib::string method, v8::Local<v8::Object> params,

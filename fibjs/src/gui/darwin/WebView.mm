@@ -516,6 +516,11 @@ result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
 
     return 0;
 }
+
+result_t WebView::get_dev(v8::Local<v8::Value>& retVal)
+{
+    return CALL_RETURN_NULL;
+}
 }
 
 #endif /* __APPLE__ */

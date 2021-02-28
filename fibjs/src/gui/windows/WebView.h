@@ -57,6 +57,7 @@ public:
     virtual result_t executeDevToolsMethod(exlib::string method, v8::Local<v8::Object> params, Variant& retVal, AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
+    virtual result_t get_dev(v8::Local<v8::Value>& retVal);
 
 private:
     static void exec_js(IWebBrowser2* frame, const wchar_t* code);

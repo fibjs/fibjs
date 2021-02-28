@@ -35,6 +35,7 @@ public:
     virtual result_t executeDevToolsMethod(exlib::string method, v8::Local<v8::Object> params, Variant& retVal, AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
+    virtual result_t get_dev(v8::Local<v8::Value>& retVal);
 
 public:
     // CefDevToolsMessageObserver
@@ -78,6 +79,8 @@ public:
     {
         m_reg = m_browser->GetHost()->AddDevToolsMessageObserver(this);
     }
+
+    void clear();
 
 public:
     CefRefPtr<CefBrowser> m_browser;
@@ -123,6 +126,7 @@ private:
 
     int32_t m_eid;
     std::map<int32_t, ac_method> m_method;
+    std::map<exlib::string, obj_ptr<EventEmitter_base>> m_domain;
 
     CefRefPtr<CefRegistration> m_reg;
 };

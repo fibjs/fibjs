@@ -6,6 +6,7 @@
     "ejs": "^2.5.6",
     "js-beautify": "^1.6.14",
     "pegjs": "^0.10.0",
-    "uglify-js": "^3.0.27"
+    "uglify-js": "^3.0.27",
+    "devtools-protocol": "^0.0.856957"
   }
 }
