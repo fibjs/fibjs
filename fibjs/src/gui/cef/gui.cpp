@@ -27,9 +27,16 @@ static exlib::Event s_gui;
 static exlib::Event s_gui_ready;
 
 class GuiApp : public CefApp,
-               public CefBrowserProcessHandler {
+               public CefBrowserProcessHandler,
+               public CefPrintHandler {
 public:
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler()
+        OVERRIDE
+    {
+        return this;
+    }
+
+    virtual CefRefPtr<CefPrintHandler> GetPrintHandler()
         OVERRIDE
     {
         return this;
@@ -38,6 +45,40 @@ public:
     void OnContextInitialized() OVERRIDE
     {
         s_gui_ready.set();
+    }
+
+    virtual void OnPrintStart(CefRefPtr<CefBrowser> browser) OVERRIDE
+    {
+    }
+
+    virtual void OnPrintSettings(CefRefPtr<CefBrowser> browser,
+        CefRefPtr<CefPrintSettings> settings, bool get_defaults)
+        OVERRIDE
+    {
+    }
+
+    virtual bool OnPrintDialog(CefRefPtr<CefBrowser> browser,
+        bool has_selection, CefRefPtr<CefPrintDialogCallback> callback)
+        OVERRIDE
+    {
+        return false;
+    }
+
+    virtual bool OnPrintJob(CefRefPtr<CefBrowser> browser, const CefString& document_name,
+        const CefString& pdf_file_path, CefRefPtr<CefPrintJobCallback> callback)
+        OVERRIDE
+    {
+        return false;
+    }
+
+    virtual void OnPrintReset(CefRefPtr<CefBrowser> browser) OVERRIDE
+    {
+    }
+
+    virtual CefSize GetPdfPaperSize(int device_units_per_inch)
+        OVERRIDE
+    {
+        return CefSize(8.27 * device_units_per_inch, 11.75 * device_units_per_inch);
     }
 
 private:
