@@ -47,6 +47,7 @@ public:
 public:
     // WebView_base
     virtual result_t loadUrl(exlib::string url, AsyncEvent* ac);
+    virtual result_t getUrl(exlib::string& retVal, AsyncEvent* ac);
     virtual result_t setHtml(exlib::string html, AsyncEvent* ac);
     virtual result_t reload(AsyncEvent* ac);
     virtual result_t goBack(AsyncEvent* ac);

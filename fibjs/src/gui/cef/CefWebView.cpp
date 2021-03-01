@@ -170,8 +170,23 @@ result_t CefWebView::loadUrl(exlib::string url, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_GUICALL);
 
-    if (m_browser)
-        m_browser->GetMainFrame()->LoadURL(url.c_str());
+    if (!m_browser)
+        return 0;
+
+    m_browser->GetMainFrame()->LoadURL(url.c_str());
+
+    return 0;
+}
+
+result_t CefWebView::getUrl(exlib::string& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_GUICALL);
+
+    if (!m_browser)
+        return 0;
+
+    retVal = m_browser->GetMainFrame()->GetURL().ToString();
 
     return 0;
 }

@@ -398,6 +398,20 @@ result_t WebView::loadUrl(exlib::string url, AsyncEvent* ac)
     return 0;
 }
 
+result_t WebView::getUrl(exlib::string& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_GUICALL);
+
+    if (!m_wkWebView)
+        return 0;
+
+    if ([m_wkWebView URL])
+        retVal = [[m_wkWebView.URL absoluteString] UTF8String];
+
+    return 0;
+}
+
 result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
 {
     if (ac->isSync())

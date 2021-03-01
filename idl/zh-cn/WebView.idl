@@ -56,6 +56,11 @@ interface WebView : EventEmitter
 	 */
     loadUrl(String url) async;
 
+    /*! @brief 查询当前页面的 url
+	 @return 返回当前页面的 url
+	 */
+    String getUrl() async;
+
     /*! @brief 设置 webview 的页面 html
 	 @param html 设置的 html
 	 */

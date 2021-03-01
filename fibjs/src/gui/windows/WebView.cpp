@@ -638,6 +638,23 @@ result_t WebView::loadUrl(exlib::string url, AsyncEvent* ac)
     return 0;
 }
 
+result_t WebView::getUrl(exlib::string& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_GUICALL);
+
+    if (!webBrowser2)
+        return 0;
+
+    BSTR url;
+    if (webBrowser2->get_LocationURL(&url) == 0) {
+        retVal = utf16to8String(url);
+        ::SysFreeString(url);
+    }
+
+    return 0;
+}
+
 result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
 {
     if (ac->isSync())

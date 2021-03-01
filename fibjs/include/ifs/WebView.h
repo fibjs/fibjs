@@ -25,6 +25,7 @@ class WebView_base : public EventEmitter_base {
 public:
     // WebView_base
     virtual result_t loadUrl(exlib::string url, AsyncEvent* ac) = 0;
+    virtual result_t getUrl(exlib::string& retVal, AsyncEvent* ac) = 0;
     virtual result_t setHtml(exlib::string html, AsyncEvent* ac) = 0;
     virtual result_t reload(AsyncEvent* ac) = 0;
     virtual result_t goBack(AsyncEvent* ac) = 0;
@@ -62,6 +63,7 @@ public:
 
 public:
     static void s_loadUrl(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getUrl(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setHtml(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_reload(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_goBack(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -88,6 +90,7 @@ public:
 
 public:
     ASYNC_MEMBER1(WebView_base, loadUrl, exlib::string);
+    ASYNC_MEMBERVALUE1(WebView_base, getUrl, exlib::string);
     ASYNC_MEMBER1(WebView_base, setHtml, exlib::string);
     ASYNC_MEMBER0(WebView_base, reload);
     ASYNC_MEMBER0(WebView_base, goBack);
@@ -107,6 +110,8 @@ inline ClassInfo& WebView_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "loadUrl", s_loadUrl, false },
         { "loadUrlSync", s_loadUrl, false },
+        { "getUrl", s_getUrl, false },
+        { "getUrlSync", s_getUrl, false },
         { "setHtml", s_setHtml, false },
         { "setHtmlSync", s_setHtml, false },
         { "reload", s_reload, false },
@@ -165,6 +170,24 @@ inline void WebView_base::s_loadUrl(const v8::FunctionCallbackInfo<v8::Value>& a
         hr = pInst->ac_loadUrl(v0);
 
     METHOD_VOID();
+}
+
+inline void WebView_base::s_getUrl(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_NAME("WebView.getUrl");
+    METHOD_INSTANCE(WebView_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_getUrl(cb, args);
+    else
+        hr = pInst->ac_getUrl(vr);
+
+    METHOD_RETURN();
 }
 
 inline void WebView_base::s_setHtml(const v8::FunctionCallbackInfo<v8::Value>& args)
