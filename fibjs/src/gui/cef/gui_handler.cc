@@ -27,12 +27,19 @@ inline std::string GetDataURI(const std::string& data, const std::string& mime_t
     return "data:" + mime_type + ";base64," + CefURIEncode(CefBase64Encode(data.data(), data.size()), false).ToString();
 }
 
-GuiHandler::GuiHandler()
+bool GuiHandler::RunContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
+    CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model,
+    CefRefPtr<CefRunContextMenuCallback> callback)
 {
-}
+    if (params->GetTypeFlags() & CM_TYPEFLAG_EDITABLE)
+        return false;
 
-GuiHandler::~GuiHandler()
-{
+    bool stop_menu = false;
+    BrowserList::iterator bit = fromBrowser(browser);
+    if (bit != browser_list_.end())
+        stop_menu = !(*bit)->m_bMenu;
+
+    return stop_menu;
 }
 
 void GuiHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,

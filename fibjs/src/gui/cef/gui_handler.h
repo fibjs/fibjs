@@ -16,15 +16,17 @@
 namespace fibjs {
 
 class GuiHandler : public CefClient,
+                   public CefContextMenuHandler,
                    public CefDisplayHandler,
                    public CefLifeSpanHandler,
                    public CefLoadHandler,
                    public CefRenderHandler {
 public:
-    explicit GuiHandler();
-    ~GuiHandler();
+    virtual CefRefPtr<CefContextMenuHandler> GetContextMenuHandler() OVERRIDE
+    {
+        return this;
+    }
 
-public:
     virtual CefRefPtr<CefDisplayHandler> GetDisplayHandler() OVERRIDE
     {
         return this;
@@ -44,6 +46,12 @@ public:
     {
         return this;
     }
+
+public:
+    // CefContextMenuHandler
+    virtual bool RunContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
+        CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model,
+        CefRefPtr<CefRunContextMenuCallback> callback) OVERRIDE;
 
 public:
     // CefLifeSpanHandler

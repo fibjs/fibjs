@@ -85,6 +85,7 @@ public:
 
     bool m_bDebug;
     bool m_bPopup;
+    bool m_bMenu;
     bool m_bHeadless;
 
 private:

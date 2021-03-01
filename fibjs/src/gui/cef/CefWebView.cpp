@@ -83,6 +83,7 @@ CefWebView::CefWebView(exlib::string url, NObject* opt)
     , m_url(url)
     , m_bDebug(true)
     , m_bPopup(true)
+    , m_bMenu(true)
     , m_bHeadless(g_cefheadless)
     , m_eid(0)
 {
@@ -99,6 +100,9 @@ CefWebView::CefWebView(exlib::string url, NObject* opt)
 
         if (m_opt->get("popup", v) == 0)
             m_bPopup = v.boolVal();
+
+        if (m_opt->get("menu", v) == 0)
+            m_bMenu = v.boolVal();
 
         if (!m_bHeadless && m_opt->get("headless", v) == 0)
             m_bHeadless = v.boolVal();
