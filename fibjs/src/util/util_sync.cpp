@@ -112,11 +112,14 @@ static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
     if (result.IsEmpty())
         return;
 
+    v8::Local<v8::Promise> _promise;
     v8::Local<v8::Function> _then;
     v8::Local<v8::Function> _catch;
-    JSValue v;
 
-    if (result->IsObject()) {
+    if (result->IsPromise()) {
+        _promise = v8::Local<v8::Promise>::Cast(result);
+    } else if (result->IsObject()) {
+        JSValue v;
         v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(result);
 
         v = o->Get(isolate->NewString("then"));
@@ -128,24 +131,32 @@ static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
             _catch = v8::Local<v8::Function>::Cast(v);
     }
 
-    if (_then.IsEmpty() || _catch.IsEmpty()) {
+    if (_promise.IsEmpty() && (_then.IsEmpty() || _catch.IsEmpty())) {
         ThrowError("not async function.");
         return;
     }
 
-    v = isolate->NewFunction("promise_then", promise_then, args[len - 1]);
-    if (v.IsEmpty()) {
-        ThrowError("function alloc error.");
-        return;
-    }
-    _then->Call(result, 1, &v);
+    v8::Local<v8::Function> _then_func;
+    v8::Local<v8::Function> _catch_func;
 
-    v = isolate->NewFunction("promise_catch", promise_catch, args[len - 1]);
-    if (v.IsEmpty()) {
+    _then_func = isolate->NewFunction("promise_then", promise_then, args[len - 1]);
+    if (_then_func.IsEmpty()) {
         ThrowError("function alloc error.");
         return;
     }
-    _catch->Call(result, 1, &v);
+    _catch_func = isolate->NewFunction("promise_catch", promise_catch, args[len - 1]);
+    if (_catch_func.IsEmpty()) {
+        ThrowError("function alloc error.");
+        return;
+    }
+
+    if (!_promise.IsEmpty()) {
+        _promise->Then(isolate->context(), _then_func);
+        _promise->Catch(isolate->context(), _catch_func);
+    } else {
+        _then->Call(result, 1, (v8::Local<v8::Value>*)&_then_func);
+        _catch->Call(result, 1, (v8::Local<v8::Value>*)&_catch_func);
+    }
 }
 
 result_t util_base::sync(v8::Local<v8::Function> func, bool async_func, v8::Local<v8::Function>& retVal)
