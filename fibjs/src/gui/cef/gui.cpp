@@ -25,6 +25,7 @@ DECLARE_MODULE(gui);
 
 static exlib::Event s_gui;
 static exlib::Event s_gui_ready;
+static exlib::Event s_gui_done;
 
 class GuiApp : public CefApp,
                public CefBrowserProcessHandler,
@@ -172,6 +173,25 @@ void run_gui(int argc, char* argv[])
         CefInitialize(main_args, settings, app.get(), nullptr);
         CefRunMessageLoop();
 #endif
+
+        CefShutdown();
+        s_gui_done.set();
+
+        th.suspend();
+    }
+}
+
+static result_t async_flush(int32_t w)
+{
+    CefQuitMessageLoop();
+    return 0;
+}
+
+void gui_flush()
+{
+    if (s_has_cef) {
+        asyncCall(async_flush, 0, CALL_E_GUICALL);
+        s_gui_done.wait();
     }
 }
 

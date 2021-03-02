@@ -282,6 +282,7 @@ result_t process_base::get_stderr(obj_ptr<Stream_base>& retVal)
 }
 
 extern bool g_in_readline;
+extern void gui_flush();
 
 result_t process_base::exit()
 {
@@ -300,6 +301,8 @@ result_t process_base::exit()
     if (g_cov != nullptr && isolate->m_id == 1) {
         WriteLcovData(isolate->m_isolate, g_cov);
     }
+
+    gui_flush();
 
 #ifdef _WIN32
     TerminateProcess(GetCurrentProcess(), code);
