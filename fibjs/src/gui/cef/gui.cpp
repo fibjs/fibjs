@@ -42,6 +42,14 @@ public:
         return this;
     }
 
+    virtual void OnBeforeCommandLineProcessing(const CefString& process_type,
+        CefRefPtr<CefCommandLine> command_line) OVERRIDE
+    {
+#ifdef Darwin
+        command_line->AppendSwitch("use-mock-keychain");
+#endif
+    }
+
     void OnContextInitialized() OVERRIDE
     {
         s_gui_ready.set();
