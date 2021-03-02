@@ -31,13 +31,17 @@ module path_posix
 
     /*! @brief 尝试将一个对象格式化为路径
 
-     @param pathObject 对象
-     @param pathObject.dir
-     @param pathObject.root
-     @param pathObject.base
-     @param pathObject.name
-     @param pathObject.ext
-     
+     pathObject 支持的字段如下：
+     ```JavaScript
+     {
+         "dir": "", // 指定路径的目录
+         "root": "", // 指定路径的根目录
+         "base": "", // 指定路径的文件名，等同于 ${name}.${ext}
+         "name": "", // 指定路径的主文件名
+         "ext": "", // 指定路径的扩展名
+     }
+     ```
+     @param pathObject 指定参数
      @return 返回格式化后的路径
      */
     static String format(Object pathObject);
