@@ -54,4 +54,16 @@ module gui
      @return 返回打开的窗口对象
 	*/
     static WebView open(String url, Object opt = {});
+
+    /*! @brief 设置 gui 全局参数
+
+     支持以下参数:
+     ```JavaScript
+     {
+         "cache_path": "" // 设置数据持久化目录，缺省为空，退出进程后，客户端临时数据将不会被保存
+     }
+     ```
+     @param opt 指定设置的参数
+	*/
+    static config(Object opt = {});
 };

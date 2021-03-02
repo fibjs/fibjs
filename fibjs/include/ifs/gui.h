@@ -35,6 +35,7 @@ public:
     // gui_base
     static result_t setVersion(int32_t ver);
     static result_t open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal);
+    static result_t config(v8::Local<v8::Object> opt);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -50,6 +51,7 @@ public:
 public:
     static void s_static_setVersion(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_open(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_config(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -60,7 +62,8 @@ inline ClassInfo& gui_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "setVersion", s_static_setVersion, true },
-        { "open", s_static_open, true }
+        { "open", s_static_open, true },
+        { "config", s_static_config, true }
     };
 
     static ClassData::ClassConst s_const[] = {
@@ -111,6 +114,20 @@ inline void gui_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& a
     hr = open(v0, v1, vr);
 
     METHOD_RETURN();
+}
+
+inline void gui_base::s_static_config(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("gui.config");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate));
+
+    hr = config(v0);
+
+    METHOD_VOID();
 }
 }
 
