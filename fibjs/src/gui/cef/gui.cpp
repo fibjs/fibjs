@@ -23,14 +23,27 @@ namespace fibjs {
 
 DECLARE_MODULE(gui);
 
-static exlib::Event s_gui;
-static exlib::Event s_gui_ready;
-static exlib::Event s_gui_done;
+#ifdef WIN32
+#define os_dirname _dirname_win32
+#define os_normalize _normalize_win32
+#else
+#define os_dirname _dirname
+#define os_normalize _normalize
+#endif
+
+#if defined(Darwin)
+const char* s_cef_sdk = "../Frameworks/Chromium Embedded Framework.framework/Chromium Embedded Framework";
+#elif defined(Windows)
+const char* s_cef_sdk = "libcef.dll";
+#else
+const char* s_cef_sdk = "libcef.so";
+#endif
 
 class GuiApp : public CefApp,
                public CefBrowserProcessHandler,
                public CefPrintHandler {
 public:
+    // CefApp
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler()
         OVERRIDE
     {
@@ -43,6 +56,8 @@ public:
         return this;
     }
 
+public:
+    // CefBrowserProcessHandler
     virtual void OnBeforeCommandLineProcessing(const CefString& process_type,
         CefRefPtr<CefCommandLine> command_line) OVERRIDE
     {
@@ -53,9 +68,11 @@ public:
 
     void OnContextInitialized() OVERRIDE
     {
-        s_gui_ready.set();
+        m_gui_ready.set();
     }
 
+public:
+    // CefPrintHandler
     virtual void OnPrintStart(CefRefPtr<CefBrowser> browser) OVERRIDE
     {
     }
@@ -91,54 +108,47 @@ public:
             (int32_t)(11.75 * device_units_per_inch));
     }
 
+    void load_cef()
+    {
+        exlib::string str_cef;
+        exlib::string str_path;
+        exlib::string str_exe;
+
+        process_base::get_execPath(str_exe);
+        os_dirname(str_exe, str_path);
+
+        str_path.append(1, PATH_SLASH);
+        str_path.append(s_cef_sdk);
+        os_normalize(str_path, str_cef);
+
+        if (!g_cefprocess)
+            m_gui.wait();
+
+        fs_base::cc_exists(str_cef, m_has_cef);
+        if (!m_has_cef) {
+            m_gui_ready.set();
+            run_os_gui();
+        }
+
+        if (!cef_load_library(str_cef.c_str()))
+            _exit(-1);
+    }
+
+public:
+    CefSettings m_settings;
+    obj_ptr<NObject> m_opt;
+
+    bool m_has_cef = false;
+
+    exlib::Event m_gui;
+    exlib::Event m_gui_ready;
+    exlib::Event m_gui_done;
+
 private:
     IMPLEMENT_REFCOUNTING(GuiApp);
 };
 
-static bool s_has_cef;
-
-void load_cef()
-{
-#if defined(Darwin)
-    const char* s_cef_sdk = "../Frameworks/Chromium Embedded Framework.framework/Chromium Embedded Framework";
-#elif defined(Windows)
-    const char* s_cef_sdk = "libcef.dll";
-#else
-    const char* s_cef_sdk = "libcef.so";
-#endif
-
-    exlib::string str_cef;
-    exlib::string str_exe;
-    exlib::string str_path;
-
-    process_base::get_execPath(str_exe);
-
-#ifdef WIN32
-    _dirname_win32(str_exe, str_path);
-    str_path.append(1, PATH_SLASH);
-    str_path.append(s_cef_sdk);
-    _normalize_win32(str_path, str_cef);
-#else
-    _dirname(str_exe, str_path);
-    str_path.append(1, PATH_SLASH);
-    str_path.append(s_cef_sdk);
-    _normalize(str_path, str_cef);
-#endif
-
-    fs_base::cc_exists(str_cef, s_has_cef);
-    if (!s_has_cef) {
-        s_gui.wait();
-        s_gui_ready.set();
-
-        run_os_gui();
-    }
-
-    if (!cef_load_library(str_cef.c_str()))
-        _exit(-1);
-}
-
-CefSettings app_settings;
-static obj_ptr<NObject> s_opt;
+static CefRefPtr<GuiApp> g_app;
 
 void MacRunMessageLoop(const CefMainArgs& args, const CefSettings& settings, CefRefPtr<CefApp> application);
 
@@ -154,31 +164,28 @@ void run_gui(int argc, char* argv[])
 #else
     CefMainArgs main_args(argc, argv);
 #endif
-    CefRefPtr<GuiApp> app(new GuiApp);
+    g_app = new GuiApp;
+    g_app->load_cef();
 
-    if (g_cefprocess) {
-        load_cef();
-        _exit(CefExecuteProcess(main_args, app.get(), NULL));
-    } else {
-        s_gui.wait();
-        load_cef();
-
-        if (s_opt) {
+    if (g_cefprocess)
+        _exit(CefExecuteProcess(main_args, g_app.get(), NULL));
+    else {
+        if (g_app->m_opt) {
             Variant v;
 
-            if (s_opt->get("cache_path", v) == 0)
-                CefString(&app_settings.cache_path) = v.string().c_str();
+            if (g_app->m_opt->get("cache_path", v) == 0)
+                CefString(&g_app->m_settings.cache_path) = v.string().c_str();
         }
 
 #ifdef Darwin
-        MacRunMessageLoop(main_args, app_settings, app.get());
+        MacRunMessageLoop(main_args, g_app->m_settings, g_app.get());
 #else
-        CefInitialize(main_args, app_settings, app.get(), nullptr);
+        CefInitialize(main_args, g_app->m_settings, g_app.get(), nullptr);
         CefRunMessageLoop();
 #endif
 
         CefShutdown();
-        s_gui_done.set();
+        g_app->m_gui_done.set();
 
         th.suspend();
     }
@@ -192,9 +199,9 @@ static result_t async_flush(int32_t w)
 
 void gui_flush()
 {
-    if (s_has_cef) {
+    if (g_app && g_app->m_has_cef) {
         asyncCall(async_flush, 0, CALL_E_GUICALL);
-        s_gui_done.wait();
+        g_app->m_gui_done.wait();
     }
 }
 
@@ -217,7 +224,7 @@ void putGuiPool(AsyncEvent* ac)
         AsyncEvent* m_ac;
     };
 
-    if (!s_has_cef)
+    if (!g_app->m_has_cef)
         os_putGuiPool(ac);
     else
         CefPostTask(TID_UI, new GuiTask(ac));
@@ -236,10 +243,10 @@ static result_t async_open(obj_ptr<CefWebView> w)
 
 result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
-    s_gui.set();
-    s_gui_ready.wait();
+    g_app->m_gui.set();
+    g_app->m_gui_ready.wait();
 
-    if (!s_has_cef)
+    if (!g_app->m_has_cef)
         return os_gui_open(url, opt, retVal);
 
     obj_ptr<NObject> o = new NObject();
@@ -256,8 +263,8 @@ result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<We
 
 result_t gui_base::config(v8::Local<v8::Object> opt)
 {
-    s_opt = new NObject();
-    s_opt->add(opt);
+    g_app->m_opt = new NObject();
+    g_app->m_opt->add(opt);
 
     return 0;
 }
