@@ -60,7 +60,9 @@ module gui
      支持以下参数:
      ```JavaScript
      {
-         "cache_path": "" // 设置数据持久化目录，缺省为空，退出进程后，客户端临时数据将不会被保存
+         "cache_path": "", // 设置数据持久化目录，缺省为空，退出进程后，客户端临时数据将不会被保存
+         "cef_path": "", // 设置 cef runtime 路径，缺省时在当前目录寻找 cef runtime，Mac 下不支持设定
+         "locales_path": "" // 设置 cef 本地化资源目录，缺省在 cef runtime 目录下
      }
      ```
      @param opt 指定设置的参数

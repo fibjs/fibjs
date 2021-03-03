@@ -43,6 +43,22 @@ class GuiApp : public CefApp,
                public CefBrowserProcessHandler,
                public CefPrintHandler {
 public:
+    GuiApp(int argc, char* argv[])
+#ifdef WIN32
+        : m_args(NULL)
+#else
+        : m_args(argc, argv)
+#endif
+    {
+        if (g_cefprocess) {
+            for (int32_t i = 0; i < argc; i++) {
+                if (!qstrcmp(argv[i], "--cef_path=", 11))
+                    m_cef_path = argv[i] + 11;
+            }
+        }
+    }
+
+public:
     // CefApp
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler()
         OVERRIDE
@@ -58,6 +74,11 @@ public:
 
 public:
     // CefBrowserProcessHandler
+    virtual void OnContextInitialized() OVERRIDE
+    {
+        m_gui_ready.set();
+    }
+
     virtual void OnBeforeCommandLineProcessing(const CefString& process_type,
         CefRefPtr<CefCommandLine> command_line) OVERRIDE
     {
@@ -66,9 +87,10 @@ public:
 #endif
     }
 
-    void OnContextInitialized() OVERRIDE
+    virtual void OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line)
+        OVERRIDE
     {
-        m_gui_ready.set();
+        command_line->AppendSwitchWithValue("cef_path", m_cef_path.c_str());
     }
 
 public:
@@ -110,19 +132,25 @@ public:
 
     void load_cef()
     {
-        exlib::string str_cef;
         exlib::string str_path;
-        exlib::string str_exe;
-
-        process_base::get_execPath(str_exe);
-        os_dirname(str_exe, str_path);
-
-        str_path.append(1, PATH_SLASH);
-        str_path.append(s_cef_sdk);
-        os_normalize(str_path, str_cef);
 
         if (!g_cefprocess)
             m_gui.wait();
+
+        if (m_cef_path.empty()) {
+            exlib::string str_exe;
+
+            process_base::get_execPath(str_exe);
+            os_dirname(str_exe, m_cef_path);
+        }
+
+        str_path = m_cef_path;
+
+        str_path.append(1, PATH_SLASH);
+        str_path.append(s_cef_sdk);
+
+        exlib::string str_cef;
+        os_normalize(str_path, str_cef);
 
         fs_base::cc_exists(str_cef, m_has_cef);
         if (!m_has_cef) {
@@ -130,14 +158,24 @@ public:
             run_os_gui();
         }
 
+#ifdef WIN32
+        exlib::string str_chrome;
+
+        os_dirname(str_cef, str_chrome);
+        str_chrome.append("\\chrome_elf.dll");
+        LoadLibraryW(UTF8_W(str_chrome));
+#endif
+
         if (!cef_load_library(str_cef.c_str()))
             _exit(-1);
     }
 
 public:
+    CefMainArgs m_args;
     CefSettings m_settings;
     obj_ptr<NObject> m_opt;
 
+    exlib::string m_cef_path;
     bool m_has_cef = false;
 
     exlib::Event m_gui;
@@ -159,36 +197,41 @@ void run_gui(int argc, char* argv[])
 
     Runtime rt(NULL);
 
-#ifdef WIN32
-    CefMainArgs main_args(NULL);
-#else
-    CefMainArgs main_args(argc, argv);
-#endif
-    g_app = new GuiApp;
+    g_app = new GuiApp(argc, argv);
     g_app->load_cef();
 
     if (g_cefprocess)
-        _exit(CefExecuteProcess(main_args, g_app.get(), NULL));
-    else {
-        if (g_app->m_opt) {
-            Variant v;
+        _exit(CefExecuteProcess(g_app->m_args, g_app.get(), NULL));
 
-            if (g_app->m_opt->get("cache_path", v) == 0)
-                CefString(&g_app->m_settings.cache_path) = v.string().c_str();
+    if (g_app->m_opt) {
+        Variant v;
+
+        if (g_app->m_opt->get("cache_path", v) == 0)
+            CefString(&g_app->m_settings.cache_path) = v.string().c_str();
+
+#ifndef Darwin
+        if (g_app->m_opt->get("locales_path", v) == 0)
+            CefString(&g_app->m_settings.locales_dir_path) = v.string().c_str();
+        else {
+            exlib::string str_locales;
+
+            os_normalize(g_app->m_cef_path + "/locales", str_locales);
+            CefString(&g_app->m_settings.locales_dir_path) = str_locales.c_str();
         }
+#endif
+    }
 
 #ifdef Darwin
-        MacRunMessageLoop(main_args, g_app->m_settings, g_app.get());
+    MacRunMessageLoop(g_app->m_args, g_app->m_settings, g_app.get());
 #else
-        CefInitialize(main_args, g_app->m_settings, g_app.get(), nullptr);
-        CefRunMessageLoop();
+    CefInitialize(g_app->m_args, g_app->m_settings, g_app.get(), nullptr);
+    CefRunMessageLoop();
 #endif
 
-        CefShutdown();
-        g_app->m_gui_done.set();
+    CefShutdown();
+    g_app->m_gui_done.set();
 
-        th.suspend();
-    }
+    th.suspend();
 }
 
 static result_t async_flush(int32_t w)
@@ -265,6 +308,12 @@ result_t gui_base::config(v8::Local<v8::Object> opt)
 {
     g_app->m_opt = new NObject();
     g_app->m_opt->add(opt);
+
+#ifndef Darwin
+    Variant v;
+    if (g_app->m_opt->get("cef_path", v) == 0)
+        g_app->m_cef_path = v.string();
+#endif
 
     return 0;
 }
