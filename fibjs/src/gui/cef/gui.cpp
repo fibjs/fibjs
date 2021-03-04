@@ -18,6 +18,7 @@
 #include "include/wrapper/cef_library_loader.h"
 #include "CefWebView.h"
 #include "../os_gui.h"
+#include "gui_app.h"
 
 namespace fibjs {
 
@@ -39,152 +40,45 @@ const char* s_cef_sdk = "libcef.dll";
 const char* s_cef_sdk = "libcef.so";
 #endif
 
-class GuiApp : public CefApp,
-               public CefBrowserProcessHandler,
-               public CefPrintHandler {
-public:
-    GuiApp(int argc, char* argv[])
-#ifdef WIN32
-        : m_args(NULL)
-#else
-        : m_args(argc, argv)
-#endif
-    {
-        if (g_cefprocess) {
-            for (int32_t i = 0; i < argc; i++) {
-                if (!qstrcmp(argv[i], "--cef_path=", 11))
-                    m_cef_path = argv[i] + 11;
-            }
-        }
+void GuiApp::load_cef()
+{
+    exlib::string str_path;
+
+    if (!g_cefprocess)
+        m_gui.wait();
+
+    if (m_cef_path.empty()) {
+        exlib::string str_exe;
+
+        process_base::get_execPath(str_exe);
+        os_dirname(str_exe, m_cef_path);
     }
 
-public:
-    // CefApp
-    virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler()
-        OVERRIDE
-    {
-        return this;
-    }
+    str_path = m_cef_path;
 
-    virtual CefRefPtr<CefPrintHandler> GetPrintHandler()
-        OVERRIDE
-    {
-        return this;
-    }
+    str_path.append(1, PATH_SLASH);
+    str_path.append(s_cef_sdk);
 
-public:
-    // CefBrowserProcessHandler
-    virtual void OnContextInitialized() OVERRIDE
-    {
+    exlib::string str_cef;
+    os_normalize(str_path, str_cef);
+
+    fs_base::cc_exists(str_cef, m_has_cef);
+    if (!m_has_cef) {
         m_gui_ready.set();
+        run_os_gui();
     }
-
-    virtual void OnBeforeCommandLineProcessing(const CefString& process_type,
-        CefRefPtr<CefCommandLine> command_line) OVERRIDE
-    {
-#ifdef Darwin
-        command_line->AppendSwitch("use-mock-keychain");
-#endif
-    }
-
-    virtual void OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line)
-        OVERRIDE
-    {
-        command_line->AppendSwitchWithValue("cef_path", m_cef_path.c_str());
-    }
-
-public:
-    // CefPrintHandler
-    virtual void OnPrintStart(CefRefPtr<CefBrowser> browser) OVERRIDE
-    {
-    }
-
-    virtual void OnPrintSettings(CefRefPtr<CefBrowser> browser,
-        CefRefPtr<CefPrintSettings> settings, bool get_defaults)
-        OVERRIDE
-    {
-    }
-
-    virtual bool OnPrintDialog(CefRefPtr<CefBrowser> browser,
-        bool has_selection, CefRefPtr<CefPrintDialogCallback> callback)
-        OVERRIDE
-    {
-        return false;
-    }
-
-    virtual bool OnPrintJob(CefRefPtr<CefBrowser> browser, const CefString& document_name,
-        const CefString& pdf_file_path, CefRefPtr<CefPrintJobCallback> callback)
-        OVERRIDE
-    {
-        return false;
-    }
-
-    virtual void OnPrintReset(CefRefPtr<CefBrowser> browser) OVERRIDE
-    {
-    }
-
-    virtual CefSize GetPdfPaperSize(int device_units_per_inch)
-        OVERRIDE
-    {
-        return CefSize((int32_t)(8.27 * device_units_per_inch),
-            (int32_t)(11.75 * device_units_per_inch));
-    }
-
-    void load_cef()
-    {
-        exlib::string str_path;
-
-        if (!g_cefprocess)
-            m_gui.wait();
-
-        if (m_cef_path.empty()) {
-            exlib::string str_exe;
-
-            process_base::get_execPath(str_exe);
-            os_dirname(str_exe, m_cef_path);
-        }
-
-        str_path = m_cef_path;
-
-        str_path.append(1, PATH_SLASH);
-        str_path.append(s_cef_sdk);
-
-        exlib::string str_cef;
-        os_normalize(str_path, str_cef);
-
-        fs_base::cc_exists(str_cef, m_has_cef);
-        if (!m_has_cef) {
-            m_gui_ready.set();
-            run_os_gui();
-        }
 
 #ifdef WIN32
-        exlib::string str_chrome;
+    exlib::string str_chrome;
 
-        os_dirname(str_cef, str_chrome);
-        str_chrome.append("\\chrome_elf.dll");
-        LoadLibraryW(UTF8_W(str_chrome));
+    os_dirname(str_cef, str_chrome);
+    str_chrome.append("\\chrome_elf.dll");
+    LoadLibraryW(UTF8_W(str_chrome));
 #endif
 
-        if (!cef_load_library(str_cef.c_str()))
-            _exit(-1);
-    }
-
-public:
-    CefMainArgs m_args;
-    CefSettings m_settings;
-    obj_ptr<NObject> m_opt;
-
-    exlib::string m_cef_path;
-    bool m_has_cef = false;
-
-    exlib::Event m_gui;
-    exlib::Event m_gui_ready;
-    exlib::Event m_gui_done;
-
-private:
-    IMPLEMENT_REFCOUNTING(GuiApp);
-};
+    if (!cef_load_library(str_cef.c_str()))
+        _exit(-1);
+}
 
 static CefRefPtr<GuiApp> g_app;
 
