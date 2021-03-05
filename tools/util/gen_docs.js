@@ -83,6 +83,14 @@ module.exports = function (defs, docsFolder) {
         var keyworks = {};
 
         function link_line(t) {
+            var urls = [];
+            var re = /https?:\/\/[-a-zA-Z0-9@:%._\+\/~#=]+/g;
+
+            t = t.replace(re, function (u) {
+                urls.push(u);
+                return `[u_r_l::${urls.length-1}]`;
+            });
+
             t = t.replace(/(\w+)(\.(\w+))?/g, function (k, k1, k2, k3) {
                 var tidx = t.indexOf(k)
                 // in code quotation
@@ -112,6 +120,12 @@ module.exports = function (defs, docsFolder) {
                 }
 
                 return k;
+            });
+
+            t = t.replace(/\[u_r_l::([0-9]+)\]/g, function (u, n) {
+                urls.push(u);
+                u = urls[new Number(n)];
+                return u;
             });
 
             return t;
