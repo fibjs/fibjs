@@ -11,6 +11,7 @@
 #include "object.h"
 #include "options.h"
 #include "include/cef_app.h"
+#include "res_handler.h"
 
 namespace fibjs {
 class GuiApp : public CefApp,
@@ -50,7 +51,26 @@ public:
     // CefBrowserProcessHandler
     virtual void OnContextInitialized() OVERRIDE
     {
+        std::map<exlib::string, CefRefPtr<GuiSchemeHandlerFactory>>::iterator it = m_schemes.begin();
+
+        while (it != m_schemes.end()) {
+            it->second->RegisterScheme(it->first);
+            it++;
+        }
+
         m_gui_ready.set();
+    }
+
+    virtual void OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> registrar) OVERRIDE
+    {
+        std::map<exlib::string, CefRefPtr<GuiSchemeHandlerFactory>>::iterator it = m_schemes.begin();
+
+        while (it != m_schemes.end()) {
+            if (it->first != "http" && it->first != "https")
+                registrar->AddCustomScheme(it->first.c_str(),
+                    CEF_SCHEME_OPTION_FETCH_ENABLED | CEF_SCHEME_OPTION_CORS_ENABLED);
+            it++;
+        }
     }
 
     virtual void OnBeforeCommandLineProcessing(const CefString& process_type,
@@ -104,19 +124,28 @@ public:
             (int32_t)(11.75 * device_units_per_inch));
     }
 
+public:
     void load_cef();
+    void run_gui(int argc, char* argv[]);
+    void gui_flush();
+    result_t open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal);
+    result_t config(v8::Local<v8::Object> opt);
 
 public:
+    obj_ptr<NObject> m_opt;
+    exlib::string m_cef_path;
+
     CefMainArgs m_args;
     CefSettings m_settings;
-    obj_ptr<NObject> m_opt;
 
-    exlib::string m_cef_path;
     bool m_has_cef = false;
 
     exlib::Event m_gui;
     exlib::Event m_gui_ready;
     exlib::Event m_gui_done;
+
+public:
+    std::map<exlib::string, CefRefPtr<GuiSchemeHandlerFactory>> m_schemes;
 
 private:
     IMPLEMENT_REFCOUNTING(GuiApp);

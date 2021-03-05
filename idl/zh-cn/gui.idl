@@ -55,14 +55,18 @@ module gui
 	*/
     static WebView open(String url, Object opt = {});
 
-    /*! @brief 设置 gui 全局参数
+    /*! @brief 设置 gui 全局参数，config 只对 cef gui 有效，不会影响 native webview
 
      支持以下参数:
      ```JavaScript
      {
-         "cache_path": "", // 设置数据持久化目录，缺省为空，退出进程后，客户端临时数据将不会被保存
+         "cache_path": "", // 设置 cef 数据持久化目录，缺省为空，退出进程后，客户端临时数据将不会被保存
          "cef_path": "", // 设置 cef runtime 路径，缺省时在当前目录寻找 cef runtime，Mac 下不支持设定
-         "locales_path": "" // 设置 cef 本地化资源目录，缺省在 cef runtime 目录下
+         "locales_path": "", // 设置 cef 本地化资源目录，缺省在 cef runtime 目录下
+         "backend": {
+             "http://app1/": handler1,
+             "fibjs://app2/": handler2,
+         } // 设置 cef 后端处理器，可用于处理 WebView 内部请求
      }
      ```
      @param opt 指定设置的参数

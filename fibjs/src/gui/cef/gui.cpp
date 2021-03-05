@@ -19,6 +19,7 @@
 #include "CefWebView.h"
 #include "../os_gui.h"
 #include "gui_app.h"
+#include "Url.h"
 
 namespace fibjs {
 
@@ -84,48 +85,53 @@ static CefRefPtr<GuiApp> g_app;
 
 void MacRunMessageLoop(const CefMainArgs& args, const CefSettings& settings, CefRefPtr<CefApp> application);
 
-void run_gui(int argc, char* argv[])
+void GuiApp::run_gui(int argc, char* argv[])
 {
     exlib::OSThread th;
     th.bindCurrent();
 
     Runtime rt(NULL);
 
-    g_app = new GuiApp(argc, argv);
-    g_app->load_cef();
+    load_cef();
 
     if (g_cefprocess)
-        _exit(CefExecuteProcess(g_app->m_args, g_app.get(), NULL));
+        _exit(CefExecuteProcess(m_args, this, NULL));
 
-    if (g_app->m_opt) {
+    if (m_opt) {
         Variant v;
 
-        if (g_app->m_opt->get("cache_path", v) == 0)
-            CefString(&g_app->m_settings.cache_path) = v.string().c_str();
+        if (m_opt->get("cache_path", v) == 0)
+            CefString(&m_settings.cache_path) = v.string().c_str();
 
 #ifndef Darwin
-        if (g_app->m_opt->get("locales_path", v) == 0)
-            CefString(&g_app->m_settings.locales_dir_path) = v.string().c_str();
+        if (m_opt->get("locales_path", v) == 0)
+            CefString(&m_settings.locales_dir_path) = v.string().c_str();
         else {
             exlib::string str_locales;
 
-            os_normalize(g_app->m_cef_path + "/locales", str_locales);
-            CefString(&g_app->m_settings.locales_dir_path) = str_locales.c_str();
+            os_normalize(m_cef_path + "/locales", str_locales);
+            CefString(&m_settings.locales_dir_path) = str_locales.c_str();
         }
 #endif
     }
 
 #ifdef Darwin
-    MacRunMessageLoop(g_app->m_args, g_app->m_settings, g_app.get());
+    MacRunMessageLoop(m_args, m_settings, this);
 #else
-    CefInitialize(g_app->m_args, g_app->m_settings, g_app.get(), nullptr);
+    CefInitialize(m_args, m_settings, this, nullptr);
     CefRunMessageLoop();
 #endif
 
     CefShutdown();
-    g_app->m_gui_done.set();
+    m_gui_done.set();
 
     th.suspend();
+}
+
+void run_gui(int argc, char* argv[])
+{
+    g_app = new GuiApp(argc, argv);
+    g_app.get()->run_gui(argc, argv);
 }
 
 static result_t async_flush(int32_t w)
@@ -134,12 +140,18 @@ static result_t async_flush(int32_t w)
     return 0;
 }
 
+void GuiApp::gui_flush()
+{
+    if (m_has_cef) {
+        asyncCall(async_flush, 0, CALL_E_GUICALL);
+        m_gui_done.wait();
+    }
+}
+
 void gui_flush()
 {
-    if (g_app && g_app->m_has_cef) {
-        asyncCall(async_flush, 0, CALL_E_GUICALL);
-        g_app->m_gui_done.wait();
-    }
+    if (g_app.get())
+        g_app.get()->gui_flush();
 }
 
 void putGuiPool(AsyncEvent* ac)
@@ -161,7 +173,7 @@ void putGuiPool(AsyncEvent* ac)
         AsyncEvent* m_ac;
     };
 
-    if (!g_app->m_has_cef)
+    if (!g_app.get()->m_has_cef)
         os_putGuiPool(ac);
     else
         CefPostTask(TID_UI, new GuiTask(ac));
@@ -178,12 +190,12 @@ static result_t async_open(obj_ptr<CefWebView> w)
     return 0;
 }
 
-result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
+result_t GuiApp::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
-    g_app->m_gui.set();
-    g_app->m_gui_ready.wait();
+    m_gui.set();
+    m_gui_ready.wait();
 
-    if (!g_app->m_has_cef)
+    if (!m_has_cef)
         return os_gui_open(url, opt, retVal);
 
     obj_ptr<NObject> o = new NObject();
@@ -198,17 +210,68 @@ result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<We
     return 0;
 }
 
-result_t gui_base::config(v8::Local<v8::Object> opt)
+result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
-    g_app->m_opt = new NObject();
-    g_app->m_opt->add(opt);
+    return g_app.get()->open(url, opt, retVal);
+}
+
+result_t GuiApp::config(v8::Local<v8::Object> opt)
+{
+    Isolate* isolate = Isolate::current();
+
+    m_opt = new NObject();
+    m_opt->add(opt);
+
+    Variant v;
+    result_t hr;
 
 #ifndef Darwin
-    Variant v;
-    if (g_app->m_opt->get("cef_path", v) == 0)
-        g_app->m_cef_path = v.string();
+    if (m_opt->get("cef_path", v) == 0)
+        m_cef_path = v.string();
 #endif
+
+    v8::Local<v8::Object> o;
+    hr = GetConfigValue(isolate->m_isolate, opt, "backend", o, true);
+    if (hr != CALL_E_PARAMNOTOPTIONAL) {
+        if (hr < 0)
+            return hr;
+
+        JSArray ks = o->GetPropertyNames();
+        int32_t len = ks->Length();
+        int32_t i;
+
+        for (i = 0; i < len; i++) {
+            std::map<exlib::string, CefRefPtr<GuiSchemeHandlerFactory>>::iterator it;
+            JSValue k = ks->Get(i);
+            exlib::string ks(ToCString(v8::String::Utf8Value(isolate->m_isolate, k)));
+            Url u;
+            exlib::string scheme;
+
+            u.parse(ks);
+            u.m_protocol.tolower();
+            u.m_hostname.tolower();
+
+            scheme = u.m_protocol.substr(0, u.m_protocol.length() - 1);
+            it = m_schemes.find(scheme);
+            if (it == m_schemes.end()) {
+                std::pair<exlib::string, CefRefPtr<GuiSchemeHandlerFactory>> _pair(scheme, new GuiSchemeHandlerFactory());
+                it = m_schemes.insert(_pair).first;
+            }
+
+            obj_ptr<Handler_base> hdr;
+            hr = GetConfigValue(isolate->m_isolate, o, ks.c_str(), hdr);
+            if (hr < 0)
+                return hr;
+            it->second.get()->m_domains.insert(std::pair<exlib::string, obj_ptr<Handler_base>>(u.m_hostname, hdr));
+        }
+    }
 
     return 0;
 }
+
+result_t gui_base::config(v8::Local<v8::Object> opt)
+{
+    return g_app.get()->config(opt);
+}
+
 }
