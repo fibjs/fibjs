@@ -16,6 +16,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/../../../bin/${CMAKE_HOST_SYSTEM_N
 include_directories("${PROJECT_SOURCE_DIR}/include"
 	"${PROJECT_SOURCE_DIR}/../vender"
 	"${PROJECT_SOURCE_DIR}/../vender/v8"
+	"${PROJECT_SOURCE_DIR}/../vender/v8/gen"
 	"${PROJECT_SOURCE_DIR}/../vender/v8/include"
 	"${PROJECT_SOURCE_DIR}/../vender/cef"
 	"${PROJECT_SOURCE_DIR}/../vender/uv"

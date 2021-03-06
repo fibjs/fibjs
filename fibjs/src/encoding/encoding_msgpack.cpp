@@ -37,12 +37,12 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
             else if (element->IsNull() || element->IsUndefined())
                 msgpack_pack_nil(&pk);
             else if (element->IsBoolean() || element->IsBooleanObject()) {
-                if (element->BooleanValue())
+                if (isolate->toBoolean(element))
                     msgpack_pack_true(&pk);
                 else
                     msgpack_pack_false(&pk);
             } else if (element->IsNumber() || element->IsNumberObject())
-                msgpack_pack_double(&pk, element->NumberValue());
+                msgpack_pack_double(&pk, isolate->toNumber(element));
             else if (element->IsBigInt() || element->IsBigIntObject()) {
                 v8::MaybeLocal<v8::BigInt> mv;
                 bool less;
@@ -50,7 +50,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
                 mv = element->ToBigInt(Isolate::current()->context());
                 msgpack_pack_int64(&pk, mv.ToLocalChecked()->Int64Value(&less));
             } else if (element->IsDate()) {
-                date_t d = element->NumberValue();
+                date_t d = isolate->toNumber(element);
                 msgpack_timestamp _d;
 
                 d.get_timestamp(_d);
@@ -58,7 +58,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
             } else if (element->IsArray())
                 return pack(v8::Local<v8::Array>::Cast(element));
             else if (element->IsObject() && !element->IsStringObject())
-                return pack(element->ToObject());
+                return pack(isolate->toLocalObject(element));
             else {
                 v8::String::Utf8Value v(isolate->m_isolate, element);
 
@@ -101,7 +101,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
                     if (!element1->IsObject())
                         return pack(element1);
 
-                    element = element1->ToObject();
+                    element = isolate->toLocalObject(element1);
                 }
             }
 

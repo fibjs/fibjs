@@ -159,7 +159,7 @@ public:
 
         for (i = len - 1; i >= 0; i--) {
             JSValue v = esa->Get(i);
-            if (v->Equals(func)) {
+            if (v->Equals(isolate->GetCurrentContext(), func).ToChecked()) {
                 spliceOne(esa, i);
                 result_t hr;
                 hr = onEventChange(func, ev, "removeListener");

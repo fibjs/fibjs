@@ -30,7 +30,7 @@ void _resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
         return;
     }
 
-    v8::Local<v8::Object> _mod = args.Data()->ToObject();
+    v8::Local<v8::Object> _mod = args.Data()->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
     JSValue path = _mod->Get(NewString(isolate, "_id"));
     obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
         JSValue(_mod->Get(NewString(isolate, "_sbox"))));
@@ -71,7 +71,7 @@ void _require(const v8::FunctionCallbackInfo<v8::Value>& args)
         return;
     }
 
-    v8::Local<v8::Object> _mod = args.Data()->ToObject();
+    v8::Local<v8::Object> _mod = args.Data()->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
     JSValue path = _mod->Get(NewString(isolate, "_id"));
     obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
         JSValue(_mod->Get(NewString(isolate, "_sbox"))));
@@ -120,7 +120,7 @@ void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
     } else
         argv = v8::Array::New(isolate);
 
-    v8::Local<v8::Object> _mod = args.Data()->ToObject();
+    v8::Local<v8::Object> _mod = args.Data()->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
     obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
         _mod->Get(NewString(isolate, "_sbox")));
 

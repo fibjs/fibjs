@@ -474,7 +474,7 @@ result_t Url::format(v8::Local<v8::Object> args)
 
     v = args->Get(holder()->NewString("slashes"));
     if (!IsEmpty(v))
-        set_slashes(v->BooleanValue());
+        set_slashes(isolate->toBoolean(v));
 
     return 0;
 }

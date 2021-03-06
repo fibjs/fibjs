@@ -28,11 +28,11 @@ void encodeValue(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Val
     else if (element->IsNull())
         bson_append_null(bb, name);
     else if (element->IsDate())
-        bson_append_date(bb, name, (bson_date_t)element->NumberValue());
+        bson_append_date(bb, name, (bson_date_t)isolate->toNumber(element));
     else if (element->IsBoolean())
         bson_append_bool(bb, name, element->IsTrue());
     else if (element->IsNumber() || element->IsNumberObject()) {
-        double value = element->NumberValue();
+        double value = isolate->toNumber(element);
         int64_t num = (int64_t)value;
 
         if (value == (double)num) {
@@ -120,7 +120,7 @@ void encodeArray(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Val
 bool encodeObject(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Value> element,
     bool doJson)
 {
-    v8::Local<v8::Object> object = element->ToObject();
+    v8::Local<v8::Object> object = isolate->toLocalObject(element);
 
     if (doJson) {
         JSValue jsonFun = object->Get(isolate->NewString("toJSON", 6));
@@ -137,7 +137,7 @@ bool encodeObject(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Va
             if (!element1->IsObject())
                 return false;
 
-            object = element1->ToObject();
+            object = isolate->toLocalObject(element1);
         }
     }
 

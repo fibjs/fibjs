@@ -91,6 +91,46 @@ public:
         return m_isolate->GetCurrentContext();
     }
 
+    v8::Local<v8::Object> toLocalObject(v8::Local<v8::Value> v)
+    {
+        return v->ToObject(this->context()).ToLocalChecked();
+    }
+
+    v8::Local<v8::String> toLocalString(v8::Local<v8::Value> v)
+    {
+        return v->ToString(this->context()).ToLocalChecked();
+    }
+
+    bool isEquals(v8::Local<v8::Value> v, v8::Local<v8::Value> tv)
+    {
+        return v->Equals(this->context(), tv).ToChecked();
+    }
+
+    bool toBoolean(v8::Local<v8::Value> v)
+    {
+        return v->BooleanValue(this->context()).ToChecked();
+    }
+
+    int toInteger(v8::Local<v8::Value> v)
+    {
+        return v->IntegerValue(this->context()).ToChecked();
+    }
+
+    int32_t toInt32Value(v8::Local<v8::Value> v)
+    {
+        return v->Int32Value(this->context()).ToChecked();
+    }
+
+    uint32_t toUint32Value(v8::Local<v8::Value> v)
+    {
+        return v->Uint32Value(this->context()).ToChecked();
+    }
+
+    double toNumber(v8::Local<v8::Value> v)
+    {
+        return v->NumberValue(this->context()).ToChecked();
+    }
+
     void start_profiler();
 
     void Ref();

@@ -19,7 +19,7 @@ namespace fibjs {
 
 static void _done(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    ((AsyncWaitHandler*)Handler_base::getInstance(args.Data()->ToObject()))->end();
+    ((AsyncWaitHandler*)Handler_base::getInstance(Isolate::current()->toLocalObject(args.Data())))->end();
     args.GetReturnValue().SetUndefined();
 }
 

@@ -32,9 +32,10 @@ Variant& Variant::operator=(v8::Local<v8::Value> v)
         dateVal() = v;
     } else if (v->IsBoolean() || v->IsBooleanObject()) {
         set_type(VT_Boolean);
-        m_Val.boolVal = v->BooleanValue();
+
+        m_Val.boolVal = Isolate::current()->toBoolean(v);
     } else if (v->IsNumber() || v->IsNumberObject()) {
-        double n = v->NumberValue();
+        double n = Isolate::current()->toNumber(v);
 
         set_type(VT_Number);
         m_Val.dblVal = n;

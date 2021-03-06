@@ -144,7 +144,7 @@ result_t MongoCursor::count(bool applySkipLimit, int32_t& retVal)
     if (hr < 0)
         return hr;
 
-    retVal = JSValue(res->Get(isolate->NewString("n")))->Int32Value();
+    retVal = isolate->toInt32Value(JSValue(res->Get(isolate->NewString("n"))));
 
     return 0;
 }
