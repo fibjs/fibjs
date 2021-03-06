@@ -113,6 +113,8 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
         XChangeProperty(_display, window, wmWindowType, XA_ATOM, 32, PropModeReplace, (unsigned char*)&wmDock, 1);
 
     XFlush(_display);
+
+    webview->_emit("open");
 }
 }
 
