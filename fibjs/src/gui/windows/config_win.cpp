@@ -130,8 +130,8 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
     else
         y = (actualDesktop.bottom - nHeight) / 2;
 
-    SetWindowPos(hWndParent, HWND_TOP, x, y, nWidth, nHeight, 0);
     SetWindowLong(hWndParent, GWL_STYLE, dwStyle);
+    SetWindowPos(hWndParent, HWND_TOP, x, y, nWidth, nHeight, 0);
 
     SetWindowSubclass(hWndParent, &mySubClassProc, 1, (DWORD_PTR)webview);
     webview->Ref();
