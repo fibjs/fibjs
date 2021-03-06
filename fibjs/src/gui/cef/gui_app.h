@@ -76,6 +76,14 @@ public:
     virtual void OnBeforeCommandLineProcessing(const CefString& process_type,
         CefRefPtr<CefCommandLine> command_line) OVERRIDE
     {
+        if (m_opt && !g_cefheadless) {
+            Variant v;
+            if (m_opt->get("headless", v) == 0 && v.boolVal()) {
+                command_line->AppendSwitch("headless");
+                g_cefheadless = true;
+            }
+        }
+
 #ifdef Darwin
         command_line->AppendSwitch("use-mock-keychain");
 #endif
