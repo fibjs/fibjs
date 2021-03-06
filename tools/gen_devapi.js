@@ -8,7 +8,11 @@ var methods = {};
 
 function build(protocol) {
     protocol.domains.forEach(domain => {
-        methods[domain.domain] = domain.commands.map(command => command.name);
+        if (!domain.experimental) {
+            var ms = [];
+            domain.commands.forEach(command => !command.experimental && ms.push(command.name));
+            methods[domain.domain] = ms;
+        }
     });
 }
 
@@ -17,11 +21,10 @@ build(browser_protocol);
 
 var fname = path.join(__dirname, "../fibjs/src/gui/cef/CefWebView_dev.h")
 
-var doms = Object.keys(methods);
 var txts = [];
 var domtxts = [];
 
-doms.forEach(dom => {
+Object.keys(methods).forEach(dom => {
     var txt = `const char* s_${dom}_apis[] = {\n\t"` + methods[dom].join(`",\n\t"`) + `",\n\tNULL\n};\n`;
     txts.push(txt);
     domtxts.push(`\t{ "${dom}", s_${dom}_apis },`);
