@@ -56,6 +56,29 @@ void CefWebView::config_window()
     os_config_window(this, window, m_opt);
 }
 
+result_t CefWebView::close(AsyncEvent* ac)
+{
+    if (ac && ac->isSync())
+        return CHECK_ERROR(CALL_E_GUICALL);
+
+    if (!m_browser)
+        return 0;
+
+    NSView* view = CAST_CEF_WINDOW_HANDLE_TO_NSVIEW(m_browser->GetHost()->GetWindowHandle());
+    if(view)
+    {
+        NSWindow* window = [view window];
+
+        if(!(window.styleMask & NSWindowStyleMaskTitled))
+        {
+            [window close];
+            return 0;
+        }
+    }
+
+    return m_browser->GetHost()->TryCloseBrowser();
+}
+
 void MacRunMessageLoop(const CefMainArgs& args, const CefSettings& settings, CefRefPtr<CefApp> application)
 {
     @autoreleasepool {

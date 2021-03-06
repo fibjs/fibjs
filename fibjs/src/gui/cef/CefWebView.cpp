@@ -362,6 +362,7 @@ result_t CefWebView::executeDevToolsMethod(exlib::string method, v8::Local<v8::O
     return CALL_E_PENDDING;
 }
 
+#ifndef Darwin
 result_t CefWebView::close(AsyncEvent* ac)
 {
     if (ac && ac->isSync())
@@ -372,6 +373,7 @@ result_t CefWebView::close(AsyncEvent* ac)
 
     return m_browser->GetHost()->TryCloseBrowser();
 }
+#endif
 
 result_t CefWebView::postMessage(exlib::string msg, AsyncEvent* ac)
 {

@@ -116,7 +116,7 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
 
         if (!(opt->get("border", v) == 0 && !v.boolVal())) {
             if (!(opt->get("caption", v) == 0 && !v.boolVal()))
-                mask |= NSTitledWindowMask;
+                mask |= NSWindowStyleMaskTitled;
 
             if (!(opt->get("resizable", v) == 0 && !v.boolVal()))
                 mask |= NSResizableWindowMask;
@@ -126,7 +126,7 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
         if (opt->get("maximize", v) == 0 && v.boolVal())
             _maximize = true;
     } else
-        mask |= NSResizableWindowMask | NSTitledWindowMask;
+        mask |= NSResizableWindowMask | NSWindowStyleMaskTitled;
 
     s_screen_rect = [[NSScreen mainScreen] frame];
 
