@@ -82,16 +82,6 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
     if (y == CW_USEDEFAULT)
         y = (_screen->height - nHeight) / 2;
 
-    XWindowChanges wc;
-    int mask = CWX | CWY | CWWidth | CWHeight;
-
-    wc.x = x;
-    wc.y = y;
-    wc.width = nWidth;
-    wc.height = nHeight;
-
-    int ret = XConfigureWindow(_display, window, mask, &wc);
-
     if (_maximize) {
         XEvent xev;
         memset(&xev, 0, sizeof(xev));
@@ -112,6 +102,7 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
     if (!_border)
         XChangeProperty(_display, window, wmWindowType, XA_ATOM, 32, PropModeReplace, (unsigned char*)&wmDock, 1);
 
+    XMoveResizeWindow(_display, window, x, y, nWidth, nHeight);
     XFlush(_display);
 
     webview->_emit("open");

@@ -67,6 +67,12 @@ int XChangeProperty(Display* display, Window w, Atom property, Atom type, int fo
     return s_func(display, w, property, type, format, mode, data, nelements);
 }
 
+int XMoveResizeWindow(Display* display, Window w, int x, int y, unsigned width, unsigned height)
+{
+    static auto s_func = x11_func(XMoveResizeWindow);
+    return s_func(display, w, x, y, width, height);
+}
+
 Status XSendEvent(Display* display, Window w, Bool propagate,
     long event_mask, XEvent* event_send)
 {
