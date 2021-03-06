@@ -33,7 +33,7 @@ result_t util_base::isEmpty(v8::Local<v8::Value> v, bool& retVal)
     }
 
     if (v->IsObject()) {
-        retVal = v->ToObject()->GetOwnPropertyNames()->Length() == 0;
+        retVal = Isolate::current()->toLocalObject(v)->GetOwnPropertyNames()->Length() == 0;
         return 0;
     }
 

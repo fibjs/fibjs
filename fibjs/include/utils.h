@@ -582,22 +582,27 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, exlib::string& n, bool 
 
     v8::Local<v8::String> str;
 
+    Isolate* isolate = Isolate::current();
+    if (!isolate)
+        return CALL_E_JAVASCRIPT;
+
     if (v->IsString())
         str = v8::Local<v8::String>::Cast(v);
     else if (v->IsStringObject())
         str = v8::Local<v8::StringObject>::Cast(v)->ValueOf();
     else if (!bStrict)
-        str = v->ToString();
+        str = v->ToString(isolate->m_isolate);
     else
         return CALL_E_TYPEMISMATCH;
 
     if (str.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    int32_t bufUtf8Len = str->Utf8Length();
+    int32_t bufUtf8Len = str->Utf8Length(isolate->m_isolate);
     n.resize(bufUtf8Len);
     int flags = v8::String::HINT_MANY_WRITES_EXPECTED | v8::String::NO_NULL_TERMINATION;
-    str->WriteUtf8(n.c_buffer(), bufUtf8Len, NULL, flags);
+
+    str->WriteUtf8(isolate->m_isolate, n.c_buffer(), bufUtf8Len, NULL, flags);
 
     return 0;
 }
@@ -608,7 +613,7 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, d
         return CALL_E_TYPEMISMATCH;
 
     if (v->IsNumber() || v->IsNumberObject()) {
-        n = v->NumberValue();
+        n = v->NumberValue(isolate->GetCurrentContext()).ToChecked();
         return std::isnan(n) ? CALL_E_TYPEMISMATCH : 0;
     }
 
@@ -619,7 +624,7 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, d
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    n = v->NumberValue();
+    n = v->NumberValue(isolate->GetCurrentContext()).ToChecked();
     return std::isnan(n) ? CALL_E_TYPEMISMATCH : 0;
 }
 
@@ -659,7 +664,7 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, i
     } else {
         double num;
 
-        num = v->NumberValue();
+        num = v->NumberValue(isolate->GetCurrentContext()).ToChecked();
         if (std::isnan(num))
             return CALL_E_TYPEMISMATCH;
 
@@ -695,7 +700,7 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, bool& n, bool bStrict =
     if (bStrict && !v->IsBoolean() && !v->IsBooleanObject())
         return CALL_E_TYPEMISMATCH;
 
-    n = v->BooleanValue();
+    n = Isolate::current()->toBoolean(v);
     return 0;
 }
 
@@ -868,7 +873,7 @@ inline bool IsJSObject(v8::Local<v8::Value> v)
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
     v8::Local<v8::Context> _context = o->CreationContext();
     JSValue proto = _context->GetEmbedderData(1);
-    if (!proto->Equals(o->GetPrototype()))
+    if (!proto->Equals(_context, o->GetPrototype()).ToChecked())
         return false;
 
     return true;
@@ -1061,8 +1066,9 @@ inline v8::Local<v8::Value> ThrowError(result_t hr, exlib::string msg)
 {
     Isolate* isolate = Isolate::current();
     JSValue exception = v8::Exception::Error(isolate->NewString(msg));
-    exception->ToObject()->Set(isolate->NewString("number"),
-        v8::Int32::New(isolate->m_isolate, -hr));
+
+    isolate->toLocalObject(exception)
+        ->Set(isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr));
     return ThrowError(exception);
 }
 

@@ -50,23 +50,28 @@ result_t util_base::has(v8::Local<v8::Value> v, exlib::string key, bool& retVal)
     if (!v->IsObject())
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    v8::Local<v8::Object> obj = v->ToObject();
-    retVal = obj->HasOwnProperty(obj->CreationContext(), Isolate::current()->NewString(key)).ToChecked();
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Object> obj = isolate->toLocalObject(v);
+    retVal = obj->HasOwnProperty(obj->CreationContext(), isolate->NewString(key)).ToChecked();
     return 0;
 }
 
 result_t util_base::keys(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal)
 {
     if (v->IsObject()) {
-        v8::Local<v8::Object> obj = v->ToObject();
+        Isolate* isolate = Isolate::current();
+
+        v8::Local<v8::Object> obj = isolate->toLocalObject(v);
 
         retVal = JSArray(obj->GetPropertyNames());
         if (obj->IsArray()) {
             int32_t len = retVal->Length();
             int32_t i;
 
+            v8::Local<v8::Context> _context = isolate->context();
+
             for (i = 0; i < len; i++)
-                retVal->Set(i, JSValue(retVal->Get(i))->ToString());
+                retVal->Set(_context, i, isolate->toLocalString(JSValue(retVal->Get(i))));
         }
     } else
         retVal = v8::Array::New(Isolate::current()->m_isolate);
@@ -78,7 +83,7 @@ result_t util_base::values(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal)
 {
     Isolate* isolate = Isolate::current();
     if (v->IsObject()) {
-        v8::Local<v8::Object> obj = v->ToObject();
+        v8::Local<v8::Object> obj = isolate->toLocalObject(v);
         JSArray keys = obj->GetPropertyNames();
         v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate);
 
@@ -109,13 +114,13 @@ result_t util_base::clone(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
         if (v->IsFunction() || v->IsArgumentsObject() || v->IsSymbolObject())
             retVal = v;
         else if (v->IsDate())
-            retVal = v8::Date::New(isolate->m_isolate, v->NumberValue());
+            retVal = v8::Date::New(isolate->m_isolate, isolate->toNumber(v));
         else if (v->IsBooleanObject())
-            retVal = v8::BooleanObject::New(isolate->m_isolate, v->BooleanValue(_context).ToChecked());
+            retVal = v8::BooleanObject::New(isolate->m_isolate, isolate->toBoolean(v));
         else if (v->IsNumberObject())
-            retVal = v8::NumberObject::New(isolate->m_isolate, v->NumberValue());
+            retVal = v8::NumberObject::New(isolate->m_isolate, isolate->toNumber(v));
         else if (v->IsStringObject())
-            retVal = v8::StringObject::New(v->ToString());
+            retVal = v8::StringObject::New(isolate->m_isolate, v->ToString(isolate->m_isolate));
         else if (v->IsRegExp()) {
             v8::Local<v8::RegExp> re = v8::Local<v8::RegExp>::Cast(v);
             retVal = v8::RegExp::New(isolate->m_isolate->GetCurrentContext(), re->GetSource(), re->GetFlags()).ToLocalChecked();
@@ -158,7 +163,10 @@ result_t util_base::extend(v8::Local<v8::Value> v, OptArgs objs,
     if (!v->IsObject())
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    v8::Local<v8::Object> obj = v->ToObject();
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = Isolate::current()->m_isolate->GetCurrentContext();
+
+    v8::Local<v8::Object> obj = isolate->toLocalObject(v);
     int32_t argc = objs.Length();
     int32_t i, j;
 
@@ -171,7 +179,7 @@ result_t util_base::extend(v8::Local<v8::Value> v, OptArgs objs,
         if (!val->IsObject())
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
-        v8::Local<v8::Object> obj1 = val->ToObject();
+        v8::Local<v8::Object> obj1 = isolate->toLocalObject(val);
         JSArray keys = obj1->GetPropertyNames();
         int32_t len = keys->Length();
 
@@ -204,8 +212,9 @@ result_t util_base::pick(v8::Local<v8::Value> v, OptArgs objs,
     if (!v->IsObject())
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    v8::Local<v8::Object> obj = v->ToObject();
+    v8::Local<v8::Object> obj = isolate->toLocalObject(v);
     v8::Local<v8::Object> obj1 = v8::Object::New(isolate->m_isolate);
+
     int32_t argc = objs.Length();
     int32_t i, j;
 
@@ -246,7 +255,7 @@ result_t util_base::omit(v8::Local<v8::Value> v, OptArgs keys,
     if (!v->IsObject())
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    v8::Local<v8::Object> obj = v->ToObject();
+    v8::Local<v8::Object> obj = isolate->toLocalObject(v);
 
     std::map<exlib::string, bool> _map;
     int32_t argc = keys.Length();
@@ -322,6 +331,8 @@ result_t util_base::intersection(OptArgs arrs,
         for (i = 0; i < len; i++)
             erase[i] = base->Get(i);
 
+        Isolate* isolate = Isolate::current();
+
         for (i = 1; left > 0 && i < argc; i++) {
             v0 = arrs[i];
             if (!v0->IsArray())
@@ -333,7 +344,7 @@ result_t util_base::intersection(OptArgs arrs,
             for (j = 0; left > 0 && j < len; j++)
                 if (!erase[j].IsEmpty()) {
                     for (k = 0; k < len1; k++)
-                        if (erase[j]->Equals(JSValue(other->Get(k))))
+                        if (isolate->isEquals(erase[j], JSValue(other->Get(k))))
                             break;
 
                     if (k == len1) {
@@ -343,16 +354,19 @@ result_t util_base::intersection(OptArgs arrs,
                 }
         }
 
-        if (left)
+        if (left) {
+            Isolate* isolate = Isolate::current();
+
             for (i = 0; i < len; i++)
                 if (!erase[i].IsEmpty()) {
                     for (j = 0; j < i; j++)
-                        if (!erase[j].IsEmpty() && erase[i]->Equals(erase[j]))
+                        if (!erase[j].IsEmpty() && isolate->isEquals(erase[i], erase[j]))
                             break;
 
                     if (j == i)
                         arr->Set(n++, erase[i]);
                 }
+        }
     }
 
     retVal = arr;
@@ -564,7 +578,7 @@ result_t util_base::flatten(v8::Local<v8::Value> list, bool shallow,
     if (IsEmpty(v))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    int32_t len = v->Int32Value();
+    int32_t len = isolate->toInt32Value(v);
     int32_t cnt = retVal->Length();
     int32_t i;
 
@@ -599,7 +613,7 @@ result_t util_base::without(v8::Local<v8::Value> arr, OptArgs els,
     if (IsEmpty(v))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    int32_t len = v->Int32Value();
+    int32_t len = isolate->toInt32Value(v);
 
     v8::Local<v8::Array> arr1 = v8::Array::New(isolate->m_isolate);
     int32_t argc = els.Length();
@@ -691,7 +705,7 @@ result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iter
                 return CALL_E_JAVASCRIPT;
         }
     } else {
-        int32_t len = v->Int32Value();
+        int32_t len = isolate->toInt32Value(v);
 
         int32_t i;
 
@@ -750,7 +764,7 @@ result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> itera
             arr->Set(cnt++, v);
         }
     } else {
-        int32_t len = v->Int32Value();
+        int32_t len = isolate->toInt32Value(v);
 
         int32_t i;
 
@@ -810,7 +824,7 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
                 return CALL_E_JAVASCRIPT;
         }
     } else {
-        int32_t len = v->Int32Value();
+        int32_t len = isolate->toInt32Value(v);
 
         int32_t i;
 

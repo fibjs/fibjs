@@ -149,14 +149,14 @@ result_t assert_base::_function(v8::Local<v8::Value> actual, exlib::string msg)
 
 result_t assert_base::ok(v8::Local<v8::Value> actual, exlib::string msg)
 {
-    _test(actual->BooleanValue(),
+    _test(Isolate::current()->toBoolean(actual),
         _msg(msg, "expected ", actual, " to be truthy"));
     return 0;
 }
 
 result_t assert_base::notOk(v8::Local<v8::Value> actual, exlib::string msg)
 {
-    _test(!actual->BooleanValue(),
+    _test(!Isolate::current()->toBoolean(actual),
         _msg(msg, "expected ", actual, " to be falsy"));
     return 0;
 }
@@ -184,9 +184,11 @@ int32_t checkStack(QuickArray<v8::Local<v8::Object>>& acts,
 {
     int32_t i;
 
+    Isolate* isolate = Isolate::current();
+
     for (i = 0; i < (int32_t)acts.size(); i++)
-        if (actual->Equals(acts[i])) {
-            if (expected->Equals(exps[i]))
+        if (isolate->isEquals(actual, acts[i])) {
+            if (isolate->isEquals(expected, exps[i]))
                 return 0;
             return -1;
         }
@@ -287,11 +289,13 @@ bool deepEquals(QuickArray<v8::Local<v8::Object>>& acts,
     QuickArray<v8::Local<v8::Object>>& exps,
     v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 {
+    Isolate* isolate = Isolate::current();
+
     if (!IsEmpty(actual) && !IsEmpty(expected) && !actual->IsFunction()
         && !expected->IsFunction()) {
         if (actual->IsDate())
             return expected->IsDate()
-                && (actual->NumberValue() == expected->NumberValue());
+                && (isolate->toNumber(actual) == isolate->toNumber(expected));
 
         if (expected->IsDate())
             return false;
@@ -323,7 +327,7 @@ bool deepEquals(QuickArray<v8::Local<v8::Object>>& acts,
 result_t assert_base::equal(v8::Local<v8::Value> actual,
     v8::Local<v8::Value> expected, exlib::string msg)
 {
-    _test(actual->Equals(expected),
+    _test(Isolate::current()->isEquals(actual, expected),
         _msg(msg, "expected ", actual, " to equal ", expected));
     return 0;
 }
@@ -331,7 +335,7 @@ result_t assert_base::equal(v8::Local<v8::Value> actual,
 result_t assert_base::notEqual(v8::Local<v8::Value> actual,
     v8::Local<v8::Value> expected, exlib::string msg)
 {
-    _test(!actual->Equals(expected),
+    _test(!Isolate::current()->isEquals(actual, expected),
         _msg(msg, "expected ", actual, " to not equal ", expected));
     return 0;
 }
@@ -381,17 +385,19 @@ result_t assert_base::closeTo(v8::Local<v8::Value> actual,
 {
     double n, n1;
 
-    n = actual->NumberValue();
+    Isolate* isolate = Isolate::current();
+
+    n = isolate->toNumber(actual);
     if (std::isnan(n))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    n1 = expected->NumberValue();
+    n1 = isolate->toNumber(expected);
     if (std::isnan(n1))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     n -= n1;
 
-    n1 = delta->NumberValue();
+    n1 = isolate->toNumber(delta);
     if (std::isnan(n1))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
@@ -409,17 +415,19 @@ result_t assert_base::notCloseTo(v8::Local<v8::Value> actual,
 {
     double n, n1;
 
-    n = actual->NumberValue();
+    Isolate* isolate = Isolate::current();
+
+    n = isolate->toNumber(actual);
     if (std::isnan(n))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    n1 = expected->NumberValue();
+    n1 = isolate->toNumber(expected);
     if (std::isnan(n1))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     n -= n1;
 
-    n1 = delta->NumberValue();
+    n1 = isolate->toNumber(delta);
     if (std::isnan(n1))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
@@ -437,20 +445,21 @@ double valcmp(v8::Local<v8::Value>& val1, v8::Local<v8::Value>& val2)
     bool n2 = val2->IsNumber() || val2->IsNumberObject();
     double v1;
 
+    Isolate* isolate = Isolate::current();
+
     if (n1 && n2)
-        return val1->NumberValue() - val2->NumberValue();
+        return isolate->toNumber(val1) - isolate->toNumber(val2);
 
     if (n1) {
-        v1 = val2->NumberValue();
+        v1 = isolate->toNumber(val2);
         if (!std::isnan(v1))
-            return val1->NumberValue() - v1;
+            return isolate->toNumber(val1) - v1;
     } else if (n2) {
-        v1 = val1->NumberValue();
+        v1 = isolate->toNumber(val1);
         if (!std::isnan(v1))
-            return v1 - val2->NumberValue();
+            return v1 - isolate->toNumber(val2);
     }
 
-    Isolate* isolate = Isolate::current();
     v8::String::Utf8Value s1(isolate->m_isolate, val1);
     v8::String::Utf8Value s2(isolate->m_isolate, val2);
 
@@ -703,14 +712,14 @@ result_t assert_base::notTypeOf(v8::Local<v8::Value> actual, exlib::string type,
     return CHECK_ERROR(CALL_E_INVALIDARG);
 }
 
-result_t has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
+result_t has_prop(v8::Local<v8::Value> v, v8::Local<v8::Value> prop,
     bool& retVal)
 {
-    if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
+    if ((!v->IsObject() && !v->IsString()) || !prop->IsString())
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    v8::Local<v8::Object> v = object->ToObject();
-    retVal = v->Has(prop);
+    Isolate* isolate = Isolate::current();
+    retVal = isolate->toLocalObject(v)->Has(isolate->context(), prop).ToChecked();
 
     return 0;
 }
@@ -746,7 +755,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     Isolate* isolate = Isolate::current();
-    v8::Local<v8::Object> v = object->ToObject();
+    v8::Local<v8::Object> v = isolate->toLocalObject(object);
     v8::String::Utf8Value s(isolate->m_isolate, prop);
     const char *p, *p1;
 
@@ -759,7 +768,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
             return 0;
         }
 
-        v = object->ToObject();
+        v = isolate->toLocalObject(object);
         p = p1 + 1;
     }
 
@@ -800,12 +809,13 @@ result_t has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     if ((!object->IsObject() && !object->IsString()) || !prop->IsString())
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    v8::Local<v8::Object> v = object->ToObject();
-    got = v->Get(prop);
+    Isolate* isolate = Isolate::current();
+
+    got = isolate->toLocalObject(object)->Get(prop);
     if (got.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    retVal = value->Equals(got);
+    retVal = isolate->isEquals(value, got);
 
     return 0;
 }
@@ -851,7 +861,7 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     Isolate* isolate = Isolate::current();
-    v8::Local<v8::Object> v = object->ToObject();
+    v8::Local<v8::Object> v = isolate->toLocalObject(object);
     v8::String::Utf8Value s(isolate->m_isolate, prop);
     const char *p, *p1;
 
@@ -864,14 +874,14 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
             return 0;
         }
 
-        v = object->ToObject();
+        v = isolate->toLocalObject(object);
         p = p1 + 1;
     }
 
     got = v->Get(isolate->NewString(p));
     if (got.IsEmpty())
         return CALL_E_JAVASCRIPT;
-    retVal = value->Equals(got);
+    retVal = isolate->isEquals(value, got);
 
     return 0;
 }
@@ -937,10 +947,10 @@ result_t assert_base::doesNotThrow(v8::Local<v8::Function> block,
     return 0;
 }
 
-result_t assert_base::ifError(v8::Local<v8::Value> object)
+result_t assert_base::ifError(v8::Local<v8::Value> v)
 {
-    if (object->BooleanValue()) {
-        ThrowError(object);
+    if (Isolate::current()->toBoolean(v)) {
+        ThrowError(v);
     }
 
     return 0;

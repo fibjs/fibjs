@@ -242,9 +242,10 @@ result_t SandBox::get_modules(v8::Local<v8::Object>& retVal)
     JSArray ks = ms->GetPropertyNames();
 
     v8::Local<v8::String> mgetter = isolate->NewString("exports");
+
     for (int32_t i = 0, len = ks->Length(); i < len; i++) {
         JSValue k = ks->Get(i);
-        retVal->Set(k, JSValue(JSValue(ms->Get(k))->ToObject()->Get(mgetter)));
+        retVal->Set(k, JSValue((isolate->toLocalObject(JSValue(ms->Get(k))))->Get(mgetter)));
     }
 
     return 0;

@@ -361,7 +361,7 @@ result_t LevelDB::Iter::iter(Isolate* isolate, v8::Local<v8::Function> func)
             if (v.IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
-            if (v->BooleanValue()) {
+            if (isolate->toBoolean(v)) {
                 m_end = true;
                 break;
             }

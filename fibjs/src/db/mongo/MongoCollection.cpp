@@ -185,9 +185,10 @@ result_t MongoCollection::update(v8::Local<v8::Object> query,
     v8::Local<v8::Object> document, v8::Local<v8::Object> options)
 {
     Isolate* isolate = holder();
+
     return update(query, document,
-        JSValue(options->Get(isolate->NewString("upsert", 6)))->BooleanValue(),
-        JSValue(options->Get(isolate->NewString("multi", 5)))->BooleanValue());
+        isolate->toBoolean(JSValue(options->Get(isolate->NewString("upsert", 6)))),
+        isolate->toBoolean(JSValue(options->Get(isolate->NewString("multi", 5)))));
 }
 
 result_t MongoCollection::remove(v8::Local<v8::Object> query)

@@ -47,7 +47,7 @@ public:
         v8::Local<v8::Object> o;
 
         if (!v->IsUndefined())
-            o = v->ToObject();
+            o = isolate->toLocalObject(v);
         else {
             o = v8::Object::New(isolate->m_isolate);
             SetPrivate("_mods", o);

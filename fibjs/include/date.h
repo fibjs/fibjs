@@ -80,7 +80,7 @@ public:
 
     date_t& operator=(v8::Local<v8::Value> v)
     {
-        d = v->NumberValue();
+        d = Isolate::current()->toNumber(v);
         return *this;
     }
 
