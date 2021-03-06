@@ -93,10 +93,12 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
             dwStyle |= WS_BORDER;
 
             if (!(opt->get("caption", v) == 0 && !v.boolVal()))
-                dwStyle ^= WS_POPUP | WS_CAPTION | WS_SYSMENU;
+                dwStyle |= WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
 
-            if (!(opt->get("resizable", v) == 0 && !v.boolVal()))
-                dwStyle ^= WS_THICKFRAME | WS_BORDER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
+            if (!(opt->get("resizable", v) == 0 && !v.boolVal())) {
+                dwStyle &= ~(WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
+                dwStyle |= WS_THICKFRAME;
+            }
 
             if (opt->get("maximize", v) == 0 && v.boolVal())
                 dwStyle |= WS_MAXIMIZE;
