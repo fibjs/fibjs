@@ -71,7 +71,7 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 void os_config_window(WebView_base* webview, void* _window, NObject* opt)
 {
     HWND hWndParent = (HWND)_window;
-    DWORD dwStyle = WS_POPUP | WS_VISIBLE;
+    DWORD dwStyle = WS_POPUP;
     int x = CW_USEDEFAULT;
     int y = CW_USEDEFAULT;
     int nWidth = CW_USEDEFAULT;
@@ -102,7 +102,7 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
                 dwStyle |= WS_MAXIMIZE;
         }
     } else
-        dwStyle = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
+        dwStyle = WS_OVERLAPPEDWINDOW;
 
     int dpix = 0, dpiy = 0;
     GetDPI(hWndParent, &dpix, &dpiy);
@@ -132,6 +132,8 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
 
     SetWindowLong(hWndParent, GWL_STYLE, dwStyle);
     SetWindowPos(hWndParent, HWND_TOP, x, y, nWidth, nHeight, 0);
+    dwStyle |= WS_VISIBLE;
+    SetWindowLong(hWndParent, GWL_STYLE, dwStyle);
 
     SetWindowSubclass(hWndParent, &mySubClassProc, 1, (DWORD_PTR)webview);
     webview->Ref();
