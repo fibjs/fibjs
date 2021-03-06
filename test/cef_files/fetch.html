@@ -1,0 +1,12 @@
+<html>
+    <body>
+        <div id=test></div>
+        <script>
+            fetch('./test.txt')
+            .then(response => response.text())
+            .then(txt => {
+                document.getElementById("test").innerText = txt
+            })
+        </script>
+    </body>
+</html>

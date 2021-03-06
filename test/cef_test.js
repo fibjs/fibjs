@@ -17,6 +17,7 @@ gui.config({
     "cache_path": `${os.homedir()}/.cache`,
     "cef_path": cef_path,
     "backend": {
+        "http://cef_test/": cef_files_path,
         "cef://test/": cef_files_path
     }
 });
@@ -27,7 +28,7 @@ describe("cef", () => {
     describe("basic", () => {
         it("basic", () => {
             var step = 0;
-            var win = gui.open("cef://test/basic.html");
+            var win = gui.open("cef://test/simple.html");
 
             win.on("open", () => {
                 assert.equal(step, 0);
@@ -54,7 +55,7 @@ describe("cef", () => {
         });
 
         it("close directly", () => {
-            var win = gui.open("cef://test/basic.html");
+            var win = gui.open("cef://test/simple.html");
             win.close();
             win = undefined;
 
@@ -72,7 +73,7 @@ describe("cef", () => {
             opt1.height = 120;
 
             it(item, done => {
-                var win = gui.open("cef://test/basic.html", opt1);
+                var win = gui.open("cef://test/simple.html", opt1);
 
                 win.on("load", () => {
                     var doc = win.dev.DOM.getDocument();
@@ -113,6 +114,94 @@ describe("cef", () => {
             assert.equal(w, 800);
             assert.equal(h, 600);
         });
+    });
+
+    describe("custom backend", () => {
+        var opt = {
+            width: 100,
+            height: 100
+        };
+
+        it("basic", done => {
+            var win = gui.open("cef://test/basic.html", opt);
+
+            win.on("load", () => {
+                var doc = win.dev.DOM.getDocument();
+                var e = win.dev.DOM.querySelector({
+                    nodeId: doc.root.nodeId,
+                    selector: "img"
+                });
+
+                var info = win.dev.DOM.getBoxModel({
+                    nodeId: e.nodeId
+                });
+
+                win.close();
+
+                try {
+                    assert.equal(info.model.width, 400);
+                    assert.equal(info.model.height, 140);
+                    done();
+                } catch (e) {
+                    done(e);
+                }
+            });
+        });
+
+        it("fetch", done => {
+            var win = gui.open("http://cef_test/fetch.html", opt);
+
+            win.on("load", () => {
+                var doc = win.dev.DOM.getDocument();
+                var e = win.dev.DOM.querySelector({
+                    nodeId: doc.root.nodeId,
+                    selector: "div"
+                });
+
+                var html = win.dev.DOM.getOuterHTML({
+                    nodeId: e.nodeId
+                });
+
+                win.close();
+
+                try {
+                    assert.equal(html.outerHTML, "<div id=\"test\">hello</div>");
+                    done();
+                } catch (e) {
+                    done(e);
+                }
+            });
+        });
+
+
+        it("xhr", done => {
+            var win = gui.open("http://cef_test/xhr.html", opt);
+
+            win.on("load", () => {
+                var doc = win.dev.DOM.getDocument();
+                var e = win.dev.DOM.querySelector({
+                    nodeId: doc.root.nodeId,
+                    selector: "div"
+                });
+
+                var html = win.dev.DOM.getOuterHTML({
+                    nodeId: e.nodeId
+                });
+
+                win.close();
+
+                try {
+                    assert.equal(html.outerHTML, "<div id=\"test\">hello</div>");
+                    done();
+                } catch (e) {
+                    done(e);
+                }
+            });
+        });
+
+        // it("header", () => {});
+
+        // it("post", () => {});
     });
 });
 

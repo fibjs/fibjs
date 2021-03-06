@@ -1,0 +1,15 @@
+<html>
+    <body>
+        <div id=test></div>
+        <script>
+            function reqListener () {
+                document.getElementById("test").innerText = this.responseText;
+            }
+
+            var oReq = new XMLHttpRequest();
+            oReq.addEventListener("load", reqListener);
+            oReq.open("GET", "./test.txt");
+            oReq.send();
+        </script>
+    </body>
+</html>
