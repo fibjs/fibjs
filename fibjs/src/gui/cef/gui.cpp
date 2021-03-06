@@ -122,6 +122,11 @@ void GuiApp::run_gui(int argc, char* argv[])
     CefRunMessageLoop();
 #endif
 
+    for (int32_t i = 0; i < 10; i++) {
+        CefDoMessageLoopWork();
+        exlib::OSThread::sleep(10);
+    }
+
     CefShutdown();
     m_gui_done.set();
 

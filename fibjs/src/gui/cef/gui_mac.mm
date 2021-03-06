@@ -73,11 +73,6 @@ void MacRunMessageLoop(const CefMainArgs& args, const CefSettings& settings, Cef
         [delegate release];
         delegate = nil;
     }
-
-    for (int32_t i = 0; i < 10; i++) {
-        CefDoMessageLoopWork();
-        exlib::OSThread::sleep(10);
-    }
 }
 
 void GuiHandler::PlatformTitleChange(CefRefPtr<CefBrowser> browser,
