@@ -69,6 +69,14 @@ void MacRunMessageLoop(const CefMainArgs& args, const CefSettings& settings, Cef
                                 waitUntilDone:NO];
 
         CefRunMessageLoop();
+
+        [delegate release];
+        delegate = nil;
+    }
+
+    for (int32_t i = 0; i < 10; i++) {
+        CefDoMessageLoopWork();
+        exlib::OSThread::sleep(10);
     }
 }
 
