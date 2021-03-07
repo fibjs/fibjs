@@ -22,6 +22,8 @@
 
 namespace fibjs {
 
+extern exlib::LockedList<Isolate> s_isolates;
+
 inline std::string GetDataURI(const std::string& data, const std::string& mime_type)
 {
     return "data:" + mime_type + ";base64," + CefURIEncode(CefBase64Encode(data.data(), data.size()), false).ToString();
@@ -72,6 +74,8 @@ bool GuiHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame
 
 void GuiHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
+    if (browser->GetHost()->GetOpenerWindowHandle())
+        s_isolates.head()->Ref();
 }
 
 GuiHandler::BrowserList::iterator GuiHandler::fromBrowser(CefRefPtr<CefBrowser> browser)
@@ -102,7 +106,8 @@ void GuiHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 #endif
         }
         browser_list_.erase(bit);
-    }
+    } else
+        s_isolates.head()->Unref();
 }
 
 bool GuiHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser,

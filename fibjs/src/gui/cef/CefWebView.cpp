@@ -16,6 +16,8 @@
 
 namespace fibjs {
 
+extern exlib::LockedList<Isolate> s_isolates;
+
 class GuiWindowDelegate : public CefWindowDelegate {
 public:
     explicit GuiWindowDelegate(CefRefPtr<CefBrowserView> browser_view, CefWebView* webview = NULL)
@@ -31,7 +33,8 @@ public:
         if (m_webview) {
             m_webview->m_browser = browser_view_->GetBrowser();
             m_webview->config_window();
-        }
+        } else
+            s_isolates.head()->Ref();
 
         window->Show();
         browser_view_->RequestFocus();
