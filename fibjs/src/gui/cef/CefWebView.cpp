@@ -108,6 +108,9 @@ CefWebView::CefWebView(exlib::string url, NObject* opt)
         if (!m_bHeadless && m_opt->get("headless", v) == 0)
             m_bHeadless = v.boolVal();
     }
+
+    if (m_bHeadless)
+        m_bPopup = false;
 }
 
 CefWebView::~CefWebView()
