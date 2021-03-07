@@ -51,26 +51,18 @@ public:
     // CefBrowserProcessHandler
     virtual void OnContextInitialized() OVERRIDE
     {
-        std::map<exlib::string, CefRefPtr<GuiSchemeHandlerFactory>>::iterator it = m_schemes.begin();
-
-        while (it != m_schemes.end()) {
-            it->second->RegisterScheme(it->first);
-            it++;
-        }
+        for (auto const& it : m_schemes)
+            it.second->RegisterScheme(it.first);
 
         m_gui_ready.set();
     }
 
     virtual void OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> registrar) OVERRIDE
     {
-        std::map<exlib::string, CefRefPtr<GuiSchemeHandlerFactory>>::iterator it = m_schemes.begin();
-
-        while (it != m_schemes.end()) {
-            if (it->first != "http" && it->first != "https")
-                registrar->AddCustomScheme(it->first.c_str(),
+        for (auto const& it : m_schemes)
+            if (it.first != "http" && it.first != "https")
+                registrar->AddCustomScheme(it.first.c_str(),
                     CEF_SCHEME_OPTION_FETCH_ENABLED | CEF_SCHEME_OPTION_CORS_ENABLED);
-            it++;
-        }
     }
 
     virtual void OnBeforeCommandLineProcessing(const CefString& process_type,

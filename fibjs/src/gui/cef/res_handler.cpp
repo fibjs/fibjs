@@ -88,13 +88,8 @@ bool GuiResourceHandler::ProcessRequest(CefRefPtr<CefRequest> request,
     CefRequest::HeaderMap headers;
     request->GetHeaderMap(headers);
 
-    CefRequest::HeaderMap::iterator it;
-
-    it = headers.begin();
-    while (it != headers.end()) {
-        m_req->addHeader(it->first.ToString().c_str(), it->second.ToString().c_str());
-        it++;
-    }
+    for (auto const& it : headers)
+        m_req->addHeader(it.first.ToString().c_str(), it.second.ToString().c_str());
 
     CefRefPtr<CefPostData> data = request->GetPostData();
     if (data) {
@@ -137,9 +132,8 @@ void GuiResourceHandler::GetResponseHeaders(CefRefPtr<CefResponse> response,
     obj_ptr<NObject> headers;
     rep->allHeader("", headers);
 
-    std::map<exlib::string, int32_t>::iterator it = headers->m_keys.begin();
-    while (it != headers->m_keys.end()) {
-        NObject::Value& v = headers->m_values[it->second];
+    for (auto const& it : headers->m_keys) {
+        NObject::Value& v = headers->m_values[it.second];
         obj_ptr<NArray> list = NArray::getInstance(v.m_val.object());
 
         if (list) {
@@ -147,11 +141,9 @@ void GuiResourceHandler::GetResponseHeaders(CefRefPtr<CefResponse> response,
 
             list->get_length(sz);
             for (int32_t i = 0; i < sz; i++)
-                response->SetHeaderByName(it->first.c_str(), list->m_array[i].string().c_str(), false);
+                response->SetHeaderByName(it.first.c_str(), list->m_array[i].string().c_str(), false);
         } else
-            response->SetHeaderByName(it->first.c_str(), v.m_val.string().c_str(), false);
-
-        it++;
+            response->SetHeaderByName(it.first.c_str(), v.m_val.string().c_str(), false);
     }
 
     response->SetHeaderByName("Access-Control-Allow-Origin", "*", false);
@@ -279,14 +271,9 @@ void GuiSchemeHandlerFactory::RegisterScheme(exlib::string schame)
 {
     if (schame != "http" && schame != "https") {
         CefRegisterSchemeHandlerFactory(schame.c_str(), "", this);
-    } else {
-        std::map<exlib::string, obj_ptr<Handler_base>>::iterator it = m_domains.begin();
-
-        while (it != m_domains.end()) {
-            CefRegisterSchemeHandlerFactory(schame.c_str(), it->first.c_str(), this);
-            it++;
-        }
-    }
+    } else
+        for (auto const& it : m_domains)
+            CefRegisterSchemeHandlerFactory(schame.c_str(), it.first.c_str(), this);
 }
 
 }
