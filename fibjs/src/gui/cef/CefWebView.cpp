@@ -8,6 +8,7 @@
 #include "ifs/json.h"
 #include "options.h"
 #include "CefWebView.h"
+#include "gui_app.h"
 #include "gui_handler.h"
 #include "include/cef_parser.h"
 #include "include/views/cef_window.h"
@@ -79,13 +80,14 @@ private:
     IMPLEMENT_REFCOUNTING(GuiBrowserViewDelegate);
 };
 
+extern CefRefPtr<GuiApp> g_app;
 CefWebView::CefWebView(exlib::string url, NObject* opt)
     : m_opt(opt)
     , m_url(url)
-    , m_bDebug(true)
-    , m_bPopup(true)
-    , m_bMenu(true)
-    , m_bHeadless(g_cefheadless)
+    , m_bDebug(g_app->m_bDebug)
+    , m_bPopup(g_app->m_bPopup)
+    , m_bMenu(g_app->m_bMenu)
+    , m_bHeadless(g_app->m_bHeadless)
     , m_eid(0)
 {
     holder()->Ref();

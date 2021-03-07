@@ -81,7 +81,7 @@ void GuiApp::load_cef()
         _exit(-1);
 }
 
-static CefRefPtr<GuiApp> g_app;
+CefRefPtr<GuiApp> g_app;
 
 void MacRunMessageLoop(const CefMainArgs& args, const CefSettings& settings, CefRefPtr<CefApp> application);
 
@@ -99,6 +99,18 @@ void GuiApp::run_gui(int argc, char* argv[])
 
     if (m_opt) {
         Variant v;
+
+        if (m_opt->get("debug", v) == 0)
+            m_bDebug = v.boolVal();
+
+        if (m_opt->get("popup", v) == 0)
+            m_bPopup = v.boolVal();
+
+        if (m_opt->get("menu", v) == 0)
+            m_bMenu = v.boolVal();
+
+        if (!m_bHeadless && m_opt->get("headless", v) == 0)
+            m_bHeadless = v.boolVal();
 
         if (m_opt->get("cache_path", v) == 0)
             CefString(&m_settings.cache_path) = v.string().c_str();

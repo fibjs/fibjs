@@ -24,6 +24,7 @@ public:
 #else
         : m_args(argc, argv)
 #endif
+        , m_bHeadless(g_cefheadless)
     {
         if (g_cefprocess) {
             for (int32_t i = 0; i < argc; i++) {
@@ -139,6 +140,11 @@ public:
     CefSettings m_settings;
 
     bool m_has_cef = false;
+
+    bool m_bDebug = true;
+    bool m_bPopup = true;
+    bool m_bMenu = true;
+    bool m_bHeadless = true;
 
     exlib::Event m_gui;
     exlib::Event m_gui_ready;

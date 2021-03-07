@@ -43,8 +43,9 @@ module gui
          "caption": true, // 是否有标题栏，缺省有标题栏
          "resizable": true, // 是否可改变尺寸，缺省可以改变
          "maximize": false, // 是否最大化显示，缺省不最大化
-         "debug": true, // 是否输出 WebView 内的错误和 console 信息，缺省显示
-         "popup": true, // 是否允许弹出新的网页，缺省允许
+         "debug": true, // 是否输出 WebView 内的错误和 console 信息，缺省显示或继承全局设置
+         "popup": true, // 是否允许弹出新的网页，缺省允许或继承全局设置
+         "menu": true, // 是否允许右键菜单，缺省允许或继承全局设置
          "headless": false // 是否使用无窗口模式加载页面，缺省不使用无窗口，当命令行指定 --headless 时，此属性将被忽略
      }
      ```
@@ -60,9 +61,12 @@ module gui
      支持以下参数:
      ```JavaScript
      {
-         "cache_path": "", // 设置 cef 数据持久化目录，缺省为空，退出进程后，客户端临时数据将不会被保存
-         "cef_path": "", // 设置 cef runtime 路径，缺省时在当前目录寻找 cef runtime，Mac 下不支持设定
-         "locales_path": "", // 设置 cef 本地化资源目录，缺省在 cef runtime 目录下
+         "cache_path": "", // 设置数据持久化目录，缺省为空，退出进程后，客户端临时数据将不会被保存
+         "cef_path": "", // 设置 runtime 路径，缺省时在当前目录寻找 runtime，Mac 下不支持设定
+         "locales_path": "", // 设置本地化资源目录，缺省在 runtime 目录下
+         "debug": true, // 全局设置是否输出 WebView 内的错误和 console 信息，缺省显示
+         "popup": true, // 全局设置是否允许弹出新的网页，缺省允许
+         "menu": true, // 全局设置是否允许右键菜单，缺省允许
          "headless": false, // 设置 gui 全局无窗口，缺省不使用无窗口，当命令行指定 --headless 时，此属性将被忽略
          "backend": {
              "http://app1/": handler1,
