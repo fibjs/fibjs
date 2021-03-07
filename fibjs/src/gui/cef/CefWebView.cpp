@@ -65,8 +65,6 @@ private:
 
 class GuiBrowserViewDelegate : public CefBrowserViewDelegate {
 public:
-    GuiBrowserViewDelegate() {}
-
     bool OnPopupBrowserViewCreated(CefRefPtr<CefBrowserView> browser_view,
         CefRefPtr<CefBrowserView> popup_browser_view, bool is_devtools) OVERRIDE
     {
@@ -155,7 +153,10 @@ void CefWebView::open()
 
 void CefWebView::clear()
 {
+    m_browser = NULL;
     m_domain.clear();
+    m_holder.Release();
+    m_reg = NULL;
 }
 
 #ifndef Darwin

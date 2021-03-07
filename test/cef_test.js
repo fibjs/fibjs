@@ -76,6 +76,27 @@ describe("cef", () => {
 
             assert.equal(test_util.countObject("WebView"), 0);
         });
+
+        it("gc", () => {
+            var check = false;
+            var win = gui.open("cef://test/simple.html");
+
+            win.on("load", function () {
+                this.close();
+            });
+
+            win.on("closed", () => {
+                check = true;
+            });
+
+            win = undefined;
+
+            for (var i = 0; i < 1000 && test_util.countObject("WebView"); i++)
+                test_util.gc();
+
+            assert.equal(test_util.countObject("WebView"), 0);
+            assert.ok(check);
+        });
     });
 
     describe("window style", () => {

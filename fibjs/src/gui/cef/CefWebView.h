@@ -46,6 +46,14 @@ public:
         const void* params, size_t params_size);
 
 public:
+    // object_base
+    virtual result_t onEventChange(v8::Local<v8::Function> func, exlib::string ev, exlib::string type)
+    {
+        m_holder = new ValueHolder(wrap());
+        return 0;
+    }
+
+public:
     EVENT_FUNC(open);
     EVENT_FUNC(load);
     EVENT_FUNC(move);
@@ -79,10 +87,14 @@ public:
     void clear();
 
 public:
-    CefRefPtr<CefBrowser> m_browser;
-
     obj_ptr<NObject> m_opt;
     exlib::string m_url;
+
+    obj_ptr<ValueHolder> m_holder;
+    CefRefPtr<CefBrowser> m_browser;
+
+    std::map<exlib::string, obj_ptr<EventEmitter_base>> m_domain;
+    CefRefPtr<CefRegistration> m_reg;
 
     bool m_bDebug;
     bool m_bPopup;
@@ -123,9 +135,6 @@ private:
 
     int32_t m_eid;
     std::map<int32_t, ac_method> m_method;
-    std::map<exlib::string, obj_ptr<EventEmitter_base>> m_domain;
-
-    CefRefPtr<CefRegistration> m_reg;
 };
 }
 
