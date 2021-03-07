@@ -154,6 +154,7 @@ public:
 
 public:
     std::map<exlib::string, CefRefPtr<GuiSchemeHandlerFactory>> m_schemes;
+    std::vector<obj_ptr<ValueHolder>> m_hdrs;
 
 private:
     IMPLEMENT_REFCOUNTING(GuiApp);

@@ -267,6 +267,8 @@ result_t GuiApp::config(v8::Local<v8::Object> opt)
             hr = GetConfigValue(isolate->m_isolate, o, ks.c_str(), hdr);
             if (hr < 0)
                 return hr;
+
+            m_hdrs.push_back(new ValueHolder(hdr->wrap()));
             it->second.get()->m_domains.insert(std::pair<exlib::string, obj_ptr<Handler_base>>(u.m_hostname, hdr));
         }
     }

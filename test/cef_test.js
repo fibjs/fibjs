@@ -8,6 +8,7 @@ var os = require('os');
 var child_process = require('child_process');
 var gui = require("gui");
 var util = require("util");
+var coroutine = require("coroutine");
 
 var cef_path = path.join(__dirname, "../temp/cef", os.type());
 console.log(cef_path);
@@ -17,8 +18,18 @@ gui.config({
     "cache_path": `${os.homedir()}/.cache`,
     "cef_path": cef_path,
     "backend": {
-        "http://cef_test/": cef_files_path,
-        "cef://test/": cef_files_path
+        "cef://test/": cef_files_path,
+        "http://cef_test/": {
+            "/mock/:act": (r, a) => {
+                if (a == 'header') {
+                    r.response.write(r.firstHeader('test'));
+                    r.response.addHeader("test", "world");
+                } else if (a == 'post') {
+
+                }
+            },
+            "/*": cef_files_path
+        }
     }
 });
 
@@ -122,6 +133,39 @@ describe("cef", () => {
             height: 100
         };
 
+        function test_div(item, txt) {
+            it(item, done => {
+                var win = gui.open(`http://cef_test/${item}.html`, opt);
+
+                win.on("load", () => {
+                    var doc = win.dev.DOM.getDocument();
+                    var e = win.dev.DOM.querySelector({
+                        nodeId: doc.root.nodeId,
+                        selector: "div"
+                    });
+
+                    var html;
+                    for (var i = 0; i < 10; i++) {
+                        html = win.dev.DOM.getOuterHTML({
+                            nodeId: e.nodeId
+                        });
+                        if (html.outerHTML != "<div id=\"test\"></div>")
+                            break;
+                        coroutine.sleep(10);
+                    }
+
+                    win.close();
+
+                    try {
+                        assert.equal(html.outerHTML, `<div id=\"test\">${txt}</div>`);
+                        done();
+                    } catch (e) {
+                        done(e);
+                    }
+                });
+            });
+        }
+
         it("basic", done => {
             var win = gui.open("cef://test/basic.html", opt);
 
@@ -148,58 +192,11 @@ describe("cef", () => {
             });
         });
 
-        it("fetch", done => {
-            var win = gui.open("http://cef_test/fetch.html", opt);
+        test_div("fetch", "hello");
 
-            win.on("load", () => {
-                var doc = win.dev.DOM.getDocument();
-                var e = win.dev.DOM.querySelector({
-                    nodeId: doc.root.nodeId,
-                    selector: "div"
-                });
+        test_div("xhr", "hello");
 
-                var html = win.dev.DOM.getOuterHTML({
-                    nodeId: e.nodeId
-                });
-
-                win.close();
-
-                try {
-                    assert.equal(html.outerHTML, "<div id=\"test\">hello</div>");
-                    done();
-                } catch (e) {
-                    done(e);
-                }
-            });
-        });
-
-
-        it("xhr", done => {
-            var win = gui.open("http://cef_test/xhr.html", opt);
-
-            win.on("load", () => {
-                var doc = win.dev.DOM.getDocument();
-                var e = win.dev.DOM.querySelector({
-                    nodeId: doc.root.nodeId,
-                    selector: "div"
-                });
-
-                var html = win.dev.DOM.getOuterHTML({
-                    nodeId: e.nodeId
-                });
-
-                win.close();
-
-                try {
-                    assert.equal(html.outerHTML, "<div id=\"test\">hello</div>");
-                    done();
-                } catch (e) {
-                    done(e);
-                }
-            });
-        });
-
-        // it("header", () => {});
+        test_div("header", "hello, world");
 
         // it("post", () => {});
     });
