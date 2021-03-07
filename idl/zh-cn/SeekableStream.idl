@@ -5,7 +5,7 @@ interface SeekableStream : Stream
       @param offset 指定新的位置
       @param whence 指定位置基准，允许的值为：SEEK_SET, SEEK_CUR, SEEK_END
      */
-    seek(Long offset, Integer whence);
+    seek(Long offset, Integer whence = fs.SEEK_SET);
 
     /*! @brief 查询流当前位置
      @return 返回流当前位置
