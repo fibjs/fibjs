@@ -25,7 +25,8 @@ gui.config({
                     r.response.write(r.firstHeader('test'));
                     r.response.addHeader("test", "world");
                 } else if (a == 'post') {
-
+                    r.response.write(`[${r.firstHeader("Content-type")}]`);
+                    r.response.write(r.body.readAll());
                 }
             },
             "/*": cef_files_path
@@ -88,9 +89,12 @@ describe("cef", () => {
 
                 win.on("load", () => {
                     var doc = win.dev.DOM.getDocument();
+
+                    coroutine.sleep(10);
                     var info = win.dev.DOM.getBoxModel({
                         nodeId: doc.root.nodeId
                     });
+
                     win.close();
 
                     try {
@@ -198,7 +202,7 @@ describe("cef", () => {
 
         test_div("header", "hello, world");
 
-        // it("post", () => {});
+        test_div("post", "[application/x-www-form-urlencoded]foo=bar&amp;lorem=ipsum");
     });
 });
 

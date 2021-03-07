@@ -9,6 +9,7 @@
 #include "ifs/process.h"
 #include "ifs/mq.h"
 #include "Url.h"
+#include "MemoryStream.h"
 #include "include/cef_task.h"
 
 namespace fibjs {
@@ -95,7 +96,21 @@ bool GuiResourceHandler::ProcessRequest(CefRefPtr<CefRequest> request,
         it++;
     }
 
-    // TODO: post body
+    CefRefPtr<CefPostData> data = request->GetPostData();
+    if (data) {
+        CefPostData::ElementVector els;
+        data->GetElements(els);
+
+        if (els.size() == 1) {
+            size_t sz = els[0]->GetBytesCount();
+            exlib::string sbuf;
+
+            sbuf.resize(sz);
+            els[0]->GetBytes(sz, sbuf.c_buffer());
+
+            m_req->set_body(new MemoryStream::CloneStream(sbuf, 0));
+        }
+    }
 
     (new asyncInvoke(m_handler, m_req, callback))->apost(0);
 

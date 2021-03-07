@@ -1,0 +1,15 @@
+<html>
+    <body>
+        <div id=test></div>
+        <script>
+            function reqListener () {
+                document.getElementById("test").innerText = this.responseText + ", " +this.getResponseHeader("test");
+            }
+            var oReq = new XMLHttpRequest();
+            oReq.addEventListener("load", reqListener);
+            oReq.open("GET", "/mock/header");
+            oReq.setRequestHeader("test", "hello");
+            oReq.send();
+        </script>
+    </body>
+</html>
