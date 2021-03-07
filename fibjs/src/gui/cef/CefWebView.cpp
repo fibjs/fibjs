@@ -80,7 +80,7 @@ private:
     IMPLEMENT_REFCOUNTING(GuiBrowserViewDelegate);
 };
 
-extern CefRefPtr<GuiApp> g_app;
+extern GuiApp* g_app;
 CefWebView::CefWebView(exlib::string url, NObject* opt)
     : m_opt(opt)
     , m_url(url)

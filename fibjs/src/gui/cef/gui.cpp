@@ -81,12 +81,14 @@ void GuiApp::load_cef()
         _exit(-1);
 }
 
-CefRefPtr<GuiApp> g_app;
+GuiApp* g_app;
 
 void MacRunMessageLoop(const CefMainArgs& args, const CefSettings& settings, CefRefPtr<CefApp> application);
 
 void GuiApp::run_gui(int argc, char* argv[])
 {
+    AddRef();
+
     exlib::OSThread th;
     th.bindCurrent();
 
@@ -148,7 +150,7 @@ void GuiApp::run_gui(int argc, char* argv[])
 void run_gui(int argc, char* argv[])
 {
     g_app = new GuiApp(argc, argv);
-    g_app.get()->run_gui(argc, argv);
+    g_app->run_gui(argc, argv);
 }
 
 static result_t async_flush(int32_t w)
@@ -167,8 +169,8 @@ void GuiApp::gui_flush()
 
 void gui_flush()
 {
-    if (g_app.get())
-        g_app.get()->gui_flush();
+    if (g_app)
+        g_app->gui_flush();
 }
 
 void putGuiPool(AsyncEvent* ac)
@@ -190,7 +192,7 @@ void putGuiPool(AsyncEvent* ac)
         AsyncEvent* m_ac;
     };
 
-    if (!g_app.get()->m_has_cef)
+    if (!g_app->m_has_cef)
         os_putGuiPool(ac);
     else
         CefPostTask(TID_UI, new GuiTask(ac));
@@ -229,7 +231,7 @@ result_t GuiApp::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebV
 
 result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
-    return g_app.get()->open(url, opt, retVal);
+    return g_app->open(url, opt, retVal);
 }
 
 result_t GuiApp::config(v8::Local<v8::Object> opt)
@@ -290,7 +292,7 @@ result_t GuiApp::config(v8::Local<v8::Object> opt)
 
 result_t gui_base::config(v8::Local<v8::Object> opt)
 {
-    return g_app.get()->config(opt);
+    return g_app->config(opt);
 }
 
 }
