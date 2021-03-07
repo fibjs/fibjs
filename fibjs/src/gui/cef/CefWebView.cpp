@@ -324,10 +324,11 @@ void CefWebView::OnDevToolsMethodResult(CefRefPtr<CefBrowser> browser, int messa
 void CefWebView::OnDevToolsEvent(CefRefPtr<CefBrowser> browser, const CefString& method,
     const void* params, size_t params_size)
 {
-    Variant v = new JSONValue(exlib::string((const char*)params, params_size));
+    Variant v;
     exlib::string name = method.ToString();
     size_t pos = name.find('.');
 
+    v.setJSON(exlib::string((const char*)params, params_size));
     if (pos != exlib::string::npos) {
         exlib::string dom_name = name.substr(0, pos);
         std::map<exlib::string, obj_ptr<EventEmitter_base>>::iterator it_dom;
