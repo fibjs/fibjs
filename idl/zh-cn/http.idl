@@ -82,14 +82,23 @@ module http
      */
     static HttpResponse request(Stream conn, HttpRequest req) async;
 
+    /*! @brief 发送 http 请求到指定的流对象，并返回结果
+     @param conn 指定处理请求的流对象
+     @param req 要发送的 HttpRequest 对象
+     @param response_body 指定 response.body 的流
+     @return 返回服务器响应
+     */
+    static HttpResponse request(Stream conn, HttpRequest req, SeekableStream response_body) async;
+
     /*! @brief 请求指定的 url，并返回结果
      opts 包含请求的附加选项，支持的内容如下：
      ```JavaScript
      {
          "query": {},
-         "body": SeekedStream | Buffer | String | {},
+         "body": SeekableStream | Buffer | String | {},
          "json": {},
-         "headers": {}
+         "headers": {},
+         "response_body": SeekableStream //指定接受 resposne 数据的流
      }
      ```
      其中 body，json 不得同时出现。缺省为 {}，不包含任何附加信息
@@ -105,7 +114,7 @@ module http
      ```JavaScript
      {
          "query": {},
-         "body": SeekedStream | Buffer | String | {},
+         "body": SeekableStream | Buffer | String | {},
          "json": {},
          "headers": {}
      }
@@ -122,7 +131,7 @@ module http
      ```JavaScript
      {
          "query": {},
-         "body": SeekedStream | Buffer | String | {},
+         "body": SeekableStream | Buffer | String | {},
          "json": {},
          "headers": {}
      }
@@ -139,7 +148,7 @@ module http
      ```JavaScript
      {
          "query": {},
-         "body": SeekedStream | Buffer | String | {},
+         "body": SeekableStream | Buffer | String | {},
          "json": {},
          "headers": {}
      }
@@ -156,7 +165,7 @@ module http
      ```JavaScript
      {
          "query": {},
-         "body": SeekedStream | Buffer | String | {},
+         "body": SeekableStream | Buffer | String | {},
          "json": {},
          "headers": {}
      }
@@ -173,7 +182,7 @@ module http
      ```JavaScript
      {
          "query": {},
-         "body": SeekedStream | Buffer | String | {},
+         "body": SeekableStream | Buffer | String | {},
          "json": {},
          "headers": {}
      }

@@ -644,6 +644,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             m_zip.Release();
             m_body.Release();
 
+            m_req->clear();
             return m_req->readFrom(m_stmBuffered, next(invoke));
         }
 
@@ -741,7 +742,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                             const char* pKey = hdr.c_str();
                             if (qstricmp(hdr.c_str(), "text/", 5)
                                 && !bsearch(&pKey, &s_zipTypes, ARRAYSIZE(s_zipTypes),
-                                       sizeof(pKey), mt_cmp))
+                                    sizeof(pKey), mt_cmp))
                                 type = 0;
                         } else
                             type = 0;

@@ -36,7 +36,7 @@ result_t http_request(exlib::string method, exlib::string url,
     SeekableStream_base* body, NObject* headers,
     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    return get_httpClient(ac->isolate())->request(method, url, body, headers, retVal, ac);
+    return get_httpClient(ac->isolate())->request(method, url, body, NULL, headers, retVal, ac);
 }
 
 result_t http_request2(HttpClient_base* httpClient, exlib::string method, exlib::string url,
@@ -44,9 +44,9 @@ result_t http_request2(HttpClient_base* httpClient, exlib::string method, exlib:
     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
     if (httpClient != NULL)
-        return ((HttpClient*)httpClient)->request(method, url, body, headers, retVal, ac);
+        return ((HttpClient*)httpClient)->request(method, url, body, NULL, headers, retVal, ac);
     else
-        return get_httpClient(ac->isolate())->request(method, url, body, headers, retVal, ac);
+        return get_httpClient(ac->isolate())->request(method, url, body, NULL, headers, retVal, ac);
 }
 
 result_t http_base::get_cookies(obj_ptr<NArray>& retVal)
@@ -150,10 +150,15 @@ result_t http_base::setClientCert(X509Cert_base* crt, PKey_base* key)
 }
 
 result_t http_base::request(Stream_base* conn, HttpRequest_base* req,
-    obj_ptr<HttpResponse_base>& retVal,
-    AsyncEvent* ac)
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
     return get_httpClient(ac->isolate())->request(conn, req, retVal, ac);
+}
+
+result_t http_base::request(Stream_base* conn, HttpRequest_base* req, SeekableStream_base* response_body,
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+{
+    return get_httpClient(ac->isolate())->request(conn, req, response_body, retVal, ac);
 }
 
 result_t http_base::request(exlib::string method, exlib::string url,

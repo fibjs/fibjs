@@ -366,7 +366,6 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncEvent* ac)
             , m_pThis(pThis)
             , m_stm(stm)
         {
-            m_pThis->clear();
             next(begin);
         }
 

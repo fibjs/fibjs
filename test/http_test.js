@@ -2267,6 +2267,23 @@ describe("http", () => {
                 assert.equal(cookie_for['_'], "root=value2; gzip_test=value");
             });
 
+            it("custom body", () => {
+                var body = new io.MemoryStream();
+                client.get("http://127.0.0.1:" + (8884 + base_port) + "/custom_body_test", {
+                    response_body: body
+                });
+                assert.equal(body.readAll().toString(), "/custom_body_test");
+
+                var body = new io.MemoryStream();
+                body.write("keep it:");
+                body.write("not keep");
+                body.seek(8);
+                client.get("http://127.0.0.1:" + (8884 + base_port) + "/custom_body_test", {
+                    response_body: body
+                });
+                assert.equal(body.readAll().toString(), "keep it:/custom_body_test");
+            });
+
             it('parallel', () => {
                 var rs = coroutine.parallel(() => {
                     return client.get("http://127.0.0.1:" + (8884 + base_port) + "/parallel").body.readAll().toString();

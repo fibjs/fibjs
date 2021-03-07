@@ -21,6 +21,7 @@ class PKey_base;
 class HttpResponse_base;
 class Stream_base;
 class HttpRequest_base;
+class SeekableStream_base;
 
 class HttpClient_base : public object_base {
     DECLARE_CLASS(HttpClient_base);
@@ -51,6 +52,7 @@ public:
     virtual result_t set_sslVerification(int32_t newVal) = 0;
     virtual result_t setClientCert(X509Cert_base* crt, PKey_base* key) = 0;
     virtual result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t request(Stream_base* conn, HttpRequest_base* req, SeekableStream_base* response_body, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t get(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t post(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
@@ -95,6 +97,7 @@ public:
 
 public:
     ASYNC_MEMBERVALUE3(HttpClient_base, request, Stream_base*, HttpRequest_base*, obj_ptr<HttpResponse_base>);
+    ASYNC_MEMBERVALUE4(HttpClient_base, request, Stream_base*, HttpRequest_base*, SeekableStream_base*, obj_ptr<HttpResponse_base>);
     ASYNC_MEMBERVALUE4(HttpClient_base, request, exlib::string, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_MEMBERVALUE3(HttpClient_base, get, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_MEMBERVALUE3(HttpClient_base, post, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
@@ -109,6 +112,7 @@ public:
 #include "ifs/HttpResponse.h"
 #include "ifs/Stream.h"
 #include "ifs/HttpRequest.h"
+#include "ifs/SeekableStream.h"
 
 namespace fibjs {
 inline ClassInfo& HttpClient_base::class_info()
@@ -470,6 +474,17 @@ inline void HttpClient_base::s_request(const v8::FunctionCallbackInfo<v8::Value>
         hr = pInst->acb_request(v0, v1, cb, args);
     else
         hr = pInst->ac_request(v0, v1, vr);
+
+    ASYNC_METHOD_OVER(3, 3);
+
+    ARG(obj_ptr<Stream_base>, 0);
+    ARG(obj_ptr<HttpRequest_base>, 1);
+    ARG(obj_ptr<SeekableStream_base>, 2);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_request(v0, v1, v2, cb, args);
+    else
+        hr = pInst->ac_request(v0, v1, v2, vr);
 
     ASYNC_METHOD_OVER(3, 2);
 

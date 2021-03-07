@@ -166,7 +166,7 @@ result_t HttpRepeater::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         ON_STATE(asyncInvoke, request)
         {
             return m_pThis->m_client->request(m_method, m_url,
-                m_body, m_headers, m_ret, next(response));
+                m_body, NULL, m_headers, m_ret, next(response));
         }
 
         ON_STATE(asyncInvoke, response)

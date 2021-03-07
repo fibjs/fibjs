@@ -28,6 +28,7 @@ class Handler_base;
 class X509Cert_base;
 class PKey_base;
 class Stream_base;
+class SeekableStream_base;
 
 class http_base : public object_base {
     DECLARE_CLASS(http_base);
@@ -57,6 +58,7 @@ public:
     static result_t fileHandler(exlib::string root, v8::Local<v8::Object> mimes, bool autoIndex, obj_ptr<Handler_base>& retVal);
     static result_t setClientCert(X509Cert_base* crt, PKey_base* key);
     static result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+    static result_t request(Stream_base* conn, HttpRequest_base* req, SeekableStream_base* response_body, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t get(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t post(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
@@ -107,6 +109,7 @@ public:
 
 public:
     ASYNC_STATICVALUE3(http_base, request, Stream_base*, HttpRequest_base*, obj_ptr<HttpResponse_base>);
+    ASYNC_STATICVALUE4(http_base, request, Stream_base*, HttpRequest_base*, SeekableStream_base*, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE4(http_base, request, exlib::string, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE3(http_base, get, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE3(http_base, post, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
@@ -128,6 +131,7 @@ public:
 #include "ifs/X509Cert.h"
 #include "ifs/PKey.h"
 #include "ifs/Stream.h"
+#include "ifs/SeekableStream.h"
 
 namespace fibjs {
 inline ClassInfo& http_base::class_info()
@@ -464,6 +468,17 @@ inline void http_base::s_static_request(const v8::FunctionCallbackInfo<v8::Value
         hr = acb_request(v0, v1, cb, args);
     else
         hr = ac_request(v0, v1, vr);
+
+    ASYNC_METHOD_OVER(3, 3);
+
+    ARG(obj_ptr<Stream_base>, 0);
+    ARG(obj_ptr<HttpRequest_base>, 1);
+    ARG(obj_ptr<SeekableStream_base>, 2);
+
+    if (!cb.IsEmpty())
+        hr = acb_request(v0, v1, v2, cb, args);
+    else
+        hr = ac_request(v0, v1, v2, vr);
 
     ASYNC_METHOD_OVER(3, 2);
 
