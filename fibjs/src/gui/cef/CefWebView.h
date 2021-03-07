@@ -102,24 +102,6 @@ public:
     bool m_bHeadless;
 
 private:
-    class JSONValue : public object_base {
-    public:
-        JSONValue(exlib::string s)
-            : m_json(s)
-        {
-        }
-
-    public:
-        // object_base
-        virtual result_t valueOf(v8::Local<v8::Value>& retVal)
-        {
-            return json_base::decode(m_json, retVal);
-        }
-
-    private:
-        exlib::string m_json;
-    };
-
     class ac_method {
     public:
         ac_method(Variant& retVal, AsyncEvent* ac)

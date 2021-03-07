@@ -315,7 +315,7 @@ void CefWebView::OnDevToolsMethodResult(CefRefPtr<CefBrowser> browser, int messa
 
     it_method = m_method.find(message_id);
     if (it_method != m_method.end()) {
-        it_method->second.m_retVal = new JSONValue(exlib::string((const char*)result, result_size));
+        it_method->second.m_retVal.setJSON(exlib::string((const char*)result, result_size));
         it_method->second.m_ac->apost(0);
         m_method.erase(it_method);
     }

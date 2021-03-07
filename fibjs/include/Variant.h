@@ -176,6 +176,11 @@ public:
         if (_t == VT_String)
             return operator=(v.strVal());
 
+        if (_t == VT_JSON) {
+            setJSON(v.strVal());
+            return *this;
+        }
+
         if (_t == VT_Object)
             return operator=(v.m_Val.objVal);
 
@@ -214,6 +219,7 @@ public:
         case VT_Long:
             return (m_Val.longVal == v.m_Val.longVal);
         case VT_String:
+        case VT_JSON:
             return (strVal() == v.strVal());
         case VT_Boolean:
             return (m_Val.boolVal == v.m_Val.boolVal);
@@ -423,6 +429,15 @@ public:
     void toString(exlib::string& retVal) const;
 
     void toJSON();
+    void setJSON(const exlib::string& v)
+    {
+        if (type() != VT_JSON) {
+            clear();
+            set_type(VT_JSON);
+            new (m_Val.strVal) exlib::string(v);
+        } else
+            strVal() = v;
+    }
 
     int32_t unbind();
     void clearUnbind();

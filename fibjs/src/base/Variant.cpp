@@ -107,7 +107,6 @@ Variant::operator v8::Local<v8::Value>() const
             return jsVal();
     case VT_JSON: {
         v8::Local<v8::Value> v;
-
         json_base::decode(strVal(), v);
         return v;
     }
@@ -315,10 +314,7 @@ void Variant::toJSON()
         exlib::string str;
 
         json_base::encode(v, str);
-
-        clear();
-        set_type(VT_JSON);
-        new (m_Val.strVal) exlib::string(str);
+        setJSON(str);
     }
 }
 
