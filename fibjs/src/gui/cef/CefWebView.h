@@ -101,6 +101,9 @@ public:
     bool m_bMenu;
     bool m_bHeadless;
 
+    int32_t m_width;
+    int32_t m_height;
+
 private:
     class ac_method {
     public:

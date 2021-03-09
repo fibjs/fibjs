@@ -88,6 +88,8 @@ CefWebView::CefWebView(exlib::string url, NObject* opt)
     , m_bPopup(g_app->m_bPopup)
     , m_bMenu(g_app->m_bMenu)
     , m_bHeadless(g_app->m_bHeadless)
+    , m_width(800)
+    , m_height(600)
     , m_eid(0)
 {
     holder()->Ref();
@@ -109,6 +111,13 @@ CefWebView::CefWebView(exlib::string url, NObject* opt)
 
         if (!m_bHeadless && m_opt->get("headless", v) == 0)
             m_bHeadless = v.boolVal();
+
+        if (m_bHeadless) {
+            if (opt->get("width", v) == 0)
+                m_width = v.intVal();
+            if (opt->get("height", v) == 0)
+                m_height = v.intVal();
+        }
     }
 
     if (m_bHeadless)

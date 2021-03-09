@@ -150,8 +150,8 @@ describe("cef", () => {
         test_style("headless", {
             headless: true
         }, (w, h) => {
-            assert.equal(w, 800);
-            assert.equal(h, 600);
+            assert.equal(w, 120);
+            assert.equal(h, 120);
         });
     });
 

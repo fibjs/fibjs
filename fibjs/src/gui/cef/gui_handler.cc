@@ -158,8 +158,14 @@ void GuiHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> fr
 void GuiHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
 {
     rect.x = rect.y = 0;
-    rect.width = 800;
-    rect.height = 600;
+    BrowserList::iterator bit = fromBrowser(browser);
+    if (bit != browser_list_.end()) {
+        rect.width = (*bit)->m_width;
+        rect.height = (*bit)->m_height;
+    } else {
+        rect.width = 800;
+        rect.height = 600;
+    }
 }
 
 void GuiHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type, const RectList& dirtyRects,
