@@ -238,6 +238,7 @@ describe("cef", () => {
             var ret = win.dev.Page.captureScreenshot();
             try {
                 var img = gd.load(encoding.base64.decode(ret.data));
+                assert.equal(img.getPixel(1, 1), gd.rgb(255, 255, 255));
                 done();
             } catch (e) {
                 done(e);

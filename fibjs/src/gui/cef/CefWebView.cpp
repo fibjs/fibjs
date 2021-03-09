@@ -144,6 +144,8 @@ void CefWebView::open()
     gui_handler->browser_list_.push_back(this);
 
     CefBrowserSettings browser_settings;
+    browser_settings.background_color = CefColorSetARGB(255, 255, 255, 255);
+
     if (use_view) {
         static CefRefPtr<GuiBrowserViewDelegate> view_delegate;
         if (view_delegate == NULL)
