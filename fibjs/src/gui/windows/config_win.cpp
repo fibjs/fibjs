@@ -71,11 +71,12 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 void os_config_window(WebView_base* webview, void* _window, NObject* opt)
 {
     HWND hWndParent = (HWND)_window;
-    DWORD dwStyle = WS_POPUP;
+    DWORD dwStyle = WS_OVERLAPPED;
     int x = CW_USEDEFAULT;
     int y = CW_USEDEFAULT;
     int nWidth = CW_USEDEFAULT;
     int nHeight = CW_USEDEFAULT;
+    bool _fullscreen = false;
 
     if (opt) {
         Variant v;
@@ -90,19 +91,24 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
             nHeight = v.intVal();
 
         if (!(opt->get("border", v) == 0 && !v.boolVal())) {
-            dwStyle |= WS_BORDER;
+            dwStyle |= WS_BORDER | WS_THICKFRAME;
 
             if (!(opt->get("caption", v) == 0 && !v.boolVal()))
                 dwStyle |= WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
 
-            if (!(opt->get("resizable", v) == 0 && !v.boolVal())) {
-                dwStyle &= ~(WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
-                dwStyle |= WS_THICKFRAME;
-            }
+            if (opt->get("resizable", v) == 0 && !v.boolVal()) {
+                dwStyle &= ~(WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
 
-            if (opt->get("maximize", v) == 0 && v.boolVal())
-                dwStyle |= WS_MAXIMIZE;
+                HMENU hSysMenu = GetSystemMenu(hWndParent, FALSE);
+                RemoveMenu(hSysMenu, SC_RESTORE, MF_BYCOMMAND);
+                RemoveMenu(hSysMenu, SC_MAXIMIZE, MF_BYCOMMAND);
+                RemoveMenu(hSysMenu, SC_MINIMIZE, MF_BYCOMMAND);
+                RemoveMenu(hSysMenu, SC_SIZE, MF_BYCOMMAND);
+            }
         }
+
+        if (opt->get("maximize", v) == 0 && v.boolVal())
+            dwStyle |= WS_MAXIMIZE;
     } else
         dwStyle = WS_OVERLAPPEDWINDOW;
 
