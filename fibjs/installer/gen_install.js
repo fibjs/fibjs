@@ -1,4 +1,5 @@
 var fs = require("fs");
+var path = require("path");
 var child_process = require("child_process");
 
 var build = false;
@@ -11,7 +12,10 @@ else {
 }
 
 if (build) {
-	child_process.run("makecab", ["fibjs.exe", "fibjs.cab"]);
+	const systemDrive = process.env.SystemDrive || process.env.SYSTEMDRIVE;
+	const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT || `${systemDrive}:\\Windows`;
+
+	child_process.run(path.resolve(systemRoot, `./system32/makecab`), ["fibjs.exe", "fibjs.cab"]);
 	var st2 = fs.stat("fibjs.cab");
 	console.log();
 	console.log();
