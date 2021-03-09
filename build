@@ -16,7 +16,7 @@ export WORK_ROOT=`pwd`
 SOURCE_ROOT="`dirname \"$0\"`"
 SOURCE_ROOT="`( cd \"$SOURCE_ROOT\" && pwd )`"
 
-if [ -d "${SOURCE_ROOT}/vender" ]; then 
+if [ -f "${SOURCE_ROOT}/vender/build" ]; then 
 	if [ -z $USE_VENDER_DIST ]; then
 		cd "${SOURCE_ROOT}/vender"
 		sh build "$@"
