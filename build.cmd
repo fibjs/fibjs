@@ -3,11 +3,13 @@
 set WORK_ROOT=%cd%
 set SOURCE_ROOT=%~dp0
 
-if exist "%SOURCE_ROOT%/vender" (
-    cd /d "%SOURCE_ROOT%/vender"
-    call build %*%
-    if ERRORLEVEL 1 goto exitbuild
-)else goto inform
+if ("%USE_VENDER_DIST%" == "") (
+	if exist "%SOURCE_ROOT%/vender" (
+		cd /d "%SOURCE_ROOT%/vender"
+		call build %*%
+		if ERRORLEVEL 1 goto exitbuild
+	) else goto inform
+)
 
 cd /d "%SOURCE_ROOT%/fibjs"
 call build %*%
