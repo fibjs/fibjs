@@ -49,12 +49,15 @@ int uv_call(std::function<int(void)> proc)
         void invoke()
         {
             m_res = m_proc();
+            if (m_res == CALL_E_EXCEPTION)
+                m_error = Runtime::errMessage();
             m_event.set();
         }
 
     public:
         std::function<int(void)> m_proc;
         int& m_res;
+        exlib::string m_error;
         exlib::Event m_event;
     };
 
@@ -65,6 +68,9 @@ int uv_call(std::function<int(void)> proc)
     uv_async_send(&s_uv_asyncWatcher);
 
     uvc.m_event.wait();
+
+    if (res == CALL_E_EXCEPTION)
+        return Runtime::setError(uvc.m_error);
 
     return res;
 }
