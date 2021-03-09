@@ -5,10 +5,13 @@ var test_util = require("./test_util");
 
 var path = require("path");
 var os = require('os');
+var fs = require('fs');
+var gd = require('gd');
 var child_process = require('child_process');
 var gui = require("gui");
 var util = require("util");
 var coroutine = require("coroutine");
+var encoding = require("encoding");
 
 var cef_path = path.join(__dirname, "../temp/cef", os.type());
 console.log(cef_path);
@@ -224,6 +227,24 @@ describe("cef", () => {
         test_div("header", "hello, world");
 
         test_div("post", "[application/x-www-form-urlencoded]foo=bar&amp;lorem=ipsum");
+    });
+
+    it("screenshot on headless", done => {
+        var win = gui.open("cef://test/basic.html", {
+            headless: true
+        });
+
+        win.on("load", () => {
+            var ret = win.dev.Page.captureScreenshot();
+            try {
+                var img = gd.load(encoding.base64.decode(ret.data));
+                done();
+            } catch (e) {
+                done(e);
+            }
+
+            win.close();
+        });
     });
 });
 
