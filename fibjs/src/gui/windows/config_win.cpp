@@ -109,6 +109,9 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
 
         if (opt->get("maximize", v) == 0 && v.boolVal())
             dwStyle |= WS_MAXIMIZE;
+
+        if (opt->get("fullscreen", v) == 0 && v.boolVal())
+            _fullscreen = true;
     } else
         dwStyle = WS_OVERLAPPEDWINDOW;
 
@@ -138,8 +141,15 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
     else
         y = (actualDesktop.bottom - nHeight) / 2;
 
-    SetWindowLong(hWndParent, GWL_STYLE, dwStyle);
-    SetWindowPos(hWndParent, HWND_TOP, x, y, nWidth, nHeight, 0);
+    if (_fullscreen) {
+        dwStyle = WS_OVERLAPPED;
+        SetWindowLong(hWndParent, GWL_STYLE, dwStyle);
+        SetWindowPos(hWndParent, HWND_TOP, 0, 0, actualDesktop.right, actualDesktop.bottom, 0);
+    } else {
+        SetWindowLong(hWndParent, GWL_STYLE, dwStyle);
+        SetWindowPos(hWndParent, HWND_TOP, x, y, nWidth, nHeight, 0);
+    }
+
     dwStyle |= WS_VISIBLE;
     SetWindowLong(hWndParent, GWL_STYLE, dwStyle);
 

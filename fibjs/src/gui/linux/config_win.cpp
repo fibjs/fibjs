@@ -27,6 +27,7 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
 
     static Atom wmWindowType;
     static Atom wmDock;
+    static Atom wmFullscreen;
 
     if (!_display) {
         _display = XOpenDisplay(NULL);
@@ -36,8 +37,10 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
         wmVMaximizedState = XInternAtom(_display, "_NET_WM_STATE_MAXIMIZED_VERT", false);
         wmHMaximizedState = XInternAtom(_display, "_NET_WM_STATE_MAXIMIZED_HORZ", false);
 
-        wmWindowType = XInternAtom(_display, "_NET_WM_WINDOW_TYPE", False);
-        wmDock = XInternAtom(_display, "_NET_WM_WINDOW_TYPE_DOCK", False);
+        wmWindowType = XInternAtom(_display, "_NET_WM_WINDOW_TYPE", false);
+        wmDock = XInternAtom(_display, "_NET_WM_WINDOW_TYPE_DOCK", false);
+
+        wmFullscreen = XInternAtom(_display, "_NET_WM_STATE_FULLSCREEN", false);
     }
 
     unsigned long window = (unsigned long)_window;
@@ -47,6 +50,7 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
     int32_t nHeight = CW_USEDEFAULT;
     bool _maximize = false;
     bool _border = true;
+    bool _fullscreen = false;
 
     if (opt) {
         Variant v;
@@ -66,6 +70,9 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
 
         if (opt->get("maximize", v) == 0 && v.boolVal())
             _maximize = true;
+
+        if (opt->get("fullscreen", v) == 0 && v.boolVal())
+            _fullscreen = true;
     }
 
     Screen* _screen = DefaultScreenOfDisplay(_display);
@@ -103,6 +110,24 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
         XChangeProperty(_display, window, wmWindowType, XA_ATOM, 32, PropModeReplace, (unsigned char*)&wmDock, 1);
 
     XMoveResizeWindow(_display, window, x, y, nWidth, nHeight);
+
+    if (_fullscreen) {
+        XEvent xev;
+        memset(&xev, 0, sizeof(xev));
+        xev.xclient.type = ClientMessage;
+        xev.xclient.display = _display;
+        xev.xclient.window = window;
+        xev.xclient.message_type = wmState;
+        xev.xclient.format = 32;
+        xev.xclient.data.l[0] = 1; //xev.xclient.data.l[0] = wmAddState;
+        xev.xclient.data.l[1] = wmFullscreen;
+        xev.xclient.data.l[2] = 0;
+        xev.xclient.data.l[3] = 0;
+
+        XSendEvent(_display, DefaultRootWindow(_display), False,
+            SubstructureNotifyMask | SubstructureRedirectMask, &xev);
+    }
+
     XFlush(_display);
 
     webview->_emit("open");
