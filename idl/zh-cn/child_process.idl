@@ -4,6 +4,14 @@
  var child_process = require("child_process");
  var child = child_process.spwan("ls");
  ```
+
+ 对于同时使用 nodejs 的用户, 需注意
+ - fibjs 的 `child_process.exec(command, args)` 和 nodejs 的同名 api 功能类似, 但在 windows 上, 并不会自动将 cmd.exe 作为 command 参数的执行环境;
+ - fibjs 的 child_process.[spawn|exec|execFile|run] 是同步/回调一体的 async 风格函数:
+   - 如果最后一个参数不是函数, 则是同步的
+   - 如果传递了函数作为最后一个参数, 则是异步的;
+ - fibjs 的 child_process.[exec|execFile] 的返回结果是一个对象, 该对象和 nodejs 同名 api 返回的对象**完全不相同**
+ - fibjs 的 `child_process.run` 在 nodejs 中没有对应 API
  */
 module child_process
 {
@@ -66,7 +74,7 @@ module child_process
      @param options 指定创建参数
      @return 返回子进程的 stdio 输出内容
      */
-    static (Variant stdout, Variant stderr) exec(String command, Object options = {}) async;
+    static(Variant stdout, Variant stderr) exec(String command, Object options = {}) async;
 
     /*! @brief 直接执行所指定的文件并缓冲输出，当以回调方式执行时，函数将返回子进程对象
     options 支持的内容如下：
@@ -87,7 +95,7 @@ module child_process
      @param options 指定创建参数
      @return 返回子进程的 stdio 输出内容
      */
-    static (Variant stdout, Variant stderr) execFile(String command, Array args, Object options = {}) async;
+    static(Variant stdout, Variant stderr) execFile(String command, Array args, Object options = {}) async;
 
     /*! @brief 直接执行所指定的文件并缓冲输出，当以回调方式执行时，函数将返回子进程对象
     options 支持的内容如下：
@@ -107,7 +115,7 @@ module child_process
      @param options 指定创建参数
      @return 返回子进程的 stdio 输出内容
      */
-    static (Variant stdout, Variant stderr) execFile(String command, Object options = {}) async;
+    static(Variant stdout, Variant stderr) execFile(String command, Object options = {}) async;
 
     /*! @brief 直接执行所指定的文件并返回 exitCode，当以回调方式执行时，函数将返回子进程对象
     options 支持的内容如下：
