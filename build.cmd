@@ -3,7 +3,7 @@
 set WORK_ROOT=%cd%
 set SOURCE_ROOT=%~dp0
 
-if ("%USE_VENDER_DIST%" == "") (
+if "%USE_VENDER_DIST%" == "" (
 	if exist "%SOURCE_ROOT%/vender" (
 		cd /d "%SOURCE_ROOT%/vender"
 		call build %*%
