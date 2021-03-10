@@ -28,7 +28,7 @@ env:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
-
+    continue-on-error: true
     strategy:
       matrix:
         os: [ubuntu-16.04]
@@ -161,27 +161,6 @@ jobs:
           DIST_ARCH: ${{ steps.set-env-vars.outputs.DIST_ARCH }}
           DIST_DIR: ${{ steps.set-env-vars.outputs.DIST_DIR }}
           RELEASE_TAG: ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
-
-      - name: Test
-        # only test for release version now, some test cases cannot passed in debug mode
-        if: ${{ matrix.build_type == 'release' }}
-        continue-on-error: true
-        shell: bash
-        run: |
-          if [[ -z $GIT_TAG && $GIT_BRANCH != "beta" ]]; then
-            bash .github/workflows/test.sh;
-          fi
-        env:
-          TARGET_ARCH: ${{ matrix.target_arch }}
-          BUILD_TYPE: ${{ matrix.build_type }}
-          RELEASE_TAG: ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
-          TARGET_OS: ${{ steps.set-env-vars.outputs.TARGET_OS }}
-          TARGET_OS_NAME: ${{ steps.set-env-vars.outputs.TARGET_OS_NAME }}
-          GIT_TAG: ${{ steps.set-env-vars.outputs.GIT_TAG }}
-          GIT_BRANCH: ${{ steps.set-env-vars.outputs.GIT_BRANCH }}
-          DIST_DIR: ${{ steps.set-env-vars.outputs.DIST_DIR }}
-          DIST_ARCH: ${{ steps.set-env-vars.outputs.DIST_ARCH }}
-          IS_UPLOAD_ASSETS: ${{ steps.set-env-vars.outputs.IS_UPLOAD_ASSETS }}
           
       - name: Create Release For non-git-tagged Commitish Only
         id: create_release
@@ -212,3 +191,23 @@ jobs:
           overwrite: true
           body: Release ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
           prerelease: ${{ steps.set-env-vars.outputs.IS_GIT_TAG_MATCH_SEMVER != 'true'  }}
+
+      - name: Test
+        # only test for release version now, some test cases cannot passed in debug mode
+        if: ${{ matrix.build_type == 'release' }}
+        shell: bash
+        run: |
+          if [[ -z $GIT_TAG && $GIT_BRANCH != "beta" ]]; then
+            bash .github/workflows/test.sh;
+          fi
+        env:
+          TARGET_ARCH: ${{ matrix.target_arch }}
+          BUILD_TYPE: ${{ matrix.build_type }}
+          RELEASE_TAG: ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
+          TARGET_OS: ${{ steps.set-env-vars.outputs.TARGET_OS }}
+          TARGET_OS_NAME: ${{ steps.set-env-vars.outputs.TARGET_OS_NAME }}
+          GIT_TAG: ${{ steps.set-env-vars.outputs.GIT_TAG }}
+          GIT_BRANCH: ${{ steps.set-env-vars.outputs.GIT_BRANCH }}
+          DIST_DIR: ${{ steps.set-env-vars.outputs.DIST_DIR }}
+          DIST_ARCH: ${{ steps.set-env-vars.outputs.DIST_ARCH }}
+          IS_UPLOAD_ASSETS: ${{ steps.set-env-vars.outputs.IS_UPLOAD_ASSETS }}
