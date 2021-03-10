@@ -235,10 +235,41 @@ describe("cef", () => {
         });
 
         win.on("load", () => {
-            var ret = win.dev.Page.captureScreenshot();
+            var ret = win.dev.Page.captureScreenshot({
+                clip: {
+                    x: 0,
+                    y: 0,
+                    width: 100,
+                    height: 100,
+                    scale: 1
+                }
+            });
             try {
                 var img = gd.load(encoding.base64.decode(ret.data));
+                assert.equal(img.width, 100);
+                assert.equal(img.height, 100);
                 assert.equal(img.getPixel(1, 1), gd.rgb(255, 255, 255));
+                done();
+            } catch (e) {
+                done(e);
+            }
+
+            win.close();
+        });
+    });
+
+    it("FIX: screenshot with wrong clip", done => {
+        var win = gui.open("cef://test/basic.html", {
+            headless: true
+        });
+
+        win.on("load", () => {
+            var ret = win.dev.Page.captureScreenshot({
+                clip: {}
+            });
+
+            try {
+                assert.equal(ret.code, -32602);
                 done();
             } catch (e) {
                 done(e);

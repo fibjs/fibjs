@@ -283,7 +283,7 @@ result_t CefWebView::printToPDF(exlib::string file, AsyncEvent* ac)
     public:
         virtual void OnPdfPrintFinished(const CefString& path, bool ok)
         {
-            m_ac->apost(ok ? 0 : CALL_E_INTERNAL);
+            m_ac->post(ok ? 0 : CALL_E_INTERNAL);
         }
 
     private:
@@ -322,14 +322,20 @@ result_t CefWebView::executeJavaScript(exlib::string code, AsyncEvent* ac)
 void CefWebView::OnDevToolsMethodResult(CefRefPtr<CefBrowser> browser, int message_id,
     bool success, const void* result, size_t result_size)
 {
+    m_method_lock.lock();
     std::map<int32_t, ac_method>::iterator it_method;
-
     it_method = m_method.find(message_id);
     if (it_method != m_method.end()) {
         it_method->second.m_retVal.setJSON(exlib::string((const char*)result, result_size));
-        it_method->second.m_ac->apost(0);
+        it_method->second.m_ac->post(0);
         m_method.erase(it_method);
+    } else {
+        Variant v;
+
+        v.setJSON(exlib::string((const char*)result, result_size));
+        m_result.insert(std::pair<int32_t, Variant>(message_id, v));
     }
+    m_method_lock.unlock();
 }
 
 void CefWebView::OnDevToolsEvent(CefRefPtr<CefBrowser> browser, const CefString& method,
@@ -379,7 +385,17 @@ result_t CefWebView::executeDevToolsMethod(exlib::string method, v8::Local<v8::O
     if (rid == 0)
         return CALL_E_INTERNAL;
 
-    m_method.insert(std::pair<int32_t, ac_method>(rid, ac_method(retVal, ac)));
+    m_method_lock.lock();
+    std::map<int32_t, Variant>::iterator it_method;
+    it_method = m_result.find(rid);
+    if (it_method != m_result.end()) {
+        retVal = it_method->second;
+        m_result.erase(it_method);
+        ac->post(0);
+    } else
+        m_method.insert(std::pair<int32_t, ac_method>(rid, ac_method(retVal, ac)));
+    m_method_lock.unlock();
+
     return CALL_E_PENDDING;
 }
 
