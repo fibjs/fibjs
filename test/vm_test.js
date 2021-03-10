@@ -107,7 +107,14 @@ describe("vm", () => {
     });
 
     it("require jsc arch test", () => {
-        var a = sbox.require("./vm_test/jsc_test_" + os.arch(), __dirname);
+        var jscFilename = `jsc_test_${os.arch()}`;
+
+        // run build_jsc to generate testable .jsc file
+        if (!fs.exists(path.resolve(__dirname, `${jscFilename}.js`))) {
+            run(path.resolve(__dirname, './vm_test/build_jsc.js'));
+        }
+
+        var a = sbox.require(`./vm_test/${jscFilename}`, __dirname);
         assert.equal(100, a.a);
     });
 

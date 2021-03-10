@@ -15,3 +15,5 @@ out
 idl/__snapshots__
 
 /.vscode/launch.json
+
+test/vm_test/*.jsc
