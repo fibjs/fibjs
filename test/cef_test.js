@@ -229,53 +229,76 @@ describe("cef", () => {
         test_div("post", "[application/x-www-form-urlencoded]foo=bar&amp;lorem=ipsum");
     });
 
-    it("screenshot on headless", done => {
-        var win = gui.open("cef://test/basic.html", {
-            headless: true
-        });
+    describe("devtools", () => {
+        it("screenshot on headless", done => {
+            var win = gui.open("cef://test/basic.html", {
+                headless: true
+            });
 
-        win.on("load", () => {
-            var ret = win.dev.Page.captureScreenshot({
-                clip: {
-                    x: 0,
-                    y: 0,
-                    width: 100,
-                    height: 100,
-                    scale: 1
+            win.on("load", () => {
+                var ret = win.dev.Page.captureScreenshot({
+                    clip: {
+                        x: 0,
+                        y: 0,
+                        width: 100,
+                        height: 100,
+                        scale: 1
+                    }
+                });
+
+                try {
+                    var img = gd.load(encoding.base64.decode(ret.data));
+                    assert.equal(img.width, 100);
+                    assert.equal(img.height, 100);
+                    assert.equal(img.getPixel(1, 1), gd.rgb(255, 255, 255));
+                    done();
+                } catch (e) {
+                    done(e);
                 }
+
+                win.close();
             });
-            try {
-                var img = gd.load(encoding.base64.decode(ret.data));
-                assert.equal(img.width, 100);
-                assert.equal(img.height, 100);
-                assert.equal(img.getPixel(1, 1), gd.rgb(255, 255, 255));
-                done();
-            } catch (e) {
-                done(e);
-            }
-
-            win.close();
-        });
-    });
-
-    it("FIX: screenshot with wrong clip", done => {
-        var win = gui.open("cef://test/basic.html", {
-            headless: true
         });
 
-        win.on("load", () => {
-            var ret = win.dev.Page.captureScreenshot({
-                clip: {}
+        it("devtools event", done => {
+            var win = gui.open("cef://test/basic.html", {
+                headless: true
             });
 
-            try {
-                assert.equal(ret.code, -32602);
-                done();
-            } catch (e) {
-                done(e);
-            }
+            win.on("open", () => {
+                win.dev.Page.enable();
+                win.dev.Page.on("frameNavigated", ev => {
+                    try {
+                        assert.equal(ev.frame.url, "cef://test/basic.html");
+                        done();
+                    } catch (e) {
+                        done(e);
+                    }
 
-            win.close();
+                    win.close();
+                });
+            })
+        });
+
+        it("FIX: screenshot with wrong clip", done => {
+            var win = gui.open("cef://test/basic.html", {
+                headless: true
+            });
+
+            win.on("load", () => {
+                var ret = win.dev.Page.captureScreenshot({
+                    clip: {}
+                });
+
+                try {
+                    assert.equal(ret.code, -32602);
+                    done();
+                } catch (e) {
+                    done(e);
+                }
+
+                win.close();
+            });
         });
     });
 });
