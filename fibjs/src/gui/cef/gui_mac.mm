@@ -83,7 +83,7 @@ void MacRunMessageLoop(const CefMainArgs& args, const CefSettings& settings, Cef
 {
     @autoreleasepool {
         [GuiApplication sharedApplication];
-        [[GuiApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyAccessory];
+        [[GuiApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
         [[GuiApplication sharedApplication] finishLaunching];
         [[GuiApplication sharedApplication] activateIgnoringOtherApps:YES];
 

@@ -71,7 +71,7 @@ void run_os_gui()
     @autoreleasepool {
         [NSApplication sharedApplication];
 
-        [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyAccessory];
+        [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
         [[NSApplication sharedApplication] finishLaunching];
 
         s_thNSMainLoop = exlib::OSThread::current();
