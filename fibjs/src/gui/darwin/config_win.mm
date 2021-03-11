@@ -166,6 +166,9 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
     objc_setAssociatedObject(window, "webview", (id)webview, OBJC_ASSOCIATION_ASSIGN);
     [window setDelegate:[GuiWindowDelegate new]];
 
+    [window makeKeyWindow];
+    [window orderFrontRegardless];
+
     webview->Ref();
     webview->_emit("open");
 }

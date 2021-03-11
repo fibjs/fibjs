@@ -355,9 +355,6 @@ void WebView::startWKUI()
     m_nsWindow.contentView = m_wkWebView;
     [m_nsWindow.contentView setWantsLayer:YES];
 
-    [m_nsWindow makeKeyWindow];
-    [m_nsWindow orderFrontRegardless];
-
     [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
 }
 
