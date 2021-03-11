@@ -131,6 +131,7 @@ public:
     void gui_flush();
     result_t open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal);
     result_t config(v8::Local<v8::Object> opt);
+    exlib::string get_path(const char* p);
 
 public:
     obj_ptr<NObject> m_opt;

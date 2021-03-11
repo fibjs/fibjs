@@ -34,13 +34,29 @@ DECLARE_MODULE(gui);
 #endif
 
 #if defined(Darwin)
-const char* s_cef_sdk = "../Frameworks/Chromium Embedded Framework.framework/Chromium Embedded Framework";
-const char* s_cef_helper = "../Frameworks/fibjs Helper.app/Contents/MacOS/fibjs Helper";
+const char* s_cef_sdk = "Chromium Embedded Framework.framework/Chromium Embedded Framework";
+const char* s_cef_helper = "fibjs Helper.app/Contents/MacOS/fibjs Helper";
+const char* s_cef_resource = "Chromium Embedded Framework.framework/Resources";
+const char* s_cef_framework = "Chromium Embedded Framework.framework";
 #elif defined(Windows)
 const char* s_cef_sdk = "libcef.dll";
 #else
 const char* s_cef_sdk = "libcef.so";
 #endif
+
+exlib::string GuiApp::get_path(const char* p)
+{
+    exlib::string str_res;
+    exlib::string str_path;
+
+    str_path = m_cef_path;
+    str_path.append(1, PATH_SLASH);
+    str_path.append(p);
+
+    os_normalize(str_path, str_res);
+
+    return str_res;
+}
 
 void GuiApp::load_cef()
 {
@@ -56,14 +72,7 @@ void GuiApp::load_cef()
         os_dirname(str_exe, m_cef_path);
     }
 
-    str_path = m_cef_path;
-
-    str_path.append(1, PATH_SLASH);
-    str_path.append(s_cef_sdk);
-
-    exlib::string str_cef;
-    os_normalize(str_path, str_cef);
-
+    exlib::string str_cef = get_path(s_cef_sdk);
     fs_base::cc_exists(str_cef, m_has_cef);
     if (!m_has_cef) {
         m_gui_ready.set();
@@ -81,17 +90,12 @@ void GuiApp::load_cef()
     if (!cef_load_library(str_cef.c_str()))
         _exit(-1);
 
-#ifdef Darwin
-    {
-        exlib::string str_helper;
-        str_path = m_cef_path;
-
-        str_path.append(1, PATH_SLASH);
-        str_path.append(s_cef_helper);
-
-        os_normalize(str_path, str_helper);
-        CefString(&m_settings.browser_subprocess_path) = str_helper.c_str();
-    }
+#ifndef Darwin
+    CefString(&m_settings.locales_dir_path) = get_path("locales");
+#else
+    CefString(&m_settings.browser_subprocess_path) = get_path(s_cef_helper);
+    CefString(&m_settings.resources_dir_path) = get_path(s_cef_resource);
+    CefString(&m_settings.framework_dir_path) = get_path(s_cef_framework);
 #endif
 }
 
@@ -113,6 +117,7 @@ void GuiApp::run_gui(int argc, char* argv[])
     if (g_cefprocess)
         _exit(CefExecuteProcess(m_args, this, NULL));
 
+    m_settings.no_sandbox = true;
     if (m_opt) {
         Variant v;
 
@@ -130,17 +135,6 @@ void GuiApp::run_gui(int argc, char* argv[])
 
         if (m_opt->get("cache_path", v) == 0)
             CefString(&m_settings.cache_path) = v.string().c_str();
-
-#ifndef Darwin
-        if (m_opt->get("locales_path", v) == 0)
-            CefString(&m_settings.locales_dir_path) = v.string().c_str();
-        else {
-            exlib::string str_locales;
-
-            os_normalize(m_cef_path + "/locales", str_locales);
-            CefString(&m_settings.locales_dir_path) = str_locales.c_str();
-        }
-#endif
     }
 
 #ifdef Darwin
@@ -258,10 +252,8 @@ result_t GuiApp::config(v8::Local<v8::Object> opt)
     Variant v;
     result_t hr;
 
-#ifndef Darwin
     if (m_opt->get("cef_path", v) == 0)
         m_cef_path = v.string();
-#endif
 
     v8::Local<v8::Object> o;
     hr = GetConfigValue(isolate->m_isolate, opt, "backend", o, true);
