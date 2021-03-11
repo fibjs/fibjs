@@ -148,7 +148,8 @@ jobs:
           DIST_DIR: ${{ steps.set-env-vars.outputs.DIST_DIR }}
           RELEASE_TAG: ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
           CI: 'ci'
-      - name: Release on Windows
+
+      - name: Prepare Release on Windows
         if: runner.os == 'Windows'
         shell: bash
         run: |
@@ -161,6 +162,23 @@ jobs:
           DIST_ARCH: ${{ steps.set-env-vars.outputs.DIST_ARCH }}
           DIST_DIR: ${{ steps.set-env-vars.outputs.DIST_DIR }}
           RELEASE_TAG: ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
+
+      - name: Generate & copy .jsc files to release directory
+        shell: bash
+        # don't generate/update jsc_test* files for production release tag
+        if: ${{ steps.set-env-vars.outputs.IS_GIT_TAG_MATCH_SEMVER != 'true' }}
+        continue-on-error: true
+        run: |
+          bash .github/workflows/generate_jsc.sh
+          cp ./test/vm_test/jsc_test_*.jsc ./$RELEASE_TAG/
+          rm -rf ./test/vm_test/jsc_test_*.jsc;
+          git reset --hard;
+        env:
+          DIST_ARCH: ${{ steps.set-env-vars.outputs.DIST_ARCH }}
+          DIST_DIR: ${{ steps.set-env-vars.outputs.DIST_DIR }}
+          RELEASE_TAG: ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
+          TARGET_OS_NAME: ${{ steps.set-env-vars.outputs.TARGET_OS_NAME }}
+          TARGET_ARCH: ${{ matrix.target_arch }}
           
       - name: Create Release For non-git-tagged Commitish Only
         id: create_release
