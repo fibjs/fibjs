@@ -128,7 +128,10 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
             _maximize = true;
 
         if (opt->get("fullscreen", v) == 0 && v.boolVal())
+        {
+            mask = NSResizableWindowMask;
             _fullscreen = true;
+        }
     } else
         mask |= NSResizableWindowMask | NSWindowStyleMaskTitled;
 
@@ -157,7 +160,7 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
     if(_fullscreen)
     {
         [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
-        [window toggleFullScreen:window];
+        [window toggleFullScreen:nil];
     }
 
     objc_setAssociatedObject(window, "webview", (id)webview, OBJC_ASSOCIATION_ASSIGN);

@@ -147,6 +147,21 @@ describe("cef", () => {
             caption: false
         }, assert.equal);
 
+        test_style("maximize", {
+            maximize: true
+        }, (w, h) => {
+            assert.greaterThan(w, 120);
+            assert.greaterThan(h, 120);
+        });
+
+        test_style("fullscreen", {
+            fullscreen: true,
+            border: false
+        }, (w, h) => {
+            assert.greaterThan(w, 120);
+            assert.greaterThan(h, 120);
+        });
+
         test_style("headless", {
             headless: true
         }, (w, h) => {

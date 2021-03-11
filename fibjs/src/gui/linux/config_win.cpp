@@ -89,28 +89,6 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
     if (y == CW_USEDEFAULT)
         y = (_screen->height - nHeight) / 2;
 
-    if (_maximize) {
-        XEvent xev;
-        memset(&xev, 0, sizeof(xev));
-        xev.xclient.type = ClientMessage;
-        xev.xclient.display = _display;
-        xev.xclient.window = window;
-        xev.xclient.message_type = wmState;
-        xev.xclient.format = 32;
-        xev.xclient.data.l[0] = 1; //xev.xclient.data.l[0] = wmAddState;
-        xev.xclient.data.l[1] = wmVMaximizedState;
-        xev.xclient.data.l[2] = wmHMaximizedState;
-        xev.xclient.data.l[3] = 1;
-
-        XSendEvent(_display, DefaultRootWindow(_display), False,
-            SubstructureNotifyMask | SubstructureRedirectMask, &xev);
-    }
-
-    if (!_border)
-        XChangeProperty(_display, window, wmWindowType, XA_ATOM, 32, PropModeReplace, (unsigned char*)&wmDock, 1);
-
-    XMoveResizeWindow(_display, window, x, y, nWidth, nHeight);
-
     if (_fullscreen) {
         XEvent xev;
         memset(&xev, 0, sizeof(xev));
@@ -126,6 +104,28 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
 
         XSendEvent(_display, DefaultRootWindow(_display), False,
             SubstructureNotifyMask | SubstructureRedirectMask, &xev);
+    } else {
+        if (_maximize) {
+            XEvent xev;
+            memset(&xev, 0, sizeof(xev));
+            xev.xclient.type = ClientMessage;
+            xev.xclient.display = _display;
+            xev.xclient.window = window;
+            xev.xclient.message_type = wmState;
+            xev.xclient.format = 32;
+            xev.xclient.data.l[0] = 1; //xev.xclient.data.l[0] = wmAddState;
+            xev.xclient.data.l[1] = wmVMaximizedState;
+            xev.xclient.data.l[2] = wmHMaximizedState;
+            xev.xclient.data.l[3] = 1;
+
+            XSendEvent(_display, DefaultRootWindow(_display), False,
+                SubstructureNotifyMask | SubstructureRedirectMask, &xev);
+        }
+
+        if (!_border)
+            XChangeProperty(_display, window, wmWindowType, XA_ATOM, 32, PropModeReplace, (unsigned char*)&wmDock, 1);
+
+        XMoveResizeWindow(_display, window, x, y, nWidth, nHeight);
     }
 
     XFlush(_display);
