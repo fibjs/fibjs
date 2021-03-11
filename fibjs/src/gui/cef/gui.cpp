@@ -35,6 +35,7 @@ DECLARE_MODULE(gui);
 
 #if defined(Darwin)
 const char* s_cef_sdk = "../Frameworks/Chromium Embedded Framework.framework/Chromium Embedded Framework";
+const char* s_cef_helper = "../Frameworks/fibjs Helper.app/Contents/MacOS/fibjs Helper";
 #elif defined(Windows)
 const char* s_cef_sdk = "libcef.dll";
 #else
@@ -79,6 +80,19 @@ void GuiApp::load_cef()
 
     if (!cef_load_library(str_cef.c_str()))
         _exit(-1);
+
+#ifdef Darwin
+    {
+        exlib::string str_helper;
+        str_path = m_cef_path;
+
+        str_path.append(1, PATH_SLASH);
+        str_path.append(s_cef_helper);
+
+        os_normalize(str_path, str_helper);
+        CefString(&m_settings.browser_subprocess_path) = str_helper.c_str();
+    }
+#endif
 }
 
 GuiApp* g_app;
