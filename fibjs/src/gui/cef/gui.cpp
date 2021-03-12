@@ -34,10 +34,7 @@ DECLARE_MODULE(gui);
 #endif
 
 #if defined(Darwin)
-const char* s_cef_sdk = "Chromium Embedded Framework.framework/Chromium Embedded Framework";
-const char* s_cef_helper = "fibjs Helper.app/Contents/MacOS/fibjs Helper";
-const char* s_cef_resource = "Chromium Embedded Framework.framework/Resources";
-const char* s_cef_framework = "Chromium Embedded Framework.framework";
+const char* s_cef_sdk = "Chromium Embedded Framework";
 #elif defined(Windows)
 const char* s_cef_sdk = "libcef.dll";
 #else
@@ -65,12 +62,11 @@ void GuiApp::load_cef()
     if (!g_cefprocess)
         m_gui.wait();
 
-    if (m_cef_path.empty()) {
-        exlib::string str_exe;
+    exlib::string str_exe;
+    process_base::get_execPath(str_exe);
 
-        process_base::get_execPath(str_exe);
+    if (m_cef_path.empty())
         os_dirname(str_exe, m_cef_path);
-    }
 
     exlib::string str_cef = get_path(s_cef_sdk);
     fs_base::cc_exists(str_cef, m_has_cef);
@@ -90,12 +86,13 @@ void GuiApp::load_cef()
     if (!cef_load_library(str_cef.c_str()))
         _exit(-1);
 
+    CefString(&m_settings.framework_dir_path) = m_cef_path;
+    CefString(&m_settings.browser_subprocess_path) = str_exe;
+
 #ifndef Darwin
     CefString(&m_settings.locales_dir_path) = get_path("locales");
 #else
-    CefString(&m_settings.browser_subprocess_path) = get_path(s_cef_helper);
-    CefString(&m_settings.resources_dir_path) = get_path(s_cef_resource);
-    CefString(&m_settings.framework_dir_path) = get_path(s_cef_framework);
+    CefString(&m_settings.resources_dir_path) = get_path("Resources");
 #endif
 }
 
