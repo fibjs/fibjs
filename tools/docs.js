@@ -1,4 +1,5 @@
 var path = require('path');
+var child_process = require('child_process');
 var parser = require('./util/parser');
 var gen_docs = require('./util/gen_docs');
 
@@ -9,4 +10,4 @@ var defs = parser(baseFolder);
 gen_docs(defs, docsFolder);
 
 process.chdir(path.join(__dirname, '../docs'));
-process.run('npm', ['run', 'build']);
+child_process.run('npm', ['run', 'build']);
