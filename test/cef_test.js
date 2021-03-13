@@ -349,6 +349,7 @@ describe("cef", () => {
 
     describe("custom backend", () => {
         var opt = {
+            headless: true,
             width: 100,
             height: 100
         };
