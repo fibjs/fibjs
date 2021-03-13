@@ -466,7 +466,7 @@ describe("cef", () => {
 
         it("dispatch key/mouse event", done => {
             var win = gui.open("cef://test/form.html", {
-                // headless: true
+                headless: true
             });
 
             win.on("load", () => {
