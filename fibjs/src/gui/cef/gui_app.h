@@ -140,6 +140,9 @@ public:
     CefMainArgs m_args;
     CefSettings m_settings;
 
+    exlib::string m_proxy_mode;
+    exlib::string m_proxy_server;
+
     bool m_has_cef = false;
 
     bool m_bDebug = true;

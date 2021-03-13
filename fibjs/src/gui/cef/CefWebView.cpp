@@ -13,6 +13,7 @@
 #include "include/cef_parser.h"
 #include "include/views/cef_window.h"
 #include "include/views/cef_browser_view.h"
+#include "include/cef_request_context_handler.h"
 #include "../os_gui.h"
 
 namespace fibjs {
@@ -81,9 +82,10 @@ private:
 };
 
 extern GuiApp* g_app;
-CefWebView::CefWebView(exlib::string url, NObject* opt)
+CefWebView::CefWebView(exlib::string url, NObject* opt, CefRefPtr<CefValue> proxy)
     : m_opt(opt)
     , m_url(url)
+    , m_proxy(proxy)
     , m_bDebug(g_app->m_bDebug)
     , m_bPopup(g_app->m_bPopup)
     , m_bMenu(g_app->m_bMenu)
@@ -146,13 +148,22 @@ void CefWebView::open()
     CefBrowserSettings browser_settings;
     browser_settings.background_color = CefColorSetARGB(255, 255, 255, 255);
 
+    CefRefPtr<CefRequestContext> context;
+    if (m_proxy) {
+        CefString error;
+        CefRequestContextSettings context_settings;
+
+        context = CefRequestContext::CreateContext(context_settings, nullptr);
+        context->SetPreference("proxy", m_proxy, error);
+    }
+
     if (use_view) {
         static CefRefPtr<GuiBrowserViewDelegate> view_delegate;
         if (view_delegate == NULL)
             view_delegate = new GuiBrowserViewDelegate();
 
         CefRefPtr<CefBrowserView> browser_view = CefBrowserView::CreateBrowserView(gui_handler, m_url.c_str(), browser_settings,
-            nullptr, nullptr, view_delegate);
+            nullptr, context, view_delegate);
         CefWindow::CreateTopLevelWindow(new GuiWindowDelegate(browser_view, this));
     } else {
         CefWindowInfo window_info;
@@ -161,7 +172,7 @@ void CefWebView::open()
             window_info.windowless_rendering_enabled = true;
 
         m_browser = CefBrowserHost::CreateBrowserSync(window_info, gui_handler, m_url.c_str(), browser_settings,
-            nullptr, nullptr);
+            nullptr, context);
 
         if (!m_bHeadless)
             config_window();

@@ -222,10 +222,45 @@ result_t GuiApp::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebV
     if (!m_has_cef)
         return os_gui_open(url, opt, retVal);
 
+    exlib::string _proxy_mode;
+    exlib::string _proxy_server;
+
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Object> _proxy;
+    result_t hr = GetConfigValue(isolate->m_isolate, opt, "proxy", _proxy, true);
+    if (hr != CALL_E_PARAMNOTOPTIONAL) {
+        if (hr < 0)
+            return hr;
+
+        hr = GetConfigValue(isolate->m_isolate, _proxy, "mode", _proxy_mode, true);
+        if (hr == CALL_E_PARAMNOTOPTIONAL)
+            _proxy_mode = "fixed_servers";
+        else if (hr < 0)
+            return hr;
+
+        hr = GetConfigValue(isolate->m_isolate, _proxy, "server", _proxy_server, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+    } else {
+        _proxy_mode = m_proxy_mode;
+        _proxy_server = m_proxy_server;
+    }
+
+    CefRefPtr<CefValue> proxy_value;
+    if (!_proxy_mode.empty()) {
+        CefRefPtr<CefDictionaryValue> dict = CefDictionaryValue::Create();
+
+        dict->SetString("mode", _proxy_mode.c_str());
+        dict->SetString("server", _proxy_server.c_str());
+
+        proxy_value = CefValue::Create();
+        proxy_value->SetDictionary(dict);
+    }
+
     obj_ptr<NObject> o = new NObject();
     o->add(opt);
 
-    obj_ptr<CefWebView> w = new CefWebView(url, o);
+    obj_ptr<CefWebView> w = new CefWebView(url, o, proxy_value);
     w->wrap();
 
     asyncCall(async_open, w, CALL_E_GUICALL);
@@ -288,6 +323,22 @@ result_t GuiApp::config(v8::Local<v8::Object> opt)
             m_hdrs.push_back(new ValueHolder(hdr->wrap()));
             it->second.get()->m_domains.insert(std::pair<exlib::string, obj_ptr<Handler_base>>(u.m_hostname, hdr));
         }
+    }
+
+    hr = GetConfigValue(isolate->m_isolate, opt, "proxy", o, true);
+    if (hr != CALL_E_PARAMNOTOPTIONAL) {
+        if (hr < 0)
+            return hr;
+
+        hr = GetConfigValue(isolate->m_isolate, o, "mode", m_proxy_mode, true);
+        if (hr == CALL_E_PARAMNOTOPTIONAL)
+            m_proxy_mode = "fixed_servers";
+        else if (hr < 0)
+            return hr;
+
+        hr = GetConfigValue(isolate->m_isolate, o, "server", m_proxy_server, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
     }
 
     return 0;

@@ -17,7 +17,7 @@ namespace fibjs {
 class CefWebView : public WebView_base,
                    public CefDevToolsMessageObserver {
 public:
-    CefWebView(exlib::string url, NObject* opt);
+    CefWebView(exlib::string url, NObject* opt, CefRefPtr<CefValue> proxy);
     ~CefWebView();
 
     EVENT_SUPPORT();
@@ -89,6 +89,8 @@ public:
 public:
     obj_ptr<NObject> m_opt;
     exlib::string m_url;
+
+    CefRefPtr<CefValue> m_proxy;
 
     obj_ptr<ValueHolder> m_holder;
     CefRefPtr<CefBrowser> m_browser;
