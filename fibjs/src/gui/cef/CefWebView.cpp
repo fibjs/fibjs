@@ -150,11 +150,11 @@ void CefWebView::open()
 
     CefRefPtr<CefRequestContext> context;
     if (m_proxy) {
-        CefString error;
+        CefString error;
         CefRequestContextSettings context_settings;
 
         context = CefRequestContext::CreateContext(context_settings, nullptr);
-        context->SetPreference("proxy", m_proxy, error);
+        context->SetPreference("proxy", m_proxy, error);
     }
 
     if (use_view) {

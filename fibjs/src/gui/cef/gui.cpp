@@ -248,12 +248,12 @@ result_t GuiApp::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebV
 
     CefRefPtr<CefValue> proxy_value;
     if (!_proxy_mode.empty()) {
-        CefRefPtr<CefDictionaryValue> dict = CefDictionaryValue::Create();
+        CefRefPtr<CefDictionaryValue> dict = CefDictionaryValue::Create();
 
-        dict->SetString("mode", _proxy_mode.c_str());
-        dict->SetString("server", _proxy_server.c_str());
+        dict->SetString("mode", _proxy_mode.c_str());
+        dict->SetString("server", _proxy_server.c_str());
 
-        proxy_value = CefValue::Create();
+        proxy_value = CefValue::Create();
         proxy_value->SetDictionary(dict);
     }
 
