@@ -24,7 +24,6 @@ public:
 #else
         : m_args(argc, argv)
 #endif
-        , m_bHeadless(g_cefheadless)
     {
         if (g_cefprocess) {
             for (int32_t i = 0; i < argc; i++) {
@@ -66,16 +65,20 @@ public:
                     CEF_SCHEME_OPTION_FETCH_ENABLED | CEF_SCHEME_OPTION_CORS_ENABLED);
     }
 
+    void config_opt(CefRefPtr<CefCommandLine> command_line, const char* opt, bool& value)
+    {
+        bool cmd_opt = command_line->HasSwitch(opt);
+
+        if (cmd_opt)
+            value = cmd_opt;
+        else if (value)
+            command_line->AppendSwitch(opt);
+    }
+
     virtual void OnBeforeCommandLineProcessing(const CefString& process_type,
         CefRefPtr<CefCommandLine> command_line) OVERRIDE
     {
-        if (m_opt && !g_cefheadless) {
-            Variant v;
-            if (m_opt->get("headless", v) == 0 && v.boolVal()) {
-                command_line->AppendSwitch("headless");
-                g_cefheadless = true;
-            }
-        }
+        config_opt(command_line, "headless", m_bHeadless);
 
 #ifdef Darwin
         command_line->AppendSwitch("use-mock-keychain");
@@ -148,7 +151,7 @@ public:
     bool m_bDebug = true;
     bool m_bPopup = true;
     bool m_bMenu = true;
-    bool m_bHeadless = true;
+    bool m_bHeadless = false;
 
     exlib::Event m_gui;
     exlib::Event m_gui_ready;

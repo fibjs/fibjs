@@ -30,7 +30,6 @@ bool g_tcpdump = false;
 bool g_ssldump = false;
 
 bool g_cefprocess = false;
-bool g_cefheadless = false;
 
 #ifdef DEBUG
 #define GUARD_SIZE 32
@@ -162,8 +161,6 @@ void options(int32_t& pos, char* argv[])
             _exit(0);
         } else if (!qstrcmp(arg, "--type=", 7)) {
             g_cefprocess = true;
-        } else if (!qstrcmp(arg, "--headless")) {
-            g_cefheadless = true;
         }
     }
 

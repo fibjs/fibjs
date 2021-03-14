@@ -127,7 +127,7 @@ void GuiApp::run_gui(int argc, char* argv[])
         if (m_opt->get("menu", v) == 0)
             m_bMenu = v.boolVal();
 
-        if (!m_bHeadless && m_opt->get("headless", v) == 0)
+        if (m_opt->get("headless", v) == 0)
             m_bHeadless = v.boolVal();
 
         if (m_opt->get("cache_path", v) == 0)
