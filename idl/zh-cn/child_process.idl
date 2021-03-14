@@ -74,7 +74,7 @@ module child_process
      @param options 指定创建参数
      @return 返回子进程的 stdio 输出内容
      */
-    static(Variant stdout, Variant stderr) exec(String command, Object options = {}) async;
+    static (Variant stdout, Variant stderr) exec(String command, Object options = {}) async;
 
     /*! @brief 直接执行所指定的文件并缓冲输出，当以回调方式执行时，函数将返回子进程对象
     options 支持的内容如下：
@@ -95,7 +95,7 @@ module child_process
      @param options 指定创建参数
      @return 返回子进程的 stdio 输出内容
      */
-    static(Variant stdout, Variant stderr) execFile(String command, Array args, Object options = {}) async;
+    static (Variant stdout, Variant stderr) execFile(String command, Array args, Object options = {}) async;
 
     /*! @brief 直接执行所指定的文件并缓冲输出，当以回调方式执行时，函数将返回子进程对象
     options 支持的内容如下：
@@ -115,7 +115,7 @@ module child_process
      @param options 指定创建参数
      @return 返回子进程的 stdio 输出内容
      */
-    static(Variant stdout, Variant stderr) execFile(String command, Object options = {}) async;
+    static (Variant stdout, Variant stderr) execFile(String command, Object options = {}) async;
 
     /*! @brief 直接执行所指定的文件并返回 exitCode，当以回调方式执行时，函数将返回子进程对象
     options 支持的内容如下：

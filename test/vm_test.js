@@ -178,7 +178,7 @@ describe("vm", () => {
         })
         sbox.require('./vm_test/custom_ext.abc', __dirname);
 
-        sbox.setModuleCompiler('.abc', function (buf) { });
+        sbox.setModuleCompiler('.abc', function (buf) {});
         sbox.require('./vm_test/custom_ext', __dirname);
     })
 
@@ -548,15 +548,8 @@ describe("vm", () => {
         });
     });
 
-    it("block global repl&argv", () => {
+    it("block global argv", () => {
         sbox = new vm.SandBox({});
-
-        if (require.main === module) {
-            assert.isFunction(repl);
-        } else {
-            // when this file is tested alone, 'repl' is undefined
-            assert.isUndefined(repl);
-        }
 
         assert.throws(() => {
             sbox.addScript("t2.js", "argv[0];");
@@ -564,7 +557,7 @@ describe("vm", () => {
     });
 
     it("standalone global", () => {
-        function _t() { }
+        function _t() {}
         var sbox1 = new vm.SandBox({}, {
             var1: 100,
             func: _t

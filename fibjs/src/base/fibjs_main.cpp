@@ -23,7 +23,6 @@ result_t FiberProcJsEntry(Isolate* isolate)
         global_base::get_argv(argv);
         s.m_hr = isolate->m_topSandbox->run_main(isolate->m_fname, argv);
     } else {
-        v8::Local<v8::Array> cmds = v8::Array::New(isolate->m_isolate);
         RootModule* pModule = RootModule::g_root;
         v8::Local<v8::Context> _context = isolate->context();
         v8::Local<v8::Object> glob = _context->Global();
@@ -37,7 +36,7 @@ result_t FiberProcJsEntry(Isolate* isolate)
             pModule = pModule->m_next;
         }
 
-        s.m_hr = isolate->m_topSandbox->repl(cmds);
+        s.m_hr = isolate->m_topSandbox->repl();
     }
 
     return s.m_hr;

@@ -52,13 +52,4 @@ result_t global_base::require(exlib::string id, v8::Local<v8::Value>& retVal)
     return Isolate::current()->m_topSandbox->require(id, s_root + PATH_SLASH + "repl", retVal);
 }
 
-result_t global_base::repl(v8::Local<v8::Array> cmds)
-{
-    return Isolate::current()->m_topSandbox->repl(cmds);
-}
-
-result_t global_base::repl(Stream_base* out, v8::Local<v8::Array> cmds)
-{
-    return Isolate::current()->m_topSandbox->repl(cmds, out);
-}
 }

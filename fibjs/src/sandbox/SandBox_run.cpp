@@ -48,10 +48,8 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
     Context context(this, fname);
     Isolate* isolate = holder();
 
-    std::vector<ExtLoader::arg> extarg(2);
+    std::vector<ExtLoader::arg> extarg(1);
     extarg[0] = ExtLoader::arg("argv", argv);
-    extarg[1] = ExtLoader::arg("repl",
-        global_base::class_info().getModule(isolate)->Get(isolate->NewString("repl")));
 
     return l->run_script(&context, bin, fname, extarg, true);
 }
@@ -107,9 +105,8 @@ result_t SandBox::run(exlib::string fname, v8::Local<v8::Array> argv)
         return hr;
 
     Context context(this, fname);
-    std::vector<ExtLoader::arg> extarg(2);
+    std::vector<ExtLoader::arg> extarg(1);
     extarg[0] = ExtLoader::arg("argv", argv);
-    extarg[1] = ExtLoader::arg("repl", v8::Undefined(holder()->m_isolate));
 
     return l->run_script(&context, bin, fname, extarg, false);
 }

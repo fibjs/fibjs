@@ -30,12 +30,11 @@ void output(int32_t priority, exlib::string msg)
     asyncLog(console_base::_PRINT, msg);
 }
 
-bool repl_command(exlib::string& line, v8::Local<v8::Array> cmds)
+bool repl_command(exlib::string& line)
 {
     _parser p(line);
     exlib::string cmd_word;
     result_t hr;
-    int32_t len = cmds->Length();
     int32_t i;
 
     p.skipSpace();
@@ -47,28 +46,6 @@ bool repl_command(exlib::string& line, v8::Local<v8::Array> cmds)
                                  ".info     Show fibjs build information";
 
         Isolate* isolate = Isolate::current();
-
-        for (i = 0; i < len; i++) {
-            JSValue v = cmds->Get(i);
-            v8::Local<v8::Object> o;
-            exlib::string cmd;
-            exlib::string help;
-
-            hr = GetArgumentValue(v, o, true);
-            if (hr >= 0) {
-                hr = GetConfigValue(isolate->m_isolate, o, "cmd", cmd, true);
-                if (hr >= 0)
-                    hr = GetConfigValue(isolate->m_isolate, o, "help", help, true);
-            }
-
-            if (hr < 0) {
-                output(console_base::_ERROR, "Invalid cmds argument.");
-                return false;
-            }
-
-            cmd.append(10, ' ');
-            help_str = help_str + "\n" + cmd.substr(0, 10) + help;
-        }
 
         output(console_base::_INFO, help_str);
         return true;
@@ -87,58 +64,20 @@ bool repl_command(exlib::string& line, v8::Local<v8::Array> cmds)
 
     Isolate* isolate = Isolate::current();
 
-    for (i = 0; i < len; i++) {
-        JSValue v = cmds->Get(i);
-        v8::Local<v8::Object> o;
-        exlib::string cmd;
-        v8::Local<v8::Function> exec;
-
-        hr = GetArgumentValue(v, o, true);
-        if (hr >= 0) {
-            hr = GetConfigValue(isolate->m_isolate, o, "cmd", cmd, true);
-            if (hr >= 0)
-                hr = GetConfigValue(isolate->m_isolate, o, "exec", exec, true);
-        }
-
-        if (hr < 0) {
-            output(console_base::_ERROR, "Invalid cmds argument.");
-            return false;
-        }
-
-        if (cmd_word == cmd) {
-            v8::Local<v8::Array> argv = v8::Array::New(isolate->m_isolate);
-            int32_t n = 0;
-
-            while (!cmd_word.empty()) {
-                argv->Set(n++, GetReturnValue(isolate->m_isolate, cmd_word));
-                p.skipSpace();
-                p.getWord(cmd_word);
-            }
-
-            TryCatch try_catch;
-            v = argv;
-            v = exec->Call(o, 1, &v);
-            if (v.IsEmpty())
-                ReportException(try_catch, 0);
-            return true;
-        }
-    }
-
     output(console_base::_ERROR, cmd_word + ": command not found.");
     return true;
 }
 
-result_t SandBox::repl(v8::Local<v8::Array> cmds, Stream_base* out)
+result_t SandBox::repl()
 {
     Context context(this, "repl");
-    return Context::repl(cmds, out);
+    return Context::repl();
 }
 
-extern stream_logger* s_stream;
 extern std_logger* s_std;
 exlib::string appname("fibjs");
 
-result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
+result_t SandBox::Context::repl()
 {
     result_t hr = 0;
     exlib::string buf;
@@ -146,17 +85,6 @@ result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
     Isolate* isolate = Isolate::current();
     v8::Local<v8::String> strFname = isolate->NewString("repl", 4);
     obj_ptr<BufferedStream_base> bs;
-    stream_logger* logger = NULL;
-
-    if (out) {
-        if ((logger = s_stream) != NULL) {
-            s_stream = NULL;
-            logger->close();
-        }
-
-        s_stream = logger = new stream_logger(out);
-        bs = new BufferedStream(out);
-    }
 
     exlib::string str_ver("Welcome to " + appname + " ");
 
@@ -172,14 +100,7 @@ result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
         v = v1;
 
         exlib::string line;
-        if (out) {
-            output(console_base::_PRINT, buf.empty() ? "> " : " ... ");
-            hr = bs->ac_readLine(-1, line);
-            if (hr >= 0)
-                s_std->log(console_base::_INFO, line);
-        } else
-            hr = console_base::ac_readLine(buf.empty() ? "> " : " ... ", line);
-
+        hr = console_base::ac_readLine(buf.empty() ? "> " : " ... ", line);
         if (hr < 0)
             break;
 
@@ -187,7 +108,7 @@ result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
             continue;
 
         if (line[0] == '.') {
-            if (!repl_command(line, cmds))
+            if (!repl_command(line))
                 break;
             continue;
         }
@@ -227,13 +148,6 @@ result_t SandBox::Context::repl(v8::Local<v8::Array> cmds, Stream_base* out)
                 continue;
             }
         }
-    }
-
-    if (out) {
-        if (logger == s_stream)
-            s_stream = NULL;
-
-        delete logger;
     }
 
     return hr;
