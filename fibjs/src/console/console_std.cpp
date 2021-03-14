@@ -14,7 +14,7 @@ namespace fibjs {
 
 #ifdef _WIN32
 
-void std_logger::out(exlib::string& txt)
+void std_logger::out(exlib::string& txt, bool is_error)
 {
     class color_out {
     public:
@@ -50,12 +50,12 @@ void std_logger::out(exlib::string& txt)
                 m_ansi = true;
         }
 
-        void out(exlib::string& s)
+        void out(exlib::string& s, bool is_error)
         {
             static HANDLE s_console;
 
             if (!m_tty) {
-                fwrite(s.c_str(), 1, s.length(), stdout);
+                fwrite(s.c_str(), 1, s.length(), is_error ? stderr : stdout);
                 return;
             }
 
@@ -153,14 +153,14 @@ void std_logger::out(exlib::string& txt)
     };
 
     static color_out s_out;
-    s_out.out(txt);
+    s_out.out(txt, is_error);
 }
 
 #else
 
-void std_logger::out(exlib::string& txt)
+void std_logger::out(exlib::string& txt, bool is_error)
 {
-    fwrite(txt.c_str(), 1, txt.length(), stdout);
+    fwrite(txt.c_str(), 1, txt.length(), is_error ? stderr : stdout);
 }
 
 #endif
@@ -182,7 +182,7 @@ result_t std_logger::write(AsyncEvent* ac)
         else
             txt = p1->m_msg + "\n";
 
-        out(txt);
+        out(txt, p1->m_priority <= console_base::_WARN);
 
         delete p1;
     }

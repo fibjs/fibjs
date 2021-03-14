@@ -234,7 +234,7 @@ private:
 class std_logger : public logger {
 public:
     virtual result_t write(AsyncEvent* ac);
-    static void out(exlib::string& txt);
+    static void out(exlib::string& txt, bool is_error = false);
 };
 
 class file_logger : public logger {

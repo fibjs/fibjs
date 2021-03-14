@@ -206,8 +206,7 @@ describe("cef", () => {
             key: key,
             code: key,
             windowsVirtualKeyCode: code,
-            nativeVirtualKeyCode: code,
-            macCharCode: code
+            nativeVirtualKeyCode: code
         };
 
         ki.type = "keyDown";

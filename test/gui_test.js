@@ -329,9 +329,12 @@ if (win32 || darwin64) {
       var p = new io.BufferedStream(bs.stdout);
       var r = p.readLines();
       assert.equal(r[0], "this is.a log");
-      assert.equal(r[1], "this is.a warn");
 
-      assert.ok(r[2].startsWith("WebView Error:"));
+      var p1 = new io.BufferedStream(bs.stderr);
+      var r1 = p1.readLines();
+      assert.equal(r1[0], "this is.a warn");
+
+      assert.ok(r1[1].startsWith("WebView Error:"));
     });
 
     it("debug", () => {

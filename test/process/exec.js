@@ -1,4 +1,6 @@
 console.log('exec testing....');
+console.warn('warn exec testing....');
+console.error('error exec testing....');
 
 var coroutine = require('coroutine');
 

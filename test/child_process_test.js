@@ -39,6 +39,12 @@ describe("child_process", () => {
         stdout.readLine();
         assert.equal(stdout.readLine(), "console.print....");
         assert.closeTo(new Date().getTime() - t0, 2000, 500);
+
+        var stderr = new io.BufferedStream(bs.stderr);
+        assert.deepEqual(stderr.readLines(), [
+            "warn exec testing....",
+            "error exec testing...."
+        ]);
     });
 
     describe("ChildProcess::std[xx].fd", () => {
