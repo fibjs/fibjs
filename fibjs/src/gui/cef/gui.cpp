@@ -274,6 +274,11 @@ result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<We
     return g_app->open(url, opt, retVal);
 }
 
+result_t gui_base::open(v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
+{
+    return g_app->open("about:blank", opt, retVal);
+}
+
 result_t GuiApp::config(v8::Local<v8::Object> opt)
 {
     Isolate* isolate = Isolate::current();

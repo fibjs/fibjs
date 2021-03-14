@@ -87,4 +87,36 @@ module gui
      @return 返回打开的窗口对象
 	*/
     static WebView open(String url, Object opt = {});
+
+    /*! @brief 打开一个空的浏览器窗口
+
+     支持以下参数:
+     ```JavaScript
+     {
+         "left": 100, // 窗口左上角 x，缺省系统自动设定
+         "right": 100, // 窗口左上角 y，缺省系统自动设定
+         "width": 100, // 窗口宽度，缺省系统自动设定
+         "height": 100, // 窗口高度，缺省系统自动设定
+         "border": true, // 是否有边框，缺省有边框
+         "caption": true, // 是否有标题栏，缺省有标题栏
+         "resizable": true, // 是否可改变尺寸，缺省可以改变
+         "maximize": false, // 是否最大化显示，缺省不最大化
+         "fullscreen": false, // 是否显示全屏窗口，缺省不全屏
+         "debug": true, // 是否输出 WebView 内的错误和 console 信息，缺省显示或继承全局设置
+
+         // 以下配置仅用于 cef 模式
+         "popup": true, // 是否允许弹出新的网页，缺省允许或继承全局设置
+         "menu": true, // 是否允许右键菜单，缺省允许或继承全局设置
+         "headless": false, // 是否使用无窗口模式加载页面，缺省不使用无窗口，当命令行指定 --headless 时，此属性将被忽略
+         "proxy": { // 设置访问代理，为设置时继承s全局设置
+             "mode": "fixed_servers|pac_script|auto_detect|system|direct", // 指定代理模式
+             "server": "localhost:8888" // 指定代理服务器地址，当 mode 为 pac_script 时，指定 pac url
+         }
+     }
+     ```
+     当设定 width 和 height，而未设定 left 或 right 时，窗口将自动居中
+     @param opt 打开窗口参数
+     @return 返回打开的窗口对象
+	*/
+    static WebView open(Object opt = {});
 };
