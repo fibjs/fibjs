@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _Service_base_H_
-#define _Service_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -348,5 +347,3 @@ inline void Service_base::s_static_isRunning(const v8::FunctionCallbackInfo<v8::
     METHOD_RETURN();
 }
 }
-
-#endif

@@ -5,10 +5,9 @@
  *      Author: lion
  */
 
-#include "utils.h"
+#pragma once
 
-#ifndef PARSE_H_
-#define PARSE_H_
+#include "utils.h"
 
 namespace fibjs {
 
@@ -360,5 +359,3 @@ public:
     int32_t pos;
 };
 }
-
-#endif /* PARSE_H_ */

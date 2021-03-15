@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _SeekableStream_base_H_
-#define _SeekableStream_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -223,5 +222,3 @@ inline void SeekableStream_base::s_stat(const v8::FunctionCallbackInfo<v8::Value
     METHOD_RETURN();
 }
 }
-
-#endif

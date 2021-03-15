@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _json_base_H_
-#define _json_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -91,5 +90,3 @@ inline void json_base::s_static_decode(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_RETURN();
 }
 }
-
-#endif

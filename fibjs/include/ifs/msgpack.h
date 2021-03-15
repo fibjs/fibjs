@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _msgpack_base_H_
-#define _msgpack_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -95,5 +94,3 @@ inline void msgpack_base::s_static_decode(const v8::FunctionCallbackInfo<v8::Val
     METHOD_RETURN();
 }
 }
-
-#endif

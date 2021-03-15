@@ -5,12 +5,11 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/XmlComment.h"
 #include "XmlNodeImpl.h"
 #include "XmlDataImpl.h"
-
-#ifndef XMLCOMMENT_H_
-#define XMLCOMMENT_H_
 
 namespace fibjs {
 
@@ -72,4 +71,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* XMLCOMMENT_H_ */

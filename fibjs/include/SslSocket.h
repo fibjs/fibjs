@@ -5,6 +5,8 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ssl.h"
 #include "ifs/SslSocket.h"
 #include "Buffer.h"
@@ -13,9 +15,6 @@
 #include <mbedtls/mbedtls/net.h>
 #include "PKey.h"
 #include "Routing.h"
-
-#ifndef SSLSOCKET_H_
-#define SSLSOCKET_H_
 
 namespace fibjs {
 
@@ -184,5 +183,3 @@ private:
     exlib::string m_send;
 };
 }
-
-#endif /* SSLSOCKET_H_ */

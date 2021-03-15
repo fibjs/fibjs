@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _File_base_H_
-#define _File_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -116,5 +115,3 @@ inline void File_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 }
-
-#endif

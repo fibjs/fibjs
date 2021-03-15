@@ -5,10 +5,9 @@
  *      Author: lion
  */
 
-#include "ifs/HttpCookie.h"
+#pragma once
 
-#ifndef HTTPCOOKIE_H_
-#define HTTPCOOKIE_H_
+#include "ifs/HttpCookie.h"
 
 namespace fibjs {
 
@@ -58,4 +57,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* HTTPCOOKIE_H_ */

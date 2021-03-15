@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _Smtp_base_H_
-#define _Smtp_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -310,5 +309,3 @@ inline void Smtp_base::s_get_socket(v8::Local<v8::Name> property, const v8::Prop
     METHOD_RETURN();
 }
 }
-
-#endif

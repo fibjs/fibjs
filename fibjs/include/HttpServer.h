@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef HTTPSERVER_H_
-#define HTTPSERVER_H_
+#pragma once
 
 #include "ifs/HttpServer.h"
 #include "TcpServer.h"
@@ -44,5 +43,3 @@ private:
 };
 
 } /* namespace fibjs */
-
-#endif /* HTTPSERVER_H_ */

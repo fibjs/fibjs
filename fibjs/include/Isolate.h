@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef ISOLATE_H_
-#define ISOLATE_H_
+#pragma once
 
 #include <exlib/include/list.h>
 #include <exlib/include/service.h>
@@ -189,4 +188,3 @@ public:
 };
 
 } /* namespace fibjs */
-#endif /* ISOLATE_H_ */

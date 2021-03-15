@@ -5,12 +5,11 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "QuickArray.h"
 #include <string>
 #include <string.h>
-
-#ifndef STRINGARRAY_H_
-#define STRINGARRAY_H_
 
 namespace fibjs {
 
@@ -86,5 +85,3 @@ private:
     size_t m_size;
 };
 }
-
-#endif /* STRINGARRAY_H_ */

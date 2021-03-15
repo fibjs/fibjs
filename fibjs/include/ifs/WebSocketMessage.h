@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _WebSocketMessage_base_H_
-#define _WebSocketMessage_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -170,5 +169,3 @@ inline void WebSocketMessage_base::s_set_maxSize(v8::Local<v8::Name> property, v
     PROPERTY_SET_LEAVE();
 }
 }
-
-#endif

@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include <v8/include/v8.h>
 #include <Isolate.h>
-
-#ifndef JSTYPE_H_
-#define JSTYPE_H_
 
 namespace fibjs {
 
@@ -101,5 +100,3 @@ public:
     }
 };
 }
-
-#endif

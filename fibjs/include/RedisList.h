@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef REDISLIST_H_
-#define REDISLIST_H_
+#pragma once
 
 #include "Redis.h"
 
@@ -58,5 +57,3 @@ private:
     obj_ptr<Redis> m_rdb;
 };
 }
-
-#endif

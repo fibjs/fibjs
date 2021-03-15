@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _Lock_base_H_
-#define _Lock_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -123,5 +122,3 @@ inline void Lock_base::s_count(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 }
-
-#endif

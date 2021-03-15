@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef EVENT_H_
-#define EVENT_H_
+#pragma once
 
 #include "ifs/EventEmitter.h"
 #include "Fiber.h"
@@ -790,5 +789,3 @@ class EventEmitter : public EventEmitter_base {
     EVENT_SUPPORT();
 };
 }
-
-#endif /* EVENT_H_ */

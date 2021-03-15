@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _xml_base_H_
-#define _xml_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -135,5 +134,3 @@ inline void xml_base::s_static_serialize(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_RETURN();
 }
 }
-
-#endif

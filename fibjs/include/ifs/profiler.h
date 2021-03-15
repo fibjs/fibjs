@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _profiler_base_H_
-#define _profiler_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -201,5 +200,3 @@ inline void profiler_base::s_static_start(const v8::FunctionCallbackInfo<v8::Val
     METHOD_RETURN();
 }
 }
-
-#endif

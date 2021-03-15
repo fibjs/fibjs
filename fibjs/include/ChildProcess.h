@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/ChildProcess.h"
 #include "AsyncUV.h"
-
-#ifndef _CHILDPROCESS_H
-#define _CHILDPROCESS_H
 
 namespace fibjs {
 
@@ -75,5 +74,3 @@ public:
     exlib::string cwd;
 };
 }
-
-#endif // _CHILDPROCESS_H

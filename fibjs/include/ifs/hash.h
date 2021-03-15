@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _hash_base_H_
-#define _hash_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -513,5 +512,3 @@ inline void hash_base::s_static_hmac_sm3(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_RETURN();
 }
 }
-
-#endif

@@ -5,10 +5,9 @@
  *      Author: lion
  */
 
-#include "utils.h"
+#pragma once
 
-#ifndef DBFIELD_H_
-#define DBFIELD_H_
+#include "utils.h"
 
 namespace fibjs {
 
@@ -54,5 +53,3 @@ private:
     std::vector<exlib::string> m_fields;
 };
 }
-
-#endif /* DBFIELD_H_ */

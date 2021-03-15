@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _Condition_base_H_
-#define _Condition_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -127,5 +126,3 @@ inline void Condition_base::s_notifyAll(const v8::FunctionCallbackInfo<v8::Value
     METHOD_VOID();
 }
 }
-
-#endif

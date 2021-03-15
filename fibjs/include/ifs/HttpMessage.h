@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _HttpMessage_base_H_
-#define _HttpMessage_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -392,5 +391,3 @@ inline void HttpMessage_base::s_removeHeader(const v8::FunctionCallbackInfo<v8::
     METHOD_VOID();
 }
 }
-
-#endif

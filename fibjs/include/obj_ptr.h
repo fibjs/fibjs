@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include <exlib/include/utils.h>
 #include <atomic>
-
-#ifndef OBJ_PTR_H_
-#define OBJ_PTR_H_
 
 namespace fibjs {
 
@@ -300,5 +299,3 @@ private:
     exlib::atomic_ptr<obj_base::weak_stub> p;
 };
 }
-
-#endif /* OBJ_PTR_H_ */

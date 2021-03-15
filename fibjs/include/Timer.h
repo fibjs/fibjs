@@ -5,12 +5,11 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/Timer.h"
 #include "Fiber.h"
 #include <vector>
-
-#ifndef TIMER_H_
-#define TIMER_H_
 
 namespace fibjs {
 
@@ -270,5 +269,3 @@ public:
     obj_ptr<JSTimer> m_timer;
 };
 }
-
-#endif

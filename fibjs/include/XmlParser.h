@@ -5,13 +5,12 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "utils.h"
 
 #include "XmlDocument.h"
 #include <list>
-
-#ifndef XMLPARSER_H_
-#define XMLPARSER_H_
 
 namespace fibjs {
 
@@ -106,9 +105,8 @@ private:
 private:
     obj_ptr<XmlDocument> m_document;
     obj_ptr<XmlNode_base> m_now;
-    std::list<obj_ptr<XmlNode_base> > m_list;
+    std::list<obj_ptr<XmlNode_base>> m_list;
     bool m_isXml;
 };
 
 } /* namespace fibjs */
-#endif /* XMLPARSER_H_ */

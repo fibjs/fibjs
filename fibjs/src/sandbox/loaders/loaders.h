@@ -5,10 +5,9 @@
  *      Author: lion
  */
 
-#include "SandBox.h"
+#pragma once
 
-#ifndef LOADERS_H_
-#define LOADERS_H_
+#include "SandBox.h"
 
 namespace fibjs {
 
@@ -62,4 +61,3 @@ public:
 };
 
 } /* namespace fibjs */
-#endif /* LOADERS_H_ */

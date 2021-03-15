@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _ZipFile_base_H_
-#define _ZipFile_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -317,5 +316,3 @@ inline void ZipFile_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_VOID();
 }
 }
-
-#endif

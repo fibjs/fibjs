@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _gd_base_H_
-#define _gd_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -348,5 +347,3 @@ inline void gd_base::s_static_color(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_RETURN();
 }
 }
-
-#endif

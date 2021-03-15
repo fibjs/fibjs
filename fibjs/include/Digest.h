@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/Digest.h"
 #include <mbedtls/mbedtls/md.h>
-
-#ifndef DIGEST_H_
-#define DIGEST_H_
 
 namespace fibjs {
 
@@ -32,4 +31,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* DIGEST_H_ */

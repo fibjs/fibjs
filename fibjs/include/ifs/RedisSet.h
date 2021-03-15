@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _RedisSet_base_H_
-#define _RedisSet_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -210,5 +209,3 @@ inline void RedisSet_base::s_randMember(const v8::FunctionCallbackInfo<v8::Value
     METHOD_RETURN();
 }
 }
-
-#endif

@@ -5,13 +5,12 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include <v8/include/v8.h>
 #include <string>
 #include "date.h"
 #include "obj_ptr.h"
-
-#ifndef VARIANT_H_
-#define VARIANT_H_
 
 namespace fibjs {
 
@@ -564,4 +563,3 @@ public:
 };
 
 } /* namespace fibjs */
-#endif /* VARIANT_H_ */

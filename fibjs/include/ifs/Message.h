@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _Message_base_H_
-#define _Message_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -494,5 +493,3 @@ inline void Message_base::s_set_lastError(v8::Local<v8::Name> property, v8::Loca
     PROPERTY_SET_LEAVE();
 }
 }
-
-#endif

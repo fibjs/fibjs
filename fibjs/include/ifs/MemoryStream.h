@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _MemoryStream_base_H_
-#define _MemoryStream_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -124,5 +123,3 @@ inline void MemoryStream_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_VOID();
 }
 }
-
-#endif

@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _XmlProcessingInstruction_base_H_
-#define _XmlProcessingInstruction_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -102,5 +101,3 @@ inline void XmlProcessingInstruction_base::s_set_data(v8::Local<v8::Name> proper
     PROPERTY_SET_LEAVE();
 }
 }
-
-#endif

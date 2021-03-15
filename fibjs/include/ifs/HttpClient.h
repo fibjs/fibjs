@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _HttpClient_base_H_
-#define _HttpClient_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -605,5 +604,3 @@ inline void HttpClient_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_RETURN();
 }
 }
-
-#endif

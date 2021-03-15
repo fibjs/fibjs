@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _XmlElement_base_H_
-#define _XmlElement_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -517,5 +516,3 @@ inline void XmlElement_base::s_getElementsByClassName(const v8::FunctionCallback
     METHOD_RETURN();
 }
 }
-
-#endif

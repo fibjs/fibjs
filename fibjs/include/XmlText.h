@@ -5,12 +5,11 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/XmlText.h"
 #include "XmlNodeImpl.h"
 #include "XmlDataImpl.h"
-
-#ifndef XMLTEXT_H_
-#define XMLTEXT_H_
 
 namespace fibjs {
 
@@ -82,4 +81,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* XMLTEXT_H_ */

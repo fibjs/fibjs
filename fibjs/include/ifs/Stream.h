@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _Stream_base_H_
-#define _Stream_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -194,5 +193,3 @@ inline void Stream_base::s_copyTo(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 }
-
-#endif

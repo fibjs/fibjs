@@ -5,12 +5,11 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/Image.h"
 #include "ifs/SeekableStream.h"
 #include <gd/include/gd.h>
-
-#ifndef IMAGE_H_
-#define IMAGE_H_
 
 namespace fibjs {
 
@@ -112,4 +111,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* IMAGE_H_ */

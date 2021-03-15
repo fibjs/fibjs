@@ -5,12 +5,11 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/HeapSnapshot.h"
 #include <v8/include/v8-profiler.h>
 #include <map>
-
-#ifndef _fj_HEAPSNAPSHOT_H
-#define _fj_HEAPSNAPSHOT_H
 
 namespace fibjs {
 
@@ -35,5 +34,3 @@ private:
     std::map<int32_t, int32_t> _nodes;
 };
 }
-
-#endif // _fj_HEAPSNAPSHOT_H

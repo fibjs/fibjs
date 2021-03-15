@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _PKey_base_H_
-#define _PKey_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -462,5 +461,3 @@ inline void PKey_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 }
-
-#endif

@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _UrlObject_base_H_
-#define _UrlObject_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -597,5 +596,3 @@ inline void UrlObject_base::s_get_searchParams(v8::Local<v8::Name> property, con
     METHOD_RETURN();
 }
 }
-
-#endif

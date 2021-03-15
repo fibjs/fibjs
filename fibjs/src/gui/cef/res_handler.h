@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef RES_HANDLER_H
-#define RES_HANDLER_H
+#pragma once
 
 #include "object.h"
 #include "ifs/Handler.h"
@@ -61,4 +60,3 @@ private:
 };
 
 }
-#endif

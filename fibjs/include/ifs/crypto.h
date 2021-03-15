@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _crypto_base_H_
-#define _crypto_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -503,5 +502,3 @@ inline void crypto_base::s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_RETURN();
 }
 }
-
-#endif

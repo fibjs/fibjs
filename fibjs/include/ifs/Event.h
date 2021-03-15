@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _Event_base_H_
-#define _Event_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -156,5 +155,3 @@ inline void Event_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 }
-
-#endif

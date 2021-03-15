@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/MongoCollection.h"
 #include "MongoDB.h"
-
-#ifndef MONGOCOLLECTION_H_
-#define MONGOCOLLECTION_H_
 
 namespace fibjs {
 
@@ -84,4 +83,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* MONGOCOLLECTION_H_ */

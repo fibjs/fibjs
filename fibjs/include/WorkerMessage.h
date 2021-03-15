@@ -5,10 +5,9 @@
  *      Author: lion
  */
 
-#include "Message.h"
+#pragma once
 
-#ifndef WORKERMESSAGE_H_
-#define WORKERMESSAGE_H_
+#include "Message.h"
 
 namespace fibjs {
 
@@ -59,4 +58,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* WORKERMESSAGE_H_ */

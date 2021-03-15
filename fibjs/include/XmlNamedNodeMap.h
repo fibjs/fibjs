@@ -5,12 +5,11 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/XmlNamedNodeMap.h"
 #include "XmlAttr.h"
 #include "QuickArray.h"
-
-#ifndef XMLNAMEDNODEMAP_H_
-#define XMLNAMEDNODEMAP_H_
 
 namespace fibjs {
 
@@ -46,8 +45,7 @@ public:
     result_t lookupNamespaceURI(exlib::string prefix, exlib::string& retVal);
 
 public:
-    QuickArray<obj_ptr<XmlAttr> > m_childs;
+    QuickArray<obj_ptr<XmlAttr>> m_childs;
 };
 
 } /* namespace fibjs */
-#endif /* XMLNAMEDNODEMAP_H_ */

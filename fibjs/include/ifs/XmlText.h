@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _XmlText_base_H_
-#define _XmlText_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -76,5 +75,3 @@ inline void XmlText_base::s_splitText(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_RETURN();
 }
 }
-
-#endif

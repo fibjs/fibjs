@@ -5,13 +5,12 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/HttpRepeater.h"
 #include <vector>
 #include "HttpClient.h"
 #include "Url.h"
-
-#ifndef REPEATER_H_
-#define REPEATER_H_
 
 namespace fibjs {
 
@@ -39,4 +38,3 @@ public:
 };
 
 } /* namespace fibjs */
-#endif /* REPEATER_H_ */

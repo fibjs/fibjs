@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/HttpResponse.h"
 #include "HttpMessage.h"
-
-#ifndef HTTPRESPONSE_H_
-#define HTTPRESPONSE_H_
 
 namespace fibjs {
 
@@ -122,4 +121,3 @@ public:
 };
 
 } /* namespace fibjs */
-#endif /* HTTPRESPONSE_H_ */

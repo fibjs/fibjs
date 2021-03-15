@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _MongoID_base_H_
-#define _MongoID_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -45,5 +44,3 @@ inline ClassInfo& MongoID_base::class_info()
     return s_ci;
 }
 }
-
-#endif

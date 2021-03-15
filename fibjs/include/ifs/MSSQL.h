@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _MSSQL_base_H_
-#define _MSSQL_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -81,5 +80,3 @@ inline void MSSQL_base::s_use(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 }
-
-#endif

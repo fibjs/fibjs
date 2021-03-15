@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/X509Cert.h"
 #include <mbedtls/mbedtls/x509_crt.h>
-
-#ifndef _fj_X509CERT_H
-#define _fj_X509CERT_H
 
 namespace fibjs {
 
@@ -73,5 +72,3 @@ private:
     bool m_rootLoaded;
 };
 }
-
-#endif

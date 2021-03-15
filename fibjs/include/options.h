@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef _OPTIONS_H_
-#define _OPTIONS_H_
+#pragma once
 
 #include "utils.h"
 #include "Buffer.h"
@@ -40,5 +39,3 @@ struct OptData {
 
 extern const OptData opt_tools[];
 }
-
-#endif

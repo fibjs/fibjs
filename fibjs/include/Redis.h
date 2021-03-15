@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef REDIS_H_
-#define REDIS_H_
+#pragma once
 
 #include "ifs/Redis.h"
 #include "ifs/Socket.h"
@@ -513,4 +512,3 @@ public:
 };
 
 } /* namespace fibjs */
-#endif /* REDIS_H_ */

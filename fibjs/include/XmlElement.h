@@ -5,15 +5,14 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/XmlElement.h"
 #include "XmlNodeImpl.h"
 #include "XmlNodeList.h"
 #include "XmlNamedNodeMap.h"
 #include "StringBuffer.h"
 #include "parse.h"
-
-#ifndef XMLELEMENT_H_
-#define XMLELEMENT_H_
 
 namespace fibjs {
 
@@ -297,4 +296,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* XMLELEMENT_H_ */

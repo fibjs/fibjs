@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _HttpUploadData_base_H_
-#define _HttpUploadData_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -121,5 +120,3 @@ inline void HttpUploadData_base::s_get_body(v8::Local<v8::Name> property, const 
     METHOD_RETURN();
 }
 }
-
-#endif

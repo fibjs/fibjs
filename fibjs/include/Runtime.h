@@ -5,10 +5,9 @@
  *      Author: lion
  */
 
-#include "utils.h"
+#pragma once
 
-#ifndef RUNTIME_H_
-#define RUNTIME_H_
+#include "utils.h"
 
 namespace fibjs {
 
@@ -93,4 +92,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* RUNTIME_H_ */

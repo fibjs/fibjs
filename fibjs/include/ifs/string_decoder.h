@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _string_decoder_base_H_
-#define _string_decoder_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -53,5 +52,3 @@ inline ClassInfo& string_decoder_base::class_info()
     return s_ci;
 }
 }
-
-#endif

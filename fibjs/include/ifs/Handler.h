@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _Handler_base_H_
-#define _Handler_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -119,5 +118,3 @@ inline void Handler_base::s_invoke(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 }
-
-#endif

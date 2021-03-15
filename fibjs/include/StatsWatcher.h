@@ -6,6 +6,8 @@
  * @desc [description]
  */
 
+#pragma once
+
 #include "ifs/StatsWatcher.h"
 #include "ifs/fs.h"
 #include "EventEmitter.h"
@@ -15,9 +17,6 @@
 #include "utf8.h"
 #include "Stat.h"
 #include "AsyncUV.h"
-
-#ifndef _fj_StatsWATCHER_H
-#define _fj_StatsWATCHER_H
 
 namespace fibjs {
 
@@ -305,5 +304,3 @@ private:
     uv_timer_t m_timer_req;
 };
 }
-
-#endif // _fj_StatsWATCHER_H

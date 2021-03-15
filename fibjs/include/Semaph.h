@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef SEMAPHORE_H_
-#define SEMAPHORE_H_
+#pragma once
 
 #include "ifs/Semaphore.h"
 
@@ -37,5 +36,3 @@ private:
     exlib::Semaphore m_sem;
 };
 }
-
-#endif /* SEMAPHORE_H_ */

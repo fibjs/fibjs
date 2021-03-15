@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef WORKER_H_
-#define WORKER_H_
+#pragma once
 
 #include "ifs/Worker.h"
 #include "Event.h"
@@ -46,5 +45,3 @@ private:
     obj_ptr<Worker> m_worker;
 };
 }
-
-#endif /* WORKER_H_ */

@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "utils.h"
 #include <mongo/include/bson.h>
-
-#ifndef ENCODING_BSON_H_
-#define ENCODING_BSON_H_
 
 namespace fibjs {
 
@@ -19,5 +18,3 @@ void encodeValue(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Val
 v8::Local<v8::Object> decodeObject(Isolate* isolate, const bson* bb);
 v8::Local<v8::Object> decodeObject(Isolate* isolate, const char* buffer);
 }
-
-#endif /* ENCODING_BSON_H_ */

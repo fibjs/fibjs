@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _zlib_base_H_
-#define _zlib_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -562,5 +561,3 @@ inline void zlib_base::s_static_inflateRawTo(const v8::FunctionCallbackInfo<v8::
     METHOD_VOID();
 }
 }
-
-#endif

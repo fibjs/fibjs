@@ -5,10 +5,9 @@
  *      Author: lion
  */
 
-#include "ifs/HttpHandler.h"
+#pragma once
 
-#ifndef HTTPHANDLER_H_
-#define HTTPHANDLER_H_
+#include "ifs/HttpHandler.h"
 
 namespace fibjs {
 
@@ -46,4 +45,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* HTTPHANDLER_H_ */

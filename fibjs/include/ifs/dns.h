@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _dns_base_H_
-#define _dns_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -103,5 +102,3 @@ inline void dns_base::s_static_lookup(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_RETURN();
 }
 }
-
-#endif

@@ -1,10 +1,9 @@
+#pragma once
+
 #include <string>
 #include <list>
 
 #include "ifs/Buffer.h"
-
-#ifndef _fj_BUFFER_H
-#define _fj_BUFFER_H
 
 namespace fibjs {
 
@@ -164,5 +163,3 @@ private:
     exlib::string m_data;
 };
 }
-
-#endif // BUFFER_H

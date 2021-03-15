@@ -5,13 +5,12 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/HttpRequest.h"
 #include "HttpMessage.h"
 #include "HttpResponse.h"
 #include "HttpCollection.h"
-
-#ifndef HTTPREQUEST_H_
-#define HTTPREQUEST_H_
 
 namespace fibjs {
 
@@ -121,4 +120,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* HTTPREQUEST_H_ */

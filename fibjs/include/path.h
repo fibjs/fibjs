@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef _PATH_UTIL_H_
-#define _PATH_UTIL_H_
+#pragma once
 
 #include "ifs/path_posix.h"
 #include "ifs/path_win32.h"
@@ -1154,5 +1153,3 @@ inline result_t _fullpath_win32(exlib::string path, exlib::string& retVal)
 }
 
 } /* namespace fibjs */
-
-#endif /* _PATH_UTIL_H_ */

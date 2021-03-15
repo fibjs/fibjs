@@ -5,13 +5,13 @@
  * @modify date 2020-08-24 17:49:40
  * @desc File Range R/W strem
  */
+
+#pragma once
+
 #include "ifs/fs.h"
 #include "ifs/io.h"
 #include "ifs/RangeStream.h"
 #include "Stat.h"
-
-#ifndef IORANGESTREAM_H_
-#define IORANGESTREAM_H_
 
 namespace fibjs {
 
@@ -57,5 +57,3 @@ private:
 };
 
 }
-
-#endif // IORANGESTREAM_H_

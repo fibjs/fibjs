@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _Routing_base_H_
-#define _Routing_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -350,5 +349,3 @@ inline void Routing_base::s_find(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_RETURN();
 }
 }
-
-#endif

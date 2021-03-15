@@ -9,8 +9,7 @@
 #include "ifs/json.h"
 #include "include/cef_client.h"
 
-#ifndef WEBVIEW_CEF_H_
-#define WEBVIEW_CEF_H_
+#pragma once
 
 namespace fibjs {
 
@@ -128,5 +127,3 @@ private:
     std::map<int32_t, exlib::string> m_result;
 };
 }
-
-#endif

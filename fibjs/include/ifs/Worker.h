@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _Worker_base_H_
-#define _Worker_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -186,5 +185,3 @@ inline void Worker_base::s_set_onerror(v8::Local<v8::Name> property, v8::Local<v
     PROPERTY_SET_LEAVE();
 }
 }
-
-#endif

@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _vm_base_H_
-#define _vm_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -53,5 +52,3 @@ inline ClassInfo& vm_base::class_info()
     return s_ci;
 }
 }
-
-#endif

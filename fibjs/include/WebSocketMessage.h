@@ -5,12 +5,11 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "Message.h"
 #include "ifs/WebSocketMessage.h"
 #include "WebSocket.h"
-
-#ifndef WEBSOCKETMESSAGE_H_
-#define WEBSOCKETMESSAGE_H_
 
 namespace fibjs {
 
@@ -82,4 +81,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* WEBSOCKETMESSAGE_H_ */

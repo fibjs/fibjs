@@ -5,13 +5,12 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/Handler.h"
 #include "ifs/vm.h"
 #include "Chain.h"
 #include "Routing.h"
-
-#ifndef JSHANDLER_H_
-#define JSHANDLER_H_
 
 namespace fibjs {
 
@@ -32,4 +31,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* JSHANDLER_H_ */

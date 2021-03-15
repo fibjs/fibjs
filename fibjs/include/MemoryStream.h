@@ -5,13 +5,12 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/os.h"
 #include "ifs/fs.h"
 #include "ifs/MemoryStream.h"
 #include <sstream>
-
-#ifndef MEMORYSTREAM_H_
-#define MEMORYSTREAM_H_
 
 namespace fibjs {
 
@@ -97,4 +96,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* MEMORYSTREAM_H_ */

@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/MongoCursor.h"
 #include "MongoDB.h"
-
-#ifndef MONGOCURSOR_H_
-#define MONGOCURSOR_H_
 
 namespace fibjs {
 
@@ -86,4 +85,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* MONGOCURSOR_H_ */

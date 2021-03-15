@@ -5,12 +5,11 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/HeapGraphEdge.h"
 #include "ifs/HeapSnapshot.h"
 #include <v8/include/v8-profiler.h>
-
-#ifndef _fj_HEAPGRAPHEDGE_H
-#define _fj_HEAPGRAPHEDGE_H
 
 namespace fibjs {
 
@@ -74,5 +73,3 @@ private:
     int32_t m_toId;
 };
 }
-
-#endif // _fj_HEAPGRAPHEDGE_H

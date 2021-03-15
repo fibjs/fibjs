@@ -5,10 +5,9 @@
  *      Author: lion
  */
 
-#include <stdint.h>
+#pragma once
 
-#ifndef SOCKET_API_H_
-#define SOCKET_API_H_
+#include <stdint.h>
 
 namespace fibjs {
 
@@ -30,5 +29,3 @@ namespace socket {
     int32_t c_send(void* sock, const void* buffer, int32_t cbBuffer);
 }
 }
-
-#endif /* SOCKET_API_H_ */

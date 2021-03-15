@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _SQLite_base_H_
-#define _SQLite_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -130,5 +129,3 @@ inline void SQLite_base::s_backup(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_VOID();
 }
 }
-
-#endif

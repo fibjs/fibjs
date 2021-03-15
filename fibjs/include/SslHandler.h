@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef _fj_SSLHANDLER_H_
-#define _fj_SSLHANDLER_H_
+#pragma once
 
 #include "ifs/SslHandler.h"
 #include "SslSocket.h"
@@ -39,4 +38,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* _fj_SSLHANDLER_H_ */

@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _HttpServer_base_H_
-#define _HttpServer_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -198,5 +197,3 @@ inline void HttpServer_base::s_set_serverName(v8::Local<v8::Name> property, v8::
     PROPERTY_SET_LEAVE();
 }
 }
-
-#endif

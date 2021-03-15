@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef LEVELDB_H_
-#define LEVELDB_H_
+#pragma once
 
 #include "ifs/LevelDB.h"
 #include <leveldb/db.h>
@@ -150,4 +149,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* LEVELDB_H_ */

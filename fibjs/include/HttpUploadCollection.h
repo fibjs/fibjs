@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/HttpCollection.h"
 #include "QuickArray.h"
-
-#ifndef HTTPUPLOADCOLLECTION_H_
-#define HTTPUPLOADCOLLECTION_H_
 
 namespace fibjs {
 
@@ -83,4 +82,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* HTTPUPLOADCOLLECTION_H_ */

@@ -8,8 +8,7 @@
  */
 #if defined(__APPLE__) && !defined(FIBJS_DISABLE_GUI)
 
-#ifndef WEBVIEW_NS_API_H
-#define WEBVIEW_NS_API_H
+#pragma once
 
 #import <Webkit/Webkit.h>
 #import <Cocoa/Cocoa.h>
@@ -38,7 +37,5 @@ inline exlib::string NSStringToExString(NSString* str)
 // - (void)webView:(WKWebView *)webView
 //       stopURLSchemeTask:(id<WKURLSchemeTask>)urlSchemeTask;
 @end
-
-#endif // WEBVIEW_NS_API_H
 
 #endif // __APPLE__

@@ -7,8 +7,7 @@
  */
 #if defined(__APPLE__) && !defined(FIBJS_DISABLE_GUI)
 
-#ifndef WEBVIEW_APPLE_H_
-#define WEBVIEW_APPLE_H_
+#pragma once
 
 #include "ifs/WebView.h"
 #include "EventInfo.h"
@@ -128,5 +127,4 @@ protected:
 };
 } /* namespace fibjs */
 
-#endif /* WEBVIEW_APPLE_H_ */
 #endif /* __APPLE__ */

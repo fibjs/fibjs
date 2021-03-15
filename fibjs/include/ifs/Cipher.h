@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _Cipher_base_H_
-#define _Cipher_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -232,5 +231,3 @@ inline void Cipher_base::s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 }
-
-#endif

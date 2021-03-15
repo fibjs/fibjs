@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef _fj_HTTPSSERVER_H_
-#define _fj_HTTPSSERVER_H_
+#pragma once
 
 #include "ifs/HttpsServer.h"
 #include "SslServer.h"
@@ -51,5 +50,3 @@ private:
 };
 
 } /* namespace fibjs */
-
-#endif /* _fj_HTTPSSERVER_H_ */

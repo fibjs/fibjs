@@ -5,12 +5,11 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/XmlCDATASection.h"
 #include "XmlNodeImpl.h"
 #include "XmlDataImpl.h"
-
-#ifndef XMLCDATASECTION_H_
-#define XMLCDATASECTION_H_
 
 namespace fibjs {
 
@@ -82,4 +81,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* XMLCDATASECTION_H_ */

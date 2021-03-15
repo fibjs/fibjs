@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _Socket_base_H_
-#define _Socket_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -402,5 +401,3 @@ inline void Socket_base::s_sendto(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_VOID();
 }
 }
-
-#endif

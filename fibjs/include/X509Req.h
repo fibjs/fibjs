@@ -5,12 +5,11 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/X509Req.h"
 #include <mbedtls/mbedtls/x509_csr.h>
 #include "X509Cert.h"
-
-#ifndef _fj_X509REQ_H
-#define _fj_X509REQ_H
 
 namespace fibjs {
 
@@ -48,5 +47,3 @@ private:
     mbedtls_x509_csr m_csr;
 };
 }
-
-#endif

@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _console_base_H_
-#define _console_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -793,5 +792,3 @@ inline void console_base::s_static_getpass(const v8::FunctionCallbackInfo<v8::Va
     METHOD_RETURN();
 }
 }
-
-#endif

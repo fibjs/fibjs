@@ -5,13 +5,12 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/WebSocket.h"
 #include "ifs/ws.h"
 #include "ifs/Stream.h"
 #include "ZlibStream.h"
-
-#ifndef WEBSOCKET_H_
-#define WEBSOCKET_H_
 
 namespace fibjs {
 
@@ -127,4 +126,3 @@ public:
 };
 
 } /* namespace fibjs */
-#endif /* WEBSOCKET_H_ */

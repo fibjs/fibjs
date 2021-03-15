@@ -5,12 +5,11 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/BufferedStream.h"
 #include "StringBuffer.h"
 #include "encoding_iconv.h"
-
-#ifndef BUFFEREDSTREAM_H_
-#define BUFFEREDSTREAM_H_
 
 namespace fibjs {
 
@@ -77,4 +76,3 @@ public:
 };
 
 } /* namespace fibjs */
-#endif /* BUFFEREDSTREAM_H_ */

@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef TEXTCOLOR_H_
-#define TEXTCOLOR_H_
+#pragma once
 
 #include <exlib/include/qstring.h>
 
@@ -39,5 +38,3 @@ inline exlib::string color_string(exlib::string lead, exlib::string str, bool co
     return color ? lead + str + COLOR_RESET : str;
 }
 }
-
-#endif /* STAT_H_ */

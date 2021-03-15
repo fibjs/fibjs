@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/Message.h"
 #include "ifs/SeekableStream.h"
-
-#ifndef MESSAGE_H_
-#define MESSAGE_H_
 
 namespace fibjs {
 
@@ -64,4 +63,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* MESSAGE_H_ */

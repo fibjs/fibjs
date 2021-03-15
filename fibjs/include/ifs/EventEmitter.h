@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _EventEmitter_base_H_
-#define _EventEmitter_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -445,5 +444,3 @@ inline void EventEmitter_base::s_emit(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_RETURN();
 }
 }
-
-#endif

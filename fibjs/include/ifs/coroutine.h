@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _coroutine_base_H_
-#define _coroutine_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -270,5 +269,3 @@ inline void coroutine_base::s_static_set_loglevel(v8::Local<v8::Name> property, 
     PROPERTY_SET_LEAVE();
 }
 }
-
-#endif

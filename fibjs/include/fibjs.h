@@ -5,10 +5,9 @@
  *      Author: lion
  */
 
-#include "utils.h"
+#pragma once
 
-#ifndef _FIBJS_H_
-#define _FIBJS_H_
+#include "utils.h"
 
 namespace fibjs {
 
@@ -17,4 +16,3 @@ void start(int32_t argc, char** argv, result_t (*main)(Isolate*), v8::Platform* 
 result_t FiberProcJsEntry(Isolate* isolate);
 
 } /* namespace fibjs */
-#endif /* FIBER_H_ */

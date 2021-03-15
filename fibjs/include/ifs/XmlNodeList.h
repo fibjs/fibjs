@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _XmlNodeList_base_H_
-#define _XmlNodeList_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -117,5 +116,3 @@ inline void XmlNodeList_base::i_IndexedGetter(uint32_t index, const v8::Property
     METHOD_RETURN();
 }
 }
-
-#endif

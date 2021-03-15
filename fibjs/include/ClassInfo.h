@@ -4,8 +4,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _fj_classinfo_H_
-#define _fj_classinfo_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -413,5 +412,3 @@ private:
     int32_t m_id;
 };
 }
-
-#endif

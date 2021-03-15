@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _MongoCollection_base_H_
-#define _MongoCollection_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -408,5 +407,3 @@ inline void MongoCollection_base::i_NamedEnumerator(const v8::PropertyCallbackIn
     METHOD_RETURN1();
 }
 }
-
-#endif

@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _MySQL_base_H_
-#define _MySQL_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -144,5 +143,3 @@ inline void MySQL_base::s_set_txBufferSize(v8::Local<v8::Name> property, v8::Loc
     PROPERTY_SET_LEAVE();
 }
 }
-
-#endif

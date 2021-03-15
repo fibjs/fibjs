@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _HeapGraphNode_base_H_
-#define _HeapGraphNode_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -149,5 +148,3 @@ inline void HeapGraphNode_base::s_get_childs(v8::Local<v8::Name> property, const
     METHOD_RETURN();
 }
 }
-
-#endif

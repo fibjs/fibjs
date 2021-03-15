@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "Buffer.h"
 #include "utf8.h"
-
-#ifndef ENCODING_ICONV_H_
-#define ENCODING_ICONV_H_
 
 namespace fibjs {
 
@@ -42,4 +41,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* ENCODING_ICONV_H_ */

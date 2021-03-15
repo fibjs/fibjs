@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _XmlNamedNodeMap_base_H_
-#define _XmlNamedNodeMap_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -137,5 +136,3 @@ inline void XmlNamedNodeMap_base::s_getNamedItem(const v8::FunctionCallbackInfo<
     METHOD_RETURN();
 }
 }
-
-#endif

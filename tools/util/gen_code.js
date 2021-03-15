@@ -576,8 +576,7 @@ function gen_code(cls, def, baseFolder) {
             ''
         ].join('\n'));
 
-        txts.push(`#ifndef _${cls}_base_H_`);
-        txts.push(`#define _${cls}_base_H_\n`);
+        txts.push(`#pragma once\n`);
 
         txts.push("/**\n @author Leo Hoo <lion@9465.net>\n */\n");
 
@@ -589,7 +588,7 @@ function gen_code(cls, def, baseFolder) {
     }
 
     function gen_end() {
-        txts.push("}\n\n#endif\n");
+        txts.push("}\n");
     }
 
     function gen_refer_cls() {

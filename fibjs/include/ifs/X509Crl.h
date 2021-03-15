@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _X509Crl_base_H_
-#define _X509Crl_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -265,5 +264,3 @@ inline void X509Crl_base::s_get_next(v8::Local<v8::Name> property, const v8::Pro
     METHOD_RETURN();
 }
 }
-
-#endif

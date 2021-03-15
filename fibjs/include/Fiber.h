@@ -5,12 +5,11 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/coroutine.h"
 #include "ifs/Fiber.h"
 #include "QuickArray.h"
-
-#ifndef FIBER_H_
-#define FIBER_H_
 
 namespace fibjs {
 
@@ -151,4 +150,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* FIBER_H_ */

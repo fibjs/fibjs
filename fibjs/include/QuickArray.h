@@ -5,10 +5,9 @@
  *      Author: lion
  */
 
-#include <stdlib.h>
+#pragma once
 
-#ifndef QUICKARRAY_H_
-#define QUICKARRAY_H_
+#include <stdlib.h>
 
 namespace fibjs {
 
@@ -198,5 +197,3 @@ private:
     size_t m_size;
 };
 }
-
-#endif /* QUICKARRAY_H_ */

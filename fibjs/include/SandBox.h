@@ -5,15 +5,14 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/SandBox.h"
 #include "ifs/Stream.h"
 #include "ifs/process.h"
 #include "ifs/Worker.h"
 #include <map>
 #include <vector>
-
-#ifndef SANDBOX_H_
-#define SANDBOX_H_
 
 namespace fibjs {
 
@@ -234,4 +233,3 @@ public:
 };
 
 } /* namespace fibjs */
-#endif /* SANDBOX_H_ */

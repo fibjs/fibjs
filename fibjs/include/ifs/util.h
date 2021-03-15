@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _util_base_H_
-#define _util_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -1149,5 +1148,3 @@ inline void util_base::s_static_buildInfo(const v8::FunctionCallbackInfo<v8::Val
     METHOD_RETURN();
 }
 }
-
-#endif

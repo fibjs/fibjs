@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _tty_base_H_
-#define _tty_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -72,5 +71,3 @@ inline void tty_base::s_static_isatty(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_RETURN();
 }
 }
-
-#endif

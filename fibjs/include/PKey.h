@@ -5,12 +5,11 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/PKey.h"
 #include <mbedtls/mbedtls/config.h>
 #include <mbedtls/mbedtls/pk.h>
-
-#ifndef _fj_PKEY_H
-#define _fj_PKEY_H
 
 namespace fibjs {
 
@@ -56,5 +55,3 @@ public:
     mbedtls_pk_context m_key;
 };
 }
-
-#endif

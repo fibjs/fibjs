@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/net.h"
 #include <string.h>
-
-#ifndef INETADDR_H_
-#define INETADDR_H_
 
 namespace fibjs {
 
@@ -188,4 +187,3 @@ inline int32_t inet_pton6(const char* src, void* dst)
 }
 
 } /* namespace fibjs */
-#endif /* INETADDR_H_ */

@@ -5,10 +5,9 @@
  *      Author: lion
  */
 
-#include "ifs/Handler.h"
+#pragma once
 
-#ifndef WEBSOCKETHANDLER_H_
-#define WEBSOCKETHANDLER_H_
+#include "ifs/Handler.h"
 
 namespace fibjs {
 
@@ -29,4 +28,3 @@ public:
 };
 
 } /* namespace fibjs */
-#endif /* WEBSOCKETHANDLER_H_ */

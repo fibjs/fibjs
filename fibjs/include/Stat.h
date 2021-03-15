@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef STAT_H_
-#define STAT_H_
+#pragma once
 
 #include "ifs/Stat.h"
 #include <sys/stat.h>
@@ -118,5 +117,3 @@ public:
     bool m_isMemory, m_isSocket;
 };
 }
-
-#endif /* STAT_H_ */

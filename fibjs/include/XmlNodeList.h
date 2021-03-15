@@ -5,12 +5,11 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/XmlNodeList.h"
 #include "ifs/XmlDocument.h"
 #include "QuickArray.h"
-
-#ifndef XMLNODELIST_H_
-#define XMLNODELIST_H_
 
 namespace fibjs {
 
@@ -75,4 +74,3 @@ public:
 };
 
 } /* namespace fibjs */
-#endif /* XMLNODELIST_H_ */

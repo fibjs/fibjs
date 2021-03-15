@@ -6,8 +6,7 @@
  * @desc general AsyncUV Item Runnin in AsyncUVLoopThread
  */
 
-#ifndef ASYNCUV_H_
-#define ASYNCUV_H_
+#pragma once
 
 #include "AsyncCall.h"
 #include <uv/include/uv.h>
@@ -25,5 +24,3 @@ int uv_call(std::function<int(void)> proc);
 
 extern uv_loop_t* s_uv_loop;
 }
-
-#endif // ASYNCUV_H_

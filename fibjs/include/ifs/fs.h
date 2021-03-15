@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _fs_base_H_
-#define _fs_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -1032,5 +1031,3 @@ inline void fs_base::s_static_unwatchFile(const v8::FunctionCallbackInfo<v8::Val
     METHOD_VOID();
 }
 }
-
-#endif

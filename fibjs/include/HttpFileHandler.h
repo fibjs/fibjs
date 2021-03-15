@@ -5,12 +5,11 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/Handler.h"
 #include "map"
 #include "path.h"
-
-#ifndef HTTPFILEHANDLER_H_
-#define HTTPFILEHANDLER_H_
 
 namespace fibjs {
 
@@ -40,4 +39,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* HTTPFILEHANDLER_H_ */

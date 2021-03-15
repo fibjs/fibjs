@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/SQLite.h"
 #include <sqlite/sqlite3.h>
-
-#ifndef SQLITE_H_
-#define SQLITE_H_
 
 namespace fibjs {
 
@@ -65,4 +64,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* SQLITE_H_ */

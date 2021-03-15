@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _iconv_base_H_
-#define _iconv_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -116,5 +115,3 @@ inline void iconv_base::s_static_isEncoding(const v8::FunctionCallbackInfo<v8::V
     METHOD_RETURN();
 }
 }
-
-#endif

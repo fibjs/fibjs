@@ -5,12 +5,11 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/Routing.h"
 #include <pcre/pcre.h>
 #include <vector>
-
-#ifndef ROUTING_H_
-#define ROUTING_H_
 
 namespace fibjs {
 
@@ -76,4 +75,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* ROUTING_H_ */

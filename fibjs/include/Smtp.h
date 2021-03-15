@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef SMTP_H_
-#define SMTP_H_
+#pragma once
 
 #include "ifs/Smtp.h"
 #include "BufferedStream.h"
@@ -44,5 +43,3 @@ public:
 };
 
 } /* namespace fibjs */
-
-#endif /* SMTP_H_ */

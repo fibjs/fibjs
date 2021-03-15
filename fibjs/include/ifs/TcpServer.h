@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _TcpServer_base_H_
-#define _TcpServer_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -175,5 +174,3 @@ inline void TcpServer_base::s_set_handler(v8::Local<v8::Name> property, v8::Loca
     PROPERTY_SET_LEAVE();
 }
 }
-
-#endif

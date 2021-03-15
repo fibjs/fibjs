@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _XmlCDATASection_base_H_
-#define _XmlCDATASection_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -48,5 +47,3 @@ inline ClassInfo& XmlCDATASection_base::class_info()
     return s_ci;
 }
 }
-
-#endif

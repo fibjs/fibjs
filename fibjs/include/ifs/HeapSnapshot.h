@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _HeapSnapshot_base_H_
-#define _HeapSnapshot_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -173,5 +172,3 @@ inline void HeapSnapshot_base::s_get_nodes(v8::Local<v8::Name> property, const v
     METHOD_RETURN();
 }
 }
-
-#endif

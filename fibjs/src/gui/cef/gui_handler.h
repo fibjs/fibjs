@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef GUI_HANDLER_H
-#define GUI_HANDLER_H
+#pragma once
 
 #include "include/cef_client.h"
 #include "CefWebView.h"
@@ -96,5 +95,3 @@ private:
     IMPLEMENT_REFCOUNTING(GuiHandler);
 };
 }
-
-#endif

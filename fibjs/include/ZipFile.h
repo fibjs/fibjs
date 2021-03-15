@@ -5,13 +5,12 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/ZipFile.h"
 #include "ifs/SeekableStream.h"
 #include "unzip/include/unzip.h"
 #include "unzip/include/zip.h"
-
-#ifndef ZIPFILE_H_
-#define ZIPFILE_H_
 
 namespace fibjs {
 
@@ -144,4 +143,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* ZIPFILE_H_ */

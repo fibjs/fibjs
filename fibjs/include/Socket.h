@@ -5,13 +5,12 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/Socket.h"
 #include "inetAddr.h"
 #include "AsyncIO.h"
 #include "Timer.h"
-
-#ifndef SOCKET_H_
-#define SOCKET_H_
 
 namespace fibjs {
 
@@ -106,5 +105,3 @@ private:
     friend class AsyncIO;
 };
 }
-
-#endif /* SOCKET_H_ */

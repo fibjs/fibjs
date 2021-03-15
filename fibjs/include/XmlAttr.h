@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/XmlAttr.h"
 #include "XmlNodeImpl.h"
-
-#ifndef XMLATTR_H_
-#define XMLATTR_H_
 
 namespace fibjs {
 
@@ -111,4 +110,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* XMLATTR_H_ */

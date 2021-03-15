@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _RedisSortedSet_base_H_
-#define _RedisSortedSet_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -275,5 +274,3 @@ inline void RedisSortedSet_base::s_rankRev(const v8::FunctionCallbackInfo<v8::Va
     METHOD_RETURN();
 }
 }
-
-#endif

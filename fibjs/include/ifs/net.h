@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _net_base_H_
-#define _net_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -303,5 +302,3 @@ inline void net_base::s_static_isIPv6(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_RETURN();
 }
 }
-
-#endif

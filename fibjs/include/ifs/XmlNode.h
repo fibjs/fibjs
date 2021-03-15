@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _XmlNode_base_H_
-#define _XmlNode_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -433,5 +432,3 @@ inline void XmlNode_base::s_removeChild(const v8::FunctionCallbackInfo<v8::Value
     METHOD_RETURN();
 }
 }
-
-#endif

@@ -10,8 +10,7 @@
 #include "EventInfo.h"
 #include "map"
 
-#ifndef LRUCACHE_H_
-#define LRUCACHE_H_
+#pragma once
 
 namespace fibjs {
 
@@ -220,5 +219,3 @@ private:
 };
 
 } /* namespace fibjs */
-
-#endif /* LRUCACHE_H_ */

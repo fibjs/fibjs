@@ -5,10 +5,9 @@
  *      Author: lion
  */
 
-#include "ifs/Handler.h"
+#pragma once
 
-#ifndef NULLHANDLER_H_
-#define NULLHANDLER_H_
+#include "ifs/Handler.h"
 
 namespace fibjs {
 
@@ -21,4 +20,3 @@ public:
 };
 
 } /* namespace fibjs */
-#endif /* NULLHANDLER_H_ */

@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/XmlDocument.h"
 #include "XmlNodeImpl.h"
-
-#ifndef XMLDOCUMENT_H_
-#define XMLDOCUMENT_H_
 
 namespace fibjs {
 
@@ -105,4 +104,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* XMLDOCUMENT_H_ */

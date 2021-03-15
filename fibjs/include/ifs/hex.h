@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _hex_base_H_
-#define _hex_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -95,5 +94,3 @@ inline void hex_base::s_static_decode(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_RETURN();
 }
 }
-
-#endif

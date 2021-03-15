@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _WebView_base_H_
-#define _WebView_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -588,5 +587,3 @@ inline void WebView_base::s_set_onmessage(v8::Local<v8::Name> property, v8::Loca
     PROPERTY_SET_LEAVE();
 }
 }
-
-#endif

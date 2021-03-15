@@ -4,8 +4,7 @@
  *  Created on: Aug 12, 2016
  */
 
-#ifndef HTTPCLIENT_H_
-#define HTTPCLIENT_H_
+#pragma once
 
 #include "ifs/HttpClient.h"
 #include "HttpCookie.h"
@@ -161,5 +160,3 @@ private:
     obj_ptr<Url> m_proxyAgentUrl;
 };
 } /* namespace fibjs */
-
-#endif /* HTTPCLIENT_H_ */

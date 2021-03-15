@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _WebSocket_base_H_
-#define _WebSocket_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -354,5 +353,3 @@ inline void WebSocket_base::s_unref(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_RETURN();
 }
 }
-
-#endif

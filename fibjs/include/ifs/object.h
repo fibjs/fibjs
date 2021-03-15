@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _object_base_H_
-#define _object_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -91,5 +90,3 @@ inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 }
-
-#endif

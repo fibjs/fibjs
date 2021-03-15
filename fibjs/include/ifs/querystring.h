@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _querystring_base_H_
-#define _querystring_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -139,5 +138,3 @@ inline void querystring_base::s_static_stringify(const v8::FunctionCallbackInfo<
     METHOD_RETURN();
 }
 }
-
-#endif

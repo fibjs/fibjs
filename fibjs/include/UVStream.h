@@ -5,12 +5,11 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/io.h"
 #include "AsyncUV.h"
 #include "Buffer.h"
-
-#ifndef _UVSTREAM_H
-#define _UVSTREAM_H
 
 namespace fibjs {
 
@@ -329,5 +328,3 @@ public:
     AsyncEvent* ac_close;
 };
 }
-
-#endif // _UVSTREAM_H

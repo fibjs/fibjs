@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _ChildProcess_base_H_
-#define _ChildProcess_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -213,5 +212,3 @@ inline void ChildProcess_base::s_set_onexit(v8::Local<v8::Name> property, v8::Lo
     PROPERTY_SET_LEAVE();
 }
 }
-
-#endif

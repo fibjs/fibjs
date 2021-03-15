@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/DgramSocket.h"
 #include "AsyncIO.h"
-
-#ifndef DGRAMSOCKET_H_
-#define DGRAMSOCKET_H_
 
 namespace fibjs {
 
@@ -50,5 +49,3 @@ public:
     bool m_bound;
 };
 }
-
-#endif // DGRAMSOCKET_H_

@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef _fj_CONSOLE_H
-#define _fj_CONSOLE_H
+#pragma once
 
 #include "utils.h"
 #include "TextColor.h"
@@ -284,5 +283,3 @@ public:
 
 #endif
 }
-
-#endif // _fj_CONSOLE_H

@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef SIMPLE_OBJECT_H_
-#define SIMPLE_OBJECT_H_
+#pragma once
 
 #include <map>
 #include <algorithm>
@@ -240,5 +239,3 @@ inline void NObject::add(exlib::string key, Variant value)
 }
 
 } /* namespace fibjs */
-
-#endif

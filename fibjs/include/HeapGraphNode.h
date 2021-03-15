@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/HeapGraphNode.h"
 #include <v8/include/v8-profiler.h>
-
-#ifndef _fj_HEAPGRAPHNODE_H
-#define _fj_HEAPGRAPHNODE_H
 
 namespace fibjs {
 
@@ -77,5 +76,3 @@ private:
     obj_ptr<NArray> m_childs;
 };
 }
-
-#endif // _fj_HEAPGRAPHNODE_H

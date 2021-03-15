@@ -5,12 +5,11 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/UrlObject.h"
 #include "utf8.h"
 #include "HttpCollection.h"
-
-#ifndef URL_H_
-#define URL_H_
 
 namespace fibjs {
 
@@ -214,4 +213,3 @@ public:
 };
 
 } /* namespace fibjs */
-#endif /* URL_H_ */

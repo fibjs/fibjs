@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/Condition.h"
 #include "Lock.h"
-
-#ifndef CONDITION_H_
-#define CONDITION_H_
 
 namespace fibjs {
 
@@ -44,5 +43,3 @@ private:
     exlib::CondVar m_cond;
 };
 }
-
-#endif /* CONDITION_H_ */

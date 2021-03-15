@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _XmlDocumentType_base_H_
-#define _XmlDocumentType_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -104,5 +103,3 @@ inline void XmlDocumentType_base::s_get_systemId(v8::Local<v8::Name> property, c
     METHOD_RETURN();
 }
 }
-
-#endif

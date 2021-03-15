@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef _fj_SSL_H_
-#define _fj_SSL_H_
+#pragma once
 
 #include "ifs/ssl.h"
 #include <mbedtls/mbedtls/config.h>
@@ -70,5 +69,3 @@ private:
 extern _ssl g_ssl;
 
 } /* namespace fibjs */
-
-#endif /* _fj_SSL_H_ */

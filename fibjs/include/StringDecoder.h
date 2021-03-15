@@ -5,11 +5,10 @@
 *      Author: ngot
 */
 
+#pragma once
+
 #include "ifs/StringDecoder.h"
 #include "Buffer.h"
-
-#ifndef STRINGDECODER_H_
-#define STRINGDECODER_H_
 
 namespace fibjs {
 
@@ -194,4 +193,3 @@ inline exlib::string normalizeEncoding(exlib::string encoding)
 }
 
 } /* namespace fibjs */
-#endif /* STRINGDECODER_H_ */

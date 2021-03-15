@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _Digest_base_H_
-#define _Digest_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -116,5 +115,3 @@ inline void Digest_base::s_get_size(v8::Local<v8::Name> property, const v8::Prop
     METHOD_RETURN();
 }
 }
-
-#endif

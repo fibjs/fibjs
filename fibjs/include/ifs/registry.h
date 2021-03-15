@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _registry_base_H_
-#define _registry_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -208,5 +207,3 @@ inline void registry_base::s_static_del(const v8::FunctionCallbackInfo<v8::Value
     METHOD_VOID();
 }
 }
-
-#endif

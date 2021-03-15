@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _timers_base_H_
-#define _timers_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -229,5 +228,3 @@ inline void timers_base::s_static_call(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_RETURN();
 }
 }
-
-#endif

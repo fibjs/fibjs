@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef EVENT_H_
-#define EVENT_H_
+#pragma once
 
 #include "ifs/Event.h"
 
@@ -34,5 +33,3 @@ private:
     exlib::Event m_event;
 };
 }
-
-#endif /* EVENT_H_ */

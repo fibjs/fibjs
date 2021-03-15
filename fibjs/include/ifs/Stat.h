@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _Stat_base_H_
-#define _Stat_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -576,5 +575,3 @@ inline void Stat_base::s_isSocket(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 }
-
-#endif

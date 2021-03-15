@@ -5,13 +5,12 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/zlib.h"
 #include "Buffer.h"
 #include "MemoryStream.h"
 #include <zlib/include/zlib.h>
-
-#ifndef __ZLIBSTREAM_H_
-#define __ZLIBSTREAM_H_
 
 namespace fibjs {
 
@@ -363,4 +362,3 @@ public:
 };
 
 } /* namespace fibjs */
-#endif /* __ZLIBSTREAM_H_ */

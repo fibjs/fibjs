@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _Chain_base_H_
-#define _Chain_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -99,5 +98,3 @@ inline void Chain_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args
     METHOD_VOID();
 }
 }
-
-#endif

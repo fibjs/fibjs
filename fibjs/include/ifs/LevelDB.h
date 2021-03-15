@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _LevelDB_base_H_
-#define _LevelDB_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -305,5 +304,3 @@ inline void LevelDB_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_VOID();
 }
 }
-
-#endif

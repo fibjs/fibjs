@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _HttpHandler_base_H_
-#define _HttpHandler_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -215,5 +214,3 @@ inline void HttpHandler_base::s_set_handler(v8::Local<v8::Name> property, v8::Lo
     PROPERTY_SET_LEAVE();
 }
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef WEBVIEW_DARWIN_H
-#define WEBVIEW_DARWIN_H
+#pragma once
 
 #include "utils.h"
 
@@ -31,7 +30,7 @@ inline const char* webview_check_url(const char* url)
 {
     if (url == NULL || strlen(url) == 0)
         return DEFAULT_URL;
-        
+
     return url;
 }
 
@@ -44,13 +43,10 @@ inline NSString* w_get_nsstring(const wchar_t* wstr)
 {
     return [[NSString alloc]
         initWithBytes:wstr
-        length:wcslen(wstr)*sizeof(*wstr)
-        encoding:NSUTF32LittleEndianStringEncoding
-    ];
+               length:wcslen(wstr) * sizeof(*wstr)
+             encoding:NSUTF32LittleEndianStringEncoding];
 }
 
 static const char* WEBVIEW_MSG_HANDLER_NAME_INVOKE = "invoke";
 static const char* WEBVIEW_MSG_HANDLER_NAME_INWARD = "__inward";
 static const char* WEBVIEW_MSG_HANDLER_NAME_EXTERNALLOG = "__externalLog";
-
-#endif /* WEBVIEW_DARWIN_H */

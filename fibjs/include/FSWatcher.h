@@ -6,6 +6,8 @@
  * @desc 
  */
 
+#pragma once
+
 #include "ifs/FSWatcher.h"
 #include "ifs/fs.h"
 #include "EventEmitter.h"
@@ -15,9 +17,6 @@
 #include "utf8.h"
 #include "Stat.h"
 #include "AsyncUV.h"
-
-#ifndef _fj_FSWATCHER_H
-#define _fj_FSWATCHER_H
 
 namespace fibjs {
 
@@ -205,5 +204,3 @@ protected:
     obj_ptr<ValueHolder> m_vholder;
 };
 }
-
-#endif // _fj_FSWATCHER_H

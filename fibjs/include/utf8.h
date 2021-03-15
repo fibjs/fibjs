@@ -4,8 +4,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _utf_8_H_
-#define _utf_8_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -146,5 +145,3 @@ inline exlib::string utf32to8String(exlib::wstring32 src)
     return utf32to8String(src.c_str(), (int32_t)src.length());
 }
 }
-
-#endif

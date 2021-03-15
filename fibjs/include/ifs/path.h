@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _path_base_H_
-#define _path_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -346,5 +345,3 @@ inline void path_base::s_static_get_win32(v8::Local<v8::Name> property, const v8
     METHOD_RETURN();
 }
 }
-
-#endif

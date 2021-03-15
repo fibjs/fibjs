@@ -1,5 +1,4 @@
-#ifndef _fj_ASYNCCALL_H
-#define _fj_ASYNCCALL_H
+#pragma once
 
 #include <string>
 #include <exlib/include/fiber.h>
@@ -448,5 +447,3 @@ private:
     int32_t m_v;
 };
 }
-
-#endif

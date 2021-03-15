@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _RedisList_base_H_
-#define _RedisList_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -307,5 +306,3 @@ inline void RedisList_base::s_range(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_RETURN();
 }
 }
-
-#endif

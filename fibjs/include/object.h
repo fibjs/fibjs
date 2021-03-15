@@ -4,8 +4,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _fj_object_H_
-#define _fj_object_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -557,8 +556,6 @@ inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 }
-
-#endif
 
 #ifdef _assert
 #undef _assert

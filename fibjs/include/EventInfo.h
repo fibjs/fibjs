@@ -5,10 +5,9 @@
  *      Author: lion
  */
 
-#include "SimpleObject.h"
+#pragma once
 
-#ifndef EVENTINFO_H_
-#define EVENTINFO_H_
+#include "SimpleObject.h"
 
 namespace fibjs {
 
@@ -29,4 +28,3 @@ public:
 };
 
 } /* namespace fibjs */
-#endif /* EVENTINFO_H_ */

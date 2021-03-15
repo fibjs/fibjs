@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _global_base_H_
-#define _global_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -352,5 +351,3 @@ inline void global_base::s_static_GC(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_VOID();
 }
 }
-
-#endif

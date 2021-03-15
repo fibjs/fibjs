@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include <string>
 #include <exlib/include/qstring.h>
-
-#ifndef QSTRING_H_
-#define QSTRING_H_
 
 namespace fibjs {
 
@@ -206,5 +205,3 @@ inline void qstrupr(T* s)
         *s++ = qtoupper(c);
 }
 }
-
-#endif /* QSTRING_H_ */

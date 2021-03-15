@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef LOCKER_H_
-#define LOCKER_H_
+#pragma once
 
 #include "ifs/Lock.h"
 
@@ -21,5 +20,3 @@ public:
     virtual result_t count(int32_t& retVal);
 };
 }
-
-#endif /* LOCKER_H_ */

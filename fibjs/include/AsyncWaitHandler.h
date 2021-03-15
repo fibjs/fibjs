@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef ASYNCWAITHANDLER_H_
-#define ASYNCWAITHANDLER_H_
+#pragma once
 
 #include "ifs/Handler.h"
 #include "Event.h"
@@ -60,4 +59,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* ASYNCWAITHANDLER_H_ */

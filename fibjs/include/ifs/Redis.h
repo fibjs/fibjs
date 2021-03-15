@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _Redis_base_H_
-#define _Redis_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -966,5 +965,3 @@ inline void Redis_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 }
-
-#endif

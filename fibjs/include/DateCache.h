@@ -5,10 +5,9 @@
  *      Author: lion
  */
 
-#include "utils.h"
+#pragma once
 
-#ifndef DATACACHE_H_
-#define DATACACHE_H_
+#include "utils.h"
 
 namespace fibjs {
 
@@ -26,5 +25,3 @@ private:
     void* m_pdc;
 };
 }
-
-#endif

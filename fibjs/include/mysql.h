@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef MYSQL_H_
-#define MYSQL_H_
+#pragma once
 
 #include "ifs/MySQL.h"
 extern "C" {
@@ -77,4 +76,3 @@ public:
 };
 
 } /* namespace fibjs */
-#endif /* MYSQL_H_ */

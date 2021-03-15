@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _HeapGraphEdge_base_H_
-#define _HeapGraphEdge_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -144,5 +143,3 @@ inline void HeapGraphEdge_base::s_getToNode(const v8::FunctionCallbackInfo<v8::V
     METHOD_RETURN();
 }
 }
-
-#endif

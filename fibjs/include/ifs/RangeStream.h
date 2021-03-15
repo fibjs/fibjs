@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _RangeStream_base_H_
-#define _RangeStream_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -116,5 +115,3 @@ inline void RangeStream_base::s_get_end(v8::Local<v8::Name> property, const v8::
     METHOD_RETURN();
 }
 }
-
-#endif

@@ -10,8 +10,7 @@
 #include "ifs/mq.h"
 #include "Fiber.h"
 
-#ifndef CHAIN_H_
-#define CHAIN_H_
+#pragma once
 
 namespace fibjs {
 
@@ -166,4 +165,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* CHAIN_H_ */

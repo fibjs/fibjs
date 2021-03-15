@@ -4,8 +4,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _fj_utils_H_
-#define _fj_utils_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -1366,5 +1365,3 @@ private:
     const char* m_name;
 };
 }
-
-#endif

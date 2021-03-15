@@ -5,15 +5,14 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "AsyncCall.h"
 #include "Buffer.h"
 #include "ifs/net.h"
 #include "ifs/Socket.h"
 #include "Timer.h"
 #include "inetAddr.h"
-
-#ifndef ASYNCIO_H_
-#define ASYNCIO_H_
 
 namespace fibjs {
 
@@ -90,5 +89,3 @@ private:
 #endif
 };
 }
-
-#endif /* ASYNCIO_H_ */

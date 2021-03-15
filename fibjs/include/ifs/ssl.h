@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _ssl_base_H_
-#define _ssl_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -297,5 +296,3 @@ inline void ssl_base::s_static_set_max_version(v8::Local<v8::Name> property, v8:
     PROPERTY_SET_LEAVE();
 }
 }
-
-#endif

@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _Buffer_base_H_
-#define _Buffer_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -1727,5 +1726,3 @@ inline void Buffer_base::s_toString(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_RETURN();
 }
 }
-
-#endif

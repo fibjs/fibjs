@@ -5,14 +5,13 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/MongoDB.h"
 #include <mongo/include/mongo.h>
 extern "C" {
 #include <mongo/include/gridfs.h>
 }
-
-#ifndef MONGODB_H_
-#define MONGODB_H_
 
 namespace fibjs {
 
@@ -63,4 +62,3 @@ public:
 };
 
 } /* namespace fibjs */
-#endif /* MONGODB_H_ */

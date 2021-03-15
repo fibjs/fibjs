@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _Image_base_H_
-#define _Image_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -1371,5 +1370,3 @@ inline void Image_base::s_gaussianBlur(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_VOID();
 }
 }
-
-#endif

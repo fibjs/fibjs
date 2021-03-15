@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _SslSocket_base_H_
-#define _SslSocket_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -237,5 +236,3 @@ inline void SslSocket_base::s_accept(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_RETURN();
 }
 }
-
-#endif

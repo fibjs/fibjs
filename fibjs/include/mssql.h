@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef _MSSQL_H_
-#define _MSSQL_H_
+#pragma once
 
 #include "ifs/MSSQL.h"
 #include "utf8.h"
@@ -89,4 +88,3 @@ public:
 };
 
 } /* namespace fibjs */
-#endif /* _MSSQL_H_ */

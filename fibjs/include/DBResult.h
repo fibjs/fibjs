@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef DBRESULT_H_
-#define DBRESULT_H_
+#pragma once
 
 namespace fibjs {
 
@@ -49,4 +48,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* DBRESULT_H_ */

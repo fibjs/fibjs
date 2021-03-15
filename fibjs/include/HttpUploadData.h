@@ -5,10 +5,9 @@
  *      Author: lion
  */
 
-#include "ifs/HttpUploadData.h"
+#pragma once
 
-#ifndef HTTPUPLOADDATA_H_
-#define HTTPUPLOADDATA_H_
+#include "ifs/HttpUploadData.h"
 
 namespace fibjs {
 
@@ -28,4 +27,3 @@ public:
 };
 
 } /* namespace fibjs */
-#endif /* HTTPUPLOADDATA_H_ */

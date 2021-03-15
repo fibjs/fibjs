@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#ifndef _V8_API_H_
-#define _V8_API_H_
+#pragma once
 
 namespace fibjs {
 
@@ -32,5 +31,3 @@ void WriteLcovData(v8::Isolate* isolate, FILE* file);
 bool isFrozen(v8::Handle<v8::Object> object);
 
 } /* namespace fibjs */
-
-#endif /* _V8_API_H_ */

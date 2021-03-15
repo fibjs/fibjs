@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _SslServer_base_H_
-#define _SslServer_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -160,5 +159,3 @@ inline void SslServer_base::s_get_ca(v8::Local<v8::Name> property, const v8::Pro
     METHOD_RETURN();
 }
 }
-
-#endif

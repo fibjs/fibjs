@@ -6,13 +6,12 @@
  */
 #ifdef _WIN32
 
+#pragma once
+
 #include "ifs/WebView.h"
 #include <comdef.h>
 #include <Exdisp.h>
 #include <mshtmhst.h>
-
-#ifndef WEBVIEW_WIN32_H_
-#define WEBVIEW_WIN32_H_
 
 namespace fibjs {
 
@@ -226,5 +225,4 @@ protected:
 };
 
 } /* namespace fibjs */
-#endif /* WEBVIEW_WIN32_H_ */
 #endif /* _WIN32 */

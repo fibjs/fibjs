@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _test_base_H_
-#define _test_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -304,5 +303,3 @@ inline void test_base::s_static_set_slow(v8::Local<v8::Name> property, v8::Local
     PROPERTY_SET_LEAVE();
 }
 }
-
-#endif

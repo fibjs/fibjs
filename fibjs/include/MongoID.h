@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/MongoID.h"
 #include <mongo/include/bson.h>
-
-#ifndef MONGOID_H_
-#define MONGOID_H_
 
 namespace fibjs {
 
@@ -54,4 +53,3 @@ public:
 };
 
 } /* namespace fibjs */
-#endif /* MONGOID_H_ */

@@ -5,13 +5,12 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "Buffer.h"
 #include "utf8.h"
 #include "ifs/encoding.h"
 #include "encoding_iconv.h"
-
-#ifndef ENCODING_H_
-#define ENCODING_H_
 
 namespace fibjs {
 
@@ -187,4 +186,3 @@ inline result_t commonEncode(exlib::string codec, exlib::string data, exlib::str
 }
 
 } /* namespace fibjs */
-#endif /* ENCODING_H_ */

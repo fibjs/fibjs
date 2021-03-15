@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/XmlProcessingInstruction.h"
 #include "XmlNodeImpl.h"
-
-#ifndef XMLPROCESSINTINSTRUCTION_H_
-#define XMLPROCESSINTINSTRUCTION_H_
 
 namespace fibjs {
 
@@ -69,4 +68,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* XMLPROCESSINTINSTRUCTION_H_ */

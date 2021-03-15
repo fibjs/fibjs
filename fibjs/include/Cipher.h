@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/Cipher.h"
 #include <mbedtls/mbedtls/cipher.h>
-
-#ifndef _fj_CIPHER_H
-#define _fj_CIPHER_H
 
 namespace fibjs {
 
@@ -42,5 +41,3 @@ private:
     exlib::string m_iv;
 };
 }
-
-#endif // _fj_CIPHER_H

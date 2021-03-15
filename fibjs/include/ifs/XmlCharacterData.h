@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _XmlCharacterData_base_H_
-#define _XmlCharacterData_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -202,5 +201,3 @@ inline void XmlCharacterData_base::s_replaceData(const v8::FunctionCallbackInfo<
     METHOD_VOID();
 }
 }
-
-#endif

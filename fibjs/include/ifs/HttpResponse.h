@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _HttpResponse_base_H_
-#define _HttpResponse_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -253,5 +252,3 @@ inline void HttpResponse_base::s_sendHeader(const v8::FunctionCallbackInfo<v8::V
     METHOD_VOID();
 }
 }
-
-#endif

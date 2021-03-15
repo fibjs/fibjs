@@ -5,12 +5,11 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "Message.h"
 #include "HttpCollection.h"
 #include "ifs/BufferedStream.h"
-
-#ifndef HTTPMESSAGE_H_
-#define HTTPMESSAGE_H_
 
 namespace fibjs {
 
@@ -97,4 +96,3 @@ public:
 };
 
 } /* namespace fibjs */
-#endif /* HTTPMESSAGE_H_ */

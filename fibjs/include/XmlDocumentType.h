@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/XmlDocumentType.h"
 #include "XmlNodeImpl.h"
-
-#ifndef XMLDOCUMENTTYPE_H_
-#define XMLDOCUMENTTYPE_H_
 
 namespace fibjs {
 
@@ -79,4 +78,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* XMLDOCUMENTTYPE_H_ */

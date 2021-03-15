@@ -5,10 +5,9 @@
  *      Author: lion
  */
 
-#include "ifs/Service.h"
+#pragma once
 
-#ifndef _SERVICE_H_
-#define _SERVICE_H_
+#include "ifs/Service.h"
 
 namespace fibjs {
 
@@ -50,4 +49,3 @@ inline result_t Service::set_name(exlib::string newVal)
 }
 
 } /* namespace fibjs */
-#endif /* _SERVICE_H_ */

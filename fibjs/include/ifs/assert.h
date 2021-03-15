@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _assert_base_H_
-#define _assert_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -975,5 +974,3 @@ inline void assert_base::s_static_ifError(const v8::FunctionCallbackInfo<v8::Val
     METHOD_VOID();
 }
 }
-
-#endif

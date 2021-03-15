@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _mq_base_H_
-#define _mq_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -115,5 +114,3 @@ inline void mq_base::s_static_invoke(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_VOID();
 }
 }
-
-#endif

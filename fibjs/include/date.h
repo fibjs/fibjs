@@ -5,12 +5,11 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include <string>
 #include <stdint.h>
 #include <chrono>
-
-#ifndef DATE_H_
-#define DATE_H_
 
 namespace fibjs {
 
@@ -144,5 +143,3 @@ private:
     double d;
 };
 }
-
-#endif /* DATE_H_ */

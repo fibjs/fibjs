@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _Fiber_base_H_
-#define _Fiber_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -120,5 +119,3 @@ inline void Fiber_base::s_get_stack(v8::Local<v8::Name> property, const v8::Prop
     METHOD_RETURN();
 }
 }
-
-#endif

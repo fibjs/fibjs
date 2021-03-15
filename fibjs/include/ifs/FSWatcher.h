@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _FSWatcher_base_H_
-#define _FSWatcher_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -165,5 +164,3 @@ inline void FSWatcher_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_VOID();
 }
 }
-
-#endif

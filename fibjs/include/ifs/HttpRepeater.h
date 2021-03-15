@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _HttpRepeater_base_H_
-#define _HttpRepeater_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -137,5 +136,3 @@ inline void HttpRepeater_base::s_get_client(v8::Local<v8::Name> property, const 
     METHOD_RETURN();
 }
 }
-
-#endif

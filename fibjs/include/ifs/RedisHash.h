@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _RedisHash_base_H_
-#define _RedisHash_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -289,5 +288,3 @@ inline void RedisHash_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_RETURN();
 }
 }
-
-#endif

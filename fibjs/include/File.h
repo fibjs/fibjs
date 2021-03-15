@@ -1,3 +1,5 @@
+#pragma once
+
 #include "ifs/File.h"
 #include "Stat.h"
 #include "utf8.h"
@@ -7,9 +9,6 @@
 #ifndef _WIN32
 #include <sys/ioctl.h>
 #endif
-
-#ifndef _fj_FILE_H
-#define _fj_FILE_H
 
 #define MAX_PATH_LENGTH 4096
 
@@ -137,5 +136,3 @@ inline result_t file_open(exlib::string fname, exlib::string flags, int32_t mode
     return 0;
 }
 }
-
-#endif // FILE_H

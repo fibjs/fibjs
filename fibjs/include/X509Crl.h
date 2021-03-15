@@ -5,11 +5,10 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/X509Crl.h"
 #include <mbedtls/mbedtls/x509_crl.h>
-
-#ifndef _fj_X509CRL_H
-#define _fj_X509CRL_H
 
 namespace fibjs {
 
@@ -42,5 +41,3 @@ private:
     int32_t m_no;
 };
 }
-
-#endif

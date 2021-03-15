@@ -5,13 +5,12 @@
  *      Author: lion
  */
 
+#pragma once
+
 #include "ifs/net.h"
 #include "ifs/Handler.h"
 #include "ifs/TcpServer.h"
 #include "Socket.h"
-
-#ifndef TCPSERVER_H_
-#define TCPSERVER_H_
 
 namespace fibjs {
 
@@ -45,4 +44,3 @@ private:
 };
 
 } /* namespace fibjs */
-#endif /* TCPSERVER_H_ */

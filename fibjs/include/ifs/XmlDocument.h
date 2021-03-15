@@ -5,8 +5,7 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _XmlDocument_base_H_
-#define _XmlDocument_base_H_
+#pragma once
 
 /**
  @author Leo Hoo <lion@9465.net>
@@ -478,5 +477,3 @@ inline void XmlDocument_base::s_createProcessingInstruction(const v8::FunctionCa
     METHOD_RETURN();
 }
 }
-
-#endif
