@@ -66,6 +66,8 @@ private:
 public:
     EVENT_FUNC(open);
     EVENT_FUNC(load);
+    EVENT_FUNC(address);
+    EVENT_FUNC(title);
     EVENT_FUNC(move);
     EVENT_FUNC(resize);
     EVENT_FUNC(closed);

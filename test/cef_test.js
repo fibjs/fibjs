@@ -149,73 +149,71 @@ var key_code = {
     "Quote": 222
 };
 
+function getOuterHTML(win, selector) {
+    var doc = win.dev.DOM.getDocument();
+    var e = win.dev.DOM.querySelector({
+        nodeId: doc.root.nodeId,
+        selector: selector
+    });
+
+    var html = win.dev.DOM.getOuterHTML({
+        nodeId: e.nodeId
+    });
+
+    return html.outerHTML;
+}
+
+function click(win, selector) {
+    var doc = win.dev.DOM.getDocument();
+    var e = win.dev.DOM.querySelector({
+        nodeId: doc.root.nodeId,
+        selector: selector
+    });
+
+    var box = win.dev.DOM.getBoxModel({
+        nodeId: e.nodeId
+    });
+
+    var mi = {
+        x: box.model.content[0] + 1,
+        y: box.model.content[1] + 1,
+        button: 'left',
+        clickCount: 1
+    }
+
+    mi.type = "mousePressed";
+    win.dev.Input.dispatchMouseEvent(mi);
+
+    mi.type = "mouseReleased";
+    win.dev.Input.dispatchMouseEvent(mi);
+}
+
+function type(win, text) {
+    for (char of text) {
+        win.dev.Input.dispatchKeyEvent({
+            type: "char",
+            text: char
+        });
+    }
+}
+
+function press(win, key) {
+    var code = key_code[key];
+    var ki = {
+        key: key,
+        code: key,
+        windowsVirtualKeyCode: code,
+        nativeVirtualKeyCode: code
+    };
+
+    ki.type = "keyDown";
+    win.dev.Input.dispatchKeyEvent(ki);
+
+    ki.type = "keyUp";
+    win.dev.Input.dispatchKeyEvent(ki);
+}
+
 describe("cef", () => {
-    var svr;
-
-    function getOuterHTML(win, selector) {
-        var doc = win.dev.DOM.getDocument();
-        var e = win.dev.DOM.querySelector({
-            nodeId: doc.root.nodeId,
-            selector: selector
-        });
-
-        var html = win.dev.DOM.getOuterHTML({
-            nodeId: e.nodeId
-        });
-
-        return html.outerHTML;
-    }
-
-    function click(win, selector) {
-        var doc = win.dev.DOM.getDocument();
-        var e = win.dev.DOM.querySelector({
-            nodeId: doc.root.nodeId,
-            selector: selector
-        });
-
-        var box = win.dev.DOM.getBoxModel({
-            nodeId: e.nodeId
-        });
-
-        var mi = {
-            x: box.model.content[0] + 1,
-            y: box.model.content[1] + 1,
-            button: 'left',
-            clickCount: 1
-        }
-
-        mi.type = "mousePressed";
-        win.dev.Input.dispatchMouseEvent(mi);
-
-        mi.type = "mouseReleased";
-        win.dev.Input.dispatchMouseEvent(mi);
-    }
-
-    function type(win, text) {
-        for (char of text) {
-            win.dev.Input.dispatchKeyEvent({
-                type: "char",
-                text: char
-            });
-        }
-    }
-
-    function press(win, key) {
-        var code = key_code[key];
-        var ki = {
-            key: key,
-            code: key,
-            windowsVirtualKeyCode: code,
-            nativeVirtualKeyCode: code
-        };
-
-        ki.type = "keyDown";
-        win.dev.Input.dispatchKeyEvent(ki);
-
-        ki.type = "keyUp";
-        win.dev.Input.dispatchKeyEvent(ki);
-    }
-
     describe("basic", () => {
         it("basic", () => {
             var step = 0;
@@ -224,15 +222,11 @@ describe("cef", () => {
             win.on("open", () => {
                 assert.equal(step, 0);
                 step++;
-            });
-
-            win.on("load", () => {
+            }).on("load", () => {
                 assert.equal(step, 1);
                 step++;
                 win.close();
-            });
-
-            win.on("closed", () => {
+            }).on("closed", () => {
                 assert.equal(step, 2);
                 step++;
                 win = undefined;
@@ -243,6 +237,34 @@ describe("cef", () => {
 
             assert.equal(step, 3);
             assert.equal(test_util.countObject("WebView"), 0);
+        });
+
+        it("address event", done => {
+            var win = gui.open("cef://test/simple.html");
+
+            win.on("address", address => {
+                win.close();
+                try {
+                    assert.equal(address, "cef://test/simple.html");
+                    done();
+                } catch (e) {
+                    done(e);
+                }
+            })
+        });
+
+        it("title event", done => {
+            var win = gui.open("cef://test/simple.html");
+
+            win.on("title", title => {
+                win.close();
+                try {
+                    assert.equal(title, "simple");
+                    done();
+                } catch (e) {
+                    done(e);
+                }
+            })
         });
 
         it("close directly", () => {

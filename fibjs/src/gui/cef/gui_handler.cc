@@ -44,8 +44,19 @@ bool GuiHandler::RunContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFram
     return stop_menu;
 }
 
-void GuiHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
-    const CefString& title)
+void GuiHandler::OnAddressChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
+    const CefString& url)
+{
+    if (frame->IsMain()) {
+        BrowserList::iterator bit = fromBrowser(browser);
+        if (bit != browser_list_.end()) {
+            Variant v = url.ToString().c_str();
+            (*bit)->_emit("address", &v, 1);
+        }
+    }
+}
+
+void GuiHandler::OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString& title)
 {
 #ifndef Darwin
     CefRefPtr<CefBrowserView> browser_view = CefBrowserView::GetForBrowser(browser);
@@ -57,6 +68,12 @@ void GuiHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
 #else
     PlatformTitleChange(browser, title);
 #endif
+
+    BrowserList::iterator bit = fromBrowser(browser);
+    if (bit != browser_list_.end()) {
+        Variant v = title.ToString().c_str();
+        (*bit)->_emit("title", &v, 1);
+    }
 }
 
 bool GuiHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,

@@ -41,6 +41,10 @@ public:
     virtual result_t set_onopen(v8::Local<v8::Function> newVal) = 0;
     virtual result_t get_onload(v8::Local<v8::Function>& retVal) = 0;
     virtual result_t set_onload(v8::Local<v8::Function> newVal) = 0;
+    virtual result_t get_onaddress(v8::Local<v8::Function>& retVal) = 0;
+    virtual result_t set_onaddress(v8::Local<v8::Function> newVal) = 0;
+    virtual result_t get_ontitle(v8::Local<v8::Function>& retVal) = 0;
+    virtual result_t set_ontitle(v8::Local<v8::Function> newVal) = 0;
     virtual result_t get_onmove(v8::Local<v8::Function>& retVal) = 0;
     virtual result_t set_onmove(v8::Local<v8::Function> newVal) = 0;
     virtual result_t get_onresize(v8::Local<v8::Function>& retVal) = 0;
@@ -79,6 +83,10 @@ public:
     static void s_set_onopen(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_onload(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_onload(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_onaddress(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_onaddress(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_ontitle(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_ontitle(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_onmove(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_onmove(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_onresize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -138,6 +146,8 @@ inline ClassInfo& WebView_base::class_info()
         { "dev", s_get_dev, block_set, false },
         { "onopen", s_get_onopen, s_set_onopen, false },
         { "onload", s_get_onload, s_set_onload, false },
+        { "onaddress", s_get_onaddress, s_set_onaddress, false },
+        { "ontitle", s_get_ontitle, s_set_ontitle, false },
         { "onmove", s_get_onmove, s_set_onmove, false },
         { "onresize", s_get_onresize, s_set_onresize, false },
         { "onclosed", s_get_onclosed, s_set_onclosed, false },
@@ -424,6 +434,56 @@ inline void WebView_base::s_set_onload(v8::Local<v8::Name> property, v8::Local<v
     PROPERTY_VAL(v8::Local<v8::Function>);
 
     hr = pInst->set_onload(v0);
+
+    PROPERTY_SET_LEAVE();
+}
+
+inline void WebView_base::s_get_onaddress(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_NAME("WebView.onaddress");
+    METHOD_INSTANCE(WebView_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_onaddress(vr);
+
+    METHOD_RETURN();
+}
+
+inline void WebView_base::s_set_onaddress(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_NAME("WebView.onaddress");
+    METHOD_INSTANCE(WebView_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(v8::Local<v8::Function>);
+
+    hr = pInst->set_onaddress(v0);
+
+    PROPERTY_SET_LEAVE();
+}
+
+inline void WebView_base::s_get_ontitle(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_NAME("WebView.ontitle");
+    METHOD_INSTANCE(WebView_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_ontitle(vr);
+
+    METHOD_RETURN();
+}
+
+inline void WebView_base::s_set_ontitle(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_NAME("WebView.ontitle");
+    METHOD_INSTANCE(WebView_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(v8::Local<v8::Function>);
+
+    hr = pInst->set_ontitle(v0);
 
     PROPERTY_SET_LEAVE();
 }

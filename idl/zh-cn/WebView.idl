@@ -115,6 +115,12 @@ interface WebView : EventEmitter
     /*! @brief 查询和绑定加载成功事件，相当于 on("load", func); */
     Function onload;
 
+    /*! @brief 查询和绑定页面地址变化事件，相当于 on("address", func); */
+    Function onaddress;
+
+    /*! @brief 查询和绑定页面标题改变事件，相当于 on("title", func); */
+    Function ontitle;
+
     /*! @brief 查询和绑定窗口移动事件，相当于 on("move", func); 
 
 	 以下示例会在窗口移动时输出窗口的左上角坐标：
