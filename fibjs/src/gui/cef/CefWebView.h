@@ -123,7 +123,7 @@ private:
     int32_t m_eid;
     exlib::spinlock m_method_lock;
     std::map<int32_t, ac_method> m_method;
-    std::map<int32_t, Variant> m_result;
+    std::map<int32_t, exlib::string> m_result;
 };
 }
 

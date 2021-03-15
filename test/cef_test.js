@@ -505,12 +505,12 @@ describe("cef", () => {
             });
 
             win.on("load", () => {
-                var ret = win.dev.Page.captureScreenshot({
-                    clip: {}
-                });
-
                 try {
-                    assert.equal(ret.code, -32602);
+                    assert.throws(() => {
+                        var ret = win.dev.Page.captureScreenshot({
+                            clip: {}
+                        });
+                    })
                     done();
                 } catch (e) {
                     done(e);

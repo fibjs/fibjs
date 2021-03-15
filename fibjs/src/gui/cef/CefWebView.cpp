@@ -330,22 +330,46 @@ result_t CefWebView::executeJavaScript(exlib::string code, AsyncEvent* ac)
     return 0;
 }
 
+void set_result(exlib::string res, Variant& retVal, AsyncEvent* ac)
+{
+    if (!qstrcmp(res.c_str(), "{\"code\":-", 9))
+    {
+        CefRefPtr<CefValue> v;
+        CefRefPtr<CefDictionaryValue> d;
+
+        v = CefParseJSON(res.c_str(),res.length(), 
+                JSON_PARSER_ALLOW_TRAILING_COMMAS);
+        if (v)
+            d = v->GetDictionary();
+
+        if(!d)
+            ac->post(CHECK_ERROR(Runtime::setError("WebView: invalid result format.")));
+        else
+        {
+            CefString msg = d->GetString("message");
+            CefString data = d->GetString("data");
+            ac->post(CHECK_ERROR(Runtime::setError("WebView: " + msg.ToString() + " - " + data.ToString())));
+        }
+    } else
+    {
+        retVal.setJSON(res);
+        ac->post(0);
+    }
+}
+
 void CefWebView::OnDevToolsMethodResult(CefRefPtr<CefBrowser> browser, int message_id,
     bool success, const void* result, size_t result_size)
 {
+    exlib::string res((const char*)result, result_size);
+
     m_method_lock.lock();
     std::map<int32_t, ac_method>::iterator it_method;
     it_method = m_method.find(message_id);
     if (it_method != m_method.end()) {
-        it_method->second.m_retVal.setJSON(exlib::string((const char*)result, result_size));
-        it_method->second.m_ac->post(0);
+        set_result(res, it_method->second.m_retVal, it_method->second.m_ac);
         m_method.erase(it_method);
-    } else {
-        Variant v;
-
-        v.setJSON(exlib::string((const char*)result, result_size));
-        m_result.insert(std::pair<int32_t, Variant>(message_id, v));
-    }
+    } else
+        m_result.insert(std::pair<int32_t, exlib::string>(message_id, res));
     m_method_lock.unlock();
 }
 
@@ -397,12 +421,11 @@ result_t CefWebView::executeDevToolsMethod(exlib::string method, v8::Local<v8::O
         return CALL_E_INTERNAL;
 
     m_method_lock.lock();
-    std::map<int32_t, Variant>::iterator it_method;
+    std::map<int32_t, exlib::string>::iterator it_method;
     it_method = m_result.find(rid);
     if (it_method != m_result.end()) {
-        retVal = it_method->second;
+        set_result(it_method->second, retVal, ac);
         m_result.erase(it_method);
-        ac->post(0);
     } else
         m_method.insert(std::pair<int32_t, ac_method>(rid, ac_method(retVal, ac)));
     m_method_lock.unlock();
