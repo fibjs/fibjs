@@ -708,10 +708,22 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, date_t& d, bool bStrict
     if (v.IsEmpty())
         return CALL_E_TYPEMISMATCH;
 
-    if (!v->IsDate())
-        return CALL_E_TYPEMISMATCH;
+    if (v->IsDate())
+    {
+        d = v;
+    } else
+    {
+        if (bStrict)
+            return CALL_E_TYPEMISMATCH;
 
-    d = v;
+        double n;
+        result_t hr = GetArgumentValue(Isolate::current()->m_isolate, v, n);
+        if (hr < 0)
+            return hr;
+
+        d = n;
+    }
+
     return 0;
 }
 
