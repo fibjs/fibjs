@@ -847,6 +847,12 @@ result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
     return postMessage(msg, vResult);
 }
 
+result_t WebView::get_type(exlib::string& retVal)
+{
+    retVal = "native";
+    return 0;
+}
+
 result_t WebView::get_dev(v8::Local<v8::Value>& retVal)
 {
     return CALL_RETURN_NULL;

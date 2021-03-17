@@ -13,10 +13,6 @@
 #include "CefWebView.h"
 #include "../os_gui.h"
 
-@interface GuiAppDelegate : NSObject <NSApplicationDelegate>
-- (void)createApplication:(id)object;
-@end
-
 @interface GuiApplication : NSApplication <CefAppProtocol> {
 @private
     BOOL handlingSendEvent_;
@@ -38,12 +34,6 @@
 {
     CefScopedSendingEvent sendingEventScoper;
     [super sendEvent:event];
-}
-@end
-
-@implementation GuiAppDelegate
-- (void)createApplication:(id)object
-{
 }
 @end
 
@@ -88,16 +78,7 @@ void MacRunMessageLoop(const CefMainArgs& args, const CefSettings& settings, Cef
         [[GuiApplication sharedApplication] activateIgnoringOtherApps:YES];
 
         CefInitialize(args, settings, application, nullptr);
-
-        NSObject* delegate = [GuiAppDelegate alloc];
-        [delegate performSelectorOnMainThread:@selector(createApplication:)
-                                   withObject:nil
-                                waitUntilDone:NO];
-
         CefRunMessageLoop();
-
-        [delegate release];
-        delegate = nil;
     }
 }
 

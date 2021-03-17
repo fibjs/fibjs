@@ -1,1 +1,3 @@
-require("gui").open("fs://" + __dirname + "/t1.html");
+require("gui").open("fs://" + __dirname + "/t1.html", {
+    type: "native"
+});

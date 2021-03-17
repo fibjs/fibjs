@@ -216,16 +216,26 @@ static result_t async_open(obj_ptr<CefWebView> w)
 
 result_t GuiApp::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
+    Isolate* isolate = Isolate::current();
+
     m_gui.set();
     m_gui_ready.wait();
 
-    if (!m_has_cef)
+    exlib::string _type("cef");
+
+    GetConfigValue(isolate->m_isolate, opt, "type", _type, true);
+    if (_type == "native")
         return os_gui_open(url, opt, retVal);
+
+    if (_type != "cef")
+        return CHECK_ERROR(Runtime::setError("gui: invalid type:" + _type));
+
+    if (!m_has_cef)
+        return CHECK_ERROR(Runtime::setError("gui: cef runtime not found."));
 
     exlib::string _proxy_mode;
     exlib::string _proxy_server;
 
-    Isolate* isolate = Isolate::current();
     v8::Local<v8::Object> _proxy;
     result_t hr = GetConfigValue(isolate->m_isolate, opt, "proxy", _proxy, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {

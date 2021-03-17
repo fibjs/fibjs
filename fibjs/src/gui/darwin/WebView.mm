@@ -44,7 +44,6 @@ NSEvent* getEmptyCustomNSEvent()
 }
 
 static exlib::LockedList<AsyncEvent> s_uiPool;
-static exlib::OSThread* s_thNSMainLoop;
 
 void os_putGuiPool(AsyncEvent* ac)
 {
@@ -70,11 +69,9 @@ void run_os_gui()
 {
     @autoreleasepool {
         [NSApplication sharedApplication];
-
         [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
         [[NSApplication sharedApplication] finishLaunching];
-
-        s_thNSMainLoop = exlib::OSThread::current();
+        [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
 
         while (true) {
             AsyncEvent* p = s_uiPool.getHead();
@@ -146,6 +143,8 @@ WebView::WebView(exlib::string url, NObject* opt)
 
 WebView::~WebView()
 {
+    [m_nsWindow autorelease];
+    [m_wkWebView autorelease];
 }
 
 bool WebView::onNSWindowShouldClose()
@@ -323,8 +322,6 @@ void WebView::initNSWindow()
                     backing:NSBackingStoreBuffered
                       defer:YES];
 
-    [m_nsWindow autorelease];
-
     os_config_window(this, m_nsWindow, m_opt);
 }
 
@@ -334,8 +331,6 @@ void WebView::initWKWebView()
         [WKWebView alloc]
         initWithFrame:CGRectMake(0, 0, 400, 300)
         configuration:createWKWebViewConfig()];
-
-    [m_wkWebView autorelease];
 
     assignToWKWebView(m_wkWebView);
 }
@@ -354,8 +349,6 @@ void WebView::startWKUI()
 
     m_nsWindow.contentView = m_wkWebView;
     [m_nsWindow.contentView setWantsLayer:YES];
-
-    [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
 }
 
 int WebView::initializeWebView()
@@ -525,6 +518,12 @@ result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
 
     evaluateWebviewJS(c_jsstr.c_str());
 
+    return 0;
+}
+
+result_t WebView::get_type(exlib::string& retVal)
+{
+    retVal = "native";
     return 0;
 }
 

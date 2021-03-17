@@ -35,6 +35,7 @@ public:
     virtual result_t executeDevToolsMethod(exlib::string method, v8::Local<v8::Object> params, Variant& retVal, AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac) = 0;
+    virtual result_t get_type(exlib::string& retVal) = 0;
     virtual result_t get_dev(v8::Local<v8::Value>& retVal) = 0;
     virtual result_t get_onopen(v8::Local<v8::Function>& retVal) = 0;
     virtual result_t set_onopen(v8::Local<v8::Function> newVal) = 0;
@@ -77,6 +78,7 @@ public:
     static void s_executeDevToolsMethod(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_dev(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_onopen(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_onopen(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
@@ -142,6 +144,7 @@ inline ClassInfo& WebView_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
+        { "type", s_get_type, block_set, false },
         { "dev", s_get_dev, block_set, false },
         { "onopen", s_get_onopen, s_set_onopen, false },
         { "onload", s_get_onload, s_set_onload, false },
@@ -372,6 +375,19 @@ inline void WebView_base::s_postMessage(const v8::FunctionCallbackInfo<v8::Value
         hr = pInst->ac_postMessage(v0);
 
     METHOD_VOID();
+}
+
+inline void WebView_base::s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_NAME("WebView.type");
+    METHOD_INSTANCE(WebView_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_type(vr);
+
+    METHOD_RETURN();
 }
 
 inline void WebView_base::s_get_dev(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)

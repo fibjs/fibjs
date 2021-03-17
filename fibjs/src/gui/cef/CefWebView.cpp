@@ -332,26 +332,23 @@ result_t CefWebView::executeJavaScript(exlib::string code, AsyncEvent* ac)
 
 void set_result(exlib::string res, Variant& retVal, AsyncEvent* ac)
 {
-    if (!qstrcmp(res.c_str(), "{\"code\":-", 9))
-    {
+    if (!qstrcmp(res.c_str(), "{\"code\":-", 9)) {
         CefRefPtr<CefValue> v;
         CefRefPtr<CefDictionaryValue> d;
 
-        v = CefParseJSON(res.c_str(),res.length(), 
-                JSON_PARSER_ALLOW_TRAILING_COMMAS);
+        v = CefParseJSON(res.c_str(), res.length(),
+            JSON_PARSER_ALLOW_TRAILING_COMMAS);
         if (v)
             d = v->GetDictionary();
 
-        if(!d)
+        if (!d)
             ac->post(CHECK_ERROR(Runtime::setError("WebView: invalid result format.")));
-        else
-        {
+        else {
             CefString msg = d->GetString("message");
             CefString data = d->GetString("data");
             ac->post(CHECK_ERROR(Runtime::setError("WebView: " + msg.ToString() + " - " + data.ToString())));
         }
-    } else
-    {
+    } else {
         retVal.setJSON(res);
         ac->post(0);
     }
@@ -450,4 +447,11 @@ result_t CefWebView::postMessage(exlib::string msg, AsyncEvent* ac)
 {
     return 0;
 }
+
+result_t CefWebView::get_type(exlib::string& retVal)
+{
+    retVal = "cef";
+    return 0;
+}
+
 }

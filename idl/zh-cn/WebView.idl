@@ -106,6 +106,9 @@ interface WebView : EventEmitter
 	*/
     postMessage(String msg) async;
 
+    /*! @brief 当前窗口的 WebView 引擎 */
+    readonly String type;
+
     /*! @brief DevTools 访问对象，调用接口参见：https://chromedevtools.github.io/devtools-protocol/ */
     readonly Value dev;
 
