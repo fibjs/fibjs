@@ -94,6 +94,11 @@ int _tmain(int argc, _TCHAR* argv[])
     ShellExecuteExW(&ShExecInfo);
     WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
 
+    DWORD code;
+    GetExitCodeProcess(ShExecInfo.hProcess, &code);
+    if (code)
+        printf("\nInstall error [%d].", code);
+
     DeleteFileW(szTempFileName);
 
     return 0;
