@@ -92,13 +92,17 @@ inline ClassInfo& EventEmitter_base::class_info()
         { "emit", s_emit, false }
     };
 
+    static ClassData::ClassObject s_object[] = {
+        { "EventEmitter", EventEmitter_base::class_info }
+    };
+
     static ClassData::ClassProperty s_property[] = {
         { "defaultMaxListeners", s_static_get_defaultMaxListeners, s_static_set_defaultMaxListeners, true }
     };
 
     static ClassData s_cd = {
         "EventEmitter", false, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &object_base::class_info()
     };
 

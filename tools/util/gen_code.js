@@ -1001,6 +1001,9 @@ function gen_code(cls, def, baseFolder) {
             var fstatic = fn.static;
             var fn1;
 
+            if (fname === cls && fn.memType == "method")
+                fname = "new " + fname;
+
             if (!method_defs.hasOwnProperty(fname)) {
                 fn1 = util.clone(fn);
                 fn1.overs = [fn];

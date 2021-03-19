@@ -120,12 +120,6 @@ void SandBox::initRoot()
         InstallModule(pModule->name(), pModule->getModule(isolate));
         pModule = pModule->m_next;
     }
-
-    v8::Local<v8::Object> _emitter = EventEmitter_base::class_info().getModule(isolate);
-    _emitter->Set(isolate->NewString("EventEmitter"), _emitter);
-
-    v8::Local<v8::Object> _buffer = Buffer_base::class_info().getModule(isolate);
-    _buffer->Set(isolate->NewString("Buffer"), _buffer);
 }
 
 result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)

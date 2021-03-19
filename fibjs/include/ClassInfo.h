@@ -339,12 +339,6 @@ private:
                     pt->Set(isolate->NewString(m_cd.cms[i].name),
                         v8::FunctionTemplate::New(isolate->m_isolate, m_cd.cms[i].invoker));
 
-            for (i = 0; i < m_cd.oc; i++) {
-                cache* _cache1 = m_cd.cos[i].invoker()._init(isolate);
-                pt->Set(isolate->NewString(m_cd.cos[i].name),
-                    v8::Local<v8::FunctionTemplate>::New(isolate->m_isolate, _cache1->m_class));
-            }
-
             for (i = 0; i < m_cd.pc; i++)
                 if (!m_cd.cps[i].is_static)
                     pt->SetAccessor(isolate->NewString(m_cd.cps[i].name),
@@ -381,7 +375,6 @@ private:
                 ot->SetCallAsFunctionHandler(m_cd.caf);
 
             v8::Local<v8::Function> _function = _class->GetFunction();
-            Attach(isolate, _function);
             _cache->m_function.Reset(isolate->m_isolate, _function);
 
             if (m_cd.cor) {
@@ -389,6 +382,8 @@ private:
                 o->SetAlignedPointerInInternalField(0, 0);
                 _cache->m_cache.Reset(isolate->m_isolate, o);
             }
+
+            Attach(isolate, _function);
         } else {
             v8::Local<v8::Object> o;
 
@@ -397,8 +392,9 @@ private:
             else
                 o = v8::Object::New(isolate->m_isolate);
 
-            Attach(isolate, o);
             _cache->m_cache.Reset(isolate->m_isolate, o);
+
+            Attach(isolate, o);
         }
 
         return _cache;
