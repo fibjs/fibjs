@@ -55,6 +55,8 @@ inline int64_t Ticks()
 
 namespace fibjs {
 
+DECLARE_MODULE(console);
+
 exlib::string COLOR_RESET = "";
 exlib::string COLOR_BLACK = "";
 exlib::string COLOR_RED = "";
