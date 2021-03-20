@@ -215,9 +215,12 @@ module.exports = function (defs, docsFolder) {
 
                         if (last_member !== m.name) {
                             last_member = m.name;
-                            if (m.name == def.declare.name)
-                                txts.push('new ' + m.name + '()\\l');
-                            else if (m.memType == 'operator')
+                            if (m.name == def.declare.name) {
+                                if (m.memType == 'method')
+                                    txts.push('new ' + m.name + '()\\l');
+                                else
+                                    txts.push(m.name + '\\l');
+                            } else if (m.memType == 'operator')
                                 txts.push('operator' + m.name + '\\l');
                             else
                                 txts.push(m.name + (m.memType == 'method' ? '()' : '') + '\\l');
