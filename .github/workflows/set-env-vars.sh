@@ -15,7 +15,8 @@ export GIT_COMMIT_TIME=$(git show -s --format="%cd" --date=format:%Y%m%d%H%M%S H
 echo "::set-output name=GIT_COMMIT_TIME::$GIT_COMMIT_TIME"
 
 if [[ "$GIT_TAG" =~ ^v?[012]\.[0-9]+\.[0-9]+$ ]]; then
-    echo "::set-output name=IS_GIT_TAG_MATCH_SEMVER::true"
+    export IS_GIT_TAG_MATCH_SEMVER="true"
+    echo "::set-output name=IS_GIT_TAG_MATCH_SEMVER::$IS_GIT_TAG_MATCH_SEMVER"
 fi
 
 if [ "$GITHUB_REPOSITORY" == "fibjs/fibjs" ]; then
@@ -31,7 +32,7 @@ if [ -z "$GIT_TAG" ]; then
 else
     export RELEASE_TAG="$GIT_TAG";
 fi
-if [ -z "$IS_ORIGIN_REPO" ]; then
+if [ -z "$IS_GIT_TAG_MATCH_SEMVER" ]; then
     SUFFIX=${GIT_BRANCH//\//'-'}
     RELEASE_TAG="$RELEASE_TAG-$SUFFIX"
 fi
