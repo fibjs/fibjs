@@ -39,16 +39,12 @@ private:
             s = m_size + n;
 
             c1 = (s + BlockSize() - 1) / BlockSize();
-            c2 = (m_size + BlockSize() - 1) / BlockSize();
+            c2 = m_array.size();
 
             if (c1 > c2) {
-                if (c2 > 0)
-                    m_p = (T**)realloc(m_p, sizeof(T*) * c1);
-                else
-                    m_p = (T**)malloc(sizeof(T*) * c1);
-
+                m_array.resize(c1);
                 for (i = c2; i < c1; i++)
-                    m_p[i] = (T*)malloc(sizeof(T) * BlockSize());
+                    m_array[i] = (T*)new char[sizeof(T) * BlockSize()];
             }
         }
     }
@@ -57,13 +53,11 @@ public:
     QuickArray()
     {
         m_size = 0;
-        m_p = 0;
     }
 
     QuickArray(const QuickArray<T>& rhs)
     {
         m_size = 0;
-        m_p = 0;
         append(rhs);
     }
 
@@ -87,42 +81,36 @@ public:
             size_t i;
 
             c1 = (s + BlockSize() - 1) / BlockSize();
-            c2 = (m_size + BlockSize() - 1) / BlockSize();
+            c2 = m_array.size();
 
             size_t p1 = s / BlockSize(), p2 = s % BlockSize();
-            T* ptr = m_p[p1];
+            T* ptr = m_array[p1];
 
             for (i = s; i < m_size; i++) {
                 ptr[p2++].~T();
                 if (i < m_size - 1 && p2 == BlockSize()) {
                     p1++;
-                    ptr = m_p[p1];
+                    ptr = m_array[p1];
                     p2 = 0;
                 }
             }
 
             if (c1 < c2) {
                 for (i = c1; i < c2; i++)
-                    free(m_p[i]);
-
-                if (c1 > 0)
-                    m_p = (T**)realloc(m_p, sizeof(T*) * c1);
-                else {
-                    free(m_p);
-                    m_p = NULL;
-                }
+                    delete[]((char*)m_array[i]);
+                m_array.resize(c1);
             }
         } else if (s > m_size) {
             _grow(s - m_size);
 
             size_t p1 = m_size / BlockSize(), p2 = m_size % BlockSize();
-            T* ptr = m_p[p1];
+            T* ptr = m_array[p1];
 
             for (size_t i = m_size; i < s; i++) {
                 new (&ptr[p2++]) T();
                 if (i < s - 1 && p2 == BlockSize()) {
                     p1++;
-                    ptr = m_p[p1];
+                    ptr = m_array[p1];
                     p2 = 0;
                 }
             }
@@ -143,7 +131,7 @@ public:
         if (i >= m_size)
             resize(i + 1);
 
-        return m_p[i / BlockSize()][i % BlockSize()];
+        return m_array[i / BlockSize()][i % BlockSize()];
     }
 
     void pop()
@@ -165,14 +153,14 @@ public:
 
             size_t pos = 0, p1 = m_size / BlockSize(),
                    p2 = m_size % BlockSize();
-            T* ptr = m_p[p1];
+            T* ptr = m_array[p1];
 
             for (size_t i = m_size; i < s; i++) {
                 new (&ptr[p2++]) T(rhs[pos++]);
 
                 if (i < s - 1 && p2 == BlockSize()) {
                     p1++;
-                    ptr = m_p[p1];
+                    ptr = m_array[p1];
                     p2 = 0;
                 }
             }
@@ -193,7 +181,7 @@ public:
     }
 
 private:
-    T** m_p;
+    std::vector<T*> m_array;
     size_t m_size;
 };
 }
