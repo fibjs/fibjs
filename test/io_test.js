@@ -6,8 +6,12 @@ const fs = require("fs");
 const path = require("path");
 const coroutine = require("coroutine");
 
-const { generateFakeMp4 } = require('./http_files/range_test/fake');
-const { assert_error_msg } = require('./_helpers/error');
+const {
+    generateFakeMp4
+} = require('./http_files/range_test/fake');
+const {
+    assert_error_msg
+} = require('./_helpers/error');
 
 const LF = `\n`
 const CRLF = `\r\n`
@@ -39,7 +43,8 @@ describe('io', () => {
         });
 
         describe('readUntil', () => {
-            ;[
+            ;
+            [
                 ['system EOL', EOL],
                 ['LF', LF],
                 ['CRLF', CRLF],
@@ -121,7 +126,7 @@ describe('io', () => {
                 assert.equal(stm.begin, 2);
                 assert.equal(stm.end, 11);
 
-                file.seek(stm.begin, fs.SEEK_SET);
+                file.seek(stm.begin, fs.constants.SEEK_SET);
                 stm.rewind();
                 assert.equal(0, file.read(stm.end - stm.begin).compare(stm.readAll()));
             });
@@ -132,7 +137,7 @@ describe('io', () => {
                 assert.equal(stm.begin, 0);
                 assert.equal(stm.end, 11);
 
-                file.seek(stm.begin, fs.SEEK_SET);
+                file.seek(stm.begin, fs.constants.SEEK_SET);
                 stm.rewind();
                 assert.equal(0, file.read(stm.end - stm.begin).compare(stm.readAll()));
             });
@@ -143,7 +148,7 @@ describe('io', () => {
                 assert.equal(stm.begin, 0);
                 assert.equal(stm.end, 10);
 
-                file.seek(stm.begin, fs.SEEK_SET);
+                file.seek(stm.begin, fs.constants.SEEK_SET);
                 stm.rewind();
                 assert.equal(0, file.read(stm.end - stm.begin).compare(stm.readAll()));
             });
@@ -166,7 +171,7 @@ describe('io', () => {
                 var stm = new io.RangeStream(file, 0, file.size());
 
                 // seekable
-                stm.seek(0, fs.SEEK_SET);
+                stm.seek(0, fs.constants.SEEK_SET);
                 // readable
                 stm.read(1);
                 // query current position
@@ -180,7 +185,7 @@ describe('io', () => {
                 stm.close();
 
                 // you can call `.seek()` still.
-                stm.seek(0, fs.SEEK_SET);
+                stm.seek(0, fs.constants.SEEK_SET);
 
                 // but you cannot read from it.
                 assert_error_msg(() => {
@@ -211,7 +216,7 @@ describe('io', () => {
                         assert.equal(stm.begin, begin);
                         assert.equal(stm.end, end);
 
-                        file.seek(stm.begin, fs.SEEK_SET);
+                        file.seek(stm.begin, fs.constants.SEEK_SET);
                         stm.rewind();
                         assert.equal(0, file.read(stm.end - stm.begin).compare(stm.readAll()));
                     });
@@ -225,7 +230,7 @@ describe('io', () => {
                     assert.equal(stm.begin, begin);
                     assert.equal(stm.end, end);
 
-                    file.seek(stm.begin, fs.SEEK_SET);
+                    file.seek(stm.begin, fs.constants.SEEK_SET);
                     stm.rewind();
                     assert.equal(0, file.read(stm.end - stm.begin).compare(stm.readAll()));
                 });
@@ -242,7 +247,7 @@ describe('io', () => {
                 var file = fs.openFile(filePath);
                 var stm = new io.RangeStream(file, 0, file.size());
 
-                stm.seek(0, fs.SEEK_END);
+                stm.seek(0, fs.constants.SEEK_END);
 
                 assert.equal(null, stm.readAll());
             });
@@ -256,11 +261,11 @@ describe('io', () => {
                 assert.equal(begin, begin);
                 assert.equal(stm.end, sz * 2);
 
-                stm.seek(-sz, fs.SEEK_END);
+                stm.seek(-sz, fs.constants.SEEK_END);
                 assert.equal(begin, begin);
                 assert.equal(stm.end, sz * 2);
 
-                stm.seek(-sz * 2 + begin, fs.SEEK_END);
+                stm.seek(-sz * 2 + begin, fs.constants.SEEK_END);
                 assert.equal(begin, begin);
                 assert.equal(stm.end, sz * 2);
 
@@ -274,7 +279,7 @@ describe('io', () => {
                 var sz = Number(file.size());
                 var stm = new io.RangeStream(file, sz / 2, sz * 2);
 
-                stm.seek(0, fs.SEEK_END);
+                stm.seek(0, fs.constants.SEEK_END);
 
                 assert.equal(null, stm.readAll());
             });
@@ -298,7 +303,7 @@ describe('io', () => {
                 var begin = Math.floor(sz / 2);
                 var stm = new io.RangeStream(file, begin, sz * 2);
 
-                stm.seek(0, fs.SEEK_SET);
+                stm.seek(0, fs.constants.SEEK_SET);
 
                 assert.equal(sz - begin, Number(stm.size()));
                 assert.equal(sz - begin, stm.readAll().length);
@@ -311,13 +316,13 @@ describe('io', () => {
                 var stm = new io.RangeStream(file, begin, sz * 2);
 
                 assert.equal(stm.end, sz * 2);
-                stm.seek(-sz, fs.SEEK_END);
+                stm.seek(-sz, fs.constants.SEEK_END);
 
                 assert.equal(stm.tell(), file.tell() - BigInt(stm.begin));
 
-                stm.seek(-sz * 2 + begin, fs.SEEK_END);
+                stm.seek(-sz * 2 + begin, fs.constants.SEEK_END);
                 assert.throws(() => {
-                    stm.seek(-sz * 2 + begin - 1, fs.SEEK_END);
+                    stm.seek(-sz * 2 + begin - 1, fs.constants.SEEK_END);
                 })
             });
 

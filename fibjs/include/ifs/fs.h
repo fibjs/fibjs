@@ -15,6 +15,7 @@
 
 namespace fibjs {
 
+class fs_constants_base;
 class Stat_base;
 class Buffer_base;
 class SeekableStream_base;
@@ -26,15 +27,7 @@ class fs_base : public object_base {
     DECLARE_CLASS(fs_base);
 
 public:
-    enum {
-        _SEEK_SET = 0,
-        _SEEK_CUR = 1,
-        _SEEK_END = 2
-    };
-
-public:
     // fs_base
-    static result_t get_constants(v8::Local<v8::Object>& retVal);
     static result_t exists(exlib::string path, bool& retVal, AsyncEvent* ac);
     static result_t access(exlib::string path, int32_t mode, AsyncEvent* ac);
     static result_t link(exlib::string oldPath, exlib::string newPath, AsyncEvent* ac);
@@ -92,7 +85,6 @@ public:
     }
 
 public:
-    static void s_static_get_constants(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_static_exists(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_access(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_link(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -170,6 +162,7 @@ public:
 };
 }
 
+#include "ifs/fs_constants.h"
 #include "ifs/Stat.h"
 #include "ifs/Buffer.h"
 #include "ifs/SeekableStream.h"
@@ -255,36 +248,18 @@ inline ClassInfo& fs_base::class_info()
         { "unwatchFile", s_static_unwatchFile, true }
     };
 
-    static ClassData::ClassProperty s_property[] = {
-        { "constants", s_static_get_constants, block_set, true }
-    };
-
-    static ClassData::ClassConst s_const[] = {
-        { "SEEK_SET", _SEEK_SET },
-        { "SEEK_CUR", _SEEK_CUR },
-        { "SEEK_END", _SEEK_END }
+    static ClassData::ClassObject s_object[] = {
+        { "constants", fs_constants_base::class_info }
     };
 
     static ClassData s_cd = {
         "fs", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, ARRAYSIZE(s_const), s_const, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, 0, NULL, NULL, NULL,
         &object_base::class_info()
     };
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
-}
-
-inline void fs_base::s_static_get_constants(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    v8::Local<v8::Object> vr;
-
-    METHOD_NAME("fs.constants");
-    PROPERTY_ENTER();
-
-    hr = get_constants(vr);
-
-    METHOD_RETURN();
 }
 
 inline void fs_base::s_static_exists(const v8::FunctionCallbackInfo<v8::Value>& args)

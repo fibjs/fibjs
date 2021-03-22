@@ -35,7 +35,7 @@ public:
 
 public:
     // SeekableStream_base
-    virtual result_t seek(int64_t offset, int32_t whence = fs_base::_SEEK_SET);
+    virtual result_t seek(int64_t offset, int32_t whence);
     virtual result_t tell(int64_t& retVal);
     virtual result_t rewind();
     virtual result_t size(int64_t& retVal);
@@ -55,5 +55,4 @@ private:
     int64_t real_pos; // real position
     int64_t e_pos; // end position
 };
-
 }

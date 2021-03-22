@@ -17,7 +17,7 @@
 namespace fibjs {
 
 class Stream_base;
-class fs_base;
+class fs_constants_base;
 class Buffer_base;
 class Stat_base;
 
@@ -63,7 +63,7 @@ public:
 };
 }
 
-#include "ifs/fs.h"
+#include "ifs/fs_constants.h"
 #include "ifs/Buffer.h"
 #include "ifs/Stat.h"
 
@@ -103,7 +103,7 @@ inline void SeekableStream_base::s_seek(const v8::FunctionCallbackInfo<v8::Value
     METHOD_OVER(2, 1);
 
     ARG(int64_t, 0);
-    OPT_ARG(int32_t, 1, fs_base::_SEEK_SET);
+    OPT_ARG(int32_t, 1, fs_constants_base::_SEEK_SET);
 
     hr = pInst->seek(v0, v1);
 

@@ -459,7 +459,7 @@ describe("http", () => {
             bs.EOL = "\r\n";
 
             bs.writeText(u);
-            ms.seek(0, fs.SEEK_SET);
+            ms.seek(0, fs.constants.SEEK_SET);
 
             if (r)
                 r.clear();
@@ -477,7 +477,7 @@ describe("http", () => {
             bs.EOL = "\r\n";
 
             bs.writeText(txt);
-            ms.seek(0, fs.SEEK_SET);
+            ms.seek(0, fs.constants.SEEK_SET);
 
             var req = new http.Response();
 
@@ -1416,7 +1416,7 @@ describe("http", () => {
 
                         assert.equal(fsize, Number(mp4File.size()));
 
-                        mp4File.seek(bpos, fs.SEEK_SET);
+                        mp4File.seek(bpos, fs.constants.SEEK_SET);
                         var buf = mp4File.read(epos - bpos + 1n);
 
                         rep.body.rewind();

@@ -4,7 +4,9 @@ var path = require('path');
 var fs = require('fs');
 var zip = require('zip');
 var io = require('io');
-var { ensureDirectoryExisted } = require('./_helpers/process');
+var {
+    ensureDirectoryExisted
+} = require('./_helpers/process');
 
 test.setup();
 
@@ -14,7 +16,7 @@ var isWin32 = process.platform === 'win32';
 function rmdir(pathname) {
     try {
         fs.rmdir(pathname);
-    } catch (e) { }
+    } catch (e) {}
 }
 
 var pathname = 'test_dir' + vmid;
@@ -54,7 +56,7 @@ describe('fs', () => {
     after(() => {
         try {
             fs.unlink(path.join(__dirname, 'unzip_test.zip'));
-        } catch (e) { }
+        } catch (e) {}
     });
 
     describe("stat", () => {
@@ -234,6 +236,9 @@ describe('fs', () => {
             if (linux)
                 return;
             var fn = path.join(__dirname, 'fs_test.js.symlink');
+            try {
+                fs.unlink(fn);
+            } catch (e) {}
 
             fs.symlink(path.join(__dirname, 'fs_test.js'), fn);
             fs.lchmod(fn, 511);
@@ -351,9 +356,9 @@ describe('fs', () => {
 
     it("seek", () => {
         var f = fs.openFile(path.join(__dirname, 'fs_test.js'));
-        f.seek(f.size() + 10n, fs.SEEK_SET);
+        f.seek(f.size() + 10n, fs.constants.SEEK_SET);
         assert.equal(f.tell(), f.size() + 10n);
-        f.seek(10, fs.SEEK_SET);
+        f.seek(10, fs.constants.SEEK_SET);
         var b = f.read(f.size());
         assert.equal(f.size() - 10n, b.length);
         f.close();
@@ -361,7 +366,7 @@ describe('fs', () => {
 
     it("seek 64 bits", () => {
         var f = fs.openFile(path.join(__dirname, 'fs_test.js'));
-        f.seek(f.size() + 8589934592n, fs.SEEK_SET);
+        f.seek(f.size() + 8589934592n, fs.constants.SEEK_SET);
         assert.equal(f.tell(), f.size() + 8589934592n);
         f.close();
     });

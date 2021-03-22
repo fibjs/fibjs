@@ -27,9 +27,9 @@ describe('ms', () => {
     });
 
     it("seek", () => {
-        ms.seek(-10, fs.SEEK_END);
+        ms.seek(-10, fs.constants.SEEK_END);
         assert.equal(16, ms.tell());
-        ms.seek(ms.size() + 10n, fs.SEEK_SET);
+        ms.seek(ms.size() + 10n, fs.constants.SEEK_SET);
         assert.equal(26, ms.tell());
     });
 
@@ -40,17 +40,17 @@ describe('ms', () => {
     });
 
     it("seek & read", () => {
-        ms.seek(10, fs.SEEK_SET);
+        ms.seek(10, fs.constants.SEEK_SET);
         assert.equal('klmnopqrstuvwxyz', ms.read().toString());
 
-        ms.seek(10, fs.SEEK_SET);
+        ms.seek(10, fs.constants.SEEK_SET);
         assert.equal('klmnopqrstuvwxyz', ms.read(ms.size()).toString());
 
-        ms.seek(10, fs.SEEK_SET);
-        ms.seek(10, fs.SEEK_CUR);
+        ms.seek(10, fs.constants.SEEK_SET);
+        ms.seek(10, fs.constants.SEEK_CUR);
         assert.equal('uvwxyz', ms.read(ms.size()).toString());
 
-        ms.seek(-10, fs.SEEK_END);
+        ms.seek(-10, fs.constants.SEEK_END);
         assert.equal('qrstuvwxyz', ms.read(ms.size()).toString());
     });
 
@@ -60,26 +60,26 @@ describe('ms', () => {
 
         assert.equal('abcdefghijklmnopqrstuvwxyz', cms.read().toString());
 
-        cms.seek(10, fs.SEEK_SET);
+        cms.seek(10, fs.constants.SEEK_SET);
         assert.equal(cms.tell(), 10);
         assert.equal('klmnopqrstuvwxyz', cms.read().toString());
 
-        cms.seek(10, fs.SEEK_SET);
+        cms.seek(10, fs.constants.SEEK_SET);
         assert.equal(cms.tell(), 10);
         assert.equal('klmnopqrstuvwxyz', cms.read(cms.size()).toString());
 
-        cms.seek(10, fs.SEEK_SET);
-        cms.seek(10, fs.SEEK_CUR);
+        cms.seek(10, fs.constants.SEEK_SET);
+        cms.seek(10, fs.constants.SEEK_CUR);
         assert.equal(cms.tell(), 20);
         assert.equal('uvwxyz', cms.read(cms.size()).toString());
 
-        cms.seek(-10, fs.SEEK_END);
+        cms.seek(-10, fs.constants.SEEK_END);
         assert.equal(cms.tell(), 16);
         assert.equal('qrstuvwxyz', cms.read(cms.size()).toString());
     });
 
     it("seek & write", () => {
-        ms.seek(10, fs.SEEK_SET);
+        ms.seek(10, fs.constants.SEEK_SET);
         ms.write('abcdefghijklmnopqrstuvwxyz');
         assert.equal(36, ms.size());
         assert.equal(36, ms.tell());

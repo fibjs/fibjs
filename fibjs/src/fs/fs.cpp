@@ -268,19 +268,6 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
     return 0;
 }
 
-result_t fs_base::get_constants(v8::Local<v8::Object>& retVal)
-{
-    Isolate* isolate = Isolate::current();
-    retVal = v8::Object::New(isolate->m_isolate);
-
-    retVal->Set(isolate->NewString("F_OK"), v8::Integer::New(isolate->m_isolate, F_OK));
-    retVal->Set(isolate->NewString("R_OK"), v8::Integer::New(isolate->m_isolate, R_OK));
-    retVal->Set(isolate->NewString("W_OK"), v8::Integer::New(isolate->m_isolate, W_OK));
-    retVal->Set(isolate->NewString("X_OK"), v8::Integer::New(isolate->m_isolate, X_OK));
-
-    return 0;
-}
-
 result_t fs_base::open(exlib::string fname, exlib::string flags, int32_t mode,
     int32_t& retVal, AsyncEvent* ac)
 {
