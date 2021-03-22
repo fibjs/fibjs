@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM alpine:3.13
 
 LABEL AUTHOR="Richard"
 LABEL AUTHOR_EMAIL="richardo2016@gmail.com"
@@ -6,7 +6,7 @@ LABEL AUTHOR_EMAIL="richardo2016@gmail.com"
 RUN apk update && apk upgrade
 
 RUN apk update
-RUN apk add --no-cache clang clang-dev alpine-sdk xz dpkg ncurses && \
+RUN apk add --no-cache clang clang-dev alpine-sdk xz dpkg ncurses libx11 libx11-dev && \
     apk add --update --no-cache cmake && \
     apk add --update --no-cache linux-headers
 
