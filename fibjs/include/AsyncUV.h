@@ -16,8 +16,8 @@ namespace fibjs {
 class AsyncUVTask : public AsyncEvent {
 public:
     AsyncUVTask()
-        : AsyncEvent(NULL) {};
-    ~AsyncUVTask() {};
+        : AsyncEvent(NULL){};
+    ~AsyncUVTask(){};
 };
 
 int uv_call(std::function<int(void)> proc);
@@ -27,6 +27,11 @@ public:
     AsyncUVFS(AsyncEvent* ac)
         : m_ac(ac)
     {
+    }
+
+    ~AsyncUVFS()
+    {
+        uv_fs_req_cleanup(this);
     }
 
 public:
@@ -40,7 +45,6 @@ public:
         else
             pThis->m_ac->apost(Runtime::setError(uv_strerror(ret)));
 
-        uv_fs_req_cleanup(req);
         delete pThis;
     }
 
@@ -56,6 +60,11 @@ public:
     {
     }
 
+    ~AsyncUVFSResult()
+    {
+        uv_fs_req_cleanup(this);
+    }
+
 public:
     static void callback(uv_fs_t* req)
     {
@@ -68,7 +77,6 @@ public:
         } else
             pThis->m_ac->apost(Runtime::setError(uv_strerror(ret)));
 
-        uv_fs_req_cleanup(req);
         delete pThis;
     }
 

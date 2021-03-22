@@ -289,6 +289,11 @@ result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
         {
         }
 
+        ~AsyncUVFSStatue()
+        {
+            uv_fs_req_cleanup(this);
+        }
+
     public:
         static void callback(uv_fs_t* req)
         {
@@ -297,7 +302,6 @@ result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
             pThis->m_retVal = uv_fs_get_result(req) == 0;
             pThis->m_ac->apost(0);
 
-            uv_fs_req_cleanup(req);
             delete pThis;
         }
 
