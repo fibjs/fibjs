@@ -35,7 +35,7 @@ public:
     static result_t mkdir(exlib::string path, int32_t mode, AsyncEvent* ac);
     static result_t rmdir(exlib::string path, AsyncEvent* ac);
     static result_t rename(exlib::string from, exlib::string to, AsyncEvent* ac);
-    static result_t copy(exlib::string from, exlib::string to, AsyncEvent* ac);
+    static result_t copyFile(exlib::string from, exlib::string to, int32_t mode, AsyncEvent* ac);
     static result_t chmod(exlib::string path, int32_t mode, AsyncEvent* ac);
     static result_t lchmod(exlib::string path, int32_t mode, AsyncEvent* ac);
     static result_t chown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent* ac);
@@ -92,7 +92,7 @@ public:
     static void s_static_mkdir(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_rmdir(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_rename(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_copy(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_copyFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_chmod(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_lchmod(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_chown(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -133,7 +133,7 @@ public:
     ASYNC_STATIC2(fs_base, mkdir, exlib::string, int32_t);
     ASYNC_STATIC1(fs_base, rmdir, exlib::string);
     ASYNC_STATIC2(fs_base, rename, exlib::string, exlib::string);
-    ASYNC_STATIC2(fs_base, copy, exlib::string, exlib::string);
+    ASYNC_STATIC3(fs_base, copyFile, exlib::string, exlib::string, int32_t);
     ASYNC_STATIC2(fs_base, chmod, exlib::string, int32_t);
     ASYNC_STATIC2(fs_base, lchmod, exlib::string, int32_t);
     ASYNC_STATIC3(fs_base, chown, exlib::string, int32_t, int32_t);
@@ -188,8 +188,8 @@ inline ClassInfo& fs_base::class_info()
         { "rmdirSync", s_static_rmdir, true },
         { "rename", s_static_rename, true },
         { "renameSync", s_static_rename, true },
-        { "copy", s_static_copy, true },
-        { "copySync", s_static_copy, true },
+        { "copyFile", s_static_copyFile, true },
+        { "copyFileSync", s_static_copyFile, true },
         { "chmod", s_static_chmod, true },
         { "chmodSync", s_static_chmod, true },
         { "lchmod", s_static_lchmod, true },
@@ -387,20 +387,21 @@ inline void fs_base::s_static_rename(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_VOID();
 }
 
-inline void fs_base::s_static_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void fs_base::s_static_copyFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("fs.copy");
+    METHOD_NAME("fs.copyFile");
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 2);
+    ASYNC_METHOD_OVER(3, 2);
 
     ARG(exlib::string, 0);
     ARG(exlib::string, 1);
+    OPT_ARG(int32_t, 2, 0);
 
     if (!cb.IsEmpty())
-        hr = acb_copy(v0, v1, cb, args);
+        hr = acb_copyFile(v0, v1, v2, cb, args);
     else
-        hr = ac_copy(v0, v1);
+        hr = ac_copyFile(v0, v1, v2);
 
     METHOD_VOID();
 }

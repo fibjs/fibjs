@@ -40,17 +40,6 @@ result_t fs_base::truncate(exlib::string path, int32_t len, AsyncEvent* ac)
     return 0;
 }
 
-result_t fs_base::copy(exlib::string from, exlib::string to, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    if (!CopyFileW(UTF8_W(from), UTF8_W(to), TRUE))
-        return CHECK_ERROR(LastError());
-
-    return 0;
-}
-
 result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())

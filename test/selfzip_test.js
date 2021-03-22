@@ -31,7 +31,7 @@ describe("selfzip", () => {
 
             ms.rewind();
 
-            fs.copy(execPath, unicodeTestPath);
+            fs.copyFile(execPath, unicodeTestPath);
             fs.appendFile(unicodeTestPath, ms.readAll());
 
             if (process.platform !== 'win32')
@@ -61,7 +61,7 @@ describe("selfzip", () => {
 
             ms.rewind();
 
-            fs.copy(execPath, testPath);
+            fs.copyFile(execPath, testPath);
             fs.appendFile(testPath, ms.readAll());
 
             if (process.platform !== 'win32')
@@ -113,7 +113,7 @@ describe("selfzip", () => {
 
             ms.rewind();
 
-            fs.copy(execPath, unicodeTestPath);
+            fs.copyFile(execPath, unicodeTestPath);
             fs.appendFile(unicodeTestPath, ms.readAll());
 
             if (process.platform !== 'win32')
@@ -143,7 +143,7 @@ describe("selfzip", () => {
 
             ms.rewind();
 
-            fs.copy(execPath, testPath);
+            fs.copyFile(execPath, testPath);
             fs.appendFile(testPath, ms.readAll());
 
             if (process.platform !== 'win32')

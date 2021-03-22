@@ -55,7 +55,7 @@ function translate(fname, lang, overwrite) {
 
     if (path.extname(fname) != ".html") {
         mkdirp(path.dirname(out_fname));
-        fs.copy(fname, out_fname);
+        fs.copyFile(fname, out_fname);
         return true;
     }
 

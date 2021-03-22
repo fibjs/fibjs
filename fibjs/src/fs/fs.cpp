@@ -800,6 +800,21 @@ result_t fs_base::fdatasync(int32_t fd, AsyncEvent* ac)
     return CALL_E_PENDDING;
 }
 
+result_t fs_base::copyFile(exlib::string from, exlib::string to, int32_t mode, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int ret = uv_call([&] {
+        return uv_fs_copyfile(s_uv_loop, new AsyncUVFS(ac), from.c_str(), to.c_str(), mode,
+            AsyncUVFS::callback);
+    });
+    if (ret != 0)
+        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
+
+    return CALL_E_PENDDING;
+}
+
 result_t fs_base::watch(exlib::string fname, obj_ptr<FSWatcher_base>& retVal)
 {
     return watch(fname, v8::Local<v8::Function>(), retVal);
@@ -937,5 +952,4 @@ result_t fs_base::unwatchFile(exlib::string fname, v8::Local<v8::Function> callb
 
     return 0;
 }
-
 }

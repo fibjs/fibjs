@@ -11,59 +11,6 @@
 #include <sys/sendfile.h>
 #endif
 
-#ifdef FreeBSD
-#include <sys/mman.h>
-
-inline int _copyfile(int ifd, int ofd)
-{
-    size_t file_size, n;
-    int buf_mmapped;
-    struct stat sb;
-    char *b, *buf;
-    ssize_t nr, nw;
-
-    if (fstat(ifd, &sb) < 0)
-        return (-1);
-
-    if (sb.st_size == 0)
-        return (0);
-
-    buf = NULL;
-    buf_mmapped = 0;
-    file_size = (size_t)sb.st_size;
-
-    buf = (char*)mmap(NULL, file_size, PROT_READ, MAP_SHARED, ifd, (off_t)0);
-    if (buf != MAP_FAILED)
-        buf_mmapped = 1;
-    else
-        buf = NULL;
-
-    if (buf_mmapped == false) {
-        if ((buf = (char*)malloc(file_size)) == NULL)
-            return (-1);
-        b = buf;
-        for (n = file_size; n > 0; n -= (size_t)nr, b += nr) {
-            if ((nr = read(ifd, b, n)) < 0) {
-                free(buf);
-                return (-1);
-            }
-        }
-    }
-
-    for (n = file_size, b = buf; n > 0; n -= (size_t)nw, b += nw)
-        if ((nw = write(ofd, b, n)) <= 0)
-            break;
-
-    if (buf_mmapped && munmap(buf, file_size) < 0)
-        return (-1);
-
-    if (!buf_mmapped)
-        free(buf);
-
-    return (n > 0 ? -1 : 0);
-}
-#endif
-
 namespace fibjs {
 
 class fs_initer {
@@ -95,40 +42,6 @@ result_t fs_base::lchmod(exlib::string path, int32_t mode, AsyncEvent* ac)
 #else
     if (::lchmod(path.c_str(), mode))
 #endif
-        return CHECK_ERROR(LastError());
-
-    return 0;
-}
-
-result_t fs_base::copy(exlib::string from, exlib::string to, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    int input, output;
-    if ((input = ::open(from.c_str(), O_RDONLY)) == -1)
-        return CHECK_ERROR(LastError());
-
-    if ((output = ::open(to.c_str(), O_RDWR | O_CREAT, 0666)) == -1) {
-        ::close(input);
-        return CHECK_ERROR(LastError());
-    }
-
-#if defined(FreeBSD)
-    int result = _copyfile(input, output);
-#elif defined(Darwin)
-    int result = fcopyfile(input, output, 0, COPYFILE_ALL);
-#else
-    off_t bytesCopied = 0;
-    struct stat fileinfo = { 0 };
-    fstat(input, &fileinfo);
-    int result = sendfile(output, input, &bytesCopied, fileinfo.st_size);
-#endif
-
-    ::close(input);
-    ::close(output);
-
-    if (result < 0)
         return CHECK_ERROR(LastError());
 
     return 0;

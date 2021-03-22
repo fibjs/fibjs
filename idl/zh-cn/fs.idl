@@ -56,11 +56,18 @@ module fs
      */
     static rename(String from, String to) async;
 
-    /*! @brief 复制一个文件
-     @param from 指定更名的文件
-     @param to 指定要修改的新文件名
+    /*! @brief 将 src 拷贝到 dest。 默认情况下，如果 dest 已经存在，则覆盖它。
+
+     mode 是一个可选的整数，指定拷贝操作的行为。 可以创建由两个或更多个值按位或组成的掩码（比如 fs.constants.COPYFILE_EXCL | fs.constants.COPYFILE_FICLONE）。
+     - fs.constants.COPYFILE_EXCL - 如果 dest 已存在，则拷贝操作将失败。
+     - fs.constants.COPYFILE_FICLONE - 拷贝操作将尝试创建写时拷贝（copy-on-write）链接。如果平台不支持写时拷贝，则使用后备的拷贝机制。
+     - fs.constants.COPYFILE_FICLONE_FORCE - 拷贝操作将尝试创建写时拷贝链接。如果平台不支持写时拷贝，则拷贝操作将失败。
+
+     @param from 指定要拷贝的源文件名
+     @param to 指定要拷贝的目标文件名
+     @param mode 指定拷贝操作的修饰符，缺省为 0
      */
-    static copy(String from, String to) async;
+    static copyFile(String from, String to, Integer mode = 0) async;
 
     /*! @brief 设置指定文件的访问权限，Windows 不支持此方法
      @param path 指定操作的文件
