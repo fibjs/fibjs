@@ -46,37 +46,6 @@ result_t fs_base::lchmod(exlib::string path, int32_t mode, AsyncEvent* ac)
 
     return 0;
 }
-
-result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal,
-    AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    if (!ac->isolate()->m_enable_FileSystem)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    DIR* dp;
-    struct dirent* ep;
-    exlib::string fpath;
-    obj_ptr<NArray> oa;
-
-    dp = ::opendir(path.c_str());
-    if (dp == NULL)
-        return CHECK_ERROR(LastError());
-
-    oa = new NArray();
-
-    while ((ep = ::readdir(dp)))
-        if (qstrcmp(ep->d_name, ".") && qstrcmp(ep->d_name, ".."))
-            oa->append(ep->d_name);
-
-    ::closedir(dp);
-
-    retVal = oa;
-
-    return 0;
-}
 }
 
 #endif

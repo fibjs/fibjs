@@ -564,4 +564,61 @@ result_t fs_base::copyFile(exlib::string from, exlib::string to, int32_t mode, A
 
     return CALL_E_PENDDING;
 }
+
+result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+{
+    class AsyncUVFSReadDir : public uv_fs_t {
+    public:
+        AsyncUVFSReadDir(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+            : m_retVal(retVal)
+            , m_ac(ac)
+        {
+        }
+
+        ~AsyncUVFSReadDir()
+        {
+            uv_fs_req_cleanup(this);
+        }
+
+    public:
+        static void callback(uv_fs_t* req)
+        {
+            AsyncUVFSReadDir* pThis = (AsyncUVFSReadDir*)req;
+            int ret;
+
+            ret = uv_fs_get_result(req);
+            if (ret < 0) {
+                pThis->m_ac->apost(Runtime::setError(uv_strerror(ret)));
+                delete pThis;
+                return;
+            }
+
+            obj_ptr<NArray> oa = new NArray();
+            while (uv_fs_scandir_next(req, &pThis->m_dirent) != UV_EOF)
+                oa->append(pThis->m_dirent.name);
+
+            pThis->m_retVal = oa;
+
+            pThis->m_ac->apost(0);
+            delete pThis;
+        }
+
+    private:
+        obj_ptr<NArray>& m_retVal;
+        AsyncEvent* m_ac;
+        uv_dirent_t m_dirent;
+    };
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int ret = uv_call([&] {
+        return uv_fs_scandir(s_uv_loop, new AsyncUVFSReadDir(retVal, ac), path.c_str(), 0,
+            AsyncUVFSReadDir::callback);
+    });
+    if (ret != 0)
+        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
+
+    return CALL_E_PENDDING;
+}
 }
