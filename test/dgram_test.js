@@ -69,7 +69,7 @@ describe('dgram', () => {
         assert.notEqual(s.getSendBufferSize(), sz);
     });
 
-    it('send/message', () => {
+    it('send message', () => {
         var t = false;
         const s = dgram.createSocket('udp4');
         s.on('message', (msg, addr) => {
@@ -83,10 +83,31 @@ describe('dgram', () => {
         c.send('123456', 10002);
 
         coroutine.sleep(100);
-        assert.isTrue(t);
-
         c.close();
         s.close();
+
+        assert.isTrue(t);
+    });
+
+    it('recv big message', () => {
+        var data = new Buffer(8000);
+        var t = false;
+        const s = dgram.createSocket('udp4');
+        s.on('message', (msg, addr) => {
+            assert.equal(msg.hex(), data.hex());
+            t = true;
+        });
+
+        s.bind(10002);
+
+        const c = dgram.createSocket('udp4');
+        c.send(data, 10002);
+
+        coroutine.sleep(100);
+        c.close();
+        s.close();
+
+        assert.isTrue(t);
     });
 
     xit('send/message ipv6', () => {

@@ -47,5 +47,6 @@ public:
     AsyncIO m_aio;
     bool m_closed;
     bool m_bound;
+    int32_t m_buf_size;
 };
 }

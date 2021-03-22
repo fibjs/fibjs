@@ -149,6 +149,10 @@ result_t DgramSocket::create(int32_t type, bool reuseAddr)
         setsockopt(m_aio.m_fd, SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof(on));
     }
 
+    socklen_t len = sizeof(m_buf_size);
+    if (::getsockopt(m_aio.m_fd, SOL_SOCKET, SO_RCVBUF, (char*)&m_buf_size, &len) == SOCKET_ERROR)
+        m_buf_size = SOCKET_BUFF_SIZE;
+
     return 0;
 }
 
@@ -185,7 +189,7 @@ result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncEvent* ac)
                 m_msg.Release();
             }
 
-            return m_pThis->m_aio.recvfrom(-1, m_msg, this);
+            return m_pThis->m_aio.recvfrom(m_pThis->m_buf_size, m_msg, this);
         }
 
         virtual int32_t error(int32_t v)
@@ -432,6 +436,8 @@ result_t DgramSocket::setRecvBufferSize(int32_t size)
 
     if (::setsockopt(m_aio.m_fd, SOL_SOCKET, SO_RCVBUF, (char*)&size, sizeof(size)) == SOCKET_ERROR)
         return CHECK_ERROR(SocketError());
+
+    m_buf_size = size;
 
     return 0;
 }
