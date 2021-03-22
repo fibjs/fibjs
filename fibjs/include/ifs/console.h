@@ -20,16 +20,16 @@ class console_base : public object_base {
 
 public:
     enum {
-        _FATAL = 0,
-        _ALERT = 1,
-        _CRIT = 2,
-        _ERROR = 3,
-        _WARN = 4,
-        _NOTICE = 5,
-        _INFO = 6,
-        _DEBUG = 7,
-        _PRINT = 9,
-        _NOTSET = 10
+        __FATAL = 0,
+        __ALERT = 1,
+        __CRIT = 2,
+        __ERROR = 3,
+        __WARN = 4,
+        __NOTICE = 5,
+        __INFO = 6,
+        __DEBUG = 7,
+        __PRINT = 9,
+        __NOTSET = 10
     };
 
 public:
@@ -184,16 +184,16 @@ inline ClassInfo& console_base::class_info()
     };
 
     static ClassData::ClassConst s_const[] = {
-        { "FATAL", _FATAL },
-        { "ALERT", _ALERT },
-        { "CRIT", _CRIT },
-        { "ERROR", _ERROR },
-        { "WARN", _WARN },
-        { "NOTICE", _NOTICE },
-        { "INFO", _INFO },
-        { "DEBUG", _DEBUG },
-        { "PRINT", _PRINT },
-        { "NOTSET", _NOTSET }
+        { "FATAL", __FATAL },
+        { "ALERT", __ALERT },
+        { "CRIT", __CRIT },
+        { "ERROR", __ERROR },
+        { "WARN", __WARN },
+        { "NOTICE", __NOTICE },
+        { "INFO", __INFO },
+        { "DEBUG", __DEBUG },
+        { "PRINT", __PRINT },
+        { "NOTSET", __NOTSET }
     };
 
     static ClassData s_cd = {

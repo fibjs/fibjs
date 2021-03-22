@@ -27,17 +27,17 @@ class ssl_base : public object_base {
 
 public:
     enum {
-        _VERIFY_NONE = 0,
-        _VERIFY_OPTIONAL = 1,
-        _VERIFY_REQUIRED = 2,
-        _BADCERT_EXPIRED = 1,
-        _BADCERT_REVOKED = 2,
-        _BADCERT_CN_MISMATCH = 4,
-        _BADCERT_NOT_TRUSTED = 8,
-        _ssl3 = 0,
-        _tls1 = 1,
-        _tls1_1 = 2,
-        _tls1_2 = 3
+        __VERIFY_NONE = 0,
+        __VERIFY_OPTIONAL = 1,
+        __VERIFY_REQUIRED = 2,
+        __BADCERT_EXPIRED = 1,
+        __BADCERT_REVOKED = 2,
+        __BADCERT_CN_MISMATCH = 4,
+        __BADCERT_NOT_TRUSTED = 8,
+        __ssl3 = 0,
+        __tls1 = 1,
+        __tls1_1 = 2,
+        __tls1_2 = 3
     };
 
 public:
@@ -117,17 +117,17 @@ inline ClassInfo& ssl_base::class_info()
     };
 
     static ClassData::ClassConst s_const[] = {
-        { "VERIFY_NONE", _VERIFY_NONE },
-        { "VERIFY_OPTIONAL", _VERIFY_OPTIONAL },
-        { "VERIFY_REQUIRED", _VERIFY_REQUIRED },
-        { "BADCERT_EXPIRED", _BADCERT_EXPIRED },
-        { "BADCERT_REVOKED", _BADCERT_REVOKED },
-        { "BADCERT_CN_MISMATCH", _BADCERT_CN_MISMATCH },
-        { "BADCERT_NOT_TRUSTED", _BADCERT_NOT_TRUSTED },
-        { "ssl3", _ssl3 },
-        { "tls1", _tls1 },
-        { "tls1_1", _tls1_1 },
-        { "tls1_2", _tls1_2 }
+        { "VERIFY_NONE", __VERIFY_NONE },
+        { "VERIFY_OPTIONAL", __VERIFY_OPTIONAL },
+        { "VERIFY_REQUIRED", __VERIFY_REQUIRED },
+        { "BADCERT_EXPIRED", __BADCERT_EXPIRED },
+        { "BADCERT_REVOKED", __BADCERT_REVOKED },
+        { "BADCERT_CN_MISMATCH", __BADCERT_CN_MISMATCH },
+        { "BADCERT_NOT_TRUSTED", __BADCERT_NOT_TRUSTED },
+        { "ssl3", __ssl3 },
+        { "tls1", __tls1 },
+        { "tls1_1", __tls1_1 },
+        { "tls1_2", __tls1_2 }
     };
 
     static ClassData s_cd = {

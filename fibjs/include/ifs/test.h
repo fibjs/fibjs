@@ -261,7 +261,7 @@ inline void test_base::s_static_run(const v8::FunctionCallbackInfo<v8::Value>& a
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(int32_t, 0, console_base::_ERROR);
+    OPT_ARG(int32_t, 0, console_base::__ERROR);
 
     hr = run(v0, vr);
 

@@ -191,7 +191,7 @@ result_t HttpClient::get_sslVerification(int32_t& retVal)
 
 result_t HttpClient::set_sslVerification(int32_t newVal)
 {
-    if (newVal < ssl_base::_VERIFY_NONE || newVal > ssl_base::_VERIFY_REQUIRED)
+    if (newVal < ssl_base::__VERIFY_NONE || newVal > ssl_base::__VERIFY_REQUIRED)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     m_sslVerification = newVal;
@@ -714,7 +714,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             m_url = location;
 
             if (m_response_body)
-                m_response_body->seek(m_response_pos, fs_constants_base::_SEEK_SET);
+                m_response_body->seek(m_response_pos, fs_constants_base::__SEEK_SET);
 
             return next(prepare);
         }

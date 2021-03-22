@@ -63,7 +63,7 @@ result_t Message::get_data(v8::Local<v8::Value>& retVal)
     if (hr == CALL_RETURN_NULL)
         return CALL_RETURN_NULL;
 
-    if (m_type == _TEXT) {
+    if (m_type == __TEXT) {
         exlib::string txt;
 
         data->toString(txt);

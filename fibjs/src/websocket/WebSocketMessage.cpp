@@ -389,7 +389,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncEvent
             m_fin = (ch & 0x80) != 0;
 
             if (m_fragmented) {
-                if ((ch & 0x0f) != ws_base::_CONTINUE) {
+                if ((ch & 0x0f) != ws_base::__CONTINUE) {
                     m_pThis->m_error = 1007;
                     return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
                 }

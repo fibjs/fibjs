@@ -389,7 +389,7 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
             setOption(c);
 
             obj_ptr<Socket> sock = new Socket(c, ai.family(),
-                net_base::_SOCK_STREAM);
+                net_base::__SOCK_STREAM);
 
             m_retVal = sock;
 
@@ -474,7 +474,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
             m_buf.resize(m_pos);
             m_retVal = new Buffer(m_buf);
             if (g_tcpdump)
-                outLog(console_base::_NOTICE, clean_string(m_buf));
+                outLog(console_base::__NOTICE, clean_string(m_buf));
 
             return 0;
         }
@@ -529,7 +529,7 @@ result_t AsyncIO::write(Buffer_base* data, AsyncEvent* ac)
             m_sz = m_buf.length();
 
             if (g_tcpdump)
-                outLog(console_base::_WARN, clean_string(m_buf));
+                outLog(console_base::__WARN, clean_string(m_buf));
         }
 
         virtual result_t process()

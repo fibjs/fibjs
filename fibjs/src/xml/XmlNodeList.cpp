@@ -331,14 +331,14 @@ result_t XmlNodeList::normalize()
         XmlNode_base* child = m_childs[i]->m_node;
 
         child->get_nodeType(type);
-        if (type == xml_base::_TEXT_NODE) {
+        if (type == xml_base::__TEXT_NODE) {
             XmlText_base* txt = (XmlText_base*)child;
             exlib::string val;
 
             while (i + 1 < (int32_t)m_childs.size()) {
                 XmlNode_base* next = m_childs[i + 1]->m_node;
                 next->get_nodeType(type);
-                if (type != xml_base::_TEXT_NODE)
+                if (type != xml_base::__TEXT_NODE)
                     break;
 
                 next->get_nodeValue(val);

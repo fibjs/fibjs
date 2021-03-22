@@ -60,7 +60,7 @@ public:
     intptr_t retainers;
 
     example()
-        : type(profiler_base::_Node_Hidden)
+        : type(profiler_base::__Node_Hidden)
         , self_size(0)
         , retained_size(0)
         , retainers(0){};

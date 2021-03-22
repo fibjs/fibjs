@@ -159,7 +159,7 @@ bool WebView::onNSWindowShouldClose()
         ^(id result, NSError* _Nullable error) {
             if (error != nil) {
                 if (m_bDebug)
-                    asyncLog(console_base::_DEBUG, NSStringToExString([error localizedDescription]));
+                    asyncLog(console_base::__DEBUG, NSStringToExString([error localizedDescription]));
 
                 forceCloseWindow();
             } else {
@@ -208,7 +208,7 @@ static int32_t asyncOutputMessageFromWKWebview(exlib::string& jsonFmt)
     v8::Local<v8::Value> _fmtMessage = logInfo->Get(isolate->NewString("fmt"));
     exlib::string fmtMessage(ToCString(v8::String::Utf8Value(isolate->m_isolate, _fmtMessage)));
 
-    if (logLevel == console_base::_ERROR)
+    if (logLevel == console_base::__ERROR)
         fmtMessage = ("WebView Error: " + fmtMessage);
 
     asyncLog(logLevel, fmtMessage);

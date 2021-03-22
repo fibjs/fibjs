@@ -16,13 +16,13 @@ namespace fibjs {
 class XmlComment : public XmlComment_base, public XmlNodeImpl {
 public:
     XmlComment(XmlDocument_base* document, exlib::string data)
-        : XmlNodeImpl(document, this, xml_base::_COMMENT_NODE)
+        : XmlNodeImpl(document, this, xml_base::__COMMENT_NODE)
         , m_data(data)
     {
     }
 
     XmlComment(const XmlComment& from)
-        : XmlNodeImpl(from.m_document, this, xml_base::_COMMENT_NODE)
+        : XmlNodeImpl(from.m_document, this, xml_base::__COMMENT_NODE)
         , m_data(from.m_data)
     {
     }

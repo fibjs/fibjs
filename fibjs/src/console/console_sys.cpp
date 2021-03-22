@@ -18,7 +18,7 @@ result_t sys_logger::write(AsyncEvent* ac)
     item* p1;
 
     while ((p1 = m_workinglogs.getHead()) != 0) {
-        if (p1->m_priority != console_base::_PRINT)
+        if (p1->m_priority != console_base::__PRINT)
             ::syslog(p1->m_priority, "%s", p1->full(false).c_str());
 
         delete p1;

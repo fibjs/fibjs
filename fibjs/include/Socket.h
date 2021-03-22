@@ -19,7 +19,7 @@ class Socket : public Socket_base {
 
 public:
     Socket()
-        : m_aio(INVALID_SOCKET, net_base::_AF_INET, net_base::_SOCK_STREAM)
+        : m_aio(INVALID_SOCKET, net_base::__AF_INET, net_base::__SOCK_STREAM)
         , m_timeout(0)
 #ifdef _WIN32
         , m_bBind(FALSE)

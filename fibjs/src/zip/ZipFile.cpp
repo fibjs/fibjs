@@ -89,13 +89,13 @@ private:
 
         switch (origin) {
         case ZLIB_FILEFUNC_SEEK_CUR:
-            fseek_origin = fs_constants_base::_SEEK_CUR;
+            fseek_origin = fs_constants_base::__SEEK_CUR;
             break;
         case ZLIB_FILEFUNC_SEEK_END:
-            fseek_origin = fs_constants_base::_SEEK_END;
+            fseek_origin = fs_constants_base::__SEEK_END;
             break;
         case ZLIB_FILEFUNC_SEEK_SET:
-            fseek_origin = fs_constants_base::_SEEK_SET;
+            fseek_origin = fs_constants_base::__SEEK_SET;
             break;
         default:
             return -1;
@@ -699,7 +699,7 @@ result_t ZipFile::write(exlib::string filename, exlib::string password, Seekable
     zi.tmz_date.tm_sec = dp.wSecond;
 
     err = zipOpenNewFileInZip3_64(m_zip, filename.c_str(), &zi, NULL,
-        0, NULL, 0, NULL, m_compress_type == zip_base::_ZIP_STORED ? 0 : Z_DEFLATED,
+        0, NULL, 0, NULL, m_compress_type == zip_base::__ZIP_STORED ? 0 : Z_DEFLATED,
         Z_DEFAULT_COMPRESSION, 0, -MAX_WBITS,
         DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY,
         password.empty() ? NULL : password.c_str(), crc, 1);

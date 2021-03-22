@@ -46,7 +46,7 @@ result_t fs_base::setZipFS(exlib::string fname, Buffer_base* data)
     obj_ptr<ZipFile_base> zfile;
     obj_ptr<cache_node> _node;
 
-    hr = zip_base::cc_open(data, "r", zip_base::_ZIP_DEFLATED, zfile);
+    hr = zip_base::cc_open(data, "r", zip_base::__ZIP_DEFLATED, zfile);
     if (hr < 0)
         return hr;
 
@@ -182,7 +182,7 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
             if (hr < 0)
                 return hr;
 
-            hr = zip_base::cc_open(zip_data, "r", zip_base::_ZIP_DEFLATED, zfile);
+            hr = zip_base::cc_open(zip_data, "r", zip_base::__ZIP_DEFLATED, zfile);
             if (hr < 0)
                 return hr;
 

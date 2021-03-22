@@ -24,8 +24,8 @@ class Message_base : public object_base {
 
 public:
     enum {
-        _TEXT = 1,
-        _BINARY = 2
+        __TEXT = 1,
+        __BINARY = 2
     };
 
 public:
@@ -131,8 +131,8 @@ inline ClassInfo& Message_base::class_info()
     };
 
     static ClassData::ClassConst s_const[] = {
-        { "TEXT", _TEXT },
-        { "BINARY", _BINARY }
+        { "TEXT", __TEXT },
+        { "BINARY", __BINARY }
     };
 
     static ClassData s_cd = {

@@ -24,16 +24,16 @@ class ws_base : public object_base {
 
 public:
     enum {
-        _CONTINUE = 0,
-        _TEXT = 1,
-        _BINARY = 2,
-        _CLOSE = 8,
-        _PING = 9,
-        _PONG = 10,
-        _CONNECTING = 0,
-        _OPEN = 1,
-        _CLOSING = 2,
-        _CLOSED = 3
+        __CONTINUE = 0,
+        __TEXT = 1,
+        __BINARY = 2,
+        __CLOSE = 8,
+        __PING = 9,
+        __PONG = 10,
+        __CONNECTING = 0,
+        __OPEN = 1,
+        __CLOSING = 2,
+        __CLOSED = 3
     };
 
 public:
@@ -74,16 +74,16 @@ inline ClassInfo& ws_base::class_info()
     };
 
     static ClassData::ClassConst s_const[] = {
-        { "CONTINUE", _CONTINUE },
-        { "TEXT", _TEXT },
-        { "BINARY", _BINARY },
-        { "CLOSE", _CLOSE },
-        { "PING", _PING },
-        { "PONG", _PONG },
-        { "CONNECTING", _CONNECTING },
-        { "OPEN", _OPEN },
-        { "CLOSING", _CLOSING },
-        { "CLOSED", _CLOSED }
+        { "CONTINUE", __CONTINUE },
+        { "TEXT", __TEXT },
+        { "BINARY", __BINARY },
+        { "CLOSE", __CLOSE },
+        { "PING", __PING },
+        { "PONG", __PONG },
+        { "CONNECTING", __CONNECTING },
+        { "OPEN", __OPEN },
+        { "CLOSING", __CLOSING },
+        { "CLOSED", __CLOSED }
     };
 
     static ClassData s_cd = {

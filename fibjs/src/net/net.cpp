@@ -84,7 +84,7 @@ result_t net_base::info(v8::Local<v8::Object>& retVal)
 result_t net_base::resolve(exlib::string name, int32_t family,
     exlib::string& retVal, AsyncEvent* ac)
 {
-    if (family != net_base::_AF_INET && family != net_base::_AF_INET6)
+    if (family != net_base::__AF_INET && family != net_base::__AF_INET6)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (ac->isSync())
@@ -126,13 +126,13 @@ result_t net_base::resolve(exlib::string name, int32_t family,
 result_t net_base::ip(exlib::string name, exlib::string& retVal,
     AsyncEvent* ac)
 {
-    return resolve(name, net_base::_AF_INET, retVal, ac);
+    return resolve(name, net_base::__AF_INET, retVal, ac);
 }
 
 result_t net_base::ipv6(exlib::string name, exlib::string& retVal,
     AsyncEvent* ac)
 {
-    return resolve(name, net_base::_AF_INET6, retVal, ac);
+    return resolve(name, net_base::__AF_INET6, retVal, ac);
 }
 
 result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal,
@@ -157,11 +157,11 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     int32_t nPort = atoi(u->m_port.c_str());
-    int32_t family = u->m_ipv6 ? net_base::_AF_INET6 : net_base::_AF_INET;
+    int32_t family = u->m_ipv6 ? net_base::__AF_INET6 : net_base::__AF_INET;
 
     obj_ptr<Socket_base> socket;
 
-    hr = Socket_base::_new(family, net_base::_SOCK_STREAM, socket);
+    hr = Socket_base::_new(family, net_base::__SOCK_STREAM, socket);
     if (hr < 0)
         return hr;
 

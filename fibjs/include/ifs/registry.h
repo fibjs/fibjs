@@ -22,15 +22,15 @@ class registry_base : public object_base {
 
 public:
     enum {
-        _CLASSES_ROOT = 0,
-        _CURRENT_USER = 1,
-        _LOCAL_MACHINE = 2,
-        _USERS = 3,
-        _CURRENT_CONFIG = 5,
-        _SZ = 1,
-        _EXPAND_SZ = 2,
-        _DWORD = 4,
-        _QWORD = 11
+        __CLASSES_ROOT = 0,
+        __CURRENT_USER = 1,
+        __LOCAL_MACHINE = 2,
+        __USERS = 3,
+        __CURRENT_CONFIG = 5,
+        __SZ = 1,
+        __EXPAND_SZ = 2,
+        __DWORD = 4,
+        __QWORD = 11
     };
 
 public:
@@ -78,15 +78,15 @@ inline ClassInfo& registry_base::class_info()
     };
 
     static ClassData::ClassConst s_const[] = {
-        { "CLASSES_ROOT", _CLASSES_ROOT },
-        { "CURRENT_USER", _CURRENT_USER },
-        { "LOCAL_MACHINE", _LOCAL_MACHINE },
-        { "USERS", _USERS },
-        { "CURRENT_CONFIG", _CURRENT_CONFIG },
-        { "SZ", _SZ },
-        { "EXPAND_SZ", _EXPAND_SZ },
-        { "DWORD", _DWORD },
-        { "QWORD", _QWORD }
+        { "CLASSES_ROOT", __CLASSES_ROOT },
+        { "CURRENT_USER", __CURRENT_USER },
+        { "LOCAL_MACHINE", __LOCAL_MACHINE },
+        { "USERS", __USERS },
+        { "CURRENT_CONFIG", __CURRENT_CONFIG },
+        { "SZ", __SZ },
+        { "EXPAND_SZ", __EXPAND_SZ },
+        { "DWORD", __DWORD },
+        { "QWORD", __QWORD }
     };
 
     static ClassData s_cd = {
@@ -160,7 +160,7 @@ inline void registry_base::s_static_set(const v8::FunctionCallbackInfo<v8::Value
     ARG(int32_t, 0);
     ARG(exlib::string, 1);
     ARG(double, 2);
-    OPT_ARG(int32_t, 3, _DWORD);
+    OPT_ARG(int32_t, 3, __DWORD);
 
     hr = set(v0, v1, v2, v3);
 
@@ -169,7 +169,7 @@ inline void registry_base::s_static_set(const v8::FunctionCallbackInfo<v8::Value
     ARG(int32_t, 0);
     ARG(exlib::string, 1);
     ARG(exlib::string, 2);
-    OPT_ARG(int32_t, 3, _SZ);
+    OPT_ARG(int32_t, 3, __SZ);
 
     hr = set(v0, v1, v2, v3);
 

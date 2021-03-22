@@ -30,19 +30,19 @@ XmlNodeImpl* XmlNodeImpl::fromNode(XmlNode_base* pNode)
     pNode->get_nodeType(type);
 
     switch (type) {
-    case xml_base::_ELEMENT_NODE:
+    case xml_base::__ELEMENT_NODE:
         return (XmlElement*)pNode;
-    case xml_base::_TEXT_NODE:
+    case xml_base::__TEXT_NODE:
         return (XmlText*)pNode;
-    case xml_base::_CDATA_SECTION_NODE:
+    case xml_base::__CDATA_SECTION_NODE:
         return (XmlCDATASection*)pNode;
-    case xml_base::_PROCESSING_INSTRUCTION_NODE:
+    case xml_base::__PROCESSING_INSTRUCTION_NODE:
         return (XmlProcessingInstruction*)pNode;
-    case xml_base::_COMMENT_NODE:
+    case xml_base::__COMMENT_NODE:
         return (XmlComment*)pNode;
-    case xml_base::_DOCUMENT_NODE:
+    case xml_base::__DOCUMENT_NODE:
         return (XmlDocument*)pNode;
-    case xml_base::_DOCUMENT_TYPE_NODE:
+    case xml_base::__DOCUMENT_TYPE_NODE:
         return (XmlDocumentType*)pNode;
     }
 

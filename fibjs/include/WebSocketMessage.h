@@ -21,7 +21,7 @@ public:
         , m_maxSize(maxSize)
         , m_error(0)
     {
-        if (type != ws_base::_TEXT && type != ws_base::_BINARY)
+        if (type != ws_base::__TEXT && type != ws_base::__BINARY)
             m_compress = false;
 
         m_message = new Message();

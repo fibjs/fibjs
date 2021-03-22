@@ -39,7 +39,7 @@ result_t event_logger::write(AsyncEvent* ac)
     item* p1;
 
     while ((p1 = m_workinglogs.getHead()) != 0) {
-        if (p1->m_priority != console_base::_PRINT) {
+        if (p1->m_priority != console_base::__PRINT) {
             exlib::string str = p1->full(false);
             const char* ptr = str.c_str();
             ReportEvent(m_event, s_levels[p1->m_priority], 0, 0,

@@ -84,7 +84,7 @@ void WebSocketMessage_base::__new(const T& args)
 
     METHOD_OVER(4, 0);
 
-    OPT_ARG(int32_t, 0, ws_base::_BINARY);
+    OPT_ARG(int32_t, 0, ws_base::__BINARY);
     OPT_ARG(bool, 1, true);
     OPT_ARG(bool, 2, false);
     OPT_ARG(int32_t, 3, 67108864);

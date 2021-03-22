@@ -17,7 +17,7 @@ class Image : public Image_base {
 public:
     Image()
         : m_image(NULL)
-        , m_type(gd_base::_NONE)
+        , m_type(gd_base::__NONE)
     {
     }
 

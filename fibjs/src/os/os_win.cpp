@@ -391,7 +391,7 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
 
             o = v8::Object::New(isolate->m_isolate);
             o->Set(isolate->NewString("address"), isolate->NewString(sock_addr->str()));
-            o->Set(isolate->NewString("family"), sock_addr->family() == net_base::_AF_INET6 ? isolate->NewString("IPv6") : isolate->NewString("IPv4"));
+            o->Set(isolate->NewString("family"), sock_addr->family() == net_base::__AF_INET6 ? isolate->NewString("IPv6") : isolate->NewString("IPv4"));
             o->Set(isolate->NewString("internal"),
                 adapter_address->IfType == IF_TYPE_SOFTWARE_LOOPBACK ? v8::True(isolate->m_isolate) : v8::False(isolate->m_isolate));
 

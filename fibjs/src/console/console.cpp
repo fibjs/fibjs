@@ -122,7 +122,7 @@ bool colors(int32_t type)
     if (!Isolate::current()->m_console_colored)
         return false;
 
-    if (type <= console_base::_NOTICE)
+    if (type <= console_base::__NOTICE)
         return false;
 
     return true;
@@ -158,104 +158,104 @@ void _log(int32_t type, OptArgs args)
 
 result_t console_base::log(exlib::string fmt, OptArgs args)
 {
-    _log(_INFO, fmt, args);
+    _log(__INFO, fmt, args);
     return 0;
 }
 
 result_t console_base::log(OptArgs args)
 {
-    _log(_INFO, args);
+    _log(__INFO, args);
     return 0;
 }
 
 result_t console_base::debug(exlib::string fmt, OptArgs args)
 {
-    _log(_DEBUG, fmt, args);
+    _log(__DEBUG, fmt, args);
     return 0;
 }
 
 result_t console_base::debug(OptArgs args)
 {
-    _log(_DEBUG, args);
+    _log(__DEBUG, args);
     return 0;
 }
 
 result_t console_base::info(exlib::string fmt, OptArgs args)
 {
-    _log(_INFO, fmt, args);
+    _log(__INFO, fmt, args);
     return 0;
 }
 
 result_t console_base::info(OptArgs args)
 {
-    _log(_INFO, args);
+    _log(__INFO, args);
     return 0;
 }
 
 result_t console_base::notice(exlib::string fmt, OptArgs args)
 {
-    _log(_NOTICE, fmt, args);
+    _log(__NOTICE, fmt, args);
     return 0;
 }
 
 result_t console_base::notice(OptArgs args)
 {
-    _log(_NOTICE, args);
+    _log(__NOTICE, args);
     return 0;
 }
 
 result_t console_base::warn(exlib::string fmt, OptArgs args)
 {
-    _log(_WARN, fmt, args);
+    _log(__WARN, fmt, args);
     return 0;
 }
 
 result_t console_base::warn(OptArgs args)
 {
-    _log(_WARN, args);
+    _log(__WARN, args);
     return 0;
 }
 
 result_t console_base::error(exlib::string fmt, OptArgs args)
 {
-    _log(_ERROR, fmt, args);
+    _log(__ERROR, fmt, args);
     return 0;
 }
 
 result_t console_base::error(OptArgs args)
 {
-    _log(_ERROR, args);
+    _log(__ERROR, args);
     return 0;
 }
 
 result_t console_base::crit(exlib::string fmt, OptArgs args)
 {
-    _log(_CRIT, fmt, args);
+    _log(__CRIT, fmt, args);
     return 0;
 }
 
 result_t console_base::crit(OptArgs args)
 {
-    _log(_CRIT, args);
+    _log(__CRIT, args);
     return 0;
 }
 
 result_t console_base::alert(exlib::string fmt, OptArgs args)
 {
-    _log(_ALERT, fmt, args);
+    _log(__ALERT, fmt, args);
     return 0;
 }
 
 result_t console_base::alert(OptArgs args)
 {
-    _log(_ALERT, args);
+    _log(__ALERT, args);
     return 0;
 }
 
 result_t console_base::dir(v8::Local<v8::Value> obj)
 {
-    exlib::string strBuffer = json_format(obj, colors(_INFO));
-    asyncLog(_INFO, strBuffer);
+    exlib::string strBuffer = json_format(obj, colors(__INFO));
+    asyncLog(__INFO, strBuffer);
     return 0;
 }
 
@@ -282,7 +282,7 @@ result_t console_base::timeElapse(exlib::string label)
     strBuffer.append(numStr);
     strBuffer.append("ms", 2);
 
-    asyncLog(_INFO, strBuffer);
+    asyncLog(__INFO, strBuffer);
     return 0;
 }
 
@@ -302,7 +302,7 @@ result_t console_base::timeEnd(exlib::string label)
     strBuffer.append(numStr);
     strBuffer.append("ms", 2);
 
-    asyncLog(_INFO, strBuffer);
+    asyncLog(__INFO, strBuffer);
     return 0;
 }
 
@@ -315,7 +315,7 @@ result_t console_base::trace(exlib::string label)
     strBuffer.append(1, '\n');
     strBuffer.append(traceInfo(Isolate::current()->m_isolate, 10));
 
-    asyncLog(_WARN, strBuffer);
+    asyncLog(__WARN, strBuffer);
     return 0;
 }
 
@@ -326,13 +326,13 @@ result_t console_base::_assert(v8::Local<v8::Value> value, exlib::string msg)
 
 result_t console_base::print(exlib::string fmt, OptArgs args)
 {
-    _log(_PRINT, fmt, args);
+    _log(__PRINT, fmt, args);
     return 0;
 }
 
 result_t console_base::print(OptArgs args)
 {
-    _log(_PRINT, args);
+    _log(__PRINT, args);
     return 0;
 }
 
@@ -478,27 +478,27 @@ result_t console_base::moveTo(int32_t row, int32_t column)
     char numStr[64];
 
     sprintf(numStr, "\x1b[%d;%dH", row, column);
-    asyncLog(_PRINT, numStr);
+    asyncLog(__PRINT, numStr);
 
     return 0;
 }
 
 result_t console_base::hideCursor()
 {
-    asyncLog(_PRINT, "\x1b[?25l");
+    asyncLog(__PRINT, "\x1b[?25l");
     return 0;
 }
 
 result_t console_base::showCursor()
 {
-    asyncLog(_PRINT, "\x1b[?25h");
+    asyncLog(__PRINT, "\x1b[?25h");
     return 0;
 }
 
 result_t console_base::clear()
 {
-    asyncLog(_PRINT, "\x1b"
-                     "c");
+    asyncLog(__PRINT, "\x1b"
+                      "c");
     return 0;
 }
 

@@ -16,19 +16,19 @@ namespace fibjs {
 class XmlCDATASection : public XmlCDATASection_base, public XmlNodeImpl {
 public:
     XmlCDATASection(XmlDocument_base* document, const char* data = "")
-        : XmlNodeImpl(document, this, xml_base::_CDATA_SECTION_NODE)
+        : XmlNodeImpl(document, this, xml_base::__CDATA_SECTION_NODE)
         , m_data(data)
     {
     }
 
     XmlCDATASection(XmlDocument_base* document, exlib::string& data)
-        : XmlNodeImpl(document, this, xml_base::_CDATA_SECTION_NODE)
+        : XmlNodeImpl(document, this, xml_base::__CDATA_SECTION_NODE)
         , m_data(data)
     {
     }
 
     XmlCDATASection(const XmlCDATASection& from)
-        : XmlNodeImpl(from.m_document, this, xml_base::_CDATA_SECTION_NODE)
+        : XmlNodeImpl(from.m_document, this, xml_base::__CDATA_SECTION_NODE)
         , m_data(from.m_data)
     {
     }

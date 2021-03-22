@@ -29,7 +29,7 @@ public:
             (const unsigned char*)"fibjs", 5);
 
         mbedtls_ssl_cache_init(&m_cache);
-        m_authmode = ssl_base::_VERIFY_REQUIRED;
+        m_authmode = ssl_base::__VERIFY_REQUIRED;
 
         m_min_version = MBEDTLS_SSL_MINOR_VERSION_0;
         m_max_version = MBEDTLS_SSL_MINOR_VERSION_3;

@@ -15,14 +15,14 @@ namespace fibjs {
 class XmlDocument : public XmlDocument_base, public XmlNodeImpl {
 public:
     XmlDocument(bool isXml)
-        : XmlNodeImpl(NULL, this, xml_base::_DOCUMENT_NODE)
+        : XmlNodeImpl(NULL, this, xml_base::__DOCUMENT_NODE)
         , m_isXml(isXml)
         , m_standalone(-1)
     {
     }
 
     XmlDocument(const XmlDocument& from)
-        : XmlNodeImpl(NULL, this, xml_base::_DOCUMENT_NODE)
+        : XmlNodeImpl(NULL, this, xml_base::__DOCUMENT_NODE)
         , m_isXml(from.m_isXml)
         , m_version(from.m_version)
         , m_encoding(from.m_encoding)

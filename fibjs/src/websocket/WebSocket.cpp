@@ -30,7 +30,7 @@ result_t http_request2(HttpClient_base* httpClient, exlib::string method, exlib:
 
 class asyncSend : public AsyncState {
 public:
-    asyncSend(WebSocket* pThis, exlib::string data, int32_t type = ws_base::_TEXT)
+    asyncSend(WebSocket* pThis, exlib::string data, int32_t type = ws_base::__TEXT)
         : AsyncState(NULL)
         , m_this(pThis)
         , m_type(type)
@@ -44,7 +44,7 @@ public:
         next(start);
     }
 
-    asyncSend(WebSocket* pThis, Buffer_base* data, int32_t type = ws_base::_BINARY)
+    asyncSend(WebSocket* pThis, Buffer_base* data, int32_t type = ws_base::__BINARY)
         : AsyncState(NULL)
         , m_this(pThis)
         , m_type(type)
@@ -60,7 +60,7 @@ public:
     asyncSend(WebSocket* pThis, int32_t code, exlib::string reason)
         : AsyncState(NULL)
         , m_this(pThis)
-        , m_type(ws_base::_CLOSE)
+        , m_type(ws_base::__CLOSE)
     {
         m_this->m_ioState.inc();
 
@@ -71,7 +71,7 @@ public:
 
         obj_ptr<Buffer_base> data = new Buffer(buf);
 
-        m_msg = new WebSocketMessage(ws_base::_CLOSE, m_this->m_masked, m_this->m_compress, 0);
+        m_msg = new WebSocketMessage(ws_base::__CLOSE, m_this->m_masked, m_this->m_compress, 0);
         m_msg->cc_write(data);
 
         next(start);
@@ -146,7 +146,7 @@ public:
 
     ON_STATE(asyncSend, ok)
     {
-        if (m_type == ws_base::_CLOSE) {
+        if (m_type == ws_base::__CLOSE) {
             obj_ptr<SeekableStream_base> body;
 
             m_msg->get_body(body);
@@ -316,7 +316,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
 
             m_httprep->get_stream(m_this->m_stream);
 
-            m_this->m_readyState = ws_base::_OPEN;
+            m_this->m_readyState = ws_base::__OPEN;
             m_this->_emit("open");
 
             m_this->startRecv(m_isolate);
@@ -372,7 +372,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
 
 WebSocket::~WebSocket()
 {
-    if (m_closeState.xchg(ws_base::_CLOSED) != ws_base::_CLOSED) {
+    if (m_closeState.xchg(ws_base::__CLOSED) != ws_base::__CLOSED) {
         if (m_stream)
             m_stream->cc_close();
 
@@ -422,7 +422,7 @@ void WebSocket::startRecv(Isolate* isolate)
             if (m_this->m_compress && !m_this->m_inflate)
                 m_this->m_inflate = new infraw(NULL, m_this->m_maxSize);
 
-            m_msg = new WebSocketMessage(ws_base::_TEXT, false, false, m_this->m_maxSize);
+            m_msg = new WebSocketMessage(ws_base::__TEXT, false, false, m_this->m_maxSize);
             return m_msg->readFrom(m_this->m_stream, m_this, next(event));
         }
 
@@ -439,25 +439,25 @@ void WebSocket::startRecv(Isolate* isolate)
             m_msg->get_type(type);
 
             switch (type) {
-            case ws_base::_PING: {
+            case ws_base::__PING: {
                 obj_ptr<SeekableStream_base> body;
                 m_msg->get_body(body);
-                (new asyncSend(m_this, body, ws_base::_PONG))->post(0);
+                (new asyncSend(m_this, body, ws_base::__PONG))->post(0);
                 break;
             }
-            case ws_base::_CLOSE: {
+            case ws_base::__CLOSE: {
                 obj_ptr<SeekableStream_base> body;
                 m_msg->get_body(body);
 
-                if (m_this->m_closeState.CompareAndSwap(ws_base::_OPEN, ws_base::_CLOSING) == ws_base::_OPEN)
-                    (new asyncSend(m_this, body, ws_base::_CLOSE))->post(0);
+                if (m_this->m_closeState.CompareAndSwap(ws_base::__OPEN, ws_base::__CLOSING) == ws_base::__OPEN)
+                    (new asyncSend(m_this, body, ws_base::__CLOSE))->post(0);
                 else
                     m_this->endConnect(body);
 
                 return next(0);
             }
-            case ws_base::_TEXT:
-            case ws_base::_BINARY:
+            case ws_base::__TEXT:
+            case ws_base::__BINARY:
                 m_this->_emit("message", m_msg);
             }
 
@@ -480,13 +480,13 @@ void WebSocket::startRecv(Isolate* isolate)
         obj_ptr<WebSocketMessage> m_msg;
     };
 
-    if (m_stream && m_readState.xchg(ws_base::_OPEN) != ws_base::_OPEN)
+    if (m_stream && m_readState.xchg(ws_base::__OPEN) != ws_base::__OPEN)
         (new asyncRead(this, isolate))->apost(0);
 }
 
 void WebSocket::endConnect(int32_t code, exlib::string reason)
 {
-    if (m_closeState.xchg(ws_base::_CLOSED) != ws_base::_CLOSED) {
+    if (m_closeState.xchg(ws_base::__CLOSED) != ws_base::__CLOSED) {
         Isolate* isolate = holder();
         if (isolate) {
             if (code > 1000 && code < 3000) {
@@ -573,7 +573,7 @@ result_t WebSocket::close(int32_t code, exlib::string reason)
     if (code != 1000 && (code < 3000 || code > 4999))
         return CHECK_ERROR(Runtime::setError("websocket: The code must be either 1000, or between 3000 and 4999."));
 
-    if (m_readyState.CompareAndSwap(ws_base::_OPEN, ws_base::_CLOSING) != ws_base::_OPEN)
+    if (m_readyState.CompareAndSwap(ws_base::__OPEN, ws_base::__CLOSING) != ws_base::__OPEN)
         return 0;
 
     (new asyncSend(this, code, reason))->post(0);
@@ -583,11 +583,11 @@ result_t WebSocket::close(int32_t code, exlib::string reason)
 result_t WebSocket::send(exlib::string data)
 {
     switch (m_readyState) {
-    case ws_base::_CONNECTING:
+    case ws_base::__CONNECTING:
         return CHECK_ERROR(Runtime::setError("websocket: WebSocket is in CONNECTING state."));
-    case ws_base::_CLOSING:
+    case ws_base::__CLOSING:
         return CHECK_ERROR(Runtime::setError("websocket: WebSocket is in CLOSING state."));
-    case ws_base::_CLOSED:
+    case ws_base::__CLOSED:
         return CHECK_ERROR(Runtime::setError("websocket: WebSocket is in CLOSED state."));
     }
 
@@ -598,11 +598,11 @@ result_t WebSocket::send(exlib::string data)
 result_t WebSocket::send(Buffer_base* data)
 {
     switch (m_readyState) {
-    case ws_base::_CONNECTING:
+    case ws_base::__CONNECTING:
         return CHECK_ERROR(Runtime::setError("websocket: WebSocket is in CONNECTING state."));
-    case ws_base::_CLOSING:
+    case ws_base::__CLOSING:
         return CHECK_ERROR(Runtime::setError("websocket: WebSocket is in CLOSING state."));
-    case ws_base::_CLOSED:
+    case ws_base::__CLOSED:
         return CHECK_ERROR(Runtime::setError("websocket: WebSocket is in CLOSED state."));
     }
 

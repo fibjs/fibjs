@@ -159,9 +159,9 @@ function gen_code(cls, def, baseFolder) {
                                     if (p.default.value)
                                         defValue = p.default.value;
                                     else if (util.isArray(p.default.const))
-                                        defValue = p.default.const[0] + '_base::_' + p.default.const[1];
+                                        defValue = p.default.const[0] + '_base::__' + p.default.const[1];
                                     else
-                                        defValue = '_' + p.default.const;
+                                        defValue = '__' + p.default.const;
 
                                     params.push(`    OPT_ARG(${get_rtype(p.type) + ', ' + params.length}, ` + defValue + `);`);
                                 } else {
@@ -622,7 +622,7 @@ function gen_code(cls, def, baseFolder) {
 
             def.members.forEach(fn => {
                 if (fn.memType === "const")
-                    consts.push(`        _${fn.name} = ${fn.default.value}`);
+                    consts.push(`        __${fn.name} = ${fn.default.value}`);
             });
 
             if (consts.length) {
@@ -882,7 +882,7 @@ function gen_code(cls, def, baseFolder) {
             def.members.forEach(fn => {
                 if (fn.memType == 'const') {
                     var fname = fn.name;
-                    deflist.push(`        { "${fname}", _${fname} }`);
+                    deflist.push(`        { "${fname}", __${fname} }`);
                 }
             });
 

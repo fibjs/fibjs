@@ -15,7 +15,7 @@ namespace fibjs {
 class DgramSocket : public DgramSocket_base {
 public:
     DgramSocket()
-        : m_aio(INVALID_SOCKET, 0, net_base::_SOCK_STREAM)
+        : m_aio(INVALID_SOCKET, 0, net_base::__SOCK_STREAM)
         , m_closed(false)
         , m_bound(false)
     {

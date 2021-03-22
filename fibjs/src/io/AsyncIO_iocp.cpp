@@ -175,9 +175,9 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Time
 
                 if (SOCKET_ERROR
                     == WSAIoctl(m_s, SIO_GET_EXTENSION_FUNCTION_POINTER,
-                        &guidConnectEx, sizeof(guidConnectEx),
-                        &ConnectEx, sizeof(ConnectEx), &dwBytes, NULL,
-                        NULL)) {
+                           &guidConnectEx, sizeof(guidConnectEx),
+                           &ConnectEx, sizeof(ConnectEx), &dwBytes, NULL,
+                           NULL)) {
                     if (m_timer) {
                         m_timer->clear();
                         m_timer.Release();
@@ -276,8 +276,8 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
 
                 if (SOCKET_ERROR
                     == WSAIoctl(m_s, SIO_GET_EXTENSION_FUNCTION_POINTER,
-                        &guidAcceptEx, sizeof(guidAcceptEx), &AcceptEx,
-                        sizeof(AcceptEx), &dwBytes, NULL, NULL))
+                           &guidAcceptEx, sizeof(guidAcceptEx), &AcceptEx,
+                           sizeof(AcceptEx), &dwBytes, NULL, NULL))
                     return CHECK_ERROR(SocketError());
             }
 
@@ -398,7 +398,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
                     m_retVal = new Buffer(m_buf);
 
                     if (g_tcpdump)
-                        outLog(console_base::_NOTICE, clean_string(m_buf));
+                        outLog(console_base::__NOTICE, clean_string(m_buf));
                 } else
                     nError = CALL_RETURN_NULL;
             }
@@ -439,7 +439,7 @@ result_t AsyncIO::write(Buffer_base* data, AsyncEvent* ac)
             m_sz = (int32_t)m_buf.length();
 
             if (g_tcpdump)
-                outLog(console_base::_WARN, clean_string(m_buf));
+                outLog(console_base::__WARN, clean_string(m_buf));
         }
 
         virtual result_t process()

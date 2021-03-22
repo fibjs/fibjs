@@ -211,7 +211,7 @@ result_t file_logger::write(AsyncEvent* ac)
         }
 
         while ((p1 = m_workinglogs.getHead()) != 0) {
-            if (p1->m_priority != console_base::_PRINT) {
+            if (p1->m_priority != console_base::__PRINT) {
                 outBuffer.append(p1->full());
                 outBuffer.append("\n", 1);
             }

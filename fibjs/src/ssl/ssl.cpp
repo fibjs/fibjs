@@ -165,8 +165,8 @@ result_t ssl_base::connect(exlib::string url, X509Cert_base* crt, PKey_base* key
         ON_STATE(asyncConnect, connect)
         {
             m_sock = new Socket();
-            m_sock->create(m_ipv6 ? net_base::_AF_INET6 : net_base::_AF_INET,
-                net_base::_SOCK_STREAM);
+            m_sock->create(m_ipv6 ? net_base::__AF_INET6 : net_base::__AF_INET,
+                net_base::__SOCK_STREAM);
 
             m_sock->set_timeout(m_timeout);
             return m_sock->connect(m_host, m_port, next(handshake));
@@ -271,7 +271,7 @@ result_t ssl_base::get_verification(int32_t& retVal)
 
 result_t ssl_base::set_verification(int32_t newVal)
 {
-    if (newVal < ssl_base::_VERIFY_NONE || newVal > ssl_base::_VERIFY_REQUIRED)
+    if (newVal < ssl_base::__VERIFY_NONE || newVal > ssl_base::__VERIFY_REQUIRED)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     g_ssl.m_authmode = newVal;

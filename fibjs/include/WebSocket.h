@@ -27,8 +27,8 @@ public:
         , m_compress(false)
         , m_enableCompress(enableCompress)
         , m_maxSize(maxSize)
-        , m_readyState(ws_base::_CONNECTING)
-        , m_closeState(ws_base::_OPEN)
+        , m_readyState(ws_base::__CONNECTING)
+        , m_closeState(ws_base::__OPEN)
         , m_ioState(1)
     {
     }
@@ -41,8 +41,8 @@ public:
         , m_compress(false)
         , m_enableCompress(enableCompress)
         , m_maxSize(maxSize)
-        , m_readyState(ws_base::_OPEN)
-        , m_closeState(ws_base::_OPEN)
+        , m_readyState(ws_base::__OPEN)
+        , m_closeState(ws_base::__OPEN)
         , m_ioState(1)
     {
     }
@@ -61,8 +61,8 @@ public:
 
     virtual result_t onEventEmit(exlib::string ev)
     {
-        if (m_closeState == ws_base::_CLOSED)
-            m_readyState.xchg(ws_base::_CLOSED);
+        if (m_closeState == ws_base::__CLOSED)
+            m_readyState.xchg(ws_base::__CLOSED);
         return 0;
     }
 

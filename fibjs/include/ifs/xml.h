@@ -24,14 +24,14 @@ class xml_base : public object_base {
 
 public:
     enum {
-        _ELEMENT_NODE = 1,
-        _ATTRIBUTE_NODE = 2,
-        _TEXT_NODE = 3,
-        _CDATA_SECTION_NODE = 4,
-        _PROCESSING_INSTRUCTION_NODE = 7,
-        _COMMENT_NODE = 8,
-        _DOCUMENT_NODE = 9,
-        _DOCUMENT_TYPE_NODE = 10
+        __ELEMENT_NODE = 1,
+        __ATTRIBUTE_NODE = 2,
+        __TEXT_NODE = 3,
+        __CDATA_SECTION_NODE = 4,
+        __PROCESSING_INSTRUCTION_NODE = 7,
+        __COMMENT_NODE = 8,
+        __DOCUMENT_NODE = 9,
+        __DOCUMENT_TYPE_NODE = 10
     };
 
 public:
@@ -74,14 +74,14 @@ inline ClassInfo& xml_base::class_info()
     };
 
     static ClassData::ClassConst s_const[] = {
-        { "ELEMENT_NODE", _ELEMENT_NODE },
-        { "ATTRIBUTE_NODE", _ATTRIBUTE_NODE },
-        { "TEXT_NODE", _TEXT_NODE },
-        { "CDATA_SECTION_NODE", _CDATA_SECTION_NODE },
-        { "PROCESSING_INSTRUCTION_NODE", _PROCESSING_INSTRUCTION_NODE },
-        { "COMMENT_NODE", _COMMENT_NODE },
-        { "DOCUMENT_NODE", _DOCUMENT_NODE },
-        { "DOCUMENT_TYPE_NODE", _DOCUMENT_TYPE_NODE }
+        { "ELEMENT_NODE", __ELEMENT_NODE },
+        { "ATTRIBUTE_NODE", __ATTRIBUTE_NODE },
+        { "TEXT_NODE", __TEXT_NODE },
+        { "CDATA_SECTION_NODE", __CDATA_SECTION_NODE },
+        { "PROCESSING_INSTRUCTION_NODE", __PROCESSING_INSTRUCTION_NODE },
+        { "COMMENT_NODE", __COMMENT_NODE },
+        { "DOCUMENT_NODE", __DOCUMENT_NODE },
+        { "DOCUMENT_TYPE_NODE", __DOCUMENT_TYPE_NODE }
     };
 
     static ClassData s_cd = {

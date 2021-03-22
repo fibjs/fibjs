@@ -87,7 +87,7 @@ void XmlParser::OnStartElement(const XML_Char* name, const XML_Char** atts)
     } else if (!has_def) {
         int32_t type;
         m_now->get_nodeType(type);
-        if (type == xml_base::_ELEMENT_NODE)
+        if (type == xml_base::__ELEMENT_NODE)
             ((XmlElement*)(XmlNode_base*)m_now)->get_defaultNamespace(def_ns);
     }
 
@@ -147,7 +147,7 @@ void XmlParser::OnCharacterData(const XML_Char* s, int32_t len)
     int32_t type;
 
     m_now->get_nodeType(type);
-    if (type == xml_base::_CDATA_SECTION_NODE)
+    if (type == xml_base::__CDATA_SECTION_NODE)
         ((XmlCDATASection_base*)(XmlNode_base*)m_now)->appendData(data);
     else {
         obj_ptr<XmlNode_base> last;
@@ -155,7 +155,7 @@ void XmlParser::OnCharacterData(const XML_Char* s, int32_t len)
 
         if (last) {
             last->get_nodeType(type);
-            if (type == xml_base::_TEXT_NODE) {
+            if (type == xml_base::__TEXT_NODE) {
                 ((XmlText_base*)(XmlNode_base*)last)->appendData(data);
                 return;
             }
