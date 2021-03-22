@@ -16,6 +16,7 @@
 #include "ZipFile.h"
 #include "FSWatcher.h"
 #include "StatsWatcher.h"
+#include "AsyncUV.h"
 
 #ifndef _WIN32
 #include <dirent.h>
@@ -539,6 +540,277 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
     }
 
     return buffer->write(strBuf, offset, (int32_t)strBuf.length(), "utf8", retVal);
+}
+
+result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
+{
+    class AsyncUVFSStatue : public uv_fs_t {
+    public:
+        AsyncUVFSStatue(bool& retVal, AsyncEvent* ac)
+            : m_retVal(retVal)
+            , m_ac(ac)
+        {
+        }
+
+    public:
+        static void callback(uv_fs_t* req)
+        {
+            AsyncUVFSStatue* pThis = (AsyncUVFSStatue*)req;
+
+            pThis->m_retVal = uv_fs_get_result(req) == 0;
+            pThis->m_ac->apost(0);
+
+            uv_fs_req_cleanup(req);
+            delete pThis;
+        }
+
+    private:
+        bool& m_retVal;
+        AsyncEvent* m_ac;
+    };
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int ret = uv_call([&] {
+        return uv_fs_access(s_uv_loop, new AsyncUVFSStatue(retVal, ac), path.c_str(), F_OK, AsyncUVFSStatue::callback);
+    });
+    if (ret != 0) {
+        retVal = false;
+        return 0;
+    }
+
+    return CALL_E_PENDDING;
+}
+
+result_t fs_base::access(exlib::string path, int32_t mode, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int ret = uv_call([&] {
+        return uv_fs_access(s_uv_loop, new AsyncUVFS(ac), path.c_str(), mode, AsyncUVFS::callback);
+    });
+    if (ret != 0)
+        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
+
+    return CALL_E_PENDDING;
+}
+
+result_t fs_base::link(exlib::string oldPath, exlib::string newPath, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int ret = uv_call([&] {
+        return uv_fs_link(s_uv_loop, new AsyncUVFS(ac), oldPath.c_str(), newPath.c_str(), AsyncUVFS::callback);
+    });
+    if (ret != 0)
+        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
+
+    return CALL_E_PENDDING;
+}
+
+result_t fs_base::unlink(exlib::string path, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int ret = uv_call([&] {
+        return uv_fs_unlink(s_uv_loop, new AsyncUVFS(ac), path.c_str(), AsyncUVFS::callback);
+    });
+    if (ret != 0)
+        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
+
+    return CALL_E_PENDDING;
+}
+
+result_t fs_base::symlink(exlib::string target, exlib::string linkpath, exlib::string type, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int ret = uv_call([&] {
+        int _type = 0;
+
+        if (type == "dir")
+            _type = 1;
+        else if (type == "junction")
+            _type = 2;
+        return uv_fs_symlink(s_uv_loop, new AsyncUVFS(ac), target.c_str(), linkpath.c_str(), _type, AsyncUVFS::callback);
+    });
+    if (ret != 0)
+        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
+
+    return CALL_E_PENDDING;
+}
+
+result_t fs_base::readlink(exlib::string path, exlib::string& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int ret = uv_call([&] {
+        return uv_fs_readlink(s_uv_loop, new AsyncUVFSResult(retVal, ac), path.c_str(), AsyncUVFSResult::callback);
+    });
+    if (ret != 0)
+        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
+
+    return CALL_E_PENDDING;
+}
+
+result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int ret = uv_call([&] {
+        return uv_fs_realpath(s_uv_loop, new AsyncUVFSResult(retVal, ac), path.c_str(), AsyncUVFSResult::callback);
+    });
+    if (ret != 0)
+        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
+
+    return CALL_E_PENDDING;
+}
+
+result_t fs_base::mkdir(exlib::string path, int32_t mode, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int ret = uv_call([&] {
+        return uv_fs_mkdir(s_uv_loop, new AsyncUVFS(ac), path.c_str(), mode, AsyncUVFS::callback);
+    });
+    if (ret != 0)
+        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
+
+    return CALL_E_PENDDING;
+}
+
+result_t fs_base::rmdir(exlib::string path, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int ret = uv_call([&] {
+        return uv_fs_rmdir(s_uv_loop, new AsyncUVFS(ac), path.c_str(), AsyncUVFS::callback);
+    });
+    if (ret != 0)
+        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
+
+    return CALL_E_PENDDING;
+}
+
+result_t fs_base::fchmod(int32_t fd, int32_t mode, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int ret = uv_call([&] {
+        return uv_fs_fchmod(s_uv_loop, new AsyncUVFS(ac), fd, mode, AsyncUVFS::callback);
+    });
+    if (ret != 0)
+        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
+
+    return CALL_E_PENDDING;
+}
+
+result_t fs_base::fchown(int32_t fd, int32_t uid, int32_t gid, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int ret = uv_call([&] {
+        return uv_fs_fchown(s_uv_loop, new AsyncUVFS(ac), fd, uid, gid, AsyncUVFS::callback);
+    });
+    if (ret != 0)
+        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
+
+    return CALL_E_PENDDING;
+}
+
+result_t fs_base::fsync(int32_t fd, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int ret = uv_call([&] {
+        return uv_fs_fsync(s_uv_loop, new AsyncUVFS(ac), fd, AsyncUVFS::callback);
+    });
+    if (ret != 0)
+        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
+
+    return CALL_E_PENDDING;
+}
+
+result_t fs_base::chmod(exlib::string path, int32_t mode, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int ret = uv_call([&] {
+        return uv_fs_chmod(s_uv_loop, new AsyncUVFS(ac), path.c_str(), mode, AsyncUVFS::callback);
+    });
+    if (ret != 0)
+        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
+
+    return CALL_E_PENDDING;
+}
+
+result_t fs_base::chown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int ret = uv_call([&] {
+        return uv_fs_chown(s_uv_loop, new AsyncUVFS(ac), path.c_str(), uid, gid, AsyncUVFS::callback);
+    });
+    if (ret != 0)
+        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
+
+    return CALL_E_PENDDING;
+}
+
+result_t fs_base::lchown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int ret = uv_call([&] {
+        return uv_fs_lchown(s_uv_loop, new AsyncUVFS(ac), path.c_str(), uid, gid, AsyncUVFS::callback);
+    });
+    if (ret != 0)
+        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
+
+    return CALL_E_PENDDING;
+}
+
+result_t fs_base::rename(exlib::string from, exlib::string to, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int ret = uv_call([&] {
+        return uv_fs_rename(s_uv_loop, new AsyncUVFS(ac), from.c_str(), to.c_str(), AsyncUVFS::callback);
+    });
+    if (ret != 0)
+        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
+
+    return CALL_E_PENDDING;
+}
+
+result_t fs_base::fdatasync(int32_t fd, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int ret = uv_call([&] {
+        return uv_fs_fdatasync(s_uv_loop, new AsyncUVFS(ac), fd, AsyncUVFS::callback);
+    });
+    if (ret != 0)
+        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
+
+    return CALL_E_PENDDING;
 }
 
 result_t fs_base::watch(exlib::string fname, obj_ptr<FSWatcher_base>& retVal)
