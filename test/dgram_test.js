@@ -98,10 +98,10 @@ describe('dgram', () => {
             t = true;
         });
 
-        s.bind(10002);
+        s.bind(10006);
 
         const c = dgram.createSocket('udp4');
-        c.send(data, 10002);
+        c.send(data, 10006);
 
         coroutine.sleep(100);
         c.close();
