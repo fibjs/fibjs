@@ -55,6 +55,15 @@ exlib::string GuiApp::get_path(const char* p)
     return str_res;
 }
 
+bool _exists(exlib::string path)
+{
+#ifdef _WIN32
+    return _waccess(UTF8_W(path), 0) == 0;
+#else
+    return ::access(path.c_str(), F_OK) == 0;
+#endif
+}
+
 void GuiApp::load_cef()
 {
     exlib::string str_path;
@@ -69,7 +78,7 @@ void GuiApp::load_cef()
         os_dirname(str_exe, m_cef_path);
 
     exlib::string str_cef = get_path(s_cef_sdk);
-    fs_base::cc_exists(str_cef, m_has_cef);
+    m_has_cef = _exists(str_cef);
     if (!m_has_cef) {
         m_gui_ready.set();
         run_os_gui();
