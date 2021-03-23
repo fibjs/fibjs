@@ -43,7 +43,7 @@ public:
         if (ret == 0)
             pThis->m_ac->apost(0);
         else
-            pThis->m_ac->apost(Runtime::setError(uv_strerror(ret)));
+            pThis->m_ac->apost(-uv_fs_get_system_error(req));
 
         delete pThis;
     }
@@ -75,7 +75,7 @@ public:
             pThis->m_retVal = (const char*)pThis->ptr;
             pThis->m_ac->apost(0);
         } else
-            pThis->m_ac->apost(Runtime::setError(uv_strerror(ret)));
+            pThis->m_ac->apost(-uv_fs_get_system_error(req));
 
         delete pThis;
     }

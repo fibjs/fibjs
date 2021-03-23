@@ -592,7 +592,7 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncEven
 
             ret = uv_fs_get_result(req);
             if (ret < 0) {
-                pThis->m_ac->apost(Runtime::setError(uv_strerror(ret)));
+                pThis->m_ac->apost(-uv_fs_get_system_error(req));
                 delete pThis;
                 return;
             }
