@@ -111,7 +111,7 @@ void X509Req_base::__new(const T& args)
 
     ARG(exlib::string, 0);
     ARG(obj_ptr<PKey_base>, 1);
-    OPT_ARG(int32_t, 2, hash_base::__SHA1);
+    OPT_ARG(int32_t, 2, hash_base::C_SHA1);
 
     hr = _new(v0, v1, v2, vr, args.This());
 

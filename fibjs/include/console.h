@@ -69,7 +69,7 @@ public:
     {
         int32_t i;
 
-        for (i = 0; i < console_base::__NOTSET; i++)
+        for (i = 0; i < console_base::C_NOTSET; i++)
             m_levels[i] = true;
     }
 
@@ -84,7 +84,7 @@ public:
         } else if (hr < 0)
             return hr;
         else {
-            for (i = 0; i < console_base::__NOTSET; i++)
+            for (i = 0; i < console_base::C_NOTSET; i++)
                 m_levels[i] = false;
 
             int32_t sz = levels->Length();
@@ -97,13 +97,13 @@ public:
                 if (hr < 0)
                     return CHECK_ERROR(hr);
 
-                if (num >= 0 && num < console_base::__NOTSET)
+                if (num >= 0 && num < console_base::C_NOTSET)
                     m_levels[num] = true;
                 else
                     return CHECK_ERROR(Runtime::setError("console: too many logger."));
             }
 
-            m_levels[console_base::__PRINT] = true;
+            m_levels[console_base::C_PRINT] = true;
         }
 
         return 0;
@@ -169,7 +169,7 @@ public:
 
     void log(int32_t priority, exlib::string& msg)
     {
-        if (priority >= 0 && priority < console_base::__NOTSET && m_levels[priority])
+        if (priority >= 0 && priority < console_base::C_NOTSET && m_levels[priority])
             putLog(priority, msg);
     }
 
@@ -227,7 +227,7 @@ private:
     bool m_bWorking;
     bool m_bStop;
     exlib::spinlock m_lock;
-    bool m_levels[console_base::__NOTSET];
+    bool m_levels[console_base::C_NOTSET];
 };
 
 class std_logger : public logger {

@@ -159,7 +159,7 @@ bool WebView::onNSWindowShouldClose()
         ^(id result, NSError* _Nullable error) {
             if (error != nil) {
                 if (m_bDebug)
-                    asyncLog(console_base::__DEBUG, NSStringToExString([error localizedDescription]));
+                    asyncLog(console_base::C_DEBUG, NSStringToExString([error localizedDescription]));
 
                 forceCloseWindow();
             } else {
@@ -208,7 +208,7 @@ static int32_t asyncOutputMessageFromWKWebview(exlib::string& jsonFmt)
     v8::Local<v8::Value> _fmtMessage = logInfo->Get(isolate->NewString("fmt"));
     exlib::string fmtMessage(ToCString(v8::String::Utf8Value(isolate->m_isolate, _fmtMessage)));
 
-    if (logLevel == console_base::__ERROR)
+    if (logLevel == console_base::C_ERROR)
         fmtMessage = ("WebView Error: " + fmtMessage);
 
     asyncLog(logLevel, fmtMessage);
@@ -306,7 +306,7 @@ id WebView::createWKWebViewConfig()
      * register customized protocol `fs://`
      * @warning `setURLSchemeHandler:forURLScheme:` is only available on macOS 10.13 or newer
      */
-    NSOperatingSystemVersion macOS10_13 = (NSOperatingSystemVersion){ 10, 13, 0 };
+    NSOperatingSystemVersion macOS10_13 = (NSOperatingSystemVersion) { 10, 13, 0 };
     if ([[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:macOS10_13]) {
         [configuration setURLSchemeHandler:[FileSystemWKURLSchemeHandler new] forURLScheme:@"fs"];
     }
@@ -327,8 +327,7 @@ void WebView::initNSWindow()
 
 void WebView::initWKWebView()
 {
-    m_wkWebView = [
-        [WKWebView alloc]
+    m_wkWebView = [[WKWebView alloc]
         initWithFrame:CGRectMake(0, 0, 400, 300)
         configuration:createWKWebViewConfig()];
 

@@ -132,12 +132,12 @@ bool GuiHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
     const CefString& source, int line)
 {
     static int32_t console_level[] = {
-        console_base::__NOTSET,
-        console_base::__DEBUG,
-        console_base::__INFO,
-        console_base::__WARN,
-        console_base::__ERROR,
-        console_base::__FATAL
+        console_base::C_NOTSET,
+        console_base::C_DEBUG,
+        console_base::C_INFO,
+        console_base::C_WARN,
+        console_base::C_ERROR,
+        console_base::C_FATAL
     };
 
     BrowserList::iterator bit = fromBrowser(browser);

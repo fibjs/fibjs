@@ -71,9 +71,9 @@ result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base* key,
     Buffer_base* iv, obj_ptr<Cipher_base>& retVal,
     v8::Local<v8::Object> This)
 {
-    if (provider < crypto_base::__AES || provider > crypto_base::__SM4)
+    if (provider < crypto_base::C_AES || provider > crypto_base::C_SM4)
         return CHECK_ERROR(Runtime::setError("Cipher: Invalid provider"));
-    if (mode < crypto_base::__ECB || mode > crypto_base::__POLY1305)
+    if (mode < crypto_base::C_ECB || mode > crypto_base::C_POLY1305)
         return CHECK_ERROR(Runtime::setError("Cipher: Invalid mode"));
 
     exlib::string strKey;
@@ -86,13 +86,13 @@ result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base* key,
     if (keylen == 0)
         return CHECK_ERROR(Runtime::setError("Cipher: Invalid key size"));
 
-    if (keylen == 16 && provider == crypto_base::__DES_EDE3) {
+    if (keylen == 16 && provider == crypto_base::C_DES_EDE3) {
         strKey.append(strKey.c_str(), 8);
         keylen = 24;
     }
 
     for (int32_t i = 0; i < SIZE_COUNT; i++) {
-        const mbedtls_cipher_info_t* mod_info = s_sizes[provider - crypto_base::__AES][i].cis[mode];
+        const mbedtls_cipher_info_t* mod_info = s_sizes[provider - crypto_base::C_AES][i].cis[mode];
         if (mod_info) {
             bFoundMode = true;
             if (mod_info->key_bitlen == keylen * 8) {
@@ -133,7 +133,7 @@ result_t Cipher_base::_new(int32_t provider, int32_t mode, Buffer_base* key,
 result_t Cipher_base::_new(int32_t provider, Buffer_base* key,
     obj_ptr<Cipher_base>& retVal, v8::Local<v8::Object> This)
 {
-    return _new(provider, crypto_base::__STREAM, key, NULL, retVal);
+    return _new(provider, crypto_base::C_STREAM, key, NULL, retVal);
 }
 
 Cipher::Cipher(const mbedtls_cipher_info_t* info)

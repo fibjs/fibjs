@@ -384,9 +384,9 @@ result_t os_gui_setVersion(int32_t ver)
     os_base::get_execPath(p);
     path_base::basename(p, "", exe);
 
-    registry_base::set(registry_base::__CURRENT_USER,
+    registry_base::set(registry_base::C_CURRENT_USER,
         "SOFTWARE\\Microsoft\\Internet Explorer\\Main\\FeatureControl\\FEATURE_BROWSER_EMULATION\\" + exe,
-        ver, registry_base::__DWORD);
+        ver, registry_base::C_DWORD);
 
     return 0;
 }

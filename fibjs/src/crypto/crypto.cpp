@@ -383,7 +383,7 @@ inline int pkcs5_pbkdf1(mbedtls_md_context_t* ctx, const unsigned char* password
 result_t crypto_base::pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t iterations,
     int32_t size, int32_t algo, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
-    if (algo < hash_base::__MD2 || algo > hash_base::__SM3)
+    if (algo < hash_base::C_MD2 || algo > hash_base::C_SM3)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (ac->isSync())
@@ -427,7 +427,7 @@ result_t crypto_base::pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t i
 result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t iterations,
     int32_t size, int32_t algo, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
-    if (algo < hash_base::__MD2 || algo > hash_base::__SM3)
+    if (algo < hash_base::C_MD2 || algo > hash_base::C_SM3)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (ac->isSync())

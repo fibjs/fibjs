@@ -42,7 +42,7 @@ public:
 
 public:
     Message()
-        : m_type(__BINARY)
+        : m_type(C_BINARY)
         , m_end(false)
     {
     }

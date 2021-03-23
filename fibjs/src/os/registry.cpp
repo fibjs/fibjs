@@ -43,7 +43,7 @@ public:
             HKEY_CURRENT_CONFIG
         };
 
-        if (root < registry_base::__CLASSES_ROOT || root > registry_base::__CURRENT_CONFIG)
+        if (root < registry_base::C_CLASSES_ROOT || root > registry_base::C_CURRENT_CONFIG)
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
         exlib::string path;

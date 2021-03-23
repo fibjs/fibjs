@@ -60,10 +60,10 @@ public:
     intptr_t retainers;
 
     example()
-        : type(profiler_base::__Node_Hidden)
+        : type(profiler_base::C_Node_Hidden)
         , self_size(0)
         , retained_size(0)
-        , retainers(0){};
+        , retainers(0) {};
 };
 
 class change {

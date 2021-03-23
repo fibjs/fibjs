@@ -141,7 +141,7 @@ inline bool checkArray(QuickArray<exlib::string>& a, const char* chks[], int32_t
 
 inline bool is_num_type(int32_t _type)
 {
-    return _type == profiler_base::__Edge_Element || _type == profiler_base::__Edge_Hidden;
+    return _type == profiler_base::C_Edge_Element || _type == profiler_base::C_Edge_Hidden;
 }
 
 result_t HeapSnapshot::load(exlib::string fname)

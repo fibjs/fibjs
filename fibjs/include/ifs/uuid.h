@@ -22,10 +22,10 @@ class uuid_base : public object_base {
 
 public:
     enum {
-        __DNS = 0,
-        __URL = 1,
-        __OID = 2,
-        __X509 = 3
+        C_DNS = 0,
+        C_URL = 1,
+        C_OID = 2,
+        C_X509 = 3
     };
 
 public:
@@ -78,10 +78,10 @@ inline ClassInfo& uuid_base::class_info()
     };
 
     static ClassData::ClassConst s_const[] = {
-        { "DNS", __DNS },
-        { "URL", __URL },
-        { "OID", __OID },
-        { "X509", __X509 }
+        { "DNS", C_DNS },
+        { "URL", C_URL },
+        { "OID", C_OID },
+        { "X509", C_X509 }
     };
 
     static ClassData s_cd = {

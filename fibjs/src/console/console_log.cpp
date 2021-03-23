@@ -9,7 +9,7 @@
 
 namespace fibjs {
 
-static int32_t s_loglevel = console_base::__NOTSET;
+static int32_t s_loglevel = console_base::C_NOTSET;
 std_logger* s_std;
 
 #define MAX_LOGGER 10
@@ -59,7 +59,7 @@ void outLog(int32_t priority, exlib::string msg)
 
 void errorLog(exlib::string msg)
 {
-    outLog(console_base::__ERROR, msg);
+    outLog(console_base::C_ERROR, msg);
 }
 
 void asyncLog(int32_t priority, exlib::string msg)

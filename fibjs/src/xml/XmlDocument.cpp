@@ -124,13 +124,13 @@ result_t XmlDocument::checkNode(XmlNode_base* newChild)
     int32_t type;
     newChild->get_nodeType(type);
 
-    if (type == xml_base::__ELEMENT_NODE) {
+    if (type == xml_base::C_ELEMENT_NODE) {
         if (m_element) {
             if (m_element != newChild)
                 return Runtime::setError("XmlDocument: The document node contains only one element node.");
         } else
             m_element = (XmlElement_base*)newChild;
-    } else if (type == xml_base::__DOCUMENT_TYPE_NODE) {
+    } else if (type == xml_base::C_DOCUMENT_TYPE_NODE) {
         if (m_doctype) {
             if (m_doctype != newChild)
                 return Runtime::setError("XmlDocument: The document node contains only one element node.");

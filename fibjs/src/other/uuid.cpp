@@ -43,7 +43,7 @@ inline result_t toBuffer(uuid_st* _uid, obj_ptr<Buffer_base>& retVal)
 result_t makeUUID(int32_t vers, int32_t ns, exlib::string name,
     obj_ptr<Buffer_base>& retVal)
 {
-    if (ns < uuid_base::__DNS || ns > uuid_base::__X509)
+    if (ns < uuid_base::C_DNS || ns > uuid_base::C_X509)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     uuid_st* _uid;
@@ -65,7 +65,7 @@ result_t makeUUID(int32_t vers, int32_t ns, exlib::string name,
 
 result_t uuid_base::node(obj_ptr<Buffer_base>& retVal)
 {
-    return makeUUID(UUID_MAKE_V1, uuid_base::__X509, "", retVal);
+    return makeUUID(UUID_MAKE_V1, uuid_base::C_X509, "", retVal);
 }
 
 result_t uuid_base::md5(int32_t ns, exlib::string name,
@@ -76,7 +76,7 @@ result_t uuid_base::md5(int32_t ns, exlib::string name,
 
 result_t uuid_base::random(obj_ptr<Buffer_base>& retVal)
 {
-    return makeUUID(UUID_MAKE_V4, uuid_base::__X509, "", retVal);
+    return makeUUID(UUID_MAKE_V4, uuid_base::C_X509, "", retVal);
 }
 
 result_t uuid_base::sha1(int32_t ns, exlib::string name,

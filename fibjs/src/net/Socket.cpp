@@ -47,16 +47,16 @@ result_t Socket::create(int32_t family, int32_t type)
     m_aio.m_family = family;
     m_aio.m_type = type;
 
-    if (family == net_base::__AF_INET)
+    if (family == net_base::C_AF_INET)
         family = AF_INET;
-    else if (family == net_base::__AF_INET6)
+    else if (family == net_base::C_AF_INET6)
         family = AF_INET6;
     else
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    if (type == net_base::__SOCK_STREAM)
+    if (type == net_base::C_SOCK_STREAM)
         type = SOCK_STREAM;
-    else if (type == net_base::__SOCK_DGRAM)
+    else if (type == net_base::C_SOCK_DGRAM)
         type = SOCK_DGRAM;
     else
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -258,7 +258,7 @@ result_t Socket::bind(exlib::string addr, int32_t port, bool allowIPv4)
     setsockopt(m_aio.m_fd, SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof(on));
 #endif
 
-    if (m_aio.m_family == net_base::__AF_INET6) {
+    if (m_aio.m_family == net_base::C_AF_INET6) {
         if (allowIPv4)
             on = 0;
 

@@ -51,7 +51,7 @@ result_t TcpServer::create(exlib::string addr, int32_t port,
 {
     result_t hr;
 
-    hr = Socket_base::_new(net_base::__AF_INET, net_base::__SOCK_STREAM,
+    hr = Socket_base::_new(net_base::C_AF_INET, net_base::C_SOCK_STREAM,
         m_socket);
     if (hr < 0)
         return hr;

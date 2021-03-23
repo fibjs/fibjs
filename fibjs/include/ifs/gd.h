@@ -24,35 +24,35 @@ class gd_base : public object_base {
 
 public:
     enum {
-        __NONE = 0,
-        __JPEG = 1,
-        __GIF = 2,
-        __PNG = 3,
-        __TIFF = 4,
-        __BMP = 5,
-        __WEBP = 6,
-        __TRUECOLOR = 0,
-        __PALETTE = 1,
-        __ARC = 0,
-        __CHORD = 1,
-        __NOFILL = 2,
-        __EDGED = 4,
-        __HORIZONTAL = 1,
-        __VERTICAL = 2,
-        __BOTH = 3,
-        __LEFT = 1,
-        __RIGHT = 2,
-        __MEAN_REMOVAL = 0,
-        __EDGEDETECT = 1,
-        __EMBOSS = 2,
-        __SELECTIVE_BLUR = 3,
-        __GAUSSIAN_BLUR = 4,
-        __NEGATE = 5,
-        __GRAYSCALE = 6,
-        __SMOOTH = 7,
-        __BRIGHTNESS = 8,
-        __CONTRAST = 9,
-        __COLORIZE = 10
+        C_NONE = 0,
+        C_JPEG = 1,
+        C_GIF = 2,
+        C_PNG = 3,
+        C_TIFF = 4,
+        C_BMP = 5,
+        C_WEBP = 6,
+        C_TRUECOLOR = 0,
+        C_PALETTE = 1,
+        C_ARC = 0,
+        C_CHORD = 1,
+        C_NOFILL = 2,
+        C_EDGED = 4,
+        C_HORIZONTAL = 1,
+        C_VERTICAL = 2,
+        C_BOTH = 3,
+        C_LEFT = 1,
+        C_RIGHT = 2,
+        C_MEAN_REMOVAL = 0,
+        C_EDGEDETECT = 1,
+        C_EMBOSS = 2,
+        C_SELECTIVE_BLUR = 3,
+        C_GAUSSIAN_BLUR = 4,
+        C_NEGATE = 5,
+        C_GRAYSCALE = 6,
+        C_SMOOTH = 7,
+        C_BRIGHTNESS = 8,
+        C_CONTRAST = 9,
+        C_COLORIZE = 10
     };
 
 public:
@@ -121,35 +121,35 @@ inline ClassInfo& gd_base::class_info()
     };
 
     static ClassData::ClassConst s_const[] = {
-        { "NONE", __NONE },
-        { "JPEG", __JPEG },
-        { "GIF", __GIF },
-        { "PNG", __PNG },
-        { "TIFF", __TIFF },
-        { "BMP", __BMP },
-        { "WEBP", __WEBP },
-        { "TRUECOLOR", __TRUECOLOR },
-        { "PALETTE", __PALETTE },
-        { "ARC", __ARC },
-        { "CHORD", __CHORD },
-        { "NOFILL", __NOFILL },
-        { "EDGED", __EDGED },
-        { "HORIZONTAL", __HORIZONTAL },
-        { "VERTICAL", __VERTICAL },
-        { "BOTH", __BOTH },
-        { "LEFT", __LEFT },
-        { "RIGHT", __RIGHT },
-        { "MEAN_REMOVAL", __MEAN_REMOVAL },
-        { "EDGEDETECT", __EDGEDETECT },
-        { "EMBOSS", __EMBOSS },
-        { "SELECTIVE_BLUR", __SELECTIVE_BLUR },
-        { "GAUSSIAN_BLUR", __GAUSSIAN_BLUR },
-        { "NEGATE", __NEGATE },
-        { "GRAYSCALE", __GRAYSCALE },
-        { "SMOOTH", __SMOOTH },
-        { "BRIGHTNESS", __BRIGHTNESS },
-        { "CONTRAST", __CONTRAST },
-        { "COLORIZE", __COLORIZE }
+        { "NONE", C_NONE },
+        { "JPEG", C_JPEG },
+        { "GIF", C_GIF },
+        { "PNG", C_PNG },
+        { "TIFF", C_TIFF },
+        { "BMP", C_BMP },
+        { "WEBP", C_WEBP },
+        { "TRUECOLOR", C_TRUECOLOR },
+        { "PALETTE", C_PALETTE },
+        { "ARC", C_ARC },
+        { "CHORD", C_CHORD },
+        { "NOFILL", C_NOFILL },
+        { "EDGED", C_EDGED },
+        { "HORIZONTAL", C_HORIZONTAL },
+        { "VERTICAL", C_VERTICAL },
+        { "BOTH", C_BOTH },
+        { "LEFT", C_LEFT },
+        { "RIGHT", C_RIGHT },
+        { "MEAN_REMOVAL", C_MEAN_REMOVAL },
+        { "EDGEDETECT", C_EDGEDETECT },
+        { "EMBOSS", C_EMBOSS },
+        { "SELECTIVE_BLUR", C_SELECTIVE_BLUR },
+        { "GAUSSIAN_BLUR", C_GAUSSIAN_BLUR },
+        { "NEGATE", C_NEGATE },
+        { "GRAYSCALE", C_GRAYSCALE },
+        { "SMOOTH", C_SMOOTH },
+        { "BRIGHTNESS", C_BRIGHTNESS },
+        { "CONTRAST", C_CONTRAST },
+        { "COLORIZE", C_COLORIZE }
     };
 
     static ClassData s_cd = {
@@ -173,7 +173,7 @@ inline void gd_base::s_static_create(const v8::FunctionCallbackInfo<v8::Value>& 
 
     ARG(int32_t, 0);
     ARG(int32_t, 1);
-    OPT_ARG(int32_t, 2, gd_base::__TRUECOLOR);
+    OPT_ARG(int32_t, 2, gd_base::C_TRUECOLOR);
 
     if (!cb.IsEmpty())
         hr = acb_create(v0, v1, v2, cb, args);

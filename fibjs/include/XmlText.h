@@ -16,19 +16,19 @@ namespace fibjs {
 class XmlText : public XmlText_base, public XmlNodeImpl {
 public:
     XmlText(XmlDocument_base* document, const char* data)
-        : XmlNodeImpl(document, this, xml_base::__TEXT_NODE)
+        : XmlNodeImpl(document, this, xml_base::C_TEXT_NODE)
         , m_data(data)
     {
     }
 
     XmlText(XmlDocument_base* document, exlib::string& data)
-        : XmlNodeImpl(document, this, xml_base::__TEXT_NODE)
+        : XmlNodeImpl(document, this, xml_base::C_TEXT_NODE)
         , m_data(data)
     {
     }
 
     XmlText(const XmlText& from)
-        : XmlNodeImpl(from.m_document, this, xml_base::__TEXT_NODE)
+        : XmlNodeImpl(from.m_document, this, xml_base::C_TEXT_NODE)
         , m_data(from.m_data)
     {
     }

@@ -21,13 +21,13 @@ void asyncLog(int32_t priority, exlib::string msg);
 
 void output(int32_t priority, exlib::string msg)
 {
-    if (priority == console_base::__ERROR)
+    if (priority == console_base::C_ERROR)
         msg = logger::error() + msg + COLOR_RESET;
 
-    if (priority != console_base::__PRINT)
+    if (priority != console_base::C_PRINT)
         msg += '\n';
 
-    asyncLog(console_base::__PRINT, msg);
+    asyncLog(console_base::C_PRINT, msg);
 }
 
 bool repl_command(exlib::string& line)
@@ -47,7 +47,7 @@ bool repl_command(exlib::string& line)
 
         Isolate* isolate = Isolate::current();
 
-        output(console_base::__INFO, help_str);
+        output(console_base::C_INFO, help_str);
         return true;
     }
 
@@ -64,7 +64,7 @@ bool repl_command(exlib::string& line)
 
     Isolate* isolate = Isolate::current();
 
-    output(console_base::__ERROR, cmd_word + ": command not found.");
+    output(console_base::C_ERROR, cmd_word + ": command not found.");
     return true;
 }
 
@@ -90,8 +90,8 @@ result_t SandBox::Context::repl()
 
     str_ver += fibjs_version;
     str_ver += '.';
-    output(console_base::__INFO, str_ver);
-    output(console_base::__INFO, "Type \".help\" for more information.");
+    output(console_base::C_INFO, str_ver);
+    output(console_base::C_INFO, "Type \".help\" for more information.");
 
     while (true) {
         if (!v.IsEmpty() && !v->IsUndefined())

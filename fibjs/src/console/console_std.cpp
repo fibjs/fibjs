@@ -171,18 +171,18 @@ result_t std_logger::write(AsyncEvent* ac)
 
     while ((p1 = m_workinglogs.getHead()) != 0) {
         exlib::string txt;
-        if (p1->m_priority == console_base::__NOTICE)
+        if (p1->m_priority == console_base::C_NOTICE)
             txt = logger::notice() + p1->m_msg + COLOR_RESET + "\n";
-        else if (p1->m_priority == console_base::__WARN)
+        else if (p1->m_priority == console_base::C_WARN)
             txt = logger::warn() + p1->m_msg + COLOR_RESET + "\n";
-        else if (p1->m_priority <= console_base::__ERROR)
+        else if (p1->m_priority <= console_base::C_ERROR)
             txt = logger::error() + p1->m_msg + COLOR_RESET + "\n";
-        else if (p1->m_priority == console_base::__PRINT)
+        else if (p1->m_priority == console_base::C_PRINT)
             txt = p1->m_msg;
         else
             txt = p1->m_msg + "\n";
 
-        out(txt, p1->m_priority <= console_base::__WARN);
+        out(txt, p1->m_priority <= console_base::C_WARN);
 
         delete p1;
     }

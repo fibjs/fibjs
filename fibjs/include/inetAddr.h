@@ -23,7 +23,7 @@ union inetAddr {
 
     int32_t family()
     {
-        return addr6.sin6_family == PF_INET6 ? net_base::__AF_INET6 : net_base::__AF_INET;
+        return addr6.sin6_family == PF_INET6 ? net_base::C_AF_INET6 : net_base::C_AF_INET;
     }
 
     int32_t port()
@@ -35,7 +35,7 @@ union inetAddr {
     {
         memset(this, 0, sizeof(inetAddr));
 
-        if (family == net_base::__AF_INET)
+        if (family == net_base::C_AF_INET)
             addr4.sin_family = PF_INET;
         else
             addr6.sin6_family = PF_INET6;

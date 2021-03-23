@@ -23,16 +23,16 @@ class hash_base : public object_base {
 
 public:
     enum {
-        __MD2 = 1,
-        __MD4 = 2,
-        __MD5 = 3,
-        __SHA1 = 4,
-        __SHA224 = 5,
-        __SHA256 = 6,
-        __SHA384 = 7,
-        __SHA512 = 8,
-        __RIPEMD160 = 9,
-        __SM3 = 10
+        C_MD2 = 1,
+        C_MD4 = 2,
+        C_MD5 = 3,
+        C_SHA1 = 4,
+        C_SHA224 = 5,
+        C_SHA256 = 6,
+        C_SHA384 = 7,
+        C_SHA512 = 8,
+        C_RIPEMD160 = 9,
+        C_SM3 = 10
     };
 
 public:
@@ -130,16 +130,16 @@ inline ClassInfo& hash_base::class_info()
     };
 
     static ClassData::ClassConst s_const[] = {
-        { "MD2", __MD2 },
-        { "MD4", __MD4 },
-        { "MD5", __MD5 },
-        { "SHA1", __SHA1 },
-        { "SHA224", __SHA224 },
-        { "SHA256", __SHA256 },
-        { "SHA384", __SHA384 },
-        { "SHA512", __SHA512 },
-        { "RIPEMD160", __RIPEMD160 },
-        { "SM3", __SM3 }
+        { "MD2", C_MD2 },
+        { "MD4", C_MD4 },
+        { "MD5", C_MD5 },
+        { "SHA1", C_SHA1 },
+        { "SHA224", C_SHA224 },
+        { "SHA256", C_SHA256 },
+        { "SHA384", C_SHA384 },
+        { "SHA512", C_SHA512 },
+        { "RIPEMD160", C_RIPEMD160 },
+        { "SM3", C_SM3 }
     };
 
     static ClassData s_cd = {

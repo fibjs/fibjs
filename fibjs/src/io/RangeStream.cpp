@@ -113,7 +113,7 @@ result_t RangeStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEve
             m_c_pos_snap = m_pThis->get_c_pos();
 
             if (m_c_pos_snap != m_pThis->real_pos)
-                m_pThis->m_stream->seek(m_pThis->real_pos, fs_constants_base::__SEEK_SET);
+                m_pThis->m_stream->seek(m_pThis->real_pos, fs_constants_base::C_SEEK_SET);
 
             next(read);
         }
@@ -131,7 +131,7 @@ result_t RangeStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEve
 
         ON_STATE(asyncRead, ready)
         {
-            result_t hr = m_pThis->m_stream->seek(m_c_pos_snap, fs_constants_base::__SEEK_SET);
+            result_t hr = m_pThis->m_stream->seek(m_c_pos_snap, fs_constants_base::C_SEEK_SET);
 
             if (n != CALL_RETURN_NULL || hr < 0)
                 return next(hr);
@@ -201,13 +201,13 @@ result_t RangeStream::copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, A
 result_t RangeStream::seek(int64_t offset, int32_t whence)
 {
     switch (whence) {
-    case fs_constants_base::__SEEK_SET:
+    case fs_constants_base::C_SEEK_SET:
         offset += b_pos;
         break;
-    case fs_constants_base::__SEEK_CUR:
+    case fs_constants_base::C_SEEK_CUR:
         offset += real_pos;
         break;
-    case fs_constants_base::__SEEK_END:
+    case fs_constants_base::C_SEEK_END:
         offset += e_pos;
         break;
     default:
@@ -277,7 +277,7 @@ result_t RangeStream::tell(int64_t& retVal)
 
 result_t RangeStream::rewind()
 {
-    return seek(0, fs_constants_base::__SEEK_SET);
+    return seek(0, fs_constants_base::C_SEEK_SET);
 }
 
 result_t RangeStream::size(int64_t& retVal)

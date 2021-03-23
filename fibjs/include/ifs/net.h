@@ -26,10 +26,10 @@ class net_base : public object_base {
 
 public:
     enum {
-        __AF_INET = 2,
-        __AF_INET6 = 10,
-        __SOCK_STREAM = 1,
-        __SOCK_DGRAM = 2
+        C_AF_INET = 2,
+        C_AF_INET6 = 10,
+        C_SOCK_STREAM = 1,
+        C_SOCK_DGRAM = 2
     };
 
 public:
@@ -112,10 +112,10 @@ inline ClassInfo& net_base::class_info()
     };
 
     static ClassData::ClassConst s_const[] = {
-        { "AF_INET", __AF_INET },
-        { "AF_INET6", __AF_INET6 },
-        { "SOCK_STREAM", __SOCK_STREAM },
-        { "SOCK_DGRAM", __SOCK_DGRAM }
+        { "AF_INET", C_AF_INET },
+        { "AF_INET6", C_AF_INET6 },
+        { "SOCK_STREAM", C_SOCK_STREAM },
+        { "SOCK_DGRAM", C_SOCK_DGRAM }
     };
 
     static ClassData s_cd = {
@@ -152,7 +152,7 @@ inline void net_base::s_static_resolve(const v8::FunctionCallbackInfo<v8::Value>
     ASYNC_METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, __AF_INET);
+    OPT_ARG(int32_t, 1, C_AF_INET);
 
     if (!cb.IsEmpty())
         hr = acb_resolve(v0, v1, cb, args);

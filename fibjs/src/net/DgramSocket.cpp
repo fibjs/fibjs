@@ -22,9 +22,9 @@ result_t _createSocket(exlib::string type, bool reuseAddr, obj_ptr<DgramSocket_b
     int32_t _type;
 
     if (type == "udp4")
-        _type = net_base::__AF_INET;
+        _type = net_base::C_AF_INET;
     else if (type == "udp6")
-        _type = net_base::__AF_INET6;
+        _type = net_base::C_AF_INET6;
     else
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
@@ -118,9 +118,9 @@ result_t DgramSocket::create(int32_t type, bool reuseAddr)
 {
     m_aio.m_family = type;
 
-    if (type == net_base::__AF_INET)
+    if (type == net_base::C_AF_INET)
         type = AF_INET;
-    else if (type == net_base::__AF_INET6)
+    else if (type == net_base::C_AF_INET6)
         type = AF_INET6;
 
 #ifdef _WIN32
@@ -224,7 +224,7 @@ result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncEvent* ac)
     if (m_bound)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (m_aio.m_family == net_base::__AF_INET6) {
+    if (m_aio.m_family == net_base::C_AF_INET6) {
         int32_t on = 0;
         setsockopt(m_aio.m_fd, IPPROTO_IPV6, IPV6_V6ONLY, (const char*)&on, sizeof(on));
     }
@@ -290,7 +290,7 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
     addr_info.setPort(port);
 
     if (address.empty())
-        address = m_aio.m_family == net_base::__AF_INET6 ? "::1" : "127.0.0.1";
+        address = m_aio.m_family == net_base::C_AF_INET6 ? "::1" : "127.0.0.1";
 
     if (addr_info.addr(address.c_str()) < 0) {
         exlib::string strAddr;
@@ -350,7 +350,7 @@ result_t DgramSocket::address(obj_ptr<NObject>& retVal)
 
     retVal = new NObject();
 
-    retVal->add("family", addr_info.family() == net_base::__AF_INET6 ? "IPv4" : "IPv4");
+    retVal->add("family", addr_info.family() == net_base::C_AF_INET6 ? "IPv4" : "IPv4");
     retVal->add("address", addr_info.str());
     retVal->add("port", addr_info.port());
 

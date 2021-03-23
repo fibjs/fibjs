@@ -18,7 +18,7 @@ namespace socket {
         Socket* s = new Socket();
         s->Ref();
 
-        result_t hr = s->create(net_base::__AF_INET, net_base::__SOCK_STREAM);
+        result_t hr = s->create(net_base::C_AF_INET, net_base::C_SOCK_STREAM);
         if (hr < 0) {
             s->Unref();
             Runtime::setError(hr);

@@ -201,13 +201,13 @@ public:
                 if (p1->m_block.IsEmpty()) {
                     coroutine_base::set_loglevel(oldlevel);
                     if (stack.size() == 1)
-                        asyncLog(console_base::__INFO, "");
+                        asyncLog(console_base::C_INFO, "");
 
                     str.append(logger::highLight());
                     str.append(p1->m_name);
                     str.append(COLOR_RESET);
 
-                    asyncLog(console_base::__INFO, str);
+                    asyncLog(console_base::C_INFO, str);
                     coroutine_base::set_loglevel(loglevel);
 
                     stack.append(p1);
@@ -241,9 +241,9 @@ public:
                         sprintf(buf, "%d) ", ++errcnt);
 
                         p1->m_error = true;
-                        if (loglevel > console_base::__ERROR)
+                        if (loglevel > console_base::C_ERROR)
                             ReportException(try_catch, 0);
-                        else if (loglevel == console_base::__ERROR) {
+                        else if (loglevel == console_base::C_ERROR) {
                             exlib::string str1(buf);
 
                             for (i = 1; i < (int32_t)stack.size(); i++) {
@@ -279,7 +279,7 @@ public:
 
                 coroutine_base::set_loglevel(oldlevel);
                 asyncLog(
-                    p1->m_error ? console_base::__ERROR : console_base::__INFO, str);
+                    p1->m_error ? console_base::C_ERROR : console_base::C_INFO, str);
                 coroutine_base::set_loglevel(loglevel);
 
                 for (j = (int32_t)stack.size() - 1; j >= 0; j--) {
@@ -311,25 +311,25 @@ public:
         }
 
         coroutine_base::set_loglevel(oldlevel);
-        asyncLog(console_base::__INFO, "");
+        asyncLog(console_base::C_INFO, "");
 
         da2.now();
         if (errcnt == 0) {
             sprintf(buf,
                 (logger::notice() + "  \xe2\x88\x9a %d tests completed" + COLOR_RESET + " (%dms)").c_str(),
                 cnt, (int32_t)da2.diff(da1));
-            asyncLog(console_base::__INFO, buf);
+            asyncLog(console_base::C_INFO, buf);
         } else {
             sprintf(buf, (logger::error() + "  × %d of %d tests failed" + COLOR_RESET + " (%dms)").c_str(),
                 errcnt, cnt, (int32_t)da2.diff(da1));
-            asyncLog(console_base::__ERROR, buf);
+            asyncLog(console_base::C_ERROR, buf);
         }
 
-        asyncLog(console_base::__INFO, "");
+        asyncLog(console_base::C_INFO, "");
 
         for (i = 0; i < (int32_t)msgs.size(); i++) {
-            asyncLog(console_base::__INFO, names[i]);
-            asyncLog(console_base::__ERROR, msgs[i]);
+            asyncLog(console_base::C_INFO, names[i]);
+            asyncLog(console_base::C_ERROR, msgs[i]);
         }
 
         clear();
