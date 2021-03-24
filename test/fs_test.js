@@ -195,6 +195,17 @@ describe('fs', () => {
         assert.equal(fs.exists(pathname1), false);
     });
 
+    it("mkdir recursive", () => {
+        var recursive_path = path.join(pathname, pathname);
+        fs.mkdir(recursive_path, {
+            recursive: true
+        });
+        assert.equal(fs.exists(recursive_path), true);
+
+        fs.rmdir(recursive_path);
+        fs.rmdir(pathname);
+    });
+
     it("file.size", () => {
         var f = fs.openFile(path.join(__dirname, 'fs_test.js'));
         var st = fs.stat(path.join(__dirname, 'fs_test.js'));

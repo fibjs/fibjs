@@ -428,6 +428,94 @@ result_t fs_base::mkdir(exlib::string path, int32_t mode, AsyncEvent* ac)
     return CALL_E_PENDDING;
 }
 
+result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEvent* ac)
+{
+    class AsyncUVMKDir : public uv_fs_t {
+    public:
+        AsyncUVMKDir(exlib::string path, AsyncEvent* ac)
+            : m_ac(ac)
+            , m_path(path)
+        {
+        }
+
+        ~AsyncUVMKDir()
+        {
+            uv_fs_req_cleanup(this);
+        }
+
+    public:
+        static void callback(uv_fs_t* req)
+        {
+            AsyncUVMKDir* pThis = (AsyncUVMKDir*)req;
+
+            int ret = uv_fs_get_result(req);
+            switch (ret) {
+            case 0:
+                if (pThis->m_paths.size() == 0) {
+                    pThis->m_ac->apost(0);
+                    delete pThis;
+                    return;
+                }
+
+                pThis->m_path = pThis->m_paths.back();
+                pThis->m_paths.pop_back();
+                break;
+            case UV_ENOENT:
+                pThis->m_paths.push_back(pThis->m_path);
+                os_dirname(pThis->m_path, pThis->m_path);
+                break;
+            default:
+                pThis->m_ac->apost(-uv_fs_get_system_error(req));
+                delete pThis;
+                return;
+            };
+
+            ret = uv_fs_mkdir(s_uv_loop, pThis, pThis->m_path.c_str(), pThis->mode, AsyncUVMKDir::callback);
+            if (ret != 0) {
+                pThis->m_ac->apost(CHECK_ERROR(Runtime::setError(uv_strerror(ret))));
+                delete pThis;
+            }
+        }
+
+    private:
+        AsyncEvent* m_ac;
+        exlib::string m_path;
+        std::vector<exlib::string> m_paths;
+    };
+
+    if (ac->isSync()) {
+        Isolate* isolate = Isolate::current();
+
+        ac->m_ctx.resize(2);
+
+        bool recursive = false;
+        GetConfigValue(isolate->m_isolate, opt, "recursive", recursive);
+        ac->m_ctx[0] = recursive;
+
+        int32_t mode = 0777;
+        GetConfigValue(isolate->m_isolate, opt, "mode", mode);
+        ac->m_ctx[1] = mode;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    bool recursive = ac->m_ctx[0].boolVal();
+    int32_t mode = ac->m_ctx[1].intVal();
+
+    if (!recursive)
+        return mkdir(path, mode, ac);
+
+    os_resolve(path);
+
+    int ret = uv_call([&] {
+        return uv_fs_mkdir(s_uv_loop, new AsyncUVMKDir(path, ac), path.c_str(), mode, AsyncUVMKDir::callback);
+    });
+    if (ret != 0)
+        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
+
+    return CALL_E_PENDDING;
+}
+
 result_t fs_base::rmdir(exlib::string path, AsyncEvent* ac)
 {
     if (ac->isSync())

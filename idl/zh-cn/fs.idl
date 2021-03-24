@@ -41,9 +41,23 @@ module fs
 
     /*! @brief 创建一个目录
      @param path 指定要创建的目录名
-     @param mode 指定文件权限，Windows 忽略此参数
+     @param mode 指定文件权限，Windows 忽略此参数，默认值: 0777
      */
     static mkdir(String path, Integer mode = 0777) async;
+
+    /*! @brief 创建一个目录
+
+     创建参数可以包含以下值：
+     ```JavaScript
+     {
+         recursive: false, // 指定是否父目录不存在是是否自动创建，默认值: false
+         mode: 0777 // 指定文件权限，Windows 忽略此参数，默认值: 0777
+     }
+     ```
+     @param path 指定要创建的目录名
+     @param opt 指定创建参数
+     */
+    static mkdir(String path, Object opt) async;
 
     /*! @brief 删除一个目录
      @param path 指定要删除的目录名
