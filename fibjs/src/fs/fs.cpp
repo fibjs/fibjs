@@ -432,9 +432,10 @@ result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
 {
     class AsyncUVMKDir : public uv_fs_t {
     public:
-        AsyncUVMKDir(exlib::string path, AsyncEvent* ac)
+        AsyncUVMKDir(exlib::string path, int32_t mode, AsyncEvent* ac)
             : m_ac(ac)
             , m_path(path)
+            , m_mode(mode)
         {
         }
 
@@ -470,7 +471,7 @@ result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
                 return;
             };
 
-            ret = uv_fs_mkdir(s_uv_loop, pThis, pThis->m_path.c_str(), pThis->mode, AsyncUVMKDir::callback);
+            ret = uv_fs_mkdir(s_uv_loop, pThis, pThis->m_path.c_str(), pThis->m_mode, AsyncUVMKDir::callback);
             if (ret != 0) {
                 pThis->m_ac->apost(CHECK_ERROR(Runtime::setError(uv_strerror(ret))));
                 delete pThis;
@@ -480,6 +481,7 @@ result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
     private:
         AsyncEvent* m_ac;
         exlib::string m_path;
+        int32_t m_mode;
         std::vector<exlib::string> m_paths;
     };
 
@@ -508,7 +510,7 @@ result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
     os_resolve(path);
 
     int ret = uv_call([&] {
-        return uv_fs_mkdir(s_uv_loop, new AsyncUVMKDir(path, ac), path.c_str(), mode, AsyncUVMKDir::callback);
+        return uv_fs_mkdir(s_uv_loop, new AsyncUVMKDir(path, mode, ac), path.c_str(), mode, AsyncUVMKDir::callback);
     });
     if (ret != 0)
         return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
