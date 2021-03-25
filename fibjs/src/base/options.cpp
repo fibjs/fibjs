@@ -85,7 +85,7 @@ void DcheckHandler(const char* file, int line, const char* message)
 {
     char p_msg[256];
     sprintf(p_msg, "Assert(DCheck) in %s, line %d: %s", file, line, message);
-    asyncLog(console_base::_DEBUG, p_msg);
+    asyncLog(console_base::C_DEBUG, p_msg);
 }
 #endif
 
