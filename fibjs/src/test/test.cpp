@@ -278,8 +278,10 @@ public:
                 }
 
                 coroutine_base::set_loglevel(oldlevel);
-                asyncLog(
-                    p1->m_error ? console_base::C_ERROR : console_base::C_INFO, str);
+                if (p1->m_error)
+                    asyncLog(console_base::C_INFO, logger::error() + str + COLOR_RESET);
+                else
+                    asyncLog(console_base::C_INFO, str);
                 coroutine_base::set_loglevel(loglevel);
 
                 for (j = (int32_t)stack.size() - 1; j >= 0; j--) {
@@ -322,14 +324,14 @@ public:
         } else {
             sprintf(buf, (logger::error() + "  × %d of %d tests failed" + COLOR_RESET + " (%dms)").c_str(),
                 errcnt, cnt, (int32_t)da2.diff(da1));
-            asyncLog(console_base::C_ERROR, buf);
+            asyncLog(console_base::C_INFO, buf);
         }
 
         asyncLog(console_base::C_INFO, "");
 
         for (i = 0; i < (int32_t)msgs.size(); i++) {
             asyncLog(console_base::C_INFO, names[i]);
-            asyncLog(console_base::C_ERROR, msgs[i]);
+            asyncLog(console_base::C_INFO, logger::error() + msgs[i] + COLOR_RESET);
         }
 
         clear();
