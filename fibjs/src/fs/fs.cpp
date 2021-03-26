@@ -449,8 +449,7 @@ result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
         {
             AsyncUVMKDir* pThis = (AsyncUVMKDir*)req;
 
-            int ret = uv_fs_get_result(req);
-            switch (ret) {
+            switch (uv_fs_get_result(req)) {
             case 0:
                 if (pThis->m_paths.size() == 0) {
                     pThis->m_ac->apost(0);
@@ -471,7 +470,7 @@ result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
                 return;
             };
 
-            ret = uv_fs_mkdir(s_uv_loop, pThis, pThis->m_path.c_str(), pThis->m_mode, AsyncUVMKDir::callback);
+            int32_t ret = uv_fs_mkdir(s_uv_loop, pThis, pThis->m_path.c_str(), pThis->m_mode, AsyncUVMKDir::callback);
             if (ret != 0) {
                 pThis->m_ac->apost(CHECK_ERROR(Runtime::setError(uv_strerror(ret))));
                 delete pThis;
@@ -678,10 +677,8 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncEven
         static void callback(uv_fs_t* req)
         {
             AsyncUVFSReadDir* pThis = (AsyncUVFSReadDir*)req;
-            int ret;
 
-            ret = uv_fs_get_result(req);
-            if (ret < 0) {
+            if (uv_fs_get_result(req) < 0) {
                 pThis->m_ac->apost(-uv_fs_get_system_error(req));
                 delete pThis;
                 return;

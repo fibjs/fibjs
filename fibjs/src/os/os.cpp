@@ -180,15 +180,15 @@ result_t os_base::cpus(v8::Local<v8::Array>& retVal)
         v8::Local<v8::Object> cputimes = v8::Object::New(isolate->m_isolate);
 
         cputimes->Set(isolate->NewString("user"),
-            v8::Number::New(isolate->m_isolate, s_cpu_infos[i].cpu_times.user));
+            v8::Number::New(isolate->m_isolate, (double)s_cpu_infos[i].cpu_times.user));
         cputimes->Set(isolate->NewString("nice"),
-            v8::Number::New(isolate->m_isolate, s_cpu_infos[i].cpu_times.nice));
+            v8::Number::New(isolate->m_isolate, (double)s_cpu_infos[i].cpu_times.nice));
         cputimes->Set(isolate->NewString("sys"),
-            v8::Number::New(isolate->m_isolate, s_cpu_infos[i].cpu_times.sys));
+            v8::Number::New(isolate->m_isolate, (double)s_cpu_infos[i].cpu_times.sys));
         cputimes->Set(isolate->NewString("idle"),
-            v8::Number::New(isolate->m_isolate, s_cpu_infos[i].cpu_times.idle));
+            v8::Number::New(isolate->m_isolate, (double)s_cpu_infos[i].cpu_times.idle));
         cputimes->Set(isolate->NewString("irq"),
-            v8::Number::New(isolate->m_isolate, s_cpu_infos[i].cpu_times.irq));
+            v8::Number::New(isolate->m_isolate, (double)s_cpu_infos[i].cpu_times.irq));
 
         cpuinfo->Set(isolate->NewString("model"), isolate->NewString(s_cpu_infos[i].model));
         cpuinfo->Set(isolate->NewString("speed"), v8::Number::New(isolate->m_isolate, s_cpu_infos[i].speed));

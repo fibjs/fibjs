@@ -110,7 +110,7 @@ public:
         return v->BooleanValue(this->context()).ToChecked();
     }
 
-    int toInteger(v8::Local<v8::Value> v)
+    int64_t toInteger(v8::Local<v8::Value> v)
     {
         return v->IntegerValue(this->context()).ToChecked();
     }

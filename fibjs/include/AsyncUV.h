@@ -39,8 +39,7 @@ public:
     {
         AsyncUVFS* pThis = (AsyncUVFS*)req;
 
-        int ret = uv_fs_get_result(req);
-        if (ret == 0)
+        if (uv_fs_get_result(req) == 0)
             pThis->m_ac->apost(0);
         else
             pThis->m_ac->apost(-uv_fs_get_system_error(req));
@@ -70,8 +69,7 @@ public:
     {
         AsyncUVFSResult* pThis = (AsyncUVFSResult*)req;
 
-        int ret = uv_fs_get_result(req);
-        if (ret == 0) {
+        if (uv_fs_get_result(req) == 0) {
             pThis->m_retVal = (const char*)pThis->ptr;
             pThis->m_ac->apost(0);
         } else

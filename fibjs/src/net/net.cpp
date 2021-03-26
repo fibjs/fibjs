@@ -210,8 +210,6 @@ result_t net_base::isIP(exlib::string ip, int32_t& retVal)
 
 result_t net_base::isIPv4(exlib::string ip, bool& retVal)
 {
-    result_t hr;
-
     retVal = true;
     sockaddr_in dst;
     if (uv_ip4_addr(ip.c_str(), 0, &dst))
@@ -222,8 +220,6 @@ result_t net_base::isIPv4(exlib::string ip, bool& retVal)
 
 result_t net_base::isIPv6(exlib::string ip, bool& retVal)
 {
-    result_t hr;
-
     retVal = true;
     sockaddr_in6 dst;
     if (uv_ip6_addr(ip.c_str(), 0, &dst))
