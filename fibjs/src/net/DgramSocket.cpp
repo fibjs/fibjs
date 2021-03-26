@@ -7,6 +7,8 @@
 
 #include "object.h"
 #include "ifs/dgram.h"
+#include "ifs/net.h"
+#include "inetAddr.h"
 #include "DgramSocket.h"
 #include "Buffer.h"
 #include "SimpleObject.h"
@@ -17,29 +19,28 @@ namespace fibjs {
 
 DECLARE_MODULE(dgram);
 
-result_t _createSocket(exlib::string type, bool reuseAddr, obj_ptr<DgramSocket_base>& retVal)
+int32_t get_family(exlib::string type)
 {
-    int32_t _type;
-
     if (type == "udp4")
-        _type = net_base::C_AF_INET;
+        return net_base::C_AF_INET;
     else if (type == "udp6")
-        _type = net_base::C_AF_INET6;
-    else
+        return net_base::C_AF_INET6;
+    return -1;
+}
+
+result_t dgram_base::createSocket(exlib::string type, obj_ptr<DgramSocket_base>& retVal)
+{
+    int32_t family = get_family(type);
+    if (family < 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     obj_ptr<DgramSocket> s = new DgramSocket();
-    result_t hr = s->create(_type, reuseAddr);
+    result_t hr = s->create(family, 0);
     if (hr < 0)
         return hr;
 
     retVal = s;
     return 0;
-}
-
-result_t dgram_base::createSocket(exlib::string type, obj_ptr<DgramSocket_base>& retVal)
-{
-    return _createSocket(type, false, retVal);
 }
 
 result_t dgram_base::createSocket(exlib::string type, v8::Local<v8::Function> callback,
@@ -65,41 +66,37 @@ result_t dgram_base::createSocket(v8::Local<v8::Object> opts, obj_ptr<DgramSocke
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
+    bool ipv6Only = false;
+    hr = GetConfigValue(isolate->m_isolate, opts, "ipv6Only", ipv6Only);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
     exlib::string type;
     hr = GetConfigValue(isolate->m_isolate, opts, "type", type);
     if (hr < 0)
         return hr;
 
-    hr = _createSocket(type, reuseAddr, retVal);
+    int32_t family = get_family(type);
+    if (family < 0)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    obj_ptr<DgramSocket> s = new DgramSocket();
+    hr = s->create(family, (reuseAddr ? UV_UDP_REUSEADDR : 0) | (ipv6Only ? UV_UDP_IPV6ONLY : 0));
     if (hr < 0)
         return hr;
 
-    int32_t size;
+    hr = GetConfigValue(isolate->m_isolate, opts, "recvBufferSize", s->m_recvbuf_size);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
 
-    hr = GetConfigValue(isolate->m_isolate, opts, "recvBufferSize", size);
-    if (hr != CALL_E_PARAMNOTOPTIONAL) {
-        if (hr < 0)
-            return hr;
-        hr = retVal->setRecvBufferSize(size);
-        if (hr < 0)
-            return hr;
-    }
+    hr = GetConfigValue(isolate->m_isolate, opts, "sendBufferSize", s->m_sendbuf_size);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
 
-    hr = GetConfigValue(isolate->m_isolate, opts, "sendBufferSize", size);
-    if (hr != CALL_E_PARAMNOTOPTIONAL) {
-        if (hr < 0)
-            return hr;
-        hr = retVal->setSendBufferSize(size);
-        if (hr < 0)
-            return hr;
-    }
+    retVal = s;
 
     return 0;
 }
-
-#ifdef _WIN32
-extern HANDLE s_hIocp;
-#endif
 
 result_t dgram_base::createSocket(v8::Local<v8::Object> opts, v8::Local<v8::Function> callback,
     obj_ptr<DgramSocket_base>& retVal)
@@ -114,136 +111,73 @@ result_t dgram_base::createSocket(v8::Local<v8::Object> opts, v8::Local<v8::Func
     return 0;
 }
 
-result_t DgramSocket::create(int32_t type, bool reuseAddr)
+result_t DgramSocket::create(int32_t family, int32_t flags)
 {
-    m_aio.m_family = type;
+    m_flags = flags;
+    m_family = family;
 
-    if (type == net_base::C_AF_INET)
-        type = AF_INET;
-    else if (type == net_base::C_AF_INET6)
-        type = AF_INET6;
-
-#ifdef _WIN32
-    m_aio.m_fd = WSASocketW(type, SOCK_DGRAM, IPPROTO_IP, NULL, 0, WSA_FLAG_OVERLAPPED);
-    if (m_aio.m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(SocketError());
-
-    CreateIoCompletionPort((HANDLE)m_aio.m_fd, s_hIocp, 0, 0);
-#else
-    m_aio.m_fd = socket(type, SOCK_DGRAM, 0);
-    if (m_aio.m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(SocketError());
-
-    fcntl(m_aio.m_fd, F_SETFL, fcntl(m_aio.m_fd, F_GETFL, 0) | O_NONBLOCK);
-    fcntl(m_aio.m_fd, F_SETFD, FD_CLOEXEC);
-#endif
-
-#ifdef Darwin
-    int32_t set_option = 1;
-    setsockopt(m_aio.m_fd, SOL_SOCKET, SO_NOSIGPIPE, &set_option,
-        sizeof(set_option));
-#endif
-
-    if (reuseAddr) {
-        int32_t on = 1;
-        setsockopt(m_aio.m_fd, SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof(on));
-    }
-
-    socklen_t len = sizeof(m_buf_size);
-    if (::getsockopt(m_aio.m_fd, SOL_SOCKET, SO_RCVBUF, (char*)&m_buf_size, &len) == SOCKET_ERROR)
-        m_buf_size = SOCKET_BUFF_SIZE;
-
-    return 0;
+    return uv_call([&] {
+        int32_t ret = uv_udp_init_ex(s_uv_loop, &m_udp, 0);
+        return ret ? CHECK_ERROR(SocketError()) : 0;
+    });
 }
 
 result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncEvent* ac)
 {
-    class asyncRecv : public AsyncState {
-    public:
-        asyncRecv(DgramSocket* pThis, ValueHolder* holder)
-            : AsyncState(NULL)
-            , m_pThis(pThis)
-            , m_holder(holder)
-        {
-            m_pThis->_emit("listening");
-            m_pThis->isolate_ref();
-            next(recv);
-        }
-
-        ~asyncRecv()
-        {
-            m_pThis->isolate_unref();
-        }
-
-    public:
-        ON_STATE(asyncRecv, recv)
-        {
-            if (m_msg) {
-                Variant v[2];
-
-                m_msg->get("data", v[0]);
-                v[1] = m_msg;
-
-                m_pThis->_emit("message", v, 2);
-
-                m_msg.Release();
-            }
-
-            return m_pThis->m_aio.recvfrom(m_pThis->m_buf_size, m_msg, this);
-        }
-
-        virtual int32_t error(int32_t v)
-        {
-            m_pThis->_emit("error", new EventInfo(m_pThis, "error", v, getResultMessage(v)));
-            return v;
-        }
-
-    private:
-        obj_ptr<DgramSocket> m_pThis;
-        obj_ptr<NObject> m_msg;
-        obj_ptr<ValueHolder> m_holder;
-    };
-
-    if (m_closed || m_bound)
+    if (m_bound)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync()) {
-        ac->m_ctx.resize(1);
-        obj_ptr<ValueHolder> holder = new ValueHolder(wrap());
-        ac->m_ctx[0] = holder;
+        m_holder = new ValueHolder(wrap());
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
     inetAddr addr_info;
 
-    addr_info.init(m_aio.m_family);
+    addr_info.init(m_family);
     addr_info.setPort(port);
-    if (addr_info.addr(addr) < 0)
+
+    if (addr_info.addr(addr) < 0) {
+        m_holder.Release();
         return CHECK_ERROR(CALL_E_INVALIDARG);
-
-    if (m_bound)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (m_aio.m_family == net_base::C_AF_INET6) {
-        int32_t on = 0;
-        setsockopt(m_aio.m_fd, IPPROTO_IPV6, IPV6_V6ONLY, (const char*)&on, sizeof(on));
     }
-
-    if (::bind(m_aio.m_fd, (struct sockaddr*)&addr_info, addr_info.size()) == SOCKET_ERROR)
-        return CHECK_ERROR(SocketError());
-
-    obj_ptr<ValueHolder> holder = (ValueHolder*)ac->m_ctx[0].object();
-    (new asyncRecv(this, holder))->post(0);
 
     m_bound = true;
 
-    return 0;
+    return uv_call([&] {
+        isolate_ref();
+
+        if (uv_udp_bind(&m_udp, (sockaddr*)&addr_info, m_flags & (UV_UDP_IPV6ONLY | UV_UDP_REUSEADDR))) {
+            stop_bind();
+            return CHECK_ERROR(SocketError());
+        }
+
+        if (m_recvbuf_size > 0)
+            uv_recv_buffer_size(&m_handle, &m_recvbuf_size);
+
+        if (m_sendbuf_size > 0)
+            uv_send_buffer_size(&m_handle, &m_sendbuf_size);
+
+        _emit("listening");
+
+        if (uv_udp_recv_start(&m_udp, on_alloc, on_recv)) {
+            stop_bind();
+            return CHECK_ERROR(SocketError());
+        }
+
+        return 0;
+    });
 }
 
 result_t DgramSocket::bind(v8::Local<v8::Object> opts, AsyncEvent* ac)
 {
+    if (m_bound)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (ac->isSync()) {
         Isolate* isolate = holder();
+
+        m_holder = new ValueHolder(wrap());
 
         result_t hr;
 
@@ -271,8 +205,40 @@ result_t DgramSocket::bind(v8::Local<v8::Object> opts, AsyncEvent* ac)
 result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address,
     int32_t& retVal, AsyncEvent* ac)
 {
-    if (m_closed)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+    class AsyncSend : public uv_udp_send_t {
+    public:
+        AsyncSend(Buffer_base* msg, int32_t port, inetAddr& addr_info, int32_t& retVal, AsyncEvent* ac)
+            : m_ac(ac)
+            , m_retVal(retVal)
+            , m_addr_info(addr_info)
+            , m_port(port)
+        {
+            msg->toString(m_strData);
+            m_buf = uv_buf_init((char*)m_strData.c_str(), (int32_t)m_strData.length());
+        }
+
+        static void callback(uv_udp_send_t* req, int status)
+        {
+            AsyncSend* pThis = (AsyncSend*)req;
+
+            if (status < 0)
+                pThis->m_ac->post(CHECK_ERROR(SocketError()));
+            else {
+                pThis->m_retVal = status;
+                pThis->m_ac->post(0);
+            }
+
+            delete pThis;
+        }
+
+    public:
+        AsyncEvent* m_ac;
+        int32_t& m_retVal;
+        exlib::string m_strData;
+        uv_buf_t m_buf;
+        inetAddr m_addr_info;
+        int32_t m_port;
+    };
 
     result_t hr;
     if (!m_bound) {
@@ -286,15 +252,15 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
 
     inetAddr addr_info;
 
-    addr_info.init(m_aio.m_family);
+    addr_info.init(m_family);
     addr_info.setPort(port);
 
     if (address.empty())
-        address = m_aio.m_family == net_base::C_AF_INET6 ? "::1" : "127.0.0.1";
+        address = m_family == net_base::C_AF_INET6 ? "::1" : "127.0.0.1";
 
     if (addr_info.addr(address.c_str()) < 0) {
         exlib::string strAddr;
-        hr = net_base::cc_resolve(address, m_aio.m_family, strAddr);
+        hr = net_base::cc_resolve(address, m_family, strAddr);
         if (hr < 0)
             return hr;
 
@@ -302,17 +268,23 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
             return CHECK_ERROR(CALL_E_INVALIDARG);
     }
 
-    exlib::string strData;
-    msg->toString(strData);
+    AsyncSend* _send = new AsyncSend(msg, port, addr_info, retVal, ac);
+    return uv_call([&] {
+        int32_t status = uv_udp_try_send(&m_udp, &_send->m_buf, 1, (sockaddr*)&addr_info);
+        if (status >= 0) {
+            delete _send;
+            retVal = status;
+            return 0;
+        }
 
-    if (::sendto(m_aio.m_fd, strData.c_str(), (int32_t)strData.length(), 0,
-            (sockaddr*)&addr_info, addr_info.size())
-        == SOCKET_ERROR)
+        if (status == UV_ENOSYS || status == UV_EAGAIN) {
+            if (uv_udp_send(_send, &m_udp, &_send->m_buf, 1, (sockaddr*)&addr_info, AsyncSend::callback))
+                return CHECK_ERROR(SocketError());
+            return CALL_E_PENDDING;
+        }
+
         return CHECK_ERROR(SocketError());
-
-    retVal = (int32_t)strData.length();
-
-    return 0;
+    });
 }
 
 result_t DgramSocket::send(Buffer_base* msg, int32_t offset, int32_t length, int32_t port,
@@ -320,9 +292,6 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t offset, int32_t length, int
 {
     if (offset < 0 || length <= 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
-
-    if (m_closed)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     result_t hr;
     if (!m_bound) {
@@ -343,59 +312,37 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t offset, int32_t length, int
 result_t DgramSocket::address(obj_ptr<NObject>& retVal)
 {
     inetAddr addr_info;
-    socklen_t sz = sizeof(addr_info);
+    int32_t sz = (int32_t)sizeof(addr_info);
 
-    if (::getsockname(m_aio.m_fd, (sockaddr*)&addr_info, &sz) == SOCKET_ERROR)
+    if (uv_udp_getsockname(&m_udp, (sockaddr*)&addr_info, &sz))
         return CHECK_ERROR(SocketError());
 
     retVal = new NObject();
 
-    retVal->add("family", addr_info.family() == net_base::C_AF_INET6 ? "IPv4" : "IPv4");
+    retVal->add("family", addr_info.family() == net_base::C_AF_INET6 ? "IPv6" : "IPv4");
     retVal->add("address", addr_info.str());
     retVal->add("port", addr_info.port());
 
     return 0;
 }
 
+static void on_close(uv_handle_t* handle)
+{
+    DgramSocket* pThis = container_of(handle, DgramSocket, m_handle);
+    pThis->_emit("close");
+    if (pThis->m_bound)
+        pThis->stop_bind();
+}
+
 result_t DgramSocket::close()
 {
-    class asyncClose : public AsyncState {
-    public:
-        asyncClose(DgramSocket* pThis)
-            : AsyncState(NULL)
-            , m_pThis(pThis)
-        {
-            next(close);
-        }
+    if (uv_is_closing(&m_handle))
+        return CALL_E_INVALID_CALL;
 
-    public:
-        ON_STATE(asyncClose, close)
-        {
-            return m_pThis->m_aio.close(next(closed));
-        }
-
-        ON_STATE(asyncClose, closed)
-        {
-            m_pThis->_emit("close");
-            return next();
-        }
-
-        virtual int32_t error(int32_t v)
-        {
-            m_pThis->_emit("error", new EventInfo(m_pThis, "error", v, getResultMessage(v)));
-            return v;
-        }
-
-    private:
-        obj_ptr<DgramSocket> m_pThis;
-    };
-
-    if (m_closed)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-    m_closed = true;
-
-    (new asyncClose(this))->apost(0);
-    return 0;
+    return uv_call([&] {
+        uv_close(&m_handle, on_close);
+        return 0;
+    });
 }
 
 result_t DgramSocket::close(v8::Local<v8::Function> callback)
@@ -407,11 +354,8 @@ result_t DgramSocket::close(v8::Local<v8::Function> callback)
 
 result_t DgramSocket::getRecvBufferSize(int32_t& retVal)
 {
-    if (m_closed)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    socklen_t len = sizeof(retVal);
-    if (::getsockopt(m_aio.m_fd, SOL_SOCKET, SO_RCVBUF, (char*)&retVal, &len) == SOCKET_ERROR)
+    retVal = 0;
+    if (uv_recv_buffer_size(&m_handle, &retVal))
         return CHECK_ERROR(SocketError());
 
     return 0;
@@ -419,11 +363,8 @@ result_t DgramSocket::getRecvBufferSize(int32_t& retVal)
 
 result_t DgramSocket::getSendBufferSize(int32_t& retVal)
 {
-    if (m_closed)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    socklen_t len = sizeof(retVal);
-    if (::getsockopt(m_aio.m_fd, SOL_SOCKET, SO_SNDBUF, (char*)&retVal, &len) == SOCKET_ERROR)
+    retVal = 0;
+    if (uv_send_buffer_size(&m_handle, &retVal))
         return CHECK_ERROR(SocketError());
 
     return 0;
@@ -431,23 +372,15 @@ result_t DgramSocket::getSendBufferSize(int32_t& retVal)
 
 result_t DgramSocket::setRecvBufferSize(int32_t size)
 {
-    if (m_closed)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (::setsockopt(m_aio.m_fd, SOL_SOCKET, SO_RCVBUF, (char*)&size, sizeof(size)) == SOCKET_ERROR)
+    if (uv_recv_buffer_size(&m_handle, &size))
         return CHECK_ERROR(SocketError());
-
-    m_buf_size = size;
 
     return 0;
 }
 
 result_t DgramSocket::setSendBufferSize(int32_t size)
 {
-    if (m_closed)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (::setsockopt(m_aio.m_fd, SOL_SOCKET, SO_SNDBUF, (char*)&size, sizeof(size)) == SOCKET_ERROR)
+    if (uv_send_buffer_size(&m_handle, &size))
         return CHECK_ERROR(SocketError());
 
     return 0;
@@ -455,12 +388,7 @@ result_t DgramSocket::setSendBufferSize(int32_t size)
 
 result_t DgramSocket::setBroadcast(bool flag)
 {
-    if (m_closed)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    int broadcastEnable = flag ? 1 : 0;
-    if (::setsockopt(m_aio.m_fd, SOL_SOCKET, SO_BROADCAST, (const char*)&broadcastEnable, sizeof(broadcastEnable))
-        == SOCKET_ERROR)
+    if (uv_udp_set_broadcast(&m_udp, flag ? 1 : 0))
         return CHECK_ERROR(SocketError());
 
     return 0;

@@ -57,16 +57,15 @@ public:
 
     virtual void Delete()
     {
-        result_t hr = uv_call([&] {
-            if (uv_is_closing(&m_handle))
-                return CALL_E_INVALID_CALL;
-
-            uv_close(&m_handle, on_delete);
-            return CALL_E_PENDDING;
-        });
-
-        if (hr != CALL_E_PENDDING)
+        if (uv_is_closing(&m_handle)) {
             delete this;
+            return;
+        }
+
+        uv_call([&] {
+            uv_close(&m_handle, on_delete);
+            return 0;
+        });
     }
 
 public:
