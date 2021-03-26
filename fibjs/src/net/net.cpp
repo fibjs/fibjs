@@ -213,36 +213,20 @@ result_t net_base::isIPv4(exlib::string ip, bool& retVal)
     result_t hr;
 
     retVal = true;
-    const char* src = ip.c_str();
-    unsigned char dst[sizeof(struct in6_addr)];
-    hr = inet_pton4(src, dst);
-    if (hr != 0)
+    sockaddr_in dst;
+    if (uv_ip4_addr(ip.c_str(), 0, &dst))
         retVal = false;
+
     return 0;
 }
 
 result_t net_base::isIPv6(exlib::string ip, bool& retVal)
 {
     result_t hr;
+
     retVal = true;
-    const char* src = ip.c_str();
-    int len;
-    char tmp[INET6_ADDRSTRLEN], *s, *p;
-    unsigned char dst[sizeof(struct in6_addr)];
-    s = (char*)src;
-    p = strchr(s, '%');
-    if (p != NULL) {
-        s = tmp;
-        len = (int32_t)(p - src);
-        if (len > INET6_ADDRSTRLEN - 1) {
-            retVal = false;
-            return 0;
-        }
-        memcpy(s, src, len);
-        s[len] = '\0';
-    }
-    hr = inet_pton6(s, dst);
-    if (hr != 0)
+    sockaddr_in6 dst;
+    if (uv_ip6_addr(ip.c_str(), 0, &dst))
         retVal = false;
 
     return 0;
