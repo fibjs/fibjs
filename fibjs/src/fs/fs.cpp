@@ -13,6 +13,7 @@
 #include "Stat.h"
 #include "File.h"
 #include "AsyncUV.h"
+#include "AsyncFS.h"
 
 namespace fibjs {
 
@@ -198,34 +199,6 @@ result_t fs_base::appendFile(exlib::string fname, Buffer_base* data, AsyncEvent*
     return hr;
 }
 
-result_t get_fs_stat(exlib::string fname, obj_ptr<Stat_base>& retVal, bool use_lstat = false)
-{
-    obj_ptr<Stat> pStat = new Stat();
-
-    result_t hr = !use_lstat ? pStat->getStat(fname) : pStat->getLstat(fname);
-    if (hr < 0)
-        return hr;
-
-    retVal = pStat;
-    return 0;
-}
-
-result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    return get_fs_stat(path, retVal);
-}
-
-result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    return get_fs_stat(path, retVal, true);
-}
-
 result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t length,
     int32_t position, int32_t& retVal, AsyncEvent* ac)
 {
@@ -277,6 +250,28 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
     }
 
     return buffer->write(strBuf, offset, (int32_t)strBuf.length(), "utf8", retVal);
+}
+
+result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return uv_async([&] {
+        return uv_fs_stat(s_uv_loop, new AsyncUVFSResult<obj_ptr<Stat_base>>(retVal, ac), path.c_str(),
+            AsyncUVFSResult<obj_ptr<Stat_base>>::callback);
+    });
+}
+
+result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return uv_async([&] {
+        return uv_fs_lstat(s_uv_loop, new AsyncUVFSResult<obj_ptr<Stat_base>>(retVal, ac), path.c_str(),
+            AsyncUVFSResult<obj_ptr<Stat_base>>::callback);
+    });
 }
 
 result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
@@ -370,7 +365,8 @@ result_t fs_base::readlink(exlib::string path, exlib::string& retVal, AsyncEvent
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return uv_async([&] {
-        return uv_fs_readlink(s_uv_loop, new AsyncUVFSResult(retVal, ac), path.c_str(), AsyncUVFSResult::callback);
+        return uv_fs_readlink(s_uv_loop, new AsyncUVFSResult<exlib::string>(retVal, ac), path.c_str(),
+            AsyncUVFSResult<exlib::string>::callback);
     });
 }
 
@@ -380,7 +376,8 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return uv_async([&] {
-        return uv_fs_realpath(s_uv_loop, new AsyncUVFSResult(retVal, ac), path.c_str(), AsyncUVFSResult::callback);
+        return uv_fs_realpath(s_uv_loop, new AsyncUVFSResult<exlib::string>(retVal, ac), path.c_str(),
+            AsyncUVFSResult<exlib::string>::callback);
     });
 }
 

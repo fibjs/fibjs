@@ -16,39 +16,7 @@
 
 namespace fibjs {
 
-result_t Stat::getStat(exlib::string path)
-{
-    uv_fs_t stat_req;
-
-    int ret = uv_call([&] {
-        return uv_fs_stat(s_uv_loop, &stat_req, path.c_str(), NULL);
-    });
-
-    if (ret != 0)
-        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
-
-    fill(path, &stat_req.statbuf);
-
-    return 0;
-}
-
-result_t Stat::getLstat(exlib::string path)
-{
-    uv_fs_t stat_req;
-
-    int ret = uv_call([&] {
-        return uv_fs_lstat(s_uv_loop, &stat_req, path.c_str(), NULL);
-    });
-
-    if (ret != 0)
-        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
-
-    fill(path, &stat_req.statbuf);
-
-    return 0;
-}
-
-void Stat::fill(exlib::string path, uv_stat_t* statbuf)
+void Stat::fill(exlib::string path, const uv_stat_t* statbuf)
 {
     path_base::basename(path, "", name);
 

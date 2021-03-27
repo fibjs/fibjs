@@ -92,9 +92,7 @@ public:
     virtual result_t isSocket(bool& retVal);
 
 public:
-    result_t getStat(exlib::string path);
-    result_t getLstat(exlib::string path);
-    void fill(exlib::string path, uv_stat_t* statbuf);
+    void fill(exlib::string path, const uv_stat_t* statbuf);
 
     void init();
     void init(Stat_base* st);
