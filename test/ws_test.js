@@ -591,11 +591,16 @@ describe('ws', () => {
             assert.equal(s.protocol, "test");
 
             var opened = false;
+            var tc = false;
             s.onopen = () => {
                 opened = true;
                 s.close();
+                tc = true;
             };
-            coroutine.sleep(100);
+
+            for (var i = 0; i < 1000 && !tc; i++)
+                coroutine.sleep(1);
+
             assert.equal(s.readyState, ws.CLOSED);
             assert.isTrue(opened);
 
@@ -608,11 +613,16 @@ describe('ws', () => {
             assert.equal(s1.url, "ws://127.0.0.1:" + (8814 + base_port) + "/ws");
             assert.equal(s1.protocol, "test");
             opened = false;
+            tc = false;
             s1.onopen = () => {
                 opened = true;
                 s1.close();
+                tc = true;
             };
-            coroutine.sleep(100);
+
+            for (var i = 0; i < 1000 && !tc; i++)
+                coroutine.sleep(1);
+
             assert.equal(s1.readyState, ws.CLOSED);
             assert.isFalse(opened);
         });
