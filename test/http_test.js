@@ -2157,7 +2157,7 @@ describe("http", () => {
                     r.response.write(r.address);
                     setTimeout(() => {
                         _stream.close();
-                    }, 10);
+                    }, 50);
                 } else if (r.address != "/gzip_test") {
                     r.response.addHeader("set-cookie", "request=value; domain=127.0.0.1; path=/request");
                     r.response.addHeader("set-cookie", "request1=value; domain=127.0.0.1; path=/request");
