@@ -8,6 +8,17 @@ test.setup();
 var base_port = coroutine.vmid * 10000;
 const test_util = require('./test_util');
 
+var has_ipv6 = false;
+
+var ni = os.networkInterfaces();
+
+for (var n in ni) {
+    ni[n].forEach((c) => {
+        if (c.family == 'IPv6')
+            has_ipv6 = true;
+    });
+}
+
 describe('dgram', () => {
     it('create/close', () => {
         var t = false;
@@ -124,29 +135,6 @@ describe('dgram', () => {
         socket.bind(0, "127.0.0.1");
     });
 
-    it('ipv6 address', done => {
-        const socket = dgram.createSocket('udp6');
-
-        socket.on('listening', () => {
-            try {
-                const address = socket.address();
-
-                assert.strictEqual(address.address, "::1");
-                assert.strictEqual(typeof address.port, 'number');
-                assert.ok(address.port > 0);
-                assert.strictEqual(address.family, 'IPv6');
-
-                done();
-            } catch (e) {
-                done(e);
-            } finally {
-                socket.close();
-            }
-        });
-
-        socket.bind(0, "::1");
-    });
-
     function test_message(name, value, port) {
         it(`send ${name}`, done => {
             var t = false;
@@ -180,35 +168,61 @@ describe('dgram', () => {
     test_message('empty message', "", 1003);
     test_message('big message', new Buffer(4000).hex(), 1004);
 
-    it('send/message ipv6', done => {
-        var t = false;
-        const s = dgram.createSocket({
-            type: 'udp6',
-            ipv6Only: true
-        });
-        s.on('message', (msg, addr) => {
-            s.off('message');
-            s.on('message', (msg, addr) => {
-                c.close();
-                s.close();
+    if (has_ipv6)
+        describe("ipv6", () => {
+            it('ipv6 address', done => {
+                const socket = dgram.createSocket('udp6');
 
-                done();
+                socket.on('listening', () => {
+                    try {
+                        const address = socket.address();
+
+                        assert.strictEqual(address.address, "::1");
+                        assert.strictEqual(typeof address.port, 'number');
+                        assert.ok(address.port > 0);
+                        assert.strictEqual(address.family, 'IPv6');
+
+                        done();
+                    } catch (e) {
+                        done(e);
+                    } finally {
+                        socket.close();
+                    }
+                });
+
+                socket.bind(0, "::1");
             });
 
-            assert.equal(msg.toString(), "0123456");
-            s.send(msg, addr.port, addr.address);
+            it('send/message ipv6', done => {
+                var t = false;
+                const s = dgram.createSocket({
+                    type: 'udp6',
+                    ipv6Only: true
+                });
+                s.on('message', (msg, addr) => {
+                    s.off('message');
+                    s.on('message', (msg, addr) => {
+                        c.close();
+                        s.close();
+
+                        done();
+                    });
+
+                    assert.equal(msg.toString(), "0123456");
+                    s.send(msg, addr.port, addr.address);
+                });
+
+                s.bind(base_port + 1005);
+
+                const c = dgram.createSocket('udp6');
+                c.on('message', (msg, addr) => {
+                    assert.equal(msg.toString(), "0123456");
+                    c.send(msg, addr.port, addr.address);
+                });
+
+                c.send("0123456", base_port + 1005);
+            });
         });
-
-        s.bind(base_port + 1005);
-
-        const c = dgram.createSocket('udp6');
-        c.on('message', (msg, addr) => {
-            assert.equal(msg.toString(), "0123456");
-            c.send(msg, addr.port, addr.address);
-        });
-
-        c.send("0123456", base_port + 1005);
-    });
 
     it("broadcast", () => {
         var t = false;
