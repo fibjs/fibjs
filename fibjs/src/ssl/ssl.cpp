@@ -165,8 +165,7 @@ result_t ssl_base::connect(exlib::string url, X509Cert_base* crt, PKey_base* key
         ON_STATE(asyncConnect, connect)
         {
             m_sock = new Socket();
-            m_sock->create(m_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET,
-                net_base::C_SOCK_STREAM);
+            m_sock->create(m_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET);
 
             m_sock->set_timeout(m_timeout);
             return m_sock->connect(m_host, m_port, next(handshake));

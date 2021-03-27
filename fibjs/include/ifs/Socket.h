@@ -25,9 +25,8 @@ class Socket_base : public Stream_base {
 
 public:
     // Socket_base
-    static result_t _new(int32_t family, int32_t type, obj_ptr<Socket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(int32_t family, obj_ptr<Socket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_family(int32_t& retVal) = 0;
-    virtual result_t get_type(int32_t& retVal) = 0;
     virtual result_t get_remoteAddress(exlib::string& retVal) = 0;
     virtual result_t get_remotePort(int32_t& retVal) = 0;
     virtual result_t get_localAddress(exlib::string& retVal) = 0;
@@ -40,9 +39,7 @@ public:
     virtual result_t listen(int32_t backlog) = 0;
     virtual result_t accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t recv(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t recvfrom(int32_t bytes, obj_ptr<NObject>& retVal, AsyncEvent* ac) = 0;
     virtual result_t send(Buffer_base* data, AsyncEvent* ac) = 0;
-    virtual result_t sendto(Buffer_base* data, exlib::string host, int32_t port, AsyncEvent* ac) = 0;
 
 public:
     template <typename T>
@@ -51,7 +48,6 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_family(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_remoteAddress(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_remotePort(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_localAddress(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -63,17 +59,13 @@ public:
     static void s_listen(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_accept(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_recv(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_recvfrom(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_send(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_sendto(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBER2(Socket_base, connect, exlib::string, int32_t);
     ASYNC_MEMBERVALUE1(Socket_base, accept, obj_ptr<Socket_base>);
     ASYNC_MEMBERVALUE2(Socket_base, recv, int32_t, obj_ptr<Buffer_base>);
-    ASYNC_MEMBERVALUE2(Socket_base, recvfrom, int32_t, obj_ptr<NObject>);
     ASYNC_MEMBER1(Socket_base, send, Buffer_base*);
-    ASYNC_MEMBER3(Socket_base, sendto, Buffer_base*, exlib::string, int32_t);
 };
 }
 
@@ -92,17 +84,12 @@ inline ClassInfo& Socket_base::class_info()
         { "acceptSync", s_accept, false },
         { "recv", s_recv, false },
         { "recvSync", s_recv, false },
-        { "recvfrom", s_recvfrom, false },
-        { "recvfromSync", s_recvfrom, false },
         { "send", s_send, false },
-        { "sendSync", s_send, false },
-        { "sendto", s_sendto, false },
-        { "sendtoSync", s_sendto, false }
+        { "sendSync", s_send, false }
     };
 
     static ClassData::ClassProperty s_property[] = {
         { "family", s_get_family, block_set, false },
-        { "type", s_get_type, block_set, false },
         { "remoteAddress", s_get_remoteAddress, block_set, false },
         { "remotePort", s_get_remotePort, block_set, false },
         { "localAddress", s_get_localAddress, block_set, false },
@@ -134,12 +121,11 @@ void Socket_base::__new(const T& args)
     METHOD_NAME("new Socket()");
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(2, 0);
+    METHOD_OVER(1, 0);
 
     OPT_ARG(int32_t, 0, net_base::C_AF_INET);
-    OPT_ARG(int32_t, 1, net_base::C_SOCK_STREAM);
 
-    hr = _new(v0, v1, vr, args.This());
+    hr = _new(v0, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -153,19 +139,6 @@ inline void Socket_base::s_get_family(v8::Local<v8::Name> property, const v8::Pr
     PROPERTY_ENTER();
 
     hr = pInst->get_family(vr);
-
-    METHOD_RETURN();
-}
-
-inline void Socket_base::s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    int32_t vr;
-
-    METHOD_NAME("Socket.type");
-    METHOD_INSTANCE(Socket_base);
-    PROPERTY_ENTER();
-
-    hr = pInst->get_type(vr);
 
     METHOD_RETURN();
 }
@@ -343,26 +316,6 @@ inline void Socket_base::s_recv(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void Socket_base::s_recvfrom(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<NObject> vr;
-
-    METHOD_NAME("Socket.recvfrom");
-    METHOD_INSTANCE(Socket_base);
-    METHOD_ENTER();
-
-    ASYNC_METHOD_OVER(1, 0);
-
-    OPT_ARG(int32_t, 0, -1);
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_recvfrom(v0, cb, args);
-    else
-        hr = pInst->ac_recvfrom(v0, vr);
-
-    METHOD_RETURN();
-}
-
 inline void Socket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_NAME("Socket.send");
@@ -377,26 +330,6 @@ inline void Socket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& args)
         hr = pInst->acb_send(v0, cb, args);
     else
         hr = pInst->ac_send(v0);
-
-    METHOD_VOID();
-}
-
-inline void Socket_base::s_sendto(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("Socket.sendto");
-    METHOD_INSTANCE(Socket_base);
-    METHOD_ENTER();
-
-    ASYNC_METHOD_OVER(3, 3);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(exlib::string, 1);
-    ARG(int32_t, 2);
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_sendto(v0, v1, v2, cb, args);
-    else
-        hr = pInst->ac_sendto(v0, v1, v2);
 
     METHOD_VOID();
 }

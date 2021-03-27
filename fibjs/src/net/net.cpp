@@ -161,7 +161,7 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
 
     obj_ptr<Socket_base> socket;
 
-    hr = Socket_base::_new(family, net_base::C_SOCK_STREAM, socket);
+    hr = Socket_base::_new(family, socket);
     if (hr < 0)
         return hr;
 

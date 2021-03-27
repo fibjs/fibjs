@@ -78,8 +78,7 @@ describe("net", () => {
             } catch (e) {}
         }
 
-        var s = new net.Socket(net_config.family,
-            net.SOCK_STREAM);
+        var s = new net.Socket(net_config.family);
         test_util.push(s);
 
         s.bind(8080 + base_port);
@@ -88,7 +87,7 @@ describe("net", () => {
         coroutine.start(accept, s);
 
         function conn_socket() {
-            var s1 = new net.Socket(net_config.family, net.SOCK_STREAM);
+            var s1 = new net.Socket(net_config.family);
             s1.connect(net_config.address, 8080 + base_port);
             console.log(s1.remoteAddress, s1.remotePort, "<-",
                 s1.localAddress, s1.localPort);
@@ -111,7 +110,7 @@ describe("net", () => {
         conn();
 
         assert.throws(() => {
-            var s1 = new net.Socket(net_config.family, net.SOCK_STREAM);
+            var s1 = new net.Socket(net_config.family);
             s1.connect("999.999.999.999", 8080 + base_port);
         });
     });
@@ -138,7 +137,7 @@ describe("net", () => {
             } catch (e) {}
         }
 
-        var s1 = new net.Socket(net_config.family, net.SOCK_STREAM);
+        var s1 = new net.Socket(net_config.family);
         test_util.push(s1);
 
         s1.bind(8081 + base_port);
@@ -191,7 +190,7 @@ describe("net", () => {
             } catch (e) {}
         }
 
-        var s2 = new net.Socket(net_config.family, net.SOCK_STREAM);
+        var s2 = new net.Socket(net_config.family);
         test_util.push(s2);
 
         s2.bind(8082 + base_port);
@@ -206,61 +205,6 @@ describe("net", () => {
         assert.equal('d', c1.read(3));
     });
 
-    describe("udp", () => {
-        it("sendto/recvfrom", () => {
-            setTimeout(() => {
-                var c = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
-                c.sendto("aaa", "127.0.0.1", 8888);
-            }, 100);
-
-            var s = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
-            s.bind(8888);
-
-            assert.equal(s.recvfrom().data.toString(), "aaa");
-            s.close();
-        });
-
-        it("recvfrom address", () => {
-            var data;
-            setTimeout(() => {
-                var c = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
-                c.sendto("aaa", "127.0.0.1", 8890);
-                data = c.recvfrom();
-                console.log(data);
-            }, 100);
-
-            var s = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
-            s.bind(8890);
-
-            var d = s.recvfrom();
-            console.log(d);
-            s.sendto("bbb", d.address, d.port);
-
-            coroutine.sleep(100);
-            assert.equal(data.data.toString(), "bbb");
-            s.close();
-        });
-
-        it("broadcast", () => {
-            var s = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
-            s.bind(8889);
-
-            setTimeout(() => {
-                var c = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
-
-                try {
-                    c.sendto("bbb", "255.255.255.255", 8889);
-                } catch (e) {
-                    s.close();
-                    throw e;
-                }
-            }, 100);
-
-            assert.equal(s.recvfrom().data.toString(), "bbb");
-            s.close();
-        });
-    });
-
     describe("re-entrant", () => {
 
         it("accept", () => {
@@ -271,7 +215,7 @@ describe("net", () => {
                 t = n;
             }
 
-            var s2 = new net.Socket(net_config.family, net.SOCK_STREAM);
+            var s2 = new net.Socket(net_config.family);
             test_util.push(s2);
 
             s2.bind(8083 + base_port);
@@ -314,7 +258,7 @@ describe("net", () => {
                 coroutine.start(recv2, c, "4567", 2);
             }
 
-            var s2 = new net.Socket(net_config.family, net.SOCK_STREAM);
+            var s2 = new net.Socket(net_config.family);
             test_util.push(s2);
 
             s2.bind(8084 + base_port);
@@ -349,7 +293,7 @@ describe("net", () => {
             } catch (e) {}
         }
 
-        var s2 = new net.Socket(net_config.family, net.SOCK_STREAM);
+        var s2 = new net.Socket(net_config.family);
         test_util.push(s2);
 
         s2.bind(8085 + base_port);
