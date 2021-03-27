@@ -213,7 +213,29 @@ function evevt_test(name, e) {
             assert.equal(e.on('test3', t1), e);
             assert.equal(e.on('test3', t2), e);
 
+            e.emit('test2', 20, 10);
+            assert.equal(20820, v1);
+
             assert.equal(e.removeAllListeners(['test2', "test3"]), e);
+
+            e.emit('test2', 20, 10);
+            assert.equal(20820, v1);
+        });
+
+        it("removeAllListeners(name)", () => {
+            assert.equal(e.on('test2', t1), e);
+            assert.equal(e.on('test2', t2), e);
+
+            assert.equal(e.on('test3', t1), e);
+            assert.equal(e.on('test3', t2), e);
+
+            e.emit('test2', 20, 10);
+            assert.equal(22064, v1);
+
+            assert.equal(e.removeAllListeners(), e);
+
+            e.emit('test2', 20, 10);
+            assert.equal(22064, v1);
         });
 
         it("eventNames()", () => {
