@@ -591,15 +591,15 @@ describe('ws', () => {
             assert.equal(s.protocol, "test");
 
             var opened = false;
-            var tc = false;
             s.onopen = () => {
                 opened = true;
                 s.close();
-                tc = true;
             };
 
-            for (var i = 0; i < 1000 && !tc; i++)
-                coroutine.sleep(1);
+            for (var i = 0; i < 1000 && !opened; i++) {
+                console.log(opened);
+                coroutine.sleep(5);
+            }
 
             assert.equal(s.readyState, ws.CLOSED);
             assert.isTrue(opened);
@@ -612,19 +612,17 @@ describe('ws', () => {
             });
             assert.equal(s1.url, "ws://127.0.0.1:" + (8814 + base_port) + "/ws");
             assert.equal(s1.protocol, "test");
-            opened = false;
-            tc = false;
-            s1.onopen = () => {
-                opened = true;
+            var errored = false;
+            s1.onerror = () => {
+                errored = true;
                 s1.close();
-                tc = true;
             };
 
-            for (var i = 0; i < 1000 && !tc; i++)
-                coroutine.sleep(1);
+            for (var i = 0; i < 1000 && !errored; i++)
+                coroutine.sleep(5);
 
             assert.equal(s1.readyState, ws.CLOSED);
-            assert.isFalse(opened);
+            assert.isTrue(errored);
         });
 
         it("specialize httpClient", () => {
@@ -817,7 +815,7 @@ describe('ws', () => {
             };
 
             for (var i = 0; i < 1000 && !tc; i++)
-                coroutine.sleep(1);
+                coroutine.sleep(5);
 
             assert.isTrue(tc);
             assert.equal(s.readyState, ws.CLOSED);
@@ -839,7 +837,7 @@ describe('ws', () => {
             };
 
             for (var i = 0; i < 1000 && !tc; i++)
-                coroutine.sleep(1);
+                coroutine.sleep(5);
 
             assert.isTrue(tc);
             assert.equal(s.readyState, ws.CLOSED);
@@ -865,7 +863,7 @@ describe('ws', () => {
             };
 
             for (var i = 0; i < 1000 && !tc; i++)
-                coroutine.sleep(1);
+                coroutine.sleep(5);
 
             assert.isTrue(te);
             assert.isTrue(tc);
@@ -922,7 +920,7 @@ describe('ws', () => {
                 };
 
                 for (var i = 0; i < 1000 && !tc; i++)
-                    coroutine.sleep(1);
+                    coroutine.sleep(5);
 
                 assert.isFalse(t);
                 assert.isTrue(te);
@@ -955,7 +953,7 @@ describe('ws', () => {
                 };
 
                 for (var i = 0; i < 1000 && !tc; i++)
-                    coroutine.sleep(1);
+                    coroutine.sleep(5);
 
                 assert.isFalse(t);
                 assert.isTrue(te);
@@ -998,7 +996,7 @@ describe('ws', () => {
 
                 s = undefined;
                 test_util.gc();
-                coroutine.sleep(10);
+                coroutine.sleep(5);
                 test_util.gc();
                 assert.equal(test_util.countObject('WebSocket'), no1);
             });

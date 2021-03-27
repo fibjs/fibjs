@@ -468,7 +468,7 @@ describe("timer", () => {
             });
             var t2 = new Date();
             assert.greaterThan(t2 - t1, 25);
-            assert.lessThan(t2 - t1, 120);
+            assert.lessThan(t2 - t1, 200);
         });
 
         it("error", () => {
