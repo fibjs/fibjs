@@ -6,9 +6,14 @@ var child_process = require('child_process');
 var path = require('path');
 var coroutine = require('coroutine');
 var uuid = require('uuid');
+var test_util = require('./test_util');
 
-var { rmFile } = require('./_helpers/fs')
-var { ensureDirectoryExisted } = require('./_helpers/process');
+var {
+    rmFile
+} = require('./_helpers/fs')
+var {
+    ensureDirectoryExisted
+} = require('./_helpers/process');
 
 test.setup();
 
@@ -28,6 +33,11 @@ describe('fs.watch*', () => {
     var delFile = (rel) => {
         fs.unlink(rel)
     }
+
+    after(() => {
+        test_util.cleanup_folder(path.resolve(__dirname, './fswatch_files'));
+        test_util.cleanup_folder(path.resolve(__dirname, './fs_watchfile_output'));
+    })
 
     describe("fs.watch()", () => {
         before(() => {
@@ -147,10 +157,14 @@ describe('fs.watch*', () => {
                 }
                 switch (changeEventSource) {
                     case 'listener':
-                        watcher = fs.watch(relfile, { recursive }, _handler)
+                        watcher = fs.watch(relfile, {
+                            recursive
+                        }, _handler)
                         break
                     case 'register':
-                        watcher = fs.watch(relfile, { recursive })
+                        watcher = fs.watch(relfile, {
+                            recursive
+                        })
                         watcher.on('change', _handler)
                         break
                 }
@@ -187,19 +201,33 @@ describe('fs.watch*', () => {
             }
 
             it(`event: 'change', from listener`, (next) => {
-                proc({ changeEventSource: 'listener', next });
+                proc({
+                    changeEventSource: 'listener',
+                    next
+                });
             });
 
             it(`event: 'change', from listener, recursive`, (next) => {
-                proc({ changeEventSource: 'listener', next, recursive: true });
+                proc({
+                    changeEventSource: 'listener',
+                    next,
+                    recursive: true
+                });
             });
 
             it(`event: 'change', from register`, (next) => {
-                proc({ changeEventSource: 'register', next });
+                proc({
+                    changeEventSource: 'register',
+                    next
+                });
             });
 
             it(`event: 'change', from register, recursive`, (next) => {
-                proc({ changeEventSource: 'register', next, recursive: true });
+                proc({
+                    changeEventSource: 'register',
+                    next,
+                    recursive: true
+                });
             });
         });
 
@@ -261,11 +289,17 @@ describe('fs.watch*', () => {
             }
 
             it(`event: 'rename', from listener`, (next) => {
-                proc({ changeEventSource: 'listener', next });
+                proc({
+                    changeEventSource: 'listener',
+                    next
+                });
             });
 
             it(`event: 'rename', from register`, (next) => {
-                proc({ changeEventSource: 'register', next });
+                proc({
+                    changeEventSource: 'register',
+                    next
+                });
             });
         });
 
@@ -332,11 +366,17 @@ describe('fs.watch*', () => {
             }
 
             it(`event: 'rename', from listener`, (next) => {
-                proc({ changeEventSource: 'listener', next });
+                proc({
+                    changeEventSource: 'listener',
+                    next
+                });
             });
 
             it(`event: 'rename', from register`, (next) => {
-                proc({ changeEventSource: 'register', next });
+                proc({
+                    changeEventSource: 'register',
+                    next
+                });
             });
         });
     })
@@ -379,7 +419,7 @@ describe('fs.watch*', () => {
 
                 const watcher = fs.watchFile(
                     resolve_reltocwd(relpath),
-                    () => { }
+                    () => {}
                 )
 
                 for (let i = 0; i < 10; i++)
@@ -395,7 +435,7 @@ describe('fs.watch*', () => {
                 while (++j < 20) {
                     const watcher = fs.watchFile(
                         resolve_reltocwd(relpath),
-                        () => { }
+                        () => {}
                     )
 
                     coroutine.sleep(1);
@@ -411,8 +451,9 @@ describe('fs.watch*', () => {
                 writeFile(target, '')
 
                 const watcher = fs.watchFile(
-                    target,
-                    { interval: 100 },
+                    target, {
+                        interval: 100
+                    },
                     () => {
                         watcher.close();
                         triggedCallback = true;
@@ -461,7 +502,9 @@ describe('fs.watch*', () => {
             it("fs.watchFile nil", () => {
                 let nilTuple = []
                 let onlyOnceCount = 0;
-                const watcher = fs.watchFile(relfile, { interval: 50 }, (cur, prev) => {
+                const watcher = fs.watchFile(relfile, {
+                    interval: 50
+                }, (cur, prev) => {
                     triggeredThoughWatchNil = true;
                     onlyOnceCount++;
                     nilTuple = [cur, prev]
@@ -489,8 +532,9 @@ describe('fs.watch*', () => {
                 var TRIGGER_TIME = 100;
 
                 const watcher = fs.watchFile(
-                    target,
-                    { interval: 100 },
+                    target, {
+                        interval: 100
+                    },
                     (curStat, prevStat) => {
                         // should be called
                         assert.isObject(prevStat)
@@ -526,8 +570,9 @@ describe('fs.watch*', () => {
 
                 let noTriggered = true;
                 const watcher = fs.watchFile(
-                    target,
-                    { interval: 100 },
+                    target, {
+                        interval: 100
+                    },
                     (curStat, prevStat) => {
                         // should be called
                         assert.isObject(prevStat)
@@ -551,8 +596,9 @@ describe('fs.watch*', () => {
 
                 let calledCount = 0;
                 const watcher = fs.watchFile(
-                    target,
-                    { interval: 100 },
+                    target, {
+                        interval: 100
+                    },
                     (curStat, prevStat) => {
                         // should be called once only
                         assert.isObject(prevStat)
@@ -614,8 +660,9 @@ describe('fs.watch*', () => {
                     flag2 = 'canceled_onchange'
                 };
                 const watcher = fs.watchFile(
-                    target,
-                    { interval: 100 },
+                    target, {
+                        interval: 100
+                    },
                     canceled_onchange
                 );
 
@@ -649,7 +696,9 @@ describe('fs.watch*', () => {
 
                 if (changeEventSource === 'register') {
                     assert.throws(() => {
-                        fs.watchFile(relfile, { interval: 50 })
+                        fs.watchFile(relfile, {
+                            interval: 50
+                        })
                     });
 
                     assert.throws(() => {
@@ -669,7 +718,9 @@ describe('fs.watch*', () => {
                     changeTriggerCount++;
                 }
 
-                var watcher = fs.watchFile(relfile, { interval: 50 }, _handler)
+                var watcher = fs.watchFile(relfile, {
+                    interval: 50
+                }, _handler)
 
                 let writeCount = 0
                 var noTriggerAfterClose = true
@@ -704,11 +755,17 @@ describe('fs.watch*', () => {
             }
 
             it(`event: 'change', from listener`, (next) => {
-                proc({ changeEventSource: 'listener', next });
+                proc({
+                    changeEventSource: 'listener',
+                    next
+                });
             });
 
             it(`event: 'change', onchange callback is required when watchFile(xxx, onchange)`, (next) => {
-                proc({ changeEventSource: 'register', next });
+                proc({
+                    changeEventSource: 'register',
+                    next
+                });
             });
         });
     })

@@ -1,4 +1,6 @@
 var os = require('os');
+var fs = require('fs');
+var path = require('path');
 var coroutine = require('coroutine');
 
 var ss = [];
@@ -44,5 +46,19 @@ exports.push = s => ss.push(s);
 exports.cleanup = () => {
     ss.forEach(s => {
         s.close();
+    });
+}
+
+exports.cleanup_folder = function cleanup_folder(p) {
+    var dir = fs.readdir(p);
+    console.log("clean", p);
+    dir.forEach(function (name) {
+        var fname = path.join(p, name);
+        var f = fs.stat(fname);
+        if (f.isDirectory()) {
+            cleanup_folder(fname);
+            fs.rmdir(fname);
+        } else
+            fs.unlink(fname);
     });
 }
