@@ -81,16 +81,22 @@ describe('dgram', () => {
     });
 
     it('option', () => {
+        const s = dgram.createSocket('udp4');
+        s.bind(0);
+        var recv_size = s.getRecvBufferSize();
+        var send_size = s.getSendBufferSize();
+        s.close();
+
         const socket = dgram.createSocket({
             type: 'udp4',
-            recvBufferSize: 1024,
-            sendBufferSize: 1024
+            recvBufferSize: 1234,
+            sendBufferSize: 1234
         });
 
         socket.bind(0);
 
-        assert.equal(socket.getRecvBufferSize(), 1024);
-        assert.equal(socket.getSendBufferSize(), 1024);
+        assert.notEqual(socket.getRecvBufferSize(), recv_size);
+        assert.notEqual(socket.getSendBufferSize(), send_size);
 
         socket.close();
     });
