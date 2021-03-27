@@ -9,6 +9,7 @@
 #pragma once
 
 #include "AsyncCall.h"
+#include "utils.h"
 #include <uv/include/uv.h>
 #include <functional>
 
@@ -17,10 +18,19 @@ class AsyncUVTask : public AsyncEvent {
 public:
     AsyncUVTask()
         : AsyncEvent(NULL){};
+
     ~AsyncUVTask(){};
 };
 
 int uv_call(std::function<int(void)> proc);
+inline int uv_async(std::function<int(void)> proc)
+{
+    int ret = uv_call(proc);
+    if (ret != 0)
+        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
+
+    return CALL_E_PENDDING;
+}
 
 class AsyncUVFS : public uv_fs_t {
 public:
