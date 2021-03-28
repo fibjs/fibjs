@@ -104,7 +104,6 @@ int uv_call(std::function<int(void)> proc)
     public:
         std::function<int(void)> m_proc;
         int m_res;
-        exlib::string m_error;
         exlib::Event m_event;
     };
 

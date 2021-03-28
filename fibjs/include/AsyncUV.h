@@ -13,23 +13,20 @@
 #include <functional>
 
 namespace fibjs {
+extern uv_loop_t* s_uv_loop;
+
 class AsyncUVTask : public AsyncEvent {
 public:
     AsyncUVTask()
-        : AsyncEvent(NULL) {};
+        : AsyncEvent(NULL){};
 
-    ~AsyncUVTask() {};
+    ~AsyncUVTask(){};
 };
 
 int uv_call(std::function<int(void)> proc);
 inline int uv_async(std::function<int(void)> proc)
 {
     int ret = uv_call(proc);
-    if (ret != 0)
-        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
-
-    return CALL_E_PENDDING;
+    return ret ? ret : CALL_E_PENDDING;
 }
-
-extern uv_loop_t* s_uv_loop;
 }

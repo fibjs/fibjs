@@ -1,6 +1,7 @@
 #include "utils.h"
 #include "object.h"
 #include "ifs/console.h"
+#include <uv/include/uv.h>
 #include <string.h>
 #include <stdio.h>
 #include "utf8.h"
@@ -19,6 +20,18 @@ static exlib::string fmtString(result_t hr, const char* str, int32_t len = -1)
 
     return s;
 }
+
+#define UV_STRERROR_GEN(name, msg) \
+    case UV_##name:                \
+        return msg;
+static const char* uv_error(int err)
+{
+    switch (err) {
+        UV_ERRNO_MAP(UV_STRERROR_GEN)
+    }
+    return NULL;
+}
+#undef UV_STRERROR_GEN
 
 exlib::string getResultMessage(result_t hr)
 {
@@ -87,7 +100,11 @@ exlib::string getResultMessage(result_t hr)
     }
 
     if (hr > CALL_E_MIN && hr < CALL_E_MAX)
-        return fmtString(hr, s_errors[CALL_E_MAX - hr]);
+        return fmtString(-hr, s_errors[CALL_E_MAX - hr]);
+
+    const char* uv_str = uv_error(hr);
+    if (uv_str)
+        return fmtString(-hr, uv_str);
 
     hr = -hr;
 
@@ -426,5 +443,4 @@ const char* signo_string(int signo)
         return "";
     }
 }
-
 }

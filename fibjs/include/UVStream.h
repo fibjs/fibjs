@@ -142,7 +142,7 @@ public:
         void post_result(int32_t status)
         {
             if (status < 0 && status != UV_EOF) {
-                m_ac->apost(CHECK_ERROR(Runtime::setError(uv_strerror(status))));
+                m_ac->apost(status);
             } else {
                 if (m_pos) {
                     if (m_pos < m_buf.length())
@@ -224,11 +224,7 @@ public:
 
         void post_result(int32_t status)
         {
-            if (status < 0)
-                m_ac->apost(Runtime::setError(uv_strerror(status)));
-            else
-                m_ac->apost(0);
-
+            m_ac->apost(status);
             delete this;
         }
 
@@ -247,13 +243,7 @@ public:
             return 0;
         }
 
-        uv_os_fd_t fileno;
-        int32_t ret = uv_fileno(&m_handle, &fileno);
-        if (ret != 0)
-            return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
-        retVal = *(int32_t*)&fileno;
-
-        return 0;
+        return uv_fileno(&m_handle, (uv_os_fd_t*)&retVal);
     };
 
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal,

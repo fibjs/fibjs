@@ -190,22 +190,22 @@ describe('io', () => {
                 // but you cannot read from it.
                 assert_error_msg(() => {
                     stm.read(1);
-                }, `[-100026] Object closed.`)
+                }, `[20026] Object closed.`)
 
                 // nor query current positoin
                 assert_error_msg(() => {
                     stm.tell();
-                }, `[-100026] Object closed.`)
+                }, `[20026] Object closed.`)
 
                 // not allowed to get size of it.
                 assert_error_msg(() => {
                     stm.size();
-                }, `[-100026] Object closed.`)
+                }, `[20026] Object closed.`)
 
                 // not allowed to get fd of it.
                 assert_error_msg(() => {
                     stm.fd;
-                }, `[-100026] Object closed.`)
+                }, `[20026] Object closed.`)
             });
 
             describe("ALLOW: multiple range upon the same file in order", () => {

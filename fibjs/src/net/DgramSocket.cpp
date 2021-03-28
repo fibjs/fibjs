@@ -216,10 +216,10 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
             AsyncSend* pThis = (AsyncSend*)req;
 
             if (status < 0)
-                pThis->m_ac->post(CHECK_ERROR(SocketError()));
+                pThis->m_ac->apost(status);
             else {
                 pThis->m_retVal = status;
-                pThis->m_ac->post(0);
+                pThis->m_ac->apost(0);
             }
 
             delete pThis;
@@ -303,8 +303,9 @@ result_t DgramSocket::address(obj_ptr<NObject>& retVal)
     inetAddr addr_info;
     int32_t sz = (int32_t)sizeof(addr_info);
 
-    if (uv_udp_getsockname(&m_udp, (sockaddr*)&addr_info, &sz))
-        return CHECK_ERROR(SocketError());
+    int32_t ret = uv_udp_getsockname(&m_udp, (sockaddr*)&addr_info, &sz);
+    if (ret < 0)
+        return CHECK_ERROR(ret);
 
     retVal = new NObject();
 
@@ -344,43 +345,28 @@ result_t DgramSocket::close(v8::Local<v8::Function> callback)
 result_t DgramSocket::getRecvBufferSize(int32_t& retVal)
 {
     retVal = 0;
-    if (uv_recv_buffer_size(&m_handle, &retVal))
-        return CHECK_ERROR(SocketError());
-
-    return 0;
+    return uv_recv_buffer_size(&m_handle, &retVal);
 }
 
 result_t DgramSocket::getSendBufferSize(int32_t& retVal)
 {
     retVal = 0;
-    if (uv_send_buffer_size(&m_handle, &retVal))
-        return CHECK_ERROR(SocketError());
-
-    return 0;
+    return uv_send_buffer_size(&m_handle, &retVal);
 }
 
 result_t DgramSocket::setRecvBufferSize(int32_t size)
 {
-    if (uv_recv_buffer_size(&m_handle, &size))
-        return CHECK_ERROR(SocketError());
-
-    return 0;
+    return uv_recv_buffer_size(&m_handle, &size);
 }
 
 result_t DgramSocket::setSendBufferSize(int32_t size)
 {
-    if (uv_send_buffer_size(&m_handle, &size))
-        return CHECK_ERROR(SocketError());
-
-    return 0;
+    return uv_send_buffer_size(&m_handle, &size);
 }
 
 result_t DgramSocket::setBroadcast(bool flag)
 {
-    if (uv_udp_set_broadcast(&m_udp, flag ? 1 : 0))
-        return CHECK_ERROR(SocketError());
-
-    return 0;
+    return uv_udp_set_broadcast(&m_udp, flag ? 1 : 0);
 }
 
 result_t DgramSocket::ref(obj_ptr<DgramSocket_base>& retVal)

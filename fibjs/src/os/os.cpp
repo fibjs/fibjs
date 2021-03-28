@@ -7,7 +7,7 @@
 
 #include "object.h"
 #include "ifs/os.h"
-#include "include/uv.h"
+#include "AsyncUV.h"
 #include "Buffer.h"
 #include "encoding.h"
 
@@ -24,8 +24,9 @@ result_t os_base::type(exlib::string& retVal)
 {
 #ifndef _WIN32
     uv_utsname_t info;
-    if (uv_os_uname(&info) < 0)
-        return CHECK_ERROR(LastError());
+    int32_t ret = uv_os_uname(&info);
+    if (ret < 0)
+        return CHECK_ERROR(ret);
 
     retVal = info.sysname;
 #else
@@ -37,8 +38,9 @@ result_t os_base::type(exlib::string& retVal)
 result_t os_base::release(exlib::string& retVal)
 {
     uv_utsname_t info;
-    if (uv_os_uname(&info) < 0)
-        return CHECK_ERROR(LastError());
+    int32_t ret = uv_os_uname(&info);
+    if (ret < 0)
+        return CHECK_ERROR(ret);
 
     retVal = info.release;
     return 0;
@@ -148,8 +150,9 @@ result_t os_base::get_timezone(int32_t& retVal)
 
 result_t os_base::uptime(double& retVal)
 {
-    if (uv_uptime(&retVal))
-        return CHECK_ERROR(LastError());
+    int32_t ret = uv_uptime(&retVal);
+    if (ret < 0)
+        return CHECK_ERROR(ret);
     return 0;
 }
 
@@ -158,9 +161,11 @@ static uv_cpu_info_t* s_cpu_infos;
 
 result_t os_base::cpuNumbers(int32_t& retVal)
 {
-    if (s_cpus == 0)
-        if (uv_cpu_info(&s_cpu_infos, &s_cpus))
-            return CHECK_ERROR(LastError());
+    if (s_cpus == 0) {
+        int32_t ret = uv_cpu_info(&s_cpu_infos, &s_cpus);
+        if (ret < 0)
+            return CHECK_ERROR(ret);
+    }
 
     retVal = s_cpus;
     return 0;
@@ -168,9 +173,11 @@ result_t os_base::cpuNumbers(int32_t& retVal)
 
 result_t os_base::cpus(v8::Local<v8::Array>& retVal)
 {
-    if (s_cpus == 0)
-        if (uv_cpu_info(&s_cpu_infos, &s_cpus))
-            return CHECK_ERROR(LastError());
+    if (s_cpus == 0) {
+        int32_t ret = uv_cpu_info(&s_cpu_infos, &s_cpus);
+        if (ret < 0)
+            return CHECK_ERROR(ret);
+    }
 
     Isolate* isolate = Isolate::current();
     retVal = v8::Array::New(isolate->m_isolate, s_cpus);
@@ -205,8 +212,9 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
     int32_t ifs = 0;
     uv_interface_address_t* interfaces;
 
-    if (uv_interface_addresses(&interfaces, &ifs))
-        return CHECK_ERROR(LastError());
+    int32_t ret = uv_interface_addresses(&interfaces, &ifs);
+    if (ret < 0)
+        return CHECK_ERROR(ret);
 
     Isolate* isolate = Isolate::current();
     retVal = v8::Object::New(isolate->m_isolate);
@@ -281,8 +289,9 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
 
     GetConfigValue(isolate->m_isolate, options, "encoding", encoding, true);
 
-    if (uv_os_get_passwd(&pwd))
-        return CHECK_ERROR(LastError());
+    int32_t ret = uv_os_get_passwd(&pwd);
+    if (ret < 0)
+        return CHECK_ERROR(ret);
 
     homedir.assign(pwd.homedir);
     username.assign(pwd.username);
@@ -355,8 +364,9 @@ result_t os_base::get_execPath(exlib::string& retVal)
     char buf[1024] = "";
     size_t size = sizeof(buf);
 
-    if (uv_exepath(buf, &size))
-        return CHECK_ERROR(LastError());
+    int32_t ret = uv_exepath(buf, &size);
+    if (ret < 0)
+        return CHECK_ERROR(ret);
 
     retVal = buf;
 
@@ -369,8 +379,9 @@ result_t os_base::memoryUsage(v8::Local<v8::Object>& retVal)
     v8::Local<v8::Object> info = v8::Object::New(isolate->m_isolate);
 
     size_t rss;
-    if (uv_resident_set_memory(&rss))
-        return CHECK_ERROR(LastError());
+    int32_t ret = uv_resident_set_memory(&rss);
+    if (ret < 0)
+        return CHECK_ERROR(ret);
 
     info->Set(isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, (double)rss));
 
@@ -396,8 +407,9 @@ result_t os_base::homedir(exlib::string& retVal)
     char buf[1024] = "";
     size_t size = sizeof(buf);
 
-    if (uv_os_homedir(buf, &size))
-        return CHECK_ERROR(LastError());
+    int32_t ret = uv_os_homedir(buf, &size);
+    if (ret < 0)
+        return CHECK_ERROR(ret);
     retVal = buf;
 
     return 0;
@@ -408,8 +420,9 @@ result_t os_base::tmpdir(exlib::string& retVal)
     char buf[1024] = "";
     size_t size = sizeof(buf);
 
-    if (uv_os_tmpdir(buf, &size))
-        return CHECK_ERROR(LastError());
+    int32_t ret = uv_os_tmpdir(buf, &size);
+    if (ret < 0)
+        return CHECK_ERROR(ret);
     retVal = buf;
 
     return 0;

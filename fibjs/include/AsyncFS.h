@@ -29,11 +29,7 @@ public:
     {
         AsyncUVFS* pThis = (AsyncUVFS*)req;
 
-        if (uv_fs_get_result(req) == 0)
-            pThis->m_ac->apost(0);
-        else
-            pThis->m_ac->apost(-uv_fs_get_system_error(req));
-
+        pThis->m_ac->apost(uv_fs_get_result(req));
         delete pThis;
     }
 
@@ -73,12 +69,11 @@ public:
     {
         AsyncUVFSResult* pThis = (AsyncUVFSResult*)req;
 
-        if (uv_fs_get_result(req) == 0) {
+        int32_t ret = uv_fs_get_result(req);
+        if (ret == 0)
             uv_fs_get_value(req, pThis->m_retVal);
-            pThis->m_ac->apost(0);
-        } else
-            pThis->m_ac->apost(-uv_fs_get_system_error(req));
 
+        pThis->m_ac->apost(ret);
         delete pThis;
     }
 
