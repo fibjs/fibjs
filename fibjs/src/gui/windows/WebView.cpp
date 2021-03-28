@@ -439,7 +439,7 @@ static void RegMainClass()
 
 WebView::WebView(exlib::string url, NObject* opt)
 {
-    holder()->Ref();
+    isolate_ref();
 
     m_url = url;
     m_opt = opt;

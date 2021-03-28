@@ -117,7 +117,7 @@ result_t TcpServer::start()
             , m_pThis(pThis)
             , m_holder(holder)
         {
-            m_pThis->holder()->Ref();
+            m_pThis->isolate_ref();
             next(accept);
         }
 
@@ -140,7 +140,7 @@ result_t TcpServer::start()
         virtual int32_t error(int32_t v)
         {
             if (v == CALL_E_BAD_FILE || v == CALL_E_INVALID_CALL) {
-                m_pThis->holder()->Unref();
+                m_pThis->isolate_unref();
                 return next();
             }
 

@@ -94,7 +94,7 @@ CefWebView::CefWebView(exlib::string url, NObject* opt, CefRefPtr<CefValue> prox
     , m_height(600)
     , m_eid(0)
 {
-    holder()->Ref();
+    isolate_ref();
 
     m_opt = opt;
     m_url = url;
@@ -453,5 +453,4 @@ result_t CefWebView::get_type(exlib::string& retVal)
     retVal = "cef";
     return 0;
 }
-
 }

@@ -17,7 +17,7 @@ void ChildProcess::on_uv_close(uv_handle_t* handle)
 {
     ChildProcess* cp = container_of(handle, ChildProcess, m_process);
 
-    cp->holder()->Unref();
+    cp->isolate_unref();
     cp->m_vholder.Release();
 }
 
@@ -242,7 +242,7 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
     if (hr < 0)
         return hr;
 
-    isolate->Ref();
+    isolate_ref();
     m_vholder = new ValueHolder(wrap());
 
     return uv_call([&] {

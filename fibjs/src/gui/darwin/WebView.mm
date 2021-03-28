@@ -125,7 +125,7 @@ WebView::WebView(exlib::string url, NObject* opt)
     : m_bDebug(true)
     , m_bIScriptLoaded(false)
 {
-    holder()->Ref();
+    isolate_ref();
 
     m_opt = opt;
     m_url = url;
@@ -306,7 +306,7 @@ id WebView::createWKWebViewConfig()
      * register customized protocol `fs://`
      * @warning `setURLSchemeHandler:forURLScheme:` is only available on macOS 10.13 or newer
      */
-    NSOperatingSystemVersion macOS10_13 = (NSOperatingSystemVersion) { 10, 13, 0 };
+    NSOperatingSystemVersion macOS10_13 = (NSOperatingSystemVersion){ 10, 13, 0 };
     if ([[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:macOS10_13]) {
         [configuration setURLSchemeHandler:[FileSystemWKURLSchemeHandler new] forURLScheme:@"fs"];
     }

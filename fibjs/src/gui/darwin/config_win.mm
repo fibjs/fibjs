@@ -35,7 +35,7 @@ static fibjs::WebView_base* getWebViewFromNSWindow(NSWindow* win)
         return;
 
     wv->_emit("closed");
-    wv->holder()->Unref();
+    wv->isolate_unref();
     wv->Unref();
 }
 
@@ -46,8 +46,7 @@ static fibjs::WebView_base* getWebViewFromNSWindow(NSWindow* win)
     if (wv == NULL)
         return YES;
 
-    if(wv->close(nil))
-    {
+    if (wv->close(nil)) {
         [window setIsVisible:NO];
         return YES;
     }
@@ -127,8 +126,7 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
         if (opt->get("maximize", v) == 0 && v.boolVal())
             _maximize = true;
 
-        if (opt->get("fullscreen", v) == 0 && v.boolVal())
-        {
+        if (opt->get("fullscreen", v) == 0 && v.boolVal()) {
             mask = NSResizableWindowMask;
             _fullscreen = true;
         }
@@ -157,8 +155,7 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
     else
         [window setFrame:CGRectMake(x, y, nWidth, nHeight) display:YES];
 
-    if(_fullscreen)
-    {
+    if (_fullscreen) {
         [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
         [window toggleFullScreen:nil];
     }

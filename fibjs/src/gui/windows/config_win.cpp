@@ -60,7 +60,7 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         return 0;
     case WM_DESTROY:
         webView1->_emit("closed");
-        webView1->holder()->Unref();
+        webView1->isolate_unref();
         webView1->Unref();
         break;
     }
