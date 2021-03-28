@@ -117,8 +117,7 @@ result_t DgramSocket::create(int32_t family, int32_t flags)
     m_family = family;
 
     return uv_call([&] {
-        int32_t ret = uv_udp_init_ex(s_uv_loop, &m_udp, 0);
-        return ret ? CHECK_ERROR(SocketError()) : 0;
+        return uv_udp_init_ex(s_uv_loop, &m_udp, 0);
     });
 }
 
@@ -146,10 +145,10 @@ result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncEvent* ac)
 
     return uv_call([&] {
         isolate_ref();
-
-        if (uv_udp_bind(&m_udp, (sockaddr*)&addr_info, m_flags & (UV_UDP_IPV6ONLY | UV_UDP_REUSEADDR))) {
+        int32_t ret = uv_udp_bind(&m_udp, (sockaddr*)&addr_info, m_flags & (UV_UDP_IPV6ONLY | UV_UDP_REUSEADDR));
+        if (ret) {
             stop_bind();
-            return CHECK_ERROR(SocketError());
+            return ret;
         }
 
         if (m_recvbuf_size > 0)
@@ -160,12 +159,7 @@ result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncEvent* ac)
 
         _emit("listening");
 
-        if (uv_udp_recv_start(&m_udp, on_alloc, on_recv)) {
-            stop_bind();
-            return CHECK_ERROR(SocketError());
-        }
-
-        return 0;
+        return uv_udp_recv_start(&m_udp, on_alloc, on_recv);
     });
 }
 
@@ -269,21 +263,16 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
     }
 
     AsyncSend* _send = new AsyncSend(msg, port, addr_info, retVal, ac);
-    return uv_call([&] {
-        int32_t status = uv_udp_try_send(&m_udp, &_send->m_buf, 1, (sockaddr*)&addr_info);
-        if (status >= 0) {
-            delete _send;
-            retVal = status;
-            return 0;
-        }
+    int32_t status = uv_udp_try_send(&m_udp, &_send->m_buf, 1, (sockaddr*)&addr_info);
+    if (status >= 0) {
+        delete _send;
+        retVal = status;
+        return 0;
+    } else if (status != UV_ENOSYS && status != UV_EAGAIN)
+        return CHECK_ERROR(status);
 
-        if (status == UV_ENOSYS || status == UV_EAGAIN) {
-            if (uv_udp_send(_send, &m_udp, &_send->m_buf, 1, (sockaddr*)&addr_info, AsyncSend::callback))
-                return CHECK_ERROR(SocketError());
-            return CALL_E_PENDDING;
-        }
-
-        return CHECK_ERROR(SocketError());
+    return uv_async([&] {
+        return uv_udp_send(_send, &m_udp, &_send->m_buf, 1, (sockaddr*)&addr_info, AsyncSend::callback);
     });
 }
 

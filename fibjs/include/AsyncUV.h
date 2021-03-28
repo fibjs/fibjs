@@ -16,9 +16,9 @@ namespace fibjs {
 class AsyncUVTask : public AsyncEvent {
 public:
     AsyncUVTask()
-        : AsyncEvent(NULL){};
+        : AsyncEvent(NULL) {};
 
-    ~AsyncUVTask(){};
+    ~AsyncUVTask() {};
 };
 
 int uv_call(std::function<int(void)> proc);

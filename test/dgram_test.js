@@ -290,13 +290,13 @@ describe('dgram', () => {
         s.on('message', function (msg) {
             this.close();
         })
-        s.bind(base_port + 1006);
+        s.bind(base_port + 1007);
         s = undefined;
 
         test_util.gc();
         assert.equal(n + 1, test_util.countObject("DgramSocket"));
 
-        c.send('', base_port + 1006);
+        c.send('', base_port + 1007);
         coroutine.sleep(100);
 
         test_util.gc();
