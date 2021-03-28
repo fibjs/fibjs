@@ -15,14 +15,6 @@
 namespace fibjs {
 extern uv_loop_t* s_uv_loop;
 
-class AsyncUVTask : public AsyncEvent {
-public:
-    AsyncUVTask()
-        : AsyncEvent(NULL){};
-
-    ~AsyncUVTask(){};
-};
-
 int uv_call(std::function<int(void)> proc);
 inline int uv_async(std::function<int(void)> proc)
 {

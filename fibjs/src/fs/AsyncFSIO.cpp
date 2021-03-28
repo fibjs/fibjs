@@ -1,7 +1,6 @@
 #include "object.h"
 #include "utils.h"
 #include "AsyncUV.h"
-#include "FSWatcher.h"
 #include "StatsWatcher.h"
 #include <uv/include/uv.h>
 #include "Runtime.h"
@@ -63,25 +62,6 @@ private:
 };
 
 static UVAsyncThread* s_afsIO;
-
-int32_t FSWatcher::AsyncWatchFSProc::post(int32_t v)
-{
-    s_afsIO->post(this);
-    return 0;
-}
-
-void FSWatcher::AsyncWatchFSProc::invoke()
-{
-    uv_fs_event_init(s_uv_loop, &m_fs_handle);
-
-    m_watcher->watcherReadyWaitor.set();
-
-    int32_t uv_err_no = uv_fs_event_start(&m_fs_handle, fs_event_cb, m_watcher->get_target(), m_watcher->isRecursiveForDir() ? UV_FS_EVENT_RECURSIVE : 0);
-    if (uv_err_no != 0) {
-        m_watcher->onError(CALL_E_INVALID_CALL, uv_strerror(uv_err_no));
-        m_watcher->close();
-    }
-}
 
 int uv_call(std::function<int(void)> proc)
 {
