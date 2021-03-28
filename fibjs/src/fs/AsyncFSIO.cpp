@@ -43,8 +43,6 @@ public:
 private:
     static void AsyncEventCallback(uv_async_t* handle)
     {
-        assert(handle == &s_uv_async);
-
         exlib::List<AsyncEvent> jobs;
         AsyncEvent* p1;
 

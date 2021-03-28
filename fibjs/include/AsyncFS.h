@@ -29,7 +29,7 @@ public:
     {
         AsyncUVFS* pThis = (AsyncUVFS*)req;
 
-        pThis->m_ac->apost(uv_fs_get_result(req));
+        pThis->m_ac->apost((int32_t)uv_fs_get_result(req));
         delete pThis;
     }
 
@@ -69,8 +69,8 @@ public:
     {
         AsyncUVFSResult* pThis = (AsyncUVFSResult*)req;
 
-        int32_t ret = uv_fs_get_result(req);
-        if (ret == 0)
+        int32_t ret = (int32_t)uv_fs_get_result(req);
+        if (ret >= 0)
             uv_fs_get_value(req, pThis->m_retVal);
 
         pThis->m_ac->apost(ret);

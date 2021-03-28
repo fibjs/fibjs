@@ -294,7 +294,7 @@ result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
         {
             AsyncUVFSStatue* pThis = (AsyncUVFSStatue*)req;
 
-            pThis->m_retVal = uv_fs_get_result(req) == 0;
+            pThis->m_retVal = (int32_t)uv_fs_get_result(req) == 0;
             pThis->m_ac->apost(0);
 
             delete pThis;
@@ -412,7 +412,7 @@ result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
         {
             AsyncUVMKDir* pThis = (AsyncUVMKDir*)req;
 
-            int32_t ret = uv_fs_get_result(req);
+            int32_t ret = (int32_t)uv_fs_get_result(req);
             switch (ret) {
             case 0:
                 if (pThis->m_paths.size() == 0) {
@@ -598,7 +598,7 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncEven
         {
             AsyncUVFSReadDir* pThis = (AsyncUVFSReadDir*)req;
 
-            int32_t ret = uv_fs_get_result(req);
+            int32_t ret = (int32_t)uv_fs_get_result(req);
             if (ret < 0) {
                 pThis->m_ac->apost(ret);
                 delete pThis;
