@@ -43,7 +43,14 @@ describe('dgram', () => {
     it('bind', () => {
         const s = dgram.createSocket('udp4');
         s.bind(base_port + 1000);
+
+        const s1 = dgram.createSocket('udp4');
+        assert.throws(() => {
+            s1.bind(base_port + 1000);
+        });
+
         s.close();
+        s1.close();
     });
 
     it('throw bind on bound socket', () => {
@@ -135,38 +142,67 @@ describe('dgram', () => {
         socket.bind(0, "127.0.0.1");
     });
 
-    function test_message(name, value, port) {
-        it(`send ${name}`, done => {
-            var t = false;
-            const s = dgram.createSocket('udp4');
-            s.on('message', (msg, addr) => {
-                s.off('message');
+    describe("send/recv", () => {
+        function test_message(name, value, port) {
+            it(`send ${name}`, done => {
+                var t = false;
+                const s = dgram.createSocket('udp4');
                 s.on('message', (msg, addr) => {
-                    c.close();
-                    s.close();
+                    s.off('message');
+                    s.on('message', (msg, addr) => {
+                        c.close();
+                        s.close();
 
-                    done();
+                        done();
+                    });
+
+                    assert.equal(msg.toString(), value);
+                    s.send(msg, addr.port, addr.address);
                 });
 
-                assert.equal(msg.toString(), value);
-                s.send(msg, addr.port, addr.address);
+                s.bind(base_port + port);
+
+                const c = dgram.createSocket('udp4');
+                c.on('message', (msg, addr) => {
+                    assert.equal(msg.toString(), value);
+                    c.send(msg, addr.port, addr.address);
+                });
+
+                c.send(value, base_port + port);
             });
+        }
 
-            s.bind(base_port + port);
+        test_message('message', "123456", 1002);
+        test_message('empty message', "", 1003);
+        test_message('big message', new Buffer(4000).hex(), 1004);
+    });
 
-            const c = dgram.createSocket('udp4');
-            c.on('message', (msg, addr) => {
-                assert.equal(msg.toString(), value);
-                c.send(msg, addr.port, addr.address);
-            });
-
-            c.send(value, base_port + port);
+    it("broadcast", () => {
+        var t = false;
+        const s = dgram.createSocket('udp4');
+        s.on('message', (msg, addr) => {
+            assert.equal(msg.toString(), '123456');
+            t = true;
         });
-    }
 
-    test_message('message', "123456", 1002);
-    test_message('empty message', "", 1003);
-    test_message('big message', new Buffer(4000).hex(), 1004);
+        s.bind(base_port + 1006);
+
+        const c = dgram.createSocket('udp4');
+
+        assert.throws(() => {
+            c.send('123456', base_port + 1006, "255.255.255.255");
+        });
+
+        c.setBroadcast(true);
+        c.send('123456', base_port + 1006, "255.255.255.255");
+
+        coroutine.sleep(100);
+
+        c.close();
+        s.close();
+
+        assert.isTrue(t);
+    });
 
     if (has_ipv6)
         describe("ipv6", () => {
@@ -224,84 +260,59 @@ describe('dgram', () => {
             });
         });
 
-    it("broadcast", () => {
-        var t = false;
-        const s = dgram.createSocket('udp4');
-        s.on('message', (msg, addr) => {
-            assert.equal(msg.toString(), '123456');
-            t = true;
+    describe("gc", () => {
+        it("gc", () => {
+            test_util.gc();
+
+            var n = test_util.countObject("DgramSocket");
+
+            var s = dgram.createSocket('udp4');
+            s.bind(0);
+            s.close();
+            s = undefined;
+
+            test_util.gc();
+
+            assert.equal(n, test_util.countObject("DgramSocket"));
         });
 
-        s.bind(base_port + 1006);
+        it("not keep unclosed socket in gc", () => {
+            test_util.gc();
 
-        const c = dgram.createSocket('udp4');
+            var n = test_util.countObject("DgramSocket");
 
-        assert.throws(() => {
-            c.send('123456', base_port + 1006, "255.255.255.255");
+            var s = dgram.createSocket('udp4');
+            s = undefined;
+
+            test_util.gc();
+
+            assert.equal(n, test_util.countObject("DgramSocket"));
         });
 
-        c.setBroadcast(true);
-        c.send('123456', base_port + 1006, "255.255.255.255");
+        it("hold bind socket in gc", () => {
+            test_util.gc();
 
-        coroutine.sleep(100);
+            var c = dgram.createSocket('udp4');
 
-        c.close();
-        s.close();
+            var n = test_util.countObject("DgramSocket");
 
-        assert.isTrue(t);
-    });
+            var s = dgram.createSocket('udp4');
+            s.on('message', function (msg) {
+                this.close();
+            })
+            s.bind(base_port + 1007);
+            s = undefined;
 
-    it("gc", () => {
-        test_util.gc();
+            test_util.gc();
+            assert.equal(n + 1, test_util.countObject("DgramSocket"));
 
-        var n = test_util.countObject("DgramSocket");
+            c.send('', base_port + 1007);
+            coroutine.sleep(100);
 
-        var s = dgram.createSocket('udp4');
-        s.bind(0);
-        s.close();
-        s = undefined;
-
-        test_util.gc();
-
-        assert.equal(n, test_util.countObject("DgramSocket"));
-    });
-
-    it("not keep unclosed socket in gc", () => {
-        test_util.gc();
-
-        var n = test_util.countObject("DgramSocket");
-
-        var s = dgram.createSocket('udp4');
-        s = undefined;
-
-        test_util.gc();
-
-        assert.equal(n, test_util.countObject("DgramSocket"));
-    });
-
-    it("hold bind socket in gc", () => {
-        test_util.gc();
-
-        var c = dgram.createSocket('udp4');
-
-        var n = test_util.countObject("DgramSocket");
-
-        var s = dgram.createSocket('udp4');
-        s.on('message', function (msg) {
-            this.close();
-        })
-        s.bind(base_port + 1007);
-        s = undefined;
-
-        test_util.gc();
-        assert.equal(n + 1, test_util.countObject("DgramSocket"));
-
-        c.send('', base_port + 1007);
-        coroutine.sleep(100);
-
-        test_util.gc();
-        assert.equal(n, test_util.countObject("DgramSocket"));
-        c.close();
+            test_util.gc();
+            assert.equal(n, test_util.countObject("DgramSocket"));
+            c.close();
+        });
     });
 
     it('FIX: crash in send', () => {

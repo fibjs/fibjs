@@ -180,24 +180,24 @@ result_t DgramSocket::bind(int32_t port, exlib::string addr, AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_INVALIDARG);
     }
 
+    int32_t ret = uv_udp_bind(&m_udp, (sockaddr*)&addr_info, m_flags & (UV_UDP_IPV6ONLY | UV_UDP_REUSEADDR));
+    if (ret) {
+        m_holder.Release();
+        return CHECK_ERROR(ret);
+    }
+
+    if (m_recvbuf_size > 0)
+        uv_recv_buffer_size(&m_handle, &m_recvbuf_size);
+
+    if (m_sendbuf_size > 0)
+        uv_send_buffer_size(&m_handle, &m_sendbuf_size);
+
+    _emit("listening");
+
     m_bound = true;
+    isolate_ref();
 
     return uv_call([&] {
-        isolate_ref();
-        int32_t ret = uv_udp_bind(&m_udp, (sockaddr*)&addr_info, m_flags & (UV_UDP_IPV6ONLY | UV_UDP_REUSEADDR));
-        if (ret) {
-            stop_bind();
-            return ret;
-        }
-
-        if (m_recvbuf_size > 0)
-            uv_recv_buffer_size(&m_handle, &m_recvbuf_size);
-
-        if (m_sendbuf_size > 0)
-            uv_send_buffer_size(&m_handle, &m_sendbuf_size);
-
-        _emit("listening");
-
         return uv_udp_recv_start(&m_udp, on_alloc, on_recv);
     });
 }
