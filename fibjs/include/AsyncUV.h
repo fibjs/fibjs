@@ -15,6 +15,7 @@
 namespace fibjs {
 extern uv_loop_t* s_uv_loop;
 
+void uv_post(AsyncEvent* task);
 int uv_call(std::function<int(void)> proc);
 inline int uv_async(std::function<int(void)> proc)
 {

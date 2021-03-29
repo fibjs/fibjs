@@ -48,7 +48,7 @@ public:
 
 public:
     // Stream_base
-    class AsyncRead : public exlib::linkitem {
+    class AsyncRead : public AsyncEvent {
     public:
         AsyncRead(UVStream_tmpl* pThis, bool bRead, int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
             : m_this(pThis)
@@ -61,22 +61,14 @@ public:
         }
 
     public:
-        result_t start()
+        virtual void invoke()
         {
-            return uv_async([&] {
-                int32_t ret = 0;
-
-                m_this->queue_read.putTail(this);
-                if (m_this->queue_read.count() == 1) {
-                    ret = uv_read_start(&m_this->m_stream, on_alloc, on_read);
-                    if (ret) {
-                        m_this->queue_read.getHead();
-                        delete this;
-                    }
-                }
-
-                return ret;
-            });
+            m_this->queue_read.putTail(this);
+            if (m_this->queue_read.count() == 1) {
+                int32_t ret = uv_read_start(&m_this->m_stream, on_alloc, on_read);
+                if (ret < 0)
+                    post_all_result(m_this, ret);
+            }
         }
 
     public:
@@ -150,7 +142,7 @@ public:
         exlib::string m_buf;
     };
 
-    class AsyncWrite : public exlib::linkitem {
+    class AsyncWrite : public AsyncEvent {
     public:
         AsyncWrite(UVStream_tmpl* pThis, Buffer_base* data, AsyncEvent* ac)
             : m_this(pThis)
@@ -162,21 +154,14 @@ public:
         }
 
     public:
-        result_t start()
+        virtual void invoke()
         {
-            return uv_async([&] {
-                int32_t ret = 0;
-                m_this->queue_write.putTail(this);
-                if (m_this->queue_write.count() == 1) {
-                    ret = uv_write(&m_req, &m_this->m_stream, &m_buf, 1, on_write);
-                    if (ret) {
-                        m_this->queue_write.getHead();
-                        delete this;
-                    }
-                }
-
-                return ret;
-            });
+            m_this->queue_write.putTail(this);
+            if (m_this->queue_write.count() == 1) {
+                int32_t ret = uv_write(&m_req, &m_this->m_stream, &m_buf, 1, on_write);
+                if (ret < 0)
+                    post_all_result(m_this, ret);
+            }
         }
 
     public:
@@ -235,7 +220,8 @@ public:
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
-        return (new AsyncRead(this, true, bytes, retVal, ac))->start();
+        uv_post(new AsyncRead(this, true, bytes, retVal, ac));
+        return CALL_E_PENDDING;
     }
 
     virtual result_t write(Buffer_base* data, AsyncEvent* ac)
@@ -243,7 +229,8 @@ public:
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
-        return (new AsyncWrite(this, data, ac))->start();
+        uv_post(new AsyncWrite(this, data, ac));
+        return CALL_E_PENDDING;
     }
 
     virtual result_t flush(AsyncEvent* ac)

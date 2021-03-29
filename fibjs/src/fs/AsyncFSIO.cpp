@@ -61,6 +61,11 @@ private:
 
 static UVAsyncThread* s_afsIO;
 
+void uv_post(AsyncEvent* task)
+{
+    s_afsIO->post(task);
+}
+
 int uv_call(std::function<int(void)> proc)
 {
     class UVCall : public AsyncEvent {
@@ -69,7 +74,7 @@ int uv_call(std::function<int(void)> proc)
             : AsyncEvent(NULL)
             , m_proc(proc)
         {
-            s_afsIO->post(this);
+            uv_post(this);
             m_event.wait();
         }
 
