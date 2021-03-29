@@ -16,6 +16,36 @@ namespace fibjs {
 template <typename T>
 class UVStream_tmpl : public T {
 public:
+    class UVTimeout : public uv_timer_t {
+    public:
+        UVTimeout(UVStream_tmpl* _this)
+            : m_this(_this)
+            , m_timeout(_this->m_timeout)
+        {
+            if (m_timeout > 0) {
+                uv_timer_init(s_uv_loop, this);
+                uv_timer_start(this, on_timeout, m_timeout, 0);
+            }
+        }
+
+        static void on_timeout(uv_timer_t* handle)
+        {
+            UVTimeout* pThis = (UVTimeout*)handle;
+            pThis->m_this->close(NULL);
+        }
+
+        void cancel_timer()
+        {
+            if (m_timeout > 0)
+                uv_timer_stop(this);
+        }
+
+    public:
+        obj_ptr<UVStream_tmpl> m_this;
+        int32_t m_timeout;
+    };
+
+public:
     UVStream_tmpl(int32_t fd = -1)
         : m_fd(fd)
     {
@@ -47,10 +77,12 @@ public:
 
 public:
     // Stream_base
-    class AsyncRead : public AsyncEvent {
+    class AsyncRead : public AsyncEvent,
+                      public UVTimeout {
     public:
         AsyncRead(UVStream_tmpl* pThis, bool bRead, int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
-            : m_this(pThis)
+            : UVTimeout(pThis)
+            , m_this(pThis)
             , m_bRead(bRead)
             , m_bytes(bytes)
             , m_retVal(retVal)
@@ -115,6 +147,8 @@ public:
 
         void post_result(int32_t status)
         {
+            UVTimeout::cancel_timer();
+
             if (status < 0 && status != UV_EOF) {
                 m_ac->apost(status);
             } else {
@@ -141,10 +175,12 @@ public:
         exlib::string m_buf;
     };
 
-    class AsyncWrite : public AsyncEvent {
+    class AsyncWrite : public AsyncEvent,
+                       public UVTimeout {
     public:
         AsyncWrite(UVStream_tmpl* pThis, Buffer_base* data, AsyncEvent* ac)
-            : m_this(pThis)
+            : UVTimeout(pThis)
+            , m_this(pThis)
             , m_ac(ac)
         {
             data->toString(m_strBuf);
@@ -192,6 +228,8 @@ public:
 
         void post_result(int32_t status)
         {
+            UVTimeout::cancel_timer();
+
             m_ac->apost(status);
             delete this;
         }
@@ -244,17 +282,19 @@ public:
         AsyncRead::post_all_result(pThis, UV_EPIPE);
         AsyncWrite::post_all_result(pThis, UV_EPIPE);
 
-        pThis->ac_close->apost(0);
+        if (pThis->ac_close)
+            pThis->ac_close->apost(0);
     }
 
     virtual result_t close(AsyncEvent* ac)
     {
-        if (ac->isSync())
+        if (ac && ac->isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
         uv_post([this, ac] {
             if (uv_is_closing(&this->m_handle)) {
-                ac->apost(0);
+                if (ac)
+                    ac->apost(0);
                 return;
             }
 
@@ -271,8 +311,21 @@ public:
         return io_base::copyStream(this, stm, bytes, retVal, ac);
     }
 
-private:
+    virtual result_t get_timeout(int32_t& retVal)
+    {
+        retVal = m_timeout;
+        return 0;
+    }
+
+    virtual result_t set_timeout(int32_t newVal)
+    {
+        m_timeout = newVal;
+        return 0;
+    }
+
+public:
     int32_t m_fd;
+    int32_t m_timeout = -1;
 
 public:
     union {

@@ -2317,36 +2317,41 @@ describe("http", () => {
                 "/disconnect_test");
         });
 
-        describe("client timeout & global client timeout", () => {
+        odescribe("client timeout & global client timeout", () => {
             var client = new http.Client();
 
             it("overtime", () => {
                 client.timeout = 200;
 
-                var no = test_util.countObject('Timer');
+                var t1 = new Date();
                 assert.throws(() => {
                     client.get("http://127.0.0.1:" + (8884 + base_port) + "/timeout")
                 });
-                for (var i = 0; i < 1000 && no !== test_util.countObject('Timer'); i++)
-                    coroutine.sleep(1);
-                assert.equal(no, test_util.countObject('Timer'));
+                var t2 = new Date();
+
+                assert.greaterThan(t2 - t1, 190);
+                assert.lessThan(t2 - t1, 500);
             });
 
             it("intime", () => {
                 client.timeout = 1000;
-                var no = test_util.countObject('Timer');
+
                 assert.equal(client.get("http://127.0.0.1:" + (8884 + base_port) + "/timeout").body.readAll().toString(),
                     "/timeout");
-                for (var i = 0; i < 1000 && no !== test_util.countObject('Timer'); i++)
-                    coroutine.sleep(1);
-                assert.equal(no, test_util.countObject('Timer'));
+                var t2 = new Date();
             });
 
             it("global overtime", () => {
                 http.timeout = 200;
+
+                var t1 = new Date();
                 assert.throws(() => {
                     http.get("http://127.0.0.1:" + (8884 + base_port) + "/timeout")
                 });
+                var t2 = new Date();
+
+                assert.greaterThan(t2 - t1, 190);
+                assert.lessThan(t2 - t1, 500);
             });
 
             it("global intime", () => {
@@ -2354,24 +2359,24 @@ describe("http", () => {
                 assert.equal(http.get("http://127.0.0.1:" + (8884 + base_port) + "/timeout").body.readAll().toString(),
                     "/timeout");
             });
-
-            it("autoredirect", () => {
-                assert.equal(http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect/a/b/c').body.readAll().toString(),
-                    "/d");
-                assert.equal(http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect/a/b/d').body.readAll().toString(),
-                    "/redirect/a/b/e");
-                assert.equal(http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect/a/b/f').body.readAll().toString(),
-                    "/redirect/a/g");
-            });
-
-            it("disable autoredirect", () => {
-                http.autoRedirect = false;
-                var resp = http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect');
-                assert.equal(resp.headers.location, "request");
-                assert.equal(http.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/redirect").firstHeader("test"),
-                    "test1");
-            })
         });
+
+        it("autoredirect", () => {
+            assert.equal(http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect/a/b/c').body.readAll().toString(),
+                "/d");
+            assert.equal(http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect/a/b/d').body.readAll().toString(),
+                "/redirect/a/b/e");
+            assert.equal(http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect/a/b/f').body.readAll().toString(),
+                "/redirect/a/g");
+        });
+
+        it("disable autoredirect", () => {
+            http.autoRedirect = false;
+            var resp = http.get('http://127.0.0.1:' + (8884 + base_port) + '/redirect');
+            assert.equal(resp.headers.location, "request");
+            assert.equal(http.request("GET", "http://127.0.0.1:" + (8884 + base_port) + "/redirect").firstHeader("test"),
+                "test1");
+        })
     });
 
     describe("repeater", () => {

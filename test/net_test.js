@@ -306,21 +306,13 @@ describe("net", () => {
 
         test_util.gc();
 
-        var no = test_util.countObject('Timer');
         c1.connect('127.0.0.1', 8085 + base_port);
-        for (var i = 0; i < 1000 && no !== test_util.countObject('Timer'); i++) {
-            test_util.gc();
-            coroutine.sleep(50);
-        }
-        assert.equal(no, test_util.countObject('Timer'));
 
         var t1 = new Date();
         assert.throws(() => {
             c1.recv();
         });
-        for (var i = 0; i < 1000 && no !== test_util.countObject('Timer'); i++)
-            coroutine.sleep(1);
-        assert.equal(no, test_util.countObject('Timer'));
+
         var t2 = new Date();
 
         assert.greaterThan(t2 - t1, 49);
@@ -332,9 +324,6 @@ describe("net", () => {
         assert.throws(() => {
             c2.connect('192.166.166.166', 8086 + base_port);
         });
-        for (var i = 0; i < 1000 && no !== test_util.countObject('Timer'); i++)
-            coroutine.sleep(1);
-        assert.equal(no, test_util.countObject('Timer'));
         var t2 = new Date();
 
         assert.greaterThan(t2 - t1, 40);

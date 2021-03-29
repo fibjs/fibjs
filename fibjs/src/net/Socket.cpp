@@ -8,6 +8,7 @@
 #include "object.h"
 #include "ifs/io.h"
 #include "Socket.h"
+#include "UVSocket.h"
 #include "Buffer.h"
 #include "Stat.h"
 #include <string.h>
@@ -18,14 +19,8 @@ namespace fibjs {
 result_t Socket_base::_new(int32_t family, obj_ptr<Socket_base>& retVal,
     v8::Local<v8::Object> This)
 {
-    obj_ptr<Socket> sock = new Socket();
-
-    result_t hr = sock->create(family);
-    if (hr < 0)
-        return hr;
-
-    retVal = sock;
-    return 0;
+    // return UVSocket::create(family, retVal);
+    return Socket::create(family, retVal);
 }
 
 Socket::~Socket()
@@ -37,6 +32,19 @@ Socket::~Socket()
 #ifdef _WIN32
 extern HANDLE s_hIocp;
 #endif
+
+result_t Socket::create(int32_t family, obj_ptr<Socket_base>& retVal)
+{
+    obj_ptr<Socket> sock = new Socket();
+
+    result_t hr = sock->create(family);
+    if (hr < 0)
+        return hr;
+
+    retVal = sock;
+
+    return 0;
+}
 
 result_t Socket::create(int32_t family)
 {
@@ -79,7 +87,6 @@ result_t Socket::create(int32_t family)
 result_t Socket::get_fd(int32_t& retVal)
 {
     retVal = (int32_t)m_aio.m_fd;
-
     return 0;
 }
 

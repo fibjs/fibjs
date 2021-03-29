@@ -240,10 +240,9 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
 {
     class AsyncSend : public uv_udp_send_t {
     public:
-        AsyncSend(Buffer_base* msg, int32_t port, inetAddr& addr_info, int32_t& retVal, AsyncEvent* ac)
+        AsyncSend(Buffer_base* msg, int32_t port, int32_t& retVal, AsyncEvent* ac)
             : m_ac(ac)
             , m_retVal(retVal)
-            , m_addr_info(addr_info)
             , m_port(port)
         {
             msg->toString(m_strData);
@@ -269,7 +268,6 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
         int32_t& m_retVal;
         exlib::string m_strData;
         uv_buf_t m_buf;
-        inetAddr m_addr_info;
         int32_t m_port;
     };
 
@@ -301,7 +299,7 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
             return CHECK_ERROR(CALL_E_INVALIDARG);
     }
 
-    AsyncSend* _send = new AsyncSend(msg, port, addr_info, retVal, ac);
+    AsyncSend* _send = new AsyncSend(msg, port, retVal, ac);
     int32_t status = uv_udp_try_send(&m_udp, &_send->m_buf, 1, (sockaddr*)&addr_info);
     if (status >= 0) {
         delete _send;

@@ -70,9 +70,11 @@ public:
     virtual result_t send(Buffer_base* data, AsyncEvent* ac);
 
 public:
-    result_t create(int32_t family);
+    static result_t create(int32_t family, obj_ptr<Socket_base>& retVal);
 
 private:
+    result_t create(int32_t family);
+
     class IOTimer : public Timer {
     public:
         IOTimer(int32_t timeout, Socket_base* sock)
