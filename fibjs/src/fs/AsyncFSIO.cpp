@@ -66,6 +66,29 @@ void uv_post(AsyncEvent* task)
     s_afsIO->post(task);
 }
 
+void uv_post(std::function<void(void)> proc)
+{
+    class UVPost : public AsyncEvent {
+    public:
+        UVPost(std::function<void(void)>& proc)
+            : AsyncEvent(NULL)
+            , m_proc(proc)
+        {
+        }
+
+        void invoke()
+        {
+            m_proc();
+            delete this;
+        }
+
+    public:
+        std::function<void(void)> m_proc;
+    };
+
+    uv_post(new UVPost(proc));
+}
+
 int uv_call(std::function<int(void)> proc)
 {
     class UVCall : public AsyncEvent {

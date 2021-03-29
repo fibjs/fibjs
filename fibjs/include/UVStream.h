@@ -35,9 +35,8 @@ public:
             return;
         }
 
-        uv_call([&] {
+        uv_post([&] {
             uv_close(&m_handle, on_delete);
-            return 0;
         });
     }
 
@@ -253,14 +252,17 @@ public:
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
-        return uv_call([&] {
-            if (uv_is_closing(&m_handle))
-                return 0;
+        uv_post([this, ac] {
+            if (uv_is_closing(&this->m_handle)) {
+                ac->apost(0);
+                return;
+            }
 
-            ac_close = ac;
-            uv_close(&m_handle, on_close);
-            return CALL_E_PENDDING;
+            this->ac_close = ac;
+            uv_close(&this->m_handle, on_close);
         });
+
+        return CALL_E_PENDDING;
     }
 
     virtual result_t copyTo(Stream_base* stm, int64_t bytes,
