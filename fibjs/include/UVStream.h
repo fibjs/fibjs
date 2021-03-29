@@ -50,8 +50,9 @@ public:
     // Stream_base
     class AsyncRead : public exlib::linkitem {
     public:
-        AsyncRead(UVStream_tmpl* pThis, int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+        AsyncRead(UVStream_tmpl* pThis, bool bRead, int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
             : m_this(pThis)
+            , m_bRead(bRead)
             , m_bytes(bytes)
             , m_retVal(retVal)
             , m_ac(ac)
@@ -106,7 +107,7 @@ public:
 
             ar = pThis->queue_read.head();
             ar->m_pos += (int32_t)nread;
-            if ((ar->m_bytes < 0) || (ar->m_bytes == ar->m_pos)) {
+            if (!ar->m_bRead || (ar->m_bytes < 0) || (ar->m_bytes == ar->m_pos)) {
                 pThis->queue_read.getHead();
                 ar->post_result(0);
 
@@ -141,6 +142,7 @@ public:
 
     private:
         obj_ptr<UVStream_tmpl> m_this;
+        bool m_bRead;
         int32_t m_bytes;
         obj_ptr<Buffer_base>& m_retVal;
         AsyncEvent* m_ac;
@@ -228,13 +230,12 @@ public:
         return uv_fileno(&m_handle, (uv_os_fd_t*)&retVal);
     };
 
-    virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
-        AsyncEvent* ac)
+    virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     {
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
-        return (new AsyncRead(this, bytes, retVal, ac))->start();
+        return (new AsyncRead(this, true, bytes, retVal, ac))->start();
     }
 
     virtual result_t write(Buffer_base* data, AsyncEvent* ac)
