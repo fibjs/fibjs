@@ -80,10 +80,12 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options)
             if (s == "ignore") {
                 stdios[i].flags = UV_IGNORE;
             } else if (s == "pipe") {
+                hr = UVStream::create_pipe(m_stdio[i]);
+                if (hr < 0)
+                    return hr;
+
                 stdios[i].flags = (uv_stdio_flags)(UV_CREATE_PIPE | UV_READABLE_PIPE | UV_WRITABLE_PIPE);
-                obj_ptr<UVStream> p = new UVStream();
-                stdios[i].data.stream = (uv_stream_t*)&p->m_pipe;
-                m_stdio[i] = p;
+                stdios[i].data.stream = (uv_stream_t*)&m_stdio[i]->m_pipe;
             } else // if (s == "inherit")
             {
                 stdios[i].flags = UV_INHERIT_FD;

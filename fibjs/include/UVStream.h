@@ -16,30 +16,12 @@ namespace fibjs {
 template <typename T>
 class UVStream_tmpl : public T {
 public:
-    UVStream_tmpl(int32_t fd)
+    UVStream_tmpl(int32_t fd = -1)
+        : m_fd(fd)
     {
-        m_fd = fd;
-
-        uv_call([&] {
-            if (is_stdio_fd(fd) && uv_guess_handle(fd) == UV_TTY) {
-                uv_tty_init(s_uv_loop, &m_tty, fd, 0);
-                return uv_stream_set_blocking(&m_stream, 1);
-            }
-
-            uv_pipe_init(s_uv_loop, &m_pipe, 0);
-            return uv_pipe_open(&m_pipe, fd);
-        });
     }
 
-    UVStream_tmpl()
-    {
-        m_fd = -1;
-
-        uv_call([&] {
-            return uv_pipe_init(s_uv_loop, &m_pipe, 0);
-        });
-    }
-
+public:
     static void on_delete(uv_handle_t* handle)
     {
         UVStream_tmpl* pThis = container_of(handle, UVStream_tmpl, m_handle);
@@ -322,10 +304,34 @@ public:
     UVStream(int32_t fd)
         : UVStream_tmpl<Stream_base>(fd)
     {
+        uv_call([&] {
+            if (is_stdio_fd(fd) && uv_guess_handle(fd) == UV_TTY) {
+                uv_tty_init(s_uv_loop, &m_tty, fd, 0);
+                return uv_stream_set_blocking(&m_stream, 1);
+            }
+
+            uv_pipe_init(s_uv_loop, &m_pipe, 0);
+            return uv_pipe_open(&m_pipe, fd);
+        });
     }
 
+public:
+    static result_t create_pipe(obj_ptr<UVStream>& retVal)
+    {
+        obj_ptr<UVStream> stream = new UVStream();
+        result_t hr = uv_call([&] {
+            return uv_pipe_init(s_uv_loop, &stream->m_pipe, 0);
+        });
+        if (hr < 0)
+            return hr;
+
+        retVal = stream;
+
+        return 0;
+    }
+
+private:
     UVStream()
-        : UVStream_tmpl<Stream_base>()
     {
     }
 };
