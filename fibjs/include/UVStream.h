@@ -267,7 +267,7 @@ public:
 
         return uv_call([&] {
             if (uv_is_closing(&m_handle))
-                return CALL_E_INVALID_CALL;
+                return 0;
 
             ac_close = ac;
             uv_close(&m_handle, on_close);
