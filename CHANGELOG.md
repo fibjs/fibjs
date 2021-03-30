@@ -1,3 +1,18 @@
+## 2021-03-30, Version 0.32.1
+* **feature** :
+    * tools - upgrade tools/changelog.js, driven by child_process module.(richardo2016)
+
+* **bugfix** :
+    * build - fibjs build with alpine 3.13 (#643)(Su Yang)
+    * db - conn.begin error on mysql.(xicilion)
+    * EventEmitter - removeAllListeners() does not remove any listener.(xicilion)
+
+### Commits
+* [[`38886c8d8b`](https://github.com/fibjs/fibjs/commit/38886c8d8b)] - **tools, feat**: upgrade tools/changelog.js, driven by child_process module.(richardo2016)
+* [[`0c65ff57f9`](https://github.com/fibjs/fibjs/commit/0c65ff57f9)] - **db, bugfix**: conn.begin error on mysql.(xicilion)
+* [[`ae2ea1459f`](https://github.com/fibjs/fibjs/commit/ae2ea1459f)] - **EventEmitter, bugfix**: removeAllListeners() does not remove any listener.(xicilion)
+* [[`8b9d85f8a4`](https://github.com/fibjs/fibjs/commit/8b9d85f8a4)] - **build, bugfix**: fibjs build with alpine 3.13 (#643)(Su Yang)
+
 ## 2021-03-21, Version 0.32.0
 * **feature** :
     * build:

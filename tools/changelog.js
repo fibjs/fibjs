@@ -1,26 +1,23 @@
+var io = require('io');
 var path = require('path');
+var child_process = require('child_process');
 
 process.chdir(path.join(__dirname, '..'));
 
 function pick_subprocess_out_lines(popen_r) {
-    var lines = [];;
-    if (popen_r.stdout) {
-        lines = popen_r.stdout.readLines();
-    } else if (typeof popen_r.readLines === 'function') {
-        lines = popen_r.readLines();
-    }
+    var stdout = new io.BufferedStream(popen_r.stdout);
 
-    return lines;
+    return stdout.readLines();
 }
 
 var hash = pick_subprocess_out_lines(
-    process.open('git', 'rev-list --tags --max-count=1'.split(' '))
+    child_process.spawn('git', 'rev-list --tags --max-count=1'.split(' '))
 )[0]
-var describe = pick_subprocess_out_lines(process.open('git', ['describe', '--match', 'v[0-9]*.[0-9]*.[0-9]*', hash]));
+var describe = pick_subprocess_out_lines(child_process.spawn('git', ['describe', '--match', 'v[0-9]*.[0-9]*.[0-9]*', hash]));
 var info = (/^(v[\d\.]+)-(\d+)-g([a-f\d]+)/g).exec(describe);
 
 var logs = pick_subprocess_out_lines(
-    process.open('git', [
+    child_process.spawn('git', [
         'log',
         '--pretty=format:%H-%s(%an)',
         '-' + (new Number(info[2] - 1))
