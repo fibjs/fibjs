@@ -302,7 +302,7 @@ describe("net", () => {
 
         var c1 = new net.Socket();
 
-        c1.timeout = 50;
+        c1.timeout = 300;
 
         test_util.gc();
 
@@ -315,19 +315,19 @@ describe("net", () => {
 
         var t2 = new Date();
 
-        assert.greaterThan(t2 - t1, 49);
-        assert.lessThan(t2 - t1, 500);
+        assert.greaterThan(t2 - t1, 250);
+        assert.lessThan(t2 - t1, 1000);
 
         var c2 = new net.Socket();
-        c2.timeout = 50;
+        c2.timeout = 300;
         var t1 = new Date();
         assert.throws(() => {
             c2.connect('192.166.166.166', 8086 + base_port);
         });
         var t2 = new Date();
 
-        assert.greaterThan(t2 - t1, 40);
-        assert.lessThan(t2 - t1, 500);
+        assert.greaterThan(t2 - t1, 250);
+        assert.lessThan(t2 - t1, 1000);
     });
 
     it("bind same port", () => {
