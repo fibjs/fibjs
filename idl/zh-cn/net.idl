@@ -19,6 +19,9 @@ module net
     /*! @brief 协议族常量，指定 udp*/
     const SOCK_DGRAM = 2;
 
+    /*! @brief 查询和设置 socket 后端是否使用 uv，缺省为 false */
+    static Boolean use_uv_socket;
+
     /*! @brief 查询当前运行环境网络信息
      @return 返回网卡信息
     */

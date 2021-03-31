@@ -13,6 +13,7 @@
 #include "inetAddr.h"
 #include "Smtp.h"
 #include "Url.h"
+#include "options.h"
 
 #ifndef INET6_ADDRSTRLEN
 #define INET6_ADDRSTRLEN 46
@@ -75,6 +76,18 @@ result_t dns_base::lookup(exlib::string name, exlib::string& retVal, AsyncEvent*
 }
 
 DECLARE_MODULE(net);
+
+result_t net_base::get_use_uv_socket(bool& retVal)
+{
+    retVal = g_uv_socket;
+    return 0;
+}
+
+result_t net_base::set_use_uv_socket(bool newVal)
+{
+    g_uv_socket = newVal;
+    return 0;
+}
 
 result_t net_base::info(v8::Local<v8::Object>& retVal)
 {

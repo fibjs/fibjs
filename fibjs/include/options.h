@@ -23,6 +23,8 @@ extern FILE* g_cov;
 extern bool g_tcpdump;
 extern bool g_ssldump;
 
+extern bool g_uv_socket;
+
 extern bool g_cefprocess;
 
 struct OptData {

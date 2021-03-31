@@ -13,14 +13,17 @@
 #include "Stat.h"
 #include <string.h>
 #include <fcntl.h>
+#include "options.h"
 
 namespace fibjs {
 
 result_t Socket_base::_new(int32_t family, obj_ptr<Socket_base>& retVal,
     v8::Local<v8::Object> This)
 {
-    // return UVSocket::create(family, retVal);
-    return Socket::create(family, retVal);
+    if (g_uv_socket)
+        return UVSocket::create(family, retVal);
+    else
+        return Socket::create(family, retVal);
 }
 
 Socket::~Socket()
