@@ -11,6 +11,8 @@
 #include "AsyncUV.h"
 #include "Buffer.h"
 
+#define STREAM_BLOCK_SIZE 2048
+
 namespace fibjs {
 
 template <typename T>
@@ -110,6 +112,9 @@ public:
             if (ar->m_buf.empty()) {
                 if (ar->m_bytes > 0)
                     suggested_size = ar->m_bytes;
+                else
+                    suggested_size = STREAM_BLOCK_SIZE;
+
                 ar->m_buf.resize(suggested_size);
             }
 
