@@ -164,6 +164,7 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
     [window setDelegate:[GuiWindowDelegate new]];
 
     [window makeKeyAndOrderFront:window];
+    [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
 
     webview->Ref();
     webview->_emit("open");

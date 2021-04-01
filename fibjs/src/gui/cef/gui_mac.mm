@@ -55,12 +55,10 @@ result_t CefWebView::close(AsyncEvent* ac)
         return 0;
 
     NSView* view = CAST_CEF_WINDOW_HANDLE_TO_NSVIEW(m_browser->GetHost()->GetWindowHandle());
-    if(view)
-    {
+    if (view) {
         NSWindow* window = [view window];
 
-        if(!(window.styleMask & NSWindowStyleMaskTitled))
-        {
+        if (!(window.styleMask & NSWindowStyleMaskTitled)) {
             [window close];
             return 0;
         }
@@ -75,7 +73,6 @@ void MacRunMessageLoop(const CefMainArgs& args, const CefSettings& settings, Cef
         [GuiApplication sharedApplication];
         [[GuiApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
         [[GuiApplication sharedApplication] finishLaunching];
-        [[GuiApplication sharedApplication] activateIgnoringOtherApps:YES];
 
         CefInitialize(args, settings, application, nullptr);
         CefRunMessageLoop();
