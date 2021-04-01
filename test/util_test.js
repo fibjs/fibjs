@@ -1022,6 +1022,8 @@ describe('util', () => {
             assert.equal(util.format({
                 a: () => {}
             }), '{\n  "a": [Function a]\n}');
+
+            assert.equal(util.format(util.format), "[Function format]");
         });
 
         it("Error", () => {
