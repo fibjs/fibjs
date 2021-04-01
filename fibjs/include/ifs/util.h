@@ -80,6 +80,7 @@ public:
     static result_t parseArgs(exlib::string command, obj_ptr<NArray>& retVal);
     static result_t compile(exlib::string srcname, exlib::string script, int32_t mode, obj_ptr<Buffer_base>& retVal);
     static result_t sync(v8::Local<v8::Function> func, bool async_func, v8::Local<v8::Function>& retVal);
+    static result_t promisify(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal);
     static result_t buildInfo(v8::Local<v8::Object>& retVal);
 
 public:
@@ -148,6 +149,7 @@ public:
     static void s_static_parseArgs(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_compile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_sync(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_promisify(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_buildInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
@@ -213,6 +215,7 @@ inline ClassInfo& util_base::class_info()
         { "parseArgs", s_static_parseArgs, true },
         { "compile", s_static_compile, true },
         { "sync", s_static_sync, true },
+        { "promisify", s_static_promisify, true },
         { "buildInfo", s_static_buildInfo, true }
     };
 
@@ -1130,6 +1133,22 @@ inline void util_base::s_static_sync(const v8::FunctionCallbackInfo<v8::Value>& 
     OPT_ARG(bool, 1, false);
 
     hr = sync(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_static_promisify(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_NAME("util.promisify");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = promisify(v0, vr);
 
     METHOD_RETURN();
 }

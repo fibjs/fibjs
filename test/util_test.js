@@ -1267,6 +1267,33 @@ describe('util', () => {
         });
     });
 
+    it('promisify', async () => {
+        var t = 0;
+
+        function cb_test(cb) {
+            setTimeout(function () {
+                t = 2;
+                cb(null, t);
+            }, 100);
+            t = 1;
+        }
+
+        var t1 = await util.promisify(cb_test)();
+        assert.equal(t1, 2);
+        assert.equal(t, 2);
+
+        var t2 = 0;
+        try {
+            await util.promisify((done) => {
+                done(500);
+            })();
+        } catch (e) {
+            t2 = e;
+        }
+
+        assert.equal(t2, 500);
+    });
+
     describe('buildInfo', () => {
         it('properties', () => {
             assert.property(util.buildInfo(), 'fibjs');
