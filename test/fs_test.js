@@ -109,6 +109,18 @@ describe('fs', () => {
             assert.equal(st.isReadable(), true);
             assert.equal(st.isWritable(), true);
         });
+
+        it('error.code', () => {
+            var code;
+
+            try {
+                fs.stat('aaaa');
+            } catch (e) {
+                code = e.code;
+            }
+
+            assert.equal(code, "ENOENT");
+        })
     });
 
     it("file open & close", () => {

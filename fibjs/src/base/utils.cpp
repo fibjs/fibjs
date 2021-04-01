@@ -33,6 +33,18 @@ static const char* uv_error(int err)
 }
 #undef UV_STRERROR_GEN
 
+#define UV_ERR_NAME_GEN(name, _) \
+    case UV_##name:              \
+        return #name;
+static const char* uv_error_name(int err)
+{
+    switch (err) {
+        UV_ERRNO_MAP(UV_ERR_NAME_GEN)
+    }
+    return NULL;
+}
+#undef UV_ERR_NAME_GEN
+
 exlib::string getResultMessage(result_t hr)
 {
     static const char* s_errors[] = {
@@ -130,9 +142,15 @@ exlib::string getResultMessage(result_t hr)
 v8::Local<v8::Value> ThrowResult(result_t hr)
 {
     Isolate* isolate = Isolate::current();
-    v8::Local<v8::Value> e = v8::Exception::Error(
+    v8::Local<v8::Value> v = v8::Exception::Error(
         isolate->NewString(getResultMessage(hr)));
-    isolate->toLocalObject(e)->Set(isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr));
+    v8::Local<v8::Object> e = v8::Local<v8::Object>::Cast(v);
+
+    e->Set(isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr));
+
+    const char* _name = uv_error_name(hr);
+    if (_name)
+        e->Set(isolate->NewString("code"), isolate->NewString(_name));
 
     return isolate->m_isolate->ThrowException(e);
 }
