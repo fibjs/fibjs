@@ -2,7 +2,7 @@
 
  ```JavaScript
  var child_process = require("child_process");
- var child = child_process.spwan("ls");
+ var child = child_process.spawn("ls");
  ```
  */
 interface ChildProcess : EventEmitter

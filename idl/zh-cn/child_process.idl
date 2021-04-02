@@ -2,7 +2,7 @@
  引用方式：
  ```JavaScript
  var child_process = require("child_process");
- var child = child_process.spwan("ls");
+ var child = child_process.spawn("ls");
  ```
 
  对于同时使用 nodejs 的用户, 需注意
