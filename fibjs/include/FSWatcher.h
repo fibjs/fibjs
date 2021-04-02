@@ -10,6 +10,7 @@
 
 #include "ifs/FSWatcher.h"
 #include "ifs/fs.h"
+#include "path.h"
 #include "EventEmitter.h"
 #include "EventInfo.h"
 #include <uv/include/uv.h>
@@ -41,7 +42,7 @@ public:
         }
     }
 
-    ~FSWatcher(){};
+    ~FSWatcher() {};
 
 public:
     EVENT_SUPPORT();
@@ -52,7 +53,7 @@ public:
     EVENT_FUNC(error);
 
 public:
-    void on_watched(const char* fullfname, int events, int status)
+    void on_watched(const char* relname, int events, int status)
     {
         Variant v[2];
         exlib::string only_evtType;
@@ -74,7 +75,7 @@ public:
             return;
         }
 
-        v[1] = fullfname;
+        v[1] = relname;
 
         _emit("change", v, 2);
         if (only_evtType.length() > 0)
@@ -99,13 +100,7 @@ private:
         if (p->m_closed) {
             uv_close(handle, on_close);
         } else {
-            char fullname[2048];
-            size_t size = sizeof(fullname);
-
-            uv_fs_event_getpath(fs_event, fullname, &size);
-            fullname[size] = '\0';
-
-            p->on_watched(fullname, events, status);
+            p->on_watched(filename, events, status);
         }
     }
 

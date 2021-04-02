@@ -145,13 +145,16 @@ describe('fs.watch*', () => {
                 var relfile = resolve_reltocwd(`./fswatch_files/nogit-${_uuid}.txt`)
 
                 writeFile(relfile, '')
+                var relfilename = path.basename(relfile);
 
                 var watcher
                 var changeTriggerCount = 0
                 const _handler = (evtType, filename) => {
                     assert.isString(evtType)
                     assert.isString(filename)
-                    console.log('\twatched file change, type: %s; filename: %s', evtType, filename)
+                    console.log('\twatched directory change, type: %s; filename: %s', evtType, filename)
+
+                    assert.equal(filename, relfilename);
 
                     changeTriggerCount++;
                 }
@@ -231,7 +234,7 @@ describe('fs.watch*', () => {
             });
         });
 
-        describe("watch Directory create file", () => {
+        describe("watch Directory: create file", () => {
             var proc = ({
                 changeEventSource = '',
                 next,
@@ -246,7 +249,7 @@ describe('fs.watch*', () => {
                 const _handler = (evtType, filename) => {
                     assert.isString(evtType)
                     assert.isString(filename)
-                    console.log('\twatched file change, type: %s; filename: %s', evtType, filename)
+                    console.log('\twatched directory change, type: %s; filename: %s', evtType, filename)
 
                     changeTriggerCount++;
                 }
@@ -303,7 +306,169 @@ describe('fs.watch*', () => {
             });
         });
 
-        describe("watch Directory delete file", () => {
+        describe("watch Directory: create file once", () => {
+            var proc = ({
+                changeEventSource = '',
+                next,
+            }) => {
+                var _uuid = uuid.snowflake().hex()
+                var reldir = resolve_reltocwd(`./fswatch_files/${_uuid}`)
+                var filebasename = `nogit-${_uuid}.txt`;
+
+                ensureDirectoryExisted(reldir)
+
+                var watcher
+                var changeTriggerCount = 0
+                let writeCount = 0
+                var noTriggerAfterClose = true
+
+                const _handler = (evtType, filename) => {
+                    assert.isString(evtType)
+                    assert.isString(filename)
+                    console.log('\twatched directory change, type: %s; filename: %s', evtType, filename)
+
+                    assert.equal(filename, filebasename)
+
+                    changeTriggerCount++;
+                        
+                    watcher.close();
+
+                    watcher.on('change', () => {
+                        noTriggerAfterClose = false;
+                    });
+                }
+                switch (changeEventSource) {
+                    case 'listener':
+                        watcher = fs.watch(reldir, _handler)
+                        break
+                    case 'register':
+                        watcher = fs.watch(reldir)
+                        watcher.on('change', _handler)
+                        break
+                }
+
+                watcher.on('close', () => {
+                    assert.ok(changeTriggerCount > 0);
+                    assert.equal(writeCount, 1);
+                    // 预期为 1, 但在部分系统上可能会被触发多次
+                    assert.notLessThan(changeTriggerCount, 1, `changeTriggerCount is ${changeTriggerCount}`);
+
+                    assert.isTrue(noTriggerAfterClose);
+
+                    next();
+                })
+
+                setTimeout(() => {
+                    writeCount++;
+
+                    createFile(path.join(reldir, filebasename), `this is new file.`)
+                }, 200);
+            }
+
+            it(`event: 'rename', from listener`, (next) => {
+                proc({
+                    changeEventSource: 'listener',
+                    next
+                });
+            });
+
+            it(`event: 'rename', from register`, (next) => {
+                proc({
+                    changeEventSource: 'register',
+                    next
+                });
+            });
+        });
+
+        describe("watch Directory recursively: create file once", () => {
+            var proc = ({
+                changeEventSource = '',
+                next,
+            }) => {
+                var _uuid = uuid.snowflake().hex()
+                var reldir = resolve_reltocwd(`./fswatch_files/${_uuid}/${_uuid}`)
+                var filebasename = `nogit-${_uuid}.txt`;
+                var fullfilename = path.join(reldir, filebasename);
+
+                var preldir = path.dirname(reldir);
+                var relfilename = path.join(_uuid, filebasename);
+
+                ensureDirectoryExisted(reldir)
+
+                var watcher
+                var changeTriggerCount = 0
+                let writeCount = 0
+                var noTriggerAfterClose = true
+
+                const _handler = (evtType, filename) => {
+                    assert.isString(evtType)
+                    assert.isString(filename)
+                    console.log('\twatched directory change, type: %s; filename: %s', evtType, filename)
+
+                    const stats = fs.stat(path.resolve(preldir, filename));
+                    /**
+                     * monitor 一个刚刚创建不久的文件夹 D, watch 它, 然后在该文件夹中新增一个文件 F, 在
+                     * 部分系统中, 连续观察到先触发 D 的 rename 事件, 然后再触发 F 的 rename 事件.
+                     * 
+                     * 也因为这个原因, D rename 事件触发的时候, 我们不能马上 close watcher,
+                     * 确保是 F rename 事件触发的时候, 再 close watcher
+                     */
+                    if (stats.isFile()) {
+                        assert.equal(filename, relfilename);
+
+                        changeTriggerCount++;
+                        watcher.close();
+    
+                        watcher.on('change', () => {
+                            noTriggerAfterClose = false;
+                        });
+                    } else if (stats.isDirectory()) {
+                        assert.equal(filename, path.dirname(relfilename));
+                    }
+                }
+                switch (changeEventSource) {
+                    case 'listener':
+                        watcher = fs.watch(preldir, { recursive: true }, _handler)
+                        break
+                    case 'register':
+                        watcher = fs.watch(preldir, { recursive: true })
+                        watcher.on('change', _handler)
+                        break
+                }
+
+                watcher.on('close', () => {
+                    assert.ok(changeTriggerCount > 0);
+                    assert.equal(writeCount, 1);
+                    assert.notLessThan(changeTriggerCount, 1);
+
+                    assert.isTrue(noTriggerAfterClose);
+
+                    next();
+                })
+
+                setTimeout(() => {
+                    writeCount++;
+
+                    createFile(fullfilename, `this is new file.`)
+                }, 200);
+            }
+
+            it(`event: 'rename', from listener`, (next) => {
+                proc({
+                    changeEventSource: 'listener',
+                    next
+                });
+            });
+
+            it(`event: 'rename', from register`, (next) => {
+                proc({
+                    changeEventSource: 'register',
+                    next
+                });
+            });
+        });
+
+        describe("watch Directory: delete file", () => {
             var proc = ({
                 changeEventSource = '',
                 next,
@@ -327,7 +492,7 @@ describe('fs.watch*', () => {
                 const _handler = (evtType, filename) => {
                     assert.isString(evtType)
                     assert.isString(filename)
-                    console.log('\twatched file change, type: %s; filename: %s', evtType, filename)
+                    console.log('\twatched directory change, type: %s; filename: %s', evtType, filename)
 
                     changeTriggerCount++;
                 }
@@ -358,6 +523,156 @@ describe('fs.watch*', () => {
                 watcher.on('close', () => {
                     assert.ok(changeTriggerCount > 0);
                     assert.ok(changeTriggerCount >= fileCount);
+
+                    assert.isTrue(noTriggerAfterClose);
+
+                    next();
+                })
+            }
+
+            it(`event: 'rename', from listener`, (next) => {
+                proc({
+                    changeEventSource: 'listener',
+                    next
+                });
+            });
+
+            it(`event: 'rename', from register`, (next) => {
+                proc({
+                    changeEventSource: 'register',
+                    next
+                });
+            });
+        });
+
+        describe("watch Directory: delete file once", () => {
+            var proc = ({
+                changeEventSource = '',
+                next,
+            }) => {
+                var _uuid = uuid.snowflake().hex()
+                var reldir = resolve_reltocwd(`./fswatch_files/${_uuid}`)
+                var relfilename = `nogit-${_uuid}.txt`;
+                var fullpath = path.resolve(reldir, relfilename);
+
+                ensureDirectoryExisted(reldir)
+
+                writeFile(path.resolve(reldir, relfilename), `this is file to delete, ${_uuid}`);
+
+                var watcher
+                var changeTriggerCount = 0
+                const _handler = (evtType, filename) => {
+                    assert.isString(evtType)
+                    assert.isString(filename)
+                    console.log('\twatched directory change, type: %s; filename: %s', evtType, filename)
+
+                    assert.equal(filename, relfilename)
+
+                    changeTriggerCount++;
+
+                    watcher.close();
+                    watcher.on('change', () => {
+                        noTriggerAfterClose = false;
+                    });
+                }
+                switch (changeEventSource) {
+                    case 'listener':
+                        watcher = fs.watch(reldir, _handler)
+                        break
+                    case 'register':
+                        watcher = fs.watch(reldir)
+                        watcher.on('change', _handler)
+                        break
+                }
+
+                var noTriggerAfterClose = true
+                setTimeout(() => {
+                    delFile(fullpath)
+                }, 300);
+
+                watcher.on('close', () => {
+                    assert.ok(changeTriggerCount > 0);
+                    assert.notLessThan(changeTriggerCount, 1);
+
+                    assert.isTrue(noTriggerAfterClose);
+
+                    next();
+                })
+            }
+
+            it(`event: 'rename', from listener`, (next) => {
+                proc({
+                    changeEventSource: 'listener',
+                    next
+                });
+            });
+
+            it(`event: 'rename', from register`, (next) => {
+                proc({
+                    changeEventSource: 'register',
+                    next
+                });
+            });
+        });
+
+        describe("watch Directory recursively: delete file once", () => {
+            var proc = ({
+                changeEventSource = '',
+                next,
+            }) => {
+                var _uuid = uuid.snowflake().hex()
+                var reldir = resolve_reltocwd(`./fswatch_files/${_uuid}/${_uuid}`)
+                var filebasename = `nogit-${_uuid}.txt`;
+                var fullpath = path.resolve(reldir, filebasename);
+
+                var preldir = path.dirname(reldir);
+                var relfilename = path.join(_uuid, filebasename);
+
+                ensureDirectoryExisted(reldir)
+
+                writeFile(fullpath, `this is file to delete, ${_uuid}`);
+
+                var watcher
+                var changeTriggerCount = 0
+                const _handler = (evtType, filename) => {
+                    assert.isString(evtType)
+                    assert.isString(filename)
+                    console.log('\twatched file change, type: %s; filename: %s', evtType, filename)
+
+                    assert.equal(filename, relfilename)
+
+                    // 以 .txt 结尾说明是我们的测试文件
+                    if (filename.endsWith('.txt')) {
+                        assert.equal(filename, relfilename);
+                    } else {
+                        assert.equal(filename, path.dirname(relfilename));
+                    }
+
+                    changeTriggerCount++;
+                    watcher.close();
+    
+                    watcher.on('change', () => {
+                        noTriggerAfterClose = false;
+                    });
+                }
+                switch (changeEventSource) {
+                    case 'listener':
+                        watcher = fs.watch(preldir, { recursive: true }, _handler)
+                        break
+                    case 'register':
+                        watcher = fs.watch(preldir, { recursive: true })
+                        watcher.on('change', _handler)
+                        break
+                }
+
+                var noTriggerAfterClose = true
+                setTimeout(() => {
+                    delFile(fullpath)
+                }, 300);
+
+                watcher.on('close', () => {
+                    assert.ok(changeTriggerCount > 0);
+                    assert.equal(changeTriggerCount, 1);
 
                     assert.isTrue(noTriggerAfterClose);
 
