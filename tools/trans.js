@@ -9,7 +9,7 @@ var mkdirp = require('@fibjs/mkdirp');
 var cef_path = path.join(__dirname, "../temp/cef", os.type());
 
 gui.config({
-    // "cache_path": `${os.homedir()}/.cache`,
+    "cache_path": `${os.homedir()}/.cache`,
     "cef_path": cef_path,
     // "proxy": {
     //     mode: "fixed_servers",
@@ -18,14 +18,17 @@ gui.config({
 });
 
 var langs = [
-    "en",
-    "ja",
+    "ca",
     "de",
+    "en",
     "es",
     "fr",
-    "ko",
+    "gl",
     "it",
     "ru",
+    "ja",
+    "ko",
+    "zh-tw",
 ];
 
 var docs_path = path.join(__dirname, "../docs/web/dist");
@@ -192,6 +195,9 @@ function translate(fname, lang) {
 
 function check_docs() {
     function check_folder(lang, p) {
+        if (!fs.exists(path.join(docs_path, lang, p)))
+            return;
+
         var dir = fs.readdir(path.join(docs_path, lang, p));
         dir.forEach(function (name) {
             var fname = path.join(p, name);
