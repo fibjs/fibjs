@@ -24,7 +24,7 @@
 #include <expat/include/expat.h>
 #include <uv/include/uv/version.h>
 #include <cef/include/cef_version.h>
-#include <msgpack.h>
+#include <msgpack/version.hpp>
 
 namespace v8 {
 namespace internal {
