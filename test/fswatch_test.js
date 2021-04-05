@@ -15,6 +15,8 @@ var {
     ensureDirectoryExisted
 } = require('./_helpers/process');
 
+var support_watch_recursive = ['win32', 'darwin'].includes(process.platform);
+
 test.setup();
 
 describe('fs.watch*', () => {
@@ -380,7 +382,7 @@ describe('fs.watch*', () => {
             });
         });
 
-        describe("watch Directory recursively: create file once", () => {
+        support_watch_recursive && describe("watch Directory recursively: create file once", () => {
             var proc = ({
                 changeEventSource = '',
                 next,
@@ -615,7 +617,7 @@ describe('fs.watch*', () => {
             });
         });
 
-        describe("watch Directory recursively: delete file once", () => {
+        support_watch_recursive && describe("watch Directory recursively: delete file once", () => {
             var proc = ({
                 changeEventSource = '',
                 next,
