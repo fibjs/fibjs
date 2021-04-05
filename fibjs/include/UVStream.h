@@ -154,7 +154,7 @@ public:
         {
             UVTimeout::cancel_timer();
 
-            if (status < 0 && status != UV_EOF) {
+            if (status < 0 && status != UV_EOF && status != UV_ENOTCONN && status != UV_ECONNRESET) {
                 m_ac->apost(status);
             } else {
                 if (m_pos) {
