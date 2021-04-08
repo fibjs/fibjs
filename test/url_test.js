@@ -679,6 +679,22 @@ describe("url", () => {
             "host": "xn--fiq228c.com",
             "protocol": "http:",
             "href": "http://xn--fiq228c.com/",
+        },
+        'http://%2fvar%2Frun%2Fdocker.sock/v1.41/images/json': {
+            "pathname": "/v1.41/images/json",
+            "path": "/v1.41/images/json",
+            "hostname": "/var/run/docker.sock",
+            "host": "/var/run/docker.sock",
+            "protocol": "http:",
+            "href": "http://%2Fvar%2Frun%2Fdocker.sock/v1.41/images/json",
+        },
+        'http://%2f%2F.%2Fpipe%2Fdocker_engine/v1.41/images/json': {
+            "pathname": "/v1.41/images/json",
+            "path": "/v1.41/images/json",
+            "hostname": "//./pipe/docker_engine",
+            "host": "//./pipe/docker_engine",
+            "protocol": "http:",
+            "href": "http://%2F%2F.%2Fpipe%2Fdocker_engine/v1.41/images/json",
         }
     };
 

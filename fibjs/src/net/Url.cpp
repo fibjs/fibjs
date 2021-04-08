@@ -115,7 +115,7 @@ void Url::parseProtocol(const char*& url)
 
     while ((ch = *p)
         && (qisascii(ch) || qisdigit(ch) || ch == '.' || ch == '+'
-            || ch == '-'))
+               || ch == '-'))
         p++;
 
     if (ch == ':') {
@@ -170,6 +170,10 @@ void Url::parseHost(const char*& url, exlib::string& hostname, exlib::string& po
             ch = *++p1;
         else
             url++;
+    } else if (*p1 == '%' && p1[1] == '2' && (p1[2] == 'f' || p1[2] == 'F')) {
+        while ((ch = *p1)
+            && (qisascii(ch) || qisdigit(ch) || ch == '.' || ch == '_' || ch == '-' || ch == '%' || ch < 0))
+            p1++;
     } else {
         while ((ch = *p1)
             && (qisascii(ch) || qisdigit(ch) || ch == '.' || ch == '_' || ch == '-' || ch < 0))
@@ -185,13 +189,17 @@ void Url::parseHost(const char*& url, exlib::string& hostname, exlib::string& po
 
     if (*url == '[')
         hostname.assign(url + 1, p1 - url - 2);
-    else
+    else if (*url == '%') {
+        hostname.assign(url, p1 - url);
+        encoding_base::decodeURI(hostname, hostname);
+    } else
         hostname.assign(url, p1 - url);
 
     if (hostname.length() > 0) {
         qstrlwr(&hostname[0]);
         punycode_base::toASCII(hostname, hostname);
     }
+
     if (p2)
         port.assign(p1 + 1, p2 - p1 - 1);
     else
@@ -619,6 +627,8 @@ result_t Url::get_href(exlib::string& retVal)
     }
 
     get__host(str);
+    if (str[0] == '/')
+        encoding_base::encodeURIComponent(str, str);
     retVal.append(str);
 
     get_path(str);
