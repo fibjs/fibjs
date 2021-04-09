@@ -855,20 +855,25 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
             }
         } else {
             v = opts->Get(isolate->NewString("json", 4));
-            if (v.IsEmpty()) {
+            if (v.IsEmpty())
+                return CALL_E_JAVASCRIPT;
+
+            if (v->IsUndefined()) {
                 v = opts->Get(isolate->NewString("pack", 4));
                 if (v.IsEmpty())
                     return CALL_E_JAVASCRIPT;
 
-                obj_ptr<Buffer_base> buf;
-                stm = new MemoryStream();
+                if (!v->IsUndefined()) {
+                    obj_ptr<Buffer_base> buf;
+                    stm = new MemoryStream();
 
-                hr = msgpack_base::encode(v, buf);
-                if (hr < 0)
-                    return hr;
+                    hr = msgpack_base::encode(v, buf);
+                    if (hr < 0)
+                        return hr;
 
-                stm->cc_write(buf);
-                map->add("Content-Type", "application/msgpack");
+                    stm->cc_write(buf);
+                    map->add("Content-Type", "application/msgpack");
+                }
             } else {
                 obj_ptr<Buffer_base> buf;
                 stm = new MemoryStream();
