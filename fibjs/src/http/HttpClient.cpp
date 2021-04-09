@@ -494,6 +494,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
         {
             result_t hr;
             bool ssl = false;
+            bool unix = false;
 
             m_urls[m_url] = true;
 
@@ -508,9 +509,13 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             if (u->m_protocol == "https:") {
                 ssl = true;
                 m_connUrl = "ssl://";
-            } else if (u->m_protocol == "http:")
-                m_connUrl = "tcp://";
-            else
+            } else if (u->m_protocol == "http:") {
+                if (u->m_host[0] == '/') {
+                    unix = true;
+                    m_connUrl = "unix:";
+                } else
+                    m_connUrl = "tcp://";
+            } else
                 return CHECK_ERROR(Runtime::setError("HttpClient: unknown protocol"));
 
             if (u->m_host.empty())
@@ -518,7 +523,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
 
             m_connUrl.append(u->m_host);
 
-            if (u->m_port.empty())
+            if (!unix && u->m_port.empty())
                 m_connUrl.append(ssl ? ":443" : ":80");
 
             m_req = new HttpRequest();

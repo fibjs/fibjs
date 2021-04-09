@@ -30,6 +30,12 @@ interface HttpServer : TcpServer
    */
     HttpServer(String addr, Integer port, Handler hdlr);
 
+    /*! @brief HttpServer 构造函数
+    @param addr 指定 http 服务器侦听地址，为 "" 则在本机所有地址侦听
+    @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
+   */
+    HttpServer(String addr, Handler hdlr);
+
     /*! @brief 允许跨域请求
      @param allowHeaders 指定接受的 http 头字段
      */

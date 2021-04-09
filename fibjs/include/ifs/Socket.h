@@ -226,10 +226,10 @@ inline void Socket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_INSTANCE(Socket_base);
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 2);
+    ASYNC_METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    ARG(int32_t, 1);
+    OPT_ARG(int32_t, 1, 0);
 
     if (!cb.IsEmpty())
         hr = pInst->acb_connect(v0, v1, cb, args);
@@ -252,10 +252,10 @@ inline void Socket_base::s_bind(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     hr = pInst->bind(v0, v1);
 
-    METHOD_OVER(3, 2);
+    METHOD_OVER(3, 1);
 
     ARG(exlib::string, 0);
-    ARG(int32_t, 1);
+    OPT_ARG(int32_t, 1, 0);
     OPT_ARG(bool, 2, true);
 
     hr = pInst->bind(v0, v1, v2);

@@ -4,6 +4,7 @@ test.setup();
 var test_util = require('./test_util');
 
 var io = require('io');
+var os = require('os');
 var fs = require('fs');
 var http = require('http');
 var net = require('net');
@@ -2792,6 +2793,22 @@ describe("http", () => {
                 });
             });
         });
+    });
+
+    it("unix socket", () => {
+        var _port = (8887 + base_port);
+        var _path = os.type() == "Windows" ? "//./pipe/port_" + _port : os.homedir() + '/port_' + _port;
+
+        var svr = new http.Server(_path, (r) => {
+            r.response.write("hello, " + r.address);
+        });
+        svr.start();
+
+        test_util.push(svr.socket);
+
+        var u_path = "http://" + encodeURIComponent(_path) + "/unix";
+
+        assert.equal(http.get(u_path).readAll().toString(), "hello, /unix");
     });
 });
 

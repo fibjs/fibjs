@@ -26,6 +26,7 @@ public:
     // HttpServer_base
     static result_t _new(int32_t port, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string addr, int32_t port, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string addr, Handler_base* hdlr, obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t enableCrossOrigin(exlib::string allowHeaders) = 0;
     virtual result_t get_maxHeadersCount(int32_t& retVal) = 0;
     virtual result_t set_maxHeadersCount(int32_t newVal) = 0;
@@ -103,6 +104,13 @@ void HttpServer_base::__new(const T& args)
     ARG(obj_ptr<Handler_base>, 2);
 
     hr = _new(v0, v1, v2, vr, args.This());
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<Handler_base>, 1);
+
+    hr = _new(v0, v1, vr, args.This());
 
     CONSTRUCT_RETURN();
 }

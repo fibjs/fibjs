@@ -20,7 +20,7 @@ namespace fibjs {
 result_t Socket_base::_new(int32_t family, obj_ptr<Socket_base>& retVal,
     v8::Local<v8::Object> This)
 {
-    if (g_uv_socket)
+    if (g_uv_socket || family == net_base::C_AF_UNIX)
         return UVSocket::create(family, retVal);
     else
         return Socket::create(family, retVal);

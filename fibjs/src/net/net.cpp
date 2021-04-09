@@ -154,34 +154,47 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
     if (!qstrcmp(url.c_str(), "ssl:", 4))
         return ssl_base::connect(url, timeout, retVal, ac);
 
-    if (qstrcmp(url.c_str(), "tcp:", 4))
+    if (qstrcmp(url.c_str(), "tcp:", 4) && qstrcmp(url.c_str(), "unix:", 5) && qstrcmp(url.c_str(), "pipe:", 5))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<Url> u = new Url();
+    if (!qstrcmp(url.c_str(), "tcp:", 4)) {
+        obj_ptr<Url> u = new Url();
 
-    result_t hr = u->parse(url);
-    if (hr < 0)
-        return hr;
+        result_t hr = u->parse(url);
+        if (hr < 0)
+            return hr;
 
-    if (u->m_port.length() == 0)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        if (u->m_port.length() == 0)
+            return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    int32_t nPort = atoi(u->m_port.c_str());
-    int32_t family = u->m_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET;
+        int32_t nPort = atoi(u->m_port.c_str());
+        int32_t family = u->m_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET;
 
-    obj_ptr<Socket_base> socket;
+        obj_ptr<Socket_base> socket;
 
-    hr = Socket_base::_new(family, socket);
-    if (hr < 0)
-        return hr;
+        hr = Socket_base::_new(family, socket);
+        if (hr < 0)
+            return hr;
 
-    socket->set_timeout(timeout);
+        socket->set_timeout(timeout);
 
-    retVal = socket;
-    return socket->connect(u->m_hostname, nPort, ac);
+        retVal = socket;
+        return socket->connect(u->m_hostname, nPort, ac);
+    } else {
+        obj_ptr<Socket_base> socket;
+
+        result_t hr = Socket_base::_new(net_base::C_AF_UNIX, socket);
+        if (hr < 0)
+            return hr;
+
+        socket->set_timeout(timeout);
+
+        retVal = socket;
+        return socket->connect(url.substr(5), 0, ac);
+    }
 }
 
 result_t net_base::openSmtp(exlib::string url, int32_t timeout,
