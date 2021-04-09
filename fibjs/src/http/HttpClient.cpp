@@ -863,7 +863,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
                     return hr;
 
                 stm->ac_write(buf);
-                map->add("Content-Type", "application/json");
+                map->add("Content-Type", "application/msgpack");
             } else {
                 obj_ptr<Buffer_base> buf;
                 stm = new MemoryStream();
