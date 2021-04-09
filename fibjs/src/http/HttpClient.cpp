@@ -14,6 +14,7 @@
 #include "ifs/net.h"
 #include "ifs/zlib.h"
 #include "ifs/json.h"
+#include "ifs/msgpack.h"
 #include "ifs/querystring.h"
 #include <string.h>
 
@@ -759,7 +760,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
     v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
     static const char* s_keys[] = {
-        "query", "headers", "body", "json", "response_body", NULL
+        "query", "headers", "body", "json", "pack", "response_body", NULL
     };
 
     if (ac->isSync()) {
@@ -849,11 +850,22 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
             }
         } else {
             v = opts->Get(isolate->NewString("json", 4));
-            if (v.IsEmpty())
-                return CALL_E_JAVASCRIPT;
-            if (!v->IsUndefined()) {
-                obj_ptr<Buffer_base> buf;
+            if (v.IsEmpty()) {
+                v = opts->Get(isolate->NewString("pack", 4));
+                if (v.IsEmpty())
+                    return CALL_E_JAVASCRIPT;
 
+                obj_ptr<Buffer_base> buf;
+                stm = new MemoryStream();
+
+                hr = msgpack_base::encode(v, buf);
+                if (hr < 0)
+                    return hr;
+
+                stm->ac_write(buf);
+                map->add("Content-Type", "application/json");
+            } else {
+                obj_ptr<Buffer_base> buf;
                 stm = new MemoryStream();
 
                 exlib::string s;
