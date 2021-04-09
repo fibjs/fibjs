@@ -1640,6 +1640,9 @@ describe("http", () => {
                 } else if (r.address == "/request_json:") {
                     r.response.write(r.address);
                     r.response.write(r.json().test_field);
+                } else if (r.address == "/request_pack:") {
+                    r.response.write(r.address);
+                    r.response.write(r.pack().test_field);
                 } else if (r.address == "/host:") {
                     r.response.write(r.address);
                     r.response.write(r.firstHeader('host'));
@@ -1728,6 +1731,15 @@ describe("http", () => {
                         }
                     }).body.read().toString(),
                     "/request_json:field");
+            });
+
+            it("pack", () => {
+                assert.equal(http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request_pack:", {
+                        pack: {
+                            test_field: "field"
+                        }
+                    }).body.read().toString(),
+                    "/request_pack:field");
             });
 
             it("header", () => {
