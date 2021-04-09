@@ -1,7 +1,6 @@
 #include "object.h"
 #include "utils.h"
 #include "AsyncUV.h"
-#include "FSWatcher.h"
 #include "StatsWatcher.h"
 #include <uv/include/uv.h>
 #include "Runtime.h"
@@ -9,114 +8,117 @@
 
 namespace fibjs {
 
-uv_loop_t* s_uv_loop = (uv_loop_t*)malloc(sizeof(uv_loop_t));
-
-static uv_async_t s_uv_asyncWatcher;
-static exlib::LockedList<AsyncEvent> s_uvAsyncUVTasks;
-
-int32_t FSWatcher::AsyncWatchFSProc::post(int32_t v)
-{
-    s_uvAsyncUVTasks.putTail(this);
-    uv_async_send(&s_uv_asyncWatcher);
-
-    return 0;
-}
-
-void FSWatcher::AsyncWatchFSProc::invoke()
-{
-    uv_fs_event_init(s_uv_loop, &m_fs_handle);
-
-    m_watcher->watcherReadyWaitor.set();
-
-    int32_t uv_err_no = uv_fs_event_start(&m_fs_handle, fs_event_cb, m_watcher->get_target(), m_watcher->isRecursiveForDir() ? UV_FS_EVENT_RECURSIVE : 0);
-    if (uv_err_no != 0) {
-        m_watcher->onError(CALL_E_INVALID_CALL, uv_strerror(uv_err_no));
-        m_watcher->close();
-    }
-}
-
-int uv_call(std::function<int(void)> proc)
-{
-    class UVCall : public AsyncEvent {
-    public:
-        UVCall(std::function<int(void)>& proc, int& res)
-            : AsyncEvent(NULL)
-            , m_proc(proc)
-            , m_res(res)
-        {
-        }
-
-        void invoke()
-        {
-            m_res = m_proc();
-            if (m_res == CALL_E_EXCEPTION)
-                m_error = Runtime::errMessage();
-            m_event.set();
-        }
-
-    public:
-        std::function<int(void)> m_proc;
-        int& m_res;
-        exlib::string m_error;
-        exlib::Event m_event;
-    };
-
-    int res;
-    UVCall uvc(proc, res);
-
-    s_uvAsyncUVTasks.putTail(&uvc);
-    uv_async_send(&s_uv_asyncWatcher);
-
-    uvc.m_event.wait();
-
-    if (res == CALL_E_EXCEPTION)
-        return Runtime::setError(uvc.m_error);
-
-    return res;
-}
+uv_loop_t* s_uv_loop;
+exlib::LockedList<AsyncEvent> s_uv_tasks;
 
 class UVAsyncThread : public exlib::OSThread {
 public:
     UVAsyncThread()
     {
-        m_lock.lock();
-        uv_loop_init(s_uv_loop);
+        start();
     }
 
+public:
     virtual void Run()
     {
         Runtime rtForThread(NULL);
 
-        uv_async_init(s_uv_loop, &s_uv_asyncWatcher, AsyncEventCallback);
+        s_uv_loop = new uv_loop_t();
+        uv_loop_init(s_uv_loop);
 
-        m_lock.unlock();
+        uv_async_init(s_uv_loop, &m_uv_async, AsyncEventCallback);
+
+        m_init.set();
 
         uv_run(s_uv_loop, UV_RUN_DEFAULT);
+    }
+
+    void post(AsyncEvent* task)
+    {
+        m_init.wait();
+        s_uv_tasks.putTail(task);
+        uv_async_send(&m_uv_async);
     }
 
 private:
     static void AsyncEventCallback(uv_async_t* handle)
     {
-        assert(handle == &s_uv_asyncWatcher);
-
         exlib::List<AsyncEvent> jobs;
         AsyncEvent* p1;
 
-        s_uvAsyncUVTasks.getList(jobs);
+        s_uv_tasks.getList(jobs);
 
         while ((p1 = jobs.getHead()) != 0)
             p1->invoke();
     }
 
 public:
-    exlib::spinlock m_lock;
+    exlib::Event m_init;
+
+private:
+    uv_async_t m_uv_async;
 };
+
+static UVAsyncThread* s_afsIO;
+
+void uv_post(AsyncEvent* task)
+{
+    s_afsIO->post(task);
+}
+
+void uv_post(std::function<void(void)> proc)
+{
+    class UVPost : public AsyncEvent {
+    public:
+        UVPost(std::function<void(void)>& proc)
+            : AsyncEvent(NULL)
+            , m_proc(proc)
+        {
+        }
+
+        void invoke()
+        {
+            m_proc();
+            delete this;
+        }
+
+    public:
+        std::function<void(void)> m_proc;
+    };
+
+    uv_post(new UVPost(proc));
+}
+
+int uv_call(std::function<int(void)> proc)
+{
+    class UVCall : public AsyncEvent {
+    public:
+        UVCall(std::function<int(void)>& proc)
+            : AsyncEvent(NULL)
+            , m_proc(proc)
+        {
+            uv_post(this);
+            m_event.wait();
+        }
+
+        void invoke()
+        {
+            m_res = m_proc();
+            m_event.set();
+        }
+
+    public:
+        std::function<int(void)> m_proc;
+        int m_res;
+        exlib::Event m_event;
+    };
+
+    UVCall uvc(proc);
+    return uvc.m_res;
+}
 
 void initializeUVAsyncThread()
 {
-    static UVAsyncThread s_afsIO;
-    s_afsIO.start();
-
-    s_afsIO.m_lock.lock();
+    s_afsIO = new UVAsyncThread();
 }
 }

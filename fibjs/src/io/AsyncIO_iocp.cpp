@@ -175,9 +175,9 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Time
 
                 if (SOCKET_ERROR
                     == WSAIoctl(m_s, SIO_GET_EXTENSION_FUNCTION_POINTER,
-                        &guidConnectEx, sizeof(guidConnectEx),
-                        &ConnectEx, sizeof(ConnectEx), &dwBytes, NULL,
-                        NULL)) {
+                           &guidConnectEx, sizeof(guidConnectEx),
+                           &ConnectEx, sizeof(ConnectEx), &dwBytes, NULL,
+                           NULL)) {
                     if (m_timer) {
                         m_timer->clear();
                         m_timer.Release();
@@ -276,8 +276,8 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
 
                 if (SOCKET_ERROR
                     == WSAIoctl(m_s, SIO_GET_EXTENSION_FUNCTION_POINTER,
-                        &guidAcceptEx, sizeof(guidAcceptEx), &AcceptEx,
-                        sizeof(AcceptEx), &dwBytes, NULL, NULL))
+                           &guidAcceptEx, sizeof(guidAcceptEx), &AcceptEx,
+                           sizeof(AcceptEx), &dwBytes, NULL, NULL))
                     return CHECK_ERROR(SocketError());
             }
 
@@ -312,7 +312,7 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Socket> s = new Socket();
-    result_t hr = s->create(m_family, m_type);
+    result_t hr = s->create(m_family);
     if (hr < 0)
         return hr;
 
@@ -482,78 +482,6 @@ result_t AsyncIO::write(Buffer_base* data, AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     (new asyncSend(m_fd, data, ac, m_lockSend))->post();
-    return CHECK_ERROR(CALL_E_PENDDING);
-}
-
-result_t AsyncIO::recvfrom(int32_t bytes, obj_ptr<NObject>& retVal,
-    AsyncEvent* ac)
-{
-    class asyncRecvFrom : public asyncProc {
-    public:
-        asyncRecvFrom(SOCKET s, int32_t bytes, obj_ptr<NObject>& retVal,
-            AsyncEvent* ac, exlib::Locker& locker)
-            : asyncProc(s, ac, locker)
-            , m_retVal(retVal)
-        {
-            m_buf.resize(bytes > 0 ? bytes : SOCKET_BUFF_SIZE);
-        }
-
-        virtual result_t process()
-        {
-            int32_t nError;
-
-            m_DataBuf.len = (DWORD)m_buf.length();
-            m_DataBuf.buf = &m_buf[0];
-            m_dwFlags = 0;
-            sz = sizeof(addr_info);
-
-            if (WSARecvFrom(m_s, &m_DataBuf, 1, NULL, &m_dwFlags,
-                    (sockaddr*)&addr_info, &sz, this, NULL)
-                != SOCKET_ERROR)
-                return CHECK_ERROR(CALL_E_PENDDING);
-
-            nError = GetLastError();
-
-            if (nError == ERROR_BROKEN_PIPE)
-                return CALL_RETURN_NULL;
-
-            if (nError == ERROR_IO_PENDING)
-                return CHECK_ERROR(CALL_E_PENDDING);
-
-            return CHECK_ERROR(-nError);
-        }
-
-        virtual void ready(DWORD dwBytes, int32_t nError)
-        {
-            if (nError == -ERROR_BROKEN_PIPE) {
-                nError = 0;
-                dwBytes = 0;
-            }
-
-            if (!nError) {
-                m_buf.resize(dwBytes);
-                m_retVal = new DatagramPacket(m_buf, addr_info);
-            }
-
-            asyncProc::ready(dwBytes, nError);
-        }
-
-    public:
-        obj_ptr<NObject>& m_retVal;
-        exlib::string m_buf;
-        inetAddr addr_info;
-        socklen_t sz;
-        WSABUF m_DataBuf;
-        DWORD m_dwFlags;
-    };
-
-    if (m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    (new asyncRecvFrom(m_fd, bytes, retVal, ac, m_lockRecv))->post();
     return CHECK_ERROR(CALL_E_PENDDING);
 }
 }

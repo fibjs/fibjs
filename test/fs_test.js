@@ -109,6 +109,18 @@ describe('fs', () => {
             assert.equal(st.isReadable(), true);
             assert.equal(st.isWritable(), true);
         });
+
+        it('error.code', () => {
+            var code;
+
+            try {
+                fs.stat('aaaa');
+            } catch (e) {
+                code = e.code;
+            }
+
+            assert.equal(code, "ENOENT");
+        })
     });
 
     it("file open & close", () => {
@@ -193,6 +205,17 @@ describe('fs', () => {
     it("rmdir", () => {
         fs.rmdir(pathname1);
         assert.equal(fs.exists(pathname1), false);
+    });
+
+    it("mkdir recursive", () => {
+        var recursive_path = path.join(pathname, pathname);
+        fs.mkdir(recursive_path, {
+            recursive: true
+        });
+        assert.equal(fs.exists(recursive_path), true);
+
+        fs.rmdir(recursive_path);
+        fs.rmdir(pathname);
     });
 
     it("file.size", () => {

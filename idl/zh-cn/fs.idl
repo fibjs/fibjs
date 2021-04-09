@@ -10,6 +10,7 @@
  - 运行 `fs.watch(filename)` 会返回一个继承自 EventEmitter 的 watcher, 它支持 'change', 'changeonly', 'renameonly' 三个事件
  - `fs.watchFile(target)` 和 `fs.unwatchFile(target)` 依然可以成对使用
  - `fs.watchFile(target)` 会返回一个继承自 EventEmitter 的 StatsWatcher 对象, 调用 `fs.unwatchFile(target)` 等价于调用 `StatsWatcher.close()`.
+ - 因为 uv 在 Linux 上的实现, `fs.watch` 的 `recursive` 选项仅在 win32/darwin 被稳定支持. 你依然可以尝试在 Linux 中尝试使用 `fs.watch('/path/to', { recursive: true }, handler)`, 但可能会发现 `handler` 被回调的时机与你预期的有差异
  */
 module fs
 {
@@ -41,9 +42,23 @@ module fs
 
     /*! @brief 创建一个目录
      @param path 指定要创建的目录名
-     @param mode 指定文件权限，Windows 忽略此参数
+     @param mode 指定文件权限，Windows 忽略此参数，默认值: 0777
      */
     static mkdir(String path, Integer mode = 0777) async;
+
+    /*! @brief 创建一个目录
+
+     创建参数可以包含以下值：
+     ```JavaScript
+     {
+         recursive: false, // 指定是否父目录不存在是是否自动创建，默认值: false
+         mode: 0777 // 指定文件权限，Windows 忽略此参数，默认值: 0777
+     }
+     ```
+     @param path 指定要创建的目录名
+     @param opt 指定创建参数
+     */
+    static mkdir(String path, Object opt) async;
 
     /*! @brief 删除一个目录
      @param path 指定要删除的目录名

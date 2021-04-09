@@ -24,6 +24,7 @@
 #include <expat/include/expat.h>
 #include <uv/include/uv/version.h>
 #include <cef/include/cef_version.h>
+#include <msgpack/version.hpp>
 
 namespace v8 {
 namespace internal {
@@ -94,11 +95,13 @@ public:
             g_vender->add("ev", STR(EV_VERSION_MAJOR) "." STR(EV_VERSION_MINOR));
             g_vender->add("expat", STR(XML_MAJOR_VERSION) "." STR(XML_MINOR_VERSION) "." STR(XML_MICRO_VERSION));
             g_vender->add("gd", GD_VERSION_STRING);
+            g_vender->add("gumbo", "0.10.0");
             g_vender->add("jpeg", STR(JPEG_LIB_VERSION_MAJOR) "." STR(JPEG_LIB_VERSION_MINOR));
             sprintf(str, "%d.%d", leveldb::kMajorVersion, leveldb::kMinorVersion);
             g_vender->add("leveldb", str);
             g_vender->add("mbedtls", MBEDTLS_VERSION_STRING);
             g_vender->add("mongo", STR(MONGO_MAJOR) "." STR(MONGO_MINOR));
+            g_vender->add("msgpack", msgpack_version());
             g_vender->add("pcre", STR(PCRE_MAJOR) "." STR(PCRE_MINOR));
             g_vender->add("png", PNG_LIBPNG_VER_STRING);
             g_vender->add("snappy", STR(SNAPPY_MAJOR) "." STR(SNAPPY_MINOR) "." STR(SNAPPY_PATCHLEVEL));

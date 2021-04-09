@@ -50,6 +50,12 @@ function del(f) {
     } catch (e) {}
 }
 
+var now_port = 8080;
+
+function getPort() {
+    return now_port++ + base_port;
+}
+
 describe("net", () => {
     it("backend", () => {
         assert.equal(net.backend(), backend);
@@ -78,18 +84,19 @@ describe("net", () => {
             } catch (e) {}
         }
 
-        var s = new net.Socket(net_config.family,
-            net.SOCK_STREAM);
+        var s = new net.Socket(net_config.family);
         test_util.push(s);
 
-        s.bind(8080 + base_port);
+        var _port = getPort();
+
+        s.bind(_port);
         s.listen();
-        assert.equal(s.localPort, 8080 + base_port);
+        assert.equal(s.localPort, _port);
         coroutine.start(accept, s);
 
         function conn_socket() {
-            var s1 = new net.Socket(net_config.family, net.SOCK_STREAM);
-            s1.connect(net_config.address, 8080 + base_port);
+            var s1 = new net.Socket(net_config.family);
+            s1.connect(net_config.address, _port);
             console.log(s1.remoteAddress, s1.remotePort, "<-",
                 s1.localAddress, s1.localPort);
             s1.send(new Buffer("GET / HTTP/1.0"));
@@ -98,10 +105,10 @@ describe("net", () => {
         }
 
         function conn() {
-            var s1 = net.connect('tcp://' + net_config.host + ':' + (8080 + base_port));
+            var s1 = net.connect('tcp://' + net_config.host + ':' + (_port));
             console.log(s1.remoteAddress, s1.remotePort, "<-",
                 s1.localAddress, s1.localPort);
-            assert.equal(s1.remotePort, 8080 + base_port);
+            assert.equal(s1.remotePort, _port);
             s1.send(new Buffer("GET / HTTP/1.0"));
             assert.equal("GET / HTTP/1.0", s1.recv());
             s1.close();
@@ -111,17 +118,133 @@ describe("net", () => {
         conn();
 
         assert.throws(() => {
-            var s1 = new net.Socket(net_config.family, net.SOCK_STREAM);
-            s1.connect("999.999.999.999", 8080 + base_port);
+            var s1 = new net.Socket(net_config.family);
+            s1.connect("999.999.999.999", _port);
         });
     });
 
+    var str = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
+
+    for (var i = 0; i < 8; i++)
+        str = str + str;
+
+    it("multi chunk read", () => {
+        function accept1(s) {
+            try {
+                while (true) {
+                    var c = s.accept();
+                    c.write(str);
+                    c.close();
+                }
+            } catch (e) {}
+        }
+
+        var _port = getPort();
+
+        var s1 = new net.Socket(net_config.family);
+        test_util.push(s1);
+
+        s1.bind(_port);
+        s1.listen();
+        coroutine.start(accept1, s1);
+
+        var c1 = new net.Socket();
+        c1.connect('127.0.0.1', _port);
+        var data = c1.read(5000);
+        assert.equal(data.length, 5000);
+        assert.equal(data.toString(), str.substr(0, 5000));
+    });
+
+    it("multi read", () => {
+        function accept1(s) {
+            try {
+                while (true) {
+                    var c = s.accept();
+                    c.write(str);
+                    c.close();
+                }
+            } catch (e) {}
+        }
+
+        var _port = getPort();
+
+        var s1 = new net.Socket(net_config.family);
+        test_util.push(s1);
+
+        s1.bind(_port);
+        s1.listen();
+        coroutine.start(accept1, s1);
+
+        var c1 = new net.Socket();
+        c1.connect('127.0.0.1', _port);
+
+        coroutine.sleep(10);
+
+        const cnt = 5;
+        for (var i = 0; i < cnt; i++) {
+            var data = c1.read(5000);
+            assert.equal(data.length, 5000);
+            assert.equal(data.toString(), str.substr(5000 * i, 5000));
+            coroutine.sleep(10);
+        }
+    });
+
+    it("parallel read", () => {
+        var ev0 = new coroutine.Event();
+
+        function accept1(s) {
+            try {
+                while (true) {
+                    var c = s.accept();
+
+                    ev0.wait();
+                    c.write(str);
+
+                    c.close();
+                }
+            } catch (e) {}
+        }
+
+        var _port = getPort();
+
+        var s1 = new net.Socket(net_config.family);
+        test_util.push(s1);
+
+        s1.bind(_port);
+        s1.listen();
+        coroutine.start(accept1, s1);
+
+        var c1 = new net.Socket();
+        c1.connect('127.0.0.1', _port);
+
+        const cnt = 5;
+        var evs = [];
+        var datas = [];
+
+        function start_job(n) {
+            evs[n] = new coroutine.Event();
+            c1.read(5000, (err, data) => {
+                datas[n] = data;
+                evs[n].set();
+            });
+            coroutine.sleep(10);
+        }
+
+        for (var i = 0; i < cnt; i++)
+            start_job(i);
+
+        ev0.set();
+
+        coroutine.sleep(10);
+
+        for (var i = 0; i < cnt; i++) {
+            evs[i].wait();
+            assert.equal(datas[i].length, 5000);
+            assert.equal(datas[i].toString(), str.substr(5000 * i, 5000));
+        }
+    });
+
     it("copyTo", () => {
-        var str = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
-
-        for (var i = 0; i < 8; i++)
-            str = str + str;
-
         function accept1(s) {
             try {
                 while (true) {
@@ -138,16 +261,18 @@ describe("net", () => {
             } catch (e) {}
         }
 
-        var s1 = new net.Socket(net_config.family, net.SOCK_STREAM);
+        var _port = getPort();
+
+        var s1 = new net.Socket(net_config.family);
         test_util.push(s1);
 
-        s1.bind(8081 + base_port);
+        s1.bind(_port);
         s1.listen();
         coroutine.start(accept1, s1);
 
         function t_conn() {
             var c1 = new net.Socket();
-            c1.connect('127.0.0.1', 8081 + base_port);
+            c1.connect('127.0.0.1', _port);
 
             var f1 = fs.openFile(path.join(__dirname, 'net_temp_000002' + base_port), 'w');
             assert.equal(c1.copyTo(f1), str.length);
@@ -191,74 +316,21 @@ describe("net", () => {
             } catch (e) {}
         }
 
-        var s2 = new net.Socket(net_config.family, net.SOCK_STREAM);
+        var s2 = new net.Socket(net_config.family);
         test_util.push(s2);
 
-        s2.bind(8082 + base_port);
+        var _port = getPort();
+
+        s2.bind(_port);
         s2.listen();
         coroutine.start(accept2, s2);
 
         var c1 = new net.Socket();
-        c1.connect('127.0.0.1', 8082 + base_port);
+        c1.connect('127.0.0.1', _port);
         assert.equal('a', c1.recv(100));
         assert.equal('ab', c1.read(2));
         assert.equal('c', c1.read(1));
         assert.equal('d', c1.read(3));
-    });
-
-    describe("udp", () => {
-        it("sendto/recvfrom", () => {
-            setTimeout(() => {
-                var c = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
-                c.sendto("aaa", "127.0.0.1", 8888);
-            }, 100);
-
-            var s = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
-            s.bind(8888);
-
-            assert.equal(s.recvfrom().data.toString(), "aaa");
-            s.close();
-        });
-
-        it("recvfrom address", () => {
-            var data;
-            setTimeout(() => {
-                var c = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
-                c.sendto("aaa", "127.0.0.1", 8890);
-                data = c.recvfrom();
-                console.log(data);
-            }, 100);
-
-            var s = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
-            s.bind(8890);
-
-            var d = s.recvfrom();
-            console.log(d);
-            s.sendto("bbb", d.address, d.port);
-
-            coroutine.sleep(100);
-            assert.equal(data.data.toString(), "bbb");
-            s.close();
-        });
-
-        it("broadcast", () => {
-            var s = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
-            s.bind(8889);
-
-            setTimeout(() => {
-                var c = new net.Socket(net.AF_INET, net.SOCK_DGRAM);
-
-                try {
-                    c.sendto("bbb", "255.255.255.255", 8889);
-                } catch (e) {
-                    s.close();
-                    throw e;
-                }
-            }, 100);
-
-            assert.equal(s.recvfrom().data.toString(), "bbb");
-            s.close();
-        });
     });
 
     describe("re-entrant", () => {
@@ -271,10 +343,12 @@ describe("net", () => {
                 t = n;
             }
 
-            var s2 = new net.Socket(net_config.family, net.SOCK_STREAM);
+            var s2 = new net.Socket(net_config.family);
             test_util.push(s2);
 
-            s2.bind(8083 + base_port);
+            var _port = getPort();
+
+            s2.bind(_port);
             s2.listen();
 
             coroutine.start(accept2, s2, 1);
@@ -285,13 +359,13 @@ describe("net", () => {
             assert.equal(t, 0);
 
             var c1 = new net.Socket();
-            c1.connect('127.0.0.1', 8083 + base_port);
+            c1.connect('127.0.0.1', _port);
             c1.close();
             coroutine.sleep(10);
             assert.equal(t, 1);
 
             var c1 = new net.Socket();
-            c1.connect('127.0.0.1', 8083 + base_port);
+            c1.connect('127.0.0.1', _port);
             c1.close();
             coroutine.sleep(10);
             assert.equal(t, 2);
@@ -314,16 +388,18 @@ describe("net", () => {
                 coroutine.start(recv2, c, "4567", 2);
             }
 
-            var s2 = new net.Socket(net_config.family, net.SOCK_STREAM);
+            var s2 = new net.Socket(net_config.family);
             test_util.push(s2);
 
-            s2.bind(8084 + base_port);
+            var _port = getPort();
+
+            s2.bind(_port);
             s2.listen();
 
             coroutine.start(accept2, s2);
 
             var c1 = new net.Socket();
-            c1.connect('127.0.0.1', 8084 + base_port);
+            c1.connect('127.0.0.1', _port);
             coroutine.sleep(100);
 
             c1.send('1234');
@@ -349,58 +425,50 @@ describe("net", () => {
             } catch (e) {}
         }
 
-        var s2 = new net.Socket(net_config.family, net.SOCK_STREAM);
+        var s2 = new net.Socket(net_config.family);
         test_util.push(s2);
 
-        s2.bind(8085 + base_port);
+        var _port = getPort();
+
+        s2.bind(_port);
         s2.listen();
         coroutine.start(accept4, s2);
 
         var c1 = new net.Socket();
 
-        c1.timeout = 50;
+        c1.timeout = 300;
 
         test_util.gc();
 
-        var no = test_util.countObject('Timer');
-        c1.connect('127.0.0.1', 8085 + base_port);
-        for (var i = 0; i < 1000 && no !== test_util.countObject('Timer'); i++) {
-            test_util.gc();
-            coroutine.sleep(50);
-        }
-        assert.equal(no, test_util.countObject('Timer'));
+        c1.connect('127.0.0.1', _port);
 
         var t1 = new Date();
         assert.throws(() => {
             c1.recv();
         });
-        for (var i = 0; i < 1000 && no !== test_util.countObject('Timer'); i++)
-            coroutine.sleep(1);
-        assert.equal(no, test_util.countObject('Timer'));
+
         var t2 = new Date();
 
-        assert.greaterThan(t2 - t1, 49);
-        assert.lessThan(t2 - t1, 500);
+        assert.greaterThan(t2 - t1, 250);
+        assert.lessThan(t2 - t1, 1000);
 
         var c2 = new net.Socket();
-        c2.timeout = 50;
+        c2.timeout = 300;
         var t1 = new Date();
         assert.throws(() => {
             c2.connect('192.166.166.166', 8086 + base_port);
         });
-        for (var i = 0; i < 1000 && no !== test_util.countObject('Timer'); i++)
-            coroutine.sleep(1);
-        assert.equal(no, test_util.countObject('Timer'));
         var t2 = new Date();
 
-        assert.greaterThan(t2 - t1, 40);
-        assert.lessThan(t2 - t1, 500);
+        assert.greaterThan(t2 - t1, 250);
+        assert.lessThan(t2 - t1, 1000);
     });
 
     it("bind same port", () => {
-        var svr = new net.TcpServer(8811 + base_port, (c) => {});
+        var _port = getPort();
+        var svr = new net.TcpServer(_port, (c) => {});
         assert.throws(() => {
-            new net.TcpServer(8811 + base_port, (c) => {});
+            new net.TcpServer(_port, (c) => {});
         });
         test_util.push(svr.socket);
     });
@@ -415,13 +483,13 @@ describe("net", () => {
             var c1 = new net.Socket();
             coroutine.start(close_it, c1);
             assert.throws(() => {
-                c1.connect('12.0.0.1', 8083 + base_port);
+                c1.connect('12.0.0.1', 80);
             });
         });
 
         it("abort accept", () => {
             var c1 = new net.Socket();
-            c1.bind(8180 + base_port);
+            c1.bind(getPort());
             c1.listen();
 
             coroutine.start(close_it, c1);
@@ -533,7 +601,7 @@ describe("net", () => {
         test_util.gc();
         no1 = test_util.countObject('Socket');
 
-        ss = new net.TcpServer(9812, (c) => {});
+        ss = new net.TcpServer(getPort(), (c) => {});
         ss.start();
 
         coroutine.sleep(50);
@@ -544,7 +612,7 @@ describe("net", () => {
         assert.equal(no1, test_util.countObject('Socket'));
 
         (() => {
-            var s = new net.TcpServer(9884, () => {});
+            var s = new net.TcpServer(getPort(), () => {});
         })();
 
         test_util.gc();

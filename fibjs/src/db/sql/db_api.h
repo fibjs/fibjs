@@ -157,9 +157,12 @@ result_t db_begin(T* pThis, exlib::string point, AsyncEvent* ac, bool mssql = fa
 
     obj_ptr<NArray> retVal;
 
-    if (point.empty())
-        return pThis->execute("BEGIN TRANSACTION", 17, retVal);
-    else {
+    if (point.empty()) {
+        if (mssql)
+            return pThis->execute("BEGIN TRANSACTION", 17, retVal);
+        else
+            return pThis->execute("BEGIN", 5, retVal);
+    } else {
         exlib::string str((mssql ? "SAVE TRANSACTION " : "SAVEPOINT ") + point);
         return pThis->execute(str.c_str(), (int32_t)str.length(), retVal);
     }

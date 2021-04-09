@@ -9,6 +9,7 @@
 
 #include "ifs/net.h"
 #include <string.h>
+#include <uv/include/uv.h>
 
 namespace fibjs {
 
@@ -54,136 +55,28 @@ union inetAddr {
         addr4.sin_port = htons(port);
     }
 
-    int32_t addr(exlib::string s);
-    exlib::string str();
+    int32_t addr(exlib::string s)
+    {
+        if (s.empty())
+            s = addr6.sin6_family == PF_INET6 ? "::" : "0.0.0.0";
+
+        if (addr6.sin6_family == PF_INET6)
+            return uv_ip6_addr(s.c_str(), port(), &addr6);
+        else
+            return uv_ip4_addr(s.c_str(), port(), &addr4);
+    }
+
+    exlib::string str()
+    {
+        char tmp[INET6_ADDRSTRLEN];
+
+        if (addr6.sin6_family == PF_INET6)
+            uv_ip6_name(&addr6, tmp, INET6_ADDRSTRLEN);
+        else
+            uv_ip4_name(&addr4, tmp, INET6_ADDRSTRLEN);
+
+        return tmp;
+    }
 };
-
-inline int32_t inet_pton4(const char* src, void* dst)
-{
-    static const char digits[] = "0123456789";
-    int32_t saw_digit, octets, ch;
-    unsigned char tmp[sizeof(struct in_addr)], *tp;
-
-    saw_digit = 0;
-    octets = 0;
-    *(tp = tmp) = 0;
-    while ((ch = *src++) != '\0') {
-        const char* pch;
-
-        if ((pch = strchr(digits, ch)) != NULL) {
-            uint32_t nw = *tp * 10 + (uint32_t)(pch - digits);
-
-            if (saw_digit && *tp == 0)
-                return -1;
-            if (nw > 255)
-                return -1;
-            *tp = nw;
-            if (!saw_digit) {
-                if (++octets > 4)
-                    return -1;
-                saw_digit = 1;
-            }
-        } else if (ch == '.' && saw_digit) {
-            if (octets == 4)
-                return -1;
-            *++tp = 0;
-            saw_digit = 0;
-        } else
-            return -1;
-    }
-    if (octets < 4)
-        return -1;
-
-    memcpy(dst, tmp, sizeof(struct in_addr));
-
-    return 0;
-}
-
-inline int32_t inet_pton6(const char* src, void* dst)
-{
-    static const char xdigits_l[] = "0123456789abcdef",
-                      xdigits_u[] = "0123456789ABCDEF";
-    unsigned char tmp[sizeof(struct in6_addr)], *tp, *endp, *colonp;
-    const char *xdigits, *curtok;
-    int32_t ch, seen_xdigits;
-    uint32_t val;
-
-    memset((tp = tmp), '\0', sizeof tmp);
-    endp = tp + sizeof tmp;
-    colonp = NULL;
-    /* Leading :: requires some special handling. */
-    if (*src == ':')
-        if (*++src != ':')
-            return -1;
-    curtok = src;
-    seen_xdigits = 0;
-    val = 0;
-    while ((ch = *src++) != '\0') {
-        const char* pch;
-
-        if ((pch = strchr((xdigits = xdigits_l), ch)) == NULL)
-            pch = strchr((xdigits = xdigits_u), ch);
-        if (pch != NULL) {
-            val <<= 4;
-            val |= (pch - xdigits);
-            if (++seen_xdigits > 4)
-                return -1;
-            continue;
-        }
-        if (ch == ':') {
-            curtok = src;
-            if (!seen_xdigits) {
-                if (colonp)
-                    return -1;
-                colonp = tp;
-                continue;
-            } else if (*src == '\0') {
-                return -1;
-            }
-            if (tp + sizeof(uint16_t) > endp)
-                return -1;
-            *tp++ = (unsigned char)(val >> 8) & 0xff;
-            *tp++ = (unsigned char)val & 0xff;
-            seen_xdigits = 0;
-            val = 0;
-            continue;
-        }
-        if (ch == '.' && ((tp + sizeof(struct in_addr)) <= endp)) {
-            int32_t err = inet_pton4(curtok, tp);
-            if (err == 0) {
-                tp += sizeof(struct in_addr);
-                seen_xdigits = 0;
-                break; /*%< '\\0' was seen by inet_pton4(). */
-            }
-        }
-        return -1;
-    }
-    if (seen_xdigits) {
-        if (tp + sizeof(uint16_t) > endp)
-            return -1;
-        *tp++ = (unsigned char)(val >> 8) & 0xff;
-        *tp++ = (unsigned char)val & 0xff;
-    }
-    if (colonp != NULL) {
-        /*
-        * Since some memmove()'s erroneously fail to handle
-        * overlapping regions, we'll do the shift by hand.
-        */
-        const int32_t n = (int32_t)(tp - colonp);
-        int32_t i;
-
-        if (tp == endp)
-            return -1;
-        for (i = 1; i <= n; i++) {
-            endp[-i] = colonp[n - i];
-            colonp[n - i] = 0;
-        }
-        tp = endp;
-    }
-    if (tp != endp)
-        return -1;
-    memcpy(dst, tmp, sizeof tmp);
-    return 0;
-}
 
 } /* namespace fibjs */

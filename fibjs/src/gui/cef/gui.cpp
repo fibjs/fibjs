@@ -25,14 +25,6 @@ namespace fibjs {
 
 DECLARE_MODULE(gui);
 
-#ifdef WIN32
-#define os_dirname _dirname_win32
-#define os_normalize _normalize_win32
-#else
-#define os_dirname _dirname
-#define os_normalize _normalize
-#endif
-
 #if defined(Darwin)
 const char* s_cef_sdk = "Chromium Embedded Framework";
 #elif defined(Windows)
@@ -372,5 +364,4 @@ result_t gui_base::config(v8::Local<v8::Object> opt)
 {
     return g_app->config(opt);
 }
-
 }

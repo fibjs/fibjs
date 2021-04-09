@@ -16,7 +16,6 @@
 #include "Url.h"
 #include "Buffer.h"
 #include "MemoryStream.h"
-#include "Stat.h"
 
 namespace fibjs {
 

@@ -8,25 +8,22 @@
 #include "object.h"
 #include "ifs/io.h"
 #include "Socket.h"
+#include "UVSocket.h"
 #include "Buffer.h"
 #include "Stat.h"
 #include <string.h>
 #include <fcntl.h>
+#include "options.h"
 
 namespace fibjs {
 
-result_t Socket_base::_new(int32_t family, int32_t type,
-    obj_ptr<Socket_base>& retVal,
+result_t Socket_base::_new(int32_t family, obj_ptr<Socket_base>& retVal,
     v8::Local<v8::Object> This)
 {
-    obj_ptr<Socket> sock = new Socket();
-
-    result_t hr = sock->create(family, type);
-    if (hr < 0)
-        return hr;
-
-    retVal = sock;
-    return 0;
+    if (g_uv_socket)
+        return UVSocket::create(family, retVal);
+    else
+        return Socket::create(family, retVal);
 }
 
 Socket::~Socket()
@@ -39,13 +36,25 @@ Socket::~Socket()
 extern HANDLE s_hIocp;
 #endif
 
-result_t Socket::create(int32_t family, int32_t type)
+result_t Socket::create(int32_t family, obj_ptr<Socket_base>& retVal)
+{
+    obj_ptr<Socket> sock = new Socket();
+
+    result_t hr = sock->create(family);
+    if (hr < 0)
+        return hr;
+
+    retVal = sock;
+
+    return 0;
+}
+
+result_t Socket::create(int32_t family)
 {
     if (m_aio.m_fd != INVALID_SOCKET)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     m_aio.m_family = family;
-    m_aio.m_type = type;
 
     if (family == net_base::C_AF_INET)
         family = AF_INET;
@@ -54,44 +63,25 @@ result_t Socket::create(int32_t family, int32_t type)
     else
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    if (type == net_base::C_SOCK_STREAM)
-        type = SOCK_STREAM;
-    else if (type == net_base::C_SOCK_DGRAM)
-        type = SOCK_DGRAM;
-    else
-        return CHECK_ERROR(CALL_E_INVALIDARG);
-
 #ifdef _WIN32
-
-    m_aio.m_fd = WSASocketW(family, type, IPPROTO_IP, NULL, 0, WSA_FLAG_OVERLAPPED);
+    m_aio.m_fd = WSASocketW(family, SOCK_STREAM, IPPROTO_IP, NULL, 0, WSA_FLAG_OVERLAPPED);
     if (m_aio.m_fd == INVALID_SOCKET)
         return CHECK_ERROR(SocketError());
 
     CreateIoCompletionPort((HANDLE)m_aio.m_fd, s_hIocp, 0, 0);
-
 #else
-
-    m_aio.m_fd = socket(family, type, 0);
+    m_aio.m_fd = socket(family, SOCK_STREAM, 0);
     if (m_aio.m_fd == INVALID_SOCKET)
         return CHECK_ERROR(SocketError());
 
     fcntl(m_aio.m_fd, F_SETFL, fcntl(m_aio.m_fd, F_GETFL, 0) | O_NONBLOCK);
     fcntl(m_aio.m_fd, F_SETFD, FD_CLOEXEC);
-
 #endif
 
-    if (type == SOCK_DGRAM) {
-        int broadcastEnable = 1;
-        setsockopt(m_aio.m_fd, SOL_SOCKET, SO_BROADCAST, (const char*)&broadcastEnable,
-            sizeof(broadcastEnable));
-    }
-
 #ifdef Darwin
-
     int32_t set_option = 1;
     setsockopt(m_aio.m_fd, SOL_SOCKET, SO_NOSIGPIPE, &set_option,
         sizeof(set_option));
-
 #endif
 
     return 0;
@@ -100,7 +90,6 @@ result_t Socket::create(int32_t family, int32_t type)
 result_t Socket::get_fd(int32_t& retVal)
 {
     retVal = (int32_t)m_aio.m_fd;
-
     return 0;
 }
 
@@ -152,16 +141,6 @@ result_t Socket::get_family(int32_t& retVal)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     retVal = m_aio.m_family;
-
-    return 0;
-}
-
-result_t Socket::get_type(int32_t& retVal)
-{
-    if (m_aio.m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    retVal = m_aio.m_type;
 
     return 0;
 }
@@ -335,45 +314,6 @@ result_t Socket::recv(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     }
 
     return m_aio.read(bytes, retVal, ac, false, timer);
-}
-
-result_t Socket::recvfrom(int32_t bytes, obj_ptr<NObject>& retVal, AsyncEvent* ac)
-{
-    return m_aio.recvfrom(bytes, retVal, ac);
-}
-
-result_t Socket::sendto(Buffer_base* data, exlib::string host, int32_t port,
-    AsyncEvent* ac)
-{
-    if (m_aio.m_fd == INVALID_SOCKET)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    inetAddr addr_info;
-
-    addr_info.init(m_aio.m_family);
-    addr_info.setPort(port);
-    if (addr_info.addr(host.c_str()) < 0) {
-        exlib::string strAddr;
-        result_t hr = net_base::cc_resolve(host, m_aio.m_family, strAddr);
-        if (hr < 0)
-            return hr;
-
-        if (addr_info.addr(strAddr.c_str()) < 0)
-            return CHECK_ERROR(CALL_E_INVALIDARG);
-    }
-
-    exlib::string strData;
-    data->toString(strData);
-
-    if (::sendto(m_aio.m_fd, strData.c_str(), (int32_t)strData.length(), 0, (sockaddr*)&addr_info,
-            addr_info.size())
-        == SOCKET_ERROR)
-        return CHECK_ERROR(SocketError());
-
-    return 0;
 }
 
 result_t Socket::unbind(obj_ptr<object_base>& retVal)

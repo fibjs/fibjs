@@ -210,7 +210,7 @@ public:
 
                 if (!skips || !skips[j])
                     o->Set(isolate->NewString(m_cd.cms[i].name),
-                        isolate->NewFunction(m_cd.name, m_cd.cms[i].invoker));
+                        isolate->NewFunction(m_cd.cms[i].name, m_cd.cms[i].invoker));
             }
         }
 

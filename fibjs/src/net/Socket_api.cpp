@@ -7,7 +7,7 @@
 
 #include "object.h"
 #include "Socket_api.h"
-#include "Socket.h"
+#include "ifs/net.h"
 #include "Buffer.h"
 
 namespace fibjs {
@@ -15,15 +15,9 @@ namespace socket {
 
     void* create()
     {
-        Socket* s = new Socket();
+        obj_ptr<Socket_base> s;
+        Socket_base::_new(net_base::C_AF_INET, s);
         s->Ref();
-
-        result_t hr = s->create(net_base::C_AF_INET, net_base::C_SOCK_STREAM);
-        if (hr < 0) {
-            s->Unref();
-            Runtime::setError(hr);
-            return NULL;
-        }
 
         return s;
     }
@@ -31,7 +25,7 @@ namespace socket {
     void destroy(void* sock)
     {
         if (sock)
-            ((Socket*)sock)->Unref();
+            ((Socket_base*)sock)->Unref();
     }
 
     int32_t c_connect(void* sock, const char* host, int32_t port)
@@ -43,7 +37,7 @@ namespace socket {
 
         assert(!Runtime::check());
 
-        result_t hr = ((Socket*)sock)->cc_connect(host, port);
+        result_t hr = ((Socket_base*)sock)->cc_connect(host, port);
         if (hr < 0) {
             Runtime::setError(hr);
             return 0;
@@ -76,7 +70,7 @@ namespace socket {
 
         obj_ptr<Buffer_base> retVal;
 
-        result_t hr = ((Socket*)sock)->cc_recv(cbBuffer, retVal);
+        result_t hr = ((Socket_base*)sock)->cc_recv(cbBuffer, retVal);
         if (hr < 0) {
             Runtime::setError(hr);
             return -1;
@@ -106,7 +100,7 @@ namespace socket {
 
         obj_ptr<Buffer_base> retVal;
 
-        result_t hr = ((Socket*)sock)->cc_read(cbBuffer, retVal);
+        result_t hr = ((Socket_base*)sock)->cc_read(cbBuffer, retVal);
         if (hr < 0) {
             Runtime::setError(hr);
             return -1;
@@ -141,7 +135,7 @@ namespace socket {
 
         buf = new Buffer(strBuf);
 
-        result_t hr = ((Socket*)sock)->cc_send(buf);
+        result_t hr = ((Socket_base*)sock)->cc_send(buf);
         if (hr < 0) {
             Runtime::setError(hr);
             return -1;

@@ -29,7 +29,7 @@ run("./fswatch_test.js");
 run("./ms_test.js");
 run("./io_test.js");
 run("./os_test.js");
-!CI_SUBPROCESS_CHECK && run("./process_test.js");
+run("./process_test.js");
 run("./child_process_test.js");
 run("./encoding_test.js");
 run("./json_test.js");

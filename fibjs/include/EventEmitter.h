@@ -333,6 +333,11 @@ public:
         int32_t i;
         result_t hr;
 
+        if (len == 0) {
+            evs = events->GetPropertyNames();
+            len = evs->Length();
+        }
+
         for (i = 0; i < len; i++) {
             JSValue v = evs->Get(i);
             exlib::string key;

@@ -26,7 +26,6 @@
 #include <io.h>
 
 #include "utf8.h"
-#include "process_win.h"
 #else
 
 #include <unistd.h>
@@ -228,23 +227,13 @@ result_t process_base::get_platform(exlib::string& retVal)
 
 result_t process_base::get_pid(int32_t& retVal)
 {
-#ifdef _WIN32
-    retVal = GetCurrentProcessId();
-#else
-    retVal = getpid();
-#endif
-
+    retVal = uv_os_getpid();
     return 0;
 }
 
 result_t process_base::get_ppid(int32_t& retVal)
 {
-#ifdef _WIN32
-    retVal = (int32_t)GetParentProcessID();
-#else
-    retVal = getppid();
-#endif
-
+    retVal = uv_os_getppid();
     return 0;
 }
 
@@ -330,6 +319,26 @@ result_t process_base::memoryUsage(v8::Local<v8::Object>& retVal)
 result_t process_base::uptime(double& retVal)
 {
     return os_base::uptime(retVal);
+}
+
+result_t process_base::cwd(exlib::string& retVal)
+{
+    char buf[1024] = "";
+    size_t size = sizeof(buf);
+
+    if (uv_cwd(buf, &size))
+        return CHECK_ERROR(LastError());
+
+    retVal = buf;
+    return 0;
+}
+
+result_t process_base::chdir(exlib::string directory)
+{
+    if (uv_chdir(directory.c_str()))
+        return CHECK_ERROR(LastError());
+
+    return 0;
 }
 
 result_t process_base::nextTick(v8::Local<v8::Function> func, OptArgs args)

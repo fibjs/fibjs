@@ -13,7 +13,7 @@ if (win) {
             } catch (e) {}
         });
 
-        it("get", () => {
+        xit("get", () => {
             assert.equal(registry.get(registry.LOCAL_MACHINE, "Software\\Microsoft\\Windows\\CurrentVersion\\ProgramFilesDir"),
                 process.env.ProgramFiles);
         });

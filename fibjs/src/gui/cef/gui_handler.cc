@@ -115,11 +115,11 @@ void GuiHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 
         if ((*bit)->m_bHeadless) {
             (*bit)->_emit("closed");
-            (*bit)->holder()->Unref();
+            (*bit)->isolate_unref();
         } else {
 #ifdef Linux
             (*bit)->_emit("closed");
-            (*bit)->holder()->Unref();
+            (*bit)->isolate_unref();
 #endif
         }
         browser_list_.erase(bit);

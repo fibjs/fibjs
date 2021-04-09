@@ -9,6 +9,7 @@
 
 #include "ifs/ChildProcess.h"
 #include "AsyncUV.h"
+#include "UVStream.h"
 
 namespace fibjs {
 
@@ -55,7 +56,7 @@ public:
     exlib::Event m_ev;
     obj_ptr<ValueHolder> m_vholder;
 
-    obj_ptr<Stream_base> m_stdio[3];
+    obj_ptr<UVStream> m_stdio[3];
 
     uv_stdio_container_t stdios[3];
     uv_process_options_t uv_options;

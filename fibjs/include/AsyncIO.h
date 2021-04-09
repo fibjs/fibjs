@@ -21,10 +21,9 @@ namespace fibjs {
 
 class AsyncIO {
 public:
-    AsyncIO(intptr_t s, int32_t family, int32_t type)
+    AsyncIO(intptr_t s, int32_t family)
         : m_fd(s)
         , m_family(family)
-        , m_type(type)
 #ifndef _WIN32
         , m_RecvOpt(NULL)
         , m_SendOpt(NULL)
@@ -32,35 +31,20 @@ public:
     {
     }
 
-    class DatagramPacket : public NObject {
-    public:
-        DatagramPacket(exlib::string data, inetAddr& addr)
-        {
-            add("data", new Buffer(data));
-            add("address", addr.str());
-            add("port", addr.port());
-        }
-    };
-
 public:
     result_t connect(exlib::string host, int32_t port, AsyncEvent* ac, Timer_base* timer);
     result_t accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac);
     result_t write(Buffer_base* data, AsyncEvent* ac);
     result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         AsyncEvent* ac, bool bRead, Timer_base* timer);
-    result_t recvfrom(int32_t bytes, obj_ptr<NObject>& retVal, AsyncEvent* ac);
 
 #ifndef _WIN32
     result_t close(AsyncEvent* ac);
 #else
     result_t close(AsyncEvent* ac)
     {
-        if (m_fd != INVALID_SOCKET) {
-            if (m_type == -1)
-                ::CloseHandle((HANDLE)m_fd);
-            else
-                ::closesocket(m_fd);
-        }
+        if (m_fd != INVALID_SOCKET)
+            ::closesocket(m_fd);
 
         m_fd = INVALID_SOCKET;
 
@@ -68,14 +52,11 @@ public:
     }
 #endif
 
-    static result_t waitpid(intptr_t pid, int32_t& retVal, AsyncEvent* ac);
-
     static void run(void (*proc)(void*));
 
 public:
     intptr_t m_fd;
     int32_t m_family;
-    int32_t m_type;
 
 private:
     exlib::Locker m_lockRecv;

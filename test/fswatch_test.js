@@ -6,9 +6,16 @@ var child_process = require('child_process');
 var path = require('path');
 var coroutine = require('coroutine');
 var uuid = require('uuid');
+var test_util = require('./test_util');
 
-var { rmFile } = require('./_helpers/fs')
-var { ensureDirectoryExisted } = require('./_helpers/process');
+var {
+    rmFile
+} = require('./_helpers/fs')
+var {
+    ensureDirectoryExisted
+} = require('./_helpers/process');
+
+var support_watch_recursive = ['win32', 'darwin'].includes(process.platform);
 
 test.setup();
 
@@ -28,6 +35,11 @@ describe('fs.watch*', () => {
     var delFile = (rel) => {
         fs.unlink(rel)
     }
+
+    after(() => {
+        test_util.cleanup_folder(path.resolve(__dirname, './fswatch_files'));
+        test_util.cleanup_folder(path.resolve(__dirname, './fs_watchfile_output'));
+    })
 
     describe("fs.watch()", () => {
         before(() => {
@@ -135,22 +147,29 @@ describe('fs.watch*', () => {
                 var relfile = resolve_reltocwd(`./fswatch_files/nogit-${_uuid}.txt`)
 
                 writeFile(relfile, '')
+                var relfilename = path.basename(relfile);
 
                 var watcher
                 var changeTriggerCount = 0
                 const _handler = (evtType, filename) => {
                     assert.isString(evtType)
                     assert.isString(filename)
-                    console.log('\twatched file change, type: %s; filename: %s', evtType, filename)
+                    console.log('\twatched directory change, type: %s; filename: %s', evtType, filename)
+
+                    assert.equal(filename, relfilename);
 
                     changeTriggerCount++;
                 }
                 switch (changeEventSource) {
                     case 'listener':
-                        watcher = fs.watch(relfile, { recursive }, _handler)
+                        watcher = fs.watch(relfile, {
+                            recursive
+                        }, _handler)
                         break
                     case 'register':
-                        watcher = fs.watch(relfile, { recursive })
+                        watcher = fs.watch(relfile, {
+                            recursive
+                        })
                         watcher.on('change', _handler)
                         break
                 }
@@ -187,23 +206,37 @@ describe('fs.watch*', () => {
             }
 
             it(`event: 'change', from listener`, (next) => {
-                proc({ changeEventSource: 'listener', next });
+                proc({
+                    changeEventSource: 'listener',
+                    next
+                });
             });
 
             it(`event: 'change', from listener, recursive`, (next) => {
-                proc({ changeEventSource: 'listener', next, recursive: true });
+                proc({
+                    changeEventSource: 'listener',
+                    next,
+                    recursive: true
+                });
             });
 
             it(`event: 'change', from register`, (next) => {
-                proc({ changeEventSource: 'register', next });
+                proc({
+                    changeEventSource: 'register',
+                    next
+                });
             });
 
             it(`event: 'change', from register, recursive`, (next) => {
-                proc({ changeEventSource: 'register', next, recursive: true });
+                proc({
+                    changeEventSource: 'register',
+                    next,
+                    recursive: true
+                });
             });
         });
 
-        describe("watch Directory create file", () => {
+        describe("watch Directory: create file", () => {
             var proc = ({
                 changeEventSource = '',
                 next,
@@ -218,7 +251,7 @@ describe('fs.watch*', () => {
                 const _handler = (evtType, filename) => {
                     assert.isString(evtType)
                     assert.isString(filename)
-                    console.log('\twatched file change, type: %s; filename: %s', evtType, filename)
+                    console.log('\twatched directory change, type: %s; filename: %s', evtType, filename)
 
                     changeTriggerCount++;
                 }
@@ -261,15 +294,183 @@ describe('fs.watch*', () => {
             }
 
             it(`event: 'rename', from listener`, (next) => {
-                proc({ changeEventSource: 'listener', next });
+                proc({
+                    changeEventSource: 'listener',
+                    next
+                });
             });
 
             it(`event: 'rename', from register`, (next) => {
-                proc({ changeEventSource: 'register', next });
+                proc({
+                    changeEventSource: 'register',
+                    next
+                });
             });
         });
 
-        describe("watch Directory delete file", () => {
+        describe("watch Directory: create file once", () => {
+            var proc = ({
+                changeEventSource = '',
+                next,
+            }) => {
+                var _uuid = uuid.snowflake().hex()
+                var reldir = resolve_reltocwd(`./fswatch_files/${_uuid}`)
+                var filebasename = `nogit-${_uuid}.txt`;
+
+                ensureDirectoryExisted(reldir)
+
+                var watcher
+                var changeTriggerCount = 0
+                let writeCount = 0
+                var noTriggerAfterClose = true
+
+                const _handler = (evtType, filename) => {
+                    assert.isString(evtType)
+                    assert.isString(filename)
+                    console.log('\twatched directory change, type: %s; filename: %s', evtType, filename)
+
+                    assert.equal(filename, filebasename)
+
+                    changeTriggerCount++;
+                        
+                    watcher.close();
+
+                    watcher.on('change', () => {
+                        noTriggerAfterClose = false;
+                    });
+                }
+                switch (changeEventSource) {
+                    case 'listener':
+                        watcher = fs.watch(reldir, _handler)
+                        break
+                    case 'register':
+                        watcher = fs.watch(reldir)
+                        watcher.on('change', _handler)
+                        break
+                }
+
+                watcher.on('close', () => {
+                    assert.ok(changeTriggerCount > 0);
+                    assert.equal(writeCount, 1);
+                    // 预期为 1, 但在部分系统上可能会被触发多次
+                    assert.notLessThan(changeTriggerCount, 1, `changeTriggerCount is ${changeTriggerCount}`);
+
+                    assert.isTrue(noTriggerAfterClose);
+
+                    next();
+                })
+
+                setTimeout(() => {
+                    writeCount++;
+
+                    createFile(path.join(reldir, filebasename), `this is new file.`)
+                }, 200);
+            }
+
+            it(`event: 'rename', from listener`, (next) => {
+                proc({
+                    changeEventSource: 'listener',
+                    next
+                });
+            });
+
+            it(`event: 'rename', from register`, (next) => {
+                proc({
+                    changeEventSource: 'register',
+                    next
+                });
+            });
+        });
+
+        support_watch_recursive && describe("watch Directory recursively: create file once", () => {
+            var proc = ({
+                changeEventSource = '',
+                next,
+            }) => {
+                var _uuid = uuid.snowflake().hex()
+                var reldir = resolve_reltocwd(`./fswatch_files/${_uuid}/${_uuid}`)
+                var filebasename = `nogit-${_uuid}.txt`;
+                var fullfilename = path.join(reldir, filebasename);
+
+                var preldir = path.dirname(reldir);
+                var relfilename = path.join(_uuid, filebasename);
+
+                ensureDirectoryExisted(reldir)
+
+                var watcher
+                var changeTriggerCount = 0
+                let writeCount = 0
+                var noTriggerAfterClose = true
+
+                const _handler = (evtType, filename) => {
+                    assert.isString(evtType)
+                    assert.isString(filename)
+                    console.log('\twatched directory change, type: %s; filename: %s', evtType, filename)
+
+                    const stats = fs.stat(path.resolve(preldir, filename));
+                    /**
+                     * monitor 一个刚刚创建不久的文件夹 D, watch 它, 然后在该文件夹中新增一个文件 F, 在
+                     * 部分系统中, 连续观察到先触发 D 的 rename 事件, 然后再触发 F 的 rename 事件.
+                     * 
+                     * 也因为这个原因, D rename 事件触发的时候, 我们不能马上 close watcher,
+                     * 确保是 F rename 事件触发的时候, 再 close watcher
+                     */
+                    if (stats.isFile()) {
+                        assert.equal(filename, relfilename);
+
+                        changeTriggerCount++;
+                        watcher.close();
+    
+                        watcher.on('change', () => {
+                            noTriggerAfterClose = false;
+                        });
+                    } else if (stats.isDirectory()) {
+                        assert.equal(filename, path.dirname(relfilename));
+                    }
+                }
+                switch (changeEventSource) {
+                    case 'listener':
+                        watcher = fs.watch(preldir, { recursive: true }, _handler)
+                        break
+                    case 'register':
+                        watcher = fs.watch(preldir, { recursive: true })
+                        watcher.on('change', _handler)
+                        break
+                }
+
+                watcher.on('close', () => {
+                    assert.ok(changeTriggerCount > 0);
+                    assert.equal(writeCount, 1);
+                    assert.notLessThan(changeTriggerCount, 1);
+
+                    assert.isTrue(noTriggerAfterClose);
+
+                    next();
+                })
+
+                setTimeout(() => {
+                    writeCount++;
+
+                    createFile(fullfilename, `this is new file.`)
+                }, 200);
+            }
+
+            it(`event: 'rename', from listener`, (next) => {
+                proc({
+                    changeEventSource: 'listener',
+                    next
+                });
+            });
+
+            it(`event: 'rename', from register`, (next) => {
+                proc({
+                    changeEventSource: 'register',
+                    next
+                });
+            });
+        });
+
+        describe("watch Directory: delete file", () => {
             var proc = ({
                 changeEventSource = '',
                 next,
@@ -293,7 +494,7 @@ describe('fs.watch*', () => {
                 const _handler = (evtType, filename) => {
                     assert.isString(evtType)
                     assert.isString(filename)
-                    console.log('\twatched file change, type: %s; filename: %s', evtType, filename)
+                    console.log('\twatched directory change, type: %s; filename: %s', evtType, filename)
 
                     changeTriggerCount++;
                 }
@@ -332,11 +533,167 @@ describe('fs.watch*', () => {
             }
 
             it(`event: 'rename', from listener`, (next) => {
-                proc({ changeEventSource: 'listener', next });
+                proc({
+                    changeEventSource: 'listener',
+                    next
+                });
             });
 
             it(`event: 'rename', from register`, (next) => {
-                proc({ changeEventSource: 'register', next });
+                proc({
+                    changeEventSource: 'register',
+                    next
+                });
+            });
+        });
+
+        describe("watch Directory: delete file once", () => {
+            var proc = ({
+                changeEventSource = '',
+                next,
+            }) => {
+                var _uuid = uuid.snowflake().hex()
+                var reldir = resolve_reltocwd(`./fswatch_files/${_uuid}`)
+                var relfilename = `nogit-${_uuid}.txt`;
+                var fullpath = path.resolve(reldir, relfilename);
+
+                ensureDirectoryExisted(reldir)
+
+                writeFile(path.resolve(reldir, relfilename), `this is file to delete, ${_uuid}`);
+
+                var watcher
+                var changeTriggerCount = 0
+                const _handler = (evtType, filename) => {
+                    assert.isString(evtType)
+                    assert.isString(filename)
+                    console.log('\twatched directory change, type: %s; filename: %s', evtType, filename)
+
+                    assert.equal(filename, relfilename)
+
+                    changeTriggerCount++;
+
+                    watcher.close();
+                    watcher.on('change', () => {
+                        noTriggerAfterClose = false;
+                    });
+                }
+                switch (changeEventSource) {
+                    case 'listener':
+                        watcher = fs.watch(reldir, _handler)
+                        break
+                    case 'register':
+                        watcher = fs.watch(reldir)
+                        watcher.on('change', _handler)
+                        break
+                }
+
+                var noTriggerAfterClose = true
+                setTimeout(() => {
+                    delFile(fullpath)
+                }, 300);
+
+                watcher.on('close', () => {
+                    assert.ok(changeTriggerCount > 0);
+                    assert.notLessThan(changeTriggerCount, 1);
+
+                    assert.isTrue(noTriggerAfterClose);
+
+                    next();
+                })
+            }
+
+            it(`event: 'rename', from listener`, (next) => {
+                proc({
+                    changeEventSource: 'listener',
+                    next
+                });
+            });
+
+            it(`event: 'rename', from register`, (next) => {
+                proc({
+                    changeEventSource: 'register',
+                    next
+                });
+            });
+        });
+
+        support_watch_recursive && describe("watch Directory recursively: delete file once", () => {
+            var proc = ({
+                changeEventSource = '',
+                next,
+            }) => {
+                var _uuid = uuid.snowflake().hex()
+                var reldir = resolve_reltocwd(`./fswatch_files/${_uuid}/${_uuid}`)
+                var filebasename = `nogit-${_uuid}.txt`;
+                var fullpath = path.resolve(reldir, filebasename);
+
+                var preldir = path.dirname(reldir);
+                var relfilename = path.join(_uuid, filebasename);
+
+                ensureDirectoryExisted(reldir)
+
+                writeFile(fullpath, `this is file to delete, ${_uuid}`);
+
+                var watcher
+                var changeTriggerCount = 0
+                const _handler = (evtType, filename) => {
+                    assert.isString(evtType)
+                    assert.isString(filename)
+                    console.log('\twatched file change, type: %s; filename: %s', evtType, filename)
+
+                    assert.equal(filename, relfilename)
+
+                    // 以 .txt 结尾说明是我们的测试文件
+                    if (filename.endsWith('.txt')) {
+                        assert.equal(filename, relfilename);
+                    } else {
+                        assert.equal(filename, path.dirname(relfilename));
+                    }
+
+                    changeTriggerCount++;
+                    watcher.close();
+    
+                    watcher.on('change', () => {
+                        noTriggerAfterClose = false;
+                    });
+                }
+                switch (changeEventSource) {
+                    case 'listener':
+                        watcher = fs.watch(preldir, { recursive: true }, _handler)
+                        break
+                    case 'register':
+                        watcher = fs.watch(preldir, { recursive: true })
+                        watcher.on('change', _handler)
+                        break
+                }
+
+                var noTriggerAfterClose = true
+                setTimeout(() => {
+                    delFile(fullpath)
+                }, 300);
+
+                watcher.on('close', () => {
+                    assert.ok(changeTriggerCount > 0);
+                    assert.equal(changeTriggerCount, 1);
+
+                    assert.isTrue(noTriggerAfterClose);
+
+                    next();
+                })
+            }
+
+            it(`event: 'rename', from listener`, (next) => {
+                proc({
+                    changeEventSource: 'listener',
+                    next
+                });
+            });
+
+            it(`event: 'rename', from register`, (next) => {
+                proc({
+                    changeEventSource: 'register',
+                    next
+                });
             });
         });
     })
@@ -379,7 +736,7 @@ describe('fs.watch*', () => {
 
                 const watcher = fs.watchFile(
                     resolve_reltocwd(relpath),
-                    () => { }
+                    () => {}
                 )
 
                 for (let i = 0; i < 10; i++)
@@ -395,7 +752,7 @@ describe('fs.watch*', () => {
                 while (++j < 20) {
                     const watcher = fs.watchFile(
                         resolve_reltocwd(relpath),
-                        () => { }
+                        () => {}
                     )
 
                     coroutine.sleep(1);
@@ -411,8 +768,9 @@ describe('fs.watch*', () => {
                 writeFile(target, '')
 
                 const watcher = fs.watchFile(
-                    target,
-                    { interval: 100 },
+                    target, {
+                        interval: 100
+                    },
                     () => {
                         watcher.close();
                         triggedCallback = true;
@@ -461,7 +819,9 @@ describe('fs.watch*', () => {
             it("fs.watchFile nil", () => {
                 let nilTuple = []
                 let onlyOnceCount = 0;
-                const watcher = fs.watchFile(relfile, { interval: 50 }, (cur, prev) => {
+                const watcher = fs.watchFile(relfile, {
+                    interval: 50
+                }, (cur, prev) => {
                     triggeredThoughWatchNil = true;
                     onlyOnceCount++;
                     nilTuple = [cur, prev]
@@ -489,8 +849,9 @@ describe('fs.watch*', () => {
                 var TRIGGER_TIME = 100;
 
                 const watcher = fs.watchFile(
-                    target,
-                    { interval: 100 },
+                    target, {
+                        interval: 100
+                    },
                     (curStat, prevStat) => {
                         // should be called
                         assert.isObject(prevStat)
@@ -526,8 +887,9 @@ describe('fs.watch*', () => {
 
                 let noTriggered = true;
                 const watcher = fs.watchFile(
-                    target,
-                    { interval: 100 },
+                    target, {
+                        interval: 100
+                    },
                     (curStat, prevStat) => {
                         // should be called
                         assert.isObject(prevStat)
@@ -551,8 +913,9 @@ describe('fs.watch*', () => {
 
                 let calledCount = 0;
                 const watcher = fs.watchFile(
-                    target,
-                    { interval: 100 },
+                    target, {
+                        interval: 100
+                    },
                     (curStat, prevStat) => {
                         // should be called once only
                         assert.isObject(prevStat)
@@ -614,8 +977,9 @@ describe('fs.watch*', () => {
                     flag2 = 'canceled_onchange'
                 };
                 const watcher = fs.watchFile(
-                    target,
-                    { interval: 100 },
+                    target, {
+                        interval: 100
+                    },
                     canceled_onchange
                 );
 
@@ -649,7 +1013,9 @@ describe('fs.watch*', () => {
 
                 if (changeEventSource === 'register') {
                     assert.throws(() => {
-                        fs.watchFile(relfile, { interval: 50 })
+                        fs.watchFile(relfile, {
+                            interval: 50
+                        })
                     });
 
                     assert.throws(() => {
@@ -669,7 +1035,9 @@ describe('fs.watch*', () => {
                     changeTriggerCount++;
                 }
 
-                var watcher = fs.watchFile(relfile, { interval: 50 }, _handler)
+                var watcher = fs.watchFile(relfile, {
+                    interval: 50
+                }, _handler)
 
                 let writeCount = 0
                 var noTriggerAfterClose = true
@@ -704,11 +1072,17 @@ describe('fs.watch*', () => {
             }
 
             it(`event: 'change', from listener`, (next) => {
-                proc({ changeEventSource: 'listener', next });
+                proc({
+                    changeEventSource: 'listener',
+                    next
+                });
             });
 
             it(`event: 'change', onchange callback is required when watchFile(xxx, onchange)`, (next) => {
-                proc({ changeEventSource: 'register', next });
+                proc({
+                    changeEventSource: 'register',
+                    next
+                });
             });
         });
     })

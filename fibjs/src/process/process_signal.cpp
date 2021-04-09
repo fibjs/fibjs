@@ -63,6 +63,10 @@ static void on_signal(int32_t s)
         name = "SIGINT";
         break;
 #endif
+#ifdef SIGPIPE
+    case SIGPIPE:
+        return;
+#endif
     default:
         _exit(1);
     }
@@ -165,6 +169,7 @@ void init_signal()
 
     sigaction(SIGINT, &sigIntHandler, NULL);
     sigaction(SIGTERM, &sigIntHandler, NULL);
+    sigaction(SIGPIPE, &sigIntHandler, NULL);
 }
 
 #endif

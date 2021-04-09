@@ -16,14 +16,14 @@ module util
      */
     static String format(...args);
 
-    /*! @brief 从一个构造函数 constructor 继承原型方法到另一个。构造函数的原型将被设置为一个新的从超类（superConstructor）创建的对象。
+    /*! @brief 从一个构造函数 constructor 继承原型函数到另一个。构造函数的原型将被设置为一个新的从超类（superConstructor）创建的对象。
 
      @param constructor 初始的构造函数
      @param superConstructor 被继承的超类
      */
     static inherits(Value constructor, Value superConstructor);
 
-    /*! @brief 方法返回 obj 的字符串表示，主要用于调试。 附加的 options 可用于改变格式化字符串的某些方面。
+    /*! @brief 函数返回 obj 的字符串表示，主要用于调试。 附加的 options 可用于改变格式化字符串的某些方面。
 
      @param obj 指定需要处理的对象
      @param options 指定格式控制选项
@@ -31,9 +31,9 @@ module util
      */
     static String inspect(Object obj, Object options = {});
 
-    /*! @brief 封装给定的方法，本方法仅为兼容，并不输出警告
+    /*! @brief 封装给定的函数，本函数仅为兼容，并不输出警告
 
-     @param fn 给定需要封装的方法
+     @param fn 给定需要封装的函数
      @param msg 给定警告消息
      @param code 给定警告编号
      @return 如果封装结果
@@ -421,9 +421,9 @@ module util
      */
     static Buffer compile(String srcname, String script, Integer mode = 0);
 
-    /*! @brief 包裹 callback 或 async 方法为同步调用
+    /*! @brief 包裹 callback 或 async 函数为同步调用
 
-     util.sync 将 callback 方法或者 async 方法处理为 sync 方法，以方便调用。
+     util.sync 将 callback 函数或者 async 函数处理为 sync 函数，以方便调用。
 
      callback 示例如下：
      ```JavaScript
@@ -466,11 +466,35 @@ module util
      console.log(fn_sync(100, 200));
      ```
 
-     @param func 给定需要包裹的方法
+     @param func 给定需要包裹的函数
      @param async_func 指定以 async 函数方式处理 func，为 false 则自动判断
-     @return 返回同步运行的方法
+     @return 返回同步运行的函数
      */
     static Function sync(Function func, Boolean async_func = false);
+
+    /*! @brief 包裹 callback 函数为 async 调用
+
+     util.promisify 将 callback 函数处理为 async 函数，以方便调用。
+
+     callback 示例如下：
+     ```JavaScript
+     // callback
+     var util = require('util');
+
+     function cb_test(a, b, cb) {
+       setTimeout(() => {
+          cb(null, a + b);
+       }, 100);
+     }
+
+     var fn_sync = async util.promisify(cb_test);
+     console.log(fn_sync(100, 200));
+     ```
+
+     @param func 给定需要包裹的函数
+     @return 返回 async 函数
+     */
+    static Function promisify(Function func);
 
     /*! @brief 查询当前引擎及各组件版本信息
 

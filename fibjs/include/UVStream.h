@@ -11,70 +11,81 @@
 #include "AsyncUV.h"
 #include "Buffer.h"
 
+#define STREAM_BLOCK_SIZE 2048
+
 namespace fibjs {
 
-inline bool is_stdio_fd(int32_t fd)
-{
-    return fd >= 0 && fd <= 2;
-}
+template <typename T>
+class UVStream_tmpl : public T {
+public:
+    class UVTimeout : public uv_timer_t {
+    public:
+        UVTimeout(UVStream_tmpl* _this)
+            : m_this(_this)
+            , m_timeout(_this->m_timeout)
+        {
+            if (m_timeout > 0) {
+                uv_timer_init(s_uv_loop, this);
+                uv_timer_start(this, on_timeout, m_timeout, 0);
+            }
+        }
 
-class UVStream : public Stream_base {
-    FIBER_FREE();
+        static void on_timeout(uv_timer_t* handle)
+        {
+            UVTimeout* pThis = (UVTimeout*)handle;
+            pThis->m_this->close(NULL);
+        }
+
+        void cancel_timer()
+        {
+            if (m_timeout > 0)
+                uv_timer_stop(this);
+        }
+
+    public:
+        obj_ptr<UVStream_tmpl> m_this;
+        int32_t m_timeout;
+    };
 
 public:
-    UVStream(int32_t fd)
+    UVStream_tmpl(int32_t fd = -1)
+        : m_fd(fd)
     {
-        m_fd = fd;
-
-        uv_call([&] {
-            if (is_stdio_fd(fd) && uv_guess_handle(fd) == UV_TTY) {
-                int32_t ret = uv_tty_init(s_uv_loop, &m_tty, fd, 0);
-                if (ret != 0)
-                    return ret;
-
-                return uv_stream_set_blocking(&m_stream, 1);
-            }
-
-            uv_pipe_init(s_uv_loop, &m_pipe, 0);
-            return uv_pipe_open(&m_pipe, fd);
-        });
     }
 
-    UVStream()
-    {
-        m_fd = -1;
-
-        uv_call([&] {
-            return uv_pipe_init(s_uv_loop, &m_pipe, 0);
-        });
-    }
-
+public:
     static void on_delete(uv_handle_t* handle)
     {
-        UVStream* pThis = container_of(handle, UVStream, m_handle);
+        UVStream_tmpl* pThis = container_of(handle, UVStream_tmpl, m_handle);
         delete pThis;
     }
 
     virtual void Delete()
     {
-        result_t hr = uv_call([&] {
-            if (uv_is_closing(&m_handle))
-                return CALL_E_INVALID_CALL;
-
-            uv_close(&m_handle, on_delete);
-            return CALL_E_PENDDING;
-        });
-
-        if (hr != CALL_E_PENDDING)
+        if (uv_is_closing(&m_handle)) {
             delete this;
+            return;
+        }
+
+        uv_post([&] {
+            uv_close(&m_handle, on_delete);
+        });
+    }
+
+    static bool is_stdio_fd(int32_t fd)
+    {
+        return fd >= 0 && fd <= 2;
     }
 
 public:
     // Stream_base
-    class AsyncRead : public exlib::linkitem {
+    class AsyncRead : public AsyncEvent,
+                      public UVTimeout {
     public:
-        AsyncRead(UVStream* pThis, int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
-            : m_this(pThis)
+        AsyncRead(UVStream_tmpl* pThis, bool bRead, int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+            : UVTimeout(pThis)
+            , m_this(pThis)
+            , m_bRead(bRead)
             , m_bytes(bytes)
             , m_retVal(retVal)
             , m_ac(ac)
@@ -83,31 +94,27 @@ public:
         }
 
     public:
-        result_t start()
+        virtual void invoke()
         {
-            return uv_call([&] {
-                m_this->queue_read.putTail(this);
-                if (m_this->queue_read.count() == 1) {
-                    int32_t ret = uv_read_start(&m_this->m_stream, on_alloc, on_read);
-                    if (ret) {
-                        m_this->queue_read.getHead();
-                        delete this;
-                        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
-                    }
-                }
-
-                return CALL_E_PENDDING;
-            });
+            m_this->queue_read.putTail(this);
+            if (m_this->queue_read.count() == 1) {
+                int32_t ret = uv_read_start(&m_this->m_stream, on_alloc, on_read);
+                if (ret < 0)
+                    post_all_result(m_this, ret);
+            }
         }
 
     public:
         static void on_alloc(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf)
         {
-            AsyncRead* ar = container_of(handle, UVStream, m_handle)->queue_read.head();
+            AsyncRead* ar = container_of(handle, UVStream_tmpl, m_handle)->queue_read.head();
 
             if (ar->m_buf.empty()) {
                 if (ar->m_bytes > 0)
                     suggested_size = ar->m_bytes;
+                else
+                    suggested_size = STREAM_BLOCK_SIZE;
+
                 ar->m_buf.resize(suggested_size);
             }
 
@@ -117,7 +124,7 @@ public:
 
         static void on_read(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf)
         {
-            UVStream* pThis = container_of(stream, UVStream, m_handle);
+            UVStream_tmpl* pThis = container_of(stream, UVStream_tmpl, m_handle);
             AsyncRead* ar;
 
             if (nread < 0) {
@@ -128,7 +135,7 @@ public:
 
             ar = pThis->queue_read.head();
             ar->m_pos += (int32_t)nread;
-            if ((ar->m_bytes < 0) || (ar->m_bytes == ar->m_pos)) {
+            if (!ar->m_bRead || (ar->m_bytes < 0) || (ar->m_bytes == ar->m_pos)) {
                 pThis->queue_read.getHead();
                 ar->post_result(0);
 
@@ -137,7 +144,7 @@ public:
             }
         }
 
-        static void post_all_result(UVStream* pThis, int32_t status)
+        static void post_all_result(UVStream_tmpl* pThis, int32_t status)
         {
             while (pThis->queue_read.count())
                 pThis->queue_read.getHead()->post_result(status);
@@ -145,8 +152,10 @@ public:
 
         void post_result(int32_t status)
         {
-            if (status < 0 && status != UV_EOF) {
-                m_ac->apost(CHECK_ERROR(Runtime::setError(uv_strerror(status))));
+            UVTimeout::cancel_timer();
+
+            if (status < 0 && status != UV_EOF && status != UV_ENOTCONN && status != UV_ECONNRESET) {
+                m_ac->apost(status);
             } else {
                 if (m_pos) {
                     if (m_pos < m_buf.length())
@@ -162,7 +171,8 @@ public:
         }
 
     private:
-        obj_ptr<UVStream> m_this;
+        obj_ptr<UVStream_tmpl> m_this;
+        bool m_bRead;
         int32_t m_bytes;
         obj_ptr<Buffer_base>& m_retVal;
         AsyncEvent* m_ac;
@@ -170,10 +180,12 @@ public:
         exlib::string m_buf;
     };
 
-    class AsyncWrite : public exlib::linkitem {
+    class AsyncWrite : public AsyncEvent,
+                       public UVTimeout {
     public:
-        AsyncWrite(UVStream* pThis, Buffer_base* data, AsyncEvent* ac)
-            : m_this(pThis)
+        AsyncWrite(UVStream_tmpl* pThis, Buffer_base* data, AsyncEvent* ac)
+            : UVTimeout(pThis)
+            , m_this(pThis)
             , m_ac(ac)
         {
             data->toString(m_strBuf);
@@ -182,27 +194,20 @@ public:
         }
 
     public:
-        result_t start()
+        virtual void invoke()
         {
-            return uv_call([&] {
-                m_this->queue_write.putTail(this);
-                if (m_this->queue_write.count() == 1) {
-                    int32_t ret = uv_write(&m_req, &m_this->m_stream, &m_buf, 1, on_write);
-                    if (ret) {
-                        m_this->queue_write.getHead();
-                        delete this;
-                        return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
-                    }
-                }
-
-                return CALL_E_PENDDING;
-            });
+            m_this->queue_write.putTail(this);
+            if (m_this->queue_write.count() == 1) {
+                int32_t ret = uv_write(&m_req, &m_this->m_stream, &m_buf, 1, on_write);
+                if (ret < 0)
+                    post_all_result(m_this, ret);
+            }
         }
 
     public:
         static void on_write(uv_write_t* req, int32_t status)
         {
-            UVStream* pThis = container_of(req->handle, UVStream, m_handle);
+            UVStream_tmpl* pThis = container_of(req->handle, UVStream_tmpl, m_handle);
             AsyncWrite* wr;
 
             if (status < 0) {
@@ -220,7 +225,7 @@ public:
             }
         }
 
-        static void post_all_result(UVStream* pThis, int32_t status)
+        static void post_all_result(UVStream_tmpl* pThis, int32_t status)
         {
             while (pThis->queue_write.count())
                 pThis->queue_write.getHead()->post_result(status);
@@ -228,16 +233,14 @@ public:
 
         void post_result(int32_t status)
         {
-            if (status < 0)
-                m_ac->apost(Runtime::setError(uv_strerror(status)));
-            else
-                m_ac->apost(0);
+            UVTimeout::cancel_timer();
 
+            m_ac->apost(status);
             delete this;
         }
 
     private:
-        obj_ptr<UVStream> m_this;
+        obj_ptr<UVStream_tmpl> m_this;
         AsyncEvent* m_ac;
         exlib::string m_strBuf;
         uv_buf_t m_buf;
@@ -251,22 +254,16 @@ public:
             return 0;
         }
 
-        uv_os_fd_t fileno;
-        int32_t ret = uv_fileno(&m_handle, &fileno);
-        if (ret != 0)
-            return CHECK_ERROR(Runtime::setError(uv_strerror(ret)));
-        retVal = *(int32_t*)&fileno;
-
-        return 0;
+        return uv_fileno(&m_handle, (uv_os_fd_t*)&retVal);
     };
 
-    virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
-        AsyncEvent* ac)
+    virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     {
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
-        return (new AsyncRead(this, bytes, retVal, ac))->start();
+        uv_post(new AsyncRead(this, true, bytes, retVal, ac));
+        return CALL_E_PENDDING;
     }
 
     virtual result_t write(Buffer_base* data, AsyncEvent* ac)
@@ -274,7 +271,8 @@ public:
         if (ac->isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
-        return (new AsyncWrite(this, data, ac))->start();
+        uv_post(new AsyncWrite(this, data, ac));
+        return CALL_E_PENDDING;
     }
 
     virtual result_t flush(AsyncEvent* ac)
@@ -284,27 +282,32 @@ public:
 
     static void on_close(uv_handle_t* handle)
     {
-        UVStream* pThis = container_of(handle, UVStream, m_handle);
+        UVStream_tmpl* pThis = container_of(handle, UVStream_tmpl, m_handle);
 
         AsyncRead::post_all_result(pThis, UV_EPIPE);
         AsyncWrite::post_all_result(pThis, UV_EPIPE);
 
-        pThis->ac_close->apost(0);
+        if (pThis->ac_close)
+            pThis->ac_close->apost(0);
     }
 
     virtual result_t close(AsyncEvent* ac)
     {
-        if (ac->isSync())
+        if (ac && ac->isSync())
             return CHECK_ERROR(CALL_E_NOSYNC);
 
-        return uv_call([&] {
-            if (uv_is_closing(&m_handle))
-                return CALL_E_INVALID_CALL;
+        uv_post([this, ac] {
+            if (uv_is_closing(&this->m_handle)) {
+                if (ac)
+                    ac->apost(0);
+                return;
+            }
 
-            ac_close = ac;
-            uv_close(&m_handle, on_close);
-            return CALL_E_PENDDING;
+            this->ac_close = ac;
+            uv_close(&this->m_handle, on_close);
         });
+
+        return CALL_E_PENDDING;
     }
 
     virtual result_t copyTo(Stream_base* stm, int64_t bytes,
@@ -313,8 +316,21 @@ public:
         return io_base::copyStream(this, stm, bytes, retVal, ac);
     }
 
-private:
+    virtual result_t get_timeout(int32_t& retVal)
+    {
+        retVal = m_timeout;
+        return 0;
+    }
+
+    virtual result_t set_timeout(int32_t newVal)
+    {
+        m_timeout = newVal;
+        return 0;
+    }
+
+public:
     int32_t m_fd;
+    int32_t m_timeout = -1;
 
 public:
     union {
@@ -322,9 +338,49 @@ public:
         uv_stream_t m_stream;
         uv_pipe_t m_pipe;
         uv_tty_t m_tty;
+        uv_tcp_t m_tcp;
     };
     exlib::List<AsyncRead> queue_read;
     exlib::List<AsyncWrite> queue_write;
     AsyncEvent* ac_close;
+};
+
+class UVStream : public UVStream_tmpl<Stream_base> {
+    FIBER_FREE();
+
+public:
+    UVStream(int32_t fd)
+        : UVStream_tmpl<Stream_base>(fd)
+    {
+        uv_call([&] {
+            if (is_stdio_fd(fd) && uv_guess_handle(fd) == UV_TTY) {
+                uv_tty_init(s_uv_loop, &m_tty, fd, 0);
+                return uv_stream_set_blocking(&m_stream, 1);
+            }
+
+            uv_pipe_init(s_uv_loop, &m_pipe, 0);
+            return uv_pipe_open(&m_pipe, fd);
+        });
+    }
+
+public:
+    static result_t create_pipe(obj_ptr<UVStream>& retVal)
+    {
+        obj_ptr<UVStream> stream = new UVStream();
+        result_t hr = uv_call([&] {
+            return uv_pipe_init(s_uv_loop, &stream->m_pipe, 0);
+        });
+        if (hr < 0)
+            return hr;
+
+        retVal = stream;
+
+        return 0;
+    }
+
+private:
+    UVStream()
+    {
+    }
 };
 }

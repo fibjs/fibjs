@@ -8,9 +8,9 @@
 #include "object.h"
 
 #include "ifs/io.h"
+#include "ifs/fs.h"
 #include "File.h"
 #include "Buffer.h"
-#include "Stat.h"
 
 #ifdef _WIN32
 #define pclose _pclose
@@ -205,15 +205,7 @@ result_t File::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
     if (m_fd == -1)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    obj_ptr<Stat> pStat = new Stat();
-    pStat->getStat(name);
-
-    retVal = pStat;
-
-    return 0;
+    return fs_base::stat(name, retVal, ac);
 }
 
 result_t File::size(int64_t& retVal)

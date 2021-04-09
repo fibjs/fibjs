@@ -399,7 +399,7 @@ describe('coroutine', () => {
                 });
 
                 it('Socket', () => {
-                    var v = new net.Socket(net.AF_INET, net.SOCK_STREAM);
+                    var v = new net.Socket(net.AF_INET);
                     v.bind(8899 + base_port);
 
                     var v1 = msg_trans(v);

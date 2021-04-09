@@ -34,8 +34,6 @@ bool repl_command(exlib::string& line)
 {
     _parser p(line);
     exlib::string cmd_word;
-    result_t hr;
-    int32_t i;
 
     p.skipSpace();
     p.getWord(cmd_word);

@@ -33,6 +33,7 @@ public:
     static result_t link(exlib::string oldPath, exlib::string newPath, AsyncEvent* ac);
     static result_t unlink(exlib::string path, AsyncEvent* ac);
     static result_t mkdir(exlib::string path, int32_t mode, AsyncEvent* ac);
+    static result_t mkdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEvent* ac);
     static result_t rmdir(exlib::string path, AsyncEvent* ac);
     static result_t rename(exlib::string from, exlib::string to, AsyncEvent* ac);
     static result_t copyFile(exlib::string from, exlib::string to, int32_t mode, AsyncEvent* ac);
@@ -131,6 +132,7 @@ public:
     ASYNC_STATIC2(fs_base, link, exlib::string, exlib::string);
     ASYNC_STATIC1(fs_base, unlink, exlib::string);
     ASYNC_STATIC2(fs_base, mkdir, exlib::string, int32_t);
+    ASYNC_STATIC2(fs_base, mkdir, exlib::string, v8::Local<v8::Object>);
     ASYNC_STATIC1(fs_base, rmdir, exlib::string);
     ASYNC_STATIC2(fs_base, rename, exlib::string, exlib::string);
     ASYNC_STATIC3(fs_base, copyFile, exlib::string, exlib::string, int32_t);
@@ -343,6 +345,16 @@ inline void fs_base::s_static_mkdir(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ARG(exlib::string, 0);
     OPT_ARG(int32_t, 1, 0777);
+
+    if (!cb.IsEmpty())
+        hr = acb_mkdir(v0, v1, cb, args);
+    else
+        hr = ac_mkdir(v0, v1);
+
+    ASYNC_METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Object>, 1);
 
     if (!cb.IsEmpty())
         hr = acb_mkdir(v0, v1, cb, args);

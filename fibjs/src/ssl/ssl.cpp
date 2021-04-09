@@ -164,9 +164,7 @@ result_t ssl_base::connect(exlib::string url, X509Cert_base* crt, PKey_base* key
 
         ON_STATE(asyncConnect, connect)
         {
-            m_sock = new Socket();
-            m_sock->create(m_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET,
-                net_base::C_SOCK_STREAM);
+            Socket_base::_new(m_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET, m_sock);
 
             m_sock->set_timeout(m_timeout);
             return m_sock->connect(m_host, m_port, next(handshake));
@@ -199,7 +197,7 @@ result_t ssl_base::connect(exlib::string url, X509Cert_base* crt, PKey_base* key
         obj_ptr<PKey_base> m_key;
         int32_t m_timeout;
         obj_ptr<Stream_base>& m_retVal;
-        obj_ptr<Socket> m_sock;
+        obj_ptr<Socket_base> m_sock;
         obj_ptr<SslSocket> m_ssl_sock;
         int32_t m_temp;
     };

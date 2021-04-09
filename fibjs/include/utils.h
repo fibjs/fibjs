@@ -114,7 +114,7 @@ typedef int32_t result_t;
 #define CALL_RETURN_NULL 100000
 #define CALL_RETURN_CALLBACK 100001
 
-#define CALL_E_MAX -100000
+#define CALL_E_MAX -20000
 // Invalid number of parameters.
 #define CALL_E_BADPARAMCOUNT (CALL_E_MAX - 1)
 // Parameter not optional.
@@ -171,7 +171,7 @@ typedef int32_t result_t;
 // Object closed.
 #define CALL_E_CLOSED (CALL_E_MAX - 26)
 
-#define CALL_E_MIN -100100
+#define CALL_E_MIN (CALL_E_MAX - 100)
 
 #ifndef _WIN32
 #define CALL_E_FILE_NOT_FOUND (-ENOENT)
@@ -708,11 +708,9 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, date_t& d, bool bStrict
     if (v.IsEmpty())
         return CALL_E_TYPEMISMATCH;
 
-    if (v->IsDate())
-    {
+    if (v->IsDate()) {
         d = v;
-    } else
-    {
+    } else {
         if (bStrict)
             return CALL_E_TYPEMISMATCH;
 

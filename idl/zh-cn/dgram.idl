@@ -18,7 +18,8 @@ module dgram
      ```JavaScript
      {
          "type": "udp4" | "udp6",   // 必填
-         "reuseAddr": true | false, //若设置为 true，socket.bind() 则会重用地址，即时另一个进程已经在其上面绑定了一个套接字。 默认是 false
+         "reuseAddr": true | false, // 若设置为 true，socket.bind() 则会重用地址，即时另一个进程已经在其上面绑定了一个套接字。 默认是 false
+         "ipv6Only": true | false, // 若设置为 true，socket.bind() 将只接收 IPv6 的数据包。 默认是 false
          "recvBufferSize": 1024,     // 设置 SO_RCVBUF 套接字值
          "sendBufferSize": 1024      //设置 SO_RCVBUF 套接字值
      }
@@ -34,7 +35,8 @@ module dgram
      ```JavaScript
      {
          "type": "udp4" | "udp6",   // 必填
-         "reuseAddr": true | false, //若设置为 true，socket.bind() 则会重用地址，即时另一个进程已经在其上面绑定了一个套接字。 默认是 false
+         "reuseAddr": true | false, // 若设置为 true，socket.bind() 则会重用地址，即时另一个进程已经在其上面绑定了一个套接字。 默认是 false
+         "ipv6Only": true | false, // 若设置为 true，socket.bind() 将只接收 IPv6 的数据包。 默认是 false
          "recvBufferSize": ###,     // 设置 SO_RCVBUF 套接字值
          "sendBufferSize": ###      //设置 SO_RCVBUF 套接字值
      }

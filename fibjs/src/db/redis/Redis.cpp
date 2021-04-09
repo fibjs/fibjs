@@ -52,7 +52,7 @@ result_t Redis::connect(const char* host, int32_t port, AsyncEvent* ac)
 {
     result_t hr;
 
-    hr = Socket_base::_new(net_base::C_AF_INET, net_base::C_SOCK_STREAM, m_sock);
+    hr = Socket_base::_new(net_base::C_AF_INET, m_sock);
     if (hr < 0)
         return hr;
 
