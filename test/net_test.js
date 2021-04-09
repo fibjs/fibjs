@@ -619,6 +619,92 @@ describe("net", () => {
         assert.equal(no1, test_util.countObject('Socket'));
     });
 
+    describe("unix socket", () => {
+        it("echo", () => {
+            function connect(c) {
+                try {
+                    var b;
+
+                    while (b = c.recv())
+                        c.send(b);
+                } finally {
+                    c.close();
+                }
+            }
+
+            function accept(s) {
+                try {
+                    while (1)
+                        coroutine.start(connect, s.accept());
+                } catch (e) {}
+            }
+
+            var s = new net.Socket(net.AF_UNIX);
+            test_util.push(s);
+
+            var _port = getPort();
+            var _path = os.type() == "Windows" ? "//./pipe/port_" + _port : os.homedir() + '/port_' + _port;
+
+            s.bind(_path);
+            s.listen();
+            if (os.type() !== "Windows")
+                assert.equal(s.localAddress, _path);
+            coroutine.start(accept, s);
+
+            function conn_socket() {
+                var s1 = new net.Socket(net.AF_UNIX);
+                s1.connect(_path);
+                s1.send(new Buffer("GET / HTTP/1.0"));
+                assert.equal("GET / HTTP/1.0", s1.recv());
+                s1.close();
+            }
+
+            function conn() {
+                var s1 = net.connect('unix:' + _path);
+                if (os.type() !== "Windows")
+                    assert.equal(s1.remoteAddress, _path);
+                s1.send(new Buffer("GET / HTTP/1.0"));
+                assert.equal("GET / HTTP/1.0", s1.recv());
+                s1.close();
+            }
+
+            conn_socket();
+            conn();
+
+            assert.throws(() => {
+                var s1 = new net.Socket(net.AF_UNIX);
+                s1.connect("999.999.999.999");
+            });
+        });
+
+        it("Server", () => {
+            var svr;
+
+            var _port = getPort();
+            var _path = os.type() == "Windows" ? "//./pipe/port_" + _port : os.homedir() + '/port_' + _port;
+
+            svr = new net.TcpServer(_path, (c) => {
+                try {
+                    var b;
+
+                    while (b = c.recv())
+                        c.send(b);
+                } finally {
+                    c.close();
+                }
+            });
+            test_util.push(svr.socket);
+            svr.start();
+
+            var s1 = net.connect('unix:' + _path);
+            if (os.type() !== "Windows")
+                assert.equal(s1.remoteAddress, _path);
+            s1.send(new Buffer("GET / HTTP/1.0"));
+            assert.equal("GET / HTTP/1.0", s1.recv());
+            s1.close();
+        });
+    });
+
     if (global.full_test)
         describe("Smtp", () => {
             var s;

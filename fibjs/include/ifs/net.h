@@ -26,10 +26,10 @@ class net_base : public object_base {
 
 public:
     enum {
+        C_AF_UNIX = 1,
+        C_AF_PIPE = 1,
         C_AF_INET = 2,
-        C_AF_INET6 = 10,
-        C_SOCK_STREAM = 1,
-        C_SOCK_DGRAM = 2
+        C_AF_INET6 = 10
     };
 
 public:
@@ -120,10 +120,10 @@ inline ClassInfo& net_base::class_info()
     };
 
     static ClassData::ClassConst s_const[] = {
+        { "AF_UNIX", C_AF_UNIX },
+        { "AF_PIPE", C_AF_PIPE },
         { "AF_INET", C_AF_INET },
-        { "AF_INET6", C_AF_INET6 },
-        { "SOCK_STREAM", C_SOCK_STREAM },
-        { "SOCK_DGRAM", C_SOCK_DGRAM }
+        { "AF_INET6", C_AF_INET6 }
     };
 
     static ClassData s_cd = {

@@ -7,17 +7,17 @@
  */
 module net
 {
+    /*! @brief 地址集常量，指定 unix socket */
+    const AF_UNIX = 1;
+
+    /*! @brief 地址集常量，指定 Windows pipe */
+    const AF_PIPE = 1;
+
     /*! @brief 地址集常量，指定 ipv4*/
     const AF_INET = 2;
 
     /*! @brief 地址集常量，指定 ipv6*/
     const AF_INET6 = 10;
-
-    /*! @brief 协议族常量，指定 tcp*/
-    const SOCK_STREAM = 1;
-
-    /*! @brief 协议族常量，指定 udp*/
-    const SOCK_DGRAM = 2;
 
     /*! @brief 查询和设置 socket 后端是否使用 uv，缺省为 false */
     static Boolean use_uv_socket;
@@ -50,7 +50,7 @@ module net
     static Socket;
 
     /*! @brief 创建一个 Socket 或 SslSocket 对象并建立连接
-     @param url 指定连接的协议，可以是：tcp://host:port 或者 ssl://host:port
+     @param url 指定连接的协议，可以是：tcp://host:port 或者 ssl://host:port，也可以是：unix:/usr/local/proc1 或者 pipe://./pipe/proc1，连接 pipe 时需要用 `/` 替换 `\`
      @param timeout 指定超时时间，单位是毫秒，默认为0
      @return 返回连接成功的 Socket 或者 SslSocket 对象
      */

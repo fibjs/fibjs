@@ -20,13 +20,18 @@ result_t UVSocket::create(int32_t family, obj_ptr<Socket_base>& retVal)
         family = AF_INET;
     else if (family == net_base::C_AF_INET6)
         family = AF_INET6;
+    else if (family == net_base::C_AF_UNIX)
+        family = AF_UNIX;
     else
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     obj_ptr<UVSocket> sock = new UVSocket(family);
 
     result_t hr = uv_call([&] {
-        return uv_tcp_init(s_uv_loop, &sock->m_tcp);
+        if (family == net_base::C_AF_UNIX)
+            return uv_pipe_init(s_uv_loop, &sock->m_pipe, 0);
+        else
+            return uv_tcp_init(s_uv_loop, &sock->m_tcp);
     });
     if (hr < 0)
         return hr;
@@ -120,15 +125,20 @@ result_t UVSocket::get_localPort(int32_t& retVal)
 
 result_t UVSocket::bind(exlib::string addr, int32_t port, bool allowIPv4)
 {
-    inetAddr addr_info;
+    if (m_family == net_base::C_AF_UNIX) {
+        ::unlink(addr.c_str());
+        return uv_pipe_bind(&m_pipe, addr.c_str());
+    } else {
+        inetAddr addr_info;
 
-    addr_info.init(m_family);
-    addr_info.setPort(port);
-    if (addr_info.addr(addr) < 0)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
+        addr_info.init(m_family);
+        addr_info.setPort(port);
+        if (addr_info.addr(addr) < 0)
+            return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    return uv_tcp_bind(&m_tcp, (struct sockaddr*)&addr_info,
-        m_family == AF_INET ? 0 : (allowIPv4 ? 0 : UV_TCP_IPV6ONLY));
+        return uv_tcp_bind(&m_tcp, (struct sockaddr*)&addr_info,
+            m_family == AF_INET ? 0 : (allowIPv4 ? 0 : UV_TCP_IPV6ONLY));
+    }
 }
 
 result_t UVSocket::bind(int32_t port, bool allowIPv4)
@@ -141,7 +151,11 @@ void UVSocket::on_listen(int status)
     obj_ptr<UVSocket> sock = new UVSocket(m_family);
     int32_t ret;
 
-    uv_tcp_init(s_uv_loop, &sock->m_tcp);
+    if (sock->m_family == net_base::C_AF_UNIX)
+        uv_pipe_init(s_uv_loop, &sock->m_pipe, 0);
+    else
+        uv_tcp_init(s_uv_loop, &sock->m_tcp);
+
     ret = uv_accept(&m_stream, &sock->m_stream);
     if (ret < 0) {
         puts(uv_strerror(ret));
@@ -205,23 +219,30 @@ result_t UVSocket::connect(exlib::string host, int32_t port, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    inetAddr addr_info;
+    if (m_family == net_base::C_AF_UNIX) {
+        return uv_async([&] {
+            uv_pipe_connect(new AsyncConnect(this, ac), &m_pipe, host.c_str(), AsyncConnect::callback);
+            return 0;
+        });
+    } else {
+        inetAddr addr_info;
 
-    addr_info.init(m_family);
-    addr_info.setPort(port);
-    if (addr_info.addr(host) < 0) {
-        exlib::string strAddr;
-        result_t hr = net_base::cc_resolve(host, m_family, strAddr);
-        if (hr < 0)
-            return hr;
+        addr_info.init(m_family);
+        addr_info.setPort(port);
+        if (addr_info.addr(host) < 0) {
+            exlib::string strAddr;
+            result_t hr = net_base::cc_resolve(host, m_family, strAddr);
+            if (hr < 0)
+                return hr;
 
-        if (addr_info.addr(strAddr) < 0)
-            return CHECK_ERROR(CALL_E_INVALIDARG);
+            if (addr_info.addr(strAddr) < 0)
+                return CHECK_ERROR(CALL_E_INVALIDARG);
+        }
+
+        return uv_async([&] {
+            return uv_tcp_connect(new AsyncConnect(this, ac), &m_tcp, (sockaddr*)&addr_info, AsyncConnect::callback);
+        });
     }
-
-    return uv_async([&] {
-        return uv_tcp_connect(new AsyncConnect(this, ac), &m_tcp, (sockaddr*)&addr_info, AsyncConnect::callback);
-    });
 }
 
 result_t UVSocket::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
