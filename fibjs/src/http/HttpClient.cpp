@@ -867,7 +867,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
                 if (hr < 0)
                     return hr;
 
-                stm->ac_write(buf);
+                stm->cc_write(buf);
                 map->add("Content-Type", "application/msgpack");
             } else {
                 obj_ptr<Buffer_base> buf;
