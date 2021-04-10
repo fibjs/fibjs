@@ -222,6 +222,8 @@ Isolate::SnapshotJsScope::SnapshotJsScope(Isolate* cur)
 
     fb->m_c_entry_fp_ = _fi.entry_fp;
     fb->m_handler_ = _fi.handle;
+
+    m_isolate->m_isolate->RunMicrotasks();
 }
 
 Isolate::SnapshotJsScope::~SnapshotJsScope()

@@ -487,14 +487,39 @@ module util
        }, 100);
      }
 
-     var fn_sync = async util.promisify(cb_test);
-     console.log(fn_sync(100, 200));
+     var fn_sync = util.promisify(cb_test);
+     console.log(async fn_sync(100, 200));
      ```
 
      @param func 给定需要包裹的函数
      @return 返回 async 函数
      */
     static Function promisify(Function func);
+
+    /*! @brief 包裹 async 函数为 callback 调用
+
+     util.callbackify 将 async 函数处理为 callback 函数，以方便调用。
+
+     async 示例如下：
+     ```JavaScript
+     // async
+     var util = require('util');
+
+     async function async_test(a, b) {
+       return a + b;
+     }
+
+     var fn_callback = util.callbackify(async_test);
+
+     fn_callback(100, 200, (err, result) => {
+       console.log(result);
+     });
+     ```
+
+     @param func 给定需要包裹的函数
+     @return 返回 callback 函数
+     */
+    static Function callbackify(Function func);
 
     /*! @brief 查询当前引擎及各组件版本信息
 
