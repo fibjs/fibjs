@@ -4,6 +4,9 @@
     "[html]": {
         "editor.formatOnSave": false
     },
+    "[java]": {
+        "editor.formatOnSave": false
+    },
     "files.associations": {
         "*.idl": "java"
     },

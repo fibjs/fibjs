@@ -7,40 +7,45 @@
  * @desc fibjs's Isolate implementation
  */
 
-#include "UVStream.h"
+#include "TTYStream.h"
 
 namespace fibjs {
 
-#ifndef _WIN32
-#define _fileno fileno
-#endif
-
 void Isolate::get_stdin(obj_ptr<Stream_base>& retVal)
 {
-    int32_t fd = _fileno(stdin);
-
-    if (!m_stdin)
-        m_stdin = new UVStream(fd);
+    if (!m_stdin) {
+        int32_t fd = _fileno(stdin);
+        if (_is_ctx_atty(fd))
+            m_stdin = new TTYInputStream(fd);
+        else
+            m_stdin = new UVStream(fd);
+    }
 
     retVal = m_stdin;
 }
 
 void Isolate::get_stdout(obj_ptr<Stream_base>& retVal)
 {
-    int32_t fd = _fileno(stdout);
-
-    if (!m_stdout)
-        m_stdout = new UVStream(fd);
+    if (!m_stdout) {
+        int32_t fd = _fileno(stdout);
+        if (_is_ctx_atty(fd))
+            m_stdout = new TTYOutputStream(fd);
+        else
+            m_stdout = new UVStream(fd);
+    }
 
     retVal = this->m_stdout;
 }
 
 void Isolate::get_stderr(obj_ptr<Stream_base>& retVal)
 {
-    int32_t fd = _fileno(stderr);
-
-    if (!m_stderr)
-        m_stderr = new UVStream(fd);
+    if (!m_stderr) {
+        int32_t fd = _fileno(stderr);
+        if (_is_ctx_atty(fd))
+            m_stderr = new TTYOutputStream(fd);
+        else
+            m_stderr = new UVStream(fd);
+    }
 
     retVal = m_stderr;
 }
