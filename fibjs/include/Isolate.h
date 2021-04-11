@@ -185,6 +185,11 @@ public:
     bool m_enable_FileSystem;
     bool m_safe_buffer;
     int32_t m_max_buffer_size;
+
+public:
+    void get_stdin(obj_ptr<Stream_base>& retVal);
+    void get_stdout(obj_ptr<Stream_base>& retVal);
+    void get_stderr(obj_ptr<Stream_base>& retVal);
 };
 
 } /* namespace fibjs */
