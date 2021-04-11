@@ -239,33 +239,21 @@ result_t process_base::get_ppid(int32_t& retVal)
 
 result_t process_base::get_stdin(obj_ptr<Stream_base>& retVal)
 {
-    Isolate* isolate = Isolate::current();
-
-    if (!isolate->m_stdin)
-        isolate->m_stdin = new UVStream(_fileno(stdin));
-    retVal = isolate->m_stdin;
+    Isolate::current()->get_stdin(retVal);
 
     return 0;
 }
 
 result_t process_base::get_stdout(obj_ptr<Stream_base>& retVal)
 {
-    Isolate* isolate = Isolate::current();
-
-    if (!isolate->m_stdout)
-        isolate->m_stdout = new UVStream(_fileno(stdout));
-    retVal = isolate->m_stdout;
+    Isolate::current()->get_stdout(retVal);
 
     return 0;
 }
 
 result_t process_base::get_stderr(obj_ptr<Stream_base>& retVal)
 {
-    Isolate* isolate = Isolate::current();
-
-    if (!isolate->m_stderr)
-        isolate->m_stderr = new UVStream(_fileno(stderr));
-    retVal = isolate->m_stderr;
+    Isolate::current()->get_stderr(retVal);
 
     return 0;
 }
