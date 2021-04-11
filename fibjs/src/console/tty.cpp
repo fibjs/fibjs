@@ -1,4 +1,7 @@
+#include "ifs/console.h"
 #include "ifs/tty.h"
+#include "AsyncUV.h"
+#include "TTYStream.h"
 
 #ifdef _WIN32
 #include <io.h>
@@ -34,4 +37,56 @@ result_t tty_base::isatty(int32_t fd, bool& retVal)
     retVal = !!hr;
     return 0;
 }
+
+result_t TTYInputStream::get_isRaw(bool& retVal)
+{
+    retVal = m_isRaw;
+    return 0;
+}
+
+result_t TTYInputStream::setRawMode(bool isRawMode, obj_ptr<TTYInputStream_base>& retVal)
+{
+    uv_call([&] {
+        return uv_tty_set_mode(&this->m_tty, isRawMode ? UV_TTY_MODE_RAW : UV_TTY_MODE_NORMAL);
+    });
+    m_isRaw = isRawMode;
+
+    retVal = (TTYInputStream_base*)(Stream_base*)this;
+
+    return 0;
+}
+
+void asyncLog(int32_t priority, exlib::string msg);
+
+const char* TTYOutputStream::kClearToLineBeginning = "\x1b[1K";
+const char* TTYOutputStream::kClearToLineEnd = "\x1b[0K";
+const char* TTYOutputStream::kClearLine = "\x1b[2K";
+const char* TTYOutputStream::kClearScreenDown = "\x1b[0J";
+
+result_t TTYOutputStream::clearLine(int32_t dir)
+{
+    switch (dir) {
+    case -1:
+        asyncLog(console_base::C_PRINT, kClearToLineBeginning);
+        break;
+    case 1:
+        asyncLog(console_base::C_PRINT, kClearToLineEnd);
+        break;
+    case 0:
+        asyncLog(console_base::C_PRINT, kClearLine);
+        break;
+    default:
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+    }
+
+    return 0;
+}
+
+result_t TTYOutputStream::clearScreenDown()
+{
+    asyncLog(console_base::C_PRINT, kClearScreenDown);
+
+    return 0;
+}
+
 }

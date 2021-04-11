@@ -72,13 +72,13 @@ module process : EventEmitter
     /*! @brief 读取当前对象指向的父进程的 id */
     static readonly Integer ppid;
 
-    /*! @brief 查询当前进程标准输入对象 */
+    /*! @brief 查询当前进程标准输入对象, 在 tty 中为 TTYInputStream, 否则为 Stream */
     static readonly Stream stdin;
 
-    /*! @brief 查询当前进程标准输出对象 */
+    /*! @brief 查询当前进程标准输出对象, 在 tty 中为 TTYOutputStream, 否则为 Stream */
     static readonly Stream stdout;
 
-    /*! @brief 查询当前进程标准错误输出对象 */
+    /*! @brief 查询当前进程标准错误输出对象, 在 tty 中为 TTYOutputStream, 否则为 Stream */
     static readonly Stream stderr;
 
     /*! @brief 查询和设置当前进程的退出码 */
