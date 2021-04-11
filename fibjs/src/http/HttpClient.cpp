@@ -495,7 +495,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
         {
             result_t hr;
             bool ssl = false;
-            bool unix = false;
+            bool _domain = false;
 
             m_urls[m_url] = true;
 
@@ -512,7 +512,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
                 m_connUrl = "ssl://";
             } else if (u->m_protocol == "http:") {
                 if (u->m_host[0] == '/') {
-                    unix = true;
+                    _domain = true;
                     m_connUrl = "unix:";
                 } else
                     m_connUrl = "tcp://";
@@ -524,7 +524,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
 
             m_connUrl.append(u->m_host);
 
-            if (!unix && u->m_port.empty())
+            if (!_domain && u->m_port.empty())
                 m_connUrl.append(ssl ? ":443" : ":80");
 
             m_req = new HttpRequest();
