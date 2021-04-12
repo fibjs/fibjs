@@ -64,7 +64,7 @@ static char decode_digit(int32_t codePoint)
     return BASE;
 };
 
-static int32_t encode_var_int(int32_t bias, int32_t delta, char* dst, size_t dstlen)
+static int32_t encode_var_int(int32_t bias, int32_t delta, char* dst, int32_t dstlen)
 {
     int32_t i, k, q, t;
 
@@ -72,7 +72,7 @@ static int32_t encode_var_int(int32_t bias, int32_t delta, char* dst, size_t dst
     k = BASE;
     q = delta;
 
-    while (i < (int32_t)dstlen) {
+    while (i < dstlen) {
         if (k <= bias)
             t = TMIN;
         else if (k >= bias + TMAX)
@@ -89,7 +89,7 @@ static int32_t encode_var_int(int32_t bias, int32_t delta, char* dst, size_t dst
         k += BASE;
     }
 
-    if (i < (int32_t)dstlen) {
+    if (i < dstlen) {
         dst[i++] = encode_digit(q);
     }
 
@@ -100,10 +100,10 @@ result_t punycode_base::encode(exlib::string domain, exlib::string& retVal)
 {
     exlib::wstring32 wdomain = utf8to32String(domain);
     const exlib::wchar32* src = wdomain.c_str();
-    size_t srclen = wdomain.length();
+    int32_t srclen = (int32_t)wdomain.length();
 
     exlib::string new_domain;
-    size_t output_length = srclen * 5;
+    int32_t output_length = srclen * 5;
     new_domain.resize(output_length);
     char* dst = new_domain.c_buffer();
 
@@ -112,21 +112,21 @@ result_t punycode_base::encode(exlib::string domain, exlib::string& retVal)
     exlib::wchar32 m, n;
     int32_t si, di;
 
-    for (si = 0, di = 0; si < (int32_t)srclen && di < (int32_t)output_length; si++)
+    for (si = 0, di = 0; si < srclen && di < output_length; si++)
         if (src[si] < 128)
             dst[di++] = src[si];
 
     b = h = di;
 
-    if (di > 0 && di < (int32_t)output_length)
+    if (di > 0 && di < output_length)
         dst[di++] = '-';
 
     n = INITIAL_N;
     bias = INITIAL_BIAS;
     delta = 0;
 
-    for (; h < (int32_t)srclen && di < (int32_t)output_length; n++, delta++) {
-        for (m = INT_MAX, si = 0; si < (int32_t)srclen; si++)
+    for (; h < srclen && di < output_length; n++, delta++) {
+        for (m = INT_MAX, si = 0; si < srclen; si++)
             if (src[si] >= n && src[si] < m)
                 m = src[si];
 
@@ -136,7 +136,7 @@ result_t punycode_base::encode(exlib::string domain, exlib::string& retVal)
         delta += (m - n) * (h + 1);
         n = m;
 
-        for (si = 0; si < (int32_t)srclen; si++) {
+        for (si = 0; si < srclen; si++) {
             if (src[si] < n) {
                 if (++delta == 0)
                     return CHECK_ERROR(CALL_E_INVALID_DATA);
@@ -159,7 +159,7 @@ result_t punycode_base::encode(exlib::string domain, exlib::string& retVal)
 result_t punycode_base::decode(exlib::string domain, exlib::string& retVal)
 {
     const char* src = domain.c_str();
-    size_t srclen = domain.length();
+    int32_t srclen = (int32_t)domain.length();
 
     exlib::wstring32 new_domain;
     new_domain.resize(srclen);
@@ -174,15 +174,17 @@ result_t punycode_base::decode(exlib::string domain, exlib::string& retVal)
     int32_t org_i;
     int32_t bias;
 
-    for (si = 0; si < (int32_t)srclen; si++)
+    for (si = 0; si < srclen; si++)
         if (src[si] & 0x80)
             return CHECK_ERROR(CALL_E_INVALID_DATA);
 
     for (p = src + srclen - 1; p > src && *p != '-'; p--)
         ;
     b = (int32_t)(p - src);
+    if (b < 0)
+        b = 0;
 
-    di = min(b, (int32_t)srclen);
+    di = min(b, srclen);
 
     for (i = 0; i < di; i++)
         dst[i] = src[i];
@@ -191,14 +193,14 @@ result_t punycode_base::decode(exlib::string domain, exlib::string& retVal)
     n = INITIAL_N;
     bias = INITIAL_BIAS;
 
-    for (si = b + (b > 0); si < (int32_t)srclen && di < (int32_t)srclen; di++) {
+    for (si = (b > 0) ? b + 1 : b; si < srclen && di < srclen; di++) {
         org_i = i;
 
-        for (w = 1, k = BASE; di < (int32_t)srclen; k += BASE) {
+        for (w = 1, k = BASE; si < srclen && di < srclen; k += BASE) {
             digit = decode_digit(src[si++]);
 
             if (digit == INT_MAX)
-                goto fail;
+                return CHECK_ERROR(CALL_E_INVALID_DATA);
 
             if (digit > (INT_MAX - i) / w)
                 return CHECK_ERROR(CALL_E_INVALID_DATA);
@@ -233,7 +235,6 @@ result_t punycode_base::decode(exlib::string domain, exlib::string& retVal)
         dst[i++] = n;
     }
 
-fail:
     new_domain.resize(di);
     retVal = utf32to8String(new_domain);
 
@@ -255,29 +256,23 @@ result_t punycode_base::toASCII(exlib::string domain, exlib::string& retVal)
     size_t p1 = 0;
 
     p.skipUntil('@');
-    if (p.get() == '@')
-    {
+    if (p.get() == '@') {
         p.skip();
         result.append(p.string, p.pos);
     } else
         p.pos = 0;
 
-
     p.getLeft(left);
     wdomain = utf8to32String(left);
     length = wdomain.length();
-    for (size_t i = 0; i < length; i++)
-    {
-        if (i + 1 == length || wdomain[i] == '\x2E' || wdomain[i] == 0x3002 || wdomain[i] == 0xff0e || wdomain[i] == 0xff61)
-        {
-            if (i + 1 == length)
-            {
+    for (size_t i = 0; i < length; i++) {
+        if (i + 1 == length || wdomain[i] == '\x2E' || wdomain[i] == 0x3002 || wdomain[i] == 0xff0e || wdomain[i] == 0xff61) {
+            if (i + 1 == length) {
                 finished = true;
                 i++;
             }
             for (size_t j = p1; j < i; j++)
-                if (wdomain[j] > '\x7E' || wdomain[j] < '\x20')
-                {
+                if (wdomain[j] > '\x7E' || wdomain[j] < '\x20') {
                     notAscii = true;
                     break;
                 }
@@ -314,28 +309,22 @@ result_t punycode_base::toUnicode(exlib::string domain, exlib::string& retVal)
     size_t p1 = 0;
 
     p.skipUntil('@');
-    if (p.get() == '@')
-    {
+    if (p.get() == '@') {
         p.skip();
         result.append(p.string, p.pos);
-    }
-    else
+    } else
         p.pos = 0;
 
     p.getLeft(left);
     length = left.length();
-    for (size_t i = 0; i < length; i++)
-    {
-        if (left[i] == '\x2E' || i + 1 == length)
-        {
-            if (i + 1 == length)
-            {
+    for (size_t i = 0; i < length; i++) {
+        if (left[i] == '\x2E' || i + 1 == length) {
+            if (i + 1 == length) {
                 i++;
                 finished = true;
             }
 
-            if (qstrcmp(&left[p1], "xn--", 4) == 0)
-            {
+            if (qstrcmp(&left[p1], "xn--", 4) == 0) {
                 str = left.substr(p1 + 4, i - p1 - 4);
                 str.tolower();
                 hr = decode(str, str);
@@ -355,5 +344,4 @@ result_t punycode_base::toUnicode(exlib::string domain, exlib::string& retVal)
 
     return 0;
 }
-
 }

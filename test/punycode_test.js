@@ -144,32 +144,32 @@ const testData = {
     }]
 };
 
-describe('punycode', function() {
-    describe('decode', function() {
+describe('punycode', function () {
+    describe('decode', function () {
         for (const object of testData.strings) {
-            it(object.description || object.encoded, function() {
+            it(object.description || object.encoded, function () {
                 assert.deepEqual(
                     punycode.decode(object.encoded),
                     object.decoded);
             });
         }
-        it('handles uppercase Z', function() {
+        it('handles uppercase Z', function () {
             assert.deepEqual(punycode.decode('ZZZ'), '\u7BA5');
         });
     });
 
-    describe('encode', function() {
+    describe('encode', function () {
         for (const object of testData.strings) {
-            it(object.description || object.decoded, function() {
+            it(object.description || object.decoded, function () {
                 assert.deepEqual(
                     punycode.encode(object.decoded),
                     object.encoded);
             });
         }
     });
-    describe('punycode.toUnicode', function() {
+    describe('punycode.toUnicode', function () {
         for (const object of testData.domains) {
-            it(object.description || object.encoded, function() {
+            it(object.description || object.encoded, function () {
                 assert.deepEqual(
                     punycode.toUnicode(object.encoded),
                     object.decoded
@@ -179,7 +179,7 @@ describe('punycode', function() {
 
         describe('does not convert names (or other strings) that don\'t start with `xn--`', () => {
             for (const object of testData.strings) {
-                it(object.description || object.encoded, function() {
+                it(object.description || object.encoded, function () {
                     assert.deepEqual(
                         punycode.toUnicode(object.encoded),
                         object.encoded
@@ -192,9 +192,9 @@ describe('punycode', function() {
             }
         })
     });
-    describe('toASCII', function() {
+    describe('toASCII', function () {
         for (const object of testData.domains) {
-            it(object.description || object.decoded, function() {
+            it(object.description || object.decoded, function () {
                 assert.deepEqual(
                     punycode.toASCII(object.decoded),
                     object.encoded
@@ -203,7 +203,7 @@ describe('punycode', function() {
         }
         describe('does not convert domain names (or other strings) that are already in ASCII', () => {
             for (const object of testData.strings) {
-                it(object.description || object.encoded, function() {
+                it(object.description || object.encoded, function () {
                     assert.deepEqual(
                         punycode.toASCII(object.encoded),
                         object.encoded
@@ -213,7 +213,7 @@ describe('punycode', function() {
         })
         describe('supports IDNA2003 separators for backwards compatibility', () => {
             for (const object of testData.separators) {
-                it(object.description || object.decoded, function() {
+                it(object.description || object.decoded, function () {
                     assert.deepEqual(
                         punycode.toASCII(object.decoded),
                         object.encoded
@@ -222,6 +222,10 @@ describe('punycode', function() {
             }
         })
     })
+
+    it("FIX: punycode.decode results in a floating point exception", () => {
+        assert.equal(punycode.decode(""), "");
+    });
 });
 
 require.main === module && test.run(console.DEBUG);
