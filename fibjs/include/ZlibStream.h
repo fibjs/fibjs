@@ -321,6 +321,11 @@ public:
     def(Stream_base* stm, int32_t level = -1)
         : def_base(stm)
     {
+        if (level < zlib_base::C_DEFAULT_COMPRESSION)
+            level = zlib_base::C_DEFAULT_COMPRESSION;
+        else if (level > zlib_base::C_BEST_COMPRESSION)
+            level = zlib_base::C_BEST_COMPRESSION;
+
         deflateInit(&strm, level);
     }
 };
