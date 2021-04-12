@@ -270,7 +270,10 @@ result_t MongoDB::bsonHandler(bson* command, v8::Local<v8::Object>& retVal)
     if (hr < 0)
         return hr;
 
-    retVal = decodeObject(holder(), &out);
+    hr = decodeObject(holder(), &out, retVal);
+    if (hr < 0)
+        return hr;
+
     bson_destroy(&out);
     bson_destroy(command);
 

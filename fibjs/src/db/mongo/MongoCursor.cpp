@@ -218,14 +218,16 @@ result_t MongoCursor::next(v8::Local<v8::Object>& retVal)
 {
     bool has;
     result_t hr = hasNext(has);
-
     if (hr < 0)
         return hr;
 
     if (!has)
         return CALL_RETURN_NULL;
 
-    retVal = decodeObject(holder(), mongo_cursor_bson(m_cursor));
+    hr = decodeObject(holder(), mongo_cursor_bson(m_cursor), retVal);
+    if (hr < 0)
+        return hr;
+
     m_state = CUR_NONE;
 
     return 0;

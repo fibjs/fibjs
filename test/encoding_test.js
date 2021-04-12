@@ -494,8 +494,8 @@ describe('encoding', () => {
                 d: date
             };
             assert.deepEqual({
-                    d: date
-                },
+                d: date
+            },
                 msgpack.decode(msgpack.encode(dateObj))
             );
             assert.isObject(msgpack.decode(msgpack.encode(dateObj)));
@@ -504,9 +504,9 @@ describe('encoding', () => {
         it('test for not catching multiple non-circular references', () => {
             var e = {};
             assert.deepEqual({
-                    a: e,
-                    b: e
-                },
+                a: e,
+                b: e
+            },
                 msgpack.decode(msgpack.encode({
                     a: e,
                     b: e
@@ -595,28 +595,27 @@ describe('encoding', () => {
             };
             assert.deepEqual(expect, msgpack.decode(msgpack.encode(subject)));
         });
-        
-        it('test primitive bool / new Boolean()', ()=> {
-        	var obj1 = {'b1': true,             };
-        	var obj2 = {'b1': new Boolean(true) };
-        	assert.deepEqual(msgpack.decode(msgpack.encode(obj1)), msgpack.decode(msgpack.encode(obj2)));
-        });
-        
-        it('test primitive number / new Number()', ()=> {
-        	var obj1 = {'n1': 1234,             };
-        	var obj2 = {'n1': new Number(1234)  };
-        	assert.deepEqual(msgpack.decode(msgpack.encode(obj1)), msgpack.decode(msgpack.encode(obj2)));
+
+        it('test primitive bool / new Boolean()', () => {
+            var obj1 = { 'b1': true, };
+            var obj2 = { 'b1': new Boolean(true) };
+            assert.deepEqual(msgpack.decode(msgpack.encode(obj1)), msgpack.decode(msgpack.encode(obj2)));
         });
 
-        it('test primitive string / new String()', ()=> {
-        	var obj1 = {'s1': 'abcd'             };
-        	var obj2 = {'s1': new String('abcd') };
-        	assert.deepEqual(msgpack.decode(msgpack.encode(obj1)), msgpack.decode(msgpack.encode(obj2)));
+        it('test primitive number / new Number()', () => {
+            var obj1 = { 'n1': 1234, };
+            var obj2 = { 'n1': new Number(1234) };
+            assert.deepEqual(msgpack.decode(msgpack.encode(obj1)), msgpack.decode(msgpack.encode(obj2)));
+        });
+
+        it('test primitive string / new String()', () => {
+            var obj1 = { 's1': 'abcd' };
+            var obj2 = { 's1': new String('abcd') };
+            assert.deepEqual(msgpack.decode(msgpack.encode(obj1)), msgpack.decode(msgpack.encode(obj2)));
         });
     });
 
     it('bson', () => {
-
         for (var i = 0; i < 8; i++) {
             var attr = '';
 
@@ -634,6 +633,12 @@ describe('encoding', () => {
 
             assert.deepEqual(re, o.re);
         }
+    });
+
+    it('FIX: crash when invaid data type.', () => {
+        assert.throws(() => {
+            bson.decode('zyscoder');
+        });
     });
 });
 

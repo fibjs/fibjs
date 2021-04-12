@@ -143,7 +143,7 @@ bool encodeObject(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Va
 
     if (!name
         && (object->IsDate() || object->IsArray() || object->IsRegExp()
-            || Buffer_base::getInstance(object)))
+               || Buffer_base::getInstance(object)))
         return false;
 
     if (name)
@@ -203,9 +203,9 @@ result_t bson_base::encode(v8::Local<v8::Object> data,
     return 0;
 }
 
-v8::Local<v8::Object> decodeObject(Isolate* isolate, bson_iterator* it, bool bArray);
+result_t decodeObject(Isolate* isolate, bson_iterator* it, bool bArray, v8::Local<v8::Object>& retVal);
 
-void decodeValue(Isolate* isolate, v8::Local<v8::Object> obj, bson_iterator* it)
+result_t decodeValue(Isolate* isolate, v8::Local<v8::Object> obj, bson_iterator* it)
 {
     bson_type type = bson_iterator_type(it);
     const char* key = bson_iterator_key(it);
@@ -265,29 +265,34 @@ void decodeValue(Isolate* isolate, v8::Local<v8::Object> obj, bson_iterator* it)
 
         obj->Set(
             isolate->NewString(key),
-            v8::RegExp::New(
-                isolate->m_isolate->GetCurrentContext(),
-                isolate->NewString(bson_iterator_regex(it)),
-                flgs)
+            v8::RegExp::New(isolate->m_isolate->GetCurrentContext(),
+                isolate->NewString(bson_iterator_regex(it)), flgs)
                 .ToLocalChecked());
         break;
     }
     case BSON_OBJECT:
     case BSON_ARRAY: {
+        result_t hr;
         bson_iterator it1;
+        v8::Local<v8::Object> _obj;
 
         bson_iterator_subiterator(it, &it1);
-        obj->Set(isolate->NewString(key), decodeObject(isolate, &it1, type == BSON_ARRAY));
+        hr = decodeObject(isolate, &it1, type == BSON_ARRAY, _obj);
+        if (hr < 0)
+            return hr;
+        obj->Set(isolate->NewString(key), _obj);
         break;
     }
     default:
-        printf("unknown type: %d\n", type);
-        break;
+        return Runtime::setError("bson: unknown type.");
     }
+
+    return 0;
 }
 
-v8::Local<v8::Object> decodeObject(Isolate* isolate, bson_iterator* it, bool bArray)
+result_t decodeObject(Isolate* isolate, bson_iterator* it, bool bArray, v8::Local<v8::Object>& retVal)
 {
+    result_t hr;
     v8::Local<v8::Object> obj;
 
     if (bArray)
@@ -295,37 +300,38 @@ v8::Local<v8::Object> decodeObject(Isolate* isolate, bson_iterator* it, bool bAr
     else
         obj = v8::Object::New(isolate->m_isolate);
 
-    while (bson_iterator_next(it))
-        decodeValue(isolate, obj, it);
+    while (bson_iterator_next(it)) {
+        hr = decodeValue(isolate, obj, it);
+        if (hr < 0)
+            return hr;
+    }
 
-    return obj;
+    retVal = obj;
+    return 0;
 }
 
-v8::Local<v8::Object> decodeObject(Isolate* isolate, const bson* bb)
+result_t decodeObject(Isolate* isolate, const bson* bb, v8::Local<v8::Object>& retVal)
 {
     bson_iterator it;
     bson_iterator_from_buffer(&it, bson_data(bb));
 
-    return decodeObject(isolate, &it, false);
+    return decodeObject(isolate, &it, false, retVal);
 }
 
-v8::Local<v8::Object> decodeObject(Isolate* isolate, const char* buffer)
+result_t decodeObject(Isolate* isolate, const char* buffer, v8::Local<v8::Object>& retVal)
 {
     bson_iterator it;
     bson_iterator_from_buffer(&it, buffer);
 
-    return decodeObject(isolate, &it, false);
+    return decodeObject(isolate, &it, false, retVal);
 }
 
-result_t bson_base::decode(Buffer_base* data,
-    v8::Local<v8::Object>& retVal)
+result_t bson_base::decode(Buffer_base* data, v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
     exlib::string strBuf;
 
     data->toString(strBuf);
-    retVal = decodeObject(isolate, strBuf.c_str());
-
-    return 0;
+    return decodeObject(isolate, strBuf.c_str(), retVal);
 }
 }
