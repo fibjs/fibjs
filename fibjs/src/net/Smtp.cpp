@@ -417,6 +417,9 @@ result_t Smtp::set_timeout(int32_t newVal)
 
 result_t Smtp::get_socket(obj_ptr<Stream_base>& retVal)
 {
+    if (!m_conn)
+        return CALL_RETURN_NULL;
+
     retVal = m_conn;
     return 0;
 }

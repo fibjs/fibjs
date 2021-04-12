@@ -41,13 +41,13 @@ var backend = {
     "Darwin": "KQueue",
     "FreeBSD": "KQueue",
     "Linux": "EPoll"
-} [os.type()];
+}[os.type()];
 
 
 function del(f) {
     try {
         fs.unlink(f);
-    } catch (e) {}
+    } catch (e) { }
 }
 
 var now_port = 8080;
@@ -81,7 +81,7 @@ describe("net", () => {
             try {
                 while (1)
                     coroutine.start(connect, s.accept());
-            } catch (e) {}
+            } catch (e) { }
         }
 
         var s = new net.Socket(net_config.family);
@@ -136,7 +136,7 @@ describe("net", () => {
                     c.write(str);
                     c.close();
                 }
-            } catch (e) {}
+            } catch (e) { }
         }
 
         var _port = getPort();
@@ -163,7 +163,7 @@ describe("net", () => {
                     c.write(str);
                     c.close();
                 }
-            } catch (e) {}
+            } catch (e) { }
         }
 
         var _port = getPort();
@@ -202,7 +202,7 @@ describe("net", () => {
 
                     c.close();
                 }
-            } catch (e) {}
+            } catch (e) { }
         }
 
         var _port = getPort();
@@ -258,7 +258,7 @@ describe("net", () => {
                     f.close();
                     c.close();
                 }
-            } catch (e) {}
+            } catch (e) { }
         }
 
         var _port = getPort();
@@ -313,7 +313,7 @@ describe("net", () => {
 
                     c.close();
                 }
-            } catch (e) {}
+            } catch (e) { }
         }
 
         var s2 = new net.Socket(net_config.family);
@@ -422,7 +422,7 @@ describe("net", () => {
                 while (true) {
                     test_util.push(s.accept());
                 }
-            } catch (e) {}
+            } catch (e) { }
         }
 
         var s2 = new net.Socket(net_config.family);
@@ -466,9 +466,9 @@ describe("net", () => {
 
     it("bind same port", () => {
         var _port = getPort();
-        var svr = new net.TcpServer(_port, (c) => {});
+        var svr = new net.TcpServer(_port, (c) => { });
         assert.throws(() => {
-            new net.TcpServer(_port, (c) => {});
+            new net.TcpServer(_port, (c) => { });
         });
         test_util.push(svr.socket);
     });
@@ -601,7 +601,7 @@ describe("net", () => {
         test_util.gc();
         no1 = test_util.countObject('Socket');
 
-        ss = new net.TcpServer(getPort(), (c) => {});
+        ss = new net.TcpServer(getPort(), (c) => { });
         ss.start();
 
         coroutine.sleep(50);
@@ -612,7 +612,7 @@ describe("net", () => {
         assert.equal(no1, test_util.countObject('Socket'));
 
         (() => {
-            var s = new net.TcpServer(getPort(), () => {});
+            var s = new net.TcpServer(getPort(), () => { });
         })();
 
         test_util.gc();
@@ -636,7 +636,7 @@ describe("net", () => {
                 try {
                     while (1)
                         coroutine.start(connect, s.accept());
-                } catch (e) {}
+                } catch (e) { }
             }
 
             var s = new net.Socket(net.AF_UNIX);
@@ -744,6 +744,10 @@ describe("net", () => {
                 s.quit();
             });
         });
+
+    it("FIX: net.Smtp results in a segmentation fault", () => {
+        new net.Smtp().socket;
+    })
 });
 
 require.main === module && test.run(console.DEBUG);
