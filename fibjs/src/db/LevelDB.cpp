@@ -144,6 +144,9 @@ result_t LevelDB::_mget(std::vector<exlib::string>* keys,
 
 result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal)
 {
+    if (!db())
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     std::vector<exlib::string> ks;
     int32_t len = keys->Length();
     int32_t i;
@@ -395,6 +398,9 @@ result_t LevelDB::between(Buffer_base* from, Buffer_base* to, v8::Local<v8::Func
 
 result_t LevelDB::begin(obj_ptr<LevelDB_base>& retVal)
 {
+    if (!m_db)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     obj_ptr<LevelDB> db = new LevelDB();
 
     db->m_base = this;

@@ -23,7 +23,7 @@ describe("db", () => {
 
     it("formatMySQL", () => {
         assert.equal(db.formatMySQL("test?, ?, ?, ?", 123, 'ds\r\na',
-                new Date('1998-4-14 12:12:12')),
+            new Date('1998-4-14 12:12:12')),
             "test123, 'ds\\r\\na', '1998-04-14 12:12:12', ?");
         assert.equal(db.formatMySQL("test?"), "test?");
     });
@@ -178,11 +178,11 @@ describe("db", () => {
                 table: "test",
                 where: {
                     "$or": [{
-                            a: 100
-                        },
-                        {
-                            b: 200
-                        }
+                        a: 100
+                    },
+                    {
+                        b: 200
+                    }
                     ]
                 }
             }), "SELECT * FROM `test` WHERE `a`=100 OR `b`=200");
@@ -193,13 +193,13 @@ describe("db", () => {
                 table: "test",
                 where: {
                     "$or": [{
-                            a: 100,
-                            c: 300
-                        },
-                        {
-                            b: 200,
-                            d: 400
-                        }
+                        a: 100,
+                        c: 300
+                    },
+                    {
+                        b: 200,
+                        d: 400
+                    }
                     ]
                 }
             }), "SELECT * FROM `test` WHERE (`a`=100 AND `c`=300) OR (`b`=200 AND `d`=400)");
@@ -208,15 +208,15 @@ describe("db", () => {
                 table: "test",
                 where: {
                     "$or": [{
-                            "$or": {
-                                a: 100,
-                                c: 300
-                            }
-                        },
-                        {
-                            b: 200,
-                            d: 400
+                        "$or": {
+                            a: 100,
+                            c: 300
                         }
+                    },
+                    {
+                        b: 200,
+                        d: 400
+                    }
                     ]
                 }
             }), "SELECT * FROM `test` WHERE `a`=100 OR `c`=300 OR (`b`=200 AND `d`=400)");
@@ -248,28 +248,28 @@ describe("db", () => {
             assert.equal(db.format("find", {
                 table: "test",
                 where: [{
-                        a: 100,
-                        c: 300
-                    },
-                    {
-                        "$or": {
-                            b: 200,
-                            d: 400
-                        }
+                    a: 100,
+                    c: 300
+                },
+                {
+                    "$or": {
+                        b: 200,
+                        d: 400
                     }
+                }
                 ]
             }), "SELECT * FROM `test` WHERE `a`=100 AND `c`=300 AND (`b`=200 OR `d`=400)");
 
             assert.equal(db.format("find", {
                 table: "test",
                 where: [{
-                        a: 100,
-                        c: 300
-                    },
-                    {
-                        b: 200,
-                        d: 400
-                    }
+                    a: 100,
+                    c: 300
+                },
+                {
+                    b: 200,
+                    d: 400
+                }
                 ]
             }), "SELECT * FROM `test` WHERE `a`=100 AND `c`=300 AND `b`=200 AND `d`=400");
         });
@@ -497,7 +497,7 @@ describe("db", () => {
             tables.forEach(t => {
                 try {
                     conn.execute('drop table ' + t);
-                } catch (e) {}
+                } catch (e) { }
             });
         });
 
@@ -505,7 +505,7 @@ describe("db", () => {
             tables.forEach(t => {
                 try {
                     conn.execute('drop table ' + t);
-                } catch (e) {}
+                } catch (e) { }
             });
 
             conn.close();
@@ -758,7 +758,7 @@ describe("db", () => {
                 try {
                     var b = new Buffer();
                     conn.execute("insert into test(t1, t2, t3, t4) values(?,?,?,?);", 101, 'test101', b, new Date());
-                } catch (e) {}
+                } catch (e) { }
             });
 
             it("begin/commit", () => {
@@ -997,7 +997,7 @@ describe("db", () => {
                 });
 
                 fs.rmdir(path.join(__dirname, "testdb" + vmid));
-            } catch (e) {};
+            } catch (e) { };
         }
 
         it('open/close', () => {
@@ -1219,6 +1219,21 @@ describe("db", () => {
         });
 
     });
+
+    it("FIX: levelDB.mget results in a segmentation fault", () => {
+        var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
+        ldb.close();
+        assert.throws(() => {
+            levelDB_AF = ldb.begin();
+        })
+
+        var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
+        levelDB_AF = ldb.begin();
+        ldb.close();
+        assert.throws(() => {
+            levelDB_AF.mget(['str']);
+        });
+    })
 });
 
 require.main === module && test.run(console.DEBUG);
