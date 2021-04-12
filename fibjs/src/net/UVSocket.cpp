@@ -126,7 +126,9 @@ result_t UVSocket::get_localPort(int32_t& retVal)
 result_t UVSocket::bind(exlib::string addr, int32_t port, bool allowIPv4)
 {
     if (m_family == net_base::C_AF_UNIX) {
+#ifndef _WIN32
         ::unlink(addr.c_str());
+#endif
         return uv_pipe_bind(&m_pipe, addr.c_str());
     } else {
         inetAddr addr_info;
