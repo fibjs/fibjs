@@ -379,9 +379,9 @@ describe('fs', () => {
 
     it("seek", () => {
         var f = fs.openFile(path.join(__dirname, 'fs_test.js'));
-        f.seek(f.size() + 10n, fs.constants.SEEK_SET);
+        f.seek(f.size() + 10n, fs.SEEK_SET);
         assert.equal(f.tell(), f.size() + 10n);
-        f.seek(10, fs.constants.SEEK_SET);
+        f.seek(10, fs.SEEK_SET);
         var b = f.read(f.size());
         assert.equal(f.size() - 10n, b.length);
         f.close();
@@ -389,7 +389,7 @@ describe('fs', () => {
 
     it("seek 64 bits", () => {
         var f = fs.openFile(path.join(__dirname, 'fs_test.js'));
-        f.seek(f.size() + 8589934592n, fs.constants.SEEK_SET);
+        f.seek(f.size() + 8589934592n, fs.SEEK_SET);
         assert.equal(f.tell(), f.size() + 8589934592n);
         f.close();
     });

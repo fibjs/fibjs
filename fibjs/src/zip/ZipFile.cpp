@@ -89,13 +89,13 @@ private:
 
         switch (origin) {
         case ZLIB_FILEFUNC_SEEK_CUR:
-            fseek_origin = fs_constants_base::C_SEEK_CUR;
+            fseek_origin = fs_base::C_SEEK_CUR;
             break;
         case ZLIB_FILEFUNC_SEEK_END:
-            fseek_origin = fs_constants_base::C_SEEK_END;
+            fseek_origin = fs_base::C_SEEK_END;
             break;
         case ZLIB_FILEFUNC_SEEK_SET:
-            fseek_origin = fs_constants_base::C_SEEK_SET;
+            fseek_origin = fs_base::C_SEEK_SET;
             break;
         default:
             return -1;

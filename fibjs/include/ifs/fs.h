@@ -27,6 +27,13 @@ class fs_base : public object_base {
     DECLARE_CLASS(fs_base);
 
 public:
+    enum {
+        C_SEEK_SET = 0,
+        C_SEEK_CUR = 1,
+        C_SEEK_END = 2
+    };
+
+public:
     // fs_base
     static result_t exists(exlib::string path, bool& retVal, AsyncEvent* ac);
     static result_t access(exlib::string path, int32_t mode, AsyncEvent* ac);
@@ -254,9 +261,15 @@ inline ClassInfo& fs_base::class_info()
         { "constants", fs_constants_base::class_info }
     };
 
+    static ClassData::ClassConst s_const[] = {
+        { "SEEK_SET", C_SEEK_SET },
+        { "SEEK_CUR", C_SEEK_CUR },
+        { "SEEK_END", C_SEEK_END }
+    };
+
     static ClassData s_cd = {
         "fs", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, ARRAYSIZE(s_const), s_const, NULL, NULL,
         &object_base::class_info()
     };
 

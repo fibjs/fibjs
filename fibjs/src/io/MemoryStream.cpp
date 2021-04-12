@@ -135,16 +135,16 @@ result_t MemoryStream::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
 
 result_t MemoryStream::seek(int64_t offset, int32_t whence)
 {
-    if (whence < fs_constants_base::C_SEEK_SET || whence > fs_constants_base::C_SEEK_END)
+    if (whence < fs_base::C_SEEK_SET || whence > fs_base::C_SEEK_END)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     int64_t p = m_buffer.tellg();
     m_buffer.seekg(0, std::ios::end);
     int64_t sz = m_buffer.tellg();
 
-    if (whence == fs_constants_base::C_SEEK_CUR)
+    if (whence == fs_base::C_SEEK_CUR)
         offset += p;
-    else if (whence == fs_constants_base::C_SEEK_END)
+    else if (whence == fs_base::C_SEEK_END)
         offset += sz;
 
     if (offset < 0)

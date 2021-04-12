@@ -14,6 +14,15 @@
  */
 module fs
 {
+    /*! @brief seek 方式常量，移动到绝对位置 */
+    const SEEK_SET = 0;
+
+    /*! @brief seek 方式常量，移动到当前位置的相对位置 */
+    const SEEK_CUR = 1;
+
+    /*! @brief seek 方式常量，移动到文件结尾的相对位置 */
+    const SEEK_END = 2;
+
     /*! fs模块的常量对象 */
     static fs_constants new constants();
 

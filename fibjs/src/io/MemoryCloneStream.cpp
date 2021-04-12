@@ -103,11 +103,11 @@ result_t MemoryStream::CloneStream::stat(obj_ptr<Stat_base>& retVal,
 
 result_t MemoryStream::CloneStream::seek(int64_t offset, int32_t whence)
 {
-    if (whence == fs_constants_base::C_SEEK_SET)
+    if (whence == fs_base::C_SEEK_SET)
         m_pos = (int32_t)offset;
-    else if (whence == fs_constants_base::C_SEEK_CUR)
+    else if (whence == fs_base::C_SEEK_CUR)
         m_pos += (int32_t)offset;
-    else if (whence == fs_constants_base::C_SEEK_END)
+    else if (whence == fs_base::C_SEEK_END)
         m_pos = (int32_t)offset + (int32_t)m_buffer.length();
     else
         return CHECK_ERROR(CALL_E_INVALIDARG);

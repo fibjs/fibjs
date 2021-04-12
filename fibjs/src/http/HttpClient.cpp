@@ -720,7 +720,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             m_url = location;
 
             if (m_response_body)
-                m_response_body->seek(m_response_pos, fs_constants_base::C_SEEK_SET);
+                m_response_body->seek(m_response_pos, fs_base::C_SEEK_SET);
 
             return next(prepare);
         }
