@@ -14,6 +14,7 @@
 #include "AsyncUV.h"
 #include "MemoryStream.h"
 #include "encoding.h"
+#include "ifs/process.h"
 
 namespace fibjs {
 
@@ -196,6 +197,28 @@ result_t child_process_base::exec(exlib::string command, v8::Local<v8::Object> o
     }
 
     return execFile(command, v8::Local<v8::Array>(), options, _retVal, ac);
+}
+
+result_t child_process_base::fork(exlib::string module, v8::Local<v8::Array> args, v8::Local<v8::Object> options, obj_ptr<ChildProcess_base>& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    exlib::string exePath;
+    v8::Local<v8::Array> args1 = v8::Array::New(isolate->m_isolate);
+
+    process_base::get_execPath(exePath);
+    args1->Set(0, isolate->NewString(module));
+    if (!args.IsEmpty()) {
+        int32_t len = args->Length();
+        for (int32_t i = 0; i < len; i++)
+            args1->Set(i + 1, args->Get(i));
+    }
+
+    return spawn(exePath, args1, options, retVal);
+}
+
+result_t child_process_base::fork(exlib::string module, v8::Local<v8::Object> options, obj_ptr<ChildProcess_base>& retVal)
+{
+    return fork(module, v8::Local<v8::Array>(), options, retVal);
 }
 
 result_t child_process_base::run(exlib::string command, v8::Local<v8::Array> args,

@@ -145,6 +145,14 @@ describe("child_process", () => {
         assert.equal(stdout.readLine(), "hello, exec1");
     });
 
+    it("fork", () => {
+        var bs = child_process.fork(path.join(__dirname, 'process', 'exec1.js'));
+        var stdout = new io.BufferedStream(bs.stdout);
+
+        bs.stdin.write("hello, exec1" + os.EOL);
+        assert.equal(stdout.readLine(), "hello, exec1");
+    });
+
     xit("stdin/stdout stream", () => {
         var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.chargeable.js')]);
         var stdout = new io.BufferedStream(bs.stdout);
@@ -310,7 +318,7 @@ describe("child_process", () => {
                 try {
                     net.connect('tcp://127.0.0.1:28080');
                     break;
-                } catch (e) {}
+                } catch (e) { }
             }
 
             assert.equal(stdout.readLine(), "700");

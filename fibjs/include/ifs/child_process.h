@@ -65,6 +65,8 @@ public:
     static result_t exec(exlib::string command, v8::Local<v8::Object> options, obj_ptr<ExecType>& retVal, AsyncEvent* ac);
     static result_t execFile(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options, obj_ptr<ExecFileType>& retVal, AsyncEvent* ac);
     static result_t execFile(exlib::string command, v8::Local<v8::Object> options, obj_ptr<ExecFileType>& retVal, AsyncEvent* ac);
+    static result_t fork(exlib::string module, v8::Local<v8::Array> args, v8::Local<v8::Object> options, obj_ptr<ChildProcess_base>& retVal);
+    static result_t fork(exlib::string module, v8::Local<v8::Object> options, obj_ptr<ChildProcess_base>& retVal);
     static result_t run(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac);
     static result_t run(exlib::string command, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac);
 
@@ -83,6 +85,7 @@ public:
     static void s_static_spawn(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_exec(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_execFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_fork(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_run(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -105,6 +108,7 @@ inline ClassInfo& child_process_base::class_info()
         { "execSync", s_static_exec, true },
         { "execFile", s_static_execFile, true },
         { "execFileSync", s_static_execFile, true },
+        { "fork", s_static_fork, true },
         { "run", s_static_run, true },
         { "runSync", s_static_run, true }
     };
@@ -191,6 +195,31 @@ inline void child_process_base::s_static_execFile(const v8::FunctionCallbackInfo
         hr = acb_execFile(v0, v1, cb, args);
     else
         hr = ac_execFile(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void child_process_base::s_static_fork(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<ChildProcess_base> vr;
+
+    METHOD_NAME("child_process.fork");
+    METHOD_ENTER();
+
+    METHOD_OVER(3, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Array>, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+
+    hr = fork(v0, v1, v2, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+
+    hr = fork(v0, v1, vr);
 
     METHOD_RETURN();
 }
