@@ -215,6 +215,7 @@ public:
     result_t off(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
     result_t off(exlib::string ev, v8::Local<v8::Object>& retVal);
     result_t off(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal);
+    result_t removeAllListeners(exlib::string evs, v8::Local<v8::Object>& retVal);
     result_t removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::Object>& retVal);
     result_t setMaxListeners(int32_t n);
     result_t getMaxListeners(int32_t& retVal);

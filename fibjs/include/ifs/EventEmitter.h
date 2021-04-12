@@ -39,6 +39,7 @@ public:
     virtual result_t removeListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t removeListener(exlib::string ev, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t removeListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t removeAllListeners(exlib::string evs, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t setMaxListeners(int32_t n) = 0;
     virtual result_t getMaxListeners(int32_t& retVal) = 0;
@@ -341,6 +342,12 @@ inline void EventEmitter_base::s_removeAllListeners(const v8::FunctionCallbackIn
     METHOD_NAME("EventEmitter.removeAllListeners");
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->removeAllListeners(v0, vr);
 
     METHOD_OVER(1, 0);
 

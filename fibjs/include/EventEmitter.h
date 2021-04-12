@@ -327,6 +327,11 @@ public:
         return _map(map, &JSTrigger::off, retVal);
     }
 
+    result_t removeAllListeners(exlib::string ev, v8::Local<v8::Object>& retVal)
+    {
+        return off(ev, retVal);
+    }
+
     result_t removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::Object>& retVal)
     {
         int32_t len = evs->Length();
@@ -653,6 +658,12 @@ public:
 
         METHOD_NAME("EventEmitter.removeAllListeners");
         METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
+
+        ARG(exlib::string, 0);
+
+        hr = t.removeAllListeners(v0, vr);
 
         METHOD_OVER(1, 0);
 
