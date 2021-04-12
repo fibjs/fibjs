@@ -641,6 +641,9 @@ result_t Buffer::readNumber(int32_t offset, char* buf, int32_t size, bool noAsse
 {
     int32_t sz = size;
 
+    if (offset < 0)
+        return CHECK_ERROR(CALL_E_OUTRANGE);
+
     if (offset + sz > (int32_t)m_data.length()) {
         if (!noAssert)
             return CHECK_ERROR(CALL_E_OUTRANGE);

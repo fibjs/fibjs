@@ -143,7 +143,7 @@ describe('Buffer', () => {
         buf1 = new Buffer('');
         bufArray = [buf1];
         assert.doesNotThrow(() => {
-            bufRes = Buffer.concat([() => {}, {}, undefined, '']);
+            bufRes = Buffer.concat([() => { }, {}, undefined, '']);
         });
     });
 
@@ -286,8 +286,8 @@ describe('Buffer', () => {
 
     it('Buffer.byteLength(other)', () => {
         assert.equal(Buffer.byteLength({}), 15);
-        assert.equal(Buffer.byteLength(function () {}), 14);
-        assert.equal(Buffer.byteLength(() => {}), 8);
+        assert.equal(Buffer.byteLength(function () { }), 15);
+        assert.equal(Buffer.byteLength(() => { }), 9);
         assert.equal(Buffer.byteLength([]), 0);
     });
 
@@ -1037,37 +1037,37 @@ describe('Buffer', () => {
     });
 
     var fixtures = [{
-            "a": "ffff00",
-            "expected": "00ffff"
-        },
-        {
-            "a": "ffff",
-            "expected": "ffff"
-        },
-        {
-            "a": "0000",
-            "expected": "0000"
-        },
-        {
-            "a": "0000ff",
-            "expected": "ff0000"
-        },
-        {
-            "a": "000000",
-            "expected": "000000"
-        },
-        {
-            "a": "ffffff",
-            "expected": "ffffff"
-        },
-        {
-            "a": "00ffff00ff",
-            "expected": "ff00ffff00"
-        },
-        {
-            "a": "0000ff00ffff00ff",
-            "expected": "ff00ffff00ff0000"
-        }
+        "a": "ffff00",
+        "expected": "00ffff"
+    },
+    {
+        "a": "ffff",
+        "expected": "ffff"
+    },
+    {
+        "a": "0000",
+        "expected": "0000"
+    },
+    {
+        "a": "0000ff",
+        "expected": "ff0000"
+    },
+    {
+        "a": "000000",
+        "expected": "000000"
+    },
+    {
+        "a": "ffffff",
+        "expected": "ffffff"
+    },
+    {
+        "a": "00ffff00ff",
+        "expected": "ff00ffff00"
+    },
+    {
+        "a": "0000ff00ffff00ff",
+        "expected": "ff00ffff00ff0000"
+    }
     ];
 
     it('reverse', () => {
@@ -1112,6 +1112,13 @@ describe('Buffer', () => {
         assert.isUndefined(b[-1]);
         assert.equal(b[0], 1);
         assert.equal(b[1], 2);
+    });
+
+    it("FIX: fibjs will crash when the offset of Buffer.read is negative", () => {
+        const b = new Buffer("abcd");
+        assert.throws(() => {
+            b.readInt64BE(-737987540, true);
+        });
     });
 });
 
