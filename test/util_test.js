@@ -1034,16 +1034,22 @@ describe('util', () => {
             var arr = [];
             var txts = [];
 
-            for (var i = 0; i < 1000; i++)
+            for (var i = 0; i < 101; i++)
                 arr.push(i);
 
             txts.push('[');
             for (var i = 0; i < 100; i++)
                 txts.push(`  ${i},`);
-            txts.push('  900 more items');
+            txts.push('  1 more item');
             txts.push(']');
 
             assert.equal(util.format(arr), txts.join('\n'));
+
+            arr.push(i);
+            txts[101] = '  2 more items';
+
+            assert.equal(util.format(arr), txts.join('\n'));
+        });
 
         it("huge Buffer", () => {
             var b = Buffer.alloc(51);

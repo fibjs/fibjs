@@ -286,11 +286,16 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
         if (it) {
             if (it->obj.IsEmpty() && it->pos >= MAX_ARRAY_ITEM && it->len > it->pos) {
                 char str_buf[256];
-                sprintf(str_buf, "%d more items", it->len - it->pos);
 
                 strBuffer.append(',');
                 newline(strBuffer, padding);
-                strBuffer.append(str_buf);
+
+                int32_t cnt = it->len - it->pos;
+                if (cnt > 1) {
+                    sprintf(str_buf, "%d more items", cnt);
+                    strBuffer.append(str_buf);
+                } else
+                    strBuffer.append("1 more item");
 
                 it->pos = it->len;
             }
