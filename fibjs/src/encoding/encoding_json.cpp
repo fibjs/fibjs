@@ -97,7 +97,7 @@ inline int32_t AsciiAlphaToLower(char c)
     return c | 0x20;
 }
 
-inline int32_t qstrcmp(const exlib::wchar* s1, const char* s2, int32_t sz = -1)
+inline int32_t qstrcmp(const exlib::wchar* s1, const char* s2, ssize_t sz = -1)
 {
     int32_t n = 0;
 
@@ -120,7 +120,7 @@ inline result_t _jsonDecode(exlib::string data,
             , object_constructor_(v8_isolate->native_context()->object_function(),
                   v8_isolate)
             , source_(source.c_str())
-            , source_length_((int32_t)source.length())
+            , source_length_(source.length())
             , position_(-1)
         {
         }
@@ -173,7 +173,7 @@ inline result_t _jsonDecode(exlib::string data,
         result_t ParseJsonNumber(i::MaybeHandle<i::Object>& retVal)
         {
             bool negative = false;
-            int32_t beg_pos = position_;
+            ssize_t beg_pos = position_;
 
             if (c0_ == '-') {
                 Advance();
@@ -225,7 +225,7 @@ inline result_t _jsonDecode(exlib::string data,
                 } while (IsDecimalDigit(c0_));
             }
 
-            int32_t length = position_ - beg_pos;
+            ssize_t length = position_ - beg_pos;
             double number;
             exlib::string chars(source_ + beg_pos, length);
 
@@ -243,7 +243,7 @@ inline result_t _jsonDecode(exlib::string data,
                     return ReportUnexpectedCharacter();
 
                 if (c0_ != '\\') {
-                    int32_t beg_pos = position_;
+                    ssize_t beg_pos = position_;
 
                     while (c0_ != '"' && c0_ != '\\') {
                         Advance();
@@ -252,10 +252,10 @@ inline result_t _jsonDecode(exlib::string data,
                     }
 
                     const char* src = source_ + beg_pos;
-                    int32_t srclen = position_ - beg_pos;
+                    ssize_t srclen = position_ - beg_pos;
 
-                    int32_t n = utf_convert(src, srclen, (exlib::wchar*)NULL, 0);
-                    int32_t n1 = (int32_t)str.length();
+                    ssize_t n = utf_convert(src, srclen, (exlib::wchar*)NULL, 0);
+                    ssize_t n1 = str.length();
 
                     str.resize(n + n1);
                     utf_convert(src, srclen, &str[n1], n);
@@ -304,7 +304,7 @@ inline result_t _jsonDecode(exlib::string data,
 
             AdvanceSkipWhitespace();
 
-            i::Vector<const uint16_t> data_((const uint16_t*)str.c_str(), (int32_t)str.length());
+            i::Vector<const uint16_t> data_((const uint16_t*)str.c_str(), str.length());
             retVal = factory()->NewStringFromTwoByte(data_, i::TENURED);
             return 0;
         }
@@ -400,7 +400,7 @@ inline result_t _jsonDecode(exlib::string data,
             AdvanceSkipWhitespace();
 
             if (!type.is_null() && !data.is_null()) {
-                int32_t i;
+                ssize_t i;
                 i::Vector<const uint8_t> type_ = type->GetCharVector<uint8_t>();
 
                 for (i = 0; s_from[i].name; i++)
@@ -500,8 +500,8 @@ inline result_t _jsonDecode(exlib::string data,
         i::Zone zone_;
         i::Handle<i::JSFunction> object_constructor_;
         const char* source_;
-        int32_t source_length_;
-        int32_t position_;
+        ssize_t source_length_;
+        ssize_t position_;
         char c0_;
     };
 
@@ -519,7 +519,7 @@ result_t encoding_base::jsstr(exlib::string str, bool json, exlib::string& retVa
 {
     const char* p;
     char* p1;
-    int32_t len;
+    ssize_t len;
     char ch;
     exlib::string s;
 

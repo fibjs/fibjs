@@ -83,15 +83,15 @@ private:
     void parseHash(const char*& url);
 
 public:
-    inline static void decodeURI(const char* url, int32_t sz, exlib::string& retVal, bool space = false)
+    inline static void decodeURI(const char* url, ssize_t sz, exlib::string& retVal, bool space = false)
     {
         if (sz < 0)
-            sz = (int32_t)qstrlen(url);
+            sz = qstrlen(url);
 
         if (sz == 0)
             return;
 
-        int32_t len, l;
+        ssize_t len, l;
         const char* src;
         unsigned char ch;
         char* bstr;
@@ -146,21 +146,21 @@ public:
 
     inline static void decodeURI(exlib::string url, exlib::string& retVal, bool space = false)
     {
-        decodeURI(url.c_str(), (int32_t)url.length(), retVal, space);
+        decodeURI(url.c_str(), url.length(), retVal, space);
     }
 
-    inline static void encodeURI(const char* url, int32_t sz, exlib::string& retVal,
+    inline static void encodeURI(const char* url, ssize_t sz, exlib::string& retVal,
         const char* tab)
     {
         static const char* hex = "0123456789ABCDEF";
 
         if (sz < 0)
-            sz = (int32_t)qstrlen(url);
+            sz = qstrlen(url);
 
         if (sz == 0)
             return;
 
-        int32_t len, l;
+        ssize_t len, l;
         const char* src;
         unsigned char ch;
         char* bstr;
@@ -193,7 +193,7 @@ public:
     inline static void encodeURI(exlib::string url, exlib::string& retVal,
         const char* tab)
     {
-        encodeURI(url.c_str(), (int32_t)url.length(), retVal, tab);
+        encodeURI(url.c_str(), url.length(), retVal, tab);
     }
 
 public:

@@ -14,17 +14,11 @@
 
 namespace fibjs {
 
-inline v8::Local<v8::String> NewString(v8::Isolate* isolate, const char* data, int32_t length = -1)
-{
-    exlib::wstring wstr = utf8to16String(data, length);
-
-    return v8::String::NewFromTwoByte(isolate, (const uint16_t*)wstr.c_str(),
-        v8::String::kNormalString, (int32_t)wstr.length());
-}
+v8::Local<v8::String> NewString(v8::Isolate* isolate, const char* data, ssize_t length = -1);
 
 inline v8::Local<v8::String> NewString(v8::Isolate* isolate, exlib::string str)
 {
-    return NewString(isolate, str.c_str(), (int32_t)str.length());
+    return NewString(isolate, str.c_str(), str.length());
 }
 
 class SandBox;

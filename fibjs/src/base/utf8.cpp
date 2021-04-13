@@ -24,7 +24,7 @@ exlib::wchar32 utf_getchar(const char*& src, const char* end)
     if (ch < 0x80)
         return ch;
 
-    int32_t len = utf8_length[ch - 0x80];
+    ssize_t len = utf8_length[ch - 0x80];
     exlib::wchar32 res = ch & utf8_mask[len];
 
     switch (len) {
@@ -65,13 +65,13 @@ exlib::wchar32 utf_getchar(const char*& src, const char* end)
     return res;
 }
 
-int32_t utf_putchar(exlib::wchar32 ch, char*& dst, const char* end)
+ssize_t utf_putchar(exlib::wchar32 ch, char*& dst, const char* end)
 {
     if (dst && dst >= end)
         return 0;
 
-    int32_t count;
-    int32_t i;
+    ssize_t count;
+    ssize_t i;
 
     if (ch < 0x80) {
         if (dst)
@@ -107,7 +107,7 @@ int32_t utf_putchar(exlib::wchar32 ch, char*& dst, const char* end)
             buf[0] = (char)(ch | ch1);
 
             if (dst + count > end)
-                count = (int32_t)(end - dst);
+                count = (ssize_t)(end - dst);
 
             memcpy(dst, buf, count);
             dst += count;
@@ -137,7 +137,7 @@ exlib::wchar32 utf_getchar(const exlib::wchar*& src, const exlib::wchar* end)
     return ((ch & 0x7ff) << 10) + (ch1 & 0x3ff) + 0x10000;
 }
 
-int32_t utf_putchar(exlib::wchar32 ch, exlib::wchar*& dst, const exlib::wchar* end)
+ssize_t utf_putchar(exlib::wchar32 ch, exlib::wchar*& dst, const exlib::wchar* end)
 {
     if (!dst)
         return ch >= 0x10000 ? 2 : 1;
@@ -166,7 +166,7 @@ exlib::wchar32 utf_getchar(const exlib::wchar32*& src, const exlib::wchar32* end
     return *src++;
 }
 
-int32_t utf_putchar(exlib::wchar32 ch, exlib::wchar32*& dst, const exlib::wchar32* end)
+ssize_t utf_putchar(exlib::wchar32 ch, exlib::wchar32*& dst, const exlib::wchar32* end)
 {
     if (!dst)
         return 1;

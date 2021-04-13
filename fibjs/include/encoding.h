@@ -15,11 +15,11 @@
 namespace fibjs {
 
 inline void baseEncode(const char* pEncodingTable, int32_t dwBits,
-    const char* data, int32_t sz, exlib::string& retVal)
+    const char* data, size_t sz, exlib::string& retVal)
 {
-    int32_t i, len = 0, bits = 0;
-    int32_t dwData = 0;
-    int32_t dwSize = 0;
+    size_t i, len = 0, bits = 0;
+    size_t dwData = 0;
+    size_t dwSize = 0;
     char bMask = 0xff >> (8 - dwBits);
 
     if (dwBits == 6)
@@ -53,7 +53,7 @@ inline void baseEncode(const char* pEncodingTable, int32_t dwBits,
     exlib::string& data, exlib::string& retVal)
 {
     baseEncode(pEncodingTable, dwBits, data.c_str(),
-        (int32_t)data.length(), retVal);
+        data.length(), retVal);
 }
 
 inline void baseEncode(const char* pEncodingTable, int32_t dwBits,
@@ -68,14 +68,14 @@ inline void baseDecode(const char* pdecodeTable, int32_t dwBits,
     exlib::string& baseString, exlib::string& retVal)
 {
     const char* _baseString = baseString.c_str();
-    int32_t len = (int32_t)baseString.length();
-    int32_t nWritten = 0;
+    size_t len = baseString.length();
+    size_t nWritten = 0;
     const char* end = _baseString + len;
 
     retVal.resize(len * dwBits / 8);
 
-    int32_t dwCurr = 0;
-    int32_t nBits = 0;
+    size_t dwCurr = 0;
+    size_t nBits = 0;
     uint32_t ch;
 
     while ((ch = utf_getchar(_baseString, end)) != 0) {
@@ -134,19 +134,14 @@ inline result_t base64Decode(exlib::string data, exlib::string& retVal)
 inline result_t hexEncode(exlib::string data, exlib::string& retVal)
 {
     static char HexChar[] = "0123456789abcdef";
-    int32_t i, pos, len1;
+    size_t i;
+    size_t sz = data.length() * 2;
 
-    i = (int32_t)data.length() * 2;
-    retVal.resize(i);
+    retVal.resize(sz);
 
-    len1 = 0;
-    pos = 0;
-
-    for (i = 0; i < (int32_t)data.length(); i++) {
-        retVal[pos * 2] = HexChar[(unsigned char)data[i] >> 4];
-        retVal[pos * 2 + 1] = HexChar[(unsigned char)data[i] & 0xf];
-        pos++;
-        len1 += 2;
+    for (i = 0; i < data.length(); i++) {
+        retVal[i * 2] = HexChar[(unsigned char)data[i] >> 4];
+        retVal[i * 2 + 1] = HexChar[(unsigned char)data[i] & 0xf];
     }
 
     return 0;
@@ -170,9 +165,9 @@ inline result_t commonEncode(exlib::string codec, exlib::string data, exlib::str
         else if ((codec == "base64"))
             hr = base64Encode(data, false, retVal);
         else if ((codec == "ascii")) {
-            int32_t len, i;
+            size_t len, i;
 
-            len = (int32_t)data.length();
+            len = data.length();
             retVal.resize(len);
             const char* _data = data.c_str();
             for (i = 0; i < len; i++)

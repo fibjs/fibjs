@@ -11,6 +11,21 @@
 
 namespace fibjs {
 
+#define MAX_JS_STRING_LENGTH 1073741798
+
+v8::Local<v8::String> NewString(v8::Isolate* isolate, const char* data, ssize_t length)
+{
+    exlib::wstring wstr = utf8to16String(data, length);
+
+    if (wstr.length() > MAX_JS_STRING_LENGTH) {
+        ThrowResult(CALL_E_OVERFLOW);
+        return v8::Local<v8::String>();
+    }
+
+    return v8::String::NewFromTwoByte(isolate, (const uint16_t*)wstr.c_str(),
+        v8::String::kNormalString, (int32_t)wstr.length());
+}
+
 void Isolate::get_stdin(obj_ptr<Stream_base>& retVal)
 {
     if (!m_stdin) {
