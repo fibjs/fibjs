@@ -58,6 +58,7 @@ void string_format(StringBuffer& strBuffer, v8::Local<v8::Value> v, bool color)
 
 #define MAX_OBJECT_LEVEL 3
 #define MAX_ARRAY_ITEM 100
+#define MAX_BUFFER_ITEM 50
 
 exlib::string json_format(v8::Local<v8::Value> obj, bool color)
 {
@@ -122,23 +123,39 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
                     static char hexs[] = "0123456789abcdef";
                     exlib::string data;
                     exlib::string s;
-                    int32_t len, i;
+                    int32_t len, i, p;
 
                     buf->toString(data);
                     len = (int32_t)data.length();
 
-                    s.resize(len * 3 + 8);
+                    if (len <= MAX_BUFFER_ITEM)
+                        s.resize(len * 3 + 8);
+                    else
+                        s.resize(MAX_BUFFER_ITEM * 3 + 8 + 32);
+
                     memcpy(&s[0], "<Buffer", 7);
 
-                    for (i = 0; i < len; i++) {
+                    for (i = 0, p = 7; i < len; i++) {
+                        if (i >= MAX_BUFFER_ITEM) {
+                            int32_t cnt = len - i;
+                            if (cnt > 1)
+                                p += sprintf(s.c_buffer() + p, " ... %d more bytes", cnt);
+                            else {
+                                memcpy(s.c_buffer() + p, " ... 1 more byte", 16);
+                                p += 16;
+                            }
+                            break;
+                        }
+
                         int32_t ch = (unsigned char)data[i];
 
-                        s[i * 3 + 7] = ' ';
-                        s[i * 3 + 8] = hexs[ch >> 4];
-                        s[i * 3 + 9] = hexs[ch & 0xf];
+                        s[p++] = ' ';
+                        s[p++] = hexs[ch >> 4];
+                        s[p++] = hexs[ch & 0xf];
                     }
 
-                    s[i * 3 + 7] = '>';
+                    s[p++] = '>';
+                    s.resize(p);
 
                     strBuffer.append(s);
                     break;

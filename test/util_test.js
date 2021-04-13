@@ -1044,6 +1044,27 @@ describe('util', () => {
             txts.push(']');
 
             assert.equal(util.format(arr), txts.join('\n'));
+
+        it("huge Buffer", () => {
+            var b = Buffer.alloc(51);
+            var txts = [];
+
+            txts.push('<Buffer');
+            for (var i = 0; i < 50; i++)
+                txts.push('00');
+            txts.push('... 1 more byte>');
+
+            assert.equal(util.format(b), txts.join(' '));
+
+            var b = Buffer.alloc(52);
+            var txts = [];
+
+            txts.push('<Buffer');
+            for (var i = 0; i < 50; i++)
+                txts.push('00');
+            txts.push('... 2 more bytes>');
+
+            assert.equal(util.format(b), txts.join(' '));
         });
 
         it("Function", () => {
