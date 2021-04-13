@@ -967,6 +967,9 @@ result_t Buffer::slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal)
     if (end < 0)
         end = length + end;
 
+    if (start < 0)
+        start = 0;
+
     if (end > length)
         end = length;
 

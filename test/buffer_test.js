@@ -551,6 +551,7 @@ describe('Buffer', () => {
         assert.equal(buf.slice(6, 5), "");
         assert.equal(buf.slice(0, 11), "abcdefghih");
         assert.equal(buf.slice(8), "ih");
+        assert.equal(buf.slice(-20, 2), "ab");
 
         var buf = new Buffer('buffer'); //TODO slice 反向的支持
         assert.equal(buf.slice(-6, -1), 'buffe');
