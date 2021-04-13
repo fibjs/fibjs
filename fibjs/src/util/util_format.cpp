@@ -56,6 +56,8 @@ void string_format(StringBuffer& strBuffer, v8::Local<v8::Value> v, bool color)
     strBuffer.append(color_string(COLOR_GREEN, s, color));
 }
 
+#define MAX_OBJECT_LEVEL 3
+
 exlib::string json_format(v8::Local<v8::Value> obj, bool color)
 {
     StringBuffer strBuffer;
@@ -166,6 +168,11 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
 
                 if (i < sz1) {
                     strBuffer.append(color_string(COLOR_CYAN, "[Circular]", color));
+                    break;
+                }
+
+                if (sz1 >= MAX_OBJECT_LEVEL) {
+                    strBuffer.append(color_string(COLOR_CYAN, "[Object]", color));
                     break;
                 }
 

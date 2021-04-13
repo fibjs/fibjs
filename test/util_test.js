@@ -862,7 +862,6 @@ describe('util', () => {
         assert.equal(answers, 100);
     });
 
-
     it('map', () => {
         var doubled = util.map([1, 2, 3], (num) => {
             return num * 2;
@@ -1009,6 +1008,26 @@ describe('util', () => {
             };
             o1["c"] = o1;
             assert.equal(util.format(o1), '{\n  "a": 100,\n  "b": 200,\n  "c": [Circular]\n}');
+        });
+
+        it("deep object", () => {
+            var data = {
+                l1: {
+                    l2: {
+                        l3: {
+                            l4:
+                            {
+                                l5: {
+                                    l6: {
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            assert.equal(util.format(data), '{\n  \"l1\": {\n    \"l2\": {\n      \"l3\": [Object]\n    }\n  }\n}');
         });
 
         it("Function", () => {
