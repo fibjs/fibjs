@@ -142,11 +142,15 @@ result_t util_base::deepFreeze(v8::Local<v8::Value> v)
     v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
 
     if (!isFrozen(obj)) {
-        obj->SetIntegrityLevel(obj->CreationContext(), v8::IntegrityLevel::kFrozen).ToChecked();
-        JSArray names = obj->GetPropertyNames(obj->CreationContext());
+        if (obj->SetIntegrityLevel(obj->CreationContext(), v8::IntegrityLevel::kFrozen).IsNothing())
+            return CALL_E_JAVASCRIPT;
 
-        for (int32_t i = 0; i < (int32_t)names->Length(); i++)
-            deepFreeze(JSValue(obj->Get(JSValue(names->Get(i)))));
+        JSArray names = obj->GetPropertyNames(obj->CreationContext());
+        for (int32_t i = 0; i < (int32_t)names->Length(); i++) {
+            result_t hr = deepFreeze(JSValue(obj->Get(JSValue(names->Get(i)))));
+            if (hr < 0)
+                return hr;
+        }
     }
 
     return 0;
@@ -900,5 +904,4 @@ result_t util_base::parseArgs(exlib::string command, obj_ptr<NArray>& retVal)
     retVal = arr;
     return 0;
 }
-
 }

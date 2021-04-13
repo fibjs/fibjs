@@ -520,6 +520,10 @@ describe('util', () => {
             },
             b: [200]
         });
+
+        assert.throws(() => {
+            util.deepFreeze(new Buffer(10));
+        });
     });
 
     it('extend', () => {
