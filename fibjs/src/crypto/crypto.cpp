@@ -104,6 +104,9 @@ result_t crypto_base::loadReq(exlib::string filename, obj_ptr<X509Req_base>& ret
 result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
+    if (size < 1)
+        return CHECK_ERROR(CALL_E_OUTRANGE);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -138,6 +141,9 @@ result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal,
 result_t crypto_base::simpleRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
+    if (size < 1)
+        return CHECK_ERROR(CALL_E_OUTRANGE);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -158,6 +164,9 @@ result_t crypto_base::simpleRandomBytes(int32_t size, obj_ptr<Buffer_base>& retV
 result_t crypto_base::pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
+    if (size < 1)
+        return CHECK_ERROR(CALL_E_OUTRANGE);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 

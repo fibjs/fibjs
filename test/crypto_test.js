@@ -195,10 +195,26 @@ describe('crypto', () => {
 
     it("random", () => {
         assert.notEqual(crypto.randomBytes(8).hex(), crypto.randomBytes(8).hex());
+
+        assert.throws(() => {
+            crypto.randomBytes(-125);
+        });
+    });
+
+    it("simpleRandomBytes", () => {
+        assert.notEqual(crypto.simpleRandomBytes(8).hex(), crypto.simpleRandomBytes(8).hex());
+
+        assert.throws(() => {
+            crypto.simpleRandomBytes(-125);
+        });
     });
 
     it("pseudoRandomBytes", () => {
         assert.notEqual(crypto.pseudoRandomBytes(8).hex(), crypto.pseudoRandomBytes(8).hex());
+
+        assert.throws(() => {
+            crypto.pseudoRandomBytes(-125);
+        });
     });
 
     it("randomArt", () => {
