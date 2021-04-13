@@ -1030,6 +1030,22 @@ describe('util', () => {
             assert.equal(util.format(data), '{\n  \"l1\": {\n    \"l2\": {\n      \"l3\": [Object]\n    }\n  }\n}');
         });
 
+        it("huge array", () => {
+            var arr = [];
+            var txts = [];
+
+            for (var i = 0; i < 1000; i++)
+                arr.push(i);
+
+            txts.push('[');
+            for (var i = 0; i < 100; i++)
+                txts.push(`  ${i},`);
+            txts.push('  900 more items');
+            txts.push(']');
+
+            assert.equal(util.format(arr), txts.join('\n'));
+        });
+
         it("Function", () => {
             assert.equal(util.format(() => { }), '[Function]');
 

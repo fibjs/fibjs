@@ -57,6 +57,7 @@ void string_format(StringBuffer& strBuffer, v8::Local<v8::Value> v, bool color)
 }
 
 #define MAX_OBJECT_LEVEL 3
+#define MAX_ARRAY_ITEM 100
 
 exlib::string json_format(v8::Local<v8::Value> obj, bool color)
 {
@@ -266,6 +267,17 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
         }
 
         if (it) {
+            if (it->obj.IsEmpty() && it->pos >= MAX_ARRAY_ITEM && it->len > it->pos) {
+                char str_buf[256];
+                sprintf(str_buf, "%d more items", it->len - it->pos);
+
+                strBuffer.append(',');
+                newline(strBuffer, padding);
+                strBuffer.append(str_buf);
+
+                it->pos = it->len;
+            }
+
             while (it && it->pos == it->len) {
                 padding -= tab_size;
                 newline(strBuffer, padding);
