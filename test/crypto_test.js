@@ -205,6 +205,10 @@ describe('crypto', () => {
         assert.notEqual(crypto.randomArt(data, "lion"), art1);
         assert.notEqual(crypto.randomArt(data, ""), art2);
         assert.notEqual(crypto.randomArt(data, "01234567890123456789"), art3);
+
+        assert.throws(() => {
+            crypto.randomArt(data, "title", 0);
+        });
     });
 
     describe('Cipher', () => {

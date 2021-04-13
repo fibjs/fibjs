@@ -279,6 +279,9 @@ char* randomart(const unsigned char* dgst_raw, size_t dgst_raw_len,
 result_t crypto_base::randomArt(Buffer_base* data, exlib::string title,
     int32_t size, exlib::string& retVal)
 {
+    if (size < 1)
+        return CHECK_ERROR(CALL_E_OUTRANGE);
+
     exlib::string buf;
 
     data->toString(buf);
