@@ -1120,6 +1120,13 @@ describe('Buffer', () => {
             b.readInt64BE(-737987540, true);
         });
     });
+
+    it("FIX: fibjs will crash when the offset of Buffer.write is negative", () => {
+        const b = new Buffer("abcd");
+        assert.throws(() => {
+            b.writeDoubleBE(0, -576311994);
+        });
+    });
 });
 
 require.main === module && test.run(console.DEBUG);
