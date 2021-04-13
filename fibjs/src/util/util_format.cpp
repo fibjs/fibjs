@@ -189,11 +189,6 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
                     break;
                 }
 
-                if (sz1 >= MAX_OBJECT_LEVEL) {
-                    strBuffer.append(color_string(COLOR_CYAN, "[Object]", color));
-                    break;
-                }
-
                 vals.append(obj);
 
                 JSValue toArray = obj->Get(isolate->NewString("toArray"));
@@ -215,6 +210,11 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
                     if (len == 0)
                         strBuffer.append("[]");
                     else {
+                        if (sz >= MAX_OBJECT_LEVEL) {
+                            strBuffer.append(color_string(COLOR_CYAN, "[Array]", color));
+                            break;
+                        }
+
                         stk.resize(sz + 1);
                         it = &stk[sz];
 
@@ -236,6 +236,11 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
                     if (len == 0)
                         strBuffer.append("[]");
                     else {
+                        if (sz >= MAX_OBJECT_LEVEL) {
+                            strBuffer.append(color_string(COLOR_CYAN, "[Array]", color));
+                            break;
+                        }
+
                         v8::Local<v8::Array> array = v8::Array::New(isolate->m_isolate);
 
                         for (i = 0; i < len; i++)
@@ -260,6 +265,11 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
                 if (len == 0)
                     strBuffer.append("{}");
                 else {
+                    if (sz >= MAX_OBJECT_LEVEL) {
+                        strBuffer.append(color_string(COLOR_CYAN, "[Object]", color));
+                        break;
+                    }
+
                     JSValue k1 = keys->Get(0);
                     JSValue v1;
                     if (!k1.IsEmpty())

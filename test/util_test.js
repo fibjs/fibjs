@@ -1013,21 +1013,21 @@ describe('util', () => {
         it("deep object", () => {
             var data = {
                 l1: {
+                    l2_0: { a: 100 },
                     l2: {
                         l3: {
                             l4:
                             {
-                                l5: {
-                                    l6: {
-                                    }
-                                }
                             }
-                        }
+                        },
+                        l3_0: {},
+                        l3_1: [1, 2, 3, 4],
+                        l3_2: []
                     }
                 }
             }
 
-            assert.equal(util.format(data), '{\n  \"l1\": {\n    \"l2\": {\n      \"l3\": [Object]\n    }\n  }\n}');
+            assert.equal(util.format(data), '{\n  \"l1\": {\n    \"l2_0\": {\n      \"a\": 100\n    },\n    \"l2\": {\n      \"l3\": [Object],\n      \"l3_0\": {},\n      \"l3_1\": [Array],\n      \"l3_2\": []\n    }\n  }\n}');
         });
 
         it("huge array", () => {
