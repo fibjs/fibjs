@@ -175,7 +175,7 @@ describe('io', () => {
                 // readable
                 stm.read(1);
                 // query current position
-                assert.equal(stm.tell(), 0);
+                assert.equal(stm.tell(), 1);
                 // get size of range
                 assert.equal(stm.size(), file.size());
                 // get the real stream's fd
@@ -318,7 +318,8 @@ describe('io', () => {
                 assert.equal(stm.end, sz * 2);
                 stm.seek(-sz, fs.SEEK_END);
 
-                assert.equal(stm.tell(), file.tell() - BigInt(stm.begin));
+                assert.equal(stm.tell(), sz / 2);
+                assert.equal(file.tell(), 0);
 
                 stm.seek(-sz * 2 + begin, fs.SEEK_END);
                 assert.throws(() => {

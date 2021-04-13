@@ -131,6 +131,13 @@ result_t RangeStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEve
 
         ON_STATE(asyncRead, ready)
         {
+            if (n >= 0 && n != CALL_RETURN_NULL) {
+                int32_t len;
+
+                m_retVal->get_length(len);
+                m_pThis->real_pos += len;
+            }
+
             result_t hr = m_pThis->m_stream->seek(m_c_pos_snap, fs_base::C_SEEK_SET);
 
             if (n != CALL_RETURN_NULL || hr < 0)
@@ -270,7 +277,7 @@ result_t RangeStream::tell(int64_t& retVal)
     if (!m_stream)
         return CALL_E_CLOSED;
 
-    retVal = get_c_pos() - b_pos;
+    retVal = real_pos - b_pos;
 
     return 0;
 }
