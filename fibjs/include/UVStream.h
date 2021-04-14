@@ -56,8 +56,7 @@ public:
 public:
     static void on_delete(uv_handle_t* handle)
     {
-        UVStream_tmpl* pThis = container_of(handle, UVStream_tmpl, m_handle);
-        delete pThis;
+        container_of(handle, UVStream_tmpl, m_handle)->safe_release();
     }
 
     virtual void Delete()

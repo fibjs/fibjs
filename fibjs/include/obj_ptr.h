@@ -67,7 +67,7 @@ public:
     virtual void Unref()
     {
         if (internalUnref() == 0)
-            delete this;
+            final_release(this);
     }
 
     weak_stub* get_stub()
@@ -82,6 +82,13 @@ public:
             delete pNew;
 
         return weak_;
+    }
+
+public:
+    static int32_t final_release(obj_base* pThis)
+    {
+        delete pThis;
+        return 0;
     }
 
 protected:

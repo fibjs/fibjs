@@ -23,8 +23,7 @@ public:
 
     static void on_delete(uv_handle_t* handle)
     {
-        DgramSocket* pThis = container_of(handle, DgramSocket, m_handle);
-        delete pThis;
+        container_of(handle, DgramSocket, m_handle)->safe_release();
     }
 
     virtual void Delete()
@@ -34,7 +33,7 @@ public:
             return;
         }
 
-        uv_call([&] {
+        uv_post([&] {
             uv_close(&m_handle, on_delete);
             return 0;
         });

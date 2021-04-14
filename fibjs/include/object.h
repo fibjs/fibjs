@@ -184,6 +184,14 @@ public:
         return o;
     }
 
+    void safe_release()
+    {
+        if (m_isolate)
+            syncCall(m_isolate, final_release, this);
+        else
+            final_release(this);
+    }
+
 public:
     class scope {
     public:
@@ -286,7 +294,7 @@ private:
 
 public:
     template <typename T>
-    static void __new(const T& args) { }
+    static void __new(const T& args) {}
 
 public:
     v8::Local<v8::Object> GetPrivateObject()
@@ -439,14 +447,7 @@ public:
     virtual void Unref()
     {
         if (internalUnref() == 0)
-            syncCall(m_isolate, _release, this);
-    }
-
-private:
-    static result_t _release(ValueHolder* pThis)
-    {
-        delete pThis;
-        return 0;
+            syncCall(m_isolate, final_release, this);
     }
 
 private:
