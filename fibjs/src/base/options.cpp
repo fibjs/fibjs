@@ -45,7 +45,7 @@ public:
     {
         v8::internal::FLAG_lazy = false;
         v8::internal::FLAG_stack_size = stack_size - GUARD_SIZE;
-        v8::internal::FLAG_max_old_space_size = 4096;
+        v8::internal::FLAG_max_old_space_size = 2048;
 
         v8::internal::FLAG_wasm_async_compilation = false;
 
