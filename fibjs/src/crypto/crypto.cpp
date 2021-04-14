@@ -395,6 +395,9 @@ inline int pkcs5_pbkdf1(mbedtls_md_context_t* ctx, const unsigned char* password
 result_t crypto_base::pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t iterations,
     int32_t size, int32_t algo, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
+    if (iterations < 1 || size < 1)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
     if (algo < hash_base::C_MD2 || algo > hash_base::C_SM3)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
@@ -425,6 +428,9 @@ result_t crypto_base::pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t i
     int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
+    if (iterations < 1 || size < 1)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
@@ -439,6 +445,9 @@ result_t crypto_base::pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t i
 result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t iterations,
     int32_t size, int32_t algo, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
+    if (iterations < 1 || size < 1)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
     if (algo < hash_base::C_MD2 || algo > hash_base::C_SM3)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
@@ -469,6 +478,9 @@ result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t i
     int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
+    if (iterations < 1 || size < 1)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 

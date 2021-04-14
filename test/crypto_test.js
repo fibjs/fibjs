@@ -1168,6 +1168,17 @@ describe('crypto', () => {
         });
     });
 
+    it("FIX: Illegal iterations and size parameters will cause crypto.pbkdf1 to crash", () => {
+        assert.throws(() => {
+            crypto.pbkdf1(null, null, 0, -1, 1);
+        })
+    });
+
+    it("FIX: Illegal iterations and size parameters will cause crypto.pbkdf2 to crash", () => {
+        assert.throws(() => {
+            crypto.pbkdf2(null, null, 0, -1, 1);
+        })
+    });
 });
 
 require.main === module && test.run(console.DEBUG);
