@@ -108,6 +108,8 @@ union inetAddr {
                 s = "::";
             return uv_ip6_addr(s.c_str(), port(), &addr6);
         }
+
+        return 0;
     }
 
     exlib::string str()
