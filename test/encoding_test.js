@@ -131,7 +131,7 @@ describe('encoding', () => {
     });
 
     it('iconv ucs2', () => {
-        for (var i = 0; i < 65536; i++) {
+        for (var i = 0; i < 0xd800; i++) {
             var s = String.fromCharCode(i);
             var buf = iconv.encode('utf16le', s);
             var n = buf.readUInt16LE();
@@ -178,31 +178,6 @@ describe('encoding', () => {
             0x10ffff,
             "ffff1000",
             "ffff1000"
-        ],
-        [
-            0x110000,
-            "00001100",
-            "00dc000000dc0000"
-        ],
-        [
-            0x1fffff,
-            "ffff1f00",
-            "bfdf0000ffdf0000"
-        ],
-        [
-            0x200000,
-            "00002000",
-            "c0df000000dc0000"
-        ],
-        [
-            0x3ffffff,
-            "ffffff03",
-            "bfff0000ffdf0000"
-        ],
-        [
-            0x4000000,
-            "00000004",
-            "c0ff000000dc0000"
         ]
     ];
 
