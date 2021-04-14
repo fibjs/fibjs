@@ -1128,6 +1128,12 @@ describe('Buffer', () => {
             b.writeDoubleBE(0, -576311994);
         });
     });
+
+    it("FIX: passing a large offset to Buffer.readUIntLE will cause fibjs to crash", () => {
+        assert.throws(() => {
+            new Buffer("abc").readUIntLE(2147483647, true)
+        });
+    })
 });
 
 require.main === module && test.run(console.DEBUG);
