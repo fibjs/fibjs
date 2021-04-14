@@ -16,7 +16,6 @@ void importModule()
     IMPORT_MODULE(base32);
     IMPORT_MODULE(base64);
     IMPORT_MODULE(base64vlq);
-    IMPORT_MODULE(bson);
     IMPORT_MODULE(buffer);
     IMPORT_MODULE(child_process);
     IMPORT_MODULE(coroutine);

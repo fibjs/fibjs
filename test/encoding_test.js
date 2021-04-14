@@ -3,7 +3,6 @@ test.setup();
 
 var encoding = require('encoding');
 var json = require('json');
-var bson = require('bson');
 var msgpack = require('msgpack');
 var base64 = require('base64');
 var hex = require('hex');
@@ -587,32 +586,6 @@ describe('encoding', () => {
             var obj1 = { 's1': 'abcd' };
             var obj2 = { 's1': new String('abcd') };
             assert.deepEqual(msgpack.decode(msgpack.encode(obj1)), msgpack.decode(msgpack.encode(obj2)));
-        });
-    });
-
-    it('bson', () => {
-        for (var i = 0; i < 8; i++) {
-            var attr = '';
-
-            if (i & 1)
-                attr += 'i';
-            if (i & 2)
-                attr += 'g';
-            if (i & 4)
-                attr += 'm';
-
-            var re = new RegExp('pattern: ' + i, attr);
-            var o = bson.decode(bson.encode({
-                re: re
-            }));
-
-            assert.deepEqual(re, o.re);
-        }
-    });
-
-    it('FIX: crash when invaid data type.', () => {
-        assert.throws(() => {
-            bson.decode('zyscoder');
         });
     });
 });

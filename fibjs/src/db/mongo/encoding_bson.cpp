@@ -7,14 +7,11 @@
 
 #include "object.h"
 #include "encoding_bson.h"
-#include "ifs/encoding.h"
 #include "Buffer.h"
 #include "utils.h"
 #include "MongoID.h"
 
 namespace fibjs {
-
-DECLARE_MODULE(bson);
 
 void encodeArray(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Value> element);
 bool encodeObject(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Value> element,
@@ -184,25 +181,6 @@ result_t encodeObject(Isolate* isolate, bson* bb, v8::Local<v8::Value> element)
     return 0;
 }
 
-result_t bson_base::encode(v8::Local<v8::Object> data,
-    obj_ptr<Buffer_base>& retVal)
-{
-    Isolate* isolate = Isolate::current();
-    bson bb;
-    result_t hr;
-
-    hr = encodeObject(isolate, &bb, data);
-    if (hr < 0)
-        return hr;
-
-    exlib::string strBuffer(bson_data(&bb), bson_size(&bb));
-    retVal = new Buffer(strBuffer);
-
-    bson_destroy(&bb);
-
-    return 0;
-}
-
 result_t decodeObject(Isolate* isolate, bson_iterator* it, bool bArray, v8::Local<v8::Object>& retVal);
 
 result_t decodeValue(Isolate* isolate, v8::Local<v8::Object> obj, bson_iterator* it)
@@ -324,14 +302,5 @@ result_t decodeObject(Isolate* isolate, const char* buffer, v8::Local<v8::Object
     bson_iterator_from_buffer(&it, buffer);
 
     return decodeObject(isolate, &it, false, retVal);
-}
-
-result_t bson_base::decode(Buffer_base* data, v8::Local<v8::Object>& retVal)
-{
-    Isolate* isolate = Isolate::current();
-    exlib::string strBuf;
-
-    data->toString(strBuf);
-    return decodeObject(isolate, strBuf.c_str(), retVal);
 }
 }

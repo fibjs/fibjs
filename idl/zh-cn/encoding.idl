@@ -27,9 +27,6 @@ module encoding
     /*! @brief msgpack 编码与解码模块 */
     static msgpack;
 
-    /*! @brief bson 编码与解码模块 */
-    static bson;
-
     /*! @brief 将字符串编码为 javascript 转义字符串，用以在 javascript 代码中包含文本
      @param str 要编码的字符串
      @param json 是否生成json兼容字符串

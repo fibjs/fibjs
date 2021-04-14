@@ -22,7 +22,6 @@ class hex_base;
 class iconv_base;
 class json_base;
 class msgpack_base;
-class bson_base;
 
 class encoding_base : public object_base {
     DECLARE_CLASS(encoding_base);
@@ -60,7 +59,6 @@ public:
 #include "ifs/iconv.h"
 #include "ifs/json.h"
 #include "ifs/msgpack.h"
-#include "ifs/bson.h"
 
 namespace fibjs {
 inline ClassInfo& encoding_base::class_info()
@@ -79,8 +77,7 @@ inline ClassInfo& encoding_base::class_info()
         { "hex", hex_base::class_info },
         { "iconv", iconv_base::class_info },
         { "json", json_base::class_info },
-        { "msgpack", msgpack_base::class_info },
-        { "bson", bson_base::class_info }
+        { "msgpack", msgpack_base::class_info }
     };
 
     static ClassData s_cd = {
