@@ -1766,6 +1766,15 @@ describe('util', () => {
             assert.equal(no1, os.memoryUsage().nativeObjects.objects);
         });
     });
+
+    it("FIX: flatten a circular reference object will cause fibjs to crash", () => {
+        var arr = [100, 200];
+        arr.push(arr);
+
+        assert.throws(() => {
+            var v = util.flatten(arr);
+        });
+    })
 });
 
 require.main === module && test.run(console.DEBUG);

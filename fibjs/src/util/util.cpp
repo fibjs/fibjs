@@ -562,11 +562,13 @@ result_t util_base::_union(OptArgs arrs,
     return 0;
 }
 
-result_t util_base::flatten(v8::Local<v8::Value> list, bool shallow,
-    v8::Local<v8::Array>& retVal)
+static result_t util_flatten(v8::Local<v8::Value> list, bool shallow,
+    v8::Local<v8::Array>& retVal, QuickArray<JSValue>& flatten_list)
 {
     if (!list->IsObject())
         return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    flatten_list.append(list);
 
     bool bNext = true;
 
@@ -584,7 +586,7 @@ result_t util_base::flatten(v8::Local<v8::Value> list, bool shallow,
 
     int32_t len = isolate->toInt32Value(v);
     int32_t cnt = retVal->Length();
-    int32_t i;
+    int32_t i, j;
 
     for (i = 0; i < len; i++) {
         v = o->Get(i);
@@ -594,7 +596,14 @@ result_t util_base::flatten(v8::Local<v8::Value> list, bool shallow,
             if (IsEmpty(v))
                 retVal->Set(cnt++, JSValue(o->Get(i)));
             else {
-                flatten(o1, shallow, retVal);
+                for (j = 0; j < flatten_list.size(); j++)
+                    if (isolate->isEquals(flatten_list[j], o1))
+                        return CHECK_ERROR(Runtime::setError("util: circular reference object."));
+
+                result_t hr = util_flatten(o1, shallow, retVal, flatten_list);
+                if (hr < 0)
+                    return hr;
+
                 cnt = retVal->Length();
             }
         } else
@@ -602,6 +611,13 @@ result_t util_base::flatten(v8::Local<v8::Value> list, bool shallow,
     }
 
     return 0;
+}
+
+result_t util_base::flatten(v8::Local<v8::Value> list, bool shallow,
+    v8::Local<v8::Array>& retVal)
+{
+    QuickArray<JSValue> flatten_list;
+    return util_flatten(list, shallow, retVal, flatten_list);
 }
 
 result_t util_base::without(v8::Local<v8::Value> arr, OptArgs els,
