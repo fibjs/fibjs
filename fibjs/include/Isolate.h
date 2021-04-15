@@ -89,11 +89,6 @@ public:
         return v->ToString(this->context()).ToLocalChecked();
     }
 
-    bool isEquals(v8::Local<v8::Value> v, v8::Local<v8::Value> tv)
-    {
-        return v->Equals(this->context(), tv).ToChecked();
-    }
-
     bool toBoolean(v8::Local<v8::Value> v)
     {
         return v->BooleanValue(this->context()).ToChecked();

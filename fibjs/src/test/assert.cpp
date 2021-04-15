@@ -821,7 +821,7 @@ result_t has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     if (got.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    retVal = isolate->isEquals(value, got);
+    retVal = value->StrictEquals(got);
 
     return 0;
 }
@@ -887,7 +887,7 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     got = v->Get(isolate->NewString(p));
     if (got.IsEmpty())
         return CALL_E_JAVASCRIPT;
-    retVal = isolate->isEquals(value, got);
+    retVal = value->StrictEquals(got);
 
     return 0;
 }

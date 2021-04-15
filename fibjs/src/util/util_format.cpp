@@ -181,7 +181,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
 
                 int32_t i, sz1 = (int32_t)vals.size();
                 for (i = 0; i < sz1; i++)
-                    if (isolate->isEquals(vals[i], obj))
+                    if (vals[i]->StrictEquals(obj))
                         break;
 
                 if (i < sz1) {
