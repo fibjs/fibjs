@@ -1218,22 +1218,24 @@ describe("db", () => {
             clear_db();
         });
 
-    });
+        it("FIX: levelDB.mget results in a segmentation fault", () => {
+            var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
+            ldb.close();
+            assert.throws(() => {
+                levelDB_AF = ldb.begin();
+            })
 
-    it("FIX: levelDB.mget results in a segmentation fault", () => {
-        var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
-        ldb.close();
-        assert.throws(() => {
+            var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
             levelDB_AF = ldb.begin();
-        })
+            ldb.close();
+            assert.throws(() => {
+                levelDB_AF.mget(['str']);
+            });
 
-        var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
-        levelDB_AF = ldb.begin();
-        ldb.close();
-        assert.throws(() => {
-            levelDB_AF.mget(['str']);
-        });
-    })
+            ldb.close();
+            clear_db();
+        })
+    });
 });
 
 require.main === module && test.run(console.DEBUG);
