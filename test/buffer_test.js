@@ -1131,7 +1131,13 @@ describe('Buffer', () => {
 
     it("FIX: passing a large offset to Buffer.readUIntLE will cause fibjs to crash", () => {
         assert.throws(() => {
-            new Buffer("abc").readUIntLE(2147483647, true)
+            new Buffer("abc").readUIntLE(2147483647, true);
+        });
+    })
+
+    it("FIX: passing a large offset to Buffer.writeUInt32BE will cause fibjs to crash", () => {
+        assert.throws(() => {
+            new Buffer(0).writeUInt32BE(225, 2147483647, true);
         });
     })
 });

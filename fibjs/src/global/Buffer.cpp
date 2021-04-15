@@ -804,7 +804,7 @@ result_t Buffer::writeNumber(int32_t offset, const char* buf, int32_t size, bool
 {
     int32_t sz = size;
 
-    if (offset < 0)
+    if (offset < 0 || (size_t)offset > m_data.length())
         return CHECK_ERROR(CALL_E_OUTRANGE);
 
     if (offset + sz > (int32_t)m_data.length()) {
