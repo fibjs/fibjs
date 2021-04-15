@@ -723,6 +723,14 @@ describe('util', () => {
         assert.equal(result.length, 0);
     });
 
+    it("FIX: intersection crash when valueOf throw error", () => {
+        util.intersection([{
+            valueOf() {
+                throw new Error('error');
+            }
+        }, 0]);
+    });
+
     it("pick", () => {
         var result;
         result = util.pick({

@@ -348,7 +348,7 @@ result_t util_base::intersection(OptArgs arrs,
             for (j = 0; left > 0 && j < len; j++)
                 if (!erase[j].IsEmpty()) {
                     for (k = 0; k < len1; k++)
-                        if (isolate->isEquals(erase[j], JSValue(other->Get(k))))
+                        if (erase[j]->StrictEquals(JSValue(other->Get(k))))
                             break;
 
                     if (k == len1) {
@@ -364,7 +364,7 @@ result_t util_base::intersection(OptArgs arrs,
             for (i = 0; i < len; i++)
                 if (!erase[i].IsEmpty()) {
                     for (j = 0; j < i; j++)
-                        if (!erase[j].IsEmpty() && isolate->isEquals(erase[i], erase[j]))
+                        if (!erase[j].IsEmpty() && erase[i]->StrictEquals(erase[j]))
                             break;
 
                     if (j == i)
@@ -597,7 +597,7 @@ static result_t util_flatten(v8::Local<v8::Value> list, bool shallow,
                 retVal->Set(cnt++, JSValue(o->Get(i)));
             else {
                 for (j = 0; j < flatten_list.size(); j++)
-                    if (isolate->isEquals(flatten_list[j], o1))
+                    if (flatten_list[j]->StrictEquals(o1))
                         return CHECK_ERROR(Runtime::setError("util: circular reference object."));
 
                 result_t hr = util_flatten(o1, shallow, retVal, flatten_list);
