@@ -10,14 +10,10 @@
 #include <string>
 #include <exlib/include/qstring.h>
 
-#if defined(_MSC_VER)
-#include <BaseTsd.h>
-#endif
-
 namespace fibjs {
 
-#if defined(_MSC_VER)
-typedef SSIZE_T ssize_t;
+#ifndef ssize_t
+typedef intptr_t ssize_t;
 #endif
 
 template <typename T>
