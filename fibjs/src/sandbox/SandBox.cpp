@@ -239,7 +239,7 @@ result_t SandBox::get_modules(v8::Local<v8::Object>& retVal)
 
     for (int32_t i = 0, len = ks->Length(); i < len; i++) {
         JSValue k = ks->Get(i);
-        retVal->Set(k, JSValue((isolate->toLocalObject(JSValue(ms->Get(k))))->Get(mgetter)));
+        retVal->Set(k, JSValue((v8::Local<v8::Object>::Cast(ms->Get(k)))->Get(mgetter)));
     }
 
     return 0;

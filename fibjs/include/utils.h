@@ -1081,7 +1081,7 @@ inline v8::Local<v8::Value> ThrowError(result_t hr, exlib::string msg)
     Isolate* isolate = Isolate::current();
     JSValue exception = v8::Exception::Error(isolate->NewString(msg));
 
-    isolate->toLocalObject(exception)
+    v8::Local<v8::Object>::Cast(exception)
         ->Set(isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr));
     return ThrowError(exception);
 }

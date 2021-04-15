@@ -51,7 +51,7 @@ result_t util_base::has(v8::Local<v8::Value> v, exlib::string key, bool& retVal)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     Isolate* isolate = Isolate::current();
-    v8::Local<v8::Object> obj = isolate->toLocalObject(v);
+    v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
     retVal = obj->HasOwnProperty(obj->CreationContext(), isolate->NewString(key)).ToChecked();
     return 0;
 }
@@ -61,7 +61,7 @@ result_t util_base::keys(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal)
     if (v->IsObject()) {
         Isolate* isolate = Isolate::current();
 
-        v8::Local<v8::Object> obj = isolate->toLocalObject(v);
+        v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
 
         retVal = JSArray(obj->GetPropertyNames());
         if (obj->IsArray()) {
@@ -83,7 +83,7 @@ result_t util_base::values(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal)
 {
     Isolate* isolate = Isolate::current();
     if (v->IsObject()) {
-        v8::Local<v8::Object> obj = isolate->toLocalObject(v);
+        v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
         JSArray keys = obj->GetPropertyNames();
         v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate);
 
@@ -170,7 +170,7 @@ result_t util_base::extend(v8::Local<v8::Value> v, OptArgs objs,
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = Isolate::current()->m_isolate->GetCurrentContext();
 
-    v8::Local<v8::Object> obj = isolate->toLocalObject(v);
+    v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
     int32_t argc = objs.Length();
     int32_t i, j;
 
@@ -183,7 +183,7 @@ result_t util_base::extend(v8::Local<v8::Value> v, OptArgs objs,
         if (!val->IsObject())
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
-        v8::Local<v8::Object> obj1 = isolate->toLocalObject(val);
+        v8::Local<v8::Object> obj1 = v8::Local<v8::Object>::Cast(val);
         JSArray keys = obj1->GetPropertyNames();
         int32_t len = keys->Length();
 
@@ -216,7 +216,7 @@ result_t util_base::pick(v8::Local<v8::Value> v, OptArgs objs,
     if (!v->IsObject())
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    v8::Local<v8::Object> obj = isolate->toLocalObject(v);
+    v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
     v8::Local<v8::Object> obj1 = v8::Object::New(isolate->m_isolate);
 
     int32_t argc = objs.Length();
@@ -259,7 +259,7 @@ result_t util_base::omit(v8::Local<v8::Value> v, OptArgs keys,
     if (!v->IsObject())
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    v8::Local<v8::Object> obj = isolate->toLocalObject(v);
+    v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
 
     std::map<exlib::string, bool> _map;
     int32_t argc = keys.Length();

@@ -84,11 +84,6 @@ public:
         return m_isolate->GetCurrentContext();
     }
 
-    v8::Local<v8::Object> toLocalObject(v8::Local<v8::Value> v)
-    {
-        return v->ToObject(this->context()).ToLocalChecked();
-    }
-
     v8::Local<v8::String> toLocalString(v8::Local<v8::Value> v)
     {
         return v->ToString(this->context()).ToLocalChecked();

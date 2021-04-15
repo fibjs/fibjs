@@ -725,7 +725,7 @@ result_t has_prop(v8::Local<v8::Value> v, v8::Local<v8::Value> prop,
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     Isolate* isolate = Isolate::current();
-    retVal = isolate->toLocalObject(v)->Has(isolate->context(), prop).ToChecked();
+    retVal = v8::Local<v8::Object>::Cast(v)->Has(isolate->context(), prop).ToChecked();
 
     return 0;
 }
@@ -761,7 +761,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     Isolate* isolate = Isolate::current();
-    v8::Local<v8::Object> v = isolate->toLocalObject(object);
+    v8::Local<v8::Object> v = v8::Local<v8::Object>::Cast(object);
     v8::String::Utf8Value s(isolate->m_isolate, prop);
     const char *p, *p1;
 
@@ -774,7 +774,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
             return 0;
         }
 
-        v = isolate->toLocalObject(object);
+        v = v8::Local<v8::Object>::Cast(object);
         p = p1 + 1;
     }
 
@@ -817,7 +817,7 @@ result_t has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
 
     Isolate* isolate = Isolate::current();
 
-    got = isolate->toLocalObject(object)->Get(prop);
+    got = v8::Local<v8::Object>::Cast(object)->Get(prop);
     if (got.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
@@ -867,7 +867,7 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     Isolate* isolate = Isolate::current();
-    v8::Local<v8::Object> v = isolate->toLocalObject(object);
+    v8::Local<v8::Object> v = v8::Local<v8::Object>::Cast(object);
     v8::String::Utf8Value s(isolate->m_isolate, prop);
     const char *p, *p1;
 
@@ -880,7 +880,7 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
             return 0;
         }
 
-        v = isolate->toLocalObject(object);
+        v = v8::Local<v8::Object>::Cast(object);
         p = p1 + 1;
     }
 

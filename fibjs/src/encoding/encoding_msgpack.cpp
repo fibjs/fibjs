@@ -58,7 +58,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
             } else if (element->IsArray())
                 return pack(v8::Local<v8::Array>::Cast(element));
             else if (element->IsObject() && !element->IsStringObject())
-                return pack(isolate->toLocalObject(element));
+                return pack(v8::Local<v8::Object>::Cast(element));
             else {
                 v8::String::Utf8Value v(isolate->m_isolate, element);
 
@@ -101,7 +101,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
                     if (!element1->IsObject())
                         return pack(element1);
 
-                    element = isolate->toLocalObject(element1);
+                    element = v8::Local<v8::Object>::Cast(element1);
                 }
             }
 
@@ -291,5 +291,4 @@ result_t msgpack_base::decode(Buffer_base* data, v8::Local<v8::Value>& retVal)
 
     return 0;
 }
-
 }

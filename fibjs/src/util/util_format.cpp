@@ -110,7 +110,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
             strBuffer.append(color_string(COLOR_RED, s, color));
         } else if (v->IsObject()) {
             do {
-                v8::Local<v8::Object> obj = isolate->toLocalObject(v);
+                v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
 
                 if (obj->IsNativeError()) {
                     exlib::string s(ToCString(v8::String::Utf8Value(isolate->m_isolate, JSValue(obj->Get(isolate->NewString("stack"))))));
@@ -197,7 +197,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
                     v8::Local<v8::Value> v1 = v8::Local<v8::Function>::Cast(toArray)->Call(obj, 0, NULL);
                     if (!IsEmpty(v1) && v1->IsObject()) {
                         v = v1;
-                        obj = isolate->toLocalObject(v1);
+                        obj = v8::Local<v8::Object>::Cast(v1);
                     }
                 }
 

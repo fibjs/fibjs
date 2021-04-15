@@ -183,7 +183,7 @@ result_t AsyncCallBack::syncFunc(AsyncCallBack* pThis)
 
         v8::Local<v8::Value> e = v8::Exception::Error(
             isolate->NewString(getResultMessage(pThis->m_v)));
-        isolate->toLocalObject(e)
+        v8::Local<v8::Object>::Cast(e)
             ->Set(isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -pThis->m_v));
 
         args.resize(1);

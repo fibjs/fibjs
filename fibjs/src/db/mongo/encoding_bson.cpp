@@ -117,7 +117,7 @@ void encodeArray(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Val
 bool encodeObject(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Value> element,
     bool doJson)
 {
-    v8::Local<v8::Object> object = isolate->toLocalObject(element);
+    v8::Local<v8::Object> object = v8::Local<v8::Object>::Cast(element);
 
     if (doJson) {
         JSValue jsonFun = object->Get(isolate->NewString("toJSON", 6));
@@ -134,7 +134,7 @@ bool encodeObject(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Va
             if (!element1->IsObject())
                 return false;
 
-            object = isolate->toLocalObject(element1);
+            object = v8::Local<v8::Object>::Cast(element1);
         }
     }
 
