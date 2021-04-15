@@ -77,7 +77,7 @@ describe('assert', () => {
     });
 
     it('isObject', () => {
-        function Foo() {}
+        function Foo() { }
         assert.isObject({});
         assert.isObject(new Foo());
 
@@ -91,7 +91,7 @@ describe('assert', () => {
     });
 
     it('isNotObject', () => {
-        function Foo() {}
+        function Foo() { }
         assert.isNotObject(5);
 
         assert.throws(() => {
@@ -105,6 +105,22 @@ describe('assert', () => {
         assert.throws(() => {
             assert.notEqual(5, 5);
         }, "expected 5 to not equal 5");
+    });
+
+    it("FIX: assert crash when valueOf throw error", () => {
+        var obj = {
+            valueOf() {
+                throw new Error("abb");
+            }
+        };
+
+        assert.throws(() => {
+            assert.equal(obj, "abb");
+        });
+
+        assert.throws(() => {
+            assert.notEqual(obj, "abb");
+        });
     });
 
     it('strictEqual', () => {
@@ -131,17 +147,17 @@ describe('assert', () => {
         });
 
         assert.throws(() => {
-                assert.deepEqual({
-                    tea: 'chai'
-                }, {
-                    tea: 'black'
-                });
-            },
+            assert.deepEqual({
+                tea: 'chai'
+            }, {
+                tea: 'black'
+            });
+        },
             "expected { tea: \'chai\' } to deeply equal { tea: \'black\' }");
 
         var obja = Object.create({
-                tea: 'chai'
-            }),
+            tea: 'chai'
+        }),
             objb = Object.create({
                 tea: 'chai'
             });
@@ -149,15 +165,15 @@ describe('assert', () => {
         assert.deepEqual(obja, objb);
 
         var obj1 = Object.create({
-                tea: 'chai'
-            }),
+            tea: 'chai'
+        }),
             obj2 = Object.create({
                 tea: 'black'
             });
 
         assert.throws(() => {
-                assert.deepEqual(obj1, obj2);
-            },
+            assert.deepEqual(obj1, obj2);
+        },
             "expected { tea: \'chai\' } to deeply equal { tea: \'black\' }");
 
         assert.throws(() => {
@@ -201,9 +217,9 @@ describe('assert', () => {
 
     it('deepEqual (ordering)', () => {
         var a = {
-                a: 'b',
-                c: 'd'
-            },
+            a: 'b',
+            c: 'd'
+        },
             b = {
                 c: 'd',
                 a: 'b'
@@ -248,10 +264,10 @@ describe('assert', () => {
         assert.deepEqual(circularObject, secondCircularObject);
 
         assert.throws(() => {
-                secondCircularObject.field2 = secondCircularObject;
-                assert.deepEqual(circularObject,
-                    secondCircularObject);
-            },
+            secondCircularObject.field2 = secondCircularObject;
+            assert.deepEqual(circularObject,
+                secondCircularObject);
+        },
             "expected { field: [Circular] } to deeply equal { Object (field, field2) }");
     });
 
@@ -263,12 +279,12 @@ describe('assert', () => {
         });
 
         assert.throws(() => {
-                assert.notDeepEqual({
-                    tea: 'chai'
-                }, {
-                    tea: 'chai'
-                });
-            },
+            assert.notDeepEqual({
+                tea: 'chai'
+            }, {
+                tea: 'chai'
+            });
+        },
             "expected { tea: \'chai\' } to not deeply equal { tea: \'chai\' }");
     });
 
@@ -284,10 +300,10 @@ describe('assert', () => {
             secondCircularObject);
 
         assert.throws(() => {
-                delete secondCircularObject.tea;
-                assert.notDeepEqual(circularObject,
-                    secondCircularObject);
-            },
+            delete secondCircularObject.tea;
+            assert.notDeepEqual(circularObject,
+                secondCircularObject);
+        },
             "expected { field: [Circular] } to not deeply equal { field: [Circular] }");
     });
 
@@ -324,7 +340,7 @@ describe('assert', () => {
     });
 
     it('isFunction', () => {
-        var func = () => {};
+        var func = () => { };
         assert.isFunction(func);
 
         assert.throws(() => {
@@ -336,7 +352,7 @@ describe('assert', () => {
         assert.isNotFunction(5);
 
         assert.throws(() => {
-            assert.isNotFunction(() => {});
+            assert.isNotFunction(() => { });
         }, "expected [Function] not to be a function");
     });
 
@@ -480,19 +496,19 @@ describe('assert', () => {
         }, /bar/);
 
         assert.throws(() => {
-            assert.throws(() => {});
+            assert.throws(() => { });
         }, "expected [Function] to throw an error");
     });
 
     it('doesNotThrow', () => {
-        assert.doesNotThrow(() => {});
-        assert.doesNotThrow(() => {}, 'foo');
+        assert.doesNotThrow(() => { });
+        assert.doesNotThrow(() => { }, 'foo');
 
         assert.throws(() => {
-                assert.doesNotThrow(() => {
-                    throw new Error('foo');
-                });
-            },
+            assert.doesNotThrow(() => {
+                throw new Error('foo');
+            });
+        },
             'expected [Function] to not throw an error but [Error: foo] was thrown');
     });
 
@@ -514,9 +530,9 @@ describe('assert', () => {
         assert.throws(() => assert.ifError(1));
         assert.throws(() => assert.ifError('a'));
         assert.throws(() => assert.ifError(new Error('error')));
-        assert.throws(function() { assert.ifError(new Error('test error')); });
-        assert.doesNotThrow(function() { assert.ifError(null); });
-        assert.doesNotThrow(function() { assert.ifError(); });
+        assert.throws(function () { assert.ifError(new Error('test error')); });
+        assert.doesNotThrow(function () { assert.ifError(null); });
+        assert.doesNotThrow(function () { assert.ifError(); });
 
         let threw = false;
         try {

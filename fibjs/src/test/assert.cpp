@@ -184,11 +184,9 @@ int32_t checkStack(QuickArray<v8::Local<v8::Object>>& acts,
 {
     int32_t i;
 
-    Isolate* isolate = Isolate::current();
-
     for (i = 0; i < (int32_t)acts.size(); i++)
-        if (isolate->isEquals(actual, acts[i])) {
-            if (isolate->isEquals(expected, exps[i]))
+        if (actual->StrictEquals(acts[i])) {
+            if (expected->StrictEquals(exps[i]))
                 return 0;
             return -1;
         }
@@ -327,16 +325,24 @@ bool deepEquals(QuickArray<v8::Local<v8::Object>>& acts,
 result_t assert_base::equal(v8::Local<v8::Value> actual,
     v8::Local<v8::Value> expected, exlib::string msg)
 {
-    _test(Isolate::current()->isEquals(actual, expected),
-        _msg(msg, "expected ", actual, " to equal ", expected));
+    bool tst = false;
+    v8::Maybe<bool> t = actual->Equals(Isolate::current()->context(), expected);
+    if (t.IsJust())
+        tst = t.ToChecked();
+
+    _test(tst, _msg(msg, "expected ", actual, " to equal ", expected));
     return 0;
 }
 
 result_t assert_base::notEqual(v8::Local<v8::Value> actual,
     v8::Local<v8::Value> expected, exlib::string msg)
 {
-    _test(!Isolate::current()->isEquals(actual, expected),
-        _msg(msg, "expected ", actual, " to not equal ", expected));
+    bool tst = false;
+    v8::Maybe<bool> t = actual->Equals(Isolate::current()->context(), expected);
+    if (t.IsJust())
+        tst = !t.ToChecked();
+
+    _test(tst, _msg(msg, "expected ", actual, " to not equal ", expected));
     return 0;
 }
 
