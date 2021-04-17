@@ -133,7 +133,7 @@ public:
             }
 
             ar = pThis->queue_read.head();
-            ar->m_pos += (int32_t)nread;
+            ar->m_pos += nread;
             if (!ar->m_bRead || (ar->m_bytes < 0) || (ar->m_bytes == ar->m_pos)) {
                 pThis->queue_read.getHead();
                 ar->post_result(0);
@@ -175,7 +175,7 @@ public:
         int32_t m_bytes;
         obj_ptr<Buffer_base>& m_retVal;
         AsyncEvent* m_ac;
-        int32_t m_pos;
+        size_t m_pos;
         exlib::string m_buf;
     };
 

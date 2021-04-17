@@ -14,7 +14,7 @@
 
 namespace fibjs {
 
-inline void baseEncode(const char* pEncodingTable, int32_t dwBits,
+inline void baseEncode(const char* pEncodingTable, size_t dwBits,
     const char* data, size_t sz, exlib::string& retVal)
 {
     size_t i, len = 0, bits = 0;
@@ -49,14 +49,14 @@ inline void baseEncode(const char* pEncodingTable, int32_t dwBits,
     retVal.resize(len);
 }
 
-inline void baseEncode(const char* pEncodingTable, int32_t dwBits,
+inline void baseEncode(const char* pEncodingTable, size_t dwBits,
     exlib::string& data, exlib::string& retVal)
 {
     baseEncode(pEncodingTable, dwBits, data.c_str(),
         data.length(), retVal);
 }
 
-inline void baseEncode(const char* pEncodingTable, int32_t dwBits,
+inline void baseEncode(const char* pEncodingTable, size_t dwBits,
     Buffer_base* data, exlib::string& retVal)
 {
     exlib::string strData;
@@ -64,7 +64,7 @@ inline void baseEncode(const char* pEncodingTable, int32_t dwBits,
     baseEncode(pEncodingTable, dwBits, strData, retVal);
 }
 
-inline void baseDecode(const char* pdecodeTable, int32_t dwBits,
+inline void baseDecode(const char* pdecodeTable, size_t dwBits,
     exlib::string& baseString, exlib::string& retVal)
 {
     const char* _baseString = baseString.c_str();
@@ -96,7 +96,7 @@ inline void baseDecode(const char* pdecodeTable, int32_t dwBits,
     retVal.resize(nWritten);
 }
 
-inline void baseDecode(const char* pdecodeTable, int32_t dwBits,
+inline void baseDecode(const char* pdecodeTable, size_t dwBits,
     exlib::string& baseString, obj_ptr<Buffer_base>& retVal)
 {
     exlib::string strBuf;

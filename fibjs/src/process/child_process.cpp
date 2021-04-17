@@ -184,7 +184,7 @@ result_t child_process_base::exec(exlib::string command, v8::Local<v8::Object> o
         obj_ptr<NArray> _args;
         exlib::string cmd;
         v8::Local<v8::Array> args = v8::Array::New(isolate->m_isolate);
-        int32_t i;
+        size_t i;
 
         util_base::parseArgs(command, _args);
         if (_args->m_array.size()) {
@@ -287,5 +287,4 @@ result_t child_process_base::run(exlib::string command, v8::Local<v8::Object> op
 {
     return run(command, v8::Local<v8::Array>(), options, retVal, ac);
 }
-
 }

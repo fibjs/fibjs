@@ -39,7 +39,7 @@ private:
     obj_ptr<HttpRequest> m_req;
 
     exlib::string data_;
-    int size_readed;
+    size_t size_readed;
     bool m_done;
     IMPLEMENT_REFCOUNTING(GuiResourceHandler);
 };
@@ -58,5 +58,4 @@ public:
 private:
     IMPLEMENT_REFCOUNTING(GuiSchemeHandlerFactory);
 };
-
 }
