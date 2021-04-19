@@ -8,6 +8,7 @@
 #include "object.h"
 #include "Url.h"
 #include "parse.h"
+#include "path.h"
 #include "ifs/encoding.h"
 #include "ifs/url.h"
 #include "ifs/punycode.h"
@@ -40,6 +41,22 @@ result_t url_base::parse(exlib::string url, bool parseQueryString,
     retVal = u;
 
     return 0;
+}
+
+result_t url_base::resolve(exlib::string _from, exlib::string to,
+    exlib::string& retVal)
+{
+    obj_ptr<Url> u = new Url();
+    result_t hr = u->parse(_from, false, false);
+    if (hr < 0)
+        return hr;
+
+    obj_ptr<UrlObject_base> u1;
+    hr = u->resolve(to, u1);
+    if (hr < 0)
+        return hr;
+
+    return u1->toString(retVal);
 }
 
 static const char* pathTable = " !  $%& ()*+,-./0123456789:; =  @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";

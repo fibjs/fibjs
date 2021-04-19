@@ -15,6 +15,14 @@ module url
      */
     static UrlObject parse(String url, Boolean parseQueryString = false, Boolean slashesDenoteHost = false);
 
+    /*! @brief 合并相对路径成为一个绝对路径
+
+     @param _from 源路径 
+     @param to 相对路径 
+     @return 返回得到的绝对路径
+     */
+    static String resolve(String _from, String to);
+
     /*! @brief 创建一个 UrlObject 请求对象，参见 UrlObject */
     static UrlObject new URL();
 };
