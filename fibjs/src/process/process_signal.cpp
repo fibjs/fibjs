@@ -123,9 +123,18 @@ static void CreateMiniDump(LPEXCEPTION_POINTERS lpExceptionInfo)
         mdei.ExceptionPointers = lpExceptionInfo;
         mdei.ClientPointers = FALSE;
 
-        MINIDUMP_TYPE mdt = MiniDumpNormal;
+#ifdef DEBUG
+        DWORD mdt = MiniDumpWithFullMemory
+            | MiniDumpWithFullMemoryInfo
+            | MiniDumpWithHandleData
+            | MiniDumpWithUnloadedModules
+            | MiniDumpWithThreadInfo;
+#else
+        DWORD mdt = MiniDumpNormal;
+#endif
+
         BOOL retv = s_pDump(GetCurrentProcess(), GetCurrentProcessId(), hFile,
-            mdt, (lpExceptionInfo != 0) ? &mdei : 0, 0, 0);
+            (MINIDUMP_TYPE)mdt, (lpExceptionInfo != 0) ? &mdei : 0, 0, 0);
 
         CloseHandle(hFile);
     }
@@ -140,7 +149,6 @@ static LONG WINAPI GPTUnhandledExceptionFilter(PEXCEPTION_POINTERS pExceptionInf
 
 void init_signal()
 {
-#ifndef DEBUG
     HMODULE hDll;
     if (hDll = ::LoadLibrary("DBGHELP.DLL")) {
         s_pDump = (MINIDUMPWRITEDUMP)::GetProcAddress(hDll,
@@ -148,7 +156,6 @@ void init_signal()
         if (s_pDump)
             SetUnhandledExceptionFilter(GPTUnhandledExceptionFilter);
     }
-#endif
 
     signal(SIGINT, on_signal);
     signal(SIGTERM, on_signal);
