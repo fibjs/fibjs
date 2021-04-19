@@ -16,14 +16,14 @@ namespace fibjs {
 void HttpUploadCollection::parse(exlib::string& str, const char* boundary)
 {
     const char* pstr = str.c_str();
-    int32_t nSize = (int32_t)str.length();
+    size_t nSize = str.length();
     exlib::string strName;
     exlib::string strFileName;
     exlib::string strContentType;
     exlib::string strContentTransferEncoding;
     const char *p, *p1, *p2, *szQueryString;
     const char* pstrSplit;
-    int32_t uiSplitSize;
+    size_t uiSplitSize;
     char ch;
 
     boundary += 20;
@@ -34,7 +34,7 @@ void HttpUploadCollection::parse(exlib::string& str, const char* boundary)
         return;
 
     boundary += 9;
-    uiSplitSize = (int32_t)qstrlen(boundary);
+    uiSplitSize = qstrlen(boundary);
 
     pstrSplit = szQueryString = pstr;
 
@@ -103,7 +103,7 @@ void HttpUploadCollection::parse(exlib::string& str, const char* boundary)
                     while (p1 < p && *p1 != ch)
                         p1++;
 
-                    strName.assign(p2, (int32_t)(p1 - p2));
+                    strName.assign(p2, (size_t)(p1 - p2));
 
                     if (p1 < p && *p1 == '\"')
                         p1++;
@@ -133,18 +133,18 @@ void HttpUploadCollection::parse(exlib::string& str, const char* boundary)
                             p1++;
                         }
 
-                        strFileName.assign(p2, (int32_t)(p1 - p2));
+                        strFileName.assign(p2, (size_t)(p1 - p2));
                     }
                 } else if (p1 + 13 < p && !qstricmp(p1, "Content-Type:", 13)) {
                     p1 += 13;
                     while (p1 < p && *p1 == ' ')
                         p1++;
-                    strContentType.assign(p1, (int32_t)(p - p1));
+                    strContentType.assign(p1, (size_t)(p - p1));
                 } else if (p1 + 26 < p && !qstricmp(p1, "Content-Transfer-Encoding:", 26)) {
                     p1 += 26;
                     while (p1 < p && *p1 == ' ')
                         p1++;
-                    strContentTransferEncoding.assign(p1, (int32_t)(p - p1));
+                    strContentTransferEncoding.assign(p1, (size_t)(p - p1));
                 }
             } else {
                 ch = *szQueryString++;
@@ -168,7 +168,7 @@ void HttpUploadCollection::parse(exlib::string& str, const char* boundary)
         if (!p || p1 <= p + uiSplitSize)
             break;
 
-        nSize = (int32_t)(p1 - p - uiSplitSize);
+        nSize = (size_t)(p1 - p - uiSplitSize);
         p1 = szQueryString;
         szQueryString = p + uiSplitSize;
 
@@ -183,7 +183,7 @@ void HttpUploadCollection::parse(exlib::string& str, const char* boundary)
         }
 
         if (!strName.empty()) {
-            int32_t uiSize = (int32_t)(p - p1);
+            size_t uiSize = (size_t)(p - p1);
             exlib::string strTemp;
             Variant varTemp;
 
@@ -210,7 +210,7 @@ void HttpUploadCollection::parse(exlib::string& str, const char* boundary)
 
 result_t HttpUploadCollection::clear()
 {
-    int32_t i;
+    size_t i;
 
     for (i = 0; i < m_count; i++) {
         pair& _pair = m_map[i];
@@ -225,7 +225,7 @@ result_t HttpUploadCollection::clear()
 
 result_t HttpUploadCollection::has(exlib::string name, bool& retVal)
 {
-    int32_t i;
+    size_t i;
 
     retVal = false;
     for (i = 0; i < m_count; i++)
@@ -239,7 +239,7 @@ result_t HttpUploadCollection::has(exlib::string name, bool& retVal)
 
 result_t HttpUploadCollection::first(exlib::string name, Variant& retVal)
 {
-    int32_t i;
+    size_t i;
 
     for (i = 0; i < m_count; i++) {
         pair& _pair = m_map[i];
@@ -354,8 +354,8 @@ result_t HttpUploadCollection::set(exlib::string name, v8::Local<v8::Array> valu
 
 result_t HttpUploadCollection::remove(exlib::string name)
 {
-    int32_t i;
-    int32_t p = 0;
+    size_t i;
+    size_t p = 0;
 
     for (i = 0; i < m_count; i++) {
         pair& _pair = m_map[i];
@@ -391,7 +391,7 @@ result_t HttpUploadCollection::sort()
 result_t HttpUploadCollection::keys(obj_ptr<NArray>& retVal)
 {
     obj_ptr<NArray> _keys = new NArray();
-    int i;
+    size_t i;
 
     for (i = 0; i < m_count; i++)
         _keys->append(m_map[i].first);
@@ -404,7 +404,7 @@ result_t HttpUploadCollection::keys(obj_ptr<NArray>& retVal)
 result_t HttpUploadCollection::values(obj_ptr<NArray>& retVal)
 {
     obj_ptr<NArray> _keys = new NArray();
-    int i;
+    size_t i;
 
     for (i = 0; i < m_count; i++)
         _keys->append(m_map[i].second);
@@ -421,7 +421,7 @@ result_t HttpUploadCollection::_named_getter(exlib::string property,
 
 result_t HttpUploadCollection::_named_enumerator(v8::Local<v8::Array>& retVal)
 {
-    int32_t i;
+    size_t i;
     Isolate* isolate = holder();
 
     retVal = v8::Array::New(isolate->m_isolate);
@@ -440,7 +440,7 @@ result_t HttpUploadCollection::_named_setter(exlib::string property,
 result_t HttpUploadCollection::_named_deleter(exlib::string property,
     v8::Local<v8::Boolean>& retVal)
 {
-    int32_t n = m_count;
+    size_t n = m_count;
     remove(property);
     return n > m_count;
 }
