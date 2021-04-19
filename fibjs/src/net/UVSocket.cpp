@@ -14,15 +14,9 @@ namespace fibjs {
 
 result_t UVSocket::create(int32_t family, obj_ptr<Socket_base>& retVal)
 {
-    family &= 0xff;
-
-    if (family == net_base::C_AF_INET)
-        family = AF_INET;
-    else if (family == net_base::C_AF_INET6)
-        family = AF_INET6;
-    else if (family == net_base::C_AF_UNIX)
-        family = AF_UNIX;
-    else
+    if (family != net_base::C_AF_INET
+        && family != net_base::C_AF_INET6
+        && family != net_base::C_AF_UNIX)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     obj_ptr<UVSocket> sock = new UVSocket(family);
@@ -139,7 +133,7 @@ result_t UVSocket::bind(exlib::string addr, int32_t port, bool allowIPv4)
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
         return uv_tcp_bind(&m_tcp, (struct sockaddr*)&addr_info,
-            m_family == AF_INET ? 0 : (allowIPv4 ? 0 : UV_TCP_IPV6ONLY));
+            m_family == net_base::C_AF_INET ? 0 : (allowIPv4 ? 0 : UV_TCP_IPV6ONLY));
     }
 }
 
