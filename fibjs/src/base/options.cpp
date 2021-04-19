@@ -43,7 +43,7 @@ static class _init_v8_opt {
 public:
     _init_v8_opt()
     {
-        v8::internal::FLAG_lazy = false;
+        // v8::internal::FLAG_lazy = false;
         v8::internal::FLAG_stack_size = stack_size - GUARD_SIZE;
         v8::internal::FLAG_max_old_space_size = 2048;
 
