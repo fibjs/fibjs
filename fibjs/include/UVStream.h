@@ -30,16 +30,28 @@ public:
             }
         }
 
+        virtual ~UVTimeout()
+        {
+        }
+
         static void on_timeout(uv_timer_t* handle)
         {
             UVTimeout* pThis = (UVTimeout*)handle;
             pThis->m_this->close(NULL);
         }
 
+        static void on_timer_closed(uv_handle_t* handle)
+        {
+            delete (UVTimeout*)(uv_timer_t*)handle;
+        }
+
         void cancel_timer()
         {
-            if (m_timeout > 0)
+            if (m_timeout > 0) {
                 uv_timer_stop(this);
+                uv_close((uv_handle_t*)(uv_timer_t*)this, on_timer_closed);
+            } else
+                delete this;
         }
 
     public:
@@ -151,8 +163,6 @@ public:
 
         void post_result(int32_t status)
         {
-            UVTimeout::cancel_timer();
-
             if (status < 0 && status != UV_EOF && status != UV_ENOTCONN && status != UV_ECONNRESET) {
                 m_ac->apost(status);
             } else {
@@ -166,7 +176,7 @@ public:
                     m_ac->apost(CALL_RETURN_NULL);
             }
 
-            delete this;
+            UVTimeout::cancel_timer();
         }
 
     private:
@@ -232,10 +242,8 @@ public:
 
         void post_result(int32_t status)
         {
-            UVTimeout::cancel_timer();
-
             m_ac->apost(status);
-            delete this;
+            UVTimeout::cancel_timer();
         }
 
     private:

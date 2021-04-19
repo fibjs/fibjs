@@ -202,10 +202,8 @@ result_t UVSocket::connect(exlib::string host, int32_t port, AsyncEvent* ac)
         {
             AsyncConnect* pThis = (AsyncConnect*)req;
 
-            pThis->cancel_timer();
             pThis->m_ac->apost(status);
-
-            delete pThis;
+            pThis->cancel_timer();
         }
 
     public:
