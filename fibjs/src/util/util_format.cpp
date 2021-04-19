@@ -179,6 +179,11 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
                     break;
                 }
 
+                if (v->IsPromise()) {
+                    strBuffer.append(color_string(COLOR_CYAN, "[Promise]", color));
+                    break;
+                }
+
                 int32_t i, sz1 = (int32_t)vals.size();
                 for (i = 0; i < sz1; i++)
                     if (vals[i]->StrictEquals(obj))
