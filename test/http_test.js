@@ -874,7 +874,7 @@ describe("http", () => {
 
         req.json(v);
         assert.equal(req.firstHeader('Content-Type'), "application/json");
-        assert.equal(req.data.toString(), '{"a":100}');
+        assert.deepEqual(req.data, v);
 
         assert.deepEqual(req.json(), v);
 
@@ -894,7 +894,7 @@ describe("http", () => {
 
         rep.json(v);
         assert.equal(rep.firstHeader('Content-Type'), "application/json");
-        assert.equal(rep.data.toString(), '{"a":100}');
+        assert.deepEqual(rep.data, v);
 
         assert.deepEqual(rep.json(), v);
 

@@ -26,7 +26,7 @@ interface Message : object
     /*! @brief 消息类型 */
     Integer type;
 
-    /*! @brief 查询消息的数据 */
+    /*! @brief 查询消息的数据，此属性会根据 content-type 返回不同数据，为 text 时，返回文本，为 json 时返回 json，其它时候返回二进制 */
     readonly Value data;
 
     /*! @brief 包含消息数据部分的流对象 */

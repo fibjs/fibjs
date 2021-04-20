@@ -103,6 +103,23 @@ public:
     bool m_headerOnly;
 };
 
+result_t HttpMessage::get_data(v8::Local<v8::Value>& retVal)
+{
+    exlib::string strType;
+
+    if (firstHeader("Content-Type", strType) == CALL_RETURN_NULL)
+        return Message::get_data(retVal);
+
+    size_t pos = strType.find(';');
+    if (pos != exlib::string::npos)
+        strType = strType.substr(0, pos);
+
+    if (strType != "application/json")
+        return Message::get_data(retVal);
+
+    return Message::json(retVal);
+}
+
 result_t HttpMessage::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
 {
     setHeader("Content-Type", "application/json");
