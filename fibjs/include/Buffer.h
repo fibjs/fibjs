@@ -105,9 +105,9 @@ public:
     virtual result_t reverse(obj_ptr<Buffer_base>& retVal);
     virtual result_t hex(exlib::string& retVal);
     virtual result_t base64(exlib::string& retVal);
-    virtual result_t keys(v8::Local<v8::Object>& retVal);
-    virtual result_t values(v8::Local<v8::Object>& retVal);
-    virtual result_t entries(v8::Local<v8::Object>& retVal);
+    virtual result_t keys(obj_ptr<Iterator_base>& retVal);
+    virtual result_t values(obj_ptr<Iterator_base>& retVal);
+    virtual result_t entries(obj_ptr<Iterator_base>& retVal);
     virtual result_t toArray(v8::Local<v8::Array>& retVal);
     virtual result_t toString(exlib::string codec, int32_t offset, int32_t end, exlib::string& retVal);
     virtual result_t toString(exlib::string codec, int32_t offset, exlib::string& retVal);

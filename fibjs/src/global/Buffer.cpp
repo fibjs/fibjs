@@ -6,6 +6,7 @@
 #include "utf8.h"
 #include <cstring>
 #include <string>
+#include "Iterator.h"
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
@@ -1051,48 +1052,35 @@ result_t Buffer::equals(object_base* expected, bool& retVal)
     return 0;
 }
 
-result_t Buffer::keys(v8::Local<v8::Object>& retVal)
+result_t Buffer::keys(obj_ptr<Iterator_base>& retVal)
 {
-    Isolate* isolate = holder();
-    v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate, (int32_t)m_data.length());
-    int32_t i;
-
-    for (i = 0; i < (int32_t)m_data.length(); i++)
-        arr->Set(i, v8::Number::New(isolate->m_isolate, i));
-
-    retVal = GetIteratorReturnValue(isolate->m_isolate, arr);
+    retVal = new Iterator(this, [&](size_t index, v8::Local<v8::Value>& retVal) {
+        if (index < m_data.length())
+            retVal = v8::Number::New(holder()->m_isolate, index);
+    });
     return 0;
 }
 
-result_t Buffer::values(v8::Local<v8::Object>& retVal)
+result_t Buffer::values(obj_ptr<Iterator_base>& retVal)
 {
-    Isolate* isolate = holder();
-    v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate, (int32_t)m_data.length());
-    int32_t i;
-    const char* _data = m_data.c_str();
-
-    for (i = 0; i < (int32_t)m_data.length(); i++)
-        arr->Set(i, v8::Number::New(isolate->m_isolate, (unsigned char)_data[i]));
-
-    retVal = GetIteratorReturnValue(isolate->m_isolate, arr);
+    retVal = new Iterator(this, [&](size_t index, v8::Local<v8::Value>& retVal) {
+        if (index < m_data.length())
+            retVal = v8::Number::New(holder()->m_isolate, (unsigned char)m_data[index]);
+    });
     return 0;
 }
 
-result_t Buffer::entries(v8::Local<v8::Object>& retVal)
+result_t Buffer::entries(obj_ptr<Iterator_base>& retVal)
 {
-    Isolate* isolate = holder();
-    v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate, (int32_t)m_data.length());
-    int32_t i;
-    const char* _data = m_data.c_str();
-
-    for (i = 0; i < (int32_t)m_data.length(); i++) {
-        v8::Local<v8::Array> arr1 = v8::Array::New(isolate->m_isolate, 2);
-        arr1->Set(0, v8::Number::New(isolate->m_isolate, i));
-        arr1->Set(1, v8::Number::New(isolate->m_isolate, (unsigned char)_data[i]));
-        arr->Set(i, arr1);
-    }
-
-    retVal = GetIteratorReturnValue(isolate->m_isolate, arr);
+    retVal = new Iterator(this, [&](size_t index, v8::Local<v8::Value>& retVal) {
+        if (index < m_data.length()) {
+            Isolate* isolate = holder();
+            v8::Local<v8::Array> arr1 = v8::Array::New(isolate->m_isolate, 2);
+            arr1->Set(0, v8::Number::New(isolate->m_isolate, index));
+            arr1->Set(1, v8::Number::New(isolate->m_isolate, (unsigned char)m_data[index]));
+            retVal = arr1;
+        }
+    });
     return 0;
 }
 

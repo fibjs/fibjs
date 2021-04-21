@@ -22,6 +22,11 @@ describe('huge buffer', () => {
     it("FIX: big string format", () => {
         util.format("", base32.encode(530543385));
     });
+
+    it("FIX: big Buffer Iterator", () => {
+        buf = global.Buffer.alloc(1498850885);
+        buf.values();
+    });
 });
 
 require.main === module && test.run(console.DEBUG);

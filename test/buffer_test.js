@@ -362,6 +362,9 @@ describe('Buffer', () => {
             keys2.push(key);
         }
         assert.deepEqual(keys2, correctResult);
+
+        var it = buf1.keys();
+        assert.equal(it, it[Symbol.iterator]());
     });
 
     it('values', () => {
@@ -379,6 +382,9 @@ describe('Buffer', () => {
             values2.push(value);
         }
         assert.deepEqual(values2, correctResult);
+
+        var it = buf1.values();
+        assert.equal(it, it[Symbol.iterator]());
     });
 
     it('entries', () => {
@@ -403,6 +409,9 @@ describe('Buffer', () => {
             entries2.push(value);
         }
         assert.deepEqual(entries2, correctResult);
+
+        var it = buf1.entries();
+        assert.equal(it, it[Symbol.iterator]());
     });
 
     it('toArray', () => {

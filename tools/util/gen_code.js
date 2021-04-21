@@ -25,7 +25,6 @@ function gen_code(cls, def, baseFolder) {
         "String": "exlib::string",
         "Date": "date_t",
         "Object": "v8::Local<v8::Object>",
-        "Iterator": "v8::Local<v8::Object>",
         "Array": "v8::Local<v8::Array>",
         "TypedArray": "v8::Local<v8::TypedArray>",
         "ArrayBuffer": "v8::Local<v8::ArrayBuffer>",
@@ -356,14 +355,14 @@ function gen_code(cls, def, baseFolder) {
             }
         },
         "object": {
-            "declare": () => {},
-            "stub": () => {},
-            "stub_func": () => {}
+            "declare": () => { },
+            "stub": () => { },
+            "stub_func": () => { }
         },
         "const": {
-            "declare": () => {},
-            "stub": fn => {},
-            "stub_func": fn => {}
+            "declare": () => { },
+            "stub": fn => { },
+            "stub_func": fn => { }
         },
         "operator": {
             "declare": fn => {
