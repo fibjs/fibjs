@@ -225,6 +225,10 @@ describe('crypto', () => {
         assert.throws(() => {
             crypto.randomArt(data, "title", 0);
         });
+
+        assert.throws(() => {
+            crypto.randomArt(undefined, '', 1064203628);
+        });
     });
 
     describe('Cipher', () => {
