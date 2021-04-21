@@ -506,10 +506,10 @@ public:                                                                         
     {                                                                                      \
         return object_base::off(map, retVal);                                              \
     }                                                                                      \
-    virtual result_t removeAllListeners(exlib::string evs,                                 \
+    virtual result_t removeAllListeners(exlib::string ev,                                  \
         v8::Local<v8::Object>& retVal)                                                     \
     {                                                                                      \
-        return object_base::removeAllListeners(evs, retVal);                               \
+        return object_base::removeAllListeners(ev, retVal);                                \
     }                                                                                      \
     virtual result_t removeAllListeners(v8::Local<v8::Array> evs,                          \
         v8::Local<v8::Object>& retVal)                                                     \

@@ -84,9 +84,9 @@ result_t object_base::off(v8::Local<v8::Object> map, v8::Local<v8::Object>& retV
     return JSTrigger(this).off(map, retVal);
 }
 
-result_t object_base::removeAllListeners(exlib::string evs, v8::Local<v8::Object>& retVal)
+result_t object_base::removeAllListeners(exlib::string ev, v8::Local<v8::Object>& retVal)
 {
-    return JSTrigger(this).removeAllListeners(evs, retVal);
+    return JSTrigger(this).removeAllListeners(ev, retVal);
 }
 
 result_t object_base::removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::Object>& retVal)
