@@ -15,6 +15,8 @@ if(NOT "${CLEAN_BUILD}" STREQUAL "true")
             execute_process(WORKING_DIRECTORY ${BIN_PATH} COMMAND fibjs ${CMAKE_CURRENT_SOURCE_DIR}/gen_install.js)
             set(OUT_PATH "${WORK_ROOT}/out/${CMAKE_HOST_SYSTEM_NAME}_${BUILD_ARCH}_${BUILD_TYPE}")
             build("${CMAKE_CURRENT_SOURCE_DIR}" "${OUT_PATH}/installer")
+
+            execute_process(COMMAND dumpbin /dependents ${BIN_PATH}/fibjs.exe)
         else()
             execute_process(WORKING_DIRECTORY ${BIN_PATH} COMMAND ${CMAKE_COMMAND} -E tar -zcf fibjs.tar.gz fibjs)
             message("[100%] Built target fibjs.tar.gz")
