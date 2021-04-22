@@ -50,16 +50,16 @@ static char encode_digit(int32_t c)
     }
 }
 
-static char decode_digit(int32_t codePoint)
+static int32_t decode_digit(int32_t codePoint)
 {
-    if (codePoint - 0x30 < 0x0A)
-        return (char)(codePoint - 0x16);
+    if (codePoint >= 0x16 && codePoint - 0x30 < 0x0A)
+        return codePoint - 0x16;
 
-    if (codePoint - 0x41 < 0x1A)
-        return (char)(codePoint - 0x41);
+    if (codePoint >= 0x41 && codePoint - 0x41 < 0x1A)
+        return codePoint - 0x41;
 
-    if (codePoint - 0x61 < 0x1A)
-        return (char)(codePoint - 0x61);
+    if (codePoint >= 0x61 && codePoint - 0x61 < 0x1A)
+        return codePoint - 0x61;
 
     return BASE;
 };

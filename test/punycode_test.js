@@ -226,6 +226,10 @@ describe('punycode', function () {
     it("FIX: punycode.decode results in a floating point exception", () => {
         assert.equal(punycode.decode(""), "");
     });
+
+    it("FIX: punycode.decode results in a segmentation fault", () => {
+        punycode.decode('\u{f}}!>');
+    });
 });
 
 require.main === module && test.run(console.DEBUG);
