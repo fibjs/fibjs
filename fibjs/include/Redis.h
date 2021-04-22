@@ -216,7 +216,7 @@ public:
             sz = sprintf(numStr, "*%d\r\n", (int32_t)m_params.size() / 2);
 
             str.resize(sz + m_size);
-            p = &str[0];
+            p = str.c_buffer();
 
             memcpy(p, numStr, sz);
             p += sz;

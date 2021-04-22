@@ -162,7 +162,7 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
         ks.append(vs);
         ks.append(1, 0);
 
-        _envs[i] = &envStr[i][0];
+        _envs[i] = (char*)envStr[i].c_str();
     }
 
     _envs[i] = NULL;
@@ -187,7 +187,7 @@ result_t ChildProcess::fill_arg(exlib::string command, v8::Local<v8::Array> args
         if (hr < 0)
             return hr;
 
-        _args[i + 1] = &argStr[i][0];
+        _args[i + 1] = (char*)argStr[i].c_str();
     }
     _args[i + 1] = NULL;
 

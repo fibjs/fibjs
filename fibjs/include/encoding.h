@@ -28,6 +28,7 @@ inline void baseEncode(const char* pEncodingTable, size_t dwBits,
         dwSize = (sz + 4) / 5 * 8;
 
     retVal.resize(dwSize);
+    char* _retVal = retVal.c_buffer();
 
     for (i = 0; i < sz; i++) {
         dwData <<= 8;
@@ -35,16 +36,16 @@ inline void baseEncode(const char* pEncodingTable, size_t dwBits,
         bits += 8;
 
         while (bits >= dwBits) {
-            retVal[len++] = pEncodingTable[(dwData >> (bits - dwBits)) & bMask];
+            _retVal[len++] = pEncodingTable[(dwData >> (bits - dwBits)) & bMask];
             bits -= dwBits;
         }
     }
 
     if (bits)
-        retVal[len++] = pEncodingTable[(dwData << (dwBits - bits)) & bMask];
+        _retVal[len++] = pEncodingTable[(dwData << (dwBits - bits)) & bMask];
 
     while (len < dwSize)
-        retVal[len++] = '=';
+        _retVal[len++] = '=';
 
     retVal.resize(len);
 }
@@ -73,6 +74,7 @@ inline void baseDecode(const char* pdecodeTable, size_t dwBits,
     const char* end = _baseString + len;
 
     retVal.resize(len * dwBits / 8);
+    char* _retVal = retVal.c_buffer();
 
     size_t dwCurr = 0;
     size_t nBits = 0;
@@ -87,7 +89,7 @@ inline void baseDecode(const char* pdecodeTable, size_t dwBits,
             nBits += dwBits;
 
             while (nBits >= 8) {
-                retVal[nWritten++] = (char)(dwCurr >> (nBits - 8));
+                _retVal[nWritten++] = (char)(dwCurr >> (nBits - 8));
                 nBits -= 8;
             }
         }
@@ -138,10 +140,11 @@ inline result_t hexEncode(exlib::string data, exlib::string& retVal)
     size_t sz = data.length() * 2;
 
     retVal.resize(sz);
+    char* _retVal = retVal.c_buffer();
 
     for (i = 0; i < data.length(); i++) {
-        retVal[i * 2] = HexChar[(unsigned char)data[i] >> 4];
-        retVal[i * 2 + 1] = HexChar[(unsigned char)data[i] & 0xf];
+        _retVal[i * 2] = HexChar[(unsigned char)data[i] >> 4];
+        _retVal[i * 2 + 1] = HexChar[(unsigned char)data[i] & 0xf];
     }
 
     return 0;
@@ -169,9 +172,12 @@ inline result_t commonEncode(exlib::string codec, exlib::string data, exlib::str
 
             len = data.length();
             retVal.resize(len);
+
+            char* _retVal = retVal.c_buffer();
             const char* _data = data.c_str();
+
             for (i = 0; i < len; i++)
-                retVal[i] = _data[i] & 0x7f;
+                _retVal[i] = _data[i] & 0x7f;
 
             hr = 0;
         } else

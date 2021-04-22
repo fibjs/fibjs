@@ -58,7 +58,7 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     if (bytes > 0) {
         strBuf.resize(bytes);
         int32_t sz = bytes;
-        char* p = &strBuf[0];
+        char* p = strBuf.c_buffer();
 
         while (sz) {
             int32_t n = (int32_t)::_read(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
@@ -111,7 +111,7 @@ result_t File::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     if (bytes > 0) {
         strBuf.resize(bytes);
         int32_t sz = bytes;
-        char* p = &strBuf[0];
+        char* p = strBuf.c_buffer();
 
         while (sz) {
             int32_t n = (int32_t)::_read(m_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);

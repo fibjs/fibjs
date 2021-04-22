@@ -430,14 +430,15 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
             if (m_buf.empty())
                 m_buf.resize(m_bytes);
 
+            char* _buf = m_buf.c_buffer();
             do {
                 int32_t n;
 
                 if (m_family)
-                    n = (int32_t)::recv(m_sockfd, &m_buf[m_pos], m_buf.length() - m_pos,
+                    n = (int32_t)::recv(m_sockfd, _buf + m_pos, m_buf.length() - m_pos,
                         MSG_NOSIGNAL);
                 else
-                    n = (int32_t)::read(m_sockfd, &m_buf[m_pos], m_buf.length() - m_pos);
+                    n = (int32_t)::read(m_sockfd, _buf + m_pos, m_buf.length() - m_pos);
                 if (n == SOCKET_ERROR) {
                     int32_t nError = errno;
                     if (nError == ECONNRESET)

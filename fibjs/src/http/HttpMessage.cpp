@@ -61,7 +61,7 @@ public:
         m_strBuf = m_strCommand;
         m_strBuf.resize(sz + sz1 + 2 + m_body.length());
 
-        pBuf = &m_strBuf[sz];
+        pBuf = m_strBuf.c_buffer() + sz;
         *pBuf++ = '\r';
         *pBuf++ = '\n';
 
@@ -213,7 +213,7 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
 
                     if ((m_contentLength < 0)
                         || (m_pThis->m_maxBodySize >= 0
-                            && m_contentLength > m_pThis->m_maxBodySize * 1024 * 1024))
+                               && m_contentLength > m_pThis->m_maxBodySize * 1024 * 1024))
                         return CHECK_ERROR(Runtime::setError("HttpMessage: body is too huge."));
                 } else if (!qstricmp(m_strLine.c_str(),
                                "transfer-encoding:", 18)) {

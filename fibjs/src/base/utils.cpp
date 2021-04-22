@@ -16,7 +16,7 @@ static exlib::string fmtString(result_t hr, const char* str, int32_t len = -1)
         len = (int32_t)qstrlen(str);
 
     s.resize(len + 16);
-    s.resize(sprintf(&s[0], "[%d] %s", hr, str));
+    s.resize(sprintf(s.c_buffer(), "[%d] %s", hr, str));
 
     return s;
 }

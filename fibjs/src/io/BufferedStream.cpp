@@ -128,7 +128,7 @@ result_t BufferedStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
             if (m_pos == 0)
                 retVal = new Buffer(m_buf);
             else {
-                exlib::string s1(&m_buf[m_pos], n);
+                exlib::string s1(m_buf.substr(m_pos, n));
                 retVal = new Buffer(s1);
             }
             m_pos += n;
@@ -315,7 +315,7 @@ result_t BufferedStream::readUntil(exlib::string mk, int32_t maxlen,
 
             if (maxlen > 0
                 && ((int32_t)pThis->m_strbuf.size() + (pos - pThis->m_pos)
-                    > maxlen + mklen))
+                       > maxlen + mklen))
                 return CHECK_ERROR(CALL_E_INVALID_DATA);
 
             pThis->append(pos - pThis->m_pos);

@@ -213,7 +213,7 @@ void Url::parseHost(const char*& url, exlib::string& hostname, exlib::string& po
         hostname.assign(url, p1 - url);
 
     if (hostname.length() > 0) {
-        qstrlwr(&hostname[0]);
+        qstrlwr(hostname.c_buffer());
         punycode_base::toASCII(hostname, hostname);
     }
 
@@ -308,17 +308,18 @@ void Url::trimUrl(exlib::string url, exlib::string& retVal)
     int32_t lastPos = 0;
     int32_t i;
     bool isWs;
+    unsigned char* _url = (unsigned char*)url.c_buffer();
 
     bool inWs = false;
 
     for (i = 0; i < (int32_t)url.length(); i++) {
-        isWs = url[i] == 32 || url[i] == 9 || url[i] == 13 || url[i] == 10 || url[i] == 12;
+        isWs = _url[i] == 32 || _url[i] == 9 || _url[i] == 13 || _url[i] == 10 || _url[i] == 12;
 
-        if (*(unsigned char*)&url[i] == 0xc2 && *(unsigned char*)&url[i + 1] == 0xa0) {
+        if (_url[i] == 0xc2 && _url[i + 1] == 0xa0) {
             isWs = true;
             i++;
         }
-        if (*(unsigned char*)&url[i] == 239 && *(unsigned char*)&url[i + 1] == 187 && *(unsigned char*)&url[i + 2] == 191) {
+        if (_url[i] == 239 && _url[i + 1] == 187 && _url[i + 2] == 191) {
             isWs = true;
             i += 2;
         }
@@ -338,8 +339,8 @@ void Url::trimUrl(exlib::string url, exlib::string& retVal)
                 inWs = true;
             }
         }
-        if (url[i] == 92 && i - lastPos > 0)
-            url[i] = '/';
+        if (_url[i] == 92 && i - lastPos > 0)
+            _url[i] = '/';
     }
 
     if (start != -1) {
@@ -568,7 +569,7 @@ result_t Url::normalize()
     bool bRoot = false;
 
     str.resize(m_pathname.length());
-    pstr = &str[0];
+    pstr = str.c_buffer();
 
     if (isUrlSlash(p1[0])) {
         pstr[pos++] = URL_SLASH;
@@ -678,7 +679,7 @@ result_t Url::set_protocol(exlib::string newVal)
     m_protocol = newVal;
     m_defslashes = false;
     if (m_protocol.length() > 0) {
-        qstrlwr(&m_protocol[0]);
+        qstrlwr(m_protocol.c_buffer());
 
         if (m_protocol[m_protocol.length() - 1] != ':')
             m_protocol.append(1, ':');

@@ -124,7 +124,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
             }
 
             msgpack_pack_map(&pk, ka.size());
-            for (i = 0; i < ka.size(); i++) {
+            for (i = 0; i < (int32_t)ka.size(); i++) {
                 hr = pack(ka[i]);
                 if (hr < 0)
                     return hr;

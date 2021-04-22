@@ -558,9 +558,9 @@ result_t PKey::exportPem(exlib::string& retVal)
 
     buf.resize(mbedtls_pk_get_len(&m_key) * 8 + 128);
     if (priv)
-        ret = mbedtls_pk_write_key_pem(&m_key, (unsigned char*)&buf[0], buf.length());
+        ret = mbedtls_pk_write_key_pem(&m_key, (unsigned char*)buf.c_buffer(), buf.length());
     else
-        ret = mbedtls_pk_write_pubkey_pem(&m_key, (unsigned char*)&buf[0], buf.length());
+        ret = mbedtls_pk_write_pubkey_pem(&m_key, (unsigned char*)buf.c_buffer(), buf.length());
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
@@ -584,9 +584,9 @@ result_t PKey::exportDer(obj_ptr<Buffer_base>& retVal)
 
     buf.resize(8192);
     if (priv)
-        ret = mbedtls_pk_write_key_der(&m_key, (unsigned char*)&buf[0], buf.length());
+        ret = mbedtls_pk_write_key_der(&m_key, (unsigned char*)buf.c_buffer(), buf.length());
     else
-        ret = mbedtls_pk_write_pubkey_der(&m_key, (unsigned char*)&buf[0], buf.length());
+        ret = mbedtls_pk_write_pubkey_der(&m_key, (unsigned char*)buf.c_buffer(), buf.length());
     if (ret < 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
@@ -680,7 +680,7 @@ result_t PKey::encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
     output.resize(MBEDTLS_PREMASTER_SIZE);
 
     ret = mbedtls_pk_encrypt(&m_key, (const unsigned char*)str.c_str(), str.length(),
-        (unsigned char*)&output[0], &olen, output.length(),
+        (unsigned char*)output.c_buffer(), &olen, output.length(),
         mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
@@ -716,7 +716,7 @@ result_t PKey::decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
     output.resize(MBEDTLS_PREMASTER_SIZE * 2);
 
     ret = mbedtls_pk_decrypt(&m_key, (const unsigned char*)str.c_str(), str.length(),
-        (unsigned char*)&output[0], &olen, output.length(),
+        (unsigned char*)output.c_buffer(), &olen, output.length(),
         mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
@@ -754,7 +754,7 @@ result_t PKey::sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal
     //alg=0~9  see https://tls.mbed.org/api/md_8h.html  enum mbedtls_md_type_t
     ret = mbedtls_pk_sign(&m_key, (mbedtls_md_type_t)alg,
         (const unsigned char*)str.c_str(), str.length(),
-        (unsigned char*)&output[0], &olen,
+        (unsigned char*)output.c_buffer(), &olen,
         mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
@@ -781,9 +781,7 @@ result_t PKey::verify(Buffer_base* data, Buffer_base* sign,
     ret = mbedtls_pk_verify(&m_key, (mbedtls_md_type_t)alg,
         (const unsigned char*)str.c_str(), str.length(),
         (const unsigned char*)strsign.c_str(), strsign.length());
-    if (ret == MBEDTLS_ERR_ECP_VERIFY_FAILED || ret == MBEDTLS_ERR_RSA_VERIFY_FAILED ||
-        ret == MBEDTLS_ERR_SM2_BAD_SIGNATURE) 
-    {
+    if (ret == MBEDTLS_ERR_ECP_VERIFY_FAILED || ret == MBEDTLS_ERR_RSA_VERIFY_FAILED || ret == MBEDTLS_ERR_SM2_BAD_SIGNATURE) {
         retVal = false;
         return 0;
     }

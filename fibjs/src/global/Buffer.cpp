@@ -339,7 +339,7 @@ result_t Buffer::_indexed_setter(uint32_t index, int32_t newVal)
     else if (newVal > 255)
         newVal = newVal % 256;
 
-    m_data[index] = newVal;
+    m_data.c_buffer()[index] = newVal;
     return 0;
 }
 
@@ -364,7 +364,7 @@ result_t Buffer::resize(int32_t sz)
         return 0;
 
     if (sz > sz1 && isolate->m_safe_buffer)
-        memset(&m_data[sz1], 0, sz - sz1);
+        memset(m_data.c_buffer() + sz1, 0, sz - sz1);
 
     return 0;
 }
@@ -450,7 +450,7 @@ result_t Buffer::write(exlib::string str, int32_t offset, int32_t length, exlib:
         max_length = MIN(max_length, length);
 
     retVal = max_length;
-    memcpy(&m_data[offset], strBuf.c_str(), max_length);
+    memcpy(m_data.c_buffer() + offset, strBuf.c_str(), max_length);
     return 0;
 }
 
@@ -470,7 +470,7 @@ result_t Buffer::fill(int32_t v, int32_t offset, int32_t end, obj_ptr<Buffer_bas
     if (hr < 0)
         return CHECK_ERROR(hr);
 
-    memset(&m_data[offset], v & 255, end - offset);
+    memset(m_data.c_buffer() + offset, v & 255, end - offset);
 
     retVal = this;
     return 0;
@@ -489,8 +489,10 @@ result_t Buffer::fill(exlib::string v, int32_t offset, int32_t end, obj_ptr<Buff
         retVal = this;
         return 0;
     }
+
+    char* _data = m_data.c_buffer();
     while (length > 0) {
-        memcpy(&m_data[offset], v.c_str(), MIN(str_length, length));
+        memcpy(_data + offset, v.c_str(), MIN(str_length, length));
         length -= str_length;
         offset += str_length;
     }
@@ -514,8 +516,9 @@ result_t Buffer::fill(Buffer_base* v, int32_t offset, int32_t end, obj_ptr<Buffe
         return 0;
     }
 
+    char* _data = m_data.c_buffer();
     while (length > 0) {
-        memcpy(&m_data[offset], v_data->m_data.c_str(), MIN(v_length, length));
+        memcpy(_data + offset, v_data->m_data.c_str(), MIN(v_length, length));
         length -= v_length;
         offset += v_length;
     }
@@ -586,7 +589,7 @@ result_t Buffer::compare(Buffer_base* buf, int32_t& retVal)
     int32_t pos_length = (int32_t)m_data.length();
     int32_t neg_length = (int32_t)cmpdata->m_data.length();
 
-    retVal = memcmp(&m_data[0], cmpdata->m_data.c_str(), MIN(pos_length, neg_length));
+    retVal = memcmp(m_data.c_buffer(), cmpdata->m_data.c_str(), MIN(pos_length, neg_length));
     if (retVal)
         return 0;
 
@@ -620,7 +623,7 @@ result_t Buffer::copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t so
     int32_t sourceLen = sourceEnd - sourceStart;
     int32_t sz = MIN(MIN(sourceLen, targetSz), sourceSz);
 
-    memmove(&buf->m_data[targetStart], m_data.c_str() + sourceStart, sz);
+    memmove(buf->m_data.c_buffer() + targetStart, m_data.c_str() + sourceStart, sz);
 
     retVal = sz;
 
@@ -821,17 +824,19 @@ result_t Buffer::writeNumber(int32_t offset, const char* buf, int32_t size, bool
 
     retVal = sz + offset;
 
+    char* _data = m_data.c_buffer();
+
     if (size == 1) {
-        m_data[offset] = buf[0];
+        _data[offset] = buf[0];
         return 0;
     }
 
     if (le)
-        memcpy(&m_data[offset], buf, sz);
+        memcpy(_data + offset, buf, sz);
     else {
         int32_t i;
         for (i = 0; i < sz; i++)
-            m_data[offset + i] = buf[size - i - 1];
+            _data[offset + i] = buf[size - i - 1];
     }
 
     return 0;

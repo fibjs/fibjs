@@ -168,6 +168,7 @@ result_t hex_base::decode(exlib::string data,
     uint32_t ch1, ch2;
 
     strBuf.resize(len / 2);
+    char* _strBuf = strBuf.c_buffer();
 
     pos = 0;
     while ((ch1 = utf_getchar(_data, end)) != 0) {
@@ -187,7 +188,7 @@ result_t hex_base::decode(exlib::string data,
             ch1 = 0;
         }
 
-        strBuf[pos++] = (ch1 << 4) + ch2;
+        _strBuf[pos++] = (ch1 << 4) + ch2;
     }
 
     strBuf.resize(pos);

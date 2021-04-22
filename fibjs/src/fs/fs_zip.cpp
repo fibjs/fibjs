@@ -112,9 +112,12 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
         {
             int32_t sz = (int32_t)member1.length();
             const char* buf = member1.c_str();
+            char* _member = NULL;
             for (int32_t i = 0; i < sz; i++)
                 if (buf[i] == PATH_SLASH) {
-                    member[i] = '/';
+                    if (!_member)
+                        _member = member.c_buffer();
+                    _member[i] = '/';
                     bChanged = true;
                 }
         }

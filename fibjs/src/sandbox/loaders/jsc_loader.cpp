@@ -46,9 +46,10 @@ result_t JscLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::stri
     int32_t i;
 
     s_temp_source.resize(src_len);
+    char* _temp_source = s_temp_source.c_buffer();
 
     for (i = 0; i < src_len; i++)
-        s_temp_source[i] = '.';
+        _temp_source[i] = '.';
 
     code_len -= sizeof(int32_t);
     int32_t line_count = *(int32_t*)(code.c_str() + code_len);
@@ -62,7 +63,7 @@ result_t JscLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::stri
         pos += p[i];
         if (pos >= src_len)
             break;
-        s_temp_source[pos] = '\n';
+        _temp_source[pos] = '\n';
         pos++;
     }
 

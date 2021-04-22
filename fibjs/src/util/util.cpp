@@ -596,7 +596,7 @@ static result_t util_flatten(v8::Local<v8::Value> list, bool shallow,
             if (IsEmpty(v))
                 retVal->Set(cnt++, JSValue(o->Get(i)));
             else {
-                for (j = 0; j < flatten_list.size(); j++)
+                for (j = 0; j < (int32_t)flatten_list.size(); j++)
                     if (flatten_list[j]->StrictEquals(o1))
                         return CHECK_ERROR(Runtime::setError("util: circular reference object."));
 

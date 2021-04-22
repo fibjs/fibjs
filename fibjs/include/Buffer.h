@@ -120,7 +120,7 @@ public:
 
     char* data()
     {
-        return &m_data[0];
+        return m_data.c_buffer();
     }
 
     bool is_safe_codec(exlib::string codec);
@@ -141,6 +141,8 @@ public:
             exlib::string str;
 
             str.resize(sz);
+            char* _str = str.c_buffer();
+
             for (i = 0; i < sz; i++) {
                 JSValue v = datas->Get(i);
                 int32_t num;
@@ -149,7 +151,7 @@ public:
                 if (hr < 0)
                     return CHECK_ERROR(hr);
 
-                str[i] = (char)num;
+                _str[i] = (char)num;
             }
 
             extMemory((int32_t)sz);

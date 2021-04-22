@@ -24,8 +24,9 @@ result_t JsLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::strin
     const char* c_str = strScript.c_str();
 
     if (strScript.length() > 2 && c_str[0] == '#' && c_str[1] == '!') {
-        strScript[0] = '/';
-        strScript[1] = '/';
+        char* _strScript = strScript.c_buffer();
+        _strScript[0] = '/';
+        _strScript[1] = '/';
     }
 
     exlib::string src1 = arg_names + strScript + "\n});";

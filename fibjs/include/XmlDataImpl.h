@@ -156,7 +156,7 @@ public:
             return m_data;
 
         str.resize(sz1);
-        char* data1 = &str[0];
+        char* data1 = str.c_buffer();
 
         for (i = 0; i < sz; i++) {
             char ch;

@@ -64,10 +64,11 @@ public:
     {
         m_this->m_ioState.inc();
 
-        exlib::string buf = "  " + reason;
+        exlib::string buf;
 
-        buf[0] = (code >> 8) & 255;
-        buf[1] = code & 255;
+        buf.append(1, (code >> 8) & 255);
+        buf.append(1, code & 255);
+        buf.append(reason);
 
         obj_ptr<Buffer_base> data = new Buffer(buf);
 

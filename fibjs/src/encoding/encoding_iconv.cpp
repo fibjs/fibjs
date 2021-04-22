@@ -168,12 +168,12 @@ result_t encoding_iconv::encode(exlib::string data, exlib::string& retVal)
         || (m_charset == "utf16le") || (m_charset == "utf-16le")) {
         ssize_t n = utf_convert(data.c_str(), data.length(), (exlib::wchar*)NULL, 0);
         retVal.resize(n * sizeof(exlib::wchar));
-        utf_convert(data.c_str(), data.length(), (exlib::wchar*)&retVal[0], n);
+        utf_convert(data.c_str(), data.length(), (exlib::wchar*)retVal.c_buffer(), n);
     } else if ((m_charset == "ucs4") || (m_charset == "ucs-4")
         || (m_charset == "utf32le") || (m_charset == "utf-32le")) {
         ssize_t n = utf_convert(data.c_str(), data.length(), (exlib::wchar32*)NULL, 0);
         retVal.resize(n * sizeof(exlib::wchar32));
-        utf_convert(data.c_str(), data.length(), (exlib::wchar32*)&retVal[0], n);
+        utf_convert(data.c_str(), data.length(), (exlib::wchar32*)retVal.c_buffer(), n);
     } else {
         if (m_charset == "binary")
             m_charset = "latin1";
@@ -190,7 +190,7 @@ result_t encoding_iconv::encode(exlib::string data, exlib::string& retVal)
         size_t sz = data.length();
 
         retVal.resize(sz * 2);
-        char* output_buf = &retVal[0];
+        char* output_buf = retVal.c_buffer();
         size_t output_size = retVal.length();
 
         size_t n = _iconv((iconv_t)m_iconv_en, &_data, &sz, &output_buf, &output_size);
@@ -244,7 +244,7 @@ result_t encoding_iconv::decode(const exlib::string& data, exlib::string& retVal
         exlib::string strBuf;
 
         strBuf.resize(sz * 2);
-        char* output_buf = &strBuf[0];
+        char* output_buf = strBuf.c_buffer();
         size_t output_size = strBuf.length();
 
         size_t n = _iconv((iconv_t)m_iconv_de, &ptr, &sz, &output_buf, &output_size);

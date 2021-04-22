@@ -133,15 +133,17 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
                     else
                         s.resize(MAX_BUFFER_ITEM * 3 + 8 + 32);
 
-                    memcpy(&s[0], "<Buffer", 7);
+                    char* _s = s.c_buffer();
+
+                    memcpy(_s, "<Buffer", 7);
 
                     for (i = 0, p = 7; i < len; i++) {
                         if (i >= MAX_BUFFER_ITEM) {
                             int32_t cnt = len - i;
                             if (cnt > 1)
-                                p += sprintf(s.c_buffer() + p, " ... %d more bytes", cnt);
+                                p += sprintf(_s + p, " ... %d more bytes", cnt);
                             else {
-                                memcpy(s.c_buffer() + p, " ... 1 more byte", 16);
+                                memcpy(_s + p, " ... 1 more byte", 16);
                                 p += 16;
                             }
                             break;
@@ -149,12 +151,12 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
 
                         int32_t ch = (unsigned char)data[i];
 
-                        s[p++] = ' ';
-                        s[p++] = hexs[ch >> 4];
-                        s[p++] = hexs[ch & 0xf];
+                        _s[p++] = ' ';
+                        _s[p++] = hexs[ch >> 4];
+                        _s[p++] = hexs[ch & 0xf];
                     }
 
-                    s[p++] = '>';
+                    _s[p++] = '>';
                     s.resize(p);
 
                     strBuffer.append(s);

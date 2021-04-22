@@ -61,7 +61,7 @@ inline exlib::string _escape(const char* str, int32_t sz, bool mysql)
 
     retVal.resize(len);
 
-    bstr = &retVal[0];
+    bstr = retVal.c_buffer();
 
     for (src = str, l = sz; l > 0; l--) {
         ch = (unsigned char)*src++;

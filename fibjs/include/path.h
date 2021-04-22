@@ -53,7 +53,7 @@ public:
         if (qisascii(c_str[0]) && c_str[1] == ':') {
             diskId = c_str[0];
             m_buf = m_disks[diskId & 0x1f];
-            m_buf[0] = c_str[0];
+            m_buf.c_buffer()[0] = c_str[0];
             c_str += 2;
         }
 

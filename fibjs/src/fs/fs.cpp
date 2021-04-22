@@ -228,7 +228,7 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
     if (length > 0) {
         strBuf.resize(length);
         int32_t sz = length;
-        char* p = &strBuf[0];
+        char* p = strBuf.c_buffer();
 
         while (sz) {
             int32_t n = (int32_t)::_read(fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);

@@ -160,8 +160,9 @@ result_t WebSocketMessage::copy(Stream_base* from, Stream_base* to, int64_t byte
                 m_buf->toString(strBuffer);
 
                 n = (int32_t)strBuffer.length();
+                char* _strBuffer = strBuffer.c_buffer();
                 for (i = 0; i < n; i++)
-                    strBuffer[i] ^= mask[(m_copyed + i) & 3];
+                    _strBuffer[i] ^= mask[(m_copyed + i) & 3];
 
                 m_buf = new Buffer(strBuffer);
             }
@@ -443,7 +444,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncEvent
             }
 
             if (m_masked)
-                memcpy(&m_mask, &strBuffer[pos], 4);
+                memcpy(&m_mask, strBuffer.c_str() + pos, 4);
 
             return next(copy);
         }

@@ -200,7 +200,7 @@ result_t SslSocket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     public:
         virtual int32_t process()
         {
-            int32_t ret = mbedtls_ssl_read(&m_pThis->m_ssl, (unsigned char*)&m_buf[0], m_bytes);
+            int32_t ret = mbedtls_ssl_read(&m_pThis->m_ssl, (unsigned char*)m_buf.c_buffer(), m_bytes);
             if (ret > 0) {
                 m_buf.resize(ret);
                 m_retVal = new Buffer(m_buf);

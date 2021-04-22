@@ -117,6 +117,7 @@ result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal,
     exlib::string strBuf;
 
     strBuf.resize(size);
+    char* _strBuf = strBuf.c_buffer();
 
     mbedtls_havege_init(&hs);
 
@@ -127,7 +128,7 @@ result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal,
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
-        memcpy(&strBuf[i], buf, size - i > (int32_t)sizeof(buf) ? (int32_t)sizeof(buf) : size - i);
+        memcpy(&_strBuf[i], buf, size - i > (int32_t)sizeof(buf) ? (int32_t)sizeof(buf) : size - i);
     }
 
     if (t == time(NULL))
@@ -150,7 +151,7 @@ result_t crypto_base::simpleRandomBytes(int32_t size, obj_ptr<Buffer_base>& retV
     exlib::string strBuf;
 
     strBuf.resize(size);
-    char* ptr = &strBuf[0];
+    char* ptr = strBuf.c_buffer();
     int32_t i;
 
     for (i = 0; i < size; i++)
@@ -176,6 +177,7 @@ result_t crypto_base::pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base>& retV
     exlib::string strBuf;
 
     strBuf.resize(size);
+    char* _strBuf = strBuf.c_buffer();
 
     mbedtls_entropy_init(&entropy);
 
@@ -186,7 +188,7 @@ result_t crypto_base::pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base>& retV
             return CHECK_ERROR(_ssl::setError(ret));
         }
 
-        memcpy(&strBuf[i], buf, size - i > (int32_t)sizeof(buf) ? (int32_t)sizeof(buf) : size - i);
+        memcpy(&_strBuf[i], buf, size - i > (int32_t)sizeof(buf) ? (int32_t)sizeof(buf) : size - i);
     }
 
     mbedtls_entropy_free(&entropy);
@@ -416,7 +418,7 @@ result_t crypto_base::pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t i
     mbedtls_md_setup(&ctx, mbedtls_md_info_from_type((mbedtls_md_type_t)algo), 1);
     pkcs5_pbkdf1(&ctx, (const unsigned char*)str_pass.c_str(), str_pass.length(),
         (const unsigned char*)str_salt.c_str(), str_salt.length(),
-        iterations, size, (unsigned char*)&str_key[0]);
+        iterations, size, (unsigned char*)str_key.c_buffer());
     mbedtls_md_free(&ctx);
 
     retVal = new Buffer(str_key);
@@ -466,7 +468,7 @@ result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t i
     mbedtls_md_setup(&ctx, mbedtls_md_info_from_type((mbedtls_md_type_t)algo), 1);
     mbedtls_pkcs5_pbkdf2_hmac(&ctx, (const unsigned char*)str_pass.c_str(), str_pass.length(),
         (const unsigned char*)str_salt.c_str(), str_salt.length(),
-        iterations, size, (unsigned char*)&str_key[0]);
+        iterations, size, (unsigned char*)str_key.c_buffer());
     mbedtls_md_free(&ctx);
 
     retVal = new Buffer(str_key);

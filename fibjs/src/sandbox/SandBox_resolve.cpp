@@ -263,9 +263,13 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
             exlib::string fname1 = fname;
             int32_t sz = (int32_t)fname1.length();
             const char* buf = fname1.c_str();
+            char* _fname = NULL;
             for (int32_t i = 0; i < sz; i++)
-                if (buf[i] == PATH_SLASH)
-                    fname[i] = '/';
+                if (buf[i] == PATH_SLASH) {
+                    if (!_fname)
+                        _fname = fname.c_buffer();
+                    _fname[i] = '/';
+                }
         }
 #endif
 

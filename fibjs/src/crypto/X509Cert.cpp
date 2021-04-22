@@ -368,7 +368,7 @@ result_t X509Cert::dump(bool pem, v8::Local<v8::Array>& retVal)
                 buf.resize(pCert->raw.len * 2 + 64);
                 ret = mbedtls_pem_write_buffer(PEM_BEGIN_CRT, PEM_END_CRT,
                     pCert->raw.p, pCert->raw.len,
-                    (unsigned char*)&buf[0], buf.length(), &olen);
+                    (unsigned char*)buf.c_buffer(), buf.length(), &olen);
                 if (ret != 0)
                     return CHECK_ERROR(_ssl::setError(ret));
 
@@ -437,7 +437,7 @@ result_t X509Cert::get_serial(exlib::string& retVal)
     retVal.resize(8192);
     size_t sz = retVal.length();
 
-    ret = mbedtls_mpi_write_string(&serial, 10, &retVal[0], sz, &sz);
+    ret = mbedtls_mpi_write_string(&serial, 10, retVal.c_buffer(), sz, &sz);
     mbedtls_mpi_free(&serial);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
@@ -458,7 +458,7 @@ result_t X509Cert::get_issuer(exlib::string& retVal)
 
     buf.resize(1024);
 
-    ret = mbedtls_x509_dn_gets(&buf[0], buf.length(), &crt->issuer);
+    ret = mbedtls_x509_dn_gets(buf.c_buffer(), buf.length(), &crt->issuer);
     if (ret < 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
@@ -479,7 +479,7 @@ result_t X509Cert::get_subject(exlib::string& retVal)
 
     buf.resize(1024);
 
-    ret = mbedtls_x509_dn_gets(&buf[0], buf.length(), &crt->subject);
+    ret = mbedtls_x509_dn_gets(buf.c_buffer(), buf.length(), &crt->subject);
     if (ret < 0)
         return CHECK_ERROR(_ssl::setError(ret));
 

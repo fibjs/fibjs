@@ -317,6 +317,7 @@ result_t punycode_base::toUnicode(exlib::string domain, exlib::string& retVal)
 
     p.getLeft(left);
     length = left.length();
+    const char* _left = left.c_str();
     for (size_t i = 0; i < length; i++) {
         if (left[i] == '\x2E' || i + 1 == length) {
             if (i + 1 == length) {
@@ -324,7 +325,7 @@ result_t punycode_base::toUnicode(exlib::string domain, exlib::string& retVal)
                 finished = true;
             }
 
-            if (qstrcmp(&left[p1], "xn--", 4) == 0) {
+            if (qstrcmp(_left + p1, "xn--", 4) == 0) {
                 str = left.substr(p1 + 4, i - p1 - 4);
                 str.tolower();
                 hr = decode(str, str);

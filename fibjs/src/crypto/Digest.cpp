@@ -68,9 +68,9 @@ result_t Digest::digest(exlib::string codec, v8::Local<v8::Value>& retVal)
     strBuf.resize(mbedtls_md_get_size(m_ctx.md_info));
 
     if (m_bMac)
-        mbedtls_md_hmac_finish(&m_ctx, (unsigned char*)&strBuf[0]);
+        mbedtls_md_hmac_finish(&m_ctx, (unsigned char*)strBuf.c_buffer());
     else
-        mbedtls_md_finish(&m_ctx, (unsigned char*)&strBuf[0]);
+        mbedtls_md_finish(&m_ctx, (unsigned char*)strBuf.c_buffer());
 
     m_iAlgo = -1;
     mbedtls_md_hmac_reset(&m_ctx);
