@@ -108,6 +108,21 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
                 s.append(1, 'm');
 
             strBuffer.append(color_string(COLOR_RED, s, color));
+        } else if (v->IsPromise()) {
+            strBuffer.append(color_string(COLOR_CYAN, "[Promise]", color));
+        } else if (v->IsNativeError()) {
+            v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
+            exlib::string s(ToCString(v8::String::Utf8Value(isolate->m_isolate, JSValue(obj->Get(isolate->NewString("stack"))))));
+            strBuffer.append(color_string(COLOR_LIGHTRED, s, color));
+        } else if (v->IsFunction()) {
+            exlib::string s("[Function");
+            v8::String::Utf8Value n(isolate->m_isolate, v8::Local<v8::Function>::Cast(v)->GetName());
+
+            if (n.length()) {
+                s.append(1, ' ');
+                s.append(*n, n.length());
+            }
+            strBuffer.append(color_string(COLOR_CYAN, s + ']', color));
         } else if (v->IsSymbol()) {
             exlib::string s("Symbol(");
 
@@ -123,12 +138,6 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
         } else if (v->IsObject()) {
             do {
                 v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
-
-                if (obj->IsNativeError()) {
-                    exlib::string s(ToCString(v8::String::Utf8Value(isolate->m_isolate, JSValue(obj->Get(isolate->NewString("stack"))))));
-                    strBuffer.append(color_string(COLOR_LIGHTRED, s, color));
-                    break;
-                }
 
                 obj_ptr<Buffer_base> buf = Buffer_base::getInstance(v);
                 if (buf) {
@@ -178,23 +187,6 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
                 JSArray keys = obj->GetPropertyNames();
                 if (keys.IsEmpty()) {
                     strBuffer.append("{}");
-                    break;
-                }
-
-                if (v->IsFunction() && keys->Length() == 0) {
-                    exlib::string s("[Function");
-                    v8::String::Utf8Value n(isolate->m_isolate, v8::Local<v8::Function>::Cast(v)->GetName());
-
-                    if (n.length()) {
-                        s.append(1, ' ');
-                        s.append(*n, n.length());
-                    }
-                    strBuffer.append(color_string(COLOR_CYAN, s + ']', color));
-                    break;
-                }
-
-                if (v->IsPromise()) {
-                    strBuffer.append(color_string(COLOR_CYAN, "[Promise]", color));
                     break;
                 }
 
@@ -256,7 +248,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
                         strBuffer.append("[]");
                     else {
                         if (sz >= MAX_OBJECT_LEVEL) {
-                            strBuffer.append(color_string(COLOR_CYAN, "[Array]", color));
+                            strBuffer.append(color_string(COLOR_CYAN, "[TypedArray]", color));
                             break;
                         }
 
