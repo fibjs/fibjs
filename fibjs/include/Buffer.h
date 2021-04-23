@@ -43,6 +43,7 @@ public:
     // Buffer_base
     virtual result_t _indexed_getter(uint32_t index, int32_t& retVal);
     virtual result_t _indexed_setter(uint32_t index, int32_t newVal);
+    virtual result_t symbol_iterator(obj_ptr<Iterator_base>& retVal);
     virtual result_t get_length(int32_t& retVal);
     virtual result_t resize(int32_t sz);
     virtual result_t append(Buffer_base* data);

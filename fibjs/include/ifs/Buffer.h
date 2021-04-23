@@ -48,6 +48,7 @@ public:
     static result_t isEncoding(exlib::string codec, bool& retVal);
     virtual result_t _indexed_getter(uint32_t index, int32_t& retVal) = 0;
     virtual result_t _indexed_setter(uint32_t index, int32_t newVal) = 0;
+    virtual result_t symbol_iterator(obj_ptr<Iterator_base>& retVal) = 0;
     virtual result_t get_length(int32_t& retVal) = 0;
     virtual result_t resize(int32_t sz) = 0;
     virtual result_t append(Buffer_base* data) = 0;
@@ -136,6 +137,7 @@ public:
     static void s_static_isEncoding(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_symbol_iterator(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_length(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_resize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_append(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -214,6 +216,7 @@ inline ClassInfo& Buffer_base::class_info()
         { "compare", s_compare, false },
         { "compare", s_static_compare, true },
         { "isEncoding", s_static_isEncoding, true },
+        { "@iterator", s_symbol_iterator, false },
         { "resize", s_resize, false },
         { "append", s_append, false },
         { "write", s_write, false },
@@ -601,6 +604,21 @@ inline void Buffer_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> va
     hr = pInst->_indexed_setter(index, v0);
 
     METHOD_VOID();
+}
+
+inline void Buffer_base::s_symbol_iterator(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Iterator_base> vr;
+
+    METHOD_NAME("Buffer.@iterator");
+    METHOD_INSTANCE(Buffer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->symbol_iterator(vr);
+
+    METHOD_RETURN();
 }
 
 inline void Buffer_base::s_get_length(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)

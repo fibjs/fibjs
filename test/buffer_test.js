@@ -347,6 +347,26 @@ describe('Buffer', () => {
         assert.equal(Buffer.isEncoding('big5'), true);
     });
 
+    it('@iterator', () => {
+        var buf1 = new Buffer("buffer");
+        var buf2 = new Buffer([98, 117, 102, 102, 101, 114]);
+        var correctResult = [98, 117, 102, 102, 101, 114];
+        var values1 = [];
+        var values2 = [];
+        for (let value of buf1[Symbol.iterator]()) {
+            values1.push(value);
+        }
+        assert.deepEqual(values1, correctResult);
+
+        for (let value of buf2[Symbol.iterator]()) {
+            values2.push(value);
+        }
+        assert.deepEqual(values2, correctResult);
+
+        var it = buf1[Symbol.iterator]();
+        assert.equal(it, it[Symbol.iterator]());
+    });
+
     it('keys', () => {
         var buf1 = new Buffer("buffer");
         var buf2 = new Buffer([98, 117, 102, 102, 101, 114]);

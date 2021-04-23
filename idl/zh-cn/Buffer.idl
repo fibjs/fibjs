@@ -162,6 +162,11 @@ interface Buffer : object
     /*! @brief 缓存对象可使用下标直接访问二进制数据*/
     Integer operator[];
 
+    /*! @brief 查询当前对象元素的迭代器
+     @return 返回当前对象元素的迭代器
+    */
+    Iterator @iterator();
+
     /*! @brief 获取缓存对象的尺寸 */
     readonly Integer length;
 

@@ -343,6 +343,11 @@ result_t Buffer::_indexed_setter(uint32_t index, int32_t newVal)
     return 0;
 }
 
+result_t Buffer::symbol_iterator(obj_ptr<Iterator_base>& retVal)
+{
+    return values(retVal);
+}
+
 result_t Buffer::get_length(int32_t& retVal)
 {
     retVal = (int32_t)m_data.length();
