@@ -166,6 +166,17 @@ public:
         return true;
     }
 
+    v8::Local<v8::Name> get_prop_name(Isolate* isolate, const char* name)
+    {
+        if (name[0] != '@')
+            return isolate->NewString(name);
+
+        if (!qstrcmp("iterator", name + 1))
+            return v8::Symbol::GetIterator(isolate->m_isolate);
+
+        return isolate->NewString(name);
+    }
+
     bool has(const char* name)
     {
         int32_t i;
@@ -209,7 +220,7 @@ public:
                         ;
 
                 if (!skips || !skips[j])
-                    o->Set(isolate->NewString(m_cd.cms[i].name),
+                    o->Set(get_prop_name(isolate, m_cd.cms[i].name),
                         isolate->NewFunction(m_cd.cms[i].name, m_cd.cms[i].invoker));
             }
         }
@@ -231,7 +242,7 @@ public:
                         ;
 
                 if (!skips || !skips[j])
-                    o->SetAccessor(_context, isolate->NewString(m_cd.cps[i].name),
+                    o->SetAccessor(_context, get_prop_name(isolate, m_cd.cps[i].name),
                          m_cd.cps[i].getter, m_cd.cps[i].setter)
                         .ToChecked();
             }
@@ -336,12 +347,12 @@ private:
 
             for (i = 0; i < m_cd.mc; i++)
                 if (!m_cd.cms[i].is_static)
-                    pt->Set(isolate->NewString(m_cd.cms[i].name),
+                    pt->Set(get_prop_name(isolate, m_cd.cms[i].name),
                         v8::FunctionTemplate::New(isolate->m_isolate, m_cd.cms[i].invoker));
 
             for (i = 0; i < m_cd.pc; i++)
                 if (!m_cd.cps[i].is_static)
-                    pt->SetAccessor(isolate->NewString(m_cd.cps[i].name),
+                    pt->SetAccessor(get_prop_name(isolate, m_cd.cps[i].name),
                         m_cd.cps[i].getter, m_cd.cps[i].setter,
                         v8::Local<v8::Value>(), v8::DEFAULT, v8::DontDelete);
 

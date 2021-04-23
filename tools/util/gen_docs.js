@@ -88,7 +88,7 @@ module.exports = function (defs, docsFolder) {
 
             t = t.replace(re, function (u) {
                 urls.push(u);
-                return `[u_r_l::${urls.length-1}]`;
+                return `[u_r_l::${urls.length - 1}]`;
             });
 
             t = t.replace(/(\w+)(\.(\w+))?/g, function (k, k1, k2, k3) {
@@ -226,7 +226,7 @@ module.exports = function (defs, docsFolder) {
                             } else if (m.memType == 'operator')
                                 lines.push('operator' + m.name.replace(/\[|\]/g, s => `\\${s}`));
                             else
-                                lines.push(m.name + (m.memType == 'method' ? '()' : ''));
+                                lines.push(m.symbol + m.name + (m.memType == 'method' ? '()' : ''));
                         }
                     }
                 });
@@ -241,8 +241,8 @@ module.exports = function (defs, docsFolder) {
                     return m.memType == 'method' && m.name == n;
                 });
 
-                member_output('下标操作', function (m) {
-                    return m.memType == 'operator';
+                member_output('操作符', function (m) {
+                    return m.memType == 'operator' || m.symbol;
                 });
 
                 member_output('对象', function (m) {
@@ -250,11 +250,11 @@ module.exports = function (defs, docsFolder) {
                 });
 
                 member_output('静态函数', function (m, n) {
-                    return m.memType == 'method' && m.name !== n && m.static;
+                    return m.memType == 'method' && m.name !== n && m.static && !m.symbol;
                 });
 
                 member_output('静态属性', function (m) {
-                    return m.memType == 'prop' && m.static;
+                    return m.memType == 'prop' && m.static && !m.symbol;
                 });
 
                 member_output('常量', function (m) {
@@ -262,11 +262,11 @@ module.exports = function (defs, docsFolder) {
                 });
 
                 member_output('成员属性', function (m) {
-                    return m.memType == 'prop' && !m.static;
+                    return m.memType == 'prop' && !m.static && !m.symbol;
                 });
 
                 member_output('成员函数', function (m, n) {
-                    return m.memType == 'method' && m.name !== n && !m.static;
+                    return m.memType == 'method' && m.name !== n && !m.static && !m.symbol;
                 });
 
                 txts.push(lines.join(';'));

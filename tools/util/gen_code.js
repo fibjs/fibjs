@@ -240,7 +240,7 @@ function gen_code(cls, def, baseFolder) {
 
                     if (ov.type) txts.push(`    ${get_rtype(ov.type)} vr;\n`);
 
-                    txts.push(`    METHOD_NAME("${cls}.${ov.name}");`);
+                    txts.push(`    METHOD_NAME("${cls}.${ov.symbol}${ov.name}");`);
                     txts.push(`    METHOD_ENTER();\n`);
                     make_ov_params(static_ovs);
 
@@ -258,7 +258,7 @@ function gen_code(cls, def, baseFolder) {
 
                     if (ov.type) txts.push(`    ${get_rtype(ov.type)} vr;\n`);
 
-                    txts.push(`    METHOD_NAME("${cls}.${ov.name}");`);
+                    txts.push(`    METHOD_NAME("${cls}.${ov.symbol}${ov.name}");`);
                     txts.push(`    METHOD_INSTANCE(${cls}_base);`);
                     txts.push(`    METHOD_ENTER();\n`);
                     make_ov_params(inst_mem_ovs);
@@ -321,13 +321,13 @@ function gen_code(cls, def, baseFolder) {
 
                 txts.push(`inline void ${cls}_base::${get_stub_func_prefix(fn, def)}get_${get_name(fname, fn, def)}(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)\n{\n    ${get_rtype(fn.type)} vr;\n`);
 
-                txts.push(`    METHOD_NAME("${cls}.${fname}");`);
+                txts.push(`    METHOD_NAME("${cls}.${fn.symbol}${fname}");`);
                 if (!fstatic)
                     txts.push(`    METHOD_INSTANCE(${cls}_base);`);
                 txts.push(`    PROPERTY_ENTER();\n`);
 
                 if (fn.deprecated)
-                    txts.push(`    DEPRECATED_SOON("${cls}.${fname}");\n`);
+                    txts.push(`    DEPRECATED_SOON("${cls}.${fn.symbol}${fname}");\n`);
 
                 if (fstatic)
                     txts.push(`    hr = get_${get_name(fname, fn, def)}(vr);\n`);
@@ -337,13 +337,13 @@ function gen_code(cls, def, baseFolder) {
 
                 if (!fn.readonly) {
                     txts.push(`inline void ${cls}_base::${get_stub_func_prefix(fn, def)}set_${get_name(fname, fn, def)}(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)\n{`);
-                    txts.push(`    METHOD_NAME("${cls}.${fname}");`);
+                    txts.push(`    METHOD_NAME("${cls}.${fn.symbol}${fname}");`);
                     if (!fstatic)
                         txts.push(`    METHOD_INSTANCE(${cls}_base);`);
                     txts.push(`    PROPERTY_ENTER();\n    PROPERTY_VAL(${get_rtype(fn.type)});\n`);
 
                     if (fn.deprecated)
-                        txts.push(`    DEPRECATED_SOON("${cls}.${fname}");\n`);
+                        txts.push(`    DEPRECATED_SOON("${cls}.${fn.symbol}${fname}");\n`);
 
                     if (fstatic)
                         txts.push(`    hr = set_${get_name(fname, fn, def)}(v0);\n`);
@@ -550,6 +550,8 @@ function gen_code(cls, def, baseFolder) {
         if (fn.static) return base
         if (is_func_Function(fn, def)) return base
         if (is_func_new(fn, def)) return base
+        if (fn.symbol)
+            return `symbol_${base}`;
 
         return base
     }
@@ -807,9 +809,9 @@ function gen_code(cls, def, baseFolder) {
                     if (recorder_insts.isRecorded(ov.name)) return;
 
                     if (ov.memType == "method") {
-                        deflist.push(`        { "${fname}", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, false }`);
+                        deflist.push(`        { "${fn.symbol}${fname}", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, false }`);
                         if (ov.async)
-                            deflist.push(`        { "${fname}Sync", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, false }`);
+                            deflist.push(`        { "${fn.symbol}${fname}Sync", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, false }`);
 
                         recorder_insts.record(ov.name);
                     }
@@ -820,9 +822,9 @@ function gen_code(cls, def, baseFolder) {
                     if (recorder_statics.isRecorded(ov.name)) return;
 
                     if (ov.memType == "method") {
-                        deflist.push(`        { "${fname}", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, true }`);
+                        deflist.push(`        { "${fn.symbol}${fname}", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, true }`);
                         if (ov.async)
-                            deflist.push(`        { "${fname}Sync", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, true }`);
+                            deflist.push(`        { "${fn.symbol}${fname}Sync", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, true }`);
 
                         recorder_statics.record(ov.name);
                     }
@@ -860,7 +862,7 @@ function gen_code(cls, def, baseFolder) {
                 if (fn.memType == 'prop') {
                     var fname = fn.name;
                     deflist.push([
-                        `        { "${fname}", ${get_stub_func_prefix(fn, def)}get_${get_name(fname, fn, def)}, `,
+                        `        { "${fn.symbol}${fname}", ${get_stub_func_prefix(fn, def)}get_${get_name(fname, fn, def)}, `,
                         `${fn.readonly ? `block_set` : (`${get_stub_func_prefix(fn, def)}set_` + get_name(fname, fn, def))}, `,
                         `${fn.static ? `true` : `false`} }`
                     ].join(''));

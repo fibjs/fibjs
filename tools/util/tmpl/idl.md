@@ -48,8 +48,8 @@ function member_output(title, test){
          if(!has){
              has = true;%>## <%-title%>
         <%}else{%>--------------------------<%}
-        if(last_member != m.name && m.memType !== 'operator'){%>
-### <%-m.name%><%
+        if(last_member != m.name){%>
+### <%-m.memType == 'operator'?'operator':''%><%-m.symbol+m.name%><%
 last_member = m.name;
 }%>
 **<%-m.doc.descript%>**
@@ -58,7 +58,7 @@ last_member = m.name;
 if(m.static){%><%-m.static%> <%}
 if(m.readonly){%><%-m.readonly%> <%}
 if(m.type){%><%-m.type%> <%}
-%><%-declare.name == m.name ? ' new ' : declare.name + (m.memType !== 'operator' ? '.' : '')%><%-m.name%><%
+%><%-declare.name == m.name ? ' new ' : declare.name + (m.memType !== 'operator' ? '.' + m.symbol : '')%><%-m.name%><%
 if(m.memType == 'method'){
     var ps = '';
 
@@ -91,8 +91,8 @@ if(m.memType == 'method'){
         return m.memType == 'method' && m.name == n;
     });
 
-    member_output('下标操作', function(m){
-        return m.memType == 'operator';
+    member_output('操作符', function(m){
+        return m.memType == 'operator' || m.symbol;
     });
 
     member_output('对象', function(m){
@@ -100,11 +100,11 @@ if(m.memType == 'method'){
     });
 
     member_output('静态函数', function(m, n){
-        return m.memType == 'method' && m.name !== n && m.static;
+        return m.memType == 'method' && m.name !== n && m.static && !m.symbol;
     });
 
     member_output('静态属性', function(m){
-        return m.memType == 'prop' && m.static;
+        return m.memType == 'prop' && m.static && !m.symbol;
     });
 
     member_output('常量', function(m){
@@ -112,11 +112,11 @@ if(m.memType == 'method'){
     });
 
     member_output('成员属性', function(m){
-        return m.memType == 'prop' && !m.static;
+        return m.memType == 'prop' && !m.static && !m.symbol;
     });
 
     member_output('成员函数', function(m, n){
-        return m.memType == 'method' && m.name !== n && !m.static;
+        return m.memType == 'method' && m.name !== n && !m.static && !m.symbol;
     });
 
 %>

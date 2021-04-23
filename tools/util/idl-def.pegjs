@@ -52,19 +52,21 @@ constMember
       comments: comments.join(""),
       deprecated: deprecated,
       const: constMode,
+      symbol: '',
       name: name,
       default: def
     };
   }
 
 prop
-  = comments:_* deprecated:deprecatedToken? _* staticMode:staticToken? _* readonly:readonlyToken? _* type:Identifier _* name:Identifier _* ";" {
+  = comments:_* deprecated:deprecatedToken? _* staticMode:staticToken? _* readonly:readonlyToken? _* type:Identifier _* symbol:"@"? name:Identifier _* ";" {
     return {
       memType: "prop",
       comments: comments.join(""),
       deprecated: deprecated,
       static: staticMode,
       readonly: readonly,
+      symbol: symbol ? '@' : '',
       name: name,
       type: type
     };
@@ -77,6 +79,7 @@ operator
       comments: comments.join(""),
       deprecated: deprecated,
       readonly: readonly,
+      symbol: '',
       name: index ? "[String]" : "[]",
       type: type,
       index: index
@@ -89,6 +92,7 @@ object
       memType: "object",
       comments: comments.join(""),
       deprecated: deprecated,
+      symbol: '',
       name: name,
       type: type,
       newable: true
@@ -101,31 +105,34 @@ object1
       memType: "object",
       comments: comments.join(""),
       deprecated: deprecated,
+      symbol: '',
       name: type,
       type: type
     };
   }
 
 method
-  = comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken? _* name:Identifier _* "(" params:params? _* ")" _* async:asyncToken? ";" {
+  = comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken? _* symbol:"@"? name:Identifier _* "(" params:params? _* ")" _* async:asyncToken? ";" {
     return {
       memType: "method",
       comments: comments.join(""),
       deprecated: deprecated,
       static: staticMode,
       async: async,
+      symbol: symbol ? '@' : '',
       name: name,
       type: null,
       params: params
     };
   }
-  / comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken? _* type:method_type _* name:Identifier _* "(" params:params? _* ")" _* async:asyncToken? ";" {
+  / comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken? _* type:method_type _* symbol:"@"? name:Identifier _* "(" params:params? _* ")" _* async:asyncToken? ";" {
     return {
       memType: "method",
       comments: comments.join(""),
       deprecated: deprecated,
       static: staticMode,
       async: async,
+      symbol: symbol ? '@' : '',
       name: name,
       type: type,
       params: params

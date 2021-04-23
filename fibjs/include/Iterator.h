@@ -20,15 +20,16 @@ public:
         , m_index(0)
         , m_done(false)
     {
-        v8::Local<v8::Object> o = wrap();
-        Isolate* isolate = holder();
-
-        o->Set(v8::Symbol::GetIterator(isolate->m_isolate),
-            isolate->NewFunction("Iterator", s_static_iterator, o));
     }
 
 public:
     // Iterator_base
+    virtual result_t symbol_iterator(obj_ptr<Iterator_base>& retVal)
+    {
+        retVal = this;
+        return 0;
+    }
+
     virtual result_t next(obj_ptr<NextType>& retVal)
     {
         retVal = new NextType();
@@ -44,12 +45,6 @@ public:
             retVal->done = false;
 
         return 0;
-    }
-
-private:
-    static void s_static_iterator(const v8::FunctionCallbackInfo<v8::Value>& args)
-    {
-        args.GetReturnValue().Set(args.Data());
     }
 
 private:
