@@ -108,6 +108,18 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
                 s.append(1, 'm');
 
             strBuffer.append(color_string(COLOR_RED, s, color));
+        } else if (v->IsSymbol()) {
+            exlib::string s("Symbol(");
+
+            v8::Local<v8::Symbol> _symbol = v8::Local<v8::Symbol>::Cast(v);
+            v8::Local<v8::Value> _name = _symbol->Name();
+
+            if (!_name->IsUndefined()) {
+                v8::String::Utf8Value n(isolate->m_isolate, _name);
+                s.append(*n, n.length());
+            }
+
+            strBuffer.append(color_string(COLOR_GREEN, s + ')', color));
         } else if (v->IsObject()) {
             do {
                 v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);

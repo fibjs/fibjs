@@ -1100,6 +1100,11 @@ describe('util', () => {
             assert.equal(util.format(util.format), "[Function format]");
         });
 
+        it("Symbol", () => {
+            assert.equal(util.format(Symbol()), 'Symbol()');
+            assert.equal(util.format(Symbol('debug')), 'Symbol(debug)');
+        });
+
         it("Error", () => {
             var e = new Error;
             assert.equal(util.format(e), e.stack);
