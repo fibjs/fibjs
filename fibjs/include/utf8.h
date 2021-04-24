@@ -24,18 +24,10 @@ ssize_t utf_putchar(exlib::wchar32 ch, exlib::wchar*& dst, const exlib::wchar* e
 exlib::wchar32 utf_getchar(const exlib::wchar32*& src, const exlib::wchar32* end);
 ssize_t utf_putchar(exlib::wchar32 ch, exlib::wchar32*& dst, const exlib::wchar32* end);
 
-template <typename T1, typename T2>
-inline ssize_t utf_convert(const T1* src, ssize_t srclen, T2* dst, ssize_t dstlen)
-{
-    ssize_t count = 0;
-    const T1* src_end = src + srclen;
-    const T2* dst_end = dst + dstlen;
-
-    while (src < src_end)
-        count += utf_putchar(utf_getchar(src, src_end), dst, dst_end);
-
-    return count;
-}
+ssize_t utf_convert(const char* src, ssize_t srclen, exlib::wchar* dst, ssize_t dstlen);
+ssize_t utf_convert(const exlib::wchar* src, ssize_t srclen, char* dst, ssize_t dstlen);
+ssize_t utf_convert(const char* src, ssize_t srclen, exlib::wchar32* dst, ssize_t dstlen);
+ssize_t utf_convert(const exlib::wchar32* src, ssize_t srclen, char* dst, ssize_t dstlen);
 
 inline ssize_t utf8_strlen(const char* src, ssize_t srclen)
 {
