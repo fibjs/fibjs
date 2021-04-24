@@ -22,7 +22,7 @@ public:
 
     ~ExtStringW()
     {
-        m_isolate->AdjustAmountOfExternalAllocatedMemory(-m_buffer.length() * 2);
+        m_isolate->AdjustAmountOfExternalAllocatedMemory(-(int64_t)m_buffer.length() * 2);
     }
 
 public:
@@ -57,7 +57,7 @@ public:
 
     ~ExtString()
     {
-        m_isolate->AdjustAmountOfExternalAllocatedMemory(-m_buffer.length());
+        m_isolate->AdjustAmountOfExternalAllocatedMemory(-(int64_t)m_buffer.length());
     }
 
 public:
