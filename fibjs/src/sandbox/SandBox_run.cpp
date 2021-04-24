@@ -29,15 +29,27 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
         opt_tools[i].getDate(bin);
     } else {
         bool isAbs;
+        exlib::string rname;
 
         path_base::isAbsolute(fname, isAbs);
-        if (!isAbs)
-            return CHECK_ERROR(Runtime::setError("SandBox: Invalid file name."));
-        path_base::normalize(fname, fname);
+        if (!isAbs) {
+            rname = fname;
+            os_resolve(fname);
+        } else
+            path_base::normalize(fname, fname);
 
         hr = resolveFile(fname, bin, NULL);
-        if (hr < 0)
-            return hr;
+        if (hr < 0) {
+            if (isAbs)
+                return hr;
+
+            fname = "node_modules/.bin/" + rname;
+            os_resolve(fname);
+
+            hr = resolveFile(fname, bin, NULL);
+            if (hr < 0)
+                return hr;
+        }
     }
 
     obj_ptr<ExtLoader> l;

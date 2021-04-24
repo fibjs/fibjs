@@ -132,12 +132,7 @@ void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), v8::Pl
                 createBasisForFiberLoop(m_get_platform);
 
                 if (pos < argc) {
-                    if (argv[pos][0] == '-')
-                        m_fibjsEntry = argv[pos];
-                    else {
-                        m_fibjsEntry = s_root;
-                        resolvePath(m_fibjsEntry, argv[pos]);
-                    }
+                    m_fibjsEntry = argv[pos];
 
                     if (pos != 1) {
                         int32_t p = 1;
