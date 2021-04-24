@@ -392,6 +392,8 @@ result_t os_base::memoryUsage(v8::Local<v8::Object>& retVal)
         v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.total_heap_size()));
     info->Set(isolate->NewString("heapUsed"),
         v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.used_heap_size()));
+    info->Set(isolate->NewString("external"),
+        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.external_memory()));
 
     v8::Local<v8::Object> objs;
     object_base::class_info().dump(objs);
