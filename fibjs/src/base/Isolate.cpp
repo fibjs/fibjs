@@ -11,16 +11,6 @@
 
 namespace fibjs {
 
-v8::Local<v8::String> NewString(v8::Isolate* isolate, const char* data, ssize_t length)
-{
-    if (length > INT_MAX) {
-        ThrowResult(CALL_E_OVERFLOW);
-        return v8::Local<v8::String>();
-    }
-
-    return v8::String::NewFromUtf8(isolate, data, v8::String::kNormalString, (int32_t)length);
-}
-
 void Isolate::get_stdin(obj_ptr<Stream_base>& retVal)
 {
     if (!m_stdin) {

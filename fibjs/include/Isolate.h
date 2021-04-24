@@ -15,11 +15,7 @@
 namespace fibjs {
 
 v8::Local<v8::String> NewString(v8::Isolate* isolate, const char* data, ssize_t length = -1);
-
-inline v8::Local<v8::String> NewString(v8::Isolate* isolate, exlib::string str)
-{
-    return NewString(isolate, str.c_str(), str.length());
-}
+v8::Local<v8::String> NewString(v8::Isolate* isolate, exlib::string str);
 
 class SandBox;
 class JSFiber;

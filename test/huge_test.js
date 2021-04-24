@@ -2,6 +2,7 @@ var test = require("test");
 test.setup();
 
 var base32 = require('base32');
+var hex = require('hex');
 var util = require('util');
 
 describe('huge buffer', () => {
@@ -27,6 +28,13 @@ describe('huge buffer', () => {
         buf = global.Buffer.alloc(1498850885);
         buf.values();
     });
+
+    it("FIX: huge string transfer between fibjs and v8", () => {
+        var s = hex.encode(502045304);
+        var s1 = util.format(s);
+        var s2 = util.format(s1);
+        assert.equal(s2.length, 1004090608);
+    })
 });
 
 require.main === module && test.run(console.DEBUG);

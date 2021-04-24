@@ -579,37 +579,7 @@ public:                                                  \
     ((TYPE*)((char*)(ptr)-offsetof(TYPE, MEMBER)))
 #endif
 
-inline result_t GetArgumentValue(v8::Local<v8::Value> v, exlib::string& n, bool bStrict = false)
-{
-    if (v.IsEmpty())
-        return CALL_E_TYPEMISMATCH;
-
-    v8::Local<v8::String> str;
-
-    Isolate* isolate = Isolate::current();
-    if (!isolate)
-        return CALL_E_JAVASCRIPT;
-
-    if (v->IsString())
-        str = v8::Local<v8::String>::Cast(v);
-    else if (v->IsStringObject())
-        str = v8::Local<v8::StringObject>::Cast(v)->ValueOf();
-    else if (!bStrict)
-        str = v->ToString(isolate->m_isolate);
-    else
-        return CALL_E_TYPEMISMATCH;
-
-    if (str.IsEmpty())
-        return CALL_E_JAVASCRIPT;
-
-    int32_t bufUtf8Len = str->Utf8Length(isolate->m_isolate);
-    n.resize(bufUtf8Len);
-    int flags = v8::String::HINT_MANY_WRITES_EXPECTED | v8::String::NO_NULL_TERMINATION;
-
-    str->WriteUtf8(isolate->m_isolate, n.c_buffer(), bufUtf8Len, NULL, flags);
-
-    return 0;
-}
+result_t GetArgumentValue(v8::Local<v8::Value> v, exlib::string& n, bool bStrict = false);
 
 inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, double& n, bool bStrict = false)
 {
