@@ -7,6 +7,7 @@
 
 #include "object.h"
 #include "Isolate.h"
+#include <limits.h>
 
 namespace fibjs {
 
