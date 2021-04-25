@@ -48,8 +48,8 @@ interface HttpClient : object
     Integer sslVerification;
 
     /*! @brief 设定缺省客户端证书
-    @param crt X509Cert 证书，用于客户端验证服务器
-    @param key PKey 私钥，用于与客户端会话
+    @param crt 证书，用于发送给服务器验证客户端
+    @param key 私钥，用于与客户端会话
    */
     setClientCert(X509Cert crt, PKey key);
 

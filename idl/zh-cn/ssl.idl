@@ -52,22 +52,22 @@ module ssl
 
     /*! @brief 创建一个 SslSocket 对象并建立连接
     @param url 指定连接的协议，可以是：ssl://host:port
-    @param crt X509Cert 证书，用于客户端验证服务器
-    @param key PKey 私钥，用于与客户端会话
+    @param crt 证书，用于发送给服务器验证客户端
+    @param key 私钥，用于与客户端会话
     @param timeout 指定超时时间，单位是毫秒，默认为0
     @return 返回连接成功的 SslSocket 对象
    */
     static Stream connect(String url, X509Cert crt, PKey key, Integer timeout = 0) async;
 
     /*! @brief 设定缺省客户端证书
-    @param crt X509Cert 证书，用于客户端验证服务器
-    @param key PKey 私钥，用于与客户端会话
+    @param crt 证书，用于发送给服务器验证客户端
+    @param key 私钥，用于与客户端会话
    */
     static setClientCert(X509Cert crt, PKey key);
 
     /*! @brief 从文件中加载缺省客户端证书
-    @param crtFile X509Cert 证书文件，用于客户端验证服务器
-    @param keyFile PKey 私钥文件，用于与客户端会话
+    @param crtFile 证书文件，用于客户端验证服务器
+    @param keyFile 私钥文件，用于与客户端会话
     @param password 解密密码
    */
     static loadClientCertFile(String crtFile, String keyFile, String password = "");
