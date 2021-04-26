@@ -430,8 +430,9 @@ result_t SslSocket::connect(Stream_base* s, exlib::string server_name,
     int32_t ret;
     m_s = s;
 
+    X509Cert_base* ca = ac->isolate()->m_ca;
     if (!m_ca)
-        m_ca = g_ssl.ca();
+        m_ca = (X509Cert*)ca;
 
     mbedtls_ssl_conf_ca_chain(&m_ssl_conf, &m_ca->m_crt, NULL);
 

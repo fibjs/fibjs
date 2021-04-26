@@ -42,7 +42,7 @@ var ca_pem = ca.dump()[0];
 function del(f) {
     try {
         fs.unlink(f);
-    } catch (e) {}
+    } catch (e) { }
 }
 
 describe('ssl', () => {
@@ -329,6 +329,12 @@ describe('ssl', () => {
             coroutine.sleep(100);
 
         s2.close();
+    });
+
+    it("bugfix: crash on verify ssl.ca", () => {
+        for (var i = 0; i < 1000; i++) {
+            ssl.ca.verify(ssl.ca);
+        }
     });
 });
 

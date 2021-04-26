@@ -23,6 +23,7 @@ class HttpClient;
 class LruCache;
 class Stream_base;
 class ValueHolder;
+class X509Cert_base;
 
 class Isolate : public exlib::linkitem {
 public:
@@ -165,6 +166,8 @@ public:
     bool m_enable_FileSystem;
     bool m_safe_buffer;
     int32_t m_max_buffer_size;
+
+    obj_ptr<X509Cert_base> m_ca;
 
 public:
     void get_stdin(obj_ptr<Stream_base>& retVal);
