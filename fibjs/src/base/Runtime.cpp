@@ -13,6 +13,7 @@
 #include "Fiber.h"
 #include "SandBox.h"
 #include "HttpClient.h"
+#include "X509Cert.h"
 #include "console.h"
 #include "LruCache.h"
 #include "EventEmitter.h"
@@ -270,6 +271,7 @@ Isolate::Isolate(exlib::string jsFilename)
     , m_enable_FileSystem(true)
     , m_safe_buffer(false)
     , m_max_buffer_size(-1)
+    , m_ca(new X509Cert())
 {
     m_fname = jsFilename;
 
