@@ -82,6 +82,10 @@ result_t os_base::arch(exlib::string& retVal)
     retVal = "arm";
 #elif defined(arm64)
     retVal = "arm64";
+#elif defined(mips)
+    retVal = "mips";
+#elif defined(mips64)
+    retVal = "mips64";
 #endif
 
     return 0;
