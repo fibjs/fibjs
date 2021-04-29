@@ -420,7 +420,8 @@ describe("child_process", () => {
 
         it("umask()", () => {
             const mask = '0664';
-            assert.equal(process.umask(), 0);
+            const unmask = process.umask();
+            assert.equal(0o777 & ~unmask, 0o755);
 
             const old = process.umask(mask);
             assert.equal(parseInt(mask, 8), process.umask(old));

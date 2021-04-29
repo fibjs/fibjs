@@ -16,11 +16,12 @@ var isWin32 = process.platform === 'win32';
 function rmdir(pathname) {
     try {
         fs.rmdir(pathname);
-    } catch (e) {}
+    } catch (e) { }
 }
 
 var pathname = 'test_dir' + vmid;
 var pathname1 = 'test1_dir' + vmid;
+var pathname2 = 'test2_dir' + vmid;
 
 var win = require("os").type() == "Windows";
 var linux = require("os").type() == "Linux";
@@ -56,7 +57,7 @@ describe('fs', () => {
     after(() => {
         try {
             fs.unlink(path.join(__dirname, 'unzip_test.zip'));
-        } catch (e) {}
+        } catch (e) { }
     });
 
     describe("stat", () => {
@@ -187,13 +188,27 @@ describe('fs', () => {
     });
 
     it("mkdir", () => {
-        fs.mkdir(pathname, 511);
+        fs.mkdir(pathname);
         assert.equal(fs.exists(pathname), true);
 
         if (!win) {
             var st = fs.stat(pathname);
-            assert.equal(st.mode & 511, 511);
+            assert.equal(st.mode & 0o777, 0o755);
         }
+    });
+
+    it("mkdir with fstat mode", () => {
+        const mode = 0o511;
+        fs.mkdir(pathname2, mode);
+        assert.equal(fs.exists(pathname2), true);
+
+        if (!win) {
+            var st = fs.stat(pathname2);
+            assert.equal(st.mode & 0o777, mode);
+        }
+
+        fs.rmdir(pathname2);
+        assert.equal(fs.exists(pathname2), false);
     });
 
     it("rename", () => {
@@ -261,7 +276,7 @@ describe('fs', () => {
             var fn = path.join(__dirname, 'fs_test.js.symlink');
             try {
                 fs.unlink(fn);
-            } catch (e) {}
+            } catch (e) { }
 
             fs.symlink(path.join(__dirname, 'fs_test.js'), fn);
             fs.lchmod(fn, 511);
