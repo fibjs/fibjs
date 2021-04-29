@@ -1335,4 +1335,15 @@ private:
     JSFiber* m_fb;
     const char* m_name;
 };
+
+inline bool is_big_endian()
+{
+#if defined(mips) || defined(mips64)
+    return true;
+#elif defined(amd64) || defined(i386) || defined(arm) || defined(arm64)
+    return false;
+#else
+#error "Unknown arch."
+#endif
+}
 }

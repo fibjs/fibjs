@@ -1,6 +1,10 @@
 var test = require("test");
 test.setup();
 
+var os = require("os");
+
+var is_big_endian = os.endianness() === 'BE';
+
 describe('Buffer', () => {
     it("buffer module", () => {
         assert.equal(require('buffer'), Buffer);
@@ -68,7 +72,7 @@ describe('Buffer', () => {
         var buf = new Buffer(arr.buffer);
 
         assert.equal(buf.length, 4);
-        assert.equal(buf.hex(), "8813a00f");
+        assert.equal(buf.hex(), is_big_endian ? "13880fa0" : "8813a00f");
     });
 
     it('new Buffer(ArrayBufferView)', () => {
@@ -167,7 +171,24 @@ describe('Buffer', () => {
         assert.deepEqual(Buffer.from('__--_--_--__', 'base64'),
             Buffer.from(expected));
 
-        ['ucs2', 'ucs-2', 'utf16le', 'utf-16le'].forEach((encoding) => {
+        ['ucs2', 'ucs-2'].forEach((encoding) => {
+            {
+                // Test for proper UTF16LE encoding, length should be 8
+                const f = Buffer.from('über', encoding);
+                assert.deepEqual(f, is_big_endian ? Buffer.from([0, 252, 0, 98, 0, 101, 0, 114]) : Buffer.from([252, 0, 98, 0, 101, 0, 114, 0]));
+            }
+
+            {
+                // Length should be 12
+                const f = Buffer.from('привет', encoding);
+                assert.deepEqual(
+                    f, is_big_endian ? Buffer.from([4, 63, 4, 64, 4, 56, 4, 50, 4, 53, 4, 66]) : Buffer.from([63, 4, 64, 4, 56, 4, 50, 4, 53, 4, 66, 4])
+                );
+                assert.strictEqual(f.toString(encoding), 'привет');
+            }
+        });
+
+        ['utf16le', 'utf-16le'].forEach((encoding) => {
             {
                 // Test for proper UTF16LE encoding, length should be 8
                 const f = Buffer.from('über', encoding);
@@ -182,14 +203,6 @@ describe('Buffer', () => {
                 );
                 assert.strictEqual(f.toString(encoding), 'привет');
             }
-            // todo fix the half char write case
-            //             {
-            //                 const f = Buffer.from([0, 0, 0, 0, 0]);
-            //                 assert.strictEqual(f.length, 5);
-            //                 const size = f.write('あいうえお', encoding);
-            //                 assert.strictEqual(size, 4);
-            //                 assert.deepEqual(f, Buffer.from([0x42, 0x30, 0x44, 0x30, 0x00]));
-            //             }
         });
     });
 
@@ -218,7 +231,7 @@ describe('Buffer', () => {
         var buf = Buffer.from(arr.buffer);
 
         assert.equal(buf.length, 4);
-        assert.equal(buf.hex(), "8813a00f");
+        assert.equal(buf.hex(), is_big_endian ? "13880fa0" : "8813a00f");
     });
 
     it('Buffer.from(Buffer)', () => {
@@ -667,9 +680,6 @@ describe('Buffer', () => {
         assert.equal(buf.readUInt16BE(), 9026);
         assert.equal(buf.readUInt16LE(), 16931);
 
-        assert.equal(buf.readUInt16BE(1, true), 16896);
-        assert.equal(buf.readUInt16LE(1, true), 66);
-
         assert.throws(() => {
             buf.readUInt16BE(1);
         });
@@ -753,14 +763,6 @@ describe('Buffer', () => {
 
         assert.equal(buf.writeUInt16BE(9026n, 0), 2);
         assert.equal(buf.readUInt16BE(), 9026);
-
-        buf[1] = 0x00;
-        assert.equal(buf.writeUInt16BE(16896, 1, true), 2);
-        assert.equal(buf[1], 0x42);
-
-        buf[1] = 0x00;
-        assert.equal(buf.writeUInt16LE(66, 1, true), 2);
-        assert.equal(buf[1], 0x42);
 
         assert.equal(buf.length, 2);
 

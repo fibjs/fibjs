@@ -104,14 +104,7 @@ result_t os_base::get_EOL(exlib::string& retVal)
 
 result_t os_base::endianness(exlib::string& retVal)
 {
-    const union {
-        uint8_t u8[2];
-        uint16_t u16;
-    } u = {
-        { 1, 0 }
-    };
-
-    retVal = u.u16 == 1 ? "LE" : "BE";
+    retVal = is_big_endian() ? "BE" : "LE";
     return 0;
 }
 

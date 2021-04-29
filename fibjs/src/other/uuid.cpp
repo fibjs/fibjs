@@ -121,7 +121,7 @@ result_t uuid_base::snowflake(obj_ptr<Buffer_base>& retVal)
     obj_ptr<Buffer> data = new Buffer();
     data->resize(8);
     int32_t sz;
-    data->writeInt64BE(tm, 0, true, sz);
+    data->writeInt64BE(tm, 0, sz);
 
     retVal = data;
 

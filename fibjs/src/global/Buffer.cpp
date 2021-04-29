@@ -646,319 +646,326 @@ result_t Buffer::set(Buffer_base* src, int32_t start, int32_t& retVal)
     return src->copy(this, start, 0, -1, retVal);
 }
 
-result_t Buffer::readNumber(int32_t offset, char* buf, int32_t size, bool noAssert, bool le)
+result_t Buffer::readNumber(int32_t offset, char* buf, int32_t size,
+    int32_t value_size, bool le)
 {
-    int32_t sz = size;
+    size_t data_len = m_data.length();
 
-    if (offset < 0 || (size_t)offset > m_data.length())
+    if (offset < 0 || (size_t)offset > data_len)
         return CHECK_ERROR(CALL_E_OUTRANGE);
 
-    if (offset + sz > (int32_t)m_data.length()) {
-        if (!noAssert)
-            return CHECK_ERROR(CALL_E_OUTRANGE);
+    if (offset + size > (int32_t)data_len)
+        return CHECK_ERROR(CALL_E_OUTRANGE);
 
-        sz = (int32_t)m_data.length() - offset;
-        if (sz <= 0)
-            return 0;
-    }
+    const char* _data = m_data.c_str() + offset;
 
     if (size == 1) {
-        buf[0] = *(m_data.c_str() + offset);
+        buf[0] = *_data;
         return 0;
     }
 
-    if (le)
-        memcpy(buf, m_data.c_str() + offset, sz);
-    else {
-        int32_t i;
-        for (i = 0; i < sz; i++)
-            buf[size - i - 1] = *(m_data.c_str() + offset + i);
+    if (is_big_endian()) {
+        if (!le)
+            memcpy(buf + value_size - size, _data, size);
+        else {
+            int32_t i;
+            for (i = 0; i < size; i++)
+                buf[value_size - i - 1] = _data[i];
+        }
+    } else {
+        if (le)
+            memcpy(buf, _data, size);
+        else {
+            int32_t i;
+            for (i = 0; i < size; i++)
+                buf[size - i - 1] = _data[i];
+        }
     }
 
     return 0;
 }
 
-#define READ_NUMBER(t, le)                                                \
-    t v = 0;                                                              \
-    result_t hr = readNumber(offset, (char*)&v, sizeof(v), noAssert, le); \
-    if (hr < 0)                                                           \
-        return hr;                                                        \
-    retVal = v;                                                           \
+#define READ_NUMBER(t, le)                                                 \
+    t v = 0;                                                               \
+    result_t hr = readNumber(offset, (char*)&v, sizeof(v), sizeof(v), le); \
+    if (hr < 0)                                                            \
+        return hr;                                                         \
+    retVal = v;                                                            \
     return 0;
 
-#define READ_U_NUMBER_48(t, sz, le)                                \
-    if (sz <= 0 || sz > 8)                                         \
-        return CALL_E_INVALIDARG;                                  \
-    t v = 0;                                                       \
-    result_t hr = readNumber(offset, (char*)&v, sz, noAssert, le); \
-    if (hr < 0)                                                    \
-        return hr;                                                 \
-    retVal = v;                                                    \
+#define READ_U_NUMBER_48(t, sz, le)                                 \
+    if (sz <= 0 || sz > 8)                                          \
+        return CALL_E_INVALIDARG;                                   \
+    t v = 0;                                                        \
+    result_t hr = readNumber(offset, (char*)&v, sz, sizeof(v), le); \
+    if (hr < 0)                                                     \
+        return hr;                                                  \
+    retVal = v;                                                     \
     return 0;
 
-#define READ_NUMBER_48(t, sz, le)                                  \
-    if (sz <= 0 || sz > 8)                                         \
-        return CALL_E_INVALIDARG;                                  \
-    t v = 0;                                                       \
-    result_t hr = readNumber(offset, (char*)&v, sz, noAssert, le); \
-    if (hr < 0)                                                    \
-        return hr;                                                 \
-    if ((sz < 8) && (v & (((t)1) << (8 * sz - 1))))                \
-        v |= ((t)-1) << (8 * sz);                                  \
-    retVal = v;                                                    \
+#define READ_NUMBER_48(t, sz, le)                                   \
+    if (sz <= 0 || sz > 8)                                          \
+        return CALL_E_INVALIDARG;                                   \
+    t v = 0;                                                        \
+    result_t hr = readNumber(offset, (char*)&v, sz, sizeof(v), le); \
+    if (hr < 0)                                                     \
+        return hr;                                                  \
+    if ((sz < 8) && (v & (((t)1) << (8 * sz - 1))))                 \
+        v |= ((t)-1) << (8 * sz);                                   \
+    retVal = v;                                                     \
     return 0;
 
-result_t Buffer::readUInt8(int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::readUInt8(int32_t offset, int32_t& retVal)
 {
     READ_NUMBER(uint8_t, true);
 }
 
-result_t Buffer::readUInt16LE(int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::readUInt16LE(int32_t offset, int32_t& retVal)
 {
     READ_NUMBER(uint16_t, true);
 }
 
-result_t Buffer::readUInt16BE(int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::readUInt16BE(int32_t offset, int32_t& retVal)
 {
     READ_NUMBER(uint16_t, false);
 }
 
-result_t Buffer::readUInt32LE(int32_t offset, bool noAssert, int64_t& retVal)
+result_t Buffer::readUInt32LE(int32_t offset, int64_t& retVal)
 {
     READ_NUMBER(uint32_t, true);
 }
 
-result_t Buffer::readUInt32BE(int32_t offset, bool noAssert, int64_t& retVal)
+result_t Buffer::readUInt32BE(int32_t offset, int64_t& retVal)
 {
     READ_NUMBER(uint32_t, false);
 }
 
-result_t Buffer::readUIntLE(int32_t offset, int32_t byteLength, bool noAssert, int64_t& retVal)
+result_t Buffer::readUIntLE(int32_t offset, int32_t byteLength, int64_t& retVal)
 {
     READ_U_NUMBER_48(uint64_t, byteLength, true);
 }
 
-result_t Buffer::readUIntBE(int32_t offset, int32_t byteLength, bool noAssert, int64_t& retVal)
+result_t Buffer::readUIntBE(int32_t offset, int32_t byteLength, int64_t& retVal)
 {
     READ_U_NUMBER_48(uint64_t, byteLength, false);
 }
 
-result_t Buffer::readInt8(int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::readInt8(int32_t offset, int32_t& retVal)
 {
     READ_NUMBER(int8_t, true);
 }
 
-result_t Buffer::readInt16LE(int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::readInt16LE(int32_t offset, int32_t& retVal)
 {
     READ_NUMBER(int16_t, true);
 }
 
-result_t Buffer::readInt16BE(int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::readInt16BE(int32_t offset, int32_t& retVal)
 {
     READ_NUMBER(int16_t, false);
 }
 
-result_t Buffer::readInt32LE(int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::readInt32LE(int32_t offset, int32_t& retVal)
 {
     READ_NUMBER(int32_t, true);
 }
 
-result_t Buffer::readInt32BE(int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::readInt32BE(int32_t offset, int32_t& retVal)
 {
     READ_NUMBER(int32_t, false);
 }
 
-result_t Buffer::readIntLE(int32_t offset, int32_t byteLength, bool noAssert, int64_t& retVal)
+result_t Buffer::readIntLE(int32_t offset, int32_t byteLength, int64_t& retVal)
 {
     READ_NUMBER_48(int64_t, byteLength, true);
 }
 
-result_t Buffer::readIntBE(int32_t offset, int32_t byteLength, bool noAssert, int64_t& retVal)
+result_t Buffer::readIntBE(int32_t offset, int32_t byteLength, int64_t& retVal)
 {
     READ_NUMBER_48(int64_t, byteLength, false);
 }
 
-result_t Buffer::readInt64LE(int32_t offset, bool noAssert, int64_t& retVal)
+result_t Buffer::readInt64LE(int32_t offset, int64_t& retVal)
 {
     READ_NUMBER(int64_t, true);
 }
 
-result_t Buffer::readInt64BE(int32_t offset, bool noAssert, int64_t& retVal)
+result_t Buffer::readInt64BE(int32_t offset, int64_t& retVal)
 {
     READ_NUMBER(int64_t, false);
 }
 
-result_t Buffer::readFloatLE(int32_t offset, bool noAssert, double& retVal)
+result_t Buffer::readFloatLE(int32_t offset, double& retVal)
 {
     READ_NUMBER(float, true);
 }
 
-result_t Buffer::readFloatBE(int32_t offset, bool noAssert, double& retVal)
+result_t Buffer::readFloatBE(int32_t offset, double& retVal)
 {
     READ_NUMBER(float, false);
 }
 
-result_t Buffer::readDoubleLE(int32_t offset, bool noAssert, double& retVal)
+result_t Buffer::readDoubleLE(int32_t offset, double& retVal)
 {
     READ_NUMBER(double, true);
 }
 
-result_t Buffer::readDoubleBE(int32_t offset, bool noAssert, double& retVal)
+result_t Buffer::readDoubleBE(int32_t offset, double& retVal)
 {
     READ_NUMBER(double, false);
 }
 
-result_t Buffer::writeNumber(int32_t offset, const char* buf, int32_t size, bool noAssert,
-    bool le, int32_t& retVal)
+result_t Buffer::writeNumber(int32_t offset, const char* buf, int32_t size,
+    int32_t value_size, bool le, int32_t& retVal)
 {
-    int32_t sz = size;
-
     if (offset < 0 || (size_t)offset > m_data.length())
         return CHECK_ERROR(CALL_E_OUTRANGE);
 
-    if (offset + sz > (int32_t)m_data.length()) {
-        if (!noAssert)
-            return CHECK_ERROR(CALL_E_OUTRANGE);
+    if (offset + size > (int32_t)m_data.length())
+        return CHECK_ERROR(CALL_E_OUTRANGE);
 
-        sz = (int32_t)m_data.length() - offset;
-        if (sz <= 0) {
-            retVal = offset;
-            return 0;
-        }
-    }
+    retVal = size + offset;
 
-    retVal = sz + offset;
-
-    char* _data = m_data.c_buffer();
+    char* _data = m_data.c_buffer() + offset;
 
     if (size == 1) {
-        _data[offset] = buf[0];
+        _data[0] = buf[0];
         return 0;
     }
 
-    if (le)
-        memcpy(_data + offset, buf, sz);
-    else {
-        int32_t i;
-        for (i = 0; i < sz; i++)
-            _data[offset + i] = buf[size - i - 1];
+    if (is_big_endian()) {
+        if (!le)
+            memcpy(_data, buf + value_size - size, size);
+        else {
+            int32_t i;
+            for (i = 0; i < size; i++)
+                _data[i] = buf[value_size - i - 1];
+        }
+    } else {
+        if (le)
+            memcpy(_data, buf, size);
+        else {
+            int32_t i;
+            for (i = 0; i < size; i++)
+                _data[i] = buf[size - i - 1];
+        }
     }
 
     return 0;
 }
 
-#define WRITE_NUMBER(t, le)                                                        \
-    t v = (t)value;                                                                \
-    result_t hr = writeNumber(offset, (char*)&v, sizeof(v), noAssert, le, retVal); \
-    if (hr < 0)                                                                    \
-        return hr;                                                                 \
+#define WRITE_NUMBER(t, le)                                                         \
+    t v = (t)value;                                                                 \
+    result_t hr = writeNumber(offset, (char*)&v, sizeof(v), sizeof(v), le, retVal); \
+    if (hr < 0)                                                                     \
+        return hr;                                                                  \
     return 0;
 
-#define WRITE_NUMBER_48(t, sz, le)                                          \
-    if (sz <= 0 || sz > 8)                                                  \
-        return CALL_E_INVALIDARG;                                           \
-    t v = (t)value;                                                         \
-    result_t hr = writeNumber(offset, (char*)&v, sz, noAssert, le, retVal); \
-    if (hr < 0)                                                             \
-        return hr;                                                          \
+#define WRITE_NUMBER_48(t, sz, le)                                           \
+    if (sz <= 0 || sz > 8)                                                   \
+        return CALL_E_INVALIDARG;                                            \
+    t v = (t)value;                                                          \
+    result_t hr = writeNumber(offset, (char*)&v, sz, sizeof(v), le, retVal); \
+    if (hr < 0)                                                              \
+        return hr;                                                           \
     return 0;
 
-result_t Buffer::writeUInt8(int32_t value, int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::writeUInt8(int32_t value, int32_t offset, int32_t& retVal)
 {
     WRITE_NUMBER(uint8_t, true);
 }
 
-result_t Buffer::writeUInt16LE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::writeUInt16LE(int32_t value, int32_t offset, int32_t& retVal)
 {
     WRITE_NUMBER(uint16_t, true);
 }
 
-result_t Buffer::writeUInt16BE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::writeUInt16BE(int32_t value, int32_t offset, int32_t& retVal)
 {
     WRITE_NUMBER(uint16_t, false);
 }
 
-result_t Buffer::writeUInt32LE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::writeUInt32LE(int64_t value, int32_t offset, int32_t& retVal)
 {
     WRITE_NUMBER(uint32_t, true);
 }
 
-result_t Buffer::writeUInt32BE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::writeUInt32BE(int64_t value, int32_t offset, int32_t& retVal)
 {
     WRITE_NUMBER(uint32_t, false);
 }
 
-result_t Buffer::writeUIntLE(int64_t value, int32_t offset, int32_t byteLength, bool noAssert, int32_t& retVal)
+result_t Buffer::writeUIntLE(int64_t value, int32_t offset, int32_t byteLength, int32_t& retVal)
 {
     WRITE_NUMBER_48(uint64_t, byteLength, true);
 }
 
-result_t Buffer::writeUIntBE(int64_t value, int32_t offset, int32_t byteLength, bool noAssert, int32_t& retVal)
+result_t Buffer::writeUIntBE(int64_t value, int32_t offset, int32_t byteLength, int32_t& retVal)
 {
     WRITE_NUMBER_48(uint64_t, byteLength, false);
 }
 
-result_t Buffer::writeInt8(int32_t value, int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::writeInt8(int32_t value, int32_t offset, int32_t& retVal)
 {
     WRITE_NUMBER(int8_t, true);
 }
 
-result_t Buffer::writeInt16LE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::writeInt16LE(int32_t value, int32_t offset, int32_t& retVal)
 {
     WRITE_NUMBER(int16_t, true);
 }
 
-result_t Buffer::writeInt16BE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::writeInt16BE(int32_t value, int32_t offset, int32_t& retVal)
 {
     WRITE_NUMBER(int16_t, false);
 }
 
-result_t Buffer::writeInt32LE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::writeInt32LE(int32_t value, int32_t offset, int32_t& retVal)
 {
     WRITE_NUMBER(int32_t, true);
 }
 
-result_t Buffer::writeInt32BE(int32_t value, int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::writeInt32BE(int32_t value, int32_t offset, int32_t& retVal)
 {
     WRITE_NUMBER(int32_t, false);
 }
 
-result_t Buffer::writeIntLE(int64_t value, int32_t offset, int32_t byteLength, bool noAssert, int32_t& retVal)
+result_t Buffer::writeIntLE(int64_t value, int32_t offset, int32_t byteLength, int32_t& retVal)
 {
     WRITE_NUMBER_48(int64_t, byteLength, true);
 }
 
-result_t Buffer::writeIntBE(int64_t value, int32_t offset, int32_t byteLength, bool noAssert, int32_t& retVal)
+result_t Buffer::writeIntBE(int64_t value, int32_t offset, int32_t byteLength, int32_t& retVal)
 {
     WRITE_NUMBER_48(int64_t, byteLength, false);
 }
 
-result_t Buffer::writeInt64LE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::writeInt64LE(int64_t value, int32_t offset, int32_t& retVal)
 {
     WRITE_NUMBER(int64_t, true);
 }
 
-result_t Buffer::writeInt64BE(int64_t value, int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::writeInt64BE(int64_t value, int32_t offset, int32_t& retVal)
 {
     WRITE_NUMBER(int64_t, false);
 }
 
-result_t Buffer::writeFloatLE(double value, int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::writeFloatLE(double value, int32_t offset, int32_t& retVal)
 {
     WRITE_NUMBER(float, true);
 }
 
-result_t Buffer::writeFloatBE(double value, int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::writeFloatBE(double value, int32_t offset, int32_t& retVal)
 {
     WRITE_NUMBER(float, false);
 }
 
-result_t Buffer::writeDoubleLE(double value, int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::writeDoubleLE(double value, int32_t offset, int32_t& retVal)
 {
     WRITE_NUMBER(double, true);
 }
 
-result_t Buffer::writeDoubleBE(double value, int32_t offset, bool noAssert, int32_t& retVal)
+result_t Buffer::writeDoubleBE(double value, int32_t offset, int32_t& retVal)
 {
     WRITE_NUMBER(double, false);
 }
