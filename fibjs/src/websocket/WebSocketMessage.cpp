@@ -284,10 +284,8 @@ result_t WebSocketMessage::sendTo(Stream_base* stm, WebSocket* wss, AsyncEvent* 
 
                 m_mask = r;
 
-                buf[pos++] = (uint8_t)(r & 0xff);
-                buf[pos++] = (uint8_t)((r >> 8) & 0xff);
-                buf[pos++] = (uint8_t)((r >> 16) & 0xff);
-                buf[pos++] = (uint8_t)((r >> 24) & 0xff);
+                *(uint32_t*)(buf + pos) = r;
+                pos += 4;
             }
 
             m_buffer = new Buffer((const char*)buf, pos);
