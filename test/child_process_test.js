@@ -314,7 +314,7 @@ describe("child_process", () => {
             var stdout = new io.BufferedStream(p.stdout);
 
             for (var i = 0; i < 100; i++) {
-                coroutine.sleep(10);
+                coroutine.sleep(500);
                 try {
                     net.connect('tcp://127.0.0.1:28080');
                     break;
