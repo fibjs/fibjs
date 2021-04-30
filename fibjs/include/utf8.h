@@ -136,4 +136,97 @@ inline exlib::string utf32to8String(exlib::wstring32 src)
 {
     return utf32to8String(src.c_str(), (ssize_t)src.length());
 }
+
+ssize_t utf_convert_s(const char* src, ssize_t srclen, exlib::wchar* dst, ssize_t dstlen);
+ssize_t utf_convert_s(const exlib::wchar* src, ssize_t srclen, char* dst, ssize_t dstlen);
+ssize_t utf_convert_s(const char* src, ssize_t srclen, exlib::wchar32* dst, ssize_t dstlen);
+ssize_t utf_convert_s(const exlib::wchar32* src, ssize_t srclen, char* dst, ssize_t dstlen);
+
+inline exlib::wstring utf8to16String_s(const char* src, ssize_t srclen = -1)
+{
+    exlib::wstring str;
+
+    if (srclen == -1)
+        srclen = (ssize_t)qstrlen(src);
+
+    if (srclen) {
+        ssize_t n = utf_convert_s(src, srclen, (exlib::wchar*)NULL, 0);
+        str.resize(n);
+
+        utf_convert_s(src, srclen, str.c_buffer(), n);
+    }
+
+    return str;
+}
+
+inline exlib::wstring utf8to16String_s(exlib::string src)
+{
+    return utf8to16String_s(src.c_str(), (ssize_t)src.length());
+}
+
+inline exlib::string utf16to8String_s(const exlib::wchar* src, ssize_t srclen = -1)
+{
+    exlib::string str;
+
+    if (srclen == -1)
+        srclen = (ssize_t)qstrlen(src);
+
+    if (srclen) {
+        ssize_t n = utf_convert_s(src, srclen, (char*)NULL, 0);
+        str.resize(n);
+
+        utf_convert_s(src, srclen, str.c_buffer(), n);
+    }
+
+    return str;
+}
+
+inline exlib::string utf16to8String_s(exlib::wstring src)
+{
+    return utf16to8String_s(src.c_str(), (ssize_t)src.length());
+}
+
+inline exlib::wstring32 utf8to32String_s(const char* src, ssize_t srclen = -1)
+{
+    exlib::wstring32 str;
+
+    if (srclen == -1)
+        srclen = (ssize_t)qstrlen(src);
+
+    if (srclen) {
+        ssize_t n = utf_convert_s(src, srclen, (exlib::wchar32*)NULL, 0);
+        str.resize(n);
+
+        utf_convert_s(src, srclen, str.c_buffer(), n);
+    }
+
+    return str;
+}
+
+inline exlib::wstring32 utf8to32String_s(exlib::string src)
+{
+    return utf8to32String_s(src.c_str(), (ssize_t)src.length());
+}
+
+inline exlib::string utf32to8String_s(const exlib::wchar32* src, ssize_t srclen = -1)
+{
+    exlib::string str;
+
+    if (srclen == -1)
+        srclen = (ssize_t)qstrlen(src);
+
+    if (srclen) {
+        ssize_t n = utf_convert_s(src, srclen, (char*)NULL, 0);
+        str.resize(n);
+
+        utf_convert_s(src, srclen, str.c_buffer(), n);
+    }
+
+    return str;
+}
+
+inline exlib::string utf32to8String_s(exlib::wstring32 src)
+{
+    return utf32to8String_s(src.c_str(), (ssize_t)src.length());
+}
 }

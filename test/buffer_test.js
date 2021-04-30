@@ -170,37 +170,89 @@ describe('Buffer', () => {
             Buffer.from(expected));
         assert.deepEqual(Buffer.from('__--_--_--__', 'base64'),
             Buffer.from(expected));
+    });
 
-        ['ucs2', 'ucs-2'].forEach((encoding) => {
-            {
-                // Test for proper UTF16LE encoding, length should be 8
-                const f = Buffer.from('über', encoding);
-                assert.deepEqual(f, is_big_endian ? Buffer.from([0, 252, 0, 98, 0, 101, 0, 114]) : Buffer.from([252, 0, 98, 0, 101, 0, 114, 0]));
-            }
+    it('Buffer.from(String, ucs2)', () => {
+        var ucs2_codec = ['ucs2', 'ucs-2', 'utf16', 'utf-16'];
+        var ucs2le_codec = ['ucs2le', 'ucs-2le', 'utf16le', 'utf-16le'];
+        var ucs2be_codec = ['ucs2be', 'ucs-2be', 'utf16be', 'utf-16be'];
 
-            {
-                // Length should be 12
-                const f = Buffer.from('привет', encoding);
-                assert.deepEqual(
-                    f, is_big_endian ? Buffer.from([4, 63, 4, 64, 4, 56, 4, 50, 4, 53, 4, 66]) : Buffer.from([63, 4, 64, 4, 56, 4, 50, 4, 53, 4, 66, 4])
-                );
-                assert.strictEqual(f.toString(encoding), 'привет');
-            }
-        });
+        if (is_big_endian)
+            ucs2be_codec = ucs2be_codec.concat(ucs2_codec);
+        else
+            ucs2le_codec = ucs2le_codec.concat(ucs2_codec);
 
-        ['utf16le', 'utf-16le'].forEach((encoding) => {
+        ucs2le_codec.forEach((encoding) => {
             {
                 // Test for proper UTF16LE encoding, length should be 8
                 const f = Buffer.from('über', encoding);
                 assert.deepEqual(f, Buffer.from([252, 0, 98, 0, 101, 0, 114, 0]));
+                assert.strictEqual(f.toString(encoding), 'über');
             }
 
             {
                 // Length should be 12
                 const f = Buffer.from('привет', encoding);
-                assert.deepEqual(
-                    f, Buffer.from([63, 4, 64, 4, 56, 4, 50, 4, 53, 4, 66, 4])
-                );
+                assert.deepEqual(f, Buffer.from([63, 4, 64, 4, 56, 4, 50, 4, 53, 4, 66, 4]));
+                assert.strictEqual(f.toString(encoding), 'привет');
+            }
+        });
+
+        ucs2be_codec.forEach((encoding) => {
+            {
+                // Test for proper UTF16LE encoding, length should be 8
+                const f = Buffer.from('über', encoding);
+                assert.deepEqual(f, Buffer.from([0, 252, 0, 98, 0, 101, 0, 114]));
+                assert.strictEqual(f.toString(encoding), 'über');
+            }
+
+            {
+                // Length should be 12
+                const f = Buffer.from('привет', encoding);
+                assert.deepEqual(f, Buffer.from([4, 63, 4, 64, 4, 56, 4, 50, 4, 53, 4, 66]));
+                assert.strictEqual(f.toString(encoding), 'привет');
+            }
+        });
+    });
+
+    it('Buffer.from(String, ucs4)', () => {
+        var ucs4_codec = ['ucs4', 'ucs-4', 'utf32', 'utf-32'];
+        var ucs4le_codec = ['ucs4le', 'ucs-4le', 'utf32le', 'utf-32le'];
+        var ucs4be_codec = ['ucs4be', 'ucs-4be', 'utf32be', 'utf-32be'];
+
+        if (is_big_endian)
+            ucs4be_codec = ucs4be_codec.concat(ucs4_codec);
+        else
+            ucs4le_codec = ucs4le_codec.concat(ucs4_codec);
+
+        ucs4le_codec.forEach((encoding) => {
+            {
+                // Test for proper UTF16LE encoding, length should be 8
+                const f = Buffer.from('über', encoding);
+                assert.deepEqual(f, Buffer.from([252, 0, 0, 0, 98, 0, 0, 0, 101, 0, 0, 0, 114, 0, 0, 0]));
+                assert.strictEqual(f.toString(encoding), 'über');
+            }
+
+            {
+                // Length should be 12
+                const f = Buffer.from('привет', encoding);
+                assert.deepEqual(f, Buffer.from([63, 4, 0, 0, 64, 4, 0, 0, 56, 4, 0, 0, 50, 4, 0, 0, 53, 4, 0, 0, 66, 4, 0, 0]));
+                assert.strictEqual(f.toString(encoding), 'привет');
+            }
+        });
+
+        ucs4be_codec.forEach((encoding) => {
+            {
+                // Test for proper UTF16LE encoding, length should be 8
+                const f = Buffer.from('über', encoding);
+                assert.deepEqual(f, Buffer.from([0, 0, 0, 252, 0, 0, 0, 98, 0, 0, 0, 101, 0, 0, 0, 114]));
+                assert.strictEqual(f.toString(encoding), 'über');
+            }
+
+            {
+                // Length should be 12
+                const f = Buffer.from('привет', encoding);
+                assert.deepEqual(f, Buffer.from([0, 0, 4, 63, 0, 0, 4, 64, 0, 0, 4, 56, 0, 0, 4, 50, 0, 0, 4, 53, 0, 0, 4, 66]));
                 assert.strictEqual(f.toString(encoding), 'привет');
             }
         });
@@ -479,7 +531,7 @@ describe('Buffer', () => {
         assert.equal(buf1.toString(), 'this is a tést');
         assert.equal(buf1.toString('ascii'), 'this is a tC)st');
 
-        assert.equal(buf1.toString('ucs2'), '桴獩椠⁳⁡썴玩');
+        assert.equal(buf1.toString('ucs2le'), '桴獩椠⁳⁡썴玩');
 
         assert.strictEqual(Buffer.from([0x41]).toString('utf8', -1), 'A');
         assert.strictEqual(Buffer.from([0x41]).toString('utf8', 1), '');

@@ -138,6 +138,14 @@ describe('encoding', () => {
             assert.equal(iconv.decode('utf16le', buf), s);
         }
 
+        for (var i = 0; i < 0xd800; i++) {
+            var s = String.fromCharCode(i);
+            var buf = iconv.encode('utf16be', s);
+            var n = buf.readUInt16BE();
+            assert.equal(i, n);
+            assert.equal(iconv.decode('utf16be', buf), s);
+        }
+
         assert.equal(new Buffer([0xc8]).toString(), '\ufffd');
         assert.equal(Buffer.from('3DD84DDC', 'hex').toString('utf16le'), '👍');
     });
