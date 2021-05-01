@@ -393,7 +393,8 @@ void date_t::parse(const char* str, int32_t len)
             monstr = str;
             timstr = str + 12;
             tzstr = str + 20;
-        } else if (checkmask(str, len, "## @$$ #### ##:##:##*")) // RFC 1123 format
+        } else if (checkmask(str, len, "## @$$ #### ##:##:##*")
+            || checkmask(str, len, "##-@$$-#### ##:##:##*")) // RFC 1123 format
         {
             wYear = (((str[7] & 0xf) * 10 + (str[8] & 0xf)) * 100
                 + ((str[9] & 0xf) * 10) + (str[10] & 0xf));
