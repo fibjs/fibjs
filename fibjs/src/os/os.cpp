@@ -79,7 +79,11 @@ result_t os_base::arch(exlib::string& retVal)
 #elif defined(i386)
     retVal = "ia32";
 #elif defined(arm)
+#ifdef __ARM_ARCH_6__
+    retVal = "armv6";
+#else
     retVal = "arm";
+#endif
 #elif defined(arm64)
     retVal = "arm64";
 #elif defined(mips)

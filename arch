@@ -13,6 +13,9 @@ case $1 in
     arm64) export QEMU_LD_PREFIX="/usr/aarch64-linux-gnu"
         enter $1
         ;;
+    armv6) export QEMU_LD_PREFIX="/usr/arm-linux-gnueabi"
+        enter $1
+        ;;
     mips) export QEMU_LD_PREFIX="/usr/mips-linux-gnu"
         enter $1
         ;;
