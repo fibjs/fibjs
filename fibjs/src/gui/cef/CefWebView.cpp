@@ -148,12 +148,11 @@ void CefWebView::open()
     CefBrowserSettings browser_settings;
     browser_settings.background_color = CefColorSetARGB(255, 255, 255, 255);
 
-    CefRefPtr<CefRequestContext> context;
+    CefRefPtr<CefRequestContext> context = CefRequestContext::GetGlobalContext();
+
     if (m_proxy) {
         CefString error;
-        CefRequestContextSettings context_settings;
-
-        context = CefRequestContext::CreateContext(context_settings, nullptr);
+        context = CefRequestContext::CreateContext(context, nullptr);
         context->SetPreference("proxy", m_proxy, error);
     }
 
@@ -171,8 +170,8 @@ void CefWebView::open()
         if (m_bHeadless)
             window_info.windowless_rendering_enabled = true;
 
-        m_browser = CefBrowserHost::CreateBrowserSync(window_info, gui_handler, m_url.c_str(), browser_settings,
-            nullptr, context);
+        m_browser = CefBrowserHost::CreateBrowserSync(window_info, gui_handler, m_url.c_str(),
+            browser_settings, nullptr, context);
 
         if (!m_bHeadless)
             config_window();

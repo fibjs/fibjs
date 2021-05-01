@@ -19,7 +19,8 @@ class GuiHandler : public CefClient,
                    public CefDisplayHandler,
                    public CefLifeSpanHandler,
                    public CefLoadHandler,
-                   public CefRenderHandler {
+                   public CefRenderHandler,
+                   public CefPrintHandler {
 public:
     virtual CefRefPtr<CefContextMenuHandler> GetContextMenuHandler() OVERRIDE
     {
@@ -42,6 +43,11 @@ public:
     }
 
     virtual CefRefPtr<CefRenderHandler> GetRenderHandler() OVERRIDE
+    {
+        return this;
+    }
+
+    virtual CefRefPtr<CefPrintHandler> GetPrintHandler() OVERRIDE
     {
         return this;
     }
@@ -82,6 +88,43 @@ public:
     virtual void OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type,
         const CefRenderHandler::RectList& dirtyRects, const void* buffer, int width,
         int height) OVERRIDE;
+
+public:
+    // CefPrintHandler
+    virtual void OnPrintStart(CefRefPtr<CefBrowser> browser) OVERRIDE
+    {
+    }
+
+    virtual void OnPrintSettings(CefRefPtr<CefBrowser> browser,
+        CefRefPtr<CefPrintSettings> settings, bool get_defaults)
+        OVERRIDE
+    {
+    }
+
+    virtual bool OnPrintDialog(CefRefPtr<CefBrowser> browser,
+        bool has_selection, CefRefPtr<CefPrintDialogCallback> callback)
+        OVERRIDE
+    {
+        return false;
+    }
+
+    virtual bool OnPrintJob(CefRefPtr<CefBrowser> browser, const CefString& document_name,
+        const CefString& pdf_file_path, CefRefPtr<CefPrintJobCallback> callback)
+        OVERRIDE
+    {
+        return false;
+    }
+
+    virtual void OnPrintReset(CefRefPtr<CefBrowser> browser) OVERRIDE
+    {
+    }
+
+    virtual CefSize GetPdfPaperSize(CefRefPtr<CefBrowser> browser,
+        int device_units_per_inch) OVERRIDE
+    {
+        return CefSize((int32_t)(8.27 * device_units_per_inch),
+            (int32_t)(11.75 * device_units_per_inch));
+    }
 
 public:
     typedef std::list<obj_ptr<CefWebView>> BrowserList;

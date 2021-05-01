@@ -14,8 +14,7 @@
 
 namespace fibjs {
 class GuiApp : public CefApp,
-               public CefBrowserProcessHandler,
-               public CefPrintHandler {
+               public CefBrowserProcessHandler {
 public:
     GuiApp(int argc, char* argv[])
 #ifdef WIN32
@@ -26,8 +25,10 @@ public:
     {
         if (g_cefprocess) {
             for (int32_t i = 0; i < argc; i++) {
-                if (!qstrcmp(argv[i], "--cef_path=", 11))
+                if (!qstrcmp(argv[i], "--cef_path=", 11)) {
                     m_cef_path = argv[i] + 11;
+                    break;
+                }
             }
         }
     }
@@ -35,12 +36,6 @@ public:
 public:
     // CefApp
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler()
-        OVERRIDE
-    {
-        return this;
-    }
-
-    virtual CefRefPtr<CefPrintHandler> GetPrintHandler()
         OVERRIDE
     {
         return this;
@@ -88,43 +83,6 @@ public:
         OVERRIDE
     {
         command_line->AppendSwitchWithValue("cef_path", m_cef_path.c_str());
-    }
-
-public:
-    // CefPrintHandler
-    virtual void OnPrintStart(CefRefPtr<CefBrowser> browser) OVERRIDE
-    {
-    }
-
-    virtual void OnPrintSettings(CefRefPtr<CefBrowser> browser,
-        CefRefPtr<CefPrintSettings> settings, bool get_defaults)
-        OVERRIDE
-    {
-    }
-
-    virtual bool OnPrintDialog(CefRefPtr<CefBrowser> browser,
-        bool has_selection, CefRefPtr<CefPrintDialogCallback> callback)
-        OVERRIDE
-    {
-        return false;
-    }
-
-    virtual bool OnPrintJob(CefRefPtr<CefBrowser> browser, const CefString& document_name,
-        const CefString& pdf_file_path, CefRefPtr<CefPrintJobCallback> callback)
-        OVERRIDE
-    {
-        return false;
-    }
-
-    virtual void OnPrintReset(CefRefPtr<CefBrowser> browser) OVERRIDE
-    {
-    }
-
-    virtual CefSize GetPdfPaperSize(int device_units_per_inch)
-        OVERRIDE
-    {
-        return CefSize((int32_t)(8.27 * device_units_per_inch),
-            (int32_t)(11.75 * device_units_per_inch));
     }
 
 public:
