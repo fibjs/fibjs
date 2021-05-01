@@ -1338,12 +1338,11 @@ private:
 
 inline bool is_big_endian()
 {
-#if defined(mips) || defined(mips64)
-    return true;
-#elif defined(amd64) || defined(i386) || defined(arm) || defined(arm64)
-    return false;
-#else
-#error "Unknown arch."
-#endif
+    union {
+        uint32_t i;
+        char c[4];
+    } bint = { 0x01020304 };
+
+    return bint.c[0] == 1;
 }
 }
