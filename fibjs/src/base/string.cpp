@@ -86,7 +86,14 @@ inline bool is_safe_string(exlib::string& str)
     const char* s = str.c_str();
     size_t len = str.length();
 
-    for (size_t i = 0; i < len; i++)
+    const uint64_t* w = (const uint64_t*)s;
+    size_t lenw = len / sizeof(uint64_t);
+
+    for (size_t i = 0; i < lenw; i++)
+        if (w[i] & 0x8080808080808080)
+            return false;
+
+    for (size_t i = lenw * sizeof(uint64_t); i < len; i++)
         if (s[i] & 0x80)
             return false;
 
