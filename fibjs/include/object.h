@@ -294,7 +294,7 @@ private:
 
 public:
     template <typename T>
-    static void __new(const T& args) { }
+    static void __new(const T& args) {}
 
 public:
     v8::Local<v8::Object> GetPrivateObject()
@@ -394,7 +394,7 @@ public:
 
         exlib::string strError = "Property \'";
 
-        strError += ToCString(v8::String::Utf8Value(isolate->m_isolate, property));
+        strError += isolate->toString(property);
         strError += "\' is read-only.";
         isolate->m_isolate->ThrowException(
             isolate->NewString(strError));

@@ -815,12 +815,11 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
                     int32_t i1;
 
                     for (i1 = 0; i1 < len1; i1++)
-                        arr->append(ToCString(v8::String::Utf8Value(isolate->m_isolate, a->Get(i1))));
+                        arr->append(isolate->toString(a->Get(i1)));
 
-                    map->add(ToCString(v8::String::Utf8Value(isolate->m_isolate, k)), arr);
+                    map->add(isolate->toString(k), arr);
                 } else
-                    map->add(ToCString(v8::String::Utf8Value(isolate->m_isolate, k)),
-                        ToCString(v8::String::Utf8Value(isolate->m_isolate, v)));
+                    map->add(isolate->toString(k), isolate->toString(v));
             }
         }
 

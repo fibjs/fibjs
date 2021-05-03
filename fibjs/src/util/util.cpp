@@ -297,7 +297,7 @@ result_t util_base::omit(v8::Local<v8::Value> v, OptArgs keys,
     for (i = 0; i < len; i++) {
         JSValue key = keys1->Get(i);
 
-        if (_map.find(ToCString(v8::String::Utf8Value(isolate->m_isolate, key))) == _map.end()) {
+        if (_map.find(isolate->toString(key)) == _map.end()) {
             JSValue value = obj->Get(key);
             obj1->Set(key, value);
         }

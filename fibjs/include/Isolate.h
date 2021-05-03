@@ -16,6 +16,7 @@ namespace fibjs {
 
 v8::Local<v8::String> NewString(v8::Isolate* isolate, const char* data, ssize_t length = -1);
 v8::Local<v8::String> NewString(v8::Isolate* isolate, exlib::string str);
+exlib::string ToString(v8::Isolate* isolate, v8::Local<v8::Value> v);
 
 class SandBox;
 class JSFiber;
@@ -84,6 +85,11 @@ public:
     v8::Local<v8::String> toLocalString(v8::Local<v8::Value> v)
     {
         return v->ToString(this->context()).ToLocalChecked();
+    }
+
+    exlib::string toString(v8::Local<v8::Value> v)
+    {
+        return ToString(m_isolate, v);
     }
 
     bool toBoolean(v8::Local<v8::Value> v)

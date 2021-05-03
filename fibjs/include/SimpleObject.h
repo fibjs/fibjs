@@ -46,7 +46,7 @@ public:
 
         for (i = 0; i < len; i++) {
             JSValue k = ks->Get(i);
-            add(ToCString(v8::String::Utf8Value(isolate->m_isolate, k)), m->Get(k));
+            add(isolate->toString(k), m->Get(k));
         }
 
         return 0;

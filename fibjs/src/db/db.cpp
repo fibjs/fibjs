@@ -111,6 +111,11 @@ inline exlib::string _escape(const char* str, int32_t sz, bool mysql)
     return retVal;
 }
 
+inline exlib::string _escape(exlib::string v, bool mysql)
+{
+    return _escape(v.c_str(), v.length(), mysql);
+}
+
 void _appendValue(exlib::string& str, v8::Local<v8::Value>& v, bool mysql, bool mssql)
 {
     obj_ptr<Buffer_base> bin = Buffer_base::getInstance(v);
@@ -147,9 +152,7 @@ void _appendValue(exlib::string& str, v8::Local<v8::Value>& v, bool mysql, bool 
     } else if (v->IsNumber() || v->IsNumberObject()
         || v->IsBigInt() || v->IsBigIntObject()) {
         Isolate* isolate = Isolate::current();
-
-        v8::String::Utf8Value s1(isolate->m_isolate, v);
-        str.append(*s1, s1.length());
+        str.append(isolate->toString(v));
     } else if (v->IsUndefined() || v->IsNull()) {
         str.append("NULL", 4);
     } else {
@@ -161,8 +164,7 @@ void _appendValue(exlib::string& str, v8::Local<v8::Value>& v, bool mysql, bool 
             d.sqlString(s);
         } else {
             Isolate* isolate = Isolate::current();
-            v8::String::Utf8Value s1(isolate->m_isolate, v);
-            s = _escape(*s1, s1.length(), mysql);
+            s = _escape(isolate->toString(v), mysql);
         }
         str.append(s);
 
@@ -257,17 +259,15 @@ inline exlib::string _escape_field(const char* str, int32_t sz, bool mysql, bool
     return retVal;
 }
 
-inline exlib::string _escape_field(v8::Local<v8::Value> v, bool mysql, bool mssql)
-{
-    Isolate* isolate = Isolate::current();
-
-    v8::String::Utf8Value s(isolate->m_isolate, v);
-    return _escape_field(*s, s.length(), mysql, mssql);
-}
-
 inline exlib::string _escape_field(exlib::string s, bool mysql, bool mssql)
 {
     return _escape_field(s.c_str(), (int32_t)s.length(), mysql, mssql);
+}
+
+inline exlib::string _escape_field(v8::Local<v8::Value> v, bool mysql, bool mssql)
+{
+    Isolate* isolate = Isolate::current();
+    return _escape_field(isolate->toString(v), mysql, mssql);
 }
 
 result_t _format_where(v8::Local<v8::Value> o, bool mysql, bool mssql, exlib::string& retVal, bool& retAnd);
@@ -311,8 +311,7 @@ result_t _format_where(v8::Local<v8::Value> val, bool mysql, bool mssql, exlib::
     Isolate* isolate = Isolate::current();
 
     if (val->IsString() || val->IsStringObject()) {
-        v8::String::Utf8Value s(isolate->m_isolate, val);
-        retVal.assign(*s, s.length());
+        retVal = isolate->toString(val);
         return 0;
     }
 
@@ -591,8 +590,7 @@ result_t _format_find(v8::Local<v8::Object> opts, bool mysql, bool mssql, exlib:
     if (hr == CALL_E_PARAMNOTOPTIONAL)
         str.append("*");
     else if (v->IsString() || v->IsStringObject()) {
-        v8::String::Utf8Value s(isolate->m_isolate, v);
-        str.append(*s, s.length());
+        str.append(isolate->toString(v));
     } else {
         exlib::string str1;
 

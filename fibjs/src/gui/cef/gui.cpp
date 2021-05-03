@@ -316,7 +316,7 @@ result_t GuiApp::config(v8::Local<v8::Object> opt)
         for (i = 0; i < len; i++) {
             std::map<exlib::string, CefRefPtr<GuiSchemeHandlerFactory>>::iterator it;
             JSValue k = ks->Get(i);
-            exlib::string ks(ToCString(v8::String::Utf8Value(isolate->m_isolate, k)));
+            exlib::string ks(isolate->toString(k));
             Url u;
             exlib::string scheme;
 

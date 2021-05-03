@@ -227,8 +227,7 @@ result_t LevelDB::mset(v8::Local<v8::Object> map)
 
     for (i = 0; i < len; i++) {
         JSValue k = ks->Get(i);
-        v8::String::Utf8Value uk(isolate->m_isolate, k);
-        exlib::string key(*uk, uk.length());
+        exlib::string key(isolate->toString(k));
 
         exlib::string value1;
         hr = getValue(map->Get(k), value1);

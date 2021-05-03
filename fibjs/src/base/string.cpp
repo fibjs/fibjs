@@ -130,6 +130,35 @@ v8::Local<v8::String> NewString(v8::Isolate* isolate, const char* data, ssize_t 
     return NewString(isolate, exlib::string(data, length));
 }
 
+exlib::string ToString(v8::Isolate* isolate, v8::Local<v8::String> str)
+{
+    exlib::string n;
+
+    if (str->IsExternalOneByte())
+        return ((ExtString*)str->GetExternalOneByteStringResource())->str();
+    else if (str->IsExternal())
+        return ((ExtStringW*)str->GetExternalStringResource())->str();
+
+    int32_t bufUtf8Len = str->Utf8Length(isolate);
+    n.resize(bufUtf8Len);
+    int flags = v8::String::HINT_MANY_WRITES_EXPECTED | v8::String::NO_NULL_TERMINATION;
+
+    str->WriteUtf8(isolate, n.c_buffer(), bufUtf8Len, NULL, flags);
+    return n;
+}
+
+exlib::string ToString(v8::Isolate* isolate, v8::Local<v8::Value> v)
+{
+    exlib::string n;
+    v8::Local<v8::String> str;
+
+    str = v->ToString(isolate);
+    if (str.IsEmpty())
+        return n;
+
+    return ToString(isolate, str);
+}
+
 result_t GetArgumentValue(v8::Local<v8::Value> v, exlib::string& n, bool bStrict)
 {
     if (v.IsEmpty())
@@ -153,20 +182,7 @@ result_t GetArgumentValue(v8::Local<v8::Value> v, exlib::string& n, bool bStrict
     if (str.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    if (str->IsExternalOneByte()) {
-        n = ((ExtString*)str->GetExternalOneByteStringResource())->str();
-        return 0;
-    } else if (str->IsExternal()) {
-        n = ((ExtStringW*)str->GetExternalStringResource())->str();
-        return 0;
-    }
-
-    int32_t bufUtf8Len = str->Utf8Length(isolate->m_isolate);
-    n.resize(bufUtf8Len);
-    int flags = v8::String::HINT_MANY_WRITES_EXPECTED | v8::String::NO_NULL_TERMINATION;
-
-    str->WriteUtf8(isolate->m_isolate, n.c_buffer(), bufUtf8Len, NULL, flags);
-
+    n = ToString(isolate->m_isolate, str);
     return 0;
 }
 

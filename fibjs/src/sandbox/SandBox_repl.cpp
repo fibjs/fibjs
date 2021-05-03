@@ -123,8 +123,7 @@ result_t SandBox::Context::repl()
             v8::MaybeLocal<v8::Script> lscript = v8::Script::Compile(context, isolate->NewString(buf), &origin);
 
             if (lscript.IsEmpty() || (script = lscript.ToLocalChecked()).IsEmpty()) {
-                v8::String::Utf8Value exception(isolate->m_isolate, try_catch.Exception());
-                if (*exception && qstrcmp(ToCString(exception), "SyntaxError: Unexpected end of input")) {
+                if (isolate->toString(try_catch.Exception()) != "SyntaxError: Unexpected end of input") {
                     buf.clear();
                     ReportException(try_catch, 0, true);
                 }

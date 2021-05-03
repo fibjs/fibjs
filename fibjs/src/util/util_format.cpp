@@ -77,18 +77,16 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
         if (v.IsEmpty())
             strBuffer.append(color_string(COLOR_TITLE, "undefined", color));
         else if (v->IsUndefined() || v->IsNull())
-            strBuffer.append(color_string(COLOR_TITLE, ToCString(v8::String::Utf8Value(isolate->m_isolate, v)), color));
+            strBuffer.append(color_string(COLOR_TITLE, isolate->toString(v), color));
         else if (v->IsDate())
-            strBuffer.append(color_string(COLOR_MAGENTA, ToCString(v8::String::Utf8Value(isolate->m_isolate, v)), color));
+            strBuffer.append(color_string(COLOR_MAGENTA, isolate->toString(v), color));
         else if (v->IsBoolean() || v->IsBooleanObject())
-            strBuffer.append(color_string(COLOR_YELLOW, ToCString(v8::String::Utf8Value(isolate->m_isolate, v)), color));
-        else if (v->IsNumber() || v->IsNumberObject()) {
-            exlib::string s(ToCString(v8::String::Utf8Value(isolate->m_isolate, v->ToNumber(_context).ToLocalChecked())));
-            strBuffer.append(color_string(COLOR_YELLOW, s, color));
-        } else if (v->IsBigInt() || v->IsBigIntObject()) {
-            exlib::string s(ToCString(v8::String::Utf8Value(isolate->m_isolate, v->ToBigInt(_context).ToLocalChecked())));
-            strBuffer.append(color_string(COLOR_YELLOW, s + 'n', color));
-        } else if (v->IsString() || v->IsStringObject())
+            strBuffer.append(color_string(COLOR_YELLOW, isolate->toString(v), color));
+        else if (v->IsNumber() || v->IsNumberObject())
+            strBuffer.append(color_string(COLOR_YELLOW, isolate->toString(v), color));
+        else if (v->IsBigInt() || v->IsBigIntObject())
+            strBuffer.append(color_string(COLOR_YELLOW, isolate->toString(v) + 'n', color));
+        else if (v->IsString() || v->IsStringObject())
             string_format(strBuffer, v, color);
         else if (v->IsRegExp()) {
             exlib::string s;
@@ -97,7 +95,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
             v8::RegExp::Flags flgs = re->GetFlags();
 
             s.append(1, '/');
-            s.append(ToCString(v8::String::Utf8Value(isolate->m_isolate, src)));
+            s.append(isolate->toString(src));
             s.append(1, '/');
 
             if (flgs & v8::RegExp::kIgnoreCase)
@@ -112,7 +110,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
             strBuffer.append(color_string(COLOR_CYAN, "[Promise]", color));
         } else if (v->IsNativeError()) {
             v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
-            exlib::string s(ToCString(v8::String::Utf8Value(isolate->m_isolate, JSValue(obj->Get(isolate->NewString("stack"))))));
+            exlib::string s(isolate->toString(JSValue(obj->Get(isolate->NewString("stack")))));
             strBuffer.append(color_string(COLOR_LIGHTRED, s, color));
         } else if (v->IsFunction()) {
             exlib::string s("[Function");
@@ -129,10 +127,8 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
             v8::Local<v8::Symbol> _symbol = v8::Local<v8::Symbol>::Cast(v);
             v8::Local<v8::Value> _name = _symbol->Name();
 
-            if (!_name->IsUndefined()) {
-                v8::String::Utf8Value n(isolate->m_isolate, _name);
-                s.append(*n, n.length());
-            }
+            if (!_name->IsUndefined())
+                s.append(isolate->toString(_name));
 
             strBuffer.append(color_string(COLOR_GREEN, s + ')', color));
         } else if (v->IsObject()) {
@@ -395,11 +391,9 @@ result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string&
 
             switch (ch = *s++) {
             case 's':
-                if (idx < argc) {
-                    v8::String::Utf8Value s(isolate->m_isolate, args[idx++]);
-                    if (*s)
-                        retVal.append(*s, s.length());
-                } else
+                if (idx < argc)
+                    retVal.append(isolate->toString(args[idx++]));
+                else
                     retVal.append("%s", 2);
                 break;
             case 'd':
@@ -443,10 +437,9 @@ result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string&
 
         util_base::isString(v, bIsStr);
 
-        if (bIsStr) {
-            v8::String::Utf8Value s(isolate->m_isolate, v);
-            retVal.append(*s, s.length());
-        } else {
+        if (bIsStr)
+            retVal.append(isolate->toString(v));
+        else {
             exlib::string s;
             s = json_format(v, color);
 

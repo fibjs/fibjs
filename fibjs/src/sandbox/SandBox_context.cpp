@@ -36,7 +36,7 @@ void _resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
         JSValue(_mod->Get(NewString(isolate, "_sbox"))));
 
     exlib::string strPath;
-    path_base::dirname(ToCString(v8::String::Utf8Value(isolate, path)), strPath);
+    path_base::dirname(ToString(isolate, path), strPath);
 
     exlib::string v;
     hr = sbox->resolve(id, strPath, v);
@@ -77,7 +77,7 @@ void _require(const v8::FunctionCallbackInfo<v8::Value>& args)
         JSValue(_mod->Get(NewString(isolate, "_sbox"))));
 
     exlib::string strPath;
-    path_base::dirname(ToCString(v8::String::Utf8Value(isolate, path)), strPath);
+    path_base::dirname(ToString(isolate, path), strPath);
 
     v8::Local<v8::Value> v;
     hr = sbox->run_module(id, strPath, v);
@@ -129,7 +129,7 @@ void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
 
         exlib::string strPath;
 
-        path_base::dirname(ToCString(v8::String::Utf8Value(isolate, path)), strPath);
+        path_base::dirname(ToString(isolate, path), strPath);
         if (strPath.length()) {
             resolvePath(strPath, id);
             id = strPath;

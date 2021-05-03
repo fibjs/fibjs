@@ -1165,7 +1165,7 @@ result_t HttpFileHandler::set_mimes(v8::Local<v8::Object> mimes)
         if (hr < 0)
             return CHECK_ERROR(hr);
 
-        m_mimes.insert(std::pair<exlib::string, exlib::string>(ToCString(v8::String::Utf8Value(isolate->m_isolate, ks)), s));
+        m_mimes.insert(std::pair<exlib::string, exlib::string>(isolate->toString(ks), s));
     }
 
     return 0;

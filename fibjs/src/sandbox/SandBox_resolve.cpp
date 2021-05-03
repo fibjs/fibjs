@@ -116,7 +116,7 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& fnam
     if (!main->IsString() && !main->IsStringObject())
         return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json"));
 
-    resolvePath(fname, ToCString(v8::String::Utf8Value(isolate->m_isolate, main)));
+    resolvePath(fname, isolate->toString(main));
     path_base::normalize(fname, fname);
 
     hr = resolveFile(mods, fname, data, retVal);

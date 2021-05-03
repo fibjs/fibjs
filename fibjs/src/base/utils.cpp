@@ -166,15 +166,12 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
     if (try_catch.HasCaught()) {
         v8::Local<v8::Value> err = try_catch.Exception();
         v8::Local<v8::Object> err_obj = err.As<v8::Object>();
-        v8::String::Utf8Value exception(isolate->m_isolate, err_obj);
         v8::Local<v8::Message> message = try_catch.Message();
 
         if (message.IsEmpty())
-            return ToCString(exception);
+            return isolate->toString(err_obj);
 
-        exlib::string strError;
-        v8::String::Utf8Value filename(isolate->m_isolate, message->GetScriptResourceName());
-        strError.append(ToCString(filename));
+        exlib::string strError(isolate->toString(message->GetScriptResourceName()));
         int32_t lineNumber = message->GetLineNumber(context).ToChecked();
         if (lineNumber > 0) {
             char numStr[32];
@@ -212,9 +209,7 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
         if (err_obj->IsNativeError()) {
             v8::Local<v8::Value> stack_trace_string;
             try_catch.StackTrace(context).ToLocal(&stack_trace_string);
-            v8::String::Utf8Value stack_trace(isolate->m_isolate,
-                stack_trace_string.As<v8::String>());
-            strError.append(ToCString(stack_trace));
+            strError.append(isolate->toString(stack_trace_string));
         } else {
             JSValue message;
             JSValue name;
@@ -230,15 +225,12 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
 
             if (message.IsEmpty() || message->IsUndefined() || name.IsEmpty() || name->IsUndefined()) {
                 // Not an error object. Just print as-is.
-                v8::String::Utf8Value message(isolate->m_isolate, err);
-                strError.append(ToCString(message));
+                strError.append(isolate->toString(err));
                 strError.append("\n");
             } else {
-                v8::String::Utf8Value message_string(isolate->m_isolate, message);
-                v8::String::Utf8Value name_string(isolate->m_isolate, name);
-                strError.append(ToCString(name_string));
+                strError.append(isolate->toString(name));
                 strError.append(": ");
-                strError.append(ToCString(message_string));
+                strError.append(isolate->toString(message));
             }
         }
 
@@ -251,11 +243,10 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
 result_t throwSyntaxError(TryCatch& try_catch)
 {
     Isolate* isolate = Isolate::current();
-    v8::String::Utf8Value exception(isolate->m_isolate, try_catch.Exception());
 
     v8::Local<v8::Message> message = try_catch.Message();
     if (message.IsEmpty())
-        ThrowError(ToCString(exception));
+        ThrowError(isolate->toString(try_catch.Exception()));
     else {
         return Runtime::setError(GetException(try_catch, 0));
     }

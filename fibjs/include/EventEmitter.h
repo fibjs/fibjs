@@ -186,8 +186,7 @@ public:
                 JSValue v = m->Get(k);
 
                 if (v->IsFunction())
-                    (this->*fn)(ToCString(v8::String::Utf8Value(isolate, k)),
-                        v8::Local<v8::Function>::Cast(v), retVal);
+                    (this->*fn)(ToString(isolate, k), v8::Local<v8::Function>::Cast(v), retVal);
                 else
                     return CHECK_ERROR(CALL_E_BADVARTYPE);
             }

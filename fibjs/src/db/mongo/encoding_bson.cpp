@@ -57,7 +57,7 @@ void encodeValue(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Val
 
         *p = 0;
 
-        bson_append_regex(bb, name, ToCString(v8::String::Utf8Value(isolate->m_isolate, src)), flgStr);
+        bson_append_regex(bb, name, isolate->toString(src).c_str(), flgStr);
     } else if (element->IsObject()) {
         {
             obj_ptr<Buffer_base> buf = Buffer_base::getInstance(element);
@@ -86,9 +86,7 @@ void encodeValue(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Val
         encodeObject(isolate, bb, name, element, doJson);
     } else {
         Isolate* isolate = Isolate::current();
-
-        v8::String::Utf8Value v(isolate->m_isolate, element);
-        bson_append_string(bb, name, ToCString(v));
+        bson_append_string(bb, name, isolate->toString(element).c_str());
     }
 }
 
@@ -152,10 +150,8 @@ bool encodeObject(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Va
         JSValue prop_name = properties->Get(i);
         JSValue prop_val = object->Get(prop_name);
 
-        v8::String::Utf8Value n(isolate->m_isolate, prop_name);
-        const char* pname = ToCString(n);
-
-        encodeValue(isolate, bb, pname, prop_val);
+        encodeValue(isolate, bb, isolate->toString(prop_name).c_str(),
+            prop_val);
     }
 
     if (name)
