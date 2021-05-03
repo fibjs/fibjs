@@ -169,7 +169,7 @@ function http_get(u, { quit_if_error = true } = {}) {
 
             return res
         } catch (e) {
-            console.error(e);
+            console.log(e);
             console.warn(`[http_get] retry ${cnt}: ${u}`);
         }
 
@@ -244,6 +244,7 @@ function fetch_leveled_module_info(m, v, parent) {
             return {
                 name: minfo.name,
                 version: minfo.version,
+                bin: minfo.bin,
                 dep_vs: dep_vs,
                 dev_dep_vs: dev_dep_vs,
                 node_modules: {},
@@ -276,6 +277,7 @@ function fetch_leveled_module_info(m, v, parent) {
             return {
                 name: pkgjson_info.name,
                 version: pkgjson_info.version,
+                bin: pkgjson_info.bin,
                 dep_vs: util.extend({}, pkgjson_info.dependencies),
                 dev_dep_vs: util.extend({}, pkgjson_info.devDependencies),
                 node_modules: {},
@@ -424,6 +426,7 @@ function generate_mv_paths(level_info, parent_p) {
                         case 'registry':
                             ps = {
                                 pkg_install_typeinfo: lmod.pkg_install_typeinfo,
+                                bin: lmod.bin,
                                 dist: lmod.dist,
                                 path: [mp]
                             };
@@ -431,6 +434,7 @@ function generate_mv_paths(level_info, parent_p) {
                         case 'git':
                             ps = {
                                 pkg_install_typeinfo: lmod.pkg_install_typeinfo,
+                                bin: lmod.bin,
                                 dist: null,
                                 path: [mp]
                             };
@@ -448,6 +452,8 @@ function generate_mv_paths(level_info, parent_p) {
 }
 
 function download_module() {
+    var bin_path = path.join(process.cwd(), "node_modules/.bin");
+
     coroutine.parallel(
         Object.keys(mv_paths),
         mkey => {
@@ -553,6 +559,26 @@ function download_module() {
                     install_log('extract:', git_archive_url);
                     break
             }
+
+            if (mvm.bin) {
+                helpers_fs.mkdirp(bin_path);
+
+                var bins = mvm.bin;
+
+                if (util.isString(bins)) {
+                    var bins1 = {};
+                    bins1[path.basename(mvm.path[0])] = bins;
+                    bins = bins1;
+                }
+
+                for (var bin in bins) {
+                    var cli_link = path.join(bin_path, bin);
+                    var cli_file = path.relative(bin_path, path.join(mvm.path[0], bins[bin]));
+
+                    fs.symlink(cli_file, cli_link);
+                    console.log("install cli:", path.join(bin_path, bin));
+                }
+            }
         },
         CST.DEFAULT_FIBERS
     );
@@ -640,7 +666,7 @@ if (process.argv.indexOf('--save', 2) > -1 || process.argv.indexOf('-S', 2) > -1
 
 const rootsnap = get_root_snapshot();
 // when specified new_pkgname, install it only
-ctx.new_pkgname = (process.argv).filter(x => !x.startsWith('-'))[1];
+ctx.new_pkgname = process.argv.slice(2).filter(x => !x.startsWith('-'))[0];
 
 // process_new_pkgname
 (() => {
