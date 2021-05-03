@@ -2,6 +2,12 @@ var fs = require("fs");
 var util = require("util");
 var path = require('path');
 
+/**
+ * @description generate cpp code from idl definitions
+ * 
+ * @param {Record<string, import('../../idl/ir').IIDLDefinition>} defs 
+ * @param {string} baseFolder 
+ */
 module.exports = function (defs, baseFolder) {
     for (var cls in defs)
         if (!defs[cls].__skip)
@@ -16,6 +22,12 @@ function record_exist() {
     }
 }
 
+/**
+ * 
+ * @param {string} cls key of def, name of fibjs's module/interface
+ * @param {import('../../idl/ir').IIDLDefinition} def 
+ * @param {string} baseFolder 
+ */
 function gen_code(cls, def, baseFolder) {
     var typeMap = {
         "Integer": "int32_t",

@@ -1,0 +1,12 @@
+{
+    "name": "@fibjs/types",
+    "version": "0.33.0-dev",
+    "description": "types for fibjs runtime",
+    "types": "index.d.ts",
+    "author": "richardo2016@gmail.com",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/fibjs/fibjs/issues"
+    },
+    "homepage": "https://github.com/fibjs/fibjs/npm/types#readme"
+}

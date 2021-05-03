@@ -1,0 +1,61 @@
+/// <reference path="../interface/object.d.ts" />
+/// <reference path="../interface/Buffer.d.ts" />
+/**
+ * @description Redis 数据库客户端 Set 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库
+ * 
+ *  用以操作 Redis 的 Set 对象，创建方法：
+ *  ```JavaScript
+ *  var db = require("db");
+ *  var rdb = new db.openRedis("redis-server");
+ *  var set = rdb.getSet("test");
+ *  ```
+ *  
+ */
+declare class Class_RedisSet extends Class_object {
+    /**
+     * @description 将一个或多个 member 元素加入到集合 key 当中，已经存在于集合的 member 元素将被忽略
+     *      @param members 指定要添加的元素数组
+     *      @return 被添加到集合中的新元素的数量，不包括被忽略的元素 
+     */
+    add(): number;
+
+    /**
+     * @description 移除集合中的一个或多个 member 元素
+     *      @param members 指定要移除的元素数组
+     *      @return 被成功移除的元素的数量，不包括被忽略的元素 
+     */
+    remove(): number;
+
+    /**
+     * @description 返回集合中元素的数量
+     *      @return 返回集合的长度 
+     */
+    len(): number;
+
+    /**
+     * @description 判断 member 元素是否集合的成员
+     *      @param member 指定检查的 member
+     *      @return 如果 member 元素是集合的成员，返回 true 
+     */
+    exists(): boolean;
+
+    /**
+     * @description 返回集合中的所有成员
+     *      @return 集合中所有成员的列表 
+     */
+    members(): any[];
+
+    /**
+     * @description 移除并返回集合中的一个随机元素
+     *      @return 被移除的随机元素。当集合是空集时，返回 null 
+     */
+    pop(): Class_Buffer;
+
+    /**
+     * @description 从集合中获取随机的一个元素
+     *      @return 返回一个元素；如果集合为空，返回 null 
+     */
+    randMember(): any;
+
+}
+

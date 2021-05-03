@@ -1,0 +1,21 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "display": "fibjs",
+    "compilerOptions": {
+        "typeRoots": [
+            "./npm/types/dts"
+        ]
+    },
+    "include": [
+        "./npm/types/dts/*"
+    ],
+    "typeAcquisition": {
+        "include": [
+            "@fibjs/types"
+        ],
+        "exclude": [
+            "node",
+            "@types/node"
+        ]
+    }
+}

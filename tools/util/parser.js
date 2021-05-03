@@ -89,6 +89,11 @@ function parser_comment(comment) {
   return doc;
 }
 
+/**
+ * @param {string} baseFolder 
+ * @param {Record<string, import('../../idl/ir').IIDLDefinition>} defs 
+ * @returns {Record<string, import('../../idl/ir').IIDLDefinition>} 
+ */
 module.exports = function (baseFolder, defs) {
   var defs1 = {};
   var collect = {};
