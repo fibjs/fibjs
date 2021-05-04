@@ -281,13 +281,12 @@ result_t process_base::exit()
 
     gui_flush();
 
-#ifdef _WIN32
-    TerminateProcess(GetCurrentProcess(), code);
-#else
+#ifndef _WIN32
     if (g_in_readline && isatty(_fileno(stdin)))
         rl_deprep_terminal();
-    ::_exit(code);
 #endif
+
+    ::exit(code);
 
     return 0;
 }
