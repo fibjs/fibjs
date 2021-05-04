@@ -176,6 +176,7 @@ public:
         Isolate* isolate = Isolate::current();
 
         while (stack.size()) {
+            v8::HandleScope handle_scope(isolate->m_isolate);
             _case* p = stack[stack.size() - 1];
             _case *p1, *p2;
 
@@ -235,6 +236,14 @@ public:
                     d1.now();
                     v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate, p1->m_block);
                     func->Call(v8::Object::New(isolate->m_isolate), 0, NULL);
+                    if (try_catch.HasCaught()) {
+                        v8::Local<v8::Value> exp = try_catch.Exception();
+                        if (exp->IsFunction()) {
+                            func = v8::Local<v8::Function>::Cast(exp);
+                            try_catch.Reset();
+                            func->Call(v8::Object::New(isolate->m_isolate), 0, NULL);
+                        }
+                    }
                     d2.now();
 
                     if (try_catch.HasCaught()) {

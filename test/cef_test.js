@@ -244,12 +244,9 @@ describe("cef", () => {
 
             win.on("address", address => {
                 win.close();
-                try {
+                done(() => {
                     assert.equal(address, "cef://test/simple.html");
-                    done();
-                } catch (e) {
-                    done(e);
-                }
+                });
             })
         });
 
@@ -258,12 +255,9 @@ describe("cef", () => {
 
             win.on("title", title => {
                 win.close();
-                try {
+                done(() => {
                     assert.equal(title, "simple");
-                    done();
-                } catch (e) {
-                    done(e);
-                }
+                });
             })
         });
 
@@ -318,13 +312,9 @@ describe("cef", () => {
                     });
 
                     win.close();
-
-                    try {
+                    done(() => {
                         check(info.model.width, info.model.height);
-                        done();
-                    } catch (e) {
-                        done(e);
-                    }
+                    });
                 });
             });
         }
@@ -333,8 +323,8 @@ describe("cef", () => {
             os.type() == "Linux" ? assert.equal : assert.greaterThan);
 
         test_style("no resize", {
-                resizable: false
-            },
+            resizable: false
+        },
             os.type() == "Linux" ? assert.equal : assert.greaterThan);
 
         test_style("no border", {
@@ -389,13 +379,9 @@ describe("cef", () => {
                     }
 
                     win.close();
-
-                    try {
+                    done(() => {
                         assert.equal(html, `<div id=\"test\">${txt}</div>`);
-                        done();
-                    } catch (e) {
-                        done(e);
-                    }
+                    });
                 });
             });
         }
@@ -415,14 +401,10 @@ describe("cef", () => {
                 });
 
                 win.close();
-
-                try {
+                done(() => {
                     assert.equal(info.model.width, 400);
                     assert.equal(info.model.height, 140);
-                    done();
-                } catch (e) {
-                    done(e);
-                }
+                });
             });
         });
 
@@ -452,17 +434,13 @@ describe("cef", () => {
                     }
                 });
 
-                try {
+                win.close();
+                done(() => {
                     var img = gd.load(encoding.base64.decode(ret.data));
                     assert.equal(img.width, 100);
                     assert.equal(img.height, 100);
                     assert.equal(img.getPixel(1, 1), gd.rgb(255, 255, 255));
-                    done();
-                } catch (e) {
-                    done(e);
-                }
-
-                win.close();
+                });
             });
         });
 
@@ -474,14 +452,10 @@ describe("cef", () => {
             win.on("open", () => {
                 win.dev.Page.enable();
                 win.dev.Page.on("frameNavigated", ev => {
-                    try {
-                        assert.equal(ev.frame.url, "cef://test/basic.html");
-                        done();
-                    } catch (e) {
-                        done(e);
-                    }
-
                     win.close();
+                    done(() => {
+                        assert.equal(ev.frame.url, "cef://test/basic.html");
+                    });
                 });
             })
         });
@@ -511,13 +485,9 @@ describe("cef", () => {
                 }
 
                 win.close();
-
-                try {
+                done(() => {
                     assert.equal(html, `<div id=\"test\">hello, 这是测试文本。</div>`);
-                    done();
-                } catch (e) {
-                    done(e);
-                }
+                });
             });
         });
 
@@ -527,18 +497,14 @@ describe("cef", () => {
             });
 
             win.on("load", () => {
-                try {
+                done(() => {
                     assert.throws(() => {
                         var ret = win.dev.Page.captureScreenshot({
                             clip: {}
                         });
                     })
-                    done();
-                } catch (e) {
-                    done(e);
-                }
-
-                win.close();
+                    win.close();
+                });
             });
         });
     });

@@ -19,31 +19,31 @@ describe("test", () => {
 
     it("it throw when not in describe", () => {
         assert.throws(() => {
-            it("x", () => {});
+            it("x", () => { });
         });
     });
 
     it("before throw when not in describe", () => {
         assert.throws(() => {
-            before(() => {});
+            before(() => { });
         });
     });
 
     it("after throw when not in describe", () => {
         assert.throws(() => {
-            after(() => {});
+            after(() => { });
         });
     });
 
     it("beforeEach throw when not in describe", () => {
         assert.throws(() => {
-            beforeEach(() => {});
+            beforeEach(() => { });
         });
     });
 
     it("afterEach throw when not in describe", () => {
         assert.throws(() => {
-            afterEach(() => {});
+            afterEach(() => { });
         });
     });
 
@@ -172,7 +172,7 @@ describe("test", () => {
 
     describe("async case", () => {
         var t = false;
-        it("case", async() => {
+        it("case", async () => {
             await sleep(100);
             t = true;
         });
@@ -231,6 +231,17 @@ describe("test", () => {
         });
 
         it("(done) => check", () => {
+            assert.equal(t, true);
+        });
+
+        it("done(cb)", done => {
+            t = false;
+            done(() => {
+                t = true;
+            });
+        });
+
+        it("done(cb) => check", () => {
             assert.equal(t, true);
         });
 
