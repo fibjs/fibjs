@@ -78,9 +78,9 @@ inline void baseDecode(const char* pdecodeTable, size_t dwBits,
 
     size_t dwCurr = 0;
     size_t nBits = 0;
-    uint32_t ch;
+    unsigned char ch;
 
-    while ((ch = utf_getchar(_baseString, end)) != 0) {
+    while ((_baseString < end) && (ch = (unsigned char)*_baseString++)) {
         int32_t nCh = (ch > 0x20 && ch < 0x80) ? pdecodeTable[ch - 0x20] : -1;
 
         if (nCh != -1) {
@@ -137,14 +137,17 @@ inline result_t hexEncode(exlib::string data, exlib::string& retVal)
 {
     static char HexChar[] = "0123456789abcdef";
     size_t i;
-    size_t sz = data.length() * 2;
+    size_t sz = data.length();
 
-    retVal.resize(sz);
+    retVal.resize(sz * 2);
     char* _retVal = retVal.c_buffer();
+    const char* _data = data.c_str();
 
-    for (i = 0; i < data.length(); i++) {
-        _retVal[i * 2] = HexChar[(unsigned char)data[i] >> 4];
-        _retVal[i * 2 + 1] = HexChar[(unsigned char)data[i] & 0xf];
+    for (i = 0; i < sz; i++) {
+        unsigned char ch = (unsigned char)_data[i];
+
+        _retVal[i * 2] = HexChar[ch >> 4];
+        _retVal[i * 2 + 1] = HexChar[ch & 0xf];
     }
 
     return 0;

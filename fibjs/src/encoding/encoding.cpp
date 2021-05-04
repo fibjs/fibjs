@@ -123,11 +123,11 @@ result_t base64vlq_base::decode(exlib::string data, v8::Local<v8::Array>& retVal
     retVal = v8::Array::New(isolate->m_isolate);
 
     while (_data < end) {
-        uint32_t ch;
+        unsigned char ch;
         int32_t bits = 0;
         int32_t num = 0;
 
-        while ((ch = utf_getchar(_data, end)) != 0) {
+        while ((_data < end) && (ch = (unsigned char)*_data++)) {
             int32_t byte = (ch > 0x20 && ch < 0x80) ? decodeTable[ch - 0x20] : -1;
 
             if (byte != -1) {
@@ -158,26 +158,25 @@ result_t hex_base::encode(Buffer_base* data, exlib::string& retVal)
     return hexEncode(strData, retVal);
 }
 
-result_t hex_base::decode(exlib::string data,
-    obj_ptr<Buffer_base>& retVal)
+result_t hex_base::decode(exlib::string data, obj_ptr<Buffer_base>& retVal)
 {
     const char* _data = data.c_str();
     int32_t pos, len = (int32_t)data.length();
     const char* end = _data + len;
     exlib::string strBuf;
-    uint32_t ch1, ch2;
+    unsigned char ch1, ch2;
 
     strBuf.resize(len / 2);
     char* _strBuf = strBuf.c_buffer();
 
     pos = 0;
-    while ((ch1 = utf_getchar(_data, end)) != 0) {
+    while ((_data < end - 1) && (ch1 = (unsigned char)*_data++)) {
         if (qisxdigit(ch1))
             ch1 = qhex(ch1);
         else
             continue;
 
-        ch2 = utf_getchar(_data, end);
+        ch2 = *_data++;
         if (ch2 == 0)
             break;
 
