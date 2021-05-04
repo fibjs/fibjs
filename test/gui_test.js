@@ -32,7 +32,7 @@ if (win32 || darwin64) {
 
     before(() => {
       svr = new http.Server(8999 + base_port, {
-        '/(.+\.html$)': r => {
+        '/(.+\.(html|js)$)': r => {
           htmlHandler.invoke(r)
         },
         '/': r => {
@@ -305,7 +305,7 @@ if (win32 || darwin64) {
           title: "Manual Test - log",
         });
 
-        coroutine.sleep(500 /*  * 1e4 */ );
+        coroutine.sleep(500 /*  * 1e4 */);
         win.close();
         win = undefined;
       });
@@ -335,6 +335,70 @@ if (win32 || darwin64) {
           type: "native",
           debug: false
         });
+      });
+    });
+
+    win32 && describe("request resource", () => {
+      it('relative', (done) => {
+        var win = gui.open("fs://" + __dirname + "/gui_files/html-script/relative/relative.html", {
+          type: "native",
+          debug: false
+        });
+
+        win.onmessage = (msg) => {
+          win.close();
+
+          done(() => {
+            assert.equal(msg, 'request script relatively')
+          });
+        };
+      });
+
+      it('absolute', (done) => {
+        var fname = path.resolve(__dirname, 'gui_files/html-script/absolute/absolute.html');
+        var jsfname = path.join(__dirname, 'gui_files/html-script/absolute/absolute.js');
+
+        var content = `
+<html>
+  <head>
+      <title>absolute</title>
+      <meta charset="utf8" />
+      <script type="text/javascript" src="fs://${jsfname}"></script>
+  </head>
+  <body>
+      request script absolutely
+  </body>
+</html>
+        `;
+        fs.writeTextFile(fname, content);
+
+        var win = gui.open("fs://" + __dirname + "/gui_files/html-script/absolute/absolute.html", {
+          type: "native",
+          debug: false
+        });
+
+        win.onmessage = (msg) => {
+          win.close();
+
+          done(() => {
+            assert.equal(msg, 'request script absolutely')
+          });
+        };
+      });
+
+      it('http', (done) => {
+        var win = gui.open(`http://127.0.0.1:${(8999 + base_port)}/tag-script/http.html`, {
+          type: "native",
+          debug: false
+        });
+
+        win.onmessage = (msg) => {
+          win.close();
+
+          done(() => {
+            assert.equal(msg, 'request script by http')
+          });
+        };
       });
     });
 
