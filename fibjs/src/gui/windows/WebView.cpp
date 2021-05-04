@@ -99,7 +99,16 @@ private:
             m_pProtSink = pIProtSink;
             m_pProtSink->AddRef();
 
-            result_t hr = fs_base::cc_openFile(utf16to8String(szUrl + 5), "r", m_file, s_isolates.head());
+            exlib::string origin(utf16to8String(szUrl));
+            if (!qstrcmp(origin.c_str(), "fs://", 5)) {
+                origin = origin.substr(5, origin.length());
+            }
+
+            int len = origin.length();
+            if (len > 0 && origin[len - 1] == '/')
+                origin.resize(len - 1);
+
+            result_t hr = fs_base::cc_openFile(origin, "r", m_file, s_isolates.head());
             if (hr < 0)
                 return INET_E_OBJECT_NOT_FOUND;
 
@@ -230,7 +239,11 @@ private:
                 while (qisascii(*ptr) || qisdigit(*ptr))
                     ptr++;
 
-                if (*ptr == ':')
+                // expect fs://
+                if (!qstrcmp(ptr, L"://", 3))
+                    return INET_E_DEFAULT_ACTION;
+                // but fs: is allowed too.
+                else if (*ptr == ':')
                     return INET_E_DEFAULT_ACTION;
             }
 
