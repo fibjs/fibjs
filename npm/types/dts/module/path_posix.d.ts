@@ -98,7 +98,7 @@ declare module 'path_posix' {
      *      @return 返回得到的新路径
      *      
      */
-    function join(ps: any[]): string;
+    function join(...ps: any[]): string;
 
     /**
      * @description 合并一系列路径成为一个绝对路径
@@ -107,7 +107,7 @@ declare module 'path_posix' {
      *      @return 返回得到的新路径
      *      
      */
-    function resolve(ps: any[]): string;
+    function resolve(...ps: any[]): string;
 
     /**
      * @description 求 _from 到 to 的相对路径

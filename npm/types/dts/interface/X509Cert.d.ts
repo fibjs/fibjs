@@ -24,6 +24,15 @@ declare class Class_X509Cert extends Class_object {
     load(derCert: Class_Buffer): void;
 
     /**
+     * @description 加载一个 CRT/PEM/TXT 格式的证书，可多次调用
+     * 
+     *     load 加载 mozilla 的 certdata,txt， 可于 http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
+     *      @param txtCert CRT/PEM/TXT 格式的证书
+     *     
+     */
+    load(txtCert: string): void;
+
+    /**
      * @description 加载一个 CRT/PEM/DER/TXT 格式的证书，可多次调用
      * 
      *     loadFile 加载 mozilla 的 certdata,txt， 可于 http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt 下载使用

@@ -21,7 +21,7 @@ declare class Class_Redis extends Class_object {
      *      @param args 指定发送的参数
      *      @return 返回服务器返回的结果 
      */
-    command(cmd: string, args: any[]): any;
+    command(cmd: string, ...args: any[]): any;
 
     /**
      * @description 将字符串值 value 关联到 key，如果 key 已经持有其他值， SET 就覆写旧值，无视类型
@@ -54,10 +54,22 @@ declare class Class_Redis extends Class_object {
     mset(kvs: object): void;
 
     /**
+     * @description 同时设置一个或多个 key-value 对。如果某个给定 key 已经存在，那么 MSET 会用新值覆盖原来的旧值
+     *      @param kvs 指定要设置的 key/value 列表
+     */
+    mset(...kvs: any[]): void;
+
+    /**
      * @description 同时设置一个或多个 key-value 对，当且仅当所有给定 key 都不存在
      *      @param kvs 指定要设置的 key/value 对象
      */
     msetNX(kvs: object): void;
+
+    /**
+     * @description 同时设置一个或多个 key-value 对，当且仅当所有给定 key 都不存在
+     *      @param kvs 指定要设置的 key/value 列表
+     */
+    msetNX(...kvs: any[]): void;
 
     /**
      * @description 如果 key 已经存在并且是一个字符串，append 命令将 value 追加到 key 原来的值的末尾。如果 key 不存在，append 就简单地将给定 key 设为 value
@@ -114,6 +126,13 @@ declare class Class_Redis extends Class_object {
      *      @return 一个包含所有给定 key 的值的列表 
      */
     mget(keys: any[]): any[];
+
+    /**
+     * @description 返回所有(一个或多个)给定 key 的值。如果给定的 key 里面，有某个 key 不存在，那么这个 key 返回特殊值 nil 。
+     *      @param keys 指定要查询的 key 列表
+     *      @return 一个包含所有给定 key 的值的列表 
+     */
+    mget(...keys: any[]): any[];
 
     /**
      * @description 将给定 key 的值设为 value ，并返回 key 的旧值(old value)
@@ -185,6 +204,13 @@ declare class Class_Redis extends Class_object {
     del(keys: any[]): number;
 
     /**
+     * @description 删除给定的一个或多个 key，不存在的 key 会被忽略
+     *      @param keys 指定要删除的 key 列表
+     *      @return 被删除 key 的数量 
+     */
+    del(...keys: any[]): number;
+
+    /**
      * @description 为给定 key 设置生存时间，当 key 过期时，它会被自动删除
      *      @param key 指定要设定的 key
      *      @param ttl 以毫秒为单位为 key 设置生存时间
@@ -230,11 +256,40 @@ declare class Class_Redis extends Class_object {
     sub(channel: Class_Buffer, func: ()=>any): void;
 
     /**
+     * @description 订阅给定的一组频道的信息，当消息发生时自动调用相应的回调函数，同一频道同一函数只会回调一次
+     *      @param map 指定频道映射关系，对象属性名称将作为频道名称，属性的值将作为回调函数
+     *      
+     */
+    sub(map: object): void;
+
+    /**
      * @description 退订给定的频道的全部回调
      *      @param channel 指定退订的频道名称
      *     
      */
     unsub(channel: Class_Buffer): void;
+
+    /**
+     * @description 退订给定的频道的指定回调函数
+     *      @param channel 指定退订的频道名称
+     *      @param func 指定退订的回调函数
+     *     
+     */
+    unsub(channel: Class_Buffer, func: ()=>any): void;
+
+    /**
+     * @description 退订一组给定的频道的全部回调
+     *      @param channels 指定退订的频道数组
+     *     
+     */
+    unsub(channels: any[]): void;
+
+    /**
+     * @description 退订给定的一组频道的指定回调函数
+     *      @param map 指定频道映射关系，对象属性名称将作为频道名称，属性的值将作为回调函数
+     *      
+     */
+    unsub(map: object): void;
 
     /**
      * @description 按照模板订阅一组频道的信息，当消息发生时自动调用 func，func 包含三个参数，依次为 channel，message 和 pattern，同一模板同一函数只会回调一次
@@ -245,11 +300,40 @@ declare class Class_Redis extends Class_object {
     psub(pattern: string, func: ()=>any): void;
 
     /**
+     * @description 订阅给定的一组频道模板的信息，当消息发生时自动调用相应的 func，同一频道同一函数只会回调一次
+     *      @param map 指定频道映射关系，对象属性名称将作为频道模板，属性的值将作为回调函数
+     *      
+     */
+    psub(map: object): void;
+
+    /**
      * @description 退订给定模板的频道的全部回调
      *      @param pattern 指定退订的频道模板
      *     
      */
     unpsub(pattern: string): void;
+
+    /**
+     * @description 退订给定模板的频道的指定回调函数
+     *      @param pattern 指定退订的频道模板
+     *      @param func 指定退订的回调函数
+     *     
+     */
+    unpsub(pattern: string, func: ()=>any): void;
+
+    /**
+     * @description 退订一组给定模板的频道的全部回调
+     *      @param patterns 指定发布的频道模板数组
+     *     
+     */
+    unpsub(patterns: any[]): void;
+
+    /**
+     * @description 退订一组模板的频道的指定回调函数
+     *      @param map 指定频道映射关系，对象属性名称将作为频道模板，属性的值将作为回调函数
+     *      
+     */
+    unpsub(map: object): void;
 
     /**
      * @description 查询和设置错误处理函数，当 sub 出现错误或者网络中断时回调，当回调发生后，本对象的一切 sub 都将中止

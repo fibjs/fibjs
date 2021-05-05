@@ -20,11 +20,25 @@ declare class Class_RedisSet extends Class_object {
     add(members: any[]): number;
 
     /**
+     * @description 同时将多个 field-value (域-值)对设置到哈希表中，此命令会覆盖哈希表中已存在的域
+     *      @param members 指定要添加的元素列表
+     *      @return 被添加到集合中的新元素的数量，不包括被忽略的元素  
+     */
+    add(...members: any[]): number;
+
+    /**
      * @description 移除集合中的一个或多个 member 元素
      *      @param members 指定要移除的元素数组
      *      @return 被成功移除的元素的数量，不包括被忽略的元素 
      */
     remove(members: any[]): number;
+
+    /**
+     * @description 移除集合中的一个或多个 member 元素
+     *      @param members 指定要移除的元素列表
+     *      @return 被成功移除的元素的数量，不包括被忽略的元素  
+     */
+    remove(...members: any[]): number;
 
     /**
      * @description 返回集合中元素的数量
@@ -56,6 +70,13 @@ declare class Class_RedisSet extends Class_object {
      *      @return 返回一个元素；如果集合为空，返回 null 
      */
     randMember(): any;
+
+    /**
+     * @description 从集合中获取随机的若干元素
+     *      @param count 指定返回的元素个数。正数，返回一个包含 count 个元素的数组；负数，返回一个数组，数组中的元素可能会重复出现多次，而数组的长度为 count 的绝对值
+     *      @return 返回一个列表；如果集合为空，返回空列表 
+     */
+    randMember(count: number): any;
 
 }
 

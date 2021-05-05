@@ -11,7 +11,7 @@ declare module 'timers' {
      *     @return 返回定时器对象
      *     
      */
-    function setTimeout(callback: ()=>any, timeout: number, args: any[]): Class_Timer;
+    function setTimeout(callback: ()=>any, timeout: number, ...args: any[]): Class_Timer;
 
     /**
      * @description 清除指定的定时器
@@ -28,7 +28,7 @@ declare module 'timers' {
      *      @return 返回定时器对象
      *     
      */
-    function setInterval(callback: ()=>any, timeout: number, args: any[]): Class_Timer;
+    function setInterval(callback: ()=>any, timeout: number, ...args: any[]): Class_Timer;
 
     /**
      * @description 清除指定的定时器
@@ -59,7 +59,7 @@ declare module 'timers' {
      *      @return 返回定时器对象
      *     
      */
-    function setHrInterval(callback: ()=>any, timeout: number, args: any[]): Class_Timer;
+    function setHrInterval(callback: ()=>any, timeout: number, ...args: any[]): Class_Timer;
 
     /**
      * @description 清除指定的定时器
@@ -75,7 +75,7 @@ declare module 'timers' {
      *      @return 返回定时器对象
      *     
      */
-    function setImmediate(callback: ()=>any, args: any[]): Class_Timer;
+    function setImmediate(callback: ()=>any, ...args: any[]): Class_Timer;
 
     /**
      * @description 清除指定的定时器
@@ -92,7 +92,7 @@ declare module 'timers' {
      *      @return 返回 func 的运行结果
      *     
      */
-    function call(func: ()=>any, timeout: number, args: any[]): any;
+    function call(func: ()=>any, timeout: number, ...args: any[]): any;
 
 }
 

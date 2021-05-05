@@ -156,6 +156,22 @@ declare namespace FIBJS_IDL {
         }
         params: IIDLParam[]
         doc: IParsedDoc
+
+        /**
+         * @description 成员重载, 对 memType 为 'method' 的成员有意义
+         */
+        overs?: {
+            memType: IMember['memType']
+            comments: IMember['comments']
+            deprecated: IMember['deprecated']
+            static: IMember['static']
+            async: IMember['async']
+            symbol: IMember['symbol']
+            name: IMember['name']
+            type: IMember['type']
+            params: IMember['params']
+            doc: IMember['doc']
+        }[]
     }
 
     /**

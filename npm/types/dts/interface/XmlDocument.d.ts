@@ -1,4 +1,5 @@
 /// <reference path="../interface/XmlNode.d.ts" />
+/// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/XmlDocumentType.d.ts" />
 /// <reference path="../interface/XmlElement.d.ts" />
 /// <reference path="../interface/XmlNodeList.d.ts" />
@@ -27,6 +28,13 @@ declare class Class_XmlDocument extends Class_XmlNode {
      *     
      */
     load(source: string): void;
+
+    /**
+     * @description 通过解析一个二进制 XML/HTML 字符串来组成该文档，并根据语种自动转换
+     *      @param source 要解析的 XML/HTML 文本，取决于文档创建时的类型
+     *     
+     */
+    load(source: Class_Buffer): void;
 
     /**
      * @description 返回用于文档的编码（在解析时）

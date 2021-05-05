@@ -64,6 +64,15 @@ declare class Class_Socket extends Class_Stream {
     bind(port: number, allowIPv4: boolean): void;
 
     /**
+     * @description 将当前 Socket 绑定至指定地址的指定端口
+     *      @param addr 指定绑定的地址，也可以指向 unix socket 和 Windows pipe 路径
+     *      @param port 指定绑定的端口，绑定 unix socket 和 Windows pipe 时，忽略此参数
+     *      @param allowIPv4 指定是否接受 ipv4 连接，缺省为 true。本参数在 ipv6 时有效，并依赖于操作系统
+     *      
+     */
+    bind(addr: string, port: number, allowIPv4: boolean): void;
+
+    /**
      * @description 开始监听连接请求
      *      @param backlog 指定请求队列长度，超出的请求将被拒绝，缺省为 120
      *      

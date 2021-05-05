@@ -76,12 +76,26 @@ declare class Class_Message extends Class_object {
     json(data: any): any;
 
     /**
+     * @description 以 JSON 编码解析消息中的数据
+     *      @return 返回解析的结果
+     *      
+     */
+    json(): any;
+
+    /**
      * @description 以 msgpack 编码写入给定的数据
      *      @param data 给定要写入的数据
      *      @return 此方法不会返回数据
      *      
      */
     pack(data: any): any;
+
+    /**
+     * @description 以 msgpack 编码解析消息中的数据
+     *      @return 返回解析的结果
+     *      
+     */
+    pack(): any;
 
     /**
      * @description 消息数据部分的长度 

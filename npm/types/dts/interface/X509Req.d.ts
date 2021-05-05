@@ -25,6 +25,13 @@ declare class Class_X509Req extends Class_object {
     load(derReq: Class_Buffer): void;
 
     /**
+     * @description 加载一个 PEM 格式的证书请求
+     *      @param pemReq PEM 格式的证书请求
+     *     
+     */
+    load(pemReq: string): void;
+
+    /**
      * @description 加载一个 PEM/DER 格式的证书请求，可多次调用
      *      @param filename 证书请求文件名
      *     

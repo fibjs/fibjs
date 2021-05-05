@@ -71,6 +71,15 @@ declare class Class_Image extends Class_object {
     save(stm: Class_Stream, format: number, quality: number): void;
 
     /**
+     * @description 按照指定的格式将图像数据存入指定文件，文件将被强制覆盖
+     *      @param fname 指定文件名
+     *      @param format 指定返回数据的格式，允许值为 gd.PNG, gd.JPEG, gd.GIF, gd.BMP, gd.WEBP, 缺省为 gd.PNG
+     *      @param quality 当格式为 gd.JPEG 时用于指定压缩质量，缺省为 85，其他格式忽略此参数
+     *      
+     */
+    save(fname: string, format: number, quality: number): void;
+
+    /**
      * @description 为指定的颜色申请一个颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
      *      @param red 红色分量，范围为 0-255
      *      @param green 绿色分量，范围为 0-255
@@ -79,6 +88,14 @@ declare class Class_Image extends Class_object {
      *      
      */
     colorAllocate(red: number, green: number, blue: number): number;
+
+    /**
+     * @description 为指定的颜色申请一个颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
+     *      @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+     *      @return 返回颜色号，不成功返回 -1
+     *      
+     */
+    colorAllocate(color: number): number;
 
     /**
      * @description 为指定的颜色及透明申请一个颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
@@ -92,6 +109,14 @@ declare class Class_Image extends Class_object {
     colorAllocateAlpha(red: number, green: number, blue: number, alpha: number): number;
 
     /**
+     * @description 为指定的颜色及透明申请一个颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
+     *      @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+     *      @return 返回颜色号，不成功返回 -1
+     *      
+     */
+    colorAllocateAlpha(color: number): number;
+
+    /**
      * @description 为指定的颜色查找一个最接近的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
      *      @param red 红色分量，范围为 0-255
      *      @param green 绿色分量，范围为 0-255
@@ -102,6 +127,14 @@ declare class Class_Image extends Class_object {
     colorClosest(red: number, green: number, blue: number): number;
 
     /**
+     * @description 为指定的颜色查找一个最接近的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
+     *      @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+     *      @return 返回颜色号，不成功返回 -1
+     *      
+     */
+    colorClosest(color: number): number;
+
+    /**
      * @description 为指定的颜色查找一个最接近的颜色号，此方法使用 Hue/White/Black 计算查找最接近颜色，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
      *      @param red 红色分量，范围为 0-255
      *      @param green 绿色分量，范围为 0-255
@@ -110,6 +143,14 @@ declare class Class_Image extends Class_object {
      *      
      */
     colorClosestHWB(red: number, green: number, blue: number): number;
+
+    /**
+     * @description 为指定的颜色查找一个最接近的颜色号，此方法使用 Hue/White/Black 计算查找最接近颜色，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
+     *      @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+     *      @return 返回颜色号，不成功返回 -1
+     *      
+     */
+    colorClosestHWB(color: number): number;
 
     /**
      * @description 为指定的颜色及透明查找一个最接近的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
@@ -123,6 +164,14 @@ declare class Class_Image extends Class_object {
     colorClosestAlpha(red: number, green: number, blue: number, alpha: number): number;
 
     /**
+     * @description 为指定的颜色及透明查找一个最接近的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
+     *      @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+     *      @return 返回颜色号，不成功返回 -1
+     *      
+     */
+    colorClosestAlpha(color: number): number;
+
+    /**
      * @description 查找指定的颜色对应的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
      *      @param red 红色分量，范围为 0-255
      *      @param green 绿色分量，范围为 0-255
@@ -131,6 +180,14 @@ declare class Class_Image extends Class_object {
      *      
      */
     colorExact(red: number, green: number, blue: number): number;
+
+    /**
+     * @description 查找指定的颜色对应的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
+     *      @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+     *      @return 返回颜色号，不成功返回 -1
+     *      
+     */
+    colorExact(color: number): number;
 
     /**
      * @description 查找指定的颜色及透明对应的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
@@ -144,6 +201,14 @@ declare class Class_Image extends Class_object {
     colorExactAlpha(red: number, green: number, blue: number, alpha: number): number;
 
     /**
+     * @description 查找指定的颜色及透明对应的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
+     *      @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+     *      @return 返回颜色号，不成功返回 -1
+     *      
+     */
+    colorExactAlpha(color: number): number;
+
+    /**
      * @description 查找指定的颜色对应的颜色号，如果颜色不存在，则为其申请一个新颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
      *      @param red 红色分量，范围为 0-255
      *      @param green 绿色分量，范围为 0-255
@@ -152,6 +217,14 @@ declare class Class_Image extends Class_object {
      *      
      */
     colorResolve(red: number, green: number, blue: number): number;
+
+    /**
+     * @description 查找指定的颜色对应的颜色号，如果颜色不存在，则为其申请一个新颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
+     *      @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+     *      @return 返回颜色号，不成功返回 -1
+     *      
+     */
+    colorResolve(color: number): number;
 
     /**
      * @description 查找指定的颜色及透明对应的颜色号，如果颜色不存在，则为其申请一个新颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
@@ -163,6 +236,14 @@ declare class Class_Image extends Class_object {
      *      
      */
     colorResolveAlpha(red: number, green: number, blue: number, alpha: number): number;
+
+    /**
+     * @description 查找指定的颜色及透明对应的颜色号，如果颜色不存在，则为其申请一个新颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
+     *      @param color 组合颜色值，可由 gd.color, gb.rgb, gd.rgba 等函数生成
+     *      @return 返回颜色号，不成功返回 -1
+     *      
+     */
+    colorResolveAlpha(color: number): number;
 
     /**
      * @description 释放指定的颜色号，释放的颜色号将会被再次申请后替换

@@ -25,5 +25,12 @@ declare class Class_Chain extends Class_Handler {
      */
     append(hdlrs: any[]): void;
 
+    /**
+     * @description 添加处理器
+     *      @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
+     *      
+     */
+    append(hdlr: Class_Handler): void;
+
 }
 

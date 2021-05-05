@@ -118,7 +118,7 @@ declare module 'console' {
      *      @param args 可选参数列表
      *      
      */
-    function log(fmt: string, args: any[]): void;
+    function log(fmt: string, ...args: any[]): void;
 
     /**
      * @description 记录调试日志信息
@@ -128,7 +128,7 @@ declare module 'console' {
      *      @param args 可选参数列表
      *      
      */
-    function debug(fmt: string, args: any[]): void;
+    function debug(fmt: string, ...args: any[]): void;
 
     /**
      * @description 记录普通日志信息，与 log 等同
@@ -138,7 +138,7 @@ declare module 'console' {
      *      @param args 可选参数列表
      *      
      */
-    function info(fmt: string, args: any[]): void;
+    function info(fmt: string, ...args: any[]): void;
 
     /**
      * @description 记录警告日志信息
@@ -148,7 +148,7 @@ declare module 'console' {
      *      @param args 可选参数列表
      *      
      */
-    function notice(fmt: string, args: any[]): void;
+    function notice(fmt: string, ...args: any[]): void;
 
     /**
      * @description 记录警告日志信息
@@ -158,7 +158,7 @@ declare module 'console' {
      *      @param args 可选参数列表
      *      
      */
-    function warn(fmt: string, args: any[]): void;
+    function warn(fmt: string, ...args: any[]): void;
 
     /**
      * @description 记录错误日志信息
@@ -168,7 +168,7 @@ declare module 'console' {
      *      @param args 可选参数列表
      *      
      */
-    function error(fmt: string, args: any[]): void;
+    function error(fmt: string, ...args: any[]): void;
 
     /**
      * @description 记录关键错误日志信息
@@ -178,7 +178,7 @@ declare module 'console' {
      *      @param args 可选参数列表
      *      
      */
-    function crit(fmt: string, args: any[]): void;
+    function crit(fmt: string, ...args: any[]): void;
 
     /**
      * @description 记录警报错误日志信息
@@ -188,7 +188,7 @@ declare module 'console' {
      *      @param args 可选参数列表
      *      
      */
-    function alert(fmt: string, args: any[]): void;
+    function alert(fmt: string, ...args: any[]): void;
 
     /**
      * @description 用 JSON 格式输出对象
@@ -244,7 +244,7 @@ declare module 'console' {
      *      @param args 可选参数列表
      *      
      */
-    function print(fmt: string, args: any[]): void;
+    function print(fmt: string, ...args: any[]): void;
 
     /**
      * @description 移动控制台光标到指定位置

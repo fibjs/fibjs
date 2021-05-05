@@ -182,7 +182,7 @@ declare module 'process' {
      *      @param args 可变参数序列，此序列会在纤程内传递给函数
      *      
      */
-    function nextTick(func: ()=>any, args: any[]): void;
+    function nextTick(func: ()=>any, ...args: any[]): void;
 
     /**
      * @description 获取指定名称的内部模块

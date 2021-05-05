@@ -33,6 +33,13 @@ declare class Class_SandBox extends Class_object {
     add(id: string, mod: any): void;
 
     /**
+     * @description 向沙箱中添加一组基础模块
+     *      @param mods 指定要添加的模块对象字典，添加的 javascript 模块将会生成一份复制，以避免沙箱修改对象产生互相干扰
+     *      
+     */
+    add(mods: object): void;
+
+    /**
      * @description 向沙箱中添加一个脚本模块
      *      @param srcname 指定要添加的脚本名称，srcname 必须包含扩展名，比如 json 或者 js, jsc
      *      @param script 指定要添加的二进制代码

@@ -1,5 +1,6 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
+/// <reference path="../interface/SeekableStream.d.ts" />
 /**
  * @description zip 文件访问对象 
  */
@@ -55,6 +56,15 @@ declare class Class_ZipFile extends Class_object {
     extract(member: string, path: string, password: string): void;
 
     /**
+     * @description 解压指定文件到流
+     * 	 @param member 指定要解压的文件名
+     * 	 @param strm 指定要解压到的流
+     * 	 @param password 解压密码, 默认没有密码
+     * 	 
+     */
+    extract(member: string, strm: Class_SeekableStream, password: string): void;
+
+    /**
      * @description 解压所有文件到指定路径
      * 	 @param path 指定要解压到的路径
      * 	 @param password 解压密码, 默认没有密码
@@ -70,6 +80,24 @@ declare class Class_ZipFile extends Class_object {
      * 	 
      */
     write(filename: string, inZipName: string, password: string): void;
+
+    /**
+     * @description 写入指定文件到压缩文件
+     * 	 @param data 指定要写入的文件数据
+     * 	 @param inZipName 压缩在zip文件内的文件名
+     * 	 @param password 解压密码, 默认没有密码
+     * 	 
+     */
+    write(data: Class_Buffer, inZipName: string, password: string): void;
+
+    /**
+     * @description 写入指定文件到压缩文件
+     * 	 @param strm 指定要写入文件数据流
+     * 	 @param inZipName 压缩在zip文件内的文件名
+     * 	 @param password 解压密码, 默认没有密码
+     * 	 
+     */
+    write(strm: Class_SeekableStream, inZipName: string, password: string): void;
 
     /**
      * @description 关闭打开的zip文件 

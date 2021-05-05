@@ -40,11 +40,43 @@ declare class Class_HttpCollection extends Class_object {
     add(map: object): void;
 
     /**
+     * @description 添加一个键值的一组数据，添加数据并不修改已存在的键值的数据
+     *      @param name 指定要添加的键值
+     *      @param values 指定要添加的一组数据
+     *      
+     */
+    add(name: string, values: any[]): void;
+
+    /**
+     * @description 添加一个键值数据，添加数据并不修改已存在的键值的数据
+     *      @param name 指定要添加的键值
+     *      @param value 指定要添加的数据
+     *      
+     */
+    add(name: string, value: any): void;
+
+    /**
      * @description 设定一个键值数据，设定数据将修改键值所对应的第一个数值，并清除相同键值的其余数据
      *      @param map 指定要设定的键值数据字典
      *      
      */
     set(map: object): void;
+
+    /**
+     * @description 设定一个键值的一组数据，设定数据将修改键值所对应的数值，并清除相同键值的其余数据
+     *      @param name 指定要设定的键值
+     *      @param values 指定要设定的一组数据
+     *      
+     */
+    set(name: string, values: any[]): void;
+
+    /**
+     * @description 设定一个键值数据，设定数据将修改键值所对应的第一个数值，并清除相同键值的其余数据
+     *      @param name 指定要设定的键值
+     *      @param value 指定要设定的数据
+     *      
+     */
+    set(name: string, value: any): void;
 
     /**
      * @description 删除指定键值的全部值

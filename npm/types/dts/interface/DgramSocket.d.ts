@@ -43,6 +43,13 @@ declare class Class_DgramSocket extends Class_EventEmitter {
     bind(port: number, addr: string): void;
 
     /**
+     * @description 该方法会令 dgram.Socket 在 `opts` 指定的 `port` 和 `address` 上监听数据包信息。绑定完成时会触发一个 `listening` 事件。
+     *      @param opts 指定绑定参数
+     *     
+     */
+    bind(opts: object): void;
+
+    /**
      * @description 在 socket 上发送一个数据包
      *      @param msg 指定发送的数据
      *      @param port 指定发送的目的端口
@@ -51,6 +58,18 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *     
      */
     send(msg: Class_Buffer, port: number, address: string): number;
+
+    /**
+     * @description 在 socket 上发送一个数据包
+     *      @param msg 指定发送的数据
+     *      @param offset 从指定偏移开始发送
+     *      @param length 之发送指定长度
+     *      @param port 指定发送的目的端口
+     *      @param address 指定发送的目的地址
+     *      @return 返回发送尺寸
+     *     
+     */
+    send(msg: Class_Buffer, offset: number, length: number, port: number, address: string): number;
 
     /**
      * @description 返回一个包含 socket 地址信息的对象。对于 UDP socket，该对象将包含 address、family 和 port 属性。 
@@ -63,6 +82,13 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      * @description 关闭当前 socket 
      */
     close(): void;
+
+    /**
+     * @description 关闭当前 socket
+     *      @param callback 关闭完成后的回调函数，它相当于为 `close` 事件添加了一个监听器
+     *     
+     */
+    close(callback: ()=>any): void;
 
     /**
      * @description 查询 socket 接收缓冲区大小 

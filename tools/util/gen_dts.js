@@ -17,6 +17,10 @@ const { mkdirp } = require('../../fibjs/scripts/internal/helpers/fs');
 const BASE_DIR = path.resolve(__dirname, `../../npm/types/dts/`);
 mkdirp(BASE_DIR);
 
+// function isIDLRestToken(paramName) {
+//     return paramName === '...';
+// }
+
 function postProcessDtsUnitString(str) {
     return str
     // .replace(new RegExp(QUOTE_START_PLACEHOLDER, 'g'), '')
@@ -88,6 +92,7 @@ function generalTypeMap(dataType, {
     const info = {
         type: null,
         refType: null,
+        isRestArgs: false,
     };
 
     switch (dataType) {
@@ -99,6 +104,14 @@ function generalTypeMap(dataType, {
         case 'Array':
         case 'NArray': {
             info.type = dom.type.array('any')
+            break;
+        }
+        case 'ArrayBuffer': {
+            info.type = dom.create.namedTypeReference('ArrayBuffer');
+            break;
+        }
+        case 'ArrayBufferView': {
+            info.type = dom.create.namedTypeReference('ArrayBufferView');
             break;
         }
         case 'Value':
@@ -148,6 +161,7 @@ function generalTypeMap(dataType, {
         }
         case '...': {
             info.type = dom.type.array(dom.type.any)
+            info.isRestArgs = true;
             break;
         }
     }
@@ -267,7 +281,7 @@ function mapParamTypeToDtsType(paramType, {
                 refType: paramType,
             })
         }
-        return result.type
+        return result
     }
 
     switch (paramType) {
@@ -352,6 +366,7 @@ function processDeclareInterface(def, {
          * @type {IDTSUnit['members'][number]}
          */
         let dtsUnitMember;
+        let memberIsOver = false;
 
         switch (mem.memType) {
             case 'prop': {
@@ -363,21 +378,41 @@ function processDeclareInterface(def, {
                 break
             }
             case 'method': {
-                const methodParams = (mem.params || []).map(memParam => {
-                    return dom.create.parameter(
-                        memParam.name,
-                        mapParamTypeToDtsType(memParam.type, getMapParamOptions(memParam))
-                    )
-                });
+                function getMethodParam(paramsHost) {
+                    return (paramsHost.params || []).map(memParam => {
+                        const paramDomInfo = mapParamTypeToDtsType(memParam.type, getMapParamOptions(memParam));
+
+                        return dom.create.parameter(
+                            memParam.name,
+                            paramDomInfo.type,
+                            paramDomInfo.isRestArgs ? dom.ParameterFlags.Rest : dom.ParameterFlags.None
+                        )
+                    });
+                }
+
                 if (isInterfaceConstructor) {
-                    dtsUnit.members.push(dtsUnitMember = dom.create.constructor(methodParams, memFlags))
+                    dtsUnit.members.push(dtsUnitMember = dom.create.constructor(getMethodParam(mem), memFlags))
                 } else {
-                    dtsUnit.members.push(dtsUnitMember = dom.create.method(
-                        mem.name,
-                        methodParams,
-                        mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
-                        memFlags
-                    ))
+                    if (mem.overs && mem.overs.length > 1) {
+                        memberIsOver = true;
+                        mem.overs.forEach(over => {
+                            const member = dom.create.method(
+                                over.name,
+                                getMethodParam(over),
+                                mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
+                                memFlags
+                            );
+                            member.jsDocComment = convertIDLCommentToJSDocComment(over.comments)
+                            dtsUnit.members.push(member);
+                        });
+                    } else {
+                        dtsUnit.members.push(dtsUnitMember = dom.create.method(
+                            mem.name,
+                            getMethodParam(mem),
+                            mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
+                            memFlags
+                        ))
+                    }
                 }
                 break
             }
@@ -422,11 +457,12 @@ function processDeclareInterface(def, {
             }
         }
 
-        if (!dtsUnitMember) {
+        if (dtsUnitMember) {
+            dtsUnitMember.jsDocComment = convertIDLCommentToJSDocComment(mem.comments || '');
+        } else if (!memberIsOver) {
             throw new Error(`generating dtsUnitMember failed! unsupported member '${mem.name}' (with memType '${mem.memType}') on ${unitCategory} '${unitName}'`)
         }
 
-        dtsUnitMember.jsDocComment = convertIDLCommentToJSDocComment(mem.comments || '');
     });
 
     dtsUnit.jsDocComment = convertIDLCommentToJSDocComment(def.declare.comments || '');
@@ -502,15 +538,19 @@ function processDeclareModule(def, {
             }
             case 'method': {
                 const methodParams = (mem.params || []).map(memParam => {
+                    const paramDomInfo = mapParamTypeToDtsType(memParam.type, getMapParamOptions(memParam))
+
                     return dom.create.parameter(
                         memParam.name,
-                        mapParamTypeToDtsType(memParam.type, getMapParamOptions(memParam))
+                        paramDomInfo.type,
+                        paramDomInfo.isRestArgs ? dom.ParameterFlags.Rest : dom.ParameterFlags.None
                     )
                 });
 
                 dtsUnit.members.push(dtsUnitMember = dom.create.function(
                     mem.name,
-                    methodParams, mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions())
+                    methodParams,
+                    mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions())
                 ));
 
                 break

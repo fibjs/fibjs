@@ -51,6 +51,20 @@ declare class Class_DbConnection extends Class_object {
     trans(func: ()=>any): boolean;
 
     /**
+     * @description 进入事务执行一个函数，并根据函数执行情况提交或者回滚 
+     *      func 执行有三种结果：
+     *      * 函数正常返回，包括运行结束和主动 return，此时事务将自动提交
+     *      * 函数返回 false，此时事务将回滚
+     *      * 函数运行错误，事务自动回滚
+     * 
+     *      @param point 指定事务的名称
+     *      @param func 以事务方式执行的函数
+     *      @return 返回事务是否提交，正常 commit 时返回 true, rollback 时返回 false，如果事务出错则抛出错误
+     *     
+     */
+    trans(point: string, func: ()=>any): boolean;
+
+    /**
      * @description 执行一个 sql 命令，并返回执行结果，可根据参数格式化字符串
      * 
      *      @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
@@ -58,7 +72,7 @@ declare class Class_DbConnection extends Class_object {
      *      @return 返回包含结果记录的数组，如果请求是 UPDATE 或者 INSERT，返回结果还会包含 affected 和 insertId，mssql 不支持 insertId。
      *      
      */
-    execute(sql: string, args: any[]): any[];
+    execute(sql: string, ...args: any[]): any[];
 
     /**
      * @description 创建数据表
@@ -146,6 +160,16 @@ declare class Class_DbConnection extends Class_object {
      *      
      */
     format(method: string, opts: object): string;
+
+    /**
+     * @description 格式化一个 sql 命令，并返回格式化结果
+     * 
+     *      @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
+     *      @param args 可选参数列表
+     *      @return 返回格式化之后的 sql 命令
+     *      
+     */
+    format(sql: string, ...args: any[]): string;
 
 }
 

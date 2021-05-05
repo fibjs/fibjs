@@ -1,4 +1,5 @@
 /// <reference path="../interface/EventEmitter.d.ts" />
+/// <reference path="../interface/Buffer.d.ts" />
 /**
  * @description WebSocket 包协议转换处理器
  * 
@@ -72,6 +73,13 @@ declare class Class_WebSocket extends Class_EventEmitter {
      *     
      */
     send(data: string): void;
+
+    /**
+     * @description 向对方发送一段二进制数据
+     *      @param data 指定发送的二进制数据
+     *     
+     */
+    send(data: Class_Buffer): void;
 
     /**
      * @description 查询和绑定连接成功事件，相当于 on("open", func); 

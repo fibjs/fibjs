@@ -45,6 +45,13 @@ declare class Class_MongoCollection extends Class_object {
     insert(documents: any[]): void;
 
     /**
+     * @description 插入一条数据
+     *     @param document 指定要插入的数据
+     *    
+     */
+    insert(document: object): void;
+
+    /**
      * @description 保存一条数据，若数据包含 _id 字段，则为更新，否则为插入
      *     @param document 指定要保存的数据
      *    
@@ -62,6 +69,15 @@ declare class Class_MongoCollection extends Class_object {
     update(query: object, document: object, upsert: boolean, multi: boolean): void;
 
     /**
+     * @description 根据给定的查询条件更新数据
+     *     @param query 指定查询条件的对象
+     *     @param document 指定要更新的数据
+     *     @param options 以对象字段传递的 upsert 和 multi 选项
+     *    
+     */
+    update(query: object, document: object, options: object): void;
+
+    /**
      * @description 根据给定的查询条件删除数据
      *     @param query 指定查询条件的对象
      *    
@@ -75,6 +91,15 @@ declare class Class_MongoCollection extends Class_object {
      *    
      */
     runCommand(cmd: object): object;
+
+    /**
+     * @description 执行数据库命令
+     *     @param cmd 给定命令名称
+     *     @param arg 给定命令参数选项
+     *     @return 返回命令返回结果
+     *    
+     */
+    runCommand(cmd: string, arg: object): object;
 
     /**
      * @description 删除当前集合 

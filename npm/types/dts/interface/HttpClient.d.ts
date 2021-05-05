@@ -4,6 +4,7 @@
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/HttpRequest.d.ts" />
 /// <reference path="../interface/HttpResponse.d.ts" />
+/// <reference path="../interface/SeekableStream.d.ts" />
 /**
  * @description http客户端对象
  *  
@@ -94,6 +95,38 @@ declare class Class_HttpClient extends Class_object {
      *      
      */
     request(conn: Class_Stream, req: Class_HttpRequest): Class_HttpResponse;
+
+    /**
+     * @description 发送 http 请求到指定的流对象，并返回结果
+     *      @param conn 指定处理请求的流对象
+     *      @param req 要发送的 HttpRequest 对象
+     *      @param response_body 指定 response.body 的流
+     *      @return 返回服务器响应
+     *      
+     */
+    request(conn: Class_Stream, req: Class_HttpRequest, response_body: Class_SeekableStream): Class_HttpResponse;
+
+    /**
+     * @description 请求指定的 url，并返回结果
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {},
+     *          "response_body": SeekableStream // 指定接受 resposne 数据的流
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
+     *      @param method 指定 http 请求方法：GET, POST 等
+     *      @param url 指定 url，必须是包含主机的完整 url
+     *      @param opts 指定附加信息
+     *      @return 返回服务器响应
+     *      
+     */
+    request(method: string, url: string, opts: object): Class_HttpResponse;
 
     /**
      * @description 用 GET 方法请求指定的 url，并返回结果，等同于 request("GET", ...)

@@ -12,7 +12,7 @@ declare module 'util' {
      *      @return 返回格式化后的字符串
      *      
      */
-    function format(fmt: string, args: any[]): string;
+    function format(fmt: string, ...args: any[]): string;
 
     /**
      * @description 从一个构造函数 constructor 继承原型函数到另一个。构造函数的原型将被设置为一个新的从超类（superConstructor）创建的对象。
@@ -340,7 +340,7 @@ declare module 'util' {
      *      @return 返回扩展的结果
      *      
      */
-    function extend(v: any, objs: any[]): any;
+    function extend(v: any, ...objs: any[]): any;
 
     /**
      * @description 将一个或者多个对象的键值扩展到指定对象，是 extend 的别名
@@ -350,7 +350,7 @@ declare module 'util' {
      *      @return 返回扩展的结果
      *      
      */
-    function _extend(v: any, objs: any[]): any;
+    function _extend(v: any, ...objs: any[]): any;
 
     /**
      * @description 返回一个object副本，只过滤出指定键的属性值
@@ -360,7 +360,7 @@ declare module 'util' {
      *      @return 返回过滤的结果
      *      
      */
-    function pick(v: any, objs: any[]): object;
+    function pick(v: any, ...objs: any[]): object;
 
     /**
      * @description 返回一个object副本，只过排除指定键的属性值
@@ -370,7 +370,7 @@ declare module 'util' {
      *      @return 返回排除的结果
      *      
      */
-    function omit(v: any, keys: any[]): object;
+    function omit(v: any, ...keys: any[]): object;
 
     /**
      * @description 获取数组的第一个元素
@@ -407,7 +407,7 @@ declare module 'util' {
      *      @return 返回合并的结果
      *      
      */
-    function union(arrs: any[]): any[];
+    function union(...arrs: any[]): any[];
 
     /**
      * @description 返回一个包含 arr 数组中排除一个或者多个数组元素的交集
@@ -416,7 +416,7 @@ declare module 'util' {
      *      @return 返回计算交集的结果
      *      
      */
-    function intersection(arrs: any[]): any[];
+    function intersection(...arrs: any[]): any[];
 
     /**
      * @description 将一个嵌套多层的数组(嵌套可以是任何层数)转换为只有一层的数组。 如果你传递 shallow 参数，数组将只减少一维的嵌套。
@@ -436,7 +436,7 @@ declare module 'util' {
      *      @return 返回排除的结果
      *      
      */
-    function without(arr: any, els: any[]): any[];
+    function without(arr: any, ...els: any[]): any[];
 
     /**
      * @description 返回一个包含 arr 数组中排除 without 数组元素之后的数组
@@ -446,7 +446,7 @@ declare module 'util' {
      *      @return 返回排除的结果
      *      
      */
-    function difference(list: any[], arrs: any[]): any[];
+    function difference(list: any[], ...arrs: any[]): any[];
 
     /**
      * @description 遍历 list 中的所有元素，按顺序用遍历输出每个元素。如果传递了 context 参数，则把 iterator 绑定到 context 对象上。每次调用 iterator 都会传递三个参数：(element, index, list)

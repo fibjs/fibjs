@@ -46,7 +46,7 @@ declare module 'coroutine' {
      *      @return 返回纤程对象
      *      
      */
-    function start(func: ()=>any, args: any[]): Class_Fiber;
+    function start(func: ()=>any, ...args: any[]): Class_Fiber;
 
     /**
      * @description 并行执行一组函数，并等待返回
