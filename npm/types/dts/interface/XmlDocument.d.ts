@@ -26,7 +26,7 @@ declare class Class_XmlDocument extends Class_XmlNode {
      *      @param source 要解析的 XML/HTML 文本，取决于文档创建时的类型
      *     
      */
-    load(): void;
+    load(source: string): void;
 
     /**
      * @description 返回用于文档的编码（在解析时）
@@ -86,7 +86,7 @@ declare class Class_XmlDocument extends Class_XmlNode {
      *      @return 文档树中具有指定标记的 XmlElement 节点的 XmlNodeList 集合。返回的元素节点的顺序就是它们在源文档中出现的顺序。
      *     
      */
-    getElementsByTagName(): Class_XmlNodeList;
+    getElementsByTagName(tagName: string): Class_XmlNodeList;
 
     /**
      * @description 返回带有指定命名空间和名称的所有元素的一个节点列表
@@ -97,7 +97,7 @@ declare class Class_XmlDocument extends Class_XmlNode {
      *      @return 文档树中具有指定标记的 XmlElement 节点的 XmlNodeList 集合。返回的元素节点的顺序就是它们在源文档中出现的顺序。
      *     
      */
-    getElementsByTagNameNS(): Class_XmlNodeList;
+    getElementsByTagNameNS(namespaceURI: string, localName: string): Class_XmlNodeList;
 
     /**
      * @description 返回拥有指定 id 属性的元素
@@ -107,7 +107,7 @@ declare class Class_XmlDocument extends Class_XmlNode {
      *      @return 节点树中具有指定 id 属性的 XmlElement 节点
      *     
      */
-    getElementById(): Class_XmlElement;
+    getElementById(id: string): Class_XmlElement;
 
     /**
      * @description 返回带有指定 class 名称的所有元素的一个节点列表
@@ -117,7 +117,7 @@ declare class Class_XmlDocument extends Class_XmlNode {
      *      @return 文档树中具有指定 class 名的 XmlElement 节点的 XmlNodeList 集合。返回的元素节点的顺序就是它们在源文档中出现的顺序。
      *     
      */
-    getElementsByClassName(): Class_XmlNodeList;
+    getElementsByClassName(className: string): Class_XmlNodeList;
 
     /**
      * @description 创建元素节点
@@ -125,7 +125,7 @@ declare class Class_XmlDocument extends Class_XmlNode {
      *      @return 返回新创建的 XmlElement 节点，具有指定的标签名
      *     
      */
-    createElement(): Class_XmlElement;
+    createElement(tagName: string): Class_XmlElement;
 
     /**
      * @description 创建带有指定命名空间的元素节点
@@ -134,7 +134,7 @@ declare class Class_XmlDocument extends Class_XmlNode {
      *      @return 返回新创建的 XmlElement 节点，具有指定的标签名
      *     
      */
-    createElementNS(): Class_XmlElement;
+    createElementNS(namespaceURI: string, qualifiedName: string): Class_XmlElement;
 
     /**
      * @description 创建文本节点
@@ -142,7 +142,7 @@ declare class Class_XmlDocument extends Class_XmlNode {
      *      @return 返回新创建的 XmlText 节点，表示指定的 data 字符串
      *     
      */
-    createTextNode(): Class_XmlText;
+    createTextNode(data: string): Class_XmlText;
 
     /**
      * @description 创建注释节点
@@ -150,7 +150,7 @@ declare class Class_XmlDocument extends Class_XmlNode {
      *      @return 返回新创建的 XmlComment 节点，注释文本为指定的 data
      *     
      */
-    createComment(): Class_XmlComment;
+    createComment(data: string): Class_XmlComment;
 
     /**
      * @description 创建 XmlCDATASection 节点
@@ -158,7 +158,7 @@ declare class Class_XmlDocument extends Class_XmlNode {
      *      @return 返回新创建的 XmlCDATASection 节点，内容为指定的 data
      *     
      */
-    createCDATASection(): Class_XmlCDATASection;
+    createCDATASection(data: string): Class_XmlCDATASection;
 
     /**
      * @description 创建 XmlProcessingInstruction 节点
@@ -167,7 +167,7 @@ declare class Class_XmlDocument extends Class_XmlNode {
      *      @return 新创建的 ProcessingInstruction 节点
      *     
      */
-    createProcessingInstruction(): Class_XmlProcessingInstruction;
+    createProcessingInstruction(target: string, data: string): Class_XmlProcessingInstruction;
 
 }
 

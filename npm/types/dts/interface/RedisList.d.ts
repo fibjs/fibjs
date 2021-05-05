@@ -17,7 +17,7 @@ declare class Class_RedisList extends Class_object {
      *      @param values 指定要插入的数据
      *      @return 插入后，列表的长度 
      */
-    push(): number;
+    push(values: any[]): number;
 
     /**
      * @description 移除并返回列表 key 的头元素
@@ -30,7 +30,7 @@ declare class Class_RedisList extends Class_object {
      *      @param values 指定要插入的数据
      *      @return 插入后，列表的长度 
      */
-    rpush(): number;
+    rpush(values: any[]): number;
 
     /**
      * @description 移除并返回列表 key 的表尾(最右边)元素
@@ -43,14 +43,14 @@ declare class Class_RedisList extends Class_object {
      *      @param index 指定要修改的下标
      *      @param value 指定要修改的数据
      */
-    set(): void;
+    set(index: number, value: Class_Buffer): void;
 
     /**
      * @description 返回列表中，下标为 index 的元素
      *      @param index 指定要查询的下标
      *      @return 列表中下标为 index 的元素
      */
-    get(): Class_Buffer;
+    get(index: number): Class_Buffer;
 
     /**
      * @description 将值 value 插入到列表当中，位于值 pivot 之前
@@ -58,7 +58,7 @@ declare class Class_RedisList extends Class_object {
      *      @param value 指定要插入的数据
      *      @return 插入后，列表的长度 
      */
-    insertBefore(): number;
+    insertBefore(pivot: Class_Buffer, value: Class_Buffer): number;
 
     /**
      * @description 将值 value 插入到列表当中，位于值 pivot 之后
@@ -66,7 +66,7 @@ declare class Class_RedisList extends Class_object {
      *      @param value 指定要插入的数据
      *      @return 插入后，列表的长度 
      */
-    insertAfter(): number;
+    insertAfter(pivot: Class_Buffer, value: Class_Buffer): number;
 
     /**
      * @description 根据参数 count 的值，移除列表中与参数 value 相等的元素
@@ -74,14 +74,14 @@ declare class Class_RedisList extends Class_object {
      *      @param value 指定要删除的数值
      *      @return 被移除元素的数量 
      */
-    remove(): number;
+    remove(count: number, value: Class_Buffer): number;
 
     /**
      * @description 对一个列表进行修剪(trim)，就是说，让列表只保留指定区间内的元素，不在指定区间之内的元素都将被删除
      *      @param start 指定修剪的起始下标，0 表示第一个元素，-1 表示最后一个元素
      *      @param stop 指定修剪的结束下标，0 表示第一个元素，-1 表示最后一个元素 
      */
-    trim(): void;
+    trim(start: number, stop: number): void;
 
     /**
      * @description 返回列表的长度
@@ -95,7 +95,7 @@ declare class Class_RedisList extends Class_object {
      *      @param stop 指定查询的结束下标，0 表示第一个元素，-1 表示最后一个元素
      *      @return 包含指定区间内的元素的数组 
      */
-    range(): any[];
+    range(start: number, stop: number): any[];
 
 }
 

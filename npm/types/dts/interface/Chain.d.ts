@@ -23,7 +23,7 @@ declare class Class_Chain extends Class_Handler {
      *      @param hdlrs 处理器数组
      *      
      */
-    append(): void;
+    append(hdlrs: any[]): void;
 
 }
 

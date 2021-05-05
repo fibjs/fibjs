@@ -17,7 +17,7 @@ declare class Class_Worker extends Class_EventEmitter {
      *      @param data 指定发送的消息内容
      *      
      */
-    postMessage(): void;
+    postMessage(data: any): void;
 
     /**
      * @description 查询和绑定接受 load 消息事件，相当于 on("load", func); 

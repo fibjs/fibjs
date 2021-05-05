@@ -17,7 +17,7 @@ declare class Class_LevelDB extends Class_object {
      *      @return 返回键值是否存在
      *      
      */
-    has(): boolean;
+    has(key: Class_Buffer): boolean;
 
     /**
      * @description 查询指定键值的值
@@ -25,7 +25,7 @@ declare class Class_LevelDB extends Class_object {
      *      @return 返回键值所对应的值，若不存在，则返回 null
      *      
      */
-    get(): Class_Buffer;
+    get(key: Class_Buffer): Class_Buffer;
 
     /**
      * @description 查询一组指定键值的值
@@ -33,7 +33,7 @@ declare class Class_LevelDB extends Class_object {
      *      @return 返回包含键值得数组
      *      
      */
-    mget(): any[];
+    mget(keys: any[]): any[];
 
     /**
      * @description 设定一个键值数据，键值不存在则插入新数据
@@ -41,28 +41,28 @@ declare class Class_LevelDB extends Class_object {
      *      @param value 指定要设定的数据
      *      
      */
-    set(): void;
+    set(key: Class_Buffer, value: Class_Buffer): void;
 
     /**
      * @description 设定一组键值数据，键值不存在则插入新数据
      *      @param map 指定要设定的键值数据字典
      *      
      */
-    mset(): void;
+    mset(map: object): void;
 
     /**
      * @description 删除一组指定键值的值
      *      @param keys 指定要删除的键值数组
      *      
      */
-    mremove(): void;
+    mremove(keys: any[]): void;
 
     /**
      * @description 删除指定键值的全部值
      *      @param key 指定要删除的键值
      *      
      */
-    remove(): void;
+    remove(key: Class_Buffer): void;
 
     /**
      * @description 枚举数据库中所有的键值对
@@ -80,7 +80,7 @@ declare class Class_LevelDB extends Class_object {
      *      @param func 枚举回调函数
      *      
      */
-    forEach(): void;
+    forEach(func: ()=>any): void;
 
     /**
      * @description 枚举数据库中键值在 from 和 to 之间的键值对
@@ -100,7 +100,7 @@ declare class Class_LevelDB extends Class_object {
      *      @param func 枚举回调函数
      *      
      */
-    between(): void;
+    between(from: Class_Buffer, to: Class_Buffer, func: ()=>any): void;
 
     /**
      * @description 在当前数据库上开启一个事务

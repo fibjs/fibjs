@@ -59,7 +59,7 @@ declare class Class_Image extends Class_object {
      *      @return 返回格式化的数据
      *      
      */
-    getData(): Class_Buffer;
+    getData(format: number, quality: number): Class_Buffer;
 
     /**
      * @description 按照指定的格式将图像数据存入流对象
@@ -68,7 +68,7 @@ declare class Class_Image extends Class_object {
      *      @param quality 当格式为 gd.JPEG 或 gd.WEBP 时用于指定压缩质量，缺省为 85，其他格式忽略此参数
      *      
      */
-    save(): void;
+    save(stm: Class_Stream, format: number, quality: number): void;
 
     /**
      * @description 为指定的颜色申请一个颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
@@ -78,7 +78,7 @@ declare class Class_Image extends Class_object {
      *      @return 返回颜色号，不成功返回 -1
      *      
      */
-    colorAllocate(): number;
+    colorAllocate(red: number, green: number, blue: number): number;
 
     /**
      * @description 为指定的颜色及透明申请一个颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
@@ -89,7 +89,7 @@ declare class Class_Image extends Class_object {
      *      @return 返回颜色号，不成功返回 -1
      *      
      */
-    colorAllocateAlpha(): number;
+    colorAllocateAlpha(red: number, green: number, blue: number, alpha: number): number;
 
     /**
      * @description 为指定的颜色查找一个最接近的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
@@ -99,7 +99,7 @@ declare class Class_Image extends Class_object {
      *      @return 返回颜色号，不成功返回 -1
      *      
      */
-    colorClosest(): number;
+    colorClosest(red: number, green: number, blue: number): number;
 
     /**
      * @description 为指定的颜色查找一个最接近的颜色号，此方法使用 Hue/White/Black 计算查找最接近颜色，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
@@ -109,7 +109,7 @@ declare class Class_Image extends Class_object {
      *      @return 返回颜色号，不成功返回 -1
      *      
      */
-    colorClosestHWB(): number;
+    colorClosestHWB(red: number, green: number, blue: number): number;
 
     /**
      * @description 为指定的颜色及透明查找一个最接近的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
@@ -120,7 +120,7 @@ declare class Class_Image extends Class_object {
      *      @return 返回颜色号，不成功返回 -1
      *      
      */
-    colorClosestAlpha(): number;
+    colorClosestAlpha(red: number, green: number, blue: number, alpha: number): number;
 
     /**
      * @description 查找指定的颜色对应的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
@@ -130,7 +130,7 @@ declare class Class_Image extends Class_object {
      *      @return 返回颜色号，不成功返回 -1
      *      
      */
-    colorExact(): number;
+    colorExact(red: number, green: number, blue: number): number;
 
     /**
      * @description 查找指定的颜色及透明对应的颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
@@ -141,7 +141,7 @@ declare class Class_Image extends Class_object {
      *      @return 返回颜色号，不成功返回 -1
      *      
      */
-    colorExactAlpha(): number;
+    colorExactAlpha(red: number, green: number, blue: number, alpha: number): number;
 
     /**
      * @description 查找指定的颜色对应的颜色号，如果颜色不存在，则为其申请一个新颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
@@ -151,7 +151,7 @@ declare class Class_Image extends Class_object {
      *      @return 返回颜色号，不成功返回 -1
      *      
      */
-    colorResolve(): number;
+    colorResolve(red: number, green: number, blue: number): number;
 
     /**
      * @description 查找指定的颜色及透明对应的颜色号，如果颜色不存在，则为其申请一个新颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgba 编码数值
@@ -162,14 +162,14 @@ declare class Class_Image extends Class_object {
      *      @return 返回颜色号，不成功返回 -1
      *      
      */
-    colorResolveAlpha(): number;
+    colorResolveAlpha(red: number, green: number, blue: number, alpha: number): number;
 
     /**
      * @description 释放指定的颜色号，释放的颜色号将会被再次申请后替换
      *      @param color 指定要释放的颜色号
      *      
      */
-    colorDeallocate(): void;
+    colorDeallocate(color: number): void;
 
     /**
      * @description 设定绘图的剪切窗口，设定后，所有的绘制将被剪切在窗口内部
@@ -179,7 +179,7 @@ declare class Class_Image extends Class_object {
      *      @param y2 剪切窗口的右下 y 坐标
      *      
      */
-    clip(): void;
+    clip(x1: number, y1: number, x2: number, y2: number): void;
 
     /**
      * @description 查询指定位置点的颜色
@@ -188,7 +188,7 @@ declare class Class_Image extends Class_object {
      *      @return 返回指定点的颜色号
      *      
      */
-    getPixel(): number;
+    getPixel(x: number, y: number): number;
 
     /**
      * @description 查询指定位置点的真彩色颜色
@@ -197,7 +197,7 @@ declare class Class_Image extends Class_object {
      *      @return 返回指定点的颜色号
      *      
      */
-    getTrueColorPixel(): number;
+    getTrueColorPixel(x: number, y: number): number;
 
     /**
      * @description 在指定位置画一个点
@@ -206,14 +206,14 @@ declare class Class_Image extends Class_object {
      *      @param color 指定画点的颜色号
      *      
      */
-    setPixel(): void;
+    setPixel(x: number, y: number, color: number): void;
 
     /**
      * @description 设定画线的宽度，line, rectangle, arc 等方法画线时缺省宽度为一个像素，可使用此方法改变线的宽度
      *      @param thickness 画线的宽度
      *      
      */
-    setThickness(): void;
+    setThickness(thickness: number): void;
 
     /**
      * @description 在指定的位置画一条线
@@ -224,7 +224,7 @@ declare class Class_Image extends Class_object {
      *      @param color 指定画线的颜色号
      *      
      */
-    line(): void;
+    line(x1: number, y1: number, x2: number, y2: number, color: number): void;
 
     /**
      * @description 在指定的位置画一个矩形
@@ -235,7 +235,7 @@ declare class Class_Image extends Class_object {
      *      @param color 指定矩形的颜色号
      *      
      */
-    rectangle(): void;
+    rectangle(x1: number, y1: number, x2: number, y2: number, color: number): void;
 
     /**
      * @description 在指定的位置画一个填充的矩形
@@ -246,7 +246,7 @@ declare class Class_Image extends Class_object {
      *      @param color 指定矩形的颜色号
      *      
      */
-    filledRectangle(): void;
+    filledRectangle(x1: number, y1: number, x2: number, y2: number, color: number): void;
 
     /**
      * @description 根据给定的点绘制一个多边形
@@ -254,7 +254,7 @@ declare class Class_Image extends Class_object {
      *      @param color 指定矩形的颜色号
      *      
      */
-    polygon(): void;
+    polygon(points: any[], color: number): void;
 
     /**
      * @description 根据给定的点绘制一个开放多边形
@@ -262,7 +262,7 @@ declare class Class_Image extends Class_object {
      *      @param color 指定矩形的颜色号
      *      
      */
-    openPolygon(): void;
+    openPolygon(points: any[], color: number): void;
 
     /**
      * @description 根据给定的点绘制一个填充多边形
@@ -270,7 +270,7 @@ declare class Class_Image extends Class_object {
      *      @param color 指定矩形的颜色号
      *      
      */
-    filledPolygon(): void;
+    filledPolygon(points: any[], color: number): void;
 
     /**
      * @description 画一个椭圆
@@ -281,7 +281,7 @@ declare class Class_Image extends Class_object {
      *      @param color 指定矩形的颜色号
      *      
      */
-    ellipse(): void;
+    ellipse(x: number, y: number, width: number, height: number, color: number): void;
 
     /**
      * @description 画一个填充的椭圆
@@ -292,7 +292,7 @@ declare class Class_Image extends Class_object {
      *      @param color 指定矩形的颜色号
      *      
      */
-    filledEllipse(): void;
+    filledEllipse(x: number, y: number, width: number, height: number, color: number): void;
 
     /**
      * @description 画一个扇形
@@ -305,7 +305,7 @@ declare class Class_Image extends Class_object {
      *      @param color 指定矩形的颜色号
      *      
      */
-    arc(): void;
+    arc(x: number, y: number, width: number, height: number, start: number, end: number, color: number): void;
 
     /**
      * @description 画一个填充扇形
@@ -319,7 +319,7 @@ declare class Class_Image extends Class_object {
      *      @param style 指定扇形的样式，允许的值有 gd.ARC, gd.CHORD, gd.NOFILL, gd.EDGED 及其组合
      *      
      */
-    filledArc(): void;
+    filledArc(x: number, y: number, width: number, height: number, start: number, end: number, color: number, style: number): void;
 
     /**
      * @description 从指定的点开始填充封闭区域
@@ -328,7 +328,7 @@ declare class Class_Image extends Class_object {
      *      @param color 指定填充的颜色号
      *      
      */
-    fill(): void;
+    fill(x: number, y: number, color: number): void;
 
     /**
      * @description 从指定的点开始在指定颜色的边框内填充封闭区域
@@ -338,7 +338,7 @@ declare class Class_Image extends Class_object {
      *      @param color 指定填充的颜色号
      *      
      */
-    fillToBorder(): void;
+    fillToBorder(x: number, y: number, borderColor: number, color: number): void;
 
     /**
      * @description 替换图像中指定的颜色为新颜色
@@ -346,7 +346,7 @@ declare class Class_Image extends Class_object {
      *      @param dst 指定新颜色
      *      
      */
-    colorReplace(): void;
+    colorReplace(src: number, dst: number): void;
 
     /**
      * @description 复制当前图像为一个新图像
@@ -362,7 +362,7 @@ declare class Class_Image extends Class_object {
      *      @return 返回新图像对象
      *      
      */
-    resample(): Class_Image;
+    resample(width: number, height: number): Class_Image;
 
     /**
      * @description 剪切图像的一部分为一个新的图像
@@ -373,28 +373,28 @@ declare class Class_Image extends Class_object {
      *      @return 返回剪切出的图像
      *      
      */
-    crop(): Class_Image;
+    crop(x: number, y: number, width: number, height: number): Class_Image;
 
     /**
      * @description 镜像当前图像
      *      @param dir 镜像方向，允许值为 gd.BOTH,gd.HORIZONTAL, gd.VERTICAL, 缺省为 gd.HORIZONTAL
      *      
      */
-    flip(): void;
+    flip(dir: number): void;
 
     /**
      * @description 旋转当前图像
      *      @param dir 旋转方向，允许值为 gd.LEFT, gd.RIGHT
      *      
      */
-    rotate(): void;
+    rotate(dir: number): void;
 
     /**
      * @description 转换当前图像类型
      *      @param color 指定图像类型，允许值为 gd.TRUECOLOR 或 gd.PALETTE
      *      
      */
-    convert(): void;
+    convert(color: number): void;
 
     /**
      * @description 从一个图像中复制一个区域到指定的位置
@@ -407,7 +407,7 @@ declare class Class_Image extends Class_object {
      *      @param height 指定复制的高度
      *      
      */
-    copy(): void;
+    copy(source: Class_Image, dstX: number, dstY: number, srcX: number, srcY: number, width: number, height: number): void;
 
     /**
      * @description 从一个图像中复制一个区域覆盖到指定的位置
@@ -421,7 +421,7 @@ declare class Class_Image extends Class_object {
      *      @param percent 指定覆盖的透明度
      *      
      */
-    copyMerge(): void;
+    copyMerge(source: Class_Image, dstX: number, dstY: number, srcX: number, srcY: number, width: number, height: number, percent: number): void;
 
     /**
      * @description 从一个图像中复制一个区域的灰度覆盖到指定的位置
@@ -435,7 +435,7 @@ declare class Class_Image extends Class_object {
      *      @param percent 指定覆盖的透明度
      *      
      */
-    copyMergeGray(): void;
+    copyMergeGray(source: Class_Image, dstX: number, dstY: number, srcX: number, srcY: number, width: number, height: number, percent: number): void;
 
     /**
      * @description 将一个图像中的一个区域拉伸后复制到指定的位置
@@ -450,7 +450,7 @@ declare class Class_Image extends Class_object {
      *      @param srcH 指定复制的源高度
      *      
      */
-    copyResized(): void;
+    copyResized(source: Class_Image, dstX: number, dstY: number, srcX: number, srcY: number, dstW: number, dstH: number, srcW: number, srcH: number): void;
 
     /**
      * @description 将一个图像中的一个区域拉伸后复制到指定的位置，不同与 copyResized，此方法拉伸时会对图像进行抖动
@@ -465,7 +465,7 @@ declare class Class_Image extends Class_object {
      *      @param srcH 指定复制的源高度
      *      
      */
-    copyResampled(): void;
+    copyResampled(source: Class_Image, dstX: number, dstY: number, srcX: number, srcY: number, dstW: number, dstH: number, srcW: number, srcH: number): void;
 
     /**
      * @description 将一个图像中的一个区域旋转后复制到指定的位置
@@ -479,7 +479,7 @@ declare class Class_Image extends Class_object {
      *      @param angle 指定旋转的角度
      *      
      */
-    copyRotated(): void;
+    copyRotated(source: Class_Image, dstX: number, dstY: number, srcX: number, srcY: number, width: number, height: number, angle: number): void;
 
     /**
      * @description 把过滤器 filterType应用到图像上，根据过滤器类型传入所需参数
@@ -503,7 +503,7 @@ declare class Class_Image extends Class_object {
      *      @param arg4 过滤器所需参数: COLORIZE 的透明度 alpha 分值
      *      
      */
-    filter(): void;
+    filter(filterType: number, arg1: number, arg2: number, arg3: number, arg4: number): void;
 
     /**
      * @description 根据给定的矩阵，对当前图像进行仿射
@@ -522,14 +522,14 @@ declare class Class_Image extends Class_object {
      *      @return 返回仿射后的图像
      *      
      */
-    affine(): Class_Image;
+    affine(affine: any[], x: number, y: number, width: number, height: number): Class_Image;
 
     /**
      * @description 对当前图像进行高斯模糊处理
      *      @param radius 模糊半径
      *      
      */
-    gaussianBlur(): void;
+    gaussianBlur(radius: number): void;
 
 }
 

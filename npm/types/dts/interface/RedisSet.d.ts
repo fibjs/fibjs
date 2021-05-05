@@ -17,14 +17,14 @@ declare class Class_RedisSet extends Class_object {
      *      @param members 指定要添加的元素数组
      *      @return 被添加到集合中的新元素的数量，不包括被忽略的元素 
      */
-    add(): number;
+    add(members: any[]): number;
 
     /**
      * @description 移除集合中的一个或多个 member 元素
      *      @param members 指定要移除的元素数组
      *      @return 被成功移除的元素的数量，不包括被忽略的元素 
      */
-    remove(): number;
+    remove(members: any[]): number;
 
     /**
      * @description 返回集合中元素的数量
@@ -37,7 +37,7 @@ declare class Class_RedisSet extends Class_object {
      *      @param member 指定检查的 member
      *      @return 如果 member 元素是集合的成员，返回 true 
      */
-    exists(): boolean;
+    exists(member: Class_Buffer): boolean;
 
     /**
      * @description 返回集合中的所有成员

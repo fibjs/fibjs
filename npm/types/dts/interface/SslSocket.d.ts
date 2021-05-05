@@ -65,7 +65,7 @@ declare class Class_SslSocket extends Class_Stream {
      *     @return 连接成功返回 0，证书可选验证时，验证不成功则返回非 0，详细错误见 ssl 模块
      *   
      */
-    connect(): number;
+    connect(s: Class_Stream, server_name: string): number;
 
     /**
      * @description 在给定的连接上接收一个 ssl 连接，并生成一个新的 SslSocket
@@ -73,7 +73,7 @@ declare class Class_SslSocket extends Class_Stream {
      *     @return 返回新建立的 SslSocket 对象
      *    
      */
-    accept(): Class_SslSocket;
+    accept(s: Class_Stream): Class_SslSocket;
 
 }
 

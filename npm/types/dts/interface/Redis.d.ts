@@ -21,7 +21,7 @@ declare class Class_Redis extends Class_object {
      *      @param args 指定发送的参数
      *      @return 返回服务器返回的结果 
      */
-    command(): any;
+    command(cmd: string, args: any[]): any;
 
     /**
      * @description 将字符串值 value 关联到 key，如果 key 已经持有其他值， SET 就覆写旧值，无视类型
@@ -29,7 +29,7 @@ declare class Class_Redis extends Class_object {
      *      @param value 指定要关联的数据
      *      @param ttl 以毫秒为单位为 key 设置生存时间；如果 ttl 为 0 ，那么不设置生存时间 
      */
-    set(): void;
+    set(key: Class_Buffer, value: Class_Buffer, ttl: number): void;
 
     /**
      * @description 将 key 的值设为 value ，当且仅当 key 不存在。若给定的 key 已经存在，则 SETNX 不做任何动作。
@@ -37,7 +37,7 @@ declare class Class_Redis extends Class_object {
      *      @param value 指定要关联的数据
      *      @param ttl 以毫秒为单位为 key 设置生存时间；如果 ttl 为 0 ，那么不设置生存时间 
      */
-    setNX(): void;
+    setNX(key: Class_Buffer, value: Class_Buffer, ttl: number): void;
 
     /**
      * @description 将 key 的值设为 value，只在键已经存在时，才对键进行设置操作。
@@ -45,19 +45,19 @@ declare class Class_Redis extends Class_object {
      *      @param value 指定要关联的数据
      *      @param ttl 以毫秒为单位为 key 设置生存时间；如果 ttl 为 0 ，那么不设置生存时间 
      */
-    setXX(): void;
+    setXX(key: Class_Buffer, value: Class_Buffer, ttl: number): void;
 
     /**
      * @description 同时设置一个或多个 key-value 对。如果某个给定 key 已经存在，那么 MSET 会用新值覆盖原来的旧值
      *      @param kvs 指定要设置的 key/value 对象
      */
-    mset(): void;
+    mset(kvs: object): void;
 
     /**
      * @description 同时设置一个或多个 key-value 对，当且仅当所有给定 key 都不存在
      *      @param kvs 指定要设置的 key/value 对象
      */
-    msetNX(): void;
+    msetNX(kvs: object): void;
 
     /**
      * @description 如果 key 已经存在并且是一个字符串，append 命令将 value 追加到 key 原来的值的末尾。如果 key 不存在，append 就简单地将给定 key 设为 value
@@ -65,7 +65,7 @@ declare class Class_Redis extends Class_object {
      *      @param value 指定要追加的数据
      *      @return 追加 value 之后， key 中字符串的长度 
      */
-    append(): number;
+    append(key: Class_Buffer, value: Class_Buffer): number;
 
     /**
      * @description 用 value 参数覆写给定 key 所储存的字符串值，从偏移量 offset 开始
@@ -74,7 +74,7 @@ declare class Class_Redis extends Class_object {
      *      @param value 指定要覆盖的数据
      *      @return 被修改之后，字符串的长度 
      */
-    setRange(): number;
+    setRange(key: Class_Buffer, offset: number, value: Class_Buffer): number;
 
     /**
      * @description 返回 key 中字符串值的子字符串，字符串的截取范围由 start 和 end 两个偏移量决定(包括 start 和 end 在内)
@@ -83,14 +83,14 @@ declare class Class_Redis extends Class_object {
      *      @param end 指定查询的结束字节偏移
      *      @return 截取得出的子字符串 
      */
-    getRange(): Class_Buffer;
+    getRange(key: Class_Buffer, start: number, end: number): Class_Buffer;
 
     /**
      * @description 返回 key 所储存的字符串值的长度。当 key 储存的不是字符串值时，返回一个错误
      *      @param key 指定要计算的 key
      *      @return 字符串值的长度。当 key 不存在时，返回 0 
      */
-    strlen(): number;
+    strlen(key: Class_Buffer): number;
 
     /**
      * @description 计算给定字符串中，被设置为 1 的比特位的数量
@@ -99,21 +99,21 @@ declare class Class_Redis extends Class_object {
      *      @param end 指定要计算的结束字节，可以使用负数值，-1 表示最后一个字节，而 -2 表示倒数第二个字节，以此类推
      *      @return 被设置为 1 的位的数量 
      */
-    bitcount(): number;
+    bitcount(key: Class_Buffer, start: number, end: number): number;
 
     /**
      * @description 返回 key 所关联的字符串值，如果 key 不存在那么返回特殊值 Null
      *      @param key 指定要关联的 key
      *      @return 当 key 不存在时，返回 Null ，否则，返回 key 的值 
      */
-    get(): Class_Buffer;
+    get(key: Class_Buffer): Class_Buffer;
 
     /**
      * @description 返回所有(一个或多个)给定 key 的值。如果给定的 key 里面，有某个 key 不存在，那么这个 key 返回特殊值 nil 。
      *      @param keys 指定要查询的 key 数组
      *      @return 一个包含所有给定 key 的值的列表 
      */
-    mget(): any[];
+    mget(keys: any[]): any[];
 
     /**
      * @description 将给定 key 的值设为 value ，并返回 key 的旧值(old value)
@@ -121,7 +121,7 @@ declare class Class_Redis extends Class_object {
      *      @param value 指定修改的数值
      *      @return 返回给定 key 的旧值 
      */
-    getset(): Class_Buffer;
+    getset(key: Class_Buffer, value: Class_Buffer): Class_Buffer;
 
     /**
      * @description 将 key 所储存的值减去减量
@@ -129,7 +129,7 @@ declare class Class_Redis extends Class_object {
      *      @param num 指定要减去的数值
      *      @return 减去 num 之后，key 的值 
      */
-    decr(): number;
+    decr(key: Class_Buffer, num: number): number;
 
     /**
      * @description 将 key 所储存的值加上增量
@@ -137,7 +137,7 @@ declare class Class_Redis extends Class_object {
      *      @param num 指定要加上的数值
      *      @return 加上 num 之后，key 的值 
      */
-    incr(): number;
+    incr(key: Class_Buffer, num: number): number;
 
     /**
      * @description 对 key 所储存的字符串值，设置或清除指定偏移量上的位(bit)
@@ -146,7 +146,7 @@ declare class Class_Redis extends Class_object {
      *      @param value 指定设置或清除的参数，可以是 0 也可以是 1
      *      @return 指定偏移量原来储存的位 
      */
-    setBit(): number;
+    setBit(key: Class_Buffer, offset: number, value: number): number;
 
     /**
      * @description 对 key 所储存的字符串值，获取指定偏移量上的位(bit)
@@ -154,35 +154,35 @@ declare class Class_Redis extends Class_object {
      *      @param offset 指定查询的位偏移
      *      @return 字符串值指定偏移量上的位(bit) 
      */
-    getBit(): number;
+    getBit(key: Class_Buffer, offset: number): number;
 
     /**
      * @description 检查给定 key 是否存在
      *      @param key 指定要关联的 key
      *      @return 若 key 存在，返回 True，否则返回 False 
      */
-    exists(): boolean;
+    exists(key: Class_Buffer): boolean;
 
     /**
      * @description 返回 key 所储存的值的类型
      *      @param key 指定要查询的 key
      *      @return 返回 key 所储存的值的类型，可能的值为 none(key不存在) string(字符串) list(列表) set(集合) zset(有序集) hash(哈希表) 
      */
-    type(): string;
+    type(key: Class_Buffer): string;
 
     /**
      * @description 查找所有符合给定模式 pattern 的 key
      *      @param pattern 指定查询模式
      *      @return 符合给定模式的 key 列表 
      */
-    keys(): any[];
+    keys(pattern: string): any[];
 
     /**
      * @description 删除给定的一个或多个 key，不存在的 key 会被忽略
      *      @param keys 指定要删除的 key 数组
      *      @return 被删除 key 的数量 
      */
-    del(): number;
+    del(keys: any[]): number;
 
     /**
      * @description 为给定 key 设置生存时间，当 key 过期时，它会被自动删除
@@ -190,28 +190,28 @@ declare class Class_Redis extends Class_object {
      *      @param ttl 以毫秒为单位为 key 设置生存时间
      *      @return 若 key 存在，返回 True，否则返回 False 
      */
-    expire(): boolean;
+    expire(key: Class_Buffer, ttl: number): boolean;
 
     /**
      * @description 返回给定 key 的剩余生存时间
      *      @param key 指定要查询的 key
      *      @return 以毫秒为单位，返回 key 的剩余生存时间，当 key 不存在时，返回 -2，当 key 存在但没有设置剩余生存时间时，返回 -1 
      */
-    ttl(): number;
+    ttl(key: Class_Buffer): number;
 
     /**
      * @description 移除给定 key 的生存时间，将这个 key 从『易失的』(带生存时间 key )转换成『持久的』(一个不带生存时间、永不过期的 key)
      *      @param key 指定要设定的 key
      *      @return 若 key 存在，返回 True，否则返回 False 
      */
-    persist(): boolean;
+    persist(key: Class_Buffer): boolean;
 
     /**
      * @description 将 key 改名为 newkey，当 key 和 newkey 相同，或者 key 不存在时，返回一个错误
      *      @param key 指定要改名的 key
      *      @param newkey 指定要改名的目的 key 
      */
-    rename(): void;
+    rename(key: Class_Buffer, newkey: Class_Buffer): void;
 
     /**
      * @description 当且仅当 newkey 不存在时，将 key 改名为 newkey，当 key 不存在时，返回一个错误
@@ -219,7 +219,7 @@ declare class Class_Redis extends Class_object {
      *      @param newkey 指定要改名的目的 key
      *      @return 修改成功时，返回 True，如果 newkey 已经存在，返回 False 
      */
-    renameNX(): boolean;
+    renameNX(key: Class_Buffer, newkey: Class_Buffer): boolean;
 
     /**
      * @description 订阅给定的一个频道的信息，当消息发生时自动调用 func，func 包含两个参数，依次为 channel 和 message，同一频道同一函数只会回调一次
@@ -227,14 +227,14 @@ declare class Class_Redis extends Class_object {
      *      @param func 指定回调函数
      *      
      */
-    sub(): void;
+    sub(channel: Class_Buffer, func: ()=>any): void;
 
     /**
      * @description 退订给定的频道的全部回调
      *      @param channel 指定退订的频道名称
      *     
      */
-    unsub(): void;
+    unsub(channel: Class_Buffer): void;
 
     /**
      * @description 按照模板订阅一组频道的信息，当消息发生时自动调用 func，func 包含三个参数，依次为 channel，message 和 pattern，同一模板同一函数只会回调一次
@@ -242,14 +242,14 @@ declare class Class_Redis extends Class_object {
      *      @param func 指定回调函数
      *      
      */
-    psub(): void;
+    psub(pattern: string, func: ()=>any): void;
 
     /**
      * @description 退订给定模板的频道的全部回调
      *      @param pattern 指定退订的频道模板
      *     
      */
-    unpsub(): void;
+    unpsub(pattern: string): void;
 
     /**
      * @description 查询和设置错误处理函数，当 sub 出现错误或者网络中断时回调，当回调发生后，本对象的一切 sub 都将中止
@@ -264,42 +264,42 @@ declare class Class_Redis extends Class_object {
      *      @return 接收此消息的客户端数量
      *     
      */
-    pub(): number;
+    pub(channel: Class_Buffer, message: Class_Buffer): number;
 
     /**
      * @description 获取指定 key 的 Hash 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库
      *      @param key 指定要获取的 key
      *      @return 返回包含指定 key 的 Hash 对象 
      */
-    getHash(): Class_RedisHash;
+    getHash(key: Class_Buffer): Class_RedisHash;
 
     /**
      * @description 获取指定 key 的 List 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库
      *      @param key 指定要获取的 key
      *      @return 返回包含指定 key 的 List 对象 
      */
-    getList(): Class_RedisList;
+    getList(key: Class_Buffer): Class_RedisList;
 
     /**
      * @description 获取指定 key 的 Set 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库
      *      @param key 指定要获取的 key
      *      @return 返回包含指定 key 的 Set 对象 
      */
-    getSet(): Class_RedisSet;
+    getSet(key: Class_Buffer): Class_RedisSet;
 
     /**
      * @description 获取指定 key 的 SortedSet 对象，此对象为包含指定 key 的客户端，只有调用其方法才会操作数据库
      *      @param key 指定要获取的 key
      *      @return 返回包含指定 key 的 SortedSet 对象 
      */
-    getSortedSet(): Class_RedisSortedSet;
+    getSortedSet(key: Class_Buffer): Class_RedisSortedSet;
 
     /**
      * @description 序列化给定 key ，并返回被序列化的值，使用 restore 命令可以将这个值反序列化为 Redis 键
      *      @param key 指定要序列化的 key
      *      @return 返回序列化之后的值，如果 key 不存在，那么返回 null 
      */
-    dump(): Class_Buffer;
+    dump(key: Class_Buffer): Class_Buffer;
 
     /**
      * @description 反序列化给定的序列化值，并将它和给定的 key 关联
@@ -307,7 +307,7 @@ declare class Class_Redis extends Class_object {
      *      @param data 指定要反序列化的数据
      *      @param ttl 以毫秒为单位为 key 设置生存时间；如果 ttl 为 0 ，那么不设置生存时间
      */
-    restore(): void;
+    restore(key: Class_Buffer, data: Class_Buffer, ttl: number): void;
 
     /**
      * @description 关闭当前数据库连接或事务 

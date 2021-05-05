@@ -22,14 +22,14 @@ declare class Class_X509Req extends Class_object {
      *      @param derReq DER 格式的证书请求
      *     
      */
-    load(): void;
+    load(derReq: Class_Buffer): void;
 
     /**
      * @description 加载一个 PEM/DER 格式的证书请求，可多次调用
      *      @param filename 证书请求文件名
      *     
      */
-    loadFile(): void;
+    loadFile(filename: string): void;
 
     /**
      * @description 返回当前证书请求的 PEM 格式编码
@@ -65,7 +65,7 @@ declare class Class_X509Req extends Class_object {
      *      @return 返回签名后的正式证书
      *      
      */
-    sign(): Class_X509Cert;
+    sign(issuer: string, key: Class_PKey, opts: object): Class_X509Cert;
 
     /**
      * @description 获取证书的主题可分辨名称 

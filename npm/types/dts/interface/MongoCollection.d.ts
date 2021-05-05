@@ -18,7 +18,7 @@ declare class Class_MongoCollection extends Class_object {
      *     @return 返回游标对象
      *    
      */
-    find(): Class_MongoCursor;
+    find(query: object, projection: object): Class_MongoCursor;
 
     /**
      * @description 根据给定的查询条件和返回字段设定，查询一条结果
@@ -27,7 +27,7 @@ declare class Class_MongoCollection extends Class_object {
      *     @return 返回第一条结果
      *    
      */
-    findOne(): object;
+    findOne(query: object, projection: object): object;
 
     /**
      * @description 查询并修改
@@ -35,21 +35,21 @@ declare class Class_MongoCollection extends Class_object {
      *     @return 返回修改前的结果及其他信息
      *    
      */
-    findAndModify(): object;
+    findAndModify(query: object): object;
 
     /**
      * @description 插入一组数据
      *     @param documents 指定要插入的数据数组
      *    
      */
-    insert(): void;
+    insert(documents: any[]): void;
 
     /**
      * @description 保存一条数据，若数据包含 _id 字段，则为更新，否则为插入
      *     @param document 指定要保存的数据
      *    
      */
-    save(): void;
+    save(document: object): void;
 
     /**
      * @description 根据给定的查询条件更新数据
@@ -59,14 +59,14 @@ declare class Class_MongoCollection extends Class_object {
      *     @param multi 当符合条件的数据多于一条时，更新所有数据，缺省为 false，只更新第一条
      *    
      */
-    update(): void;
+    update(query: object, document: object, upsert: boolean, multi: boolean): void;
 
     /**
      * @description 根据给定的查询条件删除数据
      *     @param query 指定查询条件的对象
      *    
      */
-    remove(): void;
+    remove(query: object): void;
 
     /**
      * @description 执行数据库命令
@@ -74,7 +74,7 @@ declare class Class_MongoCollection extends Class_object {
      *     @return 返回命令返回结果
      *    
      */
-    runCommand(): object;
+    runCommand(cmd: object): object;
 
     /**
      * @description 删除当前集合 
@@ -87,7 +87,7 @@ declare class Class_MongoCollection extends Class_object {
      *     @param options 给定索引的选项，唯一索引等
      *    
      */
-    ensureIndex(): void;
+    ensureIndex(keys: object, options: object): void;
 
     /**
      * @description 重建当前集合的索引
@@ -102,7 +102,7 @@ declare class Class_MongoCollection extends Class_object {
      *     @return 返回命令执行结果
      *    
      */
-    dropIndex(): object;
+    dropIndex(name: string): object;
 
     /**
      * @description 删除当前集合全部索引
@@ -124,7 +124,7 @@ declare class Class_MongoCollection extends Class_object {
      *     @return 返回新集合对象
      *    
      */
-    getCollection(): Class_MongoCollection;
+    getCollection(name: string): Class_MongoCollection;
 
 
 }

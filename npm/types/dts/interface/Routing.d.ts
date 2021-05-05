@@ -94,7 +94,7 @@ declare class Class_Routing extends Class_Handler {
      *    @return 返回路由对象本身
      *    
      */
-    append(): Class_Routing;
+    append(route: Class_Routing): Class_Routing;
 
     /**
      * @description 添加一组 http 域名的路由规则
@@ -102,7 +102,7 @@ declare class Class_Routing extends Class_Handler {
      *    @return 返回路由对象本身
      *    
      */
-    host(): Class_Routing;
+    host(map: object): Class_Routing;
 
     /**
      * @description 添加一组接受所有 http 方法路由规则
@@ -110,7 +110,7 @@ declare class Class_Routing extends Class_Handler {
      *    @return 返回路由对象本身
      *    
      */
-    all(): Class_Routing;
+    all(map: object): Class_Routing;
 
     /**
      * @description 添加一组 GET 方法路由规则
@@ -118,7 +118,7 @@ declare class Class_Routing extends Class_Handler {
      *    @return 返回路由对象本身
      *    
      */
-    get(): Class_Routing;
+    get(map: object): Class_Routing;
 
     /**
      * @description 添加一组接受 http POST 方法路由规则
@@ -126,7 +126,7 @@ declare class Class_Routing extends Class_Handler {
      *    @return 返回路由对象本身
      *    
      */
-    post(): Class_Routing;
+    post(map: object): Class_Routing;
 
     /**
      * @description 添加一组接受 http DELETE 方法路由规则
@@ -134,7 +134,7 @@ declare class Class_Routing extends Class_Handler {
      *    @return 返回路由对象本身
      *    
      */
-    del(): Class_Routing;
+    del(map: object): Class_Routing;
 
     /**
      * @description 添加一组 PUT 方法路由规则
@@ -142,7 +142,7 @@ declare class Class_Routing extends Class_Handler {
      *    @return 返回路由对象本身
      *    
      */
-    put(): Class_Routing;
+    put(map: object): Class_Routing;
 
     /**
      * @description 添加一组 PATCH 方法路由规则
@@ -150,7 +150,7 @@ declare class Class_Routing extends Class_Handler {
      *    @return 返回路由对象本身
      *    
      */
-    patch(): Class_Routing;
+    patch(map: object): Class_Routing;
 
     /**
      * @description 添加一组 FIND 方法路由规则
@@ -158,7 +158,7 @@ declare class Class_Routing extends Class_Handler {
      *    @return 返回路由对象本身
      *    
      */
-    find(): Class_Routing;
+    find(map: object): Class_Routing;
 
 }
 

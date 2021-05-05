@@ -28,7 +28,7 @@ declare class Class_TTYInputStream extends Class_Stream {
      *      @return 返回自身
      *      
      */
-    setRawMode(): Class_TTYInputStream;
+    setRawMode(isRawMode: boolean): Class_TTYInputStream;
 
 }
 

@@ -9,7 +9,7 @@ declare class Class_MongoCursor extends Class_object {
      *     @return 返回游标对象本身便于链式调用
      *    
      */
-    skip(): Class_MongoCursor;
+    skip(num: number): Class_MongoCursor;
 
     /**
      * @description 指定返回结果的最大记录数
@@ -17,7 +17,7 @@ declare class Class_MongoCursor extends Class_object {
      *     @return 返回游标对象本身便于链式调用
      *    
      */
-    limit(): Class_MongoCursor;
+    limit(size: number): Class_MongoCursor;
 
     /**
      * @description 设定返回结果的排序
@@ -25,7 +25,7 @@ declare class Class_MongoCursor extends Class_object {
      *     @return 返回游标对象本身便于链式调用
      *    
      */
-    sort(): Class_MongoCursor;
+    sort(opts: object): Class_MongoCursor;
 
     /**
      * @description 查询当前游标是否有下一条记录
@@ -47,7 +47,7 @@ declare class Class_MongoCursor extends Class_object {
      *     @return 返回记录总数
      *    
      */
-    count(): number;
+    count(applySkipLimit: boolean): number;
 
     /**
      * @description 查询游标的记录总数，相当于 count(true)
@@ -61,7 +61,7 @@ declare class Class_MongoCursor extends Class_object {
      *     @param func 指定处理函数
      *    
      */
-    forEach(): void;
+    forEach(func: ()=>any): void;
 
     /**
      * @description 遍历处理全部记录，并返回处理结果
@@ -69,7 +69,7 @@ declare class Class_MongoCursor extends Class_object {
      *     @return 返回处理结果数组
      *    
      */
-    map(): any[];
+    map(func: ()=>any): any[];
 
     /**
      * @description 返回当前游标全部记录的数组
@@ -84,7 +84,7 @@ declare class Class_MongoCursor extends Class_object {
      *     @return 返回游标对象本身便于链式调用
      *    
      */
-    hint(): Class_MongoCursor;
+    hint(opts: object): Class_MongoCursor;
 
 }
 

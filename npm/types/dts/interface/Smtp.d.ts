@@ -16,7 +16,7 @@ declare class Class_Smtp extends Class_object {
      *      @param url 指定连接的协议，可以是：tcp://host:port 或者 ssl://host:port
      *      
      */
-    connect(): void;
+    connect(url: string): void;
 
     /**
      * @description 发送指定命令，并返回响应，服务器报错则抛出错误
@@ -25,14 +25,14 @@ declare class Class_Smtp extends Class_object {
      *      @return 如果成功，返回服务器响应
      *      
      */
-    command(): string;
+    command(cmd: string, arg: string): string;
 
     /**
      * @description 发送 HELO 命令，服务器报错则抛出错误
      *      @param hostname 主机名，缺省为“localhost”
      *      
      */
-    hello(): void;
+    hello(hostname: string): void;
 
     /**
      * @description 用指定的用户及密码登录服务器，服务器报错则抛出错误
@@ -40,28 +40,28 @@ declare class Class_Smtp extends Class_object {
      *      @param password 密码
      *      
      */
-    login(): void;
+    login(username: string, password: string): void;
 
     /**
      * @description 指定发件人信箱，服务器报错则抛出错误
      *      @param address 发件人信箱
      *      
      */
-    from(): void;
+    from(address: string): void;
 
     /**
      * @description 指定收件人信箱，服务器报错则抛出错误
      *      @param address 收件人信箱
      *      
      */
-    to(): void;
+    to(address: string): void;
 
     /**
      * @description 发送文本到收件人，服务器报错则抛出错误
      *      @param txt 要发送的文本
      *      
      */
-    data(): void;
+    data(txt: string): void;
 
     /**
      * @description 退出并关闭连接，服务器报错则抛出错误 

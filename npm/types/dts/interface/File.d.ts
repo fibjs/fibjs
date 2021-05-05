@@ -24,7 +24,7 @@ declare class Class_File extends Class_SeekableStream {
      *      @param mode 指定设定的访问权限
      *      
      */
-    chmod(): void;
+    chmod(mode: number): void;
 
 }
 

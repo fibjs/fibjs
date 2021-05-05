@@ -25,14 +25,14 @@ declare class Class_XmlCharacterData extends Class_XmlNode {
      *      @return 返回提取的字符串
      *     
      */
-    substringData(): string;
+    substringData(offset: number, count: number): string;
 
     /**
      * @description 把字符串附加到节点上
      *      @param arg 要附加到节点的字符串
      *     
      */
-    appendData(): void;
+    appendData(arg: string): void;
 
     /**
      * @description 把字符串插入节点
@@ -40,7 +40,7 @@ declare class Class_XmlCharacterData extends Class_XmlNode {
      *      @param arg 要插入的字符串
      *     
      */
-    insertData(): void;
+    insertData(offset: number, arg: string): void;
 
     /**
      * @description 从节点删除文本
@@ -48,7 +48,7 @@ declare class Class_XmlCharacterData extends Class_XmlNode {
      *      @param count 要删除的字符的数量
      *     
      */
-    deleteData(): void;
+    deleteData(offset: number, count: number): void;
 
     /**
      * @description 用指定的字符串替换节点的字符
@@ -57,7 +57,7 @@ declare class Class_XmlCharacterData extends Class_XmlNode {
      *      @param arg 要插入的字符串
      *     
      */
-    replaceData(): void;
+    replaceData(offset: number, count: number, arg: string): void;
 
 }
 

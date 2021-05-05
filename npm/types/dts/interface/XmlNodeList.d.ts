@@ -17,7 +17,7 @@ declare class Class_XmlNodeList extends Class_object {
      *      @return 指定索引号的节点
      *     
      */
-    item(): Class_XmlNode;
+    item(index: number): Class_XmlNode;
 
 
 }

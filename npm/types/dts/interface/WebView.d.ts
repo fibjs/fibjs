@@ -58,7 +58,7 @@ declare class Class_WebView extends Class_EventEmitter {
      * 	 @param url 指定的 url
      * 	 
      */
-    loadUrl(): void;
+    loadUrl(url: string): void;
 
     /**
      * @description 查询当前页面的 url
@@ -72,7 +72,7 @@ declare class Class_WebView extends Class_EventEmitter {
      * 	 @param html 设置的 html
      * 	 
      */
-    setHtml(): void;
+    setHtml(html: string): void;
 
     /**
      * @description 刷新当前页面 
@@ -94,21 +94,21 @@ declare class Class_WebView extends Class_EventEmitter {
      * 	 @param mode 打印参数，0: 快速打印; 1: 标准打印; 2: 打印预览。缺省为 1
      * 	 
      */
-    print(): void;
+    print(mode: number): void;
 
     /**
      * @description 打印当前窗口文档到 PDF 文件
      * 	 @param file 指定 pdf 路径
      * 	 
      */
-    printToPDF(): void;
+    printToPDF(file: string): void;
 
     /**
      * @description 在当前窗口运行一段 JavaScript 代码
      * 	 @param code 指定要执行的 JavaScript 代码
      * 	 
      */
-    executeJavaScript(): void;
+    executeJavaScript(code: string): void;
 
     /**
      * @description 在当前窗口执行 DevTools 命令，并返回结果
@@ -117,7 +117,7 @@ declare class Class_WebView extends Class_EventEmitter {
      *      @return 返回执行的结果
      * 	 
      */
-    executeDevToolsMethod(): any;
+    executeDevToolsMethod(method: string, params: object): any;
 
     /**
      * @description 关闭当前窗口 
@@ -130,7 +130,7 @@ declare class Class_WebView extends Class_EventEmitter {
      * 	 @param msg 要发送的消息
      * 	
      */
-    postMessage(): void;
+    postMessage(msg: string): void;
 
     /**
      * @description 当前窗口的 WebView 引擎 

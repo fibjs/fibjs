@@ -39,7 +39,7 @@ declare class Class_LruCache extends Class_EventEmitter {
      *      @return 返回键值是否存在
      *      
      */
-    has(): boolean;
+    has(name: string): boolean;
 
     /**
      * @description 查询指定键值的值
@@ -47,7 +47,7 @@ declare class Class_LruCache extends Class_EventEmitter {
      *      @return 返回键值所对应的值，若不存在，则返回 undefined
      *      
      */
-    get(): any;
+    get(name: string): any;
 
     /**
      * @description 设定一个键值数据，键值不存在则插入一条新数据
@@ -55,14 +55,14 @@ declare class Class_LruCache extends Class_EventEmitter {
      *      @param value 指定要设定的数据
      *      
      */
-    set(): void;
+    set(name: string, value: any): void;
 
     /**
      * @description 删除指定键值的全部值
      *      @param name 指定要删除的键值
      *      
      */
-    remove(): void;
+    remove(name: string): void;
 
     /**
      * @description 检查容器是否为空

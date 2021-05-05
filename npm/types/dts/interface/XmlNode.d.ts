@@ -119,7 +119,7 @@ declare class Class_XmlNode extends Class_object {
      *      @return 返回所复制的节点
      *     
      */
-    cloneNode(): Class_XmlNode;
+    cloneNode(deep: boolean): Class_XmlNode;
 
     /**
      * @description 返回在当前节点上匹配指定的命名空间 URI 的前缀
@@ -127,7 +127,7 @@ declare class Class_XmlNode extends Class_object {
      *      @return 返回匹配的前缀，未匹配到返回 null
      *     
      */
-    lookupPrefix(): string;
+    lookupPrefix(namespaceURI: string): string;
 
     /**
      * @description 返回在当前节点上匹配指定的前缀的命名空间 URI
@@ -135,7 +135,7 @@ declare class Class_XmlNode extends Class_object {
      *      @return 返回匹配的命名空间 URI，未匹配到返回 null
      *     
      */
-    lookupNamespaceURI(): string;
+    lookupNamespaceURI(prefix: string): string;
 
     /**
      * @description 在已有的子节点前插入一个新的子节点
@@ -146,7 +146,7 @@ declare class Class_XmlNode extends Class_object {
      *      @return 返回新的子节点
      *     
      */
-    insertBefore(): Class_XmlNode;
+    insertBefore(newChild: Class_XmlNode, refChild: Class_XmlNode): Class_XmlNode;
 
     /**
      * @description 在已有的子节点后插入一个新的子节点
@@ -157,7 +157,7 @@ declare class Class_XmlNode extends Class_object {
      *      @return 返回新的子节点
      *     
      */
-    insertAfter(): Class_XmlNode;
+    insertAfter(newChild: Class_XmlNode, refChild: Class_XmlNode): Class_XmlNode;
 
     /**
      * @description 向节点的子节点列表的末尾添加新的子节点
@@ -167,7 +167,7 @@ declare class Class_XmlNode extends Class_object {
      *      @return 返回这个新的子节点
      *     
      */
-    appendChild(): Class_XmlNode;
+    appendChild(newChild: Class_XmlNode): Class_XmlNode;
 
     /**
      * @description 将某个子节点替换为另一个
@@ -178,7 +178,7 @@ declare class Class_XmlNode extends Class_object {
      *      @return 如替换成功，此方法可返回被替换的节点，如替换失败，则返回 null
      *     
      */
-    replaceChild(): Class_XmlNode;
+    replaceChild(newChild: Class_XmlNode, oldChild: Class_XmlNode): Class_XmlNode;
 
     /**
      * @description 从子节点列表中删除某个节点
@@ -186,7 +186,7 @@ declare class Class_XmlNode extends Class_object {
      *      @return 如删除成功，此方法可返回被删除的节点，如失败，则返回 null
      *     
      */
-    removeChild(): Class_XmlNode;
+    removeChild(oldChild: Class_XmlNode): Class_XmlNode;
 
 }
 

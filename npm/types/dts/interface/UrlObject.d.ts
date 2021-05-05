@@ -25,14 +25,14 @@ declare class Class_UrlObject extends Class_object {
      *      @param slashesDenoteHost  默认为false, 如果设置为true，则从字符串'//'之后到下一个'/'之前的字符串会被解析为host，例如'//foo/bar', 结果应该是{host: 'foo', pathname: '/bar'}而不是{pathname: '//foo/bar'}
      *      
      */
-    parse(): void;
+    parse(url: string, parseQueryString: boolean, slashesDenoteHost: boolean): void;
 
     /**
      * @description 使用指定的参数构造 UrlObject
      *      @param args 指定构造参数的字典对象，支持的字段有：protocol, slashes, username, password, hostname, port, pathname, query, hash
      *      
      */
-    format(): void;
+    format(args: object): void;
 
     /**
      * @description 重定位 url 路径，自动识别新路径为相对路径还是绝对路径
@@ -40,7 +40,7 @@ declare class Class_UrlObject extends Class_object {
      *      @return 返回包含重定位数据的对象
      *      
      */
-    resolve(): Class_UrlObject;
+    resolve(url: string): Class_UrlObject;
 
     /**
      * @description 标准化路径

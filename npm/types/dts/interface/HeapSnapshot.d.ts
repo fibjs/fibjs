@@ -10,7 +10,7 @@ declare class Class_HeapSnapshot extends Class_object {
      *      @return 返回堆快照的比较结果
      *      
      */
-    diff(): object;
+    diff(before: Class_HeapSnapshot): object;
 
     /**
      * @description 根据ID获取堆视图节点
@@ -18,14 +18,14 @@ declare class Class_HeapSnapshot extends Class_object {
      *      @return 返回获取到的堆视图节点
      *      
      */
-    getNodeById(): Class_HeapGraphNode;
+    getNodeById(id: number): Class_HeapGraphNode;
 
     /**
      * @description 根据指定名称保存HeapSnapshot
      *      @param fname 快照名称
      *     
      */
-    save(): void;
+    save(fname: string): void;
 
     /**
      * @description 时间信息 

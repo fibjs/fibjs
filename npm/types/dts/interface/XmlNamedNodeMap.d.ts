@@ -17,7 +17,7 @@ declare class Class_XmlNamedNodeMap extends Class_object {
      *      @return 指定索引号的属性
      *     
      */
-    item(): Class_XmlAttr;
+    item(index: number): Class_XmlAttr;
 
 
     /**
@@ -26,7 +26,7 @@ declare class Class_XmlNamedNodeMap extends Class_object {
      *      @return 返回查询出的属性
      *     
      */
-    getNamedItem(): Class_XmlAttr;
+    getNamedItem(name: string): Class_XmlAttr;
 
 }
 

@@ -33,7 +33,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回事件对象本身，便于链式调用
      *    
      */
-    on(): object;
+    on(ev: string, func: ()=>any): object;
 
     /**
      * @description 绑定一个事件处理函数到对象
@@ -42,7 +42,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回事件对象本身，便于链式调用
      *    
      */
-    addListener(): object;
+    addListener(ev: string, func: ()=>any): object;
 
     /**
      * @description 绑定一个事件处理函数到对象起始
@@ -51,7 +51,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回事件对象本身，便于链式调用
      *    
      */
-    prependListener(): object;
+    prependListener(ev: string, func: ()=>any): object;
 
     /**
      * @description 绑定一个一次性事件处理函数到对象，一次性处理函数只会触发一次
@@ -60,7 +60,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回事件对象本身，便于链式调用
      *    
      */
-    once(): object;
+    once(ev: string, func: ()=>any): object;
 
     /**
      * @description 绑定一个事件处理函数到对象起始
@@ -69,7 +69,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回事件对象本身，便于链式调用
      *    
      */
-    prependOnceListener(): object;
+    prependOnceListener(ev: string, func: ()=>any): object;
 
     /**
      * @description 从对象处理队列中取消指定函数
@@ -78,7 +78,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回事件对象本身，便于链式调用
      *    
      */
-    off(): object;
+    off(ev: string, func: ()=>any): object;
 
     /**
      * @description 从对象处理队列中取消指定函数
@@ -87,7 +87,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回事件对象本身，便于链式调用
      *    
      */
-    removeListener(): object;
+    removeListener(ev: string, func: ()=>any): object;
 
     /**
      * @description 从对象处理队列中取消所有事件的所有监听器， 如果指定事件，则移除指定事件的所有监听器。
@@ -95,14 +95,14 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回事件对象本身，便于链式调用
      *    
      */
-    removeAllListeners(): object;
+    removeAllListeners(ev: string): object;
 
     /**
      *  监听器的默认限制的数量，仅用于兼容
      *     @param n 指定事件的数量
      *    
      */
-    setMaxListeners(): void;
+    setMaxListeners(n: number): void;
 
     /**
      *  获取监听器的默认限制的数量，仅用于兼容
@@ -117,7 +117,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回指定事件的监听器数组
      *    
      */
-    listeners(): any[];
+    listeners(ev: string): any[];
 
     /**
      * @description 查询对象指定事件的监听器数量
@@ -125,7 +125,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回指定事件的监听器数量
      *    
      */
-    listenerCount(): number;
+    listenerCount(ev: string): number;
 
     /**
      * @description 查询监听器事件名称
@@ -141,7 +141,7 @@ declare class Class_EventEmitter extends Class_object {
      *     @return 返回事件触发状态，有响应事件返回 true，否则返回 false
      *    
      */
-    emit(): boolean;
+    emit(ev: string, args: any[]): boolean;
 
 }
 

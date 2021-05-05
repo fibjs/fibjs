@@ -53,7 +53,7 @@ declare class Class_Socket extends Class_Stream {
      *      @param port 指定对方端口，连接 unix socket 和 Windows pipe 时，忽略此参数
      *      
      */
-    connect(): void;
+    connect(host: string, port: number): void;
 
     /**
      * @description 将当前 Socket 绑定至本地所有地址的指定端口
@@ -61,14 +61,14 @@ declare class Class_Socket extends Class_Stream {
      *      @param allowIPv4 指定是否接受 ipv4 连接，缺省为 true。本参数在 ipv6 时有效，并依赖于操作系统
      *      
      */
-    bind(): void;
+    bind(port: number, allowIPv4: boolean): void;
 
     /**
      * @description 开始监听连接请求
      *      @param backlog 指定请求队列长度，超出的请求将被拒绝，缺省为 120
      *      
      */
-    listen(): void;
+    listen(backlog: number): void;
 
     /**
      * @description 等待并接受一个连接
@@ -83,14 +83,14 @@ declare class Class_Socket extends Class_Stream {
      *      @return 返回从连接读取的数据
      *      
      */
-    recv(): Class_Buffer;
+    recv(bytes: number): Class_Buffer;
 
     /**
      * @description 将给定的数据写入连接，此方法等效于 write 方法
      *      @param data 给定要写入的数据
      *      
      */
-    send(): void;
+    send(data: Class_Buffer): void;
 
 }
 

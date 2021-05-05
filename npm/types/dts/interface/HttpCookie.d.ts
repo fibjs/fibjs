@@ -28,7 +28,7 @@ declare class Class_HttpCookie extends Class_object {
      *      @param header 指定需要解析的 header 字符串
      *     
      */
-    parse(): void;
+    parse(header: string): void;
 
     /**
      * @description 检测给定的 url 是否匹配当前设置
@@ -36,7 +36,7 @@ declare class Class_HttpCookie extends Class_object {
      *      @return 匹配成功返回 true
      *     
      */
-    match(): boolean;
+    match(url: string): boolean;
 
     /**
      * @description 查询和设置 cookie 名称 

@@ -11,7 +11,7 @@ declare class Class_SeekableStream extends Class_Stream {
      *       @param whence 指定位置基准，允许的值为：SEEK_SET, SEEK_CUR, SEEK_END
      *      
      */
-    seek(): void;
+    seek(offset: number, whence: number): void;
 
     /**
      * @description 查询流当前位置
@@ -44,7 +44,7 @@ declare class Class_SeekableStream extends Class_Stream {
      *       @param bytes 新的文件尺寸
      *      
      */
-    truncate(): void;
+    truncate(bytes: number): void;
 
     /**
      * @description 查询文件是否到结尾

@@ -17,14 +17,14 @@ declare class Class_Stream extends Class_object {
      *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
      *      
      */
-    read(): Class_Buffer;
+    read(bytes: number): Class_Buffer;
 
     /**
      * @description 将给定的数据写入流
      *      @param data 给定要写入的数据
      *      
      */
-    write(): void;
+    write(data: Class_Buffer): void;
 
     /**
      * @description 将文件缓冲区内容写入物理设备 
@@ -43,7 +43,7 @@ declare class Class_Stream extends Class_object {
      *      @return 返回复制的字节数
      *      
      */
-    copyTo(): number;
+    copyTo(stm: Class_Stream, bytes: number): number;
 
 }
 

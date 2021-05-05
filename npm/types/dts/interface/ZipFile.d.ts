@@ -26,7 +26,7 @@ declare class Class_ZipFile extends Class_object {
      * 	 @return 返回文件信息对象
      * 	
      */
-    getinfo(): object;
+    getinfo(member: string): object;
 
     /**
      * @description 返回从压缩文件读取的数据
@@ -35,7 +35,7 @@ declare class Class_ZipFile extends Class_object {
      * 	 @return 返回文件的所有数据
      * 	 
      */
-    read(): Class_Buffer;
+    read(member: string, password: string): Class_Buffer;
 
     /**
      * @description 解压所有文件
@@ -43,7 +43,7 @@ declare class Class_ZipFile extends Class_object {
      * 	 @return 包含所有文件数据及信息的列表
      *      
      */
-    readAll(): any[];
+    readAll(password: string): any[];
 
     /**
      * @description 解压指定文件
@@ -52,7 +52,7 @@ declare class Class_ZipFile extends Class_object {
      * 	 @param password 解压密码, 默认没有密码
      * 	 
      */
-    extract(): void;
+    extract(member: string, path: string, password: string): void;
 
     /**
      * @description 解压所有文件到指定路径
@@ -60,7 +60,7 @@ declare class Class_ZipFile extends Class_object {
      * 	 @param password 解压密码, 默认没有密码
      * 	 
      */
-    extractAll(): void;
+    extractAll(path: string, password: string): void;
 
     /**
      * @description 写入指定文件到压缩文件
@@ -69,7 +69,7 @@ declare class Class_ZipFile extends Class_object {
      * 	 @param password 解压密码, 默认没有密码
      * 	 
      */
-    write(): void;
+    write(filename: string, inZipName: string, password: string): void;
 
     /**
      * @description 关闭打开的zip文件 

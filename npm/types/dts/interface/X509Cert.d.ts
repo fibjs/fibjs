@@ -21,7 +21,7 @@ declare class Class_X509Cert extends Class_object {
      *      @param derCert DER 格式的证书
      *     
      */
-    load(): void;
+    load(derCert: Class_Buffer): void;
 
     /**
      * @description 加载一个 CRT/PEM/DER/TXT 格式的证书，可多次调用
@@ -30,7 +30,7 @@ declare class Class_X509Cert extends Class_object {
      *      @param filename 证书文件名
      *     
      */
-    loadFile(): void;
+    loadFile(filename: string): void;
 
     /**
      * @description 加载自带的缺省根证书
@@ -44,7 +44,7 @@ declare class Class_X509Cert extends Class_object {
      *      @return 如果验证成功则返回 True
      *     
      */
-    verify(): boolean;
+    verify(cert: Class_X509Cert): boolean;
 
     /**
      * @description 导出已经加载的证书
@@ -52,7 +52,7 @@ declare class Class_X509Cert extends Class_object {
      *      @return 以数组方式导出证书链
      *     
      */
-    dump(): any[];
+    dump(pem: boolean): any[];
 
     /**
      * @description 清空已经加载的证书 

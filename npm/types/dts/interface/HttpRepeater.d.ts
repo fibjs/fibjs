@@ -25,7 +25,7 @@ declare class Class_HttpRepeater extends Class_Handler {
      *      @param urls 指定一组后端服务器 url
      *     
      */
-    load(): void;
+    load(urls: any[]): void;
 
     /**
      * @description 查询当前后端服务器 url 列表

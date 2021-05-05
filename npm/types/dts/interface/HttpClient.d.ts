@@ -84,7 +84,7 @@ declare class Class_HttpClient extends Class_object {
      *     @param key 私钥，用于与客户端会话
      *    
      */
-    setClientCert(): void;
+    setClientCert(crt: Class_X509Cert, key: Class_PKey): void;
 
     /**
      * @description 发送 http 请求到指定的流对象，并返回结果
@@ -93,7 +93,7 @@ declare class Class_HttpClient extends Class_object {
      *      @return 返回服务器响应
      *      
      */
-    request(): Class_HttpResponse;
+    request(conn: Class_Stream, req: Class_HttpRequest): Class_HttpResponse;
 
     /**
      * @description 用 GET 方法请求指定的 url，并返回结果，等同于 request("GET", ...)
@@ -113,7 +113,7 @@ declare class Class_HttpClient extends Class_object {
      *      @return 返回服务器响应
      *      
      */
-    get(): Class_HttpResponse;
+    get(url: string, opts: object): Class_HttpResponse;
 
     /**
      * @description 用 POST 方法请求指定的 url，并返回结果，等同于 request("POST", ...)
@@ -133,7 +133,7 @@ declare class Class_HttpClient extends Class_object {
      *      @return 返回服务器响应
      *      
      */
-    post(): Class_HttpResponse;
+    post(url: string, opts: object): Class_HttpResponse;
 
     /**
      * @description 用 DELETE 方法请求指定的 url，并返回结果，等同于 request("DELETE", ...)
@@ -153,7 +153,7 @@ declare class Class_HttpClient extends Class_object {
      *      @return 返回服务器响应
      *      
      */
-    del(): Class_HttpResponse;
+    del(url: string, opts: object): Class_HttpResponse;
 
     /**
      * @description 用 PUT 方法请求指定的 url，并返回结果，等同于 request("PUT", ...)
@@ -173,7 +173,7 @@ declare class Class_HttpClient extends Class_object {
      *      @return 返回服务器响应
      *      
      */
-    put(): Class_HttpResponse;
+    put(url: string, opts: object): Class_HttpResponse;
 
     /**
      * @description 用 PATCH 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
@@ -193,7 +193,7 @@ declare class Class_HttpClient extends Class_object {
      *      @return 返回服务器响应
      *      
      */
-    patch(): Class_HttpResponse;
+    patch(url: string, opts: object): Class_HttpResponse;
 
 }
 

@@ -15,7 +15,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      *       @param signal 传递的信号
      *      
      */
-    kill(): void;
+    kill(signal: number): void;
 
     /**
      * @description 等待当前对象指向的进程结束，并返回进程结束代码

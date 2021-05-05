@@ -51,7 +51,7 @@ declare class Class_Message extends Class_object {
      *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
      *      
      */
-    read(): Class_Buffer;
+    read(bytes: number): Class_Buffer;
 
     /**
      * @description 从流内读取剩余的全部数据，此方法为 body 相应方法的别名
@@ -65,7 +65,7 @@ declare class Class_Message extends Class_object {
      *      @param data 给定要写入的数据
      *      
      */
-    write(): void;
+    write(data: Class_Buffer): void;
 
     /**
      * @description 以 JSON 编码写入给定的数据
@@ -73,7 +73,7 @@ declare class Class_Message extends Class_object {
      *      @return 此方法不会返回数据
      *      
      */
-    json(): any;
+    json(data: any): any;
 
     /**
      * @description 以 msgpack 编码写入给定的数据
@@ -81,7 +81,7 @@ declare class Class_Message extends Class_object {
      *      @return 此方法不会返回数据
      *      
      */
-    pack(): any;
+    pack(data: any): any;
 
     /**
      * @description 消息数据部分的长度 
@@ -110,14 +110,14 @@ declare class Class_Message extends Class_object {
      *      @param stm 指定接收格式化消息的流对象
      *      
      */
-    sendTo(): void;
+    sendTo(stm: Class_Stream): void;
 
     /**
      * @description 从给定的缓存流对象中读取格式化消息，并解析填充对象
      *      @param stm 指定读取格式化消息的流对象
      *      
      */
-    readFrom(): void;
+    readFrom(stm: Class_Stream): void;
 
     /**
      * @description 查询消息 readFrom 时的流对象 

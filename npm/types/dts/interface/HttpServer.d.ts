@@ -33,7 +33,7 @@ declare class Class_HttpServer extends Class_TcpServer {
      *      @param allowHeaders 指定接受的 http 头字段
      *      
      */
-    enableCrossOrigin(): void;
+    enableCrossOrigin(allowHeaders: string): void;
 
     /**
      * @description 查询和设置最大请求头个数，缺省为 128 

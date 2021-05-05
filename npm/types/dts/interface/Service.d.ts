@@ -45,35 +45,35 @@ declare class Class_Service extends Class_EventEmitter {
      *      @param description 服务描述信息
      *      
      */
-    static install(): void;
+    static install(name: string, cmd: string, displayName: string, description: string): void;
 
     /**
      * @description 从系统中卸载服务 
      *      @param name 服务名称
      *      
      */
-    static remove(): void;
+    static remove(name: string): void;
 
     /**
      * @description 启动服务 
      *      @param name 服务名称
      *      
      */
-    static start(): void;
+    static start(name: string): void;
 
     /**
      * @description 停止服务 
      *      @param name 服务名称
      *      
      */
-    static stop(): void;
+    static stop(name: string): void;
 
     /**
      * @description 重启服务 
      *      @param name 服务名称
      *      
      */
-    static restart(): void;
+    static restart(name: string): void;
 
     /**
      * @description 检测服务是否安装
@@ -81,7 +81,7 @@ declare class Class_Service extends Class_EventEmitter {
      *      @return 服务安装返回 True
      *      
      */
-    static isInstalled(): boolean;
+    static isInstalled(name: string): boolean;
 
     /**
      * @description 检测服务是否运行
@@ -89,7 +89,7 @@ declare class Class_Service extends Class_EventEmitter {
      *      @return 服务运行返回 True
      *      
      */
-    static isRunning(): boolean;
+    static isRunning(name: string): boolean;
 
 }
 

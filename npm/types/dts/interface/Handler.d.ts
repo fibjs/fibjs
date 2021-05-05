@@ -16,7 +16,7 @@ declare class Class_Handler extends Class_object {
      *      @return 返回下一步的处理器
      *      
      */
-    invoke(): Class_Handler;
+    invoke(v: Class_object): Class_Handler;
 
 }
 

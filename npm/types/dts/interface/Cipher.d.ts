@@ -43,7 +43,7 @@ declare class Class_Cipher extends Class_object {
      *      @param mode 指定填充模式，缺省为 PADDING_PKCS7
      *      
      */
-    paddingMode(): void;
+    paddingMode(mode: number): void;
 
     /**
      * @description 使用当前算法密码加密数据
@@ -51,7 +51,7 @@ declare class Class_Cipher extends Class_object {
      *      @return 返回加密后的数据
      *      
      */
-    encrypt(): Class_Buffer;
+    encrypt(data: Class_Buffer): Class_Buffer;
 
     /**
      * @description 使用当前算法密码解密数据
@@ -59,7 +59,7 @@ declare class Class_Cipher extends Class_object {
      *      @return 返回解密后的数据
      *      
      */
-    decrypt(): Class_Buffer;
+    decrypt(data: Class_Buffer): Class_Buffer;
 
 }
 

@@ -27,7 +27,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *      @param headers 指定响应消息添加的响应头
      *      
      */
-    writeHead(): void;
+    writeHead(statusCode: number, statusMessage: string, headers: object): void;
 
     /**
      * @description 返回当前消息的 HttpCookie 对象列表 
@@ -39,21 +39,21 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      *      @param cookie 指定要添加的 HttpCookie 对象
      *      
      */
-    addCookie(): void;
+    addCookie(cookie: Class_HttpCookie): void;
 
     /**
      * @description 发送重定向到客户端
      *      @param url 重定向的地址
      *      
      */
-    redirect(): void;
+    redirect(url: string): void;
 
     /**
      * @description 仅发送格式化 http 头到给定的流对象
      *      @param stm 指定接收格式化消息的流对象
      *      
      */
-    sendHeader(): void;
+    sendHeader(stm: Class_Stream): void;
 
 }
 

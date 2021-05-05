@@ -25,7 +25,7 @@ declare class Class_StringDecoder extends Class_object {
      *      @return 解码后的字符串.
      *      
      */
-    write(): string;
+    write(buf: Class_Buffer): string;
 
     /**
      * @description 内部使用。.
@@ -34,7 +34,7 @@ declare class Class_StringDecoder extends Class_object {
      *      @return 解码后的字符串.
      *      
      */
-    text(): string;
+    text(buf: Class_Buffer, offset: number): string;
 
     /**
      * @description 内部使用。.
@@ -42,7 +42,7 @@ declare class Class_StringDecoder extends Class_object {
      *      @return 解码后的字符串.
      *      
      */
-    fillLast(): string;
+    fillLast(buf: Class_Buffer): string;
 
     /**
      * @description 内部使用。 

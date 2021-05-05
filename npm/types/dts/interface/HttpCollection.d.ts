@@ -14,7 +14,7 @@ declare class Class_HttpCollection extends Class_object {
      *      @return 返回键值是否存在
      *      
      */
-    has(): boolean;
+    has(name: string): boolean;
 
     /**
      * @description 查询指定键值的第一个值
@@ -22,7 +22,7 @@ declare class Class_HttpCollection extends Class_object {
      *      @return 返回键值所对应的值，若不存在，则返回 undefined
      *      
      */
-    first(): any;
+    first(name: string): any;
 
     /**
      * @description 查询指定键值的全部值
@@ -30,35 +30,35 @@ declare class Class_HttpCollection extends Class_object {
      *      @return 返回键值所对应全部值的数组，若数据不存在，则返回 null
      *      
      */
-    all(): object;
+    all(name: string): object;
 
     /**
      * @description 添加一个键值数据，添加数据并不修改已存在的键值的数据
      *      @param map 指定要添加的键值数据字典
      *      
      */
-    add(): void;
+    add(map: object): void;
 
     /**
      * @description 设定一个键值数据，设定数据将修改键值所对应的第一个数值，并清除相同键值的其余数据
      *      @param map 指定要设定的键值数据字典
      *      
      */
-    set(): void;
+    set(map: object): void;
 
     /**
      * @description 删除指定键值的全部值
      *      @param name 指定要删除的键值
      *      
      */
-    remove(): void;
+    remove(name: string): void;
 
     /**
      * @description 删除指定键值的全部值
      *      @param name 指定要删除的键值
      *      
      */
-    delete(): void;
+    delete(name: string): void;
 
     /**
      * @description 按照键值排序容器内的内容

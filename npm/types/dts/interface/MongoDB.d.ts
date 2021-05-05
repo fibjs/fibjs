@@ -17,7 +17,7 @@ declare class Class_MongoDB extends Class_object {
      *     @return 返回指定的集合对象
      *    
      */
-    getCollection(): Class_MongoCollection;
+    getCollection(name: string): Class_MongoCollection;
 
     /**
      * @description 指定一个 MongoDB 数据库命令
@@ -25,7 +25,7 @@ declare class Class_MongoDB extends Class_object {
      *     @return 返回命令执行结果
      *    
      */
-    runCommand(): object;
+    runCommand(cmd: object): object;
 
 
     /**
@@ -34,7 +34,7 @@ declare class Class_MongoDB extends Class_object {
      *     @return 新 _objectid 对象
      *    
      */
-    oid(): Class_MongoID;
+    oid(hexStr: string): Class_MongoID;
 
     /**
      * @description 关闭当前数据库连接 

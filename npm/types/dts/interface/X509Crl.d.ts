@@ -20,14 +20,14 @@ declare class Class_X509Crl extends Class_object {
      *      @param derCrl DER 格式的撤销证书
      *     
      */
-    load(): void;
+    load(derCrl: Class_Buffer): void;
 
     /**
      * @description 加载一个 PEM/DER 格式的撤销证书，可多次调用
      *      @param filename 撤销证书文件名
      *     
      */
-    loadFile(): void;
+    loadFile(filename: string): void;
 
     /**
      * @description 导出已经加载的撤销证书
@@ -35,7 +35,7 @@ declare class Class_X509Crl extends Class_object {
      *      @return 以数组方式导出撤销证书链
      *     
      */
-    dump(): any[];
+    dump(pem: boolean): any[];
 
     /**
      * @description 清空已经加载的撤销证书

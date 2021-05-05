@@ -10,7 +10,7 @@ declare class Class_Digest extends Class_object {
      *      @return 返回信息摘要对象本身
      *      
      */
-    update(): Class_Digest;
+    update(data: Class_Buffer): Class_Digest;
 
     /**
      * @description 计算并返回摘要
@@ -18,7 +18,7 @@ declare class Class_Digest extends Class_object {
      *      @return 返回指定编码的摘要表示
      *      
      */
-    digest(): any;
+    digest(codec: string): any;
 
     /**
      * @description 查询当前信息摘要算法的摘要字节数 

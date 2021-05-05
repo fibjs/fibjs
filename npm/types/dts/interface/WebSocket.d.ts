@@ -64,14 +64,14 @@ declare class Class_WebSocket extends Class_EventEmitter {
      *      @param reason 指定关闭的原因，缺省为 ""
      *     
      */
-    close(): void;
+    close(code: number, reason: string): void;
 
     /**
      * @description 向对方发送一段文本
      *      @param data 指定发送的文本
      *     
      */
-    send(): void;
+    send(data: string): void;
 
     /**
      * @description 查询和绑定连接成功事件，相当于 on("open", func); 

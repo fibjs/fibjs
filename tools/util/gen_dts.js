@@ -374,7 +374,7 @@ function processDeclareInterface(def, {
                 } else {
                     dtsUnit.members.push(dtsUnitMember = dom.create.method(
                         mem.name,
-                        [],
+                        methodParams,
                         mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
                         memFlags
                     ))

@@ -19,7 +19,7 @@ declare class Class_MemoryStream extends Class_SeekableStream {
      *      @param d 指定要设定的时间
      *      
      */
-    setTime(): void;
+    setTime(d: typeof Date): void;
 
     /**
      * @description 创建当前内存流的一个只读副本

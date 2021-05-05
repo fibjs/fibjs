@@ -76,6 +76,14 @@
  *       done(new Error('some thing wrong!'));
  *     }, 0);
  *   });
+ * 
+ *   it('check in done', done => {
+ *     setTimeout(() => {
+ *       done(() => {
+ *         assert.ok(true);
+ *       });
+ *     }, 0);
+ *   });
  * });
  * 
  * process.exit(-test.run(console.DEBUG));

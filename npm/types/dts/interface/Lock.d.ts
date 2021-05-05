@@ -29,7 +29,7 @@ declare class Class_Lock extends Class_object {
      *      @return 返回是否成功获取锁，为 true 表示成功获取
      *      
      */
-    acquire(): boolean;
+    acquire(blocking: boolean): boolean;
 
     /**
      * @description 释放锁的拥有权

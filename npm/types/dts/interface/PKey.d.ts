@@ -37,14 +37,14 @@ declare class Class_PKey extends Class_object {
      *      @param size 指定 RSA 密钥长度，bit 为单位
      *     
      */
-    genRsaKey(): void;
+    genRsaKey(size: number): void;
 
     /**
      * @description 生成一个 EC 私钥
      *      @param curve 指定预置椭圆曲线，可选值为："secp521r1", "brainpoolP512r1", "secp384r1", "brainpoolP384r1", "secp256r1", "secp256k1", "brainpoolP256r1", "secp224r1", "secp224k1", "secp192r1", "secp192k1"
      *     
      */
-    genEcKey(): void;
+    genEcKey(curve: string): void;
 
     /**
      * @description 生成一个 SM2 私钥
@@ -72,7 +72,7 @@ declare class Class_PKey extends Class_object {
      *      @param password 解密密码
      *     
      */
-    importKey(): void;
+    importKey(DerKey: Class_Buffer, password: string): void;
 
     /**
      * @description 加载一个 PEM/DER 格式的密钥文件
@@ -80,7 +80,7 @@ declare class Class_PKey extends Class_object {
      *      @param password 解密密码
      *     
      */
-    importFile(): void;
+    importFile(filename: string, password: string): void;
 
     /**
      * @description 返回当前 key 的 PEM 格式编码
@@ -109,7 +109,7 @@ declare class Class_PKey extends Class_object {
      *      @return 返回加密后的数据
      *      
      */
-    encrypt(): Class_Buffer;
+    encrypt(data: Class_Buffer): Class_Buffer;
 
     /**
      * @description 使用当前算法密码私钥解密数据
@@ -117,7 +117,7 @@ declare class Class_PKey extends Class_object {
      *      @return 返回解密后的数据
      *      
      */
-    decrypt(): Class_Buffer;
+    decrypt(data: Class_Buffer): Class_Buffer;
 
     /**
      * @description 使用当前算法密码私钥签名数据
@@ -126,7 +126,7 @@ declare class Class_PKey extends Class_object {
      *      @return 返回签名后的数据
      *      
      */
-    sign(): Class_Buffer;
+    sign(data: Class_Buffer, alg: number): Class_Buffer;
 
     /**
      * @description 使用当前算法密码公钥验证数据
@@ -136,7 +136,7 @@ declare class Class_PKey extends Class_object {
      *      @return 返回验证后的结果
      *      
      */
-    verify(): boolean;
+    verify(data: Class_Buffer, sign: Class_Buffer, alg: number): boolean;
 
 }
 

@@ -66,7 +66,7 @@ declare class Class_XmlElement extends Class_XmlNode {
      *      @return 返回属性的值
      *     
      */
-    getAttribute(): string;
+    getAttribute(name: string): string;
 
     /**
      * @description 通过命名空间 URI 和名称来获取属性值
@@ -75,7 +75,7 @@ declare class Class_XmlElement extends Class_XmlNode {
      *      @return 返回属性的值
      *     
      */
-    getAttributeNS(): string;
+    getAttributeNS(namespaceURI: string, localName: string): string;
 
     /**
      * @description 创建或改变某个新属性
@@ -85,7 +85,7 @@ declare class Class_XmlElement extends Class_XmlNode {
      *      @param value 指定要设置的属性值
      *     
      */
-    setAttribute(): void;
+    setAttribute(name: string, value: string): void;
 
     /**
      * @description 创建或改变具有命名空间的属性
@@ -96,14 +96,14 @@ declare class Class_XmlElement extends Class_XmlNode {
      *      @param value 指定要设置的属性值
      *     
      */
-    setAttributeNS(): void;
+    setAttributeNS(namespaceURI: string, qualifiedName: string, value: string): void;
 
     /**
      * @description 通过名称删除指定的属性
      *      @param name 指定删除的属性名
      *     
      */
-    removeAttribute(): void;
+    removeAttribute(name: string): void;
 
     /**
      * @description 通过命名空间和名称删除指定的属性
@@ -111,7 +111,7 @@ declare class Class_XmlElement extends Class_XmlNode {
      *      @param localName 指定删除的属性名
      *     
      */
-    removeAttributeNS(): void;
+    removeAttributeNS(namespaceURI: string, localName: string): void;
 
     /**
      * @description 查询当前节点是否拥有指定名称的属性
@@ -119,7 +119,7 @@ declare class Class_XmlElement extends Class_XmlNode {
      *      @return 如果当前元素节点拥有指定属性，则返回 true，否则返回 false
      *     
      */
-    hasAttribute(): boolean;
+    hasAttribute(name: string): boolean;
 
     /**
      * @description 查询当前节点是否拥有指定命名空间和名称的属性
@@ -128,7 +128,7 @@ declare class Class_XmlElement extends Class_XmlNode {
      *      @return 如果当前元素节点拥有指定属性，则返回 true，否则返回 false
      *     
      */
-    hasAttributeNS(): boolean;
+    hasAttributeNS(namespaceURI: string, localName: string): boolean;
 
     /**
      * @description 返回拥有指定名称的所有元素的 XmlNodeList
@@ -140,7 +140,7 @@ declare class Class_XmlElement extends Class_XmlNode {
      *      @return 节点树中具有指定标记的 XmlElement 节点的 XmlNodeList 集合。返回的元素节点的顺序就是它们在源文档中出现的顺序。
      *     
      */
-    getElementsByTagName(): Class_XmlNodeList;
+    getElementsByTagName(tagName: string): Class_XmlNodeList;
 
     /**
      * @description 返回拥有指定命名空间和名称的所有元素的 XmlNodeList
@@ -151,7 +151,7 @@ declare class Class_XmlElement extends Class_XmlNode {
      *      @return 节点树中具有指定标记的 XmlElement 节点的 XmlNodeList 集合。返回的元素节点的顺序就是它们在源文档中出现的顺序。
      *     
      */
-    getElementsByTagNameNS(): Class_XmlNodeList;
+    getElementsByTagNameNS(namespaceURI: string, localName: string): Class_XmlNodeList;
 
     /**
      * @description 返回拥有指定 id 属性的元素
@@ -163,7 +163,7 @@ declare class Class_XmlElement extends Class_XmlNode {
      *      @return 节点树中具有指定 id 属性的 XmlElement 节点
      *     
      */
-    getElementById(): Class_XmlElement;
+    getElementById(id: string): Class_XmlElement;
 
     /**
      * @description 返回带有指定 class 名称的所有元素的一个节点列表
@@ -173,7 +173,7 @@ declare class Class_XmlElement extends Class_XmlNode {
      *      @return 文档树中具有指定 class 名的 XmlElement 节点的 XmlNodeList 集合。返回的元素节点的顺序就是它们在源文档中出现的顺序。
      *     
      */
-    getElementsByClassName(): Class_XmlNodeList;
+    getElementsByClassName(className: string): Class_XmlNodeList;
 
 }
 

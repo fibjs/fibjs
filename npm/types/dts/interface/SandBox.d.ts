@@ -30,7 +30,7 @@ declare class Class_SandBox extends Class_object {
      *      @param mod 指定要添加的模块对象
      *      
      */
-    add(): void;
+    add(id: string, mod: any): void;
 
     /**
      * @description 向沙箱中添加一个脚本模块
@@ -39,14 +39,14 @@ declare class Class_SandBox extends Class_object {
      *      @return 返回加载的模块对象
      *      
      */
-    addScript(): any;
+    addScript(srcname: string, script: Class_Buffer): any;
 
     /**
      * @description 从沙箱中删除指定的基础模块
      *      @param id 指定要删除的模块名称，此路径与当前运行脚本无关，必须为绝对路径或者模块名
      *      
      */
-    remove(): void;
+    remove(id: string): void;
 
     /**
      * @description 从沙箱中检测基础模块是否存在
@@ -54,7 +54,7 @@ declare class Class_SandBox extends Class_object {
      *      @return 是否存在
      *      
      */
-    has(): boolean;
+    has(id: string): boolean;
 
     /**
      * @description 复制当前沙箱，新沙箱包含当前沙箱的模块，以及相同的名称和 require 函数
@@ -79,7 +79,7 @@ declare class Class_SandBox extends Class_object {
      *      @param argv 指定要运行的参数，此参数可在脚本内使用 argv 获取
      *      
      */
-    run(): void;
+    run(fname: string, argv: any[]): void;
 
     /**
      * @description 查询一个模块并返回模块完整文件名
@@ -88,7 +88,7 @@ declare class Class_SandBox extends Class_object {
      *      @return 返回加载的模块完整文件名
      *      
      */
-    resolve(): string;
+    resolve(id: string, base: string): string;
 
     /**
      * @description 加载一个模块并返回模块对象
@@ -97,7 +97,7 @@ declare class Class_SandBox extends Class_object {
      *      @return 返回加载的模块对象
      *      
      */
-    require(): any;
+    require(id: string, base: string): any;
 
     /**
      * @description 对指定的 extname 添加 compiler, extname 不可为系统内置扩展名 (包括 {'.js', '.json', '.jsc', '.wasm'}), compiler 需返回有效的 javascript 脚本.
@@ -132,7 +132,7 @@ declare class Class_SandBox extends Class_object {
      *      @param compiler 编译回调函数, 所有带 extname 的文件仅会 require 一次. 该回调函数格式为 `compiler(buf, requireInfo)`, buf 为读取到的文件 Buffer, requireInfo 结构为 `{filename: string}`.
      *      
      */
-    setModuleCompiler(): void;
+    setModuleCompiler(extname: string, compiler: ()=>any): void;
 
     /**
      * @description 查询沙箱的 global 对象 

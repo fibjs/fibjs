@@ -40,7 +40,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @param addr 指定绑定地址，若 address 未指定，操作系统会尝试在所有地址上监听。
      *     
      */
-    bind(): void;
+    bind(port: number, addr: string): void;
 
     /**
      * @description 在 socket 上发送一个数据包
@@ -50,7 +50,7 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @return 返回发送尺寸
      *     
      */
-    send(): number;
+    send(msg: Class_Buffer, port: number, address: string): number;
 
     /**
      * @description 返回一个包含 socket 地址信息的对象。对于 UDP socket，该对象将包含 address、family 和 port 属性。 
@@ -83,21 +83,21 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *      @param size 指定要设置的尺寸
      *     
      */
-    setRecvBufferSize(): void;
+    setRecvBufferSize(size: number): void;
 
     /**
      * @description 设置 socket 发送缓冲区大小
      *      @param size 指定要设置的尺寸
      *     
      */
-    setSendBufferSize(): void;
+    setSendBufferSize(size: number): void;
 
     /**
      * @description 设置或清除 SO_BROADCAST socket 选项
      *      @param flag 当设置为 true, UDP包会被发送到一个本地接口的广播地址
      *     
      */
-    setBroadcast(): void;
+    setBroadcast(flag: boolean): void;
 
     /**
      * @description 维持 fibjs 进程不退出，在对象绑定期间阻止 fibjs 进程退出

@@ -24,7 +24,7 @@ declare class Class_XmlText extends Class_XmlCharacterData {
      *      @return 从当前节点分割出的 Text 节点
      *     
      */
-    splitText(): Class_XmlText;
+    splitText(offset: number): Class_XmlText;
 
 }
 

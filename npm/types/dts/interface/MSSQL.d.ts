@@ -14,7 +14,7 @@ declare class Class_MSSQL extends Class_DbConnection {
      * 	 @param dbName 指定数据库名
      * 	 
      */
-    use(): void;
+    use(dbName: string): void;
 
 }
 

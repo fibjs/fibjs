@@ -23,7 +23,7 @@ declare class Class_SQLite extends Class_DbConnection {
      * @description 备份当前数据库到新文件
      * 	 @param fileName 指定备份的数据库文件名 
      */
-    backup(): void;
+    backup(fileName: string): void;
 
 }
 

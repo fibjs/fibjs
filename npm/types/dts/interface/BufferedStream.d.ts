@@ -22,7 +22,7 @@ declare class Class_BufferedStream extends Class_Stream {
      *      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
      *      
      */
-    readText(): string;
+    readText(size: number): string;
 
     /**
      * @description 读取一行文本，行结尾标识基于 EOL 属性的设置，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"
@@ -30,7 +30,7 @@ declare class Class_BufferedStream extends Class_Stream {
      *      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
      *      
      */
-    readLine(): string;
+    readLine(maxlen: number): string;
 
     /**
      * @description 以数组方式读取一组文本行，行结尾标识基于 EOL 属性的设置，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"
@@ -38,7 +38,7 @@ declare class Class_BufferedStream extends Class_Stream {
      *      @return 返回读取的文本行数组，若无数据可读，或者连接中断，空数组
      *      
      */
-    readLines(): any[];
+    readLines(maxlines: number): any[];
 
     /**
      * @description 读取一个文本字符串，以指定的字节为结尾
@@ -47,21 +47,21 @@ declare class Class_BufferedStream extends Class_Stream {
      *      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
      *      
      */
-    readUntil(): string;
+    readUntil(mk: string, maxlen: number): string;
 
     /**
      * @description 写入一个字符串
      *      @param txt 指定写入的字符串
      *      
      */
-    writeText(): void;
+    writeText(txt: string): void;
 
     /**
      * @description 写入一个字符串，并写入换行符
      *      @param txt 指定写入的字符串
      *      
      */
-    writeLine(): void;
+    writeLine(txt: string): void;
 
     /**
      * @description 查询创建缓存对象时的流对象 
