@@ -4,7 +4,6 @@ var os = require("os");
 var coroutine = require("coroutine");
 var fs = require("fs");
 var hash = require("hash");
-var mkdirp = require('@fibjs/mkdirp');
 
 var cef_path = path.join(__dirname, "../temp/cef", os.type());
 
@@ -41,7 +40,7 @@ function wait(win, selector) {
                 nodeId: doc.root.nodeId,
                 selector: "select.goog-te-combo"
             });
-        } catch (e) {};
+        } catch (e) { };
         coroutine.sleep(100);
     } while (e && e.nodeId == 0);
 
@@ -71,7 +70,9 @@ function translate(fname, lang) {
     console.log("translate", lang, fname);
 
     if (path.extname(fname) != ".html") {
-        mkdirp(path.dirname(out_fname));
+        fs.mkdir(path.dirname(out_fname), {
+            recursive: true
+        });
         fs.copyFile(fname, out_fname);
         return true;
     }
@@ -158,7 +159,9 @@ function translate(fname, lang) {
             fix_lang();
 
             console.notice("update", out_fname);
-            mkdirp(path.dirname(out_fname));
+            fs.mkdir(path.dirname(out_fname), {
+                recursive: true
+            });
             fs.writeFile(out_fname, html);
             done = true;
         } else
@@ -238,7 +241,7 @@ function queue_one(fname) {
             try {
                 console.log("delete", path.join(docs_path, lang, fname));
                 fs.unlink(path.join(docs_path, lang, fname));
-            } catch (e) {}
+            } catch (e) { }
         });
     }
 }

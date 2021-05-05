@@ -408,7 +408,22 @@ result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
         }
 
     public:
-        static void callback(uv_fs_t* req)
+        static void cb_stat(uv_fs_t* req)
+        {
+            AsyncUVMKDir* pThis = (AsyncUVMKDir*)req;
+
+            int32_t ret = (int32_t)uv_fs_get_result(req);
+            if (ret < 0 || !(S_IFDIR & pThis->statbuf.st_mode)) {
+                pThis->m_ac->apost(pThis->m_last_err);
+                delete pThis;
+                return;
+            }
+
+            pThis->result = 0;
+            cb_mkdir(req);
+        }
+
+        static void cb_mkdir(uv_fs_t* req)
         {
             AsyncUVMKDir* pThis = (AsyncUVMKDir*)req;
 
@@ -424,17 +439,29 @@ result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
                 pThis->m_path = pThis->m_paths.back();
                 pThis->m_paths.pop_back();
                 break;
+            case UV_EACCES:
+            case UV_ENOTDIR:
+            case UV_EPERM:
+                pThis->m_ac->apost(ret);
+                delete pThis;
+                return;
             case UV_ENOENT:
                 pThis->m_paths.push_back(pThis->m_path);
                 os_dirname(pThis->m_path, pThis->m_path);
                 break;
             default:
-                pThis->m_ac->apost(ret);
-                delete pThis;
+                pThis->m_last_err = ret;
+                uv_fs_req_cleanup(pThis);
+                ret = uv_fs_stat(s_uv_loop, pThis, pThis->m_path.c_str(), cb_stat);
+                if (ret != 0) {
+                    pThis->m_ac->apost(pThis->m_last_err);
+                    delete pThis;
+                }
                 return;
             };
 
-            ret = uv_fs_mkdir(s_uv_loop, pThis, pThis->m_path.c_str(), pThis->m_mode, AsyncUVMKDir::callback);
+            uv_fs_req_cleanup(pThis);
+            ret = uv_fs_mkdir(s_uv_loop, pThis, pThis->m_path.c_str(), pThis->m_mode, AsyncUVMKDir::cb_mkdir);
             if (ret != 0) {
                 pThis->m_ac->apost(ret);
                 delete pThis;
@@ -446,6 +473,7 @@ result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
         exlib::string m_path;
         int32_t m_mode;
         std::vector<exlib::string> m_paths;
+        int32_t m_last_err;
     };
 
     if (ac->isSync()) {
@@ -473,7 +501,7 @@ result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
     os_resolve(path);
 
     return uv_async([&] {
-        return uv_fs_mkdir(s_uv_loop, new AsyncUVMKDir(path, mode, ac), path.c_str(), mode, AsyncUVMKDir::callback);
+        return uv_fs_mkdir(s_uv_loop, new AsyncUVMKDir(path, mode, ac), path.c_str(), mode, AsyncUVMKDir::cb_mkdir);
     });
 }
 

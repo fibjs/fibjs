@@ -50,8 +50,11 @@ function assert_stat_property(statObj) {
 
 describe('fs', () => {
     before(() => {
+        rmdir(path.join(pathname, pathname));
+        rmdir(path.join(pathname1, pathname));
         rmdir(pathname);
         rmdir(pathname1);
+        rmdir(pathname2);
     });
 
     after(() => {
@@ -231,6 +234,20 @@ describe('fs', () => {
 
         fs.rmdir(recursive_path);
         fs.rmdir(pathname);
+    });
+
+    it("mkdir recursive do not throw error when directory exists", () => {
+        fs.mkdir(path.join(__dirname, "fs_files"), {
+            recursive: true
+        });
+    });
+
+    it("mkdir recursive throw error when path is not directory", () => {
+        assert.throws(() => {
+            fs.mkdir(path.join(__filename, "fs_files"), {
+                recursive: true
+            });
+        });
     });
 
     it("file.size", () => {
