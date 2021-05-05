@@ -27,7 +27,7 @@ inline int32_t ftruncate64(int32_t fd, __int64 where)
     return 0;
 }
 
-#define S_ISLNK(m) 0
+#define S_ISLNK(m) (((m)&S_IFMT) == S_IFLNK)
 
 #ifdef _MSC_VER
 #define stat64 _stati64
