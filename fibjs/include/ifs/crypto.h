@@ -75,6 +75,7 @@ public:
     static result_t pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, int32_t algo, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    static result_t getHashes(v8::Local<v8::Array>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -103,6 +104,7 @@ public:
     static void s_static_genSm2Key(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_pbkdf1(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_getHashes(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(crypto_base, randomBytes, int32_t, obj_ptr<Buffer_base>);
@@ -152,7 +154,8 @@ inline ClassInfo& crypto_base::class_info()
         { "pbkdf1", s_static_pbkdf1, true },
         { "pbkdf1Sync", s_static_pbkdf1, true },
         { "pbkdf2", s_static_pbkdf2, true },
-        { "pbkdf2Sync", s_static_pbkdf2, true }
+        { "pbkdf2Sync", s_static_pbkdf2, true },
+        { "getHashes", s_static_getHashes, true }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -498,6 +501,20 @@ inline void crypto_base::s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Valu
         hr = acb_pbkdf2(v0, v1, v2, v3, v4, cb, args);
     else
         hr = ac_pbkdf2(v0, v1, v2, v3, v4, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_getHashes(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Array> vr;
+
+    METHOD_NAME("crypto.getHashes");
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = getHashes(vr);
 
     METHOD_RETURN();
 }

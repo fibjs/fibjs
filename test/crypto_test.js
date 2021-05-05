@@ -1172,6 +1172,16 @@ describe('crypto', () => {
         });
     });
 
+    it("getHashes", () => {
+        var hashes = crypto.getHashes();
+        assert.isArray(hashes);
+
+        assert.greaterThan(hashes.length, 1);
+
+        assert.isTrue(hashes.includes('md5'))
+        assert.isTrue(hashes.includes('sha384'))
+    });
+
     it("FIX: Illegal iterations and size parameters will cause crypto.pbkdf1 to crash", () => {
         assert.throws(() => {
             crypto.pbkdf1(null, null, 0, -1, 1);
