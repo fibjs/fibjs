@@ -303,5 +303,11 @@ declare module 'crypto' {
      */
     function pbkdf2(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algo: number): Class_Buffer;
 
+    /**
+     * @description 获取 crypto 模块支持的的 hash(摘要) 算法, 比如 'md5', 'sha224'
+     *      
+     */
+    function getHashes(): any[];
+
 }
 

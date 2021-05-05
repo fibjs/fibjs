@@ -222,4 +222,8 @@ module crypto
      @return 返回生成的二进制钥匙
      */
     static Buffer pbkdf2(Buffer password, Buffer salt, Integer iterations, Integer size, String algoName) async;
+
+    /*! @brief 获取 crypto 模块支持的的 hash(摘要) 算法, 比如 'md5', 'sha224'
+     */
+    static Array getHashes();
 };
