@@ -4,6 +4,21 @@ test.setup();
 var hash = require('hash');
 var crypto = require('crypto');
 
+var ec_pem = "-----BEGIN EC PRIVATE KEY-----\n" +
+    "MIHcAgEBBEIB+QhtQdd9bjWeN2mgq6qoqW51ygslLwP+gwTCSP4ZVpcU0pxwigXm\n" +
+    "Ioa7Zzr2Q0OOjzdH/vDIaV9FzOySWSKTVJOgBwYFK4EEACOhgYkDgYYABAE3zTRb\n" +
+    "rr5Rsa0xqF4Mn0gBoETTQ5zt6zd5O+LqyiXVUteEWIXZ0sJvdQZvhdZfk9VypQGN\n" +
+    "skZ8xvcNVJL6PHNMCwEgR6q67gepHZBFAd75Vt/lCJJOB7SnVHk8Dfu5t49q4Gb2\n" +
+    "EdX30QGqQ71qihogY6Jqlmn8aJAZGwyNHPeX+n+F1A==\n" +
+    "-----END EC PRIVATE KEY-----\n";
+
+var pub_ec_pem = "-----BEGIN PUBLIC KEY-----\n" +
+    "MIGbMBAGByqGSM49AgEGBSuBBAAjA4GGAAQBN800W66+UbGtMaheDJ9IAaBE00Oc\n" +
+    "7es3eTvi6sol1VLXhFiF2dLCb3UGb4XWX5PVcqUBjbJGfMb3DVSS+jxzTAsBIEeq\n" +
+    "uu4HqR2QRQHe+Vbf5QiSTge0p1R5PA37ubePauBm9hHV99EBqkO9aooaIGOiapZp\n" +
+    "/GiQGRsMjRz3l/p/hdQ=\n" +
+    "-----END PUBLIC KEY-----\n";
+
 describe("hash", () => {
     function hash_test(o) {
         assert.equal(o.hash, hash.digest(hash[o.name], o.text).digest().hex());
@@ -22,7 +37,6 @@ describe("hash", () => {
         assert.equal(o.base64, crypto.createHash(o.name).update(o.text).digest().base64());
         assert.equal(o.base64, crypto.createHash(o.name.toLowerCase()).update(o.text).digest().base64());
 
-
         assert.equal(o.hash, hash.digest(hash[o.name], o.text).digest('buffer').hex());
         assert.equal(o.hash, hash.digest(hash[o.name],
             new Buffer(o.text)).digest('buffer').hex());
@@ -39,7 +53,6 @@ describe("hash", () => {
         assert.equal(o.base64, crypto.createHash(o.name).update(o.text).digest('buffer').base64());
         assert.equal(o.base64, crypto.createHash(o.name.toLowerCase()).update(o.text).digest('buffer').base64());
 
-
         assert.equal(o.hash, hash.digest(hash[o.name], o.text).digest('hex'));
         assert.equal(o.hash, hash.digest(hash[o.name],
             new Buffer(o.text)).digest('hex'));
@@ -48,7 +61,6 @@ describe("hash", () => {
         assert.equal(o.hash, crypto.createHash(o.name).update(o.text).digest('hex'));
         assert.equal(o.hash, crypto.createHash(o.name.toLowerCase()).update(o.text).digest('hex'));
 
-
         assert.equal(o.base64, hash.digest(hash[o.name], o.text).digest('base64'));
         assert.equal(o.base64, hash.digest(hash[o.name],
             new Buffer(o.text)).digest('base64'));
@@ -56,6 +68,10 @@ describe("hash", () => {
         assert.equal(o.base64, hash.digest(hash[o.name]).update(o.text).digest('base64'));
         assert.equal(o.base64, crypto.createHash(o.name).update(o.text).digest('base64'));
         assert.equal(o.base64, crypto.createHash(o.name.toLowerCase()).update(o.text).digest('base64'));
+
+        var s = crypto.createHash(o.name).update(o.text).sign(ec_pem);
+        assert.ok(crypto.createHash(o.name).update(o.text).verify(pub_ec_pem, s));
+        assert.ok(new crypto.PKey(pub_ec_pem).verify(crypto.createHash(o.name).update(o.text).digest(), s, hash[o.name]));
     }
 
     function hmac_test(o) {
@@ -82,6 +98,10 @@ describe("hash", () => {
         assert.equal(o.base64, hash.hmac(hash[o.name], o.key).update(o.text).digest('base64'));
         assert.equal(o.base64, hash['hmac_' + o.name.toLowerCase()](o.key).update(o.text).digest('base64'));
         assert.equal(o.base64, crypto.createHmac(o.name, o.key).update(o.text).digest('base64'));
+
+        var s = crypto.createHmac(o.name, o.key).update(o.text).sign(ec_pem);
+        assert.ok(crypto.createHmac(o.name, o.key).update(o.text).verify(pub_ec_pem, s));
+        assert.ok(new crypto.PKey(pub_ec_pem).verify(crypto.createHmac(o.name, o.key).update(o.text).digest(), s, hash[o.name]));
     }
 
     it("md2", () => {
@@ -289,12 +309,12 @@ describe("hash", () => {
             text: '',
             hash: '1ab21d8355cfa17f8e61194831e81a8f22bec8c728fefb747ed035eb5082aa2b',
             base64: 'GrIdg1XPoX+OYRlIMegajyK+yMco/vt0ftA161CCqis='
-        },{
+        }, {
             name: 'SM3',
             text: 'The quick brown fox jumps over the lazy dog',
             hash: '5fdfe814b8573ca021983970fc79b2218c9570369b4859684e2e4c3fc76cb8ea',
             base64: 'X9/oFLhXPKAhmDlw/HmyIYyVcDabSFloTi5MP8dsuOo='
-        },{
+        }, {
             name: 'SM3',
             text: 'The quick brown fox jumps over the lazy cog',
             hash: 'ca27d14a42fc04c1e5ecf574a95a8c2d70ecb5805e9b429026ccac8f28b20098',

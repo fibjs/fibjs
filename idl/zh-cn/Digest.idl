@@ -13,6 +13,19 @@ interface Digest : object
      */
     Value digest(String codec = "buffer");
 
+    /*! @brief 签名并返回摘要
+     @param key 签名的私钥
+     @return 返回签名后的数据
+     */
+    Buffer sign(PKey key) async;
+
+    /*! @brief 验证签名是否一致
+     @param key 验证签名的公钥
+     @param sign 指定要验证的签名
+     @return 返回验证后的结果
+     */
+    Boolean verify(PKey key, Buffer sign) async;
+
     /*! @brief 查询当前信息摘要算法的摘要字节数 */
     readonly Integer size;
 };

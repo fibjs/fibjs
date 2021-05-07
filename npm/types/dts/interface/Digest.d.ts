@@ -1,5 +1,6 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
+/// <reference path="../interface/PKey.d.ts" />
 /**
  * @description 信息摘要对象 
  */
@@ -19,6 +20,23 @@ declare class Class_Digest extends Class_object {
      *      
      */
     digest(codec: string): any;
+
+    /**
+     * @description 签名并返回摘要
+     *      @param key 签名的私钥
+     *      @return 返回签名后的数据
+     *      
+     */
+    sign(key: Class_PKey): Class_Buffer;
+
+    /**
+     * @description 验证签名是否一致
+     *      @param key 验证签名的公钥
+     *      @param sign 指定要验证的签名
+     *      @return 返回验证后的结果
+     *      
+     */
+    verify(key: Class_PKey, sign: Class_Buffer): boolean;
 
     /**
      * @description 查询当前信息摘要算法的摘要字节数 

@@ -59,7 +59,7 @@ result_t Digest::update(Buffer_base* data, obj_ptr<Digest_base>& retVal)
     return 0;
 }
 
-result_t Digest::digest(exlib::string codec, v8::Local<v8::Value>& retVal)
+result_t Digest::digest(obj_ptr<Buffer_base>& retVal)
 {
     exlib::string strBuf;
     if (m_iAlgo < 0)
@@ -75,7 +75,17 @@ result_t Digest::digest(exlib::string codec, v8::Local<v8::Value>& retVal)
     m_iAlgo = -1;
     mbedtls_md_hmac_reset(&m_ctx);
 
-    obj_ptr<Buffer_base> buf = new Buffer(strBuf);
+    retVal = new Buffer(strBuf);
+    return 0;
+}
+
+result_t Digest::digest(exlib::string codec, v8::Local<v8::Value>& retVal)
+{
+    obj_ptr<Buffer_base> buf;
+    result_t hr = digest(buf);
+    if (hr < 0)
+        return hr;
+
     if ((codec == "buffer"))
         retVal = buf->wrap();
     else {
@@ -87,6 +97,34 @@ result_t Digest::digest(exlib::string codec, v8::Local<v8::Value>& retVal)
         retVal = holder()->NewString(data);
     }
     return 0;
+}
+
+result_t Digest::sign(PKey_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int32_t _iAlgo = m_iAlgo;
+    obj_ptr<Buffer_base> buf;
+    result_t hr = digest(buf);
+    if (hr < 0)
+        return hr;
+
+    return key->sign(buf, _iAlgo, retVal, ac);
+}
+
+result_t Digest::verify(PKey_base* key, Buffer_base* sign, bool& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int32_t _iAlgo = m_iAlgo;
+    obj_ptr<Buffer_base> buf;
+    result_t hr = digest(buf);
+    if (hr < 0)
+        return hr;
+
+    return key->verify(buf, sign, _iAlgo, retVal, ac);
 }
 
 result_t Digest::get_size(int32_t& retVal)
