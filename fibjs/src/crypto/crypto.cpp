@@ -49,7 +49,7 @@ result_t crypto_base::createHmac(exlib::string algo, Buffer_base* key,
     if (!mi)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    return hash_base::hmac(mbedtls_md_get_type(mi), key, retVal);
+    return hash_base::hmac(mbedtls_md_get_type(mi), key, NULL, retVal);
 }
 
 result_t crypto_base::loadPKey(exlib::string filename, exlib::string password,

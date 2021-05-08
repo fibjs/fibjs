@@ -33,141 +33,146 @@ module hash
 
     /*! @brief 根据指定的算法标识创建一个信息摘要运算对象
      @param algo 指定摘要运算算法
-     @param data 创建同时更新的二进制数据
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      @return 返回构造的信息摘要对象
      */
-    static Digest digest(Integer algo, Buffer data);
-
-    /*! @brief 根据指定的算法标识创建一个信息摘要运算对象
-     @param algo 指定摘要运算算法
-     @return 返回构造的信息摘要对象
-     */
-    static Digest digest(Integer algo);
+    static Digest digest(Integer algo, Buffer data = null);
 
     /*! @brief 创建一个 MD2 信息摘要运算对象
-     @param data 创建同时更新的二进制数据
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      @return 返回构造的信息摘要对象
      */
-    static Digest md2(Buffer data);
+    static Digest md2(Buffer data = null);
 
     /*! @brief 创建一个 MD4 信息摘要运算对象
-     @param data 创建同时更新的二进制数据
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      @return 返回构造的信息摘要对象
      */
-    static Digest md4(Buffer data);
+    static Digest md4(Buffer data = null);
 
     /*! @brief 创建一个 MD5 信息摘要运算对象
-     @param data 创建同时更新的二进制数据
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      @return 返回构造的信息摘要对象
      */
-    static Digest md5(Buffer data);
+    static Digest md5(Buffer data = null);
 
     /*! @brief 创建一个 SHA1 信息摘要运算对象
-     @param data 创建同时更新的二进制数据
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      @return 返回构造的信息摘要对象
      */
-    static Digest sha1(Buffer data);
+    static Digest sha1(Buffer data = null);
 
     /*! @brief 创建一个 SHA224 信息摘要运算对象
-     @param data 创建同时更新的二进制数据
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      @return 返回构造的信息摘要对象
      */
-    static Digest sha224(Buffer data);
+    static Digest sha224(Buffer data = null);
 
     /*! @brief 创建一个 SHA256 信息摘要运算对象
-     @param data 创建同时更新的二进制数据
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      @return 返回构造的信息摘要对象
      */
-    static Digest sha256(Buffer data);
+    static Digest sha256(Buffer data = null);
 
     /*! @brief 创建一个 SHA384 信息摘要运算对象
-     @param data 创建同时更新的二进制数据
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      @return 返回构造的信息摘要对象
      */
-    static Digest sha384(Buffer data);
+    static Digest sha384(Buffer data = null);
 
     /*! @brief 创建一个 SHA512 信息摘要运算对象
-     @param data 创建同时更新的二进制数据
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      @return 返回构造的信息摘要对象
      */
-    static Digest sha512(Buffer data);
+    static Digest sha512(Buffer data = null);
 
     /*! @brief 创建一个 RIPEMD160 信息摘要运算对象
-     @param data 创建同时更新的二进制数据
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      @return 返回构造的信息摘要对象
      */
-    static Digest ripemd160(Buffer data);
+    static Digest ripemd160(Buffer data = null);
 
     /*! @brief 创建一个 SM3 信息摘要运算对象
-     @param data 创建同时更新的二进制数据
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      @return 返回构造的信息摘要对象
      */
-    static Digest sm3(Buffer data);
+    static Digest sm3(Buffer data = null);
 
     /*! @brief 根据指定的算法标识创建一个信息摘要签名运算对象
      @param algo 指定摘要运算算法
      @param key 二进制签名密钥
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      @return 返回构造的信息摘要对象
      */
-    static Digest hmac(Integer algo, Buffer key);
+    static Digest hmac(Integer algo, Buffer key, Buffer data = null);
 
     /*! @brief 创建一个 MD2 信息摘要签名运算对象
      @param key 二进制签名密钥
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      @return 返回构造的信息摘要对象
      */
-    static Digest hmac_md2(Buffer key);
+    static Digest hmac_md2(Buffer key, Buffer data = null);
 
     /*! @brief 创建一个 MD4 信息摘要签名运算对象
      @param key 二进制签名密钥
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      @return 返回构造的信息摘要对象
      */
-    static Digest hmac_md4(Buffer key);
+    static Digest hmac_md4(Buffer key, Buffer data = null);
 
     /*! @brief 创建一个 MD5 信息摘要签名运算对象
      @param key 二进制签名密钥
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      @return 返回构造的信息摘要对象
      */
-    static Digest hmac_md5(Buffer key);
+    static Digest hmac_md5(Buffer key, Buffer data = null);
 
     /*! @brief 创建一个 SHA1 信息摘要签名运算对象
      @param key 二进制签名密钥
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      @return 返回构造的信息摘要对象
      */
-    static Digest hmac_sha1(Buffer key);
+    static Digest hmac_sha1(Buffer key, Buffer data = null);
 
     /*! @brief 创建一个 SHA224 信息摘要签名运算对象
      @param key 二进制签名密钥
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      @return 返回构造的信息摘要对象
      */
-    static Digest hmac_sha224(Buffer key);
+    static Digest hmac_sha224(Buffer key, Buffer data = null);
 
     /*! @brief 创建一个 SHA256 信息摘要签名运算对象
      @param key 二进制签名密钥
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      @return 返回构造的信息摘要对象
      */
-    static Digest hmac_sha256(Buffer key);
+    static Digest hmac_sha256(Buffer key, Buffer data = null);
 
     /*! @brief 创建一个 SHA384 信息摘要签名运算对象
      @param key 二进制签名密钥
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      @return 返回构造的信息摘要对象
      */
-    static Digest hmac_sha384(Buffer key);
+    static Digest hmac_sha384(Buffer key, Buffer data = null);
 
     /*! @brief 创建一个 SHA512 信息摘要签名运算对象
      @param key 二进制签名密钥
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      @return 返回构造的信息摘要对象
      */
-    static Digest hmac_sha512(Buffer key);
+    static Digest hmac_sha512(Buffer key, Buffer data = null);
 
     /*! @brief 创建一个 RIPEMD160 信息摘要签名运算对象
      @param key 二进制签名密钥
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      @return 返回构造的信息摘要对象
      */
-    static Digest hmac_ripemd160(Buffer key);
+    static Digest hmac_ripemd160(Buffer key, Buffer data = null);
 
     /*! @brief 创建一个 SM3 信息摘要签名运算对象
      @param key 二进制签名密钥
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      @return 返回构造的信息摘要对象
      */
-    static Digest hmac_sm3(Buffer key);
+    static Digest hmac_sm3(Buffer key, Buffer data = null);
 };
