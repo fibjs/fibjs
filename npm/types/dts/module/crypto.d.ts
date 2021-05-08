@@ -305,6 +305,7 @@ declare module 'crypto' {
 
     /**
      * @description 获取 crypto 模块支持的的 hash(摘要) 算法, 比如 'md5', 'sha224'
+     *      @return 返回 fibjs 支持的 hash 算法数组
      *      
      */
     function getHashes(): any[];

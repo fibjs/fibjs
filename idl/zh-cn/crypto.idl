@@ -224,6 +224,7 @@ module crypto
     static Buffer pbkdf2(Buffer password, Buffer salt, Integer iterations, Integer size, String algoName) async;
 
     /*! @brief 获取 crypto 模块支持的的 hash(摘要) 算法, 比如 'md5', 'sha224'
+     @return 返回 fibjs 支持的 hash 算法数组
      */
     static Array getHashes();
 };
