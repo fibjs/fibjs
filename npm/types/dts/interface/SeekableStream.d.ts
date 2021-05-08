@@ -39,12 +39,16 @@ declare class Class_SeekableStream extends Class_Stream {
      */
     readAll(): Class_Buffer;
 
+    readAll(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
     /**
      * @description 修改文件尺寸，如果新尺寸小于原尺寸，则文件被截断
      *       @param bytes 新的文件尺寸
      *      
      */
     truncate(bytes: number): void;
+
+    truncate(bytes: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 查询文件是否到结尾
@@ -59,6 +63,8 @@ declare class Class_SeekableStream extends Class_Stream {
      *      
      */
     stat(): Class_Stat;
+
+    stat(callback: (err: Error | undefined | null, retVal: Class_Stat)=>any): void;
 
 }
 

@@ -13,6 +13,8 @@ declare class Class_DbConnection extends Class_object {
      */
     close(): void;
 
+    close(callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 在当前数据库连接上启动一个事务
      *     
@@ -20,6 +22,8 @@ declare class Class_DbConnection extends Class_object {
      *     
      */
     begin(point: string): void;
+
+    begin(point: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 提交当前数据库连接上的事务
@@ -29,6 +33,8 @@ declare class Class_DbConnection extends Class_object {
      */
     commit(point: string): void;
 
+    commit(point: string, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 回滚当前数据库连接上的事务
      *     
@@ -36,6 +42,8 @@ declare class Class_DbConnection extends Class_object {
      *     
      */
     rollback(point: string): void;
+
+    rollback(point: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 进入事务执行一个函数，并根据函数执行情况提交或者回滚 
@@ -74,6 +82,8 @@ declare class Class_DbConnection extends Class_object {
      */
     execute(sql: string, ...args: any[]): any[];
 
+    execute(sql: string, ...args: any[], callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+
     /**
      * @description 创建数据表
      * 
@@ -81,6 +91,8 @@ declare class Class_DbConnection extends Class_object {
      *      
      */
     createTable(opts: object): void;
+
+    createTable(opts: object, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 删除数据表
@@ -90,6 +102,8 @@ declare class Class_DbConnection extends Class_object {
      */
     dropTable(opts: object): void;
 
+    dropTable(opts: object, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 创建数据表索引
      * 
@@ -98,6 +112,8 @@ declare class Class_DbConnection extends Class_object {
      */
     createIndex(opts: object): void;
 
+    createIndex(opts: object, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 删除数据表索引
      * 
@@ -105,6 +121,8 @@ declare class Class_DbConnection extends Class_object {
      *      
      */
     dropIndex(opts: object): void;
+
+    dropIndex(opts: object, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 插入新记录
@@ -115,6 +133,8 @@ declare class Class_DbConnection extends Class_object {
      */
     insert(opts: object): number;
 
+    insert(opts: object, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
     /**
      * @description 根据指定的条件查询数据
      * 
@@ -123,6 +143,8 @@ declare class Class_DbConnection extends Class_object {
      *      
      */
     find(opts: object): any[];
+
+    find(opts: object, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
      * @description 根据指定的条件统计数据记录数
@@ -133,6 +155,8 @@ declare class Class_DbConnection extends Class_object {
      */
     count(opts: object): number;
 
+    count(opts: object, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
     /**
      * @description 根据指定的条件更新数据
      * 
@@ -142,6 +166,8 @@ declare class Class_DbConnection extends Class_object {
      */
     update(opts: object): number;
 
+    update(opts: object, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
     /**
      * @description 根据指定的条件删除数据
      * 
@@ -150,6 +176,8 @@ declare class Class_DbConnection extends Class_object {
      *      
      */
     remove(opts: object): number;
+
+    remove(opts: object, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 格式化一个 sql 命令，并返回格式化结果

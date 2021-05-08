@@ -1,5 +1,6 @@
 /// <reference path="../interface/Image.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
+/// <reference path="../interface/SeekableStream.d.ts" />
 /**
  * @description 图像文件处理模块
  * 
@@ -165,6 +166,8 @@ declare module 'gd' {
      */
     function create(width: number, height: number, color: number): Class_Image;
 
+    function create(width: number, height: number, color: number, callback: (err: Error | undefined | null, retVal: Class_Image)=>any): void;
+
     /**
      * @description 从格式数据中解码图像
      *      @param data 给定解码的图像数据
@@ -172,6 +175,28 @@ declare module 'gd' {
      *      
      */
     function load(data: Class_Buffer): Class_Image;
+
+    function load(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Image)=>any): void;
+
+    /**
+     * @description 从流对象中解码图像
+     *      @param stm 给定图像数据所在的流对象
+     *      @return 返回解码成功的图像对象
+     *      
+     */
+    function load(stm: Class_SeekableStream): Class_Image;
+
+    function load(stm: Class_SeekableStream, callback: (err: Error | undefined | null, retVal: Class_Image)=>any): void;
+
+    /**
+     * @description 从指定文件中解码图像
+     *      @param fname 指定文件名
+     *      @return 返回解码成功的图像对象
+     *      
+     */
+    function load(fname: string): Class_Image;
+
+    function load(fname: string, callback: (err: Error | undefined | null, retVal: Class_Image)=>any): void;
 
     /**
      * @description 通过 rgb 颜色分量生成组合颜色

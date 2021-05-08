@@ -58,6 +58,34 @@ declare module 'coroutine' {
     function parallel(funcs: any[], fibers: number): any[];
 
     /**
+     * @description 并行执行一个函数处理一组数据，并等待返回
+     *      @param datas 并行执行的数据数组
+     *      @param func 并行执行的函数
+     *      @param fibers 限制并发 fiber 数量，缺省为 -1，启用与 datas 数量相同 fiber
+     *      @return 返回函数执行结果的数组
+     *      
+     */
+    function parallel(datas: any[], func: ()=>any, fibers: number): any[];
+
+    /**
+     * @description 并行执行一个函数多次，并等待返回
+     *      @param func 并行执行的函数数
+     *      @param num 重复任务数量
+     *      @param fibers 限制并发 fiber 数量，缺省为 -1，启用与 funcs 数量相同 fiber
+     *      @return 返回函数执行结果的数组
+     *      
+     */
+    function parallel(func: ()=>any, num: number, fibers: number): any[];
+
+    /**
+     * @description 并行执行一组函数，并等待返回
+     *      @param funcs 一组并行执行的函数
+     *      @return 返回函数执行结果的数组
+     *      
+     */
+    function parallel(...funcs: any[]): any[];
+
+    /**
      * @description 返回当前纤程
      *      @return 当前纤程对象
      *      
@@ -70,6 +98,8 @@ declare module 'coroutine' {
      *      
      */
     function sleep(ms: number): void;
+
+    function sleep(ms: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 返回当前正在运行的全部 fiber 数组 

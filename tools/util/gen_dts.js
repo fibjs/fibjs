@@ -291,6 +291,112 @@ function mapParamTypeToDtsType(paramType, {
     }
 }
 
+function isVoidDomType(type) {
+    return type === dom.type.undefined || type === dom.type.void
+}
+
+/**
+ * 
+ * @param {import('../../idl/ir').IIDLDefinition['members'][number]['overs']} methodHost 
+ * @returns 
+ */
+function generateDtsFunction(functionHost, normalParams, returnType, funcFlags) {
+    let syncFunc;
+    let asyncFunc;
+
+    const params = Array.from(normalParams);
+
+    syncFunc = dom.create.function(
+        functionHost.name,
+        params,
+        returnType,
+        funcFlags
+    )
+
+    if (functionHost.async) {
+        const errorParam = dom.create.parameter('err', dom.create.union([
+            dom.create.namedTypeReference('Error'),
+            dom.type.undefined,
+            dom.type.null
+        ]));
+
+        const callbackType = dom.create.functionType([
+            errorParam,
+            !isVoidDomType(returnType) && dom.create.parameter('retVal', returnType)
+        ].filter(Boolean), dom.type.any);
+
+        const params = Array.from(normalParams);
+        params.push(
+            dom.create.parameter(
+                'callback', callbackType
+            )
+        )
+
+        asyncFunc = dom.create.function(
+            functionHost.name,
+            params,
+            dom.type.void,
+            funcFlags
+        )
+    }
+
+    return {
+        syncFunc,
+        asyncFunc
+    }
+}
+
+/**
+ * 
+ * @param {import('../../idl/ir').IIDLDefinition['members'][number]['overs']} methodHost 
+ * @returns 
+ */
+function generateDtsMethod(methodHost, normalParams, returnType, memFlags) {
+    let syncMethod;
+    let asyncMethod;
+
+    const params = Array.from(normalParams);
+
+    syncMethod = dom.create.method(
+        methodHost.name,
+        params,
+        returnType,
+        memFlags
+    )
+
+    if (methodHost.async) {
+        const errorParam = dom.create.parameter('err', dom.create.union([
+            dom.create.namedTypeReference('Error'),
+            dom.type.undefined,
+            dom.type.null
+        ]));
+
+        const callbackType = dom.create.functionType([
+            errorParam,
+            !isVoidDomType(returnType) && dom.create.parameter('retVal', returnType)
+        ].filter(Boolean), dom.type.any);
+
+        const params = Array.from(normalParams);
+        params.push(
+            dom.create.parameter(
+                'callback', callbackType
+            )
+        )
+
+        asyncMethod = dom.create.method(
+            methodHost.name,
+            params,
+            dom.type.void,
+            memFlags
+        )
+    }
+
+    return {
+        syncMethod,
+        asyncMethod
+    }
+}
+
 /**
  * @param {import('../../idl/ir').IIDLDefinition} def
  * @param {*} configuration
@@ -396,22 +502,33 @@ function processDeclareInterface(def, {
                     if (mem.overs && mem.overs.length > 1) {
                         memberIsOver = true;
                         mem.overs.forEach(over => {
-                            const member = dom.create.method(
-                                over.name,
+                            const { syncMethod, asyncMethod } = generateDtsMethod(
+                                over,
                                 getMethodParam(over),
                                 mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
                                 memFlags
-                            );
-                            member.jsDocComment = convertIDLCommentToJSDocComment(over.comments)
-                            dtsUnit.members.push(member);
+                            )
+
+                            syncMethod.jsDocComment = convertIDLCommentToJSDocComment(over.comments)
+                            dtsUnit.members.push(syncMethod);
+
+                            if (asyncMethod) {
+                                dtsUnit.members.push(asyncMethod);
+                            }
                         });
                     } else {
-                        dtsUnit.members.push(dtsUnitMember = dom.create.method(
-                            mem.name,
-                            getMethodParam(mem),
-                            mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
+                        const { syncMethod, asyncMethod } = generateDtsMethod(
+                            mem, getMethodParam(mem), mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
                             memFlags
-                        ))
+                        )
+
+                        dtsUnitMember = syncMethod;
+                        dtsUnit.members.push(syncMethod);
+                        dtsUnitMember.jsDocComment = convertIDLCommentToJSDocComment(mem.comments || '')
+
+                        if (asyncMethod) {
+                            dtsUnit.members.push(asyncMethod)
+                        }
                     }
                 }
                 break
@@ -521,6 +638,7 @@ function processDeclareModule(def, {
          * @type {IDTSUnit['members'][number]}
          */
         let dtsUnitMember;
+        let memberIsOver = false;
 
         switch (mem.memType) {
             case 'prop': {
@@ -537,21 +655,44 @@ function processDeclareModule(def, {
                 break
             }
             case 'method': {
-                const methodParams = (mem.params || []).map(memParam => {
-                    const paramDomInfo = mapParamTypeToDtsType(memParam.type, getMapParamOptions(memParam))
+                function getFunctionParams(paramsHost) {
+                    return (paramsHost.params || []).map(param => {
+                        const paramDomInfo = mapParamTypeToDtsType(param.type, getMapParamOptions(param));
 
-                    return dom.create.parameter(
-                        memParam.name,
-                        paramDomInfo.type,
-                        paramDomInfo.isRestArgs ? dom.ParameterFlags.Rest : dom.ParameterFlags.None
-                    )
-                });
+                        return dom.create.parameter(
+                            param.name,
+                            paramDomInfo.type,
+                            paramDomInfo.isRestArgs ? dom.ParameterFlags.Rest : dom.ParameterFlags.None
+                        )
+                    });
+                }
 
-                dtsUnit.members.push(dtsUnitMember = dom.create.function(
-                    mem.name,
-                    methodParams,
-                    mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions())
-                ));
+                if (mem.overs && mem.overs.length > 1) {
+                    memberIsOver = true;
+                    mem.overs.forEach(over => {
+                        const { syncFunc, asyncFunc } = generateDtsFunction(
+                            over,
+                            getFunctionParams(over),
+                            mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
+                            memFlags
+                        )
+
+                        syncFunc.jsDocComment = convertIDLCommentToJSDocComment(over.comments)
+                        dtsUnit.members.push(syncFunc);
+
+                        if (asyncFunc) {
+                            dtsUnit.members.push(asyncFunc);
+                        }
+                    });
+                } else {
+                    const { asyncFunc, syncFunc } = generateDtsFunction(mem, getFunctionParams(mem), mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()));
+
+                    dtsUnit.members.push(dtsUnitMember = syncFunc);
+
+                    if (asyncFunc) {
+                        dtsUnit.members.push(asyncFunc);
+                    }
+                }
 
                 break
             }
@@ -579,11 +720,11 @@ function processDeclareModule(def, {
             }
         }
 
-        if (!dtsUnitMember) {
+        if (dtsUnitMember) {
+            dtsUnitMember.jsDocComment = convertIDLCommentToJSDocComment(mem.comments || '');
+        } else if (!memberIsOver) {
             throw new Error(`generating dtsUnitMember failed! unsupported member '${mem.name}' (with memType '${mem.memType}') on ${unitCategory} '${unitName}'`)
         }
-
-        dtsUnitMember.jsDocComment = convertIDLCommentToJSDocComment(mem.comments || '');
     });
 
     dtsUnit.jsDocComment = convertIDLCommentToJSDocComment(def.declare.comments || '');

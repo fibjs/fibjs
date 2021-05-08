@@ -24,6 +24,8 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      */
     join(): void;
 
+    join(callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 读取当前对象指向的进程的 id
      *      

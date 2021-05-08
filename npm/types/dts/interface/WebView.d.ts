@@ -60,12 +60,16 @@ declare class Class_WebView extends Class_EventEmitter {
      */
     loadUrl(url: string): void;
 
+    loadUrl(url: string, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 查询当前页面的 url
      * 	 @return 返回当前页面的 url
      * 	 
      */
     getUrl(): string;
+
+    getUrl(callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description 设置 webview 的页面 html
@@ -74,20 +78,28 @@ declare class Class_WebView extends Class_EventEmitter {
      */
     setHtml(html: string): void;
 
+    setHtml(html: string, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 刷新当前页面 
      */
     reload(): void;
+
+    reload(callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 退回到上一个页面 
      */
     goBack(): void;
 
+    goBack(callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 前进到下一个页面 
      */
     goForward(): void;
+
+    goForward(callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 打印当前窗口文档
@@ -96,6 +108,8 @@ declare class Class_WebView extends Class_EventEmitter {
      */
     print(mode: number): void;
 
+    print(mode: number, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 打印当前窗口文档到 PDF 文件
      * 	 @param file 指定 pdf 路径
@@ -103,12 +117,16 @@ declare class Class_WebView extends Class_EventEmitter {
      */
     printToPDF(file: string): void;
 
+    printToPDF(file: string, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 在当前窗口运行一段 JavaScript 代码
      * 	 @param code 指定要执行的 JavaScript 代码
      * 	 
      */
     executeJavaScript(code: string): void;
+
+    executeJavaScript(code: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 在当前窗口执行 DevTools 命令，并返回结果
@@ -119,10 +137,14 @@ declare class Class_WebView extends Class_EventEmitter {
      */
     executeDevToolsMethod(method: string, params: object): any;
 
+    executeDevToolsMethod(method: string, params: object, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+
     /**
      * @description 关闭当前窗口 
      */
     close(): void;
+
+    close(callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 向 webview 内发送消息
@@ -131,6 +153,8 @@ declare class Class_WebView extends Class_EventEmitter {
      * 	
      */
     postMessage(msg: string): void;
+
+    postMessage(msg: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 当前窗口的 WebView 引擎 

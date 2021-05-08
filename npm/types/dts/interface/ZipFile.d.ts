@@ -12,6 +12,8 @@ declare class Class_ZipFile extends Class_object {
      */
     namelist(): any[];
 
+    namelist(callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+
     /**
      * @description 获取文件信息列表 
      * 	 文件信息包含字段有：filename, date, compress_type, compress_size, file_size, password, data
@@ -19,6 +21,8 @@ declare class Class_ZipFile extends Class_object {
      * 	 
      */
     infolist(): any[];
+
+    infolist(callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
      * @description 获取文件信息
@@ -29,6 +33,8 @@ declare class Class_ZipFile extends Class_object {
      */
     getinfo(member: string): object;
 
+    getinfo(member: string, callback: (err: Error | undefined | null, retVal: object)=>any): void;
+
     /**
      * @description 返回从压缩文件读取的数据
      * 	 @param member 指定要读取的文件名
@@ -38,6 +44,8 @@ declare class Class_ZipFile extends Class_object {
      */
     read(member: string, password: string): Class_Buffer;
 
+    read(member: string, password: string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
     /**
      * @description 解压所有文件
      * 	 @param password 解压密码, 默认没有密码
@@ -45,6 +53,8 @@ declare class Class_ZipFile extends Class_object {
      *      
      */
     readAll(password: string): any[];
+
+    readAll(password: string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
      * @description 解压指定文件
@@ -55,6 +65,8 @@ declare class Class_ZipFile extends Class_object {
      */
     extract(member: string, path: string, password: string): void;
 
+    extract(member: string, path: string, password: string, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 解压指定文件到流
      * 	 @param member 指定要解压的文件名
@@ -64,6 +76,8 @@ declare class Class_ZipFile extends Class_object {
      */
     extract(member: string, strm: Class_SeekableStream, password: string): void;
 
+    extract(member: string, strm: Class_SeekableStream, password: string, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 解压所有文件到指定路径
      * 	 @param path 指定要解压到的路径
@@ -71,6 +85,8 @@ declare class Class_ZipFile extends Class_object {
      * 	 
      */
     extractAll(path: string, password: string): void;
+
+    extractAll(path: string, password: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 写入指定文件到压缩文件
@@ -81,6 +97,8 @@ declare class Class_ZipFile extends Class_object {
      */
     write(filename: string, inZipName: string, password: string): void;
 
+    write(filename: string, inZipName: string, password: string, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 写入指定文件到压缩文件
      * 	 @param data 指定要写入的文件数据
@@ -89,6 +107,8 @@ declare class Class_ZipFile extends Class_object {
      * 	 
      */
     write(data: Class_Buffer, inZipName: string, password: string): void;
+
+    write(data: Class_Buffer, inZipName: string, password: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 写入指定文件到压缩文件
@@ -99,10 +119,14 @@ declare class Class_ZipFile extends Class_object {
      */
     write(strm: Class_SeekableStream, inZipName: string, password: string): void;
 
+    write(strm: Class_SeekableStream, inZipName: string, password: string, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 关闭打开的zip文件 
      */
     close(): void;
+
+    close(callback: (err: Error | undefined | null)=>any): void;
 
 }
 

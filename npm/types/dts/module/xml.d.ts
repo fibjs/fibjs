@@ -1,4 +1,5 @@
 /// <reference path="../interface/XmlDocument.d.ts" />
+/// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/XmlNode.d.ts" />
 /**
  * @description xml 处理模块
@@ -66,6 +67,15 @@ declare module 'xml' {
      *     
      */
     function parse(source: string, type: string): Class_XmlDocument;
+
+    /**
+     * @description 解析 xml/html，并创建 XmlDocument 对象，解析时会根据指定的语种转换
+     *      @param source 指定需要解析的 xml/html 二进制数据
+     *      @param type 指定文本类型，缺省为 text/xml，也可指定为 text/html
+     *      @return 返回创建的 XmlDocument 对象
+     *     
+     */
+    function parse(source: Class_Buffer, type: string): Class_XmlDocument;
 
     /**
      * @description 序列化 XmlNode 为字符串

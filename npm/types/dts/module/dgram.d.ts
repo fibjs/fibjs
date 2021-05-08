@@ -35,5 +35,42 @@ declare module 'dgram' {
      */
     function createSocket(opts: object): Class_DgramSocket;
 
+    /**
+     * @description 创建一个 dgram.Socket 对象
+     * 
+     *      opts 允许的选项是:
+     *      ```JavaScript
+     *      {
+     *          "type": "udp4" | "udp6",   // 必填
+     *          "reuseAddr": true | false, // 若设置为 true，socket.bind() 则会重用地址，即时另一个进程已经在其上面绑定了一个套接字。 默认是 false
+     *          "ipv6Only": true | false, // 若设置为 true，socket.bind() 将只接收 IPv6 的数据包。 默认是 false
+     *          "recvBufferSize": ###,     // 设置 SO_RCVBUF 套接字值
+     *          "sendBufferSize": ###      //设置 SO_RCVBUF 套接字值
+     *      }
+     *      ```
+     *      @param opts
+     *      @param callback 为 'message' 事件添加一个监听器。
+     *      @return 返回创建的 Socket 对象
+     *     
+     */
+    function createSocket(opts: object, callback: ()=>any): Class_DgramSocket;
+
+    /**
+     * @description 创建一个 dgram.Socket 对象
+     *      @param type 套接字族，'udp4' 或 'udp6'。
+     *      @return 返回创建的 Socket 对象
+     *     
+     */
+    function createSocket(type: string): Class_DgramSocket;
+
+    /**
+     * @description 创建一个 dgram.Socket 对象
+     *      @param type 套接字族，'udp4' 或 'udp6'。
+     *      @param callback 为 'message' 事件添加一个监听器。
+     *      @return 返回创建的 Socket 对象
+     *     
+     */
+    function createSocket(type: string, callback: ()=>any): Class_DgramSocket;
+
 }
 

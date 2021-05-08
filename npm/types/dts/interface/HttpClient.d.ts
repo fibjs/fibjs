@@ -96,6 +96,8 @@ declare class Class_HttpClient extends Class_object {
      */
     request(conn: Class_Stream, req: Class_HttpRequest): Class_HttpResponse;
 
+    request(conn: Class_Stream, req: Class_HttpRequest, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+
     /**
      * @description 发送 http 请求到指定的流对象，并返回结果
      *      @param conn 指定处理请求的流对象
@@ -105,6 +107,8 @@ declare class Class_HttpClient extends Class_object {
      *      
      */
     request(conn: Class_Stream, req: Class_HttpRequest, response_body: Class_SeekableStream): Class_HttpResponse;
+
+    request(conn: Class_Stream, req: Class_HttpRequest, response_body: Class_SeekableStream, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
     /**
      * @description 请求指定的 url，并返回结果
@@ -128,6 +132,8 @@ declare class Class_HttpClient extends Class_object {
      */
     request(method: string, url: string, opts: object): Class_HttpResponse;
 
+    request(method: string, url: string, opts: object, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+
     /**
      * @description 用 GET 方法请求指定的 url，并返回结果，等同于 request("GET", ...)
      *      opts 包含请求的附加选项，支持的内容如下：
@@ -147,6 +153,8 @@ declare class Class_HttpClient extends Class_object {
      *      
      */
     get(url: string, opts: object): Class_HttpResponse;
+
+    get(url: string, opts: object, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
     /**
      * @description 用 POST 方法请求指定的 url，并返回结果，等同于 request("POST", ...)
@@ -168,6 +176,8 @@ declare class Class_HttpClient extends Class_object {
      */
     post(url: string, opts: object): Class_HttpResponse;
 
+    post(url: string, opts: object, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+
     /**
      * @description 用 DELETE 方法请求指定的 url，并返回结果，等同于 request("DELETE", ...)
      *      opts 包含请求的附加选项，支持的内容如下：
@@ -187,6 +197,8 @@ declare class Class_HttpClient extends Class_object {
      *      
      */
     del(url: string, opts: object): Class_HttpResponse;
+
+    del(url: string, opts: object, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
     /**
      * @description 用 PUT 方法请求指定的 url，并返回结果，等同于 request("PUT", ...)
@@ -208,6 +220,8 @@ declare class Class_HttpClient extends Class_object {
      */
     put(url: string, opts: object): Class_HttpResponse;
 
+    put(url: string, opts: object, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+
     /**
      * @description 用 PATCH 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
      *      opts 包含请求的附加选项，支持的内容如下：
@@ -227,6 +241,8 @@ declare class Class_HttpClient extends Class_object {
      *      
      */
     patch(url: string, opts: object): Class_HttpResponse;
+
+    patch(url: string, opts: object, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
 }
 

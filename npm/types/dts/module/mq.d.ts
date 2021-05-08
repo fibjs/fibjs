@@ -72,5 +72,7 @@ declare module 'mq' {
      */
     function invoke(hdlr: Class_Handler, v: Class_object): void;
 
+    function invoke(hdlr: Class_Handler, v: Class_object, callback: (err: Error | undefined | null)=>any): void;
+
 }
 

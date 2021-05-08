@@ -50,5 +50,7 @@ declare class Class_MongoDB extends Class_object {
      */
     close(): void;
 
+    close(callback: (err: Error | undefined | null)=>any): void;
+
 }
 

@@ -42,12 +42,16 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      */
     bind(port: number, addr: string): void;
 
+    bind(port: number, addr: string, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 该方法会令 dgram.Socket 在 `opts` 指定的 `port` 和 `address` 上监听数据包信息。绑定完成时会触发一个 `listening` 事件。
      *      @param opts 指定绑定参数
      *     
      */
     bind(opts: object): void;
+
+    bind(opts: object, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 在 socket 上发送一个数据包
@@ -58,6 +62,8 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *     
      */
     send(msg: Class_Buffer, port: number, address: string): number;
+
+    send(msg: Class_Buffer, port: number, address: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 在 socket 上发送一个数据包
@@ -70,6 +76,8 @@ declare class Class_DgramSocket extends Class_EventEmitter {
      *     
      */
     send(msg: Class_Buffer, offset: number, length: number, port: number, address: string): number;
+
+    send(msg: Class_Buffer, offset: number, length: number, port: number, address: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 返回一个包含 socket 地址信息的对象。对于 UDP socket，该对象将包含 address、family 和 port 属性。 

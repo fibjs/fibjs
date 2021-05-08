@@ -25,5 +25,7 @@ declare class Class_SQLite extends Class_DbConnection {
      */
     backup(fileName: string): void;
 
+    backup(fileName: string, callback: (err: Error | undefined | null)=>any): void;
+
 }
 

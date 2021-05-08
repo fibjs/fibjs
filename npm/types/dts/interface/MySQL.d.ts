@@ -16,6 +16,8 @@ declare class Class_MySQL extends Class_DbConnection {
      */
     use(dbName: string): void;
 
+    use(dbName: string, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 数据库连接接收缓存尺寸 
      */

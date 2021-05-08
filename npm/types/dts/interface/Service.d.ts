@@ -17,6 +17,8 @@ declare class Class_Service extends Class_EventEmitter {
      */
     run(): void;
 
+    run(callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 查询和设置服务名称 
      */

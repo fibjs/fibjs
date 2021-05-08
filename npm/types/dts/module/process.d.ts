@@ -123,6 +123,21 @@ declare module 'process' {
     function umask(mask: number): number;
 
     /**
+     * @description 改变当前的 umask，Windows 不支持此方法
+     *      @param mask 指定新的掩码， 字符串类型八进制(e.g: "0664")
+     *      @return 返回之前的 mask
+     *     
+     */
+    function umask(mask: string): number;
+
+    /**
+     * @description 返回当前的 umask，Windows 不支持此方法
+     *      @return 返回当前的 mask 值
+     *     
+     */
+    function umask(): number;
+
+    /**
      * @description 返回系统高精度时间，此时间与当前时间无关，仅用于高精度计时
      *      @param diff 用于比较的初始时间
      *      @return 返回计时时间，格式为 [seconds, nanoseconds]
@@ -134,6 +149,13 @@ declare module 'process' {
      * @description 退出当前进程，并返回 exitCode 作为进程结果     
      */
     function exit(): void;
+
+    /**
+     * @description 退出当前进程，并返回结果
+     *      @param code 返回进程结果
+     *      
+     */
+    function exit(code: number): void;
 
     /**
      * @description 返回操作系统当前工作路径

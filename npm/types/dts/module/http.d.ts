@@ -10,6 +10,7 @@
 /// <reference path="../interface/X509Cert.d.ts" />
 /// <reference path="../interface/PKey.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
+/// <reference path="../interface/SeekableStream.d.ts" />
 /**
  * @description 超文本传输协议模块，用以支持 http 协议处理，模块别名：https 
  */
@@ -139,6 +140,44 @@ declare module 'http' {
      */
     function request(conn: Class_Stream, req: Class_HttpRequest): Class_HttpResponse;
 
+    function request(conn: Class_Stream, req: Class_HttpRequest, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+
+    /**
+     * @description 发送 http 请求到指定的流对象，并返回结果
+     *      @param conn 指定处理请求的流对象
+     *      @param req 要发送的 HttpRequest 对象
+     *      @param response_body 指定 response.body 的流
+     *      @return 返回服务器响应
+     *      
+     */
+    function request(conn: Class_Stream, req: Class_HttpRequest, response_body: Class_SeekableStream): Class_HttpResponse;
+
+    function request(conn: Class_Stream, req: Class_HttpRequest, response_body: Class_SeekableStream, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+
+    /**
+     * @description 请求指定的 url，并返回结果
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {},
+     *          "response_body": SeekableStream //指定接受 resposne 数据的流
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
+     *      @param method 指定 http 请求方法：GET, POST 等
+     *      @param url 指定 url，必须是包含主机的完整 url
+     *      @param opts 指定附加信息
+     *      @return 返回服务器响应
+     *      
+     */
+    function request(method: string, url: string, opts: object): Class_HttpResponse;
+
+    function request(method: string, url: string, opts: object, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+
     /**
      * @description 用 GET 方法请求指定的 url，并返回结果，等同于 request("GET", ...)
      *      opts 包含请求的附加选项，支持的内容如下：
@@ -158,6 +197,8 @@ declare module 'http' {
      *      
      */
     function get(url: string, opts: object): Class_HttpResponse;
+
+    function get(url: string, opts: object, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
     /**
      * @description 用 POST 方法请求指定的 url，并返回结果，等同于 request("POST", ...)
@@ -179,6 +220,8 @@ declare module 'http' {
      */
     function post(url: string, opts: object): Class_HttpResponse;
 
+    function post(url: string, opts: object, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+
     /**
      * @description 用 DELETE 方法请求指定的 url，并返回结果，等同于 request("DELETE", ...)
      *      opts 包含请求的附加选项，支持的内容如下：
@@ -198,6 +241,8 @@ declare module 'http' {
      *      
      */
     function del(url: string, opts: object): Class_HttpResponse;
+
+    function del(url: string, opts: object, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
     /**
      * @description 用 PUT 方法请求指定的 url，并返回结果，等同于 request("PUT", ...)
@@ -219,6 +264,8 @@ declare module 'http' {
      */
     function put(url: string, opts: object): Class_HttpResponse;
 
+    function put(url: string, opts: object, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+
     /**
      * @description 用 PATCH 方法请求指定的 url，并返回结果，等同于 request("PATCH", ...)
      *      opts 包含请求的附加选项，支持的内容如下：
@@ -238,6 +285,8 @@ declare module 'http' {
      *      
      */
     function patch(url: string, opts: object): Class_HttpResponse;
+
+    function patch(url: string, opts: object, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
 }
 

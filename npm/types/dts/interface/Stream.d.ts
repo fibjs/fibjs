@@ -19,6 +19,8 @@ declare class Class_Stream extends Class_object {
      */
     read(bytes: number): Class_Buffer;
 
+    read(bytes: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
     /**
      * @description 将给定的数据写入流
      *      @param data 给定要写入的数据
@@ -26,15 +28,21 @@ declare class Class_Stream extends Class_object {
      */
     write(data: Class_Buffer): void;
 
+    write(data: Class_Buffer, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 将文件缓冲区内容写入物理设备 
      */
     flush(): void;
 
+    flush(callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 关闭当前流对象 
      */
     close(): void;
+
+    close(callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 复制流数据到目标流中
@@ -44,6 +52,8 @@ declare class Class_Stream extends Class_object {
      *      
      */
     copyTo(stm: Class_Stream, bytes: number): number;
+
+    copyTo(stm: Class_Stream, bytes: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
 }
 

@@ -18,5 +18,7 @@ declare class Class_Handler extends Class_object {
      */
     invoke(v: Class_object): Class_Handler;
 
+    invoke(v: Class_object, callback: (err: Error | undefined | null, retVal: Class_Handler)=>any): void;
+
 }
 

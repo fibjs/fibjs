@@ -53,6 +53,8 @@ declare class Class_Message extends Class_object {
      */
     read(bytes: number): Class_Buffer;
 
+    read(bytes: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
     /**
      * @description 从流内读取剩余的全部数据，此方法为 body 相应方法的别名
      *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
@@ -60,12 +62,16 @@ declare class Class_Message extends Class_object {
      */
     readAll(): Class_Buffer;
 
+    readAll(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
     /**
      * @description 写入给定的数据，此方法为 body 相应方法的别名
      *      @param data 给定要写入的数据
      *      
      */
     write(data: Class_Buffer): void;
+
+    write(data: Class_Buffer, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 以 JSON 编码写入给定的数据
@@ -126,12 +132,16 @@ declare class Class_Message extends Class_object {
      */
     sendTo(stm: Class_Stream): void;
 
+    sendTo(stm: Class_Stream, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 从给定的缓存流对象中读取格式化消息，并解析填充对象
      *      @param stm 指定读取格式化消息的流对象
      *      
      */
     readFrom(stm: Class_Stream): void;
+
+    readFrom(stm: Class_Stream, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 查询消息 readFrom 时的流对象 

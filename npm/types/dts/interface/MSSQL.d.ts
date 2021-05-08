@@ -16,5 +16,7 @@ declare class Class_MSSQL extends Class_DbConnection {
      */
     use(dbName: string): void;
 
+    use(dbName: string, callback: (err: Error | undefined | null)=>any): void;
+
 }
 

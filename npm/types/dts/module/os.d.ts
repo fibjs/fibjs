@@ -146,6 +146,8 @@ declare module 'os' {
      */
     function openPrinter(name: string): Class_BufferedStream;
 
+    function openPrinter(name: string, callback: (err: Error | undefined | null, retVal: Class_BufferedStream)=>any): void;
+
     /**
      * @description 查询当前平台名称
      *      @return 返回平台名称，可能的结果为 'darwin', 'freebsd', 'linux', 或 'win32' 

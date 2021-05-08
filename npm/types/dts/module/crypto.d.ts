@@ -230,6 +230,8 @@ declare module 'crypto' {
      */
     function randomBytes(size: number): Class_Buffer;
 
+    function randomBytes(size: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
     /**
      * @description 生成指定尺寸的低强度随机数，使用快速的算法
      *      @param size 指定生成的随机数尺寸
@@ -238,6 +240,8 @@ declare module 'crypto' {
      */
     function simpleRandomBytes(size: number): Class_Buffer;
 
+    function simpleRandomBytes(size: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
     /**
      * @description 生成指定尺寸的伪随机数，使用 entropy 生成器
      *      @param size 指定生成的随机数尺寸
@@ -245,6 +249,8 @@ declare module 'crypto' {
      *      
      */
     function pseudoRandomBytes(size: number): Class_Buffer;
+
+    function pseudoRandomBytes(size: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description 生成给定数据的可视化字符图像
@@ -264,6 +270,8 @@ declare module 'crypto' {
      */
     function genRsaKey(size: number): Class_PKey;
 
+    function genRsaKey(size: number, callback: (err: Error | undefined | null, retVal: Class_PKey)=>any): void;
+
     /**
      * @description 生成一个 EC 私钥
      *      @param curve 指定预置椭圆曲线，可选值为："secp521r1", "brainpoolP512r1", "secp384r1", "brainpoolP384r1", "secp256r1", "secp256k1", "brainpoolP256r1", "secp224r1", "secp224k1", "secp192r1", "secp192k1"
@@ -272,12 +280,16 @@ declare module 'crypto' {
      */
     function genEcKey(curve: string): Class_PKey;
 
+    function genEcKey(curve: string, callback: (err: Error | undefined | null, retVal: Class_PKey)=>any): void;
+
     /**
      * @description 生成一个 SM2 私钥
      *      @return 返回包含生成私钥的对象
      *     
      */
     function genSm2Key(): Class_PKey;
+
+    function genSm2Key(callback: (err: Error | undefined | null, retVal: Class_PKey)=>any): void;
 
     /**
      * @description 依据 pbkdf1 根据明文 password 生成要求的二进制钥匙
@@ -291,6 +303,22 @@ declare module 'crypto' {
      */
     function pbkdf1(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algo: number): Class_Buffer;
 
+    function pbkdf1(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algo: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description 依据 pbkdf1 根据明文 password 生成要求的二进制钥匙
+     *      @param password 指定使用的密码
+     *      @param salt 指定 hmac 使用的 salt
+     *      @param iterations 指定迭代次数
+     *      @param size 指定钥匙尺寸
+     *      @param algoName 指定要使用的 hash 算法，详见 hash 模块
+     *      @return 返回生成的二进制钥匙
+     *      
+     */
+    function pbkdf1(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algoName: string): Class_Buffer;
+
+    function pbkdf1(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algoName: string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
     /**
      * @description 依据 rfc2898 根据明文 password 生成要求的二进制钥匙
      *      @param password 指定使用的密码
@@ -302,6 +330,22 @@ declare module 'crypto' {
      *      
      */
     function pbkdf2(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algo: number): Class_Buffer;
+
+    function pbkdf2(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algo: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description 依据 rfc2898 根据明文 password 生成要求的二进制钥匙
+     *      @param password 指定使用的密码
+     *      @param salt 指定 hmac 使用的 salt
+     *      @param iterations 指定迭代次数
+     *      @param size 指定钥匙尺寸
+     *      @param algoName 指定要使用的 hash 算法，详见 hash 模块
+     *      @return 返回生成的二进制钥匙
+     *      
+     */
+    function pbkdf2(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algoName: string): Class_Buffer;
+
+    function pbkdf2(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algoName: string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description 获取 crypto 模块支持的的 hash(摘要) 算法, 比如 'md5', 'sha224'

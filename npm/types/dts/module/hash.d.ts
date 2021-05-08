@@ -57,7 +57,7 @@ declare module 'hash' {
     /**
      * @description 根据指定的算法标识创建一个信息摘要运算对象
      *      @param algo 指定摘要运算算法
-     *      @param data 创建同时更新的二进制数据
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
      *      
      */
@@ -65,7 +65,7 @@ declare module 'hash' {
 
     /**
      * @description 创建一个 MD2 信息摘要运算对象
-     *      @param data 创建同时更新的二进制数据
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
      *      
      */
@@ -73,7 +73,7 @@ declare module 'hash' {
 
     /**
      * @description 创建一个 MD4 信息摘要运算对象
-     *      @param data 创建同时更新的二进制数据
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
      *      
      */
@@ -81,7 +81,7 @@ declare module 'hash' {
 
     /**
      * @description 创建一个 MD5 信息摘要运算对象
-     *      @param data 创建同时更新的二进制数据
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
      *      
      */
@@ -89,7 +89,7 @@ declare module 'hash' {
 
     /**
      * @description 创建一个 SHA1 信息摘要运算对象
-     *      @param data 创建同时更新的二进制数据
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
      *      
      */
@@ -97,7 +97,7 @@ declare module 'hash' {
 
     /**
      * @description 创建一个 SHA224 信息摘要运算对象
-     *      @param data 创建同时更新的二进制数据
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
      *      
      */
@@ -105,7 +105,7 @@ declare module 'hash' {
 
     /**
      * @description 创建一个 SHA256 信息摘要运算对象
-     *      @param data 创建同时更新的二进制数据
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
      *      
      */
@@ -113,7 +113,7 @@ declare module 'hash' {
 
     /**
      * @description 创建一个 SHA384 信息摘要运算对象
-     *      @param data 创建同时更新的二进制数据
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
      *      
      */
@@ -121,7 +121,7 @@ declare module 'hash' {
 
     /**
      * @description 创建一个 SHA512 信息摘要运算对象
-     *      @param data 创建同时更新的二进制数据
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
      *      
      */
@@ -129,7 +129,7 @@ declare module 'hash' {
 
     /**
      * @description 创建一个 RIPEMD160 信息摘要运算对象
-     *      @param data 创建同时更新的二进制数据
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
      *      
      */
@@ -137,7 +137,7 @@ declare module 'hash' {
 
     /**
      * @description 创建一个 SM3 信息摘要运算对象
-     *      @param data 创建同时更新的二进制数据
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
      *      
      */
@@ -147,7 +147,7 @@ declare module 'hash' {
      * @description 根据指定的算法标识创建一个信息摘要签名运算对象
      *      @param algo 指定摘要运算算法
      *      @param key 二进制签名密钥
-     *      @param data 创建同时更新的二进制数据
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
      *      
      */
@@ -156,7 +156,7 @@ declare module 'hash' {
     /**
      * @description 创建一个 MD2 信息摘要签名运算对象
      *      @param key 二进制签名密钥
-     *      @param data 创建同时更新的二进制数据
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
      *      
      */
@@ -165,7 +165,7 @@ declare module 'hash' {
     /**
      * @description 创建一个 MD4 信息摘要签名运算对象
      *      @param key 二进制签名密钥
-     *      @param data 创建同时更新的二进制数据
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
      *      
      */
@@ -174,7 +174,7 @@ declare module 'hash' {
     /**
      * @description 创建一个 MD5 信息摘要签名运算对象
      *      @param key 二进制签名密钥
-     *      @param data 创建同时更新的二进制数据
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
      *      
      */
@@ -183,7 +183,7 @@ declare module 'hash' {
     /**
      * @description 创建一个 SHA1 信息摘要签名运算对象
      *      @param key 二进制签名密钥
-     *      @param data 创建同时更新的二进制数据
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
      *      
      */
@@ -192,7 +192,7 @@ declare module 'hash' {
     /**
      * @description 创建一个 SHA224 信息摘要签名运算对象
      *      @param key 二进制签名密钥
-     *      @param data 创建同时更新的二进制数据
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
      *      
      */
@@ -201,7 +201,7 @@ declare module 'hash' {
     /**
      * @description 创建一个 SHA256 信息摘要签名运算对象
      *      @param key 二进制签名密钥
-     *      @param data 创建同时更新的二进制数据
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
      *      
      */
@@ -210,7 +210,7 @@ declare module 'hash' {
     /**
      * @description 创建一个 SHA384 信息摘要签名运算对象
      *      @param key 二进制签名密钥
-     *      @param data 创建同时更新的二进制数据
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
      *      
      */
@@ -219,7 +219,7 @@ declare module 'hash' {
     /**
      * @description 创建一个 SHA512 信息摘要签名运算对象
      *      @param key 二进制签名密钥
-     *      @param data 创建同时更新的二进制数据
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
      *      
      */
@@ -228,7 +228,7 @@ declare module 'hash' {
     /**
      * @description 创建一个 RIPEMD160 信息摘要签名运算对象
      *      @param key 二进制签名密钥
-     *      @param data 创建同时更新的二进制数据
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
      *      
      */
@@ -237,7 +237,7 @@ declare module 'hash' {
     /**
      * @description 创建一个 SM3 信息摘要签名运算对象
      *      @param key 二进制签名密钥
-     *      @param data 创建同时更新的二进制数据
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
      *      
      */

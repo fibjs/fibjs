@@ -39,6 +39,8 @@ declare class Class_TcpServer extends Class_object {
      */
     stop(): void;
 
+    stop(callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 服务器当前侦听的 Socket 对象  
      */

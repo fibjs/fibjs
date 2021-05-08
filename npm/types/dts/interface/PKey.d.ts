@@ -39,6 +39,8 @@ declare class Class_PKey extends Class_object {
      */
     genRsaKey(size: number): void;
 
+    genRsaKey(size: number, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 生成一个 EC 私钥
      *      @param curve 指定预置椭圆曲线，可选值为："secp521r1", "brainpoolP512r1", "secp384r1", "brainpoolP384r1", "secp256r1", "secp256k1", "brainpoolP256r1", "secp224r1", "secp224k1", "secp192r1", "secp192k1"
@@ -46,11 +48,15 @@ declare class Class_PKey extends Class_object {
      */
     genEcKey(curve: string): void;
 
+    genEcKey(curve: string, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 生成一个 SM2 私钥
      *     
      */
     genSm2Key(): void;
+
+    genSm2Key(callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 查询当前密钥是否为私钥
@@ -168,6 +174,8 @@ declare class Class_PKey extends Class_object {
      */
     encrypt(data: Class_Buffer): Class_Buffer;
 
+    encrypt(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
     /**
      * @description 使用当前算法密码私钥解密数据
      *      @param data 指定要解密的数据
@@ -175,6 +183,8 @@ declare class Class_PKey extends Class_object {
      *      
      */
     decrypt(data: Class_Buffer): Class_Buffer;
+
+    decrypt(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description 使用当前算法密码私钥签名数据
@@ -185,6 +195,8 @@ declare class Class_PKey extends Class_object {
      */
     sign(data: Class_Buffer, alg: number): Class_Buffer;
 
+    sign(data: Class_Buffer, alg: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
     /**
      * @description 使用当前算法密码公钥验证数据
      *      @param data 指定要验证的数据
@@ -194,6 +206,8 @@ declare class Class_PKey extends Class_object {
      *      
      */
     verify(data: Class_Buffer, sign: Class_Buffer, alg: number): boolean;
+
+    verify(data: Class_Buffer, sign: Class_Buffer, alg: number, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
 }
 

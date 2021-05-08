@@ -19,6 +19,8 @@ declare class Class_LevelDB extends Class_object {
      */
     has(key: Class_Buffer): boolean;
 
+    has(key: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
     /**
      * @description 查询指定键值的值
      *      @param key 指定要查询的键值
@@ -26,6 +28,8 @@ declare class Class_LevelDB extends Class_object {
      *      
      */
     get(key: Class_Buffer): Class_Buffer;
+
+    get(key: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description 查询一组指定键值的值
@@ -42,6 +46,8 @@ declare class Class_LevelDB extends Class_object {
      *      
      */
     set(key: Class_Buffer, value: Class_Buffer): void;
+
+    set(key: Class_Buffer, value: Class_Buffer, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 设定一组键值数据，键值不存在则插入新数据
@@ -63,6 +69,8 @@ declare class Class_LevelDB extends Class_object {
      *      
      */
     remove(key: Class_Buffer): void;
+
+    remove(key: Class_Buffer, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 枚举数据库中所有的键值对
@@ -117,6 +125,8 @@ declare class Class_LevelDB extends Class_object {
      * @description 关闭当前数据库连接或事务 
      */
     close(): void;
+
+    close(callback: (err: Error | undefined | null)=>any): void;
 
 }
 

@@ -54,6 +54,8 @@ declare module 'net' {
      */
     function resolve(name: string, family: number): string;
 
+    function resolve(name: string, family: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
     /**
      * @description 快速查询的主机地址，等效与 resolve(name)
      *      @param name 指定主机名
@@ -62,6 +64,8 @@ declare module 'net' {
      */
     function ip(name: string): string;
 
+    function ip(name: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
     /**
      * @description 快速查询的主机 ipv6 地址，等效与 resolve(name, net.AF_INET6)
      *      @param name 指定主机名
@@ -69,6 +73,8 @@ declare module 'net' {
      *      
      */
     function ipv6(name: string): string;
+
+    function ipv6(name: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description 创建一个 Socket 对象，参见 Socket 
@@ -84,6 +90,8 @@ declare module 'net' {
      */
     function connect(url: string, timeout: number): Class_Stream;
 
+    function connect(url: string, timeout: number, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
     /**
      * @description 创建一个 Smtp 对象，参见 Smtp 
      */
@@ -97,6 +105,8 @@ declare module 'net' {
      *      
      */
     function openSmtp(url: string, timeout: number): Class_Smtp;
+
+    function openSmtp(url: string, timeout: number, callback: (err: Error | undefined | null, retVal: Class_Smtp)=>any): void;
 
     /**
      * @description 创建一个 TcpServer 对象，参见 TcpServer 

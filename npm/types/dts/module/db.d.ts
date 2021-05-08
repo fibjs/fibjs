@@ -23,6 +23,8 @@ declare module 'db' {
      */
     function open(connString: string): Class_object;
 
+    function open(connString: string, callback: (err: Error | undefined | null, retVal: Class_object)=>any): void;
+
     /**
      * @description 打开一个 mysql 数据库
      *      @param connString 数据库描述，如：mysql://user:pass\@host/db
@@ -30,6 +32,8 @@ declare module 'db' {
      *      
      */
     function openMySQL(connString: string): Class_MySQL;
+
+    function openMySQL(connString: string, callback: (err: Error | undefined | null, retVal: Class_MySQL)=>any): void;
 
     /**
      * @description 打开一个 mysql 数据库
@@ -39,6 +43,8 @@ declare module 'db' {
      */
     function openMSSQL(connString: string): Class_MSSQL;
 
+    function openMSSQL(connString: string, callback: (err: Error | undefined | null, retVal: Class_MSSQL)=>any): void;
+
     /**
      * @description 打开一个 sqlite 数据库
      *      @param connString 数据库描述，如：sqlite:test.db 或者 test.db
@@ -46,6 +52,8 @@ declare module 'db' {
      *      
      */
     function openSQLite(connString: string): Class_SQLite;
+
+    function openSQLite(connString: string, callback: (err: Error | undefined | null, retVal: Class_SQLite)=>any): void;
 
     /**
      * @description 打开一个 mongodb 数据库
@@ -55,6 +63,8 @@ declare module 'db' {
      */
     function openMongoDB(connString: string): Class_MongoDB;
 
+    function openMongoDB(connString: string, callback: (err: Error | undefined | null, retVal: Class_MongoDB)=>any): void;
+
     /**
      * @description 打开一个 leveldb 数据库
      *      @param connString 数据库描述，如：level:test.db 或者 test.db
@@ -63,6 +73,8 @@ declare module 'db' {
      */
     function openLevelDB(connString: string): Class_LevelDB;
 
+    function openLevelDB(connString: string, callback: (err: Error | undefined | null, retVal: Class_LevelDB)=>any): void;
+
     /**
      * @description 打开一个 Redis 数据库
      *      @param connString 数据库描述，如：redis://server:port 或者 "server"
@@ -70,6 +82,8 @@ declare module 'db' {
      *      
      */
     function openRedis(connString: string): Class_Redis;
+
+    function openRedis(connString: string, callback: (err: Error | undefined | null, retVal: Class_Redis)=>any): void;
 
     /**
      * @description 格式化一个 sql 命令，并返回格式化结果
@@ -82,6 +96,16 @@ declare module 'db' {
     function format(method: string, opts: object): string;
 
     /**
+     * @description 格式化一个 sql 命令，并返回格式化结果
+     * 
+     *      @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
+     *      @param args 可选参数列表
+     *      @return 返回格式化之后的 sql 命令
+     *      
+     */
+    function format(sql: string, ...args: any[]): string;
+
+    /**
      * @description 格式化一个 mysql 命令，并返回格式化结果
      * 
      *      @param method 指定请求的方法
@@ -92,6 +116,16 @@ declare module 'db' {
     function formatMySQL(method: string, opts: object): string;
 
     /**
+     * @description 格式化一个 mysql 命令，并返回格式化结果
+     * 
+     *      @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
+     *      @param args 可选参数列表
+     *      @return 返回格式化之后的 sql 命令
+     *      
+     */
+    function formatMySQL(sql: string, ...args: any[]): string;
+
+    /**
      * @description 格式化一个 mssql 命令，并返回格式化结果
      * 
      *      @param method 指定请求的方法
@@ -100,6 +134,16 @@ declare module 'db' {
      *      
      */
     function formatMSSQL(method: string, opts: object): string;
+
+    /**
+     * @description 格式化一个 mssql 命令，并返回格式化结果
+     * 
+     *      @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
+     *      @param args 可选参数列表
+     *      @return 返回格式化之后的 sql 命令
+     *      
+     */
+    function formatMSSQL(sql: string, ...args: any[]): string;
 
     /**
      * @description 将字符串编码为 SQL 安全编码字符串

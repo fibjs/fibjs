@@ -67,6 +67,8 @@ declare class Class_SslSocket extends Class_Stream {
      */
     connect(s: Class_Stream, server_name: string): number;
 
+    connect(s: Class_Stream, server_name: string, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+
     /**
      * @description 在给定的连接上接收一个 ssl 连接，并生成一个新的 SslSocket
      *     @param s 给定的底层连接
@@ -74,6 +76,8 @@ declare class Class_SslSocket extends Class_Stream {
      *    
      */
     accept(s: Class_Stream): Class_SslSocket;
+
+    accept(s: Class_Stream, callback: (err: Error | undefined | null, retVal: Class_SslSocket)=>any): void;
 
 }
 

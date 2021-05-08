@@ -71,5 +71,7 @@ declare class Class_HttpResponse extends Class_HttpMessage {
      */
     sendHeader(stm: Class_Stream): void;
 
+    sendHeader(stm: Class_Stream, callback: (err: Error | undefined | null)=>any): void;
+
 }
 

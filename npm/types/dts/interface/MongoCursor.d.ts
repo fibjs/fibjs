@@ -11,6 +11,8 @@ declare class Class_MongoCursor extends Class_object {
      */
     skip(num: number): Class_MongoCursor;
 
+    skip(num: number, callback: (err: Error | undefined | null, retVal: Class_MongoCursor)=>any): void;
+
     /**
      * @description 指定返回结果的最大记录数
      *     @param size 记录数
@@ -18,6 +20,8 @@ declare class Class_MongoCursor extends Class_object {
      *    
      */
     limit(size: number): Class_MongoCursor;
+
+    limit(size: number, callback: (err: Error | undefined | null, retVal: Class_MongoCursor)=>any): void;
 
     /**
      * @description 设定返回结果的排序

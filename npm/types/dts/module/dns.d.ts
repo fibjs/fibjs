@@ -16,6 +16,8 @@ declare module 'dns' {
      */
     function resolve(name: string): any[];
 
+    function resolve(name: string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+
     /**
      * @description 查询给定的主机名的地址
      *      @param name 指定主机名
@@ -23,6 +25,8 @@ declare module 'dns' {
      *      
      */
     function lookup(name: string): string;
+
+    function lookup(name: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
 }
 

@@ -53,6 +53,8 @@ declare class Class_Cipher extends Class_object {
      */
     encrypt(data: Class_Buffer): Class_Buffer;
 
+    encrypt(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
     /**
      * @description 使用当前算法密码解密数据
      *      @param data 指定要解密的数据
@@ -60,6 +62,8 @@ declare class Class_Cipher extends Class_object {
      *      
      */
     decrypt(data: Class_Buffer): Class_Buffer;
+
+    decrypt(data: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
 }
 

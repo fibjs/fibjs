@@ -24,6 +24,8 @@ declare class Class_BufferedStream extends Class_Stream {
      */
     readText(size: number): string;
 
+    readText(size: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
     /**
      * @description 读取一行文本，行结尾标识基于 EOL 属性的设置，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"
      *      @param maxlen 指定此次读取的最大字符串，以 utf8 编码字节数为准，缺省不限制字符数
@@ -31,6 +33,8 @@ declare class Class_BufferedStream extends Class_Stream {
      *      
      */
     readLine(maxlen: number): string;
+
+    readLine(maxlen: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description 以数组方式读取一组文本行，行结尾标识基于 EOL 属性的设置，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"
@@ -49,6 +53,8 @@ declare class Class_BufferedStream extends Class_Stream {
      */
     readUntil(mk: string, maxlen: number): string;
 
+    readUntil(mk: string, maxlen: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
     /**
      * @description 写入一个字符串
      *      @param txt 指定写入的字符串
@@ -56,12 +62,16 @@ declare class Class_BufferedStream extends Class_Stream {
      */
     writeText(txt: string): void;
 
+    writeText(txt: string, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 写入一个字符串，并写入换行符
      *      @param txt 指定写入的字符串
      *      
      */
     writeLine(txt: string): void;
+
+    writeLine(txt: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 查询创建缓存对象时的流对象 

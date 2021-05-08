@@ -55,6 +55,8 @@ declare class Class_X509Cert extends Class_object {
      */
     verify(cert: Class_X509Cert): boolean;
 
+    verify(cert: Class_X509Cert, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
     /**
      * @description 导出已经加载的证书
      *      @param pem 指定输出 PEM 格式的撤销证书，缺省为 true

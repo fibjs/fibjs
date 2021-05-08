@@ -26,5 +26,7 @@ declare class Class_File extends Class_SeekableStream {
      */
     chmod(mode: number): void;
 
+    chmod(mode: number, callback: (err: Error | undefined | null)=>any): void;
+
 }
 

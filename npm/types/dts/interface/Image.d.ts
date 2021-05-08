@@ -61,6 +61,8 @@ declare class Class_Image extends Class_object {
      */
     getData(format: number, quality: number): Class_Buffer;
 
+    getData(format: number, quality: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
     /**
      * @description 按照指定的格式将图像数据存入流对象
      *      @param stm 指定要存入的流对象
@@ -70,6 +72,8 @@ declare class Class_Image extends Class_object {
      */
     save(stm: Class_Stream, format: number, quality: number): void;
 
+    save(stm: Class_Stream, format: number, quality: number, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 按照指定的格式将图像数据存入指定文件，文件将被强制覆盖
      *      @param fname 指定文件名
@@ -78,6 +82,8 @@ declare class Class_Image extends Class_object {
      *      
      */
     save(fname: string, format: number, quality: number): void;
+
+    save(fname: string, format: number, quality: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 为指定的颜色申请一个颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
@@ -429,12 +435,16 @@ declare class Class_Image extends Class_object {
      */
     colorReplace(src: number, dst: number): void;
 
+    colorReplace(src: number, dst: number, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 复制当前图像为一个新图像
      *      @return 返回复制的新图像对象
      *      
      */
     clone(): Class_Image;
+
+    clone(callback: (err: Error | undefined | null, retVal: Class_Image)=>any): void;
 
     /**
      * @description 根据图像拉伸生成一个新尺寸的图像
@@ -444,6 +454,8 @@ declare class Class_Image extends Class_object {
      *      
      */
     resample(width: number, height: number): Class_Image;
+
+    resample(width: number, height: number, callback: (err: Error | undefined | null, retVal: Class_Image)=>any): void;
 
     /**
      * @description 剪切图像的一部分为一个新的图像
@@ -456,12 +468,16 @@ declare class Class_Image extends Class_object {
      */
     crop(x: number, y: number, width: number, height: number): Class_Image;
 
+    crop(x: number, y: number, width: number, height: number, callback: (err: Error | undefined | null, retVal: Class_Image)=>any): void;
+
     /**
      * @description 镜像当前图像
      *      @param dir 镜像方向，允许值为 gd.BOTH,gd.HORIZONTAL, gd.VERTICAL, 缺省为 gd.HORIZONTAL
      *      
      */
     flip(dir: number): void;
+
+    flip(dir: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 旋转当前图像
@@ -470,12 +486,16 @@ declare class Class_Image extends Class_object {
      */
     rotate(dir: number): void;
 
+    rotate(dir: number, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 转换当前图像类型
      *      @param color 指定图像类型，允许值为 gd.TRUECOLOR 或 gd.PALETTE
      *      
      */
     convert(color: number): void;
+
+    convert(color: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 从一个图像中复制一个区域到指定的位置
@@ -489,6 +509,8 @@ declare class Class_Image extends Class_object {
      *      
      */
     copy(source: Class_Image, dstX: number, dstY: number, srcX: number, srcY: number, width: number, height: number): void;
+
+    copy(source: Class_Image, dstX: number, dstY: number, srcX: number, srcY: number, width: number, height: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 从一个图像中复制一个区域覆盖到指定的位置
@@ -504,6 +526,8 @@ declare class Class_Image extends Class_object {
      */
     copyMerge(source: Class_Image, dstX: number, dstY: number, srcX: number, srcY: number, width: number, height: number, percent: number): void;
 
+    copyMerge(source: Class_Image, dstX: number, dstY: number, srcX: number, srcY: number, width: number, height: number, percent: number, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 从一个图像中复制一个区域的灰度覆盖到指定的位置
      *      @param source 源图像对象
@@ -517,6 +541,8 @@ declare class Class_Image extends Class_object {
      *      
      */
     copyMergeGray(source: Class_Image, dstX: number, dstY: number, srcX: number, srcY: number, width: number, height: number, percent: number): void;
+
+    copyMergeGray(source: Class_Image, dstX: number, dstY: number, srcX: number, srcY: number, width: number, height: number, percent: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 将一个图像中的一个区域拉伸后复制到指定的位置
@@ -533,6 +559,8 @@ declare class Class_Image extends Class_object {
      */
     copyResized(source: Class_Image, dstX: number, dstY: number, srcX: number, srcY: number, dstW: number, dstH: number, srcW: number, srcH: number): void;
 
+    copyResized(source: Class_Image, dstX: number, dstY: number, srcX: number, srcY: number, dstW: number, dstH: number, srcW: number, srcH: number, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 将一个图像中的一个区域拉伸后复制到指定的位置，不同与 copyResized，此方法拉伸时会对图像进行抖动
      *      @param source 源图像对象
@@ -548,6 +576,8 @@ declare class Class_Image extends Class_object {
      */
     copyResampled(source: Class_Image, dstX: number, dstY: number, srcX: number, srcY: number, dstW: number, dstH: number, srcW: number, srcH: number): void;
 
+    copyResampled(source: Class_Image, dstX: number, dstY: number, srcX: number, srcY: number, dstW: number, dstH: number, srcW: number, srcH: number, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 将一个图像中的一个区域旋转后复制到指定的位置
      *      @param source 源图像对象
@@ -561,6 +591,8 @@ declare class Class_Image extends Class_object {
      *      
      */
     copyRotated(source: Class_Image, dstX: number, dstY: number, srcX: number, srcY: number, width: number, height: number, angle: number): void;
+
+    copyRotated(source: Class_Image, dstX: number, dstY: number, srcX: number, srcY: number, width: number, height: number, angle: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 把过滤器 filterType应用到图像上，根据过滤器类型传入所需参数
@@ -586,6 +618,8 @@ declare class Class_Image extends Class_object {
      */
     filter(filterType: number, arg1: number, arg2: number, arg3: number, arg4: number): void;
 
+    filter(filterType: number, arg1: number, arg2: number, arg3: number, arg4: number, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 根据给定的矩阵，对当前图像进行仿射
      * 
@@ -605,12 +639,16 @@ declare class Class_Image extends Class_object {
      */
     affine(affine: any[], x: number, y: number, width: number, height: number): Class_Image;
 
+    affine(affine: any[], x: number, y: number, width: number, height: number, callback: (err: Error | undefined | null, retVal: Class_Image)=>any): void;
+
     /**
      * @description 对当前图像进行高斯模糊处理
      *      @param radius 模糊半径
      *      
      */
     gaussianBlur(radius: number): void;
+
+    gaussianBlur(radius: number, callback: (err: Error | undefined | null)=>any): void;
 
 }
 

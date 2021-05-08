@@ -15,6 +15,15 @@ declare module 'util' {
     function format(fmt: string, ...args: any[]): string;
 
     /**
+     * @description 格式格式化变量
+     * 
+     *      @param args 可选参数列表
+     *      @return 返回格式化后的字符串
+     *      
+     */
+    function format(...args: any[]): string;
+
+    /**
      * @description 从一个构造函数 constructor 继承原型函数到另一个。构造函数的原型将被设置为一个新的从超类（superConstructor）创建的对象。
      * 
      *      @param constructor 初始的构造函数
@@ -382,6 +391,16 @@ declare module 'util' {
     function first(v: any): any;
 
     /**
+     * @description 获取数组的开始多个元素
+     * 
+     *      @param v 给定要获取的数组
+     *      @param n 指定要获取的元素个数
+     *      @return 返回获取的元素数组
+     *      
+     */
+    function first(v: any, n: number): any;
+
+    /**
      * @description 获取数组的第后一个元素
      * 
      *      @param v 给定要获取的数组
@@ -389,6 +408,16 @@ declare module 'util' {
      *      
      */
     function last(v: any): any;
+
+    /**
+     * @description 获取数组的结尾多个元素
+     * 
+     *      @param v 给定要获取的数组
+     *      @param n 指定要获取的元素个数
+     *      @return 返回获取的元素数组
+     *      
+     */
+    function last(v: any, n: number): any;
 
     /**
      * @description 获取数组的元素去重后的副本

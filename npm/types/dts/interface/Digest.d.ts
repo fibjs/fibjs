@@ -29,6 +29,8 @@ declare class Class_Digest extends Class_object {
      */
     sign(key: Class_PKey): Class_Buffer;
 
+    sign(key: Class_PKey, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
     /**
      * @description 验证签名是否一致
      *      @param key 验证签名的公钥
@@ -37,6 +39,8 @@ declare class Class_Digest extends Class_object {
      *      
      */
     verify(key: Class_PKey, sign: Class_Buffer): boolean;
+
+    verify(key: Class_PKey, sign: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description 查询当前信息摘要算法的摘要字节数 

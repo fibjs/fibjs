@@ -27,6 +27,8 @@ declare class Class_HeapSnapshot extends Class_object {
      */
     save(fname: string): void;
 
+    save(fname: string, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 时间信息 
      */

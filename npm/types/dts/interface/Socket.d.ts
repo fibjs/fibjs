@@ -55,6 +55,8 @@ declare class Class_Socket extends Class_Stream {
      */
     connect(host: string, port: number): void;
 
+    connect(host: string, port: number, callback: (err: Error | undefined | null)=>any): void;
+
     /**
      * @description 将当前 Socket 绑定至本地所有地址的指定端口
      *      @param port 指定绑定的端口
@@ -86,6 +88,8 @@ declare class Class_Socket extends Class_Stream {
      */
     accept(): Class_Socket;
 
+    accept(callback: (err: Error | undefined | null, retVal: Class_Socket)=>any): void;
+
     /**
      * @description 从连接读取指定大小的数据，不同于 read 方法，recv 并不保证读完要求的数据，而是在读取到数据后立即返回
      *      @param bytes 指定要读取的数据量，缺省读取任意尺寸的数据
@@ -94,12 +98,16 @@ declare class Class_Socket extends Class_Stream {
      */
     recv(bytes: number): Class_Buffer;
 
+    recv(bytes: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
     /**
      * @description 将给定的数据写入连接，此方法等效于 write 方法
      *      @param data 给定要写入的数据
      *      
      */
     send(data: Class_Buffer): void;
+
+    send(data: Class_Buffer, callback: (err: Error | undefined | null)=>any): void;
 
 }
 
