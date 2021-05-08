@@ -22,6 +22,8 @@ const _formatParamDefaultValue = (param, member) => {
                 return '{}'
             case 'v8::Array::New(isolate)':
                 return '[]'
+            case 'NULL':
+                return 'null'
         }
 
         return param.default.value;
@@ -37,10 +39,9 @@ const _formatParamDefaultValue = (param, member) => {
 
 const _formatMethodReturnType = (member) => {
     if (Array.isArray(member.type)) {
-        return `(${
-            member.type
-                .map(rt => `${rt.type} ${rt.name}`)
-                .join(', ')
+        return `(${member.type
+            .map(rt => `${rt.type} ${rt.name}`)
+            .join(', ')
             }) `
     }
     return member.type ? `${member.type} ` : ''

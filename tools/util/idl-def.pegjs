@@ -203,6 +203,7 @@ defValue
 value
   = false
   / true
+  / null
   / undefined
   / objectVal
   / arrayVal
@@ -212,6 +213,7 @@ value
 
 false = "false" { return 'false'; }
 true  = "true"  { return 'true';  }
+null  = "null"  { return 'NULL';  }
 undefined = "undefined" { return 'v8::Undefined(isolate)';}
 
 objectVal = "{" _* "}" { return "v8::Object::New(isolate)" }
