@@ -12,7 +12,7 @@
 #include "ifs/db.h"
 #include "DBResult.h"
 #include "Url.h"
-#include "db_api.h"
+#include "../db_api.h"
 
 namespace fibjs {
 

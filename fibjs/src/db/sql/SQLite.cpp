@@ -11,7 +11,7 @@
 #include "DBResult.h"
 #include "Buffer.h"
 #include "ifs/coroutine.h"
-#include "db_api.h"
+#include "../db_api.h"
 
 namespace fibjs {
 

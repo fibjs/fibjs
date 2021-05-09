@@ -15,7 +15,7 @@
 #include "DBResult.h"
 #include "Buffer.h"
 #include "date.h"
-#include "db_api.h"
+#include "../db_api.h"
 
 namespace fibjs {
 
