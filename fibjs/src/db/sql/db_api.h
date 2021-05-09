@@ -24,7 +24,7 @@ result_t db_execute(T* pThis, exlib::string sql, OptArgs args, obj_ptr<NArray>& 
         ac->m_ctx.resize(1);
         ac->m_ctx[0] = str;
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(CALL_E_LONGSYNC);
     }
 
     exlib::string str = ac->m_ctx[0].string();
@@ -47,7 +47,7 @@ result_t db_execute(T* pThis, exlib::string method, v8::Local<v8::Object> opts,
         ac->m_ctx.resize(1);
         ac->m_ctx[0] = str;
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(CALL_E_LONGSYNC);
     }
 
     exlib::string str = ac->m_ctx[0].string();
@@ -153,7 +153,7 @@ result_t db_begin(T* pThis, exlib::string point, AsyncEvent* ac, bool mssql = fa
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(CALL_E_LONGSYNC);
 
     obj_ptr<NArray> retVal;
 
@@ -175,7 +175,7 @@ result_t db_commit(T* pThis, exlib::string point, AsyncEvent* ac, bool mssql = f
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(CALL_E_LONGSYNC);
 
     obj_ptr<NArray> retVal;
 
@@ -196,7 +196,7 @@ result_t db_rollback(T* pThis, exlib::string point, AsyncEvent* ac, bool mssql =
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(CALL_E_LONGSYNC);
 
     obj_ptr<NArray> retVal;
 

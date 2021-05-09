@@ -154,7 +154,7 @@ result_t db_base::openMySQL(exlib::string connString, obj_ptr<MySQL_base>& retVa
     AsyncEvent* ac)
 {
     if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (qstrcmp(connString.c_str(), "mysql:", 6))
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -229,7 +229,7 @@ result_t mysql::close(AsyncEvent* ac)
         return 0;
 
     if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(CALL_E_LONGSYNC);
 
     if (m_conn) {
         UMConnection_Close(m_conn);
@@ -246,7 +246,7 @@ result_t mysql::use(exlib::string dbName, AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return CHECK_ERROR(CALL_E_LONGSYNC);
 
     obj_ptr<NArray> retVal;
     exlib::string s("USE ", 4);
