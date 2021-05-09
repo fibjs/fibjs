@@ -115,10 +115,9 @@ public:
         m_array.push_back(value);
     }
 
-    result_t get_length(int32_t& retVal)
+    int32_t length()
     {
-        retVal = (int32_t)m_array.size();
-        return 0;
+        return (int32_t)m_array.size();
     }
 
     result_t _indexed_getter(int32_t idx, Variant& retVal)

@@ -139,7 +139,7 @@ void GuiResourceHandler::GetResponseHeaders(CefRefPtr<CefResponse> response,
         if (list) {
             int32_t sz;
 
-            list->get_length(sz);
+            sz = list->length();
             for (int32_t i = 0; i < sz; i++)
                 response->SetHeaderByName(it.first.c_str(), list->m_array[i].string().c_str(), false);
         } else
@@ -275,5 +275,4 @@ void GuiSchemeHandlerFactory::RegisterScheme(exlib::string schame)
         for (auto const& it : m_domains)
             CefRegisterSchemeHandlerFactory(schame.c_str(), it.first.c_str(), this);
 }
-
 }

@@ -203,7 +203,7 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
         bool bFound = false;
         obj_ptr<ZipFile::Info> zi;
 
-        _node->m_list->get_length(len);
+        len = _node->m_list->length();
 
         for (i = 0; i < len; i++) {
             Variant v;

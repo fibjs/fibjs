@@ -54,7 +54,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
         if (msg != NULL) {
             msg->get_params(params);
-            params->get_length(len);
+            len = params->length();
         }
 
         argv.resize(len + 2);
@@ -84,7 +84,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
         if (msg != NULL) {
             msg->get_params(params);
-            params->get_length(len);
+            len = params->length();
         }
 
         if (len > 0) {

@@ -206,7 +206,7 @@ result_t HttpClient::update(HttpCookie_base* cookie)
     bool b = false, b1 = false;
     date_t t, t1;
 
-    m_cookies->get_length(length);
+    length = m_cookies->length();
     if (length == 0)
         return 0;
 
@@ -272,7 +272,7 @@ result_t HttpClient::update_cookies(exlib::string url, NArray* cookies)
 
     m_lock.lock();
 
-    cookies->get_length(length);
+    length = cookies->length();
     if (length == 0) {
         m_lock.unlock();
         return 0;
@@ -318,7 +318,7 @@ result_t HttpClient::get_cookie(exlib::string url, exlib::string& retVal)
         return hr;
 
     m_lock.lock();
-    m_cookies->get_length(length);
+    length = m_cookies->length();
     if (length == 0) {
         m_lock.unlock();
         return 0;

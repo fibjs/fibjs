@@ -1245,7 +1245,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             static char padding[] = "                                                              ";
             obj_ptr<Buffer_base> buf;
 
-            m_dir->get_length(length);
+            length = m_dir->length();
 
             if (m_dirPos == 0) {
                 m_dir->sort();

@@ -22,7 +22,7 @@ inline void buildIDSet(idset* seen, HeapSnapshot_base* snapshot, intptr_t& s)
     int32_t _count;
 
     snapshot->get_nodes(nodes);
-    nodes->get_length(_count);
+    _count = nodes->length();
 
     for (int32_t i = 0; i < _count; i++) {
         Variant v;
@@ -63,7 +63,7 @@ public:
         : type(profiler_base::C_Node_Hidden)
         , self_size(0)
         , retained_size(0)
-        , retainers(0) {};
+        , retainers(0){};
 };
 
 class change {
@@ -156,7 +156,7 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
 
     v8::Local<v8::Object> b = v8::Object::New(isolate->m_isolate);
     before->get_nodes(nodes);
-    nodes->get_length(_count);
+    _count = nodes->length();
     b->Set(isolate->NewString("nodes"),
         v8::Integer::New(isolate->m_isolate, _count));
 
@@ -166,7 +166,7 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
 
     v8::Local<v8::Object> a = v8::Object::New(isolate->m_isolate);
     after->get_nodes(nodes);
-    nodes->get_length(_count);
+    _count = nodes->length();
     a->Set(isolate->NewString("nodes"),
         v8::Integer::New(isolate->m_isolate, _count));
     after->get_time(d);

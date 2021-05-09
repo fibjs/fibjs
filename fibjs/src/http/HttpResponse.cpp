@@ -304,7 +304,7 @@ result_t HttpResponse::sendTo(Stream_base* stm, AsyncEvent* ac)
     if (m_cookies) {
         int32_t len, i;
 
-        m_cookies->get_length(len);
+        len = m_cookies->length();
 
         for (i = 0; i < len; i++) {
             Variant v;
@@ -467,7 +467,7 @@ result_t HttpResponse::get_cookies(obj_ptr<NArray>& retVal)
         allHeader("Set-Cookie", headers);
         removeHeader("Set-Cookie");
 
-        headers->get_length(len);
+        len = headers->length();
 
         for (i = 0; i < len; i++) {
             Variant v;
@@ -524,7 +524,7 @@ result_t HttpResponse::sendHeader(Stream_base* stm, AsyncEvent* ac)
     if (m_cookies) {
         int32_t len, i;
 
-        m_cookies->get_length(len);
+        len = m_cookies->length();
 
         for (i = 0; i < len; i++) {
             Variant v;

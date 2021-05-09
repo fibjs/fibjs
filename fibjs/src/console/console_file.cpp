@@ -111,7 +111,7 @@ void file_logger::clearFile()
     std::vector<exlib::string> files;
     int32_t sz = 0, i;
 
-    fd->get_length(sz);
+    sz = fd->length();
 
     for (i = 0; i < sz; i++) {
         Variant v;
