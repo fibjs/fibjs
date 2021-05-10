@@ -2,6 +2,7 @@
 /// <reference path="../interface/MySQL.d.ts" />
 /// <reference path="../interface/MSSQL.d.ts" />
 /// <reference path="../interface/SQLite.d.ts" />
+/// <reference path="../interface/Odbc.d.ts" />
 /// <reference path="../interface/MongoDB.d.ts" />
 /// <reference path="../interface/LevelDB.d.ts" />
 /// <reference path="../interface/Redis.d.ts" />
@@ -17,7 +18,7 @@
 declare module 'db' {
     /**
      * @description 打开一个数据库，此方法为通用入口，根据提供的 connString 不同调用不同的引擎
-     *      @param connString 数据库描述，如：mysql://user:pass\@host/db
+     *      @param connString 数据库描述，如：mysql://user:pass@host/db
      *      @return 返回数据库连接对象
      *      
      */
@@ -27,7 +28,7 @@ declare module 'db' {
 
     /**
      * @description 打开一个 mysql 数据库
-     *      @param connString 数据库描述，如：mysql://user:pass\@host/db
+     *      @param connString 数据库描述，如：mysql://user:pass@host/db
      *      @return 返回数据库连接对象
      *      
      */
@@ -37,7 +38,7 @@ declare module 'db' {
 
     /**
      * @description 打开一个 mysql 数据库
-     *      @param connString 数据库描述，如：mssql://user:pass\@host/db
+     *      @param connString 数据库描述，如：mssql://user:pass@host/db
      *      @return 返回数据库连接对象
      *      
      */
@@ -54,6 +55,16 @@ declare module 'db' {
     function openSQLite(connString: string): Class_SQLite;
 
     function openSQLite(connString: string, callback: (err: Error | undefined | null, retVal: Class_SQLite)=>any): void;
+
+    /**
+     * @description 打开一个 sqlite 数据库
+     *      @param connString 数据库描述，如：odbc://user:pass@host/db?driver=PostgreSQL%20ANSI
+     *      @return 返回数据库连接对象
+     *      
+     */
+    function openOdbc(connString: string): Class_Odbc;
+
+    function openOdbc(connString: string, callback: (err: Error | undefined | null, retVal: Class_Odbc)=>any): void;
 
     /**
      * @description 打开一个 mongodb 数据库
