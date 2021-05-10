@@ -274,11 +274,11 @@ result_t Odbc::execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal)
             char buf[SQL_MAX_COLUMN_NAME_LEN];
             SQLSMALLINT buflen;
 
-            hr = SQLColAttribute(stmt, i + 1, SQL_DESC_NAME, buf, SQL_MAX_COLUMN_NAME_LEN, &buflen, NULL);
+            hr = SQLColAttributes(stmt, i + 1, SQL_DESC_NAME, buf, SQL_MAX_COLUMN_NAME_LEN, &buflen, NULL);
             if (hr < 0)
                 break;
 
-            hr = SQLColAttribute(stmt, i + 1, SQL_DESC_TYPE, NULL, 0, NULL, &types[i]);
+            hr = SQLColAttributes(stmt, i + 1, SQL_DESC_TYPE, NULL, 0, NULL, &types[i]);
             if (hr < 0)
                 break;
 

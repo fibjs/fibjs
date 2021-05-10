@@ -81,12 +81,12 @@ SQLRETURN SQL_API SQLNumResultCols(SQLHSTMT StatementHandle, SQLSMALLINT* Column
     return s_SQLNumResultCols(StatementHandle, ColumnCount);
 }
 
-SQLRETURN SQL_API SQLColAttribute(SQLHSTMT StatementHandle, SQLUSMALLINT ColumnNumber,
+SQLRETURN SQL_API SQLColAttributes(SQLHSTMT StatementHandle, SQLUSMALLINT ColumnNumber,
     SQLUSMALLINT FieldIdentifier, SQLPOINTER CharacterAttribute, SQLSMALLINT BufferLength,
     SQLSMALLINT* StringLength, SQLLEN* NumericAttribute)
 {
-    odbc_func(SQLColAttribute);
-    return s_SQLColAttribute(StatementHandle, ColumnNumber, FieldIdentifier,
+    odbc_func(SQLColAttributes);
+    return s_SQLColAttributes(StatementHandle, ColumnNumber, FieldIdentifier,
         CharacterAttribute, BufferLength, StringLength, NumericAttribute);
 }
 
