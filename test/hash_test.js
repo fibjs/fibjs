@@ -4,6 +4,29 @@ test.setup();
 var hash = require('hash');
 var crypto = require('crypto');
 
+var rsa1024_pem = "-----BEGIN RSA PRIVATE KEY-----\n" +
+    "MIICXQIBAAKBgQDSbmW8qlarL0lLu1XYcg+ocJgcuq5K7EgLcXyy2shAsko7etmZ\n" +
+    "NP3opOeGw58E7tjVsjuadPQ8Hf+9wd316RYwShklDDsy4Hwp4z9afnj56UmvkM0u\n" +
+    "TlsymlIbFftme6aJcYbnX9fdin78Rsa0MbzQbFdeLHsy5zKjsrbm4TS5bwIDAQAB\n" +
+    "AoGAagN2O9NxMHL1MTMi75WfL9Pxvl+KWXKqZSF6mjzAsF9iKI8euyHIXYFepzU8\n" +
+    "kual1RsjDhCnzvWqFvZplW8lXqrHf/P+rS/9Y4gBUw6pjnI/DnFIRwWHRvrUHHSC\n" +
+    "fWOdTCIKdOTkgLZuGFuhEY3RMIW0WSYejjLtftwy0RVxAzkCQQDprgbWqZ/BaafV\n" +
+    "uKKA3shUWWRst/2hV7qDus6YfEj6GfUZHEoNJW4BSuZHUiG4Cdxr0zTLtIP7tNSz\n" +
+    "rCM7FbFrAkEA5ofkxFKdPBD0CQHMb9q13AMHUVe0rJ+hSjqqIBrmqApUOneyAcMV\n" +
+    "76M0QyIQnI2p3POa4Qu/7XChDwRVl7LlDQJBANplxohsAh5fI/hQVriA/tQus/gU\n" +
+    "QdzARFaHijzjs8Tj67mrQd5lhBl7KhuwPEloFfVEcUyNiuj9yeme0VKQZL8CQQCh\n" +
+    "qCfm99vk1Cqc6lL3GRKwPrtx8iPzbVlIWU0ViGe47M1V1rvP+oK2cebjMM8fSUQV\n" +
+    "egpgx8GF+pYmlq6C22M9AkB2oRCDE2Y5UWsXizvvqFOp4LqgQOKVrwS+lVvYXZm/\n" +
+    "AA4uMJDro6IBkrUGJgYepTLQ16o2a2WwtK4ERlBm+pnC\n" +
+    "-----END RSA PRIVATE KEY-----\n";
+
+var pub_rsa1024_pem = "-----BEGIN PUBLIC KEY-----\n" +
+    "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDSbmW8qlarL0lLu1XYcg+ocJgc\n" +
+    "uq5K7EgLcXyy2shAsko7etmZNP3opOeGw58E7tjVsjuadPQ8Hf+9wd316RYwShkl\n" +
+    "DDsy4Hwp4z9afnj56UmvkM0uTlsymlIbFftme6aJcYbnX9fdin78Rsa0MbzQbFde\n" +
+    "LHsy5zKjsrbm4TS5bwIDAQAB\n" +
+    "-----END PUBLIC KEY-----\n";
+
 var ec_pem = "-----BEGIN EC PRIVATE KEY-----\n" +
     "MIHcAgEBBEIB+QhtQdd9bjWeN2mgq6qoqW51ygslLwP+gwTCSP4ZVpcU0pxwigXm\n" +
     "Ioa7Zzr2Q0OOjzdH/vDIaV9FzOySWSKTVJOgBwYFK4EEACOhgYkDgYYABAE3zTRb\n" +
@@ -17,6 +40,18 @@ var pub_ec_pem = "-----BEGIN PUBLIC KEY-----\n" +
     "7es3eTvi6sol1VLXhFiF2dLCb3UGb4XWX5PVcqUBjbJGfMb3DVSS+jxzTAsBIEeq\n" +
     "uu4HqR2QRQHe+Vbf5QiSTge0p1R5PA37ubePauBm9hHV99EBqkO9aooaIGOiapZp\n" +
     "/GiQGRsMjRz3l/p/hdQ=\n" +
+    "-----END PUBLIC KEY-----\n";
+
+
+var sm2_pem = "-----BEGIN EC PRIVATE KEY-----\n" +
+    "MHcCAQEEIH3EUWpWsnLGl6SkGBnG5lPEIvdyql56aHQMCCt7xDqCoAoGCCqBHM9V\n" +
+    "AYItoUQDQgAE1KnIoMvdNODUrcEzQNnHbplwxNNyuHwIUnU0oNQ/0R1z97YIe/k8\n" +
+    "HX6wrPMUazfS1PVd/A9R8gadvlURQ3lufg==\n" +
+    "-----END EC PRIVATE KEY-----\n";
+
+var pub_sm2_pem = "-----BEGIN PUBLIC KEY-----\n" +
+    "MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAE1KnIoMvdNODUrcEzQNnHbplwxNNy\n" +
+    "uHwIUnU0oNQ/0R1z97YIe/k8HX6wrPMUazfS1PVd/A9R8gadvlURQ3lufg==\n" +
     "-----END PUBLIC KEY-----\n";
 
 describe("hash", () => {
@@ -57,9 +92,17 @@ describe("hash", () => {
         assert.equal(o.base64, hash[o.name.toLowerCase()]().update(o.text).digest('base64'));
         assert.equal(o.base64, crypto.createHash(o.name).update(o.text).digest('base64'));
 
+        var s = crypto.createHash(o.name).update(o.text).sign(rsa1024_pem);
+        assert.ok(crypto.createHash(o.name).update(o.text).verify(pub_rsa1024_pem, s));
+        assert.ok(new crypto.PKey(pub_rsa1024_pem).verify(crypto.createHash(o.name).update(o.text).digest(), s, hash[o.name]));
+
         var s = crypto.createHash(o.name).update(o.text).sign(ec_pem);
         assert.ok(crypto.createHash(o.name).update(o.text).verify(pub_ec_pem, s));
         assert.ok(new crypto.PKey(pub_ec_pem).verify(crypto.createHash(o.name).update(o.text).digest(), s, hash[o.name]));
+
+        var s = crypto.createHash(o.name).update(o.text).sign(sm2_pem);
+        assert.ok(crypto.createHash(o.name).update(o.text).verify(pub_sm2_pem, s));
+        assert.ok(new crypto.PKey(pub_sm2_pem).verify(crypto.createHash(o.name).update(o.text).digest(), s, hash[o.name]));
     }
 
     function hmac_test(o) {
@@ -99,9 +142,17 @@ describe("hash", () => {
         assert.equal(o.base64, hash['hmac_' + o.name.toLowerCase()](o.key).update(o.text).digest('base64'));
         assert.equal(o.base64, crypto.createHmac(o.name, o.key).update(o.text).digest('base64'));
 
+        var s = crypto.createHmac(o.name, o.key).update(o.text).sign(rsa1024_pem);
+        assert.ok(crypto.createHmac(o.name, o.key).update(o.text).verify(pub_rsa1024_pem, s));
+        assert.ok(new crypto.PKey(pub_rsa1024_pem).verify(crypto.createHmac(o.name, o.key).update(o.text).digest(), s, hash[o.name]));
+
         var s = crypto.createHmac(o.name, o.key).update(o.text).sign(ec_pem);
         assert.ok(crypto.createHmac(o.name, o.key).update(o.text).verify(pub_ec_pem, s));
         assert.ok(new crypto.PKey(pub_ec_pem).verify(crypto.createHmac(o.name, o.key).update(o.text).digest(), s, hash[o.name]));
+
+        var s = crypto.createHmac(o.name, o.key).update(o.text).sign(sm2_pem);
+        assert.ok(crypto.createHmac(o.name, o.key).update(o.text).verify(pub_sm2_pem, s));
+        assert.ok(new crypto.PKey(pub_sm2_pem).verify(crypto.createHmac(o.name, o.key).update(o.text).digest(), s, hash[o.name]));
     }
 
     it("md2", () => {
