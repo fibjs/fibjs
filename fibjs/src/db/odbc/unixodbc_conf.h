@@ -1,3 +1,5 @@
+#include "exlib/include/osconfig.h"
+
 /* unixodbc_conf.h.  Generated from unixodbc_conf.h.in by configure.  */
 /* unixodbc_conf.h.in.  Generated from configure.ac by autoheader.  */
 
@@ -414,9 +416,6 @@
 /* Define to the version of this package. */
 #define PACKAGE_VERSION "2.3.9"
 
-/* Platform is 64 bit */
-#define PLATFORM64 /**/
-
 /* Install prefix */
 #define PREFIX "/usr/local"
 
@@ -426,11 +425,12 @@
 /* Shared lib extension */
 #define SHLIBEXT "`test .$module = .yes && echo .so || echo .dylib`"
 
-/* The size of `long', as computed by sizeof. */
-#define SIZEOF_LONG 8
-
 /* The size of `long int', as computed by sizeof. */
+#if (ARCH_BITS == 64)
 #define SIZEOF_LONG_INT 8
+#else
+#define SIZEOF_LONG_INT 4
+#endif
 
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
