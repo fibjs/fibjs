@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Message.d.ts" />
 /// <reference path="../interface/HttpCollection.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
@@ -62,14 +63,14 @@ declare class Class_HttpMessage extends Class_Message {
      *      @return 返回键值所对应全部值的数组，若数据不存在，则返回 null
      *      
      */
-    allHeader(name: string): object;
+    allHeader(name?: string): FIBJS.GeneralObject;
 
     /**
      * @description 添加一个消息头，添加数据并不修改已存在的键值的消息头
      *      @param map 指定要添加的键值数据字典
      *      
      */
-    addHeader(map: object): void;
+    addHeader(map: FIBJS.GeneralObject): void;
 
     /**
      * @description 添加指定名称的一组消息头，添加数据并不修改已存在的键值的消息头
@@ -92,7 +93,7 @@ declare class Class_HttpMessage extends Class_Message {
      *      @param map 指定要设定的键值数据字典
      *      
      */
-    setHeader(map: object): void;
+    setHeader(map: FIBJS.GeneralObject): void;
 
     /**
      * @description 设定指定名称的一组消息头，设定数据将修改键值所对应的数值，并清除相同键值的其余消息头

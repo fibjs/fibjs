@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
@@ -17,7 +18,7 @@ declare class Class_RedisSortedSet extends Class_object {
      *      @param sms 指定要添加的 member/score 对象
      *      @return 被成功添加的新成员的数量，不包括那些被更新的、已经存在的成员 
      */
-    add(sms: object): number;
+    add(sms: FIBJS.GeneralObject): number;
 
     /**
      * @description 将一个或多个 member 元素及其 score 值加入到有序集当中
@@ -39,7 +40,7 @@ declare class Class_RedisSortedSet extends Class_object {
      *      @param num 指定要加上的数值
      *      @return member 成员的新 score 值，以字符串形式表示 
      */
-    incr(member: Class_Buffer, num: number): Class_Buffer;
+    incr(member: Class_Buffer, num?: number): Class_Buffer;
 
     /**
      * @description 移除有序集中的一个或多个 member 元素
@@ -76,7 +77,7 @@ declare class Class_RedisSortedSet extends Class_object {
      *      @param withScores 指定是否在结果中包含 score
      *      @return 指定区间内，带有 score 值(可选)的有序集成员的列表 
      */
-    range(start: number, stop: number, withScores: boolean): any[];
+    range(start: number, stop: number, withScores?: boolean): any[];
 
     /**
      * @description 返回有序集中，指定区间内的成员，成员的位置按 score 值递减(从大到小)来排序
@@ -85,7 +86,7 @@ declare class Class_RedisSortedSet extends Class_object {
      *      @param withScores 指定是否在结果中包含 score
      *      @return 指定区间内，带有 score 值(可选)的有序集成员的列表 
      */
-    rangeRev(start: number, stop: number, withScores: boolean): any[];
+    rangeRev(start: number, stop: number, withScores?: boolean): any[];
 
     /**
      * @description 有序集中成员 member 的排名。其中有序集成员按 score 值递增(从小到大)顺序排列

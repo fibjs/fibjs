@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/EventEmitter.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
@@ -37,7 +38,26 @@ declare class Class_WebSocket extends Class_EventEmitter {
      *      @param origin 指定握手时模拟的源，缺省为 ""
      *     
      */
-    constructor(url: string, protocol: string, origin: string);
+    constructor(url: string, protocol?: string, origin?: string);
+
+    /**
+     * @description WebSocket 构造函数
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "protocol": "", // 指定握手协议，缺省为空
+     *          "origin": "", // 指定握手时模拟的源，缺省为空
+     *          "perMessageDeflate": true, // 指定是否支持压缩，缺省支持
+     *          "maxPayload": 67108864, // 指定最大数据包尺寸，缺省为 67108864
+     *          "httpClient": hc, // 自定义 httpClient 对象，缺省使用全局 httpClient
+     *          "headers": // 指定 http(s) 连接时携带的 header，缺省为 {}，
+     *      }
+     *      ```
+     *      @param url 指定连接的服务器
+     *      @param opts 连接选项，缺省是 {}
+     *     
+     */
+    constructor(url: string, opts: FIBJS.GeneralObject);
 
     /**
      * @description 查询当前对象连接的服务器 
@@ -65,7 +85,7 @@ declare class Class_WebSocket extends Class_EventEmitter {
      *      @param reason 指定关闭的原因，缺省为 ""
      *     
      */
-    close(code: number, reason: string): void;
+    close(code?: number, reason?: string): void;
 
     /**
      * @description 向对方发送一段文本
@@ -84,22 +104,22 @@ declare class Class_WebSocket extends Class_EventEmitter {
     /**
      * @description 查询和绑定连接成功事件，相当于 on("open", func); 
      */
-    onopen: ()=>any;
+    onopen: (...args: any[])=>any;
 
     /**
      * @description 查询和绑定接受到对方消息的事件，相当于 on("message", func); 
      */
-    onmessage: ()=>any;
+    onmessage: (...args: any[])=>any;
 
     /**
      * @description 查询和绑定连接关闭的事件，相当于 on("close", func); 
      */
-    onclose: ()=>any;
+    onclose: (...args: any[])=>any;
 
     /**
      * @description 查询和绑定错误发生的事件，相当于 on("error", func); 
      */
-    onerror: ()=>any;
+    onerror: (...args: any[])=>any;
 
     /**
      * @description 维持 fibjs 进程不退出，在对象绑定期间阻止 fibjs 进程退出

@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/RedisHash.d.ts" />
@@ -29,7 +30,7 @@ declare class Class_Redis extends Class_object {
      *      @param value 指定要关联的数据
      *      @param ttl 以毫秒为单位为 key 设置生存时间；如果 ttl 为 0 ，那么不设置生存时间 
      */
-    set(key: Class_Buffer, value: Class_Buffer, ttl: number): void;
+    set(key: Class_Buffer, value: Class_Buffer, ttl?: number): void;
 
     /**
      * @description 将 key 的值设为 value ，当且仅当 key 不存在。若给定的 key 已经存在，则 SETNX 不做任何动作。
@@ -37,7 +38,7 @@ declare class Class_Redis extends Class_object {
      *      @param value 指定要关联的数据
      *      @param ttl 以毫秒为单位为 key 设置生存时间；如果 ttl 为 0 ，那么不设置生存时间 
      */
-    setNX(key: Class_Buffer, value: Class_Buffer, ttl: number): void;
+    setNX(key: Class_Buffer, value: Class_Buffer, ttl?: number): void;
 
     /**
      * @description 将 key 的值设为 value，只在键已经存在时，才对键进行设置操作。
@@ -45,13 +46,13 @@ declare class Class_Redis extends Class_object {
      *      @param value 指定要关联的数据
      *      @param ttl 以毫秒为单位为 key 设置生存时间；如果 ttl 为 0 ，那么不设置生存时间 
      */
-    setXX(key: Class_Buffer, value: Class_Buffer, ttl: number): void;
+    setXX(key: Class_Buffer, value: Class_Buffer, ttl?: number): void;
 
     /**
      * @description 同时设置一个或多个 key-value 对。如果某个给定 key 已经存在，那么 MSET 会用新值覆盖原来的旧值
      *      @param kvs 指定要设置的 key/value 对象
      */
-    mset(kvs: object): void;
+    mset(kvs: FIBJS.GeneralObject): void;
 
     /**
      * @description 同时设置一个或多个 key-value 对。如果某个给定 key 已经存在，那么 MSET 会用新值覆盖原来的旧值
@@ -63,7 +64,7 @@ declare class Class_Redis extends Class_object {
      * @description 同时设置一个或多个 key-value 对，当且仅当所有给定 key 都不存在
      *      @param kvs 指定要设置的 key/value 对象
      */
-    msetNX(kvs: object): void;
+    msetNX(kvs: FIBJS.GeneralObject): void;
 
     /**
      * @description 同时设置一个或多个 key-value 对，当且仅当所有给定 key 都不存在
@@ -111,7 +112,7 @@ declare class Class_Redis extends Class_object {
      *      @param end 指定要计算的结束字节，可以使用负数值，-1 表示最后一个字节，而 -2 表示倒数第二个字节，以此类推
      *      @return 被设置为 1 的位的数量 
      */
-    bitcount(key: Class_Buffer, start: number, end: number): number;
+    bitcount(key: Class_Buffer, start?: number, end?: number): number;
 
     /**
      * @description 返回 key 所关联的字符串值，如果 key 不存在那么返回特殊值 Null
@@ -148,7 +149,7 @@ declare class Class_Redis extends Class_object {
      *      @param num 指定要减去的数值
      *      @return 减去 num 之后，key 的值 
      */
-    decr(key: Class_Buffer, num: number): number;
+    decr(key: Class_Buffer, num?: number): number;
 
     /**
      * @description 将 key 所储存的值加上增量
@@ -156,7 +157,7 @@ declare class Class_Redis extends Class_object {
      *      @param num 指定要加上的数值
      *      @return 加上 num 之后，key 的值 
      */
-    incr(key: Class_Buffer, num: number): number;
+    incr(key: Class_Buffer, num?: number): number;
 
     /**
      * @description 对 key 所储存的字符串值，设置或清除指定偏移量上的位(bit)
@@ -253,14 +254,14 @@ declare class Class_Redis extends Class_object {
      *      @param func 指定回调函数
      *      
      */
-    sub(channel: Class_Buffer, func: ()=>any): void;
+    sub(channel: Class_Buffer, func: (...args: any[])=>any): void;
 
     /**
      * @description 订阅给定的一组频道的信息，当消息发生时自动调用相应的回调函数，同一频道同一函数只会回调一次
      *      @param map 指定频道映射关系，对象属性名称将作为频道名称，属性的值将作为回调函数
      *      
      */
-    sub(map: object): void;
+    sub(map: FIBJS.GeneralObject): void;
 
     /**
      * @description 退订给定的频道的全部回调
@@ -275,7 +276,7 @@ declare class Class_Redis extends Class_object {
      *      @param func 指定退订的回调函数
      *     
      */
-    unsub(channel: Class_Buffer, func: ()=>any): void;
+    unsub(channel: Class_Buffer, func: (...args: any[])=>any): void;
 
     /**
      * @description 退订一组给定的频道的全部回调
@@ -289,7 +290,7 @@ declare class Class_Redis extends Class_object {
      *      @param map 指定频道映射关系，对象属性名称将作为频道名称，属性的值将作为回调函数
      *      
      */
-    unsub(map: object): void;
+    unsub(map: FIBJS.GeneralObject): void;
 
     /**
      * @description 按照模板订阅一组频道的信息，当消息发生时自动调用 func，func 包含三个参数，依次为 channel，message 和 pattern，同一模板同一函数只会回调一次
@@ -297,14 +298,14 @@ declare class Class_Redis extends Class_object {
      *      @param func 指定回调函数
      *      
      */
-    psub(pattern: string, func: ()=>any): void;
+    psub(pattern: string, func: (...args: any[])=>any): void;
 
     /**
      * @description 订阅给定的一组频道模板的信息，当消息发生时自动调用相应的 func，同一频道同一函数只会回调一次
      *      @param map 指定频道映射关系，对象属性名称将作为频道模板，属性的值将作为回调函数
      *      
      */
-    psub(map: object): void;
+    psub(map: FIBJS.GeneralObject): void;
 
     /**
      * @description 退订给定模板的频道的全部回调
@@ -319,7 +320,7 @@ declare class Class_Redis extends Class_object {
      *      @param func 指定退订的回调函数
      *     
      */
-    unpsub(pattern: string, func: ()=>any): void;
+    unpsub(pattern: string, func: (...args: any[])=>any): void;
 
     /**
      * @description 退订一组给定模板的频道的全部回调
@@ -333,13 +334,13 @@ declare class Class_Redis extends Class_object {
      *      @param map 指定频道映射关系，对象属性名称将作为频道模板，属性的值将作为回调函数
      *      
      */
-    unpsub(map: object): void;
+    unpsub(map: FIBJS.GeneralObject): void;
 
     /**
      * @description 查询和设置错误处理函数，当 sub 出现错误或者网络中断时回调，当回调发生后，本对象的一切 sub 都将中止
      *      
      */
-    onsuberror: ()=>any;
+    onsuberror: (...args: any[])=>any;
 
     /**
      * @description 将信息 message 发送到指定的频道 channel
@@ -391,7 +392,7 @@ declare class Class_Redis extends Class_object {
      *      @param data 指定要反序列化的数据
      *      @param ttl 以毫秒为单位为 key 设置生存时间；如果 ttl 为 0 ，那么不设置生存时间
      */
-    restore(key: Class_Buffer, data: Class_Buffer, ttl: number): void;
+    restore(key: Class_Buffer, data: Class_Buffer, ttl?: number): void;
 
     /**
      * @description 关闭当前数据库连接或事务 

@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/EventEmitter.d.ts" />
 /**
  * @description 文件 Stats 观察对象
@@ -24,7 +25,7 @@ declare class Class_StatsWatcher extends Class_EventEmitter {
     /**
      * @description 查询和绑定"文件改变"事件，相当于 on("change", func); 
      */
-    onchange: ()=>any;
+    onchange: (...args: any[])=>any;
 
     /**
      * @description 停止对目标文件路径的观察, 清除引用计数(不再 hold 进程)

@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /**
  * @description fs 模块常用常量定义模块
  * 

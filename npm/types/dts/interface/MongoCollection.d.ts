@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/MongoCursor.d.ts" />
 /**
@@ -18,7 +19,7 @@ declare class Class_MongoCollection extends Class_object {
      *     @return 返回游标对象
      *    
      */
-    find(query: object, projection: object): Class_MongoCursor;
+    find(query?: FIBJS.GeneralObject, projection?: FIBJS.GeneralObject): Class_MongoCursor;
 
     /**
      * @description 根据给定的查询条件和返回字段设定，查询一条结果
@@ -27,7 +28,7 @@ declare class Class_MongoCollection extends Class_object {
      *     @return 返回第一条结果
      *    
      */
-    findOne(query: object, projection: object): object;
+    findOne(query?: FIBJS.GeneralObject, projection?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
      * @description 查询并修改
@@ -35,7 +36,7 @@ declare class Class_MongoCollection extends Class_object {
      *     @return 返回修改前的结果及其他信息
      *    
      */
-    findAndModify(query: object): object;
+    findAndModify(query: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
      * @description 插入一组数据
@@ -49,14 +50,14 @@ declare class Class_MongoCollection extends Class_object {
      *     @param document 指定要插入的数据
      *    
      */
-    insert(document: object): void;
+    insert(document: FIBJS.GeneralObject): void;
 
     /**
      * @description 保存一条数据，若数据包含 _id 字段，则为更新，否则为插入
      *     @param document 指定要保存的数据
      *    
      */
-    save(document: object): void;
+    save(document: FIBJS.GeneralObject): void;
 
     /**
      * @description 根据给定的查询条件更新数据
@@ -66,7 +67,7 @@ declare class Class_MongoCollection extends Class_object {
      *     @param multi 当符合条件的数据多于一条时，更新所有数据，缺省为 false，只更新第一条
      *    
      */
-    update(query: object, document: object, upsert: boolean, multi: boolean): void;
+    update(query: FIBJS.GeneralObject, document: FIBJS.GeneralObject, upsert?: boolean, multi?: boolean): void;
 
     /**
      * @description 根据给定的查询条件更新数据
@@ -75,14 +76,14 @@ declare class Class_MongoCollection extends Class_object {
      *     @param options 以对象字段传递的 upsert 和 multi 选项
      *    
      */
-    update(query: object, document: object, options: object): void;
+    update(query: FIBJS.GeneralObject, document: FIBJS.GeneralObject, options: FIBJS.GeneralObject): void;
 
     /**
      * @description 根据给定的查询条件删除数据
      *     @param query 指定查询条件的对象
      *    
      */
-    remove(query: object): void;
+    remove(query: FIBJS.GeneralObject): void;
 
     /**
      * @description 执行数据库命令
@@ -90,7 +91,7 @@ declare class Class_MongoCollection extends Class_object {
      *     @return 返回命令返回结果
      *    
      */
-    runCommand(cmd: object): object;
+    runCommand(cmd: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
      * @description 执行数据库命令
@@ -99,7 +100,7 @@ declare class Class_MongoCollection extends Class_object {
      *     @return 返回命令返回结果
      *    
      */
-    runCommand(cmd: string, arg: object): object;
+    runCommand(cmd: string, arg?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
      * @description 删除当前集合 
@@ -112,14 +113,14 @@ declare class Class_MongoCollection extends Class_object {
      *     @param options 给定索引的选项，唯一索引等
      *    
      */
-    ensureIndex(keys: object, options: object): void;
+    ensureIndex(keys: FIBJS.GeneralObject, options?: FIBJS.GeneralObject): void;
 
     /**
      * @description 重建当前集合的索引
      *     @return 返回命令执行结果
      *    
      */
-    reIndex(): object;
+    reIndex(): FIBJS.GeneralObject;
 
     /**
      * @description 删除当前集合指定名称的索引
@@ -127,14 +128,14 @@ declare class Class_MongoCollection extends Class_object {
      *     @return 返回命令执行结果
      *    
      */
-    dropIndex(name: string): object;
+    dropIndex(name: string): FIBJS.GeneralObject;
 
     /**
      * @description 删除当前集合全部索引
      *     @return 返回命令执行结果
      *    
      */
-    dropIndexes(): object;
+    dropIndexes(): FIBJS.GeneralObject;
 
     /**
      * @description 查询当前集合全部索引

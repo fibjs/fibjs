@@ -1,6 +1,7 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
-/// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/PKey.d.ts" />
+/// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/X509Cert.d.ts" />
 /**
  * @description x509 证书请求对象
@@ -16,6 +17,29 @@ declare class Class_X509Req extends Class_object {
      * @description X509Req 构造函数 
      */
     constructor();
+
+    /**
+     * @description X509Req 构造函数，根据给定的信息创建一个证书请求
+     *      @param subject 证书的主题可分辨名称
+     *      @param key 证书的公钥
+     *      @param hash 证书摘要算法，缺省为 hash.SHA1
+     *     
+     */
+    constructor(subject: string, key: Class_PKey, hash: number);
+
+    /**
+     * @description X509Req 构造函数，加载一个 DER 格式的证书请求
+     *      @param derReq DER 格式的证书请求
+     *     
+     */
+    constructor(derReq: Class_Buffer);
+
+    /**
+     * @description X509Req 构造函数，加载一个 PEM 格式的证书请求
+     *      @param pemReq DER 格式的证书请求
+     *     
+     */
+    constructor(pemReq: string);
 
     /**
      * @description 加载一个 DER 格式的证书请求
@@ -72,9 +96,9 @@ declare class Class_X509Req extends Class_object {
      *      @return 返回签名后的正式证书
      *      
      */
-    sign(issuer: string, key: Class_PKey, opts: object): Class_X509Cert;
+    sign(issuer: string, key: Class_PKey, opts?: FIBJS.GeneralObject): Class_X509Cert;
 
-    sign(issuer: string, key: Class_PKey, opts: object, callback: (err: Error | undefined | null, retVal: Class_X509Cert)=>any): void;
+    sign(issuer: string, key: Class_PKey, opts?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: Class_X509Cert)=>any): void;
 
     /**
      * @description 获取证书的主题可分辨名称 

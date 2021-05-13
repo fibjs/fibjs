@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/LruCache.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
@@ -40,7 +41,7 @@ declare module 'util' {
      *      @return 返回格式化后的字符串
      *      
      */
-    function inspect(obj: object, options: object): string;
+    function inspect(obj: FIBJS.GeneralObject, options?: FIBJS.GeneralObject): string;
 
     /**
      * @description 封装给定的函数，本函数仅为兼容，并不输出警告
@@ -51,7 +52,7 @@ declare module 'util' {
      *      @return 如果封装结果
      *      
      */
-    function deprecate(fn: ()=>any, msg: string, code: string): ()=>any;
+    function deprecate(fn: (...args: any[])=>any, msg: string, code?: string): (...args: any[])=>any;
 
     /**
      * @description 检测给定的变量是否不包含任何值(没有可枚举的属性)
@@ -369,7 +370,7 @@ declare module 'util' {
      *      @return 返回过滤的结果
      *      
      */
-    function pick(v: any, ...objs: any[]): object;
+    function pick(v: any, ...objs: any[]): FIBJS.GeneralObject;
 
     /**
      * @description 返回一个object副本，只过排除指定键的属性值
@@ -379,7 +380,7 @@ declare module 'util' {
      *      @return 返回排除的结果
      *      
      */
-    function omit(v: any, ...keys: any[]): object;
+    function omit(v: any, ...keys: any[]): FIBJS.GeneralObject;
 
     /**
      * @description 获取数组的第一个元素
@@ -427,7 +428,7 @@ declare module 'util' {
      *      @return 返回去重元素后的数组
      *      
      */
-    function unique(v: any, sorted: boolean): any[];
+    function unique(v: any, sorted?: boolean): any[];
 
     /**
      * @description 将一个或者多个数组的值合并成一个值唯一的数组
@@ -455,7 +456,7 @@ declare module 'util' {
      *      @return 返回转换的结果
      *      
      */
-    function flatten(arr: any, shallow: boolean): any[];
+    function flatten(arr: any, shallow?: boolean): any[];
 
     /**
      * @description 返回一个包含 arr 数组中排除一个或者多个元素后的数组
@@ -486,7 +487,7 @@ declare module 'util' {
      *      @return 返回 list 本身
      *      
      */
-    function each(list: any, iterator: ()=>any, context: any): any;
+    function each(list: any, iterator: (...args: any[])=>any, context?: any): any;
 
     /**
      * @description 通过变换函数（iterator迭代器）把 list 中的每个值映射到一个新的数组中。如果传递了 context 参数，则把 iterator 绑定到 context 对象上。每次调用 iterator 都会传递三个参数：(element, index, list)
@@ -497,7 +498,7 @@ declare module 'util' {
      *      @return 返回变换的结果
      *      
      */
-    function map(list: any, iterator: ()=>any, context: any): any[];
+    function map(list: any, iterator: (...args: any[])=>any, context?: any): any[];
 
     /**
      * @description 把 list中 元素归结为一个单独的数值。如果传递了 context 参数，则把 iterator 绑定到 context 对象上。每次调用 iterator 都会传递三个参数：(memo, element, index, list)
@@ -509,7 +510,7 @@ declare module 'util' {
      *      @return 返回归结的结果
      *      
      */
-    function reduce(list: any, iterator: ()=>any, memo: any, context: any): any;
+    function reduce(list: any, iterator: (...args: any[])=>any, memo: any, context?: any): any;
 
     /**
      * @description LRU(least recently used) 缓存对象，参见 LruCache 对象。
@@ -536,7 +537,7 @@ declare module 'util' {
      *      @return 返回编译出的二进制代码
      *      
      */
-    function compile(srcname: string, script: string, mode: number): Class_Buffer;
+    function compile(srcname: string, script: string, mode?: number): Class_Buffer;
 
     /**
      * @description 包裹 callback 或 async 函数为同步调用
@@ -589,7 +590,7 @@ declare module 'util' {
      *      @return 返回同步运行的函数
      *      
      */
-    function sync(func: ()=>any, async_func: boolean): ()=>any;
+    function sync(func: (...args: any[])=>any, async_func?: boolean): (...args: any[])=>any;
 
     /**
      * @description 包裹 callback 函数为 async 调用
@@ -615,7 +616,7 @@ declare module 'util' {
      *      @return 返回 async 函数
      *      
      */
-    function promisify(func: ()=>any): ()=>any;
+    function promisify(func: (...args: any[])=>any): (...args: any[])=>any;
 
     /**
      * @description 包裹 async 函数为 callback 调用
@@ -642,7 +643,7 @@ declare module 'util' {
      *      @return 返回 callback 函数
      *      
      */
-    function callbackify(func: ()=>any): ()=>any;
+    function callbackify(func: (...args: any[])=>any): (...args: any[])=>any;
 
     /**
      * @description 查询当前引擎及各组件版本信息
@@ -676,7 +677,7 @@ declare module 'util' {
      *      @return 返回组件版本对象
      *      
      */
-    function buildInfo(): object;
+    function buildInfo(): FIBJS.GeneralObject;
 
 }
 

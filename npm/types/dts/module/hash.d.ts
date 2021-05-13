@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/Digest.d.ts" />
 /**
@@ -61,7 +62,7 @@ declare module 'hash' {
      *      @return 返回构造的信息摘要对象
      *      
      */
-    function digest(algo: number, data: Class_Buffer): Class_Digest;
+    function digest(algo: number, data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 MD2 信息摘要运算对象
@@ -69,7 +70,7 @@ declare module 'hash' {
      *      @return 返回构造的信息摘要对象
      *      
      */
-    function md2(data: Class_Buffer): Class_Digest;
+    function md2(data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 MD4 信息摘要运算对象
@@ -77,7 +78,7 @@ declare module 'hash' {
      *      @return 返回构造的信息摘要对象
      *      
      */
-    function md4(data: Class_Buffer): Class_Digest;
+    function md4(data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 MD5 信息摘要运算对象
@@ -85,7 +86,7 @@ declare module 'hash' {
      *      @return 返回构造的信息摘要对象
      *      
      */
-    function md5(data: Class_Buffer): Class_Digest;
+    function md5(data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 SHA1 信息摘要运算对象
@@ -93,7 +94,7 @@ declare module 'hash' {
      *      @return 返回构造的信息摘要对象
      *      
      */
-    function sha1(data: Class_Buffer): Class_Digest;
+    function sha1(data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 SHA224 信息摘要运算对象
@@ -101,7 +102,7 @@ declare module 'hash' {
      *      @return 返回构造的信息摘要对象
      *      
      */
-    function sha224(data: Class_Buffer): Class_Digest;
+    function sha224(data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 SHA256 信息摘要运算对象
@@ -109,7 +110,7 @@ declare module 'hash' {
      *      @return 返回构造的信息摘要对象
      *      
      */
-    function sha256(data: Class_Buffer): Class_Digest;
+    function sha256(data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 SHA384 信息摘要运算对象
@@ -117,7 +118,7 @@ declare module 'hash' {
      *      @return 返回构造的信息摘要对象
      *      
      */
-    function sha384(data: Class_Buffer): Class_Digest;
+    function sha384(data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 SHA512 信息摘要运算对象
@@ -125,7 +126,7 @@ declare module 'hash' {
      *      @return 返回构造的信息摘要对象
      *      
      */
-    function sha512(data: Class_Buffer): Class_Digest;
+    function sha512(data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 RIPEMD160 信息摘要运算对象
@@ -133,7 +134,7 @@ declare module 'hash' {
      *      @return 返回构造的信息摘要对象
      *      
      */
-    function ripemd160(data: Class_Buffer): Class_Digest;
+    function ripemd160(data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 SM3 信息摘要运算对象
@@ -141,7 +142,7 @@ declare module 'hash' {
      *      @return 返回构造的信息摘要对象
      *      
      */
-    function sm3(data: Class_Buffer): Class_Digest;
+    function sm3(data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 根据指定的算法标识创建一个信息摘要签名运算对象
@@ -151,7 +152,7 @@ declare module 'hash' {
      *      @return 返回构造的信息摘要对象
      *      
      */
-    function hmac(algo: number, key: Class_Buffer, data: Class_Buffer): Class_Digest;
+    function hmac(algo: number, key: Class_Buffer, data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 MD2 信息摘要签名运算对象
@@ -160,7 +161,7 @@ declare module 'hash' {
      *      @return 返回构造的信息摘要对象
      *      
      */
-    function hmac_md2(key: Class_Buffer, data: Class_Buffer): Class_Digest;
+    function hmac_md2(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 MD4 信息摘要签名运算对象
@@ -169,7 +170,7 @@ declare module 'hash' {
      *      @return 返回构造的信息摘要对象
      *      
      */
-    function hmac_md4(key: Class_Buffer, data: Class_Buffer): Class_Digest;
+    function hmac_md4(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 MD5 信息摘要签名运算对象
@@ -178,7 +179,7 @@ declare module 'hash' {
      *      @return 返回构造的信息摘要对象
      *      
      */
-    function hmac_md5(key: Class_Buffer, data: Class_Buffer): Class_Digest;
+    function hmac_md5(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 SHA1 信息摘要签名运算对象
@@ -187,7 +188,7 @@ declare module 'hash' {
      *      @return 返回构造的信息摘要对象
      *      
      */
-    function hmac_sha1(key: Class_Buffer, data: Class_Buffer): Class_Digest;
+    function hmac_sha1(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 SHA224 信息摘要签名运算对象
@@ -196,7 +197,7 @@ declare module 'hash' {
      *      @return 返回构造的信息摘要对象
      *      
      */
-    function hmac_sha224(key: Class_Buffer, data: Class_Buffer): Class_Digest;
+    function hmac_sha224(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 SHA256 信息摘要签名运算对象
@@ -205,7 +206,7 @@ declare module 'hash' {
      *      @return 返回构造的信息摘要对象
      *      
      */
-    function hmac_sha256(key: Class_Buffer, data: Class_Buffer): Class_Digest;
+    function hmac_sha256(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 SHA384 信息摘要签名运算对象
@@ -214,7 +215,7 @@ declare module 'hash' {
      *      @return 返回构造的信息摘要对象
      *      
      */
-    function hmac_sha384(key: Class_Buffer, data: Class_Buffer): Class_Digest;
+    function hmac_sha384(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 SHA512 信息摘要签名运算对象
@@ -223,7 +224,7 @@ declare module 'hash' {
      *      @return 返回构造的信息摘要对象
      *      
      */
-    function hmac_sha512(key: Class_Buffer, data: Class_Buffer): Class_Digest;
+    function hmac_sha512(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 RIPEMD160 信息摘要签名运算对象
@@ -232,7 +233,7 @@ declare module 'hash' {
      *      @return 返回构造的信息摘要对象
      *      
      */
-    function hmac_ripemd160(key: Class_Buffer, data: Class_Buffer): Class_Digest;
+    function hmac_ripemd160(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 SM3 信息摘要签名运算对象
@@ -241,7 +242,7 @@ declare module 'hash' {
      *      @return 返回构造的信息摘要对象
      *      
      */
-    function hmac_sm3(key: Class_Buffer, data: Class_Buffer): Class_Digest;
+    function hmac_sm3(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
 
 }
 

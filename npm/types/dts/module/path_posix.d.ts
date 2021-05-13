@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /**
  * @description 文件路径处理模块
  * 
@@ -25,7 +26,7 @@ declare module 'path_posix' {
      *      @return 返回文件名称
      *      
      */
-    function basename(path: string, ext: string): string;
+    function basename(path: string, ext?: string): string;
 
     /**
      * @description 查询路径中的文件扩展名
@@ -53,7 +54,7 @@ declare module 'path_posix' {
      *      @return 返回格式化后的路径
      *      
      */
-    function format(pathObject: object): string;
+    function format(pathObject: FIBJS.GeneralObject): string;
 
     /**
      * @description 解析路径为路径对象
@@ -62,7 +63,7 @@ declare module 'path_posix' {
      *      @return 返回pathObject 对象
      *      
      */
-    function parse(path: string): object;
+    function parse(path: string): FIBJS.GeneralObject;
 
     /**
      * @description 查询路径中的目录路径
@@ -126,7 +127,7 @@ declare module 'path_posix' {
      *      @return 返回得到的新路径
      *      
      */
-    function toNamespacedPath(path: any): any;
+    function toNamespacedPath(path?: any): any;
 
     /**
      * @description 查询当前操作系统的路径分割字符，posix 返回 '/', windows 返回  '\\'
@@ -144,13 +145,13 @@ declare module 'path_posix' {
      * @description posix 实现，参见 path_posix
      *      
      */
-    const posix: object;
+    const posix: FIBJS.GeneralObject;
 
     /**
      * @description windows 实现，参见 path_win32
      *      
      */
-    const win32: object;
+    const win32: FIBJS.GeneralObject;
 
 }
 

@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
@@ -22,7 +23,32 @@ declare class Class_SandBox extends Class_object {
      *      @param mods 指定要添加的模块对象字典
      *      
      */
-    constructor(mods: object);
+    constructor(mods: FIBJS.GeneralObject);
+
+    /**
+     * @description 构造一个新的安全沙箱对象，并初始化基础模块
+     *      @param mods 指定要添加的模块对象字典
+     *      @param require 自定义 require 函数，当模块不存在时，先调用自定义函数，无返回再从文件中加载
+     *      
+     */
+    constructor(mods: FIBJS.GeneralObject, require: (...args: any[])=>any);
+
+    /**
+     * @description 构造一个独立 Global 新的安全沙箱对象，并初始化基础模块
+     *      @param mods 指定要添加的模块对象字典
+     *      @param global 指定初始化的 Global 属性
+     *      
+     */
+    constructor(mods: FIBJS.GeneralObject, global: FIBJS.GeneralObject);
+
+    /**
+     * @description 构造一个独立 Global 新的安全沙箱对象，并初始化基础模块
+     *      @param mods 指定要添加的模块对象字典
+     *      @param require 自定义 require 函数，当模块不存在时，先调用自定义函数，无返回再从文件中加载
+     *      @param global 指定初始化的 Global 属性
+     *      
+     */
+    constructor(mods: FIBJS.GeneralObject, require: (...args: any[])=>any, global: FIBJS.GeneralObject);
 
     /**
      * @description 向沙箱中添加一个基础模块
@@ -37,7 +63,7 @@ declare class Class_SandBox extends Class_object {
      *      @param mods 指定要添加的模块对象字典，添加的 javascript 模块将会生成一份复制，以避免沙箱修改对象产生互相干扰
      *      
      */
-    add(mods: object): void;
+    add(mods: FIBJS.GeneralObject): void;
 
     /**
      * @description 向沙箱中添加一个脚本模块
@@ -86,7 +112,7 @@ declare class Class_SandBox extends Class_object {
      *      @param argv 指定要运行的参数，此参数可在脚本内使用 argv 获取
      *      
      */
-    run(fname: string, argv: any[]): void;
+    run(fname: string, argv?: any[]): void;
 
     /**
      * @description 查询一个模块并返回模块完整文件名
@@ -139,18 +165,18 @@ declare class Class_SandBox extends Class_object {
      *      @param compiler 编译回调函数, 所有带 extname 的文件仅会 require 一次. 该回调函数格式为 `compiler(buf, requireInfo)`, buf 为读取到的文件 Buffer, requireInfo 结构为 `{filename: string}`.
      *      
      */
-    setModuleCompiler(extname: string, compiler: ()=>any): void;
+    setModuleCompiler(extname: string, compiler: (...args: any[])=>any): void;
 
     /**
      * @description 查询沙箱的 global 对象 
      */
-    readonly global: object;
+    readonly global: FIBJS.GeneralObject;
 
     /**
      * @description 查询沙箱中现存的所有模块的字典对象
      *      
      */
-    readonly modules: object;
+    readonly modules: FIBJS.GeneralObject;
 
 }
 

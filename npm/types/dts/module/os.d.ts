@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Service.d.ts" />
 /// <reference path="../interface/BufferedStream.d.ts" />
 /**
@@ -122,14 +123,14 @@ declare module 'os' {
      *      @return 当前有效执行用户信息
      *     
      */
-    function userInfo(options: object): object;
+    function userInfo(options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
      * @description 查询当前运行环境网络信息
      *      @return 返回网卡信息
      *     
      */
-    function networkInterfaces(): object;
+    function networkInterfaces(): FIBJS.GeneralObject;
 
     /**
      * @description 查询当前主机的打印机信息
@@ -161,7 +162,7 @@ declare module 'os' {
      *      @return 返回 javascript Date 对象
      *      
      */
-    function time(tmString: string): typeof Date;
+    function time(tmString?: string): typeof Date;
 
     /**
      * @description 时间计算函数，根据 part 指定计算时间
@@ -198,7 +199,7 @@ declare module 'os' {
      *      @return 返回包含内存报告
      *      
      */
-    function memoryUsage(): object;
+    function memoryUsage(): FIBJS.GeneralObject;
 
 }
 

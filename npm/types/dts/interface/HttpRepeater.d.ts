@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/HttpClient.d.ts" />
 /**
@@ -19,6 +20,13 @@ declare class Class_HttpRepeater extends Class_Handler {
      *     
      */
     constructor(url: string);
+
+    /**
+     * @description HttpRepeater 构造函数，创建一个新的 HttpRepeater 对象
+     *      @param urls 指定一组后端服务器 url
+     *     
+     */
+    constructor(urls: any[]);
 
     /**
      * @description 加载一组新的后端 url

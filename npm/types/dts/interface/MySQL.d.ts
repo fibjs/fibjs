@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/DbConnection.d.ts" />
 /**
  * @description mysql 数据库连接对象

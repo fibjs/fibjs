@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/UrlObject.d.ts" />
 /**
  * @description url 处理模块 
@@ -9,7 +10,7 @@ declare module 'url' {
      *      @return 返回构造成功的字符串
      *      
      */
-    function format(args: object): string;
+    function format(args: FIBJS.GeneralObject): string;
 
     /**
      * @description 解析一个 url 字符串
@@ -19,7 +20,7 @@ declare module 'url' {
      *      @return 返回包含解析数据的对象
      *      
      */
-    function parse(url: string, parseQueryString: boolean, slashesDenoteHost: boolean): Class_UrlObject;
+    function parse(url: string, parseQueryString?: boolean, slashesDenoteHost?: boolean): Class_UrlObject;
 
     /**
      * @description 合并相对路径成为一个绝对路径

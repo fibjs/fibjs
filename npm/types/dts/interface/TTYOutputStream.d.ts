@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /**
  * @description tty 写流对象, 用于处理 tty 输出
@@ -28,7 +29,7 @@ declare class Class_TTYOutputStream extends Class_Stream {
      *      @param dir 清理方向
      *      
      */
-    clearLine(dir: number): void;
+    clearLine(dir?: number): void;
 
     /**
      * @description 清除从光标处起到屏幕结尾的字符

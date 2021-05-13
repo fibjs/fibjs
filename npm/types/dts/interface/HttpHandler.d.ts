@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /**
  * @description http 协议转换处理器
@@ -25,7 +26,7 @@ declare class Class_HttpHandler extends Class_Handler {
      *      @param allowHeaders 指定接受的 http 头字段
      *      
      */
-    enableCrossOrigin(allowHeaders: string): void;
+    enableCrossOrigin(allowHeaders?: string): void;
 
     /**
      * @description 查询和设置最大请求头个数，缺省为 128 

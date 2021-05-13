@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../module/base32.d.ts" />
 /// <reference path="../module/base64.d.ts" />
 /// <reference path="../module/base64vlq.d.ts" />
@@ -56,7 +57,7 @@ declare module 'encoding' {
      *      @return 返回编码的字符串
      *      
      */
-    function jsstr(str: string, json: boolean): string;
+    function jsstr(str: string, json?: boolean): string;
 
     /**
      * @description url 字符串安全编码

@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/XmlNode.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/XmlDocumentType.d.ts" />
@@ -20,7 +21,7 @@ declare class Class_XmlDocument extends Class_XmlNode {
      *      @param type 指定文档对象的类型，缺省为 "text/xml"，若需要处理 html 则需要指定 "text/html"
      *     
      */
-    constructor(type: string);
+    constructor(type?: string);
 
     /**
      * @description 通过解析一个 XML/HTML 字符串来组成该文档，不支持多语种

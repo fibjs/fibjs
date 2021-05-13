@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/EventEmitter.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /**
@@ -58,7 +59,7 @@ declare class Class_ChildProcess extends Class_EventEmitter {
     /**
      * @description 查询和绑定进程退出事件，相当于 on("exit", func); 
      */
-    onexit: ()=>any;
+    onexit: (...args: any[])=>any;
 
 }
 

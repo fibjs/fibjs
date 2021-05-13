@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/XmlText.d.ts" />
 /**
  * @description XmlCDATASection 对象表示文档中的 CDATA 区段

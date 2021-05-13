@@ -1,6 +1,8 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/HttpServer.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/X509Cert.d.ts" />
+/// <reference path="../interface/PKey.d.ts" />
 /**
  * @description https 服务器对象
  * 
@@ -45,6 +47,53 @@ declare class Class_HttpsServer extends Class_HttpServer {
      *    
      */
     constructor(certs: any[], port: number, hdlr: Class_Handler);
+
+    /**
+     * @description HttpsServer 构造函数
+     * 
+     *     certs 格式为：
+     *     ```JavaScript
+     *     [
+     *         {
+     *             name: "fibjs.org",
+     *             crt: [X509Cert object],
+     *             key: [PKey object]
+     *         },
+     *         {
+     *             name: "*.fibjs.org",
+     *             crt: [X509Cert object],
+     *             key: [PKey object]
+     *         }
+     *     ]
+     *     ```
+     *     @param certs 服务器证书列表
+     *     @param addr 指定 http 服务器侦听地址，为 "" 则在本机所有地址侦听
+     *     @param port 指定 http 服务器侦听端口
+     *     @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象，详见
+     *    
+     */
+    constructor(certs: any[], addr: string, port: number, hdlr: Class_Handler);
+
+    /**
+     * @description HttpsServer 构造函数，在所有本机地址侦听
+     *     @param crt X509Cert 证书，用于客户端验证服务器
+     *     @param key PKey 私钥，用于与客户端会话
+     *     @param port 指定 http 服务器侦听端口
+     *     @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象，详见
+     *    
+     */
+    constructor(crt: Class_X509Cert, key: Class_PKey, port: number, hdlr: Class_Handler);
+
+    /**
+     * @description HttpsServer 构造函数
+     *     @param crt X509Cert 证书，用于客户端验证服务器
+     *     @param key PKey 私钥，用于与客户端会话
+     *     @param addr 指定 http 服务器侦听地址，为 "" 则在本机所有地址侦听
+     *     @param port 指定 http 服务器侦听端口
+     *     @param hdlr http 内置消息处理器，处理函数，链式处理数组，路由对象，详见
+     *    
+     */
+    constructor(crt: Class_X509Cert, key: Class_PKey, addr: string, port: number, hdlr: Class_Handler);
 
     /**
      * @description 设定证书验证模式，缺省为 VERIFY_NONE 

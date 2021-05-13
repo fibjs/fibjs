@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
  * @description 纤程锁对象
@@ -29,7 +30,7 @@ declare class Class_Lock extends Class_object {
      *      @return 返回是否成功获取锁，为 true 表示成功获取
      *      
      */
-    acquire(blocking: boolean): boolean;
+    acquire(blocking?: boolean): boolean;
 
     /**
      * @description 释放锁的拥有权

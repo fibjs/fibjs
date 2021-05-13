@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /**
@@ -36,9 +37,9 @@ declare class Class_Smtp extends Class_object {
      *      @param hostname 主机名，缺省为“localhost”
      *      
      */
-    hello(hostname: string): void;
+    hello(hostname?: string): void;
 
-    hello(hostname: string, callback: (err: Error | undefined | null)=>any): void;
+    hello(hostname?: string, callback?: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 用指定的用户及密码登录服务器，服务器报错则抛出错误

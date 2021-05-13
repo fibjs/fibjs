@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/MySQL.d.ts" />
 /// <reference path="../interface/DbConnection.d.ts" />
@@ -103,7 +104,7 @@ declare module 'db' {
      *      @return 返回格式化之后的 sql 命令
      *      
      */
-    function format(method: string, opts: object): string;
+    function format(method: string, opts: FIBJS.GeneralObject): string;
 
     /**
      * @description 格式化一个 sql 命令，并返回格式化结果
@@ -123,7 +124,7 @@ declare module 'db' {
      *      @return 返回格式化之后的 mysql 命令
      *      
      */
-    function formatMySQL(method: string, opts: object): string;
+    function formatMySQL(method: string, opts: FIBJS.GeneralObject): string;
 
     /**
      * @description 格式化一个 mysql 命令，并返回格式化结果
@@ -143,7 +144,7 @@ declare module 'db' {
      *      @return 返回格式化之后的 mssql 命令
      *      
      */
-    function formatMSSQL(method: string, opts: object): string;
+    function formatMSSQL(method: string, opts: FIBJS.GeneralObject): string;
 
     /**
      * @description 格式化一个 mssql 命令，并返回格式化结果

@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
@@ -14,6 +15,20 @@ declare class Class_X509Crl extends Class_object {
      * @description X509Crl 构造函数 
      */
     constructor();
+
+    /**
+     * @description X509Crl 构造函数,加载一个 DER 格式的撤销证书
+     *      @param derCrl DER 格式的撤销证书
+     *     
+     */
+    constructor(derCrl: Class_Buffer);
+
+    /**
+     * @description X509Crl 构造函数,加载一个 PEM 格式的撤销证书
+     *      @param pemCrl PEM 格式的撤销证书
+     *     
+     */
+    constructor(pemCrl: string);
 
     /**
      * @description 加载一个 DER 格式的撤销证书，可多次调用
@@ -42,7 +57,7 @@ declare class Class_X509Crl extends Class_object {
      *      @return 以数组方式导出撤销证书链
      *     
      */
-    dump(pem: boolean): any[];
+    dump(pem?: boolean): any[];
 
     /**
      * @description 清空已经加载的撤销证书

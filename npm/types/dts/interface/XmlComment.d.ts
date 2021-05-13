@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/XmlCharacterData.d.ts" />
 /**
  * @description XmlComment 对象表示文档中注释节点的内容

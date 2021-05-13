@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/MemoryStream.d.ts" />
 /// <reference path="../interface/BufferedStream.d.ts" />
 /// <reference path="../interface/RangeStream.d.ts" />
@@ -35,9 +36,9 @@ declare module 'io' {
      *      @return 返回复制的字节数
      *      
      */
-    function copyStream(from: Class_Stream, to: Class_Stream, bytes: number): number;
+    function copyStream(from: Class_Stream, to: Class_Stream, bytes?: number): number;
 
-    function copyStream(from: Class_Stream, to: Class_Stream, bytes: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function copyStream(from: Class_Stream, to: Class_Stream, bytes?: number, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 双向复制流数据，直到流中无数据，或者流被关闭

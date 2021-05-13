@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
@@ -30,7 +31,7 @@ declare class Class_RedisHash extends Class_object {
      * @description 同时将多个 field-value (域-值)对设置到哈希表中，此命令会覆盖哈希表中已存在的域
      *      @param kvs 指定要设置的 field/value 对象
      */
-    mset(kvs: object): void;
+    mset(kvs: FIBJS.GeneralObject): void;
 
     /**
      * @description 同时将多个 field-value (域-值)对设置到哈希表中，此命令会覆盖哈希表中已存在的域
@@ -65,7 +66,7 @@ declare class Class_RedisHash extends Class_object {
      *      @param num 指定要加上的数值
      *      @return 加上 num 之后，域的值 
      */
-    incr(field: Class_Buffer, num: number): number;
+    incr(field: Class_Buffer, num?: number): number;
 
     /**
      * @description 返回哈希表中，所有的域和值

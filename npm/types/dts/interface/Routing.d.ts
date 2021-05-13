@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /**
  * @description 消息处理器路由对象
@@ -86,7 +87,15 @@ declare class Class_Routing extends Class_Handler {
      *    @param map 初始化路由参数
      *    
      */
-    constructor(map: object);
+    constructor(map?: FIBJS.GeneralObject);
+
+    /**
+     * @description 创建一个消息处理器路由对象
+     *    @param method 指定 http 请求方法，"*" 接受所有方法
+     *    @param map 初始化路由参数
+     *    
+     */
+    constructor(method: string, map: FIBJS.GeneralObject);
 
     /**
      * @description 从已有路由对象中添加规则，添加后原路由将被清空
@@ -102,7 +111,7 @@ declare class Class_Routing extends Class_Handler {
      *    @return 返回路由对象本身
      *    
      */
-    append(map: object): Class_Routing;
+    append(map: FIBJS.GeneralObject): Class_Routing;
 
     /**
      * @description 添加一条路由规则
@@ -129,7 +138,7 @@ declare class Class_Routing extends Class_Handler {
      *    @return 返回路由对象本身
      *    
      */
-    host(map: object): Class_Routing;
+    host(map: FIBJS.GeneralObject): Class_Routing;
 
     /**
      * @description 添加一条接受 http 域名的路由规则
@@ -146,7 +155,7 @@ declare class Class_Routing extends Class_Handler {
      *    @return 返回路由对象本身
      *    
      */
-    all(map: object): Class_Routing;
+    all(map: FIBJS.GeneralObject): Class_Routing;
 
     /**
      * @description 添加一条接受所有 http 方法路由规则
@@ -163,7 +172,7 @@ declare class Class_Routing extends Class_Handler {
      *    @return 返回路由对象本身
      *    
      */
-    get(map: object): Class_Routing;
+    get(map: FIBJS.GeneralObject): Class_Routing;
 
     /**
      * @description 添加一条接受 http GET 方法路由规则
@@ -180,7 +189,7 @@ declare class Class_Routing extends Class_Handler {
      *    @return 返回路由对象本身
      *    
      */
-    post(map: object): Class_Routing;
+    post(map: FIBJS.GeneralObject): Class_Routing;
 
     /**
      * @description 添加一条接受 http POST 方法路由规则
@@ -197,7 +206,7 @@ declare class Class_Routing extends Class_Handler {
      *    @return 返回路由对象本身
      *    
      */
-    del(map: object): Class_Routing;
+    del(map: FIBJS.GeneralObject): Class_Routing;
 
     /**
      * @description 添加一条接受 http DELETE 方法路由规则
@@ -214,7 +223,7 @@ declare class Class_Routing extends Class_Handler {
      *    @return 返回路由对象本身
      *    
      */
-    put(map: object): Class_Routing;
+    put(map: FIBJS.GeneralObject): Class_Routing;
 
     /**
      * @description 添加一条接受 http PUT 方法路由规则
@@ -231,7 +240,7 @@ declare class Class_Routing extends Class_Handler {
      *    @return 返回路由对象本身
      *    
      */
-    patch(map: object): Class_Routing;
+    patch(map: FIBJS.GeneralObject): Class_Routing;
 
     /**
      * @description 添加一条接受 http PATCH 方法路由规则
@@ -248,7 +257,7 @@ declare class Class_Routing extends Class_Handler {
      *    @return 返回路由对象本身
      *    
      */
-    find(map: object): Class_Routing;
+    find(map: FIBJS.GeneralObject): Class_Routing;
 
     /**
      * @description 添加一条接受 http FIND 方法路由规则

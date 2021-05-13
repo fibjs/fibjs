@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/XmlCharacterData.d.ts" />
 /**
  * @description XmlText 对象表示元素或属性的文本内容

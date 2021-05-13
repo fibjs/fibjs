@@ -1,5 +1,7 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
 /// <reference path="../interface/X509Cert.d.ts" />
+/// <reference path="../interface/PKey.d.ts" />
 /**
  * @description ssl 协议转换处理器
  * 
@@ -39,6 +41,15 @@ declare class Class_SslHandler extends Class_Handler {
      *     
      */
     constructor(certs: any[], hdlr: Class_Handler);
+
+    /**
+     * @description SslHandler 构造函数，创建一个新的 SslHandler 对象
+     *       @param crt X509Cert 证书，用于客户端验证服务器
+     *       @param key PKey 私钥，用于与客户端会话
+     *       @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler
+     *      
+     */
+    constructor(crt: Class_X509Cert, key: Class_PKey, hdlr: Class_Handler);
 
     /**
      * @description 设定证书验证模式，缺省为 VERIFY_NONE 

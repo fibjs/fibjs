@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/PKey.d.ts" />
@@ -19,7 +20,7 @@ declare class Class_Digest extends Class_object {
      *      @return 返回指定编码的摘要表示
      *      
      */
-    digest(codec: string): any;
+    digest(codec?: string): any;
 
     /**
      * @description 签名并返回摘要

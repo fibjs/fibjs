@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/SeekableStream.d.ts" />
 /**
  * @description 文件操作对象，用于二进制文件读写

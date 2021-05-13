@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /**
  * @description 基础对象，所有对象均继承于此
  */
@@ -15,7 +16,7 @@ declare class Class_object {
      *      @return 返回包含可 JSON 序列化的值
      *      
      */
-    toJSON(key: string): any;
+    toJSON(key?: string): any;
 
 }
 

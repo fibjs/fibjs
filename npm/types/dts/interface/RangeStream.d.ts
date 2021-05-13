@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/SeekableStream.d.ts" />
 /**
  * @description Range 查询流读取对象
@@ -20,6 +21,15 @@ declare class Class_RangeStream extends Class_SeekableStream {
      *      
      */
     constructor(stm: Class_SeekableStream, range: string);
+
+    /**
+     * @description RangeStream 构造函数
+     *       @param stm RangeStream 的二进制基础流对象, 必须是 SeekableStream
+     *       @param begin 从 stm 读取内容的起始位置
+     *       @param end 从 stm 读取内容的结束位置
+     *      
+     */
+    constructor(stm: Class_SeekableStream, begin: number, end: number);
 
     /**
      * @description 查询 range 开始值 

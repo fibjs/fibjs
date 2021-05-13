@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Lock.d.ts" />
 /**
  * @description 纤程信号量对象
@@ -31,7 +32,7 @@ declare class Class_Semaphore extends Class_Lock {
      *      @param value 计数器初始数值
      *      
      */
-    constructor(value: number);
+    constructor(value?: number);
 
     /**
      * @description 等待一个信号量，等同于 acquire(true) 

@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/SeekableStream.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
@@ -51,9 +52,9 @@ declare class Class_Message extends Class_object {
      *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
      *      
      */
-    read(bytes: number): Class_Buffer;
+    read(bytes?: number): Class_Buffer;
 
-    read(bytes: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    read(bytes?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description 从流内读取剩余的全部数据，此方法为 body 相应方法的别名

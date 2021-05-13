@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
@@ -17,9 +18,9 @@ declare class Class_Stream extends Class_object {
      *      @return 返回从流内读取的数据，若无数据可读，或者连接中断，则返回 null
      *      
      */
-    read(bytes: number): Class_Buffer;
+    read(bytes?: number): Class_Buffer;
 
-    read(bytes: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    read(bytes?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description 将给定的数据写入流
@@ -51,9 +52,9 @@ declare class Class_Stream extends Class_object {
      *      @return 返回复制的字节数
      *      
      */
-    copyTo(stm: Class_Stream, bytes: number): number;
+    copyTo(stm: Class_Stream, bytes?: number): number;
 
-    copyTo(stm: Class_Stream, bytes: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    copyTo(stm: Class_Stream, bytes?: number, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
 
 }
 

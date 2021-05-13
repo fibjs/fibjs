@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/WebView.d.ts" />
 /**
  * @description gui 模块
@@ -71,7 +72,7 @@ declare module 'gui' {
      *      @param opt 指定设置的参数
      * 	
      */
-    function config(opt: object): void;
+    function config(opt?: FIBJS.GeneralObject): void;
 
     /**
      * @description 打开一个窗口并访问指定网址
@@ -107,7 +108,7 @@ declare module 'gui' {
      *      @return 返回打开的窗口对象
      * 	
      */
-    function open(url: string, opt: object): Class_WebView;
+    function open(url: string, opt?: FIBJS.GeneralObject): Class_WebView;
 
     /**
      * @description 打开一个空的浏览器窗口
@@ -141,7 +142,7 @@ declare module 'gui' {
      *      @return 返回打开的窗口对象
      * 	
      */
-    function open(opt: object): Class_WebView;
+    function open(opt?: FIBJS.GeneralObject): Class_WebView;
 
 }
 

@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Message.d.ts" />
 /// <reference path="../interface/HttpHandler.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />

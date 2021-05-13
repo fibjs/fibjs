@@ -12,11 +12,6 @@ const dom = require('dts-dom')
 const fs = require('fs');
 const path = require('path');
 
-const { mkdirp } = require('../../fibjs/scripts/internal/helpers/fs');
-
-const BASE_DIR = path.resolve(__dirname, `../../npm/types/dts/`);
-mkdirp(BASE_DIR);
-
 // function isIDLRestToken(paramName) {
 //     return paramName === '...';
 // }
@@ -106,6 +101,10 @@ function generalTypeMap(dataType, {
             info.type = dom.type.array('any')
             break;
         }
+        case 'TypedArray': {
+            info.type = dom.create.namedTypeReference('FIBJS.TypedArray');
+            break;
+        }
         case 'ArrayBuffer': {
             info.type = dom.create.namedTypeReference('ArrayBuffer');
             break;
@@ -127,7 +126,7 @@ function generalTypeMap(dataType, {
         }
         case 'NObject':
         case 'Object': {
-            info.type = dom.type.object;
+            info.type = dom.create.namedTypeReference('FIBJS.GeneralObject')
             break;
         }
         case 'String': {
@@ -139,7 +138,9 @@ function generalTypeMap(dataType, {
             break;
         }
         case 'Function': {
-            info.type = dom.create.functionType([], dom.type.any);
+            const funcType = dom.create.functionType([], dom.type.any);
+            funcType.parameters.push(dom.create.parameter('args', dom.create.array(dom.type.any), dom.ParameterFlags.Rest))
+            info.type = funcType;
             break;
         }
         case 'Date': {
@@ -300,7 +301,11 @@ function isVoidDomType(type) {
  * @param {import('../../idl/ir').IIDLDefinition['members'][number]['overs']} methodHost 
  * @returns 
  */
-function generateDtsFunction(functionHost, normalParams, returnType, funcFlags) {
+function generateDtsFunction(functionHost, normalParams, returnType, {
+    funcFlags,
+    withOptionalParam = false,
+    withRestArgs = false,
+} = {}) {
     let syncFunc;
     let asyncFunc;
 
@@ -313,7 +318,7 @@ function generateDtsFunction(functionHost, normalParams, returnType, funcFlags) 
         funcFlags
     )
 
-    if (functionHost.async) {
+    if (!withRestArgs && functionHost.async) {
         const errorParam = dom.create.parameter('err', dom.create.union([
             dom.create.namedTypeReference('Error'),
             dom.type.undefined,
@@ -328,7 +333,8 @@ function generateDtsFunction(functionHost, normalParams, returnType, funcFlags) 
         const params = Array.from(normalParams);
         params.push(
             dom.create.parameter(
-                'callback', callbackType
+                'callback', callbackType,
+                withOptionalParam ? dom.ParameterFlags.Optional : dom.ParameterFlags.None
             )
         )
 
@@ -351,7 +357,11 @@ function generateDtsFunction(functionHost, normalParams, returnType, funcFlags) 
  * @param {import('../../idl/ir').IIDLDefinition['members'][number]['overs']} methodHost 
  * @returns 
  */
-function generateDtsMethod(methodHost, normalParams, returnType, memFlags) {
+function generateDtsMethod(methodHost, normalParams, returnType, {
+    memFlags,
+    withOptionalParam = false,
+    withRestArgs = false
+} = {}) {
     let syncMethod;
     let asyncMethod;
 
@@ -364,7 +374,7 @@ function generateDtsMethod(methodHost, normalParams, returnType, memFlags) {
         memFlags
     )
 
-    if (methodHost.async) {
+    if (!withRestArgs && methodHost.async) {
         const errorParam = dom.create.parameter('err', dom.create.union([
             dom.create.namedTypeReference('Error'),
             dom.type.undefined,
@@ -379,7 +389,8 @@ function generateDtsMethod(methodHost, normalParams, returnType, memFlags) {
         const params = Array.from(normalParams);
         params.push(
             dom.create.parameter(
-                'callback', callbackType
+                'callback', callbackType,
+                withOptionalParam ? dom.ParameterFlags.Optional : dom.ParameterFlags.None
             )
         )
 
@@ -484,14 +495,26 @@ function processDeclareInterface(def, {
                 break
             }
             case 'method': {
+                let withOptionalParam = false;
+                let withRestArgs = false;
                 function getMethodParam(paramsHost) {
                     return (paramsHost.params || []).map(memParam => {
                         const paramDomInfo = mapParamTypeToDtsType(memParam.type, getMapParamOptions(memParam));
+                        withRestArgs = !!paramDomInfo.isRestArgs;
+
+                        let paramFlag = withRestArgs ? dom.ParameterFlags.Rest : dom.ParameterFlags.None;
+
+                        if (!paramDomInfo.isRestArgs &&
+                            (withOptionalParam || (!!memParam.default && !!memParam.default.value))
+                        ) {
+                            withOptionalParam = true;
+                            paramFlag |= dom.ParameterFlags.Optional
+                        }
 
                         return dom.create.parameter(
                             memParam.name,
                             paramDomInfo.type,
-                            paramDomInfo.isRestArgs ? dom.ParameterFlags.Rest : dom.ParameterFlags.None
+                            paramFlag
                         )
                     });
                 }
@@ -506,7 +529,7 @@ function processDeclareInterface(def, {
                                 over,
                                 getMethodParam(over),
                                 mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
-                                memFlags
+                                { memFlags, withOptionalParam, withRestArgs }
                             )
 
                             syncMethod.jsDocComment = convertIDLCommentToJSDocComment(over.comments)
@@ -519,7 +542,7 @@ function processDeclareInterface(def, {
                     } else {
                         const { syncMethod, asyncMethod } = generateDtsMethod(
                             mem, getMethodParam(mem), mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
-                            memFlags
+                            { memFlags, withOptionalParam, withRestArgs }
                         )
 
                         dtsUnitMember = syncMethod;
@@ -655,14 +678,26 @@ function processDeclareModule(def, {
                 break
             }
             case 'method': {
+                let withOptionalParam = false;
+                let withRestArgs = false;
                 function getFunctionParams(paramsHost) {
                     return (paramsHost.params || []).map(param => {
                         const paramDomInfo = mapParamTypeToDtsType(param.type, getMapParamOptions(param));
+                        withRestArgs = !!paramDomInfo.isRestArgs;
+
+                        let paramFlag = withRestArgs ? dom.ParameterFlags.Rest : dom.ParameterFlags.None;
+
+                        if (!paramDomInfo.isRestArgs &&
+                            (withOptionalParam || (!!param.default && !!param.default.value))
+                        ) {
+                            withOptionalParam = true;
+                            paramFlag |= dom.ParameterFlags.Optional;
+                        }
 
                         return dom.create.parameter(
                             param.name,
                             paramDomInfo.type,
-                            paramDomInfo.isRestArgs ? dom.ParameterFlags.Rest : dom.ParameterFlags.None
+                            paramFlag
                         )
                     });
                 }
@@ -674,7 +709,7 @@ function processDeclareModule(def, {
                             over,
                             getFunctionParams(over),
                             mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
-                            memFlags
+                            { funcFlags: memFlags, withOptionalParam, withRestArgs }
                         )
 
                         syncFunc.jsDocComment = convertIDLCommentToJSDocComment(over.comments)
@@ -685,7 +720,11 @@ function processDeclareModule(def, {
                         }
                     });
                 } else {
-                    const { asyncFunc, syncFunc } = generateDtsFunction(mem, getFunctionParams(mem), mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()));
+                    const { asyncFunc, syncFunc } = generateDtsFunction(
+                        mem,
+                        getFunctionParams(mem), mapMemMethodReturnTypeToDtsType(mem.type, getMapMemberTypeOptions()),
+                        { withOptionalParam, withRestArgs }
+                    );
 
                     dtsUnit.members.push(dtsUnitMember = syncFunc);
 
@@ -746,7 +785,7 @@ function processDeclareModule(def, {
  *  allModuleNames: Set<string>
  * }}
  */
-function gen_dts_for_declare(defs) {
+function gen_dts_for_declare(defs, { DTS_DIST_DIR }) {
     const allInterfacesNames = new Set();
     const allModuleNames = new Set();
 
@@ -768,13 +807,17 @@ function gen_dts_for_declare(defs) {
             const ismodule = def.declare.module;
             const unitCategory = ismodule ? 'module' : 'interface';
 
-            const basedir = path.resolve(BASE_DIR, `./${unitCategory}`);
-            mkdirp(basedir);
+            const basedir = path.resolve(DTS_DIST_DIR, `./${unitCategory}`);
+            if (!fs.exists(basedir)) {
+                fs.mkdir(basedir);
+            }
 
             const unitName = def.declare.name;
             const dtsUnit = !ismodule ? dom.create.class(normalizeClazzName(unitName))
                 : dom.create.module(`${unitName}`)
             const tripleSlashDirectiveMap = {};
+
+            tripleSlashDirectiveMap['_fibjs.d.ts'] = dom.create.tripleSlashReferencePathDirective(`../_import/_fibjs.d.ts`)
 
             const processOptions = {
                 unitName,
@@ -812,24 +855,72 @@ function gen_dts_for_declare(defs) {
  *  allModuleNames: Set<string>
  * }} param0 
  */
-function gen_bridge_dts({
-    allModuleNames
+function gen_fibjs_import_dts({
+    DTS_DIST_DIR
 }) {
+    const basedir = path.resolve(DTS_DIST_DIR, './_import');
+    if (!fs.exists(basedir)) {
+        fs.mkdir(basedir);
+    }
+
+    const topDeclarition = dom.create.namespace('FIBJS');
+
+    const typedArrayType = dom.create.union([
+        dom.create.namedTypeReference('Int8Array'),
+        dom.create.namedTypeReference('Uint8Array'),
+        dom.create.namedTypeReference('Int16Array'),
+        dom.create.namedTypeReference('Uint16Array'),
+        dom.create.namedTypeReference('Int32Array'),
+        dom.create.namedTypeReference('Uint32Array'),
+        dom.create.namedTypeReference('Uint8ClampedArray'),
+        dom.create.namedTypeReference('Float32Array'),
+        dom.create.namedTypeReference('Float64Array'),
+    ]);
+    const typeAlias = dom.create.alias('TypedArray', typedArrayType);
+    topDeclarition.members.push(typeAlias);
+
+    const typeGeneralObject = dom.create.interface('GeneralObject');
+    typeGeneralObject.members.push(
+        dom.create.indexSignature('k', 'string', dom.type.any),
+    );
+
+    topDeclarition.members.push(typeGeneralObject)
+
+    const commonDeclaration = dom.emit(topDeclarition, {
+        rootFlags: dom.DeclarationFlags.None,
+    });
+    fs.writeTextFile(path.join(basedir, `_fibjs.d.ts`), commonDeclaration);
+}
+
+/**
+ * 
+ * @param {{
+ *  allModuleNames: Set<string>
+ * }} param0 
+ */
+function gen_bridge_dts({
+    allModuleNames,
+    DTS_DIST_DIR
+}) {
+    const basedir = path.resolve(DTS_DIST_DIR, './_import');
+    if (!fs.exists(basedir)) {
+        fs.mkdir(basedir);
+    }
+
     const tripleSlashDirectives = [];
-    const emptyNS = dom.create.namespace('EmptyNS');
+    const topDeclarition = dom.create.module('@fibjs/types/bridge');
 
     Array.from(allModuleNames).forEach(moduleName => {
         tripleSlashDirectives.push(
-            dom.create.tripleSlashReferencePathDirective(`./module/${moduleName}.d.ts`)
+            dom.create.tripleSlashReferencePathDirective(`../module/${moduleName}.d.ts`)
         )
     });
 
-    const bridgeDeclaration = dom.emit(emptyNS, {
+    const bridgeDeclaration = dom.emit(topDeclarition, {
         rootFlags: dom.DeclarationFlags.None,
         tripleSlashDirectives
     });
-    mkdirp(BASE_DIR);
-    fs.writeTextFile(path.join(BASE_DIR, `bridge.d.ts`), bridgeDeclaration);
+    fs.writeTextFile(path.join(basedir, `bridge.d.ts`), bridgeDeclaration);
 }
 
 /**
@@ -837,10 +928,11 @@ function gen_bridge_dts({
  * 
  * @param {Record<string, import('../../idl/ir').IIDLDefinition>} defs 
  */
-module.exports = function gen_dts(defs) {
+module.exports = function gen_dts(defs, { DTS_DIST_DIR }) {
     const {
         allModuleNames,
-    } = gen_dts_for_declare(defs);
+    } = gen_dts_for_declare(defs, { DTS_DIST_DIR });
 
-    gen_bridge_dts({ allModuleNames });
+    gen_fibjs_import_dts({ DTS_DIST_DIR });
+    gen_bridge_dts({ allModuleNames, DTS_DIST_DIR });
 }

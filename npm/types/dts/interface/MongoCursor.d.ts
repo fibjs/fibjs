@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /**
  * @description mongodb 数据库数据游标对象 
@@ -29,7 +30,7 @@ declare class Class_MongoCursor extends Class_object {
      *     @return 返回游标对象本身便于链式调用
      *    
      */
-    sort(opts: object): Class_MongoCursor;
+    sort(opts: FIBJS.GeneralObject): Class_MongoCursor;
 
     /**
      * @description 查询当前游标是否有下一条记录
@@ -43,7 +44,7 @@ declare class Class_MongoCursor extends Class_object {
      *     @return 记录对象，无记录则返回 null
      *    
      */
-    next(): object;
+    next(): FIBJS.GeneralObject;
 
     /**
      * @description 查询游标的记录总数
@@ -51,7 +52,7 @@ declare class Class_MongoCursor extends Class_object {
      *     @return 返回记录总数
      *    
      */
-    count(applySkipLimit: boolean): number;
+    count(applySkipLimit?: boolean): number;
 
     /**
      * @description 查询游标的记录总数，相当于 count(true)
@@ -65,7 +66,7 @@ declare class Class_MongoCursor extends Class_object {
      *     @param func 指定处理函数
      *    
      */
-    forEach(func: ()=>any): void;
+    forEach(func: (...args: any[])=>any): void;
 
     /**
      * @description 遍历处理全部记录，并返回处理结果
@@ -73,7 +74,7 @@ declare class Class_MongoCursor extends Class_object {
      *     @return 返回处理结果数组
      *    
      */
-    map(func: ()=>any): any[];
+    map(func: (...args: any[])=>any): any[];
 
     /**
      * @description 返回当前游标全部记录的数组
@@ -88,7 +89,7 @@ declare class Class_MongoCursor extends Class_object {
      *     @return 返回游标对象本身便于链式调用
      *    
      */
-    hint(opts: object): Class_MongoCursor;
+    hint(opts: FIBJS.GeneralObject): Class_MongoCursor;
 
 }
 

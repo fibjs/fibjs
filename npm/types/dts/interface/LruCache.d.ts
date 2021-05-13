@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/EventEmitter.d.ts" />
 /**
  * @description LRU(least recently used) 缓存对象
@@ -16,7 +17,7 @@ declare class Class_LruCache extends Class_EventEmitter {
      *      @param timeout 元素失效时间，单位是 ms，小于等于 0 不失效，缺省为 0
      *      
      */
-    constructor(size: number, timeout: number);
+    constructor(size: number, timeout?: number);
 
     /**
      * @description 查询容器内数值个数 
@@ -56,7 +57,7 @@ declare class Class_LruCache extends Class_EventEmitter {
      *      @return 返回键值所对应的值
      *      
      */
-    get(name: string, updater: ()=>any): any;
+    get(name: string, updater: (...args: any[])=>any): any;
 
     /**
      * @description 设定一个键值数据，键值不存在则插入一条新数据
@@ -71,7 +72,7 @@ declare class Class_LruCache extends Class_EventEmitter {
      *      @param map 指定要设定的键值数据字典
      *      
      */
-    set(map: object): void;
+    set(map: FIBJS.GeneralObject): void;
 
     /**
      * @description 删除指定键值的全部值
@@ -90,7 +91,7 @@ declare class Class_LruCache extends Class_EventEmitter {
     /**
      * @description 查询和绑定数据超时事件，相当于 on("expire", func); 
      */
-    onexpire: ()=>any;
+    onexpire: (...args: any[])=>any;
 
 }
 

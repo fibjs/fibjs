@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /**
  * @description 进程处理模块，用以管理当前进程的资源
@@ -62,7 +63,7 @@ declare module 'process' {
     /**
      * @description 返回 fibjs 及组件的版本信息 
      */
-    const versions: object;
+    const versions: FIBJS.GeneralObject;
 
     /**
      * @description 查询当前运行执行文件完整路径 
@@ -72,7 +73,7 @@ declare module 'process' {
     /**
      * @description 查询当前进程的环境变量 
      */
-    const env: object;
+    const env: FIBJS.GeneralObject;
 
     /**
      * @description 查询当前 cpu 环境，可能的结果为 'amd64', 'arm', 'arm64', 'ia32' 
@@ -143,7 +144,7 @@ declare module 'process' {
      *      @return 返回计时时间，格式为 [seconds, nanoseconds]
      *     
      */
-    function hrtime(diff: any[]): any[];
+    function hrtime(diff?: any[]): any[];
 
     /**
      * @description 退出当前进程，并返回 exitCode 作为进程结果     
@@ -196,7 +197,7 @@ declare module 'process' {
      *      @return 返回包含内存报告
      *      
      */
-    function memoryUsage(): object;
+    function memoryUsage(): FIBJS.GeneralObject;
 
     /**
      * @description 启动一个纤程
@@ -204,7 +205,7 @@ declare module 'process' {
      *      @param args 可变参数序列，此序列会在纤程内传递给函数
      *      
      */
-    function nextTick(func: ()=>any, ...args: any[]): void;
+    function nextTick(func: (...args: any[])=>any, ...args: any[]): void;
 
     /**
      * @description 获取指定名称的内部模块

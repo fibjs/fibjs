@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/PKey.d.ts" />
@@ -15,6 +16,22 @@ declare class Class_X509Cert extends Class_object {
      * @description X509Cert 构造函数 
      */
     constructor();
+
+    /**
+     * @description X509Cert 构造函数，加载一个 DER 格式的证书
+     *      @param derCert DER 格式的证书
+     *     
+     */
+    constructor(derCert: Class_Buffer);
+
+    /**
+     * @description X509Cert 构造函数，加载一个 CRT/PEM/TXT 格式的证书
+     * 
+     *     load 加载 mozilla 的 certdata,txt， 可于 http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
+     *      @param txtCert CRT/PEM/TXT 格式的证书
+     *     
+     */
+    constructor(txtCert: string);
 
     /**
      * @description 加载一个 DER 格式的证书，可多次调用
@@ -63,7 +80,7 @@ declare class Class_X509Cert extends Class_object {
      *      @return 以数组方式导出证书链
      *     
      */
-    dump(pem: boolean): any[];
+    dump(pem?: boolean): any[];
 
     /**
      * @description 清空已经加载的证书 

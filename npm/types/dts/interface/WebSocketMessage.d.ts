@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Message.d.ts" />
 /**
  * @description websocket 消息对象
@@ -18,7 +19,7 @@ declare class Class_WebSocketMessage extends Class_Message {
      * 	@param maxSize 最大包尺寸，以 MB 为单位，缺省为 67108864(64M)
      * 	 
      */
-    constructor(type: number, masked: boolean, compress: boolean, maxSize: number);
+    constructor(type: number, masked?: boolean, compress?: boolean, maxSize?: number);
 
     /**
      * @description 查询和读取 websocket 掩码标记，缺省为 true 

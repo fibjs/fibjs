@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../module/assert.d.ts" />
 /**
  * @description 测试套件模块，用以定义管理测试套件
@@ -97,7 +98,7 @@ declare module 'test' {
      *      @param block 模块初始化代码
      *      
      */
-    function describe(name: string, block: ()=>any): void;
+    function describe(name: string, block: (...args: any[])=>any): void;
 
     /**
      * @description 暂停测试的模块定义，test.setup 后可使用 describe.skip 调用
@@ -105,7 +106,7 @@ declare module 'test' {
      *      @param block 模块初始化代码
      *      
      */
-    function xdescribe(name: string, block: ()=>any): void;
+    function xdescribe(name: string, block: (...args: any[])=>any): void;
 
     /**
      * @description 独立测试的模块定义，test.setup 后可使用 describe.only 调用
@@ -113,7 +114,7 @@ declare module 'test' {
      *      @param block 模块初始化代码
      *      
      */
-    function odescribe(name: string, block: ()=>any): void;
+    function odescribe(name: string, block: (...args: any[])=>any): void;
 
     /**
      * @description 定义一个测试项目
@@ -121,7 +122,7 @@ declare module 'test' {
      *      @param block 测试内容
      *      
      */
-    function it(name: string, block: ()=>any): void;
+    function it(name: string, block: (...args: any[])=>any): void;
 
     /**
      * @description 暂停测试的项目定义，test.setup 后可使用 it.skip 调用
@@ -129,7 +130,7 @@ declare module 'test' {
      *      @param block 测试内容
      *      
      */
-    function xit(name: string, block: ()=>any): void;
+    function xit(name: string, block: (...args: any[])=>any): void;
 
     /**
      * @description 独立测试的项目定义，test.setup 后可使用 it.only 调用
@@ -137,35 +138,35 @@ declare module 'test' {
      *      @param block 测试内容
      *      
      */
-    function oit(name: string, block: ()=>any): void;
+    function oit(name: string, block: (...args: any[])=>any): void;
 
     /**
      * @description 定义当前测试模块进入事件
      *      @param func 事件函数
      *      
      */
-    function before(func: ()=>any): void;
+    function before(func: (...args: any[])=>any): void;
 
     /**
      * @description 定义当前测试模块退出事件
      *      @param func 事件函数
      *      
      */
-    function after(func: ()=>any): void;
+    function after(func: (...args: any[])=>any): void;
 
     /**
      * @description 定义当前测试模块测试项目进入事件
      *      @param func 事件函数
      *      
      */
-    function beforeEach(func: ()=>any): void;
+    function beforeEach(func: (...args: any[])=>any): void;
 
     /**
      * @description 定义当前测试模块测试项目退出事件
      *      @param func 事件函数
      *      
      */
-    function afterEach(func: ()=>any): void;
+    function afterEach(func: (...args: any[])=>any): void;
 
     /**
      * @description 开始执行定义的测试模块

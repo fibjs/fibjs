@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/SandBox.d.ts" />
 /**
  * @description 安全沙箱模块，用于隔离不同安全等级的运行环境

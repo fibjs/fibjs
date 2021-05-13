@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
@@ -10,7 +11,7 @@ declare class Class_StringDecoder extends Class_object {
      *      @param encoding 解码编码. 默认 'utf8'.
      *      
      */
-    constructor(encoding: string);
+    constructor(encoding?: string);
 
     /**
      * @description 将内部存留的 buffer 作为字符返回。不完整的 UTF-8 和 UTF-16 字节会尝试补全。

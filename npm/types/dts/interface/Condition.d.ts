@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Lock.d.ts" />
 /**
  * @description 条件变量对象
@@ -46,6 +47,13 @@ declare class Class_Condition extends Class_Lock {
      * @description 条件变量构造函数（条件变量所需的锁由fibjs内部构造） 
      */
     constructor();
+
+    /**
+     * @description 条件变量构造函数
+     *      @param lock 使用自行构造的锁
+     *      
+     */
+    constructor(lock: Class_Lock);
 
     /**
      * @description 使纤程进入阻塞状态 

@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/XmlDocument.d.ts" />
 /// <reference path="../interface/XmlNodeList.d.ts" />
@@ -119,7 +120,7 @@ declare class Class_XmlNode extends Class_object {
      *      @return 返回所复制的节点
      *     
      */
-    cloneNode(deep: boolean): Class_XmlNode;
+    cloneNode(deep?: boolean): Class_XmlNode;
 
     /**
      * @description 返回在当前节点上匹配指定的命名空间 URI 的前缀

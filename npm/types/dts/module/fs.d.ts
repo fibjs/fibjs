@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../module/fs_constants.d.ts" />
 /// <reference path="../interface/Stat.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
@@ -58,9 +59,9 @@ declare module 'fs' {
      *      @param mode 指定查询的权限,默认为文件是否存在
      *      
      */
-    function access(path: string, mode: number): void;
+    function access(path: string, mode?: number): void;
 
-    function access(path: string, mode: number, callback: (err: Error | undefined | null)=>any): void;
+    function access(path: string, mode?: number, callback?: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 创建硬链接文件, windows 下不支持此方法
@@ -87,9 +88,9 @@ declare module 'fs' {
      *      @param mode 指定文件权限，Windows 忽略此参数，默认值: 0777
      *      
      */
-    function mkdir(path: string, mode: number): void;
+    function mkdir(path: string, mode?: number): void;
 
-    function mkdir(path: string, mode: number, callback: (err: Error | undefined | null)=>any): void;
+    function mkdir(path: string, mode?: number, callback?: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 创建一个目录
@@ -105,9 +106,9 @@ declare module 'fs' {
      *      @param opt 指定创建参数
      *      
      */
-    function mkdir(path: string, opt: object): void;
+    function mkdir(path: string, opt: FIBJS.GeneralObject): void;
 
-    function mkdir(path: string, opt: object, callback: (err: Error | undefined | null)=>any): void;
+    function mkdir(path: string, opt: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 删除一个目录
@@ -141,9 +142,9 @@ declare module 'fs' {
      *      @param mode 指定拷贝操作的修饰符，缺省为 0
      *      
      */
-    function copyFile(from: string, to: string, mode: number): void;
+    function copyFile(from: string, to: string, mode?: number): void;
 
-    function copyFile(from: string, to: string, mode: number, callback: (err: Error | undefined | null)=>any): void;
+    function copyFile(from: string, to: string, mode?: number, callback?: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 设置指定文件的访问权限，Windows 不支持此方法
@@ -234,9 +235,9 @@ declare module 'fs' {
      *      @param type 创建的软连接类型, 可选类型为'file', 'dir', 'junction', 默认为'file', 该参数只在windows上有效，当为'junction'的时候将要创建的目标路径linkpath必须为绝对路径, 而target则会被自动转化为绝对路径。
      *      
      */
-    function symlink(target: string, linkpath: string, type: string): void;
+    function symlink(target: string, linkpath: string, type?: string): void;
 
-    function symlink(target: string, linkpath: string, type: string, callback: (err: Error | undefined | null)=>any): void;
+    function symlink(target: string, linkpath: string, type?: string, callback?: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 修改文件尺寸,如果指定的长度大于源文件大小则用'\0'填充，否则多于的文件内容将丢失
@@ -258,9 +259,9 @@ declare module 'fs' {
      *      @return 实际读取的字节数
      *      
      */
-    function read(fd: number, buffer: Class_Buffer, offset: number, length: number, position: number): number;
+    function read(fd: number, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
 
-    function read(fd: number, buffer: Class_Buffer, offset: number, length: number, position: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function read(fd: number, buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 根据文件描述符，改变文件模式。只在 POSIX 系统有效。
@@ -326,9 +327,9 @@ declare module 'fs' {
      *      @return 返回打开的文件对象
      *      
      */
-    function openFile(fname: string, flags: string): Class_SeekableStream;
+    function openFile(fname: string, flags?: string): Class_SeekableStream;
 
-    function openFile(fname: string, flags: string, callback: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
+    function openFile(fname: string, flags?: string, callback?: (err: Error | undefined | null, retVal: Class_SeekableStream)=>any): void;
 
     /**
      * @description 打开文件描述符
@@ -346,9 +347,9 @@ declare module 'fs' {
      *      @return 返回打开的文件描述符
      *      
      */
-    function open(fname: string, flags: string, mode: number): number;
+    function open(fname: string, flags?: string, mode?: number): number;
 
-    function open(fname: string, flags: string, mode: number, callback: (err: Error | undefined | null, retVal: number)=>any): void;
+    function open(fname: string, flags?: string, mode?: number, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 关闭文件描述符
@@ -374,9 +375,9 @@ declare module 'fs' {
      *      @return 返回打开的文件对象
      *      
      */
-    function openTextStream(fname: string, flags: string): Class_BufferedStream;
+    function openTextStream(fname: string, flags?: string): Class_BufferedStream;
 
-    function openTextStream(fname: string, flags: string, callback: (err: Error | undefined | null, retVal: Class_BufferedStream)=>any): void;
+    function openTextStream(fname: string, flags?: string, callback?: (err: Error | undefined | null, retVal: Class_BufferedStream)=>any): void;
 
     /**
      * @description 打开文本文件，并读取内容
@@ -395,9 +396,9 @@ declare module 'fs' {
      *      @return 返回文件文本内容
      *      
      */
-    function readFile(fname: string, encoding: string): any;
+    function readFile(fname: string, encoding?: string): any;
 
-    function readFile(fname: string, encoding: string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
+    function readFile(fname: string, encoding?: string, callback?: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description 打开文件，以数组方式读取一组文本行，行结尾标识基于 EOL 属性的设置，缺省时，posix:"\n"；windows:"\r\n"
@@ -406,7 +407,7 @@ declare module 'fs' {
      *      @return 返回读取的文本行数组，若无数据可读，或者连接中断，空数组
      *      
      */
-    function readLines(fname: string, maxlines: number): any[];
+    function readLines(fname: string, maxlines?: number): any[];
 
     /**
      * @description 创建文本文件，并写入内容
@@ -451,7 +452,7 @@ declare module 'fs' {
      *      @param fname 指定映射路径，缺省清除全部缓存
      *      
      */
-    function clearZipFS(fname: string): void;
+    function clearZipFS(fname?: string): void;
 
     /**
      * @description 观察一个文件, 返回对应的 watcher 对象
@@ -468,7 +469,7 @@ declare module 'fs' {
      *      @return FSWatcher 对象
      *      
      */
-    function watch(fname: string, callback: ()=>any): Class_FSWatcher;
+    function watch(fname: string, callback: (...args: any[])=>any): Class_FSWatcher;
 
     /**
      * @description 观察一个文件, 返回对应的 watcher 对象
@@ -486,7 +487,7 @@ declare module 'fs' {
      *      @return FSWatcher 对象
      *      
      */
-    function watch(fname: string, options: object): Class_FSWatcher;
+    function watch(fname: string, options: FIBJS.GeneralObject): Class_FSWatcher;
 
     /**
      * @description 观察一个文件, 返回对应的 watcher 对象
@@ -505,7 +506,7 @@ declare module 'fs' {
      *      @return FSWatcher 对象
      *      
      */
-    function watch(fname: string, options: object, callback: ()=>any): Class_FSWatcher;
+    function watch(fname: string, options: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_FSWatcher;
 
     /**
      * @description 观察一个文件, 返回对应的 StatsWatcher 对象
@@ -514,7 +515,7 @@ declare module 'fs' {
      *      @return StatsWatcher 对象
      *      
      */
-    function watchFile(fname: string, callback: ()=>any): Class_StatsWatcher;
+    function watchFile(fname: string, callback: (...args: any[])=>any): Class_StatsWatcher;
 
     /**
      * @description 观察一个文件, 返回对应的 StatsWatcher 对象
@@ -533,7 +534,7 @@ declare module 'fs' {
      *      @return StatsWatcher 对象
      *      
      */
-    function watchFile(fname: string, options: object, callback: ()=>any): Class_StatsWatcher;
+    function watchFile(fname: string, options: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_StatsWatcher;
 
     /**
      * @description 从观察 fname 的 StatsWatcher 中移除所有观察事件的回调
@@ -553,7 +554,7 @@ declare module 'fs' {
      *      @return StatsWatcher 对象
      *      
      */
-    function unwatchFile(fname: string, callback: ()=>any): void;
+    function unwatchFile(fname: string, callback: (...args: any[])=>any): void;
 
 }
 

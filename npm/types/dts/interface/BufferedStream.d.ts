@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /**
  * @description 缓存读取对象
@@ -32,9 +33,9 @@ declare class Class_BufferedStream extends Class_Stream {
      *      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
      *      
      */
-    readLine(maxlen: number): string;
+    readLine(maxlen?: number): string;
 
-    readLine(maxlen: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+    readLine(maxlen?: number, callback?: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description 以数组方式读取一组文本行，行结尾标识基于 EOL 属性的设置，缺省时，posix:\"\\n\"；windows:\"\\r\\n\"
@@ -42,7 +43,7 @@ declare class Class_BufferedStream extends Class_Stream {
      *      @return 返回读取的文本行数组，若无数据可读，或者连接中断，空数组
      *      
      */
-    readLines(maxlines: number): any[];
+    readLines(maxlines?: number): any[];
 
     /**
      * @description 读取一个文本字符串，以指定的字节为结尾
@@ -51,9 +52,9 @@ declare class Class_BufferedStream extends Class_Stream {
      *      @return 返回读取的文本字符串，若无数据可读，或者连接中断，则返回 null
      *      
      */
-    readUntil(mk: string, maxlen: number): string;
+    readUntil(mk: string, maxlen?: number): string;
 
-    readUntil(mk: string, maxlen: number, callback: (err: Error | undefined | null, retVal: string)=>any): void;
+    readUntil(mk: string, maxlen?: number, callback?: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
      * @description 写入一个字符串

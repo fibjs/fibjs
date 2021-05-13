@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/HeapSnapshot.d.ts" />
 /// <reference path="../interface/Timer.d.ts" />
 /**
@@ -143,7 +144,7 @@ declare module 'profiler' {
      * 	 @return 返回对比的结果
      * 	 
      */
-    function diff(test: ()=>any): object;
+    function diff(test: (...args: any[])=>any): FIBJS.GeneralObject;
 
     /**
      * @description 启动一次运行状态采样日志
@@ -153,7 +154,7 @@ declare module 'profiler' {
      *      @return 返回采样定时器，可以通过 clear 方法提前停止采样
      * 	 
      */
-    function start(fname: string, time: number, interval: number): Class_Timer;
+    function start(fname: string, time?: number, interval?: number): Class_Timer;
 
 }
 

@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
@@ -59,9 +60,9 @@ declare class Class_Image extends Class_object {
      *      @return 返回格式化的数据
      *      
      */
-    getData(format: number, quality: number): Class_Buffer;
+    getData(format: number, quality?: number): Class_Buffer;
 
-    getData(format: number, quality: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    getData(format: number, quality?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description 按照指定的格式将图像数据存入流对象
@@ -70,9 +71,9 @@ declare class Class_Image extends Class_object {
      *      @param quality 当格式为 gd.JPEG 或 gd.WEBP 时用于指定压缩质量，缺省为 85，其他格式忽略此参数
      *      
      */
-    save(stm: Class_Stream, format: number, quality: number): void;
+    save(stm: Class_Stream, format: number, quality?: number): void;
 
-    save(stm: Class_Stream, format: number, quality: number, callback: (err: Error | undefined | null)=>any): void;
+    save(stm: Class_Stream, format: number, quality?: number, callback?: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 按照指定的格式将图像数据存入指定文件，文件将被强制覆盖
@@ -81,9 +82,9 @@ declare class Class_Image extends Class_object {
      *      @param quality 当格式为 gd.JPEG 时用于指定压缩质量，缺省为 85，其他格式忽略此参数
      *      
      */
-    save(fname: string, format: number, quality: number): void;
+    save(fname: string, format: number, quality?: number): void;
 
-    save(fname: string, format: number, quality: number, callback: (err: Error | undefined | null)=>any): void;
+    save(fname: string, format: number, quality?: number, callback?: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 为指定的颜色申请一个颜色号，对于 gd.PALETTE 图像，颜色号为调色板索引，对于 gd.TRUECOLOR 图像，颜色号为 rgb 编码数值
@@ -616,9 +617,9 @@ declare class Class_Image extends Class_object {
      *      @param arg4 过滤器所需参数: COLORIZE 的透明度 alpha 分值
      *      
      */
-    filter(filterType: number, arg1: number, arg2: number, arg3: number, arg4: number): void;
+    filter(filterType: number, arg1?: number, arg2?: number, arg3?: number, arg4?: number): void;
 
-    filter(filterType: number, arg1: number, arg2: number, arg3: number, arg4: number, callback: (err: Error | undefined | null)=>any): void;
+    filter(filterType: number, arg1?: number, arg2?: number, arg3?: number, arg4?: number, callback?: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 根据给定的矩阵，对当前图像进行仿射
@@ -637,9 +638,9 @@ declare class Class_Image extends Class_object {
      *      @return 返回仿射后的图像
      *      
      */
-    affine(affine: any[], x: number, y: number, width: number, height: number): Class_Image;
+    affine(affine: any[], x?: number, y?: number, width?: number, height?: number): Class_Image;
 
-    affine(affine: any[], x: number, y: number, width: number, height: number, callback: (err: Error | undefined | null, retVal: Class_Image)=>any): void;
+    affine(affine: any[], x?: number, y?: number, width?: number, height?: number, callback?: (err: Error | undefined | null, retVal: Class_Image)=>any): void;
 
     /**
      * @description 对当前图像进行高斯模糊处理

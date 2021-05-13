@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/DgramSocket.d.ts" />
 /**
  * @description dgram 模块提供了 UDP 数据包 socket 的实现
@@ -33,7 +34,7 @@ declare module 'dgram' {
      *      @return 返回创建的 Socket 对象
      *     
      */
-    function createSocket(opts: object): Class_DgramSocket;
+    function createSocket(opts: FIBJS.GeneralObject): Class_DgramSocket;
 
     /**
      * @description 创建一个 dgram.Socket 对象
@@ -53,7 +54,7 @@ declare module 'dgram' {
      *      @return 返回创建的 Socket 对象
      *     
      */
-    function createSocket(opts: object, callback: ()=>any): Class_DgramSocket;
+    function createSocket(opts: FIBJS.GeneralObject, callback: (...args: any[])=>any): Class_DgramSocket;
 
     /**
      * @description 创建一个 dgram.Socket 对象
@@ -70,7 +71,7 @@ declare module 'dgram' {
      *      @return 返回创建的 Socket 对象
      *     
      */
-    function createSocket(type: string, callback: ()=>any): Class_DgramSocket;
+    function createSocket(type: string, callback: (...args: any[])=>any): Class_DgramSocket;
 
 }
 

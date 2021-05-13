@@ -1,3 +1,4 @@
+/// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
@@ -54,7 +55,7 @@ declare class Class_LevelDB extends Class_object {
      *      @param map 指定要设定的键值数据字典
      *      
      */
-    mset(map: object): void;
+    mset(map: FIBJS.GeneralObject): void;
 
     /**
      * @description 删除一组指定键值的值
@@ -88,7 +89,7 @@ declare class Class_LevelDB extends Class_object {
      *      @param func 枚举回调函数
      *      
      */
-    forEach(func: ()=>any): void;
+    forEach(func: (...args: any[])=>any): void;
 
     /**
      * @description 枚举数据库中键值在 from 和 to 之间的键值对
@@ -108,7 +109,7 @@ declare class Class_LevelDB extends Class_object {
      *      @param func 枚举回调函数
      *      
      */
-    between(from: Class_Buffer, to: Class_Buffer, func: ()=>any): void;
+    between(from: Class_Buffer, to: Class_Buffer, func: (...args: any[])=>any): void;
 
     /**
      * @description 在当前数据库上开启一个事务
