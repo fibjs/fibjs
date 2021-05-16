@@ -16,6 +16,15 @@ declare class Class_DbConnection extends Class_object {
     close(callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 选择当前数据库连接的缺省数据库
+     * 	 @param dbName 指定数据库名
+     * 	 
+     */
+    use(dbName: string): void;
+
+    use(dbName: string, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
      * @description 在当前数据库连接上启动一个事务
      *     
      *      @param point 指定事务的名称，缺省不指定

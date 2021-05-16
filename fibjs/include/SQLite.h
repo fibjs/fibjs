@@ -26,6 +26,7 @@ public:
     // DbConnection_base
     virtual result_t get_type(exlib::string& retVal);
     virtual result_t close(AsyncEvent* ac);
+    virtual result_t use(exlib::string dbName, AsyncEvent* ac);
     virtual result_t begin(exlib::string point, AsyncEvent* ac);
     virtual result_t commit(exlib::string point, AsyncEvent* ac);
     virtual result_t rollback(exlib::string point, AsyncEvent* ac);

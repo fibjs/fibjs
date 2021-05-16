@@ -22,7 +22,7 @@ result_t db_base::open(exlib::string connString, obj_ptr<object_base>& retVal, A
         return openMySQL(connString, (obj_ptr<MySQL_base>&)retVal, ac);
 
     if (!qstrcmp(connString.c_str(), "mssql:", 6))
-        return openMSSQL(connString, (obj_ptr<MSSQL_base>&)retVal, ac);
+        return openMSSQL(connString, (obj_ptr<DbConnection_base>&)retVal, ac);
 
     if (!qstrcmp(connString.c_str(), "sqlite:", 7))
         return openSQLite(connString, (obj_ptr<SQLite_base>&)retVal, ac);

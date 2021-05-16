@@ -7,6 +7,11 @@ interface DbConnection : object
     /*! @brief 关闭当前数据库连接 */
     close() async;
 
+    /*! @brief 选择当前数据库连接的缺省数据库
+	 @param dbName 指定数据库名
+	 */
+    use(String dbName) async;
+
     /*! @brief 在当前数据库连接上启动一个事务
     
      @param point 指定事务的名称，缺省不指定

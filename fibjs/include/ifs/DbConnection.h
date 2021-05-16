@@ -22,6 +22,7 @@ public:
     // DbConnection_base
     virtual result_t get_type(exlib::string& retVal) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
+    virtual result_t use(exlib::string dbName, AsyncEvent* ac) = 0;
     virtual result_t begin(exlib::string point, AsyncEvent* ac) = 0;
     virtual result_t commit(exlib::string point, AsyncEvent* ac) = 0;
     virtual result_t rollback(exlib::string point, AsyncEvent* ac) = 0;
@@ -54,6 +55,7 @@ public:
 public:
     static void s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_use(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_begin(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_commit(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_rollback(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -72,6 +74,7 @@ public:
 
 public:
     ASYNC_MEMBER0(DbConnection_base, close);
+    ASYNC_MEMBER1(DbConnection_base, use, exlib::string);
     ASYNC_MEMBER1(DbConnection_base, begin, exlib::string);
     ASYNC_MEMBER1(DbConnection_base, commit, exlib::string);
     ASYNC_MEMBER1(DbConnection_base, rollback, exlib::string);
@@ -94,6 +97,8 @@ inline ClassInfo& DbConnection_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "close", s_close, false },
         { "closeSync", s_close, false },
+        { "use", s_use, false },
+        { "useSync", s_use, false },
         { "begin", s_begin, false },
         { "beginSync", s_begin, false },
         { "commit", s_commit, false },
@@ -163,6 +168,24 @@ inline void DbConnection_base::s_close(const v8::FunctionCallbackInfo<v8::Value>
         hr = pInst->acb_close(cb, args);
     else
         hr = pInst->ac_close();
+
+    METHOD_VOID();
+}
+
+inline void DbConnection_base::s_use(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("DbConnection.use");
+    METHOD_INSTANCE(DbConnection_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_use(v0, cb, args);
+    else
+        hr = pInst->ac_use(v0);
 
     METHOD_VOID();
 }

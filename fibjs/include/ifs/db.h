@@ -16,9 +16,8 @@
 namespace fibjs {
 
 class MySQL_base;
-class MSSQL_base;
+class DbConnection_base;
 class SQLite_base;
-class Odbc_base;
 class MongoDB_base;
 class LevelDB_base;
 class Redis_base;
@@ -30,9 +29,9 @@ public:
     // db_base
     static result_t open(exlib::string connString, obj_ptr<object_base>& retVal, AsyncEvent* ac);
     static result_t openMySQL(exlib::string connString, obj_ptr<MySQL_base>& retVal, AsyncEvent* ac);
-    static result_t openMSSQL(exlib::string connString, obj_ptr<MSSQL_base>& retVal, AsyncEvent* ac);
+    static result_t openMSSQL(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncEvent* ac);
     static result_t openSQLite(exlib::string connString, obj_ptr<SQLite_base>& retVal, AsyncEvent* ac);
-    static result_t openOdbc(exlib::string connString, obj_ptr<Odbc_base>& retVal, AsyncEvent* ac);
+    static result_t openOdbc(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncEvent* ac);
     static result_t openMongoDB(exlib::string connString, obj_ptr<MongoDB_base>& retVal, AsyncEvent* ac);
     static result_t openLevelDB(exlib::string connString, obj_ptr<LevelDB_base>& retVal, AsyncEvent* ac);
     static result_t openRedis(exlib::string connString, obj_ptr<Redis_base>& retVal, AsyncEvent* ac);
@@ -72,9 +71,9 @@ public:
 public:
     ASYNC_STATICVALUE2(db_base, open, exlib::string, obj_ptr<object_base>);
     ASYNC_STATICVALUE2(db_base, openMySQL, exlib::string, obj_ptr<MySQL_base>);
-    ASYNC_STATICVALUE2(db_base, openMSSQL, exlib::string, obj_ptr<MSSQL_base>);
+    ASYNC_STATICVALUE2(db_base, openMSSQL, exlib::string, obj_ptr<DbConnection_base>);
     ASYNC_STATICVALUE2(db_base, openSQLite, exlib::string, obj_ptr<SQLite_base>);
-    ASYNC_STATICVALUE2(db_base, openOdbc, exlib::string, obj_ptr<Odbc_base>);
+    ASYNC_STATICVALUE2(db_base, openOdbc, exlib::string, obj_ptr<DbConnection_base>);
     ASYNC_STATICVALUE2(db_base, openMongoDB, exlib::string, obj_ptr<MongoDB_base>);
     ASYNC_STATICVALUE2(db_base, openLevelDB, exlib::string, obj_ptr<LevelDB_base>);
     ASYNC_STATICVALUE2(db_base, openRedis, exlib::string, obj_ptr<Redis_base>);
@@ -82,9 +81,8 @@ public:
 }
 
 #include "ifs/MySQL.h"
-#include "ifs/MSSQL.h"
+#include "ifs/DbConnection.h"
 #include "ifs/SQLite.h"
-#include "ifs/Odbc.h"
 #include "ifs/MongoDB.h"
 #include "ifs/LevelDB.h"
 #include "ifs/Redis.h"
@@ -165,7 +163,7 @@ inline void db_base::s_static_openMySQL(const v8::FunctionCallbackInfo<v8::Value
 
 inline void db_base::s_static_openMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<MSSQL_base> vr;
+    obj_ptr<DbConnection_base> vr;
 
     METHOD_NAME("db.openMSSQL");
     METHOD_ENTER();
@@ -203,7 +201,7 @@ inline void db_base::s_static_openSQLite(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void db_base::s_static_openOdbc(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<Odbc_base> vr;
+    obj_ptr<DbConnection_base> vr;
 
     METHOD_NAME("db.openOdbc");
     METHOD_ENTER();

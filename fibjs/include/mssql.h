@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "ifs/MSSQL.h"
+#include "ifs/DbConnection.h"
 #include "utf8.h"
 
 // #import "msado25.tlb" raw_interfaces_only, rename("EOF", "adoEOF")
@@ -15,7 +15,7 @@
 
 namespace fibjs {
 
-class mssql : public MSSQL_base {
+class mssql : public DbConnection_base {
 public:
     mssql()
         : m_conn(NULL)
@@ -28,6 +28,7 @@ public:
     // DbConnection_base
     virtual result_t get_type(exlib::string& retVal);
     virtual result_t close(AsyncEvent* ac);
+    virtual result_t use(exlib::string dbName, AsyncEvent* ac);
     virtual result_t begin(exlib::string point, AsyncEvent* ac);
     virtual result_t commit(exlib::string point, AsyncEvent* ac);
     virtual result_t rollback(exlib::string point, AsyncEvent* ac);
@@ -45,10 +46,6 @@ public:
     virtual result_t remove(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac);
     virtual result_t format(exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal);
     virtual result_t format(exlib::string sql, OptArgs args, exlib::string& retVal);
-
-public:
-    // MySQL_base
-    virtual result_t use(exlib::string dbName, AsyncEvent* ac);
 
 public:
     result_t connect(const char* server, const char* username, const char* password, const char* dbName);

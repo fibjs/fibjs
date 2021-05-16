@@ -1,8 +1,7 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/MySQL.d.ts" />
-/// <reference path="../interface/MSSQL.d.ts" />
+/// <reference path="../interface/DbConnection.d.ts" />
 /// <reference path="../interface/SQLite.d.ts" />
-/// <reference path="../interface/Odbc.d.ts" />
 /// <reference path="../interface/MongoDB.d.ts" />
 /// <reference path="../interface/LevelDB.d.ts" />
 /// <reference path="../interface/Redis.d.ts" />
@@ -42,9 +41,9 @@ declare module 'db' {
      *      @return 返回数据库连接对象
      *      
      */
-    function openMSSQL(connString: string): Class_MSSQL;
+    function openMSSQL(connString: string): Class_DbConnection;
 
-    function openMSSQL(connString: string, callback: (err: Error | undefined | null, retVal: Class_MSSQL)=>any): void;
+    function openMSSQL(connString: string, callback: (err: Error | undefined | null, retVal: Class_DbConnection)=>any): void;
 
     /**
      * @description 打开一个 sqlite 数据库
@@ -62,9 +61,9 @@ declare module 'db' {
      *      @return 返回数据库连接对象
      *      
      */
-    function openOdbc(connString: string): Class_Odbc;
+    function openOdbc(connString: string): Class_DbConnection;
 
-    function openOdbc(connString: string, callback: (err: Error | undefined | null, retVal: Class_Odbc)=>any): void;
+    function openOdbc(connString: string, callback: (err: Error | undefined | null, retVal: Class_DbConnection)=>any): void;
 
     /**
      * @description 打开一个 mongodb 数据库

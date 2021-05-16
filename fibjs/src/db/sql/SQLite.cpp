@@ -327,6 +327,11 @@ result_t SQLite::execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal)
     return 0;
 }
 
+result_t SQLite::use(exlib::string dbName, AsyncEvent* ac)
+{
+    return CALL_E_INVALID_CALL;
+}
+
 result_t SQLite::begin(exlib::string point, AsyncEvent* ac)
 {
     return db_begin(this, point, ac);

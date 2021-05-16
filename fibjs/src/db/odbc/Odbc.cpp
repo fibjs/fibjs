@@ -18,7 +18,7 @@
 
 namespace fibjs {
 
-result_t db_base::openOdbc(exlib::string connString, obj_ptr<Odbc_base>& retVal,
+result_t db_base::openOdbc(exlib::string connString, obj_ptr<DbConnection_base>& retVal,
     AsyncEvent* ac)
 {
     if (ac->isSync())

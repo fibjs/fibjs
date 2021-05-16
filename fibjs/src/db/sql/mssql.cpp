@@ -19,7 +19,7 @@
 
 namespace fibjs {
 
-result_t db_base::openMSSQL(exlib::string connString, obj_ptr<MSSQL_base>& retVal,
+result_t db_base::openMSSQL(exlib::string connString, obj_ptr<DbConnection_base>& retVal,
     AsyncEvent* ac)
 {
     if (ac->isSync())
@@ -382,7 +382,7 @@ result_t mssql::format(exlib::string sql, OptArgs args, exlib::string& retVal)
 
 namespace fibjs {
 
-result_t db_base::openMSSQL(exlib::string connString, obj_ptr<MSSQL_base>& retVal,
+result_t db_base::openMSSQL(exlib::string connString, obj_ptr<DbConnection_base>& retVal,
     AsyncEvent* ac)
 {
     return CALL_E_INVALIDARG;

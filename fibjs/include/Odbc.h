@@ -7,11 +7,11 @@
 
 #pragma once
 
-#include "ifs/Odbc.h"
+#include "ifs/DbConnection.h"
 
 namespace fibjs {
 
-class Odbc : public Odbc_base {
+class Odbc : public DbConnection_base {
 public:
     Odbc()
     {
@@ -23,6 +23,7 @@ public:
     // DbConnection_base
     virtual result_t get_type(exlib::string& retVal);
     virtual result_t close(AsyncEvent* ac);
+    virtual result_t use(exlib::string dbName, AsyncEvent* ac);
     virtual result_t begin(exlib::string point, AsyncEvent* ac);
     virtual result_t commit(exlib::string point, AsyncEvent* ac);
     virtual result_t rollback(exlib::string point, AsyncEvent* ac);
@@ -40,10 +41,6 @@ public:
     virtual result_t remove(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac);
     virtual result_t format(exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal);
     virtual result_t format(exlib::string sql, OptArgs args, exlib::string& retVal);
-
-public:
-    // Odbc_base
-    virtual result_t use(exlib::string dbName, AsyncEvent* ac);
 
 public:
     result_t connect(const char* driver, const char* host, int32_t port, const char* username,
