@@ -12,7 +12,6 @@
 #include "ifs/db.h"
 #include "DBResult.h"
 #include "Url.h"
-#include "../db_api.h"
 
 namespace fibjs {
 
@@ -240,7 +239,7 @@ result_t mysql::close(AsyncEvent* ac)
     return 0;
 }
 
-result_t mysql::use(exlib::string dbName, AsyncEvent* ac)
+result_t mysql::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -248,19 +247,7 @@ result_t mysql::use(exlib::string dbName, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
-    obj_ptr<NArray> retVal;
-    exlib::string s("USE ", 4);
-    s.append(dbName);
-    return execute(s.c_str(), (int32_t)s.length(), retVal);
-}
-
-result_t mysql::execute(const char* sql, int32_t sLen,
-    obj_ptr<NArray>& retVal)
-{
-    if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    DBResult* res = (DBResult*)UMConnection_Query(m_conn, sql, sLen);
+    DBResult* res = (DBResult*)UMConnection_Query(m_conn, sql.c_str(), sql.length());
     if (!res)
         return CHECK_ERROR(error());
 
@@ -284,92 +271,6 @@ result_t mysql::execute(const char* sql, int32_t sLen,
     }
 
     return 0;
-}
-
-result_t mysql::begin(exlib::string point, AsyncEvent* ac)
-{
-    return db_begin(this, point, ac);
-}
-
-result_t mysql::commit(exlib::string point, AsyncEvent* ac)
-{
-    return db_commit(this, point, ac);
-}
-
-result_t mysql::rollback(exlib::string point, AsyncEvent* ac)
-{
-    return db_rollback(this, point, ac);
-}
-
-result_t mysql::trans(v8::Local<v8::Function> func, bool& retVal)
-{
-    return trans("", func, retVal);
-}
-
-result_t mysql::trans(exlib::string point, v8::Local<v8::Function> func, bool& retVal)
-{
-    return db_trans(this, point, func, retVal);
-}
-
-result_t mysql::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal,
-    AsyncEvent* ac)
-{
-    return db_execute(this, sql, args, retVal, ac);
-}
-
-result_t mysql::createTable(v8::Local<v8::Object> opts, AsyncEvent* ac)
-{
-    return db_createTable(this, opts, ac);
-}
-
-result_t mysql::dropTable(v8::Local<v8::Object> opts, AsyncEvent* ac)
-{
-    return db_dropTable(this, opts, ac);
-}
-
-result_t mysql::createIndex(v8::Local<v8::Object> opts, AsyncEvent* ac)
-{
-    return db_createIndex(this, opts, ac);
-}
-
-result_t mysql::dropIndex(v8::Local<v8::Object> opts, AsyncEvent* ac)
-{
-    return db_dropIndex(this, opts, ac);
-}
-
-result_t mysql::insert(v8::Local<v8::Object> opts, double& retVal, AsyncEvent* ac)
-{
-    return db_insert(this, opts, retVal, ac);
-}
-
-result_t mysql::find(v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac)
-{
-    return db_find(this, opts, retVal, ac);
-}
-
-result_t mysql::count(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
-{
-    return db_count(this, opts, retVal, ac);
-}
-
-result_t mysql::update(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
-{
-    return db_update(this, opts, retVal, ac);
-}
-
-result_t mysql::remove(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
-{
-    return db_remove(this, opts, retVal, ac);
-}
-
-result_t mysql::format(exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal)
-{
-    return db_base::formatMySQL(method, opts, retVal);
-}
-
-result_t mysql::format(exlib::string sql, OptArgs args, exlib::string& retVal)
-{
-    return db_base::formatMySQL(sql, args, retVal);
 }
 
 result_t mysql::get_rxBufferSize(int32_t& retVal)

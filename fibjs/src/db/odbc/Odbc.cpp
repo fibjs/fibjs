@@ -12,7 +12,6 @@
 #include "ifs/db.h"
 #include "DBResult.h"
 #include "Url.h"
-#include "../db_api.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -193,7 +192,7 @@ result_t Odbc::connect(const char* driver, const char* host, int32_t port, const
         }
     }
 
-    hr = SQLDriverConnect(m_conn, NULL, (SQLCHAR*)conn_str.c_str(), conn_str.length(),
+    hr = SQLDriverConnect(m_conn, NULL, (SQLCHAR*)conn_str.c_str(), (SQLSMALLINT)conn_str.length(),
         NULL, 0, NULL, SQL_DRIVER_NOPROMPT);
     if (hr < 0) {
         exlib::string err = GetSQLError(SQL_HANDLE_DBC, m_conn);
@@ -223,24 +222,13 @@ result_t Odbc::close(AsyncEvent* ac)
     return 0;
 }
 
-result_t Odbc::use(exlib::string dbName, AsyncEvent* ac)
+result_t Odbc::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
-
-    obj_ptr<NArray> retVal;
-    exlib::string s("USE ", 4);
-    s.append(dbName);
-    return execute(s.c_str(), (int32_t)s.length(), retVal);
-}
-
-result_t Odbc::execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal)
-{
-    if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     SQLRETURN hr;
     SQLHSTMT stmt;
@@ -256,7 +244,7 @@ result_t Odbc::execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal)
         SQLSMALLINT columns = 0;
         SQLLEN affected;
 
-        hr = SQLExecDirect(stmt, (SQLCHAR*)sql, sLen);
+        hr = SQLExecDirect(stmt, (SQLCHAR*)sql.c_str(), (SQLINTEGER)sql.length());
         if (hr < 0)
             break;
 
@@ -377,92 +365,6 @@ result_t Odbc::execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal)
     SQLFreeStmt(stmt, SQL_CLOSE);
 
     return hr;
-}
-
-result_t Odbc::begin(exlib::string point, AsyncEvent* ac)
-{
-    return db_begin(this, point, ac, true);
-}
-
-result_t Odbc::commit(exlib::string point, AsyncEvent* ac)
-{
-    return db_commit(this, point, ac, true);
-}
-
-result_t Odbc::rollback(exlib::string point, AsyncEvent* ac)
-{
-    return db_rollback(this, point, ac, true);
-}
-
-result_t Odbc::trans(v8::Local<v8::Function> func, bool& retVal)
-{
-    return trans("", func, retVal);
-}
-
-result_t Odbc::trans(exlib::string point, v8::Local<v8::Function> func, bool& retVal)
-{
-    return db_trans(this, point, func, retVal);
-}
-
-result_t Odbc::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal,
-    AsyncEvent* ac)
-{
-    return db_execute(this, sql, args, retVal, ac);
-}
-
-result_t Odbc::createTable(v8::Local<v8::Object> opts, AsyncEvent* ac)
-{
-    return db_createTable(this, opts, ac);
-}
-
-result_t Odbc::dropTable(v8::Local<v8::Object> opts, AsyncEvent* ac)
-{
-    return db_dropTable(this, opts, ac);
-}
-
-result_t Odbc::createIndex(v8::Local<v8::Object> opts, AsyncEvent* ac)
-{
-    return db_createIndex(this, opts, ac);
-}
-
-result_t Odbc::dropIndex(v8::Local<v8::Object> opts, AsyncEvent* ac)
-{
-    return db_dropIndex(this, opts, ac);
-}
-
-result_t Odbc::insert(v8::Local<v8::Object> opts, double& retVal, AsyncEvent* ac)
-{
-    return db_insert(this, opts, retVal, ac);
-}
-
-result_t Odbc::find(v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac)
-{
-    return db_find(this, opts, retVal, ac);
-}
-
-result_t Odbc::count(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
-{
-    return db_count(this, opts, retVal, ac);
-}
-
-result_t Odbc::update(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
-{
-    return db_update(this, opts, retVal, ac);
-}
-
-result_t Odbc::remove(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
-{
-    return db_remove(this, opts, retVal, ac);
-}
-
-result_t Odbc::format(exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal)
-{
-    return db_base::format(method, opts, retVal);
-}
-
-result_t Odbc::format(exlib::string sql, OptArgs args, exlib::string& retVal)
-{
-    return db_base::format(sql, args, retVal);
 }
 
 } /* namespace fibjs */

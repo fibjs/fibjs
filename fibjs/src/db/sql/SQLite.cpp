@@ -11,7 +11,6 @@
 #include "DBResult.h"
 #include "Buffer.h"
 #include "ifs/coroutine.h"
-#include "../db_api.h"
 
 namespace fibjs {
 
@@ -116,17 +115,17 @@ result_t db_base::openSQLite(exlib::string connString,
 result_t SQLite::open(const char* file)
 {
     sqlite3_enable_shared_cache(1);
-    if (sqlite3_open_v2(file, &m_conn, SQLITE_OPEN_FLAGS, 0)) {
-        result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_conn)));
-        sqlite3_close(m_conn);
+    if (sqlite3_open_v2(file, (sqlite3**)&m_conn, SQLITE_OPEN_FLAGS, 0)) {
+        result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg((sqlite3*)m_conn)));
+        sqlite3_close((sqlite3*)m_conn);
         m_conn = NULL;
         return hr;
     }
 
     obj_ptr<NArray> retVal;
-    execute("PRAGMA journal_mode=WAL;", 24, retVal);
+    cc_execute("PRAGMA journal_mode=WAL;", retVal);
 
-    hook_fts5_api(m_conn);
+    hook_fts5_api((sqlite3*)m_conn);
 
     m_file = file;
 
@@ -136,7 +135,7 @@ result_t SQLite::open(const char* file)
 SQLite::~SQLite()
 {
     if (m_conn)
-        asyncCall(sqlite3_close, m_conn);
+        asyncCall(sqlite3_close, (sqlite3*)m_conn);
 }
 
 result_t SQLite::get_type(exlib::string& retVal)
@@ -153,7 +152,7 @@ result_t SQLite::close(AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
-    sqlite3_close(m_conn);
+    sqlite3_close((sqlite3*)m_conn);
     m_conn = NULL;
 
     return 0;
@@ -200,18 +199,23 @@ int32_t sqlite3_prepare_sleep(sqlite3* db, const char* zSql, int nByte,
     }
 }
 
-result_t SQLite::execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal)
+result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_LONGSYNC);
+
+    const char* pStr = sql.c_str();
+    int32_t sLen = (int32_t)sql.length();
     const char* pStr1;
 
     do {
         sqlite3_stmt* stmt = 0;
 
-        if (sqlite3_prepare_sleep(m_conn, sql, sLen, &stmt, &pStr1, m_nCmdTimeout)) {
-            result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_conn)));
+        if (sqlite3_prepare_sleep((sqlite3*)m_conn, pStr, sLen, &stmt, &pStr1, m_nCmdTimeout)) {
+            result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg((sqlite3*)m_conn)));
             if (stmt)
                 sqlite3_finalize(stmt);
             return hr;
@@ -220,7 +224,7 @@ result_t SQLite::execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal)
         if (!stmt)
             return CHECK_ERROR(Runtime::setError("SQLite: Query was empty"));
 
-        sLen -= (int32_t)(pStr1 - sql);
+        sLen -= (int32_t)(pStr1 - pStr);
 
         int32_t columns = sqlite3_column_count(stmt);
         obj_ptr<DBResult> res;
@@ -291,17 +295,17 @@ result_t SQLite::execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal)
                     break;
                 else {
                     sqlite3_finalize(stmt);
-                    return CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_conn)));
+                    return CHECK_ERROR(Runtime::setError(sqlite3_errmsg((sqlite3*)m_conn)));
                 }
             }
         } else {
             int32_t r = sqlite3_step_sleep(stmt, m_nCmdTimeout);
             if (r == SQLITE_DONE)
-                res = new DBResult(0, sqlite3_changes(m_conn),
-                    sqlite3_last_insert_rowid(m_conn));
+                res = new DBResult(0, sqlite3_changes((sqlite3*)m_conn),
+                    sqlite3_last_insert_rowid((sqlite3*)m_conn));
             else {
                 sqlite3_finalize(stmt);
-                return CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_conn)));
+                return CHECK_ERROR(Runtime::setError(sqlite3_errmsg((sqlite3*)m_conn)));
             }
         }
 
@@ -320,103 +324,11 @@ result_t SQLite::execute(const char* sql, int32_t sLen, obj_ptr<NArray>& retVal)
 
             retVal->append(res);
 
-            sql = pStr1;
+            pStr = pStr1;
         }
     } while (*pStr1);
 
     return 0;
-}
-
-result_t SQLite::use(exlib::string dbName, AsyncEvent* ac)
-{
-    return CALL_E_INVALID_CALL;
-}
-
-result_t SQLite::begin(exlib::string point, AsyncEvent* ac)
-{
-    return db_begin(this, point, ac);
-}
-
-result_t SQLite::commit(exlib::string point, AsyncEvent* ac)
-{
-    return db_commit(this, point, ac);
-}
-
-result_t SQLite::rollback(exlib::string point, AsyncEvent* ac)
-{
-    return db_rollback(this, point, ac);
-}
-
-result_t SQLite::trans(v8::Local<v8::Function> func, bool& retVal)
-{
-    return trans("", func, retVal);
-}
-
-result_t SQLite::trans(exlib::string point, v8::Local<v8::Function> func, bool& retVal)
-{
-    return db_trans(this, point, func, retVal);
-}
-
-result_t SQLite::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal,
-    AsyncEvent* ac)
-{
-    return db_execute(this, sql, args, retVal, ac);
-}
-
-result_t SQLite::createTable(v8::Local<v8::Object> opts, AsyncEvent* ac)
-{
-    return db_createTable(this, opts, ac);
-}
-
-result_t SQLite::dropTable(v8::Local<v8::Object> opts, AsyncEvent* ac)
-{
-    return db_dropTable(this, opts, ac);
-}
-
-result_t SQLite::createIndex(v8::Local<v8::Object> opts, AsyncEvent* ac)
-{
-    return db_createIndex(this, opts, ac);
-}
-
-result_t SQLite::dropIndex(v8::Local<v8::Object> opts, AsyncEvent* ac)
-{
-    return db_dropIndex(this, opts, ac);
-}
-
-result_t SQLite::insert(v8::Local<v8::Object> opts, double& retVal, AsyncEvent* ac)
-{
-    return db_insert(this, opts, retVal, ac);
-}
-
-result_t SQLite::find(v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal,
-    AsyncEvent* ac)
-{
-    return db_find(this, opts, retVal, ac);
-}
-
-result_t SQLite::count(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
-{
-    return db_count(this, opts, retVal, ac);
-}
-
-result_t SQLite::update(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
-{
-    return db_update(this, opts, retVal, ac);
-}
-
-result_t SQLite::remove(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
-{
-    return db_remove(this, opts, retVal, ac);
-}
-
-result_t SQLite::format(exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal)
-{
-    return db_base::format(method, opts, retVal);
-}
-
-result_t SQLite::format(exlib::string sql, OptArgs args, exlib::string& retVal)
-{
-    return db_base::format(sql, args, retVal);
 }
 
 result_t SQLite::get_fileName(exlib::string& retVal)
@@ -468,7 +380,7 @@ result_t SQLite::backup(exlib::string fileName, AsyncEvent* ac)
         return hr;
     }
 
-    pBackup = sqlite3_backup_init(db2, "main", m_conn, "main");
+    pBackup = sqlite3_backup_init(db2, "main", (sqlite3*)m_conn, "main");
     if (pBackup) {
         do {
             rc = sqlite3_backup_step(pBackup, 5);
@@ -478,7 +390,7 @@ result_t SQLite::backup(exlib::string fileName, AsyncEvent* ac)
 
         sqlite3_backup_finish(pBackup);
     } else {
-        result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg(m_conn)));
+        result_t hr = CHECK_ERROR(Runtime::setError(sqlite3_errmsg((sqlite3*)m_conn)));
         sqlite3_close(db2);
         return hr;
     }

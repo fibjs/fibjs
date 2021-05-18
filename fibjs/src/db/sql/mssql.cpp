@@ -15,7 +15,6 @@
 #include "DBResult.h"
 #include "Buffer.h"
 #include "date.h"
-#include "../db_api.h"
 
 namespace fibjs {
 
@@ -55,7 +54,7 @@ static result_t close_conn(ADODB::_Connection* conn)
 mssql::~mssql()
 {
     if (m_conn) {
-        asyncCall(close_conn, m_conn);
+        asyncCall(close_conn, (ADODB::_Connection*)m_conn);
         m_conn = NULL;
     }
 }
@@ -69,8 +68,7 @@ result_t mssql::connect(const char* server, const char* username,
     HRESULT hr;
 
     hr = CoCreateInstance(__uuidof(ADODB::Connection), NULL,
-        CLSCTX_INPROC_SERVER, __uuidof(ADODB::_Connection),
-        (void**)&m_conn);
+        CLSCTX_INPROC_SERVER, __uuidof(ADODB::_Connection), &m_conn);
     if (FAILED(hr))
         return hr;
 
@@ -86,12 +84,11 @@ result_t mssql::connect(const char* server, const char* username,
     bstr_t bstrUser(UTF8_W(username));
     bstr_t bstrPass(UTF8_W(password));
 
-    hr = m_conn->Open(bstrConn, bstrUser, bstrPass,
-        ADODB::adConnectUnspecified);
+    hr = ((ADODB::_Connection*)m_conn)->Open(bstrConn, bstrUser, bstrPass, ADODB::adConnectUnspecified);
     if (FAILED(hr))
         return error(hr);
 
-    m_conn->put_CommandTimeout(0);
+    ((ADODB::_Connection*)m_conn)->put_CommandTimeout(0);
 
     return 0;
 }
@@ -110,14 +107,14 @@ result_t mssql::close(AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
-    m_conn->Close();
-    m_conn->Release();
+    ((ADODB::_Connection*)m_conn)->Close();
+    ((ADODB::_Connection*)m_conn)->Release();
     m_conn = NULL;
 
     return 0;
 }
 
-result_t mssql::use(exlib::string dbName, AsyncEvent* ac)
+result_t mssql::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (!m_conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -125,29 +122,13 @@ result_t mssql::use(exlib::string dbName, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_LONGSYNC);
 
-    bstr_t bstrName(utf8to16String(dbName).c_str());
-    HRESULT hr;
-
-    hr = m_conn->put_DefaultDatabase(bstrName);
-    if (FAILED(hr))
-        return error(hr);
-
-    return 0;
-}
-
-result_t mssql::execute(const char* sql, int32_t sLen,
-    obj_ptr<NArray>& retVal)
-{
-    if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
     HRESULT hr;
     ADODB::_Recordset* rs = NULL;
     ADODB::_Recordset* rs1 = NULL;
-    bstr_t bstrCom(utf8to16String(sql, sLen).c_str());
+    bstr_t bstrCom(utf8to16String(sql).c_str());
     _variant_t affected((long)0);
 
-    hr = m_conn->Execute(bstrCom, &affected, ADODB::adCmdText, &rs);
+    hr = ((ADODB::_Connection*)m_conn)->Execute(bstrCom, &affected, ADODB::adCmdText, &rs);
     if (FAILED(hr))
         return error(hr);
 
@@ -288,92 +269,6 @@ result_t mssql::execute(const char* sql, int32_t sLen,
     } while (rs1 != NULL);
 
     return 0;
-}
-
-result_t mssql::begin(exlib::string point, AsyncEvent* ac)
-{
-    return db_begin(this, point, ac, true);
-}
-
-result_t mssql::commit(exlib::string point, AsyncEvent* ac)
-{
-    return db_commit(this, point, ac, true);
-}
-
-result_t mssql::rollback(exlib::string point, AsyncEvent* ac)
-{
-    return db_rollback(this, point, ac, true);
-}
-
-result_t mssql::trans(v8::Local<v8::Function> func, bool& retVal)
-{
-    return trans("", func, retVal);
-}
-
-result_t mssql::trans(exlib::string point, v8::Local<v8::Function> func, bool& retVal)
-{
-    return db_trans(this, point, func, retVal);
-}
-
-result_t mssql::execute(exlib::string sql, OptArgs args, obj_ptr<NArray>& retVal,
-    AsyncEvent* ac)
-{
-    return db_execute(this, sql, args, retVal, ac);
-}
-
-result_t mssql::createTable(v8::Local<v8::Object> opts, AsyncEvent* ac)
-{
-    return db_createTable(this, opts, ac);
-}
-
-result_t mssql::dropTable(v8::Local<v8::Object> opts, AsyncEvent* ac)
-{
-    return db_dropTable(this, opts, ac);
-}
-
-result_t mssql::createIndex(v8::Local<v8::Object> opts, AsyncEvent* ac)
-{
-    return db_createIndex(this, opts, ac);
-}
-
-result_t mssql::dropIndex(v8::Local<v8::Object> opts, AsyncEvent* ac)
-{
-    return db_dropIndex(this, opts, ac);
-}
-
-result_t mssql::insert(v8::Local<v8::Object> opts, double& retVal, AsyncEvent* ac)
-{
-    return db_insert(this, opts, retVal, ac);
-}
-
-result_t mssql::find(v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac)
-{
-    return db_find(this, opts, retVal, ac);
-}
-
-result_t mssql::count(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
-{
-    return db_count(this, opts, retVal, ac);
-}
-
-result_t mssql::update(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
-{
-    return db_update(this, opts, retVal, ac);
-}
-
-result_t mssql::remove(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
-{
-    return db_remove(this, opts, retVal, ac);
-}
-
-result_t mssql::format(exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal)
-{
-    return db_base::formatMSSQL(method, opts, retVal);
-}
-
-result_t mssql::format(exlib::string sql, OptArgs args, exlib::string& retVal)
-{
-    return db_base::formatMSSQL(sql, args, retVal);
 }
 
 } /* namespace fibjs */

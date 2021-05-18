@@ -82,6 +82,17 @@ declare class Class_DbConnection extends Class_object {
     trans(point: string, func: ()=>any): boolean;
 
     /**
+     * @description 执行一个 sql 命令，并返回执行结果
+     * 
+     *      @param sql 字符串
+     *      @return 返回包含结果记录的数组，如果请求是 UPDATE 或者 INSERT，返回结果还会包含 affected 和 insertId，mssql 不支持 insertId。
+     *      
+     */
+    execute(sql: string): any[];
+
+    execute(sql: string, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+
+    /**
      * @description 执行一个 sql 命令，并返回执行结果，可根据参数格式化字符串
      * 
      *      @param sql 格式化字符串，可选参数用 ? 指定。例如：'SELECT FROM TEST WHERE [id]=?'
