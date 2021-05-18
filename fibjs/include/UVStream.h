@@ -130,7 +130,7 @@ public:
             }
 
             buf->base = ar->m_buf.c_buffer() + ar->m_pos;
-            buf->len = (uint32_t)ar->m_buf.length() - ar->m_pos;
+            buf->len = (int32_t)(ar->m_buf.length() - ar->m_pos);
         }
 
         static void on_read(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf)

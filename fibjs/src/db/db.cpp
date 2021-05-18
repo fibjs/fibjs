@@ -113,7 +113,7 @@ inline exlib::string _escape(const char* str, int32_t sz, bool mysql)
 
 inline exlib::string _escape(exlib::string v, bool mysql)
 {
-    return _escape(v.c_str(), v.length(), mysql);
+    return _escape(v.c_str(), (int32_t)v.length(), mysql);
 }
 
 void _appendValue(exlib::string& str, v8::Local<v8::Value>& v, bool mysql, bool mssql)

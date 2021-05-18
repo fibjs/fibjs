@@ -104,7 +104,7 @@ private:
                 origin = origin.substr(5, origin.length());
             }
 
-            int len = origin.length();
+            int len = (int)origin.length();
             if (len > 0 && origin[len - 1] == '/')
                 origin.resize(len - 1);
 

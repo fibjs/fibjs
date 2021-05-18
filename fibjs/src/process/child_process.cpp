@@ -190,7 +190,7 @@ result_t child_process_base::exec(exlib::string command, v8::Local<v8::Object> o
         if (_args->m_array.size()) {
             cmd = _args->m_array[0].string();
             for (i = 1; i < _args->m_array.size(); i++)
-                args->Set(i - 1, _args->m_array[i]);
+                args->Set((int32_t)i - 1, _args->m_array[i]);
         }
 
         return execFile(cmd, args, options, _retVal, ac);

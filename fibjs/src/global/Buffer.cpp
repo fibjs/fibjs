@@ -1087,7 +1087,7 @@ result_t Buffer::keys(obj_ptr<Iterator_base>& retVal)
 {
     retVal = new Iterator(this, [&](size_t index, v8::Local<v8::Value>& retVal) {
         if (index < m_data.length())
-            retVal = v8::Number::New(holder()->m_isolate, index);
+            retVal = v8::Number::New(holder()->m_isolate, (double)index);
     });
     return 0;
 }
@@ -1107,7 +1107,7 @@ result_t Buffer::entries(obj_ptr<Iterator_base>& retVal)
         if (index < m_data.length()) {
             Isolate* isolate = holder();
             v8::Local<v8::Array> arr1 = v8::Array::New(isolate->m_isolate, 2);
-            arr1->Set(0, v8::Number::New(isolate->m_isolate, index));
+            arr1->Set(0, v8::Number::New(isolate->m_isolate, (double)index));
             arr1->Set(1, v8::Number::New(isolate->m_isolate, (unsigned char)m_data[index]));
             retVal = arr1;
         }
