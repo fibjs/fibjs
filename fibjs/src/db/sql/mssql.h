@@ -10,8 +10,6 @@
 #include "ifs/DbConnection.h"
 #include "utf8.h"
 
-// #import "msado25.tlb" raw_interfaces_only, rename("EOF", "adoEOF")
-#include "msado25.tlh"
 #include "../db_tmpl.h"
 
 namespace fibjs {
@@ -28,35 +26,7 @@ public:
 
 public:
     result_t connect(const char* server, const char* username, const char* password, const char* dbName);
-
-private:
-    inline result_t error(HRESULT hr)
-    {
-        ADODB::Errors* errs = NULL;
-
-        ((ADODB::_Connection*)m_conn)->get_Errors(&errs);
-        if (errs) {
-            ADODB::Error* err = NULL;
-            _variant_t i(0);
-
-            errs->get_Item(i, &err);
-            if (err) {
-                BSTR msg = NULL;
-                err->get_Description(&msg);
-                err->Release();
-
-                if (msg) {
-                    exlib::string msga = utf16to8String(msg);
-                    SysFreeString(msg);
-                    return Runtime::setError(msga);
-                }
-            }
-
-            errs->Release();
-        }
-
-        return hr;
-    }
+    result_t ado_error(HRESULT hr);
 };
 
 } /* namespace fibjs */

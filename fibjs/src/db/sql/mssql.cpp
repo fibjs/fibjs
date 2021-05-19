@@ -16,6 +16,9 @@
 #include "Buffer.h"
 #include "date.h"
 
+// #import "msado25.tlb" raw_interfaces_only, rename("EOF", "adoEOF")
+#include "msado25.tlh"
+
 namespace fibjs {
 
 result_t db_base::openMSSQL(exlib::string connString, obj_ptr<DbConnection_base>& retVal,
@@ -59,6 +62,34 @@ mssql::~mssql()
     }
 }
 
+result_t mssql::ado_error(HRESULT hr)
+{
+    ADODB::Errors* errs = NULL;
+
+    ((ADODB::_Connection*)m_conn)->get_Errors(&errs);
+    if (errs) {
+        ADODB::Error* err = NULL;
+        _variant_t i(0);
+
+        errs->get_Item(i, &err);
+        if (err) {
+            BSTR msg = NULL;
+            err->get_Description(&msg);
+            err->Release();
+
+            if (msg) {
+                exlib::string msga = utf16to8String(msg);
+                SysFreeString(msg);
+                return Runtime::setError(msga);
+            }
+        }
+
+        errs->Release();
+    }
+
+    return hr;
+}
+
 result_t mssql::connect(const char* server, const char* username,
     const char* password, const char* dbName)
 {
@@ -86,7 +117,7 @@ result_t mssql::connect(const char* server, const char* username,
 
     hr = ((ADODB::_Connection*)m_conn)->Open(bstrConn, bstrUser, bstrPass, ADODB::adConnectUnspecified);
     if (FAILED(hr))
-        return error(hr);
+        return ado_error(hr);
 
     ((ADODB::_Connection*)m_conn)->put_CommandTimeout(0);
 
@@ -130,7 +161,7 @@ result_t mssql::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* 
 
     hr = ((ADODB::_Connection*)m_conn)->Execute(bstrCom, &affected, ADODB::adCmdText, &rs);
     if (FAILED(hr))
-        return error(hr);
+        return ado_error(hr);
 
     do {
         obj_ptr<DBResult> res;
@@ -143,7 +174,7 @@ result_t mssql::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* 
             rs->get_Fields(&fields);
             if (FAILED(hr)) {
                 rs->Release();
-                return error(hr);
+                return ado_error(hr);
             }
 
             long columns;
@@ -252,7 +283,7 @@ result_t mssql::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* 
         affected = (long)0;
         hr = rs->NextRecordset(&affected, &rs1);
         if (FAILED(hr))
-            return error(hr);
+            return ado_error(hr);
 
         rs->Release();
 
