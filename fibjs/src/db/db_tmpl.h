@@ -9,13 +9,9 @@
 
 #include "object.h"
 #include "ifs/db.h"
+#include "db_format.h"
 
 namespace fibjs {
-
-result_t db_format(exlib::string method, v8::Local<v8::Object> opts, bool mysql, bool mssql,
-    exlib::string& retVal);
-result_t db_format(const char* sql, OptArgs args, bool mysql, bool mssql,
-    exlib::string& retVal);
 
 template <typename T>
 inline result_t db_trans(T* pThis, exlib::string point, v8::Local<v8::Function> func, bool& retVal)
@@ -56,12 +52,12 @@ public:
 public:
     result_t format(exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal)
     {
-        return db_format(method, opts, mysql, mssql, retVal);
+        return db_format<mysql, mssql>::format(method, opts, retVal);
     }
 
     result_t format(exlib::string sql, OptArgs args, exlib::string& retVal)
     {
-        return db_format(sql.c_str(), args, mysql, mssql, retVal);
+        return db_format<mysql, mssql>::format(sql.c_str(), args, retVal);
     }
 
     result_t use(exlib::string dbName, AsyncEvent* ac)
