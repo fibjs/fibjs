@@ -41,7 +41,7 @@ inline result_t db_trans(T* pThis, exlib::string point, v8::Local<v8::Function> 
     }
 }
 
-template <class base, bool mysql, bool mssql>
+template <class base, class impl>
 class db_tmpl : public base {
 public:
     db_tmpl()
@@ -52,12 +52,12 @@ public:
 public:
     result_t format(exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal)
     {
-        return db_format<mysql, mssql>::format(method, opts, retVal);
+        return db_format<impl>::format(method, opts, retVal);
     }
 
     result_t format(exlib::string sql, OptArgs args, exlib::string& retVal)
     {
-        return db_format<mysql, mssql>::format(sql.c_str(), args, retVal);
+        return db_format<impl>::format(sql.c_str(), args, retVal);
     }
 
     result_t use(exlib::string dbName, AsyncEvent* ac)
@@ -84,15 +84,11 @@ public:
 
         obj_ptr<NArray> retVal;
 
-        if (point.empty()) {
-            if (mssql)
-                return execute("BEGIN TRANSACTION", retVal, ac);
-            else
-                return execute("BEGIN", retVal, ac);
-        } else {
-            exlib::string str((mssql ? "SAVE TRANSACTION " : "SAVEPOINT ") + point);
-            return execute(str, retVal, ac);
-        }
+        if (point.empty())
+            return execute("BEGIN", retVal, ac);
+
+        exlib::string str("SAVEPOINT " + point);
+        return execute(str, retVal, ac);
     }
 
     result_t commit(exlib::string point, AsyncEvent* ac)
@@ -107,12 +103,9 @@ public:
 
         if (point.empty())
             return execute("COMMIT", retVal, ac);
-        else {
-            if (mssql)
-                return 0;
-            exlib::string str((mssql ? "COMMIT TRANSACTION " : "RELEASE SAVEPOINT ") + point);
-            return execute(str, retVal, ac);
-        }
+
+        exlib::string str("RELEASE SAVEPOINT " + point);
+        return execute(str, retVal, ac);
     }
 
     result_t rollback(exlib::string point, AsyncEvent* ac)
@@ -127,10 +120,9 @@ public:
 
         if (point.empty())
             return execute("ROLLBACK", retVal, ac);
-        else {
-            exlib::string str((mssql ? "ROLLBACK TRANSACTION " : "ROLLBACK TO ") + point);
-            return execute(str, retVal, ac);
-        }
+
+        exlib::string str("ROLLBACK TO " + point);
+        return execute(str, retVal, ac);
     }
 
     result_t trans(v8::Local<v8::Function> func, bool& retVal)
@@ -270,6 +262,115 @@ public:
         retVal = _retVal->m_values[0].m_val.intVal();
 
         return 0;
+    }
+
+public:
+    static exlib::string escape_string(exlib::string v)
+    {
+        const char* str = v.c_str();
+        int32_t sz = (int32_t)v.length();
+        int32_t len, l;
+        const char* src;
+        char* bstr;
+        char ch;
+        exlib::string retVal;
+
+        for (len = 0, src = str, l = sz; l > 0; len++, l--) {
+            ch = (unsigned char)*src++;
+
+            if (ch == '\'')
+                len++;
+        }
+
+        retVal.resize(len + 2);
+
+        bstr = retVal.c_buffer();
+        *bstr++ = '\'';
+
+        for (src = str, l = sz; l > 0; l--) {
+            ch = (unsigned char)*src++;
+
+            if (ch == '\'')
+                *bstr++ = '\'';
+            *bstr++ = ch;
+        }
+
+        *bstr++ = '\'';
+
+        return retVal;
+    }
+
+    static exlib::string escape_binary(Buffer_base* bin)
+    {
+        exlib::string retVal;
+        exlib::string s;
+
+        bin->hex(s);
+
+        retVal.append("x\'", 2);
+        retVal.append(s);
+        retVal += '\'';
+
+        return retVal;
+    }
+
+    static exlib::string escape_date(v8::Local<v8::Value>& v)
+    {
+        exlib::string retVal;
+        exlib::string s;
+
+        retVal.append(1, '\'');
+
+        date_t d = v;
+        d.sqlString(s);
+        retVal.append(s);
+
+        retVal.append(1, '\'');
+
+        return retVal;
+    }
+
+    static exlib::string escape_field(const char* str, int32_t sz,
+        char quote_left = '`', char quote_right = '`')
+    {
+        exlib::string retVal;
+
+        retVal += quote_left;
+        while (sz--) {
+            char ch = *str++;
+            if (ch == quote_right) {
+                retVal += quote_right;
+                retVal += quote_right;
+            } else if (ch == '.') {
+                retVal += quote_right;
+                retVal += '.';
+                retVal += quote_left;
+            } else
+                retVal += ch;
+        }
+        retVal += quote_right;
+
+        return retVal;
+    }
+
+public:
+    struct DataType {
+        const char* DOUBLE;
+        const char* TEXT;
+        const char* BLOB;
+        const char* LONGBLOB;
+    };
+
+    static const DataType& data_type()
+    {
+        static DataType _data_type = {
+            "DOUBLE",
+            "TEXT",
+            "BLOB",
+            "LONGBLOB"
+        };
+
+        return _data_type;
     }
 
 public:

@@ -102,11 +102,4 @@ module db
      @return 返回格式化之后的 sql 命令
      */
     static String formatMSSQL(String sql, ...args);
-
-    /*! @brief 将字符串编码为 SQL 安全编码字符串
-     @param str 要编码的字符串
-     @param mysql 指定 mysql 编码，缺省为 false
-     @return 返回编码后的字符串
-     */
-    static String escape(String str, Boolean mysql = false);
 };

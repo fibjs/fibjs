@@ -190,10 +190,8 @@ static result_t close_conn(UMConnection conn)
 
 mysql::~mysql()
 {
-    if (m_conn) {
+    if (m_conn)
         asyncCall(close_conn, m_conn);
-        m_conn = NULL;
-    }
 }
 
 result_t mysql::connect(const char* host, int32_t port, const char* username,

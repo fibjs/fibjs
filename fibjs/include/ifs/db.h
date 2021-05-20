@@ -41,7 +41,6 @@ public:
     static result_t formatMySQL(exlib::string sql, OptArgs args, exlib::string& retVal);
     static result_t formatMSSQL(exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal);
     static result_t formatMSSQL(exlib::string sql, OptArgs args, exlib::string& retVal);
-    static result_t escape(exlib::string str, bool mysql, exlib::string& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -66,7 +65,6 @@ public:
     static void s_static_format(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_formatMySQL(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_formatMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_escape(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(db_base, open, exlib::string, obj_ptr<object_base>);
@@ -109,8 +107,7 @@ inline ClassInfo& db_base::class_info()
         { "openRedisSync", s_static_openRedis, true },
         { "format", s_static_format, true },
         { "formatMySQL", s_static_formatMySQL, true },
-        { "formatMSSQL", s_static_formatMSSQL, true },
-        { "escape", s_static_escape, true }
+        { "formatMSSQL", s_static_formatMSSQL, true }
     };
 
     static ClassData s_cd = {
@@ -343,23 +340,6 @@ inline void db_base::s_static_formatMSSQL(const v8::FunctionCallbackInfo<v8::Val
     ARG_LIST(1);
 
     hr = formatMSSQL(v0, v1, vr);
-
-    METHOD_RETURN();
-}
-
-inline void db_base::s_static_escape(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    exlib::string vr;
-
-    METHOD_NAME("db.escape");
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(bool, 1, false);
-
-    hr = escape(v0, v1, vr);
 
     METHOD_RETURN();
 }

@@ -12,10 +12,13 @@
 #include "ifs/db.h"
 #include "DBResult.h"
 #include "Url.h"
+#include "encoding_iconv.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 namespace fibjs {
+
+void* g_odbc;
 
 result_t db_base::openOdbc(exlib::string connString, obj_ptr<DbConnection_base>& retVal,
     AsyncEvent* ac)
@@ -47,9 +50,9 @@ result_t db_base::openOdbc(exlib::string connString, obj_ptr<DbConnection_base>&
     exlib::string driver = v.string();
     obj_ptr<Odbc> conn = new Odbc();
 
-    hr = conn->connect(driver.c_str(), u->m_hostname.c_str(), nPort,
+    hr = odbc_connect(driver.c_str(), u->m_hostname.c_str(), nPort,
         u->m_username.c_str(), u->m_password.c_str(),
-        u->m_pathname.length() > 0 ? u->m_pathname.c_str() + 1 : "");
+        u->m_pathname.length() > 0 ? u->m_pathname.c_str() + 1 : "", conn->m_conn);
     if (hr < 0)
         return hr;
 
@@ -57,25 +60,29 @@ result_t db_base::openOdbc(exlib::string connString, obj_ptr<DbConnection_base>&
     return 0;
 }
 
-Odbc::~Odbc()
+result_t odbc_disconnect(void* conn)
 {
-    close();
+    if (conn)
+        SQLFreeConnect(conn);
+
+    return 0;
 }
 
-void Odbc::close()
+result_t odbc_close(void*& conn, AsyncEvent* ac)
 {
-    if (m_conn) {
-        SQLFreeConnect(m_conn);
-        m_conn = NULL;
-    }
+    if (!conn)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (m_env) {
-        SQLFreeEnv(m_env);
-        m_env = NULL;
-    }
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_LONGSYNC);
+
+    odbc_disconnect(conn);
+    conn = NULL;
+
+    return 0;
 }
 
-exlib::string Odbc::GetSQLError(int32_t handleType, void* handle)
+exlib::string odbc_error(int32_t handleType, void* handle)
 {
     SQLRETURN hr;
     SQLSMALLINT len;
@@ -136,20 +143,23 @@ exlib::string safe_conn_string(const char* str)
     return new_str;
 }
 
-result_t Odbc::connect(const char* driver, const char* host, int32_t port, const char* username,
-    const char* password, const char* dbName)
+result_t odbc_connect(const char* driver, const char* host, int32_t port, const char* username,
+    const char* password, const char* dbName, void*& conn)
 {
-    if (m_conn)
+    if (conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     SQLRETURN hr;
-    hr = SQLAllocEnv((SQLHENV*)&m_env);
-    if (hr < 0)
-        return CHECK_ERROR(Runtime::setError("odbc: unable to allocate environment."));
+    if (!g_odbc) {
+        hr = SQLAllocEnv((SQLHENV*)&g_odbc);
+        if (hr < 0)
+            return CHECK_ERROR(Runtime::setError("odbc: unable to allocate environment."));
+    }
 
-    hr = SQLAllocConnect(m_env, (SQLHDBC*)&m_conn);
+    hr = SQLAllocConnect(g_odbc, (SQLHDBC*)&conn);
     if (hr < 0) {
-        close();
+        odbc_disconnect(conn);
+        conn = NULL;
         return CHECK_ERROR(Runtime::setError("odbc: unable to allocate connection."));
     }
 
@@ -192,39 +202,21 @@ result_t Odbc::connect(const char* driver, const char* host, int32_t port, const
         }
     }
 
-    hr = SQLDriverConnect(m_conn, NULL, (SQLCHAR*)conn_str.c_str(), (SQLSMALLINT)conn_str.length(),
+    hr = SQLDriverConnect(conn, NULL, (SQLCHAR*)conn_str.c_str(), (SQLSMALLINT)conn_str.length(),
         NULL, 0, NULL, SQL_DRIVER_NOPROMPT);
     if (hr < 0) {
-        exlib::string err = GetSQLError(SQL_HANDLE_DBC, m_conn);
-        close();
+        exlib::string err = odbc_error(SQL_HANDLE_DBC, conn);
+        odbc_disconnect(conn);
+        conn = NULL;
         return CHECK_ERROR(Runtime::setError(err));
     }
 
     return 0;
 }
 
-result_t Odbc::get_type(exlib::string& retVal)
+result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac, exlib::string codec)
 {
-    retVal = "odbc";
-    return 0;
-}
-
-result_t Odbc::close(AsyncEvent* ac)
-{
-    if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
-
-    close();
-
-    return 0;
-}
-
-result_t Odbc::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
-{
-    if (!m_conn)
+    if (!conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
@@ -233,132 +225,171 @@ result_t Odbc::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* a
     SQLRETURN hr;
     SQLHSTMT stmt;
 
-    hr = SQLAllocStmt(m_conn, &stmt);
+    hr = SQLAllocStmt(conn, &stmt);
     if (hr < 0)
-        return CHECK_ERROR(Runtime::setError(GetSQLError(SQL_HANDLE_DBC, m_conn)));
+        return CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_DBC, conn)));
 
     do {
-        obj_ptr<DBResult> res;
-        std::vector<SQLLEN> types;
-        SQLLEN len;
-        SQLSMALLINT columns = 0;
-        SQLLEN affected;
+        bool more = false;
 
-        hr = SQLExecDirect(stmt, (SQLCHAR*)sql.c_str(), (SQLINTEGER)sql.length());
-        if (hr < 0)
-            break;
-
-        hr = SQLNumResultCols(stmt, &columns);
-        if (hr < 0)
-            break;
-
-        hr = SQLRowCount(stmt, &affected);
-        if (hr < 0)
-            break;
-
-        types.resize(columns);
-        res = new DBResult(columns, affected);
-        for (int32_t i = 0; i < columns; i++) {
-            char buf[SQL_MAX_COLUMN_NAME_LEN];
-            SQLSMALLINT buflen;
-
-            hr = SQLColAttributes(stmt, i + 1, SQL_DESC_NAME, buf, SQL_MAX_COLUMN_NAME_LEN, &buflen, NULL);
-            if (hr < 0)
-                break;
-
-            hr = SQLColAttributes(stmt, i + 1, SQL_DESC_TYPE, NULL, 0, NULL, &types[i]);
-            if (hr < 0)
-                break;
-
-            res->setField(i, exlib::string(buf, buflen));
+        if (codec == "utf8" || codec == "utf-8") {
+            hr = SQLExecDirect(stmt, (SQLCHAR*)sql.c_str(), (SQLINTEGER)sql.length());
+        } else {
+            exlib::wstring wsql(utf8to16String(sql));
+            hr = SQLExecDirectW(stmt, (SQLWCHAR*)wsql.c_str(), (SQLINTEGER)wsql.length());
         }
         if (hr < 0)
             break;
 
-        while (true) {
-            hr = SQLFetch(stmt);
-            if (hr < 0 || hr == SQL_NO_DATA)
+        do {
+            obj_ptr<DBResult> res;
+            std::vector<SQLLEN> types;
+            SQLLEN len;
+            SQLSMALLINT columns = 0;
+            SQLLEN affected;
+
+            hr = SQLNumResultCols(stmt, &columns);
+            if (hr < 0)
                 break;
 
-            res->beginRow();
+            hr = SQLRowCount(stmt, &affected);
+            if (hr < 0)
+                break;
 
+            types.resize(columns);
+            res = new DBResult(columns, affected);
             for (int32_t i = 0; i < columns; i++) {
-                Variant v;
+                char buf[SQL_MAX_COLUMN_NAME_LEN];
+                SQLSMALLINT buflen;
 
-                switch (types[i]) {
-                case SQL_INTEGER:
-                case SQL_SMALLINT:
-                case SQL_TINYINT: {
-                    int32_t value = 0;
-                    hr = SQLGetData(stmt, i + 1, SQL_C_SLONG, &value, sizeof(value), &len);
-                    v = value;
-                    break;
-                }
-                case SQL_NUMERIC:
-                case SQL_DECIMAL:
-                case SQL_BIGINT:
-                case SQL_FLOAT:
-                case SQL_REAL:
-                case SQL_DOUBLE: {
-                    double value;
-                    hr = SQLGetData(stmt, i + 1, SQL_C_DOUBLE, &value, sizeof(value), &len);
-                    v = value;
-                    break;
-                }
-                case SQL_DATETIME:
-                case SQL_TIMESTAMP: {
-                    TIMESTAMP_STRUCT value;
-                    date_t d;
-                    hr = SQLGetData(stmt, i + 1, SQL_C_TIMESTAMP, &value, sizeof(value), &len);
-                    d.create(value.year, value.month, value.day, value.hour, value.minute,
-                        value.second, value.fraction / 1000000);
-                    d.toUTC();
-                    v = d;
-                    break;
-                }
-                case SQL_BINARY:
-                case SQL_VARBINARY:
-                case SQL_LONGVARBINARY: {
-                    exlib::string value;
-                    hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.c_buffer(), 0, &len);
-                    if (hr < 0)
-                        break;
-                    value.resize(len);
-                    hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.c_buffer(), len, &len);
-                    if (hr >= 0)
-                        v = new Buffer(value);
-                    break;
-                }
-                default: {
-                    exlib::string value;
-                    hr = SQLGetData(stmt, i + 1, SQL_C_TCHAR, value.c_buffer(), 0, &len);
-                    if (hr < 0)
-                        break;
-                    value.resize(len);
-                    hr = SQLGetData(stmt, i + 1, SQL_C_TCHAR, value.c_buffer(), len + 1, &len);
-                    if (hr >= 0)
-                        v = value;
-                    break;
-                }
-                }
+                hr = SQLColAttributes(stmt, i + 1, SQL_DESC_NAME, buf, SQL_MAX_COLUMN_NAME_LEN, &buflen, NULL);
                 if (hr < 0)
                     break;
 
-                res->rowValue(i, v);
+                hr = SQLColAttributes(stmt, i + 1, SQL_DESC_TYPE, NULL, 0, NULL, &types[i]);
+                if (hr < 0)
+                    break;
+
+                res->setField(i, exlib::string(buf, buflen));
             }
             if (hr < 0)
                 break;
 
-            res->endRow();
-        }
-        if (hr < 0)
-            break;
+            while (columns > 0) {
+                hr = SQLFetch(stmt);
+                if (hr < 0 || hr == SQL_NO_DATA)
+                    break;
 
-        retVal = res;
+                res->beginRow();
+
+                for (int32_t i = 0; i < columns; i++) {
+                    Variant v;
+
+                    switch (types[i]) {
+                    case SQL_INTEGER:
+                    case SQL_SMALLINT:
+                    case SQL_TINYINT: {
+                        int32_t value = 0;
+                        hr = SQLGetData(stmt, i + 1, SQL_C_SLONG, &value, sizeof(value), &len);
+                        if (len >= 0)
+                            v = value;
+                        else
+                            v.setNull();
+                        break;
+                    }
+                    case SQL_NUMERIC:
+                    case SQL_DECIMAL:
+                    case SQL_BIGINT:
+                    case SQL_FLOAT:
+                    case SQL_REAL:
+                    case SQL_DOUBLE: {
+                        double value;
+                        hr = SQLGetData(stmt, i + 1, SQL_C_DOUBLE, &value, sizeof(value), &len);
+                        v = value;
+                        break;
+                    }
+                    case SQL_DATETIME:
+                    case SQL_TIMESTAMP: {
+                        TIMESTAMP_STRUCT value;
+                        date_t d;
+                        hr = SQLGetData(stmt, i + 1, SQL_C_TIMESTAMP, &value, sizeof(value), &len);
+                        d.create(value.year, value.month, value.day, value.hour, value.minute,
+                            value.second, value.fraction / 1000000);
+                        d.toUTC();
+                        v = d;
+                        break;
+                    }
+                    case SQL_BINARY:
+                    case SQL_VARBINARY:
+                    case SQL_LONGVARBINARY: {
+                        exlib::string value;
+                        hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.c_buffer(), 0, &len);
+                        if (hr < 0)
+                            break;
+                        value.resize(len);
+                        hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.c_buffer(), len, &len);
+                        if (hr >= 0)
+                            v = new Buffer(value);
+                        break;
+                    }
+                    case -9: {
+                        exlib::wstring value;
+                        hr = SQLGetData(stmt, i + 1, SQL_C_WCHAR, value.c_buffer(), 2, &len);
+                        if (hr < 0)
+                            break;
+                        value.resize(len / 2);
+                        hr = SQLGetData(stmt, i + 1, SQL_C_WCHAR, value.c_buffer(), len + 2, &len);
+                        if (hr >= 0)
+                            v = utf16to8String(value);
+                        break;
+                    }
+                    default: {
+                        exlib::string value;
+                        hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.c_buffer(), 0, &len);
+                        if (hr < 0)
+                            break;
+                        value.resize(len);
+                        hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.c_buffer(), len, &len);
+                        if (hr >= 0) {
+                            if (codec == "utf8" || codec == "utf-8") {
+                                v = value;
+                            } else {
+                                exlib::string value1;
+                                encoding_iconv(codec).decode(value, value1);
+                                v = value1;
+                            }
+                        }
+                        break;
+                    }
+                    }
+                    if (hr < 0)
+                        break;
+
+                    res->rowValue(i, v);
+                }
+                if (hr < 0)
+                    break;
+
+                res->endRow();
+            }
+            if (hr < 0)
+                break;
+
+            more = SQLMoreResults(stmt) == SQL_SUCCESS;
+
+            if (!more && retVal == NULL) {
+                retVal = res;
+            } else {
+                if (retVal == NULL)
+                    retVal = new NArray();
+
+                retVal->append(res);
+            }
+        } while (more);
     } while (0);
 
     if (hr < 0)
-        hr = CHECK_ERROR(Runtime::setError(GetSQLError(SQL_HANDLE_STMT, stmt)));
+        hr = CHECK_ERROR(Runtime::setError(odbc_error(SQL_HANDLE_STMT, stmt)));
     else
         hr = 0;
 

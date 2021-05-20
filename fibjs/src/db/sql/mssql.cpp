@@ -8,16 +8,8 @@
 #include "object.h"
 #include "ifs/db.h"
 
-#ifdef _WIN32
-
 #include "mssql.h"
 #include "Url.h"
-#include "DBResult.h"
-#include "Buffer.h"
-#include "date.h"
-
-// #import "msado25.tlb" raw_interfaces_only, rename("EOF", "adoEOF")
-#include "msado25.tlh"
 
 namespace fibjs {
 
@@ -36,10 +28,25 @@ result_t db_base::openMSSQL(exlib::string connString, obj_ptr<DbConnection_base>
     if (hr < 0)
         return hr;
 
+    obj_ptr<HttpCollection_base> q;
+    u->get_searchParams(q);
+    Variant v;
+
+    int32_t nPort = 1433;
+    if (u->m_port.length() > 0)
+        nPort = atoi(u->m_port.c_str());
+
     obj_ptr<mssql> conn = new mssql();
 
-    hr = conn->connect(u->m_hostname.c_str(), u->m_username.c_str(), u->m_password.c_str(),
-        u->m_pathname.length() > 0 ? u->m_pathname.c_str() + 1 : "");
+#ifdef _WIN32
+    const char* driver = "SQL Server";
+#else
+    const char* driver = "libtdsodbc.so";
+#endif
+
+    hr = odbc_connect(driver, u->m_hostname.c_str(), nPort,
+        u->m_username.c_str(), u->m_password.c_str(),
+        u->m_pathname.length() > 0 ? u->m_pathname.c_str() + 1 : "", conn->m_conn);
     if (hr < 0)
         return hr;
 
@@ -47,273 +54,4 @@ result_t db_base::openMSSQL(exlib::string connString, obj_ptr<DbConnection_base>
     return 0;
 }
 
-static result_t close_conn(ADODB::_Connection* conn)
-{
-    conn->Close();
-    conn->Release();
-    return 0;
-}
-
-mssql::~mssql()
-{
-    if (m_conn) {
-        asyncCall(close_conn, (ADODB::_Connection*)m_conn);
-        m_conn = NULL;
-    }
-}
-
-result_t mssql::ado_error(HRESULT hr)
-{
-    ADODB::Errors* errs = NULL;
-
-    ((ADODB::_Connection*)m_conn)->get_Errors(&errs);
-    if (errs) {
-        ADODB::Error* err = NULL;
-        _variant_t i(0);
-
-        errs->get_Item(i, &err);
-        if (err) {
-            BSTR msg = NULL;
-            err->get_Description(&msg);
-            err->Release();
-
-            if (msg) {
-                exlib::string msga = utf16to8String(msg);
-                SysFreeString(msg);
-                return Runtime::setError(msga);
-            }
-        }
-
-        errs->Release();
-    }
-
-    return hr;
-}
-
-result_t mssql::connect(const char* server, const char* username,
-    const char* password, const char* dbName)
-{
-    if (m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    HRESULT hr;
-
-    hr = CoCreateInstance(__uuidof(ADODB::Connection), NULL,
-        CLSCTX_INPROC_SERVER, __uuidof(ADODB::_Connection), &m_conn);
-    if (FAILED(hr))
-        return hr;
-
-    exlib::string connStr;
-
-    connStr.append("Provider=\'sqloledb\';Data Source=\'");
-    connStr.append(server);
-    connStr.append("\';Initial Catalog=\'");
-    connStr.append(*dbName ? dbName : "master");
-    connStr.append("\';");
-
-    bstr_t bstrConn(UTF8_W(connStr));
-    bstr_t bstrUser(UTF8_W(username));
-    bstr_t bstrPass(UTF8_W(password));
-
-    hr = ((ADODB::_Connection*)m_conn)->Open(bstrConn, bstrUser, bstrPass, ADODB::adConnectUnspecified);
-    if (FAILED(hr))
-        return ado_error(hr);
-
-    ((ADODB::_Connection*)m_conn)->put_CommandTimeout(0);
-
-    return 0;
-}
-
-result_t mssql::get_type(exlib::string& retVal)
-{
-    retVal = "mssql";
-    return 0;
-}
-
-result_t mssql::close(AsyncEvent* ac)
-{
-    if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
-
-    ((ADODB::_Connection*)m_conn)->Close();
-    ((ADODB::_Connection*)m_conn)->Release();
-    m_conn = NULL;
-
-    return 0;
-}
-
-result_t mssql::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
-{
-    if (!m_conn)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
-
-    HRESULT hr;
-    ADODB::_Recordset* rs = NULL;
-    ADODB::_Recordset* rs1 = NULL;
-    bstr_t bstrCom(utf8to16String(sql).c_str());
-    _variant_t affected((long)0);
-
-    hr = ((ADODB::_Connection*)m_conn)->Execute(bstrCom, &affected, ADODB::adCmdText, &rs);
-    if (FAILED(hr))
-        return ado_error(hr);
-
-    do {
-        obj_ptr<DBResult> res;
-
-        VARIANT_BOOL bEof = VARIANT_TRUE;
-        rs->get_adoEOF(&bEof);
-        if (bEof == VARIANT_FALSE) {
-            ADODB::Fields* fields = NULL;
-
-            rs->get_Fields(&fields);
-            if (FAILED(hr)) {
-                rs->Release();
-                return ado_error(hr);
-            }
-
-            long columns;
-            fields->get_Count(&columns);
-
-            if (columns > 0) {
-                int32_t i;
-
-                res = new DBResult(columns);
-
-                for (i = 0; i < columns; i++) {
-                    ADODB::Field* field = NULL;
-                    _variant_t vi((long)i);
-                    BSTR bstrName = NULL;
-
-                    fields->get_Item(vi, &field);
-
-                    field->get_Name(&bstrName);
-                    res->setField(i, utf16to8String(bstrName));
-                    SysFreeString(bstrName);
-                    field->Release();
-                }
-
-                while (bEof == VARIANT_FALSE) {
-                    int32_t i;
-
-                    res->beginRow();
-                    for (i = 0; i < columns; i++) {
-                        Variant v;
-                        ADODB::Field* field = NULL;
-                        _variant_t vi((long)i);
-
-                        fields->get_Item(vi, &field);
-                        if (field) {
-                            _variant_t value;
-
-                            field->get_Value(&value);
-
-                            switch (value.vt) {
-                            case VT_NULL:
-                                v.setNull();
-                                break;
-                            case VT_BOOL:
-                                v = (value.boolVal != VARIANT_FALSE);
-                                break;
-                            case VT_I2:
-                                v = value.iVal;
-                                break;
-                            case VT_UI2:
-                                v = value.uiVal;
-                                break;
-                            case VT_I4:
-                            case VT_INT:
-                                v = (double)value.lVal;
-                                break;
-                            case VT_UI4:
-                            case VT_UINT:
-                                v = (double)value.ulVal;
-                                break;
-                            case VT_R4:
-                                v = value.dblVal;
-                                break;
-                            case VT_BSTR:
-                                v = utf16to8String(value.bstrVal);
-                                break;
-                            case VT_DATE: {
-                                date_t d;
-                                SYSTEMTIME st;
-
-                                VariantTimeToSystemTime(value.date, &st);
-                                d.create(st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
-                                d.toUTC();
-
-                                v = d;
-                                break;
-                            }
-                            case VT_DECIMAL: {
-                                double myDouble = value;
-                                v = myDouble;
-                                break;
-                            }
-                            case VT_UI1 | VT_ARRAY:
-                                v = new Buffer(value.parray->pvData, value.parray->rgsabound[0].cElements);
-                                break;
-                            }
-
-                            field->Release();
-                        }
-
-                        res->rowValue(i, v);
-                    }
-                    res->endRow();
-
-                    rs->MoveNext();
-                    rs->get_adoEOF(&bEof);
-                }
-            } else
-                res = new DBResult(0, affected);
-
-            fields->Release();
-
-        } else
-            res = new DBResult(0, affected);
-
-        rs1 = NULL;
-        affected = (long)0;
-        hr = rs->NextRecordset(&affected, &rs1);
-        if (FAILED(hr))
-            return ado_error(hr);
-
-        rs->Release();
-
-        if (rs1 == NULL && retVal == NULL) {
-            retVal = res;
-        } else {
-            if (retVal == NULL)
-                retVal = new NArray();
-
-            retVal->append(res);
-
-            rs = rs1;
-        }
-    } while (rs1 != NULL);
-
-    return 0;
-}
-
 } /* namespace fibjs */
-
-#else
-
-namespace fibjs {
-
-result_t db_base::openMSSQL(exlib::string connString, obj_ptr<DbConnection_base>& retVal,
-    AsyncEvent* ac)
-{
-    return CALL_E_INVALIDARG;
-}
-
-} /* namespace fibjs */
-
-#endif

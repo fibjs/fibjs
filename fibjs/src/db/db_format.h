@@ -11,7 +11,7 @@
 
 namespace fibjs {
 
-template <bool mysql, bool mssql>
+template <class impl>
 class db_format {
 public:
     static result_t format(exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal)
@@ -75,113 +75,10 @@ public:
         return 0;
     }
 
-    static exlib::string escape(exlib::string v)
-    {
-        return escape(v.c_str(), (int32_t)v.length());
-    }
-
 private:
-    static exlib::string escape(const char* str, int32_t sz)
-    {
-        int32_t len, l;
-        const char* src;
-        char* bstr;
-        char ch;
-        exlib::string retVal;
-
-        for (len = 0, src = str, l = sz; l > 0; len++, l--) {
-            ch = (unsigned char)*src++;
-
-            if (ch == '\'')
-                len++;
-            else if (mysql) {
-                if (ch == 0 || ch == 0x1a || ch == '\r' || ch == '\n' || ch == '\\'
-                    || ch == '\"')
-                    len++;
-            }
-        }
-
-        retVal.resize(len);
-
-        bstr = retVal.c_buffer();
-
-        for (src = str, l = sz; l > 0; l--) {
-            ch = (unsigned char)*src++;
-
-            if (ch == '\'') {
-                *bstr++ = '\'';
-                *bstr++ = '\'';
-            } else if (mysql) {
-                switch (ch) {
-                case 0:
-                    *bstr++ = '\\';
-                    *bstr++ = '0';
-                    break;
-                case 0x1a:
-                    *bstr++ = '\\';
-                    *bstr++ = 0x1a;
-                    break;
-
-                case '\r':
-                    *bstr++ = '\\';
-                    *bstr++ = 'r';
-                    break;
-
-                case '\n':
-                    *bstr++ = '\\';
-                    *bstr++ = 'n';
-                    break;
-
-                case '\\':
-                    *bstr++ = '\\';
-                    *bstr++ = '\\';
-                    break;
-
-                case '\"':
-                    *bstr++ = '\\';
-                    *bstr++ = '\"';
-                    break;
-
-                default:
-                    *bstr++ = ch;
-                    break;
-                }
-            } else
-                *bstr++ = ch;
-        }
-
-        return retVal;
-    }
-
     static exlib::string escape_field(const char* str, int32_t sz)
     {
-        exlib::string retVal;
-
-        retVal.resize(sz * 2 + 2);
-        char* ptr = retVal.c_buffer();
-        char quote_left = mssql ? '[' : '`';
-        char quote_right = mssql ? ']' : '`';
-
-        *ptr++ = quote_left;
-        while (sz--) {
-            char ch = *str++;
-            if (mssql && ch == quote_right) {
-                *ptr++ = '\\';
-                *ptr++ = quote_right;
-            } else if (!mssql && ch == '`') {
-                *ptr++ = '`';
-                *ptr++ = '`';
-            } else if (ch == '.') {
-                *ptr++ = quote_right;
-                *ptr++ = '.';
-                *ptr++ = quote_left;
-            } else
-                *ptr++ = ch;
-        }
-        *ptr++ = quote_right;
-
-        retVal.resize(ptr - retVal.c_buffer());
-        return retVal;
+        return impl::escape_field(str, sz);
     }
 
     static exlib::string escape_field(exlib::string s)
@@ -199,20 +96,9 @@ private:
     {
         obj_ptr<Buffer_base> bin = Buffer_base::getInstance(v);
 
-        if (bin) {
-            exlib::string s;
-
-            if (mssql) {
-                str.append("0x", 2);
-                bin->hex(s);
-                str.append(s);
-            } else {
-                str.append("x\'", 2);
-                bin->hex(s);
-                str.append(s);
-                str += '\'';
-            }
-        } else if (v->IsArray()) {
+        if (bin)
+            str.append(impl::escape_binary(bin));
+        else if (v->IsArray()) {
             v8::Local<v8::Array> a = v8::Local<v8::Array>::Cast(v);
             int32_t len = a->Length();
             int32_t i;
@@ -234,21 +120,10 @@ private:
             str.append(isolate->toString(v));
         } else if (v->IsUndefined() || v->IsNull()) {
             str.append("NULL", 4);
-        } else {
-            exlib::string s;
-            str += '\'';
-
-            if (v->IsDate()) {
-                date_t d = v;
-                d.sqlString(s);
-            } else {
-                Isolate* isolate = Isolate::current();
-                s = escape(isolate->toString(v));
-            }
-            str.append(s);
-
-            str += '\'';
-        }
+        } else if (v->IsDate())
+            str.append(impl::escape_date(v));
+        else
+            str.append(impl::escape_string(Isolate::current()->toString(v)));
     }
 
     static result_t format_where(v8::Local<v8::Array> o, bool bAnd, exlib::string& retVal, bool& retAnd)
@@ -308,6 +183,9 @@ private:
         int32_t i;
         bool bAnd = true;
 
+        exlib::string or_str = escape_field("$or", 3);
+        exlib::string and_str = escape_field("$and", 4);
+
         for (i = 0; i < len; i++) {
             JSValue k = ks->Get(i);
             JSValue v = o->Get(k);
@@ -317,14 +195,12 @@ private:
             bool bField = false;
             exlib::string op("=");
             exlib::string key;
-            const char* or_str = mssql ? "[$or]" : "`$or`";
-            const char* and_str = mssql ? "[$and]" : "`$and`";
 
             if (v->IsFunction())
                 return CHECK_ERROR(CALL_E_INVALIDARG);
 
             key = escape_field(k);
-            while (len == 1 && (!qstrcmp(key.c_str(), or_str, 5) || !qstrcmp(key.c_str(), and_str, 6))) {
+            while (len == 1 && (!qstrcmp(key.c_str(), or_str.c_str(), 5) || !qstrcmp(key.c_str(), and_str.c_str(), 6))) {
                 bAnd = key[2] == 'a';
 
                 if (v->IsArray())
@@ -891,7 +767,7 @@ private:
                     _fields.append((const char*)str);
                     _fields.append(1, ')');
                 } else
-                    _fields.append(mysql ? "LONGTEXT" : "TEXT");
+                    _fields.append(impl::data_type().TEXT);
             } else if (type == "number") {
                 int32_t size = 8;
 
@@ -904,7 +780,7 @@ private:
                 if (size == 4)
                     _fields.append("FLOAT");
                 else if (size == 8)
-                    _fields.append(mssql ? "REAL" : "DOUBLE");
+                    _fields.append(impl::data_type().DOUBLE);
                 else
                     return CHECK_ERROR(Runtime::setError("db: Number size must be 4|8."));
             } else if (type == "integer") {
@@ -945,10 +821,7 @@ private:
                         return hr;
                 }
 
-                if (mssql)
-                    _fields.append(big ? "IMAGE" : "VARBINARY(MAX)");
-                else
-                    _fields.append(big ? "LONGBLOB" : "BLOB");
+                _fields.append(big ? impl::data_type().LONGBLOB : impl::data_type().BLOB);
             } else
                 _fields.append(type);
 
@@ -1068,5 +941,4 @@ private:
         return 0;
     }
 };
-
 }

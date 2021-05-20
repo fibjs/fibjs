@@ -15,7 +15,7 @@ extern "C" {
 
 namespace fibjs {
 
-class mysql : public db_tmpl<MySQL_base, true, false> {
+class mysql : public db_tmpl<MySQL_base, mysql> {
 public:
     virtual ~mysql();
 
@@ -35,6 +35,71 @@ public:
 public:
     result_t connect(const char* host, int32_t port, const char* username,
         const char* password, const char* dbName);
+
+public:
+    static exlib::string escape_string(exlib::string v)
+    {
+        const char* str = v.c_str();
+        int32_t sz = (int32_t)v.length();
+        int32_t len, l;
+        const char* src;
+        char* bstr;
+        char ch;
+        exlib::string retVal;
+
+        for (len = 0, src = str, l = sz; l > 0; len++, l--) {
+            ch = (unsigned char)*src++;
+
+            if (ch == '\'' || ch == '\\')
+                len++;
+        }
+
+        retVal.resize(len + 2);
+
+        bstr = retVal.c_buffer();
+        *bstr++ = '\'';
+
+        for (src = str, l = sz; l > 0; l--) {
+            ch = (unsigned char)*src++;
+
+            if (ch == '\'' || ch == '\\')
+                *bstr++ = ch;
+            *bstr++ = ch;
+        }
+
+        *bstr++ = '\'';
+
+        return retVal;
+    }
+
+    static exlib::string escape_date(v8::Local<v8::Value>& v)
+    {
+        exlib::string retVal;
+        exlib::string s;
+
+        retVal.append("TIMESTAMP(\'", 11);
+
+        date_t d = v;
+        d.sqlString(s);
+        retVal.append(s);
+
+        retVal.append("\')", 2);
+
+        return retVal;
+    }
+
+public:
+    static const DataType& data_type()
+    {
+        static DataType _data_type = {
+            "DOUBLE",
+            "LONGTEXT",
+            "BLOB",
+            "LONGBLOB"
+        };
+
+        return _data_type;
+    }
 
 private:
     inline result_t error()

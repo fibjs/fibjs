@@ -13,7 +13,7 @@
 
 namespace fibjs {
 
-class SQLite : public db_tmpl<SQLite_base, false, false> {
+class SQLite : public db_tmpl<SQLite_base, SQLite> {
 public:
     SQLite()
         : m_nCmdTimeout(10000)

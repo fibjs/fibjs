@@ -7,29 +7,67 @@
 
 #pragma once
 
-#include "ifs/DbConnection.h"
+#include "ifs/Odbc.h"
 #include "../db_tmpl.h"
 
 namespace fibjs {
 
-class Odbc : public db_tmpl<DbConnection_base, false, true> {
+result_t odbc_connect(const char* driver, const char* host, int32_t port, const char* username,
+    const char* password, const char* dbName, void*& conn);
+result_t odbc_disconnect(void* conn);
+result_t odbc_close(void*& conn, AsyncEvent* ac);
+result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac, exlib::string codec);
+
+class Odbc_tmpl : public Odbc_base {
 public:
-    ~Odbc();
+    Odbc_tmpl()
+        : m_codec("utf8")
+    {
+    }
+
+public:
+    // Odbc_base
+    virtual result_t get_codec(exlib::string& retVal)
+    {
+        retVal = m_codec;
+        return 0;
+    }
+
+    virtual result_t set_codec(exlib::string newVal)
+    {
+        m_codec = newVal;
+        return 0;
+    }
+
+protected:
+    exlib::string m_codec;
+};
+
+class Odbc : public db_tmpl<Odbc_tmpl, Odbc> {
+public:
+    ~Odbc()
+    {
+        if (m_conn)
+            asyncCall(odbc_disconnect, m_conn);
+    }
 
 public:
     // DbConnection_base
-    virtual result_t get_type(exlib::string& retVal);
-    virtual result_t close(AsyncEvent* ac);
-    virtual result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac);
+    virtual result_t get_type(exlib::string& retVal)
+    {
+        retVal = "odbc";
+        return 0;
+    }
 
-public:
-    result_t connect(const char* driver, const char* host, int32_t port, const char* username,
-        const char* password, const char* dbName);
-    void close();
-    exlib::string GetSQLError(int32_t handleType, void* handle);
+    virtual result_t close(AsyncEvent* ac)
+    {
+        return odbc_close(m_conn, ac);
+    }
 
-public:
-    void* m_env = NULL;
+    virtual result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+    {
+        return odbc_execute(m_conn, sql, retVal, ac, m_codec);
+    }
 };
 
 } /* namespace fibjs */

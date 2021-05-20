@@ -9,6 +9,10 @@
 #include "ifs/db.h"
 #include "ifs/Buffer.h"
 #include "db_format.h"
+#include "sql/SQLite.h"
+#include "sql/mysql.h"
+#include "sql/mssql.h"
+#include "odbc/Odbc.h"
 
 namespace fibjs {
 
@@ -40,42 +44,36 @@ result_t db_base::open(exlib::string connString, obj_ptr<object_base>& retVal, A
 result_t db_base::format(exlib::string sql, OptArgs args,
     exlib::string& retVal)
 {
-    return db_format<false, false>::format(sql.c_str(), args, retVal);
+    return db_format<SQLite>::format(sql.c_str(), args, retVal);
 }
 
 result_t db_base::formatMySQL(exlib::string sql, OptArgs args,
     exlib::string& retVal)
 {
-    return db_format<true, false>::format(sql.c_str(), args, retVal);
+    return db_format<mysql>::format(sql.c_str(), args, retVal);
 }
 
 result_t db_base::formatMSSQL(exlib::string sql, OptArgs args,
     exlib::string& retVal)
 {
-    return db_format<false, true>::format(sql.c_str(), args, retVal);
+    return db_format<mssql>::format(sql.c_str(), args, retVal);
 }
 
 result_t db_base::format(exlib::string method, v8::Local<v8::Object> opts,
     exlib::string& retVal)
 {
-    return db_format<false, false>::format(method, opts, retVal);
+    return db_format<SQLite>::format(method, opts, retVal);
 }
 
 result_t db_base::formatMySQL(exlib::string method, v8::Local<v8::Object> opts,
     exlib::string& retVal)
 {
-    return db_format<true, false>::format(method, opts, retVal);
+    return db_format<mysql>::format(method, opts, retVal);
 }
 
 result_t db_base::formatMSSQL(exlib::string method, v8::Local<v8::Object> opts,
     exlib::string& retVal)
 {
-    return db_format<false, true>::format(method, opts, retVal);
-}
-
-result_t db_base::escape(exlib::string str, bool mysql, exlib::string& retVal)
-{
-    retVal = mysql ? db_format<true, false>::escape(str) : db_format<false, false>::escape(str);
-    return 0;
+    return db_format<mssql>::format(method, opts, retVal);
 }
 }

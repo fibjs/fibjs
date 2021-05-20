@@ -75,6 +75,12 @@ SQLRETURN SQL_API SQLExecDirect(SQLHSTMT StatementHandle, SQLCHAR* StatementText
     return s_SQLExecDirect(StatementHandle, StatementText, TextLength);
 }
 
+SQLRETURN SQL_API SQLExecDirectW(SQLHSTMT StatementHandle, SQLWCHAR* StatementText, SQLINTEGER TextLength)
+{
+    odbc_func(SQLExecDirectW);
+    return s_SQLExecDirectW(StatementHandle, StatementText, TextLength);
+}
+
 SQLRETURN SQL_API SQLNumResultCols(SQLHSTMT StatementHandle, SQLSMALLINT* ColumnCount)
 {
     odbc_func(SQLNumResultCols);
@@ -108,6 +114,12 @@ SQLRETURN SQL_API SQLGetData(SQLHSTMT StatementHandle, SQLUSMALLINT ColumnNumber
     odbc_func(SQLGetData);
     return s_SQLGetData(StatementHandle, ColumnNumber, TargetType, TargetValue,
         BufferLength, StrLen_or_Ind);
+}
+
+SQLRETURN SQL_API SQLMoreResults(SQLHSTMT hstmt)
+{
+    odbc_func(SQLMoreResults);
+    return s_SQLMoreResults(hstmt);
 }
 
 SQLRETURN SQL_API SQLGetDiagField(SQLSMALLINT HandleType, SQLHANDLE Handle,

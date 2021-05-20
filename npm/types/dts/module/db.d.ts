@@ -155,14 +155,5 @@ declare module 'db' {
      */
     function formatMSSQL(sql: string, ...args: any[]): string;
 
-    /**
-     * @description 将字符串编码为 SQL 安全编码字符串
-     *      @param str 要编码的字符串
-     *      @param mysql 指定 mysql 编码，缺省为 false
-     *      @return 返回编码后的字符串
-     *      
-     */
-    function escape(str: string, mysql: boolean): string;
-
 }
 

@@ -258,6 +258,14 @@ result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent*
                             v = sqlite3_column_double(stmt, i);
                             break;
 
+                        case SQLITE_BLOB: {
+                            const char* data = (const char*)sqlite3_column_blob(stmt, i);
+                            int32_t size = sqlite3_column_bytes(stmt, i);
+
+                            v = new Buffer(data, size);
+                            break;
+                        }
+
                         default:
                             const char* type = sqlite3_column_decltype(stmt, i);
                             if (type

@@ -9,8 +9,13 @@ var coroutine = require('coroutine');
 
 var vmid = coroutine.vmid;
 
+var sql_server = {
+    // mysql: 'mysql://root@localhost/test',
+    // mssql: 'mssql://sa@192.168.67.63/test'
+}
+
 describe("db", () => {
-    it("escape", () => {
+    xit("escape", () => {
         assert.equal('123456\\r\\n\'\'\\\"\\\x1acccds', db.escape(
             '123456\r\n\'\"\x1acccds', true));
     });
@@ -24,12 +29,11 @@ describe("db", () => {
     it("formatMySQL", () => {
         assert.equal(db.formatMySQL("test?, ?, ?, ?", 123, 'ds\r\na',
             new Date('1998-4-14 12:12:12')),
-            "test123, 'ds\\r\\na', '1998-04-14 12:12:12', ?");
+            "test123, 'ds\r\na', TIMESTAMP('1998-04-14 12:12:12'), ?");
         assert.equal(db.formatMySQL("test?"), "test?");
     });
 
     describe("format.find", () => {
-
         it('basic', () => {
             assert.equal(db.format("find", {
                 table: "test"
@@ -464,7 +468,7 @@ describe("db", () => {
 
         assert.equal(db.format("createTable", opts), "CREATE TABLE `test`(`t` TEXT, `t1` VARCHAR(100), `n` DOUBLE, `n1` FLOAT, `i` INT, `i1` TINYINT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` BLOB, `b1` LONGBLOB, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
         assert.equal(db.formatMySQL("createTable", opts), "CREATE TABLE `test`(`t` LONGTEXT, `t1` VARCHAR(100), `n` DOUBLE, `n1` FLOAT, `i` INT, `i1` TINYINT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` BLOB, `b1` LONGBLOB, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
-        assert.equal(db.formatMSSQL("createTable", opts), "CREATE TABLE [test]([t] TEXT, [t1] VARCHAR(100), [n] REAL, [n1] FLOAT, [i] INT, [i1] TINYINT, [i2] SMALLINT, [i3] BIGINT, [d] DATE, [d1] DATETIME, [b] VARBINARY(MAX), [b1] IMAGE, [def] INT DEFAULT 123, [required] INT NOT NULL, [unique] INT UNIQUE, [key] INT PRIMARY KEY)");
+        assert.equal(db.formatMSSQL("createTable", opts), "CREATE TABLE [test]([t] VARCHAR(MAX), [t1] VARCHAR(100), [n] REAL, [n1] FLOAT, [i] INT, [i1] TINYINT, [i2] SMALLINT, [i3] BIGINT, [d] DATE, [d1] DATETIME, [b] VARBINARY(MAX), [b1] IMAGE, [def] INT DEFAULT 123, [required] INT NOT NULL, [unique] INT UNIQUE, [key] INT PRIMARY KEY)");
     });
 
     it("format.dropTable", () => {
@@ -493,6 +497,8 @@ describe("db", () => {
 
         before(() => {
             conn = db.open(conn_str);
+
+            // conn.codec = 'gbk';
 
             tables.forEach(t => {
                 try {
@@ -523,9 +529,56 @@ describe("db", () => {
             assert.equal(rs[0].v, '?');
         });
 
-        it("escape", () => {
-            var rs = conn.execute("select ? as t;", '123456\r\n\'\"\x1acccds');
-            assert.equal(rs[0].t, '123456\r\n\'\"\x1acccds');
+        describe("escape", () => {
+            it('null', () => {
+                var rs = conn.execute('select ? as v', null);
+                assert.isNull(rs[0].v);
+            });
+
+            it('string', () => {
+                var res = [];
+                for (var i = 1; i < 0x80; i++) {
+                    var v = String.fromCharCode(i);
+                    try {
+                        var rs = conn.execute('select ? as v', v);
+                        if (rs[0].v != v)
+                            res.push(v);
+                    } catch (e) {
+                        res.push(v);
+                    }
+                }
+                assert.deepEqual(res, []);
+            });
+
+            it('date', () => {
+                var v = new Date(1580646020000);
+                var rs = conn.execute('select ? as v', v);
+                if (conn.type == 'SQLite')
+                    assert.deepEqual(new Date(rs[0].v), v);
+                else
+                    assert.deepEqual(rs[0].v, v);
+            });
+
+            it('field', () => {
+                var res = [];
+                for (var i = 0x21; i < 0x7f; i++) {
+                    var v = String.fromCharCode(i);
+                    if (v == '.')
+                        continue;
+
+                    try {
+                        var sql = conn.format('find', {
+                            table: v
+                        }).replace('* FROM', '1 AS');
+                        var rs = conn.execute(sql);
+                        if (Object.keys(rs[0])[0] != v)
+                            res.push(v);
+                    } catch (e) {
+                        res.push(v);
+                    }
+                }
+                assert.deepEqual(res, []);
+            });
         });
 
         it("create table", () => {
@@ -561,7 +614,7 @@ describe("db", () => {
 
         it("insert", () => {
             var rs = conn.execute("insert into test(t1, t2, t3, t4) values(?,?,?,?);", 1123,
-                'aaaaa', new Buffer('DDDDDDDDDD'), new Date(
+                '哈哈哈哈', new Buffer('DDDDDDDDDD'), new Date(
                     '1998-04-14 12:12:12'));
 
             if (conn.type != 'mssql')
@@ -589,7 +642,7 @@ describe("db", () => {
             assert.equal(typeof r['t4'], 'object');
 
             assert.strictEqual(r['t1'], 1123);
-            assert.strictEqual(r['t2'], 'aaaaa');
+            assert.strictEqual(r['t2'], '哈哈哈哈');
             assert.strictEqual(r['t3'].toString(), 'DDDDDDDDDD');
             assert.deepEqual(r['t4'], new Date('1998-04-14 12:12:12'));
 
@@ -622,7 +675,7 @@ describe("db", () => {
             assert.equal(typeof r['t4'], 'object');
 
             assert.strictEqual(r['t1'], 1123);
-            assert.strictEqual(r['t2'], 'aaaaa');
+            assert.strictEqual(r['t2'], '哈哈哈哈');
             assert.strictEqual(r['t3'].toString(), 'DDDDDDDDDD');
             assert.deepEqual(r['t4'], new Date('1998-04-14 12:12:12'));
 
@@ -709,12 +762,13 @@ describe("db", () => {
                 n: 100
             }]);
 
-            assert.deepEqual(conn.execute('select 100 as n;select 200 as n'), [
+            assert.deepEqual(conn.execute('select 100 as n;select 200 as n1, 300 as n2'), [
                 [{
                     n: 100
                 }],
                 [{
-                    n: 200
+                    n1: 200,
+                    n2: 300
                 }]
             ]);
 
@@ -748,8 +802,7 @@ describe("db", () => {
                 conn.execute("insert into test(t1, t2, t3, t4) values(1,'aa', ?, ?);",
                     b, new Date());
                 var rs = conn.execute("select * from test;");
-                assert.equal(rs[0].t3.length, 1);
-                assert.equal(rs[0].t3[0], i);
+                assert.deepEqual(rs[0].t3, b);
             }
         });
 
@@ -921,8 +974,12 @@ describe("db", () => {
     describe("sqlite", () => {
         var conn_str = 'sqlite:' + path.join(__dirname, 'test.db' + vmid);
         after(() => {
-            fs.unlink(path.join(__dirname, "test.db" + vmid));
-            fs.unlink(path.join(__dirname, "test.db" + vmid + ".backup"));
+            try {
+                fs.unlink(path.join(__dirname, "test.db" + vmid));
+            } catch (e) { }
+            try {
+                fs.unlink(path.join(__dirname, "test.db" + vmid + ".backup"));
+            } catch (e) { }
         });
         _test(conn_str);
 
@@ -976,16 +1033,11 @@ describe("db", () => {
         });
     });
 
-    if (global.full_test) {
-        describe("mysql", () => {
-            _test('mysql://root@localhost/test');
+    // if (global.full_test)
+    for (var n in sql_server)
+        describe(n, () => {
+            _test(sql_server[n]);
         });
-
-        if (process.platform == 'win32')
-            describe("mssql", () => {
-                _test('mssql://sa@localhost/test');
-            });
-    }
 
     describe("leveldb", () => {
         after(clear_db);
