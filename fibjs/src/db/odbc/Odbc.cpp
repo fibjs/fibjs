@@ -16,6 +16,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define SQL_SS_VARIANT (-150)
+
 namespace fibjs {
 
 void* g_odbc;
@@ -332,7 +334,10 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                             v = new Buffer(value);
                         break;
                     }
-                    case -9: {
+                    case SQL_WCHAR:
+                    case SQL_WVARCHAR:
+                    case SQL_WLONGVARCHAR:
+                    case SQL_SS_VARIANT: {
                         exlib::wstring value;
                         hr = SQLGetData(stmt, i + 1, SQL_C_WCHAR, value.c_buffer(), 2, &len);
                         if (hr < 0)
