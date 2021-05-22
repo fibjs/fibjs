@@ -15,476 +15,6 @@ var sql_server = {
 }
 
 describe("db", () => {
-    it("format", () => {
-        assert.equal(db.format("test?", [1, 2, 3, 4]), "test(1,2,3,4)");
-        assert.equal(db.format("test?", [1, [2, 3], 4]), "test(1,(2,3),4)");
-        assert.equal(db.format("test?"), "test?");
-    });
-
-    it("formatMySQL", () => {
-        assert.equal(db.formatMySQL("test?, ?, ?, ?", 123, 'ds\r\na',
-            new Date('1998-4-14 12:12:12')),
-            "test123, 'ds\r\na', TIMESTAMP('1998-04-14 12:12:12'), ?");
-        assert.equal(db.formatMySQL("test?"), "test?");
-    });
-
-    describe("format.find", () => {
-        it('basic', () => {
-            assert.equal(db.format("find", {
-                table: "test"
-            }), "SELECT * FROM `test`");
-        });
-
-        it('fields', () => {
-            assert.equal(db.format("find", {
-                table: "test",
-                fields: ["a", "b", "c"]
-            }), "SELECT `a`, `b`, `c` FROM `test`");
-
-            assert.equal(db.format("find", {
-                table: "test",
-                fields: "`a`, `b`, `c`"
-            }), "SELECT `a`, `b`, `c` FROM `test`");
-        });
-
-        it('alias', () => {
-            assert.equal(db.format("find", {
-                table: {
-                    test: "a",
-                    test1: "b"
-                },
-            }), "SELECT * FROM `test` AS `a`, `test1` AS `b`");
-
-            assert.equal(db.format("find", {
-                table: "test",
-                fields: {
-                    'aaa': 'a'
-                }
-            }), "SELECT `aaa` AS `a` FROM `test`");
-        });
-
-        it('where', () => {
-            assert.equal(db.format("find", {
-                table: "test",
-                where: {
-                    a: 100
-                }
-            }), "SELECT * FROM `test` WHERE `a`=100");
-
-            assert.equal(db.format("find", {
-                table: "test",
-                where: {
-                    "aaa`ddd": 100
-                }
-            }), "SELECT * FROM `test` WHERE `aaa``ddd`=100");
-
-            assert.equal(db.format("find", {
-                table: "test",
-                fields: ["a.b"],
-                where: {
-                    "aaa.ddd": 100
-                }
-            }), "SELECT `a`.`b` FROM `test` WHERE `aaa`.`ddd`=100");
-
-            assert.equal(db.format("find", {
-                table: "test",
-                where: "`a`=100"
-            }), "SELECT * FROM `test` WHERE `a`=100");
-        });
-
-        it('operator', () => {
-            var ops = {
-                "$eq": "=",
-                "$ne": "<>",
-                "$gt": ">",
-                "$gte": ">=",
-                "$lt": "<",
-                "$lte": "<=",
-                "$like": " LIKE ",
-                "$not_like": " NOT LIKE "
-            }
-
-            for (var o in ops) {
-                var opts = {}
-                opts[o] = {};
-                opts[o][o] = 100;
-
-                assert.equal(db.format("find", {
-                    table: "test",
-                    where: opts
-                }), "SELECT * FROM `test` WHERE `" + o + "`" + ops[o] + "100");
-            }
-
-            assert.equal(db.format("find", {
-                table: "test",
-                where: {
-                    a: {
-                        "$in": [100, 200, 300]
-                    }
-                }
-            }), "SELECT * FROM `test` WHERE `a` IN (100,200,300)");
-
-            assert.equal(db.format("find", {
-                table: "test",
-                where: {
-                    a: {
-                        "$not_in": [100, 200, 300]
-                    }
-                }
-            }), "SELECT * FROM `test` WHERE `a` NOT IN (100,200,300)");
-
-            assert.equal(db.format("find", {
-                table: "test",
-                where: {
-                    a: {
-                        "$between": [100, 200]
-                    }
-                }
-            }), "SELECT * FROM `test` WHERE `a` BETWEEN 100 AND 200");
-
-            assert.equal(db.format("find", {
-                table: "test",
-                where: {
-                    a: {
-                        "$not_between": [100, 200]
-                    }
-                }
-            }), "SELECT * FROM `test` WHERE `a` NOT BETWEEN 100 AND 200");
-        });
-
-        it('where and', () => {
-            assert.equal(db.format("find", {
-                table: "test",
-                where: {
-                    a: 100,
-                    b: 200
-                }
-            }), "SELECT * FROM `test` WHERE `a`=100 AND `b`=200");
-        });
-
-        it('where or', () => {
-            assert.equal(db.format("find", {
-                table: "test",
-                where: {
-                    "$or": {
-                        a: 100,
-                        b: 200
-                    }
-                }
-            }), "SELECT * FROM `test` WHERE `a`=100 OR `b`=200");
-
-            assert.equal(db.format("find", {
-                table: "test",
-                where: {
-                    "$or": [{
-                        a: 100
-                    },
-                    {
-                        b: 200
-                    }
-                    ]
-                }
-            }), "SELECT * FROM `test` WHERE `a`=100 OR `b`=200");
-        });
-
-        it('where or/and', () => {
-            assert.equal(db.format("find", {
-                table: "test",
-                where: {
-                    "$or": [{
-                        a: 100,
-                        c: 300
-                    },
-                    {
-                        b: 200,
-                        d: 400
-                    }
-                    ]
-                }
-            }), "SELECT * FROM `test` WHERE (`a`=100 AND `c`=300) OR (`b`=200 AND `d`=400)");
-
-            assert.equal(db.format("find", {
-                table: "test",
-                where: {
-                    "$or": [{
-                        "$or": {
-                            a: 100,
-                            c: 300
-                        }
-                    },
-                    {
-                        b: 200,
-                        d: 400
-                    }
-                    ]
-                }
-            }), "SELECT * FROM `test` WHERE `a`=100 OR `c`=300 OR (`b`=200 AND `d`=400)");
-
-            assert.equal(db.format("find", {
-                table: "test",
-                where: {
-                    "$or": {
-                        "$or": {
-                            a: 100,
-                            c: 300
-                        }
-                    }
-                }
-            }), "SELECT * FROM `test` WHERE `a`=100 OR `c`=300");
-
-            assert.equal(db.format("find", {
-                table: "test",
-                where: {
-                    "$and": {
-                        "$and": {
-                            a: 100,
-                            c: 300
-                        }
-                    }
-                }
-            }), "SELECT * FROM `test` WHERE `a`=100 AND `c`=300");
-
-            assert.equal(db.format("find", {
-                table: "test",
-                where: [{
-                    a: 100,
-                    c: 300
-                },
-                {
-                    "$or": {
-                        b: 200,
-                        d: 400
-                    }
-                }
-                ]
-            }), "SELECT * FROM `test` WHERE `a`=100 AND `c`=300 AND (`b`=200 OR `d`=400)");
-
-            assert.equal(db.format("find", {
-                table: "test",
-                where: [{
-                    a: 100,
-                    c: 300
-                },
-                {
-                    b: 200,
-                    d: 400
-                }
-                ]
-            }), "SELECT * FROM `test` WHERE `a`=100 AND `c`=300 AND `b`=200 AND `d`=400");
-        });
-
-        it('skip', () => {
-            assert.equal(db.format("find", {
-                table: "test",
-                where: {
-                    a: 200
-                },
-                skip: 100
-            }), "SELECT * FROM `test` WHERE `a`=200 OFFSET 100");
-        });
-
-        it('limit', () => {
-            assert.equal(db.format("find", {
-                table: "test",
-                where: {
-                    a: 200
-                },
-                limit: 100
-            }), "SELECT * FROM `test` WHERE `a`=200 LIMIT 100");
-        });
-
-        it('skip/limit', () => {
-            assert.equal(db.format("find", {
-                table: "test",
-                where: {
-                    a: 200
-                },
-                skip: 100,
-                limit: 100
-            }), "SELECT * FROM `test` WHERE `a`=200 LIMIT 100 OFFSET 100");
-        });
-
-        it('order', () => {
-            assert.equal(db.format("find", {
-                table: "test",
-                where: {
-                    a: 200
-                },
-                limit: 100,
-                order: ['a', 'b', '-c']
-            }), "SELECT * FROM `test` WHERE `a`=200 ORDER BY `a`, `b`, `c` DESC LIMIT 100");
-        });
-
-        it('multi table', () => {
-            assert.equal(db.format("find", {
-                table: ['test1', 'test2'],
-                fields: ['test1.a', 'test2.b'],
-                where: {
-                    "test1.a": {
-                        "$field": "test2.b"
-                    },
-                    "test1.b": {
-                        "$gt": {
-                            "$field": "test2.b"
-                        }
-                    }
-                }
-            }), "SELECT `test1`.`a`, `test2`.`b` FROM `test1`, `test2` WHERE `test1`.`a`=`test2`.`b` AND `test1`.`b`>`test2`.`b`");
-        });
-
-        it('sub query', () => {
-            assert.equal(db.format("find", {
-                table: 'test1',
-                fields: ['a', 'b'],
-                where: {
-                    "a": {
-                        "$in": [1, 2, 3, 4, 5]
-                    },
-                    "b": {
-                        "$in": {
-                            table: 'test1',
-                            fields: ['a'],
-                            where: {
-                                d: 100
-                            }
-                        }
-                    }
-                }
-            }), "SELECT `a`, `b` FROM `test1` WHERE `a` IN (1,2,3,4,5) AND `b` IN (SELECT `a` FROM `test1` WHERE `d`=100)");
-        });
-    });
-
-    describe("format.count", () => {
-        it('basic', () => {
-            assert.equal(db.format("count", {
-                table: "test",
-            }), "SELECT COUNT(*) FROM `test`");
-        });
-
-        it('skip/limit', () => {
-            assert.equal(db.format("count", {
-                table: "test",
-                where: {
-                    a: 200
-                },
-                skip: 100,
-                limit: 100
-            }), "SELECT COUNT(*) FROM `test` WHERE `a`=200 SKIP 100 LIMIT 100");
-        });
-    });
-
-    it("format.update", () => {
-        assert.equal(db.format("update", {
-            table: "test",
-            values: {
-                a: 100,
-                b: 200
-            },
-            where: {
-                a: 200
-            }
-        }), "UPDATE `test` SET `a`=100, `b`=200 WHERE `a`=200");
-    });
-
-    it("format.insert", () => {
-        assert.equal(db.format("insert", {
-            table: "test",
-            values: {
-                a: 100,
-                b: 200
-            }
-        }), "INSERT INTO `test` (`a`, `b`) VALUES (100, 200)");
-    });
-
-    it("format.remove", () => {
-        assert.equal(db.format("remove", {
-            table: "test",
-            where: {
-                a: 200
-            }
-        }), "DELETE FROM `test` WHERE `a`=200");
-    });
-
-    it("format.createTable", () => {
-        var opts = {
-            table: "test",
-            fields: {
-                t: 'text',
-                t1: {
-                    type: "text",
-                    size: 100
-                },
-                n: 'number',
-                n1: {
-                    type: "number",
-                    size: 4
-                },
-                i: 'integer',
-                i1: {
-                    type: "integer",
-                    size: 1
-                },
-                i2: {
-                    type: "integer",
-                    size: 2
-                },
-                i3: {
-                    type: "integer",
-                    size: 8
-                },
-                d: 'date',
-                d1: {
-                    type: "date",
-                    time: true
-                },
-                b: 'binary',
-                b1: {
-                    type: "binary",
-                    big: true
-                },
-                def: {
-                    type: 'integer',
-                    defaultValue: 123
-                },
-                required: {
-                    type: 'integer',
-                    required: true
-                },
-                unique: {
-                    type: 'integer',
-                    unique: true
-                },
-                key: {
-                    type: 'integer',
-                    key: true
-                }
-            }
-        };
-
-        assert.equal(db.format("createTable", opts), "CREATE TABLE `test`(`t` TEXT, `t1` VARCHAR(100), `n` DOUBLE, `n1` FLOAT, `i` INT, `i1` TINYINT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` BLOB, `b1` LONGBLOB, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
-        assert.equal(db.formatMySQL("createTable", opts), "CREATE TABLE `test`(`t` LONGTEXT, `t1` VARCHAR(100), `n` DOUBLE, `n1` FLOAT, `i` INT, `i1` TINYINT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` BLOB, `b1` LONGBLOB, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
-        assert.equal(db.formatMSSQL("createTable", opts), "CREATE TABLE [test]([t] VARCHAR(MAX), [t1] VARCHAR(100), [n] FLOAT, [n1] REAL, [i] INT, [i1] TINYINT, [i2] SMALLINT, [i3] BIGINT, [d] DATE, [d1] DATETIME, [b] VARBINARY(MAX), [b1] IMAGE, [def] INT DEFAULT 123, [required] INT NOT NULL, [unique] INT UNIQUE, [key] INT PRIMARY KEY)");
-    });
-
-    it("format.dropTable", () => {
-        assert.equal(db.format("dropTable", {
-            table: "test"
-        }), "DROP TABLE `test`");
-    });
-
-    it("format.createIndex", () => {
-        assert.equal(db.format("createIndex", {
-            table: "test",
-            index: "idx_test",
-            keys: ['t', '-t1']
-        }), "CREATE INDEX `idx_test` ON `test`(`t`, `t1` DESC)");
-    });
-
-    it("format.dropIndex", () => {
-        assert.equal(db.format("dropIndex", {
-            index: "test"
-        }), "DROP INDEX `test`");
-    });
 
     function _test(conn_str) {
         var conn;
@@ -510,6 +40,508 @@ describe("db", () => {
             });
 
             conn.close();
+        });
+
+        describe("format", () => {
+            it("basic", () => {
+                assert.equal(conn.format("test?", [1, 2, 3, 4]), "test(1,2,3,4)");
+                assert.equal(conn.format("test?", [1, [2, 3], 4]), "test(1,(2,3),4)");
+                assert.equal(conn.format("test?"), "test?");
+            });
+
+            function sql_equal(conn, sql1, sql2) {
+                if (conn.type != 'mssql') {
+                    assert.equal(sql1, sql2);
+                } else {
+                    var cnt = 0;
+                    sql2 = sql2.replace(/`/g, (s, i) => {
+                        cnt++;
+                        return (cnt % 2) ? '[' : ']';
+                    });
+                    sql2 = sql2.replace(/\]\[/g, '`');
+                    assert.equal(sql1, sql2);
+                }
+            }
+
+            describe("format.find", () => {
+                it('basic', () => {
+                    sql_equal(conn, conn.format("find", {
+                        table: "test"
+                    }), "SELECT * FROM `test`");
+                });
+
+                it('fields', () => {
+                    sql_equal(conn, conn.format("find", {
+                        table: "test",
+                        fields: ["a", "b", "c"]
+                    }), "SELECT `a`, `b`, `c` FROM `test`");
+
+                    if (conn.type == 'mssql') {
+                        sql_equal(conn, conn.format("find", {
+                            table: "test",
+                            fields: "[a], [b], [c]"
+                        }), "SELECT `a`, `b`, `c` FROM `test`");
+                    } else {
+                        sql_equal(conn, conn.format("find", {
+                            table: "test",
+                            fields: "`a`, `b`, `c`"
+                        }), "SELECT `a`, `b`, `c` FROM `test`");
+                    }
+                });
+
+                it('alias', () => {
+                    sql_equal(conn, conn.format("find", {
+                        table: {
+                            test: "a",
+                            test1: "b"
+                        },
+                    }), "SELECT * FROM `test` AS `a`, `test1` AS `b`");
+
+                    sql_equal(conn, conn.format("find", {
+                        table: "test",
+                        fields: {
+                            'aaa': 'a'
+                        }
+                    }), "SELECT `aaa` AS `a` FROM `test`");
+                });
+
+                it('where', () => {
+                    sql_equal(conn, conn.format("find", {
+                        table: "test",
+                        where: {
+                            a: 100
+                        }
+                    }), "SELECT * FROM `test` WHERE `a`=100");
+
+                    sql_equal(conn, conn.format("find", {
+                        table: "test",
+                        where: {
+                            "aaa`ddd": 100
+                        }
+                    }), "SELECT * FROM `test` WHERE `aaa``ddd`=100");
+
+                    sql_equal(conn, conn.format("find", {
+                        table: "test",
+                        fields: ["a.b"],
+                        where: {
+                            "aaa.ddd": 100
+                        }
+                    }), "SELECT `a`.`b` FROM `test` WHERE `aaa`.`ddd`=100");
+
+                    if (conn.type == 'mssql') {
+                        sql_equal(conn, conn.format("find", {
+                            table: "test",
+                            where: "[a]=100"
+                        }), "SELECT * FROM `test` WHERE `a`=100");
+                    } else {
+                        sql_equal(conn, conn.format("find", {
+                            table: "test",
+                            where: "`a`=100"
+                        }), "SELECT * FROM `test` WHERE `a`=100");
+                    }
+                });
+
+                it('operator', () => {
+                    var ops = {
+                        "$eq": "=",
+                        "$ne": "<>",
+                        "$gt": ">",
+                        "$gte": ">=",
+                        "$lt": "<",
+                        "$lte": "<=",
+                        "$like": " LIKE ",
+                        "$not_like": " NOT LIKE "
+                    }
+
+                    for (var o in ops) {
+                        var opts = {}
+                        opts[o] = {};
+                        opts[o][o] = 100;
+
+                        sql_equal(conn, conn.format("find", {
+                            table: "test",
+                            where: opts
+                        }), "SELECT * FROM `test` WHERE `" + o + "`" + ops[o] + "100");
+                    }
+
+                    sql_equal(conn, conn.format("find", {
+                        table: "test",
+                        where: {
+                            a: {
+                                "$in": [100, 200, 300]
+                            }
+                        }
+                    }), "SELECT * FROM `test` WHERE `a` IN (100,200,300)");
+
+                    sql_equal(conn, conn.format("find", {
+                        table: "test",
+                        where: {
+                            a: {
+                                "$not_in": [100, 200, 300]
+                            }
+                        }
+                    }), "SELECT * FROM `test` WHERE `a` NOT IN (100,200,300)");
+
+                    sql_equal(conn, conn.format("find", {
+                        table: "test",
+                        where: {
+                            a: {
+                                "$between": [100, 200]
+                            }
+                        }
+                    }), "SELECT * FROM `test` WHERE `a` BETWEEN 100 AND 200");
+
+                    sql_equal(conn, conn.format("find", {
+                        table: "test",
+                        where: {
+                            a: {
+                                "$not_between": [100, 200]
+                            }
+                        }
+                    }), "SELECT * FROM `test` WHERE `a` NOT BETWEEN 100 AND 200");
+                });
+
+                it('where and', () => {
+                    sql_equal(conn, conn.format("find", {
+                        table: "test",
+                        where: {
+                            a: 100,
+                            b: 200
+                        }
+                    }), "SELECT * FROM `test` WHERE `a`=100 AND `b`=200");
+                });
+
+                it('where or', () => {
+                    sql_equal(conn, conn.format("find", {
+                        table: "test",
+                        where: {
+                            "$or": {
+                                a: 100,
+                                b: 200
+                            }
+                        }
+                    }), "SELECT * FROM `test` WHERE `a`=100 OR `b`=200");
+
+                    sql_equal(conn, conn.format("find", {
+                        table: "test",
+                        where: {
+                            "$or": [{
+                                a: 100
+                            },
+                            {
+                                b: 200
+                            }
+                            ]
+                        }
+                    }), "SELECT * FROM `test` WHERE `a`=100 OR `b`=200");
+                });
+
+                it('where or/and', () => {
+                    sql_equal(conn, conn.format("find", {
+                        table: "test",
+                        where: {
+                            "$or": [{
+                                a: 100,
+                                c: 300
+                            },
+                            {
+                                b: 200,
+                                d: 400
+                            }
+                            ]
+                        }
+                    }), "SELECT * FROM `test` WHERE (`a`=100 AND `c`=300) OR (`b`=200 AND `d`=400)");
+
+                    sql_equal(conn, conn.format("find", {
+                        table: "test",
+                        where: {
+                            "$or": [{
+                                "$or": {
+                                    a: 100,
+                                    c: 300
+                                }
+                            },
+                            {
+                                b: 200,
+                                d: 400
+                            }
+                            ]
+                        }
+                    }), "SELECT * FROM `test` WHERE `a`=100 OR `c`=300 OR (`b`=200 AND `d`=400)");
+
+                    sql_equal(conn, conn.format("find", {
+                        table: "test",
+                        where: {
+                            "$or": {
+                                "$or": {
+                                    a: 100,
+                                    c: 300
+                                }
+                            }
+                        }
+                    }), "SELECT * FROM `test` WHERE `a`=100 OR `c`=300");
+
+                    sql_equal(conn, conn.format("find", {
+                        table: "test",
+                        where: {
+                            "$and": {
+                                "$and": {
+                                    a: 100,
+                                    c: 300
+                                }
+                            }
+                        }
+                    }), "SELECT * FROM `test` WHERE `a`=100 AND `c`=300");
+
+                    sql_equal(conn, conn.format("find", {
+                        table: "test",
+                        where: [{
+                            a: 100,
+                            c: 300
+                        },
+                        {
+                            "$or": {
+                                b: 200,
+                                d: 400
+                            }
+                        }
+                        ]
+                    }), "SELECT * FROM `test` WHERE `a`=100 AND `c`=300 AND (`b`=200 OR `d`=400)");
+
+                    sql_equal(conn, conn.format("find", {
+                        table: "test",
+                        where: [{
+                            a: 100,
+                            c: 300
+                        },
+                        {
+                            b: 200,
+                            d: 400
+                        }
+                        ]
+                    }), "SELECT * FROM `test` WHERE `a`=100 AND `c`=300 AND `b`=200 AND `d`=400");
+                });
+
+                it('skip', () => {
+                    sql_equal(conn, conn.format("find", {
+                        table: "test",
+                        where: {
+                            a: 200
+                        },
+                        skip: 100
+                    }), "SELECT * FROM `test` WHERE `a`=200 OFFSET 100");
+                });
+
+                it('limit', () => {
+                    sql_equal(conn, conn.format("find", {
+                        table: "test",
+                        where: {
+                            a: 200
+                        },
+                        limit: 100
+                    }), "SELECT * FROM `test` WHERE `a`=200 LIMIT 100");
+                });
+
+                it('skip/limit', () => {
+                    sql_equal(conn, conn.format("find", {
+                        table: "test",
+                        where: {
+                            a: 200
+                        },
+                        skip: 100,
+                        limit: 100
+                    }), "SELECT * FROM `test` WHERE `a`=200 LIMIT 100 OFFSET 100");
+                });
+
+                it('order', () => {
+                    sql_equal(conn, conn.format("find", {
+                        table: "test",
+                        where: {
+                            a: 200
+                        },
+                        limit: 100,
+                        order: ['a', 'b', '-c']
+                    }), "SELECT * FROM `test` WHERE `a`=200 ORDER BY `a`, `b`, `c` DESC LIMIT 100");
+                });
+
+                it('multi table', () => {
+                    sql_equal(conn, conn.format("find", {
+                        table: ['test1', 'test2'],
+                        fields: ['test1.a', 'test2.b'],
+                        where: {
+                            "test1.a": {
+                                "$field": "test2.b"
+                            },
+                            "test1.b": {
+                                "$gt": {
+                                    "$field": "test2.b"
+                                }
+                            }
+                        }
+                    }), "SELECT `test1`.`a`, `test2`.`b` FROM `test1`, `test2` WHERE `test1`.`a`=`test2`.`b` AND `test1`.`b`>`test2`.`b`");
+                });
+
+                it('sub query', () => {
+                    sql_equal(conn, conn.format("find", {
+                        table: 'test1',
+                        fields: ['a', 'b'],
+                        where: {
+                            "a": {
+                                "$in": [1, 2, 3, 4, 5]
+                            },
+                            "b": {
+                                "$in": {
+                                    table: 'test1',
+                                    fields: ['a'],
+                                    where: {
+                                        d: 100
+                                    }
+                                }
+                            }
+                        }
+                    }), "SELECT `a`, `b` FROM `test1` WHERE `a` IN (1,2,3,4,5) AND `b` IN (SELECT `a` FROM `test1` WHERE `d`=100)");
+                });
+            });
+
+            describe("format.count", () => {
+                it('basic', () => {
+                    sql_equal(conn, conn.format("count", {
+                        table: "test",
+                    }), "SELECT COUNT(*) FROM `test`");
+                });
+
+                it('skip/limit', () => {
+                    sql_equal(conn, conn.format("count", {
+                        table: "test",
+                        where: {
+                            a: 200
+                        },
+                        skip: 100,
+                        limit: 100
+                    }), "SELECT COUNT(*) FROM `test` WHERE `a`=200 SKIP 100 LIMIT 100");
+                });
+            });
+
+            it("update", () => {
+                sql_equal(conn, conn.format("update", {
+                    table: "test",
+                    values: {
+                        a: 100,
+                        b: 200
+                    },
+                    where: {
+                        a: 200
+                    }
+                }), "UPDATE `test` SET `a`=100, `b`=200 WHERE `a`=200");
+            });
+
+            it("insert", () => {
+                sql_equal(conn, conn.format("insert", {
+                    table: "test",
+                    values: {
+                        a: 100,
+                        b: 200
+                    }
+                }), "INSERT INTO `test` (`a`, `b`) VALUES (100, 200)");
+            });
+
+            it("remove", () => {
+                sql_equal(conn, conn.format("remove", {
+                    table: "test",
+                    where: {
+                        a: 200
+                    }
+                }), "DELETE FROM `test` WHERE `a`=200");
+            });
+
+            it("createTable", () => {
+                var opts = {
+                    table: "test",
+                    fields: {
+                        t: 'text',
+                        t1: {
+                            type: "text",
+                            size: 100
+                        },
+                        n: 'number',
+                        n1: {
+                            type: "number",
+                            size: 4
+                        },
+                        i: 'integer',
+                        i1: {
+                            type: "integer",
+                            size: 1
+                        },
+                        i2: {
+                            type: "integer",
+                            size: 2
+                        },
+                        i3: {
+                            type: "integer",
+                            size: 8
+                        },
+                        d: 'date',
+                        d1: {
+                            type: "date",
+                            time: true
+                        },
+                        b: 'binary',
+                        b1: {
+                            type: "binary",
+                            big: true
+                        },
+                        def: {
+                            type: 'integer',
+                            defaultValue: 123
+                        },
+                        required: {
+                            type: 'integer',
+                            required: true
+                        },
+                        unique: {
+                            type: 'integer',
+                            unique: true
+                        },
+                        key: {
+                            type: 'integer',
+                            key: true
+                        }
+                    }
+                };
+
+                switch (conn.type) {
+                    case "SQLite":
+                        sql_equal(conn, conn.format("createTable", opts), "CREATE TABLE `test`(`t` TEXT, `t1` VARCHAR(100), `n` DOUBLE, `n1` FLOAT, `i` INT, `i1` TINYINT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` BLOB, `b1` LONGBLOB, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
+                        break;
+                    case "mysql":
+                        sql_equal(conn, conn.format("createTable", opts), "CREATE TABLE `test`(`t` LONGTEXT, `t1` VARCHAR(100), `n` DOUBLE, `n1` FLOAT, `i` INT, `i1` TINYINT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` BLOB, `b1` LONGBLOB, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
+                        break;
+                    case "mssql":
+                        sql_equal(conn, conn.format("createTable", opts), "CREATE TABLE [test]([t] VARCHAR(MAX), [t1] VARCHAR(100), [n] FLOAT, [n1] REAL, [i] INT, [i1] TINYINT, [i2] SMALLINT, [i3] BIGINT, [d] DATE, [d1] DATETIME, [b] VARBINARY(MAX), [b1] IMAGE, [def] INT DEFAULT 123, [required] INT NOT NULL, [unique] INT UNIQUE, [key] INT PRIMARY KEY)");
+                        break;
+                }
+            });
+
+            it("dropTable", () => {
+                sql_equal(conn, conn.format("dropTable", {
+                    table: "test"
+                }), "DROP TABLE `test`");
+            });
+
+            it("createIndex", () => {
+                sql_equal(conn, conn.format("createIndex", {
+                    table: "test",
+                    index: "idx_test",
+                    keys: ['t', '-t1']
+                }), "CREATE INDEX `idx_test` ON `test`(`t`, `t1` DESC)");
+            });
+
+            it("dropIndex", () => {
+                sql_equal(conn, conn.format("dropIndex", {
+                    index: "test"
+                }), "DROP INDEX `test`");
+            });
         });
 
         it("empty sql", () => {

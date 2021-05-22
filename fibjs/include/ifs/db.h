@@ -35,12 +35,6 @@ public:
     static result_t openMongoDB(exlib::string connString, obj_ptr<MongoDB_base>& retVal, AsyncEvent* ac);
     static result_t openLevelDB(exlib::string connString, obj_ptr<LevelDB_base>& retVal, AsyncEvent* ac);
     static result_t openRedis(exlib::string connString, obj_ptr<Redis_base>& retVal, AsyncEvent* ac);
-    static result_t format(exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal);
-    static result_t format(exlib::string sql, OptArgs args, exlib::string& retVal);
-    static result_t formatMySQL(exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal);
-    static result_t formatMySQL(exlib::string sql, OptArgs args, exlib::string& retVal);
-    static result_t formatMSSQL(exlib::string method, v8::Local<v8::Object> opts, exlib::string& retVal);
-    static result_t formatMSSQL(exlib::string sql, OptArgs args, exlib::string& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -62,9 +56,6 @@ public:
     static void s_static_openMongoDB(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_openLevelDB(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_openRedis(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_format(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_formatMySQL(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_formatMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(db_base, open, exlib::string, obj_ptr<object_base>);
@@ -104,10 +95,7 @@ inline ClassInfo& db_base::class_info()
         { "openLevelDB", s_static_openLevelDB, true },
         { "openLevelDBSync", s_static_openLevelDB, true },
         { "openRedis", s_static_openRedis, true },
-        { "openRedisSync", s_static_openRedis, true },
-        { "format", s_static_format, true },
-        { "formatMySQL", s_static_formatMySQL, true },
-        { "formatMSSQL", s_static_formatMSSQL, true }
+        { "openRedisSync", s_static_openRedis, true }
     };
 
     static ClassData s_cd = {
@@ -268,78 +256,6 @@ inline void db_base::s_static_openRedis(const v8::FunctionCallbackInfo<v8::Value
         hr = acb_openRedis(v0, cb, args);
     else
         hr = ac_openRedis(v0, vr);
-
-    METHOD_RETURN();
-}
-
-inline void db_base::s_static_format(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    exlib::string vr;
-
-    METHOD_NAME("db.format");
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-
-    hr = format(v0, v1, vr);
-
-    METHOD_OVER(-1, 1);
-
-    ARG(exlib::string, 0);
-    ARG_LIST(1);
-
-    hr = format(v0, v1, vr);
-
-    METHOD_RETURN();
-}
-
-inline void db_base::s_static_formatMySQL(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    exlib::string vr;
-
-    METHOD_NAME("db.formatMySQL");
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-
-    hr = formatMySQL(v0, v1, vr);
-
-    METHOD_OVER(-1, 1);
-
-    ARG(exlib::string, 0);
-    ARG_LIST(1);
-
-    hr = formatMySQL(v0, v1, vr);
-
-    METHOD_RETURN();
-}
-
-inline void db_base::s_static_formatMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    exlib::string vr;
-
-    METHOD_NAME("db.formatMSSQL");
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
-
-    hr = formatMSSQL(v0, v1, vr);
-
-    METHOD_OVER(-1, 1);
-
-    ARG(exlib::string, 0);
-    ARG_LIST(1);
-
-    hr = formatMSSQL(v0, v1, vr);
 
     METHOD_RETURN();
 }
