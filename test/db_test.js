@@ -15,11 +15,6 @@ var sql_server = {
 }
 
 describe("db", () => {
-    xit("escape", () => {
-        assert.equal('123456\\r\\n\'\'\\\"\\\x1acccds', db.escape(
-            '123456\r\n\'\"\x1acccds', true));
-    });
-
     it("format", () => {
         assert.equal(db.format("test?", [1, 2, 3, 4]), "test(1,2,3,4)");
         assert.equal(db.format("test?", [1, [2, 3], 4]), "test(1,(2,3),4)");
@@ -468,7 +463,7 @@ describe("db", () => {
 
         assert.equal(db.format("createTable", opts), "CREATE TABLE `test`(`t` TEXT, `t1` VARCHAR(100), `n` DOUBLE, `n1` FLOAT, `i` INT, `i1` TINYINT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` BLOB, `b1` LONGBLOB, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
         assert.equal(db.formatMySQL("createTable", opts), "CREATE TABLE `test`(`t` LONGTEXT, `t1` VARCHAR(100), `n` DOUBLE, `n1` FLOAT, `i` INT, `i1` TINYINT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` BLOB, `b1` LONGBLOB, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
-        assert.equal(db.formatMSSQL("createTable", opts), "CREATE TABLE [test]([t] VARCHAR(MAX), [t1] VARCHAR(100), [n] REAL, [n1] FLOAT, [i] INT, [i1] TINYINT, [i2] SMALLINT, [i3] BIGINT, [d] DATE, [d1] DATETIME, [b] VARBINARY(MAX), [b1] IMAGE, [def] INT DEFAULT 123, [required] INT NOT NULL, [unique] INT UNIQUE, [key] INT PRIMARY KEY)");
+        assert.equal(db.formatMSSQL("createTable", opts), "CREATE TABLE [test]([t] VARCHAR(MAX), [t1] VARCHAR(100), [n] FLOAT, [n1] REAL, [i] INT, [i1] TINYINT, [i2] SMALLINT, [i3] BIGINT, [d] DATE, [d1] DATETIME, [b] VARBINARY(MAX), [b1] IMAGE, [def] INT DEFAULT 123, [required] INT NOT NULL, [unique] INT UNIQUE, [key] INT PRIMARY KEY)");
     });
 
     it("format.dropTable", () => {
@@ -601,6 +596,190 @@ describe("db", () => {
                         size: 100
                     }
                 }
+            });
+        });
+
+        describe("data type", () => {
+            afterEach(() => {
+                try {
+                    conn.execute('drop table test_type');
+                } catch (e) { }
+            });
+
+
+            it("number(4)", () => {
+                conn.createTable({
+                    table: "test_type",
+                    fields: {
+                        v: {
+                            type: "number",
+                            size: 4
+                        }
+                    }
+                });
+
+                var v = Number("0.55555555555555555555555555555555555555555555");
+                conn.execute('insert into test_type values(?)', v);
+                var rs = conn.execute('select * from test_type');
+
+                if (conn.type !== 'SQLite')
+                    assert.greaterThan((rs[0].v - v) * 65536 * 65536, 1);
+                else
+                    assert.lessThan((rs[0].v - v) * 65536 * 65536, 1);
+            });
+
+            it("number(8)", () => {
+                conn.createTable({
+                    table: "test_type",
+                    fields: {
+                        v: "number"
+                    }
+                });
+
+                var v = Number("0.55555555555555555555555555555555555555555555");
+                conn.execute('insert into test_type values(?)', v);
+                var rs = conn.execute('select * from test_type');
+                assert.lessThan((rs[0].v - v) * 65536 * 65536, 1);
+            });
+
+            function test_integer(sz) {
+                it(`integer(${sz})`, () => {
+                    conn.createTable({
+                        table: "test_type",
+                        fields: {
+                            v: {
+                                type: "integer",
+                                size: sz
+                            }
+                        }
+                    });
+
+                    if (conn.type !== 'SQLite') {
+                        var int_limit = Math.pow(256, sz) / 2;
+                        if (sz == 8)
+                            int_limit /= 256;
+
+                        var base_value = 0;
+                        if (conn.type == 'mssql' && sz == 1)
+                            base_value = 128;
+
+                        conn.execute('insert into test_type values(?)', base_value - int_limit);
+                        var rs = conn.execute('select * from test_type');
+                        assert.equal(rs[0].v, base_value - int_limit);
+                        conn.execute('delete from test_type');
+
+                        conn.execute('insert into test_type values(?)', base_value + int_limit - 1);
+                        var rs = conn.execute('select * from test_type');
+                        assert.equal(rs[0].v, base_value + int_limit - 1);
+                        conn.execute('delete from test_type');
+
+                        if (sz < 8) {
+                            assert.throws(() => {
+                                conn.execute('insert into test_type values(?)', base_value - int_limit - 1);
+                            });
+
+                            assert.throws(() => {
+                                conn.execute('insert into test_type values(?)', base_value + int_limit);
+                            })
+                        }
+                    }
+                });
+            }
+
+            test_integer(1);
+            test_integer(2);
+            test_integer(4);
+            test_integer(8);
+
+            it("date", () => {
+                conn.createTable({
+                    table: "test_type",
+                    fields: {
+                        v: {
+                            type: "date",
+                            time: true
+                        }
+                    }
+                });
+
+                var v = new Date('1998-04-14 12:12:12');
+                conn.execute('insert into test_type values(?)', v);
+                var rs = conn.execute('select * from test_type');
+                assert.deepEqual(rs[0].v, v);
+            });
+
+            it("text(n)", () => {
+                conn.createTable({
+                    table: "test_type",
+                    fields: {
+                        v: {
+                            type: "text",
+                            size: 8
+                        }
+                    }
+                });
+
+                var v = "01234567";
+                conn.execute('insert into test_type values(?)', v);
+                var rs = conn.execute('select * from test_type');
+                assert.equal(rs[0].v, v);
+
+                if (conn.type !== 'SQLite')
+                    assert.throws(() => {
+                        var v = "012345678";
+                        conn.execute('insert into test_type values(?)', v);
+                    });
+            });
+
+            it("text", () => {
+                conn.createTable({
+                    table: "test_type",
+                    fields: {
+                        v: "text"
+                    }
+                });
+
+                var v = "0123456789abcdef".repeat(65536);
+                conn.execute('insert into test_type values(?)', v);
+                var rs = conn.execute('select * from test_type');
+                assert.equal(rs[0].v, v);
+            });
+
+            it("binary", () => {
+                conn.createTable({
+                    table: "test_type",
+                    fields: {
+                        v: "binary"
+                    }
+                });
+
+                var v = new Buffer("0123456789abcdef".repeat(4095));
+                conn.execute('insert into test_type values(?)', v);
+                var rs = conn.execute('select * from test_type');
+                assert.deepEqual(rs[0].v, v);
+
+                if (conn.type == 'mysql')
+                    assert.throws(() => {
+                        var v = new Buffer("0123456789abcdef".repeat(4096));
+                        conn.execute('insert into test_type values(?)', v);
+                    });
+            });
+
+            it("big binary", () => {
+                conn.createTable({
+                    table: "test_type",
+                    fields: {
+                        v: {
+                            type: "binary",
+                            big: true
+                        }
+                    }
+                });
+
+                var v = new Buffer("0123456789abcdef".repeat(65536));
+                conn.execute('insert into test_type values(?)', v);
+                var rs = conn.execute('select * from test_type');
+                assert.deepEqual(rs[0].v, v);
             });
         });
 

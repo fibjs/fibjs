@@ -778,7 +778,7 @@ private:
                 }
 
                 if (size == 4)
-                    _fields.append("FLOAT");
+                    _fields.append(impl::data_type().FLOAT);
                 else if (size == 8)
                     _fields.append(impl::data_type().DOUBLE);
                 else

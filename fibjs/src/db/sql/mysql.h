@@ -92,6 +92,7 @@ public:
     static const DataType& data_type()
     {
         static DataType _data_type = {
+            "FLOAT",
             "DOUBLE",
             "LONGTEXT",
             "BLOB",
