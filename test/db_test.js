@@ -544,13 +544,6 @@ describe("db", () => {
             });
         });
 
-        it("empty sql", () => {
-            if (conn.type != 'mssql')
-                assert.throws(() => {
-                    conn.execute("  ");
-                })
-        });
-
         it("empty sql args", () => {
             var rs = conn.execute(`select '?' as v`);
             assert.equal(rs[0].v, '?');
@@ -674,6 +667,20 @@ describe("db", () => {
                 assert.lessThan((rs[0].v - v) * 65536 * 65536, 1);
             });
 
+            it("number(null)", () => {
+                conn.createTable({
+                    table: "test_type",
+                    fields: {
+                        v: "number"
+                    }
+                });
+
+                var v = null;
+                conn.execute('insert into test_type values(?)', v);
+                var rs = conn.execute('select * from test_type');
+                assert.equal(rs[0].v, v);
+            });
+
             function test_integer(sz) {
                 it(`integer(${sz})`, () => {
                     conn.createTable({
@@ -723,6 +730,20 @@ describe("db", () => {
             test_integer(4);
             test_integer(8);
 
+            it("integer(null)", () => {
+                conn.createTable({
+                    table: "test_type",
+                    fields: {
+                        v: "integer"
+                    }
+                });
+
+                var v = null;
+                conn.execute('insert into test_type values(?)', v);
+                var rs = conn.execute('select * from test_type');
+                assert.equal(rs[0].v, v);
+            });
+
             it("date", () => {
                 conn.createTable({
                     table: "test_type",
@@ -738,6 +759,20 @@ describe("db", () => {
                 conn.execute('insert into test_type values(?)', v);
                 var rs = conn.execute('select * from test_type');
                 assert.deepEqual(rs[0].v, v);
+            });
+
+            it("date(null)", () => {
+                conn.createTable({
+                    table: "test_type",
+                    fields: {
+                        v: "date"
+                    }
+                });
+
+                var v = null;
+                conn.execute('insert into test_type values(?)', v);
+                var rs = conn.execute('select * from test_type');
+                assert.equal(rs[0].v, v);
             });
 
             it("text(n)", () => {
@@ -772,6 +807,23 @@ describe("db", () => {
                 });
 
                 var v = "0123456789abcdef".repeat(65536);
+                conn.execute('insert into test_type values(?)', v);
+                var rs = conn.execute('select * from test_type');
+                assert.equal(rs[0].v, v);
+            });
+
+            it("text(null)", () => {
+                conn.createTable({
+                    table: "test_type",
+                    fields: {
+                        v: {
+                            type: "text",
+                            size: 8
+                        }
+                    }
+                });
+
+                var v = null;
                 conn.execute('insert into test_type values(?)', v);
                 var rs = conn.execute('select * from test_type');
                 assert.equal(rs[0].v, v);
@@ -812,6 +864,20 @@ describe("db", () => {
                 conn.execute('insert into test_type values(?)', v);
                 var rs = conn.execute('select * from test_type');
                 assert.deepEqual(rs[0].v, v);
+            });
+
+            it("binary(null)", () => {
+                conn.createTable({
+                    table: "test_type",
+                    fields: {
+                        v: "binary"
+                    }
+                });
+
+                var v = null;
+                conn.execute('insert into test_type values(?)', v);
+                var rs = conn.execute('select * from test_type');
+                assert.equal(rs[0].v, v);
             });
         });
 

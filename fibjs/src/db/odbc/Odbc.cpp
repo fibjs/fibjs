@@ -293,10 +293,10 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                     case SQL_TINYINT: {
                         int32_t value = 0;
                         hr = SQLGetData(stmt, i + 1, SQL_C_SLONG, &value, sizeof(value), &len);
-                        if (len >= 0)
-                            v = value;
-                        else
+                        if (len < 0)
                             v.setNull();
+                        else
+                            v = value;
                         break;
                     }
                     case SQL_NUMERIC:
@@ -307,18 +307,25 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                     case SQL_DOUBLE: {
                         double value;
                         hr = SQLGetData(stmt, i + 1, SQL_C_DOUBLE, &value, sizeof(value), &len);
-                        v = value;
+                        if (len < 0)
+                            v.setNull();
+                        else
+                            v = value;
                         break;
                     }
                     case SQL_DATETIME:
                     case SQL_TIMESTAMP: {
                         TIMESTAMP_STRUCT value;
-                        date_t d;
                         hr = SQLGetData(stmt, i + 1, SQL_C_TIMESTAMP, &value, sizeof(value), &len);
-                        d.create(value.year, value.month, value.day, value.hour, value.minute,
-                            value.second, value.fraction / 1000000);
-                        d.toUTC();
-                        v = d;
+                        if (len < 0)
+                            v.setNull();
+                        else {
+                            date_t d;
+                            d.create(value.year, value.month, value.day, value.hour, value.minute,
+                                value.second, value.fraction / 1000000);
+                            d.toUTC();
+                            v = d;
+                        }
                         break;
                     }
                     case SQL_BINARY:
@@ -328,10 +335,14 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                         hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.c_buffer(), 0, &len);
                         if (hr < 0)
                             break;
-                        value.resize(len);
-                        hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.c_buffer(), len, &len);
-                        if (hr >= 0)
-                            v = new Buffer(value);
+                        if (len < 0)
+                            v.setNull();
+                        else {
+                            value.resize(len);
+                            hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.c_buffer(), len, &len);
+                            if (hr >= 0)
+                                v = new Buffer(value);
+                        }
                         break;
                     }
                     case SQL_WCHAR:
@@ -342,10 +353,14 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                         hr = SQLGetData(stmt, i + 1, SQL_C_WCHAR, value.c_buffer(), 2, &len);
                         if (hr < 0)
                             break;
-                        value.resize(len / 2);
-                        hr = SQLGetData(stmt, i + 1, SQL_C_WCHAR, value.c_buffer(), len + 2, &len);
-                        if (hr >= 0)
-                            v = utf16to8String(value);
+                        if (len < 0)
+                            v.setNull();
+                        else {
+                            value.resize(len / 2);
+                            hr = SQLGetData(stmt, i + 1, SQL_C_WCHAR, value.c_buffer(), len + 2, &len);
+                            if (hr >= 0)
+                                v = utf16to8String(value);
+                        }
                         break;
                     }
                     default: {
@@ -353,15 +368,19 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                         hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.c_buffer(), 0, &len);
                         if (hr < 0)
                             break;
-                        value.resize(len);
-                        hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.c_buffer(), len, &len);
-                        if (hr >= 0) {
-                            if (codec == "utf8" || codec == "utf-8") {
-                                v = value;
-                            } else {
-                                exlib::string value1;
-                                encoding_iconv(codec).decode(value, value1);
-                                v = value1;
+                        if (len < 0)
+                            v.setNull();
+                        else {
+                            value.resize(len);
+                            hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.c_buffer(), len, &len);
+                            if (hr >= 0) {
+                                if (codec == "utf8" || codec == "utf-8") {
+                                    v = value;
+                                } else {
+                                    exlib::string value1;
+                                    encoding_iconv(codec).decode(value, value1);
+                                    v = value1;
+                                }
                             }
                         }
                         break;
