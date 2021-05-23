@@ -293,7 +293,7 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                     case SQL_TINYINT: {
                         int32_t value = 0;
                         hr = SQLGetData(stmt, i + 1, SQL_C_SLONG, &value, sizeof(value), &len);
-                        if (len < 0)
+                        if (len == SQL_NULL_DATA)
                             v.setNull();
                         else
                             v = value;
@@ -307,7 +307,7 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                     case SQL_DOUBLE: {
                         double value;
                         hr = SQLGetData(stmt, i + 1, SQL_C_DOUBLE, &value, sizeof(value), &len);
-                        if (len < 0)
+                        if (len == SQL_NULL_DATA)
                             v.setNull();
                         else
                             v = value;
@@ -317,7 +317,7 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                     case SQL_TIMESTAMP: {
                         TIMESTAMP_STRUCT value;
                         hr = SQLGetData(stmt, i + 1, SQL_C_TIMESTAMP, &value, sizeof(value), &len);
-                        if (len < 0)
+                        if (len == SQL_NULL_DATA)
                             v.setNull();
                         else {
                             date_t d;
@@ -335,7 +335,7 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                         hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.c_buffer(), 0, &len);
                         if (hr < 0)
                             break;
-                        if (len < 0)
+                        if (len == SQL_NULL_DATA)
                             v.setNull();
                         else {
                             value.resize(len);
@@ -353,7 +353,7 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                         hr = SQLGetData(stmt, i + 1, SQL_C_WCHAR, value.c_buffer(), 2, &len);
                         if (hr < 0)
                             break;
-                        if (len < 0)
+                        if (len == SQL_NULL_DATA)
                             v.setNull();
                         else {
                             value.resize(len / 2);
@@ -368,7 +368,7 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                         hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.c_buffer(), 0, &len);
                         if (hr < 0)
                             break;
-                        if (len < 0)
+                        if (len == SQL_NULL_DATA)
                             v.setNull();
                         else {
                             value.resize(len);
