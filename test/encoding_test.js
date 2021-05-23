@@ -473,10 +473,10 @@ describe('encoding', () => {
             var tmp_out_b = -(2 ** 54);
 
             assert.isTrue(typeof (msgpack.decode(msgpack.encode(tmp_out_a))) == "bigint");
-            assert.isTrue(bigint(tmp_out_a) === msgpack.decode(msgpack.encode(tmp_out_a)));
+            assert.isTrue(BigInt(tmp_out_a) === msgpack.decode(msgpack.encode(tmp_out_a)));
 
             assert.isTrue(typeof (msgpack.decode(msgpack.encode(tmp_out_b))) == "bigint");
-            assert.isTrue(bigint(tmp_out_b) === msgpack.decode(msgpack.encode(tmp_out_b)));
+            assert.isTrue(BigInt(tmp_out_b) === msgpack.decode(msgpack.encode(tmp_out_b)));
         });
 
         it('test number approaching 2^64', () => {
