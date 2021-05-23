@@ -44,13 +44,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
             } else if (element->IsNumber() || element->IsNumberObject()) {
                 double num = isolate->toNumber(element);
                 if (std::floor(num) == num) {
-                    if (num >= SHRT_MIN && num <= SHRT_MAX) {
-                        msgpack_pack_fix_int16(&pk, (int16_t)num);
-                    } else if (num >= INT_MIN && num <= INT_MAX) {
-                        msgpack_pack_fix_int32(&pk, (int32_t)num);
-                    } else {
-                        msgpack_pack_int64(&pk, (int64_t)num);
-                    }
+                    msgpack_pack_int64(&pk, (int64_t)num);
                 } else {
                     msgpack_pack_double(&pk, num);
                 }

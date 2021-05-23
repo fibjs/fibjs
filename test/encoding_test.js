@@ -435,46 +435,36 @@ describe('encoding', () => {
                 msgpack.decode(msgpack.encode(-32768))
             );
             assert.isNumber(msgpack.decode(msgpack.encode(-32768)));
-            assert.isTrue(msgpack.encode(-32768).length == 3);
-            assert.isTrue(msgpack.encode(-32768 - 1).length == 5);
 
             assert.deepEqual(
                 32767,
                 msgpack.decode(msgpack.encode(32767))
             );
             assert.isNumber(msgpack.decode(msgpack.encode(32767)));
-            assert.isTrue(msgpack.encode(32767).length == 3);
-            assert.isTrue(msgpack.encode(32767 + 1).length == 5);
 
             assert.deepEqual(
                 -2147483648,
                 msgpack.decode(msgpack.encode(-2147483648))
             );
             assert.isNumber(msgpack.decode(msgpack.encode(-2147483648)));
-            assert.isTrue(msgpack.encode(-2147483648).length == 5);
-            assert.isTrue(msgpack.encode(-2147483648 - 1).length == 9);
 
             assert.deepEqual(
                 2147483647,
                 msgpack.decode(msgpack.encode(2147483647))
             );
             assert.isNumber(msgpack.decode(msgpack.encode(2147483647)));
-            assert.isTrue(msgpack.encode(2147483647).length == 5);
-            assert.isTrue(msgpack.encode(2147483647 + 1).length == 9);
 
             assert.deepEqual(
                 9007199254740992,
                 msgpack.decode(msgpack.encode(9007199254740992))
             );
             assert.isNumber(msgpack.decode(msgpack.encode(9007199254740992)));
-            assert.isTrue(msgpack.encode(9007199254740992).length == 9);
 
             assert.deepEqual(
                 -9007199254740992,
                 msgpack.decode(msgpack.encode(-9007199254740992))
             );
             assert.isNumber(msgpack.decode(msgpack.encode(-9007199254740992)));
-            assert.isTrue(msgpack.encode(-9007199254740992).length == 9);
         });
 
 
