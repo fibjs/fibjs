@@ -44,6 +44,13 @@ result_t db_base::openMSSQL(exlib::string connString, obj_ptr<DbConnection_base>
     const char* driver = "libtdsodbc.so";
 #endif
 
+    exlib::string str;
+    hr = q->first("Driver", v);
+    if (hr != CALL_RETURN_NULL) {
+        str = v.string();
+        driver = str.c_str();
+    }
+
     hr = odbc_connect(driver, u->m_hostname.c_str(), nPort,
         u->m_username.c_str(), u->m_password.c_str(),
         u->m_pathname.length() > 0 ? u->m_pathname.c_str() + 1 : "", conn->m_conn);
