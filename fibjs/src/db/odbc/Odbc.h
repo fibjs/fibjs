@@ -12,8 +12,7 @@
 
 namespace fibjs {
 
-result_t odbc_connect(const char* driver, const char* host, int32_t port, const char* username,
-    const char* password, const char* dbName, void*& conn);
+result_t odbc_connect(exlib::string connString, const char* driver, int32_t port, void*& conn);
 result_t odbc_disconnect(void* conn);
 result_t odbc_close(void*& conn, AsyncEvent* ac);
 result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac, exlib::string codec);
