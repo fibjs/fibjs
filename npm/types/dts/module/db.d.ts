@@ -1,8 +1,8 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/MySQL.d.ts" />
-/// <reference path="../interface/DbConnection.d.ts" />
 /// <reference path="../interface/SQLite.d.ts" />
+/// <reference path="../interface/DbConnection.d.ts" />
 /// <reference path="../interface/MongoDB.d.ts" />
 /// <reference path="../interface/LevelDB.d.ts" />
 /// <reference path="../interface/Redis.d.ts" />
@@ -37,16 +37,6 @@ declare module 'db' {
     function openMySQL(connString: string, callback: (err: Error | undefined | null, retVal: Class_MySQL)=>any): void;
 
     /**
-     * @description 打开一个 mysql 数据库
-     *      @param connString 数据库描述，如：mssql://user:pass@host/db
-     *      @return 返回数据库连接对象
-     *      
-     */
-    function openMSSQL(connString: string): Class_DbConnection;
-
-    function openMSSQL(connString: string, callback: (err: Error | undefined | null, retVal: Class_DbConnection)=>any): void;
-
-    /**
      * @description 打开一个 sqlite 数据库
      *      @param connString 数据库描述，如：sqlite:test.db 或者 test.db
      *      @return 返回数据库连接对象
@@ -65,6 +55,26 @@ declare module 'db' {
     function openOdbc(connString: string): Class_DbConnection;
 
     function openOdbc(connString: string, callback: (err: Error | undefined | null, retVal: Class_DbConnection)=>any): void;
+
+    /**
+     * @description 打开一个 mssql 数据库
+     *      @param connString 数据库描述，如：mssql://user:pass@host/db
+     *      @return 返回数据库连接对象
+     *      
+     */
+    function openMSSQL(connString: string): Class_DbConnection;
+
+    function openMSSQL(connString: string, callback: (err: Error | undefined | null, retVal: Class_DbConnection)=>any): void;
+
+    /**
+     * @description 打开一个 postgres 数据库
+     *      @param connString 数据库描述，如：psql://user:pass@host/db
+     *      @return 返回数据库连接对象
+     *      
+     */
+    function openPSQL(connString: string): Class_DbConnection;
+
+    function openPSQL(connString: string, callback: (err: Error | undefined | null, retVal: Class_DbConnection)=>any): void;
 
     /**
      * @description 打开一个 mongodb 数据库

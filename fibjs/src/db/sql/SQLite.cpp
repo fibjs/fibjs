@@ -281,6 +281,7 @@ result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent*
                                 v = new Buffer(data, size);
                             } else if (type
                                 && (!qstricmp(type, "datetime")
+                                       || !qstricmp(type, "timestamp")
                                        || !qstricmp(type, "date")
                                        || !qstricmp(type, "time"))) {
                                 const char* data = (const char*)sqlite3_column_text(stmt, i);

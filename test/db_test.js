@@ -11,11 +11,11 @@ var vmid = coroutine.vmid;
 
 var sql_server = {
     // mysql: 'mysql://root@localhost/test',
+    // psql: 'psql://lion:123456@192.168.65.5/test',
     // mssql: 'mssql://sa@192.168.67.63/test'
 }
 
 describe("db", () => {
-
     function _test(conn_str) {
         var conn;
         var tables = ['test', 'test_null', 'test2', 'test3', 'test4'];
@@ -50,15 +50,19 @@ describe("db", () => {
             });
 
             function sql_equal(conn, sql1, sql2) {
-                if (conn.type != 'mssql') {
-                    assert.equal(sql1, sql2);
-                } else {
+                if (conn.type == 'mssql') {
                     var cnt = 0;
                     sql2 = sql2.replace(/`/g, (s, i) => {
                         cnt++;
                         return (cnt % 2) ? '[' : ']';
                     });
                     sql2 = sql2.replace(/\]\[/g, '`');
+                    assert.equal(sql1, sql2);
+                } else if (conn.type == 'psql') {
+                    var cnt = 0;
+                    sql2 = sql2.replace(/`/g, '"');
+                    assert.equal(sql1, sql2);
+                } else {
                     assert.equal(sql1, sql2);
                 }
             }
@@ -80,6 +84,11 @@ describe("db", () => {
                         sql_equal(conn, conn.format("find", {
                             table: "test",
                             fields: "[a], [b], [c]"
+                        }), "SELECT `a`, `b`, `c` FROM `test`");
+                    } else if (conn.type == 'psql') {
+                        sql_equal(conn, conn.format("find", {
+                            table: "test",
+                            fields: '"a", "b", "c"'
                         }), "SELECT `a`, `b`, `c` FROM `test`");
                     } else {
                         sql_equal(conn, conn.format("find", {
@@ -115,13 +124,6 @@ describe("db", () => {
 
                     sql_equal(conn, conn.format("find", {
                         table: "test",
-                        where: {
-                            "aaa`ddd": 100
-                        }
-                    }), "SELECT * FROM `test` WHERE `aaa``ddd`=100");
-
-                    sql_equal(conn, conn.format("find", {
-                        table: "test",
                         fields: ["a.b"],
                         where: {
                             "aaa.ddd": 100
@@ -133,6 +135,12 @@ describe("db", () => {
                             table: "test",
                             where: "[a]=100"
                         }), "SELECT * FROM `test` WHERE `a`=100");
+                    } else if (conn.type == 'psql') {
+                        sql_equal(conn, conn.format("find", {
+                            table: "test",
+                            where: '"a"=100'
+                        }), "SELECT * FROM `test` WHERE `a`=100");
+
                     } else {
                         sql_equal(conn, conn.format("find", {
                             table: "test",
@@ -469,10 +477,6 @@ describe("db", () => {
                             size: 4
                         },
                         i: 'integer',
-                        i1: {
-                            type: "integer",
-                            size: 1
-                        },
                         i2: {
                             type: "integer",
                             size: 2
@@ -512,14 +516,19 @@ describe("db", () => {
 
                 switch (conn.type) {
                     case "SQLite":
-                        sql_equal(conn, conn.format("createTable", opts), "CREATE TABLE `test`(`t` TEXT, `t1` VARCHAR(100), `n` DOUBLE, `n1` FLOAT, `i` INT, `i1` TINYINT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` BLOB, `b1` LONGBLOB, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
+                        sql_equal(conn, conn.format("createTable", opts), "CREATE TABLE `test`(`t` TEXT, `t1` VARCHAR(100), `n` DOUBLE, `n1` FLOAT, `i` INT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` BLOB, `b1` LONGBLOB, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
                         break;
                     case "mysql":
-                        sql_equal(conn, conn.format("createTable", opts), "CREATE TABLE `test`(`t` LONGTEXT, `t1` VARCHAR(100), `n` DOUBLE, `n1` FLOAT, `i` INT, `i1` TINYINT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` BLOB, `b1` LONGBLOB, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
+                        sql_equal(conn, conn.format("createTable", opts), "CREATE TABLE `test`(`t` LONGTEXT, `t1` VARCHAR(100), `n` DOUBLE, `n1` FLOAT, `i` INT, `i2` SMALLINT, `i3` BIGINT, `d` DATE, `d1` DATETIME, `b` BLOB, `b1` LONGBLOB, `def` INT DEFAULT 123, `required` INT NOT NULL, `unique` INT UNIQUE, `key` INT PRIMARY KEY)");
                         break;
                     case "mssql":
-                        sql_equal(conn, conn.format("createTable", opts), "CREATE TABLE [test]([t] VARCHAR(MAX), [t1] VARCHAR(100), [n] FLOAT, [n1] REAL, [i] INT, [i1] TINYINT, [i2] SMALLINT, [i3] BIGINT, [d] DATE, [d1] DATETIME, [b] VARBINARY(MAX), [b1] IMAGE, [def] INT DEFAULT 123, [required] INT NOT NULL, [unique] INT UNIQUE, [key] INT PRIMARY KEY)");
+                        sql_equal(conn, conn.format("createTable", opts), "CREATE TABLE [test]([t] VARCHAR(MAX), [t1] VARCHAR(100), [n] FLOAT, [n1] REAL, [i] INT, [i2] SMALLINT, [i3] BIGINT, [d] DATE, [d1] DATETIME, [b] VARBINARY(MAX), [b1] IMAGE, [def] INT DEFAULT 123, [required] INT NOT NULL, [unique] INT UNIQUE, [key] INT PRIMARY KEY)");
                         break;
+                    case "psql":
+                        sql_equal(conn, conn.format("createTable", opts), "CREATE TABLE \"test\"(\"t\" TEXT, \"t1\" VARCHAR(100), \"n\" FLOAT, \"n1\" REAL, \"i\" INT, \"i2\" SMALLINT, \"i3\" BIGINT, \"d\" DATE, \"d1\" TIMESTAMP, \"b\" BYTEA, \"b1\" BYTEA, \"def\" INT DEFAULT 123, \"required\" INT NOT NULL, \"unique\" INT UNIQUE, \"key\" INT PRIMARY KEY)");
+                        break;
+                    default:
+                        throw new Error('not support');
                 }
             });
 
@@ -567,7 +576,20 @@ describe("db", () => {
                         res.push(v);
                     }
                 }
-                assert.deepEqual(res, []);
+
+                if (conn.type == 'psql' && os.type() == 'Windows')
+                    assert.deepEqual(res, ['\n']);
+                else
+                    assert.deepEqual(res, []);
+            });
+
+            it('binary', () => {
+                var v = new Buffer('0123456789abcdef');
+                var rs = conn.execute('select ? as v', v);
+                if (conn.type == 'mysql')
+                    assert.equal(rs[0].v, v.toString());
+                else
+                    assert.deepEqual(rs[0].v, v);
             });
 
             it('date', () => {
@@ -605,8 +627,14 @@ describe("db", () => {
             if (conn.type == 'mssql')
                 conn.execute('create table test(t0 INT IDENTITY PRIMARY KEY, t1 int, t2 varchar(128), t3 VARBINARY(100), t4 datetime);');
             else {
-                conn.execute('create table test(t0 INTEGER AUTO_INCREMENT PRIMARY KEY, t1 int, t2 varchar(128), t3 BLOB, t4 datetime);');
-                conn.execute('create table test_null(t1 int NULL, t2 varchar(128) NULL, t3 BLOB NULL, t4 datetime NULL);');
+                if (conn.type == 'psql') {
+                    conn.execute('create table test(t0 SERIAL PRIMARY KEY, t1 int, t2 varchar(128), t3 BYTEA, t4 timestamp);');
+                    conn.execute('create table test_null(t1 int NULL, t2 varchar(128) NULL, t3 BYTEA NULL, t4 timestamp NULL);');
+                }
+                else {
+                    conn.execute('create table test(t0 INTEGER AUTO_INCREMENT PRIMARY KEY, t1 int, t2 varchar(128), t3 BLOB, t4 datetime);');
+                    conn.execute('create table test_null(t1 int NULL, t2 varchar(128) NULL, t3 BLOB NULL, t4 datetime NULL);');
+                }
             }
 
             conn.execute('create table test2(t1 varchar(10), t2 varchar(10));');
@@ -698,34 +726,29 @@ describe("db", () => {
                         if (sz == 8)
                             int_limit /= 256;
 
-                        var base_value = 0;
-                        if (conn.type == 'mssql' && sz == 1)
-                            base_value = 128;
-
-                        conn.execute('insert into test_type values(?)', base_value - int_limit);
+                        conn.execute('insert into test_type values(?)', - int_limit);
                         var rs = conn.execute('select * from test_type');
-                        assert.equal(rs[0].v, base_value - int_limit);
+                        assert.equal(rs[0].v, - int_limit);
                         conn.execute('delete from test_type');
 
-                        conn.execute('insert into test_type values(?)', base_value + int_limit - 1);
+                        conn.execute('insert into test_type values(?)', int_limit - 1);
                         var rs = conn.execute('select * from test_type');
-                        assert.equal(rs[0].v, base_value + int_limit - 1);
+                        assert.equal(rs[0].v, int_limit - 1);
                         conn.execute('delete from test_type');
 
                         if (sz < 8) {
                             assert.throws(() => {
-                                conn.execute('insert into test_type values(?)', base_value - int_limit - 1);
+                                conn.execute('insert into test_type values(?)', - int_limit - 1);
                             });
 
                             assert.throws(() => {
-                                conn.execute('insert into test_type values(?)', base_value + int_limit);
+                                conn.execute('insert into test_type values(?)', int_limit);
                             })
                         }
                     }
                 });
             }
 
-            test_integer(1);
             test_integer(2);
             test_integer(4);
             test_integer(8);
@@ -894,7 +917,7 @@ describe("db", () => {
                 '哈哈哈哈', new Buffer('DDDDDDDDDD'), new Date(
                     '1998-04-14 12:12:12'));
 
-            if (conn.type != 'mssql')
+            if (conn.type == 'mysql' || conn.type == 'SQLite')
                 assert.equal(rs.insertId, 1);
 
             if (conn.type != 'mssql') {
@@ -1024,7 +1047,7 @@ describe("db", () => {
                 values: {
                     t2: "2200"
                 }
-            }), conn.type != 'mssql' ? 2 : 0);
+            }), conn.type == 'mysql' || conn.type == 'SQLite' ? 2 : 0);
 
             assert.equal(conn.remove({
                 table: "test",

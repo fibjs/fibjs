@@ -31,30 +31,9 @@ result_t db_base::openOdbc(exlib::string connString, obj_ptr<DbConnection_base>&
     if (qstrcmp(connString.c_str(), "odbc:", 5))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    obj_ptr<Url> u = new Url();
-
-    result_t hr = u->parse(connString);
-    if (hr < 0)
-        return hr;
-
-    obj_ptr<HttpCollection_base> q;
-    u->get_searchParams(q);
-    Variant v;
-
-    int32_t nPort = -1;
-    if (u->m_port.length() > 0)
-        nPort = atoi(u->m_port.c_str());
-
-    hr = q->first("Driver", v);
-    if (hr == CALL_RETURN_NULL)
-        return CHECK_ERROR(Runtime::setError("odbc: no driver or dsn specified."));
-
-    exlib::string driver = v.string();
     obj_ptr<Odbc> conn = new Odbc();
 
-    hr = odbc_connect(driver.c_str(), u->m_hostname.c_str(), nPort,
-        u->m_username.c_str(), u->m_password.c_str(),
-        u->m_pathname.length() > 0 ? u->m_pathname.c_str() + 1 : "", conn->m_conn);
+    result_t hr = odbc_connect(connString, NULL, -1, conn->m_conn);
     if (hr < 0)
         return hr;
 
@@ -216,6 +195,34 @@ result_t odbc_connect(const char* driver, const char* host, int32_t port, const 
     return 0;
 }
 
+result_t odbc_connect(exlib::string connString, const char* driver, int32_t port, void*& conn)
+{
+    obj_ptr<Url> u = new Url();
+
+    result_t hr = u->parse(connString);
+    if (hr < 0)
+        return hr;
+
+    obj_ptr<HttpCollection_base> q;
+    u->get_searchParams(q);
+    Variant v;
+
+    if (u->m_port.length() > 0)
+        port = atoi(u->m_port.c_str());
+
+    exlib::string str;
+    hr = q->first("Driver", v);
+    if (hr != CALL_RETURN_NULL) {
+        str = v.string();
+        driver = str.c_str();
+    } else if (driver == NULL)
+        return CHECK_ERROR(Runtime::setError("odbc: no driver specified."));
+
+    return odbc_connect(driver, u->m_hostname.c_str(), port,
+        u->m_username.c_str(), u->m_password.c_str(),
+        u->m_pathname.length() > 0 ? u->m_pathname.c_str() + 1 : "", conn);
+}
+
 result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac, exlib::string codec)
 {
     if (!conn)
@@ -293,7 +300,7 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                     case SQL_TINYINT: {
                         int32_t value = 0;
                         hr = SQLGetData(stmt, i + 1, SQL_C_SLONG, &value, sizeof(value), &len);
-                        if (len < 0)
+                        if (len == SQL_NULL_DATA)
                             v.setNull();
                         else
                             v = value;
@@ -307,7 +314,7 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                     case SQL_DOUBLE: {
                         double value;
                         hr = SQLGetData(stmt, i + 1, SQL_C_DOUBLE, &value, sizeof(value), &len);
-                        if (len < 0)
+                        if (len == SQL_NULL_DATA)
                             v.setNull();
                         else
                             v = value;
@@ -317,7 +324,7 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                     case SQL_TIMESTAMP: {
                         TIMESTAMP_STRUCT value;
                         hr = SQLGetData(stmt, i + 1, SQL_C_TIMESTAMP, &value, sizeof(value), &len);
-                        if (len < 0)
+                        if (len == SQL_NULL_DATA)
                             v.setNull();
                         else {
                             date_t d;
@@ -335,7 +342,7 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                         hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.c_buffer(), 0, &len);
                         if (hr < 0)
                             break;
-                        if (len < 0)
+                        if (len == SQL_NULL_DATA)
                             v.setNull();
                         else {
                             value.resize(len);
@@ -353,7 +360,7 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                         hr = SQLGetData(stmt, i + 1, SQL_C_WCHAR, value.c_buffer(), 2, &len);
                         if (hr < 0)
                             break;
-                        if (len < 0)
+                        if (len == SQL_NULL_DATA)
                             v.setNull();
                         else {
                             value.resize(len / 2);
@@ -368,7 +375,7 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                         hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.c_buffer(), 0, &len);
                         if (hr < 0)
                             break;
-                        if (len < 0)
+                        if (len == SQL_NULL_DATA)
                             v.setNull();
                         else {
                             value.resize(len);

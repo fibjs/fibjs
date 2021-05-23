@@ -94,6 +94,7 @@ public:
         static DataType _data_type = {
             "FLOAT",
             "DOUBLE",
+            "DATETIME",
             "LONGTEXT",
             "BLOB",
             "LONGBLOB"

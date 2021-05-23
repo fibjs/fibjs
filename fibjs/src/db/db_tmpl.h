@@ -357,6 +357,7 @@ public:
     struct DataType {
         const char* FLOAT;
         const char* DOUBLE;
+        const char* DATETIME;
         const char* TEXT;
         const char* BLOB;
         const char* LONGBLOB;
@@ -367,6 +368,7 @@ public:
         static DataType _data_type = {
             "FLOAT",
             "DOUBLE",
+            "DATETIME",
             "TEXT",
             "BLOB",
             "LONGBLOB"
