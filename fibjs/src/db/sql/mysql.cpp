@@ -80,6 +80,7 @@ int32_t API_resultRowValue(void* result, int32_t icolumn, UMTypeInfo* ti, void* 
     if (value) {
         switch (ti->type) {
         case MFTYPE_NULL:
+            v.setNull();
             break;
 
         case MFTYPE_BIT:

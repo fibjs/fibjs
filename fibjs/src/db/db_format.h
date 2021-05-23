@@ -792,16 +792,14 @@ private:
                         return hr;
                 }
 
-                if (size == 1)
-                    _fields.append("TINYINT");
-                else if (size == 2)
+                if (size == 2)
                     _fields.append("SMALLINT");
                 else if (size == 4)
                     _fields.append("INT");
                 else if (size == 8)
                     _fields.append("BIGINT");
                 else
-                    return CHECK_ERROR(Runtime::setError("db: Integer size must be 1|2|4|8."));
+                    return CHECK_ERROR(Runtime::setError("db: Integer size must be 2|4|8."));
             } else if (type == "date") {
                 bool _time = false;
 
@@ -811,7 +809,7 @@ private:
                         return hr;
                 }
 
-                _fields.append(_time ? "DATETIME" : "DATE");
+                _fields.append(_time ? impl::data_type().DATETIME : "DATE");
             } else if (type == "binary") {
                 bool big = 0;
 

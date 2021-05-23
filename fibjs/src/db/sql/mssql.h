@@ -131,6 +131,7 @@ public:
         static DataType _data_type = {
             "REAL",
             "FLOAT",
+            "DATETIME",
             "VARCHAR(MAX)",
             "VARBINARY(MAX)",
             "IMAGE"
