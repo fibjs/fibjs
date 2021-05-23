@@ -221,13 +221,13 @@ result_t msgpack_base::decode(Buffer_base* data, v8::Local<v8::Value>& retVal)
                 v = v8::Number::New(isolate->m_isolate, o->via.f64);
                 break;
             case MSGPACK_OBJECT_NEGATIVE_INTEGER:
-                if (o->via.i64 < 9007199254740992 && o->via.i64 > -9007199254740992)
+                if (o->via.i64 <= 9007199254740992 && o->via.i64 >= -9007199254740992)
                     v = v8::Number::New(isolate->m_isolate, (double)o->via.i64);
                 else
                     v = v8::BigInt::New(isolate->m_isolate, o->via.i64);
                 break;
             case MSGPACK_OBJECT_POSITIVE_INTEGER:
-                if (o->via.u64 < 9007199254740992)
+                if (o->via.u64 <= 9007199254740992)
                     v = v8::Number::New(isolate->m_isolate, (double)o->via.u64);
                 else
                     v = v8::BigInt::New(isolate->m_isolate, o->via.u64);

@@ -381,6 +381,14 @@ describe('encoding', () => {
             assert.isBoolean(msgpack.decode(msgpack.encode(false)));
         });
 
+        it('test for 2^15 negative', () => {
+            assert.deepEqual(
+                0 - Math.pow(2, 15) - 1,
+                msgpack.decode(msgpack.encode(0 - Math.pow(2, 15) - 1))
+            );
+            assert.isNumber(msgpack.decode(msgpack.encode(0 - Math.pow(2, 15) - 1)));
+        });
+
         it('test for 2^31 negative', () => {
             assert.deepEqual(
                 0 - Math.pow(2, 31) - 1,
@@ -397,6 +405,14 @@ describe('encoding', () => {
             assert.isNumber(msgpack.decode(msgpack.encode(0 - Math.pow(2, 40) - 1)));
         });
 
+        it('test for 2^15', () => {
+            assert.deepEqual(
+                Math.pow(2, 15) + 1,
+                msgpack.decode(msgpack.encode(Math.pow(2, 15) + 1))
+            );
+            assert.isNumber(msgpack.decode(msgpack.encode(Math.pow(2, 15) + 1)));
+        });
+
         it('test for 2^31', () => {
             assert.deepEqual(
                 Math.pow(2, 31) + 1,
@@ -411,6 +427,66 @@ describe('encoding', () => {
                 msgpack.decode(msgpack.encode(Math.pow(2, 40) + 1))
             );
             assert.isNumber(msgpack.decode(msgpack.encode(Math.pow(2, 40) + 1)));
+        });
+
+        it('test safe int of number', () => {
+            assert.deepEqual(
+                -32768,
+                msgpack.decode(msgpack.encode(-32768))
+            );
+            assert.isNumber(msgpack.decode(msgpack.encode(-32768)));
+            assert.isTrue(msgpack.encode(-32768).length == 3);
+            assert.isTrue(msgpack.encode(-32768 - 1).length == 5);
+
+            assert.deepEqual(
+                32767,
+                msgpack.decode(msgpack.encode(32767))
+            );
+            assert.isNumber(msgpack.decode(msgpack.encode(32767)));
+            assert.isTrue(msgpack.encode(32767).length == 3);
+            assert.isTrue(msgpack.encode(32767 + 1).length == 5);
+
+            assert.deepEqual(
+                -2147483648,
+                msgpack.decode(msgpack.encode(-2147483648))
+            );
+            assert.isNumber(msgpack.decode(msgpack.encode(-2147483648)));
+            assert.isTrue(msgpack.encode(-2147483648).length == 5);
+            assert.isTrue(msgpack.encode(-2147483648 - 1).length == 9);
+
+            assert.deepEqual(
+                2147483647,
+                msgpack.decode(msgpack.encode(2147483647))
+            );
+            assert.isNumber(msgpack.decode(msgpack.encode(2147483647)));
+            assert.isTrue(msgpack.encode(2147483647).length == 5);
+            assert.isTrue(msgpack.encode(2147483647 + 1).length == 9);
+
+            assert.deepEqual(
+                9007199254740992,
+                msgpack.decode(msgpack.encode(9007199254740992))
+            );
+            assert.isNumber(msgpack.decode(msgpack.encode(9007199254740992)));
+            assert.isTrue(msgpack.encode(9007199254740992).length == 9);
+
+            assert.deepEqual(
+                -9007199254740992,
+                msgpack.decode(msgpack.encode(-9007199254740992))
+            );
+            assert.isNumber(msgpack.decode(msgpack.encode(-9007199254740992)));
+            assert.isTrue(msgpack.encode(-9007199254740992).length == 9);
+        });
+
+
+        it('test out safe int of number', () => {
+            var tmp_out_a = 9007199254740993;
+            var tmp_out_b = -9007199254740993;
+
+            assert.isTrue(typeof (msgpack.decode(msgpack.encode(tmp_out_a))) == "bigint");
+            assert.isTrue(bigint(tmp_out_a) === msgpack.decode(msgpack.encode(tmp_out_a)));
+
+            assert.isTrue(typeof (msgpack.decode(msgpack.encode(tmp_out_b))) == "bigint");
+            assert.isTrue(bigint(tmp_out_b) === msgpack.decode(msgpack.encode(tmp_out_b)));
         });
 
         it('test number approaching 2^64', () => {
