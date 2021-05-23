@@ -469,8 +469,8 @@ describe('encoding', () => {
 
 
         it('test out safe int of number', () => {
-            var tmp_out_a = 9007199254740993;
-            var tmp_out_b = -9007199254740993;
+            var tmp_out_a = 2 ** 54;
+            var tmp_out_b = -(2 ** 54);
 
             assert.isTrue(typeof (msgpack.decode(msgpack.encode(tmp_out_a))) == "bigint");
             assert.isTrue(bigint(tmp_out_a) === msgpack.decode(msgpack.encode(tmp_out_a)));
