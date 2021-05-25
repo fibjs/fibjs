@@ -8,7 +8,9 @@
         "editor.formatOnSave": false
     },
     "files.associations": {
-        "*.idl": "java"
+        "*.idl": "java",
+        "chrono": "cpp",
+        "cstdlib": "cpp"
     },
     "clang-format.fallbackStyle": "WebKit"
 }

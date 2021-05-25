@@ -43,7 +43,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
                     msgpack_pack_false(&pk);
             } else if (element->IsNumber() || element->IsNumberObject()) {
                 double num = isolate->toNumber(element);
-                if (v8::internal::IsMinusZero(num) || std::abs(num) > 9007199254740991) {
+                if (static_cast<double>(static_cast<int32_t>(num)) != num || std::abs(num) > 9007199254740991) {
                     msgpack_pack_double(&pk, num);
                 } else {
                     msgpack_pack_int64(&pk, (int64_t)num);
