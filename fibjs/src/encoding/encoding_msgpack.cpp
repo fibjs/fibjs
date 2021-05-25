@@ -44,7 +44,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
             } else if (element->IsNumber() || element->IsNumberObject()) {
                 double num = isolate->toNumber(element);
                 if (std::floor(num) == num && std::abs(num) > 9007199254740991) {
-                    msgpack_pack_int64(&pk, (int64_t)fnum);
+                    msgpack_pack_int64(&pk, (int64_t)num);
                 } else {
                     msgpack_pack_double(&pk, num);
                 }
