@@ -43,10 +43,10 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
                     msgpack_pack_false(&pk);
             } else if (element->IsNumber() || element->IsNumberObject()) {
                 double num = isolate->toNumber(element);
-                if (static_cast<double>(static_cast<int32_t>(num)) != num || std::abs(num) > 9007199254740991) {
-                    msgpack_pack_double(&pk, num);
-                } else {
+                if (static_cast<double>(static_cast<int32_t>(num)) == num || std::abs(num) <= 9007199254740991) {
                     msgpack_pack_int64(&pk, (int64_t)num);
+                } else {
+                    msgpack_pack_double(&pk, num);
                 }
             } else if (element->IsBigInt() || element->IsBigIntObject()) {
                 v8::MaybeLocal<v8::BigInt> mv;
