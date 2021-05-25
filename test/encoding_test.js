@@ -494,7 +494,7 @@ describe('encoding', () => {
         });
 
         it('test number NaN', () => {
-            assert.isTrue(msgpack.decode(msgpack.encode(NaN)) == NaN);
+            assert.isTrue(Number.isNaN(msgpack.decode(msgpack.encode(NaN))));
         });
 
         it('test number repeating infinite decimal', () => {
