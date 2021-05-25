@@ -467,7 +467,6 @@ describe('encoding', () => {
             assert.isNumber(msgpack.decode(msgpack.encode(-9007199254740992)));
         });
 
-
         it('test out safe int of number', () => {
             var tmp_out_a = 2 ** 54;
             var tmp_out_b = -(2 ** 54);
@@ -477,6 +476,13 @@ describe('encoding', () => {
 
             assert.isTrue(typeof (msgpack.decode(msgpack.encode(tmp_out_b))) == "bigint");
             assert.isTrue(BigInt(tmp_out_b) === msgpack.decode(msgpack.encode(tmp_out_b)));
+        });
+
+        it('test encoding safe int number size', () => {
+            assert.isTrue(msgpack.encode(1).length == 1);
+            assert.isTrue(msgpack.encode(128).length == 2);
+            assert.isTrue(msgpack.encode(0xfff).length == 3);
+            assert.isTrue(msgpack.encode(0xfffff).length == 4);
         });
 
         it('test number approaching 2^64', () => {
