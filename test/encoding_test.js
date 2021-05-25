@@ -487,6 +487,23 @@ describe('encoding', () => {
             assert.isNumber(msgpack.decode(msgpack.encode(123456782345245)));
         });
 
+        it('test number NaN', () => {
+            assert.isTrue(msgpack.decode(msgpack.encode(NaN)) == NaN);
+        });
+
+        it('test number repeating infinite decimal', () => {
+            assert.isTrue(msgpack.decode(msgpack.encode(1 / 3)) == 1 / 3);
+        });
+
+        it('test number non-repeating infinite decimal', () => {
+            assert.isTrue(msgpack.decode(msgpack.encode(Math.PI)) == Math.PI);
+        });
+
+        it('test number ±Infinity', () => {
+            assert.isTrue(msgpack.decode(msgpack.encode(Infinity)) == Infinity);
+            assert.isTrue(msgpack.decode(msgpack.encode(-Infinity)) == -Infinity);
+        });
+
         it('test bigint approaching 2^64', () => {
             assert.deepEqual(
                 2666666666666666666n,
