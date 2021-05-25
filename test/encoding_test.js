@@ -482,7 +482,7 @@ describe('encoding', () => {
             assert.isTrue(msgpack.encode(1).length == 1);
             assert.isTrue(msgpack.encode(128).length == 2);
             assert.isTrue(msgpack.encode(0xfff).length == 3);
-            assert.isTrue(msgpack.encode(0xfffff).length == 4);
+            assert.isTrue(msgpack.encode(0xfffff).length == 5);
         });
 
         it('test number approaching 2^64', () => {
