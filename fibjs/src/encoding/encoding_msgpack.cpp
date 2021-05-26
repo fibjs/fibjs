@@ -41,9 +41,14 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
                     msgpack_pack_true(&pk);
                 else
                     msgpack_pack_false(&pk);
-            } else if (element->IsNumber() || element->IsNumberObject())
-                msgpack_pack_double(&pk, isolate->toNumber(element));
-            else if (element->IsBigInt() || element->IsBigIntObject()) {
+            } else if (element->IsNumber() || element->IsNumberObject()) {
+                double num = isolate->toNumber(element);
+                if (static_cast<double>(static_cast<int64_t>(num)) == num && num <= LLONG_MAX && num >= LLONG_MIN) {
+                    msgpack_pack_int64(&pk, (int64_t)num);
+                } else {
+                    msgpack_pack_double(&pk, num);
+                }
+            } else if (element->IsBigInt() || element->IsBigIntObject()) {
                 v8::MaybeLocal<v8::BigInt> mv;
                 bool less;
 
@@ -210,10 +215,16 @@ result_t msgpack_base::decode(Buffer_base* data, v8::Local<v8::Value>& retVal)
                 v = v8::Number::New(isolate->m_isolate, o->via.f64);
                 break;
             case MSGPACK_OBJECT_NEGATIVE_INTEGER:
-                v = v8::BigInt::New(isolate->m_isolate, o->via.i64);
+                if (o->via.i64 <= 9007199254740992 && o->via.i64 >= -9007199254740992)
+                    v = v8::Number::New(isolate->m_isolate, (double)o->via.i64);
+                else
+                    v = v8::BigInt::New(isolate->m_isolate, o->via.i64);
                 break;
             case MSGPACK_OBJECT_POSITIVE_INTEGER:
-                v = v8::BigInt::New(isolate->m_isolate, o->via.u64);
+                if (o->via.u64 <= 9007199254740992)
+                    v = v8::Number::New(isolate->m_isolate, (double)o->via.u64);
+                else
+                    v = v8::BigInt::New(isolate->m_isolate, o->via.u64);
                 break;
             case MSGPACK_OBJECT_STR:
                 v = isolate->NewString(o->via.str.ptr, (int32_t)o->via.str.size);
