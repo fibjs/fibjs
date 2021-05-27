@@ -171,6 +171,10 @@ jobs:
         continue-on-error: true
         run: |
           bash .github/workflows/generate_jsc.sh
+          # don't overwrite existed jsc_test_<arch>.jsc, we only upload jsc_test_<arch>_<platform>.jsc to release,
+          # then if we found size of `jsc_test_<arch>_<platform>.jsc` differd with the `jsc_test_<arch>.jsc`(which,
+          # in general, means jsc format has been updated due to upgrade of v8), we would download
+          # `jsc_test_<arch>_<platform>.jsc` and rename it to `jsc_test_<arch>.jsc`
           cp ./test/vm_test/jsc_test_*.jsc ./$RELEASE_TAG/
           rm -rf ./test/vm_test/jsc_test_*.jsc;
           git reset --hard;
