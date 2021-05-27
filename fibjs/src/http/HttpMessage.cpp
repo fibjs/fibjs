@@ -114,13 +114,10 @@ result_t HttpMessage::get_data(v8::Local<v8::Value>& retVal)
     if (pos != exlib::string::npos)
         strType = strType.substr(0, pos);
 
-    if (strType == "application/json")
-        return Message::json(retVal);
+    if (strType != "application/json")
+        return Message::get_data(retVal);
 
-    if (strType == "application/msgpack")
-        return Message::pack(retVal);
-
-    return Message::get_data(retVal);
+    return Message::json(retVal);
 }
 
 result_t HttpMessage::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
