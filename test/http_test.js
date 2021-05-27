@@ -920,8 +920,8 @@ describe("http", () => {
 
         req.pack(v);
         assert.equal(req.firstHeader('Content-Type'), "application/msgpack");
-        // assert.equal(req.data.toString(), '{"a":100}');
 
+        assert.deepEqual(rep.data, v);
         assert.deepEqual(req.pack(), v);
 
         req.setHeader('Content-Type', "application/msgpack; utf-8");
@@ -940,8 +940,8 @@ describe("http", () => {
 
         rep.pack(v);
         assert.equal(rep.firstHeader('Content-Type'), "application/msgpack");
-        // assert.equal(rep.data.toString(), '{"a":100}');
 
+        assert.deepEqual(rep.data, v);
         assert.deepEqual(rep.pack(), v);
 
         rep.setHeader('Content-Type', "application/msgpack; utf-8");
