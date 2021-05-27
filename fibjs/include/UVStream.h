@@ -385,6 +385,19 @@ public:
         return 0;
     }
 
+    static result_t uv_pipe(obj_ptr<UVStream>& retVal, int32_t fd)
+    {
+        obj_ptr<UVStream> stream = new UVStream();
+        uv_pipe_init(s_uv_loop, &stream->m_pipe, 0);
+        int ret = uv_pipe_open(&stream->m_pipe, fd);
+        if (ret < 0)
+            return ret;
+
+        retVal = stream;
+
+        return 0;
+    }
+
 private:
     UVStream()
     {

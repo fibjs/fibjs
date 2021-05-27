@@ -17,6 +17,7 @@ class ChildProcess : public ChildProcess_base {
 public:
     ChildProcess()
         : m_exitCode(-1)
+        , m_pty(false)
     {
         memset(&uv_options, 0, sizeof(uv_process_options_t));
         uv_options.exit_cb = OnExit;
@@ -61,6 +62,8 @@ public:
     uv_stdio_container_t stdios[3];
     uv_process_options_t uv_options;
     uv_process_t m_process;
+
+    bool m_pty;
 
     int32_t m_exitCode;
 
