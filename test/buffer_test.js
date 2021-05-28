@@ -305,6 +305,26 @@ describe('Buffer', () => {
         assert.equal(buf.length, 0);
     });
 
+    it('Buffer.from encoding', () => {
+        var txts = ['abc',
+            '\u0222aa',
+            'a\u0234b\u0235c\u0236'];
+
+        var results = {
+            utf8: ['616263', 'c8a26161', '61c8b462c8b563c8b6'],
+            ucs2: ['610062006300', '220261006100', '610034026200350263003602'],
+            binary: ['616263', '226161', '613462356336'],
+            latin1: ['616263', '226161', '613462356336']
+        };
+
+        ['utf8', 'ucs2', 'binary', 'latin1'].forEach(codec => {
+            var rs = results[codec];
+            txts.forEach((txt, i) => {
+                assert.equal(Buffer.from(txt, codec).toString('hex'), rs[i]);
+            })
+        });
+    });
+
     it('Buffer.byteLength(String)', () => {
         var str1 = "\u00bd + \u00bc = \u00be";
         var str2 = "0xffffff";
