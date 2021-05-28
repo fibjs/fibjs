@@ -117,6 +117,27 @@ describe("child_process", () => {
             assert.closeTo(offsets[1], 2000, 1000);
         });
 
+        if (process.platform != "win32")
+            it("pty output", () => {
+                var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.stdout.js')], {
+                    stdio: 'pty'
+                });
+                var stdout = new io.BufferedStream(bs.stdout);
+
+                assert.equal(stdout.readLine(), "exec testing....\r");
+
+                var t0 = new Date().getTime();
+
+                stdout.readLine();
+                var offsets = []
+                offsets[0] = new Date().getTime() - t0;
+                assert.closeTo(offsets[0], 1000, 500);
+
+                stdout.readLine();
+                offsets[1] = new Date().getTime() - t0;
+                assert.closeTo(offsets[1], 2000, 1000);
+            });
+
         it("console stdout output", () => {
             var status = child_process.run(cmd, [path.join(__dirname, 'process', 'exec.stdout.js')]);
             assert.equal(status, 0);

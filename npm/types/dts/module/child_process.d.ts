@@ -15,14 +15,16 @@
  * - 'pipe'：相当于 ['pipe', 'pipe', 'pipe']（默认值）。
  * - 'ignore'：相当于 ['ignore', 'ignore', 'ignore']。
  * - 'inherit'：相当于 ['inherit', 'inherit', 'inherit'] 或 [0, 1, 2]。
+ * - 'pty'：相当于 ['pty', 'pty', 'pty']。不支持 Windows。
  * 
  * 否则， options.stdio 的值需是数组（其中每个索引对应于子进程中的文件描述符）。 文件描述符 0、1 和 2 分别对应于 stdin、stdout 和 stderr。 其他的文件描述符可以被指定用于在父进程和子进程之间创建其他的管道。 值可以是以下之一：
  * 
  * 1. 'pipe'：在子进程和父进程之间创建管道。 管道的父端作为 child_process 对象上的 stdio[fd] 属性暴露给父进程。 为文件描述符 0、1 和 2 创建的管道也可分别作为 stdin、stdout 和 stderr 使用。
  * 2. 'ignore'：指示 fibjs 忽略子进程中的文件描述符。 虽然 fibjs 将会始终为其衍生的进程打开文件描述符 0、1 和 2，但将文件描述符设置为 'ignore' 可以使 fibjs 打开 /dev/null 并将其附加到子进程的文件描述符。
  * 3. 'inherit'：将相应的 stdio 流传给父进程或从父进程传入。 在前三个位置中，这分别相当于 process.stdin、 process.stdout 和 process.stderr。 在任何其他位置中，则相当于 'ignore'。
- * 4. 正整数：整数值会被解释为当前在父进程中打开的文件描述符。 它与子进程共享，类似于共享 <Stream> 对象的方式。 在 Windows 上不支持传入 socket。
- * 5. null 或 undefined：使用默认值。 对于 stdio 的文件描述符 0、1 和 2（换句话说，stdin、stdout 和 stderr），将会创建管道。 对于文件描述符 3 及更大的值，则默认为 'ignore'。
+ * 4. 'pty'：在子进程将在虚拟终端中执行。只有 stdin 和 stdout 可以访问。
+ * 5. 正整数：整数值会被解释为当前在父进程中打开的文件描述符。 它与子进程共享，类似于共享 <Stream> 对象的方式。 在 Windows 上不支持传入 socket。
+ * 6. null 或 undefined：使用默认值。 对于 stdio 的文件描述符 0、1 和 2（换句话说，stdin、stdout 和 stderr），将会创建管道。 对于文件描述符 3 及更大的值，则默认为 'ignore'。
  * 
  * ```JavaScript
  * const { spawn } = require('child_process');
