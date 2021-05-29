@@ -162,7 +162,9 @@ public:
         return execute(str, retVal, ac);
     }
 
-    result_t execute(exlib::string method, v8::Local<v8::Object> opts,
+    typedef result_t (*formater)(v8::Local<v8::Object> opts, exlib::string& retVal);
+
+    result_t execute(formater fmt, v8::Local<v8::Object> opts,
         obj_ptr<NArray>& retVal, AsyncEvent* ac)
     {
         if (!m_conn)
@@ -170,7 +172,7 @@ public:
 
         if (ac->isSync()) {
             exlib::string str;
-            result_t hr = format(method, opts, str);
+            result_t hr = fmt(opts, str);
             if (hr < 0)
                 return hr;
 
@@ -187,31 +189,31 @@ public:
     result_t createTable(v8::Local<v8::Object> opts, AsyncEvent* ac)
     {
         obj_ptr<NArray> _retVal;
-        return execute("createTable", opts, _retVal, ac);
+        return execute(db_format<impl>::createTable, opts, _retVal, ac);
     }
 
     result_t dropTable(v8::Local<v8::Object> opts, AsyncEvent* ac)
     {
         obj_ptr<NArray> _retVal;
-        return execute("dropTable", opts, _retVal, ac);
+        return execute(db_format<impl>::dropTable, opts, _retVal, ac);
     }
 
     result_t createIndex(v8::Local<v8::Object> opts, AsyncEvent* ac)
     {
         obj_ptr<NArray> _retVal;
-        return execute("createIndex", opts, _retVal, ac);
+        return execute(db_format<impl>::createIndex, opts, _retVal, ac);
     }
 
     result_t dropIndex(v8::Local<v8::Object> opts, AsyncEvent* ac)
     {
         obj_ptr<NArray> _retVal;
-        return execute("dropIndex", opts, _retVal, ac);
+        return execute(db_format<impl>::dropIndex, opts, _retVal, ac);
     }
 
     result_t insert(v8::Local<v8::Object> opts, double& retVal, AsyncEvent* ac)
     {
         obj_ptr<NArray> _retVal;
-        result_t hr = execute("insert", opts, _retVal, ac);
+        result_t hr = execute(db_format<impl>::insert, opts, _retVal, ac);
         if (hr < 0)
             return hr;
 
@@ -223,13 +225,13 @@ public:
     result_t find(v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal,
         AsyncEvent* ac)
     {
-        return execute("find", opts, retVal, ac);
+        return execute(db_format<impl>::find, opts, retVal, ac);
     }
 
     result_t count(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
     {
         obj_ptr<NArray> _retVal;
-        result_t hr = execute("count", opts, _retVal, ac);
+        result_t hr = execute(db_format<impl>::count, opts, _retVal, ac);
         if (hr < 0)
             return hr;
 
@@ -243,7 +245,7 @@ public:
     result_t update(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
     {
         obj_ptr<NArray> _retVal;
-        result_t hr = execute("update", opts, _retVal, ac);
+        result_t hr = execute(db_format<impl>::update, opts, _retVal, ac);
         if (hr < 0)
             return hr;
 
@@ -255,7 +257,7 @@ public:
     result_t remove(v8::Local<v8::Object> opts, int32_t& retVal, AsyncEvent* ac)
     {
         obj_ptr<NArray> _retVal;
-        result_t hr = execute("remove", opts, _retVal, ac);
+        result_t hr = execute(db_format<impl>::remove, opts, _retVal, ac);
         if (hr < 0)
             return hr;
 
