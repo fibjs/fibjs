@@ -905,7 +905,10 @@ describe("http", () => {
 
     it('pack', () => {
         var v = {
-            a: 100
+            a: 100,
+            b: true,
+            c: "hello",
+            d: new Date()
         };
 
         var req = new http.Request();
@@ -920,7 +923,7 @@ describe("http", () => {
 
         req.pack(v);
         assert.equal(req.firstHeader('Content-Type'), "application/msgpack");
-        // assert.equal(req.data.toString(), '{"a":100}');
+        assert.deepEqual(req.data, v);
 
         assert.deepEqual(req.pack(), v);
 
@@ -933,14 +936,14 @@ describe("http", () => {
         assert.throws(() => {
             rep.pack();
         });
-        req.setHeader('Content-Type', "application/msg");
+        req.setHeader('Content-Type', "application/jso");
         assert.throws(() => {
             req.pack();
         });
 
         rep.pack(v);
         assert.equal(rep.firstHeader('Content-Type'), "application/msgpack");
-        // assert.equal(rep.data.toString(), '{"a":100}');
+        assert.deepEqual(rep.data, v);
 
         assert.deepEqual(rep.pack(), v);
 
