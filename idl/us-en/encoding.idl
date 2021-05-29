@@ -13,9 +13,6 @@ module encoding
     /*! @brief base64 encode and decode module */
     static base64;
 
-    /*! @brief base64vlq encode and decode module */
-    static base64vlq;
-
     /*! @brief hex encode and decode module */
     static hex;
 

@@ -17,7 +17,6 @@ namespace fibjs {
 
 class base32_base;
 class base64_base;
-class base64vlq_base;
 class hex_base;
 class iconv_base;
 class json_base;
@@ -54,7 +53,6 @@ public:
 
 #include "ifs/base32.h"
 #include "ifs/base64.h"
-#include "ifs/base64vlq.h"
 #include "ifs/hex.h"
 #include "ifs/iconv.h"
 #include "ifs/json.h"
@@ -73,7 +71,6 @@ inline ClassInfo& encoding_base::class_info()
     static ClassData::ClassObject s_object[] = {
         { "base32", base32_base::class_info },
         { "base64", base64_base::class_info },
-        { "base64vlq", base64vlq_base::class_info },
         { "hex", hex_base::class_info },
         { "iconv", iconv_base::class_info },
         { "json", json_base::class_info },

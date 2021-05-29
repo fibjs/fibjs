@@ -25,7 +25,6 @@
 /// <reference path="../module/ws.d.ts" />
 /// <reference path="../module/base32.d.ts" />
 /// <reference path="../module/base64.d.ts" />
-/// <reference path="../module/base64vlq.d.ts" />
 /// <reference path="../module/encoding.d.ts" />
 /// <reference path="../module/hex.d.ts" />
 /// <reference path="../module/iconv.d.ts" />

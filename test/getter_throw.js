@@ -102,7 +102,7 @@ describe('getter throw', () => {
     });
 
 
-    xit('redis', () => {});
+    xit('redis', () => { });
 
     it('utils.cpp CheckConfig', () => {
         let http = require('http');
@@ -167,25 +167,10 @@ describe('getter throw', () => {
         db.format('?, ?', obj2);
     });
 
-    xit('level db', () => {});
+    xit('level db', () => { });
 
-    xit('redis pub sub', () => {});
-    xit('redis sortedSet', () => {});
-
-    it('base64vlq', () => {
-        var base64vlq = require('base64vlq');
-        checkthrow([
-            () => {
-                base64vlq.encode(arr);
-            },
-            () => {
-                base64vlq.encode(arr2);
-            },
-            () => {
-                base64vlq.encode(obj2);
-            },
-        ]);
-    });
+    xit('redis pub sub', () => { });
+    xit('redis sortedSet', () => { });
 
     it('HttpCollection', () => {
         let http = require('http');
@@ -411,31 +396,31 @@ describe('getter throw', () => {
                 util.omit(obj, arr)
             },
             () => {
-                util.each(obj, (num, i) => {})
+                util.each(obj, (num, i) => { })
             },
             () => {
-                util.each(arr, (num, i) => {})
+                util.each(arr, (num, i) => { })
             },
             () => {
-                util.each(arr2, (num, i) => {})
+                util.each(arr2, (num, i) => { })
             },
             () => {
-                util.map(obj, () => {})
+                util.map(obj, () => { })
             },
             () => {
-                util.map(arr, () => {})
+                util.map(arr, () => { })
             },
             () => {
-                util.map(arr2, () => {})
+                util.map(arr2, () => { })
             },
             () => {
-                util.reduce(obj, () => {}, 0);
+                util.reduce(obj, () => { }, 0);
             },
             () => {
-                util.reduce(arr, () => {}, 0);
+                util.reduce(arr, () => { }, 0);
             },
             () => {
-                util.reduce(arr2, () => {}, 0);
+                util.reduce(arr2, () => { }, 0);
             },
         ]
         checkthrow(cases);

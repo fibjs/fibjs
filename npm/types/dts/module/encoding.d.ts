@@ -1,7 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../module/base32.d.ts" />
 /// <reference path="../module/base64.d.ts" />
-/// <reference path="../module/base64vlq.d.ts" />
 /// <reference path="../module/hex.d.ts" />
 /// <reference path="../module/iconv.d.ts" />
 /// <reference path="../module/json.d.ts" />
@@ -24,11 +23,6 @@ declare module 'encoding' {
      * @description base64 编码与解码模块 
      */
     const base64: typeof import ('base64');
-
-    /**
-     * @description base64vlq 编码与解码模块 
-     */
-    const base64vlq: typeof import ('base64vlq');
 
     /**
      * @description hex 编码与解码模块 

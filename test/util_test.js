@@ -1516,7 +1516,6 @@ describe('util', () => {
                 "crypto",
                 "coroutine",
                 "buffer",
-                "base64vlq",
                 "base64",
                 "base32",
                 "assert"

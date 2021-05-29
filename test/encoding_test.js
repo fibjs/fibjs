@@ -7,7 +7,6 @@ var msgpack = require('msgpack');
 var base64 = require('base64');
 var hex = require('hex');
 var iconv = require('iconv');
-var base64vlq = require('base64vlq');
 var util = require('util');
 
 describe('encoding', () => {
@@ -94,21 +93,6 @@ describe('encoding', () => {
     it("base64url", () => {
         assert.equal(base64.encode(base64.decode('//4+AA=='), true), '__4-AA==');
         assert.deepEqual(base64.decode('//4+AA=='), base64.decode('__4-AA=='));
-    });
-
-    it('base64vlq', () => {
-        var tests = {
-            'AAAA': [0, 0, 0, 0],
-            'AAgBC': [0, 0, 16, 1],
-            '6rk2B': [886973],
-            '6rB': [701],
-            'mC3jxHAkhSliBqwG': [35, -123451, 0, 9234, -546, 3333]
-        };
-
-        for (var k in tests) {
-            assert.equal(k, base64vlq.encode(tests[k]));
-            assert.deepEqual(tests[k], base64vlq.decode(k));
-        }
     });
 
     it('hex', () => {
