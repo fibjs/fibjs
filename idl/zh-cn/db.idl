@@ -3,7 +3,11 @@
  基础模块。可用于创建和操作数据库资源，引用方式：
  ```JavaScript
  var db = require('db');
+ var conn = db.open('rng://user:pass@host:port/dbname');
  ```
+ 通过指定数据库引擎，可以建立不同的数据库链接。fibjs 内置两个 sql 引擎：sqlite 和 mysql，同时还支持通过 ODBC/unixODBC 连接更多数据库，基于 ODBC/unixODBC，fibjs 构建了与 mssql 和 PostgreSQL 的驱动。
+ 为了使用 ODBC/unixODBC，需要安装对应的驱动，在 posix 下使用 mssql 需要安装 freetds，使用 PostgreSQL 需要安装 psqlodbc。
+ 正常情况下驱动安装成功即可直接使用，无需进一步配置。
  */
 module db
 {
@@ -32,12 +36,16 @@ module db
     static DbConnection openOdbc(String connString) async;
 
     /*! @brief 打开一个 mssql 数据库
+
+     为了建立与 mssql 的连接，在 posix 下必须安装 freetds 的 odbc 驱动，也可以通过指定驱动来使用微软的 mssql 驱动，指定驱动的方式，是在 url 后增加 ?driver=msodbcsql17[.so/.dylib] 的选项。
      @param connString 数据库描述，如：mssql://user:pass@host/db
      @return 返回数据库连接对象
      */
     static DbConnection openMSSQL(String connString) async;
 
-    /*! @brief 打开一个 postgres 数据库
+    /*! @brief 打开一个 PostgresSQL 数据库
+
+     为了建立与 PostgresSQL 的连接，必须安装 PostgresSQL 的 odbc 驱动。
      @param connString 数据库描述，如：psql://user:pass@host/db
      @return 返回数据库连接对象
      */
