@@ -115,6 +115,10 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options)
         } else if (stddefs[i].type() == Variant::VT_Integer) {
             stdios[i].flags = UV_INHERIT_FD;
             stdios[i].data.fd = stddefs[i].intVal();
+        } else // if (s == "inherit")
+        {
+            stdios[i].flags = UV_INHERIT_FD;
+            stdios[i].data.fd = i;
         }
     }
 

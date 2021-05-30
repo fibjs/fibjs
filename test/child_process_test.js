@@ -232,6 +232,12 @@ describe("child_process", () => {
         });
     });
 
+    it("FIX: crash when bad stdio array", () => {
+        child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.js')], {
+            stdio: ['pipe', ,]
+        });
+    });
+
     describe('process holding', () => {
         it("multi fiber", () => {
             var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec7.js')]);
