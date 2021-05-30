@@ -95,8 +95,11 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options)
 #endif
 
     for (i = 0; i < 3; i++) {
-        if (stddefs[i].type() == Variant::VT_String) {
-            exlib::string s = stddefs[i].string();
+        if (stddefs[i].type() == Variant::VT_Integer) {
+            stdios[i].flags = UV_INHERIT_FD;
+            stdios[i].data.fd = stddefs[i].intVal();
+        } else {
+            exlib::string s = stddefs[i].type() != Variant::VT_String ? "pipe" : stddefs[i].string();
 
             if (s == "ignore") {
                 stdios[i].flags = UV_IGNORE;
@@ -107,18 +110,10 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options)
 
                 stdios[i].flags = (uv_stdio_flags)(UV_CREATE_PIPE | UV_READABLE_PIPE | UV_WRITABLE_PIPE);
                 stdios[i].data.stream = (uv_stream_t*)&m_stdio[i]->m_pipe;
-            } else // if (s == "inherit")
-            {
+            } else {
                 stdios[i].flags = UV_INHERIT_FD;
                 stdios[i].data.fd = i;
             }
-        } else if (stddefs[i].type() == Variant::VT_Integer) {
-            stdios[i].flags = UV_INHERIT_FD;
-            stdios[i].data.fd = stddefs[i].intVal();
-        } else // if (s == "inherit")
-        {
-            stdios[i].flags = UV_INHERIT_FD;
-            stdios[i].data.fd = i;
         }
     }
 
