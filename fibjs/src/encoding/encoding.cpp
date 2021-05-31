@@ -19,7 +19,9 @@ DECLARE_MODULE(hex);
 
 result_t base32_base::encode(Buffer_base* data, exlib::string& retVal)
 {
-    baseEncode("abcdefghijklmnopqrstuvwxyz234567", 5, data, retVal);
+    exlib::string strData;
+    data->toString(strData);
+    baseEncode("abcdefghijklmnopqrstuvwxyz234567", 5, strData.c_str(), strData.length(), retVal, true);
     return 0;
 }
 
@@ -43,7 +45,7 @@ result_t base64_base::encode(Buffer_base* data, bool url, exlib::string& retVal)
 {
     exlib::string strData;
     data->toString(strData);
-    return base64Encode(strData, url, retVal);
+    return base64Encode(strData.c_str(), strData.length(), url, retVal);
 }
 
 result_t base64_base::decode(exlib::string data,

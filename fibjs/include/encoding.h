@@ -15,7 +15,7 @@
 namespace fibjs {
 
 inline void baseEncode(const char* pEncodingTable, size_t dwBits,
-    const char* data, size_t sz, exlib::string& retVal)
+    const char* data, size_t sz, exlib::string& retVal, bool fill)
 {
     size_t i, len = 0, bits = 0;
     size_t dwData = 0;
@@ -44,25 +44,11 @@ inline void baseEncode(const char* pEncodingTable, size_t dwBits,
     if (bits)
         _retVal[len++] = pEncodingTable[(dwData << (dwBits - bits)) & bMask];
 
-    while (len < dwSize)
-        _retVal[len++] = '=';
+    if (fill)
+        while (len < dwSize)
+            _retVal[len++] = '=';
 
     retVal.resize(len);
-}
-
-inline void baseEncode(const char* pEncodingTable, size_t dwBits,
-    exlib::string& data, exlib::string& retVal)
-{
-    baseEncode(pEncodingTable, dwBits, data.c_str(),
-        data.length(), retVal);
-}
-
-inline void baseEncode(const char* pEncodingTable, size_t dwBits,
-    Buffer_base* data, exlib::string& retVal)
-{
-    exlib::string strData;
-    data->toString(strData);
-    baseEncode(pEncodingTable, dwBits, strData, retVal);
 }
 
 inline void baseDecode(const char* pdecodeTable, size_t dwBits,
@@ -106,14 +92,14 @@ inline void baseDecode(const char* pdecodeTable, size_t dwBits,
     retVal = new Buffer(strBuf);
 }
 
-inline result_t base64Encode(exlib::string data, bool url, exlib::string& retVal)
+inline result_t base64Encode(const char* data, size_t sz, bool url, exlib::string& retVal)
 {
     if (url)
         baseEncode("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
-            6, data, retVal);
+            6, data, sz, retVal, false);
     else
         baseEncode("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
-            6, data, retVal);
+            6, data, sz, retVal, true);
 
     return 0;
 }
@@ -169,7 +155,7 @@ inline result_t commonEncode(exlib::string codec, exlib::string data, exlib::str
         if ((codec == "hex"))
             hr = hexEncode(data, retVal);
         else if ((codec == "base64"))
-            hr = base64Encode(data, false, retVal);
+            hr = base64Encode(data.c_str(), data.length(), false, retVal);
         else if ((codec == "ascii")) {
             size_t len, i;
 

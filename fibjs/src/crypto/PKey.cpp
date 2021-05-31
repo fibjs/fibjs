@@ -604,7 +604,7 @@ inline void mpi_dump(Isolate* isolate, v8::Local<v8::Object> o, exlib::string ke
     mbedtls_mpi_write_binary(n, (unsigned char*)data.c_buffer(), sz);
 
     exlib::string b64;
-    base64Encode(data, true, b64);
+    base64Encode(data.c_str(), data.length(), true, b64);
 
     o->Set(isolate->NewString(key), isolate->NewString(b64));
 }

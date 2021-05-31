@@ -91,8 +91,8 @@ describe('encoding', () => {
     });
 
     it("base64url", () => {
-        assert.equal(base64.encode(base64.decode('//4+AA=='), true), '__4-AA==');
-        assert.deepEqual(base64.decode('//4+AA=='), base64.decode('__4-AA=='));
+        assert.equal(base64.encode(base64.decode('//4+AA=='), true), '__4-AA');
+        assert.deepEqual(base64.decode('//4+AA=='), base64.decode('__4-AA'));
     });
 
     it('hex', () => {

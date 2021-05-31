@@ -111,9 +111,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
             exlib::string out;
 
-            baseEncode(
-                "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
-                6, (const char*)output, 20, out);
+            base64Encode((const char*)output, 20, false, out);
 
             m_httprep->set_statusCode(101);
             m_httprep->addHeader("Sec-WebSocket-Accept", out);

@@ -242,9 +242,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
                 keys[i] = (char)rand();
 
             exlib::string key;
-            baseEncode(
-                "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
-                6, (const char*)&keys, sizeof(keys), key);
+            base64Encode((const char*)&keys, sizeof(keys), false, key);
 
             m_headers->add("Sec-WebSocket-Key", key);
 
@@ -253,9 +251,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
             unsigned char output[20];
             mbedtls_sha1((const unsigned char*)key.c_str(), key.length(), output);
 
-            baseEncode(
-                "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
-                6, (const char*)output, 20, m_accept);
+            base64Encode((const char*)output, 20, false, m_accept);
 
             return http_request2(m_hc, "GET", url, NULL, m_headers,
                 m_httprep, next(response));
