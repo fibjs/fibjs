@@ -85,6 +85,8 @@ extern GuiApp* g_app;
 CefWebView::CefWebView(exlib::string url, NObject* opt, CefRefPtr<CefValue> proxy)
     : m_opt(opt)
     , m_url(url)
+    , m_download_path(g_app->m_download_path)
+    , m_download_dialog(g_app->m_download_dialog)
     , m_proxy(proxy)
     , m_bDebug(g_app->m_bDebug)
     , m_bPopup(g_app->m_bPopup)
@@ -113,6 +115,12 @@ CefWebView::CefWebView(exlib::string url, NObject* opt, CefRefPtr<CefValue> prox
 
         if (!m_bHeadless && m_opt->get("headless", v) == 0)
             m_bHeadless = v.boolVal();
+
+        if (m_opt->get("download_path", v) == 0)
+            m_download_path = v.string();
+
+        if (m_opt->get("download_dialog", v) == 0)
+            m_download_dialog = v.boolVal();
 
         if (m_bHeadless) {
             if (opt->get("width", v) == 0)

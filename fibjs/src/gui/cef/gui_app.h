@@ -96,6 +96,8 @@ public:
 public:
     obj_ptr<NObject> m_opt;
     exlib::string m_cef_path;
+    exlib::string m_download_path;
+    bool m_download_dialog = true;
 
     CefMainArgs m_args;
     CefSettings m_settings;

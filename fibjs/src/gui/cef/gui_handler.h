@@ -17,6 +17,7 @@ namespace fibjs {
 class GuiHandler : public CefClient,
                    public CefContextMenuHandler,
                    public CefDisplayHandler,
+                   public CefDownloadHandler,
                    public CefLifeSpanHandler,
                    public CefLoadHandler,
                    public CefRenderHandler,
@@ -28,6 +29,11 @@ public:
     }
 
     virtual CefRefPtr<CefDisplayHandler> GetDisplayHandler() OVERRIDE
+    {
+        return this;
+    }
+
+    virtual CefRefPtr<CefDownloadHandler> GetDownloadHandler() OVERRIDE
     {
         return this;
     }
@@ -73,7 +79,12 @@ public:
         const CefString& url) OVERRIDE;
     virtual void OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString& title) OVERRIDE;
     virtual bool OnConsoleMessage(CefRefPtr<CefBrowser> browser, cef_log_severity_t level,
-        const CefString& message, const CefString& source, int line);
+        const CefString& message, const CefString& source, int line) OVERRIDE;
+
+public:
+    // CefDownloadHandler
+    virtual void OnBeforeDownload(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDownloadItem> download_item,
+        const CefString& suggested_name, CefRefPtr<CefBeforeDownloadCallback> callback) OVERRIDE;
 
 public:
     // CefLoadHandler

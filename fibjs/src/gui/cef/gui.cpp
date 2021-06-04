@@ -303,6 +303,12 @@ result_t GuiApp::config(v8::Local<v8::Object> opt)
     if (m_opt->get("cef_path", v) == 0)
         m_cef_path = v.string();
 
+    if (m_opt->get("download_path", v) == 0)
+        m_download_path = v.string();
+
+    if (m_opt->get("download_dialog", v) == 0)
+        m_download_dialog = v.boolVal();
+
     v8::Local<v8::Object> o;
     hr = GetConfigValue(isolate->m_isolate, opt, "backend", o, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {

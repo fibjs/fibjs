@@ -148,6 +148,22 @@ bool GuiHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
     return true;
 }
 
+void GuiHandler::OnBeforeDownload(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDownloadItem> download_item,
+    const CefString& suggested_name, CefRefPtr<CefBeforeDownloadCallback> callback)
+{
+    exlib::string download_path = suggested_name.ToString();
+    bool download_dialog = true;
+
+    BrowserList::iterator bit = fromBrowser(browser);
+    if (bit != browser_list_.end()) {
+        download_dialog = (*bit)->m_download_dialog;
+        if (!(*bit)->m_download_path.empty())
+            download_path = (*bit)->m_download_path + '/' + download_path;
+    }
+
+    callback->Continue(download_path.c_str(), download_dialog);
+}
+
 void GuiHandler::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
     ErrorCode errorCode, const CefString& errorText, const CefString& failedUrl)
 {
