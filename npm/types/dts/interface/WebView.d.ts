@@ -225,5 +225,10 @@ declare class Class_WebView extends Class_EventEmitter {
      */
     onmessage: (...args: any[])=>any;
 
+    /**
+     * @description 查询和绑定接受 webview 内下载事务状态变化事件，相当于 on("download", func); 
+     */
+    ondownload: (...args: any[])=>any;
+
 }
 

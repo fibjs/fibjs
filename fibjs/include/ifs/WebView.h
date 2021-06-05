@@ -53,6 +53,8 @@ public:
     virtual result_t set_onclosed(v8::Local<v8::Function> newVal) = 0;
     virtual result_t get_onmessage(v8::Local<v8::Function>& retVal) = 0;
     virtual result_t set_onmessage(v8::Local<v8::Function> newVal) = 0;
+    virtual result_t get_ondownload(v8::Local<v8::Function>& retVal) = 0;
+    virtual result_t set_ondownload(v8::Local<v8::Function> newVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -96,6 +98,8 @@ public:
     static void s_set_onclosed(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_onmessage(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_onmessage(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_ondownload(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_ondownload(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 
 public:
     ASYNC_MEMBER1(WebView_base, loadUrl, exlib::string);
@@ -153,7 +157,8 @@ inline ClassInfo& WebView_base::class_info()
         { "onmove", s_get_onmove, s_set_onmove, false },
         { "onresize", s_get_onresize, s_set_onresize, false },
         { "onclosed", s_get_onclosed, s_set_onclosed, false },
-        { "onmessage", s_get_onmessage, s_set_onmessage, false }
+        { "onmessage", s_get_onmessage, s_set_onmessage, false },
+        { "ondownload", s_get_ondownload, s_set_ondownload, false }
     };
 
     static ClassData s_cd = {
@@ -599,6 +604,31 @@ inline void WebView_base::s_set_onmessage(v8::Local<v8::Name> property, v8::Loca
     PROPERTY_VAL(v8::Local<v8::Function>);
 
     hr = pInst->set_onmessage(v0);
+
+    PROPERTY_SET_LEAVE();
+}
+
+inline void WebView_base::s_get_ondownload(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_NAME("WebView.ondownload");
+    METHOD_INSTANCE(WebView_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_ondownload(vr);
+
+    METHOD_RETURN();
+}
+
+inline void WebView_base::s_set_ondownload(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_NAME("WebView.ondownload");
+    METHOD_INSTANCE(WebView_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(v8::Local<v8::Function>);
+
+    hr = pInst->set_ondownload(v0);
 
     PROPERTY_SET_LEAVE();
 }

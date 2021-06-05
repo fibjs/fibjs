@@ -55,6 +55,8 @@ declare module 'gui' {
      *      {
      *          "cache_path": "", // 设置数据持久化目录，缺省为空，退出进程后，客户端临时数据将不会被保存
      *          "cef_path": "", // 设置 runtime 路径，缺省时在当前目录寻找 runtime
+     *          "download_path": "", // 设置下载文件保存路径，缺省时在当前目录
+     *          "download_dialog": true, // 设置是否显示下载文件对话框，缺省时显示
      *          "debug": true, // 全局设置是否输出 WebView 内的错误和 console 信息，缺省显示
      *          "popup": true, // 全局设置是否允许弹出新的网页，缺省允许
      *          "menu": true, // 全局设置是否允许右键菜单，缺省允许
@@ -93,8 +95,10 @@ declare module 'gui' {
      *          "debug": true, // 是否输出 WebView 内的错误和 console 信息，缺省显示或继承全局设置
      * 
      *          // 以下配置仅用于 cef 模式
-     *          "popup": true, // 是否允许弹出新的网页，缺省允许或继承全局设置
-     *          "menu": true, // 是否允许右键菜单，缺省允许或继承全局设置
+     *          "download_path": "", // 设置下载文件保存路径，缺省继承全局设置
+     *          "download_dialog": true, // 设置是否显示下载文件对话框，缺省继承全局设置
+     *          "popup": true, // 是否允许弹出新的网页，缺省继承全局设置
+     *          "menu": true, // 是否允许右键菜单，缺省继承全局设置
      *          "headless": false, // 是否使用无窗口模式加载页面，缺省不使用无窗口，当命令行指定 --headless 时，此属性将被忽略
      *          "proxy": { // 设置访问代理，为设置时继承s全局设置
      *              "mode": "fixed_servers|pac_script|auto_detect|system|direct", // 指定代理模式

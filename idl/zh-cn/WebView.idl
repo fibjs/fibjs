@@ -153,4 +153,7 @@ interface WebView : EventEmitter
 
     /*! @brief 查询和绑定接受 webview 内 postMessage 消息事件，相当于 on("message", func); */
     Function onmessage;
+
+    /*! @brief 查询和绑定接受 webview 内下载事务状态变化事件，相当于 on("download", func); */
+    Function ondownload;
 };

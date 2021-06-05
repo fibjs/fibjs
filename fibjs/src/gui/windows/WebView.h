@@ -72,6 +72,7 @@ public:
     EVENT_FUNC(resize);
     EVENT_FUNC(closed);
     EVENT_FUNC(message);
+    EVENT_FUNC(download);
 
 private:
     void Navigate(exlib::string szUrl);

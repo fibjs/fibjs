@@ -164,6 +164,32 @@ void GuiHandler::OnBeforeDownload(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDo
     callback->Continue(download_path.c_str(), download_dialog);
 }
 
+void GuiHandler::OnDownloadUpdated(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDownloadItem> download_item,
+    CefRefPtr<CefDownloadItemCallback> callback)
+{
+    if (download_item->IsValid()) {
+        BrowserList::iterator bit = fromBrowser(browser);
+        if (bit != browser_list_.end()) {
+            obj_ptr<NObject> o = new NObject();
+
+            o->add("url", download_item->GetURL().ToString().c_str());
+            o->add("total", download_item->GetTotalBytes());
+            o->add("download", download_item->GetReceivedBytes());
+
+            if (download_item->IsInProgress())
+                o->add("status", "progress");
+            else if (download_item->IsCanceled())
+                o->add("status", "abort");
+            else if (download_item->IsComplete())
+                o->add("status", "complete");
+
+            Variant v = o;
+
+            (*bit)->_emit("download", &v, 1);
+        }
+    }
+}
+
 void GuiHandler::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
     ErrorCode errorCode, const CefString& errorText, const CefString& failedUrl)
 {
