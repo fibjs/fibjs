@@ -274,6 +274,8 @@ Isolate::Isolate(exlib::string jsFilename)
     , m_max_buffer_size(-1)
     , m_ca(new X509Cert())
 {
+    s_isolates.putTail(this);
+
     m_fname = jsFilename;
 
     static v8::Isolate::CreateParams create_params;
@@ -314,8 +316,6 @@ Isolate* Isolate::current()
 
 void Isolate::init()
 {
-    s_isolates.putTail(this);
-
     v8::Locker locker(m_isolate);
     v8::Isolate::Scope isolate_scope(m_isolate);
     v8::HandleScope handle_scope(m_isolate);
