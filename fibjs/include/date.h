@@ -102,7 +102,10 @@ public:
 
     v8::Local<v8::Value> value(v8::Isolate* isolate) const
     {
-        return v8::Date::New(isolate, d);
+        v8::Local<v8::Value> v;
+
+        v8::Date::New(isolate->GetCurrentContext(), d).ToLocal(&v);
+        return v;
     }
 
     bool empty() const

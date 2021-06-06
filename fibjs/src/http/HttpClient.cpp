@@ -797,7 +797,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
         o.Clear();
         hr = GetConfigValue(isolate->m_isolate, opts, "headers", o);
         if (hr >= 0) {
-            JSArray ks = o->GetPropertyNames();
+            JSArray ks = o->GetPropertyNames(o->CreationContext());
             int32_t len = ks->Length();
             int32_t i;
 

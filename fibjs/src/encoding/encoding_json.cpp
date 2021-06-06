@@ -401,7 +401,8 @@ inline result_t _jsonDecode(exlib::string data,
 
             if (!type.is_null() && !data.is_null()) {
                 ssize_t i;
-                i::Vector<const uint8_t> type_ = type->GetCharVector<uint8_t>();
+                i::DisallowHeapAllocation no_gc;
+                i::Vector<const uint8_t> type_ = type->GetCharVector<uint8_t>(no_gc);
 
                 for (i = 0; s_from[i].name; i++)
                     if (type_.size() == s_from[i].sz

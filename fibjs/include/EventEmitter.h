@@ -69,7 +69,7 @@ public:
 
     void DeletePrivate(exlib::string key)
     {
-        events->Delete(NewString(key));
+        events->Delete(events->CreationContext(), NewString(key));
     }
 
     v8::Local<v8::Array> GetHiddenList(exlib::string k, bool create = false)
@@ -175,7 +175,7 @@ public:
         result_t (JSTrigger::*fn)(exlib::string, v8::Local<v8::Function>, v8::Local<v8::Object>&),
         v8::Local<v8::Object>& retVal)
     {
-        JSArray ks = m->GetPropertyNames();
+        JSArray ks = m->GetPropertyNames(m->CreationContext());
         int32_t len = ks->Length();
         int32_t i;
 
@@ -244,7 +244,7 @@ public:
         t.off(ev, _wrap, vr);
 
         if (!func.IsEmpty() && !_wrap.IsEmpty())
-            func->Call(args.This(), (int32_t)_args.size(), _args.data());
+            func->Call(func->CreationContext(), args.This(), (int32_t)_args.size(), _args.data());
     }
 
     result_t once(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
@@ -338,7 +338,7 @@ public:
         result_t hr;
 
         if (len == 0) {
-            evs = events->GetPropertyNames();
+            events->GetPropertyNames(events->CreationContext()).ToLocal(&evs);
             len = evs->Length();
         }
 
@@ -472,7 +472,7 @@ public:
             return hr;
 
         if (!ff.IsEmpty()) {
-            JSValue r = ff->Call(o, argCount, args);
+            JSValue r = ff->Call(ff->CreationContext(), o, argCount, args);
             retVal = true;
             if (r.IsEmpty())
                 hr = CALL_E_JAVASCRIPT;
@@ -505,7 +505,7 @@ public:
 
     result_t eventNames(v8::Local<v8::Array>& retVal)
     {
-        retVal = JSArray(events->GetOwnPropertyNames());
+        retVal = JSArray(events->GetOwnPropertyNames(events->CreationContext()));
         return 0;
     }
 

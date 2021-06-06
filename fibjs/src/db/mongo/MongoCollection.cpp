@@ -260,7 +260,7 @@ result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
 {
     exlib::string name;
 
-    JSArray ks = keys->GetPropertyNames();
+    JSArray ks = keys->GetPropertyNames(keys->CreationContext());
     int32_t len = (int32_t)ks->Length();
     int32_t i;
     Isolate* isolate = holder();

@@ -45,7 +45,9 @@ result_t JsonLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string 
         func);
 
     v8::Local<v8::Object> glob = isolate->context()->Global();
-    v8::Local<v8::Value> v = func->Call(glob, (int32_t)args.size(), args.data());
+    v8::Local<v8::Value> v;
+
+    func->Call(func->CreationContext(), glob, (int32_t)args.size(), args.data()).ToLocal(&v);
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 

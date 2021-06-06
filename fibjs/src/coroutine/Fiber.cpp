@@ -89,7 +89,8 @@ void JSFiber::set_caller(Fiber_base* caller)
         v8::Local<v8::Object> co = m_caller->wrap();
         v8::Local<v8::Object> o = wrap();
 
-        v8::Local<v8::Array> ks = co->GetOwnPropertyNames();
+        v8::Local<v8::Array> ks;
+        co->GetOwnPropertyNames(co->CreationContext()).ToLocal(&ks);
         int32_t len = ks->Length();
 
         int32_t i;
@@ -202,7 +203,7 @@ result_t JSFiber::js_invoke()
 
     clear();
 
-    retVal = func->Call(pThis, (int32_t)argv.size(), argv.data());
+    func->Call(func->CreationContext(), pThis, (int32_t)argv.size(), argv.data()).ToLocal(&retVal);
 
     if (!IsEmpty(retVal))
         m_result.Reset(isolate->m_isolate, retVal);

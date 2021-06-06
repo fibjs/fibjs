@@ -242,7 +242,7 @@ result_t HttpCollection::add(exlib::string name, Variant value)
 
 result_t HttpCollection::add(v8::Local<v8::Object> map)
 {
-    JSArray ks = map->GetPropertyNames();
+    JSArray ks = map->GetPropertyNames(map->CreationContext());
     int32_t len = ks->Length();
     int32_t i;
     Isolate* isolate = holder();
@@ -282,7 +282,7 @@ result_t HttpCollection::set(exlib::string name, Variant value)
 
 result_t HttpCollection::set(v8::Local<v8::Object> map)
 {
-    JSArray ks = map->GetPropertyNames();
+    JSArray ks = map->GetPropertyNames(map->CreationContext());
     int32_t len = ks->Length();
     int32_t i;
     Isolate* isolate = holder();

@@ -230,7 +230,7 @@ public:
 
         exlib::string _values;
 
-        JSArray ks = o->GetPropertyNames();
+        JSArray ks = o->GetPropertyNames(o->CreationContext());
         int32_t len = ks->Length();
         int32_t i;
 
@@ -290,7 +290,7 @@ public:
         exlib::string _fields;
         exlib::string _values;
 
-        JSArray ks = o->GetPropertyNames();
+        JSArray ks = o->GetPropertyNames(o->CreationContext());
         int32_t len = ks->Length();
         int32_t i;
 
@@ -371,7 +371,7 @@ public:
 
         exlib::string _fields;
 
-        JSArray ks = o->GetPropertyNames();
+        JSArray ks = o->GetPropertyNames(o->CreationContext());
         int32_t len = ks->Length();
         int32_t i;
 
@@ -689,7 +689,7 @@ private:
 
         v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(val);
         exlib::string str;
-        JSArray ks = o->GetPropertyNames();
+        JSArray ks = o->GetPropertyNames(o->CreationContext());
         int32_t len = ks->Length();
         int32_t i;
         bool bAnd = true;
@@ -718,7 +718,7 @@ private:
                     return where(v8::Local<v8::Array>::Cast(v), bAnd, retVal, retAnd);
                 else if (IsJSObject(v)) {
                     o = v8::Local<v8::Object>::Cast(v);
-                    ks = o->GetPropertyNames();
+                    ks = o->GetPropertyNames(o->CreationContext());
                     len = ks->Length();
                     if (len == 0)
                         break;
@@ -733,7 +733,7 @@ private:
 
             if (IsJSObject(v)) {
                 v8::Local<v8::Object> ops = v8::Local<v8::Object>::Cast(v);
-                JSArray opks = ops->GetPropertyNames();
+                JSArray opks = ops->GetPropertyNames(ops->CreationContext());
                 int32_t oplen = opks->Length();
 
                 if (oplen != 1)
@@ -782,7 +782,7 @@ private:
 
                 if (!bField && !bIn && !bBetween && IsJSObject(v)) {
                     ops = v8::Local<v8::Object>::Cast(v);
-                    opks = ops->GetPropertyNames();
+                    opks = ops->GetPropertyNames(ops->CreationContext());
                     oplen = opks->Length();
 
                     if (oplen != 1)
@@ -868,7 +868,7 @@ private:
             }
         } else if (IsJSObject(v)) {
             v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
-            JSArray ks = o->GetPropertyNames();
+            JSArray ks = o->GetPropertyNames(o->CreationContext());
             int32_t len = ks->Length();
             int32_t i;
 

@@ -46,8 +46,8 @@ public:
         , interrupts_scope_(isolate_, i::StackGuard::TERMINATE_EXECUTION,
               isolate_->only_terminate_in_safe_scope()
                   ? (safe_for_termination_
-                          ? i::InterruptsScope::kRunInterrupts
-                          : i::InterruptsScope::kPostponeInterrupts)
+                            ? i::InterruptsScope::kRunInterrupts
+                            : i::InterruptsScope::kPostponeInterrupts)
                   : i::InterruptsScope::kNoop)
     {
         // TODO(dcarney): remove this when blink stops crashing.
@@ -69,14 +69,18 @@ public:
     }
     ~CallDepthScope()
     {
+        i::MicrotaskQueue* microtask_queue = isolate_->default_microtask_queue();
         if (!context_.IsEmpty()) {
             i::HandleScopeImplementer* impl = isolate_->handle_scope_implementer();
             isolate_->set_context(impl->RestoreContext());
+
+            i::Handle<i::Context> env = Utils::OpenHandle(*context_);
+            microtask_queue = env->native_context()->microtask_queue();
         }
         if (!escaped_)
             isolate_->handle_scope_implementer()->DecrementCallDepth();
         if (do_callback)
-            isolate_->FireCallCompletedCallback();
+            isolate_->FireCallCompletedCallback(microtask_queue);
 // TODO(jochen): This should be #ifdef DEBUG
 #ifdef V8_CHECK_MICROTASKS_SCOPES_CONSISTENCY
         if (do_callback)
@@ -222,12 +226,12 @@ exlib::string traceInfo(Isolate* isolate, int32_t deep)
 
 void beginCoverage(Isolate* isolate)
 {
-    debug::Coverage::SelectMode(isolate, debug::Coverage::kBlockCount);
+    debug::Coverage::SelectMode(isolate, debug::CoverageMode::kBlockCount);
 }
 
 void pauseCoverage(Isolate* isolate)
 {
-    debug::Coverage::SelectMode(isolate, debug::Coverage::kBestEffort);
+    debug::Coverage::SelectMode(isolate, debug::CoverageMode::kBestEffort);
 }
 
 inline std::string ToSTLString(Isolate* isolate, Local<String> v8_str)

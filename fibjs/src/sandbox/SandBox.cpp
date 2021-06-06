@@ -89,10 +89,10 @@ void SandBox::initGlobal(v8::Local<v8::Object> global)
 
     v8::Local<v8::Object> _global = _context->Global();
 
-    _global->Delete(isolate->NewString("console"));
+    _global->Delete(_context, isolate->NewString("console"));
     _global->Set(isolate->NewString("global"), _global);
 
-    JSArray ks = global->GetPropertyNames();
+    JSArray ks = global->GetPropertyNames(_context);
     int32_t len = ks->Length();
     int32_t i;
 
@@ -137,7 +137,7 @@ result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)
 
 result_t SandBox::add(v8::Local<v8::Object> mods)
 {
-    JSArray ks = mods->GetPropertyNames();
+    JSArray ks = mods->GetPropertyNames(mods->CreationContext());
     int32_t len = ks->Length();
     int32_t i;
     result_t hr;
@@ -157,7 +157,8 @@ result_t SandBox::add(v8::Local<v8::Object> mods)
 result_t SandBox::remove(exlib::string id)
 {
     path_base::normalize(id, id);
-    mods()->Delete(holder()->NewString(id));
+    v8::Local<v8::Object> m = mods();
+    m->Delete(m->CreationContext(), holder()->NewString(id));
 
     return 0;
 }
@@ -165,10 +166,8 @@ result_t SandBox::remove(exlib::string id)
 result_t SandBox::has(exlib::string id, bool& retVal)
 {
     path_base::normalize(id, id);
-    retVal = mods()->Has(
-                       Isolate::current()->context(),
-                       holder()->NewString(id))
-                 .ToChecked();
+    v8::Local<v8::Object> m = mods();
+    retVal = m->Has(m->CreationContext(), holder()->NewString(id)).ToChecked();
 
     return 0;
 }
@@ -233,7 +232,7 @@ result_t SandBox::get_modules(v8::Local<v8::Object>& retVal)
     retVal = v8::Object::New(isolate->m_isolate);
 
     v8::Local<v8::Object> ms = mods();
-    JSArray ks = ms->GetPropertyNames();
+    JSArray ks = ms->GetPropertyNames(ms->CreationContext());
 
     v8::Local<v8::String> mgetter = isolate->NewString("exports");
 

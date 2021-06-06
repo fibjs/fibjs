@@ -155,7 +155,7 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
     } else if (hr < 0)
         return hr;
 
-    JSArray keys = opt_envs->GetPropertyNames();
+    JSArray keys = opt_envs->GetPropertyNames(opt_envs->CreationContext());
     len = (int32_t)keys->Length();
 
     envStr.resize(len);

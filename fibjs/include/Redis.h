@@ -146,7 +146,7 @@ public:
             if (kvs->IsArray())
                 return CHECK_ERROR(CALL_E_INVALIDARG);
 
-            JSArray keys = kvs->GetPropertyNames();
+            JSArray keys = kvs->GetPropertyNames(kvs->CreationContext());
 
             result_t hr;
             int32_t i;

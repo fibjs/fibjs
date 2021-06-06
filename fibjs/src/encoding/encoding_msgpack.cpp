@@ -97,7 +97,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
             JSValue jsonFun = element->Get(isolate->NewString("toJSON", 6));
             if (!IsEmpty(jsonFun) && jsonFun->IsFunction()) {
                 JSValue p = isolate->NewString("");
-                JSValue element1 = v8::Local<v8::Function>::Cast(jsonFun)->Call(element, 1, &p);
+                JSValue element1 = v8::Local<v8::Function>::Cast(jsonFun)->Call(element->CreationContext(), element, 1, &p);
 
                 if (!IsEmpty(element1)) {
                     if (element1->IsArray())
@@ -110,7 +110,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
                 }
             }
 
-            JSArray ks = element->GetPropertyNames();
+            JSArray ks = element->GetPropertyNames(element->CreationContext());
             int32_t len = ks->Length();
             int32_t i;
             result_t hr;

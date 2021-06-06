@@ -39,7 +39,7 @@ public:
     void add(exlib::string key, Variant value);
     result_t add(v8::Local<v8::Object> m)
     {
-        JSArray ks = m->GetPropertyNames();
+        JSArray ks = m->GetPropertyNames(m->CreationContext());
         int32_t len = ks->Length();
         int32_t i;
         Isolate* isolate = holder();

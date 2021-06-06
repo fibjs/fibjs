@@ -245,10 +245,10 @@ bool objectEquals(QuickArray<v8::Local<v8::Object>>& acts,
     if (i == -1)
         return false;
 
-    JSArray keys = act->GetPropertyNames();
+    JSArray keys = act->GetPropertyNames(act->CreationContext());
     int32_t len = (int32_t)keys->Length();
 
-    if (len != (int32_t)JSArray(exp->GetPropertyNames())->Length()) {
+    if (len != (int32_t)JSArray(exp->GetPropertyNames(exp->CreationContext()))->Length()) {
         acts.pop();
         exps.pop();
         return false;
@@ -778,7 +778,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
         p = p1 + 1;
     }
 
-    retVal = v->Has(isolate->NewString(p));
+    retVal = v->Has(v->CreationContext(), isolate->NewString(p)).ToChecked();
 
     return 0;
 }
@@ -931,7 +931,7 @@ result_t assert_base::throws(v8::Local<v8::Function> block, exlib::string msg)
     bool err;
     {
         TryCatch try_catch;
-        block->Call(v8::Undefined(Isolate::current()->m_isolate), 0, NULL);
+        block->Call(block->CreationContext(), v8::Undefined(Isolate::current()->m_isolate), 0, NULL);
         err = try_catch.HasCaught();
     }
     _test(err, _msg(msg, "Missing expected exception."));
@@ -945,7 +945,7 @@ result_t assert_base::doesNotThrow(v8::Local<v8::Function> block,
     bool err;
     {
         TryCatch try_catch;
-        block->Call(v8::Undefined(Isolate::current()->m_isolate), 0, NULL);
+        block->Call(block->CreationContext(), v8::Undefined(Isolate::current()->m_isolate), 0, NULL);
         err = try_catch.HasCaught();
     }
     _test(!err, _msg(msg, "Got unwanted exception."));

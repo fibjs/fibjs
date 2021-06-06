@@ -256,7 +256,7 @@ static result_t service_worker(Service* srv)
     v = srv->GetPrivate("worker");
     if (!v.IsEmpty()) {
         func = v8::Local<v8::Function>::Cast(v);
-        func->Call(srv->wrap(), 0, &v);
+        func->Call(func->CreationContext(), srv->wrap(), 0, &v);
     }
 
     ReportStatusToSCMgr(SERVICE_STOPPED, NO_ERROR, 0);

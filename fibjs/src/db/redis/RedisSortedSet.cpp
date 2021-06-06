@@ -15,7 +15,7 @@ result_t RedisSortedSet::add(v8::Local<v8::Object> sms, int32_t& retVal)
     if (sms->IsArray())
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    JSArray keys = sms->GetPropertyNames();
+    JSArray keys = sms->GetPropertyNames(sms->CreationContext());
     v8::Local<v8::Array> mss = v8::Array::New(holder()->m_isolate);
 
     int32_t i, n = 0;

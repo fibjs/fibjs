@@ -218,7 +218,7 @@ result_t LevelDB::mset(v8::Local<v8::Object> map)
     leveldb::WriteBatch batch;
     leveldb::WriteBatch* batch_ = m_batch ? m_batch : &batch;
 
-    JSArray ks = map->GetPropertyNames();
+    JSArray ks = map->GetPropertyNames(map->CreationContext());
     int32_t len = ks->Length();
     int32_t i;
     result_t hr;
@@ -359,7 +359,8 @@ result_t LevelDB::Iter::iter(Isolate* isolate, v8::Local<v8::Function> func)
             m_kvs[i * 2].Release();
             m_kvs[i * 2 + 1].Release();
 
-            v8::Local<v8::Value> v = func->Call(v8::Undefined(isolate->m_isolate), 2, args);
+            v8::Local<v8::Value> v;
+            func->Call(func->CreationContext(), v8::Undefined(isolate->m_isolate), 2, args).ToLocal(&v);
             if (v.IsEmpty())
                 return CALL_E_JAVASCRIPT;
 

@@ -365,7 +365,7 @@ result_t Variant::unbind()
             clear();
             set_type(VT_UNBOUND_OBJECT);
 
-            JSArray ks = o->GetPropertyNames();
+            JSArray ks = o->GetPropertyNames(o->CreationContext());
             len = ks->Length();
 
             m_Val.buffer.cnt = len;

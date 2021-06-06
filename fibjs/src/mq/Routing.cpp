@@ -141,7 +141,7 @@ result_t Routing::_append(exlib::string method, v8::Local<v8::Object> map,
     obj_ptr<Routing_base>& retVal)
 {
     Isolate* isolate = holder();
-    JSArray ks = map->GetPropertyNames();
+    JSArray ks = map->GetPropertyNames(map->CreationContext());
     int32_t len = ks->Length();
     int32_t i;
     result_t hr;

@@ -96,7 +96,7 @@ result_t SandBox::ExtLoader::run(Context* ctx, Buffer_base* src, exlib::string n
         func);
 
     v8::Local<v8::Object> glob = isolate->context()->Global();
-    v = func->Call(glob, (int32_t)args.size(), args.data());
+    func->Call(func->CreationContext(), glob, (int32_t)args.size(), args.data()).ToLocal(&v);
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 

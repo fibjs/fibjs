@@ -157,8 +157,9 @@ result_t MongoCursor::forEach(v8::Local<v8::Function> func)
 
     while ((hr = next(o)) != CALL_RETURN_NULL && hr >= 0) {
         v8::Local<v8::Value> a = o;
-        v8::Local<v8::Value> v = func->Call(v8::Undefined(isolate->m_isolate), 1, &a);
+        v8::Local<v8::Value> v;
 
+        func->Call(func->CreationContext(), v8::Undefined(isolate->m_isolate), 1, &a).ToLocal(&v);
         if (v.IsEmpty())
             return CALL_E_JAVASCRIPT;
     }
@@ -177,8 +178,9 @@ result_t MongoCursor::map(v8::Local<v8::Function> func,
 
     while ((hr = next(o)) != CALL_RETURN_NULL && hr >= 0) {
         v8::Local<v8::Value> a = o;
-        v8::Local<v8::Value> v = func->Call(v8::Undefined(isolate->m_isolate), 1, &a);
+        v8::Local<v8::Value> v;
 
+        func->Call(func->CreationContext(), v8::Undefined(isolate->m_isolate), 1, &a).ToLocal(&v);
         if (v.IsEmpty())
             return CALL_E_JAVASCRIPT;
 

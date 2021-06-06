@@ -315,7 +315,7 @@ result_t GuiApp::config(v8::Local<v8::Object> opt)
         if (hr < 0)
             return hr;
 
-        JSArray ks = o->GetPropertyNames();
+        JSArray ks = o->GetPropertyNames(o->CreationContext());
         int32_t len = ks->Length();
         int32_t i;
 

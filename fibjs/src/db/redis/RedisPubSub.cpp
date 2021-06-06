@@ -98,7 +98,7 @@ result_t Redis::_map(v8::Local<v8::Object>& map, int32_t cmd)
         m_subMode = 1;
 
     Isolate* isolate = holder();
-    JSArray channels = map->GetPropertyNames();
+    JSArray channels = map->GetPropertyNames(map->CreationContext());
     int32_t sz = channels->Length();
     int32_t i;
     v8::Local<v8::Array> subs = v8::Array::New(isolate->m_isolate);

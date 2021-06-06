@@ -26,8 +26,9 @@ static void call_method(const v8::FunctionCallbackInfo<v8::Value>& args)
     for (int32_t i = 0; i < args.Length(); i++)
         _args[i + 1] = args[i];
 
-    v8::Local<v8::Value> result = func->Call(o, (int32_t)_args.size(), _args.data());
+    v8::Local<v8::Value> result;
 
+    func->Call(func->CreationContext(), o, (int32_t)_args.size(), _args.data()).ToLocal(&result);
     args.GetReturnValue().Set(result);
 }
 

@@ -55,7 +55,7 @@ v8::Local<v8::Value> SandBox::get_module(v8::Local<v8::Object> mods, exlib::stri
         v8::Private::ForApi(isolate->m_isolate, strEntry), func);
 
     v8::Local<v8::Object> glob = isolate->context()->Global();
-    v = func->Call(glob, 6, args);
+    func->Call(func->CreationContext(), glob, 6, args).ToLocal(&v);
     if (v.IsEmpty())
         return v;
 
@@ -77,7 +77,7 @@ result_t SandBox::refresh()
         JSValue v = module->GetPrivate(module->CreationContext(),
             v8::Private::ForApi(isolate->m_isolate, strEntry));
         if (v->IsFunction())
-            module->Delete(strExports);
+            module->Delete(module->CreationContext(), strExports);
     }
 
     return 0;

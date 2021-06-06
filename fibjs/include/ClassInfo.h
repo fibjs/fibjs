@@ -328,6 +328,8 @@ private:
 
         isolate->m_classInfo[m_id] = _cache = new cache();
 
+        v8::Local<v8::Context> context = isolate->context();
+
         if (!m_cd.module) {
             v8::Local<v8::FunctionTemplate> _class = v8::FunctionTemplate::New(
                 isolate->m_isolate, m_cd.cor);
@@ -385,7 +387,9 @@ private:
             if (m_cd.caf)
                 ot->SetCallAsFunctionHandler(m_cd.caf);
 
-            v8::Local<v8::Function> _function = _class->GetFunction();
+            v8::Local<v8::Function> _function;
+
+            _class->GetFunction(context).ToLocal(&_function);
             _cache->m_function.Reset(isolate->m_isolate, _function);
 
             if (m_cd.cor) {
@@ -399,7 +403,7 @@ private:
             v8::Local<v8::Object> o;
 
             if (m_cd.caf)
-                o = v8::Function::New(isolate->m_isolate, m_cd.caf);
+                v8::Function::New(context, m_cd.caf).ToLocal(&o);
             else
                 o = v8::Object::New(isolate->m_isolate);
 

@@ -325,7 +325,7 @@ public:
 
     void DeletePrivate(exlib::string key)
     {
-        GetPrivateObject()->Delete(holder()->NewString(key));
+        GetPrivateObject()->Delete(wrap()->CreationContext(), holder()->NewString(key));
     }
 
 public:

@@ -17,7 +17,7 @@ result_t CustomExtLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib
     exlib::string arg_names, v8::Local<v8::Script>& script)
 {
     Isolate* isolate = ctx->m_sb->holder();
-    v8::Local<v8::Value> require_fn = ctx->m_sb->GetPrivate(SandBox::_get_extloader_pname(m_ext));
+    v8::Local<v8::Function> require_fn = v8::Local<v8::Function>::Cast(ctx->m_sb->GetPrivate(SandBox::_get_extloader_pname(m_ext)));
 
     exlib::string strScript;
     // read filecontent and compile to strScript :start
@@ -29,7 +29,9 @@ result_t CustomExtLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib
 
     requireInfo->Set(isolate->NewString("filename"), isolate->NewString(name));
 
-    v8::Local<v8::Value> fileContent = v8::Local<v8::Function>::Cast(require_fn)->Call(v8::Undefined(isolate->m_isolate), 2, transpileArgs);
+    v8::Local<v8::Value> fileContent;
+
+    require_fn->Call(require_fn->CreationContext(), v8::Undefined(isolate->m_isolate), 2, transpileArgs).ToLocal(&fileContent);
     if (fileContent.IsEmpty())
         return CALL_E_JAVASCRIPT;
 

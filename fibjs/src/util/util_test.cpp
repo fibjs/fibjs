@@ -33,7 +33,8 @@ result_t util_base::isEmpty(v8::Local<v8::Value> v, bool& retVal)
     }
 
     if (v->IsObject()) {
-        retVal = v8::Local<v8::Object>::Cast(v)->GetOwnPropertyNames()->Length() == 0;
+        v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
+        retVal = o->GetOwnPropertyNames(o->CreationContext()).ToLocalChecked()->Length() == 0;
         return 0;
     }
 

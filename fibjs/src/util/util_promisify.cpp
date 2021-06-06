@@ -61,7 +61,9 @@ static void promisify_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_NAME(str.c_str());
 
-    v8::Local<v8::Value> result = func->Call(args.This(), (int32_t)argv.size(), argv.data());
+    v8::Local<v8::Value> result;
+
+    func->Call(func->CreationContext(), args.This(), (int32_t)argv.size(), argv.data()).ToLocal(&result);
     if (result.IsEmpty())
         return;
 

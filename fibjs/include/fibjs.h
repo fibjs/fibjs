@@ -11,8 +11,9 @@
 
 namespace fibjs {
 
+typedef std::unique_ptr<v8::Platform> (*platform_creator)();
 void run_gui(int argc, char* argv[]);
-void start(int32_t argc, char** argv, result_t (*main)(Isolate*), v8::Platform* (*get_platform)() = NULL);
+void start(int32_t argc, char** argv, result_t (*main)(Isolate*), platform_creator get_platform = NULL);
 result_t FiberProcJsEntry(Isolate* isolate);
 
 } /* namespace fibjs */

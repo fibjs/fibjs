@@ -63,7 +63,7 @@ result_t util_base::keys(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal)
 
         v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
 
-        retVal = JSArray(obj->GetPropertyNames());
+        retVal = JSArray(obj->GetPropertyNames(obj->CreationContext()));
         if (obj->IsArray()) {
             int32_t len = retVal->Length();
             int32_t i;
@@ -84,7 +84,7 @@ result_t util_base::values(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal)
     Isolate* isolate = Isolate::current();
     if (v->IsObject()) {
         v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
-        JSArray keys = obj->GetPropertyNames();
+        JSArray keys = obj->GetPropertyNames(obj->CreationContext());
         v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate);
 
         int32_t len = keys->Length();
@@ -114,7 +114,7 @@ result_t util_base::clone(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
         if (v->IsFunction() || v->IsArgumentsObject() || v->IsSymbolObject())
             retVal = v;
         else if (v->IsDate())
-            retVal = v8::Date::New(isolate->m_isolate, isolate->toNumber(v));
+            v8::Date::New(isolate->context(), isolate->toNumber(v)).ToLocal(&retVal);
         else if (v->IsBooleanObject())
             retVal = v8::BooleanObject::New(isolate->m_isolate, isolate->toBoolean(v));
         else if (v->IsNumberObject())
@@ -184,7 +184,7 @@ result_t util_base::extend(v8::Local<v8::Value> v, OptArgs objs,
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
         v8::Local<v8::Object> obj1 = v8::Local<v8::Object>::Cast(val);
-        JSArray keys = obj1->GetPropertyNames();
+        JSArray keys = obj1->GetPropertyNames(obj1->CreationContext());
         int32_t len = keys->Length();
 
         for (j = 0; j < len; j++) {
@@ -231,13 +231,13 @@ result_t util_base::pick(v8::Local<v8::Value> v, OptArgs objs,
             for (j = 0; j < len; j++) {
                 JSValue k = arr->Get(j);
 
-                if (obj->Has(k))
+                if (obj->Has(obj->CreationContext(), k).ToChecked())
                     obj1->Set(k, JSValue(obj->Get(k)));
             }
         } else {
             JSValue k = o;
 
-            if (obj->Has(k))
+            if (obj->Has(obj->CreationContext(), k).ToChecked())
                 obj1->Set(k, JSValue(obj->Get(k)));
         }
     }
@@ -290,7 +290,7 @@ result_t util_base::omit(v8::Local<v8::Value> v, OptArgs keys,
         }
     }
 
-    JSArray keys1 = obj->GetPropertyNames();
+    JSArray keys1 = obj->GetPropertyNames(obj->CreationContext());
     int32_t len = keys1->Length();
     v8::Local<v8::Object> obj1 = v8::Object::New(isolate->m_isolate);
 
@@ -708,7 +708,7 @@ result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iter
 
     if (IsEmpty(v)) {
         int32_t len = 0;
-        JSArray keys = o->GetPropertyNames();
+        JSArray keys = o->GetPropertyNames(o->CreationContext());
         if (!keys.IsEmpty())
             len = keys->Length();
 
@@ -720,7 +720,7 @@ result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iter
             if (args[0].IsEmpty() || args[1].IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
-            v = iterator->Call(context, 3, args);
+            iterator->Call(iterator->CreationContext(), context, 3, args).ToLocal(&v);
             if (v.IsEmpty())
                 return CALL_E_JAVASCRIPT;
         }
@@ -735,7 +735,7 @@ result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iter
             if (args[0].IsEmpty() || args[1].IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
-            v = iterator->Call(context, 3, args);
+            iterator->Call(iterator->CreationContext(), context, 3, args).ToLocal(&v);
             if (v.IsEmpty())
                 return CALL_E_JAVASCRIPT;
         }
@@ -766,7 +766,7 @@ result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> itera
 
     if (IsEmpty(v)) {
         int32_t len = 0;
-        JSArray keys = o->GetPropertyNames();
+        JSArray keys = o->GetPropertyNames(o->CreationContext());
         if (!keys.IsEmpty())
             len = keys->Length();
         int32_t i;
@@ -777,7 +777,7 @@ result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> itera
             if (args[0].IsEmpty() || args[1].IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
-            v = iterator->Call(context, 3, args);
+            iterator->Call(iterator->CreationContext(), context, 3, args).ToLocal(&v);
             if (v.IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
@@ -794,7 +794,7 @@ result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> itera
             if (args[0].IsEmpty() || args[1].IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
-            v = iterator->Call(context, 3, args);
+            iterator->Call(iterator->CreationContext(), context, 3, args).ToLocal(&v);
             if (v.IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
@@ -825,7 +825,7 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
 
     if (IsEmpty(v)) {
         int32_t len = 0;
-        JSArray keys = o->GetPropertyNames();
+        JSArray keys = o->GetPropertyNames(o->CreationContext());
         if (!keys.IsEmpty())
             len = keys->Length();
 
@@ -839,7 +839,7 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
 
             args[0] = memo;
 
-            memo = iterator->Call(context, 4, args);
+            iterator->Call(iterator->CreationContext(), context, 4, args).ToLocal(&memo);
             if (memo.IsEmpty())
                 return CALL_E_JAVASCRIPT;
         }
@@ -856,7 +856,7 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
 
             args[0] = memo;
 
-            memo = iterator->Call(context, 4, args);
+            iterator->Call(iterator->CreationContext(), context, 4, args).ToLocal(&memo);
             if (memo.IsEmpty())
                 return CALL_E_JAVASCRIPT;
         }

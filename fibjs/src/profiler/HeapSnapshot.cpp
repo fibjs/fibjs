@@ -60,7 +60,7 @@ result_t profiler_base::diff(v8::Local<v8::Function> test, v8::Local<v8::Object>
     global_base::GC();
     s1 = new HeapSnapshotProxy(profiler->TakeHeapSnapshot());
 
-    test->Call(v8::Undefined(isolate->m_isolate), 0, NULL);
+    test->Call(test->CreationContext(), v8::Undefined(isolate->m_isolate), 0, NULL);
 
     global_base::GC();
     s2 = new HeapSnapshotProxy(profiler->TakeHeapSnapshot());

@@ -180,7 +180,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
                     break;
                 }
 
-                JSArray keys = obj->GetPropertyNames();
+                JSArray keys = obj->GetPropertyNames(obj->CreationContext());
                 if (keys.IsEmpty()) {
                     strBuffer.append("{}");
                     break;
@@ -198,10 +198,11 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
 
                 vals.append(obj);
 
-                JSValue toArray = obj->Get(isolate->NewString("toArray"));
-                if (!IsEmpty(toArray) && toArray->IsFunction()) {
+                v8::Local<v8::Function> toArray = v8::Local<v8::Function>::Cast(obj->Get(isolate->NewString("toArray")));
+                if (!toArray.IsEmpty() && toArray->IsFunction()) {
                     TryCatch try_catch;
-                    v8::Local<v8::Value> v1 = v8::Local<v8::Function>::Cast(toArray)->Call(obj, 0, NULL);
+                    v8::Local<v8::Value> v1;
+                    toArray->Call(toArray->CreationContext(), obj, 0, NULL).ToLocal(&v1);
                     if (!IsEmpty(v1) && v1->IsObject()) {
                         v = v1;
                         obj = v8::Local<v8::Object>::Cast(v1);

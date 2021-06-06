@@ -268,7 +268,7 @@ exlib::string ReportException(TryCatch& try_catch, result_t hr, bool repl)
 
 result_t CheckConfig(v8::Local<v8::Object> opts, const char** keys)
 {
-    JSArray ks = opts->GetPropertyNames();
+    JSArray ks = opts->GetPropertyNames(opts->CreationContext());
     int32_t len = ks->Length();
     int32_t i;
     Isolate* isolate = Isolate::current();

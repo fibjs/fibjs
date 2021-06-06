@@ -110,7 +110,8 @@ result_t LruCache::get(exlib::string name, v8::Local<v8::Function> updater,
 
             e = new Event();
             padding = m_paddings.insert(std::pair<exlib::string, obj_ptr<Event_base>>(sname, e)).first;
-            v8::Local<v8::Value> v = updater->Call(o, 1, &a);
+            v8::Local<v8::Value> v;
+            updater->Call(updater->CreationContext(), o, 1, &a).ToLocal(&v);
             m_paddings.erase(padding);
             e->set();
 
@@ -167,7 +168,7 @@ result_t LruCache::set(exlib::string name, v8::Local<v8::Value> value)
 inline result_t _map(LruCache* o, v8::Local<v8::Object> m,
     result_t (LruCache::*fn)(exlib::string name, v8::Local<v8::Value> value))
 {
-    JSArray ks = m->GetPropertyNames();
+    JSArray ks = m->GetPropertyNames(m->CreationContext());
     int32_t len = ks->Length();
     int32_t i;
     Isolate* isolate = o->holder();

@@ -25,6 +25,7 @@
 #include "path.h"
 #include "options.h"
 #include "include/libplatform/libplatform.h"
+#include "fibjs.h"
 
 namespace fibjs {
 
@@ -42,7 +43,7 @@ result_t ifZipFile(exlib::string filename, bool& retVal);
 
 exlib::string s_root;
 
-static void createBasisForFiberLoop(v8::Platform* (*get_platform)())
+static void createBasisForFiberLoop(platform_creator get_platform)
 {
     ::setlocale(LC_ALL, "");
 
@@ -68,16 +69,16 @@ static void createBasisForFiberLoop(v8::Platform* (*get_platform)())
 
     srand((unsigned int)time(0));
 
-    v8::Platform* platform = get_platform != NULL ? get_platform() : v8::platform::CreateDefaultPlatform();
-    v8::V8::InitializePlatform(platform);
+    static std::unique_ptr<v8::Platform> platform = get_platform ? get_platform() : v8::platform::NewDefaultPlatform();
+    v8::V8::InitializePlatform(platform.get());
     v8::V8::Initialize();
 }
 
-void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), v8::Platform* (*get_platform)())
+void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), platform_creator get_platform)
 {
     class EntryThread : public exlib::OSThread {
     public:
-        EntryThread(int32_t argc, char** argv, result_t (*jsFiber)(Isolate*), v8::Platform* (*get_platform)())
+        EntryThread(int32_t argc, char** argv, result_t (*jsFiber)(Isolate*), platform_creator get_platform)
             : m_argc(argc)
             , m_jsFiber(jsFiber)
             , m_get_platform(get_platform)
@@ -158,7 +159,7 @@ void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), v8::Pl
         std::vector<char*> m_argv;
         exlib::string m_fibjsEntry;
         result_t (*m_jsFiber)(Isolate*);
-        v8::Platform* (*m_get_platform)();
+        platform_creator m_get_platform;
     };
 
     EntryThread* entryThread = new EntryThread(argc, argv, jsEntryFiber, get_platform);

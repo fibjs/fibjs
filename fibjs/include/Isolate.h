@@ -71,7 +71,9 @@ public:
     v8::Local<v8::Function> NewFunction(const char* funcName, v8::FunctionCallback callback,
         v8::Local<v8::Value> data = v8::Local<v8::Value>())
     {
-        v8::Local<v8::Function> func = v8::Function::New(m_isolate, callback, data);
+        v8::Local<v8::Function> func;
+
+        v8::Function::New(context(), callback, data).ToLocal(&func);
         if (!func.IsEmpty())
             func->SetName(NewString(funcName));
         return func;
@@ -84,7 +86,7 @@ public:
 
     v8::Local<v8::String> toLocalString(v8::Local<v8::Value> v)
     {
-        return v->ToString(this->context()).ToLocalChecked();
+        return v->ToString(context()).ToLocalChecked();
     }
 
     exlib::string toString(v8::Local<v8::Value> v)
@@ -94,27 +96,27 @@ public:
 
     bool toBoolean(v8::Local<v8::Value> v)
     {
-        return v->BooleanValue(this->context()).ToChecked();
+        return v->BooleanValue(context()).ToChecked();
     }
 
     int64_t toInteger(v8::Local<v8::Value> v)
     {
-        return v->IntegerValue(this->context()).ToChecked();
+        return v->IntegerValue(context()).ToChecked();
     }
 
     int32_t toInt32Value(v8::Local<v8::Value> v)
     {
-        return v->Int32Value(this->context()).ToChecked();
+        return v->Int32Value(context()).ToChecked();
     }
 
     uint32_t toUint32Value(v8::Local<v8::Value> v)
     {
-        return v->Uint32Value(this->context()).ToChecked();
+        return v->Uint32Value(context()).ToChecked();
     }
 
     double toNumber(v8::Local<v8::Value> v)
     {
-        return v->NumberValue(this->context()).ToChecked();
+        return v->NumberValue(context()).ToChecked();
     }
 
     void start_profiler();

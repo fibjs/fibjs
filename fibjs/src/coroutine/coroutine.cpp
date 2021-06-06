@@ -43,10 +43,10 @@ private:
             if (func.IsEmpty()) {
                 v8::Local<v8::Function> func1 = v8::Local<v8::Function>::Cast(datas->Get(pos));
                 if (!func1.IsEmpty())
-                    v = func1->Call(s->wrap(), 0, NULL);
+                    func1->Call(func1->CreationContext(), s->wrap(), 0, NULL).ToLocal(&v);
             } else {
                 JSValue a = datas->Get(pos);
-                v = func->Call(s->wrap(), 1, &a);
+                func->Call(func->CreationContext(), s->wrap(), 1, &a).ToLocal(&v);
             }
 
             if (!v.IsEmpty())
