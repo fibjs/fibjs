@@ -242,7 +242,7 @@ result_t encoding_iconv::encode(exlib::string data, exlib::string& retVal)
         retVal.resize(sz);
         char* s1 = retVal.c_buffer();
         for (size_t i = 0; i < sz; i++)
-            *s1++ = *s++;
+            *s1++ = (char)*s++;
         return 0;
     }
 
