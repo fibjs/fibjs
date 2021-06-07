@@ -449,15 +449,13 @@ describe("cef", () => {
                 headless: true
             });
 
-            win.on("open", () => {
-                win.dev.Page.enable();
-                win.dev.Page.on("frameNavigated", ev => {
-                    win.close();
-                    done(() => {
-                        assert.equal(ev.frame.url, "cef://test/basic.html");
-                    });
+            win.dev.Page.enable();
+            win.dev.Page.on("frameNavigated", ev => {
+                win.close();
+                done(() => {
+                    assert.equal(ev.frame.url, "cef://test/basic.html");
                 });
-            })
+            });
         });
 
         it("dispatch key/mouse event", done => {
