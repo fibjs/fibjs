@@ -506,6 +506,27 @@ describe("cef", () => {
             });
         });
     });
+
+    describe("devtools & event", () => {
+        it('download', done => {
+            var win = gui.open("cef://test/download.html", {
+                download_path: __dirname,
+                download_dialog: false
+            });
+
+            win.on("download", (ev) => {
+                if (ev.status == "complete") {
+                    try {
+                        fs.unlink(__dirname + '/logo-dark.png.zip');
+                    } catch (e) { }
+
+                    done();
+                    win.close();
+                }
+            });
+
+        });
+    });
 });
 
 require.main === module && test.run(console.DEBUG);
