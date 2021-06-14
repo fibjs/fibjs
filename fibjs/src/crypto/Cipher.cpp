@@ -7,6 +7,7 @@
 
 #include "object.h"
 #include "ifs/crypto.h"
+#include "StringBuffer.h"
 #include "Cipher.h"
 #include "Buffer.h"
 #include "ssl.h"
@@ -226,7 +227,7 @@ result_t Cipher::process(const mbedtls_operation_t operation, Buffer_base* data,
         return CHECK_ERROR(_ssl::setError(ret));
 
     exlib::string input;
-    exlib::string output;
+    StringBuffer output;
     unsigned char buffer[1024];
     size_t olen, ilen, offset, block_size, data_size;
 
@@ -257,7 +258,7 @@ result_t Cipher::process(const mbedtls_operation_t operation, Buffer_base* data,
         return CHECK_ERROR(_ssl::setError(ret));
 
     output.append((const char*)buffer, olen);
-    retVal = new Buffer(output);
+    retVal = new Buffer(output.str());
 
     return 0;
 }
