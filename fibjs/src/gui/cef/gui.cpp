@@ -95,6 +95,8 @@ void GuiApp::load_cef()
 #else
     CefString(&m_settings.resources_dir_path) = get_path("Resources");
 #endif
+
+    CefEnableHighDPISupport();
 }
 
 GuiApp* g_app;
