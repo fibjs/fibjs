@@ -357,11 +357,13 @@ describe('encoding', () => {
 
         it('test for true', () => {
             assert.deepEqual(true, msgpack.decode(msgpack.encode(true)));
+            assert.deepEqual(true, msgpack.decode(msgpack.encode(new Boolean(true))));
             assert.isBoolean(msgpack.decode(msgpack.encode(true)));
         });
 
         it('test for false', () => {
             assert.deepEqual(false, msgpack.decode(msgpack.encode(false)));
+            assert.deepEqual(false, msgpack.decode(msgpack.encode(new Boolean(false))));
             assert.isBoolean(msgpack.decode(msgpack.encode(false)));
         });
 

@@ -96,7 +96,9 @@ public:
 
     bool toBoolean(v8::Local<v8::Value> v)
     {
-        return v->BooleanValue(context()).ToChecked();
+        if (v->IsBooleanObject())
+            return v8::Local<v8::BooleanObject>::Cast(v)->ValueOf();
+        return v->BooleanValue(m_isolate);
     }
 
     int64_t toInteger(v8::Local<v8::Value> v)
