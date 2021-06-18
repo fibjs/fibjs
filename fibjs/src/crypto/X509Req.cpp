@@ -287,7 +287,7 @@ result_t X509Req::sign(exlib::string issuer, PKey_base* key,
             goto exit;
         }
 
-        mbedtls_x509write_crt_set_md_alg(&m_crt, MBEDTLS_MD_SHA1);
+        mbedtls_x509write_crt_set_md_alg(&m_crt, (mbedtls_md_type_t)hash);
 
         v = opts->Get(isolate->NewString("serial", 6));
         if (!IsEmpty(v)) {
@@ -460,6 +460,17 @@ result_t X509Req::get_subject(exlib::string& retVal)
     buf.resize(ret);
     retVal = buf;
 
+    return 0;
+}
+
+result_t X509Req::get_sig_md(int32_t& retVal)
+{
+    retVal = m_csr.sig_md;
+    return 0;
+}
+result_t X509Req::get_sig_pk(int32_t& retVal)
+{
+    retVal = m_csr.sig_pk;
     return 0;
 }
 

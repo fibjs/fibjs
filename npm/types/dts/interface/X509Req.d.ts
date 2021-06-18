@@ -110,5 +110,15 @@ declare class Class_X509Req extends Class_object {
      */
     readonly publicKey: Class_PKey;
 
+    /**
+     * @description 获取证书的摘要算法 
+     */
+    readonly sig_md: number;
+
+    /**
+     * @description 获取证书的签名算法 
+     */
+    readonly sig_pk: number;
+
 }
 
