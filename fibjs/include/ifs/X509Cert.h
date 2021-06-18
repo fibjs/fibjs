@@ -43,6 +43,8 @@ public:
     virtual result_t get_pathlen(int32_t& retVal) = 0;
     virtual result_t get_usage(exlib::string& retVal) = 0;
     virtual result_t get_type(exlib::string& retVal) = 0;
+    virtual result_t get_sig_md(int32_t& retVal) = 0;
+    virtual result_t get_sig_pk(int32_t& retVal) = 0;
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal) = 0;
     virtual result_t get_next(obj_ptr<X509Cert_base>& retVal) = 0;
 
@@ -68,6 +70,8 @@ public:
     static void s_get_pathlen(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_usage(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_sig_md(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_sig_pk(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_publicKey(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_next(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 
@@ -103,6 +107,8 @@ inline ClassInfo& X509Cert_base::class_info()
         { "pathlen", s_get_pathlen, block_set, false },
         { "usage", s_get_usage, block_set, false },
         { "type", s_get_type, block_set, false },
+        { "sig_md", s_get_sig_md, block_set, false },
+        { "sig_pk", s_get_sig_pk, block_set, false },
         { "publicKey", s_get_publicKey, block_set, false },
         { "next", s_get_next, block_set, false }
     };
@@ -375,6 +381,32 @@ inline void X509Cert_base::s_get_type(v8::Local<v8::Name> property, const v8::Pr
     PROPERTY_ENTER();
 
     hr = pInst->get_type(vr);
+
+    METHOD_RETURN();
+}
+
+inline void X509Cert_base::s_get_sig_md(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_NAME("X509Cert.sig_md");
+    METHOD_INSTANCE(X509Cert_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_sig_md(vr);
+
+    METHOD_RETURN();
+}
+
+inline void X509Cert_base::s_get_sig_pk(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_NAME("X509Cert.sig_pk");
+    METHOD_INSTANCE(X509Cert_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_sig_pk(vr);
 
     METHOD_RETURN();
 }

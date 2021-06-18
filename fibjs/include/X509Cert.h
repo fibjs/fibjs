@@ -37,6 +37,8 @@ public:
     virtual result_t get_pathlen(int32_t& retVal);
     virtual result_t get_usage(exlib::string& retVal);
     virtual result_t get_type(exlib::string& retVal);
+    virtual result_t get_sig_md(int32_t& retVal);
+    virtual result_t get_sig_pk(int32_t& retVal);
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal);
     virtual result_t get_next(obj_ptr<X509Cert_base>& retVal);
 

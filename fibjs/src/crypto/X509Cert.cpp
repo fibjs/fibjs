@@ -575,6 +575,26 @@ result_t X509Cert::get_type(exlib::string& retVal)
     return 0;
 }
 
+result_t X509Cert::get_sig_md(int32_t& retVal)
+{
+    mbedtls_x509_crt* crt = get_crt();
+    if (!crt)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    retVal = crt->sig_md;
+    return 0;
+}
+
+result_t X509Cert::get_sig_pk(int32_t& retVal)
+{
+    mbedtls_x509_crt* crt = get_crt();
+    if (!crt)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    retVal = crt->sig_pk;
+    return 0;
+}
+
 result_t X509Cert::get_publicKey(obj_ptr<PKey_base>& retVal)
 {
     mbedtls_x509_crt* crt = get_crt();
