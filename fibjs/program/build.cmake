@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 if(NOT "${CLEAN_BUILD}" STREQUAL "true")
-    include(../../vender/tools/get_env.cmake)
+    include(../../vender/build_tools/cmake-scripts/get_env.cmake)
 
     set(WORK_ROOT $ENV{WORK_ROOT})
     if(NOT WORK_ROOT)

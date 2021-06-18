@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.6)
 set(name "fibjs")
 project(${name})
 
-include(../vender/tools/option.cmake)
+include(../vender/build_tools/cmake/option.cmake)
 
 add_library(${name} ${src_list} ${src_platform_list})
 

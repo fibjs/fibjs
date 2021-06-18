@@ -1,4 +1,4 @@
-. ./vender/scripts/get_env.sh --source-only
+. ./vender/build_tools/scripts/get_env.sh --source-only
 get_build_env;
 
 echo "::set-output name=TARGET_OS::$TARGET_OS"

@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-. vender/scripts/get_env.sh --source-only
+. vender/build_tools/scripts/get_env.sh --source-only
 
 get_build_env;
 

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.6)
 set(name "installer")
 project(${name})
 
-include(${CMAKE_CURRENT_LIST_DIR}/../../vender/tools/option.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/../../vender/build_tools/cmake//option.cmake)
 
 add_executable(${name} ${src_list})
 
