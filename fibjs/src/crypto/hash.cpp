@@ -74,11 +74,6 @@ result_t hash_base::ripemd160(Buffer_base* data, obj_ptr<Digest_base>& retVal)
     return digest(hash_base::C_RIPEMD160, data, retVal);
 }
 
-result_t hash_base::sm3(Buffer_base* data, obj_ptr<Digest_base>& retVal)
-{
-    return digest(hash_base::C_SM3, data, retVal);
-}
-
 result_t hash_base::hmac(int32_t algo, Buffer_base* key, Buffer_base* data,
     obj_ptr<Digest_base>& retVal)
 {
@@ -141,11 +136,6 @@ result_t hash_base::hmac_sha512(Buffer_base* key, Buffer_base* data, obj_ptr<Dig
 result_t hash_base::hmac_ripemd160(Buffer_base* key, Buffer_base* data, obj_ptr<Digest_base>& retVal)
 {
     return hmac(hash_base::C_RIPEMD160, key, data, retVal);
-}
-
-result_t hash_base::hmac_sm3(Buffer_base* key, Buffer_base* data, obj_ptr<Digest_base>& retVal)
-{
-    return hmac(hash_base::C_SM3, key, data, retVal);
 }
 
 } /* namespace fibjs */

@@ -359,20 +359,29 @@ describe("hash", () => {
             name: 'SM3',
             text: '',
             hash: '1ab21d8355cfa17f8e61194831e81a8f22bec8c728fefb747ed035eb5082aa2b',
+            hash1: '9a09d0cf1f815da80142c33f93ec61bfefb0c7c901ba5d4f48c681a6d3a2ed27',
             base64: 'GrIdg1XPoX+OYRlIMegajyK+yMco/vt0ftA161CCqis='
         }, {
             name: 'SM3',
             text: 'The quick brown fox jumps over the lazy dog',
             hash: '5fdfe814b8573ca021983970fc79b2218c9570369b4859684e2e4c3fc76cb8ea',
+            hash1: '6426584d247c0a243b83f333f56253f904f5d044cc50747e76055fc230455e96',
             base64: 'X9/oFLhXPKAhmDlw/HmyIYyVcDabSFloTi5MP8dsuOo='
         }, {
             name: 'SM3',
             text: 'The quick brown fox jumps over the lazy cog',
             hash: 'ca27d14a42fc04c1e5ecf574a95a8c2d70ecb5805e9b429026ccac8f28b20098',
+            hash1: '484a96c4e450e39fda64b269f17866bfbca4be10e8e60b4a99c4a73b305d52b6',
             base64: 'yifRSkL8BMHl7PV0qVqMLXDstYBem0KQJsysjyiyAJg='
         }];
 
         digest_case.forEach(hash_test);
+
+        digest_case.forEach(t => {
+            var r = hash.sm3(pub_sm2_pem, "12345678", t.text).digest().hex();
+            assert.equal(t.hash1, r);
+        });
+
     });
 
     it("md5_hmac", () => {

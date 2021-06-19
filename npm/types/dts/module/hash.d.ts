@@ -1,6 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/Digest.d.ts" />
+/// <reference path="../interface/PKey.d.ts" />
 /**
  * @description 信息摘要计算模块，可用于计算信息摘要和摘要签名 
  */
@@ -145,6 +146,16 @@ declare module 'hash' {
     function sm3(data?: Class_Buffer): Class_Digest;
 
     /**
+     * @description 创建一个 SM3 信息摘要运算对象并进行预处理
+     *      @param pubKey 签名公钥
+     *      @param id 签名 ID
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function sm3(pubKey: Class_PKey, id: string, data?: Class_Buffer): Class_Digest;
+
+    /**
      * @description 根据指定的算法标识创建一个信息摘要签名运算对象
      *      @param algo 指定摘要运算算法
      *      @param key 二进制签名密钥
@@ -243,6 +254,17 @@ declare module 'hash' {
      *      
      */
     function hmac_sm3(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 创建一个 SM3 信息摘要签名运算对象并进行预处理
+     *      @param pubKey 签名公钥
+     *      @param id 签名 ID
+     *      @param key 二进制签名密钥
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function hmac_sm3(pubKey: Class_PKey, id: string, key: Class_Buffer, data?: Class_Buffer): Class_Digest;
 
 }
 

@@ -17,6 +17,7 @@ namespace fibjs {
 
 class Digest_base;
 class Buffer_base;
+class PKey_base;
 
 class hash_base : public object_base {
     DECLARE_CLASS(hash_base);
@@ -48,6 +49,7 @@ public:
     static result_t sha512(Buffer_base* data, obj_ptr<Digest_base>& retVal);
     static result_t ripemd160(Buffer_base* data, obj_ptr<Digest_base>& retVal);
     static result_t sm3(Buffer_base* data, obj_ptr<Digest_base>& retVal);
+    static result_t sm3(PKey_base* pubKey, exlib::string id, Buffer_base* data, obj_ptr<Digest_base>& retVal);
     static result_t hmac(int32_t algo, Buffer_base* key, Buffer_base* data, obj_ptr<Digest_base>& retVal);
     static result_t hmac_md2(Buffer_base* key, Buffer_base* data, obj_ptr<Digest_base>& retVal);
     static result_t hmac_md4(Buffer_base* key, Buffer_base* data, obj_ptr<Digest_base>& retVal);
@@ -59,6 +61,7 @@ public:
     static result_t hmac_sha512(Buffer_base* key, Buffer_base* data, obj_ptr<Digest_base>& retVal);
     static result_t hmac_ripemd160(Buffer_base* key, Buffer_base* data, obj_ptr<Digest_base>& retVal);
     static result_t hmac_sm3(Buffer_base* key, Buffer_base* data, obj_ptr<Digest_base>& retVal);
+    static result_t hmac_sm3(PKey_base* pubKey, exlib::string id, Buffer_base* key, Buffer_base* data, obj_ptr<Digest_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -99,6 +102,7 @@ public:
 
 #include "ifs/Digest.h"
 #include "ifs/Buffer.h"
+#include "ifs/PKey.h"
 
 namespace fibjs {
 inline ClassInfo& hash_base::class_info()
@@ -325,6 +329,14 @@ inline void hash_base::s_static_sm3(const v8::FunctionCallbackInfo<v8::Value>& a
 
     hr = sm3(v0, vr);
 
+    METHOD_OVER(3, 2);
+
+    ARG(obj_ptr<PKey_base>, 0);
+    ARG(exlib::string, 1);
+    OPT_ARG(obj_ptr<Buffer_base>, 2, NULL);
+
+    hr = sm3(v0, v1, v2, vr);
+
     METHOD_RETURN();
 }
 
@@ -512,6 +524,15 @@ inline void hash_base::s_static_hmac_sm3(const v8::FunctionCallbackInfo<v8::Valu
     OPT_ARG(obj_ptr<Buffer_base>, 1, NULL);
 
     hr = hmac_sm3(v0, v1, vr);
+
+    METHOD_OVER(4, 3);
+
+    ARG(obj_ptr<PKey_base>, 0);
+    ARG(exlib::string, 1);
+    ARG(obj_ptr<Buffer_base>, 2);
+    OPT_ARG(obj_ptr<Buffer_base>, 3, NULL);
+
+    hr = hmac_sm3(v0, v1, v2, v3, vr);
 
     METHOD_RETURN();
 }
