@@ -383,6 +383,36 @@ describe('coroutine', () => {
                 assert.deepEqual(msg_trans(o), o);
             });
 
+            it('date', () => {
+                var a = new Date();
+                assert.deepEqual(msg_trans(a), a);
+            });
+
+            it('map', () => {
+                var a = new Map([['Michael', 95], ['Bob', 75]]);
+                var b = msg_trans(a);
+                assert.isTrue(a.constructor.name == b.constructor.name && a.size == b.size);
+                for (let [k, v] of a) {
+                    assert.strictEqual(v, b.get(k));
+                }
+            });
+
+            it('set', () => {
+                var a = new Set([2, 3, 5]);
+                var b = msg_trans(a);
+                assert.isTrue(a.constructor.name == b.constructor.name && a.size == b.size);
+                var ae = a.values();
+                var be = b.values();
+                for (var i = 0; i < a.size; i++) {
+                    assert.strictEqual(ae.next().value, be.next().value);
+                }
+            });
+
+            it('Uint8Array', () => {
+                var a = new Uint8Array([2, 3, 5]);
+                assert.deepEqual(msg_trans(a), a);
+            });
+
             describe('native object', () => {
                 it('default', () => {
                     assert.throws(() => {
