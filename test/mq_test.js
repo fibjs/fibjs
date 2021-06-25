@@ -57,11 +57,11 @@ var p2r_tests = {
         ],
         "/something%2Felse": [
             "/something%2Felse",
-            "something%2Felse"
+            "something/else"
         ],
         "/something%2Felse%2Fmore": [
             "/something%2Felse%2Fmore",
-            "something%2Felse%2Fmore"
+            "something/else/more"
         ],
         "/;,:@&=+$-_.!~*()": [
             "/;,:@&=+$-_.!~*()",
@@ -721,18 +721,18 @@ describe("mq", () => {
         });
 
         it("memory leak", () => {
-            var svr = new net.TcpServer(8888, () => {});
+            var svr = new net.TcpServer(8888, () => { });
             test_util.push(svr.socket);
 
             test_util.gc();
             var no1 = test_util.countObject('Chain');
 
-            svr.handler = new mq.Chain([(v) => {}, (v) => {}]);
+            svr.handler = new mq.Chain([(v) => { }, (v) => { }]);
 
             test_util.gc();
             assert.equal(no1 + 1, test_util.countObject('Chain'));
 
-            svr.handler = (v) => {};
+            svr.handler = (v) => { };
             svr = undefined;
 
             test_util.gc();
@@ -866,8 +866,8 @@ describe("mq", () => {
 
         it("path to value", () => {
             var r = new mq.Routing({
-                "^/api/a$": (v) => {},
-                "^/api/a(/.*)$": (v) => {}
+                "^/api/a$": (v) => { },
+                "^/api/a(/.*)$": (v) => { }
             });
 
             var m = new mq.Message();
@@ -924,7 +924,7 @@ describe("mq", () => {
                     r[0] = v;
                 });
 
-                rt.append("^.*$", () => {});
+                rt.append("^.*$", () => { });
 
                 var m = new mq.Message();
                 m.value = v;
@@ -954,10 +954,10 @@ describe("mq", () => {
                     r[0] = req.value;
                 };
 
-                sub_routing["^.*$"] = () => {};
+                sub_routing["^.*$"] = () => { };
 
                 rt.append(p, sub_routing);
-                rt.append("^.*$", () => {});
+                rt.append("^.*$", () => { });
 
                 var m = new mq.Message();
                 m.value = v;
@@ -987,7 +987,7 @@ describe("mq", () => {
                     assert.equal(v1.value, '/test');
                 });
 
-                rt.append("^.*$", () => {});
+                rt.append("^.*$", () => { });
 
                 var m = new http.Request();
                 m.value = '/test';
@@ -1012,8 +1012,8 @@ describe("mq", () => {
         describe("order", () => {
             it("map append", () => {
                 var r = new mq.Routing({
-                    "^/api/a(/.*)$": (v) => {},
-                    "^/api/(.*)$": (v) => {}
+                    "^/api/a(/.*)$": (v) => { },
+                    "^/api/(.*)$": (v) => { }
                 });
 
                 var m = new mq.Message();
@@ -1025,8 +1025,8 @@ describe("mq", () => {
             it("append", () => {
                 var r = new mq.Routing();
 
-                r.append("^/api/a(/.*)$", (v) => {});
-                r.append("^/api/(.*)$", (v) => {});
+                r.append("^/api/a(/.*)$", (v) => { });
+                r.append("^/api/(.*)$", (v) => { });
 
                 var m = new mq.Message();
                 m.value = '/api/a/';
@@ -1036,8 +1036,8 @@ describe("mq", () => {
 
             it("append route", () => {
                 var r1 = new mq.Routing({
-                    "^/api/a(/.*)$": (v) => {},
-                    "^/api/(.*)$": (v) => {}
+                    "^/api/a(/.*)$": (v) => { },
+                    "^/api/(.*)$": (v) => { }
                 });
 
                 var r = new mq.Routing();
@@ -1053,21 +1053,21 @@ describe("mq", () => {
         it("memory leak", () => {
             test_util.gc();
 
-            var svr = new net.TcpServer(8890, () => {});
+            var svr = new net.TcpServer(8890, () => { });
             test_util.push(svr.socket);
 
             test_util.gc();
             var no1 = test_util.countObject('Routing');
 
             svr.handler = new mq.Routing({
-                "^/api/a$": (v) => {},
-                "^/api/a(/.*)$": (v) => {}
+                "^/api/a$": (v) => { },
+                "^/api/a(/.*)$": (v) => { }
             });
 
             test_util.gc();
             assert.equal(no1 + 1, test_util.countObject('Routing'));
 
-            svr.handler = (v) => {};
+            svr.handler = (v) => { };
             svr = undefined;
 
             test_util.gc();
