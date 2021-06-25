@@ -216,7 +216,7 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
 
                     if ((m_contentLength < 0)
                         || (m_pThis->m_maxBodySize >= 0
-                               && m_contentLength > m_pThis->m_maxBodySize * 1024 * 1024))
+                            && m_contentLength > (int64_t)m_pThis->m_maxBodySize * 1024 * 1024))
                         return CHECK_ERROR(Runtime::setError("HttpMessage: body is too huge."));
                 } else if (!qstricmp(m_strLine.c_str(),
                                "transfer-encoding:", 18)) {
@@ -293,7 +293,7 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
 
             if (sz) {
                 if (m_pThis->m_maxBodySize >= 0
-                    && sz + m_contentLength > m_pThis->m_maxBodySize * 1024 * 1024)
+                    && sz + m_contentLength > (int64_t)m_pThis->m_maxBodySize * 1024 * 1024)
                     return CHECK_ERROR(Runtime::setError("HttpMessage: body is too huge."));
                 return m_stm->copyTo(m_body, sz, m_copySize, next(chunk_body_end));
             }
