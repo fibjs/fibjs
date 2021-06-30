@@ -7,7 +7,6 @@
 
 #include "object.h"
 #include "version.h"
-#include "exlib/include/hrtime.h"
 #include "ifs/process.h"
 #include "ifs/os.h"
 #include "ifs/global.h"
@@ -166,9 +165,11 @@ result_t process_base::umask(int32_t& retVal)
     return 0;
 }
 
+#define NANOS_PER_SEC 1000000000LL
+
 result_t process_base::hrtime(v8::Local<v8::Array> diff, v8::Local<v8::Array>& retVal)
 {
-    uint64_t t = exlib::_hrtime();
+    uint64_t t = uv_hrtime();
 
     Isolate* isolate = Isolate::current();
 
