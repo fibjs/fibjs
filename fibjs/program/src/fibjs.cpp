@@ -55,6 +55,7 @@ void importModule()
     IMPORT_MODULE(util);
     IMPORT_MODULE(uuid);
     IMPORT_MODULE(vm);
+    IMPORT_MODULE(worker_threads);
     IMPORT_MODULE(ws);
     IMPORT_MODULE(xml);
     IMPORT_MODULE(zip);

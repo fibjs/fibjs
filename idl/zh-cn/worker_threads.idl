@@ -1,0 +1,15 @@
+/*! @brief worker 基础模块
+
+ 引用方法：
+ ```JavaScript
+ var worker_threads = require('worker_threads');
+ ```
+ */
+module worker_threads
+{
+    /*! @brief 独立线程工作对象，参见 Worker */
+    static Worker;
+
+    /*! @brief 查询当前 Worker 是不是主线程 */
+    static readonly Boolean isMainThread;
+};

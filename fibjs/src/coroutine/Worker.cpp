@@ -12,8 +12,18 @@
 #include "Fiber.h"
 #include "EventInfo.h"
 #include "path.h"
+#include "ifs/worker_threads.h"
 
 namespace fibjs {
+
+DECLARE_MODULE(worker_threads);
+
+result_t worker_threads_base::get_isMainThread(bool& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    retVal = isolate->m_id == 1;
+    return 0;
+}
 
 result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
     obj_ptr<Worker_base>& retVal, v8::Local<v8::Object> This)
