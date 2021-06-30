@@ -13,7 +13,7 @@
 
 namespace fibjs {
 
-const char* SandBox::script_args = "(async function(__filename,__dirname,require,run,exports,module,argv){";
+const char* SandBox::script_args = "(async function(__filename,__dirname,require,run,exports,module,__argv){";
 const char* SandBox::worker_args = "(async function(__filename,__dirname,require,run,exports,module,Master){";
 const char* SandBox::module_args = "(async function(__filename,__dirname,require,run,exports,module){";
 const char* SandBox::base_args = "(async function(__filename,__dirname,require,run,exports,module";
