@@ -37,16 +37,16 @@ void Stat::fill(exlib::string path, const uv_stat_t* statbuf)
     blocks = statbuf->st_blocks;
 
     mtimeNs = statbuf->st_mtim.tv_nsec;
-    mtime = (double)statbuf->st_mtim.tv_sec * 1000ll + (mtimeNs / 1000000000.0);
+    mtime = statbuf->st_mtim.tv_sec * 1000.0 + (mtimeNs / 1000000.0);
 
     atimeNs = statbuf->st_atim.tv_nsec;
-    atime = (double)statbuf->st_atim.tv_sec * 1000ll + (atimeNs / 1000000000.0);
+    atime = statbuf->st_atim.tv_sec * 1000.0 + (atimeNs / 1000000.0);
 
     ctimeNs = statbuf->st_ctim.tv_nsec;
-    ctime = (double)statbuf->st_ctim.tv_sec * 1000ll + (ctimeNs / 1000000000.0);
+    ctime = statbuf->st_ctim.tv_sec * 1000.0 + (ctimeNs / 1000000.0);
 
     birthtimeNs = statbuf->st_birthtim.tv_nsec;
-    birthtime = (double)statbuf->st_birthtim.tv_sec * 1000ll + (birthtimeNs / 1000000000.0);
+    birthtime = statbuf->st_birthtim.tv_sec * 1000.0 + (birthtimeNs / 1000000.0);
 
     m_isMemory = false;
     m_isSocket = false;
