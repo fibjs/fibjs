@@ -41,6 +41,7 @@ void importModule()
     IMPORT_MODULE(net);
     IMPORT_MODULE(os);
     IMPORT_MODULE(path);
+    IMPORT_MODULE(perf_hooks);
     IMPORT_MODULE(process);
     IMPORT_MODULE(profiler);
     IMPORT_MODULE(punycode);
