@@ -602,6 +602,7 @@ HttpHandler::HttpHandler()
     : m_crossDomain(false)
     , m_maxHeadersCount(128)
     , m_maxBodySize(64)
+    , m_enableEncoding(false)
 {
     m_serverName = "fibjs/";
     m_serverName.append(fibjs_version);
@@ -726,7 +727,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
             m_rep->get_length(len);
 
-            if (len > 128 && len < 1024 * 1024 * 64) {
+            if (m_pThis->m_enableEncoding && len > 128 && len < 1024 * 1024 * 64) {
                 exlib::string hdr;
 
                 if (m_req->firstHeader("Accept-Encoding", hdr) != CALL_RETURN_NULL) {
@@ -871,6 +872,18 @@ result_t HttpHandler::get_maxBodySize(int32_t& retVal)
 result_t HttpHandler::set_maxBodySize(int32_t newVal)
 {
     m_maxBodySize = newVal;
+    return 0;
+}
+
+result_t HttpHandler::get_enableEncoding(bool& retVal)
+{
+    retVal = m_enableEncoding;
+    return 0;
+}
+
+result_t HttpHandler::set_enableEncoding(bool newVal)
+{
+    m_enableEncoding = newVal;
     return 0;
 }
 

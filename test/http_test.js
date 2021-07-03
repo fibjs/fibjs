@@ -1118,6 +1118,7 @@ describe("http", () => {
             });
 
             hdr.enableCrossOrigin(true);
+            hdr.enableEncoding = true;
             svr = new net.TcpServer(8881 + base_port, hdr);
 
             svr.start();
@@ -1670,6 +1671,8 @@ describe("http", () => {
                     r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
                 }
             });
+
+            svr.enableEncoding = true;
             svr.start();
 
             test_util.push(svr.socket);

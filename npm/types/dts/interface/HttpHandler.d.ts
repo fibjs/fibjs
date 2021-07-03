@@ -39,6 +39,11 @@ declare class Class_HttpHandler extends Class_Handler {
     maxBodySize: number;
 
     /**
+     * @description 自动解压缩功能开关，默认关闭 
+     */
+    enableEncoding: boolean;
+
+    /**
      * @description 查询和设置服务器名称，缺省为：fibjs/0.x.0 
      */
     serverName: string;

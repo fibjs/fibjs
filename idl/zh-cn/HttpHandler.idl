@@ -27,6 +27,9 @@ interface HttpHandler : Handler
     /*! @brief 查询和设置 body 最大尺寸，以 MB 为单位，缺省为 64 */
     Integer maxBodySize;
 
+    /*! @brief 自动解压缩功能开关，默认关闭 */
+    Boolean enableEncoding;
+
     /*! @brief 查询和设置服务器名称，缺省为：fibjs/0.x.0 */
     String serverName;
 

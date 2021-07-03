@@ -110,6 +110,16 @@ result_t HttpServer::set_maxBodySize(int32_t newVal)
     return m_hdlr->set_maxBodySize(newVal);
 }
 
+result_t HttpServer::get_enableEncoding(bool& retVal)
+{
+    return m_hdlr->get_enableEncoding(retVal);
+}
+
+result_t HttpServer::set_enableEncoding(bool newVal)
+{
+    return m_hdlr->set_enableEncoding(newVal);
+}
+
 result_t HttpServer::get_serverName(exlib::string& retVal)
 {
     return m_hdlr->get_serverName(retVal);
