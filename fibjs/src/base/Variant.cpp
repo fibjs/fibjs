@@ -74,6 +74,7 @@ Variant& Variant::operator=(v8::Local<v8::Value> v)
 Variant::operator v8::Local<v8::Value>() const
 {
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
 
     switch (type()) {
     case VT_Undefined:
@@ -125,7 +126,7 @@ Variant::operator v8::Local<v8::Value>() const
         a = v8::Array::New(isolate->m_isolate, len);
 
         for (i = 0; i < len; i++)
-            a->Set(i, data[i].v.operator v8::Local<v8::Value>());
+            a->Set(context, i, data[i].v.operator v8::Local<v8::Value>());
 
         return a;
     }
@@ -139,7 +140,7 @@ Variant::operator v8::Local<v8::Value>() const
         o = v8::Object::New(isolate->m_isolate);
 
         for (i = 0; i < len; i++)
-            o->Set(isolate->NewString(data[i].k), data[i].v.operator v8::Local<v8::Value>());
+            o->Set(context, isolate->NewString(data[i].k), data[i].v.operator v8::Local<v8::Value>());
 
         return o;
     }
@@ -352,6 +353,7 @@ result_t Variant::unbind()
             clear();
             set_type(VT_UNBOUND_ARRAY);
 
+            v8::Local<v8::Context> context = a->CreationContext();
             len = a->Length();
 
             m_Val.buffer.cnt = len;
@@ -359,13 +361,14 @@ result_t Variant::unbind()
                 m_Val.buffer.data = data = new UNBIND_DATA[len];
 
                 for (i = 0; i < len; i++)
-                    data[i].v = JSValue(a->Get(i));
+                    data[i].v = JSValue(a->Get(context, i));
             }
         } else if (GetArgumentValue(v, o, true) >= 0) {
             clear();
             set_type(VT_UNBOUND_OBJECT);
 
-            JSArray ks = o->GetPropertyNames(o->CreationContext());
+            v8::Local<v8::Context> context = o->CreationContext();
+            JSArray ks = o->GetPropertyNames(context);
             len = ks->Length();
 
             m_Val.buffer.cnt = len;
@@ -374,9 +377,9 @@ result_t Variant::unbind()
 
                 m_Val.buffer.data = data = new UNBIND_DATA[len];
                 for (i = 0; i < len; i++) {
-                    JSValue k = ks->Get(i);
+                    JSValue k = ks->Get(context, i);
                     GetArgumentValue(isolate->m_isolate, k, data[i].k);
-                    data[i].v = JSValue(o->Get(k));
+                    data[i].v = JSValue(o->Get(context, k));
                 }
             }
         } else

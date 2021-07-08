@@ -77,6 +77,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
         result_t pack(v8::Local<v8::Object> element)
         {
             obj_ptr<Buffer_base> buf;
+            v8::Local<v8::Context> context = isolate->context();
 
             if (element->IsTypedArray())
                 Buffer_base::_new(v8::Local<v8::TypedArray>::Cast(element), buf, v8::Local<v8::Object>());
@@ -94,10 +95,10 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
                 return 0;
             }
 
-            JSValue jsonFun = element->Get(isolate->NewString("toJSON", 6));
+            JSValue jsonFun = element->Get(context, isolate->NewString("toJSON", 6));
             if (!IsEmpty(jsonFun) && jsonFun->IsFunction()) {
                 JSValue p = isolate->NewString("");
-                JSValue element1 = v8::Local<v8::Function>::Cast(jsonFun)->Call(element->CreationContext(), element, 1, &p);
+                JSValue element1 = v8::Local<v8::Function>::Cast(jsonFun)->Call(context, element, 1, &p);
 
                 if (!IsEmpty(element1)) {
                     if (element1->IsArray())
@@ -110,7 +111,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
                 }
             }
 
-            JSArray ks = element->GetPropertyNames(element->CreationContext());
+            JSArray ks = element->GetPropertyNames(context);
             int32_t len = ks->Length();
             int32_t i;
             result_t hr;
@@ -119,8 +120,8 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
             std::vector<JSValue> va;
 
             for (i = 0; i < len; i++) {
-                JSValue k = ks->Get(i);
-                JSValue v = element->Get(k);
+                JSValue k = ks->Get(context, i);
+                JSValue v = element->Get(context, k);
 
                 if (!v->IsFunction()) {
                     ka.push_back(k);
@@ -144,13 +145,14 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
 
         result_t pack(v8::Local<v8::Array> element)
         {
+            v8::Local<v8::Context> context = isolate->context();
             int32_t len = element->Length();
             int32_t i;
             result_t hr;
 
             msgpack_pack_array(&pk, len);
             for (i = 0; i < len; i++) {
-                hr = pack((JSValue)element->Get(i));
+                hr = pack((JSValue)element->Get(context, i));
                 if (hr < 0)
                     return hr;
             }
@@ -201,6 +203,7 @@ result_t msgpack_base::decode(Buffer_base* data, v8::Local<v8::Value>& retVal)
 
         v8::Local<v8::Value> map_js_value(msgpack_object* o)
         {
+            v8::Local<v8::Context> context = isolate->context();
             v8::Local<v8::Value> v;
 
             switch (o->type) {
@@ -239,7 +242,7 @@ result_t msgpack_base::decode(Buffer_base* data, v8::Local<v8::Value>& retVal)
                 int32_t i;
 
                 for (i = 0; i < (int32_t)o->via.array.size; i++)
-                    arr->Set(i, map_js_value(o->via.array.ptr + i));
+                    arr->Set(context, i, map_js_value(o->via.array.ptr + i));
                 v = arr;
                 break;
             }
@@ -251,7 +254,7 @@ result_t msgpack_base::decode(Buffer_base* data, v8::Local<v8::Value>& retVal)
                     msgpack_object_kv* p = o->via.map.ptr + i;
 
                     if (p->key.type == MSGPACK_OBJECT_STR) {
-                        obj->Set(isolate->NewString(p->key.via.str.ptr, (int32_t)p->key.via.str.size),
+                        obj->Set(context, isolate->NewString(p->key.via.str.ptr, (int32_t)p->key.via.str.size),
                             map_js_value(&p->val));
                     }
                 }

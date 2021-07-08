@@ -143,14 +143,15 @@ result_t Routing::_append(exlib::string method, v8::Local<v8::Object> map,
     obj_ptr<Routing_base>& retVal)
 {
     Isolate* isolate = holder();
-    JSArray ks = map->GetPropertyNames(map->CreationContext());
+    v8::Local<v8::Context> context = isolate->context();
+    JSArray ks = map->GetPropertyNames(context);
     int32_t len = ks->Length();
     int32_t i;
     result_t hr;
 
     for (i = 0; i < len; i++) {
-        JSValue k = ks->Get(i);
-        JSValue v = map->Get(k);
+        JSValue k = ks->Get(context, i);
+        JSValue v = map->Get(context, k);
         obj_ptr<Handler_base> hdlr;
         obj_ptr<Routing_base> r;
 

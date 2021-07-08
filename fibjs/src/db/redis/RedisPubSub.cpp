@@ -98,20 +98,21 @@ result_t Redis::_map(v8::Local<v8::Object>& map, int32_t cmd)
         m_subMode = 1;
 
     Isolate* isolate = holder();
-    JSArray channels = map->GetPropertyNames(map->CreationContext());
+    v8::Local<v8::Context> context = isolate->context();
+    JSArray channels = map->GetPropertyNames(context);
     int32_t sz = channels->Length();
     int32_t i;
     v8::Local<v8::Array> subs = v8::Array::New(isolate->m_isolate);
     int32_t count = 0;
 
     for (i = 0; i < sz; i++) {
-        JSValue channel = channels->Get(i);
+        JSValue channel = channels->Get(context, i);
         exlib::string s;
 
         GetArgumentValue(channel, s);
         s = s_cmd[cmd][1] + s;
 
-        JSValue value = map->Get(channel);
+        JSValue value = map->Get(context, channel);
 
         if (!value->IsFunction())
             return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -119,7 +120,7 @@ result_t Redis::_map(v8::Local<v8::Object>& map, int32_t cmd)
         v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(value);
 
         if ((cmd & 1) ? unregsub(s, func) : regsub(s, func))
-            subs->Set(count++, channel);
+            subs->Set(context, count++, channel);
     }
 
     if (!count)
@@ -175,11 +176,13 @@ result_t Redis::unpsub(exlib::string pattern)
 
 result_t Redis::unsub(v8::Local<v8::Array>& channels, int32_t cmd)
 {
+    Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
     int32_t sz = channels->Length();
     int32_t i;
 
     for (i = 0; i < sz; i++) {
-        JSValue key = channels->Get(i);
+        JSValue key = channels->Get(context, i);
         exlib::string s;
 
         GetArgumentValue(key, s);

@@ -254,9 +254,10 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
 
     exlib::string str;
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
 
     for (int32_t i = 0; i < sz; i++) {
-        JSValue v = buflist->Get(i);
+        JSValue v = buflist->Get(context, i);
         obj_ptr<Buffer_base> vdata;
 
         hr = GetArgumentValue(isolate->m_isolate, v, vdata);
@@ -1106,9 +1107,10 @@ result_t Buffer::entries(obj_ptr<Iterator_base>& retVal)
     retVal = new Iterator(this, [&](size_t index, v8::Local<v8::Value>& retVal) {
         if (index < m_data.length()) {
             Isolate* isolate = holder();
+            v8::Local<v8::Context> context = isolate->context();
             v8::Local<v8::Array> arr1 = v8::Array::New(isolate->m_isolate, 2);
-            arr1->Set(0, v8::Number::New(isolate->m_isolate, (double)index));
-            arr1->Set(1, v8::Number::New(isolate->m_isolate, (unsigned char)m_data[index]));
+            arr1->Set(context, 0, v8::Number::New(isolate->m_isolate, (double)index));
+            arr1->Set(context, 1, v8::Number::New(isolate->m_isolate, (unsigned char)m_data[index]));
             retVal = arr1;
         }
     });
@@ -1175,12 +1177,13 @@ result_t Buffer::toString(exlib::string codec, int32_t offset, int32_t end, exli
 result_t Buffer::toArray(v8::Local<v8::Array>& retVal)
 {
     Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
     v8::Local<v8::Array> a = v8::Array::New(isolate->m_isolate, (int32_t)m_data.length());
     int32_t i;
     const char* _data = m_data.c_str();
 
     for (i = 0; i < (int32_t)m_data.length(); i++)
-        a->Set(i, v8::Number::New(isolate->m_isolate, (unsigned char)_data[i]));
+        a->Set(context, i, v8::Number::New(isolate->m_isolate, (unsigned char)_data[i]));
 
     retVal = a;
 
@@ -1190,16 +1193,17 @@ result_t Buffer::toArray(v8::Local<v8::Array>& retVal)
 result_t Buffer::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
 {
     Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
     v8::Local<v8::Array> a = v8::Array::New(isolate->m_isolate, (int32_t)m_data.length());
     int32_t i;
     const char* _data = m_data.c_str();
 
     for (i = 0; i < (int32_t)m_data.length(); i++)
-        a->Set(i, v8::Number::New(isolate->m_isolate, (unsigned char)_data[i]));
+        a->Set(context, i, v8::Number::New(isolate->m_isolate, (unsigned char)_data[i]));
 
-    o->Set(isolate->NewString("type"), isolate->NewString("Buffer"));
-    o->Set(isolate->NewString("data"), a);
+    o->Set(context, isolate->NewString("type"), isolate->NewString("Buffer"));
+    o->Set(context, isolate->NewString("data"), a);
 
     retVal = o;
 

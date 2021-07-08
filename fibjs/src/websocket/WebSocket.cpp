@@ -180,11 +180,12 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol,
     v8::Local<v8::Object> This)
 {
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
 
     v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
 
-    opts->Set(isolate->NewString("protocol", 8), isolate->NewString(protocol));
-    opts->Set(isolate->NewString("origin", 6), isolate->NewString(origin));
+    opts->Set(context, isolate->NewString("protocol", 8), isolate->NewString(protocol));
+    opts->Set(context, isolate->NewString("origin", 6), isolate->NewString(origin));
 
     return WebSocket_base::_new(url, opts, retVal, This);
 }

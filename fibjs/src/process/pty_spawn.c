@@ -14,6 +14,9 @@
 #include <pty.h>
 #endif
 
+#include <stdlib.h>
+#include <unistd.h>
+
 #if defined(__APPLE__) && !TARGET_OS_IPHONE
 #include <crt_externs.h>
 #define environ (*_NSGetEnviron())

@@ -1152,13 +1152,14 @@ result_t HttpFileHandler::set_mimes(v8::Local<v8::Object> mimes)
     int32_t i;
     result_t hr;
     Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
 
     for (i = 0; i < len; i++) {
-        JSValue ks = keys->Get(i);
+        JSValue ks = keys->Get(context, i);
         JSValue v;
         exlib::string s;
 
-        v = mimes->Get(ks);
+        v = mimes->Get(context, ks);
         if (v.IsEmpty())
             return CALL_E_JAVASCRIPT;
         hr = GetArgumentValue(v, s);

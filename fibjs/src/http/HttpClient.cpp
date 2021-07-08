@@ -770,6 +770,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
 
     if (ac->isSync()) {
         Isolate* isolate = holder();
+        v8::Local<v8::Context> context = isolate->context();
         obj_ptr<NObject> map = new NObject();
         obj_ptr<SeekableStream_base> stm;
         v8::Local<v8::Object> o;
@@ -797,13 +798,13 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
         o.Clear();
         hr = GetConfigValue(isolate->m_isolate, opts, "headers", o);
         if (hr >= 0) {
-            JSArray ks = o->GetPropertyNames(o->CreationContext());
+            JSArray ks = o->GetPropertyNames(context);
             int32_t len = ks->Length();
             int32_t i;
 
             for (i = 0; i < len; i++) {
-                JSValue k = ks->Get(i);
-                JSValue v = o->Get(k);
+                JSValue k = ks->Get(context, i);
+                JSValue v = o->Get(context, k);
 
                 if (v.IsEmpty())
                     return CALL_E_JAVASCRIPT;
@@ -815,7 +816,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
                     int32_t i1;
 
                     for (i1 = 0; i1 < len1; i1++)
-                        arr->append(isolate->toString(a->Get(i1)));
+                        arr->append(isolate->toString(JSValue(a->Get(context, i1))));
 
                     map->add(isolate->toString(k), arr);
                 } else
@@ -823,7 +824,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
             }
         }
 
-        v = opts->Get(isolate->NewString("body", 4));
+        v = opts->Get(context, isolate->NewString("body", 4));
         if (v.IsEmpty())
             return CALL_E_JAVASCRIPT;
 
@@ -853,12 +854,12 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
                 stm->cc_write(buf);
             }
         } else {
-            v = opts->Get(isolate->NewString("json", 4));
+            v = opts->Get(context, isolate->NewString("json", 4));
             if (v.IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
             if (v->IsUndefined()) {
-                v = opts->Get(isolate->NewString("pack", 4));
+                v = opts->Get(context, isolate->NewString("pack", 4));
                 if (v.IsEmpty())
                     return CALL_E_JAVASCRIPT;
 

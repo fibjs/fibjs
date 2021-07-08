@@ -97,12 +97,13 @@ void encodeValue(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Val
 
 void encodeArray(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Value> element)
 {
+    v8::Local<v8::Context> context = isolate->context();
     v8::Local<v8::Array> a = v8::Local<v8::Array>::Cast(element);
 
     bson_append_start_array(bb, name);
 
     for (int32_t i = 0, l = a->Length(); i < l; i++) {
-        JSValue val = a->Get(i);
+        JSValue val = a->Get(context, i);
         char numStr[32];
 
         sprintf(numStr, "%d", i);
@@ -115,14 +116,15 @@ void encodeArray(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Val
 bool encodeObject(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Value> element,
     bool doJson)
 {
+    v8::Local<v8::Context> context = isolate->context();
     v8::Local<v8::Object> object = v8::Local<v8::Object>::Cast(element);
 
     if (doJson) {
-        JSValue jsonFun = object->Get(isolate->NewString("toJSON", 6));
+        JSValue jsonFun = object->Get(context, isolate->NewString("toJSON", 6));
 
         if (!IsEmpty(jsonFun) && jsonFun->IsFunction()) {
             JSValue p = isolate->NewString(name ? name : "");
-            JSValue element1 = v8::Local<v8::Function>::Cast(jsonFun)->Call(object->CreationContext(), object, 1, &p);
+            JSValue element1 = v8::Local<v8::Function>::Cast(jsonFun)->Call(context, object, 1, &p);
 
             if (name) {
                 encodeValue(isolate, bb, name, element1, false);
@@ -138,17 +140,17 @@ bool encodeObject(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Va
 
     if (!name
         && (object->IsDate() || object->IsArray() || object->IsRegExp()
-               || Buffer_base::getInstance(object)))
+            || Buffer_base::getInstance(object)))
         return false;
 
     if (name)
         bson_append_start_object(bb, name);
 
-    JSArray properties = object->GetPropertyNames(object->CreationContext());
+    JSArray properties = object->GetPropertyNames(context);
 
     for (int32_t i = 0; i < (int32_t)properties->Length(); i++) {
-        JSValue prop_name = properties->Get(i);
-        JSValue prop_val = object->Get(prop_name);
+        JSValue prop_name = properties->Get(context, i);
+        JSValue prop_val = object->Get(context, prop_name);
 
         encodeValue(isolate, bb, isolate->toString(prop_name).c_str(),
             prop_val);
@@ -181,49 +183,50 @@ result_t decodeObject(Isolate* isolate, bson_iterator* it, bool bArray, v8::Loca
 
 result_t decodeValue(Isolate* isolate, v8::Local<v8::Object> obj, bson_iterator* it)
 {
+    v8::Local<v8::Context> context = isolate->context();
     bson_type type = bson_iterator_type(it);
     const char* key = bson_iterator_key(it);
 
     switch (type) {
     case BSON_NULL:
-        obj->Set(isolate->NewString(key), v8::Null(isolate->m_isolate));
+        obj->Set(context, isolate->NewString(key), v8::Null(isolate->m_isolate));
         break;
     case BSON_STRING:
-        obj->Set(isolate->NewString(key),
+        obj->Set(context, isolate->NewString(key),
             isolate->NewString(bson_iterator_string(it)));
         break;
     case BSON_BOOL:
-        obj->Set(isolate->NewString(key),
+        obj->Set(context, isolate->NewString(key),
             bson_iterator_bool(it) ? v8::True(isolate->m_isolate) : v8::False(isolate->m_isolate));
         break;
     case BSON_INT:
-        obj->Set(isolate->NewString(key), v8::Number::New(isolate->m_isolate, bson_iterator_int(it)));
+        obj->Set(context, isolate->NewString(key), v8::Number::New(isolate->m_isolate, bson_iterator_int(it)));
         break;
     case BSON_LONG: {
-        obj->Set(isolate->NewString(key),
+        obj->Set(context, isolate->NewString(key),
             v8::Number::New(isolate->m_isolate, (double)bson_iterator_long(it)));
         break;
     }
     case BSON_DOUBLE:
-        obj->Set(isolate->NewString(key),
+        obj->Set(context, isolate->NewString(key),
             v8::Number::New(isolate->m_isolate, bson_iterator_double(it)));
         break;
     case BSON_DATE: {
         v8::Local<v8::Value> d;
         v8::Date::New(isolate->context(), (double)bson_iterator_date(it)).ToLocal(&d);
-        obj->Set(isolate->NewString(key), d);
+        obj->Set(context, isolate->NewString(key), d);
         break;
     }
     case BSON_BINDATA: {
         obj_ptr<Buffer_base> buf = new Buffer(
             bson_iterator_bin_data(it), bson_iterator_bin_len(it));
 
-        obj->Set(isolate->NewString(key), buf->wrap());
+        obj->Set(context, isolate->NewString(key), buf->wrap());
         break;
     }
     case BSON_OID: {
         obj_ptr<MongoID> oid = new MongoID(bson_iterator_oid(it));
-        obj->Set(isolate->NewString(key), oid->wrap());
+        obj->Set(context, isolate->NewString(key), oid->wrap());
         break;
     }
     case BSON_REGEX: {
@@ -239,7 +242,7 @@ result_t decodeValue(Isolate* isolate, v8::Local<v8::Object> obj, bson_iterator*
             else if (ch == 'i')
                 flgs = (v8::RegExp::Flags)(flgs | v8::RegExp::kIgnoreCase);
 
-        obj->Set(
+        obj->Set(context,
             isolate->NewString(key),
             v8::RegExp::New(isolate->m_isolate->GetCurrentContext(),
                 isolate->NewString(bson_iterator_regex(it)), flgs)
@@ -256,7 +259,7 @@ result_t decodeValue(Isolate* isolate, v8::Local<v8::Object> obj, bson_iterator*
         hr = decodeObject(isolate, &it1, type == BSON_ARRAY, _obj);
         if (hr < 0)
             return hr;
-        obj->Set(isolate->NewString(key), _obj);
+        obj->Set(context, isolate->NewString(key), _obj);
         break;
     }
     default:

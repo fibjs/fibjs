@@ -33,6 +33,7 @@ static void promise_catch(const v8::FunctionCallbackInfo<v8::Value>& args)
 static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
     std::vector<v8::Local<v8::Value>> argv;
 
     int32_t len = args.Length();
@@ -44,7 +45,7 @@ static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(args.Data());
     v8::Local<v8::Value> result;
-    func->Call(func->CreationContext(), args.This(), (int32_t)argv.size(), argv.data()).ToLocal(&result);
+    func->Call(context, args.This(), (int32_t)argv.size(), argv.data()).ToLocal(&result);
     if (result.IsEmpty())
         return;
 
@@ -58,11 +59,11 @@ static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
         JSValue v;
         v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(result);
 
-        v = o->Get(isolate->NewString("then"));
+        v = o->Get(context, isolate->NewString("then"));
         if (v->IsFunction())
             _then = v8::Local<v8::Function>::Cast(v);
 
-        v = o->Get(isolate->NewString("catch"));
+        v = o->Get(context, isolate->NewString("catch"));
         if (v->IsFunction())
             _catch = v8::Local<v8::Function>::Cast(v);
     }

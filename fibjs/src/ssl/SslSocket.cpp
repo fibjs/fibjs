@@ -36,6 +36,7 @@ result_t SslSocket_base::_new(v8::Local<v8::Array> certs,
     obj_ptr<SslSocket> ss = new SslSocket();
 
     Isolate* isolate = ss->holder();
+    v8::Local<v8::Context> context = isolate->context();
     int32_t i;
     int32_t sz = certs->Length();
 
@@ -45,7 +46,7 @@ result_t SslSocket_base::_new(v8::Local<v8::Array> certs,
         obj_ptr<X509Cert_base> crt;
         obj_ptr<PKey_base> key;
 
-        hr = GetArgumentValue(certs->Get(i), o, true);
+        hr = GetArgumentValue(JSValue(certs->Get(context, i)), o, true);
         if (hr < 0)
             return hr;
 

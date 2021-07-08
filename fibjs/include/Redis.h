@@ -129,11 +129,12 @@ public:
 
         result_t add(v8::Local<v8::Array> keys)
         {
+            v8::Local<v8::Context> context = keys->CreationContext();
             result_t hr;
             int32_t i;
 
             for (i = 0; i < (int32_t)keys->Length(); i++) {
-                hr = add(keys->Get(i));
+                hr = add(JSValue(keys->Get(context, i)));
                 if (hr < 0)
                     return hr;
             }
@@ -146,19 +147,21 @@ public:
             if (kvs->IsArray())
                 return CHECK_ERROR(CALL_E_INVALIDARG);
 
-            JSArray keys = kvs->GetPropertyNames(kvs->CreationContext());
+            v8::Local<v8::Context> context = kvs->CreationContext();
+
+            JSArray keys = kvs->GetPropertyNames(context);
 
             result_t hr;
             int32_t i;
 
             for (i = 0; i < (int32_t)keys->Length(); i++) {
-                JSValue v = keys->Get(i);
+                JSValue v = keys->Get(context, i);
 
                 hr = add(v);
                 if (hr < 0)
                     return hr;
 
-                hr = add(kvs->Get(v));
+                hr = add(JSValue(kvs->Get(context, v)));
                 if (hr < 0)
                     return hr;
             }

@@ -242,14 +242,15 @@ result_t HttpCollection::add(exlib::string name, Variant value)
 
 result_t HttpCollection::add(v8::Local<v8::Object> map)
 {
-    JSArray ks = map->GetPropertyNames(map->CreationContext());
+    v8::Local<v8::Context> context = map->CreationContext();
+    JSArray ks = map->GetPropertyNames(context);
     int32_t len = ks->Length();
     int32_t i;
     Isolate* isolate = holder();
 
     for (i = 0; i < len; i++) {
-        JSValue k = ks->Get(i);
-        JSValue v = map->Get(k);
+        JSValue k = ks->Get(context, i);
+        JSValue v = map->Get(context, k);
 
         if (v.IsEmpty())
             return CALL_E_JAVASCRIPT;
@@ -265,11 +266,12 @@ result_t HttpCollection::add(v8::Local<v8::Object> map)
 
 result_t HttpCollection::add(exlib::string name, v8::Local<v8::Array> values)
 {
+    v8::Local<v8::Context> context = values->CreationContext();
     int32_t len = values->Length();
     int32_t i;
 
     for (i = 0; i < len; i++)
-        add(name, (Variant)values->Get(i));
+        add(name, (Variant)JSValue(values->Get(context, i)));
 
     return 0;
 }
@@ -282,14 +284,15 @@ result_t HttpCollection::set(exlib::string name, Variant value)
 
 result_t HttpCollection::set(v8::Local<v8::Object> map)
 {
-    JSArray ks = map->GetPropertyNames(map->CreationContext());
+    v8::Local<v8::Context> context = map->CreationContext();
+    JSArray ks = map->GetPropertyNames(context);
     int32_t len = ks->Length();
     int32_t i;
     Isolate* isolate = holder();
 
     for (i = 0; i < len; i++) {
-        JSValue k = ks->Get(i);
-        JSValue v = map->Get(k);
+        JSValue k = ks->Get(context, i);
+        JSValue v = map->Get(context, k);
 
         if (v.IsEmpty())
             return CALL_E_JAVASCRIPT;
@@ -305,12 +308,13 @@ result_t HttpCollection::set(v8::Local<v8::Object> map)
 
 result_t HttpCollection::set(exlib::string name, v8::Local<v8::Array> values)
 {
+    v8::Local<v8::Context> context = values->CreationContext();
     int32_t len = values->Length();
     int32_t i;
 
     remove(name);
     for (i = 0; i < len; i++)
-        add(name, (Variant)values->Get(i));
+        add(name, (Variant)JSValue(values->Get(context, i)));
 
     return 0;
 }
@@ -382,6 +386,8 @@ result_t HttpCollection::_named_getter(exlib::string property, Variant& retVal)
     int32_t n = 0;
     Variant v;
     v8::Local<v8::Array> a;
+    Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
 
     for (i = 0; i < m_count; i++) {
         pair& _pair = m_map[i];
@@ -392,14 +398,13 @@ result_t HttpCollection::_named_getter(exlib::string property, Variant& retVal)
                 n = 1;
             } else {
                 if (n == 1) {
-                    Isolate* isolate = holder();
                     a = v8::Array::New(isolate->m_isolate);
-                    a->Set(0, v);
+                    a->Set(context, 0, v);
                     v = a;
                 }
 
                 Variant t = _pair.second;
-                a->Set(n++, t);
+                a->Set(context, n++, t);
             }
         }
     }
@@ -418,12 +423,13 @@ result_t HttpCollection::_named_enumerator(v8::Local<v8::Array>& retVal)
     int32_t n;
     std::set<exlib::string> name_set;
     Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
 
     retVal = v8::Array::New(isolate->m_isolate);
     for (i = 0, n = 0; i < m_count; i++) {
         exlib::string& name = m_map[i].first;
         if (name_set.insert(name).second)
-            retVal->Set(n++, isolate->NewString(name));
+            retVal->Set(context, n++, isolate->NewString(name));
     }
 
     return 0;

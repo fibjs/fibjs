@@ -110,7 +110,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
             strBuffer.append(color_string(COLOR_CYAN, "[Promise]", color));
         } else if (v->IsNativeError()) {
             v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
-            exlib::string s(isolate->toString(JSValue(obj->Get(isolate->NewString("stack")))));
+            exlib::string s(isolate->toString(JSValue(obj->Get(_context, isolate->NewString("stack")))));
             strBuffer.append(color_string(COLOR_LIGHTRED, s, color));
         } else if (v->IsFunction()) {
             exlib::string s("[Function");
@@ -180,7 +180,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
                     break;
                 }
 
-                JSArray keys = obj->GetPropertyNames(obj->CreationContext());
+                JSArray keys = obj->GetPropertyNames(_context);
                 if (keys.IsEmpty()) {
                     strBuffer.append("{}");
                     break;
@@ -198,11 +198,11 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
 
                 vals.append(obj);
 
-                v8::Local<v8::Function> toArray = v8::Local<v8::Function>::Cast(obj->Get(isolate->NewString("toArray")));
+                v8::Local<v8::Function> toArray = v8::Local<v8::Function>::Cast(JSValue(obj->Get(_context, isolate->NewString("toArray"))));
                 if (!toArray.IsEmpty() && toArray->IsFunction()) {
                     TryCatch try_catch;
                     v8::Local<v8::Value> v1;
-                    toArray->Call(toArray->CreationContext(), obj, 0, NULL).ToLocal(&v1);
+                    toArray->Call(_context, obj, 0, NULL).ToLocal(&v1);
                     if (!IsEmpty(v1) && v1->IsObject()) {
                         v = v1;
                         obj = v8::Local<v8::Object>::Cast(v1);
@@ -252,7 +252,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
                         v8::Local<v8::Array> array = v8::Array::New(isolate->m_isolate);
 
                         for (i = 0; i < len; i++)
-                            array->Set(i, JSValue(typedarray->Get(i)));
+                            array->Set(_context, i, JSValue(typedarray->Get(_context, i)));
 
                         stk.resize(sz + 1);
                         it = &stk[sz];
@@ -278,10 +278,10 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
                         break;
                     }
 
-                    JSValue k1 = keys->Get(0);
+                    JSValue k1 = keys->Get(_context, 0);
                     JSValue v1;
                     if (!k1.IsEmpty())
-                        v1 = obj->Get(k1);
+                        v1 = obj->Get(_context, k1);
 
                     if (v1.IsEmpty())
                         v1 = v8::Undefined(isolate->m_isolate);
@@ -339,14 +339,14 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
                 strBuffer.append(',');
             newline(strBuffer, padding);
 
-            v = it->keys->Get(it->pos++);
+            v = JSValue(it->keys->Get(_context, it->pos++));
 
             if (!it->obj.IsEmpty()) {
                 TryCatch try_catch;
 
                 string_format(strBuffer, v, false);
                 strBuffer.append(": ");
-                v = it->obj->Get(v);
+                v = JSValue(it->obj->Get(_context, v));
             }
         } else
             break;

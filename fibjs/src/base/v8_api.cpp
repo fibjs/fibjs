@@ -12,13 +12,13 @@
 #endif
 
 #include "v8.h"
-#include "v8/src/api-inl.h"
-#include "v8/src/utils.h"
-#include "v8/src/api.h"
-#include "v8/src/isolate.h"
-#include "v8/src/frames.h"
-#include "v8/src/frames-inl.h"
-#include "v8/src/json-stringifier.h"
+#include "v8/src/api/api-inl.h"
+#include "v8/src/utils/utils.h"
+#include "v8/src/api/api.h"
+#include "v8/src/execution/isolate.h"
+#include "v8/src/execution/frames.h"
+#include "v8/src/execution/frames-inl.h"
+#include "v8/src/json/json-stringifier.h"
 #include "v8/src/debug/debug-interface.h"
 
 #include "exlib/include/qstring.h"
@@ -46,8 +46,8 @@ public:
         , interrupts_scope_(isolate_, i::StackGuard::TERMINATE_EXECUTION,
               isolate_->only_terminate_in_safe_scope()
                   ? (safe_for_termination_
-                            ? i::InterruptsScope::kRunInterrupts
-                            : i::InterruptsScope::kPostponeInterrupts)
+                          ? i::InterruptsScope::kRunInterrupts
+                          : i::InterruptsScope::kPostponeInterrupts)
                   : i::InterruptsScope::kNoop)
     {
         // TODO(dcarney): remove this when blink stops crashing.
@@ -57,7 +57,7 @@ public:
         if (!context.IsEmpty()) {
             i::Handle<i::Context> env = Utils::OpenHandle(*context);
             i::HandleScopeImplementer* impl = isolate->handle_scope_implementer();
-            if (isolate->context().is_null() && isolate->context()->native_context() == env->native_context()) {
+            if (isolate->context().is_null() && isolate->context().native_context() == env->native_context()) {
                 context_ = Local<Context>();
             } else {
                 impl->SaveContext(isolate->context());
@@ -75,7 +75,7 @@ public:
             isolate_->set_context(impl->RestoreContext());
 
             i::Handle<i::Context> env = Utils::OpenHandle(*context_);
-            microtask_queue = env->native_context()->microtask_queue();
+            microtask_queue = env->native_context().microtask_queue();
         }
         if (!escaped_)
             isolate_->handle_scope_implementer()->DecrementCallDepth();

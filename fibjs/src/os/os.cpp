@@ -181,28 +181,29 @@ result_t os_base::cpus(v8::Local<v8::Array>& retVal)
     }
 
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
     retVal = v8::Array::New(isolate->m_isolate, s_cpus);
 
     for (int32_t i = 0; i < s_cpus; i++) {
         v8::Local<v8::Object> cpuinfo = v8::Object::New(isolate->m_isolate);
         v8::Local<v8::Object> cputimes = v8::Object::New(isolate->m_isolate);
 
-        cputimes->Set(isolate->NewString("user"),
+        cputimes->Set(context, isolate->NewString("user"),
             v8::Number::New(isolate->m_isolate, (double)s_cpu_infos[i].cpu_times.user));
-        cputimes->Set(isolate->NewString("nice"),
+        cputimes->Set(context, isolate->NewString("nice"),
             v8::Number::New(isolate->m_isolate, (double)s_cpu_infos[i].cpu_times.nice));
-        cputimes->Set(isolate->NewString("sys"),
+        cputimes->Set(context, isolate->NewString("sys"),
             v8::Number::New(isolate->m_isolate, (double)s_cpu_infos[i].cpu_times.sys));
-        cputimes->Set(isolate->NewString("idle"),
+        cputimes->Set(context, isolate->NewString("idle"),
             v8::Number::New(isolate->m_isolate, (double)s_cpu_infos[i].cpu_times.idle));
-        cputimes->Set(isolate->NewString("irq"),
+        cputimes->Set(context, isolate->NewString("irq"),
             v8::Number::New(isolate->m_isolate, (double)s_cpu_infos[i].cpu_times.irq));
 
-        cpuinfo->Set(isolate->NewString("model"), isolate->NewString(s_cpu_infos[i].model));
-        cpuinfo->Set(isolate->NewString("speed"), v8::Number::New(isolate->m_isolate, s_cpu_infos[i].speed));
-        cpuinfo->Set(isolate->NewString("times"), cputimes);
+        cpuinfo->Set(context, isolate->NewString("model"), isolate->NewString(s_cpu_infos[i].model));
+        cpuinfo->Set(context, isolate->NewString("speed"), v8::Number::New(isolate->m_isolate, s_cpu_infos[i].speed));
+        cpuinfo->Set(context, isolate->NewString("times"), cputimes);
 
-        retVal->Set(i, cpuinfo);
+        retVal->Set(context, i, cpuinfo);
     }
 
     return 0;
@@ -218,6 +219,7 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
         return CHECK_ERROR(ret);
 
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
     retVal = v8::Object::New(isolate->m_isolate);
 
     for (int32_t i = 0; i < ifs;) {
@@ -249,27 +251,27 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
                 family = isolate->NewString("Unknown");
             }
 
-            o->Set(isolate->NewString("address"), isolate->NewString(ip));
-            o->Set(isolate->NewString("netmask"), isolate->NewString(netmask));
-            o->Set(isolate->NewString("family"), family);
+            o->Set(context, isolate->NewString("address"), isolate->NewString(ip));
+            o->Set(context, isolate->NewString("netmask"), isolate->NewString(netmask));
+            o->Set(context, isolate->NewString("family"), family);
 
             sprintf(mac, "%02x:%02x:%02x:%02x:%02x:%02x",
                 phys_addr[0], phys_addr[1], phys_addr[2], phys_addr[3], phys_addr[4], phys_addr[5]);
-            o->Set(isolate->NewString("mac"), isolate->NewString(mac));
+            o->Set(context, isolate->NewString("mac"), isolate->NewString(mac));
 
-            o->Set(isolate->NewString("internal"),
+            o->Set(context, isolate->NewString("internal"),
                 interfaces[i].is_internal ? v8::True(isolate->m_isolate) : v8::False(isolate->m_isolate));
 
             if (interfaces[i].address.address4.sin_family == AF_INET6)
-                o->Set(isolate->NewString("scopeid"),
+                o->Set(context, isolate->NewString("scopeid"),
                     v8::Number::New(isolate->m_isolate, interfaces[i].address.address6.sin6_scope_id));
 
-            ret->Set(ret->Length(), o);
+            ret->Set(context, ret->Length(), o);
 
             i++;
         }
 
-        retVal->Set(name, ret);
+        retVal->Set(context, name, ret);
     }
 
     uv_free_interface_addresses(interfaces, ifs);
@@ -280,6 +282,7 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
 result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
     retVal = v8::Object::New(isolate->m_isolate);
 
     uv_passwd_t pwd;
@@ -299,8 +302,8 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
     if (pwd.shell)
         shell.assign(pwd.shell);
 
-    retVal->Set(isolate->NewString("uid"), v8::Integer::New(isolate->m_isolate, pwd.uid));
-    retVal->Set(isolate->NewString("gid"), v8::Integer::New(isolate->m_isolate, pwd.gid));
+    retVal->Set(context, isolate->NewString("uid"), v8::Integer::New(isolate->m_isolate, pwd.uid));
+    retVal->Set(context, isolate->NewString("gid"), v8::Integer::New(isolate->m_isolate, pwd.gid));
 
     uv_os_free_passwd(&pwd);
 
@@ -309,12 +312,12 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
         obj_ptr<Buffer_base> homedirBuffer = new Buffer(homedir);
         obj_ptr<Buffer_base> shellBuffer = new Buffer(shell);
 
-        retVal->Set(isolate->NewString("username"), usernameBuffer->wrap());
-        retVal->Set(isolate->NewString("homedir"), homedirBuffer->wrap());
+        retVal->Set(context, isolate->NewString("username"), usernameBuffer->wrap());
+        retVal->Set(context, isolate->NewString("homedir"), homedirBuffer->wrap());
         if (!shell.empty())
-            retVal->Set(isolate->NewString("shell"), shellBuffer->wrap());
+            retVal->Set(context, isolate->NewString("shell"), shellBuffer->wrap());
         else
-            retVal->Set(isolate->NewString("shell"), v8::Null(isolate->m_isolate));
+            retVal->Set(context, isolate->NewString("shell"), v8::Null(isolate->m_isolate));
 
         return 0;
     } else {
@@ -322,12 +325,12 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
         commonEncode(encoding, homedir, homedir);
         commonEncode(encoding, shell, shell);
 
-        retVal->Set(isolate->NewString("username"), isolate->NewString(username));
-        retVal->Set(isolate->NewString("homedir"), isolate->NewString(homedir));
+        retVal->Set(context, isolate->NewString("username"), isolate->NewString(username));
+        retVal->Set(context, isolate->NewString("homedir"), isolate->NewString(homedir));
         if (!shell.empty())
-            retVal->Set(isolate->NewString("shell"), isolate->NewString(shell));
+            retVal->Set(context, isolate->NewString("shell"), isolate->NewString(shell));
         else
-            retVal->Set(isolate->NewString("shell"), v8::Null(isolate->m_isolate));
+            retVal->Set(context, isolate->NewString("shell"), v8::Null(isolate->m_isolate));
 
         return 0;
     }
@@ -336,14 +339,15 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
 result_t os_base::loadavg(v8::Local<v8::Array>& retVal)
 {
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
     double avg[3] = { 0, 0, 0 };
 
     uv_loadavg(avg);
 
     retVal = v8::Array::New(isolate->m_isolate, 3);
-    retVal->Set(0, v8::Number::New(isolate->m_isolate, avg[0]));
-    retVal->Set(1, v8::Number::New(isolate->m_isolate, avg[1]));
-    retVal->Set(2, v8::Number::New(isolate->m_isolate, avg[2]));
+    retVal->Set(context, 0, v8::Number::New(isolate->m_isolate, avg[0]));
+    retVal->Set(context, 1, v8::Number::New(isolate->m_isolate, avg[1]));
+    retVal->Set(context, 2, v8::Number::New(isolate->m_isolate, avg[2]));
 
     return 0;
 }
@@ -377,6 +381,7 @@ result_t os_base::get_execPath(exlib::string& retVal)
 result_t os_base::memoryUsage(v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
     v8::Local<v8::Object> info = v8::Object::New(isolate->m_isolate);
 
     size_t rss;
@@ -384,21 +389,21 @@ result_t os_base::memoryUsage(v8::Local<v8::Object>& retVal)
     if (ret < 0)
         return CHECK_ERROR(ret);
 
-    info->Set(isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, (double)rss));
+    info->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, (double)rss));
 
     v8::HeapStatistics v8_heap_stats;
     isolate->m_isolate->GetHeapStatistics(&v8_heap_stats);
 
-    info->Set(isolate->NewString("heapTotal"),
+    info->Set(context, isolate->NewString("heapTotal"),
         v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.total_heap_size()));
-    info->Set(isolate->NewString("heapUsed"),
+    info->Set(context, isolate->NewString("heapUsed"),
         v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.used_heap_size()));
-    info->Set(isolate->NewString("external"),
+    info->Set(context, isolate->NewString("external"),
         v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.external_memory()));
 
     v8::Local<v8::Object> objs;
     object_base::class_info().dump(objs);
-    info->Set(isolate->NewString("nativeObjects"), objs);
+    info->Set(context, isolate->NewString("nativeObjects"), objs);
 
     retVal = info;
 

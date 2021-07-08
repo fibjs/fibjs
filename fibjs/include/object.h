@@ -294,38 +294,42 @@ private:
 
 public:
     template <typename T>
-    static void __new(const T& args) {}
+    static void __new(const T& args) { }
 
 public:
     v8::Local<v8::Object> GetPrivateObject()
     {
         v8::Local<v8::Object> o = wrap();
         Isolate* isolate = holder();
+        v8::Local<v8::Context> context = o->CreationContext();
 
         v8::Local<v8::Private> k = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_private_object"));
-        JSValue v = o->GetPrivate(o->CreationContext(), k);
+        JSValue v = o->GetPrivate(context, k);
 
         if (v->IsObject())
             return v8::Local<v8::Object>::Cast(v);
 
         v8::Local<v8::Object> po = v8::Object::New(isolate->m_isolate);
-        o->SetPrivate(o->CreationContext(), k, po);
+        o->SetPrivate(context, k, po);
         return po;
     }
 
     v8::Local<v8::Value> GetPrivate(exlib::string key)
     {
-        return GetPrivateObject()->Get(holder()->NewString(key));
+        v8::Local<v8::Context> context = wrap()->CreationContext();
+        return JSValue(GetPrivateObject()->Get(context, holder()->NewString(key)));
     }
 
     void SetPrivate(exlib::string key, v8::Local<v8::Value> value)
     {
-        GetPrivateObject()->Set(holder()->NewString(key), value);
+        v8::Local<v8::Context> context = wrap()->CreationContext();
+        GetPrivateObject()->Set(context, holder()->NewString(key), value);
     }
 
     void DeletePrivate(exlib::string key)
     {
-        GetPrivateObject()->Delete(wrap()->CreationContext(), holder()->NewString(key));
+        v8::Local<v8::Context> context = wrap()->CreationContext();
+        GetPrivateObject()->Delete(context, holder()->NewString(key));
     }
 
 public:

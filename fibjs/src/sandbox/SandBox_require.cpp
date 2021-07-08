@@ -14,17 +14,17 @@ namespace fibjs {
 v8::Local<v8::Value> SandBox::get_module(v8::Local<v8::Object> mods, exlib::string id)
 {
     Isolate* isolate = holder();
+    v8::Local<v8::Context> _context = isolate->context();
     v8::Local<v8::String> strEntry = isolate->NewString("entry");
     v8::Local<v8::String> strExports = isolate->NewString("exports");
 
-    JSValue m = mods->Get(isolate->NewString(id));
+    JSValue m = mods->Get(_context, isolate->NewString(id));
     if (m->IsUndefined())
         return m;
 
     v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(m);
-    JSValue o = module->Get(strExports);
-    JSValue v = module->GetPrivate(module->CreationContext(),
-        v8::Private::ForApi(isolate->m_isolate, strEntry));
+    JSValue o = module->Get(_context, strExports);
+    JSValue v = module->GetPrivate(_context, v8::Private::ForApi(isolate->m_isolate, strEntry));
     if (!o->IsUndefined() || !v->IsFunction())
         return o;
 
@@ -48,36 +48,35 @@ v8::Local<v8::Value> SandBox::get_module(v8::Local<v8::Object> mods, exlib::stri
     args[4] = exports;
     args[5] = mod;
 
-    mod->Set(strExports, exports);
-    mod->Set(isolate->NewString("require"), args[2]);
-    mod->Set(isolate->NewString("run"), args[3]);
-    mod->SetPrivate(mod->CreationContext(),
-        v8::Private::ForApi(isolate->m_isolate, strEntry), func);
+    mod->Set(_context, strExports, exports);
+    mod->Set(_context, isolate->NewString("require"), args[2]);
+    mod->Set(_context, isolate->NewString("run"), args[3]);
+    mod->SetPrivate(_context, v8::Private::ForApi(isolate->m_isolate, strEntry), func);
 
     v8::Local<v8::Object> glob = isolate->context()->Global();
-    func->Call(func->CreationContext(), glob, 6, args).ToLocal(&v);
+    func->Call(_context, glob, 6, args).ToLocal(&v);
     if (v.IsEmpty())
         return v;
 
-    return JSValue(mod->Get(strExports));
+    return JSValue(mod->Get(_context, strExports));
 }
 
 result_t SandBox::refresh()
 {
     Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
 
     v8::Local<v8::String> strEntry = isolate->NewString("entry");
     v8::Local<v8::String> strExports = isolate->NewString("exports");
 
     v8::Local<v8::Object> modules = mods();
-    JSArray names = modules->GetPropertyNames(modules->CreationContext());
+    JSArray names = modules->GetPropertyNames(context);
 
     for (int32_t i = 0; i < (int32_t)names->Length(); i++) {
-        v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(JSValue(modules->Get(JSValue(names->Get(i)))));
-        JSValue v = module->GetPrivate(module->CreationContext(),
-            v8::Private::ForApi(isolate->m_isolate, strEntry));
+        v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(JSValue(modules->Get(context, JSValue(names->Get(context, i)))));
+        JSValue v = module->GetPrivate(context, v8::Private::ForApi(isolate->m_isolate, strEntry));
         if (v->IsFunction())
-            module->Delete(module->CreationContext(), strExports);
+            module->Delete(context, strExports);
     }
 
     return 0;
@@ -95,6 +94,7 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
 
     Isolate* isolate = holder();
     Context context(this, srcname);
+    v8::Local<v8::Context> _context = isolate->context();
 
     v8::Local<v8::Object> mod;
     v8::Local<v8::Object> exports;
@@ -108,9 +108,9 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
     mod = v8::Object::New(isolate->m_isolate);
 
     // init module
-    mod->Set(strExports, exports);
-    mod->Set(isolate->NewString("require"), context.m_fnRequest);
-    mod->Set(isolate->NewString("run"), context.m_fnRun);
+    mod->Set(_context, strExports, exports);
+    mod->Set(_context, isolate->NewString("require"), context.m_fnRequest);
+    mod->Set(_context, isolate->NewString("run"), context.m_fnRun);
 
     InstallModule(srcname, exports, mod);
 
@@ -123,7 +123,7 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
     }
 
     // use module.exports as result value
-    retVal = JSValue(mod->Get(strExports));
+    retVal = JSValue(mod->Get(_context, strExports));
     return 0;
 }
 

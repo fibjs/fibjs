@@ -220,7 +220,7 @@ public:
                         ;
 
                 if (!skips || !skips[j])
-                    o->Set(get_prop_name(isolate, m_cd.cms[i].name),
+                    o->Set(_context, get_prop_name(isolate, m_cd.cms[i].name),
                         isolate->NewFunction(m_cd.cms[i].name, m_cd.cms[i].invoker));
             }
         }
@@ -231,7 +231,7 @@ public:
                     ;
 
             if (!skips || !skips[j])
-                o->Set(isolate->NewString(m_cd.cos[i].name),
+                o->Set(_context, isolate->NewString(m_cd.cos[i].name),
                     m_cd.cos[i].invoker().getModule(isolate));
         }
 
@@ -253,7 +253,7 @@ public:
                     ;
 
             if (!skips || !skips[j])
-                o->Set(isolate->NewString(m_cd.ccs[i].name),
+                o->Set(_context, isolate->NewString(m_cd.ccs[i].name),
                     v8::Number::New(isolate->m_isolate, m_cd.ccs[i].value));
         }
 
@@ -280,13 +280,14 @@ public:
     intptr_t dump(v8::Local<v8::Object>& o)
     {
         Isolate* isolate = Isolate::current();
+        v8::Local<v8::Context> context = isolate->context();
         intptr_t cnt = refs_;
 
         if (cnt) {
             o = v8::Object::New(isolate->m_isolate);
-            o->Set(isolate->NewString("class"),
+            o->Set(context, isolate->NewString("class"),
                 isolate->NewString(m_cd.name));
-            o->Set(isolate->NewString("objects"),
+            o->Set(context, isolate->NewString("objects"),
                 v8::Integer::New(isolate->m_isolate, (int32_t)cnt));
 
             v8::Local<v8::Array> inherits = v8::Array::New(isolate->m_isolate);
@@ -298,12 +299,12 @@ public:
                 v8::Local<v8::Object> o1;
                 intptr_t cnt1 = p->dump(o1);
                 if (cnt1)
-                    inherits->Set((int32_t)(icnt++), o1);
+                    inherits->Set(context, (int32_t)(icnt++), o1);
                 p = p->m_next;
             }
 
             if (icnt)
-                o->Set(isolate->NewString("inherits"), inherits);
+                o->Set(context, isolate->NewString("inherits"), inherits);
         }
 
         return cnt;

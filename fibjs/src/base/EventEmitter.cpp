@@ -130,7 +130,7 @@ result_t object_base::getListener(exlib::string ev, v8::Local<v8::Function> func
     if (r->Length() == 0)
         return CALL_RETURN_NULL;
 
-    func = v8::Local<v8::Function>::Cast(r->Get(0));
+    func = v8::Local<v8::Function>::Cast(JSValue(r->Get(e.context, 0)));
     return 0;
 }
 

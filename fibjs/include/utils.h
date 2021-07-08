@@ -586,19 +586,21 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, d
     if (v.IsEmpty())
         return CALL_E_TYPEMISMATCH;
 
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
     if (v->IsNumber() || v->IsNumberObject()) {
-        n = v->NumberValue(isolate->GetCurrentContext()).ToChecked();
+        n = v->NumberValue(context).ToChecked();
         return std::isnan(n) ? CALL_E_TYPEMISMATCH : 0;
     }
 
     if (bStrict)
         return CALL_E_TYPEMISMATCH;
 
-    v = v->ToNumber(isolate);
+    v = v->ToNumber(context).ToLocalChecked();
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    n = v->NumberValue(isolate->GetCurrentContext()).ToChecked();
+    n = v->NumberValue(context).ToChecked();
     return std::isnan(n) ? CALL_E_TYPEMISMATCH : 0;
 }
 
@@ -608,6 +610,7 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, i
         return CALL_E_TYPEMISMATCH;
 
     v8::MaybeLocal<v8::BigInt> mv;
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
     if (!v->IsBigInt() && !v->IsBigIntObject()) {
         if (!v->IsNumber() && !v->IsNumberObject()) {
@@ -616,16 +619,16 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, i
 
             {
                 TryCatch try_catch;
-                mv = v->ToBigInt(isolate->GetCurrentContext());
+                mv = v->ToBigInt(context);
             }
             if (mv.IsEmpty()) {
-                v = v->ToNumber(isolate);
+                v = v->ToNumber(context).ToLocalChecked();
                 if (v.IsEmpty())
                     return CALL_E_JAVASCRIPT;
             }
         }
     } else {
-        mv = v->ToBigInt(isolate->GetCurrentContext());
+        mv = v->ToBigInt(context);
         if (mv.IsEmpty())
             return CALL_E_JAVASCRIPT;
     }
@@ -638,7 +641,7 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, i
     } else {
         double num;
 
-        num = v->NumberValue(isolate->GetCurrentContext()).ToChecked();
+        num = v->NumberValue(context).ToChecked();
         if (std::isnan(num))
             return CALL_E_TYPEMISMATCH;
 
@@ -954,7 +957,8 @@ template <typename T>
 result_t GetConfigValue(v8::Isolate* isolate, v8::Local<v8::Object> o,
     const char* key, T& n, bool bStrict = false)
 {
-    JSValue v = o->Get(NewString(isolate, key));
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    JSValue v = o->Get(context, NewString(isolate, key));
     if (IsEmpty(v))
         return CALL_E_PARAMNOTOPTIONAL;
 
@@ -1036,9 +1040,10 @@ inline v8::Local<v8::Value> ThrowError(result_t hr, exlib::string msg)
 {
     Isolate* isolate = Isolate::current();
     JSValue exception = v8::Exception::Error(isolate->NewString(msg));
+    v8::Local<v8::Context> context = isolate->context();
 
     v8::Local<v8::Object>::Cast(exception)
-        ->Set(isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr));
+        ->Set(context, isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr));
     return ThrowError(exception);
 }
 
@@ -1102,7 +1107,7 @@ inline v8::Local<v8::Value> ThrowURIError(const char* msg)
     Isolate* isolate = Isolate::current();
     auto _context = isolate->context();
     auto glob = _context->Global();
-    auto URIError = (glob->Get(isolate->NewString("URIError"))).As<v8::Object>();
+    auto URIError = (JSValue(glob->Get(_context, isolate->NewString("URIError")))).As<v8::Object>();
 
     v8::Local<v8::Value> args[] = { isolate->NewString(msg) };
     auto error = URIError->CallAsConstructor(_context, 1, args).ToLocalChecked();
@@ -1119,7 +1124,7 @@ inline v8::Local<v8::Value> ThrowEvalError(const char* msg)
     Isolate* isolate = Isolate::current();
     auto _context = isolate->context();
     auto glob = _context->Global();
-    auto EvalError = (JSValue(glob->Get(isolate->NewString("EvalError")))).As<v8::Object>();
+    auto EvalError = (JSValue(glob->Get(_context, isolate->NewString("EvalError")))).As<v8::Object>();
 
     v8::Local<v8::Value> args[] = { isolate->NewString(msg) };
     auto error = EvalError->CallAsConstructor(_context, 1, args).ToLocalChecked();

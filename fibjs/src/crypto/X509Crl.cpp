@@ -123,6 +123,7 @@ result_t X509Crl::dump(bool pem, v8::Local<v8::Array>& retVal)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
     retVal = v8::Array::New(isolate->m_isolate);
 
     const mbedtls_x509_crl* pCrl = &m_crl;
@@ -140,10 +141,10 @@ result_t X509Crl::dump(bool pem, v8::Local<v8::Array>& retVal)
                 if (ret != 0)
                     return CHECK_ERROR(_ssl::setError(ret));
 
-                retVal->Set(n++, isolate->NewString(buf.c_str(), (int32_t)olen - 1));
+                retVal->Set(context, n++, isolate->NewString(buf.c_str(), (int32_t)olen - 1));
             } else {
                 obj_ptr<Buffer> data = new Buffer(pCrl->raw.p, pCrl->raw.len);
-                retVal->Set(n++, data->wrap());
+                retVal->Set(context, n++, data->wrap());
             }
         }
         pCrl = pCrl->next;
@@ -218,6 +219,7 @@ result_t X509Crl::get_serials(v8::Local<v8::Array>& retVal)
     int32_t n = 0;
     exlib::string str;
     Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
 
     retVal = v8::Array::New(isolate->m_isolate);
     str.resize(8192);
@@ -238,7 +240,7 @@ result_t X509Crl::get_serials(v8::Local<v8::Array>& retVal)
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
-        retVal->Set(n++, isolate->NewString(str.c_str(), (int32_t)sz - 1));
+        retVal->Set(context, n++, isolate->NewString(str.c_str(), (int32_t)sz - 1));
 
         cur = cur->next;
     }

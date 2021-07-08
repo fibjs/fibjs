@@ -30,10 +30,11 @@ void _resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
         return;
     }
 
-    v8::Local<v8::Object> _mod = args.Data()->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
-    JSValue path = _mod->Get(NewString(isolate, "_id"));
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> _mod = args.Data()->ToObject(context).ToLocalChecked();
+    JSValue path = _mod->Get(context, NewString(isolate, "_id"));
     obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
-        JSValue(_mod->Get(NewString(isolate, "_sbox"))));
+        JSValue(_mod->Get(context, NewString(isolate, "_sbox"))));
 
     exlib::string strPath;
     path_base::dirname(ToString(isolate, path), strPath);
@@ -71,10 +72,11 @@ void _require(const v8::FunctionCallbackInfo<v8::Value>& args)
         return;
     }
 
-    v8::Local<v8::Object> _mod = args.Data()->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
-    JSValue path = _mod->Get(NewString(isolate, "_id"));
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> _mod = args.Data()->ToObject(context).ToLocalChecked();
+    JSValue path = _mod->Get(context, NewString(isolate, "_id"));
     obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
-        JSValue(_mod->Get(NewString(isolate, "_sbox"))));
+        JSValue(_mod->Get(context, NewString(isolate, "_sbox"))));
 
     exlib::string strPath;
     path_base::dirname(ToString(isolate, path), strPath);
@@ -120,12 +122,13 @@ void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
     } else
         argv = v8::Array::New(isolate);
 
-    v8::Local<v8::Object> _mod = args.Data()->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> _mod = args.Data()->ToObject(context).ToLocalChecked();
     obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
-        _mod->Get(NewString(isolate, "_sbox")));
+        JSValue(_mod->Get(context, NewString(isolate, "_sbox"))));
 
     if (SandBox::is_relative(id)) {
-        JSValue path = _mod->Get(NewString(isolate, "_id"));
+        JSValue path = _mod->Get(context, NewString(isolate, "_id"));
 
         exlib::string strPath;
 
@@ -151,15 +154,16 @@ SandBox::Context::Context(SandBox* sb, exlib::string id)
     : m_sb(sb)
 {
     Isolate* isolate = m_sb->holder();
+    v8::Local<v8::Context> context = isolate->context();
     m_id = isolate->NewString(id);
 
     v8::Local<v8::Object> _mod = v8::Object::New(isolate->m_isolate);
 
-    _mod->Set(isolate->NewString("_sbox"), m_sb->wrap());
-    _mod->Set(isolate->NewString("_id"), m_id);
+    _mod->Set(context, isolate->NewString("_sbox"), m_sb->wrap());
+    _mod->Set(context, isolate->NewString("_id"), m_id);
 
     m_fnRequest = isolate->NewFunction("require", _require, _mod);
-    m_fnRequest->Set(isolate->NewString("resolve"), isolate->NewFunction("resolve", _resolve, _mod));
+    m_fnRequest->Set(context, isolate->NewString("resolve"), isolate->NewFunction("resolve", _resolve, _mod));
     // m_fnRequest->Set(isolate->NewString("cache"), m_sb->mods());
 
     m_fnRun = isolate->NewFunction("run", _run, _mod);

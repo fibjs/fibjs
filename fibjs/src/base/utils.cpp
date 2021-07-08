@@ -145,12 +145,13 @@ v8::Local<v8::Value> ThrowResult(result_t hr)
     v8::Local<v8::Value> v = v8::Exception::Error(
         isolate->NewString(getResultMessage(hr)));
     v8::Local<v8::Object> e = v8::Local<v8::Object>::Cast(v);
+    v8::Local<v8::Context> context = isolate->context();
 
-    e->Set(isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr));
+    e->Set(context, isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr));
 
     const char* _name = uv_error_name(hr);
     if (_name)
-        e->Set(isolate->NewString("code"), isolate->NewString(_name));
+        e->Set(context, isolate->NewString("code"), isolate->NewString(_name));
 
     return isolate->m_isolate->ThrowException(e);
 }
@@ -162,7 +163,7 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
 
     Isolate* isolate = Isolate::current();
     v8::HandleScope handle_scope(isolate->m_isolate);
-    v8::Local<v8::Context> context = isolate->m_isolate->GetCurrentContext();
+    v8::Local<v8::Context> context = isolate->context();
     if (try_catch.HasCaught()) {
         v8::Local<v8::Value> err = try_catch.Exception();
         v8::Local<v8::Object> err_obj = err.As<v8::Object>();
@@ -219,8 +220,8 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
             }
 
             if (!repl && err->IsObject()) {
-                message = err_obj->Get(isolate->NewString("message"));
-                name = err_obj->Get(isolate->NewString("name"));
+                message = err_obj->Get(context, isolate->NewString("message"));
+                name = err_obj->Get(context, isolate->NewString("name"));
             }
 
             if (message.IsEmpty() || message->IsUndefined() || name.IsEmpty() || name->IsUndefined()) {
@@ -268,13 +269,14 @@ exlib::string ReportException(TryCatch& try_catch, result_t hr, bool repl)
 
 result_t CheckConfig(v8::Local<v8::Object> opts, const char** keys)
 {
-    JSArray ks = opts->GetPropertyNames(opts->CreationContext());
+    v8::Local<v8::Context> context = opts->CreationContext();
+    JSArray ks = opts->GetPropertyNames(context);
     int32_t len = ks->Length();
     int32_t i;
     Isolate* isolate = Isolate::current();
 
     for (i = 0; i < len; i++) {
-        v8::String::Utf8Value k(isolate->m_isolate, JSValue(ks->Get(i)));
+        v8::String::Utf8Value k(isolate->m_isolate, JSValue(ks->Get(context, i)));
         const char** p = keys;
 
         while (p[0]) {

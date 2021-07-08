@@ -15,6 +15,7 @@ namespace fibjs {
 void _json_loader(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Isolate* isolate = args.GetIsolate();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
     obj_ptr<Buffer_base> src = Buffer_base::getInstance(args.Data());
 
     exlib::string strScript;
@@ -28,26 +29,26 @@ void _json_loader(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 
     v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(args[5]);
-    module->Set(NewString(isolate, "exports"), v);
+    module->Set(context, NewString(isolate, "exports"), v);
 }
 
 result_t JsonLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
     exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args)
 {
     Isolate* isolate = ctx->m_sb->holder();
+    v8::Local<v8::Context> context = isolate->context();
     v8::Local<v8::Function> func = isolate->NewFunction("json_loader", _json_loader, src->wrap());
     if (func.IsEmpty())
         return CHECK_ERROR(Runtime::setError("function alloc error."));
 
     v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(args[5]);
-    module->SetPrivate(module->CreationContext(),
-        v8::Private::ForApi(isolate->m_isolate, isolate->NewString("entry")),
+    module->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("entry")),
         func);
 
-    v8::Local<v8::Object> glob = isolate->context()->Global();
+    v8::Local<v8::Object> glob = context->Global();
     v8::Local<v8::Value> v;
 
-    func->Call(func->CreationContext(), glob, (int32_t)args.size(), args.data()).ToLocal(&v);
+    func->Call(context, glob, (int32_t)args.size(), args.data()).ToLocal(&v);
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 

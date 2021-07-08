@@ -667,9 +667,10 @@ function gen_code(cls, def, baseFolder) {
                     ts.push('    public:');
                     ts.push('        virtual void fillMembers(Isolate* isolate, v8::Local<v8::Object>& retVal)');
                     ts.push('        {');
+                    ts.push('            v8::Local<v8::Context> context = retVal->CreationContext();');
 
                     fn.type.forEach(t => {
-                        ts.push(`            retVal->Set(isolate->NewString("${t.name}"), GetReturnValue(isolate->m_isolate, ${t.name}));`);
+                        ts.push(`            retVal->Set(context, isolate->NewString("${t.name}"), GetReturnValue(isolate->m_isolate, ${t.name}));`);
                     });
 
                     ts.push('        }\n');

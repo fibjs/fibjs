@@ -55,12 +55,13 @@ result_t Chain::append(Handler_base* hdlr)
 result_t Chain::append(v8::Local<v8::Array> hdlrs)
 {
     Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
     int32_t len = hdlrs->Length();
     int32_t i;
     result_t hr;
 
     for (i = 0; i < len; i++) {
-        JSValue v = hdlrs->Get(i);
+        JSValue v = hdlrs->Get(context, i);
         obj_ptr<Handler_base> hdlr;
 
         hr = GetArgumentValue(isolate->m_isolate, v, hdlr);

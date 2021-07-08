@@ -88,16 +88,17 @@ void JSFiber::set_caller(Fiber_base* caller)
     if (m_caller) {
         v8::Local<v8::Object> co = m_caller->wrap();
         v8::Local<v8::Object> o = wrap();
+        v8::Local<v8::Context> context = co->CreationContext();
 
         v8::Local<v8::Array> ks;
-        co->GetOwnPropertyNames(co->CreationContext()).ToLocal(&ks);
+        co->GetOwnPropertyNames(context).ToLocal(&ks);
         int32_t len = ks->Length();
 
         int32_t i;
 
         for (i = 0; i < len; i++) {
-            JSValue k = ks->Get(i);
-            o->Set(k, JSValue(co->Get(k)));
+            JSValue k = ks->Get(context, i);
+            o->Set(context, k, JSValue(co->Get(context, k)));
         }
     }
 }

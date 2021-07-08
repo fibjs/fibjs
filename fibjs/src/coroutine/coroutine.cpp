@@ -31,6 +31,7 @@ private:
         v8::Local<v8::Array> datas = v8::Local<v8::Array>::New(m_isolate->m_isolate, m_datas);
         v8::Local<v8::Function> func = v8::Local<v8::Function>::New(m_isolate->m_isolate, m_func);
         v8::Local<v8::Array> retVal = v8::Local<v8::Array>::New(m_isolate->m_isolate, m_retVal);
+        v8::Local<v8::Context> context = m_isolate->context();
 
         while (m_pos < m_count) {
             JSFiber::EnterJsScope s;
@@ -41,16 +42,16 @@ private:
 
             m_pos++;
             if (func.IsEmpty()) {
-                v8::Local<v8::Function> func1 = v8::Local<v8::Function>::Cast(datas->Get(pos));
+                v8::Local<v8::Function> func1 = v8::Local<v8::Function>::Cast(JSValue(datas->Get(context, pos)));
                 if (!func1.IsEmpty())
-                    func1->Call(func1->CreationContext(), s->wrap(), 0, NULL).ToLocal(&v);
+                    func1->Call(context, s->wrap(), 0, NULL).ToLocal(&v);
             } else {
-                JSValue a = datas->Get(pos);
-                func->Call(func->CreationContext(), s->wrap(), 1, &a).ToLocal(&v);
+                JSValue a = datas->Get(context, pos);
+                func->Call(context, s->wrap(), 1, &a).ToLocal(&v);
             }
 
             if (!v.IsEmpty())
-                retVal->Set(pos, v);
+                retVal->Set(context, pos, v);
             else
                 m_error = true;
         }
@@ -96,6 +97,7 @@ public:
         v8::Local<v8::Array>& retVal, int32_t fibers = -1)
     {
         m_isolate = Isolate::current();
+        v8::Local<v8::Context> context = m_isolate->context();
         int32_t i;
 
         m_count = funcs->Length();
@@ -107,7 +109,7 @@ public:
         m_fibers = (fibers > 0 && fibers < m_count) ? fibers : m_count;
 
         for (i = 0; i < m_count; i++) {
-            JSValue v = funcs->Get(i);
+            JSValue v = funcs->Get(context, i);
             if (v.IsEmpty() || !v->IsFunction())
                 return CHECK_ERROR(CALL_E_INVALIDARG);
         }
@@ -156,13 +158,14 @@ result_t coroutine_base::parallel(v8::Local<v8::Array> funcs, int32_t fibers,
 
 result_t coroutine_base::parallel(OptArgs funcs, v8::Local<v8::Array>& retVal)
 {
-    v8::Isolate* isolate = Isolate::current()->m_isolate;
+    Isolate* isolate = Isolate::current();
     int32_t num = funcs.Length();
-    v8::Local<v8::Array> _funcs = v8::Array::New(isolate, num);
+    v8::Local<v8::Array> _funcs = v8::Array::New(isolate->m_isolate, num);
     int32_t i;
+    v8::Local<v8::Context> context = isolate->context();
 
     for (i = 0; i < num; i++)
-        _funcs->Set(i, funcs[i]);
+        _funcs->Set(context, i, funcs[i]);
 
     return parallel(_funcs, -1, retVal);
 }
@@ -177,12 +180,13 @@ result_t coroutine_base::parallel(v8::Local<v8::Array> datas, v8::Local<v8::Func
 result_t coroutine_base::parallel(v8::Local<v8::Function> func, int32_t num,
     int32_t fibers, v8::Local<v8::Array>& retVal)
 {
-    v8::Isolate* isolate = Isolate::current()->m_isolate;
-    v8::Local<v8::Array> datas = v8::Array::New(isolate, num);
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Array> datas = v8::Array::New(isolate->m_isolate, num);
     int32_t i;
+    v8::Local<v8::Context> context = isolate->context();
 
     for (i = 0; i < num; i++)
-        datas->Set(i, v8::Int32::New(isolate, i));
+        datas->Set(context, i, v8::Int32::New(isolate->m_isolate, i));
 
     _parallels _p;
     return _p.run(datas, func, retVal, fibers);
@@ -236,11 +240,12 @@ result_t coroutine_base::get_fibers(v8::Local<v8::Array>& retVal)
     Isolate* isolate = Isolate::current();
     exlib::linkitem* p = isolate->m_fibers.head();
     int32_t n = 0;
+    v8::Local<v8::Context> context = isolate->context();
 
     retVal = v8::Array::New(isolate->m_isolate);
 
     while (p) {
-        retVal->Set(n++, ((JSFiber*)p)->wrap());
+        retVal->Set(context, n++, ((JSFiber*)p)->wrap());
         p = p->m_next;
     }
 

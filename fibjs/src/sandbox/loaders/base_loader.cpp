@@ -22,6 +22,7 @@ result_t SandBox::ExtLoader::run_script(Context* ctx, Buffer_base* src, exlib::s
     std::vector<arg>& extarg, bool is_main)
 {
     Isolate* isolate = ctx->m_sb->holder();
+    v8::Local<v8::Context> context = isolate->context();
 
     v8::Local<v8::String> strRequire = isolate->NewString("require");
     v8::Local<v8::String> strExports = isolate->NewString("exports");
@@ -29,11 +30,11 @@ result_t SandBox::ExtLoader::run_script(Context* ctx, Buffer_base* src, exlib::s
     v8::Local<v8::Object> module = v8::Object::New(isolate->m_isolate);
     v8::Local<v8::Object> exports = v8::Object::New(isolate->m_isolate);
 
-    module->Set(strExports, exports);
-    module->Set(strRequire, ctx->m_fnRequest);
+    module->Set(context, strExports, exports);
+    module->Set(context, strRequire, ctx->m_fnRequest);
 
     if (is_main)
-        ctx->m_fnRequest->Set(isolate->NewString("main"), module);
+        ctx->m_fnRequest->Set(context, isolate->NewString("main"), module);
 
     return run_module(ctx, src, name, module, exports, extarg);
 }
@@ -83,7 +84,8 @@ result_t SandBox::ExtLoader::run(Context* ctx, Buffer_base* src, exlib::string n
         return hr;
 
     Isolate* isolate = ctx->m_sb->holder();
-    v8::Local<v8::Value> v = script->Run(isolate->m_isolate->GetCurrentContext()).ToLocalChecked();
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Value> v = script->Run(context).ToLocalChecked();
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
@@ -91,12 +93,11 @@ result_t SandBox::ExtLoader::run(Context* ctx, Buffer_base* src, exlib::string n
     util_base::sync(func, true, func);
 
     v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(args[5]);
-    module->SetPrivate(module->CreationContext(),
-        v8::Private::ForApi(isolate->m_isolate, isolate->NewString("entry")),
+    module->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("entry")),
         func);
 
-    v8::Local<v8::Object> glob = isolate->context()->Global();
-    func->Call(func->CreationContext(), glob, (int32_t)args.size(), args.data()).ToLocal(&v);
+    v8::Local<v8::Object> glob = context->Global();
+    func->Call(context, glob, (int32_t)args.size(), args.data()).ToLocal(&v);
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 

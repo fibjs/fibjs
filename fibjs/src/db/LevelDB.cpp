@@ -158,9 +158,10 @@ result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal)
     ks.resize(len);
 
     Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
 
     for (i = 0; i < len; i++) {
-        JSValue v = keys->Get(i);
+        JSValue v = keys->Get(context, i);
         obj_ptr<Buffer_base> buf;
 
         hr = GetArgumentValue(isolate->m_isolate, v, buf);
@@ -218,19 +219,19 @@ result_t LevelDB::mset(v8::Local<v8::Object> map)
     leveldb::WriteBatch batch;
     leveldb::WriteBatch* batch_ = m_batch ? m_batch : &batch;
 
-    JSArray ks = map->GetPropertyNames(map->CreationContext());
+    Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
+    JSArray ks = map->GetPropertyNames(context);
     int32_t len = ks->Length();
     int32_t i;
     result_t hr;
 
-    Isolate* isolate = holder();
-
     for (i = 0; i < len; i++) {
-        JSValue k = ks->Get(i);
+        JSValue k = ks->Get(context, i);
         exlib::string key(isolate->toString(k));
 
         exlib::string value1;
-        hr = getValue(map->Get(k), value1);
+        hr = getValue(JSValue(map->Get(context, k)), value1);
         if (hr < 0)
             return hr;
 
@@ -249,6 +250,8 @@ result_t LevelDB::mremove(v8::Local<v8::Array> keys)
     if (!db())
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
+    Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
     leveldb::WriteBatch batch;
     leveldb::WriteBatch* batch_ = m_batch ? m_batch : &batch;
 
@@ -258,7 +261,7 @@ result_t LevelDB::mremove(v8::Local<v8::Array> keys)
 
     for (i = 0; i < len; i++) {
         exlib::string key;
-        hr = getValue(JSValue(keys->Get(i)), key);
+        hr = getValue(JSValue(keys->Get(context, i)), key);
         if (hr < 0)
             return hr;
 

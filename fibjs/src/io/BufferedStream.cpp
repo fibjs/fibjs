@@ -239,6 +239,7 @@ result_t BufferedStream::readLines(int32_t maxlines, v8::Local<v8::Array>& retVa
     exlib::string str;
     int32_t n = 0;
     Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
     retVal = v8::Array::New(isolate->m_isolate);
 
     if (maxlines == 0)
@@ -252,7 +253,7 @@ result_t BufferedStream::readLines(int32_t maxlines, v8::Local<v8::Array>& retVa
         if (hr > 0)
             return 0;
 
-        retVal->Set(n++, isolate->NewString(str));
+        retVal->Set(context, n++, isolate->NewString(str));
         if (maxlines > 0) {
             maxlines--;
             if (maxlines == 0)
@@ -315,7 +316,7 @@ result_t BufferedStream::readUntil(exlib::string mk, int32_t maxlen,
 
             if (maxlen > 0
                 && ((int32_t)pThis->m_strbuf.size() + (pos - pThis->m_pos)
-                       > maxlen + mklen))
+                    > maxlen + mklen))
                 return CHECK_ERROR(CALL_E_INVALID_DATA);
 
             pThis->append(pos - pThis->m_pos);

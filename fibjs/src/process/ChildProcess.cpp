@@ -43,6 +43,7 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options)
 {
     result_t hr;
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
     int32_t i;
 
     Variant stddefs[3];
@@ -62,7 +63,7 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options)
             hr = GetArgumentValue(isolate->m_isolate, v, a, true);
             if (hr >= 0) {
                 for (i = 0; i < 3; i++)
-                    stddefs[i] = a->Get(i);
+                    stddefs[i] = JSValue(a->Get(context, i));
             } else {
                 for (i = 0; i < 3; i++)
                     stddefs[i] = "pipe";
@@ -124,6 +125,7 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
 {
     result_t hr;
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
     int32_t len, i;
 
     int32_t uid;
@@ -162,8 +164,8 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
     _envs.resize(len + 1);
 
     for (i = 0; i < len; i++) {
-        JSValue k = keys->Get(i);
-        JSValue v = opt_envs->Get(k);
+        JSValue k = keys->Get(context, i);
+        JSValue v = opt_envs->Get(context, k);
         exlib::string vs;
         exlib::string& ks = envStr[i];
 
@@ -195,6 +197,7 @@ result_t ChildProcess::fill_arg(exlib::string command, v8::Local<v8::Array> args
 {
     result_t hr;
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
     int32_t len, i;
 
     len = args.IsEmpty() ? 0 : args->Length();
@@ -203,7 +206,7 @@ result_t ChildProcess::fill_arg(exlib::string command, v8::Local<v8::Array> args
 
     _args[0] = (char*)command.c_str();
     for (i = 0; i < len; i++) {
-        hr = GetArgumentValue(isolate->m_isolate, JSValue(args->Get(i)), argStr[i]);
+        hr = GetArgumentValue(isolate->m_isolate, JSValue(args->Get(context, i)), argStr[i]);
         if (hr < 0)
             return hr;
 

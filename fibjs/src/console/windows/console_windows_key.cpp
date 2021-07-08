@@ -315,10 +315,12 @@ result_t CheckKeyFlags(v8::Local<v8::Array> modifier, int32_t* flags)
     result_t hr;
     int32_t i, len;
     len = modifier->Length();
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
 
     for (i = 0; i < len; i++) {
         exlib::string f;
-        JSValue v = modifier->Get(i);
+        JSValue v = modifier->Get(context, i);
         hr = GetArgumentValue(v, f);
         if (hr < 0)
             return hr;

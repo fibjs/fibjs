@@ -86,10 +86,11 @@ void init_argv(int32_t argc, char** argv)
 result_t process_base::get_argv(v8::Local<v8::Array>& retVal)
 {
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
     v8::Local<v8::Array> args = v8::Array::New(isolate->m_isolate, (int32_t)s_argv.size());
 
     for (int32_t i = 0; i < (int32_t)s_argv.size(); i++)
-        args->Set(i, isolate->NewString(s_argv[i]));
+        args->Set(context, i, isolate->NewString(s_argv[i]));
 
     retVal = args;
 
@@ -99,11 +100,12 @@ result_t process_base::get_argv(v8::Local<v8::Array>& retVal)
 result_t process_base::get_execArgv(v8::Local<v8::Array>& retVal)
 {
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
     v8::Local<v8::Array> args = v8::Array::New(isolate->m_isolate, (int32_t)s_start_argv.size());
     int32_t i;
 
     for (i = 0; i < (int32_t)s_start_argv.size(); i++)
-        args->Set(i, isolate->NewString(s_start_argv[i]));
+        args->Set(context, i, isolate->NewString(s_start_argv[i]));
 
     retVal = args;
 
@@ -172,16 +174,17 @@ result_t process_base::hrtime(v8::Local<v8::Array> diff, v8::Local<v8::Array>& r
     uint64_t t = uv_hrtime();
 
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
 
     if (diff->Length() == 2) {
-        uint64_t seconds = isolate->toUint32Value(JSValue(diff->Get(0)));
-        uint64_t nanos = isolate->toUint32Value(JSValue(diff->Get(1)));
+        uint64_t seconds = isolate->toUint32Value(JSValue(diff->Get(context, 0)));
+        uint64_t nanos = isolate->toUint32Value(JSValue(diff->Get(context, 1)));
         t -= (seconds * NANOS_PER_SEC) + nanos;
     }
 
     v8::Local<v8::Array> tuple = v8::Array::New(isolate->m_isolate, 2);
-    tuple->Set(0, v8::Integer::NewFromUnsigned(isolate->m_isolate, (uint32_t)(t / NANOS_PER_SEC)));
-    tuple->Set(1, v8::Integer::NewFromUnsigned(isolate->m_isolate, t % NANOS_PER_SEC));
+    tuple->Set(context, 0, v8::Integer::NewFromUnsigned(isolate->m_isolate, (uint32_t)(t / NANOS_PER_SEC)));
+    tuple->Set(context, 1, v8::Integer::NewFromUnsigned(isolate->m_isolate, t % NANOS_PER_SEC));
 
     retVal = tuple;
 
@@ -196,6 +199,7 @@ result_t process_base::get_execPath(exlib::string& retVal)
 result_t process_base::get_env(v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
 
     if (isolate->m_env.IsEmpty()) {
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
@@ -205,7 +209,7 @@ result_t process_base::get_env(v8::Local<v8::Object>& retVal)
         while ((p = *env++) != NULL) {
             p1 = qstrchr(p, '=');
             if (p1)
-                o->Set(isolate->NewString(p, (int32_t)(p1 - p)), isolate->NewString(p1 + 1));
+                o->Set(context, isolate->NewString(p, (int32_t)(p1 - p)), isolate->NewString(p1 + 1));
         }
 
         isolate->m_env.Reset(isolate->m_isolate, o);

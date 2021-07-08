@@ -228,6 +228,7 @@ result_t registry_base::get(int32_t root, exlib::string key, v8::Local<v8::Value
     }
     case REG_MULTI_SZ: {
         Isolate* isolate = Isolate::current();
+        v8::Local<v8::Context> context = isolate->context();
         exlib::wstring buf;
         exlib::string sbuf;
 
@@ -245,7 +246,7 @@ result_t registry_base::get(int32_t root, exlib::string key, v8::Local<v8::Value
                 p2++;
 
             sbuf = utf16to8String(p1, (int32_t)(p2 - p1));
-            arr->Set(n++, GetReturnValue(isolate->m_isolate, sbuf));
+            arr->Set(context, n++, GetReturnValue(isolate->m_isolate, sbuf));
             p1 = p2 + 1;
         }
 
@@ -309,6 +310,8 @@ result_t registry_base::set(int32_t root, exlib::string key, exlib::string value
 
 result_t registry_base::set(int32_t root, exlib::string key, v8::Local<v8::Array> value)
 {
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
     int32_t len = value->Length();
     int32_t i;
     result_t hr;
@@ -318,7 +321,7 @@ result_t registry_base::set(int32_t root, exlib::string key, v8::Local<v8::Array
         exlib::string v;
         exlib::wstring wv;
 
-        hr = GetArgumentValue(value->Get(i), v, false);
+        hr = GetArgumentValue(JSValue(value->Get(context, i)), v, false);
         if (hr < 0)
             return hr;
 

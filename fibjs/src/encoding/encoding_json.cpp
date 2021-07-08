@@ -13,12 +13,12 @@
 #include <stdlib.h>
 
 #include "v8.h"
-#include "v8/src/utils.h"
-#include "v8/src/api-inl.h"
-#include "v8/src/api.h"
-#include "v8/src/isolate.h"
-#include "v8/src/frames.h"
-#include "v8/src/frames-inl.h"
+#include "v8/src/api/api-inl.h"
+#include "v8/src/utils/utils.h"
+#include "v8/src/api/api.h"
+#include "v8/src/execution/isolate.h"
+#include "v8/src/execution/frames.h"
+#include "v8/src/execution/frames-inl.h"
 
 #include "v8_api.h"
 #include "src/objects/string-inl.h"
@@ -59,10 +59,15 @@ static void json_replacer(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (!v.IsEmpty() && (v->IsBigInt() || v->IsBigIntObject())) {
         v8::Isolate* isolate = args.GetIsolate();
+        v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
         v8::Local<v8::Object> o = v8::Object::New(isolate);
 
-        o->Set(NewString(isolate, "type", 4), NewString(isolate, "BigInt", 6));
-        o->Set(NewString(isolate, "data", 4), v->ToString(isolate));
+        o->Set(context, NewString(isolate, "type", 4), NewString(isolate, "BigInt", 6));
+
+        v8::Local<v8::String> sv;
+        v->ToString(context).ToLocal(&sv);
+        o->Set(context, NewString(isolate, "data", 4), sv);
 
         v = o;
     }
@@ -305,7 +310,7 @@ inline result_t _jsonDecode(exlib::string data,
             AdvanceSkipWhitespace();
 
             i::Vector<const uint16_t> data_((const uint16_t*)str.c_str(), str.length());
-            retVal = factory()->NewStringFromTwoByte(data_, i::TENURED);
+            retVal = factory()->NewStringFromTwoByte(data_, i::AllocationType::kYoung);
             return 0;
         }
 
@@ -339,7 +344,7 @@ inline result_t _jsonDecode(exlib::string data,
             i::Handle<i::Object> json_array;
             int elements_size = static_cast<int>(els.size());
 
-            i::Handle<i::FixedArray> elems = factory()->NewFixedArray(elements_size, i::TENURED);
+            i::Handle<i::FixedArray> elems = factory()->NewFixedArray(elements_size, i::AllocationType::kYoung);
             for (int i = 0; i < elements_size; i++)
                 elems->set(i, *els[i]);
             retVal = factory()->NewJSArrayWithElements(elems);
@@ -406,7 +411,7 @@ inline result_t _jsonDecode(exlib::string data,
 
                 for (i = 0; s_from[i].name; i++)
                     if (type_.size() == s_from[i].sz
-                        && !memcmp(type_.start(), s_from[i].name, s_from[i].sz)) {
+                        && !memcmp(type_.begin(), s_from[i].name, s_from[i].sz)) {
                         v8::Local<v8::Value> data_;
                         v8::Local<v8::Value> obj_;
 

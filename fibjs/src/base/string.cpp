@@ -152,7 +152,7 @@ exlib::string ToString(v8::Isolate* isolate, v8::Local<v8::Value> v)
     exlib::string n;
     v8::Local<v8::String> str;
 
-    str = v->ToString(isolate);
+    v->ToString(isolate->GetCurrentContext()).ToLocal(&str);
     if (str.IsEmpty())
         return n;
 
@@ -175,7 +175,7 @@ result_t GetArgumentValue(v8::Local<v8::Value> v, exlib::string& n, bool bStrict
     else if (v->IsStringObject())
         str = v8::Local<v8::StringObject>::Cast(v)->ValueOf();
     else if (!bStrict)
-        str = v->ToString(isolate->m_isolate);
+        v->ToString(isolate->m_isolate->GetCurrentContext()).ToLocal(&str);
     else
         return CALL_E_TYPEMISMATCH;
 

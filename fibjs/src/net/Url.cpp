@@ -132,7 +132,7 @@ void Url::parseProtocol(const char*& url)
 
     while ((ch = *p)
         && (qisascii(ch) || qisdigit(ch) || ch == '.' || ch == '+'
-               || ch == '-'))
+            || ch == '-'))
         p++;
 
     if (ch == ':') {
@@ -450,7 +450,8 @@ result_t Url::parse(exlib::string url, bool parseQueryString, bool slashesDenote
 bool getString(Isolate* isolate, v8::Local<v8::Object>& args,
     const char* key, exlib::string& retVal)
 {
-    JSValue v = args->Get(isolate->NewString(key));
+    v8::Local<v8::Context> context = isolate->context();
+    JSValue v = args->Get(context, isolate->NewString(key));
 
     if (!v.IsEmpty() && (v->IsString() || v->IsStringObject())) {
         retVal = isolate->toString(v);
@@ -465,6 +466,7 @@ result_t Url::format(v8::Local<v8::Object> args)
     clear();
 
     Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
 
     exlib::string str;
     JSValue v;
@@ -488,7 +490,7 @@ result_t Url::format(v8::Local<v8::Object> args)
     if (getString(isolate, args, "pathname", str))
         set_pathname(str);
 
-    v = args->Get(holder()->NewString("query"));
+    v = args->Get(context, holder()->NewString("query"));
     if (!IsEmpty(v))
         set_query(v);
 
@@ -498,7 +500,7 @@ result_t Url::format(v8::Local<v8::Object> args)
     if (m_slashes && m_protocol.compare("file:") && m_hostname.length() == 0)
         m_slashes = false;
 
-    v = args->Get(holder()->NewString("slashes"));
+    v = args->Get(context, holder()->NewString("slashes"));
     if (!IsEmpty(v))
         set_slashes(isolate->toBoolean(v));
 

@@ -218,8 +218,10 @@ bool arrayEquals(QuickArray<v8::Local<v8::Object>>& acts,
         return false;
     }
 
+    v8::Local<v8::Context> context = act->CreationContext();
+
     for (i = 0; i < len; i++)
-        if (!deepEquals(acts, exps, act->Get(i), exp->Get(i))) {
+        if (!deepEquals(acts, exps, JSValue(act->Get(context, i)), JSValue(exp->Get(context, i)))) {
             acts.pop();
             exps.pop();
             return false;
@@ -245,25 +247,26 @@ bool objectEquals(QuickArray<v8::Local<v8::Object>>& acts,
     if (i == -1)
         return false;
 
-    JSArray keys = act->GetPropertyNames(act->CreationContext());
+    v8::Local<v8::Context> context = act->CreationContext();
+    JSArray keys = act->GetPropertyNames(context);
     int32_t len = (int32_t)keys->Length();
 
-    if (len != (int32_t)JSArray(exp->GetPropertyNames(exp->CreationContext()))->Length()) {
+    if (len != (int32_t)JSArray(exp->GetPropertyNames(context))->Length()) {
         acts.pop();
         exps.pop();
         return false;
     }
 
     for (i = 0; i < len; i++) {
-        JSValue ks = keys->Get(i);
+        JSValue ks = keys->Get(context, (uint32_t)i);
         if (ks.IsEmpty()) {
             acts.pop();
             exps.pop();
             return false;
         }
 
-        JSValue v1 = act->Get(ks);
-        JSValue v2 = exp->Get(ks);
+        JSValue v1 = act->Get(context, ks);
+        JSValue v2 = exp->Get(context, ks);
 
         if (v1.IsEmpty() || v2.IsEmpty()) {
             acts.pop();
@@ -761,13 +764,14 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
     v8::Local<v8::Object> v = v8::Local<v8::Object>::Cast(object);
     v8::String::Utf8Value s(isolate->m_isolate, prop);
     const char *p, *p1;
 
     p = ToCString(s);
     while ((p1 = qstrchr(p, '.')) != NULL) {
-        object = v->Get(isolate->NewString(p, (int32_t)(p1 - p)));
+        object = JSValue(v->Get(context, isolate->NewString(p, (int32_t)(p1 - p))));
 
         if (object.IsEmpty() || (!object->IsObject() && !object->IsString())) {
             retVal = false;
@@ -778,7 +782,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
         p = p1 + 1;
     }
 
-    retVal = v->Has(v->CreationContext(), isolate->NewString(p)).ToChecked();
+    retVal = v->Has(context, isolate->NewString(p)).ToChecked();
 
     return 0;
 }
@@ -816,8 +820,9 @@ result_t has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
 
-    got = v8::Local<v8::Object>::Cast(object)->Get(prop);
+    got = JSValue(v8::Local<v8::Object>::Cast(object)->Get(context, prop));
     if (got.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
@@ -867,13 +872,14 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
     v8::Local<v8::Object> v = v8::Local<v8::Object>::Cast(object);
     v8::String::Utf8Value s(isolate->m_isolate, prop);
     const char *p, *p1;
 
     p = ToCString(s);
     while ((p1 = qstrchr(p, '.')) != NULL) {
-        object = v->Get(isolate->NewString(p, (int32_t)(p1 - p)));
+        object = JSValue(v->Get(context, isolate->NewString(p, (int32_t)(p1 - p))));
 
         if (object.IsEmpty() || (!object->IsObject() && !object->IsString())) {
             retVal = false;
@@ -884,7 +890,7 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
         p = p1 + 1;
     }
 
-    got = v->Get(isolate->NewString(p));
+    got = JSValue(v->Get(context, isolate->NewString(p)));
     if (got.IsEmpty())
         return CALL_E_JAVASCRIPT;
     retVal = value->StrictEquals(got);

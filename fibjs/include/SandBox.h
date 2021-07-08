@@ -58,14 +58,15 @@ public:
     void InstallModule(exlib::string fname, v8::Local<v8::Value> o, v8::Local<v8::Object> m = v8::Local<v8::Object>())
     {
         Isolate* isolate = holder();
+        v8::Local<v8::Context> _context = isolate->context();
 
         if (m.IsEmpty()) {
             m = v8::Object::New(isolate->m_isolate);
             if (!o.IsEmpty())
-                m->Set(isolate->NewString("exports"), o);
+                m->Set(_context, isolate->NewString("exports"), o);
         }
 
-        mods()->Set(isolate->NewString(fname), m);
+        mods()->Set(_context, isolate->NewString(fname), m);
     }
 
     v8::Local<v8::Value> get_module(v8::Local<v8::Object> mods, exlib::string id);

@@ -295,6 +295,7 @@ result_t gui_base::open(v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal
 result_t GuiApp::config(v8::Local<v8::Object> opt)
 {
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
 
     m_opt = new NObject();
     m_opt->add(opt);
@@ -317,13 +318,13 @@ result_t GuiApp::config(v8::Local<v8::Object> opt)
         if (hr < 0)
             return hr;
 
-        JSArray ks = o->GetPropertyNames(o->CreationContext());
+        JSArray ks = o->GetPropertyNames(context);
         int32_t len = ks->Length();
         int32_t i;
 
         for (i = 0; i < len; i++) {
             std::map<exlib::string, CefRefPtr<GuiSchemeHandlerFactory>>::iterator it;
-            JSValue k = ks->Get(i);
+            JSValue k = ks->Get(context, i);
             exlib::string ks(isolate->toString(k));
             Url u;
             exlib::string scheme;

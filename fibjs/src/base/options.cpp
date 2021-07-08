@@ -5,7 +5,7 @@
  *      Author: lion
  */
 
-#include "v8/src/flags.h"
+#include "v8/src/flags/flags.h"
 
 #include "version.h"
 #include "console.h"

@@ -32,6 +32,7 @@ result_t os_base::printerInfo(v8::Local<v8::Array>& retVal)
         NULL, 5, (PBYTE)pinfo, dwNeeded, &dwNeeded, &dwReturned);
 
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
     v8::Local<v8::Array> ret;
     ret = v8::Array::New(isolate->m_isolate);
     retVal = ret;
@@ -39,17 +40,17 @@ result_t os_base::printerInfo(v8::Local<v8::Array>& retVal)
     for (DWORD i = 0; i < dwReturned; i++) {
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
         PRINTER_INFO_5W* pItem = &pinfo[i];
-        o->Set(isolate->NewString("name"), isolate->NewString(utf16to8String(pItem->pPrinterName)));
-        o->Set(isolate->NewString("port"), isolate->NewString(utf16to8String(pItem->pPortName)));
+        o->Set(context, isolate->NewString("name"), isolate->NewString(utf16to8String(pItem->pPrinterName)));
+        o->Set(context, isolate->NewString("port"), isolate->NewString(utf16to8String(pItem->pPortName)));
         if (PRINTER_ATTRIBUTE_LOCAL & pItem->Attributes)
-            o->Set(isolate->NewString("type"), isolate->NewString("local"));
+            o->Set(context, isolate->NewString("type"), isolate->NewString("local"));
         else if (PRINTER_ATTRIBUTE_NETWORK & pItem->Attributes)
-            o->Set(isolate->NewString("type"), isolate->NewString("network"));
+            o->Set(context, isolate->NewString("type"), isolate->NewString("network"));
 
         if (!qstrcmp(pname, pItem->pPrinterName))
-            o->Set(isolate->NewString("default"), v8::True(isolate->m_isolate));
+            o->Set(context, isolate->NewString("default"), v8::True(isolate->m_isolate));
 
-        ret->Set(ret->Length(), o);
+        ret->Set(context, ret->Length(), o);
     }
     free(pinfo);
 

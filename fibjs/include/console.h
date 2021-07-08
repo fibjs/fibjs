@@ -88,9 +88,10 @@ public:
                 m_levels[i] = false;
 
             int32_t sz = levels->Length();
+            v8::Local<v8::Context> context = levels->CreationContext();
 
             for (i = 0; i < sz; i++) {
-                JSValue l = levels->Get(i);
+                JSValue l = levels->Get(context, i);
                 int32_t num;
 
                 hr = GetArgumentValue(l, num);

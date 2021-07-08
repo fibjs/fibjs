@@ -213,6 +213,7 @@ public:
         result_t hr;
         exlib::string str;
         Isolate* isolate = Isolate::current();
+        v8::Local<v8::Context> context = isolate->context();
         exlib::string table;
 
         hr = name(opts, "table", table);
@@ -230,13 +231,13 @@ public:
 
         exlib::string _values;
 
-        JSArray ks = o->GetPropertyNames(o->CreationContext());
+        JSArray ks = o->GetPropertyNames(context);
         int32_t len = ks->Length();
         int32_t i;
 
         for (i = 0; i < len; i++) {
-            JSValue k = ks->Get(i);
-            JSValue v = o->Get(k);
+            JSValue k = ks->Get(context, i);
+            JSValue v = o->Get(context, k);
 
             _values.append(escape_field(k) + "=");
             appendValue(_values, v);
@@ -272,6 +273,7 @@ public:
         result_t hr;
         exlib::string str;
         Isolate* isolate = Isolate::current();
+        v8::Local<v8::Context> context = isolate->context();
         exlib::string table;
 
         hr = name(opts, "table", table);
@@ -290,13 +292,13 @@ public:
         exlib::string _fields;
         exlib::string _values;
 
-        JSArray ks = o->GetPropertyNames(o->CreationContext());
+        JSArray ks = o->GetPropertyNames(context);
         int32_t len = ks->Length();
         int32_t i;
 
         for (i = 0; i < len; i++) {
-            JSValue k = ks->Get(i);
-            JSValue v = o->Get(k);
+            JSValue k = ks->Get(context, i);
+            JSValue v = o->Get(context, k);
 
             _fields.append(escape_field(k));
             appendValue(_values, v);
@@ -354,6 +356,7 @@ public:
         result_t hr;
         exlib::string str;
         Isolate* isolate = Isolate::current();
+        v8::Local<v8::Context> context = isolate->context();
         exlib::string table;
 
         hr = name(opts, "table", table);
@@ -371,13 +374,13 @@ public:
 
         exlib::string _fields;
 
-        JSArray ks = o->GetPropertyNames(o->CreationContext());
+        JSArray ks = o->GetPropertyNames(context);
         int32_t len = ks->Length();
         int32_t i;
 
         for (i = 0; i < len; i++) {
-            JSValue k = ks->Get(i);
-            JSValue v = o->Get(k);
+            JSValue k = ks->Get(context, i);
+            JSValue v = o->Get(context, k);
             exlib::string type;
             v8::Local<v8::Object> prop;
 
@@ -479,7 +482,7 @@ public:
                 if (hr != CALL_E_PARAMNOTOPTIONAL)
                     _fields.append(required ? " NOT NULL" : " NULL");
 
-                v = prop->Get(isolate->NewString("defaultValue"));
+                v = prop->Get(context, isolate->NewString("defaultValue"));
                 if (!IsEmpty(v)) {
                     _fields.append(" DEFAULT ");
                     appendValue(_fields, v);
@@ -605,6 +608,8 @@ private:
 
     static void appendValue(exlib::string& str, v8::Local<v8::Value>& v)
     {
+        Isolate* isolate = Isolate::current();
+        v8::Local<v8::Context> context = isolate->context();
         obj_ptr<Buffer_base> bin = Buffer_base::getInstance(v);
 
         if (bin)
@@ -617,7 +622,7 @@ private:
             str += '(';
 
             for (i = 0; i < len; i++) {
-                JSValue v1 = a->Get(i);
+                JSValue v1 = a->Get(context, i);
 
                 if (i > 0)
                     str += ',';
@@ -626,19 +631,20 @@ private:
 
             str += ')';
         } else if (v->IsNumber() || v->IsNumberObject()
-            || v->IsBigInt() || v->IsBigIntObject()) {
-            Isolate* isolate = Isolate::current();
+            || v->IsBigInt() || v->IsBigIntObject())
             str.append(isolate->toString(v));
-        } else if (v->IsUndefined() || v->IsNull()) {
+        else if (v->IsUndefined() || v->IsNull())
             str.append("NULL", 4);
-        } else if (v->IsDate())
+        else if (v->IsDate())
             str.append(impl::escape_date(v));
         else
-            str.append(impl::escape_string(Isolate::current()->toString(v)));
+            str.append(impl::escape_string(isolate->toString(v)));
     }
 
     static result_t where(v8::Local<v8::Array> o, bool bAnd, exlib::string& retVal, bool& retAnd)
     {
+        Isolate* isolate = Isolate::current();
+        v8::Local<v8::Context> context = isolate->context();
         exlib::string str;
         int32_t len = o->Length();
         int32_t i;
@@ -648,7 +654,7 @@ private:
         for (i = 0; i < len; i++) {
             exlib::string s;
 
-            JSValue v = o->Get(i);
+            JSValue v = o->Get(context, i);
             if (!IsJSObject(v))
                 return CHECK_ERROR(Runtime::setError("db: The argument of the [or/and] operation must be an object."));
 
@@ -675,6 +681,7 @@ private:
     static result_t where(v8::Local<v8::Value> val, exlib::string& retVal, bool& retAnd)
     {
         Isolate* isolate = Isolate::current();
+        v8::Local<v8::Context> context = isolate->context();
 
         if (val->IsString() || val->IsStringObject()) {
             retVal = isolate->toString(val);
@@ -689,7 +696,7 @@ private:
 
         v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(val);
         exlib::string str;
-        JSArray ks = o->GetPropertyNames(o->CreationContext());
+        JSArray ks = o->GetPropertyNames(context);
         int32_t len = ks->Length();
         int32_t i;
         bool bAnd = true;
@@ -698,8 +705,8 @@ private:
         exlib::string and_str = escape_field("$and", 4);
 
         for (i = 0; i < len; i++) {
-            JSValue k = ks->Get(i);
-            JSValue v = o->Get(k);
+            JSValue k = ks->Get(context, i);
+            JSValue v = o->Get(context, k);
             JSValue v1;
             bool bBetween = false;
             bool bIn = false;
@@ -718,13 +725,13 @@ private:
                     return where(v8::Local<v8::Array>::Cast(v), bAnd, retVal, retAnd);
                 else if (IsJSObject(v)) {
                     o = v8::Local<v8::Object>::Cast(v);
-                    ks = o->GetPropertyNames(o->CreationContext());
+                    ks = o->GetPropertyNames(context);
                     len = ks->Length();
                     if (len == 0)
                         break;
 
-                    k = ks->Get(0);
-                    v = o->Get(k);
+                    k = ks->Get(context, 0);
+                    v = o->Get(context, k);
 
                     key = escape_field(k);
                 } else
@@ -733,13 +740,13 @@ private:
 
             if (IsJSObject(v)) {
                 v8::Local<v8::Object> ops = v8::Local<v8::Object>::Cast(v);
-                JSArray opks = ops->GetPropertyNames(ops->CreationContext());
+                JSArray opks = ops->GetPropertyNames(context);
                 int32_t oplen = opks->Length();
 
                 if (oplen != 1)
                     return CHECK_ERROR(Runtime::setError("db: The condition of the field " + key + " is illegal."));
 
-                JSValue opv = opks->Get(0);
+                JSValue opv = opks->Get(context, 0);
                 v8::String::Utf8Value _ops(isolate->m_isolate, opv);
 
                 if (!*_ops)
@@ -778,24 +785,24 @@ private:
                 } else
                     return CHECK_ERROR(Runtime::setError("db: The condition of the field " + key + " is illegal."));
 
-                v = ops->Get(opv);
+                v = ops->Get(context, opv);
 
                 if (!bField && !bIn && !bBetween && IsJSObject(v)) {
                     ops = v8::Local<v8::Object>::Cast(v);
-                    opks = ops->GetPropertyNames(ops->CreationContext());
+                    opks = ops->GetPropertyNames(context);
                     oplen = opks->Length();
 
                     if (oplen != 1)
                         return CHECK_ERROR(Runtime::setError("db: The condition of the field " + key + " is illegal."));
 
-                    opv = opks->Get(0);
+                    opv = opks->Get(context, 0);
                     v8::String::Utf8Value _ops(isolate->m_isolate, opv);
 
                     if (qstrcmp(*_ops, "$field"))
                         return CHECK_ERROR(Runtime::setError("db: The condition of the field " + key + " is illegal."));
 
                     bField = true;
-                    v = ops->Get(opv);
+                    v = ops->Get(context, opv);
                 }
             }
 
@@ -817,8 +824,8 @@ private:
                     if (vals_len != 2)
                         return CHECK_ERROR(Runtime::setError("db: The argument size of the [between/not_between] operation must be 2."));
 
-                    v = vals->Get(0);
-                    v1 = vals->Get(1);
+                    v = vals->Get(context, 0);
+                    v1 = vals->Get(context, 1);
                 } else if (IsJSObject(v))
                     return CHECK_ERROR(Runtime::setError("db: The argument of the [" + op + "] operation can not be a object."));
 
@@ -851,6 +858,8 @@ private:
 
     static result_t name_list(v8::Local<v8::Value> v, exlib::string& retVal)
     {
+        Isolate* isolate = Isolate::current();
+        v8::Local<v8::Context> context = isolate->context();
         exlib::string table;
 
         if (v->IsArray()) {
@@ -861,21 +870,21 @@ private:
 
             if (len > 0) {
                 for (i = 0; i < len; i++) {
-                    table.append(escape_field(tables->Get(i)));
+                    table.append(escape_field(JSValue(tables->Get(context, i))));
                     if (i + 1 < len)
                         table.append(", ", 2);
                 }
             }
         } else if (IsJSObject(v)) {
             v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
-            JSArray ks = o->GetPropertyNames(o->CreationContext());
+            JSArray ks = o->GetPropertyNames(context);
             int32_t len = ks->Length();
             int32_t i;
 
             for (i = 0; i < len; i++) {
-                JSValue k = ks->Get(i);
+                JSValue k = ks->Get(context, i);
 
-                table.append(escape_field(k) + " AS " + escape_field(o->Get(k)));
+                table.append(escape_field(k) + " AS " + escape_field(JSValue(o->Get(context, k))));
                 if (i + 1 < len)
                     table.append(", ", 2);
             }
@@ -905,13 +914,14 @@ private:
 
     static result_t orderby(Isolate* isolate, v8::Local<v8::Array> orders, exlib::string& retVal)
     {
+        v8::Local<v8::Context> context = isolate->context();
         int32_t len = orders->Length();
         int32_t i;
         exlib::string str;
 
         if (len > 0) {
             for (i = 0; i < len; i++) {
-                JSValue ov = orders->Get(i);
+                JSValue ov = orders->Get(context, i);
                 v8::String::Utf8Value s(isolate->m_isolate, ov);
                 exlib::string key;
                 bool desc = false;

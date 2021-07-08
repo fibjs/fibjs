@@ -606,7 +606,7 @@ inline void mpi_dump(Isolate* isolate, v8::Local<v8::Object> o, exlib::string ke
     exlib::string b64;
     base64Encode(data.c_str(), data.length(), true, b64);
 
-    o->Set(isolate->NewString(key), isolate->NewString(b64));
+    o->Set(isolate->context(), isolate->NewString(key), isolate->NewString(b64));
 }
 
 result_t PKey::exportJson(v8::Local<v8::Object>& retVal)
@@ -619,13 +619,14 @@ result_t PKey::exportJson(v8::Local<v8::Object>& retVal)
         return hr;
 
     Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
     mbedtls_pk_type_t type = mbedtls_pk_get_type(&m_key);
 
     if (type == MBEDTLS_PK_RSA) {
         mbedtls_rsa_context* rsa = mbedtls_pk_rsa(m_key);
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
 
-        o->Set(isolate->NewString("kty"), isolate->NewString("RSA"));
+        o->Set(context, isolate->NewString("kty"), isolate->NewString("RSA"));
         mpi_dump(isolate, o, "n", &rsa->N);
         mpi_dump(isolate, o, "e", &rsa->E);
 
@@ -647,10 +648,10 @@ result_t PKey::exportJson(v8::Local<v8::Object>& retVal)
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
         const char* _name = get_curve_name(ecp->grp.id);
 
-        o->Set(isolate->NewString("kty"), isolate->NewString(mbedtls_pk_get_name(&m_key)));
+        o->Set(context, isolate->NewString("kty"), isolate->NewString(mbedtls_pk_get_name(&m_key)));
 
         if (_name)
-            o->Set(isolate->NewString("crv"), isolate->NewString(_name));
+            o->Set(context, isolate->NewString("crv"), isolate->NewString(_name));
 
         mpi_dump(isolate, o, "x", &ecp->Q.X);
         mpi_dump(isolate, o, "y", &ecp->Q.Y);

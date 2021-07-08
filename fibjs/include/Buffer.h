@@ -135,6 +135,7 @@ public:
     result_t _append(T datas)
     {
         int32_t sz = (int32_t)datas->Length();
+        v8::Local<v8::Context> context = datas->CreationContext();
 
         if (sz) {
             int32_t i;
@@ -145,7 +146,7 @@ public:
             char* _str = str.c_buffer();
 
             for (i = 0; i < sz; i++) {
-                JSValue v = datas->Get(i);
+                JSValue v = datas->Get(context, i);
                 int32_t num;
 
                 hr = GetArgumentValue(v, num);

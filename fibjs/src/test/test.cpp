@@ -375,7 +375,7 @@ inline v8::Local<v8::Function> wrapFunction(v8::Local<v8::Function> func)
         util_base::sync(func, true, func);
     {
         Isolate* isolate = Isolate::current();
-        if (isolate->toInt32Value(JSValue(func->Get(isolate->NewString("length")))) > 0)
+        if (isolate->toInt32Value(JSValue(func->Get(isolate->context(), isolate->NewString("length")))) > 0)
             util_base::sync(func, false, func);
     }
 

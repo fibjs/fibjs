@@ -18,6 +18,7 @@ namespace fibjs {
 static void cpu_profiler(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Isolate* isolate = args.GetIsolate();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
     v8::Local<v8::Array> fibers;
     coroutine_base::get_fibers(fibers);
@@ -26,11 +27,11 @@ static void cpu_profiler(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Array> stacks = v8::Array::New(isolate);
     for (i = 0; i < len; i++) {
         exlib::string stack;
-        obj_ptr<Fiber_base> fb = Fiber_base::getInstance(fibers->Get(i));
+        obj_ptr<Fiber_base> fb = Fiber_base::getInstance(JSValue(fibers->Get(context, i)));
 
         fb->get_stack(stack);
         if (stack != "")
-            stacks->Set(cnt++, NewString(isolate, stack));
+            stacks->Set(context, cnt++, NewString(isolate, stack));
     }
 
     v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());
@@ -44,13 +45,14 @@ static void cpu_profiler(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     date_t d;
     d.now();
-    if (d.date() > JSValue(_data->Get(NewString(isolate, "_time")))->NumberValue(isolate->GetCurrentContext()).ToChecked())
+    if (d.date() > JSValue(_data->Get(context, NewString(isolate, "_time")))->NumberValue(isolate->GetCurrentContext()).ToChecked())
         Timer_base::getInstance(args.This())->clear();
 }
 
 result_t profiler_base::start(exlib::string fname, int32_t time, int32_t interval, obj_ptr<Timer_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
     obj_ptr<SeekableStream_base> f;
     OptArgs args;
     result_t hr;
@@ -65,9 +67,9 @@ result_t profiler_base::start(exlib::string fname, int32_t time, int32_t interva
         date_t d;
         d.now();
         d.add(time, date_t::_MICROSECOND);
-        _data->Set(isolate->NewString("_time"), d.value(isolate->m_isolate));
+        _data->Set(context, isolate->NewString("_time"), d.value(isolate->m_isolate));
     } else
-        _data->Set(isolate->NewString("_time"), v8::Number::New(isolate->m_isolate, INFINITY));
+        _data->Set(context, isolate->NewString("_time"), v8::Number::New(isolate->m_isolate, INFINITY));
 
     v8::Local<v8::Function> func = isolate->NewFunction("_cpu_profiler", cpu_profiler, _data);
     if (func.IsEmpty())

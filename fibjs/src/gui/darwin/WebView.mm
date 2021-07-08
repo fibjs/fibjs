@@ -202,10 +202,11 @@ static int32_t asyncOutputMessageFromWKWebview(exlib::string& jsonFmt)
     v8::Local<v8::Object> logInfo = v8::Local<v8::Object>::Cast(_logInfo);
 
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
 
-    int32_t logLevel = isolate->toInteger(JSValue(logInfo->Get(isolate->NewString("level"))));
+    int32_t logLevel = isolate->toInteger(JSValue(logInfo->Get(context, isolate->NewString("level"))));
 
-    v8::Local<v8::Value> _fmtMessage = logInfo->Get(isolate->NewString("fmt"));
+    JSValue _fmtMessage = logInfo->Get(context, isolate->NewString("fmt"));
     exlib::string fmtMessage(isolate->toString(_fmtMessage));
 
     if (logLevel == console_base::C_ERROR)

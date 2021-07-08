@@ -279,14 +279,15 @@ result_t HttpUploadCollection::add(exlib::string name, Variant value)
 
 result_t HttpUploadCollection::add(v8::Local<v8::Object> map)
 {
-    JSArray ks = map->GetPropertyNames(map->CreationContext());
+    v8::Local<v8::Context> context = map->CreationContext();
+    JSArray ks = map->GetPropertyNames(context);
     int32_t len = ks->Length();
     int32_t i;
     Isolate* isolate = holder();
 
     for (i = 0; i < len; i++) {
-        JSValue k = ks->Get(i);
-        JSValue v = map->Get(k);
+        JSValue k = ks->Get(context, i);
+        JSValue v = map->Get(context, k);
 
         if (v.IsEmpty())
             return CALL_E_JAVASCRIPT;
@@ -302,11 +303,12 @@ result_t HttpUploadCollection::add(v8::Local<v8::Object> map)
 
 result_t HttpUploadCollection::add(exlib::string name, v8::Local<v8::Array> values)
 {
+    v8::Local<v8::Context> context = values->CreationContext();
     int32_t len = values->Length();
     int32_t i;
 
     for (i = 0; i < len; i++)
-        add(name, (Variant)values->Get(i));
+        add(name, (Variant)JSValue(values->Get(context, i)));
 
     return 0;
 }
@@ -319,14 +321,15 @@ result_t HttpUploadCollection::set(exlib::string name, Variant value)
 
 result_t HttpUploadCollection::set(v8::Local<v8::Object> map)
 {
-    JSArray ks = map->GetPropertyNames(map->CreationContext());
+    v8::Local<v8::Context> context = map->CreationContext();
+    JSArray ks = map->GetPropertyNames(context);
     int32_t len = ks->Length();
     int32_t i;
     Isolate* isolate = holder();
 
     for (i = 0; i < len; i++) {
-        JSValue k = ks->Get(i);
-        JSValue v = map->Get(k);
+        JSValue k = ks->Get(context, i);
+        JSValue v = map->Get(context, k);
 
         if (v.IsEmpty())
             return CALL_E_JAVASCRIPT;
@@ -342,12 +345,13 @@ result_t HttpUploadCollection::set(v8::Local<v8::Object> map)
 
 result_t HttpUploadCollection::set(exlib::string name, v8::Local<v8::Array> values)
 {
+    v8::Local<v8::Context> context = values->CreationContext();
     int32_t len = values->Length();
     int32_t i;
 
     remove(name);
     for (i = 0; i < len; i++)
-        add(name, (Variant)values->Get(i));
+        add(name, (Variant)JSValue(values->Get(context, i)));
 
     return 0;
 }
@@ -423,10 +427,11 @@ result_t HttpUploadCollection::_named_enumerator(v8::Local<v8::Array>& retVal)
 {
     size_t i;
     Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
 
     retVal = v8::Array::New(isolate->m_isolate);
     for (i = 0; i < m_count; i++)
-        retVal->Set((int32_t)i, isolate->NewString(m_map[i].first));
+        retVal->Set(context, (int32_t)i, isolate->NewString(m_map[i].first));
 
     return 0;
 }

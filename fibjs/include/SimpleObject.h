@@ -39,14 +39,15 @@ public:
     void add(exlib::string key, Variant value);
     result_t add(v8::Local<v8::Object> m)
     {
-        JSArray ks = m->GetPropertyNames(m->CreationContext());
+        v8::Local<v8::Context> context = m->CreationContext();
+        JSArray ks = m->GetPropertyNames(context);
         int32_t len = ks->Length();
         int32_t i;
         Isolate* isolate = holder();
 
         for (i = 0; i < len; i++) {
-            JSValue k = ks->Get(i);
-            add(isolate->toString(k), m->Get(k));
+            JSValue k = ks->Get(context, i);
+            add(isolate->toString(k), JSValue(m->Get(context, k)));
         }
 
         return 0;
@@ -79,6 +80,7 @@ public:
     virtual result_t valueOf(v8::Local<v8::Value>& retVal)
     {
         Isolate* isolate = Isolate::current();
+        v8::Local<v8::Context> context = isolate->context();
         v8::Local<v8::Object> obj;
 
         if (retVal.IsEmpty()) {
@@ -89,7 +91,7 @@ public:
 
         for (int32_t i = 0; i < (int32_t)m_values.size(); i++) {
             Value& v = m_values[i];
-            obj->Set(isolate->NewString(v.m_pos->first), v.m_val);
+            obj->Set(context, isolate->NewString(v.m_pos->first), v.m_val);
         }
 
         return 0;
@@ -137,10 +139,11 @@ public:
     virtual result_t valueOf(v8::Local<v8::Value>& retVal)
     {
         Isolate* isolate = Isolate::current();
+        v8::Local<v8::Context> context = isolate->context();
         v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate);
 
         for (int32_t i = 0; i < (int32_t)m_array.size(); i++)
-            arr->Set(i, m_array[i]);
+            arr->Set(context, i, m_array[i]);
 
         retVal = arr;
 

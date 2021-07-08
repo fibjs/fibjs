@@ -83,12 +83,13 @@ result_t MongoCollection::insert(v8::Local<v8::Array> documents)
 
     if (n > 0) {
         Isolate* isolate = holder();
+        v8::Local<v8::Context> context = isolate->context();
 
         bbs.resize(n);
         pbbs.resize(n);
 
         for (i = 0; i < n; i++) {
-            hr = encodeObject(isolate, &bbs[i], JSValue(documents->Get(i)));
+            hr = encodeObject(isolate, &bbs[i], JSValue(documents->Get(context, i)));
             if (hr < 0) {
                 n = i;
                 for (i = 0; i < n; i++)
@@ -135,16 +136,17 @@ result_t MongoCollection::insert(v8::Local<v8::Object> document)
 result_t MongoCollection::save(v8::Local<v8::Object> document)
 {
     Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
 
     v8::Local<v8::String> strId = isolate->NewString("_id", 3);
-    JSValue id = document->Get(strId);
+    JSValue id = document->Get(context, strId);
 
     if (IsEmpty(id))
         return insert(document);
     else {
         v8::Local<v8::Object> query = v8::Object::New(isolate->m_isolate);
 
-        query->Set(strId, id);
+        query->Set(context, strId, id);
         return update(query, document, true, false);
     }
 }
@@ -185,10 +187,11 @@ result_t MongoCollection::update(v8::Local<v8::Object> query,
     v8::Local<v8::Object> document, v8::Local<v8::Object> options)
 {
     Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
 
     return update(query, document,
-        isolate->toBoolean(JSValue(options->Get(isolate->NewString("upsert", 6)))),
-        isolate->toBoolean(JSValue(options->Get(isolate->NewString("multi", 5)))));
+        isolate->toBoolean(JSValue(options->Get(context, isolate->NewString("upsert", 6)))),
+        isolate->toBoolean(JSValue(options->Get(context, isolate->NewString("multi", 5)))));
 }
 
 result_t MongoCollection::remove(v8::Local<v8::Object> query)
@@ -260,14 +263,15 @@ result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
 {
     exlib::string name;
 
-    JSArray ks = keys->GetPropertyNames(keys->CreationContext());
-    int32_t len = (int32_t)ks->Length();
     int32_t i;
     Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
+    JSArray ks = keys->GetPropertyNames(context);
+    int32_t len = (int32_t)ks->Length();
 
     for (i = 0; i < len; i++) {
-        JSValue k = ks->Get(i);
-        JSValue v = keys->Get(k);
+        JSValue k = ks->Get(context, i);
+        JSValue v = keys->Get(context, k);
 
         if (!v->IsNumber() && !v->IsNumberObject())
             return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -282,15 +286,15 @@ result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
 
     v8::Local<v8::Object> idx = v8::Object::New(isolate->m_isolate);
 
-    idx->Set(isolate->NewString("name"), isolate->NewString(name));
-    idx->Set(isolate->NewString("key"), keys);
+    idx->Set(context, isolate->NewString("name"), isolate->NewString(name));
+    idx->Set(context, isolate->NewString("key"), keys);
     extend(options, idx);
 
     v8::Local<v8::Array> idxs = v8::Array::New(isolate->m_isolate);
-    idxs->Set(0, idx);
+    idxs->Set(context, 0, idx);
 
     v8::Local<v8::Object> cmd = v8::Object::New(isolate->m_isolate);
-    cmd->Set(isolate->NewString("indexes"), idxs);
+    cmd->Set(context, isolate->NewString("indexes"), idxs);
 
     v8::Local<v8::Object> retVal;
     return runCommand("createIndexes", cmd, retVal);

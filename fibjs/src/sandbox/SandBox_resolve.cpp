@@ -88,6 +88,7 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& fnam
     obj_ptr<Buffer_base>& data, v8::Local<v8::Value>* retVal)
 {
     Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
     exlib::string fname1;
     result_t hr;
     v8::Local<v8::Value> v;
@@ -109,7 +110,7 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& fnam
         return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json"));
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
-    JSValue main = o->Get(isolate->NewString("main", 4));
+    JSValue main = o->Get(context, isolate->NewString("main", 4));
     if (IsEmpty(main))
         return CALL_E_FILE_NOT_FOUND;
 

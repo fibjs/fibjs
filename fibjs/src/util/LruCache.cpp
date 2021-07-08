@@ -168,14 +168,15 @@ result_t LruCache::set(exlib::string name, v8::Local<v8::Value> value)
 inline result_t _map(LruCache* o, v8::Local<v8::Object> m,
     result_t (LruCache::*fn)(exlib::string name, v8::Local<v8::Value> value))
 {
-    JSArray ks = m->GetPropertyNames(m->CreationContext());
+    v8::Local<v8::Context> context = m->CreationContext();
+    JSArray ks = m->GetPropertyNames(context);
     int32_t len = ks->Length();
     int32_t i;
     Isolate* isolate = o->holder();
 
     for (i = 0; i < len; i++) {
-        JSValue k = ks->Get(i);
-        (o->*fn)(isolate->toString(k), JSValue(m->Get(k)));
+        JSValue k = ks->Get(context, i);
+        (o->*fn)(isolate->toString(k), JSValue(m->Get(context, k)));
     }
 
     return 0;
@@ -211,12 +212,13 @@ result_t LruCache::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
     cleanup();
 
     Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
     std::map<exlib::string, _linkedNode>::iterator it = m_begin_lru;
     v8::Local<v8::Object> obj = v8::Object::New(isolate->m_isolate);
 
     while (it != m_datas.end()) {
         v8::Local<v8::String> name = isolate->NewString(it->first);
-        obj->Set(name, GetPrivate(it->first));
+        obj->Set(context, name, GetPrivate(it->first));
         it = _instantiate(it->second.m_next);
     }
 
