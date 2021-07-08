@@ -252,36 +252,35 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
     if (cutLength < -1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    exlib::string str;
+    if (cutLength == -1)
+        total_length = (int32_t)INT32_MAX;
+
+    StringBuffer sb;
+
     Isolate* isolate = Isolate::current();
-
-    for (int32_t i = 0; i < sz; i++) {
+   
+	for (int32_t i = 0; i < sz; i++) {
         JSValue v = buflist->Get(i);
-        obj_ptr<Buffer_base> vdata;
-
+		obj_ptr<Buffer_base> vdata;
         hr = GetArgumentValue(isolate->m_isolate, v, vdata);
         if (hr < 0)
             return CHECK_ERROR(hr);
-
-        exlib::string vstr;
+        
+		exlib::string vstr;
         vdata->toString(vstr);
         buf_length = (int32_t)vstr.length();
-
-        if (-1 == cutLength)
-            total_length = offset + buf_length;
-
-        if (offset + buf_length <= total_length) {
-            str.append(vstr.c_str(), buf_length);
-            offset += buf_length;
+        
+        offset += buf_length;
+        if (offset <= total_length) {
+            sb.append(vstr);
         } else {
-            str.append(vstr.c_str(), total_length - offset);
-            offset = total_length;
-            break;
+            sb.append(vstr.c_str(), buf_length - (offset - total_length));
+			break;
         }
     }
-    obj_ptr<Buffer> bNew = new Buffer(str);
-    bNew->extMemory(offset);
-    retVal = bNew;
+ 
+	retVal = new Buffer(sb.str());
+
     return hr;
 }
 
