@@ -38,7 +38,7 @@ bool isFrozen(v8::Handle<v8::Object> object)
 template <bool do_callback>
 class CallDepthScope {
 public:
-    explicit CallDepthScope(i::Isolate* isolate, Local<Context> context)
+    CallDepthScope(i::Isolate* isolate, Local<Context> context)
         : isolate_(isolate)
         , context_(context)
         , escaped_(false)
@@ -50,14 +50,12 @@ public:
                           : i::InterruptsScope::kPostponeInterrupts)
                   : i::InterruptsScope::kNoop)
     {
-        // TODO(dcarney): remove this when blink stops crashing.
-        DCHECK(!isolate_->external_caught_exception());
-        isolate_->handle_scope_implementer()->IncrementCallDepth();
+        isolate_->thread_local_top()->IncrementCallDepth(this);
         isolate_->set_next_v8_call_is_safe_for_termination(false);
         if (!context.IsEmpty()) {
             i::Handle<i::Context> env = Utils::OpenHandle(*context);
             i::HandleScopeImplementer* impl = isolate->handle_scope_implementer();
-            if (isolate->context().is_null() && isolate->context().native_context() == env->native_context()) {
+            if (!isolate->context().is_null() && isolate->context().native_context() == env->native_context()) {
                 context_ = Local<Context>();
             } else {
                 impl->SaveContext(isolate->context());
@@ -78,13 +76,13 @@ public:
             microtask_queue = env->native_context().microtask_queue();
         }
         if (!escaped_)
-            isolate_->handle_scope_implementer()->DecrementCallDepth();
+            isolate_->thread_local_top()->DecrementCallDepth(this);
         if (do_callback)
             isolate_->FireCallCompletedCallback(microtask_queue);
 // TODO(jochen): This should be #ifdef DEBUG
 #ifdef V8_CHECK_MICROTASKS_SCOPES_CONSISTENCY
         if (do_callback)
-            CheckMicrotasksScopesConsistency(isolate_);
+            CheckMicrotasksScopesConsistency(microtask_queue);
 #endif
         isolate_->set_next_v8_call_is_safe_for_termination(safe_for_termination_);
     }
@@ -93,10 +91,10 @@ public:
     {
         DCHECK(!escaped_);
         escaped_ = true;
-        auto handle_scope_implementer = isolate_->handle_scope_implementer();
-        handle_scope_implementer->DecrementCallDepth();
-        bool call_depth_is_zero = handle_scope_implementer->CallDepthIsZero();
-        isolate_->OptionalRescheduleException(call_depth_is_zero);
+        auto thread_local_top = isolate_->thread_local_top();
+        thread_local_top->DecrementCallDepth(this);
+        bool clear_exception = thread_local_top->CallDepthIsZero() && thread_local_top->try_catch_handler_ == nullptr;
+        isolate_->OptionalRescheduleException(clear_exception);
     }
 
 private:
@@ -106,6 +104,12 @@ private:
     bool do_callback_;
     bool safe_for_termination_;
     i::InterruptsScope interrupts_scope_;
+    i::Address previous_stack_height_;
+
+    friend class i::ThreadLocalTop;
+
+    DISALLOW_NEW_AND_DELETE()
+    DISALLOW_COPY_AND_ASSIGN(CallDepthScope);
 };
 
 bool path_isAbsolute(exlib::string path);
