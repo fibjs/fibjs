@@ -261,7 +261,13 @@ public:
             return 0;
         }
 
-        return uv_fileno(&m_handle, (uv_os_fd_t*)&retVal);
+        uv_os_fd_t fd;
+        result_t hr = uv_fileno(&m_handle, &fd);
+        if (hr < 0)
+            return hr;
+
+        retVal = (int32_t)(intptr_t)fd;
+        return 0;
     };
 
     virtual result_t read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
