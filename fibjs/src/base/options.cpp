@@ -43,9 +43,6 @@ static class _init_v8_opt {
 public:
     _init_v8_opt()
     {
-        // v8::internal::FLAG_lazy = false;
-        v8::internal::FLAG_stack_size = stack_size - GUARD_SIZE;
-
         int64_t sz = uv_get_total_memory() / 1024 / 1024;
 
         if (sz > 2048)
@@ -56,12 +53,9 @@ public:
             sz = sz * 3 / 4;
 
         v8::internal::FLAG_max_old_space_size = sz;
+        v8::internal::FLAG_stack_size = stack_size - GUARD_SIZE;
 
         v8::internal::FLAG_wasm_async_compilation = false;
-
-        // v8::internal::FLAG_parallel_scavenge = false;
-        // v8::internal::FLAG_parallel_marking = false;
-        // v8::internal::FLAG_concurrent_marking = false;
     }
 } s_init_v8_opt;
 
