@@ -369,6 +369,13 @@ result_t Buffer::get_length(int32_t& retVal)
     return 0;
 }
 
+result_t Buffer::get_buffer(v8::Local<v8::ArrayBuffer>& retVal)
+{
+    retVal = v8::ArrayBuffer::New(holder()->m_isolate,
+        (void*)m_data.c_str(), m_data.length());
+    return 0;
+}
+
 result_t Buffer::resize(int32_t sz)
 {
     if (sz < 0)

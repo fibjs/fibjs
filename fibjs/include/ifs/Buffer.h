@@ -50,6 +50,7 @@ public:
     virtual result_t _indexed_setter(uint32_t index, int32_t newVal) = 0;
     virtual result_t symbol_iterator(obj_ptr<Iterator_base>& retVal) = 0;
     virtual result_t get_length(int32_t& retVal) = 0;
+    virtual result_t get_buffer(v8::Local<v8::ArrayBuffer>& retVal) = 0;
     virtual result_t resize(int32_t sz) = 0;
     virtual result_t append(Buffer_base* data) = 0;
     virtual result_t append(exlib::string str, exlib::string codec) = 0;
@@ -139,6 +140,7 @@ public:
     static void i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_symbol_iterator(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_length(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_buffer(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_resize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_append(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -282,7 +284,8 @@ inline ClassInfo& Buffer_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "length", s_get_length, block_set, false }
+        { "length", s_get_length, block_set, false },
+        { "buffer", s_get_buffer, block_set, false }
     };
 
     static ClassData::ClassIndexed s_indexed = {
@@ -630,6 +633,19 @@ inline void Buffer_base::s_get_length(v8::Local<v8::Name> property, const v8::Pr
     PROPERTY_ENTER();
 
     hr = pInst->get_length(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Buffer_base::s_get_buffer(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::ArrayBuffer> vr;
+
+    METHOD_NAME("Buffer.buffer");
+    METHOD_INSTANCE(Buffer_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_buffer(vr);
 
     METHOD_RETURN();
 }

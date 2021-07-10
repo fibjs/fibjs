@@ -1022,6 +1022,11 @@ inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, v8::Local<v8::F
     return func;
 }
 
+inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, v8::Local<v8::ArrayBuffer>& array)
+{
+    return array;
+}
+
 template <class T>
 inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, obj_ptr<T>& obj)
 {

@@ -219,6 +219,11 @@ declare class Class_Buffer extends Class_object {
     readonly length: number;
 
     /**
+     * @description 以 ArrayBuffer 格式返回缓存数据 
+     */
+    readonly buffer: ArrayBuffer;
+
+    /**
      * @description 修改缓存对象尺寸
      *      @param sz 指定新尺寸
      *      
