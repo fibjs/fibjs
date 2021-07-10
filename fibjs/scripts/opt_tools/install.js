@@ -492,7 +492,7 @@ function download_module() {
                     else
                         t = tgz;
 
-                    const untar_files = untar(t);
+                    const untar_files = untar(t.buffer);
 
                     // most package from registry is archived with root directory `package`
                     archive_root_name = `package`;
