@@ -156,7 +156,7 @@ result_t TcpServer::start()
 
         virtual int32_t error(int32_t v)
         {
-            if (v == CALL_E_BAD_FILE || v == CALL_E_INVALID_CALL) {
+            if (v == CALL_E_BAD_FILE || v == CALL_E_INVALID_CALL || v == CALL_E_NETNAME_DELETED) {
                 m_pThis->isolate_unref();
                 return next();
             }
