@@ -252,7 +252,7 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
     if (cutLength < -1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    exlib::string str;
+    StringBuffer str;
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
 
@@ -280,7 +280,7 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
             break;
         }
     }
-    obj_ptr<Buffer> bNew = new Buffer(str);
+    obj_ptr<Buffer> bNew = new Buffer(str.str());
     bNew->extMemory(offset);
     retVal = bNew;
     return hr;
