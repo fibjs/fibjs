@@ -280,9 +280,8 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
             break;
         }
     }
-    obj_ptr<Buffer> bNew = new Buffer(str.str());
-    bNew->extMemory(offset);
-    retVal = bNew;
+
+    retVal = new Buffer(str.str());
     return hr;
 }
 
