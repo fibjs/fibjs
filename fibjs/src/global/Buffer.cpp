@@ -370,8 +370,10 @@ result_t Buffer::get_length(int32_t& retVal)
 
 result_t Buffer::get_buffer(v8::Local<v8::ArrayBuffer>& retVal)
 {
+    char* buf = exlib::string::Buffer::New(m_data.length(), m_data.c_str(), m_data.length())->data();
+
     retVal = v8::ArrayBuffer::New(holder()->m_isolate,
-        (void*)m_data.c_str(), m_data.length());
+        buf, m_data.length(), v8::ArrayBufferCreationMode::kInternalized);
     return 0;
 }
 
