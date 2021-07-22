@@ -22,7 +22,7 @@ namespace fibjs {
 result_t ws_base::upgrade(v8::Local<v8::Object> opts, v8::Local<v8::Function> accept, obj_ptr<Handler_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
-    bool perMessageDeflate = true;
+    bool perMessageDeflate = false;
     int32_t maxPayload = WS_DEF_SIZE;
 
     GetConfigValue(isolate->m_isolate, opts, "perMessageDeflate", perMessageDeflate);

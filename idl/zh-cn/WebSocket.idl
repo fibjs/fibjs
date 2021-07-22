@@ -40,7 +40,7 @@ interface WebSocket : EventEmitter
      {
          "protocol": "", // 指定握手协议，缺省为空
          "origin": "", // 指定握手时模拟的源，缺省为空
-         "perMessageDeflate": true, // 指定是否支持压缩，缺省支持
+         "perMessageDeflate": false, // 指定是否支持压缩，缺省不支持
          "maxPayload": 67108864, // 指定最大数据包尺寸，缺省为 67108864
          "httpClient": hc, // 自定义 httpClient 对象，缺省使用全局 httpClient
          "headers": // 指定 http(s) 连接时携带的 header，缺省为 {}，

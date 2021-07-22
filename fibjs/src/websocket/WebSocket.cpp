@@ -342,7 +342,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
     Isolate* isolate = Isolate::current();
     exlib::string origin = "";
     exlib::string protocol = "";
-    bool perMessageDeflate = true;
+    bool perMessageDeflate = false;
     int32_t maxPayload = WS_DEF_SIZE;
     v8::Local<v8::Object> v;
     obj_ptr<NObject> headers = new NObject();

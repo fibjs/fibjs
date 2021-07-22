@@ -73,7 +73,7 @@ module ws
      opts 包含请求的附加选项，支持的内容如下：
      ```JavaScript
      {
-         "perMessageDeflate": true, // 指定是否支持压缩，缺省支持
+         "perMessageDeflate": false, // 指定是否支持压缩，缺省不支持
          "maxPayload": 67108864 // 指定最大数据包尺寸，缺省为 67108864
      }
      ```
