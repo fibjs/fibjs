@@ -88,6 +88,9 @@ interface LevelDB : object
     /*! @brief 提交当前事务 */
     commit();
 
+    /*! @brief 提交当前数据库的缓存 */
+    flush() async;
+
     /*! @brief 关闭当前数据库连接或事务 */
     close() async;
 };
