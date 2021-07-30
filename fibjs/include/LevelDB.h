@@ -14,8 +14,6 @@
 namespace fibjs {
 
 class LevelDB : public LevelDB_base {
-    FIBER_FREE();
-
 public:
     LevelDB()
         : m_db(NULL)
