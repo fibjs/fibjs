@@ -13,7 +13,7 @@
 #include "Stat.h"
 #include "File.h"
 #include "AsyncUV.h"
-#include "AsyncFS.h"
+#include "utils.h"
 
 namespace fibjs {
 
@@ -252,15 +252,30 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
     return buffer->write(strBuf, offset, (int32_t)strBuf.length(), "utf8", retVal);
 }
 
+class AutoReq : public uv_fs_t {
+public:
+    ~AutoReq()
+    {
+        uv_fs_req_cleanup(this);
+    }
+};
+
 result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return uv_async([&] {
-        return uv_fs_stat(s_uv_loop, new AsyncUVFSResult<obj_ptr<Stat_base>>(retVal, ac), path.c_str(),
-            AsyncUVFSResult<obj_ptr<Stat_base>>::callback);
-    });
+    AutoReq req;
+    int32_t ret = uv_fs_stat(NULL, &req, path.c_str(), NULL);
+    if (ret < 0)
+        return ret;
+
+    obj_ptr<Stat> pStat = new Stat();
+
+    pStat->fill(path, &req.statbuf);
+    retVal = pStat;
+
+    return 0;
 }
 
 result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
@@ -268,49 +283,25 @@ result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEve
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return uv_async([&] {
-        return uv_fs_lstat(s_uv_loop, new AsyncUVFSResult<obj_ptr<Stat_base>>(retVal, ac), path.c_str(),
-            AsyncUVFSResult<obj_ptr<Stat_base>>::callback);
-    });
+    AutoReq req;
+    int32_t ret = uv_fs_lstat(NULL, &req, path.c_str(), NULL);
+    if (ret < 0)
+        return ret;
+
+    obj_ptr<Stat> pStat = new Stat();
+
+    pStat->fill(path, &req.statbuf);
+    retVal = pStat;
 }
 
 result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
 {
-    class AsyncUVFSStatue : public uv_fs_t {
-    public:
-        AsyncUVFSStatue(bool& retVal, AsyncEvent* ac)
-            : m_retVal(retVal)
-            , m_ac(ac)
-        {
-        }
-
-        ~AsyncUVFSStatue()
-        {
-            uv_fs_req_cleanup(this);
-        }
-
-    public:
-        static void callback(uv_fs_t* req)
-        {
-            AsyncUVFSStatue* pThis = (AsyncUVFSStatue*)req;
-
-            pThis->m_retVal = (int32_t)uv_fs_get_result(req) == 0;
-            pThis->m_ac->apost(0);
-
-            delete pThis;
-        }
-
-    private:
-        bool& m_retVal;
-        AsyncEvent* m_ac;
-    };
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return uv_async([&] {
-        return uv_fs_access(s_uv_loop, new AsyncUVFSStatue(retVal, ac), path.c_str(), F_OK, AsyncUVFSStatue::callback);
-    });
+    AutoReq req;
+    retVal = uv_fs_access(NULL, &req, path.c_str(), F_OK, NULL) == 0;
+    return 0;
 }
 
 result_t fs_base::access(exlib::string path, int32_t mode, AsyncEvent* ac)
@@ -318,9 +309,8 @@ result_t fs_base::access(exlib::string path, int32_t mode, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return uv_async([&] {
-        return uv_fs_access(s_uv_loop, new AsyncUVFS(ac), path.c_str(), mode, AsyncUVFS::callback);
-    });
+    AutoReq req;
+    return uv_fs_access(NULL, &req, path.c_str(), mode, NULL);
 }
 
 result_t fs_base::link(exlib::string oldPath, exlib::string newPath, AsyncEvent* ac)
@@ -328,9 +318,8 @@ result_t fs_base::link(exlib::string oldPath, exlib::string newPath, AsyncEvent*
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return uv_async([&] {
-        return uv_fs_link(s_uv_loop, new AsyncUVFS(ac), oldPath.c_str(), newPath.c_str(), AsyncUVFS::callback);
-    });
+    AutoReq req;
+    return uv_fs_link(NULL, &req, oldPath.c_str(), newPath.c_str(), NULL);
 }
 
 result_t fs_base::unlink(exlib::string path, AsyncEvent* ac)
@@ -338,9 +327,8 @@ result_t fs_base::unlink(exlib::string path, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return uv_async([&] {
-        return uv_fs_unlink(s_uv_loop, new AsyncUVFS(ac), path.c_str(), AsyncUVFS::callback);
-    });
+    AutoReq req;
+    return uv_fs_unlink(NULL, &req, path.c_str(), NULL);
 }
 
 result_t fs_base::symlink(exlib::string target, exlib::string linkpath, exlib::string type, AsyncEvent* ac)
@@ -348,15 +336,15 @@ result_t fs_base::symlink(exlib::string target, exlib::string linkpath, exlib::s
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return uv_async([&] {
-        int _type = 0;
+    int _type = 0;
 
-        if (type == "dir")
-            _type = 1;
-        else if (type == "junction")
-            _type = 2;
-        return uv_fs_symlink(s_uv_loop, new AsyncUVFS(ac), target.c_str(), linkpath.c_str(), _type, AsyncUVFS::callback);
-    });
+    if (type == "dir")
+        _type = 1;
+    else if (type == "junction")
+        _type = 2;
+
+    AutoReq req;
+    return uv_fs_symlink(NULL, &req, target.c_str(), linkpath.c_str(), _type, NULL);
 }
 
 result_t fs_base::readlink(exlib::string path, exlib::string& retVal, AsyncEvent* ac)
@@ -364,10 +352,13 @@ result_t fs_base::readlink(exlib::string path, exlib::string& retVal, AsyncEvent
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return uv_async([&] {
-        return uv_fs_readlink(s_uv_loop, new AsyncUVFSResult<exlib::string>(retVal, ac), path.c_str(),
-            AsyncUVFSResult<exlib::string>::callback);
-    });
+    AutoReq req;
+    int32_t ret = uv_fs_readlink(NULL, &req, path.c_str(), NULL);
+    if (ret < 0)
+        return ret;
+
+    retVal = (const char*)req.ptr;
+    return 0;
 }
 
 result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent* ac)
@@ -375,10 +366,13 @@ result_t fs_base::realpath(exlib::string path, exlib::string& retVal, AsyncEvent
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return uv_async([&] {
-        return uv_fs_realpath(s_uv_loop, new AsyncUVFSResult<exlib::string>(retVal, ac), path.c_str(),
-            AsyncUVFSResult<exlib::string>::callback);
-    });
+    AutoReq req;
+    int32_t ret = uv_fs_realpath(NULL, &req, path.c_str(), NULL);
+    if (ret < 0)
+        return ret;
+
+    retVal = (const char*)req.ptr;
+    return 0;
 }
 
 result_t fs_base::mkdir(exlib::string path, int32_t mode, AsyncEvent* ac)
@@ -386,9 +380,8 @@ result_t fs_base::mkdir(exlib::string path, int32_t mode, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return uv_async([&] {
-        return uv_fs_mkdir(s_uv_loop, new AsyncUVFS(ac), path.c_str(), mode, AsyncUVFS::callback);
-    });
+    AutoReq req;
+    return uv_fs_mkdir(NULL, &req, path.c_str(), mode, NULL);
 }
 
 result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEvent* ac)
@@ -510,9 +503,8 @@ result_t fs_base::rmdir(exlib::string path, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return uv_async([&] {
-        return uv_fs_rmdir(s_uv_loop, new AsyncUVFS(ac), path.c_str(), AsyncUVFS::callback);
-    });
+    AutoReq req;
+    return uv_fs_rmdir(NULL, &req, path.c_str(), NULL);
 }
 
 result_t fs_base::fchmod(int32_t fd, int32_t mode, AsyncEvent* ac)
@@ -520,9 +512,8 @@ result_t fs_base::fchmod(int32_t fd, int32_t mode, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return uv_async([&] {
-        return uv_fs_fchmod(s_uv_loop, new AsyncUVFS(ac), fd, mode, AsyncUVFS::callback);
-    });
+    AutoReq req;
+    return uv_fs_fchmod(NULL, &req, fd, mode, NULL);
 }
 
 result_t fs_base::fchown(int32_t fd, int32_t uid, int32_t gid, AsyncEvent* ac)
@@ -530,9 +521,8 @@ result_t fs_base::fchown(int32_t fd, int32_t uid, int32_t gid, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return uv_async([&] {
-        return uv_fs_fchown(s_uv_loop, new AsyncUVFS(ac), fd, uid, gid, AsyncUVFS::callback);
-    });
+    AutoReq req;
+    return uv_fs_fchown(NULL, &req, fd, uid, gid, NULL);
 }
 
 result_t fs_base::fsync(int32_t fd, AsyncEvent* ac)
@@ -540,9 +530,8 @@ result_t fs_base::fsync(int32_t fd, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return uv_async([&] {
-        return uv_fs_fsync(s_uv_loop, new AsyncUVFS(ac), fd, AsyncUVFS::callback);
-    });
+    AutoReq req;
+    return uv_fs_fsync(NULL, &req, fd, NULL);
 }
 
 result_t fs_base::chmod(exlib::string path, int32_t mode, AsyncEvent* ac)
@@ -550,9 +539,8 @@ result_t fs_base::chmod(exlib::string path, int32_t mode, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return uv_async([&] {
-        return uv_fs_chmod(s_uv_loop, new AsyncUVFS(ac), path.c_str(), mode, AsyncUVFS::callback);
-    });
+    AutoReq req;
+    return uv_fs_chmod(NULL, &req, path.c_str(), mode, NULL);
 }
 
 result_t fs_base::chown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent* ac)
@@ -560,9 +548,8 @@ result_t fs_base::chown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return uv_async([&] {
-        return uv_fs_chown(s_uv_loop, new AsyncUVFS(ac), path.c_str(), uid, gid, AsyncUVFS::callback);
-    });
+    AutoReq req;
+    return uv_fs_chown(NULL, &req, path.c_str(), uid, gid, NULL);
 }
 
 result_t fs_base::lchown(exlib::string path, int32_t uid, int32_t gid, AsyncEvent* ac)
@@ -570,9 +557,8 @@ result_t fs_base::lchown(exlib::string path, int32_t uid, int32_t gid, AsyncEven
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return uv_async([&] {
-        return uv_fs_lchown(s_uv_loop, new AsyncUVFS(ac), path.c_str(), uid, gid, AsyncUVFS::callback);
-    });
+    AutoReq req;
+    return uv_fs_lchown(NULL, &req, path.c_str(), uid, gid, NULL);
 }
 
 result_t fs_base::rename(exlib::string from, exlib::string to, AsyncEvent* ac)
@@ -580,9 +566,8 @@ result_t fs_base::rename(exlib::string from, exlib::string to, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return uv_async([&] {
-        return uv_fs_rename(s_uv_loop, new AsyncUVFS(ac), from.c_str(), to.c_str(), AsyncUVFS::callback);
-    });
+    AutoReq req;
+    return uv_fs_rename(NULL, &req, from.c_str(), to.c_str(), NULL);
 }
 
 result_t fs_base::fdatasync(int32_t fd, AsyncEvent* ac)
@@ -590,9 +575,8 @@ result_t fs_base::fdatasync(int32_t fd, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return uv_async([&] {
-        return uv_fs_fdatasync(s_uv_loop, new AsyncUVFS(ac), fd, AsyncUVFS::callback);
-    });
+    AutoReq req;
+    return uv_fs_fdatasync(NULL, &req, fd, NULL);
 }
 
 result_t fs_base::copyFile(exlib::string from, exlib::string to, int32_t mode, AsyncEvent* ac)
@@ -600,61 +584,26 @@ result_t fs_base::copyFile(exlib::string from, exlib::string to, int32_t mode, A
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return uv_async([&] {
-        return uv_fs_copyfile(s_uv_loop, new AsyncUVFS(ac), from.c_str(), to.c_str(), mode,
-            AsyncUVFS::callback);
-    });
+    AutoReq req;
+    return uv_fs_copyfile(NULL, &req, from.c_str(), to.c_str(), mode, NULL);
 }
 
 result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
-    class AsyncUVFSReadDir : public uv_fs_t {
-    public:
-        AsyncUVFSReadDir(obj_ptr<NArray>& retVal, AsyncEvent* ac)
-            : m_retVal(retVal)
-            , m_ac(ac)
-        {
-        }
-
-        ~AsyncUVFSReadDir()
-        {
-            uv_fs_req_cleanup(this);
-        }
-
-    public:
-        static void callback(uv_fs_t* req)
-        {
-            AsyncUVFSReadDir* pThis = (AsyncUVFSReadDir*)req;
-
-            int32_t ret = (int32_t)uv_fs_get_result(req);
-            if (ret < 0) {
-                pThis->m_ac->apost(ret);
-                delete pThis;
-                return;
-            }
-
-            obj_ptr<NArray> oa = new NArray();
-            while (uv_fs_scandir_next(req, &pThis->m_dirent) != UV_EOF)
-                oa->append(pThis->m_dirent.name);
-
-            pThis->m_retVal = oa;
-
-            pThis->m_ac->apost(0);
-            delete pThis;
-        }
-
-    private:
-        obj_ptr<NArray>& m_retVal;
-        AsyncEvent* m_ac;
-        uv_dirent_t m_dirent;
-    };
-
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return uv_async([&] {
-        return uv_fs_scandir(s_uv_loop, new AsyncUVFSReadDir(retVal, ac), path.c_str(), 0,
-            AsyncUVFSReadDir::callback);
-    });
+    AutoReq req;
+    int32_t ret = uv_fs_scandir(NULL, &req, path.c_str(), 0, NULL);
+    if (ret < 0)
+        return ret;
+
+    retVal = new NArray();
+    uv_dirent_t dirent;
+
+    while (uv_fs_scandir_next(&req, &dirent) != UV_EOF)
+        retVal->append(dirent.name);
+
+    return 0;
 }
 }
