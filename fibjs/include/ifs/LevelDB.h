@@ -33,7 +33,6 @@ public:
     virtual result_t between(Buffer_base* from, Buffer_base* to, v8::Local<v8::Function> func) = 0;
     virtual result_t begin(obj_ptr<LevelDB_base>& retVal) = 0;
     virtual result_t commit() = 0;
-    virtual result_t flush(AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
 
 public:
@@ -59,7 +58,6 @@ public:
     static void s_between(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_begin(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_commit(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_flush(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -67,7 +65,6 @@ public:
     ASYNC_MEMBERVALUE2(LevelDB_base, get, Buffer_base*, obj_ptr<Buffer_base>);
     ASYNC_MEMBER2(LevelDB_base, set, Buffer_base*, Buffer_base*);
     ASYNC_MEMBER1(LevelDB_base, remove, Buffer_base*);
-    ASYNC_MEMBER0(LevelDB_base, flush);
     ASYNC_MEMBER0(LevelDB_base, close);
 };
 }
@@ -93,8 +90,6 @@ inline ClassInfo& LevelDB_base::class_info()
         { "between", s_between, false },
         { "begin", s_begin, false },
         { "commit", s_commit, false },
-        { "flush", s_flush, false },
-        { "flushSync", s_flush, false },
         { "close", s_close, false },
         { "closeSync", s_close, false }
     };
@@ -289,22 +284,6 @@ inline void LevelDB_base::s_commit(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_OVER(0, 0);
 
     hr = pInst->commit();
-
-    METHOD_VOID();
-}
-
-inline void LevelDB_base::s_flush(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("LevelDB.flush");
-    METHOD_INSTANCE(LevelDB_base);
-    METHOD_ENTER();
-
-    ASYNC_METHOD_OVER(0, 0);
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_flush(cb, args);
-    else
-        hr = pInst->ac_flush();
 
     METHOD_VOID();
 }

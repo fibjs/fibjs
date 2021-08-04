@@ -123,13 +123,6 @@ declare class Class_LevelDB extends Class_object {
     commit(): void;
 
     /**
-     * @description 提交当前数据库的缓存 
-     */
-    flush(): void;
-
-    flush(callback: (err: Error | undefined | null)=>any): void;
-
-    /**
      * @description 关闭当前数据库连接或事务 
      */
     close(): void;

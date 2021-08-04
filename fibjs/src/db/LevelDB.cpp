@@ -425,21 +425,6 @@ result_t LevelDB::commit()
     return hr;
 }
 
-result_t LevelDB::flush(AsyncEvent* ac)
-{
-    if (m_batch)
-        return 0;
-
-    if (!m_db)
-        return 0;
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    m_db->CompactRange(NULL, NULL);
-    return 0;
-}
-
 result_t LevelDB::close(AsyncEvent* ac)
 {
     if (m_batch) {

@@ -14,6 +14,8 @@
 namespace fibjs {
 
 class LevelDB : public LevelDB_base {
+    FIBER_FREE();
+
 public:
     LevelDB()
         : m_db(NULL)
@@ -36,7 +38,6 @@ public:
     virtual result_t between(Buffer_base* from, Buffer_base* to, v8::Local<v8::Function> func);
     virtual result_t begin(obj_ptr<LevelDB_base>& retVal);
     virtual result_t commit();
-    virtual result_t flush(AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
 
 public:
