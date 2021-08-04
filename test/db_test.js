@@ -851,15 +851,14 @@ describe("db", () => {
                 var rs = conn.execute('select * from test_type');
                 assert.equal(rs[0].v, v);
             });
-            
+
             it("query(tinytext)", () => {
                 conn.execute("CREATE TABLE test_type(`v` tinytext)");
                 var v = "0123456789abcdef";
                 conn.execute('insert into test_type values(?)', v);
                 var rs = conn.execute('select * from test_type');
                 conn.execute("DROP TABLE test_type");
-                assert.equal(rs[0].v, v);
-                assert.isString(rs[0].v, "tinytext query a bad type");
+                assert.strictEqual(rs[0].v, v, "tinytext query a bad type");
             });
 
             it("query(text)", () => {
@@ -868,8 +867,7 @@ describe("db", () => {
                 conn.execute('insert into test_type values(?)', v);
                 var rs = conn.execute('select * from test_type');
                 conn.execute("DROP TABLE test_type");
-                assert.equal(rs[0].v, v);
-                assert.isString(rs[0].v, "text query a bad type");
+                assert.strictEqual(rs[0].v, v, "text query a bad type");
             });
 
             it("binary", () => {
