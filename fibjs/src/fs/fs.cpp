@@ -292,6 +292,8 @@ result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEve
 
     pStat->fill(path, &req.statbuf);
     retVal = pStat;
+
+    return 0;
 }
 
 result_t fs_base::exists(exlib::string path, bool& retVal, AsyncEvent* ac)
