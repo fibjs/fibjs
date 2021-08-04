@@ -852,6 +852,26 @@ describe("db", () => {
                 assert.equal(rs[0].v, v);
             });
 
+            it("query(tinytext)", () => {
+                if (conn.type == 'mysql') {
+                    conn.execute("CREATE TABLE test_type(`v` tinytext)");
+                    var v = "0123456789abcdef";
+                    conn.execute('insert into test_type values(?)', v);
+                    var rs = conn.execute('select * from test_type');
+                    assert.strictEqual(rs[0].v, v);
+                }
+            });
+
+            it("query(text)", () => {
+                if (conn.type == 'mysql') {
+                    conn.execute("CREATE TABLE test_type(`v` text)");
+                    var v = "0123456789abcdef";
+                    conn.execute('insert into test_type values(?)', v);
+                    var rs = conn.execute('select * from test_type');
+                    assert.strictEqual(rs[0].v, v);
+                }
+            });
+
             it("binary", () => {
                 conn.createTable({
                     table: "test_type",
