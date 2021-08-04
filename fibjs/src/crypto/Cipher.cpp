@@ -248,7 +248,7 @@ result_t Cipher::process(const mbedtls_operation_t operation, Buffer_base* data,
             return CHECK_ERROR(_ssl::setError(ret));
         }
 
-        output.append((const char*)buffer, olen);
+        output.append((const char*)buffer, (int32_t)olen);
     }
 
     ret = mbedtls_cipher_finish(&m_ctx, buffer, &olen);
@@ -257,7 +257,7 @@ result_t Cipher::process(const mbedtls_operation_t operation, Buffer_base* data,
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
-    output.append((const char*)buffer, olen);
+    output.append((const char*)buffer, (int32_t)olen);
     retVal = new Buffer(output.str());
 
     return 0;

@@ -46,8 +46,8 @@ result_t prepare_data(PKey_base* pubKey, exlib::string id, obj_ptr<Buffer_base>&
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(sm2->m_key);
 
     exlib::string pdata;
-    int32_t key_size = mbedtls_mpi_size(&ecp->Q.X);
-    int32_t ld_len = id.length();
+    int32_t key_size = (int32_t)mbedtls_mpi_size(&ecp->Q.X);
+    int32_t ld_len = (int32_t)id.length();
     int32_t len = ld_len + sizeof(s_iv) + key_size * 2 + 2;
     pdata.resize(len);
     char* p = pdata.c_buffer();
