@@ -15,17 +15,8 @@ namespace fibjs {
 
 #define MAX_IDLE 256
 
-int32_t g_spareFibers;
-static int32_t g_tlsCurrent;
-
-class fiber_initer {
-public:
-    fiber_initer()
-    {
-        g_spareFibers = MAX_IDLE;
-        g_tlsCurrent = exlib::Fiber::tlsAlloc();
-    }
-} s_fiber_initer;
+int32_t g_spareFibers = MAX_IDLE;
+static exlib::fiber_local<JSFiber*> s_current;
 
 void JSFiber::FiberProcRunJavascript(void* p)
 {
@@ -184,7 +175,7 @@ result_t JSFiber::get_caller(obj_ptr<Fiber_base>& retVal)
 
 JSFiber* JSFiber::current()
 {
-    return (JSFiber*)exlib::Fiber::tlsGet(g_tlsCurrent);
+    return s_current;
 }
 
 result_t JSFiber::js_invoke()
@@ -221,7 +212,7 @@ JSFiber::EnterJsScope::EnterJsScope(JSFiber* fb)
     if (fb == NULL)
         m_pFiber = new JSFiber();
 
-    exlib::Fiber::tlsPut(g_tlsCurrent, m_pFiber);
+    s_current = m_pFiber;
     m_pFiber->holder()->m_fibers.putTail(m_pFiber);
 
     m_fiber.Reset(m_pFiber->holder()->m_isolate, m_pFiber->wrap());
@@ -236,7 +227,7 @@ JSFiber::EnterJsScope::~EnterJsScope()
     m_pFiber->m_quit.set();
 
     m_pFiber->holder()->m_fibers.remove(m_pFiber);
-    exlib::Fiber::tlsPut(g_tlsCurrent, 0);
+    s_current = 0;
 }
 
 } /* namespace fibjs */

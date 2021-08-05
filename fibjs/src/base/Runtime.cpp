@@ -168,24 +168,16 @@ void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), platfo
     entryThread->m_sem.Wait();
 }
 
-static int32_t s_tls_rt;
-
-class rt_initer {
-public:
-    rt_initer()
-    {
-        s_tls_rt = exlib::Fiber::tlsAlloc();
-    }
-} s_rt_initer;
+static exlib::fiber_local<Runtime*> s_rt;
 
 void Runtime::RegInThread()
 {
-    exlib::Fiber::tlsPut(s_tls_rt, this);
+    s_rt = this;
 }
 
 Runtime* Runtime::current()
 {
-    return (Runtime*)exlib::Fiber::tlsGet(s_tls_rt);
+    return s_rt;
 }
 
 class ShellArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
