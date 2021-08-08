@@ -28,7 +28,7 @@ v8::Local<v8::Value> SandBox::get_module(v8::Local<v8::Object> mods, exlib::stri
     if (!o->IsUndefined() || !v->IsFunction())
         return o;
 
-    v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(v);
+    JSFunction func = v8::Local<v8::Function>::Cast(v);
     v8::Local<v8::Value> args[6];
 
     exlib::string pname;
@@ -54,7 +54,7 @@ v8::Local<v8::Value> SandBox::get_module(v8::Local<v8::Object> mods, exlib::stri
     mod->SetPrivate(_context, v8::Private::ForApi(isolate->m_isolate, strEntry), func);
 
     v8::Local<v8::Object> glob = isolate->context()->Global();
-    func->Call(_context, glob, 6, args).ToLocal(&v);
+    v = func.Call(_context, glob, 6, args);
     if (v.IsEmpty())
         return v;
 

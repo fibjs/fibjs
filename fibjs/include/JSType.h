@@ -99,4 +99,21 @@ public:
         return v8::Local<v8::Array>::operator=(v.ToLocalChecked());
     }
 };
+
+class JSFunction : public v8::Local<v8::Function> {
+public:
+    JSFunction()
+    {
+    }
+
+    JSFunction(v8::Local<v8::Function> func)
+        : v8::Local<v8::Function>(func)
+    {
+    }
+
+public:
+    v8::Local<v8::Value> Call(v8::Local<v8::Context> context, v8::Local<v8::Value> recv,
+        int argc, v8::Local<v8::Value> argv[], bool async = false);
+};
+
 }

@@ -74,30 +74,6 @@ result_t SandBox::ExtLoader::run_module(Context* ctx, Buffer_base* src, exlib::s
     return run(ctx, src, name, arg_names, args);
 }
 
-static void promise_then(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    v8::Isolate* isolate = args.GetIsolate();
-    v8::Local<v8::Context> context = isolate->GetCurrentContext();
-    v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());
-
-    _data->Set(context, NewString(isolate, "_result"), args[0]);
-
-    obj_ptr<Event_base> ev = Event_base::getInstance(JSValue(_data->Get(context, NewString(isolate, "_ev"))));
-    ev->set();
-}
-
-static void promise_catch(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    v8::Isolate* isolate = args.GetIsolate();
-    v8::Local<v8::Context> context = isolate->GetCurrentContext();
-    v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());
-
-    _data->Set(context, NewString(isolate, "_error"), args[0]);
-
-    obj_ptr<Event_base> ev = Event_base::getInstance(JSValue(_data->Get(context, NewString(isolate, "_ev"))));
-    ev->set();
-}
-
 result_t SandBox::ExtLoader::run(Context* ctx, Buffer_base* src, exlib::string name,
     exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args)
 {
@@ -114,7 +90,7 @@ result_t SandBox::ExtLoader::run(Context* ctx, Buffer_base* src, exlib::string n
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(v);
+    JSFunction func = v8::Local<v8::Function>::Cast(v);
 
     v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(args[5]);
     module->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("entry")),
@@ -122,43 +98,10 @@ result_t SandBox::ExtLoader::run(Context* ctx, Buffer_base* src, exlib::string n
 
     v8::Local<v8::Object> glob = context->Global();
 
-    func->Call(context, glob, (int32_t)args.size(), args.data()).ToLocal(&v);
+    v = func.Call(context, glob, (int32_t)args.size(), args.data());
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    if (func->IsAsyncFunction()) {
-        v8::Local<v8::Promise> _promise = v8::Local<v8::Promise>::Cast(v);
-        v8::Local<v8::Function> _then_func;
-        v8::Local<v8::Function> _catch_func;
-
-        obj_ptr<Event_base> ev = new Event();
-        v8::Local<v8::Object> _data = v8::Object::New(isolate->m_isolate);
-
-        _data->Set(context, isolate->NewString("_ev"), ev->wrap());
-
-        _then_func = isolate->NewFunction("promise_then", promise_then, _data);
-        if (_then_func.IsEmpty()) {
-            ThrowError("function alloc error.");
-            return CALL_E_JAVASCRIPT;
-        }
-        _catch_func = isolate->NewFunction("promise_catch", promise_catch, _data);
-        if (_catch_func.IsEmpty()) {
-            ThrowError("function alloc error.");
-            return CALL_E_JAVASCRIPT;
-        }
-
-        _promise->Then(isolate->context(), _then_func);
-        _promise->Catch(isolate->context(), _catch_func);
-
-        ev->wait();
-
-        JSValue error = _data->Get(context, isolate->NewString("_error"));
-
-        if (!error.IsEmpty() && !error->IsUndefined() && !error->IsNull()) {
-            isolate->m_isolate->ThrowException(error);
-            return CALL_E_JAVASCRIPT;
-        }
-    }
     return 0;
 }
 }
