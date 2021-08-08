@@ -11,17 +11,31 @@
 #include "Fiber.h"
 
 namespace fibjs {
+
+static void main_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Array> argv;
+
+    global_base::get_argv(argv);
+    result_t hr = isolate->m_topSandbox->run_main(isolate->m_fname, argv);
+
+    THROW_ERROR();
+}
+
 result_t FiberProcJsEntry(Isolate* isolate)
 {
     JSFiber::EnterJsScope s;
 
     isolate->start_profiler();
+    v8::Local<v8::Context> _context = isolate->context();
 
     if (!isolate->m_fname.empty()) {
-        v8::Local<v8::Array> argv;
-
-        global_base::get_argv(argv);
-        s.m_hr = isolate->m_topSandbox->run_main(isolate->m_fname, argv);
+        v8::Local<v8::Value> result;
+        v8::Local<v8::Function> _main_func = isolate->NewFunction("main", main_stub);
+        _main_func->Call(_context, _main_func, 0, NULL).ToLocal(&result);
+        if (result.IsEmpty())
+            s.m_hr = CALL_E_JAVASCRIPT;
     } else {
         RootModule* pModule = RootModule::g_root;
         v8::Local<v8::Context> _context = isolate->context();

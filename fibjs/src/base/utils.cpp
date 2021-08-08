@@ -172,39 +172,43 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
         if (message.IsEmpty())
             return isolate->toString(err_obj);
 
-        exlib::string strError(isolate->toString(message->GetScriptResourceName()));
-        int32_t lineNumber = message->GetLineNumber(context).ToChecked();
-        if (lineNumber > 0) {
-            char numStr[32];
-            strError.append(1, ':');
-            sprintf(numStr, "%d", lineNumber);
-            strError.append(numStr);
-            strError.append(1, ':');
-            sprintf(numStr, "%d", message->GetStartColumn() + 1);
-            strError.append(numStr);
-        }
-        strError.append("\n");
+        exlib::string strError;
+        v8::Local<v8::Value> res = message->GetScriptResourceName();
+        if (!res->IsUndefined()) {
+            strError.append(isolate->toString(res));
+            int32_t lineNumber = message->GetLineNumber(context).ToChecked();
+            if (lineNumber > 0) {
+                char numStr[32];
+                strError.append(1, ':');
+                sprintf(numStr, "%d", lineNumber);
+                strError.append(numStr);
+                strError.append(1, ':');
+                sprintf(numStr, "%d", message->GetStartColumn() + 1);
+                strError.append(numStr);
+            }
+            strError.append("\n");
 
-        v8::Local<v8::String> sourceline;
-        if (message->GetSourceLine(context).ToLocal(&sourceline)) {
-            // Print line of source code.
-            v8::String::Utf8Value sourcelinevalue(isolate->m_isolate, sourceline);
-            const char* sourceline_string = ToCString(sourcelinevalue);
-            strError.append(sourceline_string);
-            strError.append("\n");
-            // Print wavy underline (GetUnderline is deprecated).
-            int start = message->GetStartColumn(context).FromJust();
-            for (int i = 0; i < start; i++) {
-                if (sourceline_string[i] == '\0') {
-                    break;
+            v8::Local<v8::String> sourceline;
+            if (message->GetSourceLine(context).ToLocal(&sourceline)) {
+                // Print line of source code.
+                v8::String::Utf8Value sourcelinevalue(isolate->m_isolate, sourceline);
+                const char* sourceline_string = ToCString(sourcelinevalue);
+                strError.append(sourceline_string);
+                strError.append("\n");
+                // Print wavy underline (GetUnderline is deprecated).
+                int start = message->GetStartColumn(context).FromJust();
+                for (int i = 0; i < start; i++) {
+                    if (sourceline_string[i] == '\0') {
+                        break;
+                    }
+                    strError.append((sourceline_string[i] == '\t') ? "\t" : " ");
                 }
-                strError.append((sourceline_string[i] == '\t') ? "\t" : " ");
+                int end = message->GetEndColumn(context).FromJust();
+                for (int i = start; i < end; i++) {
+                    strError.append("^");
+                }
+                strError.append("\n");
             }
-            int end = message->GetEndColumn(context).FromJust();
-            for (int i = start; i < end; i++) {
-                strError.append("^");
-            }
-            strError.append("\n");
         }
 
         if (err_obj->IsNativeError()) {
