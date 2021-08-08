@@ -210,7 +210,8 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
         if (err_obj->IsNativeError()) {
             v8::Local<v8::Value> stack_trace_string;
             try_catch.StackTrace(context).ToLocal(&stack_trace_string);
-            strError.append(isolate->toString(stack_trace_string));
+            if (!stack_trace_string.IsEmpty())
+                strError.append(isolate->toString(stack_trace_string));
         } else {
             JSValue message;
             JSValue name;
