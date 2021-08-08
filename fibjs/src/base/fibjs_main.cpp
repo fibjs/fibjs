@@ -20,7 +20,9 @@ static void main_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
     global_base::get_argv(argv);
     result_t hr = isolate->m_topSandbox->run_main(isolate->m_fname, argv);
 
-    THROW_ERROR();
+    if (hr < 0) {
+        THROW_ERROR();
+    }
 }
 
 result_t FiberProcJsEntry(Isolate* isolate)
