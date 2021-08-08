@@ -7,4 +7,528 @@
  */
 module constants
 {
+    /**/
+    const RTLD_LAZY = 1;
+
+    /**/
+    const RTLD_NOW = 2;
+
+    /**/
+    const RTLD_GLOBAL = 8;
+
+    /**/
+    const RTLD_LOCAL = 4;
+
+    /**/
+    const E2BIG = 7;
+
+    /**/
+    const EACCES = 13;
+
+    /**/
+    const EADDRINUSE = 48;
+
+    /**/
+    const EADDRNOTAVAIL = 49;
+
+    /**/
+    const EAFNOSUPPORT = 47;
+
+    /**/
+    const EAGAIN = 35;
+
+    /**/
+    const EALREADY = 37;
+
+    /**/
+    const EBADF = 9;
+
+    /**/
+    const EBADMSG = 94;
+
+    /**/
+    const EBUSY = 16;
+
+    /**/
+    const ECANCELED = 89;
+
+    /**/
+    const ECHILD = 10;
+
+    /**/
+    const ECONNABORTED = 53;
+
+    /**/
+    const ECONNREFUSED = 61;
+
+    /**/
+    const ECONNRESET = 54;
+
+    /**/
+    const EDEADLK = 11;
+
+    /**/
+    const EDESTADDRREQ = 39;
+
+    /**/
+    const EDOM = 33;
+
+    /**/
+    const EDQUOT = 69;
+
+    /**/
+    const EEXIST = 17;
+
+    /**/
+    const EFAULT = 14;
+
+    /**/
+    const EFBIG = 27;
+
+    /**/
+    const EHOSTUNREACH = 65;
+
+    /**/
+    const EIDRM = 90;
+
+    /**/
+    const EILSEQ = 92;
+
+    /**/
+    const EINPROGRESS = 36;
+
+    /**/
+    const EINTR = 4;
+
+    /**/
+    const EINVAL = 22;
+
+    /**/
+    const EIO = 5;
+
+    /**/
+    const EISCONN = 56;
+
+    /**/
+    const EISDIR = 21;
+
+    /**/
+    const ELOOP = 62;
+
+    /**/
+    const EMFILE = 24;
+
+    /**/
+    const EMLINK = 31;
+
+    /**/
+    const EMSGSIZE = 40;
+
+    /**/
+    const EMULTIHOP = 95;
+
+    /**/
+    const ENAMETOOLONG = 63;
+
+    /**/
+    const ENETDOWN = 50;
+
+    /**/
+    const ENETRESET = 52;
+
+    /**/
+    const ENETUNREACH = 51;
+
+    /**/
+    const ENFILE = 23;
+
+    /**/
+    const ENOBUFS = 55;
+
+    /**/
+    const ENODATA = 96;
+
+    /**/
+    const ENODEV = 19;
+
+    /**/
+    const ENOENT = 2;
+
+    /**/
+    const ENOEXEC = 8;
+
+    /**/
+    const ENOLCK = 77;
+
+    /**/
+    const ENOLINK = 97;
+
+    /**/
+    const ENOMEM = 12;
+
+    /**/
+    const ENOMSG = 91;
+
+    /**/
+    const ENOPROTOOPT = 42;
+
+    /**/
+    const ENOSPC = 28;
+
+    /**/
+    const ENOSR = 98;
+
+    /**/
+    const ENOSTR = 99;
+
+    /**/
+    const ENOSYS = 78;
+
+    /**/
+    const ENOTCONN = 57;
+
+    /**/
+    const ENOTDIR = 20;
+
+    /**/
+    const ENOTEMPTY = 66;
+
+    /**/
+    const ENOTSOCK = 38;
+
+    /**/
+    const ENOTSUP = 45;
+
+    /**/
+    const ENOTTY = 25;
+
+    /**/
+    const ENXIO = 6;
+
+    /**/
+    const EOPNOTSUPP = 102;
+
+    /**/
+    const EOVERFLOW = 84;
+
+    /**/
+    const EPERM = 1;
+
+    /**/
+    const EPIPE = 32;
+
+    /**/
+    const EPROTO = 100;
+
+    /**/
+    const EPROTONOSUPPORT = 43;
+
+    /**/
+    const EPROTOTYPE = 41;
+
+    /**/
+    const ERANGE = 34;
+
+    /**/
+    const EROFS = 30;
+
+    /**/
+    const ESPIPE = 29;
+
+    /**/
+    const ESRCH = 3;
+
+    /**/
+    const ESTALE = 70;
+
+    /**/
+    const ETIME = 101;
+
+    /**/
+    const ETIMEDOUT = 60;
+
+    /**/
+    const ETXTBSY = 26;
+
+    /**/
+    const EWOULDBLOCK = 35;
+
+    /**/
+    const EXDEV = 18;
+
+    /**/
+    const PRIORITY_LOW = 19;
+
+    /**/
+    const PRIORITY_BELOW_NORMAL = 10;
+
+    /**/
+    const PRIORITY_NORMAL = 0;
+
+    /**/
+    const PRIORITY_ABOVE_NORMAL = -7;
+
+    /**/
+    const PRIORITY_HIGH = -14;
+
+    /**/
+    const PRIORITY_HIGHEST = -20;
+
+    /**/
+    const SIGHUP = 1;
+
+    /**/
+    const SIGINT = 2;
+
+    /**/
+    const SIGQUIT = 3;
+
+    /**/
+    const SIGILL = 4;
+
+    /**/
+    const SIGTRAP = 5;
+
+    /**/
+    const SIGABRT = 6;
+
+    /**/
+    const SIGIOT = 6;
+
+    /**/
+    const SIGBUS = 10;
+
+    /**/
+    const SIGFPE = 8;
+
+    /**/
+    const SIGKILL = 9;
+
+    /**/
+    const SIGUSR1 = 30;
+
+    /**/
+    const SIGSEGV = 11;
+
+    /**/
+    const SIGUSR2 = 31;
+
+    /**/
+    const SIGPIPE = 13;
+
+    /**/
+    const SIGALRM = 14;
+
+    /**/
+    const SIGTERM = 15;
+
+    /**/
+    const SIGCHLD = 20;
+
+    /**/
+    const SIGCONT = 19;
+
+    /**/
+    const SIGSTOP = 17;
+
+    /**/
+    const SIGTSTP = 18;
+
+    /**/
+    const SIGTTIN = 21;
+
+    /**/
+    const SIGTTOU = 22;
+
+    /**/
+    const SIGURG = 16;
+
+    /**/
+    const SIGXCPU = 24;
+
+    /**/
+    const SIGXFSZ = 25;
+
+    /**/
+    const SIGVTALRM = 26;
+
+    /**/
+    const SIGPROF = 27;
+
+    /**/
+    const SIGWINCH = 28;
+
+    /**/
+    const SIGIO = 23;
+
+    /**/
+    const SIGINFO = 29;
+
+    /**/
+    const SIGSYS = 12;
+
+    /**/
+    const UV_FS_SYMLINK_DIR = 1;
+
+    /**/
+    const UV_FS_SYMLINK_JUNCTION = 2;
+
+    /**/
+    const O_RDONLY = 0;
+
+    /**/
+    const O_WRONLY = 1;
+
+    /**/
+    const O_RDWR = 2;
+
+    /**/
+    const UV_DIRENT_UNKNOWN = 0;
+
+    /**/
+    const UV_DIRENT_FILE = 1;
+
+    /**/
+    const UV_DIRENT_DIR = 2;
+
+    /**/
+    const UV_DIRENT_LINK = 3;
+
+    /**/
+    const UV_DIRENT_FIFO = 4;
+
+    /**/
+    const UV_DIRENT_SOCKET = 5;
+
+    /**/
+    const UV_DIRENT_CHAR = 6;
+
+    /**/
+    const UV_DIRENT_BLOCK = 7;
+
+    /**/
+    const S_IFMT = 61440;
+
+    /**/
+    const S_IFREG = 32768;
+
+    /**/
+    const S_IFDIR = 16384;
+
+    /**/
+    const S_IFCHR = 8192;
+
+    /**/
+    const S_IFBLK = 24576;
+
+    /**/
+    const S_IFIFO = 4096;
+
+    /**/
+    const S_IFLNK = 40960;
+
+    /**/
+    const S_IFSOCK = 49152;
+
+    /**/
+    const O_CREAT = 512;
+
+    /**/
+    const O_EXCL = 2048;
+
+    /**/
+    const UV_FS_O_FILEMAP = 0;
+
+    /**/
+    const O_NOCTTY = 131072;
+
+    /**/
+    const O_TRUNC = 1024;
+
+    /**/
+    const O_APPEND = 8;
+
+    /**/
+    const O_DIRECTORY = 1048576;
+
+    /**/
+    const O_NOFOLLOW = 256;
+
+    /**/
+    const O_SYNC = 128;
+
+    /**/
+    const O_DSYNC = 4194304;
+
+    /**/
+    const O_SYMLINK = 2097152;
+
+    /**/
+    const O_NONBLOCK = 4;
+
+    /**/
+    const S_IRWXU = 448;
+
+    /**/
+    const S_IRUSR = 256;
+
+    /**/
+    const S_IWUSR = 128;
+
+    /**/
+    const S_IXUSR = 64;
+
+    /**/
+    const S_IRWXG = 56;
+
+    /**/
+    const S_IRGRP = 32;
+
+    /**/
+    const S_IWGRP = 16;
+
+    /**/
+    const S_IXGRP = 8;
+
+    /**/
+    const S_IRWXO = 7;
+
+    /**/
+    const S_IROTH = 4;
+
+    /**/
+    const S_IWOTH = 2;
+
+    /**/
+    const S_IXOTH = 1;
+
+    /**/
+    const F_OK = 0;
+
+    /**/
+    const R_OK = 4;
+
+    /**/
+    const W_OK = 2;
+
+    /**/
+    const X_OK = 1;
+
+    /**/
+    const UV_FS_COPYFILE_EXCL = 1;
+
+    /**/
+    const COPYFILE_EXCL = 1;
+
+    /**/
+    const UV_FS_COPYFILE_FICLONE = 2;
+
+    /**/
+    const COPYFILE_FICLONE = 2;
+
+    /**/
+    const UV_FS_COPYFILE_FICLONE_FORCE = 4;
+
+    /**/
+    const COPYFILE_FICLONE_FORCE = 4;
 };
