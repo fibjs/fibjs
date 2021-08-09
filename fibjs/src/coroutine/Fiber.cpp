@@ -173,6 +173,17 @@ result_t JSFiber::get_caller(obj_ptr<Fiber_base>& retVal)
     return 0;
 }
 
+result_t JSFiber::get_stack_usage(int32_t& retVal)
+{
+    if (JSFiber::current() == this) {
+        V8FrameInfo _fi = save_fi(holder()->m_isolate);
+        retVal = (intptr_t)_fi.handle - (intptr_t)_fi.entry_fp;
+    } else
+        retVal = (intptr_t)m_handler_ - (intptr_t)m_c_entry_fp_;
+
+    return 0;
+}
+
 JSFiber* JSFiber::current()
 {
     return s_current;

@@ -70,5 +70,10 @@ declare class Class_Fiber extends Class_object {
      */
     readonly stack: string;
 
+    /**
+     * @description 查询纤程已使用的堆栈尺寸
+     */
+    readonly stack_usage: number;
+
 }
 

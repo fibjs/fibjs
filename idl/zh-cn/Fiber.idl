@@ -58,4 +58,7 @@ interface Fiber : object
 
     /*! @brief 查询纤程的调用堆栈*/
     readonly String stack;
+
+    /*! @brief 查询纤程已使用的堆栈尺寸*/
+    readonly Integer stack_usage;
 };

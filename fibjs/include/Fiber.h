@@ -58,6 +58,7 @@ public:
     virtual result_t get_id(int64_t& retVal);
     virtual result_t get_stack(exlib::string& retVal);
     virtual result_t get_caller(obj_ptr<Fiber_base>& retVal);
+    virtual result_t get_stack_usage(int32_t& retVal);
 
 public:
     static void FiberProcRunJavascript(void* p);
