@@ -177,9 +177,9 @@ result_t JSFiber::get_stack_usage(int32_t& retVal)
 {
     if (JSFiber::current() == this) {
         V8FrameInfo _fi = save_fi(holder()->m_isolate);
-        retVal = (intptr_t)_fi.handle - (intptr_t)_fi.entry_fp;
+        retVal = m_bind_thread->stackguard() - (intptr_t)_fi.entry_fp;
     } else
-        retVal = (intptr_t)m_handler_ - (intptr_t)m_c_entry_fp_;
+        retVal = m_bind_thread->stackguard() - (intptr_t)m_c_entry_fp_;
 
     return 0;
 }
@@ -224,6 +224,8 @@ JSFiber::EnterJsScope::EnterJsScope(JSFiber* fb)
         m_pFiber = new JSFiber();
 
     s_current = m_pFiber;
+    m_pFiber->m_bind_thread = exlib::Thread_base::current();
+
     m_pFiber->holder()->m_fibers.putTail(m_pFiber);
 
     m_fiber.Reset(m_pFiber->holder()->m_isolate, m_pFiber->wrap());
