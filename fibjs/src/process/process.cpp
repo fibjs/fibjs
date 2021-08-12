@@ -194,7 +194,16 @@ result_t process_base::hrtime(v8::Local<v8::Array> diff, v8::Local<v8::Array>& r
 
 result_t process_base::get_execPath(exlib::string& retVal)
 {
-    return os_base::get_execPath(retVal);
+    char buf[1024] = "";
+    size_t size = sizeof(buf);
+
+    int32_t ret = uv_exepath(buf, &size);
+    if (ret < 0)
+        return CHECK_ERROR(ret);
+
+    retVal = buf;
+
+    return 0;
 }
 
 result_t process_base::get_env(v8::Local<v8::Object>& retVal)
@@ -339,12 +348,42 @@ result_t process_base::cpuUsage(v8::Local<v8::Object> previousValue, v8::Local<v
 
 result_t process_base::memoryUsage(v8::Local<v8::Object>& retVal)
 {
-    return os_base::memoryUsage(retVal);
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Object> info = v8::Object::New(isolate->m_isolate);
+
+    size_t rss;
+    int32_t ret = uv_resident_set_memory(&rss);
+    if (ret < 0)
+        return CHECK_ERROR(ret);
+
+    info->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, (double)rss));
+
+    v8::HeapStatistics v8_heap_stats;
+    isolate->m_isolate->GetHeapStatistics(&v8_heap_stats);
+
+    info->Set(context, isolate->NewString("heapTotal"),
+        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.total_heap_size()));
+    info->Set(context, isolate->NewString("heapUsed"),
+        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.used_heap_size()));
+    info->Set(context, isolate->NewString("external"),
+        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.external_memory()));
+
+    v8::Local<v8::Object> objs;
+    object_base::class_info().dump(objs);
+    info->Set(context, isolate->NewString("nativeObjects"), objs);
+
+    retVal = info;
+
+    return 0;
 }
 
 result_t process_base::uptime(double& retVal)
 {
-    return os_base::uptime(retVal);
+    int32_t ret = uv_uptime(&retVal);
+    if (ret < 0)
+        return CHECK_ERROR(ret);
+    return 0;
 }
 
 result_t process_base::cwd(exlib::string& retVal)

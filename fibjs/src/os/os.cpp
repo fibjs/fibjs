@@ -149,14 +149,6 @@ result_t os_base::get_timezone(int32_t& retVal)
     return 0;
 }
 
-result_t os_base::uptime(double& retVal)
-{
-    int32_t ret = uv_uptime(&retVal);
-    if (ret < 0)
-        return CHECK_ERROR(ret);
-    return 0;
-}
-
 static int32_t s_cpus = 0;
 static uv_cpu_info_t* s_cpu_infos;
 
@@ -361,52 +353,6 @@ result_t os_base::totalmem(int64_t& retVal)
 result_t os_base::freemem(int64_t& retVal)
 {
     retVal = uv_get_free_memory();
-    return 0;
-}
-
-result_t os_base::get_execPath(exlib::string& retVal)
-{
-    char buf[1024] = "";
-    size_t size = sizeof(buf);
-
-    int32_t ret = uv_exepath(buf, &size);
-    if (ret < 0)
-        return CHECK_ERROR(ret);
-
-    retVal = buf;
-
-    return 0;
-}
-
-result_t os_base::memoryUsage(v8::Local<v8::Object>& retVal)
-{
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Object> info = v8::Object::New(isolate->m_isolate);
-
-    size_t rss;
-    int32_t ret = uv_resident_set_memory(&rss);
-    if (ret < 0)
-        return CHECK_ERROR(ret);
-
-    info->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, (double)rss));
-
-    v8::HeapStatistics v8_heap_stats;
-    isolate->m_isolate->GetHeapStatistics(&v8_heap_stats);
-
-    info->Set(context, isolate->NewString("heapTotal"),
-        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.total_heap_size()));
-    info->Set(context, isolate->NewString("heapUsed"),
-        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.used_heap_size()));
-    info->Set(context, isolate->NewString("external"),
-        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.external_memory()));
-
-    v8::Local<v8::Object> objs;
-    object_base::class_info().dump(objs);
-    info->Set(context, isolate->NewString("nativeObjects"), objs);
-
-    retVal = info;
-
     return 0;
 }
 

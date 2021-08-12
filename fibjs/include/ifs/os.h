@@ -31,7 +31,6 @@ public:
     static result_t arch(exlib::string& retVal);
     static result_t get_timezone(int32_t& retVal);
     static result_t get_EOL(exlib::string& retVal);
-    static result_t uptime(double& retVal);
     static result_t loadavg(v8::Local<v8::Array>& retVal);
     static result_t totalmem(int64_t& retVal);
     static result_t freemem(int64_t& retVal);
@@ -45,8 +44,6 @@ public:
     static result_t platform(exlib::string& retVal);
     static result_t time(exlib::string tmString, date_t& retVal);
     static result_t dateAdd(date_t d, int32_t num, exlib::string part, date_t& retVal);
-    static result_t get_execPath(exlib::string& retVal);
-    static result_t memoryUsage(v8::Local<v8::Object>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -68,7 +65,6 @@ public:
     static void s_static_arch(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_timezone(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_static_get_EOL(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_uptime(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_loadavg(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_totalmem(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_freemem(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -82,8 +78,6 @@ public:
     static void s_static_platform(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_time(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_dateAdd(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_get_execPath(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(os_base, openPrinter, exlib::string, obj_ptr<BufferedStream_base>);
@@ -103,7 +97,6 @@ inline ClassInfo& os_base::class_info()
         { "release", s_static_release, true },
         { "homedir", s_static_homedir, true },
         { "arch", s_static_arch, true },
-        { "uptime", s_static_uptime, true },
         { "loadavg", s_static_loadavg, true },
         { "totalmem", s_static_totalmem, true },
         { "freemem", s_static_freemem, true },
@@ -117,8 +110,7 @@ inline ClassInfo& os_base::class_info()
         { "openPrinterSync", s_static_openPrinter, true },
         { "platform", s_static_platform, true },
         { "time", s_static_time, true },
-        { "dateAdd", s_static_dateAdd, true },
-        { "memoryUsage", s_static_memoryUsage, true }
+        { "dateAdd", s_static_dateAdd, true }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -127,8 +119,7 @@ inline ClassInfo& os_base::class_info()
 
     static ClassData::ClassProperty s_property[] = {
         { "timezone", s_static_get_timezone, block_set, true },
-        { "EOL", s_static_get_EOL, block_set, true },
-        { "execPath", s_static_get_execPath, block_set, true }
+        { "EOL", s_static_get_EOL, block_set, true }
     };
 
     static ClassData s_cd = {
@@ -245,20 +236,6 @@ inline void os_base::s_static_get_EOL(v8::Local<v8::Name> property, const v8::Pr
     PROPERTY_ENTER();
 
     hr = get_EOL(vr);
-
-    METHOD_RETURN();
-}
-
-inline void os_base::s_static_uptime(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    double vr;
-
-    METHOD_NAME("os.uptime");
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = uptime(vr);
 
     METHOD_RETURN();
 }
@@ -454,32 +431,6 @@ inline void os_base::s_static_dateAdd(const v8::FunctionCallbackInfo<v8::Value>&
     ARG(exlib::string, 2);
 
     hr = dateAdd(v0, v1, v2, vr);
-
-    METHOD_RETURN();
-}
-
-inline void os_base::s_static_get_execPath(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    exlib::string vr;
-
-    METHOD_NAME("os.execPath");
-    PROPERTY_ENTER();
-
-    hr = get_execPath(vr);
-
-    METHOD_RETURN();
-}
-
-inline void os_base::s_static_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    v8::Local<v8::Object> vr;
-
-    METHOD_NAME("os.memoryUsage");
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = memoryUsage(vr);
 
     METHOD_RETURN();
 }

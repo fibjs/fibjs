@@ -6,7 +6,6 @@ var test_util = require('./test_util');
 var util = require('util');
 var mq = require('mq');
 var coroutine = require('coroutine');
-var os = require('os');
 
 describe('util', () => {
     it("inherits", () => {
@@ -1761,20 +1760,20 @@ describe('util', () => {
 
         it("Garbage Collection", () => {
             test_util.gc();
-            var no1 = os.memoryUsage().nativeObjects.objects;
+            var no1 = process.memoryUsage().nativeObjects.objects;
 
             var lc = new util.LruCache(1024);
             lc.set("test", lc);
-            assert.equal(no1 + 1, os.memoryUsage().nativeObjects.objects);
+            assert.equal(no1 + 1, process.memoryUsage().nativeObjects.objects);
 
             lc.set("test1", new Buffer());
-            assert.equal(no1 + 2, os.memoryUsage().nativeObjects.objects);
+            assert.equal(no1 + 2, process.memoryUsage().nativeObjects.objects);
 
             lc.remove("test1");
             lc = undefined;
 
             test_util.gc();
-            assert.equal(no1, os.memoryUsage().nativeObjects.objects);
+            assert.equal(no1, process.memoryUsage().nativeObjects.objects);
         });
     });
 

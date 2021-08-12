@@ -9,14 +9,14 @@ describe("mongodb", () => {
     function clear(mdb) {
         try {
             mdb.test.drop();
-        } catch (e) {}
+        } catch (e) { }
     }
 
     it("open/close", () => {
         var mdb = db.open("mongodb://127.0.0.1/test");
         mdb.close();
-        // var no1 = os.memoryUsage().nativeObjects.objects;
-        // assert.equal(no1 - 2, os.memoryUsage().nativeObjects.objects);
+        // var no1 = process.memoryUsage().nativeObjects.objects;
+        // assert.equal(no1 - 2, process.memoryUsage().nativeObjects.objects);
     })
 
     it("runCommand", () => {

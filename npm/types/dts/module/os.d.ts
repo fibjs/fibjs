@@ -69,13 +69,6 @@ declare module 'os' {
     const EOL: string;
 
     /**
-     * @description 查询运行环境运行时间，以秒为单位
-     *      @return 返回表示时间的数值
-     *     
-     */
-    function uptime(): number;
-
-    /**
      * @description 查询运行环境 1分钟，5分钟，15分钟平均负载
      *      @return 返回包含三个负载数据的数组
      *     
@@ -173,33 +166,6 @@ declare module 'os' {
      *      
      */
     function dateAdd(d: typeof Date, num: number, part: string): typeof Date;
-
-    /**
-     * @description 查询当前运行执行文件完整路径 
-     */
-    const execPath: string;
-
-    /**
-     * @description 查询当前进程内存使用报告
-     * 
-     *      内存报告生成类似以下结果：
-     *      ```JavaScript
-     *      {
-     *        "rss": 8622080,
-     *        "heapTotal": 4083456,
-     *        "heapUsed": 1621800,
-     *        "nativeObjects": 122
-     *      }
-     *      ```
-     *      其中：
-     *      - rss 返回进程当前占用物理内存大小
-     *      - heapTotal 返回 v8 引擎堆内存大小
-     *      - heapUsed 返回 v8 引擎正在使用堆内存大小
-     *      - nativeObjects 返回当前有效内置对象数
-     *      @return 返回包含内存报告
-     *      
-     */
-    function memoryUsage(): FIBJS.GeneralObject;
 
 }
 

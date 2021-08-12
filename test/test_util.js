@@ -20,7 +20,7 @@ exports.countObject = nm => {
             });
     }
 
-    count(os.memoryUsage().nativeObjects);
+    count(process.memoryUsage().nativeObjects);
     return cnt;
 }
 

@@ -15,7 +15,6 @@ describe('os', () => {
             type: os.type(),
             version: os.version,
             CPUs: os.cpuNumbers(),
-            uptime: os.uptime(),
             loadavg: os.loadavg(),
             totalmem: os.totalmem(),
             freemem: os.freemem()
