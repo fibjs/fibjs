@@ -187,7 +187,7 @@ typedef int32_t result_t;
 
 #define STREAM_BUFF_SIZE 65536
 
-#if 0
+#if 1
 #define V8_SCOPE(isolate) v8::EscapableHandleScope handle_scope(isolate)
 #define V8_RETURN(v) handle_scope.Escape(v)
 #else

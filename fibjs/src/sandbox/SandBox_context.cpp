@@ -98,6 +98,7 @@ void _require(const v8::FunctionCallbackInfo<v8::Value>& args)
 void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Isolate* isolate = args.GetIsolate();
+    V8_SCOPE(isolate);
     int32_t argc = args.Length();
 
     if (argc < 1) {

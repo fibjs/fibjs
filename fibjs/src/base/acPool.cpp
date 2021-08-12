@@ -205,7 +205,7 @@ int32_t AsyncCallBack::check_result(int32_t hr, const v8::FunctionCallbackInfo<v
         async_call(hr);
 
     if (m_ctxo)
-        args.GetReturnValue().Set(V8_RETURN(GetReturnValue(m_isolate->m_isolate, m_ctxo)));
+        args.GetReturnValue().Set(GetReturnValue(m_isolate->m_isolate, m_ctxo));
     else
         args.GetReturnValue().SetUndefined();
 
