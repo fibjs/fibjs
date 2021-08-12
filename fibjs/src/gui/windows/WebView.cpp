@@ -11,7 +11,7 @@
 #include "ifs/gui.h"
 #include "ifs/fs.h"
 #include "ifs/registry.h"
-#include "ifs/os.h"
+#include "ifs/process.h"
 #include "path.h"
 #include "WebView.h"
 #include "EventInfo.h"
@@ -394,7 +394,7 @@ result_t os_gui_setVersion(int32_t ver)
 {
     exlib::string p, exe;
 
-    os_base::get_execPath(p);
+    process_base::get_execPath(p);
     path_base::basename(p, "", exe);
 
     registry_base::set(registry_base::C_CURRENT_USER,
