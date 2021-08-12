@@ -168,6 +168,7 @@ result_t process_base::umask(int32_t& retVal)
 }
 
 #define NANOS_PER_SEC 1000000000LL
+#define MICROS_PER_SEC 1e6
 
 result_t process_base::hrtime(v8::Local<v8::Array> diff, v8::Local<v8::Array>& retVal)
 {
@@ -301,6 +302,39 @@ result_t process_base::exit(int32_t code)
     Isolate* isolate = Isolate::current();
     isolate->m_exitCode = code;
     return process_base::exit();
+}
+
+result_t process_base::cpuUsage(v8::Local<v8::Object> previousValue, v8::Local<v8::Object>& retVal)
+{
+    uv_rusage_t rusage;
+    double _user = 0, _system = 0;
+
+    int err = uv_getrusage(&rusage);
+    if (err)
+        return err;
+
+    result_t hr;
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+
+    hr = GetConfigValue(isolate->m_isolate, previousValue, "user", _user, true);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    hr = GetConfigValue(isolate->m_isolate, previousValue, "system", _system, true);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    _user = MICROS_PER_SEC * rusage.ru_utime.tv_sec + rusage.ru_utime.tv_usec - _user;
+    _system = MICROS_PER_SEC * rusage.ru_stime.tv_sec + rusage.ru_stime.tv_usec - _system;
+
+    v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
+    o->Set(context, isolate->NewString("user"), v8::Number::New(isolate->m_isolate, _user));
+    o->Set(context, isolate->NewString("system"), v8::Number::New(isolate->m_isolate, _system));
+
+    retVal = o;
+
+    return 0;
 }
 
 result_t process_base::memoryUsage(v8::Local<v8::Object>& retVal)

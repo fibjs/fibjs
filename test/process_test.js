@@ -108,6 +108,26 @@ describe('process', () => {
         });
     });
 
+    it("cpuUsage", () => {
+        let thisUsage;
+        let lastUsage = process.cpuUsage();
+        for (let i = 0; i < 10; i++) {
+            thisUsage = process.cpuUsage();
+            assert.notLessThan(thisUsage.user, lastUsage.user);
+            assert.notLessThan(thisUsage.system, lastUsage.system);
+            lastUsage = thisUsage;
+        }
+
+        let startUsage;
+        let diffUsage;
+        for (let i = 0; i < 10; i++) {
+            startUsage = process.cpuUsage();
+            diffUsage = process.cpuUsage(startUsage);
+            assert.notLessThan(diffUsage.user, 0);
+            assert.notLessThan(diffUsage.system, 0);
+        }
+    });
+
     it("memoryUsage", () => {
         console.dir(process.memoryUsage());
     });

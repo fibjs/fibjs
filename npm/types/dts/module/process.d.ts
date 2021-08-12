@@ -180,6 +180,24 @@ declare module 'process' {
     function uptime(): number;
 
     /**
+     * @description 查询当前进程在用户和系统代码中花费的时间，其值为微秒值（百万分之一秒）
+     * 
+     *      内存报告生成类似以下结果：
+     *      ```JavaScript
+     *      {
+     *        "user": 132379,
+     *        "system": 50507
+     *      }
+     *      ```
+     *      其中：
+     *      - user 返回进程在用户代码中花费的时间
+     *      - system 返回进程在系统代码中花费的时间
+     *      @return 返回包含时间报告
+     *      
+     */
+    function cpuUsage(previousValue?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    /**
      * @description 查询当前进程内存使用报告
      * 
      *      内存报告生成类似以下结果：

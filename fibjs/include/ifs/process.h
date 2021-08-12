@@ -48,6 +48,7 @@ public:
     static result_t cwd(exlib::string& retVal);
     static result_t chdir(exlib::string directory);
     static result_t uptime(double& retVal);
+    static result_t cpuUsage(v8::Local<v8::Object> previousValue, v8::Local<v8::Object>& retVal);
     static result_t memoryUsage(v8::Local<v8::Object>& retVal);
     static result_t nextTick(v8::Local<v8::Function> func, OptArgs args);
     static result_t binding(exlib::string name, v8::Local<v8::Value>& retVal);
@@ -85,6 +86,7 @@ public:
     static void s_static_cwd(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_chdir(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_uptime(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_cpuUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_nextTick(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_binding(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -103,6 +105,7 @@ inline ClassInfo& process_base::class_info()
         { "cwd", s_static_cwd, true },
         { "chdir", s_static_chdir, true },
         { "uptime", s_static_uptime, true },
+        { "cpuUsage", s_static_cpuUsage, true },
         { "memoryUsage", s_static_memoryUsage, true },
         { "nextTick", s_static_nextTick, true },
         { "binding", s_static_binding, true }
@@ -412,6 +415,22 @@ inline void process_base::s_static_uptime(const v8::FunctionCallbackInfo<v8::Val
     METHOD_OVER(0, 0);
 
     hr = uptime(vr);
+
+    METHOD_RETURN();
+}
+
+inline void process_base::s_static_cpuUsage(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_NAME("process.cpuUsage");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate));
+
+    hr = cpuUsage(v0, vr);
 
     METHOD_RETURN();
 }
