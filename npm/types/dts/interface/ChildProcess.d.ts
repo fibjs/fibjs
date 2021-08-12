@@ -28,6 +28,26 @@ declare class Class_ChildProcess extends Class_EventEmitter {
     join(callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 查询当前进程占用的内存和花费的时间
+     * 
+     *      内存报告生成类似以下结果：
+     *      ```JavaScript
+     *      {
+     *        "user": 132379,
+     *        "system": 50507,
+     *        "rss": 8622080
+     *      }
+     *      ```
+     *      其中：
+     *      - user 返回进程在用户代码中花费的时间，单位为微秒值（百万分之一秒）
+     *      - system 返回进程在系统代码中花费的时间，单位为微秒值（百万分之一秒）
+     *      - rss 返回进程当前占用物理内存大小
+     *      @return 返回包含时间报告
+     *      
+     */
+    usage(): FIBJS.GeneralObject;
+
+    /**
      * @description 读取当前对象指向的进程的 id
      *      
      */

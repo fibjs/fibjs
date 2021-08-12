@@ -30,6 +30,7 @@ public:
     // ChildProcess_base
     virtual result_t kill(int32_t signal);
     virtual result_t join(AsyncEvent* ac);
+    virtual result_t usage(v8::Local<v8::Object>& retVal);
     virtual result_t get_pid(int32_t& retVal);
     virtual result_t get_exitCode(int32_t& retVal);
     virtual result_t get_stdin(obj_ptr<Stream_base>& retVal);

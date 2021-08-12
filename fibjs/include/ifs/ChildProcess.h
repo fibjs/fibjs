@@ -26,6 +26,7 @@ public:
     // ChildProcess_base
     virtual result_t kill(int32_t signal) = 0;
     virtual result_t join(AsyncEvent* ac) = 0;
+    virtual result_t usage(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t get_pid(int32_t& retVal) = 0;
     virtual result_t get_exitCode(int32_t& retVal) = 0;
     virtual result_t get_stdin(obj_ptr<Stream_base>& retVal) = 0;
@@ -48,6 +49,7 @@ public:
 public:
     static void s_kill(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_join(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_usage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_pid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_exitCode(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_stdin(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -69,7 +71,8 @@ inline ClassInfo& ChildProcess_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "kill", s_kill, false },
         { "join", s_join, false },
-        { "joinSync", s_join, false }
+        { "joinSync", s_join, false },
+        { "usage", s_usage, false }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -120,6 +123,21 @@ inline void ChildProcess_base::s_join(const v8::FunctionCallbackInfo<v8::Value>&
         hr = pInst->ac_join();
 
     METHOD_VOID();
+}
+
+inline void ChildProcess_base::s_usage(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_NAME("ChildProcess.usage");
+    METHOD_INSTANCE(ChildProcess_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->usage(vr);
+
+    METHOD_RETURN();
 }
 
 inline void ChildProcess_base::s_get_pid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
