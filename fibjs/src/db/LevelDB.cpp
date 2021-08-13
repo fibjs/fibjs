@@ -38,6 +38,17 @@ result_t LevelDB::open(const char* connString)
 {
     leveldb::Options options;
     options.create_if_missing = true;
+
+#ifdef _WIN32
+    exlib::wstring wstr = utf8to16String(connString);
+    exlib::string str;
+
+    int chars_num = (int)WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), (int)wstr.length(), NULL, 0, NULL, NULL);
+    str.resize(chars_num);
+    WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), (int)wstr.length(), str.c_buffer(), chars_num + 1, NULL, NULL);
+    connString = str.c_str();
+#endif
+
     leveldb::Status s = leveldb::DB::Open(options, connString, &m_db);
     if (!s.ok())
         return CHECK_ERROR(error(s));
