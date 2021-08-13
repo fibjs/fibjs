@@ -373,17 +373,21 @@ describe("child_process", () => {
         assert.lessThan(new Date().getTime() - t1, 1000);
     });
 
-    oit("usage", () => {
+    it("usage", () => {
         var p = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec22.js')]);
         var o = JSON.parse(p.stdout.read().toString());
         var o1 = p.usage();
 
-        assert.closeTo(o.user, o1.user, 10000);
-        assert.closeTo(o.system, o1.system, 10000);
-        assert.closeTo(o.rss, o1.rss, o.rss / 10);
+        console.log(o, o1);
 
-        p.kill(15);
-        p.join();
+        try {
+            assert.closeTo(o.user, o1.user, 50000);
+            assert.closeTo(o.system, o1.system, 50000);
+            assert.closeTo(o.rss, o1.rss, o.rss / 10);
+        } finally {
+            p.kill(15);
+            p.join();
+        }
     });
 
     it("argv", () => {
