@@ -737,6 +737,7 @@ result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iter
         int32_t i;
 
         for (i = 0; i < len; i++) {
+            v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[1] = JSValue(keys->Get(_context, i));
             args[0] = JSValue(o->Get(_context, args[1]));
             if (args[0].IsEmpty() || args[1].IsEmpty())
@@ -745,6 +746,7 @@ result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iter
             iterator->Call(_context, context, 3, args).ToLocal(&v);
             if (v.IsEmpty())
                 return CALL_E_JAVASCRIPT;
+            v = handle_scope.Escape(v);
         }
     } else {
         int32_t len = isolate->toInt32Value(v);
@@ -752,6 +754,7 @@ result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iter
         int32_t i;
 
         for (i = 0; i < len; i++) {
+            v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[1] = v8::Int32::New(isolate->m_isolate, i);
             args[0] = JSValue(o->Get(_context, args[1]));
             if (args[0].IsEmpty() || args[1].IsEmpty())
@@ -760,6 +763,7 @@ result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iter
             iterator->Call(_context, context, 3, args).ToLocal(&v);
             if (v.IsEmpty())
                 return CALL_E_JAVASCRIPT;
+            v = handle_scope.Escape(v);
         }
     }
 
@@ -795,6 +799,7 @@ result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> itera
         int32_t i;
 
         for (i = 0; i < len; i++) {
+            v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[1] = JSValue(keys->Get(_context, i));
             args[0] = JSValue(o->Get(_context, args[1]));
             if (args[0].IsEmpty() || args[1].IsEmpty())
@@ -804,7 +809,7 @@ result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> itera
             if (v.IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
-            arr->Set(_context, cnt++, v);
+            arr->Set(_context, cnt++, handle_scope.Escape(v));
         }
     } else {
         int32_t len = isolate->toInt32Value(v);
@@ -812,6 +817,7 @@ result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> itera
         int32_t i;
 
         for (i = 0; i < len; i++) {
+            v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[1] = v8::Int32::New(isolate->m_isolate, i);
             args[0] = JSValue(o->Get(_context, args[1]));
             if (args[0].IsEmpty() || args[1].IsEmpty())
@@ -821,7 +827,7 @@ result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> itera
             if (v.IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
-            arr->Set(_context, cnt++, v);
+            arr->Set(_context, cnt++, handle_scope.Escape(v));
         }
     }
 
@@ -856,6 +862,7 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
         int32_t i;
 
         for (i = 0; i < len; i++) {
+            v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[2] = JSValue(keys->Get(_context, i));
             args[1] = JSValue(o->Get(_context, args[2]));
             if (args[1].IsEmpty() || args[2].IsEmpty())
@@ -866,6 +873,7 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
             iterator->Call(_context, context, 4, args).ToLocal(&memo);
             if (memo.IsEmpty())
                 return CALL_E_JAVASCRIPT;
+            memo = handle_scope.Escape(memo);
         }
     } else {
         int32_t len = isolate->toInt32Value(v);
@@ -873,6 +881,7 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
         int32_t i;
 
         for (i = 0; i < len; i++) {
+            v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[2] = v8::Int32::New(isolate->m_isolate, i);
             args[1] = JSValue(o->Get(_context, args[2]));
             if (args[1].IsEmpty() || args[2].IsEmpty())
@@ -883,6 +892,7 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
             iterator->Call(_context, context, 4, args).ToLocal(&memo);
             if (memo.IsEmpty())
                 return CALL_E_JAVASCRIPT;
+            memo = handle_scope.Escape(memo);
         }
     }
 

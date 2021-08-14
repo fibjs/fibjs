@@ -34,6 +34,7 @@ private:
         v8::Local<v8::Context> context = m_isolate->context();
 
         while (m_pos < m_count) {
+            v8::EscapableHandleScope handle_scope(m_isolate->m_isolate);
             JSFiber::EnterJsScope s;
             v8::Local<v8::Value> v;
             int32_t pos = m_pos;
@@ -51,7 +52,7 @@ private:
             }
 
             if (!v.IsEmpty())
-                retVal->Set(context, pos, v);
+                retVal->Set(context, pos, handle_scope.Escape(v));
             else
                 m_error = true;
         }

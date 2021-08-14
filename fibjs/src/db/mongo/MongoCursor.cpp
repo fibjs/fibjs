@@ -159,6 +159,7 @@ result_t MongoCursor::forEach(v8::Local<v8::Function> func)
     v8::Local<v8::Context> context = isolate->context();
 
     while ((hr = next(o)) != CALL_RETURN_NULL && hr >= 0) {
+        v8::EscapableHandleScope handle_scope(isolate->m_isolate);
         v8::Local<v8::Value> a = o;
         v8::Local<v8::Value> v;
 
@@ -181,6 +182,7 @@ result_t MongoCursor::map(v8::Local<v8::Function> func,
     int32_t n = 0;
 
     while ((hr = next(o)) != CALL_RETURN_NULL && hr >= 0) {
+        v8::EscapableHandleScope handle_scope(isolate->m_isolate);
         v8::Local<v8::Value> a = o;
         v8::Local<v8::Value> v;
 
@@ -188,7 +190,7 @@ result_t MongoCursor::map(v8::Local<v8::Function> func,
         if (v.IsEmpty())
             return CALL_E_JAVASCRIPT;
 
-        as->Set(context, n, v);
+        as->Set(context, n, handle_scope.Escape(v));
         n++;
     }
 

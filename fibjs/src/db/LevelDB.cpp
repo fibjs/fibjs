@@ -366,6 +366,8 @@ result_t LevelDB::Iter::iter(Isolate* isolate, v8::Local<v8::Function> func)
             return hr;
 
         for (i = 0; i < m_count; i++) {
+            v8::EscapableHandleScope handle_scope(isolate->m_isolate);
+
             v8::Local<v8::Value> args[2] = {
                 m_kvs[i * 2 + 1]->wrap(), m_kvs[i * 2]->wrap()
             };
