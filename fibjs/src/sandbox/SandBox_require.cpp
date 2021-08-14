@@ -108,7 +108,9 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
     mod = v8::Object::New(isolate->m_isolate);
 
     // init module
+    mod->Set(_context, isolate->NewString("id"), isolate->NewString(srcname));
     mod->Set(_context, strExports, exports);
+    mod->Set(_context, isolate->NewString("filename"), isolate->NewString(srcname));
     mod->Set(_context, isolate->NewString("require"), context.m_fnRequest);
     mod->Set(_context, isolate->NewString("run"), context.m_fnRun);
 
