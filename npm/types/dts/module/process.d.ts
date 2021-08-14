@@ -192,6 +192,7 @@ declare module 'process' {
      *      其中：
      *      - user 返回进程在用户代码中花费的时间
      *      - system 返回进程在系统代码中花费的时间
+     *      @param previousValue 指定上一次查询的时间
      *      @return 返回包含时间报告
      *      
      */

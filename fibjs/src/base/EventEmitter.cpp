@@ -201,6 +201,17 @@ result_t object_base::listenerCount(exlib::string ev, int32_t& retVal)
     return JSTrigger(this).listenerCount(ev, retVal);
 }
 
+result_t object_base::listenerCount(v8::Local<v8::Value> o, exlib::string ev, int32_t& retVal)
+{
+    Isolate* isolate = holder();
+    v8::Local<v8::Object> o1;
+    o->ToObject(isolate->context()).ToLocal(&o1);
+    if (o1.IsEmpty())
+        return CALL_E_TYPEMISMATCH;
+
+    return JSTrigger(isolate->m_isolate, o1).listenerCount(ev, retVal);
+}
+
 result_t object_base::eventNames(v8::Local<v8::Array>& retVal)
 {
     return JSTrigger(this).eventNames(retVal);

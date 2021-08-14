@@ -525,7 +525,6 @@ public:
     static void s_on(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         v8::Local<v8::Object> vr;
-        JSTrigger t(args);
 
         METHOD_NAME("EventEmitter.on");
         METHOD_ENTER();
@@ -535,13 +534,13 @@ public:
         ARG(exlib::string, 0);
         ARG(v8::Local<v8::Function>, 1);
 
-        hr = t.on(v0, v1, vr);
+        hr = JSTrigger(args).on(v0, v1, vr);
 
         METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Object>, 0);
 
-        hr = t.on(v0, vr);
+        hr = JSTrigger(args).on(v0, vr);
 
         METHOD_RETURN();
     }
@@ -549,7 +548,6 @@ public:
     static void s_prependListener(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         v8::Local<v8::Object> vr;
-        JSTrigger t(args);
 
         METHOD_NAME("EventEmitter.prependListener");
         METHOD_ENTER();
@@ -559,13 +557,13 @@ public:
         ARG(exlib::string, 0);
         ARG(v8::Local<v8::Function>, 1);
 
-        hr = t.prependListener(v0, v1, vr);
+        hr = JSTrigger(args).prependListener(v0, v1, vr);
 
         METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Object>, 0);
 
-        hr = t.prependListener(v0, vr);
+        hr = JSTrigger(args).prependListener(v0, vr);
 
         METHOD_RETURN();
     }
@@ -573,7 +571,6 @@ public:
     static void s_once(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         v8::Local<v8::Object> vr;
-        JSTrigger t(args);
 
         METHOD_NAME("EventEmitter.once");
         METHOD_ENTER();
@@ -583,13 +580,13 @@ public:
         ARG(exlib::string, 0);
         ARG(v8::Local<v8::Function>, 1);
 
-        hr = t.once(v0, v1, vr);
+        hr = JSTrigger(args).once(v0, v1, vr);
 
         METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Object>, 0);
 
-        hr = t.once(v0, vr);
+        hr = JSTrigger(args).once(v0, vr);
 
         METHOD_RETURN();
     }
@@ -597,7 +594,6 @@ public:
     static void s_prependOnceListener(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         v8::Local<v8::Object> vr;
-        JSTrigger t(args);
 
         METHOD_NAME("EventEmitter.prependOnceListener");
         METHOD_ENTER();
@@ -607,13 +603,13 @@ public:
         ARG(exlib::string, 0);
         ARG(v8::Local<v8::Function>, 1);
 
-        hr = t.prependOnceListener(v0, v1, vr);
+        hr = JSTrigger(args).prependOnceListener(v0, v1, vr);
 
         METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Object>, 0);
 
-        hr = t.prependOnceListener(v0, vr);
+        hr = JSTrigger(args).prependOnceListener(v0, vr);
 
         METHOD_RETURN();
     }
@@ -621,7 +617,6 @@ public:
     static void s_off(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         v8::Local<v8::Object> vr;
-        JSTrigger t(args);
 
         METHOD_NAME("EventEmitter.off");
         METHOD_ENTER();
@@ -631,19 +626,19 @@ public:
         ARG(exlib::string, 0);
         ARG(v8::Local<v8::Function>, 1);
 
-        hr = t.off(v0, v1, vr);
+        hr = JSTrigger(args).off(v0, v1, vr);
 
         METHOD_OVER(1, 1);
 
         ARG(exlib::string, 0);
 
-        hr = t.off(v0, vr);
+        hr = JSTrigger(args).off(v0, vr);
 
         METHOD_OVER(1, 1);
 
         ARG(v8::Local<v8::Object>, 0);
 
-        hr = t.off(v0, vr);
+        hr = JSTrigger(args).off(v0, vr);
 
         METHOD_RETURN();
     }
@@ -651,7 +646,6 @@ public:
     static void s_removeAllListeners(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         v8::Local<v8::Object> vr;
-        JSTrigger t(args);
 
         METHOD_NAME("EventEmitter.removeAllListeners");
         METHOD_ENTER();
@@ -660,21 +654,19 @@ public:
 
         ARG(exlib::string, 0);
 
-        hr = t.removeAllListeners(v0, vr);
+        hr = JSTrigger(args).removeAllListeners(v0, vr);
 
         METHOD_OVER(1, 0);
 
         OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate));
 
-        hr = t.removeAllListeners(v0, vr);
+        hr = JSTrigger(args).removeAllListeners(v0, vr);
 
         METHOD_RETURN();
     }
 
     static void s_setMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        JSTrigger t(args);
-
         METHOD_NAME("EventEmitter.setMaxListeners");
         METHOD_ENTER();
 
@@ -682,7 +674,7 @@ public:
 
         ARG(int32_t, 0);
 
-        t.setMaxListeners(v0);
+        JSTrigger(args).setMaxListeners(v0);
 
         METHOD_VOID();
     }
@@ -690,14 +682,13 @@ public:
     static void s_getMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         int32_t vr;
-        JSTrigger t(args);
 
         METHOD_NAME("EventEmitter.getMaxListeners");
         METHOD_ENTER();
 
         METHOD_OVER(0, 0);
 
-        hr = t.getMaxListeners(vr);
+        hr = JSTrigger(args).getMaxListeners(vr);
 
         METHOD_RETURN();
     }
@@ -728,7 +719,6 @@ public:
     static void s_listeners(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         v8::Local<v8::Array> vr;
-        JSTrigger t(args);
 
         METHOD_NAME("EventEmitter.listeners");
         METHOD_ENTER();
@@ -737,7 +727,7 @@ public:
 
         ARG(exlib::string, 0);
 
-        hr = t.listeners(v0, vr);
+        hr = JSTrigger(args).listeners(v0, vr);
 
         METHOD_RETURN();
     }
@@ -745,7 +735,6 @@ public:
     static void s_listenerCount(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         int32_t vr;
-        JSTrigger t(args);
 
         METHOD_NAME("EventEmitter.listenerCount");
         METHOD_ENTER();
@@ -754,7 +743,22 @@ public:
 
         ARG(exlib::string, 0);
 
-        hr = t.listenerCount(v0, vr);
+        hr = JSTrigger(args).listenerCount(v0, vr);
+
+        METHOD_OVER(2, 2);
+
+        ARG(v8::Local<v8::Value>, 0);
+        ARG(exlib::string, 1);
+
+        v8::Isolate* isolate = args.GetIsolate();
+        v8::Local<v8::Object> o;
+        v0->ToObject(isolate->GetCurrentContext()).ToLocal(&o);
+        if (o.IsEmpty()) {
+            hr = CALL_E_TYPEMISMATCH;
+            break;
+        }
+
+        hr = JSTrigger(isolate, o).listenerCount(v1, vr);
 
         METHOD_RETURN();
     }
@@ -762,7 +766,6 @@ public:
     static void s_emit(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         bool vr;
-        JSTrigger t(args);
 
         METHOD_NAME("EventEmitter.emit");
         METHOD_ENTER();
@@ -772,7 +775,7 @@ public:
         ARG(exlib::string, 0);
         ARG_LIST(1);
 
-        hr = t.emit(v0, v1, vr);
+        hr = JSTrigger(args).emit(v0, v1, vr);
 
         METHOD_RETURN();
     }
@@ -780,14 +783,13 @@ public:
     static void s_eventNames(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         v8::Local<v8::Array> vr;
-        JSTrigger t(args);
 
         METHOD_NAME("EventEmitter.eventNames");
         METHOD_ENTER();
 
         METHOD_OVER(0, 0);
 
-        hr = t.eventNames(vr);
+        hr = JSTrigger(args).eventNames(vr);
 
         METHOD_RETURN();
     }

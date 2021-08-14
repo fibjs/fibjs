@@ -209,6 +209,15 @@ declare class Class_EventEmitter extends Class_object {
     listenerCount(ev: string): number;
 
     /**
+     * @description 查询对象指定事件的监听器数量
+     *     @param ev 指定查询的对象
+     *     @param ev 指定事件的名称
+     *     @return 返回指定事件的监听器数量
+     *    
+     */
+    listenerCount(o: any, ev: string): number;
+
+    /**
      * @description 查询监听器事件名称
      *     @return 返回事件名称数组
      *    

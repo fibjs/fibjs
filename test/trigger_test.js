@@ -35,6 +35,11 @@ function evevt_test(name, e) {
             assert.equal(5321, v2);
         });
 
+        it("listenerCount", () => {
+            assert.equal(e.listenerCount('test'), 2);
+            assert.equal(events.listenerCount(e, 'test'), 2);
+        });
+
         it("prependListener", () => {
             v1 = v2 = 0;
             assert.equal(e.prependListener('test', t1), e);
@@ -175,7 +180,7 @@ function evevt_test(name, e) {
         });
 
         it("on error", () => {
-            e.on('error', () => {});
+            e.on('error', () => { });
             e.emit('error');
             e.off('error');
 
@@ -187,7 +192,7 @@ function evevt_test(name, e) {
             });
             e.off('error');
 
-            e.on('error', () => {});
+            e.on('error', () => { });
             e.on('error', () => {
                 throw new Error('error');
             });
@@ -266,8 +271,8 @@ function evevt_test(name, e) {
             it("once", () => {
                 var type, fn;
 
-                var _fn1 = () => {};
-                var _fn2 = () => {};
+                var _fn1 = () => { };
+                var _fn2 = () => { };
 
                 e.once('newListener', (...argvs) => {
                     type = argvs[0];
@@ -297,8 +302,8 @@ function evevt_test(name, e) {
             it("on", () => {
                 var type, fn;
 
-                var _fn1 = () => {};
-                var _fn2 = () => {};
+                var _fn1 = () => { };
+                var _fn2 = () => { };
 
                 e.once('newListener', (...argvs) => {
                     type = argvs[0];
@@ -331,8 +336,8 @@ function evevt_test(name, e) {
             it("once", () => {
                 var type, fn;
 
-                var _fn1 = () => {};
-                var _fn2 = () => {};
+                var _fn1 = () => { };
+                var _fn2 = () => { };
 
                 e.once('removeListener', (...argvs) => {
                     type = argvs[0];
@@ -365,8 +370,8 @@ function evevt_test(name, e) {
             it("on", () => {
                 var type, fn;
 
-                var _fn1 = () => {};
-                var _fn2 = () => {};
+                var _fn1 = () => { };
+                var _fn2 = () => { };
 
                 e.once('removeListener', (...argvs) => {
                     type = argvs[0];
@@ -403,12 +408,12 @@ describe("Trigger/EventEmitter", () => {
     evevt_test("events", new events());
     evevt_test("events.EventEmitter", new events.EventEmitter());
 
-    function MyEmitter() {}
+    function MyEmitter() { }
 
     util.inherits(MyEmitter, events.EventEmitter);
     evevt_test("util.inherits(EventEmitter)", new MyEmitter());
 
-    function MyEmitter1() {}
+    function MyEmitter1() { }
 
     util.inherits(MyEmitter1, events);
     evevt_test("util.inherits(events)", new MyEmitter1());
@@ -421,7 +426,7 @@ describe("Trigger/EventEmitter", () => {
 
     it('bugfix: crash when off function on new Emitter', () => {
         var ev = new events.EventEmitter();
-        ev.off('a', () => {});
+        ev.off('a', () => { });
     })
 
     describe("defaultMaxListeners", () => {

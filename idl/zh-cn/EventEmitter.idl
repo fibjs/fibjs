@@ -155,6 +155,13 @@ interface EventEmitter : object
    */
     Integer listenerCount(String ev);
 
+    /*! @brief 查询对象指定事件的监听器数量
+    @param ev 指定查询的对象
+    @param ev 指定事件的名称
+    @return 返回指定事件的监听器数量
+   */
+    Integer listenerCount(Value o, String ev);
+
     /*! @brief 查询监听器事件名称
     @return 返回事件名称数组
    */
