@@ -452,8 +452,6 @@ function generate_mv_paths(level_info, parent_p) {
 }
 
 function download_module() {
-    var bin_path = path.join(process.cwd(), "node_modules/.bin");
-
     coroutine.parallel(
         Object.keys(mv_paths),
         mkey => {
@@ -561,8 +559,6 @@ function download_module() {
             }
 
             if (mvm.bin) {
-                helpers_fs.mkdirp(bin_path);
-
                 var bins = mvm.bin;
 
                 if (util.isString(bins)) {
@@ -572,11 +568,16 @@ function download_module() {
                 }
 
                 for (var bin in bins) {
-                    var cli_link = path.join(bin_path, bin);
-                    var cli_file = path.relative(bin_path, path.join(mvm.path[0], bins[bin]));
+                    mvm.path.forEach(p => {
+                        var bin_path = path.join(path.dirname(p), '.bin');
+                        var cli_link = path.join(bin_path, bin);
+                        var cli_file = path.join(p, bins[bin]);
 
-                    fs.symlink(cli_file, cli_link);
-                    console.log("install cli:", path.join(bin_path, bin));
+                        helpers_fs.mkdirp(bin_path);
+
+                        fs.copyFile(cli_file, cli_link);
+                        console.log("install cli:", cli_link);
+                    });
                 }
             }
         },
