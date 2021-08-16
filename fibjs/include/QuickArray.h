@@ -144,6 +144,12 @@ public:
         return operator[](m_size);
     }
 
+    void append(const QuickArray<T>& rhs)
+    {
+        for (size_t i = 0; i < rhs.m_size; i++)
+            append(rhs.m_array[i / BlockSize()][i % BlockSize()]);
+    }
+
     template <typename V>
     void append(const V* rhs, size_t n)
     {
