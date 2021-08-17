@@ -571,11 +571,11 @@ function download_module() {
                     mvm.path.forEach(p => {
                         var bin_path = path.join(path.dirname(p), '.bin');
                         var cli_link = path.join(bin_path, bin);
-                        var cli_file = path.join(p, bins[bin]);
+                        var cli_file = path.relative(bin_path, path.join(p, bins[bin]));
 
                         helpers_fs.mkdirp(bin_path);
 
-                        fs.copyFile(cli_file, cli_link);
+                        fs.symlink(cli_file, cli_link);
                         console.log("install cli:", cli_link);
                     });
                 }
