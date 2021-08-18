@@ -177,9 +177,9 @@ result_t JSFiber::get_stack_usage(int32_t& retVal)
 {
     if (JSFiber::current() == this) {
         V8FrameInfo _fi = save_fi(holder()->m_isolate);
-        retVal = m_bind_thread->stackguard() - (intptr_t)_fi.entry_fp;
+        retVal = (int32_t)(m_bind_thread->stackguard() - (intptr_t)_fi.entry_fp);
     } else
-        retVal = m_bind_thread->stackguard() - (intptr_t)m_c_entry_fp_;
+        retVal = (int32_t)(m_bind_thread->stackguard() - (intptr_t)m_c_entry_fp_);
 
     return 0;
 }
