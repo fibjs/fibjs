@@ -26,7 +26,7 @@ public:
     static result_t format(exlib::string fmt, OptArgs args, exlib::string& retVal);
     static result_t format(OptArgs args, exlib::string& retVal);
     static result_t inherits(v8::Local<v8::Value> constructor, v8::Local<v8::Value> superConstructor);
-    static result_t inspect(v8::Local<v8::Object> obj, v8::Local<v8::Object> options, exlib::string& retVal);
+    static result_t inspect(v8::Local<v8::Value> obj, v8::Local<v8::Object> options, exlib::string& retVal);
     static result_t deprecate(v8::Local<v8::Function> fn, exlib::string msg, exlib::string code, v8::Local<v8::Function>& retVal);
     static result_t isEmpty(v8::Local<v8::Value> v, bool& retVal);
     static result_t isArray(v8::Local<v8::Value> v, bool& retVal);
@@ -283,7 +283,7 @@ inline void util_base::s_static_inspect(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(2, 1);
 
-    ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Value>, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
     hr = inspect(v0, v1, vr);

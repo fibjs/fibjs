@@ -112,6 +112,7 @@ public:
 } s_color_initer;
 
 exlib::string json_format(v8::Local<v8::Value> obj, bool color);
+exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields, bool color);
 result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string& retVal);
 
 extern std_logger* s_std;
@@ -255,6 +256,18 @@ result_t console_base::alert(OptArgs args)
 result_t console_base::dir(v8::Local<v8::Value> obj)
 {
     exlib::string strBuffer = json_format(obj, colors(C_INFO));
+    asyncLog(C_INFO, strBuffer);
+    return 0;
+}
+
+result_t console_base::table(v8::Local<v8::Value> obj)
+{
+    return table(obj, v8::Local<v8::Array>());
+}
+
+result_t console_base::table(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields)
+{
+    exlib::string strBuffer = table_format(obj, fields, colors(C_INFO));
     asyncLog(C_INFO, strBuffer);
     return 0;
 }

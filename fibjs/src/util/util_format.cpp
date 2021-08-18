@@ -355,12 +355,6 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color)
     return strBuffer.str();
 }
 
-result_t util_base::inspect(v8::Local<v8::Object> obj, v8::Local<v8::Object> options, exlib::string& retVal)
-{
-    retVal = json_format(obj, false);
-    return 0;
-}
-
 result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string& retVal)
 {
     const char* s1;

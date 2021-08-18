@@ -36,12 +36,20 @@ declare module 'util' {
     /**
      * @description 函数返回 obj 的字符串表示，主要用于调试。 附加的 options 可用于改变格式化字符串的某些方面。
      * 
+     *      支持以下参数:
+     *      ```JavaScript
+     *      {
+     *          "colors": false, // 指定是否输出 ansi 作色字符串，缺省为 false
+     *          "table": false, // 指定输出 table 格式，缺省为 false
+     *          "fields": [], // 当 table 为 true 时指定显示字段
+     *      }
+     *      ```
      *      @param obj 指定需要处理的对象
      *      @param options 指定格式控制选项
      *      @return 返回格式化后的字符串
      *      
      */
-    function inspect(obj: FIBJS.GeneralObject, options?: FIBJS.GeneralObject): string;
+    function inspect(obj: any, options?: FIBJS.GeneralObject): string;
 
     /**
      * @description 封装给定的函数，本函数仅为兼容，并不输出警告

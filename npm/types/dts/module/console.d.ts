@@ -336,6 +336,21 @@ declare module 'console' {
     function dir(obj: any): void;
 
     /**
+     * @description 用 JSON 格式输出对象
+     *      @param obj 给定要显示的对象
+     *      
+     */
+    function table(obj: any): void;
+
+    /**
+     * @description 用 JSON 格式输出对象
+     *      @param obj 给定要显示的对象
+     *      @param fields 给定要显示的字段
+     *      
+     */
+    function table(obj: any, fields: any[]): void;
+
+    /**
      * @description 启动一个计时器
      * 
      *      @param label 标题，缺省为空字符串。

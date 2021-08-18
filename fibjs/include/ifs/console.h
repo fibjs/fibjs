@@ -59,6 +59,8 @@ public:
     static result_t alert(exlib::string fmt, OptArgs args);
     static result_t alert(OptArgs args);
     static result_t dir(v8::Local<v8::Value> obj);
+    static result_t table(v8::Local<v8::Value> obj);
+    static result_t table(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields);
     static result_t time(exlib::string label);
     static result_t timeElapse(exlib::string label);
     static result_t timeEnd(exlib::string label);
@@ -111,6 +113,7 @@ public:
     static void s_static_crit(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_alert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_dir(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_table(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_time(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_timeElapse(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_timeEnd(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -153,6 +156,7 @@ inline ClassInfo& console_base::class_info()
         { "crit", s_static_crit, true },
         { "alert", s_static_alert, true },
         { "dir", s_static_dir, true },
+        { "table", s_static_table, true },
         { "time", s_static_time, true },
         { "timeElapse", s_static_timeElapse, true },
         { "timeEnd", s_static_timeEnd, true },
@@ -469,6 +473,27 @@ inline void console_base::s_static_dir(const v8::FunctionCallbackInfo<v8::Value>
     ARG(v8::Local<v8::Value>, 0);
 
     hr = dir(v0);
+
+    METHOD_VOID();
+}
+
+inline void console_base::s_static_table(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("console.table");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = table(v0);
+
+    METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Array>, 1);
+
+    hr = table(v0, v1);
 
     METHOD_VOID();
 }
