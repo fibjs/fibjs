@@ -79,6 +79,7 @@ public:
     }
     virtual result_t clearLine(int32_t dir);
     virtual result_t clearScreenDown();
+    virtual result_t getWindowSize(obj_ptr<NArray>& retVal);
 
 public:
     static const char* kClearToLineBeginning;

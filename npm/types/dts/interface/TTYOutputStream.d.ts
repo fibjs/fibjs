@@ -37,5 +37,12 @@ declare class Class_TTYOutputStream extends Class_Stream {
      */
     clearScreenDown(): void;
 
+    /**
+     * @description 返回此 WriteStream 对应的终端的尺寸
+     *      @return 返回数组 [numColumns, numRows]，其中 numColumns 和 numRows 表示相应终端中的列数和行数
+     *      
+     */
+    getWindowSize(): any[];
+
 }
 

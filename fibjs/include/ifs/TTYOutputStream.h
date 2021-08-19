@@ -26,6 +26,7 @@ public:
     virtual result_t get_isTTY(bool& retVal) = 0;
     virtual result_t clearLine(int32_t dir) = 0;
     virtual result_t clearScreenDown() = 0;
+    virtual result_t getWindowSize(obj_ptr<NArray>& retVal) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -42,6 +43,7 @@ public:
     static void s_get_isTTY(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_clearLine(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clearScreenDown(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getWindowSize(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -50,7 +52,8 @@ inline ClassInfo& TTYOutputStream_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "clearLine", s_clearLine, false },
-        { "clearScreenDown", s_clearScreenDown, false }
+        { "clearScreenDown", s_clearScreenDown, false },
+        { "getWindowSize", s_getWindowSize, false }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -106,5 +109,20 @@ inline void TTYOutputStream_base::s_clearScreenDown(const v8::FunctionCallbackIn
     hr = pInst->clearScreenDown();
 
     METHOD_VOID();
+}
+
+inline void TTYOutputStream_base::s_getWindowSize(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<NArray> vr;
+
+    METHOD_NAME("TTYOutputStream.getWindowSize");
+    METHOD_INSTANCE(TTYOutputStream_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->getWindowSize(vr);
+
+    METHOD_RETURN();
 }
 }

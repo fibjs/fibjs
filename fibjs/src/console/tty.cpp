@@ -89,4 +89,16 @@ result_t TTYOutputStream::clearScreenDown()
     return 0;
 }
 
+result_t TTYOutputStream::getWindowSize(obj_ptr<NArray>& retVal)
+{
+    int32_t width, height;
+    uv_tty_get_winsize(&m_tty, &width, &height);
+
+    retVal = new NArray();
+    retVal->append(width);
+    retVal->append(height);
+
+    return 0;
+}
+
 }
