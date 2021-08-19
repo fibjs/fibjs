@@ -345,7 +345,10 @@ exlib::string object_format(v8::Local<v8::Value> v, bool color, bool l2 = false)
         buf.append(": ");
 
         v = obj->Get(_context, v);
-        buf.append(json_format(v, color));
+        if (isSimpleValue(v))
+            buf.append(json_format(v, color));
+        else
+            buf.append(object_format(v, color, true));
     }
     buf.append(" }");
 
