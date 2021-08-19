@@ -153,7 +153,15 @@ inline void GetPropertyNames(v8::Local<v8::Object> o, QuickArray<exlib::string>&
 
 inline exlib::string repeat(int32_t sz, bool bLine = false)
 {
-    static char s_line[] = "────────────────────────────────";
+    // "────────────────────────────────", one "─" is "\xe2\x94\x80", there are 4 * 8 "─"
+    static char s_line[] = "\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+                           "\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+                           "\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+                           "\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+                           "\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+                           "\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+                           "\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+                           "\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80";
     static char s_space[] = "                                ";
     const char* sp = bLine ? s_line : s_space;
     const int32_t bs = bLine ? 96 : 32;
@@ -205,10 +213,15 @@ inline bool compare_number(exlib::string& str, exlib::string& str1)
 inline void append_split(std::vector<std::pair<QuickArray<exlib::string>&, int32_t>>& props,
     StringBuffer& buf, int32_t type)
 {
+    /**
+     * "┌─", "─┬─", "─┐\n"
+     * "├─", "─┼─", "─┤\n"
+     * "└─", "─┴─", "─┘"
+     */
     static const char* tab_string[][3] = {
-        { "┌─", "─┬─", "─┐\n" },
-        { "├─", "─┼─", "─┤\n" },
-        { "└─", "─┴─", "─┘" },
+        { "\xe2\x94\x8c\xe2\x94\x80", "\xe2\x94\x80\xe2\x94\xac\xe2\x94\x80", "\xe2\x94\x80\xe2\x94\x90\n" },
+        { "\xe2\x94\x9c\xe2\x94\x80", "\xe2\x94\x80\xe2\x94\xbc\xe2\x94\x80", "\xe2\x94\x80\xe2\x94\xa4\n" },
+        { "\xe2\x94\x94\xe2\x94\x80", "\xe2\x94\x80\xe2\x94\xb4\xe2\x94\x80", "\xe2\x94\x80\xe2\x94\x98" },
     };
     const char** ptrs = tab_string[type];
 
@@ -498,10 +511,10 @@ exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields
 
     append_split(props, buf, 0);
     for (int32_t i = 0; i < (int32_t)idx_cols.size(); i++) {
-        buf.append("│ ");
+        buf.append("\xe2\x94\x82\x20"); // "│ "
         for (size_t j = 0; j < props.size(); j++) {
             if (j > 0)
-                buf.append(" │ ");
+                buf.append("\x20\xe2\x94\x82\x20"); // " │ "
 
             auto& it = props[j];
             int32_t sz = cell_width[i][j];
@@ -510,7 +523,7 @@ exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields
             else
                 buf.append(repeat(it.second));
         }
-        buf.append(" │\n");
+        buf.append("\x20\xe2\x94\x82\n"); // " │\n"
 
         if (i == 0)
             append_split(props, buf, 1);
