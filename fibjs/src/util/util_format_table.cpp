@@ -355,7 +355,7 @@ exlib::string object_format(v8::Local<v8::Value> v, bool color, bool l2 = false)
     return buf.str();
 }
 
-exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields, bool color)
+exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields, bool color, bool encode_string)
 {
     if (isSimpleValue(obj))
         return json_format(obj, color);
@@ -402,7 +402,12 @@ exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields
         if (isSimpleValue(v)) {
             if (!b_has_prop) {
                 value_cols.resize(i);
-                value_cols.append(json_format(v, color));
+                if (!encode_string && (v->IsString() || v->IsStringObject())) {
+                    exlib::string val;
+                    GetArgumentValue(isolate->m_isolate, v, val);
+                    value_cols.append(val);
+                } else
+                    value_cols.append(json_format(v, color));
             }
         } else {
             v8::Local<v8::Object> ro = v8::Local<v8::Object>::Cast(v);
@@ -424,9 +429,12 @@ exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields
 
                 JSValue rv = ro->Get(_context, isolate->NewString(row_key));
                 exlib::string row_value;
-                if (isSimpleValue(rv))
-                    row_value = json_format(rv, color);
-                else
+                if (isSimpleValue(rv)) {
+                    if (!encode_string && (rv->IsString() || rv->IsStringObject()))
+                        GetArgumentValue(isolate->m_isolate, rv, row_value);
+                    else
+                        row_value = json_format(rv, color);
+                } else
                     row_value = object_format(rv, color);
 
                 it->second.resize(i);
@@ -526,7 +534,10 @@ result_t util_base::inspect(v8::Local<v8::Value> obj, v8::Local<v8::Object> opti
         v8::Local<v8::Array> fields;
         GetConfigValue(isolate->m_isolate, options, "fields", fields, true);
 
-        retVal = table_format(obj, fields, colors);
+        bool encode_string = true;
+        GetConfigValue(isolate->m_isolate, options, "encode_string", encode_string, true);
+
+        retVal = table_format(obj, fields, colors, encode_string);
     } else
         retVal = json_format(obj, colors);
     return 0;

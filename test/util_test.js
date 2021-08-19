@@ -1139,27 +1139,45 @@ describe('util', () => {
             assert.equal(util.format('%%%s%%%%', 'hi'), '%hi%%');
         });
 
+        it("fix: crash on error.", () => {
+            util.format(new mq.Message());
+        });
 
-        it("table", () => {
-            function test_table(data, only, expected) {
-                if (arguments.length === 2) {
-                    expected = only;
-                    only = undefined;
-                }
-                var result = util.inspect(data, {
-                    table: true,
-                    fields: only
-                });
-                assert.equal('\n' + result + '\n', expected);
+        it("fix: crash on %d.", () => {
+            util.format("%d", 2n);
+        });
+    });
+
+
+    describe("table", () => {
+        function test_table(data, only, expected) {
+            if (arguments.length === 2) {
+                expected = only;
+                only = undefined;
             }
+            var result = util.inspect(data, {
+                table: true,
+                fields: only
+            });
+            assert.equal('\n' + result + '\n', expected);
+        }
 
+        function test_table1(data, opt, expected) {
+            opt.table = true;
+            var result = util.inspect(data, opt);
+            assert.equal('\n' + result + '\n', expected);
+        }
+
+        it("simple value", () => {
             test_table(null, '\nnull\n');
             test_table(undefined, '\nundefined\n');
             test_table(false, '\nfalse\n');
             test_table('hi', '\n"hi"\n');
             test_table(Symbol(), '\nSymbol()\n');
             test_table(util.inspect, '\n[Function inspect]\n');
+        });
 
+        it("simple table", () => {
             test_table([1, 2, 3], `
 ┌─────────┬────────┐
 │ (index) │ Values │
@@ -1208,6 +1226,14 @@ describe('util', () => {
 └─────────┴────┴──────────┘
 `);
 
+            test_table({ a: { a: 1, b: 2, c: 3 } }, `
+┌─────────┬───┬───┬───┐
+│ (index) │ a │ b │ c │
+├─────────┼───┼───┼───┤
+│    a    │ 1 │ 2 │ 3 │
+└─────────┴───┴───┴───┘
+`);
+
             // test_table(new Map([['a', 1], [Symbol(), [2]]]), `
             // ┌───────────────────┬──────────┬────────┐
             // │ (iteration index) │   Key    │ Values │
@@ -1226,24 +1252,6 @@ describe('util', () => {
             // │         2         │ Symbol() │
             // └───────────────────┴──────────┘
             // `);
-
-            test_table({ a: 1, b: 2 }, ['a'], `
-┌─────────┬───┐
-│ (index) │ a │
-├─────────┼───┤
-│    a    │   │
-│    b    │   │
-└─────────┴───┘
-`);
-
-            test_table([{ a: 1, b: 2 }, { a: 3, c: 4 }], ['a'], `
-┌─────────┬───┐
-│ (index) │ a │
-├─────────┼───┤
-│    0    │ 1 │
-│    1    │ 3 │
-└─────────┴───┘
-`);
 
             // test_table(new Map([[1, 1], [2, 2], [3, 3]]).entries(), `
             // ┌───────────────────┬─────┬────────┐
@@ -1284,16 +1292,30 @@ describe('util', () => {
             // │         2         │   3    │
             // └───────────────────┴────────┘
             // `);
+        });
 
-
-            test_table({ a: { a: 1, b: 2, c: 3 } }, `
-┌─────────┬───┬───┬───┐
-│ (index) │ a │ b │ c │
-├─────────┼───┼───┼───┤
-│    a    │ 1 │ 2 │ 3 │
-└─────────┴───┴───┴───┘
+        it("fields", () => {
+            test_table({ a: 1, b: 2 }, ['a'], `
+┌─────────┬───┐
+│ (index) │ a │
+├─────────┼───┤
+│    a    │   │
+│    b    │   │
+└─────────┴───┘
 `);
 
+            test_table([{ a: 1, b: 2 }, { a: 3, c: 4 }], ['a'], `
+┌─────────┬───┐
+│ (index) │ a │
+├─────────┼───┤
+│    0    │ 1 │
+│    1    │ 3 │
+└─────────┴───┘
+`);
+
+        });
+
+        it("fields", () => {
             test_table({ a: { a: [] } }, `
 ┌─────────┬────┐
 │ (index) │ a  │
@@ -1309,7 +1331,9 @@ describe('util', () => {
 │    a    │ {} │
 └─────────┴────┘
 `);
+        });
 
+        it("object/array", () => {
             test_table({ a: { a: { a: 1, b: 2, c: 3 } } }, `
 ┌─────────┬──────────┐
 │ (index) │    a     │
@@ -1397,7 +1421,9 @@ describe('util', () => {
 │    a    │ <Buffer 01 02 03 04 05> │
 └─────────┴─────────────────────────┘
 `);
+        });
 
+        it("field order", () => {
             test_table({ a: [1, 2] }, `
 ┌─────────┬───┬───┐
 │ (index) │ 0 │ 1 │
@@ -1415,7 +1441,51 @@ describe('util', () => {
 │    c    │   │   │   │   │   │ 5 │        │
 └─────────┴───┴───┴───┴───┴───┴───┴────────┘
 `);
+        });
 
+        it("unicode", () => {
+            test_table({ foo: '￥', bar: '¥' }, `
+┌─────────┬────────┐
+│ (index) │ Values │
+├─────────┼────────┤
+│   foo   │  "￥"  │
+│   bar   │  "¥"   │
+└─────────┴────────┘
+`);
+
+            test_table({ foo: '你好', bar: 'hello' }, `
+┌─────────┬─────────┐
+│ (index) │ Values  │
+├─────────┼─────────┤
+│   foo   │ "你好"  │
+│   bar   │ "hello" │
+└─────────┴─────────┘
+`);
+        });
+
+        it("encode_string", () => {
+            test_table1([1, 2, "asd"], { encode_string: false }, `
+┌─────────┬────────┐
+│ (index) │ Values │
+├─────────┼────────┤
+│    0    │   1    │
+│    1    │   2    │
+│    2    │  asd   │
+└─────────┴────────┘
+`);
+
+            test_table1([1, 2, ["asd"]], { encode_string: false }, `
+┌─────────┬─────┬────────┐
+│ (index) │  0  │ Values │
+├─────────┼─────┼────────┤
+│    0    │     │   1    │
+│    1    │     │   2    │
+│    2    │ asd │        │
+└─────────┴─────┴────────┘
+`);
+        });
+
+        it("other", () => {
             test_table(new Uint8Array([1, 2, 3]), `
 ┌─────────┬────────┐
 │ (index) │ Values │
@@ -1480,32 +1550,6 @@ describe('util', () => {
 └─────────┴──${line}──┘
 `);
             }
-
-            test_table({ foo: '￥', bar: '¥' }, `
-┌─────────┬────────┐
-│ (index) │ Values │
-├─────────┼────────┤
-│   foo   │  "￥"  │
-│   bar   │  "¥"   │
-└─────────┴────────┘
-`);
-
-            test_table({ foo: '你好', bar: 'hello' }, `
-┌─────────┬─────────┐
-│ (index) │ Values  │
-├─────────┼─────────┤
-│   foo   │ "你好"  │
-│   bar   │ "hello" │
-└─────────┴─────────┘
-`);
-        });
-
-        it("fix: crash on error.", () => {
-            util.format(new mq.Message());
-        });
-
-        it("fix: crash on %d.", () => {
-            util.format("%d", 2n);
         });
     });
 
