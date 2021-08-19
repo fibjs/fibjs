@@ -77,6 +77,8 @@ public:
 
         return 0;
     }
+    virtual result_t get_columns(int32_t& retVal);
+    virtual result_t get_rows(int32_t& retVal);
     virtual result_t clearLine(int32_t dir);
     virtual result_t clearScreenDown();
     virtual result_t getWindowSize(obj_ptr<NArray>& retVal);

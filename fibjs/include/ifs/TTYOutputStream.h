@@ -24,6 +24,8 @@ class TTYOutputStream_base : public Stream_base {
 public:
     // TTYOutputStream_base
     virtual result_t get_isTTY(bool& retVal) = 0;
+    virtual result_t get_columns(int32_t& retVal) = 0;
+    virtual result_t get_rows(int32_t& retVal) = 0;
     virtual result_t clearLine(int32_t dir) = 0;
     virtual result_t clearScreenDown() = 0;
     virtual result_t getWindowSize(obj_ptr<NArray>& retVal) = 0;
@@ -41,6 +43,8 @@ public:
 
 public:
     static void s_get_isTTY(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_columns(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_rows(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_clearLine(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clearScreenDown(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getWindowSize(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -57,7 +61,9 @@ inline ClassInfo& TTYOutputStream_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "isTTY", s_get_isTTY, block_set, false }
+        { "isTTY", s_get_isTTY, block_set, false },
+        { "columns", s_get_columns, block_set, false },
+        { "rows", s_get_rows, block_set, false }
     };
 
     static ClassData s_cd = {
@@ -79,6 +85,32 @@ inline void TTYOutputStream_base::s_get_isTTY(v8::Local<v8::Name> property, cons
     PROPERTY_ENTER();
 
     hr = pInst->get_isTTY(vr);
+
+    METHOD_RETURN();
+}
+
+inline void TTYOutputStream_base::s_get_columns(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_NAME("TTYOutputStream.columns");
+    METHOD_INSTANCE(TTYOutputStream_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_columns(vr);
+
+    METHOD_RETURN();
+}
+
+inline void TTYOutputStream_base::s_get_rows(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_NAME("TTYOutputStream.rows");
+    METHOD_INSTANCE(TTYOutputStream_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_rows(vr);
 
     METHOD_RETURN();
 }

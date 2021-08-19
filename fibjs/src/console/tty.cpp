@@ -101,4 +101,20 @@ result_t TTYOutputStream::getWindowSize(obj_ptr<NArray>& retVal)
     return 0;
 }
 
+result_t TTYOutputStream::get_columns(int32_t& retVal)
+{
+    int32_t height;
+    uv_tty_get_winsize(&m_tty, &retVal, &height);
+
+    return 0;
+}
+
+result_t TTYOutputStream::get_rows(int32_t& retVal)
+{
+    int32_t width;
+    uv_tty_get_winsize(&m_tty, &width, &retVal);
+
+    return 0;
+}
+
 }
