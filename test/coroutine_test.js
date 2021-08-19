@@ -44,7 +44,7 @@ describe('coroutine', () => {
         it("Memory Leak detect", () => {
             test_util.gc();
             var no1 = test_util.countObject('Buffer');
-            var f = coroutine.start((v) => {}, new Buffer());
+            var f = coroutine.start((v) => { }, new Buffer());
             test_util.gc();
             assert.equal(no1 + 1, test_util.countObject('Buffer'));
             f.join();
@@ -128,6 +128,10 @@ describe('coroutine', () => {
 
             f.join();
             assert.equal(n, 1000);
+        });
+
+        it("new fiber stack_usage error", () => {
+            coroutine.start(() => { }).stack_usage;
         });
     });
 
