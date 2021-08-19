@@ -28,7 +28,6 @@ void std_logger::out(exlib::string& txt, bool is_error)
 {
     static bool s_tty_out = is_atty(_fileno(stdout));
     static bool s_tty_err = is_atty(_fileno(stderr));
-    static HANDLE s_console;
 
     obj_ptr<Stream_base> out;
     Isolate* isolate = s_isolates.head();
@@ -39,18 +38,14 @@ void std_logger::out(exlib::string& txt, bool is_error)
             return;
         }
 
-        if (!isolate->m_stderr)
-            isolate->m_stderr = new UVStream(_fileno(stderr));
-        out = isolate->m_stderr;
+        isolate->get_stderr(out);
     } else {
         if (!s_tty_out) {
             fwrite(txt.c_str(), 1, txt.length(), stdout);
             return;
         }
 
-        if (!isolate->m_stdout)
-            isolate->m_stdout = new UVStream(_fileno(stdout));
-        out = isolate->m_stdout;
+        isolate->get_stdout(out);
     }
 
     obj_ptr<Buffer_base> data = new Buffer(txt);
