@@ -297,6 +297,78 @@ result_t ChildProcess::kill(int32_t signal)
     return uv_process_kill(&m_process, signal);
 }
 
+result_t ChildProcess::kill(exlib::string signal)
+{
+    int32_t signo;
+
+    if (signal == "SIGHUP")
+        signo = 1;
+    else if (signal == "SIGINT")
+        signo = 2;
+    else if (signal == "SIGQUIT")
+        signo = 3;
+    else if (signal == "SIGILL")
+        signo = 4;
+    else if (signal == "SIGTRAP")
+        signo = 5;
+    else if (signal == "SIGABRT")
+        signo = 6;
+    else if (signal == "SIGIOT")
+        signo = 6;
+    else if (signal == "SIGFPE")
+        signo = 8;
+    else if (signal == "SIGKILL")
+        signo = 9;
+    else if (signal == "SIGBUS")
+        signo = 10;
+    else if (signal == "SIGSEGV")
+        signo = 11;
+    else if (signal == "SIGSYS")
+        signo = 12;
+    else if (signal == "SIGPIPE")
+        signo = 13;
+    else if (signal == "SIGALRM")
+        signo = 14;
+    else if (signal == "SIGTERM")
+        signo = 15;
+    else if (signal == "SIGURG")
+        signo = 16;
+    else if (signal == "SIGSTOP")
+        signo = 17;
+    else if (signal == "SIGTSTP")
+        signo = 18;
+    else if (signal == "SIGCONT")
+        signo = 19;
+    else if (signal == "SIGCHLD")
+        signo = 20;
+    else if (signal == "SIGTTIN")
+        signo = 21;
+    else if (signal == "SIGTTOU")
+        signo = 22;
+    else if (signal == "SIGIO")
+        signo = 23;
+    else if (signal == "SIGXCPU")
+        signo = 24;
+    else if (signal == "SIGXFSZ")
+        signo = 25;
+    else if (signal == "SIGVTALRM")
+        signo = 26;
+    else if (signal == "SIGPROF")
+        signo = 27;
+    else if (signal == "SIGWINCH")
+        signo = 28;
+    else if (signal == "SIGINFO")
+        signo = 29;
+    else if (signal == "SIGUSR1")
+        signo = 30;
+    else if (signal == "SIGUSR2")
+        signo = 31;
+    else
+        signo = 0;
+
+    return kill(signo);
+}
+
 result_t ChildProcess::join(AsyncEvent* ac)
 {
     if (ac->isSync())

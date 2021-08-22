@@ -25,6 +25,7 @@ class ChildProcess_base : public EventEmitter_base {
 public:
     // ChildProcess_base
     virtual result_t kill(int32_t signal) = 0;
+    virtual result_t kill(exlib::string signal) = 0;
     virtual result_t join(AsyncEvent* ac) = 0;
     virtual result_t usage(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t get_pid(int32_t& retVal) = 0;
@@ -103,6 +104,12 @@ inline void ChildProcess_base::s_kill(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_OVER(1, 1);
 
     ARG(int32_t, 0);
+
+    hr = pInst->kill(v0);
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
 
     hr = pInst->kill(v0);
 
