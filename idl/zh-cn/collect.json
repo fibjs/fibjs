@@ -6,12 +6,10 @@
         "global",
         "gui",
         "os",
-        "performance",
-        "perf_hooks",
         "process",
-        "registry",
         "timers",
         "tty",
+        "vm",
         "worker_threads"
     ],
     "File System": [
@@ -53,15 +51,17 @@
     ],
     "Test Suite": [
         "assert",
+        "performance",
+        "perf_hooks",
         "profiler",
         "test"
     ],
     "Utility": [
         "db",
         "gd",
+        "registry",
         "util",
         "uuid",
-        "vm",
         "xml"
     ]
 }
