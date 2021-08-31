@@ -8,6 +8,6 @@
 module performance
 {
     /*! @brief 查询当前进程时间 
-     return 返回当前进程时间*/
+     @return 返回当前进程时间*/
     static Number now();
 };

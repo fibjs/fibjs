@@ -6,10 +6,13 @@
         "global",
         "gui",
         "os",
+        "performance",
+        "perf_hooks",
         "process",
         "registry",
         "timers",
-        "tty"
+        "tty",
+        "worker_threads"
     ],
     "File System": [
         "fs",
