@@ -218,11 +218,17 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
         char* if_name = interfaces[i].name;
         v8::Local<v8::Array> ret;
         v8::Local<v8::Object> o;
+        v8::Local<v8::Value> v;
         v8::Local<v8::String> name, family;
 
         name = isolate->NewString(if_name);
 
-        ret = v8::Array::New(isolate->m_isolate);
+        retVal->Get(context, name).ToLocal(&v);
+        if (!v.IsEmpty() && !v->IsUndefined())
+            ret = v8::Local<v8::Array>::Cast(v);
+        else
+            ret = v8::Array::New(isolate->m_isolate);
+
         while (i < ifs && !qstrcmp(if_name, interfaces[i].name)) {
             unsigned char* phys_addr = (unsigned char*)interfaces[i].phys_addr;
             char ip[INET6_ADDRSTRLEN] = "";
