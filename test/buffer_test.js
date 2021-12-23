@@ -170,6 +170,9 @@ describe('Buffer', () => {
             Buffer.from(expected));
         assert.deepEqual(Buffer.from('__--_--_--__', 'base64'),
             Buffer.from(expected));
+
+        assert.equal(Buffer.from("6am+77yG556/", "base64").toString(), "驾＆瞿");
+        assert.equal(Buffer.from("6am-77yG556_", "base64url").toString(), "驾＆瞿");
     });
 
     it('Buffer.from(String, ucs2)', () => {
@@ -425,6 +428,7 @@ describe('Buffer', () => {
         assert.equal(Buffer.isEncoding('gb2312'), true);
         assert.equal(Buffer.isEncoding('hex'), true);
         assert.equal(Buffer.isEncoding('base64'), true);
+        assert.equal(Buffer.isEncoding('base64url'), true);
         assert.equal(Buffer.isEncoding('jis'), false);
         assert.equal(Buffer.isEncoding('aaabbbccc'), false);
         assert.equal(Buffer.isEncoding('binary'), true);
@@ -542,6 +546,7 @@ describe('Buffer', () => {
         assert.equal(buf.toString("utf8", 1, 3), "23");
         assert.equal(buf.toString("hex", 2), "3334");
         assert.equal(buf.toString("base64", 2), "MzQ=");
+        assert.equal(buf.toString("base64url"), "MTIzNA");
 
         buf = new Buffer(5)
         buf.append("abcd");
@@ -587,6 +592,9 @@ describe('Buffer', () => {
 
         buf.append("MTIzNA==", "base64");
         assert.equal(buf.toString(), "1234abcd1234121234");
+
+        buf.append("6am-77yG556_", "base64url");
+        assert.equal(buf.toString(), "1234abcd1234121234驾＆瞿");
     });
 
     it('write', () => {
