@@ -287,7 +287,7 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
 
 inline bool is_native_codec(exlib::string codec)
 {
-    return (codec == "hex") || (codec == "base64")
+    return (codec == "hex") || (codec == "base64") || (codec == "base64url")
         || (codec == "utf8") || (codec == "utf-8")
 
         || (codec == "ucs2") || (codec == "ucs-2")
@@ -321,7 +321,7 @@ result_t Buffer_base::isEncoding(exlib::string codec, bool& retVal)
         return 0;
     }
 
-    if ((codec == "utf8") || (codec == "utf-8") || (codec == "hex") || (codec == "base64")) {
+    if ((codec == "utf8") || (codec == "utf-8") || (codec == "hex") || (codec == "base64") || (codec == "base64url")) {
         retVal = true;
     } else {
         iconv_base::isEncoding(codec, retVal);
@@ -423,7 +423,7 @@ result_t Buffer::append(exlib::string str, exlib::string codec)
 
     if ((codec == "hex"))
         hr = hex_base::decode(str, data);
-    else if ((codec == "base64"))
+    else if ((codec == "base64") || (codec == "base64url"))
         hr = base64_base::decode(str, data);
     else
         hr = iconv_base::encode(codec, str, data);
@@ -462,7 +462,7 @@ result_t Buffer::write(exlib::string str, int32_t offset, int32_t length, exlib:
 
         if ((codec == "hex"))
             hr = hex_base::decode(str, data);
-        else if ((codec == "base64"))
+        else if ((codec == "base64") || (codec == "base64url"))
             hr = base64_base::decode(str, data);
         else
             hr = iconv_base::encode(codec, str, data);

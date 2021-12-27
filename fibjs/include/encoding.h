@@ -156,6 +156,8 @@ inline result_t commonEncode(exlib::string codec, exlib::string data, exlib::str
             hr = hexEncode(data, retVal);
         else if ((codec == "base64"))
             hr = base64Encode(data.c_str(), data.length(), false, retVal);
+        else if ((codec == "base64url"))
+            hr = base64Encode(data.c_str(), data.length(), true, retVal);
         else if ((codec == "ascii")) {
             size_t len, i;
 
