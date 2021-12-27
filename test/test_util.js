@@ -3,6 +3,11 @@ var fs = require('fs');
 var path = require('path');
 var coroutine = require('coroutine');
 
+process.on('SIGINT', () => {
+    coroutine.fibers.forEach(f => console.error("\nFiber %d:\n%s", f.id, f.stack));
+    process.exit();
+});
+
 var ss = [];
 
 exports.countObject = nm => {
