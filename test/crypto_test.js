@@ -470,6 +470,13 @@ describe('crypto', () => {
                 pk.importKey(json);
                 assert.equal(pk.exportPem(), ec_pem);
 
+                pk.importKey({
+                    "kty": "EC",
+                    "crv": "P-521",
+                    "d": "AfkIbUHXfW41njdpoKuqqKludcoLJS8D_oMEwkj-GVaXFNKccIoF5iKGu2c69kNDjo83R_7wyGlfRczsklkik1ST"
+                });
+                assert.equal(pk.exportPem(), ec_pem);
+
                 var pk = new crypto.PKey();
                 pk.importKey(pub_ec_pem);
                 var json = pk.exportJson();
@@ -590,6 +597,13 @@ describe('crypto', () => {
                 });
 
                 pk.importKey(json);
+                assert.equal(pk.exportPem(), sm2_pem);
+
+                pk.importKey({
+                    "kty": "SM2",
+                    "crv": "sm2p256r1",
+                    "d": "fcRRalaycsaXpKQYGcbmU8Qi93KqXnpodAwIK3vEOoI"
+                });
                 assert.equal(pk.exportPem(), sm2_pem);
 
                 var pk = new crypto.PKey();

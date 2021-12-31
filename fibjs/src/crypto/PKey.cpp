@@ -478,6 +478,7 @@ result_t PKey::importKey(v8::Local<v8::Object> jsonKey)
 
     if (kty == "EC" || kty == "SM2") {
         exlib::string curve;
+        bool is_priv = false;
 
         hr = GetConfigValue(isolate->m_isolate, jsonKey, "crv", curve);
         if (hr < 0)
@@ -497,29 +498,40 @@ result_t PKey::importKey(v8::Local<v8::Object> jsonKey)
 
         mbedtls_ecp_group_load(&ecp->grp, id);
 
-        hr = mpi_load(isolate, &ecp->Q.X, jsonKey, "x");
-        if (hr < 0)
-            return hr;
-
-        hr = mpi_load(isolate, &ecp->Q.Y, jsonKey, "y");
-        if (hr < 0)
-            return hr;
-
-        ret = mbedtls_mpi_lset(&ecp->Q.Z, 1);
-        if (ret != 0)
-            return CHECK_ERROR(_ssl::setError(ret));
-
-        ret = mbedtls_ecp_check_pubkey(&ecp->grp, &ecp->Q);
-        if (ret != 0)
-            return CHECK_ERROR(_ssl::setError(ret));
-
         hr = mpi_load(isolate, &ecp->d, jsonKey, "d");
         if (hr >= 0) {
             ret = mbedtls_ecp_check_privkey(&ecp->grp, &ecp->d);
             if (ret != 0)
                 return CHECK_ERROR(_ssl::setError(ret));
+            is_priv = true;
         } else if (hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
+
+        do {
+            hr = mpi_load(isolate, &ecp->Q.X, jsonKey, "x");
+            if (hr < 0)
+                break;
+
+            hr = mpi_load(isolate, &ecp->Q.Y, jsonKey, "y");
+            if (hr < 0)
+                break;
+
+            ret = mbedtls_mpi_lset(&ecp->Q.Z, 1);
+            if (ret != 0)
+                return CHECK_ERROR(_ssl::setError(ret));
+
+            ret = mbedtls_ecp_check_pubkey(&ecp->grp, &ecp->Q);
+            if (ret != 0)
+                return CHECK_ERROR(_ssl::setError(ret));
+        } while (false);
+
+        if (!is_priv || hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+
+        ret = mbedtls_ecp_mul(&ecp->grp, &ecp->Q, &ecp->d, &ecp->grp.G,
+            mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
+        if (ret != 0)
+            return CHECK_ERROR(_ssl::setError(ret));
 
         return 0;
     }
