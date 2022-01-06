@@ -40,6 +40,12 @@ var ec_pem = "-----BEGIN EC PRIVATE KEY-----\n" +
     "EdX30QGqQ71qihogY6Jqlmn8aJAZGwyNHPeX+n+F1A==\n" +
     "-----END EC PRIVATE KEY-----\n";
 
+var ec256_pem = "-----BEGIN EC PRIVATE KEY-----\n" +
+    "MHQCAQEEIAp9Kd9+KD3LRbZLxxA6IG+brTA/pgHIR3ULfOgJc6a1oAcGBSuBBAAK\n" +
+    "oUQDQgAEpNdY6eCd+synm6iEU5MTUZZUZumR+DglOJh3OQ/y8PafXkcwXZq5mNp2\n" +
+    "LG2Ho+7ATaE5e03TTWWhhqfHj4scBQ==\n" +
+    "-----END EC PRIVATE KEY-----\n";
+
 var pub_ec_pem = "-----BEGIN PUBLIC KEY-----\n" +
     "MIGbMBAGByqGSM49AgEGBSuBBAAjA4GGAAQBN800W66+UbGtMaheDJ9IAaBE00Oc\n" +
     "7es3eTvi6sol1VLXhFiF2dLCb3UGb4XWX5PVcqUBjbJGfMb3DVSS+jxzTAsBIEeq\n" +
@@ -546,7 +552,28 @@ describe('crypto', () => {
 
                 var md = hash.md5("abcdefg").digest();
                 var md1 = hash.md5("abcdefg1").digest();
+                console.time('ecc sign');
                 var d = pk.sign(md, hash.MD5);
+                console.timeEnd('ecc sign');
+                assert.isTrue(pk1.verify(md, d, hash.MD5));
+                assert.isFalse(pk1.verify(md1, d, hash.MD5));
+
+                assert.throws(() => {
+                    pk1.sign(md);
+                });
+            });
+
+            it("secp256k1 sign/verify", () => {
+                var pk = new crypto.PKey();
+                pk.importKey(ec256_pem);
+
+                var pk1 = pk.publicKey;
+
+                var md = hash.md5("abcdefg").digest();
+                var md1 = hash.md5("abcdefg1").digest();
+                console.time('secp256k1 sign');
+                var d = pk.sign(md, hash.MD5);
+                console.timeEnd('secp256k1 sign');
                 assert.isTrue(pk1.verify(md, d, hash.MD5));
                 assert.isFalse(pk1.verify(md1, d, hash.MD5));
 
