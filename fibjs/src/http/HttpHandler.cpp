@@ -659,8 +659,6 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             m_req->get_protocol(str);
             m_rep->set_protocol(str);
 
-            m_rep->addHeader("Server", m_pThis->m_serverName);
-
             bool bKeepAlive;
 
             m_req->get_keepAlive(bKeepAlive);
@@ -673,8 +671,7 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
                 exlib::string origin;
 
-                if (m_req->firstHeader("origin", origin)
-                    != CALL_RETURN_NULL) {
+                if (m_req->firstHeader("origin", origin) != CALL_RETURN_NULL) {
                     m_rep->setHeader("Access-Control-Allow-Credentials", "true");
                     m_rep->setHeader("Access-Control-Allow-Origin", origin);
 
@@ -701,19 +698,21 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             int32_t s;
             bool t = false;
             date_t d;
+            exlib::string str;
+
+            if (m_rep->firstHeader("Server", str) == CALL_RETURN_NULL)
+                m_rep->addHeader("Server", m_pThis->m_serverName);
 
             d.now();
 
             m_rep->get_statusCode(s);
             if (s == 200 && !m_options) {
                 m_rep->hasHeader("Last-Modified", t);
-                if (!t) {
+                if (!t && (m_rep->firstHeader("Cache-Control", str) == CALL_RETURN_NULL)) {
                     m_rep->addHeader("Cache-Control", "no-cache, no-store");
                     m_rep->addHeader("Expires", "-1");
                 }
             }
-
-            exlib::string str;
 
             m_req->get_method(str);
             bool headOnly = !qstricmp(str.c_str(), "head");
