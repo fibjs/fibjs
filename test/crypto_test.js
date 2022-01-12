@@ -552,10 +552,15 @@ describe('crypto', () => {
 
                 var md = hash.md5("abcdefg").digest();
                 var md1 = hash.md5("abcdefg1").digest();
+
                 console.time('ecc sign');
                 var d = pk.sign(md, hash.MD5);
                 console.timeEnd('ecc sign');
+
+                console.time('ecc verify');
                 assert.isTrue(pk1.verify(md, d, hash.MD5));
+                console.timeEnd('ecc verify');
+
                 assert.isFalse(pk1.verify(md1, d, hash.MD5));
 
                 assert.throws(() => {
@@ -571,10 +576,15 @@ describe('crypto', () => {
 
                 var md = hash.md5("abcdefg").digest();
                 var md1 = hash.md5("abcdefg1").digest();
+
                 console.time('secp256k1 sign');
                 var d = pk.sign(md, hash.MD5);
                 console.timeEnd('secp256k1 sign');
+
+                console.time('secp256k1 verify');
                 assert.isTrue(pk1.verify(md, d, hash.MD5));
+                console.timeEnd('secp256k1 verify');
+
                 assert.isFalse(pk1.verify(md1, d, hash.MD5));
 
                 assert.throws(() => {

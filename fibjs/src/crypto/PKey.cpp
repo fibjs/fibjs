@@ -14,125 +14,7 @@
 #include "ssl.h"
 #include "encoding.h"
 
-#include <mbedtls/mbedtls/pk_internal.h>
-#include <secp256k1/include/secp256k1.h>
-
 namespace fibjs {
-
-#define KEYSIZE_256 32
-class _ecdsa {
-public:
-    _ecdsa()
-    {
-        info = *mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY);
-
-        info.verify_func = _verify_wrap;
-        info.sign_func = _sign_wrap;
-
-        secp_ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN);
-    }
-
-    mbedtls_pk_info_t info;
-    secp256k1_context* secp_ctx;
-
-private:
-    static int _verify_wrap(void* ctx, mbedtls_md_type_t md_alg,
-        const unsigned char* hash, size_t hash_len,
-        const unsigned char* sig, size_t sig_len);
-    static int _sign_wrap(void* ctx, mbedtls_md_type_t md_alg,
-        const unsigned char* hash, size_t hash_len,
-        unsigned char* sig, size_t* sig_len,
-        int (*f_rng)(void*, unsigned char*, size_t), void* p_rng);
-};
-
-static _ecdsa s_ecdsa;
-
-inline const mbedtls_pk_info_t* _pk_info_from_type(mbedtls_pk_type_t pk_type)
-{
-    return pk_type == MBEDTLS_PK_ECKEY ? &s_ecdsa.info : mbedtls_pk_info_from_type(pk_type);
-}
-
-inline void fix_hash(const unsigned char*& hash, size_t& hash_len, unsigned char* buffer)
-{
-    if (hash_len > KEYSIZE_256) {
-        hash += hash_len - KEYSIZE_256;
-        hash_len = KEYSIZE_256;
-    } else if (hash_len < KEYSIZE_256) {
-        memset(buffer, 0, KEYSIZE_256 - hash_len);
-        memcpy(buffer + KEYSIZE_256 - hash_len, hash, hash_len);
-        hash = buffer;
-        hash_len = KEYSIZE_256;
-    }
-}
-
-inline void mpi_write_key(const mbedtls_mpi* X, unsigned char* buf)
-{
-    mbedtls_mpi_write_binary(X, buf, KEYSIZE_256);
-    for (int32_t i = 0; i < KEYSIZE_256 / 2; i++) {
-        char x = buf[i];
-        buf[i] = buf[KEYSIZE_256 - i - 1];
-        buf[KEYSIZE_256 - i - 1] = x;
-    }
-}
-
-int _ecdsa::_verify_wrap(void* ctx, mbedtls_md_type_t md_alg,
-    const unsigned char* hash, size_t hash_len,
-    const unsigned char* sig, size_t sig_len)
-{
-    mbedtls_ecdsa_context* ec_ctx = (mbedtls_ecdsa_context*)ctx;
-    int ret;
-    ((void)md_alg);
-
-    if (ec_ctx->grp.id != MBEDTLS_ECP_DP_SECP256K1) {
-        ret = mbedtls_ecdsa_read_signature(ec_ctx,
-            hash, hash_len, sig, sig_len);
-
-        if (ret == MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH)
-            return (MBEDTLS_ERR_PK_SIG_LEN_MISMATCH);
-
-        return (ret);
-    }
-
-    unsigned char buffer[KEYSIZE_256];
-    secp256k1_pubkey pubkey;
-    secp256k1_ecdsa_signature signature;
-
-    fix_hash(hash, hash_len, buffer);
-    mpi_write_key(&ec_ctx->Q.X, pubkey.data);
-    mpi_write_key(&ec_ctx->Q.Y, pubkey.data + KEYSIZE_256);
-
-    if (!secp256k1_ecdsa_signature_parse_der(s_ecdsa.secp_ctx, &signature, sig, sig_len))
-        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
-
-    if (!secp256k1_ecdsa_verify(s_ecdsa.secp_ctx, &signature, hash, &pubkey))
-        return MBEDTLS_ERR_ECP_VERIFY_FAILED;
-
-    return 0;
-}
-
-int _ecdsa::_sign_wrap(void* ctx, mbedtls_md_type_t md_alg,
-    const unsigned char* hash, size_t hash_len,
-    unsigned char* sig, size_t* sig_len,
-    int (*f_rng)(void*, unsigned char*, size_t), void* p_rng)
-{
-    mbedtls_ecdsa_context* ec_ctx = (mbedtls_ecdsa_context*)ctx;
-
-    if (ec_ctx->grp.id != MBEDTLS_ECP_DP_SECP256K1)
-        return (mbedtls_ecdsa_write_signature(ec_ctx,
-            md_alg, hash, hash_len, sig, sig_len, f_rng, p_rng));
-
-    unsigned char buffer[KEYSIZE_256];
-    unsigned char key[KEYSIZE_256];
-    secp256k1_ecdsa_signature signature;
-
-    fix_hash(hash, hash_len, buffer);
-    mbedtls_mpi_write_binary(&ec_ctx->d, key, KEYSIZE_256);
-
-    secp256k1_ecdsa_sign(s_ecdsa.secp_ctx, &signature, hash, key, NULL, NULL);
-    secp256k1_ecdsa_signature_serialize_der(s_ecdsa.secp_ctx, sig, sig_len, &signature);
-
-    return 0;
-}
 
 struct curve_info {
     mbedtls_ecp_group_id id;
@@ -251,7 +133,7 @@ result_t PKey::genRsaKey(int32_t size, AsyncEvent* ac)
 
     clear();
 
-    ret = mbedtls_pk_setup(&m_key, _pk_info_from_type(MBEDTLS_PK_RSA));
+    ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA));
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
@@ -277,7 +159,7 @@ result_t PKey::genEcKey(exlib::string curve, AsyncEvent* ac)
 
     clear();
 
-    ret = mbedtls_pk_setup(&m_key, _pk_info_from_type(MBEDTLS_PK_ECKEY));
+    ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
@@ -298,7 +180,7 @@ result_t PKey::genSm2Key(AsyncEvent* ac)
 
     clear();
 
-    ret = mbedtls_pk_setup(&m_key, _pk_info_from_type(MBEDTLS_PK_SM2));
+    ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_SM2));
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
@@ -347,7 +229,7 @@ result_t PKey::get_publicKey(obj_ptr<PKey_base>& retVal)
         mbedtls_rsa_context* rsa = mbedtls_pk_rsa(m_key);
         obj_ptr<PKey> pk1 = new PKey();
 
-        ret = mbedtls_pk_setup(&pk1->m_key, _pk_info_from_type(MBEDTLS_PK_RSA));
+        ret = mbedtls_pk_setup(&pk1->m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA));
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
@@ -373,7 +255,7 @@ result_t PKey::get_publicKey(obj_ptr<PKey_base>& retVal)
 
         obj_ptr<PKey> pk1 = new PKey();
 
-        ret = mbedtls_pk_setup(&pk1->m_key, _pk_info_from_type(type));
+        ret = mbedtls_pk_setup(&pk1->m_key, mbedtls_pk_info_from_type(type));
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
@@ -403,7 +285,7 @@ result_t PKey::copy(const mbedtls_pk_context& key)
     if (type == MBEDTLS_PK_RSA) {
         mbedtls_rsa_context* rsa = mbedtls_pk_rsa(key);
 
-        ret = mbedtls_pk_setup(&m_key, _pk_info_from_type(MBEDTLS_PK_RSA));
+        ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA));
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
@@ -419,7 +301,7 @@ result_t PKey::copy(const mbedtls_pk_context& key)
     if (type == MBEDTLS_PK_ECKEY || type == MBEDTLS_PK_SM2) {
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(key);
 
-        ret = mbedtls_pk_setup(&m_key, _pk_info_from_type(type));
+        ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(type));
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
@@ -475,9 +357,6 @@ result_t PKey::importKey(Buffer_base* DerKey, exlib::string password)
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
-    if (mbedtls_pk_get_type(&m_key) == MBEDTLS_PK_ECKEY)
-        m_key.pk_info = _pk_info_from_type(MBEDTLS_PK_ECKEY);
-
     return 0;
 }
 
@@ -509,9 +388,6 @@ result_t PKey::importKey(exlib::string pemKey, exlib::string password)
 
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
-
-    if (mbedtls_pk_get_type(&m_key) == MBEDTLS_PK_ECKEY)
-        m_key.pk_info = _pk_info_from_type(MBEDTLS_PK_ECKEY);
 
     return 0;
 }
@@ -549,7 +425,7 @@ result_t PKey::importKey(v8::Local<v8::Object> jsonKey)
         return hr;
 
     if (kty == "RSA") {
-        ret = mbedtls_pk_setup(&m_key, _pk_info_from_type(MBEDTLS_PK_RSA));
+        ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA));
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
@@ -612,9 +488,9 @@ result_t PKey::importKey(v8::Local<v8::Object> jsonKey)
         if (id == MBEDTLS_ECP_DP_NONE)
             return CHECK_ERROR(Runtime::setError("PKey: Unknown curve"));
         if (kty == "SM2")
-            ret = mbedtls_pk_setup(&m_key, _pk_info_from_type(MBEDTLS_PK_SM2));
+            ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_SM2));
         else
-            ret = mbedtls_pk_setup(&m_key, _pk_info_from_type(MBEDTLS_PK_ECKEY));
+            ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
