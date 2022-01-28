@@ -275,5 +275,15 @@ declare class Class_PKey extends Class_object {
 
     verify(data: Class_Buffer, sign: Class_Buffer, alg?: number, callback?: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
+    /**
+     * @description 使用当前算法计算椭圆曲线 Diffie-Hellman (ECDH) 共享密钥
+     *      @param publicKey 指定对方的公钥
+     *      @return 返回计算出的共享密钥
+     *      
+     */
+    computeSecret(publicKey: Class_PKey): Class_Buffer;
+
+    computeSecret(publicKey: Class_PKey, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
 }
 

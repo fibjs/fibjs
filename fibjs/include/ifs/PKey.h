@@ -45,6 +45,7 @@ public:
     virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t verify(Buffer_base* data, Buffer_base* sign, int32_t alg, bool& retVal, AsyncEvent* ac) = 0;
+    virtual result_t computeSecret(PKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
     template <typename T>
@@ -69,6 +70,7 @@ public:
     static void s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_sign(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_verify(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_computeSecret(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBER1(PKey_base, genRsaKey, int32_t);
@@ -78,6 +80,7 @@ public:
     ASYNC_MEMBERVALUE2(PKey_base, decrypt, Buffer_base*, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE3(PKey_base, sign, Buffer_base*, int32_t, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE4(PKey_base, verify, Buffer_base*, Buffer_base*, int32_t, bool);
+    ASYNC_MEMBERVALUE2(PKey_base, computeSecret, PKey_base*, obj_ptr<Buffer_base>);
 };
 }
 
@@ -107,7 +110,9 @@ inline ClassInfo& PKey_base::class_info()
         { "sign", s_sign, false },
         { "signSync", s_sign, false },
         { "verify", s_verify, false },
-        { "verifySync", s_verify, false }
+        { "verifySync", s_verify, false },
+        { "computeSecret", s_computeSecret, false },
+        { "computeSecretSync", s_computeSecret, false }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -457,6 +462,26 @@ inline void PKey_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& args)
         hr = pInst->acb_verify(v0, v1, v2, cb, args);
     else
         hr = pInst->ac_verify(v0, v1, v2, vr);
+
+    METHOD_RETURN();
+}
+
+inline void PKey_base::s_computeSecret(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_NAME("PKey.computeSecret");
+    METHOD_INSTANCE(PKey_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<PKey_base>, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_computeSecret(v0, cb, args);
+    else
+        hr = pInst->ac_computeSecret(v0, vr);
 
     METHOD_RETURN();
 }

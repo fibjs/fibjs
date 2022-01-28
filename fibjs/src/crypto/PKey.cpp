@@ -807,6 +807,56 @@ result_t PKey::verify(Buffer_base* data, Buffer_base* sign,
     return 0;
 }
 
+result_t PKey::computeSecret(PKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    result_t hr;
+    bool priv;
+    mbedtls_pk_type_t type;
+
+    obj_ptr<PKey> pubkey = (PKey*)publicKey;
+    type = mbedtls_pk_get_type(&pubkey->m_key);
+    if (type != MBEDTLS_PK_ECKEY && type != MBEDTLS_PK_SM2)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    type = mbedtls_pk_get_type(&m_key);
+    if (type != MBEDTLS_PK_ECKEY && type != MBEDTLS_PK_SM2)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    hr = isPrivate(priv);
+    if (hr < 0)
+        return hr;
+
+    if (!priv)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    mbedtls_ecp_keypair* ecp1 = mbedtls_pk_ec(m_key);
+    mbedtls_ecp_keypair* ecp2 = mbedtls_pk_ec(pubkey->m_key);
+    if (ecp1->grp.id != ecp2->grp.id)
+        return CHECK_ERROR(Runtime::setError("Public key is not valid for specified curve"));
+
+    int32_t ret;
+    mbedtls_mpi z;
+    mbedtls_mpi_init(&z);
+    ret = mbedtls_ecdh_compute_shared(&ecp1->grp, &z, &ecp2->Q, &ecp1->d,
+        mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
+    if (ret != 0)
+        return CHECK_ERROR(_ssl::setError(ret));
+
+    exlib::string data;
+    int32_t sz = (int32_t)mbedtls_mpi_size(&z);
+
+    data.resize(sz);
+    mbedtls_mpi_write_binary(&z, (unsigned char*)data.c_buffer(), sz);
+    mbedtls_mpi_free(&z);
+
+    retVal = new Buffer(data);
+
+    return 0;
+}
+
 result_t PKey::get_name(exlib::string& retVal)
 {
     retVal = mbedtls_pk_get_name(&m_key);

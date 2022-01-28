@@ -11,7 +11,7 @@
 declare module 'performance' {
     /**
      * @description 查询当前进程时间 
-     *      return 返回当前进程时间
+     *      @return 返回当前进程时间
      */
     function now(): number;
 

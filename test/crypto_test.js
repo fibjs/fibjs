@@ -748,6 +748,29 @@ describe('crypto', () => {
             });
         });
 
+        it("ECDH", () => {
+            var alice = crypto.genEcKey('secp256r1');
+            var bob = crypto.genEcKey('secp256r1');
+            var aliceSecret = alice.computeSecret(bob);
+            var bobSecret = bob.computeSecret(alice);
+
+            assert.deepEqual(aliceSecret, bobSecret);
+
+            var alice = crypto.genEcKey('secp256k1');
+            var bob = crypto.genEcKey('secp256k1');
+            var aliceSecret = alice.computeSecret(bob);
+            var bobSecret = bob.computeSecret(alice);
+
+            assert.deepEqual(aliceSecret, bobSecret);
+
+            var alice = crypto.genSm2Key();
+            var bob = crypto.genSm2Key();
+            var aliceSecret = alice.computeSecret(bob);
+            var bobSecret = bob.computeSecret(alice);
+
+            assert.deepEqual(aliceSecret, bobSecret);
+        });
+
         it("name", () => {
             var pk = new crypto.PKey();
 
