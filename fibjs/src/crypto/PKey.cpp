@@ -14,6 +14,8 @@
 #include "ssl.h"
 #include "encoding.h"
 
+#include <mbedtls/src/secp256k1_api.h>
+
 namespace fibjs {
 
 struct curve_info {
@@ -527,6 +529,21 @@ result_t PKey::importKey(v8::Local<v8::Object> jsonKey)
 
         if (!is_priv || hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
+
+        if (ecp->grp.id == MBEDTLS_ECP_DP_SECP256K1) {
+            secp256k1_pubkey pubkey;
+            unsigned char key[KEYSIZE_256];
+
+            mbedtls_mpi_write_binary(&ecp->d, key, KEYSIZE_256);
+
+            secp256k1_ec_pubkey_create(secp256k1_ctx(), &pubkey, key);
+
+            mpi_read_key(&ecp->Q.X, pubkey.data);
+            mpi_read_key(&ecp->Q.Y, pubkey.data + KEYSIZE_256);
+            mbedtls_mpi_lset(&ecp->Q.Z, 1);
+
+            return 0;
+        }
 
         ret = mbedtls_ecp_mul(&ecp->grp, &ecp->Q, &ecp->d, &ecp->grp.G,
             mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
