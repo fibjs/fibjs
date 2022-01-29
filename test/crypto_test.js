@@ -769,6 +769,20 @@ describe('crypto', () => {
             var bobSecret = bob.computeSecret(alice);
 
             assert.deepEqual(aliceSecret, bobSecret);
+
+            var alice = new crypto.PKey({
+                "kty": "EC",
+                "crv": "secp256k1",
+                "d": "D8VXPuvb2ROceGlswZ-TAao40WZvnbXw0sDOqQKoye8"
+            });
+            var bob = new crypto.PKey({
+                "kty": "EC",
+                "crv": "secp256k1",
+                "d": "3S1mHUDELnyOtglI_3-cEJYoKWcVIAvixHEU5-SGCGU"
+            });
+
+            assert.equal("b2885b8ed48ad77ae3a531c64b85a2fcb08196e93cc13a4f783cc90674ed764a",
+                bob.computeSecret(alice).hex());
         });
 
         it("name", () => {
