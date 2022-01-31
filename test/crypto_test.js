@@ -591,6 +591,28 @@ describe('crypto', () => {
                     pk1.sign(md);
                 });
             });
+
+            it('FIX: secp256k1 verify error.', () => {
+                var pk = new crypto.PKey();
+                pk.importKey({
+                    "kty": "EC",
+                    "crv": "secp256k1",
+                    "d": "rSnfXs7h-q2yNflXjMTJHZz_Md3KKKr2Lk1ot0-BN2k"
+                });
+
+                var test_data = [
+                    ['ebd7f85f3c944eea17a01a95b749f306b958d8e2',
+                        '304502202876bd6b6091e71294c39c76ff5c3f0b5b29bd8a554b3b6ba1a23d71cbfc43d7022100c2445201eae4fd0da1f3844aaa0888dca7754509a2e18330daceb5f333725bec'],
+                    ['ebd7f85f3c944eea17a01a95b749f306b958d8e2',
+                        '3045022100d02bb0c6fd3e389dd966be55b333d307438a67e07cf6534b45c642df4a83a7dd022056a6dd25df0d1de94d232e68d33fec0171dffd5f7bef264cf379e3f8a962d355'],
+                    ['4b06387d492c935e2b1d63d15baaf5aa3ccff13e5275c1311914969f67833756',
+                        '3046022100f799d5961ce2ad769d605e7834dd64e14766b23b51f0310f150bf2064547cbc8022100caae88bbc104e6589727b6a70cae511a610f456e487f6482eb819138d1d7c978'],
+                    ['4b06387d492c935e2b1d63d15baaf5aa3ccff13e5275c1311914969f67833756',
+                        '30440220651892d5a9c0560447d0d5e526d245f1007cce63bb19a1568b30e2d85a68652f02203476fd6e2798acfb7f39986d7c9afdb3b5461dfb9e366b044ad1bf6693e8101e'],
+                ]
+
+                test_data.forEach(d => assert.ok(pk.verify(new Buffer(d[0], 'hex'), new Buffer(d[1], 'hex'))));
+            });
         });
 
         describe("SM2", () => {
