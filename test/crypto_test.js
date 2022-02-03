@@ -837,6 +837,20 @@ describe('crypto', () => {
             assert.equal(pk.keySize, 256);
         });
 
+        it("curve", () => {
+            var pk = new crypto.PKey();
+
+            assert.equal(pk.curve, '');
+
+            pk.importKey(rsa1024_pem);
+            assert.equal(pk.curve, '');
+
+            pk.importKey(ec_pem);
+            assert.equal(pk.curve, 'P-521');
+
+            pk.importKey(sm2_pem);
+            assert.equal(pk.curve, 'sm2p256r1');
+        });
     });
 
     describe("X509 Cert", () => {

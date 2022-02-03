@@ -28,6 +28,7 @@ public:
     static result_t _new(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_name(exlib::string& retVal) = 0;
     virtual result_t get_keySize(int32_t& retVal) = 0;
+    virtual result_t get_curve(exlib::string& retVal) = 0;
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal) = 0;
     virtual result_t genRsaKey(int32_t size, AsyncEvent* ac) = 0;
     virtual result_t genEcKey(exlib::string curve, AsyncEvent* ac) = 0;
@@ -55,6 +56,7 @@ public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_name(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_keySize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_curve(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_publicKey(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_genRsaKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_genEcKey(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -118,6 +120,7 @@ inline ClassInfo& PKey_base::class_info()
     static ClassData::ClassProperty s_property[] = {
         { "name", s_get_name, block_set, false },
         { "keySize", s_get_keySize, block_set, false },
+        { "curve", s_get_curve, block_set, false },
         { "publicKey", s_get_publicKey, block_set, false }
     };
 
@@ -194,6 +197,19 @@ inline void PKey_base::s_get_keySize(v8::Local<v8::Name> property, const v8::Pro
     PROPERTY_ENTER();
 
     hr = pInst->get_keySize(vr);
+
+    METHOD_RETURN();
+}
+
+inline void PKey_base::s_get_curve(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_NAME("PKey.curve");
+    METHOD_INSTANCE(PKey_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_curve(vr);
 
     METHOD_RETURN();
 }

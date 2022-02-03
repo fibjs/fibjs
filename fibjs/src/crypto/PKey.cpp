@@ -886,6 +886,19 @@ result_t PKey::get_keySize(int32_t& retVal)
     return 0;
 }
 
+result_t PKey::get_curve(exlib::string& retVal)
+{
+    mbedtls_pk_type_t type = mbedtls_pk_get_type(&m_key);
+    if (type == MBEDTLS_PK_ECKEY || type == MBEDTLS_PK_SM2) {
+        mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
+        const char* _name = get_curve_name(ecp->grp.id);
+        if (_name)
+            retVal = _name;
+    }
+
+    return 0;
+}
+
 result_t PKey::toString(exlib::string& retVal)
 {
     return exportPem(retVal);

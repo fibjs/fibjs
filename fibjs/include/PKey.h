@@ -27,6 +27,7 @@ public:
     // PKey_base
     virtual result_t get_name(exlib::string& retVal);
     virtual result_t get_keySize(int32_t& retVal);
+    virtual result_t get_curve(exlib::string& retVal);
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal);
     virtual result_t genRsaKey(int32_t size, AsyncEvent* ac);
     virtual result_t genEcKey(exlib::string curve, AsyncEvent* ac);

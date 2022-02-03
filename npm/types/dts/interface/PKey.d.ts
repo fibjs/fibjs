@@ -92,6 +92,11 @@ declare class Class_PKey extends Class_object {
     readonly keySize: number;
 
     /**
+     * @description 返回当前算法的椭圆曲线名称，仅用于 EC 和 SM2 
+     */
+    readonly curve: string;
+
+    /**
      * @description 返回当前密钥的公钥
      *      @return 当前密钥的公钥
      *     
