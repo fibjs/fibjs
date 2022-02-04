@@ -314,6 +314,40 @@ describe('ssl', () => {
         }
     });
 
+    it('secp256k1 speed', () => {
+        var pk = crypto.genEcKey('secp256k1');
+        var ca = new crypto.X509Req("CN=localhost", pk).sign("CN=localhost", pk, {
+            ca: true
+        });
+
+        var pk1 = crypto.genEcKey('secp256k1');
+        var crt1 = new crypto.X509Req("CN=127.0.0.1", pk1).sign("CN=localhost", pk);
+
+        var pk2 = crypto.genEcKey('secp256k1');
+        var crt2 = new crypto.X509Req("CN=127.0.0.1", pk2).sign("CN=localhost", pk);
+
+        ssl.ca.load(ca.dump()[0]);
+        // ssl.loadRootCerts();
+
+        var svr = new ssl.Server(crt1, pk1, 8888, (s) => {
+            var buf;
+            while (buf = s.read());
+        });
+        svr.verification = ssl.VERIFY_REQUIRED;
+        svr.ca.load(ca.dump()[0]);
+
+        svr.start();
+
+        test_util.push(svr.socket);
+
+        console.time("secp256k1 speed");
+        for (var i = 0; i < 100; i++) {
+            var conn = ssl.connect('ssl://127.0.0.1:8888', crt2, pk2);
+            conn.close();
+        }
+        console.timeEnd("secp256k1 speed");
+    })
+
     it("bugfix: socket stream not close in ssl.Socket.close", () => {
         var s2;
         var svr = new ssl.Server(crt, pk, 9085 + base_port, (s) => {

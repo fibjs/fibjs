@@ -536,7 +536,7 @@ result_t PKey::importKey(v8::Local<v8::Object> jsonKey)
 
             mbedtls_mpi_write_binary(&ecp->d, key, KEYSIZE_256);
 
-            secp256k1_ec_pubkey_create(secp256k1_ctx(), &pubkey, key);
+            secp256k1_ec_pubkey_create(secp256k1_ctx, &pubkey, key);
 
             mpi_read_key(&ecp->Q.X, pubkey.data);
             mpi_read_key(&ecp->Q.Y, pubkey.data + KEYSIZE_256);
