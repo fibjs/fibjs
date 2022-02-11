@@ -223,6 +223,30 @@ describe('crypto', () => {
         });
     });
 
+    it("randomFill", () => {
+        var buf = Buffer.alloc(10);
+        var before = buf.toString('hex');
+        var buf1 = crypto.randomFill(buf, 5, 5);
+        var after = buf.toString('hex');
+        assert.equal(buf, buf1);
+        assert.notStrictEqual(before, after);
+
+        crypto.randomFill(buf, 0);
+        assert.throws(() => {
+            crypto.randomFill(buf, -1);
+        });
+
+        crypto.randomFill(buf, 10);
+        assert.throws(() => {
+            crypto.randomFill(buf, 11);
+        });
+
+        crypto.randomFill(buf, 9, 1);
+        assert.throws(() => {
+            crypto.randomFill(buf, 9, 2);
+        });
+    });
+
     it("randomArt", () => {
         assert.notEqual(crypto.randomArt(data, "lion"), art1);
         assert.notEqual(crypto.randomArt(data, ""), art2);

@@ -158,6 +158,14 @@ module crypto
      */
     static Buffer pseudoRandomBytes(Integer size) async;
 
+    /*! @brief 使用随机数填充指定的 Buffer，使用 havege 生成器
+     @param buffer 指定生成的 Buffer
+     @param offset 指定起始偏移，缺省为 0
+     @param size 指定生成的随机数尺寸，缺省为 buffer.length - offset
+     @return 返回生成的随机数
+     */
+    static Buffer randomFill(Buffer buffer, Integer offset = 0, Integer size = -1) async;
+
     /*! @brief 生成给定数据的可视化字符图像
      @param data 指定要展示的数据
      @param title 指定字符图像的标题，多字节字符会导致宽度错误

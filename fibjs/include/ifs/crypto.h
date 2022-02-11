@@ -67,6 +67,7 @@ public:
     static result_t randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t simpleRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    static result_t randomFill(Buffer_base* buffer, int32_t offset, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t randomArt(Buffer_base* data, exlib::string title, int32_t size, exlib::string& retVal);
     static result_t genRsaKey(int32_t size, obj_ptr<PKey_base>& retVal, AsyncEvent* ac);
     static result_t genEcKey(exlib::string curve, obj_ptr<PKey_base>& retVal, AsyncEvent* ac);
@@ -98,6 +99,7 @@ public:
     static void s_static_randomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_simpleRandomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_pseudoRandomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_randomFill(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_randomArt(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_genRsaKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_genEcKey(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -110,6 +112,7 @@ public:
     ASYNC_STATICVALUE2(crypto_base, randomBytes, int32_t, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE2(crypto_base, simpleRandomBytes, int32_t, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE2(crypto_base, pseudoRandomBytes, int32_t, obj_ptr<Buffer_base>);
+    ASYNC_STATICVALUE4(crypto_base, randomFill, Buffer_base*, int32_t, int32_t, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE2(crypto_base, genRsaKey, int32_t, obj_ptr<PKey_base>);
     ASYNC_STATICVALUE2(crypto_base, genEcKey, exlib::string, obj_ptr<PKey_base>);
     ASYNC_STATICVALUE1(crypto_base, genSm2Key, obj_ptr<PKey_base>);
@@ -144,6 +147,8 @@ inline ClassInfo& crypto_base::class_info()
         { "simpleRandomBytesSync", s_static_simpleRandomBytes, true },
         { "pseudoRandomBytes", s_static_pseudoRandomBytes, true },
         { "pseudoRandomBytesSync", s_static_pseudoRandomBytes, true },
+        { "randomFill", s_static_randomFill, true },
+        { "randomFillSync", s_static_randomFill, true },
         { "randomArt", s_static_randomArt, true },
         { "genRsaKey", s_static_genRsaKey, true },
         { "genRsaKeySync", s_static_genRsaKey, true },
@@ -356,6 +361,27 @@ inline void crypto_base::s_static_pseudoRandomBytes(const v8::FunctionCallbackIn
         hr = acb_pseudoRandomBytes(v0, cb, args);
     else
         hr = ac_pseudoRandomBytes(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_randomFill(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_NAME("crypto.randomFill");
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(3, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG(int32_t, 2, -1);
+
+    if (!cb.IsEmpty())
+        hr = acb_randomFill(v0, v1, v2, cb, args);
+    else
+        hr = ac_randomFill(v0, v1, v2, vr);
 
     METHOD_RETURN();
 }

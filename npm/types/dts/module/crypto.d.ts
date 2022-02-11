@@ -254,6 +254,18 @@ declare module 'crypto' {
     function pseudoRandomBytes(size: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
+     * @description 使用随机数填充指定的 Buffer，使用 havege 生成器
+     *      @param buffer 指定生成的 Buffer
+     *      @param offset 指定起始偏移，缺省为 0
+     *      @param size 指定生成的随机数尺寸，缺省为 buffer.length - offset
+     *      @return 返回生成的随机数
+     *      
+     */
+    function randomFill(buffer: Class_Buffer, offset?: number, size?: number): Class_Buffer;
+
+    function randomFill(buffer: Class_Buffer, offset?: number, size?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
      * @description 生成给定数据的可视化字符图像
      *      @param data 指定要展示的数据
      *      @param title 指定字符图像的标题，多字节字符会导致宽度错误

@@ -197,6 +197,34 @@ result_t crypto_base::pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base>& retV
     return 0;
 }
 
+result_t crypto_base::randomFill(Buffer_base* buffer, int32_t offset, int32_t size,
+    obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    int32_t len;
+    buffer->get_length(len);
+
+    if (offset < 0 || offset > len)
+        return CHECK_ERROR(CALL_E_OUTRANGE);
+
+    if (size < 0)
+        size = len - offset;
+    else if (size + offset > len)
+        return CHECK_ERROR(CALL_E_OUTRANGE);
+
+    if (size == 0) {
+        retVal = buffer;
+        return 0;
+    }
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    obj_ptr<Buffer_base> rand;
+    simpleRandomBytes(size, rand, ac);
+
+    return buffer->fill(rand, offset, offset + size, retVal);
+}
+
 inline int32_t _max(int32_t a, int32_t b)
 {
     return a > b ? a : b;
