@@ -24,10 +24,17 @@ const SEP = path.sep;
 const install_log = process.env.FIBJS_SILENT_INSALL ? () => undefined : console.log.bind(console)
 
 ssl.loadRootCerts();
+
 const hc = new http.Client();
-if (process.env.fibjs_install_http_proxy) {
-    hc.proxyAgent = process.env.fibjs_install_http_proxy;
-    console.log(`[install] http client using proxyAgent: ${hc.proxyAgent}`);
+if (process.env.http_proxy) {
+    hc.proxyAgent = process.env.http_proxy;
+    console.log(`[install] http request using proxy: ${hc.proxyAgent}`);
+}
+
+const hcs = new http.Client();
+if (process.env.https_proxy) {
+    hcs.proxyAgent = process.env.https_proxy;
+    console.log(`[install] https request using proxy: ${hcs.proxyAgent}`);
 }
 
 const json_format = (function () {
@@ -163,7 +170,7 @@ function http_get(u, { quit_if_error = true } = {}) {
 
     while (cnt++ < 3)
         try {
-            const res = hc.get(u);
+            const res = u.substring(0, 5) == 'https' ? hcs.get(u) : hc.get(u);
             if (!res.body)
                 throw new Error(`[http_get] get nothing from url ${u}`);
 
