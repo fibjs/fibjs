@@ -14,8 +14,6 @@
 #include "ssl.h"
 #include "encoding.h"
 
-#include <mbedtls/src/secp256k1_api.h>
-
 namespace fibjs {
 
 struct curve_info {
@@ -531,21 +529,6 @@ result_t PKey::importKey(v8::Local<v8::Object> jsonKey)
         if (!is_priv || hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
 
-        if (ecp->grp.id == MBEDTLS_ECP_DP_SECP256K1) {
-            secp256k1_pubkey pubkey;
-            unsigned char key[KEYSIZE_256];
-
-            mbedtls_mpi_write_binary(&ecp->d, key, KEYSIZE_256);
-
-            secp256k1_ec_pubkey_create(secp256k1_ctx, &pubkey, key);
-
-            mpi_read_key(&ecp->Q.X, pubkey.data);
-            mpi_read_key(&ecp->Q.Y, pubkey.data + KEYSIZE_256);
-            mbedtls_mpi_lset(&ecp->Q.Z, 1);
-
-            return 0;
-        }
-
         ret = mbedtls_ecp_mul(&ecp->grp, &ecp->Q, &ecp->d, &ecp->grp.G,
             mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
         if (ret != 0)
@@ -782,7 +765,7 @@ result_t PKey::sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal
     data->toString(str);
     output.resize(MBEDTLS_PREMASTER_SIZE);
 
-    //alg=0~9  see https://tls.mbed.org/api/md_8h.html  enum mbedtls_md_type_t
+    // alg=0~9  see https://tls.mbed.org/api/md_8h.html  enum mbedtls_md_type_t
     ret = mbedtls_pk_sign(&m_key, (mbedtls_md_type_t)alg,
         (const unsigned char*)str.c_str(), str.length(),
         (unsigned char*)output.c_buffer(), &olen,

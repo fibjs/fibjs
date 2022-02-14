@@ -618,11 +618,13 @@ describe('crypto', () => {
 
             it('FIX: secp256k1 verify error.', () => {
                 var pk = new crypto.PKey();
+                console.time('secp256k1 import');
                 pk.importKey({
                     "kty": "EC",
                     "crv": "secp256k1",
                     "d": "rSnfXs7h-q2yNflXjMTJHZz_Md3KKKr2Lk1ot0-BN2k"
                 });
+                console.timeEnd('secp256k1 import');
 
                 var test_data = [
                     ['ebd7f85f3c944eea17a01a95b749f306b958d8e2',
