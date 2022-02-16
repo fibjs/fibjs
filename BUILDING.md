@@ -96,6 +96,18 @@ apt install g++-powerpc-linux-gnu
 apt install g++-powerpc64-linux-gnu
 ```
 
+### x86_64 on ubuntu:
+
+```sh
+apt install g++-x86-64-linux-gnu
+```
+
+### i386 on ubuntu:
+
+```sh
+apt install g++-i686-linux-gnu
+```
+
 ### fix
 
 ```sh
