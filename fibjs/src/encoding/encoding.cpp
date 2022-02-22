@@ -9,11 +9,14 @@
 #include "encoding.h"
 #include "encoding_iconv.h"
 #include "Url.h"
+#include "libbase58.h"
+#include <math.h>
 
 namespace fibjs {
 
 DECLARE_MODULE(encoding);
 DECLARE_MODULE(base32);
+DECLARE_MODULE(base58);
 DECLARE_MODULE(base64);
 DECLARE_MODULE(hex);
 
@@ -25,8 +28,7 @@ result_t base32_base::encode(Buffer_base* data, exlib::string& retVal)
     return 0;
 }
 
-result_t base32_base::decode(exlib::string data,
-    obj_ptr<Buffer_base>& retVal)
+result_t base32_base::decode(exlib::string data, obj_ptr<Buffer_base>& retVal)
 {
     static const char decodeTable[] = {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* 2x  !"#$%&'()*+,-./   */
@@ -48,8 +50,7 @@ result_t base64_base::encode(Buffer_base* data, bool url, exlib::string& retVal)
     return base64Encode(strData.c_str(), strData.length(), url, retVal);
 }
 
-result_t base64_base::decode(exlib::string data,
-    obj_ptr<Buffer_base>& retVal)
+result_t base64_base::decode(exlib::string data, obj_ptr<Buffer_base>& retVal)
 {
     static const char decodeTable[] = {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, 62, -1, 63, /* 2x  !"#$%&'()*+,-./   */
@@ -61,6 +62,36 @@ result_t base64_base::decode(exlib::string data,
     };
 
     baseDecode(decodeTable, 6, data, retVal);
+    return 0;
+}
+
+result_t base58_base::encode(Buffer_base* data, exlib::string& retVal)
+{
+    exlib::string buffer;
+
+    data->toString(buffer);
+    size_t b58sz = buffer.length() * 8 / log2l(58) + 2;
+
+    retVal.resize(b58sz);
+    b58enc(retVal.c_buffer(), &b58sz, buffer.c_str(), buffer.length());
+    retVal.resize(b58sz - 1);
+
+    return 0;
+}
+
+result_t base58_base::decode(exlib::string data, obj_ptr<Buffer_base>& retVal)
+{
+    size_t binsz = data.length() * log2l(58) / 8 + 3;
+    exlib::string buffer;
+
+    buffer.resize(binsz);
+    if (!b58tobin(buffer.c_buffer(), &binsz, data.c_str(), data.length()))
+        return CHECK_ERROR(Runtime::setError("encoding: convert error."));
+    if (binsz < buffer.length())
+        buffer = buffer.substr(buffer.length() - binsz);
+
+    retVal = new Buffer(buffer);
+
     return 0;
 }
 

@@ -4,6 +4,7 @@ test.setup();
 var encoding = require('encoding');
 var json = require('json');
 var msgpack = require('msgpack');
+var base58 = require('base58');
 var base64 = require('base64');
 var hex = require('hex');
 var iconv = require('iconv');
@@ -93,6 +94,77 @@ describe('encoding', () => {
     it("base64url", () => {
         assert.equal(base64.encode(base64.decode('//4+AA=='), true), '__4-AA');
         assert.deepEqual(base64.decode('//4+AA=='), base64.decode('__4-AA'));
+    });
+
+    it('base58', () => {
+        var data = [
+            {
+                "hex": "",
+                "string": ""
+            },
+            {
+                "hex": "61",
+                "string": "2g"
+            },
+            {
+                "hex": "626262",
+                "string": "a3gV"
+            },
+            {
+                "hex": "636363",
+                "string": "aPEr"
+            },
+            {
+                "hex": "73696d706c792061206c6f6e6720737472696e67",
+                "string": "2cFupjhnEsSn59qHXstmK2ffpLv2"
+            },
+            {
+                "hex": "00eb15231dfceb60925886b67d065299925915aeb172c06647",
+                "string": "1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L"
+            },
+            {
+                "hex": "516b6fcd0f",
+                "string": "ABnLTmg"
+            },
+            {
+                "hex": "bf4f89001e670274dd",
+                "string": "3SEo3LWLoPntC"
+            },
+            {
+                "hex": "572e4794",
+                "string": "3EFU7m"
+            },
+            {
+                "hex": "ecac89cad93923c02321",
+                "string": "EJDM8drfXA6uyA"
+            },
+            {
+                "hex": "10c8511e",
+                "string": "Rt5zm"
+            },
+            {
+                "hex": "00000000000000000000",
+                "string": "1111111111"
+            },
+            {
+                "hex": "801184cd2cdd640ca42cfc3a091c51d549b2f016d454b2774019c2b2d2e08529fd206ec97e",
+                "string": "5Hx15HFGyep2CfPxsJKe2fXJsCVn5DEiyoeGGF6JZjGbTRnqfiD"
+            },
+            {
+                "hex": "003c176e659bea0f29a3e9bf7880c112b1b31b4dc826268187",
+                "string": "16UjcYNBG9GTK4uq2f7yYEbuifqCzoLMGS"
+            },
+            {
+                "hex": "02c0ded2bc1f1305fb0faac5e6c03ee3a1924234985427b6167ca569d13df435cfeb05f9d2",
+                "string": "6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"
+            }
+        ];
+
+        data.forEach(d => {
+            var data = Buffer.from(d.hex, 'hex');
+            assert.equal(base58.encode(data), d.string);
+            assert.deepEqual(base58.decode(d.string), data);
+        });
     });
 
     it('hex', () => {

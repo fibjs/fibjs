@@ -14,6 +14,7 @@ void importModule()
 {
     IMPORT_MODULE(assert);
     IMPORT_MODULE(base32);
+    IMPORT_MODULE(base58);
     IMPORT_MODULE(base64);
     IMPORT_MODULE(buffer);
     IMPORT_MODULE(child_process);

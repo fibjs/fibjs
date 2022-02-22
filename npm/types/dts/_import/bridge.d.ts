@@ -47,6 +47,7 @@
 /// <reference path="../module/util.d.ts" />
 /// <reference path="../module/uuid.d.ts" />
 /// <reference path="../module/xml.d.ts" />
+/// <reference path="../module/base58.d.ts" />
 /// <reference path="../module/constants.d.ts" />
 /// <reference path="../module/fs_constants.d.ts" />
 declare module '@fibjs/types/bridge' {

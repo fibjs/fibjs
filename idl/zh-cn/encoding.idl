@@ -12,6 +12,9 @@ module encoding
     /*! @brief base64 编码与解码模块 */
     static base64;
 
+    /*! @brief base58 编码与解码模块 */
+    static base58;
+
     /*! @brief hex 编码与解码模块 */
     static hex;
 
