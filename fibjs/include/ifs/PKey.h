@@ -42,6 +42,7 @@ public:
     virtual result_t exportPem(exlib::string& retVal) = 0;
     virtual result_t exportDer(obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t exportJson(v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t equal(PKey_base* key, bool& retVal) = 0;
     virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
@@ -68,6 +69,7 @@ public:
     static void s_exportPem(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_exportDer(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_exportJson(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_equal(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_encrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_sign(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -105,6 +107,7 @@ inline ClassInfo& PKey_base::class_info()
         { "exportPem", s_exportPem, false },
         { "exportDer", s_exportDer, false },
         { "exportJson", s_exportJson, false },
+        { "equal", s_equal, false },
         { "encrypt", s_encrypt, false },
         { "encryptSync", s_encrypt, false },
         { "decrypt", s_decrypt, false },
@@ -395,6 +398,23 @@ inline void PKey_base::s_exportJson(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_OVER(0, 0);
 
     hr = pInst->exportJson(vr);
+
+    METHOD_RETURN();
+}
+
+inline void PKey_base::s_equal(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_NAME("PKey.equal");
+    METHOD_INSTANCE(PKey_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<PKey_base>, 0);
+
+    hr = pInst->equal(v0, vr);
 
     METHOD_RETURN();
 }

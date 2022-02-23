@@ -238,6 +238,14 @@ declare class Class_PKey extends Class_object {
     exportJson(): FIBJS.GeneralObject;
 
     /**
+     * @description 比较两个公/私钥是否相同
+     *      @param key 指定对方的公/私钥
+     *      @return 相同则返回 true
+     *      
+     */
+    equal(key: Class_PKey): boolean;
+
+    /**
      * @description 使用当前算法密码公钥加密数据
      *      @param data 指定要加密的数据
      *      @return 返回加密后的数据

@@ -679,6 +679,75 @@ result_t PKey::exportJson(v8::Local<v8::Object>& retVal)
     return 0;
 }
 
+result_t PKey::equal(PKey_base* key, bool& retVal)
+{
+    result_t hr;
+    bool priv, priv1;
+
+    retVal = false;
+
+    hr = isPrivate(priv);
+    if (hr < 0)
+        return hr;
+
+    hr = key->isPrivate(priv1);
+    if (hr < 0)
+        return hr;
+
+    if (priv != priv1)
+        return 0;
+
+    obj_ptr<PKey> pkey = (PKey*)key;
+
+    mbedtls_pk_type_t type = mbedtls_pk_get_type(&m_key);
+    mbedtls_pk_type_t type1 = mbedtls_pk_get_type(&pkey->m_key);
+    if (type != type1)
+        return 0;
+
+    if (type == MBEDTLS_PK_RSA) {
+        mbedtls_rsa_context* rsa = mbedtls_pk_rsa(m_key);
+        mbedtls_rsa_context* rsa1 = mbedtls_pk_rsa(pkey->m_key);
+
+        if (mbedtls_mpi_cmp_mpi(&rsa->N, &rsa1->N)
+            || mbedtls_mpi_cmp_mpi(&rsa->E, &rsa1->E))
+            return 0;
+
+        if (priv) {
+            if (mbedtls_mpi_cmp_mpi(&rsa->D, &rsa1->D)
+                || mbedtls_mpi_cmp_mpi(&rsa->P, &rsa1->P)
+                || mbedtls_mpi_cmp_mpi(&rsa->Q, &rsa1->Q)
+                || mbedtls_mpi_cmp_mpi(&rsa->DP, &rsa1->DP)
+                || mbedtls_mpi_cmp_mpi(&rsa->DQ, &rsa1->DQ)
+                || mbedtls_mpi_cmp_mpi(&rsa->QP, &rsa1->QP))
+                return 0;
+        }
+
+        retVal = true;
+        return 0;
+    }
+
+    if (type == MBEDTLS_PK_ECKEY || type == MBEDTLS_PK_SM2) {
+        mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
+        mbedtls_ecp_keypair* ecp1 = mbedtls_pk_ec(pkey->m_key);
+
+        if (ecp->grp.id != ecp1->grp.id)
+            return 0;
+
+        if (mbedtls_mpi_cmp_mpi(&ecp->Q.X, &ecp1->Q.X)
+            || mbedtls_mpi_cmp_mpi(&ecp->Q.Y, &ecp1->Q.Y))
+            return 0;
+
+        if (priv)
+            if (mbedtls_mpi_cmp_mpi(&ecp->d, &ecp1->d))
+                return 0;
+
+        retVal = true;
+        return 0;
+    }
+
+    return 0;
+}
+
 result_t PKey::encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {

@@ -425,6 +425,22 @@ describe('crypto', () => {
                 assert.notEqual(pk.exportPem(), pk1.exportPem());
             });
 
+            it("equal", () => {
+                var pk = new crypto.PKey();
+                pk.importKey(rsa1024_pem);
+
+                var pk1 = pk.clone();
+
+                assert.ok(pk1.equal(pk));
+
+                var pk = new crypto.PKey();
+                var pk1 = new crypto.PKey();
+                pk.genRsaKey(512);
+                pk1.genRsaKey(512);
+
+                assert.notOk(pk1.equal(pk));
+            });
+
             it("encrypt/decrypt", () => {
                 var pk = new crypto.PKey();
                 pk.importKey(rsa1024_pem);
@@ -566,6 +582,22 @@ describe('crypto', () => {
                 pk1.genEcKey();
 
                 assert.notEqual(pk.exportPem(), pk1.exportPem());
+            });
+
+            it("equal", () => {
+                var pk = new crypto.PKey();
+                pk.importKey(ec_pem);
+
+                var pk1 = pk.clone();
+
+                assert.ok(pk1.equal(pk));
+
+                var pk = new crypto.PKey();
+                var pk1 = new crypto.PKey();
+                pk.genEcKey();
+                pk1.genEcKey();
+
+                assert.notOk(pk1.equal(pk));
             });
 
             it("sign/verify", () => {
@@ -750,6 +782,23 @@ describe('crypto', () => {
                 pk1.genSm2Key();
 
                 assert.notEqual(pk.exportPem(), pk1.exportPem());
+            });
+
+
+            it("equal", () => {
+                var pk = new crypto.PKey();
+                pk.importKey(sm2_pem);
+
+                var pk1 = pk.clone();
+
+                assert.ok(pk1.equal(pk));
+
+                var pk = new crypto.PKey();
+                var pk1 = new crypto.PKey();
+                pk.genSm2Key();
+                pk1.genSm2Key();
+
+                assert.notOk(pk1.equal(pk));
             });
 
             it("sign/verify", () => {
