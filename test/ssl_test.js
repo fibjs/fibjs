@@ -365,6 +365,19 @@ describe('ssl', () => {
         s2.close();
     });
 
+    it("bugfix: SslSocket.close crashes when called concurrently", () => {
+        var svr = new ssl.Server(crt, pk, 9086 + base_port, (s) => {
+            s.read();
+        });
+        test_util.push(svr.socket);
+        svr.start();
+
+        ssl.verification = ssl.VERIFY_NONE;
+        var s1 = ssl.connect('ssl://127.0.0.1:' + (9086 + base_port));
+        for (var i = 0; i < 100; i++)
+            s1.close(() => { });
+    });
+
     it("bugfix: crash on verify ssl.ca", () => {
         for (var i = 0; i < 1000; i++) {
             ssl.ca.verify(ssl.ca);

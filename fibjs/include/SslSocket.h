@@ -181,5 +181,6 @@ private:
     exlib::string m_recv;
     int32_t m_recv_pos;
     exlib::string m_send;
+    exlib::atomic m_closed;
 };
 }

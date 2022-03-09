@@ -318,6 +318,9 @@ result_t SslSocket::close(AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    if (m_closed.CompareAndSwap(0, 1) == 1)
+        return CHECK_ERROR(CALL_E_CLOSED);
+
     return (new asyncClose(this, ac))->post(0);
 }
 
