@@ -87,14 +87,19 @@ declare class Class_PKey extends Class_object {
     readonly name: string;
 
     /**
+     * @description 返回当前算法的椭圆曲线名称，仅用于 EC 和 SM2 
+     */
+    readonly curve: string;
+
+    /**
      * @description 返回当前算法密码长度，以位为单位 
      */
     readonly keySize: number;
 
     /**
-     * @description 返回当前算法的椭圆曲线名称，仅用于 EC 和 SM2 
+     * @description 返回和设置当前对象签名算法 
      */
-    readonly curve: string;
+    sigType: string;
 
     /**
      * @description 返回当前密钥的公钥
@@ -277,6 +282,17 @@ declare class Class_PKey extends Class_object {
     sign(data: Class_Buffer, alg?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
+     * @description 使用当前算法密码私钥定向签名签名数据
+     *      @param data 指定要签名的数据
+     *      @param key 验证方公钥
+     *      @return 返回签名后的数据
+     *      
+     */
+    sign(data: Class_Buffer, key: Class_PKey): Class_Buffer;
+
+    sign(data: Class_Buffer, key: Class_PKey, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
      * @description 使用当前算法密码公钥验证数据
      *      @param data 指定要验证的数据
      *      @param sign 指定要验证的签名
@@ -287,6 +303,18 @@ declare class Class_PKey extends Class_object {
     verify(data: Class_Buffer, sign: Class_Buffer, alg?: number): boolean;
 
     verify(data: Class_Buffer, sign: Class_Buffer, alg?: number, callback?: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    /**
+     * @description 使用当前算法密码公钥定向验证签名
+     *      @param data 指定要验证的数据
+     *      @param sign 指定要验证的签名
+     *      @param key 验证方私钥
+     *      @return 返回验证后的结果
+     *      
+     */
+    verify(data: Class_Buffer, sign: Class_Buffer, key: Class_PKey): boolean;
+
+    verify(data: Class_Buffer, sign: Class_Buffer, key: Class_PKey, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description 使用当前算法计算椭圆曲线 Diffie-Hellman (ECDH) 共享密钥

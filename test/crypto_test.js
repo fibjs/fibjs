@@ -8,6 +8,7 @@ var os = require("os");
 var encoding = require("encoding");
 var hex = require("hex");
 var path = require("path");
+var ecsdsa_case = require("./crypto_case/ecsdsa.json");
 
 var rsa1024_pem = "-----BEGIN RSA PRIVATE KEY-----\n" +
     "MIICXQIBAAKBgQDSbmW8qlarL0lLu1XYcg+ocJgcuq5K7EgLcXyy2shAsko7etmZ\n" +
@@ -925,6 +926,38 @@ describe('crypto', () => {
 
             pk.importKey(sm2_pem);
             assert.equal(pk.curve, 'sm2p256r1');
+        });
+    });
+
+    describe("ecsdsa", () => {
+        ecsdsa_case.forEach(c => {
+            describe(c.key.crv, () => {
+                it("verify", () => {
+                    var pk = new crypto.PKey(c.key);
+                    pk.sigType = 'ecsdsa';
+
+                    var sig = Buffer.from(c.sig, 'base64');
+                    assert.ok(pk.publicKey.verify('abc', sig));
+                });
+
+                it("sign/verify", () => {
+                    var pk = new crypto.PKey(c.key);
+                    pk.sigType = 'ecsdsa';
+
+                    var sig = pk.sign('abc');
+                    assert.ok(pk.publicKey.verify('abc', sig));
+                });
+
+                it("sign/verify to", () => {
+                    var pk = new crypto.PKey(c.key);
+                    pk.sigType = 'ecsdsa';
+
+                    var pk1 = crypto.genEcKey(c.key.crv);
+
+                    var sig = pk.sign('abc', pk1.publicKey);
+                    assert.ok(pk.publicKey.verify('abc', sig, pk1));
+                });
+            });
         });
     });
 

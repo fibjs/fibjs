@@ -27,8 +27,10 @@ public:
     static result_t _new(exlib::string pemKey, exlib::string password, obj_ptr<PKey_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_name(exlib::string& retVal) = 0;
-    virtual result_t get_keySize(int32_t& retVal) = 0;
     virtual result_t get_curve(exlib::string& retVal) = 0;
+    virtual result_t get_keySize(int32_t& retVal) = 0;
+    virtual result_t get_sigType(exlib::string& retVal) = 0;
+    virtual result_t set_sigType(exlib::string newVal) = 0;
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal) = 0;
     virtual result_t genRsaKey(int32_t size, AsyncEvent* ac) = 0;
     virtual result_t genEcKey(exlib::string curve, AsyncEvent* ac) = 0;
@@ -46,7 +48,9 @@ public:
     virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t verify(Buffer_base* data, Buffer_base* sign, int32_t alg, bool& retVal, AsyncEvent* ac) = 0;
+    virtual result_t verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, bool& retVal, AsyncEvent* ac) = 0;
     virtual result_t computeSecret(PKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
@@ -56,8 +60,10 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_name(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_keySize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_curve(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_keySize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_sigType(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_sigType(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_publicKey(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_genRsaKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_genEcKey(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -83,7 +89,9 @@ public:
     ASYNC_MEMBERVALUE2(PKey_base, encrypt, Buffer_base*, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE2(PKey_base, decrypt, Buffer_base*, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE3(PKey_base, sign, Buffer_base*, int32_t, obj_ptr<Buffer_base>);
+    ASYNC_MEMBERVALUE3(PKey_base, sign, Buffer_base*, PKey_base*, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE4(PKey_base, verify, Buffer_base*, Buffer_base*, int32_t, bool);
+    ASYNC_MEMBERVALUE4(PKey_base, verify, Buffer_base*, Buffer_base*, PKey_base*, bool);
     ASYNC_MEMBERVALUE2(PKey_base, computeSecret, PKey_base*, obj_ptr<Buffer_base>);
 };
 }
@@ -122,8 +130,9 @@ inline ClassInfo& PKey_base::class_info()
 
     static ClassData::ClassProperty s_property[] = {
         { "name", s_get_name, block_set, false },
-        { "keySize", s_get_keySize, block_set, false },
         { "curve", s_get_curve, block_set, false },
+        { "keySize", s_get_keySize, block_set, false },
+        { "sigType", s_get_sigType, s_set_sigType, false },
         { "publicKey", s_get_publicKey, block_set, false }
     };
 
@@ -191,6 +200,19 @@ inline void PKey_base::s_get_name(v8::Local<v8::Name> property, const v8::Proper
     METHOD_RETURN();
 }
 
+inline void PKey_base::s_get_curve(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_NAME("PKey.curve");
+    METHOD_INSTANCE(PKey_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_curve(vr);
+
+    METHOD_RETURN();
+}
+
 inline void PKey_base::s_get_keySize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
@@ -204,17 +226,29 @@ inline void PKey_base::s_get_keySize(v8::Local<v8::Name> property, const v8::Pro
     METHOD_RETURN();
 }
 
-inline void PKey_base::s_get_curve(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void PKey_base::s_get_sigType(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_NAME("PKey.curve");
+    METHOD_NAME("PKey.sigType");
     METHOD_INSTANCE(PKey_base);
     PROPERTY_ENTER();
 
-    hr = pInst->get_curve(vr);
+    hr = pInst->get_sigType(vr);
 
     METHOD_RETURN();
+}
+
+inline void PKey_base::s_set_sigType(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_NAME("PKey.sigType");
+    METHOD_INSTANCE(PKey_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(exlib::string);
+
+    hr = pInst->set_sigType(v0);
+
+    PROPERTY_SET_LEAVE();
 }
 
 inline void PKey_base::s_get_publicKey(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
@@ -477,6 +511,16 @@ inline void PKey_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
     else
         hr = pInst->ac_sign(v0, v1, vr);
 
+    ASYNC_METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<PKey_base>, 1);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_sign(v0, v1, cb, args);
+    else
+        hr = pInst->ac_sign(v0, v1, vr);
+
     METHOD_RETURN();
 }
 
@@ -493,6 +537,17 @@ inline void PKey_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& args)
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(obj_ptr<Buffer_base>, 1);
     OPT_ARG(int32_t, 2, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_verify(v0, v1, v2, cb, args);
+    else
+        hr = pInst->ac_verify(v0, v1, v2, vr);
+
+    ASYNC_METHOD_OVER(3, 3);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(obj_ptr<PKey_base>, 2);
 
     if (!cb.IsEmpty())
         hr = pInst->acb_verify(v0, v1, v2, cb, args);

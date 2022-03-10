@@ -26,8 +26,10 @@ public:
 public:
     // PKey_base
     virtual result_t get_name(exlib::string& retVal);
-    virtual result_t get_keySize(int32_t& retVal);
     virtual result_t get_curve(exlib::string& retVal);
+    virtual result_t get_keySize(int32_t& retVal);
+    virtual result_t get_sigType(exlib::string& retVal);
+    virtual result_t set_sigType(exlib::string newVal);
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal);
     virtual result_t genRsaKey(int32_t size, AsyncEvent* ac);
     virtual result_t genEcKey(exlib::string curve, AsyncEvent* ac);
@@ -45,7 +47,9 @@ public:
     virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    virtual result_t sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t verify(Buffer_base* data, Buffer_base* sign, int32_t alg, bool& retVal, AsyncEvent* ac);
+    virtual result_t verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, bool& retVal, AsyncEvent* ac);
     virtual result_t computeSecret(PKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
 
 public:
@@ -56,5 +60,6 @@ private:
 
 public:
     mbedtls_pk_context m_key;
+    bool m_sdsa = false;
 };
 }

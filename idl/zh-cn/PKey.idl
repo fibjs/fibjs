@@ -72,11 +72,14 @@ interface PKey : object
     /*! @brief 返回当前算法名称 */
     readonly String name;
 
+    /*! @brief 返回当前算法的椭圆曲线名称，仅用于 EC 和 SM2 */
+    readonly String curve;
+
     /*! @brief 返回当前算法密码长度，以位为单位 */
     readonly Integer keySize;
 
-    /*! @brief 返回当前算法的椭圆曲线名称，仅用于 EC 和 SM2 */
-    readonly String curve;
+    /*! @brief 返回和设置当前对象签名算法 */
+    String sigType;
 
     /*! @brief 返回当前密钥的公钥
      @return 当前密钥的公钥
@@ -212,6 +215,13 @@ interface PKey : object
      */
     Buffer sign(Buffer data, Integer alg = 0) async;
 
+    /*! @brief 使用当前算法密码私钥定向签名签名数据
+     @param data 指定要签名的数据
+     @param key 验证方公钥
+     @return 返回签名后的数据
+     */
+    Buffer sign(Buffer data, PKey key) async;
+
     /*! @brief 使用当前算法密码公钥验证数据
      @param data 指定要验证的数据
      @param sign 指定要验证的签名
@@ -219,6 +229,14 @@ interface PKey : object
      @return 返回验证后的结果
      */
     Boolean verify(Buffer data, Buffer sign, Integer alg = 0) async;
+
+    /*! @brief 使用当前算法密码公钥定向验证签名
+     @param data 指定要验证的数据
+     @param sign 指定要验证的签名
+     @param key 验证方私钥
+     @return 返回验证后的结果
+     */
+    Boolean verify(Buffer data, Buffer sign, PKey key) async;
 
     /*! @brief 使用当前算法计算椭圆曲线 Diffie-Hellman (ECDH) 共享密钥
      @param publicKey 指定对方的公钥
