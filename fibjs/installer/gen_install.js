@@ -30,7 +30,19 @@ else {
 }
 
 if (build) {
-	var txt = JSON.stringify(fs.openFile("fibjs.cab").readAll().toArray());
-	var src = "unsigned char js_data[] = {" + txt.substr(1, txt.length - 2) + "};\n";
+	var data = fs.openFile("fibjs.cab").readAll();
+	var txts = [];
+
+	for (var i = 0; i < data.length; i++) {
+		if (i < data.length)
+			txts.push(data[i].toString() + ',');
+		else
+			txts.push(data[i].toString());
+
+		if ((i + 1) % 32 == 0)
+			txts.push('\n');
+	}
+
+	var src = "unsigned char js_data[] = {" + txts.join('') + "};\n";
 	fs.writeFile("js.h", src);
 }
