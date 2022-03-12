@@ -844,6 +844,27 @@ describe('crypto', () => {
                 var d = pk.sign(md, hash.MD5);
                 assert.isTrue(pk1.verify(md, d, hash.MD5));
             });
+
+            it("sign/verify to", () => {
+                var pk = crypto.genSm2Key();
+                var pk1 = crypto.genSm2Key();
+
+                var sig = pk.sign('abc', pk1.publicKey);
+                assert.isTrue(pk.publicKey.verify('abc', sig, pk1));
+                assert.isFalse(pk.publicKey.verify('abcd', sig, pk1));
+                assert.isFalse(pk.publicKey.verify('abc', sig, pk));
+            });
+
+            it("ecsdsa sign/verify to", () => {
+                var pk = crypto.genSm2Key();
+                var pk1 = crypto.genSm2Key();
+                pk.sigType = 'ecsdsa';
+
+                var sig = pk.sign('abc', pk1.publicKey);
+                assert.isTrue(pk.publicKey.verify('abc', sig, pk1));
+                assert.isFalse(pk.publicKey.verify('abcd', sig, pk1));
+                assert.isFalse(pk.publicKey.verify('abc', sig, pk));
+            });
         });
 
         it("ECDH", () => {
@@ -955,7 +976,9 @@ describe('crypto', () => {
                     var pk1 = crypto.genEcKey(c.key.crv);
 
                     var sig = pk.sign('abc', pk1.publicKey);
-                    assert.ok(pk.publicKey.verify('abc', sig, pk1));
+                    assert.isTrue(pk.publicKey.verify('abc', sig, pk1));
+                    assert.isFalse(pk.publicKey.verify('abcb', sig, pk1));
+                    assert.isFalse(pk.publicKey.verify('abc', sig, pk));
                 });
             });
         });

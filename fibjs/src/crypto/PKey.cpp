@@ -15,9 +15,9 @@
 #include "encoding.h"
 
 extern "C" {
-int ecsdsa_sign(mbedtls_ecp_keypair* ctx, mbedtls_ecp_keypair* to_ctx, const unsigned char* hash, size_t hlen,
+int ecsdsa_sign(mbedtls_ecp_keypair* ctx, int sdsa, mbedtls_ecp_keypair* to_ctx, const unsigned char* hash, size_t hlen,
     unsigned char* sig, size_t* slen, int (*f_rng)(void*, unsigned char*, size_t), void* p_rng);
-int ecsdsa_verify(mbedtls_ecp_keypair* ctx, mbedtls_ecp_keypair* to_ctx, const unsigned char* hash, size_t hlen,
+int ecsdsa_verify(mbedtls_ecp_keypair* ctx, int sdsa, mbedtls_ecp_keypair* to_ctx, const unsigned char* hash, size_t hlen,
     const unsigned char* sig, size_t slen);
 }
 
@@ -757,8 +757,7 @@ result_t PKey::equal(PKey_base* key, bool& retVal)
     return 0;
 }
 
-result_t PKey::encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
-    AsyncEvent* ac)
+result_t PKey::encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -783,8 +782,7 @@ result_t PKey::encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
     return 0;
 }
 
-result_t PKey::decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
-    AsyncEvent* ac)
+result_t PKey::decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -819,8 +817,7 @@ result_t PKey::decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
     return 0;
 }
 
-result_t PKey::sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal,
-    AsyncEvent* ac)
+result_t PKey::sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (m_sdsa)
         return sign(data, (PKey_base*)NULL, retVal, ac);
@@ -862,7 +859,8 @@ result_t PKey::sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal
 
 result_t PKey::sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
-    if (!m_sdsa)
+    mbedtls_pk_type_t type = mbedtls_pk_get_type(&m_key);
+    if (!m_sdsa && type != MBEDTLS_PK_SM2)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
@@ -900,7 +898,7 @@ result_t PKey::sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>& ret
     data->toString(str);
     output.resize(MBEDTLS_PREMASTER_SIZE);
 
-    ret = ecsdsa_sign(mbedtls_pk_ec(m_key), key ? mbedtls_pk_ec(to_key->m_key) : NULL,
+    ret = ecsdsa_sign(mbedtls_pk_ec(m_key), m_sdsa, key ? mbedtls_pk_ec(to_key->m_key) : NULL,
         (const unsigned char*)str.c_str(), str.length(), (unsigned char*)output.c_buffer(), &olen,
         mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
@@ -912,8 +910,7 @@ result_t PKey::sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>& ret
     return 0;
 }
 
-result_t PKey::verify(Buffer_base* data, Buffer_base* sign,
-    int32_t alg, bool& retVal, AsyncEvent* ac)
+result_t PKey::verify(Buffer_base* data, Buffer_base* sign, int32_t alg, bool& retVal, AsyncEvent* ac)
 {
     if (m_sdsa)
         return verify(data, sign, (PKey_base*)NULL, retVal, ac);
@@ -946,7 +943,8 @@ result_t PKey::verify(Buffer_base* data, Buffer_base* sign,
 
 result_t PKey::verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, bool& retVal, AsyncEvent* ac)
 {
-    if (!m_sdsa)
+    mbedtls_pk_type_t type = mbedtls_pk_get_type(&m_key);
+    if (!m_sdsa && type != MBEDTLS_PK_SM2)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
@@ -981,7 +979,7 @@ result_t PKey::verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, bool
     data->toString(str);
     sign->toString(strsign);
 
-    ret = ecsdsa_verify(mbedtls_pk_ec(m_key), key ? mbedtls_pk_ec(to_key->m_key) : NULL,
+    ret = ecsdsa_verify(mbedtls_pk_ec(m_key), m_sdsa, key ? mbedtls_pk_ec(to_key->m_key) : NULL,
         (const unsigned char*)str.c_str(), str.length(), (const unsigned char*)strsign.c_str(), strsign.length());
     if (ret == MBEDTLS_ERR_ECP_VERIFY_FAILED || ret == MBEDTLS_ERR_RSA_VERIFY_FAILED || ret == MBEDTLS_ERR_SM2_BAD_SIGNATURE) {
         retVal = false;
