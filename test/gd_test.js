@@ -117,11 +117,11 @@ describe("gd", () => {
             [10, 20]
         ], b);
         img.polygon([
-                [101, 101],
-                [101, 110],
-                [110, 115],
-                [110, 100]
-            ],
+            [101, 101],
+            [101, 110],
+            [110, 115],
+            [110, 100]
+        ],
             b);
         img.filledPolygon(
             [
@@ -252,13 +252,13 @@ describe("gd", () => {
         var img = gd.load(path.join(__dirname, 'test.png'));
         var affines = [2, 1, 1, 2, 1, 1];
         var img1 = img.affine(affines);
-        assert.equal(img1.width, 1117);
-        assert.equal(img1.height, 1126);
-        sample_test(img1, [0xffffff, 0x7fffffff, 0xfefefe]);
+        assert.equal(img1.width, 1116);
+        assert.equal(img1.height, 1125);
+        sample_test(img1, [-1, 0, -1]);
 
         var img2 = img.affine(affines, 50, 50, 50, 50);
-        assert.equal(img2.width, 151);
-        assert.equal(img2.height, 151);
+        assert.equal(img2.width, 150);
+        assert.equal(img2.height, 150);
         sample_test(img2, [0xff0000, 0x0, 0x0]);
     });
 });
