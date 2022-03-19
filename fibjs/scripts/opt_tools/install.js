@@ -222,6 +222,10 @@ function fetch_leveled_module_info(m, v, parent) {
                 install_log('fetch metadata:', m, "=>", registry_url);
                 pkg_registrytype_module_infos[m] = info = json_parse_response(http_get(registry_url));
             }
+
+            if (info.error)
+                throw new Error(info.error);
+
             /* registry: match version :start */
             const all_vers = Object.keys(info.versions);
             let filtered_vers = [];
