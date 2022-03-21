@@ -10,27 +10,71 @@ var hex = require("hex");
 var path = require("path");
 var ecsdsa_case = require("./crypto_case/ecsdsa.json");
 
-var rsa1024_pem = "-----BEGIN RSA PRIVATE KEY-----\n" +
-    "MIICXQIBAAKBgQDSbmW8qlarL0lLu1XYcg+ocJgcuq5K7EgLcXyy2shAsko7etmZ\n" +
-    "NP3opOeGw58E7tjVsjuadPQ8Hf+9wd316RYwShklDDsy4Hwp4z9afnj56UmvkM0u\n" +
-    "TlsymlIbFftme6aJcYbnX9fdin78Rsa0MbzQbFdeLHsy5zKjsrbm4TS5bwIDAQAB\n" +
-    "AoGAagN2O9NxMHL1MTMi75WfL9Pxvl+KWXKqZSF6mjzAsF9iKI8euyHIXYFepzU8\n" +
-    "kual1RsjDhCnzvWqFvZplW8lXqrHf/P+rS/9Y4gBUw6pjnI/DnFIRwWHRvrUHHSC\n" +
-    "fWOdTCIKdOTkgLZuGFuhEY3RMIW0WSYejjLtftwy0RVxAzkCQQDprgbWqZ/BaafV\n" +
-    "uKKA3shUWWRst/2hV7qDus6YfEj6GfUZHEoNJW4BSuZHUiG4Cdxr0zTLtIP7tNSz\n" +
-    "rCM7FbFrAkEA5ofkxFKdPBD0CQHMb9q13AMHUVe0rJ+hSjqqIBrmqApUOneyAcMV\n" +
-    "76M0QyIQnI2p3POa4Qu/7XChDwRVl7LlDQJBANplxohsAh5fI/hQVriA/tQus/gU\n" +
-    "QdzARFaHijzjs8Tj67mrQd5lhBl7KhuwPEloFfVEcUyNiuj9yeme0VKQZL8CQQCh\n" +
-    "qCfm99vk1Cqc6lL3GRKwPrtx8iPzbVlIWU0ViGe47M1V1rvP+oK2cebjMM8fSUQV\n" +
-    "egpgx8GF+pYmlq6C22M9AkB2oRCDE2Y5UWsXizvvqFOp4LqgQOKVrwS+lVvYXZm/\n" +
-    "AA4uMJDro6IBkrUGJgYepTLQ16o2a2WwtK4ERlBm+pnC\n" +
+var rsa4096_pem = "-----BEGIN RSA PRIVATE KEY-----\n" +
+    "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\n" +
     "-----END RSA PRIVATE KEY-----\n";
 
-var pub_rsa1024_pem = "-----BEGIN PUBLIC KEY-----\n" +
-    "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDSbmW8qlarL0lLu1XYcg+ocJgc\n" +
-    "uq5K7EgLcXyy2shAsko7etmZNP3opOeGw58E7tjVsjuadPQ8Hf+9wd316RYwShkl\n" +
-    "DDsy4Hwp4z9afnj56UmvkM0uTlsymlIbFftme6aJcYbnX9fdin78Rsa0MbzQbFde\n" +
-    "LHsy5zKjsrbm4TS5bwIDAQAB\n" +
+var pub_rsa4096_pem = "-----BEGIN PUBLIC KEY-----\n" +
+    "MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAiAUwIJyWHEnusONGDVCg\n" +
+    "uTr3FkkVoSiDJ2mmFYYibt1paXpIiEKQy+OwykFcOG0Ew9UGEEvveRQbKN+bpUV5\n" +
+    "uH6q7pgnfDubA2VSLST7lHcXJd2as4DNyFMtgXLOj0dVSk4NduWlVgY2fUu17sJJ\n" +
+    "BmysYjCjmB76P92DLfIvlI+4OYEOFSLQCG56KA8ZvP9HTnHiI0Lnerjf14cjr1Ub\n" +
+    "gw0ce9KMJ96LLnZp9Q6hBCXalagDo9MofuyScpFX1X0ixirQ2VtomzTvle9EIdfm\n" +
+    "at6EoLzxz8YNfl6mllvCVrlFJw1DvXfxLlkDR9I+te1B89L7Eljt90VBKmzjjJiK\n" +
+    "muhmW8HhJMpe3VBG7t8c3J+F/cJLx7ZDk6/XNhxWPbzL9SNhTRg6015YDsX01bFy\n" +
+    "i1GUHdFocPmzgZ6nw3anFT85+q7l9M4yGhRQbfUWQ4rT0zCFobJZQeO4ZyiBM0fu\n" +
+    "AGhln0MogIdFaoh7xmVggL6XxJVOApXXGV7Z8xDjzbLpBI2UHiX8W33ZbrXYiDex\n" +
+    "vfBQuR2SFw372h/LCF+fOI8kxZr9BNU1RSf26RCX0Mi0Fdbz0eeXLa3N42fGAxHY\n" +
+    "UCN5M4WEtAPcdQjQAZ7gZ+Voy9nNjMoQMWzzH84XHUI1byA8T795CnVmKMiHyCWE\n" +
+    "nOGV1ptmZrzoZoa6x6bOHukCAwEAAQ==\n" +
     "-----END PUBLIC KEY-----\n";
 
 var ec_pem = "-----BEGIN EC PRIVATE KEY-----\n" +
@@ -131,14 +175,30 @@ var pk = "-----BEGIN PUBLIC KEY-----\n" +
     "-----END PUBLIC KEY-----\n";
 
 var req1 = "-----BEGIN CERTIFICATE REQUEST-----\n" +
-    "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
+    "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\n" +
     "-----END CERTIFICATE REQUEST-----\n"
 
 var sm2_req = "-----BEGIN CERTIFICATE REQUEST-----\n" +
@@ -293,11 +353,9 @@ describe('crypto', () => {
             // test_cipher(crypto.AES, "aes.xts");
         });
 
-        test_cipher(crypto.CAMELLIA, "camellia");
         test_cipher(crypto.DES, "des");
         test_cipher(crypto.DES_EDE3, "des_ede3");
-        test_cipher(crypto.BLOWFISH, "blowfish");
-        test_cipher(crypto.ARC4, "arc4");
+        test_cipher(crypto.CAMELLIA, "camellia");
         test_cipher(crypto.SM4, "sm4");
 
         // test_cipher(crypto.ARIA, "aria");
@@ -316,79 +374,79 @@ describe('crypto', () => {
         describe("RSA", () => {
             it("PEM import/export", () => {
                 var pk = new crypto.PKey();
-                pk.importKey(rsa1024_pem);
-                assert.equal(pk.exportPem(), rsa1024_pem);
+                pk.importKey(rsa4096_pem);
+                assert.equal(pk.exportPem(), rsa4096_pem);
 
-                var pk = new crypto.PKey(rsa1024_pem);
-                assert.equal(pk.exportPem(), rsa1024_pem);
+                var pk = new crypto.PKey(rsa4096_pem);
+                assert.equal(pk.exportPem(), rsa4096_pem);
             });
 
             it("toString", () => {
                 var pk = new crypto.PKey();
-                pk.importKey(rsa1024_pem);
-                assert.equal(pk, rsa1024_pem);
+                pk.importKey(rsa4096_pem);
+                assert.equal(pk, rsa4096_pem);
             });
 
             it("Der import/export", () => {
                 var pk = new crypto.PKey();
-                pk.importKey(rsa1024_pem);
+                pk.importKey(rsa4096_pem);
                 var der = pk.exportDer();
                 pk.importKey(der);
-                assert.equal(pk.exportPem(), rsa1024_pem);
+                assert.equal(pk.exportPem(), rsa4096_pem);
 
                 var pk = new crypto.PKey(der);
-                assert.equal(pk.exportPem(), rsa1024_pem);
+                assert.equal(pk.exportPem(), rsa4096_pem);
             });
 
             it("Json import/export", () => {
                 var pk = new crypto.PKey();
-                pk.importKey(rsa1024_pem);
+                pk.importKey(rsa4096_pem);
                 var json = pk.exportJson();
 
                 assert.deepEqual(json, {
                     "kty": "RSA",
-                    "n": "0m5lvKpWqy9JS7tV2HIPqHCYHLquSuxIC3F8strIQLJKO3rZmTT96KTnhsOfBO7Y1bI7mnT0PB3_vcHd9ekWMEoZJQw7MuB8KeM_Wn54-elJr5DNLk5bMppSGxX7ZnumiXGG51_X3Yp-_EbGtDG80GxXXix7Mucyo7K25uE0uW8",
+                    "n": "iAUwIJyWHEnusONGDVCguTr3FkkVoSiDJ2mmFYYibt1paXpIiEKQy-OwykFcOG0Ew9UGEEvveRQbKN-bpUV5uH6q7pgnfDubA2VSLST7lHcXJd2as4DNyFMtgXLOj0dVSk4NduWlVgY2fUu17sJJBmysYjCjmB76P92DLfIvlI-4OYEOFSLQCG56KA8ZvP9HTnHiI0Lnerjf14cjr1Ubgw0ce9KMJ96LLnZp9Q6hBCXalagDo9MofuyScpFX1X0ixirQ2VtomzTvle9EIdfmat6EoLzxz8YNfl6mllvCVrlFJw1DvXfxLlkDR9I-te1B89L7Eljt90VBKmzjjJiKmuhmW8HhJMpe3VBG7t8c3J-F_cJLx7ZDk6_XNhxWPbzL9SNhTRg6015YDsX01bFyi1GUHdFocPmzgZ6nw3anFT85-q7l9M4yGhRQbfUWQ4rT0zCFobJZQeO4ZyiBM0fuAGhln0MogIdFaoh7xmVggL6XxJVOApXXGV7Z8xDjzbLpBI2UHiX8W33ZbrXYiDexvfBQuR2SFw372h_LCF-fOI8kxZr9BNU1RSf26RCX0Mi0Fdbz0eeXLa3N42fGAxHYUCN5M4WEtAPcdQjQAZ7gZ-Voy9nNjMoQMWzzH84XHUI1byA8T795CnVmKMiHyCWEnOGV1ptmZrzoZoa6x6bOHuk",
                     "e": "AQAB",
-                    "d": "agN2O9NxMHL1MTMi75WfL9Pxvl-KWXKqZSF6mjzAsF9iKI8euyHIXYFepzU8kual1RsjDhCnzvWqFvZplW8lXqrHf_P-rS_9Y4gBUw6pjnI_DnFIRwWHRvrUHHSCfWOdTCIKdOTkgLZuGFuhEY3RMIW0WSYejjLtftwy0RVxAzk",
-                    "p": "6a4G1qmfwWmn1biigN7IVFlkbLf9oVe6g7rOmHxI-hn1GRxKDSVuAUrmR1IhuAnca9M0y7SD-7TUs6wjOxWxaw",
-                    "q": "5ofkxFKdPBD0CQHMb9q13AMHUVe0rJ-hSjqqIBrmqApUOneyAcMV76M0QyIQnI2p3POa4Qu_7XChDwRVl7LlDQ",
-                    "dp": "2mXGiGwCHl8j-FBWuID-1C6z-BRB3MBEVoeKPOOzxOPruatB3mWEGXsqG7A8SWgV9URxTI2K6P3J6Z7RUpBkvw",
-                    "dq": "oagn5vfb5NQqnOpS9xkSsD67cfIj821ZSFlNFYhnuOzNVda7z_qCtnHm4zDPH0lEFXoKYMfBhfqWJpaugttjPQ",
-                    "qi": "dqEQgxNmOVFrF4s776hTqeC6oEDila8EvpVb2F2ZvwAOLjCQ66OiAZK1BiYGHqUy0NeqNmtlsLSuBEZQZvqZwg"
+                    "d": "Le6qkOiv3D-vJfapqkdm7wYVeGYXssNOftmzZyNTr2J_fUn5AmKQKPnrsnEd5kQSTts53_j0lkuO3F-eXNI4R3Am4slo1BAAycXGWU5a0ojgvT23RxSg6RwFiugtDr9E8wGmlFb6XTFd5zPQ7R6YsF20XLgWFoGnejegW7ykCqP5zxlgmwyVebNs9ugahfMirj_Q4J1wM8YIeOy-xS-VScz8qGeyQqhpEbiVEVbuUstBpDYHfKQK0cmrrpqcMZC_VHIS8sNmcLsQiO4ycMdKnR4lZW5IriQwXFM0KCQ2XTjVPFnDXVEKld8jN3atDJxhIChH9qsnONAfMGdy9ABzFVyEn7kJ4s8Las4-U-pGvejZTlk-8uDArMA-vQK4ojTJHSSYS5are5EZClxsR4XQ3CnR0errCtSdybot1godeMutRHtQGVUfVI4HySRvi9ch76iA3iJwFz3SZR4qcRyhjkF1_yIvtEu4uqFdOyvwkJE1Qr8i2GPiKqYv_Rr7VRkgWu_eXcQ-kFLZjNSOkSeSXbv847Zo75X4DQqnd9SThoZjXpMCHioxeId2U8U2_8FGJtub7PkkWgzO_Y4-zMCNY_5a17RP1yLftBy2BdLZnC7C5RPW-wmV8QhjF5gM1kAFGvR9D3tCJr3p-PgYCPQPJ4Z45XPdkmURnQhlHZCTKb0",
+                    "p": "vpZmPuu9eS25yMcYKQwtwouShk8C-VCexKymleuslN7riCemy3JZhkRkd_-InaQ-bDS93CfCU4p__unoFjoA6rKjBqPyIGnUiZOPFNukVBz4dfKoiScYtTEU0cy8e_a7DEcePOXUedzK6HuDkQqvsSU0Xoy55_KdipClQ37_H-IR3Xon6I17lAQ8x4sl8CILKrmeZeHCo9ve6R2L3bUz2lacuxlZIff6QeVPmLWTKCOviFh5nmwI-IdzX5nI0WOjPH8s4EOg5SyY1NWAq0u75gjbH4K5ljByNolNJ1ErdheQ--KNcL_60q3wOlRxyXOd18i2AFhnIPyH1XT2JiRLJw",
+                    "q": "trRYO3zWY5Hv7kB1aPvBXUVK_UbPf9Hv8g4IQtrOod3cn69ni_bBNW5TbWcdO6-lk3ag5qG_deexPe6Zi_LYymaO7noypYnhX_r8aqwYg5seNVtcawAxazdAkIY5wRin8BB6MpDW7ZkKe_44DuGdiJjRSbgGGZdGshjYJle5ImyLYz5YiIxsSqdzCAwCAHMxSASbCzLSlQtkHGbrSexjd9WWIAXlmndRezut5tpx0QhsHeAhRSOoMaAI_2ORAPu7JQ-t-p2txNUkb-tvyWx_Y5g02ghk9Tx_2ogJj4d3DnDFrnRjQPkw8wBSiQeihNQ2w1-hY6Vp8QjqJ99XrWvPbw",
+                    "dp": "c6zTOANbB86SAWOdrWQ_7eFKuIwCMRIWmyZzIXFeWSkH6aavXLH11kFyfUayQ4Ppg0FrrtDO6Geakjyj6cGgxtJPkns1PSken7XY1P8OuSKwRt5WHpCFNYwpp8DM8axqEOSlXK7eDGzPFtXIn-LNigYbx_s_5qDhr7VlKRdOf6p1z2gSCtq8k7USssYo65uuDWuF0S56NXwAypptRs5xP2bsT77t02kwEoi8i-JBA87M_kM85cOKmlWT2AV91mDUNaa2tRM294He7Ob85nrb-52KaZCtVZPn7mPdWSyx5UYecFMsJ6_N68s4kB6qxWuP9OVUWddOGL5NL2iC8dl7Zw",
+                    "dq": "Fz6moxrk49IjZnqI9YxiM42nVsX1jFuXXYJvhqHz_CAP-7kDQYlpV3Tr5FVkIL3eIP7Mxcr6YvPRVwHOQ0HoVwfpU2n0m58JL37tMl0m2UeY9kzjWzGxF-T1r-2D149dfmt6QIiw75WzAcd8Nlh6BHD835YsIIFgmzQR-_7ZLQoGSeAav3SuKmlXd0Sf1JLTSEhduXUD2baTTBHECamrlgl0iip15csccMNNArv0ExYxOzPSx8sbkQS9YFC4mBlu2-48wk_hVdOQSTT5CfVl17P7tWmv_ott8M2x-bLQcOPkIqfoINITajc2SPzRrniZZw35qIXZDrOFpwEBVK0MvQ",
+                    "qi": "FxeLSz-9JNnPO_rlHl1ZKfZZ4Nt_Ys7LhCoZ5Gz4TjlUN3LDpYe8EoeW-0NDo-vsWPM8jDVGBp_OawaXxti3ruqyW8dSBGP4x0BgoV5I8nA3LWyRszw02nWRm99TFGqeM_wzGyoVLfJ-KnK0J_HXSgIeJMw9yV-l23_N9OyoBjo3d1zuPMAK6BDqPxcIXR-Sp-q84HU3WN1UHk1uRbSasUGGsFNDIkmCaMpHFaTuv5tgqUV0ljGlh1zG616zKkNaYRiRK2h4JGAu6O-xdQFUjsUVaCPi6BtFtiscxqvXU4dcYmosNMhtTwjHaWhhC8877i2gZ97Vum2RzMz3xi---g"
                 });
 
                 pk.importKey(json);
-                assert.equal(pk.exportPem(), rsa1024_pem);
+                assert.equal(pk.exportPem(), rsa4096_pem);
 
                 var pk = new crypto.PKey();
-                pk.importKey(pub_rsa1024_pem);
+                pk.importKey(pub_rsa4096_pem);
                 var json = pk.exportJson();
 
                 assert.deepEqual(json, {
                     "kty": "RSA",
-                    "n": "0m5lvKpWqy9JS7tV2HIPqHCYHLquSuxIC3F8strIQLJKO3rZmTT96KTnhsOfBO7Y1bI7mnT0PB3_vcHd9ekWMEoZJQw7MuB8KeM_Wn54-elJr5DNLk5bMppSGxX7ZnumiXGG51_X3Yp-_EbGtDG80GxXXix7Mucyo7K25uE0uW8",
+                    "n": "iAUwIJyWHEnusONGDVCguTr3FkkVoSiDJ2mmFYYibt1paXpIiEKQy-OwykFcOG0Ew9UGEEvveRQbKN-bpUV5uH6q7pgnfDubA2VSLST7lHcXJd2as4DNyFMtgXLOj0dVSk4NduWlVgY2fUu17sJJBmysYjCjmB76P92DLfIvlI-4OYEOFSLQCG56KA8ZvP9HTnHiI0Lnerjf14cjr1Ubgw0ce9KMJ96LLnZp9Q6hBCXalagDo9MofuyScpFX1X0ixirQ2VtomzTvle9EIdfmat6EoLzxz8YNfl6mllvCVrlFJw1DvXfxLlkDR9I-te1B89L7Eljt90VBKmzjjJiKmuhmW8HhJMpe3VBG7t8c3J-F_cJLx7ZDk6_XNhxWPbzL9SNhTRg6015YDsX01bFyi1GUHdFocPmzgZ6nw3anFT85-q7l9M4yGhRQbfUWQ4rT0zCFobJZQeO4ZyiBM0fuAGhln0MogIdFaoh7xmVggL6XxJVOApXXGV7Z8xDjzbLpBI2UHiX8W33ZbrXYiDexvfBQuR2SFw372h_LCF-fOI8kxZr9BNU1RSf26RCX0Mi0Fdbz0eeXLa3N42fGAxHYUCN5M4WEtAPcdQjQAZ7gZ-Voy9nNjMoQMWzzH84XHUI1byA8T795CnVmKMiHyCWEnOGV1ptmZrzoZoa6x6bOHuk",
                     "e": "AQAB"
                 });
 
                 pk.importKey(json);
-                assert.equal(pk.exportPem(), pub_rsa1024_pem);
+                assert.equal(pk.exportPem(), pub_rsa4096_pem);
 
                 pk = new crypto.PKey(json);
-                assert.equal(pk.exportPem(), pub_rsa1024_pem);
+                assert.equal(pk.exportPem(), pub_rsa4096_pem);
             });
 
             it("import publicKey", () => {
                 var pk = new crypto.PKey();
-                pk.importKey(pub_rsa1024_pem);
+                pk.importKey(pub_rsa4096_pem);
                 assert.isFalse(pk.isPrivate());
 
-                assert.equal(pk, pub_rsa1024_pem);
+                assert.equal(pk, pub_rsa4096_pem);
 
                 var pk1 = new crypto.PKey();
                 pk1.importKey(pk.exportDer());
                 assert.isFalse(pk1.isPrivate());
 
-                assert.equal(pk1.exportPem(), pub_rsa1024_pem);
+                assert.equal(pk1.exportPem(), pub_rsa4096_pem);
             });
 
             it("import rsa format publicKey", () => {
@@ -399,18 +457,18 @@ describe('crypto', () => {
 
             it("publicKey", () => {
                 var pk = new crypto.PKey();
-                pk.importKey(rsa1024_pem);
+                pk.importKey(rsa4096_pem);
                 assert.isTrue(pk.isPrivate());
 
                 var pk1 = pk.publicKey;
                 assert.isFalse(pk1.isPrivate());
 
-                assert.equal(pk1, pub_rsa1024_pem);
+                assert.equal(pk1, pub_rsa4096_pem);
             });
 
             it("clone", () => {
                 var pk = new crypto.PKey();
-                pk.importKey(rsa1024_pem);
+                pk.importKey(rsa4096_pem);
 
                 var pk1 = pk.clone();
 
@@ -428,7 +486,7 @@ describe('crypto', () => {
 
             it("equal", () => {
                 var pk = new crypto.PKey();
-                pk.importKey(rsa1024_pem);
+                pk.importKey(rsa4096_pem);
 
                 var pk1 = pk.clone();
 
@@ -444,7 +502,7 @@ describe('crypto', () => {
 
             it("encrypt/decrypt", () => {
                 var pk = new crypto.PKey();
-                pk.importKey(rsa1024_pem);
+                pk.importKey(rsa4096_pem);
 
                 var pk1 = pk.publicKey;
 
@@ -458,15 +516,15 @@ describe('crypto', () => {
 
             it("sign/verify", () => {
                 var pk = new crypto.PKey();
-                pk.importKey(rsa1024_pem);
+                pk.importKey(rsa4096_pem);
 
                 var pk1 = pk.publicKey;
 
                 var md = hash.md5("abcdefg").digest();
                 var md1 = hash.md5("abcdefg1").digest();
-                var d = pk.sign(md, hash.MD5);
-                assert.isTrue(pk1.verify(md, d, hash.MD5));
-                assert.isFalse(pk1.verify(md1, d, hash.MD5));
+                var d = pk.sign(md);
+                assert.isTrue(pk1.verify(md, d));
+                assert.isFalse(pk1.verify(md1, d));
 
                 assert.throws(() => {
                     pk1.sign(md);
@@ -611,14 +669,14 @@ describe('crypto', () => {
                 var md1 = hash.md5("abcdefg1").digest();
 
                 console.time('ecc sign');
-                var d = pk.sign(md, hash.MD5);
+                var d = pk.sign(md);
                 console.timeEnd('ecc sign');
 
                 console.time('ecc verify');
-                assert.isTrue(pk1.verify(md, d, hash.MD5));
+                assert.isTrue(pk1.verify(md, d));
                 console.timeEnd('ecc verify');
 
-                assert.isFalse(pk1.verify(md1, d, hash.MD5));
+                assert.isFalse(pk1.verify(md1, d));
 
                 assert.throws(() => {
                     pk1.sign(md);
@@ -635,14 +693,14 @@ describe('crypto', () => {
                 var md1 = hash.md5("abcdefg1").digest();
 
                 console.time('secp256k1 sign');
-                var d = pk.sign(md, hash.MD5);
+                var d = pk.sign(md);
                 console.timeEnd('secp256k1 sign');
 
                 console.time('secp256k1 verify');
-                assert.isTrue(pk1.verify(md, d, hash.MD5));
+                assert.isTrue(pk1.verify(md, d));
                 console.timeEnd('secp256k1 verify');
 
-                assert.isFalse(pk1.verify(md1, d, hash.MD5));
+                assert.isFalse(pk1.verify(md1, d));
 
                 assert.throws(() => {
                     pk1.sign(md);
@@ -810,9 +868,9 @@ describe('crypto', () => {
 
                 var md = hash.md5("abcdefg").digest();
                 var md1 = hash.md5("abcdefg1").digest();
-                var d = pk.sign(md, hash.MD5);
-                assert.isTrue(pk1.verify(md, d, hash.MD5));
-                assert.isFalse(pk1.verify(md1, d, hash.MD5));
+                var d = pk.sign(md);
+                assert.isTrue(pk1.verify(md, d));
+                assert.isFalse(pk1.verify(md1, d));
 
                 assert.throws(() => {
                     pk1.sign(md);
@@ -841,8 +899,8 @@ describe('crypto', () => {
                 pk1.importKey(json);
 
                 var md = hash.md5("abcdefg").digest();
-                var d = pk.sign(md, hash.MD5);
-                assert.isTrue(pk1.verify(md, d, hash.MD5));
+                var d = pk.sign(md);
+                assert.isTrue(pk1.verify(md, d));
             });
 
             it("sign/verify to", () => {
@@ -909,7 +967,7 @@ describe('crypto', () => {
 
             assert.equal(pk.name, "invalid PK");
 
-            pk.importKey(rsa1024_pem);
+            pk.importKey(rsa4096_pem);
             assert.equal(pk.name, "RSA");
 
             pk.importKey(ec_pem);
@@ -924,8 +982,8 @@ describe('crypto', () => {
 
             assert.equal(pk.keySize, 0);
 
-            pk.importKey(rsa1024_pem);
-            assert.equal(pk.keySize, 1024);
+            pk.importKey(rsa4096_pem);
+            assert.equal(pk.keySize, 4096);
 
             pk.importKey(ec_pem);
             assert.equal(pk.keySize, 521);
@@ -939,7 +997,7 @@ describe('crypto', () => {
 
             assert.equal(pk.curve, '');
 
-            pk.importKey(rsa1024_pem);
+            pk.importKey(rsa4096_pem);
             assert.equal(pk.curve, '');
 
             pk.importKey(ec_pem);
@@ -980,6 +1038,48 @@ describe('crypto', () => {
                     assert.isFalse(pk.publicKey.verify('abcb', sig, pk1));
                     assert.isFalse(pk.publicKey.verify('abc', sig, pk));
                 });
+            });
+        });
+
+        describe("sm2", () => {
+            it("verify", () => {
+                var pk = new crypto.PKey({
+                    "kty": "SM2",
+                    "crv": "sm2p256r1",
+                    "d": "fcRRalaycsaXpKQYGcbmU8Qi93KqXnpodAwIK3vEOoI"
+                });
+                pk.sigType = 'ecsdsa';
+
+                var sig = Buffer.from("MEUCIQDhT4yilg4Y7iGmUFM8CfJ3VQCdqibyNNjjiQh2m9vM9AIgB7UETe0t9gw8Ga1sPMjFxgKYDVdeuPy7EZXanKM2VUo", 'base64');
+                assert.ok(pk.publicKey.verify('abc', sig));
+            });
+
+            it("sign/verify", () => {
+                var pk = new crypto.PKey({
+                    "kty": "SM2",
+                    "crv": "sm2p256r1",
+                    "d": "fcRRalaycsaXpKQYGcbmU8Qi93KqXnpodAwIK3vEOoI"
+                });
+                pk.sigType = 'ecsdsa';
+
+                var sig = pk.sign('abc');
+                assert.ok(pk.publicKey.verify('abc', sig));
+            });
+
+            it("sign/verify to", () => {
+                var pk = new crypto.PKey({
+                    "kty": "SM2",
+                    "crv": "sm2p256r1",
+                    "d": "fcRRalaycsaXpKQYGcbmU8Qi93KqXnpodAwIK3vEOoI"
+                });
+                pk.sigType = 'ecsdsa';
+
+                var pk1 = crypto.genSm2Key();
+
+                var sig = pk.sign('abc', pk1.publicKey);
+                assert.isTrue(pk.publicKey.verify('abc', sig, pk1));
+                assert.isFalse(pk.publicKey.verify('abcb', sig, pk1));
+                assert.isFalse(pk.publicKey.verify('abc', sig, pk));
             });
         });
     });
@@ -1231,7 +1331,7 @@ describe('crypto', () => {
 
         it("create", () => {
             var pk = new crypto.PKey();
-            pk.importKey(rsa1024_pem);
+            pk.importKey(rsa4096_pem);
 
             req = new crypto.X509Req("C=CN, O=baoz.cn, CN=baoz.me", pk);
             assert.deepEqual(req.exportPem(), req1);
@@ -1240,7 +1340,7 @@ describe('crypto', () => {
         it("info", () => {
             req.load(req1);
             assert.equal(req.subject, "C=CN, O=baoz.cn, CN=baoz.me");
-            assert.equal(req.publicKey, pub_rsa1024_pem);
+            assert.equal(req.publicKey, pub_rsa4096_pem);
         });
 
         it("sm2 info", () => {
@@ -1335,8 +1435,8 @@ describe('crypto', () => {
                 assert.isFalse(ca.verify(req.sign("C=CN, O=baoz.cn", pk)));
             });
         }
-        ca_test(rsa1024_pem, pub_rsa1024_pem, hash.SHA1);
-        ca_test(sm2_pem, pub_sm2_pem, hash.SM3);
+        ca_test(rsa4096_pem, pub_rsa4096_pem, hash.SHA256);
+        // ca_test(sm2_pem, pub_sm2_pem, hash.SM3);
     });
 
     it('pbkdf1', () => {

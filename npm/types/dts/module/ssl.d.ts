@@ -45,26 +45,6 @@ declare module 'ssl' {
     export const BADCERT_NOT_TRUSTED: 8;
 
     /**
-     * @description ssl 协议版本 ssl 3.0 
-     */
-    export const ssl3: 0;
-
-    /**
-     * @description ssl 协议版本 tls 1.0 
-     */
-    export const tls1: 1;
-
-    /**
-     * @description ssl 协议版本 tls 1.1 
-     */
-    export const tls1_1: 2;
-
-    /**
-     * @description ssl 协议版本 tls 1.2 
-     */
-    export const tls1_2: 3;
-
-    /**
      * @description 创建一个 SslSocket 对象，参见 SslSocket 
      */
     const Socket: typeof Class_SslSocket;
@@ -135,16 +115,6 @@ declare module 'ssl' {
      * @description 设定证书验证模式，缺省为 VERIFY_REQUIRED 
      */
     var verification: number;
-
-    /**
-     * @description 设定最低版本支持，缺省 ssl3 
-     */
-    var min_version: number;
-
-    /**
-     * @description 设定最高版本支持，缺省 tls1_1 
-     */
-    var max_version: number;
 
 }
 

@@ -25,10 +25,10 @@ if (os.type() == 'Windows' && os.version < "6.0")
     };
 
 var pk = new crypto.PKey();
-pk.genRsaKey(1024);
+pk.genEcKey();
 
 var pk1 = new crypto.PKey();
-pk1.genRsaKey(1024);
+pk1.genEcKey();
 
 var crt = new crypto.X509Req("CN=localhost", pk).sign("CN=baoz.me", pk);
 var crt1 = new crypto.X509Req("CN=localhost1", pk1).sign("CN=baoz.me", pk);
@@ -329,7 +329,7 @@ describe('ssl', () => {
         ssl.ca.load(ca.dump()[0]);
         // ssl.loadRootCerts();
 
-        var svr = new ssl.Server(crt1, pk1, 8888, (s) => {
+        var svr = new ssl.Server(crt1, pk1, 9087 + base_port, (s) => {
             var buf;
             while (buf = s.read());
         });
@@ -342,7 +342,7 @@ describe('ssl', () => {
 
         console.time("secp256k1 speed");
         for (var i = 0; i < 100; i++) {
-            var conn = ssl.connect('ssl://127.0.0.1:8888', crt2, pk2);
+            var conn = ssl.connect('ssl://127.0.0.1:' + (9087 + base_port), crt2, pk2);
             conn.close();
         }
         console.timeEnd("secp256k1 speed");

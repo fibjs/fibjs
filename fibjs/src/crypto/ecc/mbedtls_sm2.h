@@ -61,7 +61,7 @@ static int mbedtls_sm2_sign_to(mbedtls_ecp_group* grp, mbedtls_mpi* r, mbedtls_m
                  * Steps 3.1: r = r + (k * PB).x
                  */
                 mbedtls_ecp_point_init(&C);
-                MBEDTLS_MPI_CHK(mbedtls_ecp_mul(grp, &C, &k, to_pubkey, NULL, NULL));
+                MBEDTLS_MPI_CHK(mbedtls_ecp_mul(grp, &C, &k, to_pubkey, f_rng, p_rng));
                 MBEDTLS_MPI_CHK(mbedtls_mpi_add_mpi(r, r, &C.X));
                 mbedtls_ecp_point_free(&C);
 
@@ -121,7 +121,8 @@ cleanup:
 }
 
 static int mbedtls_sm2_verify_to(const mbedtls_ecp_group* grp, const unsigned char* buf, size_t blen,
-    const mbedtls_ecp_point* Q, const mbedtls_mpi* to_key, const mbedtls_mpi* r, const mbedtls_mpi* s)
+    const mbedtls_ecp_point* Q, const mbedtls_mpi* to_key, const mbedtls_mpi* r, const mbedtls_mpi* s,
+    int (*f_rng)(void*, unsigned char*, size_t), void* p_rng)
 {
     int ret;
     mbedtls_mpi e, s_inv, u1, u2, t, result;
@@ -179,7 +180,7 @@ static int mbedtls_sm2_verify_to(const mbedtls_ecp_group* grp, const unsigned ch
          * Steps 3.1: e = e + (dB * R).x
          */
         mbedtls_ecp_point_init(&C);
-        MBEDTLS_MPI_CHK(mbedtls_ecp_mul(grp, &C, to_key, &R, NULL, NULL));
+        MBEDTLS_MPI_CHK(mbedtls_ecp_mul(grp, &C, to_key, &R, f_rng, p_rng));
         MBEDTLS_MPI_CHK(mbedtls_mpi_add_mpi(&e, &e, &C.X));
         mbedtls_ecp_point_free(&C);
 

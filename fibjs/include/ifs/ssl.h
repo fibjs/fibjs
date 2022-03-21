@@ -33,11 +33,7 @@ public:
         C_BADCERT_EXPIRED = 1,
         C_BADCERT_REVOKED = 2,
         C_BADCERT_CN_MISMATCH = 4,
-        C_BADCERT_NOT_TRUSTED = 8,
-        C_ssl3 = 0,
-        C_tls1 = 1,
-        C_tls1_1 = 2,
-        C_tls1_2 = 3
+        C_BADCERT_NOT_TRUSTED = 8
     };
 
 public:
@@ -50,10 +46,6 @@ public:
     static result_t get_ca(obj_ptr<X509Cert_base>& retVal);
     static result_t get_verification(int32_t& retVal);
     static result_t set_verification(int32_t newVal);
-    static result_t get_min_version(int32_t& retVal);
-    static result_t set_min_version(int32_t newVal);
-    static result_t get_max_version(int32_t& retVal);
-    static result_t set_max_version(int32_t newVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -74,10 +66,6 @@ public:
     static void s_static_get_ca(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_static_get_verification(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_static_set_verification(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_static_get_min_version(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_set_min_version(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_static_get_max_version(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_set_max_version(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 
 public:
     ASYNC_STATICVALUE3(ssl_base, connect, exlib::string, int32_t, obj_ptr<Stream_base>);
@@ -111,9 +99,7 @@ inline ClassInfo& ssl_base::class_info()
 
     static ClassData::ClassProperty s_property[] = {
         { "ca", s_static_get_ca, block_set, true },
-        { "verification", s_static_get_verification, s_static_set_verification, true },
-        { "min_version", s_static_get_min_version, s_static_set_min_version, true },
-        { "max_version", s_static_get_max_version, s_static_set_max_version, true }
+        { "verification", s_static_get_verification, s_static_set_verification, true }
     };
 
     static ClassData::ClassConst s_const[] = {
@@ -123,11 +109,7 @@ inline ClassInfo& ssl_base::class_info()
         { "BADCERT_EXPIRED", C_BADCERT_EXPIRED },
         { "BADCERT_REVOKED", C_BADCERT_REVOKED },
         { "BADCERT_CN_MISMATCH", C_BADCERT_CN_MISMATCH },
-        { "BADCERT_NOT_TRUSTED", C_BADCERT_NOT_TRUSTED },
-        { "ssl3", C_ssl3 },
-        { "tls1", C_tls1 },
-        { "tls1_1", C_tls1_1 },
-        { "tls1_2", C_tls1_2 }
+        { "BADCERT_NOT_TRUSTED", C_BADCERT_NOT_TRUSTED }
     };
 
     static ClassData s_cd = {
@@ -246,52 +228,6 @@ inline void ssl_base::s_static_set_verification(v8::Local<v8::Name> property, v8
     PROPERTY_VAL(int32_t);
 
     hr = set_verification(v0);
-
-    PROPERTY_SET_LEAVE();
-}
-
-inline void ssl_base::s_static_get_min_version(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    int32_t vr;
-
-    METHOD_NAME("ssl.min_version");
-    PROPERTY_ENTER();
-
-    hr = get_min_version(vr);
-
-    METHOD_RETURN();
-}
-
-inline void ssl_base::s_static_set_min_version(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
-{
-    METHOD_NAME("ssl.min_version");
-    PROPERTY_ENTER();
-    PROPERTY_VAL(int32_t);
-
-    hr = set_min_version(v0);
-
-    PROPERTY_SET_LEAVE();
-}
-
-inline void ssl_base::s_static_get_max_version(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    int32_t vr;
-
-    METHOD_NAME("ssl.max_version");
-    PROPERTY_ENTER();
-
-    hr = get_max_version(vr);
-
-    METHOD_RETURN();
-}
-
-inline void ssl_base::s_static_set_max_version(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
-{
-    METHOD_NAME("ssl.max_version");
-    PROPERTY_ENTER();
-    PROPERTY_VAL(int32_t);
-
-    hr = set_max_version(v0);
 
     PROPERTY_SET_LEAVE();
 }

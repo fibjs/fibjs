@@ -80,9 +80,6 @@ SslSocket::SslSocket()
     mbedtls_ssl_conf_authmode(&m_ssl_conf, g_ssl.m_authmode);
     mbedtls_ssl_conf_rng(&m_ssl_conf, mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
 
-    mbedtls_ssl_conf_min_version(&m_ssl_conf, MBEDTLS_SSL_MAJOR_VERSION_3, g_ssl.m_min_version);
-    mbedtls_ssl_conf_max_version(&m_ssl_conf, MBEDTLS_SSL_MAJOR_VERSION_3, g_ssl.m_max_version);
-
     m_recv_pos = 0;
 }
 
@@ -516,12 +513,6 @@ result_t SslSocket::accept(Stream_base* s, obj_ptr<SslSocket_base>& retVal,
     mbedtls_ssl_conf_authmode(&ss->m_ssl_conf, m_ssl_conf.authmode);
     mbedtls_ssl_conf_endpoint(&ss->m_ssl_conf, MBEDTLS_SSL_IS_SERVER);
     mbedtls_ssl_conf_sni(&ss->m_ssl_conf, sni_callback, ss);
-
-    ret = mbedtls_ssl_conf_dh_param(&ss->m_ssl_conf,
-        MBEDTLS_DHM_RFC5114_MODP_2048_P,
-        MBEDTLS_DHM_RFC5114_MODP_2048_G);
-    if (ret != 0)
-        return CHECK_ERROR(_ssl::setError(ret));
 
     if (m_ca) {
         ss->m_ca = m_ca;

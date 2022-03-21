@@ -7,8 +7,10 @@
 
 #pragma once
 
+#define MBEDTLS_ALLOW_PRIVATE_ACCESS
+
 #include "ifs/PKey.h"
-#include <mbedtls/mbedtls/config.h>
+#include <mbedtls/mbedtls/mbedtls_config.h>
 #include <mbedtls/mbedtls/pk.h>
 
 namespace fibjs {

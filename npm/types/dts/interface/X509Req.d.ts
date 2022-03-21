@@ -22,7 +22,7 @@ declare class Class_X509Req extends Class_object {
      * @description X509Req 构造函数，根据给定的信息创建一个证书请求
      *      @param subject 证书的主题可分辨名称
      *      @param key 证书的公钥
-     *      @param hash 证书摘要算法，缺省为 hash.SHA1
+     *      @param hash 证书摘要算法，缺省为 hash.SHA256
      *     
      */
     constructor(subject: string, key: Class_PKey, hash: number);

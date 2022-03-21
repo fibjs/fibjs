@@ -22,18 +22,6 @@ module ssl
     /*! @brief 证书验证结果，证书不可信 */
     const BADCERT_NOT_TRUSTED = 8;
 
-    /*! @brief ssl 协议版本 ssl 3.0 */
-    const ssl3 = 0;
-
-    /*! @brief ssl 协议版本 tls 1.0 */
-    const tls1 = 1;
-
-    /*! @brief ssl 协议版本 tls 1.1 */
-    const tls1_1 = 2;
-
-    /*! @brief ssl 协议版本 tls 1.2 */
-    const tls1_2 = 3;
-
     /*! @brief 创建一个 SslSocket 对象，参见 SslSocket */
     static SslSocket new Socket();
 
@@ -81,10 +69,4 @@ module ssl
 
     /*! @brief 设定证书验证模式，缺省为 VERIFY_REQUIRED */
     static Integer verification;
-
-    /*! @brief 设定最低版本支持，缺省 ssl3 */
-    static Integer min_version;
-
-    /*! @brief 设定最高版本支持，缺省 tls1_1 */
-    static Integer max_version;
 };

@@ -1,5 +1,7 @@
+#define MBEDTLS_ALLOW_PRIVATE_ACCESS
 
-#include "mbedtls/config.h"
+#include "mbedtls/mbedtls_config.h"
+#include "mbedtls/error.h"
 
 #include <string.h>
 
@@ -10,11 +12,11 @@
 /*
  * Convert a signature (given by context) to ASN.1
  */
-static int ecdsa_signature_to_asn1(const mbedtls_mpi* r, const mbedtls_mpi* s,
-    unsigned char* sig, size_t* slen)
+static int ecsdsa_signature_to_asn1(const mbedtls_mpi* r, const mbedtls_mpi* s,
+    unsigned char* sig, size_t sig_size, size_t* slen)
 {
-    int ret;
-    unsigned char buf[MBEDTLS_ECDSA_MAX_LEN];
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    unsigned char buf[MBEDTLS_ECDSA_MAX_LEN] = { 0 };
     unsigned char* p = buf + sizeof(buf);
     size_t len = 0;
 
@@ -23,6 +25,9 @@ static int ecdsa_signature_to_asn1(const mbedtls_mpi* r, const mbedtls_mpi* s,
 
     MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_len(&p, buf, len));
     MBEDTLS_ASN1_CHK_ADD(len, mbedtls_asn1_write_tag(&p, buf, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE));
+
+    if (len > sig_size)
+        return (MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL);
 
     memcpy(sig, p, len);
     *slen = len;
@@ -71,34 +76,33 @@ int ecsdsa_sign(mbedtls_ecp_keypair* ctx, int sdsa, mbedtls_ecp_keypair* to_ctx,
         return 0;
     }
 
-    int ret;
+    int ret = MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
     mbedtls_mpi r, s;
 
     mbedtls_mpi_init(&r);
     mbedtls_mpi_init(&s);
 
     if (sdsa)
-        MBEDTLS_MPI_CHK(mbedtls_ecsdsa_sign_to(&ctx->grp, &r, &s, &ctx->d, to_ctx ? &to_ctx->Q : NULL,
-            hash, hlen, f_rng, p_rng));
+        ret = mbedtls_ecsdsa_sign_to(&ctx->grp, &r, &s, &ctx->d, to_ctx ? &to_ctx->Q : NULL,
+            hash, hlen, f_rng, p_rng);
     else if (ctx->grp.id == MBEDTLS_ECP_DP_SM2P256R1)
-        MBEDTLS_MPI_CHK(mbedtls_sm2_sign_to(&ctx->grp, &r, &s, &ctx->d, to_ctx ? &to_ctx->Q : NULL,
-            hash, hlen, f_rng, p_rng));
-    else {
-        ret = MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
-        goto cleanup;
-    }
+        ret = mbedtls_sm2_sign_to(&ctx->grp, &r, &s, &ctx->d, to_ctx ? &to_ctx->Q : NULL,
+            hash, hlen, f_rng, p_rng);
 
-    MBEDTLS_MPI_CHK(ecdsa_signature_to_asn1(&r, &s, sig, slen));
+    if (ret)
+        goto cleanup;
+
+    MBEDTLS_MPI_CHK(ecsdsa_signature_to_asn1(&r, &s, sig, *slen, slen));
 
 cleanup:
     mbedtls_mpi_free(&r);
     mbedtls_mpi_free(&s);
 
-    return 0;
+    return (ret);
 }
 
 int ecsdsa_verify(mbedtls_ecp_keypair* ctx, int sdsa, mbedtls_ecp_keypair* to_ctx, const unsigned char* hash, size_t hlen,
-    const unsigned char* sig, size_t slen)
+    const unsigned char* sig, size_t slen, int (*f_rng)(void*, unsigned char*, size_t), void* p_rng)
 {
     if (sdsa && ctx->grp.id == MBEDTLS_ECP_DP_SECP256K1) {
         secp256k1_pubkey pubkey;
@@ -146,9 +150,9 @@ int ecsdsa_verify(mbedtls_ecp_keypair* ctx, int sdsa, mbedtls_ecp_keypair* to_ct
     }
 
     if (sdsa)
-        ret = mbedtls_ecsdsa_verify_to(&ctx->grp, hash, hlen, &ctx->Q, to_ctx ? &to_ctx->d : NULL, &r, &s);
+        ret = mbedtls_ecsdsa_verify_to(&ctx->grp, hash, hlen, &ctx->Q, to_ctx ? &to_ctx->d : NULL, &r, &s, f_rng, p_rng);
     else if (ctx->grp.id == MBEDTLS_ECP_DP_SM2P256R1)
-        ret = mbedtls_sm2_verify_to(&ctx->grp, hash, hlen, &ctx->Q, to_ctx ? &to_ctx->d : NULL, &r, &s);
+        ret = mbedtls_sm2_verify_to(&ctx->grp, hash, hlen, &ctx->Q, to_ctx ? &to_ctx->d : NULL, &r, &s, f_rng, p_rng);
     else
         ret = MBEDTLS_ERR_ECP_VERIFY_FAILED;
 

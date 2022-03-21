@@ -7,8 +7,10 @@
 
 #pragma once
 
+#define MBEDTLS_ALLOW_PRIVATE_ACCESS
+
 #include "ifs/ssl.h"
-#include <mbedtls/mbedtls/config.h>
+#include <mbedtls/mbedtls/mbedtls_config.h>
 #include <mbedtls/mbedtls/entropy.h>
 #include <mbedtls/mbedtls/ctr_drbg.h>
 #include <mbedtls/mbedtls/platform.h>
@@ -30,9 +32,6 @@ public:
 
         mbedtls_ssl_cache_init(&m_cache);
         m_authmode = ssl_base::C_VERIFY_REQUIRED;
-
-        m_min_version = MBEDTLS_SSL_MINOR_VERSION_0;
-        m_max_version = MBEDTLS_SSL_MINOR_VERSION_3;
     }
 
     ~_ssl()
@@ -50,8 +49,6 @@ public:
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     int32_t m_authmode;
-    int32_t m_min_version;
-    int32_t m_max_version;
 
     obj_ptr<X509Cert_base> m_crt;
     obj_ptr<PKey_base> m_key;

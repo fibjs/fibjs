@@ -16,7 +16,7 @@ DECLARE_MODULE(hash);
 result_t hash_base::digest(int32_t algo, Buffer_base* data,
     obj_ptr<Digest_base>& retVal)
 {
-    if (algo < hash_base::C_MD2 || algo > hash_base::C_SM3)
+    if (algo < hash_base::C_MD5 || algo > hash_base::C_SM3)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     retVal = new Digest((mbedtls_md_type_t)algo);
@@ -27,16 +27,6 @@ result_t hash_base::digest(int32_t algo, Buffer_base* data,
     }
 
     return 0;
-}
-
-result_t hash_base::md2(Buffer_base* data, obj_ptr<Digest_base>& retVal)
-{
-    return digest(hash_base::C_MD2, data, retVal);
-}
-
-result_t hash_base::md4(Buffer_base* data, obj_ptr<Digest_base>& retVal)
-{
-    return digest(hash_base::C_MD4, data, retVal);
 }
 
 result_t hash_base::md5(Buffer_base* data, obj_ptr<Digest_base>& retVal)
@@ -77,7 +67,7 @@ result_t hash_base::ripemd160(Buffer_base* data, obj_ptr<Digest_base>& retVal)
 result_t hash_base::hmac(int32_t algo, Buffer_base* key, Buffer_base* data,
     obj_ptr<Digest_base>& retVal)
 {
-    if (algo < hash_base::C_MD2 || algo > hash_base::C_SM3)
+    if (algo < hash_base::C_MD5 || algo > hash_base::C_SM3)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     exlib::string strBuf;
@@ -91,16 +81,6 @@ result_t hash_base::hmac(int32_t algo, Buffer_base* key, Buffer_base* data,
     }
 
     return 0;
-}
-
-result_t hash_base::hmac_md2(Buffer_base* key, Buffer_base* data, obj_ptr<Digest_base>& retVal)
-{
-    return hmac(hash_base::C_MD2, key, data, retVal);
-}
-
-result_t hash_base::hmac_md4(Buffer_base* key, Buffer_base* data, obj_ptr<Digest_base>& retVal)
-{
-    return hmac(hash_base::C_MD4, key, data, retVal);
 }
 
 result_t hash_base::hmac_md5(Buffer_base* key, Buffer_base* data, obj_ptr<Digest_base>& retVal)

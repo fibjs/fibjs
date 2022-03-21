@@ -5,6 +5,8 @@
  *      Author: lion
  */
 
+#define MBEDTLS_ALLOW_PRIVATE_ACCESS
+
 #include "object.h"
 #include "ifs/crypto.h"
 #include "StringBuffer.h"
@@ -30,17 +32,11 @@ static struct _cipher_size {
     { { "AES-128", {} },
         { "AES-192", {} },
         { "AES-256", {} } },
+    { { "DES", {} } },
+    { { "DES-EDE3", {} } },
     { { "CAMELLIA-128", {} },
         { "CAMELLIA-192", {} },
         { "CAMELLIA-256", {} } },
-    { { "DES", {} } },
-    { { "DES-EDE", {} } },
-    { { "DES-EDE3", {} } },
-    { { "BLOWFISH", {} } },
-    { { "ARC4-40", {} },
-        { "ARC4-56", {} },
-        { "ARC4-64", {} },
-        { "ARC4-128", {} } },
     { { "ARIA-128", {} },
         { "ARIA-192", {} },
         { "ARIA-256", {} } },

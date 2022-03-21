@@ -5,6 +5,8 @@
  *      Author: lion
  */
 
+#define MBEDTLS_ALLOW_PRIVATE_ACCESS
+
 #include "object.h"
 #include "ifs/hash.h"
 #include "Digest.h"

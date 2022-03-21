@@ -10,32 +10,23 @@ module crypto
     /*! @brief 指定对称加密算法 AES，支持 128, 192, 256 位 key，分组密码工作模式支持 ECB, CBC, CFB128, CTR, GCM，CCM，XTS */
     const AES = 1;
 
-    /*! @brief 指定对称加密算法 CAMELLIA，支持 128, 192, 256 位 key，分组密码工作模式支持 ECB, CBC, CFB128, CTR, GCM，CCM */
-    const CAMELLIA = 2;
-
     /*! @brief 指定对称加密算法 DES，支持 64 位 key，分组密码工作模式支持 ECB, CBC */
-    const DES = 3;
-
-    /*! @brief 指定对称加密算法 DES-EDE，支持 128 位 key，分组密码工作模式支持 ECB, CBC */
-    const DES_EDE = 4;
+    const DES = 2;
 
     /*! @brief 指定对称加密算法 DES-EDE3，支持 192 位 key，分组密码工作模式支持 ECB, CBC */
-    const DES_EDE3 = 5;
+    const DES_EDE3 = 3;
 
-    /*! @brief 指定对称加密算法 BLOWFISH，支持 192 位 key，分组密码工作模式支持 ECB, CBC, CFB64, CTR */
-    const BLOWFISH = 6;
-
-    /*! @brief 指定对称加密算法 ARC4，支持 40, 56, 64, 128 位 key */
-    const ARC4 = 7;
+    /*! @brief 指定对称加密算法 CAMELLIA，支持 128, 192, 256 位 key，分组密码工作模式支持 ECB, CBC, CFB128, CTR, GCM，CCM */
+    const CAMELLIA = 4;
 
     /*! @brief 指定对称加密算法 ARIA，支持 128, 192, 256 位 key，分组密码工作模式支持 ECB, CBC, CFB128, CTR, GCM，CCM */
-    const ARIA = 8;
+    const ARIA = 5;
 
     /*! @brief 指定对称加密算法 CHACHA20，支持 256 位 key，分组密码工作模式支持 POLY1305 */
-    const CHACHA20 = 9;
+    const CHACHA20 = 6;
 
     /*! @brief 指定对称加密算法 SM4, 分组密码工作模式支持 ECB, CBC */
-    const SM4 = 10;
+    const SM4 = 7;
 
     /*! @brief 指定分组密码工作模式支持 ECB */
     const ECB = 1;

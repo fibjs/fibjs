@@ -5,6 +5,8 @@
  *      Author: lion
  */
 
+#define MBEDTLS_ALLOW_PRIVATE_ACCESS
+
 #include "object.h"
 #include "ifs/crypto.h"
 #include "Cipher.h"
@@ -104,39 +106,7 @@ result_t crypto_base::loadReq(exlib::string filename, obj_ptr<X509Req_base>& ret
 result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
-    if (size < 1)
-        return CHECK_ERROR(CALL_E_OUTRANGE);
-
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    time_t t;
-    int32_t i, ret;
-    mbedtls_havege_state hs;
-    unsigned char buf[1024];
-    exlib::string strBuf;
-
-    strBuf.resize(size);
-    char* _strBuf = strBuf.c_buffer();
-
-    mbedtls_havege_init(&hs);
-
-    t = time(NULL);
-
-    for (i = 0; i < size; i += sizeof(buf)) {
-        ret = mbedtls_havege_random(&hs, buf, sizeof(buf));
-        if (ret != 0)
-            return CHECK_ERROR(_ssl::setError(ret));
-
-        memcpy(&_strBuf[i], buf, size - i > (int32_t)sizeof(buf) ? (int32_t)sizeof(buf) : size - i);
-    }
-
-    if (t == time(NULL))
-        t--;
-
-    retVal = new Buffer(strBuf);
-
-    return 0;
+    return pseudoRandomBytes(size, retVal, ac);
 }
 
 result_t crypto_base::simpleRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal,
@@ -428,7 +398,7 @@ result_t crypto_base::pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t i
     if (iterations < 1 || size < 1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    if (algo < hash_base::C_MD2 || algo > hash_base::C_SM3)
+    if (algo < hash_base::C_MD5 || algo > hash_base::C_SM3)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (ac->isSync())
@@ -478,7 +448,7 @@ result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t i
     if (iterations < 1 || size < 1)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    if (algo < hash_base::C_MD2 || algo > hash_base::C_SM3)
+    if (algo < hash_base::C_MD5 || algo > hash_base::C_SM3)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     if (ac->isSync())

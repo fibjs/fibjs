@@ -4,27 +4,71 @@ test.setup();
 var hash = require('hash');
 var crypto = require('crypto');
 
-var rsa1024_pem = "-----BEGIN RSA PRIVATE KEY-----\n" +
-    "MIICXQIBAAKBgQDSbmW8qlarL0lLu1XYcg+ocJgcuq5K7EgLcXyy2shAsko7etmZ\n" +
-    "NP3opOeGw58E7tjVsjuadPQ8Hf+9wd316RYwShklDDsy4Hwp4z9afnj56UmvkM0u\n" +
-    "TlsymlIbFftme6aJcYbnX9fdin78Rsa0MbzQbFdeLHsy5zKjsrbm4TS5bwIDAQAB\n" +
-    "AoGAagN2O9NxMHL1MTMi75WfL9Pxvl+KWXKqZSF6mjzAsF9iKI8euyHIXYFepzU8\n" +
-    "kual1RsjDhCnzvWqFvZplW8lXqrHf/P+rS/9Y4gBUw6pjnI/DnFIRwWHRvrUHHSC\n" +
-    "fWOdTCIKdOTkgLZuGFuhEY3RMIW0WSYejjLtftwy0RVxAzkCQQDprgbWqZ/BaafV\n" +
-    "uKKA3shUWWRst/2hV7qDus6YfEj6GfUZHEoNJW4BSuZHUiG4Cdxr0zTLtIP7tNSz\n" +
-    "rCM7FbFrAkEA5ofkxFKdPBD0CQHMb9q13AMHUVe0rJ+hSjqqIBrmqApUOneyAcMV\n" +
-    "76M0QyIQnI2p3POa4Qu/7XChDwRVl7LlDQJBANplxohsAh5fI/hQVriA/tQus/gU\n" +
-    "QdzARFaHijzjs8Tj67mrQd5lhBl7KhuwPEloFfVEcUyNiuj9yeme0VKQZL8CQQCh\n" +
-    "qCfm99vk1Cqc6lL3GRKwPrtx8iPzbVlIWU0ViGe47M1V1rvP+oK2cebjMM8fSUQV\n" +
-    "egpgx8GF+pYmlq6C22M9AkB2oRCDE2Y5UWsXizvvqFOp4LqgQOKVrwS+lVvYXZm/\n" +
-    "AA4uMJDro6IBkrUGJgYepTLQ16o2a2WwtK4ERlBm+pnC\n" +
+var rsa4096_pem = "-----BEGIN RSA PRIVATE KEY-----\n" +
+    "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\n" +
     "-----END RSA PRIVATE KEY-----\n";
 
-var pub_rsa1024_pem = "-----BEGIN PUBLIC KEY-----\n" +
-    "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDSbmW8qlarL0lLu1XYcg+ocJgc\n" +
-    "uq5K7EgLcXyy2shAsko7etmZNP3opOeGw58E7tjVsjuadPQ8Hf+9wd316RYwShkl\n" +
-    "DDsy4Hwp4z9afnj56UmvkM0uTlsymlIbFftme6aJcYbnX9fdin78Rsa0MbzQbFde\n" +
-    "LHsy5zKjsrbm4TS5bwIDAQAB\n" +
+var pub_rsa4096_pem = "-----BEGIN PUBLIC KEY-----\n" +
+    "MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAiAUwIJyWHEnusONGDVCg\n" +
+    "uTr3FkkVoSiDJ2mmFYYibt1paXpIiEKQy+OwykFcOG0Ew9UGEEvveRQbKN+bpUV5\n" +
+    "uH6q7pgnfDubA2VSLST7lHcXJd2as4DNyFMtgXLOj0dVSk4NduWlVgY2fUu17sJJ\n" +
+    "BmysYjCjmB76P92DLfIvlI+4OYEOFSLQCG56KA8ZvP9HTnHiI0Lnerjf14cjr1Ub\n" +
+    "gw0ce9KMJ96LLnZp9Q6hBCXalagDo9MofuyScpFX1X0ixirQ2VtomzTvle9EIdfm\n" +
+    "at6EoLzxz8YNfl6mllvCVrlFJw1DvXfxLlkDR9I+te1B89L7Eljt90VBKmzjjJiK\n" +
+    "muhmW8HhJMpe3VBG7t8c3J+F/cJLx7ZDk6/XNhxWPbzL9SNhTRg6015YDsX01bFy\n" +
+    "i1GUHdFocPmzgZ6nw3anFT85+q7l9M4yGhRQbfUWQ4rT0zCFobJZQeO4ZyiBM0fu\n" +
+    "AGhln0MogIdFaoh7xmVggL6XxJVOApXXGV7Z8xDjzbLpBI2UHiX8W33ZbrXYiDex\n" +
+    "vfBQuR2SFw372h/LCF+fOI8kxZr9BNU1RSf26RCX0Mi0Fdbz0eeXLa3N42fGAxHY\n" +
+    "UCN5M4WEtAPcdQjQAZ7gZ+Voy9nNjMoQMWzzH84XHUI1byA8T795CnVmKMiHyCWE\n" +
+    "nOGV1ptmZrzoZoa6x6bOHukCAwEAAQ==\n" +
     "-----END PUBLIC KEY-----\n";
 
 var ec_pem = "-----BEGIN EC PRIVATE KEY-----\n" +
@@ -92,9 +136,9 @@ describe("hash", () => {
         assert.equal(o.base64, hash[o.name.toLowerCase()]().update(o.text).digest('base64'));
         assert.equal(o.base64, crypto.createHash(o.name).update(o.text).digest('base64'));
 
-        var s = crypto.createHash(o.name).update(o.text).sign(rsa1024_pem);
-        assert.ok(crypto.createHash(o.name).update(o.text).verify(pub_rsa1024_pem, s));
-        assert.ok(new crypto.PKey(pub_rsa1024_pem).verify(crypto.createHash(o.name).update(o.text).digest(), s, hash[o.name]));
+        var s = crypto.createHash(o.name).update(o.text).sign(rsa4096_pem);
+        assert.ok(crypto.createHash(o.name).update(o.text).verify(pub_rsa4096_pem, s));
+        assert.ok(new crypto.PKey(pub_rsa4096_pem).verify(crypto.createHash(o.name).update(o.text).digest(), s, hash[o.name]));
 
         var s = crypto.createHash(o.name).update(o.text).sign(ec_pem);
         assert.ok(crypto.createHash(o.name).update(o.text).verify(pub_ec_pem, s));
@@ -142,9 +186,9 @@ describe("hash", () => {
         assert.equal(o.base64, hash['hmac_' + o.name.toLowerCase()](o.key).update(o.text).digest('base64'));
         assert.equal(o.base64, crypto.createHmac(o.name, o.key).update(o.text).digest('base64'));
 
-        var s = crypto.createHmac(o.name, o.key).update(o.text).sign(rsa1024_pem);
-        assert.ok(crypto.createHmac(o.name, o.key).update(o.text).verify(pub_rsa1024_pem, s));
-        assert.ok(new crypto.PKey(pub_rsa1024_pem).verify(crypto.createHmac(o.name, o.key).update(o.text).digest(), s, hash[o.name]));
+        var s = crypto.createHmac(o.name, o.key).update(o.text).sign(rsa4096_pem);
+        assert.ok(crypto.createHmac(o.name, o.key).update(o.text).verify(pub_rsa4096_pem, s));
+        assert.ok(new crypto.PKey(pub_rsa4096_pem).verify(crypto.createHmac(o.name, o.key).update(o.text).digest(), s, hash[o.name]));
 
         var s = crypto.createHmac(o.name, o.key).update(o.text).sign(ec_pem);
         assert.ok(crypto.createHmac(o.name, o.key).update(o.text).verify(pub_ec_pem, s));
@@ -154,48 +198,6 @@ describe("hash", () => {
         assert.ok(crypto.createHmac(o.name, o.key).update(o.text).verify(pub_sm2_pem, s));
         assert.ok(new crypto.PKey(pub_sm2_pem).verify(crypto.createHmac(o.name, o.key).update(o.text).digest(), s, hash[o.name]));
     }
-
-    it("md2", () => {
-        var digest_case = [{
-            name: 'MD2',
-            text: '',
-            hash: '8350e5a3e24c153df2275c9f80692773',
-            base64: 'g1Dlo+JMFT3yJ1yfgGkncw=='
-        }, {
-            name: 'MD2',
-            text: 'The quick brown fox jumps over the lazy dog',
-            hash: '03d85a0d629d2c442e987525319fc471',
-            base64: 'A9haDWKdLEQumHUlMZ/EcQ=='
-        }, {
-            name: 'MD2',
-            text: 'The quick brown fox jumps over the lazy cog',
-            hash: '6b890c9292668cdbbfda00a4ebf31f05',
-            base64: 'a4kMkpJmjNu/2gCk6/MfBQ=='
-        }];
-
-        digest_case.forEach(hash_test);
-    });
-
-    it("md4", () => {
-        var digest_case = [{
-            name: 'MD4',
-            text: '',
-            hash: '31d6cfe0d16ae931b73c59d7e0c089c0',
-            base64: 'MdbP4NFq6TG3PFnX4MCJwA=='
-        }, {
-            name: 'MD4',
-            text: 'The quick brown fox jumps over the lazy dog',
-            hash: '1bee69a46ba811185c194762abaeae90',
-            base64: 'G+5ppGuoERhcGUdiq66ukA=='
-        }, {
-            name: 'MD4',
-            text: 'The quick brown fox jumps over the lazy cog',
-            hash: 'b86e130ce7028da59e672d56ad0113df',
-            base64: 'uG4TDOcCjaWeZy1WrQET3w=='
-        }];
-
-        digest_case.forEach(hash_test);
-    });
 
     it("md5", () => {
         var digest_case = [{

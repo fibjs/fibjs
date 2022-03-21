@@ -5,6 +5,8 @@
  *      Author: lion
  */
 
+#define MBEDTLS_ALLOW_PRIVATE_ACCESS
+
 #include "object.h"
 #include "ifs/fs.h"
 #include "ifs/crypto.h"
@@ -18,7 +20,7 @@ extern "C" {
 int ecsdsa_sign(mbedtls_ecp_keypair* ctx, int sdsa, mbedtls_ecp_keypair* to_ctx, const unsigned char* hash, size_t hlen,
     unsigned char* sig, size_t* slen, int (*f_rng)(void*, unsigned char*, size_t), void* p_rng);
 int ecsdsa_verify(mbedtls_ecp_keypair* ctx, int sdsa, mbedtls_ecp_keypair* to_ctx, const unsigned char* hash, size_t hlen,
-    const unsigned char* sig, size_t slen);
+    const unsigned char* sig, size_t slen, int (*f_rng)(void*, unsigned char*, size_t), void* p_rng);
 }
 
 namespace fibjs {
@@ -359,7 +361,7 @@ result_t PKey::importKey(Buffer_base* DerKey, exlib::string password)
 
     ret = mbedtls_pk_parse_key(&m_key, (unsigned char*)key.c_str(), key.length(),
         !password.empty() ? (unsigned char*)password.c_str() : NULL,
-        password.length());
+        password.length(), mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
 
     if (ret == MBEDTLS_ERR_PK_KEY_INVALID_FORMAT)
         ret = mbedtls_pk_parse_public_key(&m_key, (unsigned char*)key.c_str(), key.length());
@@ -378,7 +380,7 @@ result_t PKey::importKey(exlib::string pemKey, exlib::string password)
 
     ret = mbedtls_pk_parse_key(&m_key, (unsigned char*)pemKey.c_str(), pemKey.length() + 1,
         !password.empty() ? (unsigned char*)password.c_str() : NULL,
-        password.length());
+        password.length(), mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
 
     if (ret == MBEDTLS_ERR_PK_KEY_INVALID_FORMAT) {
         size_t pos1 = pemKey.find("-----BEGIN RSA PUBLIC KEY-----", 0, 30);
@@ -838,7 +840,7 @@ result_t PKey::sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal
     int32_t ret;
     exlib::string str;
     exlib::string output;
-    size_t olen;
+    size_t olen = MBEDTLS_PREMASTER_SIZE;
 
     data->toString(str);
     output.resize(MBEDTLS_PREMASTER_SIZE);
@@ -846,7 +848,7 @@ result_t PKey::sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal
     // alg=0~9  see https://tls.mbed.org/api/md_8h.html  enum mbedtls_md_type_t
     ret = mbedtls_pk_sign(&m_key, (mbedtls_md_type_t)alg,
         (const unsigned char*)str.c_str(), str.length(),
-        (unsigned char*)output.c_buffer(), &olen,
+        (unsigned char*)output.c_buffer(), olen, &olen,
         mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
@@ -893,10 +895,10 @@ result_t PKey::sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>& ret
     int32_t ret;
     exlib::string str;
     exlib::string output;
-    size_t olen;
+    size_t olen = MBEDTLS_ECDSA_MAX_LEN;
 
     data->toString(str);
-    output.resize(MBEDTLS_PREMASTER_SIZE);
+    output.resize(MBEDTLS_ECDSA_MAX_LEN);
 
     ret = ecsdsa_sign(mbedtls_pk_ec(m_key), m_sdsa, key ? mbedtls_pk_ec(to_key->m_key) : NULL,
         (const unsigned char*)str.c_str(), str.length(), (unsigned char*)output.c_buffer(), &olen,
@@ -980,7 +982,8 @@ result_t PKey::verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, bool
     sign->toString(strsign);
 
     ret = ecsdsa_verify(mbedtls_pk_ec(m_key), m_sdsa, key ? mbedtls_pk_ec(to_key->m_key) : NULL,
-        (const unsigned char*)str.c_str(), str.length(), (const unsigned char*)strsign.c_str(), strsign.length());
+        (const unsigned char*)str.c_str(), str.length(), (const unsigned char*)strsign.c_str(), strsign.length(),
+        mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret == MBEDTLS_ERR_ECP_VERIFY_FAILED || ret == MBEDTLS_ERR_RSA_VERIFY_FAILED || ret == MBEDTLS_ERR_SM2_BAD_SIGNATURE) {
         retVal = false;
         return 0;

@@ -7,54 +7,44 @@
  */
 declare module 'hash' {
     /**
-     * @description MD2 信息摘要算法标识常量 
-     */
-    export const MD2: 1;
-
-    /**
-     * @description MD4 信息摘要算法标识常量 
-     */
-    export const MD4: 2;
-
-    /**
      * @description MD5 信息摘要算法标识常量 
      */
-    export const MD5: 3;
+    export const MD5: 1;
 
     /**
      * @description SHA1 信息摘要算法标识常量 
      */
-    export const SHA1: 4;
+    export const SHA1: 2;
 
     /**
      * @description SHA224 信息摘要算法标识常量 
      */
-    export const SHA224: 5;
+    export const SHA224: 3;
 
     /**
      * @description SHA256 信息摘要算法标识常量 
      */
-    export const SHA256: 6;
+    export const SHA256: 4;
 
     /**
      * @description SHA384 信息摘要算法标识常量 
      */
-    export const SHA384: 7;
+    export const SHA384: 5;
 
     /**
      * @description SHA512 信息摘要算法标识常量 
      */
-    export const SHA512: 8;
+    export const SHA512: 6;
 
     /**
      * @description RIPEMD160 信息摘要算法标识常量 
      */
-    export const RIPEMD160: 9;
+    export const RIPEMD160: 7;
 
     /**
      * @description SM3 信息摘要算法标识常量 
      */
-    export const SM3: 10;
+    export const SM3: 8;
 
     /**
      * @description 根据指定的算法标识创建一个信息摘要运算对象
@@ -64,22 +54,6 @@ declare module 'hash' {
      *      
      */
     function digest(algo: number, data?: Class_Buffer): Class_Digest;
-
-    /**
-     * @description 创建一个 MD2 信息摘要运算对象
-     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
-     *      @return 返回构造的信息摘要对象
-     *      
-     */
-    function md2(data?: Class_Buffer): Class_Digest;
-
-    /**
-     * @description 创建一个 MD4 信息摘要运算对象
-     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
-     *      @return 返回构造的信息摘要对象
-     *      
-     */
-    function md4(data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 MD5 信息摘要运算对象
@@ -164,24 +138,6 @@ declare module 'hash' {
      *      
      */
     function hmac(algo: number, key: Class_Buffer, data?: Class_Buffer): Class_Digest;
-
-    /**
-     * @description 创建一个 MD2 信息摘要签名运算对象
-     *      @param key 二进制签名密钥
-     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
-     *      @return 返回构造的信息摘要对象
-     *      
-     */
-    function hmac_md2(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
-
-    /**
-     * @description 创建一个 MD4 信息摘要签名运算对象
-     *      @param key 二进制签名密钥
-     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
-     *      @return 返回构造的信息摘要对象
-     *      
-     */
-    function hmac_md4(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 MD5 信息摘要签名运算对象

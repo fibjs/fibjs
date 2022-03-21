@@ -5,6 +5,8 @@
  *      Author: lion
  */
 
+#define MBEDTLS_ALLOW_PRIVATE_ACCESS
+
 #include "object.h"
 #include "ifs/hash.h"
 #include "Digest.h"
@@ -67,7 +69,7 @@ result_t prepare_data(PKey_base* pubKey, exlib::string id, obj_ptr<Buffer_base>&
     p += key_size;
 
     unsigned char output[32];
-    mbedtls_sm3_ret((const unsigned char*)pdata.c_str(), len, output);
+    mbedtls_sm3((const unsigned char*)pdata.c_str(), len, output);
 
     retVal = new Buffer(output, 32);
 

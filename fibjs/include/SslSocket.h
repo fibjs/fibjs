@@ -7,12 +7,14 @@
 
 #pragma once
 
+#define MBEDTLS_ALLOW_PRIVATE_ACCESS
+
 #include "ssl.h"
 #include "ifs/SslSocket.h"
 #include "Buffer.h"
 #include "Cipher.h"
 #include "ssl.h"
-#include <mbedtls/mbedtls/net.h>
+#include <mbedtls/mbedtls/net_sockets.h>
 #include "PKey.h"
 #include "Routing.h"
 

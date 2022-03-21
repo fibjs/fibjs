@@ -22,49 +22,34 @@ declare module 'crypto' {
     export const AES: 1;
 
     /**
-     * @description 指定对称加密算法 CAMELLIA，支持 128, 192, 256 位 key，分组密码工作模式支持 ECB, CBC, CFB128, CTR, GCM，CCM 
-     */
-    export const CAMELLIA: 2;
-
-    /**
      * @description 指定对称加密算法 DES，支持 64 位 key，分组密码工作模式支持 ECB, CBC 
      */
-    export const DES: 3;
-
-    /**
-     * @description 指定对称加密算法 DES-EDE，支持 128 位 key，分组密码工作模式支持 ECB, CBC 
-     */
-    export const DES_EDE: 4;
+    export const DES: 2;
 
     /**
      * @description 指定对称加密算法 DES-EDE3，支持 192 位 key，分组密码工作模式支持 ECB, CBC 
      */
-    export const DES_EDE3: 5;
+    export const DES_EDE3: 3;
 
     /**
-     * @description 指定对称加密算法 BLOWFISH，支持 192 位 key，分组密码工作模式支持 ECB, CBC, CFB64, CTR 
+     * @description 指定对称加密算法 CAMELLIA，支持 128, 192, 256 位 key，分组密码工作模式支持 ECB, CBC, CFB128, CTR, GCM，CCM 
      */
-    export const BLOWFISH: 6;
-
-    /**
-     * @description 指定对称加密算法 ARC4，支持 40, 56, 64, 128 位 key 
-     */
-    export const ARC4: 7;
+    export const CAMELLIA: 4;
 
     /**
      * @description 指定对称加密算法 ARIA，支持 128, 192, 256 位 key，分组密码工作模式支持 ECB, CBC, CFB128, CTR, GCM，CCM 
      */
-    export const ARIA: 8;
+    export const ARIA: 5;
 
     /**
      * @description 指定对称加密算法 CHACHA20，支持 256 位 key，分组密码工作模式支持 POLY1305 
      */
-    export const CHACHA20: 9;
+    export const CHACHA20: 6;
 
     /**
      * @description 指定对称加密算法 SM4, 分组密码工作模式支持 ECB, CBC 
      */
-    export const SM4: 10;
+    export const SM4: 7;
 
     /**
      * @description 指定分组密码工作模式支持 ECB 
