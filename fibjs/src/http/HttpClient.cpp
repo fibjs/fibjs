@@ -11,6 +11,7 @@
 #include "HttpRequest.h"
 #include "SslSocket.h"
 #include "BufferedStream.h"
+#include "inetAddr.h"
 #include "ifs/net.h"
 #include "ifs/zlib.h"
 #include "ifs/json.h"
@@ -138,37 +139,21 @@ result_t HttpClient::set_proxyAgent(exlib::string newVal)
 {
     if (newVal.empty()) {
         m_proxyAgent.clear();
-        m_proxyConnUrl.clear();
-        m_proxyAgentUrl.Release();
     } else {
         obj_ptr<Url> u = new Url();
         result_t hr;
-        exlib::string connUrl;
-        bool ssl = false;
 
         hr = u->parse(newVal);
         if (hr < 0)
             return hr;
 
-        if (u->m_protocol == "https:") {
-            ssl = true;
-            connUrl = "ssl://";
-        } else if (u->m_protocol == "http:")
-            connUrl = "tcp://";
-        else
+        if (u->m_protocol != "https:" && u->m_protocol != "http:" && u->m_protocol != "socks5:")
             return CHECK_ERROR(Runtime::setError("HttpClient: unknown protocol"));
 
         if (u->m_host.empty())
             return CHECK_ERROR(Runtime::setError("HttpClient: unknown host"));
 
-        connUrl.append(u->m_host);
-
-        if (u->m_port.empty())
-            connUrl.append(ssl ? ":443" : ":80");
-
         m_proxyAgent = newVal;
-        m_proxyConnUrl = connUrl;
-        m_proxyAgentUrl = u;
     }
 
     date_t d;
@@ -494,7 +479,6 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
         ON_STATE(asyncRequest, prepare)
         {
             result_t hr;
-            bool ssl = false;
             bool _domain = false;
 
             m_urls[m_url] = true;
@@ -507,8 +491,9 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             if (hr < 0)
                 return hr;
 
+            m_ssl = false;
             if (u->m_protocol == "https:") {
-                ssl = true;
+                m_ssl = true;
                 m_connUrl = "ssl://";
             } else if (u->m_protocol == "http:") {
                 if (u->m_host[0] == '/') {
@@ -525,13 +510,13 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             m_connUrl.append(u->m_host);
 
             if (!_domain && u->m_port.empty())
-                m_connUrl.append(ssl ? ":443" : ":80");
+                m_connUrl.append(m_ssl ? ":443" : ":80");
 
             m_req = new HttpRequest();
 
             m_req->set_method(m_method);
 
-            if (m_hc->m_proxyConnUrl.empty() || ssl) {
+            if (m_hc->m_proxyAgent.empty() || m_ssl) {
                 u->get_path(path);
                 m_req->set_address(path);
             } else
@@ -569,7 +554,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             if (m_body)
                 m_req->set_body(m_body);
 
-            if (ssl)
+            if (m_ssl)
                 m_sslhost = u->m_hostname;
             else
                 m_sslhost.clear();
@@ -580,14 +565,16 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
                 return next(connected);
             }
 
-            if (m_hc->m_proxyConnUrl.empty()) {
-                if (ssl && m_hc->m_crt && m_hc->m_key)
+            if (m_hc->m_proxyAgent.empty()) {
+                if (m_ssl && m_hc->m_crt && m_hc->m_key)
                     return ssl_base::connect(m_connUrl, m_hc->m_crt, m_hc->m_key, m_hc->m_timeout,
                         m_conn, next(connected));
                 else
                     return net_base::connect(m_connUrl, m_hc->m_timeout, m_conn, next(connected));
             } else {
-                if (ssl) {
+                bool socks = m_hc->m_proxyAgent[0] == 's';
+
+                if (m_ssl && !socks) {
                     exlib::string host = m_connUrl.substr(6);
                     m_reqConn = new HttpRequest();
 
@@ -600,14 +587,106 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
                         m_reqConn->addHeader("User-Agent", a);
                 }
 
-                if (m_hc->get_conn(m_hc->m_proxyConnUrl, m_conn)) {
+                if (m_hc->get_conn(m_hc->m_proxyAgent, m_conn)) {
                     m_reuse = true;
-                    return next(ssl ? ssl_connect : connected);
+                    return next(m_ssl ? ssl_connect : connected);
                 }
 
-                return net_base::connect(m_hc->m_proxyConnUrl,
-                    m_hc->m_timeout, m_conn, next(ssl ? ssl_connect : connected));
+                obj_ptr<Url> u = new Url();
+                exlib::string connUrl;
+                const char* def_port;
+
+                u->parse(m_hc->m_proxyAgent);
+
+                if (u->m_protocol == "https:") {
+                    connUrl = "ssl://";
+                    def_port = "443";
+                } else if (u->m_protocol == "http:") {
+                    connUrl = "tcp://";
+                    def_port = "80";
+                } else if (u->m_protocol == "socks5:") {
+                    connUrl = "tcp://";
+                    def_port = "1080";
+                }
+
+                connUrl.append(u->m_host);
+
+                if (u->m_port.empty())
+                    connUrl.append(def_port);
+
+                return net_base::connect(connUrl, m_hc->m_timeout, m_conn,
+                    next(socks
+                            ? socks_hello
+                            : m_ssl
+                            ? ssl_connect
+                            : connected));
             }
+        }
+
+        ON_STATE(asyncRequest, socks_hello)
+        {
+            obj_ptr<Buffer_base> buf = new Buffer("\5\1\0", 3);
+            return m_conn->write(buf, next(socks_hello_response));
+        }
+
+        ON_STATE(asyncRequest, socks_hello_response)
+        {
+            return m_conn->read(2, m_buffer, next(socks_connect));
+        }
+
+        ON_STATE(asyncRequest, socks_connect)
+        {
+            if (n == CALL_RETURN_NULL)
+                return CHECK_ERROR(Runtime::setError("HttpClient: connection reset by socks 5 server."));
+
+            exlib::string strBuffer;
+
+            m_buffer->toString(strBuffer);
+            if (strBuffer.length() != 2 || strBuffer[0] != 5 || strBuffer[1] != 0)
+                return CHECK_ERROR(Runtime::setError("HttpClient: socks 5 handshake failed."));
+
+            obj_ptr<Url> u = new Url();
+            u->parse(m_connUrl);
+
+            sockaddr_in dst;
+            sockaddr_in6 dst6;
+
+            if (!uv_ip4_addr(u->m_hostname.c_str(), 0, &dst)) {
+                strBuffer.assign("\1\1\0\1", 4);
+                strBuffer.append((char*)&dst.sin_addr, 4);
+            } else if (!uv_ip6_addr(u->m_hostname.c_str(), 0, &dst6)) {
+                strBuffer.assign("\1\1\0\4", 4);
+                strBuffer.append((char*)&dst6.sin6_addr, 16);
+            } else {
+                strBuffer.assign("\1\1\0\3", 4);
+                strBuffer.append(1, u->m_hostname.length());
+                strBuffer.append(u->m_hostname);
+            }
+
+            int16_t port = htons(atoi(u->m_port.c_str()));
+            strBuffer.append((char*)&port, 2);
+
+            obj_ptr<Buffer_base> buf = new Buffer(strBuffer);
+            return m_conn->write(buf, next(socks_connect_response));
+        }
+
+        ON_STATE(asyncRequest, socks_connect_response)
+        {
+            return m_conn->read(10, m_buffer, next(socks_connected));
+        }
+
+        ON_STATE(asyncRequest, socks_connected)
+        {
+            if (n == CALL_RETURN_NULL)
+                return CHECK_ERROR(Runtime::setError("HttpClient: connection reset by socks 5 server."));
+
+            exlib::string strBuffer;
+
+            m_buffer->toString(strBuffer);
+            if (strBuffer.length() != 10 || strBuffer[0] != 5 || strBuffer[1] != 0)
+                return CHECK_ERROR(Runtime::setError("HttpClient: socks 5 connect failed."));
+
+            return next(m_ssl ? ssl_handshake : connected);
         }
 
         ON_STATE(asyncRequest, ssl_connect)
@@ -615,7 +694,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             return m_hc->request(m_conn, m_reqConn, m_retVal, next(ssl_handshake));
         }
 
-        ON_STATE(asyncRequest, ssl_handshake)
+        ON_STATE(asyncRequest, ssl_connected)
         {
             int32_t status;
             result_t hr;
@@ -634,8 +713,14 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             m_reqConn.Release();
             m_retVal.Release();
 
+            return next(ssl_handshake);
+        }
+
+        ON_STATE(asyncRequest, ssl_handshake)
+        {
             obj_ptr<SslSocket> ss = new SslSocket();
             int32_t sslVerfication;
+
             m_hc->get_sslVerification(sslVerfication);
             if (sslVerfication == 0)
                 ssl_base::get_verification(sslVerfication);
@@ -679,10 +764,10 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             bool keepalive;
             m_retVal->get_keepAlive(keepalive);
             if (keepalive) {
-                if (m_hc->m_proxyConnUrl.empty() || !m_sslhost.empty())
+                if (m_hc->m_proxyAgent.empty() || m_hc->m_proxyAgent[0] == 's' || !m_sslhost.empty())
                     m_hc->save_conn(m_connUrl, m_conn);
                 else
-                    m_hc->save_conn(m_hc->m_proxyConnUrl, m_conn);
+                    m_hc->save_conn(m_hc->m_proxyAgent, m_conn);
 
                 return next(closed);
             }
@@ -740,6 +825,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
         exlib::string m_method;
         exlib::string m_url;
         exlib::string m_sslhost;
+        bool m_ssl;
         obj_ptr<SeekableStream_base> m_body;
         obj_ptr<SeekableStream_base> m_response_body;
         int64_t m_response_pos;
@@ -751,6 +837,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
         obj_ptr<HttpRequest> m_reqConn;
         exlib::string m_connUrl;
         obj_ptr<HttpClient> m_hc;
+        obj_ptr<Buffer_base> m_buffer;
         int32_t m_temp;
         bool m_reuse;
     };

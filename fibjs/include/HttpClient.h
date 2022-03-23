@@ -141,7 +141,6 @@ private:
     int32_t m_sslVerification;
     int32_t m_maxBodySize;
     exlib::string m_userAgent;
-    exlib::string m_proxyConnUrl;
     obj_ptr<X509Cert_base> m_crt;
     obj_ptr<PKey_base> m_key;
 
@@ -157,6 +156,5 @@ private:
     int32_t m_poolSize;
     int32_t m_poolTimeout;
     exlib::string m_proxyAgent;
-    obj_ptr<Url> m_proxyAgentUrl;
 };
 } /* namespace fibjs */
