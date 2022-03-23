@@ -22,7 +22,7 @@ const {
 var base_port = coroutine.vmid * 10000;
 
 var pk = new crypto.PKey();
-pk.genRsaKey(1024);
+pk.genEcKey();
 
 var crt = new crypto.X509Req("CN=localhost", pk).sign("CN=baoz.me", pk);
 var ca = new crypto.X509Req("CN=baoz.me", pk).sign("CN=baoz.me", pk, {
