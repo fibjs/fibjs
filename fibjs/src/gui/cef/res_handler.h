@@ -27,12 +27,12 @@ public:
 public:
     // CefResourceHandler
     virtual bool ProcessRequest(CefRefPtr<CefRequest> request,
-        CefRefPtr<CefCallback> callback) OVERRIDE;
+        CefRefPtr<CefCallback> callback) override;
     virtual void GetResponseHeaders(CefRefPtr<CefResponse> response,
-        int64& response_length, CefString& redirectUrl) OVERRIDE;
-    virtual void Cancel() OVERRIDE;
+        int64& response_length, CefString& redirectUrl) override;
+    virtual void Cancel() override;
     virtual bool ReadResponse(void* data_out, int bytes_to_read,
-        int& bytes_read, CefRefPtr<CefCallback> callback) OVERRIDE;
+        int& bytes_read, CefRefPtr<CefCallback> callback) override;
 
 private:
     obj_ptr<Handler_base> m_handler;
@@ -48,7 +48,7 @@ class GuiSchemeHandlerFactory : public CefSchemeHandlerFactory {
 public:
     virtual CefRefPtr<CefResourceHandler> Create(CefRefPtr<CefBrowser> browser,
         CefRefPtr<CefFrame> frame, const CefString& scheme_name,
-        CefRefPtr<CefRequest> request) OVERRIDE;
+        CefRefPtr<CefRequest> request) override;
 
     void RegisterScheme(exlib::string schame);
 

@@ -35,15 +35,14 @@ public:
 
 public:
     // CefApp
-    virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler()
-        OVERRIDE
+    virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override
     {
         return this;
     }
 
 public:
     // CefBrowserProcessHandler
-    virtual void OnContextInitialized() OVERRIDE
+    virtual void OnContextInitialized() override
     {
         for (auto const& it : m_schemes)
             it.second->RegisterScheme(it.first);
@@ -51,7 +50,7 @@ public:
         m_gui_ready.set();
     }
 
-    virtual void OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> registrar) OVERRIDE
+    virtual void OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> registrar) override
     {
         for (auto const& it : m_schemes)
             if (it.first != "http" && it.first != "https")
@@ -70,7 +69,7 @@ public:
     }
 
     virtual void OnBeforeCommandLineProcessing(const CefString& process_type,
-        CefRefPtr<CefCommandLine> command_line) OVERRIDE
+        CefRefPtr<CefCommandLine> command_line) override
     {
         config_opt(command_line, "headless", m_bHeadless);
 
@@ -79,8 +78,7 @@ public:
 #endif
     }
 
-    virtual void OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line)
-        OVERRIDE
+    virtual void OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line) override
     {
         command_line->AppendSwitchWithValue("cef_path", m_cef_path.c_str());
     }

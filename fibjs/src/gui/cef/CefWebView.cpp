@@ -28,7 +28,7 @@ public:
     {
     }
 
-    void OnWindowCreated(CefRefPtr<CefWindow> window) OVERRIDE
+    void OnWindowCreated(CefRefPtr<CefWindow> window) override
     {
         window->AddChildView(browser_view_);
 
@@ -42,13 +42,13 @@ public:
         browser_view_->RequestFocus();
     }
 
-    void OnWindowDestroyed(CefRefPtr<CefWindow> window) OVERRIDE
+    void OnWindowDestroyed(CefRefPtr<CefWindow> window) override
     {
         browser_view_ = nullptr;
         m_webview.Release();
     }
 
-    bool CanClose(CefRefPtr<CefWindow> window) OVERRIDE
+    bool CanClose(CefRefPtr<CefWindow> window) override
     {
         CefRefPtr<CefBrowser> browser = browser_view_->GetBrowser();
         if (browser)
@@ -56,7 +56,7 @@ public:
         return true;
     }
 
-    CefSize GetPreferredSize(CefRefPtr<CefView> view) OVERRIDE
+    CefSize GetPreferredSize(CefRefPtr<CefView> view) override
     {
         return CefSize(800, 600);
     }
@@ -71,7 +71,7 @@ private:
 class GuiBrowserViewDelegate : public CefBrowserViewDelegate {
 public:
     bool OnPopupBrowserViewCreated(CefRefPtr<CefBrowserView> browser_view,
-        CefRefPtr<CefBrowserView> popup_browser_view, bool is_devtools) OVERRIDE
+        CefRefPtr<CefBrowserView> popup_browser_view, bool is_devtools) override
     {
         CefWindow::CreateTopLevelWindow(new GuiWindowDelegate(popup_browser_view));
         return true;
@@ -190,10 +190,10 @@ void CefWebView::open()
 
 void CefWebView::clear()
 {
-    m_browser = NULL;
+    m_browser = nullptr;
     m_domain.clear();
     m_holder.Release();
-    m_reg = NULL;
+    m_reg = nullptr;
 }
 
 #ifndef Darwin

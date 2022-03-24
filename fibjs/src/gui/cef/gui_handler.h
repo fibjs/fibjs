@@ -23,37 +23,37 @@ class GuiHandler : public CefClient,
                    public CefRenderHandler,
                    public CefPrintHandler {
 public:
-    virtual CefRefPtr<CefContextMenuHandler> GetContextMenuHandler() OVERRIDE
+    virtual CefRefPtr<CefContextMenuHandler> GetContextMenuHandler() override
     {
         return this;
     }
 
-    virtual CefRefPtr<CefDisplayHandler> GetDisplayHandler() OVERRIDE
+    virtual CefRefPtr<CefDisplayHandler> GetDisplayHandler() override
     {
         return this;
     }
 
-    virtual CefRefPtr<CefDownloadHandler> GetDownloadHandler() OVERRIDE
+    virtual CefRefPtr<CefDownloadHandler> GetDownloadHandler() override
     {
         return this;
     }
 
-    virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() OVERRIDE
+    virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override
     {
         return this;
     }
 
-    virtual CefRefPtr<CefLoadHandler> GetLoadHandler() OVERRIDE
+    virtual CefRefPtr<CefLoadHandler> GetLoadHandler() override
     {
         return this;
     }
 
-    virtual CefRefPtr<CefRenderHandler> GetRenderHandler() OVERRIDE
+    virtual CefRefPtr<CefRenderHandler> GetRenderHandler() override
     {
         return this;
     }
 
-    virtual CefRefPtr<CefPrintHandler> GetPrintHandler() OVERRIDE
+    virtual CefRefPtr<CefPrintHandler> GetPrintHandler() override
     {
         return this;
     }
@@ -62,78 +62,78 @@ public:
     // CefContextMenuHandler
     virtual bool RunContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
         CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model,
-        CefRefPtr<CefRunContextMenuCallback> callback) OVERRIDE;
+        CefRefPtr<CefRunContextMenuCallback> callback) override;
 
 public:
     // CefLifeSpanHandler
     virtual bool OnBeforePopup(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
         const CefString& target_url, const CefString& target_frame_name, WindowOpenDisposition target_disposition,
         bool user_gesture, const CefPopupFeatures& popupFeatures, CefWindowInfo& windowInfo, CefRefPtr<CefClient>& client,
-        CefBrowserSettings& settings, CefRefPtr<CefDictionaryValue>& extra_info, bool* no_javascript_access) OVERRIDE;
-    virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) OVERRIDE;
-    virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
+        CefBrowserSettings& settings, CefRefPtr<CefDictionaryValue>& extra_info, bool* no_javascript_access) override;
+    virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) override;
+    virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) override;
 
 public:
     // CefDisplayHandler
     virtual void OnAddressChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
-        const CefString& url) OVERRIDE;
-    virtual void OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString& title) OVERRIDE;
+        const CefString& url) override;
+    virtual void OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString& title) override;
     virtual bool OnConsoleMessage(CefRefPtr<CefBrowser> browser, cef_log_severity_t level,
-        const CefString& message, const CefString& source, int line) OVERRIDE;
+        const CefString& message, const CefString& source, int line) override;
 
 public:
     // CefDownloadHandler
     virtual void OnBeforeDownload(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDownloadItem> download_item,
-        const CefString& suggested_name, CefRefPtr<CefBeforeDownloadCallback> callback) OVERRIDE;
+        const CefString& suggested_name, CefRefPtr<CefBeforeDownloadCallback> callback) override;
     virtual void OnDownloadUpdated(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDownloadItem> download_item,
-        CefRefPtr<CefDownloadItemCallback> callback) OVERRIDE;
+        CefRefPtr<CefDownloadItemCallback> callback) override;
 
 public:
     // CefLoadHandler
     virtual void OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
-        ErrorCode errorCode, const CefString& errorText, const CefString& failedUrl) OVERRIDE;
+        ErrorCode errorCode, const CefString& errorText, const CefString& failedUrl) override;
     virtual void OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
-        int httpStatusCode) OVERRIDE;
+        int httpStatusCode) override;
 
 public:
     // CefRenderHandler
-    virtual void GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) OVERRIDE;
+    virtual void GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) override;
     virtual void OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type,
         const CefRenderHandler::RectList& dirtyRects, const void* buffer, int width,
-        int height) OVERRIDE;
+        int height) override;
 
 public:
     // CefPrintHandler
-    virtual void OnPrintStart(CefRefPtr<CefBrowser> browser) OVERRIDE
+    virtual void OnPrintStart(CefRefPtr<CefBrowser> browser) override
     {
     }
 
     virtual void OnPrintSettings(CefRefPtr<CefBrowser> browser,
         CefRefPtr<CefPrintSettings> settings, bool get_defaults)
-        OVERRIDE
+        override
     {
     }
 
     virtual bool OnPrintDialog(CefRefPtr<CefBrowser> browser,
         bool has_selection, CefRefPtr<CefPrintDialogCallback> callback)
-        OVERRIDE
+        override
     {
         return false;
     }
 
     virtual bool OnPrintJob(CefRefPtr<CefBrowser> browser, const CefString& document_name,
         const CefString& pdf_file_path, CefRefPtr<CefPrintJobCallback> callback)
-        OVERRIDE
+        override
     {
         return false;
     }
 
-    virtual void OnPrintReset(CefRefPtr<CefBrowser> browser) OVERRIDE
+    virtual void OnPrintReset(CefRefPtr<CefBrowser> browser) override
     {
     }
 
     virtual CefSize GetPdfPaperSize(CefRefPtr<CefBrowser> browser,
-        int device_units_per_inch) OVERRIDE
+        int device_units_per_inch) override
     {
         return CefSize((int32_t)(8.27 * device_units_per_inch),
             (int32_t)(11.75 * device_units_per_inch));

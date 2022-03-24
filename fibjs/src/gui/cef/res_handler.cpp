@@ -262,7 +262,7 @@ CefRefPtr<CefResourceHandler> GuiSchemeHandlerFactory::Create(CefRefPtr<CefBrows
     std::map<exlib::string, obj_ptr<Handler_base>>::iterator it;
     it = m_domains.find(u.m_hostname);
     if (it == m_domains.end())
-        return NULL;
+        return nullptr;
 
     return new GuiResourceHandler(it->second);
 }

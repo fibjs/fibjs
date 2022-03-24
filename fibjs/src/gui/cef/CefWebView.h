@@ -65,21 +65,21 @@ public:
     EVENT_FUNC(download);
 
 public:
-    void AddRef() const OVERRIDE
+    void AddRef() const override
     {
     }
 
-    bool Release() const OVERRIDE
-    {
-        return false;
-    }
-
-    bool HasOneRef() const OVERRIDE
+    bool Release() const override
     {
         return false;
     }
 
-    bool HasAtLeastOneRef() const OVERRIDE
+    bool HasOneRef() const override
+    {
+        return false;
+    }
+
+    bool HasAtLeastOneRef() const override
     {
         return true;
     }
