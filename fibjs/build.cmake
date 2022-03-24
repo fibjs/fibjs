@@ -9,5 +9,6 @@ if(NOT "${CLEAN_BUILD}" STREQUAL "true")
     endif()
 
     set(OUT_PATH "${WORK_ROOT}/out/${CMAKE_HOST_SYSTEM_NAME}_${BUILD_ARCH}_${BUILD_TYPE}")
-    build("${CMAKE_CURRENT_SOURCE_DIR}" "${OUT_PATH}/fibjs")
+    set(BIN_PATH "${WORK_ROOT}/bin/${CMAKE_HOST_SYSTEM_NAME}_${BUILD_ARCH}_${BUILD_TYPE}")
+    build("${CMAKE_CURRENT_SOURCE_DIR}" "${OUT_PATH}/fibjs" ${BIN_PATH})
 endif()

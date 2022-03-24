@@ -11,8 +11,6 @@ if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin" AND ${ARCH} STREQUAL "i386")
 	add_definitions(-DFIBJS_DISABLE_GUI)
 endif()
 
-set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/../../../bin/${CMAKE_HOST_SYSTEM_NAME}_${ARCH}_${BUILD_TYPE})
-
 include_directories("${PROJECT_SOURCE_DIR}/include"
 	"${PROJECT_SOURCE_DIR}/../vender"
 	"${PROJECT_SOURCE_DIR}/../vender/v8"
