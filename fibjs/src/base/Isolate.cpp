@@ -17,12 +17,33 @@
 #include "SandBox.h"
 #include "TTYStream.h"
 #include "EventEmitter.h"
+#include "v8/include/libplatform/libplatform.h"
+#include "v8/src/execution/isolate.h"
+#include "v8/src/execution/microtask-queue.h"
+
+using namespace v8;
 
 namespace fibjs {
+
+static std::unique_ptr<v8::Platform> g_default_platform;
+
+void Isolate::init_default_platform(platform_creator get_platform)
+{
+    g_default_platform = get_platform ? get_platform() : v8::platform::NewDefaultPlatform();
+    v8::V8::InitializePlatform(g_default_platform.get());
+    v8::V8::Initialize();
+}
 
 exlib::LockedList<Isolate> s_isolates;
 exlib::atomic s_iso_id;
 exlib::atomic s_iso_ref;
+
+void Isolate::RunMicrotasks()
+{
+    i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(m_isolate);
+    while (i_isolate->default_microtask_queue()->RunMicrotasks(i_isolate))
+        ;
+}
 
 Isolate::SnapshotJsScope::SnapshotJsScope(Isolate* cur)
     : m_isolate((cur ? cur : Isolate::current()))
@@ -33,7 +54,7 @@ Isolate::SnapshotJsScope::SnapshotJsScope(Isolate* cur)
     fb->m_c_entry_fp_ = _fi.entry_fp;
     fb->m_handler_ = _fi.handle;
 
-    m_isolate->m_isolate->RunMicrotasks();
+    m_isolate->RunMicrotasks();
 }
 
 Isolate::SnapshotJsScope::~SnapshotJsScope()

@@ -238,7 +238,7 @@ JSFiber::EnterJsScope::EnterJsScope(JSFiber* fb)
 
 JSFiber::EnterJsScope::~EnterJsScope()
 {
-    m_pFiber->holder()->m_isolate->RunMicrotasks();
+    m_pFiber->holder()->RunMicrotasks();
 
     m_pFiber->m_message = ReportException(try_catch, m_hr);
 

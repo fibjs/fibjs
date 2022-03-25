@@ -57,6 +57,7 @@ public:
     void init();
 
     void RequestInterrupt(v8::InterruptCallback callback, void* data);
+    void RunMicrotasks();
 
     v8::Local<v8::String> NewString(const char* data, int length = -1)
     {
@@ -122,6 +123,9 @@ public:
     }
 
     void start_profiler();
+
+    typedef std::unique_ptr<v8::Platform> (*platform_creator)();
+    static void init_default_platform(platform_creator get_platform);
 
     void Ref();
     void Unref(int32_t hr = 0);
