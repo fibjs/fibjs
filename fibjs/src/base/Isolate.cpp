@@ -18,8 +18,6 @@
 #include "TTYStream.h"
 #include "EventEmitter.h"
 #include "v8/include/libplatform/libplatform.h"
-#include "v8/src/execution/isolate.h"
-#include "v8/src/execution/microtask-queue.h"
 
 using namespace v8;
 
@@ -40,9 +38,7 @@ exlib::atomic s_iso_ref;
 
 void Isolate::RunMicrotasks()
 {
-    i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(m_isolate);
-    while (i_isolate->default_microtask_queue()->RunMicrotasks(i_isolate))
-        ;
+    m_isolate->RunMicrotasks();
 }
 
 Isolate::SnapshotJsScope::SnapshotJsScope(Isolate* cur)
