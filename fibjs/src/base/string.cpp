@@ -81,11 +81,8 @@ private:
     exlib::string m_buffer;
 };
 
-inline bool is_safe_string(exlib::string& str)
+inline bool is_safe_string(const char* s, size_t len)
 {
-    const char* s = str.c_str();
-    size_t len = str.length();
-
     const uint64_t* w = (const uint64_t*)s;
     size_t lenw = len / sizeof(uint64_t);
 
@@ -100,26 +97,28 @@ inline bool is_safe_string(exlib::string& str)
     return true;
 }
 
+#define SMALL_STRING 64
+
 v8::Local<v8::String> NewString(v8::Isolate* isolate, exlib::string str)
 {
-    ssize_t length = str.length();
+    size_t length = str.length();
 
     if (length > INT_MAX) {
         ThrowResult(CALL_E_OVERFLOW);
         return v8::Local<v8::String>();
     }
 
-    v8::MaybeLocal<v8::String> mstr;
-    if (is_safe_string(str))
-        mstr = v8::String::NewExternalOneByte(isolate, new ExtString(isolate, str));
+    if (length < SMALL_STRING)
+        return NewString(isolate, str.c_str(), length);
+
+    v8::Local<v8::String> v;
+
+    if (is_safe_string(str.c_str(), length))
+        v8::String::NewExternalOneByte(isolate, new ExtString(isolate, str)).ToLocal(&v);
     else
-        mstr = v8::String::NewExternalTwoByte(isolate, new ExtStringW(isolate, utf8to16String(str)));
+        v8::String::NewExternalTwoByte(isolate, new ExtStringW(isolate, utf8to16String(str))).ToLocal(&v);
 
-    if (mstr.IsEmpty()) {
-        return v8::Local<v8::String>();
-    }
-
-    return mstr.ToLocalChecked();
+    return v;
 }
 
 v8::Local<v8::String> NewString(v8::Isolate* isolate, const char* data, ssize_t length)
@@ -127,7 +126,22 @@ v8::Local<v8::String> NewString(v8::Isolate* isolate, const char* data, ssize_t 
     if (length == -1)
         length = (ssize_t)qstrlen(data);
 
-    return NewString(isolate, exlib::string(data, length));
+    if (length > INT_MAX) {
+        ThrowResult(CALL_E_OVERFLOW);
+        return v8::Local<v8::String>();
+    }
+
+    if (length >= SMALL_STRING)
+        return NewString(isolate, exlib::string(data, length));
+
+    v8::Local<v8::String> v;
+
+    if (is_safe_string(data, length))
+        v8::String::NewFromOneByte(isolate, (const uint8_t*)data, v8::NewStringType::kNormal, length).ToLocal(&v);
+    else
+        v8::String::NewExternalTwoByte(isolate, new ExtStringW(isolate, utf8to16String(data, length))).ToLocal(&v);
+
+    return v;
 }
 
 exlib::string ToString(v8::Isolate* isolate, v8::Local<v8::String> str)
