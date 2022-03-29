@@ -11,18 +11,22 @@
 
 namespace fibjs {
 
+exlib::atomic g_ExtStringCount;
+
 class ExtStringW : public v8::String::ExternalStringResource {
 public:
     ExtStringW(v8::Isolate* _isolate, exlib::wstring _buffer)
         : m_isolate(_isolate)
         , m_buffer(_buffer)
     {
+        g_ExtStringCount.inc();
         m_isolate->AdjustAmountOfExternalAllocatedMemory(m_buffer.length() * 2);
     }
 
     ~ExtStringW()
     {
         m_isolate->AdjustAmountOfExternalAllocatedMemory(-(int64_t)m_buffer.length() * 2);
+        g_ExtStringCount.dec();
     }
 
 public:
@@ -52,12 +56,14 @@ public:
         : m_isolate(_isolate)
         , m_buffer(_buffer)
     {
+        g_ExtStringCount.inc();
         m_isolate->AdjustAmountOfExternalAllocatedMemory(m_buffer.length());
     }
 
     ~ExtString()
     {
         m_isolate->AdjustAmountOfExternalAllocatedMemory(-(int64_t)m_buffer.length());
+        g_ExtStringCount.dec();
     }
 
 public:
@@ -97,7 +103,7 @@ inline bool is_safe_string(const char* s, size_t len)
     return true;
 }
 
-#define SMALL_STRING 64
+#define SMALL_STRING 1024
 
 v8::Local<v8::String> NewString(v8::Isolate* isolate, exlib::string str)
 {

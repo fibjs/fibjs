@@ -346,6 +346,8 @@ result_t process_base::cpuUsage(v8::Local<v8::Object> previousValue, v8::Local<v
     return 0;
 }
 
+extern exlib::atomic g_ExtStringCount;
+
 result_t process_base::memoryUsage(v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
@@ -372,6 +374,8 @@ result_t process_base::memoryUsage(v8::Local<v8::Object>& retVal)
     v8::Local<v8::Object> objs;
     object_base::class_info().dump(objs);
     info->Set(context, isolate->NewString("nativeObjects"), objs);
+    info->Set(context, isolate->NewString("ExtStrings"),
+        v8::Number::New(isolate->m_isolate, (double)g_ExtStringCount.value()));
 
     retVal = info;
 
