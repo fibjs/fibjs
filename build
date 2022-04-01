@@ -11,6 +11,7 @@ inform()
 	exit 1
 }
 
+TIME_BEGIN=$(date +%s)
 export WORK_ROOT=`pwd`
 
 SOURCE_ROOT="`dirname \"$0\"`"
@@ -61,7 +62,7 @@ printf "\t${bldred}| (_     ___) (___| (___) )/\\_)  )  /\\____) |${txtrst}\n"
 printf "\t${bldred}(__/     \\_______/(______/ \\____/   \\_______)${txtrst}\n"
 printf ""
 
-printf "\\n\\tFIBJS has been successfully built.\\n\\n"
+printf "\\n\\tFIBJS has been successfully built during $(date -ud "@$(($(date +%s) - $TIME_BEGIN))" +%T)\\n\\n"
 
 printf "\\tFor more information:\\n\\n"
 printf "\\twebsite: http://fibjs.org\\n"
