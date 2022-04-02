@@ -50,6 +50,7 @@ fi
 txtbld=$(tput bold)
 bldred=${txtbld}$(tput setaf 1)
 txtrst=$(tput sgr0)
+TIME_END=$(($(date -u +%s) - $TIME_BEGIN))
 
 printf "\n\n"
 printf "\t${bldred} _______ _________ ______  _________ _______ ${txtrst}\n"
@@ -62,7 +63,7 @@ printf "\t${bldred}| (_     ___) (___| (___) )/\\_)  )  /\\____) |${txtrst}\n"
 printf "\t${bldred}(__/     \\_______/(______/ \\____/   \\_______)${txtrst}\n"
 printf ""
 
-printf "\\n\\tFIBJS has been successfully built during $(date -ud "@$(($(date +%s) - $TIME_BEGIN))" +%T)\\n\\n"
+printf "\\n\\tFIBJS has been successfully built during  $(($TIME_END / 3600)):$(($TIME_END % 3600 / 60)):$(($TIME_END % 60))\\n\\n"
 
 printf "\\tFor more information:\\n\\n"
 printf "\\twebsite: http://fibjs.org\\n"
