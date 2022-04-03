@@ -48,6 +48,9 @@ public:
 
 public:
     // profiler_base
+    static result_t getHeapCodeStatistics(v8::Local<v8::Object>& retVal);
+    static result_t getHeapSpaceStatistics(v8::Local<v8::Array>& retVal);
+    static result_t getHeapStatistics(v8::Local<v8::Object>& retVal);
     static result_t saveSnapshot(exlib::string fname);
     static result_t loadSnapshot(exlib::string fname, obj_ptr<HeapSnapshot_base>& retVal);
     static result_t takeSnapshot(obj_ptr<HeapSnapshot_base>& retVal);
@@ -66,6 +69,9 @@ public:
     }
 
 public:
+    static void s_static_getHeapCodeStatistics(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_getHeapSpaceStatistics(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_getHeapStatistics(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_saveSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_loadSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_takeSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -81,6 +87,9 @@ namespace fibjs {
 inline ClassInfo& profiler_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
+        { "getHeapCodeStatistics", s_static_getHeapCodeStatistics, true },
+        { "getHeapSpaceStatistics", s_static_getHeapSpaceStatistics, true },
+        { "getHeapStatistics", s_static_getHeapStatistics, true },
         { "saveSnapshot", s_static_saveSnapshot, true },
         { "loadSnapshot", s_static_loadSnapshot, true },
         { "takeSnapshot", s_static_takeSnapshot, true },
@@ -120,6 +129,48 @@ inline ClassInfo& profiler_base::class_info()
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
+}
+
+inline void profiler_base::s_static_getHeapCodeStatistics(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_NAME("profiler.getHeapCodeStatistics");
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = getHeapCodeStatistics(vr);
+
+    METHOD_RETURN();
+}
+
+inline void profiler_base::s_static_getHeapSpaceStatistics(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Array> vr;
+
+    METHOD_NAME("profiler.getHeapSpaceStatistics");
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = getHeapSpaceStatistics(vr);
+
+    METHOD_RETURN();
+}
+
+inline void profiler_base::s_static_getHeapStatistics(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_NAME("profiler.getHeapStatistics");
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = getHeapStatistics(vr);
+
+    METHOD_RETURN();
 }
 
 inline void profiler_base::s_static_saveSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args)
