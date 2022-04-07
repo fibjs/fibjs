@@ -47,7 +47,7 @@ public:
 
 public:
     // object_base
-    virtual result_t onEventChange(v8::Local<v8::Function> func, exlib::string ev, exlib::string type)
+    virtual result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
     {
         m_holder = new ValueHolder(wrap());
         return 0;

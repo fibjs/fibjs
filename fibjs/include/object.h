@@ -238,7 +238,7 @@ public:
     result_t _emit(exlib::string ev, Variant* args = NULL, int32_t argCount = 0);
     result_t _emit(exlib::string ev, Variant arg);
 
-    virtual result_t onEventChange(v8::Local<v8::Function> func, exlib::string ev, exlib::string type)
+    virtual result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
     {
         return 0;
     }

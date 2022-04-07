@@ -400,6 +400,25 @@ function evevt_test(name, e) {
                 e.off('removeListener');
                 e.off('a');
             });
+
+            it("off all", () => {
+                var _fn1 = () => { };
+                var _fn2 = () => { };
+                var fns = [];
+
+                e.on('removeListener', (type, fn) => {
+                    fns.push(fn);
+                });
+
+                e.on('a', _fn1);
+                e.on('a', _fn2);
+                e.off('a');
+
+                assert.equal(fns[0], _fn2);
+                assert.equal(fns[1], _fn1);
+
+                e.off('removeListener');
+            });
         });
     });
 }

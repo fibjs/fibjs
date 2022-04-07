@@ -87,9 +87,9 @@ public:
         return esa;
     }
 
-    inline result_t onEventChange(v8::Local<v8::Function> func, exlib::string ev, exlib::string type)
+    inline result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
     {
-        v8::Local<v8::Value> _args[2];
+        v8::Local<v8::Value> _args[3];
         bool b;
 
         _args[0] = NewString(ev);
@@ -102,7 +102,7 @@ public:
 
         obj_ptr<object_base> pThis = object_base::getInstance(o);
         if (pThis)
-            pThis->onEventChange(func, ev, type);
+            pThis->onEventChange(type, ev, func);
 
         return _emit(type, _args, 2, b);
     }
@@ -110,7 +110,7 @@ public:
     inline int32_t putFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, exlib::string ev)
     {
         result_t hr;
-        hr = onEventChange(func, ev, "newListener");
+        hr = onEventChange("newListener", ev, func);
         if (hr < 0)
             return hr;
 
@@ -122,7 +122,7 @@ public:
     inline int32_t prependPutFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, exlib::string ev)
     {
         result_t hr;
-        hr = onEventChange(func, ev, "newListener");
+        hr = onEventChange("newListener", ev, func);
         if (hr < 0)
             return hr;
 
@@ -160,7 +160,7 @@ public:
             if (v->Equals(isolate->GetCurrentContext(), func).ToChecked()) {
                 spliceOne(esa, i);
                 result_t hr;
-                hr = onEventChange(func, ev, "removeListener");
+                hr = onEventChange("removeListener", ev, func);
                 if (hr < 0)
                     return hr;
                 return 0;
@@ -315,7 +315,22 @@ public:
 
     result_t off(exlib::string ev, v8::Local<v8::Object>& retVal)
     {
-        DeletePrivate(ev);
+        v8::Local<v8::Array> esa = GetHiddenList(ev);
+
+        if (!esa.IsEmpty())
+            while (true) {
+                int32_t len = esa->Length();
+
+                if (len == 0) {
+                    DeletePrivate(ev);
+                    break;
+                }
+
+                JSValue v = esa->Get(context, len - 1);
+                v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(v);
+
+                removeFunction(esa, func, ev);
+            }
 
         retVal = o;
         return 0;
