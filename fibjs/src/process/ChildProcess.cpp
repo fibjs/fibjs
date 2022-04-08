@@ -187,7 +187,7 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
         return hr;
 
     JSArray keys = opt_envs->GetPropertyNames(opt_envs->CreationContext());
-    int32_t len, sz, i;
+    int32_t len, sz, idx;
 
     sz = len = (int32_t)keys->Length();
 
@@ -197,15 +197,19 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
     envStr.resize(sz);
     _envs.resize(sz + 1);
 
-    for (i = 0; i < len; i++) {
-        JSValue k = keys->Get(context, i);
+    int32_t p = 0;
+    for (idx = 0; idx < len; idx++) {
+        JSValue k = keys->Get(context, idx);
         JSValue v = opt_envs->Get(context, k);
         exlib::string vs;
-        exlib::string& ks = envStr[i];
+        exlib::string& ks = envStr[p];
 
         hr = GetArgumentValue(k, ks);
         if (hr < 0)
             return hr;
+
+        if (ks == "NODE_CHANNEL_FD")
+            continue;
 
         if (!IsEmpty(v)) {
             hr = GetArgumentValue(v, vs);
@@ -218,11 +222,12 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
         ks.append(vs);
         ks.append(1, 0);
 
-        _envs[i] = (char*)envStr[i].c_str();
+        _envs[p] = (char*)envStr[p].c_str();
+        p++;
     }
 
     if (m_ipc >= 0) {
-        exlib::string& ks = envStr[i];
+        exlib::string& ks = envStr[p];
         exlib::string v;
 
         ks = "NODE_CHANNEL_FD";
@@ -230,11 +235,11 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
         ks.append(1, '0' + m_ipc);
         ks.append(1, 0);
 
-        _envs[i] = (char*)envStr[i].c_str();
-        i++;
+        _envs[p] = (char*)envStr[p].c_str();
+        p++;
     }
 
-    _envs[i] = NULL;
+    _envs[p] = NULL;
     uv_options.env = _envs.data();
 
     return 0;

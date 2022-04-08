@@ -585,6 +585,14 @@ describe("child_process", () => {
             assert.equal(cp.connected, false);
             assert.equal(cp.exitCode, 1);
         });
+
+        it("grandson process", () => {
+            var k;
+            var cp = child_process.fork(path.join(__dirname, 'process', 'exec27.js'));
+            cp.join();
+
+            assert.equal(cp.exitCode, 1);
+        });
     });
 
     // leave here to tuning manually
