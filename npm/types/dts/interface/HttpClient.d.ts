@@ -71,7 +71,7 @@ declare class Class_HttpClient extends Class_object {
     poolTimeout: number;
 
     /**
-     * @description 查询和设置代理服务器 
+     * @description 查询和设置代理服务器，支持 http/https/socks5 代理 
      */
     proxyAgent: string;
 

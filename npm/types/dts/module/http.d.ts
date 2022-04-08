@@ -107,7 +107,7 @@ declare module 'http' {
     var poolTimeout: number;
 
     /**
-     * @description 查询和设置代理服务器 
+     * @description 查询和设置代理服务器，支持 http/https/socks5 代理 
      */
     var proxyAgent: string;
 

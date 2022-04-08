@@ -55,7 +55,7 @@ module http
     /*! @brief 查询和设置 keep-alive 缓存连接超时时间，缺省 10000 ms */
     static Integer poolTimeout;
 
-    /*! @brief 查询和设置代理服务器 */
+    /*! @brief 查询和设置代理服务器，支持 http/https/socks5 代理 */
     static String proxyAgent;
 
     /*! @brief 创建一个 http 静态文件处理器，用以用静态文件响应 http 消息
