@@ -35,6 +35,23 @@ declare class Class_ChildProcess extends Class_EventEmitter {
     join(callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 查询与子进程的管道是否正常连接 
+     */
+    readonly connected: boolean;
+
+    /**
+     * @description 关闭与子进程的 ipc 管道 
+     */
+    disconnect(): void;
+
+    /**
+     * @description 向当前子进程发送一个消息
+     *      @param msg 指定发送的消息
+     *     
+     */
+    send(msg: any): void;
+
+    /**
      * @description 查询当前进程占用的内存和花费的时间
      * 
      *      内存报告生成类似以下结果：
@@ -87,6 +104,11 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      * @description 查询和绑定进程退出事件，相当于 on("exit", func); 
      */
     onexit: (...args: any[])=>any;
+
+    /**
+     * @description 查询和绑定子进程消息事件，相当于 on("message", func); 
+     */
+    onmessage: (...args: any[])=>any;
 
 }
 

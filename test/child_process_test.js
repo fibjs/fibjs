@@ -167,7 +167,9 @@ describe("child_process", () => {
     });
 
     it("fork", () => {
-        var bs = child_process.fork(path.join(__dirname, 'process', 'exec1.js'));
+        var bs = child_process.fork(path.join(__dirname, 'process', 'exec1.js'), {
+            stdio: "pipe"
+        });
         var stdout = new io.BufferedStream(bs.stdout);
 
         bs.stdin.write("hello, exec1" + os.EOL);
@@ -504,6 +506,80 @@ describe("child_process", () => {
                 "exit 101",
                 "other exit 101"
             ]);
+        });
+    });
+
+    describe("ipc", () => {
+        it("init variable", () => {
+            var cp = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec25.js')], {
+                "stdio": ['inherit', 'inherit', 'inherit']
+            });
+            cp.join();
+            assert.equal(cp.exitCode, 1);
+        });
+
+        it("replace stdio", () => {
+            var cp = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec25.js')], {
+                "stdio": ['ipc', 'inherit', 'inherit']
+            });
+            assert.equal(cp.stdin, null);
+
+            var cp = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec25.js')], {
+                "stdio": ['inherit', 'ipc', 'inherit']
+            });
+            assert.equal(cp.stdout, null);
+
+            var cp = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec25.js')], {
+                "stdio": ['inherit', 'inherit', 'ipc']
+            });
+            assert.equal(cp.stderr, null);
+        });
+
+        it("can have only one IPC pipe", () => {
+            assert.throws(() => {
+                var n = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec1.js')], {
+                    "stdio": ['ipc', 'ipc', 'inherit']
+                });
+            });
+        });
+
+        it("hold process on message", () => {
+            var p = child_process.fork(path.join(__dirname, 'process', 'exec23.js'));
+            setTimeout(() => {
+                p.send(1);
+            }, 1);
+            p.join();
+            assert.equal(p.exitCode, 12);
+        });
+
+        it("send message", () => {
+            var k;
+            var p = child_process.fork(path.join(__dirname, 'process', 'exec24.js'));
+            p.on("message", m => {
+                if (m == 100)
+                    k = true;
+            });
+
+            p.send(100);
+
+            for (var i = 0; i < 100 && !k; i++)
+                coroutine.sleep(1);
+
+            assert.equal(k, true);
+        });
+
+        it("disconnect", () => {
+            var cp = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec25.1.js')], {
+                "stdio": ['ipc', 'inherit', 'inherit']
+            });
+
+            assert.equal(cp.connected, true);
+
+            cp.send(100);
+
+            cp.join();
+            assert.equal(cp.connected, false);
+            assert.equal(cp.exitCode, 1);
         });
     });
 

@@ -26,7 +26,7 @@ result_t child_process_base::spawn(exlib::string command, v8::Local<v8::Array> a
     obj_ptr<ChildProcess> cp = new ChildProcess();
     retVal = cp;
 
-    return cp->spawn(command, args, options);
+    return cp->spawn(command, args, options, false);
 }
 
 result_t child_process_base::spawn(exlib::string command, v8::Local<v8::Object> options,
@@ -215,7 +215,10 @@ result_t child_process_base::fork(exlib::string module, v8::Local<v8::Array> arg
             args1->Set(context, i + 1, JSValue(args->Get(context, i)));
     }
 
-    return spawn(exePath, args1, options, retVal);
+    obj_ptr<ChildProcess> cp = new ChildProcess();
+    retVal = cp;
+
+    return cp->spawn(exePath, args1, options, true);
 }
 
 result_t child_process_base::fork(exlib::string module, v8::Local<v8::Object> options, obj_ptr<ChildProcess_base>& retVal)

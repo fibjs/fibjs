@@ -25,6 +25,8 @@ namespace fibjs {
 
 static std::unique_ptr<v8::Platform> g_default_platform;
 
+void init_process_ipc(Isolate* isolate);
+
 void Isolate::init_default_platform(platform_creator get_platform)
 {
     g_default_platform = get_platform ? get_platform() : v8::platform::NewDefaultPlatform();
@@ -107,6 +109,7 @@ public:
 Isolate::Isolate(exlib::string jsFilename)
     : m_id((int32_t)s_iso_id.inc())
     , m_hr(0)
+    , m_ipc_mode(0)
     , m_test(NULL)
     , m_currentFibers(0)
     , m_idleFibers(0)
@@ -216,6 +219,8 @@ void Isolate::init()
     v8::MaybeLocal<v8::Value> result = script->Run(_context);
     v8::Local<v8::Object> AssertionError = result.ToLocalChecked().As<v8::Object>();
     m_AssertionError.Reset(m_isolate, AssertionError);
+
+    init_process_ipc(this);
 }
 
 static result_t syncExit(Isolate* isolate)

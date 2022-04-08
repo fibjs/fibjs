@@ -176,4 +176,15 @@ module process : EventEmitter
      @return 返回指定的内部模块
      */
     static Value binding(String name);
+
+    /*! @brief 查询与父进程的管道是否正常连接 */
+    static readonly Boolean connected;
+
+    /*! @brief 关闭与父进程的 ipc 管道 */
+    static disconnect();
+
+    /*! @brief 向父进程发送一个消息
+     @param msg 指定发送的消息
+    */
+    static send(Value msg);
 };

@@ -234,5 +234,22 @@ declare module 'process' {
      */
     function binding(name: string): any;
 
+    /**
+     * @description 查询与父进程的管道是否正常连接 
+     */
+    const connected: boolean;
+
+    /**
+     * @description 关闭与父进程的 ipc 管道 
+     */
+    function disconnect(): void;
+
+    /**
+     * @description 向父进程发送一个消息
+     *      @param msg 指定发送的消息
+     *     
+     */
+    function send(msg: any): void;
+
 }
 

@@ -39,10 +39,25 @@ void ChildProcess::OnExit(uv_process_t* handle, int64_t exit_status, int term_si
     uv_close((uv_handle_t*)handle, on_uv_close);
 }
 
-result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options)
+result_t ChildProcess::create_pipe(int32_t idx)
+{
+    result_t hr = UVStream::create_pipe(m_stdio[idx], m_ipc == idx);
+    if (hr < 0)
+        return hr;
+
+    stdios[idx].flags = (uv_stdio_flags)(UV_CREATE_PIPE | UV_READABLE_PIPE | UV_WRITABLE_PIPE);
+    stdios[idx].data.stream = (uv_stream_t*)&m_stdio[idx]->m_pipe;
+
+    if (idx == 3)
+        uv_options.stdio_count = 4;
+
+    return 0;
+}
+
+result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options, bool fork)
 {
     result_t hr;
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
     int32_t i;
 
@@ -51,7 +66,7 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options)
     hr = GetConfigValue(isolate->m_isolate, options, "stdio", v);
     if (hr == CALL_E_PARAMNOTOPTIONAL) {
         for (i = 0; i < 3; i++)
-            stddefs[i] = "pipe";
+            stddefs[i] = fork ? "inherit" : "pipe";
     } else {
         exlib::string s;
         hr = GetArgumentValue(isolate->m_isolate, v, s, true);
@@ -88,6 +103,11 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options)
             stdios[i].data.fd = i;
         }
 
+        if (fork) {
+            m_ipc = 3;
+            return create_pipe(3);
+        }
+
         return 0;
     }
 
@@ -105,17 +125,27 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options)
             if (s == "ignore") {
                 stdios[i].flags = UV_IGNORE;
             } else if (s == "pipe") {
-                hr = UVStream::create_pipe(m_stdio[i]);
+                hr = create_pipe(i);
                 if (hr < 0)
                     return hr;
+            } else if (s == "ipc") {
+                if (m_ipc >= 0)
+                    return CHECK_ERROR(Runtime::setError("ChildProcess: Child process can have only one IPC pipe."));
 
-                stdios[i].flags = (uv_stdio_flags)(UV_CREATE_PIPE | UV_READABLE_PIPE | UV_WRITABLE_PIPE);
-                stdios[i].data.stream = (uv_stream_t*)&m_stdio[i]->m_pipe;
+                m_ipc = i;
+                hr = create_pipe(i);
+                if (hr < 0)
+                    return hr;
             } else {
                 stdios[i].flags = UV_INHERIT_FD;
                 stdios[i].data.fd = i;
             }
         }
+    }
+
+    if (fork && m_ipc < 0) {
+        m_ipc = 3;
+        return create_pipe(3);
     }
 
     return 0;
@@ -124,9 +154,8 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options)
 result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
 {
     result_t hr;
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
-    int32_t len, i;
 
     int32_t uid;
     hr = GetConfigValue(isolate->m_isolate, options, "uid", uid);
@@ -158,10 +187,15 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
         return hr;
 
     JSArray keys = opt_envs->GetPropertyNames(opt_envs->CreationContext());
-    len = (int32_t)keys->Length();
+    int32_t len, sz, i;
 
-    envStr.resize(len);
-    _envs.resize(len + 1);
+    sz = len = (int32_t)keys->Length();
+
+    if (m_ipc >= 0)
+        sz++;
+
+    envStr.resize(sz);
+    _envs.resize(sz + 1);
 
     for (i = 0; i < len; i++) {
         JSValue k = keys->Get(context, i);
@@ -187,6 +221,19 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
         _envs[i] = (char*)envStr[i].c_str();
     }
 
+    if (m_ipc >= 0) {
+        exlib::string& ks = envStr[i];
+        exlib::string v;
+
+        ks = "NODE_CHANNEL_FD";
+        ks.append(1, '=');
+        ks.append(1, '0' + m_ipc);
+        ks.append(1, 0);
+
+        _envs[i] = (char*)envStr[i].c_str();
+        i++;
+    }
+
     _envs[i] = NULL;
     uv_options.env = _envs.data();
 
@@ -196,7 +243,7 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
 result_t ChildProcess::fill_arg(exlib::string command, v8::Local<v8::Array> args)
 {
     result_t hr;
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
     int32_t len, i;
 
@@ -222,7 +269,7 @@ result_t ChildProcess::fill_arg(exlib::string command, v8::Local<v8::Array> args
 
 result_t ChildProcess::fill_opt(v8::Local<v8::Object> options)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = holder();
 
     process_base::cwd(cwd);
     GetConfigValue(isolate->m_isolate, options, "cwd", cwd);
@@ -247,12 +294,12 @@ result_t ChildProcess::fill_opt(v8::Local<v8::Object> options)
 }
 
 extern "C" int pty_spawn(uv_loop_t* loop, uv_process_t* process, const uv_process_options_t* options, int* terminalfd);
-result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options)
+result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options, bool fork)
 {
     result_t hr;
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = holder();
 
-    hr = fill_stdio(options);
+    hr = fill_stdio(options, fork);
     if (hr < 0)
         return hr;
 
@@ -271,7 +318,7 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
     isolate_ref();
     m_vholder = new ValueHolder(wrap());
 
-    return uv_call([&] {
+    hr = uv_call([&] {
         int32_t err;
 
 #ifndef _WIN32
@@ -288,8 +335,23 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
 
         if (err < 0)
             uv_close((uv_handle_t*)&m_process, on_uv_close);
+
         return err;
     });
+    if (hr < 0)
+        return hr;
+
+    if (m_ipc >= 0) {
+        if (m_ipc != 3) {
+            m_stdio[3] = m_stdio[m_ipc];
+            m_stdio[m_ipc].Release();
+        }
+
+        m_channel = m_stdio[3];
+        new Ipc(isolate, wrap(), m_channel);
+    }
+
+    return hr;
 }
 
 result_t ChildProcess::kill(int32_t signal)
@@ -374,6 +436,37 @@ result_t ChildProcess::join(AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
     return m_ev.wait(ac) ? 0 : CALL_E_PENDDING;
+}
+
+result_t ChildProcess::get_connected(bool& retVal)
+{
+    retVal = !!m_channel;
+    return 0;
+}
+
+result_t ChildProcess::disconnect()
+{
+    Isolate* isolate = holder();
+
+    if (!m_channel)
+        return CHECK_ERROR(Runtime::setError("ChildProcess: IPC channel is already disconnected."));
+
+    obj_ptr<Stream_base> _channel = m_channel;
+    m_channel.Release();
+
+    _emit("disconnect");
+
+    _channel->ac_close();
+
+    return 0;
+}
+
+result_t ChildProcess::send(v8::Local<v8::Value> msg)
+{
+    if (m_ipc < 0)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    return Ipc::send(m_stdio[3], msg);
 }
 
 result_t ChildProcess::get_pid(int32_t& retVal)

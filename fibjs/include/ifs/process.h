@@ -52,6 +52,9 @@ public:
     static result_t memoryUsage(v8::Local<v8::Object>& retVal);
     static result_t nextTick(v8::Local<v8::Function> func, OptArgs args);
     static result_t binding(exlib::string name, v8::Local<v8::Value>& retVal);
+    static result_t get_connected(bool& retVal);
+    static result_t disconnect();
+    static result_t send(v8::Local<v8::Value> msg);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -90,6 +93,9 @@ public:
     static void s_static_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_nextTick(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_binding(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_connected(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_disconnect(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_send(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -108,7 +114,9 @@ inline ClassInfo& process_base::class_info()
         { "cpuUsage", s_static_cpuUsage, true },
         { "memoryUsage", s_static_memoryUsage, true },
         { "nextTick", s_static_nextTick, true },
-        { "binding", s_static_binding, true }
+        { "binding", s_static_binding, true },
+        { "disconnect", s_static_disconnect, true },
+        { "send", s_static_send, true }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -125,7 +133,8 @@ inline ClassInfo& process_base::class_info()
         { "stdin", s_static_get_stdin, block_set, true },
         { "stdout", s_static_get_stdout, block_set, true },
         { "stderr", s_static_get_stderr, block_set, true },
-        { "exitCode", s_static_get_exitCode, s_static_set_exitCode, true }
+        { "exitCode", s_static_get_exitCode, s_static_set_exitCode, true },
+        { "connected", s_static_get_connected, block_set, true }
     };
 
     static ClassData s_cd = {
@@ -478,5 +487,43 @@ inline void process_base::s_static_binding(const v8::FunctionCallbackInfo<v8::Va
     hr = binding(v0, vr);
 
     METHOD_RETURN();
+}
+
+inline void process_base::s_static_get_connected(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_NAME("process.connected");
+    PROPERTY_ENTER();
+
+    hr = get_connected(vr);
+
+    METHOD_RETURN();
+}
+
+inline void process_base::s_static_disconnect(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("process.disconnect");
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = disconnect();
+
+    METHOD_VOID();
+}
+
+inline void process_base::s_static_send(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("process.send");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+
+    hr = send(v0);
+
+    METHOD_VOID();
 }
 }

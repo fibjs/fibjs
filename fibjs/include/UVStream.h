@@ -362,7 +362,7 @@ class UVStream : public UVStream_tmpl<Stream_base> {
     FIBER_FREE();
 
 public:
-    UVStream(int32_t fd)
+    UVStream(int32_t fd, int32_t ipc = 0)
         : UVStream_tmpl<Stream_base>(fd)
     {
         uv_call([&] {
@@ -371,17 +371,17 @@ public:
                 return uv_stream_set_blocking(&m_stream, 1);
             }
 
-            uv_pipe_init(s_uv_loop, &m_pipe, 0);
+            uv_pipe_init(s_uv_loop, &m_pipe, ipc);
             return uv_pipe_open(&m_pipe, fd);
         });
     }
 
 public:
-    static result_t create_pipe(obj_ptr<UVStream>& retVal)
+    static result_t create_pipe(obj_ptr<UVStream>& retVal, int32_t ipc = 0)
     {
         obj_ptr<UVStream> stream = new UVStream();
         result_t hr = uv_call([&] {
-            return uv_pipe_init(s_uv_loop, &stream->m_pipe, 0);
+            return uv_pipe_init(s_uv_loop, &stream->m_pipe, ipc);
         });
         if (hr < 0)
             return hr;

@@ -149,9 +149,14 @@ public:
     obj_ptr<SandBox> m_topSandbox;
     obj_ptr<HttpClient> m_httpclient;
 
-    obj_ptr<Stream_base> m_stdin;
-    obj_ptr<Stream_base> m_stdout;
-    obj_ptr<Stream_base> m_stderr;
+    obj_ptr<Stream_base> m_stdio[3];
+
+    obj_ptr<Stream_base>& m_stdin = m_stdio[0];
+    obj_ptr<Stream_base>& m_stdout = m_stdio[1];
+    obj_ptr<Stream_base>& m_stderr = m_stdio[2];
+
+    obj_ptr<Stream_base> m_channel;
+    int32_t m_ipc_mode;
 
     exlib::List<exlib::linkitem> m_fibers;
 

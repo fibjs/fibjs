@@ -15,6 +15,7 @@
 #include "EventEmitter.h"
 #include "UVStream.h"
 #include "BufferedStream.h"
+#include "ChildProcess.h"
 #include <vector>
 #include "options.h"
 
@@ -42,7 +43,19 @@ inline int32_t _umask(int32_t m)
 
 namespace fibjs {
 
-DECLARE_MODULE(process);
+DECLARE_MODULE_WITH_CONSTRUCTOR_EX(process, process);
+
+RootModule_process::RootModule_process()
+{
+    ClassData& cd = process_base::class_info().data();
+
+    char buffer[16];
+    size_t sz = sizeof(buffer);
+    if (uv_os_getenv("NODE_CHANNEL_FD", buffer, &sz)) {
+        cd.mc -= 2;
+        cd.pc--;
+    }
+}
 
 static std::vector<char*> s_argv;
 static std::vector<char*> s_start_argv;
@@ -437,4 +450,44 @@ result_t process_base::binding(exlib::string name, v8::Local<v8::Value>& retVal)
 
     return 0;
 }
+
+result_t process_base::get_connected(bool& retVal)
+{
+    Isolate* isolate = Isolate::current();
+
+    retVal = !!isolate->m_channel;
+
+    return 0;
+}
+
+result_t process_base::disconnect()
+{
+    Isolate* isolate = Isolate::current();
+
+    if (!isolate->m_channel)
+        return CHECK_ERROR(Runtime::setError("process: IPC channel is already disconnected."));
+
+    obj_ptr<Stream_base> _channel = isolate->m_channel;
+    isolate->m_channel.Release();
+
+    JSTrigger t(isolate->m_isolate, process_base::class_info().getModule(isolate));
+    bool r;
+
+    t._emit("disconnect", NULL, 0, r);
+
+    _channel->ac_close();
+
+    return 0;
+}
+
+result_t process_base::send(v8::Local<v8::Value> msg)
+{
+    Isolate* isolate = Isolate::current();
+
+    if (!isolate->m_channel)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    return ChildProcess::Ipc::send(isolate->m_channel, msg);
+}
+
 }
