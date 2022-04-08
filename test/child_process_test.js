@@ -578,6 +578,10 @@ describe("child_process", () => {
             cp.send(100);
 
             cp.join();
+
+            for (var i = 0; i < 100 && cp.connected; i++)
+                coroutine.sleep(1);
+
             assert.equal(cp.connected, false);
             assert.equal(cp.exitCode, 1);
         });
