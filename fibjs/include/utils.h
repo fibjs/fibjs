@@ -602,7 +602,7 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, d
     if (bStrict)
         return CALL_E_TYPEMISMATCH;
 
-    v = v->ToNumber(context).ToLocalChecked();
+    v->ToNumber(context).ToLocal(&v);
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
@@ -628,7 +628,7 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, i
                 mv = v->ToBigInt(context);
             }
             if (mv.IsEmpty()) {
-                v = v->ToNumber(context).ToLocalChecked();
+                v->ToNumber(context).ToLocal(&v);
                 if (v.IsEmpty())
                     return CALL_E_JAVASCRIPT;
             }
@@ -1121,7 +1121,8 @@ inline v8::Local<v8::Value> ThrowURIError(const char* msg)
     auto URIError = (JSValue(glob->Get(_context, isolate->NewString("URIError")))).As<v8::Object>();
 
     v8::Local<v8::Value> args[] = { isolate->NewString(msg) };
-    auto error = URIError->CallAsConstructor(_context, 1, args).ToLocalChecked();
+    v8::Local<v8::Value> error;
+    URIError->CallAsConstructor(_context, 1, args).ToLocal(&error);
     return ThrowError(error);
 }
 
@@ -1138,7 +1139,8 @@ inline v8::Local<v8::Value> ThrowEvalError(const char* msg)
     auto EvalError = (JSValue(glob->Get(_context, isolate->NewString("EvalError")))).As<v8::Object>();
 
     v8::Local<v8::Value> args[] = { isolate->NewString(msg) };
-    auto error = EvalError->CallAsConstructor(_context, 1, args).ToLocalChecked();
+    v8::Local<v8::Value> error;
+    EvalError->CallAsConstructor(_context, 1, args).ToLocal(&error);
     return ThrowError(error);
 }
 
