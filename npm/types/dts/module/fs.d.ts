@@ -390,7 +390,7 @@ declare module 'fs' {
     function readTextFile(fname: string, callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
-     * @description 打开二进制文件，并读取内容
+     * @description 打开文件，并读取内容
      *      @param fname 指定文件名
      *      @param encoding 指定解码方式，缺省不解码
      *      @return 返回文件文本内容
@@ -399,6 +399,24 @@ declare module 'fs' {
     function readFile(fname: string, encoding?: string): any;
 
     function readFile(fname: string, encoding?: string, callback?: (err: Error | undefined | null, retVal: any)=>any): void;
+
+    /**
+     * @description 打开文件，并读取内容
+     * 
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // 指定解码方式，缺省不解码
+     *      }
+     *      ```
+     *      @param fname 指定文件名
+     *      @param options 指定读取选项
+     *      @return 返回文件文本内容
+     *      
+     */
+    function readFile(fname: string, options: FIBJS.GeneralObject): any;
+
+    function readFile(fname: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description 打开文件，以数组方式读取一组文本行，行结尾标识基于 EOL 属性的设置，缺省时，posix:"\n"；windows:"\r\n"

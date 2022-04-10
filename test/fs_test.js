@@ -373,6 +373,11 @@ describe('fs', () => {
         s = fs.readFile(path.join(__dirname, "fs_test.js"), "utf8");
         assert.deepEqual(s, d.toString());
 
+        s = fs.readFile(path.join(__dirname, "fs_test.js"), {
+            encoding: "utf8"
+        });
+        assert.deepEqual(s, d.toString());
+
         f.close();
     });
 

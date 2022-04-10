@@ -130,6 +130,24 @@ result_t fs_base::readFile(exlib::string fname, exlib::string encoding,
     return 0;
 }
 
+result_t fs_base::readFile(exlib::string fname, v8::Local<v8::Object> options,
+    Variant& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        Isolate* isolate = Isolate::current();
+
+        ac->m_ctx.resize(1);
+
+        exlib::string encoding;
+        GetConfigValue(isolate->m_isolate, options, "encoding", encoding);
+        ac->m_ctx[0] = encoding;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    return readFile(fname, ac->m_ctx[0].string(), retVal, ac);
+}
+
 result_t fs_base::readLines(exlib::string fname, int32_t maxlines,
     v8::Local<v8::Array>& retVal)
 {

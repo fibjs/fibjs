@@ -66,6 +66,7 @@ public:
     static result_t openTextStream(exlib::string fname, exlib::string flags, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
     static result_t readTextFile(exlib::string fname, exlib::string& retVal, AsyncEvent* ac);
     static result_t readFile(exlib::string fname, exlib::string encoding, Variant& retVal, AsyncEvent* ac);
+    static result_t readFile(exlib::string fname, v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac);
     static result_t readLines(exlib::string fname, int32_t maxlines, v8::Local<v8::Array>& retVal);
     static result_t writeTextFile(exlib::string fname, exlib::string txt, AsyncEvent* ac);
     static result_t writeFile(exlib::string fname, Buffer_base* data, AsyncEvent* ac);
@@ -165,6 +166,7 @@ public:
     ASYNC_STATICVALUE3(fs_base, openTextStream, exlib::string, exlib::string, obj_ptr<BufferedStream_base>);
     ASYNC_STATICVALUE2(fs_base, readTextFile, exlib::string, exlib::string);
     ASYNC_STATICVALUE3(fs_base, readFile, exlib::string, exlib::string, Variant);
+    ASYNC_STATICVALUE3(fs_base, readFile, exlib::string, v8::Local<v8::Object>, Variant);
     ASYNC_STATIC2(fs_base, writeTextFile, exlib::string, exlib::string);
     ASYNC_STATIC2(fs_base, writeFile, exlib::string, Buffer_base*);
     ASYNC_STATIC2(fs_base, appendFile, exlib::string, Buffer_base*);
@@ -839,6 +841,16 @@ inline void fs_base::s_static_readFile(const v8::FunctionCallbackInfo<v8::Value>
 
     ARG(exlib::string, 0);
     OPT_ARG(exlib::string, 1, "");
+
+    if (!cb.IsEmpty())
+        hr = acb_readFile(v0, v1, cb, args);
+    else
+        hr = ac_readFile(v0, v1, vr);
+
+    ASYNC_METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Object>, 1);
 
     if (!cb.IsEmpty())
         hr = acb_readFile(v0, v1, cb, args);
