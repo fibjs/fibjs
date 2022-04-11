@@ -70,13 +70,19 @@ module profiler
     /*! @brief 一个弱引用（被GC忽视） */
     const Edge_Weak = 6;
 
-    /*! @brief 获取= v8 堆中代码及其元数据的统计信息 */
+    /*! @brief 获取= v8 堆中代码及其元数据的统计信息
+     @return 返回元数据的统计信息
+     */
     static Object getHeapCodeStatistics();
 
-    /*! @brief 获取 v8 堆内存的详细使用情况 */
+    /*! @brief 获取 v8 堆内存的详细使用情况
+     @return 返回堆内存的详细使用情况
+     */
     static Array getHeapSpaceStatistics();
 
-    /*! @brief 获取 v8 堆内存使用情况的统计信息*/
+    /*! @brief 获取 v8 堆内存使用情况的统计信息
+     @return 返回堆内存使用情况的统计信息
+     */
     static Object getHeapStatistics();
 
     /*! @brief 根据指定名称保存一个堆快照

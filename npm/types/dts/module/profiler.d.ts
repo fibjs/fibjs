@@ -117,17 +117,23 @@ declare module 'profiler' {
     export const Edge_Weak: 6;
 
     /**
-     * @description 获取= v8 堆中代码及其元数据的统计信息 
+     * @description 获取= v8 堆中代码及其元数据的统计信息
+     *      @return 返回元数据的统计信息
+     *      
      */
     function getHeapCodeStatistics(): FIBJS.GeneralObject;
 
     /**
-     * @description 获取 v8 堆内存的详细使用情况 
+     * @description 获取 v8 堆内存的详细使用情况
+     *      @return 返回堆内存的详细使用情况
+     *      
      */
     function getHeapSpaceStatistics(): any[];
 
     /**
      * @description 获取 v8 堆内存使用情况的统计信息
+     *      @return 返回堆内存使用情况的统计信息
+     *      
      */
     function getHeapStatistics(): FIBJS.GeneralObject;
 

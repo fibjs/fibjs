@@ -2,3 +2,6 @@
 	path = vender
 	url = https://github.com/fibjs/fibjs_vender.git
 	branch = dev
+[submodule "docs"]
+	path = docs
+	url = https://github.com/fibjs/fibjs.org

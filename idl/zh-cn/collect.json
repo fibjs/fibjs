@@ -34,6 +34,7 @@
     "Encoding": [
         "base32",
         "base64",
+        "base58",
         "encoding",
         "hex",
         "iconv",
@@ -63,5 +64,9 @@
         "util",
         "uuid",
         "xml"
+    ],
+    "Constants": [
+        "constants",
+        "fs_constants"
     ]
 }
