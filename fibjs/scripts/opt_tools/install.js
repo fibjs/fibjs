@@ -521,6 +521,7 @@ function download_module() {
                             helpers_fs.mkdirp(path.dirname(tpath));
 
                             fs.writeFile(tpath, file.fileData);
+                            fs.chmod(tpath, parseInt(file.mode, 8));
                         })
                     });
 
@@ -582,11 +583,13 @@ function download_module() {
                     mvm.path.forEach(p => {
                         var bin_path = path.join(path.dirname(p), '.bin');
                         var cli_link = path.join(bin_path, bin);
-                        var cli_file = path.relative(bin_path, path.join(p, bins[bin]));
+                        var cli_file = path.join(p, bins[bin]);
+                        var cli_file_r = path.relative(bin_path, cli_file);
 
                         helpers_fs.mkdirp(bin_path);
 
-                        fs.symlink(cli_file, cli_link);
+                        fs.symlink(cli_file_r, cli_link);
+                        fs.chmod(cli_file, 0755);
                         console.log("install cli:", cli_link);
                     });
                 }
