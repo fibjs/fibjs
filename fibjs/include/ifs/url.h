@@ -50,9 +50,9 @@ namespace fibjs {
 inline ClassInfo& url_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "format", s_static_format, true },
-        { "parse", s_static_parse, true },
-        { "resolve", s_static_resolve, true }
+        { "format", s_static_format, true, false },
+        { "parse", s_static_parse, true, false },
+        { "resolve", s_static_resolve, true, false }
     };
 
     static ClassData::ClassObject s_object[] = {

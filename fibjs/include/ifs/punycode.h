@@ -48,10 +48,10 @@ namespace fibjs {
 inline ClassInfo& punycode_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "encode", s_static_encode, true },
-        { "decode", s_static_decode, true },
-        { "toASCII", s_static_toASCII, true },
-        { "toUnicode", s_static_toUnicode, true }
+        { "encode", s_static_encode, true, false },
+        { "decode", s_static_decode, true, false },
+        { "toASCII", s_static_toASCII, true, false },
+        { "toUnicode", s_static_toUnicode, true, false }
     };
 
     static ClassData s_cd = {

@@ -87,13 +87,13 @@ namespace fibjs {
 inline ClassInfo& X509Cert_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "load", s_load, false },
-        { "loadFile", s_loadFile, false },
-        { "loadRootCerts", s_loadRootCerts, false },
-        { "verify", s_verify, false },
-        { "verifySync", s_verify, false },
-        { "dump", s_dump, false },
-        { "clear", s_clear, false }
+        { "load", s_load, false, false },
+        { "loadFile", s_loadFile, false, false },
+        { "loadRootCerts", s_loadRootCerts, false, false },
+        { "verify", s_verify, false, true },
+        { "verifySync", s_verify, false, false },
+        { "dump", s_dump, false, false },
+        { "clear", s_clear, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

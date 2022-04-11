@@ -117,19 +117,19 @@ namespace fibjs {
 inline ClassInfo& HttpClient_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "setClientCert", s_setClientCert, false },
-        { "request", s_request, false },
-        { "requestSync", s_request, false },
-        { "get", s_get, false },
-        { "getSync", s_get, false },
-        { "post", s_post, false },
-        { "postSync", s_post, false },
-        { "del", s_del, false },
-        { "delSync", s_del, false },
-        { "put", s_put, false },
-        { "putSync", s_put, false },
-        { "patch", s_patch, false },
-        { "patchSync", s_patch, false }
+        { "setClientCert", s_setClientCert, false, false },
+        { "request", s_request, false, true },
+        { "requestSync", s_request, false, false },
+        { "get", s_get, false, true },
+        { "getSync", s_get, false, false },
+        { "post", s_post, false, true },
+        { "postSync", s_post, false, false },
+        { "del", s_del, false, true },
+        { "delSync", s_del, false, false },
+        { "put", s_put, false, true },
+        { "putSync", s_put, false, false },
+        { "patch", s_patch, false, true },
+        { "patchSync", s_patch, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

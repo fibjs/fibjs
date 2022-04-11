@@ -81,21 +81,21 @@ namespace fibjs {
 inline ClassInfo& MongoCollection_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "find", s_find, false },
-        { "findOne", s_findOne, false },
-        { "findAndModify", s_findAndModify, false },
-        { "insert", s_insert, false },
-        { "save", s_save, false },
-        { "update", s_update, false },
-        { "remove", s_remove, false },
-        { "runCommand", s_runCommand, false },
-        { "drop", s_drop, false },
-        { "ensureIndex", s_ensureIndex, false },
-        { "reIndex", s_reIndex, false },
-        { "dropIndex", s_dropIndex, false },
-        { "dropIndexes", s_dropIndexes, false },
-        { "getIndexes", s_getIndexes, false },
-        { "getCollection", s_getCollection, false }
+        { "find", s_find, false, false },
+        { "findOne", s_findOne, false, false },
+        { "findAndModify", s_findAndModify, false, false },
+        { "insert", s_insert, false, false },
+        { "save", s_save, false, false },
+        { "update", s_update, false, false },
+        { "remove", s_remove, false, false },
+        { "runCommand", s_runCommand, false, false },
+        { "drop", s_drop, false, false },
+        { "ensureIndex", s_ensureIndex, false, false },
+        { "reIndex", s_reIndex, false, false },
+        { "dropIndex", s_dropIndex, false, false },
+        { "dropIndexes", s_dropIndexes, false, false },
+        { "getIndexes", s_getIndexes, false, false },
+        { "getCollection", s_getCollection, false, false }
     };
 
     static ClassData::ClassNamed s_named = {

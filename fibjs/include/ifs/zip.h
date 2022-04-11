@@ -66,10 +66,10 @@ namespace fibjs {
 inline ClassInfo& zip_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "isZipFile", s_static_isZipFile, true },
-        { "isZipFileSync", s_static_isZipFile, true },
-        { "open", s_static_open, true },
-        { "openSync", s_static_open, true }
+        { "isZipFile", s_static_isZipFile, true, true },
+        { "isZipFileSync", s_static_isZipFile, true, false },
+        { "open", s_static_open, true, true },
+        { "openSync", s_static_open, true, false }
     };
 
     static ClassData::ClassConst s_const[] = {

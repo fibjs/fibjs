@@ -102,18 +102,18 @@ namespace fibjs {
 inline ClassInfo& Stat_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "isWritable", s_isWritable, false },
-        { "isReadable", s_isReadable, false },
-        { "isExecutable", s_isExecutable, false },
-        { "isHidden", s_isHidden, false },
-        { "isBlockDevice", s_isBlockDevice, false },
-        { "isCharacterDevice", s_isCharacterDevice, false },
-        { "isDirectory", s_isDirectory, false },
-        { "isFIFO", s_isFIFO, false },
-        { "isFile", s_isFile, false },
-        { "isSymbolicLink", s_isSymbolicLink, false },
-        { "isMemory", s_isMemory, false },
-        { "isSocket", s_isSocket, false }
+        { "isWritable", s_isWritable, false, false },
+        { "isReadable", s_isReadable, false, false },
+        { "isExecutable", s_isExecutable, false, false },
+        { "isHidden", s_isHidden, false, false },
+        { "isBlockDevice", s_isBlockDevice, false, false },
+        { "isCharacterDevice", s_isCharacterDevice, false, false },
+        { "isDirectory", s_isDirectory, false, false },
+        { "isFIFO", s_isFIFO, false, false },
+        { "isFile", s_isFile, false, false },
+        { "isSymbolicLink", s_isSymbolicLink, false, false },
+        { "isMemory", s_isMemory, false, false },
+        { "isSocket", s_isSocket, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

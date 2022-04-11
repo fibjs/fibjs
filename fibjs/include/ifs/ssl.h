@@ -84,11 +84,11 @@ namespace fibjs {
 inline ClassInfo& ssl_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "connect", s_static_connect, true },
-        { "connectSync", s_static_connect, true },
-        { "setClientCert", s_static_setClientCert, true },
-        { "loadClientCertFile", s_static_loadClientCertFile, true },
-        { "loadRootCerts", s_static_loadRootCerts, true }
+        { "connect", s_static_connect, true, true },
+        { "connectSync", s_static_connect, true, false },
+        { "setClientCert", s_static_setClientCert, true, false },
+        { "loadClientCertFile", s_static_loadClientCertFile, true, false },
+        { "loadRootCerts", s_static_loadRootCerts, true, false }
     };
 
     static ClassData::ClassObject s_object[] = {

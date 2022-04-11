@@ -50,7 +50,7 @@ namespace fibjs {
 inline ClassInfo& XmlNodeList_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "item", s_item, false }
+        { "item", s_item, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

@@ -64,10 +64,10 @@ namespace fibjs {
 inline ClassInfo& SslSocket_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "connect", s_connect, false },
-        { "connectSync", s_connect, false },
-        { "accept", s_accept, false },
-        { "acceptSync", s_accept, false }
+        { "connect", s_connect, false, true },
+        { "connectSync", s_connect, false, false },
+        { "accept", s_accept, false, true },
+        { "acceptSync", s_accept, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

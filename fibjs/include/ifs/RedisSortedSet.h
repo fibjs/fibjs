@@ -66,16 +66,16 @@ namespace fibjs {
 inline ClassInfo& RedisSortedSet_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "add", s_add, false },
-        { "score", s_score, false },
-        { "incr", s_incr, false },
-        { "remove", s_remove, false },
-        { "len", s_len, false },
-        { "count", s_count, false },
-        { "range", s_range, false },
-        { "rangeRev", s_rangeRev, false },
-        { "rank", s_rank, false },
-        { "rankRev", s_rankRev, false }
+        { "add", s_add, false, false },
+        { "score", s_score, false, false },
+        { "incr", s_incr, false, false },
+        { "remove", s_remove, false, false },
+        { "len", s_len, false, false },
+        { "count", s_count, false, false },
+        { "range", s_range, false, false },
+        { "rangeRev", s_rangeRev, false, false },
+        { "rank", s_rank, false, false },
+        { "rankRev", s_rankRev, false, false }
     };
 
     static ClassData s_cd = {

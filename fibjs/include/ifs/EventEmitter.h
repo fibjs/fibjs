@@ -78,20 +78,20 @@ namespace fibjs {
 inline ClassInfo& EventEmitter_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "on", s_on, false },
-        { "addListener", s_addListener, false },
-        { "prependListener", s_prependListener, false },
-        { "once", s_once, false },
-        { "prependOnceListener", s_prependOnceListener, false },
-        { "off", s_off, false },
-        { "removeListener", s_removeListener, false },
-        { "removeAllListeners", s_removeAllListeners, false },
-        { "setMaxListeners", s_setMaxListeners, false },
-        { "getMaxListeners", s_getMaxListeners, false },
-        { "listeners", s_listeners, false },
-        { "listenerCount", s_listenerCount, false },
-        { "eventNames", s_eventNames, false },
-        { "emit", s_emit, false }
+        { "on", s_on, false, false },
+        { "addListener", s_addListener, false, false },
+        { "prependListener", s_prependListener, false, false },
+        { "once", s_once, false, false },
+        { "prependOnceListener", s_prependOnceListener, false, false },
+        { "off", s_off, false, false },
+        { "removeListener", s_removeListener, false, false },
+        { "removeAllListeners", s_removeAllListeners, false, false },
+        { "setMaxListeners", s_setMaxListeners, false, false },
+        { "getMaxListeners", s_getMaxListeners, false, false },
+        { "listeners", s_listeners, false, false },
+        { "listenerCount", s_listenerCount, false, false },
+        { "eventNames", s_eventNames, false, false },
+        { "emit", s_emit, false, false }
     };
 
     static ClassData::ClassObject s_object[] = {

@@ -55,9 +55,9 @@ namespace fibjs {
 inline ClassInfo& TTYOutputStream_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "clearLine", s_clearLine, false },
-        { "clearScreenDown", s_clearScreenDown, false },
-        { "getWindowSize", s_getWindowSize, false }
+        { "clearLine", s_clearLine, false, false },
+        { "clearScreenDown", s_clearScreenDown, false, false },
+        { "getWindowSize", s_getWindowSize, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

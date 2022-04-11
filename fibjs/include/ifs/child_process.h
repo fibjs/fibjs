@@ -105,14 +105,14 @@ namespace fibjs {
 inline ClassInfo& child_process_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "spawn", s_static_spawn, true },
-        { "exec", s_static_exec, true },
-        { "execSync", s_static_exec, true },
-        { "execFile", s_static_execFile, true },
-        { "execFileSync", s_static_execFile, true },
-        { "fork", s_static_fork, true },
-        { "run", s_static_run, true },
-        { "runSync", s_static_run, true }
+        { "spawn", s_static_spawn, true, false },
+        { "exec", s_static_exec, true, true },
+        { "execSync", s_static_exec, true, false },
+        { "execFile", s_static_execFile, true, true },
+        { "execFileSync", s_static_execFile, true, false },
+        { "fork", s_static_fork, true, false },
+        { "run", s_static_run, true, true },
+        { "runSync", s_static_run, true, false }
     };
 
     static ClassData s_cd = {

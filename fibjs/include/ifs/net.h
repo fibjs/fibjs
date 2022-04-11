@@ -91,21 +91,21 @@ namespace fibjs {
 inline ClassInfo& net_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "info", s_static_info, true },
-        { "resolve", s_static_resolve, true },
-        { "resolveSync", s_static_resolve, true },
-        { "ip", s_static_ip, true },
-        { "ipSync", s_static_ip, true },
-        { "ipv6", s_static_ipv6, true },
-        { "ipv6Sync", s_static_ipv6, true },
-        { "connect", s_static_connect, true },
-        { "connectSync", s_static_connect, true },
-        { "openSmtp", s_static_openSmtp, true },
-        { "openSmtpSync", s_static_openSmtp, true },
-        { "backend", s_static_backend, true },
-        { "isIP", s_static_isIP, true },
-        { "isIPv4", s_static_isIPv4, true },
-        { "isIPv6", s_static_isIPv6, true }
+        { "info", s_static_info, true, false },
+        { "resolve", s_static_resolve, true, true },
+        { "resolveSync", s_static_resolve, true, false },
+        { "ip", s_static_ip, true, true },
+        { "ipSync", s_static_ip, true, false },
+        { "ipv6", s_static_ipv6, true, true },
+        { "ipv6Sync", s_static_ipv6, true, false },
+        { "connect", s_static_connect, true, true },
+        { "connectSync", s_static_connect, true, false },
+        { "openSmtp", s_static_openSmtp, true, true },
+        { "openSmtpSync", s_static_openSmtp, true, false },
+        { "backend", s_static_backend, true, false },
+        { "isIP", s_static_isIP, true, false },
+        { "isIPv4", s_static_isIPv4, true, false },
+        { "isIPv6", s_static_isIPv6, true, false }
     };
 
     static ClassData::ClassObject s_object[] = {

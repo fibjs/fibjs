@@ -50,9 +50,9 @@ namespace fibjs {
 inline ClassInfo& iconv_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "encode", s_static_encode, true },
-        { "decode", s_static_decode, true },
-        { "isEncoding", s_static_isEncoding, true }
+        { "encode", s_static_encode, true, false },
+        { "decode", s_static_decode, true, false },
+        { "isEncoding", s_static_isEncoding, true, false }
     };
 
     static ClassData s_cd = {

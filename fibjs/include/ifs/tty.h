@@ -42,7 +42,7 @@ namespace fibjs {
 inline ClassInfo& tty_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "isatty", s_static_isatty, true }
+        { "isatty", s_static_isatty, true, false }
     };
 
     static ClassData s_cd = {

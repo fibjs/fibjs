@@ -62,10 +62,10 @@ namespace fibjs {
 inline ClassInfo& X509Crl_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "load", s_load, false },
-        { "loadFile", s_loadFile, false },
-        { "dump", s_dump, false },
-        { "clear", s_clear, false }
+        { "load", s_load, false, false },
+        { "loadFile", s_loadFile, false, false },
+        { "dump", s_dump, false, false },
+        { "clear", s_clear, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

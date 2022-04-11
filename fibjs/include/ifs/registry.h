@@ -70,11 +70,11 @@ namespace fibjs {
 inline ClassInfo& registry_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "listSubKey", s_static_listSubKey, true },
-        { "listValue", s_static_listValue, true },
-        { "get", s_static_get, true },
-        { "set", s_static_set, true },
-        { "del", s_static_del, true }
+        { "listSubKey", s_static_listSubKey, true, false },
+        { "listValue", s_static_listValue, true, false },
+        { "get", s_static_get, true, false },
+        { "set", s_static_set, true, false },
+        { "del", s_static_del, true, false }
     };
 
     static ClassData::ClassConst s_const[] = {

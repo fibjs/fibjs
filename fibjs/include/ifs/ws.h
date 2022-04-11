@@ -65,7 +65,7 @@ namespace fibjs {
 inline ClassInfo& ws_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "upgrade", s_static_upgrade, true }
+        { "upgrade", s_static_upgrade, true, false }
     };
 
     static ClassData::ClassObject s_object[] = {

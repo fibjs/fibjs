@@ -70,18 +70,18 @@ namespace fibjs {
 inline ClassInfo& RedisList_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "push", s_push, false },
-        { "pop", s_pop, false },
-        { "rpush", s_rpush, false },
-        { "rpop", s_rpop, false },
-        { "set", s_set, false },
-        { "get", s_get, false },
-        { "insertBefore", s_insertBefore, false },
-        { "insertAfter", s_insertAfter, false },
-        { "remove", s_remove, false },
-        { "trim", s_trim, false },
-        { "len", s_len, false },
-        { "range", s_range, false }
+        { "push", s_push, false, false },
+        { "pop", s_pop, false, false },
+        { "rpush", s_rpush, false, false },
+        { "rpop", s_rpop, false, false },
+        { "set", s_set, false, false },
+        { "get", s_get, false, false },
+        { "insertBefore", s_insertBefore, false, false },
+        { "insertAfter", s_insertAfter, false, false },
+        { "remove", s_remove, false, false },
+        { "trim", s_trim, false, false },
+        { "len", s_len, false, false },
+        { "range", s_range, false, false }
     };
 
     static ClassData s_cd = {

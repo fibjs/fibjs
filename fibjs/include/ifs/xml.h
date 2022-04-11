@@ -65,8 +65,8 @@ namespace fibjs {
 inline ClassInfo& xml_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "parse", s_static_parse, true },
-        { "serialize", s_static_serialize, true }
+        { "parse", s_static_parse, true, false },
+        { "serialize", s_static_serialize, true, false }
     };
 
     static ClassData::ClassObject s_object[] = {

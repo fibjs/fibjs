@@ -83,4 +83,10 @@ result_t util_base::promisify(v8::Local<v8::Function> func, v8::Local<v8::Functi
 
     return 0;
 }
+
+result_t promisify(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal)
+{
+    return util_base::promisify(func, retVal);
+}
+
 }

@@ -44,8 +44,8 @@ namespace fibjs {
 inline ClassInfo& json_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "encode", s_static_encode, true },
-        { "decode", s_static_decode, true }
+        { "encode", s_static_encode, true, false },
+        { "decode", s_static_decode, true, false }
     };
 
     static ClassData s_cd = {

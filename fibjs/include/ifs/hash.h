@@ -98,24 +98,24 @@ namespace fibjs {
 inline ClassInfo& hash_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "digest", s_static_digest, true },
-        { "md5", s_static_md5, true },
-        { "sha1", s_static_sha1, true },
-        { "sha224", s_static_sha224, true },
-        { "sha256", s_static_sha256, true },
-        { "sha384", s_static_sha384, true },
-        { "sha512", s_static_sha512, true },
-        { "ripemd160", s_static_ripemd160, true },
-        { "sm3", s_static_sm3, true },
-        { "hmac", s_static_hmac, true },
-        { "hmac_md5", s_static_hmac_md5, true },
-        { "hmac_sha1", s_static_hmac_sha1, true },
-        { "hmac_sha224", s_static_hmac_sha224, true },
-        { "hmac_sha256", s_static_hmac_sha256, true },
-        { "hmac_sha384", s_static_hmac_sha384, true },
-        { "hmac_sha512", s_static_hmac_sha512, true },
-        { "hmac_ripemd160", s_static_hmac_ripemd160, true },
-        { "hmac_sm3", s_static_hmac_sm3, true }
+        { "digest", s_static_digest, true, false },
+        { "md5", s_static_md5, true, false },
+        { "sha1", s_static_sha1, true, false },
+        { "sha224", s_static_sha224, true, false },
+        { "sha256", s_static_sha256, true, false },
+        { "sha384", s_static_sha384, true, false },
+        { "sha512", s_static_sha512, true, false },
+        { "ripemd160", s_static_ripemd160, true, false },
+        { "sm3", s_static_sm3, true, false },
+        { "hmac", s_static_hmac, true, false },
+        { "hmac_md5", s_static_hmac_md5, true, false },
+        { "hmac_sha1", s_static_hmac_sha1, true, false },
+        { "hmac_sha224", s_static_hmac_sha224, true, false },
+        { "hmac_sha256", s_static_hmac_sha256, true, false },
+        { "hmac_sha384", s_static_hmac_sha384, true, false },
+        { "hmac_sha512", s_static_hmac_sha512, true, false },
+        { "hmac_ripemd160", s_static_hmac_ripemd160, true, false },
+        { "hmac_sm3", s_static_hmac_sm3, true, false }
     };
 
     static ClassData::ClassConst s_const[] = {

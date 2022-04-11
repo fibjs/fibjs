@@ -83,24 +83,24 @@ namespace fibjs {
 inline ClassInfo& db_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "open", s_static_open, true },
-        { "openSync", s_static_open, true },
-        { "openMySQL", s_static_openMySQL, true },
-        { "openMySQLSync", s_static_openMySQL, true },
-        { "openSQLite", s_static_openSQLite, true },
-        { "openSQLiteSync", s_static_openSQLite, true },
-        { "openOdbc", s_static_openOdbc, true },
-        { "openOdbcSync", s_static_openOdbc, true },
-        { "openMSSQL", s_static_openMSSQL, true },
-        { "openMSSQLSync", s_static_openMSSQL, true },
-        { "openPSQL", s_static_openPSQL, true },
-        { "openPSQLSync", s_static_openPSQL, true },
-        { "openMongoDB", s_static_openMongoDB, true },
-        { "openMongoDBSync", s_static_openMongoDB, true },
-        { "openLevelDB", s_static_openLevelDB, true },
-        { "openLevelDBSync", s_static_openLevelDB, true },
-        { "openRedis", s_static_openRedis, true },
-        { "openRedisSync", s_static_openRedis, true }
+        { "open", s_static_open, true, true },
+        { "openSync", s_static_open, true, false },
+        { "openMySQL", s_static_openMySQL, true, true },
+        { "openMySQLSync", s_static_openMySQL, true, false },
+        { "openSQLite", s_static_openSQLite, true, true },
+        { "openSQLiteSync", s_static_openSQLite, true, false },
+        { "openOdbc", s_static_openOdbc, true, true },
+        { "openOdbcSync", s_static_openOdbc, true, false },
+        { "openMSSQL", s_static_openMSSQL, true, true },
+        { "openMSSQLSync", s_static_openMSSQL, true, false },
+        { "openPSQL", s_static_openPSQL, true, true },
+        { "openPSQLSync", s_static_openPSQL, true, false },
+        { "openMongoDB", s_static_openMongoDB, true, true },
+        { "openMongoDBSync", s_static_openMongoDB, true, false },
+        { "openLevelDB", s_static_openLevelDB, true, true },
+        { "openLevelDBSync", s_static_openLevelDB, true, false },
+        { "openRedis", s_static_openRedis, true, true },
+        { "openRedisSync", s_static_openRedis, true, false }
     };
 
     static ClassData s_cd = {

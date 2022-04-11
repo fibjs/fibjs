@@ -71,22 +71,22 @@ namespace fibjs {
 inline ClassInfo& Smtp_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "connect", s_connect, false },
-        { "connectSync", s_connect, false },
-        { "command", s_command, false },
-        { "commandSync", s_command, false },
-        { "hello", s_hello, false },
-        { "helloSync", s_hello, false },
-        { "login", s_login, false },
-        { "loginSync", s_login, false },
-        { "from", s_from, false },
-        { "fromSync", s_from, false },
-        { "to", s_to, false },
-        { "toSync", s_to, false },
-        { "data", s_data, false },
-        { "dataSync", s_data, false },
-        { "quit", s_quit, false },
-        { "quitSync", s_quit, false }
+        { "connect", s_connect, false, true },
+        { "connectSync", s_connect, false, false },
+        { "command", s_command, false, true },
+        { "commandSync", s_command, false, false },
+        { "hello", s_hello, false, true },
+        { "helloSync", s_hello, false, false },
+        { "login", s_login, false, true },
+        { "loginSync", s_login, false, false },
+        { "from", s_from, false, true },
+        { "fromSync", s_from, false, false },
+        { "to", s_to, false, true },
+        { "toSync", s_to, false, false },
+        { "data", s_data, false, true },
+        { "dataSync", s_data, false, false },
+        { "quit", s_quit, false, true },
+        { "quitSync", s_quit, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

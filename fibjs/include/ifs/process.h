@@ -105,18 +105,18 @@ namespace fibjs {
 inline ClassInfo& process_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "umask", s_static_umask, true },
-        { "hrtime", s_static_hrtime, true },
-        { "exit", s_static_exit, true },
-        { "cwd", s_static_cwd, true },
-        { "chdir", s_static_chdir, true },
-        { "uptime", s_static_uptime, true },
-        { "cpuUsage", s_static_cpuUsage, true },
-        { "memoryUsage", s_static_memoryUsage, true },
-        { "nextTick", s_static_nextTick, true },
-        { "binding", s_static_binding, true },
-        { "disconnect", s_static_disconnect, true },
-        { "send", s_static_send, true }
+        { "umask", s_static_umask, true, false },
+        { "hrtime", s_static_hrtime, true, false },
+        { "exit", s_static_exit, true, false },
+        { "cwd", s_static_cwd, true, false },
+        { "chdir", s_static_chdir, true, false },
+        { "uptime", s_static_uptime, true, false },
+        { "cpuUsage", s_static_cpuUsage, true, false },
+        { "memoryUsage", s_static_memoryUsage, true, false },
+        { "nextTick", s_static_nextTick, true, false },
+        { "binding", s_static_binding, true, false },
+        { "disconnect", s_static_disconnect, true, false },
+        { "send", s_static_send, true, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

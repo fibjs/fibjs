@@ -45,7 +45,7 @@ namespace fibjs {
 inline ClassInfo& XmlText_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "splitText", s_splitText, false }
+        { "splitText", s_splitText, false, false }
     };
 
     static ClassData s_cd = {

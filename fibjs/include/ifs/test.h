@@ -74,18 +74,18 @@ namespace fibjs {
 inline ClassInfo& test_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "describe", s_static_describe, true },
-        { "xdescribe", s_static_xdescribe, true },
-        { "odescribe", s_static_odescribe, true },
-        { "it", s_static_it, true },
-        { "xit", s_static_xit, true },
-        { "oit", s_static_oit, true },
-        { "before", s_static_before, true },
-        { "after", s_static_after, true },
-        { "beforeEach", s_static_beforeEach, true },
-        { "afterEach", s_static_afterEach, true },
-        { "run", s_static_run, true },
-        { "setup", s_static_setup, true }
+        { "describe", s_static_describe, true, false },
+        { "xdescribe", s_static_xdescribe, true, false },
+        { "odescribe", s_static_odescribe, true, false },
+        { "it", s_static_it, true, false },
+        { "xit", s_static_xit, true, false },
+        { "oit", s_static_oit, true, false },
+        { "before", s_static_before, true, false },
+        { "after", s_static_after, true, false },
+        { "beforeEach", s_static_beforeEach, true, false },
+        { "afterEach", s_static_afterEach, true, false },
+        { "run", s_static_run, true, false },
+        { "setup", s_static_setup, true, false }
     };
 
     static ClassData::ClassObject s_object[] = {

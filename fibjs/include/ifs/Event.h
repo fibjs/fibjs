@@ -48,11 +48,11 @@ namespace fibjs {
 inline ClassInfo& Event_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "isSet", s_isSet, false },
-        { "set", s_set, false },
-        { "pulse", s_pulse, false },
-        { "clear", s_clear, false },
-        { "wait", s_wait, false }
+        { "isSet", s_isSet, false, false },
+        { "set", s_set, false, false },
+        { "pulse", s_pulse, false, false },
+        { "clear", s_clear, false, false },
+        { "wait", s_wait, false, false }
     };
 
     static ClassData s_cd = {

@@ -52,7 +52,7 @@ namespace fibjs {
 inline ClassInfo& Worker_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "postMessage", s_postMessage, false }
+        { "postMessage", s_postMessage, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

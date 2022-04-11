@@ -91,26 +91,26 @@ namespace fibjs {
 inline ClassInfo& os_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "hostname", s_static_hostname, true },
-        { "endianness", s_static_endianness, true },
-        { "type", s_static_type, true },
-        { "release", s_static_release, true },
-        { "homedir", s_static_homedir, true },
-        { "arch", s_static_arch, true },
-        { "loadavg", s_static_loadavg, true },
-        { "totalmem", s_static_totalmem, true },
-        { "freemem", s_static_freemem, true },
-        { "cpus", s_static_cpus, true },
-        { "cpuNumbers", s_static_cpuNumbers, true },
-        { "tmpdir", s_static_tmpdir, true },
-        { "userInfo", s_static_userInfo, true },
-        { "networkInterfaces", s_static_networkInterfaces, true },
-        { "printerInfo", s_static_printerInfo, true },
-        { "openPrinter", s_static_openPrinter, true },
-        { "openPrinterSync", s_static_openPrinter, true },
-        { "platform", s_static_platform, true },
-        { "time", s_static_time, true },
-        { "dateAdd", s_static_dateAdd, true }
+        { "hostname", s_static_hostname, true, false },
+        { "endianness", s_static_endianness, true, false },
+        { "type", s_static_type, true, false },
+        { "release", s_static_release, true, false },
+        { "homedir", s_static_homedir, true, false },
+        { "arch", s_static_arch, true, false },
+        { "loadavg", s_static_loadavg, true, false },
+        { "totalmem", s_static_totalmem, true, false },
+        { "freemem", s_static_freemem, true, false },
+        { "cpus", s_static_cpus, true, false },
+        { "cpuNumbers", s_static_cpuNumbers, true, false },
+        { "tmpdir", s_static_tmpdir, true, false },
+        { "userInfo", s_static_userInfo, true, false },
+        { "networkInterfaces", s_static_networkInterfaces, true, false },
+        { "printerInfo", s_static_printerInfo, true, false },
+        { "openPrinter", s_static_openPrinter, true, true },
+        { "openPrinterSync", s_static_openPrinter, true, false },
+        { "platform", s_static_platform, true, false },
+        { "time", s_static_time, true, false },
+        { "dateAdd", s_static_dateAdd, true, false }
     };
 
     static ClassData::ClassObject s_object[] = {

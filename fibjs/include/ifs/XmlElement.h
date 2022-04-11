@@ -100,18 +100,18 @@ namespace fibjs {
 inline ClassInfo& XmlElement_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "getAttribute", s_getAttribute, false },
-        { "getAttributeNS", s_getAttributeNS, false },
-        { "setAttribute", s_setAttribute, false },
-        { "setAttributeNS", s_setAttributeNS, false },
-        { "removeAttribute", s_removeAttribute, false },
-        { "removeAttributeNS", s_removeAttributeNS, false },
-        { "hasAttribute", s_hasAttribute, false },
-        { "hasAttributeNS", s_hasAttributeNS, false },
-        { "getElementsByTagName", s_getElementsByTagName, false },
-        { "getElementsByTagNameNS", s_getElementsByTagNameNS, false },
-        { "getElementById", s_getElementById, false },
-        { "getElementsByClassName", s_getElementsByClassName, false }
+        { "getAttribute", s_getAttribute, false, false },
+        { "getAttributeNS", s_getAttributeNS, false, false },
+        { "setAttribute", s_setAttribute, false, false },
+        { "setAttributeNS", s_setAttributeNS, false, false },
+        { "removeAttribute", s_removeAttribute, false, false },
+        { "removeAttributeNS", s_removeAttributeNS, false, false },
+        { "hasAttribute", s_hasAttribute, false, false },
+        { "hasAttributeNS", s_hasAttributeNS, false, false },
+        { "getElementsByTagName", s_getElementsByTagName, false, false },
+        { "getElementsByTagNameNS", s_getElementsByTagNameNS, false, false },
+        { "getElementById", s_getElementById, false, false },
+        { "getElementsByClassName", s_getElementsByClassName, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

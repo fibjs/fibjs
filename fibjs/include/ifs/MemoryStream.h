@@ -44,9 +44,9 @@ namespace fibjs {
 inline ClassInfo& MemoryStream_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "setTime", s_setTime, false },
-        { "clone", s_clone, false },
-        { "clear", s_clear, false }
+        { "setTime", s_setTime, false, false },
+        { "clone", s_clone, false, false },
+        { "clear", s_clear, false, false }
     };
 
     static ClassData s_cd = {

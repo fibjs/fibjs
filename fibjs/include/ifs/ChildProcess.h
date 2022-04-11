@@ -80,12 +80,12 @@ namespace fibjs {
 inline ClassInfo& ChildProcess_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "kill", s_kill, false },
-        { "join", s_join, false },
-        { "joinSync", s_join, false },
-        { "disconnect", s_disconnect, false },
-        { "send", s_send, false },
-        { "usage", s_usage, false }
+        { "kill", s_kill, false, false },
+        { "join", s_join, false, true },
+        { "joinSync", s_join, false, false },
+        { "disconnect", s_disconnect, false, false },
+        { "send", s_send, false, false },
+        { "usage", s_usage, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

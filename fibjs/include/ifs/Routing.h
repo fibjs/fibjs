@@ -68,15 +68,15 @@ namespace fibjs {
 inline ClassInfo& Routing_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "append", s_append, false },
-        { "host", s__host, false },
-        { "all", s_all, false },
-        { "get", s_get, false },
-        { "post", s_post, false },
-        { "del", s_del, false },
-        { "put", s_put, false },
-        { "patch", s_patch, false },
-        { "find", s_find, false }
+        { "append", s_append, false, false },
+        { "host", s__host, false, false },
+        { "all", s_all, false, false },
+        { "get", s_get, false, false },
+        { "post", s_post, false, false },
+        { "del", s_del, false, false },
+        { "put", s_put, false, false },
+        { "patch", s_patch, false, false },
+        { "find", s_find, false, false }
     };
 
     static ClassData s_cd = {

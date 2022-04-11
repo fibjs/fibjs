@@ -34,6 +34,7 @@ struct ClassData {
         const char* name;
         v8::FunctionCallback invoker;
         bool is_static;
+        bool is_async;
     };
 
     struct ClassObject {
@@ -69,6 +70,8 @@ struct ClassData {
     const ClassNamed* cns;
     ClassInfo* base;
 };
+
+result_t promisify(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal);
 
 class ClassInfo {
 public:
@@ -212,6 +215,7 @@ public:
     {
         int32_t i, j;
         v8::Local<v8::Context> _context = isolate->context();
+        v8::Local<v8::Object> op;
 
         for (i = 0; i < m_cd.mc; i++) {
             if (m_cd.cms[i].is_static) {
@@ -219,9 +223,21 @@ public:
                     for (j = 0; skips[j] && qstrcmp(skips[j], m_cd.cms[i].name); j++)
                         ;
 
-                if (!skips || !skips[j])
-                    o->Set(_context, get_prop_name(isolate, m_cd.cms[i].name),
-                        isolate->NewFunction(m_cd.cms[i].name, m_cd.cms[i].invoker));
+                if (!skips || !skips[j]) {
+                    v8::Local<v8::Function> func = isolate->NewFunction(m_cd.cms[i].name, m_cd.cms[i].invoker);
+                    v8::Local<v8::Function> pfunc;
+                    v8::Local<v8::Name> name = get_prop_name(isolate, m_cd.cms[i].name);
+
+                    o->Set(_context, name, func);
+
+                    if (m_cd.cms[i].is_async) {
+                        if (op.IsEmpty())
+                            op = v8::Object::New(isolate->m_isolate);
+
+                        promisify(func, pfunc);
+                        op->Set(_context, name, pfunc);
+                    }
+                }
             }
         }
 
@@ -259,6 +275,9 @@ public:
 
         if (m_cd.base)
             m_cd.base->Attach(isolate, o, skips);
+
+        if (!op.IsEmpty())
+            o->Set(_context, isolate->NewString("promises"), op);
     }
 
 public:

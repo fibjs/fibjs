@@ -64,10 +64,10 @@ namespace fibjs {
 inline ClassInfo& encoding_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "jsstr", s_static_jsstr, true },
-        { "encodeURI", s_static_encodeURI, true },
-        { "encodeURIComponent", s_static_encodeURIComponent, true },
-        { "decodeURI", s_static_decodeURI, true }
+        { "jsstr", s_static_jsstr, true, false },
+        { "encodeURI", s_static_encodeURI, true, false },
+        { "encodeURIComponent", s_static_encodeURIComponent, true, false },
+        { "decodeURI", s_static_decodeURI, true, false }
     };
 
     static ClassData::ClassObject s_object[] = {

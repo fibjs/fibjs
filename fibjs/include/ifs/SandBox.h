@@ -69,17 +69,17 @@ namespace fibjs {
 inline ClassInfo& SandBox_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "add", s_add, false },
-        { "addScript", s_addScript, false },
-        { "remove", s_remove, false },
-        { "has", s_has, false },
-        { "clone", s_clone, false },
-        { "freeze", s_freeze, false },
-        { "refresh", s_refresh, false },
-        { "run", s_run, false },
-        { "resolve", s_resolve, false },
-        { "require", s_require, false },
-        { "setModuleCompiler", s_setModuleCompiler, false }
+        { "add", s_add, false, false },
+        { "addScript", s_addScript, false, false },
+        { "remove", s_remove, false, false },
+        { "has", s_has, false, false },
+        { "clone", s_clone, false, false },
+        { "freeze", s_freeze, false, false },
+        { "refresh", s_refresh, false, false },
+        { "run", s_run, false, false },
+        { "resolve", s_resolve, false, false },
+        { "require", s_require, false, false },
+        { "setModuleCompiler", s_setModuleCompiler, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

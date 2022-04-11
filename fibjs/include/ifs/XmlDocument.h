@@ -98,17 +98,17 @@ namespace fibjs {
 inline ClassInfo& XmlDocument_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "load", s_load, false },
-        { "getElementsByTagName", s_getElementsByTagName, false },
-        { "getElementsByTagNameNS", s_getElementsByTagNameNS, false },
-        { "getElementById", s_getElementById, false },
-        { "getElementsByClassName", s_getElementsByClassName, false },
-        { "createElement", s_createElement, false },
-        { "createElementNS", s_createElementNS, false },
-        { "createTextNode", s_createTextNode, false },
-        { "createComment", s_createComment, false },
-        { "createCDATASection", s_createCDATASection, false },
-        { "createProcessingInstruction", s_createProcessingInstruction, false }
+        { "load", s_load, false, false },
+        { "getElementsByTagName", s_getElementsByTagName, false, false },
+        { "getElementsByTagNameNS", s_getElementsByTagNameNS, false, false },
+        { "getElementById", s_getElementById, false, false },
+        { "getElementsByClassName", s_getElementsByClassName, false, false },
+        { "createElement", s_createElement, false, false },
+        { "createElementNS", s_createElementNS, false, false },
+        { "createTextNode", s_createTextNode, false, false },
+        { "createComment", s_createComment, false, false },
+        { "createCDATASection", s_createCDATASection, false, false },
+        { "createProcessingInstruction", s_createProcessingInstruction, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

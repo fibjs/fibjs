@@ -41,7 +41,7 @@ namespace fibjs {
 inline ClassInfo& Chain_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "append", s_append, false }
+        { "append", s_append, false, false }
     };
 
     static ClassData s_cd = {

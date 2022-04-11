@@ -72,18 +72,18 @@ namespace fibjs {
 inline ClassInfo& path_posix_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "normalize", s_static_normalize, true },
-        { "basename", s_static_basename, true },
-        { "extname", s_static_extname, true },
-        { "format", s_static_format, true },
-        { "parse", s_static_parse, true },
-        { "dirname", s_static_dirname, true },
-        { "fullpath", s_static_fullpath, true },
-        { "isAbsolute", s_static_isAbsolute, true },
-        { "join", s_static_join, true },
-        { "resolve", s_static_resolve, true },
-        { "relative", s_static_relative, true },
-        { "toNamespacedPath", s_static_toNamespacedPath, true }
+        { "normalize", s_static_normalize, true, false },
+        { "basename", s_static_basename, true, false },
+        { "extname", s_static_extname, true, false },
+        { "format", s_static_format, true, false },
+        { "parse", s_static_parse, true, false },
+        { "dirname", s_static_dirname, true, false },
+        { "fullpath", s_static_fullpath, true, false },
+        { "isAbsolute", s_static_isAbsolute, true, false },
+        { "join", s_static_join, true, false },
+        { "resolve", s_static_resolve, true, false },
+        { "relative", s_static_relative, true, false },
+        { "toNamespacedPath", s_static_toNamespacedPath, true, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

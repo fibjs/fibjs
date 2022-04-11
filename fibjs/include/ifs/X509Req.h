@@ -70,12 +70,12 @@ namespace fibjs {
 inline ClassInfo& X509Req_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "load", s_load, false },
-        { "loadFile", s_loadFile, false },
-        { "exportPem", s_exportPem, false },
-        { "exportDer", s_exportDer, false },
-        { "sign", s_sign, false },
-        { "signSync", s_sign, false }
+        { "load", s_load, false, false },
+        { "loadFile", s_loadFile, false, false },
+        { "exportPem", s_exportPem, false, false },
+        { "exportDer", s_exportDer, false, false },
+        { "sign", s_sign, false, true },
+        { "signSync", s_sign, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

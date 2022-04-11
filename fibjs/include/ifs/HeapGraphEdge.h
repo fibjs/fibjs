@@ -54,8 +54,8 @@ namespace fibjs {
 inline ClassInfo& HeapGraphEdge_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "getFromNode", s_getFromNode, false },
-        { "getToNode", s_getToNode, false }
+        { "getFromNode", s_getFromNode, false, false },
+        { "getToNode", s_getToNode, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

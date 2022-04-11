@@ -67,17 +67,17 @@ namespace fibjs {
 inline ClassInfo& BufferedStream_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "readText", s_readText, false },
-        { "readTextSync", s_readText, false },
-        { "readLine", s_readLine, false },
-        { "readLineSync", s_readLine, false },
-        { "readLines", s_readLines, false },
-        { "readUntil", s_readUntil, false },
-        { "readUntilSync", s_readUntil, false },
-        { "writeText", s_writeText, false },
-        { "writeTextSync", s_writeText, false },
-        { "writeLine", s_writeLine, false },
-        { "writeLineSync", s_writeLine, false }
+        { "readText", s_readText, false, true },
+        { "readTextSync", s_readText, false, false },
+        { "readLine", s_readLine, false, true },
+        { "readLineSync", s_readLine, false, false },
+        { "readLines", s_readLines, false, false },
+        { "readUntil", s_readUntil, false, true },
+        { "readUntilSync", s_readUntil, false, false },
+        { "writeText", s_writeText, false, true },
+        { "writeTextSync", s_writeText, false, false },
+        { "writeLine", s_writeLine, false, true },
+        { "writeLineSync", s_writeLine, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

@@ -102,21 +102,21 @@ namespace fibjs {
 inline ClassInfo& Message_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "read", s_read, false },
-        { "readSync", s_read, false },
-        { "readAll", s_readAll, false },
-        { "readAllSync", s_readAll, false },
-        { "write", s_write, false },
-        { "writeSync", s_write, false },
-        { "json", s_json, false },
-        { "pack", s_pack, false },
-        { "end", s_end, false },
-        { "isEnded", s_isEnded, false },
-        { "clear", s_clear, false },
-        { "sendTo", s_sendTo, false },
-        { "sendToSync", s_sendTo, false },
-        { "readFrom", s_readFrom, false },
-        { "readFromSync", s_readFrom, false }
+        { "read", s_read, false, true },
+        { "readSync", s_read, false, false },
+        { "readAll", s_readAll, false, true },
+        { "readAllSync", s_readAll, false, false },
+        { "write", s_write, false, true },
+        { "writeSync", s_write, false, false },
+        { "json", s_json, false, false },
+        { "pack", s_pack, false, false },
+        { "end", s_end, false, false },
+        { "isEnded", s_isEnded, false, false },
+        { "clear", s_clear, false, false },
+        { "sendTo", s_sendTo, false, true },
+        { "sendToSync", s_sendTo, false, false },
+        { "readFrom", s_readFrom, false, true },
+        { "readFromSync", s_readFrom, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

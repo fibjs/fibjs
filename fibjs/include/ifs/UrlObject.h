@@ -106,10 +106,10 @@ namespace fibjs {
 inline ClassInfo& UrlObject_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "parse", s_parse, false },
-        { "format", s_format, false },
-        { "resolve", s_resolve, false },
-        { "normalize", s_normalize, false }
+        { "parse", s_parse, false, false },
+        { "format", s_format, false, false },
+        { "resolve", s_resolve, false, false },
+        { "normalize", s_normalize, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

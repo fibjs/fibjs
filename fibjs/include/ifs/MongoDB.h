@@ -62,11 +62,11 @@ namespace fibjs {
 inline ClassInfo& MongoDB_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "getCollection", s_getCollection, false },
-        { "runCommand", s_runCommand, false },
-        { "oid", s_oid, false },
-        { "close", s_close, false },
-        { "closeSync", s_close, false }
+        { "getCollection", s_getCollection, false, false },
+        { "runCommand", s_runCommand, false, false },
+        { "oid", s_oid, false, false },
+        { "close", s_close, false, true },
+        { "closeSync", s_close, false, false }
     };
 
     static ClassData::ClassNamed s_named = {

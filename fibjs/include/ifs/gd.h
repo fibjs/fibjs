@@ -107,17 +107,17 @@ namespace fibjs {
 inline ClassInfo& gd_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "create", s_static_create, true },
-        { "createSync", s_static_create, true },
-        { "load", s_static_load, true },
-        { "loadSync", s_static_load, true },
-        { "rgb", s_static_rgb, true },
-        { "rgba", s_static_rgba, true },
-        { "hsl", s_static_hsl, true },
-        { "hsla", s_static_hsla, true },
-        { "hsb", s_static_hsb, true },
-        { "hsba", s_static_hsba, true },
-        { "color", s_static_color, true }
+        { "create", s_static_create, true, true },
+        { "createSync", s_static_create, true, false },
+        { "load", s_static_load, true, true },
+        { "loadSync", s_static_load, true, false },
+        { "rgb", s_static_rgb, true, false },
+        { "rgba", s_static_rgba, true, false },
+        { "hsl", s_static_hsl, true, false },
+        { "hsla", s_static_hsla, true, false },
+        { "hsb", s_static_hsb, true, false },
+        { "hsba", s_static_hsba, true, false },
+        { "color", s_static_color, true, false }
     };
 
     static ClassData::ClassConst s_const[] = {

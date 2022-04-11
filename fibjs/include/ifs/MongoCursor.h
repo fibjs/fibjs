@@ -66,19 +66,19 @@ namespace fibjs {
 inline ClassInfo& MongoCursor_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "skip", s_skip, false },
-        { "skipSync", s_skip, false },
-        { "limit", s_limit, false },
-        { "limitSync", s_limit, false },
-        { "sort", s_sort, false },
-        { "hasNext", s_hasNext, false },
-        { "next", s_next, false },
-        { "count", s_count, false },
-        { "size", s_size, false },
-        { "forEach", s_forEach, false },
-        { "map", s_map, false },
-        { "toArray", s_toArray, false },
-        { "hint", s_hint, false }
+        { "skip", s_skip, false, true },
+        { "skipSync", s_skip, false, false },
+        { "limit", s_limit, false, true },
+        { "limitSync", s_limit, false, false },
+        { "sort", s_sort, false, false },
+        { "hasNext", s_hasNext, false, false },
+        { "next", s_next, false, false },
+        { "count", s_count, false, false },
+        { "size", s_size, false, false },
+        { "forEach", s_forEach, false, false },
+        { "map", s_map, false, false },
+        { "toArray", s_toArray, false, false },
+        { "hint", s_hint, false, false }
     };
 
     static ClassData s_cd = {

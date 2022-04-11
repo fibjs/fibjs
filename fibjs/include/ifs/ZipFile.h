@@ -81,24 +81,24 @@ namespace fibjs {
 inline ClassInfo& ZipFile_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "namelist", s_namelist, false },
-        { "namelistSync", s_namelist, false },
-        { "infolist", s_infolist, false },
-        { "infolistSync", s_infolist, false },
-        { "getinfo", s_getinfo, false },
-        { "getinfoSync", s_getinfo, false },
-        { "read", s_read, false },
-        { "readSync", s_read, false },
-        { "readAll", s_readAll, false },
-        { "readAllSync", s_readAll, false },
-        { "extract", s_extract, false },
-        { "extractSync", s_extract, false },
-        { "extractAll", s_extractAll, false },
-        { "extractAllSync", s_extractAll, false },
-        { "write", s_write, false },
-        { "writeSync", s_write, false },
-        { "close", s_close, false },
-        { "closeSync", s_close, false }
+        { "namelist", s_namelist, false, true },
+        { "namelistSync", s_namelist, false, false },
+        { "infolist", s_infolist, false, true },
+        { "infolistSync", s_infolist, false, false },
+        { "getinfo", s_getinfo, false, true },
+        { "getinfoSync", s_getinfo, false, false },
+        { "read", s_read, false, true },
+        { "readSync", s_read, false, false },
+        { "readAll", s_readAll, false, true },
+        { "readAllSync", s_readAll, false, false },
+        { "extract", s_extract, false, true },
+        { "extractSync", s_extract, false, false },
+        { "extractAll", s_extractAll, false, true },
+        { "extractAllSync", s_extractAll, false, false },
+        { "write", s_write, false, true },
+        { "writeSync", s_write, false, false },
+        { "close", s_close, false, true },
+        { "closeSync", s_close, false, false }
     };
 
     static ClassData s_cd = {

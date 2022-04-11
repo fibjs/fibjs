@@ -74,17 +74,17 @@ namespace fibjs {
 inline ClassInfo& HttpCollection_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "clear", s_clear, false },
-        { "has", s_has, false },
-        { "first", s_first, false },
-        { "all", s_all, false },
-        { "add", s_add, false },
-        { "set", s_set, false },
-        { "remove", s_remove, false },
-        { "delete", s__delete, false },
-        { "sort", s_sort, false },
-        { "keys", s_keys, false },
-        { "values", s_values, false }
+        { "clear", s_clear, false, false },
+        { "has", s_has, false, false },
+        { "first", s_first, false, false },
+        { "all", s_all, false, false },
+        { "add", s_add, false, false },
+        { "set", s_set, false, false },
+        { "remove", s_remove, false, false },
+        { "delete", s__delete, false, false },
+        { "sort", s_sort, false, false },
+        { "keys", s_keys, false, false },
+        { "values", s_values, false, false }
     };
 
     static ClassData::ClassNamed s_named = {

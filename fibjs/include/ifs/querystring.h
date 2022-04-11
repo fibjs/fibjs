@@ -52,10 +52,10 @@ namespace fibjs {
 inline ClassInfo& querystring_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "escape", s_static_escape, true },
-        { "unescape", s_static_unescape, true },
-        { "parse", s_static_parse, true },
-        { "stringify", s_static_stringify, true }
+        { "escape", s_static_escape, true, false },
+        { "unescape", s_static_unescape, true, false },
+        { "parse", s_static_parse, true, false },
+        { "stringify", s_static_stringify, true, false }
     };
 
     static ClassData s_cd = {

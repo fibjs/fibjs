@@ -136,20 +136,20 @@ namespace fibjs {
 inline ClassInfo& http_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "fileHandler", s_static_fileHandler, true },
-        { "setClientCert", s_static_setClientCert, true },
-        { "request", s_static_request, true },
-        { "requestSync", s_static_request, true },
-        { "get", s_static_get, true },
-        { "getSync", s_static_get, true },
-        { "post", s_static_post, true },
-        { "postSync", s_static_post, true },
-        { "del", s_static_del, true },
-        { "delSync", s_static_del, true },
-        { "put", s_static_put, true },
-        { "putSync", s_static_put, true },
-        { "patch", s_static_patch, true },
-        { "patchSync", s_static_patch, true }
+        { "fileHandler", s_static_fileHandler, true, false },
+        { "setClientCert", s_static_setClientCert, true, false },
+        { "request", s_static_request, true, true },
+        { "requestSync", s_static_request, true, false },
+        { "get", s_static_get, true, true },
+        { "getSync", s_static_get, true, false },
+        { "post", s_static_post, true, true },
+        { "postSync", s_static_post, true, false },
+        { "del", s_static_del, true, true },
+        { "delSync", s_static_del, true, false },
+        { "put", s_static_put, true, true },
+        { "putSync", s_static_put, true, false },
+        { "patch", s_static_patch, true, true },
+        { "patchSync", s_static_patch, true, false }
     };
 
     static ClassData::ClassObject s_object[] = {

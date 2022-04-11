@@ -75,23 +75,23 @@ namespace fibjs {
 inline ClassInfo& LevelDB_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "has", s_has, false },
-        { "hasSync", s_has, false },
-        { "get", s_get, false },
-        { "getSync", s_get, false },
-        { "mget", s_mget, false },
-        { "set", s_set, false },
-        { "setSync", s_set, false },
-        { "mset", s_mset, false },
-        { "mremove", s_mremove, false },
-        { "remove", s_remove, false },
-        { "removeSync", s_remove, false },
-        { "forEach", s_forEach, false },
-        { "between", s_between, false },
-        { "begin", s_begin, false },
-        { "commit", s_commit, false },
-        { "close", s_close, false },
-        { "closeSync", s_close, false }
+        { "has", s_has, false, true },
+        { "hasSync", s_has, false, false },
+        { "get", s_get, false, true },
+        { "getSync", s_get, false, false },
+        { "mget", s_mget, false, false },
+        { "set", s_set, false, true },
+        { "setSync", s_set, false, false },
+        { "mset", s_mset, false, false },
+        { "mremove", s_mremove, false, false },
+        { "remove", s_remove, false, true },
+        { "removeSync", s_remove, false, false },
+        { "forEach", s_forEach, false, false },
+        { "between", s_between, false, false },
+        { "begin", s_begin, false, false },
+        { "commit", s_commit, false, false },
+        { "close", s_close, false, true },
+        { "closeSync", s_close, false, false }
     };
 
     static ClassData s_cd = {

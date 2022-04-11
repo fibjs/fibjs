@@ -44,9 +44,9 @@ namespace fibjs {
 inline ClassInfo& Semaphore_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "wait", s_wait, false },
-        { "post", s_post, false },
-        { "trywait", s_trywait, false }
+        { "wait", s_wait, false, false },
+        { "post", s_post, false, false },
+        { "trywait", s_trywait, false, false }
     };
 
     static ClassData s_cd = {

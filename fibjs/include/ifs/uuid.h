@@ -66,11 +66,11 @@ namespace fibjs {
 inline ClassInfo& uuid_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "node", s_static_node, true },
-        { "md5", s_static_md5, true },
-        { "random", s_static_random, true },
-        { "sha1", s_static_sha1, true },
-        { "snowflake", s_static_snowflake, true }
+        { "node", s_static_node, true, false },
+        { "md5", s_static_md5, true, false },
+        { "random", s_static_random, true, false },
+        { "sha1", s_static_sha1, true, false },
+        { "snowflake", s_static_snowflake, true, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

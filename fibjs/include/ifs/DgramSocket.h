@@ -77,19 +77,19 @@ namespace fibjs {
 inline ClassInfo& DgramSocket_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "bind", s_bind, false },
-        { "bindSync", s_bind, false },
-        { "send", s_send, false },
-        { "sendSync", s_send, false },
-        { "address", s_address, false },
-        { "close", s_close, false },
-        { "getRecvBufferSize", s_getRecvBufferSize, false },
-        { "getSendBufferSize", s_getSendBufferSize, false },
-        { "setRecvBufferSize", s_setRecvBufferSize, false },
-        { "setSendBufferSize", s_setSendBufferSize, false },
-        { "setBroadcast", s_setBroadcast, false },
-        { "ref", s_ref, false },
-        { "unref", s_unref, false }
+        { "bind", s_bind, false, true },
+        { "bindSync", s_bind, false, false },
+        { "send", s_send, false, true },
+        { "sendSync", s_send, false, false },
+        { "address", s_address, false, false },
+        { "close", s_close, false, false },
+        { "getRecvBufferSize", s_getRecvBufferSize, false, false },
+        { "getSendBufferSize", s_getSendBufferSize, false, false },
+        { "setRecvBufferSize", s_setRecvBufferSize, false, false },
+        { "setSendBufferSize", s_setSendBufferSize, false, false },
+        { "setBroadcast", s_setBroadcast, false, false },
+        { "ref", s_ref, false, false },
+        { "unref", s_unref, false, false }
     };
 
     static ClassData s_cd = {

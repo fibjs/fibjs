@@ -61,9 +61,9 @@ namespace fibjs {
 inline ClassInfo& gui_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "setVersion", s_static_setVersion, true },
-        { "config", s_static_config, true },
-        { "open", s_static_open, true }
+        { "setVersion", s_static_setVersion, true, false },
+        { "config", s_static_config, true, false },
+        { "open", s_static_open, true, false }
     };
 
     static ClassData::ClassConst s_const[] = {

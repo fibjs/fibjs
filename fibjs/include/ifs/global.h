@@ -84,17 +84,17 @@ namespace fibjs {
 inline ClassInfo& global_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "run", s_static_run, true },
-        { "require", s_static_require, true },
-        { "setTimeout", s_static_setTimeout, true },
-        { "clearTimeout", s_static_clearTimeout, true },
-        { "setInterval", s_static_setInterval, true },
-        { "clearInterval", s_static_clearInterval, true },
-        { "setHrInterval", s_static_setHrInterval, true },
-        { "clearHrInterval", s_static_clearHrInterval, true },
-        { "setImmediate", s_static_setImmediate, true },
-        { "clearImmediate", s_static_clearImmediate, true },
-        { "GC", s_static_GC, true }
+        { "run", s_static_run, true, false },
+        { "require", s_static_require, true, false },
+        { "setTimeout", s_static_setTimeout, true, false },
+        { "clearTimeout", s_static_clearTimeout, true, false },
+        { "setInterval", s_static_setInterval, true, false },
+        { "clearInterval", s_static_clearInterval, true, false },
+        { "setHrInterval", s_static_setHrInterval, true, false },
+        { "clearHrInterval", s_static_clearHrInterval, true, false },
+        { "setImmediate", s_static_setImmediate, true, false },
+        { "clearImmediate", s_static_clearImmediate, true, false },
+        { "GC", s_static_GC, true, false }
     };
 
     static ClassData::ClassObject s_object[] = {

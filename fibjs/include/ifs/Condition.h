@@ -45,9 +45,9 @@ namespace fibjs {
 inline ClassInfo& Condition_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "wait", s_wait, false },
-        { "notify", s_notify, false },
-        { "notifyAll", s_notifyAll, false }
+        { "wait", s_wait, false, false },
+        { "notify", s_notify, false, false },
+        { "notifyAll", s_notifyAll, false, false }
     };
 
     static ClassData s_cd = {

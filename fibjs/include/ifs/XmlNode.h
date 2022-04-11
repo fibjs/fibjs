@@ -88,16 +88,16 @@ namespace fibjs {
 inline ClassInfo& XmlNode_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "hasChildNodes", s_hasChildNodes, false },
-        { "normalize", s_normalize, false },
-        { "cloneNode", s_cloneNode, false },
-        { "lookupPrefix", s_lookupPrefix, false },
-        { "lookupNamespaceURI", s_lookupNamespaceURI, false },
-        { "insertBefore", s_insertBefore, false },
-        { "insertAfter", s_insertAfter, false },
-        { "appendChild", s_appendChild, false },
-        { "replaceChild", s_replaceChild, false },
-        { "removeChild", s_removeChild, false }
+        { "hasChildNodes", s_hasChildNodes, false, false },
+        { "normalize", s_normalize, false, false },
+        { "cloneNode", s_cloneNode, false, false },
+        { "lookupPrefix", s_lookupPrefix, false, false },
+        { "lookupNamespaceURI", s_lookupNamespaceURI, false, false },
+        { "insertBefore", s_insertBefore, false, false },
+        { "insertAfter", s_insertAfter, false, false },
+        { "appendChild", s_appendChild, false, false },
+        { "replaceChild", s_replaceChild, false, false },
+        { "removeChild", s_removeChild, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

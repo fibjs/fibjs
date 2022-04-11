@@ -60,12 +60,12 @@ namespace fibjs {
 inline ClassInfo& Digest_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "update", s_update, false },
-        { "digest", s_digest, false },
-        { "sign", s_sign, false },
-        { "signSync", s_sign, false },
-        { "verify", s_verify, false },
-        { "verifySync", s_verify, false }
+        { "update", s_update, false, false },
+        { "digest", s_digest, false, false },
+        { "sign", s_sign, false, true },
+        { "signSync", s_sign, false, false },
+        { "verify", s_verify, false, true },
+        { "verifySync", s_verify, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {

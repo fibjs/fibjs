@@ -48,10 +48,10 @@ namespace fibjs {
 inline ClassInfo& dns_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "resolve", s_static_resolve, true },
-        { "resolveSync", s_static_resolve, true },
-        { "lookup", s_static_lookup, true },
-        { "lookupSync", s_static_lookup, true }
+        { "resolve", s_static_resolve, true, true },
+        { "resolveSync", s_static_resolve, true, false },
+        { "lookup", s_static_lookup, true, true },
+        { "lookupSync", s_static_lookup, true, false }
     };
 
     static ClassData s_cd = {

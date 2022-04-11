@@ -59,11 +59,11 @@ namespace fibjs {
 inline ClassInfo& Cipher_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "paddingMode", s_paddingMode, false },
-        { "encrypt", s_encrypt, false },
-        { "encryptSync", s_encrypt, false },
-        { "decrypt", s_decrypt, false },
-        { "decryptSync", s_decrypt, false }
+        { "paddingMode", s_paddingMode, false, false },
+        { "encrypt", s_encrypt, false, true },
+        { "encryptSync", s_encrypt, false, false },
+        { "decrypt", s_decrypt, false, true },
+        { "decryptSync", s_decrypt, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {
