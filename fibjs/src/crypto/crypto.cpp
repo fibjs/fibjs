@@ -305,31 +305,34 @@ result_t crypto_base::randomArt(Buffer_base* data, exlib::string title,
     return 0;
 }
 
-result_t crypto_base::genRsaKey(int32_t size, obj_ptr<PKey_base>& retVal, AsyncEvent* ac)
+result_t crypto_base::generateKey(int32_t size, obj_ptr<PKey_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    retVal = new PKey();
-    return retVal->genRsaKey(size, ac);
+    obj_ptr<PKey> key = new PKey();
+    result_t hr = key->generateKey(size, ac);
+    if (hr < 0)
+        return hr;
+
+    retVal = key;
+
+    return 0;
 }
 
-result_t crypto_base::genEcKey(exlib::string curve, obj_ptr<PKey_base>& retVal, AsyncEvent* ac)
+result_t crypto_base::generateKey(exlib::string curve, obj_ptr<PKey_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    retVal = new PKey();
-    return retVal->genEcKey(curve, ac);
-}
+    obj_ptr<PKey> key = new PKey();
+    result_t hr = key->generateKey(curve, ac);
+    if (hr < 0)
+        return hr;
 
-result_t crypto_base::genSm2Key(obj_ptr<PKey_base>& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+    retVal = key;
 
-    retVal = new PKey();
-    return retVal->genSm2Key(ac);
+    return 0;
 }
 
 inline int pkcs5_pbkdf1(mbedtls_md_context_t* ctx, const unsigned char* password,

@@ -66,9 +66,8 @@ public:
     static result_t pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t randomFill(Buffer_base* buffer, int32_t offset, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t randomArt(Buffer_base* data, exlib::string title, int32_t size, exlib::string& retVal);
-    static result_t genRsaKey(int32_t size, obj_ptr<PKey_base>& retVal, AsyncEvent* ac);
-    static result_t genEcKey(exlib::string curve, obj_ptr<PKey_base>& retVal, AsyncEvent* ac);
-    static result_t genSm2Key(obj_ptr<PKey_base>& retVal, AsyncEvent* ac);
+    static result_t generateKey(int32_t size, obj_ptr<PKey_base>& retVal, AsyncEvent* ac);
+    static result_t generateKey(exlib::string curve, obj_ptr<PKey_base>& retVal, AsyncEvent* ac);
     static result_t pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, int32_t algo, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, int32_t algo, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
@@ -98,9 +97,7 @@ public:
     static void s_static_pseudoRandomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_randomFill(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_randomArt(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_genRsaKey(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_genEcKey(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_genSm2Key(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_generateKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_pbkdf1(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_getHashes(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -110,9 +107,8 @@ public:
     ASYNC_STATICVALUE2(crypto_base, simpleRandomBytes, int32_t, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE2(crypto_base, pseudoRandomBytes, int32_t, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE4(crypto_base, randomFill, Buffer_base*, int32_t, int32_t, obj_ptr<Buffer_base>);
-    ASYNC_STATICVALUE2(crypto_base, genRsaKey, int32_t, obj_ptr<PKey_base>);
-    ASYNC_STATICVALUE2(crypto_base, genEcKey, exlib::string, obj_ptr<PKey_base>);
-    ASYNC_STATICVALUE1(crypto_base, genSm2Key, obj_ptr<PKey_base>);
+    ASYNC_STATICVALUE2(crypto_base, generateKey, int32_t, obj_ptr<PKey_base>);
+    ASYNC_STATICVALUE2(crypto_base, generateKey, exlib::string, obj_ptr<PKey_base>);
     ASYNC_STATICVALUE6(crypto_base, pbkdf1, Buffer_base*, Buffer_base*, int32_t, int32_t, int32_t, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE6(crypto_base, pbkdf1, Buffer_base*, Buffer_base*, int32_t, int32_t, exlib::string, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE6(crypto_base, pbkdf2, Buffer_base*, Buffer_base*, int32_t, int32_t, int32_t, obj_ptr<Buffer_base>);
@@ -147,12 +143,8 @@ inline ClassInfo& crypto_base::class_info()
         { "randomFill", s_static_randomFill, true, true },
         { "randomFillSync", s_static_randomFill, true, false },
         { "randomArt", s_static_randomArt, true, false },
-        { "genRsaKey", s_static_genRsaKey, true, true },
-        { "genRsaKeySync", s_static_genRsaKey, true, false },
-        { "genEcKey", s_static_genEcKey, true, true },
-        { "genEcKeySync", s_static_genEcKey, true, false },
-        { "genSm2Key", s_static_genSm2Key, true, true },
-        { "genSm2KeySync", s_static_genSm2Key, true, false },
+        { "generateKey", s_static_generateKey, true, true },
+        { "generateKeySync", s_static_generateKey, true, false },
         { "pbkdf1", s_static_pbkdf1, true, true },
         { "pbkdf1Sync", s_static_pbkdf1, true, false },
         { "pbkdf2", s_static_pbkdf2, true, true },
@@ -398,11 +390,11 @@ inline void crypto_base::s_static_randomArt(const v8::FunctionCallbackInfo<v8::V
     METHOD_RETURN();
 }
 
-inline void crypto_base::s_static_genRsaKey(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void crypto_base::s_static_generateKey(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<PKey_base> vr;
 
-    METHOD_NAME("crypto.genRsaKey");
+    METHOD_NAME("crypto.generateKey");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
@@ -410,45 +402,18 @@ inline void crypto_base::s_static_genRsaKey(const v8::FunctionCallbackInfo<v8::V
     ARG(int32_t, 0);
 
     if (!cb.IsEmpty())
-        hr = acb_genRsaKey(v0, cb, args);
+        hr = acb_generateKey(v0, cb, args);
     else
-        hr = ac_genRsaKey(v0, vr);
-
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_static_genEcKey(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<PKey_base> vr;
-
-    METHOD_NAME("crypto.genEcKey");
-    METHOD_ENTER();
+        hr = ac_generateKey(v0, vr);
 
     ASYNC_METHOD_OVER(1, 0);
 
     OPT_ARG(exlib::string, 0, "secp521r1");
 
     if (!cb.IsEmpty())
-        hr = acb_genEcKey(v0, cb, args);
+        hr = acb_generateKey(v0, cb, args);
     else
-        hr = ac_genEcKey(v0, vr);
-
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_static_genSm2Key(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<PKey_base> vr;
-
-    METHOD_NAME("crypto.genSm2Key");
-    METHOD_ENTER();
-
-    ASYNC_METHOD_OVER(0, 0);
-
-    if (!cb.IsEmpty())
-        hr = acb_genSm2Key(cb, args);
-    else
-        hr = ac_genSm2Key(vr);
+        hr = ac_generateKey(v0, vr);
 
     METHOD_RETURN();
 }

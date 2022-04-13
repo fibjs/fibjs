@@ -476,10 +476,8 @@ describe('crypto', () => {
             });
 
             it("gen_key", () => {
-                var pk = new crypto.PKey();
-                var pk1 = new crypto.PKey();
-                pk.genRsaKey(512);
-                pk1.genRsaKey(512);
+                var pk = crypto.generateKey(512);
+                var pk1 = crypto.generateKey(512);
 
                 assert.notEqual(pk.exportPem(), pk1.exportPem());
             });
@@ -492,10 +490,8 @@ describe('crypto', () => {
 
                 assert.ok(pk1.equal(pk));
 
-                var pk = new crypto.PKey();
-                var pk1 = new crypto.PKey();
-                pk.genRsaKey(512);
-                pk1.genRsaKey(512);
+                var pk = crypto.generateKey(512);
+                var pk1 = crypto.generateKey(512);
 
                 assert.notOk(pk1.equal(pk));
             });
@@ -635,10 +631,8 @@ describe('crypto', () => {
             });
 
             it("gen_key", () => {
-                var pk = new crypto.PKey();
-                var pk1 = new crypto.PKey();
-                pk.genEcKey();
-                pk1.genEcKey();
+                var pk = crypto.generateKey();
+                var pk1 = crypto.generateKey();
 
                 assert.notEqual(pk.exportPem(), pk1.exportPem());
             });
@@ -651,10 +645,8 @@ describe('crypto', () => {
 
                 assert.ok(pk1.equal(pk));
 
-                var pk = new crypto.PKey();
-                var pk1 = new crypto.PKey();
-                pk.genEcKey();
-                pk1.genEcKey();
+                var pk = crypto.generateKey();
+                var pk1 = crypto.generateKey();
 
                 assert.notOk(pk1.equal(pk));
             });
@@ -766,7 +758,7 @@ describe('crypto', () => {
 
                 assert.deepEqual(json, {
                     "kty": "SM2",
-                    "crv": "sm2p256r1",
+                    "crv": "SM2",
                     "x": "1KnIoMvdNODUrcEzQNnHbplwxNNyuHwIUnU0oNQ_0R0",
                     "y": "c_e2CHv5PB1-sKzzFGs30tT1XfwPUfIGnb5VEUN5bn4",
                     "d": "fcRRalaycsaXpKQYGcbmU8Qi93KqXnpodAwIK3vEOoI"
@@ -777,7 +769,7 @@ describe('crypto', () => {
 
                 pk.importKey({
                     "kty": "SM2",
-                    "crv": "sm2p256r1",
+                    "crv": "SM2",
                     "d": "fcRRalaycsaXpKQYGcbmU8Qi93KqXnpodAwIK3vEOoI"
                 });
                 assert.equal(pk.exportPem(), sm2_pem);
@@ -788,7 +780,7 @@ describe('crypto', () => {
 
                 assert.deepEqual(json, {
                     "kty": "SM2",
-                    "crv": "sm2p256r1",
+                    "crv": "SM2",
                     "x": "1KnIoMvdNODUrcEzQNnHbplwxNNyuHwIUnU0oNQ_0R0",
                     "y": "c_e2CHv5PB1-sKzzFGs30tT1XfwPUfIGnb5VEUN5bn4",
                 });
@@ -835,10 +827,8 @@ describe('crypto', () => {
             });
 
             it("gen_key", () => {
-                var pk = new crypto.PKey();
-                var pk1 = new crypto.PKey();
-                pk.genSm2Key();
-                pk1.genSm2Key();
+                var pk = crypto.generateKey("SM2");
+                var pk1 = crypto.generateKey("SM2");
 
                 assert.notEqual(pk.exportPem(), pk1.exportPem());
             });
@@ -852,10 +842,8 @@ describe('crypto', () => {
 
                 assert.ok(pk1.equal(pk));
 
-                var pk = new crypto.PKey();
-                var pk1 = new crypto.PKey();
-                pk.genSm2Key();
-                pk1.genSm2Key();
+                var pk = crypto.generateKey("SM2");
+                var pk1 = crypto.generateKey("SM2");
 
                 assert.notOk(pk1.equal(pk));
             });
@@ -892,9 +880,8 @@ describe('crypto', () => {
             });
 
             it("sign/verify with same key", () => {
-                var pk = new crypto.PKey();
+                var pk = crypto.generateKey("SM2");
                 var pk1 = new crypto.PKey();
-                pk.genSm2Key();
                 var json = pk.exportJson();
                 pk1.importKey(json);
 
@@ -904,8 +891,8 @@ describe('crypto', () => {
             });
 
             it("sign/verify to", () => {
-                var pk = crypto.genSm2Key();
-                var pk1 = crypto.genSm2Key();
+                var pk = crypto.generateKey("SM2");
+                var pk1 = crypto.generateKey("SM2");
 
                 var sig = pk.sign('abc', pk1.publicKey);
                 assert.isTrue(pk.publicKey.verify('abc', sig, pk1));
@@ -914,8 +901,8 @@ describe('crypto', () => {
             });
 
             it("ecsdsa sign/verify to", () => {
-                var pk = crypto.genSm2Key();
-                var pk1 = crypto.genSm2Key();
+                var pk = crypto.generateKey("SM2");
+                var pk1 = crypto.generateKey("SM2");
                 pk.sigType = 'ecsdsa';
 
                 var sig = pk.sign('abc', pk1.publicKey);
@@ -926,22 +913,22 @@ describe('crypto', () => {
         });
 
         it("ECDH", () => {
-            var alice = crypto.genEcKey('secp256r1');
-            var bob = crypto.genEcKey('secp256r1');
+            var alice = crypto.generateKey('secp256r1');
+            var bob = crypto.generateKey('secp256r1');
             var aliceSecret = alice.computeSecret(bob);
             var bobSecret = bob.computeSecret(alice);
 
             assert.deepEqual(aliceSecret, bobSecret);
 
-            var alice = crypto.genEcKey('secp256k1');
-            var bob = crypto.genEcKey('secp256k1');
+            var alice = crypto.generateKey('secp256k1');
+            var bob = crypto.generateKey('secp256k1');
             var aliceSecret = alice.computeSecret(bob);
             var bobSecret = bob.computeSecret(alice);
 
             assert.deepEqual(aliceSecret, bobSecret);
 
-            var alice = crypto.genSm2Key();
-            var bob = crypto.genSm2Key();
+            var alice = crypto.generateKey("SM2");
+            var bob = crypto.generateKey("SM2");
             var aliceSecret = alice.computeSecret(bob);
             var bobSecret = bob.computeSecret(alice);
 
@@ -1004,7 +991,7 @@ describe('crypto', () => {
             assert.equal(pk.curve, 'P-521');
 
             pk.importKey(sm2_pem);
-            assert.equal(pk.curve, 'sm2p256r1');
+            assert.equal(pk.curve, 'SM2');
         });
     });
 
@@ -1031,7 +1018,7 @@ describe('crypto', () => {
                     var pk = new crypto.PKey(c.key);
                     pk.sigType = 'ecsdsa';
 
-                    var pk1 = crypto.genEcKey(c.key.crv);
+                    var pk1 = crypto.generateKey(c.key.crv);
 
                     var sig = pk.sign('abc', pk1.publicKey);
                     assert.isTrue(pk.publicKey.verify('abc', sig, pk1));
@@ -1045,7 +1032,7 @@ describe('crypto', () => {
             it("verify", () => {
                 var pk = new crypto.PKey({
                     "kty": "SM2",
-                    "crv": "sm2p256r1",
+                    "crv": "SM2",
                     "d": "fcRRalaycsaXpKQYGcbmU8Qi93KqXnpodAwIK3vEOoI"
                 });
                 pk.sigType = 'ecsdsa';
@@ -1057,7 +1044,7 @@ describe('crypto', () => {
             it("sign/verify", () => {
                 var pk = new crypto.PKey({
                     "kty": "SM2",
-                    "crv": "sm2p256r1",
+                    "crv": "SM2",
                     "d": "fcRRalaycsaXpKQYGcbmU8Qi93KqXnpodAwIK3vEOoI"
                 });
                 pk.sigType = 'ecsdsa';
@@ -1069,12 +1056,12 @@ describe('crypto', () => {
             it("sign/verify to", () => {
                 var pk = new crypto.PKey({
                     "kty": "SM2",
-                    "crv": "sm2p256r1",
+                    "crv": "SM2",
                     "d": "fcRRalaycsaXpKQYGcbmU8Qi93KqXnpodAwIK3vEOoI"
                 });
                 pk.sigType = 'ecsdsa';
 
-                var pk1 = crypto.genSm2Key();
+                var pk1 = crypto.generateKey("SM2");
 
                 var sig = pk.sign('abc', pk1.publicKey);
                 assert.isTrue(pk.publicKey.verify('abc', sig, pk1));

@@ -32,9 +32,6 @@ public:
     virtual result_t get_sigType(exlib::string& retVal) = 0;
     virtual result_t set_sigType(exlib::string newVal) = 0;
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal) = 0;
-    virtual result_t genRsaKey(int32_t size, AsyncEvent* ac) = 0;
-    virtual result_t genEcKey(exlib::string curve, AsyncEvent* ac) = 0;
-    virtual result_t genSm2Key(AsyncEvent* ac) = 0;
     virtual result_t isPrivate(bool& retVal) = 0;
     virtual result_t clone(obj_ptr<PKey_base>& retVal) = 0;
     virtual result_t importKey(Buffer_base* DerKey, exlib::string password) = 0;
@@ -65,9 +62,6 @@ public:
     static void s_get_sigType(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_sigType(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_publicKey(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_genRsaKey(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_genEcKey(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_genSm2Key(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_isPrivate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clone(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_importKey(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -83,9 +77,6 @@ public:
     static void s_computeSecret(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_MEMBER1(PKey_base, genRsaKey, int32_t);
-    ASYNC_MEMBER1(PKey_base, genEcKey, exlib::string);
-    ASYNC_MEMBER0(PKey_base, genSm2Key);
     ASYNC_MEMBERVALUE2(PKey_base, encrypt, Buffer_base*, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE2(PKey_base, decrypt, Buffer_base*, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE3(PKey_base, sign, Buffer_base*, int32_t, obj_ptr<Buffer_base>);
@@ -102,12 +93,6 @@ namespace fibjs {
 inline ClassInfo& PKey_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "genRsaKey", s_genRsaKey, false, true },
-        { "genRsaKeySync", s_genRsaKey, false, false },
-        { "genEcKey", s_genEcKey, false, true },
-        { "genEcKeySync", s_genEcKey, false, false },
-        { "genSm2Key", s_genSm2Key, false, true },
-        { "genSm2KeySync", s_genSm2Key, false, false },
         { "isPrivate", s_isPrivate, false, false },
         { "clone", s_clone, false, false },
         { "importKey", s_importKey, false, false },
@@ -262,58 +247,6 @@ inline void PKey_base::s_get_publicKey(v8::Local<v8::Name> property, const v8::P
     hr = pInst->get_publicKey(vr);
 
     METHOD_RETURN();
-}
-
-inline void PKey_base::s_genRsaKey(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("PKey.genRsaKey");
-    METHOD_INSTANCE(PKey_base);
-    METHOD_ENTER();
-
-    ASYNC_METHOD_OVER(1, 1);
-
-    ARG(int32_t, 0);
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_genRsaKey(v0, cb, args);
-    else
-        hr = pInst->ac_genRsaKey(v0);
-
-    METHOD_VOID();
-}
-
-inline void PKey_base::s_genEcKey(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("PKey.genEcKey");
-    METHOD_INSTANCE(PKey_base);
-    METHOD_ENTER();
-
-    ASYNC_METHOD_OVER(1, 0);
-
-    OPT_ARG(exlib::string, 0, "secp521r1");
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_genEcKey(v0, cb, args);
-    else
-        hr = pInst->ac_genEcKey(v0);
-
-    METHOD_VOID();
-}
-
-inline void PKey_base::s_genSm2Key(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("PKey.genSm2Key");
-    METHOD_INSTANCE(PKey_base);
-    METHOD_ENTER();
-
-    ASYNC_METHOD_OVER(0, 0);
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_genSm2Key(cb, args);
-    else
-        hr = pInst->ac_genSm2Key();
-
-    METHOD_VOID();
 }
 
 inline void PKey_base::s_isPrivate(const v8::FunctionCallbackInfo<v8::Value>& args)

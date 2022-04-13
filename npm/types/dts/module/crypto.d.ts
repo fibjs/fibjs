@@ -266,28 +266,19 @@ declare module 'crypto' {
      *      @return 返回包含生成私钥的对象
      *     
      */
-    function genRsaKey(size: number): Class_PKey;
+    function generateKey(size: number): Class_PKey;
 
-    function genRsaKey(size: number, callback: (err: Error | undefined | null, retVal: Class_PKey)=>any): void;
+    function generateKey(size: number, callback: (err: Error | undefined | null, retVal: Class_PKey)=>any): void;
 
     /**
-     * @description 生成一个 EC 私钥
-     *      @param curve 指定预置椭圆曲线，可选值为："secp521r1", "brainpoolP512r1", "secp384r1", "brainpoolP384r1", "secp256r1", "secp256k1", "brainpoolP256r1", "secp224r1", "secp224k1", "secp192r1", "secp192k1"
+     * @description 生成一个椭圆曲线私钥
+     *      @param curve 指定预置椭圆曲线，可选值为："secp521r1", "P-521", "brainpoolP512r1", "secp384r1", "P-384", "brainpoolP384r1", "secp256r1", "P-256", "secp256k1", "P-256K", "brainpoolP256r1", "secp224r1", "secp224k1", "secp192r1", "secp192k1", "sm2p256r1", "SM2"
      *      @return 返回包含生成私钥的对象
      *     
      */
-    function genEcKey(curve?: string): Class_PKey;
+    function generateKey(curve?: string): Class_PKey;
 
-    function genEcKey(curve?: string, callback?: (err: Error | undefined | null, retVal: Class_PKey)=>any): void;
-
-    /**
-     * @description 生成一个 SM2 私钥
-     *      @return 返回包含生成私钥的对象
-     *     
-     */
-    function genSm2Key(): Class_PKey;
-
-    function genSm2Key(callback: (err: Error | undefined | null, retVal: Class_PKey)=>any): void;
+    function generateKey(curve?: string, callback?: (err: Error | undefined | null, retVal: Class_PKey)=>any): void;
 
     /**
      * @description 依据 pbkdf1 根据明文 password 生成要求的二进制钥匙

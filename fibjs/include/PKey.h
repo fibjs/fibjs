@@ -33,9 +33,6 @@ public:
     virtual result_t get_sigType(exlib::string& retVal);
     virtual result_t set_sigType(exlib::string newVal);
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal);
-    virtual result_t genRsaKey(int32_t size, AsyncEvent* ac);
-    virtual result_t genEcKey(exlib::string curve, AsyncEvent* ac);
-    virtual result_t genSm2Key(AsyncEvent* ac);
     virtual result_t isPrivate(bool& retVal);
     virtual result_t clone(obj_ptr<PKey_base>& retVal);
     virtual result_t importKey(Buffer_base* DerKey, exlib::string password);
@@ -56,6 +53,8 @@ public:
 
 public:
     result_t copy(const mbedtls_pk_context& key);
+    result_t generateKey(int32_t size, AsyncEvent* ac);
+    result_t generateKey(exlib::string curve, AsyncEvent* ac);
 
 private:
     void clear();

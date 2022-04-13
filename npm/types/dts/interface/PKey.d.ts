@@ -109,32 +109,6 @@ declare class Class_PKey extends Class_object {
     readonly publicKey: Class_PKey;
 
     /**
-     * @description 生成一个 RSA 私钥
-     *      @param size 指定 RSA 密钥长度，bit 为单位
-     *     
-     */
-    genRsaKey(size: number): void;
-
-    genRsaKey(size: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description 生成一个 EC 私钥
-     *      @param curve 指定预置椭圆曲线，可选值为："secp521r1", "brainpoolP512r1", "secp384r1", "brainpoolP384r1", "secp256r1", "secp256k1", "brainpoolP256r1", "secp224r1", "secp224k1", "secp192r1", "secp192k1"
-     *     
-     */
-    genEcKey(curve?: string): void;
-
-    genEcKey(curve?: string, callback?: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description 生成一个 SM2 私钥
-     *     
-     */
-    genSm2Key(): void;
-
-    genSm2Key(callback: (err: Error | undefined | null)=>any): void;
-
-    /**
      * @description 查询当前密钥是否为私钥
      *      @return 为 True 表示为私钥
      *     

@@ -24,11 +24,8 @@ if (os.type() == 'Windows' && os.version < "6.0")
         address: '127.0.0.1'
     };
 
-var pk = new crypto.PKey();
-pk.genEcKey();
-
-var pk1 = new crypto.PKey();
-pk1.genEcKey();
+var pk = crypto.generateKey();
+var pk1 = crypto.generateKey();
 
 var crt = new crypto.X509Req("CN=localhost", pk).sign("CN=baoz.me", pk);
 var crt1 = new crypto.X509Req("CN=localhost1", pk1).sign("CN=baoz.me", pk);
@@ -315,15 +312,15 @@ describe('ssl', () => {
     });
 
     it('secp256k1 speed', () => {
-        var pk = crypto.genEcKey('secp256k1');
+        var pk = crypto.generateKey('secp256k1');
         var ca = new crypto.X509Req("CN=localhost", pk).sign("CN=localhost", pk, {
             ca: true
         });
 
-        var pk1 = crypto.genEcKey('secp256k1');
+        var pk1 = crypto.generateKey('secp256k1');
         var crt1 = new crypto.X509Req("CN=127.0.0.1", pk1).sign("CN=localhost", pk);
 
-        var pk2 = crypto.genEcKey('secp256k1');
+        var pk2 = crypto.generateKey('secp256k1');
         var crt2 = new crypto.X509Req("CN=127.0.0.1", pk2).sign("CN=localhost", pk);
 
         ssl.ca.load(ca.dump()[0]);

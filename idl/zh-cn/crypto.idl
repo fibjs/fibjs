@@ -169,18 +169,13 @@ module crypto
      @param size 指定 RSA 密钥长度，bit 为单位
      @return 返回包含生成私钥的对象
     */
-    static PKey genRsaKey(Integer size) async;
+    static PKey generateKey(Integer size) async;
 
-    /*! @brief 生成一个 EC 私钥
-     @param curve 指定预置椭圆曲线，可选值为："secp521r1", "brainpoolP512r1", "secp384r1", "brainpoolP384r1", "secp256r1", "secp256k1", "brainpoolP256r1", "secp224r1", "secp224k1", "secp192r1", "secp192k1"
+    /*! @brief 生成一个椭圆曲线私钥
+     @param curve 指定预置椭圆曲线，可选值为："secp521r1", "P-521", "brainpoolP512r1", "secp384r1", "P-384", "brainpoolP384r1", "secp256r1", "P-256", "secp256k1", "P-256K", "brainpoolP256r1", "secp224r1", "secp224k1", "secp192r1", "secp192k1", "sm2p256r1", "SM2"
      @return 返回包含生成私钥的对象
     */
-    static PKey genEcKey(String curve = "secp521r1") async;
-
-    /*! @brief 生成一个 SM2 私钥
-     @return 返回包含生成私钥的对象
-    */
-    static PKey genSm2Key() async;
+    static PKey generateKey(String curve = "secp521r1") async;
 
     /*! @brief 依据 pbkdf1 根据明文 password 生成要求的二进制钥匙
      @param password 指定使用的密码
