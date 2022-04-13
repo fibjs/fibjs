@@ -100,13 +100,13 @@ interface PKey : object
      @param DerKey DER 格式的密钥
      @param password 解密密码
     */
-    importKey(Buffer DerKey, String password = "");
+    import(Buffer DerKey, String password = "");
 
     /*! @brief 加载一个 PEM 格式的密钥
      @param pemKey PEM 格式的密钥
      @param password 解密密码
     */
-    importKey(String pemKey, String password = "");
+    import(String pemKey, String password = "");
 
     /*! @brief 加载一个 JSON 格式的密钥
 
@@ -153,7 +153,7 @@ interface PKey : object
      ```
      @param jsonKey JSON 格式的密钥
     */
-    importKey(Object jsonKey);
+    import(Object jsonKey);
 
     /*! @brief 加载一个 PEM/DER 格式的密钥文件
      @param filename 密钥文件名
@@ -164,17 +164,17 @@ interface PKey : object
     /*! @brief 返回当前 key 的 PEM 格式编码
      @return 当前 key 的 PEM 格式编码
     */
-    String exportPem();
+    String pem();
 
     /*! @brief 返回当前 key 的 DER 格式编码
      @return 当前 key 的 DER 格式编码
     */
-    Buffer exportDer();
+    Buffer der();
 
     /*! @brief 返回当前 key 的 DER 格式编码
      @return 当前 key 的 DER 格式编码
     */
-    Object exportJson();
+    Object json();
 
     /*! @brief 比较两个公/私钥是否相同
      @param key 指定对方的公/私钥

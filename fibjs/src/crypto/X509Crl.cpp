@@ -10,6 +10,7 @@
 #include "ssl.h"
 #include "X509Crl.h"
 #include "Buffer.h"
+#include "StringBuffer.h"
 #include <mbedtls/mbedtls/pem.h>
 
 namespace fibjs {
@@ -24,7 +25,7 @@ result_t X509Crl_base::_new(Buffer_base* derCrl, obj_ptr<X509Crl_base>& retVal,
     v8::Local<v8::Object> This)
 {
     obj_ptr<X509Crl> crl = new X509Crl();
-    result_t hr = crl->load(derCrl);
+    result_t hr = crl->import(derCrl);
     if (hr < 0)
         return hr;
 
@@ -36,7 +37,7 @@ result_t X509Crl_base::_new(exlib::string pemCrl, obj_ptr<X509Crl_base>& retVal,
     v8::Local<v8::Object> This)
 {
     obj_ptr<X509Crl> crl = new X509Crl();
-    result_t hr = crl->load(pemCrl);
+    result_t hr = crl->import(pemCrl);
     if (hr < 0)
         return hr;
 
@@ -61,7 +62,7 @@ X509Crl::~X509Crl()
         mbedtls_x509_crl_free(&m_crl);
 }
 
-result_t X509Crl::load(Buffer_base* derCrl)
+result_t X509Crl::import(Buffer_base* derCrl)
 {
     if (m_root)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -79,7 +80,7 @@ result_t X509Crl::load(Buffer_base* derCrl)
     return 0;
 }
 
-result_t X509Crl::load(exlib::string pemCrl)
+result_t X509Crl::import(exlib::string pemCrl)
 {
     if (m_root)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -108,23 +109,20 @@ result_t X509Crl::loadFile(exlib::string filename)
         return hr;
 
     if (qstrstr(data.c_str(), "BEGIN"))
-        return load(data);
+        return import(data);
 
     buf = new Buffer(data);
-    return load(buf);
+    return import(buf);
 }
 
 #define PEM_BEGIN_CRL "-----BEGIN X509 CRL-----\n"
 #define PEM_END_CRL "-----END X509 CRL-----\n"
 
-result_t X509Crl::dump(bool pem, v8::Local<v8::Array>& retVal)
+result_t X509Crl::pem(bool all, exlib::string& retVal)
 {
-    if (m_root)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
-    retVal = v8::Array::New(isolate->m_isolate);
+    StringBuffer sb;
 
     const mbedtls_x509_crl* pCrl = &m_crl;
     int32_t ret, n = 0;
@@ -133,22 +131,30 @@ result_t X509Crl::dump(bool pem, v8::Local<v8::Array>& retVal)
 
     while (pCrl) {
         if (pCrl->raw.len > 0) {
-            if (pem) {
-                buf.resize(pCrl->raw.len * 2 + 64);
-                ret = mbedtls_pem_write_buffer(PEM_BEGIN_CRL, PEM_END_CRL,
-                    pCrl->raw.p, pCrl->raw.len,
-                    (unsigned char*)buf.c_buffer(), buf.length(), &olen);
-                if (ret != 0)
-                    return CHECK_ERROR(_ssl::setError(ret));
+            buf.resize(pCrl->raw.len * 2 + 64);
+            ret = mbedtls_pem_write_buffer(PEM_BEGIN_CRL, PEM_END_CRL, pCrl->raw.p, pCrl->raw.len,
+                (unsigned char*)buf.c_buffer(), buf.length(), &olen);
+            if (ret != 0)
+                return CHECK_ERROR(_ssl::setError(ret));
 
-                retVal->Set(context, n++, isolate->NewString(buf.c_str(), (int32_t)olen - 1));
-            } else {
-                obj_ptr<Buffer> data = new Buffer(pCrl->raw.p, pCrl->raw.len);
-                retVal->Set(context, n++, data->wrap());
-            }
+            sb.append(buf.c_str(), (int32_t)olen - 1);
         }
+
+        if (!all)
+            break;
+
         pCrl = pCrl->next;
     }
+
+    retVal = sb.str();
+
+    return 0;
+}
+
+result_t X509Crl::der(obj_ptr<Buffer_base>& retVal)
+{
+    const mbedtls_x509_crl* pCrl = &m_crl;
+    retVal = new Buffer(pCrl->raw.p, pCrl->raw.len);
 
     return 0;
 }

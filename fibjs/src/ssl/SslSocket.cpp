@@ -363,7 +363,7 @@ result_t SslSocket::get_peerCert(obj_ptr<X509Cert_base>& retVal)
 
     obj_ptr<X509Cert> crtObject = new X509Cert();
 
-    result_t hr = crtObject->load(crt);
+    result_t hr = crtObject->import(crt);
     if (hr < 0)
         return hr;
 

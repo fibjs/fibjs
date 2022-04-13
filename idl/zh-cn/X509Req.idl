@@ -30,27 +30,22 @@ interface X509Req : object
     /*! @brief 加载一个 DER 格式的证书请求
      @param derReq DER 格式的证书请求
     */
-    load(Buffer derReq);
+    import(Buffer derReq);
 
     /*! @brief 加载一个 PEM 格式的证书请求
      @param pemReq PEM 格式的证书请求
     */
-    load(String pemReq);
-
-    /*! @brief 加载一个 PEM/DER 格式的证书请求，可多次调用
-     @param filename 证书请求文件名
-    */
-    loadFile(String filename);
+    import(String pemReq);
 
     /*! @brief 返回当前证书请求的 PEM 格式编码
      @return 当前证书请求的 PEM 格式编码
     */
-    String exportPem();
+    String pem();
 
     /*! @brief 返回当前证书请求的 DER 格式编码
      @return 当前证书请求的 DER 格式编码
     */
-    Buffer exportDer();
+    Buffer der();
 
     /*! @brief 签名当前证书请求为正式证书
 

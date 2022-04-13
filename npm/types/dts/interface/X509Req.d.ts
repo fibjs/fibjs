@@ -46,35 +46,28 @@ declare class Class_X509Req extends Class_object {
      *      @param derReq DER 格式的证书请求
      *     
      */
-    load(derReq: Class_Buffer): void;
+    import(derReq: Class_Buffer): void;
 
     /**
      * @description 加载一个 PEM 格式的证书请求
      *      @param pemReq PEM 格式的证书请求
      *     
      */
-    load(pemReq: string): void;
-
-    /**
-     * @description 加载一个 PEM/DER 格式的证书请求，可多次调用
-     *      @param filename 证书请求文件名
-     *     
-     */
-    loadFile(filename: string): void;
+    import(pemReq: string): void;
 
     /**
      * @description 返回当前证书请求的 PEM 格式编码
      *      @return 当前证书请求的 PEM 格式编码
      *     
      */
-    exportPem(): string;
+    pem(): string;
 
     /**
      * @description 返回当前证书请求的 DER 格式编码
      *      @return 当前证书请求的 DER 格式编码
      *     
      */
-    exportDer(): Class_Buffer;
+    der(): Class_Buffer;
 
     /**
      * @description 签名当前证书请求为正式证书

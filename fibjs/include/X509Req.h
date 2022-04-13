@@ -24,11 +24,10 @@ public:
 
 public:
     // X509Req_base
-    virtual result_t load(Buffer_base* derReq);
-    virtual result_t load(exlib::string pemReq);
-    virtual result_t loadFile(exlib::string filename);
-    virtual result_t exportPem(exlib::string& retVal);
-    virtual result_t exportDer(obj_ptr<Buffer_base>& retVal);
+    virtual result_t import(Buffer_base* derReq);
+    virtual result_t import(exlib::string pemReq);
+    virtual result_t pem(exlib::string& retVal);
+    virtual result_t der(obj_ptr<Buffer_base>& retVal);
     virtual result_t sign(exlib::string issuer, PKey_base* key, v8::Local<v8::Object> opts, obj_ptr<X509Cert_base>& retVal, AsyncEvent* ac);
     virtual result_t get_subject(exlib::string& retVal);
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal);
@@ -37,6 +36,7 @@ public:
 
 public:
     result_t create(exlib::string subject, PKey_base* key, int32_t hash);
+    result_t loadFile(exlib::string filename);
 
 private:
     void clear();

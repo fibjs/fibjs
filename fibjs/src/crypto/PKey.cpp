@@ -84,7 +84,7 @@ result_t PKey_base::_new(Buffer_base* DerKey, exlib::string password, obj_ptr<PK
     v8::Local<v8::Object> This)
 {
     obj_ptr<PKey> pk = new PKey();
-    result_t hr = pk->importKey(DerKey, password);
+    result_t hr = pk->import(DerKey, password);
     if (hr < 0)
         return hr;
 
@@ -96,7 +96,7 @@ result_t PKey_base::_new(exlib::string pemKey, exlib::string password, obj_ptr<P
     v8::Local<v8::Object> This)
 {
     obj_ptr<PKey> pk = new PKey();
-    result_t hr = pk->importKey(pemKey, password);
+    result_t hr = pk->import(pemKey, password);
     if (hr < 0)
         return hr;
 
@@ -108,7 +108,7 @@ result_t PKey_base::_new(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retV
     v8::Local<v8::Object> This)
 {
     obj_ptr<PKey> pk = new PKey();
-    result_t hr = pk->importKey(jsonKey);
+    result_t hr = pk->import(jsonKey);
     if (hr < 0)
         return hr;
 
@@ -333,7 +333,7 @@ result_t PKey::clone(obj_ptr<PKey_base>& retVal)
     return 0;
 }
 
-result_t PKey::importKey(Buffer_base* DerKey, exlib::string password)
+result_t PKey::import(Buffer_base* DerKey, exlib::string password)
 {
     int32_t ret;
 
@@ -355,7 +355,7 @@ result_t PKey::importKey(Buffer_base* DerKey, exlib::string password)
     return 0;
 }
 
-result_t PKey::importKey(exlib::string pemKey, exlib::string password)
+result_t PKey::import(exlib::string pemKey, exlib::string password)
 {
     int32_t ret;
 
@@ -406,7 +406,7 @@ inline result_t mpi_load(Isolate* isolate, mbedtls_mpi* n, v8::Local<v8::Object>
     return 0;
 }
 
-result_t PKey::importKey(v8::Local<v8::Object> jsonKey)
+result_t PKey::import(v8::Local<v8::Object> jsonKey)
 {
     Isolate* isolate = holder();
     int32_t ret;
@@ -545,13 +545,13 @@ result_t PKey::importFile(exlib::string filename, exlib::string password)
         return hr;
 
     if (qstrstr(data.c_str(), "BEGIN"))
-        return importKey(data, password);
+        return import(data, password);
 
     buf = new Buffer(data);
-    return importKey(buf, password);
+    return import(buf, password);
 }
 
-result_t PKey::exportPem(exlib::string& retVal)
+result_t PKey::pem(exlib::string& retVal)
 {
     result_t hr;
     bool priv;
@@ -577,7 +577,7 @@ result_t PKey::exportPem(exlib::string& retVal)
     return 0;
 }
 
-result_t PKey::exportDer(obj_ptr<Buffer_base>& retVal)
+result_t PKey::der(obj_ptr<Buffer_base>& retVal)
 {
     result_t hr;
     bool priv;
@@ -616,7 +616,7 @@ inline void mpi_dump(Isolate* isolate, v8::Local<v8::Object> o, exlib::string ke
     o->Set(isolate->context(), isolate->NewString(key), isolate->NewString(b64));
 }
 
-result_t PKey::exportJson(v8::Local<v8::Object>& retVal)
+result_t PKey::json(v8::Local<v8::Object>& retVal)
 {
     result_t hr;
     bool priv;
@@ -1114,14 +1114,14 @@ result_t PKey::set_sigType(exlib::string newVal)
 
 result_t PKey::toString(exlib::string& retVal)
 {
-    return exportPem(retVal);
+    return pem(retVal);
 }
 
 result_t PKey::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
 {
     v8::Local<v8::Object> o;
 
-    result_t hr = exportJson(o);
+    result_t hr = json(o);
     retVal = o;
 
     return hr;

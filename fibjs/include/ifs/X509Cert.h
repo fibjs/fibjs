@@ -26,12 +26,12 @@ public:
     static result_t _new(obj_ptr<X509Cert_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(Buffer_base* derCert, obj_ptr<X509Cert_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string txtCert, obj_ptr<X509Cert_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t load(Buffer_base* derCert) = 0;
-    virtual result_t load(exlib::string txtCert) = 0;
-    virtual result_t loadFile(exlib::string filename) = 0;
+    virtual result_t import(Buffer_base* derCert) = 0;
+    virtual result_t import(exlib::string txtCert) = 0;
     virtual result_t loadRootCerts() = 0;
     virtual result_t verify(X509Cert_base* cert, bool& retVal, AsyncEvent* ac) = 0;
-    virtual result_t dump(bool pem, v8::Local<v8::Array>& retVal) = 0;
+    virtual result_t pem(bool all, exlib::string& retVal) = 0;
+    virtual result_t der(obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t clear() = 0;
     virtual result_t get_version(int32_t& retVal) = 0;
     virtual result_t get_serial(exlib::string& retVal) = 0;
@@ -54,11 +54,11 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_load(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_loadFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_import(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_loadRootCerts(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_verify(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_dump(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_pem(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_der(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clear(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_version(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_serial(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -87,12 +87,12 @@ namespace fibjs {
 inline ClassInfo& X509Cert_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "load", s_load, false, false },
-        { "loadFile", s_loadFile, false, false },
+        { "import", s_import, false, false },
         { "loadRootCerts", s_loadRootCerts, false, false },
         { "verify", s_verify, false, true },
         { "verifySync", s_verify, false, false },
-        { "dump", s_dump, false, false },
+        { "pem", s_pem, false, false },
+        { "der", s_der, false, false },
         { "clear", s_clear, false, false }
     };
 
@@ -156,9 +156,9 @@ void X509Cert_base::__new(const T& args)
     CONSTRUCT_RETURN();
 }
 
-inline void X509Cert_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void X509Cert_base::s_import(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("X509Cert.load");
+    METHOD_NAME("X509Cert.import");
     METHOD_INSTANCE(X509Cert_base);
     METHOD_ENTER();
 
@@ -166,28 +166,13 @@ inline void X509Cert_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    hr = pInst->load(v0);
+    hr = pInst->import(v0);
 
     METHOD_OVER(1, 1);
 
     ARG(exlib::string, 0);
 
-    hr = pInst->load(v0);
-
-    METHOD_VOID();
-}
-
-inline void X509Cert_base::s_loadFile(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("X509Cert.loadFile");
-    METHOD_INSTANCE(X509Cert_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    hr = pInst->loadFile(v0);
+    hr = pInst->import(v0);
 
     METHOD_VOID();
 }
@@ -225,11 +210,11 @@ inline void X509Cert_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_RETURN();
 }
 
-inline void X509Cert_base::s_dump(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void X509Cert_base::s_pem(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Array> vr;
+    exlib::string vr;
 
-    METHOD_NAME("X509Cert.dump");
+    METHOD_NAME("X509Cert.pem");
     METHOD_INSTANCE(X509Cert_base);
     METHOD_ENTER();
 
@@ -237,7 +222,22 @@ inline void X509Cert_base::s_dump(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     OPT_ARG(bool, 0, true);
 
-    hr = pInst->dump(v0, vr);
+    hr = pInst->pem(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void X509Cert_base::s_der(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_NAME("X509Cert.der");
+    METHOD_INSTANCE(X509Cert_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->der(vr);
 
     METHOD_RETURN();
 }

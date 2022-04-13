@@ -34,7 +34,7 @@ var ca = new crypto.X509Req("CN=baoz.me", pk).sign("CN=baoz.me", pk, {
     ca: true
 });
 
-var ca_pem = ca.dump()[0];
+var ca_pem = ca.pem();
 
 function del(f) {
     try {
@@ -50,11 +50,11 @@ describe('ssl', () => {
     it("root ca", () => {
         var cert = new crypto.X509Cert();
 
-        cert.load(fs.readTextFile(path.join(__dirname, 'cert_files', 'ca-bundle.crt')));
-        var s = cert.dump();
+        cert.import(fs.readTextFile(path.join(__dirname, 'cert_files', 'ca-bundle.crt')));
+        var s = cert.pem();
 
         ssl.loadRootCerts();
-        var s1 = ssl.ca.dump();
+        var s1 = ssl.ca.pem();
 
         assert.deepEqual(s, s1.slice(s1.length - s.length));
     });
@@ -66,12 +66,12 @@ describe('ssl', () => {
             key: pk
         }, {
             name: 'localhost1',
-            crt: crt1.dump(false)[0],
-            key: pk1.exportPem()
+            crt: crt1.der(),
+            key: pk1.pem()
         }, {
             name: '*.any',
-            crt: crt2.dump()[0],
-            key: pk.exportDer()
+            crt: crt2.pem(),
+            key: pk.der()
         }]);
         sss.verification = ssl.VERIFY_NONE;
 
@@ -144,7 +144,7 @@ describe('ssl', () => {
         ssl.verification = ssl.VERIFY_REQUIRED;
         assert.throws(test_handshake);
 
-        ssl.ca.load(ca_pem);
+        ssl.ca.import(ca_pem);
         test_handshake();
     });
 
@@ -152,7 +152,7 @@ describe('ssl', () => {
         sss.verification = ssl.VERIFY_REQUIRED;
         assert.throws(test_client_cert);
 
-        sss.ca.load(ca_pem);
+        sss.ca.import(ca_pem);
         test_client_cert();
 
         assert.throws(test_handshake);
@@ -323,7 +323,7 @@ describe('ssl', () => {
         var pk2 = crypto.generateKey('secp256k1');
         var crt2 = new crypto.X509Req("CN=127.0.0.1", pk2).sign("CN=localhost", pk);
 
-        ssl.ca.load(ca.dump()[0]);
+        ssl.ca.import(ca.pem());
         // ssl.loadRootCerts();
 
         var svr = new ssl.Server(crt1, pk1, 9087 + base_port, (s) => {
@@ -331,7 +331,7 @@ describe('ssl', () => {
             while (buf = s.read());
         });
         svr.verification = ssl.VERIFY_REQUIRED;
-        svr.ca.load(ca.dump()[0]);
+        svr.ca.import(ca.pem());
 
         svr.start();
 

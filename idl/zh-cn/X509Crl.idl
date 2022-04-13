@@ -23,23 +23,23 @@ interface X509Crl : object
     /*! @brief 加载一个 DER 格式的撤销证书，可多次调用
      @param derCrl DER 格式的撤销证书
     */
-    load(Buffer derCrl);
+    import(Buffer derCrl);
 
     /*! @brief 加载一个 PEM 格式的撤销证书，可多次调用
      @param pemCrl PEM 格式的撤销证书
     */
-    load(String pemCrl);
+    import(String pemCrl);
 
-    /*! @brief 加载一个 PEM/DER 格式的撤销证书，可多次调用
-     @param filename 撤销证书文件名
-    */
-    loadFile(String filename);
-
-    /*! @brief 导出已经加载的撤销证书
-     @param pem 指定输出 PEM 格式的撤销证书，缺省为 true
+    /*! @brief 以 PEM 格式导出已经加载的撤销证书
+     @param all 指定是否输出全部证书，缺省为 true
      @return 以数组方式导出撤销证书链
     */
-    Array dump(Boolean pem = true);
+    String pem(Boolean all = true);
+
+    /*! @brief 以 DER 格式导出已经加载的撤销证书
+     @return 以数组方式导出撤销证书链
+    */
+    Buffer der();
 
     /*! @brief 清空已经加载的撤销证书
     */

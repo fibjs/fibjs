@@ -47,7 +47,7 @@ result_t X509Req_base::_new(Buffer_base* derReq, obj_ptr<X509Req_base>& retVal,
     obj_ptr<X509Req> req = new X509Req();
     result_t hr;
 
-    hr = req->load(derReq);
+    hr = req->import(derReq);
     if (hr < 0)
         return hr;
 
@@ -61,7 +61,7 @@ result_t X509Req_base::_new(exlib::string pemReq, obj_ptr<X509Req_base>& retVal,
     obj_ptr<X509Req> req = new X509Req();
     result_t hr;
 
-    hr = req->load(pemReq);
+    hr = req->import(pemReq);
     if (hr < 0)
         return hr;
 
@@ -119,7 +119,7 @@ result_t X509Req::create(exlib::string subject, PKey_base* key, int32_t hash)
     return 0;
 }
 
-result_t X509Req::load(Buffer_base* derReq)
+result_t X509Req::import(Buffer_base* derReq)
 {
     int32_t ret;
 
@@ -136,7 +136,7 @@ result_t X509Req::load(Buffer_base* derReq)
     return 0;
 }
 
-result_t X509Req::load(exlib::string pemReq)
+result_t X509Req::import(exlib::string pemReq)
 {
     int32_t ret;
 
@@ -161,16 +161,16 @@ result_t X509Req::loadFile(exlib::string filename)
         return hr;
 
     if (qstrstr(data.c_str(), "BEGIN"))
-        return load(data);
+        return import(data);
 
     buf = new Buffer(data);
-    return load(buf);
+    return import(buf);
 }
 
 #define PEM_BEGIN_CSR "-----BEGIN CERTIFICATE REQUEST-----\n"
 #define PEM_END_CSR "-----END CERTIFICATE REQUEST-----\n"
 
-result_t X509Req::exportPem(exlib::string& retVal)
+result_t X509Req::pem(exlib::string& retVal)
 {
     if (m_csr.raw.len == 0)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -192,7 +192,7 @@ result_t X509Req::exportPem(exlib::string& retVal)
     return 0;
 }
 
-result_t X509Req::exportDer(obj_ptr<Buffer_base>& retVal)
+result_t X509Req::der(obj_ptr<Buffer_base>& retVal)
 {
     if (m_csr.raw.len == 0)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -204,7 +204,7 @@ result_t X509Req::exportDer(obj_ptr<Buffer_base>& retVal)
 
 result_t X509Req::toString(exlib::string& retVal)
 {
-    return exportPem(retVal);
+    return pem(retVal);
 }
 
 result_t X509Req::parseString(v8::Local<v8::Value> v, const X509Cert::_name* pNames)
@@ -437,7 +437,7 @@ result_t X509Req::sign(exlib::string issuer, PKey_base* key,
     }
 
     cert = new X509Cert();
-    hr = cert->load(buf);
+    hr = cert->import(buf);
     if (hr < 0)
         goto exit;
 

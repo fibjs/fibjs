@@ -29,11 +29,10 @@ public:
     static result_t _new(exlib::string subject, PKey_base* key, int32_t hash, obj_ptr<X509Req_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(Buffer_base* derReq, obj_ptr<X509Req_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string pemReq, obj_ptr<X509Req_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t load(Buffer_base* derReq) = 0;
-    virtual result_t load(exlib::string pemReq) = 0;
-    virtual result_t loadFile(exlib::string filename) = 0;
-    virtual result_t exportPem(exlib::string& retVal) = 0;
-    virtual result_t exportDer(obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t import(Buffer_base* derReq) = 0;
+    virtual result_t import(exlib::string pemReq) = 0;
+    virtual result_t pem(exlib::string& retVal) = 0;
+    virtual result_t der(obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t sign(exlib::string issuer, PKey_base* key, v8::Local<v8::Object> opts, obj_ptr<X509Cert_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t get_subject(exlib::string& retVal) = 0;
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal) = 0;
@@ -46,10 +45,9 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_load(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_loadFile(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_exportPem(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_exportDer(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_import(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_pem(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_der(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_sign(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_subject(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_publicKey(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -70,10 +68,9 @@ namespace fibjs {
 inline ClassInfo& X509Req_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "load", s_load, false, false },
-        { "loadFile", s_loadFile, false, false },
-        { "exportPem", s_exportPem, false, false },
-        { "exportDer", s_exportDer, false, false },
+        { "import", s_import, false, false },
+        { "pem", s_pem, false, false },
+        { "der", s_der, false, false },
         { "sign", s_sign, false, true },
         { "signSync", s_sign, false, false }
     };
@@ -136,9 +133,9 @@ void X509Req_base::__new(const T& args)
     CONSTRUCT_RETURN();
 }
 
-inline void X509Req_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void X509Req_base::s_import(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("X509Req.load");
+    METHOD_NAME("X509Req.import");
     METHOD_INSTANCE(X509Req_base);
     METHOD_ENTER();
 
@@ -146,58 +143,43 @@ inline void X509Req_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& args
 
     ARG(obj_ptr<Buffer_base>, 0);
 
-    hr = pInst->load(v0);
+    hr = pInst->import(v0);
 
     METHOD_OVER(1, 1);
 
     ARG(exlib::string, 0);
 
-    hr = pInst->load(v0);
+    hr = pInst->import(v0);
 
     METHOD_VOID();
 }
 
-inline void X509Req_base::s_loadFile(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("X509Req.loadFile");
-    METHOD_INSTANCE(X509Req_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    hr = pInst->loadFile(v0);
-
-    METHOD_VOID();
-}
-
-inline void X509Req_base::s_exportPem(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void X509Req_base::s_pem(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_NAME("X509Req.exportPem");
+    METHOD_NAME("X509Req.pem");
     METHOD_INSTANCE(X509Req_base);
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->exportPem(vr);
+    hr = pInst->pem(vr);
 
     METHOD_RETURN();
 }
 
-inline void X509Req_base::s_exportDer(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void X509Req_base::s_der(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("X509Req.exportDer");
+    METHOD_NAME("X509Req.der");
     METHOD_INSTANCE(X509Req_base);
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->exportDer(vr);
+    hr = pInst->der(vr);
 
     METHOD_RETURN();
 }

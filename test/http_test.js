@@ -28,7 +28,7 @@ var ca = new crypto.X509Req("CN=baoz.me", pk).sign("CN=baoz.me", pk, {
     ca: true
 });
 
-var ca_pem = ca.dump()[0];
+var ca_pem = ca.pem();
 
 function Step() {
     this.step = 0;
@@ -1984,7 +1984,7 @@ describe("http", () => {
         };
 
         before(() => {
-            ssl.ca.load(ca_pem);
+            ssl.ca.import(ca_pem);
 
             http.enableCookie = true;
             svr = new http.HttpsServer(crt, pk, 8883 + base_port, (r) => {
@@ -2622,7 +2622,7 @@ describe("http", () => {
         var svr;
 
         before(() => {
-            ssl.ca.load(ca_pem);
+            ssl.ca.import(ca_pem);
             var sslhdr = new ssl.Handler(crt, pk, new http.Handler((r) => {
                 r.response.write('https: ' + (r.stream.stream.stream.test || '') + r.address);
             }));

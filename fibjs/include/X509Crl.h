@@ -20,10 +20,10 @@ public:
 
 public:
     // X509Crl_base
-    virtual result_t load(Buffer_base* derCrl);
-    virtual result_t load(exlib::string pemCrl);
-    virtual result_t loadFile(exlib::string filename);
-    virtual result_t dump(bool pem, v8::Local<v8::Array>& retVal);
+    virtual result_t import(Buffer_base* derCrl);
+    virtual result_t import(exlib::string pemCrl);
+    virtual result_t pem(bool all, exlib::string& retVal);
+    virtual result_t der(obj_ptr<Buffer_base>& retVal);
     virtual result_t clear();
     virtual result_t get_version(int32_t& retVal);
     virtual result_t get_issuer(exlib::string& retVal);
@@ -31,6 +31,9 @@ public:
     virtual result_t get_thisUpdate(date_t& retVal);
     virtual result_t get_nextUpdate(date_t& retVal);
     virtual result_t get_next(obj_ptr<X509Crl_base>& retVal);
+
+public:
+    result_t loadFile(exlib::string filename);
 
 private:
     mbedtls_x509_crl* get_crl();

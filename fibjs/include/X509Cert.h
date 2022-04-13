@@ -20,12 +20,12 @@ public:
 
 public:
     // X509Cert_base
-    virtual result_t load(Buffer_base* derCert);
-    virtual result_t load(exlib::string txtCert);
-    virtual result_t loadFile(exlib::string filename);
+    virtual result_t import(Buffer_base* derCert);
+    virtual result_t import(exlib::string txtCert);
     virtual result_t loadRootCerts();
     virtual result_t verify(X509Cert_base* cert, bool& retVal, AsyncEvent* ac);
-    virtual result_t dump(bool pem, v8::Local<v8::Array>& retVal);
+    virtual result_t pem(bool all, exlib::string& retVal);
+    virtual result_t der(obj_ptr<Buffer_base>& retVal);
     virtual result_t clear();
     virtual result_t get_version(int32_t& retVal);
     virtual result_t get_serial(exlib::string& retVal);
@@ -43,7 +43,8 @@ public:
     virtual result_t get_next(obj_ptr<X509Cert_base>& retVal);
 
 public:
-    result_t load(const mbedtls_x509_crt* crt);
+    result_t import(const mbedtls_x509_crt* crt);
+    result_t loadFile(exlib::string filename);
 
 public:
     struct _name {

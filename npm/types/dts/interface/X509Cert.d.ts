@@ -38,25 +38,16 @@ declare class Class_X509Cert extends Class_object {
      *      @param derCert DER 格式的证书
      *     
      */
-    load(derCert: Class_Buffer): void;
+    import(derCert: Class_Buffer): void;
 
     /**
      * @description 加载一个 CRT/PEM/TXT 格式的证书，可多次调用
      * 
-     *     load 加载 mozilla 的 certdata,txt， 可于 http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
+     *     import 加载 mozilla 的 certdata,txt， 可于 http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
      *      @param txtCert CRT/PEM/TXT 格式的证书
      *     
      */
-    load(txtCert: string): void;
-
-    /**
-     * @description 加载一个 CRT/PEM/DER/TXT 格式的证书，可多次调用
-     * 
-     *     loadFile 加载 mozilla 的 certdata,txt， 可于 http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
-     *      @param filename 证书文件名
-     *     
-     */
-    loadFile(filename: string): void;
+    import(txtCert: string): void;
 
     /**
      * @description 加载自带的缺省根证书
@@ -75,12 +66,19 @@ declare class Class_X509Cert extends Class_object {
     verify(cert: Class_X509Cert, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
-     * @description 导出已经加载的证书
-     *      @param pem 指定输出 PEM 格式的撤销证书，缺省为 true
+     * @description 以 PEM 格式导出已经加载的证书
+     *      @param all 指定是否输出全部证书，缺省为 true
      *      @return 以数组方式导出证书链
      *     
      */
-    dump(pem?: boolean): any[];
+    pem(all?: boolean): string;
+
+    /**
+     * @description 以 DER 格式导出已经加载的证书
+     *      @return 以数组方式导出证书链
+     *     
+     */
+    der(): Class_Buffer;
 
     /**
      * @description 清空已经加载的证书 

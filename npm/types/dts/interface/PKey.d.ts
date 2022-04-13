@@ -128,7 +128,7 @@ declare class Class_PKey extends Class_object {
      *      @param password 解密密码
      *     
      */
-    importKey(DerKey: Class_Buffer, password?: string): void;
+    import(DerKey: Class_Buffer, password?: string): void;
 
     /**
      * @description 加载一个 PEM 格式的密钥
@@ -136,7 +136,7 @@ declare class Class_PKey extends Class_object {
      *      @param password 解密密码
      *     
      */
-    importKey(pemKey: string, password?: string): void;
+    import(pemKey: string, password?: string): void;
 
     /**
      * @description 加载一个 JSON 格式的密钥
@@ -185,7 +185,7 @@ declare class Class_PKey extends Class_object {
      *      @param jsonKey JSON 格式的密钥
      *     
      */
-    importKey(jsonKey: FIBJS.GeneralObject): void;
+    import(jsonKey: FIBJS.GeneralObject): void;
 
     /**
      * @description 加载一个 PEM/DER 格式的密钥文件
@@ -200,21 +200,21 @@ declare class Class_PKey extends Class_object {
      *      @return 当前 key 的 PEM 格式编码
      *     
      */
-    exportPem(): string;
+    pem(): string;
 
     /**
      * @description 返回当前 key 的 DER 格式编码
      *      @return 当前 key 的 DER 格式编码
      *     
      */
-    exportDer(): Class_Buffer;
+    der(): Class_Buffer;
 
     /**
      * @description 返回当前 key 的 DER 格式编码
      *      @return 当前 key 的 DER 格式编码
      *     
      */
-    exportJson(): FIBJS.GeneralObject;
+    json(): FIBJS.GeneralObject;
 
     /**
      * @description 比较两个公/私钥是否相同

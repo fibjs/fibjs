@@ -13,6 +13,7 @@
 #include <mbedtls/mbedtls/pem.h>
 #include "PKey.h"
 #include "QuickArray.h"
+#include "StringBuffer.h"
 #include "Buffer.h"
 #include <map>
 
@@ -48,7 +49,7 @@ result_t X509Cert_base::_new(obj_ptr<X509Cert_base>& retVal, v8::Local<v8::Objec
 result_t X509Cert_base::_new(Buffer_base* derCert, obj_ptr<X509Cert_base>& retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<X509Cert> crt = new X509Cert();
-    result_t hr = crt->load(derCert);
+    result_t hr = crt->import(derCert);
     if (hr < 0)
         return hr;
 
@@ -59,7 +60,7 @@ result_t X509Cert_base::_new(Buffer_base* derCert, obj_ptr<X509Cert_base>& retVa
 result_t X509Cert_base::_new(exlib::string txtCert, obj_ptr<X509Cert_base>& retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<X509Cert> crt = new X509Cert();
-    result_t hr = crt->load(txtCert);
+    result_t hr = crt->import(txtCert);
     if (hr < 0)
         return hr;
 
@@ -85,7 +86,7 @@ X509Cert::~X509Cert()
         mbedtls_x509_crt_free(&m_crt);
 }
 
-result_t X509Cert::load(Buffer_base* derCert)
+result_t X509Cert::import(Buffer_base* derCert)
 {
     if (m_root)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -103,7 +104,7 @@ result_t X509Cert::load(Buffer_base* derCert)
     return 0;
 }
 
-result_t X509Cert::load(const mbedtls_x509_crt* crt)
+result_t X509Cert::import(const mbedtls_x509_crt* crt)
 {
     if (m_root)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -117,7 +118,7 @@ result_t X509Cert::load(const mbedtls_x509_crt* crt)
     return 0;
 }
 
-result_t X509Cert::load(exlib::string txtCert)
+result_t X509Cert::import(exlib::string txtCert)
 {
     if (m_root)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -302,10 +303,10 @@ result_t X509Cert::loadFile(exlib::string filename)
         return hr;
 
     if (qstrstr(data.c_str(), "BEGIN CERTIFICATE") || qstrstr(data.c_str(), "CKO_CERTIFICATE"))
-        return load(data);
+        return import(data);
 
     buf = new Buffer(data);
-    return load(buf);
+    return import(buf);
 }
 
 result_t X509Cert::loadRootCerts()
@@ -349,14 +350,11 @@ result_t X509Cert::verify(X509Cert_base* cert, bool& retVal, AsyncEvent* ac)
 #define PEM_BEGIN_CRT "-----BEGIN CERTIFICATE-----\n"
 #define PEM_END_CRT "-----END CERTIFICATE-----\n"
 
-result_t X509Cert::dump(bool pem, v8::Local<v8::Array>& retVal)
+result_t X509Cert::pem(bool all, exlib::string& retVal)
 {
-    if (m_root)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
-    retVal = v8::Array::New(isolate->m_isolate);
+    StringBuffer sb;
 
     const mbedtls_x509_crt* pCert = &m_crt;
     int32_t ret, n = 0;
@@ -365,22 +363,30 @@ result_t X509Cert::dump(bool pem, v8::Local<v8::Array>& retVal)
 
     while (pCert) {
         if (pCert->raw.len > 0) {
-            if (pem) {
-                buf.resize(pCert->raw.len * 2 + 64);
-                ret = mbedtls_pem_write_buffer(PEM_BEGIN_CRT, PEM_END_CRT,
-                    pCert->raw.p, pCert->raw.len,
-                    (unsigned char*)buf.c_buffer(), buf.length(), &olen);
-                if (ret != 0)
-                    return CHECK_ERROR(_ssl::setError(ret));
+            buf.resize(pCert->raw.len * 2 + 64);
+            ret = mbedtls_pem_write_buffer(PEM_BEGIN_CRT, PEM_END_CRT, pCert->raw.p, pCert->raw.len,
+                (unsigned char*)buf.c_buffer(), buf.length(), &olen);
+            if (ret != 0)
+                return CHECK_ERROR(_ssl::setError(ret));
 
-                retVal->Set(context, n++, isolate->NewString(buf.c_str(), (int32_t)olen - 1));
-            } else {
-                obj_ptr<Buffer> data = new Buffer(pCert->raw.p, pCert->raw.len);
-                retVal->Set(context, n++, data->wrap());
-            }
+            sb.append(buf.c_str(), (int32_t)olen - 1);
         }
+
+        if (!all)
+            break;
+
         pCert = pCert->next;
     }
+
+    retVal = sb.str();
+
+    return 0;
+}
+
+result_t X509Cert::der(obj_ptr<Buffer_base>& retVal)
+{
+    const mbedtls_x509_crt* pCert = &m_crt;
+    retVal = new Buffer(pCert->raw.p, pCert->raw.len);
 
     return 0;
 }
