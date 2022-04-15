@@ -757,7 +757,7 @@ describe('crypto', () => {
                 var json = pk.json();
 
                 assert.deepEqual(json, {
-                    "kty": "SM2",
+                    "kty": "EC",
                     "crv": "SM2",
                     "x": "1KnIoMvdNODUrcEzQNnHbplwxNNyuHwIUnU0oNQ_0R0",
                     "y": "c_e2CHv5PB1-sKzzFGs30tT1XfwPUfIGnb5VEUN5bn4",
@@ -768,7 +768,7 @@ describe('crypto', () => {
                 assert.equal(pk.pem(), sm2_pem);
 
                 pk.import({
-                    "kty": "SM2",
+                    "kty": "EC",
                     "crv": "SM2",
                     "d": "fcRRalaycsaXpKQYGcbmU8Qi93KqXnpodAwIK3vEOoI"
                 });
@@ -779,7 +779,7 @@ describe('crypto', () => {
                 var json = pk.json();
 
                 assert.deepEqual(json, {
-                    "kty": "SM2",
+                    "kty": "EC",
                     "crv": "SM2",
                     "x": "1KnIoMvdNODUrcEzQNnHbplwxNNyuHwIUnU0oNQ_0R0",
                     "y": "c_e2CHv5PB1-sKzzFGs30tT1XfwPUfIGnb5VEUN5bn4",
@@ -1031,7 +1031,7 @@ describe('crypto', () => {
         describe("sm2", () => {
             it("verify", () => {
                 var pk = new crypto.PKey({
-                    "kty": "SM2",
+                    "kty": "EC",
                     "crv": "SM2",
                     "d": "fcRRalaycsaXpKQYGcbmU8Qi93KqXnpodAwIK3vEOoI"
                 });
@@ -1043,7 +1043,7 @@ describe('crypto', () => {
 
             it("sign/verify", () => {
                 var pk = new crypto.PKey({
-                    "kty": "SM2",
+                    "kty": "EC",
                     "crv": "SM2",
                     "d": "fcRRalaycsaXpKQYGcbmU8Qi93KqXnpodAwIK3vEOoI"
                 });
@@ -1055,7 +1055,7 @@ describe('crypto', () => {
 
             it("sign/verify to", () => {
                 var pk = new crypto.PKey({
-                    "kty": "SM2",
+                    "kty": "EC",
                     "crv": "SM2",
                     "d": "fcRRalaycsaXpKQYGcbmU8Qi93KqXnpodAwIK3vEOoI"
                 });

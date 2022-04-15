@@ -461,7 +461,7 @@ result_t PKey::import(v8::Local<v8::Object> jsonKey)
         return 0;
     }
 
-    if (kty == "EC" || kty == "SM2") {
+    if (kty == "EC") {
         exlib::string curve;
         bool is_priv = false;
 
@@ -470,9 +470,11 @@ result_t PKey::import(v8::Local<v8::Object> jsonKey)
             return hr;
 
         mbedtls_ecp_group_id id = get_curve_id(curve);
+
         if (id == MBEDTLS_ECP_DP_NONE)
             return CHECK_ERROR(Runtime::setError("PKey: Unknown curve"));
-        if (kty == "SM2")
+
+        if (id == MBEDTLS_ECP_DP_SM2P256R1)
             ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_SM2));
         else
             ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
@@ -646,7 +648,7 @@ result_t PKey::json(v8::Local<v8::Object>& retVal)
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
         const char* _name = get_curve_name(ecp->grp.id);
 
-        o->Set(context, isolate->NewString("kty"), isolate->NewString(mbedtls_pk_get_name(&m_key)));
+        o->Set(context, isolate->NewString("kty"), isolate->NewString("EC"));
 
         if (_name)
             o->Set(context, isolate->NewString("crv"), isolate->NewString(_name));
