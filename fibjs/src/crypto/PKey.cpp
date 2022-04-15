@@ -190,12 +190,13 @@ result_t PKey::isPrivate(bool& retVal)
 {
     mbedtls_pk_type_t type = mbedtls_pk_get_type(&m_key);
 
+    if (!type)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (type == MBEDTLS_PK_RSA) {
         retVal = mbedtls_rsa_check_privkey(mbedtls_pk_rsa(m_key)) == 0;
         return 0;
-    }
-
-    if (type == MBEDTLS_PK_ECKEY || type == MBEDTLS_PK_SM2) {
+    } else {
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
         retVal = mbedtls_ecp_check_privkey(&ecp->grp, &ecp->d) == 0;
         return 0;
@@ -218,6 +219,9 @@ result_t PKey::get_publicKey(obj_ptr<PKey_base>& retVal)
 
     mbedtls_pk_type_t type = mbedtls_pk_get_type(&m_key);
     int32_t ret;
+
+    if (!type)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (type == MBEDTLS_PK_RSA) {
         mbedtls_rsa_context* rsa = mbedtls_pk_rsa(m_key);
@@ -242,9 +246,7 @@ result_t PKey::get_publicKey(obj_ptr<PKey_base>& retVal)
         retVal = pk1;
 
         return 0;
-    }
-
-    if (type == MBEDTLS_PK_ECKEY || type == MBEDTLS_PK_SM2) {
+    } else {
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
 
         obj_ptr<PKey> pk1 = new PKey();
@@ -277,6 +279,9 @@ result_t PKey::copy(const mbedtls_pk_context& key)
     mbedtls_pk_type_t type = mbedtls_pk_get_type(&key);
     int32_t ret;
 
+    if (!type)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (type == MBEDTLS_PK_RSA) {
         mbedtls_rsa_context* rsa = mbedtls_pk_rsa(key);
 
@@ -291,9 +296,7 @@ result_t PKey::copy(const mbedtls_pk_context& key)
             return CHECK_ERROR(_ssl::setError(ret));
 
         return 0;
-    }
-
-    if (type == MBEDTLS_PK_ECKEY || type == MBEDTLS_PK_SM2) {
+    } else {
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(key);
 
         ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(type));
@@ -629,6 +632,9 @@ result_t PKey::json(v8::Local<v8::Object>& retVal)
     v8::Local<v8::Context> context = isolate->context();
     mbedtls_pk_type_t type = mbedtls_pk_get_type(&m_key);
 
+    if (!type)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (type == MBEDTLS_PK_RSA) {
         mbedtls_rsa_context* rsa = mbedtls_pk_rsa(m_key);
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
@@ -648,9 +654,7 @@ result_t PKey::json(v8::Local<v8::Object>& retVal)
 
         retVal = o;
         return 0;
-    }
-
-    if (type == MBEDTLS_PK_ECKEY || type == MBEDTLS_PK_SM2) {
+    } else {
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
         const char* _name = get_curve_name(ecp->grp.id);
@@ -698,6 +702,9 @@ result_t PKey::equal(PKey_base* key, bool& retVal)
     if (type != type1)
         return 0;
 
+    if (!type)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     if (type == MBEDTLS_PK_RSA) {
         mbedtls_rsa_context* rsa = mbedtls_pk_rsa(m_key);
         mbedtls_rsa_context* rsa1 = mbedtls_pk_rsa(pkey->m_key);
@@ -718,9 +725,7 @@ result_t PKey::equal(PKey_base* key, bool& retVal)
 
         retVal = true;
         return 0;
-    }
-
-    if (type == MBEDTLS_PK_ECKEY || type == MBEDTLS_PK_SM2) {
+    } else {
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
         mbedtls_ecp_keypair* ecp1 = mbedtls_pk_ec(pkey->m_key);
 
