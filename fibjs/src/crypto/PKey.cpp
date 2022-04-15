@@ -368,21 +368,8 @@ result_t PKey::import(exlib::string pemKey, exlib::string password)
         !password.empty() ? (unsigned char*)password.c_str() : NULL,
         password.length(), mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
 
-    if (ret == MBEDTLS_ERR_PK_KEY_INVALID_FORMAT) {
-        size_t pos1 = pemKey.find("-----BEGIN RSA PUBLIC KEY-----", 0, 30);
-        size_t pos2 = pemKey.find("-----END RSA PUBLIC KEY-----", 0, 28);
-
-        if (pos1 != exlib::string::npos && pos2 != exlib::string::npos) {
-            exlib::string pemKey1;
-            pemKey1.assign("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A", 59);
-            pemKey1.append(pemKey.substr(pos1 + 30, pos2 - pos1 - 30));
-            pemKey1.append("-----END PUBLIC KEY-----", 24);
-
-            pemKey = pemKey1;
-        }
-
+    if (ret == MBEDTLS_ERR_PK_KEY_INVALID_FORMAT)
         ret = mbedtls_pk_parse_public_key(&m_key, (unsigned char*)pemKey.c_str(), pemKey.length() + 1);
-    }
 
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
