@@ -652,13 +652,13 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             sockaddr_in6 dst6;
 
             if (!uv_ip4_addr(u->m_hostname.c_str(), 0, &dst)) {
-                strBuffer.assign("\1\1\0\1", 4);
+                strBuffer.assign("\5\1\0\1", 4);
                 strBuffer.append((char*)&dst.sin_addr, 4);
             } else if (!uv_ip6_addr(u->m_hostname.c_str(), 0, &dst6)) {
-                strBuffer.assign("\1\1\0\4", 4);
+                strBuffer.assign("\5\1\0\4", 4);
                 strBuffer.append((char*)&dst6.sin6_addr, 16);
             } else {
-                strBuffer.assign("\1\1\0\3", 4);
+                strBuffer.assign("\5\1\0\3", 4);
                 strBuffer.append(1, u->m_hostname.length());
                 strBuffer.append(u->m_hostname);
             }
@@ -667,24 +667,43 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             strBuffer.append((char*)&port, 2);
 
             obj_ptr<Buffer_base> buf = new Buffer(strBuffer);
-            return m_conn->write(buf, next(socks_connect_response));
+            return m_conn->write(buf, next(socks_connect_req_5_bytes));
         }
 
-        ON_STATE(asyncRequest, socks_connect_response)
+        ON_STATE(asyncRequest, socks_connect_req_5_bytes)
         {
-            return m_conn->read(10, m_buffer, next(socks_connected));
+            return m_conn->read(5, m_buffer, next(socks_connect_res_5_bytes));
+        }
+
+        ON_STATE(asyncRequest, socks_connect_res_5_bytes)
+        {
+            if (n == CALL_RETURN_NULL)
+                return CHECK_ERROR(Runtime::setError("HttpClient: connection reset by socks 5 server."));
+
+            exlib::string strBuffer;
+            m_buffer->toString(strBuffer);
+            if (strBuffer.length() != 5  || strBuffer[0] != 5 || strBuffer[1] != 0)
+                return CHECK_ERROR(Runtime::setError("HttpClient: socks 5 connect failed."));
+            
+            uint8_t len = 0;
+            
+            if(strBuffer[3] == 1) { 
+              len = 4 - 1 + 2;   // ipv4
+            } else if (strBuffer[3] == 4) {
+              len = 16 - 1 + 2;  // ipv6
+            } else {
+              len = (uint8_t)strBuffer[4] + 2;  // domain
+            }
+            
+            return m_conn->read(len, m_buffer, next(socks_connected));            
         }
 
         ON_STATE(asyncRequest, socks_connected)
         {
             if (n == CALL_RETURN_NULL)
                 return CHECK_ERROR(Runtime::setError("HttpClient: connection reset by socks 5 server."));
-
-            exlib::string strBuffer;
-
-            m_buffer->toString(strBuffer);
-            if (strBuffer.length() != 10 || strBuffer[0] != 5 || strBuffer[1] != 0)
-                return CHECK_ERROR(Runtime::setError("HttpClient: socks 5 connect failed."));
+            
+            // discard socks server response
 
             return next(m_ssl ? ssl_handshake : connected);
         }
