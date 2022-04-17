@@ -26,7 +26,7 @@ int ecsdsa_verify(mbedtls_ecp_keypair* ctx, int sdsa, mbedtls_ecp_keypair* to_ct
 namespace fibjs {
 
 struct curve_info {
-    mbedtls_ecp_group_id id;
+    int32_t id;
     const char* name;
 };
 
@@ -52,7 +52,7 @@ static const curve_info supported_curves[] = {
     { MBEDTLS_ECP_DP_SM2P256R1, "sm2p256r1" },
 };
 
-mbedtls_ecp_group_id get_curve_id(exlib::string& curve)
+int32_t get_curve_id(exlib::string& curve)
 {
     int32_t i;
 
@@ -63,7 +63,7 @@ mbedtls_ecp_group_id get_curve_id(exlib::string& curve)
     return MBEDTLS_ECP_DP_NONE;
 }
 
-const char* get_curve_name(mbedtls_ecp_group_id id)
+const char* get_curve_name(int32_t id)
 {
     int32_t i;
 
@@ -72,6 +72,18 @@ const char* get_curve_name(mbedtls_ecp_group_id id)
             return supported_curves[i].name;
 
     return NULL;
+}
+
+const mbedtls_pk_info_t* get_pk_info_from_curve(int32_t id)
+{
+    mbedtls_pk_type_t pk_type;
+
+    if (id == MBEDTLS_ECP_DP_SM2P256R1)
+        pk_type = MBEDTLS_PK_SM2;
+    else
+        pk_type = MBEDTLS_PK_ECKEY;
+
+    return mbedtls_pk_info_from_type(pk_type);
 }
 
 result_t PKey_base::_new(obj_ptr<PKey_base>& retVal, v8::Local<v8::Object> This)
@@ -163,7 +175,7 @@ result_t PKey::generateKey(exlib::string curve, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    mbedtls_ecp_group_id id = get_curve_id(curve);
+    int32_t id = get_curve_id(curve);
     if (id == MBEDTLS_ECP_DP_NONE)
         return CHECK_ERROR(Runtime::setError("PKey: Unknown curve"));
 
@@ -171,15 +183,12 @@ result_t PKey::generateKey(exlib::string curve, AsyncEvent* ac)
 
     clear();
 
-    if (id == MBEDTLS_ECP_DP_SM2P256R1)
-        ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_SM2));
-    else
-        ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
-
+    ret = mbedtls_pk_setup(&m_key, get_pk_info_from_curve(id));
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
-    ret = mbedtls_ecp_gen_key(id, mbedtls_pk_ec(m_key), mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
+    ret = mbedtls_ecp_gen_key((mbedtls_ecp_group_id)id, mbedtls_pk_ec(m_key),
+        mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
@@ -223,14 +232,15 @@ result_t PKey::get_publicKey(obj_ptr<PKey_base>& retVal)
     if (!type)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
+    obj_ptr<PKey> pk1 = new PKey();
+    pk1->m_sdsa = m_sdsa;
+
+    ret = mbedtls_pk_setup(&pk1->m_key, m_key.pk_info);
+    if (ret != 0)
+        return CHECK_ERROR(_ssl::setError(ret));
+
     if (type == MBEDTLS_PK_RSA) {
         mbedtls_rsa_context* rsa = mbedtls_pk_rsa(m_key);
-        obj_ptr<PKey> pk1 = new PKey();
-
-        ret = mbedtls_pk_setup(&pk1->m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA));
-        if (ret != 0)
-            return CHECK_ERROR(_ssl::setError(ret));
-
         mbedtls_rsa_context* rsa1 = mbedtls_pk_rsa(pk1->m_key);
 
         ret = mbedtls_mpi_copy(&rsa1->N, &rsa->N);
@@ -248,14 +258,6 @@ result_t PKey::get_publicKey(obj_ptr<PKey_base>& retVal)
         return 0;
     } else {
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
-
-        obj_ptr<PKey> pk1 = new PKey();
-        pk1->m_sdsa = m_sdsa;
-
-        ret = mbedtls_pk_setup(&pk1->m_key, mbedtls_pk_info_from_type(type));
-        if (ret != 0)
-            return CHECK_ERROR(_ssl::setError(ret));
-
         mbedtls_ecp_keypair* ecp1 = mbedtls_pk_ec(pk1->m_key);
 
         ret = mbedtls_ecp_group_copy(&ecp1->grp, &ecp->grp);
@@ -282,13 +284,12 @@ result_t PKey::copy(const mbedtls_pk_context& key)
     if (!type)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
+    ret = mbedtls_pk_setup(&m_key, key.pk_info);
+    if (ret != 0)
+        return CHECK_ERROR(_ssl::setError(ret));
+
     if (type == MBEDTLS_PK_RSA) {
         mbedtls_rsa_context* rsa = mbedtls_pk_rsa(key);
-
-        ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA));
-        if (ret != 0)
-            return CHECK_ERROR(_ssl::setError(ret));
-
         mbedtls_rsa_context* rsa1 = mbedtls_pk_rsa(m_key);
 
         ret = mbedtls_rsa_copy(rsa1, rsa);
@@ -298,11 +299,6 @@ result_t PKey::copy(const mbedtls_pk_context& key)
         return 0;
     } else {
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(key);
-
-        ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(type));
-        if (ret != 0)
-            return CHECK_ERROR(_ssl::setError(ret));
-
         mbedtls_ecp_keypair* ecp1 = mbedtls_pk_ec(m_key);
 
         ret = mbedtls_ecp_group_copy(&ecp1->grp, &ecp->grp);
@@ -469,21 +465,18 @@ result_t PKey::import(v8::Local<v8::Object> jsonKey)
         if (hr < 0)
             return hr;
 
-        mbedtls_ecp_group_id id = get_curve_id(curve);
+        int32_t id = get_curve_id(curve);
 
         if (id == MBEDTLS_ECP_DP_NONE)
             return CHECK_ERROR(Runtime::setError("PKey: Unknown curve"));
 
-        if (id == MBEDTLS_ECP_DP_SM2P256R1)
-            ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_SM2));
-        else
-            ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
+        ret = mbedtls_pk_setup(&m_key, get_pk_info_from_curve(id));
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
 
-        mbedtls_ecp_group_load(&ecp->grp, id);
+        mbedtls_ecp_group_load(&ecp->grp, (mbedtls_ecp_group_id)id);
 
         hr = mpi_load(isolate, &ecp->d, jsonKey, "d");
         if (hr >= 0) {
