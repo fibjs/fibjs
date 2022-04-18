@@ -903,7 +903,7 @@ describe('crypto', () => {
             it("ecsdsa sign/verify to", () => {
                 var pk = crypto.generateKey("SM2");
                 var pk1 = crypto.generateKey("SM2");
-                pk.sigType = 'ecsdsa';
+                pk.alg = 'ECSDSA';
 
                 var sig = pk.sign('abc', pk1.publicKey);
                 assert.isTrue(pk.publicKey.verify('abc', sig, pk1));
@@ -1000,7 +1000,7 @@ describe('crypto', () => {
             describe(c.key.crv, () => {
                 it("verify", () => {
                     var pk = new crypto.PKey(c.key);
-                    pk.sigType = 'ecsdsa';
+                    pk.alg = 'ECSDSA';
 
                     var sig = Buffer.from(c.sig, 'base64');
                     assert.ok(pk.publicKey.verify('abc', sig));
@@ -1008,7 +1008,7 @@ describe('crypto', () => {
 
                 it("sign/verify", () => {
                     var pk = new crypto.PKey(c.key);
-                    pk.sigType = 'ecsdsa';
+                    pk.alg = 'ECSDSA';
 
                     var sig = pk.sign('abc');
                     assert.ok(pk.publicKey.verify('abc', sig));
@@ -1016,7 +1016,7 @@ describe('crypto', () => {
 
                 it("sign/verify to", () => {
                     var pk = new crypto.PKey(c.key);
-                    pk.sigType = 'ecsdsa';
+                    pk.alg = 'ECSDSA';
 
                     var pk1 = crypto.generateKey(c.key.crv);
 
@@ -1035,7 +1035,7 @@ describe('crypto', () => {
                     "crv": "SM2",
                     "d": "fcRRalaycsaXpKQYGcbmU8Qi93KqXnpodAwIK3vEOoI"
                 });
-                pk.sigType = 'ecsdsa';
+                pk.alg = 'ECSDSA';
 
                 var sig = Buffer.from("MEUCIQDhT4yilg4Y7iGmUFM8CfJ3VQCdqibyNNjjiQh2m9vM9AIgB7UETe0t9gw8Ga1sPMjFxgKYDVdeuPy7EZXanKM2VUo", 'base64');
                 assert.ok(pk.publicKey.verify('abc', sig));
@@ -1047,7 +1047,7 @@ describe('crypto', () => {
                     "crv": "SM2",
                     "d": "fcRRalaycsaXpKQYGcbmU8Qi93KqXnpodAwIK3vEOoI"
                 });
-                pk.sigType = 'ecsdsa';
+                pk.alg = 'ECSDSA';
 
                 var sig = pk.sign('abc');
                 assert.ok(pk.publicKey.verify('abc', sig));
@@ -1059,7 +1059,7 @@ describe('crypto', () => {
                     "crv": "SM2",
                     "d": "fcRRalaycsaXpKQYGcbmU8Qi93KqXnpodAwIK3vEOoI"
                 });
-                pk.sigType = 'ecsdsa';
+                pk.alg = 'ECSDSA';
 
                 var pk1 = crypto.generateKey("SM2");
 
@@ -1069,6 +1069,152 @@ describe('crypto', () => {
                 assert.isFalse(pk.publicKey.verify('abc', sig, pk));
             });
         });
+    });
+
+    describe("ed25519", () => {
+        var jwk = {
+            "kty": "OKP", "crv": "Ed25519",
+            "d": "nWGxne_9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A",
+            "x": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo"
+        };
+        var jwk_pk = {
+            "kty": "OKP", "crv": "Ed25519",
+            "x": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo"
+        };
+
+        var der_sk = 'MC4CAQAwBQYDK2VwBCIEIJ1hsZ3v/VpguoRK9JLsLMREScVpezJpGXA7rAMcrn9g';
+        var der_pk = "MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=";
+
+        var pem_sk = `-----BEGIN PRIVATE KEY-----
+MC4CAQAwBQYDK2VwBCIEIJ1hsZ3v/VpguoRK9JLsLMREScVpezJpGXA7rAMcrn9g
+-----END PRIVATE KEY-----
+`;
+
+        var pem_pk = `-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
+-----END PUBLIC KEY-----
+`;
+
+        it("export/import json", () => {
+            var sk = new crypto.PKey(jwk);
+            assert.deepEqual(sk.json(), jwk);
+
+            var pk = new crypto.PKey(jwk_pk);
+            assert.deepEqual(pk.json(), jwk_pk);
+        });
+
+        it("export/import der", () => {
+            var pk = new crypto.PKey(Buffer.from(der_pk, 'base64'));
+            assert.deepEqual(pk.json(), jwk_pk);
+            assert.equal(pk.der().base64(), der_pk);
+
+            var sk = new crypto.PKey(Buffer.from(der_sk, 'base64'));
+            assert.deepEqual(sk.json(), jwk);
+            assert.equal(sk.der().base64(), der_sk);
+        });
+
+        it("export/import pem", () => {
+            var pk = new crypto.PKey(pem_pk);
+            assert.deepEqual(pk.json(), jwk_pk);
+            assert.equal(pk.pem(), pem_pk);
+
+            var sk = new crypto.PKey(pem_sk);
+            assert.deepEqual(sk.json(), jwk);
+            assert.equal(sk.pem(), pem_sk);
+        });
+
+        it("private only key", () => {
+            var jwk1 = {
+                "kty": "OKP", "crv": "Ed25519",
+                "d": "nWGxne_9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A"
+            };
+
+            var sk = new crypto.PKey(jwk1);
+            assert.deepEqual(sk.json(), jwk);
+        });
+
+        it("get public key", () => {
+            var sk = new crypto.PKey(jwk);
+            assert.deepEqual(sk.publicKey.json(), {
+                "kty": "OKP", "crv": "Ed25519",
+                "x": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo"
+            });
+        });
+
+        it("clone", () => {
+            var sk = new crypto.PKey(jwk);
+            var sk1 = sk.clone();
+            assert.deepEqual(sk1.json(), jwk);
+        });
+
+        it("sign/verify", () => {
+            var sk = new crypto.PKey(jwk);
+            var sig = sk.sign('abcd');
+            assert.isTrue(sk.verify('abcd', sig));
+            assert.isFalse(sk.verify('abcd1', sig));
+        });
+
+        it("test suite", () => {
+            var data = require('./crypto_case/eddsa.json');
+
+            data.forEach(d => {
+                var sk = new crypto.PKey({
+                    "kty": "OKP", "crv": "Ed25519",
+                    "d": d[0]
+                });
+
+                var pk = new crypto.PKey({
+                    "kty": "OKP", "crv": "Ed25519",
+                    "x": d[1]
+                });
+
+                assert.equal(sk.json().x, pk.json().x);
+
+                var msg = Buffer.from(d[3], "base64");
+                var sig = sk.sign(msg);
+                assert.equal(sig.base64(), d[2]);
+
+                assert.isTrue(sk.verify(msg, sig));
+                msg.append('1');
+                assert.isFalse(sk.verify(msg, sig));
+            });
+
+        });
+    });
+
+    describe("alg", () => {
+        function test_alg(alg, pk) {
+            describe(alg, () => {
+                it("generateKey", () => {
+                    assert.equal(pk.alg, alg);
+                });
+
+                it("clone", () => {
+                    assert.equal(pk.clone().alg, alg);
+                });
+
+                it("publicKey", () => {
+                    assert.equal(pk.publicKey.alg, alg);
+                });
+
+                it("pem import", () => {
+                    assert.equal(new crypto.PKey(pk.pem()).alg, alg);
+                });
+
+                it("der import", () => {
+                    assert.equal(new crypto.PKey(pk.der()).alg, alg);
+                });
+
+                it("json import", () => {
+                    assert.equal(new crypto.PKey(pk.json()).alg, alg);
+                });
+            });
+        }
+
+        test_alg("RSA", crypto.generateKey(512));
+        test_alg("ECDSA", crypto.generateKey());
+        test_alg("SM2", crypto.generateKey("SM2"));
+        test_alg("EdDSA", crypto.generateKey("ed25519"));
     });
 
     describe("X509 Cert", () => {

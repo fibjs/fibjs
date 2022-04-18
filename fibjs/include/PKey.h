@@ -15,6 +15,8 @@
 
 namespace fibjs {
 
+#define MBEDTLS_ECP_DP_ED25519 1001
+
 class PKey : public PKey_base {
 public:
     PKey();
@@ -30,8 +32,8 @@ public:
     virtual result_t get_name(exlib::string& retVal);
     virtual result_t get_curve(exlib::string& retVal);
     virtual result_t get_keySize(int32_t& retVal);
-    virtual result_t get_sigType(exlib::string& retVal);
-    virtual result_t set_sigType(exlib::string newVal);
+    virtual result_t get_alg(exlib::string& retVal);
+    virtual result_t set_alg(exlib::string newVal);
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal);
     virtual result_t isPrivate(bool& retVal);
     virtual result_t clone(obj_ptr<PKey_base>& retVal);
@@ -59,8 +61,26 @@ public:
 private:
     void clear();
 
+    void def_alg();
+    void def_ec_alg(int32_t id);
+
+    result_t ed25519_generateKey();
+    int ed25519_get_pubkey();
+
+    int ed25519_parse_key(const unsigned char* key, size_t keylen);
+    int ed25519_parse_pub_key(const unsigned char* key, size_t keylen);
+    int ed25519_parse_pem(const unsigned char* key);
+
+    int ed25519_write_key(exlib::string& buf);
+    int ed25519_write_pub_key(exlib::string& buf);
+    int ed25519_write_pem(exlib::string& buf);
+    result_t ed25519_write_der(obj_ptr<Buffer_base>& retVal);
+
+    result_t ed25519_sign(Buffer_base* data, obj_ptr<Buffer_base>& retVal);
+    result_t ed25519_verify(Buffer_base* data, Buffer_base* sign, bool& retVal);
+
 public:
     mbedtls_pk_context m_key;
-    bool m_sdsa = false;
+    exlib::string m_alg;
 };
 }
