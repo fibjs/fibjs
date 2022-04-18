@@ -537,15 +537,15 @@ result_t util_base::inspect(v8::Local<v8::Value> obj, v8::Local<v8::Object> opti
 {
     Isolate* isolate = Isolate::current();
 
-    bool colors = false;
-    if (!options.IsEmpty())
-        GetConfigValue(isolate->m_isolate, options, "colors", colors, true);
-
     bool table = false;
     if (!options.IsEmpty())
         GetConfigValue(isolate->m_isolate, options, "table", table, true);
 
     if (table) {
+        bool colors = false;
+        if (!options.IsEmpty())
+            GetConfigValue(isolate->m_isolate, options, "colors", colors, true);
+
         v8::Local<v8::Array> fields;
         if (!options.IsEmpty())
             GetConfigValue(isolate->m_isolate, options, "fields", fields, true);
@@ -556,6 +556,10 @@ result_t util_base::inspect(v8::Local<v8::Value> obj, v8::Local<v8::Object> opti
 
         retVal = table_format(obj, fields, colors, encode_string);
     } else {
+        bool colors = true;
+        if (!options.IsEmpty())
+            GetConfigValue(isolate->m_isolate, options, "colors", colors, true);
+
         int32_t depth = 2;
         if (!options.IsEmpty())
             GetConfigValue(isolate->m_isolate, options, "depth", depth, true);
