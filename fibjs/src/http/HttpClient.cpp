@@ -659,7 +659,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
                 strBuffer.append((char*)&dst6.sin6_addr, 16);
             } else {
                 strBuffer.assign("\5\1\0\3", 4);
-                strBuffer.append(1, u->m_hostname.length());
+                strBuffer.append(1, (char)u->m_hostname.length());
                 strBuffer.append(u->m_hostname);
             }
 
@@ -682,27 +682,27 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
 
             exlib::string strBuffer;
             m_buffer->toString(strBuffer);
-            if (strBuffer.length() != 5  || strBuffer[0] != 5 || strBuffer[1] != 0)
+            if (strBuffer.length() != 5 || strBuffer[0] != 5 || strBuffer[1] != 0)
                 return CHECK_ERROR(Runtime::setError("HttpClient: socks 5 connect failed."));
-            
+
             uint8_t len = 0;
-            
-            if(strBuffer[3] == 1) { 
-              len = 4 - 1 + 2;   // ipv4
+
+            if (strBuffer[3] == 1) {
+                len = 4 - 1 + 2; // ipv4
             } else if (strBuffer[3] == 4) {
-              len = 16 - 1 + 2;  // ipv6
+                len = 16 - 1 + 2; // ipv6
             } else {
-              len = (uint8_t)strBuffer[4] + 2;  // domain
+                len = (uint8_t)strBuffer[4] + 2; // domain
             }
-            
-            return m_conn->read(len, m_buffer, next(socks_connected));            
+
+            return m_conn->read(len, m_buffer, next(socks_connected));
         }
 
         ON_STATE(asyncRequest, socks_connected)
         {
             if (n == CALL_RETURN_NULL)
                 return CHECK_ERROR(Runtime::setError("HttpClient: connection reset by socks 5 server."));
-            
+
             // discard socks server response
 
             return next(m_ssl ? ssl_handshake : connected);

@@ -143,7 +143,7 @@ v8::Local<v8::String> NewString(v8::Isolate* isolate, const char* data, ssize_t 
     v8::Local<v8::String> v;
 
     if (is_safe_string(data, length))
-        v8::String::NewFromOneByte(isolate, (const uint8_t*)data, v8::NewStringType::kNormal, length).ToLocal(&v);
+        v8::String::NewFromOneByte(isolate, (const uint8_t*)data, v8::NewStringType::kNormal, (uint32_t)length).ToLocal(&v);
     else
         v8::String::NewExternalTwoByte(isolate, new ExtStringW(isolate, utf8to16String(data, length))).ToLocal(&v);
 

@@ -70,7 +70,7 @@ result_t base58_base::encode(Buffer_base* data, exlib::string& retVal)
     exlib::string buffer;
 
     data->toString(buffer);
-    size_t b58sz = buffer.length() * 8 / log2l(58) + 2;
+    size_t b58sz = (size_t)(buffer.length() * 8 / log2l(58) + 2);
 
     retVal.resize(b58sz);
     b58enc(retVal.c_buffer(), &b58sz, buffer.c_str(), buffer.length());
@@ -81,7 +81,7 @@ result_t base58_base::encode(Buffer_base* data, exlib::string& retVal)
 
 result_t base58_base::decode(exlib::string data, obj_ptr<Buffer_base>& retVal)
 {
-    size_t binsz = data.length() * log2l(58) / 8 + 3;
+    size_t binsz = (size_t)(data.length() * log2l(58) / 8 + 3);
     exlib::string buffer;
 
     buffer.resize(binsz);

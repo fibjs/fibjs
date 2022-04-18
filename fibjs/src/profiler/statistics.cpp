@@ -22,9 +22,9 @@ result_t profiler_base::getHeapCodeStatistics(v8::Local<v8::Object>& retVal)
 
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
 
-    o->Set(context, isolate->NewString("code_and_metadata_size"), v8::Number::New(isolate->m_isolate, hcs.code_and_metadata_size()));
-    o->Set(context, isolate->NewString("bytecode_and_metadata_size"), v8::Number::New(isolate->m_isolate, hcs.bytecode_and_metadata_size()));
-    o->Set(context, isolate->NewString("external_script_source_size"), v8::Number::New(isolate->m_isolate, hcs.external_script_source_size()));
+    o->Set(context, isolate->NewString("code_and_metadata_size"), v8::Number::New(isolate->m_isolate, (double)hcs.code_and_metadata_size()));
+    o->Set(context, isolate->NewString("bytecode_and_metadata_size"), v8::Number::New(isolate->m_isolate, (double)hcs.bytecode_and_metadata_size()));
+    o->Set(context, isolate->NewString("external_script_source_size"), v8::Number::New(isolate->m_isolate, (double)hcs.external_script_source_size()));
 
     retVal = o;
 
@@ -48,12 +48,12 @@ result_t profiler_base::getHeapSpaceStatistics(v8::Local<v8::Array>& retVal)
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
 
         o->Set(context, isolate->NewString("space_name"), isolate->NewString(hss.space_name()));
-        o->Set(context, isolate->NewString("space_size"), v8::Number::New(isolate->m_isolate, hss.space_size()));
-        o->Set(context, isolate->NewString("space_used_size"), v8::Number::New(isolate->m_isolate, hss.space_used_size()));
-        o->Set(context, isolate->NewString("space_available_size"), v8::Number::New(isolate->m_isolate, hss.space_available_size()));
-        o->Set(context, isolate->NewString("physical_space_size"), v8::Number::New(isolate->m_isolate, hss.physical_space_size()));
+        o->Set(context, isolate->NewString("space_size"), v8::Number::New(isolate->m_isolate, (double)hss.space_size()));
+        o->Set(context, isolate->NewString("space_used_size"), v8::Number::New(isolate->m_isolate, (double)hss.space_used_size()));
+        o->Set(context, isolate->NewString("space_available_size"), v8::Number::New(isolate->m_isolate, (double)hss.space_available_size()));
+        o->Set(context, isolate->NewString("physical_space_size"), v8::Number::New(isolate->m_isolate, (double)hss.physical_space_size()));
 
-        a->Set(context, i, o);
+        a->Set(context, (uint32_t)i, o);
     }
 
     retVal = a;
@@ -71,17 +71,17 @@ result_t profiler_base::getHeapStatistics(v8::Local<v8::Object>& retVal)
 
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
 
-    o->Set(context, isolate->NewString("total_heap_size"), v8::Number::New(isolate->m_isolate, hs.total_heap_size()));
-    o->Set(context, isolate->NewString("total_heap_size_executable"), v8::Number::New(isolate->m_isolate, hs.total_heap_size_executable()));
-    o->Set(context, isolate->NewString("total_physical_size"), v8::Number::New(isolate->m_isolate, hs.total_physical_size()));
-    o->Set(context, isolate->NewString("total_available_size"), v8::Number::New(isolate->m_isolate, hs.total_available_size()));
-    o->Set(context, isolate->NewString("used_heap_size"), v8::Number::New(isolate->m_isolate, hs.used_heap_size()));
-    o->Set(context, isolate->NewString("heap_size_limit"), v8::Number::New(isolate->m_isolate, hs.heap_size_limit()));
-    o->Set(context, isolate->NewString("malloced_memory"), v8::Number::New(isolate->m_isolate, hs.malloced_memory()));
-    o->Set(context, isolate->NewString("external_memory"), v8::Number::New(isolate->m_isolate, hs.external_memory()));
-    o->Set(context, isolate->NewString("peak_malloced_memory"), v8::Number::New(isolate->m_isolate, hs.peak_malloced_memory()));
-    o->Set(context, isolate->NewString("number_of_native_contexts"), v8::Number::New(isolate->m_isolate, hs.number_of_native_contexts()));
-    o->Set(context, isolate->NewString("number_of_detached_contexts"), v8::Number::New(isolate->m_isolate, hs.number_of_detached_contexts()));
+    o->Set(context, isolate->NewString("total_heap_size"), v8::Number::New(isolate->m_isolate, (double)hs.total_heap_size()));
+    o->Set(context, isolate->NewString("total_heap_size_executable"), v8::Number::New(isolate->m_isolate, (double)hs.total_heap_size_executable()));
+    o->Set(context, isolate->NewString("total_physical_size"), v8::Number::New(isolate->m_isolate, (double)hs.total_physical_size()));
+    o->Set(context, isolate->NewString("total_available_size"), v8::Number::New(isolate->m_isolate, (double)hs.total_available_size()));
+    o->Set(context, isolate->NewString("used_heap_size"), v8::Number::New(isolate->m_isolate, (double)hs.used_heap_size()));
+    o->Set(context, isolate->NewString("heap_size_limit"), v8::Number::New(isolate->m_isolate, (double)hs.heap_size_limit()));
+    o->Set(context, isolate->NewString("malloced_memory"), v8::Number::New(isolate->m_isolate, (double)hs.malloced_memory()));
+    o->Set(context, isolate->NewString("external_memory"), v8::Number::New(isolate->m_isolate, (double)hs.external_memory()));
+    o->Set(context, isolate->NewString("peak_malloced_memory"), v8::Number::New(isolate->m_isolate, (double)hs.peak_malloced_memory()));
+    o->Set(context, isolate->NewString("number_of_native_contexts"), v8::Number::New(isolate->m_isolate, (double)hs.number_of_native_contexts()));
+    o->Set(context, isolate->NewString("number_of_detached_contexts"), v8::Number::New(isolate->m_isolate, (double)hs.number_of_detached_contexts()));
 
     retVal = o;
 

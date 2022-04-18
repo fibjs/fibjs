@@ -231,7 +231,6 @@ static int asn1_write_data(unsigned char** p, const unsigned char* start, const 
 
     ret = (int)len;
 
-cleanup:
     return (ret);
 }
 

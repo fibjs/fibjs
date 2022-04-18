@@ -1444,8 +1444,7 @@ result_t Image::copyRotated(Image_base* source, double dstX, double dstY,
     if (!src->m_image)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    gdImageCopyRotated(m_image, src->m_image, dstX, dstY, srcX, srcY, width,
-        height, angle);
+    gdImageCopyRotated(m_image, src->m_image, dstX, dstY, srcX, srcY, width, height, (int)angle);
     return 0;
 }
 
