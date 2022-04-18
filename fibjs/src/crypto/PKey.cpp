@@ -1126,7 +1126,16 @@ result_t PKey::get_curve(exlib::string& retVal)
 
 result_t PKey::get_keySize(int32_t& retVal)
 {
-    retVal = (int32_t)mbedtls_pk_get_bitlen(&m_key);
+    mbedtls_pk_type_t type = mbedtls_pk_get_type(&m_key);
+
+    if (type) {
+        if (type != MBEDTLS_PK_RSA && mbedtls_pk_ec(m_key)->grp.id == MBEDTLS_ECP_DP_ED25519)
+            retVal = 256;
+        else
+            retVal = (int32_t)mbedtls_pk_get_bitlen(&m_key);
+    } else
+        retVal = 0;
+
     return 0;
 }
 

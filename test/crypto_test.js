@@ -1154,6 +1154,12 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
             assert.isFalse(sk.verify('abcd1', sig));
         });
 
+        it("keySize/curve", () => {
+            var sk = new crypto.PKey(jwk);
+            assert.deepEqual(sk.keySize, 256);
+            assert.deepEqual(sk.curve, "Ed25519");
+        });
+
         it("test suite", () => {
             var data = require('./crypto_case/eddsa.json');
 
