@@ -280,7 +280,24 @@ result_t PKey::ed25519_sign(Buffer_base* data, obj_ptr<Buffer_base>& retVal)
     return 0;
 }
 
-int asn1_get_data(unsigned char** p, const unsigned char* end, unsigned char* data, size_t sz)
+static int get_data(unsigned char* data, size_t sz, const unsigned char* p, size_t len)
+{
+    while (len && !*p) {
+        len--;
+        p++;
+    }
+
+    if (len > sz)
+        return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
+
+    if (len < sz)
+        memset(data, 0, sz - len);
+    memcpy(data + sz - len, p, len);
+
+    return 0;
+}
+
+static int asn1_get_data(unsigned char** p, const unsigned char* end, unsigned char* data, size_t sz)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len;
@@ -288,10 +305,8 @@ int asn1_get_data(unsigned char** p, const unsigned char* end, unsigned char* da
     if ((ret = mbedtls_asn1_get_tag(p, end, &len, MBEDTLS_ASN1_INTEGER)) != 0)
         return (ret);
 
-    if (len > sz)
-        return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
-
-    memcpy(data, *p, len);
+    if ((ret = get_data(data, sz, *p, len)) != 0)
+        return (ret);
 
     *p += len;
 
