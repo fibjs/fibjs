@@ -17,7 +17,7 @@
 namespace fibjs {
 
 void string_format(StringBuffer& strBuffer, v8::Local<v8::Value> v, bool color);
-exlib::string json_format(v8::Local<v8::Value> obj, bool color);
+exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth);
 
 struct CharWidth {
     int32_t m_char;
@@ -246,7 +246,7 @@ exlib::string object_format(v8::Local<v8::Value> v, bool color, bool l2 = false)
 {
     obj_ptr<Buffer_base> _buf = Buffer_base::getInstance(v);
     if (_buf)
-        return json_format(v, color);
+        return json_format(v, color, 2);
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> _context = isolate->context();
@@ -287,7 +287,7 @@ exlib::string object_format(v8::Local<v8::Value> v, bool color, bool l2 = false)
 
                 JSValue v = array->Get(_context, i);
                 if (isSimpleValue(v))
-                    buf.append(json_format(v, color));
+                    buf.append(json_format(v, color, 2));
                 else
                     buf.append(object_format(v, color, true));
             }
@@ -323,7 +323,7 @@ exlib::string object_format(v8::Local<v8::Value> v, bool color, bool l2 = false)
                     buf.append(", ");
 
                 JSValue v = array->Get(_context, i);
-                buf.append(json_format(v, color));
+                buf.append(json_format(v, color, 2));
             }
 
             if (len == len1 + 1)
@@ -359,7 +359,7 @@ exlib::string object_format(v8::Local<v8::Value> v, bool color, bool l2 = false)
 
         v = obj->Get(_context, v);
         if (isSimpleValue(v))
-            buf.append(json_format(v, color));
+            buf.append(json_format(v, color, 2));
         else
             buf.append(object_format(v, color, true));
     }
@@ -371,7 +371,7 @@ exlib::string object_format(v8::Local<v8::Value> v, bool color, bool l2 = false)
 exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields, bool color, bool encode_string)
 {
     if (isSimpleValue(obj))
-        return json_format(obj, color);
+        return json_format(obj, color, 2);
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(obj);
 
@@ -420,7 +420,7 @@ exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields
                     GetArgumentValue(isolate->m_isolate, v, val);
                     value_cols.append(val);
                 } else
-                    value_cols.append(json_format(v, color));
+                    value_cols.append(json_format(v, color, 2));
             }
         } else {
             v8::Local<v8::Object> ro = v8::Local<v8::Object>::Cast(v);
@@ -446,7 +446,7 @@ exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields
                     if (!encode_string && (rv->IsString() || rv->IsStringObject()))
                         GetArgumentValue(isolate->m_isolate, rv, row_value);
                     else
-                        row_value = json_format(rv, color);
+                        row_value = json_format(rv, color, 2);
                 } else
                     row_value = object_format(rv, color);
 
@@ -551,8 +551,13 @@ result_t util_base::inspect(v8::Local<v8::Value> obj, v8::Local<v8::Object> opti
         GetConfigValue(isolate->m_isolate, options, "encode_string", encode_string, true);
 
         retVal = table_format(obj, fields, colors, encode_string);
-    } else
-        retVal = json_format(obj, colors);
+    } else {
+        int32_t depth = 2;
+        GetConfigValue(isolate->m_isolate, options, "depth", depth, true);
+
+        retVal = json_format(obj, colors, depth);
+    }
+
     return 0;
 }
 

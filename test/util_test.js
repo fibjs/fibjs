@@ -1146,8 +1146,14 @@ describe('util', () => {
         it("fix: crash on %d.", () => {
             util.format("%d", 2n);
         });
-    });
 
+        it('inspect', () => {
+            assert.equal(util.inspect([[[[[]]]]]), "[\n  [\n    [\n      [Array]\n    ]\n  ]\n]");
+            assert.equal(util.inspect([[[[[]]]]], {
+                depth: 3
+            }), "[\n  [\n    [\n      [\n        []\n      ]\n    ]\n  ]\n]");
+        });
+    });
 
     describe("table", () => {
         function test_table(data, only, expected) {

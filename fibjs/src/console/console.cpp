@@ -111,7 +111,7 @@ public:
     }
 } s_color_initer;
 
-exlib::string json_format(v8::Local<v8::Value> obj, bool color);
+exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth);
 exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields, bool color, bool encode_string);
 result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string& retVal);
 
@@ -255,7 +255,7 @@ result_t console_base::alert(OptArgs args)
 
 result_t console_base::dir(v8::Local<v8::Value> obj)
 {
-    exlib::string strBuffer = json_format(obj, colors(C_INFO));
+    exlib::string strBuffer = json_format(obj, colors(C_INFO), 2);
     asyncLog(C_INFO, strBuffer);
     return 0;
 }
