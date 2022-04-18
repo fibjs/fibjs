@@ -58,7 +58,7 @@ public:
     static result_t crit(OptArgs args);
     static result_t alert(exlib::string fmt, OptArgs args);
     static result_t alert(OptArgs args);
-    static result_t dir(v8::Local<v8::Value> obj);
+    static result_t dir(v8::Local<v8::Value> obj, v8::Local<v8::Object> options);
     static result_t table(v8::Local<v8::Value> obj);
     static result_t table(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields);
     static result_t time(exlib::string label);
@@ -468,11 +468,12 @@ inline void console_base::s_static_dir(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_NAME("console.dir");
     METHOD_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
-    hr = dir(v0);
+    hr = dir(v0, v1);
 
     METHOD_VOID();
 }

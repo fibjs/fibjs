@@ -56,7 +56,7 @@ bool repl_command(exlib::string& line)
         v8::Local<v8::Object> o;
 
         process_base::get_versions(o);
-        console_base::dir(o);
+        console_base::dir(o, v8::Local<v8::Object>());
         return true;
     }
 
@@ -93,7 +93,7 @@ result_t SandBox::Context::repl()
 
     while (true) {
         if (!v.IsEmpty() && !v->IsUndefined())
-            console_base::dir(v);
+            console_base::dir(v, v8::Local<v8::Object>());
 
         v = v1;
 

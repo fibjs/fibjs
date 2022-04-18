@@ -538,22 +538,27 @@ result_t util_base::inspect(v8::Local<v8::Value> obj, v8::Local<v8::Object> opti
     Isolate* isolate = Isolate::current();
 
     bool colors = false;
-    GetConfigValue(isolate->m_isolate, options, "colors", colors, true);
+    if (!options.IsEmpty())
+        GetConfigValue(isolate->m_isolate, options, "colors", colors, true);
 
     bool table = false;
-    GetConfigValue(isolate->m_isolate, options, "table", table, true);
+    if (!options.IsEmpty())
+        GetConfigValue(isolate->m_isolate, options, "table", table, true);
 
     if (table) {
         v8::Local<v8::Array> fields;
-        GetConfigValue(isolate->m_isolate, options, "fields", fields, true);
+        if (!options.IsEmpty())
+            GetConfigValue(isolate->m_isolate, options, "fields", fields, true);
 
         bool encode_string = true;
-        GetConfigValue(isolate->m_isolate, options, "encode_string", encode_string, true);
+        if (!options.IsEmpty())
+            GetConfigValue(isolate->m_isolate, options, "encode_string", encode_string, true);
 
         retVal = table_format(obj, fields, colors, encode_string);
     } else {
         int32_t depth = 2;
-        GetConfigValue(isolate->m_isolate, options, "depth", depth, true);
+        if (!options.IsEmpty())
+            GetConfigValue(isolate->m_isolate, options, "depth", depth, true);
 
         retVal = json_format(obj, colors, depth);
     }

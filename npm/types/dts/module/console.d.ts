@@ -330,10 +330,21 @@ declare module 'console' {
 
     /**
      * @description 用 JSON 格式输出对象
-     *      @param obj 给定要显示的对象
+     * 
+     *      支持以下参数:
+     *      ```JavaScript
+     *      {
+     *          "colors": false, // 指定是否输出 ansi 作色字符串，缺省为 false
+     *          "table": false, // 指定输出 table 格式，缺省为 false
+     *          "encode_string": true, // 指定表格中的字符串是否编码，缺省为 true
+     *          "fields": [], // 当 table 为 true 时指定显示字段
+     *      }
+     *      ```
+     *      @param obj 指定需要处理的对象
+     *      @param options 指定格式控制选项
      *      
      */
-    function dir(obj: any): void;
+    function dir(obj: any, options?: FIBJS.GeneralObject): void;
 
     /**
      * @description 用 JSON 格式输出对象

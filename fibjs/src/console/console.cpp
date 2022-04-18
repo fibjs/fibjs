@@ -253,9 +253,11 @@ result_t console_base::alert(OptArgs args)
     return 0;
 }
 
-result_t console_base::dir(v8::Local<v8::Value> obj)
+result_t console_base::dir(v8::Local<v8::Value> obj, v8::Local<v8::Object> options)
 {
-    exlib::string strBuffer = json_format(obj, colors(C_INFO), 2);
+    exlib::string strBuffer;
+    util_base::inspect(obj, options, strBuffer);
+
     asyncLog(C_INFO, strBuffer);
     return 0;
 }
