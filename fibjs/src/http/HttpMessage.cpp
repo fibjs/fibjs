@@ -114,7 +114,7 @@ result_t HttpMessage::get_data(v8::Local<v8::Value>& retVal)
     if (pos != exlib::string::npos)
         strType = strType.substr(0, pos);
 
-    if (strType == "application/json")
+    if (strType.find("json") != exlib::string::npos)
         return Message::json(retVal);
 
     if (strType == "application/msgpack")
@@ -136,11 +136,7 @@ result_t HttpMessage::json(v8::Local<v8::Value>& retVal)
     if (firstHeader("Content-Type", strType) == CALL_RETURN_NULL)
         return CHECK_ERROR(Runtime::setError("HttpRequest: Content-Type is missing."));
 
-    size_t pos = strType.find(';');
-    if (pos != exlib::string::npos)
-        strType = strType.substr(0, pos);
-
-    if (strType != "application/json")
+    if (strType.find("json") == exlib::string::npos)
         return CHECK_ERROR(Runtime::setError("HttpMessage: Invalid content type."));
 
     return Message::json(retVal);

@@ -875,6 +875,9 @@ describe("http", () => {
         assert.equal(req.firstHeader('Content-Type'), "application/json");
         assert.deepEqual(req.data, v);
 
+        req.setHeader('Content-Type', "application/ld-json");
+        assert.deepEqual(req.data, v);
+
         assert.deepEqual(req.json(), v);
 
         req.setHeader('Content-Type', "application/json; utf-8");
