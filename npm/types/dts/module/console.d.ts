@@ -335,6 +335,7 @@ declare module 'console' {
      *      ```JavaScript
      *      {
      *          "colors": false, // 指定是否输出 ansi 作色字符串，缺省为 false
+     *          "depth": 2, // 指定格式化 object 时递归的次数，缺省为 2
      *          "table": false, // 指定输出 table 格式，缺省为 false
      *          "encode_string": true, // 指定表格中的字符串是否编码，缺省为 true
      *          "fields": [], // 当 table 为 true 时指定显示字段

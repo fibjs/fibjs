@@ -23,7 +23,9 @@ class base58_base : public object_base {
 public:
     // base58_base
     static result_t encode(Buffer_base* data, exlib::string& retVal);
+    static result_t encode(Buffer_base* data, int32_t chk_ver, exlib::string& retVal);
     static result_t decode(exlib::string data, obj_ptr<Buffer_base>& retVal);
+    static result_t decode(exlib::string data, int32_t chk_ver, obj_ptr<Buffer_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -75,6 +77,13 @@ inline void base58_base::s_static_encode(const v8::FunctionCallbackInfo<v8::Valu
 
     hr = encode(v0, vr);
 
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(int32_t, 1);
+
+    hr = encode(v0, v1, vr);
+
     METHOD_RETURN();
 }
 
@@ -90,6 +99,13 @@ inline void base58_base::s_static_decode(const v8::FunctionCallbackInfo<v8::Valu
     ARG(exlib::string, 0);
 
     hr = decode(v0, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(int32_t, 1);
+
+    hr = decode(v0, v1, vr);
 
     METHOD_RETURN();
 }

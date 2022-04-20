@@ -19,8 +19,13 @@
 #include <string.h>
 
 #include "libbase58.h"
+#include "mbedtls/sha256.h"
 
-bool (*b58_sha256_impl)(void *, const void *, size_t) = NULL;
+bool b58_sha256(void * buf, const void * data, size_t sz)
+{
+	mbedtls_sha256(data, sz, buf, 0);
+	return true;
+}
 
 static const int8_t b58digits_map[] = {
 	-1,-1,-1,-1,-1,-1,-1,-1, -1,-1,-1,-1,-1,-1,-1,-1,
@@ -118,7 +123,7 @@ static
 bool my_dblsha256(void *hash, const void *data, size_t datasz)
 {
 	uint8_t buf[0x20];
-	return b58_sha256_impl(buf, data, datasz) && b58_sha256_impl(hash, buf, sizeof(buf));
+	return b58_sha256(buf, data, datasz) && b58_sha256(hash, buf, sizeof(buf));
 }
 
 int b58check(const void *bin, size_t binsz, const char *base58str, size_t b58sz)

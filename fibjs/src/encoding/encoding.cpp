@@ -79,6 +79,20 @@ result_t base58_base::encode(Buffer_base* data, exlib::string& retVal)
     return 0;
 }
 
+result_t base58_base::encode(Buffer_base* data, int32_t chk_ver, exlib::string& retVal)
+{
+    exlib::string buffer;
+
+    data->toString(buffer);
+    size_t b58sz = (size_t)((buffer.length() + 5) * 8 / log2l(58) + 2);
+
+    retVal.resize(b58sz);
+    b58check_enc(retVal.c_buffer(), &b58sz, chk_ver, buffer.c_str(), buffer.length());
+    retVal.resize(b58sz - 1);
+
+    return 0;
+}
+
 result_t base58_base::decode(exlib::string data, obj_ptr<Buffer_base>& retVal)
 {
     size_t binsz = (size_t)(data.length() * log2l(58) / 8 + 3);
@@ -86,9 +100,28 @@ result_t base58_base::decode(exlib::string data, obj_ptr<Buffer_base>& retVal)
 
     buffer.resize(binsz);
     if (!b58tobin(buffer.c_buffer(), &binsz, data.c_str(), data.length()))
-        return CHECK_ERROR(Runtime::setError("encoding: convert error."));
+        return CHECK_ERROR(Runtime::setError("base58: encode error."));
     if (binsz < buffer.length())
         buffer = buffer.substr(buffer.length() - binsz);
+
+    retVal = new Buffer(buffer);
+
+    return 0;
+}
+
+result_t base58_base::decode(exlib::string data, int32_t chk_ver, obj_ptr<Buffer_base>& retVal)
+{
+    size_t binsz = (size_t)(data.length() * log2l(58) / 8 + 3);
+    exlib::string buffer;
+
+    buffer.resize(binsz);
+    if (!b58tobin(buffer.c_buffer(), &binsz, data.c_str(), data.length()))
+        return CHECK_ERROR(Runtime::setError("base58: decode error."));
+    if (b58check(buffer.c_str() + buffer.length() - binsz, binsz, data.c_str(), data.length()) != chk_ver)
+        return CHECK_ERROR(Runtime::setError("base58: check error."));
+
+    if (binsz < buffer.length())
+        buffer = buffer.substr(buffer.length() - binsz + 1, binsz - 5);
 
     retVal = new Buffer(buffer);
 

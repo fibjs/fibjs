@@ -100,63 +100,78 @@ describe('encoding', () => {
         var data = [
             {
                 "hex": "",
-                "string": ""
+                "string": "",
+                "check_string": "BXvDbH"
             },
             {
                 "hex": "61",
-                "string": "2g"
+                "string": "2g",
+                "check_string": "gqkwoXD"
             },
             {
                 "hex": "626262",
-                "string": "a3gV"
+                "string": "a3gV",
+                "check_string": "ERv6dC71e7"
             },
             {
                 "hex": "636363",
-                "string": "aPEr"
+                "string": "aPEr",
+                "check_string": "EU85aXPawp"
             },
             {
                 "hex": "73696d706c792061206c6f6e6720737472696e67",
-                "string": "2cFupjhnEsSn59qHXstmK2ffpLv2"
+                "string": "2cFupjhnEsSn59qHXstmK2ffpLv2",
+                "check_string": "arqzQCXBPJXKRhisjydDPNrVEuUgU5Z9u"
             },
             {
                 "hex": "00eb15231dfceb60925886b67d065299925915aeb172c06647",
-                "string": "1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L"
+                "string": "1NS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L",
+                "check_string": "CfURHbdSrFECX9eL1ymaVZa25G3wfd9WwLM4Fgmd"
             },
             {
                 "hex": "516b6fcd0f",
-                "string": "ABnLTmg"
+                "string": "ABnLTmg",
+                "check_string": "5J75jteGdYo93"
             },
             {
                 "hex": "bf4f89001e670274dd",
-                "string": "3SEo3LWLoPntC"
+                "string": "3SEo3LWLoPntC",
+                "check_string": "eFw1s88fchjMPCX8r7"
             },
             {
                 "hex": "572e4794",
-                "string": "3EFU7m"
+                "string": "3EFU7m",
+                "check_string": "zQHSXG3s6Vm"
             },
             {
                 "hex": "ecac89cad93923c02321",
-                "string": "EJDM8drfXA6uyA"
+                "string": "EJDM8drfXA6uyA",
+                "check_string": "488B8xyG2ERVDP3BqqwH"
             },
             {
                 "hex": "10c8511e",
-                "string": "Rt5zm"
+                "string": "Rt5zm",
+                "check_string": "ndLFHWjKWMC"
             },
             {
                 "hex": "00000000000000000000",
-                "string": "1111111111"
+                "string": "1111111111",
+                "check_string": "2d7dWtQMvj9WttCXfaeL"
             },
             {
                 "hex": "801184cd2cdd640ca42cfc3a091c51d549b2f016d454b2774019c2b2d2e08529fd206ec97e",
-                "string": "5Hx15HFGyep2CfPxsJKe2fXJsCVn5DEiyoeGGF6JZjGbTRnqfiD"
+                "string": "5Hx15HFGyep2CfPxsJKe2fXJsCVn5DEiyoeGGF6JZjGbTRnqfiD",
+                "check_string": "2TEMEEdsZurFc8Kv4fey5CoL3MBDFqbQVnBVS3hQaeA9WV2aQdVqyxrLh"
             },
             {
                 "hex": "003c176e659bea0f29a3e9bf7880c112b1b31b4dc826268187",
-                "string": "16UjcYNBG9GTK4uq2f7yYEbuifqCzoLMGS"
+                "string": "16UjcYNBG9GTK4uq2f7yYEbuifqCzoLMGS",
+                "check_string": "Cdg2fTwkNFPeEsRAAnaV1SmRpRAK7MoWnMiZj6eR"
             },
             {
                 "hex": "02c0ded2bc1f1305fb0faac5e6c03ee3a1924234985427b6167ca569d13df435cfeb05f9d2",
-                "string": "6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV"
+                "string": "6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
+                "check_string": "ykLqqCmtQy2YR7SjsD7W3q31Qq6dhAHFN9tr994y8TEWrexX3pLaXQ6q"
             }
         ];
 
@@ -164,6 +179,9 @@ describe('encoding', () => {
             var data = Buffer.from(d.hex, 'hex');
             assert.equal(base58.encode(data), d.string);
             assert.deepEqual(base58.decode(d.string), data);
+
+            assert.equal(base58.encode(data, 1), d.check_string);
+            assert.deepEqual(base58.decode(d.check_string, 1), data);
         });
     });
 
