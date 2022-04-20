@@ -1148,8 +1148,11 @@ describe('util', () => {
         });
 
         it('inspect', () => {
-            assert.equal(util.inspect([[[[[]]]]]), "[\n  [\n    [\n      [Array]\n    ]\n  ]\n]");
             assert.equal(util.inspect([[[[[]]]]], {
+                colors: false
+            }), "[\n  [\n    [\n      [Array]\n    ]\n  ]\n]");
+            assert.equal(util.inspect([[[[[]]]]], {
+                colors: false,
                 depth: 3
             }), "[\n  [\n    [\n      [\n        []\n      ]\n    ]\n  ]\n]");
         });
