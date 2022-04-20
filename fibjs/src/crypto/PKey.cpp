@@ -1163,8 +1163,13 @@ result_t PKey::set_alg(exlib::string newVal)
     }
 
     if (type == MBEDTLS_PK_ECKEY) {
-        if (newVal != "ECDSA" && newVal != "ECSDSA")
-            return CHECK_ERROR(CALL_E_INVALIDARG);
+        if (mbedtls_pk_ec(m_key)->grp.id == MBEDTLS_ECP_DP_ED25519) {
+            if (newVal != "EdDSA")
+                return CHECK_ERROR(CALL_E_INVALIDARG);
+        } else {
+            if (newVal != "ECDSA" && newVal != "ECSDSA")
+                return CHECK_ERROR(CALL_E_INVALIDARG);
+        }
         m_alg = newVal;
         return 0;
     }

@@ -1189,7 +1189,9 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
     });
 
     describe("alg", () => {
-        function test_alg(alg, pk) {
+        var all_algs = ['RSA', 'ECDSA', 'SM2', 'ECSDSA', 'EdDSA'];
+
+        function test_alg(alg, algs, pk) {
             describe(alg, () => {
                 it("generateKey", () => {
                     assert.equal(pk.alg, alg);
@@ -1214,13 +1216,24 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
                 it("json import", () => {
                     assert.equal(new crypto.PKey(pk.json()).alg, alg);
                 });
+
+                it('set alg', () => {
+                    all_algs.forEach(alg => {
+                        if (algs.indexOf(alg) != -1)
+                            pk.alg = alg;
+                        else
+                            assert.throws(() => {
+                                pk.alg = alg;
+                            });
+                    });
+                });
             });
         }
 
-        test_alg("RSA", crypto.generateKey(512));
-        test_alg("ECDSA", crypto.generateKey());
-        test_alg("SM2", crypto.generateKey("SM2"));
-        test_alg("EdDSA", crypto.generateKey("ed25519"));
+        test_alg("RSA", ['RSA'], crypto.generateKey(512));
+        test_alg("ECDSA", ['ECDSA', 'ECSDSA'], crypto.generateKey());
+        test_alg("SM2", ['SM2', 'ECSDSA'], crypto.generateKey("SM2"));
+        test_alg("EdDSA", ['EdDSA'], crypto.generateKey("ed25519"));
     });
 
     describe("X509 Cert", () => {
