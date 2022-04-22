@@ -50,11 +50,11 @@ jobs:
             build_type: debug
 
     steps:
-      - name: Switch XCode to 10.3
+      - name: Switch XCode to 11.4
         uses: maxim-lobanov/setup-xcode@v1
         if: runner.os == 'macOS'
         with:
-          xcode-version: '10'
+          xcode-version: '11.4'
       - name: Check out Git repository
         uses: actions/checkout@v2
         with:
