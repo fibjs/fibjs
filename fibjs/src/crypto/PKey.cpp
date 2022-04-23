@@ -89,6 +89,16 @@ const mbedtls_pk_info_t* get_pk_info_from_curve(int32_t id)
     return mbedtls_pk_info_from_type(pk_type);
 }
 
+int ecp_group_load(mbedtls_ecp_group* grp, int32_t id)
+{
+    if (id == MBEDTLS_ECP_DP_ED25519) {
+        grp->id = (mbedtls_ecp_group_id)MBEDTLS_ECP_DP_ED25519;
+        return 0;
+    }
+
+    return mbedtls_ecp_group_load(grp, (mbedtls_ecp_group_id)id);
+}
+
 result_t PKey_base::_new(obj_ptr<PKey_base>& retVal, v8::Local<v8::Object> This)
 {
     retVal = new PKey();
@@ -295,13 +305,9 @@ result_t PKey::get_publicKey(obj_ptr<PKey_base>& retVal)
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
         mbedtls_ecp_keypair* ecp1 = mbedtls_pk_ec(pk1->m_key);
 
-        if (ecp->grp.id == MBEDTLS_ECP_DP_ED25519) {
-            ecp1->grp.id = (mbedtls_ecp_group_id)MBEDTLS_ECP_DP_ED25519;
-        } else {
-            ret = mbedtls_ecp_group_copy(&ecp1->grp, &ecp->grp);
-            if (ret != 0)
-                return CHECK_ERROR(_ssl::setError(ret));
-        }
+        ret = ecp_group_load(&ecp1->grp, ecp->grp.id);
+        if (ret != 0)
+            return CHECK_ERROR(_ssl::setError(ret));
 
         ret = mbedtls_ecp_copy(&ecp1->Q, &ecp->Q);
         if (ret != 0)
@@ -340,13 +346,9 @@ result_t PKey::copy(const mbedtls_pk_context& key)
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(key);
         mbedtls_ecp_keypair* ecp1 = mbedtls_pk_ec(m_key);
 
-        if (ecp->grp.id == MBEDTLS_ECP_DP_ED25519)
-            ecp1->grp.id = (mbedtls_ecp_group_id)MBEDTLS_ECP_DP_ED25519;
-        else {
-            ret = mbedtls_ecp_group_copy(&ecp1->grp, &ecp->grp);
-            if (ret != 0)
-                return CHECK_ERROR(_ssl::setError(ret));
-        }
+        ret = ecp_group_load(&ecp1->grp, ecp->grp.id);
+        if (ret != 0)
+            return CHECK_ERROR(_ssl::setError(ret));
 
         ret = mbedtls_mpi_copy(&ecp1->d, &ecp->d);
         if (ret != 0)
@@ -544,10 +546,7 @@ result_t PKey::import(v8::Local<v8::Object> jsonKey)
 
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
 
-        if (id == MBEDTLS_ECP_DP_ED25519)
-            ecp->grp.id = (mbedtls_ecp_group_id)MBEDTLS_ECP_DP_ED25519;
-        else
-            mbedtls_ecp_group_load(&ecp->grp, (mbedtls_ecp_group_id)id);
+        ecp_group_load(&ecp->grp, (mbedtls_ecp_group_id)id);
 
         hr = mpi_load(isolate, &ecp->d, jsonKey, "d");
         if (hr >= 0) {
