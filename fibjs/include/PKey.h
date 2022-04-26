@@ -16,6 +16,8 @@
 namespace fibjs {
 
 #define MBEDTLS_ECP_DP_ED25519 1001
+#define MBEDTLS_ECP_DP_BLS12381_G1 1002
+#define MBEDTLS_ECP_DP_BLS12381_G2 1003
 
 class PKey : public PKey_base {
 public:
@@ -64,6 +66,7 @@ private:
     void def_alg();
     void def_ec_alg(int32_t id);
 
+private:
     result_t ed25519_generateKey();
     int ed25519_get_pubkey();
 
@@ -78,6 +81,12 @@ private:
 
     result_t ed25519_sign(Buffer_base* data, obj_ptr<Buffer_base>& retVal);
     result_t ed25519_verify(Buffer_base* data, Buffer_base* sign, bool& retVal);
+
+private:
+    result_t bls_generateKey(int32_t type);
+    int bls_get_pubkey();
+    result_t bls_sign(Buffer_base* data, obj_ptr<Buffer_base>& retVal);
+    result_t bls_verify(Buffer_base* data, Buffer_base* sign, bool& retVal);
 
 public:
     mbedtls_pk_context m_key;

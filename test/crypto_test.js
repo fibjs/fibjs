@@ -1188,8 +1188,80 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
         });
     });
 
+    describe("bls", () => {
+        var g1_key = {
+            "kty": "EC",
+            "crv": "BLS12381_G1",
+            "x": "tCgCNuUYQotPEsrljWi-lIRIPpzhqsnJV1NPnE7je6glUb-FJm9IYkuv2hbHw22i",
+            "d": "TXNvJBBG3h23H5hFJcnRZmYd_j1TqpwtJOllYGU3yyw"
+        };
+        var g2_key = {
+            "kty": "EC",
+            "crv": "BLS12381_G2",
+            "x": "h_rkcTKXXzRbOPr9UxSfegCbid2U_cVNXQUaKeGF7UhwrMJFP70uMH0VQ9-3-_2zDPAAjflsdeLkOXW3-ShktLxuPy8UlXSNgKNmkfb-rrj-FRwbs13pv_WsIf-eV66-",
+            "d": "PofPmtCTsMilP9gluxrSDTC7DPbKwSMEzxVCZxq_L2I"
+        };
+
+        it("export/import json", () => {
+            var sk = new crypto.PKey(g1_key);
+            assert.deepEqual(sk.json(), g1_key);
+
+            var sk = new crypto.PKey(g2_key);
+            assert.deepEqual(sk.json(), g2_key);
+        });
+
+        it("private only key", () => {
+            var sk = new crypto.PKey({
+                "kty": "EC",
+                "crv": "BLS12381_G1",
+                "d": "TXNvJBBG3h23H5hFJcnRZmYd_j1TqpwtJOllYGU3yyw"
+            });
+            assert.deepEqual(sk.json(), g1_key);
+
+            var sk = new crypto.PKey({
+                "kty": "EC",
+                "crv": "BLS12381_G2",
+                "d": "PofPmtCTsMilP9gluxrSDTC7DPbKwSMEzxVCZxq_L2I"
+            });
+            assert.deepEqual(sk.json(), g2_key);
+        });
+
+        it("get public key", () => {
+            var sk = new crypto.PKey(g1_key);
+            assert.deepEqual(sk.publicKey.json(), {
+                "kty": "EC", "crv": "BLS12381_G1",
+                "x": "tCgCNuUYQotPEsrljWi-lIRIPpzhqsnJV1NPnE7je6glUb-FJm9IYkuv2hbHw22i"
+            });
+
+            var sk = new crypto.PKey(g2_key);
+            assert.deepEqual(sk.publicKey.json(), {
+                "kty": "EC", "crv": "BLS12381_G2",
+                "x": "h_rkcTKXXzRbOPr9UxSfegCbid2U_cVNXQUaKeGF7UhwrMJFP70uMH0VQ9-3-_2zDPAAjflsdeLkOXW3-ShktLxuPy8UlXSNgKNmkfb-rrj-FRwbs13pv_WsIf-eV66-"
+            });
+        });
+
+        it("clone", () => {
+            var sk = new crypto.PKey(g1_key);
+            var sk1 = sk.clone();
+            assert.deepEqual(sk1.json(), g1_key);
+        });
+
+        it("sign/verify", () => {
+            var sk = new crypto.PKey(g1_key);
+            var sig = sk.sign('abcd');
+            assert.isTrue(sk.verify('abcd', sig));
+            assert.isFalse(sk.verify('abcd1', sig));
+        });
+
+        it("keySize/curve", () => {
+            var sk = new crypto.PKey(g1_key);
+            assert.deepEqual(sk.keySize, 256);
+            assert.deepEqual(sk.curve, "BLS12381_G1");
+        });
+    });
+
     describe("alg", () => {
-        var all_algs = ['RSA', 'ECDSA', 'SM2', 'ECSDSA', 'EdDSA'];
+        var all_algs = ['RSA', 'ECDSA', 'SM2', 'ECSDSA', 'EdDSA', 'BLS'];
 
         function test_alg(alg, algs, pk) {
             describe(alg, () => {
@@ -1205,13 +1277,15 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
                     assert.equal(pk.publicKey.alg, alg);
                 });
 
-                it("pem import", () => {
-                    assert.equal(new crypto.PKey(pk.pem()).alg, alg);
-                });
+                if (alg != "BLS") {
+                    it("pem import", () => {
+                        assert.equal(new crypto.PKey(pk.pem()).alg, alg);
+                    });
 
-                it("der import", () => {
-                    assert.equal(new crypto.PKey(pk.der()).alg, alg);
-                });
+                    it("der import", () => {
+                        assert.equal(new crypto.PKey(pk.der()).alg, alg);
+                    });
+                }
 
                 it("json import", () => {
                     assert.equal(new crypto.PKey(pk.json()).alg, alg);
@@ -1234,6 +1308,7 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
         test_alg("ECDSA", ['ECDSA', 'ECSDSA'], crypto.generateKey());
         test_alg("SM2", ['SM2', 'ECSDSA'], crypto.generateKey("SM2"));
         test_alg("EdDSA", ['EdDSA'], crypto.generateKey("ed25519"));
+        test_alg("BLS", ['BLS'], crypto.generateKey("BLS12381_G1"));
     });
 
     describe("X509 Cert", () => {

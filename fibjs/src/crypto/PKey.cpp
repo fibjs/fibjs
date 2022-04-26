@@ -53,6 +53,8 @@ static const curve_info supported_curves[] = {
     { MBEDTLS_ECP_DP_SM2P256R1, "sm2p256r1" },
     { MBEDTLS_ECP_DP_ED25519, "Ed25519" },
     { MBEDTLS_ECP_DP_ED25519, "ed25519" },
+    { MBEDTLS_ECP_DP_BLS12381_G1, "BLS12381_G1" },
+    { MBEDTLS_ECP_DP_BLS12381_G2, "BLS12381_G2" },
 };
 
 int32_t get_curve_id(exlib::string& curve)
@@ -91,8 +93,10 @@ const mbedtls_pk_info_t* get_pk_info_from_curve(int32_t id)
 
 int ecp_group_load(mbedtls_ecp_group* grp, int32_t id)
 {
-    if (id == MBEDTLS_ECP_DP_ED25519) {
-        grp->id = (mbedtls_ecp_group_id)MBEDTLS_ECP_DP_ED25519;
+    if (id == MBEDTLS_ECP_DP_ED25519
+        || id == MBEDTLS_ECP_DP_BLS12381_G1
+        || id == MBEDTLS_ECP_DP_BLS12381_G2) {
+        grp->id = (mbedtls_ecp_group_id)id;
         return 0;
     }
 
@@ -164,6 +168,9 @@ void PKey::def_ec_alg(int32_t id)
         m_alg = "SM2";
     else if (id == MBEDTLS_ECP_DP_ED25519)
         m_alg = "EdDSA";
+    else if (id == MBEDTLS_ECP_DP_BLS12381_G1
+        || id == MBEDTLS_ECP_DP_BLS12381_G2)
+        m_alg = "BLS";
     else
         m_alg = "ECDSA";
 }
@@ -223,6 +230,12 @@ result_t PKey::generateKey(exlib::string curve, AsyncEvent* ac)
 
     if (id == MBEDTLS_ECP_DP_ED25519)
         return ed25519_generateKey();
+
+    if (id == MBEDTLS_ECP_DP_BLS12381_G1)
+        return bls_generateKey(1);
+
+    if (id == MBEDTLS_ECP_DP_BLS12381_G2)
+        return bls_generateKey(2);
 
     def_ec_alg(id);
 
@@ -550,7 +563,7 @@ result_t PKey::import(v8::Local<v8::Object> jsonKey)
 
         hr = mpi_load(isolate, &ecp->d, jsonKey, "d");
         if (hr >= 0) {
-            if (id != MBEDTLS_ECP_DP_ED25519) {
+            if (id < MBEDTLS_ECP_DP_ED25519) {
                 ret = mbedtls_ecp_check_privkey(&ecp->grp, &ecp->d);
                 if (ret != 0)
                     return CHECK_ERROR(_ssl::setError(ret));
@@ -570,7 +583,7 @@ result_t PKey::import(v8::Local<v8::Object> jsonKey)
             if (ret != 0)
                 return CHECK_ERROR(_ssl::setError(ret));
 
-            if (id != MBEDTLS_ECP_DP_ED25519) {
+            if (id < MBEDTLS_ECP_DP_ED25519) {
                 ret = mbedtls_ecp_check_pubkey(&ecp->grp, &ecp->Q);
                 if (ret != 0)
                     return CHECK_ERROR(_ssl::setError(ret));
@@ -582,6 +595,9 @@ result_t PKey::import(v8::Local<v8::Object> jsonKey)
 
         if (id == MBEDTLS_ECP_DP_ED25519)
             ret = ed25519_get_pubkey();
+        else if (id == MBEDTLS_ECP_DP_BLS12381_G1
+            || id == MBEDTLS_ECP_DP_BLS12381_G2)
+            ret = bls_get_pubkey();
         else
             ret = mbedtls_ecp_mul(&ecp->grp, &ecp->Q, &ecp->d, &ecp->grp.G,
                 mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
@@ -883,6 +899,9 @@ result_t PKey::sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal
     if (m_alg == "EdDSA")
         return ed25519_sign(data, retVal);
 
+    if (m_alg == "BLS")
+        return bls_sign(data, retVal);
+
     result_t hr;
     bool priv;
 
@@ -977,6 +996,9 @@ result_t PKey::verify(Buffer_base* data, Buffer_base* sign, int32_t alg, bool& r
 
     if (m_alg == "EdDSA")
         return ed25519_verify(data, sign, retVal);
+
+    if (m_alg == "BLS")
+        return bls_verify(data, sign, retVal);
 
     int32_t ret;
     exlib::string str;
@@ -1128,10 +1150,17 @@ result_t PKey::get_keySize(int32_t& retVal)
     mbedtls_pk_type_t type = mbedtls_pk_get_type(&m_key);
 
     if (type) {
-        if (type != MBEDTLS_PK_RSA && mbedtls_pk_ec(m_key)->grp.id == MBEDTLS_ECP_DP_ED25519)
-            retVal = 256;
-        else
+        if (type == MBEDTLS_PK_RSA)
             retVal = (int32_t)mbedtls_pk_get_bitlen(&m_key);
+        else {
+            int32_t id = mbedtls_pk_ec(m_key)->grp.id;
+            if (id == MBEDTLS_ECP_DP_ED25519
+                || id == MBEDTLS_ECP_DP_BLS12381_G1
+                || id == MBEDTLS_ECP_DP_BLS12381_G2)
+                retVal = 256;
+            else
+                retVal = (int32_t)mbedtls_pk_get_bitlen(&m_key);
+        }
     } else
         retVal = 0;
 
@@ -1162,8 +1191,14 @@ result_t PKey::set_alg(exlib::string newVal)
     }
 
     if (type == MBEDTLS_PK_ECKEY) {
-        if (mbedtls_pk_ec(m_key)->grp.id == MBEDTLS_ECP_DP_ED25519) {
+        int32_t id = mbedtls_pk_ec(m_key)->grp.id;
+
+        if (id == MBEDTLS_ECP_DP_ED25519) {
             if (newVal != "EdDSA")
+                return CHECK_ERROR(CALL_E_INVALIDARG);
+        } else if (id == MBEDTLS_ECP_DP_BLS12381_G1
+            || id == MBEDTLS_ECP_DP_BLS12381_G2) {
+            if (newVal != "BLS")
                 return CHECK_ERROR(CALL_E_INVALIDARG);
         } else {
             if (newVal != "ECDSA" && newVal != "ECSDSA")
