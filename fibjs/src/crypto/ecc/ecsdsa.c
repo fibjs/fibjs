@@ -59,13 +59,13 @@ int ecsdsa_sign(mbedtls_ecp_keypair* ctx, int sdsa, mbedtls_ecp_keypair* to_ctx,
         secp256k1_ecdsa_signature signature;
         secp256k1_pubkey to_pubkey;
 
-        mpi_write_key(&ctx->Q.X, pubkey->data);
-        mpi_write_key(&ctx->Q.Y, pubkey->data + KEYSIZE_256);
+        mbedtls_mpi_write_binary_le(&ctx->Q.X, pubkey->data, KEYSIZE_256);
+        mbedtls_mpi_write_binary_le(&ctx->Q.Y, pubkey->data + KEYSIZE_256, KEYSIZE_256);
         mbedtls_mpi_write_binary(&ctx->d, keypair.data, KEYSIZE_256);
 
         if (to_ctx) {
-            mpi_write_key(&to_ctx->Q.X, to_pubkey.data);
-            mpi_write_key(&to_ctx->Q.Y, to_pubkey.data + KEYSIZE_256);
+            mbedtls_mpi_write_binary_le(&to_ctx->Q.X, to_pubkey.data, KEYSIZE_256);
+            mbedtls_mpi_write_binary_le(&to_ctx->Q.Y, to_pubkey.data + KEYSIZE_256, KEYSIZE_256);
         }
 
         secp256k1_ecsdsa_sign_to(secp256k1_ctx, to_ctx ? &to_pubkey : NULL, signature.data, hash, hlen, &keypair);
@@ -109,8 +109,8 @@ int ecsdsa_verify(mbedtls_ecp_keypair* ctx, int sdsa, mbedtls_ecp_keypair* to_ct
         secp256k1_ecdsa_signature signature;
         unsigned char to_key[KEYSIZE_256];
 
-        mpi_write_key(&ctx->Q.X, pubkey.data);
-        mpi_write_key(&ctx->Q.Y, pubkey.data + KEYSIZE_256);
+        mbedtls_mpi_write_binary_le(&ctx->Q.X, pubkey.data, KEYSIZE_256);
+        mbedtls_mpi_write_binary_le(&ctx->Q.Y, pubkey.data + KEYSIZE_256, KEYSIZE_256);
 
         if (to_ctx)
             mbedtls_mpi_write_binary(&to_ctx->d, to_key, KEYSIZE_256);
