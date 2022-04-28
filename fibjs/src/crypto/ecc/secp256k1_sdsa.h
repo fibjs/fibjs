@@ -11,6 +11,28 @@
 #include "secp256k1/src/secp256k1.c"
 #include "mbedtls/src/secp256k1_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int secp256k1_ec_pubkey_decompress(const secp256k1_context* ctx, unsigned char* pubkey, int* pubkeylen);
+
+#ifdef __cplusplus
+}
+#endif
+
+int secp256k1_ec_pubkey_decompress(const secp256k1_context* ctx, unsigned char* pubkey, int* pubkeylen)
+{
+    secp256k1_ge p;
+    int ret = 0;
+    (void)ctx;
+
+    if (secp256k1_eckey_pubkey_parse(&p, pubkey, *pubkeylen)) {
+        ret = secp256k1_eckey_pubkey_serialize(&p, pubkey, pubkeylen, 0);
+    }
+    return ret;
+}
+
 static int ecdh_hash_function_X(unsigned char* output, const unsigned char* x32, const unsigned char* y32,
     void* data)
 {
