@@ -608,14 +608,7 @@ result_t X509Cert::get_publicKey(obj_ptr<PKey_base>& retVal)
     if (!crt)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    obj_ptr<PKey> pk1 = new PKey();
-    result_t hr;
-
-    hr = pk1->copy(crt->pk);
-    if (hr < 0)
-        return hr;
-
-    retVal = pk1;
+    retVal = PKey::create(crt->pk, true);
     return 0;
 }
 

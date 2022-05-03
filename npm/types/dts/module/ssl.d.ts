@@ -92,15 +92,6 @@ declare module 'ssl' {
     function setClientCert(crt: Class_X509Cert, key: Class_PKey): void;
 
     /**
-     * @description 从文件中加载缺省客户端证书
-     *     @param crtFile 证书文件，用于客户端验证服务器
-     *     @param keyFile 私钥文件，用于与客户端会话
-     *     @param password 解密密码
-     *    
-     */
-    function loadClientCertFile(crtFile: string, keyFile: string, password?: string): void;
-
-    /**
      * @description 加载自带的缺省根证书，等同于 ssl.ca.loadRootCerts
      *     此证书内容源自：http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt 
      */

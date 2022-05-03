@@ -174,15 +174,6 @@ declare module 'crypto' {
     function createHmac(algo: string, key: Class_Buffer): Class_Digest;
 
     /**
-     * @description 加载一个 PEM/DER 格式的密钥文件
-     *      @param filename 密钥文件名
-     *      @param password 解密密码
-     *      @return 返回包含密钥的对象
-     *     
-     */
-    function loadPKey(filename: string, password?: string): Class_PKey;
-
-    /**
      * @description 加载一个 CRT/PEM/DER/TXT 格式的证书，可多次调用
      * 
      *     loadFile 加载 mozilla 的 certdata,txt， 可于 http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt 下载使用

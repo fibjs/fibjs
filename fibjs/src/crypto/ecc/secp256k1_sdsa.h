@@ -28,7 +28,9 @@ int secp256k1_ec_pubkey_decompress(const secp256k1_context* ctx, unsigned char* 
     (void)ctx;
 
     if (secp256k1_eckey_pubkey_parse(&p, pubkey, *pubkeylen)) {
-        ret = secp256k1_eckey_pubkey_serialize(&p, pubkey, pubkeylen, 0);
+        size_t sz = *pubkeylen;
+        ret = secp256k1_eckey_pubkey_serialize(&p, pubkey, &sz, 0);
+        *pubkeylen = (int)sz;
     }
     return ret;
 }
@@ -159,10 +161,9 @@ static int secp256k1_ecsdsa_verify_to(const secp256k1_context* ctx, const unsign
     secp256k1_gej rj;
     secp256k1_ge pk;
     secp256k1_gej pkj;
-    secp256k1_fe rx;
     secp256k1_ge r;
     unsigned char buf[32];
-    int overflow;
+    unsigned char hash64[64];
 
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(sig64 != NULL);
@@ -192,11 +193,11 @@ static int secp256k1_ecsdsa_verify_to(const secp256k1_context* ctx, const unsign
      * Steps 3: e = OS2I(hash(FE2OS(xQ) ∥ FE2OS(yQ) ∥ M))
      */
     secp256k1_fe_normalize_var(&r.x);
-    secp256k1_fe_get_b32(&sig64[0], &r.x);
+    secp256k1_fe_get_b32(&hash64[0], &r.x);
     secp256k1_fe_normalize_var(&r.y);
-    secp256k1_fe_get_b32(&sig64[32], &r.y);
+    secp256k1_fe_get_b32(&hash64[32], &r.y);
 
-    secp256k1_ecsdsa_hash(&e1, &sig64[0], msg, msglen);
+    secp256k1_ecsdsa_hash(&e1, &hash64[0], msg, msglen);
 
     if (to_key) {
         secp256k1_scalar c;

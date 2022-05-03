@@ -123,24 +123,6 @@ result_t ssl_base::setClientCert(X509Cert_base* crt, PKey_base* key)
     return 0;
 }
 
-result_t ssl_base::loadClientCertFile(exlib::string crtFile, exlib::string keyFile,
-    exlib::string password)
-{
-    result_t hr;
-
-    hr = crypto_base::loadCert(crtFile, g_ssl.m_crt);
-    if (hr < 0)
-        return hr;
-
-    hr = crypto_base::loadPKey(keyFile, password, g_ssl.m_key);
-    if (hr < 0) {
-        g_ssl.m_crt.Release();
-        return hr;
-    }
-
-    return 0;
-}
-
 result_t ssl_base::loadRootCerts()
 {
     return Isolate::current()->m_ca->loadRootCerts();

@@ -479,14 +479,7 @@ result_t X509Req::get_sig_pk(int32_t& retVal)
 
 result_t X509Req::get_publicKey(obj_ptr<PKey_base>& retVal)
 {
-    obj_ptr<PKey> pk1 = new PKey();
-    result_t hr;
-
-    hr = pk1->copy(m_csr.pk);
-    if (hr < 0)
-        return hr;
-
-    retVal = pk1;
+    retVal = PKey::create(m_csr.pk, true);
     return 0;
 }
 }

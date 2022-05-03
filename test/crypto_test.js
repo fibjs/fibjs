@@ -373,8 +373,7 @@ describe('crypto', () => {
     describe("PKey", () => {
         describe("RSA", () => {
             it("PEM import/export", () => {
-                var pk = new crypto.PKey();
-                pk.import(rsa4096_pem);
+                var pk = crypto.PKey.from(rsa4096_pem);
                 assert.equal(pk.pem(), rsa4096_pem);
 
                 var pk = new crypto.PKey(rsa4096_pem);
@@ -382,16 +381,14 @@ describe('crypto', () => {
             });
 
             it("toString", () => {
-                var pk = new crypto.PKey();
-                pk.import(rsa4096_pem);
+                var pk = crypto.PKey.from(rsa4096_pem);
                 assert.equal(pk, rsa4096_pem);
             });
 
             it("Der import/export", () => {
-                var pk = new crypto.PKey();
-                pk.import(rsa4096_pem);
+                var pk = crypto.PKey.from(rsa4096_pem);
                 var der = pk.der();
-                pk.import(der);
+                pk = crypto.PKey.from(der);
                 assert.equal(pk.pem(), rsa4096_pem);
 
                 var pk = new crypto.PKey(der);
@@ -399,8 +396,7 @@ describe('crypto', () => {
             });
 
             it("Json import/export", () => {
-                var pk = new crypto.PKey();
-                pk.import(rsa4096_pem);
+                var pk = crypto.PKey.from(rsa4096_pem);
                 var json = pk.json();
 
                 assert.deepEqual(json, {
@@ -415,11 +411,10 @@ describe('crypto', () => {
                     "qi": "FxeLSz-9JNnPO_rlHl1ZKfZZ4Nt_Ys7LhCoZ5Gz4TjlUN3LDpYe8EoeW-0NDo-vsWPM8jDVGBp_OawaXxti3ruqyW8dSBGP4x0BgoV5I8nA3LWyRszw02nWRm99TFGqeM_wzGyoVLfJ-KnK0J_HXSgIeJMw9yV-l23_N9OyoBjo3d1zuPMAK6BDqPxcIXR-Sp-q84HU3WN1UHk1uRbSasUGGsFNDIkmCaMpHFaTuv5tgqUV0ljGlh1zG616zKkNaYRiRK2h4JGAu6O-xdQFUjsUVaCPi6BtFtiscxqvXU4dcYmosNMhtTwjHaWhhC8877i2gZ97Vum2RzMz3xi---g"
                 });
 
-                pk.import(json);
+                pk = crypto.PKey.from(json);
                 assert.equal(pk.pem(), rsa4096_pem);
 
-                var pk = new crypto.PKey();
-                pk.import(pub_rsa4096_pem);
+                var pk = crypto.PKey.from(pub_rsa4096_pem);
                 var json = pk.json();
 
                 assert.deepEqual(json, {
@@ -428,7 +423,7 @@ describe('crypto', () => {
                     "e": "AQAB"
                 });
 
-                pk.import(json);
+                pk = crypto.PKey.from(json);
                 assert.equal(pk.pem(), pub_rsa4096_pem);
 
                 pk = new crypto.PKey(json);
@@ -436,28 +431,24 @@ describe('crypto', () => {
             });
 
             it("import publicKey", () => {
-                var pk = new crypto.PKey();
-                pk.import(pub_rsa4096_pem);
+                var pk = crypto.PKey.from(pub_rsa4096_pem);
                 assert.isFalse(pk.isPrivate());
 
                 assert.equal(pk, pub_rsa4096_pem);
 
-                var pk1 = new crypto.PKey();
-                pk1.import(pk.der());
+                var pk1 = crypto.PKey.from(pk.der());
                 assert.isFalse(pk1.isPrivate());
 
                 assert.equal(pk1.pem(), pub_rsa4096_pem);
             });
 
             it("import rsa format publicKey", () => {
-                var pk = new crypto.PKey();
-                pk.import(rsa_pub_key);
+                var pk = crypto.PKey.from(rsa_pub_key);
                 assert.isFalse(pk.isPrivate());
             });
 
             it("publicKey", () => {
-                var pk = new crypto.PKey();
-                pk.import(rsa4096_pem);
+                var pk = crypto.PKey.from(rsa4096_pem);
                 assert.isTrue(pk.isPrivate());
 
                 var pk1 = pk.publicKey;
@@ -467,8 +458,7 @@ describe('crypto', () => {
             });
 
             it("clone", () => {
-                var pk = new crypto.PKey();
-                pk.import(rsa4096_pem);
+                var pk = crypto.PKey.from(rsa4096_pem);
 
                 var pk1 = pk.clone();
 
@@ -483,8 +473,7 @@ describe('crypto', () => {
             });
 
             it("equal", () => {
-                var pk = new crypto.PKey();
-                pk.import(rsa4096_pem);
+                var pk = crypto.PKey.from(rsa4096_pem);
 
                 var pk1 = pk.clone();
 
@@ -497,8 +486,7 @@ describe('crypto', () => {
             });
 
             it("encrypt/decrypt", () => {
-                var pk = new crypto.PKey();
-                pk.import(rsa4096_pem);
+                var pk = crypto.PKey.from(rsa4096_pem);
 
                 var pk1 = pk.publicKey;
 
@@ -511,8 +499,7 @@ describe('crypto', () => {
             });
 
             it("sign/verify", () => {
-                var pk = new crypto.PKey();
-                pk.import(rsa4096_pem);
+                var pk = crypto.PKey.from(rsa4096_pem);
 
                 var pk1 = pk.publicKey;
 
@@ -530,8 +517,7 @@ describe('crypto', () => {
 
         describe("EC", () => {
             it("PEM import/export", () => {
-                var pk = new crypto.PKey();
-                pk.import(ec_pem);
+                var pk = crypto.PKey.from(ec_pem);
                 assert.equal(pk.pem(), ec_pem);
 
                 pk = new crypto.PKey(ec_pem);
@@ -539,16 +525,14 @@ describe('crypto', () => {
             });
 
             it("toString", () => {
-                var pk = new crypto.PKey();
-                pk.import(ec_pem);
+                var pk = crypto.PKey.from(ec_pem);
                 assert.equal(pk, ec_pem);
             });
 
             it("Der import/export", () => {
-                var pk = new crypto.PKey();
-                pk.import(ec_pem);
+                var pk = crypto.PKey.from(ec_pem);
                 var der = pk.der();
-                pk.import(der);
+                pk = crypto.PKey.from(der);
                 assert.equal(pk.pem(), ec_pem);
 
                 pk = new crypto.PKey(der);
@@ -556,8 +540,7 @@ describe('crypto', () => {
             });
 
             it("Json import/export", () => {
-                var pk = new crypto.PKey();
-                pk.import(ec_pem);
+                var pk = crypto.PKey.from(ec_pem);
                 var json = pk.json();
 
                 assert.deepEqual(json, {
@@ -568,18 +551,17 @@ describe('crypto', () => {
                     "d": "AfkIbUHXfW41njdpoKuqqKludcoLJS8D_oMEwkj-GVaXFNKccIoF5iKGu2c69kNDjo83R_7wyGlfRczsklkik1ST"
                 });
 
-                pk.import(json);
+                pk = crypto.PKey.from(json);
                 assert.equal(pk.pem(), ec_pem);
 
-                pk.import({
+                pk = crypto.PKey.from({
                     "kty": "EC",
                     "crv": "P-521",
                     "d": "AfkIbUHXfW41njdpoKuqqKludcoLJS8D_oMEwkj-GVaXFNKccIoF5iKGu2c69kNDjo83R_7wyGlfRczsklkik1ST"
                 });
                 assert.equal(pk.pem(), ec_pem);
 
-                var pk = new crypto.PKey();
-                pk.import(pub_ec_pem);
+                var pk = crypto.PKey.from(pub_ec_pem);
                 var json = pk.json();
 
                 assert.deepEqual(json, {
@@ -589,7 +571,7 @@ describe('crypto', () => {
                     "y": "ASBHqrruB6kdkEUB3vlW3-UIkk4HtKdUeTwN-7m3j2rgZvYR1ffRAapDvWqKGiBjomqWafxokBkbDI0c95f6f4XU"
                 });
 
-                pk.import(json);
+                pk = crypto.PKey.from(json);
                 assert.equal(pk.pem(), pub_ec_pem);
 
                 var pk = new crypto.PKey(json);
@@ -597,22 +579,19 @@ describe('crypto', () => {
             });
 
             it("import publicKey", () => {
-                var pk = new crypto.PKey();
-                pk.import(pub_ec_pem);
+                var pk = crypto.PKey.from(pub_ec_pem);
                 assert.isFalse(pk.isPrivate());
 
                 assert.equal(pk, pub_ec_pem);
 
-                var pk1 = new crypto.PKey();
-                pk1.import(pk.der());
+                var pk1 = crypto.PKey.from(pk.der());
                 assert.isFalse(pk1.isPrivate());
 
                 assert.equal(pk1.pem(), pub_ec_pem);
             });
 
             it("publicKey", () => {
-                var pk = new crypto.PKey();
-                pk.import(ec_pem);
+                var pk = crypto.PKey.from(ec_pem);
                 assert.isTrue(pk.isPrivate());
 
                 var pk1 = pk.publicKey;
@@ -622,8 +601,7 @@ describe('crypto', () => {
             });
 
             it("clone", () => {
-                var pk = new crypto.PKey();
-                pk.import(ec_pem);
+                var pk = crypto.PKey.from(ec_pem);
 
                 var pk1 = pk.clone();
 
@@ -638,8 +616,7 @@ describe('crypto', () => {
             });
 
             it("equal", () => {
-                var pk = new crypto.PKey();
-                pk.import(ec_pem);
+                var pk = crypto.PKey.from(ec_pem);
 
                 var pk1 = pk.clone();
 
@@ -652,8 +629,7 @@ describe('crypto', () => {
             });
 
             it("sign/verify", () => {
-                var pk = new crypto.PKey();
-                pk.import(ec_pem);
+                var pk = crypto.PKey.from(ec_pem);
 
                 var pk1 = pk.publicKey;
 
@@ -676,8 +652,7 @@ describe('crypto', () => {
             });
 
             it("secp256k1 sign/verify", () => {
-                var pk = new crypto.PKey();
-                pk.import(ec256_pem);
+                var pk = crypto.PKey.from(ec256_pem);
 
                 var pk1 = pk.publicKey;
 
@@ -700,9 +675,8 @@ describe('crypto', () => {
             });
 
             it('FIX: secp256k1 verify error.', () => {
-                var pk = new crypto.PKey();
                 console.time('secp256k1 import');
-                pk.import({
+                var pk = crypto.PKey.from({
                     "kty": "EC",
                     "crv": "secp256k1",
                     "d": "rSnfXs7h-q2yNflXjMTJHZz_Md3KKKr2Lk1ot0-BN2k"
@@ -726,8 +700,7 @@ describe('crypto', () => {
 
         describe("SM2", () => {
             it("PEM import/export", () => {
-                var pk = new crypto.PKey();
-                pk.import(sm2_pem);
+                var pk = crypto.PKey.from(sm2_pem);
                 assert.equal(pk.pem(), sm2_pem);
 
                 pk = new crypto.PKey(sm2_pem);
@@ -735,16 +708,14 @@ describe('crypto', () => {
             });
 
             it("toString", () => {
-                var pk = new crypto.PKey();
-                pk.import(sm2_pem);
+                var pk = crypto.PKey.from(sm2_pem);
                 assert.equal(pk, sm2_pem);
             });
 
             it("Der import/export", () => {
-                var pk = new crypto.PKey();
-                pk.import(sm2_pem);
+                var pk = crypto.PKey.from(sm2_pem);
                 var der = pk.der();
-                pk.import(der);
+                pk = crypto.PKey.from(der);
                 assert.equal(pk.pem(), sm2_pem);
 
                 pk = new crypto.PKey(der);
@@ -752,8 +723,7 @@ describe('crypto', () => {
             });
 
             it("Json import/export", () => {
-                var pk = new crypto.PKey();
-                pk.import(sm2_pem);
+                var pk = crypto.PKey.from(sm2_pem);
                 var json = pk.json();
 
                 assert.deepEqual(json, {
@@ -764,18 +734,17 @@ describe('crypto', () => {
                     "d": "fcRRalaycsaXpKQYGcbmU8Qi93KqXnpodAwIK3vEOoI"
                 });
 
-                pk.import(json);
+                pk = crypto.PKey.from(json);
                 assert.equal(pk.pem(), sm2_pem);
 
-                pk.import({
+                pk = crypto.PKey.from({
                     "kty": "EC",
                     "crv": "SM2",
                     "d": "fcRRalaycsaXpKQYGcbmU8Qi93KqXnpodAwIK3vEOoI"
                 });
                 assert.equal(pk.pem(), sm2_pem);
 
-                var pk = new crypto.PKey();
-                pk.import(pub_sm2_pem);
+                var pk = crypto.PKey.from(pub_sm2_pem);
                 var json = pk.json();
 
                 assert.deepEqual(json, {
@@ -785,7 +754,7 @@ describe('crypto', () => {
                     "y": "c_e2CHv5PB1-sKzzFGs30tT1XfwPUfIGnb5VEUN5bn4",
                 });
 
-                pk.import(json);
+                pk = crypto.PKey.from(json);
                 assert.equal(pk.pem(), pub_sm2_pem);
 
                 var pk = new crypto.PKey(json);
@@ -793,22 +762,19 @@ describe('crypto', () => {
             });
 
             it("import publicKey", () => {
-                var pk = new crypto.PKey();
-                pk.import(pub_sm2_pem);
+                var pk = crypto.PKey.from(pub_sm2_pem);
                 assert.isFalse(pk.isPrivate());
 
                 assert.equal(pk, pub_sm2_pem);
 
-                var pk1 = new crypto.PKey();
-                pk1.import(pk.der());
+                var pk1 = crypto.PKey.from(pk.der());
                 assert.isFalse(pk1.isPrivate());
 
                 assert.equal(pk1.pem(), pub_sm2_pem);
             });
 
             it("publicKey", () => {
-                var pk = new crypto.PKey();
-                pk.import(sm2_pem);
+                var pk = crypto.PKey.from(sm2_pem);
                 assert.isTrue(pk.isPrivate());
 
                 var pk1 = pk.publicKey;
@@ -818,8 +784,7 @@ describe('crypto', () => {
             });
 
             it("clone", () => {
-                var pk = new crypto.PKey();
-                pk.import(sm2_pem);
+                var pk = crypto.PKey.from(sm2_pem);
 
                 var pk1 = pk.clone();
 
@@ -835,8 +800,7 @@ describe('crypto', () => {
 
 
             it("equal", () => {
-                var pk = new crypto.PKey();
-                pk.import(sm2_pem);
+                var pk = crypto.PKey.from(sm2_pem);
 
                 var pk1 = pk.clone();
 
@@ -849,8 +813,7 @@ describe('crypto', () => {
             });
 
             it("sign/verify", () => {
-                var pk = new crypto.PKey();
-                pk.import(sm2_pem);
+                var pk = crypto.PKey.from(sm2_pem);
 
                 var pk1 = pk.publicKey;
 
@@ -866,8 +829,7 @@ describe('crypto', () => {
             });
 
             it("encrypt/decrypt", () => {
-                var pk = new crypto.PKey();
-                pk.import(sm2_pem);
+                var pk = crypto.PKey.from(sm2_pem);
 
                 var pk1 = pk.publicKey;
 
@@ -881,9 +843,8 @@ describe('crypto', () => {
 
             it("sign/verify with same key", () => {
                 var pk = crypto.generateKey("SM2");
-                var pk1 = new crypto.PKey();
                 var json = pk.json();
-                pk1.import(json);
+                var pk1 = crypto.PKey.from(json);
 
                 var md = hash.md5("abcdefg").digest();
                 var d = pk.sign(md);
@@ -950,47 +911,35 @@ describe('crypto', () => {
         });
 
         it("name", () => {
-            var pk = new crypto.PKey();
-
-            assert.equal(pk.name, "invalid PK");
-
-            pk.import(rsa4096_pem);
+            var pk = crypto.PKey.from(rsa4096_pem);
             assert.equal(pk.name, "RSA");
 
-            pk.import(ec_pem);
+            pk = crypto.PKey.from(ec_pem);
             assert.equal(pk.name, "EC");
 
-            pk.import(sm2_pem);
+            pk = crypto.PKey.from(sm2_pem);
             assert.equal(pk.name, "SM2");
         });
 
         it("keySize", () => {
-            var pk = new crypto.PKey();
-
-            assert.equal(pk.keySize, 0);
-
-            pk.import(rsa4096_pem);
+            var pk = crypto.PKey.from(rsa4096_pem);
             assert.equal(pk.keySize, 4096);
 
-            pk.import(ec_pem);
+            pk = crypto.PKey.from(ec_pem);
             assert.equal(pk.keySize, 521);
 
-            pk.import(sm2_pem);
+            pk = crypto.PKey.from(sm2_pem);
             assert.equal(pk.keySize, 256);
         });
 
         it("curve", () => {
-            var pk = new crypto.PKey();
-
+            var pk = crypto.PKey.from(rsa4096_pem);
             assert.equal(pk.curve, '');
 
-            pk.import(rsa4096_pem);
-            assert.equal(pk.curve, '');
-
-            pk.import(ec_pem);
+            pk = crypto.PKey.from(ec_pem);
             assert.equal(pk.curve, 'P-521');
 
-            pk.import(sm2_pem);
+            pk = crypto.PKey.from(sm2_pem);
             assert.equal(pk.curve, 'SM2');
         });
     });
@@ -1543,8 +1492,7 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
         });
 
         it("create", () => {
-            var pk = new crypto.PKey();
-            pk.import(rsa4096_pem);
+            var pk = crypto.PKey.from(rsa4096_pem);
 
             req = new crypto.X509Req("C=CN, O=baoz.cn, CN=baoz.me", pk);
             assert.deepEqual(req.pem(), req1);
@@ -1571,8 +1519,7 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
 
         function ca_test(private_pem, public_pem, md_alg) {
             it("create", () => {
-                pk = new crypto.PKey();
-                pk.import(private_pem);
+                pk = crypto.PKey.from(private_pem);
                 req = new crypto.X509Req("C=CN, O=baoz.cn, CN=baoz.me", pk, md_alg);
             });
 

@@ -1,15 +1,12 @@
 /*
- * ed25519.cpp
+ * PKey_25519.cpp
  *
- *  Created on: Apr 17, 2022
+ *  Created on: May 2, 2022
  *      Author: lion
  */
 
-#define MBEDTLS_ALLOW_PRIVATE_ACCESS
-
-#include "object.h"
-#include "PKey.h"
 #include "Buffer.h"
+#include "PKey_impl.h"
 #include "ssl.h"
 #include <mbedtls/pem.h>
 #include <mbedtls/asn1write.h>
@@ -29,52 +26,50 @@ const unsigned char s_der_pub_lead[]
 #define PEM_BEGIN_PUBLIC_KEY "-----BEGIN PUBLIC KEY-----"
 #define PEM_END_PUBLIC_KEY "-----END PUBLIC KEY-----"
 
-result_t PKey::ed25519_generateKey()
+PKey_25519::PKey_25519(mbedtls_pk_context& key)
+    : PKey_ecc(key)
 {
-    int32_t ret;
+    m_alg = "EdDSA";
+
+    mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
+
+    if (mbedtls_mpi_cmp_int(&ecp->d, 0) && !mbedtls_mpi_cmp_int(&ecp->Q.X, 0)) {
+        unsigned char sk[ed25519_private_key_size];
+        mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
+
+        mbedtls_mpi_write_binary(&ecp->d, sk, ed25519_public_key_size);
+        ed25519_CreateKeyPair(sk + ed25519_public_key_size, sk, 0, sk);
+        mbedtls_mpi_read_binary(&ecp->Q.X, sk + ed25519_public_key_size, ed25519_public_key_size);
+    }
+}
+
+PKey_25519::PKey_25519()
+{
+    m_alg = "EdDSA";
+
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
     ecp->grp.id = (mbedtls_ecp_group_id)MBEDTLS_ECP_DP_ED25519;
 
     unsigned char sk[ed25519_private_key_size];
-
     mbedtls_ctr_drbg_random(&g_ssl.ctr_drbg, sk, ed25519_public_key_size);
     ed25519_CreateKeyPair(sk + ed25519_public_key_size, sk, 0, sk);
 
-    ret = mbedtls_mpi_read_binary(&ecp->d, sk, ed25519_public_key_size);
-    if (ret != 0)
-        return CHECK_ERROR(_ssl::setError(ret));
-
-    ret = mbedtls_mpi_read_binary(&ecp->Q.X, sk + ed25519_public_key_size, ed25519_public_key_size);
-    if (ret != 0)
-        return CHECK_ERROR(_ssl::setError(ret));
-
-    m_alg = "EdDSA";
-
-    return 0;
+    mbedtls_mpi_read_binary(&ecp->d, sk, ed25519_public_key_size);
+    mbedtls_mpi_read_binary(&ecp->Q.X, sk + ed25519_public_key_size, ed25519_public_key_size);
 }
 
-int PKey::ed25519_get_pubkey()
-{
-    unsigned char sk[ed25519_private_key_size];
-    mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
-
-    mbedtls_mpi_write_binary(&ecp->d, sk, ed25519_public_key_size);
-    ed25519_CreateKeyPair(sk + ed25519_public_key_size, sk, 0, sk);
-    return mbedtls_mpi_read_binary(&ecp->Q.X, sk + ed25519_public_key_size, ed25519_public_key_size);
-}
-
-int PKey::ed25519_parse_key(const unsigned char* key, size_t keylen)
+static int parse_key(mbedtls_pk_context& ctx, const unsigned char* key, size_t keylen)
 {
     if (keylen == sizeof(s_der_priv_lead) + ed25519_public_key_size
         && !memcmp(key, s_der_priv_lead, sizeof(s_der_priv_lead))) {
         obj_ptr<PKey> pk1 = new PKey();
         int32_t ret;
 
-        ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
+        ret = mbedtls_pk_setup(&ctx, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
         if (ret < 0)
             return ret;
 
-        mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
+        mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(ctx);
         ecp->grp.id = (mbedtls_ecp_group_id)MBEDTLS_ECP_DP_ED25519;
 
         ret = mbedtls_mpi_read_binary(&ecp->d, (const unsigned char*)key + sizeof(s_der_priv_lead),
@@ -89,15 +84,13 @@ int PKey::ed25519_parse_key(const unsigned char* key, size_t keylen)
         if (ret < 0)
             return ret;
 
-        m_alg = "EdDSA";
-
         return 0;
     }
 
     return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
 }
 
-int PKey::ed25519_parse_pub_key(const unsigned char* key, size_t keylen)
+static int parse_pub_key(mbedtls_pk_context& ctx, const unsigned char* key, size_t keylen)
 {
 
     if (keylen == sizeof(s_der_pub_lead) + ed25519_public_key_size
@@ -105,11 +98,11 @@ int PKey::ed25519_parse_pub_key(const unsigned char* key, size_t keylen)
         obj_ptr<PKey> pk1 = new PKey();
         int32_t ret;
 
-        ret = mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
+        ret = mbedtls_pk_setup(&ctx, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
         if (ret < 0)
             return ret;
 
-        mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
+        mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(ctx);
         ecp->grp.id = (mbedtls_ecp_group_id)MBEDTLS_ECP_DP_ED25519;
 
         ret = mbedtls_mpi_read_binary(&ecp->Q.X, (const unsigned char*)key + sizeof(s_der_pub_lead),
@@ -117,15 +110,13 @@ int PKey::ed25519_parse_pub_key(const unsigned char* key, size_t keylen)
         if (ret < 0)
             return ret;
 
-        m_alg = "EdDSA";
-
         return 0;
     }
 
     return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
 }
 
-int PKey::ed25519_parse_pem(const unsigned char* key)
+static int parse_pem(mbedtls_pk_context& ctx, const unsigned char* key)
 {
     int32_t ret;
     mbedtls_pem_context pem;
@@ -138,7 +129,7 @@ int PKey::ed25519_parse_pem(const unsigned char* key)
         ret = mbedtls_pem_read_buffer(&pem, PEM_BEGIN_PRIVATE_KEY, PEM_END_PRIVATE_KEY,
             (const unsigned char*)key, NULL, 0, &len);
         if (ret == 0) {
-            ret = ed25519_parse_key(pem.buf, pem.buflen);
+            ret = parse_key(ctx, pem.buf, pem.buflen);
             if (ret == 0)
                 break;
         }
@@ -146,7 +137,7 @@ int PKey::ed25519_parse_pem(const unsigned char* key)
         ret = mbedtls_pem_read_buffer(&pem, PEM_BEGIN_PUBLIC_KEY, PEM_END_PUBLIC_KEY,
             (const unsigned char*)key, NULL, 0, &len);
         if (ret == 0) {
-            ret = ed25519_parse_pub_key(pem.buf, pem.buflen);
+            ret = parse_pub_key(ctx, pem.buf, pem.buflen);
             if (ret == 0)
                 break;
         }
@@ -156,9 +147,55 @@ int PKey::ed25519_parse_pem(const unsigned char* key)
     return ret ? MBEDTLS_ERR_PK_KEY_INVALID_FORMAT : 0;
 }
 
-int PKey::ed25519_write_key(exlib::string& buf)
+result_t PKey_25519::from(Buffer_base* DerKey, obj_ptr<PKey_base>& retVal)
 {
-    mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
+    int32_t ret;
+    mbedtls_pk_context ctx;
+
+    mbedtls_pk_init(&ctx);
+
+    do {
+        exlib::string key;
+        DerKey->toString(key);
+
+        ret = parse_key(ctx, (unsigned char*)key.c_str(), key.length());
+        if (ret != MBEDTLS_ERR_PK_KEY_INVALID_FORMAT)
+            break;
+
+        ret = parse_pub_key(ctx, (unsigned char*)key.c_str(), key.length());
+    } while (false);
+
+    if (ret != 0) {
+        mbedtls_pk_free(&ctx);
+        return CHECK_ERROR(_ssl::setError(ret));
+    }
+
+    retVal = new PKey_25519(ctx);
+
+    return 0;
+}
+
+result_t PKey_25519::from(exlib::string pemKey, obj_ptr<PKey_base>& retVal)
+{
+    int32_t ret;
+    mbedtls_pk_context ctx;
+
+    mbedtls_pk_init(&ctx);
+
+    ret = parse_pem(ctx, (unsigned char*)pemKey.c_str());
+    if (ret != 0) {
+        mbedtls_pk_free(&ctx);
+        return CHECK_ERROR(_ssl::setError(ret));
+    }
+
+    retVal = new PKey_25519(ctx);
+
+    return 0;
+}
+
+static int write_key(mbedtls_pk_context& ctx, exlib::string& buf)
+{
+    mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(ctx);
 
     buf.resize(ed25519_public_key_size + sizeof(s_der_priv_lead));
     memcpy(buf.c_buffer(), s_der_priv_lead, sizeof(s_der_priv_lead));
@@ -166,9 +203,9 @@ int PKey::ed25519_write_key(exlib::string& buf)
     return 0;
 }
 
-int PKey::ed25519_write_pub_key(exlib::string& buf)
+static int write_pub_key(mbedtls_pk_context& ctx, exlib::string& buf)
 {
-    mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
+    mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(ctx);
 
     buf.resize(ed25519_public_key_size + sizeof(s_der_pub_lead));
     memcpy(buf.c_buffer(), s_der_pub_lead, sizeof(s_der_pub_lead));
@@ -176,42 +213,42 @@ int PKey::ed25519_write_pub_key(exlib::string& buf)
     return 0;
 }
 
-result_t PKey::ed25519_write_der(obj_ptr<Buffer_base>& retVal)
-{
-    mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
-    exlib::string buf;
-
-    if (mbedtls_mpi_cmp_int(&ecp->d, 0))
-        ed25519_write_key(buf);
-    else
-        ed25519_write_pub_key(buf);
-
-    retVal = new Buffer(buf);
-    return 0;
-}
-
-int PKey::ed25519_write_pem(exlib::string& buf)
+result_t PKey_25519::pem(exlib::string& retVal)
 {
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
     exlib::string der_buf;
     size_t olen;
     int32_t ret;
 
-    buf.resize(200);
+    retVal.resize(200);
 
     if (mbedtls_mpi_cmp_int(&ecp->d, 0)) {
-        ed25519_write_key(der_buf);
+        write_key(m_key, der_buf);
         ret = mbedtls_pem_write_buffer(PEM_BEGIN_PRIVATE_KEY "\n", PEM_END_PRIVATE_KEY "\n",
-            (const unsigned char*)der_buf.c_str(), der_buf.length(), (unsigned char*)buf.c_buffer(), buf.length(), &olen);
+            (const unsigned char*)der_buf.c_str(), der_buf.length(), (unsigned char*)retVal.c_buffer(), retVal.length(), &olen);
     } else {
-        ed25519_write_pub_key(der_buf);
+        write_pub_key(m_key, der_buf);
         ret = mbedtls_pem_write_buffer(PEM_BEGIN_PUBLIC_KEY "\n", PEM_END_PUBLIC_KEY "\n",
-            (const unsigned char*)der_buf.c_str(), der_buf.length(), (unsigned char*)buf.c_buffer(), buf.length(), &olen);
+            (const unsigned char*)der_buf.c_str(), der_buf.length(), (unsigned char*)retVal.c_buffer(), retVal.length(), &olen);
     }
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
-    buf.resize(olen - 1);
+    retVal.resize(olen - 1);
+    return 0;
+}
+
+result_t PKey_25519::der(obj_ptr<Buffer_base>& retVal)
+{
+    mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
+    exlib::string buf;
+
+    if (mbedtls_mpi_cmp_int(&ecp->d, 0))
+        write_key(m_key, buf);
+    else
+        write_pub_key(m_key, buf);
+
+    retVal = new Buffer(buf);
     return 0;
 }
 
@@ -256,8 +293,21 @@ static int signature_to_asn1(const unsigned char* sig64, unsigned char* sig, siz
     return (0);
 }
 
-result_t PKey::ed25519_sign(Buffer_base* data, obj_ptr<Buffer_base>& retVal)
+result_t PKey_25519::sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    result_t hr;
+    bool priv;
+
+    hr = isPrivate(priv);
+    if (hr < 0)
+        return hr;
+
+    if (!priv)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
     unsigned char signature[ed25519_signature_size];
     unsigned char sk[ed25519_private_key_size];
@@ -332,8 +382,11 @@ static int asn1_to_signature(const unsigned char* date, size_t datlen, unsigned 
     return (0);
 }
 
-result_t PKey::ed25519_verify(Buffer_base* data, Buffer_base* sign, bool& retVal)
+result_t PKey_25519::verify(Buffer_base* data, Buffer_base* sign, int32_t alg, bool& retVal, AsyncEvent* ac)
 {
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
     unsigned char signature[ed25519_signature_size];
     unsigned char pk[ed25519_public_key_size];

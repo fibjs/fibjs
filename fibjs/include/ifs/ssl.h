@@ -41,7 +41,6 @@ public:
     static result_t connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t connect(exlib::string url, X509Cert_base* crt, PKey_base* key, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t setClientCert(X509Cert_base* crt, PKey_base* key);
-    static result_t loadClientCertFile(exlib::string crtFile, exlib::string keyFile, exlib::string password);
     static result_t loadRootCerts();
     static result_t get_ca(obj_ptr<X509Cert_base>& retVal);
     static result_t get_verification(int32_t& retVal);
@@ -61,7 +60,6 @@ public:
 public:
     static void s_static_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_setClientCert(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_loadClientCertFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_loadRootCerts(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_ca(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_static_get_verification(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -87,7 +85,6 @@ inline ClassInfo& ssl_base::class_info()
         { "connect", s_static_connect, true, true },
         { "connectSync", s_static_connect, true, false },
         { "setClientCert", s_static_setClientCert, true, false },
-        { "loadClientCertFile", s_static_loadClientCertFile, true, false },
         { "loadRootCerts", s_static_loadRootCerts, true, false }
     };
 
@@ -165,22 +162,6 @@ inline void ssl_base::s_static_setClientCert(const v8::FunctionCallbackInfo<v8::
     ARG(obj_ptr<PKey_base>, 1);
 
     hr = setClientCert(v0, v1);
-
-    METHOD_VOID();
-}
-
-inline void ssl_base::s_static_loadClientCertFile(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("ssl.loadClientCertFile");
-    METHOD_ENTER();
-
-    METHOD_OVER(3, 2);
-
-    ARG(exlib::string, 0);
-    ARG(exlib::string, 1);
-    OPT_ARG(exlib::string, 2, "");
-
-    hr = loadClientCertFile(v0, v1, v2);
 
     METHOD_VOID();
 }

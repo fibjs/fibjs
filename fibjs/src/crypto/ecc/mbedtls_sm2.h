@@ -120,7 +120,7 @@ cleanup:
     return (ret);
 }
 
-static int mbedtls_sm2_verify_to(const mbedtls_ecp_group* grp, const unsigned char* buf, size_t blen,
+static int mbedtls_sm2_verify_to(mbedtls_ecp_group* grp, const unsigned char* buf, size_t blen,
     const mbedtls_ecp_point* Q, const mbedtls_mpi* to_key, const mbedtls_mpi* r, const mbedtls_mpi* s,
     int (*f_rng)(void*, unsigned char*, size_t), void* p_rng)
 {

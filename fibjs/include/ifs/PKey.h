@@ -22,7 +22,6 @@ class PKey_base : public object_base {
 
 public:
     // PKey_base
-    static result_t _new(obj_ptr<PKey_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(Buffer_base* DerKey, exlib::string password, obj_ptr<PKey_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string pemKey, exlib::string password, obj_ptr<PKey_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
@@ -34,10 +33,9 @@ public:
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal) = 0;
     virtual result_t isPrivate(bool& retVal) = 0;
     virtual result_t clone(obj_ptr<PKey_base>& retVal) = 0;
-    virtual result_t import(Buffer_base* DerKey, exlib::string password) = 0;
-    virtual result_t import(exlib::string pemKey, exlib::string password) = 0;
-    virtual result_t import(v8::Local<v8::Object> jsonKey) = 0;
-    virtual result_t importFile(exlib::string filename, exlib::string password) = 0;
+    static result_t from(Buffer_base* DerKey, exlib::string password, obj_ptr<PKey_base>& retVal);
+    static result_t from(exlib::string pemKey, exlib::string password, obj_ptr<PKey_base>& retVal);
+    static result_t from(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retVal);
     virtual result_t pem(exlib::string& retVal) = 0;
     virtual result_t der(obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t json(v8::Local<v8::Object>& retVal) = 0;
@@ -64,8 +62,7 @@ public:
     static void s_get_publicKey(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_isPrivate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clone(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_import(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_importFile(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_from(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_pem(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_der(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_json(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -95,8 +92,7 @@ inline ClassInfo& PKey_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "isPrivate", s_isPrivate, false, false },
         { "clone", s_clone, false, false },
-        { "import", s_import, false, false },
-        { "importFile", s_importFile, false, false },
+        { "from", s_static_from, true, false },
         { "pem", s_pem, false, false },
         { "der", s_der, false, false },
         { "json", s_json, false, false },
@@ -144,10 +140,6 @@ void PKey_base::__new(const T& args)
 
     METHOD_NAME("new PKey()");
     CONSTRUCT_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = _new(vr, args.This());
 
     METHOD_OVER(2, 1);
 
@@ -279,10 +271,11 @@ inline void PKey_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void PKey_base::s_import(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void PKey_base::s_static_from(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("PKey.import");
-    METHOD_INSTANCE(PKey_base);
+    obj_ptr<PKey_base> vr;
+
+    METHOD_NAME("PKey.from");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -290,38 +283,22 @@ inline void PKey_base::s_import(const v8::FunctionCallbackInfo<v8::Value>& args)
     ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(exlib::string, 1, "");
 
-    hr = pInst->import(v0, v1);
+    hr = from(v0, v1, vr);
 
     METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
     OPT_ARG(exlib::string, 1, "");
 
-    hr = pInst->import(v0, v1);
+    hr = from(v0, v1, vr);
 
     METHOD_OVER(1, 1);
 
     ARG(v8::Local<v8::Object>, 0);
 
-    hr = pInst->import(v0);
+    hr = from(v0, vr);
 
-    METHOD_VOID();
-}
-
-inline void PKey_base::s_importFile(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("PKey.importFile");
-    METHOD_INSTANCE(PKey_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
-
-    hr = pInst->importFile(v0, v1);
-
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void PKey_base::s_pem(const v8::FunctionCallbackInfo<v8::Value>& args)

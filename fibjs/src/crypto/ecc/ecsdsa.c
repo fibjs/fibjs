@@ -119,7 +119,7 @@ int ecsdsa_verify(mbedtls_ecp_keypair* ctx, int sdsa, mbedtls_ecp_keypair* to_ct
             return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
 
         secp256k1_reverse_sign(signature.data);
-        if (!secp256k1_ecsdsa_verify_to(secp256k1_ctx, to_ctx ? &to_key : NULL, signature.data, hash, hlen, &pubkey))
+        if (!secp256k1_ecsdsa_verify_to(secp256k1_ctx, to_ctx ? to_key : NULL, signature.data, hash, hlen, &pubkey))
             return MBEDTLS_ERR_ECP_VERIFY_FAILED;
 
         return 0;

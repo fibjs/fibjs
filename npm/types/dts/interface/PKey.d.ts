@@ -12,11 +12,6 @@
  */
 declare class Class_PKey extends Class_object {
     /**
-     * @description PKey 构造函数 
-     */
-    constructor();
-
-    /**
      * @description 通过 DER 格式的密钥构造 PKey
      *      @param DerKey DER 格式的密钥
      *      @param password 解密密码
@@ -126,17 +121,19 @@ declare class Class_PKey extends Class_object {
      * @description 加载一个 DER 格式的密钥
      *      @param DerKey DER 格式的密钥
      *      @param password 解密密码
+     *      @return 返回包含密钥的对象
      *     
      */
-    import(DerKey: Class_Buffer, password?: string): void;
+    static from(DerKey: Class_Buffer, password?: string): Class_PKey;
 
     /**
      * @description 加载一个 PEM 格式的密钥
      *      @param pemKey PEM 格式的密钥
      *      @param password 解密密码
+     *      @return 返回包含密钥的对象
      *     
      */
-    import(pemKey: string, password?: string): void;
+    static from(pemKey: string, password?: string): Class_PKey;
 
     /**
      * @description 加载一个 JSON 格式的密钥
@@ -183,17 +180,10 @@ declare class Class_PKey extends Class_object {
      *      }
      *      ```
      *      @param jsonKey JSON 格式的密钥
+     *      @return 返回包含密钥的对象
      *     
      */
-    import(jsonKey: FIBJS.GeneralObject): void;
-
-    /**
-     * @description 加载一个 PEM/DER 格式的密钥文件
-     *      @param filename 密钥文件名
-     *      @param password 解密密码
-     *     
-     */
-    importFile(filename: string, password?: string): void;
+    static from(jsonKey: FIBJS.GeneralObject): Class_PKey;
 
     /**
      * @description 返回当前 key 的 PEM 格式编码

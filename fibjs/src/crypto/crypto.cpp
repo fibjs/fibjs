@@ -20,6 +20,7 @@
 #include <time.h>
 #include <string.h>
 #include <mbedtls/mbedtls/pkcs5.h>
+#include "PKey_impl.h"
 
 namespace fibjs {
 
@@ -52,19 +53,6 @@ result_t crypto_base::createHmac(exlib::string algo, Buffer_base* key,
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     return hash_base::hmac(mbedtls_md_get_type(mi), key, NULL, retVal);
-}
-
-result_t crypto_base::loadPKey(exlib::string filename, exlib::string password,
-    obj_ptr<PKey_base>& retVal)
-{
-    obj_ptr<PKey_base> key = new PKey();
-    result_t hr = key->importFile(filename, password);
-    if (hr < 0)
-        return hr;
-
-    retVal = key;
-
-    return 0;
 }
 
 result_t crypto_base::loadCert(exlib::string filename, obj_ptr<X509Cert_base>& retVal)
@@ -310,14 +298,7 @@ result_t crypto_base::generateKey(int32_t size, obj_ptr<PKey_base>& retVal, Asyn
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<PKey> key = new PKey();
-    result_t hr = key->generateKey(size, ac);
-    if (hr < 0)
-        return hr;
-
-    retVal = key;
-
-    return 0;
+    return PKey_rsa::generateKey(size, retVal);
 }
 
 result_t crypto_base::generateKey(exlib::string curve, obj_ptr<PKey_base>& retVal, AsyncEvent* ac)
@@ -325,14 +306,7 @@ result_t crypto_base::generateKey(exlib::string curve, obj_ptr<PKey_base>& retVa
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<PKey> key = new PKey();
-    result_t hr = key->generateKey(curve, ac);
-    if (hr < 0)
-        return hr;
-
-    retVal = key;
-
-    return 0;
+    return PKey_ecc::generateKey(curve, retVal);
 }
 
 inline int pkcs5_pbkdf1(mbedtls_md_context_t* ctx, const unsigned char* password,

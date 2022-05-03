@@ -57,7 +57,6 @@ public:
     // crypto_base
     static result_t createHash(exlib::string algo, obj_ptr<Digest_base>& retVal);
     static result_t createHmac(exlib::string algo, Buffer_base* key, obj_ptr<Digest_base>& retVal);
-    static result_t loadPKey(exlib::string filename, exlib::string password, obj_ptr<PKey_base>& retVal);
     static result_t loadCert(exlib::string filename, obj_ptr<X509Cert_base>& retVal);
     static result_t loadCrl(exlib::string filename, obj_ptr<X509Crl_base>& retVal);
     static result_t loadReq(exlib::string filename, obj_ptr<X509Req_base>& retVal);
@@ -88,7 +87,6 @@ public:
 public:
     static void s_static_createHash(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createHmac(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_loadPKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_loadCert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_loadCrl(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_loadReq(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -130,7 +128,6 @@ inline ClassInfo& crypto_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "createHash", s_static_createHash, true, false },
         { "createHmac", s_static_createHmac, true, false },
-        { "loadPKey", s_static_loadPKey, true, false },
         { "loadCert", s_static_loadCert, true, false },
         { "loadCrl", s_static_loadCrl, true, false },
         { "loadReq", s_static_loadReq, true, false },
@@ -225,23 +222,6 @@ inline void crypto_base::s_static_createHmac(const v8::FunctionCallbackInfo<v8::
     ARG(obj_ptr<Buffer_base>, 1);
 
     hr = createHmac(v0, v1, vr);
-
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_static_loadPKey(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<PKey_base> vr;
-
-    METHOD_NAME("crypto.loadPKey");
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
-
-    hr = loadPKey(v0, v1, vr);
 
     METHOD_RETURN();
 }
