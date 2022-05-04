@@ -58,8 +58,6 @@ PKey_bls_g2::PKey_bls_g2()
 
     mbedtls_mpi_read_binary(&ecp->d, k, 32);
 
-    blst_scalar_from_bendian(&sk, k);
-
     blst_sk_to_pk_in_g2(&pk, &sk);
     blst_p2_compress(k, &pk);
 

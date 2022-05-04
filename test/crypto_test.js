@@ -1202,6 +1202,18 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
             assert.isFalse(sk.verify('abcd1', sig));
         });
 
+        it("generateKey", () => {
+            var sk = crypto.generateKey('BLS12381_G1');
+            var sig = sk.sign('abcd');
+            assert.isTrue(sk.verify('abcd', sig));
+            assert.isFalse(sk.verify('abcd1', sig));
+
+            var sk = crypto.generateKey('BLS12381_G2');
+            var sig = sk.sign('abcd');
+            assert.isTrue(sk.verify('abcd', sig));
+            assert.isFalse(sk.verify('abcd1', sig));
+        });
+
         it("keySize/curve", () => {
             var sk = new crypto.PKey(g1_key);
             assert.deepEqual(sk.keySize, 256);
