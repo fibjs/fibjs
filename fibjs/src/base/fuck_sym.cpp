@@ -15,66 +15,67 @@ void init_sym()
 
 extern "C" {
 
-#ifdef HAVE_GLIB_C_225_H
-__asm__(".symver memcpy,memcpy@GLIBC_2.2.5");
-void* __wrap_memcpy(void* dest, const void* src, size_t n)
+// GLIBC_2.14
+#ifdef GLIB_C_MEMCPY
+__asm__(".symver _memcpy,memcpy@GLIBC_" GLIB_C_MEMCPY);
+void* _memcpy(void* dest, const void* src, size_t n);
+void* memcpy(void* dest, const void* src, size_t n)
 {
-    return memcpy(dest, src, n);
+    return _memcpy(dest, src, n);
 }
 #endif
 
-// GLIBC_2.7
-size_t __fread_chk(void*, size_t, size_t, size_t, FILE*)
+// GLIBC_2.17
+#ifdef GLIB_C_TIME
+__asm__(".symver _clock_gettime,clock_gettime@GLIBC_" GLIB_C_TIME);
+int _clock_gettime(clockid_t clk_id, struct timespec* tp);
+int clock_gettime(clockid_t clk_id, struct timespec* tp)
 {
-    puts("unexpected __fread_chk.");
-    exit(-1);
-    return 0;
+    return _clock_gettime(clk_id, tp);
 }
 
-// GLIBC_2.11
-void __longjmp_chk()
+__asm__(".symver _clock_getres,clock_getres@GLIBC_" GLIB_C_TIME);
+int _clock_getres(clockid_t clk_id, struct timespec* tp);
+int clock_getres(clockid_t clk_id, struct timespec* tp)
 {
-    puts("unexpected __longjmp_chk.");
-    exit(-1);
+    return _clock_getres(clk_id, tp);
 }
-
-// GLIBC_2.11
-int __isoc99_sscanf(const char* s, const char* format, ...)
-{
-    va_list arg;
-    int done;
-
-    va_start(arg, format);
-    done = vsscanf(s, format, arg);
-    va_end(arg);
-
-    return done;
-}
+#endif
 
 // GLIBC_2.28
-#undef fcntl
-
-#ifdef HAVE_GLIB_C_FCNTL_2_H
-__asm__(".symver fcntl,fcntl@GLIBC_2.0");
-#endif
-
-#ifdef HAVE_GLIB_C_FCNTL_225_H
-__asm__(".symver fcntl,fcntl@GLIBC_2.2.5");
-#endif
-
-#ifdef HAVE_GLIB_C_FCNTL_24_H
-__asm__(".symver fcntl,fcntl@GLIBC_2.4");
-#endif
-
-#ifdef HAVE_GLIB_C_FCNTL_217_H
-__asm__(".symver fcntl,fcntl@GLIBC_2.17");
-#endif
-
-int fcntl(int fd, int cmd, void* lock);
+#ifdef GLIB_C_FCNTL
+__asm__(".symver _fcntl,fcntl@GLIBC_" GLIB_C_FCNTL);
+int _fcntl(int fd, int cmd, void* lock);
 int fcntl64(int fd, int cmd, void* lock)
 {
-    return fcntl(fd, cmd, lock);
+    return _fcntl(fd, cmd, lock);
 }
+#endif
+
+// GLIBC_2.29
+#ifdef GLIB_C_MATH
+__asm__(".symver _exp,exp@GLIBC_" GLIB_C_MATH);
+double _exp(double x);
+double exp(double x)
+{
+    return _exp(x);
+}
+
+__asm__(".symver _log,log@GLIBC_" GLIB_C_MATH);
+double _log(double x);
+double log(double x)
+{
+    return _log(x);
+}
+
+__asm__(".symver _pow,pow@GLIBC_" GLIB_C_MATH);
+double _pow(double x, double y);
+double pow(double x, double y)
+{
+    return _pow(x, y);
+}
+#endif
+
 }
 
 #endif

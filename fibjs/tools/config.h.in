@@ -2,12 +2,7 @@
 
 #cmakedefine HAVE_ICONV_H 1
 
-// posix_spawnp
-#cmakedefine HAVE_GLIB_C_225_H 1
-#cmakedefine HAVE_GLIB_C_22_H 1
-
-// fcntl64
-#cmakedefine HAVE_GLIB_C_FCNTL_2_H 1
-#cmakedefine HAVE_GLIB_C_FCNTL_225_H 1
-#cmakedefine HAVE_GLIB_C_FCNTL_24_H 1
-#cmakedefine HAVE_GLIB_C_FCNTL_217_H 1
+#cmakedefine GLIB_C_MEMCPY "${GLIB_C_MEMCPY}"
+#cmakedefine GLIB_C_FCNTL "${GLIB_C_FCNTL}"
+#cmakedefine GLIB_C_MATH "${GLIB_C_MATH}"
+#cmakedefine GLIB_C_TIME "${GLIB_C_TIME}"

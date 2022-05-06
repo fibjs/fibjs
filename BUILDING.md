@@ -54,10 +54,16 @@ apt install git
 apt install ccache
 ```
 
-### 32bit on ubuntu:
+### x86_64 on ubuntu:
 
 ```sh
-apt install g++-multilib
+apt install g++-x86-64-linux-gnu
+```
+
+### i386 on ubuntu:
+
+```sh
+apt install g++-i686-linux-gnu
 ```
 
 ### arm on ubuntu:
@@ -94,18 +100,6 @@ apt install g++-powerpc-linux-gnu
 
 ```sh
 apt install g++-powerpc64-linux-gnu
-```
-
-### x86_64 on ubuntu:
-
-```sh
-apt install g++-x86-64-linux-gnu
-```
-
-### i386 on ubuntu:
-
-```sh
-apt install g++-i686-linux-gnu
 ```
 
 ### fix

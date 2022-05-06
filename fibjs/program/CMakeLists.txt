@@ -48,10 +48,6 @@ if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 	setup_result_library(${name}_gui)
 endif()
 
-if(HAVE_GLIB_C_225_H)
-	set(link_flags "${link_flags} -Wl,--wrap=memcpy")
-endif()
-
 if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 	if(link_flags)
 		set_target_properties(${name} PROPERTIES LINK_FLAGS ${link_flags})
