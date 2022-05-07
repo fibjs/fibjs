@@ -477,12 +477,12 @@ describe('crypto', () => {
 
                 var pk1 = pk.clone();
 
-                assert.ok(pk1.equal(pk));
+                assert.ok(pk1.equals(pk));
 
                 var pk = crypto.generateKey(512);
                 var pk1 = crypto.generateKey(512);
 
-                assert.notOk(pk1.equal(pk));
+                assert.notOk(pk1.equals(pk));
             });
 
             it("encrypt/decrypt", () => {
@@ -620,12 +620,12 @@ describe('crypto', () => {
 
                 var pk1 = pk.clone();
 
-                assert.ok(pk1.equal(pk));
+                assert.ok(pk1.equals(pk));
 
                 var pk = crypto.generateKey();
                 var pk1 = crypto.generateKey();
 
-                assert.notOk(pk1.equal(pk));
+                assert.notOk(pk1.equals(pk));
             });
 
             it("sign/verify", () => {
@@ -804,12 +804,12 @@ describe('crypto', () => {
 
                 var pk1 = pk.clone();
 
-                assert.ok(pk1.equal(pk));
+                assert.ok(pk1.equals(pk));
 
                 var pk = crypto.generateKey("SM2");
                 var pk1 = crypto.generateKey("SM2");
 
-                assert.notOk(pk1.equal(pk));
+                assert.notOk(pk1.equals(pk));
             });
 
             it("sign/verify", () => {

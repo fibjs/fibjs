@@ -94,7 +94,7 @@ result_t PKey::clone(obj_ptr<PKey_base>& retVal)
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
-result_t PKey::equal(PKey_base* key, bool& retVal)
+result_t PKey::equals(PKey_base* key, bool& retVal)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }

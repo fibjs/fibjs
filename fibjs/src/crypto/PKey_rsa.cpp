@@ -84,7 +84,7 @@ result_t PKey_rsa::clone(obj_ptr<PKey_base>& retVal)
     return 0;
 }
 
-result_t PKey_rsa::equal(PKey_base* key, bool& retVal)
+result_t PKey_rsa::equals(PKey_base* key, bool& retVal)
 {
     retVal = false;
 

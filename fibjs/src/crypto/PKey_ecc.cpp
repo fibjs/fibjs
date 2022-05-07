@@ -237,7 +237,7 @@ result_t PKey_ecc::clone(obj_ptr<PKey_base>& retVal)
     return 0;
 }
 
-result_t PKey_ecc::equal(PKey_base* key, bool& retVal)
+result_t PKey_ecc::equals(PKey_base* key, bool& retVal)
 {
     retVal = false;
 

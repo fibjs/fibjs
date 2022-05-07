@@ -39,7 +39,7 @@ public:
     virtual result_t pem(exlib::string& retVal) = 0;
     virtual result_t der(obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t json(v8::Local<v8::Object>& retVal) = 0;
-    virtual result_t equal(PKey_base* key, bool& retVal) = 0;
+    virtual result_t equals(PKey_base* key, bool& retVal) = 0;
     virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
@@ -66,7 +66,7 @@ public:
     static void s_pem(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_der(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_json(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_equal(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_equals(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_encrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_sign(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -96,7 +96,7 @@ inline ClassInfo& PKey_base::class_info()
         { "pem", s_pem, false, false },
         { "der", s_der, false, false },
         { "json", s_json, false, false },
-        { "equal", s_equal, false, false },
+        { "equals", s_equals, false, false },
         { "encrypt", s_encrypt, false, true },
         { "encryptSync", s_encrypt, false, false },
         { "decrypt", s_decrypt, false, true },
@@ -346,11 +346,11 @@ inline void PKey_base::s_json(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_RETURN();
 }
 
-inline void PKey_base::s_equal(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void PKey_base::s_equals(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
-    METHOD_NAME("PKey.equal");
+    METHOD_NAME("PKey.equals");
     METHOD_INSTANCE(PKey_base);
     METHOD_ENTER();
 
@@ -358,7 +358,7 @@ inline void PKey_base::s_equal(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     ARG(obj_ptr<PKey_base>, 0);
 
-    hr = pInst->equal(v0, vr);
+    hr = pInst->equals(v0, vr);
 
     METHOD_RETURN();
 }
