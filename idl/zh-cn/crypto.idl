@@ -165,7 +165,22 @@ module crypto
     static PKey generateKey(Integer size) async;
 
     /*! @brief 生成一个椭圆曲线私钥
-     @param curve 指定预置椭圆曲线，可选值为："secp521r1", "P-521", "brainpoolP512r1", "secp384r1", "P-384", "brainpoolP384r1", "secp256r1", "P-256", "secp256k1", "P-256K", "brainpoolP256r1", "secp224r1", "secp224k1", "secp192r1", "secp192k1", "sm2p256r1", "SM2"
+
+     curve 可选的曲线包含 NIST 曲线和别名如下：
+
+     | 曲线 | 别名 |
+     | ----------- | ----------- |
+     | NIST P-192 | 'NIST P-192', 'p192', 'P-192', 'prime192v1', 'secp192r1' |
+     | NIST P-224 | 'NIST P-224', 'p224', 'P-224', 'prime224v1', 'secp224r1' |
+     | NIST P-256 | 'NIST P-256', 'p256', 'P-256', 'prime256v1', 'secp256r1' |
+     | NIST P-384 | 'NIST P-384', 'p384', 'P-384', 'prime384v1', 'secp384r1' |
+     | NIST P-521 | 'NIST P-521', 'p521', 'P-521', 'prime521v1', 'secp521r1' |
+
+     其它支持的曲线包括：
+     "brainpoolP512r1", "brainpoolP384r1", "secp256k1", "P-256K", "brainpoolP256r1",
+     "sm2p256r1", "SM2", "Ed25519", "BLS12381_G1", "BLS12381_G2"
+
+     @param curve 指定预置椭圆曲线，缺省为 'secp256r1'
      @return 返回包含生成私钥的对象
     */
     static PKey generateKey(String curve = "secp521r1") async;

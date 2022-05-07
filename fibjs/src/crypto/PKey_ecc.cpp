@@ -23,29 +23,53 @@ struct curve_info {
     const char* name;
 };
 
-static const curve_info supported_curves[] = {
+static const curve_info curves[] = {
     { MBEDTLS_ECP_DP_SECP192R1, "P-192" },
+    { MBEDTLS_ECP_DP_SECP192R1, "NIST P-192" },
+    { MBEDTLS_ECP_DP_SECP192R1, "p192" },
+    { MBEDTLS_ECP_DP_SECP192R1, "prime192v1" },
     { MBEDTLS_ECP_DP_SECP192R1, "secp192r1" },
+
     { MBEDTLS_ECP_DP_SECP224R1, "P-224" },
+    { MBEDTLS_ECP_DP_SECP224R1, "NIST P-224" },
+    { MBEDTLS_ECP_DP_SECP224R1, "p224" },
+    { MBEDTLS_ECP_DP_SECP224R1, "prime224v1" },
     { MBEDTLS_ECP_DP_SECP224R1, "secp224r1" },
+
     { MBEDTLS_ECP_DP_SECP256R1, "P-256" },
+    { MBEDTLS_ECP_DP_SECP256R1, "NIST P-256" },
+    { MBEDTLS_ECP_DP_SECP256R1, "p256" },
+    { MBEDTLS_ECP_DP_SECP256R1, "prime256v1" },
     { MBEDTLS_ECP_DP_SECP256R1, "secp256r1" },
+
     { MBEDTLS_ECP_DP_SECP384R1, "P-384" },
+    { MBEDTLS_ECP_DP_SECP384R1, "NIST P-384" },
+    { MBEDTLS_ECP_DP_SECP384R1, "p384" },
+    { MBEDTLS_ECP_DP_SECP384R1, "prime384v1" },
     { MBEDTLS_ECP_DP_SECP384R1, "secp384r1" },
+
     { MBEDTLS_ECP_DP_SECP521R1, "P-521" },
+    { MBEDTLS_ECP_DP_SECP521R1, "NIST P-521" },
+    { MBEDTLS_ECP_DP_SECP521R1, "p521" },
+    { MBEDTLS_ECP_DP_SECP521R1, "prime521v1" },
     { MBEDTLS_ECP_DP_SECP521R1, "secp521r1" },
+
     { MBEDTLS_ECP_DP_BP256R1, "brainpoolP256r1" },
     { MBEDTLS_ECP_DP_BP384R1, "brainpoolP384r1" },
     { MBEDTLS_ECP_DP_BP512R1, "brainpoolP512r1" },
+
     { MBEDTLS_ECP_DP_SECP192K1, "secp192k1" },
     { MBEDTLS_ECP_DP_SECP224K1, "secp224k1" },
     { MBEDTLS_ECP_DP_SECP256K1, "P-256K" },
     { MBEDTLS_ECP_DP_SECP256K1, "secp256k1" },
+
     { MBEDTLS_ECP_DP_SM2P256R1, "SM2" },
     { MBEDTLS_ECP_DP_SM2P256R1, "sm2" },
     { MBEDTLS_ECP_DP_SM2P256R1, "sm2p256r1" },
+
     { MBEDTLS_ECP_DP_ED25519, "Ed25519" },
     { MBEDTLS_ECP_DP_ED25519, "ed25519" },
+
     { MBEDTLS_ECP_DP_BLS12381_G1, "BLS12381_G1" },
     { MBEDTLS_ECP_DP_BLS12381_G2, "BLS12381_G2" },
 };
@@ -54,9 +78,9 @@ int32_t PKey_ecc::get_curve_id(exlib::string& curve)
 {
     int32_t i;
 
-    for (i = 0; i < ARRAYSIZE(supported_curves); i++)
-        if (!strcmp(curve.c_str(), supported_curves[i].name))
-            return supported_curves[i].id;
+    for (i = 0; i < ARRAYSIZE(curves); i++)
+        if (!strcmp(curve.c_str(), curves[i].name))
+            return curves[i].id;
 
     return MBEDTLS_ECP_DP_NONE;
 }
@@ -65,9 +89,9 @@ const char* PKey_ecc::get_curve_name(int32_t id)
 {
     int32_t i;
 
-    for (i = 0; i < ARRAYSIZE(supported_curves); i++)
-        if (supported_curves[i].id == id)
-            return supported_curves[i].name;
+    for (i = 0; i < ARRAYSIZE(curves); i++)
+        if (curves[i].id == id)
+            return curves[i].name;
 
     return NULL;
 }
