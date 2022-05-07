@@ -25,6 +25,9 @@ module hash
     /*! @brief SM3 信息摘要算法标识常量 */
     const SM3 = 8;
 
+    /*! @brief KECCAK256 信息摘要算法标识常量 */
+    const KECCAK256 = 9;
+
     /*! @brief 根据指定的算法标识创建一个信息摘要运算对象
      @param algo 指定摘要运算算法
      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
@@ -87,6 +90,12 @@ module hash
      @return 返回构造的信息摘要对象
      */
     static Digest sm3(PKey pubKey, String id, Buffer data = null);
+
+    /*! @brief 创建一个 KECCAK256 信息摘要运算对象
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     @return 返回构造的信息摘要对象
+     */
+    static Digest keccak256(Buffer data = null);
 
     /*! @brief 根据指定的算法标识创建一个信息摘要签名运算对象
      @param algo 指定摘要运算算法
@@ -160,4 +169,11 @@ module hash
      @return 返回构造的信息摘要对象
      */
     static Digest hmac_sm3(PKey pubKey, String id, Buffer key, Buffer data = null);
+
+    /*! @brief 创建一个 KECCAK256 信息摘要签名运算对象
+     @param key 二进制签名密钥
+     @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     @return 返回构造的信息摘要对象
+     */
+    static Digest hmac_keccak256(Buffer key, Buffer data = null);
 };

@@ -21,10 +21,23 @@
 #include <string.h>
 #include <mbedtls/mbedtls/pkcs5.h>
 #include "PKey_impl.h"
+#include "md_api.h"
 
 namespace fibjs {
 
 DECLARE_MODULE(crypto);
+
+mbedtls_md_type_t _md_type_from_string(const char* md_name)
+{
+    if (!qstrcmp(md_name, "KECCAK256"))
+        return MBEDTLS_MD_KECCAK256;
+
+    const mbedtls_md_info_t* mi = mbedtls_md_info_from_string(md_name);
+    if (!mi)
+        return MBEDTLS_MD_NONE;
+
+    return mbedtls_md_get_type(mi);
+}
 
 result_t crypto_base::createHash(exlib::string algo, obj_ptr<Digest_base>& retVal)
 {
@@ -32,11 +45,11 @@ result_t crypto_base::createHash(exlib::string algo, obj_ptr<Digest_base>& retVa
     if (algo == "RMD160")
         algo = "RIPEMD160";
 
-    const mbedtls_md_info_t* mi = mbedtls_md_info_from_string(algo.c_str());
-    if (!mi)
+    mbedtls_md_type_t algo_id = _md_type_from_string(algo.c_str());
+    if (algo_id == MBEDTLS_MD_NONE)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    retVal = new Digest(mbedtls_md_get_type(mi));
+    retVal = new Digest(algo_id);
 
     return 0;
 }
@@ -48,11 +61,11 @@ result_t crypto_base::createHmac(exlib::string algo, Buffer_base* key,
     if (algo == "RMD160")
         algo = "RIPEMD160";
 
-    const mbedtls_md_info_t* mi = mbedtls_md_info_from_string(algo.c_str());
-    if (!mi)
+    mbedtls_md_type_t algo_id = _md_type_from_string(algo.c_str());
+    if (algo_id == MBEDTLS_MD_NONE)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    return hash_base::hmac(mbedtls_md_get_type(mi), key, NULL, retVal);
+    return hash_base::hmac(algo_id, key, NULL, retVal);
 }
 
 result_t crypto_base::loadCert(exlib::string filename, obj_ptr<X509Cert_base>& retVal)
@@ -327,33 +340,33 @@ inline int pkcs5_pbkdf1(mbedtls_md_context_t* ctx, const unsigned char* password
         return (MBEDTLS_ERR_PKCS5_BAD_INPUT_DATA);
 
     while (key_length) {
-        if ((ret = mbedtls_md_starts(ctx)) != 0)
+        if ((ret = _md_starts(ctx)) != 0)
             return (ret);
 
         if (!bFirst)
-            if ((ret = mbedtls_md_update(ctx, md1, md_size)) != 0)
+            if ((ret = _md_update(ctx, md1, md_size)) != 0)
                 return (ret);
         bFirst = false;
 
-        if ((ret = mbedtls_md_update(ctx, password, plen)) != 0)
+        if ((ret = _md_update(ctx, password, plen)) != 0)
             return (ret);
 
-        if ((ret = mbedtls_md_update(ctx, salt, slen)) != 0)
+        if ((ret = _md_update(ctx, salt, slen)) != 0)
             return (ret);
 
-        if ((ret = mbedtls_md_finish(ctx, work)) != 0)
+        if ((ret = _md_finish(ctx, work)) != 0)
             return (ret);
 
         memcpy(md1, work, md_size);
 
         for (i = 1; i < iteration_count; i++) {
-            if ((ret = mbedtls_md_starts(ctx)) != 0)
+            if ((ret = _md_starts(ctx)) != 0)
                 return (ret);
 
-            if ((ret = mbedtls_md_update(ctx, md1, md_size)) != 0)
+            if ((ret = _md_update(ctx, md1, md_size)) != 0)
                 return (ret);
 
-            if ((ret = mbedtls_md_finish(ctx, work)) != 0)
+            if ((ret = _md_finish(ctx, work)) != 0)
                 return (ret);
 
             memcpy(md1, work, md_size);
@@ -390,7 +403,7 @@ result_t crypto_base::pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t i
     str_key.resize(size);
 
     mbedtls_md_context_t ctx;
-    mbedtls_md_setup(&ctx, mbedtls_md_info_from_type((mbedtls_md_type_t)algo), 1);
+    _md_setup(&ctx, (mbedtls_md_type_t)algo, 1);
     pkcs5_pbkdf1(&ctx, (const unsigned char*)str_pass.c_str(), str_pass.length(),
         (const unsigned char*)str_salt.c_str(), str_salt.length(),
         iterations, size, (unsigned char*)str_key.c_buffer());
@@ -412,11 +425,11 @@ result_t crypto_base::pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t i
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     algoName.toupper();
-    const mbedtls_md_info_t* mi = mbedtls_md_info_from_string(algoName.c_str());
-    if (!mi)
+    mbedtls_md_type_t algo_id = _md_type_from_string(algoName.c_str());
+    if (algo_id == MBEDTLS_MD_NONE)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    return pbkdf1(password, salt, iterations, size, mbedtls_md_get_type(mi), retVal, ac);
+    return pbkdf1(password, salt, iterations, size, algo_id, retVal, ac);
 }
 
 result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t iterations,
@@ -440,7 +453,7 @@ result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t i
     str_key.resize(size);
 
     mbedtls_md_context_t ctx;
-    mbedtls_md_setup(&ctx, mbedtls_md_info_from_type((mbedtls_md_type_t)algo), 1);
+    _md_setup(&ctx, (mbedtls_md_type_t)algo, 1);
     mbedtls_pkcs5_pbkdf2_hmac(&ctx, (const unsigned char*)str_pass.c_str(), str_pass.length(),
         (const unsigned char*)str_salt.c_str(), str_salt.length(),
         iterations, size, (unsigned char*)str_key.c_buffer());
@@ -462,11 +475,11 @@ result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t i
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     algoName.toupper();
-    const mbedtls_md_info_t* mi = mbedtls_md_info_from_string(algoName.c_str());
-    if (!mi)
+    mbedtls_md_type_t algo_id = _md_type_from_string(algoName.c_str());
+    if (algo_id == MBEDTLS_MD_NONE)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    return pbkdf2(password, salt, iterations, size, mbedtls_md_get_type(mi), retVal, ac);
+    return pbkdf2(password, salt, iterations, size, algo_id, retVal, ac);
 }
 
 obj_ptr<NArray> g_hashes;
@@ -476,8 +489,6 @@ public:
     {
         g_hashes = new NArray();
 
-        g_hashes->append("md2");
-        g_hashes->append("md4");
         g_hashes->append("md5");
         g_hashes->append("sha1");
         g_hashes->append("sha224");
@@ -486,11 +497,16 @@ public:
         g_hashes->append("sha512");
         g_hashes->append("ripemd160");
         g_hashes->append("sm3");
+        g_hashes->append("keccak256");
         g_hashes->append("md5_hmac");
         g_hashes->append("sha1_hmac");
+        g_hashes->append("sha224_hmac");
         g_hashes->append("sha256_hmac");
+        g_hashes->append("sha384_hmac");
+        g_hashes->append("sha512_hmac");
         g_hashes->append("ripemd160_hmac");
         g_hashes->append("sm3_hmac");
+        g_hashes->append("keccak256_hmac");
     }
 
 } s_init_hashes;

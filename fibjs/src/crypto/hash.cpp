@@ -16,7 +16,7 @@ DECLARE_MODULE(hash);
 result_t hash_base::digest(int32_t algo, Buffer_base* data,
     obj_ptr<Digest_base>& retVal)
 {
-    if (algo < hash_base::C_MD5 || algo > hash_base::C_SM3)
+    if (algo < hash_base::C_MD5 || algo > hash_base::C_KECCAK256)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     retVal = new Digest((mbedtls_md_type_t)algo);
@@ -64,10 +64,15 @@ result_t hash_base::ripemd160(Buffer_base* data, obj_ptr<Digest_base>& retVal)
     return digest(hash_base::C_RIPEMD160, data, retVal);
 }
 
+result_t hash_base::keccak256(Buffer_base* data, obj_ptr<Digest_base>& retVal)
+{
+    return digest(hash_base::C_KECCAK256, data, retVal);
+}
+
 result_t hash_base::hmac(int32_t algo, Buffer_base* key, Buffer_base* data,
     obj_ptr<Digest_base>& retVal)
 {
-    if (algo < hash_base::C_MD5 || algo > hash_base::C_SM3)
+    if (algo < hash_base::C_MD5 || algo > hash_base::C_KECCAK256)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     exlib::string strBuf;
@@ -116,6 +121,11 @@ result_t hash_base::hmac_sha512(Buffer_base* key, Buffer_base* data, obj_ptr<Dig
 result_t hash_base::hmac_ripemd160(Buffer_base* key, Buffer_base* data, obj_ptr<Digest_base>& retVal)
 {
     return hmac(hash_base::C_RIPEMD160, key, data, retVal);
+}
+
+result_t hash_base::hmac_keccak256(Buffer_base* key, Buffer_base* data, obj_ptr<Digest_base>& retVal)
+{
+    return hmac(hash_base::C_KECCAK256, key, data, retVal);
 }
 
 } /* namespace fibjs */

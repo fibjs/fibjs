@@ -136,9 +136,11 @@ describe("hash", () => {
         assert.equal(o.base64, hash[o.name.toLowerCase()]().update(o.text).digest('base64'));
         assert.equal(o.base64, crypto.createHash(o.name).update(o.text).digest('base64'));
 
-        var s = crypto.createHash(o.name).update(o.text).sign(rsa4096_pem);
-        assert.ok(crypto.createHash(o.name).update(o.text).verify(pub_rsa4096_pem, s));
-        assert.ok(new crypto.PKey(pub_rsa4096_pem).verify(crypto.createHash(o.name).update(o.text).digest(), s, hash[o.name]));
+        if (o.name != 'KECCAK256') {
+            var s = crypto.createHash(o.name).update(o.text).sign(rsa4096_pem);
+            assert.ok(crypto.createHash(o.name).update(o.text).verify(pub_rsa4096_pem, s));
+            assert.ok(new crypto.PKey(pub_rsa4096_pem).verify(crypto.createHash(o.name).update(o.text).digest(), s, hash[o.name]));
+        }
 
         var s = crypto.createHash(o.name).update(o.text).sign(ec_pem);
         assert.ok(crypto.createHash(o.name).update(o.text).verify(pub_ec_pem, s));
@@ -186,9 +188,11 @@ describe("hash", () => {
         assert.equal(o.base64, hash['hmac_' + o.name.toLowerCase()](o.key).update(o.text).digest('base64'));
         assert.equal(o.base64, crypto.createHmac(o.name, o.key).update(o.text).digest('base64'));
 
-        var s = crypto.createHmac(o.name, o.key).update(o.text).sign(rsa4096_pem);
-        assert.ok(crypto.createHmac(o.name, o.key).update(o.text).verify(pub_rsa4096_pem, s));
-        assert.ok(new crypto.PKey(pub_rsa4096_pem).verify(crypto.createHmac(o.name, o.key).update(o.text).digest(), s, hash[o.name]));
+        if (o.name != 'KECCAK256') {
+            var s = crypto.createHmac(o.name, o.key).update(o.text).sign(rsa4096_pem);
+            assert.ok(crypto.createHmac(o.name, o.key).update(o.text).verify(pub_rsa4096_pem, s));
+            assert.ok(new crypto.PKey(pub_rsa4096_pem).verify(crypto.createHmac(o.name, o.key).update(o.text).digest(), s, hash[o.name]));
+        }
 
         var s = crypto.createHmac(o.name, o.key).update(o.text).sign(ec_pem);
         assert.ok(crypto.createHmac(o.name, o.key).update(o.text).verify(pub_ec_pem, s));
@@ -386,6 +390,27 @@ describe("hash", () => {
 
     });
 
+    it("keccak256", () => {
+        var digest_case = [{
+            name: 'KECCAK256',
+            text: '',
+            hash: 'c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470',
+            base64: 'xdJGAYb3IzySfn2y3McDwOUAtlPKgic7e/rYBF2FpHA='
+        }, {
+            name: 'KECCAK256',
+            text: 'The quick brown fox jumps over the lazy dog',
+            hash: '4d741b6f1eb29cb2a9b9911c82f56fa8d73b04959d3d9d222895df6c0b28aa15',
+            base64: 'TXQbbx6ynLKpuZEcgvVvqNc7BJWdPZ0iKJXfbAsoqhU='
+        }, {
+            name: 'KECCAK256',
+            text: 'The quick brown fox jumps over the lazy cog',
+            hash: 'ed6c07f044d7573cc53bf1276f8cba3dac497919597a45b4599c8f73e22aa334',
+            base64: '7WwH8ETXVzzFO/Enb4y6PaxJeRlZekW0WZyPc+IqozQ='
+        }];
+
+        digest_case.forEach(hash_test);
+    });
+
     it("md5_hmac", () => {
         var hmac_case = [{
             name: 'MD5',
@@ -470,6 +495,23 @@ describe("hash", () => {
         hmac_case.forEach(hmac_test);
     });
 
+    it("keccak256_hmac", () => {
+        var hmac_case = [{
+            name: 'KECCAK256',
+            key: '',
+            text: '',
+            hmac: 'd3b1bd47c34d9aa44fecdc95e7e23e76734ccd76f11c51afcbe619972c7da70c',
+            base64: '07G9R8NNmqRP7NyV5+I+dnNMzXbxHFGvy+YZlyx9pww='
+        }, {
+            name: 'KECCAK256',
+            key: 'key',
+            text: 'The quick brown fox jumps over the lazy dog',
+            hmac: 'e66450b9a82a38f44b428f230f6bea75058f77c71eea2808e467ac13a4b7d5ce',
+            base64: '5mRQuagqOPRLQo8jD2vqdQWPd8ce6igI5GesE6S31c4='
+        }];
+
+        hmac_case.forEach(hmac_test);
+    });
 });
 
 require.main === module && test.run(console.DEBUG);
