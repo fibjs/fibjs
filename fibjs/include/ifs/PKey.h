@@ -42,10 +42,8 @@ public:
     virtual result_t equals(PKey_base* key, bool& retVal) = 0;
     virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t verify(Buffer_base* data, Buffer_base* sign, int32_t alg, bool& retVal, AsyncEvent* ac) = 0;
-    virtual result_t verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, bool& retVal, AsyncEvent* ac) = 0;
+    virtual result_t sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac) = 0;
     virtual result_t computeSecret(PKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
@@ -76,10 +74,8 @@ public:
 public:
     ASYNC_MEMBERVALUE2(PKey_base, encrypt, Buffer_base*, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE2(PKey_base, decrypt, Buffer_base*, obj_ptr<Buffer_base>);
-    ASYNC_MEMBERVALUE3(PKey_base, sign, Buffer_base*, int32_t, obj_ptr<Buffer_base>);
-    ASYNC_MEMBERVALUE3(PKey_base, sign, Buffer_base*, PKey_base*, obj_ptr<Buffer_base>);
-    ASYNC_MEMBERVALUE4(PKey_base, verify, Buffer_base*, Buffer_base*, int32_t, bool);
-    ASYNC_MEMBERVALUE4(PKey_base, verify, Buffer_base*, Buffer_base*, PKey_base*, bool);
+    ASYNC_MEMBERVALUE3(PKey_base, sign, Buffer_base*, v8::Local<v8::Object>, obj_ptr<Buffer_base>);
+    ASYNC_MEMBERVALUE4(PKey_base, verify, Buffer_base*, Buffer_base*, v8::Local<v8::Object>, bool);
     ASYNC_MEMBERVALUE2(PKey_base, computeSecret, PKey_base*, obj_ptr<Buffer_base>);
 };
 }
@@ -414,17 +410,7 @@ inline void PKey_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
     ASYNC_METHOD_OVER(2, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
-    OPT_ARG(int32_t, 1, 0);
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_sign(v0, v1, cb, args);
-    else
-        hr = pInst->ac_sign(v0, v1, vr);
-
-    ASYNC_METHOD_OVER(2, 2);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<PKey_base>, 1);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
     if (!cb.IsEmpty())
         hr = pInst->acb_sign(v0, v1, cb, args);
@@ -446,18 +432,7 @@ inline void PKey_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(obj_ptr<Buffer_base>, 1);
-    OPT_ARG(int32_t, 2, 0);
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_verify(v0, v1, v2, cb, args);
-    else
-        hr = pInst->ac_verify(v0, v1, v2, vr);
-
-    ASYNC_METHOD_OVER(3, 3);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
-    ARG(obj_ptr<PKey_base>, 2);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
     if (!cb.IsEmpty())
         hr = pInst->acb_verify(v0, v1, v2, cb, args);

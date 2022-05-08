@@ -24,24 +24,42 @@ declare class Class_Digest extends Class_object {
 
     /**
      * @description 签名并返回摘要
+     *      opts 支持以下参数:
+     *      ```JavaScript
+     *      {
+     *         alg: 0， 指定签名的 hash 算法，仅在 RSA 时有效，缺省为 0. 支持算法: 0=NONE,1=MD5,2=SHA1,3=SHA224,4=SHA256,5=SHA384,6=SHA512,7=RIPEMD160
+     *         to: pk, 指定验证方公钥，仅在 ecsdsa 或 sm2 时有效
+     *      }
+     *      ```
+     * 
      *      @param key 签名的私钥
+     *      @param opts 指定签名选项
      *      @return 返回签名后的数据
      *      
      */
-    sign(key: Class_PKey): Class_Buffer;
+    sign(key: Class_PKey, opts?: FIBJS.GeneralObject): Class_Buffer;
 
-    sign(key: Class_PKey, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    sign(key: Class_PKey, opts?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description 验证签名是否一致
+     *      opts 支持以下参数:
+     *      ```JavaScript
+     *      {
+     *         alg: 0， 指定签名的 hash 算法，仅在 RSA 时有效，缺省为 0. 支持算法: 0=NONE,1=MD5,2=SHA1,3=SHA224,4=SHA256,5=SHA384,6=SHA512,7=RIPEMD160
+     *         to: pk, 指定验证方公钥，仅在 ecsdsa 或 sm2 时有效
+     *      }
+     *      ```
+     * 
      *      @param key 验证签名的公钥
      *      @param sign 指定要验证的签名
+     *      @param opts 指定验证选项
      *      @return 返回验证后的结果
      *      
      */
-    verify(key: Class_PKey, sign: Class_Buffer): boolean;
+    verify(key: Class_PKey, sign: Class_Buffer, opts?: FIBJS.GeneralObject): boolean;
 
-    verify(key: Class_PKey, sign: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    verify(key: Class_PKey, sign: Class_Buffer, opts?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description 查询当前信息摘要算法的摘要字节数 

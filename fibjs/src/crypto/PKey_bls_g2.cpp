@@ -64,12 +64,30 @@ PKey_bls_g2::PKey_bls_g2()
     mbedtls_mpi_read_binary(&ecp->Q.X, k, 96);
 }
 
-result_t PKey_bls_g2::sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t PKey_bls_g1::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+    static const char* s_keys[] = {
+        NULL
+    };
+
+    if (!ac->isSync())
+        return 0;
 
     result_t hr;
+
+    hr = CheckConfig(opts, s_keys);
+    if (hr < 0)
+        return hr;
+
+    return CHECK_ERROR(CALL_E_NOSYNC);
+}
+
+result_t PKey_bls_g2::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_opts(opts, ac);
+    if (hr < 0)
+        return hr;
+
     bool priv;
 
     hr = isPrivate(priv);
@@ -100,10 +118,11 @@ result_t PKey_bls_g2::sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>&
     return 0;
 }
 
-result_t PKey_bls_g2::verify(Buffer_base* data, Buffer_base* sign, int32_t alg, bool& retVal, AsyncEvent* ac)
+result_t PKey_bls_g2::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+    result_t hr = check_opts(opts, ac);
+    if (hr < 0)
+        return hr;
 
     unsigned char k[96];
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);

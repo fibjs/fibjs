@@ -252,6 +252,24 @@ result_t PKey_25519::der(obj_ptr<Buffer_base>& retVal)
     return 0;
 }
 
+result_t PKey_25519::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
+{
+    static const char* s_keys[] = {
+        NULL
+    };
+
+    if (!ac->isSync())
+        return 0;
+
+    result_t hr;
+
+    hr = CheckConfig(opts, s_keys);
+    if (hr < 0)
+        return hr;
+
+    return CHECK_ERROR(CALL_E_NOSYNC);
+}
+
 static int asn1_write_data(unsigned char** p, const unsigned char* start, const unsigned char* data, size_t datlen)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -293,12 +311,12 @@ static int signature_to_asn1(const unsigned char* sig64, unsigned char* sig, siz
     return (0);
 }
 
-result_t PKey_25519::sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t PKey_25519::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+    result_t hr = check_opts(opts, ac);
+    if (hr < 0)
+        return hr;
 
-    result_t hr;
     bool priv;
 
     hr = isPrivate(priv);
@@ -382,10 +400,11 @@ static int asn1_to_signature(const unsigned char* date, size_t datlen, unsigned 
     return (0);
 }
 
-result_t PKey_25519::verify(Buffer_base* data, Buffer_base* sign, int32_t alg, bool& retVal, AsyncEvent* ac)
+result_t PKey_25519::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
+    result_t hr = check_opts(opts, ac);
+    if (hr < 0)
+        return hr;
 
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
     unsigned char signature[ed25519_signature_size];

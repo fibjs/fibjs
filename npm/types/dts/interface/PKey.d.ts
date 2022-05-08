@@ -212,7 +212,7 @@ declare class Class_PKey extends Class_object {
      *      @return 相同则返回 true
      *      
      */
-    equal(key: Class_PKey): boolean;
+    equals(key: Class_PKey): boolean;
 
     /**
      * @description 使用当前算法密码公钥加密数据
@@ -236,49 +236,42 @@ declare class Class_PKey extends Class_object {
 
     /**
      * @description 使用当前算法密码私钥签名数据
+     *      opts 支持以下参数:
+     *      ```JavaScript
+     *      {
+     *         alg: 0， 指定签名的 hash 算法，仅在 RSA 时有效，缺省为 0. 支持算法: 0=NONE,1=MD5,2=SHA1,3=SHA224,4=SHA256,5=SHA384,6=SHA512,7=RIPEMD160
+     *         to: pk, 指定验证方公钥，仅在 ecsdsa 或 sm2 时有效
+     *      }
+     *      ```
+     * 
      *      @param data 指定要签名的数据
-     *      @param alg 指定要签名的算法, 默认0. 支持算法: 0=NONE,1=MD2,2=MD4,3=MD5,4=SHA1,5=SHA224,6=SHA256,7=SHA384,8=SHA512,9=RIPEMD160
+     *      @param opts 指定签名选项
      *      @return 返回签名后的数据
      *      
      */
-    sign(data: Class_Buffer, alg?: number): Class_Buffer;
+    sign(data: Class_Buffer, opts?: FIBJS.GeneralObject): Class_Buffer;
 
-    sign(data: Class_Buffer, alg?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description 使用当前算法密码私钥定向签名签名数据
-     *      @param data 指定要签名的数据
-     *      @param key 验证方公钥
-     *      @return 返回签名后的数据
-     *      
-     */
-    sign(data: Class_Buffer, key: Class_PKey): Class_Buffer;
-
-    sign(data: Class_Buffer, key: Class_PKey, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    sign(data: Class_Buffer, opts?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description 使用当前算法密码公钥验证数据
+     *      opts 支持以下参数:
+     *      ```JavaScript
+     *      {
+     *         alg: 0， 指定签名的 hash 算法，仅在 RSA 时有效，缺省为 0. 支持算法: 0=NONE,1=MD5,2=SHA1,3=SHA224,4=SHA256,5=SHA384,6=SHA512,7=RIPEMD160
+     *         to: sk, 指定验证方私钥，仅在 ecsdsa 或 sm2 时有效
+     *      }
+     *      ```
+     * 
      *      @param data 指定要验证的数据
      *      @param sign 指定要验证的签名
-     *      @param alg 指定要签名的算法, 默认0. 支持算法: 0=NONE,1=MD2,2=MD4,3=MD5,4=SHA1,5=SHA224,6=SHA256,7=SHA384,8=SHA512,9=RIPEMD160
+     *      @param opts 指定验证选项
      *      @return 返回验证后的结果
      *      
      */
-    verify(data: Class_Buffer, sign: Class_Buffer, alg?: number): boolean;
+    verify(data: Class_Buffer, sign: Class_Buffer, opts?: FIBJS.GeneralObject): boolean;
 
-    verify(data: Class_Buffer, sign: Class_Buffer, alg?: number, callback?: (err: Error | undefined | null, retVal: boolean)=>any): void;
-
-    /**
-     * @description 使用当前算法密码公钥定向验证签名
-     *      @param data 指定要验证的数据
-     *      @param sign 指定要验证的签名
-     *      @param key 验证方私钥
-     *      @return 返回验证后的结果
-     *      
-     */
-    verify(data: Class_Buffer, sign: Class_Buffer, key: Class_PKey): boolean;
-
-    verify(data: Class_Buffer, sign: Class_Buffer, key: Class_PKey, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    verify(data: Class_Buffer, sign: Class_Buffer, opts?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description 使用当前算法计算椭圆曲线 Diffie-Hellman (ECDH) 共享密钥

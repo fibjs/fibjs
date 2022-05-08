@@ -159,77 +159,12 @@ result_t PKey::decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEve
     return 0;
 }
 
-result_t PKey::sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    result_t hr;
-    bool priv;
-
-    hr = isPrivate(priv);
-    if (hr < 0)
-        return hr;
-
-    if (!priv)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    int32_t ret;
-    exlib::string str;
-    exlib::string output;
-    size_t olen = MBEDTLS_PREMASTER_SIZE;
-
-    data->toString(str);
-    output.resize(MBEDTLS_PREMASTER_SIZE);
-
-    // alg=0~9  see https://tls.mbed.org/api/md_8h.html  enum mbedtls_md_type_t
-    ret = mbedtls_pk_sign(&m_key, (mbedtls_md_type_t)alg,
-        (const unsigned char*)str.c_str(), str.length(),
-        (unsigned char*)output.c_buffer(), olen, &olen,
-        mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
-    if (ret != 0)
-        return CHECK_ERROR(_ssl::setError(ret));
-
-    output.resize(olen);
-    retVal = new Buffer(output);
-
-    return 0;
-}
-
-result_t PKey::sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t PKey::sign(Buffer_base* data, v8::Local<v8::Object> opt, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
-result_t PKey::verify(Buffer_base* data, Buffer_base* sign, int32_t alg, bool& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    int32_t ret;
-    exlib::string str;
-    exlib::string strsign;
-
-    data->toString(str);
-    sign->toString(strsign);
-
-    ret = mbedtls_pk_verify(&m_key, (mbedtls_md_type_t)alg,
-        (const unsigned char*)str.c_str(), str.length(),
-        (const unsigned char*)strsign.c_str(), strsign.length());
-    if (ret == MBEDTLS_ERR_ECP_VERIFY_FAILED || ret == MBEDTLS_ERR_RSA_VERIFY_FAILED || ret == MBEDTLS_ERR_SM2_BAD_SIGNATURE) {
-        retVal = false;
-        return 0;
-    }
-
-    if (ret != 0)
-        return CHECK_ERROR(_ssl::setError(ret));
-
-    retVal = true;
-
-    return 0;
-}
-
-result_t PKey::verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, bool& retVal, AsyncEvent* ac)
+result_t PKey::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Object> opt, bool& retVal, AsyncEvent* ac)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }

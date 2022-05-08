@@ -263,24 +263,10 @@ result_t PKey_ecc::equals(PKey_base* key, bool& retVal)
     return 0;
 }
 
-result_t PKey_ecc::sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    if (m_alg == "ECSDSA")
-        return sign(data, (PKey_base*)NULL, retVal, ac);
-
-    return PKey::sign(data, alg, retVal, ac);
-}
-
 result_t PKey_ecc::sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
-
-    if (m_alg != "ECSDSA" && m_alg != "SM2")
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     result_t hr;
     bool priv;
@@ -326,24 +312,10 @@ result_t PKey_ecc::sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>&
     return 0;
 }
 
-result_t PKey_ecc::verify(Buffer_base* data, Buffer_base* sign, int32_t alg, bool& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    if (m_alg == "ECSDSA")
-        return verify(data, sign, (PKey_base*)NULL, retVal, ac);
-
-    return PKey::verify(data, sign, alg, retVal, ac);
-}
-
 result_t PKey_ecc::verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, bool& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
-
-    if (m_alg != "ECSDSA" && m_alg != "SM2")
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     obj_ptr<PKey> to_key = (PKey*)key;
     if (key) {
@@ -377,7 +349,114 @@ result_t PKey_ecc::verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, 
     ret = ecsdsa_verify(mbedtls_pk_ec(m_key), m_alg == "ECSDSA", key ? mbedtls_pk_ec(to_key->m_key) : NULL,
         (const unsigned char*)str.c_str(), str.length(), (const unsigned char*)strsign.c_str(), strsign.length(),
         mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
-    if (ret == MBEDTLS_ERR_ECP_VERIFY_FAILED || ret == MBEDTLS_ERR_RSA_VERIFY_FAILED || ret == MBEDTLS_ERR_SM2_BAD_SIGNATURE) {
+    if (ret == MBEDTLS_ERR_ECP_VERIFY_FAILED || ret == MBEDTLS_ERR_SM2_BAD_SIGNATURE) {
+        retVal = false;
+        return 0;
+    }
+
+    if (ret != 0)
+        return CHECK_ERROR(_ssl::setError(ret));
+
+    retVal = true;
+
+    return 0;
+}
+
+result_t PKey_ecc::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
+{
+    static const char* s_keys[] = {
+        "to", NULL
+    };
+
+    if (!ac->isSync())
+        return 0;
+
+    Isolate* isolate = holder();
+    result_t hr;
+
+    hr = CheckConfig(opts, s_keys);
+    if (hr < 0)
+        return hr;
+
+    ac->m_ctx.resize(1);
+
+    obj_ptr<PKey_base> to;
+    hr = GetConfigValue(isolate->m_isolate, opts, "to", to, true);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+    ac->m_ctx[0] = to;
+
+    return CHECK_ERROR(CALL_E_NOSYNC);
+}
+
+result_t PKey_ecc::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_opts(opts, ac);
+    if (hr < 0)
+        return hr;
+
+    bool priv;
+
+    hr = isPrivate(priv);
+    if (hr < 0)
+        return hr;
+
+    if (!priv)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    obj_ptr<PKey_base> to = PKey_base::getInstance(ac->m_ctx[0].object());
+    if (m_alg == "ECSDSA" || m_alg == "SM2")
+        return sign(data, to, retVal, ac);
+
+    if (to)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    int32_t ret;
+    exlib::string str;
+    exlib::string output;
+    size_t olen = MBEDTLS_ECDSA_MAX_SIG_LEN(mbedtls_pk_get_bitlen(&m_key));
+
+    data->toString(str);
+    output.resize(olen);
+
+    // alg=0~9  see https://tls.mbed.org/api/md_8h.html  enum mbedtls_md_type_t
+    ret = mbedtls_pk_sign(&m_key, MBEDTLS_MD_NONE,
+        (const unsigned char*)str.c_str(), str.length(),
+        (unsigned char*)output.c_buffer(), olen, &olen,
+        mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
+    if (ret != 0)
+        return CHECK_ERROR(_ssl::setError(ret));
+
+    output.resize(olen);
+    retVal = new Buffer(output);
+
+    return 0;
+}
+
+result_t PKey_ecc::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_opts(opts, ac);
+    if (hr < 0)
+        return hr;
+
+    obj_ptr<PKey_base> to = PKey_base::getInstance(ac->m_ctx[0].object());
+    if (m_alg == "ECSDSA" || m_alg == "SM2")
+        return verify(data, sign, to, retVal, ac);
+
+    if (to)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    int32_t ret;
+    exlib::string str;
+    exlib::string strsign;
+
+    data->toString(str);
+    sign->toString(strsign);
+
+    ret = mbedtls_pk_verify(&m_key, MBEDTLS_MD_NONE,
+        (const unsigned char*)str.c_str(), str.length(),
+        (const unsigned char*)strsign.c_str(), strsign.length());
+    if (ret == MBEDTLS_ERR_ECP_VERIFY_FAILED) {
         retVal = false;
         return 0;
     }

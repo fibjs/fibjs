@@ -9,6 +9,7 @@
 
 #include "object.h"
 #include "ifs/hash.h"
+#include "ifs/util.h"
 #include "Digest.h"
 #include "Buffer.h"
 #include "encoding.h"
@@ -100,32 +101,56 @@ result_t Digest::digest(exlib::string codec, v8::Local<v8::Value>& retVal)
     return 0;
 }
 
-result_t Digest::sign(PKey_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t Digest::sign(PKey_base* key, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    int32_t _iAlgo = m_iAlgo;
     obj_ptr<Buffer_base> buf;
-    result_t hr = digest(buf);
-    if (hr < 0)
-        return hr;
 
-    return key->sign(buf, _iAlgo, retVal, ac);
+    if (ac->isSync()) {
+        exlib::string name;
+
+        key->get_name(name);
+        if (name == "RSA") {
+            Isolate* isolate = holder();
+            v8::Local<v8::Value> v;
+
+            util_base::clone(opts, v);
+            opts = v8::Local<v8::Object>::Cast(v);
+
+            opts->Set(isolate->context(), isolate->NewString("alg"), v8::Int32::New(isolate->m_isolate, m_iAlgo));
+        }
+    } else {
+        result_t hr = digest(buf);
+        if (hr < 0)
+            return hr;
+    }
+
+    return key->sign(buf, opts, retVal, ac);
 }
 
-result_t Digest::verify(PKey_base* key, Buffer_base* sign, bool& retVal, AsyncEvent* ac)
+result_t Digest::verify(PKey_base* key, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    int32_t _iAlgo = m_iAlgo;
     obj_ptr<Buffer_base> buf;
-    result_t hr = digest(buf);
-    if (hr < 0)
-        return hr;
 
-    return key->verify(buf, sign, _iAlgo, retVal, ac);
+    if (ac->isSync()) {
+        exlib::string name;
+
+        key->get_name(name);
+        if (name == "RSA") {
+            Isolate* isolate = holder();
+            v8::Local<v8::Value> v;
+
+            util_base::clone(opts, v);
+            opts = v8::Local<v8::Object>::Cast(v);
+
+            opts->Set(isolate->context(), isolate->NewString("alg"), v8::Int32::New(isolate->m_isolate, m_iAlgo));
+        }
+    } else {
+        result_t hr = digest(buf);
+        if (hr < 0)
+            return hr;
+    }
+
+    return key->verify(buf, sign, opts, retVal, ac);
 }
 
 result_t Digest::get_size(int32_t& retVal)

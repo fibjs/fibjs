@@ -19,10 +19,15 @@ public:
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal);
     virtual result_t isPrivate(bool& retVal);
     virtual result_t clone(obj_ptr<PKey_base>& retVal);
-    virtual result_t equal(PKey_base* key, bool& retVal);
+    virtual result_t equals(PKey_base* key, bool& retVal);
+    virtual result_t sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    virtual result_t verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac);
 
 public:
     static result_t generateKey(int32_t size, obj_ptr<PKey_base>& retVal);
+
+private:
+    result_t check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac);
 };
 
 class PKey_ecc : public PKey {
@@ -41,11 +46,9 @@ public:
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal);
     virtual result_t isPrivate(bool& retVal);
     virtual result_t clone(obj_ptr<PKey_base>& retVal);
-    virtual result_t equal(PKey_base* key, bool& retVal);
-    virtual result_t sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t verify(Buffer_base* data, Buffer_base* sign, int32_t alg, bool& retVal, AsyncEvent* ac);
-    virtual result_t verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, bool& retVal, AsyncEvent* ac);
+    virtual result_t equals(PKey_base* key, bool& retVal);
+    virtual result_t sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    virtual result_t verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac);
     virtual result_t computeSecret(PKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
 
 public:
@@ -55,6 +58,13 @@ public:
 public:
     static int32_t get_curve_id(exlib::string& curve);
     static const char* get_curve_name(int32_t id);
+
+private:
+    result_t sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    result_t verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, bool& retVal, AsyncEvent* ac);
+
+private:
+    result_t check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac);
 };
 
 class PKey_25519 : public PKey_ecc {
@@ -66,12 +76,15 @@ public:
     // PKey
     virtual result_t pem(exlib::string& retVal);
     virtual result_t der(obj_ptr<Buffer_base>& retVal);
-    virtual result_t sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t verify(Buffer_base* data, Buffer_base* sign, int32_t alg, bool& retVal, AsyncEvent* ac);
+    virtual result_t sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    virtual result_t verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac);
 
 public:
     static result_t from(Buffer_base* DerKey, obj_ptr<PKey_base>& retVal);
     static result_t from(exlib::string pemKey, obj_ptr<PKey_base>& retVal);
+
+private:
+    result_t check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac);
 };
 
 class PKey_bls_g1 : public PKey_ecc {
@@ -81,8 +94,11 @@ public:
 
 public:
     // PKey
-    virtual result_t sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t verify(Buffer_base* data, Buffer_base* sign, int32_t alg, bool& retVal, AsyncEvent* ac);
+    virtual result_t sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    virtual result_t verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac);
+
+private:
+    result_t check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac);
 };
 
 class PKey_bls_g2 : public PKey_ecc {
@@ -92,8 +108,11 @@ public:
 
 public:
     // PKey
-    virtual result_t sign(Buffer_base* data, int32_t alg, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t verify(Buffer_base* data, Buffer_base* sign, int32_t alg, bool& retVal, AsyncEvent* ac);
+    virtual result_t sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    virtual result_t verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac);
+
+private:
+    result_t check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac);
 };
 
 }

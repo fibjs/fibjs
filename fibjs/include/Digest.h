@@ -22,8 +22,8 @@ public:
     // Digest_base
     virtual result_t update(Buffer_base* data, obj_ptr<Digest_base>& retVal);
     virtual result_t digest(exlib::string codec, v8::Local<v8::Value>& retVal);
-    virtual result_t sign(PKey_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t verify(PKey_base* key, Buffer_base* sign, bool& retVal, AsyncEvent* ac);
+    virtual result_t sign(PKey_base* key, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    virtual result_t verify(PKey_base* key, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac);
     virtual result_t get_size(int32_t& retVal);
 
 private:

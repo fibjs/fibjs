@@ -189,34 +189,35 @@ interface PKey : object
     Buffer decrypt(Buffer data) async;
 
     /*! @brief 使用当前算法密码私钥签名数据
-     @param data 指定要签名的数据
-     @param alg 指定要签名的算法, 默认0. 支持算法: 0=NONE,1=MD2,2=MD4,3=MD5,4=SHA1,5=SHA224,6=SHA256,7=SHA384,8=SHA512,9=RIPEMD160
-     @return 返回签名后的数据
-     */
-    Buffer sign(Buffer data, Integer alg = 0) async;
+     opts 支持以下参数:
+     ```JavaScript
+     {
+        alg: 0， 指定签名的 hash 算法，仅在 RSA 时有效，缺省为 0. 支持算法: 0=NONE,1=MD5,2=SHA1,3=SHA224,4=SHA256,5=SHA384,6=SHA512,7=RIPEMD160
+        to: pk, 指定验证方公钥，仅在 ecsdsa 或 sm2 时有效
+     }
+     ```
 
-    /*! @brief 使用当前算法密码私钥定向签名签名数据
      @param data 指定要签名的数据
-     @param key 验证方公钥
+     @param opts 指定签名选项
      @return 返回签名后的数据
      */
-    Buffer sign(Buffer data, PKey key) async;
+    Buffer sign(Buffer data, Object opts = {}) async;
 
     /*! @brief 使用当前算法密码公钥验证数据
-     @param data 指定要验证的数据
-     @param sign 指定要验证的签名
-     @param alg 指定要签名的算法, 默认0. 支持算法: 0=NONE,1=MD2,2=MD4,3=MD5,4=SHA1,5=SHA224,6=SHA256,7=SHA384,8=SHA512,9=RIPEMD160
-     @return 返回验证后的结果
-     */
-    Boolean verify(Buffer data, Buffer sign, Integer alg = 0) async;
+     opts 支持以下参数:
+     ```JavaScript
+     {
+        alg: 0， 指定签名的 hash 算法，仅在 RSA 时有效，缺省为 0. 支持算法: 0=NONE,1=MD5,2=SHA1,3=SHA224,4=SHA256,5=SHA384,6=SHA512,7=RIPEMD160
+        to: sk, 指定验证方私钥，仅在 ecsdsa 或 sm2 时有效
+     }
+     ```
 
-    /*! @brief 使用当前算法密码公钥定向验证签名
      @param data 指定要验证的数据
      @param sign 指定要验证的签名
-     @param key 验证方私钥
+     @param opts 指定验证选项
      @return 返回验证后的结果
      */
-    Boolean verify(Buffer data, Buffer sign, PKey key) async;
+    Boolean verify(Buffer data, Buffer sign, Object opts = {}) async;
 
     /*! @brief 使用当前算法计算椭圆曲线 Diffie-Hellman (ECDH) 共享密钥
      @param publicKey 指定对方的公钥

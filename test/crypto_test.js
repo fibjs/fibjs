@@ -855,10 +855,18 @@ describe('crypto', () => {
                 var pk = crypto.generateKey("SM2");
                 var pk1 = crypto.generateKey("SM2");
 
-                var sig = pk.sign('abc', pk1.publicKey);
-                assert.isTrue(pk.publicKey.verify('abc', sig, pk1));
-                assert.isFalse(pk.publicKey.verify('abcd', sig, pk1));
-                assert.isFalse(pk.publicKey.verify('abc', sig, pk));
+                var sig = pk.sign('abc', {
+                    to: pk1.publicKey
+                });
+                assert.isTrue(pk.publicKey.verify('abc', sig, {
+                    to: pk1
+                }));
+                assert.isFalse(pk.publicKey.verify('abcd', sig, {
+                    to: pk1
+                }));
+                assert.isFalse(pk.publicKey.verify('abc', sig, {
+                    to: pk
+                }));
             });
 
             it("ecsdsa sign/verify to", () => {
@@ -866,10 +874,18 @@ describe('crypto', () => {
                 var pk1 = crypto.generateKey("SM2");
                 pk.alg = 'ECSDSA';
 
-                var sig = pk.sign('abc', pk1.publicKey);
-                assert.isTrue(pk.publicKey.verify('abc', sig, pk1));
-                assert.isFalse(pk.publicKey.verify('abcd', sig, pk1));
-                assert.isFalse(pk.publicKey.verify('abc', sig, pk));
+                var sig = pk.sign('abc', {
+                    to: pk1.publicKey
+                });
+                assert.isTrue(pk.publicKey.verify('abc', sig, {
+                    to: pk1
+                }));
+                assert.isFalse(pk.publicKey.verify('abcd', sig, {
+                    to: pk1
+                }));
+                assert.isFalse(pk.publicKey.verify('abc', sig, {
+                    to: pk
+                }));
             });
         });
 
@@ -969,10 +985,18 @@ describe('crypto', () => {
 
                     var pk1 = crypto.generateKey(c.key.crv);
 
-                    var sig = pk.sign('abc', pk1.publicKey);
-                    assert.isTrue(pk.publicKey.verify('abc', sig, pk1));
-                    assert.isFalse(pk.publicKey.verify('abcb', sig, pk1));
-                    assert.isFalse(pk.publicKey.verify('abc', sig, pk));
+                    var sig = pk.sign('abc', {
+                        to: pk1.publicKey
+                    });
+                    assert.isTrue(pk.publicKey.verify('abc', sig, {
+                        to: pk1
+                    }));
+                    assert.isFalse(pk.publicKey.verify('abcb', sig, {
+                        to: pk1
+                    }));
+                    assert.isFalse(pk.publicKey.verify('abc', sig, {
+                        to: pk
+                    }));
                 });
             });
         });
@@ -1012,10 +1036,18 @@ describe('crypto', () => {
 
                 var pk1 = crypto.generateKey("SM2");
 
-                var sig = pk.sign('abc', pk1.publicKey);
-                assert.isTrue(pk.publicKey.verify('abc', sig, pk1));
-                assert.isFalse(pk.publicKey.verify('abcb', sig, pk1));
-                assert.isFalse(pk.publicKey.verify('abc', sig, pk));
+                var sig = pk.sign('abc', {
+                    to: pk1.publicKey
+                });
+                assert.isTrue(pk.publicKey.verify('abc', sig, {
+                    to: pk1
+                }));
+                assert.isFalse(pk.publicKey.verify('abcb', sig, {
+                    to: pk1
+                }));
+                assert.isFalse(pk.publicKey.verify('abc', sig, {
+                    to: pk
+                }));
             });
         });
     });

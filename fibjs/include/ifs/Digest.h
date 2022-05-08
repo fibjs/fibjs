@@ -25,8 +25,8 @@ public:
     // Digest_base
     virtual result_t update(Buffer_base* data, obj_ptr<Digest_base>& retVal) = 0;
     virtual result_t digest(exlib::string codec, v8::Local<v8::Value>& retVal) = 0;
-    virtual result_t sign(PKey_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t verify(PKey_base* key, Buffer_base* sign, bool& retVal, AsyncEvent* ac) = 0;
+    virtual result_t sign(PKey_base* key, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t verify(PKey_base* key, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac) = 0;
     virtual result_t get_size(int32_t& retVal) = 0;
 
 public:
@@ -48,8 +48,8 @@ public:
     static void s_get_size(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_MEMBERVALUE2(Digest_base, sign, PKey_base*, obj_ptr<Buffer_base>);
-    ASYNC_MEMBERVALUE3(Digest_base, verify, PKey_base*, Buffer_base*, bool);
+    ASYNC_MEMBERVALUE3(Digest_base, sign, PKey_base*, v8::Local<v8::Object>, obj_ptr<Buffer_base>);
+    ASYNC_MEMBERVALUE4(Digest_base, verify, PKey_base*, Buffer_base*, v8::Local<v8::Object>, bool);
 };
 }
 
@@ -124,14 +124,15 @@ inline void Digest_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(Digest_base);
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(2, 1);
 
     ARG(obj_ptr<PKey_base>, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_sign(v0, cb, args);
+        hr = pInst->acb_sign(v0, v1, cb, args);
     else
-        hr = pInst->ac_sign(v0, vr);
+        hr = pInst->ac_sign(v0, v1, vr);
 
     METHOD_RETURN();
 }
@@ -144,15 +145,16 @@ inline void Digest_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& arg
     METHOD_INSTANCE(Digest_base);
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 2);
+    ASYNC_METHOD_OVER(3, 2);
 
     ARG(obj_ptr<PKey_base>, 0);
     ARG(obj_ptr<Buffer_base>, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_verify(v0, v1, cb, args);
+        hr = pInst->acb_verify(v0, v1, v2, cb, args);
     else
-        hr = pInst->ac_verify(v0, v1, vr);
+        hr = pInst->ac_verify(v0, v1, v2, vr);
 
     METHOD_RETURN();
 }

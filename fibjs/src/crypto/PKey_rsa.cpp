@@ -120,4 +120,102 @@ result_t PKey_rsa::generateKey(int32_t size, obj_ptr<PKey_base>& retVal)
 
     return 0;
 }
+
+result_t PKey_rsa::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
+{
+    static const char* s_keys[] = {
+        "alg", NULL
+    };
+
+    if (!ac->isSync())
+        return 0;
+
+    Isolate* isolate = holder();
+    result_t hr;
+
+    hr = CheckConfig(opts, s_keys);
+    if (hr < 0)
+        return hr;
+
+    ac->m_ctx.resize(1);
+
+    int32_t alg = 0;
+    hr = GetConfigValue(isolate->m_isolate, opts, "alg", alg, true);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+    ac->m_ctx[0] = alg;
+
+    return CHECK_ERROR(CALL_E_NOSYNC);
+}
+
+result_t PKey_rsa::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_opts(opts, ac);
+    if (hr < 0)
+        return hr;
+
+    bool priv;
+
+    hr = isPrivate(priv);
+    if (hr < 0)
+        return hr;
+
+    if (!priv)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    int32_t alg = ac->m_ctx[0].intVal();
+
+    int32_t ret;
+    exlib::string str;
+    exlib::string output;
+    size_t olen = (mbedtls_pk_get_bitlen(&m_key) + 7) / 8;
+
+    data->toString(str);
+    output.resize(olen);
+
+    // alg=0~9  see https://tls.mbed.org/api/md_8h.html  enum mbedtls_md_type_t
+    ret = mbedtls_pk_sign(&m_key, (mbedtls_md_type_t)alg,
+        (const unsigned char*)str.c_str(), str.length(),
+        (unsigned char*)output.c_buffer(), olen, &olen,
+        mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
+    if (ret != 0)
+        return CHECK_ERROR(_ssl::setError(ret));
+
+    output.resize(olen);
+    retVal = new Buffer(output);
+
+    return 0;
+}
+
+result_t PKey_rsa::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_opts(opts, ac);
+    if (hr < 0)
+        return hr;
+
+    int32_t alg = ac->m_ctx[0].intVal();
+
+    int32_t ret;
+    exlib::string str;
+    exlib::string strsign;
+
+    data->toString(str);
+    sign->toString(strsign);
+
+    ret = mbedtls_pk_verify(&m_key, (mbedtls_md_type_t)alg,
+        (const unsigned char*)str.c_str(), str.length(),
+        (const unsigned char*)strsign.c_str(), strsign.length());
+    if (ret == MBEDTLS_ERR_RSA_VERIFY_FAILED) {
+        retVal = false;
+        return 0;
+    }
+
+    if (ret != 0)
+        return CHECK_ERROR(_ssl::setError(ret));
+
+    retVal = true;
+
+    return 0;
+}
+
 }

@@ -139,16 +139,16 @@ describe("hash", () => {
         if (o.name != 'KECCAK256') {
             var s = crypto.createHash(o.name).update(o.text).sign(rsa4096_pem);
             assert.ok(crypto.createHash(o.name).update(o.text).verify(pub_rsa4096_pem, s));
-            assert.ok(new crypto.PKey(pub_rsa4096_pem).verify(crypto.createHash(o.name).update(o.text).digest(), s, hash[o.name]));
+            assert.ok(new crypto.PKey(pub_rsa4096_pem).verify(crypto.createHash(o.name).update(o.text).digest(), s, { alg: hash[o.name] }));
         }
 
         var s = crypto.createHash(o.name).update(o.text).sign(ec_pem);
         assert.ok(crypto.createHash(o.name).update(o.text).verify(pub_ec_pem, s));
-        assert.ok(new crypto.PKey(pub_ec_pem).verify(crypto.createHash(o.name).update(o.text).digest(), s, hash[o.name]));
+        assert.ok(new crypto.PKey(pub_ec_pem).verify(crypto.createHash(o.name).update(o.text).digest(), s));
 
         var s = crypto.createHash(o.name).update(o.text).sign(sm2_pem);
         assert.ok(crypto.createHash(o.name).update(o.text).verify(pub_sm2_pem, s));
-        assert.ok(new crypto.PKey(pub_sm2_pem).verify(crypto.createHash(o.name).update(o.text).digest(), s, hash[o.name]));
+        assert.ok(new crypto.PKey(pub_sm2_pem).verify(crypto.createHash(o.name).update(o.text).digest(), s));
     }
 
     function hmac_test(o) {
@@ -191,16 +191,16 @@ describe("hash", () => {
         if (o.name != 'KECCAK256') {
             var s = crypto.createHmac(o.name, o.key).update(o.text).sign(rsa4096_pem);
             assert.ok(crypto.createHmac(o.name, o.key).update(o.text).verify(pub_rsa4096_pem, s));
-            assert.ok(new crypto.PKey(pub_rsa4096_pem).verify(crypto.createHmac(o.name, o.key).update(o.text).digest(), s, hash[o.name]));
+            assert.ok(new crypto.PKey(pub_rsa4096_pem).verify(crypto.createHmac(o.name, o.key).update(o.text).digest(), s, { alg: hash[o.name] }));
         }
 
         var s = crypto.createHmac(o.name, o.key).update(o.text).sign(ec_pem);
         assert.ok(crypto.createHmac(o.name, o.key).update(o.text).verify(pub_ec_pem, s));
-        assert.ok(new crypto.PKey(pub_ec_pem).verify(crypto.createHmac(o.name, o.key).update(o.text).digest(), s, hash[o.name]));
+        assert.ok(new crypto.PKey(pub_ec_pem).verify(crypto.createHmac(o.name, o.key).update(o.text).digest(), s));
 
         var s = crypto.createHmac(o.name, o.key).update(o.text).sign(sm2_pem);
         assert.ok(crypto.createHmac(o.name, o.key).update(o.text).verify(pub_sm2_pem, s));
-        assert.ok(new crypto.PKey(pub_sm2_pem).verify(crypto.createHmac(o.name, o.key).update(o.text).digest(), s, hash[o.name]));
+        assert.ok(new crypto.PKey(pub_sm2_pem).verify(crypto.createHmac(o.name, o.key).update(o.text).digest(), s));
     }
 
     it("md5", () => {
