@@ -100,7 +100,7 @@ static void baseDecode(const char* pdecodeTable, size_t dwBits,
 
 static result_t base32Encode(const char* data, size_t sz, exlib::string& retVal)
 {
-    baseEncode("abcdefghijklmnopqrstuvwxyz234567", 5, data, sz, retVal, true);
+    baseEncode("abcdefghijklmnopqrstuvwxyz234567", 5, data, sz, retVal, false);
     return 0;
 }
 

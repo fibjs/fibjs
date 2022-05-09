@@ -547,13 +547,13 @@ describe('Buffer', () => {
         assert.equal(buf.toString("utf8"), "1234");
         assert.equal(buf.toString(undefined), "1234");
         assert.equal(buf.toString("hex"), "31323334");
-        assert.equal(buf.toString("base32"), "gezdgna=");
+        assert.equal(buf.toString("base32"), "gezdgna");
         assert.equal(buf.toString("base58"), "2FwFnT");
         assert.equal(buf.toString("base64"), "MTIzNA==");
         assert.equal(buf.toString("utf8", 1), "234");
         assert.equal(buf.toString("utf8", 1, 3), "23");
         assert.equal(buf.toString("hex", 2), "3334");
-        assert.equal(buf.toString("base32", 2), "gm2a====");
+        assert.equal(buf.toString("base32", 2), "gm2a");
         assert.equal(buf.toString("base58", 2), "4u1");
         assert.equal(buf.toString("base64", 2), "MzQ=");
         assert.equal(buf.toString("base64url"), "MTIzNA");
