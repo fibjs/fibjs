@@ -208,7 +208,7 @@ sha3_Update(void *priv, void const *bufIn, size_t len)
     SHA3_ASSERT(ctx->byteIndex == 0);
 
     words = len / sizeof(uint64_t);
-    tail = len - words * sizeof(uint64_t);
+    tail = (unsigned)(len - words * sizeof(uint64_t));
 
     SHA3_TRACE("have %d full words to process", (unsigned)words);
 

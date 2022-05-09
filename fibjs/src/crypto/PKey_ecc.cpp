@@ -270,7 +270,6 @@ result_t PKey_ecc::equals(PKey_base* key, bool& retVal)
 result_t PKey_ecc::sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     result_t hr;
-    bool priv;
 
     obj_ptr<PKey> to_key = (PKey*)key;
     if (to_key) {
@@ -458,10 +457,10 @@ result_t PKey_ecc::bin2der(const exlib::string& bin, exlib::string& der)
 
     if ((4 + lenS + lenR) > 0x80)
         *sig++ = 0x81;
-    *sig++ = 4 + lenS + lenR;
+    *sig++ = (unsigned char)(4 + lenS + lenR);
 
     *sig++ = 0x02;
-    *sig++ = lenR;
+    *sig++ = (unsigned char)lenR;
     if (rp[0] & 0x80) {
         *sig++ = 0;
         lenR--;
@@ -470,7 +469,7 @@ result_t PKey_ecc::bin2der(const exlib::string& bin, exlib::string& der)
     sig += lenR;
 
     *sig++ = 0x02;
-    *sig++ = lenS;
+    *sig++ = (unsigned char)lenS;
     if (sp[0] & 0x80) {
         *sig++ = 0;
         lenS--;
