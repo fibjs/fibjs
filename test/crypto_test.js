@@ -513,6 +513,17 @@ describe('crypto', () => {
                     pk1.sign(md);
                 });
             });
+
+            it("format", () => {
+                var pk = crypto.PKey.from(rsa4096_pem);
+
+                var md = hash.md5("abcdefg").digest();
+
+                pk.sign(md, { format: 'bin' });
+                assert.throws(() => {
+                    pk.sign(md, { format: 'der' });
+                });
+            });
         });
 
         describe("EC", () => {
@@ -651,6 +662,28 @@ describe('crypto', () => {
                 });
             });
 
+            it("sign/verify format", () => {
+                var pk = crypto.PKey.from(ec_pem);
+
+                var pk1 = pk.publicKey;
+
+                var md = hash.md5("abcdefg").digest();
+
+                var d = pk.sign(md, {
+                    format: "bin"
+                });
+
+                assert.equal(d.length, 132);
+
+                assert.isTrue(pk1.verify(md, d, {
+                    format: "bin"
+                }));
+
+                assert.throws(() => {
+                    pk1.verify(md);
+                });
+            });
+
             it("secp256k1 sign/verify", () => {
                 var pk = crypto.PKey.from(ec256_pem);
 
@@ -671,6 +704,28 @@ describe('crypto', () => {
 
                 assert.throws(() => {
                     pk1.sign(md);
+                });
+            });
+
+            it("secp256k1 sign/verify format", () => {
+                var pk = crypto.PKey.from(ec256_pem);
+
+                var pk1 = pk.publicKey;
+
+                var md = hash.md5("abcdefg").digest();
+
+                var d = pk.sign(md, {
+                    format: "bin"
+                });
+
+                assert.equal(d.length, 64);
+
+                assert.isTrue(pk1.verify(md, d, {
+                    format: "bin"
+                }));
+
+                assert.throws(() => {
+                    pk1.verify(md);
                 });
             });
 
@@ -828,6 +883,28 @@ describe('crypto', () => {
                 });
             });
 
+            it("sm2 sign/verify format", () => {
+                var pk = crypto.PKey.from(sm2_pem);
+
+                var pk1 = pk.publicKey;
+
+                var md = hash.md5("abcdefg").digest();
+
+                var d = pk.sign(md, {
+                    format: "bin"
+                });
+
+                assert.equal(d.length, 64);
+
+                assert.isTrue(pk1.verify(md, d, {
+                    format: "bin"
+                }));
+
+                assert.throws(() => {
+                    pk1.verify(md);
+                });
+            });
+
             it("encrypt/decrypt", () => {
                 var pk = crypto.PKey.from(sm2_pem);
 
@@ -869,6 +946,21 @@ describe('crypto', () => {
                 }));
             });
 
+            it("sm2 sign/verify to format", () => {
+                var pk = crypto.generateKey("SM2");
+                var pk1 = crypto.generateKey("SM2");
+
+                var sig = pk.sign('abc', {
+                    format: "bin",
+                    to: pk1.publicKey
+                });
+
+                assert.isTrue(pk.publicKey.verify('abc', sig, {
+                    format: "bin",
+                    to: pk1
+                }));
+            });
+
             it("ecsdsa sign/verify to", () => {
                 var pk = crypto.generateKey("SM2");
                 var pk1 = crypto.generateKey("SM2");
@@ -885,6 +977,22 @@ describe('crypto', () => {
                 }));
                 assert.isFalse(pk.publicKey.verify('abc', sig, {
                     to: pk
+                }));
+            });
+
+            it("sm2 ecsdsa sign/verify to format", () => {
+                var pk = crypto.generateKey("SM2");
+                var pk1 = crypto.generateKey("SM2");
+                pk.alg = 'ECSDSA';
+
+                var sig = pk.sign('abc', {
+                    format: "bin",
+                    to: pk1.publicKey
+                });
+
+                assert.isTrue(pk.publicKey.verify('abc', sig, {
+                    format: "bin",
+                    to: pk1
                 }));
             });
         });
@@ -996,6 +1104,23 @@ describe('crypto', () => {
                     }));
                     assert.isFalse(pk.publicKey.verify('abc', sig, {
                         to: pk
+                    }));
+                });
+
+                it("sign/verify to format", () => {
+                    var pk = new crypto.PKey(c.key);
+                    pk.alg = 'ECSDSA';
+
+                    var pk1 = crypto.generateKey(c.key.crv);
+
+                    var sig = pk.sign('abc', {
+                        format: "bin",
+                        to: pk1.publicKey
+                    });
+
+                    assert.isTrue(pk.publicKey.verify('abc', sig, {
+                        format: "bin",
+                        to: pk1
                     }));
                 });
             });
@@ -1159,8 +1284,11 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
 
                 var msg = Buffer.from(d[3], "base64");
                 var sig = sk.sign(msg);
-                assert.equal(sig.base64(), d[2]);
+                assert.isTrue(sk.verify(msg, sig));
 
+                // assert.equal(sig.base64(), d[2]);
+
+                sig = Buffer.from(d[2], "base64");
                 assert.isTrue(sk.verify(msg, sig));
                 msg.append('1');
                 assert.isFalse(sk.verify(msg, sig));
@@ -1250,6 +1378,22 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
             var sk = new crypto.PKey(g1_key);
             assert.deepEqual(sk.keySize, 256);
             assert.deepEqual(sk.curve, "BLS12381_G1");
+        });
+
+        it("format", () => {
+            var pk = crypto.PKey.from(g1_key);
+
+            pk.sign("abcdefg", { format: 'bin' });
+            assert.throws(() => {
+                pk.sign("abcdefg", { format: 'der' });
+            });
+
+            var pk = crypto.PKey.from(g2_key);
+
+            pk.sign("abcdefg", { format: 'bin' });
+            assert.throws(() => {
+                pk.sign("abcdefg", { format: 'der' });
+            });
         });
     });
 

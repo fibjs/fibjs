@@ -68,18 +68,6 @@ static const mbedtls_pk_info_t* get_pk_info_from_curve(int32_t id)
     return mbedtls_pk_info_from_type(pk_type);
 }
 
-static int ecp_group_load(mbedtls_ecp_group* grp, int32_t id)
-{
-    if (id == MBEDTLS_ECP_DP_ED25519
-        || id == MBEDTLS_ECP_DP_BLS12381_G1
-        || id == MBEDTLS_ECP_DP_BLS12381_G2) {
-        grp->id = (mbedtls_ecp_group_id)id;
-        return 0;
-    }
-
-    return mbedtls_ecp_group_load(grp, (mbedtls_ecp_group_id)id);
-}
-
 result_t PKey_base::from(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
@@ -166,7 +154,7 @@ result_t PKey_base::from(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retV
 
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(ctx);
 
-        ecp_group_load(&ecp->grp, (mbedtls_ecp_group_id)id);
+        PKey_ecc::load_group(&ecp->grp, (mbedtls_ecp_group_id)id);
 
         do {
             hr = mpi_load(isolate, &ecp->d, jsonKey, "d");

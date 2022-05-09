@@ -67,17 +67,25 @@ PKey_bls_g2::PKey_bls_g2()
 result_t PKey_bls_g1::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
 {
     static const char* s_keys[] = {
-        NULL
+        "format", NULL
     };
 
     if (!ac->isSync())
         return 0;
 
+    Isolate* isolate = holder();
     result_t hr;
 
     hr = CheckConfig(opts, s_keys);
     if (hr < 0)
         return hr;
+
+    exlib::string fmt = "bin";
+    hr = GetConfigValue(isolate->m_isolate, opts, "format", fmt, true);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+    if (fmt != "bin")
+        return CHECK_ERROR(Runtime::setError(exlib::string("unknown format \'") + fmt + "\'."));
 
     return CHECK_ERROR(CALL_E_NOSYNC);
 }

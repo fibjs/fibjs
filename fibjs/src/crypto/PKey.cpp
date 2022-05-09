@@ -19,16 +19,6 @@
 
 namespace fibjs {
 
-static int ecp_group_load(mbedtls_ecp_group* grp, int32_t id)
-{
-    if (id >= MBEDTLS_ECP_DP_ED25519) {
-        grp->id = (mbedtls_ecp_group_id)id;
-        return 0;
-    }
-
-    return mbedtls_ecp_group_load(grp, (mbedtls_ecp_group_id)id);
-}
-
 PKey* PKey::create(mbedtls_pk_context& key, bool clone)
 {
     mbedtls_pk_context key1;
@@ -48,7 +38,7 @@ PKey* PKey::create(mbedtls_pk_context& key, bool clone)
             mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(key);
             mbedtls_ecp_keypair* ecp1 = mbedtls_pk_ec(key1);
 
-            ecp_group_load(&ecp1->grp, ecp->grp.id);
+            PKey_ecc::load_group(&ecp1->grp, ecp->grp.id);
             mbedtls_mpi_copy(&ecp1->d, &ecp->d);
             mbedtls_ecp_copy(&ecp1->Q, &ecp->Q);
         }

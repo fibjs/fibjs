@@ -41,7 +41,6 @@ public:
 public:
     // PKey
     virtual result_t get_curve(exlib::string& retVal);
-    virtual result_t get_keySize(int32_t& retVal);
     virtual result_t set_alg(exlib::string newVal);
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal);
     virtual result_t isPrivate(bool& retVal);
@@ -59,12 +58,19 @@ public:
     static int32_t get_curve_id(exlib::string& curve);
     static const char* get_curve_name(int32_t id);
 
+protected:
+    result_t der2bin(const exlib::string& der, exlib::string& bin);
+    result_t bin2der(const exlib::string& bin, exlib::string& der);
+
 private:
     result_t sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     result_t verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, bool& retVal, AsyncEvent* ac);
 
 private:
     result_t check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac);
+
+public:
+    static int load_group(mbedtls_ecp_group* grp, int32_t id);
 };
 
 class PKey_25519 : public PKey_ecc {

@@ -96,10 +96,11 @@ const char* PKey_ecc::get_curve_name(int32_t id)
     return NULL;
 }
 
-static int ecp_group_load(mbedtls_ecp_group* grp, int32_t id)
+int PKey_ecc::load_group(mbedtls_ecp_group* grp, int32_t id)
 {
     if (id >= MBEDTLS_ECP_DP_ED25519) {
         grp->id = (mbedtls_ecp_group_id)id;
+        grp->pbits = 256;
         return 0;
     }
 
@@ -197,7 +198,7 @@ result_t PKey_ecc::get_publicKey(obj_ptr<PKey_base>& retVal)
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
     mbedtls_ecp_keypair* ecp1 = mbedtls_pk_ec(ctx);
 
-    ecp_group_load(&ecp1->grp, ecp->grp.id);
+    load_group(&ecp1->grp, ecp->grp.id);
     mbedtls_ecp_copy(&ecp1->Q, &ecp->Q);
 
     obj_ptr<PKey_ecc> pk = PKey_ecc::create(ctx);
@@ -225,7 +226,7 @@ result_t PKey_ecc::clone(obj_ptr<PKey_base>& retVal)
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
     mbedtls_ecp_keypair* ecp1 = mbedtls_pk_ec(ctx);
 
-    ecp_group_load(&ecp1->grp, ecp->grp.id);
+    load_group(&ecp1->grp, ecp->grp.id);
     mbedtls_mpi_copy(&ecp1->d, &ecp->d);
     mbedtls_ecp_copy(&ecp1->Q, &ecp->Q);
 
@@ -265,18 +266,8 @@ result_t PKey_ecc::equals(PKey_base* key, bool& retVal)
 
 result_t PKey_ecc::sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
     result_t hr;
     bool priv;
-
-    hr = isPrivate(priv);
-    if (hr < 0)
-        return hr;
-
-    if (!priv)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     obj_ptr<PKey> to_key = (PKey*)key;
     if (to_key) {
@@ -307,6 +298,13 @@ result_t PKey_ecc::sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>&
         return CHECK_ERROR(_ssl::setError(ret));
 
     output.resize(olen);
+
+    if (ac->m_ctx[1].string() == "bin") {
+        hr = der2bin(output, output);
+        if (hr < 0)
+            return hr;
+    }
+
     retVal = new Buffer(output);
 
     return 0;
@@ -314,9 +312,6 @@ result_t PKey_ecc::sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>&
 
 result_t PKey_ecc::verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, bool& retVal, AsyncEvent* ac)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
     obj_ptr<PKey> to_key = (PKey*)key;
     if (key) {
         result_t hr;
@@ -346,6 +341,12 @@ result_t PKey_ecc::verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, 
     data->toString(str);
     sign->toString(strsign);
 
+    if (ac->m_ctx[1].string() == "bin") {
+        result_t hr = bin2der(strsign, strsign);
+        if (hr < 0)
+            return hr;
+    }
+
     ret = ecsdsa_verify(mbedtls_pk_ec(m_key), m_alg == "ECSDSA", key ? mbedtls_pk_ec(to_key->m_key) : NULL,
         (const unsigned char*)str.c_str(), str.length(), (const unsigned char*)strsign.c_str(), strsign.length(),
         mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
@@ -362,10 +363,126 @@ result_t PKey_ecc::verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, 
     return 0;
 }
 
+static int asn1_get_num(unsigned char** p, const unsigned char* end, unsigned char* data, size_t sz)
+{
+    int ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    size_t len;
+
+    if ((ret = mbedtls_asn1_get_tag(p, end, &len, MBEDTLS_ASN1_INTEGER)) != 0)
+        return (ret);
+
+    while (len && !**p) {
+        len--;
+        (*p)++;
+    }
+
+    if (len > sz)
+        return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
+
+    if (len < sz)
+        memset(data, 0, sz - len);
+    memcpy(data + sz - len, *p, len);
+
+    *p += len;
+
+    return (ret);
+}
+
+result_t PKey_ecc::der2bin(const exlib::string& der, exlib::string& bin)
+{
+    const unsigned char* data = (const unsigned char*)der.c_str();
+    size_t datlen = der.length();
+    const unsigned char* end = data + datlen;
+    size_t ksz = (mbedtls_pk_get_bitlen(&m_key) + 7) / 8;
+    unsigned char* p = (unsigned char*)data;
+    size_t len;
+    exlib::string r;
+
+    r.resize(ksz * 2);
+
+    unsigned char* sig = (unsigned char*)r.c_buffer();
+
+    if (mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE))
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+
+    if (p + len != end)
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA + MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
+
+    if (asn1_get_num(&p, end, sig, ksz) || asn1_get_num(&p, end, sig + ksz, ksz))
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+
+    bin = r;
+
+    return 0;
+}
+
+result_t PKey_ecc::bin2der(const exlib::string& bin, exlib::string& der)
+{
+    const unsigned char* p0 = (const unsigned char*)bin.c_str();
+    size_t sz = bin.length();
+    size_t ksz = (mbedtls_pk_get_bitlen(&m_key) + 7) / 8;
+    size_t size;
+    exlib::string r;
+
+    if (sz != ksz * 2)
+        return MBEDTLS_ERR_ECP_VERIFY_FAILED;
+
+    const unsigned char *rp = p0, *sp = p0 + ksz;
+    size_t lenR = ksz, lenS = ksz;
+
+    while (lenR > 1 && rp[0] == 0) {
+        lenR--;
+        rp++;
+    }
+    if (rp[0] & 0x80)
+        lenR++;
+
+    while (lenS > 1 && sp[0] == 0) {
+        lenS--;
+        sp++;
+    }
+    if (sp[0] & 0x80)
+        lenS++;
+
+    size = 6 + lenS + lenR;
+    if ((4 + lenS + lenR) > 0x80)
+        size++;
+
+    r.resize(size);
+    unsigned char* sig = (unsigned char*)r.c_buffer();
+
+    *sig++ = 0x30;
+
+    if ((4 + lenS + lenR) > 0x80)
+        *sig++ = 0x81;
+    *sig++ = 4 + lenS + lenR;
+
+    *sig++ = 0x02;
+    *sig++ = lenR;
+    if (rp[0] & 0x80) {
+        *sig++ = 0;
+        lenR--;
+    }
+    memcpy(sig, rp, lenR);
+    sig += lenR;
+
+    *sig++ = 0x02;
+    *sig++ = lenS;
+    if (sp[0] & 0x80) {
+        *sig++ = 0;
+        lenS--;
+    }
+    memcpy(sig, sp, lenS);
+
+    der = r;
+
+    return 0;
+}
+
 result_t PKey_ecc::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
 {
     static const char* s_keys[] = {
-        "to", NULL
+        "to", "format", NULL
     };
 
     if (!ac->isSync())
@@ -378,13 +495,21 @@ result_t PKey_ecc::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
     if (hr < 0)
         return hr;
 
-    ac->m_ctx.resize(1);
+    ac->m_ctx.resize(2);
 
     obj_ptr<PKey_base> to;
     hr = GetConfigValue(isolate->m_isolate, opts, "to", to, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     ac->m_ctx[0] = to;
+
+    exlib::string fmt = "der";
+    hr = GetConfigValue(isolate->m_isolate, opts, "format", fmt, true);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+    if (fmt != "der" && fmt != "bin")
+        return CHECK_ERROR(Runtime::setError(exlib::string("unknown format \'") + fmt + "\'."));
+    ac->m_ctx[1] = fmt;
 
     return CHECK_ERROR(CALL_E_NOSYNC);
 }
@@ -428,6 +553,13 @@ result_t PKey_ecc::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<B
         return CHECK_ERROR(_ssl::setError(ret));
 
     output.resize(olen);
+
+    if (ac->m_ctx[1].string() == "bin") {
+        hr = der2bin(output, output);
+        if (hr < 0)
+            return hr;
+    }
+
     retVal = new Buffer(output);
 
     return 0;
@@ -452,6 +584,12 @@ result_t PKey_ecc::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Ob
 
     data->toString(str);
     sign->toString(strsign);
+
+    if (ac->m_ctx[1].string() == "bin") {
+        hr = bin2der(strsign, strsign);
+        if (hr < 0)
+            return hr;
+    }
 
     ret = mbedtls_pk_verify(&m_key, MBEDTLS_MD_NONE,
         (const unsigned char*)str.c_str(), str.length(),
@@ -525,18 +663,6 @@ result_t PKey_ecc::get_curve(exlib::string& retVal)
     const char* _name = get_curve_name(ecp->grp.id);
     if (_name)
         retVal = _name;
-
-    return 0;
-}
-
-result_t PKey_ecc::get_keySize(int32_t& retVal)
-{
-    int32_t id = mbedtls_pk_ec(m_key)->grp.id;
-
-    if (id < MBEDTLS_ECP_DP_ED25519)
-        return PKey::get_keySize(retVal);
-
-    retVal = 256;
 
     return 0;
 }
