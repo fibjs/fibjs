@@ -39,6 +39,7 @@ void importModule()
     IMPORT_MODULE(json);
     IMPORT_MODULE(msgpack);
     IMPORT_MODULE(mq);
+    IMPORT_MODULE(multibase);
     IMPORT_MODULE(net);
     IMPORT_MODULE(os);
     IMPORT_MODULE(path);

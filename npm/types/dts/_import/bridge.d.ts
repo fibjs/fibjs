@@ -50,6 +50,7 @@
 /// <reference path="../module/xml.d.ts" />
 /// <reference path="../module/constants.d.ts" />
 /// <reference path="../module/fs_constants.d.ts" />
+/// <reference path="../module/multibase.d.ts" />
 declare module '@fibjs/types/bridge' {
 }
 

@@ -46,7 +46,7 @@ static result_t mpi_load(Isolate* isolate, mbedtls_mpi* n, v8::Local<v8::Object>
     if (hr < 0)
         return hr;
 
-    base64Decode(b64, s);
+    base64Decode(b64.c_str(), b64.length(), s);
 
     int32_t ret;
     ret = mbedtls_mpi_read_binary(n, (unsigned char*)s.c_str(), s.length());

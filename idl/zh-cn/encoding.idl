@@ -18,6 +18,9 @@ module encoding
     /*! @brief hex 编码与解码模块 */
     static hex;
 
+    /*! @brief multibase 编码与解码模块 */
+    static multibase;
+
     /*! @brief iconv 编码与解码模块 */
     static iconv;
 

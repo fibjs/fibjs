@@ -3,6 +3,7 @@
 /// <reference path="../module/base64.d.ts" />
 /// <reference path="../module/base58.d.ts" />
 /// <reference path="../module/hex.d.ts" />
+/// <reference path="../module/multibase.d.ts" />
 /// <reference path="../module/iconv.d.ts" />
 /// <reference path="../module/json.d.ts" />
 /// <reference path="../module/msgpack.d.ts" />
@@ -34,6 +35,11 @@ declare module 'encoding' {
      * @description hex 编码与解码模块 
      */
     const hex: typeof import ('hex');
+
+    /**
+     * @description multibase 编码与解码模块 
+     */
+    const multibase: typeof import ('multibase');
 
     /**
      * @description iconv 编码与解码模块 

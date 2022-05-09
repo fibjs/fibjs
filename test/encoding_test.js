@@ -7,6 +7,7 @@ var msgpack = require('msgpack');
 var base58 = require('base58');
 var base64 = require('base64');
 var hex = require('hex');
+var multibase = require('multibase');
 var iconv = require('iconv');
 var util = require('util');
 
@@ -200,6 +201,126 @@ describe('encoding', () => {
 
         for (var i = 0; i < 256; i++) {
             assert.equal(hexb2[i], hexb[i]);
+        }
+    });
+
+    describe('multibase', () => {
+        const encoded = [
+            {
+                input: 'Decentralize everything!!',
+                tests: [
+                    ['base16', 'f446563656e7472616c697a652065766572797468696e672121'],
+                    ['base16upper', 'F446563656E7472616C697A652065766572797468696E672121'],
+                    ['base32', 'birswgzloorzgc3djpjssazlwmvzhs5dinfxgoijb'],
+                    ['base32upper', 'BIRSWGZLOORZGC3DJPJSSAZLWMVZHS5DINFXGOIJB'],
+                    ['base32pad', 'cirswgzloorzgc3djpjssazlwmvzhs5dinfxgoijb'],
+                    ['base32padupper', 'CIRSWGZLOORZGC3DJPJSSAZLWMVZHS5DINFXGOIJB'],
+                    ['base58btc', 'zUXE7GvtEk8XTXs1GF8HSGbVA9FCX9SEBPe'],
+                    ['base64', 'mRGVjZW50cmFsaXplIGV2ZXJ5dGhpbmchIQ'],
+                    ['base64pad', 'MRGVjZW50cmFsaXplIGV2ZXJ5dGhpbmchIQ=='],
+                    ['base64url', 'uRGVjZW50cmFsaXplIGV2ZXJ5dGhpbmchIQ'],
+                    ['base64urlpad', 'URGVjZW50cmFsaXplIGV2ZXJ5dGhpbmchIQ==']
+                ]
+            },
+            {
+                input: 'yes mani !',
+                tests: [
+                    ['base16', 'f796573206d616e692021'],
+                    ['base16upper', 'F796573206D616E692021'],
+                    ['base32', 'bpfsxgidnmfxgsibb'],
+                    ['base32upper', 'BPFSXGIDNMFXGSIBB'],
+                    ['base32pad', 'cpfsxgidnmfxgsibb'],
+                    ['base32padupper', 'CPFSXGIDNMFXGSIBB'],
+                    ['base58btc', 'z7paNL19xttacUY'],
+                    ['base64', 'meWVzIG1hbmkgIQ'],
+                    ['base64pad', 'MeWVzIG1hbmkgIQ=='],
+                    ['base64url', 'ueWVzIG1hbmkgIQ'],
+                    ['base64urlpad', 'UeWVzIG1hbmkgIQ==']
+                ]
+            },
+            {
+                input: 'hello world',
+                tests: [
+                    ['base16', 'f68656c6c6f20776f726c64'],
+                    ['base16upper', 'F68656C6C6F20776F726C64'],
+                    ['base32', 'bnbswy3dpeb3w64tmmq'],
+                    ['base32upper', 'BNBSWY3DPEB3W64TMMQ'],
+                    ['base32pad', 'cnbswy3dpeb3w64tmmq======'],
+                    ['base32padupper', 'CNBSWY3DPEB3W64TMMQ======'],
+                    ['base58btc', 'zStV1DL6CwTryKyV'],
+                    ['base64', 'maGVsbG8gd29ybGQ'],
+                    ['base64pad', 'MaGVsbG8gd29ybGQ='],
+                    ['base64url', 'uaGVsbG8gd29ybGQ'],
+                    ['base64urlpad', 'UaGVsbG8gd29ybGQ=']
+                ]
+            },
+            {
+                input: '\x00yes mani !',
+                tests: [
+                    ['base16', 'f00796573206d616e692021'],
+                    ['base16upper', 'F00796573206D616E692021'],
+                    ['base32', 'bab4wk4zanvqw42jaee'],
+                    ['base32upper', 'BAB4WK4ZANVQW42JAEE'],
+                    ['base32pad', 'cab4wk4zanvqw42jaee======'],
+                    ['base32padupper', 'CAB4WK4ZANVQW42JAEE======'],
+                    ['base58btc', 'z17paNL19xttacUY'],
+                    ['base64', 'mAHllcyBtYW5pICE'],
+                    ['base64pad', 'MAHllcyBtYW5pICE='],
+                    ['base64url', 'uAHllcyBtYW5pICE'],
+                    ['base64urlpad', 'UAHllcyBtYW5pICE=']
+                ]
+            },
+            {
+                input: '\x00\x00yes mani !',
+                tests: [
+                    ['base16', 'f0000796573206d616e692021'],
+                    ['base16upper', 'F0000796573206D616E692021'],
+                    ['base32', 'baaahszltebwwc3tjeaqq'],
+                    ['base32upper', 'BAAAHSZLTEBWWC3TJEAQQ'],
+                    ['base32pad', 'caaahszltebwwc3tjeaqq===='],
+                    ['base32padupper', 'CAAAHSZLTEBWWC3TJEAQQ===='],
+                    ['base58btc', 'z117paNL19xttacUY'],
+                    ['base64', 'mAAB5ZXMgbWFuaSAh'],
+                    ['base64pad', 'MAAB5ZXMgbWFuaSAh'],
+                    ['base64url', 'uAAB5ZXMgbWFuaSAh'],
+                    ['base64urlpad', 'UAAB5ZXMgbWFuaSAh']
+                ]
+            },
+            {
+                input: 'hello world',
+                tests: [
+                    ['base16', 'f68656c6c6f20776f726c64'],
+                    ['base16upper', 'F68656C6C6F20776F726C64'],
+                    ['base32', 'bnbswy3dpeb3w64tmmq'],
+                    ['base32upper', 'BNBSWY3DPEB3W64TMMQ'],
+                    ['base32pad', 'cnbswy3dpeb3w64tmmq======'],
+                    ['base32padupper', 'CNBSWY3DPEB3W64TMMQ======'],
+                    ['base58btc', 'zStV1DL6CwTryKyV'],
+                    ['base64', 'maGVsbG8gd29ybGQ'],
+                    ['base64pad', 'MaGVsbG8gd29ybGQ='],
+                    ['base64url', 'uaGVsbG8gd29ybGQ'],
+                    ['base64urlpad', 'UaGVsbG8gd29ybGQ=']
+                ]
+            }
+        ]
+
+        let index = 0
+        for (const { input, tests } of encoded) {
+            describe(`multibase spec ${index++}`, () => {
+                for (const [name, output] of tests) {
+
+                    describe(name, () => {
+                        it('should encode buffer', () => {
+                            const out = multibase.encode(input, name);
+                            assert.strictEqual(out, output);
+                        })
+
+                        it('should decode string', () => {
+                            assert.deepEqual(multibase.decode(output), Buffer.from(input));
+                        })
+                    })
+                }
+            })
         }
     });
 
