@@ -48,7 +48,7 @@ declare class Class_Buffer extends Class_object {
     /**
      * @description 缓存对象构造函数
      *      @param str 初始化字符串，字符串将以 utf-8 格式写入，缺省则创建一个空对象
-     *      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者 iconv 模块支持的字符集
+     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
      *      
      */
     constructor(str: string, codec?: string);
@@ -96,7 +96,7 @@ declare class Class_Buffer extends Class_object {
     /**
      * @description 通过字符串创建 Buffer 对象
      *      @param str 初始化字符串，字符串将以 utf-8 格式写入，缺省则创建一个空对象
-     *      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者 iconv 模块支持的字符集
+     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
      *      @return 返回 Buffer 实例
      *      
      */
@@ -115,7 +115,7 @@ declare class Class_Buffer extends Class_object {
      * @description 分配一个指定长度的新缓存区。如果大小为0，将创建一个零长度的缓存区。
      *      @param size 缓冲区的所需长度
      *      @param fill 预先填充新缓冲区的值，可使用 string/buffer/integer 值类型。 默认值：0
-     *      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者 iconv 模块支持的字符集
+     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
      *      @return 填充好的新 Buffer 对象
      *     
      */
@@ -125,7 +125,7 @@ declare class Class_Buffer extends Class_object {
      * @description 分配一个指定长度的新缓存区。如果大小为0，将创建一个零长度的缓存区。
      *      @param size 缓冲区的所需长度
      *      @param fill 预先填充新缓冲区的值，可使用 string/buffer/integer 值类型。 默认值：0
-     *      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者 iconv 模块支持的字符集
+     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
      *      @return 填充好的新 Buffer 对象
      *     
      */
@@ -135,7 +135,7 @@ declare class Class_Buffer extends Class_object {
      * @description 分配一个指定长度的新缓存区。如果大小为0，将创建一个零长度的缓存区。
      *      @param size 缓冲区的所需长度
      *      @param fill 预先填充新缓冲区的值，可使用 string/buffer/integer 值类型。 默认值：0
-     *      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者 iconv 模块支持的字符集
+     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
      *      @return 填充好的新 Buffer 对象
      *     
      */
@@ -160,7 +160,7 @@ declare class Class_Buffer extends Class_object {
     /**
      * @description 返回字符串的实际字节长度
      *      @param str 待取字节的字符串，如果str为 ArrayBuffer/TypedArray/DataView/Buffer 对象，则返回它们的实际长度
-     *      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者 iconv 模块支持的字符集
+     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
      *      @return 返回实际字节长度
      *      
      */
@@ -169,7 +169,7 @@ declare class Class_Buffer extends Class_object {
     /**
      * @description 返回字符串的实际字节长度
      *      @param str 待取字节的字符串，如果str为 ArrayBuffer/TypedArray/DataView/Buffer 对象，则返回它们的实际长度
-     *      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者 iconv 模块支持的字符集
+     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
      *      @return 返回实际字节长度
      *      
      */
@@ -178,7 +178,7 @@ declare class Class_Buffer extends Class_object {
     /**
      * @description 返回字符串的实际字节长度
      *      @param str 待取字节的字符串，如果 str 为 ArrayBuffer/TypedArray/DataView/Buffer 对象，则返回它们的实际长度
-     *      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者 iconv 模块支持的字符集
+     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
      *      @return 返回实际字节长度
      *      
      */
@@ -187,7 +187,7 @@ declare class Class_Buffer extends Class_object {
     /**
      * @description 返回字符串的实际字节长度
      *      @param str 待取字节的字符串，如果str为 ArrayBuffer/TypedArray/DataView/Buffer 对象，则返回它们的实际长度
-     *      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者 iconv 模块支持的字符集
+     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
      *      @return 返回实际字节长度
      *      
      */
@@ -240,7 +240,7 @@ declare class Class_Buffer extends Class_object {
     /**
      * @description 在缓存对象尾部写入字符串，字符串将以 utf-8 格式写入
      *      @param str 要写入的字符串
-     *      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者 iconv 模块支持的字符集
+     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
      *      
      */
     append(str: string, codec?: string): void;
@@ -250,7 +250,7 @@ declare class Class_Buffer extends Class_object {
      *      @param str 待写入的字符串
      *      @param offset 写入起始位置
      *      @param length 写入长度（单位字节，默认值-1），未指定时为待写入字符串的长度
-     *      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者 iconv 模块支持的字符集
+     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
      *      @return 写入的数据字节长度
      *      
      */
@@ -260,7 +260,7 @@ declare class Class_Buffer extends Class_object {
      * @description 向缓存对象写入指定字符串，字符串默认为utf-8，越界时只写入部分数据
      *      @param str 待写入的字符串
      *      @param offset 写入起始位置
-     *      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者 iconv 模块支持的字符集
+     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
      *      @return 写入的数据字节长度
      *      
      */
@@ -269,7 +269,7 @@ declare class Class_Buffer extends Class_object {
     /**
      * @description 向缓存对象写入指定字符串，字符串默认为utf-8，越界时只写入部分数据
      *      @param str 待写入的字符串
-     *      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者 iconv 模块支持的字符集
+     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
      *      @return 写入的数据字节长度
      *      
      */
@@ -756,6 +756,20 @@ declare class Class_Buffer extends Class_object {
     hex(): string;
 
     /**
+     * @description 使用 base32 编码缓存对象内容
+     *      @return 返回编码字符串
+     *      
+     */
+    base32(): string;
+
+    /**
+     * @description 使用 base58 编码缓存对象内容
+     *      @return 返回编码字符串
+     *      
+     */
+    base58(): string;
+
+    /**
      * @description 使用 base64 编码缓存对象内容
      *      @return 返回编码字符串
      *      
@@ -806,7 +820,7 @@ declare class Class_Buffer extends Class_object {
 
     /**
      * @description 返回二进制数据的编码字符串
-     *      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者 iconv 模块支持的字符集
+     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
      *      @param offset 读取起始位置
      *      @param end 读取终止位置
      *      @return 返回对象的字符串表示
@@ -816,7 +830,7 @@ declare class Class_Buffer extends Class_object {
 
     /**
      * @description 返回二进制数据的编码字符串
-     *      @param codec 指定编码格式，允许值为："hex", "base64", "utf8", 或者 iconv 模块支持的字符集
+     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
      *      @param offset 读取起始位置
      *      @return 返回对象的字符串表示
      *     

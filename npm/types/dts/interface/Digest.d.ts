@@ -16,7 +16,7 @@ declare class Class_Digest extends Class_object {
 
     /**
      * @description 计算并返回摘要
-     *      @param codec 指定编码格式，允许值为："buffer", "hex", "base64", "utf8", 或者 iconv 模块支持的字符集
+     *      @param codec 指定编码格式，允许值为："buffer", "hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
      *      @return 返回指定编码的摘要表示
      *      
      */

@@ -7,6 +7,7 @@
 #include <cstring>
 #include <string>
 #include "Iterator.h"
+#include "ifs/base32.h"
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
@@ -287,7 +288,10 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
 
 inline bool is_native_codec(exlib::string codec)
 {
-    return (codec == "hex") || (codec == "base64") || (codec == "base64url")
+    return (codec == "hex")
+        || (codec == "base32") || (codec == "base58")
+        || (codec == "base64") || (codec == "base64url")
+
         || (codec == "utf8") || (codec == "utf-8")
 
         || (codec == "ucs2") || (codec == "ucs-2")
@@ -321,7 +325,9 @@ result_t Buffer_base::isEncoding(exlib::string codec, bool& retVal)
         return 0;
     }
 
-    if ((codec == "utf8") || (codec == "utf-8") || (codec == "hex") || (codec == "base64") || (codec == "base64url")) {
+    if ((codec == "utf8") || (codec == "utf-8") || (codec == "hex")
+        || (codec == "base32") || (codec == "base58")
+        || (codec == "base64") || (codec == "base64url")) {
         retVal = true;
     } else {
         iconv_base::isEncoding(codec, retVal);
@@ -423,6 +429,10 @@ result_t Buffer::append(exlib::string str, exlib::string codec)
 
     if ((codec == "hex"))
         hr = hex_base::decode(str, data);
+    else if ((codec == "base32"))
+        hr = base32_base::decode(str, data);
+    else if ((codec == "base58"))
+        hr = base58_base::decode(str, data);
     else if ((codec == "base64") || (codec == "base64url"))
         hr = base64_base::decode(str, data);
     else
@@ -462,6 +472,10 @@ result_t Buffer::write(exlib::string str, int32_t offset, int32_t length, exlib:
 
         if ((codec == "hex"))
             hr = hex_base::decode(str, data);
+        else if ((codec == "base32"))
+            hr = base32_base::decode(str, data);
+        else if ((codec == "base58"))
+            hr = base58_base::decode(str, data);
         else if ((codec == "base64") || (codec == "base64url"))
             hr = base64_base::decode(str, data);
         else
@@ -1068,6 +1082,18 @@ result_t Buffer::hex(exlib::string& retVal)
 {
     obj_ptr<Buffer_base> data = this;
     return hex_base::encode(data, retVal);
+}
+
+result_t Buffer::base32(exlib::string& retVal)
+{
+    obj_ptr<Buffer_base> data = this;
+    return base32_base::encode(data, retVal);
+}
+
+result_t Buffer::base58(exlib::string& retVal)
+{
+    obj_ptr<Buffer_base> data = this;
+    return base58_base::encode(data, retVal);
 }
 
 result_t Buffer::base64(exlib::string& retVal)

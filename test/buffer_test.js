@@ -173,6 +173,10 @@ describe('Buffer', () => {
 
         assert.equal(Buffer.from("6am+77yG556/", "base64").toString(), "驾＆瞿");
         assert.equal(Buffer.from("6am-77yG556_", "base64url").toString(), "驾＆瞿");
+
+        assert.equal(Buffer.from("gezdgna=", "base32").toString(), "1234");
+
+        assert.equal(Buffer.from("2FwFnT", "base58").toString(), "1234");
     });
 
     it('Buffer.from(String, ucs2)', () => {
@@ -427,6 +431,8 @@ describe('Buffer', () => {
         assert.equal(Buffer.isEncoding('gbk'), true);
         assert.equal(Buffer.isEncoding('gb2312'), true);
         assert.equal(Buffer.isEncoding('hex'), true);
+        assert.equal(Buffer.isEncoding('base32'), true);
+        assert.equal(Buffer.isEncoding('base58'), true);
         assert.equal(Buffer.isEncoding('base64'), true);
         assert.equal(Buffer.isEncoding('base64url'), true);
         assert.equal(Buffer.isEncoding('jis'), false);
@@ -541,10 +547,14 @@ describe('Buffer', () => {
         assert.equal(buf.toString("utf8"), "1234");
         assert.equal(buf.toString(undefined), "1234");
         assert.equal(buf.toString("hex"), "31323334");
+        assert.equal(buf.toString("base32"), "gezdgna=");
+        assert.equal(buf.toString("base58"), "2FwFnT");
         assert.equal(buf.toString("base64"), "MTIzNA==");
         assert.equal(buf.toString("utf8", 1), "234");
         assert.equal(buf.toString("utf8", 1, 3), "23");
         assert.equal(buf.toString("hex", 2), "3334");
+        assert.equal(buf.toString("base32", 2), "gm2a====");
+        assert.equal(buf.toString("base58", 2), "4u1");
         assert.equal(buf.toString("base64", 2), "MzQ=");
         assert.equal(buf.toString("base64url"), "MTIzNA");
 
@@ -595,6 +605,12 @@ describe('Buffer', () => {
 
         buf.append("6am-77yG556_", "base64url");
         assert.equal(buf.toString(), "1234abcd1234121234驾＆瞿");
+
+        buf.append("gezdgna=", "base32");
+        assert.equal(buf.toString(), "1234abcd1234121234驾＆瞿1234");
+
+        buf.append("2FwFnT", "base58");
+        assert.equal(buf.toString(), "1234abcd1234121234驾＆瞿12341234");
     });
 
     it('write', () => {

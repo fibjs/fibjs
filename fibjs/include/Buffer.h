@@ -106,6 +106,8 @@ public:
     virtual result_t join(exlib::string separator, exlib::string& retVal);
     virtual result_t reverse(obj_ptr<Buffer_base>& retVal);
     virtual result_t hex(exlib::string& retVal);
+    virtual result_t base32(exlib::string& retVal);
+    virtual result_t base58(exlib::string& retVal);
     virtual result_t base64(exlib::string& retVal);
     virtual result_t keys(obj_ptr<Iterator_base>& retVal);
     virtual result_t values(obj_ptr<Iterator_base>& retVal);

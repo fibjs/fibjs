@@ -111,6 +111,8 @@ public:
     virtual result_t reverse(obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t equals(object_base* expected, bool& retVal) = 0;
     virtual result_t hex(exlib::string& retVal) = 0;
+    virtual result_t base32(exlib::string& retVal) = 0;
+    virtual result_t base58(exlib::string& retVal) = 0;
     virtual result_t base64(exlib::string& retVal) = 0;
     virtual result_t keys(obj_ptr<Iterator_base>& retVal) = 0;
     virtual result_t values(obj_ptr<Iterator_base>& retVal) = 0;
@@ -193,6 +195,8 @@ public:
     static void s_reverse(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_equals(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_hex(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_base32(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_base58(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_base64(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_keys(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_values(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -271,6 +275,8 @@ inline ClassInfo& Buffer_base::class_info()
         { "reverse", s_reverse, false, false },
         { "equals", s_equals, false, false },
         { "hex", s_hex, false, false },
+        { "base32", s_base32, false, false },
+        { "base58", s_base58, false, false },
         { "base64", s_base64, false, false },
         { "keys", s_keys, false, false },
         { "values", s_values, false, false },
@@ -1619,6 +1625,36 @@ inline void Buffer_base::s_hex(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_OVER(0, 0);
 
     hr = pInst->hex(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Buffer_base::s_base32(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_NAME("Buffer.base32");
+    METHOD_INSTANCE(Buffer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->base32(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Buffer_base::s_base58(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_NAME("Buffer.base58");
+    METHOD_INSTANCE(Buffer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->base58(vr);
 
     METHOD_RETURN();
 }
