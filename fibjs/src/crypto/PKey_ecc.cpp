@@ -67,6 +67,9 @@ static const curve_info curves[] = {
     { MBEDTLS_ECP_DP_SM2P256R1, "sm2" },
     { MBEDTLS_ECP_DP_SM2P256R1, "sm2p256r1" },
 
+    { MBEDTLS_ECP_DP_CURVE25519, "x25519" },
+    { MBEDTLS_ECP_DP_CURVE448, "x448" },
+
     { MBEDTLS_ECP_DP_ED25519, "Ed25519" },
     { MBEDTLS_ECP_DP_ED25519, "ed25519" },
 
