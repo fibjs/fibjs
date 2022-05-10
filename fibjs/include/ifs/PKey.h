@@ -36,6 +36,7 @@ public:
     static result_t from(Buffer_base* DerKey, exlib::string password, obj_ptr<PKey_base>& retVal);
     static result_t from(exlib::string pemKey, exlib::string password, obj_ptr<PKey_base>& retVal);
     static result_t from(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retVal);
+    static result_t recover(Buffer_base* sig, Buffer_base* data, obj_ptr<PKey_base>& retVal, AsyncEvent* ac);
     virtual result_t pem(exlib::string& retVal) = 0;
     virtual result_t der(obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t json(v8::Local<v8::Object>& retVal) = 0;
@@ -61,6 +62,7 @@ public:
     static void s_isPrivate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clone(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_from(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_recover(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_pem(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_der(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_json(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -72,6 +74,7 @@ public:
     static void s_computeSecret(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
+    ASYNC_STATICVALUE3(PKey_base, recover, Buffer_base*, Buffer_base*, obj_ptr<PKey_base>);
     ASYNC_MEMBERVALUE2(PKey_base, encrypt, Buffer_base*, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE2(PKey_base, decrypt, Buffer_base*, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE3(PKey_base, sign, Buffer_base*, v8::Local<v8::Object>, obj_ptr<Buffer_base>);
@@ -89,6 +92,8 @@ inline ClassInfo& PKey_base::class_info()
         { "isPrivate", s_isPrivate, false, false },
         { "clone", s_clone, false, false },
         { "from", s_static_from, true, false },
+        { "recover", s_static_recover, true, true },
+        { "recoverSync", s_static_recover, true, false },
         { "pem", s_pem, false, false },
         { "der", s_der, false, false },
         { "json", s_json, false, false },
@@ -293,6 +298,26 @@ inline void PKey_base::s_static_from(const v8::FunctionCallbackInfo<v8::Value>& 
     ARG(v8::Local<v8::Object>, 0);
 
     hr = from(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void PKey_base::s_static_recover(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<PKey_base> vr;
+
+    METHOD_NAME("PKey.recover");
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+
+    if (!cb.IsEmpty())
+        hr = acb_recover(v0, v1, cb, args);
+    else
+        hr = ac_recover(v0, v1, vr);
 
     METHOD_RETURN();
 }

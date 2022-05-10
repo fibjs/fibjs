@@ -275,7 +275,7 @@ result_t PKey_25519::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     if (fmt != "der" && fmt != "bin")
-        return CHECK_ERROR(Runtime::setError(exlib::string("unknown format \'") + fmt + "\'."));
+        return CHECK_ERROR(Runtime::setError(exlib::string("unsupported format \'") + fmt + "\'."));
     ac->m_ctx[0] = fmt;
 
     return CHECK_ERROR(CALL_E_NOSYNC);

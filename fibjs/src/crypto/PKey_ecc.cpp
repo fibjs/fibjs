@@ -150,7 +150,9 @@ PKey_ecc* PKey_ecc::create(mbedtls_pk_context& key)
 {
     int32_t id = mbedtls_pk_ec(key)->grp.id;
 
-    if (id == MBEDTLS_ECP_DP_ED25519)
+    if (id == MBEDTLS_ECP_DP_SECP256K1)
+        return new PKey_p256k1(key);
+    else if (id == MBEDTLS_ECP_DP_ED25519)
         return new PKey_25519(key);
     else if (id == MBEDTLS_ECP_DP_BLS12381_G1)
         return new PKey_bls_g1(key);
@@ -166,6 +168,9 @@ result_t PKey_ecc::generateKey(exlib::string curve, obj_ptr<PKey_base>& retVal)
     switch (id) {
     case MBEDTLS_ECP_DP_NONE:
         return CHECK_ERROR(Runtime::setError("PKey: Unknown curve"));
+    case MBEDTLS_ECP_DP_SECP256K1:
+        retVal = new PKey_p256k1();
+        break;
     case MBEDTLS_ECP_DP_ED25519:
         retVal = new PKey_25519();
         break;
@@ -510,7 +515,7 @@ result_t PKey_ecc::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     if (fmt != "der" && fmt != "bin")
-        return CHECK_ERROR(Runtime::setError(exlib::string("unknown format \'") + fmt + "\'."));
+        return CHECK_ERROR(Runtime::setError(exlib::string("unsupported format \'") + fmt + "\'."));
     ac->m_ctx[1] = fmt;
 
     return CHECK_ERROR(CALL_E_NOSYNC);

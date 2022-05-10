@@ -186,6 +186,17 @@ declare class Class_PKey extends Class_object {
     static from(jsonKey: FIBJS.GeneralObject): Class_PKey;
 
     /**
+     * @description 从可恢复签名中恢复公钥，仅支持 secp256k1
+     *      @param sig 可恢复签名
+     *      @param data 签名的原始数据
+     *      @return 返回包含公钥的对象
+     *     
+     */
+    static recover(sig: Class_Buffer, data: Class_Buffer): Class_PKey;
+
+    static recover(sig: Class_Buffer, data: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_PKey)=>any): void;
+
+    /**
      * @description 返回当前 key 的 PEM 格式编码
      *      @return 当前 key 的 PEM 格式编码
      *     

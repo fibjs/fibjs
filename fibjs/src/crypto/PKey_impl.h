@@ -73,6 +73,19 @@ public:
     static int load_group(mbedtls_ecp_group* grp, int32_t id);
 };
 
+class PKey_p256k1 : public PKey_ecc {
+public:
+    PKey_p256k1();
+    PKey_p256k1(mbedtls_pk_context& key);
+
+public:
+    // PKey
+    virtual result_t sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+
+private:
+    result_t check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac);
+};
+
 class PKey_25519 : public PKey_ecc {
 public:
     PKey_25519();

@@ -155,6 +155,13 @@ interface PKey : object
     */
     static PKey from(Object jsonKey);
 
+    /*! @brief 从可恢复签名中恢复公钥，仅支持 secp256k1
+     @param sig 可恢复签名
+     @param data 签名的原始数据
+     @return 返回包含公钥的对象
+    */
+    static PKey recover(Buffer sig, Buffer data) async;
+
     /*! @brief 返回当前 key 的 PEM 格式编码
      @return 当前 key 的 PEM 格式编码
     */

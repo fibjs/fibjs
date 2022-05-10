@@ -729,6 +729,21 @@ describe('crypto', () => {
                 });
             });
 
+            it("secp256k1 sign/recover", () => {
+                var pk = crypto.PKey.from(ec256_pem);
+
+                var pk1 = pk.publicKey;
+
+                var md = hash.md5("abcdefg").digest();
+
+                var d = pk.sign(md, {
+                    recoverable: true
+                });
+
+                var pk2 = crypto.PKey.recover(d, md);
+                assert.deepEqual(pk2.json(), pk1.json());
+            });
+
             it('FIX: secp256k1 verify error.', () => {
                 console.time('secp256k1 import');
                 var pk = crypto.PKey.from({

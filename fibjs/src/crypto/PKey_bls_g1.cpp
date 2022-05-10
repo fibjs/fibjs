@@ -85,7 +85,7 @@ result_t PKey_bls_g2::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     if (fmt != "bin")
-        return CHECK_ERROR(Runtime::setError(exlib::string("unknown format \'") + fmt + "\'."));
+        return CHECK_ERROR(Runtime::setError(exlib::string("unsupported format \'") + fmt + "\'."));
 
     return CHECK_ERROR(CALL_E_NOSYNC);
 }
