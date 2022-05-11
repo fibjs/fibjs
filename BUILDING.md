@@ -52,6 +52,7 @@ apt install make
 apt install cmake
 apt install git
 apt install ccache
+apt install libx11-dev
 ```
 
 ### x86_64 on ubuntu:
