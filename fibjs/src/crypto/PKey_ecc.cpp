@@ -60,8 +60,8 @@ static const curve_info curves[] = {
 
     { MBEDTLS_ECP_DP_SECP192K1, "secp192k1" },
     { MBEDTLS_ECP_DP_SECP224K1, "secp224k1" },
-    { MBEDTLS_ECP_DP_SECP256K1, "P-256K" },
     { MBEDTLS_ECP_DP_SECP256K1, "secp256k1" },
+    { MBEDTLS_ECP_DP_SECP256K1, "P-256K" },
 
     { MBEDTLS_ECP_DP_SM2P256R1, "SM2" },
     { MBEDTLS_ECP_DP_SM2P256R1, "sm2" },
