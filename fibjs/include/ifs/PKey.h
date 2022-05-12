@@ -39,7 +39,7 @@ public:
     static result_t recover(Buffer_base* sig, Buffer_base* data, obj_ptr<PKey_base>& retVal, AsyncEvent* ac);
     virtual result_t pem(exlib::string& retVal) = 0;
     virtual result_t der(obj_ptr<Buffer_base>& retVal) = 0;
-    virtual result_t json(v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t json(v8::Local<v8::Object> opts, v8::Local<v8::Object>& retVal) = 0;
     virtual result_t equals(PKey_base* key, bool& retVal) = 0;
     virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
@@ -360,9 +360,11 @@ inline void PKey_base::s_json(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(PKey_base);
     METHOD_ENTER();
 
-    METHOD_OVER(0, 0);
+    METHOD_OVER(1, 0);
 
-    hr = pInst->json(vr);
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate));
+
+    hr = pInst->json(v0, vr);
 
     METHOD_RETURN();
 }

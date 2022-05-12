@@ -127,12 +127,6 @@ result_t PKey_base::from(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retV
                 hr = mpi_load(isolate, &rsa->QP, jsonKey, "qi");
                 if (hr < 0)
                     break;
-
-                ret = mbedtls_rsa_check_privkey(rsa);
-                if (ret != 0) {
-                    hr = CHECK_ERROR(_ssl::setError(ret));
-                    break;
-                }
             } else if (hr == CALL_E_PARAMNOTOPTIONAL)
                 hr = 0;
         } while (false);
@@ -177,14 +171,6 @@ result_t PKey_base::from(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retV
 
             mpi_load(isolate, &ecp->Q.Y, jsonKey, "y");
             mbedtls_mpi_lset(&ecp->Q.Z, 1);
-
-            if (id < MBEDTLS_ECP_DP_ED25519) {
-                ret = mbedtls_ecp_check_pubkey(&ecp->grp, &ecp->Q);
-                if (ret != 0) {
-                    hr = CHECK_ERROR(_ssl::setError(ret));
-                    break;
-                }
-            }
         } while (false);
     }
 
@@ -198,7 +184,7 @@ result_t PKey_base::from(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retV
     return 0;
 }
 
-result_t PKey::json(v8::Local<v8::Object>& retVal)
+result_t PKey::json(v8::Local<v8::Object> opts, v8::Local<v8::Object>& retVal)
 {
     result_t hr;
     bool priv;
@@ -237,15 +223,58 @@ result_t PKey::json(v8::Local<v8::Object>& retVal)
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
         const char* _name = PKey_ecc::get_curve_name(ecp->grp.id);
+        int32_t id = ecp->grp.id;
 
-        o->Set(context, isolate->NewString("kty"),
-            isolate->NewString(ecp->grp.id == MBEDTLS_ECP_DP_ED25519 ? "OKP" : "EC"));
+        if (id == MBEDTLS_ECP_DP_ED25519 || id == MBEDTLS_ECP_DP_CURVE25519 || id == MBEDTLS_ECP_DP_CURVE448)
+            o->Set(context, isolate->NewString("kty"), isolate->NewString("OKP"));
+        else
+            o->Set(context, isolate->NewString("kty"), isolate->NewString("EC"));
 
         if (_name)
             o->Set(context, isolate->NewString("crv"), isolate->NewString(_name));
 
-        mpi_dump(isolate, o, "x", &ecp->Q.X);
-        mpi_dump(isolate, o, "y", &ecp->Q.Y);
+        bool compress = false;
+        if (!opts.IsEmpty()) {
+            static const char* s_keys[] = {
+                "compress", NULL
+            };
+
+            hr = CheckConfig(opts, s_keys);
+            if (hr < 0)
+                return hr;
+
+            hr = GetConfigValue(isolate->m_isolate, opts, "compress", compress, true);
+            if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+                return hr;
+        }
+
+        if (compress) {
+            if (id == MBEDTLS_ECP_DP_SECP192R1 || id == MBEDTLS_ECP_DP_SECP192K1
+                || id == MBEDTLS_ECP_DP_SECP256R1 || id == MBEDTLS_ECP_DP_BP256R1
+                || id == MBEDTLS_ECP_DP_SECP384R1 || id == MBEDTLS_ECP_DP_BP384R1
+                || id == MBEDTLS_ECP_DP_SECP521R1 || id == MBEDTLS_ECP_DP_BP512R1
+                || id == MBEDTLS_ECP_DP_SM2P256R1 || id == MBEDTLS_ECP_DP_SECP256K1) {
+                size_t ksz = (mbedtls_pk_get_bitlen(&m_key) + 7) / 8;
+                exlib::string data_x, data_y;
+
+                data_x.resize(ksz + 1);
+                data_y.resize(ksz);
+
+                mbedtls_mpi_write_binary(&ecp->Q.X, (unsigned char*)data_x.c_buffer() + 1, ksz);
+                mbedtls_mpi_write_binary(&ecp->Q.Y, (unsigned char*)data_y.c_buffer(), ksz);
+
+                data_x.c_buffer()[0] = 2 + (data_y[ksz - 1] & 1);
+
+                exlib::string b64;
+                base64Encode(data_x.c_str(), ksz + 1, true, b64);
+
+                o->Set(isolate->context(), isolate->NewString("x"), isolate->NewString(b64));
+            } else
+                return CHECK_ERROR(Runtime::setError("public key of the current curve does not support compression."));
+        } else {
+            mpi_dump(isolate, o, "x", &ecp->Q.X);
+            mpi_dump(isolate, o, "y", &ecp->Q.Y);
+        }
 
         if (priv)
             mpi_dump(isolate, o, "d", &ecp->d);

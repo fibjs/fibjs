@@ -67,7 +67,10 @@ static const curve_info curves[] = {
     { MBEDTLS_ECP_DP_SM2P256R1, "sm2" },
     { MBEDTLS_ECP_DP_SM2P256R1, "sm2p256r1" },
 
+    { MBEDTLS_ECP_DP_CURVE25519, "X25519" },
     { MBEDTLS_ECP_DP_CURVE25519, "x25519" },
+
+    { MBEDTLS_ECP_DP_CURVE448, "X448" },
     { MBEDTLS_ECP_DP_CURVE448, "x448" },
 
     { MBEDTLS_ECP_DP_ED25519, "Ed25519" },
@@ -123,9 +126,74 @@ PKey_ecc::PKey_ecc(mbedtls_pk_context& key)
 
     if (id < MBEDTLS_ECP_DP_ED25519) {
         m_alg = id == MBEDTLS_ECP_DP_SM2P256R1 ? "SM2" : "ECDSA";
+
         if (mbedtls_mpi_cmp_int(&ecp->d, 0) && !mbedtls_mpi_cmp_int(&ecp->Q.X, 0))
-            mbedtls_ecp_mul(&ecp->grp, &ecp->Q, &ecp->d, &ecp->grp.G,
-                mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
+            mbedtls_ecp_mul(&ecp->grp, &ecp->Q, &ecp->d, &ecp->grp.G, mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
+        else if (id == MBEDTLS_ECP_DP_SECP192R1 || id == MBEDTLS_ECP_DP_SECP192K1
+            || id == MBEDTLS_ECP_DP_SECP256R1 || id == MBEDTLS_ECP_DP_BP256R1
+            || id == MBEDTLS_ECP_DP_SECP384R1 || id == MBEDTLS_ECP_DP_BP384R1
+            || id == MBEDTLS_ECP_DP_SECP521R1 || id == MBEDTLS_ECP_DP_BP512R1
+            || id == MBEDTLS_ECP_DP_SM2P256R1) {
+            size_t ksz = (mbedtls_pk_get_bitlen(&m_key) + 7) / 8;
+            int32_t sz = (int32_t)mbedtls_mpi_size(&ecp->Q.X);
+
+            if (!mbedtls_mpi_cmp_int(&ecp->Q.Y, 0) && sz == (ksz + 1)) {
+                exlib::string data;
+
+                data.resize(ksz + 1);
+                mbedtls_mpi_write_binary(&ecp->Q.X, (unsigned char*)data.c_buffer(), ksz + 1);
+                if (data[0] == 2 || data[0] == 3) {
+                    mbedtls_mpi_read_binary(&ecp->Q.X, (const unsigned char*)data.c_str() + 1, ksz);
+
+                    mbedtls_mpi r, n;
+
+                    mbedtls_mpi_init(&r);
+                    mbedtls_mpi_init(&n);
+
+                    // r = x^2
+                    mbedtls_mpi_mul_mpi(&r, &ecp->Q.X, &ecp->Q.X);
+
+                    // r = x^2 + a
+                    if (ecp->grp.A.p == NULL) {
+                        // Special case where a is -3
+                        mbedtls_mpi_sub_int(&r, &r, 3);
+                    } else {
+                        mbedtls_mpi_add_mpi(&r, &r, &ecp->grp.A);
+                    }
+
+                    // r = x^3 + ax
+                    mbedtls_mpi_mul_mpi(&r, &r, &ecp->Q.X);
+
+                    // r = x^3 + ax + b
+                    mbedtls_mpi_add_mpi(&r, &r, &ecp->grp.B);
+
+                    // Calculate square root of r over finite field P:
+                    //   r = sqrt(x^3 + ax + b) = (x^3 + ax + b) ^ ((P + 1) / 4) (mod P)
+
+                    // n = P + 1
+                    mbedtls_mpi_add_int(&n, &ecp->grp.P, 1);
+
+                    // n = (P + 1) / 4
+                    mbedtls_mpi_shift_r(&n, 2);
+
+                    // r ^ ((P + 1) / 4) (mod p)
+                    mbedtls_mpi_exp_mod(&r, &r, &n, &ecp->grp.P, NULL);
+
+                    // Select solution that has the correct "sign" (equals odd/even solution in finite group)
+                    if ((data[0] == 0x03) != mbedtls_mpi_get_bit(&r, 0)) {
+                        // r = p - r
+                        mbedtls_mpi_sub_mpi(&r, &ecp->grp.P, &r);
+                    }
+
+                    // secp256k1_ec_pubkey_decompress(secp256k1_ctx, (unsigned char*)data.c_buffer(), &sz);
+                    mbedtls_mpi_copy(&ecp->Q.Y, &r);
+                    // mbedtls_mpi_read_binary(&ecp->Q.Y, (const unsigned char*)data.c_str() + ksz + 1, ksz);
+
+                    mbedtls_mpi_free(&r);
+                    mbedtls_mpi_free(&n);
+                }
+            }
+        }
     }
 }
 

@@ -744,6 +744,42 @@ describe('crypto', () => {
                 assert.deepEqual(pk2.json(), pk1.json());
             });
 
+            describe('compress', () => {
+                it('not support curve', () => {
+                    function t(name) {
+                        var sk = crypto.generateKey(name);
+                        assert.throws(() => {
+                            var jwt1 = sk.json({
+                                compress: true
+                            });
+                        })
+                    }
+
+                    ['secp224r1', 'secp224k1', 'x25519', 'x448', 'ed25519', 'BLS12381_G1', 'BLS12381_G2'].forEach(t);
+                });
+
+                function t(name) {
+                    it(`curve ${name}`, () => {
+                        var sk = crypto.generateKey(name);
+                        var jwt1 = sk.json({
+                            compress: true
+                        });
+
+                        var sk1 = new crypto.PKey(jwt1);
+                        assert.deepEqual(sk1.json(), sk.json());
+
+                        var jwt2 = sk.publicKey.json({
+                            compress: true
+                        });
+                        var sk2 = new crypto.PKey(jwt2);
+                        assert.deepEqual(sk2.json(), sk.publicKey.json());
+                    });
+                }
+
+                ['secp192r1', 'secp192k1', 'secp256r1', 'secp256k1', 'brainpoolP256r1',
+                    'secp384r1', 'brainpoolP384r1', 'brainpoolP512r1', 'secp521r1', 'sm2'].forEach(t);
+            });
+
             it('FIX: secp256k1 verify error.', () => {
                 console.time('secp256k1 import');
                 var pk = crypto.PKey.from({

@@ -203,7 +203,7 @@ result_t PKey::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
 {
     v8::Local<v8::Object> o;
 
-    result_t hr = json(o);
+    result_t hr = json(v8::Local<v8::Object>(), o);
     retVal = o;
 
     return hr;

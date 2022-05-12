@@ -211,11 +211,21 @@ declare class Class_PKey extends Class_object {
     der(): Class_Buffer;
 
     /**
-     * @description 返回当前 key 的 DER 格式编码
-     *      @return 当前 key 的 DER 格式编码
+     * @description 返回当前 key 的 jwt 格式编码
+     *      opts 支持以下参数:
+     *      ```JavaScript
+     *      {
+     *        compress: false， 指定签名以压缩方式输出公钥
+     *      }
+     *      ```
+     *      支持压缩的曲线为：secp192r1, secp192k1, secp256r1, secp256k1, brainpoolP256r1,
+     *                     secp384r1, brainpoolP384r1, brainpoolP512r1, secp521r1, sm2
+     * 
+     *      @param opts 指定导出选项
+     *      @return 当前 key 的 jwt 格式编码
      *     
      */
-    json(): FIBJS.GeneralObject;
+    json(opts?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
      * @description 比较两个公/私钥是否相同
