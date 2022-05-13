@@ -7,6 +7,7 @@
 
 #include "Buffer.h"
 #include "PKey_impl.h"
+#include "ssl.h"
 
 #define ENABLE_MODULE_RECOVERY 1
 #include "mbedtls/src/secp256k1_api.h"
@@ -17,22 +18,23 @@ extern "C" int secp256k1_ec_pubkey_decompress(const secp256k1_context* ctx, unsi
 namespace fibjs {
 
 PKey_p256k1::PKey_p256k1(mbedtls_pk_context& key)
-    : PKey_ecc(key)
+    : PKey_ecc(key, false)
 {
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
     size_t ksz = (mbedtls_pk_get_bitlen(&m_key) + 7) / 8;
-    int32_t sz = (int32_t)mbedtls_mpi_size(&ecp->Q.X);
 
-    if (!mbedtls_mpi_cmp_int(&ecp->Q.Y, 0) && sz == (ksz + 1)) {
-        exlib::string data;
+    if (mbedtls_mpi_cmp_int(&ecp->d, 0) && !mbedtls_mpi_cmp_int(&ecp->Q.X, 0))
+        mbedtls_ecp_mul(&ecp->grp, &ecp->Q, &ecp->d, &ecp->grp.G, mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
+    else if (!mbedtls_mpi_cmp_int(&ecp->Q.Y, 0) && mbedtls_mpi_size(&ecp->Q.X) == (ksz + 1)) {
+        unsigned char data[65];
 
-        data.resize(ksz * 2 + 1);
-        mbedtls_mpi_write_binary(&ecp->Q.X, (unsigned char*)data.c_buffer(), ksz + 1);
+        mbedtls_mpi_write_binary(&ecp->Q.X, data, ksz + 1);
         if (data[0] == 2 || data[0] == 3) {
-            mbedtls_mpi_read_binary(&ecp->Q.X, (const unsigned char*)data.c_str() + 1, ksz);
+            mbedtls_mpi_read_binary(&ecp->Q.X, data + 1, ksz);
 
-            secp256k1_ec_pubkey_decompress(secp256k1_ctx, (unsigned char*)data.c_buffer(), &sz);
-            mbedtls_mpi_read_binary(&ecp->Q.Y, (const unsigned char*)data.c_str() + ksz + 1, ksz);
+            int32_t sz = 33;
+            secp256k1_ec_pubkey_decompress(secp256k1_ctx, data, &sz);
+            mbedtls_mpi_read_binary(&ecp->Q.Y, data + ksz + 1, ksz);
         }
     }
 }

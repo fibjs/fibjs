@@ -36,7 +36,7 @@ protected:
 
 public:
     PKey_ecc(int32_t id);
-    PKey_ecc(mbedtls_pk_context& key);
+    PKey_ecc(mbedtls_pk_context& key, bool genpub);
 
 public:
     // PKey
@@ -88,7 +88,7 @@ private:
 
 class PKey_25519 : public PKey_ecc {
 public:
-    PKey_25519();
+    PKey_25519(int32_t id);
     PKey_25519(mbedtls_pk_context& key);
 
 public:
@@ -97,6 +97,7 @@ public:
     virtual result_t der(obj_ptr<Buffer_base>& retVal);
     virtual result_t sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac);
+    virtual result_t computeSecret(PKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
 
 public:
     static result_t from(Buffer_base* DerKey, obj_ptr<PKey_base>& retVal);

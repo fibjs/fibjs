@@ -152,15 +152,7 @@ result_t PKey_base::from(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retV
 
         do {
             hr = mpi_load(isolate, &ecp->d, jsonKey, "d");
-            if (hr >= 0) {
-                if (id < MBEDTLS_ECP_DP_ED25519) {
-                    ret = mbedtls_ecp_check_privkey(&ecp->grp, &ecp->d);
-                    if (ret != 0) {
-                        hr = CHECK_ERROR(_ssl::setError(ret));
-                        break;
-                    }
-                }
-            } else if (hr != CALL_E_PARAMNOTOPTIONAL)
+            if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
                 break;
 
             hr = mpi_load(isolate, &ecp->Q.X, jsonKey, "x");

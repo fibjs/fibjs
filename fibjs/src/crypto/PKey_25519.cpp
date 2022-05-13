@@ -12,14 +12,19 @@
 #include <mbedtls/asn1write.h>
 #include <mbedtls/error.h>
 #include <curve25519/include/ed25519_signature.h>
+#include <curve25519/include/curve25519_dh.h>
 
 namespace fibjs {
 
 const unsigned char s_der_priv_lead[]
     = { 0x30, 0x2e, 0x02, 0x01, 0x00, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x04, 0x22, 0x04, 0x20 };
+const unsigned char s_der_priv_lead_x[]
+    = { 0x30, 0x2e, 0x02, 0x01, 0x00, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x6e, 0x04, 0x22, 0x04, 0x20 };
 
 const unsigned char s_der_pub_lead[]
     = { 0x30, 0x2a, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x03, 0x21, 0x00 };
+const unsigned char s_der_pub_lead_x[]
+    = { 0x30, 0x2a, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x6e, 0x03, 0x21, 0x00 };
 
 #define PEM_BEGIN_PRIVATE_KEY "-----BEGIN PRIVATE KEY-----"
 #define PEM_END_PRIVATE_KEY "-----END PRIVATE KEY-----"
@@ -27,32 +32,41 @@ const unsigned char s_der_pub_lead[]
 #define PEM_END_PUBLIC_KEY "-----END PUBLIC KEY-----"
 
 PKey_25519::PKey_25519(mbedtls_pk_context& key)
-    : PKey_ecc(key)
+    : PKey_ecc(key, false)
 {
-    m_alg = "EdDSA";
-
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
+
+    m_alg = ecp->grp.id == MBEDTLS_ECP_DP_ED25519 ? "EdDSA" : "DH";
 
     if (mbedtls_mpi_cmp_int(&ecp->d, 0) && !mbedtls_mpi_cmp_int(&ecp->Q.X, 0)) {
         unsigned char sk[ed25519_private_key_size];
-        mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
 
         mbedtls_mpi_write_binary(&ecp->d, sk, ed25519_public_key_size);
-        ed25519_CreateKeyPair(sk + ed25519_public_key_size, sk, 0, sk);
+
+        if (ecp->grp.id == MBEDTLS_ECP_DP_ED25519)
+            ed25519_CreateKeyPair(sk + ed25519_public_key_size, sk, 0, sk);
+        else
+            curve25519_dh_CalculatePublicKey(sk + ed25519_public_key_size, sk);
+
+        mbedtls_mpi_read_binary(&ecp->d, sk, ed25519_public_key_size);
         mbedtls_mpi_read_binary(&ecp->Q.X, sk + ed25519_public_key_size, ed25519_public_key_size);
     }
 }
 
-PKey_25519::PKey_25519()
+PKey_25519::PKey_25519(int32_t id)
 {
-    m_alg = "EdDSA";
+    m_alg = id == MBEDTLS_ECP_DP_ED25519 ? "EdDSA" : "DH";
 
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
-    load_group(&ecp->grp, MBEDTLS_ECP_DP_ED25519);
+    load_group(&ecp->grp, id);
 
     unsigned char sk[ed25519_private_key_size];
     mbedtls_ctr_drbg_random(&g_ssl.ctr_drbg, sk, ed25519_public_key_size);
-    ed25519_CreateKeyPair(sk + ed25519_public_key_size, sk, 0, sk);
+
+    if (id == MBEDTLS_ECP_DP_ED25519)
+        ed25519_CreateKeyPair(sk + ed25519_public_key_size, sk, 0, sk);
+    else
+        curve25519_dh_CalculatePublicKey(sk + ed25519_public_key_size, sk);
 
     mbedtls_mpi_read_binary(&ecp->d, sk, ed25519_public_key_size);
     mbedtls_mpi_read_binary(&ecp->Q.X, sk + ed25519_public_key_size, ed25519_public_key_size);
@@ -60,8 +74,16 @@ PKey_25519::PKey_25519()
 
 static int parse_key(mbedtls_pk_context& ctx, const unsigned char* key, size_t keylen)
 {
-    if (keylen == sizeof(s_der_priv_lead) + ed25519_public_key_size
-        && !memcmp(key, s_der_priv_lead, sizeof(s_der_priv_lead))) {
+    if (keylen == sizeof(s_der_priv_lead) + ed25519_public_key_size) {
+        int32_t id;
+
+        if (!memcmp(key, s_der_priv_lead, sizeof(s_der_priv_lead)))
+            id = MBEDTLS_ECP_DP_ED25519;
+        else if (!memcmp(key, s_der_priv_lead_x, sizeof(s_der_priv_lead)))
+            id = MBEDTLS_ECP_DP_CURVE25519;
+        else
+            return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
+
         obj_ptr<PKey> pk1 = new PKey();
         int32_t ret;
 
@@ -70,7 +92,7 @@ static int parse_key(mbedtls_pk_context& ctx, const unsigned char* key, size_t k
             return ret;
 
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(ctx);
-        PKey_ecc::load_group(&ecp->grp, MBEDTLS_ECP_DP_ED25519);
+        PKey_ecc::load_group(&ecp->grp, id);
 
         ret = mbedtls_mpi_read_binary(&ecp->d, (const unsigned char*)key + sizeof(s_der_priv_lead),
             ed25519_public_key_size);
@@ -79,7 +101,11 @@ static int parse_key(mbedtls_pk_context& ctx, const unsigned char* key, size_t k
 
         unsigned char sk[ed25519_private_key_size];
 
-        ed25519_CreateKeyPair(sk + ed25519_public_key_size, sk, 0, (const unsigned char*)key + sizeof(s_der_priv_lead));
+        if (id == MBEDTLS_ECP_DP_ED25519)
+            ed25519_CreateKeyPair(sk + ed25519_public_key_size, sk, 0, (const unsigned char*)key + sizeof(s_der_priv_lead));
+        else
+            curve25519_dh_CalculatePublicKey(sk + ed25519_public_key_size, (unsigned char*)key + sizeof(s_der_priv_lead));
+
         ret = mbedtls_mpi_read_binary(&ecp->Q.X, sk + ed25519_public_key_size, ed25519_public_key_size);
         if (ret < 0)
             return ret;
@@ -93,8 +119,16 @@ static int parse_key(mbedtls_pk_context& ctx, const unsigned char* key, size_t k
 static int parse_pub_key(mbedtls_pk_context& ctx, const unsigned char* key, size_t keylen)
 {
 
-    if (keylen == sizeof(s_der_pub_lead) + ed25519_public_key_size
-        && !memcmp(key, s_der_pub_lead, sizeof(s_der_pub_lead))) {
+    if (keylen == sizeof(s_der_pub_lead) + ed25519_public_key_size) {
+        int32_t id;
+
+        if (!memcmp(key, s_der_pub_lead, sizeof(s_der_pub_lead)))
+            id = MBEDTLS_ECP_DP_ED25519;
+        else if (!memcmp(key, s_der_pub_lead_x, sizeof(s_der_pub_lead_x)))
+            id = MBEDTLS_ECP_DP_CURVE25519;
+        else
+            return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
+
         obj_ptr<PKey> pk1 = new PKey();
         int32_t ret;
 
@@ -103,7 +137,7 @@ static int parse_pub_key(mbedtls_pk_context& ctx, const unsigned char* key, size
             return ret;
 
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(ctx);
-        PKey_ecc::load_group(&ecp->grp, MBEDTLS_ECP_DP_ED25519);
+        PKey_ecc::load_group(&ecp->grp, id);
 
         ret = mbedtls_mpi_read_binary(&ecp->Q.X, (const unsigned char*)key + sizeof(s_der_pub_lead),
             ed25519_public_key_size);
@@ -196,9 +230,10 @@ result_t PKey_25519::from(exlib::string pemKey, obj_ptr<PKey_base>& retVal)
 static int write_key(mbedtls_pk_context& ctx, exlib::string& buf)
 {
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(ctx);
+    int32_t id = ecp->grp.id;
 
     buf.resize(ed25519_public_key_size + sizeof(s_der_priv_lead));
-    memcpy(buf.c_buffer(), s_der_priv_lead, sizeof(s_der_priv_lead));
+    memcpy(buf.c_buffer(), id == MBEDTLS_ECP_DP_ED25519 ? s_der_priv_lead : s_der_priv_lead_x, sizeof(s_der_priv_lead));
     mbedtls_mpi_write_binary(&ecp->d, (unsigned char*)buf.c_buffer() + sizeof(s_der_priv_lead), ed25519_public_key_size);
     return 0;
 }
@@ -206,9 +241,10 @@ static int write_key(mbedtls_pk_context& ctx, exlib::string& buf)
 static int write_pub_key(mbedtls_pk_context& ctx, exlib::string& buf)
 {
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(ctx);
+    int32_t id = ecp->grp.id;
 
     buf.resize(ed25519_public_key_size + sizeof(s_der_pub_lead));
-    memcpy(buf.c_buffer(), s_der_pub_lead, sizeof(s_der_pub_lead));
+    memcpy(buf.c_buffer(), id == MBEDTLS_ECP_DP_ED25519 ? s_der_pub_lead : s_der_pub_lead_x, sizeof(s_der_pub_lead));
     mbedtls_mpi_write_binary(&ecp->Q.X, (unsigned char*)buf.c_buffer() + sizeof(s_der_pub_lead), ed25519_public_key_size);
     return 0;
 }
@@ -297,12 +333,16 @@ result_t PKey_25519::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
+
+    if (ecp->grp.id != MBEDTLS_ECP_DP_ED25519)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     unsigned char sk[ed25519_private_key_size];
     exlib::string buf;
     exlib::string sig;
 
-    mbedtls_mpi_write_binary(&ecp->d, (unsigned char*)sk, ed25519_public_key_size);
-    mbedtls_mpi_write_binary(&ecp->Q.X, (unsigned char*)sk + ed25519_public_key_size, ed25519_public_key_size);
+    mbedtls_mpi_write_binary(&ecp->d, sk, ed25519_public_key_size);
+    mbedtls_mpi_write_binary(&ecp->Q.X, sk + ed25519_public_key_size, ed25519_public_key_size);
 
     data->toString(buf);
 
@@ -327,6 +367,10 @@ result_t PKey_25519::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::
         return hr;
 
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
+
+    if (ecp->grp.id != MBEDTLS_ECP_DP_ED25519)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     unsigned char pk[ed25519_public_key_size];
     exlib::string buf;
     exlib::string sig;
@@ -341,9 +385,57 @@ result_t PKey_25519::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::
     }
 
     data->toString(buf);
-    mbedtls_mpi_write_binary(&ecp->Q.X, (unsigned char*)pk, ed25519_public_key_size);
+    mbedtls_mpi_write_binary(&ecp->Q.X, pk, ed25519_public_key_size);
 
     retVal = ed25519_VerifySignature((const unsigned char*)sig.c_str(), pk, (const unsigned char*)buf.c_str(), buf.length());
+
+    return 0;
+}
+
+result_t PKey_25519::computeSecret(PKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    result_t hr;
+    bool priv;
+    mbedtls_pk_type_t type;
+
+    obj_ptr<PKey> pubkey = (PKey*)publicKey;
+    type = mbedtls_pk_get_type(&pubkey->m_key);
+    if (type != MBEDTLS_PK_ECKEY)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    type = mbedtls_pk_get_type(&m_key);
+    if (type != MBEDTLS_PK_ECKEY)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    hr = isPrivate(priv);
+    if (hr < 0)
+        return hr;
+
+    if (!priv)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    mbedtls_ecp_keypair* ecp1 = mbedtls_pk_ec(m_key);
+
+    if (ecp1->grp.id != MBEDTLS_ECP_DP_CURVE25519)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    mbedtls_ecp_keypair* ecp2 = mbedtls_pk_ec(pubkey->m_key);
+    if (ecp1->grp.id != ecp2->grp.id)
+        return CHECK_ERROR(Runtime::setError("Public key is not valid for specified curve"));
+
+    unsigned char sk[ed25519_public_key_size];
+    unsigned char pk[ed25519_public_key_size];
+    unsigned char secret[ed25519_secret_key_size];
+
+    mbedtls_mpi_write_binary(&ecp1->d, sk, ed25519_public_key_size);
+    mbedtls_mpi_write_binary(&ecp2->Q.X, pk, ed25519_public_key_size);
+
+    curve25519_dh_CreateSharedKey(secret, pk, sk);
+
+    retVal = new Buffer(secret, ed25519_public_key_size);
 
     return 0;
 }

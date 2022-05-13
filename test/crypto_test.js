@@ -755,7 +755,7 @@ describe('crypto', () => {
                         })
                     }
 
-                    ['secp224r1', 'secp224k1', 'x25519', 'x448', 'ed25519', 'BLS12381_G1', 'BLS12381_G2'].forEach(t);
+                    ['secp224r1', 'secp224k1', 'x25519', 'ed25519', 'BLS12381_G1', 'BLS12381_G2'].forEach(t);
                 });
 
                 function t(name) {
@@ -1051,22 +1051,29 @@ describe('crypto', () => {
         it("ECDH", () => {
             var alice = crypto.generateKey('secp256r1');
             var bob = crypto.generateKey('secp256r1');
-            var aliceSecret = alice.computeSecret(bob);
-            var bobSecret = bob.computeSecret(alice);
+            var aliceSecret = alice.computeSecret(bob.publicKey);
+            var bobSecret = bob.computeSecret(alice.publicKey);
 
             assert.deepEqual(aliceSecret, bobSecret);
 
             var alice = crypto.generateKey('secp256k1');
             var bob = crypto.generateKey('secp256k1');
-            var aliceSecret = alice.computeSecret(bob);
-            var bobSecret = bob.computeSecret(alice);
+            var aliceSecret = alice.computeSecret(bob.publicKey);
+            var bobSecret = bob.computeSecret(alice.publicKey);
 
             assert.deepEqual(aliceSecret, bobSecret);
 
             var alice = crypto.generateKey("SM2");
             var bob = crypto.generateKey("SM2");
-            var aliceSecret = alice.computeSecret(bob);
-            var bobSecret = bob.computeSecret(alice);
+            var aliceSecret = alice.computeSecret(bob.publicKey);
+            var bobSecret = bob.computeSecret(alice.publicKey);
+
+            assert.deepEqual(aliceSecret, bobSecret);
+
+            var alice = crypto.generateKey("X25519");
+            var bob = crypto.generateKey("X25519");
+            var aliceSecret = alice.computeSecret(bob.publicKey);
+            var bobSecret = bob.computeSecret(alice.publicKey);
 
             assert.deepEqual(aliceSecret, bobSecret);
 
@@ -1082,7 +1089,7 @@ describe('crypto', () => {
             });
 
             assert.equal("b2885b8ed48ad77ae3a531c64b85a2fcb08196e93cc13a4f783cc90674ed764a",
-                bob.computeSecret(alice).hex());
+                bob.computeSecret(alice.publicKey).hex());
         });
 
         it("name", () => {
@@ -1449,7 +1456,7 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
     });
 
     describe("alg", () => {
-        var all_algs = ['RSA', 'ECDSA', 'SM2', 'ECSDSA', 'EdDSA', 'BLS'];
+        var all_algs = ['RSA', 'ECDSA', 'SM2', 'ECSDSA', 'EdDSA', 'BLS', 'DH'];
 
         function test_alg(alg, algs, pk) {
             describe(alg, () => {
@@ -1470,8 +1477,16 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
                         assert.equal(new crypto.PKey(pk.pem()).alg, alg);
                     });
 
+                    it("pem pub import", () => {
+                        assert.equal(new crypto.PKey(pk.publicKey.pem()).alg, alg);
+                    });
+
                     it("der import", () => {
                         assert.equal(new crypto.PKey(pk.der()).alg, alg);
+                    });
+
+                    it("der pub import", () => {
+                        assert.equal(new crypto.PKey(pk.publicKey.der()).alg, alg);
                     });
                 }
 
@@ -1496,6 +1511,7 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
         test_alg("ECDSA", ['ECDSA', 'ECSDSA'], crypto.generateKey());
         test_alg("SM2", ['SM2', 'ECSDSA'], crypto.generateKey("SM2"));
         test_alg("EdDSA", ['EdDSA'], crypto.generateKey("ed25519"));
+        test_alg("DH", ['DH'], crypto.generateKey("X25519"));
         test_alg("BLS", ['BLS'], crypto.generateKey("BLS12381_G1"));
     });
 

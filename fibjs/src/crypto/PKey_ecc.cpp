@@ -70,9 +70,6 @@ static const curve_info curves[] = {
     { MBEDTLS_ECP_DP_CURVE25519, "X25519" },
     { MBEDTLS_ECP_DP_CURVE25519, "x25519" },
 
-    { MBEDTLS_ECP_DP_CURVE448, "X448" },
-    { MBEDTLS_ECP_DP_CURVE448, "x448" },
-
     { MBEDTLS_ECP_DP_ED25519, "Ed25519" },
     { MBEDTLS_ECP_DP_ED25519, "ed25519" },
 
@@ -118,15 +115,14 @@ PKey_ecc::PKey_ecc()
     mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
 }
 
-PKey_ecc::PKey_ecc(mbedtls_pk_context& key)
+PKey_ecc::PKey_ecc(mbedtls_pk_context& key, bool genpub)
     : PKey(key)
 {
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
     int32_t id = ecp->grp.id;
+    m_alg = id == MBEDTLS_ECP_DP_SM2P256R1 ? "SM2" : "ECDSA";
 
-    if (id < MBEDTLS_ECP_DP_ED25519) {
-        m_alg = id == MBEDTLS_ECP_DP_SM2P256R1 ? "SM2" : "ECDSA";
-
+    if (genpub) {
         if (mbedtls_mpi_cmp_int(&ecp->d, 0) && !mbedtls_mpi_cmp_int(&ecp->Q.X, 0))
             mbedtls_ecp_mul(&ecp->grp, &ecp->Q, &ecp->d, &ecp->grp.G, mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
         else if (id == MBEDTLS_ECP_DP_SECP192R1 || id == MBEDTLS_ECP_DP_SECP192K1
@@ -218,29 +214,34 @@ PKey_ecc* PKey_ecc::create(mbedtls_pk_context& key)
 {
     int32_t id = mbedtls_pk_ec(key)->grp.id;
 
-    if (id == MBEDTLS_ECP_DP_SECP256K1)
+    switch (id) {
+    case MBEDTLS_ECP_DP_SECP256K1:
         return new PKey_p256k1(key);
-    else if (id == MBEDTLS_ECP_DP_ED25519)
+    case MBEDTLS_ECP_DP_CURVE25519:
+    case MBEDTLS_ECP_DP_ED25519:
         return new PKey_25519(key);
-    else if (id == MBEDTLS_ECP_DP_BLS12381_G1)
+    case MBEDTLS_ECP_DP_BLS12381_G1:
         return new PKey_bls_g1(key);
-    else if (id == MBEDTLS_ECP_DP_BLS12381_G2)
+    case MBEDTLS_ECP_DP_BLS12381_G2:
         return new PKey_bls_g2(key);
+    }
 
-    return new PKey_ecc(key);
+    return new PKey_ecc(key, true);
 }
 
 result_t PKey_ecc::generateKey(exlib::string curve, obj_ptr<PKey_base>& retVal)
 {
     int32_t id = get_curve_id(curve);
+
     switch (id) {
     case MBEDTLS_ECP_DP_NONE:
         return CHECK_ERROR(Runtime::setError("PKey: Unknown curve"));
     case MBEDTLS_ECP_DP_SECP256K1:
         retVal = new PKey_p256k1();
         break;
+    case MBEDTLS_ECP_DP_CURVE25519:
     case MBEDTLS_ECP_DP_ED25519:
-        retVal = new PKey_25519();
+        retVal = new PKey_25519(id);
         break;
     case MBEDTLS_ECP_DP_BLS12381_G1:
         retVal = new PKey_bls_g1();
@@ -526,13 +527,13 @@ result_t PKey_ecc::bin2der(const exlib::string& bin, exlib::string& der)
     r.resize(size);
     unsigned char* sig = (unsigned char*)r.c_buffer();
 
-    *sig++ = 0x30;
+    *sig++ = MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE;
 
     if ((4 + lenS + lenR) > 0x80)
         *sig++ = 0x81;
     *sig++ = (unsigned char)(4 + lenS + lenR);
 
-    *sig++ = 0x02;
+    *sig++ = MBEDTLS_ASN1_INTEGER;
     *sig++ = (unsigned char)lenR;
     if (rp[0] & 0x80) {
         *sig++ = 0;
@@ -541,7 +542,7 @@ result_t PKey_ecc::bin2der(const exlib::string& bin, exlib::string& der)
     memcpy(sig, rp, lenR);
     sig += lenR;
 
-    *sig++ = 0x02;
+    *sig++ = MBEDTLS_ASN1_INTEGER;
     *sig++ = (unsigned char)lenS;
     if (sp[0] & 0x80) {
         *sig++ = 0;
@@ -746,7 +747,7 @@ result_t PKey_ecc::set_alg(exlib::string newVal)
 {
     int32_t id = mbedtls_pk_ec(m_key)->grp.id;
 
-    if (id >= MBEDTLS_ECP_DP_ED25519)
+    if (id >= MBEDTLS_ECP_DP_ED25519 || id == MBEDTLS_ECP_DP_CURVE25519)
         return PKey::set_alg(newVal);
     else if (id == MBEDTLS_ECP_DP_SM2P256R1) {
         if (newVal != "SM2" && newVal != "ECSDSA")

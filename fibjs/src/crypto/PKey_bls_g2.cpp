@@ -17,7 +17,7 @@ const unsigned char DST_G2_AUG[] = "BLS_SIG_BLS12381G1_XMD:SHA-256_SSWU_RO_AUG_"
 const unsigned char DST_G2_POP[] = "BLS_SIG_BLS12381G1_XMD:SHA-256_SSWU_RO_POP_";
 
 PKey_bls_g2::PKey_bls_g2(mbedtls_pk_context& key)
-    : PKey_ecc(key)
+    : PKey_ecc(key, false)
 {
     m_alg = "BLS";
 
