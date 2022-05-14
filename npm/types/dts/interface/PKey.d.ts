@@ -197,6 +197,15 @@ declare class Class_PKey extends Class_object {
     static recover(sig: Class_Buffer, data: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_PKey)=>any): void;
 
     /**
+     * @description 从当前对象转换 X25519 公私钥对，仅支持 Ed25519
+     *      @return 返回对应的 X25519 公钥的对象
+     *     
+     */
+    toX25519(): Class_PKey;
+
+    toX25519(callback: (err: Error | undefined | null, retVal: Class_PKey)=>any): void;
+
+    /**
      * @description 返回当前 key 的 PEM 格式编码
      *      @return 当前 key 的 PEM 格式编码
      *     

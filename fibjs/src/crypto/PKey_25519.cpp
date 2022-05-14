@@ -72,6 +72,44 @@ PKey_25519::PKey_25519(int32_t id)
     mbedtls_mpi_read_binary(&ecp->Q.X, sk + ed25519_public_key_size, ed25519_public_key_size);
 }
 
+result_t PKey_25519::toX25519(obj_ptr<PKey_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
+
+    if (ecp->grp.id != MBEDTLS_ECP_DP_ED25519)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    mbedtls_pk_context key1;
+
+    mbedtls_pk_init(&key1);
+    mbedtls_pk_setup(&key1, m_key.pk_info);
+
+    mbedtls_ecp_keypair* ecp1 = mbedtls_pk_ec(key1);
+
+    load_group(&ecp1->grp, MBEDTLS_ECP_DP_CURVE25519);
+
+    unsigned char k[ed25519_public_key_size];
+
+    if (mbedtls_mpi_cmp_int(&ecp->d, 0)) {
+        mbedtls_mpi_write_binary(&ecp->d, k, ed25519_public_key_size);
+        curve25519_dh_ConvertPrivateKey(k, k);
+        mbedtls_mpi_read_binary(&ecp1->d, k, ed25519_public_key_size);
+    }
+
+    if (mbedtls_mpi_cmp_int(&ecp->Q.X, 0)) {
+        mbedtls_mpi_write_binary(&ecp->Q.X, k, ed25519_public_key_size);
+        curve25519_dh_ConvertPublicKey(k, k);
+        mbedtls_mpi_read_binary(&ecp1->Q.X, k, ed25519_public_key_size);
+    }
+
+    retVal = new PKey_25519(key1);
+
+    return 0;
+}
+
 static int parse_key(mbedtls_pk_context& ctx, const unsigned char* key, size_t keylen)
 {
     if (keylen == sizeof(s_der_priv_lead) + ed25519_public_key_size) {

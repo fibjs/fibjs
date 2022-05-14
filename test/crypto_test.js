@@ -1324,6 +1324,36 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
             assert.deepEqual(sk.curve, "Ed25519");
         });
 
+        it("toX25519", () => {
+            var jwk1 = {
+                "kty": "OKP", "crv": "Ed25519",
+                "d": "nWGxne_9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A"
+            };
+
+            var sk = new crypto.PKey(jwk);
+            assert.deepEqual(sk.toX25519().json(), {
+                "kty": "OKP",
+                "crv": "X25519",
+                "x": "2F4H7CKwrYgVN8L0TWYtGhQ8-DDFespDBdhcepD2ti4",
+                "d": "MHyDhk8oM8tCei7xwAoBPP3_J2jZgMCjpSDwBpBN6U8"
+            });
+
+            var sk = new crypto.PKey(jwk1);
+            assert.deepEqual(sk.toX25519().json(), {
+                "kty": "OKP",
+                "crv": "X25519",
+                "x": "2F4H7CKwrYgVN8L0TWYtGhQ8-DDFespDBdhcepD2ti4",
+                "d": "MHyDhk8oM8tCei7xwAoBPP3_J2jZgMCjpSDwBpBN6U8"
+            });
+
+            var pk = new crypto.PKey(jwk_pk);
+            assert.deepEqual(pk.toX25519().json(), {
+                "kty": "OKP",
+                "crv": "X25519",
+                "x": "2F4H7CKwrYgVN8L0TWYtGhQ8-DDFespDBdhcepD2ti4"
+            });
+        });
+
         it("test suite", () => {
             var data = require('./crypto_case/eddsa.json');
 

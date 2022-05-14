@@ -43,6 +43,7 @@ public:
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal);
     virtual result_t isPrivate(bool& retVal);
     virtual result_t clone(obj_ptr<PKey_base>& retVal);
+    virtual result_t toX25519(obj_ptr<PKey_base>& retVal, AsyncEvent* ac);
     virtual result_t pem(exlib::string& retVal);
     virtual result_t der(obj_ptr<Buffer_base>& retVal);
     virtual result_t json(v8::Local<v8::Object> opts, v8::Local<v8::Object>& retVal);

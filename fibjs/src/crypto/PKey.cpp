@@ -79,6 +79,11 @@ result_t PKey::get_publicKey(obj_ptr<PKey_base>& retVal)
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
+result_t PKey::toX25519(obj_ptr<PKey_base>& retVal, AsyncEvent* ac)
+{
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
+}
+
 result_t PKey::clone(obj_ptr<PKey_base>& retVal)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);

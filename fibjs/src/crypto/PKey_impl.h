@@ -93,6 +93,7 @@ public:
 
 public:
     // PKey
+    virtual result_t toX25519(obj_ptr<PKey_base>& retVal, AsyncEvent* ac);
     virtual result_t pem(exlib::string& retVal);
     virtual result_t der(obj_ptr<Buffer_base>& retVal);
     virtual result_t sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
