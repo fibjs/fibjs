@@ -22,11 +22,14 @@ result_t PKey_base::_new(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retV
     return from(jsonKey, retVal);
 }
 
-static void mpi_dump(Isolate* isolate, v8::Local<v8::Object> o, exlib::string key, const mbedtls_mpi* n)
+static void mpi_dump(Isolate* isolate, v8::Local<v8::Object> o, exlib::string key, const mbedtls_mpi* n, size_t ksz = 0)
 {
     exlib::string data;
     int32_t sz = (int32_t)mbedtls_mpi_size(n);
     if (sz) {
+        if (ksz)
+            sz = ksz;
+
         data.resize(sz);
         mbedtls_mpi_write_binary(n, (unsigned char*)data.c_buffer(), sz);
 
@@ -240,13 +243,15 @@ result_t PKey::json(v8::Local<v8::Object> opts, v8::Local<v8::Object>& retVal)
                 return hr;
         }
 
+        size_t ksz = (mbedtls_pk_get_bitlen(&m_key) + 7) / 8;
+        size_t pksz = (id == MBEDTLS_ECP_DP_BLS12381_G1 || id == MBEDTLS_ECP_DP_BLS12381_G2) ? 0 : ksz;
+
         if (compress) {
             if (id == MBEDTLS_ECP_DP_SECP192R1 || id == MBEDTLS_ECP_DP_SECP192K1
                 || id == MBEDTLS_ECP_DP_SECP256R1 || id == MBEDTLS_ECP_DP_BP256R1
                 || id == MBEDTLS_ECP_DP_SECP384R1 || id == MBEDTLS_ECP_DP_BP384R1
                 || id == MBEDTLS_ECP_DP_SECP521R1 || id == MBEDTLS_ECP_DP_BP512R1
                 || id == MBEDTLS_ECP_DP_SM2P256R1 || id == MBEDTLS_ECP_DP_SECP256K1) {
-                size_t ksz = (mbedtls_pk_get_bitlen(&m_key) + 7) / 8;
                 exlib::string data_x, data_y;
 
                 data_x.resize(ksz + 1);
@@ -264,12 +269,12 @@ result_t PKey::json(v8::Local<v8::Object> opts, v8::Local<v8::Object>& retVal)
             } else
                 return CHECK_ERROR(Runtime::setError("public key of the current curve does not support compression."));
         } else {
-            mpi_dump(isolate, o, "x", &ecp->Q.X);
-            mpi_dump(isolate, o, "y", &ecp->Q.Y);
+            mpi_dump(isolate, o, "x", &ecp->Q.X, pksz);
+            mpi_dump(isolate, o, "y", &ecp->Q.Y, pksz);
         }
 
         if (priv)
-            mpi_dump(isolate, o, "d", &ecp->d);
+            mpi_dump(isolate, o, "d", &ecp->d, ksz);
 
         retVal = o;
         return 0;
