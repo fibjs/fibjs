@@ -48,7 +48,6 @@ PKey_25519::PKey_25519(mbedtls_pk_context& key)
         else
             curve25519_dh_CalculatePublicKey(sk + ed25519_public_key_size, sk);
 
-        mbedtls_mpi_read_binary(&ecp->d, sk, ed25519_public_key_size);
         mbedtls_mpi_read_binary(&ecp->Q.X, sk + ed25519_public_key_size, ed25519_public_key_size);
     }
 }
