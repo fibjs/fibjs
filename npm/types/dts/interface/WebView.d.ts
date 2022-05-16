@@ -112,15 +112,6 @@ declare class Class_WebView extends Class_EventEmitter {
     print(mode?: number, callback?: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 打印当前窗口文档到 PDF 文件
-     * 	 @param file 指定 pdf 路径
-     * 	 
-     */
-    printToPDF(file: string): void;
-
-    printToPDF(file: string, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
      * @description 在当前窗口运行一段 JavaScript 代码
      * 	 @param code 指定要执行的 JavaScript 代码
      * 	 
@@ -128,17 +119,6 @@ declare class Class_WebView extends Class_EventEmitter {
     executeJavaScript(code: string): void;
 
     executeJavaScript(code: string, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description 在当前窗口执行 DevTools 命令，并返回结果
-     * 	 @param method 指定要执行的 DevTools 命令
-     *      @param params 指定命令的参数
-     *      @return 返回执行的结果
-     * 	 
-     */
-    executeDevToolsMethod(method: string, params?: FIBJS.GeneralObject): any;
-
-    executeDevToolsMethod(method: string, params?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description 关闭当前窗口 
@@ -156,16 +136,6 @@ declare class Class_WebView extends Class_EventEmitter {
     postMessage(msg: string): void;
 
     postMessage(msg: string, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description 当前窗口的 WebView 引擎 
-     */
-    readonly type: string;
-
-    /**
-     * @description DevTools 访问对象，调用接口参见：https://chromedevtools.github.io/devtools-protocol/ 
-     */
-    readonly dev: any;
 
     /**
      * @description 查询和绑定加载成功事件，相当于 on("open", func); 

@@ -115,25 +115,23 @@ void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), Isolat
 
             m_sem.Post();
 
-            if (!g_cefprocess) {
-                createBasisForFiberLoop(m_get_platform);
+            createBasisForFiberLoop(m_get_platform);
 
-                if (pos < argc) {
-                    m_fibjsEntry = argv[pos];
+            if (pos < argc) {
+                m_fibjsEntry = argv[pos];
 
-                    if (pos != 1) {
-                        int32_t p = 1;
-                        for (; pos < argc; pos++)
-                            argv[p++] = argv[pos];
-                        argc = p;
-                    }
+                if (pos != 1) {
+                    int32_t p = 1;
+                    for (; pos < argc; pos++)
+                        argv[p++] = argv[pos];
+                    argc = p;
                 }
-
-                init_argv(argc, argv);
-
-                exlib::Service::CreateFiber(FirstFiber, this, 256 * 1024, "start");
-                exlib::Service::dispatch();
             }
+
+            init_argv(argc, argv);
+
+            exlib::Service::CreateFiber(FirstFiber, this, 256 * 1024, "start");
+            exlib::Service::dispatch();
         }
 
     public:

@@ -23,7 +23,6 @@
 #include <leveldb/db.h>
 #include <expat/include/expat.h>
 #include <uv/include/uv/version.h>
-#include <cef/include/cef_version.h>
 #include <msgpack/version.hpp>
 
 namespace v8 {
@@ -91,7 +90,6 @@ public:
         {
             char str[64];
 
-            g_vender->add("cef", CEF_VERSION);
             g_vender->add("ev", STR(EV_VERSION_MAJOR) "." STR(EV_VERSION_MINOR));
             g_vender->add("expat", STR(XML_MAJOR_VERSION) "." STR(XML_MINOR_VERSION) "." STR(XML_MICRO_VERSION));
             g_vender->add("gd", GD_VERSION_STRING);

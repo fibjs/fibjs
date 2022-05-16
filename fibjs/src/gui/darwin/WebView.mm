@@ -463,11 +463,6 @@ result_t WebView::print(int32_t mode, AsyncEvent* ac)
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
-result_t WebView::printToPDF(exlib::string file, AsyncEvent* ac)
-{
-    return CALL_E_INVALID_CALL;
-}
-
 result_t WebView::executeJavaScript(exlib::string code, AsyncEvent* ac)
 {
     if (ac->isSync())
@@ -478,12 +473,6 @@ result_t WebView::executeJavaScript(exlib::string code, AsyncEvent* ac)
 
     evaluateWebviewJS(code.c_str(), nil);
 
-    return 0;
-}
-
-result_t WebView::executeDevToolsMethod(exlib::string method, v8::Local<v8::Object> params,
-    Variant& retVal, AsyncEvent* ac)
-{
     return 0;
 }
 
@@ -521,16 +510,6 @@ result_t WebView::postMessage(exlib::string msg, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::get_type(exlib::string& retVal)
-{
-    retVal = "native";
-    return 0;
-}
-
-result_t WebView::get_dev(v8::Local<v8::Value>& retVal)
-{
-    return CALL_RETURN_NULL;
-}
 }
 
 #endif /* __APPLE__ */

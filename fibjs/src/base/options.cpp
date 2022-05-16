@@ -31,8 +31,6 @@ bool g_ssldump = false;
 
 bool g_uv_socket = false;
 
-bool g_cefprocess = false;
-
 #ifdef DEBUG
 #define GUARD_SIZE 32
 #else
@@ -174,8 +172,6 @@ void options(int32_t& pos, char* argv[])
         } else if (!qstrcmp(arg, "--v8-options")) {
             v8::internal::FlagList::PrintHelp();
             _exit(0);
-        } else if (!qstrcmp(arg, "--type=", 7)) {
-            g_cefprocess = true;
         }
     }
 
