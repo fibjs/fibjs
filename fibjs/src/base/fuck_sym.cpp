@@ -13,6 +13,8 @@ void init_sym()
 }
 }
 
+#ifdef NDEBUG
+
 extern "C" {
 
 // GLIBC_2.14
@@ -75,7 +77,8 @@ double pow(double x, double y)
     return _pow(x, y);
 }
 #endif
-
 }
+
+#endif
 
 #endif
