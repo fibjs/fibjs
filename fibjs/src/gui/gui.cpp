@@ -23,6 +23,7 @@ void run_gui(int argc, char* argv[])
 
     Runtime rt(NULL);
 
+    s_gui.wait();
     s_gui_ready.set();
     run_os_gui();
 
