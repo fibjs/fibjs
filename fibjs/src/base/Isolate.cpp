@@ -38,9 +38,43 @@ exlib::LockedList<Isolate> s_isolates;
 exlib::atomic s_iso_id;
 exlib::atomic s_iso_ref;
 
+static int32_t syncRunMicrotasks(Isolate* isolate)
+{
+    JSFiber::EnterJsScope s;
+
+    isolate->m_isolate->RunMicrotasks();
+
+    if (!isolate->m_promise_error.IsEmpty()) {
+        v8::Local<v8::Context> _context = isolate->context();
+        v8::Local<v8::Array> _promise_error = v8::Local<v8::Array>::New(isolate->m_isolate, isolate->m_promise_error);
+        JSArray ks = _promise_error->GetPropertyNames(_context);
+        int32_t len = ks->Length();
+
+        for (int32_t i = 0; i < len; i++) {
+            JSValue v = _promise_error->Get(_context, JSValue(ks->Get(_context, i)));
+            if (v->IsArray()) {
+                v8::Local<v8::Array> o = v8::Local<v8::Array>::Cast(v);
+                v = o->Get(_context, 1);
+
+                if (v->IsNativeError()) {
+                    v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
+                    errorLog(isolate->toString(JSValue(obj->Get(_context, isolate->NewString("stack")))));
+                } else
+                    errorLog(isolate->toString(v));
+            }
+        }
+
+        isolate->m_promise_error.Reset();
+        isolate->m_promise_error_no = 0;
+    }
+
+    return 0;
+}
+
 void Isolate::RunMicrotasks()
 {
-    m_isolate->RunMicrotasks();
+    if (RunMicrotaskSize(m_isolate) > 0)
+        syncCall(this, syncRunMicrotasks, this);
 }
 
 Isolate::SnapshotJsScope::SnapshotJsScope(Isolate* cur)
@@ -109,6 +143,7 @@ public:
 Isolate::Isolate(exlib::string jsFilename)
     : m_id((int32_t)s_iso_id.inc())
     , m_hr(0)
+    , m_promise_error_no(0)
     , m_ipc_mode(0)
     , m_test(NULL)
     , m_currentFibers(0)
@@ -166,6 +201,48 @@ Isolate* Isolate::current()
     return rt->isolate();
 }
 
+static void _PromiseRejectCallback(v8::PromiseRejectMessage data)
+{
+    Isolate* isolate = Isolate::current();
+    v8::PromiseRejectEvent e = data.GetEvent();
+
+    v8::Local<v8::Context> _context = isolate->context();
+    v8::Local<v8::Array> _promise_error;
+
+    if (isolate->m_promise_error.IsEmpty()) {
+        _promise_error = v8::Array::New(isolate->m_isolate);
+        isolate->m_promise_error.Reset(isolate->m_isolate, _promise_error);
+    } else
+        _promise_error = isolate->m_promise_error.Get(isolate->m_isolate);
+
+    if (e == v8::kPromiseRejectWithNoHandler) {
+        v8::Local<v8::Array> o = v8::Array::New(isolate->m_isolate);
+        o->Set(_context, 0, data.GetPromise());
+        o->Set(_context, 1, data.GetValue());
+        _promise_error->Set(_context, isolate->m_promise_error_no++, o);
+    } else if (e == v8::kPromiseHandlerAddedAfterReject) {
+        v8::Local<v8::Promise> _promise = data.GetPromise();
+        if (!_promise.IsEmpty()) {
+            JSArray ks = _promise_error->GetPropertyNames(_context);
+            int32_t len = ks->Length();
+
+            for (int32_t i = 0; i < len; i++) {
+                JSValue k = ks->Get(_context, i);
+                JSValue v = _promise_error->Get(_context, k);
+
+                v8::Local<v8::Array> o = v8::Local<v8::Array>::Cast(v);
+                v = o->Get(_context, 0);
+
+                bool e = false;
+                _promise->Equals(_context, v).To(&e);
+                if (e) {
+                    _promise_error->Delete(_context, k);
+                }
+            }
+        }
+    }
+}
+
 void Isolate::init()
 {
     v8::Locker locker(m_isolate);
@@ -219,6 +296,8 @@ void Isolate::init()
     v8::MaybeLocal<v8::Value> result = script->Run(_context);
     v8::Local<v8::Object> AssertionError = result.ToLocalChecked().As<v8::Object>();
     m_AssertionError.Reset(m_isolate, AssertionError);
+
+    m_isolate->SetPromiseRejectCallback(_PromiseRejectCallback);
 
     init_process_ipc(this);
 }

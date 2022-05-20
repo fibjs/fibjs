@@ -73,26 +73,24 @@ v8::Local<v8::Value> JSFunction::Call(v8::Local<v8::Context> context, v8::Local<
         v8::Local<v8::Object> _data = v8::Object::New(isolate->m_isolate);
         _data->Set(context, isolate->NewString("_ev"), ev->wrap());
 
-        v8::Local<v8::Function> _then_func;
-        v8::Local<v8::Function> _catch_func;
+        v8::Local<v8::Function> _handlers[2];
 
-        _then_func = isolate->NewFunction("promise_then", promise_then, _data);
-        if (_then_func.IsEmpty()) {
+        _handlers[0] = isolate->NewFunction("promise_then", promise_then, _data);
+        if (_handlers[0].IsEmpty()) {
             ThrowError("function alloc error.");
             return result;
         }
-        _catch_func = isolate->NewFunction("promise_catch", promise_catch, _data);
-        if (_catch_func.IsEmpty()) {
+        _handlers[1] = isolate->NewFunction("promise_catch", promise_catch, _data);
+        if (_handlers[1].IsEmpty()) {
             ThrowError("function alloc error.");
             return result;
         }
 
-        if (!_promise.IsEmpty()) {
-            _promise->Then(context, _then_func);
-            _promise->Catch(context, _catch_func);
-        } else {
-            _then->Call(_then->CreationContext(), result, 1, (v8::Local<v8::Value>*)&_then_func);
-            _catch->Call(_catch->CreationContext(), result, 1, (v8::Local<v8::Value>*)&_catch_func);
+        if (!_promise.IsEmpty())
+            _promise->Then(context, _handlers[0], _handlers[1]);
+        else {
+            _then->Call(_then->CreationContext(), result, 2, (v8::Local<v8::Value>*)&_handlers[0]);
+            _catch->Call(_catch->CreationContext(), result, 1, (v8::Local<v8::Value>*)&_handlers[1]);
         }
 
         ev->wait();

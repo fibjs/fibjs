@@ -20,6 +20,7 @@
 #include "v8/src/execution/frames-inl.h"
 #include "v8/src/json/json-stringifier.h"
 #include "v8/src/debug/debug-interface.h"
+#include "v8/src/execution/microtask-queue.h"
 
 #include "exlib/include/qstring.h"
 #include "v8_api.h"
@@ -27,6 +28,12 @@
 using namespace v8;
 
 namespace fibjs {
+
+intptr_t RunMicrotaskSize(Isolate* isolate)
+{
+    i::Isolate* _isolate = reinterpret_cast<i::Isolate*>(isolate);
+    return _isolate->default_microtask_queue()->size();
+}
 
 bool isFrozen(v8::Handle<v8::Object> object)
 {

@@ -149,6 +149,9 @@ public:
     obj_ptr<SandBox> m_topSandbox;
     obj_ptr<HttpClient> m_httpclient;
 
+    v8::Global<v8::Array> m_promise_error;
+    int32_t m_promise_error_no;
+
     obj_ptr<Stream_base> m_stdio[3];
 
     obj_ptr<Stream_base>& m_stdin = m_stdio[0];
