@@ -33,7 +33,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-18.04]
-        target_arch: [amd64, i386, arm, arm64]
+        target_arch: [amd64, i386, arm, arm64, mips, mips64]
         build_type: [release]
         include:
           - os: windows-2019
@@ -69,49 +69,11 @@ jobs:
           TARGET_ARCH: ${{ matrix.target_arch }}
           BUILD_TYPE: ${{ matrix.build_type }}
 
-      - name: Setup LLVM on Windows
-        if: runner.os == 'Windows'
-        shell: cmd
-        run: |
-          if NOT EXIST llvm-installer.exe (
-              IF /I "%TARGET_ARCH%" == "amd64" (
-                  curl -Ls -o "llvm-installer.exe" "https://github.com/llvm/llvm-project/releases/download/llvmorg-8.0.1/LLVM-8.0.1-win64.exe"
-                  ECHO "install llvm win64 for x64"
-              )
-              IF /I "%TARGET_ARCH%" == "i386" (
-                  curl -Ls -o "llvm-installer.exe" "https://github.com/llvm/llvm-project/releases/download/llvmorg-8.0.1/LLVM-8.0.1-win32.exe"
-                  ECHO "install llvm win32 for x86"
-              )
-          )
-
-          START /WAIT llvm-installer.exe /S /D=C:\"Program Files\LLVM"
-        env:
-          TARGET_ARCH: ${{ matrix.target_arch }}
-          BUILD_TYPE: ${{ matrix.build_type }}
-
-      - name: Prepare on Windows
-        if: runner.os == 'Windows'
+      - name: Setup ubuntu
+        if: runner.os == 'Linux'
         shell: bash
         run: |
-          # install make.exe
-          CUR_DIR=`pwd`
-          cd "C:/Program Files/Git/mingw64/"
-          if [ ! -e make.zip ]; then
-              curl -sL -o "make.zip" https://netix.dl.sourceforge.net/project/ezwinports/make-4.3-without-guile-w32-bin.zip
-          fi
-          unzip -n "make.zip"
-          cd $CUR_DIR;
-
-          # add LLVM bin to system path
-          echo "C:\Program Files\LLVM\bin" >> $GITHUB_PATH
-
-          # download venders
-          if [[ ! -z $USE_VENDER_DIST ]]; then
-            ./scripts/download_vender.sh;
-          fi
-        env:
-          TARGET_ARCH: ${{ matrix.target_arch }}
-          BUILD_TYPE: ${{ matrix.build_type }}
+          sudo bash .github/workflows/setup_ubuntu.sh
 
       - name: Build/Release on Posix
         if: runner.os != 'Windows'
