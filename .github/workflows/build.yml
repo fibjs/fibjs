@@ -75,6 +75,18 @@ jobs:
         run: |
           sudo bash .github/workflows/setup_ubuntu.sh
 
+      - name: Prepare on Windows
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          # download venders
+          if [[ ! -z $USE_VENDER_DIST ]]; then
+            ./scripts/download_vender.sh;
+          fi
+        env:
+          TARGET_ARCH: ${{ matrix.target_arch }}
+          BUILD_TYPE: ${{ matrix.build_type }}
+
       - name: Build/Release on Posix
         if: runner.os != 'Windows'
         shell: bash
