@@ -145,7 +145,7 @@ describe("vm", () => {
     });
 
     it("add native object", () => {
-        var b = new Buffer();
+        var b = Buffer.alloc(0);
 
         sbox = new vm.SandBox({
             b: b
@@ -178,7 +178,7 @@ describe("vm", () => {
         })
         sbox.require('./vm_test/custom_ext.abc', __dirname);
 
-        sbox.setModuleCompiler('.abc', function (buf) {});
+        sbox.setModuleCompiler('.abc', function (buf) { });
         sbox.require('./vm_test/custom_ext', __dirname);
     })
 
@@ -557,7 +557,7 @@ describe("vm", () => {
     });
 
     it("standalone global", () => {
-        function _t() {}
+        function _t() { }
         var sbox1 = new vm.SandBox({}, {
             var1: 100,
             func: _t
@@ -688,7 +688,7 @@ describe("vm", () => {
         sbox = new vm.SandBox({});
         assert.equal(no1, test_util.countObject('Buffer'));
 
-        var a = sbox.addScript("t1.js", "module.exports = {a : new Buffer()};");
+        var a = sbox.addScript("t1.js", "module.exports = {a : Buffer.alloc(0)};");
         test_util.gc();
         assert.equal(no1 + 1, test_util.countObject('Buffer'));
 
@@ -708,7 +708,7 @@ describe("vm", () => {
         var no1 = test_util.countObject('Buffer');
 
         var a = {
-            b: new vm.SandBox({}).addScript('b.js', "module.exports = new Buffer()")
+            b: new vm.SandBox({}).addScript('b.js', "module.exports = Buffer.alloc(0)")
         };
         test_util.gc();
         assert.equal(no1 + 1, test_util.countObject('Buffer'));

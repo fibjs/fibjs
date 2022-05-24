@@ -171,7 +171,7 @@ describe('ws', () => {
                 msg.masked = masked;
                 msg.compress = compress;
 
-                var buf = new Buffer(n);
+                var buf = Buffer.alloc(n);
                 for (var i = 0; i < n; i++) {
                     buf[i] = (i % 10) + 0x30;
                 }
@@ -235,7 +235,7 @@ describe('ws', () => {
             msg.compress = compress;
             msg.masked = true;
 
-            var buf = new Buffer(n);
+            var buf = Buffer.alloc(n);
             for (var i = 0; i < n; i++) {
                 buf[i] = (i % 10) + 0x30;
             }
@@ -503,7 +503,7 @@ describe('ws', () => {
                             this.close(3000, "remote");
                         else if (msg.data === "many") {
                             for (var i = 0; i < 1025; i++)
-                                s.send(new Buffer(1024 * 64));
+                                s.send(Buffer.alloc(1024 * 64));
                         } else
                             this.send(msg.data);
                     };

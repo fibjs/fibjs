@@ -1109,7 +1109,7 @@ describe("mq", () => {
             var no3 = test_util.countObject('Buffer');
 
             (() => {
-                var data = new Buffer();
+                var data = Buffer.alloc(0);
                 var svr = new http.Server(8892, new mq.Chain([
                     () => {
                         return hdlr

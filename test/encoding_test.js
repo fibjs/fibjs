@@ -187,8 +187,7 @@ describe('encoding', () => {
     });
 
     it('hex', () => {
-        var hexb = new Buffer();
-        hexb.resize(256);
+        var hexb = Buffer.alloc(256);
         for (var i = 0; i < 256; i++) {
             hexb[i] = i;
         }
@@ -410,10 +409,10 @@ describe('encoding', () => {
 
     it('iconv ucs2 multi', () => {
         datas.forEach(d => {
-            var buf = new Buffer(4);
+            var buf = Buffer.alloc(4);
             buf.writeUInt32LE(d[0]);
             var s = iconv.decode('utf32le', buf);
-            var buf2 = new Buffer(s.length * 2);
+            var buf2 = Buffer.alloc(s.length * 2);
             buf2.writeInt16LE(s.charCodeAt(0));
             if (s.length > 1)
                 buf2.writeInt16LE(s.charCodeAt(1), 2);
@@ -423,7 +422,7 @@ describe('encoding', () => {
 
     it('iconv ucs4', () => {
         datas.forEach(d => {
-            var buf = new Buffer(4);
+            var buf = Buffer.alloc(4);
             buf.writeUInt32LE(d[0]);
             var s = iconv.decode('utf32le', buf);
             var buf1 = iconv.encode('utf32le', s);

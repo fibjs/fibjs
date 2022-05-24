@@ -26,7 +26,7 @@ describe('os', () => {
     it("nativeObjects", () => {
         test_util.gc();
         var no1 = test_util.countObject('Buffer');
-        var b = new Buffer();
+        var b = Buffer.alloc(0);
         assert.equal(no1 + 1, test_util.countObject('Buffer'));
         b = undefined;
         test_util.gc();

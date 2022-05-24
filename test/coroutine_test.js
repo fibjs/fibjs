@@ -44,7 +44,7 @@ describe('coroutine', () => {
         it("Memory Leak detect", () => {
             test_util.gc();
             var no1 = test_util.countObject('Buffer');
-            var f = coroutine.start((v) => { }, new Buffer());
+            var f = coroutine.start((v) => { }, Buffer.alloc(0));
             test_util.gc();
             assert.equal(no1 + 1, test_util.countObject('Buffer'));
             f.join();

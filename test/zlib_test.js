@@ -7,8 +7,7 @@ var fs = require('fs');
 var path = require('path');
 
 var M = 102400;
-var b = new Buffer();
-b.resize(M);
+var b = Buffer.alloc(M);
 
 var i;
 

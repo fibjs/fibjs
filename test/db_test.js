@@ -1113,8 +1113,7 @@ describe("db", () => {
         });
 
         it("binary", () => {
-            var b = new Buffer();
-            b.resize(1);
+            var b = Buffer.alloc(1);
 
             for (var i = 0; i < 256; i++) {
                 b[0] = i;
@@ -1129,7 +1128,7 @@ describe("db", () => {
         describe("transaction", () => {
             before(() => {
                 try {
-                    var b = new Buffer();
+                    var b = Buffer.alloc(0);
                     conn.execute("insert into test(t1, t2, t3, t4) values(?,?,?,?);", 101, 'test101', b, new Date());
                 } catch (e) { }
             });

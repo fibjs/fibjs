@@ -363,6 +363,8 @@ void Buffer_base::__new(const T& args)
 
     OPT_ARG(int32_t, 0, 0);
 
+    DEPRECATED_SOON("Buffer.Buffer");
+
     hr = _new(v0, vr, args.This());
 
     CONSTRUCT_RETURN();

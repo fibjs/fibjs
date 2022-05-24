@@ -174,7 +174,7 @@ describe('dgram', () => {
 
         test_message('message', "123456", 1002);
         test_message('empty message', "", 1003);
-        test_message('big message', new Buffer(4000).hex(), 1004);
+        test_message('big message', Buffer.alloc(4000).hex(), 1004);
     });
 
     it("broadcast", () => {

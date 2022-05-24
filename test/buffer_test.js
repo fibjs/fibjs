@@ -11,11 +11,6 @@ describe('Buffer', () => {
         assert.equal(require('buffer').Buffer, Buffer);
     });
 
-    it('new Buffer(Integr)', () => {
-        var buf = new Buffer(100);
-        assert.equal(buf.length, 100);
-    });
-
     it('new Buffer(String)', () => {
         var buf = new Buffer("abcd");
         assert.equal(buf.length, 4);
@@ -112,7 +107,7 @@ describe('Buffer', () => {
     it('concat', () => {
         var buf1 = new Buffer("abcd");
         var buf2 = new Buffer("efg");
-        var buf3 = new Buffer();
+        var buf3;
         var bufArray = [buf1];
         var bufRes = Buffer.concat(bufArray);
         assert.equal(bufRes.toString(), "abcd")
@@ -146,9 +141,8 @@ describe('Buffer', () => {
         assert.equal(bufRes[9], 136);
         buf1 = new Buffer('');
         bufArray = [buf1];
-        assert.doesNotThrow(() => {
-            bufRes = Buffer.concat([() => { }, {}, undefined, '']);
-        });
+
+        bufRes = Buffer.concat([() => { }, {}, '']);
     });
 
     it('concat error', () => {
@@ -558,7 +552,7 @@ describe('Buffer', () => {
         assert.equal(buf.toString("base64", 2), "MzQ=");
         assert.equal(buf.toString("base64url"), "MTIzNA");
 
-        buf = new Buffer(5)
+        buf = Buffer.alloc(5)
         buf.append("abcd");
         assert.equal(buf.toString("utf8", 5), "abcd");
 
@@ -617,12 +611,12 @@ describe('Buffer', () => {
         var buf = new Buffer([0x31, 0x32, 0x33, 0x34]);
         assert.equal(buf.toString(), "1234");
 
-        buf = new Buffer(10);
+        buf = Buffer.alloc(10);
         assert.equal(buf.write("abcd", 0, 4), 4);
         assert.equal(buf.toString('utf8', 0, 4), "abcd");
         assert.equal(buf.toString('utf8', 0, 3), "abc");
 
-        buf = new Buffer(10);
+        buf = Buffer.alloc(10);
         assert.equal(buf.write("MTIzNA==", 0, 4, "base64"), 4);
         assert.equal(buf.toString("utf8", 0, 4), "1234");
 
@@ -632,26 +626,26 @@ describe('Buffer', () => {
         assert.equal(buf.write("abcde", 1, 4), 4);
         assert.equal(buf.toString('utf8', 1, 4), "abc");
 
-        buf = new Buffer(3);
+        buf = Buffer.alloc(3);
         assert.equal(buf.write("abcd", 0, 4), 3);
         assert.equal(buf.toString('utf8', 0, 3), "abc");
 
-        buf = new Buffer(3);
+        buf = Buffer.alloc(3);
         assert.equal(buf.write("abcd", 0, "utf8"), 3);
         assert.equal(buf.toString('utf8', 0, 3), "abc");
 
-        buf = new Buffer(3);
+        buf = Buffer.alloc(3);
         assert.equal(buf.write("abcd", "utf8"), 3);
         assert.equal(buf.toString('utf8', 0, 3), "abc");
     });
 
     it('fill', () => {
-        var buf = new Buffer(5);
+        var buf = Buffer.alloc(5);
         buf.fill(10);
         for (var i = 0; i < 5; i++)
             assert.equal(buf[i], 10);
 
-        buf = new Buffer(10);
+        buf = Buffer.alloc(10);
         buf.fill("abc");
         assert.equal(buf.toString(), "abcabcabca");
 
@@ -665,7 +659,7 @@ describe('Buffer', () => {
             buf.fill("abcabcabcabc", 6, 5);
         })
 
-        buf = new Buffer(10);
+        buf = Buffer.alloc(10);
         var buf1 = buf.fill(new Buffer([0, 1, 2]));
         for (var i = 0; i < 3; i++) {
             assert.equal(buf[i], i);
@@ -677,13 +671,13 @@ describe('Buffer', () => {
     });
 
     it('slice', () => {
-        var buf = new Buffer(5);
+        var buf = Buffer.alloc(5);
         buf.fill(10);
         var sli = buf.slice(1, 4);
         for (var i = 0; i < 3; i++)
             assert.equal(sli[i], 10);
 
-        buf = new Buffer(10);
+        buf = Buffer.alloc(10);
         buf.write("abcdefghih");
         assert.equal(buf.slice(0, 3), "abc");
         assert.equal(buf.slice(6, 5), "");
@@ -849,7 +843,7 @@ describe('Buffer', () => {
     });
 
     it("writeNumber", () => {
-        var buf = new Buffer(2);
+        var buf = Buffer.alloc(2);
 
         assert.equal(buf.writeUInt16BE(9026, 0), 2);
         assert.equal(buf.readUInt16BE(), 9026);
@@ -870,7 +864,7 @@ describe('Buffer', () => {
             buf.writeUInt16LE(0, 1);
         });
 
-        var buf = new Buffer(4);
+        var buf = Buffer.alloc(4);
 
         assert.equal(buf.writeInt32BE(0x12345678, 0), 4);
         assert.deepEqual(buf.toArray(), [
@@ -896,7 +890,7 @@ describe('Buffer', () => {
             0x12
         ]);
 
-        var buf = new Buffer(6);
+        var buf = Buffer.alloc(6);
 
         assert.equal(buf.writeIntBE(0x12345678abcd, 0, 6), 6);
         assert.deepEqual(buf.toArray(), [
@@ -938,7 +932,7 @@ describe('Buffer', () => {
             0xed
         ]);
 
-        var buf = new Buffer(8);
+        var buf = Buffer.alloc(8);
 
         assert.equal(buf.writeInt64BE(BigInt('0x3112345678abcdef'), 0), 8);
         assert.deepEqual(buf.toArray(), [
@@ -1004,11 +998,11 @@ describe('Buffer', () => {
             buf.writeInt64LE(BigInt('0x8000000000000000'), 0);
         });
 
-        var buf = new Buffer(4);
+        var buf = Buffer.alloc(4);
         assert.equal(buf.writeFloatLE(1, 0), 4);
         assert.equal(buf.hex(), "0000803f");
 
-        var buf = new Buffer(8);
+        var buf = Buffer.alloc(8);
         assert.equal(buf.writeDoubleLE(0.3333333333333333, 0), 8);
         assert.equal(buf.hex(), "555555555555d53f");
     });
@@ -1115,7 +1109,7 @@ describe('Buffer', () => {
     });
 
     it('resize', () => {
-        var buf = new Buffer();
+        var buf = Buffer.alloc(0);
         buf.resize(100);
         assert.equal(buf.length, 100);
 

@@ -230,7 +230,7 @@ describe('util', () => {
     });
 
     it('isBuffer', () => {
-        assert.isTrue(util.isBuffer(new Buffer(10)));
+        assert.isTrue(util.isBuffer(Buffer.alloc(10)));
         assert.isFalse(util.isBuffer({}));
         assert.isFalse(util.isBuffer(5));
     });
@@ -2180,7 +2180,7 @@ describe('util', () => {
             lc.set("test", lc);
             assert.equal(no1 + 1, process.memoryUsage().nativeObjects.objects);
 
-            lc.set("test1", new Buffer());
+            lc.set("test1", Buffer.alloc(0));
             assert.equal(no1 + 2, process.memoryUsage().nativeObjects.objects);
 
             lc.remove("test1");
