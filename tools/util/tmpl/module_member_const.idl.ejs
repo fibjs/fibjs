@@ -1,2 +1,2 @@
 /*<%-_translate(member.comments)%>*/
-    const <%-member.type ? `${member.type} ` : ''%><%-member.name%> = <%-member.default.value%>;
+    <%-member.deprecated ? `deprecated ` : ''%>const <%-member.type ? `${member.type} ` : ''%><%-member.name%> = <%-member.default.value%>;

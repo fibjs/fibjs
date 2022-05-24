@@ -1,2 +1,2 @@
 /*<%-_translate(member.comments)%>*/
-    <%-member.readonly ? 'readonly ' : ''%><%-member.type%> operator<%-member.name%>;
+    <%-member.deprecated ? `deprecated ` : ''%><%-member.readonly ? 'readonly ' : ''%><%-member.type%> operator<%-member.name%>;
