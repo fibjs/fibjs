@@ -41,7 +41,7 @@ interface Buffer : object
     /*! @brief 缓存对象构造函数
      @param size 初始化缓冲区大小
      */
-    Buffer(Integer size = 0);
+    deprecated Buffer(Integer size = 0);
 
     /*! @brief 二进制数据缓存对象，用于 io 读写的数据处理 */
     static Buffer;
