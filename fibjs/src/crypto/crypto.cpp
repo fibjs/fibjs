@@ -470,38 +470,7 @@ result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t i
     return pbkdf2(password, salt, iterations, size, algo_id, retVal, ac);
 }
 
-obj_ptr<NArray> g_hashes;
-class init_hashes {
-public:
-    init_hashes()
-    {
-        g_hashes = new NArray();
-
-        g_hashes->append("md5");
-        g_hashes->append("sha1");
-        g_hashes->append("sha224");
-        g_hashes->append("sha256");
-        g_hashes->append("sha384");
-        g_hashes->append("sha512");
-        g_hashes->append("ripemd160");
-        g_hashes->append("sm3");
-        g_hashes->append("keccak256");
-        g_hashes->append("keccak384");
-        g_hashes->append("keccak512");
-        g_hashes->append("md5_hmac");
-        g_hashes->append("sha1_hmac");
-        g_hashes->append("sha224_hmac");
-        g_hashes->append("sha256_hmac");
-        g_hashes->append("sha384_hmac");
-        g_hashes->append("sha512_hmac");
-        g_hashes->append("ripemd160_hmac");
-        g_hashes->append("sm3_hmac");
-        g_hashes->append("keccak256_hmac");
-        g_hashes->append("keccak384_hmac");
-        g_hashes->append("keccak512_hmac");
-    }
-
-} s_init_hashes;
+extern obj_ptr<NArray> g_hashes;
 
 result_t crypto_base::getHashes(v8::Local<v8::Array>& retVal)
 {

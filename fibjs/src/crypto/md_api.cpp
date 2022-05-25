@@ -16,23 +16,27 @@ namespace fibjs {
 extern mbedtls_md_info_x mbedtls_keccak256_info;
 extern mbedtls_md_info_x mbedtls_keccak384_info;
 extern mbedtls_md_info_x mbedtls_keccak512_info;
+extern mbedtls_md_info_x mbedtls_blake2s_info;
+extern mbedtls_md_info_x mbedtls_blake2b_info;
+extern mbedtls_md_info_x mbedtls_blake2sp_info;
+extern mbedtls_md_info_x mbedtls_blake2bp_info;
 
 static mbedtls_md_info_x* md_infos[] = {
     &mbedtls_keccak256_info,
     &mbedtls_keccak384_info,
-    &mbedtls_keccak512_info
+    &mbedtls_keccak512_info,
+    &mbedtls_blake2s_info,
+    &mbedtls_blake2b_info,
+    &mbedtls_blake2sp_info,
+    &mbedtls_blake2bp_info
 };
 
 mbedtls_md_type_t _md_type_from_string(const char* md_name)
 {
-    if (!qstrcmp(md_name, "KECCAK256"))
-        return MBEDTLS_MD_KECCAK256;
-
-    if (!qstrcmp(md_name, "KECCAK384"))
-        return MBEDTLS_MD_KECCAK384;
-
-    if (!qstrcmp(md_name, "KECCAK512"))
-        return MBEDTLS_MD_KECCAK512;
+    for (int32_t i = 0; i < ARRAYSIZE(md_infos); i++) {
+        if (!qstrcmp(md_name, md_infos[i]->info.name))
+            return md_infos[i]->info.type;
+    }
 
     const mbedtls_md_info_t* mi = mbedtls_md_info_from_string(md_name);
     if (!mi)
@@ -43,7 +47,7 @@ mbedtls_md_type_t _md_type_from_string(const char* md_name)
 
 int _md_setup(mbedtls_md_context_t* ctx, mbedtls_md_type_t algo, int hmac)
 {
-    if (algo >= MBEDTLS_MD_KECCAK256 && algo <= MBEDTLS_MD_KECCAK512) {
+    if (algo >= MBEDTLS_MD_KECCAK256 && algo < MBEDTLS_MD_MAX) {
         mbedtls_md_info_x* infox = md_infos[algo - MBEDTLS_MD_KECCAK256];
 
         ctx->md_info = &infox->info;
@@ -70,7 +74,7 @@ int _md_setup(mbedtls_md_context_t* ctx, mbedtls_md_type_t algo, int hmac)
 
 int _md_starts(mbedtls_md_context_t* ctx)
 {
-    if (ctx->md_info->type >= MBEDTLS_MD_KECCAK256 && ctx->md_info->type <= MBEDTLS_MD_KECCAK512) {
+    if (ctx->md_info->type >= MBEDTLS_MD_KECCAK256 && ctx->md_info->type < MBEDTLS_MD_MAX) {
         mbedtls_md_info_x* infox = (mbedtls_md_info_x*)ctx->md_info;
         return infox->start(ctx);
     }
@@ -80,7 +84,7 @@ int _md_starts(mbedtls_md_context_t* ctx)
 
 int _md_update(mbedtls_md_context_t* ctx, const unsigned char* input, size_t ilen)
 {
-    if (ctx->md_info->type >= MBEDTLS_MD_KECCAK256 && ctx->md_info->type <= MBEDTLS_MD_KECCAK512) {
+    if (ctx->md_info->type >= MBEDTLS_MD_KECCAK256 && ctx->md_info->type < MBEDTLS_MD_MAX) {
         mbedtls_md_info_x* infox = (mbedtls_md_info_x*)ctx->md_info;
         return infox->update(ctx, input, ilen);
     }
@@ -90,7 +94,7 @@ int _md_update(mbedtls_md_context_t* ctx, const unsigned char* input, size_t ile
 
 int _md_finish(mbedtls_md_context_t* ctx, unsigned char* output)
 {
-    if (ctx->md_info->type >= MBEDTLS_MD_KECCAK256 && ctx->md_info->type <= MBEDTLS_MD_KECCAK512) {
+    if (ctx->md_info->type >= MBEDTLS_MD_KECCAK256 && ctx->md_info->type < MBEDTLS_MD_MAX) {
         mbedtls_md_info_x* infox = (mbedtls_md_info_x*)ctx->md_info;
         return infox->finish(ctx, output);
     }

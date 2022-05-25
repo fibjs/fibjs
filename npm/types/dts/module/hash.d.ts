@@ -62,6 +62,26 @@ declare module 'hash' {
     export const KECCAK512: 11;
 
     /**
+     * @description BLAKE2S 信息摘要算法标识常量 
+     */
+    export const BLAKE2S: 12;
+
+    /**
+     * @description BLAKE2B 信息摘要算法标识常量 
+     */
+    export const BLAKE2B: 13;
+
+    /**
+     * @description BLAKE2SP 信息摘要算法标识常量 
+     */
+    export const BLAKE2SP: 14;
+
+    /**
+     * @description BLAKE2BP 信息摘要算法标识常量 
+     */
+    export const BLAKE2BP: 15;
+
+    /**
      * @description 根据指定的算法标识创建一个信息摘要运算对象
      *      @param algo 指定摘要运算算法
      *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
@@ -167,6 +187,38 @@ declare module 'hash' {
      *      
      */
     function keccak512(data?: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 创建一个 BLAKE2S 信息摘要运算对象
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function blake2s(data?: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 创建一个 BLAKE2B 信息摘要运算对象
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function blake2b(data?: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 创建一个 BLAKE2SP 信息摘要运算对象
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function blake2sp(data?: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 创建一个 BLAKE2BP 信息摘要运算对象
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function blake2bp(data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 根据指定的算法标识创建一个信息摘要签名运算对象
@@ -287,6 +339,42 @@ declare module 'hash' {
      *      
      */
     function hmac_keccak512(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 创建一个 BLAKE2S 信息摘要签名运算对象
+     *      @param key 二进制签名密钥
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function hmac_blake2s(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 创建一个 BLAKE2B 信息摘要签名运算对象
+     *      @param key 二进制签名密钥
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function hmac_blake2b(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 创建一个 BLAKE2SP 信息摘要签名运算对象
+     *      @param key 二进制签名密钥
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function hmac_blake2sp(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 创建一个 BLAKE2BP 信息摘要签名运算对象
+     *      @param key 二进制签名密钥
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function hmac_blake2bp(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
 
 }
 
