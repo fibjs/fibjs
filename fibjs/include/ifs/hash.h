@@ -32,7 +32,9 @@ public:
         C_SHA512 = 6,
         C_RIPEMD160 = 7,
         C_SM3 = 8,
-        C_KECCAK256 = 9
+        C_KECCAK256 = 9,
+        C_KECCAK384 = 10,
+        C_KECCAK512 = 11
     };
 
 public:
@@ -48,6 +50,8 @@ public:
     static result_t sm3(Buffer_base* data, obj_ptr<Digest_base>& retVal);
     static result_t sm3(PKey_base* pubKey, exlib::string id, Buffer_base* data, obj_ptr<Digest_base>& retVal);
     static result_t keccak256(Buffer_base* data, obj_ptr<Digest_base>& retVal);
+    static result_t keccak384(Buffer_base* data, obj_ptr<Digest_base>& retVal);
+    static result_t keccak512(Buffer_base* data, obj_ptr<Digest_base>& retVal);
     static result_t hmac(int32_t algo, Buffer_base* key, Buffer_base* data, obj_ptr<Digest_base>& retVal);
     static result_t hmac_md5(Buffer_base* key, Buffer_base* data, obj_ptr<Digest_base>& retVal);
     static result_t hmac_sha1(Buffer_base* key, Buffer_base* data, obj_ptr<Digest_base>& retVal);
@@ -59,6 +63,8 @@ public:
     static result_t hmac_sm3(Buffer_base* key, Buffer_base* data, obj_ptr<Digest_base>& retVal);
     static result_t hmac_sm3(PKey_base* pubKey, exlib::string id, Buffer_base* key, Buffer_base* data, obj_ptr<Digest_base>& retVal);
     static result_t hmac_keccak256(Buffer_base* key, Buffer_base* data, obj_ptr<Digest_base>& retVal);
+    static result_t hmac_keccak384(Buffer_base* key, Buffer_base* data, obj_ptr<Digest_base>& retVal);
+    static result_t hmac_keccak512(Buffer_base* key, Buffer_base* data, obj_ptr<Digest_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -82,6 +88,8 @@ public:
     static void s_static_ripemd160(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_sm3(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_keccak256(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_keccak384(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_keccak512(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_hmac(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_hmac_md5(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_hmac_sha1(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -92,6 +100,8 @@ public:
     static void s_static_hmac_ripemd160(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_hmac_sm3(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_hmac_keccak256(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_hmac_keccak384(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_hmac_keccak512(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -113,6 +123,8 @@ inline ClassInfo& hash_base::class_info()
         { "ripemd160", s_static_ripemd160, true, false },
         { "sm3", s_static_sm3, true, false },
         { "keccak256", s_static_keccak256, true, false },
+        { "keccak384", s_static_keccak384, true, false },
+        { "keccak512", s_static_keccak512, true, false },
         { "hmac", s_static_hmac, true, false },
         { "hmac_md5", s_static_hmac_md5, true, false },
         { "hmac_sha1", s_static_hmac_sha1, true, false },
@@ -122,7 +134,9 @@ inline ClassInfo& hash_base::class_info()
         { "hmac_sha512", s_static_hmac_sha512, true, false },
         { "hmac_ripemd160", s_static_hmac_ripemd160, true, false },
         { "hmac_sm3", s_static_hmac_sm3, true, false },
-        { "hmac_keccak256", s_static_hmac_keccak256, true, false }
+        { "hmac_keccak256", s_static_hmac_keccak256, true, false },
+        { "hmac_keccak384", s_static_hmac_keccak384, true, false },
+        { "hmac_keccak512", s_static_hmac_keccak512, true, false }
     };
 
     static ClassData::ClassConst s_const[] = {
@@ -134,7 +148,9 @@ inline ClassInfo& hash_base::class_info()
         { "SHA512", C_SHA512 },
         { "RIPEMD160", C_RIPEMD160 },
         { "SM3", C_SM3 },
-        { "KECCAK256", C_KECCAK256 }
+        { "KECCAK256", C_KECCAK256 },
+        { "KECCAK384", C_KECCAK384 },
+        { "KECCAK512", C_KECCAK512 }
     };
 
     static ClassData s_cd = {
@@ -316,6 +332,38 @@ inline void hash_base::s_static_keccak256(const v8::FunctionCallbackInfo<v8::Val
     METHOD_RETURN();
 }
 
+inline void hash_base::s_static_keccak384(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Digest_base> vr;
+
+    METHOD_NAME("hash.keccak384");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(obj_ptr<Buffer_base>, 0, NULL);
+
+    hr = keccak384(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void hash_base::s_static_keccak512(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Digest_base> vr;
+
+    METHOD_NAME("hash.keccak512");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(obj_ptr<Buffer_base>, 0, NULL);
+
+    hr = keccak512(v0, vr);
+
+    METHOD_RETURN();
+}
+
 inline void hash_base::s_static_hmac(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
@@ -492,6 +540,40 @@ inline void hash_base::s_static_hmac_keccak256(const v8::FunctionCallbackInfo<v8
     OPT_ARG(obj_ptr<Buffer_base>, 1, NULL);
 
     hr = hmac_keccak256(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void hash_base::s_static_hmac_keccak384(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Digest_base> vr;
+
+    METHOD_NAME("hash.hmac_keccak384");
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(obj_ptr<Buffer_base>, 1, NULL);
+
+    hr = hmac_keccak384(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void hash_base::s_static_hmac_keccak512(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Digest_base> vr;
+
+    METHOD_NAME("hash.hmac_keccak512");
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(obj_ptr<Buffer_base>, 1, NULL);
+
+    hr = hmac_keccak512(v0, v1, vr);
 
     METHOD_RETURN();
 }

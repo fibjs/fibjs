@@ -9,31 +9,53 @@
 
 #include "object.h"
 #include <string.h>
-#include "sha3.h"
 #include "md_api.h"
 
 namespace fibjs {
 
-static const mbedtls_md_info_t mbedtls_keccak256_info = {
-    "KECCAK256",
-    MBEDTLS_MD_KECCAK256,
-    32,
-    64,
+extern mbedtls_md_info_x mbedtls_keccak256_info;
+extern mbedtls_md_info_x mbedtls_keccak384_info;
+extern mbedtls_md_info_x mbedtls_keccak512_info;
+
+static mbedtls_md_info_x* md_infos[] = {
+    &mbedtls_keccak256_info,
+    &mbedtls_keccak384_info,
+    &mbedtls_keccak512_info
 };
+
+mbedtls_md_type_t _md_type_from_string(const char* md_name)
+{
+    if (!qstrcmp(md_name, "KECCAK256"))
+        return MBEDTLS_MD_KECCAK256;
+
+    if (!qstrcmp(md_name, "KECCAK384"))
+        return MBEDTLS_MD_KECCAK384;
+
+    if (!qstrcmp(md_name, "KECCAK512"))
+        return MBEDTLS_MD_KECCAK512;
+
+    const mbedtls_md_info_t* mi = mbedtls_md_info_from_string(md_name);
+    if (!mi)
+        return MBEDTLS_MD_NONE;
+
+    return mbedtls_md_get_type(mi);
+}
 
 int _md_setup(mbedtls_md_context_t* ctx, mbedtls_md_type_t algo, int hmac)
 {
-    if (algo == MBEDTLS_MD_KECCAK256) {
-        ctx->md_info = &mbedtls_keccak256_info;
+    if (algo >= MBEDTLS_MD_KECCAK256 && algo <= MBEDTLS_MD_KECCAK512) {
+        mbedtls_md_info_x* infox = md_infos[algo - MBEDTLS_MD_KECCAK256];
+
+        ctx->md_info = &infox->info;
         ctx->md_ctx = NULL;
         ctx->hmac_ctx = NULL;
 
-        ctx->md_ctx = calloc(1, sizeof(sha3_context));
+        ctx->md_ctx = calloc(1, infox->ctx_size);
         if (ctx->md_ctx == NULL)
             return (MBEDTLS_ERR_MD_ALLOC_FAILED);
 
         if (hmac != 0) {
-            ctx->hmac_ctx = calloc(2, mbedtls_keccak256_info.block_size);
+            ctx->hmac_ctx = calloc(2, infox->info.block_size);
             if (ctx->hmac_ctx == NULL) {
                 mbedtls_md_free(ctx);
                 return (MBEDTLS_ERR_MD_ALLOC_FAILED);
@@ -48,11 +70,9 @@ int _md_setup(mbedtls_md_context_t* ctx, mbedtls_md_type_t algo, int hmac)
 
 int _md_starts(mbedtls_md_context_t* ctx)
 {
-    if (ctx->md_info->type == MBEDTLS_MD_KECCAK256) {
-        sha3_Init256(ctx->md_ctx);
-        sha3_SetFlags(ctx->md_ctx, SHA3_FLAGS_KECCAK);
-
-        return 0;
+    if (ctx->md_info->type >= MBEDTLS_MD_KECCAK256 && ctx->md_info->type <= MBEDTLS_MD_KECCAK512) {
+        mbedtls_md_info_x* infox = (mbedtls_md_info_x*)ctx->md_info;
+        return infox->start(ctx);
     }
 
     return mbedtls_md_starts(ctx);
@@ -60,9 +80,9 @@ int _md_starts(mbedtls_md_context_t* ctx)
 
 int _md_update(mbedtls_md_context_t* ctx, const unsigned char* input, size_t ilen)
 {
-    if (ctx->md_info->type == MBEDTLS_MD_KECCAK256) {
-        sha3_Update(ctx->md_ctx, input, ilen);
-        return 0;
+    if (ctx->md_info->type >= MBEDTLS_MD_KECCAK256 && ctx->md_info->type <= MBEDTLS_MD_KECCAK512) {
+        mbedtls_md_info_x* infox = (mbedtls_md_info_x*)ctx->md_info;
+        return infox->update(ctx, input, ilen);
     }
 
     return mbedtls_md_update(ctx, input, ilen);
@@ -70,10 +90,9 @@ int _md_update(mbedtls_md_context_t* ctx, const unsigned char* input, size_t ile
 
 int _md_finish(mbedtls_md_context_t* ctx, unsigned char* output)
 {
-    if (ctx->md_info->type == MBEDTLS_MD_KECCAK256) {
-        const void* h = sha3_Finalize(ctx->md_ctx);
-        memcpy(output, h, 32);
-        return 0;
+    if (ctx->md_info->type >= MBEDTLS_MD_KECCAK256 && ctx->md_info->type <= MBEDTLS_MD_KECCAK512) {
+        mbedtls_md_info_x* infox = (mbedtls_md_info_x*)ctx->md_info;
+        return infox->finish(ctx, output);
     }
 
     return mbedtls_md_finish(ctx, output);

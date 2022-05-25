@@ -52,6 +52,16 @@ declare module 'hash' {
     export const KECCAK256: 9;
 
     /**
+     * @description KECCAK384 信息摘要算法标识常量 
+     */
+    export const KECCAK384: 10;
+
+    /**
+     * @description KECCAK512 信息摘要算法标识常量 
+     */
+    export const KECCAK512: 11;
+
+    /**
      * @description 根据指定的算法标识创建一个信息摘要运算对象
      *      @param algo 指定摘要运算算法
      *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
@@ -141,6 +151,22 @@ declare module 'hash' {
      *      
      */
     function keccak256(data?: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 创建一个 KECCAK384 信息摘要运算对象
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function keccak384(data?: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 创建一个 KECCAK512 信息摘要运算对象
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function keccak512(data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 根据指定的算法标识创建一个信息摘要签名运算对象
@@ -243,6 +269,24 @@ declare module 'hash' {
      *      
      */
     function hmac_keccak256(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 创建一个 KECCAK384 信息摘要签名运算对象
+     *      @param key 二进制签名密钥
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function hmac_keccak384(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 创建一个 KECCAK512 信息摘要签名运算对象
+     *      @param key 二进制签名密钥
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function hmac_keccak512(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
 
 }
 

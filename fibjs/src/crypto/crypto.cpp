@@ -27,18 +27,6 @@ namespace fibjs {
 
 DECLARE_MODULE(crypto);
 
-mbedtls_md_type_t _md_type_from_string(const char* md_name)
-{
-    if (!qstrcmp(md_name, "KECCAK256"))
-        return MBEDTLS_MD_KECCAK256;
-
-    const mbedtls_md_info_t* mi = mbedtls_md_info_from_string(md_name);
-    if (!mi)
-        return MBEDTLS_MD_NONE;
-
-    return mbedtls_md_get_type(mi);
-}
-
 result_t crypto_base::createHash(exlib::string algo, obj_ptr<Digest_base>& retVal)
 {
     algo.toupper();
@@ -498,6 +486,8 @@ public:
         g_hashes->append("ripemd160");
         g_hashes->append("sm3");
         g_hashes->append("keccak256");
+        g_hashes->append("keccak384");
+        g_hashes->append("keccak512");
         g_hashes->append("md5_hmac");
         g_hashes->append("sha1_hmac");
         g_hashes->append("sha224_hmac");
@@ -507,6 +497,8 @@ public:
         g_hashes->append("ripemd160_hmac");
         g_hashes->append("sm3_hmac");
         g_hashes->append("keccak256_hmac");
+        g_hashes->append("keccak384_hmac");
+        g_hashes->append("keccak512_hmac");
     }
 
 } s_init_hashes;
