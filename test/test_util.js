@@ -40,7 +40,8 @@ exports.makeid = length => {
 }
 
 exports.gc = () => {
-    for (var i = 0; i < 20; i++) {
+    var t1 = new Date();
+    while (new Date() - t1 < 1000) {
         coroutine.sleep(1);
         GC();
     }

@@ -2052,11 +2052,15 @@ describe("http", () => {
 
         describe("head", () => {
             before(() => {
-                http.request("HEAD", "https://localhost:" + (8883 + base_port) + "/clear_cookie");
+                try {
+                    http.request("HEAD", "https://localhost:" + (8883 + base_port) + "/clear_cookie");
+                } catch (e) { }
             })
 
             after(() => {
-                http.request("HEAD", "https://localhost:" + (8883 + base_port) + "/clear_cookie");
+                try {
+                    http.request("HEAD", "https://localhost:" + (8883 + base_port) + "/clear_cookie");
+                } catch (e) { }
             })
 
             it("simple", () => {
@@ -2081,9 +2085,10 @@ describe("http", () => {
 
             it("async", (done) => {
                 http.request('HEAD', "https://localhost:" + (8883 + base_port) + "/request", (e, r) => {
-                    assert.equal(r.data, null);
-                    assert.equal(r.headers['no_test_header'], "true");
-                    done();
+                    done(() => {
+                        assert.equal(r.data, null);
+                        assert.equal(r.headers['no_test_header'], "true");
+                    });
                 });
             });
         });
