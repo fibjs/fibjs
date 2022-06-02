@@ -192,9 +192,9 @@ declare class Class_PKey extends Class_object {
      *      @return 返回包含公钥的对象
      *     
      */
-    static recover(sig: Class_Buffer, data: Class_Buffer): Class_PKey;
+    static recover(data: Class_Buffer, sig: Class_Buffer): Class_PKey;
 
-    static recover(sig: Class_Buffer, data: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_PKey)=>any): void;
+    static recover(data: Class_Buffer, sig: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_PKey)=>any): void;
 
     /**
      * @description 从当前对象转换 X25519 公私钥对，仅支持 Ed25519

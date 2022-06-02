@@ -135,7 +135,7 @@ result_t PKey_p256k1::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_pt
     return 0;
 }
 
-result_t PKey_base::recover(Buffer_base* sig, Buffer_base* data, obj_ptr<PKey_base>& retVal, AsyncEvent* ac)
+result_t PKey_base::recover(Buffer_base* data, Buffer_base* sig, obj_ptr<PKey_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -146,7 +146,7 @@ result_t PKey_base::recover(Buffer_base* sig, Buffer_base* data, obj_ptr<PKey_ba
     exlib::string strSig;
     sig->toString(strSig);
     if (strSig.length() != 65)
-        return CHECK_ERROR(CALL_E_INVALID_DATA);
+        return CALL_RETURN_NULL;
 
     const unsigned char* hash = (const unsigned char*)strData.c_str();
     size_t hlen = strData.length();
@@ -158,7 +158,7 @@ result_t PKey_base::recover(Buffer_base* sig, Buffer_base* data, obj_ptr<PKey_ba
 
     int ret = secp256k1_ecdsa_recover(secp256k1_ctx, &pubkey, signature, hash);
     if (ret == 0)
-        return CHECK_ERROR(CALL_E_INVALID_DATA);
+        return CALL_RETURN_NULL;
 
     mbedtls_pk_context ctx;
 

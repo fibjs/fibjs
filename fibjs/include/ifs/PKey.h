@@ -36,7 +36,7 @@ public:
     static result_t from(Buffer_base* DerKey, exlib::string password, obj_ptr<PKey_base>& retVal);
     static result_t from(exlib::string pemKey, exlib::string password, obj_ptr<PKey_base>& retVal);
     static result_t from(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retVal);
-    static result_t recover(Buffer_base* sig, Buffer_base* data, obj_ptr<PKey_base>& retVal, AsyncEvent* ac);
+    static result_t recover(Buffer_base* data, Buffer_base* sig, obj_ptr<PKey_base>& retVal, AsyncEvent* ac);
     virtual result_t toX25519(obj_ptr<PKey_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t pem(exlib::string& retVal) = 0;
     virtual result_t der(obj_ptr<Buffer_base>& retVal) = 0;

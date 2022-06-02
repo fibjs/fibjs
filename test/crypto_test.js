@@ -739,8 +739,9 @@ describe('crypto', () => {
                 var d = pk.sign(md, {
                     recoverable: true
                 });
+                console.log(d.hex());
 
-                var pk2 = crypto.PKey.recover(d, md);
+                var pk2 = crypto.PKey.recover(md, d);
                 assert.deepEqual(pk2.json(), pk1.json());
             });
 
