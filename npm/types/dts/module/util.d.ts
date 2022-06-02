@@ -1,10 +1,27 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/LruCache.d.ts" />
+/// <reference path="../interface/TextDecoder.d.ts" />
+/// <reference path="../interface/TextEncoder.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
  * @description 常用工具模块 
  */
 declare module 'util' {
+    /**
+     * @description LRU(least recently used) 缓存对象，参见 LruCache 对象。
+     */
+    const LruCache: typeof Class_LruCache;
+
+    /**
+     * @description TextDecoder 解码对象，参见 TextDecoder 对象。
+     */
+    const TextDecoder: typeof Class_TextDecoder;
+
+    /**
+     * @description TextEncoder 编码对象，参见 TextEncoder 对象。
+     */
+    const TextEncoder: typeof Class_TextEncoder;
+
     /**
      * @description 按照指定的格式格式化变量
      * 
@@ -530,11 +547,6 @@ declare module 'util' {
      *      
      */
     function reduce(list: any, iterator: (...args: any[])=>any, memo: any, context?: any): any;
-
-    /**
-     * @description LRU(least recently used) 缓存对象，参见 LruCache 对象。
-     */
-    const LruCache: typeof Class_LruCache;
 
     /**
      * @description 解析命令行字符串返回参数列表

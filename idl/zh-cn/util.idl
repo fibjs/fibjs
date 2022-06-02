@@ -1,6 +1,15 @@
 /*! @brief 常用工具模块 */
 module util
 {
+    /*! @brief LRU(least recently used) 缓存对象，参见 LruCache 对象。*/
+    static LruCache;
+
+    /*! @brief TextDecoder 解码对象，参见 TextDecoder 对象。*/
+    static TextDecoder;
+
+    /*! @brief TextEncoder 编码对象，参见 TextEncoder 对象。*/
+    static TextEncoder;
+
     /*! @brief 按照指定的格式格式化变量
 
      @param fmt 格式化字符串
@@ -416,9 +425,6 @@ module util
      @return 返回归结的结果
      */
     static Value reduce(Value list, Function iterator, Value memo, Value context = undefined);
-
-    /*! @brief LRU(least recently used) 缓存对象，参见 LruCache 对象。*/
-    static LruCache;
 
     /*! @brief 解析命令行字符串返回参数列表
      @param command 指定要解析的命令行字符串
