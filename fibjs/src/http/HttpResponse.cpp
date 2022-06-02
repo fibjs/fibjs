@@ -442,6 +442,12 @@ result_t HttpResponse::set_statusMessage(exlib::string newVal)
     return 0;
 }
 
+result_t HttpResponse::get_ok(bool& retVal)
+{
+    retVal = m_statusCode >= 200 && m_statusCode < 300;
+    return 0;
+}
+
 result_t HttpResponse::writeHead(int32_t statusCode, exlib::string statusMessage, v8::Local<v8::Object> headers)
 {
     set_statusCode(statusCode);

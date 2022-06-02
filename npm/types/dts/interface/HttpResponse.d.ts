@@ -22,6 +22,11 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     statusMessage: string;
 
     /**
+     * @description 查询当前响应是否正常 
+     */
+    readonly ok: boolean;
+
+    /**
      * @description 设置响应消息的返回状态，返回消息，并添加响应头
      *      @param statusCode 指定响应消息的返回状态
      *      @param statusMessage 指定响应消息的返回消息

@@ -1910,6 +1910,14 @@ describe("http", () => {
                 assert.equal(cookie_for['_'], "root=value2; request=value; request1=value")
             });
 
+            it("custom method", () => {
+                assert.equal(http.get("http://127.0.0.1:" + (8882 + base_port) + "/request", {
+                    method: "GET"
+                }).body.read().toString(),
+                    "/request");
+                assert.equal(cookie_for['_'], "root=value2; request=value; request1=value")
+            });
+
             it("header", () => {
                 assert.equal(http.get("http://127.0.0.1:" + (8882 + base_port) + "/request:", {
                     headers: {

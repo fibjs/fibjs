@@ -30,6 +30,7 @@ public:
     virtual result_t set_statusCode(int32_t newVal) = 0;
     virtual result_t get_statusMessage(exlib::string& retVal) = 0;
     virtual result_t set_statusMessage(exlib::string newVal) = 0;
+    virtual result_t get_ok(bool& retVal) = 0;
     virtual result_t writeHead(int32_t statusCode, exlib::string statusMessage, v8::Local<v8::Object> headers) = 0;
     virtual result_t writeHead(int32_t statusCode, v8::Local<v8::Object> headers) = 0;
     virtual result_t get_cookies(obj_ptr<NArray>& retVal) = 0;
@@ -48,6 +49,7 @@ public:
     static void s_set_statusCode(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_statusMessage(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_statusMessage(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_ok(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_writeHead(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_cookies(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_addCookie(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -76,6 +78,7 @@ inline ClassInfo& HttpResponse_base::class_info()
     static ClassData::ClassProperty s_property[] = {
         { "statusCode", s_get_statusCode, s_set_statusCode, false },
         { "statusMessage", s_get_statusMessage, s_set_statusMessage, false },
+        { "ok", s_get_ok, block_set, false },
         { "cookies", s_get_cookies, block_set, false }
     };
 
@@ -158,6 +161,19 @@ inline void HttpResponse_base::s_set_statusMessage(v8::Local<v8::Name> property,
     hr = pInst->set_statusMessage(v0);
 
     PROPERTY_SET_LEAVE();
+}
+
+inline void HttpResponse_base::s_get_ok(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_NAME("HttpResponse.ok");
+    METHOD_INSTANCE(HttpResponse_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_ok(vr);
+
+    METHOD_RETURN();
 }
 
 inline void HttpResponse_base::s_writeHead(const v8::FunctionCallbackInfo<v8::Value>& args)

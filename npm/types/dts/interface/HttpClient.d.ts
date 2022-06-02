@@ -116,6 +116,7 @@ declare class Class_HttpClient extends Class_object {
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
+     *          "method": "GET", //指定 http 请求方法：GET, POST 等
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -140,6 +141,7 @@ declare class Class_HttpClient extends Class_object {
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
+     *          "method": "GET", //指定 http 请求方法：GET, POST 等
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -162,6 +164,7 @@ declare class Class_HttpClient extends Class_object {
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
+     *          "method": "GET", //指定 http 请求方法：GET, POST 等
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -184,6 +187,7 @@ declare class Class_HttpClient extends Class_object {
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
+     *          "method": "GET", //指定 http 请求方法：GET, POST 等
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -206,6 +210,7 @@ declare class Class_HttpClient extends Class_object {
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
+     *          "method": "GET", //指定 http 请求方法：GET, POST 等
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -228,6 +233,7 @@ declare class Class_HttpClient extends Class_object {
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
+     *          "method": "GET", //指定 http 请求方法：GET, POST 等
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},

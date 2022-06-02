@@ -80,6 +80,7 @@ public:
     virtual result_t set_statusCode(int32_t newVal);
     virtual result_t get_statusMessage(exlib::string& retVal);
     virtual result_t set_statusMessage(exlib::string newVal);
+    virtual result_t get_ok(bool& retVal);
     virtual result_t writeHead(int32_t statusCode, exlib::string statusMessage, v8::Local<v8::Object> headers);
     virtual result_t writeHead(int32_t statusCode, v8::Local<v8::Object> headers);
     virtual result_t get_cookies(obj_ptr<NArray>& retVal);
