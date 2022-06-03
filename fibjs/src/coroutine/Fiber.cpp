@@ -238,9 +238,36 @@ JSFiber::EnterJsScope::EnterJsScope(JSFiber* fb)
 
 JSFiber::EnterJsScope::~EnterJsScope()
 {
-    m_pFiber->holder()->RunMicrotasks();
+    Runtime* rt = Runtime::current();
+    Isolate* isolate = m_pFiber->holder();
+
+    isolate->RunMicrotasks();
 
     m_pFiber->m_message = ReportException(try_catch, m_hr);
+
+    if (!rt->m_promise_error.IsEmpty()) {
+        v8::Local<v8::Context> _context = isolate->context();
+        v8::Local<v8::Array> _promise_error = v8::Local<v8::Array>::New(isolate->m_isolate, rt->m_promise_error);
+        JSArray ks = _promise_error->GetPropertyNames(_context);
+        int32_t len = ks->Length();
+
+        for (int32_t i = 0; i < len; i++) {
+            JSValue v = _promise_error->Get(_context, JSValue(ks->Get(_context, i)));
+            if (v->IsArray()) {
+                v8::Local<v8::Array> o = v8::Local<v8::Array>::Cast(v);
+                v = o->Get(_context, 1);
+
+                if (v->IsNativeError()) {
+                    v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
+                    errorLog(isolate->toString(JSValue(obj->Get(_context, isolate->NewString("stack")))));
+                } else
+                    errorLog(isolate->toString(v));
+            }
+        }
+
+        rt->m_promise_error.Reset();
+        rt->m_promise_error_no = 0;
+    }
 
     m_pFiber->m_quit.set();
 

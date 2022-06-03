@@ -49,6 +49,10 @@ describe('promise', () => {
     it("error in async function with sync", () => {
         t('async2.js', '/promise/async2.js:4:11\n    throw new Error(100);\n          ^\nError: 100\n    at t (/promise/async2.js:4:11)\n    at /promise/async2.js:7:13\n');
     });
+
+    it("error in async function without await", () => {
+        t('async3.js', 'Error: 100\n    at a_test (/promise/async3.js:7:11)\n');
+    });
 });
 
 require.main === module && test.run(console.DEBUG);

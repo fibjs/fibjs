@@ -15,6 +15,7 @@ class Runtime {
 public:
     Runtime(Isolate* isolate)
         : m_isolate(isolate)
+        , m_promise_error_no(0)
     {
         RegInThread();
     }
@@ -84,6 +85,10 @@ public:
 
 private:
     void RegInThread();
+
+public:
+    v8::Global<v8::Array> m_promise_error;
+    int32_t m_promise_error_no;
 
 private:
     result_t m_code;
