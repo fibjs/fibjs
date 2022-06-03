@@ -441,6 +441,7 @@ protected:
 protected:
     obj_ptr<object_base> m_pThis;
     v8::Global<v8::Function> m_cb;
+    v8::Global<v8::Value> m_cb_err;
 
 private:
     exlib::string m_error;

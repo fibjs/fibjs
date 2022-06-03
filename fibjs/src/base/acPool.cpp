@@ -131,6 +131,7 @@ AsyncCallBack::AsyncCallBack(v8::Local<v8::Function> cb, object_base* pThis)
 
     m_isolate->Ref();
     m_cb.Reset(m_isolate->m_isolate, cb);
+    m_cb_err.Reset(m_isolate->m_isolate, v8::Exception::Error(m_isolate->NewString("")));
 }
 
 void AsyncCallBack::async_call(int32_t v)
@@ -181,13 +182,13 @@ result_t AsyncCallBack::syncFunc(AsyncCallBack* pThis)
         if (pThis->m_v == CALL_E_EXCEPTION)
             Runtime::setError(pThis->m_error);
 
-        v8::Local<v8::Value> e = v8::Exception::Error(
-            isolate->NewString(getResultMessage(pThis->m_v)));
-        v8::Local<v8::Object>::Cast(e)
-            ->Set(isolate->context(), isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -pThis->m_v));
+        v8::Local<v8::Object> cb_err = v8::Local<v8::Object>::Cast(v8::Local<v8::Value>::New(isolate->m_isolate, pThis->m_cb_err));
+
+        cb_err->Set(isolate->context(), isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -pThis->m_v));
+        cb_err->Set(isolate->context(), isolate->NewString("message"), isolate->NewString(getResultMessage(pThis->m_v)));
 
         args.resize(1);
-        args[0] = e;
+        args[0] = cb_err;
     }
 
     func->Call(func->CreationContext(), v8::Undefined(isolate->m_isolate), (int32_t)args.size(), args.data());
