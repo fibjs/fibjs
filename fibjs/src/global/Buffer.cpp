@@ -374,6 +374,12 @@ result_t Buffer::get_length(int32_t& retVal)
     return 0;
 }
 
+result_t Buffer::get_byteOffset(int32_t& retVal)
+{
+    retVal = 0;
+    return 0;
+}
+
 result_t Buffer::get_buffer(v8::Local<v8::ArrayBuffer>& retVal)
 {
     char* buf = exlib::string::Buffer::New(m_data.length(), m_data.c_str(), m_data.length())->data();

@@ -45,6 +45,7 @@ public:
     virtual result_t _indexed_setter(uint32_t index, int32_t newVal);
     virtual result_t symbol_iterator(obj_ptr<Iterator_base>& retVal);
     virtual result_t get_length(int32_t& retVal);
+    virtual result_t get_byteOffset(int32_t& retVal);
     virtual result_t get_buffer(v8::Local<v8::ArrayBuffer>& retVal);
     virtual result_t resize(int32_t sz);
     virtual result_t append(Buffer_base* data);

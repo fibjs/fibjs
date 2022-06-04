@@ -219,6 +219,11 @@ declare class Class_Buffer extends Class_object {
     readonly length: number;
 
     /**
+     * @description 获取缓存对象的偏移值 
+     */
+    readonly byteOffset: number;
+
+    /**
      * @description 以 ArrayBuffer 格式返回缓存数据 
      */
     readonly buffer: ArrayBuffer;
