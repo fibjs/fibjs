@@ -817,6 +817,14 @@ declare class Class_Buffer extends Class_object {
     entries(): Iterator<any>;
 
     /**
+     * @description 对对象的每个元素执行一次给定的函数
+     *      @param callback 为数组中每个元素执行的函数，该函数接收一至三个参数：currentValue，index，array
+     *      @param thisArg 当执行回调函数 callback 时，用作 this 的值
+     *     
+     */
+    forEach(callback: (...args: any[])=>any, thisArg?: any): void;
+
+    /**
      * @description 返回全部二进制数据的数组
      *      @return 返回包含对象数据的数组
      *     

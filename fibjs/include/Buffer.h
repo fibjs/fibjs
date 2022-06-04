@@ -113,6 +113,7 @@ public:
     virtual result_t keys(obj_ptr<Iterator_base>& retVal);
     virtual result_t values(obj_ptr<Iterator_base>& retVal);
     virtual result_t entries(obj_ptr<Iterator_base>& retVal);
+    virtual result_t forEach(v8::Local<v8::Function> callback, v8::Local<v8::Value> thisArg);
     virtual result_t toArray(v8::Local<v8::Array>& retVal);
     virtual result_t toString(exlib::string codec, int32_t offset, int32_t end, exlib::string& retVal);
     virtual result_t toString(exlib::string codec, int32_t offset, exlib::string& retVal);

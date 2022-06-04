@@ -1129,6 +1129,30 @@ describe('Buffer', () => {
         });
     });
 
+    it('forEach', () => {
+        var buf = Buffer.from([1, 2, 3, 4, 5]);
+        var arr = [];
+
+        buf.forEach(function (v, i, a) {
+            assert.equal(this, arr);
+            assert.equal(a, buf);
+            assert.equal(v, buf[i]);
+            arr.push(v);
+        }, arr);
+
+        assert.deepEqual(arr, [1, 2, 3, 4, 5]);
+
+        assert.throws(() => {
+            buf.forEach(function (v, i, a) {
+                arr.push(v);
+                if (i == 3)
+                    throw new Error('test');
+            });
+        });
+
+        assert.deepEqual(arr, [1, 2, 3, 4, 5, 1, 2, 3, 4]);
+    });
+
     it('indexOf', () => {
         var buf = new Buffer([0x31, 0x32, 0x33, 0x34, 0x00]);
         assert.equal(buf.indexOf(0x33), 2);

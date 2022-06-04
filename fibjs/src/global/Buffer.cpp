@@ -1157,6 +1157,24 @@ result_t Buffer::entries(obj_ptr<Iterator_base>& retVal)
     return 0;
 }
 
+result_t Buffer::forEach(v8::Local<v8::Function> callback, v8::Local<v8::Value> thisArg)
+{
+    Isolate* isolate = holder();
+    v8::Local<v8::Value> args[3];
+
+    args[2] = wrap();
+    for (int32_t i = 0; i < (int32_t)m_data.length(); i++) {
+        args[0] = v8::Number::New(isolate->m_isolate, (unsigned char)m_data[i]);
+        args[1] = v8::Number::New(isolate->m_isolate, i);
+
+        JSValue r = callback->Call(callback->CreationContext(), thisArg, 3, args);
+        if (r.IsEmpty())
+            return CALL_E_JAVASCRIPT;
+    }
+
+    return 0;
+}
+
 result_t Buffer::toString(exlib::string& retVal)
 {
     retVal = m_data;

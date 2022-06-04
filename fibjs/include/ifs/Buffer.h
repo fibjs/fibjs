@@ -118,6 +118,7 @@ public:
     virtual result_t keys(obj_ptr<Iterator_base>& retVal) = 0;
     virtual result_t values(obj_ptr<Iterator_base>& retVal) = 0;
     virtual result_t entries(obj_ptr<Iterator_base>& retVal) = 0;
+    virtual result_t forEach(v8::Local<v8::Function> callback, v8::Local<v8::Value> thisArg) = 0;
     virtual result_t toArray(v8::Local<v8::Array>& retVal) = 0;
     virtual result_t toString(exlib::string codec, int32_t offset, int32_t end, exlib::string& retVal) = 0;
     virtual result_t toString(exlib::string codec, int32_t offset, exlib::string& retVal) = 0;
@@ -203,6 +204,7 @@ public:
     static void s_keys(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_values(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_entries(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toString(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -283,6 +285,7 @@ inline ClassInfo& Buffer_base::class_info()
         { "keys", s_keys, false, false },
         { "values", s_values, false, false },
         { "entries", s_entries, false, false },
+        { "forEach", s_forEach, false, false },
         { "toArray", s_toArray, false, false },
         { "toString", s_toString, false, false }
     };
@@ -1733,6 +1736,22 @@ inline void Buffer_base::s_entries(const v8::FunctionCallbackInfo<v8::Value>& ar
     hr = pInst->entries(vr);
 
     METHOD_RETURN();
+}
+
+inline void Buffer_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("Buffer.forEach");
+    METHOD_INSTANCE(Buffer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
+
+    hr = pInst->forEach(v0, v1);
+
+    METHOD_VOID();
 }
 
 inline void Buffer_base::s_toArray(const v8::FunctionCallbackInfo<v8::Value>& args)
