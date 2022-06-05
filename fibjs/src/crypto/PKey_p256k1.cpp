@@ -85,6 +85,15 @@ result_t PKey_p256k1::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
     return CHECK_ERROR(CALL_E_NOSYNC);
 }
 
+static void fix_sigature(const unsigned char* sig, unsigned char* sig1)
+{
+    for (int32_t i = 0; i < 32; i++) {
+        sig1[i] = sig[32 - i - 1];
+        sig1[32 + i] = sig[64 - i - 1];
+    }
+    sig1[64] = sig[64];
+}
+
 result_t PKey_p256k1::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (m_alg == "ECSDSA")
@@ -130,7 +139,10 @@ result_t PKey_p256k1::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_pt
 
     secp256k1_ecdsa_sign_recoverable(secp256k1_ctx, &signature, hash, key, NULL, NULL);
 
-    retVal = new Buffer(signature.data, sizeof(signature));
+    strData.resize(65);
+    fix_sigature(signature.data, (unsigned char*)strData.c_buffer());
+
+    retVal = new Buffer(strData);
 
     return 0;
 }
@@ -151,12 +163,14 @@ result_t PKey_base::recover(Buffer_base* data, Buffer_base* sig, obj_ptr<PKey_ba
     const unsigned char* hash = (const unsigned char*)strData.c_str();
     size_t hlen = strData.length();
     unsigned char buffer[KEYSIZE_256];
-    const secp256k1_ecdsa_recoverable_signature* signature = (const secp256k1_ecdsa_recoverable_signature*)strSig.c_str();
+    secp256k1_ecdsa_recoverable_signature signature;
     secp256k1_pubkey pubkey;
 
     fix_hash(hash, hlen, buffer);
 
-    int ret = secp256k1_ecdsa_recover(secp256k1_ctx, &pubkey, signature, hash);
+    fix_sigature((const unsigned char*)strSig.c_str(), signature.data);
+
+    int ret = secp256k1_ecdsa_recover(secp256k1_ctx, &pubkey, &signature, hash);
     if (ret == 0)
         return CALL_RETURN_NULL;
 
