@@ -137,7 +137,9 @@ result_t PKey_p256k1::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_pt
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
     mbedtls_mpi_write_binary(&ecp->d, key, KEYSIZE_256);
 
-    secp256k1_ecdsa_sign_recoverable(secp256k1_ctx, &signature, hash, key, NULL, NULL);
+    unsigned char ndata[KEYSIZE_256];
+    mbedtls_ctr_drbg_random(&g_ssl.ctr_drbg, ndata, KEYSIZE_256);
+    secp256k1_ecdsa_sign_recoverable(secp256k1_ctx, &signature, hash, key, NULL, ndata);
 
     strData.resize(65);
     fix_sigature(signature.data, (unsigned char*)strData.c_buffer());

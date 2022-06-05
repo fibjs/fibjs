@@ -744,7 +744,9 @@ describe('crypto', () => {
                     format: 'bin'
                 });
 
-                assert.deepEqual(d1, d.slice(0, 64));
+                assert.ok(pk.verify(md, d.slice(0, 64), {
+                    format: 'bin'
+                }));
 
                 var pk2 = crypto.PKey.recover(md, d);
                 assert.deepEqual(pk2.json(), pk1.json());
