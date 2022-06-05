@@ -11,7 +11,21 @@
 #pragma warning(disable : 4244)
 #endif
 
-#include "v8.h"
+#include "v8/src/codegen/bailout-reason.h"
+#include "v8/src/objects/compressed-slots.h"
+#include "v8/src/objects/function-kind.h"
+#include "v8/src/objects/function-syntax-kind.h"
+#include "v8/src/objects/objects.h"
+#include "v8/src/objects/script.h"
+#include "v8/src/objects/slots.h"
+#include "v8/src/objects/smi.h"
+#include "v8/src/objects/struct.h"
+#include "v8/src/objects/object-macros.h"
+
+#define private public
+#include "v8/src/objects/shared-function-info.h"
+#undef private
+
 #include "v8/src/api/api-inl.h"
 #include "v8/src/utils/utils.h"
 #include "v8/src/api/api.h"
@@ -23,6 +37,8 @@
 #include "v8/src/execution/microtask-queue.h"
 
 #include "exlib/include/qstring.h"
+
+#include "v8.h"
 #include "v8_api.h"
 
 using namespace v8;
@@ -35,11 +51,18 @@ intptr_t RunMicrotaskSize(Isolate* isolate)
     return _isolate->default_microtask_queue()->size();
 }
 
-bool isFrozen(v8::Handle<v8::Object> object)
+bool isFrozen(Handle<Object> object)
 {
-    auto obj = v8::Utils::OpenHandle(*object);
-    v8::Maybe<bool> test = i::JSReceiver::TestIntegrityLevel(obj, i::FROZEN);
+    auto obj = Utils::OpenHandle(*object);
+    Maybe<bool> test = i::JSReceiver::TestIntegrityLevel(obj, i::FROZEN);
     return test.ToChecked();
+}
+
+void setAsyncFunctoin(Handle<Function> func)
+{
+    i::Handle<i::Object> obj = Utils::OpenHandle(*func);
+    i::Handle<i::JSFunction> _func = i::Handle<i::JSFunction>::cast(obj);
+    _func->shared().set_kind(i::kAsyncFunction);
 }
 
 template <bool do_callback>

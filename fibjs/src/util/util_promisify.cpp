@@ -78,6 +78,7 @@ result_t util_base::promisify(v8::Local<v8::Function> func, v8::Local<v8::Functi
     func1 = isolate->NewFunction("promisify", promisify_stub, func);
     if (func1.IsEmpty())
         return CHECK_ERROR(Runtime::setError("function alloc error."));
+    setAsyncFunctoin(func1);
 
     v8::Local<v8::Value> name = func->GetName();
     if (!name.IsEmpty())

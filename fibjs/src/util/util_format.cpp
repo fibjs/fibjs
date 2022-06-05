@@ -112,7 +112,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
             exlib::string s(isolate->toString(JSValue(obj->Get(_context, isolate->NewString("stack")))));
             strBuffer.append(color_string(COLOR_LIGHTRED, s, color));
         } else if (v->IsFunction()) {
-            exlib::string s("[Function");
+            exlib::string s(v->IsAsyncFunction() ? "[AsyncFunction" : "[Function");
             v8::String::Utf8Value n(isolate->m_isolate, v8::Local<v8::Function>::Cast(v)->GetName());
 
             if (n.length()) {

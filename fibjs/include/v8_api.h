@@ -31,5 +31,6 @@ void pauseCoverage(v8::Isolate* isolate);
 void WriteLcovData(v8::Isolate* isolate, FILE* file);
 
 bool isFrozen(v8::Handle<v8::Object> object);
+void setAsyncFunctoin(v8::Handle<v8::Function> func);
 
 } /* namespace fibjs */
