@@ -139,6 +139,12 @@ describe('process', () => {
     it('binding', () => {
         assert.equal(process.binding('process'), process);
     })
+
+    it("globalThis", () => {
+        assert.equal(globalThis, global);
+        assert.equal(globalThis.global, global);
+        assert.equal(globalThis, global.globalThis);
+    });
 });
 
 require.main === module && test.run(console.DEBUG);

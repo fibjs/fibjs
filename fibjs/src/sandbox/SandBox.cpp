@@ -91,6 +91,7 @@ void SandBox::initGlobal(v8::Local<v8::Object> global)
 
     _global->Delete(_context, isolate->NewString("console"));
     _global->Set(_context, isolate->NewString("global"), _global);
+    _global->Set(_context, isolate->NewString("globalThis"), _global);
 
     JSArray ks = global->GetPropertyNames(_context);
     int32_t len = ks->Length();
