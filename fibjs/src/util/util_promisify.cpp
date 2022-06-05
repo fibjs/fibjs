@@ -79,6 +79,10 @@ result_t util_base::promisify(v8::Local<v8::Function> func, v8::Local<v8::Functi
     if (func1.IsEmpty())
         return CHECK_ERROR(Runtime::setError("function alloc error."));
 
+    v8::Local<v8::Value> name = func->GetName();
+    if (!name.IsEmpty())
+        func1->SetName(v8::Local<v8::String>::Cast(name));
+
     retVal = func1;
 
     return 0;

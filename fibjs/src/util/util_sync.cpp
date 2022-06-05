@@ -117,6 +117,10 @@ result_t util_base::sync(v8::Local<v8::Function> func, bool async_func, v8::Loca
         func1->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")), func);
     }
 
+    v8::Local<v8::Value> name = func->GetName();
+    if (!name.IsEmpty())
+        func1->SetName(v8::Local<v8::String>::Cast(name));
+
     retVal = func1;
 
     return 0;
