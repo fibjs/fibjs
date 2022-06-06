@@ -1088,15 +1088,23 @@ describe('util', () => {
             assert.equal(util.format(() => { }), '[Function]');
 
             assert.equal(util.format([
-
                 () => { }
             ]), '[\n  [Function]\n]');
+
+            assert.equal(util.format([
+                async () => { }
+            ]), '[\n  [AsyncFunction]\n]');
 
             assert.equal(util.format({
                 a: () => { }
             }), '{\n  "a": [Function a]\n}');
 
             assert.equal(util.format(util.format), "[Function format]");
+
+            function a1() { }
+            a1.v = 100;
+
+            assert.equal(util.format(a1), "[Function a1] {\n  \"v\": 100\n}");
         });
 
         it("Symbol", () => {

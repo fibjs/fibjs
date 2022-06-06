@@ -111,15 +111,6 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
             v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
             exlib::string s(isolate->toString(JSValue(obj->Get(_context, isolate->NewString("stack")))));
             strBuffer.append(color_string(COLOR_LIGHTRED, s, color));
-        } else if (v->IsFunction()) {
-            exlib::string s(v->IsAsyncFunction() ? "[AsyncFunction" : "[Function");
-            v8::String::Utf8Value n(isolate->m_isolate, v8::Local<v8::Function>::Cast(v)->GetName());
-
-            if (n.length()) {
-                s.append(1, ' ');
-                s.append(*n, n.length());
-            }
-            strBuffer.append(color_string(COLOR_CYAN, s + ']', color));
         } else if (v->IsSymbol()) {
             exlib::string s("Symbol(");
 
@@ -131,6 +122,20 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
 
             strBuffer.append(color_string(COLOR_GREEN, s + ')', color));
         } else if (v->IsObject()) {
+            bool isFunction = false;
+
+            if (v->IsFunction()) {
+                exlib::string s(v->IsAsyncFunction() ? "[AsyncFunction" : "[Function");
+                v8::String::Utf8Value n(isolate->m_isolate, v8::Local<v8::Function>::Cast(v)->GetName());
+
+                if (n.length()) {
+                    s.append(1, ' ');
+                    s.append(*n, n.length());
+                }
+                strBuffer.append(color_string(COLOR_CYAN, s + ']', color));
+                isFunction = true;
+            }
+
             do {
                 v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
 
@@ -181,7 +186,8 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
 
                 JSArray keys = obj->GetPropertyNames(_context);
                 if (keys.IsEmpty()) {
-                    strBuffer.append("{}");
+                    if(!isFunction)
+                        strBuffer.append("{}");
                     break;
                 }
 
@@ -269,9 +275,13 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
 
                 int32_t len = keys->Length();
 
-                if (len == 0)
-                    strBuffer.append("{}");
-                else {
+                if (len == 0) {
+                    if(!isFunction)
+                        strBuffer.append("{}");
+                } else {
+                    if(isFunction)
+                        strBuffer.append(' ');
+
                     if (sz >= (depth + 1)) {
                         strBuffer.append(color_string(COLOR_CYAN, "[Object]", color));
                         break;
