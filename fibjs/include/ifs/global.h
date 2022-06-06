@@ -41,6 +41,8 @@ public:
     static result_t clearHrInterval(v8::Local<v8::Value> t);
     static result_t setImmediate(v8::Local<v8::Function> callback, OptArgs args, obj_ptr<Timer_base>& retVal);
     static result_t clearImmediate(v8::Local<v8::Value> t);
+    static result_t btoa(Buffer_base* data, bool url, exlib::string& retVal);
+    static result_t atob(exlib::string data, obj_ptr<Buffer_base>& retVal);
     static result_t GC();
 
 public:
@@ -70,6 +72,8 @@ public:
     static void s_static_clearHrInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_setImmediate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_clearImmediate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_btoa(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_atob(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_GC(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
@@ -94,6 +98,8 @@ inline ClassInfo& global_base::class_info()
         { "clearHrInterval", s_static_clearHrInterval, true, false },
         { "setImmediate", s_static_setImmediate, true, false },
         { "clearImmediate", s_static_clearImmediate, true, false },
+        { "btoa", s_static_btoa, true, false },
+        { "atob", s_static_atob, true, false },
         { "GC", s_static_GC, true, false }
     };
 
@@ -337,6 +343,39 @@ inline void global_base::s_static_clearImmediate(const v8::FunctionCallbackInfo<
     hr = clearImmediate(v0);
 
     METHOD_VOID();
+}
+
+inline void global_base::s_static_btoa(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_NAME("global.btoa");
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(bool, 1, false);
+
+    hr = btoa(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void global_base::s_static_atob(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_NAME("global.atob");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = atob(v0, vr);
+
+    METHOD_RETURN();
 }
 
 inline void global_base::s_static_GC(const v8::FunctionCallbackInfo<v8::Value>& args)

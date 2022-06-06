@@ -2,6 +2,7 @@
 #include "ifs/global.h"
 #include "ifs/coroutine.h"
 #include "ifs/process.h"
+#include "ifs/base64.h"
 #include "SandBox.h"
 #include <vector>
 
@@ -50,6 +51,16 @@ result_t global_base::get___dirname(exlib::string& retVal)
 result_t global_base::require(exlib::string id, v8::Local<v8::Value>& retVal)
 {
     return Isolate::current()->m_topSandbox->require(id, s_root + PATH_SLASH + "repl", retVal);
+}
+
+result_t global_base::btoa(Buffer_base* data, bool url, exlib::string& retVal)
+{
+    return base64_base::encode(data, url, retVal);
+}
+
+result_t global_base::atob(exlib::string data, obj_ptr<Buffer_base>& retVal)
+{
+    return base64_base::decode(data, retVal);
 }
 
 }

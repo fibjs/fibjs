@@ -202,6 +202,23 @@ declare module 'global' {
     function clearImmediate(t: any): void;
 
     /**
+     * @description 以 base64 方式编码数据
+     * 	 @param data 要编码的数据
+     * 	 @param url 指定是否使用 url 安全字符编码
+     * 	 @return 返回编码的字符串
+     * 	 
+     */
+    function btoa(data: Class_Buffer, url?: boolean): string;
+
+    /**
+     * @description 以 base64 方式解码字符串为二进制数据
+     * 	 @param data 要解码的字符串
+     * 	 @return 返回解码的二进制数据
+     * 	 
+     */
+    function atob(data: string): Class_Buffer;
+
+    /**
      * @description 强制要求进行垃圾回收
      */
     function GC(): void;

@@ -97,6 +97,11 @@ describe('encoding', () => {
         assert.deepEqual(base64.decode('//4+AA=='), base64.decode('__4-AA'));
     });
 
+    it("atob/btoa", () => {
+        assert.equal(btoa(atob('//4+AA=='), true), '__4-AA');
+        assert.deepEqual(atob('//4+AA=='), atob('__4-AA'));
+    });
+
     it('base58', () => {
         var data = [
             {
