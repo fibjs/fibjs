@@ -976,6 +976,20 @@ describe('util', () => {
             assert.equal(util.format(new Buffer('fibjs')), '<Buffer 66 69 62 6a 73>');
         });
 
+        it("Map", () => {
+            var m = new Map();
+            assert.equal(util.format(m), '[Map] {}');
+            m.set("b", "foo");
+            assert.equal(util.format(m), '[Map] {\n  \"b\" => \"foo\"\n}');
+        });
+
+        it("Set", () => {
+            var s = new Set();
+            assert.equal(util.format(s), '[Set] []');
+            s.add("b");
+            assert.equal(util.format(s), '[Set] [\n  \"b\"\n]');
+        });
+
         it("levels", () => {
             assert.equal(util.format({}), '{}');
             assert.equal(util.format([

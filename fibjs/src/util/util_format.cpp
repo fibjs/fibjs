@@ -184,9 +184,25 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
                     break;
                 }
 
-                JSArray keys = obj->GetPropertyNames(_context);
+                JSArray keys;
+
+                if (obj->IsMap()) {
+                    strBuffer.append(color_string(COLOR_CYAN, "[Map] ", color));
+                    v8::Local<v8::Map> m = v8::Local<v8::Map>::Cast(obj);
+                    JSArray vs = m->AsArray();
+                    int32_t len = vs->Length() / 2;
+
+                    if (len > 0) {
+                        keys = v8::Array::New(isolate->m_isolate);
+                        for (int32_t i = 0; i < len; i++)
+                            keys->Set(_context, i, JSValue(vs->Get(_context, i * 2)));
+                    } else
+                        keys = vs;
+                } else
+                    keys = obj->GetPropertyNames(_context);
+
                 if (keys.IsEmpty()) {
-                    if(!isFunction)
+                    if (!isFunction)
                         strBuffer.append("{}");
                     break;
                 }
@@ -215,6 +231,12 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
                 }
 
                 int32_t sz = (int32_t)stk.size();
+
+                if (v->IsSet()) {
+                    strBuffer.append(color_string(COLOR_CYAN, "[Set] ", color));
+                    v8::Local<v8::Set> s = v8::Local<v8::Set>::Cast(obj);
+                    v = s->AsArray();
+                }
 
                 if (v->IsArray()) {
                     v8::Local<v8::Array> array = v8::Local<v8::Array>::Cast(v);
@@ -276,10 +298,10 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
                 int32_t len = keys->Length();
 
                 if (len == 0) {
-                    if(!isFunction)
+                    if (!isFunction)
                         strBuffer.append("{}");
                 } else {
-                    if(isFunction)
+                    if (isFunction)
                         strBuffer.append(' ');
 
                     if (sz >= (depth + 1)) {
@@ -354,8 +376,15 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
                 TryCatch try_catch;
 
                 string_format(strBuffer, v, false);
-                strBuffer.append(": ");
-                v = JSValue(it->obj->Get(_context, v));
+
+                if (it->obj->IsMap()) {
+                    strBuffer.append(" => ");
+                    v8::Local<v8::Map> m = v8::Local<v8::Map>::Cast(it->obj);
+                    v = JSValue(m->Get(_context, v));
+                } else {
+                    strBuffer.append(": ");
+                    v = JSValue(it->obj->Get(_context, v));
+                }
             }
         } else
             break;
