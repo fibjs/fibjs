@@ -3,7 +3,7 @@
  * @email ricahrdo2016@mail.com
  * @create date 2020-06-28 16:15:41
  * @modify date 2020-06-28 16:15:41
- * @desc 
+ * @desc
  */
 
 #pragma once
@@ -111,19 +111,17 @@ public:
     }
 
 public:
-    void start()
+    result_t start()
     {
-        if (m_closed) {
-            onError(CALL_E_INVALID_CALL, "cannot re-start one closed FSWatcher");
-            return;
-        }
+        if (m_closed)
+            return CHECK_ERROR(Runtime::setError("watch: cannot re-start one closed FSWatcher."));
 
         m_vholder = new ValueHolder(wrap());
 
         if (m_Persistent)
             isolate_ref();
 
-        uv_call([&] {
+        return uv_call([&] {
             Ref();
 
             uv_fs_event_init(s_uv_loop, &m_fs_handle);

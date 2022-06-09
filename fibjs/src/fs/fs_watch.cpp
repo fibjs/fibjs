@@ -64,9 +64,7 @@ result_t fs_base::watch(exlib::string fname, v8::Local<v8::Object> options, v8::
     obj_ptr<FSWatcher> pFW = new FSWatcher(safe_name, callback, persistent, recursive);
     retVal = pFW;
 
-    pFW->start();
-
-    return 0;
+    return pFW->start();
 }
 
 result_t fs_base::watchFile(exlib::string fname, v8::Local<v8::Function> callback, obj_ptr<StatsWatcher_base>& retVal)
@@ -106,7 +104,6 @@ result_t fs_base::watchFile(exlib::string fname, v8::Local<v8::Object> options, 
         retVal = pSW;
 
         hr = pSW->start();
-
         if (hr < 0)
             return hr;
     }
