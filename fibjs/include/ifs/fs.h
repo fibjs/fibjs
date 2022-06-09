@@ -60,6 +60,7 @@ public:
     static result_t fdatasync(int32_t fd, AsyncEvent* ac);
     static result_t fsync(int32_t fd, AsyncEvent* ac);
     static result_t readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncEvent* ac);
+    static result_t readdir(exlib::string path, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac);
     static result_t openFile(exlib::string fname, exlib::string flags, obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac);
     static result_t open(exlib::string fname, exlib::string flags, int32_t mode, int32_t& retVal, AsyncEvent* ac);
     static result_t close(int32_t fd, AsyncEvent* ac);
@@ -160,6 +161,7 @@ public:
     ASYNC_STATIC1(fs_base, fdatasync, int32_t);
     ASYNC_STATIC1(fs_base, fsync, int32_t);
     ASYNC_STATICVALUE2(fs_base, readdir, exlib::string, obj_ptr<NArray>);
+    ASYNC_STATICVALUE3(fs_base, readdir, exlib::string, v8::Local<v8::Object>, obj_ptr<NArray>);
     ASYNC_STATICVALUE3(fs_base, openFile, exlib::string, exlib::string, obj_ptr<SeekableStream_base>);
     ASYNC_STATICVALUE4(fs_base, open, exlib::string, exlib::string, int32_t, int32_t);
     ASYNC_STATIC1(fs_base, close, int32_t);
@@ -729,6 +731,16 @@ inline void fs_base::s_static_readdir(const v8::FunctionCallbackInfo<v8::Value>&
         hr = acb_readdir(v0, cb, args);
     else
         hr = ac_readdir(v0, vr);
+
+    ASYNC_METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Object>, 1);
+
+    if (!cb.IsEmpty())
+        hr = acb_readdir(v0, v1, cb, args);
+    else
+        hr = ac_readdir(v0, v1, vr);
 
     METHOD_RETURN();
 }

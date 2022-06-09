@@ -626,4 +626,9 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncEven
 
     return 0;
 }
+
+result_t fs_base::readdir(exlib::string path, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+{
+    return fs_base::readdir(path, retVal, ac);
+}
 }
