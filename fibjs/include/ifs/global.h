@@ -16,6 +16,8 @@
 namespace fibjs {
 
 class Buffer_base;
+class TextDecoder_base;
+class TextEncoder_base;
 class console_base;
 class process_base;
 class Worker_base;
@@ -79,6 +81,8 @@ public:
 }
 
 #include "ifs/Buffer.h"
+#include "ifs/TextDecoder.h"
+#include "ifs/TextEncoder.h"
 #include "ifs/console.h"
 #include "ifs/process.h"
 #include "ifs/Worker.h"
@@ -105,6 +109,8 @@ inline ClassInfo& global_base::class_info()
 
     static ClassData::ClassObject s_object[] = {
         { "Buffer", Buffer_base::class_info },
+        { "TextDecoder", TextDecoder_base::class_info },
+        { "TextEncoder", TextEncoder_base::class_info },
         { "console", console_base::class_info },
         { "process", process_base::class_info }
     };

@@ -18,7 +18,7 @@ interface TextEncoder : object
  	 @param opts 指定编码选项
 	 @return 返回编码的二进制数据
 	 */
-    Buffer encode(String data, Object opts = {});
+    Buffer encode(String data = "", Object opts = {});
 
     /*! @brief 查询当前的编码字符集 */
     readonly String encoding;

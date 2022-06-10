@@ -38,6 +38,7 @@ public:
 public:
     // TextDecoder_base
     virtual result_t decode(Buffer_base* data, v8::Local<v8::Object> opts, exlib::string& retVal);
+    virtual result_t decode(exlib::string& retVal);
     virtual result_t get_encoding(exlib::string& retVal);
 
 private:

@@ -24,6 +24,7 @@ public:
     // TextDecoder_base
     static result_t _new(exlib::string codec, v8::Local<v8::Object> opts, obj_ptr<TextDecoder_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t decode(Buffer_base* data, v8::Local<v8::Object> opts, exlib::string& retVal) = 0;
+    virtual result_t decode(exlib::string& retVal) = 0;
     virtual result_t get_encoding(exlib::string& retVal) = 0;
 
 public:
@@ -98,6 +99,10 @@ inline void TextDecoder_base::s_decode(const v8::FunctionCallbackInfo<v8::Value>
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
     hr = pInst->decode(v0, v1, vr);
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->decode(vr);
 
     METHOD_RETURN();
 }

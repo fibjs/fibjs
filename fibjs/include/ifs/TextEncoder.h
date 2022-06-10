@@ -92,9 +92,9 @@ inline void TextEncoder_base::s_encode(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_INSTANCE(TextEncoder_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER(2, 0);
 
-    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 0, "");
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
 
     hr = pInst->encode(v0, v1, vr);

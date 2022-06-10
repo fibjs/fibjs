@@ -41,6 +41,11 @@ result_t TextDecoder::decode(Buffer_base* data, v8::Local<v8::Object> opts, exli
     return iconv_base::decode(m_codec, data, retVal);
 }
 
+result_t TextDecoder::decode(exlib::string& retVal)
+{
+    return 0;
+}
+
 result_t TextDecoder::get_encoding(exlib::string& retVal)
 {
     retVal = m_codec;

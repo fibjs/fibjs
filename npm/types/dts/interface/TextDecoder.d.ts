@@ -29,6 +29,13 @@ declare class Class_TextDecoder extends Class_object {
     decode(data: Class_Buffer, opts?: FIBJS.GeneralObject): string;
 
     /**
+     * @description 将二进制数据转换为文本
+     * 	 @return 返回解码的文本
+     * 	 
+     */
+    decode(): string;
+
+    /**
      * @description 查询当前的编码字符集 
      */
     readonly encoding: string;

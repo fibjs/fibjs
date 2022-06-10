@@ -26,7 +26,7 @@ declare class Class_TextEncoder extends Class_object {
      * 	 @return 返回编码的二进制数据
      * 	 
      */
-    encode(data: string, opts?: FIBJS.GeneralObject): Class_Buffer;
+    encode(data?: string, opts?: FIBJS.GeneralObject): Class_Buffer;
 
     /**
      * @description 查询当前的编码字符集 

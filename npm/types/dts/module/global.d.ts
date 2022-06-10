@@ -1,5 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
+/// <reference path="../interface/TextDecoder.d.ts" />
+/// <reference path="../interface/TextEncoder.d.ts" />
 /// <reference path="../module/console.d.ts" />
 /// <reference path="../module/process.d.ts" />
 /// <reference path="../interface/Worker.d.ts" />
@@ -12,6 +14,16 @@ declare module 'global' {
      * @description 二进制数据缓存对象，用于 io 读写的数据处理，参见 Buffer 对象。
      */
     const Buffer: typeof Class_Buffer;
+
+    /**
+     * @description TextDecoder 解码对象，参见 TextDecoder 对象。
+     */
+    const TextDecoder: typeof Class_TextDecoder;
+
+    /**
+     * @description TextEncoder 编码对象，参见 TextEncoder 对象。
+     */
+    const TextEncoder: typeof Class_TextEncoder;
 
     /**
      * @description 控制台访问对象 
