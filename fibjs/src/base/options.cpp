@@ -54,6 +54,7 @@ public:
         v8::internal::FLAG_stack_size = stack_size - GUARD_SIZE;
 
         v8::internal::FLAG_wasm_async_compilation = false;
+        v8::internal::FLAG_wasm_code_gc = false;
     }
 } s_init_v8_opt;
 
