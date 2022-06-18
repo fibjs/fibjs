@@ -36,11 +36,14 @@ jobs:
         target_arch: [amd64, i386, arm, arm64, mips, mips64]
         build_type: [release]
         include:
-          - os: windows-2019
+          - os: windows-2022
             target_arch: amd64
             build_type: release
-          - os: windows-2019
+          - os: windows-2022
             target_arch: i386
+            build_type: release
+          - os: windows-2022
+            target_arch: arm64
             build_type: release
           - os: macos-10.15
             target_arch: amd64
