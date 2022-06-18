@@ -117,6 +117,7 @@ jobs:
         run: |
           IF /I "%DIST_ARCH%" == "x64" ECHO "x64 building..." && .\build.cmd release amd64
           IF /I "%DIST_ARCH%" == "x86" ECHO "x86 building..." && .\build.cmd release i386
+          IF /I "%DIST_ARCH%" == "arm64" ECHO "arm64 building..." && .\build.cmd release arm64
         env:
           TARGET_ARCH: ${{ matrix.target_arch }}
           BUILD_TYPE: ${{ matrix.build_type }}
