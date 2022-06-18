@@ -65,9 +65,9 @@ If build Then
             ts.WriteText s
         End If
 
-        if i Mod 1000 = 0 Then
-            WScript.StdOut.Write vbCR + "processed: " + CStr(i) + " bytes."
-        End If
+        ' if i Mod 1000 = 0 Then
+        '     WScript.StdOut.Write vbCR + "processed: " + CStr(i) + " bytes."
+        ' End If
     Next
     ts.WriteText "};" + vbCRLF
 
