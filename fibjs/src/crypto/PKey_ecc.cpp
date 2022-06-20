@@ -375,7 +375,7 @@ result_t PKey_ecc::sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>&
 
     output.resize(olen);
 
-    if (ac->m_ctx[1].string() == "bin") {
+    if (ac->m_ctx[1].string() == "raw") {
         hr = der2bin(output, output);
         if (hr < 0)
             return hr;
@@ -417,7 +417,7 @@ result_t PKey_ecc::verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, 
     data->toString(str);
     sign->toString(strsign);
 
-    if (ac->m_ctx[1].string() == "bin") {
+    if (ac->m_ctx[1].string() == "raw") {
         result_t hr = bin2der(strsign, strsign);
         if (hr < 0)
             return hr;
@@ -583,7 +583,7 @@ result_t PKey_ecc::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
     hr = GetConfigValue(isolate->m_isolate, opts, "format", fmt, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
-    if (fmt != "der" && fmt != "bin")
+    if (fmt != "der" && fmt != "raw")
         return CHECK_ERROR(Runtime::setError(exlib::string("unsupported format \'") + fmt + "\'."));
     ac->m_ctx[1] = fmt;
 
@@ -630,7 +630,7 @@ result_t PKey_ecc::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<B
 
     output.resize(olen);
 
-    if (ac->m_ctx[1].string() == "bin") {
+    if (ac->m_ctx[1].string() == "raw") {
         hr = der2bin(output, output);
         if (hr < 0)
             return hr;
@@ -661,7 +661,7 @@ result_t PKey_ecc::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Ob
     data->toString(str);
     sign->toString(strsign);
 
-    if (ac->m_ctx[1].string() == "bin") {
+    if (ac->m_ctx[1].string() == "raw") {
         hr = bin2der(strsign, strsign);
         if (hr < 0)
             return hr;

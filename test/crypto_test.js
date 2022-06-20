@@ -519,7 +519,7 @@ describe('crypto', () => {
 
                 var md = hash.md5("abcdefg").digest();
 
-                pk.sign(md, { format: 'bin' });
+                pk.sign(md, { format: 'raw' });
                 assert.throws(() => {
                     pk.sign(md, { format: 'der' });
                 });
@@ -670,13 +670,13 @@ describe('crypto', () => {
                 var md = hash.md5("abcdefg").digest();
 
                 var d = pk.sign(md, {
-                    format: "bin"
+                    format: 'raw'
                 });
 
                 assert.equal(d.length, 132);
 
                 assert.isTrue(pk1.verify(md, d, {
-                    format: "bin"
+                    format: 'raw'
                 }));
 
                 assert.throws(() => {
@@ -715,13 +715,13 @@ describe('crypto', () => {
                 var md = hash.md5("abcdefg").digest();
 
                 var d = pk.sign(md, {
-                    format: "bin"
+                    format: 'raw'
                 });
 
                 assert.equal(d.length, 64);
 
                 assert.isTrue(pk1.verify(md, d, {
-                    format: "bin"
+                    format: 'raw'
                 }));
 
                 assert.throws(() => {
@@ -741,11 +741,11 @@ describe('crypto', () => {
                 });
 
                 var d1 = pk.sign(md, {
-                    format: 'bin'
+                    format: 'raw'
                 });
 
                 assert.ok(pk.verify(md, d.slice(0, 64), {
-                    format: 'bin'
+                    format: 'raw'
                 }));
 
                 var pk2 = crypto.PKey.recover(md, d);
@@ -950,13 +950,13 @@ describe('crypto', () => {
                 var md = hash.md5("abcdefg").digest();
 
                 var d = pk.sign(md, {
-                    format: "bin"
+                    format: 'raw'
                 });
 
                 assert.equal(d.length, 64);
 
                 assert.isTrue(pk1.verify(md, d, {
-                    format: "bin"
+                    format: 'raw'
                 }));
 
                 assert.throws(() => {
@@ -1010,12 +1010,12 @@ describe('crypto', () => {
                 var pk1 = crypto.generateKey("SM2");
 
                 var sig = pk.sign('abc', {
-                    format: "bin",
+                    format: 'raw',
                     to: pk1.publicKey
                 });
 
                 assert.isTrue(pk.publicKey.verify('abc', sig, {
-                    format: "bin",
+                    format: 'raw',
                     to: pk1
                 }));
             });
@@ -1045,12 +1045,12 @@ describe('crypto', () => {
                 pk.alg = 'ECSDSA';
 
                 var sig = pk.sign('abc', {
-                    format: "bin",
+                    format: 'raw',
                     to: pk1.publicKey
                 });
 
                 assert.isTrue(pk.publicKey.verify('abc', sig, {
-                    format: "bin",
+                    format: 'raw',
                     to: pk1
                 }));
             });
@@ -1180,12 +1180,12 @@ describe('crypto', () => {
                     var pk1 = crypto.generateKey(c.key.crv);
 
                     var sig = pk.sign('abc', {
-                        format: "bin",
+                        format: 'raw',
                         to: pk1.publicKey
                     });
 
                     assert.isTrue(pk.publicKey.verify('abc', sig, {
-                        format: "bin",
+                        format: 'raw',
                         to: pk1
                     }));
                 });
@@ -1479,14 +1479,14 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
         it("format", () => {
             var pk = crypto.PKey.from(g1_key);
 
-            pk.sign("abcdefg", { format: 'bin' });
+            pk.sign("abcdefg", { format: 'raw' });
             assert.throws(() => {
                 pk.sign("abcdefg", { format: 'der' });
             });
 
             var pk = crypto.PKey.from(g2_key);
 
-            pk.sign("abcdefg", { format: 'bin' });
+            pk.sign("abcdefg", { format: 'raw' });
             assert.throws(() => {
                 pk.sign("abcdefg", { format: 'der' });
             });

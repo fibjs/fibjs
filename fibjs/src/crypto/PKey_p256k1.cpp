@@ -74,11 +74,11 @@ result_t PKey_p256k1::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
         return hr;
     ac->m_ctx[2] = recoverable;
 
-    exlib::string fmt = recoverable ? "bin" : "der";
+    exlib::string fmt = recoverable ? "raw" : "der";
     hr = GetConfigValue(isolate->m_isolate, opts, "format", fmt, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
-    if (fmt != "der" && fmt != "bin")
+    if (fmt != "der" && fmt != "raw")
         return CHECK_ERROR(Runtime::setError(exlib::string("unsupported format \'") + fmt + "\'."));
     ac->m_ctx[1] = fmt;
 
@@ -120,7 +120,7 @@ result_t PKey_p256k1::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_pt
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     exlib::string fmt = ac->m_ctx[1].string();
-    if (fmt != "bin")
+    if (fmt != "raw")
         return CHECK_ERROR(Runtime::setError(exlib::string("unsupported format \'") + fmt + "\'."));
 
     exlib::string strData;

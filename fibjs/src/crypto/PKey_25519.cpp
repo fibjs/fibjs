@@ -347,7 +347,7 @@ result_t PKey_25519::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
     hr = GetConfigValue(isolate->m_isolate, opts, "format", fmt, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
-    if (fmt != "der" && fmt != "bin")
+    if (fmt != "der" && fmt != "raw")
         return CHECK_ERROR(Runtime::setError(exlib::string("unsupported format \'") + fmt + "\'."));
     ac->m_ctx[0] = fmt;
 
