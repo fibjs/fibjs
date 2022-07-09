@@ -352,6 +352,30 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                         }
                         break;
                     }
+                    case SQL_CHAR:
+                    case SQL_VARCHAR:
+                    case SQL_LONGVARCHAR: {
+                        exlib::string value;
+                        hr = SQLGetData(stmt, i + 1, SQL_C_CHAR, value.c_buffer(), 1, &len);
+                        if (hr < 0)
+                            break;
+                        if (len == SQL_NULL_DATA)
+                            v.setNull();
+                        else {
+                            value.resize(len);
+                            hr = SQLGetData(stmt, i + 1, SQL_C_CHAR, value.c_buffer(), len + 1, &len);
+                            if (hr >= 0) {
+                                if (codec == "utf8" || codec == "utf-8") {
+                                    v = value;
+                                } else {
+                                    exlib::string value1;
+                                    encoding_iconv(codec).decode(value, value1);
+                                    v = value1;
+                                }
+                            }
+                        }
+                        break;
+                    }
                     case SQL_WCHAR:
                     case SQL_WVARCHAR:
                     case SQL_WLONGVARCHAR:
