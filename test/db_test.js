@@ -9,21 +9,44 @@ var coroutine = require('coroutine');
 
 var vmid = coroutine.vmid;
 
+var DBNAME = `test`;
 var sql_server = {
-    // mysql: 'mysql://root@localhost/test',
-    // psql: 'psql://lion:123456@192.168.65.5/test',
-    // mssql: 'mssql://sa@192.168.67.63/test'
+    // for running test locally, uncomment configurations below and change it accordingly to your DB server.
+    // mysql: {
+    //     desc: '[mysql] sql db universal test',
+    //     conn_str: `mysql://root@localhost:3306/${DBNAME}`,
+    // },
+    // psql: {
+    //     desc: '[psql] sql db universal test',
+    //     conn_str: `psql://postgres@localhost:5432/${DBNAME}`,
+    // },
+    // mssql: {
+    //     desc: '[mssql] sql db universal test',
+    //     conn_str: `mssql://sa@192.168.67.63/${DBNAME}`,
+    // },
 }
 
 describe("db", () => {
-    function _test(conn_str) {
+    function _test(type, conn_str) {
         var conn;
         var tables = ['test', 'test_null', 'test2', 'test3', 'test4'];
 
+        var initDb = () => {
+            switch (type) {
+                case 'psql':
+                    conn.execute(`SELECT 'CREATE DATABASE ${DBNAME}' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '${DBNAME}')`)
+                    break;
+                case 'mssql':
+                case 'mysql':
+                    conn.execute(`CREATE DATABASE IF NOT EXISTS \`${DBNAME}\``);
+                    break;
+            }
+        }
+
         before(() => {
             conn = db.open(conn_str);
-
             // conn.codec = 'gbk';
+            initDb();
 
             tables.forEach(t => {
                 try {
@@ -1288,6 +1311,22 @@ describe("db", () => {
                 conn.execute("select count(*) from test");
             assert.equal(a, 1);
         });
+
+        switch (type) {
+            case 'mssql':
+            case 'mysql':
+            case 'psql':
+                // some special types would not be parsed correctly with old implementation,
+                // this case would failed in fibjs 0.34.0 with postgresql 14
+                it('special type for psql, but also test for other dialect', () => {
+                    var tables = conn.execute('select * from information_schema.tables;');
+                    assert.greaterThan(tables, 0);
+
+                    var columns = conn.execute('select * from information_schema.columns;');
+                    assert.greaterThan(columns, 0);
+                });
+                break;
+        }
     }
 
     describe("sqlite", () => {
@@ -1300,7 +1339,7 @@ describe("db", () => {
                 fs.unlink(path.join(__dirname, "test.db" + vmid + ".backup"));
             } catch (e) { }
         });
-        _test(conn_str);
+        _test('sqlite', conn_str);
 
         it("check synchronous mode", () => {
             var conn = db.open(conn_str);
@@ -1353,9 +1392,9 @@ describe("db", () => {
     });
 
     // if (global.full_test)
-    for (var n in sql_server)
-        describe(n, () => {
-            _test(sql_server[n]);
+    for (var type in sql_server)
+        describe(sql_server[type].desc, () => {
+            _test(type, sql_server[type].conn_str);
         });
 
     describe("leveldb", () => {
