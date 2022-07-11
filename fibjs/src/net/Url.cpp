@@ -447,25 +447,6 @@ result_t Url::parse(exlib::string url, bool parseQueryString, bool slashesDenote
     return 0;
 }
 
-bool getString(Isolate* isolate, v8::Local<v8::Object>& args,
-    const char* key, exlib::string& retVal, bool allowNumber = false)
-{
-    v8::Local<v8::Context> context = isolate->context();
-    JSValue v = args->Get(context, isolate->NewString(key));
-
-    if (!v.IsEmpty()) {
-        if (v->IsString() || v->IsStringObject()) {
-            retVal = isolate->toString(v);
-            return true;
-        } else if (allowNumber && (v->IsNumber() || v->IsNumberObject())) {
-            retVal = isolate->toString(v);
-            return true;
-        }
-    }
-
-    return false;
-}
-
 result_t Url::format(v8::Local<v8::Object> args)
 {
     clear();
@@ -476,38 +457,36 @@ result_t Url::format(v8::Local<v8::Object> args)
     exlib::string str;
     JSValue v;
 
-    if (getString(isolate, args, "protocol", str))
+    if (GetConfigValue(isolate->m_isolate, args, "protocol", str, true) >= 0)
         set_protocol(str);
 
-    if (getString(isolate, args, "username", str))
+    if (GetConfigValue(isolate->m_isolate, args, "username", str, true) >= 0)
         set_username(str);
-    if (getString(isolate, args, "password", str))
+    if (GetConfigValue(isolate->m_isolate, args, "password", str, true) >= 0)
         set_password(str);
 
-    if (getString(isolate, args, "host", str))
+    if (GetConfigValue(isolate->m_isolate, args, "host", str, true) >= 0)
         set__host(str);
-    if (getString(isolate, args, "port", str, true))
+    if (GetConfigValue(isolate->m_isolate, args, "port", str) >= 0)
         set_port(str);
 
-    if (getString(isolate, args, "hostname", str))
+    if (GetConfigValue(isolate->m_isolate, args, "hostname", str, true) >= 0)
         set_hostname(str);
 
-    if (getString(isolate, args, "pathname", str))
+    if (GetConfigValue(isolate->m_isolate, args, "pathname", str, true) >= 0)
         set_pathname(str);
 
     v = args->Get(context, holder()->NewString("query"));
     if (!IsEmpty(v))
         set_query(v);
 
-    if (getString(isolate, args, "hash", str))
+    if (GetConfigValue(isolate->m_isolate, args, "hash", str, true) >= 0)
         set_hash(str);
 
     if (m_slashes && m_protocol.compare("file:") && m_hostname.length() == 0)
         m_slashes = false;
 
-    v = args->Get(context, holder()->NewString("slashes"));
-    if (!IsEmpty(v))
-        set_slashes(isolate->toBoolean(v));
+    GetConfigValue(isolate->m_isolate, args, "slashes", m_slashes, true);
 
     return 0;
 }
