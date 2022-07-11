@@ -630,6 +630,15 @@ describe("url", () => {
             'hash': 'h',
             'query': 's'
         },
+        'https://a.com:447/a/b/c?s#h': {
+            'href': 'https://a.com:447/a/b/c?s#h',
+            'protocol': 'https',
+            'hostname': 'a.com',
+            'pathname': 'a/b/c',
+            'port': 447,
+            'hash': 'h',
+            'query': 's'
+        },
         'http://atpass:foo%40bar@127.0.0.1/': {
             'href': 'http://atpass:foo%40bar@127.0.0.1/',
             'username': 'atpass',
