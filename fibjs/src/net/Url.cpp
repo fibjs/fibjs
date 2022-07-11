@@ -448,14 +448,19 @@ result_t Url::parse(exlib::string url, bool parseQueryString, bool slashesDenote
 }
 
 bool getString(Isolate* isolate, v8::Local<v8::Object>& args,
-    const char* key, exlib::string& retVal)
+    const char* key, exlib::string& retVal, bool allowNumber = false)
 {
     v8::Local<v8::Context> context = isolate->context();
     JSValue v = args->Get(context, isolate->NewString(key));
 
-    if (!v.IsEmpty() && (v->IsString() || v->IsStringObject())) {
-        retVal = isolate->toString(v);
-        return true;
+    if (!v.IsEmpty()) {
+        if (v->IsString() || v->IsStringObject()) {
+            retVal = isolate->toString(v);
+            return true;
+        } else if (allowNumber && (v->IsNumber() || v->IsNumberObject())) {
+            retVal = isolate->toString(v);
+            return true;
+        }
     }
 
     return false;
@@ -481,7 +486,7 @@ result_t Url::format(v8::Local<v8::Object> args)
 
     if (getString(isolate, args, "host", str))
         set__host(str);
-    if (getString(isolate, args, "port", str))
+    if (getString(isolate, args, "port", str, true))
         set_port(str);
 
     if (getString(isolate, args, "hostname", str))
