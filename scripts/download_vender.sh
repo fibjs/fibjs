@@ -32,6 +32,8 @@ BIN_DIR="$FIBJS_DIR/bin"
 
 cd $FIBJS_VENDER_DIR
 
+git fetch --all --prune;
+
 LATEST_REV_CROSS_ALL_BRANCHES=`git rev-list --tags --max-count=1`
 LATEST_VENDER_TAG=`git describe --tags $LATEST_REV_CROSS_ALL_BRANCHES`
 
