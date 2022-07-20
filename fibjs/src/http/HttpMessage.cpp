@@ -214,6 +214,14 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
                         || (m_pThis->m_maxBodySize >= 0
                             && m_contentLength > (int64_t)m_pThis->m_maxBodySize * 1024 * 1024))
                         return CHECK_ERROR(Runtime::setError("HttpMessage: body is too huge."));
+
+                    if (m_pThis->m_bNoBody) {
+                        result_t hr = m_pThis->addHeader(m_strLine);
+                        if (hr < 0)
+                            return hr;
+
+                        m_headCount++;
+                    }
                 } else if (!qstricmp(m_strLine.c_str(),
                                "transfer-encoding:", 18)) {
                     _parser p(m_strLine.c_str() + 18,
@@ -230,9 +238,10 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
                         return hr;
 
                     m_headCount++;
-                    if (m_headCount > m_pThis->m_maxHeadersCount)
-                        return CHECK_ERROR(Runtime::setError("HttpMessage: too many headers."));
                 }
+
+                if (m_headCount > m_pThis->m_maxHeadersCount)
+                    return CHECK_ERROR(Runtime::setError("HttpMessage: too many headers."));
 
                 return m_stm->readLine(HTTP_MAX_LINE, m_strLine, this);
             }

@@ -1049,4 +1049,10 @@ result_t HttpClient::patch(exlib::string url, v8::Local<v8::Object> opts,
 {
     return request("PATCH", url, opts, retVal, ac);
 }
+
+result_t HttpClient::head(exlib::string url, v8::Local<v8::Object> opts,
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+{
+    return request("HEAD", url, opts, retVal, ac);
+}
 }
