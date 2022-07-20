@@ -58,6 +58,7 @@ public:
     virtual result_t del(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t put(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t patch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t head(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
     template <typename T>
@@ -93,6 +94,7 @@ public:
     static void s_del(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_put(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_patch(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_head(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE3(HttpClient_base, request, Stream_base*, HttpRequest_base*, obj_ptr<HttpResponse_base>);
@@ -103,6 +105,7 @@ public:
     ASYNC_MEMBERVALUE3(HttpClient_base, del, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_MEMBERVALUE3(HttpClient_base, put, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_MEMBERVALUE3(HttpClient_base, patch, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
+    ASYNC_MEMBERVALUE3(HttpClient_base, head, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
 };
 }
 
@@ -129,7 +132,9 @@ inline ClassInfo& HttpClient_base::class_info()
         { "put", s_put, false, true },
         { "putSync", s_put, false, false },
         { "patch", s_patch, false, true },
-        { "patchSync", s_patch, false, false }
+        { "patchSync", s_patch, false, false },
+        { "head", s_head, false, true },
+        { "headSync", s_head, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -600,6 +605,27 @@ inline void HttpClient_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& 
         hr = pInst->acb_patch(v0, v1, cb, args);
     else
         hr = pInst->ac_patch(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpClient_base::s_head(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<HttpResponse_base> vr;
+
+    METHOD_NAME("HttpClient.head");
+    METHOD_INSTANCE(HttpClient_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_head(v0, v1, cb, args);
+    else
+        hr = pInst->ac_head(v0, v1, vr);
 
     METHOD_RETURN();
 }

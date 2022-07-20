@@ -196,4 +196,10 @@ result_t http_base::patch(exlib::string url, v8::Local<v8::Object> opts,
 {
     return get_httpClient(ac->isolate())->patch(url, opts, retVal, ac);
 }
+
+result_t http_base::head(exlib::string url, v8::Local<v8::Object> opts,
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+{
+    return get_httpClient(ac->isolate())->head(url, opts, retVal, ac);
+}
 }

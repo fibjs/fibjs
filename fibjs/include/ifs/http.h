@@ -64,6 +64,7 @@ public:
     static result_t del(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t put(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t patch(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+    static result_t head(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -105,6 +106,7 @@ public:
     static void s_static_del(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_put(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_patch(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_head(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE3(http_base, request, Stream_base*, HttpRequest_base*, obj_ptr<HttpResponse_base>);
@@ -115,6 +117,7 @@ public:
     ASYNC_STATICVALUE3(http_base, del, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE3(http_base, put, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE3(http_base, patch, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
+    ASYNC_STATICVALUE3(http_base, head, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
 };
 }
 
@@ -149,7 +152,9 @@ inline ClassInfo& http_base::class_info()
         { "put", s_static_put, true, true },
         { "putSync", s_static_put, true, false },
         { "patch", s_static_patch, true, true },
-        { "patchSync", s_static_patch, true, false }
+        { "patchSync", s_static_patch, true, false },
+        { "head", s_static_head, true, true },
+        { "headSync", s_static_head, true, false }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -589,6 +594,26 @@ inline void http_base::s_static_patch(const v8::FunctionCallbackInfo<v8::Value>&
         hr = acb_patch(v0, v1, cb, args);
     else
         hr = ac_patch(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void http_base::s_static_head(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<HttpResponse_base> vr;
+
+    METHOD_NAME("http.head");
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+
+    if (!cb.IsEmpty())
+        hr = acb_head(v0, v1, cb, args);
+    else
+        hr = ac_head(v0, v1, vr);
 
     METHOD_RETURN();
 }
