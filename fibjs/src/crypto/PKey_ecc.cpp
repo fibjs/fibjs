@@ -181,9 +181,7 @@ PKey_ecc::PKey_ecc(mbedtls_pk_context& key, bool genpub)
                         mbedtls_mpi_sub_mpi(&r, &ecp->grp.P, &r);
                     }
 
-                    // secp256k1_ec_pubkey_decompress(secp256k1_ctx, (unsigned char*)data.c_buffer(), &sz);
                     mbedtls_mpi_copy(&ecp->Q.Y, &r);
-                    // mbedtls_mpi_read_binary(&ecp->Q.Y, (const unsigned char*)data.c_str() + ksz + 1, ksz);
 
                     mbedtls_mpi_free(&r);
                     mbedtls_mpi_free(&n);

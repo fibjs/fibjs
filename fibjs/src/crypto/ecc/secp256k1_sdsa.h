@@ -1,27 +1,18 @@
-#define SECP256K1_WIDEMUL_INT64 1
-#define ECMULT_WINDOW_SIZE 15
-#define ECMULT_GEN_PREC_BITS 4
-#define SECP256K1_API
 
-#define ENABLE_MODULE_ECDH 1
-#define ENABLE_MODULE_RECOVERY 1
-#define ENABLE_MODULE_EXTRAKEYS 1
-#define ENABLE_MODULE_SCHNORRSIG 1
-
-#include "secp256k1/src/secp256k1.c"
 #include "mbedtls/src/secp256k1_api.h"
+#include "secp256k1/src/secp256k1.c"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int secp256k1_ec_pubkey_decompress(const secp256k1_context* ctx, unsigned char* pubkey, int* pubkeylen);
+int secp256k1_ec_pubkey_decode(const secp256k1_context* ctx, unsigned char* pubkey, int* pubkeylen);
 
 #ifdef __cplusplus
 }
 #endif
 
-int secp256k1_ec_pubkey_decompress(const secp256k1_context* ctx, unsigned char* pubkey, int* pubkeylen)
+int secp256k1_ec_pubkey_decode(const secp256k1_context* ctx, unsigned char* pubkey, int* pubkeylen)
 {
     secp256k1_ge p;
     int ret = 0;

@@ -13,7 +13,7 @@
 #include "mbedtls/src/secp256k1_api.h"
 #include <secp256k1/include/secp256k1_recovery.h>
 
-extern "C" int secp256k1_ec_pubkey_decompress(const secp256k1_context* ctx, unsigned char* pubkey, int* pubkeylen);
+extern "C" int secp256k1_ec_pubkey_decode(const secp256k1_context* ctx, unsigned char* pubkey, int* pubkeylen);
 
 namespace fibjs {
 
@@ -33,7 +33,7 @@ PKey_p256k1::PKey_p256k1(mbedtls_pk_context& key)
             mbedtls_mpi_read_binary(&ecp->Q.X, data + 1, ksz);
 
             int32_t sz = 33;
-            secp256k1_ec_pubkey_decompress(secp256k1_ctx, data, &sz);
+            secp256k1_ec_pubkey_decode(secp256k1_ctx, data, &sz);
             mbedtls_mpi_read_binary(&ecp->Q.Y, data + ksz + 1, ksz);
         }
     }
