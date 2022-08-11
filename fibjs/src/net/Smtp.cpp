@@ -183,13 +183,17 @@ result_t Smtp::connect(exlib::string url, AsyncEvent* ac)
             m_pThis->m_stmBuffered->set_EOL("\r\n");
 
             m_stmBuffered = m_pThis->m_stmBuffered;
+            m_pThis->m_tls = true;
+
             return next();
         }
 
         virtual int32_t recv_ok()
         {
-            if (m_u->m_protocol == "ssl:")
+            if (m_u->m_protocol == "ssl:") {
+                m_pThis->m_tls = true;
                 return next();
+            }
 
             return next(m_tls ? ssl_handshake : starttls);
         }
@@ -243,7 +247,90 @@ result_t Smtp::command(exlib::string cmd, exlib::string arg, AsyncEvent* ac)
 
 result_t Smtp::hello(exlib::string hostname, AsyncEvent* ac)
 {
-    return command("HELO", hostname, ac);
+    class asyncHello : public asyncSmtp {
+    public:
+        asyncHello(Smtp* pThis, exlib::string hostname, AsyncEvent* ac)
+            : asyncSmtp(pThis, ac)
+            , m_hostname(hostname)
+            , step(0)
+        {
+            next(hello);
+        }
+
+    public:
+        ON_STATE(asyncHello, hello)
+        {
+            exlib::string s("HELO ", 5);
+
+            s.append(m_hostname);
+            s.append("\r\n", 2);
+
+            m_buf = new Buffer(s);
+            return m_stmBuffered->write(m_buf, next(ok));
+        }
+
+        ON_STATE(asyncHello, starttls)
+        {
+            m_buf = new Buffer("STARTTLS\r\n");
+            return m_stmBuffered->write(m_buf, next(ok));
+        }
+
+        ON_STATE(asyncHello, ssl_handshake)
+        {
+            obj_ptr<SslSocket> ss = new SslSocket();
+            obj_ptr<Stream_base> conn = m_pThis->m_conn;
+            m_pThis->m_conn = ss;
+
+            if (g_ssl.m_crt && g_ssl.m_key) {
+                result_t hr = ss->setCert("", g_ssl.m_crt, g_ssl.m_key);
+                if (hr < 0)
+                    return hr;
+            }
+
+            return ss->connect(conn, "", m_temp, next(ssl_connected));
+        }
+
+        ON_STATE(asyncHello, ssl_connected)
+        {
+            m_pThis->m_stmBuffered = new BufferedStream(m_pThis->m_conn);
+            m_pThis->m_stmBuffered->set_EOL("\r\n");
+
+            m_stmBuffered = m_pThis->m_stmBuffered;
+            m_pThis->m_tls = true;
+
+            step = 0;
+            return next(hello);
+        }
+
+        virtual int32_t recv_ok()
+        {
+            switch (step) {
+            case 0:
+                if (m_pThis->m_tls)
+                    break;
+                step++;
+                return next(starttls);
+            case 1:
+                step++;
+                return next(ssl_handshake);
+            }
+            return next();
+        }
+
+    private:
+        exlib::string m_hostname;
+        obj_ptr<Buffer> m_buf;
+        int32_t step;
+        int32_t m_temp;
+    };
+
+    if (!m_conn)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    return (new asyncHello(this, hostname, ac))->post(0);
 }
 
 result_t Smtp::login(exlib::string username, exlib::string password,

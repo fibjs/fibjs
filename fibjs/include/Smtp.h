@@ -16,6 +16,7 @@ class Smtp : public Smtp_base {
 public:
     Smtp()
         : m_timeout(0)
+        , m_tls(false)
     {
     }
 
@@ -39,6 +40,7 @@ private:
 public:
     int32_t m_timeout;
     obj_ptr<Stream_base> m_conn;
+    bool m_tls;
     obj_ptr<BufferedStream_base> m_stmBuffered;
 };
 
