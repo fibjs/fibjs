@@ -317,6 +317,13 @@ result_t Smtp::hello(exlib::string hostname, AsyncEvent* ac)
             return next();
         }
 
+        virtual int32_t error(int32_t v)
+        {
+            if (at(recv) && step == 1)
+                return next();
+            return v;
+        }
+
     private:
         exlib::string m_hostname;
         obj_ptr<Buffer> m_buf;
