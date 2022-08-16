@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. ./vender/build_tools/scripts/inst_deps.sh
+
 inform()
 {
 	echo ""
@@ -17,10 +19,29 @@ export WORK_ROOT=`pwd`
 SOURCE_ROOT="`dirname \"$0\"`"
 SOURCE_ROOT="`( cd \"$SOURCE_ROOT\" && pwd )`"
 
+TEMP_DIR=${SOURCE_ROOT}/out
+if [ ! -e "${TEMP_DIR}" ]; then
+	mkdir "${TEMP_DIR}"
+fi
+
+if [[ $OS == "Darwin" ]]; then
+	if [[ $ARCH == "x86_64" ]]; then
+		ensure_brew_packages "${WORK_ROOT}/tools/darwin_deps"
+	else
+		ensure_brew_packages "${WORK_ROOT}/tools/darwin_arm_deps"
+	fi
+elif [[ $OS == "Linux" ]]; then
+	if [[ $NAME =~ "Ubuntu" ]]; then
+		ensure_apt_packages "${WORK_ROOT}/tools/ubuntu_deps"
+	elif [[ $NAME =~ "CentOS" ]]; then
+		ensure_yum_packages "${WORK_ROOT}/tools/centos_deps"
+	fi
+fi
+
 if [ -f "${SOURCE_ROOT}/vender/build" ]; then 
 	if [ -z $USE_VENDER_DIST ]; then
 		cd "${SOURCE_ROOT}/vender"
-		sh build "$@"
+		bash build "$@"
 		if [ $? != 0 ]; then
 			exit 1
 		fi
@@ -30,19 +51,19 @@ else
 fi
 
 cd "${SOURCE_ROOT}/fibjs"
-sh build "$@"
+bash build "$@"
 if [ $? != 0 ]; then
 	exit 1
 fi
 
 cd "${SOURCE_ROOT}/fibjs/program"
-sh build "$@"
+bash build "$@"
 if [ $? != 0 ]; then
 	exit 1
 fi
 
 cd "${SOURCE_ROOT}/fibjs/installer"
-sh build "$@"
+bash build "$@"
 if [ $? != 0 ]; then
 	exit 1
 fi

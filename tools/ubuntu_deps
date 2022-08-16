@@ -1,0 +1,7 @@
+clang,dpkg -s
+g++,dpkg -s
+make,dpkg -s
+cmake,dpkg -s
+ccache,dpkg -s
+libx11-dev,dpkg -s
+git,dpkg -s

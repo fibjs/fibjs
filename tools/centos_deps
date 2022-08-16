@@ -1,0 +1,6 @@
+clang,rpm -qa
+gcc-c++,rpm -qa
+make,rpm -qa
+cmake,rpm -qa
+libX11-devel,rpm -qa
+git,rpm -qa

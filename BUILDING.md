@@ -169,7 +169,7 @@ git submodule update --init --recursive
 ## Build
 
 ### on unix:
-	sh build -j
+	bash build -j
 
 ### on Windows (Visual Studio 2017 Community):
 	./build.cmd

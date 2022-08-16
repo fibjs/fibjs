@@ -1,0 +1,3 @@
+cmake,/opt/homebrew/bin/cmake
+ccache,/opt/homebrew/bin/ccache
+git,/opt/homebrew/bin/git

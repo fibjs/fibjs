@@ -1,15 +1,17 @@
 {
     "version": "2.0.0",
-    "tasks": [{
-        "label": "build",
-        "command": "sh",
-        "args": [
-            "build",
-            "-j"
-        ],
-        "group": {
-            "kind": "build",
-            "isDefault": true
+    "tasks": [
+        {
+            "label": "build",
+            "command": "bash",
+            "args": [
+                "build",
+                "-j"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
-    }]
+    ]
 }
