@@ -1286,7 +1286,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 m_file->cc_write(buf);
 
                 m_stat->get_size(sz);
-                ss = niceSize((intptr_t)sz);
+                ss = niceSize((int64_t)sz);
                 padding_len = 12 - (int32_t)ss.length();
                 if (padding_len < 1)
                     padding_len = 1;
