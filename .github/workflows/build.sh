@@ -7,7 +7,7 @@ if [[ ! -z $USE_VENDER_DIST ]]; then
 fi
 
 if [[ "$TARGET_OS" != 'Windows' ]]; then
-    sh build -j2 ${TARGET_ARCH} ${BUILD_TYPE} ci
+    bash build -j2 ${TARGET_ARCH} ${BUILD_TYPE} ci
 else # Window
     exit 1;
 fi
