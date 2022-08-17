@@ -149,7 +149,7 @@ result_t Stat::get_rdev(int32_t& retVal)
 
 result_t Stat::get_size(double& retVal)
 {
-    retVal = (int32_t)size;
+    retVal = (double)size;
     return 0;
 };
 
