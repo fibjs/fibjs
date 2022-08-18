@@ -963,8 +963,18 @@ template <typename T>
 result_t GetConfigValue(v8::Isolate* isolate, v8::Local<v8::Object> o,
     const char* key, T& n, bool bStrict = false)
 {
-    v8::Local<v8::Context> context = isolate->GetCurrentContext();
-    JSValue v = o->Get(context, NewString(isolate, key));
+    JSValue v = o->Get(isolate->GetCurrentContext(), NewString(isolate, key));
+    if (IsEmpty(v))
+        return CALL_E_PARAMNOTOPTIONAL;
+
+    return GetArgumentValue(isolate, v, n, bStrict);
+}
+
+template <typename T>
+result_t GetConfigValue(v8::Isolate* isolate, v8::Local<v8::Array> o,
+    int32_t i, T& n, bool bStrict = false)
+{
+    JSValue v = o->Get(isolate->GetCurrentContext(), i);
     if (IsEmpty(v))
         return CALL_E_PARAMNOTOPTIONAL;
 
