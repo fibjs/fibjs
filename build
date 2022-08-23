@@ -33,7 +33,7 @@ if [[ $OS == "Darwin" ]]; then
 elif [[ $OS == "Linux" ]]; then
 	if [[ $NAME =~ "Ubuntu" ]]; then
 		ensure_apt_packages "${WORK_ROOT}/tools/ubuntu_deps"
-	elif [[ $NAME =~ "CentOS" ]]; then
+	elif [[ $NAME =~ "CentOS" ]] || [[ $NAME =~ "Fedora" ]]; then
 		ensure_yum_packages "${WORK_ROOT}/tools/centos_deps"
 	fi
 fi
