@@ -117,12 +117,33 @@ public:
         m_array.push_back(value);
     }
 
-    int32_t length()
+    template <typename T>
+    result_t append_array(v8::Local<v8::Array> jsarray)
+    {
+        result_t hr;
+        int32_t len = jsarray->Length();
+
+        Isolate* isolate = Isolate::current();
+
+        for (int32_t i = 0; i < len; i++) {
+            T v;
+
+            hr = GetConfigValue(isolate->m_isolate, jsarray, i, v);
+            if (hr < 0)
+                return hr;
+
+            append(v);
+        }
+
+        return 0;
+    }
+
+    int32_t length() const
     {
         return (int32_t)m_array.size();
     }
 
-    result_t _indexed_getter(int32_t idx, Variant& retVal)
+    result_t _indexed_getter(int32_t idx, Variant& retVal) const
     {
         retVal = m_array[idx];
         return 0;
