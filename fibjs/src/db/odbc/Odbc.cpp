@@ -448,7 +448,7 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
     else
         hr = 0;
 
-    SQLFreeStmt(stmt, SQL_CLOSE);
+    SQLFreeStmt(stmt, SQL_DROP);
 
     return hr;
 }
