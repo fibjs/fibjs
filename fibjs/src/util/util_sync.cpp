@@ -24,7 +24,7 @@ static void sync_callback(const v8::FunctionCallbackInfo<v8::Value>& args)
     if (len > 1)
         _data->Set(context, NewString(isolate, "_result"), args[1]);
 
-    obj_ptr<Event_base> ev = Event_base::getInstance(JSValue(_data->Get(context, NewString(isolate, "_ev"))));
+    obj_ptr<Event_base> ev = Event_base::getInstance(_data);
     ev->set();
 }
 
@@ -33,10 +33,8 @@ static void sync_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
     obj_ptr<Event_base> ev = new Event();
-    v8::Local<v8::Object> _data = v8::Object::New(isolate->m_isolate);
+    v8::Local<v8::Object> _data = ev->wrap();
     std::vector<v8::Local<v8::Value>> argv;
-
-    _data->Set(context, isolate->NewString("_ev"), ev->wrap());
 
     int32_t len = args.Length();
     int32_t i;
