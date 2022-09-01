@@ -86,11 +86,26 @@ v8::Local<v8::Value> JSFunction::Call(v8::Local<v8::Context> context, v8::Local<
             return result;
         }
 
-        if (!_promise.IsEmpty())
-            _promise->Then(context, _handlers[0], _handlers[1]);
-        else {
-            _then->Call(_then->CreationContext(), result, 2, (v8::Local<v8::Value>*)&_handlers[0]);
-            _catch->Call(_catch->CreationContext(), result, 1, (v8::Local<v8::Value>*)&_handlers[1]);
+        if (!_promise.IsEmpty()) {
+            v8::MaybeLocal<v8::Promise> r = _promise->Then(context, _handlers[0], _handlers[1]);
+            if (r.IsEmpty()) {
+                ThrowError("promise error.");
+                return result;
+            }
+        } else {
+            v8::MaybeLocal<v8::Value> v;
+
+            v = _then->Call(_then->CreationContext(), result, 2, (v8::Local<v8::Value>*)&_handlers[0]);
+            if (v.IsEmpty()) {
+                ThrowError("promise error.");
+                return result;
+            }
+
+            v = _catch->Call(_catch->CreationContext(), result, 1, (v8::Local<v8::Value>*)&_handlers[1]);
+            if (v.IsEmpty()) {
+                ThrowError("promise error.");
+                return result;
+            }
         }
 
         ev->wait();
