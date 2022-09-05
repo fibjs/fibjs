@@ -107,7 +107,10 @@ v8::Local<v8::Value> JSFunction::Call(v8::Local<v8::Context> context, v8::Local<
             }
         }
 
-        ev->wait();
+        {
+            METHOD_NAME("promise.call");
+            ev->wait();
+        }
 
         JSValue error = _data->Get(context, isolate->NewString("_error"));
         if (!error.IsEmpty() && !error->IsUndefined() && !error->IsNull())

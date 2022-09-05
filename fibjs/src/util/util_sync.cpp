@@ -63,7 +63,10 @@ static void sync_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
     if (result.IsEmpty())
         return;
 
-    ev->wait();
+    {
+        METHOD_NAME("util.sync");
+        ev->wait();
+    }
 
     JSValue error = _data->Get(context, isolate->NewString("_error"));
 

@@ -135,7 +135,11 @@ result_t LruCache::get(exlib::string name, v8::Local<v8::Function> updater,
         }
 
         e = padding->second;
-        e->wait();
+
+        {
+            METHOD_NAME("LruCache.get");
+            e->wait();
+        }
     }
 
     update(find);
