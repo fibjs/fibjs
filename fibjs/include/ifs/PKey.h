@@ -37,6 +37,7 @@ public:
     static result_t from(exlib::string pemKey, exlib::string password, obj_ptr<PKey_base>& retVal);
     static result_t from(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retVal);
     static result_t recover(Buffer_base* data, Buffer_base* sig, obj_ptr<PKey_base>& retVal, AsyncEvent* ac);
+    static result_t aggregateSignatures(v8::Local<v8::Array> sigs, obj_ptr<Buffer_base>& retVal);
     virtual result_t toX25519(obj_ptr<PKey_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t pem(exlib::string& retVal) = 0;
     virtual result_t der(obj_ptr<Buffer_base>& retVal) = 0;
@@ -64,6 +65,7 @@ public:
     static void s_clone(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_from(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_recover(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_aggregateSignatures(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toX25519(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_pem(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_der(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -97,6 +99,7 @@ inline ClassInfo& PKey_base::class_info()
         { "from", s_static_from, true, false },
         { "recover", s_static_recover, true, true },
         { "recoverSync", s_static_recover, true, false },
+        { "aggregateSignatures", s_static_aggregateSignatures, true, false },
         { "toX25519", s_toX25519, false, true },
         { "toX25519Sync", s_toX25519, false, false },
         { "pem", s_pem, false, false },
@@ -323,6 +326,22 @@ inline void PKey_base::s_static_recover(const v8::FunctionCallbackInfo<v8::Value
         hr = acb_recover(v0, v1, cb, args);
     else
         hr = ac_recover(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void PKey_base::s_static_aggregateSignatures(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_NAME("PKey.aggregateSignatures");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Array>, 0);
+
+    hr = aggregateSignatures(v0, vr);
 
     METHOD_RETURN();
 }

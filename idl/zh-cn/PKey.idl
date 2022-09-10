@@ -162,6 +162,12 @@ interface PKey : object
     */
     static PKey recover(Buffer data, Buffer sig) async;
 
+    /*! @brief 合并一组签名为一个单一签名，仅支持 BLS12381_G1 和 BLS12381_G2
+     @param sigs 待合并的一组签名
+     @return 返回合并的单一签名
+    */
+    static Buffer aggregateSignatures(Array sigs);
+
     /*! @brief 从当前对象转换 X25519 公私钥对，仅支持 Ed25519
      @return 返回对应的 X25519 公钥的对象
     */

@@ -187,14 +187,22 @@ declare class Class_PKey extends Class_object {
 
     /**
      * @description 从可恢复签名中恢复公钥，仅支持 secp256k1
-     *      @param sig 可恢复签名
      *      @param data 签名的原始数据
+     *      @param sig 可恢复签名
      *      @return 返回包含公钥的对象
      *     
      */
     static recover(data: Class_Buffer, sig: Class_Buffer): Class_PKey;
 
     static recover(data: Class_Buffer, sig: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_PKey)=>any): void;
+
+    /**
+     * @description 合并一组签名为一个单一签名，仅支持 BLS12381_G1 和 BLS12381_G2
+     *      @param sigs 待合并的一组签名
+     *      @return 返回合并的单一签名
+     *     
+     */
+    static aggregateSignatures(sigs: any[]): Class_Buffer;
 
     /**
      * @description 从当前对象转换 X25519 公私钥对，仅支持 Ed25519

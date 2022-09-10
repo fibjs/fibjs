@@ -158,14 +158,30 @@ result_t PKey_base::from(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retV
             if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
                 break;
 
-            hr = mpi_load(isolate, &ecp->Q.X, jsonKey, "x");
-            if (hr == CALL_E_PARAMNOTOPTIONAL) {
-                hr = 0;
-                break;
+            if (id == MBEDTLS_ECP_DP_BLS12381_G1) {
+                hr = PKey_bls_g1::mpi_load(isolate, &ecp->Q.X, jsonKey);
+                if (hr == CALL_E_PARAMNOTOPTIONAL) {
+                    hr = 0;
+                    break;
+                }
+            } else if (id == MBEDTLS_ECP_DP_BLS12381_G2) {
+                hr = PKey_bls_g2::mpi_load(isolate, &ecp->Q.X, jsonKey);
+                if (hr == CALL_E_PARAMNOTOPTIONAL) {
+                    hr = 0;
+                    break;
+                }
+            } else {
+                hr = mpi_load(isolate, &ecp->Q.X, jsonKey, "x");
+                if (hr == CALL_E_PARAMNOTOPTIONAL) {
+                    hr = 0;
+                    break;
+                }
+
+                mpi_load(isolate, &ecp->Q.Y, jsonKey, "y");
             }
 
-            mpi_load(isolate, &ecp->Q.Y, jsonKey, "y");
             mbedtls_mpi_lset(&ecp->Q.Z, 1);
+
         } while (false);
     }
 
