@@ -1,4 +1,4 @@
 #!/bin/sh
 echo "This program will install fibjs into /usr/local/bin."
-( read l; read l ; read l; read l; exec cat ) < "$0" | sudo tar -C /usr/local/bin/ -zxf - fibjs
+sudo mkdir -p /usr/local/bin/; ( read l; read l ; read l; read l; exec cat ) < "$0" | sudo tar -C /usr/local/bin/ -zxf - fibjs
 exit
