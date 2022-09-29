@@ -28,7 +28,7 @@ public:
 
 public:
     // Semaphore_base
-    virtual result_t wait();
+    virtual result_t wait(int32_t timeout, bool& retVal);
     virtual result_t post();
     virtual result_t trywait(bool& retVal);
 

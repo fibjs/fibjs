@@ -25,7 +25,7 @@ public:
     // Condition_base
     static result_t _new(obj_ptr<Condition_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(Lock_base* lock, obj_ptr<Condition_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t wait() = 0;
+    virtual result_t wait(int32_t timeout, bool& retVal) = 0;
     virtual result_t notify() = 0;
     virtual result_t notifyAll() = 0;
 
@@ -89,15 +89,19 @@ void Condition_base::__new(const T& args)
 
 inline void Condition_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    bool vr;
+
     METHOD_NAME("Condition.wait");
     METHOD_INSTANCE(Condition_base);
     METHOD_ENTER();
 
-    METHOD_OVER(0, 0);
+    METHOD_OVER(1, 0);
 
-    hr = pInst->wait();
+    OPT_ARG(int32_t, 0, -1);
 
-    METHOD_VOID();
+    hr = pInst->wait(v0, vr);
+
+    METHOD_RETURN();
 }
 
 inline void Condition_base::s_notify(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -35,9 +35,12 @@ declare class Class_Semaphore extends Class_Lock {
     constructor(value?: number);
 
     /**
-     * @description 等待一个信号量，等同于 acquire(true) 
+     * @description 等待一个信号量
+     *      @param timeout 指定超时时间，单位毫秒，缺省为 -1，表示永不超时。
+     *      @return 获取成功则返回 true，超时返回 false
+     *     
      */
-    wait(): void;
+    wait(timeout?: number): boolean;
 
     /**
      * @description 释放一个信号量，等同于 release() 
@@ -46,7 +49,7 @@ declare class Class_Semaphore extends Class_Lock {
 
     /**
      * @description 尝试获取一个信号，如不能获取，则立即返回并返回 false，等同于 acquire(false)
-     *      @return 获取成功则返回 true
+     *      @return 获取成功则返回 true，超时返回 false
      *      
      */
     trywait(): boolean;

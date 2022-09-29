@@ -41,13 +41,13 @@ result_t Condition::count(int32_t& retVal)
     return 0;
 }
 
-result_t Condition::wait()
+result_t Condition::wait(int32_t timeout, bool& retVal)
 {
     if (!m_lockCond->m_lock.owned())
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     Isolate::LeaveJsScope _rt(holder());
-    m_cond.wait(m_lockCond->m_lock);
+    retVal = m_cond.wait(m_lockCond->m_lock, timeout);
 
     return 0;
 }

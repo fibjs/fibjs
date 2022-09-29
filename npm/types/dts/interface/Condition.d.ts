@@ -56,9 +56,12 @@ declare class Class_Condition extends Class_Lock {
     constructor(lock: Class_Lock);
 
     /**
-     * @description 使纤程进入阻塞状态 
+     * @description 等待一个条件变量
+     *      @param timeout 指定超时时间，单位毫秒，缺省为 -1，表示永不超时。
+     *      @return 获取成功则返回 true，超时返回 false
+     *     
      */
-    wait(): void;
+    wait(timeout?: number): boolean;
 
     /**
      * @description 通知一个被阻塞的纤程（最后加入纤程池的）向下继续执行 

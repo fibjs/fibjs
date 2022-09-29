@@ -58,6 +58,12 @@ describe('lock', () => {
         assert.equal(111, v);
         run = false;
         sem.post();
+
+        var sem1 = new coroutine.Semaphore();
+        assert.equal(true, sem1.wait(10));
+        assert.equal(false, sem1.wait(10));
+        sem1.post();
+        assert.equal(true, sem1.wait(10));
     });
 
     it("Condition", () => {

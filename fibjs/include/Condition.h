@@ -34,7 +34,7 @@ public:
 
 public:
     // Condition_base
-    virtual result_t wait();
+    virtual result_t wait(int32_t timeout, bool& retVal);
     virtual result_t notify();
     virtual result_t notifyAll();
 

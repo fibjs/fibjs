@@ -28,8 +28,7 @@ result_t Semaphore::acquire(bool blocking, bool& retVal)
         return 0;
     }
 
-    retVal = true;
-    return wait();
+    return wait(-1, retVal);
 }
 
 result_t Semaphore::release()
@@ -45,13 +44,15 @@ result_t Semaphore::count(int32_t& retVal)
     return 0;
 }
 
-result_t Semaphore::wait()
+result_t Semaphore::wait(int32_t timeout, bool& retVal)
 {
-    if (m_sem.trywait())
+    if (m_sem.trywait()) {
+        retVal = true;
         return 0;
+    }
 
     Isolate::LeaveJsScope _rt(holder());
-    m_sem.wait();
+    retVal = m_sem.wait(timeout);
 
     return 0;
 }
