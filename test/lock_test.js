@@ -34,6 +34,11 @@ describe('lock', () => {
         assert.equal(true, sem.trywait());
         assert.equal(false, sem.trywait());
 
+        setImmediate(() => {
+            sem.post();
+        });
+        assert.equal(true, sem.wait());
+
         var v = 100;
         var run = true;
 
@@ -59,10 +64,17 @@ describe('lock', () => {
         run = false;
         sem.post();
 
-        var sem1 = new coroutine.Semaphore();
+        var sem1 = new coroutine.Semaphore(0);
+
+        setImmediate(() => {
+            sem1.post();
+        });
         assert.equal(true, sem1.wait(10));
         assert.equal(false, sem1.wait(10));
-        sem1.post();
+
+        setImmediate(() => {
+            sem1.post();
+        });
         assert.equal(true, sem1.wait(10));
     });
 
