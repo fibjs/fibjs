@@ -1,6 +1,11 @@
 var test = require("test");
 test.setup();
 
+var test_util = require('./test_util');
+
+var coroutine = require("coroutine");
+var http = require("http");
+
 const arr = new Proxy(['one', 'two', 'three'], {
     get: function (target, name) {
         throw 'I am exception';
@@ -27,6 +32,8 @@ const obj2 = new Proxy({}, {
         throw 'I am exception';
     }
 });
+
+var base_port = coroutine.vmid * 10000;
 
 describe('getter throw', () => {
 
@@ -55,6 +62,14 @@ describe('getter throw', () => {
             assert.equal(e, "I am exception");
         }
     }
+
+    before(() => {
+        svr = new http.Server(9980 + base_port, (r) => { });
+        svr.start();
+        test_util.push(svr.socket);
+    });
+
+    after(test_util.cleanup);
 
     it('buffer', () => {
         checkthrow([
@@ -105,38 +120,36 @@ describe('getter throw', () => {
     xit('redis', () => { });
 
     it('utils.cpp CheckConfig', () => {
-        let http = require('http');
         assert.throws(() => {
-            http.request('get', 'http://www.fibjs.org', arr);
+            http.request('get', `http://127.0.0.1:${9980 + base_port}`, arr);
         })
         assert.throws(() => {
-            http.request('get', 'http://www.fibjs.org', arr2);
+            http.request('get', `http://127.0.0.1:${9980 + base_port}`, arr2);
         })
         assert.throws(() => {
-            http.request('get', 'http://www.fibjs.org', obj);
+            http.request('get', `http://127.0.0.1:${9980 + base_port}`, obj);
         })
         assert.throws(() => {
-            http.request('get', 'http://www.fibjs.org', obj2);
+            http.request('get', `http://127.0.0.1:${9980 + base_port}`, obj2);
         })
     });
 
     it('SimpleObject', () => {
-        let http = require('http');
         checkthrow([
             () => {
-                http.get('http://www.fibjs.org', {
+                http.get(`http://127.0.0.1:${9980 + base_port}`, {
                     headers: obj
                 });
             },
         ]);
 
-        http.get('http://www.fibjs.org', {
+        http.get(`http://127.0.0.1:${9980 + base_port}`, {
             headers: arr
         });
-        http.get('http://www.fibjs.org', {
+        http.get(`http://127.0.0.1:${9980 + base_port}`, {
             headers: arr2
         });
-        http.get('http://www.fibjs.org', {
+        http.get(`http://127.0.0.1:${9980 + base_port}`, {
             headers: obj2
         });
     });
@@ -173,7 +186,6 @@ describe('getter throw', () => {
     xit('redis sortedSet', () => { });
 
     it('HttpCollection', () => {
-        let http = require('http');
         checkthrow([
             () => {
                 (new http.Request).headers.add(obj)
