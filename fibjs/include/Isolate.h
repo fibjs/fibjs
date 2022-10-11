@@ -124,8 +124,7 @@ public:
 
     void start_profiler();
 
-    typedef std::unique_ptr<v8::Platform> (*platform_creator)();
-    static void init_default_platform(platform_creator get_platform);
+    typedef v8::Platform* (*platform_creator)();
 
     void Ref();
     void Unref(int32_t hr = 0);

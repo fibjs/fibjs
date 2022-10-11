@@ -56,7 +56,8 @@ static void createBasisForFiberLoop(Isolate::platform_creator get_platform)
 
     srand((unsigned int)time(0));
 
-    Isolate::init_default_platform(get_platform);
+    v8::V8::InitializePlatform(get_platform ? get_platform() : v8::platform::NewDefaultPlatform().release());
+    v8::V8::Initialize();
 }
 
 void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), Isolate::platform_creator get_platform)

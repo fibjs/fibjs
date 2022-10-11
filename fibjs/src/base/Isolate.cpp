@@ -23,16 +23,7 @@ using namespace v8;
 
 namespace fibjs {
 
-static std::unique_ptr<v8::Platform> g_default_platform;
-
 void init_process_ipc(Isolate* isolate);
-
-void Isolate::init_default_platform(platform_creator get_platform)
-{
-    g_default_platform = get_platform ? get_platform() : v8::platform::NewDefaultPlatform();
-    v8::V8::InitializePlatform(g_default_platform.get());
-    v8::V8::Initialize();
-}
 
 exlib::LockedList<Isolate> s_isolates;
 exlib::atomic s_iso_id;
