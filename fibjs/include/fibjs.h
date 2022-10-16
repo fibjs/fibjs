@@ -11,6 +11,7 @@
 
 namespace fibjs {
 
+void importNativeModule();
 void run_gui(int argc, char* argv[]);
 void start(int32_t argc, char** argv, result_t (*main)(Isolate*), Isolate::platform_creator get_platform = NULL);
 result_t FiberProcJsEntry(Isolate* isolate);
