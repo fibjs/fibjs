@@ -25,13 +25,9 @@ if [ ! -e "${TEMP_DIR}" ]; then
 fi
 
 if [[ $OS == "Darwin" ]]; then
-	if [[ $ARCH == "x86_64" ]]; then
-		ensure_brew_packages "${WORK_ROOT}/tools/darwin_deps"
-	else
-		ensure_brew_packages "${WORK_ROOT}/tools/darwin_arm_deps"
-	fi
+	ensure_brew_packages "${WORK_ROOT}/tools/darwin_deps"
 elif [[ $OS == "Linux" ]]; then
-	if [[ $NAME =~ "Ubuntu" ]]; then
+	if [[ $NAME =~ "Ubuntu" ]] || [[ $NAME =~ "Debian" ]]; then
 		ensure_apt_packages "${WORK_ROOT}/tools/ubuntu_deps"
 	elif [[ $NAME =~ "CentOS" ]] || [[ $NAME =~ "Fedora" ]]; then
 		ensure_yum_packages "${WORK_ROOT}/tools/centos_deps"

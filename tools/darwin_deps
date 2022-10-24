@@ -1,3 +1,3 @@
-cmake,/usr/local/bin/cmake
-ccache,/usr/local/bin/ccache
-git,/usr/local/bin/git
+cmake,bin/cmake
+ccache,bin/ccache
+git,bin/git
