@@ -2764,7 +2764,7 @@ describe("http", () => {
             hc = new http.Client();
 
             try {
-                hc.get('https://registry.npmjs.org')
+                hc.get('https://www.icann.org/')
             } catch (error) {
                 assert.ok(error.message.includes('Certificate verification failed'))
             }
@@ -2775,10 +2775,9 @@ describe("http", () => {
 
             hc.sslVerification = ssl.VERIFY_OPTIONAL
 
-            var resp = hc.get('https://registry.npmjs.org');
+            var resp = hc.get('https://www.icann.org/');
 
             assert.equal(resp.statusCode, 200);
-            assert.isObject(resp.json())
         });
 
         function testEffectByHttpClient(sslVerification, cb) {
@@ -2796,28 +2795,25 @@ describe("http", () => {
         describe("disable https verification", () => {
             it("get + ssl.VERIFY_NONE", () => {
                 testEffectByHttpClient(ssl.VERIFY_NONE, hc => {
-                    var resp = hc.get('https://registry.npmjs.org');
+                    var resp = hc.get('https://www.icann.org/');
 
                     assert.equal(resp.statusCode, 200);
-                    assert.isObject(resp.json());
                 });
             });
 
             it("post + ssl.VERIFY_NONE", () => {
                 testEffectByHttpClient(ssl.VERIFY_NONE, hc => {
-                    var resp = hc.post('https://registry.npmjs.org');
+                    var resp = hc.post('https://www.icann.org/');
 
                     assert.equal(Math.floor(resp.statusCode / 10), 40);
-                    // assert.isObject(resp.json());
                 });
             });
 
             it("post + ssl.VERIFY_OPTIONAL", () => {
                 testEffectByHttpClient(ssl.VERIFY_OPTIONAL, hc => {
-                    var resp = hc.post('https://registry.npmjs.org');
+                    var resp = hc.post('https://www.icann.org/');
 
                     assert.equal(Math.floor(resp.statusCode / 10), 40);
-                    // assert.isObject(resp.json());
                 });
             });
         });
@@ -2834,7 +2830,7 @@ describe("http", () => {
             it("default", () => {
                 testEffectBySsl(undefined, () => {
                     try {
-                        hc.get('https://registry.npmjs.org')
+                        hc.get('https://www.icann.org/')
                     } catch (error) {
                         assert.ok(error.message.includes('Certificate verification failed'))
                     }
@@ -2845,10 +2841,9 @@ describe("http", () => {
                 testEffectBySsl(ssl.VERIFY_NONE, () => {
                     hc = new http.Client();
 
-                    var resp = hc.get('https://registry.npmjs.org');
+                    var resp = hc.get('https://www.icann.org/');
 
                     assert.equal(resp.statusCode, 200);
-                    assert.isObject(resp.json())
                 });
             });
 
@@ -2856,10 +2851,9 @@ describe("http", () => {
                 testEffectBySsl(ssl.VERIFY_OPTIONAL, () => {
                     hc = new http.Client();
 
-                    var resp = hc.get('https://registry.npmjs.org');
+                    var resp = hc.get('https://www.icann.org/');
 
                     assert.equal(resp.statusCode, 200);
-                    assert.isObject(resp.json())
                 });
             });
         });

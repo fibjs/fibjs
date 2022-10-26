@@ -5,7 +5,7 @@ test.setup();
 
 describe('dns', () => {
     it('dns.resolve', () => {
-        dns.resolve('fibjs.org');
+        dns.resolve('www.icann.org');
     });
 
     it('FIX: crash in dns.resolve when host is unknown', () => {
@@ -15,7 +15,7 @@ describe('dns', () => {
     });
 
     it('dns.lookup', () => {
-        dns.lookup('fibjs.org');
+        dns.lookup('www.icann.org');
     });
 
     it('FIX: error result in dns.lookup when host is unknown', () => {
@@ -25,7 +25,7 @@ describe('dns', () => {
     });
 
     it('net.resolve', () => {
-        net.resolve('fibjs.org');
+        net.resolve('www.icann.org');
     });
 
     it('FIX: crash in net.resolve when host is unknown', () => {

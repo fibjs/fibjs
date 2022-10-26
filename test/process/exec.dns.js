@@ -1,8 +1,8 @@
 const assert = require('assert')
 const dns = require('dns')
 
-dns.resolve('fibjs.org');
+dns.resolve('www.icann.org');
 console.log('resolve domain success!');
 
-dns.lookup('fibjs.org');
+dns.lookup('www.icann.org');
 console.log('lookup domain success!');
