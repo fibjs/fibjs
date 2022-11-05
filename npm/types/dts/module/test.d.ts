@@ -141,6 +141,14 @@ declare module 'test' {
     function oit(name: string, block: (...args: any[])=>any): void;
 
     /**
+     * @description 计划项目定义，test.setup 后可使用 it.todo 调用
+     *      @param name 定义项目名称
+     *      @param block 测试内容
+     *      
+     */
+    function todo(name: string, block: (...args: any[])=>any): void;
+
+    /**
      * @description 定义当前测试模块进入事件
      *      @param func 事件函数
      *      

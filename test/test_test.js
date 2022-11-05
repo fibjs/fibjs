@@ -170,6 +170,18 @@ describe("test", () => {
         });
     });
 
+    describe("todo case", () => {
+        var t = false;
+
+        todo("todo", () => {
+            t = true;
+        });
+
+        it("check", () => {
+            assert.equal(t, false);
+        });
+    });
+
     describe("async case", () => {
         var t = false;
         it("case", async () => {

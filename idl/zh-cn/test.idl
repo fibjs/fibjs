@@ -125,6 +125,12 @@ module test
      */
     static oit(String name, Function block);
 
+    /*! @brief 计划项目定义，test.setup 后可使用 it.todo 调用
+     @param name 定义项目名称
+     @param block 测试内容
+     */
+    static todo(String name, Function block);
+
     /*! @brief 定义当前测试模块进入事件
      @param func 事件函数
      */

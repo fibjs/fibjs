@@ -29,6 +29,7 @@ public:
     static result_t it(exlib::string name, v8::Local<v8::Function> block);
     static result_t xit(exlib::string name, v8::Local<v8::Function> block);
     static result_t oit(exlib::string name, v8::Local<v8::Function> block);
+    static result_t todo(exlib::string name, v8::Local<v8::Function> block);
     static result_t before(v8::Local<v8::Function> func);
     static result_t after(v8::Local<v8::Function> func);
     static result_t beforeEach(v8::Local<v8::Function> func);
@@ -56,6 +57,7 @@ public:
     static void s_static_it(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_xit(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_oit(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_todo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_before(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_after(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_beforeEach(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -80,6 +82,7 @@ inline ClassInfo& test_base::class_info()
         { "it", s_static_it, true, false },
         { "xit", s_static_xit, true, false },
         { "oit", s_static_oit, true, false },
+        { "todo", s_static_todo, true, false },
         { "before", s_static_before, true, false },
         { "after", s_static_after, true, false },
         { "beforeEach", s_static_beforeEach, true, false },
@@ -192,6 +195,21 @@ inline void test_base::s_static_oit(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG(v8::Local<v8::Function>, 1);
 
     hr = oit(v0, v1);
+
+    METHOD_VOID();
+}
+
+inline void test_base::s_static_todo(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("test.todo");
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Function>, 1);
+
+    hr = todo(v0, v1);
 
     METHOD_VOID();
 }

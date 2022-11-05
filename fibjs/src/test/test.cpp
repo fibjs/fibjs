@@ -49,9 +49,9 @@ enum {
 };
 
 class _case : public obj_base {
-    _case(exlib::string name = "", int32_t level = TEST_NORMAL)
+    _case(exlib::string name = "", int32_t level = TEST_TODO)
         : m_level(level)
-        , m_run_level(TEST_NORMAL)
+        , m_run_level(TEST_TODO)
         , m_pos(0)
         , m_error(false)
     {
@@ -71,16 +71,17 @@ class _case : public obj_base {
 public:
     enum {
         TEST_SKIP = 0,
-        TEST_NORMAL = 1,
-        TEST_ONLY = 2
+        TEST_TODO = 1,
+        TEST_NORMAL = 2,
+        TEST_ONLY = 3
     };
 
 public:
     void append(_case* c)
     {
         m_subs.append(c);
-        if (c->m_level > m_run_level)
-            m_run_level = c->m_level;
+        if (c->m_level == TEST_ONLY)
+            m_run_level = TEST_ONLY;
     }
 
 public:
@@ -234,16 +235,20 @@ public:
                     date_t d1, d2;
 
                     d1.now();
-                    v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate, p1->m_block);
-                    func->Call(func->CreationContext(), v8::Object::New(isolate->m_isolate), 0, NULL);
-                    if (try_catch.HasCaught()) {
-                        v8::Local<v8::Value> exp = try_catch.Exception();
-                        if (exp->IsFunction()) {
-                            func = v8::Local<v8::Function>::Cast(exp);
-                            try_catch.Reset();
-                            func->Call(func->CreationContext(), v8::Object::New(isolate->m_isolate), 0, NULL);
+
+                    if (p1->m_level != _case::TEST_TODO) {
+                        v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate, p1->m_block);
+                        func->Call(func->CreationContext(), v8::Object::New(isolate->m_isolate), 0, NULL);
+                        if (try_catch.HasCaught()) {
+                            v8::Local<v8::Value> exp = try_catch.Exception();
+                            if (exp->IsFunction()) {
+                                func = v8::Local<v8::Function>::Cast(exp);
+                                try_catch.Reset();
+                                func->Call(func->CreationContext(), v8::Object::New(isolate->m_isolate), 0, NULL);
+                            }
                         }
                     }
+
                     d2.now();
 
                     if (try_catch.HasCaught()) {
@@ -270,7 +275,11 @@ public:
                     } else {
                         double n = d2.diff(d1);
 
-                        str.append(logger::notice() + "\xe2\x88\x9a " + COLOR_RESET);
+                        if (p1->m_level != _case::TEST_TODO)
+                            str.append(logger::notice() + "\xe2\x88\x9a " + COLOR_RESET);
+                        else
+                            str.append(COLOR_LIGHTGREEN + "* ");
+
                         str.append(p1->m_name);
                         if (n > s_slow / 2) {
                             sprintf(buf, " (%dms) ", (int32_t)n);
@@ -412,6 +421,11 @@ result_t test_base::oit(exlib::string name, v8::Local<v8::Function> block)
     return _case::it(name, wrapFunction(block), _case::TEST_ONLY);
 }
 
+result_t test_base::todo(exlib::string name, v8::Local<v8::Function> block)
+{
+    return _case::it(name, wrapFunction(block), _case::TEST_TODO);
+}
+
 result_t test_base::before(v8::Local<v8::Function> func)
 {
     return _case::set_hook(HOOK_BEFORE, wrapFunction(func));
@@ -481,6 +495,10 @@ result_t test_base::setup()
     glob->DefineOwnProperty(_context, isolate->NewString("oit"), func1)
         .IsJust();
     func->DefineOwnProperty(_context, isolate->NewString("only"), func1)
+        .IsJust();
+
+    glob->DefineOwnProperty(_context, isolate->NewString("todo"),
+            isolate->NewFunction("todo", s_static_todo))
         .IsJust();
 
     glob->DefineOwnProperty(_context, isolate->NewString("before"),
