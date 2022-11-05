@@ -10,6 +10,15 @@
 #include "ifs/Odbc.h"
 #include "../db_tmpl.h"
 
+#ifdef _WIN32
+#include <winiconv/win_iconv.h>
+#else
+inline const char* iconv_sys_codec()
+{
+    return "utf8";
+}
+#endif
+
 namespace fibjs {
 
 result_t odbc_connect(exlib::string connString, const char* driver, int32_t port, void*& conn);
@@ -20,7 +29,7 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
 class Odbc_tmpl : public Odbc_base {
 public:
     Odbc_tmpl()
-        : m_codec("utf8")
+        : m_codec(iconv_sys_codec())
     {
     }
 
