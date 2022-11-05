@@ -4,6 +4,7 @@
 /// <reference path="../interface/TextEncoder.d.ts" />
 /// <reference path="../module/console.d.ts" />
 /// <reference path="../module/process.d.ts" />
+/// <reference path="../module/performance.d.ts" />
 /// <reference path="../interface/Worker.d.ts" />
 /// <reference path="../interface/Timer.d.ts" />
 /**
@@ -34,6 +35,11 @@ declare module 'global' {
      * @description 进程对象 
      */
     const process: typeof import ('process');
+
+    /**
+     * @description 基础性能监控模块 
+     */
+    const performance: typeof import ('performance');
 
     /**
      * @description Worker 宿主对象，仅在 Worker 入口脚本有效 

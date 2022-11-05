@@ -20,6 +20,7 @@ class TextDecoder_base;
 class TextEncoder_base;
 class console_base;
 class process_base;
+class performance_base;
 class Worker_base;
 class Timer_base;
 
@@ -85,6 +86,7 @@ public:
 #include "ifs/TextEncoder.h"
 #include "ifs/console.h"
 #include "ifs/process.h"
+#include "ifs/performance.h"
 #include "ifs/Worker.h"
 #include "ifs/Timer.h"
 
@@ -112,7 +114,8 @@ inline ClassInfo& global_base::class_info()
         { "TextDecoder", TextDecoder_base::class_info },
         { "TextEncoder", TextEncoder_base::class_info },
         { "console", console_base::class_info },
-        { "process", process_base::class_info }
+        { "process", process_base::class_info },
+        { "performance", performance_base::class_info }
     };
 
     static ClassData::ClassProperty s_property[] = {

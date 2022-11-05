@@ -16,6 +16,9 @@ module global
     /*! @brief 进程对象 */
     static process;
 
+    /*! @brief 基础性能监控模块 */
+    static performance;
+
     /*! @brief Worker 宿主对象，仅在 Worker 入口脚本有效 */
     static readonly Worker Master;
 
