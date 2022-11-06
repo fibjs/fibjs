@@ -234,7 +234,7 @@ void Isolate::init()
     global_base::class_info().Attach(this, _context->Global(), skips);
 
     m_topSandbox = new SandBox();
-    m_topSandbox->initRoot();
+    m_topSandbox->addNativeModule();
 
     auto assertion_error = "class AssertionError extends Error {"
                            "   constructor(options) {"

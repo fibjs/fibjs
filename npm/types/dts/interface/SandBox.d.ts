@@ -23,7 +23,7 @@ declare class Class_SandBox extends Class_object {
      *      @param mods 指定要添加的模块对象字典
      *      
      */
-    constructor(mods: FIBJS.GeneralObject);
+    constructor(mods?: FIBJS.GeneralObject);
 
     /**
      * @description 构造一个新的安全沙箱对象，并初始化基础模块
@@ -49,6 +49,11 @@ declare class Class_SandBox extends Class_object {
      *      
      */
     constructor(mods: FIBJS.GeneralObject, require: (...args: any[])=>any, global: FIBJS.GeneralObject);
+
+    /**
+     * @description 向沙箱中添加内置基础模块 
+     */
+    addNativeModule(): void;
 
     /**
      * @description 向沙箱中添加一个基础模块

@@ -26,6 +26,7 @@ public:
     static result_t _new(v8::Local<v8::Object> mods, v8::Local<v8::Function> require, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::Object> mods, v8::Local<v8::Object> global, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::Object> mods, v8::Local<v8::Function> require, v8::Local<v8::Object> global, obj_ptr<SandBox_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t addNativeModule() = 0;
     virtual result_t add(exlib::string id, v8::Local<v8::Value> mod) = 0;
     virtual result_t add(v8::Local<v8::Object> mods) = 0;
     virtual result_t addScript(exlib::string srcname, Buffer_base* script, v8::Local<v8::Value>& retVal) = 0;
@@ -47,6 +48,7 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_addNativeModule(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_add(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_addScript(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -69,6 +71,7 @@ namespace fibjs {
 inline ClassInfo& SandBox_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
+        { "addNativeModule", s_addNativeModule, false, false },
         { "add", s_add, false, false },
         { "addScript", s_addScript, false, false },
         { "remove", s_remove, false, false },
@@ -111,9 +114,9 @@ void SandBox_base::__new(const T& args)
     METHOD_NAME("new SandBox()");
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(1, 0);
 
-    ARG(v8::Local<v8::Object>, 0);
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate));
 
     hr = _new(v0, vr, args.This());
 
@@ -140,6 +143,19 @@ void SandBox_base::__new(const T& args)
     hr = _new(v0, v1, v2, vr, args.This());
 
     CONSTRUCT_RETURN();
+}
+
+inline void SandBox_base::s_addNativeModule(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("SandBox.addNativeModule");
+    METHOD_INSTANCE(SandBox_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->addNativeModule();
+
+    METHOD_VOID();
 }
 
 inline void SandBox_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)

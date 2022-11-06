@@ -43,6 +43,7 @@ describe("vm", () => {
         sbox.require('./vm_test/t1', __dirname).fun();
         assert.equal(1000, b.a);
     });
+
     it("has", () => {
         var b = {
             a: 1000
@@ -72,6 +73,14 @@ describe("vm", () => {
         var b = sbox.addScript("t2.js", "module.exports = {a : require('t1').a};");
         assert.equal(100, b.a);
         assert.equal(100, sbox.require("t2", __dirname).a);
+    });
+
+    it("addNativeModule", () => {
+        sbox = new vm.SandBox();
+        
+        assert.equal(false, sbox.has('coroutine'));
+        sbox.addNativeModule();
+        assert.equal(true, sbox.has('coroutine'));
     });
 
     it("compile & addScript", () => {

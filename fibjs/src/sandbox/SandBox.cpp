@@ -111,7 +111,7 @@ void SandBox::initGlobal(v8::Local<v8::Object> global)
 RootModule* RootModule::g_root = NULL;
 RootModule* RootModule::g_last = NULL;
 
-void SandBox::initRoot()
+result_t SandBox::addNativeModule()
 {
     Isolate* isolate = holder();
 
@@ -121,6 +121,8 @@ void SandBox::initRoot()
         InstallModule(pModule->name(), pModule->getModule(isolate));
         pModule = pModule->m_next;
     }
+
+    return 0;
 }
 
 result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)

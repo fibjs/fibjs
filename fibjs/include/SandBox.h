@@ -22,6 +22,7 @@ public:
 
 public:
     // SandBox_base
+    virtual result_t addNativeModule();
     virtual result_t add(exlib::string id, v8::Local<v8::Value> mod);
     virtual result_t add(v8::Local<v8::Object> mods);
     virtual result_t addScript(exlib::string srcname, Buffer_base* script, v8::Local<v8::Value>& retVal);
@@ -146,7 +147,6 @@ public:
     virtual result_t custom_resolveId(exlib::string& id, v8::Local<v8::Value>& retVal);
 
 public:
-    void initRoot();
     void initRequire(v8::Local<v8::Function> func)
     {
         SetPrivate("require", func);
