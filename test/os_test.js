@@ -11,16 +11,40 @@ var isWindows = process.platform === 'win32';
 
 describe('os', () => {
     it('stat', () => {
-        console.dir({
-            type: os.type(),
-            version: os.version,
-            CPUs: os.cpuNumbers(),
-            loadavg: os.loadavg(),
-            totalmem: os.totalmem(),
-            freemem: os.freemem()
+        assert.isDefined(os.type());
+        assert.isDefined(os.cpuNumbers());
+        assert.isDefined(os.loadavg());
+        assert.isDefined(os.totalmem());
+        assert.isDefined(os.freemem());
+    });
+
+    it('cpus', () => {
+        var r = os.cpus();
+        assert.isArray(r);
+
+        r.forEach(c => {
+            assert.property(r[0], 'model');
+            assert.property(r[0], 'speed');
+            assert.property(r[0], 'times');
         });
-        console.dir(os.cpus());
-        console.dir(os.networkInterfaces());
+    });
+
+    it('networkInterfaces', () => {
+        var r = os.networkInterfaces();
+        assert.isObject(r);
+
+        for (var n in r) {
+            var a = r[n];
+            assert.isArray(a);
+
+            a.forEach(i => {
+                assert.property(i, 'address');
+                assert.property(i, 'netmask');
+                assert.property(i, 'family');
+                assert.property(i, 'mac');
+                assert.property(i, 'internal');
+            });
+        }
     });
 
     it("nativeObjects", () => {

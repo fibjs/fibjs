@@ -178,11 +178,11 @@ declare module 'test' {
 
     /**
      * @description 开始执行定义的测试模块
-     *      @param loglevel 指定进行测试时的日志输出级别，ERROR 时，项目报错信息集中在报告后显示，低于 ERROR 时，输出信息随时显示，高于 ERROR 时，只显示报告
+     *      @param mode 指定进行测试模式，ERROR 时，项目报错信息集中在报告后显示，低于 ERROR 时，输出信息随时显示，高于 ERROR 时，只显示报告
      *      @return 返回测试用例统计结果，正确则返回 0，错误则返回错误个数
      *      
      */
-    function run(loglevel: number): number;
+    function run(mode: number): number;
 
     /**
      * @description 断言测试模块，如果测试值为假，则报错，报错行为可设定继续运行或者错误抛出 

@@ -34,7 +34,7 @@ public:
     static result_t after(v8::Local<v8::Function> func);
     static result_t beforeEach(v8::Local<v8::Function> func);
     static result_t afterEach(v8::Local<v8::Function> func);
-    static result_t run(int32_t loglevel, int32_t& retVal);
+    static result_t run(int32_t mode, int32_t& retVal);
     static result_t setup();
     static result_t get_slow(int32_t& retVal);
     static result_t set_slow(int32_t newVal);
