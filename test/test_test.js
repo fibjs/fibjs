@@ -182,6 +182,81 @@ describe("test", () => {
         });
     });
 
+    describe('hook function', () => {
+        var steps = [];
+
+        describe('before/after', () => {
+            before(() => {
+                steps.push('before');
+            });
+
+            after(() => {
+                steps.push('after');
+            });
+
+            beforeEach(() => {
+                steps.push('before each 1');
+            });
+
+            beforeEach(() => {
+                steps.push('before each 2');
+            });
+
+            afterEach(() => {
+                steps.push('after each 1');
+            });
+
+            afterEach(() => {
+                steps.push('after each 2');
+            });
+
+            xit('skip', () => {
+                steps.push('skip');
+            });
+
+            todo('todo', () => {
+                steps.push('todo');
+            });
+
+            it('test', () => {
+                steps.push('test');
+            });
+
+            describe('sub describe', () => {
+                beforeEach(() => {
+                    steps.push('sub before each 2');
+                });
+
+                afterEach(() => {
+                    steps.push('sub after each 1');
+                });
+
+                it('test', () => {
+                    steps.push('sub test');
+                });
+            });
+        });
+
+        it("check", () => {
+            assert.deepEqual(steps, [
+                "before",
+                "before each 1",
+                "before each 2",
+                "test",
+                "after each 2",
+                "after each 1",
+                "before each 1",
+                "before each 2",
+                "sub before each 2",
+                "sub test",
+                "sub after each 1",
+                "after each 2",
+                "after each 1",
+                "after"
+            ]);
+        });
+    });
+
     describe("async case", () => {
         var t = false;
         it("case", async () => {

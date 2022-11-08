@@ -43,19 +43,17 @@ public:
 
 enum {
     HOOK_BEFORE = 0,
-    HOOK_AFTER = 1,
-    HOOK_BEFORECASE = 2,
-    HOOK_AFTERCASE = 3,
+    HOOK_AFTER,
+    HOOK_BEFORECASE,
+    HOOK_AFTERCASE
 };
 
 class _case : public obj_base {
     _case(exlib::string name = "", int32_t level = TEST_TODO)
         : m_level(level)
         , m_run_level(TEST_TODO)
-        , m_pos(0)
-        , m_error(false)
     {
-        m_name = name;
+        m_title = name;
     }
 
     ~_case()
@@ -71,9 +69,10 @@ class _case : public obj_base {
 public:
     enum {
         TEST_SKIP = 0,
-        TEST_TODO = 1,
-        TEST_NORMAL = 2,
-        TEST_ONLY = 3
+        TEST_TODO,
+        TEST_NORMAL,
+        TEST_ONLY,
+        TEST_NONE
     };
 
 public:
@@ -146,7 +145,7 @@ public:
         return 0;
     }
 
-    static result_t run(int32_t mode, int32_t& retVal)
+    static result_t run(int32_t mode, v8::Local<v8::Object>& retVal)
     {
         TestData* td = TestData::current();
 
@@ -163,28 +162,33 @@ public:
         QuickArray<exlib::string> msgs;
         int32_t i, j;
         int32_t oldlevel = 0;
-        int32_t cnt = 0, errcnt = 0;
+        int32_t errcnt = 0;
         char buf[128];
-        date_t da1, da2;
 
         stack.append(td->m_root);
 
-        da1.now();
-
         Isolate* isolate = Isolate::current();
+        v8::Local<v8::Context> _context = isolate->context();
 
         while (stack.size()) {
-            v8::HandleScope handle_scope(isolate->m_isolate);
             _case* p = stack[stack.size() - 1];
             _case *p1, *p2;
 
             if (p->m_pos == 0) {
-                for (i = 0; i < (int32_t)p->m_hooks[HOOK_BEFORE].size(); i++) {
-                    v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate,
-                        p->m_hooks[HOOK_BEFORE][i]);
-                    if (func->Call(func->CreationContext(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
-                        clear();
-                        return 0;
+                p->m_begin.now();
+                p->m_retVal = v8::Object::New(isolate->m_isolate);
+                p->m_retVal_tests = v8::Array::New(isolate->m_isolate);
+
+                if (p->m_run_level != TEST_NONE) {
+                    v8::HandleScope handle_scope(isolate->m_isolate);
+
+                    for (i = 0; i < (int32_t)p->m_hooks[HOOK_BEFORE].size(); i++) {
+                        v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate,
+                            p->m_hooks[HOOK_BEFORE][i]);
+                        if (func->Call(func->CreationContext(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
+                            clear();
+                            return 0;
+                        }
                     }
                 }
             }
@@ -193,15 +197,16 @@ public:
                 exlib::string str(stack.size() * 2, ' ');
 
                 p1 = p->m_subs[p->m_pos++];
-                if (p->m_run_level > p1->m_level)
-                    continue;
 
                 if (p1->m_block.IsEmpty()) {
                     if (stack.size() == 1)
                         asyncLog(console_base::C_INFO, "");
 
+                    if (p1->m_level < p->m_run_level)
+                        p1->m_run_level = TEST_NONE;
+
                     str.append(logger::highLight());
-                    str.append(p1->m_name);
+                    str.append(p1->m_title);
                     str.append(COLOR_RESET);
 
                     asyncLog(console_base::C_INFO, str);
@@ -210,26 +215,31 @@ public:
                     continue;
                 }
 
-                for (j = 0; j < (int32_t)stack.size(); j++) {
-                    p2 = stack[j];
-                    for (i = 0; i < (int32_t)p2->m_hooks[HOOK_BEFORECASE].size(); i++) {
-                        v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate,
-                            p2->m_hooks[HOOK_BEFORECASE][i]);
-                        if (func->Call(func->CreationContext(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
-                            clear();
-                            return 0;
+                if (p1->m_level >= p->m_run_level && p1->m_level != _case::TEST_TODO) {
+                    v8::HandleScope handle_scope(isolate->m_isolate);
+
+                    for (j = 0; j < (int32_t)stack.size(); j++) {
+                        p2 = stack[j];
+                        for (i = 0; i < (int32_t)p2->m_hooks[HOOK_BEFORECASE].size(); i++) {
+                            v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate,
+                                p2->m_hooks[HOOK_BEFORECASE][i]);
+                            if (func->Call(func->CreationContext(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
+                                clear();
+                                return 0;
+                            }
                         }
                     }
                 }
 
-                cnt++;
                 {
                     TryCatch try_catch;
                     date_t d1, d2;
 
                     d1.now();
 
-                    if (p1->m_level != _case::TEST_TODO) {
+                    if (p1->m_level >= p->m_run_level && p1->m_level != _case::TEST_TODO) {
+                        v8::HandleScope handle_scope(isolate->m_isolate);
+
                         v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate, p1->m_block);
                         func->Call(func->CreationContext(), v8::Object::New(isolate->m_isolate), 0, NULL);
                         if (try_catch.HasCaught()) {
@@ -243,41 +253,60 @@ public:
                     }
 
                     d2.now();
+                    p1->m_duration = d2.diff(d1);
 
+                    v8::Local<v8::Object> val = v8::Object::New(isolate->m_isolate);
+
+                    val->Set(_context, isolate->NewString("title"), isolate->NewString(p1->m_title));
+
+                    p->m_total++;
                     if (try_catch.HasCaught()) {
+                        p->m_fail++;
                         sprintf(buf, "%d) ", ++errcnt);
 
-                        p1->m_error = true;
+                        p1->m_status = false;
+                        p->m_status = false;
+
                         if (mode > console_base::C_ERROR)
                             ReportException(try_catch, 0);
                         else if (mode == console_base::C_ERROR) {
                             exlib::string str1(buf);
 
                             for (i = 1; i < (int32_t)stack.size(); i++) {
-                                str1.append(stack[i]->m_name);
+                                str1.append(stack[i]->m_title);
                                 str1.append(" ", 1);
                             }
-                            str1.append(p1->m_name);
+                            str1.append(p1->m_title);
                             names.append(logger::highLight() + str1 + COLOR_RESET);
 
                             msgs.append(GetException(try_catch, 0));
                         }
 
+                        val->Set(_context, isolate->NewString("status"), isolate->NewString("failed"));
+                        val->Set(_context, isolate->NewString("trace"), isolate->NewString(GetException(try_catch, 0)));
+
                         str.append(buf);
-                        str.append(p1->m_name);
+                        str.append(p1->m_title);
                     } else {
-                        double n = d2.diff(d1);
-
-                        if (p1->m_level != _case::TEST_TODO)
+                        if (p1->m_level == _case::TEST_TODO) {
+                            p->m_todo++;
+                            val->Set(_context, isolate->NewString("status"), isolate->NewString("todo"));
+                            str.append(COLOR_CYAN + "\xe2\x98\x90 ");
+                        } else if (p1->m_level < p->m_run_level) {
+                            p->m_skip++;
+                            val->Set(_context, isolate->NewString("status"), isolate->NewString("skipped"));
+                            str.append(COLOR_GREY + "\xe2\x97\x8b ");
+                        } else {
+                            p->m_pass++;
+                            val->Set(_context, isolate->NewString("status"), isolate->NewString("passed"));
                             str.append(logger::notice() + "\xe2\x88\x9a " + COLOR_RESET);
-                        else
-                            str.append(COLOR_LIGHTGREEN + "* ");
+                        }
 
-                        str.append(p1->m_name);
-                        if (n > s_slow / 2) {
-                            sprintf(buf, " (%dms) ", (int32_t)n);
+                        str.append(p1->m_title);
+                        if (p1->m_duration > s_slow / 2) {
+                            sprintf(buf, " (%dms) ", (int32_t)p1->m_duration);
 
-                            if (n > s_slow)
+                            if (p1->m_duration > s_slow)
                                 str.append(logger::error());
                             else
                                 str.append(logger::warn());
@@ -286,50 +315,116 @@ public:
                             str.append(COLOR_RESET);
                         }
                     }
+
+                    val->Set(_context, isolate->NewString("duration"), v8::Number::New(isolate->m_isolate, p1->m_duration));
+
+                    p->m_retVal_tests->Set(_context, p->m_pos - 1, val);
                 }
 
-                if (p1->m_error)
+                if (!p1->m_status)
                     asyncLog(console_base::C_INFO, logger::error() + str + COLOR_RESET);
                 else
                     asyncLog(console_base::C_INFO, str);
 
-                for (j = (int32_t)stack.size() - 1; j >= 0; j--) {
-                    p2 = stack[j];
-                    for (i = (int32_t)p2->m_hooks[HOOK_AFTERCASE].size() - 1; i >= 0; i--) {
-                        v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate,
-                            p2->m_hooks[HOOK_AFTERCASE][i]);
-                        if (func->Call(func->CreationContext(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
-                            clear();
-                            return 0;
+                if (p1->m_level >= p->m_run_level && p1->m_level != _case::TEST_TODO) {
+                    v8::HandleScope handle_scope(isolate->m_isolate);
+
+                    for (j = (int32_t)stack.size() - 1; j >= 0; j--) {
+                        p2 = stack[j];
+                        for (i = (int32_t)p2->m_hooks[HOOK_AFTERCASE].size() - 1; i >= 0; i--) {
+                            v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate,
+                                p2->m_hooks[HOOK_AFTERCASE][i]);
+                            if (func->Call(func->CreationContext(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
+                                clear();
+                                return 0;
+                            }
                         }
                     }
                 }
             }
 
             if (p->m_pos == (int32_t)p->m_subs.size()) {
-                for (i = (int32_t)p->m_hooks[HOOK_AFTER].size() - 1; i >= 0; i--) {
-                    v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate,
-                        p->m_hooks[HOOK_AFTER][i]);
-                    if (func->Call(func->CreationContext(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
-                        clear();
-                        return 0;
+                if (p->m_run_level != TEST_NONE) {
+                    v8::HandleScope handle_scope(isolate->m_isolate);
+
+                    for (i = (int32_t)p->m_hooks[HOOK_AFTER].size() - 1; i >= 0; i--) {
+                        v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate,
+                            p->m_hooks[HOOK_AFTER][i]);
+                        if (func->Call(func->CreationContext(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
+                            clear();
+                            return 0;
+                        }
                     }
                 }
+
+                date_t d2;
+
+                d2.now();
+                p->m_duration = d2.diff(p->m_begin);
+
+                if (stack.size() > 1)
+                    p->m_retVal->Set(_context, isolate->NewString("title"), isolate->NewString(p->m_title));
+
+                p->m_retVal->Set(_context, isolate->NewString("status"), p->m_status ? isolate->NewString("passed") : isolate->NewString("failed"));
+
+                p->m_retVal->Set(_context, isolate->NewString("total"), v8::Number::New(isolate->m_isolate, p->m_total));
+
+                if (p->m_pass)
+                    p->m_retVal->Set(_context, isolate->NewString("passed"), v8::Number::New(isolate->m_isolate, p->m_pass));
+                if (p->m_fail)
+                    p->m_retVal->Set(_context, isolate->NewString("failed"), v8::Number::New(isolate->m_isolate, p->m_fail));
+                if (p->m_todo)
+                    p->m_retVal->Set(_context, isolate->NewString("todo"), v8::Number::New(isolate->m_isolate, p->m_todo));
+                if (p->m_skip)
+                    p->m_retVal->Set(_context, isolate->NewString("skipped"), v8::Number::New(isolate->m_isolate, p->m_skip));
+
+                p->m_retVal->Set(_context, isolate->NewString("duration"), v8::Number::New(isolate->m_isolate, p->m_duration));
+
+                p->m_retVal->Set(_context, isolate->NewString("tests"), p->m_retVal_tests);
+
                 stack.pop();
+
+                if (stack.size() > 0) {
+                    p1 = stack[stack.size() - 1];
+
+                    p1->m_retVal_tests->Set(_context, p1->m_pos - 1, p->m_retVal);
+
+                    p1->m_total += p->m_total;
+                    p1->m_pass += p->m_pass;
+                    p1->m_fail += p->m_fail;
+                    p1->m_skip += p->m_skip;
+                    p1->m_todo += p->m_todo;
+                    if (!p->m_status)
+                        p1->m_status = false;
+                }
             }
         }
 
         asyncLog(console_base::C_INFO, "");
 
-        da2.now();
-        if (errcnt == 0) {
+        sprintf(buf,
+            (logger::highLight() + "    %d tests completed" + COLOR_RESET + " (%dms)").c_str(),
+            td->m_root->m_total, (int32_t)td->m_root->m_duration);
+        asyncLog(console_base::C_INFO, buf);
+
+        if (td->m_root->m_pass) {
             sprintf(buf,
-                (logger::notice() + "  \xe2\x88\x9a %d tests completed" + COLOR_RESET + " (%dms)").c_str(),
-                cnt, (int32_t)da2.diff(da1));
+                (logger::notice() + "  \xe2\x88\x9a %d tests passed" + COLOR_RESET).c_str(), td->m_root->m_pass);
             asyncLog(console_base::C_INFO, buf);
-        } else {
-            sprintf(buf, (logger::error() + "  × %d of %d tests failed" + COLOR_RESET + " (%dms)").c_str(),
-                errcnt, cnt, (int32_t)da2.diff(da1));
+        }
+
+        if (td->m_root->m_fail) {
+            sprintf(buf, (logger::error() + "  \xc3\x97 %d tests failed" + COLOR_RESET).c_str(), td->m_root->m_fail);
+            asyncLog(console_base::C_INFO, buf);
+        }
+
+        if (td->m_root->m_todo) {
+            sprintf(buf, (COLOR_CYAN + "  \xe2\x98\x90 %d todo tests" + COLOR_RESET).c_str(), td->m_root->m_todo);
+            asyncLog(console_base::C_INFO, buf);
+        }
+
+        if (td->m_root->m_skip) {
+            sprintf(buf, (COLOR_GREY + "  \xe2\x97\x8b %d tests skipped" + COLOR_RESET).c_str(), td->m_root->m_skip);
             asyncLog(console_base::C_INFO, buf);
         }
 
@@ -340,9 +435,12 @@ public:
             asyncLog(console_base::C_INFO, logger::error() + msgs[i] + COLOR_RESET);
         }
 
+        retVal = td->m_root->m_retVal;
+
         clear();
 
-        retVal = errcnt;
+        if (errcnt)
+            process_base::set_exitCode(errcnt);
 
         return 0;
     }
@@ -356,14 +454,27 @@ public:
     }
 
 private:
-    exlib::string m_name;
+    exlib::string m_title;
+    int32_t m_total = 0;
+    int32_t m_pass = 0;
+    int32_t m_fail = 0;
+    int32_t m_skip = 0;
+    int32_t m_todo = 0;
+
+    bool m_status = true;
+
+    date_t m_begin;
+    double m_duration = 0;
+
+    v8::Local<v8::Object> m_retVal;
+    v8::Local<v8::Array> m_retVal_tests;
+
     v8::Global<v8::Function> m_block;
     int32_t m_level;
     int32_t m_run_level;
     QuickArray<obj_ptr<_case>> m_subs;
     QuickArray<v8::Global<v8::Function>> m_hooks[4];
-    int32_t m_pos;
-    bool m_error;
+    int32_t m_pos = 0;
 };
 
 inline v8::Local<v8::Function> wrapFunction(v8::Local<v8::Function> func)
@@ -434,11 +545,9 @@ result_t test_base::afterEach(v8::Local<v8::Function> func)
     return _case::set_hook(HOOK_AFTERCASE, wrapFunction(func));
 }
 
-result_t test_base::run(int32_t mode, int32_t& retVal)
+result_t test_base::run(int32_t mode, v8::Local<v8::Object>& retVal)
 {
-    result_t hr = _case::run(mode, retVal);
-    process_base::set_exitCode(retVal);
-    return hr;
+    return _case::run(mode, retVal);
 }
 
 result_t test_base::setup()

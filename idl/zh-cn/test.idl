@@ -152,10 +152,48 @@ module test
     static afterEach(Function func);
 
     /*! @brief 开始执行定义的测试模块
+
+    测试运行完成后，将以以下形式返回测试结果：
+    ```JavaScript
+    {
+        "total": 2, // 总测试项目数
+        "pass": 2, // 通过测试项目数
+        "fail": 0, // 失败测试项目数
+        "skip": 0, // 跳过测试项目数
+        "todo": 0, // 计划测试项目数
+        "time": 0.000000, // 测试耗时
+        "cases": [ // 测试项目列表
+            {
+                "name": "test", // 测试项目名称
+                "time": 0.000000, // 测试耗时
+                "result": true, // 测试结果
+                "error": null // 测试错误信息
+            },
+            {
+                "name": "sub cases", // 测试组名称
+                "total": 1, // 总测试项目数
+                "pass": 1, // 通过测试项目数
+                "fail": 0, // 失败测试项目数
+                "skip": 0, // 跳过测试项目数
+                "todo": 0, // 计划测试项目数
+                "time": 0.000000, // 测试耗时
+                "cases": [ // 测试项目列表
+                    {
+                        "name": "test", // 测试项目名称
+                        "time": 0.000000, // 测试耗时
+                        "result": true, // 测试结果
+                        "error": null // 测试错误信息
+                    }
+                ]
+            }
+        ]
+    }
+    ```
+
      @param mode 指定进行测试模式，ERROR 时，项目报错信息集中在报告后显示，低于 ERROR 时，输出信息随时显示，高于 ERROR 时，只显示报告
-     @return 返回测试用例统计结果，正确则返回 0，错误则返回错误个数
+     @return 返回测试结果
      */
-    static Integer run(Integer mode = console.ERROR);
+    static Object run(Integer mode = console.ERROR);
 
     /*! @brief 断言测试模块，如果测试值为假，则报错，报错行为可设定继续运行或者错误抛出 */
     static assert;

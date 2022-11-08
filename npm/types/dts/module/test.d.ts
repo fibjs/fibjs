@@ -182,7 +182,7 @@ declare module 'test' {
      *      @return 返回测试用例统计结果，正确则返回 0，错误则返回错误个数
      *      
      */
-    function run(mode: number): number;
+    function run(mode: number): FIBJS.GeneralObject;
 
     /**
      * @description 断言测试模块，如果测试值为假，则报错，报错行为可设定继续运行或者错误抛出 

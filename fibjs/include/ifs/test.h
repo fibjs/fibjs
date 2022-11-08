@@ -34,7 +34,7 @@ public:
     static result_t after(v8::Local<v8::Function> func);
     static result_t beforeEach(v8::Local<v8::Function> func);
     static result_t afterEach(v8::Local<v8::Function> func);
-    static result_t run(int32_t mode, int32_t& retVal);
+    static result_t run(int32_t mode, v8::Local<v8::Object>& retVal);
     static result_t setup();
     static result_t get_slow(int32_t& retVal);
     static result_t set_slow(int32_t newVal);
@@ -272,7 +272,7 @@ inline void test_base::s_static_afterEach(const v8::FunctionCallbackInfo<v8::Val
 
 inline void test_base::s_static_run(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    int32_t vr;
+    v8::Local<v8::Object> vr;
 
     METHOD_NAME("test.run");
     METHOD_ENTER();

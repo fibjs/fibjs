@@ -65,6 +65,7 @@ describe("buffered stream", () => {
         }
 
         ss = new net.Socket();
+        console.log(ss);
         ss.bind(8182 + base_port);
         ss.listen();
         coroutine.start(accept1, ss);
