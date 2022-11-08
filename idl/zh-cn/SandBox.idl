@@ -17,7 +17,7 @@ interface SandBox : object
     /*! @brief 构造一个新的安全沙箱对象，并初始化基础模块
      @param mods 指定要添加的模块对象字典
      */
-    SandBox(Object mods);
+    SandBox(Object mods = {});
 
     /*! @brief 构造一个新的安全沙箱对象，并初始化基础模块
      @param mods 指定要添加的模块对象字典
@@ -37,6 +37,9 @@ interface SandBox : object
      @param global 指定初始化的 Global 属性
      */
     SandBox(Object mods, Function require, Object global);
+
+    /*! @brief 向沙箱中添加内置基础模块 */
+    addNativeModule();
 
     /*! @brief 向沙箱中添加一个基础模块
      @param id 指定要添加的模块名称，此路径与当前运行脚本无关，必须为绝对路径或者模块名
