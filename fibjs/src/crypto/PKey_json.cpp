@@ -28,7 +28,7 @@ static void mpi_dump(Isolate* isolate, v8::Local<v8::Object> o, exlib::string ke
     int32_t sz = (int32_t)mbedtls_mpi_size(n);
     if (sz) {
         if (ksz)
-            sz = ksz;
+            sz = (int32_t)ksz;
 
         data.resize(sz);
         mbedtls_mpi_write_binary(n, (unsigned char*)data.c_buffer(), sz);
