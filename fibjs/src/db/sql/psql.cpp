@@ -23,9 +23,9 @@ result_t db_base::openPSQL(exlib::string connString, obj_ptr<DbConnection_base>&
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
 #ifdef _WIN32
-    const char* driver = "PostgreSQL ANSI";
+    const char* driver = "PostgreSQL UNICODE";
 #else
-    const char* driver = "psqlodbca.so";
+    const char* driver = "psqlodbcw.so";
 #endif
     int32_t port = 5432;
     obj_ptr<psql> conn = new psql();
