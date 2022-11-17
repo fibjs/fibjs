@@ -26,14 +26,14 @@ const install_log = process.env.FIBJS_SILENT_INSALL ? () => undefined : console.
 ssl.loadRootCerts();
 
 const hc = new http.Client();
-if (process.env.http_proxy) {
-    hc.proxyAgent = process.env.http_proxy;
+if (process.env.http_proxy || process.env.HTTP_PROXY) {
+    hc.proxyAgent = process.env.http_proxy || process.env.HTTP_PROXY;
     console.log(`[install] http request using proxy: ${hc.proxyAgent}`);
 }
 
 const hcs = new http.Client();
-if (process.env.https_proxy) {
-    hcs.proxyAgent = process.env.https_proxy;
+if (process.env.https_proxy || process.env.HTTPS_PROXY) {
+    hcs.proxyAgent = process.env.https_proxy || process.env.HTTPS_PROXY;
     console.log(`[install] https request using proxy: ${hcs.proxyAgent}`);
 }
 
