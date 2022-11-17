@@ -35,6 +35,9 @@ const hcs = new http.Client();
 if (process.env.https_proxy || process.env.HTTPS_PROXY) {
     hcs.proxyAgent = process.env.https_proxy || process.env.HTTPS_PROXY;
     console.log(`[install] https request using proxy: ${hcs.proxyAgent}`);
+} else if (hc.proxyAgent) {
+    hcs.proxyAgent = hc.proxyAgent;
+    console.log(`[install] https request using proxy: ${hcs.proxyAgent}`);
 }
 
 const json_format = (function () {
