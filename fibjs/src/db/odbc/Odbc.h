@@ -29,7 +29,7 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
 class Odbc_tmpl : public Odbc_base {
 public:
     Odbc_tmpl()
-        : m_codec(iconv_sys_codec())
+        : m_codec("utf8")
     {
     }
 
