@@ -439,6 +439,33 @@ declare module 'fs' {
     function readLines(fname: string, maxlines?: number): any[];
 
     /**
+     * @description 根据文件描述符，向文件写入内容
+     *      @param fd 文件描述符
+     *      @param buffer 待写入的 Buffer 对象
+     *      @param offset Buffer 数据读取偏移量， 默认为 0
+     *      @param length 文件写入字节数，默认为 -1
+     *      @param position 文件写入取位置，默认为当前文件位置
+     *      @return 实际写入的字节数
+     *      
+     */
+    function write(fd: number, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
+
+    function write(fd: number, buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
+     * @description 根据文件描述符，向文件写入内容
+     *      @param fd 文件描述符
+     *      @param string 待写入的字符串
+     *      @param position 文件写入取位置，默认为当前文件位置
+     *      @param encoding 指定解码方式，缺省解码 utf8
+     *      @return 实际写入的字节数
+     *      
+     */
+    function write(fd: number, string: string, position?: number, encoding?: string): number;
+
+    function write(fd: number, string: string, position?: number, encoding?: string, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
+
+    /**
      * @description 创建文本文件，并写入内容
      *      @param fname 指定文件名
      *      @param txt 指定要写入的字符串

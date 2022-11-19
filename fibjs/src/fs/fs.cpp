@@ -232,8 +232,6 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
     if (offset < 0 || offset >= bufLength)
         return Runtime::setError("fs: Offset is out of bounds");
 
-    exlib::string strBuf;
-
     if (length < 0 || (offset + length > bufLength)) {
         return Runtime::setError("fs: Length extends beyond buffer");
     }
@@ -243,6 +241,7 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
             return CHECK_ERROR(LastError());
     }
 
+    exlib::string strBuf;
     if (length > 0) {
         strBuf.resize(length);
         int32_t sz = length;
@@ -268,6 +267,71 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
     }
 
     return buffer->write(strBuf, offset, (int32_t)strBuf.length(), "utf8", retVal);
+}
+
+result_t fs_base::write(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t length,
+    int32_t position, int32_t& retVal, AsyncEvent* ac)
+{
+    if (fd < 0)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    int32_t bufLength;
+    buffer->get_length(bufLength);
+
+    if (offset < 0 || offset >= bufLength)
+        return Runtime::setError("fs: Offset is out of bounds");
+
+    if (offset + length > bufLength)
+        return Runtime::setError("fs: Length extends beyond buffer");
+
+    if (length < 0)
+        length = bufLength - offset;
+
+    if (position > -1) {
+        if (_lseeki64(fd, position, SEEK_SET) < 0)
+            return CHECK_ERROR(LastError());
+    }
+
+    if (length > 0) {
+        exlib::string strBuf;
+
+        buffer->toString(strBuf);
+        int32_t sz = length;
+        const char* p = strBuf.c_str() + offset;
+
+        while (sz) {
+            int32_t n = (int32_t)::_write(fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
+            if (n < 0)
+                return CHECK_ERROR(LastError());
+
+            sz -= n;
+            p += n;
+        }
+    }
+
+    retVal = length;
+
+    return 0;
+}
+
+result_t fs_base::write(int32_t fd, exlib::string string, int32_t position,
+    exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+{
+    if (fd < 0)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    obj_ptr<Buffer_base> buf = new Buffer();
+    result_t hr = buf->append(string, encoding);
+    if (hr < 0)
+        return CHECK_ERROR(hr);
+
+    return write(fd, buf, 0, -1, position, retVal, ac);
 }
 
 class AutoReq : public uv_fs_t {

@@ -69,6 +69,8 @@ public:
     static result_t readFile(exlib::string fname, exlib::string encoding, Variant& retVal, AsyncEvent* ac);
     static result_t readFile(exlib::string fname, v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac);
     static result_t readLines(exlib::string fname, int32_t maxlines, v8::Local<v8::Array>& retVal);
+    static result_t write(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, int32_t& retVal, AsyncEvent* ac);
+    static result_t write(int32_t fd, exlib::string string, int32_t position, exlib::string encoding, int32_t& retVal, AsyncEvent* ac);
     static result_t writeTextFile(exlib::string fname, exlib::string txt, AsyncEvent* ac);
     static result_t writeFile(exlib::string fname, Buffer_base* data, AsyncEvent* ac);
     static result_t appendFile(exlib::string fname, Buffer_base* data, AsyncEvent* ac);
@@ -126,6 +128,7 @@ public:
     static void s_static_readTextFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_readFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_readLines(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_write(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_writeTextFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_writeFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_appendFile(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -169,6 +172,8 @@ public:
     ASYNC_STATICVALUE2(fs_base, readTextFile, exlib::string, exlib::string);
     ASYNC_STATICVALUE3(fs_base, readFile, exlib::string, exlib::string, Variant);
     ASYNC_STATICVALUE3(fs_base, readFile, exlib::string, v8::Local<v8::Object>, Variant);
+    ASYNC_STATICVALUE6(fs_base, write, int32_t, Buffer_base*, int32_t, int32_t, int32_t, int32_t);
+    ASYNC_STATICVALUE5(fs_base, write, int32_t, exlib::string, int32_t, exlib::string, int32_t);
     ASYNC_STATIC2(fs_base, writeTextFile, exlib::string, exlib::string);
     ASYNC_STATIC2(fs_base, writeFile, exlib::string, Buffer_base*);
     ASYNC_STATIC2(fs_base, appendFile, exlib::string, Buffer_base*);
@@ -248,6 +253,8 @@ inline ClassInfo& fs_base::class_info()
         { "readFile", s_static_readFile, true, true },
         { "readFileSync", s_static_readFile, true, false },
         { "readLines", s_static_readLines, true, false },
+        { "write", s_static_write, true, true },
+        { "writeSync", s_static_write, true, false },
         { "writeTextFile", s_static_writeTextFile, true, true },
         { "writeTextFileSync", s_static_writeTextFile, true, false },
         { "writeFile", s_static_writeFile, true, true },
@@ -885,6 +892,41 @@ inline void fs_base::s_static_readLines(const v8::FunctionCallbackInfo<v8::Value
     OPT_ARG(int32_t, 1, -1);
 
     hr = readLines(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void fs_base::s_static_write(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_NAME("fs.write");
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(5, 2);
+
+    ARG(int32_t, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    OPT_ARG(int32_t, 2, 0);
+    OPT_ARG(int32_t, 3, -1);
+    OPT_ARG(int32_t, 4, -1);
+
+    if (!cb.IsEmpty())
+        hr = acb_write(v0, v1, v2, v3, v4, cb, args);
+    else
+        hr = ac_write(v0, v1, v2, v3, v4, vr);
+
+    ASYNC_METHOD_OVER(4, 2);
+
+    ARG(int32_t, 0);
+    ARG(exlib::string, 1);
+    OPT_ARG(int32_t, 2, -1);
+    OPT_ARG(exlib::string, 3, "utf8");
+
+    if (!cb.IsEmpty())
+        hr = acb_write(v0, v1, v2, v3, cb, args);
+    else
+        hr = ac_write(v0, v1, v2, v3, vr);
 
     METHOD_RETURN();
 }

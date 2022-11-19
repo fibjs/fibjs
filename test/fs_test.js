@@ -802,6 +802,74 @@ describe('fs', () => {
         });
     });
 
+    describe('write', () => {
+        var fd;
+
+        beforeEach(() => fd = fs.open('test.txt', 'w+'));
+        afterEach(() => fs.close(fd));
+        after(() => {
+            try {
+                fs.unlink('test.txt');
+            } catch (e) { }
+        });
+
+        it("normal write", () => {
+            var buf = Buffer.alloc(3);
+            fs.write(fd, 'abc');
+            fs.read(fd, buf, 0, 3, 0);
+            assert.deepEqual(buf, new Buffer('abc'));
+        });
+
+        it("multi write", () => {
+            var buf = Buffer.alloc(6);
+            fs.write(fd, 'abc');
+            fs.write(fd, 'abc');
+            fs.read(fd, buf, 0, 6, 0);
+            assert.deepEqual(buf, new Buffer('abcabc'));
+        });
+
+        it("spec offset", () => {
+            var buf = Buffer.from("abc");
+            fs.write(fd, buf, 1);
+            fs.write(fd, 'd');
+            fs.read(fd, buf, 0, 3, 0);
+            assert.deepEqual(buf, new Buffer('bcd'));
+
+            assert.throws(() => {
+                fs.write(fd, buf, -1);
+            });
+
+            assert.throws(() => {
+                fs.write(fd, buf, 4);
+            });
+        });
+
+        it("spec length", () => {
+            var buf = Buffer.from("abc");
+            fs.write(fd, buf, 0, 2);
+            fs.write(fd, 'd');
+            fs.read(fd, buf, 0, 3, 0);
+            assert.deepEqual(buf, new Buffer('abd'));
+
+            var buf = Buffer.from("abc");
+            fs.write(fd, buf, 1, 2, 0);
+            fs.write(fd, 'd');
+            fs.read(fd, buf, 0, 3, 0);
+            assert.deepEqual(buf, new Buffer('bcd'));
+
+            assert.throws(() => {
+                fs.write(fd, buf, 0, 4);
+            });
+        });
+
+        it("spec position", () => {
+            var buf = Buffer.from("abc");
+            fs.write(fd, buf, 0, 3, 10);
+            fs.read(fd, buf, 0, 3, 10);
+            assert.deepEqual(buf, new Buffer('abc'));
+        });
+    });
+
     it("readdir", () => {
         var fl = fs.readdir(path.join(__dirname, 'vm_test'));
         fl.sort();
