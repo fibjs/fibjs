@@ -30,42 +30,6 @@ void output(int32_t priority, exlib::string msg)
     asyncLog(console_base::C_PRINT, msg);
 }
 
-bool repl_command(exlib::string& line)
-{
-    _parser p(line);
-    exlib::string cmd_word;
-
-    p.skipSpace();
-    p.getWord(cmd_word);
-
-    if (cmd_word == ".help") {
-        exlib::string help_str = ".exit     Exit the repl\n"
-                                 ".help     Show repl options\n"
-                                 ".info     Show fibjs build information";
-
-        Isolate* isolate = Isolate::current();
-
-        output(console_base::C_INFO, help_str);
-        return true;
-    }
-
-    if (cmd_word == ".exit")
-        return false;
-
-    if (cmd_word == ".info") {
-        v8::Local<v8::Object> o;
-
-        process_base::get_versions(o);
-        console_base::dir(o, v8::Local<v8::Object>());
-        return true;
-    }
-
-    Isolate* isolate = Isolate::current();
-
-    output(console_base::C_ERROR, cmd_word + ": command not found.");
-    return true;
-}
-
 result_t SandBox::repl()
 {
     Context context(this, "repl");
@@ -105,10 +69,32 @@ result_t SandBox::Context::repl()
         if (line.empty())
             continue;
 
-        if (line[0] == '.') {
-            if (!repl_command(line))
+        {
+            _parser p(line);
+            exlib::string cmd_word;
+
+            p.skipSpace();
+            p.getWord(cmd_word);
+
+            if (cmd_word == ".help") {
+                exlib::string help_str = ".exit     Exit the repl\n"
+                                         ".help     Show repl options\n"
+                                         ".info     Show fibjs build information";
+
+                output(console_base::C_INFO, help_str);
+                continue;
+            }
+
+            if (cmd_word == ".exit")
                 break;
-            continue;
+
+            if (cmd_word == ".info") {
+                v8::Local<v8::Object> o;
+
+                process_base::get_versions(o);
+                console_base::dir(o, v8::Local<v8::Object>());
+                continue;
+            }
         }
 
         buf += line;
