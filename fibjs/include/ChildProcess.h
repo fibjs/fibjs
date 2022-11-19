@@ -46,7 +46,7 @@ public:
     // ChildProcess_base
     virtual result_t kill(int32_t signal);
     virtual result_t kill(exlib::string signal);
-    virtual result_t join(AsyncEvent* ac);
+    virtual result_t join(int32_t& retVal, AsyncEvent* ac);
     virtual result_t get_connected(bool& retVal);
     virtual result_t disconnect();
     virtual result_t send(v8::Local<v8::Value> msg);

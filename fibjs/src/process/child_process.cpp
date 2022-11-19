@@ -229,32 +229,6 @@ result_t child_process_base::fork(exlib::string module, v8::Local<v8::Object> op
 result_t child_process_base::run(exlib::string command, v8::Local<v8::Array> args,
     v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac)
 {
-    class WaitExitCode : public AsyncEvent {
-    public:
-        WaitExitCode(ChildProcess_base* cp, int32_t& retVal, AsyncEvent* ac)
-            : m_this(cp)
-            , m_retVal(retVal)
-            , m_ac(ac)
-        {
-            setAsync();
-        }
-
-        virtual int32_t post(int32_t v)
-        {
-            m_this->get_exitCode(m_retVal);
-
-            m_ac->post(v);
-            delete this;
-
-            return 0;
-        }
-
-    private:
-        obj_ptr<ChildProcess_base> m_this;
-        int32_t& m_retVal;
-        AsyncEvent* m_ac;
-    };
-
     if (ac->isSync()) {
         Isolate* isolate = Isolate::current();
         v8::Local<v8::Context> context = isolate->context();
@@ -278,14 +252,7 @@ result_t child_process_base::run(exlib::string command, v8::Local<v8::Array> arg
     }
 
     obj_ptr<ChildProcess_base> cp = (ChildProcess*)(object_base*)ac->m_ctxo;
-    AsyncEvent* _ac = new WaitExitCode(cp, retVal, ac);
-    result_t hr = cp->join(_ac);
-    if (hr != CALL_E_PENDDING) {
-        cp->get_exitCode(retVal);
-        delete _ac;
-    }
-
-    return hr;
+    return cp->join(retVal, ac);
 }
 
 result_t child_process_base::run(exlib::string command, v8::Local<v8::Object> options,

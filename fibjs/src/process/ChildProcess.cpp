@@ -436,11 +436,45 @@ result_t ChildProcess::kill(exlib::string signal)
     return kill(signo);
 }
 
-result_t ChildProcess::join(AsyncEvent* ac)
+result_t ChildProcess::join(int32_t& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
-    return m_ev.wait(ac) ? 0 : CALL_E_PENDDING;
+
+    class WaitExitCode : public AsyncEvent {
+    public:
+        WaitExitCode(ChildProcess_base* cp, int32_t& retVal, AsyncEvent* ac)
+            : m_this(cp)
+            , m_retVal(retVal)
+            , m_ac(ac)
+        {
+            setAsync();
+        }
+
+        virtual int32_t post(int32_t v)
+        {
+            m_this->get_exitCode(m_retVal);
+
+            m_ac->post(v);
+            delete this;
+
+            return 0;
+        }
+
+    private:
+        obj_ptr<ChildProcess_base> m_this;
+        int32_t& m_retVal;
+        AsyncEvent* m_ac;
+    };
+
+    AsyncEvent* _ac = new WaitExitCode(this, retVal, ac);
+    if (m_ev.wait(_ac)) {
+        retVal = m_exitCode;
+        delete _ac;
+        return 0;
+    }
+
+    return CALL_E_PENDDING;
 }
 
 result_t ChildProcess::get_connected(bool& retVal)

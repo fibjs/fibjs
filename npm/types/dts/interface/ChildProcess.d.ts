@@ -30,9 +30,9 @@ declare class Class_ChildProcess extends Class_EventEmitter {
      *       @return 进程的结束代码
      *      
      */
-    join(): void;
+    join(): number;
 
-    join(callback: (err: Error | undefined | null)=>any): void;
+    join(callback: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 查询与子进程的管道是否正常连接 

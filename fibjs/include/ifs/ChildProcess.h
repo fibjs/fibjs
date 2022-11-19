@@ -26,7 +26,7 @@ public:
     // ChildProcess_base
     virtual result_t kill(int32_t signal) = 0;
     virtual result_t kill(exlib::string signal) = 0;
-    virtual result_t join(AsyncEvent* ac) = 0;
+    virtual result_t join(int32_t& retVal, AsyncEvent* ac) = 0;
     virtual result_t get_connected(bool& retVal) = 0;
     virtual result_t disconnect() = 0;
     virtual result_t send(v8::Local<v8::Value> msg) = 0;
@@ -70,7 +70,7 @@ public:
     static void s_set_onmessage(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 
 public:
-    ASYNC_MEMBER0(ChildProcess_base, join);
+    ASYNC_MEMBERVALUE1(ChildProcess_base, join, int32_t);
 };
 }
 
@@ -132,6 +132,8 @@ inline void ChildProcess_base::s_kill(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void ChildProcess_base::s_join(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    int32_t vr;
+
     METHOD_NAME("ChildProcess.join");
     METHOD_INSTANCE(ChildProcess_base);
     METHOD_ENTER();
@@ -141,9 +143,9 @@ inline void ChildProcess_base::s_join(const v8::FunctionCallbackInfo<v8::Value>&
     if (!cb.IsEmpty())
         hr = pInst->acb_join(cb, args);
     else
-        hr = pInst->ac_join();
+        hr = pInst->ac_join(vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void ChildProcess_base::s_get_connected(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)

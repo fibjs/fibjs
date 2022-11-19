@@ -20,7 +20,7 @@ interface ChildProcess : EventEmitter
     /*! @brief 等待当前对象指向的进程结束，并返回进程结束代码
       @return 进程的结束代码
      */
-    join() async;
+    Integer join() async;
 
     /*! @brief 查询与子进程的管道是否正常连接 */
     readonly Boolean connected;
