@@ -50,7 +50,7 @@ result_t global_base::get___dirname(exlib::string& retVal)
 
 result_t global_base::require(exlib::string id, v8::Local<v8::Value>& retVal)
 {
-    return Isolate::current()->m_topSandbox->require(id, s_root + PATH_SLASH + "repl", retVal);
+    return Isolate::current()->m_topSandbox->require(id, s_root, retVal);
 }
 
 result_t global_base::btoa(Buffer_base* data, bool url, exlib::string& retVal)
