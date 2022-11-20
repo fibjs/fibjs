@@ -737,7 +737,7 @@ result_t Buffer::readNumber(int32_t offset, char* buf, int32_t size,
     return 0;
 
 #define READ_U_NUMBER_48(t, sz, le)                                 \
-    if (sz <= 0 || sz > 8)                                          \
+    if (sz <= 0 || sz > 6)                                          \
         return CALL_E_INVALIDARG;                                   \
     t v = 0;                                                        \
     result_t hr = readNumber(offset, (char*)&v, sz, sizeof(v), le); \
@@ -747,7 +747,7 @@ result_t Buffer::readNumber(int32_t offset, char* buf, int32_t size,
     return 0;
 
 #define READ_NUMBER_48(t, sz, le)                                   \
-    if (sz <= 0 || sz > 8)                                          \
+    if (sz <= 0 || sz > 6)                                          \
         return CALL_E_INVALIDARG;                                   \
     t v = 0;                                                        \
     result_t hr = readNumber(offset, (char*)&v, sz, sizeof(v), le); \
@@ -773,22 +773,22 @@ result_t Buffer::readUInt16BE(int32_t offset, int32_t& retVal)
     READ_NUMBER(uint16_t, false);
 }
 
-result_t Buffer::readUInt32LE(int32_t offset, int64_t& retVal)
+result_t Buffer::readUInt32LE(int32_t offset, double& retVal)
 {
     READ_NUMBER(uint32_t, true);
 }
 
-result_t Buffer::readUInt32BE(int32_t offset, int64_t& retVal)
+result_t Buffer::readUInt32BE(int32_t offset, double& retVal)
 {
     READ_NUMBER(uint32_t, false);
 }
 
-result_t Buffer::readUIntLE(int32_t offset, int32_t byteLength, int64_t& retVal)
+result_t Buffer::readUIntLE(int32_t offset, int32_t byteLength, double& retVal)
 {
     READ_U_NUMBER_48(uint64_t, byteLength, true);
 }
 
-result_t Buffer::readUIntBE(int32_t offset, int32_t byteLength, int64_t& retVal)
+result_t Buffer::readUIntBE(int32_t offset, int32_t byteLength, double& retVal)
 {
     READ_U_NUMBER_48(uint64_t, byteLength, false);
 }
@@ -818,12 +818,12 @@ result_t Buffer::readInt32BE(int32_t offset, int32_t& retVal)
     READ_NUMBER(int32_t, false);
 }
 
-result_t Buffer::readIntLE(int32_t offset, int32_t byteLength, int64_t& retVal)
+result_t Buffer::readIntLE(int32_t offset, int32_t byteLength, double& retVal)
 {
     READ_NUMBER_48(int64_t, byteLength, true);
 }
 
-result_t Buffer::readIntBE(int32_t offset, int32_t byteLength, int64_t& retVal)
+result_t Buffer::readIntBE(int32_t offset, int32_t byteLength, double& retVal)
 {
     READ_NUMBER_48(int64_t, byteLength, false);
 }
@@ -905,7 +905,7 @@ result_t Buffer::writeNumber(int32_t offset, const char* buf, int32_t size,
     return 0;
 
 #define WRITE_NUMBER_48(t, sz, le)                                           \
-    if (sz <= 0 || sz > 8)                                                   \
+    if (sz <= 0 || sz > 6)                                                   \
         return CALL_E_INVALIDARG;                                            \
     t v = (t)value;                                                          \
     result_t hr = writeNumber(offset, (char*)&v, sz, sizeof(v), le, retVal); \

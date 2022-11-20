@@ -69,10 +69,10 @@ public:
     virtual result_t readUInt8(int32_t offset, int32_t& retVal) = 0;
     virtual result_t readUInt16LE(int32_t offset, int32_t& retVal) = 0;
     virtual result_t readUInt16BE(int32_t offset, int32_t& retVal) = 0;
-    virtual result_t readUInt32LE(int32_t offset, int64_t& retVal) = 0;
-    virtual result_t readUInt32BE(int32_t offset, int64_t& retVal) = 0;
-    virtual result_t readUIntLE(int32_t offset, int32_t byteLength, int64_t& retVal) = 0;
-    virtual result_t readUIntBE(int32_t offset, int32_t byteLength, int64_t& retVal) = 0;
+    virtual result_t readUInt32LE(int32_t offset, double& retVal) = 0;
+    virtual result_t readUInt32BE(int32_t offset, double& retVal) = 0;
+    virtual result_t readUIntLE(int32_t offset, int32_t byteLength, double& retVal) = 0;
+    virtual result_t readUIntBE(int32_t offset, int32_t byteLength, double& retVal) = 0;
     virtual result_t readInt64LE(int32_t offset, int64_t& retVal) = 0;
     virtual result_t readInt64BE(int32_t offset, int64_t& retVal) = 0;
     virtual result_t readInt8(int32_t offset, int32_t& retVal) = 0;
@@ -80,8 +80,8 @@ public:
     virtual result_t readInt16BE(int32_t offset, int32_t& retVal) = 0;
     virtual result_t readInt32LE(int32_t offset, int32_t& retVal) = 0;
     virtual result_t readInt32BE(int32_t offset, int32_t& retVal) = 0;
-    virtual result_t readIntLE(int32_t offset, int32_t byteLength, int64_t& retVal) = 0;
-    virtual result_t readIntBE(int32_t offset, int32_t byteLength, int64_t& retVal) = 0;
+    virtual result_t readIntLE(int32_t offset, int32_t byteLength, double& retVal) = 0;
+    virtual result_t readIntBE(int32_t offset, int32_t byteLength, double& retVal) = 0;
     virtual result_t writeInt64LE(int64_t value, int32_t offset, int32_t& retVal) = 0;
     virtual result_t writeInt64BE(int64_t value, int32_t offset, int32_t& retVal) = 0;
     virtual result_t readFloatLE(int32_t offset, double& retVal) = 0;
@@ -905,7 +905,7 @@ inline void Buffer_base::s_readUInt16BE(const v8::FunctionCallbackInfo<v8::Value
 
 inline void Buffer_base::s_readUInt32LE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    int64_t vr;
+    double vr;
 
     METHOD_NAME("Buffer.readUInt32LE");
     METHOD_INSTANCE(Buffer_base);
@@ -922,7 +922,7 @@ inline void Buffer_base::s_readUInt32LE(const v8::FunctionCallbackInfo<v8::Value
 
 inline void Buffer_base::s_readUInt32BE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    int64_t vr;
+    double vr;
 
     METHOD_NAME("Buffer.readUInt32BE");
     METHOD_INSTANCE(Buffer_base);
@@ -939,7 +939,7 @@ inline void Buffer_base::s_readUInt32BE(const v8::FunctionCallbackInfo<v8::Value
 
 inline void Buffer_base::s_readUIntLE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    int64_t vr;
+    double vr;
 
     METHOD_NAME("Buffer.readUIntLE");
     METHOD_INSTANCE(Buffer_base);
@@ -948,7 +948,7 @@ inline void Buffer_base::s_readUIntLE(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_OVER(2, 0);
 
     OPT_ARG(int32_t, 0, 0);
-    OPT_ARG(int32_t, 1, 8);
+    OPT_ARG(int32_t, 1, 6);
 
     hr = pInst->readUIntLE(v0, v1, vr);
 
@@ -957,7 +957,7 @@ inline void Buffer_base::s_readUIntLE(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void Buffer_base::s_readUIntBE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    int64_t vr;
+    double vr;
 
     METHOD_NAME("Buffer.readUIntBE");
     METHOD_INSTANCE(Buffer_base);
@@ -966,7 +966,7 @@ inline void Buffer_base::s_readUIntBE(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_OVER(2, 0);
 
     OPT_ARG(int32_t, 0, 0);
-    OPT_ARG(int32_t, 1, 8);
+    OPT_ARG(int32_t, 1, 6);
 
     hr = pInst->readUIntBE(v0, v1, vr);
 
@@ -1094,7 +1094,7 @@ inline void Buffer_base::s_readInt32BE(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void Buffer_base::s_readIntLE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    int64_t vr;
+    double vr;
 
     METHOD_NAME("Buffer.readIntLE");
     METHOD_INSTANCE(Buffer_base);
@@ -1103,7 +1103,7 @@ inline void Buffer_base::s_readIntLE(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_OVER(2, 0);
 
     OPT_ARG(int32_t, 0, 0);
-    OPT_ARG(int32_t, 1, 8);
+    OPT_ARG(int32_t, 1, 6);
 
     hr = pInst->readIntLE(v0, v1, vr);
 
@@ -1112,7 +1112,7 @@ inline void Buffer_base::s_readIntLE(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void Buffer_base::s_readIntBE(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    int64_t vr;
+    double vr;
 
     METHOD_NAME("Buffer.readIntBE");
     METHOD_INSTANCE(Buffer_base);
@@ -1121,7 +1121,7 @@ inline void Buffer_base::s_readIntBE(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_OVER(2, 0);
 
     OPT_ARG(int32_t, 0, 0);
-    OPT_ARG(int32_t, 1, 8);
+    OPT_ARG(int32_t, 1, 6);
 
     hr = pInst->readIntBE(v0, v1, vr);
 
@@ -1334,7 +1334,7 @@ inline void Buffer_base::s_writeUIntLE(const v8::FunctionCallbackInfo<v8::Value>
 
     ARG(int64_t, 0);
     OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, 8);
+    OPT_ARG(int32_t, 2, 6);
 
     hr = pInst->writeUIntLE(v0, v1, v2, vr);
 
@@ -1353,7 +1353,7 @@ inline void Buffer_base::s_writeUIntBE(const v8::FunctionCallbackInfo<v8::Value>
 
     ARG(int64_t, 0);
     OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, 8);
+    OPT_ARG(int32_t, 2, 6);
 
     hr = pInst->writeUIntBE(v0, v1, v2, vr);
 
@@ -1462,7 +1462,7 @@ inline void Buffer_base::s_writeIntLE(const v8::FunctionCallbackInfo<v8::Value>&
 
     ARG(int64_t, 0);
     OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, 8);
+    OPT_ARG(int32_t, 2, 6);
 
     hr = pInst->writeIntLE(v0, v1, v2, vr);
 
@@ -1481,7 +1481,7 @@ inline void Buffer_base::s_writeIntBE(const v8::FunctionCallbackInfo<v8::Value>&
 
     ARG(int64_t, 0);
     OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, 8);
+    OPT_ARG(int32_t, 2, 6);
 
     hr = pInst->writeIntBE(v0, v1, v2, vr);
 

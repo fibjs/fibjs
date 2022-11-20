@@ -406,18 +406,18 @@ declare class Class_Buffer extends Class_object {
     readUInt32BE(offset?: number): number;
 
     /**
-     * @description 从缓存对象读取一个无符号整型数值，最大支持 64 位，以低字节序的存储方式
+     * @description 从缓存对象读取一个无符号整型数值，最大支持 48 位，以低字节序的存储方式
      *      @param offset 指定读取的起始位置，缺省为 0
-     *      @param byteLength 指定读取的字节数，缺省 8 个字节
+     *      @param byteLength 指定读取的字节数，缺省 6 个字节
      *      @return 返回读取的整型数值
      *      
      */
     readUIntLE(offset?: number, byteLength?: number): number;
 
     /**
-     * @description 从缓存对象读取一个无符号整型数值，最大支持 64 位，以高字节序的存储方式
+     * @description 从缓存对象读取一个无符号整型数值，最大支持 48 位，以高字节序的存储方式
      *      @param offset 指定读取的起始位置，缺省为 0
-     *      @param byteLength 指定读取的字节数，缺省 8 个字节
+     *      @param byteLength 指定读取的字节数，缺省 6 个字节
      *      @return 返回读取的整型数值
      *      
      */
@@ -480,18 +480,18 @@ declare class Class_Buffer extends Class_object {
     readInt32BE(offset?: number): number;
 
     /**
-     * @description 从缓存对象读取一个整型数值，最大支持 64 位，以低字节序的存储方式
+     * @description 从缓存对象读取一个整型数值，最大支持 48 位，以低字节序的存储方式
      *      @param offset 指定读取的起始位置，缺省为 0
-     *      @param byteLength 指定读取的字节数，缺省 8 个字节
+     *      @param byteLength 指定读取的字节数，缺省 6 个字节
      *      @return 返回读取的整型数值
      *      
      */
     readIntLE(offset?: number, byteLength?: number): number;
 
     /**
-     * @description 从缓存对象读取一个整型数值，最大支持 64 位，以高字节序的存储方式
+     * @description 从缓存对象读取一个整型数值，最大支持 48 位，以高字节序的存储方式
      *      @param offset 指定读取的起始位置，缺省为 0
-     *      @param byteLength 指定读取的字节数，缺省 8 个字节
+     *      @param byteLength 指定读取的字节数，缺省 6 个字节
      *      @return 返回读取的整型数值
      *      
      */
@@ -593,20 +593,20 @@ declare class Class_Buffer extends Class_object {
     writeUInt32BE(value: number, offset?: number): number;
 
     /**
-     * @description 向缓存对象写入一个无符号整型数值，最大支持 64 位，以低字节序的存储方式
+     * @description 向缓存对象写入一个无符号整型数值，最大支持 48 位，以低字节序的存储方式
      *      @param value 指定写入的数值
      *      @param offset 指定写入的起始位置
-     *      @param byteLength 指定写入的字节数，缺省 8 个字节
+     *      @param byteLength 指定写入的字节数，缺省 6 个字节
      *      @return offset 加上写入的字节数
      *      
      */
     writeUIntLE(value: number, offset?: number, byteLength?: number): number;
 
     /**
-     * @description 向缓存对象写入一个无符号整型数值，最大支持 64 位，以高字节序的存储方式
+     * @description 向缓存对象写入一个无符号整型数值，最大支持 48 位，以高字节序的存储方式
      *      @param value 指定写入的数值
      *      @param offset 指定写入的起始位置
-     *      @param byteLength 指定写入的字节数，缺省 8 个字节
+     *      @param byteLength 指定写入的字节数，缺省 6 个字节
      *      @return offset 加上写入的字节数
      *      
      */
@@ -658,20 +658,20 @@ declare class Class_Buffer extends Class_object {
     writeInt32BE(value: number, offset?: number): number;
 
     /**
-     * @description 向缓存对象写入一个整型数值，最大支持 64 位，以低字节序的存储方式
+     * @description 向缓存对象写入一个整型数值，最大支持 48 位，以低字节序的存储方式
      *      @param value 指定写入的数值
      *      @param offset 指定写入的起始位置
-     *      @param byteLength 指定写入的字节数，缺省 8 个字节
+     *      @param byteLength 指定写入的字节数，缺省 6 个字节
      *      @return offset 加上写入的字节数
      *      
      */
     writeIntLE(value: number, offset?: number, byteLength?: number): number;
 
     /**
-     * @description 向缓存对象写入一个整型数值，最大支持 64 位，以高字节序的存储方式
+     * @description 向缓存对象写入一个整型数值，最大支持 48 位，以高字节序的存储方式
      *      @param value 指定写入的数值
      *      @param offset 指定写入的起始位置
-     *      @param byteLength 指定写入的字节数，缺省 8 个字节
+     *      @param byteLength 指定写入的字节数，缺省 6 个字节
      *      @return offset 加上写入的字节数
      *      
      */
