@@ -64,9 +64,8 @@ if [ $? != 0 ]; then
 	exit 1
 fi
 
-txtbld=$(tput bold)
-bldred=${txtbld}$(tput setaf 1)
-txtrst=$(tput sgr0)
+bldred="\033[1m\033[31m"
+txtrst="\033[0m"
 TIME_END=$(($(date -u +%s) - $TIME_BEGIN))
 
 printf "\n\n"
