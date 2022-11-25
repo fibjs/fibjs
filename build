@@ -37,7 +37,7 @@ if [[ $BUILD_ALPINE == "alpine" ]]; then
 	args="$@"
 	args="${args/alpine/""}" 
 
-	docker run --rm -v ${SOURCE_ROOT}:/fibjs fibjs/alpine-build-env:${BUILD_ARCH} bash -c "bash /fibjs/build ${args}"
+	docker run --rm -v ${SOURCE_ROOT}:/fibjs fibjs/alpine-build-env:${BUILD_ARCH} bash -c "cd /fibjs; bash build ${args}"
 	exit $?
 fi
 

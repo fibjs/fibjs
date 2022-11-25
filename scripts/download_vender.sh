@@ -23,6 +23,11 @@ case "${VENDER_ARCH}" in
 esac
 
 VENDER_ASSETS_FILE="vender-$VENDER_OS-$VENDER_ARCH-$BUILD_TYPE.zip"
+if [[ "$BUILD_ALPINE" == "alpine" ]]; then
+    VENDER_RELEASE_FILE="vender-alpine-$VENDER_ARCH-$BUILD_TYPE.zip"
+else
+    VENDER_RELEASE_FILE="vender-$VENDER_OS-$VENDER_ARCH-$BUILD_TYPE.zip"
+fi
 
 # get vender name
 
@@ -45,7 +50,7 @@ cd $FIBJS_DIR
 mkdir -p $BIN_DIR
 cd $BIN_DIR;
 if [ ! -e $BIN_DIR/$VENDER_ASSETS_FILE ]; then
-    ASSET_URL=https://github.com/fibjs/fibjs_vender/releases/download/$LATEST_VENDER_TAG/$VENDER_ASSETS_FILE
+    ASSET_URL=https://github.com/fibjs/fibjs_vender/releases/download/$LATEST_VENDER_TAG/$VENDER_RELEASE_FILE
     echo "starting download vender from $ASSET_URL"
     curl -sL $ASSET_URL -o $BIN_DIR/$VENDER_ASSETS_FILE
     ls -la ./;

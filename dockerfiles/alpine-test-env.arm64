@@ -1,0 +1,6 @@
+FROM multiarch/alpine:arm64-latest-stable
+
+LABEL AUTHOR="xicilion"
+LABEL AUTHOR_EMAIL="lion@9465.net"
+
+RUN apk add bash

@@ -1,0 +1,14 @@
+FROM alpine:latest
+
+LABEL AUTHOR="xicilion"
+LABEL AUTHOR_EMAIL="lion@9465.net"
+
+RUN apk add bash
+RUN apk add git
+RUN apk add cmake
+RUN apk add make
+RUN apk add clang
+RUN apk add g++
+RUN apk add linux-headers
+RUN apk add libx11-dev
+RUN apk add xz
