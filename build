@@ -1,7 +1,5 @@
 #!/bin/bash
 
-. ./vender/build_tools/scripts/inst_deps.sh
-
 inform()
 {
 	echo ""
@@ -19,18 +17,44 @@ export WORK_ROOT=`pwd`
 SOURCE_ROOT="`dirname \"$0\"`"
 SOURCE_ROOT="`( cd \"$SOURCE_ROOT\" && pwd )`"
 
+. ${SOURCE_ROOT}/vender/build_tools/scripts/inst_deps.sh
+
+for i in "$@"
+do
+	case $i in
+		amd64|arm64) BUILD_ARCH=$i
+			;;
+		alpine) BUILD_ALPINE="alpine"
+			;;
+	esac
+done
+
+if [[ $BUILD_ALPINE == "alpine" ]]; then
+	if [[ $BUILD_ARCH == "" ]]; then
+		BUILD_ARCH=amd64
+	fi
+
+	args="$@"
+	args="${args/alpine/""}" 
+
+	docker run --rm -v ${SOURCE_ROOT}:/fibjs fibjs/alpine-build-env:${BUILD_ARCH} bash -c "bash /fibjs/build ${args}"
+	exit $?
+fi
+
 TEMP_DIR=${SOURCE_ROOT}/out
 if [ ! -e "${TEMP_DIR}" ]; then
 	mkdir "${TEMP_DIR}"
 fi
 
-if [[ $OS == "Darwin" ]]; then
-	ensure_brew_packages "${WORK_ROOT}/tools/darwin_deps"
-elif [[ $OS == "Linux" ]]; then
-	if [[ $NAME =~ "Ubuntu" ]] || [[ $NAME =~ "Debian" ]]; then
-		ensure_apt_packages "${WORK_ROOT}/tools/ubuntu_deps"
-	elif [[ $NAME =~ "CentOS" ]] || [[ $NAME =~ "Fedora" ]]; then
-		ensure_yum_packages "${WORK_ROOT}/tools/centos_deps"
+if [[ $CC == "" ]]; then
+	if [[ $OS == "Darwin" ]]; then
+		ensure_brew_packages "${WORK_ROOT}/tools/darwin_deps"
+	elif [[ $OS == "Linux" ]]; then
+		if [[ $NAME =~ "Ubuntu" ]] || [[ $NAME =~ "Debian" ]]; then
+			ensure_apt_packages "${WORK_ROOT}/tools/ubuntu_deps"
+		elif [[ $NAME =~ "CentOS" ]] || [[ $NAME =~ "Fedora" ]]; then
+			ensure_yum_packages "${WORK_ROOT}/tools/centos_deps"
+		fi
 	fi
 fi
 
