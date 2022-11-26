@@ -640,10 +640,16 @@ describe("http", () => {
                 '$Version': '1',
                 'Skin': 'new cookie %sdf'
             });
+
+            r = get_request("GET / HTTP/1.0\r\ncookie: $Version=1; Skin=\r\n\r\n", r);
+            c = r.cookies.toJSON();
+            assert.deepEqual(c, {
+                '$Version': '1',
+                'Skin': ''
+            });
         });
 
         it("response cookie", () => {
-
             var cookies = get_response("HTTP/1.1 200 OK\r\nSet-Cookie: test=value\r\nSet-Cookie: test1=value1\r\nConnection: keep-alive\r\nContent-Length: 0\r\n\r\n").cookies;
             assert.equal(cookies.length, 2);
 
@@ -656,6 +662,21 @@ describe("http", () => {
             assert.deepEqual(cookie_data(cookies[1]), {
                 name: "test1",
                 value: "value1",
+                path: "/"
+            });
+
+            var cookies = get_response("HTTP/1.1 200 OK\r\nSet-Cookie: test=\r\nSet-Cookie: test1=\r\nConnection: keep-alive\r\nContent-Length: 0\r\n\r\n").cookies;
+            assert.equal(cookies.length, 2);
+
+            assert.deepEqual(cookie_data(cookies[0]), {
+                name: "test",
+                value: "",
+                path: "/"
+            });
+
+            assert.deepEqual(cookie_data(cookies[1]), {
+                name: "test1",
+                value: "",
                 path: "/"
             });
         });
@@ -1084,10 +1105,11 @@ describe("http", () => {
             var rep = new http.Response();
             rep.addCookie(new http.Cookie("test", "value"));
             rep.addCookie(new http.Cookie("test1", "value1"));
+            rep.addCookie(new http.Cookie("test2", ""));
 
             rep.sendTo(ms);
             ms.rewind();
-            assert.equal(ms.read().toString(), 'HTTP/1.1 200 OK\r\nSet-Cookie: test=value; path=/\r\nSet-Cookie: test1=value1; path=/\r\nConnection: keep-alive\r\nContent-Length: 0\r\n\r\n');
+            assert.equal(ms.read().toString(), 'HTTP/1.1 200 OK\r\nSet-Cookie: test=value; path=/\r\nSet-Cookie: test1=value1; path=/\r\nSet-Cookie: test2=; path=/\r\nConnection: keep-alive\r\nContent-Length: 0\r\n\r\n');
         });
     });
 

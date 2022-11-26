@@ -88,8 +88,10 @@ public:
         if (sz < 0)
             sz = qstrlen(url);
 
-        if (sz == 0)
+        if (sz == 0) {
+            retVal.resize(0);
             return;
+        }
 
         ssize_t len, l;
         const char* src;
@@ -157,8 +159,10 @@ public:
         if (sz < 0)
             sz = qstrlen(url);
 
-        if (sz == 0)
+        if (sz == 0) {
+            retVal.resize(0);
             return;
+        }
 
         ssize_t len, l;
         const char* src;
