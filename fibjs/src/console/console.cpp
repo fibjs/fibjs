@@ -520,55 +520,9 @@ result_t console_base::clear()
 #endif
 
 #define INPUT_BUFFER_SIZE 1024
-
-char* getpass()
-{
-    char* p;
-    int c;
-    char* password = (char*)malloc(INPUT_BUFFER_SIZE);
-
-    for (p = password; (c = _getch()) != 13 && c != EOF;) {
-        if (p < &password[INPUT_BUFFER_SIZE - 1]) {
-            if (c == 0 || c == 0xE0) {
-                /* FN Keys (0 or E0) are a sentinal for a FN code */
-                c = (c << 4) | _getch();
-                /* Catch {DELETE}, {<--}, Num{DEL} and Num{<--} */
-                if ((c == 0xE53 || c == 0xE4B || c == 0x053 || c == 0x04b) && p > password)
-                    p--;
-            } else if ((c == '\b' || c == 127)) /* BS/DEL */ {
-                if (p > password)
-                    p--;
-            } else
-                *p++ = c;
-        } else
-            break;
-    }
-    *p = '\0';
-    puts("");
-
-    return password;
-}
-
-char* read_line(bool no_echo)
-{
-    if (no_echo)
-        return getpass();
-
-    char* text = (char*)malloc(INPUT_BUFFER_SIZE);
-
-    if (fgets(text, INPUT_BUFFER_SIZE, stdin) != NULL) {
-        int32_t textLen = (int32_t)qstrlen(text);
-        if (textLen > 0 && text[textLen - 1] == '\n')
-            text[textLen - 1] = '\0'; // getting rid of newline character
-        return text;
-    }
-
-    free(text);
-    return NULL;
-}
-
 bool g_in_readline = false;
 
+#ifndef _WIN32
 result_t readInput(exlib::string msg, exlib::string& retVal, AsyncEvent* ac, bool no_echo)
 {
     if (ac->isSync())
@@ -576,7 +530,6 @@ result_t readInput(exlib::string msg, exlib::string& retVal, AsyncEvent* ac, boo
 
     flushLog();
 
-#ifndef _WIN32
     if (isatty(fileno(stdin))) {
         char* line;
         const char* lfptr = qstrrchr(msg.c_str(), '\n');
@@ -596,25 +549,89 @@ result_t readInput(exlib::string msg, exlib::string& retVal, AsyncEvent* ac, boo
         if (no_echo)
             puts("");
 
-        if (*line) {
+        if (*line)
             add_history(line);
-            retVal = line;
-        }
-        free(line);
-    } else
-#endif
-    {
-        std_logger::out(msg);
-        char* line = read_line(no_echo);
-        if (!line)
-            return CHECK_ERROR(LastError());
 
         retVal = line;
         free(line);
+
+        return 0;
     }
+
+    std_logger::out(msg);
+    char* text = (char*)malloc(INPUT_BUFFER_SIZE);
+
+    if (fgets(text, INPUT_BUFFER_SIZE, stdin) == NULL) {
+        free(text);
+        return CHECK_ERROR(LastError());
+    }
+
+    int32_t textLen = (int32_t)qstrlen(text);
+    if (textLen > 0 && text[textLen - 1] == '\n')
+        text[textLen - 1] = '\0';
+    retVal = text;
+    free(text);
 
     return 0;
 }
+#else
+result_t readInput(exlib::string msg, exlib::string& retVal, AsyncEvent* ac, bool no_echo)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_LONGSYNC);
+
+    flushLog();
+    std_logger::out(msg);
+
+    if (isatty(fileno(stdin))) {
+        DWORD textLen, fdwSaveOldMode;
+        HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
+        WCHAR* utext = (WCHAR*)malloc(INPUT_BUFFER_SIZE * sizeof(WCHAR));
+
+        GetConsoleMode(hStdin, &fdwSaveOldMode);
+
+        if (no_echo)
+            SetConsoleMode(hStdin, fdwSaveOldMode & ~ENABLE_ECHO_INPUT);
+        else
+            SetConsoleMode(hStdin, fdwSaveOldMode | ENABLE_ECHO_INPUT);
+
+        BOOL r = ReadConsoleW(hStdin, utext, INPUT_BUFFER_SIZE - 1, &textLen, NULL);
+        SetConsoleMode(hStdin, fdwSaveOldMode);
+        if (no_echo)
+            puts("");
+
+        if (!r) {
+            free(utext);
+            return CHECK_ERROR(LastError());
+        }
+
+        if (textLen > 0 && utext[textLen - 1] == '\n')
+            utext[--textLen] = '\0';
+        if (textLen > 0 && utext[textLen - 1] == '\r')
+            utext[--textLen] = '\0';
+
+        retVal = utf16to8String(utext, textLen);
+        free(utext);
+
+        return 0;
+    }
+
+    char* text = (char*)malloc(INPUT_BUFFER_SIZE);
+
+    if (fgets(text, INPUT_BUFFER_SIZE, stdin) == NULL) {
+        free(text);
+        return CHECK_ERROR(LastError());
+    }
+
+    int32_t textLen = (int32_t)qstrlen(text);
+    if (textLen > 0 && text[textLen - 1] == '\n')
+        text[textLen - 1] = '\0';
+    retVal = text;
+    free(text);
+
+    return 0;
+}
+#endif
 
 result_t console_base::readLine(exlib::string msg, exlib::string& retVal,
     AsyncEvent* ac)
