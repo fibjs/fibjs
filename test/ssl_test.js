@@ -9,6 +9,7 @@ var net = require("net");
 var fs = require('fs');
 var path = require('path');
 var os = require('os');
+var util = require('util');
 var coroutine = require('coroutine');
 
 var base_port = coroutine.vmid * 10000;
@@ -379,6 +380,10 @@ describe('ssl', () => {
         for (var i = 0; i < 1000; i++) {
             ssl.ca.verify(ssl.ca);
         }
+    });
+
+    it("bugfix: crash when dumping uninitialized X509Cert object.", () => {
+        util.inspect((new ssl.Socket).ca);
     });
 });
 
