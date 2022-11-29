@@ -102,6 +102,7 @@ jobs:
             bash ./scripts/download_vender.sh;
           fi
         env:
+          TARGET_OS: ${{ steps.set-env-vars.outputs.TARGET_OS }}
           TARGET_ARCH: ${{ matrix.target_arch }}
           BUILD_TYPE: ${{ matrix.build_type }}
 

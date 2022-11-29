@@ -1,9 +1,5 @@
 #!/usr/bin/env sh
 
-. vender/build_tools/scripts/get_env.sh --source-only
-
-get_build_env;
-
 if [ ! -z $TARGET_ARCH ]; then
   VENDER_ARCH=${TARGET_ARCH}
 else
@@ -11,7 +7,7 @@ else
 fi
 
 echo "VENDER_ARCH to downloaed is $VENDER_ARCH";
-VENDER_OS=`echo "$HOST_OS" | tr "[:upper:]" "[:lower:]"`
+VENDER_OS=`echo "$TARGET_OS" | tr "[:upper:]" "[:lower:]"`
 
 case "${VENDER_ARCH}" in
   i386)
