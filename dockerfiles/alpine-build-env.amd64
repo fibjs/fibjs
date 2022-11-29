@@ -12,3 +12,7 @@ RUN apk add g++
 RUN apk add linux-headers
 RUN apk add libx11-dev
 RUN apk add xz
+RUN apk add sudo
+RUN apk add shadow
+
+RUN adduser --disabled-password fibjs

@@ -4,6 +4,8 @@ LABEL AUTHOR="xicilion"
 LABEL AUTHOR_EMAIL="lion@9465.net"
 
 RUN apt-get update
+RUN apt-get install sudo -y
+
 RUN apt-get install make -y
 RUN apt-get install cmake -y
 RUN apt-get install ccache -y
@@ -12,3 +14,5 @@ RUN apt-get install libx11-dev -y
 
 RUN apt-get install clang -y
 RUN apt-get install g++ -y
+
+RUN adduser fibjs -q
