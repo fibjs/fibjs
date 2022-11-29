@@ -8,13 +8,12 @@ if(NOT "${CLEAN_BUILD}" STREQUAL "true")
         set(WORK_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../..")
     endif()
 
-    set(BIN_PATH "${WORK_ROOT}/bin/${CMAKE_HOST_SYSTEM_NAME}_${BUILD_ARCH}_${BUILD_TYPE}")
+    set(BIN_PATH "${WORK_ROOT}/bin/${DIST_DIRNAME}")
 
     if(${BUILD_TYPE} STREQUAL "release")
         if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
             execute_process(WORKING_DIRECTORY ${BIN_PATH} COMMAND cscript ${CMAKE_CURRENT_SOURCE_DIR}/gen_install.vbs)
-            set(OUT_PATH "${WORK_ROOT}/out/${CMAKE_HOST_SYSTEM_NAME}_${BUILD_ARCH}_${BUILD_TYPE}")
-            build("${CMAKE_CURRENT_SOURCE_DIR}" "${OUT_PATH}/installer" $BIN_PATH)
+            build("${CMAKE_CURRENT_SOURCE_DIR}" "${WORK_ROOT}" "installer")
 
             execute_process(COMMAND dumpbin /dependents ${BIN_PATH}/fibjs.exe)
         else()

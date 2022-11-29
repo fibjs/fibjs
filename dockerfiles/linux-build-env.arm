@@ -1,0 +1,6 @@
+FROM fibjs/linux-build-env:amd64
+
+LABEL AUTHOR="xicilion"
+LABEL AUTHOR_EMAIL="lion@9465.net"
+
+RUN apt-get install g++-arm-linux-gnueabihf -y

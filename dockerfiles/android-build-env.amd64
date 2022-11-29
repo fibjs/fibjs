@@ -1,0 +1,4 @@
+FROM dockcross/android-x86_64
+
+LABEL AUTHOR="xicilion"
+LABEL AUTHOR_EMAIL="lion@9465.net"
