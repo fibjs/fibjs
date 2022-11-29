@@ -3,9 +3,9 @@
 set -ev
 
 if [[ $TARGET_OS_NAME == 'Linux' ]]; then
-    if [[ "$BUILD_ALPINE" == "alpine" ]]; then
+    if [[ "$BUILD_TARGET" != "" ]]; then
         CUR=`pwd`
-        docker run --rm -v ${CUR}:/fibjs fibjs/alpine-test-env:${TARGET_ARCH} bash -c "cd /fibjs; ./bin/Linux_${TARGET_ARCH}_${BUILD_TYPE}/fibjs test/main.js"
+        docker run --rm -v ${CUR}:/fibjs fibjs/${BUILD_TARGET}-test-env:${TARGET_ARCH} bash -c "cd /fibjs; ./bin/Linux_${TARGET_ARCH}_${BUILD_TYPE}/fibjs test/main.js"
     else
         case $TARGET_ARCH in
             arm) export QEMU_LD_PREFIX="/usr/arm-linux-gnueabihf"

@@ -39,11 +39,19 @@ jobs:
           - os: ubuntu-20.04
             target_arch: amd64
             build_type: release
-            alpine: alpine
+            build_target: alpine
           - os: ubuntu-20.04
             target_arch: arm64
             build_type: release
-            alpine: alpine
+            build_target: alpine
+          - os: ubuntu-20.04
+            target_arch: amd64
+            build_type: release
+            build_target: android
+          - os: ubuntu-20.04
+            target_arch: arm64
+            build_type: release
+            build_target: android
           - os: windows-2022
             target_arch: amd64
             build_type: release
@@ -82,7 +90,7 @@ jobs:
         env:
           TARGET_ARCH: ${{ matrix.target_arch }}
           BUILD_TYPE: ${{ matrix.build_type }}
-          BUILD_ALPINE: ${{ matrix.alpine }}
+          BUILD_TARGET: ${{ matrix.build_target }}
 
       - name: Setup ubuntu
         if: runner.os == 'Linux'
@@ -91,7 +99,7 @@ jobs:
           bash .github/workflows/setup_ubuntu.sh
         env:
           TARGET_ARCH: ${{ matrix.target_arch }}
-          BUILD_ALPINE: ${{ matrix.alpine }}
+          BUILD_TARGET: ${{ matrix.build_target }}
 
       - name: Prepare on Windows
         if: runner.os == 'Windows'
@@ -118,7 +126,7 @@ jobs:
         env:
           TARGET_ARCH: ${{ matrix.target_arch }}
           BUILD_TYPE: ${{ matrix.build_type }}
-          BUILD_ALPINE: ${{ matrix.alpine }}
+          BUILD_TARGET: ${{ matrix.build_target }}
           TARGET_OS: ${{ steps.set-env-vars.outputs.TARGET_OS }}
           GIT_BRANCH: ${{ steps.set-env-vars.outputs.GIT_BRANCH }}
           RELEASE_TAG: ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
@@ -201,5 +209,5 @@ jobs:
           DIST_DIR: ${{ steps.set-env-vars.outputs.DIST_DIR }}
           TARGET_ARCH: ${{ matrix.target_arch }}
           BUILD_TYPE: ${{ matrix.build_type }}
-          BUILD_ALPINE: ${{ matrix.alpine }}
+          BUILD_TARGET: ${{ matrix.build_target }}
           TARGET_OS_NAME: ${{ steps.set-env-vars.outputs.TARGET_OS_NAME }}

@@ -19,8 +19,8 @@ case "${VENDER_ARCH}" in
 esac
 
 VENDER_ASSETS_FILE="vender-$VENDER_OS-$VENDER_ARCH-$BUILD_TYPE.zip"
-if [[ "$BUILD_ALPINE" == "alpine" ]]; then
-    VENDER_RELEASE_FILE="vender-alpine-$VENDER_ARCH-$BUILD_TYPE.zip"
+if [[ "$BUILD_TARGET" != "" ]]; then
+    VENDER_RELEASE_FILE="vender-${BUILD_TARGET}-$VENDER_ARCH-$BUILD_TYPE.zip"
 else
     VENDER_RELEASE_FILE="vender-$VENDER_OS-$VENDER_ARCH-$BUILD_TYPE.zip"
 fi

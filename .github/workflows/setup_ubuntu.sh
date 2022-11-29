@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "$BUILD_ALPINE" != "alpine" ]; then
+if [ "$BUILD_TARGET" == "" ]; then
   sudo apt install clang -y
   sudo apt install make -y
   sudo apt install cmake -y
