@@ -11,10 +11,33 @@
 
 #include "config.h"
 
-#ifdef HAVE_ICONV_H
-#include <iconv.h>
-#else
 #include <stddef.h>
+
+typedef void* iconv_t;
+
+#ifdef HAVE_ICONV_H
+extern "C" {
+iconv_t iconv_open(const char* tocode, const char* fromcode);
+int iconv_close(iconv_t cd);
+size_t iconv(iconv_t cd, const char** inbuf, size_t* inbytesleft,
+    char** outbuf, size_t* outbytesleft);
+}
+#else
+static iconv_t iconv_open(const char* tocode, const char* fromcode)
+{
+    return (iconv_t)-1;
+}
+
+static int iconv_close(iconv_t cd)
+{
+    return 0;
+}
+
+static size_t iconv(iconv_t cd, const char** inbuf, size_t* inbytesleft,
+    char** outbuf, size_t* outbytesleft)
+{
+    return 0;
+}
 #endif
 
 #include <dlfcn.h>
@@ -29,93 +52,11 @@ namespace fibjs {
 
 DECLARE_MODULE(iconv);
 
-#ifdef _WIN32
-
-#define _iconv_open iconv_open
-#define _iconv_close iconv_close
-#define _iconv iconv
-
-inline void init_iconv()
-{
-}
-
-#elif !defined(FreeBSD)
-
-#define _iconv_open iconv_open
-#define _iconv_close iconv_close
-#define _iconv ((size_t(*)(iconv_t, const char**, size_t*, char**, size_t*)) & iconv)
-
-inline void init_iconv()
-{
-}
-
-#else
-
-#ifndef HAVE_ICONV_H
-
-typedef void* iconv_t;
-
-static iconv_t iconv_open(const char* tocode, const char* fromcode)
-{
-    return (iconv_t)-1;
-}
-
-static int32_t iconv_close(iconv_t cd)
-{
-    return 0;
-}
-
-static size_t iconv(iconv_t cd, const char** inbuf, size_t* inbytesleft,
-    char** outbuf, size_t* outbytesleft)
-{
-    return 0;
-}
-
-#endif
-
-static size_t (*_iconv)(iconv_t, const char**, size_t*, char**, size_t*);
-static iconv_t (*_iconv_open)(const char*, const char*);
-static int32_t (*_iconv_close)(iconv_t);
-
-inline void init_iconv()
-{
-    static bool _init = false;
-
-    if (!_init) {
-        _init = true;
-
-        void* handle = dlopen("libiconv.so", RTLD_LAZY);
-
-        if (handle) {
-            _iconv = (size_t(*)(iconv_t, const char**, size_t*, char**, size_t*))dlsym(handle, "iconv");
-            if (!_iconv)
-                _iconv = (size_t(*)(iconv_t, const char**, size_t*, char**, size_t*))dlsym(handle, "libiconv");
-
-            _iconv_open = (iconv_t(*)(const char*, const char*))dlsym(handle, "iconv_open");
-            if (!_iconv_open)
-                _iconv_open = (iconv_t(*)(const char*, const char*))dlsym(handle, "libiconv_open");
-
-            _iconv_close = (int32_t(*)(iconv_t))dlsym(handle, "iconv_close");
-            if (!_iconv_close)
-                _iconv_close = (int32_t(*)(iconv_t))dlsym(handle, "libiconv_close");
-        }
-
-        if (!_iconv || !_iconv_open || !_iconv_close) {
-            _iconv = (size_t(*)(iconv_t, const char**, size_t*, char**, size_t*))iconv;
-            _iconv_open = iconv_open;
-            _iconv_close = iconv_close;
-        }
-    }
-}
-
-#endif
-
 encoding_iconv::encoding_iconv()
     : m_iconv_en(NULL)
     , m_iconv_de(NULL)
     , m_iconv_ec(NULL)
 {
-    init_iconv();
     m_charset = "utf-8";
 }
 
@@ -124,36 +65,35 @@ encoding_iconv::encoding_iconv(exlib::string charset)
     , m_iconv_de(NULL)
     , m_iconv_ec(NULL)
 {
-    init_iconv();
     m_charset = (charset == "gb2312") ? "gbk" : charset;
 }
 
 encoding_iconv::~encoding_iconv()
 {
     if (m_iconv_en)
-        _iconv_close((iconv_t)m_iconv_en);
+        iconv_close((iconv_t)m_iconv_en);
 
     if (m_iconv_de)
-        _iconv_close((iconv_t)m_iconv_de);
+        iconv_close((iconv_t)m_iconv_de);
 
     if (m_iconv_ec)
-        _iconv_close((iconv_t)m_iconv_ec);
+        iconv_close((iconv_t)m_iconv_ec);
 }
 
 void encoding_iconv::open(const char* charset)
 {
     if (m_iconv_en) {
-        _iconv_close((iconv_t)m_iconv_en);
+        iconv_close((iconv_t)m_iconv_en);
         m_iconv_en = NULL;
     }
 
     if (m_iconv_de) {
-        _iconv_close((iconv_t)m_iconv_de);
+        iconv_close((iconv_t)m_iconv_de);
         m_iconv_de = NULL;
     }
 
     if (m_iconv_ec) {
-        _iconv_close((iconv_t)m_iconv_ec);
+        iconv_close((iconv_t)m_iconv_ec);
         m_iconv_ec = NULL;
     }
     m_charset = charset;
@@ -279,7 +219,7 @@ result_t encoding_iconv::encode(exlib::string data, exlib::string& retVal)
     }
 
     if (!m_iconv_en) {
-        m_iconv_en = _iconv_open(m_charset.c_str(), "utf-8");
+        m_iconv_en = iconv_open(m_charset.c_str(), "utf-8");
         if (m_iconv_en == (iconv_t)(-1)) {
             m_iconv_en = NULL;
             return CHECK_ERROR(Runtime::setError("encoding: Unknown charset."));
@@ -293,7 +233,7 @@ result_t encoding_iconv::encode(exlib::string data, exlib::string& retVal)
     char* output_buf = retVal.c_buffer();
     size_t output_size = retVal.length();
 
-    size_t n = _iconv((iconv_t)m_iconv_en, &_data, &sz, &output_buf, &output_size);
+    size_t n = iconv((iconv_t)m_iconv_en, &_data, &sz, &output_buf, &output_size);
 
     if (n == (size_t)-1)
         return CHECK_ERROR(Runtime::setError("encoding: convert error."));
@@ -358,7 +298,7 @@ result_t encoding_iconv::decode(const exlib::string& data, exlib::string& retVal
     }
 
     if (!m_iconv_de) {
-        m_iconv_de = _iconv_open("utf-8", m_charset.c_str());
+        m_iconv_de = iconv_open("utf-8", m_charset.c_str());
         if (m_iconv_de == (iconv_t)(-1)) {
             m_iconv_de = NULL;
             return CHECK_ERROR(Runtime::setError("encoding: Unknown charset."));
@@ -373,7 +313,7 @@ result_t encoding_iconv::decode(const exlib::string& data, exlib::string& retVal
     char* output_buf = strBuf.c_buffer();
     size_t output_size = strBuf.length();
 
-    size_t n = _iconv((iconv_t)m_iconv_de, &ptr, &sz, &output_buf, &output_size);
+    size_t n = iconv((iconv_t)m_iconv_de, &ptr, &sz, &output_buf, &output_size);
 
     if (n == (size_t)-1)
         return CHECK_ERROR(Runtime::setError("encoding: convert error."));
@@ -422,7 +362,7 @@ result_t encoding_iconv::isEncoding(bool& retVal)
         m_charset = "latin1";
 
     if (!m_iconv_ec) {
-        m_iconv_ec = _iconv_open(m_charset.c_str(), "utf-8");
+        m_iconv_ec = iconv_open(m_charset.c_str(), "utf-8");
         if (m_iconv_ec == (iconv_t)(-1)) {
             m_iconv_ec = NULL;
             retVal = false;
