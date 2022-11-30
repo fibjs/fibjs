@@ -19,15 +19,15 @@ SOURCE_ROOT="`( cd \"$SOURCE_ROOT\" && pwd )`"
 
 . ${SOURCE_ROOT}/vender/build_tools/scripts/inst_deps.sh
 
-args="$@"
+args=$@
 
-for i in "$@"
+for i in $@
 do
 	case $i in
 		i386|amd64|arm|arm64|armv6|mips|mips64|ppc|ppc64) BUILD_ARCH=$i
 			;;
 		linux|alpine|android) BUILD_OS=$i
-			args="${args/${BUILD_OS}/""}" 
+			args="${args/$BUILD_OS/}" 
 			;;
 	esac
 done
@@ -35,10 +35,6 @@ done
 if [[ $BUILD_OS ]]; then
 	if [[ "${BUILD_ARCH}" == "" ]]; then
 		BUILD_ARCH=amd64
-	fi
-
-	if [[ "${args}" == "" ]]; then
-		args="amd64"
 	fi
 
 	docker run -ti --rm -v ${SOURCE_ROOT}:/fibjs fibjs/${BUILD_OS}-build-env:${BUILD_ARCH}\
