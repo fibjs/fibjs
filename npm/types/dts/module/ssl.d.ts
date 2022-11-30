@@ -84,6 +84,20 @@ declare module 'ssl' {
     function connect(url: string, crt: Class_X509Cert, key: Class_PKey, timeout?: number, callback?: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
+     * @description 创建一个 SslSocket 对象并建立连接
+     *     @param url 指定连接的协议，可以是：ssl://host:port
+     *     @param verification 证书验证模式
+     *     @param crt 证书，用于发送给服务器验证客户端
+     *     @param key 私钥，用于与客户端会话
+     *     @param timeout 指定超时时间，单位是毫秒，默认为0
+     *     @return 返回连接成功的 SslSocket 对象
+     *    
+     */
+    function connect(url: string, verification: number, crt: Class_X509Cert, key: Class_PKey, timeout?: number): Class_Stream;
+
+    function connect(url: string, verification: number, crt: Class_X509Cert, key: Class_PKey, timeout?: number, callback?: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
+
+    /**
      * @description 设定缺省客户端证书
      *     @param crt 证书，用于发送给服务器验证客户端
      *     @param key 私钥，用于与客户端会话

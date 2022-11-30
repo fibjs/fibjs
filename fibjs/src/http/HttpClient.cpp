@@ -169,7 +169,7 @@ result_t HttpClient::get_sslVerification(int32_t& retVal)
 {
     retVal = m_sslVerification;
 
-    if (retVal == 0)
+    if (retVal < 0)
         return CALL_RETURN_NULL;
 
     return 0;
@@ -566,9 +566,9 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             }
 
             if (m_hc->m_proxyAgent.empty()) {
-                if (m_ssl && m_hc->m_crt && m_hc->m_key)
-                    return ssl_base::connect(m_connUrl, m_hc->m_crt, m_hc->m_key, m_hc->m_timeout,
-                        m_conn, next(connected));
+                if (m_ssl)
+                    return ssl_base::connect(m_connUrl, m_hc->m_sslVerification,
+                        m_hc->m_crt, m_hc->m_key, m_hc->m_timeout, m_conn, next(connected));
                 else
                     return net_base::connect(m_connUrl, m_hc->m_timeout, m_conn, next(connected));
             } else {
@@ -738,12 +738,10 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
         ON_STATE(asyncRequest, ssl_handshake)
         {
             obj_ptr<SslSocket> ss = new SslSocket();
-            int32_t sslVerfication;
 
-            m_hc->get_sslVerification(sslVerfication);
-            if (sslVerfication == 0)
-                ssl_base::get_verification(sslVerfication);
-            ss->set_verification(sslVerfication);
+            if (m_hc->m_sslVerification >= 0)
+                ss->set_verification(m_hc->m_sslVerification);
+
             obj_ptr<Stream_base> conn = m_conn;
             m_conn = ss;
 
