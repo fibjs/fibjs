@@ -37,8 +37,8 @@ if [[ $BUILD_OS ]]; then
 		BUILD_ARCH=amd64
 	fi
 
-	docker run -ti --rm -v ${SOURCE_ROOT}:/fibjs fibjs/${BUILD_OS}-build-env:${BUILD_ARCH}\
-		bash -c "cd /fibjs; usermod --login ${USER} fibjs; sudo -u ${USER} bash build ${args}"
+	docker run -ti --rm -v ${SOURCE_ROOT}:${SOURCE_ROOT} fibjs/${BUILD_OS}-build-env:${BUILD_ARCH}\
+		bash -c "cd ${SOURCE_ROOT}; usermod --login ${USER} fibjs; sudo -u ${USER} bash build ${args}"
 	exit $?
 fi
 
