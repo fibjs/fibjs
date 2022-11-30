@@ -2793,6 +2793,8 @@ describe("http", () => {
         });
 
         it("make https verification optional", () => {
+            ssl.ca.clear();
+
             hc = new http.Client();
 
             hc.sslVerification = ssl.VERIFY_OPTIONAL

@@ -40,6 +40,7 @@ public:
     // ssl_base
     static result_t connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t connect(exlib::string url, X509Cert_base* crt, PKey_base* key, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
+    static result_t connect(exlib::string url, int32_t verification, X509Cert_base* crt, PKey_base* key, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac);
     static result_t setClientCert(X509Cert_base* crt, PKey_base* key);
     static result_t loadRootCerts();
     static result_t get_ca(obj_ptr<X509Cert_base>& retVal);
@@ -68,6 +69,7 @@ public:
 public:
     ASYNC_STATICVALUE3(ssl_base, connect, exlib::string, int32_t, obj_ptr<Stream_base>);
     ASYNC_STATICVALUE5(ssl_base, connect, exlib::string, X509Cert_base*, PKey_base*, int32_t, obj_ptr<Stream_base>);
+    ASYNC_STATICVALUE6(ssl_base, connect, exlib::string, int32_t, X509Cert_base*, PKey_base*, int32_t, obj_ptr<Stream_base>);
 };
 }
 
@@ -147,6 +149,19 @@ inline void ssl_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>
         hr = acb_connect(v0, v1, v2, v3, cb, args);
     else
         hr = ac_connect(v0, v1, v2, v3, vr);
+
+    ASYNC_METHOD_OVER(5, 4);
+
+    ARG(exlib::string, 0);
+    ARG(int32_t, 1);
+    ARG(obj_ptr<X509Cert_base>, 2);
+    ARG(obj_ptr<PKey_base>, 3);
+    OPT_ARG(int32_t, 4, 0);
+
+    if (!cb.IsEmpty())
+        hr = acb_connect(v0, v1, v2, v3, v4, cb, args);
+    else
+        hr = ac_connect(v0, v1, v2, v3, v4, vr);
 
     METHOD_RETURN();
 }
