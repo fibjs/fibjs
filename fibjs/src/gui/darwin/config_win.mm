@@ -5,6 +5,8 @@
  *      Author: lion
  */
 
+#if defined(__APPLE__) && !defined(FIBJS_DISABLE_GUI)
+
 #import <Cocoa/Cocoa.h>
 #import <objc/runtime.h>
 #include "object.h"
@@ -170,3 +172,5 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
     webview->_emit("open");
 }
 }
+
+#endif
