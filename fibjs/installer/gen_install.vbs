@@ -50,6 +50,7 @@ If build Then
     Set ts = WScript.CreateObject("ADODB.Stream")
     ts.Type = 2
     ts.Open
+    ts.Charset = "UTF-8"
 
     ts.WriteText "unsigned char js_data[] = {"
     For i = 1 To len

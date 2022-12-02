@@ -1871,7 +1871,8 @@ describe('util', () => {
             assert.property(util.buildInfo(), 'fibjs');
             switch (process.platform) {
                 case 'win32':
-                    assert.property(util.buildInfo(), 'msvc');
+                    const keys = Object.keys(util.buildInfo());
+                    assert.isTrue(keys.includes('msvc') || keys.includes('clang'));
                     break
                 case 'darwin':
                 case 'freebsd':
