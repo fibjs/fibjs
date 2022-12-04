@@ -75,11 +75,11 @@ describe("vm", () => {
         assert.equal(100, sbox.require("t2", __dirname).a);
     });
 
-    it("addNativeModule", () => {
+    it("addBuiltinModules", () => {
         sbox = new vm.SandBox();
-        
+
         assert.equal(false, sbox.has('coroutine'));
-        sbox.addNativeModule();
+        sbox.addBuiltinModules();
         assert.equal(true, sbox.has('coroutine'));
     });
 

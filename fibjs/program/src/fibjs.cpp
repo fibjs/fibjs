@@ -12,7 +12,7 @@ namespace fibjs {
 
 void main(int32_t argc, char** argv)
 {
-    importNativeModule();
+    importBuiltinModule();
 
     start(argc, argv, FiberProcJsEntry);
     run_gui(argc, argv);

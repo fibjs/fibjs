@@ -234,7 +234,7 @@ void Isolate::init()
     global_base::class_info().Attach(this, _context->Global(), skips);
 
     m_topSandbox = new SandBox();
-    m_topSandbox->addNativeModule();
+    m_topSandbox->addBuiltinModules();
 
     const char* assertion_error = "var origInit = WebAssembly.instantiate;"
                                   "WebAssembly.instantiate = function (bufferSource, importObject) {"

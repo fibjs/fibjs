@@ -111,7 +111,7 @@ void SandBox::initGlobal(v8::Local<v8::Object> global)
 RootModule* RootModule::g_root = NULL;
 RootModule* RootModule::g_last = NULL;
 
-result_t SandBox::addNativeModule()
+result_t SandBox::addBuiltinModules()
 {
     Isolate* isolate = holder();
 
