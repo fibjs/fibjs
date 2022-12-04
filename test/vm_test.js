@@ -727,6 +727,43 @@ describe("vm", () => {
 
         assert.equal(no1, test_util.countObject('Buffer'));
     });
+
+    describe(`all builtin modules aliases with prefix fibjs:`, () => {
+        const modules = require('util').buildInfo().modules;
+
+        modules.forEach((mod) => {
+            it(`topLevel: could require('${mod}'), could require('fibjs:${mod}')`, () => {
+                let err = null;
+                let modAlias = null;
+
+                try {
+                    modAlias = require(`fibjs:${mod}`);
+                } catch (error) {
+                    err = error
+                }
+
+                assert.equal(err, null);
+                assert.equal(modAlias, require(mod));
+            });
+
+            it(`Sandbox: could require('${mod}'), could require('fibjs:${mod}')`, () => {
+                const sandbox = new vm.SandBox({});
+                sandbox.addBuiltinModules();
+
+                let err = null;
+                let modAlias = null;
+
+                try {
+                    modAlias = sandbox.require(`fibjs:${mod}`, __dirname);
+                } catch (error) {
+                    err = error
+                }
+
+                assert.equal(err, null);
+                assert.equal(modAlias, sandbox.require(mod, __dirname));
+            });
+        });
+    });
 });
 
 require.main === module && test.run(console.DEBUG);

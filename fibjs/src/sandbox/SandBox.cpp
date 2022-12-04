@@ -118,7 +118,11 @@ result_t SandBox::addBuiltinModules()
     RootModule* pModule = RootModule::g_root;
 
     while (pModule) {
-        InstallModule(pModule->name(), pModule->getModule(isolate));
+        exlib::string name = pModule->name();
+        v8::Local<v8::Object> mod = pModule->getModule(isolate);
+        InstallModule(name, mod);
+        InstallModule("fibjs:" + name, mod);
+
         pModule = pModule->m_next;
     }
 
