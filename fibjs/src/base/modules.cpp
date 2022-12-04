@@ -9,7 +9,7 @@
 
 namespace fibjs {
 
-void importNativeModule()
+void importBuiltinModule()
 {
     IMPORT_MODULE(assert);
     IMPORT_MODULE(base32);

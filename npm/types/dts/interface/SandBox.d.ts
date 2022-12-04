@@ -53,7 +53,7 @@ declare class Class_SandBox extends Class_object {
     /**
      * @description 向沙箱中添加内置基础模块 
      */
-    addNativeModule(): void;
+    addBuiltinModules(): void;
 
     /**
      * @description 向沙箱中添加一个基础模块
