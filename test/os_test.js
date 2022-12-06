@@ -27,6 +27,15 @@ describe('os', () => {
             assert.property(r[0], 'speed');
             assert.property(r[0], 'times');
         });
+
+        for (var i = 0; i < 10000; i++) {
+            var r1 = os.cpus();
+            if (r[0].times.user != r1[0].times.user)
+                break;
+        }
+
+        var r1 = os.cpus();
+        assert.notEqual(r[0].times.user, r1[0].times.user);
     });
 
     it('networkInterfaces', () => {

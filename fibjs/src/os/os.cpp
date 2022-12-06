@@ -150,14 +150,15 @@ result_t os_base::get_timezone(int32_t& retVal)
 }
 
 static int32_t s_cpus = 0;
-static uv_cpu_info_t* s_cpu_infos;
 
 result_t os_base::cpuNumbers(int32_t& retVal)
 {
     if (s_cpus == 0) {
-        int32_t ret = uv_cpu_info(&s_cpu_infos, &s_cpus);
+        uv_cpu_info_t* cpu_infos;
+        int32_t ret = uv_cpu_info(&cpu_infos, &s_cpus);
         if (ret < 0)
             return CHECK_ERROR(ret);
+        uv_free_cpu_info (cpu_infos, s_cpus);
     }
 
     retVal = s_cpus;
@@ -166,11 +167,10 @@ result_t os_base::cpuNumbers(int32_t& retVal)
 
 result_t os_base::cpus(v8::Local<v8::Array>& retVal)
 {
-    if (s_cpus == 0) {
-        int32_t ret = uv_cpu_info(&s_cpu_infos, &s_cpus);
-        if (ret < 0)
-            return CHECK_ERROR(ret);
-    }
+    uv_cpu_info_t* cpu_infos;
+    int32_t ret = uv_cpu_info(&cpu_infos, &s_cpus);
+    if (ret < 0)
+        return CHECK_ERROR(ret);
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
@@ -181,22 +181,24 @@ result_t os_base::cpus(v8::Local<v8::Array>& retVal)
         v8::Local<v8::Object> cputimes = v8::Object::New(isolate->m_isolate);
 
         cputimes->Set(context, isolate->NewString("user"),
-            v8::Number::New(isolate->m_isolate, (double)s_cpu_infos[i].cpu_times.user));
+            v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.user));
         cputimes->Set(context, isolate->NewString("nice"),
-            v8::Number::New(isolate->m_isolate, (double)s_cpu_infos[i].cpu_times.nice));
+            v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.nice));
         cputimes->Set(context, isolate->NewString("sys"),
-            v8::Number::New(isolate->m_isolate, (double)s_cpu_infos[i].cpu_times.sys));
+            v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.sys));
         cputimes->Set(context, isolate->NewString("idle"),
-            v8::Number::New(isolate->m_isolate, (double)s_cpu_infos[i].cpu_times.idle));
+            v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.idle));
         cputimes->Set(context, isolate->NewString("irq"),
-            v8::Number::New(isolate->m_isolate, (double)s_cpu_infos[i].cpu_times.irq));
+            v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.irq));
 
-        cpuinfo->Set(context, isolate->NewString("model"), isolate->NewString(s_cpu_infos[i].model));
-        cpuinfo->Set(context, isolate->NewString("speed"), v8::Number::New(isolate->m_isolate, s_cpu_infos[i].speed));
+        cpuinfo->Set(context, isolate->NewString("model"), isolate->NewString(cpu_infos[i].model));
+        cpuinfo->Set(context, isolate->NewString("speed"), v8::Number::New(isolate->m_isolate, cpu_infos[i].speed));
         cpuinfo->Set(context, isolate->NewString("times"), cputimes);
 
         retVal->Set(context, i, cpuinfo);
     }
+
+    uv_free_cpu_info (cpu_infos, s_cpus);
 
     return 0;
 }
