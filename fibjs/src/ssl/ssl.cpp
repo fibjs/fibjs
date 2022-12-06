@@ -136,7 +136,7 @@ result_t ssl_base::setClientCert(X509Cert_base* crt, PKey_base* key)
 
 result_t ssl_base::loadRootCerts()
 {
-    return Isolate::current()->m_ca->loadRootCerts();
+    return 0;
 }
 
 result_t ssl_base::get_ca(obj_ptr<X509Cert_base>& retVal)
