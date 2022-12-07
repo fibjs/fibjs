@@ -28,7 +28,10 @@ describe('os', () => {
             assert.property(r[0], 'times');
         });
 
-        for (var i = 0; i < 10000; i++) {
+        for (var i = 0; i < 1000; i++) {
+            for (var j = 0; j < 1000; j++)
+                Buffer.alloc(10000);
+
             var r1 = os.cpus();
             if (r[0].times.user != r1[0].times.user)
                 break;
