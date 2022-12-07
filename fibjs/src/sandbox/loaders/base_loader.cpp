@@ -93,9 +93,6 @@ result_t SandBox::ExtLoader::run(Context* ctx, Buffer_base* src, exlib::string n
     JSFunction func = v8::Local<v8::Function>::Cast(v);
 
     v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(args[5]);
-    module->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("entry")),
-        func);
-
     v8::Local<v8::Object> glob = context->Global();
 
     v = func.Call(context, glob, (int32_t)args.size(), args.data());

@@ -108,6 +108,15 @@ describe("vm", () => {
         assert.equal(b().split('\n')[1].trim(), "at func_name (tc5.js:26:8)");
     });
 
+    it("require json test", () => {
+        var a = sbox.require(`./vm_test/custom_ext_json/custom_ext.cjs.json`, __dirname);
+        assert.deepEqual({
+            "I": "am .cjs.json",
+            "a": "1",
+            "b": "2"
+        }, a);
+    });
+
     it("require jsc", () => {
         var bin = util.compile("jsc_test.js", "module.exports = {a : 100};");
         fs.writeFile(path.join(__dirname, "vm_test", "jsc_test.jsc"), bin);
@@ -466,7 +475,7 @@ describe("vm", () => {
         });
     });
 
-    it('refresh', () => {
+    xit('refresh', () => {
         var sbox = new vm.SandBox({});
 
         var test = sbox.require('./vm_test/test_refresh', __dirname);
@@ -527,7 +536,7 @@ describe("vm", () => {
         });
     });
 
-    it('gc of refresh', () => {
+    xit('gc of refresh', () => {
         var sbox = new vm.SandBox({});
 
         test_util.gc();

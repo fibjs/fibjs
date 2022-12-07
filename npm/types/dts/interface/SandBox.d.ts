@@ -107,11 +107,6 @@ declare class Class_SandBox extends Class_object {
     freeze(): void;
 
     /**
-     * @description 重新加载沙箱内的模块，此操作只会重新初始化模块，复位模块内的变量，不更新模块代码 
-     */
-    refresh(): void;
-
-    /**
      * @description 运行一个脚本
      *      @param fname 指定要运行的脚本路径，此路径与当前运行脚本无关，必须为绝对路径
      *      @param argv 指定要运行的参数，此参数可在脚本内使用 argv 获取

@@ -15,7 +15,6 @@ v8::Local<v8::Value> SandBox::get_module(v8::Local<v8::Object> mods, exlib::stri
 {
     Isolate* isolate = holder();
     v8::Local<v8::Context> _context = isolate->context();
-    v8::Local<v8::String> strEntry = isolate->NewString("entry");
     v8::Local<v8::String> strExports = isolate->NewString("exports");
 
     JSValue m = mods->Get(_context, isolate->NewString(id));
@@ -24,62 +23,7 @@ v8::Local<v8::Value> SandBox::get_module(v8::Local<v8::Object> mods, exlib::stri
 
     v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(m);
     JSValue o = module->Get(_context, strExports);
-    JSValue v = module->GetPrivate(_context, v8::Private::ForApi(isolate->m_isolate, strEntry));
-    if (!o->IsUndefined() || !v->IsFunction())
-        return o;
-
-    JSFunction func = v8::Local<v8::Function>::Cast(v);
-    v8::Local<v8::Value> args[6];
-
-    exlib::string pname;
-    path_base::dirname(id, pname);
-
-    Context context(this, id);
-
-    v8::Local<v8::Object> exports = v8::Object::New(isolate->m_isolate);
-    v8::Local<v8::Object> mod = v8::Object::New(isolate->m_isolate);
-
-    InstallModule(id, exports, mod);
-
-    args[0] = isolate->NewString(id);
-    args[1] = isolate->NewString(pname);
-    args[2] = context.m_fnRequest;
-    args[3] = context.m_fnRun;
-    args[4] = exports;
-    args[5] = mod;
-
-    mod->Set(_context, strExports, exports);
-    mod->Set(_context, isolate->NewString("require"), args[2]);
-    mod->Set(_context, isolate->NewString("run"), args[3]);
-    mod->SetPrivate(_context, v8::Private::ForApi(isolate->m_isolate, strEntry), func);
-
-    v8::Local<v8::Object> glob = isolate->context()->Global();
-    v = func.Call(_context, glob, 6, args);
-    if (v.IsEmpty())
-        return v;
-
-    return JSValue(mod->Get(_context, strExports));
-}
-
-result_t SandBox::refresh()
-{
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-
-    v8::Local<v8::String> strEntry = isolate->NewString("entry");
-    v8::Local<v8::String> strExports = isolate->NewString("exports");
-
-    v8::Local<v8::Object> modules = mods();
-    JSArray names = modules->GetPropertyNames(context);
-
-    for (int32_t i = 0; i < (int32_t)names->Length(); i++) {
-        v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(JSValue(modules->Get(context, JSValue(names->Get(context, i)))));
-        JSValue v = module->GetPrivate(context, v8::Private::ForApi(isolate->m_isolate, strEntry));
-        if (v->IsFunction())
-            module->Delete(context, strExports);
-    }
-
-    return 0;
+    return o;
 }
 
 result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,

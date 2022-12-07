@@ -34,7 +34,6 @@ public:
     virtual result_t has(exlib::string id, bool& retVal) = 0;
     virtual result_t clone(obj_ptr<SandBox_base>& retVal) = 0;
     virtual result_t freeze() = 0;
-    virtual result_t refresh() = 0;
     virtual result_t run(exlib::string fname, v8::Local<v8::Array> argv) = 0;
     virtual result_t resolve(exlib::string id, exlib::string base, exlib::string& retVal) = 0;
     virtual result_t require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal) = 0;
@@ -55,7 +54,6 @@ public:
     static void s_has(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clone(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_freeze(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_refresh(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_require(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -78,7 +76,6 @@ inline ClassInfo& SandBox_base::class_info()
         { "has", s_has, false, false },
         { "clone", s_clone, false, false },
         { "freeze", s_freeze, false, false },
-        { "refresh", s_refresh, false, false },
         { "run", s_run, false, false },
         { "resolve", s_resolve, false, false },
         { "require", s_require, false, false },
@@ -254,19 +251,6 @@ inline void SandBox_base::s_freeze(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_OVER(0, 0);
 
     hr = pInst->freeze();
-
-    METHOD_VOID();
-}
-
-inline void SandBox_base::s_refresh(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("SandBox.refresh");
-    METHOD_INSTANCE(SandBox_base);
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = pInst->refresh();
 
     METHOD_VOID();
 }
