@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:18.04
 
 LABEL AUTHOR="xicilion"
 LABEL AUTHOR_EMAIL="lion@9465.net"
@@ -16,3 +16,5 @@ RUN apt-get install clang -y
 RUN apt-get install g++ -y
 
 RUN adduser fibjs -q
+
+RUN chmod 777 /root
