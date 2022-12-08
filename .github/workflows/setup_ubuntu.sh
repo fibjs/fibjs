@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sudo apt update
+
 if [ "$BUILD_TARGET" == "" ]; then
   sudo apt install clang -y
   sudo apt install make -y

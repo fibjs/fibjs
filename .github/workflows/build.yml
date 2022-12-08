@@ -37,21 +37,21 @@ jobs:
         build_type: [release]
         include:
           - os: ubuntu-20.04
+            build_target: alpine
             target_arch: amd64
             build_type: release
-            build_target: alpine
           - os: ubuntu-20.04
+            build_target: alpine
             target_arch: arm64
             build_type: release
-            build_target: alpine
           - os: ubuntu-20.04
+            build_target: android
             target_arch: amd64
             build_type: release
-            build_target: android
           - os: ubuntu-20.04
+            build_target: android
             target_arch: arm64
             build_type: release
-            build_target: android
           - os: windows-2022
             target_arch: amd64
             build_type: release
