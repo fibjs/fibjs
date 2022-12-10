@@ -199,17 +199,18 @@ public:
                 p1 = p->m_subs[p->m_pos++];
 
                 if (p1->m_block.IsEmpty()) {
-                    if (stack.size() == 1)
-                        asyncLog(console_base::C_INFO, "");
-
                     if (p1->m_level < p->m_run_level)
                         p1->m_run_level = TEST_NONE;
 
-                    str.append(logger::highLight());
-                    str.append(p1->m_title);
-                    str.append(COLOR_RESET);
+                    if (mode > console_base::C_ERROR || p1->m_run_level != TEST_NONE) {
+                        str.append(logger::highLight());
+                        str.append(p1->m_title);
+                        str.append(COLOR_RESET);
 
-                    asyncLog(console_base::C_INFO, str);
+                        if (stack.size() == 1)
+                            asyncLog(console_base::C_INFO, "");
+                        asyncLog(console_base::C_INFO, str);
+                    }
 
                     stack.append(p1);
                     continue;
@@ -323,7 +324,7 @@ public:
 
                 if (!p1->m_status)
                     asyncLog(console_base::C_INFO, logger::error() + str + COLOR_RESET);
-                else
+                else if (mode > console_base::C_ERROR || (p1->m_level >= p->m_run_level && p1->m_level != _case::TEST_TODO))
                     asyncLog(console_base::C_INFO, str);
 
                 if (p1->m_level >= p->m_run_level && p1->m_level != _case::TEST_TODO) {
