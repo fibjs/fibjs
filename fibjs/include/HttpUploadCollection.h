@@ -63,8 +63,10 @@ public:
 
     result_t all(obj_ptr<NObject>& retVal)
     {
-        obj_ptr<NObject> map = new NObject(true);
+        obj_ptr<NObject> map = new NObject();
         size_t i;
+
+        map->enable_multi_value();
 
         for (i = 0; i < m_count; i++) {
             pair& _pair = m_map[i];

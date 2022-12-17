@@ -30,12 +30,6 @@ public:
     };
 
 public:
-    NObject(bool multi_value)
-        : m_multi_value(multi_value)
-    {
-    }
-
-public:
     void add(exlib::string key, Variant value);
     result_t add(v8::Local<v8::Object> m)
     {
@@ -95,6 +89,11 @@ public:
         }
 
         return 0;
+    }
+
+    void enable_multi_value()
+    {
+        m_multi_value = true;
     }
 
 public:

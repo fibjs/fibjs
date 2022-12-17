@@ -1111,6 +1111,19 @@ describe("http", () => {
             ms.rewind();
             assert.equal(ms.read().toString(), 'HTTP/1.1 200 OK\r\nSet-Cookie: test=value; path=/\r\nSet-Cookie: test1=value1; path=/\r\nSet-Cookie: test2=; path=/\r\nConnection: keep-alive\r\nContent-Length: 0\r\n\r\n');
         });
+
+        it("BUGFIX: query.all cause memoryUsage count error", () => {
+            test_util.gc();
+
+            var no = test_util.countObject('NObject');
+            for (var i = 0; i < 100; i++) {
+                var query = new http.Request().query;
+                query.all();
+            }
+            test_util.gc();
+            var no1 = test_util.countObject('NObject');
+            assert.equal(no, no1);
+        });
     });
 
     describe("handler", () => {
