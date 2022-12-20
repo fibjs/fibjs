@@ -54,7 +54,7 @@ describe('ssl', () => {
         cert.import(fs.readTextFile(path.join(__dirname, 'cert_files', 'ca-bundle.crt')));
         var s = cert.pem();
 
-        ssl.loadRootCerts();
+        ssl.ca.loadRootCerts();
         var s1 = ssl.ca.pem();
 
         assert.deepEqual(s, s1.slice(s1.length - s.length));

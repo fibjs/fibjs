@@ -2783,7 +2783,7 @@ describe("http", () => {
         var hc;
 
         beforeEach(() => {
-            ssl.loadRootCerts();
+            ssl.ca.loadRootCerts();
         });
 
         afterEach(() => {

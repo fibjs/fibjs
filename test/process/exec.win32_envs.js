@@ -3,7 +3,7 @@ const http = require('http');
 const net = require('net');
 const coroutine = require("coroutine");
 
-ssl.loadRootCerts();
+ssl.ca.loadRootCerts();
 
 // use socket :start
 http.get('https://stackoverflow.com');

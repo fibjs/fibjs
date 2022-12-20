@@ -32,7 +32,7 @@ result_t _ssl::setError(int32_t ret)
 result_t ssl_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal,
     AsyncEvent* ac)
 {
-    return connect(url, -1, g_ssl.m_crt, g_ssl.m_key, timeout, retVal, ac);
+    return connect(url, NULL, NULL, timeout, retVal, ac);
 }
 
 result_t ssl_base::connect(exlib::string url, X509Cert_base* crt, PKey_base* key, int32_t timeout,
@@ -75,6 +75,12 @@ result_t ssl_base::connect(exlib::string url, int32_t verification, X509Cert_bas
 
             if (m_verification >= 0)
                 m_ssl_sock->set_verification(m_verification);
+
+            if (!m_crt)
+                m_crt = g_ssl.m_crt;
+
+            if (!m_key)
+                m_key = g_ssl.m_key;
 
             if (m_crt && m_key) {
                 result_t hr = m_ssl_sock->setCert("", m_crt, m_key);
