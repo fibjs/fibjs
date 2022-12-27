@@ -25,10 +25,10 @@ result_t PKey_base::_new(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retV
 static void mpi_dump(Isolate* isolate, v8::Local<v8::Object> o, exlib::string key, const mbedtls_mpi* n, size_t ksz = 0)
 {
     exlib::string data;
-    int32_t sz = (int32_t)mbedtls_mpi_size(n);
+    size_t sz = mbedtls_mpi_size(n);
     if (sz) {
         if (ksz)
-            sz = (int32_t)ksz;
+            sz = ksz;
 
         data.resize(sz);
         mbedtls_mpi_write_binary(n, (unsigned char*)data.c_buffer(), sz);
