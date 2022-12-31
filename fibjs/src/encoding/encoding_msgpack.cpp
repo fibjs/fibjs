@@ -60,11 +60,15 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
 
                 d.get_timestamp(_d);
                 msgpack_pack_timestamp(&pk, &_d);
-            } else if (element->IsArray())
+            } else if (element->IsArray()) {
                 return pack(v8::Local<v8::Array>::Cast(element));
-            else if (element->IsObject() && !element->IsStringObject())
+            } else if (element->IsSet()) {
+                return pack(v8::Local<v8::Set>::Cast(element)->AsArray());
+            } else if (element->IsMap()) {
+                return pack(v8::Local<v8::Map>::Cast(element)->AsArray());
+            } else if (element->IsObject() && !element->IsStringObject()) {
                 return pack(v8::Local<v8::Object>::Cast(element));
-            else {
+            } else {
                 v8::String::Utf8Value v(isolate->m_isolate, element);
 
                 msgpack_pack_str(&pk, v.length());
@@ -153,6 +157,25 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
             msgpack_pack_array(&pk, len);
             for (i = 0; i < len; i++) {
                 hr = pack((JSValue)element->Get(context, i));
+                if (hr < 0)
+                    return hr;
+            }
+
+            return 0;
+        }
+
+        result_t pack(v8::Local<v8::Map> element)
+        {
+            v8::Local<v8::Context> context = isolate->context();
+            int32_t len = element->Size();
+            int32_t i;
+            result_t hr;
+
+            msgpack_pack_map(&pk, len * 2);
+
+            v8::Local<v8::Array> arr = element->AsArray();
+            for (i = 0; i < len; i++) {
+                hr = pack((JSValue)arr->Get(context, i));
                 if (hr < 0)
                     return hr;
             }
