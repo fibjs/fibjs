@@ -747,6 +747,20 @@ describe('encoding', () => {
             assert.isObject(msgpack.decode(msgpack.encode(object)));
         });
 
+        it('test for Set', () => {
+            var tmp = [1, 2, 3, "a", "b", true, false];
+            var set = new Set(tmp);
+            assert.deepEqual(tmp, msgpack.decode(msgpack.encode(set)));
+            assert.isArray(msgpack.decode(msgpack.encode(set)));
+        });
+
+        it('test for Map', () => {
+            var tmp = {a: 12, b: [2, 3, 5], c: true};
+            var map = new Map(Object.entries(tmp));
+            assert.deepEqual(tmp, msgpack.decode(msgpack.encode(map)));
+            assert.isObject(msgpack.decode(msgpack.encode(map)));
+        });
+
         it('test unpacking a buffer', () => {
             var testBuffer = new Buffer([0x00, 0x01, 0x02]);
             assert.deepEqual(testBuffer, msgpack.decode(msgpack.encode(testBuffer)));
