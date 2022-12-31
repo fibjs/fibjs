@@ -65,7 +65,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
             } else if (element->IsSet()) {
                 return pack(v8::Local<v8::Set>::Cast(element)->AsArray());
             } else if (element->IsMap()) {
-                return pack(v8::Local<v8::Map>::Cast(element)->AsArray());
+                return pack(v8::Local<v8::Map>::Cast(element));
             } else if (element->IsObject() && !element->IsStringObject()) {
                 return pack(v8::Local<v8::Object>::Cast(element));
             } else {
@@ -167,13 +167,15 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
         result_t pack(v8::Local<v8::Map> element)
         {
             v8::Local<v8::Context> context = isolate->context();
-            int32_t len = element->Size();
-            int32_t i;
-            result_t hr;
-
-            msgpack_pack_map(&pk, len * 2);
 
             v8::Local<v8::Array> arr = element->AsArray();
+            uint32_t size = element->Size();
+            uint32_t len = arr->Length();
+
+            uint32_t i;
+            result_t hr;
+
+            msgpack_pack_map(&pk, size);
             for (i = 0; i < len; i++) {
                 hr = pack((JSValue)arr->Get(context, i));
                 if (hr < 0)
@@ -279,6 +281,8 @@ result_t msgpack_base::decode(Buffer_base* data, v8::Local<v8::Value>& retVal)
                     if (p->key.type == MSGPACK_OBJECT_STR) {
                         obj->Set(context, isolate->NewString(p->key.via.str.ptr, (int32_t)p->key.via.str.size),
                             map_js_value(&p->val));
+                    } else {
+                        obj->Set(context, map_js_value(&p->key), map_js_value(&p->val));
                     }
                 }
                 v = obj;
