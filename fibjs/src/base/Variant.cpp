@@ -353,7 +353,7 @@ result_t Variant::unbind()
             clear();
             set_type(VT_UNBOUND_ARRAY);
 
-            v8::Local<v8::Context> context = a->CreationContext();
+            v8::Local<v8::Context> context = a->GetCreationContextChecked();
             len = a->Length();
 
             m_Val.buffer.cnt = len;
@@ -367,7 +367,7 @@ result_t Variant::unbind()
             clear();
             set_type(VT_UNBOUND_OBJECT);
 
-            v8::Local<v8::Context> context = o->CreationContext();
+            v8::Local<v8::Context> context = o->GetCreationContextChecked();
             JSArray ks = o->GetPropertyNames(context);
             len = ks->Length();
 

@@ -191,7 +191,7 @@ result_t AsyncCallBack::syncFunc(AsyncCallBack* pThis)
         args[0] = cb_err;
     }
 
-    func->Call(func->CreationContext(), v8::Undefined(isolate->m_isolate), (int32_t)args.size(), args.data());
+    func->Call(func->GetCreationContextChecked(), v8::Undefined(isolate->m_isolate), (int32_t)args.size(), args.data());
 
     delete pThis;
 

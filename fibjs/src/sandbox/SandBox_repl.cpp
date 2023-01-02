@@ -104,7 +104,7 @@ result_t SandBox::Context::repl()
             v8::Local<v8::Script> script;
             TryCatch try_catch;
 
-            v8::ScriptOrigin origin(strFname);
+            v8::ScriptOrigin origin(isolate->m_isolate, strFname);
             v8::Local<v8::Context> context = isolate->m_isolate->GetCurrentContext();
             v8::MaybeLocal<v8::Script> lscript = v8::Script::Compile(context, isolate->NewString(buf), &origin);
 

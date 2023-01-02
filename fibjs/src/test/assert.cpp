@@ -772,7 +772,7 @@ result_t assert_base::throws(v8::Local<v8::Function> block, exlib::string msg)
     bool err;
     {
         TryCatch try_catch;
-        block->Call(block->CreationContext(), v8::Undefined(Isolate::current()->m_isolate), 0, NULL);
+        block->Call(block->GetCreationContextChecked(), v8::Undefined(Isolate::current()->m_isolate), 0, NULL);
         err = try_catch.HasCaught();
     }
     _test(err, _msg(msg, "Missing expected exception."));
@@ -786,7 +786,7 @@ result_t assert_base::doesNotThrow(v8::Local<v8::Function> block,
     bool err;
     {
         TryCatch try_catch;
-        block->Call(block->CreationContext(), v8::Undefined(Isolate::current()->m_isolate), 0, NULL);
+        block->Call(block->GetCreationContextChecked(), v8::Undefined(Isolate::current()->m_isolate), 0, NULL);
         err = try_catch.HasCaught();
     }
     _test(!err, _msg(msg, "Got unwanted exception."));

@@ -6,7 +6,6 @@ docker build --rm -f linux-build-env.i386 -t fibjs/linux-build-env:i386 .
 docker build --rm -f linux-build-env.arm64 -t fibjs/linux-build-env:arm64 .
 docker build --rm -f linux-build-env.arm -t fibjs/linux-build-env:arm .
 docker build --rm -f linux-build-env.mips64 -t fibjs/linux-build-env:mips64 .
-docker build --rm -f linux-build-env.mips -t fibjs/linux-build-env:mips .
 
 docker build --rm -f alpine-build-env.amd64 -t fibjs/alpine-build-env:amd64 .
 docker build --rm -f alpine-build-env.arm64 -t fibjs/alpine-build-env:arm64 .

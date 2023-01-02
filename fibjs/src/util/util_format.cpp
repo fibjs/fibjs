@@ -115,7 +115,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
             exlib::string s("Symbol(");
 
             v8::Local<v8::Symbol> _symbol = v8::Local<v8::Symbol>::Cast(v);
-            v8::Local<v8::Value> _name = _symbol->Name();
+            v8::Local<v8::Value> _name = _symbol->Description(isolate->m_isolate);
 
             if (!_name->IsUndefined())
                 s.append(isolate->toString(_name));

@@ -189,7 +189,7 @@ public:
         for (int i = 0; i < nArgCount; i++)
             argv[i] = v8::Local<v8::Value>::New(isolate->m_isolate, m_argv[i]);
 
-        callback->Call(callback->CreationContext(), wrap(), (int32_t)argv.size(), argv.data());
+        callback->Call(callback->GetCreationContextChecked(), wrap(), (int32_t)argv.size(), argv.data());
     }
 
     virtual void on_timer()

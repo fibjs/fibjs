@@ -67,9 +67,9 @@ result_t Buffer_base::_new(v8::Local<v8::Array> datas,
 result_t Buffer_base::_new(v8::Local<v8::ArrayBuffer> datas,
     obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This)
 {
-    v8::ArrayBuffer::Contents cnt = datas->GetContents();
-    int32_t sz = (int32_t)cnt.ByteLength();
-    char* ptr = (char*)cnt.Data();
+    std::shared_ptr<v8::BackingStore> cnt = datas->GetBackingStore();
+    int32_t sz = (int32_t)cnt->ByteLength();
+    char* ptr = (char*)cnt->Data();
 
     retVal = new Buffer(ptr, sz);
     return 0;
@@ -380,12 +380,16 @@ result_t Buffer::get_byteOffset(int32_t& retVal)
     return 0;
 }
 
+static void _deleter(void* data, size_t length, void* deleter_data)
+{
+    exlib::string::Buffer::fromData((char*)data)->unref();
+}
+
 result_t Buffer::get_buffer(v8::Local<v8::ArrayBuffer>& retVal)
 {
     char* buf = exlib::string::Buffer::New(m_data.length(), m_data.c_str(), m_data.length())->data();
-
-    retVal = v8::ArrayBuffer::New(holder()->m_isolate,
-        buf, m_data.length(), v8::ArrayBufferCreationMode::kInternalized);
+    std::shared_ptr<v8::BackingStore> store = v8::ArrayBuffer::NewBackingStore(buf, m_data.length(), _deleter, 0);
+    retVal = v8::ArrayBuffer::New(holder()->m_isolate, store);
     return 0;
 }
 
@@ -1167,7 +1171,7 @@ result_t Buffer::forEach(v8::Local<v8::Function> callback, v8::Local<v8::Value> 
         args[0] = v8::Number::New(isolate->m_isolate, (unsigned char)m_data[i]);
         args[1] = v8::Number::New(isolate->m_isolate, i);
 
-        JSValue r = callback->Call(callback->CreationContext(), thisArg, 3, args);
+        JSValue r = callback->Call(callback->GetCreationContextChecked(), thisArg, 3, args);
         if (r.IsEmpty())
             return CALL_E_JAVASCRIPT;
     }

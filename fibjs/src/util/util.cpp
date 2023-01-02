@@ -147,7 +147,7 @@ result_t util_base::deepFreeze(v8::Local<v8::Value> v)
     v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
 
     if (!isFrozen(obj)) {
-        v8::Local<v8::Context> _context = obj->CreationContext();
+        v8::Local<v8::Context> _context = obj->GetCreationContextChecked();
         if (obj->SetIntegrityLevel(_context, v8::IntegrityLevel::kFrozen).IsNothing())
             return CALL_E_JAVASCRIPT;
 
@@ -793,7 +793,7 @@ result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> itera
 
     if (IsEmpty(v)) {
         int32_t len = 0;
-        JSArray keys = o->GetPropertyNames(o->CreationContext());
+        JSArray keys = o->GetPropertyNames(o->GetCreationContextChecked());
         if (!keys.IsEmpty())
             len = keys->Length();
         int32_t i;

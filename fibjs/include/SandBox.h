@@ -90,7 +90,7 @@ public:
         {
             if (sb->m_global) {
                 v8::Local<v8::Object> _global = v8::Local<v8::Object>::Cast(sb->GetPrivate("_global"));
-                _context = _global->CreationContext();
+                _context = _global->GetCreationContextChecked();
                 _context->Enter();
             }
         }

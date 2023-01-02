@@ -106,7 +106,7 @@ public:
         now->append(p);
 
         td->m_now = p;
-        block->Call(block->CreationContext(), v8::Object::New(Isolate::current()->m_isolate), 0, NULL);
+        block->Call(block->GetCreationContextChecked(), v8::Object::New(Isolate::current()->m_isolate), 0, NULL);
         td->m_now = now;
 
         return 0;
@@ -185,7 +185,7 @@ public:
                     for (i = 0; i < (int32_t)p->m_hooks[HOOK_BEFORE].size(); i++) {
                         v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate,
                             p->m_hooks[HOOK_BEFORE][i]);
-                        if (func->Call(func->CreationContext(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
+                        if (func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
                             clear();
                             return 0;
                         }
@@ -224,7 +224,7 @@ public:
                         for (i = 0; i < (int32_t)p2->m_hooks[HOOK_BEFORECASE].size(); i++) {
                             v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate,
                                 p2->m_hooks[HOOK_BEFORECASE][i]);
-                            if (func->Call(func->CreationContext(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
+                            if (func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
                                 clear();
                                 return 0;
                             }
@@ -242,13 +242,13 @@ public:
                         v8::HandleScope handle_scope(isolate->m_isolate);
 
                         v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate, p1->m_block);
-                        func->Call(func->CreationContext(), v8::Object::New(isolate->m_isolate), 0, NULL);
+                        func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL);
                         if (try_catch.HasCaught()) {
                             v8::Local<v8::Value> exp = try_catch.Exception();
                             if (exp->IsFunction()) {
                                 func = v8::Local<v8::Function>::Cast(exp);
                                 try_catch.Reset();
-                                func->Call(func->CreationContext(), v8::Object::New(isolate->m_isolate), 0, NULL);
+                                func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL);
                             }
                         }
                     }
@@ -335,7 +335,7 @@ public:
                         for (i = (int32_t)p2->m_hooks[HOOK_AFTERCASE].size() - 1; i >= 0; i--) {
                             v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate,
                                 p2->m_hooks[HOOK_AFTERCASE][i]);
-                            if (func->Call(func->CreationContext(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
+                            if (func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
                                 clear();
                                 return 0;
                             }
@@ -351,7 +351,7 @@ public:
                     for (i = (int32_t)p->m_hooks[HOOK_AFTER].size() - 1; i >= 0; i--) {
                         v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate,
                             p->m_hooks[HOOK_AFTER][i]);
-                        if (func->Call(func->CreationContext(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
+                        if (func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
                             clear();
                             return 0;
                         }

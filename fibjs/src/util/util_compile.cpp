@@ -64,7 +64,7 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
         v8::Local<v8::String> v8src = v8::String::NewFromTwoByte(isolate->m_isolate, (const uint16_t*)wscript.c_str(),
             v8::NewStringType::kNormal, (int32_t)wscript.length())
                                           .ToLocalChecked();
-        v8::ScriptCompiler::Source script_source(v8src, v8::ScriptOrigin(soname));
+        v8::ScriptCompiler::Source script_source(v8src, v8::ScriptOrigin(isolate->m_isolate, soname));
 
         v8::MaybeLocal<v8::UnboundScript> ubs = v8::ScriptCompiler::CompileUnboundScript(
             isolate->m_isolate, &script_source,

@@ -279,7 +279,7 @@ result_t HttpUploadCollection::add(exlib::string name, Variant value)
 
 result_t HttpUploadCollection::add(v8::Local<v8::Object> map)
 {
-    v8::Local<v8::Context> context = map->CreationContext();
+    v8::Local<v8::Context> context = map->GetCreationContextChecked();
     JSArray ks = map->GetPropertyNames(context);
     int32_t len = ks->Length();
     int32_t i;
@@ -303,7 +303,7 @@ result_t HttpUploadCollection::add(v8::Local<v8::Object> map)
 
 result_t HttpUploadCollection::add(exlib::string name, v8::Local<v8::Array> values)
 {
-    v8::Local<v8::Context> context = values->CreationContext();
+    v8::Local<v8::Context> context = values->GetCreationContextChecked();
     int32_t len = values->Length();
     int32_t i;
 
@@ -321,7 +321,7 @@ result_t HttpUploadCollection::set(exlib::string name, Variant value)
 
 result_t HttpUploadCollection::set(v8::Local<v8::Object> map)
 {
-    v8::Local<v8::Context> context = map->CreationContext();
+    v8::Local<v8::Context> context = map->GetCreationContextChecked();
     JSArray ks = map->GetPropertyNames(context);
     int32_t len = ks->Length();
     int32_t i;
@@ -345,7 +345,7 @@ result_t HttpUploadCollection::set(v8::Local<v8::Object> map)
 
 result_t HttpUploadCollection::set(exlib::string name, v8::Local<v8::Array> values)
 {
-    v8::Local<v8::Context> context = values->CreationContext();
+    v8::Local<v8::Context> context = values->GetCreationContextChecked();
     int32_t len = values->Length();
     int32_t i;
 

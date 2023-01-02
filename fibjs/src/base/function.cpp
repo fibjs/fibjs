@@ -94,13 +94,13 @@ v8::Local<v8::Value> JSFunction::Call(v8::Local<v8::Context> context, v8::Local<
         } else {
             v8::MaybeLocal<v8::Value> v;
 
-            v = _then->Call(_then->CreationContext(), result, 2, (v8::Local<v8::Value>*)&_handlers[0]);
+            v = _then->Call(_then->GetCreationContextChecked(), result, 2, (v8::Local<v8::Value>*)&_handlers[0]);
             if (v.IsEmpty()) {
                 ThrowError("promise error.");
                 return result;
             }
 
-            v = _catch->Call(_catch->CreationContext(), result, 1, (v8::Local<v8::Value>*)&_handlers[1]);
+            v = _catch->Call(_catch->GetCreationContextChecked(), result, 1, (v8::Local<v8::Value>*)&_handlers[1]);
             if (v.IsEmpty()) {
                 ThrowError("promise error.");
                 return result;

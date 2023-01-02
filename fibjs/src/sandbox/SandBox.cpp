@@ -144,7 +144,7 @@ result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)
 
 result_t SandBox::add(v8::Local<v8::Object> mods)
 {
-    v8::Local<v8::Context> context = mods->CreationContext();
+    v8::Local<v8::Context> context = mods->GetCreationContextChecked();
     JSArray ks = mods->GetPropertyNames(context);
     int32_t len = ks->Length();
     int32_t i;
@@ -166,7 +166,7 @@ result_t SandBox::remove(exlib::string id)
 {
     path_base::normalize(id, id);
     v8::Local<v8::Object> m = mods();
-    m->Delete(m->CreationContext(), holder()->NewString(id));
+    m->Delete(m->GetCreationContextChecked(), holder()->NewString(id));
 
     return 0;
 }
@@ -175,7 +175,7 @@ result_t SandBox::has(exlib::string id, bool& retVal)
 {
     path_base::normalize(id, id);
     v8::Local<v8::Object> m = mods();
-    retVal = m->Has(m->CreationContext(), holder()->NewString(id)).ToChecked();
+    retVal = m->Has(m->GetCreationContextChecked(), holder()->NewString(id)).ToChecked();
 
     return 0;
 }
@@ -198,7 +198,7 @@ result_t deepFreeze(v8::Local<v8::Value> v)
     v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
 
     if (!isFrozen(obj)) {
-        v8::Local<v8::Context> context = obj->CreationContext();
+        v8::Local<v8::Context> context = obj->GetCreationContextChecked();
         obj->SetIntegrityLevel(context, v8::IntegrityLevel::kFrozen);
         JSArray names = obj->GetPropertyNames(context, v8::KeyCollectionMode::kIncludePrototypes,
             v8::ALL_PROPERTIES, v8::IndexFilter::kIncludeIndices);
@@ -241,7 +241,7 @@ result_t SandBox::get_modules(v8::Local<v8::Object>& retVal)
     retVal = v8::Object::New(isolate->m_isolate);
 
     v8::Local<v8::Object> ms = mods();
-    v8::Local<v8::Context> context = ms->CreationContext();
+    v8::Local<v8::Context> context = ms->GetCreationContextChecked();
     JSArray ks = ms->GetPropertyNames(context);
 
     v8::Local<v8::String> mgetter = isolate->NewString("exports");

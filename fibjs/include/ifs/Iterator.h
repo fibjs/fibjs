@@ -23,7 +23,7 @@ public:
     public:
         virtual void fillMembers(Isolate* isolate, v8::Local<v8::Object>& retVal)
         {
-            v8::Local<v8::Context> context = retVal->CreationContext();
+            v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
             retVal->Set(context, isolate->NewString("value"), GetReturnValue(isolate->m_isolate, value));
             retVal->Set(context, isolate->NewString("done"), GetReturnValue(isolate->m_isolate, done));
         }

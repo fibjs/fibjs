@@ -50,11 +50,8 @@ public:
         else
             sz = sz * 3 / 4;
 
-        v8::internal::FLAG_max_old_space_size = sz;
-        v8::internal::FLAG_stack_size = stack_size - GUARD_SIZE;
-
-        v8::internal::FLAG_wasm_async_compilation = false;
-        v8::internal::FLAG_wasm_code_gc = false;
+        v8::internal::v8_flags.max_old_space_size = sz;
+        v8::internal::v8_flags.stack_size = stack_size - GUARD_SIZE;
     }
 } s_init_v8_opt;
 

@@ -31,7 +31,7 @@ inline void extend(const v8::Local<v8::Object> src,
     v8::Local<v8::Object>& dest, bool bDataOnly = true)
 {
     TryCatch try_catch;
-    v8::Local<v8::Context> context = src->CreationContext();
+    v8::Local<v8::Context> context = src->GetCreationContextChecked();
     JSArray ks = src->GetPropertyNames(context);
     int32_t len = ks->Length();
     int32_t i;

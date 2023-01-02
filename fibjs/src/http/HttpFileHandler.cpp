@@ -1147,7 +1147,7 @@ result_t http_base::fileHandler(exlib::string root, v8::Local<v8::Object> mimes,
 
 result_t HttpFileHandler::set_mimes(v8::Local<v8::Object> mimes)
 {
-    JSArray keys = mimes->GetPropertyNames(mimes->CreationContext());
+    JSArray keys = mimes->GetPropertyNames(mimes->GetCreationContextChecked());
     int32_t len = keys->Length();
     int32_t i;
     result_t hr;

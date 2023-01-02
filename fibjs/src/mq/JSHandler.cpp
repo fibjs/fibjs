@@ -69,7 +69,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         if (argv[len + 1].IsEmpty())
             return CHECK_ERROR(Runtime::setError("function alloc error."));
 
-        proc->Call(proc->CreationContext(), v8::Undefined(isolate->m_isolate), len + 2, argv.data());
+        proc->Call(proc->GetCreationContextChecked(), v8::Undefined(isolate->m_isolate), len + 2, argv.data());
         return 0;
     }
 
@@ -103,7 +103,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
         {
             TryCatch try_catch;
-            func->Call(func->CreationContext(), v8::Undefined(isolate->m_isolate), len + 1, pargv).ToLocal(&hdlr);
+            func->Call(func->GetCreationContextChecked(), v8::Undefined(isolate->m_isolate), len + 1, pargv).ToLocal(&hdlr);
             if (try_catch.HasCaught()) {
                 v8::Local<v8::StackTrace> stackTrace = v8::StackTrace::CurrentStackTrace(
                     isolate->m_isolate, 1, v8::StackTrace::kScriptId);

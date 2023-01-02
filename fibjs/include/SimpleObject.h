@@ -33,7 +33,7 @@ public:
     void add(exlib::string key, Variant value);
     result_t add(v8::Local<v8::Object> m)
     {
-        v8::Local<v8::Context> context = m->CreationContext();
+        v8::Local<v8::Context> context = m->GetCreationContextChecked();
         JSArray ks = m->GetPropertyNames(context);
         int32_t len = ks->Length();
         int32_t i;

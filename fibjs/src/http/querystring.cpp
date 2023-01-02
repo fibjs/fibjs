@@ -47,7 +47,7 @@ result_t querystring_base::stringify(v8::Local<v8::Object> obj, exlib::string se
 {
     StringBuffer bufs;
 
-    v8::Local<v8::Context> context = obj->CreationContext();
+    v8::Local<v8::Context> context = obj->GetCreationContextChecked();
     JSArray ks = obj->GetPropertyNames(context);
     int32_t len = ks->Length();
     int32_t i;

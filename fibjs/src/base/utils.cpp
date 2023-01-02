@@ -274,7 +274,7 @@ exlib::string ReportException(TryCatch& try_catch, result_t hr, bool repl)
 
 result_t CheckConfig(v8::Local<v8::Object> opts, const char** keys)
 {
-    v8::Local<v8::Context> context = opts->CreationContext();
+    v8::Local<v8::Context> context = opts->GetCreationContextChecked();
     JSArray ks = opts->GetPropertyNames(context);
     int32_t len = ks->Length();
     int32_t i;

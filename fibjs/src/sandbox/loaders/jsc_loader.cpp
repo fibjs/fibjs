@@ -75,7 +75,7 @@ result_t JscLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::stri
         cache = new v8::ScriptCompiler::CachedData((const uint8_t*)code.c_str(), code_len);
 
         v8::ScriptCompiler::Source source(isolate->NewString(s_temp_source),
-            v8::ScriptOrigin(soname), cache);
+            v8::ScriptOrigin(isolate->m_isolate, soname), cache);
 
         mayscript = v8::ScriptCompiler::Compile(isolate->context(), &source,
             v8::ScriptCompiler::kConsumeCodeCache);

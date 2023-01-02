@@ -65,7 +65,7 @@ result_t Handler_base::_new(v8::Local<v8::Function> hdlr, obj_ptr<Handler_base>&
     v8::Local<v8::Object> This)
 {
     Isolate* isolate = Isolate::current();
-    JSValue v = hdlr->GetPrivate(hdlr->CreationContext(),
+    JSValue v = hdlr->GetPrivate(hdlr->GetCreationContextChecked(),
         v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")));
 
     if (!IsEmpty(v))

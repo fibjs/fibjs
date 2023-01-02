@@ -444,7 +444,7 @@ describe("timer", () => {
         it("sleep", () => {
             function test2() {
                 while (true)
-                    coroutine.sleep(100);
+                    coroutine.sleep(10);
             }
 
             var t1 = new Date();

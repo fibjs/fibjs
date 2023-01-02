@@ -63,7 +63,7 @@ static void promisify_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     v8::Local<v8::Value> result;
 
-    func->Call(func->CreationContext(), args.This(), (int32_t)argv.size(), argv.data()).ToLocal(&result);
+    func->Call(func->GetCreationContextChecked(), args.This(), (int32_t)argv.size(), argv.data()).ToLocal(&result);
     if (result.IsEmpty())
         return;
 

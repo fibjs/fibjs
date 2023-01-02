@@ -32,7 +32,7 @@ result_t JsLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::strin
     exlib::string src1 = arg_names + strScript + "\n});";
 
     TryCatch try_catch;
-    v8::ScriptOrigin so_origin(soname);
+    v8::ScriptOrigin so_origin(isolate->m_isolate, soname);
     v8::MaybeLocal<v8::Script> lscript = v8::Script::Compile(
         isolate->m_isolate->GetCurrentContext(),
         isolate->NewString(src1), &so_origin);

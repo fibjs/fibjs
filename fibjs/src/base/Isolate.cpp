@@ -33,7 +33,7 @@ static int32_t syncRunMicrotasks(Isolate* isolate)
 {
     JSFiber::EnterJsScope s;
 
-    isolate->m_isolate->RunMicrotasks();
+    isolate->m_isolate->PerformMicrotaskCheckpoint();
 
     return 0;
 }

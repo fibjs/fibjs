@@ -45,7 +45,7 @@ private:
 
     void initEv()
     {
-        context = o->CreationContext();
+        context = o->GetCreationContextChecked();
         JSValue obj = o->GetPrivate(context, v8::Private::ForApi(isolate, NewString("_ev")));
         if (obj->IsUndefined() || obj->IsNull()) {
             events = v8::Object::New(isolate);

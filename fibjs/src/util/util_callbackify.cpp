@@ -17,7 +17,7 @@ static void promise_then(const v8::FunctionCallbackInfo<v8::Value>& args)
         v8::Null(args.GetIsolate()), args[0]
     };
 
-    func->Call(func->CreationContext(), args.This(), 2, argv);
+    func->Call(func->GetCreationContextChecked(), args.This(), 2, argv);
 }
 
 static void promise_catch(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -27,7 +27,7 @@ static void promise_catch(const v8::FunctionCallbackInfo<v8::Value>& args)
         args[0], v8::Null(args.GetIsolate())
     };
 
-    func->Call(func->CreationContext(), args.This(), 2, argv);
+    func->Call(func->GetCreationContextChecked(), args.This(), 2, argv);
 }
 
 static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -91,8 +91,8 @@ static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
         _promise->Then(isolate->context(), _then_func);
         _promise->Catch(isolate->context(), _catch_func);
     } else {
-        _then->Call(_then->CreationContext(), result, 1, (v8::Local<v8::Value>*)&_then_func);
-        _catch->Call(_catch->CreationContext(), result, 1, (v8::Local<v8::Value>*)&_catch_func);
+        _then->Call(_then->GetCreationContextChecked(), result, 1, (v8::Local<v8::Value>*)&_then_func);
+        _catch->Call(_catch->GetCreationContextChecked(), result, 1, (v8::Local<v8::Value>*)&_catch_func);
     }
 }
 

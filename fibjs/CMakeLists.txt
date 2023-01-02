@@ -23,4 +23,12 @@ include_directories("${PROJECT_SOURCE_DIR}/include"
 	"${PROJECT_SOURCE_DIR}/../vender/msgpack/include"
 	"${CMAKE_CURRENT_BINARY_DIR}")
 
+if(${ARCH} MATCHES "64")
+	include_directories(${PROJECT_SOURCE_DIR}/../vender/v8/gen/64)
+else()
+	include_directories(${PROJECT_SOURCE_DIR}/../vender/v8/gen/32)
+endif()
+
+add_definitions(-DV8_ENABLE_WEBASSEMBLY)
+
 setup_result_library(${name})

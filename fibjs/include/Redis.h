@@ -129,7 +129,7 @@ public:
 
         result_t add(v8::Local<v8::Array> keys)
         {
-            v8::Local<v8::Context> context = keys->CreationContext();
+            v8::Local<v8::Context> context = keys->GetCreationContextChecked();
             result_t hr;
             int32_t i;
 
@@ -147,7 +147,7 @@ public:
             if (kvs->IsArray())
                 return CHECK_ERROR(CALL_E_INVALIDARG);
 
-            v8::Local<v8::Context> context = kvs->CreationContext();
+            v8::Local<v8::Context> context = kvs->GetCreationContextChecked();
 
             JSArray keys = kvs->GetPropertyNames(context);
 

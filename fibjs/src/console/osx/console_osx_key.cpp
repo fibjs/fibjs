@@ -406,7 +406,7 @@ result_t CheckKeyFlags(v8::Local<v8::Array> modifier, int32_t* flags)
     result_t hr;
     int32_t i, len;
     len = modifier->Length();
-    v8::Local<v8::Context> context = modifier->CreationContext();
+    v8::Local<v8::Context> context = modifier->GetCreationContextChecked();
 
     for (i = 0; i < len; i++) {
         exlib::string f;

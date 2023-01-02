@@ -148,7 +148,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
         util_base::clone(options, opts_);
 
         opts = v8::Local<v8::Object>::Cast(opts_);
-        opts->Delete(opts->CreationContext(), isolate->NewString("stdio"));
+        opts->Delete(opts->GetCreationContextChecked(), isolate->NewString("stdio"));
 
         exlib::string codec("utf8");
         GetConfigValue(isolate->m_isolate, opts, "encoding", codec);

@@ -864,7 +864,7 @@ inline bool IsJSObject(v8::Local<v8::Value> v)
         return false;
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
-    v8::Local<v8::Context> _context = o->CreationContext();
+    v8::Local<v8::Context> _context = o->GetCreationContextChecked();
     JSValue proto = _context->GetEmbedderData(1);
     if (!proto->Equals(_context, o->GetPrototype()).ToChecked())
         return false;

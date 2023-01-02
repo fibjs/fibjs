@@ -25,7 +25,7 @@ public:
     public:
         virtual void fillMembers(Isolate* isolate, v8::Local<v8::Object>& retVal)
         {
-            v8::Local<v8::Context> context = retVal->CreationContext();
+            v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
             retVal->Set(context, isolate->NewString("stdout"), GetReturnValue(isolate->m_isolate, stdout));
             retVal->Set(context, isolate->NewString("stderr"), GetReturnValue(isolate->m_isolate, stderr));
         }
@@ -44,7 +44,7 @@ public:
     public:
         virtual void fillMembers(Isolate* isolate, v8::Local<v8::Object>& retVal)
         {
-            v8::Local<v8::Context> context = retVal->CreationContext();
+            v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
             retVal->Set(context, isolate->NewString("stdout"), GetReturnValue(isolate->m_isolate, stdout));
             retVal->Set(context, isolate->NewString("stderr"), GetReturnValue(isolate->m_isolate, stderr));
         }

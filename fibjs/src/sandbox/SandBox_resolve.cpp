@@ -213,7 +213,7 @@ result_t SandBox::custom_resolveId(exlib::string& id, v8::Local<v8::Value>& retV
 
     if (!func->IsUndefined()) {
         v8::Local<v8::Value> arg = isolate->NewString(id);
-        func->Call(func->CreationContext(), wrap(), 1, &arg).ToLocal(&retVal);
+        func->Call(func->GetCreationContextChecked(), wrap(), 1, &arg).ToLocal(&retVal);
         if (retVal.IsEmpty())
             return CALL_E_JAVASCRIPT;
 
