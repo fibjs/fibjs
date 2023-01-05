@@ -14,6 +14,10 @@ apt install g++-arm-linux-gnueabihf -y
 
 apt install g++-aarch64-linux-gnu -y
 
-apt install g++-mips64-linux-gnuabi64 -y
+apt install g++-mips64el-linux-gnuabi64 -y
+
+apt install g++-powerpc64le-linux-gnu -y
+
+apt install g++-riscv64-linux-gnu -y
 
 apt install qemu-user-static -y

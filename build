@@ -24,7 +24,7 @@ args=$@
 for i in $@
 do
 	case $i in
-		i386|amd64|arm|arm64|armv6|mips|mips64|ppc|ppc64) BUILD_ARCH=$i
+		i386|amd64|arm|arm64|mips64|ppc64|riscv64) BUILD_ARCH=$i
 			;;
 		linux|alpine|android) BUILD_OS=$i
 			args="${args/$BUILD_OS/}" 

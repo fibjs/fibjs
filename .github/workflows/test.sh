@@ -12,11 +12,9 @@ if [[ $TARGET_OS_NAME == 'Linux' ]]; then
                 ;;
             arm64) export QEMU_LD_PREFIX="/usr/aarch64-linux-gnu"
                 ;;
-            armv6) export QEMU_LD_PREFIX="/usr/arm-linux-gnueabi"
+            mips64) export QEMU_LD_PREFIX="/usr/mips64el-linux-gnuabi64"
                 ;;
-            mips) export QEMU_LD_PREFIX="/usr/mips-linux-gnu"
-                ;;
-            mips64) export QEMU_LD_PREFIX="/usr/mips64-linux-gnuabi64"
+            ppc64) export QEMU_LD_PREFIX="/usr/powerpc64le-linux-gnu"
                 ;;
             i386|amd64)
                 ;;

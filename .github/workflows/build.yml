@@ -33,7 +33,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-20.04]
-        target_arch: [amd64, i386, arm, arm64, mips, mips64]
+        target_arch: [amd64, i386, arm, arm64, mips64, ppc64]
         build_type: [release]
         include:
           - os: ubuntu-18.04
