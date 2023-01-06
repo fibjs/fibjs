@@ -22,16 +22,12 @@ DECLARE_MODULE(os);
 
 result_t os_base::type(exlib::string& retVal)
 {
-#ifndef _WIN32
     uv_utsname_t info;
     int32_t ret = uv_os_uname(&info);
     if (ret < 0)
         return CHECK_ERROR(ret);
 
     retVal = info.sysname;
-#else
-    retVal = "Windows";
-#endif
     return 0;
 }
 
@@ -90,6 +86,8 @@ result_t os_base::arch(exlib::string& retVal)
     retVal = "mips";
 #elif defined(mips64)
     retVal = "mips64";
+#elif defined(ppc64)
+    retVal = "ppc64";
 #endif
 
     return 0;
