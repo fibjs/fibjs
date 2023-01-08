@@ -104,7 +104,7 @@ describe("buffered stream", () => {
         f.close();
     });
 
-    if (Buffer.isEncoding('gbk'))
+    if (Buffer.isEncoding("EUC-JP"))
         it("charset", () => {
             fs.unlink(path.join(__dirname, "test0000" + base_port));
 
@@ -118,17 +118,17 @@ describe("buffered stream", () => {
             f.rewind();
             assert.equal(r.readLine(), "哈哈哈");
 
-            r.charset = "gbk";
+            r.charset = "EUC-JP";
 
             f.rewind();
             f.truncate(0);
-            r.writeText("嘿嘿嘿");
+            r.writeText("我是好人");
             r.writeLine("哈哈哈");
             f.rewind();
-            assert.equal(f.readAll().toString("gbk"), "嘿嘿嘿哈哈哈\r\n");
+            assert.equal(f.readAll().toString("EUC-JP"), "我是好人哈哈哈\r\n");
 
             f.rewind();
-            assert.equal(r.readText(6), "嘿嘿嘿");
+            assert.equal(r.readText(8), "我是好人");
             assert.equal(r.readLine(), "哈哈哈");
 
             f.close();

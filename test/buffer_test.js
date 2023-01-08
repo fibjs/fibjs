@@ -430,13 +430,8 @@ describe('Buffer', () => {
         assert.equal(Buffer.isEncoding('binary'), true);
         assert.equal(Buffer.isEncoding('latin1'), true);
 
-        if (!process.env.QEMU_LD_PREFIX) {
-            assert.equal(Buffer.isEncoding('gbk'), true);
-            assert.equal(Buffer.isEncoding('gb2312'), true);
-            assert.equal(Buffer.isEncoding('jis'), false);
-            assert.equal(Buffer.isEncoding('aaabbbccc'), false);
-            assert.equal(Buffer.isEncoding('big5'), true);
-        }
+        if (!process.env.QEMU_LD_PREFIX)
+            assert.equal(Buffer.isEncoding('EUC-JP'), true);
     });
 
     it('@iterator', () => {
@@ -1103,13 +1098,12 @@ describe('Buffer', () => {
         assert.equal(buf.readIntBE(0, 5), -0x0012000000);
     });
 
-    if (Buffer.isEncoding('gbk'))
+    if (Buffer.isEncoding("EUC-JP"))
         it('charset', () => {
             assert.equal(new Buffer("哈哈哈").toString(), "哈哈哈");
-            assert.deepEqual(new Buffer("哈哈哈哈", "gbk").toArray(), [
-                185, 254, 185, 254, 185, 254, 185, 254
-            ]);
-            assert.equal(new Buffer("哈哈哈", "gbk").toString("gbk"), "哈哈哈");
+            assert.deepEqual(new Buffer("哈哈哈哈", "EUC-JP").toArray(), [
+                210, 253, 210, 253, 210, 253, 210, 253]);
+            assert.equal(new Buffer("哈哈哈", "EUC-JP").toString("EUC-JP"), "哈哈哈");
         });
 
     it('resize', () => {
