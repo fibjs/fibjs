@@ -310,7 +310,9 @@ inline bool is_native_codec(exlib::string codec)
         || (codec == "utf32le") || (codec == "utf-32le")
 
         || (codec == "ucs4be") || (codec == "ucs-4be")
-        || (codec == "utf32be") || (codec == "utf-32be");
+        || (codec == "utf32be") || (codec == "utf-32be")
+
+        || (codec == "binary") || (codec == "latin1");
 }
 
 inline bool static_is_safe_codec(exlib::string codec)

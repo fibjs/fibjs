@@ -353,13 +353,12 @@ result_t encoding_iconv::isEncoding(bool& retVal)
         || (m_charset == "utf32le") || (m_charset == "utf-32le")
 
         || (m_charset == "ucs4be") || (m_charset == "ucs-4be")
-        || (m_charset == "utf32be") || (m_charset == "utf-32be")) {
+        || (m_charset == "utf32be") || (m_charset == "utf-32be")
+        
+        || (m_charset == "binary") || (m_charset == "latin1")) {
         retVal = true;
         return 0;
     }
-
-    if (m_charset == "binary")
-        m_charset = "latin1";
 
     if (!m_iconv_ec) {
         m_iconv_ec = iconv_open(m_charset.c_str(), "utf-8");
