@@ -11,7 +11,6 @@ var {
 test.setup();
 
 var vmid = coroutine.vmid;
-var isWin32 = process.platform === 'win32';
 
 function rmdir(pathname) {
     try {
@@ -23,8 +22,8 @@ var pathname = 'test_dir' + vmid;
 var pathname1 = 'test1_dir' + vmid;
 var pathname2 = 'test2_dir' + vmid;
 
-var win = require("os").type() == "Windows";
-var linux = require("os").type() == "Linux";
+var win = process.platform === 'win32';
+var linux = process.platform === 'linux';
 
 function assert_stat_property(statObj) {
     assert.isNumber(statObj.dev)
@@ -71,7 +70,7 @@ describe('fs', () => {
 
             assert.equal(st.isDirectory(), true);
             assert.equal(st.isFile(), false);
-            if (process.platform === 'win32') {
+            if (win) {
                 assert.equal(st.isExecutable(), false);
             } else {
                 assert.equal(st.isExecutable(), true);
@@ -84,7 +83,7 @@ describe('fs', () => {
 
             assert.equal(st.isDirectory(), true);
             assert.equal(st.isFile(), false);
-            if (process.platform === 'win32') {
+            if (win) {
                 assert.equal(st.isExecutable(), false);
             } else {
                 assert.equal(st.isExecutable(), true);
@@ -105,7 +104,7 @@ describe('fs', () => {
 
             assert.equal(st.isDirectory(), true);
             assert.equal(st.isFile(), false);
-            if (process.platform === 'win32') {
+            if (win) {
                 assert.equal(st.isExecutable(), false);
             } else {
                 assert.equal(st.isExecutable(), true);
@@ -136,7 +135,7 @@ describe('fs', () => {
             fs.close(fd);
         });
 
-        if (!isWin32) {
+        if (!win) {
             assert.doesNotThrow(() => {
                 fs.close(fd);
             });
@@ -157,7 +156,7 @@ describe('fs', () => {
         assert.doesNotThrow(() => {
             fs.closeSync(fd);
         });
-        if (!isWin32) {
+        if (!win) {
             assert.doesNotThrow(() => {
                 fs.closeSync(fd);
             });

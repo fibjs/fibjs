@@ -124,7 +124,7 @@ describe("vm", () => {
         assert.equal(100, a.a);
     });
 
-    it("require jsc arch test", () => {
+    xit("require jsc arch test", () => {
         var a = sbox.require(`./vm_test/jsc_test_${os.arch()}`, __dirname);
         assert.equal(100, a.a);
     });

@@ -600,7 +600,7 @@ describe("db", () => {
                     }
                 }
 
-                if (conn.type == 'psql' && os.type() == 'Windows')
+                if (conn.type == 'psql' && process.platform === 'win32')
                     assert.deepEqual(res, ['\n']);
                 else
                     assert.deepEqual(res, []);

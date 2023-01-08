@@ -19,7 +19,7 @@ var net_config = {
     address: '::1'
 };
 
-if (os.type() == 'Windows' && os.version < "6.0")
+if (process.platform === 'win32' && os.version < "6.0")
     net_config = {
         family: net.AF_INET,
         address: '127.0.0.1'
