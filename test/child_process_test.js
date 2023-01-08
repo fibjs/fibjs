@@ -380,8 +380,6 @@ describe("child_process", () => {
         var o = JSON.parse(p.stdout.read().toString());
         var o1 = p.usage();
 
-        console.log(o, o1);
-
         try {
             assert.closeTo(o.user, o1.user, 50000);
             assert.closeTo(o.system, o1.system, 50000);
