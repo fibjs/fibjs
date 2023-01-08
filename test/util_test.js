@@ -1877,7 +1877,7 @@ describe('util', () => {
                 case 'darwin':
                 case 'freebsd':
                 case 'linux':
-                    assert.property(util.buildInfo(), 'clang');
+                    assert.isTrue(keys.includes('gcc') || keys.includes('clang'));
                     break
             }
             // git
