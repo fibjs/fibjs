@@ -387,7 +387,7 @@ describe("child_process", () => {
             assert.closeTo(o.system, o1.system, 50000);
 
             if (o.rss > 0)
-                assert.closeTo(o.rss, o1.rss, o.rss / 10);
+                assert.closeTo(o.rss, o1.rss, o.rss / 30);
         } finally {
             p.kill(15);
             p.join();

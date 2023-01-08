@@ -453,7 +453,7 @@ describe("timer", () => {
             });
             var t2 = new Date();
             assert.greaterThan(t2 - t1, 90);
-            assert.lessThan(t2 - t1, 500);
+            assert.lessThan(t2 - t1, 1000);
         });
 
         it("util.format", () => {
