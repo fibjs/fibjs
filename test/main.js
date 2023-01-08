@@ -18,7 +18,7 @@ run("./util_test.js");
 run("./promise_test.js");
 run("./xml_test.js");
 
-if (global.full_test)
+if (process.env.CI)
     run("./xml_suite.js");
 
 run("./coroutine_test.js");
