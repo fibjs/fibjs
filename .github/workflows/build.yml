@@ -48,10 +48,12 @@ jobs:
             build_target: android
             target_arch: amd64
             build_type: release
+            skip_test: true
           - os: ubuntu-18.04
             build_target: android
             target_arch: arm64
             build_type: release
+            skip_test: true
           - os: windows-2022
             target_arch: amd64
             build_type: release
@@ -61,12 +63,14 @@ jobs:
           - os: windows-2022
             target_arch: arm64
             build_type: release
+            skip_test: true
           - os: macos-11
             target_arch: amd64
             build_type: release
           - os: macos-11
             target_arch: arm64
             build_type: release
+            skip_test: true
           - os: macos-11
             target_arch: amd64
             build_type: debug
@@ -199,7 +203,7 @@ jobs:
 
       - name: Test
         # only test for release version now, some test cases cannot passed in debug mode
-        if: ${{ matrix.build_type == 'release' }}
+        if: ${{ matrix.build_type == 'release' && matrix.skip_test != 'true' }}
         shell: bash
         run: |
           if [[ -z $GIT_TAG && $GIT_BRANCH != "beta" ]]; then
