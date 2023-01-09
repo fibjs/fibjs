@@ -449,6 +449,42 @@ result_t process_base::binding(exlib::string name, v8::Local<v8::Value>& retVal)
     return 0;
 }
 
+result_t process_base::getgid(int32_t& retVal)
+{
+#ifndef _WIN32
+    retVal = ::getgid();
+#else
+    retVal = 0;
+#endif
+    return 0;
+}
+
+result_t process_base::getuid(int32_t& retVal)
+{
+#ifndef _WIN32
+    retVal = ::getuid();
+#else
+    retVal = 0;
+#endif
+    return 0;
+}
+
+result_t process_base::setgid(int32_t id)
+{
+#ifndef _WIN32
+    ::setgid(id);
+#endif
+    return 0;
+}
+
+result_t process_base::setuid(int32_t id)
+{
+#ifndef _WIN32
+    ::setuid(id);
+#endif
+    return 0;
+}
+
 result_t process_base::get_connected(bool& retVal)
 {
     Isolate* isolate = Isolate::current();

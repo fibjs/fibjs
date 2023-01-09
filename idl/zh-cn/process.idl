@@ -177,6 +177,26 @@ module process : EventEmitter
      */
     static Value binding(String name);
 
+    /*! @brief 查询当前进程的组 id
+     @return 返回当前进程的组 id
+     */
+    static Integer getgid();
+
+    /*! @brief 查询当前进程的用户 id
+     @return 返回当前进程的用户 id
+     */
+    static Integer getuid();
+
+    /*! @brief 设置当前进程的组 id
+     @param id 指定要设置的组 id
+     */
+    static setgid(Integer id);
+
+    /*! @brief 设置当前进程的用户 id
+     @param id 指定要设置的用户 id
+     */
+    static setuid(Integer id);
+
     /*! @brief 查询与父进程的管道是否正常连接 */
     static readonly Boolean connected;
 

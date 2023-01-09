@@ -235,6 +235,34 @@ declare module 'process' {
     function binding(name: string): any;
 
     /**
+     * @description 查询当前进程的组 ID
+     *      @return 返回当前进程的组 ID
+     *      
+     */
+    function getgid(): number;
+
+    /**
+     * @description 查询当前进程的用户 ID
+     *      @return 返回当前进程的用户 ID
+     *      
+     */
+    function getuid(): number;
+
+    /**
+     * @description 设置当前进程的组 ID
+     *      @param id 指定要设置的组 ID
+     *      
+     */
+    function setgid(id: number): void;
+
+    /**
+     * @description 设置当前进程的用户 ID
+     *      @param id 指定要设置的用户 ID
+     *      
+     */
+    function setuid(id: number): void;
+
+    /**
      * @description 查询与父进程的管道是否正常连接 
      */
     const connected: boolean;
