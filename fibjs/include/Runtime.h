@@ -65,6 +65,11 @@ public:
         return m_isolate;
     }
 
+    Isolate* safe_isolate()
+    {
+        return m_isolate;
+    }
+
     static bool is_current(Isolate* isolate)
     {
         Runtime* rt = current();

@@ -317,7 +317,12 @@ inline bool is_native_codec(exlib::string codec)
 
 inline bool static_is_safe_codec(exlib::string codec)
 {
-    return !Isolate::current()->m_safe_buffer || is_native_codec(codec);
+    Isolate* isolate = NULL;
+    Runtime* rt = Runtime::current();
+    if (rt)
+        isolate = rt->safe_isolate();
+
+    return (isolate && !isolate->m_safe_buffer) || is_native_codec(codec);
 }
 
 result_t Buffer_base::isEncoding(exlib::string codec, bool& retVal)
@@ -339,7 +344,11 @@ result_t Buffer_base::isEncoding(exlib::string codec, bool& retVal)
 
 bool Buffer::is_safe_codec(exlib::string codec)
 {
-    return !holder()->m_safe_buffer || is_native_codec(codec);
+    Isolate* isolate = get_holder();
+    if (!isolate)
+        return static_is_safe_codec(codec);
+
+    return !isolate->m_safe_buffer || is_native_codec(codec);
 }
 
 result_t Buffer::_indexed_getter(uint32_t index, int32_t& retVal)
