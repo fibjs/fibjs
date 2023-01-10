@@ -1,6 +1,16 @@
-FROM dockcross/linux-arm64-musl
+FROM ubuntu:20.04
 
-LABEL AUTHOR="xicilion"
-LABEL AUTHOR_EMAIL="lion@9465.net"
+RUN apt-get update && apt-get install sudo curl tar -y
+RUN apt-get install cmake make -y && apt-get install git -y
+RUN curl --retry 5 -LO http://musl.cc/aarch64-linux-musl-cross.tgz && \
+    tar -C /usr -xvf aarch64-linux-musl-cross.tgz && \
+    rm aarch64-linux-musl-cross.tgz
+
+ENV AS=/usr/aarch64-linux-musl-cross/bin/aarch64-linux-musl-as \
+    AR=/usr/aarch64-linux-musl-cross/bin/aarch64-linux-musl-ar \
+    CC=/usr/aarch64-linux-musl-cross/bin/aarch64-linux-musl-gcc \
+    CPP=/usr/aarch64-linux-musl-cross/bin/aarch64-linux-musl-cpp \
+    CXX=/usr/aarch64-linux-musl-cross/bin/aarch64-linux-musl-g++ \
+    LD=/usr/aarch64-linux-musl-cross/bin/aarch64-linux-musl-ld
 
 RUN adduser fibjs -q

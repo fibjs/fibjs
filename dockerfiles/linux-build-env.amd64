@@ -1,20 +1,7 @@
 FROM ubuntu:20.04
 
-LABEL AUTHOR="xicilion"
-LABEL AUTHOR_EMAIL="lion@9465.net"
+RUN apt-get update && apt-get install sudo -y && apt-get install make -y && \
+     apt-get install cmake -y && apt-get install ccache -y && apt-get install git -y && \
+    apt-get install libx11-dev -y && apt-get install clang -y && apt-get install g++ -y
 
-RUN apt-get update
-RUN apt-get install sudo -y
-
-RUN apt-get install make -y
-RUN apt-get install cmake -y
-RUN apt-get install ccache -y
-RUN apt-get install git -y
-RUN apt-get install libx11-dev -y
-
-RUN apt-get install clang -y
-RUN apt-get install g++ -y
-
-RUN adduser fibjs -q
-
-RUN chmod 777 /root
+RUN adduser fibjs -q && chmod 777 /root

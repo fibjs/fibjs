@@ -1,0 +1,30 @@
+FROM ubuntu:20.04
+
+RUN apt-get update && apt-get install sudo curl tar -y
+RUN apt-get install cmake make -y && apt-get install git -y
+
+RUN curl -o loongarch64-unknown-linux-gnu.tar.xz --retry 5 -LO https://github.com/loongson/build-tools/releases/download/2022.09.06/loongarch64-clfs-6.3-cross-tools-gcc-glibc.tar.xz && \
+    tar -C /usr -zxvf loongarch64-unknown-linux-gnu.tar.xz && \
+    rm loongarch64-unknown-linux-gnu.tar.xz
+
+RUN curl --retry 5 -LO https://github.com/loongson/build-tools/releases/download/2022.09.06/qemu-loongarch64 && \
+    chmod 755 qemu-loongarch64 && mv qemu-loongarch64 /usr/cross-tools
+
+# RUN update-binfmts --enable
+# RUN update-binfmts --install qemu-loongarch64 /usr/cross-tools/qemu-loongarch64 \
+#     --magic "\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x02\x01" \
+#     --mask "\xff\xff\xff\xff\xff\xfe\xfe\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff"
+
+RUN ln -s /usr/cross-tools/target/usr/lib /usr/cross-tools/target && \
+    ln -s /usr/cross-tools/target/usr/lib64 /usr/cross-tools/target
+
+ENV AS=/usr/cross-tools/bin/loongarch64-unknown-linux-gnu-as \
+    AR=/usr/cross-tools/bin/loongarch64-unknown-linux-gnu-ar \
+    CC=/usr/cross-tools/bin/loongarch64-unknown-linux-gnu-gcc \
+    CPP=/usr/cross-tools/bin/loongarch64-unknown-linux-gnu-cpp \
+    CXX=/usr/cross-tools/bin/loongarch64-unknown-linux-gnu-g++ \
+    LD=/usr/cross-tools/bin/loongarch64-unknown-linux-gnu-ld
+
+ENV QEMU_LD_PREFIX="/usr/cross-tools/target"
+
+RUN adduser fibjs -q
