@@ -1,0 +1,16 @@
+FROM ubuntu:20.04
+
+RUN apt-get update && apt-get install sudo curl tar -y
+RUN apt-get install cmake make -y && apt-get install git -y
+RUN curl --retry 5 -LO http://musl.cc/powerpc64le-linux-musl-cross.tgz && \
+    tar -C /usr -xvf powerpc64le-linux-musl-cross.tgz && \
+    rm powerpc64le-linux-musl-cross.tgz
+
+ENV AS=/usr/powerpc64le-linux-musl-cross/bin/powerpc64le-linux-musl-as \
+    AR=/usr/powerpc64le-linux-musl-cross/bin/powerpc64le-linux-musl-ar \
+    CC=/usr/powerpc64le-linux-musl-cross/bin/powerpc64le-linux-musl-gcc \
+    CPP=/usr/powerpc64le-linux-musl-cross/bin/powerpc64le-linux-musl-cpp \
+    CXX=/usr/powerpc64le-linux-musl-cross/bin/powerpc64le-linux-musl-g++ \
+    LD=/usr/powerpc64le-linux-musl-cross/bin/powerpc64le-linux-musl-ld
+
+RUN adduser fibjs -q
