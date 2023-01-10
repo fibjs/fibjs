@@ -18,6 +18,8 @@ apt install g++-mips64el-linux-gnuabi64 -y
 
 apt install g++-powerpc64le-linux-gnu -y
 
+apt install g++-s390x-linux-gnu -y
+
 apt install g++-riscv64-linux-gnu -y
 
 apt install qemu-user-static -y

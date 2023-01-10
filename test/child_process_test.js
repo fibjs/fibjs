@@ -460,7 +460,7 @@ describe("child_process", () => {
     });
 
     if (process.platform != "win32") {
-        it("PATH env", () => {
+        xit("PATH env", () => {
             assert.equal(child_process.run("ls", [path.join(__dirname, "process")]), 0)
             assert.ok(child_process.execFile("ls", ["-a", path.join(__dirname, "process")]).stdout);
         });

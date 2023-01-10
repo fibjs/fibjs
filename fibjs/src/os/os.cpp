@@ -88,6 +88,8 @@ result_t os_base::arch(exlib::string& retVal)
     retVal = "mips64";
 #elif defined(ppc64)
     retVal = "ppc64";
+#elif defined(loong64)
+    retVal = "loong64";
 #endif
 
     return 0;
