@@ -68,7 +68,7 @@ mbedtls_md_info_x mbedtls_keccak384_info = {
         48,
         128 },
     sizeof(sha3_context),
-    _start_512,
+    _start_384,
     _update,
     _finish
 };
