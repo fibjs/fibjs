@@ -1,10 +1,10 @@
 FROM ubuntu:20.04
 
-RUN apt-get update && apt-get install sudo curl tar -y
+RUN apt-get update && apt-get install sudo curl tar xz-utils -y
 RUN apt-get install cmake make -y && apt-get install git -y
 
 RUN curl -o loongarch64-unknown-linux-gnu.tar.xz --retry 5 -LO https://github.com/loongson/build-tools/releases/download/2022.09.06/loongarch64-clfs-6.3-cross-tools-gcc-glibc.tar.xz && \
-    tar -C /usr -zxvf loongarch64-unknown-linux-gnu.tar.xz && \
+    tar -C /usr -xvf loongarch64-unknown-linux-gnu.tar.xz && \
     rm loongarch64-unknown-linux-gnu.tar.xz
 
 RUN curl --retry 5 -LO https://github.com/loongson/build-tools/releases/download/2022.09.06/qemu-loongarch64 && \
