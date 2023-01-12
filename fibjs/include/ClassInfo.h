@@ -142,21 +142,8 @@ public:
     {
         assert(!m_cd.module);
 
-        v8::Local<v8::Object> o;
         cache* _cache = _init(isolate);
-
-        if (_cache->m_cache.IsEmpty()) {
-            o = v8::Local<v8::Function>::New(isolate->m_isolate, _cache->m_function)
-                    ->NewInstance(isolate->context())
-                    .FromMaybe(v8::Local<v8::Object>());
-            o->SetAlignedPointerInInternalField(0, 0);
-            _cache->m_cache.Reset(isolate->m_isolate, o);
-
-            o = o->Clone();
-        } else
-            o = v8::Local<v8::Object>::New(isolate->m_isolate, _cache->m_cache)->Clone();
-
-        return o;
+        return v8::Local<v8::Object>::New(isolate->m_isolate, _cache->m_cache)->Clone();
     }
 
     bool init_isolate()
