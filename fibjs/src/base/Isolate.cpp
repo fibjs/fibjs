@@ -186,9 +186,9 @@ static void _PromiseRejectCallback(v8::PromiseRejectMessage data)
 
     if (e == v8::kPromiseRejectWithNoHandler) {
         v8::Local<v8::Array> o = v8::Array::New(isolate->m_isolate);
-        o->Set(_context, 0, data.GetPromise());
-        o->Set(_context, 1, data.GetValue());
-        _promise_error->Set(_context, rt->m_promise_error_no++, o);
+        o->Set(_context, 0, data.GetPromise()).Check();
+        o->Set(_context, 1, data.GetValue()).Check();
+        _promise_error->Set(_context, rt->m_promise_error_no++, o).Check();
     } else if (e == v8::kPromiseHandlerAddedAfterReject) {
         v8::Local<v8::Promise> _promise = data.GetPromise();
         if (!_promise.IsEmpty()) {
@@ -202,10 +202,9 @@ static void _PromiseRejectCallback(v8::PromiseRejectMessage data)
                 v8::Local<v8::Array> o = v8::Local<v8::Array>::Cast(v);
                 v = o->Get(_context, 0);
 
-                bool e = false;
-                _promise->Equals(_context, v).To(&e);
+                bool e = _promise->Equals(_context, v).FromMaybe(false);
                 if (e) {
-                    _promise_error->Delete(_context, k);
+                    _promise_error->Delete(_context, k).Check();
                 }
             }
         }
@@ -275,9 +274,9 @@ void Isolate::init()
                                   "}"
                                   "AssertionError;";
 
-    v8::Local<v8::Script> script = v8::Script::Compile(_context, NewString(assertion_error)).ToLocalChecked();
-    v8::MaybeLocal<v8::Value> result = script->Run(_context);
-    v8::Local<v8::Object> AssertionError = result.ToLocalChecked().As<v8::Object>();
+    v8::Local<v8::Script> script = v8::Script::Compile(_context, NewString(assertion_error)).FromMaybe(v8::Local<v8::Script>());
+    v8::Local<v8::Value> result = script->Run(_context).FromMaybe(v8::Local<v8::Value>());
+    v8::Local<v8::Object> AssertionError = result.As<v8::Object>();
     m_AssertionError.Reset(m_isolate, AssertionError);
 
     m_isolate->SetPromiseRejectCallback(_PromiseRejectCallback);
@@ -323,7 +322,7 @@ void Isolate::start_profiler()
     if (g_prof) {
         char name[32];
         obj_ptr<Timer_base> tm;
-        sprintf(name, "fibjs-%08x.log", (uint32_t)(intptr_t)this);
+        snprintf(name, sizeof(name), "fibjs-%08x.log", (uint32_t)(intptr_t)this);
         profiler_base::start(name, -1, g_prof_interval, tm);
     }
 }

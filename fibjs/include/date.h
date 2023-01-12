@@ -102,9 +102,7 @@ public:
 
     v8::Local<v8::Value> value(v8::Isolate* isolate) const
     {
-        v8::Local<v8::Value> v;
-
-        v8::Date::New(isolate->GetCurrentContext(), d).ToLocal(&v);
+        v8::Local<v8::Value> v = v8::Date::New(isolate->GetCurrentContext(), d).FromMaybe(v8::Local<v8::Value>());
         return v;
     }
 

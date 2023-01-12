@@ -672,11 +672,11 @@ describe('encoding', () => {
             var tmp_out_a = 2 ** 54;
             var tmp_out_b = -(2 ** 54);
 
-            assert.isTrue(typeof (msgpack.decode(msgpack.encode(tmp_out_a))) == "bigint");
-            assert.isTrue(BigInt(tmp_out_a) === msgpack.decode(msgpack.encode(tmp_out_a)));
+            assert.equal(typeof (msgpack.decode(msgpack.encode(tmp_out_a))), "bigint");
+            assert.equal(BigInt(tmp_out_a), msgpack.decode(msgpack.encode(tmp_out_a)));
 
-            assert.isTrue(typeof (msgpack.decode(msgpack.encode(tmp_out_b))) == "bigint");
-            assert.isTrue(BigInt(tmp_out_b) === msgpack.decode(msgpack.encode(tmp_out_b)));
+            assert.equal(typeof (msgpack.decode(msgpack.encode(tmp_out_b))), "bigint");
+            assert.equal(BigInt(tmp_out_b), msgpack.decode(msgpack.encode(tmp_out_b)));
         });
 
         it('test encoding safe int number size', () => {

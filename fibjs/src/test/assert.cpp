@@ -165,11 +165,7 @@ result_t assert_base::notOk(v8::Local<v8::Value> actual, exlib::string msg)
 result_t assert_base::equal(v8::Local<v8::Value> actual,
     v8::Local<v8::Value> expected, exlib::string msg)
 {
-    bool tst = false;
-    v8::Maybe<bool> t = actual->Equals(Isolate::current()->context(), expected);
-    if (t.IsJust())
-        tst = t.ToChecked();
-
+    bool tst = actual->Equals(Isolate::current()->context(), expected).FromMaybe(false);
     _test(tst, _msg(msg, "expected ", actual, " to equal ", expected));
     return 0;
 }
@@ -177,11 +173,7 @@ result_t assert_base::equal(v8::Local<v8::Value> actual,
 result_t assert_base::notEqual(v8::Local<v8::Value> actual,
     v8::Local<v8::Value> expected, exlib::string msg)
 {
-    bool tst = false;
-    v8::Maybe<bool> t = actual->Equals(Isolate::current()->context(), expected);
-    if (t.IsJust())
-        tst = !t.ToChecked();
-
+    bool tst = !actual->Equals(Isolate::current()->context(), expected).FromMaybe(false);
     _test(tst, _msg(msg, "expected ", actual, " to not equal ", expected));
     return 0;
 }
@@ -772,7 +764,7 @@ result_t assert_base::throws(v8::Local<v8::Function> block, exlib::string msg)
     bool err;
     {
         TryCatch try_catch;
-        block->Call(block->GetCreationContextChecked(), v8::Undefined(Isolate::current()->m_isolate), 0, NULL);
+        block->Call(block->GetCreationContextChecked(), v8::Undefined(Isolate::current()->m_isolate), 0, NULL).IsEmpty();
         err = try_catch.HasCaught();
     }
     _test(err, _msg(msg, "Missing expected exception."));
@@ -786,7 +778,7 @@ result_t assert_base::doesNotThrow(v8::Local<v8::Function> block,
     bool err;
     {
         TryCatch try_catch;
-        block->Call(block->GetCreationContextChecked(), v8::Undefined(Isolate::current()->m_isolate), 0, NULL);
+        block->Call(block->GetCreationContextChecked(), v8::Undefined(Isolate::current()->m_isolate), 0, NULL).IsEmpty();
         err = try_catch.HasCaught();
     }
     _test(!err, _msg(msg, "Got unwanted exception."));

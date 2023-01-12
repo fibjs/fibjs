@@ -17,10 +17,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#if defined(__APPLE__) && !TARGET_OS_IPHONE
+#if defined(__APPLE__) && !defined(TARGET_OS_IPHONE)
 #include <crt_externs.h>
 #define environ (*_NSGetEnviron())
 #else
+#include <grp.h>
 extern char** environ;
 #endif
 
@@ -116,33 +117,6 @@ static void uv__chld(uv_signal_t* handle, int signum)
         process->exit_cb(process, exit_status, term_signal);
     }
     assert(QUEUE_EMPTY(&pending));
-}
-
-static int uv__make_socketpair(int fds[2])
-{
-#if defined(__FreeBSD__) || defined(__linux__)
-    if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fds))
-        return UV__ERR(errno);
-
-    return 0;
-#else
-    int err;
-
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, fds))
-        return UV__ERR(errno);
-
-    err = uv__cloexec(fds[0], 1);
-    if (err == 0)
-        err = uv__cloexec(fds[1], 1);
-
-    if (err != 0) {
-        uv__close(fds[0]);
-        uv__close(fds[1]);
-        return UV__ERR(errno);
-    }
-
-    return 0;
-#endif
 }
 
 static void uv__write_int(int fd, int val)

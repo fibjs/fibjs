@@ -34,13 +34,13 @@ static result_t BigInt_fromJSON(Isolate* isolate, v8::Local<v8::Value> data, v8:
 {
     TryCatch try_catch;
 
-    v8::MaybeLocal<v8::BigInt> v = data->ToBigInt(isolate->context());
+    v8::Local<v8::BigInt> v = data->ToBigInt(isolate->context()).FromMaybe(v8::Local<v8::BigInt>());
     try_catch.Reset();
 
     if (v.IsEmpty())
         return CALL_E_TYPEMISMATCH;
 
-    retVal = v.ToLocalChecked();
+    retVal = v;
     return 0;
 }
 
@@ -64,11 +64,10 @@ static void json_replacer(const v8::FunctionCallbackInfo<v8::Value>& args)
 
         v8::Local<v8::Object> o = v8::Object::New(isolate);
 
-        o->Set(context, NewString(isolate, "type", 4), NewString(isolate, "BigInt", 6));
+        o->Set(context, NewString(isolate, "type", 4), NewString(isolate, "BigInt", 6)).Check();
 
-        v8::Local<v8::String> sv;
-        v->ToString(context).ToLocal(&sv);
-        o->Set(context, NewString(isolate, "data", 4), sv);
+        v8::Local<v8::String> sv = v->ToString(context).FromMaybe(v8::Local<v8::String>());
+        o->Set(context, NewString(isolate, "data", 4), sv).Check();
 
         v = o;
     }
@@ -331,7 +330,7 @@ inline result_t _jsonDecode(exlib::string data,
                     if (hr < 0)
                         return hr;
 
-                    el.ToHandle(&el1);
+                    el1 = el.ToHandleChecked();
 
                     els.push_back(el1);
                 } while (MatchSkipWhiteSpace(','));

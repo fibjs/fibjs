@@ -25,9 +25,9 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
     v8::Local<v8::Context> context = isolate->context();
 
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-    o->Set(context, isolate->NewString("user"), v8::Number::New(isolate->m_isolate, ri.ri_user_time / 1000));
-    o->Set(context, isolate->NewString("system"), v8::Number::New(isolate->m_isolate, ri.ri_system_time / 1000));
-    o->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, ri.ri_resident_size));
+    o->Set(context, isolate->NewString("user"), v8::Number::New(isolate->m_isolate, ri.ri_user_time / 1000)).Check();
+    o->Set(context, isolate->NewString("system"), v8::Number::New(isolate->m_isolate, ri.ri_system_time / 1000)).Check();
+    o->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, ri.ri_resident_size)).Check();
 
     retVal = o;
 
@@ -64,9 +64,9 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
     v8::Local<v8::Context> context = isolate->context();
 
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-    o->Set(context, isolate->NewString("user"), v8::Number::New(isolate->m_isolate, utime_ticks * MICROS_PER_SEC / herz));
-    o->Set(context, isolate->NewString("system"), v8::Number::New(isolate->m_isolate, stime_ticks * MICROS_PER_SEC / herz));
-    o->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, rss * getpagesize()));
+    o->Set(context, isolate->NewString("user"), v8::Number::New(isolate->m_isolate, utime_ticks * MICROS_PER_SEC / herz)).Check();
+    o->Set(context, isolate->NewString("system"), v8::Number::New(isolate->m_isolate, stime_ticks * MICROS_PER_SEC / herz)).Check();
+    o->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, rss * getpagesize())).Check();
 
     retVal = o;
 
@@ -109,9 +109,9 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
     v8::Local<v8::Context> context = isolate->context();
 
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-    o->Set(context, isolate->NewString("user"), v8::Number::New(isolate->m_isolate, utime_ticks));
-    o->Set(context, isolate->NewString("system"), v8::Number::New(isolate->m_isolate, stime_ticks));
-    o->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, (double)memCounters.PeakWorkingSetSize));
+    o->Set(context, isolate->NewString("user"), v8::Number::New(isolate->m_isolate, utime_ticks)).Check();
+    o->Set(context, isolate->NewString("system"), v8::Number::New(isolate->m_isolate, stime_ticks)).Check();
+    o->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, (double)memCounters.PeakWorkingSetSize)).Check();
 
     retVal = o;
 

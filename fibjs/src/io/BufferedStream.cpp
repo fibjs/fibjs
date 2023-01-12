@@ -253,7 +253,7 @@ result_t BufferedStream::readLines(int32_t maxlines, v8::Local<v8::Array>& retVa
         if (hr > 0)
             return 0;
 
-        retVal->Set(context, n++, isolate->NewString(str));
+        retVal->Set(context, n++, isolate->NewString(str)).Check();
         if (maxlines > 0) {
             maxlines--;
             if (maxlines == 0)

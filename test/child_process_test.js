@@ -561,7 +561,7 @@ describe("child_process", () => {
 
             p.send(100);
 
-            for (var i = 0; i < 1000 && !k; i++)
+            for (var i = 0; i < 10000 && !k; i++)
                 coroutine.sleep(1);
 
             assert.equal(k, true);

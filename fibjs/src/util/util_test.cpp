@@ -34,7 +34,7 @@ result_t util_base::isEmpty(v8::Local<v8::Value> v, bool& retVal)
 
     if (v->IsObject()) {
         v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
-        retVal = o->GetOwnPropertyNames(o->GetCreationContextChecked()).ToLocalChecked()->Length() == 0;
+        retVal = o->GetOwnPropertyNames(o->GetCreationContextChecked()).FromMaybe(v8::Local<v8::Array>())->Length() == 0;
         return 0;
     }
 

@@ -31,7 +31,7 @@ void _resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
-    v8::Local<v8::Object> _mod = args.Data()->ToObject(context).ToLocalChecked();
+    v8::Local<v8::Object> _mod = args.Data()->ToObject(context).FromMaybe(v8::Local<v8::Object>());
     JSValue path = _mod->Get(context, NewString(isolate, "_id"));
     obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
         JSValue(_mod->Get(context, NewString(isolate, "_sbox"))));
@@ -73,7 +73,7 @@ void _require(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
-    v8::Local<v8::Object> _mod = args.Data()->ToObject(context).ToLocalChecked();
+    v8::Local<v8::Object> _mod = args.Data()->ToObject(context).FromMaybe(v8::Local<v8::Object>());
     JSValue path = _mod->Get(context, NewString(isolate, "_id"));
     obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
         JSValue(_mod->Get(context, NewString(isolate, "_sbox"))));
@@ -124,7 +124,7 @@ void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
         argv = v8::Array::New(isolate);
 
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
-    v8::Local<v8::Object> _mod = args.Data()->ToObject(context).ToLocalChecked();
+    v8::Local<v8::Object> _mod = args.Data()->ToObject(context).FromMaybe(v8::Local<v8::Object>());
     obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
         JSValue(_mod->Get(context, NewString(isolate, "_sbox"))));
 
@@ -160,12 +160,12 @@ SandBox::Context::Context(SandBox* sb, exlib::string id)
 
     v8::Local<v8::Object> _mod = v8::Object::New(isolate->m_isolate);
 
-    _mod->Set(context, isolate->NewString("_sbox"), m_sb->wrap());
-    _mod->Set(context, isolate->NewString("_id"), m_id);
+    _mod->Set(context, isolate->NewString("_sbox"), m_sb->wrap()).Check();
+    _mod->Set(context, isolate->NewString("_id"), m_id).Check();
 
     m_fnRequest = isolate->NewFunction("require", _require, _mod);
-    m_fnRequest->Set(context, isolate->NewString("resolve"), isolate->NewFunction("resolve", _resolve, _mod));
-    m_fnRequest->Set(context, isolate->NewString("cache"), m_sb->mods());
+    m_fnRequest->Set(context, isolate->NewString("resolve"), isolate->NewFunction("resolve", _resolve, _mod)).Check();
+    m_fnRequest->Set(context, isolate->NewString("cache"), m_sb->mods()).Check();
 
     m_fnRun = isolate->NewFunction("run", _run, _mod);
 }

@@ -19,10 +19,10 @@ static void sync_callback(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     int32_t len = args.Length();
     if (len > 0)
-        _data->Set(context, NewString(isolate, "_error"), args[0]);
+        _data->Set(context, NewString(isolate, "_error"), args[0]).Check();
 
     if (len > 1)
-        _data->Set(context, NewString(isolate, "_result"), args[1]);
+        _data->Set(context, NewString(isolate, "_result"), args[1]).Check();
 
     obj_ptr<Event_base> ev = Event_base::getInstance(_data);
     ev->set();
@@ -57,9 +57,7 @@ static void sync_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_NAME(str.c_str());
 
-    v8::Local<v8::Value> result;
-
-    func->Call(context, args.This(), (int32_t)argv.size(), argv.data()).ToLocal(&result);
+    v8::Local<v8::Value> result = func->Call(context, args.This(), (int32_t)argv.size(), argv.data()).FromMaybe(v8::Local<v8::Value>());
     if (result.IsEmpty())
         return;
 

@@ -25,8 +25,7 @@ inline result_t db_trans(T* pThis, exlib::string point, v8::Local<v8::Function> 
         return hr;
 
     pThis->leave();
-    v8::Local<v8::Value> result;
-    func->Call(func->GetCreationContextChecked(), pThis->wrap(), 1, &v).ToLocal(&result);
+    v8::Local<v8::Value> result = func->Call(func->GetCreationContextChecked(), pThis->wrap(), 1, &v).FromMaybe(v8::Local<v8::Value>());
     pThis->enter();
 
     if (result.IsEmpty()) {

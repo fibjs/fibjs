@@ -35,21 +35,6 @@ static int ecsdsa_signature_to_asn1(const mbedtls_mpi* r, const mbedtls_mpi* s,
     return (0);
 }
 
-static void print_mpi(const mbedtls_mpi* e)
-{
-    unsigned char data[MBEDTLS_ECP_MAX_BYTES * 2 + 1];
-    size_t len = 0;
-    static char hex_char[] = "0123456789abcdef";
-
-    len = mbedtls_mpi_size(e);
-    mbedtls_mpi_write_binary(e, data, len);
-    for (int i = 0; i < len; i++) {
-        printf("0x%02x,", data[i]);
-    }
-
-    puts("");
-}
-
 int ecsdsa_sign(mbedtls_ecp_keypair* ctx, int sdsa, mbedtls_ecp_keypair* to_ctx, const unsigned char* hash, size_t hlen,
     unsigned char* sig, size_t* slen, int (*f_rng)(void*, unsigned char*, size_t), void* p_rng)
 {

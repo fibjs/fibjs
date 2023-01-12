@@ -364,9 +364,9 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req, SeekableS
             : AsyncState(ac)
             , m_conn(conn)
             , m_req(req)
-            , m_response_body(response_body)
             , m_maxBodySize(maxBodySize)
             , m_enableEncoding(enableEncoding)
+            , m_response_body(response_body)
             , m_retVal(retVal)
         {
             next(send);
@@ -433,11 +433,11 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req, SeekableS
         HttpRequest_base* m_req;
         int32_t m_maxBodySize;
         bool m_enableEncoding;
-        obj_ptr<HttpResponse_base>& m_retVal;
         obj_ptr<BufferedStream> m_bs;
         obj_ptr<MemoryStream> m_unzip;
         obj_ptr<SeekableStream_base> m_body;
         obj_ptr<SeekableStream_base> m_response_body;
+        obj_ptr<HttpResponse_base>& m_retVal;
         bool m_bNoBody;
     };
 

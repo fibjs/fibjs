@@ -184,14 +184,14 @@ result_t AsyncCallBack::syncFunc(AsyncCallBack* pThis)
 
         v8::Local<v8::Object> cb_err = v8::Local<v8::Object>::Cast(v8::Local<v8::Value>::New(isolate->m_isolate, pThis->m_cb_err));
 
-        cb_err->Set(isolate->context(), isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -pThis->m_v));
-        cb_err->Set(isolate->context(), isolate->NewString("message"), isolate->NewString(getResultMessage(pThis->m_v)));
+        cb_err->Set(isolate->context(), isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -pThis->m_v)).Check();
+        cb_err->Set(isolate->context(), isolate->NewString("message"), isolate->NewString(getResultMessage(pThis->m_v))).Check();
 
         args.resize(1);
         args[0] = cb_err;
     }
 
-    func->Call(func->GetCreationContextChecked(), v8::Undefined(isolate->m_isolate), (int32_t)args.size(), args.data());
+    func->Call(func->GetCreationContextChecked(), v8::Undefined(isolate->m_isolate), (int32_t)args.size(), args.data()).IsEmpty();
 
     delete pThis;
 

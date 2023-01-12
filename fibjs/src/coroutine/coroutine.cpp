@@ -45,14 +45,14 @@ private:
             if (func.IsEmpty()) {
                 v8::Local<v8::Function> func1 = v8::Local<v8::Function>::Cast(JSValue(datas->Get(context, pos)));
                 if (!func1.IsEmpty())
-                    func1->Call(context, s->wrap(), 0, NULL).ToLocal(&v);
+                    v = func1->Call(context, s->wrap(), 0, NULL).FromMaybe(v8::Local<v8::Value>());
             } else {
                 JSValue a = datas->Get(context, pos);
-                func->Call(context, s->wrap(), 1, &a).ToLocal(&v);
+                v = func->Call(context, s->wrap(), 1, &a).FromMaybe(v8::Local<v8::Value>());
             }
 
             if (!v.IsEmpty())
-                retVal->Set(context, pos, handle_scope.Escape(v));
+                retVal->Set(context, pos, handle_scope.Escape(v)).Check();
             else
                 m_error = true;
         }
@@ -169,7 +169,7 @@ result_t coroutine_base::parallel(OptArgs funcs, v8::Local<v8::Array>& retVal)
     v8::Local<v8::Context> context = isolate->context();
 
     for (i = 0; i < num; i++)
-        _funcs->Set(context, i, funcs[i]);
+        _funcs->Set(context, i, funcs[i]).Check();
 
     return parallel(_funcs, -1, retVal);
 }
@@ -190,7 +190,7 @@ result_t coroutine_base::parallel(v8::Local<v8::Function> func, int32_t num,
     v8::Local<v8::Context> context = isolate->context();
 
     for (i = 0; i < num; i++)
-        datas->Set(context, i, v8::Int32::New(isolate->m_isolate, i));
+        datas->Set(context, i, v8::Int32::New(isolate->m_isolate, i)).Check();
 
     _parallels _p;
     return _p.run(datas, func, retVal, fibers);
@@ -249,7 +249,7 @@ result_t coroutine_base::get_fibers(v8::Local<v8::Array>& retVal)
     retVal = v8::Array::New(isolate->m_isolate);
 
     while (p) {
-        retVal->Set(context, n++, ((JSFiber*)p)->wrap());
+        retVal->Set(context, n++, ((JSFiber*)p)->wrap()).Check();
         p = p->m_next;
     }
 

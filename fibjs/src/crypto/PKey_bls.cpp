@@ -29,7 +29,7 @@ result_t PKey_base::aggregateSignatures(v8::Local<v8::Array> sigs, obj_ptr<Buffe
 
     buf->get_length(len);
     if (len == 48) {
-        blst_p1 point = { 0 };
+        blst_p1 point = { };
         blst_p1_affine pk;
 
         buf->toString(s);
@@ -53,7 +53,7 @@ result_t PKey_base::aggregateSignatures(v8::Local<v8::Array> sigs, obj_ptr<Buffe
         s.resize(48);
         blst_p1_compress((byte*)s.c_buffer(), &point);
     } else if (len == 96) {
-        blst_p2 point = { 0 };
+        blst_p2 point = { };
         blst_p2_affine pk;
 
         buf->toString(s);

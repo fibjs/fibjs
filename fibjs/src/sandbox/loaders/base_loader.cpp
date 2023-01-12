@@ -31,11 +31,11 @@ result_t SandBox::ExtLoader::run_script(Context* ctx, Buffer_base* src, exlib::s
     v8::Local<v8::Object> module = v8::Object::New(isolate->m_isolate);
     v8::Local<v8::Object> exports = v8::Object::New(isolate->m_isolate);
 
-    module->Set(context, strExports, exports);
-    module->Set(context, strRequire, ctx->m_fnRequest);
+    module->Set(context, strExports, exports).Check();
+    module->Set(context, strRequire, ctx->m_fnRequest).Check();
 
     if (is_main)
-        ctx->m_fnRequest->Set(context, isolate->NewString("main"), module);
+        ctx->m_fnRequest->Set(context, isolate->NewString("main"), module).Check();
 
     return run_module(ctx, src, name, module, exports, extarg);
 }
@@ -86,13 +86,12 @@ result_t SandBox::ExtLoader::run(Context* ctx, Buffer_base* src, exlib::string n
 
     Isolate* isolate = ctx->m_sb->holder();
     v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Value> v = script->Run(context).ToLocalChecked();
+    v8::Local<v8::Value> v = script->Run(context).FromMaybe(v8::Local<v8::Value>());
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
     JSFunction func = v8::Local<v8::Function>::Cast(v);
 
-    v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(args[5]);
     v8::Local<v8::Object> glob = context->Global();
 
     v = func.Call(context, glob, (int32_t)args.size(), args.data());

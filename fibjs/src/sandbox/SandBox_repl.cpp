@@ -101,14 +101,13 @@ result_t SandBox::Context::repl()
         buf.append("\n", 1);
 
         {
-            v8::Local<v8::Script> script;
             TryCatch try_catch;
 
             v8::ScriptOrigin origin(isolate->m_isolate, strFname);
             v8::Local<v8::Context> context = isolate->m_isolate->GetCurrentContext();
-            v8::MaybeLocal<v8::Script> lscript = v8::Script::Compile(context, isolate->NewString(buf), &origin);
+            v8::Local<v8::Script> script = v8::Script::Compile(context, isolate->NewString(buf), &origin).FromMaybe(v8::Local<v8::Script>());
 
-            if (lscript.IsEmpty() || (script = lscript.ToLocalChecked()).IsEmpty()) {
+            if (script.IsEmpty()) {
                 if (isolate->toString(try_catch.Exception()) != "SyntaxError: Unexpected end of input") {
                     buf.clear();
                     ReportException(try_catch, 0, true);
@@ -118,8 +117,8 @@ result_t SandBox::Context::repl()
 
             buf.clear();
 
-            v8::MaybeLocal<v8::Value> lv = script->Run(context);
-            if (lv.IsEmpty() || (v = lv.ToLocalChecked()).IsEmpty()) {
+            v = script->Run(context).FromMaybe(v8::Local<v8::Value>());
+            if (v.IsEmpty()) {
                 ReportException(try_catch, 0, true);
                 continue;
             }

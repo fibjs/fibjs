@@ -375,8 +375,7 @@ result_t LevelDB::Iter::iter(Isolate* isolate, v8::Local<v8::Function> func)
             m_kvs[i * 2].Release();
             m_kvs[i * 2 + 1].Release();
 
-            v8::Local<v8::Value> v;
-            func->Call(func->GetCreationContextChecked(), v8::Undefined(isolate->m_isolate), 2, args).ToLocal(&v);
+            v8::Local<v8::Value> v = func->Call(func->GetCreationContextChecked(), v8::Undefined(isolate->m_isolate), 2, args).FromMaybe(v8::Local<v8::Value>());
             if (v.IsEmpty())
                 return CALL_E_JAVASCRIPT;
 

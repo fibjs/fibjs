@@ -324,13 +324,13 @@ public:
     void SetPrivate(exlib::string key, v8::Local<v8::Value> value)
     {
         v8::Local<v8::Context> context = wrap()->GetCreationContextChecked();
-        GetPrivateObject()->Set(context, holder()->NewString(key), value);
+        GetPrivateObject()->Set(context, holder()->NewString(key), value).Check();
     }
 
     void DeletePrivate(exlib::string key)
     {
         v8::Local<v8::Context> context = wrap()->GetCreationContextChecked();
-        GetPrivateObject()->Delete(context, holder()->NewString(key));
+        GetPrivateObject()->Delete(context, holder()->NewString(key)).Check();
     }
 
 public:

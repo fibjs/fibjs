@@ -81,15 +81,14 @@ void JSFiber::set_caller(Fiber_base* caller)
         v8::Local<v8::Object> o = wrap();
         v8::Local<v8::Context> context = co->GetCreationContextChecked();
 
-        v8::Local<v8::Array> ks;
-        co->GetOwnPropertyNames(context).ToLocal(&ks);
+        v8::Local<v8::Array> ks = co->GetOwnPropertyNames(context).FromMaybe(v8::Local<v8::Array>());
         int32_t len = ks->Length();
 
         int32_t i;
 
         for (i = 0; i < len; i++) {
             JSValue k = ks->Get(context, i);
-            o->Set(context, k, JSValue(co->Get(context, k)));
+            o->Set(context, k, JSValue(co->Get(context, k))).Check();
         }
     }
 }
@@ -211,8 +210,7 @@ result_t JSFiber::js_invoke()
 
     clear();
 
-    func->Call(func->GetCreationContextChecked(), pThis, (int32_t)argv.size(), argv.data()).ToLocal(&retVal);
-
+    retVal = func->Call(func->GetCreationContextChecked(), pThis, (int32_t)argv.size(), argv.data()).FromMaybe(v8::Local<v8::Value>());
     if (!IsEmpty(retVal))
         m_result.Reset(isolate->m_isolate, retVal);
 

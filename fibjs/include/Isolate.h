@@ -72,9 +72,7 @@ public:
     v8::Local<v8::Function> NewFunction(const char* funcName, v8::FunctionCallback callback,
         v8::Local<v8::Value> data = v8::Local<v8::Value>())
     {
-        v8::Local<v8::Function> func;
-
-        v8::Function::New(context(), callback, data).ToLocal(&func);
+        v8::Local<v8::Function> func = v8::Function::New(context(), callback, data).FromMaybe(v8::Local<v8::Function>());
         if (!func.IsEmpty())
             func->SetName(NewString(funcName));
         return func;
@@ -87,7 +85,7 @@ public:
 
     v8::Local<v8::String> toLocalString(v8::Local<v8::Value> v)
     {
-        return v->ToString(context()).ToLocalChecked();
+        return v->ToString(context()).FromMaybe(v8::Local<v8::String>());
     }
 
     exlib::string toString(v8::Local<v8::Value> v)

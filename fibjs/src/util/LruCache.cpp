@@ -110,8 +110,7 @@ result_t LruCache::get(exlib::string name, v8::Local<v8::Function> updater,
 
             e = new Event();
             padding = m_paddings.insert(std::pair<exlib::string, obj_ptr<Event_base>>(sname, e)).first;
-            v8::Local<v8::Value> v;
-            updater->Call(updater->GetCreationContextChecked(), o, 1, &a).ToLocal(&v);
+            v8::Local<v8::Value> v = updater->Call(updater->GetCreationContextChecked(), o, 1, &a).FromMaybe(v8::Local<v8::Value>());
             m_paddings.erase(padding);
             e->set();
 
@@ -222,7 +221,7 @@ result_t LruCache::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
 
     while (it != m_datas.end()) {
         v8::Local<v8::String> name = isolate->NewString(it->first);
-        obj->Set(context, name, GetPrivate(it->first));
+        obj->Set(context, name, GetPrivate(it->first)).Check();;
         it = _instantiate(it->second.m_next);
     }
 

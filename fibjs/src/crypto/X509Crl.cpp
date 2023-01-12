@@ -120,12 +120,10 @@ result_t X509Crl::loadFile(exlib::string filename)
 
 result_t X509Crl::pem(bool all, exlib::string& retVal)
 {
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
     StringBuffer sb;
 
     const mbedtls_x509_crl* pCrl = &m_crl;
-    int32_t ret, n = 0;
+    int32_t ret;
     exlib::string buf;
     size_t olen;
 
@@ -246,7 +244,7 @@ result_t X509Crl::get_serials(v8::Local<v8::Array>& retVal)
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
-        retVal->Set(context, n++, isolate->NewString(str.c_str(), (int32_t)sz - 1));
+        retVal->Set(context, n++, isolate->NewString(str.c_str(), (int32_t)sz - 1)).Check();
 
         cur = cur->next;
     }

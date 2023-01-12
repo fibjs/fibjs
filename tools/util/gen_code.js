@@ -670,7 +670,7 @@ function gen_code(cls, def, baseFolder) {
                     ts.push('            v8::Local<v8::Context> context = retVal->GetCreationContextChecked();');
 
                     fn.type.forEach(t => {
-                        ts.push(`            retVal->Set(context, isolate->NewString("${t.name}"), GetReturnValue(isolate->m_isolate, ${t.name}));`);
+                        ts.push(`            retVal->Set(context, isolate->NewString("${t.name}"), GetReturnValue(isolate->m_isolate, ${t.name})).Check();`);
                     });
 
                     ts.push('        }\n');

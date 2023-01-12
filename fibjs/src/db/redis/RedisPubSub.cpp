@@ -120,7 +120,7 @@ result_t Redis::_map(v8::Local<v8::Object>& map, int32_t cmd)
         v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(value);
 
         if ((cmd & 1) ? unregsub(s, func) : regsub(s, func))
-            subs->Set(context, count++, channel);
+            subs->Set(context, count++, channel).Check();
     }
 
     if (!count)

@@ -53,7 +53,7 @@ public:
         }
 
         m_empty = false;
-        return v8::Local<v8::Value>::operator=(v.ToLocalChecked());
+        return v8::Local<v8::Value>::operator=(v.FromMaybe(v8::Local<v8::Value>()));
     }
 
     bool IsEmpty() const
@@ -96,7 +96,7 @@ public:
             Isolate* isolate = Isolate::current();
             return v8::Local<v8::Array>::operator=(v8::Array::New(isolate->m_isolate));
         }
-        return v8::Local<v8::Array>::operator=(v.ToLocalChecked());
+        return v8::Local<v8::Array>::operator=(v.FromMaybe(v8::Local<v8::Array>()));
     }
 };
 

@@ -432,7 +432,7 @@ void XmlElement::fix_prefix(exlib::string namespaceURI, exlib::string& prefix)
         char buf[64];
 
         for (i = 0; i < 65536; i++) {
-            sprintf(buf, "a%d", i);
+            snprintf(buf, sizeof(buf), "a%d", i);
             if (lookupNamespaceURI(buf, _namespaceURI) == CALL_RETURN_NULL) {
                 prefix = buf;
                 setAttributeNS("http://www.w3.org/2000/xmlns/", ("xmlns:" + prefix), namespaceURI);

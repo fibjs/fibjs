@@ -412,7 +412,7 @@ public:
                 if (size > 0) {
                     char str[32];
 
-                    sprintf(str, "%d", size);
+                    snprintf(str, sizeof(str), "%d", size);
                     _fields.append("VARCHAR(");
                     _fields.append((const char*)str);
                     _fields.append(1, ')');

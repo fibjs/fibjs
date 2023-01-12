@@ -14,8 +14,8 @@ namespace fibjs {
 class Runtime {
 public:
     Runtime(Isolate* isolate)
-        : m_isolate(isolate)
-        , m_promise_error_no(0)
+        : m_promise_error_no(0)
+        , m_isolate(isolate)
     {
         RegInThread();
     }

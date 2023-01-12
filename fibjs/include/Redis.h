@@ -14,6 +14,7 @@
 #include "QuickArray.h"
 #include "Buffer.h"
 #include <map>
+#include <inttypes.h>
 
 namespace fibjs {
 
@@ -92,7 +93,7 @@ public:
         {
             char numStr[64];
 
-            m_size += sprintf(numStr, "$%d", (int32_t)str.length());
+            m_size += snprintf(numStr, sizeof(numStr), "$%d", (int32_t)str.length());
             m_params.append(numStr);
 
             m_params.append(str);
@@ -119,11 +120,7 @@ public:
         {
             char numStr[64];
 
-#ifdef _WIN32
-            sprintf(numStr, "%I64d", v);
-#else
-            sprintf(numStr, "%lld", (long long)v);
-#endif
+            snprintf(numStr, sizeof(numStr), "%" PRId64, v);
             return add(numStr);
         }
 
@@ -216,7 +213,7 @@ public:
             int32_t sz, i;
             char* p;
 
-            sz = sprintf(numStr, "*%d\r\n", (int32_t)m_params.size() / 2);
+            sz = snprintf(numStr, sizeof(numStr), "*%d\r\n", (int32_t)m_params.size() / 2);
 
             str.resize(sz + m_size);
             p = str.c_buffer();

@@ -36,7 +36,7 @@ static void mpi_dump(Isolate* isolate, v8::Local<v8::Object> o, exlib::string ke
         exlib::string b64;
         base64Encode(data.c_str(), data.length(), true, b64);
 
-        o->Set(isolate->context(), isolate->NewString(key), isolate->NewString(b64));
+        o->Set(isolate->context(), isolate->NewString(key), isolate->NewString(b64)).Check();
     }
 }
 
@@ -215,7 +215,7 @@ result_t PKey::json(v8::Local<v8::Object> opts, v8::Local<v8::Object>& retVal)
         mbedtls_rsa_context* rsa = mbedtls_pk_rsa(m_key);
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
 
-        o->Set(context, isolate->NewString("kty"), isolate->NewString("RSA"));
+        o->Set(context, isolate->NewString("kty"), isolate->NewString("RSA")).Check();
         mpi_dump(isolate, o, "n", &rsa->N);
         mpi_dump(isolate, o, "e", &rsa->E);
 
@@ -237,12 +237,12 @@ result_t PKey::json(v8::Local<v8::Object> opts, v8::Local<v8::Object>& retVal)
         int32_t id = ecp->grp.id;
 
         if (id == MBEDTLS_ECP_DP_ED25519 || id == MBEDTLS_ECP_DP_CURVE25519 || id == MBEDTLS_ECP_DP_CURVE448)
-            o->Set(context, isolate->NewString("kty"), isolate->NewString("OKP"));
+            o->Set(context, isolate->NewString("kty"), isolate->NewString("OKP")).Check();
         else
-            o->Set(context, isolate->NewString("kty"), isolate->NewString("EC"));
+            o->Set(context, isolate->NewString("kty"), isolate->NewString("EC")).Check();
 
         if (_name)
-            o->Set(context, isolate->NewString("crv"), isolate->NewString(_name));
+            o->Set(context, isolate->NewString("crv"), isolate->NewString(_name)).Check();
 
         bool compress = false;
         if (!opts.IsEmpty()) {
@@ -281,7 +281,7 @@ result_t PKey::json(v8::Local<v8::Object> opts, v8::Local<v8::Object>& retVal)
                 exlib::string b64;
                 base64Encode(data_x.c_str(), ksz + 1, true, b64);
 
-                o->Set(isolate->context(), isolate->NewString("x"), isolate->NewString(b64));
+                o->Set(isolate->context(), isolate->NewString("x"), isolate->NewString(b64)).Check();
             } else
                 return CHECK_ERROR(Runtime::setError("public key of the current curve does not support compression."));
         } else {

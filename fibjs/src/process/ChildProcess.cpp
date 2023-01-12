@@ -483,8 +483,6 @@ result_t ChildProcess::get_connected(bool& retVal)
 
 result_t ChildProcess::disconnect()
 {
-    Isolate* isolate = holder();
-
     if (!m_channel)
         return CHECK_ERROR(Runtime::setError("ChildProcess: IPC channel is already disconnected."));
 

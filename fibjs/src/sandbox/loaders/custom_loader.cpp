@@ -28,11 +28,9 @@ result_t CustomExtLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib
     v8::Local<v8::Object> requireInfo = v8::Object::New(isolate->m_isolate);
     transpileArgs[1] = requireInfo;
 
-    requireInfo->Set(context, isolate->NewString("filename"), isolate->NewString(name));
+    requireInfo->Set(context, isolate->NewString("filename"), isolate->NewString(name)).Check();;
 
-    v8::Local<v8::Value> fileContent;
-
-    require_fn->Call(context, v8::Undefined(isolate->m_isolate), 2, transpileArgs).ToLocal(&fileContent);
+    v8::Local<v8::Value> fileContent = require_fn->Call(context, v8::Undefined(isolate->m_isolate), 2, transpileArgs).FromMaybe(v8::Local<v8::Value>());
     if (fileContent.IsEmpty())
         return CALL_E_JAVASCRIPT;
 

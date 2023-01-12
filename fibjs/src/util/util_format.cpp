@@ -162,7 +162,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
                         if (i >= MAX_BUFFER_ITEM) {
                             int32_t cnt = len - i;
                             if (cnt > 1)
-                                p += sprintf(_s + p, " ... %d more bytes", cnt);
+                                p += snprintf(_s + p, s.length() - p, " ... %d more bytes", cnt);
                             else {
                                 memcpy(_s + p, " ... 1 more byte", 16);
                                 p += 16;
@@ -195,7 +195,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
                     if (len > 0) {
                         keys = v8::Array::New(isolate->m_isolate);
                         for (int32_t i = 0; i < len; i++)
-                            keys->Set(_context, i, JSValue(vs->Get(_context, i * 2)));
+                            keys->Set(_context, i, JSValue(vs->Get(_context, i * 2))).Check();
                     } else
                         keys = vs;
                 } else
@@ -219,11 +219,12 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
 
                 vals.append(obj);
 
-                v8::Local<v8::Function> toArray = v8::Local<v8::Function>::Cast(JSValue(obj->Get(_context, isolate->NewString("toArray"))));
-                if (!toArray.IsEmpty() && toArray->IsFunction()) {
+                JSValue v_toArray = obj->Get(_context, isolate->NewString("toArray"));
+                if (v_toArray->IsFunction()) {
+                    v8::Local<v8::Function> toArray = v8::Local<v8::Function>::Cast(v_toArray);
+
                     TryCatch try_catch;
-                    v8::Local<v8::Value> v1;
-                    toArray->Call(_context, obj, 0, NULL).ToLocal(&v1);
+                    v8::Local<v8::Value> v1 = toArray->Call(_context, obj, 0, NULL).FromMaybe(v8::Local<v8::Value>());
                     if (!IsEmpty(v1) && v1->IsObject()) {
                         v = v1;
                         obj = v8::Local<v8::Object>::Cast(v1);
@@ -279,7 +280,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
                         v8::Local<v8::Array> array = v8::Array::New(isolate->m_isolate);
 
                         for (i = 0; i < len; i++)
-                            array->Set(_context, i, JSValue(typedarray->Get(_context, i)));
+                            array->Set(_context, i, JSValue(typedarray->Get(_context, i))).Check();
 
                         stk.resize(sz + 1);
                         it = &stk[sz];
@@ -341,7 +342,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
 
                 int32_t cnt = it->len - it->pos;
                 if (cnt > 1) {
-                    sprintf(str_buf, "%d more items", cnt);
+                    snprintf(str_buf, sizeof(str_buf), "%d more items", cnt);
                     strBuffer.append(str_buf);
                 } else
                     strBuffer.append("1 more item");
@@ -406,7 +407,6 @@ result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string&
     }
 
     Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> _context = isolate->context();
 
     const char* s = fmt.c_str();
     const char* s_end = s + fmt.length();

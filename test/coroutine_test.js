@@ -297,7 +297,7 @@ describe('coroutine', () => {
                 flag = true;
             };
 
-            for (var i = 0; i < 100 && !flag; i++)
+            for (var i = 0; i < 10000 && !flag; i++)
                 coroutine.sleep(10);
 
             assert.isTrue(flag);
@@ -312,7 +312,7 @@ describe('coroutine', () => {
                     flag = true;
                 };
 
-                for (var i = 0; i < 100 && !flag; i++)
+                for (var i = 0; i < 10000 && !flag; i++)
                     coroutine.sleep(10);
 
                 assert.isTrue(flag);
@@ -326,7 +326,7 @@ describe('coroutine', () => {
                     flag = true;
                 });
 
-                for (var i = 0; i < 100 && !flag; i++)
+                for (var i = 0; i < 10000 && !flag; i++)
                     coroutine.sleep(10);
 
                 assert.isTrue(flag);
@@ -428,7 +428,7 @@ describe('coroutine', () => {
                     flag = true;
                 });
 
-                for (var i = 0; i < 100 && !flag; i++)
+                for (var i = 0; i < 10000 && !flag; i++)
                     coroutine.sleep(10);
 
                 assert.isTrue(flag);

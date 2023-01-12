@@ -43,17 +43,17 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
                     msgpack_pack_false(&pk);
             } else if (element->IsNumber() || element->IsNumberObject()) {
                 double num = isolate->toNumber(element);
-                if (static_cast<double>(static_cast<int64_t>(num)) == num && num <= LLONG_MAX && num >= LLONG_MIN) {
+                if (static_cast<double>(static_cast<int64_t>(num)) == num) {
                     msgpack_pack_int64(&pk, (int64_t)num);
                 } else {
                     msgpack_pack_double(&pk, num);
                 }
             } else if (element->IsBigInt() || element->IsBigIntObject()) {
-                v8::MaybeLocal<v8::BigInt> mv;
+                v8::Local<v8::BigInt> mv;
                 bool less;
 
-                mv = element->ToBigInt(Isolate::current()->context());
-                msgpack_pack_int64(&pk, mv.ToLocalChecked()->Int64Value(&less));
+                mv = element->ToBigInt(Isolate::current()->context()).FromMaybe(v8::Local<v8::BigInt>());
+                msgpack_pack_int64(&pk, mv->Int64Value(&less));
             } else if (element->IsDate()) {
                 date_t d = isolate->toNumber(element);
                 msgpack_timestamp _d;
@@ -242,7 +242,7 @@ result_t msgpack_base::decode(Buffer_base* data, v8::Local<v8::Value>& retVal)
                 int32_t i;
 
                 for (i = 0; i < (int32_t)o->via.array.size; i++)
-                    arr->Set(context, i, map_js_value(o->via.array.ptr + i));
+                    arr->Set(context, i, map_js_value(o->via.array.ptr + i)).Check();
                 v = arr;
                 break;
             }
@@ -255,7 +255,8 @@ result_t msgpack_base::decode(Buffer_base* data, v8::Local<v8::Value>& retVal)
 
                     if (p->key.type == MSGPACK_OBJECT_STR) {
                         obj->Set(context, isolate->NewString(p->key.via.str.ptr, (int32_t)p->key.via.str.size),
-                            map_js_value(&p->val));
+                               map_js_value(&p->val))
+                            .Check();
                     }
                 }
                 v = obj;

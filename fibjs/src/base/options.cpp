@@ -92,7 +92,7 @@ void asyncLog(int32_t priority, exlib::string msg);
 void DcheckHandler(const char* file, int line, const char* message)
 {
     char p_msg[256];
-    sprintf(p_msg, "Assert(DCheck) in %s, line %d: %s", file, line, message);
+    snprintf(p_msg, sizeof(p_msg), "Assert(DCheck) in %s, line %d: %s", file, line, message);
     asyncLog(console_base::C_DEBUG, p_msg);
 }
 #endif
@@ -160,7 +160,7 @@ void options(int32_t& pos, char* argv[])
             char name[22];
             date_t d;
             d.now();
-            sprintf(name, "fibjs-%d.lcov", (int32_t)d.date());
+            snprintf(name, sizeof(name), "fibjs-%d.lcov", (int32_t)d.date());
             g_cov = fopen(name, "a");
             if (g_cov == nullptr) {
                 printf("Can't open file: %s, please try again", name);

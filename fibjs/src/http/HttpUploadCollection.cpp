@@ -431,7 +431,7 @@ result_t HttpUploadCollection::_named_enumerator(v8::Local<v8::Array>& retVal)
 
     retVal = v8::Array::New(isolate->m_isolate);
     for (i = 0; i < m_count; i++)
-        retVal->Set(context, (int32_t)i, isolate->NewString(m_map[i].first));
+        retVal->Set(context, (int32_t)i, isolate->NewString(m_map[i].first)).Check();
 
     return 0;
 }

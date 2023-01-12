@@ -120,9 +120,9 @@ v8::Local<v8::String> NewString(v8::Isolate* isolate, exlib::string str)
     v8::Local<v8::String> v;
 
     if (is_safe_string(str.c_str(), length))
-        v8::String::NewExternalOneByte(isolate, new ExtString(isolate, str)).ToLocal(&v);
+        v = v8::String::NewExternalOneByte(isolate, new ExtString(isolate, str)).FromMaybe(v8::Local<v8::String>());
     else
-        v8::String::NewExternalTwoByte(isolate, new ExtStringW(isolate, utf8to16String(str))).ToLocal(&v);
+        v = v8::String::NewExternalTwoByte(isolate, new ExtStringW(isolate, utf8to16String(str))).FromMaybe(v8::Local<v8::String>());
 
     return v;
 }
@@ -143,9 +143,9 @@ v8::Local<v8::String> NewString(v8::Isolate* isolate, const char* data, ssize_t 
     v8::Local<v8::String> v;
 
     if (is_safe_string(data, length))
-        v8::String::NewFromOneByte(isolate, (const uint8_t*)data, v8::NewStringType::kNormal, (uint32_t)length).ToLocal(&v);
+        v = v8::String::NewFromOneByte(isolate, (const uint8_t*)data, v8::NewStringType::kNormal, (uint32_t)length).FromMaybe(v8::Local<v8::String>());
     else
-        v8::String::NewExternalTwoByte(isolate, new ExtStringW(isolate, utf8to16String(data, length))).ToLocal(&v);
+        v = v8::String::NewExternalTwoByte(isolate, new ExtStringW(isolate, utf8to16String(data, length))).FromMaybe(v8::Local<v8::String>());
 
     return v;
 }
@@ -170,9 +170,7 @@ exlib::string ToString(v8::Isolate* isolate, v8::Local<v8::String> str)
 exlib::string ToString(v8::Isolate* isolate, v8::Local<v8::Value> v)
 {
     exlib::string n;
-    v8::Local<v8::String> str;
-
-    v->ToString(isolate->GetCurrentContext()).ToLocal(&str);
+    v8::Local<v8::String> str = v->ToString(isolate->GetCurrentContext()).FromMaybe(v8::Local<v8::String>());
     if (str.IsEmpty())
         return n;
 
@@ -195,7 +193,7 @@ result_t GetArgumentValue(v8::Local<v8::Value> v, exlib::string& n, bool bStrict
     else if (v->IsStringObject())
         str = v8::Local<v8::StringObject>::Cast(v)->ValueOf();
     else if (!bStrict)
-        v->ToString(isolate->m_isolate->GetCurrentContext()).ToLocal(&str);
+        str = v->ToString(isolate->m_isolate->GetCurrentContext()).FromMaybe(v8::Local<v8::String>());
     else
         return CALL_E_TYPEMISMATCH;
 

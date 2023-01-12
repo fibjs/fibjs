@@ -163,10 +163,10 @@ exlib::string traceInfo(Isolate* isolate, int32_t deep, void* entry_fp, void* ha
             } else
                 strBuffer.append("[eval]:", 7);
 
-            sprintf(numStr, "%d", line_number);
+            snprintf(numStr, sizeof(numStr), "%d", line_number);
             strBuffer.append(numStr);
             strBuffer.append(1, ':');
-            sprintf(numStr, "%d", column_number);
+            snprintf(numStr, sizeof(numStr), "%d", column_number);
             strBuffer.append(numStr);
 
             if (**funcname)

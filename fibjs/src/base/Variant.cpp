@@ -10,6 +10,7 @@
 #include "ifs/json.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
 
 namespace fibjs {
 
@@ -40,12 +41,12 @@ Variant& Variant::operator=(v8::Local<v8::Value> v)
         set_type(VT_Number);
         m_Val.dblVal = n;
     } else if (v->IsBigInt() || v->IsBigIntObject()) {
-        v8::MaybeLocal<v8::BigInt> mv;
+        v8::Local<v8::BigInt> mv;
         bool less;
 
-        mv = v->ToBigInt(Isolate::current()->context());
+        mv = v->ToBigInt(Isolate::current()->context()).FromMaybe(v8::Local<v8::BigInt>());
         set_type(VT_Long);
-        m_Val.longVal = mv.ToLocalChecked()->Int64Value(&less);
+        m_Val.longVal = mv->Int64Value(&less);
     } else if (v->IsString() || v->IsStringObject()) {
         exlib::string str;
         GetArgumentValue(Isolate::current()->m_isolate, v, str);
@@ -126,7 +127,7 @@ Variant::operator v8::Local<v8::Value>() const
         a = v8::Array::New(isolate->m_isolate, len);
 
         for (i = 0; i < len; i++)
-            a->Set(context, i, data[i].v.operator v8::Local<v8::Value>());
+            a->Set(context, i, data[i].v.operator v8::Local<v8::Value>()).Check();
 
         return a;
     }
@@ -140,7 +141,7 @@ Variant::operator v8::Local<v8::Value>() const
         o = v8::Object::New(isolate->m_isolate);
 
         for (i = 0; i < len; i++)
-            o->Set(context, isolate->NewString(data[i].k), data[i].v.operator v8::Local<v8::Value>());
+            o->Set(context, isolate->NewString(data[i].k), data[i].v.operator v8::Local<v8::Value>()).Check();
 
         return o;
     }
@@ -256,7 +257,7 @@ void Variant::toString(exlib::string& retVal) const
     case VT_Integer: {
         char str[STRING_BUF_SIZE];
 
-        sprintf(str, "%d", m_Val.intVal);
+        snprintf(str, sizeof(str), "%d", m_Val.intVal);
         retVal = str;
 
         break;
@@ -264,11 +265,7 @@ void Variant::toString(exlib::string& retVal) const
     case VT_Long: {
         char str[STRING_BUF_SIZE];
 
-#ifdef _WIN32
-        sprintf(str, "%lld", m_Val.longVal);
-#else
-        sprintf(str, "%lld", (long long)m_Val.longVal);
-#endif
+        snprintf(str, sizeof(str), "%" PRId64, m_Val.longVal);
 
         retVal = str;
 
@@ -277,7 +274,7 @@ void Variant::toString(exlib::string& retVal) const
     case VT_Number: {
         char str[STRING_BUF_SIZE];
 
-        sprintf(str, "%.16g", m_Val.dblVal);
+        snprintf(str, sizeof(str), "%.16g", m_Val.dblVal);
         retVal = str;
 
         break;
@@ -403,6 +400,6 @@ result_t Variant::unbind()
 void Variant::clearUnbind()
 {
     if (m_Val.buffer.cnt > 0)
-        delete[](UNBIND_DATA*) m_Val.buffer.data;
+        delete[] (UNBIND_DATA*)m_Val.buffer.data;
 }
 }

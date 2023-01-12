@@ -95,7 +95,7 @@ exlib::string safe_conn_string(const char* str)
     int32_t len = 0;
     char ch;
 
-    while (ch = str[len]) {
+    while ((ch = str[len]) != 0) {
         if (ch == '}')
             esc_cnt++;
         else if (ch == ';')
@@ -112,7 +112,7 @@ exlib::string safe_conn_string(const char* str)
     len = 0;
 
     *ptr++ = '{';
-    while (ch = str[len]) {
+    while ((ch = str[len]) != 0) {
         *ptr++ = ch;
         if (ch == '}')
             *ptr++ = ch;
@@ -158,7 +158,7 @@ result_t odbc_connect(const char* driver, const char* host, int32_t port, const 
         if (port > 0) {
             char str_buf[32];
 
-            sprintf(str_buf, "%d", port);
+            snprintf(str_buf, sizeof(str_buf), "%d", port);
             conn_str.append("Port=");
             conn_str.append(safe_conn_string(str_buf));
             conn_str.append(1, ';');

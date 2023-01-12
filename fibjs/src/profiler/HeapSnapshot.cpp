@@ -60,7 +60,7 @@ result_t profiler_base::diff(v8::Local<v8::Function> test, v8::Local<v8::Object>
     global_base::GC();
     s1 = new HeapSnapshotProxy(profiler->TakeHeapSnapshot());
 
-    test->Call(test->GetCreationContextChecked(), v8::Undefined(isolate->m_isolate), 0, NULL);
+    test->Call(test->GetCreationContextChecked(), v8::Undefined(isolate->m_isolate), 0, NULL).IsEmpty();
 
     global_base::GC();
     s2 = new HeapSnapshotProxy(profiler->TakeHeapSnapshot());
@@ -278,7 +278,7 @@ result_t HeapSnapshot::load(exlib::string fname)
             if (is_num_type(_edge_type)) {
                 char buf[64];
 
-                sprintf(buf, "%d", _edge_name_id);
+                snprintf(buf, sizeof(buf), "%d", _edge_name_id);
                 _edge_name = buf;
             } else
                 _edge_name = names[_edge_name_id];
@@ -450,8 +450,8 @@ result_t HeapSnapshot::save(exlib::string fname, AsyncEvent* ac)
     exlib::string str;
     char buf[128];
 
-    n = sprintf(buf, "\"node_count\":%d,\"edge_count\":%d,"
-                     "\"trace_function_count\":0},\n\"nodes\":[",
+    n = snprintf(buf, sizeof(buf), "\"node_count\":%d,\"edge_count\":%d,"
+                                   "\"trace_function_count\":0},\n\"nodes\":[",
         count, child_count);
     hr = bufs.append(buf, n);
     if (hr < 0)
@@ -472,9 +472,9 @@ result_t HeapSnapshot::save(exlib::string fname, AsyncEvent* ac)
         _child = childs->length();
 
         if (i == 0)
-            n = sprintf(buf, "%d,%d,%d,%d,%d,0\n", _type, _name_id, _id, _size, _child);
+            n = snprintf(buf, sizeof(buf), "%d,%d,%d,%d,%d,0\n", _type, _name_id, _id, _size, _child);
         else
-            n = sprintf(buf, ",%d,%d,%d,%d,%d,0\n", _type, _name_id, _id, _size, _child);
+            n = snprintf(buf, sizeof(buf), ",%d,%d,%d,%d,%d,0\n", _type, _name_id, _id, _size, _child);
         hr = bufs.append(buf, n);
         if (hr < 0)
             return hr;
@@ -511,9 +511,9 @@ result_t HeapSnapshot::save(exlib::string fname, AsyncEvent* ac)
             _toindex = _nodes.find(_toid)->second * 6;
 
             if (i == 0 && j == 0)
-                n = sprintf(buf, "%d,%d,%d\n", _type, _name_id, _toindex);
+                n = snprintf(buf, sizeof(buf), "%d,%d,%d\n", _type, _name_id, _toindex);
             else
-                n = sprintf(buf, ",%d,%d,%d\n", _type, _name_id, _toindex);
+                n = snprintf(buf, sizeof(buf), ",%d,%d,%d\n", _type, _name_id, _toindex);
             hr = bufs.append(buf, n);
             if (hr < 0)
                 return hr;

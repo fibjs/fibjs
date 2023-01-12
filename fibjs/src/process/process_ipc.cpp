@@ -91,7 +91,6 @@ ChildProcess::Ipc::Ipc(Isolate* _isolate, v8::Local<v8::Object> _o, obj_ptr<Stre
         }
 
     private:
-        Isolate* m_isolate;
         Ipc* m_this;
         obj_ptr<BufferedStream> m_bs;
         exlib::string m_line;

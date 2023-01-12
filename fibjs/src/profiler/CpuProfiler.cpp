@@ -31,7 +31,7 @@ static void cpu_profiler(const v8::FunctionCallbackInfo<v8::Value>& args)
 
         fb->get_stack(stack);
         if (stack != "")
-            stacks->Set(context, cnt++, NewString(isolate, stack));
+            stacks->Set(context, cnt++, NewString(isolate, stack)).Check();
     }
 
     v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());
@@ -67,9 +67,9 @@ result_t profiler_base::start(exlib::string fname, int32_t time, int32_t interva
         date_t d;
         d.now();
         d.add(time, date_t::_MICROSECOND);
-        _data->Set(context, isolate->NewString("_time"), d.value(isolate->m_isolate));
+        _data->Set(context, isolate->NewString("_time"), d.value(isolate->m_isolate)).Check();
     } else
-        _data->Set(context, isolate->NewString("_time"), v8::Number::New(isolate->m_isolate, INFINITY));
+        _data->Set(context, isolate->NewString("_time"), v8::Number::New(isolate->m_isolate, INFINITY)).Check();
 
     v8::Local<v8::Function> func = isolate->NewFunction("_cpu_profiler", cpu_profiler, _data);
     if (func.IsEmpty())

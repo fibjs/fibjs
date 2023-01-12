@@ -63,18 +63,17 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
 
         v8::Local<v8::String> v8src = v8::String::NewFromTwoByte(isolate->m_isolate, (const uint16_t*)wscript.c_str(),
             v8::NewStringType::kNormal, (int32_t)wscript.length())
-                                          .ToLocalChecked();
+                                          .FromMaybe(v8::Local<v8::String>());
         v8::ScriptCompiler::Source script_source(v8src, v8::ScriptOrigin(isolate->m_isolate, soname));
 
-        v8::MaybeLocal<v8::UnboundScript> ubs = v8::ScriptCompiler::CompileUnboundScript(
+        v8::Local<v8::UnboundScript> ubs = v8::ScriptCompiler::CompileUnboundScript(
             isolate->m_isolate, &script_source,
-            v8::ScriptCompiler::kEagerCompile);
+            v8::ScriptCompiler::kEagerCompile).FromMaybe(v8::Local<v8::UnboundScript>());
 
         if (ubs.IsEmpty())
             return throwSyntaxError(try_catch);
 
-        const v8::ScriptCompiler::CachedData* cache = v8::ScriptCompiler::CreateCodeCache(ubs.ToLocalChecked());
-
+        const v8::ScriptCompiler::CachedData* cache = v8::ScriptCompiler::CreateCodeCache(ubs);
         exlib::string buf((const char*)cache->data, cache->length);
 
         int32_t len = (int32_t)wscript.length();
