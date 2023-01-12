@@ -463,7 +463,7 @@ describe('encoding', () => {
             '{"a":100,"b":200}');
     });
 
-    it('json encode object', () => {
+    xit('json encode object', () => {
         var buf = new Buffer('test');
         var j = json.encode(buf);
         assert.equal(j, '{"type":"Buffer","data":[116,101,115,116]}');

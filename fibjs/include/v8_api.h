@@ -11,9 +11,6 @@ namespace fibjs {
 
 intptr_t RunMicrotaskSize(v8::Isolate* isolate);
 
-v8::Local<v8::String> JSON_Stringify(v8::Isolate* isolate,
-    v8::Local<v8::Value> json_object, v8::Local<v8::Function> json_replacer);
-
 void InvokeApiInterruptCallbacks(v8::Isolate* isolate);
 
 struct V8FrameInfo {

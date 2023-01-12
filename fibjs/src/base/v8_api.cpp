@@ -33,7 +33,6 @@
 #include "v8/src/execution/isolate.h"
 #include "v8/src/execution/frames.h"
 #include "v8/src/execution/frames-inl.h"
-#include "v8/src/json/json-stringifier.h"
 #include "v8/src/debug/debug-interface.h"
 #include "v8/src/execution/microtask-queue.h"
 
@@ -67,31 +66,6 @@ void setAsyncFunctoin(Local<Function> func)
 }
 
 bool path_isAbsolute(exlib::string path);
-
-Local<String> JSON_Stringify(Isolate* isolate,
-    Local<Value> json_object, Local<Function> json_replacer)
-{
-    i::Isolate* v8_isolate = reinterpret_cast<i::Isolate*>(isolate);
-    CallDepthScope<false> call_depth_scope(v8_isolate, isolate->GetCurrentContext());
-
-    Local<String> result;
-    if (*json_object == nullptr || *json_replacer == nullptr)
-        return result;
-
-    i::Handle<i::Object> object = Utils::OpenHandle(*json_object);
-    i::Handle<i::Object> replacer = Utils::OpenHandle(*json_replacer);
-    i::Handle<i::String> gap_string = v8_isolate->factory()->empty_string();
-    i::Handle<i::Object> maybe;
-
-    if (i::JsonStringify(v8_isolate, object, replacer, gap_string)
-            .ToHandle(&maybe))
-        ToLocal<String>(i::Object::ToString(v8_isolate, maybe), &result);
-
-    if (result.IsEmpty())
-        call_depth_scope.Escape();
-
-    return result;
-}
 
 void InvokeApiInterruptCallbacks(Isolate* isolate)
 {
