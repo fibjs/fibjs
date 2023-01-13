@@ -155,7 +155,6 @@ jobs:
           DIST_ARCH: ${{ steps.set-env-vars.outputs.DIST_ARCH }}
           DIST_DIR: ${{ steps.set-env-vars.outputs.DIST_DIR }}
           RELEASE_TAG: ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
-          CI: 'ci'
 
       - name: Prepare Release on Windows
         if: runner.os == 'Windows'
