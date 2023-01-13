@@ -142,8 +142,21 @@ public:
     {
         assert(!m_cd.module);
 
+        v8::Local<v8::Object> o;
         cache* _cache = _init(isolate);
-        return v8::Local<v8::Object>::New(isolate->m_isolate, _cache->m_cache)->Clone();
+
+        if (_cache->m_cache.IsEmpty()) {
+            o = v8::Local<v8::Function>::New(isolate->m_isolate, _cache->m_function)
+                    ->NewInstance(isolate->context())
+                    .FromMaybe(v8::Local<v8::Object>());
+            o->SetAlignedPointerInInternalField(0, 0);
+            _cache->m_cache.Reset(isolate->m_isolate, o);
+
+            o = o->Clone();
+        } else
+            o = v8::Local<v8::Object>::New(isolate->m_isolate, _cache->m_cache)->Clone();
+
+        return o;
     }
 
     bool init_isolate()
@@ -235,7 +248,8 @@ public:
 
             if (!skips || !skips[j])
                 o->Set(_context, isolate->NewString(m_cd.cos[i].name),
-                    m_cd.cos[i].invoker().getModule(isolate)).Check();
+                     m_cd.cos[i].invoker().getModule(isolate))
+                    .Check();
         }
 
         for (i = 0; i < m_cd.pc; i++)
@@ -257,7 +271,8 @@ public:
 
             if (!skips || !skips[j])
                 o->Set(_context, isolate->NewString(m_cd.ccs[i].name),
-                    v8::Number::New(isolate->m_isolate, m_cd.ccs[i].value)).Check();
+                     v8::Number::New(isolate->m_isolate, m_cd.ccs[i].value))
+                    .Check();
         }
 
         if (m_cd.base)
@@ -292,9 +307,11 @@ public:
         if (cnt) {
             o = v8::Object::New(isolate->m_isolate);
             o->Set(context, isolate->NewString("class"),
-                isolate->NewString(m_cd.name)).Check();
+                 isolate->NewString(m_cd.name))
+                .Check();
             o->Set(context, isolate->NewString("objects"),
-                v8::Integer::New(isolate->m_isolate, (int32_t)cnt)).Check();
+                 v8::Integer::New(isolate->m_isolate, (int32_t)cnt))
+                .Check();
 
             v8::Local<v8::Array> inherits = v8::Array::New(isolate->m_isolate);
 
