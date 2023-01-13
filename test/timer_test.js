@@ -480,6 +480,26 @@ describe("timer", () => {
                 timers.call(test4, 30);
             });
         });
+
+        it("require", () => {
+            function test5() {
+                require('./module/tm1.js');
+            }
+
+            assert.throws(() => {
+                timers.call(test5, 30);
+            });
+        });
+
+        it("run", () => {
+            function test6() {
+                run('./module/tm1.js');
+            }
+
+            assert.throws(() => {
+                timers.call(test6, 30);
+            });
+        });
     });
 });
 

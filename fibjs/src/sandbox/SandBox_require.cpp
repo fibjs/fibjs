@@ -45,6 +45,7 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
 
     // cache string
     v8::Local<v8::String> strExports = isolate->NewString("exports");
+    v8::Local<v8::String> strModule = isolate->NewString(srcname);
 
     exports = v8::Object::New(isolate->m_isolate);
 
@@ -52,19 +53,20 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
     mod = v8::Object::New(isolate->m_isolate);
 
     // init module
-    mod->Set(_context, isolate->NewString("id"), isolate->NewString(srcname)).Check();
+    mod->Set(_context, isolate->NewString("id"), strModule).Check();
     mod->Set(_context, strExports, exports).Check();
-    mod->Set(_context, isolate->NewString("filename"), isolate->NewString(srcname)).Check();
+    mod->Set(_context, isolate->NewString("filename"), strModule).Check();
     mod->Set(_context, isolate->NewString("require"), context.m_fnRequest).Check();
     mod->Set(_context, isolate->NewString("run"), context.m_fnRun).Check();
 
-    InstallModule(srcname, exports, mod);
+    v8::Local<v8::Object> _mods = mods();
+    _mods->Set(_context, strModule, mod).Check();
 
     std::vector<ExtLoader::arg> extarg;
     hr = l->run_module(&context, script, srcname, mod, exports, extarg);
     if (hr < 0) {
         // delete from modules
-        remove(srcname);
+        _mods->Delete(_context, strModule).IsJust();
         return hr;
     }
 
