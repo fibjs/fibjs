@@ -48,7 +48,6 @@ static void createBasisForFiberLoop(Isolate::platform_creator get_platform)
     InitializeAcPool();
     InitializeAsyncIOThread();
     initializeUVAsyncThread();
-    init_signal();
 
 #ifdef Linux
     init_sym();
@@ -146,6 +145,7 @@ void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), Isolat
         Isolate::platform_creator m_get_platform;
     };
 
+    init_signal();
     EntryThread* entryThread = new EntryThread(argc, argv, jsEntryFiber, get_platform);
     entryThread->start();
 

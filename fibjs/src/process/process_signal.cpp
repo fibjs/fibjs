@@ -169,6 +169,10 @@ void init_signal()
     struct rlimit corelimit = { RLIM_INFINITY, RLIM_INFINITY };
     setrlimit(RLIMIT_CORE, &corelimit);
 
+    sigset_t blocked_signals;
+    sigemptyset(&blocked_signals);
+    pthread_sigmask(SIG_SETMASK, &blocked_signals, nullptr);
+
     struct sigaction sigIntHandler;
     sigIntHandler.sa_handler = on_signal;
     sigemptyset(&sigIntHandler.sa_mask);
