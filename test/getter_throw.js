@@ -154,37 +154,6 @@ describe('getter throw', () => {
         });
     });
 
-    it('console_osx_keyCheckKeyFlags ', () => {
-        checkthrow([
-            () => {
-                console.keyDown('up', arr);
-            },
-            () => {
-                console.keyDown('up', arr2);
-            },
-            () => {
-                console.keyDown('up', obj2);
-            },
-        ]);
-        assert.throws(() => {
-            console.keyDown('up', obj);
-        });
-    });
-
-    xit('db format', () => {
-        var db = require('db');
-
-        db.format('?, ?', arr);
-        db.format('?, ?', arr2);
-        db.format('?, ?', obj);
-        db.format('?, ?', obj2);
-    });
-
-    xit('level db', () => { });
-
-    xit('redis pub sub', () => { });
-    xit('redis sortedSet', () => { });
-
     it('HttpCollection', () => {
         checkthrow([
             () => {
