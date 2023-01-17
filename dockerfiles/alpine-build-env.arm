@@ -1,0 +1,16 @@
+FROM ubuntu:20.04
+
+RUN apt-get update && apt-get install sudo curl tar -y
+RUN apt-get install cmake make -y && apt-get install git -y
+RUN curl --retry 5 -LO http://musl.cc/armv7l-linux-musleabihf-cross.tgz && \
+    tar -C /usr -xvf armv7l-linux-musleabihf-cross.tgz && \
+    rm armv7l-linux-musleabihf-cross.tgz
+
+ENV AS=/usr/armv7l-linux-musleabihf-cross/bin/armv7l-linux-musleabihf-as \
+    AR=/usr/armv7l-linux-musleabihf-cross/bin/armv7l-linux-musleabihf-ar \
+    CC=/usr/armv7l-linux-musleabihf-cross/bin/armv7l-linux-musleabihf-gcc \
+    CPP=/usr/armv7l-linux-musleabihf-cross/bin/armv7l-linux-musleabihf-cpp \
+    CXX=/usr/armv7l-linux-musleabihf-cross/bin/armv7l-linux-musleabihf-g++ \
+    LD=/usr/armv7l-linux-musleabihf-cross/bin/armv7l-linux-musleabihf-ld
+
+RUN adduser fibjs -q
