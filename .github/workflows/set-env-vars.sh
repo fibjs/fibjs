@@ -35,7 +35,7 @@ if [[ -z "$IS_ORIGIN_REPO" || ! -z "$GIT_TAG" ]]; then
 fi
 
 if [ -z "$GIT_TAG" ]; then
-    export RELEASE_TAG="$GIT_COMMIT_TIME-$GIT_COMMIT_SHORTCUTS";
+export RELEASE_TAG="$GIT_COMMIT_TIME-$GIT_COMMIT_SHORTCUTS";
 else
     export RELEASE_TAG="$GIT_TAG";
 fi
@@ -88,7 +88,11 @@ fi
 
 if [[ "$RUNNER_OS" == "macOS" ]]; then
     export TARGET_OS_NAME="Darwin";
-    export DIST_DIR="Darwin_${TARGET_ARCH}_$BUILD_TYPE"
+    if [[ "$BUILD_TARGET" == "iphone" ]]; then
+        export DIST_DIR="iPhone_${TARGET_ARCH}_$BUILD_TYPE"
+    else
+        export DIST_DIR="Darwin_${TARGET_ARCH}_$BUILD_TYPE"
+    fi
 fi
 
 if [[ "$RUNNER_OS" == "Windows" ]]; then

@@ -42,7 +42,15 @@ jobs:
             build_type: release
           - os: ubuntu-18.04
             build_target: alpine
+            target_arch: i386
+            build_type: release
+          - os: ubuntu-18.04
+            build_target: alpine
             target_arch: arm64
+            build_type: release
+          - os: ubuntu-18.04
+            build_target: alpine
+            target_arch: arm
             build_type: release
           - os: ubuntu-18.04
             build_target: android
@@ -74,6 +82,10 @@ jobs:
           - os: macos-11
             target_arch: amd64
             build_type: debug
+          - os: macos-11
+            build_target: iphone
+            target_arch: arm64
+            build_type: release
 
     steps:
       - name: Switch XCode to 13.0
