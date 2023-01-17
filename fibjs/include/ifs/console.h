@@ -72,17 +72,6 @@ public:
     static result_t hideCursor();
     static result_t showCursor();
     static result_t clear();
-    static result_t keyDown(exlib::string key, exlib::string modifier);
-    static result_t keyDown(exlib::string key, v8::Local<v8::Array> modifier);
-    static result_t keyUp(exlib::string key, exlib::string modifier);
-    static result_t keyUp(exlib::string key, v8::Local<v8::Array> modifier);
-    static result_t keyTap(exlib::string key, exlib::string modifier);
-    static result_t keyTap(exlib::string key, v8::Local<v8::Array> modifier);
-    static result_t typeString(exlib::string text);
-    static result_t moveMouse(int32_t x, int32_t y);
-    static result_t mouseUp(exlib::string button);
-    static result_t mouseDown(exlib::string button);
-    static result_t clickMouse(exlib::string button, bool dbclick);
     static result_t readLine(exlib::string msg, exlib::string& retVal, AsyncEvent* ac);
     static result_t getpass(exlib::string msg, exlib::string& retVal, AsyncEvent* ac);
 
@@ -124,14 +113,6 @@ public:
     static void s_static_hideCursor(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_showCursor(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_clear(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_keyDown(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_keyUp(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_keyTap(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_typeString(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_moveMouse(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_mouseUp(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_mouseDown(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_clickMouse(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_readLine(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_getpass(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -167,14 +148,6 @@ inline ClassInfo& console_base::class_info()
         { "hideCursor", s_static_hideCursor, true, false },
         { "showCursor", s_static_showCursor, true, false },
         { "clear", s_static_clear, true, false },
-        { "keyDown", s_static_keyDown, true, false },
-        { "keyUp", s_static_keyUp, true, false },
-        { "keyTap", s_static_keyTap, true, false },
-        { "typeString", s_static_typeString, true, false },
-        { "moveMouse", s_static_moveMouse, true, false },
-        { "mouseUp", s_static_mouseUp, true, false },
-        { "mouseDown", s_static_mouseDown, true, false },
-        { "clickMouse", s_static_clickMouse, true, false },
         { "readLine", s_static_readLine, true, true },
         { "readLineSync", s_static_readLine, true, false },
         { "getpass", s_static_getpass, true, true },
@@ -638,144 +611,6 @@ inline void console_base::s_static_clear(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_OVER(0, 0);
 
     hr = clear();
-
-    METHOD_VOID();
-}
-
-inline void console_base::s_static_keyDown(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("console.keyDown");
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
-
-    hr = keyDown(v0, v1);
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Array>, 1);
-
-    hr = keyDown(v0, v1);
-
-    METHOD_VOID();
-}
-
-inline void console_base::s_static_keyUp(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("console.keyUp");
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
-
-    hr = keyUp(v0, v1);
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Array>, 1);
-
-    hr = keyUp(v0, v1);
-
-    METHOD_VOID();
-}
-
-inline void console_base::s_static_keyTap(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("console.keyTap");
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
-
-    hr = keyTap(v0, v1);
-
-    METHOD_OVER(2, 2);
-
-    ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Array>, 1);
-
-    hr = keyTap(v0, v1);
-
-    METHOD_VOID();
-}
-
-inline void console_base::s_static_typeString(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("console.typeString");
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    hr = typeString(v0);
-
-    METHOD_VOID();
-}
-
-inline void console_base::s_static_moveMouse(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("console.moveMouse");
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 2);
-
-    ARG(int32_t, 0);
-    ARG(int32_t, 1);
-
-    hr = moveMouse(v0, v1);
-
-    METHOD_VOID();
-}
-
-inline void console_base::s_static_mouseUp(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("console.mouseUp");
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    hr = mouseUp(v0);
-
-    METHOD_VOID();
-}
-
-inline void console_base::s_static_mouseDown(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("console.mouseDown");
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    hr = mouseDown(v0);
-
-    METHOD_VOID();
-}
-
-inline void console_base::s_static_clickMouse(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_NAME("console.clickMouse");
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 1);
-
-    ARG(exlib::string, 0);
-    OPT_ARG(bool, 1, false);
-
-    hr = clickMouse(v0, v1);
 
     METHOD_VOID();
 }
