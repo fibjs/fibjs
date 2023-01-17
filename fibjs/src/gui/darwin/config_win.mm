@@ -5,7 +5,7 @@
  *      Author: lion
  */
 
-#if defined(__APPLE__) && !defined(FIBJS_DISABLE_GUI)
+#if defined(macosx)
 
 #import <Cocoa/Cocoa.h>
 #import <objc/runtime.h>

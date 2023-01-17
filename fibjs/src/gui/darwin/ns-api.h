@@ -6,7 +6,6 @@
 
  * @desc 
  */
-#if defined(__APPLE__) && !defined(FIBJS_DISABLE_GUI)
 
 #pragma once
 
@@ -38,4 +37,3 @@ inline exlib::string NSStringToExString(NSString* str)
 //       stopURLSchemeTask:(id<WKURLSchemeTask>)urlSchemeTask;
 @end
 
-#endif // __APPLE__

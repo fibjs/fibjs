@@ -6,7 +6,7 @@
  * @desc WebView Implementation in OSX
  */
 
-#if defined(__APPLE__) && !defined(FIBJS_DISABLE_GUI)
+#if defined(macosx)
 
 #include <Cocoa/Cocoa.h>
 #include <Webkit/Webkit.h>

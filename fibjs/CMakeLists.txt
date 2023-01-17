@@ -7,10 +7,6 @@ include(../vender/build_tools/cmake/option.cmake)
 
 add_library(${name} ${src_list} ${src_platform_list})
 
-if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin" AND ${CMAKE_C_COMPILER} MATCHES "llvm")
-	add_definitions(-DFIBJS_DISABLE_GUI)
-endif()
-
 include_directories("${PROJECT_SOURCE_DIR}/include"
 	"${PROJECT_SOURCE_DIR}/../vender"
 	"${PROJECT_SOURCE_DIR}/../vender/uv"

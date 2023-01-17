@@ -6,7 +6,7 @@
  */
 
 #ifndef _WIN32
-#if !defined(__APPLE__) || defined(FIBJS_DISABLE_GUI)
+#if !defined(macosx)
 
 #include "object.h"
 #include "ifs/gui.h"
@@ -34,5 +34,5 @@ result_t os_gui_open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebVi
     return CALL_E_INVALID_CALL;
 }
 }
-#endif /* __APPLE__ */
+#endif /* macosx */
 #endif /* _WIN32 */
