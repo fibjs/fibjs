@@ -5,7 +5,8 @@
  *      Author: lion
  */
 
-#if defined(macosx)
+#include <exlib/include/osconfig.h>
+#if defined(Darwin) && !defined(iPhone)
 
 #import <Cocoa/Cocoa.h>
 #import <objc/runtime.h>

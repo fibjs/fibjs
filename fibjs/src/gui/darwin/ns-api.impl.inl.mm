@@ -6,7 +6,8 @@
  * @desc WebView Implementation in OSX
  */
 
-#if defined(macosx)
+#include <exlib/include/osconfig.h>
+#if defined(Darwin) && !defined(iPhone)
 
 #import "ns-api.h"
 

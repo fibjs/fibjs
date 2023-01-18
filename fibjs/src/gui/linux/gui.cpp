@@ -6,7 +6,8 @@
  */
 
 #ifndef _WIN32
-#if !defined(macosx)
+#include <exlib/include/osconfig.h>
+#if !defined(Darwin) || defined(iPhone)
 
 #include "object.h"
 #include "ifs/gui.h"
@@ -34,5 +35,5 @@ result_t os_gui_open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebVi
     return CALL_E_INVALID_CALL;
 }
 }
-#endif /* macosx */
+#endif /* Darwin */
 #endif /* _WIN32 */
