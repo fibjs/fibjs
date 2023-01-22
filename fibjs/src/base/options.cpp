@@ -12,6 +12,8 @@
 #include "path.h"
 #include "Fiber.h"
 #include "options.h"
+#include "unicode/locid.h"
+#include "unicode/timezone.h"
 
 namespace fibjs {
 
@@ -38,24 +40,6 @@ exlib::string g_exec_code;
 #else
 #define GUARD_SIZE 16
 #endif
-
-static class _init_v8_opt {
-public:
-    _init_v8_opt()
-    {
-        int64_t sz = uv_get_total_memory() / 1024 / 1024;
-
-        if (sz > 2048)
-            sz = 2048;
-        else if (sz > 1024)
-            sz = 1024;
-        else
-            sz = sz * 3 / 4;
-
-        v8::internal::v8_flags.max_old_space_size = sz;
-        v8::internal::v8_flags.stack_size = stack_size - GUARD_SIZE;
-    }
-} s_init_v8_opt;
 
 static void printHelp()
 {
@@ -176,5 +160,30 @@ void options(int32_t& pos, char* argv[])
     int32_t argc = pos - df;
 
     v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
+
+    char* lang = getenv("LANG");
+    if (lang) {
+        icu::Locale locale(lang);
+        UErrorCode error_code = U_ZERO_ERROR;
+        icu::Locale::setDefault(locale, error_code);
+    }
+
+    char* tz = getenv("TZ");
+    if (tz) {
+        icu::TimeZone* zone = icu::TimeZone::createTimeZone(tz);
+        icu::TimeZone::setDefault(*zone);
+    }
+
+    int64_t sz = uv_get_total_memory() / 1024 / 1024;
+
+    if (sz > 2048)
+        sz = 2048;
+    else if (sz > 1024)
+        sz = 1024;
+    else
+        sz = sz * 3 / 4;
+
+    v8::internal::v8_flags.max_old_space_size = sz;
+    v8::internal::v8_flags.stack_size = stack_size - GUARD_SIZE;
 }
 }

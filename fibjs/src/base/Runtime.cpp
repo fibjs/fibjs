@@ -32,8 +32,6 @@ exlib::string s_root;
 
 static void createBasisForFiberLoop(Isolate::platform_creator get_platform)
 {
-    ::setlocale(LC_ALL, "");
-
     int32_t cpus = 0;
 
     process_base::cwd(s_root);
