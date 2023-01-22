@@ -70,6 +70,13 @@ double exp(double x)
     return _exp(x);
 }
 
+__asm__(".symver _expf,expf@GLIBC_" GLIB_C_MATH);
+double _expf(double x);
+float expf(float x)
+{
+    return _expf(x);
+}
+
 __asm__(".symver _log,log@GLIBC_" GLIB_C_MATH);
 double _log(double x);
 double log(double x)
