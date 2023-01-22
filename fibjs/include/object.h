@@ -497,25 +497,6 @@ public:
     static RootModule* g_last;
 };
 
-inline void* ClassInfo::getInstance(void* o)
-{
-    object_base* obj = (object_base*)o;
-
-    if (!obj)
-        return NULL;
-
-    ClassInfo* cls = &obj->Classinfo();
-    ClassInfo* tcls = this;
-
-    while (cls && cls != tcls)
-        cls = cls->m_cd.base;
-
-    if (!cls)
-        return NULL;
-
-    return obj;
-}
-
 inline ClassInfo& object_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {

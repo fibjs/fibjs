@@ -362,20 +362,26 @@ typedef int32_t result_t;
 
 #define ARG_LIST(n) OptArgs v##n(args, n, argc1);
 
-#define DECLARE_CLASSINFO(c)                      \
-public:                                           \
-    static ClassInfo& class_info();               \
-    virtual ClassInfo& Classinfo()                \
-    {                                             \
-        return class_info();                      \
-    }                                             \
-    static c* getInstance(void* o)                \
-    {                                             \
-        return (c*)class_info().getInstance(o);   \
-    }                                             \
-    static c* getInstance(v8::Local<v8::Value> o) \
-    {                                             \
-        return (c*)class_info().getInstance(o);   \
+#define DECLARE_CLASSINFO(c)                                            \
+public:                                                                 \
+    static ClassInfo& class_info();                                     \
+    virtual ClassInfo& Classinfo()                                      \
+    {                                                                   \
+        return class_info();                                            \
+    }                                                                   \
+    static c* getInstance(void* o)                                      \
+    {                                                                   \
+        return dynamic_cast<c*>((object_base*)o);                       \
+    }                                                                   \
+    static c* getInstance(v8::Local<v8::Value> o)                       \
+    {                                                                   \
+        if (o.IsEmpty() || !o->IsObject())                              \
+            return NULL;                                                \
+                                                                        \
+        v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(o);     \
+        if (obj->InternalFieldCount() != 1)                             \
+            return NULL;                                                \
+        return getInstance(obj->GetAlignedPointerFromInternalField(0)); \
     }
 
 #define DECLARE_CLASS(c)         \

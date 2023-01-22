@@ -104,22 +104,6 @@ public:
         }
     }
 
-    void* getInstance(void* o);
-    void* getInstance(v8::Local<v8::Value> o)
-    {
-        assert(!m_cd.module);
-
-        if (o.IsEmpty() || !o->IsObject())
-            return NULL;
-
-        v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(o);
-
-        if (obj->InternalFieldCount() != 1)
-            return NULL;
-
-        return getInstance(obj->GetAlignedPointerFromInternalField(0));
-    }
-
     v8::Local<v8::Function> getFunction(Isolate* isolate)
     {
         assert(!m_cd.module);
