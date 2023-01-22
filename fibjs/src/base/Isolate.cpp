@@ -107,7 +107,7 @@ public:
     }
 };
 
-Isolate::Isolate(exlib::string jsFilename)
+Isolate::Isolate(exlib::string jsFilename, exlib::string jsCode)
     : m_id((int32_t)s_iso_id.inc())
     , m_hr(0)
     , m_ipc_mode(0)
@@ -129,7 +129,10 @@ Isolate::Isolate(exlib::string jsFilename)
 {
     s_isolates.putTail(this);
 
-    m_fname = jsFilename;
+    if (jsCode.empty())
+        m_fname = jsFilename;
+    else
+        m_jsCode = jsCode;
 
     static v8::Isolate::CreateParams create_params;
     static ShellArrayBufferAllocator array_buffer_allocator;

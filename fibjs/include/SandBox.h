@@ -75,7 +75,7 @@ public:
     class Context {
     public:
         Context(SandBox* sb, exlib::string id);
-        static result_t repl();
+        static result_t repl(exlib::string src);
 
     public:
         obj_ptr<SandBox> m_sb;
@@ -170,7 +170,7 @@ public:
     result_t resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
         v8::Local<v8::Value>& retVal);
 
-    result_t repl();
+    result_t repl(exlib::string src);
 
     result_t run_module(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal);
     result_t run_main(exlib::string fname, v8::Local<v8::Array> argv);

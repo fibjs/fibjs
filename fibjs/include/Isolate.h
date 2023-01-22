@@ -50,7 +50,7 @@ public:
     };
 
 public:
-    Isolate(exlib::string jsFilename);
+    Isolate(exlib::string jsFilename, exlib::string jsCode = "");
 
 public:
     static Isolate* current();
@@ -131,6 +131,7 @@ public:
     int32_t m_id;
     int32_t m_hr;
     exlib::string m_fname;
+    exlib::string m_jsCode;
 
     QuickArray<void*> m_classInfo;
 

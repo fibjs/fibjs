@@ -53,7 +53,7 @@ result_t FiberProcJsEntry(Isolate* isolate)
             pModule = pModule->m_next;
         }
 
-        s.m_hr = isolate->m_topSandbox->repl();
+        s.m_hr = isolate->m_topSandbox->repl(isolate->m_jsCode);
     }
 
     return s.m_hr;

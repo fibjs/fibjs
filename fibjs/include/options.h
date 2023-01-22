@@ -23,6 +23,8 @@ extern FILE* g_cov;
 extern bool g_tcpdump;
 extern bool g_ssldump;
 
+extern exlib::string g_exec_code;
+
 extern bool g_uv_socket;
 
 struct OptData {

@@ -31,6 +31,8 @@ bool g_ssldump = false;
 
 bool g_uv_socket = false;
 
+exlib::string g_exec_code;
+
 #ifdef DEBUG
 #define GUARD_SIZE 32
 #else
@@ -63,6 +65,8 @@ static void printHelp()
          "  -h, --help           print fibjs command line options.\n"
          "  -v, --version        print fibjs version.\n"
          "\n"
+         "  -e code              evaluate script\n"
+         "\n"
          "  --use-thread         run fibjs in thread mode.\n"
          "  --tcpdump            print out the contents of the tcp package.\n"
          "  --ssldump            print out the contents of the ssl package.\n"
@@ -89,29 +93,28 @@ static void printHelp()
 
 void options(int32_t& pos, char* argv[])
 {
-    int32_t argc = pos;
     int32_t i;
-
-    for (pos = 1; (pos < argc) && (argv[pos][0] == '-'); pos++)
-        if (argv[pos][1] == '-') {
-            exlib::string tmp("opt_tools/");
-            tmp += argv[pos] + 2;
-
-            for (i = 0; opt_tools[i].name && qstrcmp(opt_tools[i].name, tmp.c_str()); i++)
-                ;
-
-            if (opt_tools[i].name)
-                break;
-        }
-
-    argc = pos;
     int32_t df = 0;
 
-    for (int32_t i = 0; i < argc; i++) {
+    for (i = 1; i < pos; i++) {
         char* arg = argv[i];
 
         if (df)
             argv[i - df] = arg;
+
+        if (arg[0] != '-')
+            break;
+        else if (arg[1] == '-') {
+            int32_t j;
+            exlib::string tmp("opt_tools/");
+            tmp += arg + 2;
+
+            for (j = 0; opt_tools[j].name && qstrcmp(opt_tools[j].name, tmp.c_str()); j++)
+                ;
+
+            if (opt_tools[j].name)
+                break;
+        }
 
         if (!qstrcmp(arg, "--help") || !qstrcmp(arg, "-h")) {
             printHelp();
@@ -157,14 +160,20 @@ void options(int32_t& pos, char* argv[])
                 _exit(0);
             }
             df++;
+        } else if (!qstrcmp(arg, "-e")) {
+            if (i + 1 < pos) {
+                g_exec_code = argv[i + 1];
+                i++;
+                df += 2;
+            }
         } else if (!qstrcmp(arg, "--v8-options")) {
             v8::internal::FlagList::PrintHelp();
             _exit(0);
         }
     }
 
-    if (df)
-        argc -= df;
+    pos = i;
+    int32_t argc = pos - df;
 
     v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
 }

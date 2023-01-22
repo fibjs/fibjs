@@ -76,7 +76,7 @@ void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), Isolat
         static void FirstFiber(void* p)
         {
             EntryThread* th = (EntryThread*)p;
-            Isolate* isolate = new Isolate(th->m_fibjsEntry);
+            Isolate* isolate = new Isolate(th->m_fibjsEntry, g_exec_code);
             syncCall(isolate, th->m_jsFiber, isolate);
         }
 
