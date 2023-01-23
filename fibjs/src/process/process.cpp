@@ -31,8 +31,6 @@
 #include <unistd.h>
 #include "editline/include/editline.h"
 
-extern "C" char** environ;
-
 #define _fileno fileno
 inline int32_t _umask(int32_t m)
 {
@@ -216,30 +214,6 @@ result_t process_base::get_execPath(exlib::string& retVal)
         return CHECK_ERROR(ret);
 
     retVal = buf;
-
-    return 0;
-}
-
-result_t process_base::get_env(v8::Local<v8::Object>& retVal)
-{
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> context = isolate->context();
-
-    if (isolate->m_env.IsEmpty()) {
-        v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-        char** env = environ;
-        const char *p, *p1;
-
-        while ((p = *env++) != NULL) {
-            p1 = qstrchr(p, '=');
-            if (p1)
-                o->Set(context, isolate->NewString(p, (int32_t)(p1 - p)), isolate->NewString(p1 + 1)).Check();
-        }
-
-        isolate->m_env.Reset(isolate->m_isolate, o);
-        retVal = o;
-    } else
-        retVal = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_env);
 
     return 0;
 }
