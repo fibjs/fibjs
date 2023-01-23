@@ -25,6 +25,7 @@
 #include <uv/include/uv/version.h>
 #include <unicode/uvernum.h>
 #include <msgpack/version.hpp>
+#include <jemalloc/include/jemalloc/jemalloc.h>
 
 namespace v8 {
 namespace internal {
@@ -96,6 +97,7 @@ public:
             g_vender->add("gd", GD_VERSION_STRING);
             g_vender->add("gumbo", "0.10.0");
             g_vender->add("icu", STR(U_ICU_VERSION_MAJOR_NUM) "." STR(U_ICU_VERSION_MINOR_NUM) "." STR(U_ICU_VERSION_PATCHLEVEL_NUM));
+            g_vender->add("jemalloc", STR(JEMALLOC_VERSION_MAJOR) "." STR(JEMALLOC_VERSION_MINOR) "." STR(JEMALLOC_VERSION_BUGFIX));
             g_vender->add("jpeg", STR(JPEG_LIB_VERSION_MAJOR) "." STR(JPEG_LIB_VERSION_MINOR));
             snprintf(str, sizeof(str), "%d.%d", leveldb::kMajorVersion, leveldb::kMinorVersion);
             g_vender->add("leveldb", str);
