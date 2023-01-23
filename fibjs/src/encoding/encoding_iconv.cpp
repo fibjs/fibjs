@@ -55,7 +55,6 @@ DECLARE_MODULE(iconv);
 encoding_iconv::encoding_iconv()
     : m_iconv_en(NULL)
     , m_iconv_de(NULL)
-    , m_iconv_ec(NULL)
 {
     m_charset = "utf-8";
 }
@@ -63,7 +62,6 @@ encoding_iconv::encoding_iconv()
 encoding_iconv::encoding_iconv(exlib::string charset)
     : m_iconv_en(NULL)
     , m_iconv_de(NULL)
-    , m_iconv_ec(NULL)
 {
     m_charset = (charset == "gb2312") ? "gbk" : charset;
 }
@@ -75,9 +73,6 @@ encoding_iconv::~encoding_iconv()
 
     if (m_iconv_de)
         iconv_close((iconv_t)m_iconv_de);
-
-    if (m_iconv_ec)
-        iconv_close((iconv_t)m_iconv_ec);
 }
 
 void encoding_iconv::open(const char* charset)
@@ -92,10 +87,6 @@ void encoding_iconv::open(const char* charset)
         m_iconv_de = NULL;
     }
 
-    if (m_iconv_ec) {
-        iconv_close((iconv_t)m_iconv_ec);
-        m_iconv_ec = NULL;
-    }
     m_charset = charset;
 }
 
@@ -167,7 +158,7 @@ inline bool is_ucs4_s(exlib::string codec)
     return false;
 }
 
-result_t encoding_iconv::encode(exlib::string data, exlib::string& retVal)
+result_t encoding_iconv::ucs_encode(exlib::string data, exlib::string& retVal)
 {
     if ((m_charset == "utf8") || (m_charset == "utf-8")) {
         retVal = data;
@@ -218,6 +209,14 @@ result_t encoding_iconv::encode(exlib::string data, exlib::string& retVal)
         return 0;
     }
 
+    return -1;
+}
+
+result_t encoding_iconv::encode(exlib::string data, exlib::string& retVal)
+{
+    if (ucs_encode(data, retVal) == 0)
+        return 0;
+
     if (!m_iconv_en) {
         m_iconv_en = iconv_open(m_charset.c_str(), "utf-8");
         if (m_iconv_en == (iconv_t)(-1)) {
@@ -256,7 +255,7 @@ result_t encoding_iconv::encode(exlib::string data, obj_ptr<Buffer_base>& retVal
     return 0;
 }
 
-result_t encoding_iconv::decode(const exlib::string& data, exlib::string& retVal)
+result_t encoding_iconv::ucs_decode(exlib::string data, exlib::string& retVal)
 {
     if ((m_charset == "utf8") || (m_charset == "utf-8")) {
         retVal = data;
@@ -297,6 +296,14 @@ result_t encoding_iconv::decode(const exlib::string& data, exlib::string& retVal
         return 0;
     }
 
+    return -1;
+}
+
+result_t encoding_iconv::decode(const exlib::string& data, exlib::string& retVal)
+{
+    if (ucs_decode(data, retVal) == 0)
+        return 0;
+
     if (!m_iconv_de) {
         m_iconv_de = iconv_open("utf-8", m_charset.c_str());
         if (m_iconv_de == (iconv_t)(-1)) {
@@ -333,45 +340,6 @@ result_t encoding_iconv::decode(Buffer_base* data, exlib::string& retVal)
     return decode(strData, retVal);
 }
 
-result_t encoding_iconv::isEncoding(bool& retVal)
-{
-    if ((m_charset == "utf8") || (m_charset == "utf-8")
-
-        || (m_charset == "ucs2") || (m_charset == "ucs-2")
-        || (m_charset == "utf16") || (m_charset == "utf-16")
-
-        || (m_charset == "ucs2le") || (m_charset == "ucs-2le")
-        || (m_charset == "utf16le") || (m_charset == "utf-16le")
-
-        || (m_charset == "ucs2be") || (m_charset == "ucs-2be")
-        || (m_charset == "utf16be") || (m_charset == "utf-16be")
-
-        || (m_charset == "ucs4") || (m_charset == "ucs-4")
-        || (m_charset == "utf32") || (m_charset == "utf-32")
-
-        || (m_charset == "ucs4le") || (m_charset == "ucs-4le")
-        || (m_charset == "utf32le") || (m_charset == "utf-32le")
-
-        || (m_charset == "ucs4be") || (m_charset == "ucs-4be")
-        || (m_charset == "utf32be") || (m_charset == "utf-32be")
-        
-        || (m_charset == "binary") || (m_charset == "latin1")) {
-        retVal = true;
-        return 0;
-    }
-
-    if (!m_iconv_ec) {
-        m_iconv_ec = iconv_open(m_charset.c_str(), "utf-8");
-        if (m_iconv_ec == (iconv_t)(-1)) {
-            m_iconv_ec = NULL;
-            retVal = false;
-            return 0;
-        }
-    }
-    retVal = true;
-    return 0;
-}
-
 result_t iconv_base::encode(exlib::string charset, exlib::string data,
     obj_ptr<Buffer_base>& retVal)
 {
@@ -386,6 +354,38 @@ result_t iconv_base::decode(exlib::string charset, Buffer_base* data,
 
 result_t iconv_base::isEncoding(exlib::string charset, bool& retVal)
 {
-    return encoding_iconv(charset).isEncoding(retVal);
+    if ((charset == "utf8") || (charset == "utf-8")
+
+        || (charset == "ucs2") || (charset == "ucs-2")
+        || (charset == "utf16") || (charset == "utf-16")
+
+        || (charset == "ucs2le") || (charset == "ucs-2le")
+        || (charset == "utf16le") || (charset == "utf-16le")
+
+        || (charset == "ucs2be") || (charset == "ucs-2be")
+        || (charset == "utf16be") || (charset == "utf-16be")
+
+        || (charset == "ucs4") || (charset == "ucs-4")
+        || (charset == "utf32") || (charset == "utf-32")
+
+        || (charset == "ucs4le") || (charset == "ucs-4le")
+        || (charset == "utf32le") || (charset == "utf-32le")
+
+        || (charset == "ucs4be") || (charset == "ucs-4be")
+        || (charset == "utf32be") || (charset == "utf-32be")
+
+        || (charset == "binary") || (charset == "latin1")) {
+        retVal = true;
+        return 0;
+    }
+
+    void* iconv_ec = iconv_open(charset.c_str(), "utf-8");
+    if (iconv_ec != (iconv_t)(-1)) {
+        iconv_close(iconv_ec);
+        retVal = true;
+    } else
+        retVal = false;
+
+    return 0;
 }
 }

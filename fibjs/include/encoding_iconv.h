@@ -20,13 +20,13 @@ public:
 
     void open(const char* charset);
 
+    result_t ucs_encode(exlib::string data, exlib::string& retVal);
     result_t encode(exlib::string data, exlib::string& retVal);
     result_t encode(exlib::string data, obj_ptr<Buffer_base>& retVal);
 
+    result_t ucs_decode(exlib::string data, exlib::string& retVal);
     result_t decode(const exlib::string& data, exlib::string& retVal);
     result_t decode(Buffer_base* data, exlib::string& retVal);
-
-    result_t isEncoding(bool& retVal);
 
     exlib::string charset() const
     {
@@ -36,7 +36,6 @@ public:
 private:
     void* m_iconv_en;
     void* m_iconv_de;
-    void* m_iconv_ec;
     exlib::string m_charset;
 };
 
