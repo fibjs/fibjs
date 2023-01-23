@@ -45,12 +45,41 @@ extern char** environ;
     } while (0)
 
 int uv__cloexec_ioctl(int fd, int set);
-int uv__cloexec_fcntl(int fd, int set);
 int uv__nonblock_ioctl(int fd, int set);
 int uv__nonblock_fcntl(int fd, int set);
 int uv__close(int fd); /* preserves errno */
 int uv__close_nocheckstdio(int fd);
 int uv__make_pipe(int fds[2], int flags);
+
+int uv__cloexec_fcntl(int fd, int set) {
+  int flags;
+  int r;
+
+  do
+    r = fcntl(fd, F_GETFD);
+  while (r == -1 && errno == EINTR);
+
+  if (r == -1)
+    return UV__ERR(errno);
+
+  /* Bail out now if already set/clear. */
+  if (!!(r & FD_CLOEXEC) == !!set)
+    return 0;
+
+  if (set)
+    flags = r | FD_CLOEXEC;
+  else
+    flags = r & ~FD_CLOEXEC;
+
+  do
+    r = fcntl(fd, F_SETFD, flags);
+  while (r == -1 && errno == EINTR);
+
+  if (r)
+    return UV__ERR(errno);
+
+  return 0;
+}
 
 static void uv__chld(uv_signal_t* handle, int signum)
 {
