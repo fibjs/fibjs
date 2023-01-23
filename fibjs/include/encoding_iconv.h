@@ -8,7 +8,6 @@
 #pragma once
 
 #include "Buffer.h"
-#include "utf8.h"
 
 namespace fibjs {
 
@@ -27,6 +26,9 @@ public:
     result_t ucs_decode(exlib::string data, exlib::string& retVal);
     result_t decode(const exlib::string& data, exlib::string& retVal);
     result_t decode(Buffer_base* data, exlib::string& retVal);
+
+    static bool is_ucs_encoding(exlib::string charset);
+    static bool is_encoding(exlib::string charset);
 
     exlib::string charset() const
     {
