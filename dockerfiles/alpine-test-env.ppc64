@@ -1,3 +1,0 @@
-FROM multiarch/alpine:ppc64le-latest-stable
-
-RUN apk add bash

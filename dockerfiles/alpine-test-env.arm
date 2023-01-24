@@ -1,3 +1,0 @@
-FROM multiarch/alpine:armv7-latest-stable
-
-RUN apk add libatomic bash

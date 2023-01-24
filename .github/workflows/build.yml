@@ -49,10 +49,6 @@ jobs:
             target_arch: arm64
             build_type: release
           - os: ubuntu-18.04
-            build_target: alpine
-            target_arch: arm
-            build_type: release
-          - os: ubuntu-18.04
             build_target: android
             target_arch: amd64
             build_type: release
