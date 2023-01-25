@@ -19,8 +19,9 @@
 #include "v8/src/execution/isolate.h"
 #include "v8/src/execution/frames.h"
 #include "v8/src/execution/frames-inl.h"
+#include "v8/src/base/vector.h"
+#include "v8/include/v8-json.h"
 
-#include "v8_api.h"
 #include "src/objects/string-inl.h"
 
 using namespace v8;
@@ -29,58 +30,11 @@ namespace fibjs {
 
 DECLARE_MODULE(json);
 
-static result_t BigInt_fromJSON(Isolate* isolate, v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
-{
-    TryCatch try_catch;
-
-    v8::MaybeLocal<v8::BigInt> v = data->ToBigInt(isolate->context());
-    try_catch.Reset();
-
-    if (v.IsEmpty())
-        return CALL_E_TYPEMISMATCH;
-
-    retVal = v.ToLocalChecked();
-    return 0;
-}
-
-struct _from {
-    const char* name;
-    size_t sz;
-    result_t (*from)(Isolate*, v8::Local<v8::Value>, v8::Local<v8::Value>&);
-} s_from[] = {
-    { "Buffer", 6, Buffer::fromJSON },
-    { "BigInt", 6, BigInt_fromJSON },
-    { NULL }
-};
-
-static void json_replacer(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    v8::Local<v8::Value> v = args[1];
-
-    if (!v.IsEmpty() && (v->IsBigInt() || v->IsBigIntObject())) {
-        v8::Isolate* isolate = args.GetIsolate();
-        v8::Local<v8::Context> context = isolate->GetCurrentContext();
-
-        v8::Local<v8::Object> o = v8::Object::New(isolate);
-
-        o->Set(context, NewString(isolate, "type", 4), NewString(isolate, "BigInt", 6));
-
-        v8::Local<v8::String> sv;
-        v->ToString(context).ToLocal(&sv);
-        o->Set(context, NewString(isolate, "data", 4), sv);
-
-        v = o;
-    }
-
-    args.GetReturnValue().Set(v);
-}
-
 result_t json_base::encode(v8::Local<v8::Value> data, exlib::string& retVal)
 {
     Isolate* isolate = Isolate::current();
 
-    v8::Local<v8::String> str = JSON_Stringify(isolate->m_isolate,
-        data, isolate->NewFunction("replacer", json_replacer));
+    v8::Local<v8::String> str = v8::JSON::Stringify(isolate->context(), data).FromMaybe(v8::Local<v8::String>());
     if (str.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
@@ -309,7 +263,7 @@ inline result_t _jsonDecode(exlib::string data,
 
             AdvanceSkipWhitespace();
 
-            i::Vector<const uint16_t> data_((const uint16_t*)str.c_str(), str.length());
+            base::Vector<const uint16_t> data_((const uint16_t*)str.c_str(), str.length());
             retVal = factory()->NewStringFromTwoByte(data_, i::AllocationType::kYoung);
             return 0;
         }
@@ -330,7 +284,7 @@ inline result_t _jsonDecode(exlib::string data,
                     if (hr < 0)
                         return hr;
 
-                    el.ToHandle(&el1);
+                    el1 = el.ToHandleChecked();
 
                     els.push_back(el1);
                 } while (MatchSkipWhiteSpace(','));
@@ -386,16 +340,6 @@ inline result_t _jsonDecode(exlib::string data,
                     i::JSObject::DefinePropertyOrElementIgnoreAttributes(json_object,
                         name, value.ToHandleChecked())
                         .Check();
-
-                    if (str.length() == 4) {
-                        if (!qstrcmp(str.c_str(), "type", 4)) {
-                            i::MaybeHandle<i::String> type_ = i::Object::ToString(v8_isolate, value.ToHandleChecked());
-
-                            if (!type_.is_null())
-                                type = type_.ToHandleChecked();
-                        } else if (!qstrcmp(str.c_str(), "data", 4))
-                            data = value.ToHandleChecked();
-                    }
                 } while (MatchSkipWhiteSpace(','));
 
                 if (c0_ != '}')
@@ -403,27 +347,6 @@ inline result_t _jsonDecode(exlib::string data,
             }
 
             AdvanceSkipWhitespace();
-
-            if (!type.is_null() && !data.is_null()) {
-                ssize_t i;
-                i::DisallowHeapAllocation no_gc;
-                i::Vector<const uint8_t> type_ = type->GetCharVector<uint8_t>(no_gc);
-
-                for (i = 0; s_from[i].name; i++)
-                    if (type_.size() == s_from[i].sz
-                        && !memcmp(type_.begin(), s_from[i].name, s_from[i].sz)) {
-                        v8::Local<v8::Value> data_;
-                        v8::Local<v8::Value> obj_;
-
-                        v8::ToLocal(data, &data_);
-                        hr = s_from[i].from(isolate, data_, obj_);
-                        if (hr >= 0) {
-                            retVal = v8::Utils::OpenHandle(*obj_);
-                            return 0;
-                        }
-                        break;
-                    }
-            }
 
             retVal = json_object;
             return 0;
@@ -515,9 +438,15 @@ inline result_t _jsonDecode(exlib::string data,
     return jp.ParseJson(retVal);
 }
 
-result_t json_base::decode(exlib::string data,
-    v8::Local<v8::Value>& retVal)
+result_t json_base::decode(exlib::string data, v8::Local<v8::Value>& retVal)
 {
+    if (data.length() < 1024 * 1024) {
+        Isolate* isolate = Isolate::current();
+
+        retVal = v8::JSON::Parse(isolate->context(), isolate->NewString(data)).FromMaybe(v8::Local<v8::Value>());
+        return retVal.IsEmpty() ? CALL_E_JAVASCRIPT : 0;
+    }
+
     return _jsonDecode(data, retVal);
 }
 

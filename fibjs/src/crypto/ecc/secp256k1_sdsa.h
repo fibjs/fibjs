@@ -120,7 +120,7 @@ static int secp256k1_ecsdsa_sign_to(const secp256k1_context* ctx, const secp256k
         /*
          * Steps 3.1: r = r + (k * PB).x
          */
-        secp256k1_ecdh(ctx, buf, to_pubkey, buf, ecdh_hash_function_X, NULL);
+        ret &= secp256k1_ecdh(ctx, buf, to_pubkey, buf, ecdh_hash_function_X, NULL);
         secp256k1_scalar_set_b32(&c, buf, NULL);
 
         secp256k1_scalar_add(&e, &e, &c);
@@ -155,6 +155,7 @@ static int secp256k1_ecsdsa_verify_to(const secp256k1_context* ctx, const unsign
     secp256k1_ge r;
     unsigned char buf[32];
     unsigned char hash64[64];
+    int ret = 1;
 
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(sig64 != NULL);
@@ -199,7 +200,7 @@ static int secp256k1_ecsdsa_verify_to(const secp256k1_context* ctx, const unsign
          */
         secp256k1_pubkey_save(&r_pubkey, &r);
 
-        secp256k1_ecdh(ctx, buf, &r_pubkey, to_key, ecdh_hash_function_X, NULL);
+        ret &= secp256k1_ecdh(ctx, buf, &r_pubkey, to_key, ecdh_hash_function_X, NULL);
         secp256k1_scalar_set_b32(&c, buf, NULL);
 
         secp256k1_scalar_add(&e1, &e1, &c);
@@ -208,5 +209,5 @@ static int secp256k1_ecsdsa_verify_to(const secp256k1_context* ctx, const unsign
     /*
      * Steps 4: e ?= r
      */
-    return secp256k1_scalar_eq(&e, &e1);
+    return ret & secp256k1_scalar_eq(&e, &e1);
 }

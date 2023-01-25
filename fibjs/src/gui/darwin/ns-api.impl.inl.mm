@@ -6,7 +6,8 @@
  * @desc WebView Implementation in OSX
  */
 
-#if defined(__APPLE__) && !defined(FIBJS_DISABLE_GUI)
+#include <exlib/include/osconfig.h>
+#if defined(Darwin) && !defined(iPhone)
 
 #import "ns-api.h"
 

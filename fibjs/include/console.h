@@ -88,7 +88,7 @@ public:
                 m_levels[i] = false;
 
             int32_t sz = levels->Length();
-            v8::Local<v8::Context> context = levels->CreationContext();
+            v8::Local<v8::Context> context = levels->GetCreationContextChecked();
 
             for (i = 0; i < sz; i++) {
                 JSValue l = levels->Get(context, i);

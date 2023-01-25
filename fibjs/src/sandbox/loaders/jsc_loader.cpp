@@ -67,7 +67,6 @@ result_t JscLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::stri
         pos++;
     }
 
-    v8::MaybeLocal<v8::Script> mayscript;
     {
         TryCatch try_catch;
 
@@ -75,16 +74,14 @@ result_t JscLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::stri
         cache = new v8::ScriptCompiler::CachedData((const uint8_t*)code.c_str(), code_len);
 
         v8::ScriptCompiler::Source source(isolate->NewString(s_temp_source),
-            v8::ScriptOrigin(soname), cache);
+            v8::ScriptOrigin(isolate->m_isolate, soname), cache);
 
-        mayscript = v8::ScriptCompiler::Compile(isolate->context(), &source,
-            v8::ScriptCompiler::kConsumeCodeCache);
+        script = v8::ScriptCompiler::Compile(isolate->context(), &source,
+            v8::ScriptCompiler::kConsumeCodeCache).FromMaybe(v8::Local<v8::Script>());
 
-        if (mayscript.IsEmpty())
+        if (script.IsEmpty())
             return throwSyntaxError(try_catch);
     }
-
-    script = mayscript.ToLocalChecked();
 
     return 0;
 }

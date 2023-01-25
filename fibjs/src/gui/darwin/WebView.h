@@ -5,7 +5,6 @@
  * @modify date 2018-04-23 03:25:42
  * @desc WebView Object for Mac OSX
  */
-#if defined(__APPLE__) && !defined(FIBJS_DISABLE_GUI)
 
 #pragma once
 
@@ -124,5 +123,3 @@ protected:
     exlib::string m_initScriptDocAfter;
 };
 } /* namespace fibjs */
-
-#endif /* __APPLE__ */

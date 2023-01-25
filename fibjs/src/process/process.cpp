@@ -31,8 +31,6 @@
 #include <unistd.h>
 #include "editline/include/editline.h"
 
-extern "C" char** environ;
-
 #define _fileno fileno
 inline int32_t _umask(int32_t m)
 {
@@ -103,7 +101,7 @@ result_t process_base::get_argv(v8::Local<v8::Array>& retVal)
     v8::Local<v8::Array> args = v8::Array::New(isolate->m_isolate, (int32_t)s_argv.size());
 
     for (int32_t i = 0; i < (int32_t)s_argv.size(); i++)
-        args->Set(context, i, isolate->NewString(s_argv[i]));
+        args->Set(context, i, isolate->NewString(s_argv[i])).Check();
 
     retVal = args;
 
@@ -118,7 +116,7 @@ result_t process_base::get_execArgv(v8::Local<v8::Array>& retVal)
     int32_t i;
 
     for (i = 0; i < (int32_t)s_start_argv.size(); i++)
-        args->Set(context, i, isolate->NewString(s_start_argv[i]));
+        args->Set(context, i, isolate->NewString(s_start_argv[i])).Check();
 
     retVal = args;
 
@@ -198,8 +196,8 @@ result_t process_base::hrtime(v8::Local<v8::Array> diff, v8::Local<v8::Array>& r
     }
 
     v8::Local<v8::Array> tuple = v8::Array::New(isolate->m_isolate, 2);
-    tuple->Set(context, 0, v8::Integer::NewFromUnsigned(isolate->m_isolate, (uint32_t)(t / NANOS_PER_SEC)));
-    tuple->Set(context, 1, v8::Integer::NewFromUnsigned(isolate->m_isolate, t % NANOS_PER_SEC));
+    tuple->Set(context, 0, v8::Integer::NewFromUnsigned(isolate->m_isolate, (uint32_t)(t / NANOS_PER_SEC))).Check();
+    tuple->Set(context, 1, v8::Integer::NewFromUnsigned(isolate->m_isolate, t % NANOS_PER_SEC)).Check();
 
     retVal = tuple;
 
@@ -216,30 +214,6 @@ result_t process_base::get_execPath(exlib::string& retVal)
         return CHECK_ERROR(ret);
 
     retVal = buf;
-
-    return 0;
-}
-
-result_t process_base::get_env(v8::Local<v8::Object>& retVal)
-{
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> context = isolate->context();
-
-    if (isolate->m_env.IsEmpty()) {
-        v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-        char** env = environ;
-        const char *p, *p1;
-
-        while ((p = *env++) != NULL) {
-            p1 = qstrchr(p, '=');
-            if (p1)
-                o->Set(context, isolate->NewString(p, (int32_t)(p1 - p)), isolate->NewString(p1 + 1));
-        }
-
-        isolate->m_env.Reset(isolate->m_isolate, o);
-        retVal = o;
-    } else
-        retVal = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_env);
 
     return 0;
 }
@@ -349,8 +323,8 @@ result_t process_base::cpuUsage(v8::Local<v8::Object> previousValue, v8::Local<v
     _system = MICROS_PER_SEC * rusage.ru_stime.tv_sec + rusage.ru_stime.tv_usec - _system;
 
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-    o->Set(context, isolate->NewString("user"), v8::Number::New(isolate->m_isolate, _user));
-    o->Set(context, isolate->NewString("system"), v8::Number::New(isolate->m_isolate, _system));
+    o->Set(context, isolate->NewString("user"), v8::Number::New(isolate->m_isolate, _user)).Check();
+    o->Set(context, isolate->NewString("system"), v8::Number::New(isolate->m_isolate, _system)).Check();
 
     retVal = o;
 
@@ -370,23 +344,23 @@ result_t process_base::memoryUsage(v8::Local<v8::Object>& retVal)
     if (ret < 0)
         return CHECK_ERROR(ret);
 
-    info->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, (double)rss));
+    info->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, (double)rss)).Check();
 
     v8::HeapStatistics v8_heap_stats;
     isolate->m_isolate->GetHeapStatistics(&v8_heap_stats);
 
     info->Set(context, isolate->NewString("heapTotal"),
-        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.total_heap_size()));
+        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.total_heap_size())).Check();
     info->Set(context, isolate->NewString("heapUsed"),
-        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.used_heap_size()));
+        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.used_heap_size())).Check();
     info->Set(context, isolate->NewString("external"),
-        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.external_memory()));
+        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.external_memory())).Check();
 
     v8::Local<v8::Object> objs;
     object_base::class_info().dump(objs);
-    info->Set(context, isolate->NewString("nativeObjects"), objs);
+    info->Set(context, isolate->NewString("nativeObjects"), objs).Check();
     info->Set(context, isolate->NewString("ExtStrings"),
-        v8::Number::New(isolate->m_isolate, (double)g_ExtStringCount.value()));
+        v8::Number::New(isolate->m_isolate, (double)g_ExtStringCount.value())).Check();
 
     retVal = info;
 
@@ -446,6 +420,42 @@ result_t process_base::binding(exlib::string name, v8::Local<v8::Value>& retVal)
                 pModule = pModule->m_next;
     }
 
+    return 0;
+}
+
+result_t process_base::getgid(int32_t& retVal)
+{
+#ifndef _WIN32
+    retVal = ::getgid();
+#else
+    retVal = 0;
+#endif
+    return 0;
+}
+
+result_t process_base::getuid(int32_t& retVal)
+{
+#ifndef _WIN32
+    retVal = ::getuid();
+#else
+    retVal = 0;
+#endif
+    return 0;
+}
+
+result_t process_base::setgid(int32_t id)
+{
+#ifndef _WIN32
+    ::setgid(id);
+#endif
+    return 0;
+}
+
+result_t process_base::setuid(int32_t id)
+{
+#ifndef _WIN32
+    ::setuid(id);
+#endif
     return 0;
 }
 

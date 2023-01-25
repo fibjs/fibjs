@@ -36,14 +36,14 @@ PKey_25519::PKey_25519(mbedtls_pk_context& key)
 {
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
 
-    m_alg = ecp->grp.id == MBEDTLS_ECP_DP_ED25519 ? "EdDSA" : "DH";
+    m_alg = (int32_t)ecp->grp.id == MBEDTLS_ECP_DP_ED25519 ? "EdDSA" : "DH";
 
     if (mbedtls_mpi_cmp_int(&ecp->d, 0) && !mbedtls_mpi_cmp_int(&ecp->Q.X, 0)) {
         unsigned char sk[ed25519_private_key_size];
 
         mbedtls_mpi_write_binary(&ecp->d, sk, ed25519_public_key_size);
 
-        if (ecp->grp.id == MBEDTLS_ECP_DP_ED25519)
+        if ((int32_t)ecp->grp.id == MBEDTLS_ECP_DP_ED25519)
             ed25519_CreateKeyPair(sk + ed25519_public_key_size, sk, 0, sk);
         else
             curve25519_dh_CalculatePublicKey(sk + ed25519_public_key_size, sk);
@@ -78,7 +78,7 @@ result_t PKey_25519::toX25519(obj_ptr<PKey_base>& retVal, AsyncEvent* ac)
 
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
 
-    if (ecp->grp.id != MBEDTLS_ECP_DP_ED25519)
+    if ((int32_t)ecp->grp.id != MBEDTLS_ECP_DP_ED25519)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     mbedtls_pk_context key1;
@@ -371,7 +371,7 @@ result_t PKey_25519::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr
 
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
 
-    if (ecp->grp.id != MBEDTLS_ECP_DP_ED25519)
+    if ((int32_t)ecp->grp.id != MBEDTLS_ECP_DP_ED25519)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     unsigned char sk[ed25519_private_key_size];
@@ -405,7 +405,7 @@ result_t PKey_25519::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::
 
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
 
-    if (ecp->grp.id != MBEDTLS_ECP_DP_ED25519)
+    if ((int32_t)ecp->grp.id != MBEDTLS_ECP_DP_ED25519)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     unsigned char pk[ed25519_public_key_size];

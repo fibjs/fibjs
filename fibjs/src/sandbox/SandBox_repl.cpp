@@ -30,36 +30,64 @@ void output(int32_t priority, exlib::string msg)
     asyncLog(console_base::C_PRINT, msg);
 }
 
-result_t SandBox::repl()
+result_t SandBox::repl(exlib::string src)
 {
     Context context(this, "repl");
-    return Context::repl();
+    return Context::repl(src);
 }
 
 extern std_logger* s_std;
 exlib::string appname("fibjs");
 
-result_t SandBox::Context::repl()
+result_t SandBox::Context::repl(exlib::string src)
 {
     result_t hr = 0;
-    exlib::string buf;
-    v8::Local<v8::Value> v, v1;
+    exlib::string buf(src);
+    v8::Local<v8::Value> v;
     Isolate* isolate = Isolate::current();
-    v8::Local<v8::String> strFname = isolate->NewString("repl", 4);
+    v8::Local<v8::String> strFname;
     obj_ptr<BufferedStream_base> bs;
 
-    exlib::string str_ver("Welcome to " + appname + " ");
+    if (src.empty()) {
+        strFname = isolate->NewString("[repl]", 6);
 
-    str_ver += fibjs_version;
-    str_ver += '.';
-    output(console_base::C_INFO, str_ver);
-    output(console_base::C_INFO, "Type \".help\" for more information.");
+        exlib::string str_ver("Welcome to " + appname + " ");
+
+        str_ver += fibjs_version;
+        str_ver += '.';
+        output(console_base::C_INFO, str_ver);
+        output(console_base::C_INFO, "Type \".help\" for more information.");
+    } else
+        strFname = isolate->NewString("[eval]", 6);
 
     while (true) {
+        if (!buf.empty()) {
+            TryCatch try_catch;
+
+            v8::ScriptOrigin origin(isolate->m_isolate, strFname);
+            v8::Local<v8::Context> context = isolate->m_isolate->GetCurrentContext();
+            v8::Local<v8::Script> script = v8::Script::Compile(context, isolate->NewString(buf), &origin).FromMaybe(v8::Local<v8::Script>());
+
+            if (script.IsEmpty()) {
+                if (isolate->toString(try_catch.Exception()) != "SyntaxError: Unexpected end of input" || !src.empty()) {
+                    buf.clear();
+                    ReportException(try_catch, 0, true);
+                }
+            } else {
+                buf.clear();
+
+                v = script->Run(context).FromMaybe(v8::Local<v8::Value>());
+                if (v.IsEmpty())
+                    ReportException(try_catch, 0, true);
+            }
+        }
+
         if (!v.IsEmpty() && !v->IsUndefined())
             console_base::dir(v, v8::Local<v8::Object>());
+        v.Clear();
 
-        v = v1;
+        if (!src.empty())
+            break;
 
         exlib::string line;
         hr = console_base::ac_readLine(buf.empty() ? "> " : " ... ", line);
@@ -99,31 +127,6 @@ result_t SandBox::Context::repl()
 
         buf += line;
         buf.append("\n", 1);
-
-        {
-            v8::Local<v8::Script> script;
-            TryCatch try_catch;
-
-            v8::ScriptOrigin origin(strFname);
-            v8::Local<v8::Context> context = isolate->m_isolate->GetCurrentContext();
-            v8::MaybeLocal<v8::Script> lscript = v8::Script::Compile(context, isolate->NewString(buf), &origin);
-
-            if (lscript.IsEmpty() || (script = lscript.ToLocalChecked()).IsEmpty()) {
-                if (isolate->toString(try_catch.Exception()) != "SyntaxError: Unexpected end of input") {
-                    buf.clear();
-                    ReportException(try_catch, 0, true);
-                }
-                continue;
-            }
-
-            buf.clear();
-
-            v8::MaybeLocal<v8::Value> lv = script->Run(context);
-            if (lv.IsEmpty() || (v = lv.ToLocalChecked()).IsEmpty()) {
-                ReportException(try_catch, 0, true);
-                continue;
-            }
-        }
     }
 
     return hr;

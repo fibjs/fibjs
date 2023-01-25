@@ -133,7 +133,7 @@ inline void GetPropertyNames(v8::Local<v8::Object> o, QuickArray<exlib::string>&
         buf->get_length(len);
         for (int32_t i = 0; i < len; i++) {
             char buf[32];
-            int32_t n = sprintf(buf, "%ld", i);
+            int32_t n = snprintf(buf, sizeof(buf), "%d", i);
             props.append(exlib::string(buf, n));
         }
     } else {
@@ -257,11 +257,11 @@ exlib::string object_format(v8::Local<v8::Value> v, bool color, bool l2 = false)
     if (keys.IsEmpty())
         return "{}";
 
-    v8::Local<v8::Function> toArray = v8::Local<v8::Function>::Cast(JSValue(obj->Get(_context, isolate->NewString("toArray"))));
-    if (!toArray.IsEmpty() && toArray->IsFunction()) {
+    v8::Local<v8::Value> v_toArray = obj->Get(_context, isolate->NewString("toArray")).FromMaybe(v8::Local<v8::Value>());
+    if (!v_toArray.IsEmpty() && v_toArray->IsFunction()) {
+        v8::Local<v8::Function> toArray = v8::Local<v8::Function>::Cast(v_toArray);
         TryCatch try_catch;
-        v8::Local<v8::Value> v1;
-        toArray->Call(_context, obj, 0, NULL).ToLocal(&v1);
+        v8::Local<v8::Value> v1 = toArray->Call(_context, obj, 0, NULL).FromMaybe(v8::Local<v8::Value>());
         if (!IsEmpty(v1) && v1->IsObject()) {
             v = v1;
             obj = v8::Local<v8::Object>::Cast(v1);
@@ -296,7 +296,7 @@ exlib::string object_format(v8::Local<v8::Value> v, bool color, bool l2 = false)
                 buf.append(", ... 1 more item");
             else if (len > len1 + 1) {
                 char str_buf[256];
-                sprintf(str_buf, ", ... %d more items", len - len1);
+                snprintf(str_buf, sizeof(str_buf), ", ... %d more items", len - len1);
                 buf.append(str_buf);
             }
             buf.append(" ]");
@@ -330,7 +330,7 @@ exlib::string object_format(v8::Local<v8::Value> v, bool color, bool l2 = false)
                 buf.append(", ... 1 more item");
             else if (len > len1 + 1) {
                 char str_buf[256];
-                sprintf(str_buf, ", ... %d more items", len - len1);
+                snprintf(str_buf, sizeof(str_buf), ", ... %d more items", len - len1);
                 buf.append(str_buf);
             }
             buf.append(" ]");

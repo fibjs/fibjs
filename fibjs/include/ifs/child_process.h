@@ -25,9 +25,9 @@ public:
     public:
         virtual void fillMembers(Isolate* isolate, v8::Local<v8::Object>& retVal)
         {
-            v8::Local<v8::Context> context = retVal->CreationContext();
-            retVal->Set(context, isolate->NewString("stdout"), GetReturnValue(isolate->m_isolate, stdout));
-            retVal->Set(context, isolate->NewString("stderr"), GetReturnValue(isolate->m_isolate, stderr));
+            v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
+            retVal->Set(context, isolate->NewString("stdout"), GetReturnValue(isolate->m_isolate, stdout)).Check();
+            retVal->Set(context, isolate->NewString("stderr"), GetReturnValue(isolate->m_isolate, stderr)).Check();
         }
 
         virtual void fillArguments(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
@@ -44,9 +44,9 @@ public:
     public:
         virtual void fillMembers(Isolate* isolate, v8::Local<v8::Object>& retVal)
         {
-            v8::Local<v8::Context> context = retVal->CreationContext();
-            retVal->Set(context, isolate->NewString("stdout"), GetReturnValue(isolate->m_isolate, stdout));
-            retVal->Set(context, isolate->NewString("stderr"), GetReturnValue(isolate->m_isolate, stderr));
+            v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
+            retVal->Set(context, isolate->NewString("stdout"), GetReturnValue(isolate->m_isolate, stdout)).Check();
+            retVal->Set(context, isolate->NewString("stderr"), GetReturnValue(isolate->m_isolate, stderr)).Check();
         }
 
         virtual void fillArguments(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)

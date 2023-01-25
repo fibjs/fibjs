@@ -44,7 +44,7 @@ result_t Chain::append(Handler_base* hdlr)
     int32_t no = (int32_t)m_array.size();
 
     char strBuf[32];
-    sprintf(strBuf, "handler_%d", no);
+    snprintf(strBuf, sizeof(strBuf), "handler_%d", no);
 
     SetPrivate(strBuf, hdlr->wrap());
     m_array.append(hdlr);

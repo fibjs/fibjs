@@ -104,22 +104,6 @@ public:
         }
     }
 
-    void* getInstance(void* o);
-    void* getInstance(v8::Local<v8::Value> o)
-    {
-        assert(!m_cd.module);
-
-        if (o.IsEmpty() || !o->IsObject())
-            return NULL;
-
-        v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(o);
-
-        if (obj->InternalFieldCount() != 1)
-            return NULL;
-
-        return getInstance(obj->GetAlignedPointerFromInternalField(0));
-    }
-
     v8::Local<v8::Function> getFunction(Isolate* isolate)
     {
         assert(!m_cd.module);
@@ -148,7 +132,7 @@ public:
         if (_cache->m_cache.IsEmpty()) {
             o = v8::Local<v8::Function>::New(isolate->m_isolate, _cache->m_function)
                     ->NewInstance(isolate->context())
-                    .ToLocalChecked();
+                    .FromMaybe(v8::Local<v8::Object>());
             o->SetAlignedPointerInInternalField(0, 0);
             _cache->m_cache.Reset(isolate->m_isolate, o);
 
@@ -228,14 +212,14 @@ public:
                     v8::Local<v8::Function> pfunc;
                     v8::Local<v8::Name> name = get_prop_name(isolate, m_cd.cms[i].name);
 
-                    o->Set(_context, name, func);
+                    o->Set(_context, name, func).Check();
 
                     if (m_cd.cms[i].is_async) {
                         if (op.IsEmpty())
                             op = v8::Object::New(isolate->m_isolate);
 
                         promisify(func, pfunc);
-                        op->Set(_context, name, pfunc);
+                        op->Set(_context, name, pfunc).Check();
                     }
                 }
             }
@@ -248,7 +232,8 @@ public:
 
             if (!skips || !skips[j])
                 o->Set(_context, isolate->NewString(m_cd.cos[i].name),
-                    m_cd.cos[i].invoker().getModule(isolate));
+                     m_cd.cos[i].invoker().getModule(isolate))
+                    .Check();
         }
 
         for (i = 0; i < m_cd.pc; i++)
@@ -270,14 +255,15 @@ public:
 
             if (!skips || !skips[j])
                 o->Set(_context, isolate->NewString(m_cd.ccs[i].name),
-                    v8::Number::New(isolate->m_isolate, m_cd.ccs[i].value));
+                     v8::Number::New(isolate->m_isolate, m_cd.ccs[i].value))
+                    .Check();
         }
 
         if (m_cd.base)
             m_cd.base->Attach(isolate, o, skips);
 
         if (!op.IsEmpty())
-            o->Set(_context, isolate->NewString("promises"), op);
+            o->Set(_context, isolate->NewString("promises"), op).Check();
     }
 
 public:
@@ -305,9 +291,11 @@ public:
         if (cnt) {
             o = v8::Object::New(isolate->m_isolate);
             o->Set(context, isolate->NewString("class"),
-                isolate->NewString(m_cd.name));
+                 isolate->NewString(m_cd.name))
+                .Check();
             o->Set(context, isolate->NewString("objects"),
-                v8::Integer::New(isolate->m_isolate, (int32_t)cnt));
+                 v8::Integer::New(isolate->m_isolate, (int32_t)cnt))
+                .Check();
 
             v8::Local<v8::Array> inherits = v8::Array::New(isolate->m_isolate);
 
@@ -318,12 +306,12 @@ public:
                 v8::Local<v8::Object> o1;
                 intptr_t cnt1 = p->dump(o1);
                 if (cnt1)
-                    inherits->Set(context, (int32_t)(icnt++), o1);
+                    inherits->Set(context, (int32_t)(icnt++), o1).Check();
                 p = p->m_next;
             }
 
             if (icnt)
-                o->Set(context, isolate->NewString("inherits"), inherits);
+                o->Set(context, isolate->NewString("inherits"), inherits).Check();
         }
 
         return cnt;
@@ -407,13 +395,11 @@ private:
             if (m_cd.caf)
                 ot->SetCallAsFunctionHandler(m_cd.caf);
 
-            v8::Local<v8::Function> _function;
-
-            _class->GetFunction(context).ToLocal(&_function);
+            v8::Local<v8::Function> _function = _class->GetFunction(context).FromMaybe(v8::Local<v8::Function>());
             _cache->m_function.Reset(isolate->m_isolate, _function);
 
             if (m_cd.cor) {
-                v8::Local<v8::Object> o = _function->NewInstance(isolate->context()).ToLocalChecked();
+                v8::Local<v8::Object> o = _function->NewInstance(isolate->context()).FromMaybe(v8::Local<v8::Object>());
                 o->SetAlignedPointerInInternalField(0, 0);
                 _cache->m_cache.Reset(isolate->m_isolate, o);
             }
@@ -423,7 +409,7 @@ private:
             v8::Local<v8::Object> o;
 
             if (m_cd.caf)
-                v8::Function::New(context, m_cd.caf).ToLocal(&o);
+                o = v8::Function::New(context, m_cd.caf).FromMaybe(v8::Local<v8::Function>());
             else
                 o = v8::Object::New(isolate->m_isolate);
 

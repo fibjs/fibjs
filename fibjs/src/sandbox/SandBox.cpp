@@ -89,9 +89,9 @@ void SandBox::initGlobal(v8::Local<v8::Object> global)
 
     v8::Local<v8::Object> _global = _context->Global();
 
-    _global->Delete(_context, isolate->NewString("console"));
-    _global->Set(_context, isolate->NewString("global"), _global);
-    _global->Set(_context, isolate->NewString("globalThis"), _global);
+    _global->Delete(_context, isolate->NewString("console")).Check();
+    _global->Set(_context, isolate->NewString("global"), _global).Check();
+    _global->Set(_context, isolate->NewString("globalThis"), _global).Check();
 
     JSArray ks = global->GetPropertyNames(_context);
     int32_t len = ks->Length();
@@ -101,7 +101,7 @@ void SandBox::initGlobal(v8::Local<v8::Object> global)
         JSValue k = ks->Get(_context, i);
         JSValue v = global->Get(_context, k);
 
-        _global->Set(_context, k, v);
+        _global->Set(_context, k, v).Check();
     }
 
     SetPrivate("_global", _global);
@@ -144,7 +144,7 @@ result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)
 
 result_t SandBox::add(v8::Local<v8::Object> mods)
 {
-    v8::Local<v8::Context> context = mods->CreationContext();
+    v8::Local<v8::Context> context = mods->GetCreationContextChecked();
     JSArray ks = mods->GetPropertyNames(context);
     int32_t len = ks->Length();
     int32_t i;
@@ -166,7 +166,7 @@ result_t SandBox::remove(exlib::string id)
 {
     path_base::normalize(id, id);
     v8::Local<v8::Object> m = mods();
-    m->Delete(m->CreationContext(), holder()->NewString(id));
+    m->Delete(m->GetCreationContextChecked(), holder()->NewString(id)).Check();
 
     return 0;
 }
@@ -175,7 +175,7 @@ result_t SandBox::has(exlib::string id, bool& retVal)
 {
     path_base::normalize(id, id);
     v8::Local<v8::Object> m = mods();
-    retVal = m->Has(m->CreationContext(), holder()->NewString(id)).ToChecked();
+    retVal = m->Has(m->GetCreationContextChecked(), holder()->NewString(id)).ToChecked();
 
     return 0;
 }
@@ -198,7 +198,7 @@ result_t deepFreeze(v8::Local<v8::Value> v)
     v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
 
     if (!isFrozen(obj)) {
-        v8::Local<v8::Context> context = obj->CreationContext();
+        v8::Local<v8::Context> context = obj->GetCreationContextChecked();
         obj->SetIntegrityLevel(context, v8::IntegrityLevel::kFrozen);
         JSArray names = obj->GetPropertyNames(context, v8::KeyCollectionMode::kIncludePrototypes,
             v8::ALL_PROPERTIES, v8::IndexFilter::kIncludeIndices);
@@ -241,14 +241,14 @@ result_t SandBox::get_modules(v8::Local<v8::Object>& retVal)
     retVal = v8::Object::New(isolate->m_isolate);
 
     v8::Local<v8::Object> ms = mods();
-    v8::Local<v8::Context> context = ms->CreationContext();
+    v8::Local<v8::Context> context = ms->GetCreationContextChecked();
     JSArray ks = ms->GetPropertyNames(context);
 
     v8::Local<v8::String> mgetter = isolate->NewString("exports");
 
     for (int32_t i = 0, len = ks->Length(); i < len; i++) {
         JSValue k = ks->Get(context, i);
-        retVal->Set(context, k, JSValue((v8::Local<v8::Object>::Cast(JSValue(ms->Get(context, k))))->Get(context, mgetter)));
+        retVal->Set(context, k, JSValue((v8::Local<v8::Object>::Cast(JSValue(ms->Get(context, k))))->Get(context, mgetter))).Check();
     }
 
     return 0;

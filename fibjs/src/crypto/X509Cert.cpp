@@ -352,12 +352,10 @@ result_t X509Cert::verify(X509Cert_base* cert, bool& retVal, AsyncEvent* ac)
 
 result_t X509Cert::pem(bool all, exlib::string& retVal)
 {
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
     StringBuffer sb;
 
     const mbedtls_x509_crt* pCert = &m_crt;
-    int32_t ret, n = 0;
+    int32_t ret;
     exlib::string buf;
     size_t olen;
 

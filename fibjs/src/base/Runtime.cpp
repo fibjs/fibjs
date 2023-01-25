@@ -32,8 +32,6 @@ exlib::string s_root;
 
 static void createBasisForFiberLoop(Isolate::platform_creator get_platform)
 {
-    ::setlocale(LC_ALL, "");
-
     int32_t cpus = 0;
 
     process_base::cwd(s_root);
@@ -48,7 +46,6 @@ static void createBasisForFiberLoop(Isolate::platform_creator get_platform)
     InitializeAcPool();
     InitializeAsyncIOThread();
     initializeUVAsyncThread();
-    init_signal();
 
 #ifdef Linux
     init_sym();
@@ -77,7 +74,7 @@ void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), Isolat
         static void FirstFiber(void* p)
         {
             EntryThread* th = (EntryThread*)p;
-            Isolate* isolate = new Isolate(th->m_fibjsEntry);
+            Isolate* isolate = new Isolate(th->m_fibjsEntry, g_exec_code);
             syncCall(isolate, th->m_jsFiber, isolate);
         }
 
@@ -146,6 +143,7 @@ void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), Isolat
         Isolate::platform_creator m_get_platform;
     };
 
+    init_signal();
     EntryThread* entryThread = new EntryThread(argc, argv, jsEntryFiber, get_platform);
     entryThread->start();
 

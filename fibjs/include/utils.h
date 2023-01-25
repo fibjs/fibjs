@@ -362,26 +362,38 @@ typedef int32_t result_t;
 
 #define ARG_LIST(n) OptArgs v##n(args, n, argc1);
 
-#define DECLARE_CLASSINFO(c)                      \
-public:                                           \
-    static ClassInfo& class_info();               \
-    virtual ClassInfo& Classinfo()                \
-    {                                             \
-        return class_info();                      \
-    }                                             \
-    static c* getInstance(void* o)                \
-    {                                             \
-        return (c*)class_info().getInstance(o);   \
-    }                                             \
-    static c* getInstance(v8::Local<v8::Value> o) \
-    {                                             \
-        return (c*)class_info().getInstance(o);   \
+#define DECLARE_CLASSINFO(c)                                            \
+public:                                                                 \
+    static ClassInfo& class_info();                                     \
+    virtual ClassInfo& Classinfo()                                      \
+    {                                                                   \
+        return class_info();                                            \
+    }                                                                   \
+    static c* getInstance(void* o)                                      \
+    {                                                                   \
+        return dynamic_cast<c*>((object_base*)o);                       \
+    }                                                                   \
+    static c* getInstance(v8::Local<v8::Value> o)                       \
+    {                                                                   \
+        if (o.IsEmpty() || !o->IsObject())                              \
+            return NULL;                                                \
+                                                                        \
+        v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(o);     \
+        if (obj->InternalFieldCount() != 1)                             \
+            return NULL;                                                \
+        return getInstance(obj->GetAlignedPointerFromInternalField(0)); \
     }
 
-#define DECLARE_CLASS(c)                      \
-public:                                       \
-    c() { c::class_info().Ref(); }            \
-    virtual ~c() { c::class_info().Unref(); } \
+#define DECLARE_CLASS(c)         \
+public:                          \
+    c()                          \
+    {                            \
+        c::class_info().Ref();   \
+    }                            \
+    virtual ~c()                 \
+    {                            \
+        c::class_info().Unref(); \
+    }                            \
     DECLARE_CLASSINFO(c)
 
 #define DECLARE_MODULE(name)                      \
@@ -576,13 +588,13 @@ public:                                                  \
     ((sizeof(a) / sizeof(*(a))) / static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
 #endif
 
-#ifndef offsetof
-#define offsetof(TYPE, MEMBER) ((size_t) & ((TYPE*)0)->MEMBER)
+#ifndef _offsetof
+#define _offsetof(TYPE, MEMBER) ((size_t) & ((TYPE*)0)->MEMBER)
 #endif
 
 #ifndef container_of
 #define container_of(ptr, TYPE, MEMBER) \
-    ((TYPE*)((char*)(ptr)-offsetof(TYPE, MEMBER)))
+    ((TYPE*)((char*)(ptr)-_offsetof(TYPE, MEMBER)))
 #endif
 
 result_t GetArgumentValue(v8::Local<v8::Value> v, exlib::string& n, bool bStrict = false);
@@ -602,11 +614,11 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, d
     if (bStrict)
         return CALL_E_TYPEMISMATCH;
 
-    v->ToNumber(context).ToLocal(&v);
+    v = v->ToNumber(context).FromMaybe(v8::Local<v8::Number>());
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    n = v->NumberValue(context).ToChecked();
+    n = v->NumberValue(context).FromMaybe(NAN);
     return std::isnan(n) ? CALL_E_TYPEMISMATCH : 0;
 }
 
@@ -615,7 +627,7 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, i
     if (v.IsEmpty())
         return CALL_E_TYPEMISMATCH;
 
-    v8::MaybeLocal<v8::BigInt> mv;
+    v8::Local<v8::BigInt> mv;
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
     if (!v->IsBigInt() && !v->IsBigIntObject()) {
@@ -625,16 +637,16 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, i
 
             {
                 TryCatch try_catch;
-                mv = v->ToBigInt(context);
+                mv = v->ToBigInt(context).FromMaybe(v8::Local<v8::BigInt>());
             }
             if (mv.IsEmpty()) {
-                v->ToNumber(context).ToLocal(&v);
+                v = v->ToNumber(context).FromMaybe(v8::Local<v8::Number>());
                 if (v.IsEmpty())
                     return CALL_E_JAVASCRIPT;
             }
         }
     } else {
-        mv = v->ToBigInt(context);
+        mv = v->ToBigInt(context).FromMaybe(v8::Local<v8::BigInt>());
         if (mv.IsEmpty())
             return CALL_E_JAVASCRIPT;
     }
@@ -642,7 +654,7 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, i
     if (!mv.IsEmpty()) {
         bool less;
 
-        n = mv.ToLocalChecked()->Int64Value(&less);
+        n = mv->Int64Value(&less);
         return less ? 0 : CALL_E_OUTRANGE;
     } else {
         double num;
@@ -864,7 +876,7 @@ inline bool IsJSObject(v8::Local<v8::Value> v)
         return false;
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
-    v8::Local<v8::Context> _context = o->CreationContext();
+    v8::Local<v8::Context> _context = o->GetCreationContextChecked();
     JSValue proto = _context->GetEmbedderData(1);
     if (!proto->Equals(_context, o->GetPrototype()).ToChecked())
         return false;
@@ -1064,7 +1076,8 @@ inline v8::Local<v8::Value> ThrowError(result_t hr, exlib::string msg)
     v8::Local<v8::Context> context = isolate->context();
 
     v8::Local<v8::Object>::Cast(exception)
-        ->Set(context, isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr));
+        ->Set(context, isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr))
+        .Check();
     return ThrowError(exception);
 }
 
@@ -1131,8 +1144,7 @@ inline v8::Local<v8::Value> ThrowURIError(const char* msg)
     auto URIError = (JSValue(glob->Get(_context, isolate->NewString("URIError")))).As<v8::Object>();
 
     v8::Local<v8::Value> args[] = { isolate->NewString(msg) };
-    v8::Local<v8::Value> error;
-    URIError->CallAsConstructor(_context, 1, args).ToLocal(&error);
+    v8::Local<v8::Value> error = URIError->CallAsConstructor(_context, 1, args).FromMaybe(v8::Local<v8::Value>());
     return ThrowError(error);
 }
 
@@ -1149,8 +1161,7 @@ inline v8::Local<v8::Value> ThrowEvalError(const char* msg)
     auto EvalError = (JSValue(glob->Get(_context, isolate->NewString("EvalError")))).As<v8::Object>();
 
     v8::Local<v8::Value> args[] = { isolate->NewString(msg) };
-    v8::Local<v8::Value> error;
-    EvalError->CallAsConstructor(_context, 1, args).ToLocal(&error);
+    v8::Local<v8::Value> error = EvalError->CallAsConstructor(_context, 1, args).FromMaybe(v8::Local<v8::Value>());
     return ThrowError(error);
 }
 
@@ -1288,7 +1299,7 @@ inline result_t _error_checker(result_t hr, const char* file, int32_t line)
         exlib::string str = file;
         char tmp[64];
 
-        sprintf(tmp, ":%d ", line);
+        snprintf(tmp, sizeof(tmp), ":%d ", line);
         str.append(tmp);
 
         errorLog(str + getResultMessage(hr));
@@ -1322,17 +1333,17 @@ inline exlib::string niceSize(int64_t sz)
     int32_t cnt;
 
     if (test < 1024)
-        cnt = sprintf(buf, "%d bytes", (int32_t)sz);
+        cnt = snprintf(buf, sizeof(buf), "%d bytes", (int32_t)sz);
     else if (test < 1024 * 1024)
-        cnt = sprintf(buf, "%.1f KB", num / 1024);
+        cnt = snprintf(buf, sizeof(buf), "%.1f KB", num / 1024);
     else if (test < 1024 * 1024 * 1024)
-        cnt = sprintf(buf, "%.1f MB", num / (1024 * 1024));
+        cnt = snprintf(buf, sizeof(buf), "%.1f MB", num / (1024 * 1024));
     else if (test < 1024ll * 1024 * 1024 * 1024)
-        cnt = sprintf(buf, "%.1f TB", num / (1024 * 1024 * 1024));
+        cnt = snprintf(buf, sizeof(buf), "%.1f TB", num / (1024 * 1024 * 1024));
     else if (test < 1024ll * 1024 * 1024 * 1024 * 1024)
-        cnt = sprintf(buf, "%.1f PB", num / (1024ll * 1024 * 1024 * 1024));
+        cnt = snprintf(buf, sizeof(buf), "%.1f PB", num / (1024ll * 1024 * 1024 * 1024));
     else
-        cnt = sprintf(buf, "%.1f EB", num / (1024ll * 1024 * 1024 * 1024 * 1024));
+        cnt = snprintf(buf, sizeof(buf), "%.1f EB", num / (1024ll * 1024 * 1024 * 1024 * 1024));
 
     return exlib::string(buf, cnt);
 }

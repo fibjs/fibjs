@@ -209,11 +209,13 @@ result_t SandBox::setModuleCompiler(exlib::string extname, v8::Local<v8::Functio
 result_t SandBox::custom_resolveId(exlib::string& id, v8::Local<v8::Value>& retVal)
 {
     Isolate* isolate = holder();
-    v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(GetPrivate("require"));
+    v8::Local<v8::Value> _require = GetPrivate("require");
 
-    if (!func->IsUndefined()) {
+    if (_require->IsFunction()) {
+        v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(_require);
+
         v8::Local<v8::Value> arg = isolate->NewString(id);
-        func->Call(func->CreationContext(), wrap(), 1, &arg).ToLocal(&retVal);
+        retVal = func->Call(func->GetCreationContextChecked(), wrap(), 1, &arg).FromMaybe(v8::Local<v8::Value>());
         if (retVal.IsEmpty())
             return CALL_E_JAVASCRIPT;
 

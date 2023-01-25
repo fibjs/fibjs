@@ -17,10 +17,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#if defined(__APPLE__) && !TARGET_OS_IPHONE
+#if defined(__APPLE__) && !defined(TARGET_OS_IPHONE)
 #include <crt_externs.h>
 #define environ (*_NSGetEnviron())
 #else
+#include <grp.h>
 extern char** environ;
 #endif
 
@@ -44,12 +45,41 @@ extern char** environ;
     } while (0)
 
 int uv__cloexec_ioctl(int fd, int set);
-int uv__cloexec_fcntl(int fd, int set);
 int uv__nonblock_ioctl(int fd, int set);
 int uv__nonblock_fcntl(int fd, int set);
 int uv__close(int fd); /* preserves errno */
 int uv__close_nocheckstdio(int fd);
 int uv__make_pipe(int fds[2], int flags);
+
+int uv__cloexec_fcntl(int fd, int set) {
+  int flags;
+  int r;
+
+  do
+    r = fcntl(fd, F_GETFD);
+  while (r == -1 && errno == EINTR);
+
+  if (r == -1)
+    return UV__ERR(errno);
+
+  /* Bail out now if already set/clear. */
+  if (!!(r & FD_CLOEXEC) == !!set)
+    return 0;
+
+  if (set)
+    flags = r | FD_CLOEXEC;
+  else
+    flags = r & ~FD_CLOEXEC;
+
+  do
+    r = fcntl(fd, F_SETFD, flags);
+  while (r == -1 && errno == EINTR);
+
+  if (r)
+    return UV__ERR(errno);
+
+  return 0;
+}
 
 static void uv__chld(uv_signal_t* handle, int signum)
 {
@@ -116,33 +146,6 @@ static void uv__chld(uv_signal_t* handle, int signum)
         process->exit_cb(process, exit_status, term_signal);
     }
     assert(QUEUE_EMPTY(&pending));
-}
-
-static int uv__make_socketpair(int fds[2])
-{
-#if defined(__FreeBSD__) || defined(__linux__)
-    if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fds))
-        return UV__ERR(errno);
-
-    return 0;
-#else
-    int err;
-
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, fds))
-        return UV__ERR(errno);
-
-    err = uv__cloexec(fds[0], 1);
-    if (err == 0)
-        err = uv__cloexec(fds[1], 1);
-
-    if (err != 0) {
-        uv__close(fds[0]);
-        uv__close(fds[1]);
-        return UV__ERR(errno);
-    }
-
-    return 0;
-#endif
 }
 
 static void uv__write_int(int fd, int val)

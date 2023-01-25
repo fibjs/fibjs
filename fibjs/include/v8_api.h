@@ -11,9 +11,6 @@ namespace fibjs {
 
 intptr_t RunMicrotaskSize(v8::Isolate* isolate);
 
-v8::Local<v8::String> JSON_Stringify(v8::Isolate* isolate,
-    v8::Local<v8::Value> json_object, v8::Local<v8::Function> json_replacer);
-
 void InvokeApiInterruptCallbacks(v8::Isolate* isolate);
 
 struct V8FrameInfo {
@@ -30,7 +27,7 @@ void beginCoverage(v8::Isolate* isolate);
 void pauseCoverage(v8::Isolate* isolate);
 void WriteLcovData(v8::Isolate* isolate, FILE* file);
 
-bool isFrozen(v8::Handle<v8::Object> object);
-void setAsyncFunctoin(v8::Handle<v8::Function> func);
+bool isFrozen(v8::Local<v8::Object> object);
+void setAsyncFunctoin(v8::Local<v8::Function> func);
 
 } /* namespace fibjs */

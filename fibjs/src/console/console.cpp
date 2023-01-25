@@ -290,7 +290,7 @@ result_t console_base::timeElapse(exlib::string label)
     exlib::string strBuffer;
     char numStr[64];
 
-    sprintf(numStr, "%.10g", t / 1000.0);
+    snprintf(numStr, sizeof(numStr), "%.10g", t / 1000.0);
 
     strBuffer.append(label);
     strBuffer.append(": ", 2);
@@ -310,7 +310,7 @@ result_t console_base::timeEnd(exlib::string label)
     exlib::string strBuffer;
     char numStr[64];
 
-    sprintf(numStr, "%.10g", t / 1000.0);
+    snprintf(numStr, sizeof(numStr), "%.10g", t / 1000.0);
 
     strBuffer.append(label);
     strBuffer.append(": ", 2);
@@ -492,7 +492,7 @@ result_t console_base::moveTo(int32_t row, int32_t column)
 
     char numStr[64];
 
-    sprintf(numStr, "\x1b[%d;%dH", row, column);
+    snprintf(numStr, sizeof(numStr), "\x1b[%d;%dH", row, column);
     asyncLog(C_PRINT, numStr);
 
     return 0;

@@ -42,8 +42,6 @@ result_t gui_base::setVersion(int32_t ver)
 
 result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
-    Isolate* isolate = Isolate::current();
-
     s_gui.set();
     s_gui_ready.wait();
 

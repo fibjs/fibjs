@@ -24,7 +24,7 @@ args=$@
 for i in $@
 do
 	case $i in
-		i386|amd64|arm|arm64|armv6|mips|mips64|ppc|ppc64) BUILD_ARCH=$i
+		i386|amd64|arm|arm64|mips64|ppc64|s390x|riscv64|loong64) BUILD_ARCH=$i
 			;;
 		linux|alpine|android) BUILD_OS=$i
 			args="${args/$BUILD_OS/}" 
@@ -37,8 +37,8 @@ if [[ $BUILD_OS ]]; then
 		BUILD_ARCH=amd64
 	fi
 
-	docker run -ti --rm -v ${SOURCE_ROOT}:${SOURCE_ROOT} fibjs/${BUILD_OS}-build-env:${BUILD_ARCH}\
-		bash -c "cd ${SOURCE_ROOT}; usermod --login ${USER} fibjs; sudo -u ${USER} bash build ${args}"
+	docker run -ti --rm -v ${SOURCE_ROOT}:${SOURCE_ROOT} fibjs/${BUILD_OS}-build-env:${BUILD_ARCH} \
+		bash -c "cd ${SOURCE_ROOT} && usermod --login ${USER} fibjs && sudo -E -u ${USER} bash build ${args}"
 	exit $?
 fi
 

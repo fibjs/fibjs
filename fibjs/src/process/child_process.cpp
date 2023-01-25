@@ -148,7 +148,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
         util_base::clone(options, opts_);
 
         opts = v8::Local<v8::Object>::Cast(opts_);
-        opts->Delete(opts->CreationContext(), isolate->NewString("stdio"));
+        opts->Delete(opts->GetCreationContextChecked(), isolate->NewString("stdio")).Check();
 
         exlib::string codec("utf8");
         GetConfigValue(isolate->m_isolate, opts, "encoding", codec);
@@ -191,7 +191,7 @@ result_t child_process_base::exec(exlib::string command, v8::Local<v8::Object> o
         if (_args->m_array.size()) {
             cmd = _args->m_array[0].string();
             for (i = 1; i < _args->m_array.size(); i++)
-                args->Set(context, (int32_t)i - 1, _args->m_array[i]);
+                args->Set(context, (int32_t)i - 1, _args->m_array[i]).Check();
         }
 
         return execFile(cmd, args, options, _retVal, ac);
@@ -208,11 +208,11 @@ result_t child_process_base::fork(exlib::string module, v8::Local<v8::Array> arg
     v8::Local<v8::Array> args1 = v8::Array::New(isolate->m_isolate);
 
     process_base::get_execPath(exePath);
-    args1->Set(context, 0, isolate->NewString(module));
+    args1->Set(context, 0, isolate->NewString(module)).Check();
     if (!args.IsEmpty()) {
         int32_t len = args->Length();
         for (int32_t i = 0; i < len; i++)
-            args1->Set(context, i + 1, JSValue(args->Get(context, i)));
+            args1->Set(context, i + 1, JSValue(args->Get(context, i))).Check();
     }
 
     obj_ptr<ChildProcess> cp = new ChildProcess();
@@ -240,7 +240,7 @@ result_t child_process_base::run(exlib::string command, v8::Local<v8::Array> arg
         util_base::clone(options, opts_);
 
         opts = v8::Local<v8::Object>::Cast(opts_);
-        opts->Set(context, isolate->NewString("stdio"), isolate->NewString("inherit"));
+        opts->Set(context, isolate->NewString("stdio"), isolate->NewString("inherit")).Check();
 
         result_t hr = spawn(command, args, opts, cp);
         if (hr < 0)

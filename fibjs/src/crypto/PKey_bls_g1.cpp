@@ -13,8 +13,8 @@
 
 namespace fibjs {
 
-const unsigned char DST_G1_NUL[] = "BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_";
-const unsigned char DST_G1_AUG[] = "BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_AUG_";
+// const unsigned char DST_G1_NUL[] = "BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_";
+// const unsigned char DST_G1_AUG[] = "BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_AUG_";
 const unsigned char DST_G1_POP[] = "BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
 
 result_t PKey_bls_g1::mpi_load(Isolate* isolate, mbedtls_mpi* n, v8::Local<v8::Object> o)
@@ -29,7 +29,7 @@ result_t PKey_bls_g1::mpi_load(Isolate* isolate, mbedtls_mpi* n, v8::Local<v8::O
     if (v->IsArray()) {
         v8::Local<v8::Array> a = v8::Local<v8::Array>::Cast(v);
         int32_t len = a->Length();
-        blst_p1 point = { 0 };
+        blst_p1 point = {};
 
         for (int32_t i = 0; i < len; i++) {
             hr = GetConfigValue(isolate->m_isolate, a, i, b64);

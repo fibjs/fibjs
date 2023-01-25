@@ -1,0 +1,16 @@
+FROM ubuntu:20.04
+
+RUN apt-get update && apt-get install sudo curl tar -y
+RUN apt-get install cmake make -y && apt-get install git -y
+RUN curl --retry 5 -LO http://musl.cc/i686-linux-musl-cross.tgz && \
+    tar -C /usr -xvf i686-linux-musl-cross.tgz && \
+    rm i686-linux-musl-cross.tgz
+
+ENV AS=/usr/i686-linux-musl-cross/bin/i686-linux-musl-as \
+    AR=/usr/i686-linux-musl-cross/bin/i686-linux-musl-ar \
+    CC=/usr/i686-linux-musl-cross/bin/i686-linux-musl-gcc \
+    CPP=/usr/i686-linux-musl-cross/bin/i686-linux-musl-cpp \
+    CXX=/usr/i686-linux-musl-cross/bin/i686-linux-musl-g++ \
+    LD=/usr/i686-linux-musl-cross/bin/i686-linux-musl-ld
+
+RUN adduser fibjs -q

@@ -31,8 +31,7 @@ public:
 
 public:
     ChildProcess()
-        : m_exitCode(-1)
-        , m_ipc(-1)
+        : m_ipc(-1)
         , m_pty(false)
     {
         memset(&uv_options, 0, sizeof(uv_process_options_t));

@@ -35,7 +35,7 @@ if [[ -z "$IS_ORIGIN_REPO" || ! -z "$GIT_TAG" ]]; then
 fi
 
 if [ -z "$GIT_TAG" ]; then
-    export RELEASE_TAG="$GIT_COMMIT_TIME-$GIT_COMMIT_SHORTCUTS";
+export RELEASE_TAG="$GIT_COMMIT_TIME-$GIT_COMMIT_SHORTCUTS";
 else
     export RELEASE_TAG="$GIT_TAG";
 fi
@@ -71,17 +71,33 @@ esac
 
 if [[ "$RUNNER_OS" == "Linux" ]]; then
     export TARGET_OS_NAME="Linux";
-    export DIST_DIR="${TARGET_OS_NAME}_${TARGET_ARCH}_$BUILD_TYPE"
+
+
+    if [[ "$BUILD_TARGET" != "" ]]; then
+        if [[ "$BUILD_TARGET" == "android" ]]; then
+            export DIST_DIR="Android_${TARGET_ARCH}_$BUILD_TYPE"
+        elif [[ "$BUILD_TARGET" == "alpine" ]]; then
+            export DIST_DIR="Alpine_${TARGET_ARCH}_$BUILD_TYPE"
+        else
+            export DIST_DIR="Linux_${TARGET_ARCH}_$BUILD_TYPE"
+        fi
+    else
+        export DIST_DIR="Linux_${TARGET_ARCH}_$BUILD_TYPE"
+    fi
 fi
 
 if [[ "$RUNNER_OS" == "macOS" ]]; then
     export TARGET_OS_NAME="Darwin";
-    export DIST_DIR="${TARGET_OS_NAME}_${TARGET_ARCH}_$BUILD_TYPE"
+    if [[ "$BUILD_TARGET" == "iphone" ]]; then
+        export DIST_DIR="iPhone_${TARGET_ARCH}_$BUILD_TYPE"
+    else
+        export DIST_DIR="Darwin_${TARGET_ARCH}_$BUILD_TYPE"
+    fi
 fi
 
 if [[ "$RUNNER_OS" == "Windows" ]]; then
     export TARGET_OS_NAME="Windows";
-    export DIST_DIR="${TARGET_OS_NAME}_${TARGET_ARCH}_$BUILD_TYPE"
+    export DIST_DIR="Windows_${TARGET_ARCH}_$BUILD_TYPE"
 fi
 
 echo "::set-output name=TARGET_OS_NAME::$TARGET_OS_NAME"

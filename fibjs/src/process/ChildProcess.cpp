@@ -186,7 +186,7 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
     } else if (hr < 0)
         return hr;
 
-    JSArray keys = opt_envs->GetPropertyNames(opt_envs->CreationContext());
+    JSArray keys = opt_envs->GetPropertyNames(opt_envs->GetCreationContextChecked());
     int32_t len, sz, idx;
 
     sz = len = (int32_t)keys->Length();
@@ -211,16 +211,15 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
         if (ks == "NODE_CHANNEL_FD")
             continue;
 
-        if (!IsEmpty(v)) {
-            hr = GetArgumentValue(v, vs);
-            if (hr < 0)
-                return hr;
-        } else
-            vs = exlib::string("");
+        if (IsEmpty(v))
+            continue;
+
+        hr = GetArgumentValue(v, vs);
+        if (hr < 0)
+            return hr;
 
         ks.append(1, '=');
         ks.append(vs);
-        ks.append(1, 0);
 
         _envs[p] = (char*)envStr[p].c_str();
         p++;
@@ -233,7 +232,6 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
         ks = "NODE_CHANNEL_FD";
         ks.append(1, '=');
         ks.append(1, '0' + m_ipc);
-        ks.append(1, 0);
 
         _envs[p] = (char*)envStr[p].c_str();
         p++;
@@ -485,8 +483,6 @@ result_t ChildProcess::get_connected(bool& retVal)
 
 result_t ChildProcess::disconnect()
 {
-    Isolate* isolate = holder();
-
     if (!m_channel)
         return CHECK_ERROR(Runtime::setError("ChildProcess: IPC channel is already disconnected."));
 

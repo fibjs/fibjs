@@ -23,6 +23,7 @@
 #include <leveldb/db.h>
 #include <expat/include/expat.h>
 #include <uv/include/uv/version.h>
+#include <unicode/uvernum.h>
 #include <msgpack/version.hpp>
 
 namespace v8 {
@@ -94,8 +95,10 @@ public:
             g_vender->add("expat", STR(XML_MAJOR_VERSION) "." STR(XML_MINOR_VERSION) "." STR(XML_MICRO_VERSION));
             g_vender->add("gd", GD_VERSION_STRING);
             g_vender->add("gumbo", "0.10.0");
+            g_vender->add("icu", STR(U_ICU_VERSION_MAJOR_NUM) "." STR(U_ICU_VERSION_MINOR_NUM) "." STR(U_ICU_VERSION_PATCHLEVEL_NUM));
+            g_vender->add("jemalloc", "5.2.1");
             g_vender->add("jpeg", STR(JPEG_LIB_VERSION_MAJOR) "." STR(JPEG_LIB_VERSION_MINOR));
-            sprintf(str, "%d.%d", leveldb::kMajorVersion, leveldb::kMinorVersion);
+            snprintf(str, sizeof(str), "%d.%d", leveldb::kMajorVersion, leveldb::kMinorVersion);
             g_vender->add("leveldb", str);
             g_vender->add("mbedtls", MBEDTLS_VERSION_STRING);
             g_vender->add("mongo", STR(MONGO_MAJOR) "." STR(MONGO_MINOR));
@@ -134,13 +137,13 @@ result_t util_base::buildInfo(v8::Local<v8::Object>& retVal)
 
     {
         v8::Local<v8::Array> modules = v8::Array::New(isolate->m_isolate);
-        retVal->Set(context, isolate->NewString("modules"), modules);
+        retVal->Set(context, isolate->NewString("modules"), modules).Check();
 
         RootModule* pModule = RootModule::g_root;
         intptr_t icnt = 0;
 
         while (pModule) {
-            modules->Set(context, (int32_t)(icnt++), isolate->NewString(pModule->name()));
+            modules->Set(context, (int32_t)(icnt++), isolate->NewString(pModule->name())).Check();
             pModule = pModule->m_next;
         }
     }

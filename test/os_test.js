@@ -144,6 +144,13 @@ describe('os', () => {
     it('release', () => {
         const release = os.release();
         assert.isString(release);
+        assert.notEqual(release, "");
+    });
+
+    it('arch', () => {
+        const arch = os.arch();
+        assert.isString(arch);
+        assert.notEqual(arch, "");
     });
 
     it('homedir', () => {

@@ -12,6 +12,8 @@
 #include "path.h"
 #include "Fiber.h"
 #include "options.h"
+#include "unicode/locid.h"
+#include "unicode/timezone.h"
 
 namespace fibjs {
 
@@ -31,32 +33,13 @@ bool g_ssldump = false;
 
 bool g_uv_socket = false;
 
+exlib::string g_exec_code;
+
 #ifdef DEBUG
 #define GUARD_SIZE 32
 #else
 #define GUARD_SIZE 16
 #endif
-
-static class _init_v8_opt {
-public:
-    _init_v8_opt()
-    {
-        int64_t sz = uv_get_total_memory() / 1024 / 1024;
-
-        if (sz > 2048)
-            sz = 2048;
-        else if (sz > 1024)
-            sz = 1024;
-        else
-            sz = sz * 3 / 4;
-
-        v8::internal::FLAG_max_old_space_size = sz;
-        v8::internal::FLAG_stack_size = stack_size - GUARD_SIZE;
-
-        v8::internal::FLAG_wasm_async_compilation = false;
-        v8::internal::FLAG_wasm_code_gc = false;
-    }
-} s_init_v8_opt;
 
 static void printHelp()
 {
@@ -65,6 +48,8 @@ static void printHelp()
          "Options:\n"
          "  -h, --help           print fibjs command line options.\n"
          "  -v, --version        print fibjs version.\n"
+         "\n"
+         "  -e code              evaluate script\n"
          "\n"
          "  --use-thread         run fibjs in thread mode.\n"
          "  --tcpdump            print out the contents of the tcp package.\n"
@@ -90,41 +75,30 @@ static void printHelp()
          "Documentation can be found at http://fibjs.org\n");
 }
 
-#ifdef DEBUG
-void asyncLog(int32_t priority, exlib::string msg);
-void DcheckHandler(const char* file, int line, const char* message)
-{
-    char p_msg[256];
-    sprintf(p_msg, "Assert(DCheck) in %s, line %d: %s", file, line, message);
-    asyncLog(console_base::C_DEBUG, p_msg);
-}
-#endif
-
 void options(int32_t& pos, char* argv[])
 {
-    int32_t argc = pos;
     int32_t i;
-
-    for (pos = 1; (pos < argc) && (argv[pos][0] == '-'); pos++)
-        if (argv[pos][1] == '-') {
-            exlib::string tmp("opt_tools/");
-            tmp += argv[pos] + 2;
-
-            for (i = 0; opt_tools[i].name && qstrcmp(opt_tools[i].name, tmp.c_str()); i++)
-                ;
-
-            if (opt_tools[i].name)
-                break;
-        }
-
-    argc = pos;
     int32_t df = 0;
 
-    for (int32_t i = 0; i < argc; i++) {
+    for (i = 1; i < pos; i++) {
         char* arg = argv[i];
 
         if (df)
             argv[i - df] = arg;
+
+        if (arg[0] != '-')
+            break;
+        else if (arg[1] == '-') {
+            int32_t j;
+            exlib::string tmp("opt_tools/");
+            tmp += arg + 2;
+
+            for (j = 0; opt_tools[j].name && qstrcmp(opt_tools[j].name, tmp.c_str()); j++)
+                ;
+
+            if (opt_tools[j].name)
+                break;
+        }
 
         if (!qstrcmp(arg, "--help") || !qstrcmp(arg, "-h")) {
             printHelp();
@@ -163,25 +137,53 @@ void options(int32_t& pos, char* argv[])
             char name[22];
             date_t d;
             d.now();
-            sprintf(name, "fibjs-%d.lcov", (int32_t)d.date());
+            snprintf(name, sizeof(name), "fibjs-%d.lcov", (int32_t)d.date());
             g_cov = fopen(name, "a");
             if (g_cov == nullptr) {
                 printf("Can't open file: %s, please try again", name);
                 _exit(0);
             }
             df++;
+        } else if (!qstrcmp(arg, "-e")) {
+            if (i + 1 < pos) {
+                g_exec_code = argv[i + 1];
+                i++;
+                df += 2;
+            }
         } else if (!qstrcmp(arg, "--v8-options")) {
             v8::internal::FlagList::PrintHelp();
             _exit(0);
         }
     }
 
-    if (df)
-        argc -= df;
+    pos = i;
+    int32_t argc = pos - df;
 
     v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
-#ifdef DEBUG
-    v8::V8::SetDcheckErrorHandler(DcheckHandler);
-#endif
+
+    char* lang = getenv("LANG");
+    if (lang) {
+        icu::Locale locale(lang);
+        UErrorCode error_code = U_ZERO_ERROR;
+        icu::Locale::setDefault(locale, error_code);
+    }
+
+    char* tz = getenv("TZ");
+    if (tz) {
+        icu::TimeZone* zone = icu::TimeZone::createTimeZone(tz);
+        icu::TimeZone::setDefault(*zone);
+    }
+
+    int64_t sz = uv_get_total_memory() / 1024 / 1024;
+
+    if (sz > 2048)
+        sz = 2048;
+    else if (sz > 1024)
+        sz = 1024;
+    else
+        sz = sz * 3 / 4;
+
+    v8::internal::v8_flags.max_old_space_size = sz;
+    v8::internal::v8_flags.stack_size = stack_size - GUARD_SIZE;
 }
 }

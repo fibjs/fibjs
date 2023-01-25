@@ -13,13 +13,13 @@ case $1 in
     arm64) export QEMU_LD_PREFIX="/usr/aarch64-linux-gnu"
         enter $1
         ;;
-    armv6) export QEMU_LD_PREFIX="/usr/arm-linux-gnueabi"
+    mips64) export QEMU_LD_PREFIX="/usr/mips64el-linux-gnuabi64"
         enter $1
         ;;
-    mips) export QEMU_LD_PREFIX="/usr/mips-linux-gnu"
+    ppc64) export QEMU_LD_PREFIX="/usr/powerpc64le-linux-gnu"
         enter $1
         ;;
-    mips64) export QEMU_LD_PREFIX="/usr/mips64-linux-gnuabi64"
+    riscv64) export QEMU_LD_PREFIX="/usr/riscv64-linux-gnu"
         enter $1
         ;;
     *) echo "illegal option $1"

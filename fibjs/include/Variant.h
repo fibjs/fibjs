@@ -31,7 +31,7 @@ inline void extend(const v8::Local<v8::Object> src,
     v8::Local<v8::Object>& dest, bool bDataOnly = true)
 {
     TryCatch try_catch;
-    v8::Local<v8::Context> context = src->CreationContext();
+    v8::Local<v8::Context> context = src->GetCreationContextChecked();
     JSArray ks = src->GetPropertyNames(context);
     int32_t len = ks->Length();
     int32_t i;
@@ -41,7 +41,7 @@ inline void extend(const v8::Local<v8::Object> src,
         JSValue v = src->Get(context, k);
 
         if (!bDataOnly || (!v.IsEmpty() && !v->IsFunction()))
-            dest->Set(context, k, v);
+            dest->Set(context, k, v).Check();
     }
 }
 

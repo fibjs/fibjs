@@ -9,7 +9,7 @@ var io = require('io');
 var child_process = require('child_process');
 
 var win32 = process.platform === "win32";
-var darwin64 = process.platform === "darwin" && process.arch === 'x64';
+var darwin64 = process.platform === "darwin";
 
 var htmlDir = path.resolve(__dirname, './gui_files/html');
 var html = fs.readTextFile(path.resolve(htmlDir, './basic-loop.html'));

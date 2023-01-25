@@ -17,7 +17,7 @@ static void promise_then(const v8::FunctionCallbackInfo<v8::Value>& args)
         v8::Null(args.GetIsolate()), args[0]
     };
 
-    func->Call(func->CreationContext(), args.This(), 2, argv);
+    func->Call(func->GetCreationContextChecked(), args.This(), 2, argv).IsEmpty();
 }
 
 static void promise_catch(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -27,7 +27,7 @@ static void promise_catch(const v8::FunctionCallbackInfo<v8::Value>& args)
         args[0], v8::Null(args.GetIsolate())
     };
 
-    func->Call(func->CreationContext(), args.This(), 2, argv);
+    func->Call(func->GetCreationContextChecked(), args.This(), 2, argv).IsEmpty();
 }
 
 static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -44,8 +44,7 @@ static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
         argv[i] = args[i];
 
     v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(args.Data());
-    v8::Local<v8::Value> result;
-    func->Call(context, args.This(), (int32_t)argv.size(), argv.data()).ToLocal(&result);
+    v8::Local<v8::Value> result = func->Call(context, args.This(), (int32_t)argv.size(), argv.data()).FromMaybe(v8::Local<v8::Value>());
     if (result.IsEmpty())
         return;
 
@@ -88,11 +87,11 @@ static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 
     if (!_promise.IsEmpty()) {
-        _promise->Then(isolate->context(), _then_func);
-        _promise->Catch(isolate->context(), _catch_func);
+        _promise->Then(isolate->context(), _then_func).IsEmpty();
+        _promise->Catch(isolate->context(), _catch_func).IsEmpty();
     } else {
-        _then->Call(_then->CreationContext(), result, 1, (v8::Local<v8::Value>*)&_then_func);
-        _catch->Call(_catch->CreationContext(), result, 1, (v8::Local<v8::Value>*)&_catch_func);
+        _then->Call(_then->GetCreationContextChecked(), result, 1, (v8::Local<v8::Value>*)&_then_func).IsEmpty();
+        _catch->Call(_catch->GetCreationContextChecked(), result, 1, (v8::Local<v8::Value>*)&_catch_func).IsEmpty();
     }
 }
 

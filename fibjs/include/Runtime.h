@@ -14,8 +14,8 @@ namespace fibjs {
 class Runtime {
 public:
     Runtime(Isolate* isolate)
-        : m_isolate(isolate)
-        , m_promise_error_no(0)
+        : m_promise_error_no(0)
+        , m_isolate(isolate)
     {
         RegInThread();
     }
@@ -62,6 +62,11 @@ public:
     Isolate* isolate()
     {
         assert(v8::Locker::IsLocked(m_isolate->m_isolate));
+        return m_isolate;
+    }
+
+    Isolate* safe_isolate()
+    {
         return m_isolate;
     }
 

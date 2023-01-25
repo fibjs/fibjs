@@ -7,8 +7,6 @@ const util = require('util');
 
 const wasmDir = path.join(__dirname, 'wasm');
 
-WebAssembly.compileSync = util.sync(WebAssembly.compile, true);
-
 function loadWebAssembly(name) {
     var imports = {};
     imports.env = imports.env || {}
@@ -28,8 +26,10 @@ function loadWebAssembly(name) {
         })
     }
 
-    return new WebAssembly.Instance(WebAssembly.compileSync(
-        new Uint8Array(fs.readFile(path.join(wasmDir, name)))), imports)
+    return new WebAssembly.Instance(
+        new WebAssembly.Module(fs.readFile(path.join(wasmDir, name))),
+        imports
+    );
 }
 
 describe("wasm", () => {

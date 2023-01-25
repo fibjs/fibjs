@@ -52,6 +52,10 @@ public:
     static result_t memoryUsage(v8::Local<v8::Object>& retVal);
     static result_t nextTick(v8::Local<v8::Function> func, OptArgs args);
     static result_t binding(exlib::string name, v8::Local<v8::Value>& retVal);
+    static result_t getgid(int32_t& retVal);
+    static result_t getuid(int32_t& retVal);
+    static result_t setgid(int32_t id);
+    static result_t setuid(int32_t id);
     static result_t get_connected(bool& retVal);
     static result_t disconnect();
     static result_t send(v8::Local<v8::Value> msg);
@@ -93,6 +97,10 @@ public:
     static void s_static_memoryUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_nextTick(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_binding(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_getgid(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_getuid(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_setgid(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_setuid(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_connected(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_static_disconnect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_send(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -115,6 +123,10 @@ inline ClassInfo& process_base::class_info()
         { "memoryUsage", s_static_memoryUsage, true, false },
         { "nextTick", s_static_nextTick, true, false },
         { "binding", s_static_binding, true, false },
+        { "getgid", s_static_getgid, true, false },
+        { "getuid", s_static_getuid, true, false },
+        { "setgid", s_static_setgid, true, false },
+        { "setuid", s_static_setuid, true, false },
         { "disconnect", s_static_disconnect, true, false },
         { "send", s_static_send, true, false }
     };
@@ -487,6 +499,62 @@ inline void process_base::s_static_binding(const v8::FunctionCallbackInfo<v8::Va
     hr = binding(v0, vr);
 
     METHOD_RETURN();
+}
+
+inline void process_base::s_static_getgid(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_NAME("process.getgid");
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = getgid(vr);
+
+    METHOD_RETURN();
+}
+
+inline void process_base::s_static_getuid(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_NAME("process.getuid");
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = getuid(vr);
+
+    METHOD_RETURN();
+}
+
+inline void process_base::s_static_setgid(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("process.setgid");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
+
+    hr = setgid(v0);
+
+    METHOD_VOID();
+}
+
+inline void process_base::s_static_setuid(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("process.setuid");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
+
+    hr = setuid(v0);
+
+    METHOD_VOID();
 }
 
 inline void process_base::s_static_get_connected(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)

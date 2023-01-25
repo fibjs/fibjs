@@ -21,15 +21,15 @@ static void promisify_callback(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (len > 0) {
         if (!args[0].IsEmpty() && !args[0]->IsUndefined() && !args[0]->IsNull()) {
-            resolver->Reject(isolate->GetCurrentContext(), args[0]);
+            resolver->Reject(isolate->GetCurrentContext(), args[0]).Check();
             return;
         }
     }
 
     if (len > 1)
-        resolver->Resolve(isolate->GetCurrentContext(), args[1]);
+        resolver->Resolve(isolate->GetCurrentContext(), args[1]).Check();
     else
-        resolver->Resolve(isolate->GetCurrentContext(), v8::Undefined(isolate));
+        resolver->Resolve(isolate->GetCurrentContext(), v8::Undefined(isolate)).Check();
 }
 
 static void promisify_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -44,8 +44,7 @@ static void promisify_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
     for (i = 0; i < len; i++)
         argv[i] = args[i];
 
-    v8::Local<v8::Promise::Resolver> resolver;
-    v8::Promise::Resolver::New(isolate->context()).ToLocal(&resolver);
+    v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(isolate->context()).FromMaybe(v8::Local<v8::Promise::Resolver>());
 
     argv[i] = isolate->NewFunction("promisify_callback", promisify_callback, resolver);
     if (argv[i].IsEmpty()) {
@@ -61,9 +60,7 @@ static void promisify_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_NAME(str.c_str());
 
-    v8::Local<v8::Value> result;
-
-    func->Call(func->CreationContext(), args.This(), (int32_t)argv.size(), argv.data()).ToLocal(&result);
+    v8::Local<v8::Value> result = func->Call(func->GetCreationContextChecked(), args.This(), (int32_t)argv.size(), argv.data()).FromMaybe(v8::Local<v8::Value>());
     if (result.IsEmpty())
         return;
 

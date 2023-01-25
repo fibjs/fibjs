@@ -16,6 +16,7 @@
 #include "Url.h"
 #include "Buffer.h"
 #include "MemoryStream.h"
+#include <inttypes.h>
 
 namespace fibjs {
 
@@ -1147,7 +1148,7 @@ result_t http_base::fileHandler(exlib::string root, v8::Local<v8::Object> mimes,
 
 result_t HttpFileHandler::set_mimes(v8::Local<v8::Object> mimes)
 {
-    JSArray keys = mimes->GetPropertyNames(mimes->CreationContext());
+    JSArray keys = mimes->GetPropertyNames(mimes->GetCreationContextChecked());
     int32_t len = keys->Length();
     int32_t i;
     result_t hr;
@@ -1402,7 +1403,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 m_rep->set_statusCode(206);
 
                 char s[256];
-                sprintf(s, "bytes %lld-%lld/%lld\0", bpos, epos - 1, fsz);
+                snprintf(s, sizeof(s), "bytes %" PRId64 "-%" PRId64 "/%" PRId64 "", bpos, epos - 1, fsz);
                 m_rep->addHeader("Content-Range", s);
 
                 m_rep->set_body(stm);

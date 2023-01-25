@@ -22,16 +22,12 @@ DECLARE_MODULE(os);
 
 result_t os_base::type(exlib::string& retVal)
 {
-#ifndef _WIN32
     uv_utsname_t info;
     int32_t ret = uv_os_uname(&info);
     if (ret < 0)
         return CHECK_ERROR(ret);
 
     retVal = info.sysname;
-#else
-    retVal = "Windows";
-#endif
     return 0;
 }
 
@@ -90,6 +86,10 @@ result_t os_base::arch(exlib::string& retVal)
     retVal = "mips";
 #elif defined(mips64)
     retVal = "mips64";
+#elif defined(ppc64)
+    retVal = "ppc64";
+#elif defined(loong64)
+    retVal = "loong64";
 #endif
 
     return 0;
@@ -158,7 +158,7 @@ result_t os_base::cpuNumbers(int32_t& retVal)
         int32_t ret = uv_cpu_info(&cpu_infos, &s_cpus);
         if (ret < 0)
             return CHECK_ERROR(ret);
-        uv_free_cpu_info (cpu_infos, s_cpus);
+        uv_free_cpu_info(cpu_infos, s_cpus);
     }
 
     retVal = s_cpus;
@@ -181,24 +181,29 @@ result_t os_base::cpus(v8::Local<v8::Array>& retVal)
         v8::Local<v8::Object> cputimes = v8::Object::New(isolate->m_isolate);
 
         cputimes->Set(context, isolate->NewString("user"),
-            v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.user));
+                    v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.user))
+            .Check();
         cputimes->Set(context, isolate->NewString("nice"),
-            v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.nice));
+                    v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.nice))
+            .Check();
         cputimes->Set(context, isolate->NewString("sys"),
-            v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.sys));
+                    v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.sys))
+            .Check();
         cputimes->Set(context, isolate->NewString("idle"),
-            v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.idle));
+                    v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.idle))
+            .Check();
         cputimes->Set(context, isolate->NewString("irq"),
-            v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.irq));
+                    v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.irq))
+            .Check();
 
-        cpuinfo->Set(context, isolate->NewString("model"), isolate->NewString(cpu_infos[i].model));
-        cpuinfo->Set(context, isolate->NewString("speed"), v8::Number::New(isolate->m_isolate, cpu_infos[i].speed));
-        cpuinfo->Set(context, isolate->NewString("times"), cputimes);
+        cpuinfo->Set(context, isolate->NewString("model"), isolate->NewString(cpu_infos[i].model)).Check();
+        cpuinfo->Set(context, isolate->NewString("speed"), v8::Number::New(isolate->m_isolate, cpu_infos[i].speed)).Check();
+        cpuinfo->Set(context, isolate->NewString("times"), cputimes).Check();
 
-        retVal->Set(context, i, cpuinfo);
+        retVal->Set(context, i, cpuinfo).Check();
     }
 
-    uv_free_cpu_info (cpu_infos, s_cpus);
+    uv_free_cpu_info(cpu_infos, s_cpus);
 
     return 0;
 }
@@ -225,7 +230,7 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
 
         name = isolate->NewString(if_name);
 
-        retVal->Get(context, name).ToLocal(&v);
+        v = retVal->Get(context, name).FromMaybe(v8::Local<v8::Value>());
         if (!v.IsEmpty() && !v->IsUndefined())
             ret = v8::Local<v8::Array>::Cast(v);
         else
@@ -251,27 +256,29 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
                 family = isolate->NewString("Unknown");
             }
 
-            o->Set(context, isolate->NewString("address"), isolate->NewString(ip));
-            o->Set(context, isolate->NewString("netmask"), isolate->NewString(netmask));
-            o->Set(context, isolate->NewString("family"), family);
+            o->Set(context, isolate->NewString("address"), isolate->NewString(ip)).Check();
+            o->Set(context, isolate->NewString("netmask"), isolate->NewString(netmask)).Check();
+            o->Set(context, isolate->NewString("family"), family).Check();
 
-            sprintf(mac, "%02x:%02x:%02x:%02x:%02x:%02x",
+            snprintf(mac, sizeof(mac), "%02x:%02x:%02x:%02x:%02x:%02x",
                 phys_addr[0], phys_addr[1], phys_addr[2], phys_addr[3], phys_addr[4], phys_addr[5]);
-            o->Set(context, isolate->NewString("mac"), isolate->NewString(mac));
+            o->Set(context, isolate->NewString("mac"), isolate->NewString(mac)).Check();
 
             o->Set(context, isolate->NewString("internal"),
-                interfaces[i].is_internal ? v8::True(isolate->m_isolate) : v8::False(isolate->m_isolate));
+                 interfaces[i].is_internal ? v8::True(isolate->m_isolate) : v8::False(isolate->m_isolate))
+                .Check();
 
             if (interfaces[i].address.address4.sin_family == AF_INET6)
                 o->Set(context, isolate->NewString("scopeid"),
-                    v8::Number::New(isolate->m_isolate, interfaces[i].address.address6.sin6_scope_id));
+                     v8::Number::New(isolate->m_isolate, interfaces[i].address.address6.sin6_scope_id))
+                    .Check();
 
-            ret->Set(context, ret->Length(), o);
+            ret->Set(context, ret->Length(), o).Check();
 
             i++;
         }
 
-        retVal->Set(context, name, ret);
+        retVal->Set(context, name, ret).Check();
     }
 
     uv_free_interface_addresses(interfaces, ifs);
@@ -302,8 +309,8 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
     if (pwd.shell)
         shell.assign(pwd.shell);
 
-    retVal->Set(context, isolate->NewString("uid"), v8::Integer::New(isolate->m_isolate, pwd.uid));
-    retVal->Set(context, isolate->NewString("gid"), v8::Integer::New(isolate->m_isolate, pwd.gid));
+    retVal->Set(context, isolate->NewString("uid"), v8::Integer::New(isolate->m_isolate, pwd.uid)).Check();
+    retVal->Set(context, isolate->NewString("gid"), v8::Integer::New(isolate->m_isolate, pwd.gid)).Check();
 
     uv_os_free_passwd(&pwd);
 
@@ -312,12 +319,12 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
         obj_ptr<Buffer_base> homedirBuffer = new Buffer(homedir);
         obj_ptr<Buffer_base> shellBuffer = new Buffer(shell);
 
-        retVal->Set(context, isolate->NewString("username"), usernameBuffer->wrap());
-        retVal->Set(context, isolate->NewString("homedir"), homedirBuffer->wrap());
+        retVal->Set(context, isolate->NewString("username"), usernameBuffer->wrap()).Check();
+        retVal->Set(context, isolate->NewString("homedir"), homedirBuffer->wrap()).Check();
         if (!shell.empty())
-            retVal->Set(context, isolate->NewString("shell"), shellBuffer->wrap());
+            retVal->Set(context, isolate->NewString("shell"), shellBuffer->wrap()).Check();
         else
-            retVal->Set(context, isolate->NewString("shell"), v8::Null(isolate->m_isolate));
+            retVal->Set(context, isolate->NewString("shell"), v8::Null(isolate->m_isolate)).Check();
 
         return 0;
     } else {
@@ -325,12 +332,12 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
         commonEncode(encoding, homedir, homedir);
         commonEncode(encoding, shell, shell);
 
-        retVal->Set(context, isolate->NewString("username"), isolate->NewString(username));
-        retVal->Set(context, isolate->NewString("homedir"), isolate->NewString(homedir));
+        retVal->Set(context, isolate->NewString("username"), isolate->NewString(username)).Check();
+        retVal->Set(context, isolate->NewString("homedir"), isolate->NewString(homedir)).Check();
         if (!shell.empty())
-            retVal->Set(context, isolate->NewString("shell"), isolate->NewString(shell));
+            retVal->Set(context, isolate->NewString("shell"), isolate->NewString(shell)).Check();
         else
-            retVal->Set(context, isolate->NewString("shell"), v8::Null(isolate->m_isolate));
+            retVal->Set(context, isolate->NewString("shell"), v8::Null(isolate->m_isolate)).Check();
 
         return 0;
     }
@@ -345,9 +352,9 @@ result_t os_base::loadavg(v8::Local<v8::Array>& retVal)
     uv_loadavg(avg);
 
     retVal = v8::Array::New(isolate->m_isolate, 3);
-    retVal->Set(context, 0, v8::Number::New(isolate->m_isolate, avg[0]));
-    retVal->Set(context, 1, v8::Number::New(isolate->m_isolate, avg[1]));
-    retVal->Set(context, 2, v8::Number::New(isolate->m_isolate, avg[2]));
+    retVal->Set(context, 0, v8::Number::New(isolate->m_isolate, avg[0])).Check();
+    retVal->Set(context, 1, v8::Number::New(isolate->m_isolate, avg[1])).Check();
+    retVal->Set(context, 2, v8::Number::New(isolate->m_isolate, avg[2])).Check();
 
     return 0;
 }

@@ -16,7 +16,7 @@ static exlib::string fmtString(result_t hr, const char* str, int32_t len = -1)
         len = (int32_t)qstrlen(str);
 
     s.resize(len + 16);
-    s.resize(sprintf(s.c_buffer(), "[%d] %s", hr, str));
+    s.resize(snprintf(s.c_buffer(), len + 17, "[%d] %s", hr, str));
 
     return s;
 }
@@ -147,11 +147,11 @@ v8::Local<v8::Value> ThrowResult(result_t hr)
     v8::Local<v8::Object> e = v8::Local<v8::Object>::Cast(v);
     v8::Local<v8::Context> context = isolate->context();
 
-    e->Set(context, isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr));
+    e->Set(context, isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr)).Check();
 
     const char* _name = uv_error_name(hr);
     if (_name)
-        e->Set(context, isolate->NewString("code"), isolate->NewString(_name));
+        e->Set(context, isolate->NewString("code"), isolate->NewString(_name)).Check();
 
     return isolate->m_isolate->ThrowException(e);
 }
@@ -180,16 +180,16 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
             if (lineNumber > 0) {
                 char numStr[32];
                 strError.append(1, ':');
-                sprintf(numStr, "%d", lineNumber);
+                snprintf(numStr, sizeof(numStr), "%d", lineNumber);
                 strError.append(numStr);
                 strError.append(1, ':');
-                sprintf(numStr, "%d", message->GetStartColumn() + 1);
+                snprintf(numStr, sizeof(numStr), "%d", message->GetStartColumn() + 1);
                 strError.append(numStr);
             }
             strError.append("\n");
 
-            v8::Local<v8::String> sourceline;
-            if (message->GetSourceLine(context).ToLocal(&sourceline)) {
+            v8::Local<v8::String> sourceline = message->GetSourceLine(context).FromMaybe(v8::Local<v8::String>());
+            if (!sourceline.IsEmpty()) {
                 // Print line of source code.
                 v8::String::Utf8Value sourcelinevalue(isolate->m_isolate, sourceline);
                 const char* sourceline_string = ToCString(sourcelinevalue);
@@ -212,8 +212,7 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
         }
 
         if (err_obj->IsNativeError()) {
-            v8::Local<v8::Value> stack_trace_string;
-            try_catch.StackTrace(context).ToLocal(&stack_trace_string);
+            v8::Local<v8::Value> stack_trace_string = try_catch.StackTrace(context).FromMaybe(v8::Local<v8::Value>());
             if (!stack_trace_string.IsEmpty())
                 strError.append(isolate->toString(stack_trace_string));
         } else {
@@ -274,7 +273,7 @@ exlib::string ReportException(TryCatch& try_catch, result_t hr, bool repl)
 
 result_t CheckConfig(v8::Local<v8::Object> opts, const char** keys)
 {
-    v8::Local<v8::Context> context = opts->CreationContext();
+    v8::Local<v8::Context> context = opts->GetCreationContextChecked();
     JSArray ks = opts->GetPropertyNames(context);
     int32_t len = ks->Length();
     int32_t i;

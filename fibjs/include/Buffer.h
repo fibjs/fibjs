@@ -140,7 +140,7 @@ public:
     result_t _append(T datas)
     {
         int32_t sz = (int32_t)datas->Length();
-        v8::Local<v8::Context> context = datas->CreationContext();
+        v8::Local<v8::Context> context = datas->GetCreationContextChecked();
 
         if (sz) {
             int32_t i;

@@ -67,9 +67,9 @@ result_t Buffer_base::_new(v8::Local<v8::Array> datas,
 result_t Buffer_base::_new(v8::Local<v8::ArrayBuffer> datas,
     obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This)
 {
-    v8::ArrayBuffer::Contents cnt = datas->GetContents();
-    int32_t sz = (int32_t)cnt.ByteLength();
-    char* ptr = (char*)cnt.Data();
+    std::shared_ptr<v8::BackingStore> cnt = datas->GetBackingStore();
+    int32_t sz = (int32_t)cnt->ByteLength();
+    char* ptr = (char*)cnt->Data();
 
     retVal = new Buffer(ptr, sz);
     return 0;
@@ -310,12 +310,19 @@ inline bool is_native_codec(exlib::string codec)
         || (codec == "utf32le") || (codec == "utf-32le")
 
         || (codec == "ucs4be") || (codec == "ucs-4be")
-        || (codec == "utf32be") || (codec == "utf-32be");
+        || (codec == "utf32be") || (codec == "utf-32be")
+
+        || (codec == "binary") || (codec == "latin1");
 }
 
 inline bool static_is_safe_codec(exlib::string codec)
 {
-    return !Isolate::current()->m_safe_buffer || is_native_codec(codec);
+    Isolate* isolate = NULL;
+    Runtime* rt = Runtime::current();
+    if (rt)
+        isolate = rt->safe_isolate();
+
+    return (isolate && !isolate->m_safe_buffer) || is_native_codec(codec);
 }
 
 result_t Buffer_base::isEncoding(exlib::string codec, bool& retVal)
@@ -337,7 +344,11 @@ result_t Buffer_base::isEncoding(exlib::string codec, bool& retVal)
 
 bool Buffer::is_safe_codec(exlib::string codec)
 {
-    return !holder()->m_safe_buffer || is_native_codec(codec);
+    Isolate* isolate = get_holder();
+    if (!isolate)
+        return static_is_safe_codec(codec);
+
+    return !isolate->m_safe_buffer || is_native_codec(codec);
 }
 
 result_t Buffer::_indexed_getter(uint32_t index, int32_t& retVal)
@@ -380,12 +391,16 @@ result_t Buffer::get_byteOffset(int32_t& retVal)
     return 0;
 }
 
+static void _deleter(void* data, size_t length, void* deleter_data)
+{
+    exlib::string::Buffer::fromData((char*)data)->unref();
+}
+
 result_t Buffer::get_buffer(v8::Local<v8::ArrayBuffer>& retVal)
 {
     char* buf = exlib::string::Buffer::New(m_data.length(), m_data.c_str(), m_data.length())->data();
-
-    retVal = v8::ArrayBuffer::New(holder()->m_isolate,
-        buf, m_data.length(), v8::ArrayBufferCreationMode::kInternalized);
+    std::shared_ptr<v8::BackingStore> store = v8::ArrayBuffer::NewBackingStore(buf, m_data.length(), _deleter, 0);
+    retVal = v8::ArrayBuffer::New(holder()->m_isolate, store);
     return 0;
 }
 
@@ -1055,7 +1070,7 @@ result_t Buffer::join(exlib::string separator, exlib::string& retVal)
     char buf[32];
 
     for (int32_t i = 0; i < length; i++) {
-        sprintf(buf, "%d", (unsigned char)c_str[i]);
+        snprintf(buf, sizeof(buf), "%d", (unsigned char)c_str[i]);
         if (i > 0)
             sb.append(separator);
         sb.append(buf);
@@ -1149,8 +1164,8 @@ result_t Buffer::entries(obj_ptr<Iterator_base>& retVal)
             Isolate* isolate = holder();
             v8::Local<v8::Context> context = isolate->context();
             v8::Local<v8::Array> arr1 = v8::Array::New(isolate->m_isolate, 2);
-            arr1->Set(context, 0, v8::Number::New(isolate->m_isolate, (double)index));
-            arr1->Set(context, 1, v8::Number::New(isolate->m_isolate, (unsigned char)m_data[index]));
+            arr1->Set(context, 0, v8::Number::New(isolate->m_isolate, (double)index)).Check();
+            arr1->Set(context, 1, v8::Number::New(isolate->m_isolate, (unsigned char)m_data[index])).Check();
             retVal = arr1;
         }
     });
@@ -1167,7 +1182,7 @@ result_t Buffer::forEach(v8::Local<v8::Function> callback, v8::Local<v8::Value> 
         args[0] = v8::Number::New(isolate->m_isolate, (unsigned char)m_data[i]);
         args[1] = v8::Number::New(isolate->m_isolate, i);
 
-        JSValue r = callback->Call(callback->CreationContext(), thisArg, 3, args);
+        JSValue r = callback->Call(callback->GetCreationContextChecked(), thisArg, 3, args);
         if (r.IsEmpty())
             return CALL_E_JAVASCRIPT;
     }
@@ -1241,7 +1256,7 @@ result_t Buffer::toArray(v8::Local<v8::Array>& retVal)
     const char* _data = m_data.c_str();
 
     for (i = 0; i < (int32_t)m_data.length(); i++)
-        a->Set(context, i, v8::Number::New(isolate->m_isolate, (unsigned char)_data[i]));
+        a->Set(context, i, v8::Number::New(isolate->m_isolate, (unsigned char)_data[i])).Check();
 
     retVal = a;
 
@@ -1258,10 +1273,10 @@ result_t Buffer::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
     const char* _data = m_data.c_str();
 
     for (i = 0; i < (int32_t)m_data.length(); i++)
-        a->Set(context, i, v8::Number::New(isolate->m_isolate, (unsigned char)_data[i]));
+        a->Set(context, i, v8::Number::New(isolate->m_isolate, (unsigned char)_data[i])).Check();
 
-    o->Set(context, isolate->NewString("type"), isolate->NewString("Buffer"));
-    o->Set(context, isolate->NewString("data"), a);
+    o->Set(context, isolate->NewString("type"), isolate->NewString("Buffer")).Check();
+    o->Set(context, isolate->NewString("data"), a).Check();
 
     retVal = o;
 

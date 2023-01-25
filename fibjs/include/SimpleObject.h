@@ -33,7 +33,7 @@ public:
     void add(exlib::string key, Variant value);
     result_t add(v8::Local<v8::Object> m)
     {
-        v8::Local<v8::Context> context = m->CreationContext();
+        v8::Local<v8::Context> context = m->GetCreationContextChecked();
         JSArray ks = m->GetPropertyNames(context);
         int32_t len = ks->Length();
         int32_t i;
@@ -85,7 +85,7 @@ public:
 
         for (int32_t i = 0; i < (int32_t)m_values.size(); i++) {
             Value& v = m_values[i];
-            obj->Set(context, isolate->NewString(v.m_pos->first), v.m_val);
+            obj->Set(context, isolate->NewString(v.m_pos->first), v.m_val).Check();
         }
 
         return 0;
@@ -163,7 +163,7 @@ public:
         v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate);
 
         for (int32_t i = 0; i < (int32_t)m_array.size(); i++)
-            arr->Set(context, i, m_array[i]);
+            arr->Set(context, i, m_array[i]).Check();
 
         retVal = arr;
 

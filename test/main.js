@@ -10,6 +10,7 @@ const CI_SUBPROCESS_CHECK = !!process.env.CI_SUBPROCESS_CHECK;
 run("./assert_test.js");
 run("./test_test.js");
 run("./console_test.js");
+run("./icu_test.js");
 run("./punycode_test.js");
 run("./timer_test.js");
 run("./buffer_test.js");
@@ -18,7 +19,7 @@ run("./util_test.js");
 run("./promise_test.js");
 run("./xml_test.js");
 
-if (global.full_test)
+if (process.env.CI)
     run("./xml_suite.js");
 
 run("./coroutine_test.js");

@@ -2898,7 +2898,7 @@ describe("http", () => {
 
     it("unix socket", () => {
         var _port = (8887 + base_port);
-        var _path = os.type() == "Windows" ? "//./pipe/port_" + _port : os.homedir() + '/port_' + _port;
+        var _path = process.platform === 'win32' ? "//./pipe/port_" + _port : os.homedir() + '/port_' + _port;
 
         var svr = new http.Server(_path, (r) => {
             r.response.write("hello, " + r.address);

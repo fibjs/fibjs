@@ -16,7 +16,7 @@ static void promise_then(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());
 
-    _data->Set(context, NewString(isolate, "_result"), args[0]);
+    _data->Set(context, NewString(isolate, "_result"), args[0]).Check();
 
     obj_ptr<Event_base> ev = Event_base::getInstance(_data);
     ev->set();
@@ -28,7 +28,7 @@ static void promise_catch(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());
 
-    _data->Set(context, NewString(isolate, "_error"), args[0]);
+    _data->Set(context, NewString(isolate, "_error"), args[0]).Check();
 
     obj_ptr<Event_base> ev = Event_base::getInstance(_data);
     ev->set();
@@ -37,8 +37,7 @@ static void promise_catch(const v8::FunctionCallbackInfo<v8::Value>& args)
 v8::Local<v8::Value> JSFunction::Call(v8::Local<v8::Context> context, v8::Local<v8::Value> recv,
     int argc, v8::Local<v8::Value> argv[], bool async)
 {
-    v8::Local<v8::Value> result;
-    (*this)->Call(context, recv, argc, argv).ToLocal(&result);
+    v8::Local<v8::Value> result = (*this)->Call(context, recv, argc, argv).FromMaybe(v8::Local<v8::Value>());
     if (result.IsEmpty())
         return result;
 
@@ -94,13 +93,13 @@ v8::Local<v8::Value> JSFunction::Call(v8::Local<v8::Context> context, v8::Local<
         } else {
             v8::MaybeLocal<v8::Value> v;
 
-            v = _then->Call(_then->CreationContext(), result, 2, (v8::Local<v8::Value>*)&_handlers[0]);
+            v = _then->Call(_then->GetCreationContextChecked(), result, 2, (v8::Local<v8::Value>*)&_handlers[0]);
             if (v.IsEmpty()) {
                 ThrowError("promise error.");
                 return result;
             }
 
-            v = _catch->Call(_catch->CreationContext(), result, 1, (v8::Local<v8::Value>*)&_handlers[1]);
+            v = _catch->Call(_catch->GetCreationContextChecked(), result, 1, (v8::Local<v8::Value>*)&_handlers[1]);
             if (v.IsEmpty()) {
                 ThrowError("promise error.");
                 return result;
@@ -116,7 +115,7 @@ v8::Local<v8::Value> JSFunction::Call(v8::Local<v8::Context> context, v8::Local<
         if (!error.IsEmpty() && !error->IsUndefined() && !error->IsNull())
             isolate->m_isolate->ThrowException(error);
         else
-            _data->Get(context, isolate->NewString("_result")).ToLocal(&result);
+            result =  _data->Get(context, isolate->NewString("_result")).FromMaybe(v8::Local<v8::Value>());
     }
 
     return result;

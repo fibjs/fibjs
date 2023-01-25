@@ -58,7 +58,6 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
         return hr;
 
     Context context(this, fname);
-    Isolate* isolate = holder();
 
     std::vector<ExtLoader::arg> extarg(1);
     extarg[0] = ExtLoader::arg("__argv", argv);

@@ -893,7 +893,7 @@ void WebView::SetRect(const RECT& _rc)
 void WebView::Navigate(exlib::string szUrl)
 {
     bstr_t url(UTF8_W(szUrl));
-    variant_t flags(0x02u); //navNoHistory
+    variant_t flags(0x02u); // navNoHistory
     webBrowser2->Navigate(url, &flags, 0, 0, 0);
 }
 // IUnknown
@@ -1302,7 +1302,7 @@ HRESULT WebView::Exec(const GUID* pguidCmdGroup, DWORD nCmdID, DWORD nCmdexecopt
                 msg += utf16to8String(rgvaEventInfo[3].bstrVal);
                 if (rgvaEventInfo[4].bstrVal) {
                     msg += "\n    at " + utf16to8String(rgvaEventInfo[4].bstrVal);
-                    sprintf(buf, ":%d:%d", rgvaEventInfo[0].intVal, rgvaEventInfo[1].intVal);
+                    snprintf(buf, sizeof(buf), ":%d:%d", rgvaEventInfo[0].intVal, rgvaEventInfo[1].intVal);
                     msg += buf;
                 }
             }

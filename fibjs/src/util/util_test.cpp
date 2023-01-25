@@ -34,7 +34,7 @@ result_t util_base::isEmpty(v8::Local<v8::Value> v, bool& retVal)
 
     if (v->IsObject()) {
         v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
-        retVal = o->GetOwnPropertyNames(o->CreationContext()).ToLocalChecked()->Length() == 0;
+        retVal = o->GetOwnPropertyNames(o->GetCreationContextChecked()).FromMaybe(v8::Local<v8::Array>())->Length() == 0;
         return 0;
     }
 
@@ -269,7 +269,7 @@ static bool arrayEquals(QuickArray<v8::Local<v8::Object>>& acts,
         return false;
     }
 
-    v8::Local<v8::Context> context = act->CreationContext();
+    v8::Local<v8::Context> context = act->GetCreationContextChecked();
 
     for (i = 0; i < len; i++)
         if (!deepEquals(acts, exps, JSValue(act->Get(context, i)), JSValue(exp->Get(context, i)))) {
@@ -298,7 +298,7 @@ static bool objectEquals(QuickArray<v8::Local<v8::Object>>& acts,
     if (i == -1)
         return false;
 
-    v8::Local<v8::Context> context = act->CreationContext();
+    v8::Local<v8::Context> context = act->GetCreationContextChecked();
     JSArray keys = act->GetPropertyNames(context);
     int32_t len = (int32_t)keys->Length();
 

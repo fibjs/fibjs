@@ -87,7 +87,7 @@ void MongoCursor::ensureSpecial()
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
 
         o->Set(context, isolate->NewString("query"),
-            v8::Local<v8::Object>::New(isolate->m_isolate, m_query));
+            v8::Local<v8::Object>::New(isolate->m_isolate, m_query)).Check();
         m_query.Reset();
 
         m_query.Reset(isolate->m_isolate, o);
@@ -161,9 +161,7 @@ result_t MongoCursor::forEach(v8::Local<v8::Function> func)
     while ((hr = next(o)) != CALL_RETURN_NULL && hr >= 0) {
         v8::EscapableHandleScope handle_scope(isolate->m_isolate);
         v8::Local<v8::Value> a = o;
-        v8::Local<v8::Value> v;
-
-        func->Call(context, v8::Undefined(isolate->m_isolate), 1, &a).ToLocal(&v);
+        v8::Local<v8::Value> v = func->Call(context, v8::Undefined(isolate->m_isolate), 1, &a).FromMaybe(v8::Local<v8::Value>());
         if (v.IsEmpty())
             return CALL_E_JAVASCRIPT;
     }
@@ -184,13 +182,11 @@ result_t MongoCursor::map(v8::Local<v8::Function> func,
     while ((hr = next(o)) != CALL_RETURN_NULL && hr >= 0) {
         v8::EscapableHandleScope handle_scope(isolate->m_isolate);
         v8::Local<v8::Value> a = o;
-        v8::Local<v8::Value> v;
-
-        func->Call(context, v8::Undefined(isolate->m_isolate), 1, &a).ToLocal(&v);
+        v8::Local<v8::Value> v = func->Call(context, v8::Undefined(isolate->m_isolate), 1, &a).FromMaybe(v8::Local<v8::Value>());
         if (v.IsEmpty())
             return CALL_E_JAVASCRIPT;
 
-        as->Set(context, n, handle_scope.Escape(v));
+        as->Set(context, n, handle_scope.Escape(v)).Check();
         n++;
     }
 
@@ -276,7 +272,7 @@ result_t MongoCursor::_addSpecial(const char* name, v8::Local<v8::Value> opts,
     ensureSpecial();
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Object>::New(isolate->m_isolate, m_query)->Set(context, isolate->NewString(name), opts);
+    v8::Local<v8::Object>::New(isolate->m_isolate, m_query)->Set(context, isolate->NewString(name), opts).Check();
 
     retVal = this;
     return 0;
@@ -292,7 +288,7 @@ result_t MongoCursor::toArray(v8::Local<v8::Array>& retVal)
     int32_t n = 0;
 
     while ((hr = next(o)) != CALL_RETURN_NULL && hr >= 0) {
-        as->Set(context, n, o);
+        as->Set(context, n, o).Check();
         n++;
     }
 

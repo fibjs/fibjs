@@ -5,7 +5,8 @@
  *      Author: lion
  */
 
-#if defined(__APPLE__) && !defined(FIBJS_DISABLE_GUI)
+#include <exlib/include/osconfig.h>
+#if defined(Darwin) && !defined(iPhone)
 
 #import <Cocoa/Cocoa.h>
 #import <objc/runtime.h>
@@ -121,19 +122,19 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
                 mask |= NSWindowStyleMaskTitled;
 
             if (!(opt->get("resizable", v) == 0 && !v.boolVal()))
-                mask |= NSResizableWindowMask;
+                mask |= NSWindowStyleMaskResizable;
         } else
-            mask |= NSWindowStyleMaskBorderless | NSFullSizeContentViewWindowMask;
+            mask |= NSWindowStyleMaskBorderless | NSWindowStyleMaskFullSizeContentView;
 
         if (opt->get("maximize", v) == 0 && v.boolVal())
             _maximize = true;
 
         if (opt->get("fullscreen", v) == 0 && v.boolVal()) {
-            mask = NSResizableWindowMask;
+            mask = NSWindowStyleMaskResizable;
             _fullscreen = true;
         }
     } else
-        mask |= NSResizableWindowMask | NSWindowStyleMaskTitled;
+        mask |= NSWindowStyleMaskResizable | NSWindowStyleMaskTitled;
 
     s_screen_rect = [[NSScreen mainScreen] frame];
 

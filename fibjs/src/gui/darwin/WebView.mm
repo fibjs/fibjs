@@ -6,7 +6,8 @@
  * @desc WebView Implementation in OSX
  */
 
-#if defined(__APPLE__) && !defined(FIBJS_DISABLE_GUI)
+#include <exlib/include/osconfig.h>
+#if defined(Darwin) && !defined(iPhone)
 
 #include <Cocoa/Cocoa.h>
 #include <Webkit/Webkit.h>
@@ -32,7 +33,7 @@ void asyncLog(int32_t priority, exlib::string msg);
 
 NSEvent* getEmptyCustomNSEvent()
 {
-    return [NSEvent otherEventWithType:NSApplicationDefined
+    return [NSEvent otherEventWithType:NSEventTypeApplicationDefined
                               location:NSMakePoint(0, 0)
                          modifierFlags:0
                              timestamp:0.0
@@ -122,8 +123,8 @@ result_t os_gui_open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebVi
 
 // Would Call In Javascript Thread
 WebView::WebView(exlib::string url, NObject* opt)
-    : m_bDebug(true)
-    , m_bIScriptLoaded(false)
+    : m_bIScriptLoaded(false)
+    , m_bDebug(true)
 {
     isolate_ref();
 

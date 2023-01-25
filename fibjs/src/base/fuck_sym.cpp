@@ -47,10 +47,17 @@ int clock_getres(clockid_t clk_id, struct timespec* tp)
 // GLIBC_2.28
 #ifdef GLIB_C_FCNTL
 __asm__(".symver _fcntl,fcntl@GLIBC_" GLIB_C_FCNTL);
-int _fcntl(int fd, int cmd, void* lock);
-int fcntl64(int fd, int cmd, void* lock)
+int _fcntl(int fd, int cmd, ...);
+int fcntl64(int fd, int cmd, ...)
 {
-    return _fcntl(fd, cmd, lock);
+    int result;
+    va_list va;
+
+    va_start(va, cmd);
+    result = _fcntl(fd, cmd, va_arg(va, void*));
+    va_end(va);
+
+    return result;
 }
 #endif
 
@@ -61,6 +68,13 @@ double _exp(double x);
 double exp(double x)
 {
     return _exp(x);
+}
+
+__asm__(".symver _expf,expf@GLIBC_" GLIB_C_MATH);
+double _expf(double x);
+float expf(float x)
+{
+    return _expf(x);
 }
 
 __asm__(".symver _log,log@GLIBC_" GLIB_C_MATH);

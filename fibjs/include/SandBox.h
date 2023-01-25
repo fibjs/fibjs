@@ -63,10 +63,10 @@ public:
         if (m.IsEmpty()) {
             m = v8::Object::New(isolate->m_isolate);
             if (!o.IsEmpty())
-                m->Set(_context, isolate->NewString("exports"), o);
+                m->Set(_context, isolate->NewString("exports"), o).Check();
         }
 
-        mods()->Set(_context, isolate->NewString(fname), m);
+        mods()->Set(_context, isolate->NewString(fname), m).Check();
     }
 
     v8::Local<v8::Value> get_module(v8::Local<v8::Object> mods, exlib::string id);
@@ -75,7 +75,7 @@ public:
     class Context {
     public:
         Context(SandBox* sb, exlib::string id);
-        static result_t repl();
+        static result_t repl(exlib::string src);
 
     public:
         obj_ptr<SandBox> m_sb;
@@ -90,7 +90,7 @@ public:
         {
             if (sb->m_global) {
                 v8::Local<v8::Object> _global = v8::Local<v8::Object>::Cast(sb->GetPrivate("_global"));
-                _context = _global->CreationContext();
+                _context = _global->GetCreationContextChecked();
                 _context->Enter();
             }
         }
@@ -170,7 +170,7 @@ public:
     result_t resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
         v8::Local<v8::Value>& retVal);
 
-    result_t repl();
+    result_t repl(exlib::string src);
 
     result_t run_module(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal);
     result_t run_main(exlib::string fname, v8::Local<v8::Array> argv);

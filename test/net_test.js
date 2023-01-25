@@ -37,11 +37,11 @@ if (!has_ipv6)
     };
 
 var backend = {
-    "Windows": "IOCP",
-    "Darwin": "KQueue",
-    "FreeBSD": "KQueue",
-    "Linux": "EPoll"
-}[os.type()];
+    "win32": "IOCP",
+    "darwin": "KQueue",
+    "freebsd": "KQueue",
+    "linux": "EPoll"
+}[process.platform];
 
 
 function del(f) {
@@ -651,11 +651,11 @@ function test_net(eng, use_uv) {
                 test_util.push(s);
 
                 var _port = getPort();
-                var _path = os.type() == "Windows" ? "//./pipe/port_" + _port : os.homedir() + '/port_' + _port;
+                var _path = process.platform === 'win32' ? "//./pipe/port_" + _port : os.homedir() + '/port_' + _port;
 
                 s.bind(_path);
                 s.listen();
-                if (os.type() !== "Windows")
+                if (process.platform !== 'win32')
                     assert.equal(s.localAddress, _path);
                 coroutine.start(accept, s);
 
@@ -669,7 +669,7 @@ function test_net(eng, use_uv) {
 
                 function conn() {
                     var s1 = net.connect('unix:' + _path);
-                    if (os.type() !== "Windows")
+                    if (process.platform !== 'win32')
                         assert.equal(s1.remoteAddress, _path);
                     s1.send(new Buffer("GET / HTTP/1.0"));
                     assert.equal("GET / HTTP/1.0", s1.recv());
@@ -689,7 +689,7 @@ function test_net(eng, use_uv) {
                 var svr;
 
                 var _port = getPort();
-                var _path = os.type() == "Windows" ? "//./pipe/port_" + _port : os.homedir() + '/port_' + _port;
+                var _path = process.platform === 'win32' ? "//./pipe/port_" + _port : os.homedir() + '/port_' + _port;
 
                 svr = new net.TcpServer(_path, (c) => {
                     try {
@@ -705,7 +705,7 @@ function test_net(eng, use_uv) {
                 svr.start();
 
                 var s1 = net.connect('unix:' + _path);
-                if (os.type() !== "Windows")
+                if (process.platform !== 'win32')
                     assert.equal(s1.remoteAddress, _path);
                 s1.send(new Buffer("GET / HTTP/1.0"));
                 assert.equal("GET / HTTP/1.0", s1.recv());

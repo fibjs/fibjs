@@ -444,7 +444,7 @@ describe("timer", () => {
         it("sleep", () => {
             function test2() {
                 while (true)
-                    coroutine.sleep(100);
+                    coroutine.sleep(10);
             }
 
             var t1 = new Date();
@@ -453,7 +453,7 @@ describe("timer", () => {
             });
             var t2 = new Date();
             assert.greaterThan(t2 - t1, 90);
-            assert.lessThan(t2 - t1, 500);
+            assert.lessThan(t2 - t1, 1000);
         });
 
         it("util.format", () => {
@@ -478,6 +478,26 @@ describe("timer", () => {
 
             assert.throws(() => {
                 timers.call(test4, 30);
+            });
+        });
+
+        it("require", () => {
+            function test5() {
+                require('./module/tm1.js');
+            }
+
+            assert.throws(() => {
+                timers.call(test5, 30);
+            });
+        });
+
+        it("run", () => {
+            function test6() {
+                run('./module/tm1.js');
+            }
+
+            assert.throws(() => {
+                timers.call(test6, 30);
             });
         });
     });

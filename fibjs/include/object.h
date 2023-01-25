@@ -302,7 +302,7 @@ public:
     {
         v8::Local<v8::Object> o = wrap();
         Isolate* isolate = holder();
-        v8::Local<v8::Context> context = o->CreationContext();
+        v8::Local<v8::Context> context = o->GetCreationContextChecked();
 
         v8::Local<v8::Private> k = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_private_object"));
         JSValue v = o->GetPrivate(context, k);
@@ -317,20 +317,20 @@ public:
 
     v8::Local<v8::Value> GetPrivate(exlib::string key)
     {
-        v8::Local<v8::Context> context = wrap()->CreationContext();
+        v8::Local<v8::Context> context = wrap()->GetCreationContextChecked();
         return JSValue(GetPrivateObject()->Get(context, holder()->NewString(key)));
     }
 
     void SetPrivate(exlib::string key, v8::Local<v8::Value> value)
     {
-        v8::Local<v8::Context> context = wrap()->CreationContext();
-        GetPrivateObject()->Set(context, holder()->NewString(key), value);
+        v8::Local<v8::Context> context = wrap()->GetCreationContextChecked();
+        GetPrivateObject()->Set(context, holder()->NewString(key), value).Check();
     }
 
     void DeletePrivate(exlib::string key)
     {
-        v8::Local<v8::Context> context = wrap()->CreationContext();
-        GetPrivateObject()->Delete(context, holder()->NewString(key));
+        v8::Local<v8::Context> context = wrap()->GetCreationContextChecked();
+        GetPrivateObject()->Delete(context, holder()->NewString(key)).Check();
     }
 
 public:
@@ -496,25 +496,6 @@ public:
     static RootModule* g_root;
     static RootModule* g_last;
 };
-
-inline void* ClassInfo::getInstance(void* o)
-{
-    object_base* obj = (object_base*)o;
-
-    if (!obj)
-        return NULL;
-
-    ClassInfo* cls = &obj->Classinfo();
-    ClassInfo* tcls = this;
-
-    while (cls && cls != tcls)
-        cls = cls->m_cd.base;
-
-    if (!cls)
-        return NULL;
-
-    return obj;
-}
 
 inline ClassInfo& object_base::class_info()
 {

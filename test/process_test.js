@@ -93,6 +93,7 @@ describe('process', () => {
             const COUNT_LEN = 500;
             var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.blocking_stdout.js')], {
                 env: {
+                    QEMU_LD_PREFIX: process.env.QEMU_LD_PREFIX,
                     COUNT_LEN
                 }
             });

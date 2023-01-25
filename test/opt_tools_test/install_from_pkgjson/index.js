@@ -14,6 +14,7 @@ const processRunOptions = {
     env: {
         // all required environment would fallback to the parent's one
         FIBJS_SILENT_INSALL: process.env.hasOwnProperty('FIBJS_SILENT_INSALL') ? process.env.FIBJS_SILENT_INSALL : 1,
+        QEMU_LD_PREFIX: process.env.QEMU_LD_PREFIX,
         http_proxy: process.env.http_proxy,
         https_proxy: process.env.https_proxy,
     }

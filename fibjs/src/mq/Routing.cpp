@@ -318,14 +318,14 @@ result_t Routing::append(exlib::string method, exlib::string pattern, Handler_ba
     if (re == NULL) {
         char buf[1024];
 
-        sprintf(buf, "Routing: Compilation failed at offset %d: %s.", erroffset, error);
+        snprintf(buf, sizeof(buf), "Routing: Compilation failed at offset %d: %s.", erroffset, error);
         return CHECK_ERROR(Runtime::setError(buf));
     }
 
     int32_t no = (int32_t)m_array.size();
 
     char strBuf[32];
-    sprintf(strBuf, "handler_%d", no);
+    snprintf(strBuf, sizeof(strBuf), "handler_%d", no);
 
     SetPrivate(strBuf, hdlr->wrap());
 
@@ -346,7 +346,7 @@ result_t Routing::append(Routing_base* route, obj_ptr<Routing_base>& retVal)
 
     for (i = len - 1; i >= 0; i--) {
         char strBuf[32];
-        sprintf(strBuf, "handler_%d", no++);
+        snprintf(strBuf, sizeof(strBuf), "handler_%d", no++);
 
         rule* r = r_obj->m_array[i];
 

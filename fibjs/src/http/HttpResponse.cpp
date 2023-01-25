@@ -292,7 +292,7 @@ result_t http_base::get_STATUS_CODES(v8::Local<v8::Array>& retVal)
 
     retVal = v8::Array::New(isolate->m_isolate);
     for (i = 0; i < RESPONSE_CODES; i++)
-        retVal->Set(context, atoi(status_lines[i]), isolate->NewString(status_lines[i] + 5));
+        retVal->Set(context, atoi(status_lines[i]), isolate->NewString(status_lines[i] + 5)).Check();
 
     return 0;
 }
@@ -340,13 +340,13 @@ result_t HttpResponse::sendTo(Stream_base* stm, AsyncEvent* ac)
 
         if (statusMessage.empty()) {
             char buf[32];
-            sprintf(buf, " %d Unknown", statusCode);
+            snprintf(buf, sizeof(buf), " %d Unknown", statusCode);
             statusMessage = buf;
         }
     } else {
         char buf[32];
 
-        sprintf(buf, " %d ", m_statusCode);
+        snprintf(buf, sizeof(buf), " %d ", m_statusCode);
         statusMessage = buf;
         statusMessage.append(m_statusMessage);
     }

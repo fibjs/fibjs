@@ -1,18 +1,16 @@
-FROM alpine:latest
+FROM ubuntu:20.04
 
-LABEL AUTHOR="xicilion"
-LABEL AUTHOR_EMAIL="lion@9465.net"
+RUN apt-get update && apt-get install sudo curl tar -y
+RUN apt-get install cmake make -y && apt-get install git -y
+RUN curl --retry 5 -LO http://musl.cc/x86_64-linux-musl-cross.tgz && \
+    tar -C /usr -xvf x86_64-linux-musl-cross.tgz && \
+    rm x86_64-linux-musl-cross.tgz
 
-RUN apk add bash
-RUN apk add git
-RUN apk add cmake
-RUN apk add make
-RUN apk add clang
-RUN apk add g++
-RUN apk add linux-headers
-RUN apk add libx11-dev
-RUN apk add xz
-RUN apk add sudo
-RUN apk add shadow
+ENV AS=/usr/x86_64-linux-musl-cross/bin/x86_64-linux-musl-as \
+    AR=/usr/x86_64-linux-musl-cross/bin/x86_64-linux-musl-ar \
+    CC=/usr/x86_64-linux-musl-cross/bin/x86_64-linux-musl-gcc \
+    CPP=/usr/x86_64-linux-musl-cross/bin/x86_64-linux-musl-cpp \
+    CXX=/usr/x86_64-linux-musl-cross/bin/x86_64-linux-musl-g++ \
+    LD=/usr/x86_64-linux-musl-cross/bin/x86_64-linux-musl-ld
 
-RUN adduser --disabled-password fibjs
+RUN adduser fibjs -q

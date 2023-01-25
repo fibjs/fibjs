@@ -70,7 +70,7 @@ result_t HttpRepeater::load(v8::Local<v8::Array> urls)
     std::vector<obj_ptr<Url>> _urls;
     result_t hr;
     int32_t len = urls->Length();
-    v8::Local<v8::Context> context = urls->CreationContext();
+    v8::Local<v8::Context> context = urls->GetCreationContextChecked();
 
     if (len == 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);

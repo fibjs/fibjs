@@ -9,6 +9,7 @@
 #pragma warning(disable : 4800)
 #pragma warning(disable : 4101)
 #pragma warning(disable : 4244)
+#define _WIN32_WINNT 0x0602
 #endif
 
 #include "v8/src/codegen/bailout-reason.h"
@@ -32,7 +33,6 @@
 #include "v8/src/execution/isolate.h"
 #include "v8/src/execution/frames.h"
 #include "v8/src/execution/frames-inl.h"
-#include "v8/src/json/json-stringifier.h"
 #include "v8/src/debug/debug-interface.h"
 #include "v8/src/execution/microtask-queue.h"
 
@@ -51,123 +51,21 @@ intptr_t RunMicrotaskSize(Isolate* isolate)
     return _isolate->default_microtask_queue()->size();
 }
 
-bool isFrozen(Handle<Object> object)
+bool isFrozen(Local<Object> object)
 {
     auto obj = Utils::OpenHandle(*object);
     Maybe<bool> test = i::JSReceiver::TestIntegrityLevel(obj, i::FROZEN);
     return test.ToChecked();
 }
 
-void setAsyncFunctoin(Handle<Function> func)
+void setAsyncFunctoin(Local<Function> func)
 {
     i::Handle<i::Object> obj = Utils::OpenHandle(*func);
     i::Handle<i::JSFunction> _func = i::Handle<i::JSFunction>::cast(obj);
-    _func->shared().set_kind(i::kAsyncFunction);
+    _func->shared().set_kind(i::FunctionKind::kAsyncFunction);
 }
-
-template <bool do_callback>
-class CallDepthScope {
-public:
-    CallDepthScope(i::Isolate* isolate, Local<Context> context)
-        : isolate_(isolate)
-        , context_(context)
-        , escaped_(false)
-        , safe_for_termination_(isolate->next_v8_call_is_safe_for_termination())
-        , interrupts_scope_(isolate_, i::StackGuard::TERMINATE_EXECUTION,
-              isolate_->only_terminate_in_safe_scope()
-                  ? (safe_for_termination_
-                          ? i::InterruptsScope::kRunInterrupts
-                          : i::InterruptsScope::kPostponeInterrupts)
-                  : i::InterruptsScope::kNoop)
-    {
-        isolate_->thread_local_top()->IncrementCallDepth(this);
-        isolate_->set_next_v8_call_is_safe_for_termination(false);
-        if (!context.IsEmpty()) {
-            i::Handle<i::Context> env = Utils::OpenHandle(*context);
-            i::HandleScopeImplementer* impl = isolate->handle_scope_implementer();
-            if (!isolate->context().is_null() && isolate->context().native_context() == env->native_context()) {
-                context_ = Local<Context>();
-            } else {
-                impl->SaveContext(isolate->context());
-                isolate->set_context(*env);
-            }
-        }
-        if (do_callback)
-            isolate_->FireBeforeCallEnteredCallback();
-    }
-    ~CallDepthScope()
-    {
-        i::MicrotaskQueue* microtask_queue = isolate_->default_microtask_queue();
-        if (!context_.IsEmpty()) {
-            i::HandleScopeImplementer* impl = isolate_->handle_scope_implementer();
-            isolate_->set_context(impl->RestoreContext());
-
-            i::Handle<i::Context> env = Utils::OpenHandle(*context_);
-            microtask_queue = env->native_context().microtask_queue();
-        }
-        if (!escaped_)
-            isolate_->thread_local_top()->DecrementCallDepth(this);
-        if (do_callback)
-            isolate_->FireCallCompletedCallback(microtask_queue);
-// TODO(jochen): This should be #ifdef DEBUG
-#ifdef V8_CHECK_MICROTASKS_SCOPES_CONSISTENCY
-        if (do_callback)
-            CheckMicrotasksScopesConsistency(microtask_queue);
-#endif
-        isolate_->set_next_v8_call_is_safe_for_termination(safe_for_termination_);
-    }
-
-    void Escape()
-    {
-        DCHECK(!escaped_);
-        escaped_ = true;
-        auto thread_local_top = isolate_->thread_local_top();
-        thread_local_top->DecrementCallDepth(this);
-        bool clear_exception = thread_local_top->CallDepthIsZero() && thread_local_top->try_catch_handler_ == nullptr;
-        isolate_->OptionalRescheduleException(clear_exception);
-    }
-
-private:
-    i::Isolate* const isolate_;
-    Local<Context> context_;
-    bool escaped_;
-    bool do_callback_;
-    bool safe_for_termination_;
-    i::InterruptsScope interrupts_scope_;
-    i::Address previous_stack_height_;
-
-    friend class i::ThreadLocalTop;
-
-    DISALLOW_NEW_AND_DELETE()
-    DISALLOW_COPY_AND_ASSIGN(CallDepthScope);
-};
 
 bool path_isAbsolute(exlib::string path);
-
-Local<String> JSON_Stringify(Isolate* isolate,
-    Local<Value> json_object, Local<Function> json_replacer)
-{
-    i::Isolate* v8_isolate = reinterpret_cast<i::Isolate*>(isolate);
-    CallDepthScope<false> call_depth_scope(v8_isolate, isolate->GetCurrentContext());
-
-    Local<String> result;
-    if (*json_object == nullptr || *json_replacer == nullptr)
-        return result;
-
-    i::Handle<i::Object> object = Utils::OpenHandle(*json_object);
-    i::Handle<i::Object> replacer = Utils::OpenHandle(*json_replacer);
-    i::Handle<i::String> gap_string = v8_isolate->factory()->empty_string();
-    i::Handle<i::Object> maybe;
-
-    if (i::JsonStringify(v8_isolate, object, replacer, gap_string)
-            .ToHandle(&maybe))
-        ToLocal<String>(i::Object::ToString(v8_isolate, maybe), &result);
-
-    if (result.IsEmpty())
-        call_depth_scope.Escape();
-
-    return result;
-}
 
 void InvokeApiInterruptCallbacks(Isolate* isolate)
 {
@@ -211,7 +109,7 @@ exlib::string traceInfo(Isolate* isolate, int32_t deep, void* entry_fp, void* ha
             strBuffer.append(bFirst ? "    at " : "\n    at ");
             bFirst = false;
 
-            String::Utf8Value funcname(isolate, Utils::ToLocal(summ.FunctionName()));
+            String::Utf8Value funcname(isolate, Utils::ToLocal(i::JSFunction::GetName(v8_isolate, summ.function())));
             if (*funcname) {
                 strBuffer.append(*funcname);
                 strBuffer.append(" (", 2);
@@ -239,10 +137,10 @@ exlib::string traceInfo(Isolate* isolate, int32_t deep, void* entry_fp, void* ha
             } else
                 strBuffer.append("[eval]:", 7);
 
-            sprintf(numStr, "%d", line_number);
+            snprintf(numStr, sizeof(numStr), "%d", line_number);
             strBuffer.append(numStr);
             strBuffer.append(1, ':');
-            sprintf(numStr, "%d", column_number);
+            snprintf(numStr, sizeof(numStr), "%d", column_number);
             strBuffer.append(numStr);
 
             if (**funcname)

@@ -1871,13 +1871,14 @@ describe('util', () => {
             assert.property(util.buildInfo(), 'fibjs');
             switch (process.platform) {
                 case 'win32':
-                    const keys = Object.keys(util.buildInfo());
+                    var keys = Object.keys(util.buildInfo());
                     assert.isTrue(keys.includes('msvc') || keys.includes('clang'));
                     break
                 case 'darwin':
                 case 'freebsd':
                 case 'linux':
-                    assert.property(util.buildInfo(), 'clang');
+                    var keys = Object.keys(util.buildInfo());
+                    assert.isTrue(keys.includes('gcc') || keys.includes('clang'));
                     break
             }
             // git
