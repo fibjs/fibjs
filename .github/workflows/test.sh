@@ -8,9 +8,10 @@ if [[ $TARGET_OS_NAME == 'Linux' ]]; then
     if [[ "$BUILD_TARGET" != "" ]]; then
         docker run -t --rm -e CI=${CI} -v ${CUR}:/fibjs fibjs/${BUILD_TARGET}-test-env:${TARGET_ARCH} bash -c "cd /fibjs; ./bin/${DIST_DIR}/fibjs test/main.js"
     else
-        docker run -t --rm -e CI=${CI} -v ${CUR}:/fibjs fibjs/linux-build-env:${TARGET_ARCH} bash -c "cd /fibjs; ./bin/${DIST_DIR}/fibjs test/main.js"
         if [[ $TARGET_ARCH == 'amd64' ]]; then
             docker run -t --rm -e CI=${CI} -v ${CUR}:/fibjs ubuntu:10.04 bash -c "cd /fibjs; ./bin/${DIST_DIR}/fibjs test/main.js"
+        else
+            docker run -t --rm -e CI=${CI} -v ${CUR}:/fibjs fibjs/linux-build-env:${TARGET_ARCH} bash -c "cd /fibjs; ./bin/${DIST_DIR}/fibjs test/main.js"
         fi
     fi
 else # Windows/Darwin
