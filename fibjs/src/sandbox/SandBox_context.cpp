@@ -153,15 +153,15 @@ void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 SandBox::Context::Context(SandBox* sb, exlib::string id)
     : m_sb(sb)
+    , m_id(id)
 {
     Isolate* isolate = m_sb->holder();
     v8::Local<v8::Context> context = isolate->context();
-    m_id = isolate->NewString(id);
 
     v8::Local<v8::Object> _mod = v8::Object::New(isolate->m_isolate);
 
     _mod->Set(context, isolate->NewString("_sbox"), m_sb->wrap()).Check();
-    _mod->Set(context, isolate->NewString("_id"), m_id).Check();
+    _mod->Set(context, isolate->NewString("_id"), isolate->NewString(id)).Check();
 
     m_fnRequest = isolate->NewFunction("require", _require, _mod);
     m_fnRequest->Set(context, isolate->NewString("resolve"), isolate->NewFunction("resolve", _resolve, _mod)).Check();
