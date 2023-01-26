@@ -161,6 +161,9 @@ public:
         if (!qstrcmp("iterator", name + 1))
             return v8::Symbol::GetIterator(isolate->m_isolate);
 
+        if (!qstrcmp("toStringTag", name + 1))
+            return v8::Symbol::GetToStringTag(isolate->m_isolate);
+
         return isolate->NewString(name);
     }
 
@@ -355,6 +358,8 @@ private:
             v8::Local<v8::ObjectTemplate> pt = _class->PrototypeTemplate();
             int32_t i;
 
+            pt->Set(get_prop_name(isolate, "@toStringTag"), isolate->NewString(m_cd.name));
+
             for (i = 0; i < m_cd.mc; i++)
                 if (!m_cd.cms[i].is_static)
                     pt->Set(get_prop_name(isolate, m_cd.cms[i].name),
@@ -412,6 +417,8 @@ private:
                 o = v8::Function::New(context, m_cd.caf).FromMaybe(v8::Local<v8::Function>());
             else
                 o = v8::Object::New(isolate->m_isolate);
+
+            o->Set(context, get_prop_name(isolate, "@toStringTag"), isolate->NewString(m_cd.name)).Check();
 
             _cache->m_cache.Reset(isolate->m_isolate, o);
 
