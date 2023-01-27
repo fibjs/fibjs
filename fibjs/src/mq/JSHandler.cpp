@@ -38,7 +38,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     v8::Local<v8::Object> o = v->wrap();
     Isolate* isolate = holder();
     obj_ptr<Message_base> msg = Message_base::getInstance(v);
-    v8::Local<v8::Value> a = v8::Local<v8::Value>::New(isolate->m_isolate, o);
+    v8::Local<v8::Value> a = o;
 
     if (m_async) {
         v8::Local<v8::Value> v1 = GetPrivate("handler");

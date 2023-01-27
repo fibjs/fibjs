@@ -85,7 +85,7 @@ result_t process_base::get_env(v8::Local<v8::Object>& retVal)
         isolate->m_env.Reset(isolate->m_isolate, o);
         retVal = o;
     } else
-        retVal = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_env);
+        retVal = isolate->m_env.Get(isolate->m_isolate);
 
     return 0;
 }

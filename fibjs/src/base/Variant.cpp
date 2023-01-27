@@ -105,7 +105,7 @@ Variant::operator v8::Local<v8::Value>() const
     }
     case VT_JSValue:
         if (isGlobal())
-            return v8::Local<v8::Value>::New(isolate->m_isolate, jsValEx());
+            return jsValEx().Get(isolate->m_isolate);
         else
             return jsVal();
     case VT_JSON: {

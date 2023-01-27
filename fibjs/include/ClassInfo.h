@@ -109,7 +109,7 @@ public:
         assert(!m_cd.module);
 
         cache* _cache = _init(isolate);
-        return v8::Local<v8::Function>::New(isolate->m_isolate, _cache->m_function);
+        return _cache->m_function.Get(isolate->m_isolate);
     }
 
     v8::Local<v8::Object> getModule(Isolate* isolate)
@@ -117,9 +117,9 @@ public:
         cache* _cache = _init(isolate);
 
         if (m_cd.module)
-            return v8::Local<v8::Object>::New(isolate->m_isolate, _cache->m_cache);
+            return _cache->m_cache.Get(isolate->m_isolate);
         else
-            return v8::Local<v8::Function>::New(isolate->m_isolate, _cache->m_function);
+            return _cache->m_function.Get(isolate->m_isolate);
     }
 
     v8::Local<v8::Object> CreateInstance(Isolate* isolate)
@@ -130,7 +130,7 @@ public:
         cache* _cache = _init(isolate);
 
         if (_cache->m_cache.IsEmpty()) {
-            o = v8::Local<v8::Function>::New(isolate->m_isolate, _cache->m_function)
+            o = _cache->m_function.Get(isolate->m_isolate)
                     ->NewInstance(isolate->context())
                     .FromMaybe(v8::Local<v8::Object>());
             o->SetAlignedPointerInInternalField(0, 0);
@@ -138,7 +138,7 @@ public:
 
             o = o->Clone();
         } else
-            o = v8::Local<v8::Object>::New(isolate->m_isolate, _cache->m_cache)->Clone();
+            o = _cache->m_cache.Get(isolate->m_isolate)->Clone();
 
         return o;
     }
@@ -258,7 +258,7 @@ public:
 
             if (!skips || !skips[j])
                 o->Set(_context, isolate->NewString(m_cd.ccs[i].name),
-                     v8::Number::New(isolate->m_isolate, m_cd.ccs[i].value))
+                     v8::Integer::New(isolate->m_isolate, m_cd.ccs[i].value))
                     .Check();
         }
 
@@ -350,9 +350,7 @@ private:
 
             if (m_cd.base) {
                 cache* _cache1 = m_cd.base->_init(isolate);
-                _class->Inherit(
-                    v8::Local<v8::FunctionTemplate>::New(isolate->m_isolate,
-                        _cache1->m_class));
+                _class->Inherit(_cache1->m_class.Get(isolate->m_isolate));
             }
 
             v8::Local<v8::ObjectTemplate> pt = _class->PrototypeTemplate();
@@ -373,7 +371,7 @@ private:
 
             for (i = 0; i < m_cd.cc; i++) {
                 pt->Set(isolate->NewString(m_cd.ccs[i].name),
-                    v8::Number::New(isolate->m_isolate, m_cd.ccs[i].value));
+                    v8::Integer::New(isolate->m_isolate, m_cd.ccs[i].value));
             }
 
             v8::Local<v8::ObjectTemplate> ot = _class->InstanceTemplate();

@@ -182,8 +182,7 @@ public:
                     v8::HandleScope handle_scope(isolate->m_isolate);
 
                     for (i = 0; i < (int32_t)p->m_hooks[HOOK_BEFORE].size(); i++) {
-                        v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate,
-                            p->m_hooks[HOOK_BEFORE][i]);
+                        v8::Local<v8::Function> func = p->m_hooks[HOOK_BEFORE][i].Get(isolate->m_isolate);
                         if (func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
                             clear();
                             return 0;
@@ -221,8 +220,7 @@ public:
                     for (j = 0; j < (int32_t)stack.size(); j++) {
                         p2 = stack[j];
                         for (i = 0; i < (int32_t)p2->m_hooks[HOOK_BEFORECASE].size(); i++) {
-                            v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate,
-                                p2->m_hooks[HOOK_BEFORECASE][i]);
+                            v8::Local<v8::Function> func = p2->m_hooks[HOOK_BEFORECASE][i].Get(isolate->m_isolate);
                             if (func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
                                 clear();
                                 return 0;
@@ -240,7 +238,7 @@ public:
                     if (p1->m_level >= p->m_run_level && p1->m_level != _case::TEST_TODO) {
                         v8::HandleScope handle_scope(isolate->m_isolate);
 
-                        v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate, p1->m_block);
+                        v8::Local<v8::Function> func = p1->m_block.Get(isolate->m_isolate);
                         func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty();
                         if (try_catch.HasCaught()) {
                             v8::Local<v8::Value> exp = try_catch.Exception();
@@ -332,8 +330,7 @@ public:
                     for (j = (int32_t)stack.size() - 1; j >= 0; j--) {
                         p2 = stack[j];
                         for (i = (int32_t)p2->m_hooks[HOOK_AFTERCASE].size() - 1; i >= 0; i--) {
-                            v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate,
-                                p2->m_hooks[HOOK_AFTERCASE][i]);
+                            v8::Local<v8::Function> func = p2->m_hooks[HOOK_AFTERCASE][i].Get(isolate->m_isolate);
                             if (func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
                                 clear();
                                 return 0;
@@ -348,8 +345,7 @@ public:
                     v8::HandleScope handle_scope(isolate->m_isolate);
 
                     for (i = (int32_t)p->m_hooks[HOOK_AFTER].size() - 1; i >= 0; i--) {
-                        v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate,
-                            p->m_hooks[HOOK_AFTER][i]);
+                        v8::Local<v8::Function> func = p->m_hooks[HOOK_AFTER][i].Get(isolate->m_isolate);
                         if (func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty()) {
                             clear();
                             return 0;

@@ -29,8 +29,7 @@ void JSFiber::FiberProcRunJavascript(void* p)
         v8::Isolate::Scope isolate_scope(isolate->m_isolate);
 
         v8::HandleScope handle_scope(isolate->m_isolate);
-        v8::Context::Scope context_scope(
-            v8::Local<v8::Context>::New(isolate->m_isolate, isolate->m_context));
+        v8::Context::Scope context_scope(isolate->m_context.Get(isolate->m_isolate));
 
         isolate->m_idleFibers--;
         while (1) {
@@ -201,12 +200,12 @@ result_t JSFiber::js_invoke()
     size_t i;
     Isolate* isolate = holder();
     std::vector<v8::Local<v8::Value>> argv;
-    v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate, m_func);
-    v8::Local<v8::Object> pThis = v8::Local<v8::Object>::New(isolate->m_isolate, m_this);
+    v8::Local<v8::Function> func = m_func.Get(isolate->m_isolate);
+    v8::Local<v8::Object> pThis = m_this.Get(isolate->m_isolate);
 
     argv.resize(m_argv.size());
     for (i = 0; i < m_argv.size(); i++)
-        argv[i] = v8::Local<v8::Value>::New(isolate->m_isolate, m_argv[i]);
+        argv[i] = m_argv[i].Get(isolate->m_isolate);
 
     clear();
 
@@ -245,7 +244,7 @@ JSFiber::EnterJsScope::~EnterJsScope()
 
     if (!rt->m_promise_error.IsEmpty()) {
         v8::Local<v8::Context> _context = isolate->context();
-        v8::Local<v8::Array> _promise_error = v8::Local<v8::Array>::New(isolate->m_isolate, rt->m_promise_error);
+        v8::Local<v8::Array> _promise_error = rt->m_promise_error.Get(isolate->m_isolate);
         JSArray ks = _promise_error->GetPropertyNames(_context);
         int32_t len = ks->Length();
 
