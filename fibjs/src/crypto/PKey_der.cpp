@@ -10,6 +10,7 @@
 #include "object.h"
 #include "ifs/crypto.h"
 #include "PKey.h"
+#include "Ed25519Key.h"
 #include "PKey_impl.h"
 #include "ssl.h"
 #include "Buffer.h"
@@ -47,7 +48,7 @@ result_t PKey_base::from(Buffer_base* DerKey, exlib::string password, obj_ptr<PK
     mbedtls_pk_init(&ctx);
 
     do {
-        result_t hr = PKey_25519::from(DerKey, retVal);
+        result_t hr = Ed25519Key::from(DerKey, retVal);
         if (hr >= 0)
             return hr;
 

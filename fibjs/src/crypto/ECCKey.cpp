@@ -6,6 +6,7 @@
  */
 
 #include "Buffer.h"
+#include "Ed25519Key.h"
 #include "PKey_impl.h"
 #include "ssl.h"
 
@@ -211,7 +212,7 @@ ECCKey_base* ECCKey::create(mbedtls_pk_context& key, exlib::string algo)
         return new PKey_p256k1(key, algo);
     case MBEDTLS_ECP_DP_CURVE25519:
     case MBEDTLS_ECP_DP_ED25519:
-        return new PKey_25519(key);
+        return new Ed25519Key(key);
     case MBEDTLS_ECP_DP_BLS12381_G1:
         return new PKey_bls_g1(key);
     case MBEDTLS_ECP_DP_BLS12381_G2:
@@ -233,7 +234,7 @@ result_t ECCKey::generateKey(exlib::string curve, obj_ptr<PKey_base>& retVal)
         break;
     case MBEDTLS_ECP_DP_CURVE25519:
     case MBEDTLS_ECP_DP_ED25519:
-        retVal = new PKey_25519(id);
+        retVal = new Ed25519Key(id);
         break;
     case MBEDTLS_ECP_DP_BLS12381_G1:
         retVal = new PKey_bls_g1();
