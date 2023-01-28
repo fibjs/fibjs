@@ -12,7 +12,7 @@
 namespace fibjs {
 
 PKey_rsa::PKey_rsa(mbedtls_pk_context& key)
-    : PKey(key)
+    : PKey_impl<PKey_base>(key)
 {
     m_alg = "RSA";
 }
@@ -55,18 +55,6 @@ result_t PKey_rsa::get_publicKey(obj_ptr<PKey_base>& retVal)
     return 0;
 }
 
-result_t PKey_rsa::isPrivate(bool& retVal)
-{
-    mbedtls_rsa_context* rsa = mbedtls_pk_rsa(m_key);
-    retVal = mbedtls_mpi_cmp_int(&rsa->D, 0)
-        && mbedtls_mpi_cmp_int(&rsa->P, 0)
-        && mbedtls_mpi_cmp_int(&rsa->Q, 0)
-        && mbedtls_mpi_cmp_int(&rsa->DP, 0)
-        && mbedtls_mpi_cmp_int(&rsa->DQ, 0)
-        && mbedtls_mpi_cmp_int(&rsa->QP, 0);
-    return 0;
-}
-
 result_t PKey_rsa::clone(obj_ptr<PKey_base>& retVal)
 {
     mbedtls_pk_context ctx;
@@ -88,14 +76,14 @@ result_t PKey_rsa::equals(PKey_base* key, bool& retVal)
 {
     retVal = false;
 
-    obj_ptr<PKey> pkey = (PKey*)key;
+    mbedtls_pk_context& mkey = PKey::key(key);
 
-    mbedtls_pk_type_t type1 = mbedtls_pk_get_type(&pkey->m_key);
+    mbedtls_pk_type_t type1 = mbedtls_pk_get_type(&mkey);
     if (MBEDTLS_PK_RSA != type1)
         return 0;
 
     mbedtls_rsa_context* rsa = mbedtls_pk_rsa(m_key);
-    mbedtls_rsa_context* rsa1 = mbedtls_pk_rsa(pkey->m_key);
+    mbedtls_rsa_context* rsa1 = mbedtls_pk_rsa(mkey);
 
     if (mbedtls_mpi_cmp_mpi(&rsa->N, &rsa1->N)
         || mbedtls_mpi_cmp_mpi(&rsa->E, &rsa1->E)

@@ -99,7 +99,7 @@ result_t X509Req::create(exlib::string subject, PKey_base* key, int32_t hash)
     mbedtls_x509write_csr_set_md_alg(&csr, (mbedtls_md_type_t)hash);
     mbedtls_x509write_csr_set_subject_name(&csr, subject.c_str());
 
-    mbedtls_pk_context* k = &((PKey*)(PKey_base*)key)->m_key;
+    mbedtls_pk_context* k = &PKey::key(key);
     mbedtls_x509write_csr_set_key(&csr, k);
 
     exlib::string buf;
@@ -394,7 +394,7 @@ result_t X509Req::sign(exlib::string issuer, PKey_base* key,
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    pk = &((PKey*)key)->m_key;
+    pk = &PKey::key(key);
 
     mbedtls_x509write_crt_set_subject_key(&m_crt, &m_csr.pk);
     mbedtls_x509write_crt_set_issuer_key(&m_crt, pk);

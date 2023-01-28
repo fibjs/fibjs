@@ -41,11 +41,11 @@ result_t prepare_data(PKey_base* pubKey, exlib::string id, obj_ptr<Buffer_base>&
         0x02, 0xDF, 0x32, 0xE5, 0x21, 0x39, 0xF0, 0xA0
     };
 
-    obj_ptr<PKey> sm2 = (PKey*)pubKey;
+    mbedtls_pk_context& mkey = PKey::key(pubKey);
 
-    if (mbedtls_pk_get_type(&sm2->m_key) != MBEDTLS_PK_SM2)
+    if (mbedtls_pk_get_type(&mkey) != MBEDTLS_PK_SM2)
         return CHECK_ERROR(CALL_E_INVALID_DATA);
-    mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(sm2->m_key);
+    mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(mkey);
 
     exlib::string pdata;
     int32_t key_size = (int32_t)mbedtls_mpi_size(&ecp->Q.X);

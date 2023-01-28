@@ -1,6 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Cipher.d.ts" />
 /// <reference path="../interface/PKey.d.ts" />
+/// <reference path="../interface/ECCKey.d.ts" />
 /// <reference path="../interface/X509Cert.d.ts" />
 /// <reference path="../interface/X509Crl.d.ts" />
 /// <reference path="../interface/X509Req.d.ts" />
@@ -140,6 +141,11 @@ declare module 'crypto' {
      * @description PKey 构造函数，参见 PKey 
      */
     const PKey: typeof Class_PKey;
+
+    /**
+     * @description ECCKey 构造函数，参见 ECCKey 
+     */
+    const ECCKey: typeof Class_ECCKey;
 
     /**
      * @description X509Cert 构造函数，参见 X509Cert 

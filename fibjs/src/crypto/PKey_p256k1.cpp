@@ -149,7 +149,7 @@ result_t PKey_p256k1::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_pt
     return 0;
 }
 
-result_t PKey_base::recover(Buffer_base* data, Buffer_base* sig, obj_ptr<PKey_base>& retVal, AsyncEvent* ac)
+result_t ECCKey_base::recover(Buffer_base* data, Buffer_base* sig, obj_ptr<ECCKey_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);

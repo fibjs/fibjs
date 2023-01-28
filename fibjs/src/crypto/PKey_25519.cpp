@@ -71,7 +71,7 @@ PKey_25519::PKey_25519(int32_t id)
     mbedtls_mpi_read_binary(&ecp->Q.X, sk + ed25519_public_key_size, ed25519_public_key_size);
 }
 
-result_t PKey_25519::toX25519(obj_ptr<PKey_base>& retVal, AsyncEvent* ac)
+result_t PKey_25519::toX25519(obj_ptr<ECCKey_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -121,7 +121,6 @@ static int parse_key(mbedtls_pk_context& ctx, const unsigned char* key, size_t k
         else
             return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
 
-        obj_ptr<PKey> pk1 = new PKey();
         int32_t ret;
 
         ret = mbedtls_pk_setup(&ctx, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
@@ -166,7 +165,6 @@ static int parse_pub_key(mbedtls_pk_context& ctx, const unsigned char* key, size
         else
             return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
 
-        obj_ptr<PKey> pk1 = new PKey();
         int32_t ret;
 
         ret = mbedtls_pk_setup(&ctx, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
@@ -429,7 +427,7 @@ result_t PKey_25519::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::
     return 0;
 }
 
-result_t PKey_25519::computeSecret(PKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t PKey_25519::computeSecret(ECCKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -438,8 +436,9 @@ result_t PKey_25519::computeSecret(PKey_base* publicKey, obj_ptr<Buffer_base>& r
     bool priv;
     mbedtls_pk_type_t type;
 
-    obj_ptr<PKey> pubkey = (PKey*)publicKey;
-    type = mbedtls_pk_get_type(&pubkey->m_key);
+    mbedtls_pk_context& mkey = PKey::key(publicKey);
+
+    type = mbedtls_pk_get_type(&mkey);
     if (type != MBEDTLS_PK_ECKEY)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
@@ -459,7 +458,7 @@ result_t PKey_25519::computeSecret(PKey_base* publicKey, obj_ptr<Buffer_base>& r
     if (ecp1->grp.id != MBEDTLS_ECP_DP_CURVE25519)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    mbedtls_ecp_keypair* ecp2 = mbedtls_pk_ec(pubkey->m_key);
+    mbedtls_ecp_keypair* ecp2 = mbedtls_pk_ec(mkey);
     if (ecp1->grp.id != ecp2->grp.id)
         return CHECK_ERROR(Runtime::setError("Public key is not valid for specified curve"));
 

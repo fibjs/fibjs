@@ -19,7 +19,24 @@ namespace fibjs {
 result_t PKey_base::_new(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retVal,
     v8::Local<v8::Object> This)
 {
-    return from(jsonKey, retVal);
+    result_t hr = from(jsonKey, retVal);
+    if (hr >= 0)
+        retVal->wrap();
+
+    return hr;
+}
+
+result_t ECCKey_base::_new(v8::Local<v8::Object> jsonKey, obj_ptr<ECCKey_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    obj_ptr<PKey_base> key;
+
+    result_t hr = PKey_base::from(jsonKey, key);
+    if (hr < 0)
+        return hr;
+
+    retVal = dynamic_cast<ECCKey_base*>((PKey_base*)key);
+    return retVal ? 0 : CHECK_ERROR(_ssl::setError(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT));
 }
 
 static void mpi_dump(Isolate* isolate, v8::Local<v8::Object> o, exlib::string key, const mbedtls_mpi* n, size_t ksz = 0)
@@ -204,7 +221,7 @@ result_t PKey::json(v8::Local<v8::Object> opts, v8::Local<v8::Object>& retVal)
     if (hr < 0)
         return hr;
 
-    Isolate* isolate = holder();
+    Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
     mbedtls_pk_type_t type = mbedtls_pk_get_type(&m_key);
 

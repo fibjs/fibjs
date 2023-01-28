@@ -11,7 +11,7 @@
 
 namespace fibjs {
 
-result_t PKey_base::aggregateSignatures(v8::Local<v8::Array> sigs, obj_ptr<Buffer_base>& retVal)
+result_t ECCKey_base::aggregateSignatures(v8::Local<v8::Array> sigs, obj_ptr<Buffer_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
     obj_ptr<Buffer_base> buf;

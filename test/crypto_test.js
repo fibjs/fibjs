@@ -748,7 +748,7 @@ describe('crypto', () => {
                     format: 'raw'
                 }));
 
-                var pk2 = crypto.PKey.recover(md, d);
+                var pk2 = crypto.ECCKey.recover(md, d);
                 assert.deepEqual(pk2.json(), pk1.json());
             });
 
@@ -1124,7 +1124,7 @@ describe('crypto', () => {
 
         it("curve", () => {
             var pk = crypto.PKey.from(rsa4096_pem);
-            assert.equal(pk.curve, '');
+            assert.isUndefined(pk.curve);
 
             pk = crypto.PKey.from(ec_pem);
             assert.equal(pk.curve, 'P-521');
@@ -1543,7 +1543,7 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
 
                 var msg = Buffer.from('hello world');
 
-                var sig = crypto.PKey.aggregateSignatures([
+                var sig = crypto.ECCKey.aggregateSignatures([
                     sk1.sign(msg),
                     sk2.sign(msg)
                 ])
