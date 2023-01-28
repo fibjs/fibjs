@@ -17,7 +17,8 @@ namespace fibjs {
 
 class Cipher_base;
 class PKey_base;
-class ECCKey_base;
+class ECKey_base;
+class BlsKey_base;
 class X509Cert_base;
 class X509Crl_base;
 class X509Req_base;
@@ -117,7 +118,8 @@ public:
 
 #include "ifs/Cipher.h"
 #include "ifs/PKey.h"
-#include "ifs/ECCKey.h"
+#include "ifs/ECKey.h"
+#include "ifs/BlsKey.h"
 #include "ifs/X509Cert.h"
 #include "ifs/X509Crl.h"
 #include "ifs/X509Req.h"
@@ -154,7 +156,8 @@ inline ClassInfo& crypto_base::class_info()
     static ClassData::ClassObject s_object[] = {
         { "Cipher", Cipher_base::class_info },
         { "PKey", PKey_base::class_info },
-        { "ECCKey", ECCKey_base::class_info },
+        { "ECKey", ECKey_base::class_info },
+        { "BlsKey", BlsKey_base::class_info },
         { "X509Cert", X509Cert_base::class_info },
         { "X509Crl", X509Crl_base::class_info },
         { "X509Req", X509Req_base::class_info }

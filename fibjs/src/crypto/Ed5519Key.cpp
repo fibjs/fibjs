@@ -32,7 +32,7 @@ const unsigned char s_der_pub_lead_x[]
 #define PEM_END_PUBLIC_KEY "-----END PUBLIC KEY-----"
 
 Ed25519Key::Ed25519Key(mbedtls_pk_context& key)
-    : ECCKey_impl<Ed25519Key_base>(key, false)
+    : ECKey_impl<Ed25519Key_base>(key, false)
 {
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
 
@@ -71,7 +71,7 @@ Ed25519Key::Ed25519Key(int32_t id)
     mbedtls_mpi_read_binary(&ecp->Q.X, sk + ed25519_public_key_size, ed25519_public_key_size);
 }
 
-result_t Ed25519Key::toX25519(obj_ptr<ECCKey_base>& retVal, AsyncEvent* ac)
+result_t Ed25519Key::toX25519(obj_ptr<ECKey_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -128,7 +128,7 @@ static int parse_key(mbedtls_pk_context& ctx, const unsigned char* key, size_t k
             return ret;
 
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(ctx);
-        ECCKey::load_group(&ecp->grp, id);
+        ECKey::load_group(&ecp->grp, id);
 
         ret = mbedtls_mpi_read_binary(&ecp->d, (const unsigned char*)key + sizeof(s_der_priv_lead),
             ed25519_public_key_size);
@@ -172,7 +172,7 @@ static int parse_pub_key(mbedtls_pk_context& ctx, const unsigned char* key, size
             return ret;
 
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(ctx);
-        ECCKey::load_group(&ecp->grp, id);
+        ECKey::load_group(&ecp->grp, id);
 
         ret = mbedtls_mpi_read_binary(&ecp->Q.X, (const unsigned char*)key + sizeof(s_der_pub_lead),
             ed25519_public_key_size);
@@ -427,7 +427,7 @@ result_t Ed25519Key::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::
     return 0;
 }
 
-result_t Ed25519Key::computeSecret(ECCKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t Ed25519Key::computeSecret(ECKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);

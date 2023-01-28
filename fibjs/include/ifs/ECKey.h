@@ -19,18 +19,17 @@ namespace fibjs {
 class PKey_base;
 class Buffer_base;
 
-class ECCKey_base : public PKey_base {
-    DECLARE_CLASS(ECCKey_base);
+class ECKey_base : public PKey_base {
+    DECLARE_CLASS(ECKey_base);
 
 public:
-    // ECCKey_base
-    static result_t _new(Buffer_base* DerKey, exlib::string password, obj_ptr<ECCKey_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(exlib::string pemKey, exlib::string password, obj_ptr<ECCKey_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Object> jsonKey, obj_ptr<ECCKey_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    // ECKey_base
+    static result_t _new(Buffer_base* DerKey, exlib::string password, obj_ptr<ECKey_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(exlib::string pemKey, exlib::string password, obj_ptr<ECKey_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::Object> jsonKey, obj_ptr<ECKey_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_curve(exlib::string& retVal) = 0;
-    static result_t recover(Buffer_base* data, Buffer_base* sig, obj_ptr<ECCKey_base>& retVal, AsyncEvent* ac);
-    static result_t aggregateSignatures(v8::Local<v8::Array> sigs, obj_ptr<Buffer_base>& retVal);
-    virtual result_t computeSecret(ECCKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+    static result_t recover(Buffer_base* data, Buffer_base* sig, obj_ptr<ECKey_base>& retVal, AsyncEvent* ac);
+    virtual result_t computeSecret(ECKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
     template <typename T>
@@ -40,24 +39,22 @@ public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_curve(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_static_recover(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_aggregateSignatures(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_computeSecret(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_STATICVALUE3(ECCKey_base, recover, Buffer_base*, Buffer_base*, obj_ptr<ECCKey_base>);
-    ASYNC_MEMBERVALUE2(ECCKey_base, computeSecret, ECCKey_base*, obj_ptr<Buffer_base>);
+    ASYNC_STATICVALUE3(ECKey_base, recover, Buffer_base*, Buffer_base*, obj_ptr<ECKey_base>);
+    ASYNC_MEMBERVALUE2(ECKey_base, computeSecret, ECKey_base*, obj_ptr<Buffer_base>);
 };
 }
 
 #include "ifs/Buffer.h"
 
 namespace fibjs {
-inline ClassInfo& ECCKey_base::class_info()
+inline ClassInfo& ECKey_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "recover", s_static_recover, true, true },
         { "recoverSync", s_static_recover, true, false },
-        { "aggregateSignatures", s_static_aggregateSignatures, true, false },
         { "computeSecret", s_computeSecret, false, true },
         { "computeSecretSync", s_computeSecret, false, false }
     };
@@ -67,7 +64,7 @@ inline ClassInfo& ECCKey_base::class_info()
     };
 
     static ClassData s_cd = {
-        "ECCKey", false, s__new, NULL,
+        "ECKey", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &PKey_base::class_info()
     };
@@ -76,18 +73,18 @@ inline ClassInfo& ECCKey_base::class_info()
     return s_ci;
 }
 
-inline void ECCKey_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void ECKey_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     CONSTRUCT_INIT();
     __new(args);
 }
 
 template <typename T>
-void ECCKey_base::__new(const T& args)
+void ECKey_base::__new(const T& args)
 {
-    obj_ptr<ECCKey_base> vr;
+    obj_ptr<ECKey_base> vr;
 
-    METHOD_NAME("new ECCKey()");
+    METHOD_NAME("new ECKey()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(2, 1);
@@ -113,12 +110,12 @@ void ECCKey_base::__new(const T& args)
     CONSTRUCT_RETURN();
 }
 
-inline void ECCKey_base::s_get_curve(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void ECKey_base::s_get_curve(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_NAME("ECCKey.curve");
-    METHOD_INSTANCE(ECCKey_base);
+    METHOD_NAME("ECKey.curve");
+    METHOD_INSTANCE(ECKey_base);
     PROPERTY_ENTER();
 
     hr = pInst->get_curve(vr);
@@ -126,11 +123,11 @@ inline void ECCKey_base::s_get_curve(v8::Local<v8::Name> property, const v8::Pro
     METHOD_RETURN();
 }
 
-inline void ECCKey_base::s_static_recover(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void ECKey_base::s_static_recover(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<ECCKey_base> vr;
+    obj_ptr<ECKey_base> vr;
 
-    METHOD_NAME("ECCKey.recover");
+    METHOD_NAME("ECKey.recover");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 2);
@@ -146,33 +143,17 @@ inline void ECCKey_base::s_static_recover(const v8::FunctionCallbackInfo<v8::Val
     METHOD_RETURN();
 }
 
-inline void ECCKey_base::s_static_aggregateSignatures(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void ECKey_base::s_computeSecret(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("ECCKey.aggregateSignatures");
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::Array>, 0);
-
-    hr = aggregateSignatures(v0, vr);
-
-    METHOD_RETURN();
-}
-
-inline void ECCKey_base::s_computeSecret(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<Buffer_base> vr;
-
-    METHOD_NAME("ECCKey.computeSecret");
-    METHOD_INSTANCE(ECCKey_base);
+    METHOD_NAME("ECKey.computeSecret");
+    METHOD_INSTANCE(ECKey_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<ECCKey_base>, 0);
+    ARG(obj_ptr<ECKey_base>, 0);
 
     if (!cb.IsEmpty())
         hr = pInst->acb_computeSecret(v0, cb, args);

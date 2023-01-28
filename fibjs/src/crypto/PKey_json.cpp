@@ -10,34 +10,11 @@
 #include "object.h"
 #include "ifs/crypto.h"
 #include "PKey.h"
-#include "PKey_impl.h"
+#include "BlsKey.h"
 #include "ssl.h"
 #include "encoding.h"
 
 namespace fibjs {
-
-result_t PKey_base::_new(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retVal,
-    v8::Local<v8::Object> This)
-{
-    result_t hr = from(jsonKey, retVal);
-    if (hr >= 0)
-        retVal->wrap();
-
-    return hr;
-}
-
-result_t ECCKey_base::_new(v8::Local<v8::Object> jsonKey, obj_ptr<ECCKey_base>& retVal,
-    v8::Local<v8::Object> This)
-{
-    obj_ptr<PKey_base> key;
-
-    result_t hr = PKey_base::from(jsonKey, key);
-    if (hr < 0)
-        return hr;
-
-    retVal = dynamic_cast<ECCKey_base*>((PKey_base*)key);
-    return retVal ? 0 : CHECK_ERROR(_ssl::setError(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT));
-}
 
 static void mpi_dump(Isolate* isolate, v8::Local<v8::Object> o, exlib::string key, const mbedtls_mpi* n, size_t ksz = 0)
 {
@@ -157,7 +134,7 @@ result_t PKey_base::from(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retV
         if (hr < 0)
             return hr;
 
-        int32_t id = ECCKey::get_curve_id(curve);
+        int32_t id = ECKey::get_curve_id(curve);
 
         if (id == MBEDTLS_ECP_DP_NONE)
             return CHECK_ERROR(Runtime::setError("PKey: Unknown curve"));
@@ -168,37 +145,22 @@ result_t PKey_base::from(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retV
 
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(ctx);
 
-        ECCKey::load_group(&ecp->grp, (mbedtls_ecp_group_id)id);
+        ECKey::load_group(&ecp->grp, (mbedtls_ecp_group_id)id);
 
         do {
             hr = mpi_load(isolate, &ecp->d, jsonKey, "d");
             if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
                 break;
 
-            if (id == MBEDTLS_ECP_DP_BLS12381_G1) {
-                hr = PKey_bls_g1::mpi_load(isolate, &ecp->Q.X, jsonKey);
-                if (hr == CALL_E_PARAMNOTOPTIONAL) {
-                    hr = 0;
-                    break;
-                }
-            } else if (id == MBEDTLS_ECP_DP_BLS12381_G2) {
-                hr = PKey_bls_g2::mpi_load(isolate, &ecp->Q.X, jsonKey);
-                if (hr == CALL_E_PARAMNOTOPTIONAL) {
-                    hr = 0;
-                    break;
-                }
-            } else {
-                hr = mpi_load(isolate, &ecp->Q.X, jsonKey, "x");
-                if (hr == CALL_E_PARAMNOTOPTIONAL) {
-                    hr = 0;
-                    break;
-                }
-
-                mpi_load(isolate, &ecp->Q.Y, jsonKey, "y");
+            hr = mpi_load(isolate, &ecp->Q.X, jsonKey, "x");
+            if (hr == CALL_E_PARAMNOTOPTIONAL) {
+                hr = 0;
+                break;
             }
 
-            mbedtls_mpi_lset(&ecp->Q.Z, 1);
+            mpi_load(isolate, &ecp->Q.Y, jsonKey, "y");
 
+            mbedtls_mpi_lset(&ecp->Q.Z, 1);
         } while (false);
     }
 
@@ -250,7 +212,7 @@ result_t PKey::json(v8::Local<v8::Object> opts, v8::Local<v8::Object>& retVal)
     } else {
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-        const char* _name = ECCKey::get_curve_name(ecp->grp.id);
+        const char* _name = ECKey::get_curve_name(ecp->grp.id);
         int32_t id = ecp->grp.id;
 
         if (id == MBEDTLS_ECP_DP_ED25519 || id == MBEDTLS_ECP_DP_CURVE25519 || id == MBEDTLS_ECP_DP_CURVE448)

@@ -1,19 +1,19 @@
 /*! @brief 椭圆曲线加密算法对象 */
-interface ECCKey : PKey
+interface ECKey : PKey
 {
-    /*! @brief 通过 DER 格式的密钥构造 ECCKey
+    /*! @brief 通过 DER 格式的密钥构造 ECKey
      @param DerKey DER 格式的密钥
      @param password 解密密码
     */
-    ECCKey(Buffer DerKey, String password = "");
+    ECKey(Buffer DerKey, String password = "");
 
-    /*! @brief 通过 PEM 格式的密钥构造 ECCKey
+    /*! @brief 通过 PEM 格式的密钥构造 ECKey
      @param pemKey PEM 格式的密钥
      @param password 解密密码
     */
-    ECCKey(String pemKey, String password = "");
+    ECKey(String pemKey, String password = "");
 
-    /*! @brief 通过 JSON 格式的密钥构造 ECCKey
+    /*! @brief 通过 JSON 格式的密钥构造 ECKey
 
      jsonKey 的格式支持以下两种，EC 私钥：
      ```JavaScript
@@ -36,7 +36,7 @@ interface ECCKey : PKey
      ```
      @param jsonKey JSON 格式的密钥
     */
-    ECCKey(Object jsonKey);
+    ECKey(Object jsonKey);
 
     /*! @brief 返回当前算法的椭圆曲线名称 */
     readonly String curve;
@@ -46,17 +46,11 @@ interface ECCKey : PKey
      @param sig 可恢复签名
      @return 返回包含公钥的对象
     */
-    static ECCKey recover(Buffer data, Buffer sig) async;
-
-    /*! @brief 合并一组签名为一个单一签名，仅支持 BLS12381_G1 和 BLS12381_G2
-     @param sigs 待合并的一组签名
-     @return 返回合并的单一签名
-    */
-    static Buffer aggregateSignatures(Array sigs);
+    static ECKey recover(Buffer data, Buffer sig) async;
 
     /*! @brief 使用当前算法计算椭圆曲线 Diffie-Hellman (ECDH) 共享密钥
      @param publicKey 指定对方的公钥
      @return 返回计算出的共享密钥
      */
-    Buffer computeSecret(ECCKey publicKey) async;
+    Buffer computeSecret(ECKey publicKey) async;
 };

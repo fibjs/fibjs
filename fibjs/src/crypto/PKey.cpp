@@ -11,13 +11,44 @@
 #include "ifs/fs.h"
 #include "ifs/crypto.h"
 #include "PKey.h"
-#include "PKey_impl.h"
+#include "ECKey.h"
+#include "PKey_rsa.h"
 #include "Cipher.h"
 #include "Buffer.h"
 #include "ssl.h"
 #include "encoding.h"
 
 namespace fibjs {
+
+result_t PKey_base::_new(Buffer_base* DerKey, exlib::string password, obj_ptr<PKey_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    result_t hr = from(DerKey, password, retVal);
+    if (hr >= 0)
+        retVal->wrap();
+
+    return 0;
+}
+
+result_t PKey_base::_new(exlib::string pemKey, exlib::string password, obj_ptr<PKey_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    result_t hr = from(pemKey, password, retVal);
+    if (hr >= 0)
+        retVal->wrap();
+
+    return 0;
+}
+
+result_t PKey_base::_new(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    result_t hr = from(jsonKey, retVal);
+    if (hr >= 0)
+        retVal->wrap();
+
+    return hr;
+}
 
 PKey_base* PKey::create(mbedtls_pk_context& key, bool clone)
 {
@@ -38,7 +69,7 @@ PKey_base* PKey::create(mbedtls_pk_context& key, bool clone)
             mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(key);
             mbedtls_ecp_keypair* ecp1 = mbedtls_pk_ec(key1);
 
-            ECCKey::load_group(&ecp1->grp, ecp->grp.id);
+            ECKey::load_group(&ecp1->grp, ecp->grp.id);
             mbedtls_mpi_copy(&ecp1->d, &ecp->d);
             mbedtls_ecp_copy(&ecp1->Q, &ecp->Q);
         }
@@ -47,7 +78,7 @@ PKey_base* PKey::create(mbedtls_pk_context& key, bool clone)
     if (type == MBEDTLS_PK_RSA)
         return new PKey_rsa(cur);
 
-    return ECCKey::create(cur, "");
+    return ECKey::create(cur, "");
 }
 
 PKey::PKey()

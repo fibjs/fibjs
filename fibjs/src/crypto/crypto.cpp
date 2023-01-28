@@ -13,6 +13,8 @@
 #include "Buffer.h"
 #include "Digest.h"
 #include "PKey.h"
+#include "ECKey.h"
+#include "PKey_rsa.h"
 #include "X509Cert.h"
 #include "X509Crl.h"
 #include "X509Req.h"
@@ -20,7 +22,6 @@
 #include <time.h>
 #include <string.h>
 #include <mbedtls/mbedtls/pkcs5.h>
-#include "PKey_impl.h"
 #include "md_api.h"
 
 namespace fibjs {
@@ -307,7 +308,7 @@ result_t crypto_base::generateKey(exlib::string curve, obj_ptr<PKey_base>& retVa
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return ECCKey::generateKey(curve, retVal);
+    return ECKey::generateKey(curve, retVal);
 }
 
 inline int pkcs5_pbkdf1(mbedtls_md_context_t* ctx, const unsigned char* password,

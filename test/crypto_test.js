@@ -748,7 +748,7 @@ describe('crypto', () => {
                     format: 'raw'
                 }));
 
-                var pk2 = crypto.ECCKey.recover(md, d);
+                var pk2 = crypto.ECKey.recover(md, d);
                 assert.deepEqual(pk2.json(), pk1.json());
             });
 
@@ -1437,15 +1437,23 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
             assert.deepEqual(sk.json(), g2_key);
         });
 
+        it("BlsKey export/import json", () => {
+            var sk = new crypto.BlsKey(g1_key);
+            assert.deepEqual(sk.json(), g1_key);
+
+            var sk = new crypto.BlsKey(g2_key);
+            assert.deepEqual(sk.json(), g2_key);
+        });
+
         it("private only key", () => {
-            var sk = new crypto.PKey({
+            var sk = new crypto.BlsKey({
                 "kty": "EC",
                 "crv": "BLS12381_G1",
                 "d": "TXNvJBBG3h23H5hFJcnRZmYd_j1TqpwtJOllYGU3yyw"
             });
             assert.deepEqual(sk.json(), g1_key);
 
-            var sk = new crypto.PKey({
+            var sk = new crypto.BlsKey({
                 "kty": "EC",
                 "crv": "BLS12381_G2",
                 "d": "PofPmtCTsMilP9gluxrSDTC7DPbKwSMEzxVCZxq_L2I"
@@ -1454,13 +1462,13 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
         });
 
         it("get public key", () => {
-            var sk = new crypto.PKey(g1_key);
+            var sk = new crypto.BlsKey(g1_key);
             assert.deepEqual(sk.publicKey.json(), {
                 "kty": "EC", "crv": "BLS12381_G1",
                 "x": "tCgCNuUYQotPEsrljWi-lIRIPpzhqsnJV1NPnE7je6glUb-FJm9IYkuv2hbHw22i"
             });
 
-            var sk = new crypto.PKey(g2_key);
+            var sk = new crypto.BlsKey(g2_key);
             assert.deepEqual(sk.publicKey.json(), {
                 "kty": "EC", "crv": "BLS12381_G2",
                 "x": "h_rkcTKXXzRbOPr9UxSfegCbid2U_cVNXQUaKeGF7UhwrMJFP70uMH0VQ9-3-_2zDPAAjflsdeLkOXW3-ShktLxuPy8UlXSNgKNmkfb-rrj-FRwbs13pv_WsIf-eV66-"
@@ -1468,13 +1476,13 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
         });
 
         it("clone", () => {
-            var sk = new crypto.PKey(g1_key);
+            var sk = new crypto.BlsKey(g1_key);
             var sk1 = sk.clone();
             assert.deepEqual(sk1.json(), g1_key);
         });
 
         it("sign/verify", () => {
-            var sk = new crypto.PKey(g1_key);
+            var sk = new crypto.BlsKey(g1_key);
             var sig = sk.sign('abcd');
             assert.isTrue(sk.verify('abcd', sig));
             assert.isFalse(sk.verify('abcd1', sig));
@@ -1493,20 +1501,20 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
         });
 
         it("keySize/curve", () => {
-            var sk = new crypto.PKey(g1_key);
+            var sk = new crypto.BlsKey(g1_key);
             assert.deepEqual(sk.keySize, 256);
             assert.deepEqual(sk.curve, "BLS12381_G1");
         });
 
         it("format", () => {
-            var pk = crypto.PKey.from(g1_key);
+            var pk = crypto.BlsKey.from(g1_key);
 
             pk.sign("abcdefg", { format: 'raw' });
             assert.throws(() => {
                 pk.sign("abcdefg", { format: 'der' });
             });
 
-            var pk = crypto.PKey.from(g2_key);
+            var pk = crypto.BlsKey.from(g2_key);
 
             pk.sign("abcdefg", { format: 'raw' });
             assert.throws(() => {
@@ -1516,7 +1524,7 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
 
         it("test suite", () => {
             for (var i = 0; i < 4; i++) {
-                var sk = new crypto.PKey({
+                var sk = new crypto.BlsKey({
                     "kty": "EC",
                     "crv": "BLS12381_G1",
                     "x": hex.decode(data.pks[i]).base64()
@@ -1532,18 +1540,11 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
                 var sk1 = crypto.generateKey(curve);
                 var sk2 = crypto.generateKey(curve);
 
-                var pk = crypto.PKey.from({
-                    "kty": "EC",
-                    "crv": curve,
-                    "x": [
-                        sk1.json().x,
-                        sk2.json().x
-                    ]
-                });
+                var pk = crypto.BlsKey.aggregatePublicKey([sk1, sk2]);
 
                 var msg = Buffer.from('hello world');
 
-                var sig = crypto.ECCKey.aggregateSignatures([
+                var sig = crypto.BlsKey.aggregateSignature([
                     sk1.sign(msg),
                     sk2.sign(msg)
                 ])

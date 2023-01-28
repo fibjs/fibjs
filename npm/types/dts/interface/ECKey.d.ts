@@ -4,9 +4,9 @@
 /**
  * @description 椭圆曲线加密算法对象 
  */
-declare class Class_ECCKey extends Class_PKey {
+declare class Class_ECKey extends Class_PKey {
     /**
-     * @description 通过 DER 格式的密钥构造 ECCKey
+     * @description 通过 DER 格式的密钥构造 ECKey
      *      @param DerKey DER 格式的密钥
      *      @param password 解密密码
      *     
@@ -14,7 +14,7 @@ declare class Class_ECCKey extends Class_PKey {
     constructor(DerKey: Class_Buffer, password?: string);
 
     /**
-     * @description 通过 PEM 格式的密钥构造 ECCKey
+     * @description 通过 PEM 格式的密钥构造 ECKey
      *      @param pemKey PEM 格式的密钥
      *      @param password 解密密码
      *     
@@ -22,7 +22,7 @@ declare class Class_ECCKey extends Class_PKey {
     constructor(pemKey: string, password?: string);
 
     /**
-     * @description 通过 JSON 格式的密钥构造 ECCKey
+     * @description 通过 JSON 格式的密钥构造 ECKey
      * 
      *      jsonKey 的格式支持以下两种，EC 私钥：
      *      ```JavaScript
@@ -60,9 +60,9 @@ declare class Class_ECCKey extends Class_PKey {
      *      @return 返回包含公钥的对象
      *     
      */
-    static recover(data: Class_Buffer, sig: Class_Buffer): Class_ECCKey;
+    static recover(data: Class_Buffer, sig: Class_Buffer): Class_ECKey;
 
-    static recover(data: Class_Buffer, sig: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_ECCKey)=>any): void;
+    static recover(data: Class_Buffer, sig: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_ECKey)=>any): void;
 
     /**
      * @description 使用当前算法计算椭圆曲线 Diffie-Hellman (ECDH) 共享密钥
@@ -70,9 +70,9 @@ declare class Class_ECCKey extends Class_PKey {
      *      @return 返回计算出的共享密钥
      *      
      */
-    computeSecret(publicKey: Class_ECCKey): Class_Buffer;
+    computeSecret(publicKey: Class_ECKey): Class_Buffer;
 
-    computeSecret(publicKey: Class_ECCKey, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    computeSecret(publicKey: Class_ECKey, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
 }
 

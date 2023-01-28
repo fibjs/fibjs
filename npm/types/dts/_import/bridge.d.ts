@@ -31,6 +31,7 @@
 /// <reference path="../module/hex.d.ts" />
 /// <reference path="../module/iconv.d.ts" />
 /// <reference path="../module/json.d.ts" />
+/// <reference path="../module/multibase.d.ts" />
 /// <reference path="../module/msgpack.d.ts" />
 /// <reference path="../module/string_decoder.d.ts" />
 /// <reference path="../module/crypto.d.ts" />
@@ -50,7 +51,6 @@
 /// <reference path="../module/xml.d.ts" />
 /// <reference path="../module/constants.d.ts" />
 /// <reference path="../module/fs_constants.d.ts" />
-/// <reference path="../module/multibase.d.ts" />
 declare module '@fibjs/types/bridge' {
 }
 

@@ -6,7 +6,7 @@
  */
 
 #include "Buffer.h"
-#include "PKey_impl.h"
+#include "PKey_rsa.h"
 #include "ssl.h"
 
 namespace fibjs {

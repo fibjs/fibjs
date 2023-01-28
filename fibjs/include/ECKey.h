@@ -1,5 +1,5 @@
 /*
- * ECCKey.h
+ * ECKey.h
  *
  *  Created on: Jan 28, 2023
  *      Author: lion
@@ -8,18 +8,18 @@
 #pragma once
 
 #include "PKey.h"
-#include "ifs/ECCKey.h"
+#include "ifs/ECKey.h"
 
 namespace fibjs {
 
-class ECCKey : public PKey {
+class ECKey : public PKey {
 public:
-    ECCKey()
+    ECKey()
     {
         mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
     }
 
-    ECCKey(mbedtls_pk_context& key)
+    ECKey(mbedtls_pk_context& key)
         : PKey(key)
     {
     }
@@ -38,12 +38,12 @@ public:
     result_t verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac);
 
 public:
-    // ECCKey
+    // ECKey
     result_t get_curve(exlib::string& retVal);
-    result_t computeSecret(ECCKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    result_t computeSecret(ECKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
 
 public:
-    static ECCKey_base* create(mbedtls_pk_context& key, exlib::string algo);
+    static ECKey_base* create(mbedtls_pk_context& key, exlib::string algo);
     static result_t generateKey(exlib::string curve, obj_ptr<PKey_base>& retVal);
 
 public:
@@ -65,46 +65,26 @@ public:
     static int load_group(mbedtls_ecp_group* grp, int32_t id);
 };
 
-class PKey_rsa : public PKey_impl<PKey_base> {
+template <class base, class _PKey = ECKey>
+class ECKey_impl : public PKey_impl<base, _PKey> {
 public:
-    PKey_rsa(int32_t size);
-    PKey_rsa(mbedtls_pk_context& key);
-
-public:
-    // PKey
-    virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal);
-    virtual result_t clone(obj_ptr<PKey_base>& retVal);
-    virtual result_t equals(PKey_base* key, bool& retVal);
-    virtual result_t sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac);
-
-public:
-    static result_t generateKey(int32_t size, obj_ptr<PKey_base>& retVal);
-
-private:
-    result_t check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac);
-};
-
-template <class base, class _PKey = ECCKey>
-class ECCKey_impl : public PKey_impl<base, _PKey> {
-public:
-    ECCKey_impl()
+    ECKey_impl()
     {
     }
 
-    ECCKey_impl(mbedtls_pk_context& key)
+    ECKey_impl(mbedtls_pk_context& key)
         : PKey_impl<base, _PKey>(key)
     {
     }
 
 public:
-    ECCKey_impl(int32_t id)
+    ECKey_impl(int32_t id)
         : PKey_impl<base, _PKey>()
     {
         _PKey::init(id);
     }
 
-    ECCKey_impl(mbedtls_pk_context& key, bool genpub, exlib::string algo = "")
+    ECKey_impl(mbedtls_pk_context& key, bool genpub, exlib::string algo = "")
         : PKey_impl<base, _PKey>(key)
     {
         _PKey::init(key, genpub, algo);
@@ -142,13 +122,13 @@ public:
     }
 
 public:
-    // ECCKey
+    // ECKey
     virtual result_t get_curve(exlib::string& retVal)
     {
         return _PKey::get_curve(retVal);
     }
 
-    virtual result_t computeSecret(ECCKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+    virtual result_t computeSecret(ECKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     {
         return _PKey::computeSecret(publicKey, retVal, ac);
     }

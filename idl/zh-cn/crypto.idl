@@ -82,8 +82,11 @@ module crypto
     /*! @brief PKey 构造函数，参见 PKey */
     static PKey;
 
-    /*! @brief ECCKey 构造函数，参见 ECCKey */
-    static ECCKey;
+    /*! @brief ECKey 构造函数，参见 ECKey */
+    static ECKey;
+
+    /*! @brief BlsKey 构造函数，参见 BlsKey */
+    static BlsKey;
 
     /*! @brief X509Cert 构造函数，参见 X509Cert */
     static X509Cert;

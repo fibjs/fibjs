@@ -12,18 +12,18 @@
  */
 
 #include "../object.h"
-#include "ifs/ECCKey.h"
+#include "ifs/ECKey.h"
 
 namespace fibjs {
 
-class ECCKey_base;
+class ECKey_base;
 
-class Ed25519Key_base : public ECCKey_base {
+class Ed25519Key_base : public ECKey_base {
     DECLARE_CLASS(Ed25519Key_base);
 
 public:
     // Ed25519Key_base
-    virtual result_t toX25519(obj_ptr<ECCKey_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t toX25519(obj_ptr<ECKey_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -40,7 +40,7 @@ public:
     static void s_toX25519(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_MEMBERVALUE1(Ed25519Key_base, toX25519, obj_ptr<ECCKey_base>);
+    ASYNC_MEMBERVALUE1(Ed25519Key_base, toX25519, obj_ptr<ECKey_base>);
 };
 }
 
@@ -55,7 +55,7 @@ inline ClassInfo& Ed25519Key_base::class_info()
     static ClassData s_cd = {
         "Ed25519Key", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
-        &ECCKey_base::class_info()
+        &ECKey_base::class_info()
     };
 
     static ClassInfo s_ci(s_cd);
@@ -64,7 +64,7 @@ inline ClassInfo& Ed25519Key_base::class_info()
 
 inline void Ed25519Key_base::s_toX25519(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    obj_ptr<ECCKey_base> vr;
+    obj_ptr<ECKey_base> vr;
 
     METHOD_NAME("Ed25519Key.toX25519");
     METHOD_INSTANCE(Ed25519Key_base);

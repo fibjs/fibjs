@@ -11,34 +11,10 @@
 #include "ifs/crypto.h"
 #include "PKey.h"
 #include "Ed25519Key.h"
-#include "PKey_impl.h"
 #include "ssl.h"
 #include "Buffer.h"
 
 namespace fibjs {
-
-result_t PKey_base::_new(Buffer_base* DerKey, exlib::string password, obj_ptr<PKey_base>& retVal,
-    v8::Local<v8::Object> This)
-{
-    result_t hr = from(DerKey, password, retVal);
-    if (hr >= 0)
-        retVal->wrap();
-
-    return 0;
-}
-
-result_t ECCKey_base::_new(Buffer_base* DerKey, exlib::string password, obj_ptr<ECCKey_base>& retVal,
-    v8::Local<v8::Object> This)
-{
-    obj_ptr<PKey_base> key;
-
-    result_t hr = PKey_base::from(DerKey, password, key);
-    if (hr < 0)
-        return hr;
-
-    retVal = dynamic_cast<ECCKey_base*>((PKey_base*)key);
-    return retVal ? 0 : CHECK_ERROR(_ssl::setError(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT));
-}
 
 result_t PKey_base::from(Buffer_base* DerKey, exlib::string password, obj_ptr<PKey_base>& retVal)
 {
