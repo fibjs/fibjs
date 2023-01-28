@@ -43,12 +43,12 @@ result_t BlsKey_base::aggregateSignature(v8::Local<v8::Array> sigs, obj_ptr<Buff
 
     buf->get_length(len);
     if (len == 48) {
-        blst_p1 point = {};
+        blst_p1 point;
         blst_p1_affine pk;
 
         buf->toString(s);
         blst_p1_uncompress(&pk, (const byte*)s.c_str());
-        blst_p1_add_or_double_affine(&point, &point, &pk);
+        blst_p1_from_affine(&point, &pk);
 
         for (int32_t i = 1; i < sig_len; i++) {
             hr = GetConfigValue(isolate->m_isolate, sigs, 1, buf);
@@ -67,12 +67,12 @@ result_t BlsKey_base::aggregateSignature(v8::Local<v8::Array> sigs, obj_ptr<Buff
         s.resize(48);
         blst_p1_compress((byte*)s.c_buffer(), &point);
     } else if (len == 96) {
-        blst_p2 point = {};
+        blst_p2 point;
         blst_p2_affine pk;
 
         buf->toString(s);
         blst_p2_uncompress(&pk, (const byte*)s.c_str());
-        blst_p2_add_or_double_affine(&point, &point, &pk);
+        blst_p2_from_affine(&point, &pk);
 
         for (int32_t i = 1; i < sig_len; i++) {
             hr = GetConfigValue(isolate->m_isolate, sigs, 1, buf);
