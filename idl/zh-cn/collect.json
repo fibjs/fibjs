@@ -39,6 +39,7 @@
         "hex",
         "iconv",
         "json",
+        "multibase",
         "msgpack",
         "string_decoder"
     ],
@@ -50,7 +51,7 @@
         "zip",
         "zlib"
     ],
-    "Test Suite": [
+    "Test": [
         "assert",
         "performance",
         "perf_hooks",
