@@ -30,7 +30,6 @@ public:
     virtual result_t get_curve(exlib::string& retVal) = 0;
     static result_t recover(Buffer_base* data, Buffer_base* sig, obj_ptr<ECCKey_base>& retVal, AsyncEvent* ac);
     static result_t aggregateSignatures(v8::Local<v8::Array> sigs, obj_ptr<Buffer_base>& retVal);
-    virtual result_t toX25519(obj_ptr<ECCKey_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t computeSecret(ECCKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
@@ -42,12 +41,10 @@ public:
     static void s_get_curve(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_static_recover(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_aggregateSignatures(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_toX25519(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_computeSecret(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE3(ECCKey_base, recover, Buffer_base*, Buffer_base*, obj_ptr<ECCKey_base>);
-    ASYNC_MEMBERVALUE1(ECCKey_base, toX25519, obj_ptr<ECCKey_base>);
     ASYNC_MEMBERVALUE2(ECCKey_base, computeSecret, ECCKey_base*, obj_ptr<Buffer_base>);
 };
 }
@@ -61,8 +58,6 @@ inline ClassInfo& ECCKey_base::class_info()
         { "recover", s_static_recover, true, true },
         { "recoverSync", s_static_recover, true, false },
         { "aggregateSignatures", s_static_aggregateSignatures, true, false },
-        { "toX25519", s_toX25519, false, true },
-        { "toX25519Sync", s_toX25519, false, false },
         { "computeSecret", s_computeSecret, false, true },
         { "computeSecretSync", s_computeSecret, false, false }
     };
@@ -163,24 +158,6 @@ inline void ECCKey_base::s_static_aggregateSignatures(const v8::FunctionCallback
     ARG(v8::Local<v8::Array>, 0);
 
     hr = aggregateSignatures(v0, vr);
-
-    METHOD_RETURN();
-}
-
-inline void ECCKey_base::s_toX25519(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<ECCKey_base> vr;
-
-    METHOD_NAME("ECCKey.toX25519");
-    METHOD_INSTANCE(ECCKey_base);
-    METHOD_ENTER();
-
-    ASYNC_METHOD_OVER(0, 0);
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_toX25519(cb, args);
-    else
-        hr = pInst->ac_toX25519(vr);
 
     METHOD_RETURN();
 }

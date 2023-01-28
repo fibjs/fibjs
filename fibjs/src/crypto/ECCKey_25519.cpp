@@ -1,5 +1,5 @@
 /*
- * PKey_25519.cpp
+ * ECCKey_25519.cpp
  *
  *  Created on: May 2, 2022
  *      Author: lion
@@ -32,7 +32,7 @@ const unsigned char s_der_pub_lead_x[]
 #define PEM_END_PUBLIC_KEY "-----END PUBLIC KEY-----"
 
 PKey_25519::PKey_25519(mbedtls_pk_context& key)
-    : PKey_ecc(key, false)
+    : ECCKey_impl<Ed25519Key_base>(key, false)
 {
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
 
@@ -128,7 +128,7 @@ static int parse_key(mbedtls_pk_context& ctx, const unsigned char* key, size_t k
             return ret;
 
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(ctx);
-        PKey_ecc::load_group(&ecp->grp, id);
+        ECCKey::load_group(&ecp->grp, id);
 
         ret = mbedtls_mpi_read_binary(&ecp->d, (const unsigned char*)key + sizeof(s_der_priv_lead),
             ed25519_public_key_size);
@@ -172,7 +172,7 @@ static int parse_pub_key(mbedtls_pk_context& ctx, const unsigned char* key, size
             return ret;
 
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(ctx);
-        PKey_ecc::load_group(&ecp->grp, id);
+        ECCKey::load_group(&ecp->grp, id);
 
         ret = mbedtls_mpi_read_binary(&ecp->Q.X, (const unsigned char*)key + sizeof(s_der_pub_lead),
             ed25519_public_key_size);

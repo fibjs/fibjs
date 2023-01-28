@@ -1,5 +1,5 @@
 /*
- * PKey_bls.cpp
+ * ECCKey_bls_g2.cpp
  *
  *  Created on: May 1, 2022
  *      Author: lion
@@ -13,11 +13,11 @@
 
 namespace fibjs {
 
-// const unsigned char DST_G1_NUL[] = "BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_NUL_";
-// const unsigned char DST_G1_AUG[] = "BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_AUG_";
-const unsigned char DST_G1_POP[] = "BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
+// const unsigned char DST_G2_NUL[] = "BLS_SIG_BLS12381G1_XMD:SHA-256_SSWU_RO_NUL_";
+// const unsigned char DST_G2_AUG[] = "BLS_SIG_BLS12381G1_XMD:SHA-256_SSWU_RO_AUG_";
+const unsigned char DST_G2_POP[] = "BLS_SIG_BLS12381G1_XMD:SHA-256_SSWU_RO_POP_";
 
-result_t PKey_bls_g1::mpi_load(Isolate* isolate, mbedtls_mpi* n, v8::Local<v8::Object> o)
+result_t PKey_bls_g2::mpi_load(Isolate* isolate, mbedtls_mpi* n, v8::Local<v8::Object> o)
 {
     exlib::string b64, s;
     result_t hr;
@@ -29,7 +29,7 @@ result_t PKey_bls_g1::mpi_load(Isolate* isolate, mbedtls_mpi* n, v8::Local<v8::O
     if (v->IsArray()) {
         v8::Local<v8::Array> a = v8::Local<v8::Array>::Cast(v);
         int32_t len = a->Length();
-        blst_p1 point = {};
+        blst_p2 point = {};
 
         for (int32_t i = 0; i < len; i++) {
             hr = GetConfigValue(isolate->m_isolate, a, i, b64);
@@ -38,13 +38,13 @@ result_t PKey_bls_g1::mpi_load(Isolate* isolate, mbedtls_mpi* n, v8::Local<v8::O
 
             base64Decode(b64.c_str(), b64.length(), s);
 
-            blst_p1_affine pk;
-            blst_p1_uncompress(&pk, (const byte*)s.c_str());
-            blst_p1_add_or_double_affine(&point, &point, &pk);
+            blst_p2_affine pk;
+            blst_p2_uncompress(&pk, (const byte*)s.c_str());
+            blst_p2_add_or_double_affine(&point, &point, &pk);
         }
 
-        s.resize(48);
-        blst_p1_compress((byte*)s.c_buffer(), &point);
+        s.resize(96);
+        blst_p2_compress((byte*)s.c_buffer(), &point);
     } else {
         hr = GetArgumentValue(isolate->m_isolate, v, b64);
         if (hr < 0)
@@ -61,8 +61,8 @@ result_t PKey_bls_g1::mpi_load(Isolate* isolate, mbedtls_mpi* n, v8::Local<v8::O
     return 0;
 }
 
-PKey_bls_g1::PKey_bls_g1(mbedtls_pk_context& key)
-    : PKey_ecc(key, false)
+PKey_bls_g2::PKey_bls_g2(mbedtls_pk_context& key)
+    : ECCKey_impl<ECCKey_base>(key, false)
 {
     m_alg = "BLS";
 
@@ -76,16 +76,16 @@ PKey_bls_g1::PKey_bls_g1(mbedtls_pk_context& key)
         mbedtls_mpi_write_binary(&ecp->d, k, 32);
         blst_scalar_from_bendian(&sk, k);
 
-        blst_p1 pk;
+        blst_p2 pk;
 
-        blst_sk_to_pk_in_g1(&pk, &sk);
-        blst_p1_compress(k, &pk);
+        blst_sk_to_pk_in_g2(&pk, &sk);
+        blst_p2_compress(k, &pk);
 
-        mbedtls_mpi_read_binary(&ecp->Q.X, k, 48);
+        mbedtls_mpi_read_binary(&ecp->Q.X, k, 96);
     }
 }
 
-PKey_bls_g1::PKey_bls_g1()
+PKey_bls_g2::PKey_bls_g2()
 {
     m_alg = "BLS";
 
@@ -94,7 +94,7 @@ PKey_bls_g1::PKey_bls_g1()
 
     unsigned char k[96];
     blst_scalar sk;
-    blst_p1 pk;
+    blst_p2 pk;
 
     mbedtls_ctr_drbg_random(&g_ssl.ctr_drbg, k, 32);
 
@@ -103,13 +103,13 @@ PKey_bls_g1::PKey_bls_g1()
 
     mbedtls_mpi_read_binary(&ecp->d, k, 32);
 
-    blst_sk_to_pk_in_g1(&pk, &sk);
-    blst_p1_compress(k, &pk);
+    blst_sk_to_pk_in_g2(&pk, &sk);
+    blst_p2_compress(k, &pk);
 
-    mbedtls_mpi_read_binary(&ecp->Q.X, k, 48);
+    mbedtls_mpi_read_binary(&ecp->Q.X, k, 96);
 }
 
-result_t PKey_bls_g2::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
+result_t PKey_bls_g1::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
 {
     static const char* s_keys[] = {
         "format", NULL
@@ -135,7 +135,7 @@ result_t PKey_bls_g2::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
     return CHECK_ERROR(CALL_E_NOSYNC);
 }
 
-result_t PKey_bls_g1::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t PKey_bls_g2::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     result_t hr = check_opts(opts, ac);
     if (hr < 0)
@@ -160,18 +160,18 @@ result_t PKey_bls_g1::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_pt
     exlib::string buf;
     data->toString(buf);
 
-    blst_p2 point;
-    blst_hash_to_g2(&point, (unsigned char*)buf.c_str(), buf.length(),
-        DST_G1_POP, sizeof(DST_G1_POP) - 1, NULL, 0);
-    blst_sign_pk_in_g1(&point, &point, &sk);
-    blst_p2_compress(k, &point);
+    blst_p1 point;
+    blst_hash_to_g1(&point, (unsigned char*)buf.c_str(), buf.length(),
+        DST_G2_POP, sizeof(DST_G2_POP) - 1, NULL, 0);
+    blst_sign_pk_in_g2(&point, &point, &sk);
+    blst_p1_compress(k, &point);
 
-    retVal = new Buffer(k, 96);
+    retVal = new Buffer(k, 48);
 
     return 0;
 }
 
-result_t PKey_bls_g1::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac)
+result_t PKey_bls_g2::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac)
 {
     result_t hr = check_opts(opts, ac);
     if (hr < 0)
@@ -186,15 +186,15 @@ result_t PKey_bls_g1::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8:
     exlib::string sig;
     sign->toString(sig);
 
-    blst_p1_affine pk;
-    mbedtls_mpi_write_binary(&ecp->Q.X, k, 48);
-    blst_p1_uncompress(&pk, k);
+    blst_p2_affine pk;
+    mbedtls_mpi_write_binary(&ecp->Q.X, k, 96);
+    blst_p2_uncompress(&pk, k);
 
-    blst_p2_affine point;
-    blst_p2_uncompress(&point, (const unsigned char*)sig.c_str());
+    blst_p1_affine point;
+    blst_p1_uncompress(&point, (const unsigned char*)sig.c_str());
 
-    retVal = !blst_core_verify_pk_in_g1(&pk, &point, 1, (unsigned char*)buf.c_str(), buf.length(),
-        DST_G1_POP, sizeof(DST_G1_POP) - 1, NULL, 0);
+    retVal = !blst_core_verify_pk_in_g2(&pk, &point, 1, (unsigned char*)buf.c_str(), buf.length(),
+        DST_G2_POP, sizeof(DST_G2_POP) - 1, NULL, 0);
 
     return 0;
 }

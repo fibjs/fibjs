@@ -38,7 +38,7 @@ PKey_base* PKey::create(mbedtls_pk_context& key, bool clone)
             mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(key);
             mbedtls_ecp_keypair* ecp1 = mbedtls_pk_ec(key1);
 
-            PKey_ecc::load_group(&ecp1->grp, ecp->grp.id);
+            ECCKey::load_group(&ecp1->grp, ecp->grp.id);
             mbedtls_mpi_copy(&ecp1->d, &ecp->d);
             mbedtls_ecp_copy(&ecp1->Q, &ecp->Q);
         }
@@ -47,7 +47,7 @@ PKey_base* PKey::create(mbedtls_pk_context& key, bool clone)
     if (type == MBEDTLS_PK_RSA)
         return new PKey_rsa(cur);
 
-    return PKey_ecc::create(cur);
+    return ECCKey::create(cur, "");
 }
 
 PKey::PKey()

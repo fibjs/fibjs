@@ -157,7 +157,7 @@ result_t PKey_base::from(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retV
         if (hr < 0)
             return hr;
 
-        int32_t id = PKey_ecc::get_curve_id(curve);
+        int32_t id = ECCKey::get_curve_id(curve);
 
         if (id == MBEDTLS_ECP_DP_NONE)
             return CHECK_ERROR(Runtime::setError("PKey: Unknown curve"));
@@ -168,7 +168,7 @@ result_t PKey_base::from(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retV
 
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(ctx);
 
-        PKey_ecc::load_group(&ecp->grp, (mbedtls_ecp_group_id)id);
+        ECCKey::load_group(&ecp->grp, (mbedtls_ecp_group_id)id);
 
         do {
             hr = mpi_load(isolate, &ecp->d, jsonKey, "d");
@@ -250,7 +250,7 @@ result_t PKey::json(v8::Local<v8::Object> opts, v8::Local<v8::Object>& retVal)
     } else {
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-        const char* _name = PKey_ecc::get_curve_name(ecp->grp.id);
+        const char* _name = ECCKey::get_curve_name(ecp->grp.id);
         int32_t id = ecp->grp.id;
 
         if (id == MBEDTLS_ECP_DP_ED25519 || id == MBEDTLS_ECP_DP_CURVE25519 || id == MBEDTLS_ECP_DP_CURVE448)

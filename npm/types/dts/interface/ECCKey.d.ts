@@ -73,15 +73,6 @@ declare class Class_ECCKey extends Class_PKey {
     static aggregateSignatures(sigs: any[]): Class_Buffer;
 
     /**
-     * @description 从当前对象转换 X25519 公私钥对，仅支持 Ed25519
-     *      @return 返回对应的 X25519 公钥的对象
-     *     
-     */
-    toX25519(): Class_ECCKey;
-
-    toX25519(callback: (err: Error | undefined | null, retVal: Class_ECCKey)=>any): void;
-
-    /**
      * @description 使用当前算法计算椭圆曲线 Diffie-Hellman (ECDH) 共享密钥
      *      @param publicKey 指定对方的公钥
      *      @return 返回计算出的共享密钥

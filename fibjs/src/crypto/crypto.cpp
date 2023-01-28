@@ -307,7 +307,7 @@ result_t crypto_base::generateKey(exlib::string curve, obj_ptr<PKey_base>& retVa
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return PKey_ecc::generateKey(curve, retVal);
+    return ECCKey::generateKey(curve, retVal);
 }
 
 inline int pkcs5_pbkdf1(mbedtls_md_context_t* ctx, const unsigned char* password,

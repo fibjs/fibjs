@@ -1,5 +1,5 @@
 /*
- * PKey_p256k1.cpp
+ * ECCKey_p256k1.cpp
  *
  *  Created on: May 10, 2022
  *      Author: lion
@@ -17,8 +17,8 @@ extern "C" int secp256k1_ec_pubkey_decode(const secp256k1_context* ctx, unsigned
 
 namespace fibjs {
 
-PKey_p256k1::PKey_p256k1(mbedtls_pk_context& key)
-    : PKey_ecc(key, false)
+PKey_p256k1::PKey_p256k1(mbedtls_pk_context& key, exlib::string algo)
+    : ECCKey_impl<ECCKey_base>(key, false)
 {
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
     size_t ksz = (mbedtls_pk_get_bitlen(&m_key) + 7) / 8;
@@ -37,10 +37,13 @@ PKey_p256k1::PKey_p256k1(mbedtls_pk_context& key)
             mbedtls_mpi_read_binary(&ecp->Q.Y, data + ksz + 1, ksz);
         }
     }
+
+    if (!algo.empty())
+        m_alg = algo;
 }
 
 PKey_p256k1::PKey_p256k1()
-    : PKey_ecc(MBEDTLS_ECP_DP_SECP256K1)
+    : ECCKey_impl<ECCKey_base>(MBEDTLS_ECP_DP_SECP256K1)
 {
 }
 
@@ -97,7 +100,7 @@ static void fix_sigature(const unsigned char* sig, unsigned char* sig1)
 result_t PKey_p256k1::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (m_alg == "ECSDSA")
-        return PKey_ecc::sign(data, opts, retVal, ac);
+        return ECCKey::sign(data, opts, retVal, ac);
 
     result_t hr = check_opts(opts, ac);
     if (hr < 0)
@@ -105,7 +108,7 @@ result_t PKey_p256k1::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_pt
 
     bool recoverable = ac->m_ctx[2].boolVal();
     if (!recoverable)
-        return PKey_ecc::sign(data, opts, retVal, ac);
+        return ECCKey::sign(data, opts, retVal, ac);
 
     bool priv;
 
@@ -182,7 +185,7 @@ result_t ECCKey_base::recover(Buffer_base* data, Buffer_base* sig, obj_ptr<ECCKe
     mbedtls_pk_setup(&ctx, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
 
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(ctx);
-    PKey_ecc::load_group(&ecp->grp, MBEDTLS_ECP_DP_SECP256K1);
+    ECCKey::load_group(&ecp->grp, MBEDTLS_ECP_DP_SECP256K1);
 
     mbedtls_mpi_read_binary_le(&ecp->Q.X, pubkey.data, KEYSIZE_256);
     mbedtls_mpi_read_binary_le(&ecp->Q.Y, pubkey.data + KEYSIZE_256, KEYSIZE_256);
