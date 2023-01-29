@@ -56,7 +56,11 @@ result_t os_base::hostname(exlib::string& retVal)
 result_t os_base::platform(exlib::string& retVal)
 {
 #ifdef Linux
+#ifdef __ANDROID__
+    retVal = "android";
+#else
     retVal = "linux";
+#endif
 #elif defined(Windows)
     retVal = "win32";
 #elif defined(Darwin)
