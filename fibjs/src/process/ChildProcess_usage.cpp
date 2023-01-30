@@ -11,8 +11,15 @@
 #define MICROS_PER_SEC 1e6
 
 #ifdef Darwin
+#ifdef iPhone
+namespace fibjs {
+result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
+{
+    return CALL_E_INVALID_CALL;
+}
+}
+#else
 #include <libproc.h>
-
 namespace fibjs {
 result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
 {
@@ -34,6 +41,7 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
     return 0;
 }
 }
+#endif
 #elif defined(Linux)
 namespace fibjs {
 result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
