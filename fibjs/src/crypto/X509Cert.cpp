@@ -9,10 +9,8 @@
 #include "ifs/fs.h"
 #include "ssl.h"
 #include "X509Cert.h"
-#include "parse.h"
 #include <mbedtls/mbedtls/pem.h>
 #include "PKey.h"
-#include "QuickArray.h"
 #include "StringBuffer.h"
 #include "Buffer.h"
 #include <map>
@@ -125,166 +123,13 @@ result_t X509Cert::import(exlib::string txtCert)
 
     int32_t ret;
 
-    if (qstrstr(txtCert.c_str(), "BEGIN CERTIFICATE")) {
-        ret = mbedtls_x509_crt_parse(&m_crt, (const unsigned char*)txtCert.c_str(),
-            txtCert.length() + 1);
-        if (ret != 0)
-            return CHECK_ERROR(_ssl::setError(ret));
-
-        return 0;
-    }
-
-    _parser p(txtCert);
-    QuickArray<std::pair<exlib::string, exlib::string>> values;
-    std::map<exlib::string, bool> verifies;
-    std::map<exlib::string, bool> certs;
-
-    while (!p.end()) {
-        exlib::string cka_label;
-        exlib::string cka_value;
-        exlib::string cka_serial;
-        exlib::string _value;
-        bool in_multiline = false, in_obj = false;
-        bool is_cert = false;
-        bool is_trust = false;
-        bool is_value = false;
-        bool is_serial = false;
-        bool is_ca = false;
-        bool is_verify = false;
-
-        while (!p.end()) {
-            exlib::string line;
-            exlib::string cmd, type, value;
-
-            p.getLine(line);
-            _parser p1(line);
-
-            p1.skipSpace();
-            if (p1.get() == '#')
-                continue;
-
-            if (in_multiline) {
-                if (p1.get() == '\\') {
-                    while (p1.get() == '\\') {
-                        char ch1, ch2, ch3;
-
-                        p1.skip();
-
-                        ch1 = p1.getChar();
-                        if (ch1 < '0' || ch1 > '7')
-                            break;
-
-                        ch2 = p1.getChar();
-                        if (ch2 < '0' || ch2 > '7')
-                            break;
-
-                        ch3 = p1.getChar();
-                        if (ch3 < '0' || ch3 > '7')
-                            break;
-
-                        ch1 = (ch1 - '0') * 64 + (ch2 - '0') * 8 + (ch3 - '0');
-                        _value.append(&ch1, 1);
-                    }
-                    continue;
-                }
-
-                p1.getWord(cmd);
-                if ((cmd == "END")) {
-                    if (is_value)
-                        cka_value = _value;
-                    else if (is_serial)
-                        cka_serial = _value;
-
-                    in_multiline = false;
-                }
-
-                continue;
-            }
-
-            p1.getWord(cmd);
-
-            p1.skipSpace();
-            p1.getWord(type);
-            if ((type == "MULTILINE_OCTAL")) {
-                in_multiline = true;
-                _value.resize(0);
-
-                is_value = is_cert && (cmd == "CKA_VALUE");
-                is_serial = (cmd == "CKA_SERIAL_NUMBER");
-                continue;
-            }
-
-            p1.skipSpace();
-            p1.getLeft(value);
-
-            if (!in_obj) {
-                if ((cmd == "CKA_CLASS")) {
-                    in_obj = true;
-                    is_cert = (value == "CKO_CERTIFICATE");
-                    is_trust = (value == "CKO_NSS_TRUST");
-                }
-                continue;
-            }
-
-            if ((cmd == "CKA_LABEL"))
-                cka_label = value;
-            else if (is_trust && (cmd == "CKA_TRUST_SERVER_AUTH")) {
-                is_ca = (value == "CKT_NSS_TRUSTED_DELEGATOR");
-                is_verify = (value == "CKT_NSS_MUST_VERIFY_TRUST");
-            }
-
-            if (cmd.empty())
-                break;
-        }
-
-        if (!cka_label.empty()) {
-            if (is_trust) {
-                if (is_ca)
-                    certs.insert(std::pair<exlib::string, bool>(cka_label + cka_serial, true));
-                if (is_verify)
-                    verifies.insert(std::pair<exlib::string, bool>(cka_label + cka_serial, true));
-            } else if (is_cert && !cka_value.empty())
-                values.append(std::pair<exlib::string, exlib::string>(cka_label + cka_serial, cka_value));
-        }
-    }
-
-    bool is_loaded = false;
-    int32_t i;
-
-    for (i = 0; i < (int32_t)values.size(); i++) {
-        std::pair<exlib::string, exlib::string>& c = values[i];
-        std::map<exlib::string, bool>::iterator it_trust;
-
-        it_trust = verifies.find(c.first);
-        if (it_trust != verifies.end()) {
-            ret = mbedtls_x509_crt_parse_der(&m_crt,
-                (const unsigned char*)c.second.c_str(),
-                c.second.length());
-            if (ret != 0)
-                return CHECK_ERROR(_ssl::setError(ret));
-
-            is_loaded = true;
-        }
-    }
-
-    for (i = 0; i < (int32_t)values.size(); i++) {
-        std::pair<exlib::string, exlib::string>& c = values[i];
-        std::map<exlib::string, bool>::iterator it_trust;
-
-        it_trust = certs.find(c.first);
-        if (it_trust != certs.end()) {
-            ret = mbedtls_x509_crt_parse_der(&m_crt,
-                (const unsigned char*)c.second.c_str(),
-                c.second.length());
-            if (ret != 0)
-                return CHECK_ERROR(_ssl::setError(ret));
-
-            is_loaded = true;
-        }
-    }
-
-    if (!is_loaded)
+    if (!qstrstr(txtCert.c_str(), "BEGIN CERTIFICATE"))
         return CHECK_ERROR(_ssl::setError(MBEDTLS_ERR_X509_INVALID_FORMAT));
+
+    ret = mbedtls_x509_crt_parse(&m_crt, (const unsigned char*)txtCert.c_str(),
+        txtCert.length() + 1);
+    if (ret != 0)
+        return CHECK_ERROR(_ssl::setError(ret));
 
     return 0;
 }

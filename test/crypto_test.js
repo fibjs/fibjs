@@ -1658,23 +1658,6 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
             assert.deepEqual(cert.pem(), s);
         });
 
-        it("certdata.txt", () => {
-            cert.clear();
-            assert.deepEqual(cert.pem(), "");
-
-            cert.import(fs.readTextFile(path.join(__dirname, 'cert_files', 'certdata.txt')));
-            var s = cert.pem();
-            assert.notDeepEqual(s, "");
-
-            cert.clear();
-            assert.deepEqual(cert.pem(), "");
-
-            cert.import(fs.readTextFile(path.join(__dirname, 'cert_files', 'ca-bundle.crt')));
-            var s1 = cert.pem();
-
-            assert.deepEqual(s.slice(s.length - s1.length), s1);
-        });
-
         it("root ca", () => {
             cert.clear();
             assert.deepEqual(cert.pem(), "");

@@ -4,27 +4,27 @@ var child_process = require("child_process");
 
 child_process.run('perl', ['mk-ca-bundle.pl']);
 
-var cert = new crypto.X509Cert();
-cert.loadFile('certdata.txt');
-var a = cert.dump();
+var cert = new crypto.loadCert('ca-bundle.crt');
+var a = cert.pem().split('-----END CERTIFICATE-----');
 var a1 = [];
 
-for (var i = 0; i < a.length; i++) {
-    var txt = a[i];
+a.forEach(txt => {
     txt = txt.replace('-----BEGIN CERTIFICATE-----', '').replace('-----END CERTIFICATE-----', '');
 
     var buf = new Buffer(txt, 'base64');
-    txt = buf.hex();
-    var b = txt.match(/(.{1,2})/g);
-    txt = '\\x' + b.join('\\x');
-    var b = txt.match(/(.{1,80})/g);
-    txt = '        "' + b.join('"\n        "') + '"';
+    if (buf.length) {
+        txt = buf.hex();
+        var b = txt.match(/(.{1,2})/g);
+        txt = '\\x' + b.join('\\x');
+        var b = txt.match(/(.{1,80})/g);
+        txt = '        "' + b.join('"\n        "') + '"';
 
-    a1.push('    {');
-    a1.push('        ' + buf.length + ',');
-    a1.push(txt);
-    a1.push('    },');
-}
+        a1.push('    {');
+        a1.push('        ' + buf.length + ',');
+        a1.push(txt);
+        a1.push('    },');
+    }
+});
 
 var txts = ['/***************************************************************************',
     ' *                                                                         *',
