@@ -25,10 +25,8 @@ declare class Class_X509Cert extends Class_object {
     constructor(derCert: Class_Buffer);
 
     /**
-     * @description X509Cert 构造函数，加载一个 CRT/PEM/TXT 格式的证书
-     * 
-     *     load 加载 mozilla 的 certdata,txt， 可于 http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
-     *      @param txtCert CRT/PEM/TXT 格式的证书
+     * @description X509Cert 构造函数，加载一个 CRT/PEM 格式的证书
+     *      @param txtCert CRT/PEM 格式的证书
      *     
      */
     constructor(txtCert: string);
@@ -41,10 +39,8 @@ declare class Class_X509Cert extends Class_object {
     import(derCert: Class_Buffer): void;
 
     /**
-     * @description 加载一个 CRT/PEM/TXT 格式的证书，可多次调用
-     * 
-     *     import 加载 mozilla 的 certdata,txt， 可于 http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
-     *      @param txtCert CRT/PEM/TXT 格式的证书
+     * @description 加载一个 CRT/PEM 格式的证书，可多次调用
+     *      @param txtCert CRT/PEM 格式的证书
      *     
      */
     import(txtCert: string): void;
