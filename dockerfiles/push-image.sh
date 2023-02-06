@@ -5,6 +5,7 @@ docker image push fibjs/linux-build-env:arm
 docker image push fibjs/linux-build-env:mips64
 docker image push fibjs/linux-build-env:ppc64
 docker image push fibjs/linux-build-env:loong64
+docker image push fibjs/linux-build-env:loong64r
 
 docker image push fibjs/alpine-build-env:amd64
 docker image push fibjs/alpine-build-env:i386
