@@ -7,6 +7,7 @@
 
 #include "object.h"
 #include "ifs/process.h"
+#include <uv/include/uv.h>
 #include "unicode/locid.h"
 #include "unicode/timezone.h"
 
@@ -42,11 +43,7 @@ void SetEnv(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::
         exlib::string key = isolate->toString(property);
         exlib::string val = isolate->toString(value);
 
-#ifdef _WIN32
-        SetEnvironmentVariableA(key.c_str(), val.c_str());
-#else
-        setenv(key.c_str(), val.c_str(), 1);
-#endif
+        uv_os_setenv(key.c_str(), val.c_str());
         on_env_update(key, val);
     }
 }
@@ -56,11 +53,7 @@ void DelEnv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boo
     Isolate* isolate = Isolate::current();
     exlib::string key = isolate->toString(property);
 
-#ifdef _WIN32
-    SetEnvironmentVariableA(key.c_str(), NULL);
-#else
-    unsetenv(key.c_str());
-#endif
+    uv_os_unsetenv(key.c_str());
     on_env_update(key, "");
 }
 
@@ -85,7 +78,7 @@ result_t process_base::get_env(v8::Local<v8::Object>& retVal)
         isolate->m_env.Reset(isolate->m_isolate, o);
         retVal = o;
     } else
-        retVal = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_env);
+        retVal = isolate->m_env.Get(isolate->m_isolate);
 
     return 0;
 }

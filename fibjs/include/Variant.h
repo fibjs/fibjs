@@ -186,7 +186,7 @@ public:
 
         if (_t == VT_JSValue) {
             if (v.isGlobal())
-                return operator=(v8::Local<v8::Value>::New(Isolate::current()->m_isolate, v.jsValEx()));
+                return operator=(v.jsValEx().Get(Isolate::current()->m_isolate));
             else
                 return operator=(v.jsVal());
         }

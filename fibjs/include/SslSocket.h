@@ -163,7 +163,7 @@ public:
         exlib::string m_name;
         pcre* m_re;
         obj_ptr<X509Cert> m_crt;
-        obj_ptr<PKey> m_key;
+        obj_ptr<PKey_base> m_key;
     };
 
     result_t setCert(Cert* crt);

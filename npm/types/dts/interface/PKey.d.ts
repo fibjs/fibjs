@@ -82,11 +82,6 @@ declare class Class_PKey extends Class_object {
     readonly name: string;
 
     /**
-     * @description 返回当前算法的椭圆曲线名称，仅用于 EC 和 SM2 
-     */
-    readonly curve: string;
-
-    /**
      * @description 返回当前算法密码长度，以位为单位 
      */
     readonly keySize: number;
@@ -184,34 +179,6 @@ declare class Class_PKey extends Class_object {
      *     
      */
     static from(jsonKey: FIBJS.GeneralObject): Class_PKey;
-
-    /**
-     * @description 从可恢复签名中恢复公钥，仅支持 secp256k1
-     *      @param data 签名的原始数据
-     *      @param sig 可恢复签名
-     *      @return 返回包含公钥的对象
-     *     
-     */
-    static recover(data: Class_Buffer, sig: Class_Buffer): Class_PKey;
-
-    static recover(data: Class_Buffer, sig: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_PKey)=>any): void;
-
-    /**
-     * @description 合并一组签名为一个单一签名，仅支持 BLS12381_G1 和 BLS12381_G2
-     *      @param sigs 待合并的一组签名
-     *      @return 返回合并的单一签名
-     *     
-     */
-    static aggregateSignatures(sigs: any[]): Class_Buffer;
-
-    /**
-     * @description 从当前对象转换 X25519 公私钥对，仅支持 Ed25519
-     *      @return 返回对应的 X25519 公钥的对象
-     *     
-     */
-    toX25519(): Class_PKey;
-
-    toX25519(callback: (err: Error | undefined | null, retVal: Class_PKey)=>any): void;
 
     /**
      * @description 返回当前 key 的 PEM 格式编码
@@ -313,16 +280,6 @@ declare class Class_PKey extends Class_object {
     verify(data: Class_Buffer, sign: Class_Buffer, opts?: FIBJS.GeneralObject): boolean;
 
     verify(data: Class_Buffer, sign: Class_Buffer, opts?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: boolean)=>any): void;
-
-    /**
-     * @description 使用当前算法计算椭圆曲线 Diffie-Hellman (ECDH) 共享密钥
-     *      @param publicKey 指定对方的公钥
-     *      @return 返回计算出的共享密钥
-     *      
-     */
-    computeSecret(publicKey: Class_PKey): Class_Buffer;
-
-    computeSecret(publicKey: Class_PKey, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
 }
 

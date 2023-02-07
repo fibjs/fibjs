@@ -69,9 +69,6 @@ interface PKey : object
     /*! @brief 返回当前算法名称 */
     readonly String name;
 
-    /*! @brief 返回当前算法的椭圆曲线名称，仅用于 EC 和 SM2 */
-    readonly String curve;
-
     /*! @brief 返回当前算法密码长度，以位为单位 */
     readonly Integer keySize;
 
@@ -155,24 +152,6 @@ interface PKey : object
     */
     static PKey from(Object jsonKey);
 
-    /*! @brief 从可恢复签名中恢复公钥，仅支持 secp256k1
-     @param data 签名的原始数据
-     @param sig 可恢复签名
-     @return 返回包含公钥的对象
-    */
-    static PKey recover(Buffer data, Buffer sig) async;
-
-    /*! @brief 合并一组签名为一个单一签名，仅支持 BLS12381_G1 和 BLS12381_G2
-     @param sigs 待合并的一组签名
-     @return 返回合并的单一签名
-    */
-    static Buffer aggregateSignatures(Array sigs);
-
-    /*! @brief 从当前对象转换 X25519 公私钥对，仅支持 Ed25519
-     @return 返回对应的 X25519 公钥的对象
-    */
-    PKey toX25519() async;
-
     /*! @brief 返回当前 key 的 PEM 格式编码
      @return 当前 key 的 PEM 格式编码
     */
@@ -249,10 +228,4 @@ interface PKey : object
      @return 返回验证后的结果
      */
     Boolean verify(Buffer data, Buffer sign, Object opts = {}) async;
-
-    /*! @brief 使用当前算法计算椭圆曲线 Diffie-Hellman (ECDH) 共享密钥
-     @param publicKey 指定对方的公钥
-     @return 返回计算出的共享密钥
-     */
-    Buffer computeSecret(PKey publicKey) async;
 };

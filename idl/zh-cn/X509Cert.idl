@@ -15,10 +15,8 @@ interface X509Cert : object
     */
     X509Cert(Buffer derCert);
 
-    /*! @brief X509Cert 构造函数，加载一个 CRT/PEM/TXT 格式的证书
-
-    load 加载 mozilla 的 certdata,txt， 可于 http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
-     @param txtCert CRT/PEM/TXT 格式的证书
+    /*! @brief X509Cert 构造函数，加载一个 CRT/PEM 格式的证书
+     @param txtCert CRT/PEM 格式的证书
     */
     X509Cert(String txtCert);
 
@@ -27,10 +25,8 @@ interface X509Cert : object
     */
     import(Buffer derCert);
 
-    /*! @brief 加载一个 CRT/PEM/TXT 格式的证书，可多次调用
-
-    import 加载 mozilla 的 certdata,txt， 可于 http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
-     @param txtCert CRT/PEM/TXT 格式的证书
+    /*! @brief 加载一个 CRT/PEM 格式的证书，可多次调用
+     @param txtCert CRT/PEM 格式的证书
     */
     import(String txtCert);
 

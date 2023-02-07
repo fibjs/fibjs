@@ -28,9 +28,9 @@ class _parallels {
 private:
     result_t _worker()
     {
-        v8::Local<v8::Array> datas = v8::Local<v8::Array>::New(m_isolate->m_isolate, m_datas);
-        v8::Local<v8::Function> func = v8::Local<v8::Function>::New(m_isolate->m_isolate, m_func);
-        v8::Local<v8::Array> retVal = v8::Local<v8::Array>::New(m_isolate->m_isolate, m_retVal);
+        v8::Local<v8::Array> datas = m_datas.Get(m_isolate->m_isolate);
+        v8::Local<v8::Function> func = m_func.Get(m_isolate->m_isolate);
+        v8::Local<v8::Array> retVal = m_retVal.Get(m_isolate->m_isolate);
         v8::Local<v8::Context> context = m_isolate->context();
 
         while (m_pos < m_count) {

@@ -166,7 +166,7 @@ result_t AsyncCallBack::syncFunc(AsyncCallBack* pThis)
     JSFiber::EnterJsScope s;
     Isolate* isolate = pThis->m_isolate;
 
-    v8::Local<v8::Function> func = v8::Local<v8::Function>::New(isolate->m_isolate, pThis->m_cb);
+    v8::Local<v8::Function> func = pThis->m_cb.Get(isolate->m_isolate);
 
     std::vector<v8::Local<v8::Value>> args;
 
@@ -182,7 +182,7 @@ result_t AsyncCallBack::syncFunc(AsyncCallBack* pThis)
         if (pThis->m_v == CALL_E_EXCEPTION)
             Runtime::setError(pThis->m_error);
 
-        v8::Local<v8::Object> cb_err = v8::Local<v8::Object>::Cast(v8::Local<v8::Value>::New(isolate->m_isolate, pThis->m_cb_err));
+        v8::Local<v8::Object> cb_err = v8::Local<v8::Object>::Cast(pThis->m_cb_err.Get(isolate->m_isolate));
 
         cb_err->Set(isolate->context(), isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -pThis->m_v)).Check();
         cb_err->Set(isolate->context(), isolate->NewString("message"), isolate->NewString(getResultMessage(pThis->m_v))).Check();

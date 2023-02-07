@@ -34,7 +34,7 @@ ChildProcess::Ipc::Ipc(Isolate* _isolate, v8::Local<v8::Object> _o, obj_ptr<Stre
         static result_t sync_emit(EventMessage* msg)
         {
             JSFiber::EnterJsScope s;
-            v8::Local<v8::Object> o = v8::Local<v8::Object>::New(msg->m_ipc->m_isolate->m_isolate, msg->m_ipc->m_o);
+            v8::Local<v8::Object> o = msg->m_ipc->m_o.Get(msg->m_ipc->m_isolate->m_isolate);
             JSTrigger t(msg->m_ipc->m_isolate->m_isolate, o);
             v8::Local<v8::Value> v;
 
@@ -118,7 +118,7 @@ result_t ChildProcess::Ipc::sync_delete(Ipc* pThis)
     if (pThis->m_channel) {
         pThis->m_channel.Release();
 
-        v8::Local<v8::Object> o = v8::Local<v8::Object>::New(pThis->m_isolate->m_isolate, pThis->m_o);
+        v8::Local<v8::Object> o = pThis->m_o.Get(pThis->m_isolate->m_isolate);
         JSTrigger t(pThis->m_isolate->m_isolate, o);
         bool r;
 

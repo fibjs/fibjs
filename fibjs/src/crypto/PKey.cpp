@@ -11,7 +11,8 @@
 #include "ifs/fs.h"
 #include "ifs/crypto.h"
 #include "PKey.h"
-#include "PKey_impl.h"
+#include "ECKey.h"
+#include "PKey_rsa.h"
 #include "Cipher.h"
 #include "Buffer.h"
 #include "ssl.h"
@@ -19,7 +20,37 @@
 
 namespace fibjs {
 
-PKey* PKey::create(mbedtls_pk_context& key, bool clone)
+result_t PKey_base::_new(Buffer_base* DerKey, exlib::string password, obj_ptr<PKey_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    result_t hr = from(DerKey, password, retVal);
+    if (hr >= 0)
+        retVal->wrap();
+
+    return 0;
+}
+
+result_t PKey_base::_new(exlib::string pemKey, exlib::string password, obj_ptr<PKey_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    result_t hr = from(pemKey, password, retVal);
+    if (hr >= 0)
+        retVal->wrap();
+
+    return 0;
+}
+
+result_t PKey_base::_new(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    result_t hr = from(jsonKey, retVal);
+    if (hr >= 0)
+        retVal->wrap();
+
+    return hr;
+}
+
+PKey_base* PKey::create(mbedtls_pk_context& key, bool clone)
 {
     mbedtls_pk_context key1;
     mbedtls_pk_context& cur = clone ? key1 : key;
@@ -38,7 +69,7 @@ PKey* PKey::create(mbedtls_pk_context& key, bool clone)
             mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(key);
             mbedtls_ecp_keypair* ecp1 = mbedtls_pk_ec(key1);
 
-            PKey_ecc::load_group(&ecp1->grp, ecp->grp.id);
+            ECKey::load_group(&ecp1->grp, ecp->grp.id);
             mbedtls_mpi_copy(&ecp1->d, &ecp->d);
             mbedtls_ecp_copy(&ecp1->Q, &ecp->Q);
         }
@@ -47,7 +78,7 @@ PKey* PKey::create(mbedtls_pk_context& key, bool clone)
     if (type == MBEDTLS_PK_RSA)
         return new PKey_rsa(cur);
 
-    return PKey_ecc::create(cur);
+    return ECKey::create(cur, "");
 }
 
 PKey::PKey()
@@ -69,17 +100,33 @@ PKey::~PKey()
     mbedtls_pk_free(&m_key);
 }
 
+mbedtls_pk_context& PKey::key(PKey_base* key)
+{
+    PKey* p = dynamic_cast<PKey*>(key);
+    return p->m_key;
+}
+
 result_t PKey::isPrivate(bool& retVal)
 {
-    return CHECK_ERROR(CALL_E_INVALID_CALL);
+    mbedtls_pk_type_t type = mbedtls_pk_get_type(&m_key);
+
+    if (type == MBEDTLS_PK_RSA) {
+        mbedtls_rsa_context* rsa = mbedtls_pk_rsa(m_key);
+        retVal = mbedtls_mpi_cmp_int(&rsa->D, 0)
+            && mbedtls_mpi_cmp_int(&rsa->P, 0)
+            && mbedtls_mpi_cmp_int(&rsa->Q, 0)
+            && mbedtls_mpi_cmp_int(&rsa->DP, 0)
+            && mbedtls_mpi_cmp_int(&rsa->DQ, 0)
+            && mbedtls_mpi_cmp_int(&rsa->QP, 0);
+    } else {
+        mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
+        retVal = mbedtls_mpi_cmp_int(&ecp->d, 0);
+    }
+
+    return 0;
 }
 
 result_t PKey::get_publicKey(obj_ptr<PKey_base>& retVal)
-{
-    return CHECK_ERROR(CALL_E_INVALID_CALL);
-}
-
-result_t PKey::toX25519(obj_ptr<PKey_base>& retVal, AsyncEvent* ac)
 {
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
@@ -164,19 +211,9 @@ result_t PKey::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Object
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
-result_t PKey::computeSecret(PKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
-{
-    return CHECK_ERROR(CALL_E_INVALIDARG);
-}
-
 result_t PKey::get_name(exlib::string& retVal)
 {
     retVal = mbedtls_pk_get_name(&m_key);
-    return 0;
-}
-
-result_t PKey::get_curve(exlib::string& retVal)
-{
     return 0;
 }
 

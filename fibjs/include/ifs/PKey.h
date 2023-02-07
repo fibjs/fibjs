@@ -26,7 +26,6 @@ public:
     static result_t _new(exlib::string pemKey, exlib::string password, obj_ptr<PKey_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_name(exlib::string& retVal) = 0;
-    virtual result_t get_curve(exlib::string& retVal) = 0;
     virtual result_t get_keySize(int32_t& retVal) = 0;
     virtual result_t get_alg(exlib::string& retVal) = 0;
     virtual result_t set_alg(exlib::string newVal) = 0;
@@ -36,9 +35,6 @@ public:
     static result_t from(Buffer_base* DerKey, exlib::string password, obj_ptr<PKey_base>& retVal);
     static result_t from(exlib::string pemKey, exlib::string password, obj_ptr<PKey_base>& retVal);
     static result_t from(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retVal);
-    static result_t recover(Buffer_base* data, Buffer_base* sig, obj_ptr<PKey_base>& retVal, AsyncEvent* ac);
-    static result_t aggregateSignatures(v8::Local<v8::Array> sigs, obj_ptr<Buffer_base>& retVal);
-    virtual result_t toX25519(obj_ptr<PKey_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t pem(exlib::string& retVal) = 0;
     virtual result_t der(obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t json(v8::Local<v8::Object> opts, v8::Local<v8::Object>& retVal) = 0;
@@ -47,7 +43,6 @@ public:
     virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac) = 0;
-    virtual result_t computeSecret(PKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
     template <typename T>
@@ -56,7 +51,6 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_name(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_curve(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_keySize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_alg(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_alg(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
@@ -64,9 +58,6 @@ public:
     static void s_isPrivate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clone(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_from(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_recover(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_aggregateSignatures(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_toX25519(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_pem(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_der(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_json(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -75,16 +66,12 @@ public:
     static void s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_sign(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_verify(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_computeSecret(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_STATICVALUE3(PKey_base, recover, Buffer_base*, Buffer_base*, obj_ptr<PKey_base>);
-    ASYNC_MEMBERVALUE1(PKey_base, toX25519, obj_ptr<PKey_base>);
     ASYNC_MEMBERVALUE2(PKey_base, encrypt, Buffer_base*, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE2(PKey_base, decrypt, Buffer_base*, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE3(PKey_base, sign, Buffer_base*, v8::Local<v8::Object>, obj_ptr<Buffer_base>);
     ASYNC_MEMBERVALUE4(PKey_base, verify, Buffer_base*, Buffer_base*, v8::Local<v8::Object>, bool);
-    ASYNC_MEMBERVALUE2(PKey_base, computeSecret, PKey_base*, obj_ptr<Buffer_base>);
 };
 }
 
@@ -97,11 +84,6 @@ inline ClassInfo& PKey_base::class_info()
         { "isPrivate", s_isPrivate, false, false },
         { "clone", s_clone, false, false },
         { "from", s_static_from, true, false },
-        { "recover", s_static_recover, true, true },
-        { "recoverSync", s_static_recover, true, false },
-        { "aggregateSignatures", s_static_aggregateSignatures, true, false },
-        { "toX25519", s_toX25519, false, true },
-        { "toX25519Sync", s_toX25519, false, false },
         { "pem", s_pem, false, false },
         { "der", s_der, false, false },
         { "json", s_json, false, false },
@@ -113,14 +95,11 @@ inline ClassInfo& PKey_base::class_info()
         { "sign", s_sign, false, true },
         { "signSync", s_sign, false, false },
         { "verify", s_verify, false, true },
-        { "verifySync", s_verify, false, false },
-        { "computeSecret", s_computeSecret, false, true },
-        { "computeSecretSync", s_computeSecret, false, false }
+        { "verifySync", s_verify, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {
         { "name", s_get_name, block_set, false },
-        { "curve", s_get_curve, block_set, false },
         { "keySize", s_get_keySize, block_set, false },
         { "alg", s_get_alg, s_set_alg, false },
         { "publicKey", s_get_publicKey, block_set, false }
@@ -182,19 +161,6 @@ inline void PKey_base::s_get_name(v8::Local<v8::Name> property, const v8::Proper
     PROPERTY_ENTER();
 
     hr = pInst->get_name(vr);
-
-    METHOD_RETURN();
-}
-
-inline void PKey_base::s_get_curve(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    exlib::string vr;
-
-    METHOD_NAME("PKey.curve");
-    METHOD_INSTANCE(PKey_base);
-    PROPERTY_ENTER();
-
-    hr = pInst->get_curve(vr);
 
     METHOD_RETURN();
 }
@@ -306,60 +272,6 @@ inline void PKey_base::s_static_from(const v8::FunctionCallbackInfo<v8::Value>& 
     ARG(v8::Local<v8::Object>, 0);
 
     hr = from(v0, vr);
-
-    METHOD_RETURN();
-}
-
-inline void PKey_base::s_static_recover(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<PKey_base> vr;
-
-    METHOD_NAME("PKey.recover");
-    METHOD_ENTER();
-
-    ASYNC_METHOD_OVER(2, 2);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
-
-    if (!cb.IsEmpty())
-        hr = acb_recover(v0, v1, cb, args);
-    else
-        hr = ac_recover(v0, v1, vr);
-
-    METHOD_RETURN();
-}
-
-inline void PKey_base::s_static_aggregateSignatures(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<Buffer_base> vr;
-
-    METHOD_NAME("PKey.aggregateSignatures");
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(v8::Local<v8::Array>, 0);
-
-    hr = aggregateSignatures(v0, vr);
-
-    METHOD_RETURN();
-}
-
-inline void PKey_base::s_toX25519(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<PKey_base> vr;
-
-    METHOD_NAME("PKey.toX25519");
-    METHOD_INSTANCE(PKey_base);
-    METHOD_ENTER();
-
-    ASYNC_METHOD_OVER(0, 0);
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_toX25519(cb, args);
-    else
-        hr = pInst->ac_toX25519(vr);
 
     METHOD_RETURN();
 }
@@ -507,26 +419,6 @@ inline void PKey_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& args)
         hr = pInst->acb_verify(v0, v1, v2, cb, args);
     else
         hr = pInst->ac_verify(v0, v1, v2, vr);
-
-    METHOD_RETURN();
-}
-
-inline void PKey_base::s_computeSecret(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<Buffer_base> vr;
-
-    METHOD_NAME("PKey.computeSecret");
-    METHOD_INSTANCE(PKey_base);
-    METHOD_ENTER();
-
-    ASYNC_METHOD_OVER(1, 1);
-
-    ARG(obj_ptr<PKey_base>, 0);
-
-    if (!cb.IsEmpty())
-        hr = pInst->acb_computeSecret(v0, cb, args);
-    else
-        hr = pInst->ac_computeSecret(v0, vr);
 
     METHOD_RETURN();
 }

@@ -1,6 +1,8 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Cipher.d.ts" />
 /// <reference path="../interface/PKey.d.ts" />
+/// <reference path="../interface/ECKey.d.ts" />
+/// <reference path="../interface/BlsKey.d.ts" />
 /// <reference path="../interface/X509Cert.d.ts" />
 /// <reference path="../interface/X509Crl.d.ts" />
 /// <reference path="../interface/X509Req.d.ts" />
@@ -142,6 +144,16 @@ declare module 'crypto' {
     const PKey: typeof Class_PKey;
 
     /**
+     * @description ECKey 构造函数，参见 ECKey 
+     */
+    const ECKey: typeof Class_ECKey;
+
+    /**
+     * @description BlsKey 构造函数，参见 BlsKey 
+     */
+    const BlsKey: typeof Class_BlsKey;
+
+    /**
      * @description X509Cert 构造函数，参见 X509Cert 
      */
     const X509Cert: typeof Class_X509Cert;
@@ -174,9 +186,7 @@ declare module 'crypto' {
     function createHmac(algo: string, key: Class_Buffer): Class_Digest;
 
     /**
-     * @description 加载一个 CRT/PEM/DER/TXT 格式的证书，可多次调用
-     * 
-     *     loadFile 加载 mozilla 的 certdata,txt， 可于 http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
+     * @description 加载一个 CRT/PEM/DER 格式的证书，可多次调用
      *      @param filename 证书文件名
      *      @return 返回包含证书的对象
      *     

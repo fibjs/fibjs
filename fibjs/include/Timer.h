@@ -181,13 +181,13 @@ public:
     virtual void on_js_timer()
     {
         Isolate* isolate = holder();
-        v8::Local<v8::Function> callback = v8::Local<v8::Function>::New(isolate->m_isolate, m_callback);
+        v8::Local<v8::Function> callback = m_callback.Get(isolate->m_isolate);
         std::vector<v8::Local<v8::Value>> argv;
 
         int32_t nArgCount = (int32_t)m_argv.size();
         argv.resize(nArgCount);
         for (int i = 0; i < nArgCount; i++)
-            argv[i] = v8::Local<v8::Value>::New(isolate->m_isolate, m_argv[i]);
+            argv[i] = m_argv[i].Get(isolate->m_isolate);
 
         callback->Call(callback->GetCreationContextChecked(), wrap(), (int32_t)argv.size(), argv.data()).IsEmpty();
     }

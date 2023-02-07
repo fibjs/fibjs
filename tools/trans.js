@@ -1,20 +1,10 @@
-var gui = require("gui");
 var path = require("path");
 var os = require("os");
 var coroutine = require("coroutine");
 var fs = require("fs");
 var hash = require("hash");
 
-var cef_path = path.join(__dirname, "../temp/cef", os.type());
-
-gui.config({
-    "cache_path": `${os.homedir()}/.cache`,
-    "cef_path": cef_path,
-    // "proxy": {
-    //     mode: "fixed_servers",
-    //     server: "192.168.65.5:1087"
-    // }
-});
+var driver = require("./util/driver");
 
 var langs = [
     "ca",
@@ -31,35 +21,6 @@ var langs = [
 ];
 
 var docs_path = path.join(__dirname, "../docs/web/dist");
-
-function wait(win, selector) {
-    do {
-        var doc = win.dev.DOM.getDocument();
-        try {
-            var e = win.dev.DOM.querySelector({
-                nodeId: doc.root.nodeId,
-                selector: "select.goog-te-combo"
-            });
-        } catch (e) { };
-        coroutine.sleep(100);
-    } while (e && e.nodeId == 0);
-
-    return e;
-}
-
-function getOuterHTML(win, selector) {
-    var doc = win.dev.DOM.getDocument();
-    var e = win.dev.DOM.querySelector({
-        nodeId: doc.root.nodeId,
-        selector: selector
-    });
-
-    var html = win.dev.DOM.getOuterHTML({
-        nodeId: e.nodeId
-    });
-
-    return html.outerHTML;
-}
 
 function translate(fname, lang) {
     var out_fname = path.join(docs_path, lang, fname);
@@ -78,32 +39,24 @@ function translate(fname, lang) {
     }
 
     var done = false;
-    var ev = new coroutine.Event();
-    const height = 100;
 
-    var win = gui.open(`file://${fname}`, {
-        width: 800,
-        height: height,
-        headless: true
-    });
-
-    function trans_win() {
+    function trans_page() {
         function trans() {
-            win.executeJavaScript(`var e = document.querySelector("div.social-share");if(e)e.innerHTML=""`);
-            win.executeJavaScript(`var e = document.querySelector("div#toc");if(e)e.innerHTML=""`);
+            page.Runtime.evaluate(`var e = document.querySelector("div.social-share");if(e)e.innerHTML=""`);
+            page.Runtime.evaluate(`var e = document.querySelector("div#toc");if(e)e.innerHTML=""`);
 
-            win.executeJavaScript(`var node = document.createElement('div');node.id='google_translate_element';document.body.appendChild(node);`);
-            win.executeJavaScript(`var node = document.createElement('script');node.id="google_translate_callback";node.text="function googleTranslateElementInit() {var tr = new google.translate.TranslateElement({ pageLanguage: 'zh-CN', autoDisplay: false }, 'google_translate_element');}";document.body.appendChild(node);`);
-            win.executeJavaScript(`var node = document.createElement('script');node.id="google_translate_script";node.src='https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';document.body.appendChild(node);`);
+            page.Runtime.evaluate(`var node = document.createElement('div');node.id='google_translate_element';document.body.appendChild(node);`);
+            page.Runtime.evaluate(`var node = document.createElement('script');node.id="google_translate_callback";node.text="function googleTranslateElementInit() {var tr = new google.translate.TranslateElement({ pageLanguage: 'zh-CN', autoDisplay: false }, 'google_translate_element');}";document.body.appendChild(node);`);
+            page.Runtime.evaluate(`var node = document.createElement('script');node.id="google_translate_script";node.src='https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';document.body.appendChild(node);`);
 
-            var e = wait(win, "select.goog-te-combo");
+            var e = page.wait("select.goog-te-combo");
             coroutine.sleep(1000);
 
-            win.executeJavaScript(`var e = document.querySelector("select.goog-te-combo");var eo=e.options;for(i=0;i<eo.length;i++)if(eo[i].value="${lang}")e.selectedIndex=i;e.dispatchEvent(new Event('change'))`);
+            page.Runtime.evaluate(`var e = document.querySelector("select.goog-te-combo");var eo=e.options;for(i=0;i<eo.length;i++)if(eo[i].value="${lang}")e.selectedIndex=i;e.dispatchEvent(new Event('change'))`);
 
             var html;
             for (var i = 0; i < 100; i++) {
-                html = getOuterHTML(win, "div.footer");
+                html = page.getOuterHTML("div.footer");
                 if (html.indexOf("支持我们") == -1)
                     break;
                 coroutine.sleep(100);
@@ -119,10 +72,7 @@ function translate(fname, lang) {
         var html;
 
         function fix_html() {
-            var doc = win.dev.DOM.getDocument();
-            html = win.dev.DOM.getOuterHTML({
-                nodeId: doc.root.nodeId
-            }).outerHTML;
+            html = page.getOuterHTML();
 
             html = html.replace(/<html.*?>/g, "<html>");
             html = html.replace(/<link type.*?head>/g, "</head>");
@@ -153,6 +103,16 @@ function translate(fname, lang) {
             html = html.replace(/<div class=\"dropdown-menu\">.*?<\/div>/g, (s) => s.replace(/href=\"/g, s => s + "../"));
         }
 
+        var win = page.Browser.getWindowForTarget(page.targetId);
+        var doc = page.DOM.getDocument();
+        var e = page.DOM.querySelector(doc.root.nodeId, "body");
+        var box = page.DOM.getBoxModel(e.nodeId);
+
+        page.Browser.setWindowBounds(win.windowId, {
+            width: box.model.width,
+            height: box.model.height
+        });
+
         if (trans()) {
             fix_html();
             fix_res();
@@ -167,32 +127,22 @@ function translate(fname, lang) {
         } else
             console.error("Timeeout");
 
-        win.close();
+        page.close();
         ev.set();
     }
 
-    win.on("load", () => {
-        var doc = win.dev.DOM.getDocument();
-        var e = win.dev.DOM.querySelector({
-            nodeId: doc.root.nodeId,
-            selector: "body"
-        });
+    var browser = driver.launch([
+        '--window-size=2000,100'
+    ]);
+    var page = browser.open();
+    page.Page.enable();
+    page.on("Page.loadEventFired", trans_page);
+    page.Page.navigate(`file://${fname}`);
 
-        var box = win.dev.DOM.getBoxModel({
-            nodeId: e.nodeId
-        });
-
-        win.close();
-        win = gui.open(`file://${fname}`, {
-            width: 800,
-            height: box.model.content[5] + 200,
-            headless: true
-        });
-
-        win.on("load", trans_win);
-    });
-
+    var ev = new coroutine.Event();
     ev.wait();
+    browser.close();
+
     return done;
 }
 

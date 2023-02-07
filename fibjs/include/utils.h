@@ -1186,7 +1186,7 @@ inline v8::Local<v8::Value> ThrowAssertionError(v8::Local<v8::Object>& msg)
     JSValue error;
 
     {
-        v8::Local<v8::Object> AssertionError = v8::Local<v8::Object>::New(isolate->m_isolate, isolate->m_AssertionError);
+        v8::Local<v8::Object> AssertionError = isolate->m_AssertionError.Get(isolate->m_isolate);
         error = AssertionError->CallAsConstructor(_context, 1, args);
     }
 

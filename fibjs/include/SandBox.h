@@ -75,11 +75,11 @@ public:
     class Context {
     public:
         Context(SandBox* sb, exlib::string id);
-        static result_t repl(exlib::string src);
+        result_t repl(exlib::string src);
 
     public:
         obj_ptr<SandBox> m_sb;
-        v8::Local<v8::Value> m_id;
+        exlib::string m_id;
         v8::Local<v8::Function> m_fnRequest;
         v8::Local<v8::Function> m_fnRun;
     };

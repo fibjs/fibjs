@@ -1,12 +1,12 @@
 /*
- * PKey_25519.cpp
+ * Ed25519Key.cpp
  *
  *  Created on: May 2, 2022
  *      Author: lion
  */
 
 #include "Buffer.h"
-#include "PKey_impl.h"
+#include "Ed25519Key.h"
 #include "ssl.h"
 #include <mbedtls/pem.h>
 #include <mbedtls/asn1write.h>
@@ -31,8 +31,8 @@ const unsigned char s_der_pub_lead_x[]
 #define PEM_BEGIN_PUBLIC_KEY "-----BEGIN PUBLIC KEY-----"
 #define PEM_END_PUBLIC_KEY "-----END PUBLIC KEY-----"
 
-PKey_25519::PKey_25519(mbedtls_pk_context& key)
-    : PKey_ecc(key, false)
+Ed25519Key::Ed25519Key(mbedtls_pk_context& key)
+    : ECKey_impl<Ed25519Key_base>(key, false)
 {
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
 
@@ -52,7 +52,7 @@ PKey_25519::PKey_25519(mbedtls_pk_context& key)
     }
 }
 
-PKey_25519::PKey_25519(int32_t id)
+Ed25519Key::Ed25519Key(int32_t id)
 {
     m_alg = id == MBEDTLS_ECP_DP_ED25519 ? "EdDSA" : "DH";
 
@@ -71,7 +71,7 @@ PKey_25519::PKey_25519(int32_t id)
     mbedtls_mpi_read_binary(&ecp->Q.X, sk + ed25519_public_key_size, ed25519_public_key_size);
 }
 
-result_t PKey_25519::toX25519(obj_ptr<PKey_base>& retVal, AsyncEvent* ac)
+result_t Ed25519Key::toX25519(obj_ptr<ECKey_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -104,7 +104,7 @@ result_t PKey_25519::toX25519(obj_ptr<PKey_base>& retVal, AsyncEvent* ac)
         mbedtls_mpi_read_binary(&ecp1->Q.X, k, ed25519_public_key_size);
     }
 
-    retVal = new PKey_25519(key1);
+    retVal = new Ed25519Key(key1);
 
     return 0;
 }
@@ -121,7 +121,6 @@ static int parse_key(mbedtls_pk_context& ctx, const unsigned char* key, size_t k
         else
             return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
 
-        obj_ptr<PKey> pk1 = new PKey();
         int32_t ret;
 
         ret = mbedtls_pk_setup(&ctx, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
@@ -129,7 +128,7 @@ static int parse_key(mbedtls_pk_context& ctx, const unsigned char* key, size_t k
             return ret;
 
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(ctx);
-        PKey_ecc::load_group(&ecp->grp, id);
+        ECKey::load_group(&ecp->grp, id);
 
         ret = mbedtls_mpi_read_binary(&ecp->d, (const unsigned char*)key + sizeof(s_der_priv_lead),
             ed25519_public_key_size);
@@ -166,7 +165,6 @@ static int parse_pub_key(mbedtls_pk_context& ctx, const unsigned char* key, size
         else
             return MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
 
-        obj_ptr<PKey> pk1 = new PKey();
         int32_t ret;
 
         ret = mbedtls_pk_setup(&ctx, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
@@ -174,7 +172,7 @@ static int parse_pub_key(mbedtls_pk_context& ctx, const unsigned char* key, size
             return ret;
 
         mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(ctx);
-        PKey_ecc::load_group(&ecp->grp, id);
+        ECKey::load_group(&ecp->grp, id);
 
         ret = mbedtls_mpi_read_binary(&ecp->Q.X, (const unsigned char*)key + sizeof(s_der_pub_lead),
             ed25519_public_key_size);
@@ -218,7 +216,7 @@ static int parse_pem(mbedtls_pk_context& ctx, const unsigned char* key)
     return ret ? MBEDTLS_ERR_PK_KEY_INVALID_FORMAT : 0;
 }
 
-result_t PKey_25519::from(Buffer_base* DerKey, obj_ptr<PKey_base>& retVal)
+result_t Ed25519Key::from(Buffer_base* DerKey, obj_ptr<PKey_base>& retVal)
 {
     int32_t ret;
     mbedtls_pk_context ctx;
@@ -241,12 +239,12 @@ result_t PKey_25519::from(Buffer_base* DerKey, obj_ptr<PKey_base>& retVal)
         return CHECK_ERROR(_ssl::setError(ret));
     }
 
-    retVal = new PKey_25519(ctx);
+    retVal = new Ed25519Key(ctx);
 
     return 0;
 }
 
-result_t PKey_25519::from(exlib::string pemKey, obj_ptr<PKey_base>& retVal)
+result_t Ed25519Key::from(exlib::string pemKey, obj_ptr<PKey_base>& retVal)
 {
     int32_t ret;
     mbedtls_pk_context ctx;
@@ -259,7 +257,7 @@ result_t PKey_25519::from(exlib::string pemKey, obj_ptr<PKey_base>& retVal)
         return CHECK_ERROR(_ssl::setError(ret));
     }
 
-    retVal = new PKey_25519(ctx);
+    retVal = new Ed25519Key(ctx);
 
     return 0;
 }
@@ -286,7 +284,7 @@ static int write_pub_key(mbedtls_pk_context& ctx, exlib::string& buf)
     return 0;
 }
 
-result_t PKey_25519::pem(exlib::string& retVal)
+result_t Ed25519Key::pem(exlib::string& retVal)
 {
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
     exlib::string der_buf;
@@ -311,7 +309,7 @@ result_t PKey_25519::pem(exlib::string& retVal)
     return 0;
 }
 
-result_t PKey_25519::der(obj_ptr<Buffer_base>& retVal)
+result_t Ed25519Key::der(obj_ptr<Buffer_base>& retVal)
 {
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
     exlib::string buf;
@@ -325,7 +323,7 @@ result_t PKey_25519::der(obj_ptr<Buffer_base>& retVal)
     return 0;
 }
 
-result_t PKey_25519::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
+result_t Ed25519Key::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
 {
     static const char* s_keys[] = {
         "format", NULL
@@ -354,7 +352,7 @@ result_t PKey_25519::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
     return CHECK_ERROR(CALL_E_NOSYNC);
 }
 
-result_t PKey_25519::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t Ed25519Key::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     result_t hr = check_opts(opts, ac);
     if (hr < 0)
@@ -397,7 +395,7 @@ result_t PKey_25519::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr
     return 0;
 }
 
-result_t PKey_25519::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac)
+result_t Ed25519Key::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac)
 {
     result_t hr = check_opts(opts, ac);
     if (hr < 0)
@@ -429,7 +427,7 @@ result_t PKey_25519::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::
     return 0;
 }
 
-result_t PKey_25519::computeSecret(PKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t Ed25519Key::computeSecret(ECKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -438,8 +436,9 @@ result_t PKey_25519::computeSecret(PKey_base* publicKey, obj_ptr<Buffer_base>& r
     bool priv;
     mbedtls_pk_type_t type;
 
-    obj_ptr<PKey> pubkey = (PKey*)publicKey;
-    type = mbedtls_pk_get_type(&pubkey->m_key);
+    mbedtls_pk_context& mkey = PKey::key(publicKey);
+
+    type = mbedtls_pk_get_type(&mkey);
     if (type != MBEDTLS_PK_ECKEY)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
@@ -459,7 +458,7 @@ result_t PKey_25519::computeSecret(PKey_base* publicKey, obj_ptr<Buffer_base>& r
     if (ecp1->grp.id != MBEDTLS_ECP_DP_CURVE25519)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    mbedtls_ecp_keypair* ecp2 = mbedtls_pk_ec(pubkey->m_key);
+    mbedtls_ecp_keypair* ecp2 = mbedtls_pk_ec(mkey);
     if (ecp1->grp.id != ecp2->grp.id)
         return CHECK_ERROR(Runtime::setError("Public key is not valid for specified curve"));
 

@@ -1,0 +1,19 @@
+FROM ubuntu:20.04
+
+RUN apt-get update && apt-get install sudo curl tar xz-utils -y
+RUN apt-get install cmake make -y && apt-get install git -y
+
+RUN curl -o loongarch64-linux-gnu.tar.xz --retry 5 -LO http://ftp.loongnix.cn/toolchain/gcc/release/loongarch/gcc8/loongson-gnu-toolchain-8.3-x86_64-loongarch64-linux-gnu-rc1.1.tar.xz && \
+    tar -C /usr -xvf loongarch64-linux-gnu.tar.xz && \
+    rm loongarch64-linux-gnu.tar.xz
+
+RUN mv /usr/loongson-gnu-toolchain-8.3-x86_64-loongarch64-linux-gnu-rc1.1 /usr/cross-tools
+
+ENV AS=/usr/cross-tools/bin/loongarch64-linux-gnu-as \
+    AR=/usr/cross-tools/bin/loongarch64-linux-gnu-ar \
+    CC=/usr/cross-tools/bin/loongarch64-linux-gnu-gcc \
+    CPP=/usr/cross-tools/bin/loongarch64-linux-gnu-cpp \
+    CXX=/usr/cross-tools/bin/loongarch64-linux-gnu-g++ \
+    LD=/usr/cross-tools/bin/loongarch64-linux-gnu-ld
+
+RUN adduser fibjs -q

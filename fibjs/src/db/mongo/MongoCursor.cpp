@@ -86,8 +86,7 @@ void MongoCursor::ensureSpecial()
         v8::Local<v8::Context> context = isolate->context();
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
 
-        o->Set(context, isolate->NewString("query"),
-            v8::Local<v8::Object>::New(isolate->m_isolate, m_query)).Check();
+        o->Set(context, isolate->NewString("query"), m_query.Get(isolate->m_isolate)).Check();
         m_query.Reset();
 
         m_query.Reset(isolate->m_isolate, o);
@@ -127,9 +126,9 @@ result_t MongoCursor::count(bool applySkipLimit, int32_t& retVal)
     v8::Local<v8::Context> context = isolate->context();
     if (m_bSpecial)
         encodeValue(isolate, &bbq, "query",
-            JSValue(v8::Local<v8::Object>::New(isolate->m_isolate, m_query)->Get(context, isolate->NewString("query"))));
+            JSValue(m_query.Get(isolate->m_isolate)->Get(context, isolate->NewString("query"))));
     else
-        encodeValue(isolate, &bbq, "query", v8::Local<v8::Object>::New(isolate->m_isolate, m_query));
+        encodeValue(isolate, &bbq, "query", m_query.Get(isolate->m_isolate));
 
     if (applySkipLimit) {
         if (m_cursor->limit)
@@ -200,7 +199,7 @@ result_t MongoCursor::hasNext(bool& retVal)
         result_t hr;
         Isolate* isolate = holder();
 
-        hr = encodeObject(isolate, &m_bbq, v8::Local<v8::Object>::New(isolate->m_isolate, m_query));
+        hr = encodeObject(isolate, &m_bbq, m_query.Get(isolate->m_isolate));
         if (hr < 0)
             return hr;
 
@@ -272,7 +271,7 @@ result_t MongoCursor::_addSpecial(const char* name, v8::Local<v8::Value> opts,
     ensureSpecial();
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Object>::New(isolate->m_isolate, m_query)->Set(context, isolate->NewString(name), opts).Check();
+    m_query.Get(isolate->m_isolate)->Set(context, isolate->NewString(name), opts).Check();
 
     retVal = this;
     return 0;

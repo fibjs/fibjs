@@ -82,6 +82,12 @@ module crypto
     /*! @brief PKey 构造函数，参见 PKey */
     static PKey;
 
+    /*! @brief ECKey 构造函数，参见 ECKey */
+    static ECKey;
+
+    /*! @brief BlsKey 构造函数，参见 BlsKey */
+    static BlsKey;
+
     /*! @brief X509Cert 构造函数，参见 X509Cert */
     static X509Cert;
 
@@ -104,9 +110,7 @@ module crypto
     */
     static Digest createHmac(String algo, Buffer key);
 
-    /*! @brief 加载一个 CRT/PEM/DER/TXT 格式的证书，可多次调用
-
-    loadFile 加载 mozilla 的 certdata,txt， 可于 http://hg.mozilla.org/releases/mozilla-release/raw-file/default/security/nss/lib/ckfw/builtins/certdata.txt 下载使用
+    /*! @brief 加载一个 CRT/PEM/DER 格式的证书，可多次调用
      @param filename 证书文件名
      @return 返回包含证书的对象
     */

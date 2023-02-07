@@ -1,12 +1,14 @@
 /*
- * PKey_ecc.cpp
+ * ECKey.cpp
  *
  *  Created on: May 2, 2022
  *      Author: lion
  */
 
 #include "Buffer.h"
-#include "PKey_impl.h"
+#include "Ed25519Key.h"
+#include "BlsKey.h"
+#include "ECKey_p256k1.h"
 #include "ssl.h"
 
 extern "C" {
@@ -17,6 +19,45 @@ int ecsdsa_verify(mbedtls_ecp_keypair* ctx, int sdsa, mbedtls_ecp_keypair* to_ct
 }
 
 namespace fibjs {
+
+result_t ECKey_base::_new(Buffer_base* DerKey, exlib::string password, obj_ptr<ECKey_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    obj_ptr<PKey_base> key;
+
+    result_t hr = PKey_base::from(DerKey, password, key);
+    if (hr < 0)
+        return hr;
+
+    retVal = dynamic_cast<ECKey_base*>((PKey_base*)key);
+    return retVal ? 0 : CHECK_ERROR(_ssl::setError(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT));
+}
+
+result_t ECKey_base::_new(exlib::string pemKey, exlib::string password, obj_ptr<ECKey_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    obj_ptr<PKey_base> key;
+
+    result_t hr = PKey_base::from(pemKey, password, key);
+    if (hr < 0)
+        return hr;
+
+    retVal = dynamic_cast<ECKey_base*>((PKey_base*)key);
+    return retVal ? 0 : CHECK_ERROR(_ssl::setError(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT));
+}
+
+result_t ECKey_base::_new(v8::Local<v8::Object> jsonKey, obj_ptr<ECKey_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    obj_ptr<PKey_base> key;
+
+    result_t hr = PKey_base::from(jsonKey, key);
+    if (hr < 0)
+        return hr;
+
+    retVal = dynamic_cast<ECKey_base*>((PKey_base*)key);
+    return retVal ? 0 : CHECK_ERROR(_ssl::setError(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT));
+}
 
 struct curve_info {
     int32_t id;
@@ -77,7 +118,7 @@ static const curve_info curves[] = {
     { MBEDTLS_ECP_DP_BLS12381_G2, "BLS12381_G2" },
 };
 
-int32_t PKey_ecc::get_curve_id(exlib::string& curve)
+int32_t ECKey::get_curve_id(exlib::string& curve)
 {
     int32_t i;
 
@@ -88,7 +129,7 @@ int32_t PKey_ecc::get_curve_id(exlib::string& curve)
     return MBEDTLS_ECP_DP_NONE;
 }
 
-const char* PKey_ecc::get_curve_name(int32_t id)
+const char* ECKey::get_curve_name(int32_t id)
 {
     int32_t i;
 
@@ -99,7 +140,7 @@ const char* PKey_ecc::get_curve_name(int32_t id)
     return NULL;
 }
 
-int PKey_ecc::load_group(mbedtls_ecp_group* grp, int32_t id)
+int ECKey::load_group(mbedtls_ecp_group* grp, int32_t id)
 {
     if (id >= MBEDTLS_ECP_DP_ED25519) {
         grp->id = (mbedtls_ecp_group_id)id;
@@ -110,17 +151,11 @@ int PKey_ecc::load_group(mbedtls_ecp_group* grp, int32_t id)
     return mbedtls_ecp_group_load(grp, (mbedtls_ecp_group_id)id);
 }
 
-PKey_ecc::PKey_ecc()
-{
-    mbedtls_pk_setup(&m_key, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
-}
-
-PKey_ecc::PKey_ecc(mbedtls_pk_context& key, bool genpub)
-    : PKey(key)
+void ECKey::init(mbedtls_pk_context& key, bool genpub, exlib::string algo)
 {
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
     int32_t id = ecp->grp.id;
-    m_alg = id == MBEDTLS_ECP_DP_SM2P256R1 ? "SM2" : "ECDSA";
+    m_alg = !algo.empty() ? algo : (id == MBEDTLS_ECP_DP_SM2P256R1 ? "SM2" : "ECDSA");
 
     if (genpub) {
         if (mbedtls_mpi_cmp_int(&ecp->d, 0) && !mbedtls_mpi_cmp_int(&ecp->Q.X, 0))
@@ -191,7 +226,7 @@ PKey_ecc::PKey_ecc(mbedtls_pk_context& key, bool genpub)
     }
 }
 
-PKey_ecc::PKey_ecc(int32_t id)
+void ECKey::init(int32_t id)
 {
     mbedtls_pk_type_t pk_type;
 
@@ -208,26 +243,26 @@ PKey_ecc::PKey_ecc(int32_t id)
         mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
 }
 
-PKey_ecc* PKey_ecc::create(mbedtls_pk_context& key)
+ECKey_base* ECKey::create(mbedtls_pk_context& key, exlib::string algo)
 {
     int32_t id = mbedtls_pk_ec(key)->grp.id;
 
     switch (id) {
     case MBEDTLS_ECP_DP_SECP256K1:
-        return new PKey_p256k1(key);
+        return new ECKey_p256k1(key, algo);
     case MBEDTLS_ECP_DP_CURVE25519:
     case MBEDTLS_ECP_DP_ED25519:
-        return new PKey_25519(key);
+        return new Ed25519Key(key);
     case MBEDTLS_ECP_DP_BLS12381_G1:
-        return new PKey_bls_g1(key);
+        return new BlsKey_g1(key);
     case MBEDTLS_ECP_DP_BLS12381_G2:
-        return new PKey_bls_g2(key);
+        return new BlsKey_g2(key);
     }
 
-    return new PKey_ecc(key, true);
+    return new ECKey_impl<ECKey_base>(key, true, algo);
 }
 
-result_t PKey_ecc::generateKey(exlib::string curve, obj_ptr<PKey_base>& retVal)
+result_t ECKey::generateKey(exlib::string curve, obj_ptr<PKey_base>& retVal)
 {
     int32_t id = get_curve_id(curve);
 
@@ -235,26 +270,26 @@ result_t PKey_ecc::generateKey(exlib::string curve, obj_ptr<PKey_base>& retVal)
     case MBEDTLS_ECP_DP_NONE:
         return CHECK_ERROR(Runtime::setError("PKey: Unknown curve"));
     case MBEDTLS_ECP_DP_SECP256K1:
-        retVal = new PKey_p256k1();
+        retVal = new ECKey_p256k1();
         break;
     case MBEDTLS_ECP_DP_CURVE25519:
     case MBEDTLS_ECP_DP_ED25519:
-        retVal = new PKey_25519(id);
+        retVal = new Ed25519Key(id);
         break;
     case MBEDTLS_ECP_DP_BLS12381_G1:
-        retVal = new PKey_bls_g1();
+        retVal = new BlsKey_g1();
         break;
     case MBEDTLS_ECP_DP_BLS12381_G2:
-        retVal = new PKey_bls_g2();
+        retVal = new BlsKey_g2();
         break;
     default:
-        retVal = new PKey_ecc(id);
+        retVal = new ECKey_impl<ECKey_base>(id);
     }
 
     return 0;
 }
 
-result_t PKey_ecc::get_publicKey(obj_ptr<PKey_base>& retVal)
+result_t ECKey::get_publicKey(obj_ptr<PKey_base>& retVal)
 {
     bool priv;
 
@@ -276,22 +311,12 @@ result_t PKey_ecc::get_publicKey(obj_ptr<PKey_base>& retVal)
     load_group(&ecp1->grp, ecp->grp.id);
     mbedtls_ecp_copy(&ecp1->Q, &ecp->Q);
 
-    obj_ptr<PKey_ecc> pk = PKey_ecc::create(ctx);
-    pk->m_alg = m_alg;
-
-    retVal = pk;
+    retVal = ECKey::create(ctx, m_alg);
 
     return 0;
 }
 
-result_t PKey_ecc::isPrivate(bool& retVal)
-{
-    mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
-    retVal = mbedtls_mpi_cmp_int(&ecp->d, 0);
-    return 0;
-}
-
-result_t PKey_ecc::clone(obj_ptr<PKey_base>& retVal)
+result_t ECKey::clone(obj_ptr<PKey_base>& retVal)
 {
     mbedtls_pk_context ctx;
 
@@ -305,27 +330,24 @@ result_t PKey_ecc::clone(obj_ptr<PKey_base>& retVal)
     mbedtls_mpi_copy(&ecp1->d, &ecp->d);
     mbedtls_ecp_copy(&ecp1->Q, &ecp->Q);
 
-    obj_ptr<PKey_ecc> pk = PKey_ecc::create(ctx);
-    pk->m_alg = m_alg;
-
-    retVal = pk;
+    retVal = ECKey::create(ctx, m_alg);
 
     return 0;
 }
 
-result_t PKey_ecc::equals(PKey_base* key, bool& retVal)
+result_t ECKey::equals(PKey_base* key, bool& retVal)
 {
     retVal = false;
 
-    obj_ptr<PKey> pkey = (PKey*)key;
+    mbedtls_pk_context& mkey = PKey::key(key);
 
     mbedtls_pk_type_t type = mbedtls_pk_get_type(&m_key);
-    mbedtls_pk_type_t type1 = mbedtls_pk_get_type(&pkey->m_key);
+    mbedtls_pk_type_t type1 = mbedtls_pk_get_type(&mkey);
     if (type != type1)
         return 0;
 
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
-    mbedtls_ecp_keypair* ecp1 = mbedtls_pk_ec(pkey->m_key);
+    mbedtls_ecp_keypair* ecp1 = mbedtls_pk_ec(mkey);
 
     if (ecp->grp.id != ecp1->grp.id)
         return 0;
@@ -339,20 +361,21 @@ result_t PKey_ecc::equals(PKey_base* key, bool& retVal)
     return 0;
 }
 
-result_t PKey_ecc::sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t ECKey::sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     result_t hr;
 
-    obj_ptr<PKey> to_key = (PKey*)key;
-    if (to_key) {
+    if (key) {
         mbedtls_pk_type_t type;
 
-        type = mbedtls_pk_get_type(&to_key->m_key);
+        mbedtls_pk_context& mkey = PKey::key(key);
+
+        type = mbedtls_pk_get_type(&mkey);
         if (type != MBEDTLS_PK_ECKEY && type != MBEDTLS_PK_SM2)
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
         mbedtls_ecp_keypair* ecp1 = mbedtls_pk_ec(m_key);
-        mbedtls_ecp_keypair* ecp2 = mbedtls_pk_ec(to_key->m_key);
+        mbedtls_ecp_keypair* ecp2 = mbedtls_pk_ec(mkey);
         if (ecp1->grp.id != ecp2->grp.id)
             return CHECK_ERROR(Runtime::setError("Public key is not valid for specified curve"));
     }
@@ -365,7 +388,7 @@ result_t PKey_ecc::sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>&
     data->toString(str);
     output.resize(MBEDTLS_ECDSA_MAX_LEN);
 
-    ret = ecsdsa_sign(mbedtls_pk_ec(m_key), m_alg == "ECSDSA", key ? mbedtls_pk_ec(to_key->m_key) : NULL,
+    ret = ecsdsa_sign(mbedtls_pk_ec(m_key), m_alg == "ECSDSA", key ? mbedtls_pk_ec(PKey::key(key)) : NULL,
         (const unsigned char*)str.c_str(), str.length(), (unsigned char*)output.c_buffer(), &olen,
         mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
@@ -384,18 +407,19 @@ result_t PKey_ecc::sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>&
     return 0;
 }
 
-result_t PKey_ecc::verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, bool& retVal, AsyncEvent* ac)
+result_t ECKey::verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, bool& retVal, AsyncEvent* ac)
 {
-    obj_ptr<PKey> to_key = (PKey*)key;
     if (key) {
         result_t hr;
         bool priv;
 
-        mbedtls_pk_type_t type = mbedtls_pk_get_type(&to_key->m_key);
+        mbedtls_pk_context& mkey = PKey::key(key);
+
+        mbedtls_pk_type_t type = mbedtls_pk_get_type(&mkey);
         if (type != MBEDTLS_PK_ECKEY && type != MBEDTLS_PK_SM2)
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
-        hr = to_key->isPrivate(priv);
+        hr = key->isPrivate(priv);
         if (hr < 0)
             return hr;
 
@@ -403,7 +427,7 @@ result_t PKey_ecc::verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, 
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
         mbedtls_ecp_keypair* ecp1 = mbedtls_pk_ec(m_key);
-        mbedtls_ecp_keypair* ecp2 = mbedtls_pk_ec(to_key->m_key);
+        mbedtls_ecp_keypair* ecp2 = mbedtls_pk_ec(mkey);
         if (ecp1->grp.id != ecp2->grp.id)
             return CHECK_ERROR(Runtime::setError("Public key is not valid for specified curve"));
     }
@@ -421,7 +445,7 @@ result_t PKey_ecc::verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, 
             return hr;
     }
 
-    ret = ecsdsa_verify(mbedtls_pk_ec(m_key), m_alg == "ECSDSA", key ? mbedtls_pk_ec(to_key->m_key) : NULL,
+    ret = ecsdsa_verify(mbedtls_pk_ec(m_key), m_alg == "ECSDSA", key ? mbedtls_pk_ec(PKey::key(key)) : NULL,
         (const unsigned char*)str.c_str(), str.length(), (const unsigned char*)strsign.c_str(), strsign.length(),
         mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret == MBEDTLS_ERR_ECP_VERIFY_FAILED || ret == MBEDTLS_ERR_SM2_BAD_SIGNATURE) {
@@ -462,7 +486,7 @@ static int asn1_get_num(unsigned char** p, const unsigned char* end, unsigned ch
     return (ret);
 }
 
-result_t PKey_ecc::der2bin(const exlib::string& der, exlib::string& bin)
+result_t ECKey::der2bin(const exlib::string& der, exlib::string& bin)
 {
     const unsigned char* data = (const unsigned char*)der.c_str();
     size_t datlen = der.length();
@@ -490,7 +514,7 @@ result_t PKey_ecc::der2bin(const exlib::string& der, exlib::string& bin)
     return 0;
 }
 
-result_t PKey_ecc::bin2der(const exlib::string& bin, exlib::string& der)
+result_t ECKey::bin2der(const exlib::string& bin, exlib::string& der)
 {
     const unsigned char* p0 = (const unsigned char*)bin.c_str();
     size_t sz = bin.length();
@@ -553,7 +577,7 @@ result_t PKey_ecc::bin2der(const exlib::string& bin, exlib::string& der)
     return 0;
 }
 
-result_t PKey_ecc::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
+result_t ECKey::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
 {
     static const char* s_keys[] = {
         "to", "format", NULL
@@ -562,7 +586,7 @@ result_t PKey_ecc::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
     if (!ac->isSync())
         return 0;
 
-    Isolate* isolate = holder();
+    Isolate* isolate = Isolate::current();
     result_t hr;
 
     hr = CheckConfig(opts, s_keys);
@@ -588,7 +612,7 @@ result_t PKey_ecc::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
     return CHECK_ERROR(CALL_E_NOSYNC);
 }
 
-result_t PKey_ecc::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t ECKey::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     result_t hr = check_opts(opts, ac);
     if (hr < 0)
@@ -639,7 +663,7 @@ result_t PKey_ecc::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<B
     return 0;
 }
 
-result_t PKey_ecc::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac)
+result_t ECKey::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac)
 {
     result_t hr = check_opts(opts, ac);
     if (hr < 0)
@@ -681,7 +705,7 @@ result_t PKey_ecc::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Ob
     return 0;
 }
 
-result_t PKey_ecc::computeSecret(PKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t ECKey::computeSecret(ECKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -690,8 +714,9 @@ result_t PKey_ecc::computeSecret(PKey_base* publicKey, obj_ptr<Buffer_base>& ret
     bool priv;
     mbedtls_pk_type_t type;
 
-    obj_ptr<PKey> pubkey = (PKey*)publicKey;
-    type = mbedtls_pk_get_type(&pubkey->m_key);
+    mbedtls_pk_context& mkey = PKey::key(publicKey);
+
+    type = mbedtls_pk_get_type(&mkey);
     if (type != MBEDTLS_PK_ECKEY && type != MBEDTLS_PK_SM2)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
@@ -707,7 +732,7 @@ result_t PKey_ecc::computeSecret(PKey_base* publicKey, obj_ptr<Buffer_base>& ret
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     mbedtls_ecp_keypair* ecp1 = mbedtls_pk_ec(m_key);
-    mbedtls_ecp_keypair* ecp2 = mbedtls_pk_ec(pubkey->m_key);
+    mbedtls_ecp_keypair* ecp2 = mbedtls_pk_ec(mkey);
     if (ecp1->grp.id != ecp2->grp.id)
         return CHECK_ERROR(Runtime::setError("Public key is not valid for specified curve"));
 
@@ -731,7 +756,7 @@ result_t PKey_ecc::computeSecret(PKey_base* publicKey, obj_ptr<Buffer_base>& ret
     return 0;
 }
 
-result_t PKey_ecc::get_curve(exlib::string& retVal)
+result_t ECKey::get_curve(exlib::string& retVal)
 {
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
     const char* _name = get_curve_name(ecp->grp.id);
@@ -741,7 +766,7 @@ result_t PKey_ecc::get_curve(exlib::string& retVal)
     return 0;
 }
 
-result_t PKey_ecc::set_alg(exlib::string newVal)
+result_t ECKey::set_alg(exlib::string newVal)
 {
     int32_t id = mbedtls_pk_ec(m_key)->grp.id;
 

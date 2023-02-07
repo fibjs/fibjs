@@ -32,8 +32,8 @@ void output(int32_t priority, exlib::string msg)
 
 result_t SandBox::repl(exlib::string src)
 {
-    Context context(this, "repl");
-    return Context::repl(src);
+    Context context(this, src.empty() ? "[repl]" : "[eval]");
+    return context.repl(src);
 }
 
 extern std_logger* s_std;
@@ -48,17 +48,15 @@ result_t SandBox::Context::repl(exlib::string src)
     v8::Local<v8::String> strFname;
     obj_ptr<BufferedStream_base> bs;
 
+    strFname = isolate->NewString(m_id);
     if (src.empty()) {
-        strFname = isolate->NewString("[repl]", 6);
-
         exlib::string str_ver("Welcome to " + appname + " ");
 
         str_ver += fibjs_version;
         str_ver += '.';
         output(console_base::C_INFO, str_ver);
         output(console_base::C_INFO, "Type \".help\" for more information.");
-    } else
-        strFname = isolate->NewString("[eval]", 6);
+    }
 
     while (true) {
         if (!buf.empty()) {
