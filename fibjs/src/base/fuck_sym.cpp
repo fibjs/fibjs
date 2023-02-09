@@ -71,7 +71,7 @@ double exp(double x)
 }
 
 __asm__(".symver _expf,expf@GLIBC_" GLIB_C_MATH);
-double _expf(double x);
+float _expf(float x);
 float expf(float x)
 {
     return _expf(x);
