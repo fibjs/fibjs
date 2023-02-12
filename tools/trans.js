@@ -14,6 +14,7 @@ var langs = [
     "fr",
     "gl",
     "it",
+    "nl",
     "ru",
     "ja",
     "ko",
