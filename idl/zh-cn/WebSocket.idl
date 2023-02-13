@@ -11,7 +11,7 @@
   };
   }));
 
-  serv.run(r => 0);
+  serv.start();
 
   var sock = new ws.Socket('ws://127.0.0.1:8811');
   sock.on('open', () => {
