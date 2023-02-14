@@ -26,9 +26,6 @@ static HttpClient* get_httpClient(Isolate* isolate = NULL)
 {
     if (isolate == NULL)
         isolate = Isolate::current();
-
-    if (!isolate->m_httpclient)
-        isolate->m_httpclient = new HttpClient();
     return isolate->m_httpclient;
 }
 
