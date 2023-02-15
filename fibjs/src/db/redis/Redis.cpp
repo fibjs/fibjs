@@ -202,7 +202,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
                 return CHECK_ERROR(Runtime::setError(m_strLine.substr(1)));
 
             if (ch == ':') {
-                m_val.parseNumber(m_strLine.c_str() + 1);
+                m_val.parseInt(m_strLine.c_str() + 1);
                 return setResult();
             }
 

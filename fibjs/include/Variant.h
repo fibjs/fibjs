@@ -418,7 +418,8 @@ public:
             return m_Val.dblVal;
         return 0;
     }
-
+    
+    void parseInt(const char* str, int32_t len = -1);
     void parseNumber(const char* str, int32_t len = -1);
     void parseDate(const char* str, int32_t len = -1)
     {
