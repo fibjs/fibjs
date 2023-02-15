@@ -14,6 +14,7 @@ var langs = [
     "fr",
     "gl",
     "it",
+    "nl",
     "ru",
     "ja",
     "ko",
@@ -125,7 +126,7 @@ function translate(fname, lang) {
             fs.writeFile(out_fname, html);
             done = true;
         } else
-            console.error("Timeeout");
+            console.error("timeout", out_fname);
 
         page.close();
         ev.set();
@@ -219,9 +220,9 @@ queue_one("support.html");
 
 queue_docs("docs");
 
-if (JSON.stringify(new_docs_md5) != JSON.stringify(docs_md5)) {
+if (JSON.stringify(new_docs_md5, 2) != JSON.stringify(docs_md5, 2)) {
     console.notice("update", path.join(docs_path, "docs_md5.json"));
-    fs.writeTextFile(path.join(docs_path, "docs_md5.json"), JSON.stringify(new_docs_md5));
+    fs.writeTextFile(path.join(docs_path, "docs_md5.json"), JSON.stringify(new_docs_md5, 2));
 }
 
 trans_queue = trans_queue.sort((n1, n2) => {

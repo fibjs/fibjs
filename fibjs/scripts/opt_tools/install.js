@@ -568,7 +568,7 @@ function update_pkgjson(rootsnap) {
 
     if (!pkgjson[ctx.depk]) pkgjson[ctx.depk] = {};
 
-    if (!pkgjson[ctx.depk][real_pkgname]) {
+    if (!pkgjson[ctx.depk][real_pkgname] || pkgjson[ctx.depk][real_pkgname] !== `^${rootsnap.node_modules[real_pkgname].version}`) {
         if (special_source_installation_name !== real_pkgname) {
             pkgjson[ctx.depk][real_pkgname] = special_source_installation_name;
         } else {

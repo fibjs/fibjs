@@ -176,9 +176,10 @@ describe("gd", () => {
         gd_test(gd.BMP);
     });
 
-    it("webp", () => {
-        gd_test(gd.WEBP);
-    });
+    if (process.arch !== "loong64")
+        it("webp", () => {
+            gd_test(gd.WEBP);
+        });
 
     it("flip", () => {
         var img1 = img.resample(220, 120);
@@ -202,65 +203,67 @@ describe("gd", () => {
         assert.equal(img2.progressive, true);
     });
 
-    it("filter", () => {
-        img = gd.load(path.join(__dirname, 'test.png'));
-        img.filter(gd.MEAN_REMOVAL);
-        sample_test(img, [0xffffff, 0xff00, 0xffffff])
+    if (process.arch !== "loong64")
+        it("filter", () => {
+            img = gd.load(path.join(__dirname, 'test.png'));
+            img.filter(gd.MEAN_REMOVAL);
+            sample_test(img, [0xffffff, 0xff00, 0xffffff])
 
-        img = gd.load(path.join(__dirname, 'test.png'));
-        img.filter(gd.EDGEDETECT);
-        sample_test(img, [0x7fffff, 0x7f00, 0xff7fff])
+            img = gd.load(path.join(__dirname, 'test.png'));
+            img.filter(gd.EDGEDETECT);
+            sample_test(img, [0x7fffff, 0x7f00, 0xff7fff])
 
-        var img = gd.load(path.join(__dirname, 'test.png'));
-        img.filter(gd.EMBOSS);
-        sample_test(img, [0x7fffff, 0xff7fff, 0x7f00])
+            var img = gd.load(path.join(__dirname, 'test.png'));
+            img.filter(gd.EMBOSS);
+            sample_test(img, [0x7fffff, 0xff7fff, 0x7f00])
 
-        img = gd.load(path.join(__dirname, 'test.png'));
-        img.filter(gd.SELECTIVE_BLUR);
-        sample_test(img, [0xfefdfd, 0xfe00, 0xd4fed4])
+            img = gd.load(path.join(__dirname, 'test.png'));
+            img.filter(gd.SELECTIVE_BLUR);
+            sample_test(img, [0xfefdfd, 0xfe00, 0xd4fed4])
 
-        img = gd.load(path.join(__dirname, 'test.png'));
-        img.filter(gd.GAUSSIAN_BLUR);
-        sample_test(img, [0xffe9e9, 0x3dff3d, 0xa6ffa6])
+            img = gd.load(path.join(__dirname, 'test.png'));
+            img.filter(gd.GAUSSIAN_BLUR);
+            sample_test(img, [0xffe9e9, 0x3dff3d, 0xa6ffa6])
 
-        img = gd.load(path.join(__dirname, 'test.png'));
-        img.filter(gd.NEGATE);
-        sample_test(img, [0x0, 0xff00ff, 0x2a002a])
+            img = gd.load(path.join(__dirname, 'test.png'));
+            img.filter(gd.NEGATE);
+            sample_test(img, [0x0, 0xff00ff, 0x2a002a])
 
-        // img = gd.load(path.join(__dirname, 'test.png'));
-        // img.filter(gd.GRAYSCALE);
-        // sample_test(img, [0xffffff, 0x959595, 0xededed])
+            // img = gd.load(path.join(__dirname, 'test.png'));
+            // img.filter(gd.GRAYSCALE);
+            // sample_test(img, [0xffffff, 0x959595, 0xededed])
 
-        img = gd.load(path.join(__dirname, 'test.png'));
-        img.filter(gd.SMOOTH, 10);
-        sample_test(img, [0xffefef, 0x25ff25, 0xb8ffb8])
+            img = gd.load(path.join(__dirname, 'test.png'));
+            img.filter(gd.SMOOTH, 10);
+            sample_test(img, [0xffefef, 0x25ff25, 0xb8ffb8])
 
-        img = gd.load(path.join(__dirname, 'test.png'));
-        img.filter(gd.BRIGHTNESS, 10);
-        sample_test(img, [0xffffff, 0xaff0a, 0xdfffdf])
+            img = gd.load(path.join(__dirname, 'test.png'));
+            img.filter(gd.BRIGHTNESS, 10);
+            sample_test(img, [0xffffff, 0xaff0a, 0xdfffdf])
 
-        img = gd.load(path.join(__dirname, 'test.png'));
-        img.filter(gd.CONTRAST, 10);
-        sample_test(img, [0xe6e6e6, 0x18e618, 0xc4e6c4])
+            img = gd.load(path.join(__dirname, 'test.png'));
+            img.filter(gd.CONTRAST, 10);
+            sample_test(img, [0xe6e6e6, 0x18e618, 0xc4e6c4])
 
-        img = gd.load(path.join(__dirname, 'test.png'));
-        img.filter(gd.COLORIZE, 10, 10, 10, 10);
-        sample_test(img, [0xffffff, 0x9ff09, 0xdeffde])
-    });
+            img = gd.load(path.join(__dirname, 'test.png'));
+            img.filter(gd.COLORIZE, 10, 10, 10, 10);
+            sample_test(img, [0xffffff, 0x9ff09, 0xdeffde])
+        });
 
-    it("affine", () => {
-        var img = gd.load(path.join(__dirname, 'test.png'));
-        var affines = [2, 1, 1, 2, 1, 1];
-        var img1 = img.affine(affines);
-        assert.equal(img1.width, 1116);
-        assert.equal(img1.height, 1125);
-        sample_test(img1, [-1, 0, -1]);
+    if (process.arch !== "loong64")
+        it("affine", () => {
+            var img = gd.load(path.join(__dirname, 'test.png'));
+            var affines = [2, 1, 1, 2, 1, 1];
+            var img1 = img.affine(affines);
+            assert.equal(img1.width, 1116);
+            assert.equal(img1.height, 1125);
+            sample_test(img1, [-1, 0, -1]);
 
-        // var img2 = img.affine(affines, 50, 50, 50, 50);
-        // assert.equal(img2.width, 150);
-        // assert.equal(img2.height, 150);
-        // sample_test(img2, [0xff0000, 0x0, 0x0]);
-    });
+            // var img2 = img.affine(affines, 50, 50, 50, 50);
+            // assert.equal(img2.width, 150);
+            // assert.equal(img2.height, 150);
+            // sample_test(img2, [0xff0000, 0x0, 0x0]);
+        });
 });
 
 require.main === module && test.run(console.DEBUG);

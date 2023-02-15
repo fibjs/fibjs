@@ -26,14 +26,15 @@ void ChildProcess::OnExit(uv_process_t* handle, int64_t exit_status, int term_si
     ChildProcess* cp = container_of(handle, ChildProcess, m_process);
     Variant args[2];
 
+    args[0] = (double)exit_status;
+    if (term_signal) {
+        exit_status = -term_signal;
+        args[1] = signo_string(term_signal);
+    } else
+        args[1].setNull();
+
     cp->m_exitCode = (int32_t)exit_status;
     cp->m_ev.set();
-
-    args[0] = (double)exit_status;
-    if (term_signal)
-        args[1] = signo_string(term_signal);
-    else
-        args[1].setNull();
 
     cp->_emit("exit", args, 2);
     uv_close((uv_handle_t*)handle, on_uv_close);

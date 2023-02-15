@@ -160,6 +160,8 @@ Isolate::Isolate(exlib::string jsFilename, exlib::string jsCode)
 
     m_ca->loadRootCerts();
 
+    m_httpclient = new HttpClient();
+
     exlib::Service::CreateFiber(FiberProcIsolate, this, stack_size * 1024, "JSFiber");
 }
 
