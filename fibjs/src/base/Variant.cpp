@@ -186,6 +186,9 @@ void Variant::parseInt(const char* str, int32_t len)
         next(len, pos);
 
     digit = getInt(str, len, pos);
+    
+    if (bNeg)
+        digit = -digit;
 
     set_type(VT_Long);
     m_Val.longVal = digit;
