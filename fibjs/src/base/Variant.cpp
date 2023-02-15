@@ -175,6 +175,25 @@ inline char pick(const char* s, int32_t& len, int32_t& pos)
     return len == 0 ? 0 : s[pos];
 }
 
+void Variant::parseInt(const char* str, int32_t len)
+{
+    int64_t digit;
+    bool bNeg;
+    int32_t pos = 0;
+
+    bNeg = (pick(str, len, pos) == '-');
+    if (bNeg)
+        next(len, pos);
+
+    digit = getInt(str, len, pos);
+    
+    if (bNeg)
+        digit = -digit;
+
+    set_type(VT_Long);
+    m_Val.longVal = digit;
+}
+
 void Variant::parseNumber(const char* str, int32_t len)
 {
     int64_t digit, frac = 0, exp = 0;
