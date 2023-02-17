@@ -3,14 +3,14 @@ FROM ubuntu:20.04
 RUN apt-get update && apt-get install sudo curl tar xz-utils -y
 RUN apt-get install cmake make -y && apt-get install git -y
 
-RUN curl -o loongarch64-linux-gnu.tar.xz --retry 5 -LO http://ftp.loongnix.cn/toolchain/gcc/release/loongarch/gcc8/loongson-gnu-toolchain-8.3-x86_64-loongarch64-linux-gnu-rc1.1.tar.xz && \
+RUN curl -o loongarch64-linux-gnu.tar.xz --retry 5 -LO http://ftp.loongnix.cn/toolchain/gcc/release/loongarch/gcc8/loongson-gnu-toolchain-8.3.novec-x86_64-loongarch64-linux-gnu-rc1.1.tar.xz && \
     tar -C /usr -xvf loongarch64-linux-gnu.tar.xz && \
     rm loongarch64-linux-gnu.tar.xz
 
-RUN mv /usr/loongson-gnu-toolchain-8.3-x86_64-loongarch64-linux-gnu-rc1.1 /usr/cross-tools
+RUN mv /usr/loongson-gnu-toolchain-8.3.novec-x86_64-loongarch64-linux-gnu-rc1.1 /usr/cross-tools
 
-# COPY qemu-loongarch64.tar.gz .
-# RUN tar -C /usr/cross-tools -xvf qemu-loongarch64.tar.gz && rm qemu-loongarch64.tar.gz
+COPY qemu-loongarch64.tar.gz .
+RUN tar -C /usr/cross-tools -xvf qemu-loongarch64.tar.gz && rm qemu-loongarch64.tar.gz
 
 # RUN update-binfmts --enable
 # RUN update-binfmts --install qemu-loongarch64 /usr/cross-tools/qemu-loongarch64 \

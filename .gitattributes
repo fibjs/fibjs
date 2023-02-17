@@ -9,3 +9,6 @@
 *.css binary
 *.ai binary
 *.svg binary
+*.tar binary
+*.gz binary
+*.exe binary
