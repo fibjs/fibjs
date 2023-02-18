@@ -239,15 +239,13 @@ describe("gd", () => {
         img.filter(gd.COLORIZE, 10, 10, 10, 10);
         sample_test(img, [0xffffff, 0x9ff09, 0xdeffde])
 
-        if (process.arch !== 'loong64') {
-            img = gd.load(path.join(__dirname, 'test.png'));
-            img.filter(gd.EDGEDETECT);
-            sample_test(img, [0x7fffff, 0x7f00, 0xff7fff])
+        img = gd.load(path.join(__dirname, 'test.png'));
+        img.filter(gd.EDGEDETECT);
+        sample_test(img, [0x7fffff, 0x7f00, 0xff7fff])
 
-            img = gd.load(path.join(__dirname, 'test.png'));
-            img.filter(gd.SELECTIVE_BLUR);
-            sample_test(img, [0xfefdfd, 0xfe00, 0xd4fed4])
-        }
+        img = gd.load(path.join(__dirname, 'test.png'));
+        img.filter(gd.SELECTIVE_BLUR);
+        sample_test(img, [0xfefdfd, 0xfe00, 0xd4fed4])
     });
 
     it("affine", () => {
