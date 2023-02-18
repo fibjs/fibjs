@@ -1,0 +1,12 @@
+{
+    "name": "install_specific_path",
+    "version": "1.0.0",
+    "description": "",
+    "repository": "",
+    "keywords": "",
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@fibjs/copy": "^1.1.1"
+    }
+}

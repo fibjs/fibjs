@@ -62,6 +62,7 @@ static void printHelp()
          "  --install [opt] foo  install the dependencies in the local node_modules folder.\n"
          "    -S, --save         save package config to dependencies.\n"
          "    -D, --save-dev     save package config to devDependencies.\n"
+         "    --target           specify the path of the package.json file.\n"
          "\n"
          "  --prof               log statistical profiling information.\n"
          "  --prof-interval=n    interval for --prof samples (in microseconds, default: 1000).\n"
