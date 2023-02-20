@@ -587,17 +587,29 @@ const ctx = {};
 ctx.depk = ctx.dep_against_k = ''
 
 let need_add_newpkg_to_pkgjson = false
+let pkgjson_path_specified = false;
 if (process.argv.indexOf('--save', 2) > -1 || process.argv.indexOf('-S', 2) > -1) {
     need_add_newpkg_to_pkgjson = true;
 } else if (process.argv.indexOf('--save-dev', 2) > -1 || process.argv.indexOf('-D', 2) > -1) {
     need_add_newpkg_to_pkgjson = DEVDEPENDENCIES;
+} else if (process.argv.indexOf('--target', 2) > -1) {
+    const installTarget = process.argv[process.argv.indexOf('--target', 2) + 1];
+    if (!installTarget) throw new Error('[install] no path specified');
+    if (!path.isAbsolute(installTarget)) {
+        process.chdir(path.join(process.cwd(), installTarget));
+    } else {
+        process.chdir(installTarget);
+    }
+    pkgjson_path_specified = true;
 } else {
     ctx.depk = DEPENDENCIES;
 }
 
 const rootsnap = get_root_snapshot();
-// when specified new_pkgname, install it only
-ctx.new_pkgname = process.argv.slice(2).filter(x => !x.startsWith('-'))[0];
+if (!pkgjson_path_specified) {
+    // when specified new_pkgname, install it only
+    ctx.new_pkgname = process.argv.slice(2).filter(x => !x.startsWith('-'))[0];
+}
 
 // process_new_pkgname
 (() => {

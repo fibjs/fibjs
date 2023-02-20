@@ -396,6 +396,45 @@ describe('opt_tools/install from package.json', () => {
             });
         });
     });
+
+    describe('specific the path of package.json', () => {
+        var installTarget = path.resolve(__dirname, 'target_folder');
+        var pkgJson = path.resolve(installTarget, 'package.json');
+        var initDeps = readJson(pkgJson).dependencies;
+        afterEach(() => {
+            rmdirr(path.join(installTarget + "node_modules"))
+        });
+
+        it(`[--target] absolute path`, () => {
+            child_process.run(bin, ['--install', '--target', installTarget], processRunOptions)
+            Object.keys(initDeps).forEach(pkgName => {
+                assert.ok(fs.exists(
+                    resolveNodeModules(installTarget, pkgName)
+                ));
+            });
+        })
+
+        it(`[--target] relative path`, () => {
+            process.chdir(path.resolve(__dirname));
+            child_process.run(bin, ['--install', '--target', './target_folder'], processRunOptions)
+            Object.keys(initDeps).forEach(pkgName => {
+                assert.ok(fs.exists(
+                    resolveNodeModules(installTarget, pkgName)
+                ));
+            });
+        });
+
+        it(`[--target] relative path without dot`, () => {
+            process.chdir(path.resolve(__dirname));
+            child_process.run(bin, ['--install', '--target', 'target_folder'], processRunOptions)
+            Object.keys(initDeps).forEach(pkgName => {
+                assert.ok(fs.exists(
+                    resolveNodeModules(installTarget, pkgName)
+                ));
+            });
+        });
+
+    });
 });
 
 require.main === module && test.run(console.DEBUG);
