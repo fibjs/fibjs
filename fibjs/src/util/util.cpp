@@ -143,27 +143,32 @@ result_t util_base::clone(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
     return 0;
 }
 
-result_t util_base::deepFreeze(v8::Local<v8::Value> v)
+result_t _deepFreeze(Isolate* isolate, v8::Local<v8::Value> v)
 {
     if (v.IsEmpty() || !v->IsObject())
         return 0;
 
     v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
 
-    if (!isFrozen(obj)) {
+    if (!isFrozen(isolate->m_isolate, obj)) {
         v8::Local<v8::Context> _context = obj->GetCreationContextChecked();
         if (obj->SetIntegrityLevel(_context, v8::IntegrityLevel::kFrozen).IsNothing())
             return CALL_E_JAVASCRIPT;
 
         JSArray names = obj->GetPropertyNames(_context);
         for (int32_t i = 0; i < (int32_t)names->Length(); i++) {
-            result_t hr = deepFreeze(JSValue(obj->Get(_context, JSValue(names->Get(_context, i)))));
+            result_t hr = _deepFreeze(isolate, JSValue(obj->Get(_context, JSValue(names->Get(_context, i)))));
             if (hr < 0)
                 return hr;
         }
     }
 
     return 0;
+}
+
+result_t util_base::deepFreeze(v8::Local<v8::Value> v)
+{
+    return _deepFreeze(Isolate::current(), v);
 }
 
 result_t util_base::extend(v8::Local<v8::Value> v, OptArgs objs,

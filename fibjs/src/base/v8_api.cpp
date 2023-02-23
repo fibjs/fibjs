@@ -51,10 +51,11 @@ intptr_t RunMicrotaskSize(Isolate* isolate)
     return _isolate->default_microtask_queue()->size();
 }
 
-bool isFrozen(Local<Object> object)
+bool isFrozen(v8::Isolate* isolate, Local<Object> object)
 {
+    i::Isolate* v8_isolate = reinterpret_cast<i::Isolate*>(isolate);
     auto obj = Utils::OpenHandle(*object);
-    Maybe<bool> test = i::JSReceiver::TestIntegrityLevel(obj, i::FROZEN);
+    Maybe<bool> test = i::JSReceiver::TestIntegrityLevel(v8_isolate, obj, i::FROZEN);
     return test.ToChecked();
 }
 
@@ -92,7 +93,7 @@ exlib::string traceInfo(Isolate* isolate, int32_t deep, void* entry_fp, void* ha
     tt.c_entry_fp_ = (i::Address)entry_fp;
     tt.handler_ = (i::Address)handle;
 
-    i::JavaScriptFrameIterator it(v8_isolate, &tt);
+    i::JavaScriptStackFrameIterator it(v8_isolate, &tt);
 
     exlib::string strBuffer;
     bool bFirst = true;
