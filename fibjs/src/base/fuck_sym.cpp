@@ -90,6 +90,13 @@ double pow(double x, double y)
 {
     return _pow(x, y);
 }
+
+__asm__(".symver _powf,powf@GLIBC_" GLIB_C_MATH);
+float _powf(float x, float y);
+float powf(float x, float y)
+{
+    return _powf(x, y);
+}
 #endif
 }
 
