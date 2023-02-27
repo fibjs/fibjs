@@ -186,5 +186,6 @@ void options(int32_t& pos, char* argv[])
 
     v8::internal::v8_flags.max_old_space_size = sz;
     v8::internal::v8_flags.stack_size = stack_size - GUARD_SIZE;
+    v8::internal::v8_flags.wasm_code_gc = false;
 }
 }
