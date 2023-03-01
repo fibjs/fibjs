@@ -57,7 +57,7 @@ result_t util_base::has(v8::Local<v8::Value> v, exlib::string key, bool& retVal)
     v8::Local<v8::Context> context = isolate->context();
 
     v8::Local<v8::Object> obj = v->ToObject(context).FromMaybe(v8::Local<v8::Object>());
-    retVal = obj->HasOwnProperty(context, isolate->NewString(key)).ToChecked();
+    retVal = obj->HasOwnProperty(context, isolate->NewString(key)).FromMaybe(false);
     return 0;
 }
 
@@ -244,13 +244,13 @@ result_t util_base::pick(v8::Local<v8::Value> v, OptArgs objs,
             for (j = 0; j < len; j++) {
                 JSValue k = arr->Get(context, j);
 
-                if (obj->Has(context, k).ToChecked())
+                if (obj->Has(context, k).FromMaybe(false))
                     obj1->Set(context, k, JSValue(obj->Get(context, k))).Check();
             }
         } else {
             JSValue k = o;
 
-            if (obj->Has(context, k).ToChecked())
+            if (obj->Has(context, k).FromMaybe(false))
                 obj1->Set(context, k, JSValue(obj->Get(context, k))).Check();
         }
     }

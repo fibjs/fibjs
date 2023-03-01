@@ -176,7 +176,7 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
         v8::Local<v8::Value> res = message->GetScriptResourceName();
         if (!res->IsUndefined()) {
             strError.append(isolate->toString(res));
-            int32_t lineNumber = message->GetLineNumber(context).ToChecked();
+            int32_t lineNumber = message->GetLineNumber(context).FromMaybe(0);
             if (lineNumber > 0) {
                 char numStr[32];
                 strError.append(1, ':');

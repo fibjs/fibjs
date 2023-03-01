@@ -55,7 +55,7 @@ bool isFrozen(Local<Object> object)
 {
     auto obj = Utils::OpenHandle(*object);
     Maybe<bool> test = i::JSReceiver::TestIntegrityLevel(obj, i::FROZEN);
-    return test.ToChecked();
+    return test.FromMaybe(false);
 }
 
 void setAsyncFunctoin(Local<Function> func)

@@ -142,7 +142,7 @@ public:
         int32_t len = esa->Length();
         for (i = index; i < len - 1; i++)
             esa->Set(context, i, esa->Get(context, i + 1).FromMaybe(v8::Local<v8::Value>())).Check();
-        esa->Delete(context, len - 1).ToChecked();
+        esa->Delete(context, len - 1).Check();
         esa->Set(context, NewString("length"),
             v8::Integer::New(isolate, len - 1)).Check();
     }
@@ -157,7 +157,7 @@ public:
 
         for (i = len - 1; i >= 0; i--) {
             JSValue v = esa->Get(context, i);
-            if (v->Equals(isolate->GetCurrentContext(), func).ToChecked()) {
+            if (v->Equals(isolate->GetCurrentContext(), func).FromMaybe(false)) {
                 spliceOne(esa, i);
                 result_t hr;
                 hr = onEventChange("removeListener", ev, func);
