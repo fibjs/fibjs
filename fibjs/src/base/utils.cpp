@@ -176,7 +176,7 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
         v8::Local<v8::Value> res = message->GetScriptResourceName();
         if (!res->IsUndefined()) {
             strError.append(isolate->toString(res));
-            int32_t lineNumber = message->GetLineNumber(context).ToChecked();
+            int32_t lineNumber = message->GetLineNumber(context).FromMaybe(0);
             if (lineNumber > 0) {
                 char numStr[32];
                 strError.append(1, ':');
@@ -196,14 +196,14 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
                 strError.append(sourceline_string);
                 strError.append("\n");
                 // Print wavy underline (GetUnderline is deprecated).
-                int start = message->GetStartColumn(context).FromJust();
+                int start = message->GetStartColumn(context).FromMaybe(0);
                 for (int i = 0; i < start; i++) {
                     if (sourceline_string[i] == '\0') {
                         break;
                     }
                     strError.append((sourceline_string[i] == '\t') ? "\t" : " ");
                 }
-                int end = message->GetEndColumn(context).FromJust();
+                int end = message->GetEndColumn(context).FromMaybe(start);
                 for (int i = start; i < end; i++) {
                     strError.append("^");
                 }

@@ -248,7 +248,7 @@ public:
                 if (!skips || !skips[j])
                     o->SetAccessor(_context, get_prop_name(isolate, m_cd.cps[i].name),
                          m_cd.cps[i].getter, m_cd.cps[i].setter)
-                        .ToChecked();
+                        .Check();
             }
 
         for (i = 0; i < m_cd.cc; i++) {

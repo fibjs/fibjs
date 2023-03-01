@@ -555,7 +555,7 @@ result_t has_prop(v8::Local<v8::Value> v, v8::Local<v8::Value> prop,
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     Isolate* isolate = Isolate::current();
-    retVal = v8::Local<v8::Object>::Cast(v)->Has(isolate->context(), prop).ToChecked();
+    retVal = v8::Local<v8::Object>::Cast(v)->Has(isolate->context(), prop).FromMaybe(false);
 
     return 0;
 }
@@ -609,7 +609,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
         p = p1 + 1;
     }
 
-    retVal = v->Has(context, isolate->NewString(p)).ToChecked();
+    retVal = v->Has(context, isolate->NewString(p)).FromMaybe(false);
 
     return 0;
 }

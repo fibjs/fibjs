@@ -102,22 +102,22 @@ public:
 
     int64_t toInteger(v8::Local<v8::Value> v)
     {
-        return v->IntegerValue(context()).ToChecked();
+        return v->IntegerValue(context()).FromMaybe(0);
     }
 
     int32_t toInt32Value(v8::Local<v8::Value> v)
     {
-        return v->Int32Value(context()).ToChecked();
+        return v->Int32Value(context()).FromMaybe(0);
     }
 
     uint32_t toUint32Value(v8::Local<v8::Value> v)
     {
-        return v->Uint32Value(context()).ToChecked();
+        return v->Uint32Value(context()).FromMaybe(0);
     }
 
     double toNumber(v8::Local<v8::Value> v)
     {
-        return v->NumberValue(context()).ToChecked();
+        return v->NumberValue(context()).FromMaybe(0);
     }
 
     void start_profiler();

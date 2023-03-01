@@ -607,7 +607,7 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, d
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
     if (v->IsNumber() || v->IsNumberObject()) {
-        n = v->NumberValue(context).ToChecked();
+        n = v->NumberValue(context).FromMaybe(NAN);
         return std::isnan(n) ? CALL_E_TYPEMISMATCH : 0;
     }
 
@@ -659,7 +659,7 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, i
     } else {
         double num;
 
-        num = v->NumberValue(context).ToChecked();
+        num = v->NumberValue(context).FromMaybe(NAN);
         if (std::isnan(num))
             return CALL_E_TYPEMISMATCH;
 
@@ -878,7 +878,7 @@ inline bool IsJSObject(v8::Local<v8::Value> v)
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
     v8::Local<v8::Context> _context = o->GetCreationContextChecked();
     JSValue proto = _context->GetEmbedderData(1);
-    if (!proto->Equals(_context, o->GetPrototype()).ToChecked())
+    if (!proto->Equals(_context, o->GetPrototype()).FromMaybe(false))
         return false;
 
     return true;

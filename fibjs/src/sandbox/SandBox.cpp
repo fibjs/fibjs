@@ -175,7 +175,7 @@ result_t SandBox::has(exlib::string id, bool& retVal)
 {
     path_base::normalize(id, id);
     v8::Local<v8::Object> m = mods();
-    retVal = m->Has(m->GetCreationContextChecked(), holder()->NewString(id)).ToChecked();
+    retVal = m->Has(m->GetCreationContextChecked(), holder()->NewString(id)).FromMaybe(false);
 
     return 0;
 }
