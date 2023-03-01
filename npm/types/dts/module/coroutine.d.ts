@@ -8,10 +8,28 @@
 /**
  * @description 并发控制模块
  * 
- *  引用方法：
+ * `coroutine` 模块提供了一个用于控制 `fiber` 执行顺序的 API。它允许开发者手动切换 `fiber`，从而实现协作式多任务。`coroutine` 模块的一个重要的函数是 `sleep` 函数，它允许当前正在执行的 `fiber` 让出 CPU，让其他 `fiber` 运行。
+ * 
+ *  以下是一个简单的示例代码，演示了如何使用 `coroutine` 模块：
  *  ```JavaScript
- *  var coroutine = require('coroutine');
+ *  const coroutine = require('coroutine');
+ * 
+ *  function foo() {
+ *   console.log('start foo');
+ *   coroutine.sleep(1000); // 让出 CPU，让其他 fiber 运行
+ *   console.log('end foo');
+ *  }
+ * 
+ *  function bar() {
+ *   console.log('start bar');
+ *   coroutine.sleep(2000);
+ *   console.log('end bar');
+ *  }
+ * 
+ *  coroutine.start(foo);
+ *  coroutine.start(bar);
  *  ```
+ *  在上面的代码中，我们定义了两个函数 `foo` 和 `bar`，然后使用 `coroutine.start` 函数启动两个 `fiber`。在每个 `fiber` 中，我们使用 `coroutine.sleep` 函数来让出 CPU，让其他 `fiber` 运行。
  *  
  */
 declare module 'coroutine' {

@@ -2,15 +2,24 @@
 /// <reference path="../interface/Buffer.d.ts" />
 /**
  * @description base64 编码与解码模块
- *  引用方式：
+ *  
+ *  `base64` 是一种将二进制数据编码为 ASCII 字符串的方法，使其可在网络上进行传输。`base64` 模块提供了一些对 Base64 编解码的支持。
+ * 
+ *  使用 `base64` 模块，可以将字符串编码为 Base64 格式，也可以将 Base64 格式解码为字符串。例如，将字符串编码为 Base64 格式：
  *  ```JavaScript
- *  var encoding = require('encoding');
- *  var base64 = encoding.base64;
+ *  const { encode } = require('base64');
+ *  const str = 'hello, world';
+ *  const encodedStr = encode(str);
+ *  console.log(encodedStr); // ==> "aGVsbG8sIHdvcmxk"
  *  ```
- *  或者
+ *  将 Base64 格式的字符串解码为字符串：
  *  ```JavaScript
- *  var base64 = require('base64');
+ *  const { decode } = require('base64');
+ *  const encodedStr = 'aGVsbG8sIHdvcmxk';
+ *  const str = decode(encodedStr);
+ *  console.log(str); // ==> "hello, world"
  *  ```
+ *  在处理包含敏感信息的数据时，使用 Base64 编码并不能提供安全保障。因为 Base64 编码可以被轻松地破解，所以应该使用其他更安全的方法来处理这些数据。
  *  
  */
 declare module 'base64' {
