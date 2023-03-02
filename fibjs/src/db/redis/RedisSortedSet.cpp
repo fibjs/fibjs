@@ -24,8 +24,8 @@ result_t RedisSortedSet::add(v8::Local<v8::Object> sms, int32_t& retVal)
     for (i = 0; i < (int32_t)keys->Length(); i++) {
         JSValue v = keys->Get(context, i);
 
-        mss->Set(context, n++, JSValue(sms->Get(context, v))).Check();
-        mss->Set(context, n++, v).Check();
+        mss->Set(context, n++, JSValue(sms->Get(context, v))).IsJust();
+        mss->Set(context, n++, v).IsJust();
     }
 
     return m_rdb->doCommand("ZADD", m_key, mss, retVal);

@@ -146,7 +146,7 @@ result_t MongoCollection::save(v8::Local<v8::Object> document)
     else {
         v8::Local<v8::Object> query = v8::Object::New(isolate->m_isolate);
 
-        query->Set(context, strId, id).Check();
+        query->Set(context, strId, id).IsJust();
         return update(query, document, true, false);
     }
 }
@@ -286,15 +286,15 @@ result_t MongoCollection::ensureIndex(v8::Local<v8::Object> keys,
 
     v8::Local<v8::Object> idx = v8::Object::New(isolate->m_isolate);
 
-    idx->Set(context, isolate->NewString("name"), isolate->NewString(name)).Check();
-    idx->Set(context, isolate->NewString("key"), keys).Check();
+    idx->Set(context, isolate->NewString("name"), isolate->NewString(name)).IsJust();
+    idx->Set(context, isolate->NewString("key"), keys).IsJust();
     extend(options, idx);
 
     v8::Local<v8::Array> idxs = v8::Array::New(isolate->m_isolate);
-    idxs->Set(context, 0, idx).Check();
+    idxs->Set(context, 0, idx).IsJust();
 
     v8::Local<v8::Object> cmd = v8::Object::New(isolate->m_isolate);
-    cmd->Set(context, isolate->NewString("indexes"), idxs).Check();
+    cmd->Set(context, isolate->NewString("indexes"), idxs).IsJust();
 
     v8::Local<v8::Object> retVal;
     return runCommand("createIndexes", cmd, retVal);

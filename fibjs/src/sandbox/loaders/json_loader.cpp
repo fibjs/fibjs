@@ -27,7 +27,7 @@ result_t JsonLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string 
         return hr;
 
     v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(args[5]);
-    module->Set(context, isolate->NewString("exports"), v).Check();
+    module->Set(context, isolate->NewString("exports"), v).IsJust();
 
     return 0;
 }

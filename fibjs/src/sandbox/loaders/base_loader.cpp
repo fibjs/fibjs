@@ -31,11 +31,11 @@ result_t SandBox::ExtLoader::run_script(Context* ctx, Buffer_base* src, exlib::s
     v8::Local<v8::Object> module = v8::Object::New(isolate->m_isolate);
     v8::Local<v8::Object> exports = v8::Object::New(isolate->m_isolate);
 
-    module->Set(context, strExports, exports).Check();
-    module->Set(context, strRequire, ctx->m_fnRequest).Check();
+    module->Set(context, strExports, exports).IsJust();
+    module->Set(context, strRequire, ctx->m_fnRequest).IsJust();
 
     if (is_main)
-        ctx->m_fnRequest->Set(context, isolate->NewString("main"), module).Check();
+        ctx->m_fnRequest->Set(context, isolate->NewString("main"), module).IsJust();
 
     return run_module(ctx, src, name, module, exports, extarg);
 }

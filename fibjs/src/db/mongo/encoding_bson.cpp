@@ -189,47 +189,47 @@ result_t decodeValue(Isolate* isolate, v8::Local<v8::Object> obj, bson_iterator*
 
     switch (type) {
     case BSON_NULL:
-        obj->Set(context, isolate->NewString(key), v8::Null(isolate->m_isolate)).Check();
+        obj->Set(context, isolate->NewString(key), v8::Null(isolate->m_isolate)).IsJust();
         break;
     case BSON_STRING:
         obj->Set(context, isolate->NewString(key),
                isolate->NewString(bson_iterator_string(it)))
-            .Check();
+            .IsJust();
         break;
     case BSON_BOOL:
         obj->Set(context, isolate->NewString(key),
                bson_iterator_bool(it) ? v8::True(isolate->m_isolate) : v8::False(isolate->m_isolate))
-            .Check();
+            .IsJust();
         break;
     case BSON_INT:
-        obj->Set(context, isolate->NewString(key), v8::Number::New(isolate->m_isolate, bson_iterator_int(it))).Check();
+        obj->Set(context, isolate->NewString(key), v8::Number::New(isolate->m_isolate, bson_iterator_int(it))).IsJust();
         break;
     case BSON_LONG: {
         obj->Set(context, isolate->NewString(key),
                v8::Number::New(isolate->m_isolate, (double)bson_iterator_long(it)))
-            .Check();
+            .IsJust();
         break;
     }
     case BSON_DOUBLE:
         obj->Set(context, isolate->NewString(key),
                v8::Number::New(isolate->m_isolate, bson_iterator_double(it)))
-            .Check();
+            .IsJust();
         break;
     case BSON_DATE: {
         v8::Local<v8::Value> d = v8::Date::New(isolate->context(), (double)bson_iterator_date(it)).FromMaybe(v8::Local<v8::Value>());
-        obj->Set(context, isolate->NewString(key), d).Check();
+        obj->Set(context, isolate->NewString(key), d).IsJust();
         break;
     }
     case BSON_BINDATA: {
         obj_ptr<Buffer_base> buf = new Buffer(
             bson_iterator_bin_data(it), bson_iterator_bin_len(it));
 
-        obj->Set(context, isolate->NewString(key), buf->wrap()).Check();
+        obj->Set(context, isolate->NewString(key), buf->wrap()).IsJust();
         break;
     }
     case BSON_OID: {
         obj_ptr<MongoID> oid = new MongoID(bson_iterator_oid(it));
-        obj->Set(context, isolate->NewString(key), oid->wrap()).Check();
+        obj->Set(context, isolate->NewString(key), oid->wrap()).IsJust();
         break;
     }
     case BSON_REGEX: {
@@ -250,7 +250,7 @@ result_t decodeValue(Isolate* isolate, v8::Local<v8::Object> obj, bson_iterator*
                v8::RegExp::New(isolate->m_isolate->GetCurrentContext(),
                    isolate->NewString(bson_iterator_regex(it)), flgs)
                    .FromMaybe(v8::Local<v8::RegExp>()))
-            .Check();
+            .IsJust();
         break;
     }
     case BSON_OBJECT:
@@ -263,7 +263,7 @@ result_t decodeValue(Isolate* isolate, v8::Local<v8::Object> obj, bson_iterator*
         hr = decodeObject(isolate, &it1, type == BSON_ARRAY, _obj);
         if (hr < 0)
             return hr;
-        obj->Set(context, isolate->NewString(key), _obj).Check();
+        obj->Set(context, isolate->NewString(key), _obj).IsJust();
         break;
     }
     default:

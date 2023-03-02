@@ -399,12 +399,12 @@ result_t HttpCollection::_named_getter(exlib::string property, Variant& retVal)
             } else {
                 if (n == 1) {
                     a = v8::Array::New(isolate->m_isolate);
-                    a->Set(context, 0, v).Check();
+                    a->Set(context, 0, v).IsJust();
                     v = a;
                 }
 
                 Variant t = _pair.second;
-                a->Set(context, n++, t).Check();
+                a->Set(context, n++, t).IsJust();
             }
         }
     }
@@ -429,7 +429,7 @@ result_t HttpCollection::_named_enumerator(v8::Local<v8::Array>& retVal)
     for (i = 0, n = 0; i < m_count; i++) {
         exlib::string& name = m_map[i].first;
         if (name_set.insert(name).second)
-            retVal->Set(context, n++, isolate->NewString(name)).Check();
+            retVal->Set(context, n++, isolate->NewString(name)).IsJust();
     }
 
     return 0;

@@ -52,7 +52,7 @@ private:
             }
 
             if (!v.IsEmpty())
-                retVal->Set(context, pos, handle_scope.Escape(v)).Check();
+                retVal->Set(context, pos, handle_scope.Escape(v)).IsJust();
             else
                 m_error = true;
         }
@@ -169,7 +169,7 @@ result_t coroutine_base::parallel(OptArgs funcs, v8::Local<v8::Array>& retVal)
     v8::Local<v8::Context> context = isolate->context();
 
     for (i = 0; i < num; i++)
-        _funcs->Set(context, i, funcs[i]).Check();
+        _funcs->Set(context, i, funcs[i]).IsJust();
 
     return parallel(_funcs, -1, retVal);
 }
@@ -190,7 +190,7 @@ result_t coroutine_base::parallel(v8::Local<v8::Function> func, int32_t num,
     v8::Local<v8::Context> context = isolate->context();
 
     for (i = 0; i < num; i++)
-        datas->Set(context, i, v8::Int32::New(isolate->m_isolate, i)).Check();
+        datas->Set(context, i, v8::Int32::New(isolate->m_isolate, i)).IsJust();
 
     _parallels _p;
     return _p.run(datas, func, retVal, fibers);
@@ -249,7 +249,7 @@ result_t coroutine_base::get_fibers(v8::Local<v8::Array>& retVal)
     retVal = v8::Array::New(isolate->m_isolate);
 
     while (p) {
-        retVal->Set(context, n++, ((JSFiber*)p)->wrap()).Check();
+        retVal->Set(context, n++, ((JSFiber*)p)->wrap()).IsJust();
         p = p->m_next;
     }
 

@@ -53,14 +53,14 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
     mod = v8::Object::New(isolate->m_isolate);
 
     // init module
-    mod->Set(_context, isolate->NewString("id"), strModule).Check();
-    mod->Set(_context, strExports, exports).Check();
-    mod->Set(_context, isolate->NewString("filename"), strModule).Check();
-    mod->Set(_context, isolate->NewString("require"), context.m_fnRequest).Check();
-    mod->Set(_context, isolate->NewString("run"), context.m_fnRun).Check();
+    mod->Set(_context, isolate->NewString("id"), strModule).IsJust();
+    mod->Set(_context, strExports, exports).IsJust();
+    mod->Set(_context, isolate->NewString("filename"), strModule).IsJust();
+    mod->Set(_context, isolate->NewString("require"), context.m_fnRequest).IsJust();
+    mod->Set(_context, isolate->NewString("run"), context.m_fnRun).IsJust();
 
     v8::Local<v8::Object> _mods = mods();
-    _mods->Set(_context, strModule, mod).Check();
+    _mods->Set(_context, strModule, mod).IsJust();
 
     std::vector<ExtLoader::arg> extarg;
     hr = l->run_module(&context, script, srcname, mod, exports, extarg);

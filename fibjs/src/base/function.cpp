@@ -16,7 +16,7 @@ static void promise_then(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());
 
-    _data->Set(context, NewString(isolate, "_result"), args[0]).Check();
+    _data->Set(context, NewString(isolate, "_result"), args[0]).IsJust();
 
     obj_ptr<Event_base> ev = Event_base::getInstance(_data);
     ev->set();
@@ -28,7 +28,7 @@ static void promise_catch(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());
 
-    _data->Set(context, NewString(isolate, "_error"), args[0]).Check();
+    _data->Set(context, NewString(isolate, "_error"), args[0]).IsJust();
 
     obj_ptr<Event_base> ev = Event_base::getInstance(_data);
     ev->set();

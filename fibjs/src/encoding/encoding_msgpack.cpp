@@ -267,7 +267,7 @@ result_t msgpack_base::decode(Buffer_base* data, v8::Local<v8::Value>& retVal)
                 int32_t i;
 
                 for (i = 0; i < (int32_t)o->via.array.size; i++)
-                    arr->Set(context, i, map_js_value(o->via.array.ptr + i)).Check();
+                    arr->Set(context, i, map_js_value(o->via.array.ptr + i)).IsJust();
                 v = arr;
                 break;
             }
@@ -281,7 +281,7 @@ result_t msgpack_base::decode(Buffer_base* data, v8::Local<v8::Value>& retVal)
                     if (p->key.type == MSGPACK_OBJECT_STR) {
                         obj->Set(context, isolate->NewString(p->key.via.str.ptr, (int32_t)p->key.via.str.size),
                                map_js_value(&p->val))
-                            .Check();
+                            .IsJust();
                     }
                 }
                 v = obj;

@@ -41,7 +41,7 @@ inline void extend(const v8::Local<v8::Object> src,
         JSValue v = src->Get(context, k);
 
         if (!bDataOnly || (!v.IsEmpty() && !v->IsFunction()))
-            dest->Set(context, k, v).Check();
+            dest->Set(context, k, v).IsJust();
     }
 }
 

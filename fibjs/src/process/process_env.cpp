@@ -72,7 +72,7 @@ result_t process_base::get_env(v8::Local<v8::Object>& retVal)
         while ((p = *env++) != NULL) {
             p1 = qstrchr(p, '=');
             if (p1)
-                o->Set(context, isolate->NewString(p, (int32_t)(p1 - p)), isolate->NewString(p1 + 1)).Check();
+                o->Set(context, isolate->NewString(p, (int32_t)(p1 - p)), isolate->NewString(p1 + 1)).IsJust();
         }
 
         isolate->m_env.Reset(isolate->m_isolate, o);

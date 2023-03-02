@@ -255,7 +255,7 @@ public:
 
                     v8::Local<v8::Object> val = v8::Object::New(isolate->m_isolate);
 
-                    val->Set(_context, isolate->NewString("title"), isolate->NewString(p1->m_title)).Check();
+                    val->Set(_context, isolate->NewString("title"), isolate->NewString(p1->m_title)).IsJust();
 
                     p->m_total++;
                     if (try_catch.HasCaught()) {
@@ -280,23 +280,23 @@ public:
                             msgs.append(GetException(try_catch, 0));
                         }
 
-                        val->Set(_context, isolate->NewString("status"), isolate->NewString("failed")).Check();
-                        val->Set(_context, isolate->NewString("trace"), isolate->NewString(GetException(try_catch, 0))).Check();
+                        val->Set(_context, isolate->NewString("status"), isolate->NewString("failed")).IsJust();
+                        val->Set(_context, isolate->NewString("trace"), isolate->NewString(GetException(try_catch, 0))).IsJust();
 
                         str.append(buf);
                         str.append(p1->m_title);
                     } else {
                         if (p1->m_level == _case::TEST_TODO) {
                             p->m_todo++;
-                            val->Set(_context, isolate->NewString("status"), isolate->NewString("todo")).Check();
+                            val->Set(_context, isolate->NewString("status"), isolate->NewString("todo")).IsJust();
                             str.append(COLOR_CYAN + "\xe2\x98\x90 ");
                         } else if (p1->m_level < p->m_run_level) {
                             p->m_skip++;
-                            val->Set(_context, isolate->NewString("status"), isolate->NewString("skipped")).Check();
+                            val->Set(_context, isolate->NewString("status"), isolate->NewString("skipped")).IsJust();
                             str.append(COLOR_GREY + "\xe2\x97\x8b ");
                         } else {
                             p->m_pass++;
-                            val->Set(_context, isolate->NewString("status"), isolate->NewString("passed")).Check();
+                            val->Set(_context, isolate->NewString("status"), isolate->NewString("passed")).IsJust();
                             str.append(logger::notice() + "\xe2\x88\x9a " + COLOR_RESET);
                         }
 
@@ -314,9 +314,9 @@ public:
                         }
                     }
 
-                    val->Set(_context, isolate->NewString("duration"), v8::Number::New(isolate->m_isolate, p1->m_duration)).Check();
+                    val->Set(_context, isolate->NewString("duration"), v8::Number::New(isolate->m_isolate, p1->m_duration)).IsJust();
 
-                    p->m_retVal_tests->Set(_context, p->m_pos - 1, val).Check();
+                    p->m_retVal_tests->Set(_context, p->m_pos - 1, val).IsJust();
                 }
 
                 if (!p1->m_status)
@@ -359,31 +359,31 @@ public:
                 p->m_duration = d2.diff(p->m_begin);
 
                 if (stack.size() > 1)
-                    p->m_retVal->Set(_context, isolate->NewString("title"), isolate->NewString(p->m_title)).Check();
+                    p->m_retVal->Set(_context, isolate->NewString("title"), isolate->NewString(p->m_title)).IsJust();
 
-                p->m_retVal->Set(_context, isolate->NewString("status"), p->m_status ? isolate->NewString("passed") : isolate->NewString("failed")).Check();
+                p->m_retVal->Set(_context, isolate->NewString("status"), p->m_status ? isolate->NewString("passed") : isolate->NewString("failed")).IsJust();
 
-                p->m_retVal->Set(_context, isolate->NewString("total"), v8::Number::New(isolate->m_isolate, p->m_total)).Check();
+                p->m_retVal->Set(_context, isolate->NewString("total"), v8::Number::New(isolate->m_isolate, p->m_total)).IsJust();
 
                 if (p->m_pass)
-                    p->m_retVal->Set(_context, isolate->NewString("passed"), v8::Number::New(isolate->m_isolate, p->m_pass)).Check();
+                    p->m_retVal->Set(_context, isolate->NewString("passed"), v8::Number::New(isolate->m_isolate, p->m_pass)).IsJust();
                 if (p->m_fail)
-                    p->m_retVal->Set(_context, isolate->NewString("failed"), v8::Number::New(isolate->m_isolate, p->m_fail)).Check();
+                    p->m_retVal->Set(_context, isolate->NewString("failed"), v8::Number::New(isolate->m_isolate, p->m_fail)).IsJust();
                 if (p->m_todo)
-                    p->m_retVal->Set(_context, isolate->NewString("todo"), v8::Number::New(isolate->m_isolate, p->m_todo)).Check();
+                    p->m_retVal->Set(_context, isolate->NewString("todo"), v8::Number::New(isolate->m_isolate, p->m_todo)).IsJust();
                 if (p->m_skip)
-                    p->m_retVal->Set(_context, isolate->NewString("skipped"), v8::Number::New(isolate->m_isolate, p->m_skip)).Check();
+                    p->m_retVal->Set(_context, isolate->NewString("skipped"), v8::Number::New(isolate->m_isolate, p->m_skip)).IsJust();
 
-                p->m_retVal->Set(_context, isolate->NewString("duration"), v8::Number::New(isolate->m_isolate, p->m_duration)).Check();
+                p->m_retVal->Set(_context, isolate->NewString("duration"), v8::Number::New(isolate->m_isolate, p->m_duration)).IsJust();
 
-                p->m_retVal->Set(_context, isolate->NewString("tests"), p->m_retVal_tests).Check();
+                p->m_retVal->Set(_context, isolate->NewString("tests"), p->m_retVal_tests).IsJust();
 
                 stack.pop();
 
                 if (stack.size() > 0) {
                     p1 = stack[stack.size() - 1];
 
-                    p1->m_retVal_tests->Set(_context, p1->m_pos - 1, p->m_retVal).Check();
+                    p1->m_retVal_tests->Set(_context, p1->m_pos - 1, p->m_retVal).IsJust();
 
                     p1->m_total += p->m_total;
                     p1->m_pass += p->m_pass;
@@ -556,56 +556,56 @@ result_t test_base::setup()
 
     glob->DefineOwnProperty(_context, isolate->NewString("assert"),
             assert_base::class_info().getModule(isolate))
-        .Check();
+        .IsJust();
 
     func = isolate->NewFunction("describe", s_static_describe);
     glob->DefineOwnProperty(_context, isolate->NewString("describe"), func)
-        .Check();
+        .IsJust();
 
     func1 = isolate->NewFunction("xdescribe", s_static_xdescribe);
     glob->DefineOwnProperty(_context, isolate->NewString("xdescribe"), func1)
-        .Check();
+        .IsJust();
     func->DefineOwnProperty(_context, isolate->NewString("skip"), func1)
-        .Check();
+        .IsJust();
 
     func1 = isolate->NewFunction("odescribe", s_static_odescribe);
     glob->DefineOwnProperty(_context, isolate->NewString("odescribe"), func1)
-        .Check();
+        .IsJust();
     func->DefineOwnProperty(_context, isolate->NewString("only"), func1)
-        .Check();
+        .IsJust();
 
     func = isolate->NewFunction("it", s_static_it);
     glob->DefineOwnProperty(_context, isolate->NewString("it"), func)
-        .Check();
+        .IsJust();
 
     func1 = isolate->NewFunction("xit", s_static_xit);
     glob->DefineOwnProperty(_context, isolate->NewString("xit"), func1)
-        .Check();
+        .IsJust();
     func->DefineOwnProperty(_context, isolate->NewString("skip"), func1)
-        .Check();
+        .IsJust();
 
     func1 = isolate->NewFunction("oit", s_static_oit);
     glob->DefineOwnProperty(_context, isolate->NewString("oit"), func1)
-        .Check();
+        .IsJust();
     func->DefineOwnProperty(_context, isolate->NewString("only"), func1)
-        .Check();
+        .IsJust();
 
     glob->DefineOwnProperty(_context, isolate->NewString("todo"),
             isolate->NewFunction("todo", s_static_todo))
-        .Check();
+        .IsJust();
 
     glob->DefineOwnProperty(_context, isolate->NewString("before"),
             isolate->NewFunction("before", s_static_before))
-        .Check();
+        .IsJust();
     glob->DefineOwnProperty(_context, isolate->NewString("after"),
             isolate->NewFunction("after", s_static_after))
-        .Check();
+        .IsJust();
     glob->DefineOwnProperty(_context, isolate->NewString("beforeEach"),
             isolate->NewFunction("beforeEach", s_static_beforeEach))
-        .Check();
+        .IsJust();
     glob->DefineOwnProperty(_context, isolate->NewString("afterEach"),
             isolate->NewFunction("afterEach", s_static_afterEach))
-        .Check();
+        .IsJust();
 
     return 0;
 }

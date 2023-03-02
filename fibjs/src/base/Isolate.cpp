@@ -191,9 +191,9 @@ static void _PromiseRejectCallback(v8::PromiseRejectMessage data)
 
     if (e == v8::kPromiseRejectWithNoHandler) {
         v8::Local<v8::Array> o = v8::Array::New(isolate->m_isolate);
-        o->Set(_context, 0, data.GetPromise()).Check();
-        o->Set(_context, 1, data.GetValue()).Check();
-        _promise_error->Set(_context, rt->m_promise_error_no++, o).Check();
+        o->Set(_context, 0, data.GetPromise()).IsJust();
+        o->Set(_context, 1, data.GetValue()).IsJust();
+        _promise_error->Set(_context, rt->m_promise_error_no++, o).IsJust();
     } else if (e == v8::kPromiseHandlerAddedAfterReject) {
         v8::Local<v8::Promise> _promise = data.GetPromise();
         if (!_promise.IsEmpty()) {
@@ -209,7 +209,7 @@ static void _PromiseRejectCallback(v8::PromiseRejectMessage data)
 
                 bool e = _promise->Equals(_context, v).FromMaybe(false);
                 if (e) {
-                    _promise_error->Delete(_context, k).Check();
+                    _promise_error->Delete(_context, k).IsJust();
                 }
             }
         }

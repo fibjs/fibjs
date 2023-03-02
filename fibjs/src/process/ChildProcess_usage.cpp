@@ -32,9 +32,9 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
     v8::Local<v8::Context> context = isolate->context();
 
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-    o->Set(context, isolate->NewString("user"), v8::Number::New(isolate->m_isolate, ri.ri_user_time / 1000)).Check();
-    o->Set(context, isolate->NewString("system"), v8::Number::New(isolate->m_isolate, ri.ri_system_time / 1000)).Check();
-    o->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, ri.ri_resident_size)).Check();
+    o->Set(context, isolate->NewString("user"), v8::Number::New(isolate->m_isolate, ri.ri_user_time / 1000)).IsJust();
+    o->Set(context, isolate->NewString("system"), v8::Number::New(isolate->m_isolate, ri.ri_system_time / 1000)).IsJust();
+    o->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, ri.ri_resident_size)).IsJust();
 
     retVal = o;
 
@@ -72,9 +72,9 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
     v8::Local<v8::Context> context = isolate->context();
 
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-    o->Set(context, isolate->NewString("user"), v8::Number::New(isolate->m_isolate, utime_ticks * MICROS_PER_SEC / herz)).Check();
-    o->Set(context, isolate->NewString("system"), v8::Number::New(isolate->m_isolate, stime_ticks * MICROS_PER_SEC / herz)).Check();
-    o->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, rss * getpagesize())).Check();
+    o->Set(context, isolate->NewString("user"), v8::Number::New(isolate->m_isolate, utime_ticks * MICROS_PER_SEC / herz)).IsJust();
+    o->Set(context, isolate->NewString("system"), v8::Number::New(isolate->m_isolate, stime_ticks * MICROS_PER_SEC / herz)).IsJust();
+    o->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, rss * getpagesize())).IsJust();
 
     retVal = o;
 
@@ -117,9 +117,9 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
     v8::Local<v8::Context> context = isolate->context();
 
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-    o->Set(context, isolate->NewString("user"), v8::Number::New(isolate->m_isolate, utime_ticks)).Check();
-    o->Set(context, isolate->NewString("system"), v8::Number::New(isolate->m_isolate, stime_ticks)).Check();
-    o->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, (double)memCounters.PeakWorkingSetSize)).Check();
+    o->Set(context, isolate->NewString("user"), v8::Number::New(isolate->m_isolate, utime_ticks)).IsJust();
+    o->Set(context, isolate->NewString("system"), v8::Number::New(isolate->m_isolate, stime_ticks)).IsJust();
+    o->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, (double)memCounters.PeakWorkingSetSize)).IsJust();
 
     retVal = o;
 

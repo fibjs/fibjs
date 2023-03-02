@@ -107,7 +107,7 @@ result_t console_base::add(exlib::string type)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-    o->Set(isolate->context(), isolate->NewString("type", 4), isolate->NewString(type)).Check();
+    o->Set(isolate->context(), isolate->NewString("type", 4), isolate->NewString(type)).IsJust();
     return add(o);
 }
 

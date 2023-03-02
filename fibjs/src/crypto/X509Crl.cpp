@@ -244,7 +244,7 @@ result_t X509Crl::get_serials(v8::Local<v8::Array>& retVal)
         if (ret != 0)
             return CHECK_ERROR(_ssl::setError(ret));
 
-        retVal->Set(context, n++, isolate->NewString(str.c_str(), (int32_t)sz - 1)).Check();
+        retVal->Set(context, n++, isolate->NewString(str.c_str(), (int32_t)sz - 1)).IsJust();
 
         cur = cur->next;
     }

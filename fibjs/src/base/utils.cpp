@@ -147,11 +147,11 @@ v8::Local<v8::Value> ThrowResult(result_t hr)
     v8::Local<v8::Object> e = v8::Local<v8::Object>::Cast(v);
     v8::Local<v8::Context> context = isolate->context();
 
-    e->Set(context, isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr)).Check();
+    e->Set(context, isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr)).IsJust();
 
     const char* _name = uv_error_name(hr);
     if (_name)
-        e->Set(context, isolate->NewString("code"), isolate->NewString(_name)).Check();
+        e->Set(context, isolate->NewString("code"), isolate->NewString(_name)).IsJust();
 
     return isolate->m_isolate->ThrowException(e);
 }

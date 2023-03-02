@@ -101,7 +101,7 @@ result_t process_base::get_argv(v8::Local<v8::Array>& retVal)
     v8::Local<v8::Array> args = v8::Array::New(isolate->m_isolate, (int32_t)s_argv.size());
 
     for (int32_t i = 0; i < (int32_t)s_argv.size(); i++)
-        args->Set(context, i, isolate->NewString(s_argv[i])).Check();
+        args->Set(context, i, isolate->NewString(s_argv[i])).IsJust();
 
     retVal = args;
 
@@ -116,7 +116,7 @@ result_t process_base::get_execArgv(v8::Local<v8::Array>& retVal)
     int32_t i;
 
     for (i = 0; i < (int32_t)s_start_argv.size(); i++)
-        args->Set(context, i, isolate->NewString(s_start_argv[i])).Check();
+        args->Set(context, i, isolate->NewString(s_start_argv[i])).IsJust();
 
     retVal = args;
 
@@ -196,8 +196,8 @@ result_t process_base::hrtime(v8::Local<v8::Array> diff, v8::Local<v8::Array>& r
     }
 
     v8::Local<v8::Array> tuple = v8::Array::New(isolate->m_isolate, 2);
-    tuple->Set(context, 0, v8::Integer::NewFromUnsigned(isolate->m_isolate, (uint32_t)(t / NANOS_PER_SEC))).Check();
-    tuple->Set(context, 1, v8::Integer::NewFromUnsigned(isolate->m_isolate, t % NANOS_PER_SEC)).Check();
+    tuple->Set(context, 0, v8::Integer::NewFromUnsigned(isolate->m_isolate, (uint32_t)(t / NANOS_PER_SEC))).IsJust();
+    tuple->Set(context, 1, v8::Integer::NewFromUnsigned(isolate->m_isolate, t % NANOS_PER_SEC)).IsJust();
 
     retVal = tuple;
 
@@ -323,8 +323,8 @@ result_t process_base::cpuUsage(v8::Local<v8::Object> previousValue, v8::Local<v
     _system = MICROS_PER_SEC * rusage.ru_stime.tv_sec + rusage.ru_stime.tv_usec - _system;
 
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
-    o->Set(context, isolate->NewString("user"), v8::Number::New(isolate->m_isolate, _user)).Check();
-    o->Set(context, isolate->NewString("system"), v8::Number::New(isolate->m_isolate, _system)).Check();
+    o->Set(context, isolate->NewString("user"), v8::Number::New(isolate->m_isolate, _user)).IsJust();
+    o->Set(context, isolate->NewString("system"), v8::Number::New(isolate->m_isolate, _system)).IsJust();
 
     retVal = o;
 
@@ -344,23 +344,23 @@ result_t process_base::memoryUsage(v8::Local<v8::Object>& retVal)
     if (ret < 0)
         return CHECK_ERROR(ret);
 
-    info->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, (double)rss)).Check();
+    info->Set(context, isolate->NewString("rss"), v8::Number::New(isolate->m_isolate, (double)rss)).IsJust();
 
     v8::HeapStatistics v8_heap_stats;
     isolate->m_isolate->GetHeapStatistics(&v8_heap_stats);
 
     info->Set(context, isolate->NewString("heapTotal"),
-        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.total_heap_size())).Check();
+        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.total_heap_size())).IsJust();
     info->Set(context, isolate->NewString("heapUsed"),
-        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.used_heap_size())).Check();
+        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.used_heap_size())).IsJust();
     info->Set(context, isolate->NewString("external"),
-        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.external_memory())).Check();
+        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.external_memory())).IsJust();
 
     v8::Local<v8::Object> objs;
     object_base::class_info().dump(objs);
-    info->Set(context, isolate->NewString("nativeObjects"), objs).Check();
+    info->Set(context, isolate->NewString("nativeObjects"), objs).IsJust();
     info->Set(context, isolate->NewString("ExtStrings"),
-        v8::Number::New(isolate->m_isolate, (double)g_ExtStringCount.value())).Check();
+        v8::Number::New(isolate->m_isolate, (double)g_ExtStringCount.value())).IsJust();
 
     retVal = info;
 

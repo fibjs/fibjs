@@ -127,7 +127,7 @@ Variant::operator v8::Local<v8::Value>() const
         a = v8::Array::New(isolate->m_isolate, len);
 
         for (i = 0; i < len; i++)
-            a->Set(context, i, data[i].v.operator v8::Local<v8::Value>()).Check();
+            a->Set(context, i, data[i].v.operator v8::Local<v8::Value>()).IsJust();
 
         return a;
     }
@@ -141,7 +141,7 @@ Variant::operator v8::Local<v8::Value>() const
         o = v8::Object::New(isolate->m_isolate);
 
         for (i = 0; i < len; i++)
-            o->Set(context, isolate->NewString(data[i].k), data[i].v.operator v8::Local<v8::Value>()).Check();
+            o->Set(context, isolate->NewString(data[i].k), data[i].v.operator v8::Local<v8::Value>()).IsJust();
 
         return o;
     }

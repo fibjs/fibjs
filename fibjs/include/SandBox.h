@@ -63,10 +63,10 @@ public:
         if (m.IsEmpty()) {
             m = v8::Object::New(isolate->m_isolate);
             if (!o.IsEmpty())
-                m->Set(_context, isolate->NewString("exports"), o).Check();
+                m->Set(_context, isolate->NewString("exports"), o).IsJust();
         }
 
-        mods()->Set(_context, isolate->NewString(fname), m).Check();
+        mods()->Set(_context, isolate->NewString(fname), m).IsJust();
     }
 
     v8::Local<v8::Value> get_module(v8::Local<v8::Object> mods, exlib::string id);

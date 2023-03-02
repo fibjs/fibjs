@@ -184,8 +184,8 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol,
 
     v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
 
-    opts->Set(context, isolate->NewString("protocol", 8), isolate->NewString(protocol)).Check();
-    opts->Set(context, isolate->NewString("origin", 6), isolate->NewString(origin)).Check();
+    opts->Set(context, isolate->NewString("protocol", 8), isolate->NewString(protocol)).IsJust();
+    opts->Set(context, isolate->NewString("origin", 6), isolate->NewString(origin)).IsJust();
 
     return WebSocket_base::_new(url, opts, retVal, This);
 }

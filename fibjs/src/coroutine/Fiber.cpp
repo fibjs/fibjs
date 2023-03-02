@@ -87,7 +87,7 @@ void JSFiber::set_caller(Fiber_base* caller)
 
         for (i = 0; i < len; i++) {
             JSValue k = ks->Get(context, i);
-            o->Set(context, k, JSValue(co->Get(context, k))).Check();
+            o->Set(context, k, JSValue(co->Get(context, k))).IsJust();
         }
     }
 }

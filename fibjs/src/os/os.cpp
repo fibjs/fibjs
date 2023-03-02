@@ -186,25 +186,25 @@ result_t os_base::cpus(v8::Local<v8::Array>& retVal)
 
         cputimes->Set(context, isolate->NewString("user"),
                     v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.user))
-            .Check();
+            .IsJust();
         cputimes->Set(context, isolate->NewString("nice"),
                     v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.nice))
-            .Check();
+            .IsJust();
         cputimes->Set(context, isolate->NewString("sys"),
                     v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.sys))
-            .Check();
+            .IsJust();
         cputimes->Set(context, isolate->NewString("idle"),
                     v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.idle))
-            .Check();
+            .IsJust();
         cputimes->Set(context, isolate->NewString("irq"),
                     v8::Number::New(isolate->m_isolate, (double)cpu_infos[i].cpu_times.irq))
-            .Check();
+            .IsJust();
 
-        cpuinfo->Set(context, isolate->NewString("model"), isolate->NewString(cpu_infos[i].model)).Check();
-        cpuinfo->Set(context, isolate->NewString("speed"), v8::Number::New(isolate->m_isolate, cpu_infos[i].speed)).Check();
-        cpuinfo->Set(context, isolate->NewString("times"), cputimes).Check();
+        cpuinfo->Set(context, isolate->NewString("model"), isolate->NewString(cpu_infos[i].model)).IsJust();
+        cpuinfo->Set(context, isolate->NewString("speed"), v8::Number::New(isolate->m_isolate, cpu_infos[i].speed)).IsJust();
+        cpuinfo->Set(context, isolate->NewString("times"), cputimes).IsJust();
 
-        retVal->Set(context, i, cpuinfo).Check();
+        retVal->Set(context, i, cpuinfo).IsJust();
     }
 
     uv_free_cpu_info(cpu_infos, s_cpus);
@@ -260,29 +260,29 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
                 family = isolate->NewString("Unknown");
             }
 
-            o->Set(context, isolate->NewString("address"), isolate->NewString(ip)).Check();
-            o->Set(context, isolate->NewString("netmask"), isolate->NewString(netmask)).Check();
-            o->Set(context, isolate->NewString("family"), family).Check();
+            o->Set(context, isolate->NewString("address"), isolate->NewString(ip)).IsJust();
+            o->Set(context, isolate->NewString("netmask"), isolate->NewString(netmask)).IsJust();
+            o->Set(context, isolate->NewString("family"), family).IsJust();
 
             snprintf(mac, sizeof(mac), "%02x:%02x:%02x:%02x:%02x:%02x",
                 phys_addr[0], phys_addr[1], phys_addr[2], phys_addr[3], phys_addr[4], phys_addr[5]);
-            o->Set(context, isolate->NewString("mac"), isolate->NewString(mac)).Check();
+            o->Set(context, isolate->NewString("mac"), isolate->NewString(mac)).IsJust();
 
             o->Set(context, isolate->NewString("internal"),
                  interfaces[i].is_internal ? v8::True(isolate->m_isolate) : v8::False(isolate->m_isolate))
-                .Check();
+                .IsJust();
 
             if (interfaces[i].address.address4.sin_family == AF_INET6)
                 o->Set(context, isolate->NewString("scopeid"),
                      v8::Number::New(isolate->m_isolate, interfaces[i].address.address6.sin6_scope_id))
-                    .Check();
+                    .IsJust();
 
-            ret->Set(context, ret->Length(), o).Check();
+            ret->Set(context, ret->Length(), o).IsJust();
 
             i++;
         }
 
-        retVal->Set(context, name, ret).Check();
+        retVal->Set(context, name, ret).IsJust();
     }
 
     uv_free_interface_addresses(interfaces, ifs);
@@ -313,8 +313,8 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
     if (pwd.shell)
         shell.assign(pwd.shell);
 
-    retVal->Set(context, isolate->NewString("uid"), v8::Integer::New(isolate->m_isolate, pwd.uid)).Check();
-    retVal->Set(context, isolate->NewString("gid"), v8::Integer::New(isolate->m_isolate, pwd.gid)).Check();
+    retVal->Set(context, isolate->NewString("uid"), v8::Integer::New(isolate->m_isolate, pwd.uid)).IsJust();
+    retVal->Set(context, isolate->NewString("gid"), v8::Integer::New(isolate->m_isolate, pwd.gid)).IsJust();
 
     uv_os_free_passwd(&pwd);
 
@@ -323,12 +323,12 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
         obj_ptr<Buffer_base> homedirBuffer = new Buffer(homedir);
         obj_ptr<Buffer_base> shellBuffer = new Buffer(shell);
 
-        retVal->Set(context, isolate->NewString("username"), usernameBuffer->wrap()).Check();
-        retVal->Set(context, isolate->NewString("homedir"), homedirBuffer->wrap()).Check();
+        retVal->Set(context, isolate->NewString("username"), usernameBuffer->wrap()).IsJust();
+        retVal->Set(context, isolate->NewString("homedir"), homedirBuffer->wrap()).IsJust();
         if (!shell.empty())
-            retVal->Set(context, isolate->NewString("shell"), shellBuffer->wrap()).Check();
+            retVal->Set(context, isolate->NewString("shell"), shellBuffer->wrap()).IsJust();
         else
-            retVal->Set(context, isolate->NewString("shell"), v8::Null(isolate->m_isolate)).Check();
+            retVal->Set(context, isolate->NewString("shell"), v8::Null(isolate->m_isolate)).IsJust();
 
         return 0;
     } else {
@@ -336,12 +336,12 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
         commonEncode(encoding, homedir, homedir);
         commonEncode(encoding, shell, shell);
 
-        retVal->Set(context, isolate->NewString("username"), isolate->NewString(username)).Check();
-        retVal->Set(context, isolate->NewString("homedir"), isolate->NewString(homedir)).Check();
+        retVal->Set(context, isolate->NewString("username"), isolate->NewString(username)).IsJust();
+        retVal->Set(context, isolate->NewString("homedir"), isolate->NewString(homedir)).IsJust();
         if (!shell.empty())
-            retVal->Set(context, isolate->NewString("shell"), isolate->NewString(shell)).Check();
+            retVal->Set(context, isolate->NewString("shell"), isolate->NewString(shell)).IsJust();
         else
-            retVal->Set(context, isolate->NewString("shell"), v8::Null(isolate->m_isolate)).Check();
+            retVal->Set(context, isolate->NewString("shell"), v8::Null(isolate->m_isolate)).IsJust();
 
         return 0;
     }
@@ -356,9 +356,9 @@ result_t os_base::loadavg(v8::Local<v8::Array>& retVal)
     uv_loadavg(avg);
 
     retVal = v8::Array::New(isolate->m_isolate, 3);
-    retVal->Set(context, 0, v8::Number::New(isolate->m_isolate, avg[0])).Check();
-    retVal->Set(context, 1, v8::Number::New(isolate->m_isolate, avg[1])).Check();
-    retVal->Set(context, 2, v8::Number::New(isolate->m_isolate, avg[2])).Check();
+    retVal->Set(context, 0, v8::Number::New(isolate->m_isolate, avg[0])).IsJust();
+    retVal->Set(context, 1, v8::Number::New(isolate->m_isolate, avg[1])).IsJust();
+    retVal->Set(context, 2, v8::Number::New(isolate->m_isolate, avg[2])).IsJust();
 
     return 0;
 }

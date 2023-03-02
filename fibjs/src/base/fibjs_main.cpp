@@ -49,7 +49,7 @@ result_t FiberProcJsEntry(Isolate* isolate)
                     isolate->NewString(pModule->name()),
                     pModule->getModule(isolate),
                     (v8::PropertyAttribute)(v8::DontEnum))
-                .Check();
+                .IsJust();
             pModule = pModule->m_next;
         }
 

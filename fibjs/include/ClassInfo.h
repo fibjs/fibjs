@@ -215,14 +215,14 @@ public:
                     v8::Local<v8::Function> pfunc;
                     v8::Local<v8::Name> name = get_prop_name(isolate, m_cd.cms[i].name);
 
-                    o->Set(_context, name, func).Check();
+                    o->Set(_context, name, func).IsJust();
 
                     if (m_cd.cms[i].is_async) {
                         if (op.IsEmpty())
                             op = v8::Object::New(isolate->m_isolate);
 
                         promisify(func, pfunc);
-                        op->Set(_context, name, pfunc).Check();
+                        op->Set(_context, name, pfunc).IsJust();
                     }
                 }
             }
@@ -236,7 +236,7 @@ public:
             if (!skips || !skips[j])
                 o->Set(_context, isolate->NewString(m_cd.cos[i].name),
                      m_cd.cos[i].invoker().getModule(isolate))
-                    .Check();
+                    .IsJust();
         }
 
         for (i = 0; i < m_cd.pc; i++)
@@ -248,7 +248,7 @@ public:
                 if (!skips || !skips[j])
                     o->SetAccessor(_context, get_prop_name(isolate, m_cd.cps[i].name),
                          m_cd.cps[i].getter, m_cd.cps[i].setter)
-                        .Check();
+                        .IsJust();
             }
 
         for (i = 0; i < m_cd.cc; i++) {
@@ -259,14 +259,14 @@ public:
             if (!skips || !skips[j])
                 o->Set(_context, isolate->NewString(m_cd.ccs[i].name),
                      v8::Integer::New(isolate->m_isolate, m_cd.ccs[i].value))
-                    .Check();
+                    .IsJust();
         }
 
         if (m_cd.base)
             m_cd.base->Attach(isolate, o, skips);
 
         if (!op.IsEmpty())
-            o->Set(_context, isolate->NewString("promises"), op).Check();
+            o->Set(_context, isolate->NewString("promises"), op).IsJust();
     }
 
 public:
@@ -295,10 +295,10 @@ public:
             o = v8::Object::New(isolate->m_isolate);
             o->Set(context, isolate->NewString("class"),
                  isolate->NewString(m_cd.name))
-                .Check();
+                .IsJust();
             o->Set(context, isolate->NewString("objects"),
                  v8::Integer::New(isolate->m_isolate, (int32_t)cnt))
-                .Check();
+                .IsJust();
 
             v8::Local<v8::Array> inherits = v8::Array::New(isolate->m_isolate);
 
@@ -309,12 +309,12 @@ public:
                 v8::Local<v8::Object> o1;
                 intptr_t cnt1 = p->dump(o1);
                 if (cnt1)
-                    inherits->Set(context, (int32_t)(icnt++), o1).Check();
+                    inherits->Set(context, (int32_t)(icnt++), o1).IsJust();
                 p = p->m_next;
             }
 
             if (icnt)
-                o->Set(context, isolate->NewString("inherits"), inherits).Check();
+                o->Set(context, isolate->NewString("inherits"), inherits).IsJust();
         }
 
         return cnt;
@@ -416,7 +416,7 @@ private:
             else
                 o = v8::Object::New(isolate->m_isolate);
 
-            o->Set(context, get_prop_name(isolate, "@toStringTag"), isolate->NewString(m_cd.name)).Check();
+            o->Set(context, get_prop_name(isolate, "@toStringTag"), isolate->NewString(m_cd.name)).IsJust();
 
             _cache->m_cache.Reset(isolate->m_isolate, o);
 

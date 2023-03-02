@@ -221,7 +221,7 @@ result_t LruCache::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
 
     while (it != m_datas.end()) {
         v8::Local<v8::String> name = isolate->NewString(it->first);
-        obj->Set(context, name, GetPrivate(it->first)).Check();;
+        obj->Set(context, name, GetPrivate(it->first)).IsJust();;
         it = _instantiate(it->second.m_next);
     }
 

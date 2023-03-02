@@ -86,7 +86,7 @@ void MongoCursor::ensureSpecial()
         v8::Local<v8::Context> context = isolate->context();
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
 
-        o->Set(context, isolate->NewString("query"), m_query.Get(isolate->m_isolate)).Check();
+        o->Set(context, isolate->NewString("query"), m_query.Get(isolate->m_isolate)).IsJust();
         m_query.Reset();
 
         m_query.Reset(isolate->m_isolate, o);
@@ -185,7 +185,7 @@ result_t MongoCursor::map(v8::Local<v8::Function> func,
         if (v.IsEmpty())
             return CALL_E_JAVASCRIPT;
 
-        as->Set(context, n, handle_scope.Escape(v)).Check();
+        as->Set(context, n, handle_scope.Escape(v)).IsJust();
         n++;
     }
 
@@ -271,7 +271,7 @@ result_t MongoCursor::_addSpecial(const char* name, v8::Local<v8::Value> opts,
     ensureSpecial();
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
-    m_query.Get(isolate->m_isolate)->Set(context, isolate->NewString(name), opts).Check();
+    m_query.Get(isolate->m_isolate)->Set(context, isolate->NewString(name), opts).IsJust();
 
     retVal = this;
     return 0;
@@ -287,7 +287,7 @@ result_t MongoCursor::toArray(v8::Local<v8::Array>& retVal)
     int32_t n = 0;
 
     while ((hr = next(o)) != CALL_RETURN_NULL && hr >= 0) {
-        as->Set(context, n, o).Check();
+        as->Set(context, n, o).IsJust();
         n++;
     }
 

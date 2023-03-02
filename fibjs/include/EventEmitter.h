@@ -63,12 +63,12 @@ public:
 
     void SetPrivate(exlib::string key, v8::Local<v8::Value> value)
     {
-        events->Set(context, NewString(key), value).Check();
+        events->Set(context, NewString(key), value).IsJust();
     }
 
     void DeletePrivate(exlib::string key)
     {
-        events->Delete(context, NewString(key)).Check();
+        events->Delete(context, NewString(key)).IsJust();
     }
 
     v8::Local<v8::Array> GetHiddenList(exlib::string k, bool create = false)
@@ -115,7 +115,7 @@ public:
             return hr;
 
         int32_t len = esa->Length();
-        esa->Set(context, len, func).Check();
+        esa->Set(context, len, func).IsJust();
         return 0;
     }
 
@@ -130,9 +130,9 @@ public:
         int32_t i;
 
         for (i = len; i > 0; i--)
-            esa->Set(context, i, esa->Get(context, i - 1).FromMaybe(v8::Local<v8::Value>())).Check();
+            esa->Set(context, i, esa->Get(context, i - 1).FromMaybe(v8::Local<v8::Value>())).IsJust();
 
-        esa->Set(context, 0, func).Check();
+        esa->Set(context, 0, func).IsJust();
         return 0;
     }
 
@@ -141,10 +141,10 @@ public:
         int32_t i;
         int32_t len = esa->Length();
         for (i = index; i < len - 1; i++)
-            esa->Set(context, i, esa->Get(context, i + 1).FromMaybe(v8::Local<v8::Value>())).Check();
-        esa->Delete(context, len - 1).Check();
+            esa->Set(context, i, esa->Get(context, i + 1).FromMaybe(v8::Local<v8::Value>())).IsJust();
+        esa->Delete(context, len - 1).IsJust();
         esa->Set(context, NewString("length"),
-            v8::Integer::New(isolate, len - 1)).Check();
+            v8::Integer::New(isolate, len - 1)).IsJust();
     }
 
     inline int32_t removeFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, exlib::string ev)
@@ -251,15 +251,15 @@ public:
     {
         Isolate* _isolate = Isolate::current();
         v8::Local<v8::Object> _data = v8::Object::New(isolate);
-        _data->Set(context, NewString("_func"), func).Check();
-        _data->Set(context, NewString("_ev"), NewString(ev)).Check();
+        _data->Set(context, NewString("_func"), func).IsJust();
+        _data->Set(context, NewString("_ev"), NewString(ev)).IsJust();
 
         v8::Local<v8::Function> wrap = _isolate->NewFunction("_onceWrap", _onceWrap, _data);
         if (wrap.IsEmpty())
             return CHECK_ERROR(Runtime::setError("function alloc error."));
 
-        wrap->Set(context, NewString("_func"), func).Check();
-        _data->Set(context, NewString("_wrap"), wrap).Check();
+        wrap->Set(context, NewString("_func"), func).IsJust();
+        _data->Set(context, NewString("_wrap"), wrap).IsJust();
 
         putFunction(GetHiddenList(ev, true), wrap, ev);
 
@@ -276,14 +276,14 @@ public:
     {
         Isolate* _isolate = Isolate::current();
         v8::Local<v8::Object> _data = v8::Object::New(isolate);
-        _data->Set(context, NewString("_func"), func).Check();
-        _data->Set(context, NewString("_ev"), NewString(ev)).Check();
+        _data->Set(context, NewString("_func"), func).IsJust();
+        _data->Set(context, NewString("_ev"), NewString(ev)).IsJust();
 
         v8::Local<v8::Function> wrap = _isolate->NewFunction("_onceWrap", _onceWrap, _data);
         if (wrap.IsEmpty())
             return CHECK_ERROR(Runtime::setError("function alloc error."));
 
-        _data->Set(context, NewString("_wrap"), wrap).Check();
+        _data->Set(context, NewString("_wrap"), wrap).IsJust();
 
         prependPutFunction(GetHiddenList(ev, true), wrap, ev);
 
@@ -424,7 +424,7 @@ public:
             int32_t i;
 
             for (i = 0; i < len; i++)
-                retVal->Set(context, n++, JSValue(esa->Get(context, i))).Check();
+                retVal->Set(context, n++, JSValue(esa->Get(context, i))).IsJust();
         }
 
         return 0;

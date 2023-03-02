@@ -195,7 +195,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
                     if (len > 0) {
                         keys = v8::Array::New(isolate->m_isolate);
                         for (int32_t i = 0; i < len; i++)
-                            keys->Set(_context, i, JSValue(vs->Get(_context, i * 2))).Check();
+                            keys->Set(_context, i, JSValue(vs->Get(_context, i * 2))).IsJust();
                     } else
                         keys = vs;
                 } else
@@ -280,7 +280,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
                         v8::Local<v8::Array> array = v8::Array::New(isolate->m_isolate);
 
                         for (i = 0; i < len; i++)
-                            array->Set(_context, i, JSValue(typedarray->Get(_context, i))).Check();
+                            array->Set(_context, i, JSValue(typedarray->Get(_context, i))).IsJust();
 
                         stk.resize(sz + 1);
                         it = &stk[sz];

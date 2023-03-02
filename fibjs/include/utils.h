@@ -1077,7 +1077,7 @@ inline v8::Local<v8::Value> ThrowError(result_t hr, exlib::string msg)
 
     v8::Local<v8::Object>::Cast(exception)
         ->Set(context, isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr))
-        .Check();
+        .IsJust();
     return ThrowError(exception);
 }
 

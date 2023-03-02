@@ -89,9 +89,9 @@ void SandBox::initGlobal(v8::Local<v8::Object> global)
 
     v8::Local<v8::Object> _global = _context->Global();
 
-    _global->Delete(_context, isolate->NewString("console")).Check();
-    _global->Set(_context, isolate->NewString("global"), _global).Check();
-    _global->Set(_context, isolate->NewString("globalThis"), _global).Check();
+    _global->Delete(_context, isolate->NewString("console")).IsJust();
+    _global->Set(_context, isolate->NewString("global"), _global).IsJust();
+    _global->Set(_context, isolate->NewString("globalThis"), _global).IsJust();
 
     JSArray ks = global->GetPropertyNames(_context);
     int32_t len = ks->Length();
@@ -101,7 +101,7 @@ void SandBox::initGlobal(v8::Local<v8::Object> global)
         JSValue k = ks->Get(_context, i);
         JSValue v = global->Get(_context, k);
 
-        _global->Set(_context, k, v).Check();
+        _global->Set(_context, k, v).IsJust();
     }
 
     SetPrivate("_global", _global);
@@ -166,7 +166,7 @@ result_t SandBox::remove(exlib::string id)
 {
     path_base::normalize(id, id);
     v8::Local<v8::Object> m = mods();
-    m->Delete(m->GetCreationContextChecked(), holder()->NewString(id)).Check();
+    m->Delete(m->GetCreationContextChecked(), holder()->NewString(id)).IsJust();
 
     return 0;
 }
@@ -248,7 +248,7 @@ result_t SandBox::get_modules(v8::Local<v8::Object>& retVal)
 
     for (int32_t i = 0, len = ks->Length(); i < len; i++) {
         JSValue k = ks->Get(context, i);
-        retVal->Set(context, k, JSValue((v8::Local<v8::Object>::Cast(JSValue(ms->Get(context, k))))->Get(context, mgetter))).Check();
+        retVal->Set(context, k, JSValue((v8::Local<v8::Object>::Cast(JSValue(ms->Get(context, k))))->Get(context, mgetter))).IsJust();
     }
 
     return 0;

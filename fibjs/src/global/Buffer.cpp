@@ -1164,8 +1164,8 @@ result_t Buffer::entries(obj_ptr<Iterator_base>& retVal)
             Isolate* isolate = holder();
             v8::Local<v8::Context> context = isolate->context();
             v8::Local<v8::Array> arr1 = v8::Array::New(isolate->m_isolate, 2);
-            arr1->Set(context, 0, v8::Number::New(isolate->m_isolate, (double)index)).Check();
-            arr1->Set(context, 1, v8::Number::New(isolate->m_isolate, (unsigned char)m_data[index])).Check();
+            arr1->Set(context, 0, v8::Number::New(isolate->m_isolate, (double)index)).IsJust();
+            arr1->Set(context, 1, v8::Number::New(isolate->m_isolate, (unsigned char)m_data[index])).IsJust();
             retVal = arr1;
         }
     });
@@ -1256,7 +1256,7 @@ result_t Buffer::toArray(v8::Local<v8::Array>& retVal)
     const char* _data = m_data.c_str();
 
     for (i = 0; i < (int32_t)m_data.length(); i++)
-        a->Set(context, i, v8::Number::New(isolate->m_isolate, (unsigned char)_data[i])).Check();
+        a->Set(context, i, v8::Number::New(isolate->m_isolate, (unsigned char)_data[i])).IsJust();
 
     retVal = a;
 
@@ -1273,10 +1273,10 @@ result_t Buffer::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
     const char* _data = m_data.c_str();
 
     for (i = 0; i < (int32_t)m_data.length(); i++)
-        a->Set(context, i, v8::Number::New(isolate->m_isolate, (unsigned char)_data[i])).Check();
+        a->Set(context, i, v8::Number::New(isolate->m_isolate, (unsigned char)_data[i])).IsJust();
 
-    o->Set(context, isolate->NewString("type"), isolate->NewString("Buffer")).Check();
-    o->Set(context, isolate->NewString("data"), a).Check();
+    o->Set(context, isolate->NewString("type"), isolate->NewString("Buffer")).IsJust();
+    o->Set(context, isolate->NewString("data"), a).IsJust();
 
     retVal = o;
 

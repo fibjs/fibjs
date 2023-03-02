@@ -85,7 +85,7 @@ public:
 
         for (int32_t i = 0; i < (int32_t)m_values.size(); i++) {
             Value& v = m_values[i];
-            obj->Set(context, isolate->NewString(v.m_pos->first), v.m_val).Check();
+            obj->Set(context, isolate->NewString(v.m_pos->first), v.m_val).IsJust();
         }
 
         return 0;
@@ -163,7 +163,7 @@ public:
         v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate);
 
         for (int32_t i = 0; i < (int32_t)m_array.size(); i++)
-            arr->Set(context, i, m_array[i]).Check();
+            arr->Set(context, i, m_array[i]).IsJust();
 
         retVal = arr;
 

@@ -116,7 +116,7 @@ result_t Digest::sign(PKey_base* key, v8::Local<v8::Object> opts, obj_ptr<Buffer
             util_base::clone(opts, v);
             opts = v8::Local<v8::Object>::Cast(v);
 
-            opts->Set(isolate->context(), isolate->NewString("alg"), v8::Int32::New(isolate->m_isolate, m_iAlgo)).Check();
+            opts->Set(isolate->context(), isolate->NewString("alg"), v8::Int32::New(isolate->m_isolate, m_iAlgo)).IsJust();
         }
     } else {
         result_t hr = digest(buf);
@@ -142,7 +142,7 @@ result_t Digest::verify(PKey_base* key, Buffer_base* sign, v8::Local<v8::Object>
             util_base::clone(opts, v);
             opts = v8::Local<v8::Object>::Cast(v);
 
-            opts->Set(isolate->context(), isolate->NewString("alg"), v8::Int32::New(isolate->m_isolate, m_iAlgo)).Check();
+            opts->Set(isolate->context(), isolate->NewString("alg"), v8::Int32::New(isolate->m_isolate, m_iAlgo)).IsJust();
         }
     } else {
         result_t hr = digest(buf);

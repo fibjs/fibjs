@@ -21,15 +21,15 @@ static void promisify_callback(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (len > 0) {
         if (!args[0].IsEmpty() && !args[0]->IsUndefined() && !args[0]->IsNull()) {
-            resolver->Reject(isolate->GetCurrentContext(), args[0]).Check();
+            resolver->Reject(isolate->GetCurrentContext(), args[0]).IsJust();
             return;
         }
     }
 
     if (len > 1)
-        resolver->Resolve(isolate->GetCurrentContext(), args[1]).Check();
+        resolver->Resolve(isolate->GetCurrentContext(), args[1]).IsJust();
     else
-        resolver->Resolve(isolate->GetCurrentContext(), v8::Undefined(isolate)).Check();
+        resolver->Resolve(isolate->GetCurrentContext(), v8::Undefined(isolate)).IsJust();
 }
 
 static void promisify_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
