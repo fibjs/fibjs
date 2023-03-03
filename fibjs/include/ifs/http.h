@@ -59,6 +59,8 @@ public:
     static result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t request(Stream_base* conn, HttpRequest_base* req, SeekableStream_base* response_body, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+    static result_t request(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+    static result_t request(v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t get(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t post(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t del(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
@@ -112,6 +114,8 @@ public:
     ASYNC_STATICVALUE3(http_base, request, Stream_base*, HttpRequest_base*, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE4(http_base, request, Stream_base*, HttpRequest_base*, SeekableStream_base*, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE4(http_base, request, exlib::string, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
+    ASYNC_STATICVALUE3(http_base, request, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
+    ASYNC_STATICVALUE2(http_base, request, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE3(http_base, get, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE3(http_base, post, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
     ASYNC_STATICVALUE3(http_base, del, exlib::string, v8::Local<v8::Object>, obj_ptr<HttpResponse_base>);
@@ -494,6 +498,25 @@ inline void http_base::s_static_request(const v8::FunctionCallbackInfo<v8::Value
         hr = acb_request(v0, v1, v2, cb, args);
     else
         hr = ac_request(v0, v1, v2, vr);
+
+    ASYNC_METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+
+    if (!cb.IsEmpty())
+        hr = acb_request(v0, v1, cb, args);
+    else
+        hr = ac_request(v0, v1, vr);
+
+    ASYNC_METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
+
+    if (!cb.IsEmpty())
+        hr = acb_request(v0, cb, args);
+    else
+        hr = ac_request(v0, vr);
 
     METHOD_RETURN();
 }
