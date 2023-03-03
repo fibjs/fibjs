@@ -117,6 +117,13 @@ declare class Class_HttpClient extends Class_object {
      *      ```JavaScript
      *      {
      *          "method": "GET", //指定 http 请求方法：GET, POST 等
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -142,6 +149,13 @@ declare class Class_HttpClient extends Class_object {
      *      ```JavaScript
      *      {
      *          "method": "GET", //指定 http 请求方法：GET, POST 等
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -160,11 +174,47 @@ declare class Class_HttpClient extends Class_object {
     request(url: string, opts?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
 
     /**
+     * @description 请求 opts 指定的 url，并返回结果
+     *      opts 包含请求的附加选项，支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *          "method": "GET", //指定 http 请求方法：GET, POST 等
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
+     *          "query": {},
+     *          "body": SeekableStream | Buffer | String | {},
+     *          "json": {},
+     *          "pack": {},
+     *          "headers": {}
+     *      }
+     *      ```
+     *      其中 body，json，pack 不得同时出现。缺省为 {}，不包含任何附加信息
+     *      @param opts 指定附加信息
+     *      @return 返回服务器响应
+     *      
+     */
+    request(opts: FIBJS.GeneralObject): Class_HttpResponse;
+
+    request(opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_HttpResponse)=>any): void;
+
+    /**
      * @description 用 GET 方法请求指定的 url，并返回结果，等同于 request("GET", ...)
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
      *          "method": "GET", //指定 http 请求方法：GET, POST 等
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -188,6 +238,13 @@ declare class Class_HttpClient extends Class_object {
      *      ```JavaScript
      *      {
      *          "method": "GET", //指定 http 请求方法：GET, POST 等
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -211,6 +268,13 @@ declare class Class_HttpClient extends Class_object {
      *      ```JavaScript
      *      {
      *          "method": "GET", //指定 http 请求方法：GET, POST 等
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -234,6 +298,13 @@ declare class Class_HttpClient extends Class_object {
      *      ```JavaScript
      *      {
      *          "method": "GET", //指定 http 请求方法：GET, POST 等
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -257,6 +328,13 @@ declare class Class_HttpClient extends Class_object {
      *      ```JavaScript
      *      {
      *          "method": "GET", //指定 http 请求方法：GET, POST 等
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -280,6 +358,13 @@ declare class Class_HttpClient extends Class_object {
      *      ```JavaScript
      *      {
      *          "method": "GET", //指定 http 请求方法：GET, POST 等
+     *          "protocol": "http",
+     *          "slashes": true,
+     *          "username": "",
+     *          "password": "",
+     *          "hostname": "",
+     *          "port": "",
+     *          "pathname": "",
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},

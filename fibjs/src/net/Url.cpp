@@ -151,13 +151,13 @@ void Url::parseAuth(const char*& url)
     char ch;
 
     while ((ch = *p1)
-        && (ch != '/' && ch != '@' && ch != '?' && ch != '#' && ch != ':'))
+        && (ch != URL_SLASH && ch != '@' && ch != '?' && ch != '#' && ch != ':'))
         p1++;
 
     if (ch == ':') {
         p2 = p1 + 1;
 
-        while ((ch = *p2) && (ch != '/' && ch != '@' && ch != '?' && ch != '#'))
+        while ((ch = *p2) && (ch != URL_SLASH && ch != '@' && ch != '?' && ch != '#'))
             p2++;
     }
 
@@ -340,7 +340,7 @@ void Url::trimUrl(exlib::string url, exlib::string& retVal)
             }
         }
         if (_url[i] == 92 && i - lastPos > 0)
-            _url[i] = '/';
+            _url[i] = URL_SLASH;
     }
 
     if (start != -1) {
@@ -369,15 +369,15 @@ bool Url::checkHost(const char* str)
     _parser parser(str);
     int32_t p, p1;
 
-    if (parser.get() != '/')
+    if (parser.get() != URL_SLASH)
         return false;
     parser.skip();
-    if (parser.get() != '/')
+    if (parser.get() != URL_SLASH)
         return false;
     parser.skip();
 
     p = parser.pos;
-    if (parser.get() == '@' || parser.get() == '/')
+    if (parser.get() == '@' || parser.get() == URL_SLASH)
         return false;
     parser.skip();
     parser.skipUntil('@');
@@ -388,8 +388,8 @@ bool Url::checkHost(const char* str)
     if (p1 + 1 == parser.sz)
         return false;
     parser.pos = p;
-    parser.skipUntil('/');
-    if (parser.get() == '/' && parser.pos <= p1 + 1)
+    parser.skipUntil(URL_SLASH);
+    if (parser.get() == URL_SLASH && parser.pos <= p1 + 1)
         return false;
 
     parser.pos = p1 + 1;
@@ -491,14 +491,8 @@ result_t Url::format(v8::Local<v8::Object> args)
     return 0;
 }
 
-result_t Url::resolve(exlib::string url, obj_ptr<UrlObject_base>& retVal)
+result_t Url::resolve(obj_ptr<Url>& u, obj_ptr<UrlObject_base>& retVal)
 {
-    obj_ptr<Url> u = new Url();
-
-    result_t hr = u->parse(url);
-    if (hr < 0)
-        return hr;
-
     obj_ptr<Url> base = new Url(*this);
 
     if (u->m_hostname.length() > 0 || u->m_slashes
@@ -540,6 +534,17 @@ result_t Url::resolve(exlib::string url, obj_ptr<UrlObject_base>& retVal)
     retVal = base;
 
     return 0;
+}
+
+result_t Url::resolve(exlib::string url, obj_ptr<UrlObject_base>& retVal)
+{
+    obj_ptr<Url> u = new Url();
+
+    result_t hr = u->parse(url);
+    if (hr < 0)
+        return hr;
+
+    return resolve(u, retVal);
 }
 
 result_t Url::normalize()
@@ -631,7 +636,7 @@ result_t Url::get_href(exlib::string& retVal)
     }
 
     get__host(str);
-    if (str[0] == '/')
+    if (str[0] == URL_SLASH)
         encoding_base::encodeURIComponent(str, str);
     retVal.append(str);
 

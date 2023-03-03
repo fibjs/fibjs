@@ -170,6 +170,12 @@ result_t http_base::request(exlib::string url, v8::Local<v8::Object> opts,
     return get_httpClient(ac->isolate())->request(url, opts, retVal, ac);
 }
 
+result_t http_base::request(v8::Local<v8::Object> opts,
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+{
+    return get_httpClient(ac->isolate())->request(opts, retVal, ac);
+}
+
 result_t http_base::get(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {

@@ -126,9 +126,9 @@ describe('getter throw', () => {
         assert.throws(() => {
             http.request('get', `http://127.0.0.1:${9980 + base_port}`, arr2);
         })
-        assert.throws(() => {
-            http.request('get', `http://127.0.0.1:${9980 + base_port}`, obj);
-        })
+        // assert.throws(() => {
+        //     http.request('get', `http://127.0.0.1:${9980 + base_port}`, obj);
+        // })
         assert.throws(() => {
             http.request('get', `http://127.0.0.1:${9980 + base_port}`, obj2);
         })

@@ -454,23 +454,24 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
     return request(conn, req, NULL, retVal, ac);
 }
 
-result_t HttpClient::request(exlib::string method, exlib::string url, SeekableStream_base* body,
+result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStream_base* body,
     SeekableStream_base* response_body, NObject* opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
     class asyncRequest : public AsyncState {
     public:
-        asyncRequest(HttpClient* hc, exlib::string method, exlib::string url,
+        asyncRequest(HttpClient* hc, exlib::string method, obj_ptr<Url>& u,
             SeekableStream_base* body, SeekableStream_base* response_body, NObject* opts,
             obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
             : AsyncState(ac)
             , m_method(method)
-            , m_url(url)
+            , m_u(u)
             , m_body(body)
             , m_response_body(response_body)
             , m_opts(opts)
             , m_retVal(retVal)
             , m_hc(hc)
         {
+            m_u->toString(m_url);
             if (m_response_body)
                 m_response_body->tell(m_response_pos);
             next(prepare);
@@ -478,25 +479,19 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
 
         ON_STATE(asyncRequest, prepare)
         {
-            result_t hr;
             bool _domain = false;
 
             m_urls[m_url] = true;
 
-            obj_ptr<Url> u = new Url();
             exlib::string path;
             exlib::string cookie;
 
-            hr = u->parse(m_url);
-            if (hr < 0)
-                return hr;
-
             m_ssl = false;
-            if (u->m_protocol == "https:") {
+            if (m_u->m_protocol == "https:") {
                 m_ssl = true;
                 m_connUrl = "ssl://";
-            } else if (u->m_protocol == "http:") {
-                if (u->m_host[0] == '/') {
+            } else if (m_u->m_protocol == "http:") {
+                if (m_u->m_host[0] == '/') {
                     _domain = true;
                     m_connUrl = "unix:";
                 } else
@@ -504,12 +499,12 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             } else
                 return CHECK_ERROR(Runtime::setError("HttpClient: unknown protocol"));
 
-            if (u->m_host.empty())
+            if (m_u->m_host.empty())
                 return CHECK_ERROR(Runtime::setError("HttpClient: unknown host"));
 
-            m_connUrl.append(u->m_host);
+            m_connUrl.append(m_u->m_host);
 
-            if (!_domain && u->m_port.empty())
+            if (!_domain && m_u->m_port.empty())
                 m_connUrl.append(m_ssl ? ":443" : ":80");
 
             m_req = new HttpRequest();
@@ -517,7 +512,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             m_req->set_method(m_method);
 
             if (m_hc->m_proxyAgent.empty() || m_ssl) {
-                u->get_path(path);
+                m_u->get_path(path);
                 m_req->set_address(path);
             } else
                 m_req->set_address(m_url);
@@ -549,13 +544,13 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             bool bHost = false;
             m_req->hasHeader("Host", bHost);
             if (!bHost)
-                m_req->addHeader("Host", u->m_host);
+                m_req->addHeader("Host", m_u->m_host);
 
             if (m_body)
                 m_req->set_body(m_body);
 
             if (m_ssl)
-                m_sslhost = u->m_hostname;
+                m_sslhost = m_u->m_hostname;
             else
                 m_sslhost.clear();
 
@@ -797,7 +792,6 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             result_t hr;
             int32_t status;
             exlib::string location;
-            obj_ptr<Url> u = new Url();
             obj_ptr<UrlObject_base> u1;
 
             hr = m_retVal->get_statusCode(status);
@@ -811,15 +805,13 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
             if (hr < 0)
                 return hr;
 
-            u->parse(m_url);
-            u->resolve(location, u1);
-            location.resize(0);
-            u1->toString(location);
+            m_u->resolve(location, u1);
+            m_u = (Url*)(UrlObject_base*)u1;
+            m_url.resize(0);
+            m_u->toString(m_url);
 
-            if (m_urls.find(location) != m_urls.end())
+            if (m_urls.find(m_url) != m_urls.end())
                 return CHECK_ERROR(Runtime::setError("HttpClient: redirect cycle"));
-
-            m_url = location;
 
             if (m_response_body)
                 m_response_body->seek(m_response_pos, fs_base::C_SEEK_SET);
@@ -840,6 +832,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
 
     private:
         exlib::string m_method;
+        obj_ptr<Url> m_u;
         exlib::string m_url;
         exlib::string m_sslhost;
         bool m_ssl;
@@ -862,16 +855,26 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncRequest(this, method, url, body, response_body, opts, retVal, ac))->post(0);
+    return (new asyncRequest(this, method, u, body, response_body, opts, retVal, ac))->post(0);
+}
+
+result_t HttpClient::request(exlib::string method, exlib::string url, SeekableStream_base* body,
+    SeekableStream_base* response_body, NObject* opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    obj_ptr<Url> u = new Url();
+    result_t hr = u->parse(url);
+    if (hr < 0)
+        return hr;
+
+    return request(method, u, body, response_body, opts, retVal, ac);
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url,
     v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
-    static const char* s_keys[] = {
-        "method", "query", "headers", "body", "json", "pack", "response_body", NULL
-    };
-
     if (ac->isSync()) {
         Isolate* isolate = holder();
         v8::Local<v8::Context> context = isolate->context();
@@ -881,29 +884,28 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
         JSValue v;
         result_t hr;
 
-        hr = CheckConfig(opts, s_keys);
-        if (hr < 0)
-            return hr;
-
         ac->m_ctx.resize(5);
 
         exlib::string _method(method);
         GetConfigValue(isolate->m_isolate, opts, "method", _method, true);
         ac->m_ctx[0] = _method;
 
-        hr = GetConfigValue(isolate->m_isolate, opts, "query", o);
-        if (hr >= 0) {
-            exlib::string s;
-            hr = querystring_base::stringify(o, "&", "=", v8::Local<v8::Object>(), s);
-            if (hr < 0)
-                return hr;
-            ac->m_ctx[1] = s;
-        } else
-            ac->m_ctx[1] = "";
+        obj_ptr<Url> u = new Url();
+        hr = u->parse(url);
+        if (hr < 0)
+            return hr;
+
+        obj_ptr<Url> u1 = new Url();
+        u1->format(opts);
+
+        obj_ptr<UrlObject_base> uo;
+        u->resolve(u1, uo);
+
+        u = (Url*)(UrlObject_base*)uo;
+        ac->m_ctx[1] = u;
 
         ac->m_ctx[2] = map;
 
-        o.Clear();
         hr = GetConfigValue(isolate->m_isolate, opts, "headers", o);
         if (hr >= 0) {
             JSArray ks = o->GetPropertyNames(context);
@@ -1007,21 +1009,24 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
     }
 
     exlib::string _method = ac->m_ctx[0].string();
-    exlib::string query = ac->m_ctx[1].string();
+    obj_ptr<Url> u = (Url*)ac->m_ctx[1].object();
     obj_ptr<NObject> map = (NObject*)ac->m_ctx[2].object();
     obj_ptr<SeekableStream_base> stm = SeekableStream_base::getInstance(ac->m_ctx[3].object());
     obj_ptr<SeekableStream_base> rsp_stm = SeekableStream_base::getInstance(ac->m_ctx[4].object());
 
-    if (!query.empty())
-        url = url + '?' + query;
-
-    return request(_method, url, stm, rsp_stm, map, retVal, ac);
+    return request(_method, u, stm, rsp_stm, map, retVal, ac);
 }
 
 result_t HttpClient::request(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
     return request("GET", url, opts, retVal, ac);
+}
+
+result_t HttpClient::request(v8::Local<v8::Object> opts,
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+{
+    return request("GET", "", opts, retVal, ac);
 }
 
 result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,

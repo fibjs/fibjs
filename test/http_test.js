@@ -1725,6 +1725,16 @@ describe("http", () => {
 
                 assert.equal(http.request("http://127.0.0.1:" + (8882 + base_port) + "/request").body.read().toString(),
                     "/request");
+
+                assert.equal(http.request({
+                    'protocol': 'http:',
+                    'slashes': true,
+                    'hostname': '127.0.0.1',
+                    'port': 8882 + base_port,
+                    'pathname': '/request',
+                    'path': '/request'
+                }).body.read().toString(),
+                    "/request");
             });
 
             it("redirect", () => {

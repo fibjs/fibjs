@@ -68,6 +68,8 @@ public:
         return parse(url, false, false);
     }
 
+    result_t resolve(obj_ptr<Url>& u, obj_ptr<UrlObject_base>& retVal);
+
     static void parseHost(const char*& url, exlib::string& hostname, exlib::string& port);
     static void trimUrl(exlib::string url, exlib::string& retVal);
 
