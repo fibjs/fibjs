@@ -70,6 +70,8 @@ public:
 
     result_t resolve(obj_ptr<Url>& u, obj_ptr<UrlObject_base>& retVal);
 
+    void build_host();
+
     static void parseHost(const char*& url, exlib::string& hostname, exlib::string& port);
     static void trimUrl(exlib::string url, exlib::string& retVal);
 

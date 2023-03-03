@@ -746,6 +746,20 @@ describe("url", () => {
         });
     });
 
+    it("hostname", () => {
+        var url = new net.Url();
+
+        url.hostname = 'a.com';
+        assert.equal(url.host, 'a.com');
+
+        url.port = 100;
+        assert.equal(url.host, 'a.com:100');
+
+        url.host = 'b.com:20';
+        assert.equal(url.hostname, 'b.com');
+        assert.equal(url.port, '20');
+    });
+
     it("resolve", () => {
         var relativeTests = [
             ['/foo/bar/baz', 'quux', '/foo/bar/quux'],

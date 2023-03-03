@@ -467,11 +467,11 @@ result_t Url::format(v8::Local<v8::Object> args)
 
     if (GetConfigValue(isolate->m_isolate, args, "host", str, true) >= 0)
         set__host(str);
-    if (GetConfigValue(isolate->m_isolate, args, "port", str) >= 0)
-        set_port(str);
 
     if (GetConfigValue(isolate->m_isolate, args, "hostname", str, true) >= 0)
         set_hostname(str);
+    if (GetConfigValue(isolate->m_isolate, args, "port", str) >= 0)
+        set_port(str);
 
     if (GetConfigValue(isolate->m_isolate, args, "pathname", str, true) >= 0)
         set_pathname(str);
@@ -752,7 +752,8 @@ result_t Url::get__host(exlib::string& retVal)
 
 result_t Url::set__host(exlib::string newVal)
 {
-    m_host = newVal;
+    const char* url = newVal.c_str();
+    parseHost(url);
     return 0;
 }
 
@@ -762,13 +763,11 @@ result_t Url::get_hostname(exlib::string& retVal)
     return 0;
 }
 
-result_t Url::set_hostname(exlib::string newVal)
+void Url::build_host()
 {
-    m_hostname = newVal;
+    if (!m_hostname.empty()) {
+        m_host.clear();
 
-    m_ipv6 = qstrchr(m_hostname.c_str(), ':') != NULL;
-
-    if (!m_hostname.empty() && m_host.empty()) {
         if (m_ipv6)
             m_host.append(1, '[');
 
@@ -782,6 +781,13 @@ result_t Url::set_hostname(exlib::string newVal)
             m_host.append(m_port);
         }
     }
+}
+
+result_t Url::set_hostname(exlib::string newVal)
+{
+    m_hostname = newVal;
+    m_ipv6 = qstrchr(m_hostname.c_str(), ':') != NULL;
+    build_host();
 
     return 0;
 }
@@ -795,6 +801,8 @@ result_t Url::get_port(exlib::string& retVal)
 result_t Url::set_port(exlib::string newVal)
 {
     m_port = newVal;
+    build_host();
+
     return 0;
 }
 
