@@ -1018,6 +1018,12 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
     return request(_method, url, stm, rsp_stm, map, retVal, ac);
 }
 
+result_t HttpClient::request(exlib::string url, v8::Local<v8::Object> opts,
+    obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+{
+    return request("GET", url, opts, retVal, ac);
+}
+
 result_t HttpClient::get(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {

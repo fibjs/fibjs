@@ -1722,6 +1722,9 @@ describe("http", () => {
                 assert.equal(cookie_for['_'], undefined);
                 http.request("GET", "http://127.0.0.1:" + (8882 + base_port) + "/request");
                 assert.equal(cookie_for['_'], "root=value2; request=value; request1=value");
+
+                assert.equal(http.request("http://127.0.0.1:" + (8882 + base_port) + "/request").body.read().toString(),
+                    "/request");
             });
 
             it("redirect", () => {
