@@ -2719,7 +2719,7 @@ describe("http", () => {
         });
     });
 
-    describe("proxyAgent", () => {
+    describe("http_proxy", () => {
         var svr;
 
         before(() => {
@@ -2762,7 +2762,7 @@ describe("http", () => {
 
         it('basic request', () => {
             var hc = new http.Client();
-            hc.proxyAgent = 'http://127.0.0.1:' + (8886 + base_port);
+            hc.http_proxy = 'http://127.0.0.1:' + (8886 + base_port);
 
             test_proxy(hc, 'http://fibjs.org/test.html');
             test_proxy(hc, 'https://localhost/test.html');
@@ -2770,7 +2770,7 @@ describe("http", () => {
 
         it('share connection between domains', () => {
             var hc = new http.Client();
-            hc.proxyAgent = 'http://127.0.0.1:' + (8886 + base_port);
+            hc.http_proxy = 'http://127.0.0.1:' + (8886 + base_port);
 
             assert.equal(test_proxy(hc, 'http://fibjs.org/share_1'), 'share_1');
             assert.equal(test_proxy(hc, 'http://fibjs1.org/share_2'), 'http: share_1: http://fibjs1.org/share_2');
@@ -2779,7 +2779,7 @@ describe("http", () => {
 
         it('use http connection to connect https server', () => {
             var hc = new http.Client();
-            hc.proxyAgent = 'http://127.0.0.1:' + (8886 + base_port);
+            hc.http_proxy = 'http://127.0.0.1:' + (8886 + base_port);
 
             assert.equal(test_proxy(hc, 'http://fibjs.org/share_1'), 'share_1');
             assert.equal(test_proxy(hc, 'https://localhost/test.html'), 'https: share_1: /test.html');

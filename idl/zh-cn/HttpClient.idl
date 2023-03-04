@@ -41,8 +41,11 @@ interface HttpClient : object
     /*! @brief 查询和设置 keep-alive 缓存连接超时时间，缺省 10000 ms */
     Integer poolTimeout;
 
-    /*! @brief 查询和设置代理服务器，支持 http/https/socks5 代理 */
-    String proxyAgent;
+    /*! @brief 查询和设置 http 请求代理，支持 http/https/socks5 代理 */
+    String http_proxy;
+
+    /*! @brief 查询和设置 https 请求代理，支持 http/https/socks5 代理，不设置，或者设置为空，则复用 http_proxy */
+    String https_proxy;
 
     /*! @brief 查询和设置连接 https 时的证书验证模式, 参考 ssl 模块的 VERIFY_* 常量, 默认值为 ssl.verification */
     Integer sslVerification;
