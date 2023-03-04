@@ -71,9 +71,14 @@ declare class Class_HttpClient extends Class_object {
     poolTimeout: number;
 
     /**
-     * @description 查询和设置代理服务器，支持 http/https/socks5 代理 
+     * @description 查询和设置 http 请求代理，支持 http/https/socks5 代理 
      */
-    proxyAgent: string;
+    http_proxy: string;
+
+    /**
+     * @description 查询和设置 https 请求代理，支持 http/https/socks5 代理，不设置，或者设置为空，则复用 http_proxy 
+     */
+    https_proxy: string;
 
     /**
      * @description 查询和设置连接 https 时的证书验证模式, 参考 ssl 模块的 VERIFY_* 常量, 默认值为 ssl.verification 

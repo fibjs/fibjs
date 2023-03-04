@@ -129,16 +129,16 @@ result_t HttpClient::set_poolTimeout(int32_t newVal)
     return 0;
 }
 
-result_t HttpClient::get_proxyAgent(exlib::string& retVal)
+result_t HttpClient::get_http_proxy(exlib::string& retVal)
 {
-    retVal = m_proxyAgent;
+    retVal = m_http_proxy;
     return 0;
 }
 
-result_t HttpClient::set_proxyAgent(exlib::string newVal)
+result_t HttpClient::set_http_proxy(exlib::string newVal)
 {
     if (newVal.empty()) {
-        m_proxyAgent.clear();
+        m_http_proxy.clear();
     } else {
         obj_ptr<Url> u = new Url();
         result_t hr;
@@ -153,7 +153,43 @@ result_t HttpClient::set_proxyAgent(exlib::string newVal)
         if (u->m_host.empty())
             return CHECK_ERROR(Runtime::setError("HttpClient: unknown host"));
 
-        m_proxyAgent = newVal;
+        m_http_proxy = newVal;
+    }
+
+    date_t d;
+
+    d.now();
+    d.add(m_poolTimeout, date_t::_MICROSECOND);
+    clean_coon(d);
+
+    return 0;
+}
+
+result_t HttpClient::get_https_proxy(exlib::string& retVal)
+{
+    retVal = m_https_proxy;
+    return 0;
+}
+
+result_t HttpClient::set_https_proxy(exlib::string newVal)
+{
+    if (newVal.empty()) {
+        m_https_proxy.clear();
+    } else {
+        obj_ptr<Url> u = new Url();
+        result_t hr;
+
+        hr = u->parse(newVal);
+        if (hr < 0)
+            return hr;
+
+        if (u->m_protocol != "https:" && u->m_protocol != "http:" && u->m_protocol != "socks5:")
+            return CHECK_ERROR(Runtime::setError("HttpClient: unknown protocol"));
+
+        if (u->m_host.empty())
+            return CHECK_ERROR(Runtime::setError("HttpClient: unknown host"));
+
+        m_https_proxy = newVal;
     }
 
     date_t d;
@@ -511,7 +547,11 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
 
             m_req->set_method(m_method);
 
-            if (m_hc->m_proxyAgent.empty() || m_ssl) {
+            m_http_proxy = m_hc->m_http_proxy;
+            if (m_ssl && !m_hc->m_https_proxy.empty())
+                m_http_proxy = m_hc->m_https_proxy;
+
+            if (m_http_proxy.empty() || m_ssl) {
                 m_u->get_path(path);
                 m_req->set_address(path);
             } else
@@ -560,14 +600,14 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
                 return next(connected);
             }
 
-            if (m_hc->m_proxyAgent.empty()) {
+            if (m_http_proxy.empty()) {
                 if (m_ssl)
                     return ssl_base::connect(m_connUrl, m_hc->m_sslVerification,
                         m_hc->m_crt, m_hc->m_key, m_hc->m_timeout, m_conn, next(connected));
                 else
                     return net_base::connect(m_connUrl, m_hc->m_timeout, m_conn, next(connected));
             } else {
-                bool socks = m_hc->m_proxyAgent[0] == 's';
+                bool socks = m_http_proxy[0] == 's';
 
                 if (m_ssl && !socks) {
                     exlib::string host = m_connUrl.substr(6);
@@ -582,7 +622,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
                         m_reqConn->addHeader("User-Agent", a);
                 }
 
-                if (m_hc->get_conn(m_hc->m_proxyAgent, m_conn)) {
+                if (m_hc->get_conn(m_http_proxy, m_conn)) {
                     m_reuse = true;
                     return next(m_ssl ? ssl_connect : connected);
                 }
@@ -591,7 +631,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
                 exlib::string connUrl;
                 const char* def_port;
 
-                u->parse(m_hc->m_proxyAgent);
+                u->parse(m_http_proxy);
 
                 if (u->m_protocol == "https:") {
                     connUrl = "ssl://";
@@ -776,10 +816,10 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
             bool keepalive;
             m_retVal->get_keepAlive(keepalive);
             if (keepalive) {
-                if (m_hc->m_proxyAgent.empty() || m_hc->m_proxyAgent[0] == 's' || !m_sslhost.empty())
+                if (m_http_proxy.empty() || m_http_proxy[0] == 's' || !m_sslhost.empty())
                     m_hc->save_conn(m_connUrl, m_conn);
                 else
-                    m_hc->save_conn(m_hc->m_proxyAgent, m_conn);
+                    m_hc->save_conn(m_http_proxy, m_conn);
 
                 return next(closed);
             }
@@ -836,6 +876,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
         exlib::string m_url;
         exlib::string m_sslhost;
         bool m_ssl;
+        exlib::string m_http_proxy;
         obj_ptr<SeekableStream_base> m_body;
         obj_ptr<SeekableStream_base> m_response_body;
         int64_t m_response_pos;

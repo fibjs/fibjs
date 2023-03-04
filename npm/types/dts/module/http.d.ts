@@ -107,9 +107,14 @@ declare module 'http' {
     var poolTimeout: number;
 
     /**
-     * @description 查询和设置代理服务器，支持 http/https/socks5 代理 
+     * @description 查询和设置 http 请求代理，支持 http/https/socks5 代理 
      */
-    var proxyAgent: string;
+    var http_proxy: string;
+
+    /**
+     * @description 查询和设置 https 请求代理，支持 http/https/socks5 代理，不设置，或者设置为空，则复用 http_proxy 
+     */
+    var https_proxy: string;
 
     /**
      * @description 创建一个 http 静态文件处理器，用以用静态文件响应 http 消息

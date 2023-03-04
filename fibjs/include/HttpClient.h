@@ -50,8 +50,10 @@ public:
     virtual result_t set_poolSize(int32_t newVal);
     virtual result_t get_poolTimeout(int32_t& retVal);
     virtual result_t set_poolTimeout(int32_t newVal);
-    virtual result_t get_proxyAgent(exlib::string& retVal);
-    virtual result_t set_proxyAgent(exlib::string newVal);
+    virtual result_t get_http_proxy(exlib::string& retVal);
+    virtual result_t set_http_proxy(exlib::string newVal);
+    virtual result_t get_https_proxy(exlib::string& retVal);
+    virtual result_t set_https_proxy(exlib::string newVal);
     virtual result_t get_sslVerification(int32_t& retVal);
     virtual result_t set_sslVerification(int32_t newVal);
     virtual result_t setClientCert(X509Cert_base* crt, PKey_base* key);
@@ -160,6 +162,7 @@ private:
     std::vector<obj_ptr<Conn>> m_conns;
     int32_t m_poolSize;
     int32_t m_poolTimeout;
-    exlib::string m_proxyAgent;
+    exlib::string m_http_proxy;
+    exlib::string m_https_proxy;
 };
 } /* namespace fibjs */

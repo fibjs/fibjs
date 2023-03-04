@@ -52,8 +52,10 @@ public:
     static result_t set_poolSize(int32_t newVal);
     static result_t get_poolTimeout(int32_t& retVal);
     static result_t set_poolTimeout(int32_t newVal);
-    static result_t get_proxyAgent(exlib::string& retVal);
-    static result_t set_proxyAgent(exlib::string newVal);
+    static result_t get_http_proxy(exlib::string& retVal);
+    static result_t set_http_proxy(exlib::string newVal);
+    static result_t get_https_proxy(exlib::string& retVal);
+    static result_t set_https_proxy(exlib::string newVal);
     static result_t fileHandler(exlib::string root, v8::Local<v8::Object> mimes, bool autoIndex, obj_ptr<Handler_base>& retVal);
     static result_t setClientCert(X509Cert_base* crt, PKey_base* key);
     static result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
@@ -98,8 +100,10 @@ public:
     static void s_static_set_poolSize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_static_get_poolTimeout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_static_set_poolTimeout(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_static_get_proxyAgent(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_set_proxyAgent(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_static_get_http_proxy(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_set_http_proxy(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_static_get_https_proxy(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_set_https_proxy(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_static_fileHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_setClientCert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_request(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -183,7 +187,8 @@ inline ClassInfo& http_base::class_info()
         { "userAgent", s_static_get_userAgent, s_static_set_userAgent, true },
         { "poolSize", s_static_get_poolSize, s_static_set_poolSize, true },
         { "poolTimeout", s_static_get_poolTimeout, s_static_set_poolTimeout, true },
-        { "proxyAgent", s_static_get_proxyAgent, s_static_set_proxyAgent, true }
+        { "http_proxy", s_static_get_http_proxy, s_static_set_http_proxy, true },
+        { "https_proxy", s_static_get_https_proxy, s_static_set_https_proxy, true }
     };
 
     static ClassData s_cd = {
@@ -404,25 +409,48 @@ inline void http_base::s_static_set_poolTimeout(v8::Local<v8::Name> property, v8
     PROPERTY_SET_LEAVE();
 }
 
-inline void http_base::s_static_get_proxyAgent(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void http_base::s_static_get_http_proxy(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_NAME("http.proxyAgent");
+    METHOD_NAME("http.http_proxy");
     PROPERTY_ENTER();
 
-    hr = get_proxyAgent(vr);
+    hr = get_http_proxy(vr);
 
     METHOD_RETURN();
 }
 
-inline void http_base::s_static_set_proxyAgent(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void http_base::s_static_set_http_proxy(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("http.proxyAgent");
+    METHOD_NAME("http.http_proxy");
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
 
-    hr = set_proxyAgent(v0);
+    hr = set_http_proxy(v0);
+
+    PROPERTY_SET_LEAVE();
+}
+
+inline void http_base::s_static_get_https_proxy(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_NAME("http.https_proxy");
+    PROPERTY_ENTER();
+
+    hr = get_https_proxy(vr);
+
+    METHOD_RETURN();
+}
+
+inline void http_base::s_static_set_https_proxy(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_NAME("http.https_proxy");
+    PROPERTY_ENTER();
+    PROPERTY_VAL(exlib::string);
+
+    hr = set_https_proxy(v0);
 
     PROPERTY_SET_LEAVE();
 }

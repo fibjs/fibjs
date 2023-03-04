@@ -131,14 +131,24 @@ result_t http_base::set_poolTimeout(int32_t newVal)
     return get_httpClient()->set_poolTimeout(newVal);
 }
 
-result_t http_base::get_proxyAgent(exlib::string& retVal)
+result_t http_base::get_http_proxy(exlib::string& retVal)
 {
-    return get_httpClient()->get_proxyAgent(retVal);
+    return get_httpClient()->get_http_proxy(retVal);
 }
 
-result_t http_base::set_proxyAgent(exlib::string newVal)
+result_t http_base::set_http_proxy(exlib::string newVal)
 {
-    return get_httpClient()->set_proxyAgent(newVal);
+    return get_httpClient()->set_http_proxy(newVal);
+}
+
+result_t http_base::get_https_proxy(exlib::string& retVal)
+{
+    return get_httpClient()->get_https_proxy(retVal);
+}
+
+result_t http_base::set_https_proxy(exlib::string newVal)
+{
+    return get_httpClient()->set_https_proxy(newVal);
 }
 
 result_t http_base::setClientCert(X509Cert_base* crt, PKey_base* key)

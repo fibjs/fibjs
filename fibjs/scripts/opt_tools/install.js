@@ -23,21 +23,14 @@ const SEP = path.sep;
 
 const install_log = process.env.FIBJS_SILENT_INSALL ? () => undefined : console.log.bind(console)
 
-ssl.loadRootCerts();
-
-const hc = new http.Client();
 if (process.env.http_proxy || process.env.HTTP_PROXY) {
-    hc.proxyAgent = process.env.http_proxy || process.env.HTTP_PROXY;
-    console.log(`[install] http request using proxy: ${hc.proxyAgent}`);
+    http.http_proxy = process.env.http_proxy || process.env.HTTP_PROXY;
+    console.log(`[install] http request using proxy: ${http.http_proxy}`);
 }
 
-const hcs = new http.Client();
 if (process.env.https_proxy || process.env.HTTPS_PROXY) {
-    hcs.proxyAgent = process.env.https_proxy || process.env.HTTPS_PROXY;
-    console.log(`[install] https request using proxy: ${hcs.proxyAgent}`);
-} else if (hc.proxyAgent) {
-    hcs.proxyAgent = hc.proxyAgent;
-    console.log(`[install] https request using proxy: ${hcs.proxyAgent}`);
+    http.https_proxy = process.env.https_proxy || process.env.HTTPS_PROXY;
+    console.log(`[install] https request using proxy: ${http.https_proxy}`);
 }
 
 // ---------------------- UTILS :start ------------------------- //
@@ -89,7 +82,7 @@ function http_get(u, { quit_if_error = true } = {}) {
 
     while (cnt++ < 3)
         try {
-            const res = u.substring(0, 5) == 'https' ? hcs.get(u) : hc.get(u);
+            const res = http.get(u);
             if (!res.body)
                 throw new Error(`[http_get] get nothing from url ${u}`);
 
