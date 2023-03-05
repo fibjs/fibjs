@@ -28,19 +28,24 @@ void init_process_ipc(Isolate* isolate);
 exlib::LockedList<Isolate> s_isolates;
 exlib::atomic s_iso_id;
 exlib::atomic s_iso_ref;
+extern v8::Platform* g_default_platform;
 
 static int32_t syncRunMicrotasks(Isolate* isolate)
 {
     JSFiber::EnterJsScope s;
 
-    isolate->m_isolate->PerformMicrotaskCheckpoint();
+    while (v8::platform::PumpMessageLoop(g_default_platform, isolate->m_isolate,
+        isolate->m_isolate->HasPendingBackgroundTasks()
+            ? v8::platform::MessageLoopBehavior::kWaitForWork
+            : platform::MessageLoopBehavior::kDoNotWait))
+        isolate->m_isolate->PerformMicrotaskCheckpoint();
 
     return 0;
 }
 
 void Isolate::RunMicrotasks()
 {
-    if (RunMicrotaskSize(m_isolate) > 0)
+    if (RunMicrotaskSize(m_isolate) > 0 || m_isolate->HasPendingBackgroundTasks())
         syncCall(this, syncRunMicrotasks, this);
 }
 

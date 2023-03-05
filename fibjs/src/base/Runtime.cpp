@@ -29,6 +29,7 @@ void options(int32_t& pos, char* argv[]);
 result_t ifZipFile(exlib::string filename, bool& retVal);
 
 exlib::string s_root;
+v8::Platform* g_default_platform;
 
 static void createBasisForFiberLoop(Isolate::platform_creator get_platform)
 {
@@ -53,7 +54,8 @@ static void createBasisForFiberLoop(Isolate::platform_creator get_platform)
 
     srand((unsigned int)time(0));
 
-    v8::V8::InitializePlatform(get_platform ? get_platform() : v8::platform::NewDefaultPlatform().release());
+    g_default_platform = get_platform ? get_platform() : v8::platform::NewDefaultPlatform().release();
+    v8::V8::InitializePlatform(g_default_platform);
     v8::V8::Initialize();
 }
 
