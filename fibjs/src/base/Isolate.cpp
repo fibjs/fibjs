@@ -32,7 +32,10 @@ extern v8::Platform* g_default_platform;
 
 static int32_t syncRunMicrotasks(Isolate* isolate)
 {
-    JSFiber::EnterJsScope s;
+    JSFiber::EnterJsScope s(NULL, true);
+
+    if (RunMicrotaskSize(isolate->m_isolate) > 0)
+        isolate->m_isolate->PerformMicrotaskCheckpoint();
 
     while (v8::platform::PumpMessageLoop(g_default_platform, isolate->m_isolate,
         isolate->m_isolate->HasPendingBackgroundTasks()

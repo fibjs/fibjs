@@ -218,9 +218,10 @@ result_t JSFiber::js_invoke()
     return 0;
 }
 
-JSFiber::EnterJsScope::EnterJsScope(JSFiber* fb)
+JSFiber::EnterJsScope::EnterJsScope(JSFiber* fb, bool task)
     : m_hr(0)
     , m_pFiber(fb)
+    , m_task(task)
 {
     if (fb == NULL)
         m_pFiber = new JSFiber();
@@ -238,7 +239,8 @@ JSFiber::EnterJsScope::~EnterJsScope()
     Runtime* rt = Runtime::current();
     Isolate* isolate = m_pFiber->holder();
 
-    isolate->RunMicrotasks();
+    if (!m_task)
+        isolate->RunMicrotasks();
 
     m_pFiber->m_message = ReportException(try_catch, m_hr);
 
