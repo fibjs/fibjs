@@ -318,19 +318,18 @@ result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_
     if (is_relative(id)) {
         resolvePath(base, id);
         path_base::normalize(base, id);
-    } else {
-        bool isAbs;
-
+    } else
         path_base::normalize(id, id);
-        path_base::isAbsolute(id, isAbs);
-        if (!isAbs) {
-            result_t hr;
 
-            hr = resolveId(id, retVal);
-            if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
-                return hr;
-            return resolveModule(base, id, data, retVal);
-        }
+    bool isAbs;
+    path_base::isAbsolute(id, isAbs);
+    if (!isAbs) {
+        result_t hr;
+
+        hr = resolveId(id, retVal);
+        if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
+            return hr;
+        return resolveModule(base, id, data, retVal);
     }
 
     return resolveFile(id, data, &retVal);
