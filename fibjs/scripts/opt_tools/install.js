@@ -144,6 +144,7 @@ function fetch_leveled_module_info(m, v, parent) {
 
             switch (v) {
                 case 'latest':
+                case '*':
                     filtered_vers = all_vers.sort(semver.rcompare);
                     break
                 default:
