@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
+/// <reference path="../interface/UrlObject.d.ts" />
 /// <reference path="../interface/TextDecoder.d.ts" />
 /// <reference path="../interface/TextEncoder.d.ts" />
 /// <reference path="../module/console.d.ts" />
@@ -15,6 +16,11 @@ declare module 'global' {
      * @description 二进制数据缓存对象，用于 io 读写的数据处理，参见 Buffer 对象。
      */
     const Buffer: typeof Class_Buffer;
+
+    /**
+     * @description 创建一个 UrlObject 请求对象，参见 UrlObject 
+     */
+    const URL: typeof Class_UrlObject;
 
     /**
      * @description TextDecoder 解码对象，参见 TextDecoder 对象。
