@@ -49,6 +49,10 @@ public:
     virtual result_t get_lastChild(obj_ptr<XmlNode_base>& retVal);
     virtual result_t get_previousSibling(obj_ptr<XmlNode_base>& retVal);
     virtual result_t get_nextSibling(obj_ptr<XmlNode_base>& retVal);
+    virtual result_t get_firstElementChild(obj_ptr<XmlNode_base>& retVal);
+    virtual result_t get_lastElementChild(obj_ptr<XmlNode_base>& retVal);
+    virtual result_t get_previousElementSibling(obj_ptr<XmlNode_base>& retVal);
+    virtual result_t get_nextElementSibling(obj_ptr<XmlNode_base>& retVal);
     virtual result_t normalize();
     virtual result_t cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal);
     virtual result_t lookupPrefix(exlib::string namespaceURI, exlib::string& retVal);

@@ -36,6 +36,10 @@ public:
     virtual result_t get_lastChild(obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t get_previousSibling(obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t get_nextSibling(obj_ptr<XmlNode_base>& retVal) = 0;
+    virtual result_t get_firstElementChild(obj_ptr<XmlNode_base>& retVal) = 0;
+    virtual result_t get_lastElementChild(obj_ptr<XmlNode_base>& retVal) = 0;
+    virtual result_t get_previousElementSibling(obj_ptr<XmlNode_base>& retVal) = 0;
+    virtual result_t get_nextElementSibling(obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t normalize() = 0;
     virtual result_t cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t lookupPrefix(exlib::string namespaceURI, exlib::string& retVal) = 0;
@@ -71,6 +75,10 @@ public:
     static void s_get_lastChild(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_previousSibling(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_nextSibling(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_firstElementChild(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_lastElementChild(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_previousElementSibling(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_nextElementSibling(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_cloneNode(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_lookupPrefix(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -113,7 +121,11 @@ inline ClassInfo& XmlNode_base::class_info()
         { "firstChild", s_get_firstChild, block_set, false },
         { "lastChild", s_get_lastChild, block_set, false },
         { "previousSibling", s_get_previousSibling, block_set, false },
-        { "nextSibling", s_get_nextSibling, block_set, false }
+        { "nextSibling", s_get_nextSibling, block_set, false },
+        { "firstElementChild", s_get_firstElementChild, block_set, false },
+        { "lastElementChild", s_get_lastElementChild, block_set, false },
+        { "previousElementSibling", s_get_previousElementSibling, block_set, false },
+        { "nextElementSibling", s_get_nextElementSibling, block_set, false }
     };
 
     static ClassData s_cd = {
@@ -292,6 +304,58 @@ inline void XmlNode_base::s_get_nextSibling(v8::Local<v8::Name> property, const 
     PROPERTY_ENTER();
 
     hr = pInst->get_nextSibling(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlNode_base::s_get_firstElementChild(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<XmlNode_base> vr;
+
+    METHOD_NAME("XmlNode.firstElementChild");
+    METHOD_INSTANCE(XmlNode_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_firstElementChild(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlNode_base::s_get_lastElementChild(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<XmlNode_base> vr;
+
+    METHOD_NAME("XmlNode.lastElementChild");
+    METHOD_INSTANCE(XmlNode_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_lastElementChild(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlNode_base::s_get_previousElementSibling(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<XmlNode_base> vr;
+
+    METHOD_NAME("XmlNode.previousElementSibling");
+    METHOD_INSTANCE(XmlNode_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_previousElementSibling(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlNode_base::s_get_nextElementSibling(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<XmlNode_base> vr;
+
+    METHOD_NAME("XmlNode.nextElementSibling");
+    METHOD_INSTANCE(XmlNode_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_nextElementSibling(vr);
 
     METHOD_RETURN();
 }

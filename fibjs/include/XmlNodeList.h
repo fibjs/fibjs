@@ -52,7 +52,8 @@ public:
 
 public:
     result_t get_children(obj_ptr<XmlNodeList_base>& retVal);
-    
+    result_t find_element(int32_t base, int32_t step, obj_ptr<XmlNode_base>& retVal);
+
     void appendChild(XmlNodeImpl* newChild)
     {
         m_childs.append(newChild);

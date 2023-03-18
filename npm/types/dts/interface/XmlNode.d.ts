@@ -111,6 +111,30 @@ declare class Class_XmlNode extends Class_object {
     readonly nextSibling: Class_XmlNode;
 
     /**
+     * @description 返回节点的首个子元素节点
+     *     
+     */
+    readonly firstElementChild: Class_XmlNode;
+
+    /**
+     * @description 返回节点的最后一个子元素节点
+     *     
+     */
+    readonly lastElementChild: Class_XmlNode;
+
+    /**
+     * @description 返回某节点之前紧跟的元素节点（处于同一树层级），如果没有此节点，那么该属性返回 null
+     *     
+     */
+    readonly previousElementSibling: Class_XmlNode;
+
+    /**
+     * @description 返回某个元素之后紧跟的元素节点（处于同一树层级中），如果无此节点，则属性返回 null
+     *     
+     */
+    readonly nextElementSibling: Class_XmlNode;
+
+    /**
      * @description 合并相邻的 Text 节点并删除空的 Text 节点
      * 
      *     这个方法将遍历当前节点的所有子孙节点，通过删除空的 Text 节点，已经合并所有相邻的 Text 节点来规范化文档。该方法在进行节点的插入或删除操作后，对于简化文档树的结构很有用。

@@ -69,6 +69,30 @@ public:
         return m_parent->m_childs->item(m_index + 1, retVal);
     }
 
+    result_t get_firstElementChild(obj_ptr<XmlNode_base>& retVal)
+    {
+        return m_childs->find_element(-1, 1, retVal);
+    }
+
+    result_t get_lastElementChild(obj_ptr<XmlNode_base>& retVal)
+    {
+        return m_childs->find_element(m_childs->m_childs.size(), -1, retVal);
+    }
+
+    result_t get_previousElementSibling(obj_ptr<XmlNode_base>& retVal)
+    {
+        if (!m_parent)
+            return CALL_RETURN_NULL;
+        return m_parent->m_childs->find_element(m_index, -1, retVal);
+    }
+
+    result_t get_nextElementSibling(obj_ptr<XmlNode_base>& retVal)
+    {
+        if (!m_parent)
+            return CALL_RETURN_NULL;
+        return m_parent->m_childs->find_element(m_index, 1, retVal);
+    }
+
     result_t get_ownerDocument(obj_ptr<XmlDocument_base>& retVal)
     {
         retVal = m_document;

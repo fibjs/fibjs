@@ -541,6 +541,9 @@ describe('xml', () => {
             assert.equal(e1.nextSibling, e2);
             assert.equal(e1, e2.previousSibling);
 
+            assert.equal(e1.nextElementSibling, e2);
+            assert.equal(e1, e2.previousElementSibling);
+
             var e3 = xdoc.createElement("bbb");
             e.appendChild(e3);
             assert.equal(e3.parentNode, e);
@@ -564,11 +567,17 @@ describe('xml', () => {
             assert.equal(e1.nextSibling, e2);
             assert.equal(e1, e2.previousSibling);
 
+            assert.equal(e1.nextElementSibling, e2);
+            assert.equal(e1, e2.previousElementSibling);
+
             e.removeChild(e1);
             assert.equal(e.childNodes.length, 1);
 
             assert.equal(e1.nextSibling, null);
             assert.equal(e2.previousSibling, null);
+
+            assert.equal(e1.nextElementSibling, null);
+            assert.equal(e2.previousElementSibling, null);
         });
 
         it("replaceChild", () => {
@@ -585,6 +594,9 @@ describe('xml', () => {
 
             assert.equal(e1.nextSibling, null);
             assert.equal(e2.previousSibling, e3);
+
+            assert.equal(e1.nextElementSibling, null);
+            assert.equal(e2.previousElementSibling, e3);
 
             var e4 = xdoc.createElement("bbb");
             e1.appendChild(e4);
@@ -610,6 +622,9 @@ describe('xml', () => {
             assert.equal(e1.nextSibling, e3);
             assert.equal(e2.previousSibling, e3);
 
+            assert.equal(e1.nextElementSibling, e3);
+            assert.equal(e2.previousElementSibling, e3);
+
             var e4 = xdoc.createElement("bbb");
             e1.appendChild(e4);
             assert.equal(e1.childNodes.length, 1);
@@ -634,6 +649,9 @@ describe('xml', () => {
             assert.equal(e1.nextSibling, e3);
             assert.equal(e2.previousSibling, e3);
 
+            assert.equal(e1.nextElementSibling, e3);
+            assert.equal(e2.previousElementSibling, e3);
+
             var e4 = xdoc.createElement("bbb");
             e1.appendChild(e4);
             assert.equal(e1.childNodes.length, 1);
@@ -641,6 +659,32 @@ describe('xml', () => {
             e.insertAfter(e4, e3);
             assert.equal(e4.parentNode, e);
             assert.equal(e1.childNodes.length, 0);
+        });
+
+        it("ElementSibling", () => {
+            var xdoc = newDoc();
+            var e = xdoc.createElement("aaa");
+            var t0 = xdoc.createTextNode("ttt");
+            var e1 = xdoc.createElement("bbb");
+            var t1 = xdoc.createTextNode("ttt");
+            var e2 = xdoc.createElement("bbb");
+            var t2 = xdoc.createTextNode("ttt");
+
+            e.appendChild(t0);
+            e.appendChild(e1);
+            e.appendChild(t1);
+            e.appendChild(e2);
+            e.appendChild(t2);
+
+            assert.equal(e.firstChild, t0);
+            assert.equal(e1.nextSibling, t1);
+            assert.equal(e2.previousSibling, t1);
+            assert.equal(e.lastChild, t2);
+
+            assert.equal(e.firstElementChild, e1);
+            assert.equal(e1.nextElementSibling, e2);
+            assert.equal(e2.previousElementSibling, e1);
+            assert.equal(e.lastElementChild, e2);
         });
 
         it("childNodes", () => {

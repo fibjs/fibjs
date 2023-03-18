@@ -119,6 +119,26 @@ result_t XmlDocument::get_nextSibling(obj_ptr<XmlNode_base>& retVal)
     return XmlNodeImpl::get_nextSibling(retVal);
 }
 
+result_t XmlDocument::get_firstElementChild(obj_ptr<XmlNode_base>& retVal)
+{
+    return XmlNodeImpl::get_firstElementChild(retVal);
+}
+
+result_t XmlDocument::get_lastElementChild(obj_ptr<XmlNode_base>& retVal)
+{
+    return XmlNodeImpl::get_lastElementChild(retVal);
+}
+
+result_t XmlDocument::get_previousElementSibling(obj_ptr<XmlNode_base>& retVal)
+{
+    return XmlNodeImpl::get_previousElementSibling(retVal);
+}
+
+result_t XmlDocument::get_nextElementSibling(obj_ptr<XmlNode_base>& retVal)
+{
+    return XmlNodeImpl::get_nextElementSibling(retVal);
+}
+
 result_t XmlDocument::get_ownerDocument(obj_ptr<XmlDocument_base>& retVal)
 {
     return XmlNodeImpl::get_ownerDocument(retVal);
