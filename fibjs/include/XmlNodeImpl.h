@@ -157,6 +157,9 @@ public:
 
     void setParent(XmlNodeImpl* parent, int32_t idx)
     {
+        assert(m_parent == 0);
+        assert(m_index == -1);
+
         m_document = parent->m_document;
         m_parent = parent;
         m_index = idx;
@@ -165,6 +168,9 @@ public:
 
     void clearParent()
     {
+        assert(m_parent != 0);
+        assert(m_index != -1);
+
         m_parent = NULL;
         m_index = -1;
         m_node->Unref();

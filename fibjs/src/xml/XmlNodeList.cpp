@@ -67,12 +67,11 @@ void XmlNodeList::removeAll()
     int32_t sz = (int32_t)m_childs.size();
     int32_t i;
 
-    if (sz > 0) {
+    if (sz > 0 && m_this)
         for (i = 0; i < sz; i++)
             m_childs[i]->clearParent();
 
-        m_childs.resize(0);
-    }
+    m_childs.resize(0);
 }
 
 void XmlNodeList::clean()
@@ -321,7 +320,6 @@ result_t XmlNodeList::get_children(obj_ptr<XmlNodeList_base>& retVal)
 
     int32_t sz = (int32_t)m_childs.size();
     int32_t i;
-    result_t hr;
 
     for (i = 0; i < sz; i++) {
         XmlNodeImpl* child = m_childs[i];
