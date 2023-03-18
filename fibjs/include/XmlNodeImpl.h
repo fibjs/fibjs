@@ -50,6 +50,11 @@ public:
         return 0;
     }
 
+    result_t get_children(obj_ptr<XmlNodeList_base>& retVal)
+    {
+        return m_childs->get_children(retVal);
+    }
+
     result_t get_previousSibling(obj_ptr<XmlNode_base>& retVal)
     {
         if (!m_parent)

@@ -41,6 +41,7 @@ public:
     virtual result_t get_parentNode(obj_ptr<XmlNode_base>& retVal);
     virtual result_t hasChildNodes(bool& retVal);
     virtual result_t get_childNodes(obj_ptr<XmlNodeList_base>& retVal);
+    virtual result_t get_children(obj_ptr<XmlNodeList_base>& retVal);
     virtual result_t get_firstChild(obj_ptr<XmlNode_base>& retVal);
     virtual result_t get_lastChild(obj_ptr<XmlNode_base>& retVal);
     virtual result_t get_previousSibling(obj_ptr<XmlNode_base>& retVal);

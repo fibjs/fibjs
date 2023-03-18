@@ -649,9 +649,28 @@ describe('xml', () => {
             var e1 = xdoc.createElement("bbb");
             e.appendChild(e1);
 
+            var t1 = xdoc.createTextNode("bbb");
+            e.appendChild(t1);
+
             var childs = e.childNodes;
+            assert.equal(childs.length, 2);
+            assert.equal(e1.parentNode, e);
+            assert.equal(t1.parentNode, e);
+        });
+
+        it("children", () => {
+            var xdoc = newDoc();
+            var e = xdoc.createElement("aaa");
+            var e1 = xdoc.createElement("bbb");
+            e.appendChild(e1);
+
+            var t1 = xdoc.createTextNode("bbb");
+            e.appendChild(t1);
+
+            var childs = e.children;
             assert.equal(childs.length, 1);
             assert.equal(e1.parentNode, e);
+            assert.equal(t1.parentNode, e);
         });
     });
 

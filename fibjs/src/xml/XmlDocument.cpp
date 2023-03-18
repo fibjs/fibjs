@@ -94,6 +94,11 @@ result_t XmlDocument::get_childNodes(obj_ptr<XmlNodeList_base>& retVal)
     return XmlNodeImpl::get_childNodes(retVal);
 }
 
+result_t XmlDocument::get_children(obj_ptr<XmlNodeList_base>& retVal)
+{
+    return XmlNodeImpl::get_children(retVal);
+}
+
 result_t XmlDocument::get_firstChild(obj_ptr<XmlNode_base>& retVal)
 {
     return m_childs->firstChild(retVal);

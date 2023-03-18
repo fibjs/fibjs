@@ -31,6 +31,7 @@ public:
     virtual result_t get_parentNode(obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t hasChildNodes(bool& retVal) = 0;
     virtual result_t get_childNodes(obj_ptr<XmlNodeList_base>& retVal) = 0;
+    virtual result_t get_children(obj_ptr<XmlNodeList_base>& retVal) = 0;
     virtual result_t get_firstChild(obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t get_lastChild(obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t get_previousSibling(obj_ptr<XmlNode_base>& retVal) = 0;
@@ -65,6 +66,7 @@ public:
     static void s_get_parentNode(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_hasChildNodes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_childNodes(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_children(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_firstChild(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_lastChild(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_previousSibling(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -107,6 +109,7 @@ inline ClassInfo& XmlNode_base::class_info()
         { "ownerDocument", s_get_ownerDocument, block_set, false },
         { "parentNode", s_get_parentNode, block_set, false },
         { "childNodes", s_get_childNodes, block_set, false },
+        { "children", s_get_children, block_set, false },
         { "firstChild", s_get_firstChild, block_set, false },
         { "lastChild", s_get_lastChild, block_set, false },
         { "previousSibling", s_get_previousSibling, block_set, false },
@@ -224,6 +227,19 @@ inline void XmlNode_base::s_get_childNodes(v8::Local<v8::Name> property, const v
     PROPERTY_ENTER();
 
     hr = pInst->get_childNodes(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlNode_base::s_get_children(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<XmlNodeList_base> vr;
+
+    METHOD_NAME("XmlNode.children");
+    METHOD_INSTANCE(XmlNode_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_children(vr);
 
     METHOD_RETURN();
 }

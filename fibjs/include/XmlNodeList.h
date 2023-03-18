@@ -51,6 +51,8 @@ public:
     result_t hasChildNodes(bool& retVal);
 
 public:
+    result_t get_children(obj_ptr<XmlNodeList_base>& retVal);
+    
     void appendChild(XmlNodeImpl* newChild)
     {
         m_childs.append(newChild);

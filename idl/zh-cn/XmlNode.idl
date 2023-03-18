@@ -61,6 +61,10 @@ interface XmlNode : object
     */
     readonly XmlNodeList childNodes;
 
+    /*! @brief 返回指定节点的子元素节点的节点列表
+    */
+    readonly XmlNodeList children;
+
     /*! @brief 返回节点的首个子节点
     */
     readonly XmlNode firstChild;

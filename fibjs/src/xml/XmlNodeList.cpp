@@ -150,6 +150,9 @@ bool XmlNodeList::checkNew(XmlNodeImpl* child)
 result_t XmlNodeList::insertBefore(XmlNode_base* newChild, XmlNode_base* refChild,
     obj_ptr<XmlNode_base>& retVal)
 {
+    if(!m_this)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     XmlNodeImpl* pNew = checkChild(newChild);
     XmlNodeImpl* pRef = checkChild(refChild);
     if (!pNew || !pRef)
@@ -188,6 +191,9 @@ result_t XmlNodeList::insertBefore(XmlNode_base* newChild, XmlNode_base* refChil
 result_t XmlNodeList::insertAfter(XmlNode_base* newChild, XmlNode_base* refChild,
     obj_ptr<XmlNode_base>& retVal)
 {
+    if(!m_this)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     XmlNodeImpl* pNew = checkChild(newChild);
     XmlNodeImpl* pRef = checkChild(refChild);
     if (!pNew || !pRef)
@@ -226,6 +232,9 @@ result_t XmlNodeList::insertAfter(XmlNode_base* newChild, XmlNode_base* refChild
 result_t XmlNodeList::replaceChild(XmlNode_base* newChild, XmlNode_base* oldChild,
     obj_ptr<XmlNode_base>& retVal)
 {
+    if(!m_this)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     XmlNodeImpl* pNew = checkChild(newChild);
     XmlNodeImpl* pOld = checkChild(oldChild);
     if (!pNew || !pOld)
@@ -255,6 +264,9 @@ result_t XmlNodeList::replaceChild(XmlNode_base* newChild, XmlNode_base* oldChil
 
 result_t XmlNodeList::removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>& retVal)
 {
+    if(!m_this)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     XmlNodeImpl* pOld = checkChild(oldChild);
     if (!pOld)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -280,6 +292,9 @@ result_t XmlNodeList::removeChild(XmlNode_base* oldChild, obj_ptr<XmlNode_base>&
 
 result_t XmlNodeList::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>& retVal)
 {
+    if(!m_this)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
     XmlNodeImpl* pNew = checkChild(newChild);
     if (!pNew)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -297,6 +312,25 @@ result_t XmlNodeList::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>&
 result_t XmlNodeList::hasChildNodes(bool& retVal)
 {
     retVal = !!m_childs.size();
+    return 0;
+}
+
+result_t XmlNodeList::get_children(obj_ptr<XmlNodeList_base>& retVal)
+{
+    obj_ptr<XmlNodeList> children = new XmlNodeList(NULL);
+
+    int32_t sz = (int32_t)m_childs.size();
+    int32_t i;
+    result_t hr;
+
+    for (i = 0; i < sz; i++) {
+        XmlNodeImpl* child = m_childs[i];
+        if(child->m_type == xml_base::C_ELEMENT_NODE)
+            children->m_childs.append(child);
+    }
+
+    retVal = children;
+
     return 0;
 }
 

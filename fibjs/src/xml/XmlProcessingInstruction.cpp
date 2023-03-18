@@ -44,6 +44,11 @@ result_t XmlProcessingInstruction::get_childNodes(obj_ptr<XmlNodeList_base>& ret
     return XmlNodeImpl::get_childNodes(retVal);
 }
 
+result_t XmlProcessingInstruction::get_children(obj_ptr<XmlNodeList_base>& retVal)
+{
+    return XmlNodeImpl::get_children(retVal);
+}
+
 result_t XmlProcessingInstruction::get_firstChild(obj_ptr<XmlNode_base>& retVal)
 {
     return m_childs->firstChild(retVal);

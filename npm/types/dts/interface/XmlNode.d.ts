@@ -81,6 +81,12 @@ declare class Class_XmlNode extends Class_object {
     readonly childNodes: Class_XmlNodeList;
 
     /**
+     * @description 返回指定节点的子元素节点的节点列表
+     *     
+     */
+    readonly children: Class_XmlNodeList;
+
+    /**
      * @description 返回节点的首个子节点
      *     
      */
