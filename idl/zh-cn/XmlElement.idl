@@ -22,10 +22,6 @@ interface XmlElement : XmlNode
     */
     String id;
 
-    /*! 查询和设置选定元素的文本。查询时，返回元素节点内所有文本节点的值；设置时，删除所有子节点，并用单个文本节点来替换它们。
-    */
-    String textContent;
-
     /*! 查询和设置选定元素的 HTML 文本，仅在 html 模式有效。查询时，返回元素节点内所有子节点的 HTML 编码；设置时，删除所有子节点，并用指定的 HTML 解码后替换它们。
     */
     String innerHTML;

@@ -87,6 +87,18 @@ result_t XmlText::get_nextElementSibling(obj_ptr<XmlNode_base>& retVal)
     return XmlNodeImpl::get_nextElementSibling(retVal);
 }
 
+result_t XmlText::get_textContent(exlib::string& retVal)
+{
+    get_nodeValue(retVal);
+    return 0;
+}
+
+result_t XmlText::set_textContent(exlib::string newVal)
+{
+    set_nodeValue(newVal);
+    return 0;
+}
+
 result_t XmlText::get_ownerDocument(obj_ptr<XmlDocument_base>& retVal)
 {
     return XmlNodeImpl::get_ownerDocument(retVal);

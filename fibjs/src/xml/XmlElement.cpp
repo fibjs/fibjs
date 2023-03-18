@@ -122,6 +122,27 @@ result_t XmlElement::get_nextElementSibling(obj_ptr<XmlNode_base>& retVal)
     return XmlNodeImpl::get_nextElementSibling(retVal);
 }
 
+result_t XmlElement::get_textContent(exlib::string& retVal)
+{
+    StringBuffer strs;
+    getTextContent(strs);
+    retVal = strs.str();
+
+    return 0;
+}
+
+result_t XmlElement::set_textContent(exlib::string newVal)
+{
+    m_childs->removeAll();
+
+    obj_ptr<XmlText> text = new XmlText(m_document, newVal);
+
+    obj_ptr<XmlNode_base> out;
+    appendChild(text, out);
+
+    return 0;
+}
+
 result_t XmlElement::get_ownerDocument(obj_ptr<XmlDocument_base>& retVal)
 {
     return XmlNodeImpl::get_ownerDocument(retVal);
@@ -221,27 +242,6 @@ result_t XmlElement::set_id(exlib::string newVal)
         return removeAttribute("id");
 
     return setAttribute("id", newVal);
-}
-
-result_t XmlElement::get_textContent(exlib::string& retVal)
-{
-    StringBuffer strs;
-    getTextContent(strs);
-    retVal = strs.str();
-
-    return 0;
-}
-
-result_t XmlElement::set_textContent(exlib::string newVal)
-{
-    m_childs->removeAll();
-
-    obj_ptr<XmlText> text = new XmlText(m_document, newVal);
-
-    obj_ptr<XmlNode_base> out;
-    appendChild(text, out);
-
-    return 0;
 }
 
 result_t XmlElement::get_innerHTML(exlib::string& retVal)

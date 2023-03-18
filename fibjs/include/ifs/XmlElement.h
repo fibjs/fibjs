@@ -32,8 +32,6 @@ public:
     virtual result_t get_tagName(exlib::string& retVal) = 0;
     virtual result_t get_id(exlib::string& retVal) = 0;
     virtual result_t set_id(exlib::string newVal) = 0;
-    virtual result_t get_textContent(exlib::string& retVal) = 0;
-    virtual result_t set_textContent(exlib::string newVal) = 0;
     virtual result_t get_innerHTML(exlib::string& retVal) = 0;
     virtual result_t set_innerHTML(exlib::string newVal) = 0;
     virtual result_t get_className(exlib::string& retVal) = 0;
@@ -71,8 +69,6 @@ public:
     static void s_get_tagName(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_id(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_id(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_textContent(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_textContent(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_innerHTML(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_innerHTML(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_className(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -120,7 +116,6 @@ inline ClassInfo& XmlElement_base::class_info()
         { "localName", s_get_localName, block_set, false },
         { "tagName", s_get_tagName, block_set, false },
         { "id", s_get_id, s_set_id, false },
-        { "textContent", s_get_textContent, s_set_textContent, false },
         { "innerHTML", s_get_innerHTML, s_set_innerHTML, false },
         { "className", s_get_className, s_set_className, false },
         { "attributes", s_get_attributes, block_set, false }
@@ -221,31 +216,6 @@ inline void XmlElement_base::s_set_id(v8::Local<v8::Name> property, v8::Local<v8
     PROPERTY_VAL(exlib::string);
 
     hr = pInst->set_id(v0);
-
-    PROPERTY_SET_LEAVE();
-}
-
-inline void XmlElement_base::s_get_textContent(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    exlib::string vr;
-
-    METHOD_NAME("XmlElement.textContent");
-    METHOD_INSTANCE(XmlElement_base);
-    PROPERTY_ENTER();
-
-    hr = pInst->get_textContent(vr);
-
-    METHOD_RETURN();
-}
-
-inline void XmlElement_base::s_set_textContent(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
-{
-    METHOD_NAME("XmlElement.textContent");
-    METHOD_INSTANCE(XmlElement_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(exlib::string);
-
-    hr = pInst->set_textContent(v0);
 
     PROPERTY_SET_LEAVE();
 }

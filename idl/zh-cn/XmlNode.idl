@@ -97,6 +97,10 @@ interface XmlNode : object
     */
     readonly XmlNode nextElementSibling;
 
+    /*! 查询和设置选定元素的文本。查询时，返回元素节点内所有文本节点的值；设置时，删除所有子节点，并用单个文本节点来替换它们。
+    */
+    String textContent;
+
     /*! @brief 合并相邻的 Text 节点并删除空的 Text 节点
 
     这个方法将遍历当前节点的所有子孙节点，通过删除空的 Text 节点，已经合并所有相邻的 Text 节点来规范化文档。该方法在进行节点的插入或删除操作后，对于简化文档树的结构很有用。

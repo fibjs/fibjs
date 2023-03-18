@@ -83,6 +83,8 @@ public:
     virtual result_t get_lastElementChild(obj_ptr<XmlNode_base>& retVal);
     virtual result_t get_previousElementSibling(obj_ptr<XmlNode_base>& retVal);
     virtual result_t get_nextElementSibling(obj_ptr<XmlNode_base>& retVal);
+    virtual result_t get_textContent(exlib::string& retVal);
+    virtual result_t set_textContent(exlib::string newVal);
     virtual result_t normalize();
     virtual result_t cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal);
     virtual result_t lookupPrefix(exlib::string namespaceURI, exlib::string& retVal);
@@ -102,8 +104,6 @@ public:
     virtual result_t get_tagName(exlib::string& retVal);
     virtual result_t get_id(exlib::string& retVal);
     virtual result_t set_id(exlib::string newVal);
-    virtual result_t get_textContent(exlib::string& retVal);
-    virtual result_t set_textContent(exlib::string newVal);
     virtual result_t get_innerHTML(exlib::string& retVal);
     virtual result_t set_innerHTML(exlib::string newVal);
     virtual result_t get_className(exlib::string& retVal);

@@ -87,6 +87,16 @@ result_t XmlComment::get_nextElementSibling(obj_ptr<XmlNode_base>& retVal)
     return XmlNodeImpl::get_nextElementSibling(retVal);
 }
 
+result_t XmlComment::get_textContent(exlib::string& retVal)
+{
+    return 0;
+}
+
+result_t XmlComment::set_textContent(exlib::string newVal)
+{
+    return 0;
+}
+
 result_t XmlComment::get_ownerDocument(obj_ptr<XmlDocument_base>& retVal)
 {
     return XmlNodeImpl::get_ownerDocument(retVal);

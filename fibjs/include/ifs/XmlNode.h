@@ -40,6 +40,8 @@ public:
     virtual result_t get_lastElementChild(obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t get_previousElementSibling(obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t get_nextElementSibling(obj_ptr<XmlNode_base>& retVal) = 0;
+    virtual result_t get_textContent(exlib::string& retVal) = 0;
+    virtual result_t set_textContent(exlib::string newVal) = 0;
     virtual result_t normalize() = 0;
     virtual result_t cloneNode(bool deep, obj_ptr<XmlNode_base>& retVal) = 0;
     virtual result_t lookupPrefix(exlib::string namespaceURI, exlib::string& retVal) = 0;
@@ -79,6 +81,8 @@ public:
     static void s_get_lastElementChild(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_previousElementSibling(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_nextElementSibling(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_textContent(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_textContent(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_cloneNode(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_lookupPrefix(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -125,7 +129,8 @@ inline ClassInfo& XmlNode_base::class_info()
         { "firstElementChild", s_get_firstElementChild, block_set, false },
         { "lastElementChild", s_get_lastElementChild, block_set, false },
         { "previousElementSibling", s_get_previousElementSibling, block_set, false },
-        { "nextElementSibling", s_get_nextElementSibling, block_set, false }
+        { "nextElementSibling", s_get_nextElementSibling, block_set, false },
+        { "textContent", s_get_textContent, s_set_textContent, false }
     };
 
     static ClassData s_cd = {
@@ -358,6 +363,31 @@ inline void XmlNode_base::s_get_nextElementSibling(v8::Local<v8::Name> property,
     hr = pInst->get_nextElementSibling(vr);
 
     METHOD_RETURN();
+}
+
+inline void XmlNode_base::s_get_textContent(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_NAME("XmlNode.textContent");
+    METHOD_INSTANCE(XmlNode_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_textContent(vr);
+
+    METHOD_RETURN();
+}
+
+inline void XmlNode_base::s_set_textContent(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_NAME("XmlNode.textContent");
+    METHOD_INSTANCE(XmlNode_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(exlib::string);
+
+    hr = pInst->set_textContent(v0);
+
+    PROPERTY_SET_LEAVE();
 }
 
 inline void XmlNode_base::s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args)
