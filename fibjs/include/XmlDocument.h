@@ -19,6 +19,7 @@ public:
         , m_isXml(isXml)
         , m_standalone(-1)
     {
+        m_document = this;
     }
 
     XmlDocument(const XmlDocument& from)
@@ -28,6 +29,7 @@ public:
         , m_encoding(from.m_encoding)
         , m_standalone(from.m_standalone)
     {
+        m_document = this;
     }
 
 public:
