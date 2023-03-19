@@ -252,23 +252,24 @@ describe("zip", () => {
         assert.equal(zipfile.read('password.txt', password).toString(), 'password test');
     })
 
-    it("zip with codec", () => {
-        zipfile = zip.open(path.join(__dirname, 'unzip_test.zip' + vmid), 'w', "gbk");
-        var buf = new Buffer('codec test');
-        zipfile.write(buf, '密码.txt');
-        zipfile.close();
+    if (Buffer.isEncoding("gbk"))
+        it("zip with codec", () => {
+            zipfile = zip.open(path.join(__dirname, 'unzip_test.zip' + vmid), 'w', "gbk");
+            var buf = new Buffer('codec test');
+            zipfile.write(buf, '密码.txt');
+            zipfile.close();
 
-        zipfile = zip.open(path.join(__dirname, 'unzip_test.zip' + vmid), "r", "gbk");
-        assert.equal('密码.txt', zipfile.namelist()[0]);
-        assert.equal('密码.txt', zipfile.infolist()[0].filename);
-        assert.equal('密码.txt', zipfile.getinfo('密码.txt').filename);
-        assert.equal(zipfile.read('密码.txt').toString(), 'codec test');
-        assert.equal(zipfile.readAll()[0].filename, '密码.txt');
+            zipfile = zip.open(path.join(__dirname, 'unzip_test.zip' + vmid), "r", "gbk");
+            assert.equal('密码.txt', zipfile.namelist()[0]);
+            assert.equal('密码.txt', zipfile.infolist()[0].filename);
+            assert.equal('密码.txt', zipfile.getinfo('密码.txt').filename);
+            assert.equal(zipfile.read('密码.txt').toString(), 'codec test');
+            assert.equal(zipfile.readAll()[0].filename, '密码.txt');
 
-        zipfile.extractAll(pathname);
-        efile3 = pathname + '/密码.txt';
-        assert.equal(fs.exists(efile3), true);
-    })
+            zipfile.extractAll(pathname);
+            efile3 = pathname + '/密码.txt';
+            assert.equal(fs.exists(efile3), true);
+        })
 
     it("bugfix: read from empty file", () => {
         zip.open(new io.MemoryStream());
