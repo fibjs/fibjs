@@ -23,17 +23,11 @@ class zip_base : public object_base {
     DECLARE_CLASS(zip_base);
 
 public:
-    enum {
-        C_ZIP_STORED = 0,
-        C_ZIP_DEFLATED = 1
-    };
-
-public:
     // zip_base
     static result_t isZipFile(exlib::string filename, bool& retVal, AsyncEvent* ac);
-    static result_t open(exlib::string path, exlib::string mod, int32_t compress_type, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
-    static result_t open(Buffer_base* data, exlib::string mod, int32_t compress_type, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
-    static result_t open(SeekableStream_base* strm, exlib::string mod, int32_t compress_type, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
+    static result_t open(exlib::string path, exlib::string mod, exlib::string codec, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
+    static result_t open(Buffer_base* data, exlib::string mod, exlib::string codec, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
+    static result_t open(SeekableStream_base* strm, exlib::string mod, exlib::string codec, obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -52,9 +46,9 @@ public:
 
 public:
     ASYNC_STATICVALUE2(zip_base, isZipFile, exlib::string, bool);
-    ASYNC_STATICVALUE4(zip_base, open, exlib::string, exlib::string, int32_t, obj_ptr<ZipFile_base>);
-    ASYNC_STATICVALUE4(zip_base, open, Buffer_base*, exlib::string, int32_t, obj_ptr<ZipFile_base>);
-    ASYNC_STATICVALUE4(zip_base, open, SeekableStream_base*, exlib::string, int32_t, obj_ptr<ZipFile_base>);
+    ASYNC_STATICVALUE4(zip_base, open, exlib::string, exlib::string, exlib::string, obj_ptr<ZipFile_base>);
+    ASYNC_STATICVALUE4(zip_base, open, Buffer_base*, exlib::string, exlib::string, obj_ptr<ZipFile_base>);
+    ASYNC_STATICVALUE4(zip_base, open, SeekableStream_base*, exlib::string, exlib::string, obj_ptr<ZipFile_base>);
 };
 }
 
@@ -72,14 +66,9 @@ inline ClassInfo& zip_base::class_info()
         { "openSync", s_static_open, true, false }
     };
 
-    static ClassData::ClassConst s_const[] = {
-        { "ZIP_STORED", C_ZIP_STORED },
-        { "ZIP_DEFLATED", C_ZIP_DEFLATED }
-    };
-
     static ClassData s_cd = {
         "zip", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, ARRAYSIZE(s_const), s_const, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
         &object_base::class_info()
     };
 
@@ -117,7 +106,7 @@ inline void zip_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ARG(exlib::string, 0);
     OPT_ARG(exlib::string, 1, "r");
-    OPT_ARG(int32_t, 2, C_ZIP_DEFLATED);
+    OPT_ARG(exlib::string, 2, "utf-8");
 
     if (!cb.IsEmpty())
         hr = acb_open(v0, v1, v2, cb, args);
@@ -128,7 +117,7 @@ inline void zip_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(exlib::string, 1, "r");
-    OPT_ARG(int32_t, 2, C_ZIP_DEFLATED);
+    OPT_ARG(exlib::string, 2, "utf-8");
 
     if (!cb.IsEmpty())
         hr = acb_open(v0, v1, v2, cb, args);
@@ -139,7 +128,7 @@ inline void zip_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ARG(obj_ptr<SeekableStream_base>, 0);
     OPT_ARG(exlib::string, 1, "r");
-    OPT_ARG(int32_t, 2, C_ZIP_DEFLATED);
+    OPT_ARG(exlib::string, 2, "utf-8");
 
     if (!cb.IsEmpty())
         hr = acb_open(v0, v1, v2, cb, args);

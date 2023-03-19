@@ -13,16 +13,6 @@
  */
 declare module 'zip' {
     /**
-     * @description 压缩类型常量, 不压缩, 仅存储 
-     */
-    export const ZIP_STORED: 0;
-
-    /**
-     * @description 压缩类型常量, 需要依赖zlib库进行压缩 
-     */
-    export const ZIP_DEFLATED: 1;
-
-    /**
      * @description  判断文件是否是zip格式
      * 	 @param filename 文件名
      * 	 @return 返回true代表文件是zip文件
@@ -36,37 +26,37 @@ declare module 'zip' {
      * @description 打开一个zip文件
      * 	 @param path 文件路径
      * 	 @param mod 打开文件模式, "r"代表读取, "w"代表创建, "a"代表在zip文件后追加
-     * 	 @param compress_type 压缩类型, ZIP_STORED 代表不压缩, 仅存储。 默认使用ZIP_DEFLATED 代表使用zlib库进行压缩。
+     * 	 @param codec 设置 zip 文件编码方式，缺省为 "utf-8"
      * 	 @return 返回zip文件对象
      * 	 
      */
-    function open(path: string, mod?: string, compress_type?: number): Class_ZipFile;
+    function open(path: string, mod?: string, codec?: string): Class_ZipFile;
 
-    function open(path: string, mod?: string, compress_type?: number, callback?: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
+    function open(path: string, mod?: string, codec?: string, callback?: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
 
     /**
      * @description 打开一个zip文件
      * 	 @param data zip文件数据
      * 	 @param mod 打开文件模式, "r"代表读取, "w"代表创建, "a"代表在zip文件后追加
-     * 	 @param compress_type 压缩类型, ZIP_STORED 代表不压缩, 仅存储。 默认使用ZIP_DEFLATED 代表使用zlib库进行压缩。
+     * 	 @param codec 设置 zip 文件编码方式，缺省为 "utf-8"
      * 	 @return 返回zip文件对象
      * 	 
      */
-    function open(data: Class_Buffer, mod?: string, compress_type?: number): Class_ZipFile;
+    function open(data: Class_Buffer, mod?: string, codec?: string): Class_ZipFile;
 
-    function open(data: Class_Buffer, mod?: string, compress_type?: number, callback?: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
+    function open(data: Class_Buffer, mod?: string, codec?: string, callback?: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
 
     /**
      * @description 打开一个zip文件
      * 	 @param strm zip文件流
      * 	 @param mod 打开文件模式, "r"代表读取, "w"代表创建, "a"代表在zip文件后追加
-     * 	 @param compress_type 压缩类型, ZIP_STORED 代表不压缩, 仅存储。 默认使用ZIP_DEFLATED 代表使用zlib库进行压缩。
+     * 	 @param codec 设置 zip 文件编码方式，缺省为 "utf-8"
      * 	 @return 返回zip文件对象
      * 	 
      */
-    function open(strm: Class_SeekableStream, mod?: string, compress_type?: number): Class_ZipFile;
+    function open(strm: Class_SeekableStream, mod?: string, codec?: string): Class_ZipFile;
 
-    function open(strm: Class_SeekableStream, mod?: string, compress_type?: number, callback?: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
+    function open(strm: Class_SeekableStream, mod?: string, codec?: string, callback?: (err: Error | undefined | null, retVal: Class_ZipFile)=>any): void;
 
 }
 

@@ -109,7 +109,7 @@ public:
     };
 
 public:
-    ZipFile(SeekableStream_base* strm, exlib::string mod, int32_t compress_type);
+    ZipFile(SeekableStream_base* strm, exlib::string mod, exlib::string codec);
 
 public:
     // ZipFile_base
@@ -137,7 +137,7 @@ private:
 private:
     unzFile m_unz;
     zipFile m_zip;
-    int32_t m_compress_type;
+    exlib::string m_codec;
     exlib::string m_mod;
     obj_ptr<SeekableStream_base> m_strm;
 };

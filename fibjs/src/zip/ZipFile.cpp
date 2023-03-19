@@ -13,6 +13,7 @@
 #include "utf8.h"
 #include "Buffer.h"
 #include "MemoryStream.h"
+#include "encoding_iconv.h"
 
 namespace fibjs {
 
@@ -179,7 +180,7 @@ result_t zip_base::isZipFile(exlib::string filename, bool& retVal, AsyncEvent* a
     return ifZipFile(filename, retVal);
 }
 
-result_t zip_base::open(exlib::string path, exlib::string mod, int32_t compress_type,
+result_t zip_base::open(exlib::string path, exlib::string mod, exlib::string codec,
     obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
@@ -208,10 +209,10 @@ result_t zip_base::open(exlib::string path, exlib::string mod, int32_t compress_
     if (hr < 0)
         return hr;
 
-    return open(file, mod, compress_type, retVal, ac);
+    return open(file, mod, codec, retVal, ac);
 }
 
-result_t zip_base::open(Buffer_base* data, exlib::string mod, int32_t compress_type,
+result_t zip_base::open(Buffer_base* data, exlib::string mod, exlib::string codec,
     obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
@@ -222,23 +223,23 @@ result_t zip_base::open(Buffer_base* data, exlib::string mod, int32_t compress_t
     data->toString(strData);
     obj_ptr<SeekableStream_base> strm = new MemoryStream::CloneStream(strData, 0);
 
-    return open(strm, mod, compress_type, retVal, ac);
+    return open(strm, mod, codec, retVal, ac);
 }
 
-result_t zip_base::open(SeekableStream_base* strm, exlib::string mod, int32_t compress_type,
+result_t zip_base::open(SeekableStream_base* strm, exlib::string mod, exlib::string codec,
     obj_ptr<ZipFile_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    retVal = new ZipFile(strm, mod, compress_type);
+    retVal = new ZipFile(strm, mod, codec);
     return 0;
 }
 
-ZipFile::ZipFile(SeekableStream_base* strm, exlib::string mod, int32_t compress_type)
+ZipFile::ZipFile(SeekableStream_base* strm, exlib::string mod, exlib::string codec)
     : m_unz(NULL)
     , m_zip(NULL)
-    , m_compress_type(compress_type)
+    , m_codec(codec)
     , m_mod(mod)
     , m_strm(strm)
 {
@@ -264,7 +265,12 @@ result_t ZipFile::get_info(obj_ptr<Info>& retVal)
     if (err != UNZ_OK)
         return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
-    retVal = new Info(filename_inzip, file_info);
+    exlib::string _filename;
+    result_t hr = encoding_iconv(m_codec).decode(filename_inzip, _filename);
+    if (hr < 0)
+        return hr;
+
+    retVal = new Info(_filename, file_info);
     return 0;
 }
 
@@ -371,13 +377,16 @@ result_t ZipFile::getinfo(exlib::string member, obj_ptr<NObject>& retVal, AsyncE
     if (m_mod != "r")
         return CHECK_ERROR(Runtime::setError("ZipFile: can not read!"));
 
-    err = unzLocateFile(m_unz, member.c_str(), 0);
+    exlib::string _filename;
+    result_t hr = encoding_iconv(m_codec).encode(member, _filename);
+    if (hr < 0)
+        return hr;
+
+    err = unzLocateFile(m_unz, _filename.c_str(), 0);
     if (err != UNZ_OK)
         return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
     obj_ptr<Info> info;
-    result_t hr;
-
     hr = get_info(info);
     if (hr < 0)
         return hr;
@@ -454,9 +463,13 @@ result_t ZipFile::read(exlib::string member, exlib::string password, obj_ptr<Buf
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    int32_t err;
+    exlib::string _filename;
+    result_t hr = encoding_iconv(m_codec).encode(member, _filename);
+    if (hr < 0)
+        return hr;
 
-    err = unzLocateFile(m_unz, member.c_str(), 0);
+    int32_t err;
+    err = unzLocateFile(m_unz, _filename.c_str(), 0);
     if (err != UNZ_OK)
         return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
@@ -471,11 +484,15 @@ result_t ZipFile::extract(exlib::string member, exlib::string path, exlib::strin
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    exlib::string _filename;
+    result_t hr = encoding_iconv(m_codec).encode(member, _filename);
+    if (hr < 0)
+        return hr;
+
     int32_t err;
-    result_t hr;
     obj_ptr<SeekableStream_base> file;
 
-    err = unzLocateFile(m_unz, member.c_str(), 0);
+    err = unzLocateFile(m_unz, _filename.c_str(), 0);
     if (err != UNZ_OK)
         return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
@@ -494,9 +511,13 @@ result_t ZipFile::extract(exlib::string member, SeekableStream_base* strm, exlib
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    int32_t err;
+    exlib::string _filename;
+    result_t hr = encoding_iconv(m_codec).encode(member, _filename);
+    if (hr < 0)
+        return hr;
 
-    err = unzLocateFile(m_unz, member.c_str(), 0);
+    int32_t err;
+    err = unzLocateFile(m_unz, _filename.c_str(), 0);
     if (err != UNZ_OK)
         return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
@@ -698,10 +719,14 @@ result_t ZipFile::write(exlib::string filename, exlib::string password, Seekable
     zi.tmz_date.tm_min = dp.wMinute;
     zi.tmz_date.tm_sec = dp.wSecond;
 
-    err = zipOpenNewFileInZip3_64(m_zip, filename.c_str(), &zi, NULL,
-        0, NULL, 0, NULL, m_compress_type == zip_base::C_ZIP_STORED ? 0 : Z_DEFLATED,
-        Z_DEFAULT_COMPRESSION, 0, -MAX_WBITS,
-        DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY,
+    exlib::string _filename;
+    hr = encoding_iconv(m_codec).encode(filename, _filename);
+    if (hr < 0)
+        return hr;
+
+    err = zipOpenNewFileInZip3_64(m_zip, _filename.c_str(), &zi, NULL,
+        0, NULL, 0, NULL, Z_DEFLATED, Z_DEFAULT_COMPRESSION, 0,
+        -MAX_WBITS, DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY,
         password.empty() ? NULL : password.c_str(), crc, 1);
     if (err != ZIP_OK)
         return CHECK_ERROR(Runtime::setError(zip_error(err)));
