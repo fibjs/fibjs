@@ -155,12 +155,24 @@ public:
 public:
     static XmlNodeImpl* fromNode(XmlNode_base* pNode);
 
+    void setDocument(XmlDocument_base* doc)
+    {
+        if (m_document != doc) {
+            m_document = doc;
+
+            int32_t sz = (int32_t)m_childs->m_childs.size();
+            for (int32_t i = 0; i < sz; i++)
+                m_childs->m_childs[i]->setDocument(doc);
+        }
+    }
+
     void setParent(XmlNodeImpl* parent, int32_t idx)
     {
         assert(m_parent == 0);
         assert(m_index == -1);
 
-        m_document = parent->m_document;
+        setDocument(parent->m_document);
+
         m_parent = parent;
         m_index = idx;
         m_node->Ref();

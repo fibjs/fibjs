@@ -111,7 +111,7 @@ describe('xml', () => {
     describe('Document', () => {
         it("base", () => {
             var xdoc = newDoc();
-            assert.equal(xdoc.ownerDocument, null);
+            assert.equal(xdoc.ownerDocument, xdoc);
             assert.equal(xdoc.nodeType, 9);
             assert.equal(xdoc.nodeName, '#document');
             assert.equal(xdoc.childNodes.length, 0);
@@ -250,6 +250,9 @@ describe('xml', () => {
             var xdoc = newDoc();
             var e = xdoc.createElement("aaa");
             assert.equal(e.ownerDocument, xdoc);
+            xdoc.appendChild(e);
+            assert.equal(e.ownerDocument, xdoc);
+            
             assert.equal(e.nodeType, 1);
             assert.equal(e.nodeName, 'aaa');
             assert.equal(e.tagName, 'aaa');
@@ -534,9 +537,13 @@ describe('xml', () => {
 
             var xdoc1 = newDoc();
             var e2 = xdoc1.createElement("bbb");
+            var e4 = xdoc1.createElement("bbb");
+            e2.appendChild(e4);
             assert.equal(e2.ownerDocument, xdoc1)
+            assert.equal(e4.ownerDocument, xdoc1)
             e.appendChild(e2);
             assert.equal(e2.ownerDocument, xdoc)
+            assert.equal(e4.ownerDocument, xdoc)
 
             assert.equal(e1.nextSibling, e2);
             assert.equal(e1, e2.previousSibling);
