@@ -95,10 +95,9 @@ result_t X509Crl::import(exlib::string pemCrl)
     return 0;
 }
 
-result_t X509Crl::loadFile(exlib::string filename)
+result_t X509Crl::loadFile(exlib::string filename, obj_ptr<X509Crl_base>& retVal)
 {
-    if (m_root)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+    retVal = new X509Crl();
 
     result_t hr;
     exlib::string data;
@@ -109,10 +108,10 @@ result_t X509Crl::loadFile(exlib::string filename)
         return hr;
 
     if (qstrstr(data.c_str(), "BEGIN"))
-        return import(data);
+        return retVal->import(data);
 
     buf = new Buffer(data);
-    return import(buf);
+    return retVal->import(buf);
 }
 
 #define PEM_BEGIN_CRL "-----BEGIN X509 CRL-----\n"

@@ -59,38 +59,22 @@ result_t crypto_base::createHmac(exlib::string algo, Buffer_base* key,
 
 result_t crypto_base::loadCert(exlib::string filename, obj_ptr<X509Cert_base>& retVal)
 {
-    obj_ptr<X509Cert> cert = new X509Cert();
-    result_t hr = cert->loadFile(filename);
-    if (hr < 0)
-        return hr;
-
-    retVal = cert;
-
-    return 0;
+    return X509Cert::loadFile(filename, retVal);
 }
 
 result_t crypto_base::loadCrl(exlib::string filename, obj_ptr<X509Crl_base>& retVal)
 {
-    obj_ptr<X509Crl> crl = new X509Crl();
-    result_t hr = crl->loadFile(filename);
-    if (hr < 0)
-        return hr;
-
-    retVal = crl;
-
-    return 0;
+    return X509Crl::loadFile(filename, retVal);
 }
 
 result_t crypto_base::loadReq(exlib::string filename, obj_ptr<X509Req_base>& retVal)
 {
-    obj_ptr<X509Req> req = new X509Req();
-    result_t hr = req->loadFile(filename);
-    if (hr < 0)
-        return hr;
+    return X509Req::loadFile(filename, retVal);
+}
 
-    retVal = req;
-
-    return 0;
+result_t crypto_base::loadPKey(exlib::string filename, obj_ptr<PKey_base>& retVal)
+{
+    return PKey::loadFile(filename, retVal);
 }
 
 result_t crypto_base::randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal,

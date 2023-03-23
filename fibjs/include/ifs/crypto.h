@@ -62,6 +62,7 @@ public:
     static result_t loadCert(exlib::string filename, obj_ptr<X509Cert_base>& retVal);
     static result_t loadCrl(exlib::string filename, obj_ptr<X509Crl_base>& retVal);
     static result_t loadReq(exlib::string filename, obj_ptr<X509Req_base>& retVal);
+    static result_t loadPKey(exlib::string filename, obj_ptr<PKey_base>& retVal);
     static result_t randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t simpleRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
@@ -92,6 +93,7 @@ public:
     static void s_static_loadCert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_loadCrl(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_loadReq(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_loadPKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_randomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_simpleRandomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_pseudoRandomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -135,6 +137,7 @@ inline ClassInfo& crypto_base::class_info()
         { "loadCert", s_static_loadCert, true, false },
         { "loadCrl", s_static_loadCrl, true, false },
         { "loadReq", s_static_loadReq, true, false },
+        { "loadPKey", s_static_loadPKey, true, false },
         { "randomBytes", s_static_randomBytes, true, true },
         { "randomBytesSync", s_static_randomBytes, true, false },
         { "simpleRandomBytes", s_static_simpleRandomBytes, true, true },
@@ -276,6 +279,22 @@ inline void crypto_base::s_static_loadReq(const v8::FunctionCallbackInfo<v8::Val
     ARG(exlib::string, 0);
 
     hr = loadReq(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_loadPKey(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<PKey_base> vr;
+
+    METHOD_NAME("crypto.loadPKey");
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = loadPKey(v0, vr);
 
     METHOD_RETURN();
 }

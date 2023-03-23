@@ -134,10 +134,9 @@ result_t X509Cert::import(exlib::string txtCert)
     return 0;
 }
 
-result_t X509Cert::loadFile(exlib::string filename)
+result_t X509Cert::loadFile(exlib::string filename, obj_ptr<X509Cert_base>& retVal)
 {
-    if (m_root)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+    retVal = new X509Cert();
 
     result_t hr;
     exlib::string data;
@@ -147,11 +146,11 @@ result_t X509Cert::loadFile(exlib::string filename)
     if (hr < 0)
         return hr;
 
-    if (qstrstr(data.c_str(), "BEGIN CERTIFICATE") || qstrstr(data.c_str(), "CKO_CERTIFICATE"))
-        return import(data);
+    if (qstrstr(data.c_str(), "BEGIN"))
+        return retVal->import(data);
 
     buf = new Buffer(data);
-    return import(buf);
+    return retVal->import(buf);
 }
 
 result_t X509Cert::loadRootCerts()

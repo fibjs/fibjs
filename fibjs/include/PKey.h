@@ -55,6 +55,9 @@ public:
     static mbedtls_pk_context& key(PKey_base* key);
 
 public:
+    static result_t loadFile(exlib::string filename, obj_ptr<PKey_base>& retVal);
+
+public:
     mbedtls_pk_context m_key;
     exlib::string m_alg;
 };

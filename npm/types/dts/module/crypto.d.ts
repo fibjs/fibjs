@@ -210,6 +210,14 @@ declare module 'crypto' {
     function loadReq(filename: string): Class_X509Req;
 
     /**
+     * @description 加载一个 CRT/PEM/DER 格式的非对称公钥或者私钥
+     *      @param filename 公钥或者私钥文件名
+     *      @return 返回包含 PKey 的对象
+     *     
+     */
+    function loadPKey(filename: string): Class_PKey;
+
+    /**
      * @description 生成指定尺寸的随机数，使用 havege 生成器
      *      @param size 指定生成的随机数尺寸
      *      @return 返回生成的随机数

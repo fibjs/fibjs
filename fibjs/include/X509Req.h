@@ -36,7 +36,9 @@ public:
 
 public:
     result_t create(exlib::string subject, PKey_base* key, int32_t hash);
-    result_t loadFile(exlib::string filename);
+
+public:
+    static result_t loadFile(exlib::string filename, obj_ptr<X509Req_base>& retVal);
 
 private:
     void clear();

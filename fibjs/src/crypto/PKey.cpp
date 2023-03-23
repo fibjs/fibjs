@@ -50,6 +50,23 @@ result_t PKey_base::_new(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retV
     return hr;
 }
 
+result_t PKey::loadFile(exlib::string filename, obj_ptr<PKey_base>& retVal)
+{
+    result_t hr;
+    exlib::string data;
+    obj_ptr<Buffer> buf;
+
+    hr = fs_base::ac_readTextFile(filename, data);
+    if (hr < 0)
+        return hr;
+
+    if (qstrstr(data.c_str(), "BEGIN"))
+        return PKey_base::_new(data, "", retVal, v8::Local<v8::Object>());
+
+    buf = new Buffer(data);
+    return PKey_base::_new(buf, "", retVal, v8::Local<v8::Object>());
+}
+
 PKey_base* PKey::create(mbedtls_pk_context& key, bool clone)
 {
     mbedtls_pk_context key1;

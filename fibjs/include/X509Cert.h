@@ -44,7 +44,9 @@ public:
 
 public:
     result_t import(const mbedtls_x509_crt* crt);
-    result_t loadFile(exlib::string filename);
+
+public:
+    static result_t loadFile(exlib::string filename, obj_ptr<X509Cert_base>& retVal);
 
 public:
     struct _name {

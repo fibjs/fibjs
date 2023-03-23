@@ -150,8 +150,10 @@ result_t X509Req::import(exlib::string pemReq)
     return 0;
 }
 
-result_t X509Req::loadFile(exlib::string filename)
+result_t X509Req::loadFile(exlib::string filename, obj_ptr<X509Req_base>& retVal)
 {
+    retVal = new X509Req();
+
     result_t hr;
     exlib::string data;
     obj_ptr<Buffer> buf;
@@ -161,10 +163,10 @@ result_t X509Req::loadFile(exlib::string filename)
         return hr;
 
     if (qstrstr(data.c_str(), "BEGIN"))
-        return import(data);
+        return retVal->import(data);
 
     buf = new Buffer(data);
-    return import(buf);
+    return retVal->import(buf);
 }
 
 #define PEM_BEGIN_CSR "-----BEGIN CERTIFICATE REQUEST-----\n"

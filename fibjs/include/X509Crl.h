@@ -33,7 +33,7 @@ public:
     virtual result_t get_next(obj_ptr<X509Crl_base>& retVal);
 
 public:
-    result_t loadFile(exlib::string filename);
+    static result_t loadFile(exlib::string filename, obj_ptr<X509Crl_base>& retVal);
 
 private:
     mbedtls_x509_crl* get_crl();
