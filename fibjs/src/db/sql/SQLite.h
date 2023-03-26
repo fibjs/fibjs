@@ -37,6 +37,7 @@ public:
 
 public:
     result_t open(const char* file);
+    int vec_init();
 
 private:
     exlib::string m_file;

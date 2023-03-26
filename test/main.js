@@ -58,6 +58,7 @@ run("./unzip_test.js");
 run("./ws_test.js");
 run("./vm_test.js");
 run("./db_test.js");
+run("./vec_test.js");
 run("./wasm_test.js");
 
 if (global.full_test) {

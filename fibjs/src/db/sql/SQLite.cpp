@@ -49,6 +49,8 @@ result_t SQLite::open(const char* file)
         return hr;
     }
 
+    vec_init();
+
     obj_ptr<NArray> retVal;
     cc_execute("PRAGMA journal_mode=WAL;", retVal);
 
