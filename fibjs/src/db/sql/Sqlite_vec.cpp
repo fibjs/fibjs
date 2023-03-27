@@ -150,16 +150,13 @@ public:
         const char* zQuery;
         int rc;
 
-        zQuery = sqlite3_mprintf("CREATE TABLE \"%w\".\"%w_data\"(name, dim, idx)",
-            schema.c_str(), name.c_str());
-        rc = sqlite3_exec(db, zQuery, 0, 0, 0);
-        sqlite3_free((void*)zQuery);
+        rc = sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS vec_index(tbl, idx, name, dim, data)", 0, 0, 0);
         if (rc != SQLITE_OK)
             return rc;
 
         for (int i = 0; i < indexCount; i++) {
-            zQuery = sqlite3_mprintf("INSERT INTO \"%w\".\"%w_data\"(rowid, name, dim) VALUES (%d, \"%w\", %d)",
-                schema.c_str(), name.c_str(), i, indexes[i].name.c_str(), indexes[i].dim());
+            zQuery = sqlite3_mprintf("INSERT INTO vec_index(tbl, idx, name, dim) VALUES (\"%w\", %d, \"%w\", %d)",
+                name.c_str(), i, indexes[i].name.c_str(), indexes[i].dim());
             rc = sqlite3_exec(db, zQuery, 0, 0, 0);
             sqlite3_free((void*)zQuery);
             if (rc != SQLITE_OK)
@@ -173,8 +170,7 @@ public:
     {
         const char* zQuery;
 
-        zQuery = sqlite3_mprintf("DROP TABLE \"%w\".\"%w_data\"",
-            schema.c_str(), name.c_str());
+        zQuery = sqlite3_mprintf("DELETE FROM vec_index WHERE tbl = \"%w\"", name.c_str());
         int rc = sqlite3_exec(db, zQuery, 0, 0, 0);
         sqlite3_free((void*)zQuery);
         return rc;
@@ -186,8 +182,8 @@ public:
         sqlite3_stmt* stmt;
         int rc;
 
-        zQuery = sqlite3_mprintf("SELECT rowid, name, dim, idx  FROM \"%w\".\"%w_data\" ORDER BY rowid",
-            schema.c_str(), name.c_str());
+        zQuery = sqlite3_mprintf("SELECT idx, name, dim, data  FROM vec_index WHERE tbl = \"%w\" ORDER BY idx",
+            name.c_str());
         rc = sqlite3_prepare_v2(db, zQuery, -1, &stmt, 0);
         sqlite3_free((void*)zQuery);
         if (rc != SQLITE_OK)
@@ -241,8 +237,8 @@ public:
 
             for (int i = 0; i < indexCount; i++)
                 if (dirty[i]) {
-                    zQuery = sqlite3_mprintf("UPDATE \"%w\".\"%w_data\" SET idx = ? WHERE rowid = %d",
-                        schema.c_str(), name.c_str(), i);
+                    zQuery = sqlite3_mprintf("UPDATE vec_index SET data = ? WHERE tbl = \"%w\" AND idx = %d",
+                        name.c_str(), i);
                     rc = sqlite3_prepare_v2(db, zQuery, -1, &stmt, 0);
                     if (rc != SQLITE_OK || stmt == 0) {
                         return rc;

@@ -41,24 +41,24 @@ describe("vec", () => {
 
     it("create table", () => {
         conn.execute("create virtual table vindex using vec_index(title(128), description(128))");
-        assert.deepEqual(conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name = 'vindex_data'"), [
+        assert.deepEqual(conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name = 'vec_index'"), [
             {
-                "name": "vindex_data"
+                "name": "vec_index"
             }
         ]);
 
-        assert.deepEqual(conn.execute(`select rowid, * from vindex_data`), [
+        assert.deepEqual(conn.execute(`select idx, name, dim, data from vec_index where tbl="vindex"`), [
             {
-                "rowid": 0,
+                "idx": 0,
                 "name": "title",
                 "dim": 128,
-                "idx": null
+                "data": null
             },
             {
-                "rowid": 1,
+                "idx": 1,
                 "name": "description",
                 "dim": 128,
-                "idx": null
+                "data": null
             }
         ]);
 
@@ -70,9 +70,9 @@ describe("vec", () => {
         conn.execute("create virtual table vindex using vec_index(title(3), description(3))");
         conn.execute(`insert into vindex(title, description, rowid) values("[1,2,3]", "[3,4,5]", 1)`);
 
-        var res = conn.execute(`select rowid, * from vindex_data`);
+        var res = conn.execute(`select idx, data from vec_index where tbl="vindex" order by idx`);
         assert.equal(res.length, 2);
-        assert.deepEqual(decodeVec(res[0].idx), [
+        assert.deepEqual(decodeVec(res[0].data), [
             [
                 "0.267261",
                 "0.534522",
@@ -80,7 +80,7 @@ describe("vec", () => {
                 1
             ]
         ]);
-        assert.deepEqual(decodeVec(res[1].idx), [
+        assert.deepEqual(decodeVec(res[1].data), [
             [
                 "0.424264",
                 "0.565685",
@@ -94,9 +94,9 @@ describe("vec", () => {
         });
 
         conn.execute(`insert into vindex(title, description, rowid) values("[1,2,3]", "[3,4,5]", 2)`);
-        var res = conn.execute(`select rowid, * from vindex_data`);
+        var res = conn.execute(`select idx, data from vec_index where tbl="vindex" order by idx`);
         assert.equal(res.length, 2);
-        assert.deepEqual(decodeVec(res[0].idx), [
+        assert.deepEqual(decodeVec(res[0].data), [
             [
                 "0.267261",
                 "0.534522",
@@ -110,7 +110,7 @@ describe("vec", () => {
                 1
             ]
         ]);
-        assert.deepEqual(decodeVec(res[1].idx), [
+        assert.deepEqual(decodeVec(res[1].data), [
             [
                 "0.424264",
                 "0.565685",
@@ -203,9 +203,9 @@ describe("vec", () => {
         conn.execute(`insert into vindex(title, description, rowid) values("[1,2,3]", "[3,4,5]", 1)`);
         conn.execute(`insert into vindex(title, description, rowid) values("[1,2,3]", "[3,4,5]", 2)`);
 
-        var res = conn.execute(`select rowid, * from vindex_data`);
+        var res = conn.execute(`select idx, data from vec_index where tbl="vindex" order by idx`);
         assert.equal(res.length, 2);
-        assert.deepEqual(decodeVec(res[0].idx), [
+        assert.deepEqual(decodeVec(res[0].data), [
             [
                 "0.267261",
                 "0.534522",
@@ -219,7 +219,7 @@ describe("vec", () => {
                 1
             ]
         ]);
-        assert.deepEqual(decodeVec(res[1].idx), [
+        assert.deepEqual(decodeVec(res[1].data), [
             [
                 "0.424264",
                 "0.565685",
@@ -236,9 +236,9 @@ describe("vec", () => {
 
         conn.execute(`update vindex set title="[1,2,4]" where rowid = 2`);
 
-        var res = conn.execute(`select rowid, * from vindex_data`);
+        var res = conn.execute(`select idx, data from vec_index where tbl="vindex" order by idx`);
         assert.equal(res.length, 2);
-        assert.deepEqual(decodeVec(res[0].idx), [
+        assert.deepEqual(decodeVec(res[0].data), [
             [
                 "0.267261",
                 "0.534522",
@@ -252,7 +252,7 @@ describe("vec", () => {
                 1
             ]
         ]);
-        assert.deepEqual(decodeVec(res[1].idx), [
+        assert.deepEqual(decodeVec(res[1].data), [
             [
                 "0.424264",
                 "0.565685",
@@ -278,9 +278,9 @@ describe("vec", () => {
             });
         });
 
-        var res = conn.execute(`select rowid, * from vindex_data`);
+        var res = conn.execute(`select idx, data from vec_index where tbl="vindex" order by idx`);
         assert.equal(res.length, 2);
-        assert.deepEqual(decodeVec(res[0].idx), [
+        assert.deepEqual(decodeVec(res[0].data), [
             [
                 "0.267261",
                 "0.534522",
@@ -288,7 +288,7 @@ describe("vec", () => {
                 3
             ]
         ]);
-        assert.deepEqual(decodeVec(res[1].idx), [
+        assert.deepEqual(decodeVec(res[1].data), [
             [
                 "0.424264",
                 "0.565685",
@@ -307,9 +307,9 @@ describe("vec", () => {
             conn.execute(`insert into vindex(title, description, rowid) values("[1,2,2]", "[3,4,1]", 3)`);
         });
 
-        var res = conn.execute(`select rowid, * from vindex_data`);
+        var res = conn.execute(`select idx, data from vec_index where tbl="vindex" order by idx`);
         assert.equal(res.length, 2);
-        assert.deepEqual(decodeVec(res[0].idx), [
+        assert.deepEqual(decodeVec(res[0].data), [
             [
                 "0.333333",
                 "0.666667",
@@ -317,7 +317,7 @@ describe("vec", () => {
                 3
             ]
         ]);
-        assert.deepEqual(decodeVec(res[1].idx), [
+        assert.deepEqual(decodeVec(res[1].data), [
             [
                 "0.588348",
                 "0.784465",
@@ -335,10 +335,10 @@ describe("vec", () => {
             conn.execute(`delete from vindex where rowid = 3`);
         });
 
-        var res = conn.execute(`select rowid, * from vindex_data`);
+        var res = conn.execute(`select idx, data from vec_index where tbl="vindex" order by idx`);
         assert.equal(res.length, 2);
-        assert.equal(res[0].idx.hex(), "");
-        assert.equal(res[1].idx.hex(), "");
+        assert.equal(res[0].data.hex(), "");
+        assert.equal(res[1].data.hex(), "");
     });
 
     it("load from disk db", () => {
@@ -351,9 +351,9 @@ describe("vec", () => {
 
         conn = db.openSQLite(path.join(__dirname, "vec_test.db"));
 
-        var res = conn.execute(`select rowid, * from vindex_data`);
+        var res = conn.execute(`select idx, data from vec_index where tbl="vindex" order by idx`);
         assert.equal(res.length, 2);
-        assert.deepEqual(decodeVec(res[0].idx), [
+        assert.deepEqual(decodeVec(res[0].data), [
             [
                 "0.333333",
                 "0.666667",
@@ -361,7 +361,7 @@ describe("vec", () => {
                 3
             ]
         ]);
-        assert.deepEqual(decodeVec(res[1].idx), [
+        assert.deepEqual(decodeVec(res[1].data), [
             [
                 "0.588348",
                 "0.784465",
@@ -382,9 +382,9 @@ describe("vec", () => {
 
         conn.execute(`update vindex set title="[1,2,4]" where rowid = 3`);
 
-        var res = conn.execute(`select rowid, * from vindex_data`);
+        var res = conn.execute(`select idx, data from vec_index where tbl="vindex" order by idx`);
         assert.equal(res.length, 2);
-        assert.deepEqual(decodeVec(res[0].idx), [
+        assert.deepEqual(decodeVec(res[0].data), [
             [
                 "0.218218",
                 "0.436436",
@@ -392,7 +392,7 @@ describe("vec", () => {
                 3
             ]
         ]);
-        assert.deepEqual(decodeVec(res[1].idx), [
+        assert.deepEqual(decodeVec(res[1].data), [
             [
                 "0.588348",
                 "0.784465",
