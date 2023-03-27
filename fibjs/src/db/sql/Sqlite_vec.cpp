@@ -126,7 +126,7 @@ class VecIndex : public sqlite3_vtab {
 public:
     class op {
     public:
-        int64_t rowid;
+        hnswlib::labeltype rowid;
         std::vector<std::vector<float>> datas;
     };
 
@@ -272,7 +272,7 @@ public:
         incr_ops.clear();
     }
 
-    bool exists(int64_t rowid)
+    bool exists(hnswlib::labeltype rowid)
     {
         auto it = incr_ops.find(rowid);
         if (it != incr_ops.end())
@@ -292,7 +292,7 @@ public:
     VecColumn* indexes;
 
     std::vector<op> ops;
-    std::unordered_map<int64_t, bool> incr_ops;
+    std::unordered_map<hnswlib::labeltype, bool> incr_ops;
 };
 
 enum QueryType {
@@ -573,7 +573,7 @@ static int vecIndexFilter(sqlite3_vtab_cursor* pVtabCursor, int idxNum, const ch
 
     if (strcmp(idxStr, "equal") == 0) {
         pCur->query_type = QueryType::search;
-        int64_t id = sqlite3_value_int64(argv[0]);
+        hnswlib::labeltype id = (hnswlib::labeltype)sqlite3_value_int64(argv[0]);
 
         pCur->search_result.clear();
         if (((VecIndex*)pCur->pVtab)->exists(id))

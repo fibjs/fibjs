@@ -23,6 +23,22 @@ describe("vec", () => {
         assert.equal(conn.execute("select vec_version() as v")[0].v, 'v0.0.1');
     });
 
+    function decodeVec(buf) {
+        var res = [];
+
+        for (var i = 0; i < buf.length; i += 16) {
+            var arr = [];
+
+            arr.push(buf.readFloatLE(0).toFixed(6));
+            arr.push(buf.readFloatLE(4).toFixed(6));
+            arr.push(buf.readFloatLE(8).toFixed(6));
+            arr.push(buf.readInt32LE(12));
+            res.push(arr);
+        }
+
+        return res;
+    }
+
     it("create table", () => {
         conn.execute("create virtual table vindex using vec_index(title(128), description(128))");
         assert.deepEqual(conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name = 'vindex_data'"), [
@@ -56,8 +72,22 @@ describe("vec", () => {
 
         var res = conn.execute(`select rowid, * from vindex_data`);
         assert.equal(res.length, 2);
-        assert.equal(res[0].idx.hex(), "77d6883e77d6083fb2414d3f0100000000000000");
-        assert.equal(res[1].idx.hex(), "2439d93ec3d0103ff404353f0100000000000000");
+        assert.deepEqual(decodeVec(res[0].idx), [
+            [
+                "0.267261",
+                "0.534522",
+                "0.801784",
+                1
+            ]
+        ]);
+        assert.deepEqual(decodeVec(res[1].idx), [
+            [
+                "0.424264",
+                "0.565685",
+                "0.707107",
+                1
+            ]
+        ]);
 
         assert.throws(() => {
             conn.execute(`insert into vindex(title, description, rowid) values("[1,2,3]", "[3,4,5]", 1)`);
@@ -66,8 +96,34 @@ describe("vec", () => {
         conn.execute(`insert into vindex(title, description, rowid) values("[1,2,3]", "[3,4,5]", 2)`);
         var res = conn.execute(`select rowid, * from vindex_data`);
         assert.equal(res.length, 2);
-        assert.equal(res[0].idx.hex(), "77d6883e77d6083fb2414d3f010000000000000077d6883e77d6083fb2414d3f0200000000000000");
-        assert.equal(res[1].idx.hex(), "2439d93ec3d0103ff404353f01000000000000002439d93ec3d0103ff404353f0200000000000000");
+        assert.deepEqual(decodeVec(res[0].idx), [
+            [
+                "0.267261",
+                "0.534522",
+                "0.801784",
+                1
+            ],
+            [
+                "0.267261",
+                "0.534522",
+                "0.801784",
+                1
+            ]
+        ]);
+        assert.deepEqual(decodeVec(res[1].idx), [
+            [
+                "0.424264",
+                "0.565685",
+                "0.707107",
+                1
+            ],
+            [
+                "0.424264",
+                "0.565685",
+                "0.707107",
+                1
+            ]
+        ]);
     });
 
     it("select rowid", () => {
@@ -105,28 +161,20 @@ describe("vec", () => {
         conn.execute(`insert into vindex(title, description, rowid) values("[3,200,1]", "[3,4,5]", 2)`);
         conn.execute(`insert into vindex(title, description, rowid) values("[-1,2,10]", "[3,4,5]", 3)`);
         conn.execute(`insert into vindex(title, description, rowid) values("[1,2,5.1234]", "[3,4,5]", 4)`);
-        assert.deepEqual(conn.execute(`select rowid, distance from vindex where vec_search(title, "[1,2,5.1234]")`), [
-            {
-                "rowid": 4,
-                "distance": 0
-            },
-            {
-                "rowid": 3,
-                "distance": 0.053202033042907715
-            },
-            {
-                "rowid": 1,
-                "distance": 0.0728190541267395
-            },
-            {
-                "rowid": 2,
-                "distance": 0.635004460811615
-            }
-        ]);
-        assert.deepEqual(conn.execute(`select rowid, distance from vindex where vec_search(title, "[1,2,5.1234]:1")`), [{
-            "rowid": 4,
-            "distance": 0
-        }]);
+
+        var res = conn.execute(`select rowid, distance from vindex where vec_search(title, "[1,2,5.1234]")`);
+        assert.equal(res[0].rowid, 4);
+        assert.closeTo(res[0].distance, 0, 0.0001);
+        assert.equal(res[1].rowid, 3);
+        assert.closeTo(res[1].distance, 0.053202, 0.0001);
+        assert.equal(res[2].rowid, 1);
+        assert.closeTo(res[2].distance, 0.072819, 0.0001);
+        assert.equal(res[3].rowid, 2);
+        assert.closeTo(res[3].distance, 0.635004, 0.0001);
+
+        var res = conn.execute(`select rowid, distance from vindex where vec_search(title, "[1,2,5.1234]:1")`);
+        assert.equal(res[0].rowid, 4);
+        assert.closeTo(res[0].distance, 0, 0.0001);
     });
 
     it("detele", () => {
@@ -157,15 +205,67 @@ describe("vec", () => {
 
         var res = conn.execute(`select rowid, * from vindex_data`);
         assert.equal(res.length, 2);
-        assert.equal(res[0].idx.hex(), "77d6883e77d6083fb2414d3f010000000000000077d6883e77d6083fb2414d3f0200000000000000");
-        assert.equal(res[1].idx.hex(), "2439d93ec3d0103ff404353f01000000000000002439d93ec3d0103ff404353f0200000000000000");
+        assert.deepEqual(decodeVec(res[0].idx), [
+            [
+                "0.267261",
+                "0.534522",
+                "0.801784",
+                1
+            ],
+            [
+                "0.267261",
+                "0.534522",
+                "0.801784",
+                1
+            ]
+        ]);
+        assert.deepEqual(decodeVec(res[1].idx), [
+            [
+                "0.424264",
+                "0.565685",
+                "0.707107",
+                1
+            ],
+            [
+                "0.424264",
+                "0.565685",
+                "0.707107",
+                1
+            ]
+        ]);
 
         conn.execute(`update vindex set title="[1,2,4]" where rowid = 2`);
 
         var res = conn.execute(`select rowid, * from vindex_data`);
         assert.equal(res.length, 2);
-        assert.equal(res[0].idx.hex(), "77d6883e77d6083fb2414d3f010000000000000082745f3e8274df3e82745f3f0200000000000000");
-        assert.equal(res[1].idx.hex(), "2439d93ec3d0103ff404353f01000000000000002439d93ec3d0103ff404353f0200000000000000");
+        assert.deepEqual(decodeVec(res[0].idx), [
+            [
+                "0.267261",
+                "0.534522",
+                "0.801784",
+                1
+            ],
+            [
+                "0.267261",
+                "0.534522",
+                "0.801784",
+                1
+            ]
+        ]);
+        assert.deepEqual(decodeVec(res[1].idx), [
+            [
+                "0.424264",
+                "0.565685",
+                "0.707107",
+                1
+            ],
+            [
+                "0.424264",
+                "0.565685",
+                "0.707107",
+                1
+            ]
+        ]);
     });
 
     it("double insert in trans", () => {
@@ -180,8 +280,22 @@ describe("vec", () => {
 
         var res = conn.execute(`select rowid, * from vindex_data`);
         assert.equal(res.length, 2);
-        assert.equal(res[0].idx.hex(), "77d6883e77d6083fb2414d3f0300000000000000");
-        assert.equal(res[1].idx.hex(), "2439d93ec3d0103ff404353f0300000000000000");
+        assert.deepEqual(decodeVec(res[0].idx), [
+            [
+                "0.267261",
+                "0.534522",
+                "0.801784",
+                3
+            ]
+        ]);
+        assert.deepEqual(decodeVec(res[1].idx), [
+            [
+                "0.424264",
+                "0.565685",
+                "0.707107",
+                3
+            ]
+        ]);
     });
 
     it("insert after delete in trans", () => {
@@ -195,8 +309,22 @@ describe("vec", () => {
 
         var res = conn.execute(`select rowid, * from vindex_data`);
         assert.equal(res.length, 2);
-        assert.equal(res[0].idx.hex(), "abaaaa3eabaa2a3fabaa2a3f0300000000000000");
-        assert.equal(res[1].idx.hex(), "009e163fabd2483fabd2483e0300000000000000");
+        assert.deepEqual(decodeVec(res[0].idx), [
+            [
+                "0.333333",
+                "0.666667",
+                "0.666667",
+                3
+            ]
+        ]);
+        assert.deepEqual(decodeVec(res[1].idx), [
+            [
+                "0.588348",
+                "0.784465",
+                "0.196116",
+                3
+            ]
+        ]);
     });
 
     it("delete after insert in trans", () => {
@@ -225,8 +353,22 @@ describe("vec", () => {
 
         var res = conn.execute(`select rowid, * from vindex_data`);
         assert.equal(res.length, 2);
-        assert.equal(res[0].idx.hex(), "abaaaa3eabaa2a3fabaa2a3f0300000000000000");
-        assert.equal(res[1].idx.hex(), "009e163fabd2483fabd2483e0300000000000000");
+        assert.deepEqual(decodeVec(res[0].idx), [
+            [
+                "0.333333",
+                "0.666667",
+                "0.666667",
+                3
+            ]
+        ]);
+        assert.deepEqual(decodeVec(res[1].idx), [
+            [
+                "0.588348",
+                "0.784465",
+                "0.196116",
+                3
+            ]
+        ]);
 
         assert.deepEqual(conn.execute(`select rowid from vindex`), [
             {
@@ -242,8 +384,22 @@ describe("vec", () => {
 
         var res = conn.execute(`select rowid, * from vindex_data`);
         assert.equal(res.length, 2);
-        assert.equal(res[0].idx.hex(), "82745f3e8274df3e82745f3f0300000000000000");
-        assert.equal(res[1].idx.hex(), "009e163fabd2483fabd2483e0300000000000000");
+        assert.deepEqual(decodeVec(res[0].idx), [
+            [
+                "0.218218",
+                "0.436436",
+                "0.872872",
+                3
+            ]
+        ]);
+        assert.deepEqual(decodeVec(res[1].idx), [
+            [
+                "0.588348",
+                "0.784465",
+                "0.196116",
+                3
+            ]
+        ]);
     });
 
     it("benchmark", () => {
