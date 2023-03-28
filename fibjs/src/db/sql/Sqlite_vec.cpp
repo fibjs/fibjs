@@ -19,13 +19,13 @@ namespace fibjs {
 #define SQLITE_VEC_VERSION "v0.0.1"
 #define SQLITE_VEC_MAX_DIMENSIONS 4096
 
-#define VSS_INDEX_COLUMN_DISTANCE 0
-#define VSS_INDEX_COLUMN_OPERATION 1
-#define VSS_INDEX_COLUMN_VECTORS 2
+#define VEC_INDEX_COLUMN_DISTANCE 0
+#define VEC_INDEX_COLUMN_OPERATION 1
+#define VEC_INDEX_COLUMN_VECTORS 2
 
-#define VSS_SEARCH_FUNCTION SQLITE_INDEX_CONSTRAINT_FUNCTION
+#define VEC_SEARCH_FUNCTION SQLITE_INDEX_CONSTRAINT_FUNCTION
 
-#define VSS_INDEX_BLOCK_SIZE 4096
+#define VEC_INDEX_BLOCK_SIZE 4096
 
 static void vec_version(sqlite3_context* context, int argc, sqlite3_value** argv)
 {
@@ -66,7 +66,7 @@ public:
     void addPoint(const void* datapoint, hnswlib::labeltype label, bool replace_deleted = false)
     {
         if (cur_element_count == maxelements_) {
-            maxelements_ += VSS_INDEX_BLOCK_SIZE;
+            maxelements_ += VEC_INDEX_BLOCK_SIZE;
             data_ = (char*)realloc(data_, maxelements_ * size_per_element_);
         }
 
@@ -108,7 +108,7 @@ private:
 
         if (data) {
             cur_element_count = size / size_per_element_;
-            maxelements_ = (cur_element_count + VSS_INDEX_BLOCK_SIZE - 1) / VSS_INDEX_BLOCK_SIZE * VSS_INDEX_BLOCK_SIZE;
+            maxelements_ = (cur_element_count + VEC_INDEX_BLOCK_SIZE - 1) / VEC_INDEX_BLOCK_SIZE * VEC_INDEX_BLOCK_SIZE;
             data_ = (char*)malloc(maxelements_ * size_per_element_);
             if (data_ == nullptr)
                 return SQLITE_NOMEM;
@@ -442,28 +442,30 @@ static int vecIndexBestIndex(sqlite3_vtab* tab, sqlite3_index_info* pIdxInfo)
     for (int i = 0; i < pIdxInfo->nConstraint; i++) {
         auto constraint = pIdxInfo->aConstraint[i];
 
-        if (!constraint.usable)
-            continue;
-        if (constraint.op == VSS_SEARCH_FUNCTION) {
-            pIdxInfo->idxNum = constraint.iColumn - VSS_INDEX_COLUMN_VECTORS;
-            pIdxInfo->idxStr = (char*)"search";
-            pIdxInfo->aConstraintUsage[i].argvIndex = 1;
-            pIdxInfo->aConstraintUsage[i].omit = 1;
-
-            pIdxInfo->estimatedCost = 300.0;
-            pIdxInfo->estimatedRows = 10;
-        } else if (constraint.op == SQLITE_INDEX_CONSTRAINT_EQ) {
-            if (constraint.iColumn == -1) {
-                pIdxInfo->idxNum = -1;
-                pIdxInfo->idxStr = (char*)"equal";
+        if (constraint.usable) {
+            if (constraint.op == VEC_SEARCH_FUNCTION) {
                 pIdxInfo->aConstraintUsage[i].argvIndex = 1;
                 pIdxInfo->aConstraintUsage[i].omit = 1;
 
+                pIdxInfo->idxStr = (char*)"search";
+                pIdxInfo->idxNum = constraint.iColumn - VEC_INDEX_COLUMN_VECTORS;
+
                 pIdxInfo->estimatedCost = 300.0;
                 pIdxInfo->estimatedRows = 10;
+                return SQLITE_OK;
+            } else if (constraint.op == SQLITE_INDEX_CONSTRAINT_EQ && constraint.iColumn == -1) {
+                pIdxInfo->aConstraintUsage[i].argvIndex = 1;
+                pIdxInfo->aConstraintUsage[i].omit = 1;
+
+                pIdxInfo->idxStr = (char*)"equal";
+                pIdxInfo->idxNum = -1;
+
+                pIdxInfo->estimatedCost = 300.0;
+                pIdxInfo->estimatedRows = 10;
+                return SQLITE_OK;
+            } else {
+                // printf("unsupported constraint: %d\n", constraint.op);
             }
-        } else {
-            // printf("unsupported constraint: %d\n", constraint.op);
         }
     }
 
@@ -561,12 +563,6 @@ static int vecIndexFilter(sqlite3_vtab_cursor* pVtabCursor, int idxNum, const ch
         return SQLITE_OK;
     }
 
-    if (strcmp(idxStr, "fullscan") == 0) {
-        pCur->query_type = QueryType::fullscan;
-        pCur->iCurrent = 0;
-        return SQLITE_OK;
-    }
-
     if (strcmp(idxStr, "equal") == 0) {
         pCur->query_type = QueryType::search;
         hnswlib::labeltype id = (hnswlib::labeltype)sqlite3_value_int64(argv[0]);
@@ -579,8 +575,12 @@ static int vecIndexFilter(sqlite3_vtab_cursor* pVtabCursor, int idxNum, const ch
         return SQLITE_OK;
     }
 
-    printf("filter argc=%d, idxStr='%s', idxNum=%d\n", argc, idxStr, idxNum);
-    _exit(0);
+    if (strcmp(idxStr, "fullscan") == 0) {
+        pCur->query_type = QueryType::fullscan;
+        pCur->iCurrent = 0;
+        return SQLITE_OK;
+    }
+
     return SQLITE_OK;
 }
 
@@ -620,7 +620,7 @@ static int vecIndexColumn(sqlite3_vtab_cursor* cur, sqlite3_context* ctx, int i)
 {
     VecCursor* pCur = (VecCursor*)cur;
 
-    if (i == VSS_INDEX_COLUMN_DISTANCE) {
+    if (i == VEC_INDEX_COLUMN_DISTANCE) {
         switch (pCur->query_type) {
         case QueryType::search:
             sqlite3_result_double(ctx, pCur->search_result[pCur->iCurrent].first);
@@ -680,7 +680,7 @@ static int vecIndexUpdate(sqlite3_vtab* pVtab, int argc, sqlite3_value** argv, s
         }
 
         for (int i = 0; i < p->indexCount; i++) {
-            std::vector<float> vec = parse_vector(argv[2 + VSS_INDEX_COLUMN_VECTORS + i], p->indexes[i].dim());
+            std::vector<float> vec = parse_vector(argv[2 + VEC_INDEX_COLUMN_VECTORS + i], p->indexes[i].dim());
             if (vec.size() == 0) {
                 p->zErrMsg = sqlite3_mprintf("The variable \"%s\" must be a vector", p->indexes[i].name.c_str());
                 return SQLITE_ERROR;
@@ -707,8 +707,8 @@ static int vecIndexUpdate(sqlite3_vtab* pVtab, int argc, sqlite3_value** argv, s
         for (int i = 0; i < p->indexCount; i++) {
             std::vector<float> vec;
 
-            if (SQLITE_NULL != sqlite3_value_type(argv[2 + VSS_INDEX_COLUMN_VECTORS + i])) {
-                vec = parse_vector(argv[2 + VSS_INDEX_COLUMN_VECTORS + i], p->indexes[i].dim());
+            if (SQLITE_NULL != sqlite3_value_type(argv[2 + VEC_INDEX_COLUMN_VECTORS + i])) {
+                vec = parse_vector(argv[2 + VEC_INDEX_COLUMN_VECTORS + i], p->indexes[i].dim());
                 if (vec.size() == 0) {
                     p->zErrMsg = sqlite3_mprintf("The variable \"%s\" must be a vector", p->indexes[i].name.c_str());
                     return SQLITE_ERROR;
@@ -762,7 +762,7 @@ static int vecIndexFindMethod(sqlite3_vtab* pVtab, int nArg, const char* zName,
     if (sqlite3_stricmp(zName, "vec_search") == 0) {
         *pxFunc = vecSearchFunc;
         *ppArg = 0;
-        return VSS_SEARCH_FUNCTION;
+        return VEC_SEARCH_FUNCTION;
     }
 
     return SQLITE_OK;
