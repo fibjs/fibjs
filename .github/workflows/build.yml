@@ -32,28 +32,46 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        os: [ubuntu-20.04]
-        target_arch: [amd64, i386, arm, arm64, mips64, ppc64, loong64]
-        build_type: [release]
         include:
-          - os: ubuntu-18.04
+          - os: ubuntu-20.04
+            target_arch: amd64
+            build_type: release
+          - os: ubuntu-20.04
+            target_arch: i386
+            build_type: release
+          - os: ubuntu-20.04
+            target_arch: arm64
+            build_type: release
+          - os: ubuntu-20.04
+            target_arch: arm
+            build_type: release
+          - os: ubuntu-20.04
+            target_arch: mips64
+            build_type: release
+          - os: ubuntu-20.04
+            target_arch: ppc64
+            build_type: release
+          - os: ubuntu-20.04
+            target_arch: loong64
+            build_type: release
+          - os: ubuntu-20.04
             build_target: alpine
             target_arch: amd64
             build_type: release
-          - os: ubuntu-18.04
+          - os: ubuntu-20.04
             build_target: alpine
             target_arch: i386
             build_type: release
-          - os: ubuntu-18.04
+          - os: ubuntu-20.04
             build_target: alpine
             target_arch: arm64
             build_type: release
-          - os: ubuntu-18.04
+          - os: ubuntu-20.04
             build_target: android
             target_arch: amd64
             build_type: release
             skip_test: skip
-          - os: ubuntu-18.04
+          - os: ubuntu-20.04
             build_target: android
             target_arch: arm64
             build_type: release
