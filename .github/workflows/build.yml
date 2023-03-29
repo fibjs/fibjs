@@ -52,6 +52,9 @@ jobs:
             target_arch: ppc64
             build_type: release
           - os: ubuntu-20.04
+            target_arch: riscv64
+            build_type: release
+          - os: ubuntu-20.04
             target_arch: loong64
             build_type: release
           - os: ubuntu-20.04
