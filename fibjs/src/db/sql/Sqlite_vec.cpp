@@ -6,6 +6,7 @@
  */
 
 #include "object.h"
+#include "ifs/os.h"
 #include "SQLite.h"
 #include "hnswlib/hnswlib.h"
 #include "hnswlib/bruteforce.h"
@@ -81,6 +82,93 @@ public:
         memcpy(data_ + size_per_element_ * cur_c,
             data_ + size_per_element_ * (cur_element_count - 1), size_per_element_);
         cur_element_count--;
+    }
+
+    static bool appendResult(std::priority_queue<std::pair<float, hnswlib::labeltype>>& topResults, size_t k,
+        hnswlib::labeltype label, float dist)
+    {
+        if (topResults.size() == k && dist > topResults.top().first)
+            return false;
+
+        topResults.push(std::pair<float, hnswlib::labeltype>(dist, label));
+        if (topResults.size() > k)
+            topResults.pop();
+
+        return true;
+    }
+
+    class search_job {
+    public:
+        const VecColumn* index;
+        size_t begin, end;
+        const void* query_data;
+        size_t k;
+        std::priority_queue<std::pair<float, hnswlib::labeltype>> topResults;
+        exlib::Event ev;
+    };
+
+    static int search_thread(search_job* job)
+    {
+        for (size_t i = job->begin; i < job->end; i++) {
+            hnswlib::labeltype label = *((hnswlib::labeltype*)(job->index->data_ + job->index->size_per_element_ * i + job->index->data_size_));
+            float dist = job->index->fstdistfunc_(job->query_data, job->index->data_ + job->index->size_per_element_ * i, job->index->dist_func_param_);
+            appendResult(job->topResults, job->k, label, dist);
+        }
+        job->ev.set();
+
+        return 0;
+    }
+
+    std::priority_queue<std::pair<float, hnswlib::labeltype>> search(const void* query_data, size_t k) const
+    {
+        assert(k <= cur_element_count);
+
+        int32_t cpus = 0;
+        os_base::cpuNumbers(cpus);
+
+        int worker_count = cpus - 2;
+        if (worker_count * 32 > cur_element_count)
+            worker_count = cur_element_count / 32;
+
+        if (worker_count < 1)
+            worker_count = 1;
+
+        search_job* jobs = new search_job[worker_count];
+        size_t step = cur_element_count / worker_count;
+
+        for (int i = 0; i < worker_count; i++) {
+            jobs[i].index = this;
+            jobs[i].begin = i * step;
+
+            if (i == worker_count - 1)
+                jobs[i].end = cur_element_count;
+            else
+                jobs[i].end = (i + 1) * step;
+
+            jobs[i].query_data = query_data;
+            jobs[i].k = k;
+
+            if (i > 0)
+                asyncCall(search_thread, &jobs[i], CALL_E_LONGSYNC);
+        }
+
+        search_thread(&jobs[0]);
+
+        for (int i = 0; i < worker_count; i++)
+            jobs[i].ev.wait();
+
+        std::priority_queue<std::pair<float, hnswlib::labeltype>> topResults;
+        for (int i = 0; i < worker_count; i++) {
+            while (!jobs[i].topResults.empty()) {
+                auto r = jobs[i].topResults.top();
+                appendResult(topResults, k, r.second, r.first);
+                jobs[i].topResults.pop();
+            }
+        }
+
+        delete[] jobs;
+
+        return topResults;
     }
 
     hnswlib::labeltype rowid(size_t idx) const
@@ -547,7 +635,7 @@ static int vecIndexFilter(sqlite3_vtab_cursor* pVtabCursor, int idxNum, const ch
 
         std::priority_queue<std::pair<float, hnswlib::labeltype>> search_result;
         VecColumn& idx = ((VecIndex*)pCur->pVtab)->indexes[0];
-        search_result = column.searchKnn(query_vector.data(), nlimit < idx.cur_element_count ? nlimit : idx.cur_element_count);
+        search_result = column.search(query_vector.data(), nlimit < idx.cur_element_count ? nlimit : idx.cur_element_count);
 
         size_t sz = search_result.size();
 

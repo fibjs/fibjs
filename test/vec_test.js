@@ -408,19 +408,31 @@ describe("vec", () => {
         console.time("insert");
         conn.trans(() => {
             for (var i = 0; i < 4096; i++) {
-                var title = [Math.random(), Math.random(), Math.random()];
-                var description = [Math.random(), Math.random(), Math.random()];
+                var title = [];
+                var description = [];
+
+                for (var j = 0; j < 3; j++) {
+                    title.push(Math.random());
+                    description.push(Math.random());
+                }
+
                 conn.execute(`insert into vindex(title, description, rowid) values("${JSON.stringify(title)}", "${JSON.stringify(description)}", ${i})`);
             }
         })
         console.timeEnd("insert");
 
+        var key = [];
+
+        for (var j = 0; j < 3; j++) {
+            key.push(Math.random());
+        }
+
         console.time("vec_search");
-        var r1 = conn.execute(`select rowid, distance from vindex where vec_search(title, "[1,2,5.1234]") limit 10`);
+        var r1 = conn.execute(`select rowid, distance from vindex where vec_search(title, "${JSON.stringify(key)}") limit 10`);
         console.timeEnd("vec_search");
 
         console.time("vec_search limit");
-        var r2 = conn.execute(`select rowid, distance from vindex where vec_search(title, "[1,2,5.1234]:10")`);
+        var r2 = conn.execute(`select rowid, distance from vindex where vec_search(title, "${JSON.stringify(key)}:10")`);
         console.timeEnd("vec_search limit");
 
         assert.deepEqual(r1, r2);
