@@ -47,16 +47,36 @@ public:
     }
 
 public:
-    int initIndex(std::string _name, size_t dim)
+    int init(std::string _name, size_t dim)
     {
         name = _name;
-        return init_index(dim);
+
+        space = new hnswlib::InnerProductSpace(dim);
+        data_size_ = space->get_data_size();
+        fstdistfunc_ = space->get_dist_func();
+        dist_func_param_ = space->get_dist_func_param();
+        size_per_element_ = data_size_ + sizeof(hnswlib::labeltype);
+
+        maxelements_ = 0;
+        data_ = nullptr;
+        cur_element_count = 0;
+
+        return SQLITE_OK;
     }
 
-    int loadIndex(std::string _name, size_t dim, const void* data, size_t size)
+    int load(const void* data, size_t size)
     {
-        name = _name;
-        return init_index(dim, data, size);
+        cur_element_count = size / size_per_element_;
+        maxelements_ = (cur_element_count + VEC_INDEX_BLOCK_SIZE - 1) / VEC_INDEX_BLOCK_SIZE * VEC_INDEX_BLOCK_SIZE;
+        data_ = (char*)malloc(maxelements_ * size_per_element_);
+        if (data_ == nullptr)
+            return SQLITE_NOMEM;
+        memcpy(data_, data, cur_element_count * size_per_element_);
+
+        for (size_t i = 0; i < cur_element_count; i++)
+            dict_external_to_internal[rowid(i)] = i;
+
+        return SQLITE_OK;
     }
 
     size_t dim() const
@@ -179,35 +199,12 @@ public:
 public:
     std::string name;
     hnswlib::InnerProductSpace* space = nullptr;
+};
 
-private:
-    int init_index(size_t dim, const void* data = NULL, size_t size = 0)
-    {
-        space = new hnswlib::InnerProductSpace(dim);
-
-        maxelements_ = 0;
-        data_size_ = space->get_data_size();
-        fstdistfunc_ = space->get_dist_func();
-        dist_func_param_ = space->get_dist_func_param();
-        size_per_element_ = data_size_ + sizeof(hnswlib::labeltype);
-
-        data_ = nullptr;
-        cur_element_count = 0;
-
-        if (data) {
-            cur_element_count = size / size_per_element_;
-            maxelements_ = (cur_element_count + VEC_INDEX_BLOCK_SIZE - 1) / VEC_INDEX_BLOCK_SIZE * VEC_INDEX_BLOCK_SIZE;
-            data_ = (char*)malloc(maxelements_ * size_per_element_);
-            if (data_ == nullptr)
-                return SQLITE_NOMEM;
-            memcpy(data_, data, cur_element_count * size_per_element_);
-
-            for (size_t i = 0; i < cur_element_count; i++)
-                dict_external_to_internal[rowid(i)] = i;
-        }
-
-        return SQLITE_OK;
-    }
+class VecIndexColumn {
+public:
+    std::string name;
+    sqlite3_int64 dimensions;
 };
 
 class VecIndex : public sqlite3_vtab {
@@ -219,17 +216,22 @@ public:
     };
 
 public:
-    VecIndex(int32_t sz)
+    VecIndex(sqlite3* db, const char* _name, std::vector<VecIndexColumn>& _columns)
+        : db(db)
+        , name(_name)
     {
         memset(this, 0, sizeof(sqlite3_vtab));
 
-        indexCount = sz;
-        indexes = new VecColumn[sz];
+        indexCount = _columns.size();
+        columns = new VecColumn[indexCount];
+
+        for (int i = 0; i < indexCount; i++)
+            columns[i].init(_columns[i].name, _columns[i].dimensions);
     }
 
     ~VecIndex()
     {
-        delete[] indexes;
+        delete[] columns;
     }
 
 public:
@@ -238,13 +240,17 @@ public:
         const char* zQuery;
         int rc;
 
-        rc = sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS vec_index(tbl, idx, name, dim, data)", 0, 0, 0);
+        rc = sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS vec_index(tbl, name, data)", 0, 0, 0);
+        if (rc != SQLITE_OK)
+            return rc;
+
+        rc = sqlite3_exec(db, "CREATE INDEX IF NOT EXISTS vi_index ON vec_index (tbl, name)", 0, 0, 0);
         if (rc != SQLITE_OK)
             return rc;
 
         for (int i = 0; i < indexCount; i++) {
-            zQuery = sqlite3_mprintf("INSERT INTO vec_index(tbl, idx, name, dim) VALUES (\"%w\", %d, \"%w\", %d)",
-                name.c_str(), i, indexes[i].name.c_str(), indexes[i].dim());
+            zQuery = sqlite3_mprintf("INSERT INTO vec_index(tbl, name) VALUES (\"%w\", \"%w\")",
+                name.c_str(), columns[i].name.c_str());
             rc = sqlite3_exec(db, zQuery, 0, 0, 0);
             sqlite3_free((void*)zQuery);
             if (rc != SQLITE_OK)
@@ -270,28 +276,27 @@ public:
         sqlite3_stmt* stmt;
         int rc;
 
-        zQuery = sqlite3_mprintf("SELECT idx, name, dim, data  FROM vec_index WHERE tbl = \"%w\" ORDER BY idx",
-            name.c_str());
-        rc = sqlite3_prepare_v2(db, zQuery, -1, &stmt, 0);
-        sqlite3_free((void*)zQuery);
-        if (rc != SQLITE_OK)
-            return rc;
-
-        while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-            int idx = sqlite3_column_int(stmt, 0);
-            std::string name = (const char*)sqlite3_column_text(stmt, 1);
-            int dim = sqlite3_column_int(stmt, 2);
-            const void* idx_data = sqlite3_column_blob(stmt, 3);
-            size_t idx_size = sqlite3_column_bytes(stmt, 3);
-
-            rc = indexes[idx].loadIndex(name, dim, idx_data, idx_size);
+        for (int i = 0; i < indexCount; i++) {
+            zQuery = sqlite3_mprintf("SELECT data  FROM vec_index WHERE tbl = \"%w\" AND name = \"%w\"",
+                name.c_str(), columns[i].name.c_str());
+            rc = sqlite3_prepare_v2(db, zQuery, -1, &stmt, 0);
+            sqlite3_free((void*)zQuery);
             if (rc != SQLITE_OK)
-                break;
+                return rc;
+
+            if ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+                const void* idx_data = sqlite3_column_blob(stmt, 0);
+                size_t idx_size = sqlite3_column_bytes(stmt, 0);
+
+                rc = columns[i].load(idx_data, idx_size);
+            }
+
+            sqlite3_finalize(stmt);
+            if (rc != SQLITE_OK)
+                return rc;
         }
 
-        sqlite3_finalize(stmt);
-
-        return rc == SQLITE_DONE ? SQLITE_OK : rc;
+        return SQLITE_OK;
     }
 
     int sync_index()
@@ -305,14 +310,14 @@ public:
                     // delete
                     for (int i = 0; i < indexCount; i++) {
                         dirty[i] = true;
-                        indexes[i].removePoint(op.rowid);
+                        columns[i].removePoint(op.rowid);
                     }
                 } else {
                     // insert or update
                     for (int i = 0; i < indexCount; i++)
                         if (op.datas[i].size()) {
                             dirty[i] = true;
-                            indexes[i].addPoint(op.datas[i].data(), op.rowid);
+                            columns[i].addPoint(op.datas[i].data(), op.rowid);
                         }
                 }
             }
@@ -325,13 +330,13 @@ public:
 
             for (int i = 0; i < indexCount; i++)
                 if (dirty[i]) {
-                    zQuery = sqlite3_mprintf("UPDATE vec_index SET data = ? WHERE tbl = \"%w\" AND idx = %d",
-                        name.c_str(), i);
+                    zQuery = sqlite3_mprintf("UPDATE vec_index SET data = ? WHERE tbl = \"%w\" AND name = \"%w\"",
+                        name.c_str(), columns[i].name.c_str());
                     rc = sqlite3_prepare_v2(db, zQuery, -1, &stmt, 0);
                     if (rc != SQLITE_OK || stmt == 0) {
                         return rc;
                     }
-                    const VecColumn& _idx = indexes[i];
+                    const VecColumn& _idx = columns[i];
                     rc = sqlite3_bind_blob64(stmt, 1, _idx.data_, _idx.cur_element_count * _idx.size_per_element_, SQLITE_TRANSIENT);
                     if (rc != SQLITE_OK) {
                         sqlite3_free((void*)zQuery);
@@ -362,7 +367,7 @@ public:
         if (it != incr_ops.end())
             return it->second;
 
-        const VecColumn& idx = indexes[0];
+        const VecColumn& idx = columns[0];
         return idx.dict_external_to_internal.find(rowid) != idx.dict_external_to_internal.end();
     }
 
@@ -370,10 +375,9 @@ public:
     sqlite3* db;
 
     std::string name;
-    std::string schema;
 
     int32_t indexCount;
-    VecColumn* indexes;
+    VecColumn* columns;
 
     std::vector<op> ops;
     std::unordered_map<hnswlib::labeltype, bool> incr_ops;
@@ -395,12 +399,6 @@ public:
     QueryType query_type;
     std::vector<std::pair<float, hnswlib::labeltype>> search_result;
     size_t iCurrent;
-};
-
-class VecIndexColumn {
-public:
-    std::string name;
-    sqlite3_int64 dimensions;
 };
 
 std::vector<VecIndexColumn> parse_constructor(int argc, const char* const* argv)
@@ -492,25 +490,13 @@ static int init(sqlite3* db, void* pAux, int argc, const char* const* argv,
     if (rc != SQLITE_OK)
         return rc;
 
-    VecIndex* pNew = new VecIndex(columns.size());
-    pNew->schema = argv[1];
-    pNew->name = argv[2];
-    pNew->db = db;
-
-    if (isCreate) {
-        for (int i = 0; i < pNew->indexCount; i++)
-            pNew->indexes[i].initIndex(columns[i].name, columns[i].dimensions);
-
-        pNew->create_index();
-    } else {
-        rc = pNew->load_index();
-        if (rc != SQLITE_OK)
-            return rc;
-    }
-
+    VecIndex* pNew = new VecIndex(db, argv[2], columns);
     *ppVtab = pNew;
 
-    return SQLITE_OK;
+    if (isCreate)
+        return pNew->create_index();
+    else
+        return pNew->load_index();
 }
 
 static int vecIndexCreate(sqlite3* db, void* pAux, int argc, const char* const* argv,
@@ -604,7 +590,7 @@ static int vecIndexFilter(sqlite3_vtab_cursor* pVtabCursor, int idxNum, const ch
 
     if (strcmp(idxStr, "search") == 0) {
         pCur->query_type = QueryType::search;
-        VecColumn& column = ((VecIndex*)pCur->pVtab)->indexes[idxNum];
+        VecColumn& column = ((VecIndex*)pCur->pVtab)->columns[idxNum];
         const char* txt = (const char*)sqlite3_value_text(argv[0]);
         std::string tmp;
         int nlimit = 1024;
@@ -634,8 +620,7 @@ static int vecIndexFilter(sqlite3_vtab_cursor* pVtabCursor, int idxNum, const ch
         }
 
         std::priority_queue<std::pair<float, hnswlib::labeltype>> search_result;
-        VecColumn& idx = ((VecIndex*)pCur->pVtab)->indexes[0];
-        search_result = column.search(query_vector.data(), nlimit < idx.cur_element_count ? nlimit : idx.cur_element_count);
+        search_result = column.search(query_vector.data(), nlimit < column.cur_element_count ? nlimit : column.cur_element_count);
 
         size_t sz = search_result.size();
 
@@ -696,7 +681,7 @@ static int vecIndexEof(sqlite3_vtab_cursor* cur)
     case QueryType::search:
         return pCur->iCurrent >= pCur->search_result.size();
     case QueryType::fullscan:
-        return pCur->iCurrent >= ((VecIndex*)pCur->pVtab)->indexes[0].cur_element_count;
+        return pCur->iCurrent >= ((VecIndex*)pCur->pVtab)->columns[0].cur_element_count;
     default:
         exit(0);
         return 1;
@@ -730,7 +715,7 @@ static int vecIndexRowid(sqlite3_vtab_cursor* cur, sqlite_int64* pRowid)
         *pRowid = pCur->search_result[pCur->iCurrent].second;
         break;
     case QueryType::fullscan:
-        *pRowid = ((VecIndex*)pCur->pVtab)->indexes[0].rowid(pCur->iCurrent);
+        *pRowid = ((VecIndex*)pCur->pVtab)->columns[0].rowid(pCur->iCurrent);
         break;
     default:
         exit(0);
@@ -768,14 +753,14 @@ static int vecIndexUpdate(sqlite3_vtab* pVtab, int argc, sqlite3_value** argv, s
         }
 
         for (int i = 0; i < p->indexCount; i++) {
-            std::vector<float> vec = parse_vector(argv[2 + VEC_INDEX_COLUMN_VECTORS + i], p->indexes[i].dim());
+            std::vector<float> vec = parse_vector(argv[2 + VEC_INDEX_COLUMN_VECTORS + i], p->columns[i].dim());
             if (vec.size() == 0) {
-                p->zErrMsg = sqlite3_mprintf("The variable \"%s\" must be a vector", p->indexes[i].name.c_str());
+                p->zErrMsg = sqlite3_mprintf("The variable \"%s\" must be a vector", p->columns[i].name.c_str());
                 return SQLITE_ERROR;
             }
-            if (vec.size() > p->indexes[i].dim()) {
+            if (vec.size() > p->columns[i].dim()) {
                 p->zErrMsg = sqlite3_mprintf("Vector \"%s\" size must be less than or equal to %d",
-                    p->indexes[i].name.c_str(), p->indexes[i].dim());
+                    p->columns[i].name.c_str(), p->columns[i].dim());
                 return SQLITE_ERROR;
             }
 
@@ -796,14 +781,14 @@ static int vecIndexUpdate(sqlite3_vtab* pVtab, int argc, sqlite3_value** argv, s
             std::vector<float> vec;
 
             if (SQLITE_NULL != sqlite3_value_type(argv[2 + VEC_INDEX_COLUMN_VECTORS + i])) {
-                vec = parse_vector(argv[2 + VEC_INDEX_COLUMN_VECTORS + i], p->indexes[i].dim());
+                vec = parse_vector(argv[2 + VEC_INDEX_COLUMN_VECTORS + i], p->columns[i].dim());
                 if (vec.size() == 0) {
-                    p->zErrMsg = sqlite3_mprintf("The variable \"%s\" must be a vector", p->indexes[i].name.c_str());
+                    p->zErrMsg = sqlite3_mprintf("The variable \"%s\" must be a vector", p->columns[i].name.c_str());
                     return SQLITE_ERROR;
                 }
-                if (vec.size() > p->indexes[i].dim()) {
+                if (vec.size() > p->columns[i].dim()) {
                     p->zErrMsg = sqlite3_mprintf("Vector \"%s\" size must be less than or equal to %d",
-                        p->indexes[i].name.c_str(), p->indexes[i].dim());
+                        p->columns[i].name.c_str(), p->columns[i].dim());
                     return SQLITE_ERROR;
                 }
             }
