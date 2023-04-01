@@ -1,9 +1,17 @@
 /*! @brief 缓存读取对象
 
- BufferedReader 对象用于对二进制流对象数据进行缓存，并提供文本读取能力，仅支持 utf-8 格式转换。创建方法：
+ BufferedStream 对象是一个用于二进制流读取的缓存流对象。它可以对其底层流进行缓存，并提供文本读取能力。在使用 BufferedStream 对象时，只需要将待处理的流对象作为构造参数传入即可。创建方法：
  ```JavaScript
  var reader = new io.BufferedStream(stream);
  ```
+
+ BufferedStream 继承自 Stream 对象，具有 Stream 对象的所有方法和属性。其中，stream 属性用于查询创建缓存对象时的流对象。BufferedStream 对象还支持 EOL 属性用于查询和设置行结尾标识（缺省时，posix:\"\n\"；windows:\"\r\n\"）以及 charset 属性用于查询和设置当前对象处理文本时的字符集，缺省为 utf-8。
+
+ BufferedStream 对象在读取流数据时，采用分块的方式，先将数据读入到缓冲区中，再从缓冲区中获取数据，这样可以有效减少读取流数据时的网络交互次数，提高了读取效率。
+
+ BufferedStream 对象还提供了 write 方法将给定的数据写入流，并在底层流对象处于写入阻塞时，等待其可以接受数据后再进行下一步操作。Flush 方法将文件缓冲区内容写入物理设备。close 方法关闭当前流对象。部分方法的具体实现可以在子类中进行实现。
+
+ 在使用 BufferedStream 对象时，需要注意不要将其与其他已经在使用的底层流对象混用，否则可能会导致数据重复读取或者读取错误。
  */
 interface BufferedStream : Stream
 {
