@@ -631,8 +631,7 @@ describe("vm", () => {
             Object,
             Array,
             String,
-            Boolean,
-            _: new.target
+            Boolean
         };
         modList[3] = {
             a: new Map(),

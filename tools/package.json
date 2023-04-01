@@ -8,6 +8,7 @@
     "pegjs": "^0.10.0",
     "uglify-js": "^3.0.27",
     "devtools-protocol": "^0.0.856957",
-    "dts-dom": "^3.6.0"
+    "dts-dom": "^3.6.0",
+    "fib-spliter": "^1.0.0"
   }
 }
