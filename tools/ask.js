@@ -5,7 +5,8 @@ const ChatGTP = require('./util/chatgpt');
 const chatgpt = new ChatGTP(process.env.OPENAI_API_KEY);
 
 const conn = db.open('sqlite:./temp/docs.db');
-const prompt = `You are a fibjs development assistant, please answer the questions and explain in detail strictly based on the following information, and be sure not to refer to the nodejs documentation and source code`;
+const prompt = `You are a fibjs development assistant, please answer the questions and explain in detail strictly based on the following information,
+If the following information does not relate to the query, simply state 'Found Nothing'. Ignore outlier search results which has nothing to do with the question.`;
 const modules = `fibjs has the following modules built in: ${util.buildInfo().modules.join(',')}`;
 
 while (true) {
