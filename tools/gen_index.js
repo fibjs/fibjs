@@ -29,22 +29,24 @@ res.forEach(element => {
 var ids = new Set();
 
 nodes.forEach(function (node) {
-    var id = hash.md5(node).digest('hex');
+    if (node.length > 32) {
+        var id = hash.md5(node).digest('hex');
 
-    if (!ids.has(id)) {
-        ids.add(id);
+        if (!ids.has(id)) {
+            ids.add(id);
 
-        if (docs[id] === undefined) {
-            console.log('inserting', id);
-            var res = chatgpt.get_embedding(node);
-            conn.execute('INSERT INTO docs (id, text, embedding, total_tokens) VALUES (?, ?, ?, ?)', id, node,
-                JSON.stringify(res.data[0].embedding), res.usage.total_tokens);
-        } else if (docs[id] === 1) {
-            console.log('updating', id);
-            conn.execute('UPDATE docs SET deleted = 0 WHERE id = ?', id);
+            if (docs[id] === undefined) {
+                console.log('inserting', id);
+                var res = chatgpt.get_embedding(node);
+                conn.execute('INSERT INTO docs (id, text, embedding, total_tokens) VALUES (?, ?, ?, ?)', id, node,
+                    JSON.stringify(res.data[0].embedding), res.usage.total_tokens);
+            } else if (docs[id] === 1) {
+                console.log('updating', id);
+                conn.execute('UPDATE docs SET deleted = 0 WHERE id = ?', id);
+            }
+
+            delete docs[id];
         }
-
-        delete docs[id];
     }
 });
 
