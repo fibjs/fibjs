@@ -5,11 +5,9 @@ const ChatGTP = require('./util/chatgpt');
 const chatgpt = new ChatGTP(process.env.OPENAI_API_KEY);
 
 const conn = db.open('sqlite:./temp/docs.db');
-const prompt = `You are a fibjs development assistant, please answer the questions and explain in detail strictly based on the following information.
+const prompt = `You are a fibjs development assistant, please answer the questions and explain in detail strictly based on the above information.
 Ignore outlier search results which has nothing to do with the question.
-Avoid any references to current or past political figures or events, as well as historical figures or events that may be controversial or divisive.
-For questions that are not related to programming, ChatGPT should reject them and inform the user that "Your question is not related to programming. Please provide a programming-related question.".`;
-const modules = `fibjs has the following modules built in: ${util.buildInfo().modules.join(',')}`;
+For questions that are not related to fibjs, ChatGPT should reject them and inform the user that "Your question is not related to fibjs. Please provide a fibjs-related question."`;
 
 while (true) {
     var question = console.readLine("Ask a question: ");
@@ -32,16 +30,12 @@ while (true) {
         {
             role: 'system',
             content: prompt
-        },
-        {
-            role: 'system',
-            content: modules
         }
     ];
 
     contents.forEach((content) => {
-        // console.notice(`id: ${content.id} distance: ${content.distance}`);
-        // console.log('content:', content.text);
+        console.notice(`id: ${content.id} distance: ${content.distance}`);
+        console.log('content:', content.text);
         messages.push({
             role: 'system',
             content: content.text
