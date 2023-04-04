@@ -1,4 +1,55 @@
-/*! @brief http 容器对象，用于 http header，cookie，query，form，等数据的存储与组织 */
+/*! @brief HttpCollection 是一个通用容器，用于处理 http 消息中的 headers, query, form, cookie 数据
+
+我们以 headers 为例，说明 HttpCollection 的使用方法。
+
+HttpCollection 支持三种形式添加数据：
+
+1. 添加一个键值数据，添加数据并不修改已存在的键值的数据。`add`
+
+```JavaScript
+headers.add({
+    'Content-Type': 'text/plain',
+    'User-Agent': 'fibjs'
+});
+```
+
+2. 添加一个键值的一组数据，添加数据并不修改已存在的键值的数据。`add`
+
+```JavaScript
+headers.add('Set-Cookie', [
+    'a=10',
+    'b=20'
+]);
+```
+
+3. 添加一个键值数据，添加数据并不修改已存在的键值的数据。`add`
+
+```JavaScript
+headers.add('Accept-Encoding', 'gzip');
+```
+
+HttpCollection 设置数据的形式与添加相同，使用的方法是 `set`。
+
+我们可以使用 `has` 检查容器内是否存在指定键值的数据
+
+```JavaScript
+const contentTypeExists = headers.has('Content-Type');
+```
+
+使用 `first` 获取容器内某个键对应的第一个值：
+
+```JavaScript
+const contentType = headers.first('Content-Type');
+```
+
+使用 `all` 查询指定键值的全部值，返回一个数组。如果传递一个空字符串的参数，则返回全部值
+
+```JavaScript
+const cookieArray = headers.all('Set-Cookie');
+const alls = headers.all();
+```
+
+使用 `delete` 方法删除指定键值的所有数据，返回 `true` 表示 */
 interface HttpCollection : object
 {
     /*! @brief 清除容器数据 */

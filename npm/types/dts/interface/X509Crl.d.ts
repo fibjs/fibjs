@@ -2,12 +2,32 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description x509 撤销证书对象
+ * @description X509Crl 对象是 crypto 模块中的一个对象，用来表示 X509 撤销证书，即证书的吊销列表，与 CA 相关的操作如 X509 证书链的验证都会用到撤销列表信息
  * 
- *  X509Crl 对象属于 crypto 模块，创建：
- *  ```JavaScript
- *  var k = new crypto.X509Crl();
- *  ```
+ *  X509Crl 在 crypto 模块声明，故可以通过下面的代码来引入：
+ * 
+ * ```JavaScript
+ * const crypto = require('crypto');
+ * ```
+ * 
+ * 用户可以通过新建 X509Crl 类对象，调用对象的 import 方法加载一个 DER 或 PEM 格式的证书。可以通过 clear 方法清除已经加载的撤销证书列表信息，控制加载状态，以支持重复的证书加载工作。然后可以使用 nextUpdate 方法获取撤销列表的下次更新时间，调用 serials 获取证书吊销序列号列表等。
+ * 
+ * 下面这个示例演示如何从文件中导入一个撤销证 ，并将其列表在控制台输出：
+ * 
+ * ```JavaScript
+ * const crypto = require('crypto');
+ * const fs = require('fs');
+ * 
+ * // 加载 PEM 格式文件
+ * var pemFile = './mycrl.pem';
+ * var pemText = fs.readFile(pemFile).toString();
+ * var crl = new crypto.X509Crl(pemText);
+ * 
+ * // 显示撤销列表中的证书吊销序列号
+ * for (var i = 0; i < crl.serials.length; i++) {
+ *     console.log(crl.serials[i]);
+ * }
+ * ```
  *  
  */
 declare class Class_X509Crl extends Class_object {

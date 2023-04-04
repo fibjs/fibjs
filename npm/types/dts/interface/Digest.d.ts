@@ -4,6 +4,26 @@
 /// <reference path="../interface/PKey.d.ts" />
 /**
  * @description 信息摘要对象 
+ * 
+ * 可以这样使用 Digest 对象:
+ * 
+ * ```
+ * const crypto = require('crypto');
+ * // 创建 SHA-512 摘要运算对象
+ * const digest = crypto.createHash('sha512');
+ * // 更新数据
+ * digest.update('hello');
+ * digest.update('world');
+ * // 获取二进制结果
+ * const result = digest.digest();
+ * console.log(result);
+ * 
+ * // 生成指定编码的结果
+ * console.log(result.toString('hex'));
+ * console.log(result.toString('base64'));
+ * ```
+ * 上述代码中，使用 `crypto.createHash()` 方法创建了一个 SHA-512 摘要运算对象，可以通过 `update()` 方法逐步添加要进行摘要的数据，并通过 `digest()` 方法获取摘要结果。
+ * 
  */
 declare class Class_Digest extends Class_object {
     /**

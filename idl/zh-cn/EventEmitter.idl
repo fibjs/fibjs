@@ -1,11 +1,40 @@
-/*! @brief 事件触发对象，可用于建立观察者模式，支持事件触发的对象均继承于此，同一事件的同一函数只会产生一次回调
+/*! @brief EventEmitter 是事件触发对象，它可以被用于建立观察者模式，支持事件触发的对象均继承于此
 
- Event 对象可独立创建，以用于组建自定义的事件系统：
- ```JavaScript
- var EventEmitter = require('events');
+当一个事件被触发时，所有与该事件相关联的监听器会以异步方式被调用。它还允许我们创建具有高度可定制性和灵活性的代码。
 
- var e = new EventEmitter();
- ```
+常用函数包括：addListener/on、once、removeListener/off、removeAllListeners 和 emit。
+
+下面是一个示例代码：
+
+```javascript
+var fs = require('fs');
+var EventEmitter = require('events');
+var event = new EventEmitter();
+
+event.on('read_file', function(filename) {
+  fs.readFile(filename, 'utf8', function(err, data) {
+    if (err) {
+      event.emit('error', err);
+      return;
+    }
+    event.emit('show_content', data);
+  });
+});
+
+event.on('error', function(err) {
+  console.log(`Error ${err}`);
+});
+
+event.on('show_content', function(content) {
+  console.log(content);
+});
+
+event.emit('read_file', 'test.txt');
+```
+
+上述示例代码，当运行时，事件emitter实例event首先监听'read_file'事件，然后在事件触发时(`event.emit('read_file', 'test.txt')`)触发读取文件的操作。当读取成功后，会触发'show_content'事件，此时监听了'show_content'事件的函数就会被执行并显示文件内容。如果在读取文件过程中发生错误，则会触发'error'事件，此时操作失败的情况就得到了应对。
+
+这种模式在应对异步操作的业务场景中具有很好的优越性。
  */
 interface EventEmitter : object
 {

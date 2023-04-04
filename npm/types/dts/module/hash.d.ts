@@ -3,7 +3,33 @@
 /// <reference path="../interface/Digest.d.ts" />
 /// <reference path="../interface/PKey.d.ts" />
 /**
- * @description 信息摘要计算模块，可用于计算信息摘要和摘要签名 
+ * @description hash 模块主要用于实现消息摘要算法，是实现加密算法中，非常重要的一个子模块。同时，消息摘要算法也是许多加密算法的基础。
+ * 
+ * 在使用 `hash` 子模块之前，需要使用 `require('hash');` 加载该模块。
+ * 
+ * 在 `hash` 模块中，主要包含以下几个类 `Digest`、`Hmac`。其中，`Digest` 类用于计算消息摘要算法，`Hmac` 类用于计算带密钥的哈希消息。 
+ * 
+ * 以下是一个简单的使用 `Digest` 类计算 `MD5` 摘要的示例代码：
+ * 
+ * ```javascript
+ * const hash = require('hash');
+ * 
+ * // 创建 `MD5` digest 对象
+ * const digest = hash.digest(hash.MD5);
+ * 
+ * // 更新数据
+ * const data = 'hello, world';
+ * digest.update(data);
+ * 
+ * // 获取摘要结果
+ * const result = digest.digest('hex');
+ * console.log(result);
+ * ```
+ * 
+ * 在以上示例代码中，我们首先使用 `hash.digest(hash.MD5)` 将一个 `Digest` 对象初始化为 `MD5` 模式。然后，我们使用 `update()` 方法向 Digest 对象添加需要进行摘要计算的数据。接着，我们使用 `digest()` 方法计算摘要结果，并返回通过参数指定的编码方式（这里使用的是 十六进制编码）。最后，输出计算出的摘要结果。
+ * 
+ * 除了 `MD5` 以外，`Digest` 类还支持其他摘要算法，比如 `SHA-1`、`SHA-256`、`SHA-512`等。 在使用时需要将 `md5` 参数改成对应的摘要算法即可。
+ * 
  */
 declare module 'hash' {
     /**

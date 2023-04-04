@@ -8,6 +8,37 @@
  *  ```JavaScript
  *  var c = new crypto.Cipher(crypto.AES, crypto.ECB, ...);
  *  ```
+ * 
+ *   下面以 AES 为例，演示如何使用 Cipher 对象进行加密和解密：
+ * 
+ *   首先，我们需要获取一个对称加密的 Cipher 对象，如 AES 加密算法：
+ * ```JavaScript
+ * const crypto = require('crypto');
+ * const key = crypto.randomBytes(16); // 生成 16 字节的随机数作为 AES 密钥
+ * const cipher = new crypto.Cipher(crypto.AES, crypto.ECB, key);
+ * ```
+ * 以上代码中，我们通过 ``randomBytes`` 方法生成了 16 字节的随机数，作为 AES 密钥。然后，我们创建了一个 AES 算法的 Cipher 对象，使用 ECB 分组密码工作模式，并使用生成的随机数作为密钥。
+ * 
+ * 接下来，我们使用 Cipher 对象的 ``encrypt`` 方法对明文进行加密：
+ * ```JavaScript
+ * const plaintext = 'Hello, world!';
+ * const encrypted = cipher.encrypt(plaintext);
+ * console.log(encrypted); // 输出加密后的结果
+ * ```
+ * 以上代码中，我们使用 ``encrypt`` 方法对字符串 ``Hello, world!`` 进行加密，并输出加密后的结果。
+ * 
+ * 针对以上代码，需要注意以下几点：
+ * 
+ * - 在进行加密之前，需要先创建一个对称加密的 Cipher 对象，并设置加密算法、密码和分组密码工作模式等参数。
+ * - 在调用加密方法后，我们可以得到加密后的数据，这通常是一个 Buffer 对象。需要注意，输出的是二进制数据，需要使用相应的方式打印，例如使用 ``Hex`` 等方式进行转换。
+ * 
+ * 如果要解密该数据，我们同样需要一个 Cipher 对象，也是基于 AES 算法，且使用相同的 key 和分组密码工作模式：
+ * ```JavaScript
+ * const decipher = new crypto.Cipher(crypto.AES, crypto.ECB, key);
+ * const decrypted = decipher.decrypt(encrypted);
+ * console.log(decrypted.toString()); // 输出解密后的结果
+ * ```
+ * 在这里，我们创建了一个新的 Cipher 对象，使用相同的 key 和密码工作模式，并且使用 ``decrypt`` 方法对加密数据进行解密。解密的结果是一个 Buffer 对象，需要转换为字符串才能被正确输出。    
  *  
  */
 declare class Class_Cipher extends Class_object {

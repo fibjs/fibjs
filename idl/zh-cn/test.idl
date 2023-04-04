@@ -1,91 +1,82 @@
-/*! @brief 测试套件模块，用以定义管理测试套件
+/*! @brief test 模块是一个测试框架，结合断言模块 `assert` 可以方便地编写各种测试用例
 
-使用方法 ：
+在 `fibjs` 中引入 `test` 模块常常需要先进行 `test setup` 操作：
 
 ```JavaScript
 var test = require('test');
 test.setup();
-
-describe('test', () => {
-    before(() => {
-        // setup before the whole test
-    });
-
-    beforeEach(() => {
-        // setup before each test
-    });
-
-    after(() => {
-        // cleanup after the whole test
-    });
-
-    afterEach(() => {
-        // cleanup after each test
-    });
-
-    it('case', () => {
-        assert.ok(true);
-    });
-
-    // ignored test case
-    xit('case', () => {
-        assert.ok(true);
-    });
-
-    // ignored test case
-    it.skip('case', () => {
-        assert.ok(true);
-    });
-
-    // only test case
-    oit('case', () => {
-        assert.ok(true);
-    });
-
-    // only test case
-    it.only('case', () => {
-        assert.ok(true);
-    });
-});
-
-// async function test
-describe('test async', () => {
-  it('pass case', async() => {
-    assert.ok(true);
-  });
-
-  it('error case', async() => {
-      throw new Error('some thing wrong!');
-  });
-});
-
-// callback function test
-// cannot use callback mode in jsc
-describe('test callback', () => {
-  it('pass case', done => {
-    setTimeout(() => {
-      assert.ok(true);
-      done();
-    }, 0);
-  });
-
-  it('error case', done => {
-    setTimeout(() => {
-      done(new Error('some thing wrong!'));
-    }, 0);
-  });
-
-  it('check in done', done => {
-    setTimeout(() => {
-      done(() => {
-        assert.ok(true);
-      });
-    }, 0);
-  });
-});
-
-process.exit(-test.run(console.DEBUG));
 ```
+
+在编写测试用例前通常需要先定义一个测试模块用来描述测试内容。
+
+- describe
+
+describe 所有的测试分组的容器，类似于测试套件的概念，是用于将 `it` 测试挂靠在特定的分类下，describe 可以包含多个 it 用例或者其它嵌套的 describe 表示的子分类。
+
+```
+describe(String name, Function block)
+```
+
+调用参数:
+name: String, 定义模块名称
+block: Function, 模块初始化代码
+
+- it
+
+表示单个测试用例，每个描述都应该只测单一的一种情况，以保证测试结果的可靠性。
+
+```
+it(String name, Function block)
+```
+
+调用参数:
+name: String, 定义项目名称
+block: Function, 测试内容
+
+- xit & it.skip
+
+表示被跳过的测试用例。
+
+```
+xit(String name, Function block)
+```
+
+调用参数:
+name: String, 定义项目名称
+block: Function, 测试内容
+
+- oit & it.only
+
+表示仅运行当前测试用例，忽略其他测试用例，以便单独调试当前用例，非常实用。
+
+```
+oit(String name, Function block)
+it.only(String name, Function block)
+```
+
+调用参数:
+name: String, 定义项目名称
+block: Function, 测试内容
+
+- todo
+
+表示需进一步完善测试用例的计划。
+
+```
+todo(String name, Function block)
+```
+
+调用参数:
+name: String, 定义项目名称
+block: Function, 测试内容
+
+在编写测试用例时，通常使用 assert 断言模块，对函数的返回进行检查。使用方法如下：
+
+```
+assert(condition, String message);
+```
+
+其中，第一个参数是需要断言的条件，第二个参数是错误消息。
  */
 module test
 {

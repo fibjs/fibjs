@@ -1,7 +1,62 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Timer.d.ts" />
 /**
- * @description timers 模块 
+ * @description timers 模块是一个内置模块，提供了一些与时间相关的函数和对象，包括 setTimeout()、setInterval()、clearInterval()、clearTimeout() 等等
+ * 
+ * setInterval() 函数每隔指定的时间后调用函数，返回定时器对象。
+ * 
+ * ```JavaScript
+ * var timers = require('timers');
+ * function callback() {
+ *     console.log('Hello, World!');
+ * }
+ * var intervalId = timers.setInterval(callback, 1000);
+ * ```
+ * 
+ * setTimeout() 函数在指定的时间后调用函数，返回定时器对象。
+ * 
+ * ```JavaScript
+ * var timers = require('timers');
+ * function callback() {
+ *     console.log('Hello, World!');
+ * }
+ * var timeoutId = timers.setTimeout(callback, 1000);
+ * ```
+ * 
+ * clearTimeout() 函数用于取消一个由 setTimeout() 方法设置的定时器。需要提供的是在 setTimeout() 中返回的定时器标识符值。
+ * 
+ * ```JavaScript
+ * var timers = require('timers');
+ * function callback() {
+ *     console.log('Hello, World!');
+ * }
+ * var timeoutId = timers.setTimeout(callback, 1000);
+ * timers.clearTimeout(timeoutId);
+ * ```
+ * 
+ * clearInterval() 函数用于取消一个由 setInterval() 方法设置的定时器。需要提供的是在 setInterval() 中返回的定时器标识符值。
+ * 
+ * ```JavaScript
+ * var timers = require('timers');
+ * function callback() {
+ *     console.log('Hello, World!');
+ * }
+ * var intervalId = timers.setInterval(callback, 1000);
+ * timers.clearInterval(intervalId);
+ * ```
+ * 
+ * setImmediate() 函数用于在下一个闲置时间立即调用函数，返回定时器对象。
+ * 
+ * ```JavaScript
+ * var timers = require('timers');
+ * function callback() {
+ *     console.log('Hello, World!');
+ * }
+ * var immediateId = timers.setImmediate(callback);
+ * ```
+ * 
+ * 以上都是 timers 模块提供的常用函数和对象示例，通过使用这些函数和对象，可以方便的在应用程序中实现延迟执行任务或调度任务执行。
+ *  
  */
 declare module 'timers' {
     /**

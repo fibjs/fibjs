@@ -3,7 +3,33 @@
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/XmlNode.d.ts" />
 /**
- * @description xml 处理模块
+ * @description xml 处理模块，可以使用 xml 模块解析和处理 xml 和 html 文件
+ * 
+ * 要解析 xml 文件，你可以使用如下代码：
+ * ```JavaScript
+ * var xml = require('xml');
+ * var fs = require('fs');
+ * 
+ * var xmlStr = fs.readFile('test.xml');
+ * var xmlDoc = xml.parse(xmlStr);
+ * 
+ * console.log(xmlDoc.documentElement.nodeName);  // 输出 xml 根节点名称
+ * ```
+ * 在上面的代码中，我们使用 fs 模块的 readFile 方法读取了一个 xml 文件，然后使用 xml 模块的 parse 方法解析该 xml 文件，并返回一个 XmlDocument 对象 xmlDoc。然后，我们就可以通过 xmlDoc.documentElement 访问 xml 文档的根元素了。
+ * 
+ * 要解析 html 文件，你只需稍微修改一下代码：
+ * ```JavaScript
+ * var xml = require('xml');
+ * var fs = require('fs');
+ * 
+ * var htmlStr = fs.readFile('test.html');
+ * var xmlDoc = xml.parse(htmlStr, 'text/html');
+ * 
+ * console.log(xmlDoc.documentElement.nodeName);  // 输出 html 根节点名称
+ * ```
+ * 在这里，我们同样使用了 fs 模块的 readFile 方法读取了一个 html 文件，但我们在调用 xml 模块的 parse 方法时指定了第二个参数为 ‘text/html’，这样 xml 模块就会按照 html 的语法规则解析文件。
+ * 
+ * 解析后的 Xml 文档对象都是 XmlDocument 类型，其属性和方法都可以参考 xml 对象模型（DOM）进行操作。
  * 
  */
 declare module 'xml' {

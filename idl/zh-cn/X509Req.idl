@@ -1,9 +1,36 @@
-/*! @brief x509 证书请求对象
+/*! @brief X509Req 对象是用于创建 x509 证书请求的对象，属于 crypto 模块
 
- X509Req 对象属于 crypto 模块，创建：
- ```JavaScript
- var k = new crypto.X509Req();
- ```
+可以通过它的构造函数创建 X509Req 的实例，在构造函数中可以传入参数指定证书的主题可分辨名称和公钥，例如：
+
+```JavaScript
+var crypto = require('crypto');
+
+let pky = crypto.PKey.from(private_pem);
+let req = new crypto.X509Req("CN=localhost,O=fibjs", pky);
+```
+
+可以通过该实例调用其父类的方法和属性来获取证书请求对象的信息，例如：
+
+```JavaScript
+// 获取证书请求对象的 DER 格式的编码
+let derReq = req.der();
+
+// 获取证书请求对象的 PEM 格式的编码
+let pemReq = req.pem();
+```
+
+也可以对 X509Req 对象进行签名，生成正式的证书对象，例如：
+
+```JavaScript
+let opt = {
+  notBefore: new Date('2019-01-01') // 证书生效时间
+ ,notAfter:  new Date('2029-12-31') // 证书失效时间
+};
+let crt = req.sign("CN=myy.mkx", pky, opt); 
+// CN=myy.mkx 是证书的签发者, 可添加扩展信息
+```
+
+需要注意的是，X509Req 对象的作用是创建 x509 证书请求，而不是证书本身，要想获得有效的证书还需要对其进行签名。同时，签名证书所使用的公钥必须和证书请求中使用的公钥一致。
  */
 interface X509Req : object
 {

@@ -13,7 +13,37 @@
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/SeekableStream.d.ts" />
 /**
- * @description 超文本传输协议模块，用以支持 http 协议处理，模块别名：https 
+ * @description http 模块封装了 HTTP 请求和响应的处理，让我们可以轻松地创建一个 http 服务器，也可以模拟客户端发起 http 请求。使用 http 模块，开发者可以很方便地编写和处理 HTTP 协议相关的代码
+ * 
+ * 下面是一个简单的例子，创建一个 Web 服务器，返回一个 hello world 的响应信息：
+ * 
+ * ```JavaScript
+ * const http = require('http');
+ * 
+ * const server = new http.Server(8080, function(request) {
+ *   request.response.write('Hello World!');
+ * });
+ * 
+ * server.start();
+ * ```
+ * 
+ * 这个例子中，我们引入 http 模块，然后定义了一个 http 服务器对象，并绑定到本地 8080 端口号。当有请求发送到这个端口号，响应会被设置为字符串 “Hello World!”。
+ * 
+ * 同时 http 模块还包含客户端对象，http.Client 模拟浏览器环境缓存 cookie，并在访问 url 的时候携带对应的 cookie 的 http 客户端对象。你可以用 http.Client 访问 http 接口请求、进行 http 下载等等一系列 http 相关的操作。下面是 http.Client 的应用示例：
+ * 
+ * ```JavaScript
+ * var http = require('http');
+ * 
+ * var httpClient = new http.Client();
+ * httpClient.get('http://fibjs.org');
+ * ```
+ * 
+ * 在上面的示例中，创建了一个 http.Client 对象，然后调用 `get` 方法想 fibjs.org 发起了 http GET 请求。
+ * 
+ * 另外，http.Client 还有其他一些属性和方法可以被调用，如 `cookies` 等
+ * 
+ * https 模块是 http 模块的别名，使用 `require('https')` 同样可以得到 http 模块。
+ * 
  */
 declare module 'http' {
     /**

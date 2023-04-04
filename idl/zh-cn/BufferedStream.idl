@@ -12,6 +12,29 @@
  BufferedStream 对象还提供了 write 方法将给定的数据写入流，并在底层流对象处于写入阻塞时，等待其可以接受数据后再进行下一步操作。Flush 方法将文件缓冲区内容写入物理设备。close 方法关闭当前流对象。部分方法的具体实现可以在子类中进行实现。
 
  在使用 BufferedStream 对象时，需要注意不要将其与其他已经在使用的底层流对象混用，否则可能会导致数据重复读取或者读取错误。
+
+ 下面是一个使用 BufferedStream 对象读取文件内容的示例代码：
+  ```JavaScript
+  var fs = require('fs');
+  var io = require('io');
+
+  var filename = "test.txt";
+
+  // 打开文件
+  var file = fs.openFile(filename);
+
+  // 创建 BufferedStream 对象
+  var reader = new io.BufferedStream(file);
+
+  // 读取文件所有的行
+  var lines = reader.readLines();
+
+  for(var i = 0; i < lines.length; i ++)
+      console.log(lines[i]);
+
+  // 关闭文件
+  file.close();
+  ```
  */
 interface BufferedStream : Stream
 {

@@ -1,9 +1,103 @@
-/*! @brief 操作系统与文件系统处理模块
+/*! @brief `os` 模块是核心模块之一，用于运行的操作系统函数。它提供了与操作系统交互的实用程序功能，包括文件地址、文件路径、网络接口、主机名、操作系统类型等
 
- 使用方法：
- ```JavaScript
- var os = require('os');
- ```
+### 常用方法
+
+`os` 模块中提供的方法很多，以下是几个比较常用的方法：
+
+#### os.hostname()
+
+获取当前计算机的主机名。
+
+示例代码：
+
+```JavaScript
+const os = require('os');
+const hostname = os.hostname();
+console.log(hostname);
+```
+
+返回结果类似如下：
+
+```sh
+localhost
+```
+
+#### os.type()
+
+获取当前操作系统的名称。
+
+示例代码：
+
+```JavaScript
+const os = require('os');
+const type = os.type();
+console.log(type);
+```
+
+返回结果类似如下：
+
+```sh
+Windows_NT
+```
+
+#### os.release()
+
+获取当前操作系统的版本。
+
+示例代码：
+
+```JavaScript
+const os = require('os');
+const release = os.release();
+console.log(release);
+```
+
+返回结果类似如下：
+
+```sh
+10.0.18362
+```
+
+#### os.arch()
+
+获取操作系统的处理器架构。
+
+示例代码：
+
+```JavaScript
+const os = require('os');
+const arch = os.arch();
+console.log(arch);
+```
+
+返回结果类似如下：
+
+```sh
+x64
+```
+
+#### os.cpus()
+
+获取 CPU 的信息。
+
+示例代码：
+
+```JavaScript
+const os = require('os');
+const cpus = os.cpus();
+console.log(cpus);
+```
+
+返回结果类似如下：
+
+```sh
+[
+  { model: 'Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz', speed: 2592, times: { user: 2400298, nice: 0, sys: 9684894, idle: 91516801, irq: 0 } },
+  { model: 'Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz', speed: 2592, times: { user: 464927, nice: 0, sys: 1454926, idle: 95119061, irq: 0 } },
+  { model: 'Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz', speed: 2592, times: { user: 232077, nice: 0, sys: 898942, idle: 95482112, irq: 0 } },
+  { model: 'Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz', speed: 2592, times: { user: 950448, nice: 0, sys: 1875169, idle: 93117788, irq: 0 } }
+]
+```
  */
 module os
 {

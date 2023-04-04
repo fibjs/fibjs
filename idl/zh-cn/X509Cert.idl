@@ -1,9 +1,28 @@
-/*! @brief x509 证书对象
+/*! @brief X509Cert 是 crypto 模块中表示 x509 证书的对象，这个对象主要包括了从一个 DER 或者 PEM 格式的证书数据以及证书链数据构建出来的证书信息和方法，可以进行证书的解析和验证等操作
 
- X509Cert 对象属于 crypto 模块，创建：
- ```JavaScript
- var k = new crypto.X509Cert();
- ```
+通过 X509Cert 对象可以获取到证书的主题名称，颁发者名称，通过时间，到期时间，ca 验证等等信息，还可以导出证书的 DER 编码，获取证书的公钥以及签名算法等等信息。
+
+如果想要加载一个证书，可以使用如下代码从 DER/PEM 格式的证书数据中创建 X509Cert 对象：
+
+```JavaScript
+const crypto = require('crypto');
+
+const certData = require('fs').readFile('server.crt');
+const cert = new crypto.X509Cert(certData);
+```
+
+当然，X509Cert 对象也提供了直接导入证书的方法：
+
+```JavaScript
+const cert = crypto.X509Cert.import(certData);
+```
+
+然后你就可以通过 cert 进行各种证书的操作，例如获取证书的有效期时间：
+
+```JavaScript
+var strDate = cert.notBefore.toLocaleTimeString() + " " + cert.notBefore.toLocaleDateString() + " ~ " + cert.notAfter.toLocaleTimeString() + " " + cert.notAfter.toLocaleDateString();
+console.log(`证书有效时间: ${strDate}`)
+```
  */
 interface X509Cert : object
 {

@@ -2,12 +2,46 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description 不对称加密算法对象
+ * @description PKey 是内置的 crypto 模块提供的对象，它表示一对密钥：公钥和私钥。PKey 支持在 JS 中生成密钥、载入密钥、存储密钥以及对加密过程进行管理
  * 
- *  PKey 对象属于 crypto 模块，创建：
- *  ```JavaScript
- *  var k = new crypto.PKey();
- *  ```
+ * PKey 对象支持多种加密算法，如 RSA、EC 或 Ed25519 等，每种加密算法都有其独特的密钥生成和管理方式。PKey 对象还包含了该密钥所属的算法名称以及密钥长度等属性。
+ * 
+ * 以下是 PKey 的常用方法及其举例说明：
+ * 
+ * 1. generateKey(alg | bits)：生成一对密钥，alg 指定密钥算法，bits 指定密钥长度，缺省为 2048。
+ * 
+ * ```JavaScript
+ * var crypto = require('crypto');
+ * 
+ * var pkey = crypto.generateKey(2048);
+ * ```
+ * 
+ * 2. from(value[, password])：将 DER 或 PEM 格式的密钥加载到 PKey 对象中。
+ * 
+ * ```JavaScript
+ * var crypto = require('crypto');
+ * 
+ * var pkey = crypto.PKey.from(fs.readFile('rsa.private.pem'));
+ * ```
+ * 
+ * 3. publicKey：获取当前密钥的公钥。
+ * 
+ * ```JavaScript
+ * var crypto = require('crypto');
+ * 
+ * var pkey = crypto.PKey.from(fs.readFile('rsa.private.pem'));
+ * var pubkey = pkey.publicKey;
+ * ```
+ * 
+ * 4. equals(other)：判断两个公、私钥是否相等。
+ * 
+ * ```JavaScript
+ * var crypto = require('crypto');
+ * 
+ * var pkey1 = crypto.PKey.from(fs.readFile('rsa.private.pem'));
+ * var pkey2 = crypto.PKey.from(fs.readFile('rsa.public.pem'));
+ * console.log(pkey1.equals(pkey2)); // 输出 true
+ * ```
  *  
  */
 declare class Class_PKey extends Class_object {

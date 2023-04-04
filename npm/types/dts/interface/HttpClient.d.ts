@@ -7,16 +7,44 @@
 /// <reference path="../interface/HttpResponse.d.ts" />
 /// <reference path="../interface/SeekableStream.d.ts" />
 /**
- * @description http客户端对象
- *  
- *  http客户端对象模拟浏览器环境缓存cookie，并在访问url的时候携带对应的cookie，不同的http客户端对象是相互隔离的，提供http的request、get、post等方法。
- *  用法如下：
+ * @description HttpClient 是针对 HTTP 客户端功能设计的类库，提供了基本的 HTTP/HTTPS 请求、代理访问、cookie 管理等功能
  * 
- *  ```JavaScript
- *  var http = require('http');
- *  var httpClient = new http.Client();
- *  httpClient.request('GET', 'http://fibjs.org');
- *  ```
+ * 使用 HttpClient 可以轻松地访问和操作 web 页面，这里举一个简单的例子——在一个 web 页面上打印出其源代码：
+ * 
+ * ```JavaScript
+ * const http = require('http');
+ * 
+ * const res = http.get('http://www.example.com/');
+ * 
+ * console.log(res.body.readAll().toString());
+ * ```
+ * 
+ * 在该例子中，通过 require 引入 http 模块，然后使用 http.get 发起一个 get 请求，其中 url 参数指定了请求的网址。因为 http.get 方法返回的是一个 HttpResponse 对象，所以可以通过其 body 属性来访问请求返回的主体内容并通过 toString 方法将其转化为字符串。
+ * 
+ * 当请求的 url 是 https 类型而不是 http 类型时，代码只需要将 http 改为 https 即可：
+ * 
+ * ```JavaScript
+ * const http = require('http');
+ * 
+ * const res = http.get('https://www.example.com/');
+ * 
+ * console.log(res.body.readAll().toString());
+ * ```
+ * 
+ * 除此之外，还有通过 HttpClient 直接发起 POST 请求、设置 User-Agent 的例子：
+ * 
+ * ```JavaScript
+ * const http = require('http');
+ * 
+ * const httpClient = new http.Client();
+ * httpClient.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36';
+ * const res = httpClient.post('http://www.example.com/post', {
+ *     json: { name: 'fibjs', version: '0.31.0' }
+ * });
+ * console.log(res.body.readAll().toString());
+ * ```
+ * 
+ * 在该例子中，首先创建了一个 HttpClient 对象 httpClient，并设置其 userAgent 为浏览器的 User-Agent。然后通过它的 post 方法来发起一个 post 请求，其中参数 name 和 version 来指定请求的主体内容。最后将返回值的主体内容输出。
  *  
  */
 declare class Class_HttpClient extends Class_object {

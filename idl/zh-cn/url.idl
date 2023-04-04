@@ -1,4 +1,41 @@
-/*! @brief url 处理模块 */
+/*! @brief url 处理模块，url 模块提供了 Url 类，用于处理 URL 相关的操作，包括解析、组装、拼接等
+
+Url 类的常用属性和方法如下：
+
+属性：
+
+- href：返回完整的 URL 字符串。
+- protocol：URL 的协议部分。
+- host：URL 的主机部分。
+- auth：URL 的认证部分。
+- hostname：URL 的主机名部分。
+- port：URL 的端口部分。
+- pathname：URL 的路径部分。
+- search：URL 的查询参数字符串。
+- hash：URL 的 hash 部分。
+
+方法：
+
+- resolve(from, to)：将解析 to（或 to 与 from 的组合）为一个绝对 URL，并返回解析后的 URL 对象。
+- parse(urlString)：将 URL 字符串解析为 URL 对象并返回该对象。
+- format(urlObject)：将 URL 对象格式化为 URL 字符串并返回。
+
+下面是一个 url 模块的示例：
+
+```JavaScript
+const { Url } = require('url');
+
+const url = new Url('http://www.baidu.com/s?ie=UTF-8&wd=fibjs#hash');
+console.log(url.protocol); // 'http:'
+console.log(url.host); // 'www.baidu.com'
+console.log(url.path); // '/s?ie=UTF-8&wd=fibjs'
+console.log(url.hash); // '#hash'
+
+console.log(url.href); // 'http://www.baidu.com/s?ie=UTF-8&wd=fibjs&query=fibjs#hash'
+```
+
+在这个例子中，我们演示了如何使用 url 模块来解析 url 字符串，再重新组装成新的 url 字符串。
+*/
 module url
 {
     /*! @brief 参数构造 UrlObject 对象

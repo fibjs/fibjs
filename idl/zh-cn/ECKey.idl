@@ -1,4 +1,25 @@
-/*! @brief 椭圆曲线加密算法对象 */
+/*! @brief ECKey 类是在 crypto 模块中实现的，可以使用该类来生成 ECDSA 密钥对、签名和验证消息等
+
+以下是一个例子：
+```javascript
+const crypto = require("crypto");
+
+// 生成密钥对
+const key = crypto.generateKey("secp256k1");
+console.log("Private key:", key.pem());
+console.log("Public key:", key.publicKey.pem());
+
+const message = "Hello, fibjs!";
+// 签名消息
+const sig = key.sign(message);
+console.log("Signature:", sig.hex());
+
+// 验证消息
+const verify = key.verify(message, sig);
+console.log("Verify result:", verify);
+```
+
+在该例子中，我们首先生成了一个 secp256k1 的 ECKey 对象，然后打印了生成的公钥和私钥。接着，我们签名了消息 "Hello, fibjs!" 并打印了签名结果，最后使用同样的密钥对象验证了签名，并打印了验证结果。 */
 interface ECKey : PKey
 {
     /*! @brief 通过 DER 格式的密钥构造 ECKey

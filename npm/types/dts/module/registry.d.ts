@@ -1,12 +1,28 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description Windows 注册表访问模块
- *  引用方式：
- *  ```JavaScript
- *  var registry = require('registry');
- *  var value = registry.get(registry.CLASSES_ROOT, "\node1\node2\value");
- *  ```
+ * @description registry 模块是一个操作 Windows 注册表（Registry）的模块。它提供了访问注册表的方法和常量，可以读取、修改、删除、添加等操作。registry 模块提供的操作方式和 Windows 应用程序使用的方式类似，但却是在 FibJS 中提供了能力。常量有常见的 Root、 数据类型等常量，还有一些用于不同操作的返回值的常量
+ * 
+ * 常用的函数有：
+ * 1. get(root, key[, flags])：获取指定注册表项的值。
+ * 2. set(root, key, value[, type])：设置指定注册表项的值。
+ * 3. del(root, key)：删除指定注册表项。
+ * 
+ * 接下来，我们验证某个注册表项在指定注册表分支上的键值是否存在，然后将该键值读取。如果不存在，就将该键值写入到指定注册表项。代码如下所示：
+ * ```JavaScript
+ * var registry = require('registry');
+ * 
+ * // 验证指定键值是否存在，如果不存在，写入一个数据
+ * var key = "Software\\Fibjs\\Test\\KeyName";
+ * if(!registry.get(registry.CLASSES_ROOT, key)) {
+ *     registry.set(registry.CLASSES_ROOT, key, "test_value");
+ * }
+ * // 读取指定键值数据
+ * var value = registry.get(registry.CLASSES_ROOT, key);
+ * console.log(value);
+ * ```
+ * 该程序首先验证注册表项是否存在，如果不存在，则写入注册表，键名为 Software\Fibjs\Test\KeyName，并将值设置为 test_value。最后，读取该注册表的键值并在控制台输出。
+ * 上面的代码展示了 registry 模块的基本用法，可以通过这个模块很方便地读取、修改、添加、删除注册表中的信息。
  *  
  */
 declare module 'registry' {

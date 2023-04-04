@@ -1,9 +1,35 @@
-/*! @brief 文件路径处理模块
+/*! @brief path 模块是一个核心模块，它提供了一些工具函数来处理文件和目录的路径。它不会检查路径是否存在或是否是有效路径，而是只提供了处理路径的方法
 
- 引用方法：
- ```JavaScript
- var path = require('path');
- ```
+path 模块提供的方法很多，最常用的是：
+- join()：将给定的路径片段连接在一起，并处理成标准的路径格式。
+- resolve()：将路径或路径片段的序列解析为一个绝对路径。
+- basename()：返回路径中路径的最后一部分。
+- dirname()：返回指定路径的目录名。
+- extname()：返回路径中文件的扩展名。
+
+以下是这些方法的示例代码：
+```JavaScript
+const path = require('path');
+
+// 连接两个路径片段，并处理成标准的路径格式
+console.log(path.join('/usr', 'local', 'bin'));  // 输出：/usr/local/bin
+
+// 将路径 /foo/bar 和 baz 解析为 /foo/bar/baz
+console.log(path.resolve('/foo/bar', './baz'));  // 输出：/foo/bar/baz
+
+// 返回路径 /foo/bar/baz 的最后一部分 baz
+console.log(path.basename('/foo/bar/baz'));  // 输出：baz
+
+// 返回路径 /foo/bar/baz 的目录名 /foo/bar
+console.log(path.dirname('/foo/bar/baz'));  // 输出：/foo/bar
+
+// 返回路径 /foo/bar/baz 中的扩展名 .txt
+console.log(path.extname('/foo/bar/baz.txt'));  // 输出：.txt
+```
+
+除了上述方法，path 模块还提供了很多其他的方法，如 normalize()、delimiter、posix、win32 等等，用于处理路径的规范化、路径分隔符、路径格式的处理等等。这些方法在实际开发中也经常用到。
+
+path 模块为我们处理路径提供了很多方便的工具函数，可以使我们更加方便地处理文件和目录路径，是开发中不可或缺的工具之一。
  */
 module path
 {

@@ -1,12 +1,39 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/DgramSocket.d.ts" />
 /**
- * @description dgram 模块提供了 UDP 数据包 socket 的实现
+ * @description dgram 基础模块之一，主要用于实现 UDP 数据包 socket 的封装。
  * 
- *  基础模块，引用方式：
- *  ```JavaScript
- *  var dgram = require('dgram');
- *  ```
+ * 使用步骤：
+ * 
+ * 1. 首先，通过下面的语句引入 dgram 模块。
+ * 
+ * ```
+ * var dgram = require('dgram');
+ * ```
+ * 
+ * 2. 创建 UDP 数据包 socket 实例。
+ * 
+ * ```
+ * var sock = dgram.createSocket('udp4');
+ * ```
+ * 
+ * 3. 为 UDP 数据包 socket 注册数据接收事件消息回调函数。
+ * 
+ * ```
+ * sock.on('message', function (msg, rinfo) {
+ *   // 处理数据包消息
+ * });
+ * ```
+ * 
+ * 4. 发送 UDP 数据包消息到指定目标地址。
+ * 
+ * ```
+ * var msg = ...; // 待发送数据包消息
+ * var port = ...; // 目标端口
+ * var host = ...; // 目标地址
+ * var bytes = sock.send(msg, 0, msg.length, port, host);
+ * console.log('UDP message sent to ' + host + ':' + port);
+ * ```
  *  
  */
 declare module 'dgram' {

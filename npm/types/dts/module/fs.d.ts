@@ -7,12 +7,45 @@
 /// <reference path="../interface/FSWatcher.d.ts" />
 /// <reference path="../interface/StatsWatcher.d.ts" />
 /**
- * @description 文件系统处理模块
+ * @description fs 模块是文件系统操作模块。它提供了读取文件、写入文件、打开文件、关闭文件、更改文件权限等磁盘 I/O 操作，支持同步和异步两种用法。fs 模块还提供了文件监视器功能，可以监听文件系统中文件和目录的变化，并回调指定的函数。
  * 
- *  使用方法：
- *  ```JavaScript
- *  var fs = require('fs');
- *  ```
+ * 例如，要在 fibjs 中读取一个文件，可以使用 fs 模块的 readFile 方法：
+ * 
+ * ```JavaScript
+ * var fs = require('fs');
+ * var content = fs.readFile('/path/to/file');
+ * ```
+ * 
+ * 如果想要异步读取文件，可以通过回调来实现：
+ * 
+ * ```JavaScript
+ * var fs = require('fs');
+ * fs.readFile('/path/to/file', function(err, data) {
+ *   if (err) throw err;
+ *   console.log(data);
+ * });
+ * ```
+ * 
+ * 类似地，如果要写入一个文件，可以使用 fs 模块的 writeFile 方法：
+ * 
+ * ```JavaScript
+ * var fs = require('fs');
+ * var content = 'hello, world!';
+ * fs.writeFile('/path/to/file', content);
+ * ```
+ * 
+ * 如果要异步写入文件，可以通过回调来实现：
+ * 
+ * ```JavaScript
+ * var fs = require('fs');
+ * var content = 'hello, world!';
+ * fs.writeFile('/path/to/file', content, function(err) {
+ *   if (err) throw err;
+ *   console.log('File saved.');
+ * });
+ * ```
+ * 
+ * 除了读写文件之外，fs 模块还提供了一系列其他的文件系统操作，诸如创建目录、修改文件权限、查询文件状态等等。
  * 
  *  一些注意点:
  * 

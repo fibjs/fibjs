@@ -2,32 +2,39 @@
 /// <reference path="../interface/EventEmitter.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description WebSocket 包协议转换处理器
+ * @description WebSocket 是一种基于 TCP 协议的全双工通信协议，在浏览器和服务器之间建立起一个不断开的连接，可以实现实时双向数据传输，并且可以支持任意格式的数据传输。在 fibjs 中，WebSocket 支持模块提供了相应的 API 接口，可以实现 WebSocket 服务器端和客户端的开发
  * 
- *   用以将 Http 协议转换为 WebSocket 包协议消息。创建方式：
- *   ```JavaScript
- *   var ws = require('ws');
- *   var http = require('http');
+ * WebSocket 支持模块只是 WebSocket 协议的一个实现，需要在 HTTP 协议之上才能工作。在服务器端，可以通过 upgrade 函数将 HTTP 请求转换为 WebSocket 连接，而在客户端，则需要通过 WebSocket 协议的 URL 来指定需要连接的服务器地址。
  * 
- *   var serv = new http.Server(8811, ws.upgrade((conn) => {
- *   conn.onmessage = msg => {
- *       conn.send(new Date());
- *   };
- *   }));
+ * 启动WebSocket服务器示例：
+ * ```JavaScript
+ * var ws = require('ws');
+ * var http = require('http');
  * 
- *   serv.start();
+ * var svr = new http.Server(80, {
+ *     '/ws': ws.upgrade(conn => {
+ *         conn.onmessage = e => {
+ *             conn.send('fibjs:' + e.data);
+ *         };
+ *     })
+ * });
+ * svr.start();
+ * ```
+ * 在客户端中与上述服务器建立连接的示例：
+ * ```JavaScript
+ * var ws = require("ws");
  * 
- *   var sock = new ws.Socket('ws://127.0.0.1:8811');
- *   sock.on('open', () => {
- *       setInterval(() => {
- *           sock.send('get date');
- *       }, 1000);
- *   });
- * 
- *   sock.onmessage = evt => {
- *     console.log(evt.data);
- *   }
- *   ```
+ * var conn = new ws.Socket("ws://127.0.0.1/ws");
+ * // WebSocket 连接成功时触发 onopen 事件
+ * conn.onopen = () => {
+ *     console.log("websocket connected");
+ *     conn.send("hi");
+ * };
+ * // WebSocket 接收到消息时触发 onmessage 事件
+ * conn.onmessage = evt => {
+ *     console.log("websocket receive: " + evt.data);
+ * };
+ * ```
  *  
  */
 declare class Class_WebSocket extends Class_EventEmitter {

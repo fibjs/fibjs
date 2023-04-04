@@ -9,12 +9,47 @@
 /// <reference path="../interface/Digest.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description 加密算法模块
+ * @description `crypto` 模块是 `fibjs` 内置的加密算法模块。它提供了对称加密、非对称加密、摘要算法、密码学随机数生成器等功能。在使用之前，需要通过 `require('crypto')` 加载该模块。
  * 
- *  使用方法：
- *  ```JavaScript
- *  var crypto = require('crypto');
- *  ```
+ * 在 `crypto` 模块中，有很多对象可以使用，比如：
+ * 
+ * - `PKey`：不对称加密算法对象
+ * - `X509Cert`：用于操作 X.509 证书的对象
+ * - `Cipher`：用于实现对称加密的对象
+ * - `Digest`：用于实现摘要算法的对象
+ * 
+ * 在使用加密算法之前，需要先创建一个密钥对象，比如以下创建一个 `AES` 密钥对象的示例：
+ * 
+ * ```javascript
+ * const crypto = require('crypto');
+ * const key = crypto.randomBytes(16); // 生成 16 字节的随机数作为 AES 密钥
+ * ```
+ * 
+ * 接下来，使用 `Cipher` 对象来对明文进行加密：
+ * 
+ * ```javascript
+ * const c = new crypto.Cipher(crypto.AES, crypto.ECB, key);
+ * const data = 'hello, world';
+ * const encrypted = c.encrypt(data).hex();
+ * console.log(encrypted); // 输出加密后的结果
+ * ```
+ * 
+ * 以上示例中，创建了一个 `AES` 加密的 `Cipher` 对象，使用 `encrypt` 方法对明文进行加密，并返回加密结果。
+ * 
+ * 除了对称加密算法，`crypto` 模块还可以支持非对称加密算法和摘要算法。比如以下示例是使用 `PKey` 和 `Digest` 对象实现 SHA256 加密的代码：
+ * 
+ * ```javascript
+ * const privateKey = crypto.loadPKey('private.pem'); // 读取私钥文件
+ * const data = 'hello, world';
+ * const digest = new crypto.Digest(hash.SHA256);
+ * digest.update(data);
+ * const signature = privateKey.sign(digest.digest());
+ * console.log(signature); // 输出签名结果
+ * ```
+ * 
+ * 在以上示例中，首先读取了一个私钥文件，并准备了输入数据。然后，创建了一个 SHA256 的 `Digest` 对象，使用 `update` 方法把数据加入到 Hash 计算中。在计算完成后，使用 `privateKey.sign` 方法进行签名，并输出签名结果。
+ * 
+ * 综上所述，`crypto` 模块提供了多种加密算法、摘要算法以及相关对象，这些功能可以帮助我们实现多方面的安全需求，比如对称和非对称加密、数字签名和加密验证等。
  *  
  */
 declare module 'crypto' {

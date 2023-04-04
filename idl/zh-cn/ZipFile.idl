@@ -1,4 +1,47 @@
-/*! @brief zip 文件访问对象 */
+/*! @brief ZipFile 对象是 zip 格式文件压缩解压模块中的重要对象，提供了对 zip 文件的读写访问
+
+ZipFile 对象继承自Stream 对象，因此可以通过 Stream 对象一样的方式进行操作。
+
+常用的静态函数有：
+
+- zip.open：打开一个 zip 文件或 stream
+- zip.isZipFile：判断文件是否是 zip 文件
+- fs.setZipFS：设置 zip 文件虚拟文件系统
+- fs.clearZipFS：清除 zip 文件虚拟文件系统
+
+ZipFile 对象的常用实例函数及方法有：
+
+- NArray ZipFile.namelist()：获取文件名列表
+- NObject ZipFile.getinfo(String member)：获取文件信息
+- Buffer ZipFile.read(String member, String password = "")：读取指定文件
+- NArray ZipFile.readAll(String password = "")：读取所有文件
+- void ZipFile.extract(String member, String path, String password = "")：解压文件到指定路径中
+- void ZipFile.extract(String member, SeekableStream strm, String password = "")：解压文件到流中
+- void ZipFile.extractAll(String path, String password = "")：解压所有文件到指定路径
+- void ZipFile.write(String filename, String inZipName, String password = "")：写入指定文件到压缩文件
+- void ZipFile.write(Buffer data, String inZipName, String password = "")：写入指定文件到压缩文件
+- void ZipFile.write(SeekableStream strm, String inZipName, String password = "")：写入指定文件到压缩文件
+- void ZipFile.close()：关闭打开的zip文件
+
+代码实例如下：
+
+```JavaScript
+var zip = require('zip');
+var path = require('path');
+var fs = require('fs');
+
+var zipfile = zip.open(path.join(__dirname, 'unzip_test.zip' ), 'w');
+
+// 写入一个文件
+var buf = new Buffer('test data');
+zipfile.write(buf, 'test.txt');
+
+// 读取一个文件内容
+buf = zipfile.read("unzip_test.js");
+console.log(buf);
+
+zipfile.close();
+``` */
 interface ZipFile : object
 {
     /*! @brief 获取文件名列表

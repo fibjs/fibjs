@@ -4,7 +4,58 @@
 /// <reference path="../interface/TextEncoder.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description 常用工具模块 
+ * @description util 模块提供了对数据类型的判断、对象属性的复制、模版字符串的解析、事件处理等实用的工具函数
+ * 
+ * 下面是具体的介绍和示例：
+ * 
+ * 1. 判断数据类型 - `util.is[type]`
+ * 该模块内提供了诸如 `isDate`、`isRegExp`、`isError` 等判断传入参数数据类型的方法，例如：
+ * 
+ * ```JavaScript
+ * var util = require('util');
+ * console.log(util.isDate(new Date()));
+ * console.log(util.isRegExp(/some regexp/));
+ * ```
+ * 2. 对象属性复制 - `util.inherits()`
+ * 该方法可以选择将一个构造函数继承自另一个，从而实现原型继承。
+ * 
+ * ```JavaScript
+ * var util = require('util');
+ * function Animal() {
+ *   this.name = 'Animal';
+ *   this.sleep = function () {
+ *     console.log(this.name + '正在睡觉！');
+ *   }
+ * }
+ * Animal.prototype.eat = function (food) {
+ *   console.log(this.name + '正在吃：' + food);
+ * };
+ * function Cat() {
+ *   this.name = 'cat';
+ * }
+ * util.inherits(Cat, Animal);
+ * ```
+ * 
+ * 使用 `Cat` 这个构造函数继承了 `Animal` 的实例属性和原型属性，打印 `Cat` 的实例的属性和方法
+ * 
+ * ```JavaScript
+ * var cat = new Cat();
+ * console.log(cat.name); 
+ * console.log(cat.eat('fish')); 
+ * console.log(cat.sleep());
+ * ```
+ * 
+ * 3. util.format() 格式化输出模版
+ * ```JavaScript
+ * const util = require('util');
+ * const str1 = util.format('%s:%s', 'foo');
+ * const str2 = util.format('%s:%s', 'foo', 'bar', 'baz');
+ * console.log(str1) // => 'foo:%s'
+ * console.log(str2) // => 'foo:bar baz'
+ * ```
+ * 
+ * 以上是 `util` 模块的一些常用方法，常常可以用于简化实际开发过程。
+ * 
  */
 declare module 'util' {
     /**

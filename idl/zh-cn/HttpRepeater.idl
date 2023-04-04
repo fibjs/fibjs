@@ -1,12 +1,28 @@
-/*! @brief http 请求转发处理器
- 
- http 用于将 http 请求转发到后端服务器
- 用法如下：
+/*! @brief HttpRepeater 是一个 HTTP 请求转发器，可以将 HTTP 请求转发到指定的后端服务器并获得响应。它常常用于需要在前端与多个服务端交互的复杂系统中，或者用于负载均衡
 
- ```JavaScript
- var http = require('http');
- var hr = new http.Repeater('http://10.0.0.100:8080/test');
- ```
+使用 HttpRepeater 非常简单，只需要在创建实例时为其提供后端服务器的 URL 或负载均衡 URL 数组即可。
+
+如下是一个使用单个后端的示例：
+```JavaScript
+var http = require('http');
+var serverUrl = 'http://localhost:' + actualPort + '/example'
+var repeater = new http.Repeater(serverUrl)
+
+var server = new http.Server(8081, repeater);
+server.start();
+```
+下面是一个使用 URL 数组实现负载均衡的示例：
+```JavaScript
+var serverURLs = [
+  'http://server1.example.com',
+  'http://server2.example.com',
+  'http://server3.example.com'
+]
+var repeater = new http.Repeater(serverURLs)
+
+var server = new http.Server(8081, repeater);
+server.start();
+```
  */
 interface HttpRepeater : Handler
 {

@@ -2,13 +2,37 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/HttpCollection.d.ts" />
 /**
- * @description Url 处理对象
+ * @description UrlObject 是用于表示 URL 信息的一种对象，我们可以方便地使用 UrlObject 对象表示和操作一个 URL 地址。
  * 
- *  基础模块。提供 url 的格式化，解析与拼装
- *  ```JavaScript
- *  var url = new net.Url('http://www.xici.net/');
- *  var url = new net.Url({protocol: 'http:', hostname:'www.xici.net', pathname:'/'});
- *  ```
+ * UrlObject 封装了许多有用的方法和属性，例如 parse 和 format 等方法，可以快速地对 URL 进行解析和格式化。
+ * 
+ * 对于 UrlObject 对象，我们可以通过以下方式进行创建：
+ * 
+ * 1. 使用 url 字符串创建 UrlObject。在该方法中，parse 自动将 URL 进行解析，如果 URL 不合法，将抛出异常：
+ * 
+ * ```JavaScript
+ * const url = require('url');
+ * 
+ * const parsedURL = url.parse('https://www.google.com');
+ * console.log(parsedURL);
+ * ```
+ * 
+ * 2. 使用构造参数创建 UrlObject：
+ * 
+ * ```JavaScript
+ * const url = require('url');
+ * 
+ * const parsedURL = new url.URL({
+ *   protocol: 'https:',
+ *   hostname: 'www.google.com',
+ *   pathname: '/search',
+ *   query: {
+ *     q: 'hello world',
+ *   }
+ * });
+ * 
+ * console.log(parsedURL);
+ * ```
  *  
  */
 declare class Class_UrlObject extends Class_object {

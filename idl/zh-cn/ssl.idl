@@ -1,4 +1,46 @@
-/*! @brief ssl/tls 模块，模块别名：tls */
+/*! @brief ssl 模块是 fibjs 内置的加密模块，可以用于建立网络连接的 SSL 超文本传输协议。该模块提供加密验证，客户端和服务器可以确保连接是安全的
+
+ssl 模块中包含了多个对象和常量，可以用于一个完整的 SSL 客户端/服务器通信流程。常用的类别有：
+
+1. SslSocket：基于底层 Socket 封装的 Ssl 套接字对象，可以用来与远程服务器端进行双向验证等通信操作。
+2. SslHandler：SSL 协议转换处理器，用于将数据流转换为 SSL 流协议，适用于构建服务器端的服务。
+3. SslServer：SSL 服务器对象，方便搭建标准多纤程 SSL 服务器。
+
+下面以 ssl.Server 为例，介绍 ssl 模块的使用。
+
+ssl.Server 是一个基本的 SSL 服务器，它提供了一个基于 SSL 的网络服务。使用 ssl.Server 类可以快速创建一个基于 SSL/TLS 的服务器，同时兼容 TCP/HTTP 服务的基本所有特性。它具有以下特点：
+
+- 自带 X.509 证书管理器，支持多个域名证书、通配符、SAN 证书等功能。
+- 拥有与 TCP 服务器完全一致的接口和使用方式，上层代码无需关心 SSL 连接和 TCP 连接区别。
+- 使用内置的 OpenSSL 库实现了所有 SSL/TLS 安全协议。
+- 支持 SNI 和 ALPN 等协议扩展功能。
+
+下面是一个简单的示例：
+
+```JavaScript
+const ssl = require('ssl');
+const http = require('http');
+const crypto = require('crypto');
+
+// 读取 SSL 证书和私钥
+let key = crypto.loadPKey('mycert.key');
+let cert = crypto.loadCert('mycert.pem');
+// 创建 SSL 服务器
+const svr = new ssl.Server(cert, key, 8080, s => {
+    var data;
+
+    while(data = s.read()) {
+        console.log(`received data: ${data.toString()}`);
+        s.write(data.toString().toUpperCase());
+    }
+});
+
+// 启动服务器
+svr.start();
+```
+
+上面的代码中，我们首先读取了 SSL 证书和私钥文件，然后创建了一个 SSL 服务器实例。在服务器的回调函数中，接收到客户端数据后，将数据转换为大写，并通过 write 函数将数据返回给客户。
+ */
 module ssl
 {
     /*! @brief 证书验证模式，不验证 */

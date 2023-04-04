@@ -1,7 +1,30 @@
-/*! @brief XmlDocument 对象代表整个 XML 文档
+/*! @brief XmlDocument 是  xml 模块的一个对象，它代表整个 XML 文档，提供了对整个文档的访问入口
 
-XmlDocument 对象是一棵文档树的根，可为我们提供对文档数据的最初（或最顶层）的访问入口。
-用于元素节点、文本节点、注释、处理指令等均无法存在于 XmlDocument 之外， XmlDocument 对象同样提供了创建这些对象的方法。 XmlNode 对象提供了一个 ownerDocument 属性，此属性可把它们与在其中创建它们的 XmlDocument 关联起来。
+XmlDocument 是一棵文档树的根，包含了整个 XML 文档中的所有节点。XmlDocument 对象同样提供了以下功能：
+
+1. 创建元素节点、文本节点、注释和处理指令等
+2. 访问和修改文档属性和相关信息（如 DTD 注释及文档声明）
+3. 解析 XML 文档
+
+下面是使用 XmlDocument 对象解析一个 XML 文档的示例代码：
+
+```JavaScript
+var xml = require('xml');
+var fs = require('fs');
+
+var xmlStr = fs.readFile('test.xml');
+var xmlDoc = xml.parse(xmlStr);
+
+// 获取文档根节点名称
+var rootName = xmlDoc.documentElement.nodeName;
+console.log(`文档根节点名称是 ${rootName}`);
+```
+
+在上述代码中，我们首先使用 `fs` 模块的 `readFile()` 方法读取了一个 XML 文件，并将文件流赋值给变量 `xmlStr`。然后我们使用 `xml` 模块的 `parse()` 方法解析该 XML 文件，并将解析后的 `XmlDocument` 对象赋值给变量 `xmlDoc`。最后我们使用 `xmlDoc` 的 `documentElement` 属性获取文档根节点，并获取其节点名称，输出到控制台上。
+
+由于 XmlDocument 是整个 XML 文档的入口，因此我们可以通过它获取和修改文档的相关信息。例如，我们可以通过 `xmlDoc.xmlVersion` 和 `xmlDoc.xmlStandalone` 分别获取和修改文档的 XML 版本和 standalone 属性。我们还可以通过 `xmlDoc.createProcessingInstruction()` 方法来创建新的处理指令节点。
+
+XmlDocument 对象是一个非常强大的类型，为我们处理解析 XML 文件提供了很大的便利。
 */
 interface XmlDocument : XmlNode
 {

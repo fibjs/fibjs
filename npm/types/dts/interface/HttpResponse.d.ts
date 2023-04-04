@@ -3,7 +3,26 @@
 /// <reference path="../interface/HttpCookie.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /**
- * @description http 响应消息对象 
+ * @description HttpResponse 是一个 HTTP 响应对象，使用 HttpRequest.response 对象完成 Http 服务端数据响应，或 http.request 请求返回服务器的响应数据
+ * 
+ * 以下的例子展示如何在 http.Server 中使用，示例代码如下：
+ * ```
+ * const http = require('http');
+ * 
+ * const server = new http.Server(8080, (request) => {
+ *   // 获取响应对象
+ *   const response = request.response;
+ *   // 设置状态码为 200
+ *   response.statusCode = 200;
+ *   // 设置 Content-Type 响应头
+ *   response.setHeader('Content-Type', 'text/plain');
+ *   // 写入响应内容
+ *   response.write('ok');
+ * });
+ * 
+ * server.start();
+ * ```
+ * 
  */
 declare class Class_HttpResponse extends Class_HttpMessage {
     /**
