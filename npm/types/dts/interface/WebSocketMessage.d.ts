@@ -17,7 +17,7 @@
  * 
  * var svr = new http.Server(8080, {
  *     '/websocket': ws.upgrade((conn, req) => {
- *         // 这里发生了客户端连接
+ *         // emit message event
  *         conn.onmessage = e => {
  *             if (e.data.type == ws.TEXT) {
  *                 console.log(`接收到客户端发来的消息 ${e.data}`);

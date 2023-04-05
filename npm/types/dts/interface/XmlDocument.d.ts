@@ -26,7 +26,7 @@
  * var xmlStr = fs.readFile('test.xml');
  * var xmlDoc = xml.parse(xmlStr);
  * 
- * // 获取文档根节点名称
+ * // get document root node name
  * var rootName = xmlDoc.documentElement.nodeName;
  * console.log(`文档根节点名称是 ${rootName}`);
  * ```

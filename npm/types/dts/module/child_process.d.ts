@@ -29,10 +29,10 @@
  * ```JavaScript
  * const { spawn } = require('child_process');
  * 
- * // 子进程使用父进程的 stdio。
+ * // child process uses parent's stdio
  * spawn('prg', [], { stdio: 'inherit' });
  * 
- * // 衍生的子进程只共享 stderr。
+ * // child process uses parent's stderr
  * spawn('prg', [], { stdio: ['pipe', 'pipe', process.stderr] });
  * ```
  * 
@@ -51,14 +51,14 @@ declare module 'child_process' {
      *     options 支持的内容如下：
      *      ```JavaScript
      *      {
-     *         "cwd": "", // 子进程的当前的工作目录，缺省使用当前目录
-     *         "stdio": Array | String, // 子进程 stdio 配置
-     *         "env": {}, // 环境变量的键值对
-     *         "detached": false, // 子进程将会变成一个进程组的领导者，缺省为 false
-     *         "uid": 0, // 设置用户进程的ID
-     *         "gid": 0, // 设置进程组的ID
-     *         "windowsVerbatimArguments": false, // 在 Windows上不执行引号或转义参数。 在 Unix 上被忽略。 当指定外壳且为 CMD 时，此选项将自动设置为true，缺省为 false
-     *         "windowsHide": false // 隐藏通常在Windows系统上创建的子进程控制台窗口，缺省为 false
+     *         "cwd": "", // working directory of the child process, default to current directory
+     *         "stdio": Array | String, // working directory of the child process, default to current directory
+     *         "env": {}, // key-value pairs of environment variables to add to the child's environment
+     *         "detached": false, // child process will be a leader of a new process group, default to false
+     *         "uid": 0, // configure the user identity of the process
+     *         "gid": 0, // configure the group identity of the process
+     *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
+     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -74,14 +74,14 @@ declare module 'child_process' {
      *     options 支持的内容如下：
      *      ```JavaScript
      *      {
-     *         "cwd": "", // 子进程的当前的工作目录，缺省使用当前目录
-     *         "stdio": Array | String, // 子进程 stdio 配置
-     *         "env": {}, // 环境变量的键值对
-     *         "detached": false, // 子进程将会变成一个进程组的领导者，缺省为 false
-     *         "uid": 0, // 设置用户进程的ID
-     *         "gid": 0, // 设置进程组的ID
-     *         "windowsVerbatimArguments": false, // 在 Windows上不执行引号或转义参数。 在 Unix 上被忽略。 当指定外壳且为 CMD 时，此选项将自动设置为true，缺省为 false
-     *         "windowsHide": false // 隐藏通常在Windows系统上创建的子进程控制台窗口，缺省为 false
+     *         "cwd": "", // working directory of the child process, default to current directory
+     *         "stdio": Array | String, // working directory of the child process, default to current directory
+     *         "env": {}, // key-value pairs of environment variables to add to the child's environment
+     *         "detached": false, // child process will be a leader of a new process group, default to false
+     *         "uid": 0, // configure the user identity of the process
+     *         "gid": 0, // con
+     *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
+     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -96,14 +96,14 @@ declare module 'child_process' {
      *     options 支持的内容如下：
      *      ```JavaScript
      *      {
-     *         "cwd": "", // 子进程的当前的工作目录，缺省使用当前目录
-     *         "env": {}, // 环境变量的键值对
-     *         "encoding": "utf8", // 指定返回结果的编码，缺省为 utf8
-     *         "detached": false, // 子进程将会变成一个进程组的领导者，缺省为 false
-     *         "uid": 0, // 设置用户进程的ID
-     *         "gid": 0, // 设置进程组的ID
-     *         "windowsVerbatimArguments": false, // 在 Windows上不执行引号或转义参数。 在 Unix 上被忽略。 当指定外壳且为 CMD 时，此选项将自动设置为true，缺省为 false
-     *         "windowsHide": false // 隐藏通常在Windows系统上创建的子进程控制台窗口，缺省为 false
+     *         "cwd": "", // working directory of the child process, default to current directory
+     *         "env": {}, // key-value pairs of environment variables to add to the child's environment
+     *         "encoding": "utf8", // specify the character encoding used to decode the stdout and stderr output
+     *         "detached": false, // child process will be a leader of a new process group, default to false
+     *         "uid": 0, // configure the user identity of the process
+     *         "gid": 0, // con
+     *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
+     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -120,14 +120,14 @@ declare module 'child_process' {
      *     options 支持的内容如下：
      *      ```JavaScript
      *      {
-     *         "cwd": "", // 子进程的当前的工作目录，缺省使用当前目录
-     *         "env": {}, // 环境变量的键值对
-     *         "encoding": "utf8", // 指定返回结果的编码，缺省为 utf8
-     *         "detached": false, // 子进程将会变成一个进程组的领导者，缺省为 false
-     *         "uid": 0, // 设置用户进程的ID
-     *         "gid": 0, // 设置进程组的ID
-     *         "windowsVerbatimArguments": false, // 在 Windows上不执行引号或转义参数。 在 Unix 上被忽略。 当指定外壳且为 CMD 时，此选项将自动设置为true，缺省为 false
-     *         "windowsHide": false // 隐藏通常在Windows系统上创建的子进程控制台窗口，缺省为 false
+     *         "cwd": "", // working directory of the child process, default to current directory
+     *         "env": {}, // key-value pairs of environment variables to add to the child's environment
+     *         "encoding": "utf8", // specify the character encoding used to decode the stdout and stderr output
+     *         "detached": false, // child process will be a leader of a new process group, default to false
+     *         "uid": 0, // configure the user identity of the process
+     *         "gid": 0, // con
+     *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
+     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -145,14 +145,14 @@ declare module 'child_process' {
      *     options 支持的内容如下：
      *      ```JavaScript
      *      {
-     *         "cwd": "", // 子进程的当前的工作目录，缺省使用当前目录
-     *         "env": {}, // 环境变量的键值对
-     *         "encoding": "utf8", // 指定返回结果的编码，缺省为 utf8
-     *         "detached": false, // 子进程将会变成一个进程组的领导者，缺省为 false
-     *         "uid": 0, // 设置用户进程的ID
-     *         "gid": 0, // 设置进程组的ID
-     *         "windowsVerbatimArguments": false, // 在 Windows上不执行引号或转义参数。 在 Unix 上被忽略。 当指定外壳且为 CMD 时，此选项将自动设置为true，缺省为 false
-     *         "windowsHide": false // 隐藏通常在Windows系统上创建的子进程控制台窗口，缺省为 false
+     *         "cwd": "", // working directory of the child process, default to current directory
+     *         "env": {}, // key-value pairs of environment variables to add to the child's environment
+     *         "encoding": "utf8", // specify the character encoding used to decode the stdout and stderr output
+     *         "detached": false, // child process will be a leader of a new process group, default to false
+     *         "uid": 0, // configure the user identity of the process
+     *         "gid": 0, // con
+     *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
+     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -169,14 +169,14 @@ declare module 'child_process' {
      *     options 支持的内容如下：
      *      ```JavaScript
      *      {
-     *         "cwd": "", // 子进程的当前的工作目录，缺省使用当前目录
-     *         "stdio": Array | String, // 子进程 stdio 配置
-     *         "env": {}, // 环境变量的键值对
-     *         "detached": false, // 子进程将会变成一个进程组的领导者，缺省为 false
-     *         "uid": 0, // 设置用户进程的ID
-     *         "gid": 0, // 设置进程组的ID
-     *         "windowsVerbatimArguments": false, // 在 Windows上不执行引号或转义参数。 在 Unix 上被忽略。 当指定外壳且为 CMD 时，此选项将自动设置为true，缺省为 false
-     *         "windowsHide": false // 隐藏通常在Windows系统上创建的子进程控制台窗口，缺省为 false
+     *         "cwd": "", // working directory of the child process, default to current directory
+     *         "stdio": Array | String, // working directory of the child process, default to current directory
+     *         "env": {}, // key-value pairs of environment variables to add to the child's environment
+     *         "detached": false, // child process will be a leader of a new process group, default to false
+     *         "uid": 0, // configure the user identity of the process
+     *         "gid": 0, // con
+     *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
+     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
      *      }
      *      ```
      *      @param module 指定要运行的命令
@@ -192,14 +192,14 @@ declare module 'child_process' {
      *     options 支持的内容如下：
      *      ```JavaScript
      *      {
-     *         "cwd": "", // 子进程的当前的工作目录，缺省使用当前目录
-     *         "stdio": Array | String, // 子进程 stdio 配置
-     *         "env": {}, // 环境变量的键值对
-     *         "detached": false, // 子进程将会变成一个进程组的领导者，缺省为 false
-     *         "uid": 0, // 设置用户进程的ID
-     *         "gid": 0, // 设置进程组的ID
-     *         "windowsVerbatimArguments": false, // 在 Windows上不执行引号或转义参数。 在 Unix 上被忽略。 当指定外壳且为 CMD 时，此选项将自动设置为true，缺省为 false
-     *         "windowsHide": false // 隐藏通常在Windows系统上创建的子进程控制台窗口，缺省为 false
+     *         "cwd": "", // working directory of the child process, default to current directory
+     *         "stdio": Array | String, // working directory of the child process, default to current directory
+     *         "env": {}, // key-value pairs of environment variables to add to the child's environment
+     *         "detached": false, // child process will be a leader of a new process group, default to false
+     *         "uid": 0, // configure the user identity of the process
+     *         "gid": 0, // con
+     *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
+     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
      *      }
      *      ```
      *      @param module 指定要运行的命令
@@ -214,13 +214,13 @@ declare module 'child_process' {
      *     options 支持的内容如下：
      *      ```JavaScript
      *      {
-     *         "cwd": "", // 子进程的当前的工作目录，缺省使用当前目录
-     *         "env": {}, // 环境变量的键值对
-     *         "detached": false, // 子进程将会变成一个进程组的领导者，缺省为 false
-     *         "uid": 0, // 设置用户进程的ID
-     *         "gid": 0, // 设置进程组的ID
-     *         "windowsVerbatimArguments": false, // 在 Windows上不执行引号或转义参数。 在 Unix 上被忽略。 当指定外壳且为 CMD 时，此选项将自动设置为true，缺省为 false
-     *         "windowsHide": false // 隐藏通常在Windows系统上创建的子进程控制台窗口，缺省为 false
+     *         "cwd": "", // working directory of the child process, default to current directory
+     *         "env": {}, // key-value pairs of environment variables to add to the child's environment
+     *         "detached": false, // child process will be a leader of a new process group, default to false
+     *         "uid": 0, // configure the user identity of the process
+     *         "gid": 0, // con
+     *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
+     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
      *      }
      *      ```
      *      @param command 指定要运行的命令
@@ -238,13 +238,13 @@ declare module 'child_process' {
      *     options 支持的内容如下：
      *      ```JavaScript
      *      {
-     *         "cwd": "", // 子进程的当前的工作目录，缺省使用当前目录
-     *         "env": {}, // 环境变量的键值对
-     *         "detached": false, // 子进程将会变成一个进程组的领导者，缺省为 false
-     *         "uid": 0, // 设置用户进程的ID
-     *         "gid": 0, // 设置进程组的ID
-     *         "windowsVerbatimArguments": false, // 在 Windows上不执行引号或转义参数。 在 Unix 上被忽略。 当指定外壳且为 CMD 时，此选项将自动设置为true，缺省为 false
-     *         "windowsHide": false // 隐藏通常在Windows系统上创建的子进程控制台窗口，缺省为 false
+     *         "cwd": "", // working directory of the child process, default to current directory
+     *         "env": {}, // key-value pairs of environment variables to add to the child's environment
+     *         "detached": false, // child process will be a leader of a new process group, default to false
+     *         "uid": 0, // configure the user identity of the process
+     *         "gid": 0, // con
+     *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
+     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
      *      }
      *      ```
      *      @param command 指定要运行的命令

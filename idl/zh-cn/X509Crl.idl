@@ -14,12 +14,12 @@ const crypto = require('crypto');
 const crypto = require('crypto');
 const fs = require('fs');
 
-// 加载 PEM 格式文件
+// load a PEM format CRL
 var pemFile = './mycrl.pem';
 var pemText = fs.readFile(pemFile).toString();
 var crl = new crypto.X509Crl(pemText);
 
-// 显示撤销列表中的证书吊销序列号
+// output serials of revoked certificates
 for (var i = 0; i < crl.serials.length; i++) {
     console.log(crl.serials[i]);
 }

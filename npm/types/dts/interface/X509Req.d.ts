@@ -18,10 +18,10 @@
  * 可以通过该实例调用其父类的方法和属性来获取证书请求对象的信息，例如：
  * 
  * ```JavaScript
- * // 获取证书请求对象的 DER 格式的编码
+ * // return the DER format of the certificate request
  * let derReq = req.der();
  * 
- * // 获取证书请求对象的 PEM 格式的编码
+ * // return the PEM format of the certificate request
  * let pemReq = req.pem();
  * ```
  * 
@@ -29,11 +29,11 @@
  * 
  * ```JavaScript
  * let opt = {
- *   notBefore: new Date('2019-01-01') // 证书生效时间
- *  ,notAfter:  new Date('2029-12-31') // 证书失效时间
+ *   notBefore: new Date('2019-01-01') // valid from 2019-01-01
+ *  ,notAfter:  new Date('2029-12-31') // valid to 2029-12-31
  * };
  * let crt = req.sign("CN=myy.mkx", pky, opt); 
- * // CN=myy.mkx 是证书的签发者, 可添加扩展信息
+ * // CN=myy.mkx is the issuer of the certificate
  * ```
  * 
  * 需要注意的是，X509Req 对象的作用是创建 x509 证书请求，而不是证书本身，要想获得有效的证书还需要对其进行签名。同时，签名证书所使用的公钥必须和证书请求中使用的公钥一致。
@@ -102,12 +102,12 @@ declare class Class_X509Req extends Class_object {
      *     opts 接收的字段如下：
      *     ```JavaScript
      *     {
-     *         ca: false,      // 证书为 ca，缺省为 false
-     *         pathlen: -1,    // 证书深度，缺省为 -1
-     *         notBefore: "",  // 证书生效时间，缺省为当前时间
-     *         notAfter: "",   // 证书失效时间，缺省为 notBefore 后一年
-     *         usage: "",      // 证书使用范围，接收：digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign, cRLSign
-     *         type: ""        // 证书 Netscape 证书类型，接收：client, server, email, objsign, reserved, sslCA, emailCA, objCA
+     *         ca: false,      // specify if the certificate is a CA certificate, default is false
+     *         pathlen: -1,    // specify the path length of the certificate, default is -1
+     *         notBefore: "",  // specify the certificate valid from date, default is current date
+     *         notAfter: "",   // specify the certificate valid to date, default is 365 days after current date
+     *         usage: "",      // specify the certificate usage, accept: digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment, keyAgreement, keyCertSign, cRLSign
+     *         type: ""        // specify the certificate Netscape certificate type, accept: client, server, email, objsign, reserved, sslCA, emailCA, objCA
      *     }
      *     ```
      *      @param issuer 签名机构的可分辨名称

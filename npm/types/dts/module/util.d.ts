@@ -107,11 +107,11 @@ declare module 'util' {
      *      支持以下参数:
      *      ```JavaScript
      *      {
-     *          "colors": false, // 指定是否输出 ansi 作色字符串，缺省为 false
-     *          "depth": 2, // 指定格式化 object 时递归的次数，缺省为 2
-     *          "table": false, // 指定输出 table 格式，缺省为 false
-     *          "encode_string": true, // 指定表格中的字符串是否编码，缺省为 true
-     *          "fields": [], // 当 table 为 true 时指定显示字段
+     *          "colors": false, // specify if output should be colorized, defaults to false
+     *          "depth": 2, // specify the max depth of the output, defaults to 2
+     *          "table": false, // specify if output should be a table, defaults to false
+     *          "encode_string": true, // specify if string should be encoded, defaults to true
+     *          "fields": [], // specify the fields to be displayed, defaults to all
      *      }
      *      ```
      *      @param obj 指定需要处理的对象

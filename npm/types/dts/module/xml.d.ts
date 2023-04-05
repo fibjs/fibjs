@@ -13,7 +13,7 @@
  * var xmlStr = fs.readFile('test.xml');
  * var xmlDoc = xml.parse(xmlStr);
  * 
- * console.log(xmlDoc.documentElement.nodeName);  // 输出 xml 根节点名称
+ * console.log(xmlDoc.documentElement.nodeName);  // output root node name
  * ```
  * 在上面的代码中，我们使用 fs 模块的 readFile 方法读取了一个 xml 文件，然后使用 xml 模块的 parse 方法解析该 xml 文件，并返回一个 XmlDocument 对象 xmlDoc。然后，我们就可以通过 xmlDoc.documentElement 访问 xml 文档的根元素了。
  * 
@@ -25,7 +25,7 @@
  * var htmlStr = fs.readFile('test.html');
  * var xmlDoc = xml.parse(htmlStr, 'text/html');
  * 
- * console.log(xmlDoc.documentElement.nodeName);  // 输出 html 根节点名称
+ * console.log(xmlDoc.documentElement.nodeName);  // output root node name
  * ```
  * 在这里，我们同样使用了 fs 模块的 readFile 方法读取了一个 html 文件，但我们在调用 xml 模块的 parse 方法时指定了第二个参数为 ‘text/html’，这样 xml 模块就会按照 html 的语法规则解析文件。
  * 

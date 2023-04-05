@@ -10,13 +10,13 @@
  * const http = require('http');
  * 
  * const server = new http.Server(8080, (request) => {
- *   // 获取响应对象
+ *   // retreive the response object
  *   const response = request.response;
- *   // 设置状态码为 200
+ *   // set the status code
  *   response.statusCode = 200;
- *   // 设置 Content-Type 响应头
+ *   // set the content type to text/plain
  *   response.setHeader('Content-Type', 'text/plain');
- *   // 写入响应内容
+ *   // write the response body
  *   response.write('ok');
  * });
  * 

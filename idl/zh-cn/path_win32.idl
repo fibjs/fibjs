@@ -34,11 +34,11 @@ module path_win32
      pathObject 支持的字段如下：
      ```JavaScript
      {
-         "dir": "", // 指定路径的目录
-         "root": "", // 指定路径的根目录
-         "base": "", // 指定路径的文件名，等同于 ${name}.${ext}
-         "name": "", // 指定路径的主文件名
-         "ext": "", // 指定路径的扩展名
+         "dir": "", // specify the directory of the path
+         "root": "", // specify the root of the path
+         "base": "", // specify the base of the path, it's the combination of name and ext
+         "name": "", // specify the name of the path
+         "ext": "", // specify the ext of the path
      }
      ```
      @param pathObject 指定参数

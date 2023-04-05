@@ -46,8 +46,8 @@
  * const http = require('http');
  * 
  * const cookie = new http.Cookie('my_cookie_name', 'my_cookie_value');
- * delete cookie.server; //移除指定 httponly cookie
- * cookie.expires = -1; // 将过期时间改为已过期时间，浏览器会自动删除该 cookie
+ * delete cookie.server; // delete server property
+ * cookie.expires = -1; // set expires to -1
  * ``` 
  * 
  * 在上述示例代码中，我们使用了 delete 语句，移除了 cookie 对象的 server 属性（HTTP only cookie）。次外，为了移除最近添加的 cookie，我们将 expires 属性的值设置为 -1。
@@ -60,13 +60,13 @@ declare class Class_HttpCookie extends Class_object {
      *      opts 可以设置的选项如下：
      *      ```JavaScript
      *      {
-     *          "name": "", // 指定创建的 cookie 名称
-     *          "value": "", // 指定创建的 cookie 值
-     *          "expires": Date, // 指定创建的 cookie 过期时间
-     *          "domain": "", // 指定创建的 cookie 的域名范围
-     *          "path": "", // 指定创建的 cookie 的路径范围
-     *          "secure": false, // 指定创建的 cookie 是否仅通过 https 传递
-     *          "httpOnly": false, // 指定创建的 cookie 仅允许 http 请求
+     *          "name": "", // specify the name of the cookie
+     *          "value": "", // specify the value of the cookie
+     *          "expires": Date, // specify the expires time of the cookie
+     *          "domain": "", // specify the domain of the cookie
+     *          "path": "", // specify the path of the cookie
+     *          "secure": false, // specify the secure of the cookie
+     *          "httpOnly": false, // specify the httpOnly of the cookie
      *      }
      *      ```
      *      @param opts 指定创建的 cookie 的属性
@@ -80,11 +80,11 @@ declare class Class_HttpCookie extends Class_object {
      *      opts 可以设置的选项如下：
      *      ```JavaScript
      *      {
-     *          "expires": Date, // 指定创建的 cookie 过期时间
-     *          "domain": "", // 指定创建的 cookie 的域名范围
-     *          "path": "", // 指定创建的 cookie 的路径范围
-     *          "secure": false, // 指定创建的 cookie 是否仅通过 https 传递
-     *          "httpOnly": false, // 指定创建的 cookie 仅允许 http 请求
+     *          "expires": Date, // specify the expires time of the cookie
+     *          "domain": "", // specify the domain of the cookie
+     *          "path": "", // specify the path of the cookie
+     *          "secure": false, // specify the secure of the cookie
+     *          "httpOnly": false, // specify the httpOnly of the cookie
      *      }
      *      ```
      *      @param name 指定创建的 cookie 名称

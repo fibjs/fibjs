@@ -13,20 +13,20 @@
  * ```JavaScript
  * const path = require('path');
  * 
- * // 连接两个路径片段，并处理成标准的路径格式
- * console.log(path.join('/usr', 'local', 'bin'));  // 输出：/usr/local/bin
+ * // connect path segments using the platform-specific separator as a delimiter,
+ * console.log(path.join('/usr', 'local', 'bin'));  // output: /usr/local/bin
  * 
- * // 将路径 /foo/bar 和 baz 解析为 /foo/bar/baz
- * console.log(path.resolve('/foo/bar', './baz'));  // 输出：/foo/bar/baz
+ * // resolve a sequence of paths or path segments into an absolute path
+ * console.log(path.resolve('/foo/bar', './baz'));  // output: /foo/bar/baz
  * 
- * // 返回路径 /foo/bar/baz 的最后一部分 baz
- * console.log(path.basename('/foo/bar/baz'));  // 输出：baz
+ * // return the last portion of a path
+ * console.log(path.basename('/foo/bar/baz'));  // output: baz
  * 
- * // 返回路径 /foo/bar/baz 的目录名 /foo/bar
- * console.log(path.dirname('/foo/bar/baz'));  // 输出：/foo/bar
+ * // return the directory name of a path
+ * console.log(path.dirname('/foo/bar/baz'));  // output: /foo/bar
  * 
- * // 返回路径 /foo/bar/baz 中的扩展名 .txt
- * console.log(path.extname('/foo/bar/baz.txt'));  // 输出：.txt
+ * // return the extension of the path, from the last '.' to end of string in the last portion of the path
+ * console.log(path.extname('/foo/bar/baz.txt'));  // output: .txt
  * ```
  * 
  * 除了上述方法，path 模块还提供了很多其他的方法，如 normalize()、delimiter、posix、win32 等等，用于处理路径的规范化、路径分隔符、路径格式的处理等等。这些方法在实际开发中也经常用到。

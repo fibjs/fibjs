@@ -32,11 +32,11 @@ var fs = require('fs');
 
 var zipfile = zip.open(path.join(__dirname, 'unzip_test.zip' ), 'w');
 
-// 写入一个文件
+// write a file
 var buf = new Buffer('test data');
 zipfile.write(buf, 'test.txt');
 
-// 读取一个文件内容
+// read a file
 buf = zipfile.read("unzip_test.js");
 console.log(buf);
 

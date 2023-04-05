@@ -12,12 +12,12 @@
  * ```JavaScript
  * var registry = require('registry');
  * 
- * // 验证指定键值是否存在，如果不存在，写入一个数据
+ * // specify the key name
  * var key = "Software\\Fibjs\\Test\\KeyName";
  * if(!registry.get(registry.CLASSES_ROOT, key)) {
  *     registry.set(registry.CLASSES_ROOT, key, "test_value");
  * }
- * // 读取指定键值数据
+ * // specify the key name
  * var value = registry.get(registry.CLASSES_ROOT, key);
  * console.log(value);
  * ```

@@ -5,19 +5,19 @@
 ```JavaScript
 const crypto = require('crypto');
 
-// 生成 Ed25519 密钥对
+// generate a ed25519 key
 const key = crypto.generateKey('ed25519');
 
-// 打印公钥、私钥等信息
+// output key in PEM format
 console.log('PrivateKey:', key.pem());
 console.log('PublicKey:', key.publicKey.pem());
 
-// 签名消息
+// sign a message
 const message = 'Hello, World!';
 const sig = key.sign(message);
 console.log('Sig:', sig.hex());
 
-// 验证签名
+// verify the signature
 const verifyResult = key.verify(message, sig);
 console.log('Verify Result:', verifyResult);
 ```

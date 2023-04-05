@@ -131,8 +131,8 @@ declare module 'fs' {
      *      创建参数可以包含以下值：
      *      ```JavaScript
      *      {
-     *          recursive: false, // 指定是否父目录不存在是是否自动创建，默认值: false
-     *          mode: 0777 // 指定文件权限，Windows 忽略此参数，默认值: 0777
+     *          recursive: false, // specify whether parent directories should be created. Default: false
+     *          mode: 0777 // specify the file mode. Default: 0777
      *      }
      *      ```
      *      @param path 指定要创建的目录名
@@ -450,7 +450,7 @@ declare module 'fs' {
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
-     *          "encoding": "utf8" // 指定解码方式，缺省不解码
+     *          "encoding": "utf8" // specify the encoding, default is utf8.
      *      }
      *      ```
      *      @param fname 指定文件名
@@ -566,9 +566,9 @@ declare module 'fs' {
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
-     *          "persistent": true, // {boolean} default: true 是否只要目标文件还在被观察, 进程就不退出
-     *          "recursive": false, // {boolean} default: false 对于 fname 为文件夹的情况, 是否递归地观察其下所有的子目录
-     *          "encoding": "utf8", // {enum} default: 'utf8' 指定解析传入的 fname 的字符编码
+     *          "persistent": true, // specify whether the process should continue to run as long as files are being watched
+     *          "recursive": false, // specify whether all subdirectories should be watched or only the current directory
+     *          "encoding": "utf8", // specify the encoding, default is utf8.
      *      }
      *      ```
      *      @param fname 指定要观察的文件对象
@@ -584,9 +584,9 @@ declare module 'fs' {
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
-     *          "persistent": true, // {boolean} default: true 是否只要目标文件还在被观察, 进程就不退出
-     *          "recursive": false, // {boolean} default: false 对于 fname 为文件夹的情况, 是否递归地观察其下所有的子目录
-     *          "encoding": "utf8", // {enum} default: 'utf8' 指定解析传入的 fname 的字符编码
+     *          "persistent": true, // specify whether the process should continue to run as long as files are being watched
+     *          "recursive": false, // specify whether all subdirectories should be watched or only the current directory
+     *          "encoding": "utf8", // specify the encoding, default is utf8.
      *      }
      *      ```
      *      @param fname 指定要观察的文件对象
@@ -612,9 +612,9 @@ declare module 'fs' {
      *      options 支持的选项如下：
      *      ```JavaScript
      *      {
-     *          "persistent": true, // {boolean} default: true 是否只要目标文件还在被观察, 进程就不退出
-     *          "recursive": false, // {boolean} default: false 对于 fname 为文件夹的情况, 是否递归地观察其下所有的子目录
-     *          "encoding": "utf8", // {enum} default: 'utf8' 指定解析传入的 fname 的字符编码
+     *          "persistent": true, // specify whether the process should continue to run as long as files are being watched
+     *          "recursive": false, // specify whether all subdirectories should be watched or only the current directory
+     *          "encoding": "utf8", // specify the encoding, default is utf8.
      *      }
      *      ```
      *      @param fname 指定要观察的文件对象

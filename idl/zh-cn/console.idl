@@ -84,7 +84,7 @@ module console
      ```JavaScript
      console.add({
         type: "console",
-        levels: [console.INFO, console.ERROR]  // 选项，省略则输出全部级别日志
+        levels: [console.INFO, console.ERROR]  // optional, default is all levels
      });
      ```
 
@@ -109,12 +109,9 @@ module console
      console.add({
         type: "file",
         levels: [console.INFO, console.ERROR],
-        // 必选项，指定日志输出文件，可使用 s% 指定插入日期位置，不指定则添加在结尾
-        path: "path/to/file_%s.log",
-        // 选项，可选值为 "day", "hour", "minute", "###k", "###m", "###g"，缺省为 "1m"
-        split: "30m",
-        // 选项，可选范围为 2-128，缺省为 128
-        count: 10
+        path: "path/to/file_%s.log", // specifies the log output file, can use %s to specify the insertion date location, or add at the end if not specified
+        split: "30m", // Optional values are "day", "hour", "minute", "####k", "####m", "####g", default is "1m"
+        count: 10 // option, selectable from 2 to 128, default is 128
      });
      ```
 
@@ -265,11 +262,11 @@ module console
      支持以下参数:
      ```JavaScript
      {
-         "colors": false, // 指定是否输出 ansi 作色字符串，缺省为 false
-         "depth": 2, // 指定格式化 object 时递归的次数，缺省为 2
-         "table": false, // 指定输出 table 格式，缺省为 false
-         "encode_string": true, // 指定表格中的字符串是否编码，缺省为 true
-         "fields": [], // 当 table 为 true 时指定显示字段
+         "colors": false, // specify if output should be colorized, defaults to false
+         "depth": 2, // specify the max depth of the output, defaults to 2
+         "table": false, // specify if output should be a table, defaults to false
+         "encode_string": true, // specify if string should be encoded, defaults to true
+         "fields": [], // specify the fields to be displayed, defaults to all
      }
      ```
      @param obj 指定需要处理的对象

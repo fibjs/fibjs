@@ -25,12 +25,12 @@
  * var ws = require("ws");
  * 
  * var conn = new ws.Socket("ws://127.0.0.1/ws");
- * // WebSocket 连接成功时触发 onopen 事件
+ * // emit open event
  * conn.onopen = () => {
  *     console.log("websocket connected");
  *     conn.send("hi");
  * };
- * // WebSocket 接收到消息时触发 onmessage 事件
+ * // emit close event
  * conn.onmessage = evt => {
  *     console.log("websocket receive: " + evt.data);
  * };
@@ -52,12 +52,12 @@ declare class Class_WebSocket extends Class_EventEmitter {
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
-     *          "protocol": "", // 指定握手协议，缺省为空
-     *          "origin": "", // 指定握手时模拟的源，缺省为空
-     *          "perMessageDeflate": false, // 指定是否支持压缩，缺省不支持
-     *          "maxPayload": 67108864, // 指定最大数据包尺寸，缺省为 67108864
-     *          "httpClient": hc, // 自定义 httpClient 对象，缺省使用全局 httpClient
-     *          "headers": // 指定 http(s) 连接时携带的 header，缺省为 {}，
+     *          "protocol": "", // specify the sub-protocol, default is ""
+     *          "origin": "", // specify the origin, default is ""
+     *          "perMessageDeflate": false, // specify whether to enable permessage-deflate, default is false
+     *          "maxPayload": 67108864, // specify the max payload size, default is 64MB
+     *          "httpClient": hc, // specify the http client, default is null, use the global http client
+     *          "headers": // specify the http headers, default is {}
      *      }
      *      ```
      *      @param url 指定连接的服务器

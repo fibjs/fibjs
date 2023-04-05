@@ -9,16 +9,16 @@
  * 
  * ```
  * const crypto = require('crypto');
- * // 创建 SHA-512 摘要运算对象
+ * // create a SHA-512 digest object
  * const digest = crypto.createHash('sha512');
- * // 更新数据
+ * // update digest with data
  * digest.update('hello');
  * digest.update('world');
- * // 获取二进制结果
+ * // get digest result
  * const result = digest.digest();
  * console.log(result);
  * 
- * // 生成指定编码的结果
+ * // output result in hex and base64
  * console.log(result.toString('hex'));
  * console.log(result.toString('base64'));
  * ```

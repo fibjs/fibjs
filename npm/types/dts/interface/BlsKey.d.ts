@@ -16,7 +16,7 @@
  * ```JavaScript
  * var crypto = require('crypto');
  * 
- * // 创建一个私钥
+ * // create a private key
  * var privateKey = new crypto.BlsKey({
  *   'kty': 'EC',
  *   'crv': 'BLS12-381-G1',
@@ -24,11 +24,11 @@
  *   'd': 'zE-pf24p-l0IT_lMcrX0gStTcsx_k1f7DnJmrN8V7ZU',
  * });
  * 
- * // 签名消息
+ * // sign a message
  * var message = '这是一条需要签名的消息';
  * var signature = privateKey.sign(message);
  * 
- * // 验证签名
+ * // verify the signature
  * var publicKey = privateKey.publicKey;
  * var verify = publicKey.verify(message, signature);
  * 

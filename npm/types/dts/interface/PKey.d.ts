@@ -40,7 +40,7 @@
  * 
  * var pkey1 = crypto.PKey.from(fs.readFile('rsa.private.pem'));
  * var pkey2 = crypto.PKey.from(fs.readFile('rsa.public.pem'));
- * console.log(pkey1.equals(pkey2)); // 输出 true
+ * console.log(pkey1.equals(pkey2)); // output: true
  * ```
  *  
  */

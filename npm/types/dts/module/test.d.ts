@@ -173,33 +173,33 @@ declare module 'test' {
      *     测试运行完成后，将以以下形式返回测试结果：
      *     ```JavaScript
      *     {
-     *         "total": 2, // 总测试项目数
-     *         "pass": 2, // 通过测试项目数
-     *         "fail": 0, // 失败测试项目数
-     *         "skip": 0, // 跳过测试项目数
-     *         "todo": 0, // 计划测试项目数
-     *         "time": 0.000000, // 测试耗时
-     *         "cases": [ // 测试项目列表
+     *         "total": 2, // number of total test cases
+     *         "pass": 2, // number of passed test cases
+     *         "fail": 0, // number of failed test cases
+     *         "skip": 0, // number of skipped test cases
+     *         "todo": 0, // number of todo test cases
+     *         "time": 0.000000, // time elapsed in seconds
+     *         "cases": [ // details of test cases
      *             {
-     *                 "name": "test", // 测试项目名称
-     *                 "time": 0.000000, // 测试耗时
-     *                 "result": true, // 测试结果
-     *                 "error": null // 测试错误信息
+     *                 "name": "test", // name of test case
+     *                 "time": 0.000000, // time elapsed in seconds
+     *                 "result": true, // result of test case
+     *                 "error": null // message of error if test case failed
      *             },
      *             {
-     *                 "name": "sub cases", // 测试组名称
-     *                 "total": 1, // 总测试项目数
-     *                 "pass": 1, // 通过测试项目数
-     *                 "fail": 0, // 失败测试项目数
-     *                 "skip": 0, // 跳过测试项目数
-     *                 "todo": 0, // 计划测试项目数
-     *                 "time": 0.000000, // 测试耗时
-     *                 "cases": [ // 测试项目列表
+     *                 "name": "sub cases", // name of sub test case
+     *                 "total": 1, // number of total test cases
+     *                 "pass": 1, // number of passed test cases
+     *                 "fail": 0, // number of failed test cases
+     *                 "skip": 0, // number of skipped test cases
+     *                 "todo": 0, // number of todo test cases
+     *                 "time": 0.000000, // time elapsed in seconds
+     *                 "cases": [ // details of test cases
      *                     {
-     *                         "name": "test", // 测试项目名称
-     *                         "time": 0.000000, // 测试耗时
-     *                         "result": true, // 测试结果
-     *                         "error": null // 测试错误信息
+     *                         "name": "test", // name of test case
+     *                         "time": 0.000000, // time elapsed in seconds
+     *                         "result": true, // result of test case
+     *                         "error": null // message of error if test case failed
      *                     }
      *                 ]
      *             }

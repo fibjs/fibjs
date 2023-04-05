@@ -112,8 +112,8 @@ declare module 'ws' {
      *      opts 包含请求的附加选项，支持的内容如下：
      *      ```JavaScript
      *      {
-     *          "perMessageDeflate": false, // 指定是否支持压缩，缺省不支持
-     *          "maxPayload": 67108864 // 指定最大数据包尺寸，缺省为 67108864
+     *          "perMessageDeflate": false, // specify whether to use permessage-deflate, default is true
+     *          "maxPayload": 67108864 // specify the maximum allowed message size, default is 64MB
      *      }
      *      ```
      *      @param opts 连接选项，缺省是 {}

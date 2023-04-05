@@ -35,16 +35,16 @@ module gui
      支持以下参数:
      ```JavaScript
      {
-         "left": 100, // 窗口左上角 x，缺省系统自动设定
-         "right": 100, // 窗口左上角 y，缺省系统自动设定
-         "width": 100, // 窗口宽度，缺省系统自动设定
-         "height": 100, // 窗口高度，缺省系统自动设定
-         "border": true, // 是否有边框，缺省有边框
-         "caption": true, // 是否有标题栏，缺省有标题栏
-         "resizable": true, // 是否可改变尺寸，缺省可以改变
-         "maximize": false, // 是否最大化显示，缺省不最大化
-         "fullscreen": false, // 是否显示全屏窗口，缺省不全屏
-         "debug": true, // 是否输出 WebView 内的错误和 console 信息，缺省显示或继承全局设置
+         "left": 100, // specify the left position of the window, default is system auto set
+         "right": 100, // spcify the top position of the window, default is system auto set
+         "width": 100, // specify the width of the window, default is system auto set
+         "height": 100, // specify the height of the window, default is system auto set
+         "border": true, // specify whether the window has border, default is true
+         "caption": true, // specify whether the window has caption, default is true
+         "resizable": true, // specify whether the window is resizable, default is true
+         "maximize": false, // specify whether the window is maximized, default is false
+         "fullscreen": false, // specify whether the window is fullscreen, default is false
+         "debug": true, // specify whether the WebView output error and console info, default is true
      }
      ```
      当设定 width 和 height，而未设定 left 或 right 时，窗口将自动居中
@@ -59,16 +59,16 @@ module gui
      支持以下参数:
      ```JavaScript
      {
-         "left": 100, // 窗口左上角 x，缺省系统自动设定
-         "right": 100, // 窗口左上角 y，缺省系统自动设定
-         "width": 100, // 窗口宽度，缺省系统自动设定
-         "height": 100, // 窗口高度，缺省系统自动设定
-         "border": true, // 是否有边框，缺省有边框
-         "caption": true, // 是否有标题栏，缺省有标题栏
-         "resizable": true, // 是否可改变尺寸，缺省可以改变
-         "maximize": false, // 是否最大化显示，缺省不最大化
-         "fullscreen": false, // 是否显示全屏窗口，缺省不全屏
-         "debug": true, // 是否输出 WebView 内的错误和 console 信息，缺省显示或继承全局设置
+         "left": 100, // specify the left position of the window, default is system auto set
+         "right": 100, // spcify the top position of the window, default is system auto set
+         "width": 100, // specify the width of the window, default is system auto set
+         "height": 100, // specify the height of the window, default is system auto set
+         "border": true, // specify whether the window has border, default is true
+         "caption": true, // specify whether the window has caption, default is true
+         "resizable": true, // specify whether the window is resizable, default is true
+         "maximize": false, // specify whether the window is maximized, default is false
+         "fullscreen": false, // specify whether the window is fullscreen, default is false
+         "debug": true, // specify whether the WebView output error and console info, default is true
      }
      ```
      当设定 width 和 height，而未设定 left 或 right 时，窗口将自动居中

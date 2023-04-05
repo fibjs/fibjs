@@ -18,11 +18,11 @@
  * const http = require("http");
  * const crypto = require("crypto");
  * 
- * // 加载证书和密钥文件
+ * // load cert and key
  * const cert = crypto.loadCert("server.crt");
  * const key = crypto.loadPKey("server.key");
  * 
- * //创建 https 服务器并启动
+ * // create https server
  * const server = new http.HttpsServer(cert, key, 8443, function(req) {
  *     resp.response.write(`Hello, Fibjs!`);
  * });

@@ -6,7 +6,7 @@
  *  没有途径可以单独创建该类, 全局只有 `process.stdout` 实例
  * 
  *  ```JavaScript
- *  // 清除屏幕上光标以右的内容
+ *  // clear line
  *  process.stdout.clearLine(1)
  *  ```
  *  

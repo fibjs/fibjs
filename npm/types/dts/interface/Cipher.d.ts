@@ -14,7 +14,7 @@
  *   首先，我们需要获取一个对称加密的 Cipher 对象，如 AES 加密算法：
  * ```JavaScript
  * const crypto = require('crypto');
- * const key = crypto.randomBytes(16); // 生成 16 字节的随机数作为 AES 密钥
+ * const key = crypto.randomBytes(16); // generate a 16-byte random key
  * const cipher = new crypto.Cipher(crypto.AES, crypto.ECB, key);
  * ```
  * 以上代码中，我们通过 ``randomBytes`` 方法生成了 16 字节的随机数，作为 AES 密钥。然后，我们创建了一个 AES 算法的 Cipher 对象，使用 ECB 分组密码工作模式，并使用生成的随机数作为密钥。
@@ -23,7 +23,7 @@
  * ```JavaScript
  * const plaintext = 'Hello, world!';
  * const encrypted = cipher.encrypt(plaintext);
- * console.log(encrypted); // 输出加密后的结果
+ * console.log(encrypted); // output encrypted data
  * ```
  * 以上代码中，我们使用 ``encrypt`` 方法对字符串 ``Hello, world!`` 进行加密，并输出加密后的结果。
  * 
@@ -36,7 +36,7 @@
  * ```JavaScript
  * const decipher = new crypto.Cipher(crypto.AES, crypto.ECB, key);
  * const decrypted = decipher.decrypt(encrypted);
- * console.log(decrypted.toString()); // 输出解密后的结果
+ * console.log(decrypted.toString()); // output decrypted data
  * ```
  * 在这里，我们创建了一个新的 Cipher 对象，使用相同的 key 和密码工作模式，并且使用 ``decrypt`` 方法对加密数据进行解密。解密的结果是一个 Buffer 对象，需要转换为字符串才能被正确输出。    
  *  

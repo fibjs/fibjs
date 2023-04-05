@@ -32,9 +32,9 @@
  * ```JavaScript
  * const { Worker } = require('worker_threads');
  * 
- * // 将耗时计算交给 Worker 来做
+ * // create a worker thread
  * const fib = new Worker(__dirname + '/fib-worker.js');
- * // 通过 on 和 postMessage 在主线程和工作线程之间发送消息
+ * // receive the result from the worker thread
  * fib.onmessage = (ev) => {
  *   console.log('result: ', ev.data);
  * };

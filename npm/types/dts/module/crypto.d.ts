@@ -22,7 +22,7 @@
  * 
  * ```javascript
  * const crypto = require('crypto');
- * const key = crypto.randomBytes(16); // 生成 16 字节的随机数作为 AES 密钥
+ * const key = crypto.randomBytes(16); // generate a 16-byte random key
  * ```
  * 
  * 接下来，使用 `Cipher` 对象来对明文进行加密：
@@ -31,7 +31,7 @@
  * const c = new crypto.Cipher(crypto.AES, crypto.ECB, key);
  * const data = 'hello, world';
  * const encrypted = c.encrypt(data).hex();
- * console.log(encrypted); // 输出加密后的结果
+ * console.log(encrypted); // output encrypted data
  * ```
  * 
  * 以上示例中，创建了一个 `AES` 加密的 `Cipher` 对象，使用 `encrypt` 方法对明文进行加密，并返回加密结果。
@@ -39,12 +39,12 @@
  * 除了对称加密算法，`crypto` 模块还可以支持非对称加密算法和摘要算法。比如以下示例是使用 `PKey` 和 `Digest` 对象实现 SHA256 加密的代码：
  * 
  * ```javascript
- * const privateKey = crypto.loadPKey('private.pem'); // 读取私钥文件
+ * const privateKey = crypto.loadPKey('private.pem'); // read private key from file
  * const data = 'hello, world';
  * const digest = new crypto.Digest(hash.SHA256);
  * digest.update(data);
  * const signature = privateKey.sign(digest.digest());
- * console.log(signature); // 输出签名结果
+ * console.log(signature); // output signature
  * ```
  * 
  * 在以上示例中，首先读取了一个私钥文件，并准备了输入数据。然后，创建了一个 SHA256 的 `Digest` 对象，使用 `update` 方法把数据加入到 Hash 计算中。在计算完成后，使用 `privateKey.sign` 方法进行签名，并输出签名结果。

@@ -4,17 +4,17 @@
 ```javascript
 const crypto = require("crypto");
 
-// 生成密钥对
+// generate a secp256k1 key
 const key = crypto.generateKey("secp256k1");
 console.log("Private key:", key.pem());
 console.log("Public key:", key.publicKey.pem());
 
 const message = "Hello, fibjs!";
-// 签名消息
+// sign a message
 const sig = key.sign(message);
 console.log("Signature:", sig.hex());
 
-// 验证消息
+// very the signature
 const verify = key.verify(message, sig);
 console.log("Verify result:", verify);
 ```

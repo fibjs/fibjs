@@ -18,16 +18,16 @@ var sock = dgram.createSocket('udp4');
 
 ```
 sock.on('message', function (msg, rinfo) {
-  // 处理数据包消息
+  // process received message
 });
 ```
 
 4. 发送 UDP 数据包消息到指定目标地址。
 
 ```
-var msg = ...; // 待发送数据包消息
-var port = ...; // 目标端口
-var host = ...; // 目标地址
+var msg = ...; // message to send
+var port = ...; // destination port
+var host = ...; // destination host
 var bytes = sock.send(msg, 0, msg.length, port, host);
 console.log('UDP message sent to ' + host + ':' + port);
 ```
@@ -44,11 +44,11 @@ module dgram
      opts 允许的选项是:
      ```JavaScript
      {
-         "type": "udp4" | "udp6",   // 必填
-         "reuseAddr": true | false, // 若设置为 true，socket.bind() 则会重用地址，即时另一个进程已经在其上面绑定了一个套接字。 默认是 false
-         "ipv6Only": true | false, // 若设置为 true，socket.bind() 将只接收 IPv6 的数据包。 默认是 false
-         "recvBufferSize": 1024,     // 设置 SO_RCVBUF 套接字值
-         "sendBufferSize": 1024      //设置 SO_RCVBUF 套接字值
+         "type": "udp4" | "udp6",   // socket type
+         "reuseAddr": true | false, // reuse address, default is false
+         "ipv6Only": true | false, // only accept IPv6 packets, default is false
+         "recvBufferSize": 1024,     // specify the size of the receive buffer
+         "sendBufferSize": 1024      // specify the size of the send buffer
      }
      ```
      @param opts
@@ -61,11 +61,11 @@ module dgram
      opts 允许的选项是:
      ```JavaScript
      {
-         "type": "udp4" | "udp6",   // 必填
-         "reuseAddr": true | false, // 若设置为 true，socket.bind() 则会重用地址，即时另一个进程已经在其上面绑定了一个套接字。 默认是 false
-         "ipv6Only": true | false, // 若设置为 true，socket.bind() 将只接收 IPv6 的数据包。 默认是 false
-         "recvBufferSize": ###,     // 设置 SO_RCVBUF 套接字值
-         "sendBufferSize": ###      //设置 SO_RCVBUF 套接字值
+         "type": "udp4" | "udp6",   // socket type
+         "reuseAddr": true | false, // reuse address, default is false
+         "ipv6Only": true | false, // only accept IPv6 packets, default is false
+         "recvBufferSize": 1024,     // specify the size of the receive buffer
+         "sendBufferSize": 1024      // specify the size of the send buffer
      }
      ```
      @param opts

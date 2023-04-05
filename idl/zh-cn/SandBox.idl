@@ -105,23 +105,23 @@ interface SandBox : object
       var sbox = new vm.SandBox({
       });
 
-      // 编译 typescript 脚本为 js 并加载
+      // compile ts to js and load
       sbox.setModuleCompiler('.ts', tsCompiler);
       var mod_ts = sbox.require('./a.ts');
 
-      // 编译 coffee 脚本为 js 并加载
+      // compile coffee to js and load
       sbox.setModuleCompiler('.coffee', cafeCompiler);
       var mod_coffee = sbox.require('./a.coffee');
 
-      // 编译 jsx 脚本为 js 并加载
+      // compile jsx to js and load
       sbox.setModuleCompiler('.jsx', reactCompiler);
       var mod_react = sbox.require('./a.jsx');
 
-      // 编译 yml 脚本为自定义的内容(如 API 集合) 并加载
+      // compile yaml to rest and load
       sbox.setModuleCompiler('.yml', yaml2Rest)
       sbox.setModuleCompiler('.yaml', yaml2Rest)
 
-      // 编译 markdown 为自定义的内容(如 html 字符串或 XmlDocument 对象) 并加载
+      // compile markdown to html and load
       sbox.setModuleCompiler('.md', mdCompiler)
       sbox.setModuleCompiler('.markdown', mdCompiler)
       ```

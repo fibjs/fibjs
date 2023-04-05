@@ -23,19 +23,19 @@
  * 
  *   var filename = "test.txt";
  * 
- *   // 打开文件
+ *   // open file
  *   var file = fs.openFile(filename);
  * 
- *   // 创建 BufferedStream 对象
+ *   // create BufferedStream object
  *   var reader = new io.BufferedStream(file);
  * 
- *   // 读取文件所有的行
+ *   // read file content
  *   var lines = reader.readLines();
  * 
  *   for(var i = 0; i < lines.length; i ++)
  *       console.log(lines[i]);
  * 
- *   // 关闭文件
+ *   // close file
  *   file.close();
  *   ```
  *  
