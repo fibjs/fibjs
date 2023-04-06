@@ -377,6 +377,9 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncEvent* ac)
 
         ON_STATE(asyncReadFrom, command)
         {
+            if (n == CALL_RETURN_NULL)
+                return CHECK_ERROR(Runtime::setError("HttpResponse: Connection was reset by peer."));
+
             result_t hr;
             const char* c_str = m_strLine.c_str();
             int32_t len = (int32_t)m_strLine.length();

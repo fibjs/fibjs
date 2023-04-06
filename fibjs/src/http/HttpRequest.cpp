@@ -297,9 +297,8 @@ result_t HttpRequest::readFrom(Stream_base* stm, AsyncEvent* ac)
 
         ON_STATE(asyncReadFrom, command)
         {
-
             if (n == CALL_RETURN_NULL)
-                return next(CALL_RETURN_NULL);
+                return CHECK_ERROR(Runtime::setError("HttpRequest: Connection was reset by peer."));
 
             _parser p(m_strLine);
             result_t hr;
