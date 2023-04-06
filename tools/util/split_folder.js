@@ -3,7 +3,7 @@ const path = require('path');
 const { HtmlSpliter, TestSpliter } = require('fib-spliter');
 
 function split_html(filename) {
-    var html = fs.readTextFile(filename);
+    var html = fs.readFile(filename);
 
     const splitter = new HtmlSpliter({
         ignore_tags: [
@@ -21,7 +21,7 @@ function split_html(filename) {
 }
 
 function split_test(filename) {
-    var code = fs.readTextFile(filename);
+    var code = fs.readFile(filename);
 
     const spliter = new TestSpliter();
     return spliter.split(code);
