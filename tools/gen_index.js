@@ -15,18 +15,19 @@ var nodes = split_folder([
 
 console.log(nodes.length, 'nodes');
 
-const conn = db.open('sqlite:./temp/docs.db');
+var conn = db.open('sqlite:./temp/docs.db');
 
-conn.execute('CREATE TABLE IF NOT EXISTS docs (id PRIMARY KEY, deleted DEFAULT 0, text, embedding, total_tokens)');
-conn.execute("CREATE VIRTUAL TABLE IF NOT EXISTS doc_index USING vec_index(vec(1536))");
+conn.execute('CREATE TABLE IF NOT EXISTS fibjs_docs (id PRIMARY KEY, deleted DEFAULT 0, text, embedding, total_tokens)');
+conn.execute("CREATE VIRTUAL TABLE IF NOT EXISTS fibjs_index USING vec_index(vec(1536))");
 
-var res = conn.execute('SELECT id, deleted FROM docs');
+var res = conn.execute('SELECT id, deleted FROM fibjs_docs');
 var docs = {};
 res.forEach(element => {
     docs[element.id] = element.deleted;
 });
 
 var ids = new Set();
+var updated = false;
 
 nodes.forEach(function (node) {
     if (node.length > 32) {
@@ -38,11 +39,13 @@ nodes.forEach(function (node) {
             if (docs[id] === undefined) {
                 console.log('inserting', id);
                 var res = chatgpt.get_embedding(node);
-                conn.execute('INSERT INTO docs (id, text, embedding, total_tokens) VALUES (?, ?, ?, ?)', id, node,
+                updated = true;
+                conn.execute('INSERT INTO fibjs_docs (id, text, embedding, total_tokens) VALUES (?, ?, ?, ?)', id, node,
                     JSON.stringify(res.data[0].embedding), res.usage.total_tokens);
             } else if (docs[id] === 1) {
                 console.log('updating', id);
-                conn.execute('UPDATE docs SET deleted = 0 WHERE id = ?', id);
+                updated = true;
+                conn.execute('UPDATE fibjs_docs SET deleted = 0 WHERE id = ?', id);
             }
 
             delete docs[id];
@@ -53,13 +56,16 @@ nodes.forEach(function (node) {
 for (var id in docs) {
     if (docs[id] === 0) {
         console.log('deleting', id);
-        conn.execute('UPDATE docs SET deleted = 1 WHERE id = ?', id);
+        updated = true;
+        conn.execute('UPDATE fibjs_docs SET deleted = 1 WHERE id = ?', id);
     }
 }
 
-console.log("rebuild index...");
-conn.execute("DELETE FROM doc_index");
-conn.execute(`INSERT INTO doc_index(rowid, vec) SELECT rowid, embedding FROM docs WHERE deleted = 0`);
+if (updated) {
+    console.log("rebuild index...");
+    conn.execute("DELETE FROM fibjs_index");
+    conn.execute(`INSERT INTO fibjs_index(rowid, vec) SELECT rowid, embedding FROM fibjs_docs WHERE deleted = 0`);
+}
 
 conn.close();
 
