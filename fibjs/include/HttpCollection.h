@@ -25,6 +25,7 @@ public:
     virtual result_t clear();
     virtual result_t has(exlib::string name, bool& retVal);
     virtual result_t first(exlib::string name, Variant& retVal);
+    virtual result_t get(exlib::string name, Variant& retVal);
     virtual result_t all(exlib::string name, obj_ptr<NObject>& retVal);
     virtual result_t add(v8::Local<v8::Object> map);
     virtual result_t add(exlib::string name, v8::Local<v8::Array> values);

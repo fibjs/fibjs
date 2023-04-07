@@ -253,6 +253,11 @@ result_t HttpUploadCollection::first(exlib::string name, Variant& retVal)
     return CALL_RETURN_NULL;
 }
 
+result_t HttpUploadCollection::get(exlib::string name, Variant& retVal)
+{
+    return first(name, retVal);
+}
+
 result_t HttpUploadCollection::all(exlib::string name, obj_ptr<NObject>& retVal)
 {
     if (!name.empty()) {

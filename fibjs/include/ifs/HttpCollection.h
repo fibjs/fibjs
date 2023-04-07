@@ -23,6 +23,7 @@ public:
     virtual result_t clear() = 0;
     virtual result_t has(exlib::string name, bool& retVal) = 0;
     virtual result_t first(exlib::string name, Variant& retVal) = 0;
+    virtual result_t get(exlib::string name, Variant& retVal) = 0;
     virtual result_t all(exlib::string name, obj_ptr<NObject>& retVal) = 0;
     virtual result_t add(v8::Local<v8::Object> map) = 0;
     virtual result_t add(exlib::string name, v8::Local<v8::Array> values) = 0;
@@ -55,6 +56,7 @@ public:
     static void s_clear(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_has(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_first(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_all(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_add(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -77,6 +79,7 @@ inline ClassInfo& HttpCollection_base::class_info()
         { "clear", s_clear, false, false },
         { "has", s_has, false, false },
         { "first", s_first, false, false },
+        { "get", s_get, false, false },
         { "all", s_all, false, false },
         { "add", s_add, false, false },
         { "set", s_set, false, false },
@@ -144,6 +147,23 @@ inline void HttpCollection_base::s_first(const v8::FunctionCallbackInfo<v8::Valu
     ARG(exlib::string, 0);
 
     hr = pInst->first(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpCollection_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    Variant vr;
+
+    METHOD_NAME("HttpCollection.get");
+    METHOD_INSTANCE(HttpCollection_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->get(v0, vr);
 
     METHOD_RETURN();
 }

@@ -67,6 +67,12 @@ interface HttpCollection : object
      */
     Variant first(String name);
 
+    /*! @brief 查询指定键值的第一个值，等同于 first
+     @param name 指定要查询的键值
+     @return 返回键值所对应的值，若不存在，则返回 undefined
+     */
+    Variant get(String name);
+
     /*! @brief 查询指定键值的全部值
      @param name 指定要查询的键值，传递空字符串返回全部键值的结果
      @return 返回键值所对应全部值的数组，若数据不存在，则返回 null

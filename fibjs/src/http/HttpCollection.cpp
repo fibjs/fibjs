@@ -219,6 +219,11 @@ result_t HttpCollection::first(exlib::string name, Variant& retVal)
     return CALL_RETURN_NULL;
 }
 
+result_t HttpCollection::get(exlib::string name, Variant& retVal)
+{
+    return first(name, retVal);
+}
+
 result_t HttpCollection::all(exlib::string name, obj_ptr<NObject>& retVal)
 {
     if (!name.empty()) {
