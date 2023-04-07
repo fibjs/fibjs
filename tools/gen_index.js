@@ -1,7 +1,7 @@
 const path = require('path');
 const db = require('db');
 const hash = require('hash');
-const split_folder = require('./util/split_folder');
+const { split_folder } = require('fib-spliter');
 const ChatGTP = require('./util/chatgpt');
 
 const chatgpt = new ChatGTP(process.env.OPENAI_API_KEY);
@@ -11,7 +11,20 @@ var nodes = split_folder([
     path.join(__dirname, '../docs/web/dist/docs/manual/module/ifs'),
     path.join(__dirname, '../docs/web/dist/docs/manual/object/ifs'),
     path.join(__dirname, '../test')
-]);
+], {
+    ".html": {
+        ignore_tags: [
+            'svg'
+        ],
+        before_split: function (html) {
+            html = html.replace(/<p>[0-9\r\n]*<\/p>/g, '');
+            html = html.replace(/<h3 /g, '</div><div><h3 ');
+            html = html.replace(/<code>/g, '<code>```\n');
+            html = html.replace(/<\/code>/g, '\n```</code>');
+            return html;
+        }
+    }
+});
 
 console.log(nodes.length, 'nodes');
 
