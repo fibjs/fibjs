@@ -13,10 +13,14 @@ if [[ $TARGET_OS_NAME == 'Linux' ]]; then # Linux
   XZ_FILE=${DIST_DIRPATH}/fibjs.xz
   GZ_FILE=${DIST_DIRPATH}/fibjs.tar.gz
 
-  cp ${FIBJS_FILE} ${RELEASE_TAG}/fibjs-${RELEASE_TAG}-linux-${DIST_ARCH}
-  cp ${INSTALLER_FILE} ${RELEASE_TAG}/installer-${RELEASE_TAG}-linux-${DIST_ARCH}.sh
-  cp ${XZ_FILE} ${RELEASE_TAG}/fibjs-${RELEASE_TAG}-linux-${DIST_ARCH}.xz
-  cp ${GZ_FILE} ${RELEASE_TAG}/fibjs-${RELEASE_TAG}-linux-${DIST_ARCH}.tar.gz
+  if [[ "$BUILD_TARGET" == "" ]]; then
+    BUILD_TARGET="linux"
+  fi
+
+  cp ${FIBJS_FILE} ${RELEASE_TAG}/fibjs-${RELEASE_TAG}-${BUILD_TARGET}-${DIST_ARCH}
+  cp ${INSTALLER_FILE} ${RELEASE_TAG}/installer-${RELEASE_TAG}-${BUILD_TARGET}-${DIST_ARCH}.sh
+  cp ${XZ_FILE} ${RELEASE_TAG}/fibjs-${RELEASE_TAG}-${BUILD_TARGET}-${DIST_ARCH}.xz
+  cp ${GZ_FILE} ${RELEASE_TAG}/fibjs-${RELEASE_TAG}-${BUILD_TARGET}-${DIST_ARCH}.tar.gz
 
 elif [[ $TARGET_OS_NAME == 'Darwin' ]]; then # Darwin
   FIBJS_FILE=${DIST_DIRPATH}/fibjs
@@ -24,10 +28,14 @@ elif [[ $TARGET_OS_NAME == 'Darwin' ]]; then # Darwin
   XZ_FILE=${DIST_DIRPATH}/fibjs.xz
   GZ_FILE=${DIST_DIRPATH}/fibjs.tar.gz
 
-  cp ${FIBJS_FILE} ${RELEASE_TAG}/fibjs-${RELEASE_TAG}-darwin-${DIST_ARCH}
-  cp ${INSTALLER_FILE} ${RELEASE_TAG}/installer-${RELEASE_TAG}-darwin-${DIST_ARCH}.sh
-  cp ${XZ_FILE} ${RELEASE_TAG}/fibjs-${RELEASE_TAG}-darwin-${DIST_ARCH}.xz
-  cp ${GZ_FILE} ${RELEASE_TAG}/fibjs-${RELEASE_TAG}-darwin-${DIST_ARCH}.tar.gz
+  if [[ "$BUILD_TARGET" == "" ]]; then
+    BUILD_TARGET="darwin"
+  fi
+
+  cp ${FIBJS_FILE} ${RELEASE_TAG}/fibjs-${RELEASE_TAG}-${BUILD_TARGET}-${DIST_ARCH}
+  cp ${INSTALLER_FILE} ${RELEASE_TAG}/installer-${RELEASE_TAG}-${BUILD_TARGET}-${DIST_ARCH}.sh
+  cp ${XZ_FILE} ${RELEASE_TAG}/fibjs-${RELEASE_TAG}-${BUILD_TARGET}-${DIST_ARCH}.xz
+  cp ${GZ_FILE} ${RELEASE_TAG}/fibjs-${RELEASE_TAG}-${BUILD_TARGET}-${DIST_ARCH}.tar.gz
 
   if [[ $DIST_ARCH == 'x64' ]]; then
     echo "zip fullsrc..."
