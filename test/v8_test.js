@@ -41,10 +41,6 @@ describe("v8 test", () => {
     it('for (var n in {}) {}', () => {
         for (var n in {}) { }
     });
-
-    todo('crash in wasm load', () => {
-        require('./v8_files/soljson.js');
-    });
 });
 
 require.main === module && test.run(console.DEBUG);

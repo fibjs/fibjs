@@ -50,6 +50,10 @@ describe("wasm", () => {
         var math = instance.exports;
         assert.equal(math._square(3), 9);
     });
+
+    it('crash in wasm load', () => {
+        require('./v8_files/soljson.js');
+    });
 });
 
 require.main === module && test.run(console.DEBUG);
