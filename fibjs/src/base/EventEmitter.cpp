@@ -144,48 +144,11 @@ result_t object_base::_emit(exlib::string ev, Variant arg)
     return _emit(ev, &arg, 1);
 }
 
-class jsTrigger {
-public:
-    jsTrigger(object_base* obj, exlib::string ev, Variant* args, int32_t argCount)
-        : m_obj(obj)
-        , m_ev(ev)
-    {
-        m_args.append((VariantEx*)args, argCount);
-    }
-
-public:
-    static result_t jsEmit(jsTrigger* p)
-    {
-        JSFiber::EnterJsScope s;
-        size_t i;
-
-        std::vector<v8::Local<v8::Value>> argv;
-
-        argv.resize(p->m_args.size());
-        for (i = 0; i < p->m_args.size(); i++)
-            argv[i] = v8::Local<v8::Value>::New(p->m_obj->holder()->m_isolate, p->m_args[i]);
-
-        p->m_obj->onEventEmit(p->m_ev);
-
-        bool r;
-        JSTrigger(p->m_obj)._emit(p->m_ev, argv.data(), (int32_t)argv.size(), r);
-
-        delete p;
-
-        return 0;
-    }
-
-public:
-    obj_ptr<object_base> m_obj;
-    exlib::string m_ev;
-    QuickArray<VariantEx> m_args;
-};
-
 result_t object_base::_emit(exlib::string ev, Variant* args, int32_t argCount)
 {
     Isolate* isolate = get_holder();
     if (isolate)
-        syncCall(isolate, jsTrigger::jsEmit, new jsTrigger(this, ev, args, argCount));
+        (new JSTrigger::AsyncEmitter(isolate, this))->emit(ev, args, argCount);
 
     return 0;
 }

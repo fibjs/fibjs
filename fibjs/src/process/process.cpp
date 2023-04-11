@@ -423,6 +423,50 @@ result_t process_base::binding(exlib::string name, v8::Local<v8::Value>& retVal)
     return 0;
 }
 
+result_t process_base::emitWarning(v8::Local<v8::Value> warning, v8::Local<v8::Object> options)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+
+    if (warning->IsString() || warning->IsStringObject()) {
+        warning = v8::Exception::Error(v8::Local<v8::String>::Cast(warning));
+    } else if (!warning->IsNativeError())
+        return CALL_E_BADVARTYPE;
+    v8::Local<v8::Object> opts = v8::Local<v8::Object>::Cast(warning);
+
+    exlib::string type("Warning");
+    GetConfigValue(isolate->m_isolate, options, "type", type, true);
+    opts->Set(context, isolate->NewString("name"), isolate->NewString(type)).IsJust();
+
+    opts->Set(context, isolate->NewString("code"), options->Get(context, isolate->NewString("code")).FromMaybe(v8::Local<v8::Value>())).IsJust();
+    opts->Set(context, isolate->NewString("detail"), options->Get(context, isolate->NewString("detail")).FromMaybe(v8::Local<v8::Value>())).IsJust();
+
+    Variant v = v8::Local<v8::Value>(opts);
+    (new JSTrigger::AsyncEmitter(isolate, class_info().getModule(isolate)))->emit("warning", &v, 1);
+
+    return 0;
+}
+
+result_t process_base::emitWarning(v8::Local<v8::Value> warning, exlib::string type, exlib::string code)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+
+    if (warning->IsString() || warning->IsStringObject()) {
+        warning = v8::Exception::Error(v8::Local<v8::String>::Cast(warning));
+    } else if (!warning->IsNativeError())
+        return CALL_E_BADVARTYPE;
+    v8::Local<v8::Object> opts = v8::Local<v8::Object>::Cast(warning);
+
+    opts->Set(context, isolate->NewString("name"), isolate->NewString(type)).IsJust();
+    opts->Set(context, isolate->NewString("code"), isolate->NewString(code)).IsJust();
+
+    Variant v = v8::Local<v8::Value>(opts);
+    (new JSTrigger::AsyncEmitter(isolate, class_info().getModule(isolate)))->emit("warning", &v, 1);
+
+    return 0;
+}
+
 result_t process_base::getgid(int32_t& retVal)
 {
 #ifndef _WIN32

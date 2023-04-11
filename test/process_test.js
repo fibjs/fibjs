@@ -109,6 +109,38 @@ describe('process', () => {
         });
     });
 
+    it("emitWarning", () => {
+        var ev = new coroutine.Event();
+        var warnings = [];
+
+        process.emitWarning('Something happened!', {
+            code: 'MY_WARNING',
+            detail: 'This is some additional information',
+        });
+
+        process.emit("warning", 100);
+
+        process.on('warning', (warning) => {
+            warnings.push(warning);
+            ev.set();
+        });
+
+        ev.wait();
+        ev.clear();
+
+        assert.equal(warnings.length, 1);
+        assert.equal(warnings[0].name, 'Warning');
+        assert.equal(warnings[0].message, 'Something happened!');
+        assert.equal(warnings[0].code, 'MY_WARNING');
+        assert.equal(warnings[0].detail, 'This is some additional information');
+
+        process.emit("warning", 200);
+        ev.wait();
+
+        assert.equal(warnings.length, 2);
+        assert.equal(warnings[1], 200);
+    });
+
     it("cpuUsage", () => {
         let thisUsage;
         let lastUsage = process.cpuUsage();

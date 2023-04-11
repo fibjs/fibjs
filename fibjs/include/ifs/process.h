@@ -56,6 +56,8 @@ public:
     static result_t getuid(int32_t& retVal);
     static result_t setgid(int32_t id);
     static result_t setuid(int32_t id);
+    static result_t emitWarning(v8::Local<v8::Value> warning, v8::Local<v8::Object> options);
+    static result_t emitWarning(v8::Local<v8::Value> warning, exlib::string type, exlib::string code);
     static result_t get_connected(bool& retVal);
     static result_t disconnect();
     static result_t send(v8::Local<v8::Value> msg);
@@ -101,6 +103,7 @@ public:
     static void s_static_getuid(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_setgid(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_setuid(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_emitWarning(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_connected(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_static_disconnect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_send(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -127,6 +130,7 @@ inline ClassInfo& process_base::class_info()
         { "getuid", s_static_getuid, true, false },
         { "setgid", s_static_setgid, true, false },
         { "setuid", s_static_setuid, true, false },
+        { "emitWarning", s_static_emitWarning, true, false },
         { "disconnect", s_static_disconnect, true, false },
         { "send", s_static_send, true, false }
     };
@@ -553,6 +557,29 @@ inline void process_base::s_static_setuid(const v8::FunctionCallbackInfo<v8::Val
     ARG(int32_t, 0);
 
     hr = setuid(v0);
+
+    METHOD_VOID();
+}
+
+inline void process_base::s_static_emitWarning(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_NAME("process.emitWarning");
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(v8::Local<v8::Object>, 1);
+
+    hr = emitWarning(v0, v1);
+
+    METHOD_OVER(3, 1);
+
+    ARG(v8::Local<v8::Value>, 0);
+    OPT_ARG(exlib::string, 1, "Warning");
+    OPT_ARG(exlib::string, 2, "");
+
+    hr = emitWarning(v0, v1, v2);
 
     METHOD_VOID();
 }
