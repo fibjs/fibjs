@@ -144,7 +144,8 @@ public:
             esa->Set(context, i, esa->Get(context, i + 1).FromMaybe(v8::Local<v8::Value>())).IsJust();
         esa->Delete(context, len - 1).IsJust();
         esa->Set(context, NewString("length"),
-            v8::Integer::New(isolate, len - 1)).IsJust();
+               v8::Integer::New(isolate, len - 1))
+            .IsJust();
     }
 
     inline int32_t removeFunction(v8::Local<v8::Array> esa, v8::Local<v8::Function> func, exlib::string ev)
@@ -507,6 +508,63 @@ public:
 
         return !msg.empty() ? CHECK_ERROR(Runtime::setError(msg)) : 0;
     }
+
+    class AsyncEmitter {
+    public:
+        AsyncEmitter(Isolate* isolate, v8::Local<v8::Object> o)
+            : m_isolate(isolate)
+            , m_o(isolate->m_isolate, o)
+        {
+        }
+
+        AsyncEmitter(Isolate* isolate, object_base* obj)
+            : m_isolate(isolate)
+            , m_obj(obj)
+        {
+        }
+
+    public:
+        static result_t emitter_func(AsyncEmitter* p)
+        {
+            JSFiber::EnterJsScope s;
+            size_t i;
+            bool r;
+
+            std::vector<v8::Local<v8::Value>> argv;
+
+            argv.resize(p->m_args.size());
+            for (i = 0; i < p->m_args.size(); i++)
+                argv[i] = v8::Local<v8::Value>::New(p->m_isolate->m_isolate, p->m_args[i]);
+
+            if (!p->m_obj)
+                p->m_obj = object_base::getInstance(p->m_o.Get(p->m_isolate->m_isolate));
+
+            if (p->m_obj) {
+                p->m_obj->onEventEmit(p->m_ev);
+                JSTrigger(p->m_obj)._emit(p->m_ev, argv.data(), (int32_t)argv.size(), r);
+            } else
+                JSTrigger(p->m_isolate->m_isolate, p->m_o.Get(p->m_isolate->m_isolate))._emit(p->m_ev, argv.data(), (int32_t)argv.size(), r);
+
+            delete p;
+
+            return 0;
+        }
+
+        void emit(exlib::string ev, Variant* args, int32_t argCount)
+        {
+            m_ev = ev;
+            m_args.append((VariantEx*)args, argCount);
+
+            syncCall(m_isolate, emitter_func, this);
+        }
+
+    public:
+        Isolate* m_isolate;
+        v8::Global<v8::Object> m_o;
+        obj_ptr<object_base> m_obj;
+        exlib::string m_ev;
+        QuickArray<VariantEx> m_args;
+    };
 
     result_t emit(exlib::string ev, OptArgs args, bool& retVal)
     {
