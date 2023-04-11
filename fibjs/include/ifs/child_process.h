@@ -69,6 +69,7 @@ public:
             retVal->Set(context, isolate->NewString("stdout"), GetReturnValue(isolate->m_isolate, stdout)).Check();
             retVal->Set(context, isolate->NewString("stderr"), GetReturnValue(isolate->m_isolate, stderr)).Check();
             retVal->Set(context, isolate->NewString("status"), GetReturnValue(isolate->m_isolate, status)).Check();
+            retVal->Set(context, isolate->NewString("error"), GetReturnValue(isolate->m_isolate, error)).Check();
         }
 
         virtual void fillArguments(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
@@ -78,6 +79,7 @@ public:
             args.push_back(GetReturnValue(isolate->m_isolate, stdout));
             args.push_back(GetReturnValue(isolate->m_isolate, stderr));
             args.push_back(GetReturnValue(isolate->m_isolate, status));
+            args.push_back(GetReturnValue(isolate->m_isolate, error));
         }
 
     public:
@@ -86,6 +88,7 @@ public:
         Variant stdout;
         Variant stderr;
         int32_t status;
+        Variant error;
     };
 
 public:

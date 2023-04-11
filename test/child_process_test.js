@@ -413,7 +413,36 @@ describe("child_process", () => {
         assert.equal(result.stdout, "[\"/Users/lion/works/fibjs/bin/Darwin_arm64_release/fibjs\",\"/Users/lion/works/fibjs/test/process/exec2.js\",\"arg1\",\"arg2\"]\n");
         assert.equal(result.stdout, result.output[0]);
         assert.equal(result.stderr, result.output[1]);
+        assert.equal(result.status, 2);
+        assert.equal(result.error, undefined);
+    });
+
+    it("inherit in spawnSync", () => {
+        var result = child_process.spawnSync(cmd, [
+            path.join(__dirname, "process", "exec2.js"),
+            "arg1",
+            "arg2"
+        ], {
+            stdio: "inherit"
+        });
+
+        assert.notEqual(result.pid, 0);
+        assert.equal(result.stdout, null);
+        assert.equal(result.stdout, null);
+        assert.equal(result.stderr, result.output[1]);
+        assert.equal(result.status, 2);
+        assert.equal(result.error, undefined);
+    });
+
+    it("error when spawnSync", () => {
+        var result = child_process.spawnSync("not_exists_exec_file");
+
+        assert.equal(result.pid, 0);
+        assert.equal(result.stdout, null);
+        assert.equal(result.stdout, null);
+        assert.equal(result.stderr, result.output[1]);
         assert.equal(result.status, 0);
+        assert.notEqual(result.error, undefined);
     });
 
     it("argv 1", () => {
@@ -439,13 +468,13 @@ describe("child_process", () => {
     });
 
     it("inherit in execFile", () => {
-        assert.isUndefined(child_process.execFile(cmd, [
+        assert.equal(child_process.execFile(cmd, [
             path.join(__dirname, "process", "exec2.js"),
             "参数1",
             "参数2"
         ], {
             stdio: "inherit"
-        }).stdout);
+        }).stdout, null);
     });
 
     it("execArgv", () => {

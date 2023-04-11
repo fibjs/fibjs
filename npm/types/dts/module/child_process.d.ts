@@ -185,9 +185,9 @@ declare module 'child_process' {
      *      @return 返回子进程运行结果
      *      
      */
-    function spawnSync(command: string, args: any[], options?: FIBJS.GeneralObject): [pid: number, output: [object Object], stdout: any, stderr: any, status: number];
+    function spawnSync(command: string, args: any[], options?: FIBJS.GeneralObject): [pid: number, output: [object Object], stdout: any, stderr: any, status: number, error: any];
 
-    function spawnSync(command: string, args: any[], options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: [pid: number, output: [object Object], stdout: any, stderr: any, status: number])=>any): void;
+    function spawnSync(command: string, args: any[], options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: [pid: number, output: [object Object], stdout: any, stderr: any, status: number, error: any])=>any): void;
 
     /**
      * @description 用给定的命令发布一个子进程
@@ -209,9 +209,9 @@ declare module 'child_process' {
      *      @return 返回子进程运行结果
      *      
      */
-    function spawnSync(command: string, options?: FIBJS.GeneralObject): [pid: number, output: [object Object], stdout: any, stderr: any, status: number];
+    function spawnSync(command: string, options?: FIBJS.GeneralObject): [pid: number, output: [object Object], stdout: any, stderr: any, status: number, error: any];
 
-    function spawnSync(command: string, options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: [pid: number, output: [object Object], stdout: any, stderr: any, status: number])=>any): void;
+    function spawnSync(command: string, options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: [pid: number, output: [object Object], stdout: any, stderr: any, status: number, error: any])=>any): void;
 
     /**
      * @description 在子进程中执行一个模块

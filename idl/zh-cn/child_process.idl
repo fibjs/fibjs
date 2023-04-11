@@ -164,7 +164,7 @@ module child_process
      @param options 指定创建参数
      @return 返回子进程运行结果
      */
-    static (Integer pid, NArray output, Variant stdout, Variant stderr, Integer status) spawnSync(String command, Array args, Object options = {}) async;
+    static (Integer pid, NArray output, Variant stdout, Variant stderr, Integer status, Variant error) spawnSync(String command, Array args, Object options = {}) async;
 
     /*! @brief 用给定的命令发布一个子进程
     options 支持的内容如下：
@@ -184,7 +184,7 @@ module child_process
      @param options 指定创建参数
      @return 返回子进程运行结果
      */
-    static (Integer pid, NArray output, Variant stdout, Variant stderr, Integer status) spawnSync(String command, Object options = {}) async;
+    static (Integer pid, NArray output, Variant stdout, Variant stderr, Integer status, Variant error) spawnSync(String command, Object options = {}) async;
 
     /*! @brief 在子进程中执行一个模块
     options 支持的内容如下：

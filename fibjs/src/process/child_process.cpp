@@ -59,16 +59,9 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
                 m_cnt.inc();
                 m_buferr = new MemoryStream();
             }
-        }
 
-        void start()
-        {
-            if (m_cnt == 0) {
-                m_retVal = new ExecFileType();
-                m_ac->post(0);
-                delete this;
-                return;
-            }
+            m_cnt.inc();
+            cp->join(m_status, this);
 
             if (m_stdout)
                 m_stdout->copyTo(m_bufout, -1, m_szout, this);
@@ -136,6 +129,8 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
         obj_ptr<Stream_base> m_stderr;
         obj_ptr<MemoryStream> m_buferr;
         int64_t m_szerr;
+
+        int32_t m_status;
     };
 
     if (ac->isSync()) {
@@ -163,7 +158,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    (new ReadStdout(retVal, ac))->start();
+    new ReadStdout(retVal, ac);
     return CALL_E_PENDDING;
 }
 
@@ -223,16 +218,9 @@ result_t child_process_base::spawnSync(exlib::string command, v8::Local<v8::Arra
                 m_cnt.inc();
                 m_buferr = new MemoryStream();
             }
-        }
 
-        void start()
-        {
-            if (m_cnt == 0) {
-                m_retVal = new SpawnSyncType();
-                m_ac->post(0);
-                delete this;
-                return;
-            }
+            m_cnt.inc();
+            cp->join(m_status, this);
 
             if (m_stdout)
                 m_stdout->copyTo(m_bufout, -1, m_szout, this);
@@ -309,6 +297,8 @@ result_t child_process_base::spawnSync(exlib::string command, v8::Local<v8::Arra
         obj_ptr<Stream_base> m_stderr;
         obj_ptr<MemoryStream> m_buferr;
         int64_t m_szerr;
+
+        int32_t m_status;
     };
 
     if (ac->isSync()) {
@@ -326,8 +316,24 @@ result_t child_process_base::spawnSync(exlib::string command, v8::Local<v8::Arra
         GetConfigValue(isolate->m_isolate, opts, "encoding", codec);
 
         result_t hr = spawn(command, args, opts, cp);
-        if (hr < 0)
-            return hr;
+        if (hr < 0) {
+            retVal = new SpawnSyncType();
+
+            retVal->pid = 0;
+            retVal->status = 0;
+
+            retVal->stdout.setNull();
+            retVal->stderr.setNull();
+
+            retVal->output = new NArray();
+            retVal->output->append(retVal->stdout);
+            retVal->output->append(retVal->stderr);
+
+            retVal->error = v8::Exception::Error(
+                isolate->NewString(getResultMessage(hr)));
+
+            return 0;
+        }
 
         ac->m_ctxo = cp;
         ac->m_ctx.resize(1);
@@ -336,7 +342,7 @@ result_t child_process_base::spawnSync(exlib::string command, v8::Local<v8::Arra
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    (new ReadStdout(retVal, ac))->start();
+    new ReadStdout(retVal, ac);
     return CALL_E_PENDDING;
 }
 
