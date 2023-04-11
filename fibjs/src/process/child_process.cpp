@@ -199,6 +199,153 @@ result_t child_process_base::exec(exlib::string command, v8::Local<v8::Object> o
     return execFile(command, v8::Local<v8::Array>(), options, _retVal, ac);
 }
 
+result_t child_process_base::spawnSync(exlib::string command, v8::Local<v8::Array> args,
+    v8::Local<v8::Object> options, obj_ptr<SpawnSyncType>& retVal, AsyncEvent* ac)
+{
+    class ReadStdout : public AsyncEvent {
+    public:
+        ReadStdout(obj_ptr<SpawnSyncType>& retVal, AsyncEvent* ac)
+            : m_codec(ac->m_ctx[0].string())
+            , m_retVal(retVal)
+            , m_ac(ac)
+        {
+            setAsync();
+            ChildProcess_base* cp = (ChildProcess_base*)(object_base*)ac->m_ctxo;
+
+            cp->get_stdout(m_stdout);
+            if (m_stdout) {
+                m_cnt.inc();
+                m_bufout = new MemoryStream();
+            }
+
+            cp->get_stderr(m_stderr);
+            if (m_stderr) {
+                m_cnt.inc();
+                m_buferr = new MemoryStream();
+            }
+        }
+
+        void start()
+        {
+            if (m_cnt == 0) {
+                m_retVal = new SpawnSyncType();
+                m_ac->post(0);
+                delete this;
+                return;
+            }
+
+            if (m_stdout)
+                m_stdout->copyTo(m_bufout, -1, m_szout, this);
+
+            if (m_stderr)
+                m_stderr->copyTo(m_buferr, -1, m_szerr, this);
+        }
+
+        static Variant getBuffer(obj_ptr<MemoryStream>& stream, exlib::string codec)
+        {
+            Variant v;
+
+            if (!stream) {
+                v.setNull();
+                return v;
+            }
+
+            obj_ptr<Buffer_base> buf;
+
+            stream->rewind();
+            result_t hr = stream->cc_readAll(buf);
+            if (hr == CALL_RETURN_NULL)
+                v.setNull();
+            else if (codec == "buffer")
+                v = buf;
+            else {
+                exlib::string b;
+                exlib::string s;
+
+                buf->toString(b);
+                if (commonEncode(codec, b, s) < 0)
+                    v = buf;
+                else
+                    v = s;
+            }
+
+            return v;
+        }
+
+        virtual int32_t post(int32_t v)
+        {
+            if (m_cnt.dec() == 0) {
+                m_retVal = new SpawnSyncType();
+
+                ChildProcess_base* cp = (ChildProcess_base*)(object_base*)m_ac->m_ctxo;
+
+                cp->get_pid(m_retVal->pid);
+                cp->get_exitCode(m_retVal->status);
+
+                m_retVal->stdout = getBuffer(m_bufout, m_codec);
+                m_retVal->stderr = getBuffer(m_buferr, m_codec);
+
+                m_retVal->output = new NArray();
+                m_retVal->output->append(m_retVal->stdout);
+                m_retVal->output->append(m_retVal->stderr);
+
+                m_ac->post(0);
+                delete this;
+            }
+
+            return 0;
+        }
+
+    private:
+        exlib::string m_codec;
+        obj_ptr<SpawnSyncType>& m_retVal;
+        AsyncEvent* m_ac;
+        exlib::atomic m_cnt;
+
+        obj_ptr<Stream_base> m_stdout;
+        obj_ptr<MemoryStream> m_bufout;
+        int64_t m_szout;
+
+        obj_ptr<Stream_base> m_stderr;
+        obj_ptr<MemoryStream> m_buferr;
+        int64_t m_szerr;
+    };
+
+    if (ac->isSync()) {
+        Isolate* isolate = Isolate::current();
+        exlib::string cmd;
+        v8::Local<v8::Value> opts_;
+        v8::Local<v8::Object> opts;
+        obj_ptr<ChildProcess_base> cp;
+
+        util_base::clone(options, opts_);
+
+        opts = v8::Local<v8::Object>::Cast(opts_);
+
+        exlib::string codec("utf8");
+        GetConfigValue(isolate->m_isolate, opts, "encoding", codec);
+
+        result_t hr = spawn(command, args, opts, cp);
+        if (hr < 0)
+            return hr;
+
+        ac->m_ctxo = cp;
+        ac->m_ctx.resize(1);
+        ac->m_ctx[0] = codec;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    (new ReadStdout(retVal, ac))->start();
+    return CALL_E_PENDDING;
+}
+
+result_t child_process_base::spawnSync(exlib::string command, v8::Local<v8::Object> options,
+    obj_ptr<SpawnSyncType>& retVal, AsyncEvent* ac)
+{
+    return spawnSync(command, v8::Local<v8::Array>(), options, retVal, ac);
+}
+
 result_t child_process_base::fork(exlib::string module, v8::Local<v8::Array> args, v8::Local<v8::Object> options, obj_ptr<ChildProcess_base>& retVal)
 {
     Isolate* isolate = Isolate::current();

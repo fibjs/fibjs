@@ -402,6 +402,20 @@ describe("child_process", () => {
         ]);
     });
 
+    it("spawnSync", () => {
+        var result = child_process.spawnSync(cmd, [
+            path.join(__dirname, "process", "exec2.js"),
+            "arg1",
+            "arg2"
+        ]);
+
+        assert.notEqual(result.pid, 0);
+        assert.equal(result.stdout, "[\"/Users/lion/works/fibjs/bin/Darwin_arm64_release/fibjs\",\"/Users/lion/works/fibjs/test/process/exec2.js\",\"arg1\",\"arg2\"]\n");
+        assert.equal(result.stdout, result.output[0]);
+        assert.equal(result.stderr, result.output[1]);
+        assert.equal(result.status, 0);
+    });
+
     it("argv 1", () => {
         assert.deepEqual(json.decode(child_process.execFile(cmd, [
             "--use_strict",

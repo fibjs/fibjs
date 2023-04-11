@@ -165,6 +165,55 @@ declare module 'child_process' {
     function execFile(command: string, options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: [stdout: any, stderr: any])=>any): void;
 
     /**
+     * @description 用给定的命令发布一个子进程
+     *     options 支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *         "cwd": "", // working directory of the child process, default to current directory
+     *         "stdio": Array | String, // working directory of the child process, default to current directory
+     *         "env": {}, // key-value pairs of environment variables to add to the child's environment
+     *         "detached": false, // child process will be a leader of a new process group, default to false
+     *         "uid": 0, // configure the user identity of the process
+     *         "gid": 0, // configure the group identity of the process
+     *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
+     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *      }
+     *      ```
+     *      @param command 指定要运行的命令
+     *      @param args 指定字符串参数列表
+     *      @param options 指定创建参数
+     *      @return 返回子进程运行结果
+     *      
+     */
+    function spawnSync(command: string, args: any[], options?: FIBJS.GeneralObject): [pid: number, output: [object Object], stdout: any, stderr: any, status: number];
+
+    function spawnSync(command: string, args: any[], options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: [pid: number, output: [object Object], stdout: any, stderr: any, status: number])=>any): void;
+
+    /**
+     * @description 用给定的命令发布一个子进程
+     *     options 支持的内容如下：
+     *      ```JavaScript
+     *      {
+     *         "cwd": "", // working directory of the child process, default to current directory
+     *         "stdio": Array | String, // working directory of the child process, default to current directory
+     *         "env": {}, // key-value pairs of environment variables to add to the child's environment
+     *         "detached": false, // child process will be a leader of a new process group, default to false
+     *         "uid": 0, // configure the user identity of the process
+     *         "gid": 0, // con
+     *         "windowsVerbatimArguments": false, // do not execute any quote or escape processing on Windows. Ignored on Unix. When specified, the command line string is passed directly to the underlying operating system shell without any processing whatsoever. This is set to true automatically when the shell option is specified and is CMD.
+     *         "windowsHide": false // hide the subprocess console window that would normally be created on Windows systems. This option has no effect on non-Windows systems.
+     *      }
+     *      ```
+     *      @param command 指定要运行的命令
+     *      @param options 指定创建参数
+     *      @return 返回子进程运行结果
+     *      
+     */
+    function spawnSync(command: string, options?: FIBJS.GeneralObject): [pid: number, output: [object Object], stdout: any, stderr: any, status: number];
+
+    function spawnSync(command: string, options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: [pid: number, output: [object Object], stdout: any, stderr: any, status: number])=>any): void;
+
+    /**
      * @description 在子进程中执行一个模块
      *     options 支持的内容如下：
      *      ```JavaScript
