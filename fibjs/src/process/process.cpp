@@ -55,7 +55,7 @@ RootModule_process::RootModule_process()
     }
 }
 
-static std::vector<char*> s_argv;
+std::vector<char*> s_argv;
 static std::vector<char*> s_start_argv;
 
 void init_start_argv(int32_t argc, char** argv)
