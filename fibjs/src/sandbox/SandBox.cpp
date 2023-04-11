@@ -114,6 +114,7 @@ RootModule* RootModule::g_last = NULL;
 result_t SandBox::addBuiltinModules()
 {
     Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
 
     RootModule* pModule = RootModule::g_root;
 
@@ -121,7 +122,11 @@ result_t SandBox::addBuiltinModules()
         exlib::string name = pModule->name();
         v8::Local<v8::Object> mod = pModule->getModule(isolate);
         InstallModule(name, mod);
-        InstallModule("fibjs:" + name, mod);
+        InstallModule("node:" + name, mod);
+
+        v8::Local<v8::Value> promises = mod->Get(context, isolate->NewString("promises")).FromMaybe(v8::Local<v8::Value>());
+        if (!promises.IsEmpty() && promises->IsObject())
+            InstallModule("node:" + name + "/promises", promises.As<v8::Object>());
 
         pModule = pModule->m_next;
     }

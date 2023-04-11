@@ -736,40 +736,37 @@ describe("vm", () => {
         assert.equal(no1, test_util.countObject('Buffer'));
     });
 
-    describe(`all builtin modules aliases with prefix fibjs:`, () => {
+    describe(`all builtin modules aliases with prefix node:`, () => {
         const modules = require('util').buildInfo().modules;
 
         modules.forEach((mod) => {
-            it(`topLevel: could require('${mod}'), could require('fibjs:${mod}')`, () => {
-                let err = null;
-                let modAlias = null;
-
-                try {
-                    modAlias = require(`fibjs:${mod}`);
-                } catch (error) {
-                    err = error
-                }
-
-                assert.equal(err, null);
-                assert.equal(modAlias, require(mod));
+            it(`topLevel: could require('${mod}'), could require('node:${mod}')`, () => {
+                var m = require(mod);
+                assert.equal(require(`node:${mod}`), m);
             });
 
-            it(`Sandbox: could require('${mod}'), could require('fibjs:${mod}')`, () => {
+            it(`Sandbox: could require('${mod}'), could require('node:${mod}')`, () => {
                 const sandbox = new vm.SandBox({});
                 sandbox.addBuiltinModules();
 
-                let err = null;
-                let modAlias = null;
-
-                try {
-                    modAlias = sandbox.require(`fibjs:${mod}`, __dirname);
-                } catch (error) {
-                    err = error
-                }
-
-                assert.equal(err, null);
-                assert.equal(modAlias, sandbox.require(mod, __dirname));
+                var m = sandbox.require(mod, __dirname);
+                assert.equal(sandbox.require(`node:${mod}`, __dirname), m);
             });
+
+            if (require(mod).promises) {
+                it(`topLevel: could require('node:${mod}/promises')`, () => {
+                    var m = require(mod);
+                    assert.equal(require(`node:${mod}/promises`), m.promises);
+                });
+
+                it(`Sandbox: could require('node:${mod}/promises')`, () => {
+                    const sandbox = new vm.SandBox({});
+                    sandbox.addBuiltinModules();
+
+                    var m = sandbox.require(mod, __dirname);
+                    assert.equal(sandbox.require(`node:${mod}/promises`, __dirname), m.promises);
+                });
+            }
         });
     });
 });
