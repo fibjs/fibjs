@@ -9,19 +9,19 @@
  * const http = require('http');
  * const server = new http.Server(8080, function(request) {
  *     const cookies = request.cookies;
- *     const name = cookies.first('name');
+ *     const name = cookies.get('name');
  *     request.response.write(`Hello ${name}!`);
  * });
  * server.start();
  * ```
- * 这里我们使用 HttpRequest.cookies 属性获取请求中的所有 cookie。然后使用 cookies.first 方法，传入 cookie 的名称，来获取该 cookie 的值。
+ * 这里我们使用 HttpRequest.cookies 属性获取请求中的所有 cookie。然后使用 cookies.get 方法，传入 cookie 的名称，来获取该 cookie 的值。
  * 
  * 为了向客户端发送一个 cookie，可以通过 HttpCookie 对象来创建一个新的 cookie 并将其添加到 HttpReponse.cookies 集合中。以下是一个示例：
  * ```JavaScript
  * const http = require('http');
  * const server = new http.Server(8080, function(request) {
  *     const cookies = request.cookies;
- *     let name = cookies.first('name');
+ *     let name = cookies.get('name');
  * 
  *     if (name) {
  *         request.response.write(`Hello ${name} again!`);

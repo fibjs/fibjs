@@ -12,7 +12,7 @@
  * const http = require('http');
  * 
  * var svr = new http.Server(8080, (req) => {
- *   var name = req.query.first('name');
+ *   var name = req.query.get('name');
  *   var msg = name ? `Hello ${name}!` : 'Hello world!';
  *   
  *   req.response.write(msg);
