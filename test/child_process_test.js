@@ -424,6 +424,16 @@ describe("child_process", () => {
         ]);
     });
 
+    it("inherit in execFile", () => {
+        assert.isUndefined(child_process.execFile(cmd, [
+            path.join(__dirname, "process", "exec2.js"),
+            "参数1",
+            "参数2"
+        ], {
+            stdio: "inherit"
+        }).stdout);
+    });
+
     it("execArgv", () => {
         assert.deepEqual(json.decode(child_process.execFile(cmd, [
             "--use_strict",
