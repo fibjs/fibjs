@@ -125,8 +125,10 @@ result_t SandBox::addBuiltinModules()
         InstallModule("node:" + name, mod);
 
         v8::Local<v8::Value> promises = mod->Get(context, isolate->NewString("promises")).FromMaybe(v8::Local<v8::Value>());
-        if (!promises.IsEmpty() && promises->IsObject())
+        if (!promises.IsEmpty() && promises->IsObject()) {
+            InstallModule(name + PATH_SLASH + "promises", promises.As<v8::Object>());
             InstallModule("node:" + name + PATH_SLASH + "promises", promises.As<v8::Object>());
+        }
 
         pModule = pModule->m_next;
     }

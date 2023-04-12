@@ -756,6 +756,7 @@ describe("vm", () => {
             if (require(mod).promises) {
                 it(`topLevel: could require('node:${mod}/promises')`, () => {
                     var m = require(mod);
+                    assert.equal(require(`${mod}/promises`), m.promises);
                     assert.equal(require(`node:${mod}/promises`), m.promises);
                 });
 
@@ -764,6 +765,7 @@ describe("vm", () => {
                     sandbox.addBuiltinModules();
 
                     var m = sandbox.require(mod, __dirname);
+                    assert.equal(sandbox.require(`${mod}/promises`, __dirname), m.promises);
                     assert.equal(sandbox.require(`node:${mod}/promises`, __dirname), m.promises);
                 });
             }
