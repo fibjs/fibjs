@@ -32,7 +32,7 @@ public:
     // global_base
     static result_t get_Master(obj_ptr<Worker_base>& retVal);
     static result_t get_global(v8::Local<v8::Object>& retVal);
-    static result_t run(exlib::string fname, v8::Local<v8::Array> argv);
+    static result_t run(exlib::string fname);
     static result_t require(exlib::string id, v8::Local<v8::Value>& retVal);
     static result_t get_argv(v8::Local<v8::Array>& retVal);
     static result_t get___filename(exlib::string& retVal);
@@ -168,12 +168,11 @@ inline void global_base::s_static_run(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_NAME("global.run");
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER(1, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Array>, 1, v8::Array::New(isolate));
 
-    hr = run(v0, v1);
+    hr = run(v0);
 
     METHOD_VOID();
 }

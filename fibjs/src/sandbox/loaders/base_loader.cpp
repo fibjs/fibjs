@@ -14,7 +14,6 @@
 
 namespace fibjs {
 
-const char* SandBox::script_args = "(async function(exports,require,module,__filename,__dirname,run,__argv){";
 const char* SandBox::worker_args = "(async function(exports,require,module,__filename,__dirname,run,Master){";
 const char* SandBox::module_args = "(async function(exports,require,module,__filename,__dirname,run){";
 const char* SandBox::base_args = "(async function(exports,require,module,__filename,__dirname,run";

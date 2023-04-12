@@ -30,7 +30,7 @@ public:
     virtual result_t has(exlib::string id, bool& retVal);
     virtual result_t clone(obj_ptr<SandBox_base>& retVal);
     virtual result_t freeze();
-    virtual result_t run(exlib::string fname, v8::Local<v8::Array> argv);
+    virtual result_t run(exlib::string fname);
     virtual result_t resolve(exlib::string id, exlib::string base, exlib::string& retVal);
     virtual result_t require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal);
     virtual result_t setModuleCompiler(exlib::string extname, v8::Local<v8::Function> compiler);
@@ -222,7 +222,6 @@ public:
     }
 
 public:
-    static const char* script_args;
     static const char* worker_args;
     static const char* module_args;
     static const char* base_args;

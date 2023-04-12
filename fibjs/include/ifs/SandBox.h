@@ -34,7 +34,7 @@ public:
     virtual result_t has(exlib::string id, bool& retVal) = 0;
     virtual result_t clone(obj_ptr<SandBox_base>& retVal) = 0;
     virtual result_t freeze() = 0;
-    virtual result_t run(exlib::string fname, v8::Local<v8::Array> argv) = 0;
+    virtual result_t run(exlib::string fname) = 0;
     virtual result_t resolve(exlib::string id, exlib::string base, exlib::string& retVal) = 0;
     virtual result_t require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t setModuleCompiler(exlib::string extname, v8::Local<v8::Function> compiler) = 0;
@@ -261,12 +261,11 @@ inline void SandBox_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER(1, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Array>, 1, v8::Array::New(isolate));
 
-    hr = pInst->run(v0, v1);
+    hr = pInst->run(v0);
 
     METHOD_VOID();
 }

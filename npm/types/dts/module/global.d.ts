@@ -60,10 +60,9 @@ declare module 'global' {
     /**
      * @description 运行一个脚本
      *      @param fname 指定要运行的脚本路径
-     *      @param argv 指定要运行的参数，此参数可在脚本内使用 argv 获取
      *      
      */
-    function run(fname: string, argv?: any[]): void;
+    function run(fname: string): void;
 
     /**
      * @description 加载一个模块并返回模块对象，更多信息参阅 @ref module

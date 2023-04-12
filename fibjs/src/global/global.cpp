@@ -28,9 +28,9 @@ result_t global_base::GC()
     return 0;
 }
 
-result_t global_base::run(exlib::string fname, v8::Local<v8::Array> argv)
+result_t global_base::run(exlib::string fname)
 {
-    return Isolate::current()->m_topSandbox->run(fname, argv);
+    return Isolate::current()->m_topSandbox->run(fname);
 }
 
 result_t global_base::get_argv(v8::Local<v8::Array>& retVal)

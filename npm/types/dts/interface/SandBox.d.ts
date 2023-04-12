@@ -109,10 +109,9 @@ declare class Class_SandBox extends Class_object {
     /**
      * @description 运行一个脚本
      *      @param fname 指定要运行的脚本路径，此路径与当前运行脚本无关，必须为绝对路径
-     *      @param argv 指定要运行的参数，此参数可在脚本内使用 argv 获取
      *      
      */
-    run(fname: string, argv?: any[]): void;
+    run(fname: string): void;
 
     /**
      * @description 查询一个模块并返回模块完整文件名

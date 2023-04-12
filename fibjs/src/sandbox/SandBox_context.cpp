@@ -62,6 +62,11 @@ void _require(const v8::FunctionCallbackInfo<v8::Value>& args)
         return;
     }
 
+    if (argc > 1) {
+        ThrowResult(CALL_E_BADPARAMCOUNT);
+        return;
+    }
+
     v8::Isolate* isolate = args.GetIsolate();
     V8_SCOPE(isolate);
 
@@ -106,22 +111,17 @@ void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
         return;
     }
 
+    if (argc > 1) {
+        ThrowResult(CALL_E_BADPARAMCOUNT);
+        return;
+    }
+
     exlib::string id;
     result_t hr = GetArgumentValue(args[0], id);
     if (hr < 0) {
         ThrowResult(hr);
         return;
     }
-
-    v8::Local<v8::Array> argv;
-    if (argc > 1) {
-        result_t hr = GetArgumentValue(args[1], argv);
-        if (hr < 0) {
-            ThrowResult(hr);
-            return;
-        }
-    } else
-        argv = v8::Array::New(isolate);
 
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     v8::Local<v8::Object> _mod = args.Data()->ToObject(context).FromMaybe(v8::Local<v8::Object>());
@@ -140,7 +140,7 @@ void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
         }
     }
 
-    hr = sbox->run(id, argv);
+    hr = sbox->run(id);
     if (hr < 0) {
         if (hr == CALL_E_JAVASCRIPT) {
             args.GetReturnValue().Set(v8::Local<v8::Value>());
