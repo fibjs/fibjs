@@ -14,10 +14,10 @@
 
 namespace fibjs {
 
-const char* SandBox::script_args = "(async function(__filename,__dirname,require,run,exports,module,__argv){";
-const char* SandBox::worker_args = "(async function(__filename,__dirname,require,run,exports,module,Master){";
-const char* SandBox::module_args = "(async function(__filename,__dirname,require,run,exports,module){";
-const char* SandBox::base_args = "(async function(__filename,__dirname,require,run,exports,module";
+const char* SandBox::script_args = "(async function(exports,require,module,__filename,__dirname,run,__argv){";
+const char* SandBox::worker_args = "(async function(exports,require,module,__filename,__dirname,run,Master){";
+const char* SandBox::module_args = "(async function(exports,require,module,__filename,__dirname,run){";
+const char* SandBox::base_args = "(async function(exports,require,module,__filename,__dirname,run";
 
 result_t SandBox::ExtLoader::run_script(Context* ctx, Buffer_base* src, exlib::string name,
     std::vector<arg>& extarg, bool is_main)
@@ -52,12 +52,12 @@ result_t SandBox::ExtLoader::run_module(Context* ctx, Buffer_base* src, exlib::s
     exlib::string pname;
     path_base::dirname(name, pname);
 
-    args[0] = isolate->NewString(name);
-    args[1] = isolate->NewString(pname);
-    args[2] = ctx->m_fnRequest;
-    args[3] = ctx->m_fnRun;
-    args[4] = exports;
-    args[5] = module;
+    args[0] = exports;
+    args[1] = ctx->m_fnRequest;
+    args[2] = module;
+    args[3] = isolate->NewString(name);
+    args[4] = isolate->NewString(pname);
+    args[5] = ctx->m_fnRun;
 
     int32_t i;
     exlib::string arg_names(base_args);
