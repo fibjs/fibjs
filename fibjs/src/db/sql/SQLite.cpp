@@ -53,6 +53,8 @@ result_t SQLite::open(const char* file)
 
     obj_ptr<NArray> retVal;
     cc_execute("PRAGMA journal_mode=WAL;", retVal);
+    cc_execute("PRAGMA synchronous=normal;", retVal);
+    cc_execute("PRAGMA temp_store=memory;", retVal);
 
     m_file = file;
 

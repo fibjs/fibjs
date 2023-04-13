@@ -1346,7 +1346,7 @@ describe("db", () => {
             var synchronous = conn.execute("PRAGMA synchronous;")[0].synchronous;
             conn.close();
 
-            assert.equal(synchronous, 2);
+            assert.equal(synchronous, 1);
         });
 
         it("check journal mode", () => {
