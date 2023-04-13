@@ -8,22 +8,22 @@ case ${TARGET_OS} in
           ;;
 esac
 
-echo "::set-output name=TARGET_OS::$TARGET_OS"
+echo "TARGET_OS=$TARGET_OS" >> $GITHUB_OUTPUT
 
 export GIT_BRANCH=${GITHUB_REF#refs/heads/}
-echo "::set-output name=GIT_BRANCH::$GIT_BRANCH"
+echo "GIT_BRANCH=$GIT_BRANCH" >> $GITHUB_OUTPUT
 export GIT_TAG=$(git tag | grep $(git describe --tags HEAD))
-echo "::set-output name=GIT_TAG::$GIT_TAG"
+echo "GIT_TAG=$GIT_TAG" >> $GITHUB_OUTPUT
 export GIT_COMMIT_HEAD_MSG=$(git log --format=%b -1)
-echo "::set-output name=GIT_COMMIT_HEAD_MSG::$GIT_COMMIT_HEAD_MSG"
+echo "GIT_COMMIT_HEAD_MSG=$GIT_COMMIT_HEAD_MSG" >> $GITHUB_OUTPUT
 export GIT_COMMIT_SHORTCUTS=$(git log --format=%h -1)
-echo "::set-output name=GIT_COMMIT_SHORTCUTS::$GIT_COMMIT_SHORTCUTS"
+echo "GIT_COMMIT_SHORTCUTS=$GIT_COMMIT_SHORTCUTS" >> $GITHUB_OUTPUT
 export GIT_COMMIT_TIME=$(git show -s --format="%cd" --date=format:%Y%m%d%H%M%S HEAD)
-echo "::set-output name=GIT_COMMIT_TIME::$GIT_COMMIT_TIME"
+echo "GIT_COMMIT_TIME=$GIT_COMMIT_TIME" >> $GITHUB_OUTPUT
 
 if [[ "$GIT_TAG" =~ ^v?[012]\.[0-9]+\.[0-9]+$ ]]; then
     export IS_GIT_TAG_MATCH_SEMVER="true"
-    echo "::set-output name=IS_GIT_TAG_MATCH_SEMVER::$IS_GIT_TAG_MATCH_SEMVER"
+    echo "IS_GIT_TAG_MATCH_SEMVER=$IS_GIT_TAG_MATCH_SEMVER" >> $GITHUB_OUTPUT
 fi
 
 if [ "$GITHUB_REPOSITORY" == "fibjs/fibjs" ]; then
@@ -31,7 +31,7 @@ if [ "$GITHUB_REPOSITORY" == "fibjs/fibjs" ]; then
 fi
 
 if [[ -z "$IS_ORIGIN_REPO" || ! -z "$GIT_TAG" ]]; then
-    echo "::set-output name=IS_UPLOAD_ASSETS::1"
+    echo "IS_UPLOAD_ASSETS=1" >> $GITHUB_OUTPUT
 fi
 
 if [ -z "$GIT_TAG" ]; then
@@ -43,7 +43,7 @@ if [ -z "$IS_GIT_TAG_MATCH_SEMVER" ]; then
     SUFFIX=${GIT_BRANCH//\//'-'}
     RELEASE_TAG="$RELEASE_TAG-$SUFFIX"
 fi
-echo "::set-output name=RELEASE_TAG::$RELEASE_TAG"
+echo "RELEASE_TAG=$RELEASE_TAG" >> $GITHUB_OUTPUT
 
 git fetch;
 if [ $(git tag --list | egrep "^$RELEASE_TAG$") ]; then
@@ -52,7 +52,7 @@ if [ $(git tag --list | egrep "^$RELEASE_TAG$") ]; then
 else
     export RELEASE_TAG_FROM_GIT_ORIGIN=""
 fi
-echo "::set-output name=RELEASE_TAG_FROM_GIT_ORIGIN::$RELEASE_TAG_FROM_GIT_ORIGIN"
+echo "RELEASE_TAG_FROM_GIT_ORIGIN=$RELEASE_TAG_FROM_GIT_ORIGIN" >> $GITHUB_OUTPUT
 
 case "${TARGET_ARCH}" in
     i386)
@@ -100,7 +100,7 @@ if [[ "$RUNNER_OS" == "Windows" ]]; then
     export DIST_DIR="Windows_${TARGET_ARCH}_$BUILD_TYPE"
 fi
 
-echo "::set-output name=TARGET_OS_NAME::$TARGET_OS_NAME"
-echo "::set-output name=DIST_DIR::$DIST_DIR"
-echo "::set-output name=DIST_ARCH::$DIST_ARCH"
-echo "::set-output name=HOST_ARCH::$HOST_ARCH"
+echo "TARGET_OS_NAME=$TARGET_OS_NAME" >> $GITHUB_OUTPUT
+echo "DIST_DIR=$DIST_DIR" >> $GITHUB_OUTPUT
+echo "DIST_ARCH=$DIST_ARCH" >> $GITHUB_OUTPUT
+echo "HOST_ARCH=$HOST_ARCH" >> $GITHUB_OUTPUT
