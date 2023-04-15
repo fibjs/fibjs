@@ -18,6 +18,7 @@ var nodes = split_folder([
         ],
         before_split: function (html) {
             html = html.replace(/<p>[0-9\r\n]*<\/p>/g, '');
+            html = html.replace(/<h2 /g, '</div><div><h2 ');
             html = html.replace(/<h3 /g, '</div><div><h3 ');
             html = html.replace(/<code>/g, '<code>```\n');
             html = html.replace(/<\/code>/g, '\n```</code>');
