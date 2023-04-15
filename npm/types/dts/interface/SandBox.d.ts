@@ -2,7 +2,7 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description 安全沙箱对象，用于管理一个独立的运行空间
+ * @description 隔离沙箱对象，用于管理一个独立的运行空间
  * 
  *   所有的代码都运行在自己的沙箱中，全局的 require 会调用当前沙箱加载模块，沙箱会通过 require 传递给加载的沙箱。下面的示例创建一个沙箱，限制只允许访问全局基础模块中的 assert 模块，并添加 a 和 b 两个定制模块：
  *  ```JavaScript
@@ -15,18 +15,19 @@
  * 
  *  var mod_in_sbox = sbox.require('./path/to/mod');
  *  ```
+ *  需要注意，SandBox 不是防攻击的安全沙箱，SandBox 只是一个独立的运行空间，可以用来隔离不同的代码，避免相互干扰，但是不能防止恶意代码。
  *  
  */
 declare class Class_SandBox extends Class_object {
     /**
-     * @description 构造一个新的安全沙箱对象，并初始化基础模块
+     * @description 构造一个新的隔离沙箱对象，并初始化基础模块
      *      @param mods 指定要添加的模块对象字典
      *      
      */
     constructor(mods?: FIBJS.GeneralObject);
 
     /**
-     * @description 构造一个新的安全沙箱对象，并初始化基础模块
+     * @description 构造一个新的隔离沙箱对象，并初始化基础模块
      *      @param mods 指定要添加的模块对象字典
      *      @param require 自定义 require 函数，当模块不存在时，先调用自定义函数，无返回再从文件中加载
      *      
@@ -34,7 +35,7 @@ declare class Class_SandBox extends Class_object {
     constructor(mods: FIBJS.GeneralObject, require: (...args: any[])=>any);
 
     /**
-     * @description 构造一个独立 Global 新的安全沙箱对象，并初始化基础模块
+     * @description 构造一个独立 Global 新的隔离沙箱对象，并初始化基础模块
      *      @param mods 指定要添加的模块对象字典
      *      @param global 指定初始化的 Global 属性
      *      
@@ -42,7 +43,7 @@ declare class Class_SandBox extends Class_object {
     constructor(mods: FIBJS.GeneralObject, global: FIBJS.GeneralObject);
 
     /**
-     * @description 构造一个独立 Global 新的安全沙箱对象，并初始化基础模块
+     * @description 构造一个独立 Global 新的隔离沙箱对象，并初始化基础模块
      *      @param mods 指定要添加的模块对象字典
      *      @param require 自定义 require 函数，当模块不存在时，先调用自定义函数，无返回再从文件中加载
      *      @param global 指定初始化的 Global 属性
