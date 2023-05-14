@@ -258,9 +258,9 @@ declare module 'crypto' {
      *      @return 返回生成的随机数
      *      
      */
-    function randomBytes(size: number): Class_Buffer;
+    function randomBytes(size?: number): Class_Buffer;
 
-    function randomBytes(size: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function randomBytes(size?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description 生成指定尺寸的低强度随机数，使用快速的算法
@@ -268,9 +268,9 @@ declare module 'crypto' {
      *      @return 返回生成的随机数
      *      
      */
-    function simpleRandomBytes(size: number): Class_Buffer;
+    function simpleRandomBytes(size?: number): Class_Buffer;
 
-    function simpleRandomBytes(size: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function simpleRandomBytes(size?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description 生成指定尺寸的伪随机数，使用 entropy 生成器
@@ -278,9 +278,9 @@ declare module 'crypto' {
      *      @return 返回生成的随机数
      *      
      */
-    function pseudoRandomBytes(size: number): Class_Buffer;
+    function pseudoRandomBytes(size?: number): Class_Buffer;
 
-    function pseudoRandomBytes(size: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function pseudoRandomBytes(size?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description 使用随机数填充指定的 Buffer，使用 havege 生成器

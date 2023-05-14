@@ -173,19 +173,19 @@ module crypto
      @param size 指定生成的随机数尺寸
      @return 返回生成的随机数
      */
-    static Buffer randomBytes(Integer size) async;
+    static Buffer randomBytes(Integer size = 16) async;
 
     /*! @brief 生成指定尺寸的低强度随机数，使用快速的算法
      @param size 指定生成的随机数尺寸
      @return 返回生成的随机数
      */
-    static Buffer simpleRandomBytes(Integer size) async;
+    static Buffer simpleRandomBytes(Integer size = 16) async;
 
     /*! @brief 生成指定尺寸的伪随机数，使用 entropy 生成器
      @param size 指定生成的随机数尺寸
      @return 返回生成的随机数
      */
-    static Buffer pseudoRandomBytes(Integer size) async;
+    static Buffer pseudoRandomBytes(Integer size = 16) async;
 
     /*! @brief 使用随机数填充指定的 Buffer，使用 havege 生成器
      @param buffer 指定生成的 Buffer

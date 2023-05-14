@@ -306,9 +306,9 @@ inline void crypto_base::s_static_randomBytes(const v8::FunctionCallbackInfo<v8:
     METHOD_NAME("crypto.randomBytes");
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 0);
 
-    ARG(int32_t, 0);
+    OPT_ARG(int32_t, 0, 16);
 
     if (!cb.IsEmpty())
         hr = acb_randomBytes(v0, cb, args);
@@ -325,9 +325,9 @@ inline void crypto_base::s_static_simpleRandomBytes(const v8::FunctionCallbackIn
     METHOD_NAME("crypto.simpleRandomBytes");
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 0);
 
-    ARG(int32_t, 0);
+    OPT_ARG(int32_t, 0, 16);
 
     if (!cb.IsEmpty())
         hr = acb_simpleRandomBytes(v0, cb, args);
@@ -344,9 +344,9 @@ inline void crypto_base::s_static_pseudoRandomBytes(const v8::FunctionCallbackIn
     METHOD_NAME("crypto.pseudoRandomBytes");
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(1, 0);
 
-    ARG(int32_t, 0);
+    OPT_ARG(int32_t, 0, 16);
 
     if (!cb.IsEmpty())
         hr = acb_pseudoRandomBytes(v0, cb, args);
