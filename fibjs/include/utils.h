@@ -362,26 +362,33 @@ typedef int32_t result_t;
 
 #define ARG_LIST(n) OptArgs v##n(args, n, argc1);
 
-#define DECLARE_CLASSINFO(c)                                            \
-public:                                                                 \
-    static ClassInfo& class_info();                                     \
-    virtual ClassInfo& Classinfo()                                      \
-    {                                                                   \
-        return class_info();                                            \
-    }                                                                   \
-    static c* getInstance(void* o)                                      \
-    {                                                                   \
-        return dynamic_cast<c*>((object_base*)o);                       \
-    }                                                                   \
-    static c* getInstance(v8::Local<v8::Value> o)                       \
-    {                                                                   \
-        if (o.IsEmpty() || !o->IsObject())                              \
-            return NULL;                                                \
-                                                                        \
-        v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(o);     \
-        if (obj->InternalFieldCount() != 1)                             \
-            return NULL;                                                \
-        return getInstance(obj->GetAlignedPointerFromInternalField(0)); \
+#define DECLARE_CLASSINFO(c)                                                                                      \
+public:                                                                                                           \
+    static ClassInfo& class_info();                                                                               \
+    virtual ClassInfo& Classinfo()                                                                                \
+    {                                                                                                             \
+        return class_info();                                                                                      \
+    }                                                                                                             \
+    static c* getInstance(void* o)                                                                                \
+    {                                                                                                             \
+        return dynamic_cast<c*>((object_base*)o);                                                                 \
+    }                                                                                                             \
+    static c* getInstance(v8::Local<v8::Value> o)                                                                 \
+    {                                                                                                             \
+        if (o.IsEmpty() || !o->IsObject())                                                                        \
+            return NULL;                                                                                          \
+                                                                                                                  \
+        v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(o);                                               \
+        Isolate* isolate = Isolate::current();                                                                    \
+        v8::Local<v8::Private> buf_key = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("internal")); \
+        if (!obj->HasPrivate(isolate->context(), buf_key).FromMaybe(false))                                       \
+            return NULL;                                                                                          \
+        v8::Local<v8::Value> v;                                                                                   \
+        obj->GetPrivate(isolate->context(), buf_key).ToLocal(&v);                                                 \
+        if (v.IsEmpty())                                                                                          \
+            return NULL;                                                                                          \
+        v8::Local<v8::External> ext = v8::Local<v8::External>::Cast(v);                                           \
+        return getInstance(ext->Value());                                                                         \
     }
 
 #define DECLARE_CLASS(c)         \

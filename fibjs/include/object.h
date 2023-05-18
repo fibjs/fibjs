@@ -170,7 +170,8 @@ public:
             if (o.IsEmpty())
                 o = Classinfo().CreateInstance(isolate);
             handle_.Reset(v8_isolate, o);
-            o->SetAlignedPointerInInternalField(0, this);
+            v8::Local<v8::Private> buf_key = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("internal"));
+            o->SetPrivate(isolate->context(), buf_key, v8::External::New(isolate->m_isolate, this));
 
             v8_isolate->AdjustAmountOfExternalAllocatedMemory(m_nExtMemory);
 
@@ -374,7 +375,10 @@ public:
         v8::Isolate* v8_isolate = isolate->m_isolate;
 
         if (m_isJSObject & JSOBJECT_JSHANDLE)
-            v8::Local<v8::Object>::New(v8_isolate, handle_)->SetAlignedPointerInInternalField(0, 0);
+        {
+            v8::Local<v8::Private> buf_key = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("internal"));
+            v8::Local<v8::Object>::New(v8_isolate, handle_)->DeletePrivate(isolate->context(), buf_key).IsJust();
+        }
 
         clear_handle();
 
