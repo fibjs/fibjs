@@ -28,16 +28,15 @@ result_t PKey_base::from(Buffer_base* DerKey, exlib::string password, obj_ptr<PK
         if (hr >= 0)
             return hr;
 
-        exlib::string key;
-        DerKey->toString(key);
+        obj_ptr<Buffer> buf_key = Buffer::Cast(DerKey);
 
-        ret = mbedtls_pk_parse_key(&ctx, (unsigned char*)key.c_str(), key.length(),
+        ret = mbedtls_pk_parse_key(&ctx, buf_key->data(), buf_key->length(),
             !password.empty() ? (unsigned char*)password.c_str() : NULL,
             password.length(), mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
         if (ret != MBEDTLS_ERR_PK_KEY_INVALID_FORMAT)
             break;
 
-        ret = mbedtls_pk_parse_public_key(&ctx, (unsigned char*)key.c_str(), key.length());
+        ret = mbedtls_pk_parse_public_key(&ctx, buf_key->data(), buf_key->length());
     } while (false);
 
     if (ret != 0) {
@@ -70,7 +69,7 @@ result_t PKey::der(obj_ptr<Buffer_base>& retVal)
     if (ret < 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
-    retVal = new Buffer(buf.substr(buf.length() - ret));
+    retVal = new Buffer(buf.c_str() + buf.length() - ret, ret);
 
     return 0;
 }

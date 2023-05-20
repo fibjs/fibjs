@@ -110,7 +110,7 @@ result_t X509Crl::loadFile(exlib::string filename, obj_ptr<X509Crl_base>& retVal
     if (qstrstr(data.c_str(), "BEGIN"))
         return retVal->import(data);
 
-    buf = new Buffer(data);
+    buf = new Buffer(data.c_str(), data.length());
     return retVal->import(buf);
 }
 

@@ -11,6 +11,12 @@ describe('Buffer', () => {
         assert.equal(require('buffer').Buffer, Buffer);
     });
 
+    it('instanceof', () => {
+        var buf = new Buffer("abcd");
+        assert.equal(buf instanceof Buffer, true);
+        assert.equal(buf instanceof Uint8Array, true);
+    });
+
     it('new Buffer(String)', () => {
         var buf = new Buffer("abcd");
         assert.equal(buf.length, 4);
@@ -33,7 +39,7 @@ describe('Buffer', () => {
         assert.equal(buf.toString(), "1234");
     });
 
-    it('new Buffer(TypedArray)', () => {
+    it('new Buffer(Uint8Array)', () => {
         var arr = new Uint8Array(2);
         arr[0] = 50;
         arr[1] = 40;
@@ -42,15 +48,6 @@ describe('Buffer', () => {
 
         assert.equal(buf.length, 2);
         assert.equal(buf.hex(), "3228");
-
-        var arr = new Uint16Array(2);
-        arr[0] = 5000;
-        arr[1] = 4000;
-
-        var buf = new Buffer(arr);
-
-        assert.equal(buf.length, 2);
-        assert.equal(buf.hex(), "88a0");
 
         var arr = new Uint8Array([0x10, 0x20, 0x30]);
         var arr1 = new Uint8Array(arr.buffer, 1, 2);
@@ -68,26 +65,6 @@ describe('Buffer', () => {
 
         assert.equal(buf.length, 4);
         assert.equal(buf.hex(), is_big_endian ? "13880fa0" : "8813a00f");
-    });
-
-    it('new Buffer(ArrayBufferView)', () => {
-        var arr = new DataView(new ArrayBuffer(2));
-        arr.setInt8(0, 0x10);
-        arr.setInt8(1, 0x20);
-
-        var buf = new Buffer(arr);
-
-        assert.equal(buf.length, 2);
-        assert.equal(buf.hex(), "1020");
-
-        var arr = new DataView(new ArrayBuffer(4), 2);
-        arr.setInt8(0, 0x10);
-        arr.setInt8(1, 0x20);
-
-        var buf = new Buffer(arr);
-
-        assert.equal(buf.length, 2);
-        assert.equal(buf.hex(), "1020");
     });
 
     it('new Buffer(Buffer)', () => {
@@ -141,8 +118,6 @@ describe('Buffer', () => {
         assert.equal(bufRes[9], 136);
         buf1 = new Buffer('');
         bufArray = [buf1];
-
-        bufRes = Buffer.concat([() => { }, {}, '']);
     });
 
     it('concat error', () => {
@@ -265,17 +240,6 @@ describe('Buffer', () => {
         assert.equal(buf.toString(), "1234");
     });
 
-    it('Buffer.from(TypedArray)', () => {
-        var arr = new Uint16Array(2);
-        arr[0] = 5000;
-        arr[1] = 4000;
-
-        var buf = Buffer.from(arr);
-
-        assert.equal(buf.length, 2);
-        assert.equal(buf.hex(), "88a0");
-    });
-
     it('Buffer.from(ArrayBuffer)', () => {
         var arr = new Uint16Array(2);
         arr[0] = 5000;
@@ -339,24 +303,12 @@ describe('Buffer', () => {
     it('Buffer.byteLength(ArrayBuffer)', () => {
         var buf = new ArrayBuffer(8);
         assert.equal(Buffer.byteLength(buf), 8);
-        assert.equal(Buffer.byteLength(buf, ""), 8);
-        assert.equal(Buffer.byteLength(buf, "utf8"), 8);
     });
 
-    it('Buffer.byteLength(TypedArray)', () => {
+    it('Buffer.byteLength(Uint8Array)', () => {
         var buf = new ArrayBuffer(8);
-        var int32Array = new Int32Array(buf);
+        var int32Array = new Uint8Array(buf);
         assert.equal(Buffer.byteLength(int32Array), 8);
-        assert.equal(Buffer.byteLength(int32Array, ""), 8);
-        assert.equal(Buffer.byteLength(int32Array, "utf8"), 8);
-    });
-
-    it('Buffer.byteLength(DateView)', () => {
-        var buf = new ArrayBuffer(8);
-        var dataView = new DataView(buf);
-        assert.equal(Buffer.byteLength(dataView), 8);
-        assert.equal(Buffer.byteLength(dataView, ""), 8);
-        assert.equal(Buffer.byteLength(dataView, "utf8"), 8);
     });
 
     it('Buffer.byteLength(Buffer)', () => {
@@ -364,10 +316,6 @@ describe('Buffer', () => {
         var buf2 = new Buffer([98, 117, 102, 102, 101, 114]);
         assert.equal(Buffer.byteLength(buf1), 4);
         assert.equal(Buffer.byteLength(buf2), 6);
-        assert.equal(Buffer.byteLength(buf1, ""), 4);
-        assert.equal(Buffer.byteLength(buf1, "utf-8"), 4);
-        assert.equal(Buffer.byteLength(buf2, ""), 6);
-        assert.equal(Buffer.byteLength(buf2, "utf-8"), 6);
     });
 
     it('Buffer.byteLength(other)', () => {
@@ -526,14 +474,6 @@ describe('Buffer', () => {
         assert.deepEqual(buf.toArray(), [1, 2, 3, 4]);
     });
 
-    it('toJSON', () => {
-        var buf = new Buffer([1, 2, 3, 4]);
-        assert.deepEqual(buf.toJSON(), {
-            type: 'Buffer',
-            data: [1, 2, 3, 4]
-        });
-    });
-
     it('toString', () => {
         var buf = new Buffer([0x31, 0x32, 0x33, 0x34]);
         assert.equal(buf.toString("utf8"), "1234");
@@ -550,8 +490,7 @@ describe('Buffer', () => {
         assert.equal(buf.toString("base64", 2), "MzQ=");
         assert.equal(buf.toString("base64url"), "MTIzNA");
 
-        buf = Buffer.alloc(5)
-        buf.append("abcd");
+        buf = Buffer.concat([Buffer.alloc(5), Buffer.from("abcd")]);
         assert.equal(buf.toString("utf8", 5), "abcd");
 
         var buf1 = new Buffer('this is a tést');
@@ -577,32 +516,6 @@ describe('Buffer', () => {
         utf8Slice = b.toString('utf8', offset,
             offset + Buffer.byteLength(utf8String));
         assert.strictEqual(utf8String, utf8Slice);
-    });
-
-    it('append', () => {
-        var buf = new Buffer([0x31, 0x32, 0x33, 0x34]);
-        assert.equal(buf.toString(), "1234");
-
-        buf.append("abcd");
-        assert.equal(buf.toString(), "1234abcd");
-
-        buf.append([0x31, 0x32, 0x33, 0x34]);
-        assert.equal(buf.toString(), "1234abcd1234");
-
-        buf.append("3132", "hex");
-        assert.equal(buf.toString(), "1234abcd123412");
-
-        buf.append("MTIzNA==", "base64");
-        assert.equal(buf.toString(), "1234abcd1234121234");
-
-        buf.append("6am-77yG556_", "base64url");
-        assert.equal(buf.toString(), "1234abcd1234121234驾＆瞿");
-
-        buf.append("gezdgna=", "base32");
-        assert.equal(buf.toString(), "1234abcd1234121234驾＆瞿1234");
-
-        buf.append("2FwFnT", "base58");
-        assert.equal(buf.toString(), "1234abcd1234121234驾＆瞿12341234");
     });
 
     it('write', () => {
@@ -1009,126 +922,104 @@ describe('Buffer', () => {
         let buf = Buffer.allocUnsafe(3);
 
         buf.writeUIntLE(0x123456, 0, 3);
-        assert.deepEqual(buf.toJSON().data, [0x56, 0x34, 0x12]);
+        assert.deepEqual(buf.toArray(), [0x56, 0x34, 0x12]);
         assert.equal(buf.readUIntLE(0, 3), 0x123456);
 
         buf.fill(0xFF);
         buf.writeUIntBE(0x123456, 0, 3);
-        assert.deepEqual(buf.toJSON().data, [0x12, 0x34, 0x56]);
+        assert.deepEqual(buf.toArray(), [0x12, 0x34, 0x56]);
         assert.equal(buf.readUIntBE(0, 3), 0x123456);
 
         buf.fill(0xFF);
         buf.writeIntLE(0x123456, 0, 3);
-        assert.deepEqual(buf.toJSON().data, [0x56, 0x34, 0x12]);
+        assert.deepEqual(buf.toArray(), [0x56, 0x34, 0x12]);
         assert.equal(buf.readIntLE(0, 3), 0x123456);
 
         buf.fill(0xFF);
         buf.writeIntBE(0x123456, 0, 3);
-        assert.deepEqual(buf.toJSON().data, [0x12, 0x34, 0x56]);
+        assert.deepEqual(buf.toArray(), [0x12, 0x34, 0x56]);
         assert.equal(buf.readIntBE(0, 3), 0x123456);
 
         buf.fill(0xFF);
         buf.writeIntLE(-0x123456, 0, 3);
-        assert.deepEqual(buf.toJSON().data, [0xaa, 0xcb, 0xed]);
+        assert.deepEqual(buf.toArray(), [0xaa, 0xcb, 0xed]);
         assert.equal(buf.readIntLE(0, 3), -0x123456);
 
         buf.fill(0xFF);
         buf.writeIntBE(-0x123456, 0, 3);
-        assert.deepEqual(buf.toJSON().data, [0xed, 0xcb, 0xaa]);
+        assert.deepEqual(buf.toArray(), [0xed, 0xcb, 0xaa]);
         assert.equal(buf.readIntBE(0, 3), -0x123456);
 
         buf.fill(0xFF);
         buf.writeIntLE(-0x123400, 0, 3);
-        assert.deepEqual(buf.toJSON().data, [0x00, 0xcc, 0xed]);
+        assert.deepEqual(buf.toArray(), [0x00, 0xcc, 0xed]);
         assert.equal(buf.readIntLE(0, 3), -0x123400);
 
         buf.fill(0xFF);
         buf.writeIntBE(-0x123400, 0, 3);
-        assert.deepEqual(buf.toJSON().data, [0xed, 0xcc, 0x00]);
+        assert.deepEqual(buf.toArray(), [0xed, 0xcc, 0x00]);
         assert.equal(buf.readIntBE(0, 3), -0x123400);
 
         buf.fill(0xFF);
         buf.writeIntLE(-0x120000, 0, 3);
-        assert.deepEqual(buf.toJSON().data, [0x00, 0x00, 0xee]);
+        assert.deepEqual(buf.toArray(), [0x00, 0x00, 0xee]);
         assert.equal(buf.readIntLE(0, 3), -0x120000);
 
         buf.fill(0xFF);
         buf.writeIntBE(-0x120000, 0, 3);
-        assert.deepEqual(buf.toJSON().data, [0xee, 0x00, 0x00]);
+        assert.deepEqual(buf.toArray(), [0xee, 0x00, 0x00]);
         assert.equal(buf.readIntBE(0, 3), -0x120000);
 
         buf = Buffer.allocUnsafe(5);
         buf.writeUIntLE(0x1234567890, 0, 5);
-        assert.deepEqual(buf.toJSON().data, [0x90, 0x78, 0x56, 0x34, 0x12]);
+        assert.deepEqual(buf.toArray(), [0x90, 0x78, 0x56, 0x34, 0x12]);
         assert.equal(buf.readUIntLE(0, 5), 0x1234567890);
 
         buf.fill(0xFF);
         buf.writeUIntBE(0x1234567890, 0, 5);
-        assert.deepEqual(buf.toJSON().data, [0x12, 0x34, 0x56, 0x78, 0x90]);
+        assert.deepEqual(buf.toArray(), [0x12, 0x34, 0x56, 0x78, 0x90]);
         assert.equal(buf.readUIntBE(0, 5), 0x1234567890);
 
         buf.fill(0xFF);
         buf.writeIntLE(0x1234567890, 0, 5);
-        assert.deepEqual(buf.toJSON().data, [0x90, 0x78, 0x56, 0x34, 0x12]);
+        assert.deepEqual(buf.toArray(), [0x90, 0x78, 0x56, 0x34, 0x12]);
         assert.equal(buf.readIntLE(0, 5), 0x1234567890);
 
         buf.fill(0xFF);
         buf.writeIntBE(0x1234567890, 0, 5);
-        assert.deepEqual(buf.toJSON().data, [0x12, 0x34, 0x56, 0x78, 0x90]);
+        assert.deepEqual(buf.toArray(), [0x12, 0x34, 0x56, 0x78, 0x90]);
         assert.equal(buf.readIntBE(0, 5), 0x1234567890);
 
         buf.fill(0xFF);
         buf.writeIntLE(-0x1234567890, 0, 5);
-        assert.deepEqual(buf.toJSON().data, [0x70, 0x87, 0xa9, 0xcb, 0xed]);
+        assert.deepEqual(buf.toArray(), [0x70, 0x87, 0xa9, 0xcb, 0xed]);
         assert.equal(buf.readIntLE(0, 5), -0x1234567890);
 
         buf.fill(0xFF);
         buf.writeIntBE(-0x1234567890, 0, 5);
-        assert.deepEqual(buf.toJSON().data, [0xed, 0xcb, 0xa9, 0x87, 0x70]);
+        assert.deepEqual(buf.toArray(), [0xed, 0xcb, 0xa9, 0x87, 0x70]);
         assert.equal(buf.readIntBE(0, 5), -0x1234567890);
 
         buf.fill(0xFF);
         buf.writeIntLE(-0x0012000000, 0, 5);
-        assert.deepEqual(buf.toJSON().data, [0x00, 0x00, 0x00, 0xee, 0xff]);
+        assert.deepEqual(buf.toArray(), [0x00, 0x00, 0x00, 0xee, 0xff]);
         assert.equal(buf.readIntLE(0, 5), -0x0012000000);
 
         buf.fill(0xFF);
         buf.writeIntBE(-0x0012000000, 0, 5);
-        assert.deepEqual(buf.toJSON().data, [0xff, 0xee, 0x00, 0x00, 0x00]);
+        assert.deepEqual(buf.toArray(), [0xff, 0xee, 0x00, 0x00, 0x00]);
         assert.equal(buf.readIntBE(0, 5), -0x0012000000);
     });
 
     if (Buffer.isEncoding("EUC-JP"))
         it('charset', () => {
             assert.equal(new Buffer("哈哈哈").toString(), "哈哈哈");
-            assert.deepEqual(new Buffer("哈哈哈哈", "EUC-JP").toArray(), [
-                210, 253, 210, 253, 210, 253, 210, 253]);
+            assert.equal(new Buffer("哈哈哈哈", "EUC-JP").hex(), "d2fdd2fdd2fdd2fd");
             assert.equal(new Buffer("哈哈哈", "EUC-JP").toString("EUC-JP"), "哈哈哈");
         });
 
-    it('resize', () => {
-        var buf = Buffer.alloc(0);
-        buf.resize(100);
-        assert.equal(buf.length, 100);
-
-        assert.doesNotThrow(() => {
-            buf.resize("12")
-        });
-        assert.throws(() => {
-            buf.resize("a12")
-        });
-
-        assert.throws(() => {
-            buf.resize("12a")
-        });
-
-        assert.throws(() => {
-            buf.resize("12.a")
-        });
-    });
-
     it('forEach', () => {
-        var buf = Buffer.from([1, 2, 3, 4, 5]);
+        var buf = new Buffer([1, 2, 3, 4, 5]);
         var arr = [];
 
         buf.forEach(function (v, i, a) {
@@ -1218,7 +1109,6 @@ describe('Buffer', () => {
         fixtures.forEach((f) => {
             var a = new Buffer(f.a, 'hex');
             assert.equal(a.reverse().toString('hex'), f.expected);
-            assert.equal(a.toString('hex'), f.a);
         })
     });
 

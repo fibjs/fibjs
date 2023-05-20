@@ -63,7 +63,7 @@ result_t PKey::loadFile(exlib::string filename, obj_ptr<PKey_base>& retVal)
     if (qstrstr(data.c_str(), "BEGIN"))
         return PKey_base::_new(data, "", retVal, v8::Local<v8::Object>());
 
-    buf = new Buffer(data);
+    buf = new Buffer(data.c_str(), data.length());
     return PKey_base::_new(buf, "", retVal, v8::Local<v8::Object>());
 }
 
@@ -164,21 +164,19 @@ result_t PKey::encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEve
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     int32_t ret;
-    exlib::string str;
     exlib::string output;
     size_t olen;
 
-    data->toString(str);
+    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
     output.resize(MBEDTLS_PREMASTER_SIZE);
 
-    ret = mbedtls_pk_encrypt(&m_key, (const unsigned char*)str.c_str(), str.length(),
+    ret = mbedtls_pk_encrypt(&m_key, buf_data->data(), buf_data->length(),
         (unsigned char*)output.c_buffer(), &olen, output.length(),
         mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
-    output.resize(olen);
-    retVal = new Buffer(output);
+    retVal = new Buffer(output.c_str(), olen);
 
     return 0;
 }
@@ -199,21 +197,19 @@ result_t PKey::decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEve
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     int32_t ret;
-    exlib::string str;
     exlib::string output;
     size_t olen;
 
-    data->toString(str);
+    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
     output.resize(MBEDTLS_PREMASTER_SIZE * 2);
 
-    ret = mbedtls_pk_decrypt(&m_key, (const unsigned char*)str.c_str(), str.length(),
+    ret = mbedtls_pk_decrypt(&m_key, buf_data->data(), buf_data->length(),
         (unsigned char*)output.c_buffer(), &olen, output.length(),
         mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
-    output.resize(olen);
-    retVal = new Buffer(output);
+    retVal = new Buffer(output.c_str(), olen);
 
     return 0;
 }

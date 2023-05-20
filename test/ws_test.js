@@ -128,7 +128,7 @@ describe('ws', () => {
 
                 var buf = new Buffer([0x82, 0x7e, 0, 0]);
                 buf.writeUInt16BE(s.length, 2);
-                buf.append(s);
+                buf = Buffer.concat([buf, new Buffer(s)]);
 
                 assert.deepEqual(load_msg(buf), {
                     "masked": false,
@@ -143,7 +143,7 @@ describe('ws', () => {
 
                 var buf = new Buffer([0x82, 0x7f, 0, 0, 0, 0, 0, 0, 0, 0]);
                 buf.writeIntBE(s.length, 4, 6);
-                buf.append(s);
+                buf = Buffer.concat([buf, new Buffer(s)]);
 
                 assert.deepEqual(load_msg(buf), {
                     "masked": false,

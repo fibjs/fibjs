@@ -65,7 +65,8 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
 
         v8::Local<v8::UnboundScript> ubs = v8::ScriptCompiler::CompileUnboundScript(
             isolate->m_isolate, &script_source,
-            v8::ScriptCompiler::kEagerCompile).FromMaybe(v8::Local<v8::UnboundScript>());
+            v8::ScriptCompiler::kEagerCompile)
+                                               .FromMaybe(v8::Local<v8::UnboundScript>());
 
         if (ubs.IsEmpty())
             return throwSyntaxError(try_catch);
@@ -109,7 +110,7 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
         p[1] = len;
         p[2] = jsc_version;
 
-        obj_ptr<Buffer_base> unz = new Buffer(buf);
+        obj_ptr<Buffer_base> unz = new Buffer(buf.c_str(), buf.length());
         return zlib_base::cc_gzip(unz, retVal);
     }
 

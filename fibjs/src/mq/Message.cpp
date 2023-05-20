@@ -69,7 +69,7 @@ result_t Message::get_data(v8::Local<v8::Value>& retVal)
         data->toString(txt);
         retVal = holder()->NewString(txt);
     } else
-        retVal = data->wrap();
+        return data->valueOf(retVal);
 
     return 0;
 }
@@ -123,7 +123,7 @@ result_t Message::json(v8::Local<v8::Value> data, v8::Local<v8::Value>& retVal)
     if (hr < 0)
         return hr;
 
-    obj_ptr<Buffer_base> buf = new Buffer(str);
+    obj_ptr<Buffer_base> buf = new Buffer(str.c_str(), str.length());
     return m_body->ac_write(buf);
 }
 

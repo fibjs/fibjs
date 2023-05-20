@@ -25,6 +25,7 @@
 
 #define private public
 #include "v8/src/objects/shared-function-info.h"
+#include "v8/src/objects/backing-store.h"
 #undef private
 
 #include "v8/src/api/api-inl.h"
@@ -63,6 +64,14 @@ void setAsyncFunctoin(Local<Function> func)
     i::Handle<i::Object> obj = Utils::OpenHandle(*func);
     i::Handle<i::JSFunction> _func = i::Handle<i::JSFunction>::cast(obj);
     _func->shared().set_kind(i::FunctionKind::kAsyncFunction);
+}
+
+void* fetch_store_data(std::shared_ptr<v8::BackingStore> backing_store, v8::BackingStore::DeleterCallback deleter)
+{
+    auto store = reinterpret_cast<const i::BackingStore*>(backing_store.get());
+    if (!deleter || deleter == store->type_specific_data_.deleter.callback)
+        return store->type_specific_data_.deleter.data;
+    return NULL;
 }
 
 bool path_isAbsolute(exlib::string path);

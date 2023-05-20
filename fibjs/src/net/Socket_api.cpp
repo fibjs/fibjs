@@ -76,14 +76,13 @@ namespace socket {
             return -1;
         }
 
-        exlib::string strBuf;
+        if (hr == CALL_RETURN_NULL)
+            return 0;
 
-        if (hr != CALL_RETURN_NULL) {
-            retVal->toString(strBuf);
-            memcpy(buffer, strBuf.c_str(), strBuf.length());
-        }
+        obj_ptr<Buffer> buf = Buffer::Cast(retVal);
+        memcpy(buffer, buf->data(), buf->length());
 
-        return (int32_t)strBuf.length();
+        return (int32_t)buf->length();
     }
 
     int32_t c_read(void* sock, void* buffer, int32_t cbBuffer)
@@ -106,16 +105,16 @@ namespace socket {
             return -1;
         }
 
-        exlib::string strBuf;
+        if (hr == CALL_RETURN_NULL)
+            return 0;
 
-        if (hr != CALL_RETURN_NULL) {
-            retVal->toString(strBuf);
-            if ((int32_t)strBuf.length() < cbBuffer)
-                return -1;
-            memcpy(buffer, strBuf.c_str(), strBuf.length());
-        }
+        obj_ptr<Buffer> buf = Buffer::Cast(retVal);
+        if ((int32_t)buf->length() < cbBuffer)
+            return -1;
 
-        return (int32_t)strBuf.length();
+        memcpy(buffer, buf->data(), buf->length());
+
+        return (int32_t)buf->length();
     }
 
     int32_t c_send(void* sock, const void* buffer, int32_t cbBuffer)
@@ -130,10 +129,7 @@ namespace socket {
 
         assert(!Runtime::check());
 
-        exlib::string strBuf((const char*)buffer, cbBuffer);
-        obj_ptr<Buffer_base> buf;
-
-        buf = new Buffer(strBuf);
+        obj_ptr<Buffer_base> buf = new Buffer((const char*)buffer, cbBuffer);
 
         result_t hr = ((Socket_base*)sock)->cc_send(buf);
         if (hr < 0) {
@@ -141,7 +137,7 @@ namespace socket {
             return -1;
         }
 
-        return (int32_t)strBuf.length();
+        return cbBuffer;
     }
 }
 }

@@ -161,23 +161,19 @@ result_t PKey_rsa::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<B
     int32_t alg = ac->m_ctx[0].intVal();
 
     int32_t ret;
-    exlib::string str;
     exlib::string output;
     size_t olen = (mbedtls_pk_get_bitlen(&m_key) + 7) / 8;
 
-    data->toString(str);
+    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
     output.resize(olen);
 
     // alg=0~9  see https://tls.mbed.org/api/md_8h.html  enum mbedtls_md_type_t
-    ret = mbedtls_pk_sign(&m_key, (mbedtls_md_type_t)alg,
-        (const unsigned char*)str.c_str(), str.length(),
-        (unsigned char*)output.c_buffer(), olen, &olen,
-        mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
+    ret = mbedtls_pk_sign(&m_key, (mbedtls_md_type_t)alg, buf_data->data(), buf_data->length(),
+        (unsigned char*)output.c_buffer(), olen, &olen, mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
-    output.resize(olen);
-    retVal = new Buffer(output);
+    retVal = new Buffer(output.c_str(), olen);
 
     return 0;
 }
@@ -191,15 +187,12 @@ result_t PKey_rsa::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Ob
     int32_t alg = ac->m_ctx[0].intVal();
 
     int32_t ret;
-    exlib::string str;
-    exlib::string strsign;
 
-    data->toString(str);
-    sign->toString(strsign);
+    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
+    obj_ptr<Buffer> buf_sign = Buffer::Cast(sign);
 
-    ret = mbedtls_pk_verify(&m_key, (mbedtls_md_type_t)alg,
-        (const unsigned char*)str.c_str(), str.length(),
-        (const unsigned char*)strsign.c_str(), strsign.length());
+    ret = mbedtls_pk_verify(&m_key, (mbedtls_md_type_t)alg, buf_data->data(), buf_data->length(),
+        buf_sign->data(), buf_sign->length());
     if (ret == MBEDTLS_ERR_RSA_VERIFY_FAILED) {
         retVal = false;
         return 0;

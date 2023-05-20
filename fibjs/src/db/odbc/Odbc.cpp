@@ -348,7 +348,7 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                             value.resize(len);
                             hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.c_buffer(), len, &len);
                             if (hr >= 0)
-                                v = new Buffer(value);
+                                v = new Buffer(value.c_str(), value.length());
                         }
                         break;
                     }

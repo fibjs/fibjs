@@ -100,45 +100,38 @@ result_t StringDecoder::set_encoding(exlib::string newVal)
 
 result_t StringDecoder::utf16Text(Buffer_base* buf, int32_t offset, exlib::string& retVal)
 {
-    int32_t bufLen;
-    int32_t b;
-    buf->get_length(bufLen);
-    exlib::string r;
+    uint8_t* chars_data = Buffer::Cast(m_lastChar)->data();
+
+    obj_ptr<Buffer> buff = Buffer::Cast(buf);
+    const uint8_t* buff_data = buff->data();
+    exlib::wchar* ws = (exlib::wchar*)(buff_data + offset);
+
+    int32_t bufLen = buff->length();
+    int32_t len = (bufLen - offset) / 2;
 
     if ((bufLen - offset) % 2 == 0) {
-        buf->toString("utf16le", offset, r);
-        exlib::wstring ws = utf8to16String(r);
-        int32_t len = (int32_t)ws.length();
         if (len > 0) {
             int32_t c = ws[len - 1];
             if (c >= 0xD800 && c <= 0xDBFF) {
                 m_lastNeed = 2;
                 m_lastTotal = 4;
 
-                buf->_indexed_getter(bufLen - 2, b);
-                m_lastChar->_indexed_setter(0, b);
+                chars_data[0] = buff_data[bufLen - 2];
+                chars_data[1] = buff_data[bufLen - 1];
 
-                buf->_indexed_getter(bufLen - 1, b);
-                m_lastChar->_indexed_setter(1, b);
-
-                ws.resize(len - 1);
-
-                r = utf16to8String((const exlib::wchar*)ws.c_str(), (int32_t)ws.length() / sizeof(exlib::wchar));
-
-                retVal = r;
+                retVal = utf16to8String(ws, len - 1);
                 return 0;
             }
         }
-        retVal = r;
+        retVal = utf16to8String(ws, len);
         return 0;
     }
 
     m_lastNeed = 1;
     m_lastTotal = 2;
 
-    buf->_indexed_getter(bufLen - 1, b);
-    m_lastChar->_indexed_setter(0, b);
-    buf->toString("utf16le", offset, bufLen - 1, retVal);
+    chars_data[0] = buff_data[bufLen - 1];
+    retVal = utf16to8String(ws, len);
 
     return 0;
 }
@@ -162,12 +155,14 @@ result_t StringDecoder::utf16End2(Buffer_base* buf, exlib::string& retVal)
 
 result_t StringDecoder::utf8FillLast(Buffer_base* buf, exlib::string& retVal)
 {
+    obj_ptr<Buffer> buff = Buffer::Cast(buf);
+    const uint8_t* buff_data = buff->data();
+
     int32_t b;
-    int32_t bufLen;
+    int32_t bufLen = buff->length();
     int32_t len;
 
-    buf->get_length(bufLen);
-    buf->_indexed_getter(0, b);
+    b = buff_data[0];
     int32_t p = m_lastTotal - m_lastNeed;
 
     if ((b & 0xC0) != 0x80) {
@@ -175,13 +170,13 @@ result_t StringDecoder::utf8FillLast(Buffer_base* buf, exlib::string& retVal)
         retVal = "\xef\xbf\xbd";
         return 0;
     } else if (m_lastNeed > 1 && bufLen > 1) {
-        buf->_indexed_getter(1, b);
+        b = buff_data[1];
         if ((b & 0xC0) != 0x80) {
             m_lastNeed = 1;
             retVal = "\xef\xbf\xbd";
             return 0;
         } else if (m_lastNeed > 2 && bufLen > 2) {
-            buf->_indexed_getter(2, b);
+            b = buff_data[2];
             if ((b & 0xC0) != 0x80) {
                 m_lastNeed = 2;
                 retVal = "\xef\xbf\xbd";
@@ -202,9 +197,9 @@ result_t StringDecoder::utf8FillLast(Buffer_base* buf, exlib::string& retVal)
 
 result_t StringDecoder::defaultFillLast(Buffer_base* buf, exlib::string& retVal)
 {
-    int32_t bufLen;
+    int32_t bufLen = Buffer::Cast(buf)->length();
     int32_t len;
-    buf->get_length(bufLen);
+
     if (bufLen >= m_lastNeed) {
         buf->copy(m_lastChar, m_lastTotal - m_lastNeed, 0, m_lastNeed, len);
         m_lastChar->toString(m_encoding, 0, m_lastTotal, retVal);
@@ -217,9 +212,12 @@ result_t StringDecoder::defaultFillLast(Buffer_base* buf, exlib::string& retVal)
 
 result_t StringDecoder::base64Text(Buffer_base* buf, int32_t offset, exlib::string& retVal)
 {
-    int32_t bufLen;
+    obj_ptr<Buffer> buff = Buffer::Cast(buf);
+    const uint8_t* buff_data = buff->data();
+    uint8_t* chars_data = Buffer::Cast(m_lastChar)->data();
+
+    int32_t bufLen = buff->length();
     int32_t b;
-    buf->get_length(bufLen);
     int32_t n = (bufLen - offset) % 3;
 
     if (n == 0) {
@@ -230,14 +228,10 @@ result_t StringDecoder::base64Text(Buffer_base* buf, int32_t offset, exlib::stri
     m_lastTotal = 3;
 
     if (n == 1) {
-        buf->_indexed_getter(bufLen - 1, b);
-        m_lastChar->_indexed_setter(0, b);
+        chars_data[0] = buff_data[bufLen - 1];
     } else {
-        buf->_indexed_getter(bufLen - 2, b);
-        m_lastChar->_indexed_setter(0, b);
-
-        buf->_indexed_getter(bufLen - 1, b);
-        m_lastChar->_indexed_setter(1, b);
+        chars_data[0] = buff_data[bufLen - 2];
+        chars_data[1] = buff_data[bufLen - 1];
     }
 
     buf->toString("base64", offset, bufLen - n, retVal);
@@ -254,9 +248,8 @@ result_t StringDecoder::utf8Text(Buffer_base* buf, int32_t offset, exlib::string
 
     m_lastTotal = total;
 
-    int32_t bufLen;
+    int32_t bufLen = Buffer::Cast(buf)->length();
     int32_t len;
-    buf->get_length(bufLen);
 
     int32_t end = bufLen - (total - m_lastNeed);
     buf->copy(m_lastChar, 0, end, -1, len);
@@ -288,12 +281,11 @@ result_t StringDecoder::simpleWrite(Buffer_base* buf, exlib::string& retVal)
 
 result_t StringDecoder::defaultWrite(Buffer_base* buf, exlib::string& retVal)
 {
-    int32_t bufLen;
+    int32_t bufLen = Buffer::Cast(buf)->length();
     int32_t hr = 0;
     int32_t i;
     exlib::string r = "";
 
-    buf->get_length(bufLen);
     if (bufLen == 0) {
         retVal = "";
         return 0;

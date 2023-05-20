@@ -53,12 +53,10 @@ result_t io_base::copyStream(Stream_base* from, Stream_base* to, int64_t bytes,
 
         ON_STATE(asyncCopy, write)
         {
-            int32_t blen;
-
             if (n == CALL_RETURN_NULL)
                 return next();
 
-            m_buf->get_length(blen);
+            int32_t blen = Buffer::Cast(m_buf)->length();
             m_retVal += blen;
 
             if (m_bytes > 0)

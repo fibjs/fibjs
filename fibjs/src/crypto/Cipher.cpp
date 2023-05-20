@@ -222,13 +222,12 @@ result_t Cipher::process(const mbedtls_operation_t operation, Buffer_base* data,
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
-    exlib::string input;
     StringBuffer output;
     unsigned char buffer[1024];
     size_t olen, ilen, offset, block_size, data_size;
 
-    data->toString(input);
-    data_size = input.length();
+    obj_ptr<Buffer> data_buf = Buffer::Cast(data);
+    data_size = data_buf->length();
 
     block_size = mbedtls_cipher_get_block_size(&m_ctx);
     if (block_size == 1)
@@ -237,7 +236,7 @@ result_t Cipher::process(const mbedtls_operation_t operation, Buffer_base* data,
     for (offset = 0; offset < data_size; offset += block_size) {
         ilen = ((uint32_t)(data_size - offset) > block_size) ? block_size : (uint32_t)(data_size - offset);
 
-        ret = mbedtls_cipher_update(&m_ctx, (unsigned char*)input.c_str() + offset,
+        ret = mbedtls_cipher_update(&m_ctx, data_buf->data() + offset,
             ilen, buffer, &olen);
         if (ret != 0) {
             reset();
@@ -254,7 +253,9 @@ result_t Cipher::process(const mbedtls_operation_t operation, Buffer_base* data,
         return CHECK_ERROR(_ssl::setError(ret));
 
     output.append((const char*)buffer, (int32_t)olen);
-    retVal = new Buffer(output.str());
+
+    exlib::string str = output.str();
+    retVal = new Buffer(str.c_str(), str.length());
 
     return 0;
 }
@@ -263,9 +264,7 @@ result_t Cipher::encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
     if (ac->isSync()) {
-        exlib::string input;
-        data->toString(input);
-        if (input.length() > 256)
+        if (Buffer::Cast(data)->length() > 256)
             return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
@@ -276,9 +275,7 @@ result_t Cipher::decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal,
     AsyncEvent* ac)
 {
     if (ac->isSync()) {
-        exlib::string input;
-        data->toString(input);
-        if (input.length() > 256)
+        if (Buffer::Cast(data)->length() > 256)
             return CHECK_ERROR(CALL_E_NOSYNC);
     }
 

@@ -3,6 +3,7 @@
 #include "ifs/File.h"
 #include "Stat.h"
 #include "utf8.h"
+#include "Buffer.h"
 
 #include <fcntl.h>
 
@@ -81,9 +82,8 @@ public:
 
     result_t Write(Buffer_base* data)
     {
-        exlib::string strBuf;
-        data->toString(strBuf);
-        return Write(strBuf);
+        obj_ptr<Buffer> buf = Buffer::Cast(data);
+        return Write((const char*)buf->data(), (int32_t)buf->length());
     }
 
 protected:

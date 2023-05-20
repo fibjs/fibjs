@@ -107,7 +107,7 @@ result_t ChildProcess::Ipc::send(Stream_base* stream, v8::Local<v8::Value> msg)
         return hr;
 
     s.append(1, '\n');
-    obj_ptr<Buffer> data = new Buffer(s);
+    obj_ptr<Buffer> data = new Buffer(s.c_str(), s.length());
     return stream->ac_write(data);
 }
 

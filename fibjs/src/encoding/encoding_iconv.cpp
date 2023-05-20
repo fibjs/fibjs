@@ -128,7 +128,38 @@ result_t encoding_iconv::encode(exlib::string data, obj_ptr<Buffer_base>& retVal
     if (hr < 0)
         return hr;
 
-    retVal = new Buffer(strBuf);
+    retVal = new Buffer(strBuf.c_str(), strBuf.length());
+
+    return 0;
+}
+
+result_t encoding_iconv::decode(const char* data, size_t sz, exlib::string& retVal)
+{
+    if (ucs_decode(data, sz, retVal) == 0)
+        return 0;
+
+    if (!m_iconv_de) {
+        m_iconv_de = iconv_open("utf-8", m_charset.c_str());
+        if (m_iconv_de == (iconv_t)(-1)) {
+            m_iconv_de = NULL;
+            return CHECK_ERROR(Runtime::setError("encoding: Unknown charset."));
+        }
+    }
+
+    exlib::string strBuf;
+
+    strBuf.resize(sz * 2);
+    char* output_buf = strBuf.c_buffer();
+    size_t output_size = strBuf.length();
+
+    size_t n = iconv((iconv_t)m_iconv_de, &data, &sz, &output_buf, &output_size);
+
+    if (n == (size_t)-1)
+        return CHECK_ERROR(Runtime::setError("encoding: convert error."));
+
+    strBuf.resize(strBuf.length() - output_size);
+
+    retVal = strBuf;
 
     return 0;
 }

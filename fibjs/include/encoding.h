@@ -23,6 +23,9 @@ void base64Decode(const char* data, size_t sz, exlib::string& retVal);
  * iconv use decode: local encoding string -> unicode
  *
  */
+result_t commonEncode(exlib::string codec, const char* data, size_t sz, exlib::string& retVal);
 result_t commonEncode(exlib::string codec, exlib::string data, exlib::string& retVal);
+
+result_t commonDecode(exlib::string codec, exlib::string data, exlib::string& retVal);
 
 } /* namespace fibjs */

@@ -161,28 +161,12 @@ private:
     }
 
 public:
-    v8::Local<v8::Object> wrap(v8::Local<v8::Object> o = v8::Local<v8::Object>())
+    virtual v8::Local<v8::Object> wrap(v8::Local<v8::Object> o = v8::Local<v8::Object>());
+    static void* unwrap(v8::Local<v8::Value> o);
+
+    bool hasJSHandle() const
     {
-        Isolate* isolate = holder();
-        v8::Isolate* v8_isolate = isolate->m_isolate;
-
-        if (!(m_isJSObject & JSOBJECT_JSHANDLE)) {
-            if (o.IsEmpty())
-                o = Classinfo().CreateInstance(isolate);
-            handle_.Reset(v8_isolate, o);
-            v8::Local<v8::Private> buf_key = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("internal"));
-            o->SetPrivate(isolate->context(), buf_key, v8::External::New(isolate->m_isolate, this));
-
-            v8_isolate->AdjustAmountOfExternalAllocatedMemory(m_nExtMemory);
-
-            internalRef();
-            handle_.SetWeak(this, WeakCallback, v8::WeakCallbackType::kParameter);
-
-            m_isJSObject |= JSOBJECT_JSHANDLE;
-        } else
-            o = v8::Local<v8::Object>::New(v8_isolate, handle_);
-
-        return o;
+        return (m_isJSObject & JSOBJECT_JSHANDLE) != 0;
     }
 
     void safe_release()
@@ -191,6 +175,11 @@ public:
             syncCall(m_isolate, final_release, this);
         else
             final_release(this);
+    }
+
+    static void StoreDeleter(void* data, size_t length, void* deleter_data)
+    {
+        delete[] (uint8_t*)data;
     }
 
 public:
@@ -375,10 +364,7 @@ public:
         v8::Isolate* v8_isolate = isolate->m_isolate;
 
         if (m_isJSObject & JSOBJECT_JSHANDLE)
-        {
-            v8::Local<v8::Private> buf_key = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("internal"));
-            v8::Local<v8::Object>::New(v8_isolate, handle_)->DeletePrivate(isolate->context(), buf_key).IsJust();
-        }
+            v8::Local<v8::Object>::New(v8_isolate, handle_)->SetAlignedPointerInInternalField(0, 0);
 
         clear_handle();
 

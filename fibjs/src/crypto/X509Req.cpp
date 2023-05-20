@@ -125,11 +125,8 @@ result_t X509Req::import(Buffer_base* derReq)
 
     clear();
 
-    exlib::string csr;
-    derReq->toString(csr);
-
-    ret = mbedtls_x509_csr_parse(&m_csr, (const unsigned char*)csr.c_str(),
-        csr.length());
+    obj_ptr<Buffer> buf_csr = Buffer::Cast(derReq);
+    ret = mbedtls_x509_csr_parse(&m_csr, buf_csr->data(), buf_csr->length());
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
@@ -165,7 +162,7 @@ result_t X509Req::loadFile(exlib::string filename, obj_ptr<X509Req_base>& retVal
     if (qstrstr(data.c_str(), "BEGIN"))
         return retVal->import(data);
 
-    buf = new Buffer(data);
+    buf = new Buffer(data.c_str(), data.length());
     return retVal->import(buf);
 }
 

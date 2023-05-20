@@ -126,11 +126,10 @@ result_t ECKey_p256k1::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_p
     if (fmt != "raw")
         return CHECK_ERROR(Runtime::setError(exlib::string("unsupported format \'") + fmt + "\'."));
 
-    exlib::string strData;
-    data->toString(strData);
+    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
 
-    const unsigned char* hash = (const unsigned char*)strData.c_str();
-    size_t hlen = strData.length();
+    const unsigned char* hash = buf_data->data();
+    size_t hlen = buf_data->length();
     unsigned char buffer[KEYSIZE_256];
     unsigned char key[KEYSIZE_256];
     secp256k1_ecdsa_recoverable_signature signature;
@@ -144,10 +143,10 @@ result_t ECKey_p256k1::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_p
     mbedtls_ctr_drbg_random(&g_ssl.ctr_drbg, ndata, KEYSIZE_256);
     secp256k1_ecdsa_sign_recoverable(secp256k1_ctx, &signature, hash, key, NULL, ndata);
 
-    strData.resize(65);
-    fix_sigature(signature.data, (unsigned char*)strData.c_buffer());
+    obj_ptr<Buffer> buf_result = new Buffer(NULL, 65);
+    fix_sigature(signature.data, buf_result->data());
 
-    retVal = new Buffer(strData);
+    retVal = buf_result;
 
     return 0;
 }
@@ -157,23 +156,20 @@ result_t ECKey_base::recover(Buffer_base* data, Buffer_base* sig, obj_ptr<ECKey_
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    exlib::string strData;
-    data->toString(strData);
-
-    exlib::string strSig;
-    sig->toString(strSig);
-    if (strSig.length() != 65)
+    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
+    obj_ptr<Buffer> buf_sig = Buffer::Cast(sig);
+    if (buf_sig->length() != 65)
         return CALL_RETURN_NULL;
 
-    const unsigned char* hash = (const unsigned char*)strData.c_str();
-    size_t hlen = strData.length();
+    const unsigned char* hash = buf_data->data();
+    size_t hlen = buf_data->length();
     unsigned char buffer[KEYSIZE_256];
     secp256k1_ecdsa_recoverable_signature signature;
     secp256k1_pubkey pubkey;
 
     fix_hash(hash, hlen, buffer);
 
-    fix_sigature((const unsigned char*)strSig.c_str(), signature.data);
+    fix_sigature(buf_sig->data(), signature.data);
 
     int ret = secp256k1_ecdsa_recover(secp256k1_ctx, &pubkey, &signature, hash);
     if (ret == 0)

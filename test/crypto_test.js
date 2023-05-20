@@ -1386,7 +1386,7 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
 
                 sig = Buffer.from(d[2], "base64");
                 assert.isTrue(sk.verify(msg, sig));
-                msg.append('1');
+                msg = Buffer.concat([msg, new Buffer('1')]);
                 assert.isFalse(sk.verify(msg, sig));
             });
 

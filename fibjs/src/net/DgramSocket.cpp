@@ -137,7 +137,7 @@ void DgramSocket::on_recv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf, 
     if (addr) {
         Variant v[2];
 
-        obj_ptr<Buffer> _buf = new Buffer(pThis->m_buf);
+        obj_ptr<Buffer> _buf = new Buffer(pThis->m_buf.c_str(), pThis->m_buf.length());
         v[0] = _buf;
 
         inetAddr& _addr = *(inetAddr*)addr;
@@ -245,8 +245,8 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
             , m_retVal(retVal)
             , m_port(port)
         {
-            msg->toString(m_strData);
-            m_buf = uv_buf_init((char*)m_strData.c_str(), (int32_t)m_strData.length());
+            m_msg = Buffer::Cast(msg);
+            m_buf = uv_buf_init((char*)m_msg->data(), (int32_t)m_msg->length());
         }
 
         static void callback(uv_udp_send_t* req, int status)
@@ -266,7 +266,7 @@ result_t DgramSocket::send(Buffer_base* msg, int32_t port, exlib::string address
     public:
         AsyncEvent* m_ac;
         int32_t& m_retVal;
-        exlib::string m_strData;
+        obj_ptr<Buffer> m_msg;
         uv_buf_t m_buf;
         int32_t m_port;
     };

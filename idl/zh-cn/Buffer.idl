@@ -7,6 +7,9 @@
  */
 interface Buffer : object
 {
+    /*! @brief 二进制数据缓存对象，用于 io 读写的数据处理 */
+    static Buffer;
+
     /*! @brief 缓存对象构造函数
      @param datas 初始化数据数组
      */
@@ -14,23 +17,17 @@ interface Buffer : object
 
     /*! @brief 缓存对象构造函数
      @param datas 初始化数据数组
+     @param byteOffset 指定数据起始位置，起始为 0
+     @param length 指定数据长度，起始位 -1，表示剩余所有数据
      */
-    Buffer(ArrayBuffer datas);
+    Buffer(ArrayBuffer datas, Integer byteOffset = 0, Integer length = -1);
 
     /*! @brief 缓存对象构造函数
      @param datas 初始化数据数组
+     @param byteOffset 指定数据起始位置，起始为 0
+     @param length 指定数据长度，起始位 -1，表示剩余所有数据
      */
-    Buffer(TypedArray datas);
-
-    /*! @brief 缓存对象构造函数
-     @param datas 初始化数据数组
-     */
-    Buffer(ArrayBufferView datas);
-
-    /*! @brief 缓存对象构造函数
-     @param buffer 初始化Buffer对象
-     */
-    Buffer(Buffer buffer);
+    Buffer(Uint8Array datas, Integer byteOffset = 0, Integer length = -1);
 
     /*! @brief 缓存对象构造函数
      @param str 初始化字符串，字符串将以 utf-8 格式写入，缺省则创建一个空对象
@@ -38,19 +35,45 @@ interface Buffer : object
      */
     Buffer(String str, String codec = "utf8");
 
-    /*! @brief 缓存对象构造函数
-     @param size 初始化缓冲区大小
-     */
-    Buffer(Integer size = 0);
-
-    /*! @brief 二进制数据缓存对象，用于 io 读写的数据处理 */
-    static Buffer;
-
-    /*! @brief 检测给定的变量是否是 Buffer 对象
-     @param v 给定需要检测的变量
-     @return 传入对象是否 Buffer 对象
+    /*! @brief 分配一个指定长度的新缓存区。如果大小为0，将创建一个零长度的缓存区。
+     @param size 缓冲区的所需长度
+     @param fill 预先填充新缓冲区的值，可使用 string/buffer/integer 值类型。 默认值：0
+     @return 填充好的新 Buffer 对象
     */
-    static Boolean isBuffer(Value v);
+    static Buffer alloc(Integer size, Integer fill = 0);
+
+    /*! @brief 分配一个指定长度的新缓存区。如果大小为0，将创建一个零长度的缓存区。
+     @param size 缓冲区的所需长度
+     @param fill 预先填充新缓冲区的值，可使用 string/buffer/integer 值类型。 默认值：0
+     @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
+     @return 填充好的新 Buffer 对象
+    */
+    static Buffer alloc(Integer size, String fill = "", String codec = "utf8");
+
+    /*! @brief 分配一个指定长度的新缓存区。如果大小为0，将创建一个零长度的缓存区。
+     @param size 缓冲区的所需长度
+     @param fill 预先填充新缓冲区的值，可使用 string/buffer/integer 值类型。 默认值：0
+     @return 填充好的新 Buffer 对象
+    */
+    static Buffer alloc(Integer size, Buffer fill);
+
+    /*! @brief 分配一个指定长度的新缓存区。如果大小为0，将创建一个零长度的缓存区。
+     @param size 缓冲区的所需长度
+     @return 指定尺寸的新 Buffer 对象
+    */
+    static Buffer allocUnsafe(Integer size);
+
+    /*! @brief 分配一个指定长度的新缓存区。如果大小为0，将创建一个零长度的缓存区。
+     @param size 缓冲区的所需长度
+     @return 指定尺寸的新 Buffer 对象
+    */
+    static Buffer allocUnsafeSlow(Integer size);
+
+    /*! @brief 通过给定的数组创建 Buffer 对象
+     @param datas 初始化数据数组
+     @return 返回 Buffer 实例
+     */
+    static Buffer from(Array datas);
 
     /*! @brief 通过其他 Buffer 创建 Buffer 对象
      @param buffer 给定 Buffer 类型变量用于创建 Buffer 对象
@@ -60,13 +83,21 @@ interface Buffer : object
      */
     static Buffer from(Buffer buffer, Integer byteOffset = 0, Integer length = -1);
 
-    /*! @brief 通过字符串创建 Buffer 对象
-     @param str 初始化字符串，字符串将以 utf-8 格式写入
+    /*! @brief 通过其他 Buffer 创建 Buffer 对象
+     @param datas 初始化数据数组
      @param byteOffset 指定数据起始位置，起始为 0
      @param length 指定数据长度，起始位 -1，表示剩余所有数据
      @return 返回 Buffer 实例
      */
-    static Buffer from(String str, Integer byteOffset = 0, Integer length = -1);
+    static Buffer from(ArrayBuffer datas, Integer byteOffset = 0, Integer length = -1);
+
+    /*! @brief 通过其他 Buffer 创建 Buffer 对象
+     @param datas 初始化数据数组
+     @param byteOffset 指定数据起始位置，起始为 0
+     @param length 指定数据长度，起始位 -1，表示剩余所有数据
+     @return 返回 Buffer 实例
+     */
+    static Buffer from(Uint8Array datas, Integer byteOffset = 0, Integer length = -1);
 
     /*! @brief 通过字符串创建 Buffer 对象
      @param str 初始化字符串，字符串将以 utf-8 格式写入，缺省则创建一个空对象
@@ -82,41 +113,17 @@ interface Buffer : object
     */
     static Buffer concat(Array buflist, Integer cutLength = -1);
 
-    /*! @brief 分配一个指定长度的新缓存区。如果大小为0，将创建一个零长度的缓存区。
-     @param size 缓冲区的所需长度
-     @param fill 预先填充新缓冲区的值，可使用 string/buffer/integer 值类型。 默认值：0
-     @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
-     @return 填充好的新 Buffer 对象
+    /*! @brief 检测给定的变量是否是 Buffer 对象
+     @param v 给定需要检测的变量
+     @return 传入对象是否 Buffer 对象
     */
-    static Buffer alloc(Integer size, Integer fill = 0, String codec = "utf8");
+    static Boolean isBuffer(Value v);
 
-    /*! @brief 分配一个指定长度的新缓存区。如果大小为0，将创建一个零长度的缓存区。
-     @param size 缓冲区的所需长度
-     @param fill 预先填充新缓冲区的值，可使用 string/buffer/integer 值类型。 默认值：0
-     @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
-     @return 填充好的新 Buffer 对象
-    */
-    static Buffer alloc(Integer size, String fill = "", String codec = "utf8");
-
-    /*! @brief 分配一个指定长度的新缓存区。如果大小为0，将创建一个零长度的缓存区。
-     @param size 缓冲区的所需长度
-     @param fill 预先填充新缓冲区的值，可使用 string/buffer/integer 值类型。 默认值：0
-     @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
-     @return 填充好的新 Buffer 对象
-    */
-    static Buffer alloc(Integer size, Buffer fill, String codec = "utf8");
-
-    /*! @brief 分配一个指定长度的新缓存区。如果大小为0，将创建一个零长度的缓存区。
-     @param size 缓冲区的所需长度
-     @return 指定尺寸的新 Buffer 对象
-    */
-    static Buffer allocUnsafe(Integer size);
-
-    /*! @brief 分配一个指定长度的新缓存区。如果大小为0，将创建一个零长度的缓存区。
-     @param size 缓冲区的所需长度
-     @return 指定尺寸的新 Buffer 对象
-    */
-    static Buffer allocUnsafeSlow(Integer size);
+    /*! @brief 检测编码格式是否被支持
+     @param codec 待检测的编码格式
+     @return 是否支持
+     */
+    static Boolean isEncoding(String codec);
 
     /*! @brief 返回字符串的实际字节长度
      @param str 待取字节的字符串，如果str为 ArrayBuffer/TypedArray/DataView/Buffer 对象，则返回它们的实际长度
@@ -127,24 +134,21 @@ interface Buffer : object
 
     /*! @brief 返回字符串的实际字节长度
      @param str 待取字节的字符串，如果str为 ArrayBuffer/TypedArray/DataView/Buffer 对象，则返回它们的实际长度
-     @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
      @return 返回实际字节长度
      */
-    static Integer byteLength(ArrayBuffer str, String codec = "utf8");
+    static Integer byteLength(ArrayBuffer str);
 
     /*! @brief 返回字符串的实际字节长度
      @param str 待取字节的字符串，如果 str 为 ArrayBuffer/TypedArray/DataView/Buffer 对象，则返回它们的实际长度
-     @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
      @return 返回实际字节长度
      */
-    static Integer byteLength(ArrayBufferView str, String codec = "utf8");
+    static Integer byteLength(Uint8Array str);
 
     /*! @brief 返回字符串的实际字节长度
      @param str 待取字节的字符串，如果str为 ArrayBuffer/TypedArray/DataView/Buffer 对象，则返回它们的实际长度
-     @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
      @return 返回实际字节长度
      */
-    static Integer byteLength(Buffer str, String codec = "utf8");
+    static Integer byteLength(Buffer str);
 
     /*! @brief 比较 buf1 和 buf2, 往往用于 Buffer 实例之间的排序. 该方式等价于 buf1.compare(buf2).
     @param buf1 待比较的 buf
@@ -152,45 +156,6 @@ interface Buffer : object
     @return 返回比较字节长度
      */
     static Integer compare(Buffer buf1, Buffer buf2);
-
-    /*! @brief 检测编码格式是否被支持
-     @param codec 待检测的编码格式
-     @return 是否支持
-     */
-    static Boolean isEncoding(String codec);
-
-    /*! @brief 缓存对象可使用下标直接访问二进制数据*/
-    Integer operator[];
-
-    /*! @brief 查询当前对象元素的迭代器
-     @return 返回当前对象元素的迭代器
-    */
-    Iterator @iterator();
-
-    /*! @brief 获取缓存对象的尺寸 */
-    readonly Integer length;
-
-    /*! @brief 获取缓存对象的偏移值 */
-    readonly Integer byteOffset;
-
-    /*! @brief 以 ArrayBuffer 格式返回缓存数据 */
-    readonly ArrayBuffer buffer;
-
-    /*! @brief 修改缓存对象尺寸
-     @param sz 指定新尺寸
-     */
-    resize(Integer sz);
-
-    /*! @brief 在缓存对象尾部写入一组二进制数据
-     @param data 初始化二进制数据
-     */
-    append(Buffer data);
-
-    /*! @brief 在缓存对象尾部写入字符串，字符串将以 utf-8 格式写入
-     @param str 要写入的字符串
-     @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
-     */
-    append(String str, String codec = "utf8");
 
     /*! @brief 向缓存对象写入指定字符串，字符串默认为utf-8，越界时只写入部分数据
      @param str 待写入的字符串
@@ -236,36 +201,10 @@ interface Buffer : object
      @param v 需要填充的数据，如果未指定 offset 和 end，将填充满整个 buffer
      @param offset 填充起始位置
      @param end 填充终止位置
+     @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
      @return 返回当前 Buffer 对象
      */
-    Buffer fill(String v, Integer offset = 0, Integer end = -1);
-
-    /*! @brief 返回某个指定数据在 Buffer 中首次出现的位置
-     @param v 待查找数据，如果未指定 offset，默认从起始位开始
-     @param offset 起始查找位置
-     @return 返回查找到的位置，未找到返回 -1
-     */
-    Integer indexOf(Integer v, Integer offset = 0);
-
-    /*! @brief 返回某个指定数据在 Buffer 中首次出现的位置
-     @param v 待查找数据，如果未指定 offset，默认从起始位开始
-     @param offset 起始查找位置
-     @return 返回查找到的位置，未找到返回 -1
-     */
-    Integer indexOf(Buffer v, Integer offset = 0);
-
-    /*! @brief 返回某个指定数据在 Buffer 中首次出现的位置
-     @param v 待查找数据，如果未指定 offset，默认从起始位开始
-     @param offset 起始查找位置
-     @return 返回查找到的位置，未找到返回 -1
-     */
-    Integer indexOf(String v, Integer offset = 0);
-
-    /*! @brief 比较缓存区的内容
-     @param buf 待比较缓存对象
-     @return 内容比较结果
-     */
-    Integer compare(Buffer buf);
+    Buffer fill(String v, Integer offset = 0, Integer end = -1, String codec = "utf8");
 
     /*! @brief 从源缓存对象区域拷贝数据到目标缓存对象区域
      @param targetBuffer 目标缓存对象
@@ -383,20 +322,6 @@ interface Buffer : object
      */
     Number readIntBE(Integer offset = 0, Integer byteLength = 6);
 
-    /*! @brief 向缓存对象写入一个 64 位整型数值，以低字节序的存储方式
-     @param value 指定写入的数值
-     @param offset 指定写入的起始位置
-     @return offset 加上写入的字节数
-     */
-    Integer writeInt64LE(Long value, Integer offset = 0);
-
-    /*! @brief 向缓存对象写入一个 64 位整型数值，以高字节序的存储方式
-     @param value 指定写入的数值
-     @param offset 指定写入的起始位置
-     @return offset 加上写入的字节数
-     */
-    Integer writeInt64BE(Long value, Integer offset = 0);
-
     /*! @brief 从缓存对象读取一个浮点数，以低字节序的存储方式
      @param offset 指定读取的起始位置，缺省为 0
      @return 返回读取的浮点数
@@ -507,6 +432,20 @@ interface Buffer : object
      */
     Integer writeInt32BE(Integer value, Integer offset = 0);
 
+    /*! @brief 向缓存对象写入一个 64 位整型数值，以低字节序的存储方式
+     @param value 指定写入的数值
+     @param offset 指定写入的起始位置
+     @return offset 加上写入的字节数
+     */
+    Integer writeInt64LE(Long value, Integer offset = 0);
+
+    /*! @brief 向缓存对象写入一个 64 位整型数值，以高字节序的存储方式
+     @param value 指定写入的数值
+     @param offset 指定写入的起始位置
+     @return offset 加上写入的字节数
+     */
+    Integer writeInt64BE(Long value, Integer offset = 0);
+
     /*! @brief 向缓存对象写入一个整型数值，最大支持 48 位，以低字节序的存储方式
      @param value 指定写入的数值
      @param offset 指定写入的起始位置
@@ -551,6 +490,27 @@ interface Buffer : object
      */
     Integer writeDoubleBE(Number value, Integer offset);
 
+    /*! @brief 返回某个指定数据在 Buffer 中首次出现的位置
+     @param v 待查找数据，如果未指定 offset，默认从起始位开始
+     @param offset 起始查找位置
+     @return 返回查找到的位置，未找到返回 -1
+     */
+    Integer indexOf(Integer v, Integer offset = 0);
+
+    /*! @brief 返回某个指定数据在 Buffer 中首次出现的位置
+     @param v 待查找数据，如果未指定 offset，默认从起始位开始
+     @param offset 起始查找位置
+     @return 返回查找到的位置，未找到返回 -1
+     */
+    Integer indexOf(Buffer v, Integer offset = 0);
+
+    /*! @brief 返回某个指定数据在 Buffer 中首次出现的位置
+     @param v 待查找数据，如果未指定 offset，默认从起始位开始
+     @param offset 起始查找位置
+     @return 返回查找到的位置，未找到返回 -1
+     */
+    Integer indexOf(String v, Integer offset = 0);
+
     /*! @brief 返回一个新缓存对象，包含指定起始到缓存结尾的数据
      @param start 指定范围的起始，缺省从头开始
      @return 返回新的缓存对象
@@ -564,82 +524,17 @@ interface Buffer : object
      */
     Buffer slice(Integer start, Integer end);
 
-    /*! @brief 把当前对象中的所有元素放入一个字符串
-     @param separator 分割字符，缺省为 ","
-     @return 返回生成的字符串
-     */
-    String join(String separator = ",");
-
-    /*! @brief 返回一个新缓存对象，包含当前对象数据的倒序
-     @return 返回新的缓存对象
-     */
-    Buffer reverse();
-
     /*! @brief 比较当前对象与给定的对象是否相等
      @param expected 制定比较的目标对象
      @return 返回对象比较的结果
     */
     Boolean equals(object expected);
 
-    /*! @brief 使用 16 进制编码缓存对象内容
-     @return 返回编码字符串
+    /*! @brief 比较缓存区的内容
+     @param buf 待比较缓存对象
+     @return 内容比较结果
      */
-    String hex();
-
-    /*! @brief 使用 base32 编码缓存对象内容
-     @return 返回编码字符串
-     */
-    String base32();
-
-    /*! @brief 使用 base58 编码缓存对象内容
-     @return 返回编码字符串
-     */
-    String base58();
-
-    /*! @brief 使用 base64 编码缓存对象内容
-     @return 返回编码字符串
-     */
-    String base64();
-
-    /*! @brief 返回全部二进制数据的数组
-     @return 返回包含对象数据索引的迭代器
-    */
-    Iterator keys();
-
-    /*! @brief 返回全部二进制数据的数组
-     @return 返回包含对象数据值的迭代器
-    */
-    Iterator values();
-
-    /*! @brief 返回包含对象数据 [index, byte] 对的迭代器
-     @return [index, byte] 对的迭代器
-    ```JavaScript
-        const buf = Buffer.from('buffer');
-
-        // Prints:
-        //   [0, 98]
-        //   [1, 117]
-        //   [2, 102]
-        //   [3, 102]
-        //   [4, 101]
-        //   [5, 114]
-        for (const pair of buf.entries()) {
-            console.log(pair);
-        }
-    ```
-    */
-    Iterator entries();
-
-    /*! @brief 对对象的每个元素执行一次给定的函数
-     @param callback 为数组中每个元素执行的函数，该函数接收一至三个参数：currentValue，index，array
-     @param thisArg 当执行回调函数 callback 时，用作 this 的值
-    */
-    forEach(Function callback, Value thisArg = undefined);
-
-    /*! @brief 返回全部二进制数据的数组
-     @return 返回包含对象数据的数组
-    */
-    Array toArray();
+    Integer compare(Buffer buf);
 
     /*! @brief 返回二进制数据的编码字符串
      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
@@ -660,4 +555,29 @@ interface Buffer : object
      @return 返回对象的字符串表示
     */
     String toString();
+
+    /*! @brief 返回全部二进制数据的数组
+     @return 返回包含对象数据的数组
+    */
+    Array toArray();
+
+    /*! @brief 使用 16 进制编码缓存对象内容
+     @return 返回编码字符串
+     */
+    String hex();
+
+    /*! @brief 使用 base32 编码缓存对象内容
+     @return 返回编码字符串
+     */
+    String base32();
+
+    /*! @brief 使用 base58 编码缓存对象内容
+     @return 返回编码字符串
+     */
+    String base58();
+
+    /*! @brief 使用 base64 编码缓存对象内容
+     @return 返回编码字符串
+     */
+    String base64();
 };

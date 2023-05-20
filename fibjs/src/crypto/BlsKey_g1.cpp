@@ -113,11 +113,10 @@ result_t BlsKey_g1::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<
     mbedtls_mpi_write_binary(&ecp->d, k, 32);
     blst_scalar_from_bendian(&sk, k);
 
-    exlib::string buf;
-    data->toString(buf);
+    obj_ptr<Buffer> buf = Buffer::Cast(data);
 
     blst_p2 point;
-    blst_hash_to_g2(&point, (unsigned char*)buf.c_str(), buf.length(),
+    blst_hash_to_g2(&point, buf->data(), buf->length(),
         DST_G1_POP, sizeof(DST_G1_POP) - 1, NULL, 0);
     blst_sign_pk_in_g1(&point, &point, &sk);
     blst_p2_compress(k, &point);
@@ -136,20 +135,17 @@ result_t BlsKey_g1::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::O
     unsigned char k[96];
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
 
-    exlib::string buf;
-    data->toString(buf);
-
-    exlib::string sig;
-    sign->toString(sig);
+    obj_ptr<Buffer> buf = Buffer::Cast(data);
+    obj_ptr<Buffer> sig = Buffer::Cast(sign);
 
     blst_p1_affine pk;
     mbedtls_mpi_write_binary(&ecp->Q.X, k, 48);
     blst_p1_uncompress(&pk, k);
 
     blst_p2_affine point;
-    blst_p2_uncompress(&point, (const unsigned char*)sig.c_str());
+    blst_p2_uncompress(&point, sig->data());
 
-    retVal = !blst_core_verify_pk_in_g1(&pk, &point, 1, (unsigned char*)buf.c_str(), buf.length(),
+    retVal = !blst_core_verify_pk_in_g1(&pk, &point, 1, buf->data(), buf->length(),
         DST_G1_POP, sizeof(DST_G1_POP) - 1, NULL, 0);
 
     return 0;

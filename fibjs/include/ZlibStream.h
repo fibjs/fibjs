@@ -26,9 +26,9 @@ private:
             , m_stm(stm)
             , m_flush(Z_NO_FLUSH)
         {
-            data->toString(m_strBuf);
-            pThis->strm.avail_in = (int32_t)m_strBuf.length();
-            pThis->strm.next_in = (unsigned char*)m_strBuf.c_str();
+            m_data = Buffer::Cast(data);
+            pThis->strm.avail_in = (int32_t)m_data->length();
+            pThis->strm.next_in = (unsigned char*)m_data->data();
 
             next(process);
         }
@@ -75,6 +75,7 @@ private:
         obj_ptr<ZlibStream> m_pThis;
         obj_ptr<Stream_base> m_stm;
         obj_ptr<Buffer_base> m_buffer;
+        obj_ptr<Buffer> m_data;
         exlib::string m_strBuf;
         int32_t m_flush;
     };

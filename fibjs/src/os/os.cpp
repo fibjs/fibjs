@@ -321,9 +321,9 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
     uv_os_free_passwd(&pwd);
 
     if (encoding == "buffer") {
-        obj_ptr<Buffer_base> usernameBuffer = new Buffer(username);
-        obj_ptr<Buffer_base> homedirBuffer = new Buffer(homedir);
-        obj_ptr<Buffer_base> shellBuffer = new Buffer(shell);
+        obj_ptr<Buffer_base> usernameBuffer = new Buffer(username.c_str(), username.length());
+        obj_ptr<Buffer_base> homedirBuffer = new Buffer(homedir.c_str(), homedir.length());
+        obj_ptr<Buffer_base> shellBuffer = new Buffer(shell.c_str(), shell.length());
 
         retVal->Set(context, isolate->NewString("username"), usernameBuffer->wrap()).IsJust();
         retVal->Set(context, isolate->NewString("homedir"), homedirBuffer->wrap()).IsJust();

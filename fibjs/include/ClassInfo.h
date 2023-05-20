@@ -133,6 +133,7 @@ public:
             o = _cache->m_function.Get(isolate->m_isolate)
                     ->NewInstance(isolate->context())
                     .FromMaybe(v8::Local<v8::Object>());
+            o->SetAlignedPointerInInternalField(0, 0);
             _cache->m_cache.Reset(isolate->m_isolate, o);
 
             o = o->Clone();
@@ -374,6 +375,8 @@ private:
             }
 
             v8::Local<v8::ObjectTemplate> ot = _class->InstanceTemplate();
+            ot->SetInternalFieldCount(1);
+
             ClassData* pcd;
 
             pcd = &m_cd;
@@ -400,6 +403,7 @@ private:
 
             if (m_cd.cor) {
                 v8::Local<v8::Object> o = _function->NewInstance(isolate->context()).FromMaybe(v8::Local<v8::Object>());
+                o->SetAlignedPointerInInternalField(0, 0);
                 _cache->m_cache.Reset(isolate->m_isolate, o);
             }
 

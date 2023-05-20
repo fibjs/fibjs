@@ -91,11 +91,8 @@ result_t X509Cert::import(Buffer_base* derCert)
 
     int32_t ret;
 
-    exlib::string crt;
-    derCert->toString(crt);
-
-    ret = mbedtls_x509_crt_parse_der(&m_crt, (const unsigned char*)crt.c_str(),
-        crt.length());
+    obj_ptr<Buffer> buf_crt = Buffer::Cast(derCert);
+    ret = mbedtls_x509_crt_parse_der(&m_crt, buf_crt->data(), buf_crt->length());
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
@@ -149,7 +146,7 @@ result_t X509Cert::loadFile(exlib::string filename, obj_ptr<X509Cert_base>& retV
     if (qstrstr(data.c_str(), "BEGIN"))
         return retVal->import(data);
 
-    buf = new Buffer(data);
+    buf = new Buffer(data.c_str(), data.length());
     return retVal->import(buf);
 }
 

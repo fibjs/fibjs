@@ -77,7 +77,7 @@ result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     if (strBuf.length() == 0)
         return CALL_RETURN_NULL;
 
-    retVal = new Buffer(strBuf);
+    retVal = new Buffer(strBuf.c_str(), strBuf.length());
 
     return 0;
 }
@@ -130,7 +130,7 @@ result_t File::readAll(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     if (strBuf.length() == 0)
         return CALL_RETURN_NULL;
 
-    retVal = new Buffer(strBuf);
+    retVal = new Buffer(strBuf.c_str(), strBuf.length());
 
     return 0;
 }
@@ -160,10 +160,7 @@ result_t File::write(Buffer_base* data, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    exlib::string strBuf;
-    data->toString(strBuf);
-
-    return Write(strBuf);
+    return Write(data);
 }
 
 result_t File::copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal,

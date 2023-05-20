@@ -101,16 +101,12 @@ function generalTypeMap(dataType, {
             info.type = dom.type.array('any')
             break;
         }
-        case 'TypedArray': {
-            info.type = dom.create.namedTypeReference('FIBJS.TypedArray');
+        case 'Uint8Array': {
+            info.type = dom.create.namedTypeReference('Uint8Array');
             break;
         }
         case 'ArrayBuffer': {
             info.type = dom.create.namedTypeReference('ArrayBuffer');
-            break;
-        }
-        case 'ArrayBufferView': {
-            info.type = dom.create.namedTypeReference('ArrayBufferView');
             break;
         }
         case 'Value':

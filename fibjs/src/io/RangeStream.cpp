@@ -8,6 +8,7 @@
 
 #include "object.h"
 #include "RangeStream.h"
+#include "Buffer.h"
 
 namespace fibjs {
 
@@ -132,9 +133,7 @@ result_t RangeStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEve
         ON_STATE(asyncRead, ready)
         {
             if (n >= 0 && n != CALL_RETURN_NULL) {
-                int32_t len;
-
-                m_retVal->get_length(len);
+                int32_t len = Buffer::Cast(m_retVal)->length();
                 m_pThis->real_pos += len;
             }
 

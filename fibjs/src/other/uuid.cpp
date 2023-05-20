@@ -27,12 +27,8 @@ inline result_t toBuffer(uuid_st* _uid, obj_ptr<Buffer_base>& retVal)
     uuid_export(_uid, UUID_FMT_BIN, &gen, &len);
     uuid_destroy(_uid);
     if (gen) {
-        exlib::string s;
-
-        s.append((const char*)gen, len);
+        retVal = new Buffer(gen, len);
         free(gen);
-
-        retVal = new Buffer(s);
 
         return 0;
     }
@@ -95,13 +91,13 @@ inline int64_t generateStamp()
 result_t uuid_base::snowflake(obj_ptr<Buffer_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
-    int64_t tm = generateStamp();
+    uint64_t tm = generateStamp();
 
     if (isolate->m_flake_tm != tm) {
         isolate->m_flake_tm = tm;
         isolate->m_flake_count = 0;
     } else if (isolate->m_flake_count == 0xfff) {
-        int64_t tm1 = tm;
+        uint64_t tm1 = tm;
 
         while (tm1 == tm) {
             coroutine_base::ac_sleep(0);
@@ -118,10 +114,17 @@ result_t uuid_base::snowflake(obj_ptr<Buffer_base>& retVal)
     tm |= isolate->m_flake_host << 12;
     tm |= isolate->m_flake_count++;
 
-    obj_ptr<Buffer> data = new Buffer();
-    data->resize(8);
-    int32_t sz;
-    data->writeInt64BE(tm, 0, sz);
+    uint8_t buf[8];
+    buf[0] = (uint8_t)(tm >> 56);
+    buf[1] = (uint8_t)(tm >> 48);
+    buf[2] = (uint8_t)(tm >> 40);
+    buf[3] = (uint8_t)(tm >> 32);
+    buf[4] = (uint8_t)(tm >> 24);
+    buf[5] = (uint8_t)(tm >> 16);
+    buf[6] = (uint8_t)(tm >> 8);
+    buf[7] = (uint8_t)tm;
+
+    obj_ptr<Buffer> data = new Buffer(buf, sizeof(buf));
 
     retVal = data;
 

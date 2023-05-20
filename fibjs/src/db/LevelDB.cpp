@@ -117,7 +117,7 @@ result_t LevelDB::get(Buffer_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent
     else if (!s.ok())
         return CHECK_ERROR(error(s));
 
-    retVal = new Buffer(value);
+    retVal = new Buffer(value.c_str(), value.length());
 
     return 0;
 }
@@ -143,7 +143,7 @@ result_t LevelDB::_mget(std::vector<exlib::string>* keys,
         else if (!s.ok())
             return CHECK_ERROR(error(s));
         else {
-            obj_ptr<Buffer_base> buf = new Buffer(value);
+            obj_ptr<Buffer_base> buf = new Buffer(value.c_str(), value.length());
             list->append(buf);
         }
     }
@@ -340,8 +340,9 @@ result_t LevelDB::Iter::_iter(AsyncEvent* ac)
             break;
         }
 
-        m_kvs[m_count * 2] = new Buffer(key.ToString());
-        m_kvs[m_count * 2 + 1] = new Buffer(m_it->value().ToString());
+        m_kvs[m_count * 2] = new Buffer(key.data(), key.size());
+        leveldb::Slice value = m_it->value();
+        m_kvs[m_count * 2 + 1] = new Buffer(value.data(), value.size());
 
         m_count++;
 

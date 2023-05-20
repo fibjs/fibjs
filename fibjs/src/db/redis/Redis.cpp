@@ -92,7 +92,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
 
         ON_STATE(asyncCommand, send)
         {
-            m_buffer = new Buffer(m_req);
+            m_buffer = new Buffer(m_req.c_str(), m_req.length());
             return m_stmBuffered->write(m_buffer, next(read));
         }
 
@@ -194,7 +194,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
             char ch = m_strLine[0];
 
             if (ch == '+') {
-                m_val = new Buffer(m_strLine.substr(1));
+                m_val = new Buffer(m_strLine.c_str() + 1, m_strLine.length() - 1);
                 return setResult();
             }
 
@@ -244,11 +244,12 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
             if (n == CALL_RETURN_NULL)
                 return setResult(CALL_RETURN_NULL);
 
-            int32_t sz;
-            m_buffer->get_length(sz);
-            m_buffer->resize(sz - 2);
-            m_val = m_buffer;
+            int32_t sz = Buffer::Cast(m_buffer)->length();
+            obj_ptr<Buffer_base> buf;
+            m_buffer->slice(0, sz - 2, buf);
             m_buffer.Release();
+
+            m_val = buf;
 
             return setResult();
         }

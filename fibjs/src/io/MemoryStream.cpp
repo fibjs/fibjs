@@ -55,7 +55,7 @@ result_t MemoryStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     if (strBuf.length() == 0)
         return CALL_RETURN_NULL;
 
-    retVal = new Buffer(strBuf);
+    retVal = new Buffer(strBuf.c_str(), strBuf.length());
 
     return 0;
 }
@@ -90,13 +90,11 @@ result_t MemoryStream::flush(AsyncEvent* ac)
 
 result_t MemoryStream::write(Buffer_base* data, AsyncEvent* ac)
 {
-    exlib::string strBuf;
+    obj_ptr<Buffer> buf = Buffer::Cast(data);
     int64_t sz1, sz2;
 
-    data->toString(strBuf);
-
     size(sz1);
-    m_buffer.write(strBuf.c_str(), (int32_t)strBuf.length());
+    m_buffer.write((const char*)buf->data(), buf->length());
     m_buffer.seekg(m_buffer.tellp(), std::ios::beg);
     size(sz2);
 

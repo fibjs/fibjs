@@ -381,15 +381,14 @@ result_t ECKey::sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>& re
     }
 
     int32_t ret;
-    exlib::string str;
     exlib::string output;
     size_t olen = MBEDTLS_ECDSA_MAX_LEN;
 
-    data->toString(str);
+    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
     output.resize(MBEDTLS_ECDSA_MAX_LEN);
 
     ret = ecsdsa_sign(mbedtls_pk_ec(m_key), m_alg == "ECSDSA", key ? mbedtls_pk_ec(PKey::key(key)) : NULL,
-        (const unsigned char*)str.c_str(), str.length(), (unsigned char*)output.c_buffer(), &olen,
+        buf_data->data(), buf_data->length(), (unsigned char*)output.c_buffer(), &olen,
         mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
@@ -402,7 +401,7 @@ result_t ECKey::sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>& re
             return hr;
     }
 
-    retVal = new Buffer(output);
+    retVal = new Buffer(output.c_str(), output.length());
 
     return 0;
 }
@@ -433,12 +432,11 @@ result_t ECKey::verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, boo
     }
 
     int32_t ret;
-    exlib::string str;
+
+    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
+
     exlib::string strsign;
-
-    data->toString(str);
     sign->toString(strsign);
-
     if (ac->m_ctx[1].string() == "raw") {
         result_t hr = bin2der(strsign, strsign);
         if (hr < 0)
@@ -446,7 +444,7 @@ result_t ECKey::verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, boo
     }
 
     ret = ecsdsa_verify(mbedtls_pk_ec(m_key), m_alg == "ECSDSA", key ? mbedtls_pk_ec(PKey::key(key)) : NULL,
-        (const unsigned char*)str.c_str(), str.length(), (const unsigned char*)strsign.c_str(), strsign.length(),
+        buf_data->data(), buf_data->length(), (const unsigned char*)strsign.c_str(), strsign.length(),
         mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret == MBEDTLS_ERR_ECP_VERIFY_FAILED || ret == MBEDTLS_ERR_SM2_BAD_SIGNATURE) {
         retVal = false;
@@ -635,16 +633,14 @@ result_t ECKey::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buff
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     int32_t ret;
-    exlib::string str;
     exlib::string output;
     size_t olen = MBEDTLS_ECDSA_MAX_SIG_LEN(mbedtls_pk_get_bitlen(&m_key));
 
-    data->toString(str);
+    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
     output.resize(olen);
 
     // alg=0~9  see https://tls.mbed.org/api/md_8h.html  enum mbedtls_md_type_t
-    ret = mbedtls_pk_sign(&m_key, MBEDTLS_MD_NONE,
-        (const unsigned char*)str.c_str(), str.length(),
+    ret = mbedtls_pk_sign(&m_key, MBEDTLS_MD_NONE, buf_data->data(), buf_data->length(),
         (unsigned char*)output.c_buffer(), olen, &olen,
         mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
@@ -658,7 +654,7 @@ result_t ECKey::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buff
             return hr;
     }
 
-    retVal = new Buffer(output);
+    retVal = new Buffer(output.c_str(), output.length());
 
     return 0;
 }
@@ -677,10 +673,9 @@ result_t ECKey::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Objec
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     int32_t ret;
-    exlib::string str;
     exlib::string strsign;
 
-    data->toString(str);
+    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
     sign->toString(strsign);
 
     if (ac->m_ctx[1].string() == "raw") {
@@ -689,8 +684,7 @@ result_t ECKey::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Objec
             return hr;
     }
 
-    ret = mbedtls_pk_verify(&m_key, MBEDTLS_MD_NONE,
-        (const unsigned char*)str.c_str(), str.length(),
+    ret = mbedtls_pk_verify(&m_key, MBEDTLS_MD_NONE, buf_data->data(), buf_data->length(),
         (const unsigned char*)strsign.c_str(), strsign.length());
     if (ret == MBEDTLS_ERR_ECP_VERIFY_FAILED) {
         retVal = false;
@@ -744,14 +738,13 @@ result_t ECKey::computeSecret(ECKey_base* publicKey, obj_ptr<Buffer_base>& retVa
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
-    exlib::string data;
     int32_t sz = (int32_t)mbedtls_mpi_size(&z);
 
-    data.resize(sz);
-    mbedtls_mpi_write_binary(&z, (unsigned char*)data.c_buffer(), sz);
+    obj_ptr<Buffer> data = new Buffer(NULL, sz);
+    mbedtls_mpi_write_binary(&z, data->data(), sz);
     mbedtls_mpi_free(&z);
 
-    retVal = new Buffer(data);
+    retVal = data;
 
     return 0;
 }

@@ -170,7 +170,7 @@ public:
                     if (m_pos < m_buf.length())
                         m_buf.resize(m_pos);
 
-                    m_retVal = new Buffer(m_buf);
+                    m_retVal = new Buffer(m_buf.c_str(), m_buf.length());
                     m_ac->apost(0);
                 } else
                     m_ac->apost(CALL_RETURN_NULL);
@@ -197,9 +197,9 @@ public:
             , m_this(pThis)
             , m_ac(ac)
         {
-            data->toString(m_strBuf);
-            m_buf.base = (char*)m_strBuf.c_str();
-            m_buf.len = (uint32_t)m_strBuf.length();
+            m_data = Buffer::Cast(data);
+            m_buf.base = (char*)m_data->data();
+            m_buf.len = (uint32_t)m_data->length();
         }
 
     public:
@@ -249,7 +249,7 @@ public:
     private:
         obj_ptr<UVStream_tmpl> m_this;
         AsyncEvent* m_ac;
-        exlib::string m_strBuf;
+        obj_ptr<Buffer> m_data;
         uv_buf_t m_buf;
         uv_write_t m_req;
     };

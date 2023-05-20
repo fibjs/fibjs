@@ -174,7 +174,7 @@ result_t fs_base::writeTextFile(exlib::string fname, exlib::string txt,
     if (hr < 0)
         return hr;
 
-    obj_ptr<Buffer_base> buf = new Buffer(txt);
+    obj_ptr<Buffer_base> buf = new Buffer(txt.c_str(), txt.length());
 
     hr = f->cc_write(buf);
     f->cc_close();
@@ -226,8 +226,7 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    int32_t bufLength;
-    buffer->get_length(bufLength);
+    int32_t bufLength = Buffer::Cast(buffer)->length();
 
     if (offset < 0 || offset >= bufLength)
         return Runtime::setError("fs: Offset is out of bounds");
@@ -278,8 +277,7 @@ result_t fs_base::write(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    int32_t bufLength;
-    buffer->get_length(bufLength);
+    int32_t bufLength = Buffer::Cast(buffer)->length();
 
     if (offset < 0 || offset >= bufLength)
         return Runtime::setError("fs: Offset is out of bounds");
@@ -296,11 +294,9 @@ result_t fs_base::write(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t
     }
 
     if (length > 0) {
-        exlib::string strBuf;
-
-        buffer->toString(strBuf);
+        obj_ptr<Buffer> buf = Buffer::Cast(buffer);
         int32_t sz = length;
-        const char* p = strBuf.c_str() + offset;
+        const uint8_t* p = buf->data() + offset;
 
         while (sz) {
             int32_t n = (int32_t)::_write(fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
@@ -326,8 +322,8 @@ result_t fs_base::write(int32_t fd, exlib::string string, int32_t position,
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<Buffer_base> buf = new Buffer();
-    result_t hr = buf->append(string, encoding);
+    obj_ptr<Buffer_base> buf;
+    result_t hr = Buffer_base::from(string, encoding, buf);
     if (hr < 0)
         return CHECK_ERROR(hr);
 

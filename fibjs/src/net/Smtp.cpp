@@ -91,7 +91,7 @@ public:
         s.append(arg);
         s.append("\r\n", 2);
 
-        m_buf = new Buffer(s);
+        m_buf = new Buffer(s.c_str(), s.length());
 
         next(command);
     }
@@ -105,7 +105,7 @@ public:
         s.append(arg);
         s.append("\r\n", 2);
 
-        m_buf = new Buffer(s);
+        m_buf = new Buffer(s.c_str(), s.length());
 
         next(command);
     }
@@ -265,7 +265,7 @@ result_t Smtp::hello(exlib::string hostname, AsyncEvent* ac)
             s.append(m_hostname);
             s.append("\r\n", 2);
 
-            m_buf = new Buffer(s);
+            m_buf = new Buffer(s.c_str(), s.length());
             return m_stmBuffered->write(m_buf, next(ok));
         }
 
@@ -360,19 +360,19 @@ result_t Smtp::login(exlib::string username, exlib::string password,
         {
             exlib::string s("AUTH LOGIN\r\n", 12);
 
-            obj_ptr<Buffer> buf = new Buffer(s);
+            obj_ptr<Buffer> buf = new Buffer(s.c_str(), s.length());
             return m_stmBuffered->write(buf, next(ok));
         }
 
         int32_t send_base64(exlib::string str)
         {
-            obj_ptr<Buffer> buf = new Buffer(str);
+            obj_ptr<Buffer> buf = new Buffer(str.c_str(), str.length());
             exlib::string s;
 
             base64_base::encode(buf, false, s);
             s.append("\r\n", 2);
 
-            buf = new Buffer(s);
+            buf = new Buffer(s.c_str(), s.length());
             return m_stmBuffered->write(buf, next(ok));
         }
 
@@ -454,7 +454,7 @@ result_t Smtp::data(exlib::string txt, AsyncEvent* ac)
         {
             exlib::string s("DATA\r\n", 6);
 
-            obj_ptr<Buffer> buf = new Buffer(s);
+            obj_ptr<Buffer> buf = new Buffer(s.c_str(), s.length());
             return m_stmBuffered->write(buf, next(ok));
         }
 
@@ -464,7 +464,7 @@ result_t Smtp::data(exlib::string txt, AsyncEvent* ac)
 
             s.append("\r\n.\r\n", 5);
 
-            obj_ptr<Buffer> buf = new Buffer(s);
+            obj_ptr<Buffer> buf = new Buffer(s.c_str(), s.length());
             return m_stmBuffered->write(buf, next(ok));
         }
 

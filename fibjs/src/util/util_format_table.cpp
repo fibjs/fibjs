@@ -12,6 +12,7 @@
 #include "QuickArray.h"
 #include "StringBuffer.h"
 #include "TextColor.h"
+#include "Buffer.h"
 #include <map>
 
 namespace fibjs {
@@ -128,9 +129,8 @@ inline void GetPropertyNames(v8::Local<v8::Object> o, QuickArray<exlib::string>&
 
     obj_ptr<Buffer_base> buf = Buffer_base::getInstance(o);
     if (buf) {
-        int32_t len;
+        int32_t len = Buffer::Cast(buf)->length();
 
-        buf->get_length(len);
         for (int32_t i = 0; i < len; i++) {
             char buf[32];
             int32_t n = snprintf(buf, sizeof(buf), "%d", i);

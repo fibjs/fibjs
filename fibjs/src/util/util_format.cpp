@@ -11,6 +11,7 @@
 #include "QuickArray.h"
 #include "StringBuffer.h"
 #include "TextColor.h"
+#include "Buffer.h"
 #include <map>
 
 namespace fibjs {
@@ -142,12 +143,12 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
                 obj_ptr<Buffer_base> buf = Buffer_base::getInstance(v);
                 if (buf) {
                     static char hexs[] = "0123456789abcdef";
-                    exlib::string data;
                     exlib::string s;
-                    int32_t len, i, p;
+                    int32_t i, p;
 
-                    buf->toString(data);
-                    len = (int32_t)data.length();
+                    obj_ptr<Buffer> buff = Buffer::Cast(buf);
+                    const uint8_t* data = buff->data();
+                    int32_t len = buff->length();
 
                     if (len <= MAX_BUFFER_ITEM)
                         s.resize(len * 3 + 8);
@@ -170,7 +171,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
                             break;
                         }
 
-                        int32_t ch = (unsigned char)data[i];
+                        int32_t ch = data[i];
 
                         _s[p++] = ' ';
                         _s[p++] = hexs[ch >> 4];

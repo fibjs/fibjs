@@ -224,14 +224,13 @@ result_t Ed25519Key::from(Buffer_base* DerKey, obj_ptr<PKey_base>& retVal)
     mbedtls_pk_init(&ctx);
 
     do {
-        exlib::string key;
-        DerKey->toString(key);
+        obj_ptr<Buffer> buf_key = Buffer::Cast(DerKey);
 
-        ret = parse_key(ctx, (unsigned char*)key.c_str(), key.length());
+        ret = parse_key(ctx, buf_key->data(), buf_key->length());
         if (ret != MBEDTLS_ERR_PK_KEY_INVALID_FORMAT)
             break;
 
-        ret = parse_pub_key(ctx, (unsigned char*)key.c_str(), key.length());
+        ret = parse_pub_key(ctx, buf_key->data(), buf_key->length());
     } while (false);
 
     if (ret != 0) {
@@ -319,7 +318,7 @@ result_t Ed25519Key::der(obj_ptr<Buffer_base>& retVal)
     else
         write_pub_key(m_key, buf);
 
-    retVal = new Buffer(buf);
+    retVal = new Buffer(buf.c_str(), buf.length());
     return 0;
 }
 
@@ -373,16 +372,15 @@ result_t Ed25519Key::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     unsigned char sk[ed25519_private_key_size];
-    exlib::string buf;
     exlib::string sig;
 
     mbedtls_mpi_write_binary(&ecp->d, sk, ed25519_public_key_size);
     mbedtls_mpi_write_binary(&ecp->Q.X, sk + ed25519_public_key_size, ed25519_public_key_size);
 
-    data->toString(buf);
+    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
 
     sig.resize(ed25519_signature_size);
-    ed25519_SignMessage((unsigned char*)sig.c_buffer(), sk, NULL, (const unsigned char*)buf.c_str(), buf.length());
+    ed25519_SignMessage((unsigned char*)sig.c_buffer(), sk, NULL, buf_data->data(), buf_data->length());
 
     if (ac->m_ctx[0].string() == "der") {
         hr = bin2der(sig, sig);
@@ -390,7 +388,7 @@ result_t Ed25519Key::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr
             return hr;
     }
 
-    retVal = new Buffer(sig);
+    retVal = new Buffer(sig.c_str(), sig.length());
 
     return 0;
 }
@@ -407,7 +405,6 @@ result_t Ed25519Key::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     unsigned char pk[ed25519_public_key_size];
-    exlib::string buf;
     exlib::string sig;
 
     sign->toString(sig);
@@ -419,10 +416,10 @@ result_t Ed25519Key::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::
         }
     }
 
-    data->toString(buf);
+    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
     mbedtls_mpi_write_binary(&ecp->Q.X, pk, ed25519_public_key_size);
 
-    retVal = ed25519_VerifySignature((const unsigned char*)sig.c_str(), pk, (const unsigned char*)buf.c_str(), buf.length());
+    retVal = ed25519_VerifySignature((const unsigned char*)sig.c_str(), pk, buf_data->data(), buf_data->length());
 
     return 0;
 }

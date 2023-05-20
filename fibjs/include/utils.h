@@ -362,33 +362,23 @@ typedef int32_t result_t;
 
 #define ARG_LIST(n) OptArgs v##n(args, n, argc1);
 
-#define DECLARE_CLASSINFO(c)                                                                                      \
-public:                                                                                                           \
-    static ClassInfo& class_info();                                                                               \
-    virtual ClassInfo& Classinfo()                                                                                \
-    {                                                                                                             \
-        return class_info();                                                                                      \
-    }                                                                                                             \
-    static c* getInstance(void* o)                                                                                \
-    {                                                                                                             \
-        return dynamic_cast<c*>((object_base*)o);                                                                 \
-    }                                                                                                             \
-    static c* getInstance(v8::Local<v8::Value> o)                                                                 \
-    {                                                                                                             \
-        if (o.IsEmpty() || !o->IsObject())                                                                        \
-            return NULL;                                                                                          \
-                                                                                                                  \
-        v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(o);                                               \
-        Isolate* isolate = Isolate::current();                                                                    \
-        v8::Local<v8::Private> buf_key = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("internal")); \
-        if (!obj->HasPrivate(isolate->context(), buf_key).FromMaybe(false))                                       \
-            return NULL;                                                                                          \
-        v8::Local<v8::Value> v;                                                                                   \
-        obj->GetPrivate(isolate->context(), buf_key).ToLocal(&v);                                                 \
-        if (v.IsEmpty())                                                                                          \
-            return NULL;                                                                                          \
-        v8::Local<v8::External> ext = v8::Local<v8::External>::Cast(v);                                           \
-        return getInstance(ext->Value());                                                                         \
+#define DECLARE_CLASSINFO(c)                      \
+public:                                           \
+    static ClassInfo& class_info();               \
+    virtual ClassInfo& Classinfo()                \
+    {                                             \
+        return class_info();                      \
+    }                                             \
+    static c* getInstance(void* o)                \
+    {                                             \
+        return dynamic_cast<c*>((object_base*)o); \
+    }                                             \
+    static c* getInstance(v8::Local<v8::Value> o) \
+    {                                             \
+        void* p = unwrap(o);                      \
+        if (!p)                                   \
+            return NULL;                          \
+        return getInstance(p);                    \
     }
 
 #define DECLARE_CLASS(c)         \
@@ -924,6 +914,18 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::TypedArra
     return 0;
 }
 
+inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Uint8Array>& vr, bool bStrict = false)
+{
+    if (v.IsEmpty())
+        return CALL_E_TYPEMISMATCH;
+
+    if (!v->IsUint8Array())
+        return CALL_E_TYPEMISMATCH;
+
+    vr = v8::Local<v8::Uint8Array>::Cast(v);
+    return 0;
+}
+
 inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::ArrayBuffer>& vr, bool bStrict = false)
 {
     if (v.IsEmpty())
@@ -1364,18 +1366,21 @@ const auto ToCString = [](const v8::String::Utf8Value& value) {
     return *value ? *value : "<string conversion failed>";
 };
 
-inline exlib::string clean_string(exlib::string s)
+inline exlib::string clean_string(const char* s, size_t len)
 {
-    exlib::string s1(s);
-
+    exlib::string s1(s, len);
     char* c_buf = s1.c_buffer();
-    int32_t len = (int32_t)s1.length();
 
     for (int32_t i = 0; i < len; i++)
         if ((c_buf[i] < 32 && c_buf[i] != 0xd && c_buf[i] != 0xa) || c_buf[i] > 127)
             c_buf[i] = '.';
 
     return s1;
+}
+
+inline exlib::string clean_string(exlib::string s)
+{
+    return clean_string(s.c_str(), s.length());
 }
 
 class save_method_name {

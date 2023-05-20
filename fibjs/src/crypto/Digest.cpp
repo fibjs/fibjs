@@ -50,11 +50,8 @@ result_t Digest::update(Buffer_base* data, obj_ptr<Digest_base>& retVal)
     if (m_iAlgo < 0)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    exlib::string str;
-    data->toString(str);
-
-    _md_update(&m_ctx, (const unsigned char*)str.c_str(),
-        (int32_t)str.length());
+    obj_ptr<Buffer> buf = Buffer::Cast(data);
+    _md_update(&m_ctx, buf->data(), buf->length());
 
     retVal = this;
 
@@ -63,21 +60,20 @@ result_t Digest::update(Buffer_base* data, obj_ptr<Digest_base>& retVal)
 
 result_t Digest::digest(obj_ptr<Buffer_base>& retVal)
 {
-    exlib::string strBuf;
     if (m_iAlgo < 0)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    strBuf.resize(mbedtls_md_get_size(m_ctx.md_info));
+    obj_ptr<Buffer> buf = new Buffer(NULL, mbedtls_md_get_size(m_ctx.md_info));
 
     if (m_bMac)
-        _md_hmac_finish(&m_ctx, (unsigned char*)strBuf.c_buffer());
+        _md_hmac_finish(&m_ctx, buf->data());
     else
-        _md_finish(&m_ctx, (unsigned char*)strBuf.c_buffer());
+        _md_finish(&m_ctx, buf->data());
 
     m_iAlgo = -1;
     _md_hmac_reset(&m_ctx);
 
-    retVal = new Buffer(strBuf);
+    retVal = buf;
     return 0;
 }
 

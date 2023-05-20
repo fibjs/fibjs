@@ -92,16 +92,14 @@ result_t crypto_base::simpleRandomBytes(int32_t size, obj_ptr<Buffer_base>& retV
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    exlib::string strBuf;
-
-    strBuf.resize(size);
-    char* ptr = strBuf.c_buffer();
+    obj_ptr<Buffer> buf = new Buffer(NULL, size);
+    uint8_t* ptr = buf->data();
     int32_t i;
 
     for (i = 0; i < size; i++)
         ptr[i] = rand() % 256;
 
-    retVal = new Buffer(strBuf);
+    retVal = buf;
 
     return 0;
 }
@@ -118,10 +116,9 @@ result_t crypto_base::pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base>& retV
     int32_t i, ret;
     mbedtls_entropy_context entropy;
     unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE];
-    exlib::string strBuf;
 
-    strBuf.resize(size);
-    char* _strBuf = strBuf.c_buffer();
+    obj_ptr<Buffer> buf_rand = new Buffer(NULL, size);
+    uint8_t* _strBuf = buf_rand->data();
 
     mbedtls_entropy_init(&entropy);
 
@@ -136,7 +133,7 @@ result_t crypto_base::pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base>& retV
     }
 
     mbedtls_entropy_free(&entropy);
-    retVal = new Buffer(strBuf);
+    retVal = buf_rand;
 
     return 0;
 }
@@ -144,8 +141,7 @@ result_t crypto_base::pseudoRandomBytes(int32_t size, obj_ptr<Buffer_base>& retV
 result_t crypto_base::randomFill(Buffer_base* buffer, int32_t offset, int32_t size,
     obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
-    int32_t len;
-    buffer->get_length(len);
+    int32_t len = Buffer::Cast(buffer)->length();
 
     if (offset < 0 || offset > len)
         return CHECK_ERROR(CALL_E_OUTRANGE);
@@ -265,11 +261,8 @@ result_t crypto_base::randomArt(Buffer_base* data, exlib::string title,
     if (size < 1 || size > 128)
         return CHECK_ERROR(CALL_E_OUTRANGE);
 
-    exlib::string buf;
-
-    data->toString(buf);
-    char* str = randomart((const unsigned char*)buf.c_str(), buf.length(),
-        title, size);
+    obj_ptr<Buffer> buf = Buffer::Cast(data);
+    char* str = randomart(buf->data(), buf->length(), title, size);
 
     if (str) {
         retVal = str;
@@ -367,22 +360,17 @@ result_t crypto_base::pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t i
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    exlib::string str_pass;
-    exlib::string str_salt;
-    exlib::string str_key;
-
-    password->toString(str_pass);
-    salt->toString(str_salt);
-    str_key.resize(size);
+    obj_ptr<Buffer> buf_pass = Buffer::Cast(password);
+    obj_ptr<Buffer> buf_salt = Buffer::Cast(salt);
+    obj_ptr<Buffer> buf_key = new Buffer(NULL, size);
 
     mbedtls_md_context_t ctx;
     _md_setup(&ctx, (mbedtls_md_type_t)algo, 1);
-    pkcs5_pbkdf1(&ctx, (const unsigned char*)str_pass.c_str(), str_pass.length(),
-        (const unsigned char*)str_salt.c_str(), str_salt.length(),
-        iterations, size, (unsigned char*)str_key.c_buffer());
+    pkcs5_pbkdf1(&ctx, buf_pass->data(), buf_pass->length(), buf_salt->data(), buf_salt->length(),
+        iterations, size, buf_key->data());
     mbedtls_md_free(&ctx);
 
-    retVal = new Buffer(str_key);
+    retVal = buf_key;
 
     return 0;
 }
@@ -417,22 +405,17 @@ result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t i
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    exlib::string str_pass;
-    exlib::string str_salt;
-    exlib::string str_key;
-
-    password->toString(str_pass);
-    salt->toString(str_salt);
-    str_key.resize(size);
+    obj_ptr<Buffer> buf_pass = Buffer::Cast(password);
+    obj_ptr<Buffer> buf_salt = Buffer::Cast(salt);
+    obj_ptr<Buffer> buf_key = new Buffer(NULL, size);
 
     mbedtls_md_context_t ctx;
     _md_setup(&ctx, (mbedtls_md_type_t)algo, 1);
-    mbedtls_pkcs5_pbkdf2_hmac(&ctx, (const unsigned char*)str_pass.c_str(), str_pass.length(),
-        (const unsigned char*)str_salt.c_str(), str_salt.length(),
-        iterations, size, (unsigned char*)str_key.c_buffer());
+    mbedtls_pkcs5_pbkdf2_hmac(&ctx, buf_pass->data(), buf_pass->length(), buf_salt->data(), buf_salt->length(),
+        iterations, size, buf_key->data());
     mbedtls_md_free(&ctx);
 
-    retVal = new Buffer(str_key);
+    retVal = buf_key;
 
     return 0;
 }

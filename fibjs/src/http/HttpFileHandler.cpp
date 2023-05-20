@@ -1245,6 +1245,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         {
             int32_t length;
             static char padding[] = "                                                              ";
+            exlib::string s;
             obj_ptr<Buffer_base> buf;
 
             length = m_dir->length();
@@ -1253,13 +1254,15 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 m_dir->sort();
 
                 m_file = new MemoryStream();
-                buf = new Buffer("<html>\n<head><title>Index of "
+                s = "<html>\n<head><title>Index of "
                     + m_value + "</title></head>\n<body bgcolor=white>\n<h1>Index of "
-                    + m_value + "</h1><hr><pre>");
+                    + m_value + "</h1><hr><pre>";
+                buf = new Buffer(s.c_str(), s.length());
                 m_file->cc_write(buf);
 
                 if (m_value.length() > 1) {
-                    buf = new Buffer("<a href=\"../\">../</a>\n");
+                    s = "<a href=\"../\">../</a>\n";
+                    buf = new Buffer(s.c_str(), s.length());
                     m_file->cc_write(buf);
                 }
             } else {
@@ -1273,7 +1276,8 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 m_stat->isDirectory(is_dir);
                 if (is_dir)
                     name += '/';
-                buf = new Buffer("<a href=\"" + name + "\">" + name + "</a>");
+                s = "<a href=\"" + name + "\">" + name + "</a>";
+                buf = new Buffer(s.c_str(), s.length());
                 m_file->cc_write(buf);
                 padding_len = 40 - (int32_t)name.length();
                 if (padding_len < 1)
@@ -1283,7 +1287,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
                 m_stat->get_mtime(d);
                 d.sqlString(ds);
-                buf = new Buffer(ds);
+                buf = new Buffer(ds.c_str(), ds.length());
                 m_file->cc_write(buf);
 
                 m_stat->get_size(sz);
@@ -1293,7 +1297,8 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                     padding_len = 1;
                 buf = new Buffer(padding, padding_len);
                 m_file->cc_write(buf);
-                buf = new Buffer(ss + '\n');
+                ss.append(1, '\n');
+                buf = new Buffer(ss.c_str(), ss.length());
                 m_file->cc_write(buf);
             }
 

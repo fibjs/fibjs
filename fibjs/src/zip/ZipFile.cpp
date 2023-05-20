@@ -49,11 +49,10 @@ private:
         if (hr < 0 || hr == CALL_RETURN_NULL)
             return 0;
 
-        exlib::string strData;
-        data->toString(strData);
-        memcpy(buf, strData.c_str(), strData.length());
+        obj_ptr<Buffer> buff = Buffer::Cast(data);
+        memcpy(buf, buff->data(), buff->length());
 
-        return (uLong)strData.length();
+        return (uLong)buff->length();
     }
 
     static uLong ZCALLBACK fwrite_file_func(voidpf opaque, voidpf stream, const void* buf, uLong size)
@@ -404,9 +403,8 @@ result_t ZipFile::extract(SeekableStream_base* strm, exlib::string password)
 
     int32_t err;
     result_t hr;
-    obj_ptr<Buffer> buf = new Buffer();
+    uint8_t buf[BUF_SIZE];
 
-    buf->resize(BUF_SIZE);
     if (!password.empty())
         err = unzOpenCurrentFilePassword(m_unz, password.c_str());
     else
@@ -415,16 +413,15 @@ result_t ZipFile::extract(SeekableStream_base* strm, exlib::string password)
         return CHECK_ERROR(Runtime::setError(zip_error(err)));
 
     do {
-        err = unzReadCurrentFile(m_unz, buf->data(), BUF_SIZE);
+        err = unzReadCurrentFile(m_unz, buf, BUF_SIZE);
         if (err < 0) {
             unzCloseCurrentFile(m_unz);
             return CHECK_ERROR(Runtime::setError(zip_error(err)));
         }
 
         if (err > 0) {
-            if (err < BUF_SIZE)
-                buf->resize(err);
-            hr = strm->cc_write(buf);
+            obj_ptr<Buffer_base> buffer = new Buffer(buf, err);
+            hr = strm->cc_write(buffer);
             if (hr < 0)
                 return hr;
         }
@@ -667,21 +664,22 @@ result_t ZipFile::getFileCrc(SeekableStream_base* strm, uint32_t& crc)
 {
     uint32_t fileCrc = 0;
     result_t hr;
-    obj_ptr<Buffer_base> buf;
-    exlib::string strData;
 
-    do {
+    while (true) {
+        obj_ptr<Buffer_base> buf;
+
         hr = strm->cc_read(BUF_SIZE, buf);
         if (hr == CALL_RETURN_NULL)
             break;
         else if (hr < 0)
             return hr;
 
-        buf->toString(strData);
+        obj_ptr<Buffer> buff = Buffer::Cast(buf);
+        fileCrc = crc32(fileCrc, buff->data(), buff->length());
 
-        fileCrc = crc32(fileCrc, (const Bytef*)strData.c_str(), (int32_t)strData.length());
-
-    } while (strData.length() > 0);
+        if (!buff->length())
+            break;
+    }
 
     crc = fileCrc;
     return 0;
@@ -696,7 +694,7 @@ result_t ZipFile::write(exlib::string filename, exlib::string password, Seekable
     result_t hr;
     uint32_t crc = 0;
     obj_ptr<Buffer_base> buf;
-    exlib::string strData;
+    obj_ptr<Buffer> buff;
 
     if (!password.empty()) {
         hr = getFileCrc(strm, crc);
@@ -739,14 +737,14 @@ result_t ZipFile::write(exlib::string filename, exlib::string password, Seekable
         else if (hr < 0)
             return hr;
 
-        buf->toString(strData);
+        buff = Buffer::Cast(buf);
 
-        err = zipWriteInFileInZip(m_zip, strData.c_str(), (uint32_t)strData.length());
+        err = zipWriteInFileInZip(m_zip, buff->data(), (uint32_t)buff->length());
         if (err != ZIP_OK) {
             zipCloseFileInZip(m_zip);
             return CHECK_ERROR(Runtime::setError(zip_error(err)));
         }
-    } while (strData.length() > 0);
+    } while (buff->length() > 0);
 
     err = zipCloseFileInZip(m_zip);
     if (err != ZIP_OK)

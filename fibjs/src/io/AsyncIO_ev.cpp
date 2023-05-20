@@ -472,7 +472,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
             } while (m_bRead && m_pos < (int32_t)m_buf.length());
 
             m_buf.resize(m_pos);
-            m_retVal = new Buffer(m_buf);
+            m_retVal = new Buffer(m_buf.c_str(), m_buf.length());
             if (g_tcpdump)
                 outLog(console_base::C_NOTICE, clean_string(m_buf));
 
@@ -524,12 +524,12 @@ result_t AsyncIO::write(Buffer_base* data, AsyncEvent* ac)
             : AsyncSockProc(sockfd, EV_WRITE, ac, locker, opt)
             , m_family(family)
         {
-            data->toString(m_buf);
-            m_p = m_buf.c_str();
-            m_sz = m_buf.length();
+            m_data = Buffer::Cast(data);
+            m_p = (const char*)m_data->data();
+            m_sz = m_data->length();
 
             if (g_tcpdump)
-                outLog(console_base::C_WARN, clean_string(m_buf));
+                outLog(console_base::C_WARN, clean_string(m_p, m_sz));
         }
 
         virtual result_t process()
@@ -564,7 +564,7 @@ result_t AsyncIO::write(Buffer_base* data, AsyncEvent* ac)
         }
 
     public:
-        exlib::string m_buf;
+        obj_ptr<Buffer> m_data;
         const char* m_p;
         int32_t m_sz;
         int32_t m_family;

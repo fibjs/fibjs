@@ -83,18 +83,16 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
             obj_ptr<Buffer_base> buf;
             v8::Local<v8::Context> context = isolate->context();
 
-            if (element->IsTypedArray())
-                Buffer_base::_new(v8::Local<v8::TypedArray>::Cast(element), buf, v8::Local<v8::Object>());
+            if (element->IsUint8Array())
+                Buffer_base::_new(v8::Local<v8::Uint8Array>::Cast(element), 0, -1, buf);
             else
                 buf = Buffer_base::getInstance(element);
 
             if (buf) {
-                exlib::string strBuf;
+                obj_ptr<Buffer> buff = Buffer::Cast(buf);
 
-                buf->toString(strBuf);
-
-                msgpack_pack_bin(&pk, strBuf.length());
-                msgpack_pack_bin_body(&pk, strBuf.c_str(), strBuf.length());
+                msgpack_pack_bin(&pk, buff->length());
+                msgpack_pack_bin_body(&pk, buff->data(), buff->length());
 
                 return 0;
             }
@@ -218,8 +216,8 @@ result_t msgpack_base::decode(Buffer_base* data, v8::Local<v8::Value>& retVal)
 
         result_t unpack(Buffer_base* data)
         {
-            data->toString(buf);
-            msgpack_unpack_return ret = msgpack_unpack(buf.c_str(), buf.length(), NULL, &mempool, &deserialized);
+            obj_ptr<Buffer> buf = Buffer::Cast(data);
+            msgpack_unpack_return ret = msgpack_unpack((const char*)buf->data(), buf->length(), NULL, &mempool, &deserialized);
             if (ret != 2)
                 return -1;
 
@@ -318,7 +316,6 @@ result_t msgpack_base::decode(Buffer_base* data, v8::Local<v8::Value>& retVal)
         Isolate* isolate;
         msgpack_zone mempool;
         msgpack_object deserialized;
-        exlib::string buf;
     };
 
     MsgpackUnPacker mu;

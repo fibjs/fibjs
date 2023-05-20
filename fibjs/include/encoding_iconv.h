@@ -23,7 +23,9 @@ public:
     result_t encode(exlib::string data, exlib::string& retVal);
     result_t encode(exlib::string data, obj_ptr<Buffer_base>& retVal);
 
+    result_t ucs_decode(const char* data, size_t sz, exlib::string& retVal);
     result_t ucs_decode(exlib::string data, exlib::string& retVal);
+    result_t decode(const char* data, size_t sz, exlib::string& retVal);
     result_t decode(const exlib::string& data, exlib::string& retVal);
     result_t decode(Buffer_base* data, exlib::string& retVal);
 

@@ -39,7 +39,7 @@ result_t CustomExtLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib
         return CHECK_ERROR(hr);
     // read filecontent and compile to strScript :end
 
-    obj_ptr<Buffer_base> buf = new Buffer(strScript);
+    obj_ptr<Buffer_base> buf = new Buffer(strScript.c_str(), strScript.length());
 
     return JsLoader::compile(ctx, buf, name, arg_names, script);
 }

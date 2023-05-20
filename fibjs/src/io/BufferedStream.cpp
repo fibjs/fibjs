@@ -104,7 +104,7 @@ result_t BufferedStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
                 if (s.length() == 0)
                     return CALL_RETURN_NULL;
 
-                retVal = new Buffer(s);
+                retVal = new Buffer(s.c_str(), s.length());
 
                 return 0;
             }
@@ -125,12 +125,7 @@ result_t BufferedStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
     if (bytes < 0) {
         int32_t n = (int32_t)m_buf.length() - m_pos;
         if (n > 0) {
-            if (m_pos == 0)
-                retVal = new Buffer(m_buf);
-            else {
-                exlib::string s1(m_buf.substr(m_pos, n));
-                retVal = new Buffer(s1);
-            }
+            retVal = new Buffer(m_buf.c_str() + m_pos, n);
             m_pos += n;
 
             return 0;
@@ -371,7 +366,7 @@ result_t BufferedStream::writeText(exlib::string txt, AsyncEvent* ac)
     if (hr < 0)
         return hr;
 
-    obj_ptr<Buffer_base> data = new Buffer(strBuf);
+    obj_ptr<Buffer_base> data = new Buffer(strBuf.c_str(), strBuf.length());
     return write(data, ac);
 }
 
@@ -387,7 +382,7 @@ result_t BufferedStream::writeLine(exlib::string txt, AsyncEvent* ac)
         return hr;
 
     strBuf.append(m_eol);
-    obj_ptr<Buffer_base> data = new Buffer(strBuf);
+    obj_ptr<Buffer_base> data = new Buffer(strBuf.c_str(), strBuf.length());
     return write(data, ac);
 }
 

@@ -701,7 +701,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
             int16_t port = htons(atoi(u->m_port.c_str()));
             strBuffer.append((char*)&port, 2);
 
-            obj_ptr<Buffer_base> buf = new Buffer(strBuffer);
+            obj_ptr<Buffer_base> buf = new Buffer(strBuffer.c_str(), strBuffer.length());
             return m_conn->write(buf, next(socks_connect_req_5_bytes));
         }
 
@@ -715,19 +715,19 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
             if (n == CALL_RETURN_NULL)
                 return CHECK_ERROR(Runtime::setError("HttpClient: connection reset by socks 5 server."));
 
-            exlib::string strBuffer;
-            m_buffer->toString(strBuffer);
-            if (strBuffer.length() != 5 || strBuffer[0] != 5 || strBuffer[1] != 0)
+            obj_ptr<Buffer> buf = Buffer::Cast(m_buffer);
+            const uint8_t* p = buf->data();
+            if (buf->length() != 5 || p[0] != 5 || p[1] != 0)
                 return CHECK_ERROR(Runtime::setError("HttpClient: socks 5 connect failed."));
 
             uint8_t len = 0;
 
-            if (strBuffer[3] == 1) {
+            if (p[3] == 1) {
                 len = 4 - 1 + 2; // ipv4
-            } else if (strBuffer[3] == 4) {
+            } else if (p[3] == 4) {
                 len = 16 - 1 + 2; // ipv6
             } else {
-                len = (uint8_t)strBuffer[4] + 2; // domain
+                len = (uint8_t)p[4] + 2; // domain
             }
 
             return m_conn->read(len, m_buffer, next(socks_connected));
@@ -994,7 +994,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
                     if (hr < 0)
                         return hr;
 
-                    buf = new Buffer(s);
+                    buf = new Buffer(s.c_str(), s.length());
                     map->add("Content-Type", "application/x-www-form-urlencoded");
                 } else {
                     hr = GetArgumentValue(isolate->m_isolate, v, buf);
@@ -1034,7 +1034,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
                 if (hr < 0)
                     return hr;
 
-                buf = new Buffer(s);
+                buf = new Buffer(s.c_str(), s.length());
                 stm->cc_write(buf);
                 map->add("Content-Type", "application/json");
             }

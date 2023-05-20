@@ -74,7 +74,7 @@ private:
             if (m_send.empty())
                 return next(recv);
 
-            m_buf = new Buffer(m_send);
+            m_buf = new Buffer(m_send.c_str(), m_send.length());
             m_send.resize(0);
 
             return m_pThis->m_s->write(m_buf, next(recv));
@@ -94,7 +94,7 @@ private:
         {
             exlib::string& m_send = m_pThis->m_send;
 
-            m_buf = new Buffer(m_send);
+            m_buf = new Buffer(m_send.c_str(), m_send.length());
             m_send.resize(0);
 
             return m_pThis->m_s->write(m_buf, next(end));

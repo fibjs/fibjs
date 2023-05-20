@@ -42,7 +42,7 @@ result_t MemoryStream::CloneStream::read(int32_t bytes,
     if (strBuf.length() == 0)
         return CALL_RETURN_NULL;
 
-    retVal = new Buffer(strBuf);
+    retVal = new Buffer(strBuf.c_str(), strBuf.length());
 
     return 0;
 }

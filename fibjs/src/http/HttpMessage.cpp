@@ -70,7 +70,7 @@ public:
         if (m_body.length() > 0)
             memcpy(pBuf, m_body.c_str(), m_body.length());
 
-        m_buffer = new Buffer(m_strBuf);
+        m_buffer = new Buffer(m_strBuf.c_str(), m_strBuf.length());
         return m_stm->write(m_buffer, next(body));
     }
 

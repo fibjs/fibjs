@@ -29,7 +29,6 @@ result_t BlsKey_base::aggregateSignature(v8::Local<v8::Array> sigs, obj_ptr<Buff
 {
     Isolate* isolate = Isolate::current();
     obj_ptr<Buffer_base> buf;
-    exlib::string s;
     result_t hr;
     int32_t sig_len = sigs->Length();
     int32_t len;
@@ -41,13 +40,14 @@ result_t BlsKey_base::aggregateSignature(v8::Local<v8::Array> sigs, obj_ptr<Buff
     if (hr < 0)
         return hr;
 
-    buf->get_length(len);
+    obj_ptr<Buffer> agg;
+    obj_ptr<Buffer> sig = Buffer::Cast(buf);
+    len = sig->length();
     if (len == 48) {
         blst_p1 point;
         blst_p1_affine pk;
 
-        buf->toString(s);
-        blst_p1_uncompress(&pk, (const byte*)s.c_str());
+        blst_p1_uncompress(&pk, sig->data());
         blst_p1_from_affine(&point, &pk);
 
         for (int32_t i = 1; i < sig_len; i++) {
@@ -55,23 +55,23 @@ result_t BlsKey_base::aggregateSignature(v8::Local<v8::Array> sigs, obj_ptr<Buff
             if (hr < 0)
                 return hr;
 
-            buf->get_length(len);
+            sig = Buffer::Cast(buf);
+            len = sig->length();
             if (len != 48)
                 return CHECK_ERROR(Runtime::setError("BlsKey: invalid signature length."));
 
-            buf->toString(s);
-            blst_p1_uncompress(&pk, (const byte*)s.c_str());
+            sig = Buffer::Cast(buf);
+            blst_p1_uncompress(&pk, sig->data());
             blst_p1_add_or_double_affine(&point, &point, &pk);
         }
 
-        s.resize(48);
-        blst_p1_compress((byte*)s.c_buffer(), &point);
+        agg = new Buffer(NULL, 48);
+        blst_p1_compress(agg->data(), &point);
     } else if (len == 96) {
         blst_p2 point;
         blst_p2_affine pk;
 
-        buf->toString(s);
-        blst_p2_uncompress(&pk, (const byte*)s.c_str());
+        blst_p2_uncompress(&pk, sig->data());
         blst_p2_from_affine(&point, &pk);
 
         for (int32_t i = 1; i < sig_len; i++) {
@@ -79,21 +79,21 @@ result_t BlsKey_base::aggregateSignature(v8::Local<v8::Array> sigs, obj_ptr<Buff
             if (hr < 0)
                 return hr;
 
-            buf->get_length(len);
+            sig = Buffer::Cast(buf);
+            len = sig->length();
             if (len != 96)
                 return CHECK_ERROR(Runtime::setError("BlsKey: invalid signature length."));
 
-            buf->toString(s);
-            blst_p2_uncompress(&pk, (const byte*)s.c_str());
+            blst_p2_uncompress(&pk, sig->data());
             blst_p2_add_or_double_affine(&point, &point, &pk);
         }
 
-        s.resize(96);
-        blst_p2_compress((byte*)s.c_buffer(), &point);
+        agg = new Buffer(NULL, 96);
+        blst_p2_compress(agg->data(), &point);
     } else
         return CHECK_ERROR(Runtime::setError("BlsKey: invalid signature length."));
 
-    retVal = new Buffer(s);
+    retVal = agg;
 
     return 0;
 }

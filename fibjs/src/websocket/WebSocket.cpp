@@ -37,7 +37,7 @@ public:
     {
         m_this->m_ioState.inc();
 
-        obj_ptr<Buffer_base> _data = new Buffer(data);
+        obj_ptr<Buffer_base> _data = new Buffer(data.c_str(), data.length());
         m_msg = new WebSocketMessage(type, m_this->m_masked, m_this->m_compress, 0);
         m_msg->cc_write(_data);
 
@@ -70,7 +70,7 @@ public:
         buf.append(1, code & 255);
         buf.append(reason);
 
-        obj_ptr<Buffer_base> data = new Buffer(buf);
+        obj_ptr<Buffer_base> data = new Buffer(buf.c_str(), buf.length());
 
         m_msg = new WebSocketMessage(ws_base::C_CLOSE, m_this->m_masked, m_this->m_compress, 0);
         m_msg->cc_write(data);

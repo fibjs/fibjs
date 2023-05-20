@@ -249,21 +249,7 @@ void Isolate::init()
     m_topSandbox = new SandBox();
     m_topSandbox->addBuiltinModules();
 
-    const char* assertion_error = "var origInit = WebAssembly.instantiate;"
-                                  "WebAssembly.instantiate = function (bufferSource, importObject) {"
-                                  "    if (!(bufferSource instanceof Uint8Array))"
-                                  "        bufferSource = Uint8Array.from(bufferSource);"
-                                  "    return origInit(bufferSource, importObject);"
-                                  "};"
-                                  ""
-                                  "WebAssembly.Module = class extends WebAssembly.Module {"
-                                  "    constructor(bufferSource) {"
-                                  "        if (!(bufferSource instanceof Uint8Array))"
-                                  "            bufferSource = Uint8Array.from(bufferSource);"
-                                  "        return super(bufferSource);"
-                                  "    }"
-                                  "};"
-                                  "class AssertionError extends Error {"
+    const char* assertion_error = "class AssertionError extends Error {"
                                   "   constructor(options) {"
                                   "       var { actual, expected, message, operator } = options;"
                                   "       if (message) {"

@@ -1,9 +1,9 @@
 /*
-* StringDecoder.h
-*
-*  Created on: Aug 29, 2017
-*      Author: ngot
-*/
+ * StringDecoder.h
+ *
+ *  Created on: Aug 29, 2017
+ *      Author: ngot
+ */
 
 #pragma once
 
@@ -28,38 +28,36 @@ public:
         , m_lastTotal(0)
     {
         int32_t size = 0;
-        if (this->m_encoding == "utf16le") {
+        if (m_encoding == "utf16le") {
             size = 4;
-            this->m_write = &StringDecoder::defaultWrite;
-            this->m_end1 = &StringDecoder::utf16End1;
-            this->m_end2 = &StringDecoder::utf16End2;
-            this->m_text = &StringDecoder::utf16Text;
-            this->m_fillLast = &StringDecoder::defaultFillLast;
-        } else if (this->m_encoding == "utf8") {
+            m_write = &StringDecoder::defaultWrite;
+            m_end1 = &StringDecoder::utf16End1;
+            m_end2 = &StringDecoder::utf16End2;
+            m_text = &StringDecoder::utf16Text;
+            m_fillLast = &StringDecoder::defaultFillLast;
+        } else if (m_encoding == "utf8") {
             size = 4;
-            this->m_write = &StringDecoder::defaultWrite;
-            this->m_end1 = &StringDecoder::utf8End1;
-            this->m_end2 = &StringDecoder::utf8End2;
-            this->m_text = &StringDecoder::utf8Text;
-            this->m_fillLast = &StringDecoder::utf8FillLast;
-        } else if (this->m_encoding == "base64") {
+            m_write = &StringDecoder::defaultWrite;
+            m_end1 = &StringDecoder::utf8End1;
+            m_end2 = &StringDecoder::utf8End2;
+            m_text = &StringDecoder::utf8Text;
+            m_fillLast = &StringDecoder::utf8FillLast;
+        } else if (m_encoding == "base64") {
             size = 3;
-            this->m_write = &StringDecoder::defaultWrite;
-            this->m_end1 = &StringDecoder::base64End1;
-            this->m_end2 = &StringDecoder::base64End2;
-            this->m_fillLast = &StringDecoder::defaultFillLast;
-            this->m_text = &StringDecoder::base64Text;
+            m_write = &StringDecoder::defaultWrite;
+            m_end1 = &StringDecoder::base64End1;
+            m_end2 = &StringDecoder::base64End2;
+            m_fillLast = &StringDecoder::defaultFillLast;
+            m_text = &StringDecoder::base64Text;
         } else {
-            this->m_write = &StringDecoder::simpleWrite;
-            this->m_end1 = &StringDecoder::simpleEnd1;
-            this->m_end2 = &StringDecoder::simpleEnd2;
-            this->m_fillLast = &StringDecoder::defaultFillLast;
-            this->m_text = &StringDecoder::utf8Text;
+            m_write = &StringDecoder::simpleWrite;
+            m_end1 = &StringDecoder::simpleEnd1;
+            m_end2 = &StringDecoder::simpleEnd2;
+            m_fillLast = &StringDecoder::defaultFillLast;
+            m_text = &StringDecoder::utf8Text;
         }
 
-        this->m_lastChar = new Buffer();
-        if (size > 0)
-            this->m_lastChar->resize(size);
+        m_lastChar = new Buffer(NULL, size);
     }
 
 public:
@@ -122,17 +120,15 @@ inline int32_t utf8CheckByte(int32_t byte)
 
 inline int32_t utf8CheckIncomplete(StringDecoder* decoder, Buffer_base* buf, int32_t i)
 {
-    int32_t bufLen;
-    int32_t b;
-    buf->get_length(bufLen);
+    obj_ptr<Buffer> data = Buffer::Cast(buf);
+    int32_t bufLen = data->length();
+    const uint8_t* _data = data->data();
 
     int32_t j = bufLen - 1;
     if (j < i)
         return 0;
 
-    buf->_indexed_getter(j, b);
-
-    int32_t nb = utf8CheckByte(b);
+    int32_t nb = utf8CheckByte(_data[j]);
     if (nb >= 0) {
         if (nb > 0)
             decoder->set_lastNeed(nb - 1);
@@ -141,8 +137,7 @@ inline int32_t utf8CheckIncomplete(StringDecoder* decoder, Buffer_base* buf, int
     if (--j < i || nb == -2)
         return 0;
 
-    buf->_indexed_getter(j, b);
-    nb = utf8CheckByte(b);
+    nb = utf8CheckByte(_data[j]);
     if (nb >= 0) {
         if (nb > 0)
             decoder->set_lastNeed(nb - 2);
@@ -151,8 +146,7 @@ inline int32_t utf8CheckIncomplete(StringDecoder* decoder, Buffer_base* buf, int
     if (--j < i || nb == -2)
         return 0;
 
-    buf->_indexed_getter(j, b);
-    nb = utf8CheckByte(b);
+    nb = utf8CheckByte(_data[j]);
     if (nb >= 0) {
         if (nb > 0) {
             if (nb == 2)

@@ -167,47 +167,49 @@ result_t encoding_iconv::ucs_encode(exlib::string data, exlib::string& retVal)
     return -1;
 }
 
-result_t encoding_iconv::ucs_decode(exlib::string data, exlib::string& retVal)
+result_t encoding_iconv::ucs_decode(const char* data, size_t sz, exlib::string& retVal)
 {
     if ((m_charset == "utf8") || (m_charset == "utf-8")) {
-        retVal = data;
+        retVal.assign(data, sz);
         return 0;
     }
 
     if ((m_charset == "binary") || (m_charset == "latin1")) {
-        size_t sz = data.length();
-        const char* s = data.c_str();
-
         exlib::wstring wdata;
         wdata.resize(sz);
         exlib::wchar* s1 = wdata.c_buffer();
         for (size_t i = 0; i < sz; i++)
-            *s1++ = *s++;
+            *s1++ = *data++;
 
         retVal = utf16to8String(wdata);
         return 0;
     }
 
     if (is_ucs2(m_charset)) {
-        retVal = utf16to8String((const exlib::wchar*)data.c_str(), data.length() / sizeof(exlib::wchar));
+        retVal = utf16to8String((const exlib::wchar*)data, sz / sizeof(exlib::wchar));
         return 0;
     }
 
     if (is_ucs4(m_charset)) {
-        retVal = utf32to8String((const exlib::wchar32*)data.c_str(), data.length() / sizeof(exlib::wchar32));
+        retVal = utf32to8String((const exlib::wchar32*)data, sz / sizeof(exlib::wchar32));
         return 0;
     }
 
     if (is_ucs2_s(m_charset)) {
-        retVal = utf16to8String_s((const exlib::wchar*)data.c_str(), data.length() / sizeof(exlib::wchar));
+        retVal = utf16to8String_s((const exlib::wchar*)data, sz / sizeof(exlib::wchar));
         return 0;
     }
 
     if (is_ucs4_s(m_charset)) {
-        retVal = utf32to8String_s((const exlib::wchar32*)data.c_str(), data.length() / sizeof(exlib::wchar32));
+        retVal = utf32to8String_s((const exlib::wchar32*)data, sz / sizeof(exlib::wchar32));
         return 0;
     }
 
     return -1;
+}
+
+result_t encoding_iconv::ucs_decode(exlib::string data, exlib::string& retVal)
+{
+    return ucs_decode(data.c_str(), data.length(), retVal);
 }
 }

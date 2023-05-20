@@ -152,22 +152,18 @@ result_t WebSocketMessage::copy(Stream_base* from, Stream_base* to, int64_t byte
             if (n == CALL_RETURN_NULL)
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
 
+            obj_ptr<Buffer> buf = Buffer::Cast(m_buf);
             if (m_mask != 0) {
-                exlib::string strBuffer;
                 int32_t i, n;
                 uint8_t* mask = (uint8_t*)&m_mask;
 
-                m_buf->toString(strBuffer);
-
-                n = (int32_t)strBuffer.length();
-                char* _strBuffer = strBuffer.c_buffer();
+                n = (int32_t)buf->length();
+                uint8_t* _strBuffer = buf->data();
                 for (i = 0; i < n; i++)
                     _strBuffer[i] ^= mask[(m_copyed + i) & 3];
-
-                m_buf = new Buffer(strBuffer);
             }
 
-            m_buf->get_length(blen);
+            blen = buf->length();
             m_copyed += blen;
 
             if (m_bytes > 0)
@@ -363,14 +359,15 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncEvent
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
             }
 
-            exlib::string strBuffer;
-            char ch;
+            uint8_t ch;
             int32_t sz = 0;
 
-            m_buffer->toString(strBuffer);
+            obj_ptr<Buffer> buf = Buffer::Cast(m_buffer);
             m_buffer.Release();
 
-            ch = strBuffer[0];
+            const uint8_t* data = buf->data();
+
+            ch = data[0];
             if (ch & 0x40) {
                 if (m_wss && m_wss->m_compress) {
                     m_take_over = true;
@@ -395,7 +392,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncEvent
             } else
                 m_pThis->set_type(ch & 0x0f);
 
-            ch = strBuffer[1];
+            ch = data[1];
 
             if (m_fragmented) {
                 if (m_masked != (m_pThis->m_masked = (ch & 0x80) != 0)) {
@@ -427,22 +424,22 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncEvent
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
             }
 
-            exlib::string strBuffer;
-            int32_t pos = 0;
-
-            m_buffer->toString(strBuffer);
+            obj_ptr<Buffer> buf = Buffer::Cast(m_buffer);
             m_buffer.Release();
 
+            const uint8_t* data = buf->data();
+            int32_t pos = 0;
+
             if (m_size == 126) {
-                m_size = ((uint32_t)(uint8_t)strBuffer[0] << 8) + (uint8_t)strBuffer[1];
+                m_size = ((uint32_t)data[0] << 8) + data[1];
                 pos += 2;
             } else if (m_size == 127) {
-                m_size = ((int64_t)(uint8_t)strBuffer[0] << 56) + ((int64_t)(uint8_t)strBuffer[1] << 48) + ((int64_t)(uint8_t)strBuffer[2] << 40) + ((int64_t)(uint8_t)strBuffer[3] << 32) + ((int64_t)(uint8_t)strBuffer[4] << 24) + ((int64_t)(uint8_t)strBuffer[5] << 16) + ((int64_t)(uint8_t)strBuffer[6] << 8) + (int64_t)(uint8_t)strBuffer[7];
+                m_size = ((int64_t)data[0] << 56) + ((int64_t)data[1] << 48) + ((int64_t)data[2] << 40) + ((int64_t)data[3] << 32) + ((int64_t)data[4] << 24) + ((int64_t)data[5] << 16) + ((int64_t)data[6] << 8) + (int64_t)data[7];
                 pos += 8;
             }
 
             if (m_masked)
-                memcpy(&m_mask, strBuffer.c_str() + pos, 4);
+                memcpy(&m_mask, data + pos, 4);
 
             return next(copy);
         }

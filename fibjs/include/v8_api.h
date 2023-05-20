@@ -30,4 +30,6 @@ void WriteLcovData(v8::Isolate* isolate, FILE* file);
 bool isFrozen(v8::Local<v8::Object> object);
 void setAsyncFunctoin(v8::Local<v8::Function> func);
 
+void* fetch_store_data(std::shared_ptr<v8::BackingStore> backing_store, v8::BackingStore::DeleterCallback deleter = NULL);
+
 } /* namespace fibjs */

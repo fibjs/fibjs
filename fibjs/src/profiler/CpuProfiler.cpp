@@ -39,7 +39,8 @@ static void cpu_profiler(const v8::FunctionCallbackInfo<v8::Value>& args)
         exlib::string str;
         json_base::encode(stacks, str);
 
-        obj_ptr<Buffer_base> buf = new Buffer(str + '\n');
+        str.append(1, '\n');
+        obj_ptr<Buffer_base> buf = new Buffer(str.c_str(), str.length());
         SeekableStream_base::getInstance(_data)->cc_write(buf);
     }
 

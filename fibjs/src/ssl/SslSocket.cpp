@@ -200,7 +200,7 @@ result_t SslSocket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
             int32_t ret = mbedtls_ssl_read(&m_pThis->m_ssl, (unsigned char*)m_buf.c_buffer(), m_bytes);
             if (ret > 0) {
                 m_buf.resize(ret);
-                m_retVal = new Buffer(m_buf);
+                m_retVal = new Buffer(m_buf.c_str(), ret);
                 if (g_ssldump)
                     outLog(console_base::C_NOTICE, clean_string(m_buf));
                 return 0;

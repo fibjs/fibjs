@@ -21,33 +21,35 @@ DECLARE_MODULE(base64);
 DECLARE_MODULE(hex);
 DECLARE_MODULE(multibase);
 
-static void hexEncode(exlib::string data, bool upper, exlib::string& retVal)
+static void hexEncode(const char* data, size_t sz, bool upper, exlib::string& retVal)
 {
     const char* HexChar = upper ? "0123456789ABCDEF" : "0123456789abcdef";
     size_t i;
-    size_t sz = data.length();
 
     retVal.resize(sz * 2);
     char* _retVal = retVal.c_buffer();
-    const char* _data = data.c_str();
 
     for (i = 0; i < sz; i++) {
-        unsigned char ch = (unsigned char)_data[i];
+        unsigned char ch = (unsigned char)data[i];
 
         _retVal[i * 2] = HexChar[ch >> 4];
         _retVal[i * 2 + 1] = HexChar[ch & 0xf];
     }
 }
 
+static void hexEncode(exlib::string data, bool upper, exlib::string& retVal)
+{
+    return hexEncode(data.c_str(), data.length(), upper, retVal);
+}
+
 result_t hex_base::encode(Buffer_base* data, exlib::string& retVal)
 {
-    exlib::string strData;
-    data->toString(strData);
-    hexEncode(strData, false, retVal);
+    obj_ptr<Buffer> buf = Buffer::Cast(data);
+    hexEncode((const char*)buf->data(), buf->length(), false, retVal);
     return 0;
 }
 
-static void hexDecode(const char* _data, int32_t len, obj_ptr<Buffer_base>& retVal)
+static void hexDecode(const char* _data, int32_t len, exlib::string& retVal)
 {
     int32_t pos;
     const char* end = _data + len;
@@ -79,7 +81,14 @@ static void hexDecode(const char* _data, int32_t len, obj_ptr<Buffer_base>& retV
     }
 
     strBuf.resize(pos);
-    retVal = new Buffer(strBuf);
+    retVal = strBuf;
+}
+
+static void hexDecode(const char* _data, int32_t len, obj_ptr<Buffer_base>& retVal)
+{
+    exlib::string strBuf;
+    hexDecode(_data, len, strBuf);
+    retVal = new Buffer(strBuf.c_str(), strBuf.length());
 }
 
 result_t hex_base::decode(exlib::string data, obj_ptr<Buffer_base>& retVal)
@@ -161,7 +170,7 @@ static void baseDecode(const char* pdecodeTable, size_t dwBits,
 {
     exlib::string strBuf;
     baseDecode(pdecodeTable, dwBits, _baseString, len, strBuf);
-    retVal = new Buffer(strBuf);
+    retVal = new Buffer(strBuf.c_str(), strBuf.length());
 }
 
 static void base32Encode(const char* data, size_t sz, bool upper, bool padding, exlib::string& retVal)
@@ -172,13 +181,12 @@ static void base32Encode(const char* data, size_t sz, bool upper, bool padding, 
 
 result_t base32_base::encode(Buffer_base* data, exlib::string& retVal)
 {
-    exlib::string strData;
-    data->toString(strData);
-    base32Encode(strData.c_str(), strData.length(), false, false, retVal);
+    obj_ptr<Buffer> buf = Buffer::Cast(data);
+    base32Encode((const char*)buf->data(), buf->length(), false, false, retVal);
     return 0;
 }
 
-static void base32Decode(const char* data, size_t sz, obj_ptr<Buffer_base>& retVal)
+static void base32Decode(const char* data, size_t sz, exlib::string& retVal)
 {
     static const char decodeTable[] = {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* 2x  !"#$%&'()*+,-./   */
@@ -190,6 +198,13 @@ static void base32Decode(const char* data, size_t sz, obj_ptr<Buffer_base>& retV
     };
 
     baseDecode(decodeTable, 5, data, sz, retVal);
+}
+
+static void base32Decode(const char* data, size_t sz, obj_ptr<Buffer_base>& retVal)
+{
+    exlib::string strBuf;
+    base32Decode(data, sz, strBuf);
+    retVal = new Buffer(strBuf.c_str(), strBuf.length());
 }
 
 result_t base32_base::decode(exlib::string data, obj_ptr<Buffer_base>& retVal)
@@ -231,14 +246,13 @@ static void base64Decode(const char* data, size_t sz, obj_ptr<Buffer_base>& retV
 {
     exlib::string strBuf;
     base64Decode(data, sz, strBuf);
-    retVal = new Buffer(strBuf);
+    retVal = new Buffer(strBuf.c_str(), strBuf.length());
 }
 
 result_t base64_base::encode(Buffer_base* data, bool url, exlib::string& retVal)
 {
-    exlib::string strData;
-    data->toString(strData);
-    base64Encode(strData.c_str(), strData.length(), url, !url, retVal);
+    obj_ptr<Buffer> buf = Buffer::Cast(data);
+    base64Encode((const char*)buf->data(), buf->length(), url, !url, retVal);
     return 0;
 }
 
@@ -268,29 +282,25 @@ static void base58Encode(const char* data, size_t sz, exlib::string& retVal)
 
 result_t base58_base::encode(Buffer_base* data, exlib::string& retVal)
 {
-    exlib::string buffer;
-
-    data->toString(buffer);
-    base58Encode(buffer.c_str(), buffer.length(), retVal);
-
+    obj_ptr<Buffer> buf = Buffer::Cast(data);
+    base58Encode((const char*)buf->data(), buf->length(), retVal);
     return 0;
 }
 
 result_t base58_base::encode(Buffer_base* data, int32_t chk_ver, exlib::string& retVal)
 {
-    exlib::string buffer;
+    obj_ptr<Buffer> buf = Buffer::Cast(data);
 
-    data->toString(buffer);
-    size_t b58sz = (size_t)((buffer.length() + 5) * 8 / log2l(58) + 2);
+    size_t b58sz = (size_t)((buf->length() + 5) * 8 / log2l(58) + 2);
 
     retVal.resize(b58sz);
-    b58check_enc(retVal.c_buffer(), &b58sz, chk_ver, buffer.c_str(), buffer.length());
+    b58check_enc(retVal.c_buffer(), &b58sz, chk_ver, buf->data(), buf->length());
     retVal.resize(b58sz - 1);
 
     return 0;
 }
 
-static result_t base58Decode(const char* data, size_t sz, obj_ptr<Buffer_base>& retVal)
+static result_t base58Decode(const char* data, size_t sz, exlib::string& retVal)
 {
     size_t binsz = (size_t)(sz * log2l(58) / 8 + 3);
     exlib::string buffer;
@@ -301,7 +311,19 @@ static result_t base58Decode(const char* data, size_t sz, obj_ptr<Buffer_base>& 
     if (binsz < buffer.length())
         buffer = buffer.substr(buffer.length() - binsz);
 
-    retVal = new Buffer(buffer);
+    retVal = buffer;
+
+    return 0;
+}
+
+static result_t base58Decode(const char* data, size_t sz, obj_ptr<Buffer_base>& retVal)
+{
+    exlib::string buffer;
+    result_t hr = base58Decode(data, sz, buffer);
+    if (hr < 0)
+        return hr;
+
+    retVal = new Buffer(buffer.c_str(), buffer.length());
 
     return 0;
 }
@@ -325,8 +347,38 @@ result_t base58_base::decode(exlib::string data, int32_t chk_ver, obj_ptr<Buffer
     if (binsz < buffer.length())
         buffer = buffer.substr(buffer.length() - binsz + 1, binsz - 5);
 
-    retVal = new Buffer(buffer);
+    retVal = new Buffer(buffer.c_str(), buffer.length());
 
+    return 0;
+}
+
+result_t commonEncode(exlib::string codec, const char* data, size_t sz, exlib::string& retVal)
+{
+    if ((codec == "utf8") || (codec == "utf-8") || (codec == "undefined")) {
+        retVal.assign(data, sz);
+    } else {
+        if ((codec == "hex"))
+            hexEncode(data, sz, false, retVal);
+        else if ((codec == "base32"))
+            base32Encode(data, sz, false, false, retVal);
+        else if ((codec == "base58"))
+            base58Encode(data, sz, retVal);
+        else if ((codec == "base64"))
+            base64Encode(data, sz, false, true, retVal);
+        else if ((codec == "base64url"))
+            base64Encode(data, sz, true, false, retVal);
+        else if ((codec == "ascii")) {
+            size_t i;
+
+            retVal.resize(sz);
+
+            char* _retVal = retVal.c_buffer();
+
+            for (i = 0; i < sz; i++)
+                _retVal[i] = data[i] & 0x7f;
+        } else
+            return encoding_iconv(codec).decode(data, sz, retVal);
+    }
     return 0;
 }
 
@@ -334,31 +386,39 @@ result_t commonEncode(exlib::string codec, exlib::string data, exlib::string& re
 {
     if ((codec == "utf8") || (codec == "utf-8") || (codec == "undefined")) {
         retVal = data;
+        return 0;
+    }
+
+    return commonEncode(codec, data.c_str(), data.length(), retVal);
+}
+
+result_t commonDecode(exlib::string codec, exlib::string data, exlib::string& retVal)
+{
+    if ((codec == "utf8") || (codec == "utf-8") || (codec == "undefined")) {
+        retVal = data;
     } else {
         if ((codec == "hex"))
-            hexEncode(data, false, retVal);
+            hexDecode(data.c_str(), data.length(), retVal);
         else if ((codec == "base32"))
-            base32Encode(data.c_str(), data.length(), false, false, retVal);
+            base32Decode(data.c_str(), data.length(), retVal);
         else if ((codec == "base58"))
-            base58Encode(data.c_str(), data.length(), retVal);
-        else if ((codec == "base64"))
-            base64Encode(data.c_str(), data.length(), false, true, retVal);
-        else if ((codec == "base64url"))
-            base64Encode(data.c_str(), data.length(), true, false, retVal);
+            return base58Decode(data.c_str(), data.length(), retVal);
+        else if ((codec == "base64") || (codec == "base64url"))
+            base64Decode(data.c_str(), data.length(), retVal);
         else if ((codec == "ascii")) {
-            size_t len, i;
+            size_t i;
+            size_t sz = data.length();
 
-            len = data.length();
-            retVal.resize(len);
+            retVal.resize(sz);
 
             char* _retVal = retVal.c_buffer();
-            const char* _data = data.c_str();
 
-            for (i = 0; i < len; i++)
-                _retVal[i] = _data[i] & 0x7f;
+            for (i = 0; i < sz; i++)
+                _retVal[i] = data[i] & 0x7f;
         } else
-            return encoding_iconv(codec).decode(data, retVal);
+            return encoding_iconv(codec).encode(data, retVal);
     }
+
     return 0;
 }
 
