@@ -251,6 +251,13 @@ describe('Buffer', () => {
         assert.equal(buf.hex(), is_big_endian ? "13880fa0" : "8813a00f");
     });
 
+    it('Buffer.from(Uint8Array, offset)', () => {
+        var buf = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        var arr = new Uint8Array(buf.buffer, 2, 4);
+
+        assert.equal(Buffer.from(arr).hex(), "03040506");
+    });
+
     it('Buffer.from(Buffer)', () => {
         var buf = Buffer.from(new Buffer("abcd"));
         assert.equal(buf.length, 4);

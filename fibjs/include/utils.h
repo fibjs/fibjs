@@ -902,18 +902,6 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Array>& v
     return 0;
 }
 
-inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::TypedArray>& vr, bool bStrict = false)
-{
-    if (v.IsEmpty())
-        return CALL_E_TYPEMISMATCH;
-
-    if (!v->IsTypedArray())
-        return CALL_E_TYPEMISMATCH;
-
-    vr = v8::Local<v8::TypedArray>::Cast(v);
-    return 0;
-}
-
 inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Uint8Array>& vr, bool bStrict = false)
 {
     if (v.IsEmpty())

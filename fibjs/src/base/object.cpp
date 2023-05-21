@@ -39,10 +39,14 @@ void* object_base::unwrap(v8::Local<v8::Value> o)
     if (o.IsEmpty() || !o->IsObject())
         return NULL;
 
-    v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(o);
-
-    if (obj->IsUint8Array())
-        return fetch_store_data(obj.As<v8::Uint8Array>()->Buffer()->GetBackingStore(), StoreDeleter);
+    v8::Local<v8::Object> obj = o.As<v8::Object>();
+    if (obj->IsUint8Array()) {
+        v8::Local<v8::Uint8Array> arr = obj.As<v8::Uint8Array>();
+        std::shared_ptr<v8::BackingStore> store = arr->Buffer()->GetBackingStore();
+        if (arr->ByteOffset() != 0 || arr->ByteLength() != store->ByteLength())
+            return NULL;
+        return fetch_store_data(store, StoreDeleter);
+    }
 
     if (obj->InternalFieldCount() != 1)
         return NULL;
