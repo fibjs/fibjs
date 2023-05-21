@@ -49,6 +49,13 @@ declare class Class_Buffer extends Class_object {
     constructor(str: string, codec?: string);
 
     /**
+     * @description 缓存对象构造函数
+     *      @param size 初始化缓冲区大小
+     *      
+     */
+    constructor(size?: number);
+
+    /**
      * @description 分配一个指定长度的新缓存区。如果大小为0，将创建一个零长度的缓存区。
      *      @param size 缓冲区的所需长度
      *      @param fill 预先填充新缓冲区的值，可使用 string/buffer/integer 值类型。 默认值：0
@@ -205,6 +212,11 @@ declare class Class_Buffer extends Class_object {
      *      
      */
     static compare(buf1: Class_Buffer, buf2: Class_Buffer): number;
+
+    /**
+     * @description 获取缓存对象的尺寸 
+     */
+    readonly length: number;
 
     /**
      * @description 向缓存对象写入指定字符串，字符串默认为utf-8，越界时只写入部分数据

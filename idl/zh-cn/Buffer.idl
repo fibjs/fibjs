@@ -35,6 +35,11 @@ interface Buffer : object
      */
     Buffer(String str, String codec = "utf8");
 
+    /*! @brief 缓存对象构造函数
+     @param size 初始化缓冲区大小
+     */
+    Buffer(Integer size = 0);
+
     /*! @brief 分配一个指定长度的新缓存区。如果大小为0，将创建一个零长度的缓存区。
      @param size 缓冲区的所需长度
      @param fill 预先填充新缓冲区的值，可使用 string/buffer/integer 值类型。 默认值：0
@@ -156,6 +161,9 @@ interface Buffer : object
     @return 返回比较字节长度
      */
     static Integer compare(Buffer buf1, Buffer buf2);
+
+    /*! @brief 获取缓存对象的尺寸 */
+    readonly Integer length;
 
     /*! @brief 向缓存对象写入指定字符串，字符串默认为utf-8，越界时只写入部分数据
      @param str 待写入的字符串

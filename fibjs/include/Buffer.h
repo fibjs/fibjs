@@ -49,6 +49,7 @@ public:
 public:
     // Buffer_base
     virtual result_t compare(Buffer_base* buf, int32_t& retVal);
+    virtual result_t get_length(int32_t& retVal);
     virtual result_t write(exlib::string str, int32_t offset, int32_t length, exlib::string codec, int32_t& retVal);
     virtual result_t write(exlib::string str, int32_t offset, exlib::string codec, int32_t& retVal);
     virtual result_t write(exlib::string str, exlib::string codec, int32_t& retVal);

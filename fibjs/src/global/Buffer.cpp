@@ -53,6 +53,11 @@ result_t Buffer_base::_new(exlib::string str, exlib::string codec, obj_ptr<Buffe
     return from(str, codec, retVal);
 }
 
+result_t Buffer_base::_new(int32_t size, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This)
+{
+    return allocUnsafe(size, retVal);
+}
+
 result_t Buffer_base::alloc(int32_t size, int32_t fill, obj_ptr<Buffer_base>& retVal)
 {
     if (size < 0)
@@ -384,6 +389,12 @@ result_t Buffer_base::byteLength(Buffer_base* str, int32_t& retVal)
 
     retVal = (int32_t)Buffer::Cast(buf)->length();
 
+    return 0;
+}
+
+result_t Buffer::get_length(int32_t& retVal)
+{
+    retVal = length();
     return 0;
 }
 

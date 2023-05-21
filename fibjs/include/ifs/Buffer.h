@@ -24,6 +24,7 @@ public:
     static result_t _new(v8::Local<v8::ArrayBuffer> datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::Uint8Array> datas, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(exlib::string str, exlib::string codec, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(int32_t size, obj_ptr<Buffer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t alloc(int32_t size, int32_t fill, obj_ptr<Buffer_base>& retVal);
     static result_t alloc(int32_t size, exlib::string fill, exlib::string codec, obj_ptr<Buffer_base>& retVal);
     static result_t alloc(int32_t size, Buffer_base* fill, obj_ptr<Buffer_base>& retVal);
@@ -43,6 +44,7 @@ public:
     static result_t byteLength(Buffer_base* str, int32_t& retVal);
     static result_t compare(Buffer_base* buf1, Buffer_base* buf2, int32_t& retVal);
     virtual result_t compare(Buffer_base* buf, int32_t& retVal) = 0;
+    virtual result_t get_length(int32_t& retVal) = 0;
     virtual result_t write(exlib::string str, int32_t offset, int32_t length, exlib::string codec, int32_t& retVal) = 0;
     virtual result_t write(exlib::string str, int32_t offset, exlib::string codec, int32_t& retVal) = 0;
     virtual result_t write(exlib::string str, exlib::string codec, int32_t& retVal) = 0;
@@ -122,6 +124,7 @@ public:
     static void s_static_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_compare(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_compare(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_length(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_fill(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_copy(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -251,9 +254,13 @@ inline ClassInfo& Buffer_base::class_info()
         { "Buffer", Buffer_base::class_info }
     };
 
+    static ClassData::ClassProperty s_property[] = {
+        { "length", s_get_length, block_set, false }
+    };
+
     static ClassData s_cd = {
         "Buffer", false, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &object_base::class_info()
     };
 
@@ -303,6 +310,12 @@ void Buffer_base::__new(const T& args)
     OPT_ARG(exlib::string, 1, "utf8");
 
     hr = _new(v0, v1, vr, args.This());
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(int32_t, 0, 0);
+
+    hr = _new(v0, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -532,6 +545,19 @@ inline void Buffer_base::s_compare(const v8::FunctionCallbackInfo<v8::Value>& ar
     ARG(obj_ptr<Buffer_base>, 0);
 
     hr = pInst->compare(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Buffer_base::s_get_length(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_NAME("Buffer.length");
+    METHOD_INSTANCE(Buffer_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_length(vr);
 
     METHOD_RETURN();
 }
