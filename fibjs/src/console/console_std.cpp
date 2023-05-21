@@ -48,7 +48,7 @@ void std_logger::out(exlib::string& txt, bool is_error)
         isolate->get_stdout(out);
     }
 
-    obj_ptr<Buffer_base> data = new Buffer(txt);
+    obj_ptr<Buffer_base> data = new Buffer(txt.c_str(), txt.length());
     out->cc_write(data);
 }
 

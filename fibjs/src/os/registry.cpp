@@ -255,14 +255,12 @@ result_t registry_base::get(int32_t root, exlib::string key, v8::Local<v8::Value
     }
     case REG_BINARY:
     case REG_NONE: {
-        exlib::string sbuf;
-        obj_ptr<Buffer_base> buf;
+        obj_ptr<Buffer> buf;
 
-        sbuf.resize(dwSize);
-        RegQueryValueExW(r.hKey, r.skey.c_str(), NULL, &dwType, (LPBYTE)sbuf.c_buffer(), &dwSize);
+        buf = new Buffer(NULL, dwSize);
+        RegQueryValueExW(r.hKey, r.skey.c_str(), NULL, &dwType, buf->data(), &dwSize);
 
-        buf = new Buffer(sbuf);
-        retVal = buf->wrap();
+        buf->valueOf(retVal);
 
         break;
     }

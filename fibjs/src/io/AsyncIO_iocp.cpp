@@ -395,7 +395,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
                 if (m_pos) {
                     m_buf.resize(m_pos);
-                    m_retVal = new Buffer(m_buf);
+                    m_retVal = new Buffer(m_buf.c_str(), m_buf.length());
 
                     if (g_tcpdump)
                         outLog(console_base::C_NOTICE, clean_string(m_buf));
