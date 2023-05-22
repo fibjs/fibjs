@@ -6,6 +6,7 @@
  */
 
 #include "object.h"
+#include "ifs/Buffer.h"
 
 namespace fibjs {
 
@@ -40,11 +41,14 @@ void* object_base::unwrap(v8::Local<v8::Value> o)
         return NULL;
 
     v8::Local<v8::Object> obj = o.As<v8::Object>();
-    if (obj->IsUint8Array()) {
+    if (obj->IsTypedArray()) {
+        if (!obj->IsUint8Array())
+            return NULL;
+        Isolate* isolate = Isolate::current();
+        if (!obj->InstanceOf(isolate->context(), Buffer_base::class_info().getFunction(isolate)).FromMaybe(false))
+            return NULL;
         v8::Local<v8::Uint8Array> arr = obj.As<v8::Uint8Array>();
         std::shared_ptr<v8::BackingStore> store = arr->Buffer()->GetBackingStore();
-        if (arr->ByteOffset() != 0 || arr->ByteLength() != store->ByteLength())
-            return NULL;
         return fetch_store_data(store, StoreDeleter);
     }
 
