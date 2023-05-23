@@ -222,7 +222,7 @@ public:
 
     static void _onceWrap(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = Isolate::current(args);
         v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());
         v8::Local<v8::Context> context = isolate->context();
 
@@ -250,7 +250,7 @@ public:
 
     result_t once(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
     {
-        Isolate* _isolate = Isolate::current();
+        Isolate* _isolate = Isolate::current(func);
         v8::Local<v8::Object> _data = v8::Object::New(isolate);
         _data->Set(context, NewString("_func"), func).IsJust();
         _data->Set(context, NewString("_ev"), NewString(ev)).IsJust();
@@ -275,7 +275,7 @@ public:
 
     result_t prependOnceListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
     {
-        Isolate* _isolate = Isolate::current();
+        Isolate* _isolate = Isolate::current(func);
         v8::Local<v8::Object> _data = v8::Object::New(isolate);
         _data->Set(context, NewString("_func"), func).IsJust();
         _data->Set(context, NewString("_ev"), NewString(ev)).IsJust();
@@ -386,7 +386,7 @@ public:
 
     result_t getMaxListeners(int32_t& retVal)
     {
-        Isolate* _isolate = Isolate::current();
+        Isolate* _isolate = Isolate::current(isolate);
         JSValue maxListeners = o->GetPrivate(context, v8::Private::ForApi(isolate, NewString("_maxListeners")));
         if (maxListeners->IsUndefined() || maxListeners->IsNull()) {
             retVal = _isolate->m_defaultMaxListeners;
@@ -584,14 +584,14 @@ public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         if (args.IsConstructCall()) {
-            if (EventEmitter_base::class_info().init_isolate())
+            if (EventEmitter_base::class_info().init_isolate(Isolate::current(args)))
                 return;
             EventEmitter_base::__new(args);
         } else {
             v8::Local<v8::Object> o = args.This();
 
             if (!o.IsEmpty())
-                EventEmitter_base::class_info().Attach(Isolate::current(), o);
+                EventEmitter_base::class_info().Attach(Isolate::current(args), o);
         }
     }
 

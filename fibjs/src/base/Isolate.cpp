@@ -160,6 +160,7 @@ Isolate::Isolate(exlib::string jsFilename, exlib::string jsCode)
     create_params.array_buffer_allocator = &array_buffer_allocator;
 
     m_isolate = v8::Isolate::New(create_params);
+    m_isolate->SetData(0, this);
     m_isolate->AddGCEpilogueCallback(fb_GCCallback, v8::kGCTypeMarkSweepCompact);
 
     m_currentFibers++;
@@ -184,7 +185,7 @@ Isolate* Isolate::current()
 static void _PromiseRejectCallback(v8::PromiseRejectMessage data)
 {
     Runtime* rt = Runtime::current();
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = rt->isolate();
     v8::PromiseRejectEvent e = data.GetEvent();
 
     v8::Local<v8::Context> _context = isolate->context();

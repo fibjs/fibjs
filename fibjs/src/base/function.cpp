@@ -69,7 +69,7 @@ v8::Local<v8::Value> JSFunction::Call(v8::Local<v8::Context> context, v8::Local<
         }
 
         obj_ptr<Event_base> ev = new Event();
-        v8::Local<v8::Object> _data = ev->wrap();
+        v8::Local<v8::Object> _data = ev->wrap(Event_base::class_info().CreateInstance(isolate));
 
         v8::Local<v8::Function> _handlers[2];
 

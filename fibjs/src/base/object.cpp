@@ -10,9 +10,10 @@
 
 namespace fibjs {
 
-v8::Local<v8::Object> object_base::wrap(v8::Local<v8::Object> o)
+v8::Local<v8::Object> object_base::wrap(Isolate* isolate, v8::Local<v8::Object> o)
 {
-    Isolate* isolate = holder();
+    if(!m_isolate)
+        m_isolate = isolate;
     v8::Isolate* v8_isolate = isolate->m_isolate;
 
     if (!(m_isJSObject & JSOBJECT_JSHANDLE)) {
@@ -44,7 +45,7 @@ void* object_base::unwrap(v8::Local<v8::Value> o)
     if (obj->IsTypedArray()) {
         if (!obj->IsUint8Array())
             return NULL;
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = Isolate::current(obj);
         if (!obj->InstanceOf(isolate->context(), Buffer_base::class_info().getFunction(isolate)).FromMaybe(false))
             return NULL;
         v8::Local<v8::Uint8Array> arr = obj.As<v8::Uint8Array>();

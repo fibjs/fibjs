@@ -256,8 +256,9 @@ typedef int32_t result_t;
     do {                                      \
         do {
 
-#define CONSTRUCT_INIT()             \
-    if (class_info().init_isolate()) \
+#define CONSTRUCT_INIT()                       \
+    Isolate* isolate = Isolate::current(args); \
+    if (class_info().init_isolate(isolate))    \
         return;
 
 #define CONSTRUCT_ENTER()                \
@@ -326,12 +327,12 @@ typedef int32_t result_t;
     }                                         \
     THROW_ERROR()
 
-#define CONSTRUCT_RETURN()                                           \
-    CHECK_ARGUMENT()                                                 \
-    if (hr >= 0) {                                                   \
-        args.GetReturnValue().Set(V8_RETURN(vr->wrap(args.This()))); \
-        return;                                                      \
-    }                                                                \
+#define CONSTRUCT_RETURN()                                                                                \
+    CHECK_ARGUMENT()                                                                                      \
+    if (hr >= 0) {                                                                                        \
+        args.GetReturnValue().Set(V8_RETURN(vr->wrap(Isolate::current(args.GetIsolate()), args.This()))); \
+        return;                                                                                           \
+    }                                                                                                     \
     THROW_ERROR()
 
 #define PROPERTY_VAL(t)                                 \

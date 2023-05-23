@@ -161,7 +161,11 @@ private:
     }
 
 public:
-    virtual v8::Local<v8::Object> wrap(v8::Local<v8::Object> o = v8::Local<v8::Object>());
+    virtual v8::Local<v8::Object> wrap(Isolate* isolate, v8::Local<v8::Object> o = v8::Local<v8::Object>());
+    v8::Local<v8::Object> wrap(v8::Local<v8::Object> o = v8::Local<v8::Object>())
+    {
+        return wrap(o.IsEmpty() ? Isolate::current() : Isolate::current(o), o);
+    }
     static void* unwrap(v8::Local<v8::Value> o);
 
     bool hasJSHandle() const
@@ -290,9 +294,9 @@ public:
 public:
     v8::Local<v8::Object> GetPrivateObject()
     {
-        v8::Local<v8::Object> o = wrap();
         Isolate* isolate = holder();
-        v8::Local<v8::Context> context = o->GetCreationContextChecked();
+        v8::Local<v8::Object> o = wrap(isolate);
+        v8::Local<v8::Context> context = isolate->context();
 
         v8::Local<v8::Private> k = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_private_object"));
         JSValue v = o->GetPrivate(context, k);
@@ -307,19 +311,19 @@ public:
 
     v8::Local<v8::Value> GetPrivate(exlib::string key)
     {
-        v8::Local<v8::Context> context = wrap()->GetCreationContextChecked();
+        v8::Local<v8::Context> context = holder()->context();
         return JSValue(GetPrivateObject()->Get(context, holder()->NewString(key)));
     }
 
     void SetPrivate(exlib::string key, v8::Local<v8::Value> value)
     {
-        v8::Local<v8::Context> context = wrap()->GetCreationContextChecked();
+        v8::Local<v8::Context> context = holder()->context();
         GetPrivateObject()->Set(context, holder()->NewString(key), value).IsJust();
     }
 
     void DeletePrivate(exlib::string key)
     {
-        v8::Local<v8::Context> context = wrap()->GetCreationContextChecked();
+        v8::Local<v8::Context> context = holder()->context();
         GetPrivateObject()->Delete(context, holder()->NewString(key)).IsJust();
     }
 
@@ -338,7 +342,7 @@ public:
 
     virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
     {
-        v8::Local<v8::Object> o = wrap();
+        v8::Local<v8::Object> o = wrap(holder());
         v8::Local<v8::Object> o1 = v8::Object::New(holder()->m_isolate);
 
         extend(o, o1);
@@ -349,7 +353,7 @@ public:
 
     virtual result_t valueOf(v8::Local<v8::Value>& retVal)
     {
-        retVal = wrap();
+        retVal = wrap(holder());
         return 0;
     }
 
@@ -385,7 +389,7 @@ public:
     static void block_set(v8::Local<v8::Name> property,
         v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& info)
     {
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = Isolate::current(info);
 
         exlib::string strError = "Property \'";
 
@@ -398,7 +402,7 @@ public:
     static void i_IndexedSetter(uint32_t index,
         v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info)
     {
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = Isolate::current(info);
 
         isolate->m_isolate->ThrowException(
             isolate->NewString("Indexed Property is read-only."));
@@ -407,7 +411,7 @@ public:
     static void i_NamedSetter(v8::Local<v8::Name> property,
         v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info)
     {
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = Isolate::current(info);
 
         isolate->m_isolate->ThrowException(
             isolate->NewString("Named Property is read-only."));
@@ -416,7 +420,7 @@ public:
     static void i_NamedDeleter(
         v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& info)
     {
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = Isolate::current(info);
 
         isolate->m_isolate->ThrowException(
             isolate->NewString("Named Property is read-only."));

@@ -229,9 +229,11 @@ JSFiber::EnterJsScope::EnterJsScope(JSFiber* fb, bool task)
     s_current = m_pFiber;
     m_pFiber->m_bind_thread = exlib::Thread_base::current();
 
-    m_pFiber->holder()->m_fibers.putTail(m_pFiber);
+    Isolate* isolate = m_pFiber->holder();
 
-    m_fiber.Reset(m_pFiber->holder()->m_isolate, m_pFiber->wrap());
+    isolate->m_fibers.putTail(m_pFiber);
+
+    m_fiber.Reset(isolate->m_isolate, m_pFiber->wrap(isolate));
 }
 
 JSFiber::EnterJsScope::~EnterJsScope()

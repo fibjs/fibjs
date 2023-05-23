@@ -160,7 +160,7 @@ SandBox::Context::Context(SandBox* sb, exlib::string id)
 
     v8::Local<v8::Object> _mod = v8::Object::New(isolate->m_isolate);
 
-    _mod->Set(context, isolate->NewString("_sbox"), m_sb->wrap()).IsJust();
+    _mod->Set(context, isolate->NewString("_sbox"), m_sb->wrap(isolate)).IsJust();
     _mod->Set(context, isolate->NewString("_id"), isolate->NewString(id)).IsJust();
 
     m_fnRequest = isolate->NewFunction("require", _require, _mod);

@@ -67,9 +67,8 @@ static void promisify_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
     args.GetReturnValue().Set(resolver->GetPromise());
 }
 
-result_t util_base::promisify(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal)
+result_t promisify(Isolate* isolate, v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal)
 {
-    Isolate* isolate = Isolate::current();
     v8::Local<v8::Function> func1;
 
     func1 = isolate->NewFunction("promisify", promisify_stub, func);
@@ -86,9 +85,9 @@ result_t util_base::promisify(v8::Local<v8::Function> func, v8::Local<v8::Functi
     return 0;
 }
 
-result_t promisify(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal)
+result_t util_base::promisify(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal)
 {
-    return util_base::promisify(func, retVal);
+    return fibjs::promisify(Isolate::current(), func, retVal);
 }
 
 }

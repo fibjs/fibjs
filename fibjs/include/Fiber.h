@@ -97,11 +97,12 @@ public:
     static result_t New(v8::Local<v8::Function> func, OptArgs args,
         obj_ptr<T>& retVal)
     {
+        Isolate* isolate = Isolate::current(func);
         std::vector<v8::Local<v8::Value>> datas;
         args.GetData(datas);
 
         obj_ptr<JSFiber> fb = new JSFiber();
-        fb->New(func, datas.data(), args.Length(), fb->wrap());
+        fb->New(func, datas.data(), args.Length(), fb->wrap(isolate));
         retVal = fb;
 
         return 0;

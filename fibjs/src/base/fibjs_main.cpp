@@ -14,7 +14,7 @@ namespace fibjs {
 
 static void main_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(args);
     V8_SCOPE(isolate->m_isolate);
     v8::Local<v8::Array> argv;
 

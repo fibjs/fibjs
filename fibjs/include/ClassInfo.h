@@ -71,7 +71,7 @@ struct ClassData {
     ClassInfo* base;
 };
 
-result_t promisify(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal);
+result_t promisify(Isolate* isolate, v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal);
 
 class ClassInfo {
 public:
@@ -143,9 +143,9 @@ public:
         return o;
     }
 
-    bool init_isolate()
+    bool init_isolate(Isolate* isolate)
     {
-        cache* _cache = _init(Isolate::current());
+        cache* _cache = _init(isolate);
         if (_cache->m_init_isolate)
             return false;
 
@@ -221,7 +221,7 @@ public:
                         if (op.IsEmpty())
                             op = v8::Object::New(isolate->m_isolate);
 
-                        promisify(func, pfunc);
+                        promisify(isolate, func, pfunc);
                         op->Set(_context, name, pfunc).IsJust();
                     }
                 }

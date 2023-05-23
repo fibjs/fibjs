@@ -29,8 +29,6 @@ public:
     {
         CONSTRUCT_INIT();
 
-        Isolate* isolate = Isolate::current();
-
         isolate->m_isolate->ThrowException(
             isolate->NewString("not a constructor"));
     }

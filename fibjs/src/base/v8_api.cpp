@@ -74,6 +74,24 @@ void* fetch_store_data(std::shared_ptr<v8::BackingStore> backing_store, v8::Back
     return NULL;
 }
 
+// void* get_custom_ptr(Local<ArrayBufferView> view)
+// {
+//     i::Handle<i::JSArrayBufferView> obj = Utils::OpenHandle(*view);
+//     i::PtrComprCageBase cage_base = GetPtrComprCageBase(*obj);
+//     void* p = obj->WasDetached() ? 0 : (void*)obj->ReadSandboxedPointerField(i::JSArrayBufferView::kCustomDataOffset, cage_base);
+//     printf("get_custom_ptr: %p\n", p);
+//     return p;
+// }
+
+// void set_custom_ptr(Local<ArrayBufferView> view, void* p)
+// {
+//     i::Handle<i::JSArrayBufferView> obj = Utils::OpenHandle(*view);
+//     i::PtrComprCageBase cage_base = GetPtrComprCageBase(*obj);
+//     printf("set_custom_ptr: %p\n", p);
+//     if (!obj->WasDetached())
+//         obj->WriteSandboxedPointerField(i::JSArrayBufferView::kCustomDataOffset, cage_base, (i::Address)p);
+// }
+
 bool path_isAbsolute(exlib::string path);
 
 void InvokeApiInterruptCallbacks(Isolate* isolate)

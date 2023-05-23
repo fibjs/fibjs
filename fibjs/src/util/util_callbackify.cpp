@@ -101,7 +101,7 @@ result_t util_base::callbackify(v8::Local<v8::Function> func, v8::Local<v8::Func
     v8::Local<v8::Function> func1;
 
     func1 = isolate->NewFunction("async_promise", async_promise, func);
-    if (func.IsEmpty())
+    if (func1.IsEmpty())
         return CHECK_ERROR(Runtime::setError("function alloc error."));
 
     v8::Local<v8::Value> name = func->GetName();

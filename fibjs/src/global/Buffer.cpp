@@ -231,10 +231,9 @@ void Buffer::init(const void* data, size_t length)
     extMemory(length);
 }
 
-v8::Local<v8::Object> Buffer::wrap(v8::Local<v8::Object> This)
+v8::Local<v8::Object> Buffer::wrap(Isolate* isolate, v8::Local<v8::Object> This)
 {
     if (!hasJSHandle()) {
-        Isolate* isolate = holder();
         v8::Local<v8::Context> context = isolate->context();
         v8::Local<v8::ArrayBuffer> buf;
 
@@ -263,10 +262,10 @@ v8::Local<v8::Object> Buffer::wrap(v8::Local<v8::Object> This)
 
         ui->SetPrototype(context, proto).IsJust();
 
-        return object_base::wrap(ui);
+        return object_base::wrap(isolate, ui);
     }
 
-    return object_base::wrap();
+    return object_base::wrap(isolate);
 }
 
 inline bool is_native_codec(exlib::string codec)

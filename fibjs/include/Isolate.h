@@ -53,8 +53,41 @@ public:
     Isolate(exlib::string jsFilename, exlib::string jsCode = "");
 
 public:
-    static Isolate* current();
     void init();
+
+    static Isolate* current();
+
+    static Isolate* current(v8::Isolate* v8_isolate)
+    {
+        return (Isolate*)v8_isolate->GetData(0);
+    }
+
+    template <typename T>
+    static Isolate* current(const v8::FunctionCallbackInfo<T>& args)
+    {
+        return current(args.GetIsolate());
+    }
+
+    template <typename T>
+    static Isolate* current(const v8::PropertyCallbackInfo<T>& args)
+    {
+        return current(args.GetIsolate());
+    }
+
+    static Isolate* current(v8::Local<v8::Context> context)
+    {
+        return current(context->GetIsolate());
+    }
+
+    static Isolate* current(v8::Local<v8::Object> object)
+    {
+        return current(object->GetCreationContextChecked());
+    }
+
+    static Isolate* current(v8::Local<v8::Function> object)
+    {
+        return current(object->GetCreationContextChecked());
+    }
 
     void RequestInterrupt(v8::InterruptCallback callback, void* data);
     void RunMicrotasks();
