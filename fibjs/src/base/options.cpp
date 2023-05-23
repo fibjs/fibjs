@@ -176,13 +176,7 @@ void options(int32_t& pos, char* argv[])
     }
 
     int64_t sz = uv_get_total_memory() / 1024 / 1024;
-
-    if (sz > 2048)
-        sz = 2048;
-    else if (sz > 1024)
-        sz = 1024;
-    else
-        sz = sz * 3 / 4;
+    sz = sz * 3 / 4;
 
     v8::internal::v8_flags.max_old_space_size = sz;
     v8::internal::v8_flags.stack_size = stack_size - GUARD_SIZE;

@@ -105,12 +105,12 @@ public:
 
     virtual void* AllocateUninitialized(size_t length)
     {
-        return exlib::string::Buffer::New(length)->data();
+        return new uint8_t[length];
     }
 
     virtual void Free(void* data, size_t)
     {
-        exlib::string::Buffer::fromData((char*)data)->unref();
+        delete[] static_cast<uint8_t*>(data);
     }
 };
 
