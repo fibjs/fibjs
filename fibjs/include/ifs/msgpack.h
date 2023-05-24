@@ -64,7 +64,6 @@ inline void msgpack_base::s_static_encode(const v8::FunctionCallbackInfo<v8::Val
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("msgpack.encode");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -80,7 +79,6 @@ inline void msgpack_base::s_static_decode(const v8::FunctionCallbackInfo<v8::Val
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_NAME("msgpack.decode");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);

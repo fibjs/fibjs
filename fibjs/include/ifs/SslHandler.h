@@ -80,7 +80,6 @@ void SslHandler_base::__new(const T& args)
 {
     obj_ptr<SslHandler_base> vr;
 
-    METHOD_NAME("new SslHandler()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(2, 2);
@@ -105,7 +104,6 @@ inline void SslHandler_base::s_get_verification(v8::Local<v8::Name> property, co
 {
     int32_t vr;
 
-    METHOD_NAME("SslHandler.verification");
     METHOD_INSTANCE(SslHandler_base);
     PROPERTY_ENTER();
 
@@ -116,7 +114,6 @@ inline void SslHandler_base::s_get_verification(v8::Local<v8::Name> property, co
 
 inline void SslHandler_base::s_set_verification(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("SslHandler.verification");
     METHOD_INSTANCE(SslHandler_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
@@ -130,7 +127,6 @@ inline void SslHandler_base::s_get_ca(v8::Local<v8::Name> property, const v8::Pr
 {
     obj_ptr<X509Cert_base> vr;
 
-    METHOD_NAME("SslHandler.ca");
     METHOD_INSTANCE(SslHandler_base);
     PROPERTY_ENTER();
 
@@ -143,7 +139,6 @@ inline void SslHandler_base::s_get_handler(v8::Local<v8::Name> property, const v
 {
     obj_ptr<Handler_base> vr;
 
-    METHOD_NAME("SslHandler.handler");
     METHOD_INSTANCE(SslHandler_base);
     PROPERTY_ENTER();
 
@@ -154,7 +149,6 @@ inline void SslHandler_base::s_get_handler(v8::Local<v8::Name> property, const v
 
 inline void SslHandler_base::s_set_handler(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("SslHandler.handler");
     METHOD_INSTANCE(SslHandler_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(obj_ptr<Handler_base>);

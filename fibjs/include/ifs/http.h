@@ -203,7 +203,6 @@ inline void http_base::s_static_get_STATUS_CODES(v8::Local<v8::Name> property, c
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_NAME("http.STATUS_CODES");
     PROPERTY_ENTER();
 
     hr = get_STATUS_CODES(vr);
@@ -215,7 +214,6 @@ inline void http_base::s_static_get_cookies(v8::Local<v8::Name> property, const 
 {
     obj_ptr<NArray> vr;
 
-    METHOD_NAME("http.cookies");
     PROPERTY_ENTER();
 
     hr = get_cookies(vr);
@@ -227,7 +225,6 @@ inline void http_base::s_static_get_timeout(v8::Local<v8::Name> property, const 
 {
     int32_t vr;
 
-    METHOD_NAME("http.timeout");
     PROPERTY_ENTER();
 
     hr = get_timeout(vr);
@@ -237,7 +234,6 @@ inline void http_base::s_static_get_timeout(v8::Local<v8::Name> property, const 
 
 inline void http_base::s_static_set_timeout(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("http.timeout");
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
 
@@ -250,7 +246,6 @@ inline void http_base::s_static_get_enableCookie(v8::Local<v8::Name> property, c
 {
     bool vr;
 
-    METHOD_NAME("http.enableCookie");
     PROPERTY_ENTER();
 
     hr = get_enableCookie(vr);
@@ -260,7 +255,6 @@ inline void http_base::s_static_get_enableCookie(v8::Local<v8::Name> property, c
 
 inline void http_base::s_static_set_enableCookie(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("http.enableCookie");
     PROPERTY_ENTER();
     PROPERTY_VAL(bool);
 
@@ -273,7 +267,6 @@ inline void http_base::s_static_get_autoRedirect(v8::Local<v8::Name> property, c
 {
     bool vr;
 
-    METHOD_NAME("http.autoRedirect");
     PROPERTY_ENTER();
 
     hr = get_autoRedirect(vr);
@@ -283,7 +276,6 @@ inline void http_base::s_static_get_autoRedirect(v8::Local<v8::Name> property, c
 
 inline void http_base::s_static_set_autoRedirect(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("http.autoRedirect");
     PROPERTY_ENTER();
     PROPERTY_VAL(bool);
 
@@ -296,7 +288,6 @@ inline void http_base::s_static_get_enableEncoding(v8::Local<v8::Name> property,
 {
     bool vr;
 
-    METHOD_NAME("http.enableEncoding");
     PROPERTY_ENTER();
 
     hr = get_enableEncoding(vr);
@@ -306,7 +297,6 @@ inline void http_base::s_static_get_enableEncoding(v8::Local<v8::Name> property,
 
 inline void http_base::s_static_set_enableEncoding(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("http.enableEncoding");
     PROPERTY_ENTER();
     PROPERTY_VAL(bool);
 
@@ -319,7 +309,6 @@ inline void http_base::s_static_get_maxBodySize(v8::Local<v8::Name> property, co
 {
     int32_t vr;
 
-    METHOD_NAME("http.maxBodySize");
     PROPERTY_ENTER();
 
     hr = get_maxBodySize(vr);
@@ -329,7 +318,6 @@ inline void http_base::s_static_get_maxBodySize(v8::Local<v8::Name> property, co
 
 inline void http_base::s_static_set_maxBodySize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("http.maxBodySize");
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
 
@@ -342,7 +330,6 @@ inline void http_base::s_static_get_userAgent(v8::Local<v8::Name> property, cons
 {
     exlib::string vr;
 
-    METHOD_NAME("http.userAgent");
     PROPERTY_ENTER();
 
     hr = get_userAgent(vr);
@@ -352,7 +339,6 @@ inline void http_base::s_static_get_userAgent(v8::Local<v8::Name> property, cons
 
 inline void http_base::s_static_set_userAgent(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("http.userAgent");
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
 
@@ -365,7 +351,6 @@ inline void http_base::s_static_get_poolSize(v8::Local<v8::Name> property, const
 {
     int32_t vr;
 
-    METHOD_NAME("http.poolSize");
     PROPERTY_ENTER();
 
     hr = get_poolSize(vr);
@@ -375,7 +360,6 @@ inline void http_base::s_static_get_poolSize(v8::Local<v8::Name> property, const
 
 inline void http_base::s_static_set_poolSize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("http.poolSize");
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
 
@@ -388,7 +372,6 @@ inline void http_base::s_static_get_poolTimeout(v8::Local<v8::Name> property, co
 {
     int32_t vr;
 
-    METHOD_NAME("http.poolTimeout");
     PROPERTY_ENTER();
 
     hr = get_poolTimeout(vr);
@@ -398,7 +381,6 @@ inline void http_base::s_static_get_poolTimeout(v8::Local<v8::Name> property, co
 
 inline void http_base::s_static_set_poolTimeout(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("http.poolTimeout");
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
 
@@ -411,7 +393,6 @@ inline void http_base::s_static_get_http_proxy(v8::Local<v8::Name> property, con
 {
     exlib::string vr;
 
-    METHOD_NAME("http.http_proxy");
     PROPERTY_ENTER();
 
     hr = get_http_proxy(vr);
@@ -421,7 +402,6 @@ inline void http_base::s_static_get_http_proxy(v8::Local<v8::Name> property, con
 
 inline void http_base::s_static_set_http_proxy(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("http.http_proxy");
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
 
@@ -434,7 +414,6 @@ inline void http_base::s_static_get_https_proxy(v8::Local<v8::Name> property, co
 {
     exlib::string vr;
 
-    METHOD_NAME("http.https_proxy");
     PROPERTY_ENTER();
 
     hr = get_https_proxy(vr);
@@ -444,7 +423,6 @@ inline void http_base::s_static_get_https_proxy(v8::Local<v8::Name> property, co
 
 inline void http_base::s_static_set_https_proxy(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("http.https_proxy");
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
 
@@ -457,7 +435,6 @@ inline void http_base::s_static_fileHandler(const v8::FunctionCallbackInfo<v8::V
 {
     obj_ptr<Handler_base> vr;
 
-    METHOD_NAME("http.fileHandler");
     METHOD_ENTER();
 
     METHOD_OVER(3, 1);
@@ -473,7 +450,6 @@ inline void http_base::s_static_fileHandler(const v8::FunctionCallbackInfo<v8::V
 
 inline void http_base::s_static_setClientCert(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("http.setClientCert");
     METHOD_ENTER();
 
     METHOD_OVER(2, 2);
@@ -490,7 +466,6 @@ inline void http_base::s_static_request(const v8::FunctionCallbackInfo<v8::Value
 {
     obj_ptr<HttpResponse_base> vr;
 
-    METHOD_NAME("http.request");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 2);
@@ -551,7 +526,6 @@ inline void http_base::s_static_get(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     obj_ptr<HttpResponse_base> vr;
 
-    METHOD_NAME("http.get");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 1);
@@ -571,7 +545,6 @@ inline void http_base::s_static_post(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<HttpResponse_base> vr;
 
-    METHOD_NAME("http.post");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 1);
@@ -591,7 +564,6 @@ inline void http_base::s_static_del(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     obj_ptr<HttpResponse_base> vr;
 
-    METHOD_NAME("http.del");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 1);
@@ -611,7 +583,6 @@ inline void http_base::s_static_put(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     obj_ptr<HttpResponse_base> vr;
 
-    METHOD_NAME("http.put");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 1);
@@ -631,7 +602,6 @@ inline void http_base::s_static_patch(const v8::FunctionCallbackInfo<v8::Value>&
 {
     obj_ptr<HttpResponse_base> vr;
 
-    METHOD_NAME("http.patch");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 1);
@@ -651,7 +621,6 @@ inline void http_base::s_static_head(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<HttpResponse_base> vr;
 
-    METHOD_NAME("http.head");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 1);

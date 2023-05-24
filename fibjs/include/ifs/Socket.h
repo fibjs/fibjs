@@ -118,7 +118,6 @@ void Socket_base::__new(const T& args)
 {
     obj_ptr<Socket_base> vr;
 
-    METHOD_NAME("new Socket()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(1, 0);
@@ -134,7 +133,6 @@ inline void Socket_base::s_get_family(v8::Local<v8::Name> property, const v8::Pr
 {
     int32_t vr;
 
-    METHOD_NAME("Socket.family");
     METHOD_INSTANCE(Socket_base);
     PROPERTY_ENTER();
 
@@ -147,7 +145,6 @@ inline void Socket_base::s_get_remoteAddress(v8::Local<v8::Name> property, const
 {
     exlib::string vr;
 
-    METHOD_NAME("Socket.remoteAddress");
     METHOD_INSTANCE(Socket_base);
     PROPERTY_ENTER();
 
@@ -160,7 +157,6 @@ inline void Socket_base::s_get_remotePort(v8::Local<v8::Name> property, const v8
 {
     int32_t vr;
 
-    METHOD_NAME("Socket.remotePort");
     METHOD_INSTANCE(Socket_base);
     PROPERTY_ENTER();
 
@@ -173,7 +169,6 @@ inline void Socket_base::s_get_localAddress(v8::Local<v8::Name> property, const 
 {
     exlib::string vr;
 
-    METHOD_NAME("Socket.localAddress");
     METHOD_INSTANCE(Socket_base);
     PROPERTY_ENTER();
 
@@ -186,7 +181,6 @@ inline void Socket_base::s_get_localPort(v8::Local<v8::Name> property, const v8:
 {
     int32_t vr;
 
-    METHOD_NAME("Socket.localPort");
     METHOD_INSTANCE(Socket_base);
     PROPERTY_ENTER();
 
@@ -199,7 +193,6 @@ inline void Socket_base::s_get_timeout(v8::Local<v8::Name> property, const v8::P
 {
     int32_t vr;
 
-    METHOD_NAME("Socket.timeout");
     METHOD_INSTANCE(Socket_base);
     PROPERTY_ENTER();
 
@@ -210,7 +203,6 @@ inline void Socket_base::s_get_timeout(v8::Local<v8::Name> property, const v8::P
 
 inline void Socket_base::s_set_timeout(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("Socket.timeout");
     METHOD_INSTANCE(Socket_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
@@ -222,7 +214,6 @@ inline void Socket_base::s_set_timeout(v8::Local<v8::Name> property, v8::Local<v
 
 inline void Socket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Socket.connect");
     METHOD_INSTANCE(Socket_base);
     METHOD_ENTER();
 
@@ -241,7 +232,6 @@ inline void Socket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void Socket_base::s_bind(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Socket.bind");
     METHOD_INSTANCE(Socket_base);
     METHOD_ENTER();
 
@@ -265,7 +255,6 @@ inline void Socket_base::s_bind(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Socket_base::s_listen(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Socket.listen");
     METHOD_INSTANCE(Socket_base);
     METHOD_ENTER();
 
@@ -282,7 +271,6 @@ inline void Socket_base::s_accept(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     obj_ptr<Socket_base> vr;
 
-    METHOD_NAME("Socket.accept");
     METHOD_INSTANCE(Socket_base);
     METHOD_ENTER();
 
@@ -300,7 +288,6 @@ inline void Socket_base::s_recv(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("Socket.recv");
     METHOD_INSTANCE(Socket_base);
     METHOD_ENTER();
 
@@ -318,7 +305,6 @@ inline void Socket_base::s_recv(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Socket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Socket.send");
     METHOD_INSTANCE(Socket_base);
     METHOD_ENTER();
 

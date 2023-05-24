@@ -72,7 +72,6 @@ inline void HeapGraphNode_base::s_get_type(v8::Local<v8::Name> property, const v
 {
     int32_t vr;
 
-    METHOD_NAME("HeapGraphNode.type");
     METHOD_INSTANCE(HeapGraphNode_base);
     PROPERTY_ENTER();
 
@@ -85,7 +84,6 @@ inline void HeapGraphNode_base::s_get_name(v8::Local<v8::Name> property, const v
 {
     exlib::string vr;
 
-    METHOD_NAME("HeapGraphNode.name");
     METHOD_INSTANCE(HeapGraphNode_base);
     PROPERTY_ENTER();
 
@@ -98,7 +96,6 @@ inline void HeapGraphNode_base::s_get_description(v8::Local<v8::Name> property, 
 {
     exlib::string vr;
 
-    METHOD_NAME("HeapGraphNode.description");
     METHOD_INSTANCE(HeapGraphNode_base);
     PROPERTY_ENTER();
 
@@ -111,7 +108,6 @@ inline void HeapGraphNode_base::s_get_id(v8::Local<v8::Name> property, const v8:
 {
     int32_t vr;
 
-    METHOD_NAME("HeapGraphNode.id");
     METHOD_INSTANCE(HeapGraphNode_base);
     PROPERTY_ENTER();
 
@@ -124,7 +120,6 @@ inline void HeapGraphNode_base::s_get_shallowSize(v8::Local<v8::Name> property, 
 {
     int32_t vr;
 
-    METHOD_NAME("HeapGraphNode.shallowSize");
     METHOD_INSTANCE(HeapGraphNode_base);
     PROPERTY_ENTER();
 
@@ -137,7 +132,6 @@ inline void HeapGraphNode_base::s_get_childs(v8::Local<v8::Name> property, const
 {
     obj_ptr<NArray> vr;
 
-    METHOD_NAME("HeapGraphNode.childs");
     METHOD_INSTANCE(HeapGraphNode_base);
     PROPERTY_ENTER();
 

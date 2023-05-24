@@ -67,7 +67,6 @@ inline void iconv_base::s_static_encode(const v8::FunctionCallbackInfo<v8::Value
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("iconv.encode");
     METHOD_ENTER();
 
     METHOD_OVER(2, 2);
@@ -84,7 +83,6 @@ inline void iconv_base::s_static_decode(const v8::FunctionCallbackInfo<v8::Value
 {
     exlib::string vr;
 
-    METHOD_NAME("iconv.decode");
     METHOD_ENTER();
 
     METHOD_OVER(2, 2);
@@ -101,7 +99,6 @@ inline void iconv_base::s_static_isEncoding(const v8::FunctionCallbackInfo<v8::V
 {
     bool vr;
 
-    METHOD_NAME("iconv.isEncoding");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);

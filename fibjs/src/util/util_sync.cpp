@@ -50,21 +50,11 @@ static void sync_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 
     v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(args.Data());
-
-    exlib::string str("util.sync(");
-    str += isolate->toString(func->GetName());
-    str += ")";
-
-    METHOD_NAME(str.c_str());
-
     v8::Local<v8::Value> result = func->Call(context, args.This(), (int32_t)argv.size(), argv.data()).FromMaybe(v8::Local<v8::Value>());
     if (result.IsEmpty())
         return;
 
-    {
-        METHOD_NAME("util.sync");
-        ev->wait();
-    }
+    ev->wait();
 
     JSValue error = _data->Get(context, isolate->NewString("_error"));
 

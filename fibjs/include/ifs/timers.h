@@ -85,7 +85,6 @@ inline void timers_base::s_static_setTimeout(const v8::FunctionCallbackInfo<v8::
 {
     obj_ptr<Timer_base> vr;
 
-    METHOD_NAME("timers.setTimeout");
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -101,7 +100,6 @@ inline void timers_base::s_static_setTimeout(const v8::FunctionCallbackInfo<v8::
 
 inline void timers_base::s_static_clearTimeout(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("timers.clearTimeout");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -117,7 +115,6 @@ inline void timers_base::s_static_setInterval(const v8::FunctionCallbackInfo<v8:
 {
     obj_ptr<Timer_base> vr;
 
-    METHOD_NAME("timers.setInterval");
     METHOD_ENTER();
 
     METHOD_OVER(-1, 2);
@@ -133,7 +130,6 @@ inline void timers_base::s_static_setInterval(const v8::FunctionCallbackInfo<v8:
 
 inline void timers_base::s_static_clearInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("timers.clearInterval");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -149,7 +145,6 @@ inline void timers_base::s_static_setHrInterval(const v8::FunctionCallbackInfo<v
 {
     obj_ptr<Timer_base> vr;
 
-    METHOD_NAME("timers.setHrInterval");
     METHOD_ENTER();
 
     METHOD_OVER(-1, 2);
@@ -165,7 +160,6 @@ inline void timers_base::s_static_setHrInterval(const v8::FunctionCallbackInfo<v
 
 inline void timers_base::s_static_clearHrInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("timers.clearHrInterval");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -181,7 +175,6 @@ inline void timers_base::s_static_setImmediate(const v8::FunctionCallbackInfo<v8
 {
     obj_ptr<Timer_base> vr;
 
-    METHOD_NAME("timers.setImmediate");
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -196,7 +189,6 @@ inline void timers_base::s_static_setImmediate(const v8::FunctionCallbackInfo<v8
 
 inline void timers_base::s_static_clearImmediate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("timers.clearImmediate");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -212,7 +204,6 @@ inline void timers_base::s_static_call(const v8::FunctionCallbackInfo<v8::Value>
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_NAME("timers.call");
     METHOD_ENTER();
 
     METHOD_OVER(-1, 2);

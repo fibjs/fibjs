@@ -57,7 +57,6 @@ inline void performance_base::s_static_now(const v8::FunctionCallbackInfo<v8::Va
 {
     double vr;
 
-    METHOD_NAME("performance.now");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);

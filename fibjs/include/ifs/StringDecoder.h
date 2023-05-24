@@ -98,7 +98,6 @@ void StringDecoder_base::__new(const T& args)
 {
     obj_ptr<StringDecoder_base> vr;
 
-    METHOD_NAME("new StringDecoder()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(1, 0);
@@ -114,7 +113,6 @@ inline void StringDecoder_base::s_end(const v8::FunctionCallbackInfo<v8::Value>&
 {
     exlib::string vr;
 
-    METHOD_NAME("StringDecoder.end");
     METHOD_INSTANCE(StringDecoder_base);
     METHOD_ENTER();
 
@@ -135,7 +133,6 @@ inline void StringDecoder_base::s_write(const v8::FunctionCallbackInfo<v8::Value
 {
     exlib::string vr;
 
-    METHOD_NAME("StringDecoder.write");
     METHOD_INSTANCE(StringDecoder_base);
     METHOD_ENTER();
 
@@ -152,7 +149,6 @@ inline void StringDecoder_base::s_text(const v8::FunctionCallbackInfo<v8::Value>
 {
     exlib::string vr;
 
-    METHOD_NAME("StringDecoder.text");
     METHOD_INSTANCE(StringDecoder_base);
     METHOD_ENTER();
 
@@ -170,7 +166,6 @@ inline void StringDecoder_base::s_fillLast(const v8::FunctionCallbackInfo<v8::Va
 {
     exlib::string vr;
 
-    METHOD_NAME("StringDecoder.fillLast");
     METHOD_INSTANCE(StringDecoder_base);
     METHOD_ENTER();
 
@@ -187,7 +182,6 @@ inline void StringDecoder_base::s_get_lastNeed(v8::Local<v8::Name> property, con
 {
     int32_t vr;
 
-    METHOD_NAME("StringDecoder.lastNeed");
     METHOD_INSTANCE(StringDecoder_base);
     PROPERTY_ENTER();
 
@@ -198,7 +192,6 @@ inline void StringDecoder_base::s_get_lastNeed(v8::Local<v8::Name> property, con
 
 inline void StringDecoder_base::s_set_lastNeed(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("StringDecoder.lastNeed");
     METHOD_INSTANCE(StringDecoder_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
@@ -212,7 +205,6 @@ inline void StringDecoder_base::s_get_lastTotal(v8::Local<v8::Name> property, co
 {
     int32_t vr;
 
-    METHOD_NAME("StringDecoder.lastTotal");
     METHOD_INSTANCE(StringDecoder_base);
     PROPERTY_ENTER();
 
@@ -223,7 +215,6 @@ inline void StringDecoder_base::s_get_lastTotal(v8::Local<v8::Name> property, co
 
 inline void StringDecoder_base::s_set_lastTotal(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("StringDecoder.lastTotal");
     METHOD_INSTANCE(StringDecoder_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
@@ -237,7 +228,6 @@ inline void StringDecoder_base::s_get_lastChar(v8::Local<v8::Name> property, con
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("StringDecoder.lastChar");
     METHOD_INSTANCE(StringDecoder_base);
     PROPERTY_ENTER();
 
@@ -248,7 +238,6 @@ inline void StringDecoder_base::s_get_lastChar(v8::Local<v8::Name> property, con
 
 inline void StringDecoder_base::s_set_lastChar(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("StringDecoder.lastChar");
     METHOD_INSTANCE(StringDecoder_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(obj_ptr<Buffer_base>);
@@ -262,7 +251,6 @@ inline void StringDecoder_base::s_get_encoding(v8::Local<v8::Name> property, con
 {
     exlib::string vr;
 
-    METHOD_NAME("StringDecoder.encoding");
     METHOD_INSTANCE(StringDecoder_base);
     PROPERTY_ENTER();
 
@@ -273,7 +261,6 @@ inline void StringDecoder_base::s_get_encoding(v8::Local<v8::Name> property, con
 
 inline void StringDecoder_base::s_set_encoding(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("StringDecoder.encoding");
     METHOD_INSTANCE(StringDecoder_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);

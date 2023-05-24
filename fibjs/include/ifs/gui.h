@@ -82,7 +82,6 @@ inline ClassInfo& gui_base::class_info()
 
 inline void gui_base::s_static_setVersion(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("gui.setVersion");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -98,7 +97,6 @@ inline void gui_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     obj_ptr<WebView_base> vr;
 
-    METHOD_NAME("gui.open");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);

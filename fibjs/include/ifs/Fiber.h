@@ -70,7 +70,6 @@ inline ClassInfo& Fiber_base::class_info()
 
 inline void Fiber_base::s_join(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Fiber.join");
     METHOD_INSTANCE(Fiber_base);
     METHOD_ENTER();
 
@@ -85,7 +84,6 @@ inline void Fiber_base::s_get_id(v8::Local<v8::Name> property, const v8::Propert
 {
     int64_t vr;
 
-    METHOD_NAME("Fiber.id");
     METHOD_INSTANCE(Fiber_base);
     PROPERTY_ENTER();
 
@@ -98,7 +96,6 @@ inline void Fiber_base::s_get_caller(v8::Local<v8::Name> property, const v8::Pro
 {
     obj_ptr<Fiber_base> vr;
 
-    METHOD_NAME("Fiber.caller");
     METHOD_INSTANCE(Fiber_base);
     PROPERTY_ENTER();
 
@@ -111,7 +108,6 @@ inline void Fiber_base::s_get_stack(v8::Local<v8::Name> property, const v8::Prop
 {
     exlib::string vr;
 
-    METHOD_NAME("Fiber.stack");
     METHOD_INSTANCE(Fiber_base);
     PROPERTY_ENTER();
 
@@ -124,7 +120,6 @@ inline void Fiber_base::s_get_stack_usage(v8::Local<v8::Name> property, const v8
 {
     int32_t vr;
 
-    METHOD_NAME("Fiber.stack_usage");
     METHOD_INSTANCE(Fiber_base);
     PROPERTY_ENTER();
 

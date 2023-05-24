@@ -123,7 +123,6 @@ void EventEmitter_base::__new(const T& args)
 {
     obj_ptr<EventEmitter_base> vr;
 
-    METHOD_NAME("new EventEmitter()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(0, 0);
@@ -137,7 +136,6 @@ inline void EventEmitter_base::s_static_get_defaultMaxListeners(v8::Local<v8::Na
 {
     int32_t vr;
 
-    METHOD_NAME("EventEmitter.defaultMaxListeners");
     PROPERTY_ENTER();
 
     hr = get_defaultMaxListeners(vr);
@@ -147,7 +145,6 @@ inline void EventEmitter_base::s_static_get_defaultMaxListeners(v8::Local<v8::Na
 
 inline void EventEmitter_base::s_static_set_defaultMaxListeners(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("EventEmitter.defaultMaxListeners");
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
 
@@ -160,7 +157,6 @@ inline void EventEmitter_base::s_on(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("EventEmitter.on");
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
@@ -184,7 +180,6 @@ inline void EventEmitter_base::s_addListener(const v8::FunctionCallbackInfo<v8::
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("EventEmitter.addListener");
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
@@ -208,7 +203,6 @@ inline void EventEmitter_base::s_prependListener(const v8::FunctionCallbackInfo<
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("EventEmitter.prependListener");
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
@@ -232,7 +226,6 @@ inline void EventEmitter_base::s_once(const v8::FunctionCallbackInfo<v8::Value>&
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("EventEmitter.once");
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
@@ -256,7 +249,6 @@ inline void EventEmitter_base::s_prependOnceListener(const v8::FunctionCallbackI
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("EventEmitter.prependOnceListener");
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
@@ -280,7 +272,6 @@ inline void EventEmitter_base::s_off(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("EventEmitter.off");
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
@@ -310,7 +301,6 @@ inline void EventEmitter_base::s_removeListener(const v8::FunctionCallbackInfo<v
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("EventEmitter.removeListener");
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
@@ -340,7 +330,6 @@ inline void EventEmitter_base::s_removeAllListeners(const v8::FunctionCallbackIn
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("EventEmitter.removeAllListeners");
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
@@ -361,7 +350,6 @@ inline void EventEmitter_base::s_removeAllListeners(const v8::FunctionCallbackIn
 
 inline void EventEmitter_base::s_setMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("EventEmitter.setMaxListeners");
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
@@ -378,7 +366,6 @@ inline void EventEmitter_base::s_getMaxListeners(const v8::FunctionCallbackInfo<
 {
     int32_t vr;
 
-    METHOD_NAME("EventEmitter.getMaxListeners");
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
@@ -393,7 +380,6 @@ inline void EventEmitter_base::s_listeners(const v8::FunctionCallbackInfo<v8::Va
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_NAME("EventEmitter.listeners");
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
@@ -410,7 +396,6 @@ inline void EventEmitter_base::s_listenerCount(const v8::FunctionCallbackInfo<v8
 {
     int32_t vr;
 
-    METHOD_NAME("EventEmitter.listenerCount");
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
@@ -434,7 +419,6 @@ inline void EventEmitter_base::s_eventNames(const v8::FunctionCallbackInfo<v8::V
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_NAME("EventEmitter.eventNames");
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 
@@ -449,7 +433,6 @@ inline void EventEmitter_base::s_emit(const v8::FunctionCallbackInfo<v8::Value>&
 {
     bool vr;
 
-    METHOD_NAME("EventEmitter.emit");
     METHOD_INSTANCE(EventEmitter_base);
     METHOD_ENTER();
 

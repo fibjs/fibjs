@@ -106,16 +106,13 @@ v8::Local<v8::Value> JSFunction::Call(v8::Local<v8::Context> context, v8::Local<
             }
         }
 
-        {
-            METHOD_NAME("promise.call");
-            ev->wait();
-        }
+        ev->wait();
 
         JSValue error = _data->Get(context, isolate->NewString("_error"));
         if (!error.IsEmpty() && !error->IsUndefined() && !error->IsNull())
             isolate->m_isolate->ThrowException(error);
         else
-            result =  _data->Get(context, isolate->NewString("_result")).FromMaybe(v8::Local<v8::Value>());
+            result = _data->Get(context, isolate->NewString("_result")).FromMaybe(v8::Local<v8::Value>());
     }
 
     return result;

@@ -494,7 +494,6 @@ public:
 
         if (evs.size() > 0) {
             int32_t i;
-            METHOD_NAME("EventEmitter.emit");
             for (i = 0; i < (int32_t)evs.size(); i++) {
                 evs[i]->join();
                 msg = ((JSFiber*)(Fiber_base*)evs[i])->m_message;
@@ -599,7 +598,6 @@ public:
     {
         v8::Local<v8::Object> vr;
 
-        METHOD_NAME("EventEmitter.on");
         METHOD_ENTER();
 
         METHOD_OVER(2, 2);
@@ -622,7 +620,6 @@ public:
     {
         v8::Local<v8::Object> vr;
 
-        METHOD_NAME("EventEmitter.prependListener");
         METHOD_ENTER();
 
         METHOD_OVER(2, 2);
@@ -645,7 +642,6 @@ public:
     {
         v8::Local<v8::Object> vr;
 
-        METHOD_NAME("EventEmitter.once");
         METHOD_ENTER();
 
         METHOD_OVER(2, 2);
@@ -668,7 +664,6 @@ public:
     {
         v8::Local<v8::Object> vr;
 
-        METHOD_NAME("EventEmitter.prependOnceListener");
         METHOD_ENTER();
 
         METHOD_OVER(2, 2);
@@ -691,7 +686,6 @@ public:
     {
         v8::Local<v8::Object> vr;
 
-        METHOD_NAME("EventEmitter.off");
         METHOD_ENTER();
 
         METHOD_OVER(2, 2);
@@ -720,7 +714,6 @@ public:
     {
         v8::Local<v8::Object> vr;
 
-        METHOD_NAME("EventEmitter.removeAllListeners");
         METHOD_ENTER();
 
         METHOD_OVER(1, 1);
@@ -740,7 +733,6 @@ public:
 
     static void s_setMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        METHOD_NAME("EventEmitter.setMaxListeners");
         METHOD_ENTER();
 
         METHOD_OVER(1, 1);
@@ -756,7 +748,6 @@ public:
     {
         int32_t vr;
 
-        METHOD_NAME("EventEmitter.getMaxListeners");
         METHOD_ENTER();
 
         METHOD_OVER(0, 0);
@@ -770,7 +761,6 @@ public:
     {
         int32_t vr;
 
-        METHOD_NAME("EventEmitter.defaultMaxListeners");
         PROPERTY_ENTER();
 
         hr = get_defaultMaxListeners(vr);
@@ -780,7 +770,6 @@ public:
 
     static void s_set_defaultMaxListeners(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
     {
-        METHOD_NAME("EventEmitter.defaultMaxListeners");
         PROPERTY_ENTER();
         PROPERTY_VAL(int32_t);
 
@@ -793,7 +782,6 @@ public:
     {
         v8::Local<v8::Array> vr;
 
-        METHOD_NAME("EventEmitter.listeners");
         METHOD_ENTER();
 
         METHOD_OVER(1, 1);
@@ -809,7 +797,6 @@ public:
     {
         int32_t vr;
 
-        METHOD_NAME("EventEmitter.listenerCount");
         METHOD_ENTER();
 
         METHOD_OVER(1, 1);
@@ -839,7 +826,6 @@ public:
     {
         bool vr;
 
-        METHOD_NAME("EventEmitter.emit");
         METHOD_ENTER();
 
         METHOD_OVER(-1, 1);
@@ -856,7 +842,6 @@ public:
     {
         v8::Local<v8::Array> vr;
 
-        METHOD_NAME("EventEmitter.eventNames");
         METHOD_ENTER();
 
         METHOD_OVER(0, 0);

@@ -156,7 +156,6 @@ void Message_base::__new(const T& args)
 {
     obj_ptr<Message_base> vr;
 
-    METHOD_NAME("new Message()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(0, 0);
@@ -170,7 +169,6 @@ inline void Message_base::s_get_value(v8::Local<v8::Name> property, const v8::Pr
 {
     exlib::string vr;
 
-    METHOD_NAME("Message.value");
     METHOD_INSTANCE(Message_base);
     PROPERTY_ENTER();
 
@@ -181,7 +179,6 @@ inline void Message_base::s_get_value(v8::Local<v8::Name> property, const v8::Pr
 
 inline void Message_base::s_set_value(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("Message.value");
     METHOD_INSTANCE(Message_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -195,7 +192,6 @@ inline void Message_base::s_get_params(v8::Local<v8::Name> property, const v8::P
 {
     obj_ptr<NArray> vr;
 
-    METHOD_NAME("Message.params");
     METHOD_INSTANCE(Message_base);
     PROPERTY_ENTER();
 
@@ -208,7 +204,6 @@ inline void Message_base::s_get_type(v8::Local<v8::Name> property, const v8::Pro
 {
     int32_t vr;
 
-    METHOD_NAME("Message.type");
     METHOD_INSTANCE(Message_base);
     PROPERTY_ENTER();
 
@@ -219,7 +214,6 @@ inline void Message_base::s_get_type(v8::Local<v8::Name> property, const v8::Pro
 
 inline void Message_base::s_set_type(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("Message.type");
     METHOD_INSTANCE(Message_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
@@ -233,7 +227,6 @@ inline void Message_base::s_get_data(v8::Local<v8::Name> property, const v8::Pro
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_NAME("Message.data");
     METHOD_INSTANCE(Message_base);
     PROPERTY_ENTER();
 
@@ -246,7 +239,6 @@ inline void Message_base::s_get_body(v8::Local<v8::Name> property, const v8::Pro
 {
     obj_ptr<SeekableStream_base> vr;
 
-    METHOD_NAME("Message.body");
     METHOD_INSTANCE(Message_base);
     PROPERTY_ENTER();
 
@@ -257,7 +249,6 @@ inline void Message_base::s_get_body(v8::Local<v8::Name> property, const v8::Pro
 
 inline void Message_base::s_set_body(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("Message.body");
     METHOD_INSTANCE(Message_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(obj_ptr<SeekableStream_base>);
@@ -271,7 +262,6 @@ inline void Message_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("Message.read");
     METHOD_INSTANCE(Message_base);
     METHOD_ENTER();
 
@@ -291,7 +281,6 @@ inline void Message_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("Message.readAll");
     METHOD_INSTANCE(Message_base);
     METHOD_ENTER();
 
@@ -307,7 +296,6 @@ inline void Message_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void Message_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Message.write");
     METHOD_INSTANCE(Message_base);
     METHOD_ENTER();
 
@@ -327,7 +315,6 @@ inline void Message_base::s_json(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_NAME("Message.json");
     METHOD_INSTANCE(Message_base);
     METHOD_ENTER();
 
@@ -348,7 +335,6 @@ inline void Message_base::s_pack(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_NAME("Message.pack");
     METHOD_INSTANCE(Message_base);
     METHOD_ENTER();
 
@@ -369,7 +355,6 @@ inline void Message_base::s_get_length(v8::Local<v8::Name> property, const v8::P
 {
     int64_t vr;
 
-    METHOD_NAME("Message.length");
     METHOD_INSTANCE(Message_base);
     PROPERTY_ENTER();
 
@@ -380,7 +365,6 @@ inline void Message_base::s_get_length(v8::Local<v8::Name> property, const v8::P
 
 inline void Message_base::s_end(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Message.end");
     METHOD_INSTANCE(Message_base);
     METHOD_ENTER();
 
@@ -395,7 +379,6 @@ inline void Message_base::s_isEnded(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     bool vr;
 
-    METHOD_NAME("Message.isEnded");
     METHOD_INSTANCE(Message_base);
     METHOD_ENTER();
 
@@ -408,7 +391,6 @@ inline void Message_base::s_isEnded(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void Message_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Message.clear");
     METHOD_INSTANCE(Message_base);
     METHOD_ENTER();
 
@@ -421,7 +403,6 @@ inline void Message_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void Message_base::s_sendTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Message.sendTo");
     METHOD_INSTANCE(Message_base);
     METHOD_ENTER();
 
@@ -439,7 +420,6 @@ inline void Message_base::s_sendTo(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void Message_base::s_readFrom(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Message.readFrom");
     METHOD_INSTANCE(Message_base);
     METHOD_ENTER();
 
@@ -459,7 +439,6 @@ inline void Message_base::s_get_stream(v8::Local<v8::Name> property, const v8::P
 {
     obj_ptr<Stream_base> vr;
 
-    METHOD_NAME("Message.stream");
     METHOD_INSTANCE(Message_base);
     PROPERTY_ENTER();
 
@@ -472,7 +451,6 @@ inline void Message_base::s_get_lastError(v8::Local<v8::Name> property, const v8
 {
     exlib::string vr;
 
-    METHOD_NAME("Message.lastError");
     METHOD_INSTANCE(Message_base);
     PROPERTY_ENTER();
 
@@ -483,7 +461,6 @@ inline void Message_base::s_get_lastError(v8::Local<v8::Name> property, const v8
 
 inline void Message_base::s_set_lastError(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("Message.lastError");
     METHOD_INSTANCE(Message_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);

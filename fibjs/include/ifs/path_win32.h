@@ -105,7 +105,6 @@ inline void path_win32_base::s_static_normalize(const v8::FunctionCallbackInfo<v
 {
     exlib::string vr;
 
-    METHOD_NAME("path_win32.normalize");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -121,7 +120,6 @@ inline void path_win32_base::s_static_basename(const v8::FunctionCallbackInfo<v8
 {
     exlib::string vr;
 
-    METHOD_NAME("path_win32.basename");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -138,7 +136,6 @@ inline void path_win32_base::s_static_extname(const v8::FunctionCallbackInfo<v8:
 {
     exlib::string vr;
 
-    METHOD_NAME("path_win32.extname");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -154,7 +151,6 @@ inline void path_win32_base::s_static_format(const v8::FunctionCallbackInfo<v8::
 {
     exlib::string vr;
 
-    METHOD_NAME("path_win32.format");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -170,7 +166,6 @@ inline void path_win32_base::s_static_parse(const v8::FunctionCallbackInfo<v8::V
 {
     obj_ptr<NObject> vr;
 
-    METHOD_NAME("path_win32.parse");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -186,7 +181,6 @@ inline void path_win32_base::s_static_dirname(const v8::FunctionCallbackInfo<v8:
 {
     exlib::string vr;
 
-    METHOD_NAME("path_win32.dirname");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -202,7 +196,6 @@ inline void path_win32_base::s_static_fullpath(const v8::FunctionCallbackInfo<v8
 {
     exlib::string vr;
 
-    METHOD_NAME("path_win32.fullpath");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -218,7 +211,6 @@ inline void path_win32_base::s_static_isAbsolute(const v8::FunctionCallbackInfo<
 {
     bool vr;
 
-    METHOD_NAME("path_win32.isAbsolute");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -234,7 +226,6 @@ inline void path_win32_base::s_static_join(const v8::FunctionCallbackInfo<v8::Va
 {
     exlib::string vr;
 
-    METHOD_NAME("path_win32.join");
     METHOD_ENTER();
 
     METHOD_OVER(-1, 0);
@@ -250,7 +241,6 @@ inline void path_win32_base::s_static_resolve(const v8::FunctionCallbackInfo<v8:
 {
     exlib::string vr;
 
-    METHOD_NAME("path_win32.resolve");
     METHOD_ENTER();
 
     METHOD_OVER(-1, 0);
@@ -266,7 +256,6 @@ inline void path_win32_base::s_static_relative(const v8::FunctionCallbackInfo<v8
 {
     exlib::string vr;
 
-    METHOD_NAME("path_win32.relative");
     METHOD_ENTER();
 
     METHOD_OVER(2, 2);
@@ -283,7 +272,6 @@ inline void path_win32_base::s_static_toNamespacedPath(const v8::FunctionCallbac
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_NAME("path_win32.toNamespacedPath");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -299,7 +287,6 @@ inline void path_win32_base::s_static_get_sep(v8::Local<v8::Name> property, cons
 {
     exlib::string vr;
 
-    METHOD_NAME("path_win32.sep");
     PROPERTY_ENTER();
 
     hr = get_sep(vr);
@@ -311,7 +298,6 @@ inline void path_win32_base::s_static_get_delimiter(v8::Local<v8::Name> property
 {
     exlib::string vr;
 
-    METHOD_NAME("path_win32.delimiter");
     PROPERTY_ENTER();
 
     hr = get_delimiter(vr);
@@ -323,7 +309,6 @@ inline void path_win32_base::s_static_get_posix(v8::Local<v8::Name> property, co
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("path_win32.posix");
     PROPERTY_ENTER();
 
     hr = get_posix(vr);
@@ -335,7 +320,6 @@ inline void path_win32_base::s_static_get_win32(v8::Local<v8::Name> property, co
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("path_win32.win32");
     PROPERTY_ENTER();
 
     hr = get_win32(vr);

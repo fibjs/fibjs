@@ -78,7 +78,6 @@ inline void TTYOutputStream_base::s_get_isTTY(v8::Local<v8::Name> property, cons
 {
     bool vr;
 
-    METHOD_NAME("TTYOutputStream.isTTY");
     METHOD_INSTANCE(TTYOutputStream_base);
     PROPERTY_ENTER();
 
@@ -91,7 +90,6 @@ inline void TTYOutputStream_base::s_get_columns(v8::Local<v8::Name> property, co
 {
     int32_t vr;
 
-    METHOD_NAME("TTYOutputStream.columns");
     METHOD_INSTANCE(TTYOutputStream_base);
     PROPERTY_ENTER();
 
@@ -104,7 +102,6 @@ inline void TTYOutputStream_base::s_get_rows(v8::Local<v8::Name> property, const
 {
     int32_t vr;
 
-    METHOD_NAME("TTYOutputStream.rows");
     METHOD_INSTANCE(TTYOutputStream_base);
     PROPERTY_ENTER();
 
@@ -115,7 +112,6 @@ inline void TTYOutputStream_base::s_get_rows(v8::Local<v8::Name> property, const
 
 inline void TTYOutputStream_base::s_clearLine(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("TTYOutputStream.clearLine");
     METHOD_INSTANCE(TTYOutputStream_base);
     METHOD_ENTER();
 
@@ -130,7 +126,6 @@ inline void TTYOutputStream_base::s_clearLine(const v8::FunctionCallbackInfo<v8:
 
 inline void TTYOutputStream_base::s_clearScreenDown(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("TTYOutputStream.clearScreenDown");
     METHOD_INSTANCE(TTYOutputStream_base);
     METHOD_ENTER();
 
@@ -145,7 +140,6 @@ inline void TTYOutputStream_base::s_getWindowSize(const v8::FunctionCallbackInfo
 {
     obj_ptr<NArray> vr;
 
-    METHOD_NAME("TTYOutputStream.getWindowSize");
     METHOD_INSTANCE(TTYOutputStream_base);
     METHOD_ENTER();
 

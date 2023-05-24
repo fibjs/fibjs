@@ -71,7 +71,6 @@ inline void url_base::s_static_format(const v8::FunctionCallbackInfo<v8::Value>&
 {
     exlib::string vr;
 
-    METHOD_NAME("url.format");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -87,7 +86,6 @@ inline void url_base::s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<UrlObject_base> vr;
 
-    METHOD_NAME("url.parse");
     METHOD_ENTER();
 
     METHOD_OVER(3, 1);
@@ -105,7 +103,6 @@ inline void url_base::s_static_resolve(const v8::FunctionCallbackInfo<v8::Value>
 {
     exlib::string vr;
 
-    METHOD_NAME("url.resolve");
     METHOD_ENTER();
 
     METHOD_OVER(2, 2);

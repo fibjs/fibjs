@@ -94,7 +94,6 @@ inline ClassInfo& SeekableStream_base::class_info()
 
 inline void SeekableStream_base::s_seek(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("SeekableStream.seek");
     METHOD_INSTANCE(SeekableStream_base);
     METHOD_ENTER();
 
@@ -112,7 +111,6 @@ inline void SeekableStream_base::s_tell(const v8::FunctionCallbackInfo<v8::Value
 {
     int64_t vr;
 
-    METHOD_NAME("SeekableStream.tell");
     METHOD_INSTANCE(SeekableStream_base);
     METHOD_ENTER();
 
@@ -125,7 +123,6 @@ inline void SeekableStream_base::s_tell(const v8::FunctionCallbackInfo<v8::Value
 
 inline void SeekableStream_base::s_rewind(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("SeekableStream.rewind");
     METHOD_INSTANCE(SeekableStream_base);
     METHOD_ENTER();
 
@@ -140,7 +137,6 @@ inline void SeekableStream_base::s_size(const v8::FunctionCallbackInfo<v8::Value
 {
     int64_t vr;
 
-    METHOD_NAME("SeekableStream.size");
     METHOD_INSTANCE(SeekableStream_base);
     METHOD_ENTER();
 
@@ -155,7 +151,6 @@ inline void SeekableStream_base::s_readAll(const v8::FunctionCallbackInfo<v8::Va
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("SeekableStream.readAll");
     METHOD_INSTANCE(SeekableStream_base);
     METHOD_ENTER();
 
@@ -171,7 +166,6 @@ inline void SeekableStream_base::s_readAll(const v8::FunctionCallbackInfo<v8::Va
 
 inline void SeekableStream_base::s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("SeekableStream.truncate");
     METHOD_INSTANCE(SeekableStream_base);
     METHOD_ENTER();
 
@@ -191,7 +185,6 @@ inline void SeekableStream_base::s_eof(const v8::FunctionCallbackInfo<v8::Value>
 {
     bool vr;
 
-    METHOD_NAME("SeekableStream.eof");
     METHOD_INSTANCE(SeekableStream_base);
     METHOD_ENTER();
 
@@ -206,7 +199,6 @@ inline void SeekableStream_base::s_stat(const v8::FunctionCallbackInfo<v8::Value
 {
     obj_ptr<Stat_base> vr;
 
-    METHOD_NAME("SeekableStream.stat");
     METHOD_INSTANCE(SeekableStream_base);
     METHOD_ENTER();
 

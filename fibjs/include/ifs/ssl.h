@@ -123,7 +123,6 @@ inline void ssl_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<Stream_base> vr;
 
-    METHOD_NAME("ssl.connect");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 1);
@@ -166,7 +165,6 @@ inline void ssl_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void ssl_base::s_static_setClientCert(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("ssl.setClientCert");
     METHOD_ENTER();
 
     METHOD_OVER(2, 2);
@@ -181,7 +179,6 @@ inline void ssl_base::s_static_setClientCert(const v8::FunctionCallbackInfo<v8::
 
 inline void ssl_base::s_static_loadRootCerts(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("ssl.loadRootCerts");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -195,7 +192,6 @@ inline void ssl_base::s_static_get_ca(v8::Local<v8::Name> property, const v8::Pr
 {
     obj_ptr<X509Cert_base> vr;
 
-    METHOD_NAME("ssl.ca");
     PROPERTY_ENTER();
 
     hr = get_ca(vr);
@@ -207,7 +203,6 @@ inline void ssl_base::s_static_get_verification(v8::Local<v8::Name> property, co
 {
     int32_t vr;
 
-    METHOD_NAME("ssl.verification");
     PROPERTY_ENTER();
 
     hr = get_verification(vr);
@@ -217,7 +212,6 @@ inline void ssl_base::s_static_get_verification(v8::Local<v8::Name> property, co
 
 inline void ssl_base::s_static_set_verification(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("ssl.verification");
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
 

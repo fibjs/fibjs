@@ -134,11 +134,7 @@ result_t LruCache::get(exlib::string name, v8::Local<v8::Function> updater,
         }
 
         e = padding->second;
-
-        {
-            METHOD_NAME("LruCache.get");
-            e->wait();
-        }
+        e->wait();
     }
 
     update(find);
@@ -221,7 +217,8 @@ result_t LruCache::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
 
     while (it != m_datas.end()) {
         v8::Local<v8::String> name = isolate->NewString(it->first);
-        obj->Set(context, name, GetPrivate(it->first)).IsJust();;
+        obj->Set(context, name, GetPrivate(it->first)).IsJust();
+        ;
         it = _instantiate(it->second.m_next);
     }
 

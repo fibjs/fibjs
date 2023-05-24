@@ -79,7 +79,6 @@ void WebSocketMessage_base::__new(const T& args)
 {
     obj_ptr<WebSocketMessage_base> vr;
 
-    METHOD_NAME("new WebSocketMessage()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(4, 0);
@@ -98,7 +97,6 @@ inline void WebSocketMessage_base::s_get_masked(v8::Local<v8::Name> property, co
 {
     bool vr;
 
-    METHOD_NAME("WebSocketMessage.masked");
     METHOD_INSTANCE(WebSocketMessage_base);
     PROPERTY_ENTER();
 
@@ -109,7 +107,6 @@ inline void WebSocketMessage_base::s_get_masked(v8::Local<v8::Name> property, co
 
 inline void WebSocketMessage_base::s_set_masked(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("WebSocketMessage.masked");
     METHOD_INSTANCE(WebSocketMessage_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(bool);
@@ -123,7 +120,6 @@ inline void WebSocketMessage_base::s_get_compress(v8::Local<v8::Name> property, 
 {
     bool vr;
 
-    METHOD_NAME("WebSocketMessage.compress");
     METHOD_INSTANCE(WebSocketMessage_base);
     PROPERTY_ENTER();
 
@@ -134,7 +130,6 @@ inline void WebSocketMessage_base::s_get_compress(v8::Local<v8::Name> property, 
 
 inline void WebSocketMessage_base::s_set_compress(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("WebSocketMessage.compress");
     METHOD_INSTANCE(WebSocketMessage_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(bool);
@@ -148,7 +143,6 @@ inline void WebSocketMessage_base::s_get_maxSize(v8::Local<v8::Name> property, c
 {
     int32_t vr;
 
-    METHOD_NAME("WebSocketMessage.maxSize");
     METHOD_INSTANCE(WebSocketMessage_base);
     PROPERTY_ENTER();
 
@@ -159,7 +153,6 @@ inline void WebSocketMessage_base::s_get_maxSize(v8::Local<v8::Name> property, c
 
 inline void WebSocketMessage_base::s_set_maxSize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("WebSocketMessage.maxSize");
     METHOD_INSTANCE(WebSocketMessage_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);

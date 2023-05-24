@@ -104,7 +104,6 @@ inline ClassInfo& HttpCollection_base::class_info()
 
 inline void HttpCollection_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("HttpCollection.clear");
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
 
@@ -119,7 +118,6 @@ inline void HttpCollection_base::s_has(const v8::FunctionCallbackInfo<v8::Value>
 {
     bool vr;
 
-    METHOD_NAME("HttpCollection.has");
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
 
@@ -136,7 +134,6 @@ inline void HttpCollection_base::s_first(const v8::FunctionCallbackInfo<v8::Valu
 {
     Variant vr;
 
-    METHOD_NAME("HttpCollection.first");
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
 
@@ -153,7 +150,6 @@ inline void HttpCollection_base::s_get(const v8::FunctionCallbackInfo<v8::Value>
 {
     Variant vr;
 
-    METHOD_NAME("HttpCollection.get");
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
 
@@ -170,7 +166,6 @@ inline void HttpCollection_base::s_all(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<NObject> vr;
 
-    METHOD_NAME("HttpCollection.all");
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
 
@@ -185,7 +180,6 @@ inline void HttpCollection_base::s_all(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void HttpCollection_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("HttpCollection.add");
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
 
@@ -214,7 +208,6 @@ inline void HttpCollection_base::s_add(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void HttpCollection_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("HttpCollection.set");
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
 
@@ -243,7 +236,6 @@ inline void HttpCollection_base::s_set(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void HttpCollection_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("HttpCollection.remove");
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
 
@@ -258,7 +250,6 @@ inline void HttpCollection_base::s_remove(const v8::FunctionCallbackInfo<v8::Val
 
 inline void HttpCollection_base::s__delete(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("HttpCollection.delete");
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
 
@@ -273,7 +264,6 @@ inline void HttpCollection_base::s__delete(const v8::FunctionCallbackInfo<v8::Va
 
 inline void HttpCollection_base::s_sort(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("HttpCollection.sort");
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
 
@@ -288,7 +278,6 @@ inline void HttpCollection_base::s_keys(const v8::FunctionCallbackInfo<v8::Value
 {
     obj_ptr<NArray> vr;
 
-    METHOD_NAME("HttpCollection.keys");
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
 
@@ -303,7 +292,6 @@ inline void HttpCollection_base::s_values(const v8::FunctionCallbackInfo<v8::Val
 {
     obj_ptr<NArray> vr;
 
-    METHOD_NAME("HttpCollection.values");
     METHOD_INSTANCE(HttpCollection_base);
     METHOD_ENTER();
 
@@ -318,7 +306,6 @@ inline void HttpCollection_base::i_NamedGetter(v8::Local<v8::Name> property, con
 {
     Variant vr;
 
-    METHOD_NAME("HttpCollection[]");
     METHOD_INSTANCE(HttpCollection_base);
     PROPERTY_ENTER();
 
@@ -338,7 +325,6 @@ inline void HttpCollection_base::i_NamedEnumerator(const v8::PropertyCallbackInf
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_NAME("HttpCollection[]");
     METHOD_INSTANCE(HttpCollection_base);
     PROPERTY_ENTER();
 
@@ -349,7 +335,6 @@ inline void HttpCollection_base::i_NamedEnumerator(const v8::PropertyCallbackInf
 
 inline void HttpCollection_base::i_NamedSetter(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("HttpCollection[]");
     METHOD_INSTANCE(HttpCollection_base);
     PROPERTY_ENTER();
 
@@ -370,7 +355,6 @@ inline void HttpCollection_base::i_NamedDeleter(v8::Local<v8::Name> property, co
 {
     v8::Local<v8::Boolean> vr;
 
-    METHOD_NAME("HttpCollection[]");
     METHOD_INSTANCE(HttpCollection_base);
     PROPERTY_ENTER();
 

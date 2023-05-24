@@ -69,7 +69,6 @@ inline void TTYInputStream_base::s_get_isTTY(v8::Local<v8::Name> property, const
 {
     bool vr;
 
-    METHOD_NAME("TTYInputStream.isTTY");
     METHOD_INSTANCE(TTYInputStream_base);
     PROPERTY_ENTER();
 
@@ -82,7 +81,6 @@ inline void TTYInputStream_base::s_get_isRaw(v8::Local<v8::Name> property, const
 {
     bool vr;
 
-    METHOD_NAME("TTYInputStream.isRaw");
     METHOD_INSTANCE(TTYInputStream_base);
     PROPERTY_ENTER();
 
@@ -95,7 +93,6 @@ inline void TTYInputStream_base::s_setRawMode(const v8::FunctionCallbackInfo<v8:
 {
     obj_ptr<TTYInputStream_base> vr;
 
-    METHOD_NAME("TTYInputStream.setRawMode");
     METHOD_INSTANCE(TTYInputStream_base);
     METHOD_ENTER();
 

@@ -83,7 +83,6 @@ inline void XmlCharacterData_base::s_get_data(v8::Local<v8::Name> property, cons
 {
     exlib::string vr;
 
-    METHOD_NAME("XmlCharacterData.data");
     METHOD_INSTANCE(XmlCharacterData_base);
     PROPERTY_ENTER();
 
@@ -94,7 +93,6 @@ inline void XmlCharacterData_base::s_get_data(v8::Local<v8::Name> property, cons
 
 inline void XmlCharacterData_base::s_set_data(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("XmlCharacterData.data");
     METHOD_INSTANCE(XmlCharacterData_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -108,7 +106,6 @@ inline void XmlCharacterData_base::s_get_length(v8::Local<v8::Name> property, co
 {
     int32_t vr;
 
-    METHOD_NAME("XmlCharacterData.length");
     METHOD_INSTANCE(XmlCharacterData_base);
     PROPERTY_ENTER();
 
@@ -121,7 +118,6 @@ inline void XmlCharacterData_base::s_substringData(const v8::FunctionCallbackInf
 {
     exlib::string vr;
 
-    METHOD_NAME("XmlCharacterData.substringData");
     METHOD_INSTANCE(XmlCharacterData_base);
     METHOD_ENTER();
 
@@ -137,7 +133,6 @@ inline void XmlCharacterData_base::s_substringData(const v8::FunctionCallbackInf
 
 inline void XmlCharacterData_base::s_appendData(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("XmlCharacterData.appendData");
     METHOD_INSTANCE(XmlCharacterData_base);
     METHOD_ENTER();
 
@@ -152,7 +147,6 @@ inline void XmlCharacterData_base::s_appendData(const v8::FunctionCallbackInfo<v
 
 inline void XmlCharacterData_base::s_insertData(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("XmlCharacterData.insertData");
     METHOD_INSTANCE(XmlCharacterData_base);
     METHOD_ENTER();
 
@@ -168,7 +162,6 @@ inline void XmlCharacterData_base::s_insertData(const v8::FunctionCallbackInfo<v
 
 inline void XmlCharacterData_base::s_deleteData(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("XmlCharacterData.deleteData");
     METHOD_INSTANCE(XmlCharacterData_base);
     METHOD_ENTER();
 
@@ -184,7 +177,6 @@ inline void XmlCharacterData_base::s_deleteData(const v8::FunctionCallbackInfo<v
 
 inline void XmlCharacterData_base::s_replaceData(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("XmlCharacterData.replaceData");
     METHOD_INSTANCE(XmlCharacterData_base);
     METHOD_ENTER();
 

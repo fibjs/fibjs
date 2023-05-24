@@ -70,7 +70,6 @@ void BlsKey_base::__new(const T& args)
 {
     obj_ptr<BlsKey_base> vr;
 
-    METHOD_NAME("new BlsKey()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(1, 1);
@@ -86,7 +85,6 @@ inline void BlsKey_base::s_static_aggregateSignature(const v8::FunctionCallbackI
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("BlsKey.aggregateSignature");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -102,7 +100,6 @@ inline void BlsKey_base::s_static_aggregatePublicKey(const v8::FunctionCallbackI
 {
     obj_ptr<BlsKey_base> vr;
 
-    METHOD_NAME("BlsKey.aggregatePublicKey");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);

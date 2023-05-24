@@ -134,7 +134,6 @@ void X509Cert_base::__new(const T& args)
 {
     obj_ptr<X509Cert_base> vr;
 
-    METHOD_NAME("new X509Cert()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(0, 0);
@@ -158,7 +157,6 @@ void X509Cert_base::__new(const T& args)
 
 inline void X509Cert_base::s_import(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("X509Cert.import");
     METHOD_INSTANCE(X509Cert_base);
     METHOD_ENTER();
 
@@ -179,7 +177,6 @@ inline void X509Cert_base::s_import(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void X509Cert_base::s_loadRootCerts(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("X509Cert.loadRootCerts");
     METHOD_INSTANCE(X509Cert_base);
     METHOD_ENTER();
 
@@ -194,7 +191,6 @@ inline void X509Cert_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     bool vr;
 
-    METHOD_NAME("X509Cert.verify");
     METHOD_INSTANCE(X509Cert_base);
     METHOD_ENTER();
 
@@ -214,7 +210,6 @@ inline void X509Cert_base::s_pem(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     exlib::string vr;
 
-    METHOD_NAME("X509Cert.pem");
     METHOD_INSTANCE(X509Cert_base);
     METHOD_ENTER();
 
@@ -231,7 +226,6 @@ inline void X509Cert_base::s_der(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("X509Cert.der");
     METHOD_INSTANCE(X509Cert_base);
     METHOD_ENTER();
 
@@ -244,7 +238,6 @@ inline void X509Cert_base::s_der(const v8::FunctionCallbackInfo<v8::Value>& args
 
 inline void X509Cert_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("X509Cert.clear");
     METHOD_INSTANCE(X509Cert_base);
     METHOD_ENTER();
 
@@ -259,7 +252,6 @@ inline void X509Cert_base::s_get_version(v8::Local<v8::Name> property, const v8:
 {
     int32_t vr;
 
-    METHOD_NAME("X509Cert.version");
     METHOD_INSTANCE(X509Cert_base);
     PROPERTY_ENTER();
 
@@ -272,7 +264,6 @@ inline void X509Cert_base::s_get_serial(v8::Local<v8::Name> property, const v8::
 {
     exlib::string vr;
 
-    METHOD_NAME("X509Cert.serial");
     METHOD_INSTANCE(X509Cert_base);
     PROPERTY_ENTER();
 
@@ -285,7 +276,6 @@ inline void X509Cert_base::s_get_issuer(v8::Local<v8::Name> property, const v8::
 {
     exlib::string vr;
 
-    METHOD_NAME("X509Cert.issuer");
     METHOD_INSTANCE(X509Cert_base);
     PROPERTY_ENTER();
 
@@ -298,7 +288,6 @@ inline void X509Cert_base::s_get_subject(v8::Local<v8::Name> property, const v8:
 {
     exlib::string vr;
 
-    METHOD_NAME("X509Cert.subject");
     METHOD_INSTANCE(X509Cert_base);
     PROPERTY_ENTER();
 
@@ -311,7 +300,6 @@ inline void X509Cert_base::s_get_notBefore(v8::Local<v8::Name> property, const v
 {
     date_t vr;
 
-    METHOD_NAME("X509Cert.notBefore");
     METHOD_INSTANCE(X509Cert_base);
     PROPERTY_ENTER();
 
@@ -324,7 +312,6 @@ inline void X509Cert_base::s_get_notAfter(v8::Local<v8::Name> property, const v8
 {
     date_t vr;
 
-    METHOD_NAME("X509Cert.notAfter");
     METHOD_INSTANCE(X509Cert_base);
     PROPERTY_ENTER();
 
@@ -337,7 +324,6 @@ inline void X509Cert_base::s_get_ca(v8::Local<v8::Name> property, const v8::Prop
 {
     bool vr;
 
-    METHOD_NAME("X509Cert.ca");
     METHOD_INSTANCE(X509Cert_base);
     PROPERTY_ENTER();
 
@@ -350,7 +336,6 @@ inline void X509Cert_base::s_get_pathlen(v8::Local<v8::Name> property, const v8:
 {
     int32_t vr;
 
-    METHOD_NAME("X509Cert.pathlen");
     METHOD_INSTANCE(X509Cert_base);
     PROPERTY_ENTER();
 
@@ -363,7 +348,6 @@ inline void X509Cert_base::s_get_usage(v8::Local<v8::Name> property, const v8::P
 {
     exlib::string vr;
 
-    METHOD_NAME("X509Cert.usage");
     METHOD_INSTANCE(X509Cert_base);
     PROPERTY_ENTER();
 
@@ -376,7 +360,6 @@ inline void X509Cert_base::s_get_type(v8::Local<v8::Name> property, const v8::Pr
 {
     exlib::string vr;
 
-    METHOD_NAME("X509Cert.type");
     METHOD_INSTANCE(X509Cert_base);
     PROPERTY_ENTER();
 
@@ -389,7 +372,6 @@ inline void X509Cert_base::s_get_sig_md(v8::Local<v8::Name> property, const v8::
 {
     int32_t vr;
 
-    METHOD_NAME("X509Cert.sig_md");
     METHOD_INSTANCE(X509Cert_base);
     PROPERTY_ENTER();
 
@@ -402,7 +384,6 @@ inline void X509Cert_base::s_get_sig_pk(v8::Local<v8::Name> property, const v8::
 {
     int32_t vr;
 
-    METHOD_NAME("X509Cert.sig_pk");
     METHOD_INSTANCE(X509Cert_base);
     PROPERTY_ENTER();
 
@@ -415,7 +396,6 @@ inline void X509Cert_base::s_get_publicKey(v8::Local<v8::Name> property, const v
 {
     obj_ptr<PKey_base> vr;
 
-    METHOD_NAME("X509Cert.publicKey");
     METHOD_INSTANCE(X509Cert_base);
     PROPERTY_ENTER();
 
@@ -428,7 +408,6 @@ inline void X509Cert_base::s_get_next(v8::Local<v8::Name> property, const v8::Pr
 {
     obj_ptr<X509Cert_base> vr;
 
-    METHOD_NAME("X509Cert.next");
     METHOD_INSTANCE(X509Cert_base);
     PROPERTY_ENTER();
 

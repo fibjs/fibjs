@@ -118,7 +118,6 @@ inline void HttpMessage_base::s_get_protocol(v8::Local<v8::Name> property, const
 {
     exlib::string vr;
 
-    METHOD_NAME("HttpMessage.protocol");
     METHOD_INSTANCE(HttpMessage_base);
     PROPERTY_ENTER();
 
@@ -129,7 +128,6 @@ inline void HttpMessage_base::s_get_protocol(v8::Local<v8::Name> property, const
 
 inline void HttpMessage_base::s_set_protocol(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpMessage.protocol");
     METHOD_INSTANCE(HttpMessage_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -143,7 +141,6 @@ inline void HttpMessage_base::s_get_headers(v8::Local<v8::Name> property, const 
 {
     obj_ptr<HttpCollection_base> vr;
 
-    METHOD_NAME("HttpMessage.headers");
     METHOD_INSTANCE(HttpMessage_base);
     PROPERTY_ENTER();
 
@@ -156,7 +153,6 @@ inline void HttpMessage_base::s_get_keepAlive(v8::Local<v8::Name> property, cons
 {
     bool vr;
 
-    METHOD_NAME("HttpMessage.keepAlive");
     METHOD_INSTANCE(HttpMessage_base);
     PROPERTY_ENTER();
 
@@ -167,7 +163,6 @@ inline void HttpMessage_base::s_get_keepAlive(v8::Local<v8::Name> property, cons
 
 inline void HttpMessage_base::s_set_keepAlive(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpMessage.keepAlive");
     METHOD_INSTANCE(HttpMessage_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(bool);
@@ -181,7 +176,6 @@ inline void HttpMessage_base::s_get_upgrade(v8::Local<v8::Name> property, const 
 {
     bool vr;
 
-    METHOD_NAME("HttpMessage.upgrade");
     METHOD_INSTANCE(HttpMessage_base);
     PROPERTY_ENTER();
 
@@ -192,7 +186,6 @@ inline void HttpMessage_base::s_get_upgrade(v8::Local<v8::Name> property, const 
 
 inline void HttpMessage_base::s_set_upgrade(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpMessage.upgrade");
     METHOD_INSTANCE(HttpMessage_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(bool);
@@ -206,7 +199,6 @@ inline void HttpMessage_base::s_get_maxHeadersCount(v8::Local<v8::Name> property
 {
     int32_t vr;
 
-    METHOD_NAME("HttpMessage.maxHeadersCount");
     METHOD_INSTANCE(HttpMessage_base);
     PROPERTY_ENTER();
 
@@ -217,7 +209,6 @@ inline void HttpMessage_base::s_get_maxHeadersCount(v8::Local<v8::Name> property
 
 inline void HttpMessage_base::s_set_maxHeadersCount(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpMessage.maxHeadersCount");
     METHOD_INSTANCE(HttpMessage_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
@@ -231,7 +222,6 @@ inline void HttpMessage_base::s_get_maxBodySize(v8::Local<v8::Name> property, co
 {
     int32_t vr;
 
-    METHOD_NAME("HttpMessage.maxBodySize");
     METHOD_INSTANCE(HttpMessage_base);
     PROPERTY_ENTER();
 
@@ -242,7 +232,6 @@ inline void HttpMessage_base::s_get_maxBodySize(v8::Local<v8::Name> property, co
 
 inline void HttpMessage_base::s_set_maxBodySize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpMessage.maxBodySize");
     METHOD_INSTANCE(HttpMessage_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
@@ -256,7 +245,6 @@ inline void HttpMessage_base::s_get_socket(v8::Local<v8::Name> property, const v
 {
     obj_ptr<Stream_base> vr;
 
-    METHOD_NAME("HttpMessage.socket");
     METHOD_INSTANCE(HttpMessage_base);
     PROPERTY_ENTER();
 
@@ -269,7 +257,6 @@ inline void HttpMessage_base::s_hasHeader(const v8::FunctionCallbackInfo<v8::Val
 {
     bool vr;
 
-    METHOD_NAME("HttpMessage.hasHeader");
     METHOD_INSTANCE(HttpMessage_base);
     METHOD_ENTER();
 
@@ -286,7 +273,6 @@ inline void HttpMessage_base::s_firstHeader(const v8::FunctionCallbackInfo<v8::V
 {
     exlib::string vr;
 
-    METHOD_NAME("HttpMessage.firstHeader");
     METHOD_INSTANCE(HttpMessage_base);
     METHOD_ENTER();
 
@@ -303,7 +289,6 @@ inline void HttpMessage_base::s_allHeader(const v8::FunctionCallbackInfo<v8::Val
 {
     obj_ptr<NObject> vr;
 
-    METHOD_NAME("HttpMessage.allHeader");
     METHOD_INSTANCE(HttpMessage_base);
     METHOD_ENTER();
 
@@ -318,7 +303,6 @@ inline void HttpMessage_base::s_allHeader(const v8::FunctionCallbackInfo<v8::Val
 
 inline void HttpMessage_base::s_addHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("HttpMessage.addHeader");
     METHOD_INSTANCE(HttpMessage_base);
     METHOD_ENTER();
 
@@ -347,7 +331,6 @@ inline void HttpMessage_base::s_addHeader(const v8::FunctionCallbackInfo<v8::Val
 
 inline void HttpMessage_base::s_setHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("HttpMessage.setHeader");
     METHOD_INSTANCE(HttpMessage_base);
     METHOD_ENTER();
 
@@ -376,7 +359,6 @@ inline void HttpMessage_base::s_setHeader(const v8::FunctionCallbackInfo<v8::Val
 
 inline void HttpMessage_base::s_removeHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("HttpMessage.removeHeader");
     METHOD_INSTANCE(HttpMessage_base);
     METHOD_ENTER();
 

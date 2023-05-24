@@ -92,7 +92,6 @@ void HttpHandler_base::__new(const T& args)
 {
     obj_ptr<HttpHandler_base> vr;
 
-    METHOD_NAME("new HttpHandler()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(1, 1);
@@ -106,7 +105,6 @@ void HttpHandler_base::__new(const T& args)
 
 inline void HttpHandler_base::s_enableCrossOrigin(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("HttpHandler.enableCrossOrigin");
     METHOD_INSTANCE(HttpHandler_base);
     METHOD_ENTER();
 
@@ -123,7 +121,6 @@ inline void HttpHandler_base::s_get_maxHeadersCount(v8::Local<v8::Name> property
 {
     int32_t vr;
 
-    METHOD_NAME("HttpHandler.maxHeadersCount");
     METHOD_INSTANCE(HttpHandler_base);
     PROPERTY_ENTER();
 
@@ -134,7 +131,6 @@ inline void HttpHandler_base::s_get_maxHeadersCount(v8::Local<v8::Name> property
 
 inline void HttpHandler_base::s_set_maxHeadersCount(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpHandler.maxHeadersCount");
     METHOD_INSTANCE(HttpHandler_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
@@ -148,7 +144,6 @@ inline void HttpHandler_base::s_get_maxBodySize(v8::Local<v8::Name> property, co
 {
     int32_t vr;
 
-    METHOD_NAME("HttpHandler.maxBodySize");
     METHOD_INSTANCE(HttpHandler_base);
     PROPERTY_ENTER();
 
@@ -159,7 +154,6 @@ inline void HttpHandler_base::s_get_maxBodySize(v8::Local<v8::Name> property, co
 
 inline void HttpHandler_base::s_set_maxBodySize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpHandler.maxBodySize");
     METHOD_INSTANCE(HttpHandler_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
@@ -173,7 +167,6 @@ inline void HttpHandler_base::s_get_enableEncoding(v8::Local<v8::Name> property,
 {
     bool vr;
 
-    METHOD_NAME("HttpHandler.enableEncoding");
     METHOD_INSTANCE(HttpHandler_base);
     PROPERTY_ENTER();
 
@@ -184,7 +177,6 @@ inline void HttpHandler_base::s_get_enableEncoding(v8::Local<v8::Name> property,
 
 inline void HttpHandler_base::s_set_enableEncoding(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpHandler.enableEncoding");
     METHOD_INSTANCE(HttpHandler_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(bool);
@@ -198,7 +190,6 @@ inline void HttpHandler_base::s_get_serverName(v8::Local<v8::Name> property, con
 {
     exlib::string vr;
 
-    METHOD_NAME("HttpHandler.serverName");
     METHOD_INSTANCE(HttpHandler_base);
     PROPERTY_ENTER();
 
@@ -209,7 +200,6 @@ inline void HttpHandler_base::s_get_serverName(v8::Local<v8::Name> property, con
 
 inline void HttpHandler_base::s_set_serverName(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpHandler.serverName");
     METHOD_INSTANCE(HttpHandler_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -223,7 +213,6 @@ inline void HttpHandler_base::s_get_handler(v8::Local<v8::Name> property, const 
 {
     obj_ptr<Handler_base> vr;
 
-    METHOD_NAME("HttpHandler.handler");
     METHOD_INSTANCE(HttpHandler_base);
     PROPERTY_ENTER();
 
@@ -234,7 +223,6 @@ inline void HttpHandler_base::s_get_handler(v8::Local<v8::Name> property, const 
 
 inline void HttpHandler_base::s_set_handler(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpHandler.handler");
     METHOD_INSTANCE(HttpHandler_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(obj_ptr<Handler_base>);

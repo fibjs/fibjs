@@ -90,7 +90,6 @@ inline void RedisSortedSet_base::s_add(const v8::FunctionCallbackInfo<v8::Value>
 {
     int32_t vr;
 
-    METHOD_NAME("RedisSortedSet.add");
     METHOD_INSTANCE(RedisSortedSet_base);
     METHOD_ENTER();
 
@@ -113,7 +112,6 @@ inline void RedisSortedSet_base::s_score(const v8::FunctionCallbackInfo<v8::Valu
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("RedisSortedSet.score");
     METHOD_INSTANCE(RedisSortedSet_base);
     METHOD_ENTER();
 
@@ -130,7 +128,6 @@ inline void RedisSortedSet_base::s_incr(const v8::FunctionCallbackInfo<v8::Value
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("RedisSortedSet.incr");
     METHOD_INSTANCE(RedisSortedSet_base);
     METHOD_ENTER();
 
@@ -148,7 +145,6 @@ inline void RedisSortedSet_base::s_remove(const v8::FunctionCallbackInfo<v8::Val
 {
     int32_t vr;
 
-    METHOD_NAME("RedisSortedSet.remove");
     METHOD_INSTANCE(RedisSortedSet_base);
     METHOD_ENTER();
 
@@ -171,7 +167,6 @@ inline void RedisSortedSet_base::s_len(const v8::FunctionCallbackInfo<v8::Value>
 {
     int32_t vr;
 
-    METHOD_NAME("RedisSortedSet.len");
     METHOD_INSTANCE(RedisSortedSet_base);
     METHOD_ENTER();
 
@@ -186,7 +181,6 @@ inline void RedisSortedSet_base::s_count(const v8::FunctionCallbackInfo<v8::Valu
 {
     int32_t vr;
 
-    METHOD_NAME("RedisSortedSet.count");
     METHOD_INSTANCE(RedisSortedSet_base);
     METHOD_ENTER();
 
@@ -204,7 +198,6 @@ inline void RedisSortedSet_base::s_range(const v8::FunctionCallbackInfo<v8::Valu
 {
     obj_ptr<NArray> vr;
 
-    METHOD_NAME("RedisSortedSet.range");
     METHOD_INSTANCE(RedisSortedSet_base);
     METHOD_ENTER();
 
@@ -223,7 +216,6 @@ inline void RedisSortedSet_base::s_rangeRev(const v8::FunctionCallbackInfo<v8::V
 {
     obj_ptr<NArray> vr;
 
-    METHOD_NAME("RedisSortedSet.rangeRev");
     METHOD_INSTANCE(RedisSortedSet_base);
     METHOD_ENTER();
 
@@ -242,7 +234,6 @@ inline void RedisSortedSet_base::s_rank(const v8::FunctionCallbackInfo<v8::Value
 {
     int32_t vr;
 
-    METHOD_NAME("RedisSortedSet.rank");
     METHOD_INSTANCE(RedisSortedSet_base);
     METHOD_ENTER();
 
@@ -259,7 +250,6 @@ inline void RedisSortedSet_base::s_rankRev(const v8::FunctionCallbackInfo<v8::Va
 {
     int32_t vr;
 
-    METHOD_NAME("RedisSortedSet.rankRev");
     METHOD_INSTANCE(RedisSortedSet_base);
     METHOD_ENTER();
 

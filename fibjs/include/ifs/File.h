@@ -73,7 +73,6 @@ inline void File_base::s_get_name(v8::Local<v8::Name> property, const v8::Proper
 {
     exlib::string vr;
 
-    METHOD_NAME("File.name");
     METHOD_INSTANCE(File_base);
     PROPERTY_ENTER();
 
@@ -86,7 +85,6 @@ inline void File_base::s_get_fd(v8::Local<v8::Name> property, const v8::Property
 {
     int32_t vr;
 
-    METHOD_NAME("File.fd");
     METHOD_INSTANCE(File_base);
     PROPERTY_ENTER();
 
@@ -97,7 +95,6 @@ inline void File_base::s_get_fd(v8::Local<v8::Name> property, const v8::Property
 
 inline void File_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("File.chmod");
     METHOD_INSTANCE(File_base);
     METHOD_ENTER();
 

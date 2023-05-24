@@ -57,7 +57,6 @@ inline void tty_base::s_static_isatty(const v8::FunctionCallbackInfo<v8::Value>&
 {
     bool vr;
 
-    METHOD_NAME("tty.isatty");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);

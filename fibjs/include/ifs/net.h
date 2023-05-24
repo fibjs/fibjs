@@ -138,7 +138,6 @@ inline void net_base::s_static_get_use_uv_socket(v8::Local<v8::Name> property, c
 {
     bool vr;
 
-    METHOD_NAME("net.use_uv_socket");
     PROPERTY_ENTER();
 
     hr = get_use_uv_socket(vr);
@@ -148,7 +147,6 @@ inline void net_base::s_static_get_use_uv_socket(v8::Local<v8::Name> property, c
 
 inline void net_base::s_static_set_use_uv_socket(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("net.use_uv_socket");
     PROPERTY_ENTER();
     PROPERTY_VAL(bool);
 
@@ -161,7 +159,6 @@ inline void net_base::s_static_info(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("net.info");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -175,7 +172,6 @@ inline void net_base::s_static_resolve(const v8::FunctionCallbackInfo<v8::Value>
 {
     exlib::string vr;
 
-    METHOD_NAME("net.resolve");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 1);
@@ -195,7 +191,6 @@ inline void net_base::s_static_ip(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     exlib::string vr;
 
-    METHOD_NAME("net.ip");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
@@ -214,7 +209,6 @@ inline void net_base::s_static_ipv6(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     exlib::string vr;
 
-    METHOD_NAME("net.ipv6");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
@@ -233,7 +227,6 @@ inline void net_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<Stream_base> vr;
 
-    METHOD_NAME("net.connect");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 1);
@@ -253,7 +246,6 @@ inline void net_base::s_static_openSmtp(const v8::FunctionCallbackInfo<v8::Value
 {
     obj_ptr<Smtp_base> vr;
 
-    METHOD_NAME("net.openSmtp");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 1);
@@ -273,7 +265,6 @@ inline void net_base::s_static_backend(const v8::FunctionCallbackInfo<v8::Value>
 {
     exlib::string vr;
 
-    METHOD_NAME("net.backend");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -287,7 +278,6 @@ inline void net_base::s_static_isIP(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     int32_t vr;
 
-    METHOD_NAME("net.isIP");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -303,7 +293,6 @@ inline void net_base::s_static_isIPv4(const v8::FunctionCallbackInfo<v8::Value>&
 {
     bool vr;
 
-    METHOD_NAME("net.isIPv4");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -319,7 +308,6 @@ inline void net_base::s_static_isIPv6(const v8::FunctionCallbackInfo<v8::Value>&
 {
     bool vr;
 
-    METHOD_NAME("net.isIPv6");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);

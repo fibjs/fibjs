@@ -85,7 +85,6 @@ inline void MongoDB_base::s_getCollection(const v8::FunctionCallbackInfo<v8::Val
 {
     obj_ptr<MongoCollection_base> vr;
 
-    METHOD_NAME("MongoDB.getCollection");
     METHOD_INSTANCE(MongoDB_base);
     METHOD_ENTER();
 
@@ -102,7 +101,6 @@ inline void MongoDB_base::s_runCommand(const v8::FunctionCallbackInfo<v8::Value>
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("MongoDB.runCommand");
     METHOD_INSTANCE(MongoDB_base);
     METHOD_ENTER();
 
@@ -126,7 +124,6 @@ inline void MongoDB_base::i_NamedGetter(v8::Local<v8::Name> property, const v8::
 {
     obj_ptr<MongoCollection_base> vr;
 
-    METHOD_NAME("MongoDB[]");
     METHOD_INSTANCE(MongoDB_base);
     PROPERTY_ENTER();
 
@@ -146,7 +143,6 @@ inline void MongoDB_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::A
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_NAME("MongoDB[]");
     METHOD_INSTANCE(MongoDB_base);
     PROPERTY_ENTER();
 
@@ -159,7 +155,6 @@ inline void MongoDB_base::s_oid(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<MongoID_base> vr;
 
-    METHOD_NAME("MongoDB.oid");
     METHOD_INSTANCE(MongoDB_base);
     METHOD_ENTER();
 
@@ -174,7 +169,6 @@ inline void MongoDB_base::s_oid(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void MongoDB_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("MongoDB.close");
     METHOD_INSTANCE(MongoDB_base);
     METHOD_ENTER();
 

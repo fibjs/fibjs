@@ -222,7 +222,6 @@ function gen_code(cls, def, baseFolder) {
                     txts.push(`inline void ${cls}_base::${get_stub_func_prefix(ov, def)}${get_name('_function', ov, def)}(const v8::FunctionCallbackInfo<v8::Value>& args)\n{`);
 
                     if (ov.type) txts.push(`    ${get_rtype(ov.type)} vr;\n`);
-                    txts.push(`    METHOD_NAME("${cls}");`);
                     txts.push(`    METHOD_ENTER();\n`);
                     make_ov_params(fncallee_ovs);
 
@@ -237,7 +236,6 @@ function gen_code(cls, def, baseFolder) {
                     txts.push(`template <typename T>\nvoid ${cls}_base::__new(const T& args)\n{`);
 
                     txts.push(`    ${get_rtype(def.declare.name)} vr;\n`);
-                    txts.push(`    METHOD_NAME("new ${cls}()");`);
                     txts.push(`    CONSTRUCT_ENTER();\n`);
                     make_ov_params(new_ovs);
                     txts.push('    CONSTRUCT_RETURN();\n}\n');
@@ -251,7 +249,6 @@ function gen_code(cls, def, baseFolder) {
 
                     if (ov.type) txts.push(`    ${get_rtype(ov.type)} vr;\n`);
 
-                    txts.push(`    METHOD_NAME("${cls}.${ov.symbol}${ov.name}");`);
                     txts.push(`    METHOD_ENTER();\n`);
                     make_ov_params(static_ovs);
 
@@ -269,7 +266,6 @@ function gen_code(cls, def, baseFolder) {
 
                     if (ov.type) txts.push(`    ${get_rtype(ov.type)} vr;\n`);
 
-                    txts.push(`    METHOD_NAME("${cls}.${ov.symbol}${ov.name}");`);
                     txts.push(`    METHOD_INSTANCE(${cls}_base);`);
                     txts.push(`    METHOD_ENTER();\n`);
                     make_ov_params(inst_mem_ovs);
@@ -332,7 +328,6 @@ function gen_code(cls, def, baseFolder) {
 
                 txts.push(`inline void ${cls}_base::${get_stub_func_prefix(fn, def)}get_${get_name(fname, fn, def)}(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)\n{\n    ${get_rtype(fn.type)} vr;\n`);
 
-                txts.push(`    METHOD_NAME("${cls}.${fn.symbol}${fname}");`);
                 if (!fstatic)
                     txts.push(`    METHOD_INSTANCE(${cls}_base);`);
                 txts.push(`    PROPERTY_ENTER();\n`);
@@ -348,7 +343,6 @@ function gen_code(cls, def, baseFolder) {
 
                 if (!fn.readonly) {
                     txts.push(`inline void ${cls}_base::${get_stub_func_prefix(fn, def)}set_${get_name(fname, fn, def)}(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)\n{`);
-                    txts.push(`    METHOD_NAME("${cls}.${fn.symbol}${fname}");`);
                     if (!fstatic)
                         txts.push(`    METHOD_INSTANCE(${cls}_base);`);
                     txts.push(`    PROPERTY_ENTER();\n    PROPERTY_VAL(${get_rtype(fn.type)});\n`);
@@ -410,7 +404,6 @@ function gen_code(cls, def, baseFolder) {
             "stub_func": fn => {
                 if (fn.index) {
                     txts.push(`inline void ${cls}_base::i_NamedGetter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)\n{\n    ${get_rtype(fn.type)} vr;\n`);
-                    txts.push(`    METHOD_NAME("${cls}[]");`);
                     txts.push(`    METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
                     txts.push('    exlib::string k;\n    GetArgumentValue(isolate, property, k);\n    if (class_info().has(k.c_str()))\n        return;\n');
                     if (fn.deprecated)
@@ -418,14 +411,12 @@ function gen_code(cls, def, baseFolder) {
                     txts.push('    hr = pInst->_named_getter(k, vr);\n    if (hr == CALL_RETURN_NULL)\n        return;\n');
                     txts.push('    METHOD_RETURN();\n}\n');
                     txts.push(`inline void ${cls}_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array>& args)\n{\n    v8::Local<v8::Array> vr;\n`);
-                    txts.push(`    METHOD_NAME("${cls}[]");`);
                     txts.push(`    METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
                     txts.push('    hr = pInst->_named_enumerator(vr);\n');
                     txts.push('    METHOD_RETURN1();\n}\n');
 
                     if (!fn.readonly) {
                         txts.push(`inline void ${cls}_base::i_NamedSetter(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args)\n{`);
-                        txts.push(`    METHOD_NAME("${cls}[]");`);
                         txts.push(`    METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
                         txts.push(`    PROPERTY_VAL(${get_rtype(fn.type)});\n    exlib::string k;\n    GetArgumentValue(isolate, property, k);\n    if (class_info().has(k.c_str()))\n        return;\n`);
                         if (fn.deprecated)
@@ -433,7 +424,6 @@ function gen_code(cls, def, baseFolder) {
                         txts.push('    hr = pInst->_named_setter(k, v0);\n    if (hr == CALL_RETURN_NULL)\n        return;\n');
                         txts.push('    METHOD_VOID();\n}\n');
                         txts.push(`inline void ${cls}_base::i_NamedDeleter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& args)\n{\n    v8::Local<v8::Boolean> vr;\n`);
-                        txts.push(`    METHOD_NAME("${cls}[]");`);
                         txts.push(`    METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
                         txts.push('    exlib::string k;\n    GetArgumentValue(isolate, property, k);\n    if (class_info().has(k.c_str())) {\n        args.GetReturnValue().Set(v8::False(isolate));\n        return;\n    }\n');
                         txts.push('    hr = pInst->_named_deleter(k, vr);\n    METHOD_RETURN1();\n}\n');
@@ -441,7 +431,6 @@ function gen_code(cls, def, baseFolder) {
                 } else {
                     txts.push(`inline void ${cls}_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args)\n{`);
                     txts.push(`    ${get_rtype(fn.type)} vr;\n`);
-                    txts.push(`    METHOD_NAME("${cls}[]");`);
                     txts.push(`    METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
                     if (fn.deprecated)
                         txts.push(`    DEPRECATED_SOON("${cls}${fn.name}");\n`);
@@ -450,7 +439,6 @@ function gen_code(cls, def, baseFolder) {
 
                     if (!fn.readonly) {
                         txts.push(`inline void ${cls}_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args)\n{`);
-                        txts.push(`    METHOD_NAME("${cls}[]");`);
                         txts.push(`    METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
                         if (fn.deprecated)
                             txts.push(`    DEPRECATED_SOON("${cls}${fn.name}");\n`);

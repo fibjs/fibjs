@@ -69,7 +69,6 @@ inline void Timer_base::s_ref(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Timer_base> vr;
 
-    METHOD_NAME("Timer.ref");
     METHOD_INSTANCE(Timer_base);
     METHOD_ENTER();
 
@@ -84,7 +83,6 @@ inline void Timer_base::s_unref(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Timer_base> vr;
 
-    METHOD_NAME("Timer.unref");
     METHOD_INSTANCE(Timer_base);
     METHOD_ENTER();
 
@@ -97,7 +95,6 @@ inline void Timer_base::s_unref(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Timer_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Timer.clear");
     METHOD_INSTANCE(Timer_base);
     METHOD_ENTER();
 
@@ -112,7 +109,6 @@ inline void Timer_base::s_get_stopped(v8::Local<v8::Name> property, const v8::Pr
 {
     bool vr;
 
-    METHOD_NAME("Timer.stopped");
     METHOD_INSTANCE(Timer_base);
     PROPERTY_ENTER();
 

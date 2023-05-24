@@ -70,7 +70,6 @@ inline void querystring_base::s_static_escape(const v8::FunctionCallbackInfo<v8:
 {
     exlib::string vr;
 
-    METHOD_NAME("querystring.escape");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -86,7 +85,6 @@ inline void querystring_base::s_static_unescape(const v8::FunctionCallbackInfo<v
 {
     exlib::string vr;
 
-    METHOD_NAME("querystring.unescape");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -102,7 +100,6 @@ inline void querystring_base::s_static_parse(const v8::FunctionCallbackInfo<v8::
 {
     obj_ptr<HttpCollection_base> vr;
 
-    METHOD_NAME("querystring.parse");
     METHOD_ENTER();
 
     METHOD_OVER(4, 1);
@@ -121,7 +118,6 @@ inline void querystring_base::s_static_stringify(const v8::FunctionCallbackInfo<
 {
     exlib::string vr;
 
-    METHOD_NAME("querystring.stringify");
     METHOD_ENTER();
 
     METHOD_OVER(4, 1);

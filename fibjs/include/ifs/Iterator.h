@@ -81,7 +81,6 @@ inline void Iterator_base::s_symbol_iterator(const v8::FunctionCallbackInfo<v8::
 {
     obj_ptr<Iterator_base> vr;
 
-    METHOD_NAME("Iterator.@iterator");
     METHOD_INSTANCE(Iterator_base);
     METHOD_ENTER();
 
@@ -96,7 +95,6 @@ inline void Iterator_base::s_next(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     obj_ptr<NextType> vr;
 
-    METHOD_NAME("Iterator.next");
     METHOD_INSTANCE(Iterator_base);
     METHOD_ENTER();
 

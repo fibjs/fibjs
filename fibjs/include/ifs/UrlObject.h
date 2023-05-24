@@ -151,7 +151,6 @@ void UrlObject_base::__new(const T& args)
 {
     obj_ptr<UrlObject_base> vr;
 
-    METHOD_NAME("new UrlObject()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(1, 1);
@@ -173,7 +172,6 @@ void UrlObject_base::__new(const T& args)
 
 inline void UrlObject_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("UrlObject.parse");
     METHOD_INSTANCE(UrlObject_base);
     METHOD_ENTER();
 
@@ -190,7 +188,6 @@ inline void UrlObject_base::s_parse(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void UrlObject_base::s_format(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("UrlObject.format");
     METHOD_INSTANCE(UrlObject_base);
     METHOD_ENTER();
 
@@ -207,7 +204,6 @@ inline void UrlObject_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>&
 {
     obj_ptr<UrlObject_base> vr;
 
-    METHOD_NAME("UrlObject.resolve");
     METHOD_INSTANCE(UrlObject_base);
     METHOD_ENTER();
 
@@ -222,7 +218,6 @@ inline void UrlObject_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void UrlObject_base::s_normalize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("UrlObject.normalize");
     METHOD_INSTANCE(UrlObject_base);
     METHOD_ENTER();
 
@@ -237,7 +232,6 @@ inline void UrlObject_base::s_get_href(v8::Local<v8::Name> property, const v8::P
 {
     exlib::string vr;
 
-    METHOD_NAME("UrlObject.href");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
 
@@ -248,7 +242,6 @@ inline void UrlObject_base::s_get_href(v8::Local<v8::Name> property, const v8::P
 
 inline void UrlObject_base::s_set_href(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("UrlObject.href");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -262,7 +255,6 @@ inline void UrlObject_base::s_get_protocol(v8::Local<v8::Name> property, const v
 {
     exlib::string vr;
 
-    METHOD_NAME("UrlObject.protocol");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
 
@@ -273,7 +265,6 @@ inline void UrlObject_base::s_get_protocol(v8::Local<v8::Name> property, const v
 
 inline void UrlObject_base::s_set_protocol(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("UrlObject.protocol");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -287,7 +278,6 @@ inline void UrlObject_base::s_get_slashes(v8::Local<v8::Name> property, const v8
 {
     bool vr;
 
-    METHOD_NAME("UrlObject.slashes");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
 
@@ -298,7 +288,6 @@ inline void UrlObject_base::s_get_slashes(v8::Local<v8::Name> property, const v8
 
 inline void UrlObject_base::s_set_slashes(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("UrlObject.slashes");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(bool);
@@ -312,7 +301,6 @@ inline void UrlObject_base::s_get_auth(v8::Local<v8::Name> property, const v8::P
 {
     exlib::string vr;
 
-    METHOD_NAME("UrlObject.auth");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
 
@@ -323,7 +311,6 @@ inline void UrlObject_base::s_get_auth(v8::Local<v8::Name> property, const v8::P
 
 inline void UrlObject_base::s_set_auth(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("UrlObject.auth");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -337,7 +324,6 @@ inline void UrlObject_base::s_get_username(v8::Local<v8::Name> property, const v
 {
     exlib::string vr;
 
-    METHOD_NAME("UrlObject.username");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
 
@@ -348,7 +334,6 @@ inline void UrlObject_base::s_get_username(v8::Local<v8::Name> property, const v
 
 inline void UrlObject_base::s_set_username(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("UrlObject.username");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -362,7 +347,6 @@ inline void UrlObject_base::s_get_password(v8::Local<v8::Name> property, const v
 {
     exlib::string vr;
 
-    METHOD_NAME("UrlObject.password");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
 
@@ -373,7 +357,6 @@ inline void UrlObject_base::s_get_password(v8::Local<v8::Name> property, const v
 
 inline void UrlObject_base::s_set_password(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("UrlObject.password");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -387,7 +370,6 @@ inline void UrlObject_base::s_get__host(v8::Local<v8::Name> property, const v8::
 {
     exlib::string vr;
 
-    METHOD_NAME("UrlObject.host");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
 
@@ -398,7 +380,6 @@ inline void UrlObject_base::s_get__host(v8::Local<v8::Name> property, const v8::
 
 inline void UrlObject_base::s_set__host(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("UrlObject.host");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -412,7 +393,6 @@ inline void UrlObject_base::s_get_hostname(v8::Local<v8::Name> property, const v
 {
     exlib::string vr;
 
-    METHOD_NAME("UrlObject.hostname");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
 
@@ -423,7 +403,6 @@ inline void UrlObject_base::s_get_hostname(v8::Local<v8::Name> property, const v
 
 inline void UrlObject_base::s_set_hostname(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("UrlObject.hostname");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -437,7 +416,6 @@ inline void UrlObject_base::s_get_port(v8::Local<v8::Name> property, const v8::P
 {
     exlib::string vr;
 
-    METHOD_NAME("UrlObject.port");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
 
@@ -448,7 +426,6 @@ inline void UrlObject_base::s_get_port(v8::Local<v8::Name> property, const v8::P
 
 inline void UrlObject_base::s_set_port(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("UrlObject.port");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -462,7 +439,6 @@ inline void UrlObject_base::s_get_path(v8::Local<v8::Name> property, const v8::P
 {
     exlib::string vr;
 
-    METHOD_NAME("UrlObject.path");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
 
@@ -473,7 +449,6 @@ inline void UrlObject_base::s_get_path(v8::Local<v8::Name> property, const v8::P
 
 inline void UrlObject_base::s_set_path(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("UrlObject.path");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -487,7 +462,6 @@ inline void UrlObject_base::s_get_pathname(v8::Local<v8::Name> property, const v
 {
     exlib::string vr;
 
-    METHOD_NAME("UrlObject.pathname");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
 
@@ -498,7 +472,6 @@ inline void UrlObject_base::s_get_pathname(v8::Local<v8::Name> property, const v
 
 inline void UrlObject_base::s_set_pathname(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("UrlObject.pathname");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -512,7 +485,6 @@ inline void UrlObject_base::s_get_search(v8::Local<v8::Name> property, const v8:
 {
     exlib::string vr;
 
-    METHOD_NAME("UrlObject.search");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
 
@@ -523,7 +495,6 @@ inline void UrlObject_base::s_get_search(v8::Local<v8::Name> property, const v8:
 
 inline void UrlObject_base::s_set_search(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("UrlObject.search");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -537,7 +508,6 @@ inline void UrlObject_base::s_get_query(v8::Local<v8::Name> property, const v8::
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_NAME("UrlObject.query");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
 
@@ -548,7 +518,6 @@ inline void UrlObject_base::s_get_query(v8::Local<v8::Name> property, const v8::
 
 inline void UrlObject_base::s_set_query(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("UrlObject.query");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(v8::Local<v8::Value>);
@@ -562,7 +531,6 @@ inline void UrlObject_base::s_get_hash(v8::Local<v8::Name> property, const v8::P
 {
     exlib::string vr;
 
-    METHOD_NAME("UrlObject.hash");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
 
@@ -573,7 +541,6 @@ inline void UrlObject_base::s_get_hash(v8::Local<v8::Name> property, const v8::P
 
 inline void UrlObject_base::s_set_hash(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("UrlObject.hash");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -587,7 +554,6 @@ inline void UrlObject_base::s_get_searchParams(v8::Local<v8::Name> property, con
 {
     obj_ptr<HttpCollection_base> vr;
 
-    METHOD_NAME("UrlObject.searchParams");
     METHOD_INSTANCE(UrlObject_base);
     PROPERTY_ENTER();
 

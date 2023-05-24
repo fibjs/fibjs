@@ -100,7 +100,6 @@ void Routing_base::__new(const T& args)
 {
     obj_ptr<Routing_base> vr;
 
-    METHOD_NAME("new Routing()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(1, 0);
@@ -123,7 +122,6 @@ inline void Routing_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<Routing_base> vr;
 
-    METHOD_NAME("Routing.append");
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
@@ -161,7 +159,6 @@ inline void Routing_base::s__host(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     obj_ptr<Routing_base> vr;
 
-    METHOD_NAME("Routing.host");
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
@@ -185,7 +182,6 @@ inline void Routing_base::s_all(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Routing_base> vr;
 
-    METHOD_NAME("Routing.all");
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
@@ -209,7 +205,6 @@ inline void Routing_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Routing_base> vr;
 
-    METHOD_NAME("Routing.get");
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
@@ -233,7 +228,6 @@ inline void Routing_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<Routing_base> vr;
 
-    METHOD_NAME("Routing.post");
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
@@ -257,7 +251,6 @@ inline void Routing_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Routing_base> vr;
 
-    METHOD_NAME("Routing.del");
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
@@ -281,7 +274,6 @@ inline void Routing_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Routing_base> vr;
 
-    METHOD_NAME("Routing.put");
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
@@ -305,7 +297,6 @@ inline void Routing_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     obj_ptr<Routing_base> vr;
 
-    METHOD_NAME("Routing.patch");
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 
@@ -329,7 +320,6 @@ inline void Routing_base::s_find(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<Routing_base> vr;
 
-    METHOD_NAME("Routing.find");
     METHOD_INSTANCE(Routing_base);
     METHOD_ENTER();
 

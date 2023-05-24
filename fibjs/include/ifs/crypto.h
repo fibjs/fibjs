@@ -204,7 +204,6 @@ inline void crypto_base::s_static_createHash(const v8::FunctionCallbackInfo<v8::
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("crypto.createHash");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -220,7 +219,6 @@ inline void crypto_base::s_static_createHmac(const v8::FunctionCallbackInfo<v8::
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("crypto.createHmac");
     METHOD_ENTER();
 
     METHOD_OVER(2, 2);
@@ -237,7 +235,6 @@ inline void crypto_base::s_static_loadCert(const v8::FunctionCallbackInfo<v8::Va
 {
     obj_ptr<X509Cert_base> vr;
 
-    METHOD_NAME("crypto.loadCert");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -253,7 +250,6 @@ inline void crypto_base::s_static_loadCrl(const v8::FunctionCallbackInfo<v8::Val
 {
     obj_ptr<X509Crl_base> vr;
 
-    METHOD_NAME("crypto.loadCrl");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -269,7 +265,6 @@ inline void crypto_base::s_static_loadReq(const v8::FunctionCallbackInfo<v8::Val
 {
     obj_ptr<X509Req_base> vr;
 
-    METHOD_NAME("crypto.loadReq");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -285,7 +280,6 @@ inline void crypto_base::s_static_loadPKey(const v8::FunctionCallbackInfo<v8::Va
 {
     obj_ptr<PKey_base> vr;
 
-    METHOD_NAME("crypto.loadPKey");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -301,7 +295,6 @@ inline void crypto_base::s_static_randomBytes(const v8::FunctionCallbackInfo<v8:
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("crypto.randomBytes");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 0);
@@ -320,7 +313,6 @@ inline void crypto_base::s_static_simpleRandomBytes(const v8::FunctionCallbackIn
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("crypto.simpleRandomBytes");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 0);
@@ -339,7 +331,6 @@ inline void crypto_base::s_static_pseudoRandomBytes(const v8::FunctionCallbackIn
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("crypto.pseudoRandomBytes");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 0);
@@ -358,7 +349,6 @@ inline void crypto_base::s_static_randomFill(const v8::FunctionCallbackInfo<v8::
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("crypto.randomFill");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(3, 1);
@@ -379,7 +369,6 @@ inline void crypto_base::s_static_randomArt(const v8::FunctionCallbackInfo<v8::V
 {
     exlib::string vr;
 
-    METHOD_NAME("crypto.randomArt");
     METHOD_ENTER();
 
     METHOD_OVER(3, 2);
@@ -397,7 +386,6 @@ inline void crypto_base::s_static_generateKey(const v8::FunctionCallbackInfo<v8:
 {
     obj_ptr<PKey_base> vr;
 
-    METHOD_NAME("crypto.generateKey");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
@@ -425,7 +413,6 @@ inline void crypto_base::s_static_pbkdf1(const v8::FunctionCallbackInfo<v8::Valu
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("crypto.pbkdf1");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(5, 5);
@@ -461,7 +448,6 @@ inline void crypto_base::s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Valu
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("crypto.pbkdf2");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(5, 5);
@@ -497,7 +483,6 @@ inline void crypto_base::s_static_getHashes(const v8::FunctionCallbackInfo<v8::V
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_NAME("crypto.getHashes");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);

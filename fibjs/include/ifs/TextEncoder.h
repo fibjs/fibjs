@@ -71,7 +71,6 @@ void TextEncoder_base::__new(const T& args)
 {
     obj_ptr<TextEncoder_base> vr;
 
-    METHOD_NAME("new TextEncoder()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(2, 0);
@@ -88,7 +87,6 @@ inline void TextEncoder_base::s_encode(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("TextEncoder.encode");
     METHOD_INSTANCE(TextEncoder_base);
     METHOD_ENTER();
 
@@ -106,7 +104,6 @@ inline void TextEncoder_base::s_get_encoding(v8::Local<v8::Name> property, const
 {
     exlib::string vr;
 
-    METHOD_NAME("TextEncoder.encoding");
     METHOD_INSTANCE(TextEncoder_base);
     PROPERTY_ENTER();
 

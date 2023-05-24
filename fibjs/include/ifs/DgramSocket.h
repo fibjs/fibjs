@@ -102,7 +102,6 @@ inline ClassInfo& DgramSocket_base::class_info()
 
 inline void DgramSocket_base::s_bind(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("DgramSocket.bind");
     METHOD_INSTANCE(DgramSocket_base);
     METHOD_ENTER();
 
@@ -132,7 +131,6 @@ inline void DgramSocket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     int32_t vr;
 
-    METHOD_NAME("DgramSocket.send");
     METHOD_INSTANCE(DgramSocket_base);
     METHOD_ENTER();
 
@@ -167,7 +165,6 @@ inline void DgramSocket_base::s_address(const v8::FunctionCallbackInfo<v8::Value
 {
     obj_ptr<NObject> vr;
 
-    METHOD_NAME("DgramSocket.address");
     METHOD_INSTANCE(DgramSocket_base);
     METHOD_ENTER();
 
@@ -180,7 +177,6 @@ inline void DgramSocket_base::s_address(const v8::FunctionCallbackInfo<v8::Value
 
 inline void DgramSocket_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("DgramSocket.close");
     METHOD_INSTANCE(DgramSocket_base);
     METHOD_ENTER();
 
@@ -201,7 +197,6 @@ inline void DgramSocket_base::s_getRecvBufferSize(const v8::FunctionCallbackInfo
 {
     int32_t vr;
 
-    METHOD_NAME("DgramSocket.getRecvBufferSize");
     METHOD_INSTANCE(DgramSocket_base);
     METHOD_ENTER();
 
@@ -216,7 +211,6 @@ inline void DgramSocket_base::s_getSendBufferSize(const v8::FunctionCallbackInfo
 {
     int32_t vr;
 
-    METHOD_NAME("DgramSocket.getSendBufferSize");
     METHOD_INSTANCE(DgramSocket_base);
     METHOD_ENTER();
 
@@ -229,7 +223,6 @@ inline void DgramSocket_base::s_getSendBufferSize(const v8::FunctionCallbackInfo
 
 inline void DgramSocket_base::s_setRecvBufferSize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("DgramSocket.setRecvBufferSize");
     METHOD_INSTANCE(DgramSocket_base);
     METHOD_ENTER();
 
@@ -244,7 +237,6 @@ inline void DgramSocket_base::s_setRecvBufferSize(const v8::FunctionCallbackInfo
 
 inline void DgramSocket_base::s_setSendBufferSize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("DgramSocket.setSendBufferSize");
     METHOD_INSTANCE(DgramSocket_base);
     METHOD_ENTER();
 
@@ -259,7 +251,6 @@ inline void DgramSocket_base::s_setSendBufferSize(const v8::FunctionCallbackInfo
 
 inline void DgramSocket_base::s_setBroadcast(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("DgramSocket.setBroadcast");
     METHOD_INSTANCE(DgramSocket_base);
     METHOD_ENTER();
 
@@ -276,7 +267,6 @@ inline void DgramSocket_base::s_ref(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     obj_ptr<DgramSocket_base> vr;
 
-    METHOD_NAME("DgramSocket.ref");
     METHOD_INSTANCE(DgramSocket_base);
     METHOD_ENTER();
 
@@ -291,7 +281,6 @@ inline void DgramSocket_base::s_unref(const v8::FunctionCallbackInfo<v8::Value>&
 {
     obj_ptr<DgramSocket_base> vr;
 
-    METHOD_NAME("DgramSocket.unref");
     METHOD_INSTANCE(DgramSocket_base);
     METHOD_ENTER();
 

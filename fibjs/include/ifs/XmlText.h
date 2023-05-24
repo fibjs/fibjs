@@ -60,7 +60,6 @@ inline void XmlText_base::s_splitText(const v8::FunctionCallbackInfo<v8::Value>&
 {
     obj_ptr<XmlText_base> vr;
 
-    METHOD_NAME("XmlText.splitText");
     METHOD_INSTANCE(XmlText_base);
     METHOD_ENTER();
 

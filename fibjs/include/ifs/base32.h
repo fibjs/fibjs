@@ -64,7 +64,6 @@ inline void base32_base::s_static_encode(const v8::FunctionCallbackInfo<v8::Valu
 {
     exlib::string vr;
 
-    METHOD_NAME("base32.encode");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -80,7 +79,6 @@ inline void base32_base::s_static_decode(const v8::FunctionCallbackInfo<v8::Valu
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("base32.decode");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);

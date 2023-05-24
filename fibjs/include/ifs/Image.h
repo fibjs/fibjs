@@ -279,7 +279,6 @@ inline void Image_base::s_get_width(v8::Local<v8::Name> property, const v8::Prop
 {
     int32_t vr;
 
-    METHOD_NAME("Image.width");
     METHOD_INSTANCE(Image_base);
     PROPERTY_ENTER();
 
@@ -292,7 +291,6 @@ inline void Image_base::s_get_height(v8::Local<v8::Name> property, const v8::Pro
 {
     int32_t vr;
 
-    METHOD_NAME("Image.height");
     METHOD_INSTANCE(Image_base);
     PROPERTY_ENTER();
 
@@ -305,7 +303,6 @@ inline void Image_base::s_get_format(v8::Local<v8::Name> property, const v8::Pro
 {
     int32_t vr;
 
-    METHOD_NAME("Image.format");
     METHOD_INSTANCE(Image_base);
     PROPERTY_ENTER();
 
@@ -318,7 +315,6 @@ inline void Image_base::s_get_type(v8::Local<v8::Name> property, const v8::Prope
 {
     int32_t vr;
 
-    METHOD_NAME("Image.type");
     METHOD_INSTANCE(Image_base);
     PROPERTY_ENTER();
 
@@ -331,7 +327,6 @@ inline void Image_base::s_get_colorsTotal(v8::Local<v8::Name> property, const v8
 {
     int32_t vr;
 
-    METHOD_NAME("Image.colorsTotal");
     METHOD_INSTANCE(Image_base);
     PROPERTY_ENTER();
 
@@ -344,7 +339,6 @@ inline void Image_base::s_get_transparent(v8::Local<v8::Name> property, const v8
 {
     int32_t vr;
 
-    METHOD_NAME("Image.transparent");
     METHOD_INSTANCE(Image_base);
     PROPERTY_ENTER();
 
@@ -355,7 +349,6 @@ inline void Image_base::s_get_transparent(v8::Local<v8::Name> property, const v8
 
 inline void Image_base::s_set_transparent(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("Image.transparent");
     METHOD_INSTANCE(Image_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
@@ -369,7 +362,6 @@ inline void Image_base::s_get_progressive(v8::Local<v8::Name> property, const v8
 {
     bool vr;
 
-    METHOD_NAME("Image.progressive");
     METHOD_INSTANCE(Image_base);
     PROPERTY_ENTER();
 
@@ -380,7 +372,6 @@ inline void Image_base::s_get_progressive(v8::Local<v8::Name> property, const v8
 
 inline void Image_base::s_set_progressive(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("Image.progressive");
     METHOD_INSTANCE(Image_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(bool);
@@ -394,7 +385,6 @@ inline void Image_base::s_get_alphaBlending(v8::Local<v8::Name> property, const 
 {
     bool vr;
 
-    METHOD_NAME("Image.alphaBlending");
     METHOD_INSTANCE(Image_base);
     PROPERTY_ENTER();
 
@@ -405,7 +395,6 @@ inline void Image_base::s_get_alphaBlending(v8::Local<v8::Name> property, const 
 
 inline void Image_base::s_set_alphaBlending(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("Image.alphaBlending");
     METHOD_INSTANCE(Image_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(bool);
@@ -419,7 +408,6 @@ inline void Image_base::s_getData(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("Image.getData");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -438,7 +426,6 @@ inline void Image_base::s_getData(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void Image_base::s_save(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.save");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -471,7 +458,6 @@ inline void Image_base::s_colorAllocate(const v8::FunctionCallbackInfo<v8::Value
 {
     int32_t vr;
 
-    METHOD_NAME("Image.colorAllocate");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -496,7 +482,6 @@ inline void Image_base::s_colorAllocateAlpha(const v8::FunctionCallbackInfo<v8::
 {
     int32_t vr;
 
-    METHOD_NAME("Image.colorAllocateAlpha");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -522,7 +507,6 @@ inline void Image_base::s_colorClosest(const v8::FunctionCallbackInfo<v8::Value>
 {
     int32_t vr;
 
-    METHOD_NAME("Image.colorClosest");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -547,7 +531,6 @@ inline void Image_base::s_colorClosestHWB(const v8::FunctionCallbackInfo<v8::Val
 {
     int32_t vr;
 
-    METHOD_NAME("Image.colorClosestHWB");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -572,7 +555,6 @@ inline void Image_base::s_colorClosestAlpha(const v8::FunctionCallbackInfo<v8::V
 {
     int32_t vr;
 
-    METHOD_NAME("Image.colorClosestAlpha");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -598,7 +580,6 @@ inline void Image_base::s_colorExact(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     int32_t vr;
 
-    METHOD_NAME("Image.colorExact");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -623,7 +604,6 @@ inline void Image_base::s_colorExactAlpha(const v8::FunctionCallbackInfo<v8::Val
 {
     int32_t vr;
 
-    METHOD_NAME("Image.colorExactAlpha");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -649,7 +629,6 @@ inline void Image_base::s_colorResolve(const v8::FunctionCallbackInfo<v8::Value>
 {
     int32_t vr;
 
-    METHOD_NAME("Image.colorResolve");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -674,7 +653,6 @@ inline void Image_base::s_colorResolveAlpha(const v8::FunctionCallbackInfo<v8::V
 {
     int32_t vr;
 
-    METHOD_NAME("Image.colorResolveAlpha");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -698,7 +676,6 @@ inline void Image_base::s_colorResolveAlpha(const v8::FunctionCallbackInfo<v8::V
 
 inline void Image_base::s_colorDeallocate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.colorDeallocate");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -713,7 +690,6 @@ inline void Image_base::s_colorDeallocate(const v8::FunctionCallbackInfo<v8::Val
 
 inline void Image_base::s_clip(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.clip");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -733,7 +709,6 @@ inline void Image_base::s_getPixel(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     int32_t vr;
 
-    METHOD_NAME("Image.getPixel");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -751,7 +726,6 @@ inline void Image_base::s_getTrueColorPixel(const v8::FunctionCallbackInfo<v8::V
 {
     int32_t vr;
 
-    METHOD_NAME("Image.getTrueColorPixel");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -767,7 +741,6 @@ inline void Image_base::s_getTrueColorPixel(const v8::FunctionCallbackInfo<v8::V
 
 inline void Image_base::s_setPixel(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.setPixel");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -784,7 +757,6 @@ inline void Image_base::s_setPixel(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void Image_base::s_setThickness(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.setThickness");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -799,7 +771,6 @@ inline void Image_base::s_setThickness(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void Image_base::s_line(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.line");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -818,7 +789,6 @@ inline void Image_base::s_line(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Image_base::s_rectangle(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.rectangle");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -837,7 +807,6 @@ inline void Image_base::s_rectangle(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void Image_base::s_filledRectangle(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.filledRectangle");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -856,7 +825,6 @@ inline void Image_base::s_filledRectangle(const v8::FunctionCallbackInfo<v8::Val
 
 inline void Image_base::s_polygon(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.polygon");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -872,7 +840,6 @@ inline void Image_base::s_polygon(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void Image_base::s_openPolygon(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.openPolygon");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -888,7 +855,6 @@ inline void Image_base::s_openPolygon(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void Image_base::s_filledPolygon(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.filledPolygon");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -904,7 +870,6 @@ inline void Image_base::s_filledPolygon(const v8::FunctionCallbackInfo<v8::Value
 
 inline void Image_base::s_ellipse(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.ellipse");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -923,7 +888,6 @@ inline void Image_base::s_ellipse(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void Image_base::s_filledEllipse(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.filledEllipse");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -942,7 +906,6 @@ inline void Image_base::s_filledEllipse(const v8::FunctionCallbackInfo<v8::Value
 
 inline void Image_base::s_arc(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.arc");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -963,7 +926,6 @@ inline void Image_base::s_arc(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Image_base::s_filledArc(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.filledArc");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -985,7 +947,6 @@ inline void Image_base::s_filledArc(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void Image_base::s_fill(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.fill");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -1002,7 +963,6 @@ inline void Image_base::s_fill(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Image_base::s_fillToBorder(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.fillToBorder");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -1020,7 +980,6 @@ inline void Image_base::s_fillToBorder(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void Image_base::s_colorReplace(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.colorReplace");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -1041,7 +1000,6 @@ inline void Image_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Image_base> vr;
 
-    METHOD_NAME("Image.clone");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -1059,7 +1017,6 @@ inline void Image_base::s_resample(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<Image_base> vr;
 
-    METHOD_NAME("Image.resample");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -1080,7 +1037,6 @@ inline void Image_base::s_crop(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Image_base> vr;
 
-    METHOD_NAME("Image.crop");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -1101,7 +1057,6 @@ inline void Image_base::s_crop(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Image_base::s_flip(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.flip");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -1119,7 +1074,6 @@ inline void Image_base::s_flip(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Image_base::s_rotate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.rotate");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -1137,7 +1091,6 @@ inline void Image_base::s_rotate(const v8::FunctionCallbackInfo<v8::Value>& args
 
 inline void Image_base::s_convert(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.convert");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -1155,7 +1108,6 @@ inline void Image_base::s_convert(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void Image_base::s_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.copy");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -1179,7 +1131,6 @@ inline void Image_base::s_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Image_base::s_copyMerge(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.copyMerge");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -1204,7 +1155,6 @@ inline void Image_base::s_copyMerge(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void Image_base::s_copyMergeGray(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.copyMergeGray");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -1229,7 +1179,6 @@ inline void Image_base::s_copyMergeGray(const v8::FunctionCallbackInfo<v8::Value
 
 inline void Image_base::s_copyResized(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.copyResized");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -1255,7 +1204,6 @@ inline void Image_base::s_copyResized(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void Image_base::s_copyResampled(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.copyResampled");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -1281,7 +1229,6 @@ inline void Image_base::s_copyResampled(const v8::FunctionCallbackInfo<v8::Value
 
 inline void Image_base::s_copyRotated(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.copyRotated");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -1306,7 +1253,6 @@ inline void Image_base::s_copyRotated(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void Image_base::s_filter(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.filter");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -1330,7 +1276,6 @@ inline void Image_base::s_affine(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<Image_base> vr;
 
-    METHOD_NAME("Image.affine");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
@@ -1352,7 +1297,6 @@ inline void Image_base::s_affine(const v8::FunctionCallbackInfo<v8::Value>& args
 
 inline void Image_base::s_gaussianBlur(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Image.gaussianBlur");
     METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 

@@ -185,7 +185,6 @@ inline void console_base::s_static_get_loglevel(v8::Local<v8::Name> property, co
 {
     int32_t vr;
 
-    METHOD_NAME("console.loglevel");
     PROPERTY_ENTER();
 
     hr = get_loglevel(vr);
@@ -195,7 +194,6 @@ inline void console_base::s_static_get_loglevel(v8::Local<v8::Name> property, co
 
 inline void console_base::s_static_set_loglevel(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("console.loglevel");
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
 
@@ -208,7 +206,6 @@ inline void console_base::s_static_get_width(v8::Local<v8::Name> property, const
 {
     int32_t vr;
 
-    METHOD_NAME("console.width");
     PROPERTY_ENTER();
 
     hr = get_width(vr);
@@ -220,7 +217,6 @@ inline void console_base::s_static_get_height(v8::Local<v8::Name> property, cons
 {
     int32_t vr;
 
-    METHOD_NAME("console.height");
     PROPERTY_ENTER();
 
     hr = get_height(vr);
@@ -230,7 +226,6 @@ inline void console_base::s_static_get_height(v8::Local<v8::Name> property, cons
 
 inline void console_base::s_static_add(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("console.add");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -256,7 +251,6 @@ inline void console_base::s_static_add(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void console_base::s_static_reset(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("console.reset");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -268,7 +262,6 @@ inline void console_base::s_static_reset(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void console_base::s_static_log(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("console.log");
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -289,7 +282,6 @@ inline void console_base::s_static_log(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void console_base::s_static_debug(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("console.debug");
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -310,7 +302,6 @@ inline void console_base::s_static_debug(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void console_base::s_static_info(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("console.info");
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -331,7 +322,6 @@ inline void console_base::s_static_info(const v8::FunctionCallbackInfo<v8::Value
 
 inline void console_base::s_static_notice(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("console.notice");
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -352,7 +342,6 @@ inline void console_base::s_static_notice(const v8::FunctionCallbackInfo<v8::Val
 
 inline void console_base::s_static_warn(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("console.warn");
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -373,7 +362,6 @@ inline void console_base::s_static_warn(const v8::FunctionCallbackInfo<v8::Value
 
 inline void console_base::s_static_error(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("console.error");
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -394,7 +382,6 @@ inline void console_base::s_static_error(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void console_base::s_static_crit(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("console.crit");
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -415,7 +402,6 @@ inline void console_base::s_static_crit(const v8::FunctionCallbackInfo<v8::Value
 
 inline void console_base::s_static_alert(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("console.alert");
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -436,7 +422,6 @@ inline void console_base::s_static_alert(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void console_base::s_static_dir(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("console.dir");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -451,7 +436,6 @@ inline void console_base::s_static_dir(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void console_base::s_static_table(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("console.table");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -472,7 +456,6 @@ inline void console_base::s_static_table(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void console_base::s_static_time(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("console.time");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -486,7 +469,6 @@ inline void console_base::s_static_time(const v8::FunctionCallbackInfo<v8::Value
 
 inline void console_base::s_static_timeElapse(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("console.timeElapse");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -500,7 +482,6 @@ inline void console_base::s_static_timeElapse(const v8::FunctionCallbackInfo<v8:
 
 inline void console_base::s_static_timeEnd(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("console.timeEnd");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -514,7 +495,6 @@ inline void console_base::s_static_timeEnd(const v8::FunctionCallbackInfo<v8::Va
 
 inline void console_base::s_static_trace(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("console.trace");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -528,7 +508,6 @@ inline void console_base::s_static_trace(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void console_base::s_static__assert(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("console.assert");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -543,7 +522,6 @@ inline void console_base::s_static__assert(const v8::FunctionCallbackInfo<v8::Va
 
 inline void console_base::s_static_print(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("console.print");
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -564,7 +542,6 @@ inline void console_base::s_static_print(const v8::FunctionCallbackInfo<v8::Valu
 
 inline void console_base::s_static_moveTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("console.moveTo");
     METHOD_ENTER();
 
     METHOD_OVER(2, 2);
@@ -579,7 +556,6 @@ inline void console_base::s_static_moveTo(const v8::FunctionCallbackInfo<v8::Val
 
 inline void console_base::s_static_hideCursor(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("console.hideCursor");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -591,7 +567,6 @@ inline void console_base::s_static_hideCursor(const v8::FunctionCallbackInfo<v8:
 
 inline void console_base::s_static_showCursor(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("console.showCursor");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -603,7 +578,6 @@ inline void console_base::s_static_showCursor(const v8::FunctionCallbackInfo<v8:
 
 inline void console_base::s_static_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("console.clear");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -617,7 +591,6 @@ inline void console_base::s_static_readLine(const v8::FunctionCallbackInfo<v8::V
 {
     exlib::string vr;
 
-    METHOD_NAME("console.readLine");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 0);
@@ -636,7 +609,6 @@ inline void console_base::s_static_getpass(const v8::FunctionCallbackInfo<v8::Va
 {
     exlib::string vr;
 
-    METHOD_NAME("console.getpass");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 0);

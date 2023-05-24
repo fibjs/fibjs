@@ -98,7 +98,6 @@ inline void ws_base::s_static_upgrade(const v8::FunctionCallbackInfo<v8::Value>&
 {
     obj_ptr<Handler_base> vr;
 
-    METHOD_NAME("ws.upgrade");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);

@@ -84,7 +84,6 @@ void ECKey_base::__new(const T& args)
 {
     obj_ptr<ECKey_base> vr;
 
-    METHOD_NAME("new ECKey()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(2, 1);
@@ -114,7 +113,6 @@ inline void ECKey_base::s_get_curve(v8::Local<v8::Name> property, const v8::Prop
 {
     exlib::string vr;
 
-    METHOD_NAME("ECKey.curve");
     METHOD_INSTANCE(ECKey_base);
     PROPERTY_ENTER();
 
@@ -127,7 +125,6 @@ inline void ECKey_base::s_static_recover(const v8::FunctionCallbackInfo<v8::Valu
 {
     obj_ptr<ECKey_base> vr;
 
-    METHOD_NAME("ECKey.recover");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 2);
@@ -147,7 +144,6 @@ inline void ECKey_base::s_computeSecret(const v8::FunctionCallbackInfo<v8::Value
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("ECKey.computeSecret");
     METHOD_INSTANCE(ECKey_base);
     METHOD_ENTER();
 

@@ -109,7 +109,6 @@ inline ClassInfo& ChildProcess_base::class_info()
 
 inline void ChildProcess_base::s_kill(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("ChildProcess.kill");
     METHOD_INSTANCE(ChildProcess_base);
     METHOD_ENTER();
 
@@ -132,7 +131,6 @@ inline void ChildProcess_base::s_join(const v8::FunctionCallbackInfo<v8::Value>&
 {
     int32_t vr;
 
-    METHOD_NAME("ChildProcess.join");
     METHOD_INSTANCE(ChildProcess_base);
     METHOD_ENTER();
 
@@ -150,7 +148,6 @@ inline void ChildProcess_base::s_get_connected(v8::Local<v8::Name> property, con
 {
     bool vr;
 
-    METHOD_NAME("ChildProcess.connected");
     METHOD_INSTANCE(ChildProcess_base);
     PROPERTY_ENTER();
 
@@ -161,7 +158,6 @@ inline void ChildProcess_base::s_get_connected(v8::Local<v8::Name> property, con
 
 inline void ChildProcess_base::s_disconnect(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("ChildProcess.disconnect");
     METHOD_INSTANCE(ChildProcess_base);
     METHOD_ENTER();
 
@@ -174,7 +170,6 @@ inline void ChildProcess_base::s_disconnect(const v8::FunctionCallbackInfo<v8::V
 
 inline void ChildProcess_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("ChildProcess.send");
     METHOD_INSTANCE(ChildProcess_base);
     METHOD_ENTER();
 
@@ -191,7 +186,6 @@ inline void ChildProcess_base::s_usage(const v8::FunctionCallbackInfo<v8::Value>
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("ChildProcess.usage");
     METHOD_INSTANCE(ChildProcess_base);
     METHOD_ENTER();
 
@@ -206,7 +200,6 @@ inline void ChildProcess_base::s_get_pid(v8::Local<v8::Name> property, const v8:
 {
     int32_t vr;
 
-    METHOD_NAME("ChildProcess.pid");
     METHOD_INSTANCE(ChildProcess_base);
     PROPERTY_ENTER();
 
@@ -219,7 +212,6 @@ inline void ChildProcess_base::s_get_exitCode(v8::Local<v8::Name> property, cons
 {
     int32_t vr;
 
-    METHOD_NAME("ChildProcess.exitCode");
     METHOD_INSTANCE(ChildProcess_base);
     PROPERTY_ENTER();
 
@@ -232,7 +224,6 @@ inline void ChildProcess_base::s_get_stdin(v8::Local<v8::Name> property, const v
 {
     obj_ptr<Stream_base> vr;
 
-    METHOD_NAME("ChildProcess.stdin");
     METHOD_INSTANCE(ChildProcess_base);
     PROPERTY_ENTER();
 
@@ -245,7 +236,6 @@ inline void ChildProcess_base::s_get_stdout(v8::Local<v8::Name> property, const 
 {
     obj_ptr<Stream_base> vr;
 
-    METHOD_NAME("ChildProcess.stdout");
     METHOD_INSTANCE(ChildProcess_base);
     PROPERTY_ENTER();
 
@@ -258,7 +248,6 @@ inline void ChildProcess_base::s_get_stderr(v8::Local<v8::Name> property, const 
 {
     obj_ptr<Stream_base> vr;
 
-    METHOD_NAME("ChildProcess.stderr");
     METHOD_INSTANCE(ChildProcess_base);
     PROPERTY_ENTER();
 
@@ -271,7 +260,6 @@ inline void ChildProcess_base::s_get_onexit(v8::Local<v8::Name> property, const 
 {
     v8::Local<v8::Function> vr;
 
-    METHOD_NAME("ChildProcess.onexit");
     METHOD_INSTANCE(ChildProcess_base);
     PROPERTY_ENTER();
 
@@ -282,7 +270,6 @@ inline void ChildProcess_base::s_get_onexit(v8::Local<v8::Name> property, const 
 
 inline void ChildProcess_base::s_set_onexit(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("ChildProcess.onexit");
     METHOD_INSTANCE(ChildProcess_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(v8::Local<v8::Function>);
@@ -296,7 +283,6 @@ inline void ChildProcess_base::s_get_onmessage(v8::Local<v8::Name> property, con
 {
     v8::Local<v8::Function> vr;
 
-    METHOD_NAME("ChildProcess.onmessage");
     METHOD_INSTANCE(ChildProcess_base);
     PROPERTY_ENTER();
 
@@ -307,7 +293,6 @@ inline void ChildProcess_base::s_get_onmessage(v8::Local<v8::Name> property, con
 
 inline void ChildProcess_base::s_set_onmessage(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("ChildProcess.onmessage");
     METHOD_INSTANCE(ChildProcess_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(v8::Local<v8::Function>);

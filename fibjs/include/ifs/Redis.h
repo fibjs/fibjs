@@ -203,7 +203,6 @@ inline void Redis_base::s_command(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_NAME("Redis.command");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -219,7 +218,6 @@ inline void Redis_base::s_command(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void Redis_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Redis.set");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -236,7 +234,6 @@ inline void Redis_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Redis_base::s_setNX(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Redis.setNX");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -253,7 +250,6 @@ inline void Redis_base::s_setNX(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Redis_base::s_setXX(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Redis.setXX");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -270,7 +266,6 @@ inline void Redis_base::s_setXX(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Redis_base::s_mset(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Redis.mset");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -291,7 +286,6 @@ inline void Redis_base::s_mset(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Redis_base::s_msetNX(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Redis.msetNX");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -314,7 +308,6 @@ inline void Redis_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     int32_t vr;
 
-    METHOD_NAME("Redis.append");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -332,7 +325,6 @@ inline void Redis_base::s_setRange(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     int32_t vr;
 
-    METHOD_NAME("Redis.setRange");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -351,7 +343,6 @@ inline void Redis_base::s_getRange(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("Redis.getRange");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -370,7 +361,6 @@ inline void Redis_base::s_strlen(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     int32_t vr;
 
-    METHOD_NAME("Redis.strlen");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -387,7 +377,6 @@ inline void Redis_base::s_bitcount(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     int32_t vr;
 
-    METHOD_NAME("Redis.bitcount");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -406,7 +395,6 @@ inline void Redis_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("Redis.get");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -423,7 +411,6 @@ inline void Redis_base::s_mget(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<NArray> vr;
 
-    METHOD_NAME("Redis.mget");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -446,7 +433,6 @@ inline void Redis_base::s_getset(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("Redis.getset");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -464,7 +450,6 @@ inline void Redis_base::s_decr(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int64_t vr;
 
-    METHOD_NAME("Redis.decr");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -482,7 +467,6 @@ inline void Redis_base::s_incr(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int64_t vr;
 
-    METHOD_NAME("Redis.incr");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -500,7 +484,6 @@ inline void Redis_base::s_setBit(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     int32_t vr;
 
-    METHOD_NAME("Redis.setBit");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -519,7 +502,6 @@ inline void Redis_base::s_getBit(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     int32_t vr;
 
-    METHOD_NAME("Redis.getBit");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -537,7 +519,6 @@ inline void Redis_base::s_exists(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     bool vr;
 
-    METHOD_NAME("Redis.exists");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -554,7 +535,6 @@ inline void Redis_base::s_type(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_NAME("Redis.type");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -571,7 +551,6 @@ inline void Redis_base::s_keys(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<NArray> vr;
 
-    METHOD_NAME("Redis.keys");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -588,7 +567,6 @@ inline void Redis_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    METHOD_NAME("Redis.del");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -611,7 +589,6 @@ inline void Redis_base::s_expire(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     bool vr;
 
-    METHOD_NAME("Redis.expire");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -629,7 +606,6 @@ inline void Redis_base::s_ttl(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int64_t vr;
 
-    METHOD_NAME("Redis.ttl");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -646,7 +622,6 @@ inline void Redis_base::s_persist(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     bool vr;
 
-    METHOD_NAME("Redis.persist");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -661,7 +636,6 @@ inline void Redis_base::s_persist(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void Redis_base::s_rename(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Redis.rename");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -679,7 +653,6 @@ inline void Redis_base::s_renameNX(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     bool vr;
 
-    METHOD_NAME("Redis.renameNX");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -695,7 +668,6 @@ inline void Redis_base::s_renameNX(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void Redis_base::s_sub(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Redis.sub");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -717,7 +689,6 @@ inline void Redis_base::s_sub(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Redis_base::s_unsub(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Redis.unsub");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -751,7 +722,6 @@ inline void Redis_base::s_unsub(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Redis_base::s_psub(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Redis.psub");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -773,7 +743,6 @@ inline void Redis_base::s_psub(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Redis_base::s_unpsub(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Redis.unpsub");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -809,7 +778,6 @@ inline void Redis_base::s_get_onsuberror(v8::Local<v8::Name> property, const v8:
 {
     v8::Local<v8::Function> vr;
 
-    METHOD_NAME("Redis.onsuberror");
     METHOD_INSTANCE(Redis_base);
     PROPERTY_ENTER();
 
@@ -820,7 +788,6 @@ inline void Redis_base::s_get_onsuberror(v8::Local<v8::Name> property, const v8:
 
 inline void Redis_base::s_set_onsuberror(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("Redis.onsuberror");
     METHOD_INSTANCE(Redis_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(v8::Local<v8::Function>);
@@ -834,7 +801,6 @@ inline void Redis_base::s_pub(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    METHOD_NAME("Redis.pub");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -852,7 +818,6 @@ inline void Redis_base::s_getHash(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     obj_ptr<RedisHash_base> vr;
 
-    METHOD_NAME("Redis.getHash");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -869,7 +834,6 @@ inline void Redis_base::s_getList(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     obj_ptr<RedisList_base> vr;
 
-    METHOD_NAME("Redis.getList");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -886,7 +850,6 @@ inline void Redis_base::s_getSet(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<RedisSet_base> vr;
 
-    METHOD_NAME("Redis.getSet");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -903,7 +866,6 @@ inline void Redis_base::s_getSortedSet(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<RedisSortedSet_base> vr;
 
-    METHOD_NAME("Redis.getSortedSet");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -920,7 +882,6 @@ inline void Redis_base::s_dump(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("Redis.dump");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -935,7 +896,6 @@ inline void Redis_base::s_dump(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Redis_base::s_restore(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Redis.restore");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 
@@ -952,7 +912,6 @@ inline void Redis_base::s_restore(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void Redis_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Redis.close");
     METHOD_INSTANCE(Redis_base);
     METHOD_ENTER();
 

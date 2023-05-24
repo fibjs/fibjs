@@ -197,7 +197,6 @@ inline void hash_base::s_static_digest(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.digest");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -214,7 +213,6 @@ inline void hash_base::s_static_md5(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.md5");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -230,7 +228,6 @@ inline void hash_base::s_static_sha1(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.sha1");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -246,7 +243,6 @@ inline void hash_base::s_static_sha224(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.sha224");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -262,7 +258,6 @@ inline void hash_base::s_static_sha256(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.sha256");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -278,7 +273,6 @@ inline void hash_base::s_static_sha384(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.sha384");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -294,7 +288,6 @@ inline void hash_base::s_static_sha512(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.sha512");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -310,7 +303,6 @@ inline void hash_base::s_static_ripemd160(const v8::FunctionCallbackInfo<v8::Val
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.ripemd160");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -326,7 +318,6 @@ inline void hash_base::s_static_sm3(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.sm3");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -350,7 +341,6 @@ inline void hash_base::s_static_keccak256(const v8::FunctionCallbackInfo<v8::Val
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.keccak256");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -366,7 +356,6 @@ inline void hash_base::s_static_keccak384(const v8::FunctionCallbackInfo<v8::Val
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.keccak384");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -382,7 +371,6 @@ inline void hash_base::s_static_keccak512(const v8::FunctionCallbackInfo<v8::Val
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.keccak512");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -398,7 +386,6 @@ inline void hash_base::s_static_blake2s(const v8::FunctionCallbackInfo<v8::Value
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.blake2s");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -414,7 +401,6 @@ inline void hash_base::s_static_blake2b(const v8::FunctionCallbackInfo<v8::Value
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.blake2b");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -430,7 +416,6 @@ inline void hash_base::s_static_blake2sp(const v8::FunctionCallbackInfo<v8::Valu
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.blake2sp");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -446,7 +431,6 @@ inline void hash_base::s_static_blake2bp(const v8::FunctionCallbackInfo<v8::Valu
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.blake2bp");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -462,7 +446,6 @@ inline void hash_base::s_static_hmac(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.hmac");
     METHOD_ENTER();
 
     METHOD_OVER(3, 2);
@@ -480,7 +463,6 @@ inline void hash_base::s_static_hmac_md5(const v8::FunctionCallbackInfo<v8::Valu
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.hmac_md5");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -497,7 +479,6 @@ inline void hash_base::s_static_hmac_sha1(const v8::FunctionCallbackInfo<v8::Val
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.hmac_sha1");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -514,7 +495,6 @@ inline void hash_base::s_static_hmac_sha224(const v8::FunctionCallbackInfo<v8::V
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.hmac_sha224");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -531,7 +511,6 @@ inline void hash_base::s_static_hmac_sha256(const v8::FunctionCallbackInfo<v8::V
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.hmac_sha256");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -548,7 +527,6 @@ inline void hash_base::s_static_hmac_sha384(const v8::FunctionCallbackInfo<v8::V
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.hmac_sha384");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -565,7 +543,6 @@ inline void hash_base::s_static_hmac_sha512(const v8::FunctionCallbackInfo<v8::V
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.hmac_sha512");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -582,7 +559,6 @@ inline void hash_base::s_static_hmac_ripemd160(const v8::FunctionCallbackInfo<v8
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.hmac_ripemd160");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -599,7 +575,6 @@ inline void hash_base::s_static_hmac_sm3(const v8::FunctionCallbackInfo<v8::Valu
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.hmac_sm3");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -625,7 +600,6 @@ inline void hash_base::s_static_hmac_keccak256(const v8::FunctionCallbackInfo<v8
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.hmac_keccak256");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -642,7 +616,6 @@ inline void hash_base::s_static_hmac_keccak384(const v8::FunctionCallbackInfo<v8
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.hmac_keccak384");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -659,7 +632,6 @@ inline void hash_base::s_static_hmac_keccak512(const v8::FunctionCallbackInfo<v8
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.hmac_keccak512");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -676,7 +648,6 @@ inline void hash_base::s_static_hmac_blake2s(const v8::FunctionCallbackInfo<v8::
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.hmac_blake2s");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -693,7 +664,6 @@ inline void hash_base::s_static_hmac_blake2b(const v8::FunctionCallbackInfo<v8::
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.hmac_blake2b");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -710,7 +680,6 @@ inline void hash_base::s_static_hmac_blake2sp(const v8::FunctionCallbackInfo<v8:
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.hmac_blake2sp");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -727,7 +696,6 @@ inline void hash_base::s_static_hmac_blake2bp(const v8::FunctionCallbackInfo<v8:
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("hash.hmac_blake2bp");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);

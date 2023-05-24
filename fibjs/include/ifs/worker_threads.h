@@ -65,7 +65,6 @@ inline void worker_threads_base::s_static_get_isMainThread(v8::Local<v8::Name> p
 {
     bool vr;
 
-    METHOD_NAME("worker_threads.isMainThread");
     PROPERTY_ENTER();
 
     hr = get_isMainThread(vr);

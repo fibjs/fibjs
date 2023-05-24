@@ -72,7 +72,6 @@ void TextDecoder_base::__new(const T& args)
 {
     obj_ptr<TextDecoder_base> vr;
 
-    METHOD_NAME("new TextDecoder()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(2, 0);
@@ -89,7 +88,6 @@ inline void TextDecoder_base::s_decode(const v8::FunctionCallbackInfo<v8::Value>
 {
     exlib::string vr;
 
-    METHOD_NAME("TextDecoder.decode");
     METHOD_INSTANCE(TextDecoder_base);
     METHOD_ENTER();
 
@@ -111,7 +109,6 @@ inline void TextDecoder_base::s_get_encoding(v8::Local<v8::Name> property, const
 {
     exlib::string vr;
 
-    METHOD_NAME("TextDecoder.encoding");
     METHOD_INSTANCE(TextDecoder_base);
     PROPERTY_ENTER();
 

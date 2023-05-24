@@ -114,7 +114,6 @@ inline void coroutine_base::s_static_start(const v8::FunctionCallbackInfo<v8::Va
 {
     obj_ptr<Fiber_base> vr;
 
-    METHOD_NAME("coroutine.start");
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -131,7 +130,6 @@ inline void coroutine_base::s_static_parallel(const v8::FunctionCallbackInfo<v8:
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_NAME("coroutine.parallel");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -170,7 +168,6 @@ inline void coroutine_base::s_static_current(const v8::FunctionCallbackInfo<v8::
 {
     obj_ptr<Fiber_base> vr;
 
-    METHOD_NAME("coroutine.current");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -182,7 +179,6 @@ inline void coroutine_base::s_static_current(const v8::FunctionCallbackInfo<v8::
 
 inline void coroutine_base::s_static_sleep(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("coroutine.sleep");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 0);
@@ -201,7 +197,6 @@ inline void coroutine_base::s_static_get_fibers(v8::Local<v8::Name> property, co
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_NAME("coroutine.fibers");
     PROPERTY_ENTER();
 
     hr = get_fibers(vr);
@@ -213,7 +208,6 @@ inline void coroutine_base::s_static_get_spareFibers(v8::Local<v8::Name> propert
 {
     int32_t vr;
 
-    METHOD_NAME("coroutine.spareFibers");
     PROPERTY_ENTER();
 
     hr = get_spareFibers(vr);
@@ -223,7 +217,6 @@ inline void coroutine_base::s_static_get_spareFibers(v8::Local<v8::Name> propert
 
 inline void coroutine_base::s_static_set_spareFibers(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("coroutine.spareFibers");
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
 
@@ -236,7 +229,6 @@ inline void coroutine_base::s_static_get_vmid(v8::Local<v8::Name> property, cons
 {
     int32_t vr;
 
-    METHOD_NAME("coroutine.vmid");
     PROPERTY_ENTER();
 
     hr = get_vmid(vr);
@@ -248,7 +240,6 @@ inline void coroutine_base::s_static_get_loglevel(v8::Local<v8::Name> property, 
 {
     int32_t vr;
 
-    METHOD_NAME("coroutine.loglevel");
     PROPERTY_ENTER();
 
     hr = get_loglevel(vr);
@@ -258,7 +249,6 @@ inline void coroutine_base::s_static_get_loglevel(v8::Local<v8::Name> property, 
 
 inline void coroutine_base::s_static_set_loglevel(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("coroutine.loglevel");
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
 

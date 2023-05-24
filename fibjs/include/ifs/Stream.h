@@ -91,7 +91,6 @@ inline void Stream_base::s_get_fd(v8::Local<v8::Name> property, const v8::Proper
 {
     int32_t vr;
 
-    METHOD_NAME("Stream.fd");
     METHOD_INSTANCE(Stream_base);
     PROPERTY_ENTER();
 
@@ -104,7 +103,6 @@ inline void Stream_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("Stream.read");
     METHOD_INSTANCE(Stream_base);
     METHOD_ENTER();
 
@@ -122,7 +120,6 @@ inline void Stream_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Stream_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Stream.write");
     METHOD_INSTANCE(Stream_base);
     METHOD_ENTER();
 
@@ -140,7 +137,6 @@ inline void Stream_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args
 
 inline void Stream_base::s_flush(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Stream.flush");
     METHOD_INSTANCE(Stream_base);
     METHOD_ENTER();
 
@@ -156,7 +152,6 @@ inline void Stream_base::s_flush(const v8::FunctionCallbackInfo<v8::Value>& args
 
 inline void Stream_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("Stream.close");
     METHOD_INSTANCE(Stream_base);
     METHOD_ENTER();
 
@@ -174,7 +169,6 @@ inline void Stream_base::s_copyTo(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     int64_t vr;
 
-    METHOD_NAME("Stream.copyTo");
     METHOD_INSTANCE(Stream_base);
     METHOD_ENTER();
 

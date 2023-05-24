@@ -165,7 +165,6 @@ inline void process_base::s_static_get_argv(v8::Local<v8::Name> property, const 
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_NAME("process.argv");
     PROPERTY_ENTER();
 
     hr = get_argv(vr);
@@ -177,7 +176,6 @@ inline void process_base::s_static_get_execArgv(v8::Local<v8::Name> property, co
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_NAME("process.execArgv");
     PROPERTY_ENTER();
 
     hr = get_execArgv(vr);
@@ -189,7 +187,6 @@ inline void process_base::s_static_get_version(v8::Local<v8::Name> property, con
 {
     exlib::string vr;
 
-    METHOD_NAME("process.version");
     PROPERTY_ENTER();
 
     hr = get_version(vr);
@@ -201,7 +198,6 @@ inline void process_base::s_static_get_versions(v8::Local<v8::Name> property, co
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("process.versions");
     PROPERTY_ENTER();
 
     hr = get_versions(vr);
@@ -213,7 +209,6 @@ inline void process_base::s_static_get_execPath(v8::Local<v8::Name> property, co
 {
     exlib::string vr;
 
-    METHOD_NAME("process.execPath");
     PROPERTY_ENTER();
 
     hr = get_execPath(vr);
@@ -225,7 +220,6 @@ inline void process_base::s_static_get_env(v8::Local<v8::Name> property, const v
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("process.env");
     PROPERTY_ENTER();
 
     hr = get_env(vr);
@@ -237,7 +231,6 @@ inline void process_base::s_static_get_arch(v8::Local<v8::Name> property, const 
 {
     exlib::string vr;
 
-    METHOD_NAME("process.arch");
     PROPERTY_ENTER();
 
     hr = get_arch(vr);
@@ -249,7 +242,6 @@ inline void process_base::s_static_get_platform(v8::Local<v8::Name> property, co
 {
     exlib::string vr;
 
-    METHOD_NAME("process.platform");
     PROPERTY_ENTER();
 
     hr = get_platform(vr);
@@ -261,7 +253,6 @@ inline void process_base::s_static_get_pid(v8::Local<v8::Name> property, const v
 {
     int32_t vr;
 
-    METHOD_NAME("process.pid");
     PROPERTY_ENTER();
 
     hr = get_pid(vr);
@@ -273,7 +264,6 @@ inline void process_base::s_static_get_ppid(v8::Local<v8::Name> property, const 
 {
     int32_t vr;
 
-    METHOD_NAME("process.ppid");
     PROPERTY_ENTER();
 
     hr = get_ppid(vr);
@@ -285,7 +275,6 @@ inline void process_base::s_static_get_stdin(v8::Local<v8::Name> property, const
 {
     obj_ptr<Stream_base> vr;
 
-    METHOD_NAME("process.stdin");
     PROPERTY_ENTER();
 
     hr = get_stdin(vr);
@@ -297,7 +286,6 @@ inline void process_base::s_static_get_stdout(v8::Local<v8::Name> property, cons
 {
     obj_ptr<Stream_base> vr;
 
-    METHOD_NAME("process.stdout");
     PROPERTY_ENTER();
 
     hr = get_stdout(vr);
@@ -309,7 +297,6 @@ inline void process_base::s_static_get_stderr(v8::Local<v8::Name> property, cons
 {
     obj_ptr<Stream_base> vr;
 
-    METHOD_NAME("process.stderr");
     PROPERTY_ENTER();
 
     hr = get_stderr(vr);
@@ -321,7 +308,6 @@ inline void process_base::s_static_get_exitCode(v8::Local<v8::Name> property, co
 {
     int32_t vr;
 
-    METHOD_NAME("process.exitCode");
     PROPERTY_ENTER();
 
     hr = get_exitCode(vr);
@@ -331,7 +317,6 @@ inline void process_base::s_static_get_exitCode(v8::Local<v8::Name> property, co
 
 inline void process_base::s_static_set_exitCode(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("process.exitCode");
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
 
@@ -344,7 +329,6 @@ inline void process_base::s_static_umask(const v8::FunctionCallbackInfo<v8::Valu
 {
     int32_t vr;
 
-    METHOD_NAME("process.umask");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -370,7 +354,6 @@ inline void process_base::s_static_hrtime(const v8::FunctionCallbackInfo<v8::Val
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_NAME("process.hrtime");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -384,7 +367,6 @@ inline void process_base::s_static_hrtime(const v8::FunctionCallbackInfo<v8::Val
 
 inline void process_base::s_static_exit(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("process.exit");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -404,7 +386,6 @@ inline void process_base::s_static_cwd(const v8::FunctionCallbackInfo<v8::Value>
 {
     exlib::string vr;
 
-    METHOD_NAME("process.cwd");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -416,7 +397,6 @@ inline void process_base::s_static_cwd(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void process_base::s_static_chdir(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("process.chdir");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -432,7 +412,6 @@ inline void process_base::s_static_uptime(const v8::FunctionCallbackInfo<v8::Val
 {
     double vr;
 
-    METHOD_NAME("process.uptime");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -446,7 +425,6 @@ inline void process_base::s_static_cpuUsage(const v8::FunctionCallbackInfo<v8::V
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("process.cpuUsage");
     METHOD_ENTER();
 
     METHOD_OVER(1, 0);
@@ -462,7 +440,6 @@ inline void process_base::s_static_memoryUsage(const v8::FunctionCallbackInfo<v8
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("process.memoryUsage");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -474,7 +451,6 @@ inline void process_base::s_static_memoryUsage(const v8::FunctionCallbackInfo<v8
 
 inline void process_base::s_static_nextTick(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("process.nextTick");
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -491,7 +467,6 @@ inline void process_base::s_static_binding(const v8::FunctionCallbackInfo<v8::Va
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_NAME("process.binding");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -507,7 +482,6 @@ inline void process_base::s_static_getgid(const v8::FunctionCallbackInfo<v8::Val
 {
     int32_t vr;
 
-    METHOD_NAME("process.getgid");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -521,7 +495,6 @@ inline void process_base::s_static_getuid(const v8::FunctionCallbackInfo<v8::Val
 {
     int32_t vr;
 
-    METHOD_NAME("process.getuid");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -533,7 +506,6 @@ inline void process_base::s_static_getuid(const v8::FunctionCallbackInfo<v8::Val
 
 inline void process_base::s_static_setgid(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("process.setgid");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -547,7 +519,6 @@ inline void process_base::s_static_setgid(const v8::FunctionCallbackInfo<v8::Val
 
 inline void process_base::s_static_setuid(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("process.setuid");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -561,7 +532,6 @@ inline void process_base::s_static_setuid(const v8::FunctionCallbackInfo<v8::Val
 
 inline void process_base::s_static_emitWarning(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("process.emitWarning");
     METHOD_ENTER();
 
     METHOD_OVER(2, 2);
@@ -586,7 +556,6 @@ inline void process_base::s_static_get_connected(v8::Local<v8::Name> property, c
 {
     bool vr;
 
-    METHOD_NAME("process.connected");
     PROPERTY_ENTER();
 
     hr = get_connected(vr);
@@ -596,7 +565,6 @@ inline void process_base::s_static_get_connected(v8::Local<v8::Name> property, c
 
 inline void process_base::s_static_disconnect(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("process.disconnect");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -608,7 +576,6 @@ inline void process_base::s_static_disconnect(const v8::FunctionCallbackInfo<v8:
 
 inline void process_base::s_static_send(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("process.send");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);

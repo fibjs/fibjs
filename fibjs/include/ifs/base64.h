@@ -64,7 +64,6 @@ inline void base64_base::s_static_encode(const v8::FunctionCallbackInfo<v8::Valu
 {
     exlib::string vr;
 
-    METHOD_NAME("base64.encode");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -81,7 +80,6 @@ inline void base64_base::s_static_decode(const v8::FunctionCallbackInfo<v8::Valu
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("base64.decode");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);

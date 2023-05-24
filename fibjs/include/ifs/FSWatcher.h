@@ -78,7 +78,6 @@ inline void FSWatcher_base::s_get_onchange(v8::Local<v8::Name> property, const v
 {
     v8::Local<v8::Function> vr;
 
-    METHOD_NAME("FSWatcher.onchange");
     METHOD_INSTANCE(FSWatcher_base);
     PROPERTY_ENTER();
 
@@ -89,7 +88,6 @@ inline void FSWatcher_base::s_get_onchange(v8::Local<v8::Name> property, const v
 
 inline void FSWatcher_base::s_set_onchange(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("FSWatcher.onchange");
     METHOD_INSTANCE(FSWatcher_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(v8::Local<v8::Function>);
@@ -103,7 +101,6 @@ inline void FSWatcher_base::s_get_onclose(v8::Local<v8::Name> property, const v8
 {
     v8::Local<v8::Function> vr;
 
-    METHOD_NAME("FSWatcher.onclose");
     METHOD_INSTANCE(FSWatcher_base);
     PROPERTY_ENTER();
 
@@ -114,7 +111,6 @@ inline void FSWatcher_base::s_get_onclose(v8::Local<v8::Name> property, const v8
 
 inline void FSWatcher_base::s_set_onclose(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("FSWatcher.onclose");
     METHOD_INSTANCE(FSWatcher_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(v8::Local<v8::Function>);
@@ -128,7 +124,6 @@ inline void FSWatcher_base::s_get_onerror(v8::Local<v8::Name> property, const v8
 {
     v8::Local<v8::Function> vr;
 
-    METHOD_NAME("FSWatcher.onerror");
     METHOD_INSTANCE(FSWatcher_base);
     PROPERTY_ENTER();
 
@@ -139,7 +134,6 @@ inline void FSWatcher_base::s_get_onerror(v8::Local<v8::Name> property, const v8
 
 inline void FSWatcher_base::s_set_onerror(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("FSWatcher.onerror");
     METHOD_INSTANCE(FSWatcher_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(v8::Local<v8::Function>);
@@ -151,7 +145,6 @@ inline void FSWatcher_base::s_set_onerror(v8::Local<v8::Name> property, v8::Loca
 
 inline void FSWatcher_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("FSWatcher.close");
     METHOD_INSTANCE(FSWatcher_base);
     METHOD_ENTER();
 

@@ -84,10 +84,7 @@ private:
         for (i = 0; i < m_fibers; i++)
             syncCall(m_isolate, worker, this);
 
-        {
-            METHOD_NAME("coroutine.parallel");
-            m_event->wait();
-        }
+        m_event->wait();
 
         m_datas.Reset();
         m_func.Reset();

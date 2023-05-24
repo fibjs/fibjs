@@ -96,7 +96,6 @@ inline void xml_base::s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<XmlDocument_base> vr;
 
-    METHOD_NAME("xml.parse");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -120,7 +119,6 @@ inline void xml_base::s_static_serialize(const v8::FunctionCallbackInfo<v8::Valu
 {
     exlib::string vr;
 
-    METHOD_NAME("xml.serialize");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);

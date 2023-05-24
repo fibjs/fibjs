@@ -93,7 +93,6 @@ void HttpRequest_base::__new(const T& args)
 {
     obj_ptr<HttpRequest_base> vr;
 
-    METHOD_NAME("new HttpRequest()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(0, 0);
@@ -107,7 +106,6 @@ inline void HttpRequest_base::s_get_response(v8::Local<v8::Name> property, const
 {
     obj_ptr<HttpResponse_base> vr;
 
-    METHOD_NAME("HttpRequest.response");
     METHOD_INSTANCE(HttpRequest_base);
     PROPERTY_ENTER();
 
@@ -120,7 +118,6 @@ inline void HttpRequest_base::s_get_method(v8::Local<v8::Name> property, const v
 {
     exlib::string vr;
 
-    METHOD_NAME("HttpRequest.method");
     METHOD_INSTANCE(HttpRequest_base);
     PROPERTY_ENTER();
 
@@ -131,7 +128,6 @@ inline void HttpRequest_base::s_get_method(v8::Local<v8::Name> property, const v
 
 inline void HttpRequest_base::s_set_method(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpRequest.method");
     METHOD_INSTANCE(HttpRequest_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -145,7 +141,6 @@ inline void HttpRequest_base::s_get_address(v8::Local<v8::Name> property, const 
 {
     exlib::string vr;
 
-    METHOD_NAME("HttpRequest.address");
     METHOD_INSTANCE(HttpRequest_base);
     PROPERTY_ENTER();
 
@@ -156,7 +151,6 @@ inline void HttpRequest_base::s_get_address(v8::Local<v8::Name> property, const 
 
 inline void HttpRequest_base::s_set_address(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpRequest.address");
     METHOD_INSTANCE(HttpRequest_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -170,7 +164,6 @@ inline void HttpRequest_base::s_get_queryString(v8::Local<v8::Name> property, co
 {
     exlib::string vr;
 
-    METHOD_NAME("HttpRequest.queryString");
     METHOD_INSTANCE(HttpRequest_base);
     PROPERTY_ENTER();
 
@@ -181,7 +174,6 @@ inline void HttpRequest_base::s_get_queryString(v8::Local<v8::Name> property, co
 
 inline void HttpRequest_base::s_set_queryString(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpRequest.queryString");
     METHOD_INSTANCE(HttpRequest_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -195,7 +187,6 @@ inline void HttpRequest_base::s_get_cookies(v8::Local<v8::Name> property, const 
 {
     obj_ptr<HttpCollection_base> vr;
 
-    METHOD_NAME("HttpRequest.cookies");
     METHOD_INSTANCE(HttpRequest_base);
     PROPERTY_ENTER();
 
@@ -208,7 +199,6 @@ inline void HttpRequest_base::s_get_form(v8::Local<v8::Name> property, const v8:
 {
     obj_ptr<HttpCollection_base> vr;
 
-    METHOD_NAME("HttpRequest.form");
     METHOD_INSTANCE(HttpRequest_base);
     PROPERTY_ENTER();
 
@@ -221,7 +211,6 @@ inline void HttpRequest_base::s_get_query(v8::Local<v8::Name> property, const v8
 {
     obj_ptr<HttpCollection_base> vr;
 
-    METHOD_NAME("HttpRequest.query");
     METHOD_INSTANCE(HttpRequest_base);
     PROPERTY_ENTER();
 

@@ -133,7 +133,6 @@ inline void profiler_base::s_static_getHeapCodeStatistics(const v8::FunctionCall
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("profiler.getHeapCodeStatistics");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -147,7 +146,6 @@ inline void profiler_base::s_static_getHeapSpaceStatistics(const v8::FunctionCal
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_NAME("profiler.getHeapSpaceStatistics");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -161,7 +159,6 @@ inline void profiler_base::s_static_getHeapStatistics(const v8::FunctionCallback
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("profiler.getHeapStatistics");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -173,7 +170,6 @@ inline void profiler_base::s_static_getHeapStatistics(const v8::FunctionCallback
 
 inline void profiler_base::s_static_saveSnapshot(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("profiler.saveSnapshot");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -189,7 +185,6 @@ inline void profiler_base::s_static_loadSnapshot(const v8::FunctionCallbackInfo<
 {
     obj_ptr<HeapSnapshot_base> vr;
 
-    METHOD_NAME("profiler.loadSnapshot");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -205,7 +200,6 @@ inline void profiler_base::s_static_takeSnapshot(const v8::FunctionCallbackInfo<
 {
     obj_ptr<HeapSnapshot_base> vr;
 
-    METHOD_NAME("profiler.takeSnapshot");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -219,7 +213,6 @@ inline void profiler_base::s_static_diff(const v8::FunctionCallbackInfo<v8::Valu
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("profiler.diff");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -235,7 +228,6 @@ inline void profiler_base::s_static_start(const v8::FunctionCallbackInfo<v8::Val
 {
     obj_ptr<Timer_base> vr;
 
-    METHOD_NAME("profiler.start");
     METHOD_ENTER();
 
     METHOD_OVER(3, 1);

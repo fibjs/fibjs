@@ -77,7 +77,6 @@ void HttpRepeater_base::__new(const T& args)
 {
     obj_ptr<HttpRepeater_base> vr;
 
-    METHOD_NAME("new HttpRepeater()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(1, 1);
@@ -97,7 +96,6 @@ void HttpRepeater_base::__new(const T& args)
 
 inline void HttpRepeater_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("HttpRepeater.load");
     METHOD_INSTANCE(HttpRepeater_base);
     METHOD_ENTER();
 
@@ -114,7 +112,6 @@ inline void HttpRepeater_base::s_get_urls(v8::Local<v8::Name> property, const v8
 {
     obj_ptr<NArray> vr;
 
-    METHOD_NAME("HttpRepeater.urls");
     METHOD_INSTANCE(HttpRepeater_base);
     PROPERTY_ENTER();
 
@@ -127,7 +124,6 @@ inline void HttpRepeater_base::s_get_client(v8::Local<v8::Name> property, const 
 {
     obj_ptr<HttpClient_base> vr;
 
-    METHOD_NAME("HttpRepeater.client");
     METHOD_INSTANCE(HttpRepeater_base);
     PROPERTY_ENTER();
 

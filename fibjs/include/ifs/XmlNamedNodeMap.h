@@ -76,7 +76,6 @@ inline void XmlNamedNodeMap_base::s_get_length(v8::Local<v8::Name> property, con
 {
     int32_t vr;
 
-    METHOD_NAME("XmlNamedNodeMap.length");
     METHOD_INSTANCE(XmlNamedNodeMap_base);
     PROPERTY_ENTER();
 
@@ -89,7 +88,6 @@ inline void XmlNamedNodeMap_base::s_item(const v8::FunctionCallbackInfo<v8::Valu
 {
     obj_ptr<XmlAttr_base> vr;
 
-    METHOD_NAME("XmlNamedNodeMap.item");
     METHOD_INSTANCE(XmlNamedNodeMap_base);
     METHOD_ENTER();
 
@@ -106,7 +104,6 @@ inline void XmlNamedNodeMap_base::i_IndexedGetter(uint32_t index, const v8::Prop
 {
     obj_ptr<XmlAttr_base> vr;
 
-    METHOD_NAME("XmlNamedNodeMap[]");
     METHOD_INSTANCE(XmlNamedNodeMap_base);
     PROPERTY_ENTER();
 
@@ -121,7 +118,6 @@ inline void XmlNamedNodeMap_base::s_getNamedItem(const v8::FunctionCallbackInfo<
 {
     obj_ptr<XmlAttr_base> vr;
 
-    METHOD_NAME("XmlNamedNodeMap.getNamedItem");
     METHOD_INSTANCE(XmlNamedNodeMap_base);
     METHOD_ENTER();
 

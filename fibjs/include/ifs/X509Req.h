@@ -103,7 +103,6 @@ void X509Req_base::__new(const T& args)
 {
     obj_ptr<X509Req_base> vr;
 
-    METHOD_NAME("new X509Req()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(0, 0);
@@ -135,7 +134,6 @@ void X509Req_base::__new(const T& args)
 
 inline void X509Req_base::s_import(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("X509Req.import");
     METHOD_INSTANCE(X509Req_base);
     METHOD_ENTER();
 
@@ -158,7 +156,6 @@ inline void X509Req_base::s_pem(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_NAME("X509Req.pem");
     METHOD_INSTANCE(X509Req_base);
     METHOD_ENTER();
 
@@ -173,7 +170,6 @@ inline void X509Req_base::s_der(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("X509Req.der");
     METHOD_INSTANCE(X509Req_base);
     METHOD_ENTER();
 
@@ -188,7 +184,6 @@ inline void X509Req_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<X509Cert_base> vr;
 
-    METHOD_NAME("X509Req.sign");
     METHOD_INSTANCE(X509Req_base);
     METHOD_ENTER();
 
@@ -210,7 +205,6 @@ inline void X509Req_base::s_get_subject(v8::Local<v8::Name> property, const v8::
 {
     exlib::string vr;
 
-    METHOD_NAME("X509Req.subject");
     METHOD_INSTANCE(X509Req_base);
     PROPERTY_ENTER();
 
@@ -223,7 +217,6 @@ inline void X509Req_base::s_get_publicKey(v8::Local<v8::Name> property, const v8
 {
     obj_ptr<PKey_base> vr;
 
-    METHOD_NAME("X509Req.publicKey");
     METHOD_INSTANCE(X509Req_base);
     PROPERTY_ENTER();
 
@@ -236,7 +229,6 @@ inline void X509Req_base::s_get_sig_md(v8::Local<v8::Name> property, const v8::P
 {
     int32_t vr;
 
-    METHOD_NAME("X509Req.sig_md");
     METHOD_INSTANCE(X509Req_base);
     PROPERTY_ENTER();
 
@@ -249,7 +241,6 @@ inline void X509Req_base::s_get_sig_pk(v8::Local<v8::Name> property, const v8::P
 {
     int32_t vr;
 
-    METHOD_NAME("X509Req.sig_pk");
     METHOD_INSTANCE(X509Req_base);
     PROPERTY_ENTER();
 

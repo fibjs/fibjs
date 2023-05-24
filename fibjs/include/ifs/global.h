@@ -141,7 +141,6 @@ inline void global_base::s_static_get_Master(v8::Local<v8::Name> property, const
 {
     obj_ptr<Worker_base> vr;
 
-    METHOD_NAME("global.Master");
     PROPERTY_ENTER();
 
     hr = get_Master(vr);
@@ -153,7 +152,6 @@ inline void global_base::s_static_get_global(v8::Local<v8::Name> property, const
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("global.global");
     PROPERTY_ENTER();
 
     hr = get_global(vr);
@@ -163,7 +161,6 @@ inline void global_base::s_static_get_global(v8::Local<v8::Name> property, const
 
 inline void global_base::s_static_run(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("global.run");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -179,7 +176,6 @@ inline void global_base::s_static_require(const v8::FunctionCallbackInfo<v8::Val
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_NAME("global.require");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -195,7 +191,6 @@ inline void global_base::s_static_get_argv(v8::Local<v8::Name> property, const v
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_NAME("global.argv");
     PROPERTY_ENTER();
 
     hr = get_argv(vr);
@@ -207,7 +202,6 @@ inline void global_base::s_static_get___filename(v8::Local<v8::Name> property, c
 {
     exlib::string vr;
 
-    METHOD_NAME("global.__filename");
     PROPERTY_ENTER();
 
     hr = get___filename(vr);
@@ -219,7 +213,6 @@ inline void global_base::s_static_get___dirname(v8::Local<v8::Name> property, co
 {
     exlib::string vr;
 
-    METHOD_NAME("global.__dirname");
     PROPERTY_ENTER();
 
     hr = get___dirname(vr);
@@ -231,7 +224,6 @@ inline void global_base::s_static_setTimeout(const v8::FunctionCallbackInfo<v8::
 {
     obj_ptr<Timer_base> vr;
 
-    METHOD_NAME("global.setTimeout");
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -247,7 +239,6 @@ inline void global_base::s_static_setTimeout(const v8::FunctionCallbackInfo<v8::
 
 inline void global_base::s_static_clearTimeout(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("global.clearTimeout");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -263,7 +254,6 @@ inline void global_base::s_static_setInterval(const v8::FunctionCallbackInfo<v8:
 {
     obj_ptr<Timer_base> vr;
 
-    METHOD_NAME("global.setInterval");
     METHOD_ENTER();
 
     METHOD_OVER(-1, 2);
@@ -279,7 +269,6 @@ inline void global_base::s_static_setInterval(const v8::FunctionCallbackInfo<v8:
 
 inline void global_base::s_static_clearInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("global.clearInterval");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -295,7 +284,6 @@ inline void global_base::s_static_setHrInterval(const v8::FunctionCallbackInfo<v
 {
     obj_ptr<Timer_base> vr;
 
-    METHOD_NAME("global.setHrInterval");
     METHOD_ENTER();
 
     METHOD_OVER(-1, 2);
@@ -311,7 +299,6 @@ inline void global_base::s_static_setHrInterval(const v8::FunctionCallbackInfo<v
 
 inline void global_base::s_static_clearHrInterval(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("global.clearHrInterval");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -327,7 +314,6 @@ inline void global_base::s_static_setImmediate(const v8::FunctionCallbackInfo<v8
 {
     obj_ptr<Timer_base> vr;
 
-    METHOD_NAME("global.setImmediate");
     METHOD_ENTER();
 
     METHOD_OVER(-1, 1);
@@ -342,7 +328,6 @@ inline void global_base::s_static_setImmediate(const v8::FunctionCallbackInfo<v8
 
 inline void global_base::s_static_clearImmediate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("global.clearImmediate");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -358,7 +343,6 @@ inline void global_base::s_static_btoa(const v8::FunctionCallbackInfo<v8::Value>
 {
     exlib::string vr;
 
-    METHOD_NAME("global.btoa");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -375,7 +359,6 @@ inline void global_base::s_static_atob(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("global.atob");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -389,7 +372,6 @@ inline void global_base::s_static_atob(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void global_base::s_static_GC(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("global.GC");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);

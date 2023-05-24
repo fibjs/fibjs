@@ -279,7 +279,6 @@ void Buffer_base::__new(const T& args)
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("new Buffer()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(1, 1);
@@ -324,7 +323,6 @@ inline void Buffer_base::s_static_alloc(const v8::FunctionCallbackInfo<v8::Value
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("Buffer.alloc");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -356,7 +354,6 @@ inline void Buffer_base::s_static_allocUnsafe(const v8::FunctionCallbackInfo<v8:
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("Buffer.allocUnsafe");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -372,7 +369,6 @@ inline void Buffer_base::s_static_allocUnsafeSlow(const v8::FunctionCallbackInfo
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("Buffer.allocUnsafeSlow");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -388,7 +384,6 @@ inline void Buffer_base::s_static_from(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("Buffer.from");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -435,7 +430,6 @@ inline void Buffer_base::s_static_concat(const v8::FunctionCallbackInfo<v8::Valu
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("Buffer.concat");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -452,7 +446,6 @@ inline void Buffer_base::s_static_isBuffer(const v8::FunctionCallbackInfo<v8::Va
 {
     bool vr;
 
-    METHOD_NAME("Buffer.isBuffer");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -468,7 +461,6 @@ inline void Buffer_base::s_static_isEncoding(const v8::FunctionCallbackInfo<v8::
 {
     bool vr;
 
-    METHOD_NAME("Buffer.isEncoding");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -484,7 +476,6 @@ inline void Buffer_base::s_static_byteLength(const v8::FunctionCallbackInfo<v8::
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.byteLength");
     METHOD_ENTER();
 
     METHOD_OVER(2, 1);
@@ -519,7 +510,6 @@ inline void Buffer_base::s_static_compare(const v8::FunctionCallbackInfo<v8::Val
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.compare");
     METHOD_ENTER();
 
     METHOD_OVER(2, 2);
@@ -536,7 +526,6 @@ inline void Buffer_base::s_compare(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.compare");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -553,7 +542,6 @@ inline void Buffer_base::s_get_length(v8::Local<v8::Name> property, const v8::Pr
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.length");
     METHOD_INSTANCE(Buffer_base);
     PROPERTY_ENTER();
 
@@ -566,7 +554,6 @@ inline void Buffer_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.write");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -601,7 +588,6 @@ inline void Buffer_base::s_fill(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("Buffer.fill");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -637,7 +623,6 @@ inline void Buffer_base::s_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.copy");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -657,7 +642,6 @@ inline void Buffer_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.set");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -675,7 +659,6 @@ inline void Buffer_base::s_readUInt8(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.readUInt8");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -692,7 +675,6 @@ inline void Buffer_base::s_readUInt16LE(const v8::FunctionCallbackInfo<v8::Value
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.readUInt16LE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -709,7 +691,6 @@ inline void Buffer_base::s_readUInt16BE(const v8::FunctionCallbackInfo<v8::Value
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.readUInt16BE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -726,7 +707,6 @@ inline void Buffer_base::s_readUInt32LE(const v8::FunctionCallbackInfo<v8::Value
 {
     double vr;
 
-    METHOD_NAME("Buffer.readUInt32LE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -743,7 +723,6 @@ inline void Buffer_base::s_readUInt32BE(const v8::FunctionCallbackInfo<v8::Value
 {
     double vr;
 
-    METHOD_NAME("Buffer.readUInt32BE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -760,7 +739,6 @@ inline void Buffer_base::s_readUIntLE(const v8::FunctionCallbackInfo<v8::Value>&
 {
     double vr;
 
-    METHOD_NAME("Buffer.readUIntLE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -778,7 +756,6 @@ inline void Buffer_base::s_readUIntBE(const v8::FunctionCallbackInfo<v8::Value>&
 {
     double vr;
 
-    METHOD_NAME("Buffer.readUIntBE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -796,7 +773,6 @@ inline void Buffer_base::s_readInt64LE(const v8::FunctionCallbackInfo<v8::Value>
 {
     int64_t vr;
 
-    METHOD_NAME("Buffer.readInt64LE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -813,7 +789,6 @@ inline void Buffer_base::s_readInt64BE(const v8::FunctionCallbackInfo<v8::Value>
 {
     int64_t vr;
 
-    METHOD_NAME("Buffer.readInt64BE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -830,7 +805,6 @@ inline void Buffer_base::s_readInt8(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.readInt8");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -847,7 +821,6 @@ inline void Buffer_base::s_readInt16LE(const v8::FunctionCallbackInfo<v8::Value>
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.readInt16LE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -864,7 +837,6 @@ inline void Buffer_base::s_readInt16BE(const v8::FunctionCallbackInfo<v8::Value>
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.readInt16BE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -881,7 +853,6 @@ inline void Buffer_base::s_readInt32LE(const v8::FunctionCallbackInfo<v8::Value>
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.readInt32LE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -898,7 +869,6 @@ inline void Buffer_base::s_readInt32BE(const v8::FunctionCallbackInfo<v8::Value>
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.readInt32BE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -915,7 +885,6 @@ inline void Buffer_base::s_readIntLE(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     double vr;
 
-    METHOD_NAME("Buffer.readIntLE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -933,7 +902,6 @@ inline void Buffer_base::s_readIntBE(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     double vr;
 
-    METHOD_NAME("Buffer.readIntBE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -951,7 +919,6 @@ inline void Buffer_base::s_readFloatLE(const v8::FunctionCallbackInfo<v8::Value>
 {
     double vr;
 
-    METHOD_NAME("Buffer.readFloatLE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -968,7 +935,6 @@ inline void Buffer_base::s_readFloatBE(const v8::FunctionCallbackInfo<v8::Value>
 {
     double vr;
 
-    METHOD_NAME("Buffer.readFloatBE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -985,7 +951,6 @@ inline void Buffer_base::s_readDoubleLE(const v8::FunctionCallbackInfo<v8::Value
 {
     double vr;
 
-    METHOD_NAME("Buffer.readDoubleLE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1002,7 +967,6 @@ inline void Buffer_base::s_readDoubleBE(const v8::FunctionCallbackInfo<v8::Value
 {
     double vr;
 
-    METHOD_NAME("Buffer.readDoubleBE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1019,7 +983,6 @@ inline void Buffer_base::s_writeUInt8(const v8::FunctionCallbackInfo<v8::Value>&
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.writeUInt8");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1037,7 +1000,6 @@ inline void Buffer_base::s_writeUInt16LE(const v8::FunctionCallbackInfo<v8::Valu
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.writeUInt16LE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1055,7 +1017,6 @@ inline void Buffer_base::s_writeUInt16BE(const v8::FunctionCallbackInfo<v8::Valu
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.writeUInt16BE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1073,7 +1034,6 @@ inline void Buffer_base::s_writeUInt32LE(const v8::FunctionCallbackInfo<v8::Valu
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.writeUInt32LE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1091,7 +1051,6 @@ inline void Buffer_base::s_writeUInt32BE(const v8::FunctionCallbackInfo<v8::Valu
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.writeUInt32BE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1109,7 +1068,6 @@ inline void Buffer_base::s_writeUIntLE(const v8::FunctionCallbackInfo<v8::Value>
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.writeUIntLE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1128,7 +1086,6 @@ inline void Buffer_base::s_writeUIntBE(const v8::FunctionCallbackInfo<v8::Value>
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.writeUIntBE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1147,7 +1104,6 @@ inline void Buffer_base::s_writeInt8(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.writeInt8");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1165,7 +1121,6 @@ inline void Buffer_base::s_writeInt16LE(const v8::FunctionCallbackInfo<v8::Value
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.writeInt16LE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1183,7 +1138,6 @@ inline void Buffer_base::s_writeInt16BE(const v8::FunctionCallbackInfo<v8::Value
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.writeInt16BE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1201,7 +1155,6 @@ inline void Buffer_base::s_writeInt32LE(const v8::FunctionCallbackInfo<v8::Value
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.writeInt32LE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1219,7 +1172,6 @@ inline void Buffer_base::s_writeInt32BE(const v8::FunctionCallbackInfo<v8::Value
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.writeInt32BE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1237,7 +1189,6 @@ inline void Buffer_base::s_writeInt64LE(const v8::FunctionCallbackInfo<v8::Value
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.writeInt64LE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1255,7 +1206,6 @@ inline void Buffer_base::s_writeInt64BE(const v8::FunctionCallbackInfo<v8::Value
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.writeInt64BE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1273,7 +1223,6 @@ inline void Buffer_base::s_writeIntLE(const v8::FunctionCallbackInfo<v8::Value>&
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.writeIntLE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1292,7 +1241,6 @@ inline void Buffer_base::s_writeIntBE(const v8::FunctionCallbackInfo<v8::Value>&
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.writeIntBE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1311,7 +1259,6 @@ inline void Buffer_base::s_writeFloatLE(const v8::FunctionCallbackInfo<v8::Value
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.writeFloatLE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1329,7 +1276,6 @@ inline void Buffer_base::s_writeFloatBE(const v8::FunctionCallbackInfo<v8::Value
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.writeFloatBE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1347,7 +1293,6 @@ inline void Buffer_base::s_writeDoubleLE(const v8::FunctionCallbackInfo<v8::Valu
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.writeDoubleLE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1365,7 +1310,6 @@ inline void Buffer_base::s_writeDoubleBE(const v8::FunctionCallbackInfo<v8::Valu
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.writeDoubleBE");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1383,7 +1327,6 @@ inline void Buffer_base::s_indexOf(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     int32_t vr;
 
-    METHOD_NAME("Buffer.indexOf");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1415,7 +1358,6 @@ inline void Buffer_base::s_slice(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("Buffer.slice");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1439,7 +1381,6 @@ inline void Buffer_base::s_equals(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     bool vr;
 
-    METHOD_NAME("Buffer.equals");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1456,7 +1397,6 @@ inline void Buffer_base::s_toString(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     exlib::string vr;
 
-    METHOD_NAME("Buffer.toString");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1486,7 +1426,6 @@ inline void Buffer_base::s_toArray(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_NAME("Buffer.toArray");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1501,7 +1440,6 @@ inline void Buffer_base::s_hex(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    METHOD_NAME("Buffer.hex");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1516,7 +1454,6 @@ inline void Buffer_base::s_base32(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     exlib::string vr;
 
-    METHOD_NAME("Buffer.base32");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1531,7 +1468,6 @@ inline void Buffer_base::s_base58(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     exlib::string vr;
 
-    METHOD_NAME("Buffer.base58");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 
@@ -1546,7 +1482,6 @@ inline void Buffer_base::s_base64(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     exlib::string vr;
 
-    METHOD_NAME("Buffer.base64");
     METHOD_INSTANCE(Buffer_base);
     METHOD_ENTER();
 

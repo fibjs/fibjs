@@ -65,7 +65,6 @@ inline void XmlProcessingInstruction_base::s_get_target(v8::Local<v8::Name> prop
 {
     exlib::string vr;
 
-    METHOD_NAME("XmlProcessingInstruction.target");
     METHOD_INSTANCE(XmlProcessingInstruction_base);
     PROPERTY_ENTER();
 
@@ -78,7 +77,6 @@ inline void XmlProcessingInstruction_base::s_get_data(v8::Local<v8::Name> proper
 {
     exlib::string vr;
 
-    METHOD_NAME("XmlProcessingInstruction.data");
     METHOD_INSTANCE(XmlProcessingInstruction_base);
     PROPERTY_ENTER();
 
@@ -89,7 +87,6 @@ inline void XmlProcessingInstruction_base::s_get_data(v8::Local<v8::Name> proper
 
 inline void XmlProcessingInstruction_base::s_set_data(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("XmlProcessingInstruction.data");
     METHOD_INSTANCE(XmlProcessingInstruction_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);

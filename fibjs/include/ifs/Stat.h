@@ -150,7 +150,6 @@ inline void Stat_base::s_get_name(v8::Local<v8::Name> property, const v8::Proper
 {
     exlib::string vr;
 
-    METHOD_NAME("Stat.name");
     METHOD_INSTANCE(Stat_base);
     PROPERTY_ENTER();
 
@@ -163,7 +162,6 @@ inline void Stat_base::s_get_dev(v8::Local<v8::Name> property, const v8::Propert
 {
     int32_t vr;
 
-    METHOD_NAME("Stat.dev");
     METHOD_INSTANCE(Stat_base);
     PROPERTY_ENTER();
 
@@ -176,7 +174,6 @@ inline void Stat_base::s_get_ino(v8::Local<v8::Name> property, const v8::Propert
 {
     int32_t vr;
 
-    METHOD_NAME("Stat.ino");
     METHOD_INSTANCE(Stat_base);
     PROPERTY_ENTER();
 
@@ -189,7 +186,6 @@ inline void Stat_base::s_get_mode(v8::Local<v8::Name> property, const v8::Proper
 {
     int32_t vr;
 
-    METHOD_NAME("Stat.mode");
     METHOD_INSTANCE(Stat_base);
     PROPERTY_ENTER();
 
@@ -202,7 +198,6 @@ inline void Stat_base::s_get_nlink(v8::Local<v8::Name> property, const v8::Prope
 {
     int32_t vr;
 
-    METHOD_NAME("Stat.nlink");
     METHOD_INSTANCE(Stat_base);
     PROPERTY_ENTER();
 
@@ -215,7 +210,6 @@ inline void Stat_base::s_get_uid(v8::Local<v8::Name> property, const v8::Propert
 {
     int32_t vr;
 
-    METHOD_NAME("Stat.uid");
     METHOD_INSTANCE(Stat_base);
     PROPERTY_ENTER();
 
@@ -228,7 +222,6 @@ inline void Stat_base::s_get_gid(v8::Local<v8::Name> property, const v8::Propert
 {
     int32_t vr;
 
-    METHOD_NAME("Stat.gid");
     METHOD_INSTANCE(Stat_base);
     PROPERTY_ENTER();
 
@@ -241,7 +234,6 @@ inline void Stat_base::s_get_rdev(v8::Local<v8::Name> property, const v8::Proper
 {
     int32_t vr;
 
-    METHOD_NAME("Stat.rdev");
     METHOD_INSTANCE(Stat_base);
     PROPERTY_ENTER();
 
@@ -254,7 +246,6 @@ inline void Stat_base::s_get_size(v8::Local<v8::Name> property, const v8::Proper
 {
     double vr;
 
-    METHOD_NAME("Stat.size");
     METHOD_INSTANCE(Stat_base);
     PROPERTY_ENTER();
 
@@ -267,7 +258,6 @@ inline void Stat_base::s_get_blksize(v8::Local<v8::Name> property, const v8::Pro
 {
     int32_t vr;
 
-    METHOD_NAME("Stat.blksize");
     METHOD_INSTANCE(Stat_base);
     PROPERTY_ENTER();
 
@@ -280,7 +270,6 @@ inline void Stat_base::s_get_blocks(v8::Local<v8::Name> property, const v8::Prop
 {
     int32_t vr;
 
-    METHOD_NAME("Stat.blocks");
     METHOD_INSTANCE(Stat_base);
     PROPERTY_ENTER();
 
@@ -293,7 +282,6 @@ inline void Stat_base::s_get_mtime(v8::Local<v8::Name> property, const v8::Prope
 {
     date_t vr;
 
-    METHOD_NAME("Stat.mtime");
     METHOD_INSTANCE(Stat_base);
     PROPERTY_ENTER();
 
@@ -306,7 +294,6 @@ inline void Stat_base::s_get_mtimeMs(v8::Local<v8::Name> property, const v8::Pro
 {
     double vr;
 
-    METHOD_NAME("Stat.mtimeMs");
     METHOD_INSTANCE(Stat_base);
     PROPERTY_ENTER();
 
@@ -319,7 +306,6 @@ inline void Stat_base::s_get_atime(v8::Local<v8::Name> property, const v8::Prope
 {
     date_t vr;
 
-    METHOD_NAME("Stat.atime");
     METHOD_INSTANCE(Stat_base);
     PROPERTY_ENTER();
 
@@ -332,7 +318,6 @@ inline void Stat_base::s_get_atimeMs(v8::Local<v8::Name> property, const v8::Pro
 {
     double vr;
 
-    METHOD_NAME("Stat.atimeMs");
     METHOD_INSTANCE(Stat_base);
     PROPERTY_ENTER();
 
@@ -345,7 +330,6 @@ inline void Stat_base::s_get_ctime(v8::Local<v8::Name> property, const v8::Prope
 {
     date_t vr;
 
-    METHOD_NAME("Stat.ctime");
     METHOD_INSTANCE(Stat_base);
     PROPERTY_ENTER();
 
@@ -358,7 +342,6 @@ inline void Stat_base::s_get_ctimeMs(v8::Local<v8::Name> property, const v8::Pro
 {
     double vr;
 
-    METHOD_NAME("Stat.ctimeMs");
     METHOD_INSTANCE(Stat_base);
     PROPERTY_ENTER();
 
@@ -371,7 +354,6 @@ inline void Stat_base::s_get_birthtime(v8::Local<v8::Name> property, const v8::P
 {
     date_t vr;
 
-    METHOD_NAME("Stat.birthtime");
     METHOD_INSTANCE(Stat_base);
     PROPERTY_ENTER();
 
@@ -384,7 +366,6 @@ inline void Stat_base::s_get_birthtimeMs(v8::Local<v8::Name> property, const v8:
 {
     double vr;
 
-    METHOD_NAME("Stat.birthtimeMs");
     METHOD_INSTANCE(Stat_base);
     PROPERTY_ENTER();
 
@@ -397,7 +378,6 @@ inline void Stat_base::s_isWritable(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     bool vr;
 
-    METHOD_NAME("Stat.isWritable");
     METHOD_INSTANCE(Stat_base);
     METHOD_ENTER();
 
@@ -412,7 +392,6 @@ inline void Stat_base::s_isReadable(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     bool vr;
 
-    METHOD_NAME("Stat.isReadable");
     METHOD_INSTANCE(Stat_base);
     METHOD_ENTER();
 
@@ -427,7 +406,6 @@ inline void Stat_base::s_isExecutable(const v8::FunctionCallbackInfo<v8::Value>&
 {
     bool vr;
 
-    METHOD_NAME("Stat.isExecutable");
     METHOD_INSTANCE(Stat_base);
     METHOD_ENTER();
 
@@ -442,7 +420,6 @@ inline void Stat_base::s_isHidden(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     bool vr;
 
-    METHOD_NAME("Stat.isHidden");
     METHOD_INSTANCE(Stat_base);
     METHOD_ENTER();
 
@@ -457,7 +434,6 @@ inline void Stat_base::s_isBlockDevice(const v8::FunctionCallbackInfo<v8::Value>
 {
     bool vr;
 
-    METHOD_NAME("Stat.isBlockDevice");
     METHOD_INSTANCE(Stat_base);
     METHOD_ENTER();
 
@@ -472,7 +448,6 @@ inline void Stat_base::s_isCharacterDevice(const v8::FunctionCallbackInfo<v8::Va
 {
     bool vr;
 
-    METHOD_NAME("Stat.isCharacterDevice");
     METHOD_INSTANCE(Stat_base);
     METHOD_ENTER();
 
@@ -487,7 +462,6 @@ inline void Stat_base::s_isDirectory(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     bool vr;
 
-    METHOD_NAME("Stat.isDirectory");
     METHOD_INSTANCE(Stat_base);
     METHOD_ENTER();
 
@@ -502,7 +476,6 @@ inline void Stat_base::s_isFIFO(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
-    METHOD_NAME("Stat.isFIFO");
     METHOD_INSTANCE(Stat_base);
     METHOD_ENTER();
 
@@ -517,7 +490,6 @@ inline void Stat_base::s_isFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
-    METHOD_NAME("Stat.isFile");
     METHOD_INSTANCE(Stat_base);
     METHOD_ENTER();
 
@@ -532,7 +504,6 @@ inline void Stat_base::s_isSymbolicLink(const v8::FunctionCallbackInfo<v8::Value
 {
     bool vr;
 
-    METHOD_NAME("Stat.isSymbolicLink");
     METHOD_INSTANCE(Stat_base);
     METHOD_ENTER();
 
@@ -547,7 +518,6 @@ inline void Stat_base::s_isMemory(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     bool vr;
 
-    METHOD_NAME("Stat.isMemory");
     METHOD_INSTANCE(Stat_base);
     METHOD_ENTER();
 
@@ -562,7 +532,6 @@ inline void Stat_base::s_isSocket(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     bool vr;
 
-    METHOD_NAME("Stat.isSocket");
     METHOD_INSTANCE(Stat_base);
     METHOD_ENTER();
 

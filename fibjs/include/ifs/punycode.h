@@ -66,7 +66,6 @@ inline void punycode_base::s_static_encode(const v8::FunctionCallbackInfo<v8::Va
 {
     exlib::string vr;
 
-    METHOD_NAME("punycode.encode");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -82,7 +81,6 @@ inline void punycode_base::s_static_decode(const v8::FunctionCallbackInfo<v8::Va
 {
     exlib::string vr;
 
-    METHOD_NAME("punycode.decode");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -98,7 +96,6 @@ inline void punycode_base::s_static_toASCII(const v8::FunctionCallbackInfo<v8::V
 {
     exlib::string vr;
 
-    METHOD_NAME("punycode.toASCII");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);
@@ -114,7 +111,6 @@ inline void punycode_base::s_static_toUnicode(const v8::FunctionCallbackInfo<v8:
 {
     exlib::string vr;
 
-    METHOD_NAME("punycode.toUnicode");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);

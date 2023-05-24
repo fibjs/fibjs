@@ -114,19 +114,6 @@ result_t JSFiber::join()
     return 0;
 }
 
-save_method_name::save_method_name(const char* name)
-{
-    m_fb = JSFiber::current();
-
-    m_name = m_fb->m_native_name;
-    m_fb->m_native_name = name;
-}
-
-save_method_name::~save_method_name()
-{
-    m_fb->m_native_name = m_name;
-}
-
 result_t JSFiber::get_id(int64_t& retVal)
 {
     retVal = m_id;
@@ -137,24 +124,8 @@ result_t JSFiber::get_stack(exlib::string& retVal)
 {
     if (JSFiber::current() == this)
         retVal = traceInfo(holder()->m_isolate, 300);
-    else {
-        exlib::string str;
-
-        if (m_native_name) {
-            str = "    at ";
-            str += m_native_name;
-            str += " (native code)";
-        }
-
-        exlib::string str1 = traceInfo(holder()->m_isolate, 300, m_c_entry_fp_, m_handler_);
-        if (!str1.empty()) {
-            if (m_native_name)
-                str += '\n';
-            str += str1;
-        }
-
-        retVal = str;
-    }
+    else
+        retVal = traceInfo(holder()->m_isolate, 300, m_c_entry_fp_, m_handler_);
 
     return 0;
 }

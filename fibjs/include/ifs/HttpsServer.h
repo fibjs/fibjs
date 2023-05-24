@@ -79,7 +79,6 @@ void HttpsServer_base::__new(const T& args)
 {
     obj_ptr<HttpsServer_base> vr;
 
-    METHOD_NAME("new HttpsServer()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(3, 3);
@@ -125,7 +124,6 @@ inline void HttpsServer_base::s_get_verification(v8::Local<v8::Name> property, c
 {
     int32_t vr;
 
-    METHOD_NAME("HttpsServer.verification");
     METHOD_INSTANCE(HttpsServer_base);
     PROPERTY_ENTER();
 
@@ -136,7 +134,6 @@ inline void HttpsServer_base::s_get_verification(v8::Local<v8::Name> property, c
 
 inline void HttpsServer_base::s_set_verification(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpsServer.verification");
     METHOD_INSTANCE(HttpsServer_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
@@ -150,7 +147,6 @@ inline void HttpsServer_base::s_get_ca(v8::Local<v8::Name> property, const v8::P
 {
     obj_ptr<X509Cert_base> vr;
 
-    METHOD_NAME("HttpsServer.ca");
     METHOD_INSTANCE(HttpsServer_base);
     PROPERTY_ENTER();
 

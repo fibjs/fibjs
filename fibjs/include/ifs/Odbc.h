@@ -62,7 +62,6 @@ inline void Odbc_base::s_get_codec(v8::Local<v8::Name> property, const v8::Prope
 {
     exlib::string vr;
 
-    METHOD_NAME("Odbc.codec");
     METHOD_INSTANCE(Odbc_base);
     PROPERTY_ENTER();
 
@@ -73,7 +72,6 @@ inline void Odbc_base::s_get_codec(v8::Local<v8::Name> property, const v8::Prope
 
 inline void Odbc_base::s_set_codec(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("Odbc.codec");
     METHOD_INSTANCE(Odbc_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);

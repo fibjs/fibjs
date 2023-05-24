@@ -84,7 +84,6 @@ inline void mq_base::s_static_nullHandler(const v8::FunctionCallbackInfo<v8::Val
 {
     obj_ptr<Handler_base> vr;
 
-    METHOD_NAME("mq.nullHandler");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -96,7 +95,6 @@ inline void mq_base::s_static_nullHandler(const v8::FunctionCallbackInfo<v8::Val
 
 inline void mq_base::s_static_invoke(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("mq.invoke");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 2);

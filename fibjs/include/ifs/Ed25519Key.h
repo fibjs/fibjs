@@ -64,7 +64,6 @@ inline void Ed25519Key_base::s_toX25519(const v8::FunctionCallbackInfo<v8::Value
 {
     obj_ptr<ECKey_base> vr;
 
-    METHOD_NAME("Ed25519Key.toX25519");
     METHOD_INSTANCE(Ed25519Key_base);
     METHOD_ENTER();
 

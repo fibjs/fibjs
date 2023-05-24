@@ -101,7 +101,6 @@ inline void registry_base::s_static_listSubKey(const v8::FunctionCallbackInfo<v8
 {
     obj_ptr<NArray> vr;
 
-    METHOD_NAME("registry.listSubKey");
     METHOD_ENTER();
 
     METHOD_OVER(2, 2);
@@ -118,7 +117,6 @@ inline void registry_base::s_static_listValue(const v8::FunctionCallbackInfo<v8:
 {
     obj_ptr<NArray> vr;
 
-    METHOD_NAME("registry.listValue");
     METHOD_ENTER();
 
     METHOD_OVER(2, 2);
@@ -135,7 +133,6 @@ inline void registry_base::s_static_get(const v8::FunctionCallbackInfo<v8::Value
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_NAME("registry.get");
     METHOD_ENTER();
 
     METHOD_OVER(2, 2);
@@ -150,7 +147,6 @@ inline void registry_base::s_static_get(const v8::FunctionCallbackInfo<v8::Value
 
 inline void registry_base::s_static_set(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("registry.set");
     METHOD_ENTER();
 
     METHOD_OVER(4, 3);
@@ -192,7 +188,6 @@ inline void registry_base::s_static_set(const v8::FunctionCallbackInfo<v8::Value
 
 inline void registry_base::s_static_del(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("registry.del");
     METHOD_ENTER();
 
     METHOD_OVER(2, 2);

@@ -84,7 +84,6 @@ inline void Digest_base::s_update(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     obj_ptr<Digest_base> vr;
 
-    METHOD_NAME("Digest.update");
     METHOD_INSTANCE(Digest_base);
     METHOD_ENTER();
 
@@ -101,7 +100,6 @@ inline void Digest_base::s_digest(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_NAME("Digest.digest");
     METHOD_INSTANCE(Digest_base);
     METHOD_ENTER();
 
@@ -118,7 +116,6 @@ inline void Digest_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("Digest.sign");
     METHOD_INSTANCE(Digest_base);
     METHOD_ENTER();
 
@@ -139,7 +136,6 @@ inline void Digest_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     bool vr;
 
-    METHOD_NAME("Digest.verify");
     METHOD_INSTANCE(Digest_base);
     METHOD_ENTER();
 
@@ -161,7 +157,6 @@ inline void Digest_base::s_get_size(v8::Local<v8::Name> property, const v8::Prop
 {
     int32_t vr;
 
-    METHOD_NAME("Digest.size");
     METHOD_INSTANCE(Digest_base);
     PROPERTY_ENTER();
 

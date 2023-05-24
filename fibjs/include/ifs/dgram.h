@@ -68,7 +68,6 @@ inline void dgram_base::s_static_createSocket(const v8::FunctionCallbackInfo<v8:
 {
     obj_ptr<DgramSocket_base> vr;
 
-    METHOD_NAME("dgram.createSocket");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);

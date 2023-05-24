@@ -73,7 +73,6 @@ inline void XmlNodeList_base::s_get_length(v8::Local<v8::Name> property, const v
 {
     int32_t vr;
 
-    METHOD_NAME("XmlNodeList.length");
     METHOD_INSTANCE(XmlNodeList_base);
     PROPERTY_ENTER();
 
@@ -86,7 +85,6 @@ inline void XmlNodeList_base::s_item(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<XmlNode_base> vr;
 
-    METHOD_NAME("XmlNodeList.item");
     METHOD_INSTANCE(XmlNodeList_base);
     METHOD_ENTER();
 
@@ -103,7 +101,6 @@ inline void XmlNodeList_base::i_IndexedGetter(uint32_t index, const v8::Property
 {
     obj_ptr<XmlNode_base> vr;
 
-    METHOD_NAME("XmlNodeList[]");
     METHOD_INSTANCE(XmlNodeList_base);
     PROPERTY_ENTER();
 

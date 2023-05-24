@@ -181,7 +181,6 @@ void HttpClient_base::__new(const T& args)
 {
     obj_ptr<HttpClient_base> vr;
 
-    METHOD_NAME("new HttpClient()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(0, 0);
@@ -195,7 +194,6 @@ inline void HttpClient_base::s_get_cookies(v8::Local<v8::Name> property, const v
 {
     obj_ptr<NArray> vr;
 
-    METHOD_NAME("HttpClient.cookies");
     METHOD_INSTANCE(HttpClient_base);
     PROPERTY_ENTER();
 
@@ -208,7 +206,6 @@ inline void HttpClient_base::s_get_timeout(v8::Local<v8::Name> property, const v
 {
     int32_t vr;
 
-    METHOD_NAME("HttpClient.timeout");
     METHOD_INSTANCE(HttpClient_base);
     PROPERTY_ENTER();
 
@@ -219,7 +216,6 @@ inline void HttpClient_base::s_get_timeout(v8::Local<v8::Name> property, const v
 
 inline void HttpClient_base::s_set_timeout(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpClient.timeout");
     METHOD_INSTANCE(HttpClient_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
@@ -233,7 +229,6 @@ inline void HttpClient_base::s_get_enableCookie(v8::Local<v8::Name> property, co
 {
     bool vr;
 
-    METHOD_NAME("HttpClient.enableCookie");
     METHOD_INSTANCE(HttpClient_base);
     PROPERTY_ENTER();
 
@@ -244,7 +239,6 @@ inline void HttpClient_base::s_get_enableCookie(v8::Local<v8::Name> property, co
 
 inline void HttpClient_base::s_set_enableCookie(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpClient.enableCookie");
     METHOD_INSTANCE(HttpClient_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(bool);
@@ -258,7 +252,6 @@ inline void HttpClient_base::s_get_autoRedirect(v8::Local<v8::Name> property, co
 {
     bool vr;
 
-    METHOD_NAME("HttpClient.autoRedirect");
     METHOD_INSTANCE(HttpClient_base);
     PROPERTY_ENTER();
 
@@ -269,7 +262,6 @@ inline void HttpClient_base::s_get_autoRedirect(v8::Local<v8::Name> property, co
 
 inline void HttpClient_base::s_set_autoRedirect(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpClient.autoRedirect");
     METHOD_INSTANCE(HttpClient_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(bool);
@@ -283,7 +275,6 @@ inline void HttpClient_base::s_get_enableEncoding(v8::Local<v8::Name> property, 
 {
     bool vr;
 
-    METHOD_NAME("HttpClient.enableEncoding");
     METHOD_INSTANCE(HttpClient_base);
     PROPERTY_ENTER();
 
@@ -294,7 +285,6 @@ inline void HttpClient_base::s_get_enableEncoding(v8::Local<v8::Name> property, 
 
 inline void HttpClient_base::s_set_enableEncoding(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpClient.enableEncoding");
     METHOD_INSTANCE(HttpClient_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(bool);
@@ -308,7 +298,6 @@ inline void HttpClient_base::s_get_maxBodySize(v8::Local<v8::Name> property, con
 {
     int32_t vr;
 
-    METHOD_NAME("HttpClient.maxBodySize");
     METHOD_INSTANCE(HttpClient_base);
     PROPERTY_ENTER();
 
@@ -319,7 +308,6 @@ inline void HttpClient_base::s_get_maxBodySize(v8::Local<v8::Name> property, con
 
 inline void HttpClient_base::s_set_maxBodySize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpClient.maxBodySize");
     METHOD_INSTANCE(HttpClient_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
@@ -333,7 +321,6 @@ inline void HttpClient_base::s_get_userAgent(v8::Local<v8::Name> property, const
 {
     exlib::string vr;
 
-    METHOD_NAME("HttpClient.userAgent");
     METHOD_INSTANCE(HttpClient_base);
     PROPERTY_ENTER();
 
@@ -344,7 +331,6 @@ inline void HttpClient_base::s_get_userAgent(v8::Local<v8::Name> property, const
 
 inline void HttpClient_base::s_set_userAgent(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpClient.userAgent");
     METHOD_INSTANCE(HttpClient_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -358,7 +344,6 @@ inline void HttpClient_base::s_get_poolSize(v8::Local<v8::Name> property, const 
 {
     int32_t vr;
 
-    METHOD_NAME("HttpClient.poolSize");
     METHOD_INSTANCE(HttpClient_base);
     PROPERTY_ENTER();
 
@@ -369,7 +354,6 @@ inline void HttpClient_base::s_get_poolSize(v8::Local<v8::Name> property, const 
 
 inline void HttpClient_base::s_set_poolSize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpClient.poolSize");
     METHOD_INSTANCE(HttpClient_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
@@ -383,7 +367,6 @@ inline void HttpClient_base::s_get_poolTimeout(v8::Local<v8::Name> property, con
 {
     int32_t vr;
 
-    METHOD_NAME("HttpClient.poolTimeout");
     METHOD_INSTANCE(HttpClient_base);
     PROPERTY_ENTER();
 
@@ -394,7 +377,6 @@ inline void HttpClient_base::s_get_poolTimeout(v8::Local<v8::Name> property, con
 
 inline void HttpClient_base::s_set_poolTimeout(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpClient.poolTimeout");
     METHOD_INSTANCE(HttpClient_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
@@ -408,7 +390,6 @@ inline void HttpClient_base::s_get_http_proxy(v8::Local<v8::Name> property, cons
 {
     exlib::string vr;
 
-    METHOD_NAME("HttpClient.http_proxy");
     METHOD_INSTANCE(HttpClient_base);
     PROPERTY_ENTER();
 
@@ -419,7 +400,6 @@ inline void HttpClient_base::s_get_http_proxy(v8::Local<v8::Name> property, cons
 
 inline void HttpClient_base::s_set_http_proxy(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpClient.http_proxy");
     METHOD_INSTANCE(HttpClient_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -433,7 +413,6 @@ inline void HttpClient_base::s_get_https_proxy(v8::Local<v8::Name> property, con
 {
     exlib::string vr;
 
-    METHOD_NAME("HttpClient.https_proxy");
     METHOD_INSTANCE(HttpClient_base);
     PROPERTY_ENTER();
 
@@ -444,7 +423,6 @@ inline void HttpClient_base::s_get_https_proxy(v8::Local<v8::Name> property, con
 
 inline void HttpClient_base::s_set_https_proxy(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpClient.https_proxy");
     METHOD_INSTANCE(HttpClient_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -458,7 +436,6 @@ inline void HttpClient_base::s_get_sslVerification(v8::Local<v8::Name> property,
 {
     int32_t vr;
 
-    METHOD_NAME("HttpClient.sslVerification");
     METHOD_INSTANCE(HttpClient_base);
     PROPERTY_ENTER();
 
@@ -469,7 +446,6 @@ inline void HttpClient_base::s_get_sslVerification(v8::Local<v8::Name> property,
 
 inline void HttpClient_base::s_set_sslVerification(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("HttpClient.sslVerification");
     METHOD_INSTANCE(HttpClient_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
@@ -481,7 +457,6 @@ inline void HttpClient_base::s_set_sslVerification(v8::Local<v8::Name> property,
 
 inline void HttpClient_base::s_setClientCert(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("HttpClient.setClientCert");
     METHOD_INSTANCE(HttpClient_base);
     METHOD_ENTER();
 
@@ -499,7 +474,6 @@ inline void HttpClient_base::s_request(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<HttpResponse_base> vr;
 
-    METHOD_NAME("HttpClient.request");
     METHOD_INSTANCE(HttpClient_base);
     METHOD_ENTER();
 
@@ -561,7 +535,6 @@ inline void HttpClient_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<HttpResponse_base> vr;
 
-    METHOD_NAME("HttpClient.get");
     METHOD_INSTANCE(HttpClient_base);
     METHOD_ENTER();
 
@@ -582,7 +555,6 @@ inline void HttpClient_base::s_post(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     obj_ptr<HttpResponse_base> vr;
 
-    METHOD_NAME("HttpClient.post");
     METHOD_INSTANCE(HttpClient_base);
     METHOD_ENTER();
 
@@ -603,7 +575,6 @@ inline void HttpClient_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<HttpResponse_base> vr;
 
-    METHOD_NAME("HttpClient.del");
     METHOD_INSTANCE(HttpClient_base);
     METHOD_ENTER();
 
@@ -624,7 +595,6 @@ inline void HttpClient_base::s_put(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<HttpResponse_base> vr;
 
-    METHOD_NAME("HttpClient.put");
     METHOD_INSTANCE(HttpClient_base);
     METHOD_ENTER();
 
@@ -645,7 +615,6 @@ inline void HttpClient_base::s_patch(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<HttpResponse_base> vr;
 
-    METHOD_NAME("HttpClient.patch");
     METHOD_INSTANCE(HttpClient_base);
     METHOD_ENTER();
 
@@ -666,7 +635,6 @@ inline void HttpClient_base::s_head(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     obj_ptr<HttpResponse_base> vr;
 
-    METHOD_NAME("HttpClient.head");
     METHOD_INSTANCE(HttpClient_base);
     METHOD_ENTER();
 

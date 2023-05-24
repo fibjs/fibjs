@@ -81,7 +81,6 @@ inline void XmlAttr_base::s_get_localName(v8::Local<v8::Name> property, const v8
 {
     exlib::string vr;
 
-    METHOD_NAME("XmlAttr.localName");
     METHOD_INSTANCE(XmlAttr_base);
     PROPERTY_ENTER();
 
@@ -94,7 +93,6 @@ inline void XmlAttr_base::s_get_value(v8::Local<v8::Name> property, const v8::Pr
 {
     exlib::string vr;
 
-    METHOD_NAME("XmlAttr.value");
     METHOD_INSTANCE(XmlAttr_base);
     PROPERTY_ENTER();
 
@@ -105,7 +103,6 @@ inline void XmlAttr_base::s_get_value(v8::Local<v8::Name> property, const v8::Pr
 
 inline void XmlAttr_base::s_set_value(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("XmlAttr.value");
     METHOD_INSTANCE(XmlAttr_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -119,7 +116,6 @@ inline void XmlAttr_base::s_get_name(v8::Local<v8::Name> property, const v8::Pro
 {
     exlib::string vr;
 
-    METHOD_NAME("XmlAttr.name");
     METHOD_INSTANCE(XmlAttr_base);
     PROPERTY_ENTER();
 
@@ -132,7 +128,6 @@ inline void XmlAttr_base::s_get_namespaceURI(v8::Local<v8::Name> property, const
 {
     exlib::string vr;
 
-    METHOD_NAME("XmlAttr.namespaceURI");
     METHOD_INSTANCE(XmlAttr_base);
     PROPERTY_ENTER();
 
@@ -145,7 +140,6 @@ inline void XmlAttr_base::s_get_prefix(v8::Local<v8::Name> property, const v8::P
 {
     exlib::string vr;
 
-    METHOD_NAME("XmlAttr.prefix");
     METHOD_INSTANCE(XmlAttr_base);
     PROPERTY_ENTER();
 
@@ -156,7 +150,6 @@ inline void XmlAttr_base::s_get_prefix(v8::Local<v8::Name> property, const v8::P
 
 inline void XmlAttr_base::s_set_prefix(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("XmlAttr.prefix");
     METHOD_INSTANCE(XmlAttr_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -170,7 +163,6 @@ inline void XmlAttr_base::s_get_nodeName(v8::Local<v8::Name> property, const v8:
 {
     exlib::string vr;
 
-    METHOD_NAME("XmlAttr.nodeName");
     METHOD_INSTANCE(XmlAttr_base);
     PROPERTY_ENTER();
 
@@ -183,7 +175,6 @@ inline void XmlAttr_base::s_get_nodeValue(v8::Local<v8::Name> property, const v8
 {
     exlib::string vr;
 
-    METHOD_NAME("XmlAttr.nodeValue");
     METHOD_INSTANCE(XmlAttr_base);
     PROPERTY_ENTER();
 
@@ -194,7 +185,6 @@ inline void XmlAttr_base::s_get_nodeValue(v8::Local<v8::Name> property, const v8
 
 inline void XmlAttr_base::s_set_nodeValue(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("XmlAttr.nodeValue");
     METHOD_INSTANCE(XmlAttr_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);

@@ -510,7 +510,6 @@ inline void object_base::s_toString(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     exlib::string vr;
 
-    METHOD_NAME("object.toString");
     METHOD_INSTANCE(object_base);
     METHOD_ENTER();
 
@@ -525,7 +524,6 @@ inline void object_base::s_toJSON(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_NAME("object.toJSON");
     METHOD_INSTANCE(object_base);
     METHOD_ENTER();
 

@@ -195,8 +195,6 @@ typedef int32_t result_t;
 #define V8_RETURN(v) (v)
 #endif
 
-#define METHOD_NAME(name) save_method_name _save_method_name(name)
-
 #define PROPERTY_ENTER()                      \
     v8::Isolate* isolate = args.GetIsolate(); \
     V8_SCOPE(isolate);                        \
@@ -1371,16 +1369,6 @@ inline exlib::string clean_string(exlib::string s)
 {
     return clean_string(s.c_str(), s.length());
 }
-
-class save_method_name {
-public:
-    save_method_name(const char* name);
-    ~save_method_name();
-
-private:
-    JSFiber* m_fb;
-    const char* m_name;
-};
 
 inline bool is_big_endian()
 {

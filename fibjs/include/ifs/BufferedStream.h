@@ -107,7 +107,6 @@ void BufferedStream_base::__new(const T& args)
 {
     obj_ptr<BufferedStream_base> vr;
 
-    METHOD_NAME("new BufferedStream()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(1, 1);
@@ -123,7 +122,6 @@ inline void BufferedStream_base::s_readText(const v8::FunctionCallbackInfo<v8::V
 {
     exlib::string vr;
 
-    METHOD_NAME("BufferedStream.readText");
     METHOD_INSTANCE(BufferedStream_base);
     METHOD_ENTER();
 
@@ -143,7 +141,6 @@ inline void BufferedStream_base::s_readLine(const v8::FunctionCallbackInfo<v8::V
 {
     exlib::string vr;
 
-    METHOD_NAME("BufferedStream.readLine");
     METHOD_INSTANCE(BufferedStream_base);
     METHOD_ENTER();
 
@@ -163,7 +160,6 @@ inline void BufferedStream_base::s_readLines(const v8::FunctionCallbackInfo<v8::
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_NAME("BufferedStream.readLines");
     METHOD_INSTANCE(BufferedStream_base);
     METHOD_ENTER();
 
@@ -180,7 +176,6 @@ inline void BufferedStream_base::s_readUntil(const v8::FunctionCallbackInfo<v8::
 {
     exlib::string vr;
 
-    METHOD_NAME("BufferedStream.readUntil");
     METHOD_INSTANCE(BufferedStream_base);
     METHOD_ENTER();
 
@@ -199,7 +194,6 @@ inline void BufferedStream_base::s_readUntil(const v8::FunctionCallbackInfo<v8::
 
 inline void BufferedStream_base::s_writeText(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("BufferedStream.writeText");
     METHOD_INSTANCE(BufferedStream_base);
     METHOD_ENTER();
 
@@ -217,7 +211,6 @@ inline void BufferedStream_base::s_writeText(const v8::FunctionCallbackInfo<v8::
 
 inline void BufferedStream_base::s_writeLine(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("BufferedStream.writeLine");
     METHOD_INSTANCE(BufferedStream_base);
     METHOD_ENTER();
 
@@ -237,7 +230,6 @@ inline void BufferedStream_base::s_get_stream(v8::Local<v8::Name> property, cons
 {
     obj_ptr<Stream_base> vr;
 
-    METHOD_NAME("BufferedStream.stream");
     METHOD_INSTANCE(BufferedStream_base);
     PROPERTY_ENTER();
 
@@ -250,7 +242,6 @@ inline void BufferedStream_base::s_get_charset(v8::Local<v8::Name> property, con
 {
     exlib::string vr;
 
-    METHOD_NAME("BufferedStream.charset");
     METHOD_INSTANCE(BufferedStream_base);
     PROPERTY_ENTER();
 
@@ -261,7 +252,6 @@ inline void BufferedStream_base::s_get_charset(v8::Local<v8::Name> property, con
 
 inline void BufferedStream_base::s_set_charset(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("BufferedStream.charset");
     METHOD_INSTANCE(BufferedStream_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);
@@ -275,7 +265,6 @@ inline void BufferedStream_base::s_get_EOL(v8::Local<v8::Name> property, const v
 {
     exlib::string vr;
 
-    METHOD_NAME("BufferedStream.EOL");
     METHOD_INSTANCE(BufferedStream_base);
     PROPERTY_ENTER();
 
@@ -286,7 +275,6 @@ inline void BufferedStream_base::s_get_EOL(v8::Local<v8::Name> property, const v
 
 inline void BufferedStream_base::s_set_EOL(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("BufferedStream.EOL");
     METHOD_INSTANCE(BufferedStream_base);
     PROPERTY_ENTER();
     PROPERTY_VAL(exlib::string);

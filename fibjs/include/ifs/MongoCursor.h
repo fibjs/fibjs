@@ -93,7 +93,6 @@ inline void MongoCursor_base::s_skip(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<MongoCursor_base> vr;
 
-    METHOD_NAME("MongoCursor.skip");
     METHOD_INSTANCE(MongoCursor_base);
     METHOD_ENTER();
 
@@ -113,7 +112,6 @@ inline void MongoCursor_base::s_limit(const v8::FunctionCallbackInfo<v8::Value>&
 {
     obj_ptr<MongoCursor_base> vr;
 
-    METHOD_NAME("MongoCursor.limit");
     METHOD_INSTANCE(MongoCursor_base);
     METHOD_ENTER();
 
@@ -133,7 +131,6 @@ inline void MongoCursor_base::s_sort(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<MongoCursor_base> vr;
 
-    METHOD_NAME("MongoCursor.sort");
     METHOD_INSTANCE(MongoCursor_base);
     METHOD_ENTER();
 
@@ -150,7 +147,6 @@ inline void MongoCursor_base::s_hasNext(const v8::FunctionCallbackInfo<v8::Value
 {
     bool vr;
 
-    METHOD_NAME("MongoCursor.hasNext");
     METHOD_INSTANCE(MongoCursor_base);
     METHOD_ENTER();
 
@@ -165,7 +161,6 @@ inline void MongoCursor_base::s_next(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("MongoCursor.next");
     METHOD_INSTANCE(MongoCursor_base);
     METHOD_ENTER();
 
@@ -180,7 +175,6 @@ inline void MongoCursor_base::s_count(const v8::FunctionCallbackInfo<v8::Value>&
 {
     int32_t vr;
 
-    METHOD_NAME("MongoCursor.count");
     METHOD_INSTANCE(MongoCursor_base);
     METHOD_ENTER();
 
@@ -197,7 +191,6 @@ inline void MongoCursor_base::s_size(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     int32_t vr;
 
-    METHOD_NAME("MongoCursor.size");
     METHOD_INSTANCE(MongoCursor_base);
     METHOD_ENTER();
 
@@ -210,7 +203,6 @@ inline void MongoCursor_base::s_size(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void MongoCursor_base::s_forEach(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("MongoCursor.forEach");
     METHOD_INSTANCE(MongoCursor_base);
     METHOD_ENTER();
 
@@ -227,7 +219,6 @@ inline void MongoCursor_base::s_map(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_NAME("MongoCursor.map");
     METHOD_INSTANCE(MongoCursor_base);
     METHOD_ENTER();
 
@@ -244,7 +235,6 @@ inline void MongoCursor_base::s_toArray(const v8::FunctionCallbackInfo<v8::Value
 {
     v8::Local<v8::Array> vr;
 
-    METHOD_NAME("MongoCursor.toArray");
     METHOD_INSTANCE(MongoCursor_base);
     METHOD_ENTER();
 
@@ -259,7 +249,6 @@ inline void MongoCursor_base::s_hint(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<MongoCursor_base> vr;
 
-    METHOD_NAME("MongoCursor.hint");
     METHOD_INSTANCE(MongoCursor_base);
     METHOD_ENTER();
 

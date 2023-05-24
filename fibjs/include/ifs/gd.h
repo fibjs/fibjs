@@ -164,7 +164,6 @@ inline void gd_base::s_static_create(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<Image_base> vr;
 
-    METHOD_NAME("gd.create");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(3, 2);
@@ -185,7 +184,6 @@ inline void gd_base::s_static_load(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<Image_base> vr;
 
-    METHOD_NAME("gd.load");
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
@@ -222,7 +220,6 @@ inline void gd_base::s_static_rgb(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     int32_t vr;
 
-    METHOD_NAME("gd.rgb");
     METHOD_ENTER();
 
     METHOD_OVER(3, 3);
@@ -240,7 +237,6 @@ inline void gd_base::s_static_rgba(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     int32_t vr;
 
-    METHOD_NAME("gd.rgba");
     METHOD_ENTER();
 
     METHOD_OVER(4, 4);
@@ -259,7 +255,6 @@ inline void gd_base::s_static_hsl(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     int32_t vr;
 
-    METHOD_NAME("gd.hsl");
     METHOD_ENTER();
 
     METHOD_OVER(3, 3);
@@ -277,7 +272,6 @@ inline void gd_base::s_static_hsla(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     int32_t vr;
 
-    METHOD_NAME("gd.hsla");
     METHOD_ENTER();
 
     METHOD_OVER(4, 4);
@@ -296,7 +290,6 @@ inline void gd_base::s_static_hsb(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     int32_t vr;
 
-    METHOD_NAME("gd.hsb");
     METHOD_ENTER();
 
     METHOD_OVER(3, 3);
@@ -314,7 +307,6 @@ inline void gd_base::s_static_hsba(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     int32_t vr;
 
-    METHOD_NAME("gd.hsba");
     METHOD_ENTER();
 
     METHOD_OVER(4, 4);
@@ -333,7 +325,6 @@ inline void gd_base::s_static_color(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     int32_t vr;
 
-    METHOD_NAME("gd.color");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);

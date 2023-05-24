@@ -136,7 +136,6 @@ public:
     weak_ptr<Fiber_base> m_caller;
     exlib::Thread_base* m_bind_thread = NULL;
 
-    const char* m_native_name = NULL;
     void* m_c_entry_fp_ = NULL;
     void* m_handler_ = NULL;
     bool m_termed = false;

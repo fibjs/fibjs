@@ -108,7 +108,6 @@ void SandBox_base::__new(const T& args)
 {
     obj_ptr<SandBox_base> vr;
 
-    METHOD_NAME("new SandBox()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(1, 0);
@@ -144,7 +143,6 @@ void SandBox_base::__new(const T& args)
 
 inline void SandBox_base::s_addBuiltinModules(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("SandBox.addBuiltinModules");
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();
 
@@ -157,7 +155,6 @@ inline void SandBox_base::s_addBuiltinModules(const v8::FunctionCallbackInfo<v8:
 
 inline void SandBox_base::s_add(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("SandBox.add");
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();
 
@@ -181,7 +178,6 @@ inline void SandBox_base::s_addScript(const v8::FunctionCallbackInfo<v8::Value>&
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_NAME("SandBox.addScript");
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();
 
@@ -197,7 +193,6 @@ inline void SandBox_base::s_addScript(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void SandBox_base::s_remove(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("SandBox.remove");
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();
 
@@ -214,7 +209,6 @@ inline void SandBox_base::s_has(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
-    METHOD_NAME("SandBox.has");
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();
 
@@ -231,7 +225,6 @@ inline void SandBox_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     obj_ptr<SandBox_base> vr;
 
-    METHOD_NAME("SandBox.clone");
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();
 
@@ -244,7 +237,6 @@ inline void SandBox_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void SandBox_base::s_freeze(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("SandBox.freeze");
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();
 
@@ -257,7 +249,6 @@ inline void SandBox_base::s_freeze(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void SandBox_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("SandBox.run");
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();
 
@@ -274,7 +265,6 @@ inline void SandBox_base::s_resolve(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     exlib::string vr;
 
-    METHOD_NAME("SandBox.resolve");
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();
 
@@ -292,7 +282,6 @@ inline void SandBox_base::s_require(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     v8::Local<v8::Value> vr;
 
-    METHOD_NAME("SandBox.require");
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();
 
@@ -308,7 +297,6 @@ inline void SandBox_base::s_require(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void SandBox_base::s_setModuleCompiler(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("SandBox.setModuleCompiler");
     METHOD_INSTANCE(SandBox_base);
     METHOD_ENTER();
 
@@ -326,7 +314,6 @@ inline void SandBox_base::s_get_global(v8::Local<v8::Name> property, const v8::P
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("SandBox.global");
     METHOD_INSTANCE(SandBox_base);
     PROPERTY_ENTER();
 
@@ -339,7 +326,6 @@ inline void SandBox_base::s_get_modules(v8::Local<v8::Name> property, const v8::
 {
     v8::Local<v8::Object> vr;
 
-    METHOD_NAME("SandBox.modules");
     METHOD_INSTANCE(SandBox_base);
     PROPERTY_ENTER();
 

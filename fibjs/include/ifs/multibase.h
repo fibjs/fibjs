@@ -64,7 +64,6 @@ inline void multibase_base::s_static_encode(const v8::FunctionCallbackInfo<v8::V
 {
     exlib::string vr;
 
-    METHOD_NAME("multibase.encode");
     METHOD_ENTER();
 
     METHOD_OVER(2, 2);
@@ -81,7 +80,6 @@ inline void multibase_base::s_static_decode(const v8::FunctionCallbackInfo<v8::V
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("multibase.decode");
     METHOD_ENTER();
 
     METHOD_OVER(1, 1);

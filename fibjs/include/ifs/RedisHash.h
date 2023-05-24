@@ -92,7 +92,6 @@ inline ClassInfo& RedisHash_base::class_info()
 
 inline void RedisHash_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("RedisHash.set");
     METHOD_INSTANCE(RedisHash_base);
     METHOD_ENTER();
 
@@ -108,7 +107,6 @@ inline void RedisHash_base::s_set(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void RedisHash_base::s_setNX(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("RedisHash.setNX");
     METHOD_INSTANCE(RedisHash_base);
     METHOD_ENTER();
 
@@ -124,7 +122,6 @@ inline void RedisHash_base::s_setNX(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void RedisHash_base::s_mset(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_NAME("RedisHash.mset");
     METHOD_INSTANCE(RedisHash_base);
     METHOD_ENTER();
 
@@ -147,7 +144,6 @@ inline void RedisHash_base::s_get(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("RedisHash.get");
     METHOD_INSTANCE(RedisHash_base);
     METHOD_ENTER();
 
@@ -164,7 +160,6 @@ inline void RedisHash_base::s_mget(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<NArray> vr;
 
-    METHOD_NAME("RedisHash.mget");
     METHOD_INSTANCE(RedisHash_base);
     METHOD_ENTER();
 
@@ -187,7 +182,6 @@ inline void RedisHash_base::s_incr(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     int64_t vr;
 
-    METHOD_NAME("RedisHash.incr");
     METHOD_INSTANCE(RedisHash_base);
     METHOD_ENTER();
 
@@ -205,7 +199,6 @@ inline void RedisHash_base::s_getAll(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<NArray> vr;
 
-    METHOD_NAME("RedisHash.getAll");
     METHOD_INSTANCE(RedisHash_base);
     METHOD_ENTER();
 
@@ -220,7 +213,6 @@ inline void RedisHash_base::s_keys(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<NArray> vr;
 
-    METHOD_NAME("RedisHash.keys");
     METHOD_INSTANCE(RedisHash_base);
     METHOD_ENTER();
 
@@ -235,7 +227,6 @@ inline void RedisHash_base::s_len(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     int32_t vr;
 
-    METHOD_NAME("RedisHash.len");
     METHOD_INSTANCE(RedisHash_base);
     METHOD_ENTER();
 
@@ -250,7 +241,6 @@ inline void RedisHash_base::s_exists(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     bool vr;
 
-    METHOD_NAME("RedisHash.exists");
     METHOD_INSTANCE(RedisHash_base);
     METHOD_ENTER();
 
@@ -267,7 +257,6 @@ inline void RedisHash_base::s_del(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     int32_t vr;
 
-    METHOD_NAME("RedisHash.del");
     METHOD_INSTANCE(RedisHash_base);
     METHOD_ENTER();
 

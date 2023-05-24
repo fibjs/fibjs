@@ -96,7 +96,6 @@ inline void uuid_base::s_static_node(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("uuid.node");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -110,7 +109,6 @@ inline void uuid_base::s_static_md5(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("uuid.md5");
     METHOD_ENTER();
 
     METHOD_OVER(2, 2);
@@ -127,7 +125,6 @@ inline void uuid_base::s_static_random(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("uuid.random");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -141,7 +138,6 @@ inline void uuid_base::s_static_sha1(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("uuid.sha1");
     METHOD_ENTER();
 
     METHOD_OVER(2, 2);
@@ -158,7 +154,6 @@ inline void uuid_base::s_static_snowflake(const v8::FunctionCallbackInfo<v8::Val
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_NAME("uuid.snowflake");
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
@@ -172,7 +167,6 @@ inline void uuid_base::s_static_get_hostID(v8::Local<v8::Name> property, const v
 {
     int32_t vr;
 
-    METHOD_NAME("uuid.hostID");
     PROPERTY_ENTER();
 
     hr = get_hostID(vr);
@@ -182,7 +176,6 @@ inline void uuid_base::s_static_get_hostID(v8::Local<v8::Name> property, const v
 
 inline void uuid_base::s_static_set_hostID(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_NAME("uuid.hostID");
     PROPERTY_ENTER();
     PROPERTY_VAL(int32_t);
 

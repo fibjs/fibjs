@@ -68,7 +68,6 @@ void RangeStream_base::__new(const T& args)
 {
     obj_ptr<RangeStream_base> vr;
 
-    METHOD_NAME("new RangeStream()");
     CONSTRUCT_ENTER();
 
     METHOD_OVER(2, 2);
@@ -93,7 +92,6 @@ inline void RangeStream_base::s_get_begin(v8::Local<v8::Name> property, const v8
 {
     int64_t vr;
 
-    METHOD_NAME("RangeStream.begin");
     METHOD_INSTANCE(RangeStream_base);
     PROPERTY_ENTER();
 
@@ -106,7 +104,6 @@ inline void RangeStream_base::s_get_end(v8::Local<v8::Name> property, const v8::
 {
     int64_t vr;
 
-    METHOD_NAME("RangeStream.end");
     METHOD_INSTANCE(RangeStream_base);
     PROPERTY_ENTER();
 
