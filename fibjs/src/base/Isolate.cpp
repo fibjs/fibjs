@@ -54,17 +54,19 @@ void Isolate::RunMicrotasks()
 Isolate::SnapshotJsScope::SnapshotJsScope(Isolate* cur)
     : m_isolate((cur ? cur : Isolate::current()))
 {
-    JSFiber* fb = JSFiber::current();
+    m_fb = JSFiber::current();
     V8FrameInfo _fi = save_fi(m_isolate->m_isolate);
 
-    fb->m_c_entry_fp_ = _fi.entry_fp;
-    fb->m_handler_ = _fi.handle;
+    m_fb->m_c_entry_fp_ = _fi.entry_fp;
+    m_fb->m_handler_ = _fi.handle;
 
     m_isolate->RunMicrotasks();
 }
 
 Isolate::SnapshotJsScope::~SnapshotJsScope()
 {
+    if (m_fb->m_termed && !m_isolate->m_isolate->IsExecutionTerminating())
+        m_isolate->m_isolate->TerminateExecution();
 }
 
 static void fb_GCCallback(v8::Isolate* js_isolate, v8::GCType type, v8::GCCallbackFlags flags)

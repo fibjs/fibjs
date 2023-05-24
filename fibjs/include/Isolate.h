@@ -35,6 +35,7 @@ public:
 
     protected:
         Isolate* m_isolate;
+        JSFiber* m_fb;
     };
 
     class LeaveJsScope : public SnapshotJsScope {
