@@ -85,7 +85,6 @@ public:
     static result_t sync(v8::Local<v8::Function> func, bool async_func, v8::Local<v8::Function>& retVal);
     static result_t promisify(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal);
     static result_t callbackify(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal);
-    static result_t _func(v8::Local<v8::Function>& retVal);
     static result_t buildInfo(v8::Local<v8::Object>& retVal);
 
 public:
@@ -155,7 +154,6 @@ public:
     static void s_static_sync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_promisify(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_callbackify(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static__func(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_buildInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
@@ -226,7 +224,6 @@ inline ClassInfo& util_base::class_info()
         { "sync", s_static_sync, true, false },
         { "promisify", s_static_promisify, true, false },
         { "callbackify", s_static_callbackify, true, false },
-        { "_func", s_static__func, true, false },
         { "buildInfo", s_static_buildInfo, true, false }
     };
 
@@ -1138,19 +1135,6 @@ inline void util_base::s_static_callbackify(const v8::FunctionCallbackInfo<v8::V
     ARG(v8::Local<v8::Function>, 0);
 
     hr = callbackify(v0, vr);
-
-    METHOD_RETURN();
-}
-
-inline void util_base::s_static__func(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    v8::Local<v8::Function> vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = _func(vr);
 
     METHOD_RETURN();
 }

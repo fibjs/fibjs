@@ -427,7 +427,25 @@ public:
     }
 
     //------------------------------------------------------------------
-    DECLARE_CLASSINFO(object_base);
+public:
+    static ClassInfo& class_info();
+    virtual ClassInfo& Classinfo()
+    {
+        return class_info();
+    }
+
+    static object_base* getInstance(void* o)
+    {
+        return (object_base*)o;
+    }
+
+    static object_base* getInstance(v8::Local<v8::Value> o)
+    {
+        void* p = unwrap(o);
+        if (!p)
+            return NULL;
+        return getInstance(p);
+    }
 
 private:
     static void s_toString(const v8::FunctionCallbackInfo<v8::Value>& args);

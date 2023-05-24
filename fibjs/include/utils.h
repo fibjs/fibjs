@@ -364,23 +364,25 @@ typedef int32_t result_t;
 
 #define ARG_LIST(n) OptArgs v##n(args, n, argc1);
 
-#define DECLARE_CLASSINFO(c)                      \
-public:                                           \
-    static ClassInfo& class_info();               \
-    virtual ClassInfo& Classinfo()                \
-    {                                             \
-        return class_info();                      \
-    }                                             \
-    static c* getInstance(void* o)                \
-    {                                             \
-        return dynamic_cast<c*>((object_base*)o); \
-    }                                             \
-    static c* getInstance(v8::Local<v8::Value> o) \
-    {                                             \
-        void* p = unwrap(o);                      \
-        if (!p)                                   \
-            return NULL;                          \
-        return getInstance(p);                    \
+#define DECLARE_CLASSINFO(c)                                             \
+public:                                                                  \
+    static ClassInfo& class_info();                                      \
+    virtual ClassInfo& Classinfo()                                       \
+    {                                                                    \
+        return class_info();                                             \
+    }                                                                    \
+    static c* getInstance(void* o)                                       \
+    {                                                                    \
+        if (!c::class_info().isInstance(((object_base*)o)->Classinfo())) \
+            return NULL;                                                 \
+        return (c*)o;                                                    \
+    }                                                                    \
+    static c* getInstance(v8::Local<v8::Value> o)                        \
+    {                                                                    \
+        void* p = unwrap(o);                                             \
+        if (!p)                                                          \
+            return NULL;                                                 \
+        return getInstance(p);                                           \
     }
 
 #define DECLARE_CLASS(c)         \

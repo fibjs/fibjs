@@ -143,6 +143,18 @@ public:
         return o;
     }
 
+    bool isInstance(ClassInfo& ci)
+    {
+        ClassInfo* _ci = &ci;
+        while (_ci) {
+            if (_ci == this)
+                return true;
+            _ci = _ci->m_cd.base;
+        }
+
+        return false;
+    }
+
     bool init_isolate(Isolate* isolate)
     {
         cache* _cache = _init(isolate);
