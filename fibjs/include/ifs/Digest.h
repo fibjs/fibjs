@@ -116,7 +116,7 @@ inline void Digest_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_INSTANCE(Digest_base);
+    ASYNC_METHOD_INSTANCE(Digest_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 1);
@@ -136,7 +136,7 @@ inline void Digest_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     bool vr;
 
-    METHOD_INSTANCE(Digest_base);
+    ASYNC_METHOD_INSTANCE(Digest_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(3, 2);

@@ -95,7 +95,7 @@ inline void File_base::s_get_fd(v8::Local<v8::Name> property, const v8::Property
 
 inline void File_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(File_base);
+    ASYNC_METHOD_INSTANCE(File_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);

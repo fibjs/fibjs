@@ -266,7 +266,10 @@ function gen_code(cls, def, baseFolder) {
 
                     if (ov.type) txts.push(`    ${get_rtype(ov.type)} vr;\n`);
 
-                    txts.push(`    METHOD_INSTANCE(${cls}_base);`);
+                    if (ov.async)
+                        txts.push(`    ASYNC_METHOD_INSTANCE(${cls}_base);`);
+                    else
+                        txts.push(`    METHOD_INSTANCE(${cls}_base);`);
                     txts.push(`    METHOD_ENTER();\n`);
                     make_ov_params(inst_mem_ovs);
 

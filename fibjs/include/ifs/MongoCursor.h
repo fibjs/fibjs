@@ -93,7 +93,7 @@ inline void MongoCursor_base::s_skip(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<MongoCursor_base> vr;
 
-    METHOD_INSTANCE(MongoCursor_base);
+    ASYNC_METHOD_INSTANCE(MongoCursor_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
@@ -112,7 +112,7 @@ inline void MongoCursor_base::s_limit(const v8::FunctionCallbackInfo<v8::Value>&
 {
     obj_ptr<MongoCursor_base> vr;
 
-    METHOD_INSTANCE(MongoCursor_base);
+    ASYNC_METHOD_INSTANCE(MongoCursor_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);

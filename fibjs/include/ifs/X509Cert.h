@@ -191,7 +191,7 @@ inline void X509Cert_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& a
 {
     bool vr;
 
-    METHOD_INSTANCE(X509Cert_base);
+    ASYNC_METHOD_INSTANCE(X509Cert_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);

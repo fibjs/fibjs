@@ -184,7 +184,7 @@ inline void X509Req_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<X509Cert_base> vr;
 
-    METHOD_INSTANCE(X509Req_base);
+    ASYNC_METHOD_INSTANCE(X509Req_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(3, 2);

@@ -331,7 +331,7 @@ inline void PKey_base::s_encrypt(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_INSTANCE(PKey_base);
+    ASYNC_METHOD_INSTANCE(PKey_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
@@ -350,7 +350,7 @@ inline void PKey_base::s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_INSTANCE(PKey_base);
+    ASYNC_METHOD_INSTANCE(PKey_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
@@ -369,7 +369,7 @@ inline void PKey_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_INSTANCE(PKey_base);
+    ASYNC_METHOD_INSTANCE(PKey_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 1);
@@ -389,7 +389,7 @@ inline void PKey_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
-    METHOD_INSTANCE(PKey_base);
+    ASYNC_METHOD_INSTANCE(PKey_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(3, 2);

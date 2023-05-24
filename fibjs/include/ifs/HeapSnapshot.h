@@ -113,7 +113,7 @@ inline void HeapSnapshot_base::s_getNodeById(const v8::FunctionCallbackInfo<v8::
 
 inline void HeapSnapshot_base::s_save(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(HeapSnapshot_base);
+    ASYNC_METHOD_INSTANCE(HeapSnapshot_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);

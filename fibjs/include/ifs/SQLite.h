@@ -108,7 +108,7 @@ inline void SQLite_base::s_set_timeout(v8::Local<v8::Name> property, v8::Local<v
 
 inline void SQLite_base::s_backup(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(SQLite_base);
+    ASYNC_METHOD_INSTANCE(SQLite_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);

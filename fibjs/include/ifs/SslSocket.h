@@ -192,7 +192,7 @@ inline void SslSocket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>&
 {
     int32_t vr;
 
-    METHOD_INSTANCE(SslSocket_base);
+    ASYNC_METHOD_INSTANCE(SslSocket_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 1);
@@ -212,7 +212,7 @@ inline void SslSocket_base::s_accept(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<SslSocket_base> vr;
 
-    METHOD_INSTANCE(SslSocket_base);
+    ASYNC_METHOD_INSTANCE(SslSocket_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);

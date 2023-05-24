@@ -102,7 +102,7 @@ inline ClassInfo& DgramSocket_base::class_info()
 
 inline void DgramSocket_base::s_bind(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(DgramSocket_base);
+    ASYNC_METHOD_INSTANCE(DgramSocket_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 0);
@@ -131,7 +131,7 @@ inline void DgramSocket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     int32_t vr;
 
-    METHOD_INSTANCE(DgramSocket_base);
+    ASYNC_METHOD_INSTANCE(DgramSocket_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(3, 2);

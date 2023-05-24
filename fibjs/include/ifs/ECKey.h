@@ -144,7 +144,7 @@ inline void ECKey_base::s_computeSecret(const v8::FunctionCallbackInfo<v8::Value
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_INSTANCE(ECKey_base);
+    ASYNC_METHOD_INSTANCE(ECKey_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);

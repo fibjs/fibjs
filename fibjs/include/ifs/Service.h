@@ -127,7 +127,7 @@ void Service_base::__new(const T& args)
 
 inline void Service_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Service_base);
+    ASYNC_METHOD_INSTANCE(Service_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(0, 0);

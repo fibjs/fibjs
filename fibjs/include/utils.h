@@ -266,12 +266,15 @@ typedef int32_t result_t;
     }                                    \
     METHOD_ENTER()
 
-#define METHOD_INSTANCE(cls)                            \
-    obj_ptr<cls> pInst = cls::getInstance(args.This()); \
-    if (pInst == NULL) {                                \
-        ThrowResult(CALL_E_NOTINSTANCE);                \
-        return;                                         \
-    }                                                   \
+#define METHOD_INSTANCE(cls)                    \
+    cls* pInst = cls::getInstance(args.This()); \
+    if (pInst == NULL) {                        \
+        ThrowResult(CALL_E_NOTINSTANCE);        \
+        return;                                 \
+    }
+
+#define ASYNC_METHOD_INSTANCE(cls) \
+    METHOD_INSTANCE(cls)           \
     scope l(pInst);
 
 #define CHECK_ARGUMENT()                                                                                        \

@@ -155,7 +155,7 @@ inline ClassInfo& WebView_base::class_info()
 
 inline void WebView_base::s_loadUrl(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(WebView_base);
+    ASYNC_METHOD_INSTANCE(WebView_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
@@ -174,7 +174,7 @@ inline void WebView_base::s_getUrl(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     exlib::string vr;
 
-    METHOD_INSTANCE(WebView_base);
+    ASYNC_METHOD_INSTANCE(WebView_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(0, 0);
@@ -189,7 +189,7 @@ inline void WebView_base::s_getUrl(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void WebView_base::s_setHtml(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(WebView_base);
+    ASYNC_METHOD_INSTANCE(WebView_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
@@ -206,7 +206,7 @@ inline void WebView_base::s_setHtml(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void WebView_base::s_reload(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(WebView_base);
+    ASYNC_METHOD_INSTANCE(WebView_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(0, 0);
@@ -221,7 +221,7 @@ inline void WebView_base::s_reload(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void WebView_base::s_goBack(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(WebView_base);
+    ASYNC_METHOD_INSTANCE(WebView_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(0, 0);
@@ -236,7 +236,7 @@ inline void WebView_base::s_goBack(const v8::FunctionCallbackInfo<v8::Value>& ar
 
 inline void WebView_base::s_goForward(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(WebView_base);
+    ASYNC_METHOD_INSTANCE(WebView_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(0, 0);
@@ -251,7 +251,7 @@ inline void WebView_base::s_goForward(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void WebView_base::s_print(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(WebView_base);
+    ASYNC_METHOD_INSTANCE(WebView_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 0);
@@ -268,7 +268,7 @@ inline void WebView_base::s_print(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void WebView_base::s_executeJavaScript(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(WebView_base);
+    ASYNC_METHOD_INSTANCE(WebView_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
@@ -285,7 +285,7 @@ inline void WebView_base::s_executeJavaScript(const v8::FunctionCallbackInfo<v8:
 
 inline void WebView_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(WebView_base);
+    ASYNC_METHOD_INSTANCE(WebView_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(0, 0);
@@ -300,7 +300,7 @@ inline void WebView_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void WebView_base::s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(WebView_base);
+    ASYNC_METHOD_INSTANCE(WebView_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);

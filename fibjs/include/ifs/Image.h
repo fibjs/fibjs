@@ -408,7 +408,7 @@ inline void Image_base::s_getData(const v8::FunctionCallbackInfo<v8::Value>& arg
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_INSTANCE(Image_base);
+    ASYNC_METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 0);
@@ -426,7 +426,7 @@ inline void Image_base::s_getData(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void Image_base::s_save(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Image_base);
+    ASYNC_METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(3, 1);
@@ -980,7 +980,7 @@ inline void Image_base::s_fillToBorder(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void Image_base::s_colorReplace(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Image_base);
+    ASYNC_METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 2);
@@ -1000,7 +1000,7 @@ inline void Image_base::s_clone(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Image_base> vr;
 
-    METHOD_INSTANCE(Image_base);
+    ASYNC_METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(0, 0);
@@ -1017,7 +1017,7 @@ inline void Image_base::s_resample(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     obj_ptr<Image_base> vr;
 
-    METHOD_INSTANCE(Image_base);
+    ASYNC_METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(2, 2);
@@ -1037,7 +1037,7 @@ inline void Image_base::s_crop(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Image_base> vr;
 
-    METHOD_INSTANCE(Image_base);
+    ASYNC_METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(4, 4);
@@ -1057,7 +1057,7 @@ inline void Image_base::s_crop(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Image_base::s_flip(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Image_base);
+    ASYNC_METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 0);
@@ -1074,7 +1074,7 @@ inline void Image_base::s_flip(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Image_base::s_rotate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Image_base);
+    ASYNC_METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
@@ -1091,7 +1091,7 @@ inline void Image_base::s_rotate(const v8::FunctionCallbackInfo<v8::Value>& args
 
 inline void Image_base::s_convert(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Image_base);
+    ASYNC_METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 0);
@@ -1108,7 +1108,7 @@ inline void Image_base::s_convert(const v8::FunctionCallbackInfo<v8::Value>& arg
 
 inline void Image_base::s_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Image_base);
+    ASYNC_METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(7, 7);
@@ -1131,7 +1131,7 @@ inline void Image_base::s_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 inline void Image_base::s_copyMerge(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Image_base);
+    ASYNC_METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(8, 8);
@@ -1155,7 +1155,7 @@ inline void Image_base::s_copyMerge(const v8::FunctionCallbackInfo<v8::Value>& a
 
 inline void Image_base::s_copyMergeGray(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Image_base);
+    ASYNC_METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(8, 8);
@@ -1179,7 +1179,7 @@ inline void Image_base::s_copyMergeGray(const v8::FunctionCallbackInfo<v8::Value
 
 inline void Image_base::s_copyResized(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Image_base);
+    ASYNC_METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(9, 9);
@@ -1204,7 +1204,7 @@ inline void Image_base::s_copyResized(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void Image_base::s_copyResampled(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Image_base);
+    ASYNC_METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(9, 9);
@@ -1229,7 +1229,7 @@ inline void Image_base::s_copyResampled(const v8::FunctionCallbackInfo<v8::Value
 
 inline void Image_base::s_copyRotated(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Image_base);
+    ASYNC_METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(8, 8);
@@ -1253,7 +1253,7 @@ inline void Image_base::s_copyRotated(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void Image_base::s_filter(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Image_base);
+    ASYNC_METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(5, 1);
@@ -1276,7 +1276,7 @@ inline void Image_base::s_affine(const v8::FunctionCallbackInfo<v8::Value>& args
 {
     obj_ptr<Image_base> vr;
 
-    METHOD_INSTANCE(Image_base);
+    ASYNC_METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(5, 1);
@@ -1297,7 +1297,7 @@ inline void Image_base::s_affine(const v8::FunctionCallbackInfo<v8::Value>& args
 
 inline void Image_base::s_gaussianBlur(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_INSTANCE(Image_base);
+    ASYNC_METHOD_INSTANCE(Image_base);
     METHOD_ENTER();
 
     ASYNC_METHOD_OVER(1, 1);
