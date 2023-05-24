@@ -434,17 +434,14 @@ public:
         return class_info();
     }
 
-    static object_base* getInstance(void* o)
+    static object_base* getInstance(object_base* o)
     {
-        return (object_base*)o;
+        return o;
     }
 
     static object_base* getInstance(v8::Local<v8::Value> o)
     {
-        void* p = unwrap(o);
-        if (!p)
-            return NULL;
-        return getInstance(p);
+        return getInstance((object_base*)unwrap(o));
     }
 
 private:
