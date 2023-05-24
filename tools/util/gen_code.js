@@ -723,7 +723,6 @@ function gen_code(cls, def, baseFolder) {
                 txts.push([
                     "public:\n    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)\n    {\n",
                     "        CONSTRUCT_INIT();\n\n",
-                    "        Isolate* isolate = Isolate::current();\n\n",
                     "        isolate->m_isolate->ThrowException(\n",
                     "            isolate->NewString(\"not a constructor\"));\n    }\n"
                 ].join(''));

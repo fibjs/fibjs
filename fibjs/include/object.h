@@ -436,9 +436,9 @@ private:
 
 class ValueHolder : public obj_base {
 public:
-    ValueHolder(v8::Local<v8::Value> v)
+    ValueHolder(v8::Local<v8::Object> v)
     {
-        m_isolate = Isolate::current();
+        m_isolate = Isolate::current(v);
         m_v.Reset(m_isolate->m_isolate, v);
     }
 
@@ -450,7 +450,7 @@ public:
     }
 
 private:
-    v8::Global<v8::Value> m_v;
+    v8::Global<v8::Object> m_v;
     Isolate* m_isolate;
 };
 
