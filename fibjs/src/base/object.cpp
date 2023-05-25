@@ -50,7 +50,7 @@ void* object_base::unwrap(v8::Local<v8::Value> o)
             return NULL;
         v8::Local<v8::Uint8Array> arr = obj.As<v8::Uint8Array>();
         std::shared_ptr<v8::BackingStore> store = arr->Buffer()->GetBackingStore();
-        return fetch_store_data(store, StoreDeleter);
+        return fetch_store_data(store);
     }
 
     if (obj->InternalFieldCount() != 1)

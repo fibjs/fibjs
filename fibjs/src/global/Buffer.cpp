@@ -223,11 +223,10 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
 
 void Buffer::init(const void* data, size_t length)
 {
-    uint8_t* buffer = new uint8_t[length];
+    m_store = NewBackingStore(length, this);
     if (data)
-        memcpy(buffer, data, length);
+        memcpy(Buffer::data(), data, Buffer::length());
 
-    m_store = v8::ArrayBuffer::NewBackingStore(buffer, length, StoreDeleter, this);
     extMemory(length);
 }
 

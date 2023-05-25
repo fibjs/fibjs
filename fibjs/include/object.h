@@ -181,11 +181,6 @@ public:
             final_release(this);
     }
 
-    static void StoreDeleter(void* data, size_t length, void* deleter_data)
-    {
-        delete[] (uint8_t*)data;
-    }
-
 public:
     class scope {
     public:
