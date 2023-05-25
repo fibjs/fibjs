@@ -42,6 +42,8 @@
 #include "v8.h"
 #include "v8_api.h"
 
+#include "v8/src/objects/backing-store.cc"
+
 using namespace v8;
 
 namespace fibjs {
