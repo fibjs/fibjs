@@ -12,7 +12,7 @@ namespace fibjs {
 
 v8::Local<v8::Object> object_base::wrap(Isolate* isolate, v8::Local<v8::Object> o)
 {
-    if(!m_isolate)
+    if (!m_isolate)
         m_isolate = isolate;
     v8::Isolate* v8_isolate = isolate->m_isolate;
 
@@ -40,23 +40,7 @@ void* object_base::unwrap(v8::Local<v8::Value> o)
 {
     if (o.IsEmpty() || !o->IsObject())
         return NULL;
-
-    v8::Local<v8::Object> obj = o.As<v8::Object>();
-    if (obj->IsTypedArray()) {
-        if (!obj->IsUint8Array())
-            return NULL;
-        Isolate* isolate = Isolate::current(obj);
-        if (!obj->InstanceOf(isolate->context(), Buffer_base::class_info().getFunction(isolate)).FromMaybe(false))
-            return NULL;
-        v8::Local<v8::Uint8Array> arr = obj.As<v8::Uint8Array>();
-        std::shared_ptr<v8::BackingStore> store = arr->Buffer()->GetBackingStore();
-        return fetch_store_data(store);
-    }
-
-    if (obj->InternalFieldCount() != 1)
-        return NULL;
-
-    return obj->GetAlignedPointerFromInternalField(0);
+    return get_object_pointer(o.As<v8::Object>(), Buffer_base::class_info().getInstanceType());
 }
 
 }

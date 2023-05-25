@@ -253,6 +253,8 @@ v8::Local<v8::Object> Buffer::wrap(Isolate* isolate, v8::Local<v8::Object> This)
             proto = This->GetPrototype().As<v8::Object>();
             proto->SetPrototype(context, ui->GetPrototype()).IsJust();
 
+            set_object_instance_type(proto, Buffer_base::class_info().getInstanceType());
+
             isolate->m_buffer_prototype.Reset(isolate->m_isolate, proto);
         } else {
             proto = isolate->m_buffer_prototype.Get(isolate->m_isolate);

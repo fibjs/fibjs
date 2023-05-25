@@ -155,6 +155,11 @@ public:
         return false;
     }
 
+    uint16_t getInstanceType()
+    {
+        return m_id + kObjectType;
+    }
+
     bool init_isolate(Isolate* isolate)
     {
         cache* _cache = _init(isolate);
@@ -415,6 +420,10 @@ private:
 
             if (m_cd.cor) {
                 v8::Local<v8::Object> o = _function->NewInstance(isolate->context()).FromMaybe(v8::Local<v8::Object>());
+
+                if (get_object_instance_type(o) == kFirstJSApiObjectType)
+                    set_object_instance_type(o, m_id + kObjectType);
+
                 o->SetAlignedPointerInInternalField(0, 0);
                 _cache->m_cache.Reset(isolate->m_isolate, o);
             }
@@ -437,6 +446,11 @@ private:
 
         return _cache;
     }
+
+public:
+    static const int32_t kFirstJSApiObjectType = 0x422;
+    static const int32_t kObjectType = 0x600;
+    static const int32_t kLastObjectType = 0x700;
 
 private:
     ClassData& m_cd;

@@ -33,6 +33,9 @@ void setAsyncFunctoin(v8::Local<v8::Function> func);
 void* fetch_store_data(std::shared_ptr<v8::BackingStore>& backing_store);
 std::unique_ptr<v8::BackingStore> NewBackingStore(size_t byte_length, void* deleter_data);
 
-void keep_alive(void* object);
+void* get_object_pointer(v8::Local<v8::Object> o, uint16_t buffer_type);
+
+void set_object_instance_type(v8::Local<v8::Object> o, uint16_t type);
+uint16_t get_object_instance_type(v8::Local<v8::Object> o);
 
 } /* namespace fibjs */
