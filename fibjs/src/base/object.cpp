@@ -40,7 +40,7 @@ void* object_base::unwrap(v8::Local<v8::Value> o)
 {
     if (o.IsEmpty() || !o->IsObject())
         return NULL;
-    return get_object_pointer(o.As<v8::Object>(), Buffer_base::class_info().getInstanceType());
+    return get_instance_pointer(o.As<v8::Object>(), Buffer_base::class_info().getInstanceType());
 }
 
 }

@@ -68,13 +68,13 @@ void setAsyncFunctoin(Local<Function> func)
     _func->shared().set_kind(i::FunctionKind::kAsyncFunction);
 }
 
-uint16_t get_object_instance_type(Local<Object> o)
+uint16_t get_instance_type(Local<Object> o)
 {
     i::Address obj = *reinterpret_cast<i::Address*>(*o);
     return i::Internals::GetInstanceType(obj);
 }
 
-void set_object_instance_type(Local<Object> o, uint16_t type)
+void set_instance_type(Local<Object> o, uint16_t type)
 {
     i::Address obj = *reinterpret_cast<i::Address*>(*o);
     i::Address map = i::Internals::ReadTaggedPointerField(obj, i::Internals::kHeapObjectMapOffset);
@@ -109,7 +109,7 @@ std::unique_ptr<v8::BackingStore> NewBackingStore(size_t byte_length, void* dele
     return std::unique_ptr<v8::BackingStore>((v8::BackingStore*)result);
 }
 
-void* get_object_pointer(Local<Object> o, uint16_t buffer_type)
+void* get_instance_pointer(Local<Object> o, uint16_t buffer_type)
 {
     const int32_t kObjectType = 0x600;
     const int32_t kLastObjectType = 0x700;
@@ -117,7 +117,16 @@ void* get_object_pointer(Local<Object> o, uint16_t buffer_type)
     i::Address obj = *reinterpret_cast<i::Address*>(*o);
     auto instance_type = i::Internals::GetInstanceType(obj);
 
-    if (o->IsUint8Array()) {
+    if (instance_type == i::Internals::kJSSpecialApiObjectType
+        || (instance_type >= kObjectType && instance_type < kLastObjectType)) {
+        int offset = i::Internals::kJSObjectHeaderSize + i::Internals::kEmbedderDataSlotExternalPointerOffset;
+        Isolate* isolate = i::Internals::GetIsolateForSandbox(obj);
+        i::Address value = i::Internals::ReadExternalPointerField<internal::kEmbedderDataSlotPayloadTag>(
+            isolate, obj, offset);
+        return reinterpret_cast<void*>(value);
+    }
+
+    if (instance_type == i::Internals::kLastJSApiObjectType + i::kExternalUint8Array) {
         v8::Local<v8::Object> proto = o->GetPrototype().As<v8::Object>();
         obj = *reinterpret_cast<i::Address*>(*proto);
         instance_type = i::Internals::GetInstanceType(obj);
@@ -128,15 +137,6 @@ void* get_object_pointer(Local<Object> o, uint16_t buffer_type)
         v8::Local<v8::ArrayBufferView> arr = o.As<v8::ArrayBufferView>();
         std::shared_ptr<v8::BackingStore> store = arr->Buffer()->GetBackingStore();
         return fetch_store_data(store);
-    }
-
-    if (instance_type == i::Internals::kJSSpecialApiObjectType
-        || (instance_type >= kObjectType && instance_type < kLastObjectType)) {
-        int offset = i::Internals::kJSObjectHeaderSize + i::Internals::kEmbedderDataSlotExternalPointerOffset;
-        Isolate* isolate = i::Internals::GetIsolateForSandbox(obj);
-        i::Address value = i::Internals::ReadExternalPointerField<internal::kEmbedderDataSlotPayloadTag>(
-            isolate, obj, offset);
-        return reinterpret_cast<void*>(value);
     }
 
     return NULL;
