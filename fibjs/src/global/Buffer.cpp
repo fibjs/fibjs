@@ -223,7 +223,7 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
 
 void Buffer::init(const void* data, size_t length)
 {
-    m_store = NewBackingStore(length, this);
+    m_store = NewBackingStore(length);
     if (data)
         memcpy(Buffer::data(), data, Buffer::length());
 
@@ -262,6 +262,7 @@ v8::Local<v8::Object> Buffer::wrap(Isolate* isolate, v8::Local<v8::Object> This)
         }
 
         ui->SetPrototype(context, proto).IsJust();
+        ui->SetAlignedPointerInInternalField(0, this);
 
         return object_base::wrap(isolate, ui);
     }

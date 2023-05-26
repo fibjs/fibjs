@@ -30,8 +30,7 @@ void WriteLcovData(v8::Isolate* isolate, FILE* file);
 bool isFrozen(v8::Local<v8::Object> object);
 void setAsyncFunctoin(v8::Local<v8::Function> func);
 
-void* fetch_store_data(std::shared_ptr<v8::BackingStore>& backing_store);
-std::unique_ptr<v8::BackingStore> NewBackingStore(size_t byte_length, void* deleter_data);
+std::unique_ptr<v8::BackingStore> NewBackingStore(size_t byte_length);
 
 void* get_instance_pointer(v8::Local<v8::Object> o, uint16_t buffer_type);
 

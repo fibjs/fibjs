@@ -89,22 +89,14 @@ static void s_store_deleter(void* data, size_t length, void* deleter_data)
 {
 }
 
-void* fetch_store_data(std::shared_ptr<v8::BackingStore>& backing_store)
-{
-    auto store = reinterpret_cast<const i::BackingStore*>(backing_store.get());
-    if (s_store_deleter == store->type_specific_data_.deleter.callback)
-        return store->type_specific_data_.deleter.data;
-    return NULL;
-}
-
-std::unique_ptr<v8::BackingStore> NewBackingStore(size_t byte_length, void* deleter_data)
+std::unique_ptr<v8::BackingStore> NewBackingStore(size_t byte_length)
 {
     CHECK_LE(byte_length, i::JSArrayBuffer::kMaxByteLength);
 
     uint8_t* data = new uint8_t[byte_length + sizeof(i::BackingStore)];
     auto result = new ((i::BackingStore*)data) i::BackingStore(data + sizeof(i::BackingStore), byte_length, byte_length, byte_length,
         i::SharedFlag::kNotShared, i::ResizableFlag::kNotResizable, false, true, false, true, false);
-    result->type_specific_data_.deleter = { s_store_deleter, deleter_data };
+    result->type_specific_data_.deleter = { s_store_deleter, NULL };
 
     return std::unique_ptr<v8::BackingStore>((v8::BackingStore*)result);
 }
@@ -134,9 +126,7 @@ void* get_instance_pointer(Local<Object> o, uint16_t buffer_type)
         if (instance_type != buffer_type)
             return NULL;
 
-        v8::Local<v8::ArrayBufferView> arr = o.As<v8::ArrayBufferView>();
-        std::shared_ptr<v8::BackingStore> store = arr->Buffer()->GetBackingStore();
-        return fetch_store_data(store);
+        return o->GetAlignedPointerFromInternalField(0);
     }
 
     return NULL;
