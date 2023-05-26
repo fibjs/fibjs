@@ -65,13 +65,14 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
     StringBuffer strBuffer;
 
     Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> _context = isolate->context();
+
     QuickArray<_item> stk;
     QuickArray<v8::Local<v8::Object>> vals;
     v8::Local<v8::Value> v = obj;
     int32_t padding = 0;
     const int32_t tab_size = 2;
     _item* it = NULL;
-    v8::Local<v8::Context> _context = isolate->context();
 
     while (true) {
         if (v.IsEmpty())

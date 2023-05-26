@@ -273,11 +273,11 @@ exlib::string ReportException(TryCatch& try_catch, result_t hr, bool repl)
 
 result_t CheckConfig(v8::Local<v8::Object> opts, const char** keys)
 {
-    v8::Local<v8::Context> context = opts->GetCreationContextChecked();
+    Isolate* isolate = Isolate::current(opts);
+    v8::Local<v8::Context> context = isolate->context();
     JSArray ks = opts->GetPropertyNames(context);
     int32_t len = ks->Length();
     int32_t i;
-    Isolate* isolate = Isolate::current();
 
     for (i = 0; i < len; i++) {
         v8::String::Utf8Value k(isolate->m_isolate, JSValue(ks->Get(context, i)));

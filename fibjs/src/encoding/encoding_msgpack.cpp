@@ -52,7 +52,7 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
                 v8::Local<v8::BigInt> mv;
                 bool less;
 
-                mv = element->ToBigInt(Isolate::current()->context()).FromMaybe(v8::Local<v8::BigInt>());
+                mv = element->ToBigInt(isolate->context()).FromMaybe(v8::Local<v8::BigInt>());
                 msgpack_pack_int64(&pk, mv->Int64Value(&less));
             } else if (element->IsDate()) {
                 date_t d = isolate->toNumber(element);

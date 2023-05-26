@@ -304,7 +304,7 @@ inline void PKey_base::s_json(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
 
     hr = pInst->json(v0, vr);
 
@@ -375,7 +375,7 @@ inline void PKey_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
     ASYNC_METHOD_OVER(2, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = pInst->acb_sign(v0, v1, cb, args);
@@ -396,7 +396,7 @@ inline void PKey_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(obj_ptr<Buffer_base>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = pInst->acb_verify(v0, v1, v2, cb, args);

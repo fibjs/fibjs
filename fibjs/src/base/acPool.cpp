@@ -127,7 +127,7 @@ AsyncCallBack::AsyncCallBack(v8::Local<v8::Function> cb, object_base* pThis)
         m_pThis = pThis;
         m_isolate = pThis->holder();
     } else
-        m_isolate = Isolate::current();
+        m_isolate = Isolate::current(cb);
 
     m_isolate->Ref();
     m_cb.Reset(m_isolate->m_isolate, cb);
@@ -206,7 +206,7 @@ int32_t AsyncCallBack::check_result(int32_t hr, const v8::FunctionCallbackInfo<v
         async_call(hr);
 
     if (m_ctxo)
-        args.GetReturnValue().Set(GetReturnValue(m_isolate->m_isolate, m_ctxo));
+        args.GetReturnValue().Set(GetReturnValue(m_isolate, m_ctxo));
     else
         args.GetReturnValue().SetUndefined();
 

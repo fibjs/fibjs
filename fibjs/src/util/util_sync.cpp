@@ -30,7 +30,7 @@ static void sync_callback(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 static void sync_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(args);
     v8::Local<v8::Context> context = isolate->context();
     obj_ptr<Event_base> ev = new Event();
     v8::Local<v8::Object> _data = ev->wrap();
@@ -66,7 +66,7 @@ static void sync_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 static void promise_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(args);
     v8::Local<v8::Context> context = isolate->context();
     std::vector<v8::Local<v8::Value>> argv;
 
@@ -88,7 +88,7 @@ static void promise_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 result_t util_base::sync(v8::Local<v8::Function> func, bool async_func, v8::Local<v8::Function>& retVal)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(func);
     v8::Local<v8::Context> context = isolate->context();
     v8::Local<v8::Function> func1;
 

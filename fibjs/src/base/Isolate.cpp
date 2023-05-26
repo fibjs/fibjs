@@ -71,7 +71,7 @@ Isolate::SnapshotJsScope::~SnapshotJsScope()
 
 static void fb_GCCallback(v8::Isolate* js_isolate, v8::GCType type, v8::GCCallbackFlags flags)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(js_isolate);
     exlib::linkitem* p;
     exlib::List<exlib::linkitem> freelist;
 

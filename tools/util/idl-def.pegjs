@@ -214,10 +214,10 @@ value
 false = "false" { return 'false'; }
 true  = "true"  { return 'true';  }
 null  = "null"  { return 'NULL';  }
-undefined = "undefined" { return 'v8::Undefined(isolate)';}
+undefined = "undefined" { return 'v8::Undefined(isolate->m_isolate)';}
 
-objectVal = "{" _* "}" { return "v8::Object::New(isolate)" }
-arrayVal = "[" _* "]" { return "v8::Array::New(isolate)"; }
+objectVal = "{" _* "}" { return "v8::Object::New(isolate->m_isolate)" }
+arrayVal = "[" _* "]" { return "v8::Array::New(isolate->m_isolate)"; }
 
 number "number"
   = minus? int frac? exp? { return text(); }

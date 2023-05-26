@@ -440,7 +440,7 @@ inline void http_base::s_static_fileHandler(const v8::FunctionCallbackInfo<v8::V
     METHOD_OVER(3, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
     OPT_ARG(bool, 2, false);
 
     hr = fileHandler(v0, v1, v2, vr);
@@ -493,7 +493,7 @@ inline void http_base::s_static_request(const v8::FunctionCallbackInfo<v8::Value
 
     ARG(exlib::string, 0);
     ARG(exlib::string, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = acb_request(v0, v1, v2, cb, args);
@@ -503,7 +503,7 @@ inline void http_base::s_static_request(const v8::FunctionCallbackInfo<v8::Value
     ASYNC_METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = acb_request(v0, v1, cb, args);
@@ -531,7 +531,7 @@ inline void http_base::s_static_get(const v8::FunctionCallbackInfo<v8::Value>& a
     ASYNC_METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = acb_get(v0, v1, cb, args);
@@ -550,7 +550,7 @@ inline void http_base::s_static_post(const v8::FunctionCallbackInfo<v8::Value>& 
     ASYNC_METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = acb_post(v0, v1, cb, args);
@@ -569,7 +569,7 @@ inline void http_base::s_static_del(const v8::FunctionCallbackInfo<v8::Value>& a
     ASYNC_METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = acb_del(v0, v1, cb, args);
@@ -588,7 +588,7 @@ inline void http_base::s_static_put(const v8::FunctionCallbackInfo<v8::Value>& a
     ASYNC_METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = acb_put(v0, v1, cb, args);
@@ -607,7 +607,7 @@ inline void http_base::s_static_patch(const v8::FunctionCallbackInfo<v8::Value>&
     ASYNC_METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = acb_patch(v0, v1, cb, args);
@@ -626,7 +626,7 @@ inline void http_base::s_static_head(const v8::FunctionCallbackInfo<v8::Value>& 
     ASYNC_METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = acb_head(v0, v1, cb, args);

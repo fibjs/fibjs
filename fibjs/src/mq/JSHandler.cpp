@@ -119,7 +119,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             return CALL_RETURN_NULL;
     }
 
-    return GetArgumentValue(hdlr, retVal);
+    return GetArgumentValue(isolate, hdlr, retVal);
 }
 
 } /* namespace fibjs */

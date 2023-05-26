@@ -341,7 +341,7 @@ result_t Ed25519Key::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
     ac->m_ctx.resize(1);
 
     exlib::string fmt = "der";
-    hr = GetConfigValue(isolate->m_isolate, opts, "format", fmt, true);
+    hr = GetConfigValue(isolate, opts, "format", fmt, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     if (fmt != "der" && fmt != "raw")

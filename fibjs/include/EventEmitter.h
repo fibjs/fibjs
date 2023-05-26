@@ -231,7 +231,7 @@ public:
         v8::Local<v8::Function> _wrap = v8::Local<v8::Function>::Cast(JSValue(_data->Get(context, isolate->NewString("_wrap"))));
 
         exlib::string ev;
-        GetArgumentValue(v, ev, true);
+        GetArgumentValue(isolate, v, ev, true);
 
         std::vector<v8::Local<v8::Value>> _args;
         int32_t len = args.Length();
@@ -358,11 +358,13 @@ public:
             len = evs->Length();
         }
 
+        Isolate* _isolate = Isolate::current(isolate);
+
         for (i = 0; i < len; i++) {
             JSValue v = evs->Get(context, i);
             exlib::string key;
 
-            hr = GetArgumentValue(v, key, true);
+            hr = GetArgumentValue(_isolate, v, key, true);
             if (hr < 0)
                 return hr;
 
@@ -391,7 +393,7 @@ public:
         if (maxListeners->IsUndefined() || maxListeners->IsNull()) {
             retVal = _isolate->m_defaultMaxListeners;
         } else {
-            GetArgumentValue(maxListeners, retVal, true);
+            GetArgumentValue(_isolate, maxListeners, retVal, true);
         }
         return 0;
     }
@@ -724,7 +726,7 @@ public:
 
         METHOD_OVER(1, 0);
 
-        OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate));
+        OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate->m_isolate));
 
         hr = JSTrigger(args).removeAllListeners(v0, vr);
 

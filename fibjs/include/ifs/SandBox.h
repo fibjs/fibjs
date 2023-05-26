@@ -112,7 +112,7 @@ void SandBox_base::__new(const T& args)
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
 
     hr = _new(v0, vr, args.This());
 

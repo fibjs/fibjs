@@ -39,7 +39,7 @@ static result_t mpi_load(Isolate* isolate, mbedtls_mpi* n, v8::Local<v8::Object>
     exlib::string b64, s;
     result_t hr;
 
-    hr = GetConfigValue(isolate->m_isolate, o, key, b64);
+    hr = GetConfigValue(isolate, o, key, b64);
     if (hr < 0)
         return hr;
 
@@ -67,7 +67,7 @@ static const mbedtls_pk_info_t* get_pk_info_from_curve(int32_t id)
 
 result_t PKey_base::from(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retVal)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(jsonKey);
     int32_t ret;
     result_t hr;
     exlib::string kty;
@@ -75,7 +75,7 @@ result_t PKey_base::from(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retV
 
     mbedtls_pk_init(&ctx);
 
-    hr = GetConfigValue(isolate->m_isolate, jsonKey, "kty", kty);
+    hr = GetConfigValue(isolate, jsonKey, "kty", kty);
     if (hr < 0)
         return hr;
 
@@ -130,7 +130,7 @@ result_t PKey_base::from(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retV
     } else if (kty == "EC" || kty == "OKP") {
         exlib::string curve;
 
-        hr = GetConfigValue(isolate->m_isolate, jsonKey, "crv", curve);
+        hr = GetConfigValue(isolate, jsonKey, "crv", curve);
         if (hr < 0)
             return hr;
 
@@ -183,7 +183,7 @@ result_t PKey::json(v8::Local<v8::Object> opts, v8::Local<v8::Object>& retVal)
     if (hr < 0)
         return hr;
 
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(opts);
     v8::Local<v8::Context> context = isolate->context();
     mbedtls_pk_type_t type = mbedtls_pk_get_type(&m_key);
 
@@ -233,7 +233,7 @@ result_t PKey::json(v8::Local<v8::Object> opts, v8::Local<v8::Object>& retVal)
             if (hr < 0)
                 return hr;
 
-            hr = GetConfigValue(isolate->m_isolate, opts, "compress", compress, true);
+            hr = GetConfigValue(isolate, opts, "compress", compress, true);
             if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
                 return hr;
         }

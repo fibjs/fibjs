@@ -53,7 +53,7 @@ result_t profiler_base::takeSnapshot(obj_ptr<HeapSnapshot_base>& retVal)
 
 result_t profiler_base::diff(v8::Local<v8::Function> test, v8::Local<v8::Object>& retVal)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(test);
     v8::HeapProfiler* profiler = isolate->m_isolate->GetHeapProfiler();
     obj_ptr<HeapSnapshot_base> s1, s2;
 
@@ -112,12 +112,12 @@ inline result_t GetArray(v8::Local<v8::Value> v, QuickArray<T>& n)
 
     JSArray a = v8::Local<v8::Array>::Cast(v);
     result_t hr;
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(a);
     v8::Local<v8::Context> context = isolate->context();
 
     for (int32_t i = 0; i < (int32_t)a->Length(); i++) {
         T vr;
-        hr = GetArgumentValue(JSValue(a->Get(context, i)), vr, true);
+        hr = GetArgumentValue(isolate, JSValue(a->Get(context, i)), vr, true);
         if (hr < 0)
             return hr;
 
@@ -205,11 +205,11 @@ result_t HeapSnapshot::load(exlib::string fname)
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
     o = v8::Local<v8::Object>::Cast(v);
-    hr = GetConfigValue(isolate->m_isolate, o, "node_count", node_count);
+    hr = GetConfigValue(isolate, o, "node_count", node_count);
     if (hr < 0)
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-    hr = GetConfigValue(isolate->m_isolate, o, "edge_count", edge_count);
+    hr = GetConfigValue(isolate, o, "edge_count", edge_count);
     if (hr < 0)
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 

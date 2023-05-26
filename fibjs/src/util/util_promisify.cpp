@@ -34,7 +34,7 @@ static void promisify_callback(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 static void promisify_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(args);
     std::vector<v8::Local<v8::Value>> argv;
 
     int32_t len = args.Length();
@@ -80,7 +80,7 @@ result_t promisify(Isolate* isolate, v8::Local<v8::Function> func, v8::Local<v8:
 
 result_t util_base::promisify(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal)
 {
-    return fibjs::promisify(Isolate::current(), func, retVal);
+    return fibjs::promisify(Isolate::current(func), func, retVal);
 }
 
 }

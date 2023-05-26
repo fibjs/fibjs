@@ -584,7 +584,7 @@ result_t ECKey::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
     if (!ac->isSync())
         return 0;
 
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(opts);
     result_t hr;
 
     hr = CheckConfig(opts, s_keys);
@@ -594,13 +594,13 @@ result_t ECKey::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
     ac->m_ctx.resize(2);
 
     obj_ptr<PKey_base> to;
-    hr = GetConfigValue(isolate->m_isolate, opts, "to", to, true);
+    hr = GetConfigValue(isolate, opts, "to", to, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     ac->m_ctx[0] = to;
 
     exlib::string fmt = "der";
-    hr = GetConfigValue(isolate->m_isolate, opts, "format", fmt, true);
+    hr = GetConfigValue(isolate, opts, "format", fmt, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     if (fmt != "der" && fmt != "raw")

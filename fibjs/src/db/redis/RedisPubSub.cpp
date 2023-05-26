@@ -109,7 +109,7 @@ result_t Redis::_map(v8::Local<v8::Object>& map, int32_t cmd)
         JSValue channel = channels->Get(context, i);
         exlib::string s;
 
-        GetArgumentValue(channel, s);
+        GetArgumentValue(isolate, channel, s);
         s = s_cmd[cmd][1] + s;
 
         JSValue value = map->Get(context, channel);
@@ -185,7 +185,7 @@ result_t Redis::unsub(v8::Local<v8::Array>& channels, int32_t cmd)
         JSValue key = channels->Get(context, i);
         exlib::string s;
 
-        GetArgumentValue(key, s);
+        GetArgumentValue(isolate, key, s);
         s = s_cmd[cmd][1] + s;
 
         v8::Local<v8::Object> r;

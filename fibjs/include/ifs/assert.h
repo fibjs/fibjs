@@ -203,7 +203,7 @@ inline void assert_base::s__function(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
     OPT_ARG(exlib::string, 1, "");
 
     hr = _function(v0, v1);
@@ -217,7 +217,7 @@ inline void assert_base::s_static_ok(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
     OPT_ARG(exlib::string, 1, "");
 
     hr = ok(v0, v1);
@@ -231,7 +231,7 @@ inline void assert_base::s_static_notOk(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(2, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
     OPT_ARG(exlib::string, 1, "");
 
     hr = notOk(v0, v1);
@@ -245,8 +245,8 @@ inline void assert_base::s_static_equal(const v8::FunctionCallbackInfo<v8::Value
 
     METHOD_OVER(3, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
     OPT_ARG(exlib::string, 2, "");
 
     hr = equal(v0, v1, v2);
@@ -260,8 +260,8 @@ inline void assert_base::s_static_notEqual(const v8::FunctionCallbackInfo<v8::Va
 
     METHOD_OVER(3, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
     OPT_ARG(exlib::string, 2, "");
 
     hr = notEqual(v0, v1, v2);
@@ -275,8 +275,8 @@ inline void assert_base::s_static_strictEqual(const v8::FunctionCallbackInfo<v8:
 
     METHOD_OVER(3, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
     OPT_ARG(exlib::string, 2, "");
 
     hr = strictEqual(v0, v1, v2);
@@ -290,8 +290,8 @@ inline void assert_base::s_static_notStrictEqual(const v8::FunctionCallbackInfo<
 
     METHOD_OVER(3, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
     OPT_ARG(exlib::string, 2, "");
 
     hr = notStrictEqual(v0, v1, v2);
@@ -305,8 +305,8 @@ inline void assert_base::s_static_deepEqual(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(3, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
     OPT_ARG(exlib::string, 2, "");
 
     hr = deepEqual(v0, v1, v2);
@@ -320,8 +320,8 @@ inline void assert_base::s_static_notDeepEqual(const v8::FunctionCallbackInfo<v8
 
     METHOD_OVER(3, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
-    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate));
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
+    OPT_ARG(v8::Local<v8::Value>, 1, v8::Undefined(isolate->m_isolate));
     OPT_ARG(exlib::string, 2, "");
 
     hr = notDeepEqual(v0, v1, v2);
@@ -917,7 +917,7 @@ inline void assert_base::s_static_ifError(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
 
     hr = ifError(v0);
 

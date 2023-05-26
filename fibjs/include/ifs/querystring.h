@@ -107,7 +107,7 @@ inline void querystring_base::s_static_parse(const v8::FunctionCallbackInfo<v8::
     ARG(exlib::string, 0);
     OPT_ARG(exlib::string, 1, "&");
     OPT_ARG(exlib::string, 2, "=");
-    OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate));
 
     hr = parse(v0, v1, v2, v3, vr);
 
@@ -125,7 +125,7 @@ inline void querystring_base::s_static_stringify(const v8::FunctionCallbackInfo<
     ARG(v8::Local<v8::Object>, 0);
     OPT_ARG(exlib::string, 1, "&");
     OPT_ARG(exlib::string, 2, "=");
-    OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate));
 
     hr = stringify(v0, v1, v2, v3, vr);
 

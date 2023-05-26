@@ -358,7 +358,7 @@ inline void process_base::s_static_hrtime(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate));
+    OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate->m_isolate));
 
     hr = hrtime(v0, vr);
 
@@ -429,7 +429,7 @@ inline void process_base::s_static_cpuUsage(const v8::FunctionCallbackInfo<v8::V
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
 
     hr = cpuUsage(v0, vr);
 

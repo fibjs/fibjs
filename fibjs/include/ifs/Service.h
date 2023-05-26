@@ -118,7 +118,7 @@ void Service_base::__new(const T& args)
 
     ARG(exlib::string, 0);
     ARG(v8::Local<v8::Function>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
 
     hr = _new(v0, v1, v2, vr, args.This());
 

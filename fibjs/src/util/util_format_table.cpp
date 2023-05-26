@@ -124,7 +124,7 @@ inline bool isSimpleValue(v8::Local<v8::Value> v)
 
 inline void GetPropertyNames(v8::Local<v8::Object> o, QuickArray<exlib::string>& props)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(o);
     v8::Local<v8::Context> _context = isolate->context();
 
     obj_ptr<Buffer_base> buf = Buffer_base::getInstance(o);
@@ -144,7 +144,7 @@ inline void GetPropertyNames(v8::Local<v8::Object> o, QuickArray<exlib::string>&
                 JSValue k = keys->Get(_context, i);
                 exlib::string key;
 
-                GetArgumentValue(isolate->m_isolate, k, key);
+                GetArgumentValue(isolate, k, key);
                 props.append(key);
             }
         }
@@ -375,7 +375,7 @@ exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(obj);
 
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(o);
     v8::Local<v8::Context> _context = isolate->context();
 
     bool b_has_prop = false;
@@ -396,7 +396,7 @@ exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields
             JSValue k = fields->Get(_context, i);
             exlib::string row_key;
 
-            GetArgumentValue(isolate->m_isolate, k, row_key);
+            GetArgumentValue(isolate, k, row_key);
 
             auto it = prop_cols.find(row_key);
             if (it == prop_cols.end()) {
@@ -417,7 +417,7 @@ exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields
                 value_cols.resize(i);
                 if (!encode_string && (v->IsString() || v->IsStringObject())) {
                     exlib::string val;
-                    GetArgumentValue(isolate->m_isolate, v, val);
+                    GetArgumentValue(isolate, v, val);
                     value_cols.append(val);
                 } else
                     value_cols.append(json_format(v, color, 2));
@@ -444,7 +444,7 @@ exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields
                 exlib::string row_value;
                 if (isSimpleValue(rv)) {
                     if (!encode_string && (rv->IsString() || rv->IsStringObject()))
-                        GetArgumentValue(isolate->m_isolate, rv, row_value);
+                        GetArgumentValue(isolate, rv, row_value);
                     else
                         row_value = json_format(rv, color, 2);
                 } else
@@ -539,30 +539,30 @@ result_t util_base::inspect(v8::Local<v8::Value> obj, v8::Local<v8::Object> opti
 
     bool table = false;
     if (!options.IsEmpty())
-        GetConfigValue(isolate->m_isolate, options, "table", table, true);
+        GetConfigValue(isolate, options, "table", table, true);
 
     if (table) {
         bool colors = false;
         if (!options.IsEmpty())
-            GetConfigValue(isolate->m_isolate, options, "colors", colors, true);
+            GetConfigValue(isolate, options, "colors", colors, true);
 
         v8::Local<v8::Array> fields;
         if (!options.IsEmpty())
-            GetConfigValue(isolate->m_isolate, options, "fields", fields, true);
+            GetConfigValue(isolate, options, "fields", fields, true);
 
         bool encode_string = true;
         if (!options.IsEmpty())
-            GetConfigValue(isolate->m_isolate, options, "encode_string", encode_string, true);
+            GetConfigValue(isolate, options, "encode_string", encode_string, true);
 
         retVal = table_format(obj, fields, colors, encode_string);
     } else {
         bool colors = true;
         if (!options.IsEmpty())
-            GetConfigValue(isolate->m_isolate, options, "colors", colors, true);
+            GetConfigValue(isolate, options, "colors", colors, true);
 
         int32_t depth = 2;
         if (!options.IsEmpty())
-            GetConfigValue(isolate->m_isolate, options, "depth", depth, true);
+            GetConfigValue(isolate, options, "depth", depth, true);
 
         retVal = json_format(obj, colors, depth);
     }

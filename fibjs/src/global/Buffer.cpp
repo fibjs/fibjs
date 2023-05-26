@@ -100,6 +100,7 @@ result_t Buffer_base::from(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& ret
 
     int32_t sz = (int32_t)buf->length();
     v8::Local<v8::Context> context = datas->GetCreationContextChecked();
+    Isolate* isolate = Isolate::current(context);
 
     if (sz) {
         int32_t i;
@@ -110,7 +111,7 @@ result_t Buffer_base::from(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& ret
             JSValue v = datas->Get(context, i);
             int32_t num;
 
-            hr = GetArgumentValue(v, num);
+            hr = GetArgumentValue(isolate, v, num);
             if (hr < 0)
                 return CHECK_ERROR(hr);
 
@@ -183,7 +184,7 @@ result_t Buffer_base::from(exlib::string str, exlib::string codec, obj_ptr<Buffe
 
 result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, obj_ptr<Buffer_base>& retVal)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(buflist);
     v8::Local<v8::Context> context = isolate->context();
 
     std::vector<v8::Local<v8::Uint8Array>> bufs;

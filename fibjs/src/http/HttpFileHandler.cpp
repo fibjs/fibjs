@@ -1163,7 +1163,7 @@ result_t HttpFileHandler::set_mimes(v8::Local<v8::Object> mimes)
         v = mimes->Get(context, ks);
         if (v.IsEmpty())
             return CALL_E_JAVASCRIPT;
-        hr = GetArgumentValue(v, s);
+        hr = GetArgumentValue(isolate, v, s);
         if (hr < 0)
             return CHECK_ERROR(hr);
 

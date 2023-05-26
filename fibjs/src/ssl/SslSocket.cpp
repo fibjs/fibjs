@@ -46,17 +46,17 @@ result_t SslSocket_base::_new(v8::Local<v8::Array> certs,
         obj_ptr<X509Cert_base> crt;
         obj_ptr<PKey_base> key;
 
-        hr = GetArgumentValue(JSValue(certs->Get(context, i)), o, true);
+        hr = GetArgumentValue(isolate, JSValue(certs->Get(context, i)), o, true);
         if (hr < 0)
             return hr;
 
-        GetConfigValue(isolate->m_isolate, o, "name", name);
+        GetConfigValue(isolate, o, "name", name);
 
-        hr = GetConfigValue(isolate->m_isolate, o, "crt", crt);
+        hr = GetConfigValue(isolate, o, "crt", crt);
         if (hr < 0)
             return hr;
 
-        hr = GetConfigValue(isolate->m_isolate, o, "key", key);
+        hr = GetConfigValue(isolate, o, "key", key);
         if (hr < 0)
             return hr;
 

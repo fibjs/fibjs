@@ -134,12 +134,12 @@ result_t fs_base::readFile(exlib::string fname, v8::Local<v8::Object> options,
     Variant& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = Isolate::current(options);
 
         ac->m_ctx.resize(1);
 
         exlib::string encoding;
-        GetConfigValue(isolate->m_isolate, options, "encoding", encoding);
+        GetConfigValue(isolate, options, "encoding", encoding);
         ac->m_ctx[0] = encoding;
 
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -550,16 +550,16 @@ result_t fs_base::mkdir(exlib::string path, v8::Local<v8::Object> opt, AsyncEven
     };
 
     if (ac->isSync()) {
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = ac->isolate();
 
         ac->m_ctx.resize(2);
 
         bool recursive = false;
-        GetConfigValue(isolate->m_isolate, opt, "recursive", recursive);
+        GetConfigValue(isolate, opt, "recursive", recursive);
         ac->m_ctx[0] = recursive;
 
         int32_t mode = 0777;
-        GetConfigValue(isolate->m_isolate, opt, "mode", mode);
+        GetConfigValue(isolate, opt, "mode", mode);
         ac->m_ctx[1] = mode;
 
         return CHECK_ERROR(CALL_E_NOSYNC);

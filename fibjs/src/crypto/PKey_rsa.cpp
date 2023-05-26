@@ -126,7 +126,7 @@ result_t PKey_rsa::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
         return hr;
 
     exlib::string fmt = "raw";
-    hr = GetConfigValue(isolate->m_isolate, opts, "format", fmt, true);
+    hr = GetConfigValue(isolate, opts, "format", fmt, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     if (fmt != "raw")
@@ -135,7 +135,7 @@ result_t PKey_rsa::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
     ac->m_ctx.resize(1);
 
     int32_t alg = 0;
-    hr = GetConfigValue(isolate->m_isolate, opts, "alg", alg, true);
+    hr = GetConfigValue(isolate, opts, "alg", alg, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     ac->m_ctx[0] = alg;

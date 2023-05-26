@@ -77,7 +77,7 @@ void TextDecoder_base::__new(const T& args)
     METHOD_OVER(2, 0);
 
     OPT_ARG(exlib::string, 0, "utf8");
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     hr = _new(v0, v1, vr, args.This());
 
@@ -94,7 +94,7 @@ inline void TextDecoder_base::s_decode(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_OVER(2, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     hr = pInst->decode(v0, v1, vr);
 

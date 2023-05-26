@@ -52,12 +52,12 @@ result_t fs_base::watch(exlib::string fname, v8::Local<v8::Object> options, v8::
 
     Isolate* isolate = Isolate::current();
     bool persistent = true;
-    hr = GetConfigValue(isolate->m_isolate, options, "persistent", persistent, true);
+    hr = GetConfigValue(isolate, options, "persistent", persistent, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
     bool recursive = false;
-    hr = GetConfigValue(isolate->m_isolate, options, "recursive", recursive, true);
+    hr = GetConfigValue(isolate, options, "recursive", recursive, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
@@ -86,17 +86,17 @@ result_t fs_base::watchFile(exlib::string fname, v8::Local<v8::Object> options, 
     if (pSW == NULL) {
         Isolate* isolate = Isolate::current();
         bool persistent = true;
-        hr = GetConfigValue(isolate->m_isolate, options, "persistent", persistent, true);
+        hr = GetConfigValue(isolate, options, "persistent", persistent, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
 
         bool useBigInt = false;
-        hr = GetConfigValue(isolate->m_isolate, options, "bigint", useBigInt, true);
+        hr = GetConfigValue(isolate, options, "bigint", useBigInt, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
 
         int32_t interval = DEFAULT_STATS_WATCH_INTERVAL;
-        hr = GetConfigValue(isolate->m_isolate, options, "interval", interval, true);
+        hr = GetConfigValue(isolate, options, "interval", interval, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
 

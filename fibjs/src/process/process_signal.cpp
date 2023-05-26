@@ -26,7 +26,7 @@ static exlib::atomic s_check_callback;
 static void _InterruptCallback(v8::Isolate* v8_isolate, void* data)
 {
     s_check_callback = 0;
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(v8_isolate);
     JSTrigger t(isolate->m_isolate, process_base::class_info().getModule(isolate));
     bool r = false;
 

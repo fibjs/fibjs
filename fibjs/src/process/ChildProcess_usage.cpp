@@ -28,7 +28,7 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
     if (rusage_status != 0)
         return CHECK_ERROR(LastError());
 
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
 
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
@@ -68,7 +68,7 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
 
     long herz = sysconf(_SC_CLK_TCK);
 
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
 
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
@@ -113,7 +113,7 @@ result_t ChildProcess::usage(v8::Local<v8::Object>& retVal)
     double stime_ticks = MICROS_PER_SEC * (kernelSystemTime.wHour * 3600 + kernelSystemTime.wMinute * 60 + kernelSystemTime.wSecond)
         + kernelSystemTime.wMilliseconds * 1000;
 
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
 
     v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);

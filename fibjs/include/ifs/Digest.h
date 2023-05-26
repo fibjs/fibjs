@@ -122,7 +122,7 @@ inline void Digest_base::s_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
     ASYNC_METHOD_OVER(2, 1);
 
     ARG(obj_ptr<PKey_base>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = pInst->acb_sign(v0, v1, cb, args);
@@ -143,7 +143,7 @@ inline void Digest_base::s_verify(const v8::FunctionCallbackInfo<v8::Value>& arg
 
     ARG(obj_ptr<PKey_base>, 0);
     ARG(obj_ptr<Buffer_base>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = pInst->acb_verify(v0, v1, v2, cb, args);

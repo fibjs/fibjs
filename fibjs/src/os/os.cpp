@@ -304,7 +304,7 @@ result_t os_base::userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>&
     exlib::string username;
     exlib::string shell;
 
-    GetConfigValue(isolate->m_isolate, options, "encoding", encoding, true);
+    GetConfigValue(isolate, options, "encoding", encoding, true);
 
     int32_t ret = uv_os_get_passwd(&pwd);
     if (ret < 0)

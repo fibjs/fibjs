@@ -20,24 +20,24 @@ void _resolve(const v8::FunctionCallbackInfo<v8::Value>& args)
         return;
     }
 
-    v8::Isolate* isolate = args.GetIsolate();
-    V8_SCOPE(isolate);
+    Isolate* isolate = Isolate::current(args);
+    V8_SCOPE(isolate->m_isolate);
 
     exlib::string id;
-    result_t hr = GetArgumentValue(args[0], id);
+    result_t hr = GetArgumentValue(isolate, args[0], id);
     if (hr < 0) {
         ThrowResult(hr);
         return;
     }
 
-    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Context> context = isolate->context();
     v8::Local<v8::Object> _mod = args.Data()->ToObject(context).FromMaybe(v8::Local<v8::Object>());
-    JSValue path = _mod->Get(context, NewString(isolate, "_id"));
+    JSValue path = _mod->Get(context, isolate->NewString("_id"));
     obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
-        JSValue(_mod->Get(context, NewString(isolate, "_sbox"))));
+        JSValue(_mod->Get(context, isolate->NewString("_sbox"))));
 
     exlib::string strPath;
-    path_base::dirname(ToString(isolate, path), strPath);
+    path_base::dirname(isolate->toString(path), strPath);
 
     exlib::string v;
     hr = sbox->resolve(id, strPath, v);
@@ -67,24 +67,24 @@ void _require(const v8::FunctionCallbackInfo<v8::Value>& args)
         return;
     }
 
-    v8::Isolate* isolate = args.GetIsolate();
+    Isolate* isolate = Isolate::current(args);
     V8_SCOPE(isolate);
 
     exlib::string id;
-    result_t hr = GetArgumentValue(args[0], id);
+    result_t hr = GetArgumentValue(isolate, args[0], id);
     if (hr < 0) {
         ThrowResult(hr);
         return;
     }
 
-    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Context> context = isolate->context();
     v8::Local<v8::Object> _mod = args.Data()->ToObject(context).FromMaybe(v8::Local<v8::Object>());
-    JSValue path = _mod->Get(context, NewString(isolate, "_id"));
+    JSValue path = _mod->Get(context, isolate->NewString("_id"));
     obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
-        JSValue(_mod->Get(context, NewString(isolate, "_sbox"))));
+        JSValue(_mod->Get(context, isolate->NewString("_sbox"))));
 
     exlib::string strPath;
-    path_base::dirname(ToString(isolate, path), strPath);
+    path_base::dirname(isolate->toString(path), strPath);
 
     v8::Local<v8::Value> v;
     hr = sbox->run_module(id, strPath, v);
@@ -102,7 +102,7 @@ void _require(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Isolate* isolate = args.GetIsolate();
+    Isolate* isolate = Isolate::current(args);
     V8_SCOPE(isolate);
     int32_t argc = args.Length();
 
@@ -117,23 +117,23 @@ void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 
     exlib::string id;
-    result_t hr = GetArgumentValue(args[0], id);
+    result_t hr = GetArgumentValue(isolate, args[0], id);
     if (hr < 0) {
         ThrowResult(hr);
         return;
     }
 
-    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Context> context = isolate->context();
     v8::Local<v8::Object> _mod = args.Data()->ToObject(context).FromMaybe(v8::Local<v8::Object>());
     obj_ptr<SandBox> sbox = (SandBox*)SandBox_base::getInstance(
-        JSValue(_mod->Get(context, NewString(isolate, "_sbox"))));
+        JSValue(_mod->Get(context, isolate->NewString("_sbox"))));
 
     if (SandBox::is_relative(id)) {
-        JSValue path = _mod->Get(context, NewString(isolate, "_id"));
+        JSValue path = _mod->Get(context, isolate->NewString("_id"));
 
         exlib::string strPath;
 
-        path_base::dirname(ToString(isolate, path), strPath);
+        path_base::dirname(isolate->toString(path), strPath);
         if (strPath.length()) {
             resolvePath(strPath, id);
             id = strPath;

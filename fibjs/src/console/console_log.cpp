@@ -175,12 +175,12 @@ result_t console_base::add(v8::Local<v8::Array> cfg)
         JSValue v = cfg->Get(context, i);
         exlib::string s;
 
-        hr = GetArgumentValue(v, s, true);
+        hr = GetArgumentValue(isolate, v, s, true);
         if (hr != CALL_E_TYPEMISMATCH)
             hr = add(s);
         else {
             v8::Local<v8::Object> o;
-            hr = GetArgumentValue(v, o, true);
+            hr = GetArgumentValue(isolate, v, o, true);
             if (hr != CALL_E_TYPEMISMATCH)
                 hr = add(o);
             else

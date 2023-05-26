@@ -100,24 +100,25 @@ result_t path_win32_base::toNamespacedPath(v8::Local<v8::Value> path,
         return 0;
     }
 
+    Isolate* isolate = Isolate::current();
+
     exlib::string str;
-    GetArgumentValue(path, str);
+    GetArgumentValue(isolate, path, str);
 
     if (str.length() >= 3) {
-        Isolate* isolate = Isolate::current();
         result_t hr = _resolve_win32(str);
         if (hr < 0)
             return hr;
         if (str[0] == '\\' && str[1] == '\\') {
             if (str[2] != '?' && str[2] != '.') {
                 str = "\\\\?\\UNC" + str.substr(1);
-                retVal = GetReturnValue(isolate->m_isolate, str);
+                retVal = GetReturnValue(isolate, str);
                 return 0;
             }
         } else if (qisascii(str[0])) {
             if (str[1] == ':' && str[2] == '\\') {
                 str = "\\\\?\\" + str.substr(0);
-                retVal = GetReturnValue(isolate->m_isolate, str);
+                retVal = GetReturnValue(isolate, str);
                 return 0;
             }
         }

@@ -288,7 +288,7 @@ inline void util_base::s_static_inspect(const v8::FunctionCallbackInfo<v8::Value
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     hr = inspect(v0, v1, vr);
 
@@ -1019,7 +1019,7 @@ inline void util_base::s_static_each(const v8::FunctionCallbackInfo<v8::Value>& 
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Function>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate));
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = each(v0, v1, v2, vr);
 
@@ -1036,7 +1036,7 @@ inline void util_base::s_static_map(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Function>, 1);
-    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate));
+    OPT_ARG(v8::Local<v8::Value>, 2, v8::Undefined(isolate->m_isolate));
 
     hr = map(v0, v1, v2, vr);
 
@@ -1054,7 +1054,7 @@ inline void util_base::s_static_reduce(const v8::FunctionCallbackInfo<v8::Value>
     ARG(v8::Local<v8::Value>, 0);
     ARG(v8::Local<v8::Function>, 1);
     ARG(v8::Local<v8::Value>, 2);
-    OPT_ARG(v8::Local<v8::Value>, 3, v8::Undefined(isolate));
+    OPT_ARG(v8::Local<v8::Value>, 3, v8::Undefined(isolate->m_isolate));
 
     hr = reduce(v0, v1, v2, v3, vr);
 

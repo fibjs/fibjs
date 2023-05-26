@@ -87,7 +87,7 @@ void Worker_base::__new(const T& args)
     METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     hr = _new(v0, v1, vr, args.This());
 

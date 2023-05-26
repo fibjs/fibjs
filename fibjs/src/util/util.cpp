@@ -289,7 +289,7 @@ result_t util_base::omit(v8::Local<v8::Value> v, OptArgs keys,
 
             for (j = 0; j < len; j++) {
                 exlib::string k;
-                hr = GetArgumentValue(JSValue(arr->Get(context, j)), k);
+                hr = GetArgumentValue(isolate, JSValue(arr->Get(context, j)), k);
                 if (hr < 0)
                     return CHECK_ERROR(hr);
 
@@ -297,7 +297,7 @@ result_t util_base::omit(v8::Local<v8::Value> v, OptArgs keys,
             }
         } else {
             exlib::string k;
-            hr = GetArgumentValue(o, k);
+            hr = GetArgumentValue(isolate, o, k);
             if (hr < 0)
                 return CHECK_ERROR(hr);
 

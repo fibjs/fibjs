@@ -278,7 +278,7 @@ result_t X509Req::sign(exlib::string issuer, PKey_base* key,
 
         mbedtls_x509write_crt_init(&m_crt);
 
-        hr = GetConfigValue(isolate->m_isolate, opts, "hash", hash);
+        hr = GetConfigValue(isolate, opts, "hash", hash);
         if (hr == CALL_E_PARAMNOTOPTIONAL)
             hash = m_csr.sig_md;
         else if (hr < 0)
@@ -324,14 +324,14 @@ result_t X509Req::sign(exlib::string issuer, PKey_base* key,
         date_t d1, d2;
         exlib::string s1, s2;
 
-        hr = GetConfigValue(isolate->m_isolate, opts, "notBefore", d1);
+        hr = GetConfigValue(isolate, opts, "notBefore", d1);
         if (hr == CALL_E_PARAMNOTOPTIONAL)
             d1.now();
         else if (hr < 0)
             goto exit;
         d1.toX509String(s1);
 
-        hr = GetConfigValue(isolate->m_isolate, opts, "notAfter", d2);
+        hr = GetConfigValue(isolate, opts, "notAfter", d2);
         if (hr == CALL_E_PARAMNOTOPTIONAL) {
             d2 = d1;
             d2.add(1, date_t::_YEAR);
@@ -346,12 +346,12 @@ result_t X509Req::sign(exlib::string issuer, PKey_base* key,
         }
 
         bool is_ca = false;
-        hr = GetConfigValue(isolate->m_isolate, opts, "ca", is_ca);
+        hr = GetConfigValue(isolate, opts, "ca", is_ca);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             goto exit;
 
         int32_t pathlen = -1;
-        hr = GetConfigValue(isolate->m_isolate, opts, "pathlen", pathlen);
+        hr = GetConfigValue(isolate, opts, "pathlen", pathlen);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             goto exit;
 

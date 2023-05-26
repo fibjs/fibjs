@@ -76,12 +76,12 @@ Worker::Worker(exlib::string path, v8::Local<v8::Object> opts)
     m_isolate = new Isolate(path);
 
     v = true;
-    hr = GetConfigValue(holder()->m_isolate, opts, "file_system", v, false);
+    hr = GetConfigValue(holder(), opts, "file_system", v, false);
     if (hr >= 0)
         m_isolate->m_enable_FileSystem = v;
 
     v = false;
-    hr = GetConfigValue(holder()->m_isolate, opts, "safe_buffer", v, false);
+    hr = GetConfigValue(holder(), opts, "safe_buffer", v, false);
     if (hr >= 0)
         m_isolate->m_safe_buffer = v;
 }

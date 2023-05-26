@@ -70,7 +70,8 @@ result_t HttpRepeater::load(v8::Local<v8::Array> urls)
     std::vector<obj_ptr<Url>> _urls;
     result_t hr;
     int32_t len = urls->Length();
-    v8::Local<v8::Context> context = urls->GetCreationContextChecked();
+    Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
 
     if (len == 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -79,7 +80,7 @@ result_t HttpRepeater::load(v8::Local<v8::Array> urls)
         JSValue v = urls->Get(context, i);
         exlib::string url;
 
-        hr = GetArgumentValue(v, url, true);
+        hr = GetArgumentValue(isolate, v, url, true);
         if (hr < 0)
             return hr;
 

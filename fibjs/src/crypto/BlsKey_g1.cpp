@@ -82,7 +82,7 @@ result_t BlsKey_g2::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
         return hr;
 
     exlib::string fmt = "raw";
-    hr = GetConfigValue(isolate->m_isolate, opts, "format", fmt, true);
+    hr = GetConfigValue(isolate, opts, "format", fmt, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     if (fmt != "raw")

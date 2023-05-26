@@ -38,7 +38,7 @@ result_t json_base::encode(v8::Local<v8::Value> data, exlib::string& retVal)
     if (str.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    return GetArgumentValue(isolate->m_isolate, str, retVal);
+    return GetArgumentValue(isolate, str, retVal);
 }
 
 inline bool IsInRange(int32_t value, int32_t lower_limit, int32_t higher_limit)

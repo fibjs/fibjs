@@ -493,16 +493,16 @@ inline result_t _extname_win32(exlib::string path, exlib::string& retVal)
 inline result_t _universal_format(exlib::string sep, v8::Local<v8::Object> pathObject, exlib::string& retVal)
 {
     result_t hr;
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(pathObject);
 
     exlib::string dir;
-    hr = GetConfigValue(isolate->m_isolate, pathObject, "dir", dir, true);
+    hr = GetConfigValue(isolate, pathObject, "dir", dir, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
     exlib::string root;
 
-    hr = GetConfigValue(isolate->m_isolate, pathObject, "root", root, true);
+    hr = GetConfigValue(isolate, pathObject, "root", root, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
@@ -513,19 +513,19 @@ inline result_t _universal_format(exlib::string sep, v8::Local<v8::Object> pathO
     }
 
     exlib::string base;
-    hr = GetConfigValue(isolate->m_isolate, pathObject, "base", base, true);
+    hr = GetConfigValue(isolate, pathObject, "base", base, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
     if (!base.length()) {
         exlib::string tmp;
-        hr = GetConfigValue(isolate->m_isolate, pathObject, "name", tmp, true);
+        hr = GetConfigValue(isolate, pathObject, "name", tmp, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
 
         base += tmp;
 
-        hr = GetConfigValue(isolate->m_isolate, pathObject, "ext", tmp, true);
+        hr = GetConfigValue(isolate, pathObject, "ext", tmp, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
 
@@ -794,7 +794,7 @@ inline result_t _join(OptArgs ps, exlib::string& retVal)
 
     for (i = 0; i < argc; i++) {
         exlib::string s;
-        GetArgumentValue(isolate->m_isolate, ps[i], s);
+        GetArgumentValue(isolate, ps[i], s);
         p.joinPosix(s);
     }
 
@@ -810,7 +810,7 @@ inline result_t _join_win32(OptArgs ps, exlib::string& retVal)
 
     for (i = 0; i < argc; i++) {
         exlib::string s;
-        GetArgumentValue(isolate->m_isolate, ps[i], s);
+        GetArgumentValue(isolate, ps[i], s);
         p.joinWin32(s);
     }
 
@@ -830,7 +830,7 @@ inline result_t _resolve(OptArgs ps, exlib::string& retVal)
 
     for (i = 0; i < argc; i++) {
         exlib::string s;
-        GetArgumentValue(isolate->m_isolate, ps[i], s);
+        GetArgumentValue(isolate, ps[i], s);
         p.resolvePosix(s);
     }
 
@@ -862,7 +862,7 @@ inline result_t _resolve_win32(OptArgs ps, exlib::string& retVal)
 
     for (i = 0; i < argc; i++) {
         exlib::string s;
-        GetArgumentValue(isolate->m_isolate, ps[i], s);
+        GetArgumentValue(isolate, ps[i], s);
         p.resolveWin32(s);
     }
 

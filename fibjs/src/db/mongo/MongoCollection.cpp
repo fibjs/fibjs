@@ -325,11 +325,11 @@ result_t MongoCollection::getIndexes(v8::Local<v8::Array>& retVal)
     if (hr < 0)
         return hr;
 
-    hr = GetConfigValue(isolate->m_isolate, r, "cursor", cursor, true);
+    hr = GetConfigValue(isolate, r, "cursor", cursor, true);
     if (hr < 0)
         return hr;
 
-    return GetConfigValue(isolate->m_isolate, cursor, "firstBatch", retVal, true);
+    return GetConfigValue(isolate, cursor, "firstBatch", retVal, true);
 }
 
 result_t MongoCollection::getCollection(exlib::string name,

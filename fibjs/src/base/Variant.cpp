@@ -49,7 +49,7 @@ Variant& Variant::operator=(v8::Local<v8::Value> v)
         m_Val.longVal = mv->Int64Value(&less);
     } else if (v->IsString() || v->IsStringObject()) {
         exlib::string str;
-        GetArgumentValue(Isolate::current()->m_isolate, v, str);
+        GetArgumentValue(Isolate::current(), v, str);
         return operator=(str);
     } else {
         object_base* obj = object_base::getInstance(v);
@@ -186,7 +186,7 @@ void Variant::parseInt(const char* str, int32_t len)
         next(len, pos);
 
     digit = getInt(str, len, pos);
-    
+
     if (bNeg)
         digit = -digit;
 
@@ -364,8 +364,9 @@ result_t Variant::unbind()
         v8::Local<v8::Array> a;
         int32_t len, i;
         UNBIND_DATA* data;
+        Isolate* isolate = Isolate::current();
 
-        if (GetArgumentValue(v, a, true) >= 0) {
+        if (GetArgumentValue(isolate, v, a, true) >= 0) {
             clear();
             set_type(VT_UNBOUND_ARRAY);
 
@@ -379,7 +380,7 @@ result_t Variant::unbind()
                 for (i = 0; i < len; i++)
                     data[i].v = JSValue(a->Get(context, i));
             }
-        } else if (GetArgumentValue(v, o, true) >= 0) {
+        } else if (GetArgumentValue(isolate, v, o, true) >= 0) {
             clear();
             set_type(VT_UNBOUND_OBJECT);
 
@@ -389,12 +390,10 @@ result_t Variant::unbind()
 
             m_Val.buffer.cnt = len;
             if (len > 0) {
-                Isolate* isolate = Isolate::current();
-
                 m_Val.buffer.data = data = new UNBIND_DATA[len];
                 for (i = 0; i < len; i++) {
                     JSValue k = ks->Get(context, i);
-                    GetArgumentValue(isolate->m_isolate, k, data[i].k);
+                    GetArgumentValue(isolate, k, data[i].k);
                     data[i].v = JSValue(o->Get(context, k));
                 }
             }

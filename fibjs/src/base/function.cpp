@@ -42,7 +42,7 @@ v8::Local<v8::Value> JSFunction::Call(v8::Local<v8::Context> context, v8::Local<
         return result;
 
     if (async || (*this)->IsAsyncFunction()) {
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = Isolate::current(context);
 
         v8::Local<v8::Promise> _promise;
         v8::Local<v8::Function> _then;

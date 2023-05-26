@@ -80,7 +80,7 @@ public:
     {
         result_t hr;
         exlib::string str("SELECT ");
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = Isolate::current(opts);
         v8::Local<v8::Value> v;
         v8::Local<v8::Array> a;
         exlib::string table;
@@ -89,7 +89,7 @@ public:
         if (hr < 0)
             return hr;
 
-        hr = GetConfigValue(isolate->m_isolate, opts, "fields", v);
+        hr = GetConfigValue(isolate, opts, "fields", v);
         if (hr == CALL_E_PARAMNOTOPTIONAL)
             str.append("*");
         else if (v->IsString() || v->IsStringObject()) {
@@ -106,7 +106,7 @@ public:
 
         str.append(" FROM " + table);
 
-        hr = GetConfigValue(isolate->m_isolate, opts, "where", v);
+        hr = GetConfigValue(isolate, opts, "where", v);
         if (hr != CALL_E_PARAMNOTOPTIONAL) {
             exlib::string _where;
             bool retAnd;
@@ -120,7 +120,7 @@ public:
         }
 
         v8::Local<v8::Array> orders;
-        hr = GetConfigValue(isolate->m_isolate, opts, "order", orders, true);
+        hr = GetConfigValue(isolate, opts, "order", orders, true);
         if (hr != CALL_E_PARAMNOTOPTIONAL) {
             exlib::string order;
 
@@ -138,7 +138,7 @@ public:
         }
 
         int64_t limit;
-        hr = GetConfigValue(isolate->m_isolate, opts, "limit", limit);
+        hr = GetConfigValue(isolate, opts, "limit", limit);
         if (hr != CALL_E_PARAMNOTOPTIONAL) {
             if (hr < 0)
                 return hr;
@@ -147,7 +147,7 @@ public:
         }
 
         int64_t skip;
-        hr = GetConfigValue(isolate->m_isolate, opts, "skip", skip);
+        hr = GetConfigValue(isolate, opts, "skip", skip);
         if (hr != CALL_E_PARAMNOTOPTIONAL) {
             if (hr < 0)
                 return hr;
@@ -163,7 +163,7 @@ public:
     {
         result_t hr;
         exlib::string str;
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = Isolate::current(opts);
         v8::Local<v8::Value> v;
         exlib::string table;
 
@@ -173,7 +173,7 @@ public:
 
         str.append("SELECT COUNT(*) FROM " + table);
 
-        hr = GetConfigValue(isolate->m_isolate, opts, "where", v);
+        hr = GetConfigValue(isolate, opts, "where", v);
         if (hr != CALL_E_PARAMNOTOPTIONAL) {
             exlib::string _where;
             bool retAnd;
@@ -187,7 +187,7 @@ public:
         }
 
         int64_t skip;
-        hr = GetConfigValue(isolate->m_isolate, opts, "skip", skip);
+        hr = GetConfigValue(isolate, opts, "skip", skip);
         if (hr != CALL_E_PARAMNOTOPTIONAL) {
             if (hr < 0)
                 return hr;
@@ -196,7 +196,7 @@ public:
         }
 
         int64_t limit;
-        hr = GetConfigValue(isolate->m_isolate, opts, "limit", limit);
+        hr = GetConfigValue(isolate, opts, "limit", limit);
         if (hr != CALL_E_PARAMNOTOPTIONAL) {
             if (hr < 0)
                 return hr;
@@ -212,7 +212,7 @@ public:
     {
         result_t hr;
         exlib::string str;
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = Isolate::current(opts);
         v8::Local<v8::Context> context = isolate->context();
         exlib::string table;
 
@@ -223,7 +223,7 @@ public:
         str.append("UPDATE " + table + " SET ");
 
         v8::Local<v8::Object> o;
-        hr = GetConfigValue(isolate->m_isolate, opts, "values", o, true);
+        hr = GetConfigValue(isolate, opts, "values", o, true);
         if (hr == CALL_E_PARAMNOTOPTIONAL)
             return CHECK_ERROR(Runtime::setError("db: No updated values specified."));
         if (hr < 0)
@@ -251,7 +251,7 @@ public:
         str.append(_values);
 
         v8::Local<v8::Value> v;
-        hr = GetConfigValue(isolate->m_isolate, opts, "where", v);
+        hr = GetConfigValue(isolate, opts, "where", v);
         if (hr != CALL_E_PARAMNOTOPTIONAL) {
             exlib::string _where;
             bool retAnd;
@@ -272,7 +272,7 @@ public:
     {
         result_t hr;
         exlib::string str;
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = Isolate::current(opts);
         v8::Local<v8::Context> context = isolate->context();
         exlib::string table;
 
@@ -283,7 +283,7 @@ public:
         str.append("INSERT INTO " + table + " (");
 
         v8::Local<v8::Object> o;
-        hr = GetConfigValue(isolate->m_isolate, opts, "values", o, true);
+        hr = GetConfigValue(isolate, opts, "values", o, true);
         if (hr == CALL_E_PARAMNOTOPTIONAL)
             return CHECK_ERROR(Runtime::setError("db: No updated values specified."));
         if (hr < 0)
@@ -324,7 +324,7 @@ public:
     {
         result_t hr;
         exlib::string str;
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = Isolate::current(opts);
         exlib::string table;
 
         hr = name(opts, "table", table);
@@ -334,7 +334,7 @@ public:
         str.append("DELETE FROM " + table);
 
         v8::Local<v8::Value> v;
-        hr = GetConfigValue(isolate->m_isolate, opts, "where", v);
+        hr = GetConfigValue(isolate, opts, "where", v);
         if (hr != CALL_E_PARAMNOTOPTIONAL) {
             exlib::string _where;
             bool retAnd;
@@ -355,7 +355,7 @@ public:
     {
         result_t hr;
         exlib::string str;
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = Isolate::current(opts);
         v8::Local<v8::Context> context = isolate->context();
         exlib::string table;
 
@@ -366,7 +366,7 @@ public:
         str.append("CREATE TABLE " + table + "(");
 
         v8::Local<v8::Object> o;
-        hr = GetConfigValue(isolate->m_isolate, opts, "fields", o, true);
+        hr = GetConfigValue(isolate, opts, "fields", o, true);
         if (hr == CALL_E_PARAMNOTOPTIONAL)
             return CHECK_ERROR(Runtime::setError("db: No table fields specified."));
         if (hr < 0)
@@ -384,13 +384,13 @@ public:
             exlib::string type;
             v8::Local<v8::Object> prop;
 
-            hr = GetArgumentValue(v, type, true);
+            hr = GetArgumentValue(isolate, v, type, true);
             if (hr < 0) {
                 if (!IsJSObject(v))
                     return CHECK_ERROR(Runtime::setError("db: No field type specified."));
                 prop = v8::Local<v8::Object>::Cast(v);
 
-                hr = GetConfigValue(isolate->m_isolate, prop, "type", type, true);
+                hr = GetConfigValue(isolate, prop, "type", type, true);
                 if (hr == CALL_E_PARAMNOTOPTIONAL)
                     return CHECK_ERROR(Runtime::setError("db: No field type specified."));
                 if (hr < 0)
@@ -404,7 +404,7 @@ public:
                 int32_t size = 0;
 
                 if (!prop.IsEmpty()) {
-                    hr = GetConfigValue(isolate->m_isolate, prop, "size", size, true);
+                    hr = GetConfigValue(isolate, prop, "size", size, true);
                     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
                         return hr;
                 }
@@ -422,7 +422,7 @@ public:
                 int32_t size = 8;
 
                 if (!prop.IsEmpty()) {
-                    hr = GetConfigValue(isolate->m_isolate, prop, "size", size, true);
+                    hr = GetConfigValue(isolate, prop, "size", size, true);
                     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
                         return hr;
                 }
@@ -437,7 +437,7 @@ public:
                 int32_t size = 4;
 
                 if (!prop.IsEmpty()) {
-                    hr = GetConfigValue(isolate->m_isolate, prop, "size", size, true);
+                    hr = GetConfigValue(isolate, prop, "size", size, true);
                     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
                         return hr;
                 }
@@ -454,7 +454,7 @@ public:
                 bool _time = false;
 
                 if (!prop.IsEmpty()) {
-                    hr = GetConfigValue(isolate->m_isolate, prop, "time", _time, true);
+                    hr = GetConfigValue(isolate, prop, "time", _time, true);
                     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
                         return hr;
                 }
@@ -464,7 +464,7 @@ public:
                 bool big = 0;
 
                 if (!prop.IsEmpty()) {
-                    hr = GetConfigValue(isolate->m_isolate, prop, "big", big, true);
+                    hr = GetConfigValue(isolate, prop, "big", big, true);
                     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
                         return hr;
                 }
@@ -475,7 +475,7 @@ public:
 
             if (!prop.IsEmpty()) {
                 bool required = false;
-                hr = GetConfigValue(isolate->m_isolate, prop, "required", required, true);
+                hr = GetConfigValue(isolate, prop, "required", required, true);
                 if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
                     return hr;
 
@@ -489,7 +489,7 @@ public:
                 }
 
                 bool unique = false;
-                hr = GetConfigValue(isolate->m_isolate, prop, "unique", unique, true);
+                hr = GetConfigValue(isolate, prop, "unique", unique, true);
                 if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
                     return hr;
 
@@ -497,7 +497,7 @@ public:
                     _fields.append(" UNIQUE");
 
                 bool key = false;
-                hr = GetConfigValue(isolate->m_isolate, prop, "key", key, true);
+                hr = GetConfigValue(isolate, prop, "key", key, true);
                 if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
                     return hr;
 
@@ -538,7 +538,7 @@ public:
     {
         result_t hr;
         exlib::string str;
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = Isolate::current(opts);
         exlib::string table, index;
 
         hr = name(opts, "table", table);
@@ -552,7 +552,7 @@ public:
         str.append("CREATE INDEX " + index + " ON " + table + "(");
 
         v8::Local<v8::Array> keys;
-        hr = GetConfigValue(isolate->m_isolate, opts, "keys", keys, true);
+        hr = GetConfigValue(isolate, opts, "keys", keys, true);
         if (hr == CALL_E_PARAMNOTOPTIONAL)
             return CHECK_ERROR(Runtime::setError("db: No index keys specified."));
         if (hr < 0)
@@ -643,7 +643,7 @@ private:
 
     static result_t where(v8::Local<v8::Array> o, bool bAnd, exlib::string& retVal, bool& retAnd)
     {
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = Isolate::current(o);
         v8::Local<v8::Context> context = isolate->context();
         exlib::string str;
         int32_t len = o->Length();
@@ -897,11 +897,11 @@ private:
 
     static result_t name(v8::Local<v8::Object> opts, exlib::string name, exlib::string& retVal)
     {
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = Isolate::current(opts);
         result_t hr;
         v8::Local<v8::Value> v;
 
-        hr = GetConfigValue(isolate->m_isolate, opts, name.c_str(), v);
+        hr = GetConfigValue(isolate, opts, name.c_str(), v);
         if (hr < 0)
             return hr;
 

@@ -175,7 +175,7 @@ result_t LevelDB::mget(v8::Local<v8::Array> keys, obj_ptr<NArray>& retVal)
         JSValue v = keys->Get(context, i);
         obj_ptr<Buffer_base> buf;
 
-        hr = GetArgumentValue(isolate->m_isolate, v, buf);
+        hr = GetArgumentValue(isolate, v, buf);
         if (hr < 0)
             return CHECK_ERROR(hr);
 

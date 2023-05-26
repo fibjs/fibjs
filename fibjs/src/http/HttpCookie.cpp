@@ -83,15 +83,15 @@ result_t HttpCookie::fill(v8::Local<v8::Object> opts, bool bBase)
     Isolate* isolate = holder();
 
     if (bBase) {
-        GetConfigValue(isolate->m_isolate, opts, "name", m_name);
-        GetConfigValue(isolate->m_isolate, opts, "value", m_value);
+        GetConfigValue(isolate, opts, "name", m_name);
+        GetConfigValue(isolate, opts, "value", m_value);
     }
 
-    GetConfigValue(isolate->m_isolate, opts, "expires", m_expires);
-    GetConfigValue(isolate->m_isolate, opts, "domain", m_domain);
-    GetConfigValue(isolate->m_isolate, opts, "path", m_path);
-    GetConfigValue(isolate->m_isolate, opts, "secure", m_secure);
-    GetConfigValue(isolate->m_isolate, opts, "httpOnly", m_httpOnly);
+    GetConfigValue(isolate, opts, "expires", m_expires);
+    GetConfigValue(isolate, opts, "domain", m_domain);
+    GetConfigValue(isolate, opts, "path", m_path);
+    GetConfigValue(isolate, opts, "secure", m_secure);
+    GetConfigValue(isolate, opts, "httpOnly", m_httpOnly);
 
     return 0;
 }

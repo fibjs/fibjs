@@ -131,7 +131,7 @@ result_t ChildProcess::Ipc::sync_delete(Ipc* pThis)
 
 static void on_newListener(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(args);
     v8::String::Utf8Value ev(isolate->m_isolate, args[0]);
 
     if (!qstrcmp("message", *ev)) {
@@ -149,7 +149,7 @@ static void on_newListener(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 static void on_removeListener(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(args);
     v8::String::Utf8Value ev(isolate->m_isolate, args[0]);
 
     if (!qstrcmp("message", *ev)) {

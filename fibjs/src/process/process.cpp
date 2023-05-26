@@ -311,11 +311,11 @@ result_t process_base::cpuUsage(v8::Local<v8::Object> previousValue, v8::Local<v
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
 
-    hr = GetConfigValue(isolate->m_isolate, previousValue, "user", _user, true);
+    hr = GetConfigValue(isolate, previousValue, "user", _user, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    hr = GetConfigValue(isolate->m_isolate, previousValue, "system", _system, true);
+    hr = GetConfigValue(isolate, previousValue, "system", _system, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
@@ -435,7 +435,7 @@ result_t process_base::emitWarning(v8::Local<v8::Value> warning, v8::Local<v8::O
     v8::Local<v8::Object> opts = v8::Local<v8::Object>::Cast(warning);
 
     exlib::string type("Warning");
-    GetConfigValue(isolate->m_isolate, options, "type", type, true);
+    GetConfigValue(isolate, options, "type", type, true);
     opts->Set(context, isolate->NewString("name"), isolate->NewString(type)).IsJust();
 
     opts->Set(context, isolate->NewString("code"), options->Get(context, isolate->NewString("code")).FromMaybe(v8::Local<v8::Value>())).IsJust();

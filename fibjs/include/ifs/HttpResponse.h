@@ -179,14 +179,14 @@ inline void HttpResponse_base::s_writeHead(const v8::FunctionCallbackInfo<v8::Va
 
     ARG(int32_t, 0);
     ARG(exlib::string, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
 
     hr = pInst->writeHead(v0, v1, v2);
 
     METHOD_OVER(2, 1);
 
     ARG(int32_t, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     hr = pInst->writeHead(v0, v1);
 

@@ -429,7 +429,7 @@ protected:
     template <typename T>
     void fillRetVal(std::vector<v8::Local<v8::Value>>& args, T& v)
     {
-        args.push_back(GetReturnValue(m_isolate->m_isolate, v));
+        args.push_back(GetReturnValue(m_isolate, v));
     }
 
     virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args)

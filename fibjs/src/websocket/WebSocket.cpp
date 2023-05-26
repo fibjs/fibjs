@@ -179,7 +179,7 @@ result_t WebSocket_base::_new(exlib::string url, exlib::string protocol,
     exlib::string origin, obj_ptr<WebSocket_base>& retVal,
     v8::Local<v8::Object> This)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(This);
     v8::Local<v8::Context> context = isolate->context();
 
     v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
@@ -339,7 +339,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
         exlib::string m_accept;
     };
 
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(opts);
     exlib::string origin = "";
     exlib::string protocol = "";
     bool perMessageDeflate = false;
@@ -348,15 +348,15 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
     obj_ptr<NObject> headers = new NObject();
     obj_ptr<HttpClient_base> hc = NULL;
 
-    GetConfigValue(isolate->m_isolate, opts, "protocol", protocol);
-    GetConfigValue(isolate->m_isolate, opts, "origin", origin);
-    GetConfigValue(isolate->m_isolate, opts, "perMessageDeflate", perMessageDeflate);
-    GetConfigValue(isolate->m_isolate, opts, "maxPayload", maxPayload);
+    GetConfigValue(isolate, opts, "protocol", protocol);
+    GetConfigValue(isolate, opts, "origin", origin);
+    GetConfigValue(isolate, opts, "perMessageDeflate", perMessageDeflate);
+    GetConfigValue(isolate, opts, "maxPayload", maxPayload);
 
-    if (GetConfigValue(isolate->m_isolate, opts, "headers", v) >= 0)
+    if (GetConfigValue(isolate, opts, "headers", v) >= 0)
         headers->add(v);
 
-    GetConfigValue(isolate->m_isolate, opts, "httpClient", hc);
+    GetConfigValue(isolate, opts, "httpClient", hc);
 
     obj_ptr<WebSocket> sock = new WebSocket(url, protocol, origin, perMessageDeflate, maxPayload);
     sock->m_holder = new ValueHolder(sock->wrap(This));

@@ -984,7 +984,7 @@ result_t getPoints(v8::Local<v8::Array>& points, std::vector<gdPoint>& pts)
 
     pts.resize(len);
 
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(points);
     v8::Local<v8::Context> context = isolate->context();
 
     for (i = 0; i < len; i++) {

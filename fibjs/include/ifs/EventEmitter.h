@@ -341,7 +341,7 @@ inline void EventEmitter_base::s_removeAllListeners(const v8::FunctionCallbackIn
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate));
+    OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate->m_isolate));
 
     hr = pInst->removeAllListeners(v0, vr);
 

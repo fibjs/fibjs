@@ -15,18 +15,14 @@ extern "C" char** environ;
 
 namespace fibjs {
 
-inline void on_env_update(exlib::string key, exlib::string val)
+inline void on_env_update(Isolate* isolate, exlib::string key, exlib::string val)
 {
     if (key == "TZ") {
-        Isolate* isolate = Isolate::current();
-
         icu::TimeZone* zone = icu::TimeZone::createTimeZone(val.c_str());
         icu::TimeZone::setDefault(*zone);
 
         isolate->m_isolate->DateTimeConfigurationChangeNotification(v8::Isolate::TimeZoneDetection::kRedetect);
     } else if (key == "LANG") {
-        Isolate* isolate = Isolate::current();
-
         icu::Locale locale(val.c_str());
         UErrorCode error_code = U_ZERO_ERROR;
         icu::Locale::setDefault(locale, error_code);
@@ -37,24 +33,25 @@ inline void on_env_update(exlib::string key, exlib::string val)
 
 void SetEnv(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(info);
 
     if (!isolate->m_env.IsEmpty()) {
         exlib::string key = isolate->toString(property);
         exlib::string val = isolate->toString(value);
 
         uv_os_setenv(key.c_str(), val.c_str());
-        on_env_update(key, val);
+        on_env_update(isolate, key, val);
     }
 }
 
 void DelEnv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& info)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(info);
+
     exlib::string key = isolate->toString(property);
 
     uv_os_unsetenv(key.c_str());
-    on_env_update(key, "");
+    on_env_update(isolate, key, "");
 }
 
 result_t process_base::get_env(v8::Local<v8::Object>& retVal)

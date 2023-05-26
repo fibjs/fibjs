@@ -73,7 +73,7 @@ public:
     // object_base
     virtual result_t valueOf(v8::Local<v8::Value>& retVal)
     {
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = holder();
         v8::Local<v8::Context> context = isolate->context();
         v8::Local<v8::Object> obj;
 
@@ -122,12 +122,12 @@ public:
         result_t hr;
         int32_t len = jsarray->Length();
 
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = holder();
 
         for (int32_t i = 0; i < len; i++) {
             T v;
 
-            hr = GetConfigValue(isolate->m_isolate, jsarray, i, v);
+            hr = GetConfigValue(isolate, jsarray, i, v);
             if (hr < 0)
                 return hr;
 
@@ -158,7 +158,7 @@ public:
     // object_base
     virtual result_t valueOf(v8::Local<v8::Value>& retVal)
     {
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = holder();
         v8::Local<v8::Context> context = isolate->context();
         v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate);
 
@@ -191,7 +191,7 @@ public:
     // object_base
     virtual result_t valueOf(v8::Local<v8::Value>& retVal)
     {
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = holder();
         v8::Local<v8::Object> obj;
 
         obj = v8::Object::New(isolate->m_isolate);

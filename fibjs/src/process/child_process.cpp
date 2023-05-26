@@ -134,7 +134,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
     };
 
     if (ac->isSync()) {
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = Isolate::current(options);
         exlib::string cmd;
         v8::Local<v8::Value> opts_;
         v8::Local<v8::Object> opts;
@@ -145,7 +145,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
         opts = v8::Local<v8::Object>::Cast(opts_);
 
         exlib::string codec("utf8");
-        GetConfigValue(isolate->m_isolate, opts, "encoding", codec);
+        GetConfigValue(isolate, opts, "encoding", codec);
 
         result_t hr = spawn(command, args, opts, cp);
         if (hr < 0)
@@ -174,7 +174,7 @@ result_t child_process_base::exec(exlib::string command, v8::Local<v8::Object> o
     obj_ptr<ExecFileType>& _retVal = *((obj_ptr<ExecFileType>*)&retVal);
 
     if (ac->isSync()) {
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = Isolate::current(options);
         v8::Local<v8::Context> context = isolate->context();
         obj_ptr<NArray> _args;
         exlib::string cmd;
@@ -302,7 +302,7 @@ result_t child_process_base::spawnSync(exlib::string command, v8::Local<v8::Arra
     };
 
     if (ac->isSync()) {
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = Isolate::current(options);
         exlib::string cmd;
         v8::Local<v8::Value> opts_;
         v8::Local<v8::Object> opts;
@@ -313,7 +313,7 @@ result_t child_process_base::spawnSync(exlib::string command, v8::Local<v8::Arra
         opts = v8::Local<v8::Object>::Cast(opts_);
 
         exlib::string codec("utf8");
-        GetConfigValue(isolate->m_isolate, opts, "encoding", codec);
+        GetConfigValue(isolate, opts, "encoding", codec);
 
         result_t hr = spawn(command, args, opts, cp);
         if (hr < 0) {
@@ -354,7 +354,7 @@ result_t child_process_base::spawnSync(exlib::string command, v8::Local<v8::Obje
 
 result_t child_process_base::fork(exlib::string module, v8::Local<v8::Array> args, v8::Local<v8::Object> options, obj_ptr<ChildProcess_base>& retVal)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(options);
     v8::Local<v8::Context> context = isolate->context();
     exlib::string exePath;
     v8::Local<v8::Array> args1 = v8::Array::New(isolate->m_isolate);
@@ -382,7 +382,7 @@ result_t child_process_base::run(exlib::string command, v8::Local<v8::Array> arg
     v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
-        Isolate* isolate = Isolate::current();
+        Isolate* isolate = Isolate::current(options);
         v8::Local<v8::Context> context = isolate->context();
         exlib::string cmd;
         v8::Local<v8::Value> opts_;

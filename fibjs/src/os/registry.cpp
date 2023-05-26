@@ -201,7 +201,7 @@ result_t registry_base::get(int32_t root, exlib::string key, v8::Local<v8::Value
         dwSize = sizeof(value);
 
         RegQueryValueExW(r.hKey, r.skey.c_str(), NULL, &dwType, (LPBYTE)&value, &dwSize);
-        retVal = GetReturnValue(isolate->m_isolate, value);
+        retVal = GetReturnValue(isolate, value);
         break;
     }
     case REG_QWORD: {
@@ -210,7 +210,7 @@ result_t registry_base::get(int32_t root, exlib::string key, v8::Local<v8::Value
         dwSize = sizeof(value);
 
         RegQueryValueExW(r.hKey, r.skey.c_str(), NULL, &dwType, (LPBYTE)&value, &dwSize);
-        retVal = GetReturnValue(isolate->m_isolate, value);
+        retVal = GetReturnValue(isolate, value);
         break;
     }
     case REG_SZ:
@@ -223,7 +223,7 @@ result_t registry_base::get(int32_t root, exlib::string key, v8::Local<v8::Value
         RegQueryValueExW(r.hKey, r.skey.c_str(), NULL, &dwType, (LPBYTE)buf.c_buffer(), &dwSize);
 
         sbuf = utf16to8String(buf);
-        retVal = GetReturnValue(isolate->m_isolate, sbuf);
+        retVal = GetReturnValue(isolate, sbuf);
         break;
     }
     case REG_MULTI_SZ: {
@@ -246,7 +246,7 @@ result_t registry_base::get(int32_t root, exlib::string key, v8::Local<v8::Value
                 p2++;
 
             sbuf = utf16to8String(p1, (int32_t)(p2 - p1));
-            arr->Set(context, n++, GetReturnValue(isolate->m_isolate, sbuf));
+            arr->Set(context, n++, GetReturnValue(isolate, sbuf));
             p1 = p2 + 1;
         }
 
@@ -319,7 +319,7 @@ result_t registry_base::set(int32_t root, exlib::string key, v8::Local<v8::Array
         exlib::string v;
         exlib::wstring wv;
 
-        hr = GetArgumentValue(JSValue(value->Get(context, i)), v, false);
+        hr = GetArgumentValue(isolate, JSValue(value->Get(context, i)), v, false);
         if (hr < 0)
             return hr;
 

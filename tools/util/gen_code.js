@@ -428,7 +428,7 @@ function gen_code(cls, def, baseFolder) {
                         txts.push('    METHOD_VOID();\n}\n');
                         txts.push(`inline void ${cls}_base::i_NamedDeleter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& args)\n{\n    v8::Local<v8::Boolean> vr;\n`);
                         txts.push(`    METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
-                        txts.push('    exlib::string k;\n    GetArgumentValue(isolate, property, k);\n    if (class_info().has(k.c_str())) {\n        args.GetReturnValue().Set(v8::False(isolate));\n        return;\n    }\n');
+                        txts.push('    exlib::string k;\n    GetArgumentValue(isolate, property, k);\n    if (class_info().has(k.c_str())) {\n        args.GetReturnValue().Set(v8::False(isolate->m_isolate));\n        return;\n    }\n');
                         txts.push('    hr = pInst->_named_deleter(k, vr);\n    METHOD_RETURN1();\n}\n');
                     }
                 } else {
@@ -660,7 +660,7 @@ function gen_code(cls, def, baseFolder) {
                     ts.push('            v8::Local<v8::Context> context = retVal->GetCreationContextChecked();');
 
                     fn.type.forEach(t => {
-                        ts.push(`            retVal->Set(context, isolate->NewString("${t.name}"), GetReturnValue(isolate->m_isolate, ${t.name})).Check();`);
+                        ts.push(`            retVal->Set(context, isolate->NewString("${t.name}"), GetReturnValue(isolate, ${t.name})).Check();`);
                     });
 
                     ts.push('        }\n');
@@ -669,7 +669,7 @@ function gen_code(cls, def, baseFolder) {
                     ts.push('        {');
 
                     fn.type.forEach(t => {
-                        ts.push(`            args.push_back(GetReturnValue(isolate->m_isolate, ${t.name}));`);
+                        ts.push(`            args.push_back(GetReturnValue(isolate, ${t.name}));`);
                     });
 
                     ts.push('        }\n');

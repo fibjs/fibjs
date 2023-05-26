@@ -155,7 +155,7 @@ result_t Routing::_append(exlib::string method, v8::Local<v8::Object> map,
         obj_ptr<Handler_base> hdlr;
         obj_ptr<Routing_base> r;
 
-        hr = GetArgumentValue(isolate->m_isolate, v, hdlr);
+        hr = GetArgumentValue(isolate, v, hdlr);
         if (hr < 0)
             return hr;
 

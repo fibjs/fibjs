@@ -84,10 +84,8 @@ void encodeValue(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Val
         }
 
         encodeObject(isolate, bb, name, element, doJson);
-    } else {
-        Isolate* isolate = Isolate::current();
+    } else
         bson_append_string(bb, name, isolate->toString(element).c_str());
-    }
 }
 
 void encodeValue(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Value> element)

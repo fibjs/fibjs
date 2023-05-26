@@ -63,6 +63,17 @@ public:
         return (Isolate*)v8_isolate->GetData(0);
     }
 
+    static Isolate* current(v8::Local<v8::Context> context)
+    {
+        return current(context->GetIsolate());
+    }
+
+    template<typename T>
+    static Isolate* current(v8::Local<T> object)
+    {
+        return current(object->GetCreationContextChecked());
+    }
+
     template <typename T>
     static Isolate* current(const v8::FunctionCallbackInfo<T>& args)
     {
@@ -73,21 +84,6 @@ public:
     static Isolate* current(const v8::PropertyCallbackInfo<T>& args)
     {
         return current(args.GetIsolate());
-    }
-
-    static Isolate* current(v8::Local<v8::Context> context)
-    {
-        return current(context->GetIsolate());
-    }
-
-    static Isolate* current(v8::Local<v8::Object> object)
-    {
-        return current(object->GetCreationContextChecked());
-    }
-
-    static Isolate* current(v8::Local<v8::Function> object)
-    {
-        return current(object->GetCreationContextChecked());
     }
 
     void RequestInterrupt(v8::InterruptCallback callback, void* data);

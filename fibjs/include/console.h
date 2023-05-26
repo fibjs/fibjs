@@ -79,7 +79,7 @@ public:
         result_t hr;
         v8::Local<v8::Array> levels;
 
-        hr = GetConfigValue(isolate->m_isolate, o, "levels", levels);
+        hr = GetConfigValue(isolate, o, "levels", levels);
         if (hr == CALL_E_PARAMNOTOPTIONAL) {
         } else if (hr < 0)
             return hr;
@@ -94,7 +94,7 @@ public:
                 JSValue l = levels->Get(context, i);
                 int32_t num;
 
-                hr = GetArgumentValue(l, num);
+                hr = GetArgumentValue(isolate, l, num);
                 if (hr < 0)
                     return CHECK_ERROR(hr);
 

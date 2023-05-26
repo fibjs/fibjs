@@ -107,14 +107,14 @@ private:
     int32_t m_isJSObject;
 
 public:
-    Isolate* holder()
+    Isolate* holder(Isolate* _isolate = NULL)
     {
         Isolate* isolate = m_isolate;
 
         if (isolate)
             return isolate;
 
-        return m_isolate = Isolate::current();
+        return m_isolate = _isolate ? _isolate : Isolate::current();
     }
 
     Isolate* get_holder()

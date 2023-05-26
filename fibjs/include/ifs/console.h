@@ -427,7 +427,7 @@ inline void console_base::s_static_dir(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     hr = dir(v0, v1);
 

@@ -361,7 +361,7 @@ inline void HttpCollection_base::i_NamedDeleter(v8::Local<v8::Name> property, co
     exlib::string k;
     GetArgumentValue(isolate, property, k);
     if (class_info().has(k.c_str())) {
-        args.GetReturnValue().Set(v8::False(isolate));
+        args.GetReturnValue().Set(v8::False(isolate->m_isolate));
         return;
     }
 

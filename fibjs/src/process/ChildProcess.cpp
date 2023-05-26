@@ -64,19 +64,19 @@ result_t ChildProcess::fill_stdio(v8::Local<v8::Object> options, bool fork)
 
     Variant stddefs[3];
     v8::Local<v8::Value> v;
-    hr = GetConfigValue(isolate->m_isolate, options, "stdio", v);
+    hr = GetConfigValue(isolate, options, "stdio", v);
     if (hr == CALL_E_PARAMNOTOPTIONAL) {
         for (i = 0; i < 3; i++)
             stddefs[i] = fork ? "inherit" : "pipe";
     } else {
         exlib::string s;
-        hr = GetArgumentValue(isolate->m_isolate, v, s, true);
+        hr = GetArgumentValue(isolate, v, s, true);
         if (hr >= 0) {
             for (i = 0; i < 3; i++)
                 stddefs[i] = s;
         } else {
             v8::Local<v8::Array> a;
-            hr = GetArgumentValue(isolate->m_isolate, v, a, true);
+            hr = GetArgumentValue(isolate, v, a, true);
             if (hr >= 0) {
                 for (i = 0; i < 3; i++)
                     stddefs[i] = JSValue(a->Get(context, i));
@@ -159,7 +159,7 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
     v8::Local<v8::Context> context = isolate->context();
 
     int32_t uid;
-    hr = GetConfigValue(isolate->m_isolate, options, "uid", uid);
+    hr = GetConfigValue(isolate, options, "uid", uid);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
@@ -169,7 +169,7 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
     }
 
     int32_t gid;
-    hr = GetConfigValue(isolate->m_isolate, options, "gid", gid);
+    hr = GetConfigValue(isolate, options, "gid", gid);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
@@ -179,7 +179,7 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
     }
 
     v8::Local<v8::Object> opt_envs;
-    hr = GetConfigValue(isolate->m_isolate, options, "env", opt_envs, true);
+    hr = GetConfigValue(isolate, options, "env", opt_envs, true);
     if (hr == CALL_E_PARAMNOTOPTIONAL) {
         hr = process_base::get_env(opt_envs);
         if (hr < 0)
@@ -205,7 +205,7 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
         exlib::string vs;
         exlib::string& ks = envStr[p];
 
-        hr = GetArgumentValue(k, ks);
+        hr = GetArgumentValue(isolate, k, ks);
         if (hr < 0)
             return hr;
 
@@ -215,7 +215,7 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
         if (IsEmpty(v))
             continue;
 
-        hr = GetArgumentValue(v, vs);
+        hr = GetArgumentValue(isolate, v, vs);
         if (hr < 0)
             return hr;
 
@@ -257,7 +257,7 @@ result_t ChildProcess::fill_arg(exlib::string command, v8::Local<v8::Array> args
 
     _args[0] = (char*)command.c_str();
     for (i = 0; i < len; i++) {
-        hr = GetArgumentValue(isolate->m_isolate, JSValue(args->Get(context, i)), argStr[i]);
+        hr = GetArgumentValue(isolate, JSValue(args->Get(context, i)), argStr[i]);
         if (hr < 0)
             return hr;
 
@@ -276,21 +276,21 @@ result_t ChildProcess::fill_opt(v8::Local<v8::Object> options)
     Isolate* isolate = holder();
 
     process_base::cwd(cwd);
-    GetConfigValue(isolate->m_isolate, options, "cwd", cwd);
+    GetConfigValue(isolate, options, "cwd", cwd);
     uv_options.cwd = cwd.c_str();
 
     bool detached = false;
-    GetConfigValue(isolate->m_isolate, options, "detached", detached);
+    GetConfigValue(isolate, options, "detached", detached);
     if (detached)
         uv_options.flags |= UV_PROCESS_DETACHED;
 
     bool windowsVerbatimArguments = false;
-    GetConfigValue(isolate->m_isolate, options, "windowsVerbatimArguments", windowsVerbatimArguments);
+    GetConfigValue(isolate, options, "windowsVerbatimArguments", windowsVerbatimArguments);
     if (windowsVerbatimArguments)
         uv_options.flags |= UV_PROCESS_WINDOWS_VERBATIM_ARGUMENTS;
 
     bool windowsHide = false;
-    GetConfigValue(isolate->m_isolate, options, "windowsHide", windowsHide);
+    GetConfigValue(isolate, options, "windowsHide", windowsHide);
     if (windowsHide)
         uv_options.flags |= UV_PROCESS_WINDOWS_HIDE;
 

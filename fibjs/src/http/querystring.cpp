@@ -48,6 +48,8 @@ result_t querystring_base::stringify(v8::Local<v8::Object> obj, exlib::string se
     StringBuffer bufs;
 
     v8::Local<v8::Context> context = obj->GetCreationContextChecked();
+    Isolate* isolate = Isolate::current(context);
+
     JSArray ks = obj->GetPropertyNames(context);
     int32_t len = ks->Length();
     int32_t i;
@@ -59,16 +61,16 @@ result_t querystring_base::stringify(v8::Local<v8::Object> obj, exlib::string se
         JSValue k = ks->Get(context, i);
         JSValue v = obj->Get(context, k);
 
-        GetArgumentValue(k, strKey);
+        GetArgumentValue(isolate, k, strKey);
         encoding_base::encodeURIComponent(strKey, strKey);
 
-        hr = GetArgumentValue(v, vs, true);
+        hr = GetArgumentValue(isolate, v, vs, true);
         if (hr >= 0) {
             int32_t len1 = vs->Length();
             int32_t i1;
 
             for (i1 = 0; i1 < len1; i1++) {
-                hr = GetArgumentValue(JSValue(vs->Get(context, i1)), strValue);
+                hr = GetArgumentValue(isolate, JSValue(vs->Get(context, i1)), strValue);
                 if (hr < 0)
                     return hr;
 
@@ -82,7 +84,7 @@ result_t querystring_base::stringify(v8::Local<v8::Object> obj, exlib::string se
                 bufs.append(strValue);
             }
         } else {
-            hr = GetArgumentValue(v, strValue);
+            hr = GetArgumentValue(isolate, v, strValue);
             if (hr < 0)
                 return hr;
 

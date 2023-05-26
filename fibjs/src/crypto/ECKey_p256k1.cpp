@@ -66,19 +66,19 @@ result_t ECKey_p256k1::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
     ac->m_ctx.resize(3);
 
     obj_ptr<PKey_base> to;
-    hr = GetConfigValue(isolate->m_isolate, opts, "to", to, true);
+    hr = GetConfigValue(isolate, opts, "to", to, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     ac->m_ctx[0] = to;
 
     bool recoverable = false;
-    hr = GetConfigValue(isolate->m_isolate, opts, "recoverable", recoverable, true);
+    hr = GetConfigValue(isolate, opts, "recoverable", recoverable, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     ac->m_ctx[2] = recoverable;
 
     exlib::string fmt = recoverable ? "raw" : "der";
-    hr = GetConfigValue(isolate->m_isolate, opts, "format", fmt, true);
+    hr = GetConfigValue(isolate, opts, "format", fmt, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
     if (fmt != "der" && fmt != "raw")

@@ -32,7 +32,7 @@ static void promise_catch(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(args);
     v8::Local<v8::Context> context = isolate->context();
     std::vector<v8::Local<v8::Value>> argv;
 
@@ -97,7 +97,7 @@ static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 result_t util_base::callbackify(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(func);
     v8::Local<v8::Function> func1;
 
     func1 = isolate->NewFunction("async_promise", async_promise, func);

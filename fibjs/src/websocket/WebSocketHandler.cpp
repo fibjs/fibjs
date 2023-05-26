@@ -21,12 +21,12 @@ namespace fibjs {
 
 result_t ws_base::upgrade(v8::Local<v8::Object> opts, v8::Local<v8::Function> accept, obj_ptr<Handler_base>& retVal)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(accept);
     bool perMessageDeflate = false;
     int32_t maxPayload = WS_DEF_SIZE;
 
-    GetConfigValue(isolate->m_isolate, opts, "perMessageDeflate", perMessageDeflate);
-    GetConfigValue(isolate->m_isolate, opts, "maxPayload", maxPayload);
+    GetConfigValue(isolate, opts, "perMessageDeflate", perMessageDeflate);
+    GetConfigValue(isolate, opts, "maxPayload", maxPayload);
 
     retVal = new WebSocketHandler(accept, perMessageDeflate, maxPayload);
     return 0;
@@ -34,7 +34,7 @@ result_t ws_base::upgrade(v8::Local<v8::Object> opts, v8::Local<v8::Function> ac
 
 result_t ws_base::upgrade(v8::Local<v8::Function> accept, obj_ptr<Handler_base>& retVal)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(accept);
     v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
 
     return upgrade(opts, accept, retVal);

@@ -43,13 +43,13 @@ public:
 public:
     result_t open(const char* connString);
 
-    static result_t getValue(v8::Local<v8::Value> v, exlib::string& out)
+    result_t getValue(v8::Local<v8::Value> v, exlib::string& out)
     {
         obj_ptr<Buffer_base> bKey = Buffer_base::getInstance(v);
         if (bKey)
             return bKey->toString(out);
 
-        return GetArgumentValue(v, out);
+        return GetArgumentValue(holder(), v, out);
     }
 
 private:

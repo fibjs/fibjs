@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const db = require('db');
 const hash = require('hash');
@@ -25,6 +26,13 @@ var nodes = split_folder([
             return html;
         }
     }
+});
+
+var infos = fs.readdir(path.join(__dirname, '../docs/infos'));
+infos.forEach(function (info) {
+    var fname = path.join(__dirname, '../docs/infos', info);
+    console.log(`loading ${fname}`);
+    nodes.push(fs.readTextFile(fname));
 });
 
 console.log(nodes.length, 'nodes');

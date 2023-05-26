@@ -78,7 +78,7 @@ SandBox::SandBox(bool extLoader)
 
 void SandBox::initGlobal(v8::Local<v8::Object> global)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = holder();
     v8::Local<v8::Value> _token = isolate->context()->GetSecurityToken();
 
     v8::Local<v8::Context> _context = v8::Context::New(isolate->m_isolate);

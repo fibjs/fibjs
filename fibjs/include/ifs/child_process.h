@@ -26,14 +26,14 @@ public:
         virtual void fillMembers(Isolate* isolate, v8::Local<v8::Object>& retVal)
         {
             v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
-            retVal->Set(context, isolate->NewString("stdout"), GetReturnValue(isolate->m_isolate, stdout)).Check();
-            retVal->Set(context, isolate->NewString("stderr"), GetReturnValue(isolate->m_isolate, stderr)).Check();
+            retVal->Set(context, isolate->NewString("stdout"), GetReturnValue(isolate, stdout)).Check();
+            retVal->Set(context, isolate->NewString("stderr"), GetReturnValue(isolate, stderr)).Check();
         }
 
         virtual void fillArguments(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
         {
-            args.push_back(GetReturnValue(isolate->m_isolate, stdout));
-            args.push_back(GetReturnValue(isolate->m_isolate, stderr));
+            args.push_back(GetReturnValue(isolate, stdout));
+            args.push_back(GetReturnValue(isolate, stderr));
         }
 
     public:
@@ -45,14 +45,14 @@ public:
         virtual void fillMembers(Isolate* isolate, v8::Local<v8::Object>& retVal)
         {
             v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
-            retVal->Set(context, isolate->NewString("stdout"), GetReturnValue(isolate->m_isolate, stdout)).Check();
-            retVal->Set(context, isolate->NewString("stderr"), GetReturnValue(isolate->m_isolate, stderr)).Check();
+            retVal->Set(context, isolate->NewString("stdout"), GetReturnValue(isolate, stdout)).Check();
+            retVal->Set(context, isolate->NewString("stderr"), GetReturnValue(isolate, stderr)).Check();
         }
 
         virtual void fillArguments(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
         {
-            args.push_back(GetReturnValue(isolate->m_isolate, stdout));
-            args.push_back(GetReturnValue(isolate->m_isolate, stderr));
+            args.push_back(GetReturnValue(isolate, stdout));
+            args.push_back(GetReturnValue(isolate, stderr));
         }
 
     public:
@@ -64,22 +64,22 @@ public:
         virtual void fillMembers(Isolate* isolate, v8::Local<v8::Object>& retVal)
         {
             v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
-            retVal->Set(context, isolate->NewString("pid"), GetReturnValue(isolate->m_isolate, pid)).Check();
-            retVal->Set(context, isolate->NewString("output"), GetReturnValue(isolate->m_isolate, output)).Check();
-            retVal->Set(context, isolate->NewString("stdout"), GetReturnValue(isolate->m_isolate, stdout)).Check();
-            retVal->Set(context, isolate->NewString("stderr"), GetReturnValue(isolate->m_isolate, stderr)).Check();
-            retVal->Set(context, isolate->NewString("status"), GetReturnValue(isolate->m_isolate, status)).Check();
-            retVal->Set(context, isolate->NewString("error"), GetReturnValue(isolate->m_isolate, error)).Check();
+            retVal->Set(context, isolate->NewString("pid"), GetReturnValue(isolate, pid)).Check();
+            retVal->Set(context, isolate->NewString("output"), GetReturnValue(isolate, output)).Check();
+            retVal->Set(context, isolate->NewString("stdout"), GetReturnValue(isolate, stdout)).Check();
+            retVal->Set(context, isolate->NewString("stderr"), GetReturnValue(isolate, stderr)).Check();
+            retVal->Set(context, isolate->NewString("status"), GetReturnValue(isolate, status)).Check();
+            retVal->Set(context, isolate->NewString("error"), GetReturnValue(isolate, error)).Check();
         }
 
         virtual void fillArguments(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
         {
-            args.push_back(GetReturnValue(isolate->m_isolate, pid));
-            args.push_back(GetReturnValue(isolate->m_isolate, output));
-            args.push_back(GetReturnValue(isolate->m_isolate, stdout));
-            args.push_back(GetReturnValue(isolate->m_isolate, stderr));
-            args.push_back(GetReturnValue(isolate->m_isolate, status));
-            args.push_back(GetReturnValue(isolate->m_isolate, error));
+            args.push_back(GetReturnValue(isolate, pid));
+            args.push_back(GetReturnValue(isolate, output));
+            args.push_back(GetReturnValue(isolate, stdout));
+            args.push_back(GetReturnValue(isolate, stderr));
+            args.push_back(GetReturnValue(isolate, status));
+            args.push_back(GetReturnValue(isolate, error));
         }
 
     public:
@@ -171,14 +171,14 @@ inline void child_process_base::s_static_spawn(const v8::FunctionCallbackInfo<v8
 
     ARG(exlib::string, 0);
     ARG(v8::Local<v8::Array>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
 
     hr = spawn(v0, v1, v2, vr);
 
     METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     hr = spawn(v0, v1, vr);
 
@@ -194,7 +194,7 @@ inline void child_process_base::s_static_exec(const v8::FunctionCallbackInfo<v8:
     ASYNC_METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = acb_exec(v0, v1, cb, args);
@@ -214,7 +214,7 @@ inline void child_process_base::s_static_execFile(const v8::FunctionCallbackInfo
 
     ARG(exlib::string, 0);
     ARG(v8::Local<v8::Array>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = acb_execFile(v0, v1, v2, cb, args);
@@ -224,7 +224,7 @@ inline void child_process_base::s_static_execFile(const v8::FunctionCallbackInfo
     ASYNC_METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = acb_execFile(v0, v1, cb, args);
@@ -244,7 +244,7 @@ inline void child_process_base::s_static_spawnSync(const v8::FunctionCallbackInf
 
     ARG(exlib::string, 0);
     ARG(v8::Local<v8::Array>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = acb_spawnSync(v0, v1, v2, cb, args);
@@ -254,7 +254,7 @@ inline void child_process_base::s_static_spawnSync(const v8::FunctionCallbackInf
     ASYNC_METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = acb_spawnSync(v0, v1, cb, args);
@@ -274,14 +274,14 @@ inline void child_process_base::s_static_fork(const v8::FunctionCallbackInfo<v8:
 
     ARG(exlib::string, 0);
     ARG(v8::Local<v8::Array>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
 
     hr = fork(v0, v1, v2, vr);
 
     METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     hr = fork(v0, v1, vr);
 
@@ -298,7 +298,7 @@ inline void child_process_base::s_static_run(const v8::FunctionCallbackInfo<v8::
 
     ARG(exlib::string, 0);
     ARG(v8::Local<v8::Array>, 1);
-    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = acb_run(v0, v1, v2, cb, args);
@@ -308,7 +308,7 @@ inline void child_process_base::s_static_run(const v8::FunctionCallbackInfo<v8::
     ASYNC_METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate));
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = acb_run(v0, v1, cb, args);

@@ -94,10 +94,9 @@ private:
     }
 
 public:
-    result_t run(v8::Local<v8::Array> funcs,
-        v8::Local<v8::Array>& retVal, int32_t fibers = -1)
+    result_t run(v8::Local<v8::Array> funcs, v8::Local<v8::Array>& retVal, int32_t fibers = -1)
     {
-        m_isolate = Isolate::current();
+        m_isolate = Isolate::current(funcs);
         v8::Local<v8::Context> context = m_isolate->context();
         int32_t i;
 
@@ -123,7 +122,7 @@ public:
     result_t run(v8::Local<v8::Array> datas, v8::Local<v8::Function> func,
         v8::Local<v8::Array>& retVal, int32_t fibers = -1)
     {
-        m_isolate = Isolate::current();
+        m_isolate = Isolate::current(datas);
 
         m_count = datas->Length();
         if (m_count == 0) {
@@ -181,7 +180,7 @@ result_t coroutine_base::parallel(v8::Local<v8::Array> datas, v8::Local<v8::Func
 result_t coroutine_base::parallel(v8::Local<v8::Function> func, int32_t num,
     int32_t fibers, v8::Local<v8::Array>& retVal)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(func);
     v8::Local<v8::Array> datas = v8::Array::New(isolate->m_isolate, num);
     int32_t i;
     v8::Local<v8::Context> context = isolate->context();

@@ -124,7 +124,7 @@ result_t util_base::isPrimitive(v8::Local<v8::Value> v, bool& retVal)
         result_t hr;
         Isolate* isolate = Isolate::current();
         exlib::string type;
-        hr = GetArgumentValue(v->TypeOf(isolate->m_isolate), type);
+        hr = GetArgumentValue(isolate, v->TypeOf(isolate->m_isolate), type);
         if (hr < 0)
             return CHECK_ERROR(hr);
         if (type != "object" && type != "function") {
@@ -225,7 +225,7 @@ static bool regexpEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expec
     return src1->StrictEquals(src2) && flgs1 == flgs2;
 }
 
-static bool deepEquals(QuickArray<v8::Local<v8::Object>>& acts,
+static bool deepEquals(Isolate* isolate, QuickArray<v8::Local<v8::Object>>& acts,
     QuickArray<v8::Local<v8::Object>>& exps,
     v8::Local<v8::Value> actual, v8::Local<v8::Value> expected);
 
@@ -248,7 +248,7 @@ static int32_t checkStack(QuickArray<v8::Local<v8::Object>>& acts,
     return 1;
 }
 
-static bool arrayEquals(QuickArray<v8::Local<v8::Object>>& acts,
+static bool arrayEquals(Isolate* isolate, QuickArray<v8::Local<v8::Object>>& acts,
     QuickArray<v8::Local<v8::Object>>& exps,
     v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 {
@@ -269,10 +269,10 @@ static bool arrayEquals(QuickArray<v8::Local<v8::Object>>& acts,
         return false;
     }
 
-    v8::Local<v8::Context> context = act->GetCreationContextChecked();
+    v8::Local<v8::Context> context = isolate->context();
 
     for (i = 0; i < len; i++)
-        if (!deepEquals(acts, exps, JSValue(act->Get(context, i)), JSValue(exp->Get(context, i)))) {
+        if (!deepEquals(isolate, acts, exps, JSValue(act->Get(context, i)), JSValue(exp->Get(context, i)))) {
             acts.pop();
             exps.pop();
             return false;
@@ -283,7 +283,7 @@ static bool arrayEquals(QuickArray<v8::Local<v8::Object>>& acts,
     return true;
 }
 
-static bool objectEquals(QuickArray<v8::Local<v8::Object>>& acts,
+static bool objectEquals(Isolate* isolate, QuickArray<v8::Local<v8::Object>>& acts,
     QuickArray<v8::Local<v8::Object>>& exps,
     v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 {
@@ -325,7 +325,7 @@ static bool objectEquals(QuickArray<v8::Local<v8::Object>>& acts,
             return false;
         }
 
-        if (!deepEquals(acts, exps, v1, v2)) {
+        if (!deepEquals(isolate, acts, exps, v1, v2)) {
             acts.pop();
             exps.pop();
             return false;
@@ -337,12 +337,10 @@ static bool objectEquals(QuickArray<v8::Local<v8::Object>>& acts,
     return true;
 }
 
-static bool deepEquals(QuickArray<v8::Local<v8::Object>>& acts,
+static bool deepEquals(Isolate* isolate, QuickArray<v8::Local<v8::Object>>& acts,
     QuickArray<v8::Local<v8::Object>>& exps,
     v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 {
-    Isolate* isolate = Isolate::current();
-
     if (!IsEmpty(actual) && !IsEmpty(expected) && !actual->IsFunction()
         && !expected->IsFunction()) {
         if (actual->IsDate())
@@ -359,7 +357,7 @@ static bool deepEquals(QuickArray<v8::Local<v8::Object>>& acts,
             return false;
 
         if (actual->IsArray() && expected->IsArray())
-            return arrayEquals(acts, exps, actual, expected);
+            return arrayEquals(isolate, acts, exps, actual, expected);
 
         obj_ptr<object_base> obj1 = object_base::getInstance(actual);
         obj_ptr<object_base> obj2 = object_base::getInstance(expected);
@@ -370,7 +368,7 @@ static bool deepEquals(QuickArray<v8::Local<v8::Object>>& acts,
         }
 
         if (actual->IsObject() && expected->IsObject())
-            return objectEquals(acts, exps, actual, expected);
+            return objectEquals(isolate, acts, exps, actual, expected);
     }
 
     return actual->StrictEquals(expected);
@@ -381,7 +379,7 @@ result_t util_base::isDeepEqual(v8::Local<v8::Value> actual, v8::Local<v8::Value
     QuickArray<v8::Local<v8::Object>> acts;
     QuickArray<v8::Local<v8::Object>> exps;
 
-    retVal = deepEquals(acts, exps, actual, expected);
+    retVal = deepEquals(Isolate::current(), acts, exps, actual, expected);
 
     return 0;
 }

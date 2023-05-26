@@ -103,7 +103,7 @@ void SslSocket_base::__new(const T& args)
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate));
+    OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate->m_isolate));
 
     hr = _new(v0, vr, args.This());
 

@@ -117,7 +117,7 @@ result_t HeapGraphNodeProxy::get_name(exlib::string& retVal)
     if (m_snapshot == 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    return GetArgumentValue(m_node->GetName(), retVal);
+    return GetArgumentValue(holder(), m_node->GetName(), retVal);
 }
 
 result_t HeapGraphNodeProxy::get_description(exlib::string& retVal)
@@ -175,7 +175,7 @@ result_t HeapGraphEdgeProxy::get_name(exlib::string& retVal)
     if (m_snapshot == 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    return GetArgumentValue(m_edge->GetName(), retVal);
+    return GetArgumentValue(holder(), m_edge->GetName(), retVal);
 }
 
 result_t HeapGraphEdgeProxy::get_description(exlib::string& retVal)

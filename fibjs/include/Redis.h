@@ -200,7 +200,7 @@ public:
             result_t hr;
             exlib::string str;
 
-            hr = GetArgumentValue(v, str);
+            hr = GetArgumentValue(Isolate::current(), v, str);
             if (hr < 0)
                 return CHECK_ERROR(hr);
             return add(str);

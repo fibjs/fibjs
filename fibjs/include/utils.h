@@ -195,12 +195,12 @@ typedef int32_t result_t;
 #define V8_RETURN(v) (v)
 #endif
 
-#define PROPERTY_ENTER()                      \
-    v8::Isolate* isolate = args.GetIsolate(); \
-    V8_SCOPE(isolate);                        \
-    result_t hr = 0;                          \
-    bool bStrict = false;                     \
-    do {                                      \
+#define PROPERTY_ENTER()                                    \
+    Isolate* isolate = Isolate::current(args.GetIsolate()); \
+    V8_SCOPE(isolate->m_isolate);                           \
+    result_t hr = 0;                                        \
+    bool bStrict = false;                                   \
+    do {                                                    \
         do {
 
 #define METHOD_OVER(c, o)                                       \
@@ -246,12 +246,12 @@ typedef int32_t result_t;
                 break;                                             \
             }
 
-#define METHOD_ENTER()                        \
-    v8::Isolate* isolate = args.GetIsolate(); \
-    V8_SCOPE(isolate);                        \
-    result_t hr = CALL_E_BADPARAMCOUNT;       \
-    bool bStrict = true;                      \
-    do {                                      \
+#define METHOD_ENTER()                                      \
+    Isolate* isolate = Isolate::current(args.GetIsolate()); \
+    V8_SCOPE(isolate->m_isolate);                           \
+    result_t hr = CALL_E_BADPARAMCOUNT;                     \
+    bool bStrict = true;                                    \
+    do {                                                    \
         do {
 
 #define CONSTRUCT_INIT()                       \
@@ -595,14 +595,14 @@ public:                                                  \
     ((TYPE*)((char*)(ptr)-_offsetof(TYPE, MEMBER)))
 #endif
 
-result_t GetArgumentValue(v8::Local<v8::Value> v, exlib::string& n, bool bStrict = false);
+result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, exlib::string& n, bool bStrict = false);
 
-inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, double& n, bool bStrict = false)
+inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, double& n, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_TYPEMISMATCH;
 
-    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Context> context = isolate->context();
 
     if (v->IsNumber() || v->IsNumberObject()) {
         n = v->NumberValue(context).FromMaybe(NAN);
@@ -620,13 +620,13 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, d
     return std::isnan(n) ? CALL_E_TYPEMISMATCH : 0;
 }
 
-inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, int64_t& n, bool bStrict = false)
+inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, int64_t& n, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_TYPEMISMATCH;
 
     v8::Local<v8::BigInt> mv;
-    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Context> context = isolate->context();
 
     if (!v->IsBigInt() && !v->IsBigIntObject()) {
         if (!v->IsNumber() && !v->IsNumberObject()) {
@@ -669,7 +669,7 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, i
     }
 }
 
-inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, int32_t& n, bool bStrict = false)
+inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, int32_t& n, bool bStrict = false)
 {
     int64_t num;
 
@@ -685,7 +685,7 @@ inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, i
     return 0;
 }
 
-inline result_t GetArgumentValue(v8::Local<v8::Value> v, bool& n, bool bStrict = false)
+inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, bool& n, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_TYPEMISMATCH;
@@ -693,11 +693,11 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, bool& n, bool bStrict =
     if (bStrict && !v->IsBoolean() && !v->IsBooleanObject())
         return CALL_E_TYPEMISMATCH;
 
-    n = Isolate::current()->toBoolean(v);
+    n = isolate->toBoolean(v);
     return 0;
 }
 
-inline result_t GetArgumentValue(v8::Local<v8::Value> v, date_t& d, bool bStrict = false)
+inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, date_t& d, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_TYPEMISMATCH;
@@ -709,7 +709,7 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, date_t& d, bool bStrict
             return CALL_E_TYPEMISMATCH;
 
         double n;
-        result_t hr = GetArgumentValue(Isolate::current()->m_isolate, v, n);
+        result_t hr = GetArgumentValue(isolate, v, n);
         if (hr < 0)
             return hr;
 
@@ -719,7 +719,7 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, date_t& d, bool bStrict
     return 0;
 }
 
-inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, Variant& d, bool bStrict = false)
+inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, Variant& d, bool bStrict = false)
 {
     d = v;
     return 0;
@@ -846,7 +846,7 @@ private:
 };
 
 template <class T>
-result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<T>& vr, bool bStrict = false)
+result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<T>& vr, bool bStrict = false)
 {
     vr = T::getInstance(v);
     if (vr == NULL) {
@@ -856,7 +856,7 @@ result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<
         TryCatch try_catch;
 
         v8::Local<v8::Value> vr1;
-        Value2Args a(isolate, v, vr1);
+        Value2Args a(isolate->m_isolate, v, vr1);
 
         T::__new(a);
         vr = T::getInstance(vr1);
@@ -882,7 +882,7 @@ inline bool IsJSObject(v8::Local<v8::Value> v)
     return true;
 }
 
-inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Object>& vr, bool bStrict = false)
+inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::Object>& vr, bool bStrict = false)
 {
     if (v.IsEmpty() || !IsJSObject(v))
         return CALL_E_TYPEMISMATCH;
@@ -891,7 +891,7 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Object>& 
     return 0;
 }
 
-inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Array>& vr, bool bStrict = false)
+inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::Array>& vr, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_TYPEMISMATCH;
@@ -903,7 +903,7 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Array>& v
     return 0;
 }
 
-inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Uint8Array>& vr, bool bStrict = false)
+inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::Uint8Array>& vr, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_TYPEMISMATCH;
@@ -915,7 +915,7 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Uint8Arra
     return 0;
 }
 
-inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::ArrayBuffer>& vr, bool bStrict = false)
+inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::ArrayBuffer>& vr, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_TYPEMISMATCH;
@@ -927,7 +927,7 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::ArrayBuff
     return 0;
 }
 
-inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::ArrayBufferView>& vr, bool bStrict = false)
+inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::ArrayBufferView>& vr, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_TYPEMISMATCH;
@@ -939,13 +939,13 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::ArrayBuff
     return 0;
 }
 
-inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Value>& vr, bool bStrict = false)
+inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::Value>& vr, bool bStrict = false)
 {
     vr = v;
     return 0;
 }
 
-inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Function>& vr, bool bStrict = false)
+inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::Function>& vr, bool bStrict = false)
 {
     if (v.IsEmpty())
         return CALL_E_TYPEMISMATCH;
@@ -958,22 +958,15 @@ inline result_t GetArgumentValue(v8::Local<v8::Value> v, v8::Local<v8::Function>
 }
 
 template <typename T>
-inline result_t GetArgumentValue(v8::Isolate* isolate, v8::Local<v8::Value> v, T& vr, bool bStrict = false)
+inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, T& vr, bool bStrict = false)
 {
     return GetArgumentValue(v, vr, bStrict);
 }
 
 template <typename T>
-inline result_t GetArgumentValue(v8::Local<v8::Value> v, T& n, bool bStrict = false)
+result_t GetConfigValue(Isolate* isolate, v8::Local<v8::Object> o, const char* key, T& n, bool bStrict = false)
 {
-    return GetArgumentValue(Isolate::current()->m_isolate, v, n, bStrict);
-}
-
-template <typename T>
-result_t GetConfigValue(v8::Isolate* isolate, v8::Local<v8::Object> o,
-    const char* key, T& n, bool bStrict = false)
-{
-    JSValue v = o->Get(isolate->GetCurrentContext(), NewString(isolate, key));
+    JSValue v = o->Get(isolate->context(), isolate->NewString(key));
     if (IsEmpty(v))
         return CALL_E_PARAMNOTOPTIONAL;
 
@@ -981,10 +974,9 @@ result_t GetConfigValue(v8::Isolate* isolate, v8::Local<v8::Object> o,
 }
 
 template <typename T>
-result_t GetConfigValue(v8::Isolate* isolate, v8::Local<v8::Array> o,
-    int32_t i, T& n, bool bStrict = false)
+result_t GetConfigValue(Isolate* isolate, v8::Local<v8::Array> o, int32_t i, T& n, bool bStrict = false)
 {
-    JSValue v = o->Get(isolate->GetCurrentContext(), i);
+    JSValue v = o->Get(isolate->context(), i);
     if (IsEmpty(v))
         return CALL_E_PARAMNOTOPTIONAL;
 
@@ -993,70 +985,71 @@ result_t GetConfigValue(v8::Isolate* isolate, v8::Local<v8::Array> o,
 
 result_t CheckConfig(v8::Local<v8::Object> opts, const char** keys);
 
-inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, int32_t v)
+inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, int32_t v)
 {
-    return v8::Int32::New(isolate, v);
+    return v8::Int32::New(isolate->m_isolate, v);
 }
 
-inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, bool v)
+inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, bool v)
 {
-    return v ? v8::True(isolate) : v8::False(isolate);
+    return v ? v8::True(isolate->m_isolate) : v8::False(isolate->m_isolate);
 }
 
-inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, double v)
+inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, double v)
 {
-    return v8::Number::New(isolate, v);
+    return v8::Number::New(isolate->m_isolate, v);
 }
 
-inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, int64_t v)
+inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, int64_t v)
 {
-    return v8::BigInt::New(isolate, v);
+    return v8::BigInt::New(isolate->m_isolate, v);
 }
 
-inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, exlib::string& str)
+inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, exlib::string& str)
 {
-    return NewString(isolate, str);
+    return isolate->NewString(str);
 }
 
-inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, date_t& v)
+inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, date_t& v)
 {
-    return v.value(isolate);
+    return v.value(isolate->m_isolate);
 }
 
-inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, Variant& v)
+inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, Variant& v)
 {
     return v;
 }
 
-inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, v8::Local<v8::Object>& obj)
+inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, v8::Local<v8::Object>& obj)
 {
     return obj;
 }
 
-inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, v8::Local<v8::Array>& array)
+inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, v8::Local<v8::Array>& array)
 {
     return array;
 }
 
-inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, v8::Local<v8::Value>& value)
+inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, v8::Local<v8::Value>& value)
 {
     return value;
 }
 
-inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, v8::Local<v8::Function>& func)
+inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, v8::Local<v8::Function>& func)
 {
     return func;
 }
 
-inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, v8::Local<v8::ArrayBuffer>& array)
+inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, v8::Local<v8::ArrayBuffer>& array)
 {
     return array;
 }
 
 template <class T>
-inline v8::Local<v8::Value> GetReturnValue(v8::Isolate* isolate, obj_ptr<T>& obj)
+inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, obj_ptr<T>& obj)
 {
     v8::Local<v8::Value> v;
+    obj->holder(isolate);
     obj->valueOf(v);
     return v;
 }

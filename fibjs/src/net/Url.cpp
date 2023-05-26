@@ -457,36 +457,36 @@ result_t Url::format(v8::Local<v8::Object> args)
     exlib::string str;
     JSValue v;
 
-    if (GetConfigValue(isolate->m_isolate, args, "protocol", str, true) >= 0)
+    if (GetConfigValue(isolate, args, "protocol", str, true) >= 0)
         set_protocol(str);
 
-    if (GetConfigValue(isolate->m_isolate, args, "username", str, true) >= 0)
+    if (GetConfigValue(isolate, args, "username", str, true) >= 0)
         set_username(str);
-    if (GetConfigValue(isolate->m_isolate, args, "password", str, true) >= 0)
+    if (GetConfigValue(isolate, args, "password", str, true) >= 0)
         set_password(str);
 
-    if (GetConfigValue(isolate->m_isolate, args, "host", str, true) >= 0)
+    if (GetConfigValue(isolate, args, "host", str, true) >= 0)
         set__host(str);
 
-    if (GetConfigValue(isolate->m_isolate, args, "hostname", str, true) >= 0)
+    if (GetConfigValue(isolate, args, "hostname", str, true) >= 0)
         set_hostname(str);
-    if (GetConfigValue(isolate->m_isolate, args, "port", str) >= 0)
+    if (GetConfigValue(isolate, args, "port", str) >= 0)
         set_port(str);
 
-    if (GetConfigValue(isolate->m_isolate, args, "pathname", str, true) >= 0)
+    if (GetConfigValue(isolate, args, "pathname", str, true) >= 0)
         set_pathname(str);
 
     v = args->Get(context, holder()->NewString("query"));
     if (!IsEmpty(v))
         set_query(v);
 
-    if (GetConfigValue(isolate->m_isolate, args, "hash", str, true) >= 0)
+    if (GetConfigValue(isolate, args, "hash", str, true) >= 0)
         set_hash(str);
 
     if (m_slashes && m_protocol.compare("file:") && m_hostname.length() == 0)
         m_slashes = false;
 
-    GetConfigValue(isolate->m_isolate, args, "slashes", m_slashes, true);
+    GetConfigValue(isolate, args, "slashes", m_slashes, true);
 
     return 0;
 }
@@ -857,7 +857,7 @@ result_t Url::get_query(v8::Local<v8::Value>& retVal)
     if (m_queryParsed)
         retVal = m_queryParsed->wrap();
     else
-        retVal = GetReturnValue(holder()->m_isolate, m_query);
+        retVal = GetReturnValue(holder(), m_query);
 
     return 0;
 }

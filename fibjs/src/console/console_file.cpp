@@ -25,7 +25,7 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
     m_isolate = isolate;
 
     exlib::string path;
-    hr = GetConfigValue(isolate->m_isolate, o, "path", path);
+    hr = GetConfigValue(isolate, o, "path", path);
     if (hr < 0)
         return hr;
 
@@ -45,7 +45,7 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
     m_split_mode = 0;
 
     exlib::string split("1m");
-    hr = GetConfigValue(isolate->m_isolate, o, "split", split);
+    hr = GetConfigValue(isolate, o, "split", split);
     if (hr >= 0) {
         if ((split == "day"))
             m_split_mode = date_t::_DAY;
@@ -78,7 +78,7 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
     } else if (hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    hr = GetConfigValue(isolate->m_isolate, o, "count", m_count);
+    hr = GetConfigValue(isolate, o, "count", m_count);
     if (hr == CALL_E_PARAMNOTOPTIONAL)
         m_count = MAX_COUNT;
     else if (hr < 0)

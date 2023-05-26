@@ -276,7 +276,7 @@ inline void path_posix_base::s_static_toNamespacedPath(const v8::FunctionCallbac
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate));
+    OPT_ARG(v8::Local<v8::Value>, 0, v8::Undefined(isolate->m_isolate));
 
     hr = toNamespacedPath(v0, vr);
 

@@ -177,23 +177,19 @@ exlib::string ToString(v8::Isolate* isolate, v8::Local<v8::Value> v)
     return ToString(isolate, str);
 }
 
-result_t GetArgumentValue(v8::Local<v8::Value> v, exlib::string& n, bool bStrict)
+result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, exlib::string& n, bool bStrict)
 {
     if (v.IsEmpty())
         return CALL_E_TYPEMISMATCH;
 
     v8::Local<v8::String> str;
 
-    Isolate* isolate = Isolate::current();
-    if (!isolate)
-        return CALL_E_JAVASCRIPT;
-
     if (v->IsString())
         str = v8::Local<v8::String>::Cast(v);
     else if (v->IsStringObject())
         str = v8::Local<v8::StringObject>::Cast(v)->ValueOf();
     else if (!bStrict)
-        str = v->ToString(isolate->m_isolate->GetCurrentContext()).FromMaybe(v8::Local<v8::String>());
+        str = v->ToString(isolate->context()).FromMaybe(v8::Local<v8::String>());
     else
         return CALL_E_TYPEMISMATCH;
 

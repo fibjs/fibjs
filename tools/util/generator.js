@@ -16,11 +16,11 @@ const LOG_PREFIX = `[generator]`;
 const _formatParamDefaultValue = (param, member) => {
     if (param.default.value) {
         switch (param.default.value) {
-            case 'v8::Undefined(isolate)':
+            case 'v8::Undefined(isolate->m_isolate)':
                 return 'undefined'
-            case 'v8::Object::New(isolate)':
+            case 'v8::Object::New(isolate->m_isolate)':
                 return '{}'
-            case 'v8::Array::New(isolate)':
+            case 'v8::Array::New(isolate->m_isolate)':
                 return '[]'
             case 'NULL':
                 return 'null'

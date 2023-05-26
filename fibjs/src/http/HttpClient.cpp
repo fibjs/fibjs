@@ -928,7 +928,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
         ac->m_ctx.resize(5);
 
         exlib::string _method(method);
-        GetConfigValue(isolate->m_isolate, opts, "method", _method, true);
+        GetConfigValue(isolate, opts, "method", _method, true);
         ac->m_ctx[0] = _method;
 
         obj_ptr<Url> u = new Url();
@@ -947,7 +947,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
 
         ac->m_ctx[2] = map;
 
-        hr = GetConfigValue(isolate->m_isolate, opts, "headers", o);
+        hr = GetConfigValue(isolate, opts, "headers", o);
         if (hr >= 0) {
             JSArray ks = o->GetPropertyNames(context);
             int32_t len = ks->Length();
@@ -987,7 +987,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
                 stm = new MemoryStream();
 
                 o.Clear();
-                hr = GetArgumentValue(v, o);
+                hr = GetArgumentValue(isolate, v, o);
                 if (hr >= 0) {
                     exlib::string s;
                     hr = querystring_base::stringify(o, "&", "=", v8::Local<v8::Object>(), s);
@@ -997,7 +997,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
                     buf = new Buffer(s.c_str(), s.length());
                     map->add("Content-Type", "application/x-www-form-urlencoded");
                 } else {
-                    hr = GetArgumentValue(isolate->m_isolate, v, buf);
+                    hr = GetArgumentValue(isolate, v, buf);
                     if (hr < 0)
                         return hr;
                 }
@@ -1042,7 +1042,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
         ac->m_ctx[3] = stm;
 
         obj_ptr<SeekableStream_base> rsp_stm;
-        hr = GetConfigValue(isolate->m_isolate, opts, "response_body", rsp_stm);
+        hr = GetConfigValue(isolate, opts, "response_body", rsp_stm);
         if (hr >= 0)
             ac->m_ctx[4] = rsp_stm;
 

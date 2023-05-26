@@ -22,13 +22,13 @@ function def_value(v, o)
 
         switch(v)
         {
-        case 'v8::Undefined(isolate)':
+        case 'v8::Undefined(isolate->m_isolate)':
             v = 'undefined';
             break;
-        case 'v8::Object::New(isolate)':
+        case 'v8::Object::New(isolate->m_isolate)':
             v = '{}';
             break;
-        case 'v8::Array::New(isolate)':
+        case 'v8::Array::New(isolate->m_isolate)':
             v = '[]';
             break;
         }
