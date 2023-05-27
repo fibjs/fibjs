@@ -15,6 +15,7 @@
 
 namespace fibjs {
 
+extern bool g_track_native_object;
 class ClassInfo;
 
 struct ClassData {
@@ -270,12 +271,14 @@ public:
 public:
     void Ref()
     {
-        refs_.inc();
+        if (g_track_native_object)
+            refs_.inc();
     }
 
     void Unref()
     {
-        refs_.dec();
+        if (g_track_native_object)
+            refs_.dec();
     }
 
     ClassData& data()
