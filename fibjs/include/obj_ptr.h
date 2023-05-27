@@ -120,24 +120,25 @@ public:
     }
 
     obj_ptr(T* lp)
+        : p(_ref_ptr(lp))
     {
-        operator=(lp);
     }
 
     obj_ptr(const obj_ptr<T>& lp)
+        : p(_ref_ptr((T*)lp))
     {
-        operator=(lp);
     }
 
     template <class Q>
     obj_ptr(const obj_ptr<Q>& lp)
+        : p(_ref_ptr((Q*)lp))
     {
-        operator=(lp);
     }
 
     ~obj_ptr()
     {
-        Release();
+        if (p)
+            p->Unref();
     }
 
     T* operator=(T* lp)
@@ -145,10 +146,7 @@ public:
         if (lp == p)
             return lp;
 
-        if (lp != NULL)
-            lp->Ref();
-
-        return _attach(lp);
+        return _attach(_ref_ptr(lp));
     }
 
     T* operator=(const obj_ptr<T>& lp)
@@ -193,6 +191,14 @@ public:
     }
 
 private:
+    T* _ref_ptr(T* lp)
+    {
+        if (lp != NULL)
+            lp->Ref();
+
+        return lp;
+    }
+
     T* _attach(T* p2)
     {
         T* p1 = p.xchg(p2);
