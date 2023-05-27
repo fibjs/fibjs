@@ -550,6 +550,8 @@ result_t test_base::setup()
 {
     Isolate* isolate = Isolate::current();
 
+    g_track_native_object = true;
+
     v8::Local<v8::Context> _context = isolate->context();
     v8::Local<v8::Object> glob = _context->Global();
     v8::Local<v8::Function> func, func1;
