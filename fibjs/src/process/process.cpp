@@ -358,6 +358,8 @@ result_t process_base::memoryUsage(v8::Local<v8::Object>& retVal)
 
     v8::Local<v8::Object> objs;
     object_base::class_info().dump(objs);
+    if (objs.IsEmpty())
+        objs = v8::Object::New(isolate->m_isolate);
     info->Set(context, isolate->NewString("nativeObjects"), objs).IsJust();
     info->Set(context, isolate->NewString("ExtStrings"),
         v8::Number::New(isolate->m_isolate, (double)g_ExtStringCount.value())).IsJust();
