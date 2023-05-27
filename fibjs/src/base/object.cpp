@@ -20,10 +20,7 @@ v8::Local<v8::Object> object_base::wrap(Isolate* isolate, v8::Local<v8::Object> 
         if (o.IsEmpty())
             o = Classinfo().CreateInstance(isolate);
         handle_.Reset(v8_isolate, o);
-
-        if (!o->IsUint8Array())
-            o->SetAlignedPointerInInternalField(0, this);
-
+        o->SetAlignedPointerInInternalField(0, this);
         v8_isolate->AdjustAmountOfExternalAllocatedMemory(m_nExtMemory);
 
         internalRef();

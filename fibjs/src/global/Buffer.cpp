@@ -263,7 +263,6 @@ v8::Local<v8::Object> Buffer::wrap(Isolate* isolate, v8::Local<v8::Object> This)
         }
 
         ui->SetPrototype(context, proto).IsJust();
-        ui->SetAlignedPointerInInternalField(0, this);
 
         return object_base::wrap(isolate, ui);
     }
