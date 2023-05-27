@@ -141,15 +141,14 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
             do {
                 v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
 
-                obj_ptr<Buffer_base> buf = Buffer_base::getInstance(v);
+                obj_ptr<Buffer> buf = Buffer::getInstance(v);
                 if (buf) {
                     static char hexs[] = "0123456789abcdef";
                     exlib::string s;
                     int32_t i, p;
 
-                    Buffer* buff = Buffer::Cast(buf);
-                    const uint8_t* data = buff->data();
-                    int32_t len = buff->length();
+                    const uint8_t* data = buf->data();
+                    int32_t len = buf->length();
 
                     if (len <= MAX_BUFFER_ITEM)
                         s.resize(len * 3 + 8);

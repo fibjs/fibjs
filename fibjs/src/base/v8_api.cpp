@@ -109,7 +109,7 @@ void* get_instance_pointer(Local<Object> o, uint16_t buffer_type)
     i::Address obj = *reinterpret_cast<i::Address*>(*o);
     auto instance_type = i::Internals::GetInstanceType(obj);
 
-    if (instance_type == i::Internals::kJSSpecialApiObjectType
+    if ((instance_type == i::Internals::kJSSpecialApiObjectType && o->InternalFieldCount() == 1)
         || (instance_type >= kObjectType && instance_type < kLastObjectType)) {
         int offset = i::Internals::kJSObjectHeaderSize + i::Internals::kEmbedderDataSlotExternalPointerOffset;
         Isolate* isolate = i::Internals::GetIsolateForSandbox(obj);
