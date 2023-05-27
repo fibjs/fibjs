@@ -60,14 +60,11 @@ void encodeValue(Isolate* isolate, bson* bb, const char* name, v8::Local<v8::Val
         bson_append_regex(bb, name, isolate->toString(src).c_str(), flgStr);
     } else if (element->IsObject()) {
         {
-            obj_ptr<Buffer_base> buf = Buffer_base::getInstance(element);
+            obj_ptr<Buffer> buf = Buffer::getInstance(element);
 
             if (buf) {
-                exlib::string strBuf;
-
-                buf->toString(strBuf);
-                bson_append_binary(bb, name, BSON_BIN_BINARY, strBuf.c_str(),
-                    (int32_t)strBuf.length());
+                bson_append_binary(bb, name, BSON_BIN_BINARY, (const char*)buf->data(),
+                    (int32_t)buf->length());
 
                 return;
             }

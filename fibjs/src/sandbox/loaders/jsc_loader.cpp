@@ -8,6 +8,7 @@
 #include "object.h"
 #include "path.h"
 #include "SandBox.h"
+#include "Buffer.h"
 #include "ifs/zlib.h"
 #include "ifs/util.h"
 #include "loaders.h"
@@ -31,18 +32,17 @@ result_t JscLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::stri
     exlib::string pname;
     path_base::dirname(name, pname);
 
-    exlib::string code;
-    unz->toString(code);
+    Buffer* code = Buffer::Cast(unz);
 
-    int32_t code_len = (int32_t)code.length() - sizeof(int32_t);
+    int32_t code_len = (int32_t)code->length() - sizeof(int32_t);
 
-    if (*(int32_t*)(code.c_str() + code_len) != jsc_version)
+    if (*(int32_t*)(code->data() + code_len) != jsc_version)
         return CHECK_ERROR(Runtime::setError("SandBox: bad jsc version."));
 
     code_len -= sizeof(int32_t);
 
     exlib::string s_temp_source;
-    int32_t src_len = *(int32_t*)(code.c_str() + code_len);
+    int32_t src_len = *(int32_t*)(code->data() + code_len);
     int32_t i;
 
     s_temp_source.resize(src_len);
@@ -52,12 +52,12 @@ result_t JscLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::stri
         _temp_source[i] = '.';
 
     code_len -= sizeof(int32_t);
-    int32_t line_count = *(int32_t*)(code.c_str() + code_len);
+    int32_t line_count = *(int32_t*)(code->data() + code_len);
 
     code_len -= sizeof(int32_t) * line_count;
 
     int32_t pos = 0;
-    int32_t* p = (int32_t*)(code.c_str() + code_len);
+    int32_t* p = (int32_t*)(code->data() + code_len);
 
     for (i = 0; i < line_count; i++) {
         pos += p[i];
@@ -71,13 +71,14 @@ result_t JscLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::stri
         TryCatch try_catch;
 
         v8::ScriptCompiler::CachedData* cache;
-        cache = new v8::ScriptCompiler::CachedData((const uint8_t*)code.c_str(), code_len);
+        cache = new v8::ScriptCompiler::CachedData(code->data(), code_len);
 
         v8::ScriptCompiler::Source source(isolate->NewString(s_temp_source),
             v8::ScriptOrigin(isolate->m_isolate, soname), cache);
 
         script = v8::ScriptCompiler::Compile(isolate->context(), &source,
-            v8::ScriptCompiler::kConsumeCodeCache).FromMaybe(v8::Local<v8::Script>());
+            v8::ScriptCompiler::kConsumeCodeCache)
+                     .FromMaybe(v8::Local<v8::Script>());
 
         if (script.IsEmpty())
             return throwSyntaxError(try_catch);

@@ -715,7 +715,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
             if (n == CALL_RETURN_NULL)
                 return CHECK_ERROR(Runtime::setError("HttpClient: connection reset by socks 5 server."));
 
-            obj_ptr<Buffer> buf = Buffer::Cast(m_buffer);
+            Buffer* buf = Buffer::Cast(m_buffer);
             const uint8_t* p = buf->data();
             if (buf->length() != 5 || p[0] != 5 || p[1] != 0)
                 return CHECK_ERROR(Runtime::setError("HttpClient: socks 5 connect failed."));

@@ -49,7 +49,7 @@ private:
         if (hr < 0 || hr == CALL_RETURN_NULL)
             return 0;
 
-        obj_ptr<Buffer> buff = Buffer::Cast(data);
+        Buffer* buff = Buffer::Cast(data);
         memcpy(buf, buff->data(), buff->length());
 
         return (uLong)buff->length();
@@ -674,7 +674,7 @@ result_t ZipFile::getFileCrc(SeekableStream_base* strm, uint32_t& crc)
         else if (hr < 0)
             return hr;
 
-        obj_ptr<Buffer> buff = Buffer::Cast(buf);
+        Buffer* buff = Buffer::Cast(buf);
         fileCrc = crc32(fileCrc, buff->data(), buff->length());
 
         if (!buff->length())

@@ -357,15 +357,14 @@ result_t Image::create(int32_t width, int32_t height, int32_t color)
 
 result_t Image::load(Buffer_base* data)
 {
-    exlib::string strBuf;
-    data->toString(strBuf);
-
-    if (strBuf.length() < 2)
+    Buffer* data_buf = Buffer::Cast(data);
+    if (data_buf->length() < 2)
         return CHECK_ERROR(CALL_E_INVALIDARG);
+    uint8_t* _data = data_buf->data();
 
     int32_t format;
-    unsigned char ch1 = (unsigned char)strBuf[0];
-    unsigned char ch2 = (unsigned char)strBuf[1];
+    unsigned char ch1 = _data[0];
+    unsigned char ch2 = _data[1];
 
     if (ch1 == 0x47 && ch2 == 0x49)
         format = gd_base::C_GIF;
@@ -384,20 +383,16 @@ result_t Image::load(Buffer_base* data)
 
     switch (format) {
     case gd_base::C_GIF:
-        m_image = gdImageCreateFromGifPtr((int32_t)strBuf.length(),
-            (void*)strBuf.c_str());
+        m_image = gdImageCreateFromGifPtr((int32_t)data_buf->length(), _data);
         break;
     case gd_base::C_PNG:
-        m_image = gdImageCreateFromPngPtr((int32_t)strBuf.length(),
-            (void*)strBuf.c_str());
+        m_image = gdImageCreateFromPngPtr((int32_t)data_buf->length(), _data);
         break;
     case gd_base::C_JPEG:
-        m_image = gdImageCreateFromJpegPtr((int32_t)strBuf.length(),
-            (void*)strBuf.c_str());
+        m_image = gdImageCreateFromJpegPtr((int32_t)data_buf->length(), _data);
         if (m_image != NULL) {
             EXIFInfo result;
-            result.parseFrom((const unsigned char*)strBuf.c_str(),
-                (uint32_t)strBuf.length());
+            result.parseFrom(_data, (uint32_t)data_buf->length());
 
             switch (result.Orientation) {
             case 2:
@@ -424,16 +419,13 @@ result_t Image::load(Buffer_base* data)
 
         break;
     case gd_base::C_TIFF:
-        m_image = gdImageCreateFromTiffPtr((int32_t)strBuf.length(),
-            (void*)strBuf.c_str());
+        m_image = gdImageCreateFromTiffPtr((int32_t)data_buf->length(), _data);
         break;
     case gd_base::C_BMP:
-        m_image = gdImageCreateFromBmpPtr((int32_t)strBuf.length(),
-            (void*)strBuf.c_str());
+        m_image = gdImageCreateFromBmpPtr((int32_t)data_buf->length(), _data);
         break;
     case gd_base::C_WEBP:
-        m_image = gdImageCreateFromWebpPtr((int32_t)strBuf.length(),
-            (void*)strBuf.c_str());
+        m_image = gdImageCreateFromWebpPtr((int32_t)data_buf->length(), _data);
         break;
     }
 

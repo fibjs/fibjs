@@ -175,9 +175,9 @@ result_t AsyncIO::connect(exlib::string host, int32_t port, AsyncEvent* ac, Time
 
                 if (SOCKET_ERROR
                     == WSAIoctl(m_s, SIO_GET_EXTENSION_FUNCTION_POINTER,
-                           &guidConnectEx, sizeof(guidConnectEx),
-                           &ConnectEx, sizeof(ConnectEx), &dwBytes, NULL,
-                           NULL)) {
+                        &guidConnectEx, sizeof(guidConnectEx),
+                        &ConnectEx, sizeof(ConnectEx), &dwBytes, NULL,
+                        NULL)) {
                     if (m_timer) {
                         m_timer->clear();
                         m_timer.Release();
@@ -276,8 +276,8 @@ result_t AsyncIO::accept(obj_ptr<Socket_base>& retVal, AsyncEvent* ac)
 
                 if (SOCKET_ERROR
                     == WSAIoctl(m_s, SIO_GET_EXTENSION_FUNCTION_POINTER,
-                           &guidAcceptEx, sizeof(guidAcceptEx), &AcceptEx,
-                           sizeof(AcceptEx), &dwBytes, NULL, NULL))
+                        &guidAcceptEx, sizeof(guidAcceptEx), &AcceptEx,
+                        sizeof(AcceptEx), &dwBytes, NULL, NULL))
                     return CHECK_ERROR(SocketError());
             }
 
@@ -434,12 +434,12 @@ result_t AsyncIO::write(Buffer_base* data, AsyncEvent* ac)
         asyncSend(SOCKET s, Buffer_base* data, AsyncEvent* ac, exlib::Locker& locker)
             : asyncProc(s, ac, locker)
         {
-            data->toString(m_buf);
-            m_p = m_buf.c_str();
-            m_sz = (int32_t)m_buf.length();
+            m_buf = Buffer::Cast(data);
+            m_p = (const char*)m_buf->data();
+            m_sz = (int32_t)m_buf->length();
 
             if (g_tcpdump)
-                outLog(console_base::C_WARN, clean_string(m_buf));
+                outLog(console_base::C_WARN, clean_string(m_p, m_sz));
         }
 
         virtual result_t process()
@@ -470,7 +470,7 @@ result_t AsyncIO::write(Buffer_base* data, AsyncEvent* ac)
         }
 
     public:
-        exlib::string m_buf;
+        obj_ptr<Buffer> m_buf;
         const char* m_p;
         int32_t m_sz;
     };

@@ -35,9 +35,14 @@ public:
         return static_cast<Buffer*>(buf);
     }
 
-    static Buffer* getInstance(object_base* expected)
+    static Buffer* getInstance(object_base* o)
     {
-        return dynamic_cast<Buffer*>(expected);
+        return static_cast<Buffer*>(Buffer_base::getInstance(o));
+    }
+
+    static Buffer* getInstance(v8::Local<v8::Value> o)
+    {
+        return static_cast<Buffer*>(Buffer_base::getInstance(o));
     }
 
 public:

@@ -50,16 +50,17 @@ public:
         char* pBuf;
 
         if (m_buffer != NULL) {
-            m_buffer->toString(m_body);
+            m_body_buf = Buffer::Cast(m_buffer);
+            m_body_length = m_body_buf->length();
             m_buffer.Release();
 
-            if (m_contentLength != (int32_t)m_body.length())
+            if (m_contentLength != (int32_t)m_body_length)
                 return CHECK_ERROR(Runtime::setError("HttpMessage: body is not complete."));
         }
 
         sz1 = m_pThis->size();
         m_strBuf = m_strCommand;
-        m_strBuf.resize(sz + sz1 + 2 + m_body.length());
+        m_strBuf.resize(sz + sz1 + 2 + m_body_length);
 
         pBuf = m_strBuf.c_buffer() + sz;
         *pBuf++ = '\r';
@@ -67,8 +68,8 @@ public:
 
         pBuf += m_pThis->getData(pBuf, sz1);
 
-        if (m_body.length() > 0)
-            memcpy(pBuf, m_body.c_str(), m_body.length());
+        if (m_body_length > 0)
+            memcpy(pBuf, m_body_buf->data(), m_body_length);
 
         m_buffer = new Buffer(m_strBuf.c_str(), m_strBuf.length());
         return m_stm->write(m_buffer, next(body));
@@ -76,7 +77,7 @@ public:
 
     ON_STATE(asyncSendTo, body)
     {
-        if (m_headerOnly || m_contentLength == 0 || m_body.length() > 0)
+        if (m_headerOnly || m_contentLength == 0 || m_body_length > 0)
             return next();
 
         m_pThis->body()->rewind();
@@ -96,7 +97,8 @@ public:
     obj_ptr<Buffer_base> m_buffer;
     int64_t m_contentLength;
     int64_t m_copySize;
-    exlib::string m_body;
+    size_t m_body_length = 0;
+    obj_ptr<Buffer> m_body_buf;
     exlib::string m_strCommand;
     const char* m_strStatus;
     int32_t m_nStatus;

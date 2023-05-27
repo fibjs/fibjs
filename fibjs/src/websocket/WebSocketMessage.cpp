@@ -152,7 +152,7 @@ result_t WebSocketMessage::copy(Stream_base* from, Stream_base* to, int64_t byte
             if (n == CALL_RETURN_NULL)
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
 
-            obj_ptr<Buffer> buf = Buffer::Cast(m_buf);
+            Buffer* buf = Buffer::Cast(m_buf);
             if (m_mask != 0) {
                 int32_t i, n;
                 uint8_t* mask = (uint8_t*)&m_mask;
@@ -362,9 +362,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncEvent
             uint8_t ch;
             int32_t sz = 0;
 
-            obj_ptr<Buffer> buf = Buffer::Cast(m_buffer);
-            m_buffer.Release();
-
+            Buffer* buf = Buffer::Cast(m_buffer);
             const uint8_t* data = buf->data();
 
             ch = data[0];
@@ -411,6 +409,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncEvent
             else if (m_size == 127)
                 sz += 8;
 
+            m_buffer.Release();
             if (sz)
                 return m_stm->read(sz, m_buffer, next(extReady));
 
@@ -424,9 +423,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncEvent
                 return CHECK_ERROR(Runtime::setError("WebSocketMessage: payload processing failed."));
             }
 
-            obj_ptr<Buffer> buf = Buffer::Cast(m_buffer);
-            m_buffer.Release();
-
+            Buffer* buf = Buffer::Cast(m_buffer);
             const uint8_t* data = buf->data();
             int32_t pos = 0;
 
@@ -441,6 +438,7 @@ result_t WebSocketMessage::readFrom(Stream_base* stm, WebSocket* wss, AsyncEvent
             if (m_masked)
                 memcpy(&m_mask, data + pos, 4);
 
+            m_buffer.Release();
             return next(copy);
         }
 

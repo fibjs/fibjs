@@ -88,11 +88,9 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
             else if (codec == "buffer")
                 v = buf;
             else {
-                exlib::string b;
                 exlib::string s;
 
-                buf->toString(b);
-                if (commonEncode(codec, b, s) < 0)
+                if (buf->toString(codec, 0, s) < 0)
                     v = buf;
                 else
                     v = s;
@@ -247,11 +245,9 @@ result_t child_process_base::spawnSync(exlib::string command, v8::Local<v8::Arra
             else if (codec == "buffer")
                 v = buf;
             else {
-                exlib::string b;
                 exlib::string s;
 
-                buf->toString(b);
-                if (commonEncode(codec, b, s) < 0)
+                if (buf->toString(codec, 0, s) < 0)
                     v = buf;
                 else
                     v = s;

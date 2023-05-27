@@ -90,7 +90,7 @@ result_t MemoryStream::flush(AsyncEvent* ac)
 
 result_t MemoryStream::write(Buffer_base* data, AsyncEvent* ac)
 {
-    obj_ptr<Buffer> buf = Buffer::Cast(data);
+    Buffer* buf = Buffer::Cast(data);
     int64_t sz1, sz2;
 
     size(sz1);

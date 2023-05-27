@@ -124,7 +124,7 @@ result_t Buffer_base::from(v8::Local<v8::Array> datas, obj_ptr<Buffer_base>& ret
 
 result_t Buffer_base::from(Buffer_base* buffer, int32_t byteOffset, int32_t length, obj_ptr<Buffer_base>& retVal)
 {
-    obj_ptr<Buffer> buffer1 = Buffer::Cast(buffer);
+    Buffer* buffer1 = Buffer::Cast(buffer);
 
     if (byteOffset < 0)
         byteOffset = 0;
@@ -482,7 +482,7 @@ result_t Buffer::fill(const uint8_t* buf, size_t sz, int32_t offset, int32_t end
 
 result_t Buffer::fill(Buffer_base* v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal)
 {
-    obj_ptr<Buffer> v_data = Buffer::Cast(v);
+    Buffer* v_data = Buffer::Cast(v);
     result_t hr = fill(v_data->data(), v_data->length(), offset, end);
     if (hr < 0)
         return hr;
@@ -902,12 +902,9 @@ result_t Buffer::indexOf(Buffer_base* v, int32_t offset, int32_t& retVal)
     if (hr < 0)
         return CHECK_ERROR(hr);
 
-    obj_ptr<Buffer> v_data = Buffer::Cast(v);
-    exlib::string vstr;
-    v_data->toString(vstr);
-
+    Buffer* v_data = Buffer::Cast(v);
     const uint8_t* find = exlib::qmemmem(data() + offset, length() - offset,
-        (const uint8_t*)vstr.c_str(), vstr.length());
+        v_data->data(), v_data->length());
 
     retVal = find ? (int32_t)(find - data()) : -1;
     return 0;
@@ -977,7 +974,7 @@ result_t Buffer::equals(object_base* expected, bool& retVal)
 
 result_t Buffer::compare(Buffer_base* buf, int32_t& retVal)
 {
-    obj_ptr<Buffer> cmpdata = Buffer::Cast(buf);
+    Buffer* cmpdata = Buffer::Cast(buf);
     int32_t pos_length = (int32_t)length();
     int32_t neg_length = (int32_t)cmpdata->length();
 

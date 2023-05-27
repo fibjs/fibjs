@@ -102,7 +102,7 @@ result_t StringDecoder::utf16Text(Buffer_base* buf, int32_t offset, exlib::strin
 {
     uint8_t* chars_data = Buffer::Cast(m_lastChar)->data();
 
-    obj_ptr<Buffer> buff = Buffer::Cast(buf);
+    Buffer* buff = Buffer::Cast(buf);
     const uint8_t* buff_data = buff->data();
     exlib::wchar* ws = (exlib::wchar*)(buff_data + offset);
 
@@ -155,7 +155,7 @@ result_t StringDecoder::utf16End2(Buffer_base* buf, exlib::string& retVal)
 
 result_t StringDecoder::utf8FillLast(Buffer_base* buf, exlib::string& retVal)
 {
-    obj_ptr<Buffer> buff = Buffer::Cast(buf);
+    Buffer* buff = Buffer::Cast(buf);
     const uint8_t* buff_data = buff->data();
 
     int32_t b;
@@ -212,7 +212,7 @@ result_t StringDecoder::defaultFillLast(Buffer_base* buf, exlib::string& retVal)
 
 result_t StringDecoder::base64Text(Buffer_base* buf, int32_t offset, exlib::string& retVal)
 {
-    obj_ptr<Buffer> buff = Buffer::Cast(buf);
+    Buffer* buff = Buffer::Cast(buf);
     const uint8_t* buff_data = buff->data();
     uint8_t* chars_data = Buffer::Cast(m_lastChar)->data();
 

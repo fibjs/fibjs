@@ -294,7 +294,7 @@ result_t fs_base::write(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t
     }
 
     if (length > 0) {
-        obj_ptr<Buffer> buf = Buffer::Cast(buffer);
+        Buffer* buf = Buffer::Cast(buffer);
         int32_t sz = length;
         const uint8_t* p = buf->data() + offset;
 

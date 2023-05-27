@@ -79,7 +79,7 @@ namespace socket {
         if (hr == CALL_RETURN_NULL)
             return 0;
 
-        obj_ptr<Buffer> buf = Buffer::Cast(retVal);
+        Buffer* buf = Buffer::Cast(retVal);
         memcpy(buffer, buf->data(), buf->length());
 
         return (int32_t)buf->length();
@@ -108,7 +108,7 @@ namespace socket {
         if (hr == CALL_RETURN_NULL)
             return 0;
 
-        obj_ptr<Buffer> buf = Buffer::Cast(retVal);
+        Buffer* buf = Buffer::Cast(retVal);
         if ((int32_t)buf->length() < cbBuffer)
             return -1;
 

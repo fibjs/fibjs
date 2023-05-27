@@ -424,63 +424,61 @@ result_t commonDecode(exlib::string codec, exlib::string data, exlib::string& re
 
 result_t multibase_base::encode(Buffer_base* data, exlib::string codec, exlib::string& retVal)
 {
-    exlib::string strData;
     exlib::string strBuffer;
-
-    data->toString(strData);
+    Buffer* data_buf = Buffer::Cast(data);
 
     if ((codec == "base16")) {
-        hexEncode(strData, false, strBuffer);
+        hexEncode((const char*)data_buf->data(), data_buf->length(), false, strBuffer);
         retVal.assign(1, 'f');
         retVal.append(strBuffer);
         return 0;
     } else if ((codec == "base16upper")) {
-        hexEncode(strData, true, strBuffer);
+        hexEncode((const char*)data_buf->data(), data_buf->length(), true, strBuffer);
         retVal.assign(1, 'F');
         retVal.append(strBuffer);
         return 0;
     } else if ((codec == "base32")) {
-        base32Encode(strData.c_str(), strData.length(), false, false, strBuffer);
+        base32Encode((const char*)data_buf->data(), data_buf->length(), false, false, strBuffer);
         retVal.assign(1, 'b');
         retVal.append(strBuffer);
         return 0;
     } else if ((codec == "base32upper")) {
-        base32Encode(strData.c_str(), strData.length(), true, false, strBuffer);
+        base32Encode((const char*)data_buf->data(), data_buf->length(), true, false, strBuffer);
         retVal.assign(1, 'B');
         retVal.append(strBuffer);
         return 0;
     } else if ((codec == "base32pad")) {
-        base32Encode(strData.c_str(), strData.length(), false, true, strBuffer);
+        base32Encode((const char*)data_buf->data(), data_buf->length(), false, true, strBuffer);
         retVal.assign(1, 'c');
         retVal.append(strBuffer);
         return 0;
     } else if ((codec == "base32padupper")) {
-        base32Encode(strData.c_str(), strData.length(), true, true, strBuffer);
+        base32Encode((const char*)data_buf->data(), data_buf->length(), true, true, strBuffer);
         retVal.assign(1, 'C');
         retVal.append(strBuffer);
         return 0;
     } else if ((codec == "base58btc")) {
-        base58Encode(strData.c_str(), strData.length(), strBuffer);
+        base58Encode((const char*)data_buf->data(), data_buf->length(), strBuffer);
         retVal.assign(1, 'z');
         retVal.append(strBuffer);
         return 0;
     } else if ((codec == "base64")) {
-        base64Encode(strData.c_str(), strData.length(), false, false, strBuffer);
+        base64Encode((const char*)data_buf->data(), data_buf->length(), false, false, strBuffer);
         retVal.assign(1, 'm');
         retVal.append(strBuffer);
         return 0;
     } else if ((codec == "base64pad")) {
-        base64Encode(strData.c_str(), strData.length(), false, true, strBuffer);
+        base64Encode((const char*)data_buf->data(), data_buf->length(), false, true, strBuffer);
         retVal.assign(1, 'M');
         retVal.append(strBuffer);
         return 0;
     } else if ((codec == "base64url")) {
-        base64Encode(strData.c_str(), strData.length(), true, false, strBuffer);
+        base64Encode((const char*)data_buf->data(), data_buf->length(), true, false, strBuffer);
         retVal.assign(1, 'u');
         retVal.append(strBuffer);
         return 0;
     } else if ((codec == "base64urlpad")) {
-        base64Encode(strData.c_str(), strData.length(), true, true, strBuffer);
+        base64Encode((const char*)data_buf->data(), data_buf->length(), true, true, strBuffer);
         retVal.assign(1, 'U');
         retVal.append(strBuffer);
         return 0;

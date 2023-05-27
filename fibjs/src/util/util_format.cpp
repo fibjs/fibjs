@@ -147,7 +147,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
                     exlib::string s;
                     int32_t i, p;
 
-                    obj_ptr<Buffer> buff = Buffer::Cast(buf);
+                    Buffer* buff = Buffer::Cast(buf);
                     const uint8_t* data = buff->data();
                     int32_t len = buff->length();
 
