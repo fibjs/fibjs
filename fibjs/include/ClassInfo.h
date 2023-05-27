@@ -107,40 +107,21 @@ public:
     v8::Local<v8::Function> getFunction(Isolate* isolate)
     {
         assert(!m_cd.module);
-
-        cache* _cache = _init(isolate);
-        return _cache->m_function.Get(isolate->m_isolate);
+        return _init(isolate)->m_function.Get(isolate->m_isolate);
     }
 
     v8::Local<v8::Object> getModule(Isolate* isolate)
     {
-        cache* _cache = _init(isolate);
-
         if (m_cd.module)
-            return _cache->m_cache.Get(isolate->m_isolate);
+            return _init(isolate)->m_cache.Get(isolate->m_isolate);
         else
-            return _cache->m_function.Get(isolate->m_isolate);
+            return _init(isolate)->m_function.Get(isolate->m_isolate);
     }
 
     v8::Local<v8::Object> CreateInstance(Isolate* isolate)
     {
         assert(!m_cd.module);
-
-        v8::Local<v8::Object> o;
-        cache* _cache = _init(isolate);
-
-        if (_cache->m_cache.IsEmpty()) {
-            o = _cache->m_function.Get(isolate->m_isolate)
-                    ->NewInstance(isolate->context())
-                    .FromMaybe(v8::Local<v8::Object>());
-            o->SetAlignedPointerInInternalField(0, 0);
-            _cache->m_cache.Reset(isolate->m_isolate, o);
-
-            o = o->Clone();
-        } else
-            o = _cache->m_cache.Get(isolate->m_isolate)->Clone();
-
-        return o;
+        return _init(isolate)->m_cache.Get(isolate->m_isolate)->Clone();
     }
 
     bool isInstance(ClassInfo& ci)
@@ -418,15 +399,13 @@ private:
             v8::Local<v8::Function> _function = _class->GetFunction(context).FromMaybe(v8::Local<v8::Function>());
             _cache->m_function.Reset(isolate->m_isolate, _function);
 
-            if (m_cd.cor) {
-                v8::Local<v8::Object> o = _function->NewInstance(isolate->context()).FromMaybe(v8::Local<v8::Object>());
+            v8::Local<v8::Object> o = _function->NewInstance(isolate->context()).FromMaybe(v8::Local<v8::Object>());
 
-                if (get_instance_type(o) == kFirstJSApiObjectType)
-                    set_instance_type(o, m_id + kObjectType);
+            if (get_instance_type(o) == kFirstJSApiObjectType)
+                set_instance_type(o, m_id + kObjectType);
 
-                o->SetAlignedPointerInInternalField(0, 0);
-                _cache->m_cache.Reset(isolate->m_isolate, o);
-            }
+            o->SetAlignedPointerInInternalField(0, 0);
+            _cache->m_cache.Reset(isolate->m_isolate, o);
 
             Attach(isolate, _function);
         } else {
