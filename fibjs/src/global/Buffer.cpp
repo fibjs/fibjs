@@ -235,13 +235,7 @@ v8::Local<v8::Object> Buffer::wrap(Isolate* isolate, v8::Local<v8::Object> This)
 {
     if (!hasJSHandle()) {
         v8::Local<v8::Context> context = isolate->context();
-        v8::Local<v8::ArrayBuffer> buf;
-
-        if (m_buf.IsEmpty()) {
-            buf = v8::ArrayBuffer::New(isolate->m_isolate, m_store);
-            m_buf.Reset(isolate->m_isolate, buf);
-        } else
-            buf = m_buf.Get(isolate->m_isolate);
+        v8::Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate->m_isolate, m_store);
 
         v8::Local<v8::Object> proto;
         v8::Local<v8::Uint8Array> ui;

@@ -128,7 +128,6 @@ public:
 
 private:
     std::shared_ptr<v8::BackingStore> m_store;
-    v8::Global<v8::ArrayBuffer> m_buf;
 };
 
 }
