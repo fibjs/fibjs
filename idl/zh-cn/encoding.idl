@@ -41,6 +41,26 @@ module encoding
     /*! @brief iconv 编码与解码模块 */
     static iconv;
 
+    /*! @brief 判断指定的编码是否支持
+     @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
+     @return 返回编码是否支持
+    */
+    static Boolean isEncoding(String codec);
+
+    /*! @brief 将 Buffer 编码为字符串
+     @param data 初始化字符串，字符串将以 utf-8 格式写入
+     @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集，缺省为 "utf8"
+     @return 返回编码的字符串
+    */
+    static String encode(Buffer data, String codec = "utf8");
+
+    /*! @brief 将字符串解码为 Buffer
+     @param str 初始化字符串，字符串将以 utf-8 格式写入
+     @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集，缺省为 "utf8"
+     @return 返回解码的 Buffer
+    */
+    static Buffer decode(String str, String codec = "utf8");
+
     /*! @brief json 编码与解码模块 */
     static json;
 

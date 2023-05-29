@@ -5,6 +5,7 @@
 /// <reference path="../module/hex.d.ts" />
 /// <reference path="../module/multibase.d.ts" />
 /// <reference path="../module/iconv.d.ts" />
+/// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../module/json.d.ts" />
 /// <reference path="../module/msgpack.d.ts" />
 /**
@@ -62,6 +63,32 @@ declare module 'encoding' {
      * @description iconv 编码与解码模块 
      */
     const iconv: typeof import ('iconv');
+
+    /**
+     * @description 判断指定的编码是否支持
+     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
+     *      @return 返回编码是否支持
+     *     
+     */
+    function isEncoding(codec: string): boolean;
+
+    /**
+     * @description 将 Buffer 编码为字符串
+     *      @param data 初始化字符串，字符串将以 utf-8 格式写入
+     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集，缺省为 "utf8"
+     *      @return 返回编码的字符串
+     *     
+     */
+    function encode(data: Class_Buffer, codec?: string): string;
+
+    /**
+     * @description 将字符串解码为 Buffer
+     *      @param str 初始化字符串，字符串将以 utf-8 格式写入
+     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集，缺省为 "utf8"
+     *      @return 返回解码的 Buffer
+     *     
+     */
+    function decode(str: string, codec?: string): Class_Buffer;
 
     /**
      * @description json 编码与解码模块 

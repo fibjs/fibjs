@@ -422,6 +422,129 @@ result_t commonDecode(exlib::string codec, exlib::string data, exlib::string& re
     return 0;
 }
 
+result_t encoding_base::encode(Buffer_base* data, exlib::string codec, exlib::string& retVal)
+{
+    Buffer* _data = Buffer::Cast(data);
+
+    if ((codec == "utf8") || (codec == "utf-8") || (codec == "undefined"))
+        retVal.assign((const char*)_data->data(), _data->length());
+    else {
+        if ((codec == "hex"))
+            return hex_base::encode(data, retVal);
+        else if ((codec == "base32"))
+            return base32_base::encode(data, retVal);
+        else if ((codec == "base58"))
+            return base58_base::encode(data, retVal);
+        else if (codec == "base64")
+            return base64_base::encode(data, false, retVal);
+        else if (codec == "base64url")
+            return base64_base::encode(data, true, retVal);
+        else if ((codec == "ascii")) {
+            size_t i;
+            size_t sz = _data->length();
+            uint8_t* p = _data->data();
+
+            retVal.resize(sz);
+
+            char* _retVal = retVal.c_buffer();
+
+            for (i = 0; i < sz; i++)
+                _retVal[i] = p[i] & 0x7f;
+        } else
+            return iconv_base::decode(codec, data, retVal);
+    }
+
+    return 0;
+}
+
+inline bool is_native_codec(exlib::string codec)
+{
+    return (codec == "hex")
+        || (codec == "base32") || (codec == "base58")
+        || (codec == "base64") || (codec == "base64url")
+
+        || (codec == "utf8") || (codec == "utf-8")
+
+        || (codec == "ucs2") || (codec == "ucs-2")
+        || (codec == "utf16") || (codec == "utf-16")
+
+        || (codec == "ucs2le") || (codec == "ucs-2le")
+        || (codec == "utf16le") || (codec == "utf-16le")
+
+        || (codec == "ucs2be") || (codec == "ucs-2be")
+        || (codec == "utf16be") || (codec == "utf-16be")
+
+        || (codec == "ucs4") || (codec == "ucs-4")
+        || (codec == "utf32") || (codec == "utf-32")
+
+        || (codec == "ucs4le") || (codec == "ucs-4le")
+        || (codec == "utf32le") || (codec == "utf-32le")
+
+        || (codec == "ucs4be") || (codec == "ucs-4be")
+        || (codec == "utf32be") || (codec == "utf-32be")
+
+        || (codec == "binary") || (codec == "latin1");
+}
+
+inline bool static_is_safe_codec(exlib::string codec)
+{
+    Isolate* isolate = NULL;
+    Runtime* rt = Runtime::current();
+    if (rt)
+        isolate = rt->safe_isolate();
+
+    return (isolate && !isolate->m_safe_buffer) || is_native_codec(codec);
+}
+
+result_t encoding_base::isEncoding(exlib::string codec, bool& retVal)
+{
+    if (!static_is_safe_codec(codec)) {
+        retVal = false;
+        return 0;
+    }
+
+    if ((codec == "utf8") || (codec == "utf-8") || (codec == "hex")
+        || (codec == "base32") || (codec == "base58")
+        || (codec == "base64") || (codec == "base64url")) {
+        retVal = true;
+    } else {
+        iconv_base::isEncoding(codec, retVal);
+    }
+    return 0;
+}
+
+result_t encoding_base::decode(exlib::string str, exlib::string codec, obj_ptr<Buffer_base>& retVal)
+{
+    if ((codec == "utf8") || (codec == "utf-8") || (codec == "undefined"))
+        retVal = new Buffer(str.c_str(), str.length());
+    else {
+        if ((codec == "hex"))
+            return hex_base::decode(str, retVal);
+        else if ((codec == "base32"))
+            return base32_base::decode(str, retVal);
+        else if ((codec == "base58"))
+            return base58_base::decode(str, retVal);
+        else if ((codec == "base64") || (codec == "base64url"))
+            return base64_base::decode(str, retVal);
+        else if ((codec == "ascii")) {
+            size_t i;
+            size_t sz = str.length();
+            const char* p = str.c_str();
+
+            Buffer* _data = new Buffer(NULL, sz);
+            uint8_t* _retVal = _data->data();
+
+            for (i = 0; i < sz; i++)
+                _retVal[i] = p[i] & 0x7f;
+
+            retVal = _data;
+        } else
+            return iconv_base::encode(codec, str, retVal);
+    }
+
+    return 0;
+}
+
 result_t multibase_base::encode(Buffer_base* data, exlib::string codec, exlib::string& retVal)
 {
     exlib::string strBuffer;
