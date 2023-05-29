@@ -187,6 +187,8 @@ typedef int32_t result_t;
 
 #define STREAM_BUFF_SIZE 65536
 
+const int32_t kObjectPrototype = 0;
+
 #if 0
 #define V8_SCOPE(isolate) v8::EscapableHandleScope handle_scope(isolate)
 #define V8_RETURN(v) handle_scope.Escape(v)
@@ -875,7 +877,7 @@ inline bool IsJSObject(v8::Local<v8::Value> v)
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
     v8::Local<v8::Context> _context = o->GetCreationContextChecked();
-    JSValue proto = _context->GetEmbedderData(1);
+    JSValue proto = _context->GetEmbedderData(kObjectPrototype);
     if (!proto->Equals(_context, o->GetPrototype()).FromMaybe(false))
         return false;
 
