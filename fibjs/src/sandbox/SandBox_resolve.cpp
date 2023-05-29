@@ -28,7 +28,7 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
         data = new Buffer();
         hr = 0;
     } else
-        data = Buffer_base::getInstance(var);
+        data = (Buffer_base*)var.object();
 
     return hr;
 }
