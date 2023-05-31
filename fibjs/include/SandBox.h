@@ -73,6 +73,7 @@ public:
 
 
     void installBuffer();
+    void attachBuffer();
 
 public:
     class Context {

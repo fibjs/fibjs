@@ -47,6 +47,8 @@ result_t SandBox_base::_new(v8::Local<v8::Object> mods, v8::Local<v8::Function> 
 
     if (!global.IsEmpty())
         sbox->initGlobal(global);
+    else
+        sbox->attachBuffer();
 
     if (!require.IsEmpty())
         sbox->initRequire(require);
@@ -114,6 +116,39 @@ void SandBox::initGlobal(v8::Local<v8::Object> global)
 RootModule* RootModule::g_root = NULL;
 RootModule* RootModule::g_last = NULL;
 
+void SandBox::attachBuffer()
+{
+    Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Value> _buffer = context->GetEmbedderData(kBufferClassIndex);
+
+    InstallModule("buffer", _buffer);
+    InstallModule("node:buffer", _buffer);
+}
+
+void SandBox::installBuffer()
+{
+    Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
+
+    v8::Local<v8::Object> _global = context->Global();
+    v8::Local<v8::Value> _buffer;
+
+    obj_ptr<SandBox> sbox = new SandBox(false);
+
+    sbox->InstallModule("encoding", encoding_base::class_info().getModule(isolate));
+    sbox->require("buffer", "/builtin", _buffer);
+
+    InstallModule("buffer", _buffer);
+    InstallModule("node:buffer", _buffer);
+
+    _global->Set(context, isolate->NewString("Buffer"), _buffer).IsJust();
+    v8::Local<v8::Object> js_buffer = _buffer.As<v8::Function>()->CallAsConstructor(context, 0, NULL).FromMaybe(v8::Local<v8::Value>()).As<v8::Object>();
+
+    context->SetEmbedderData(kBufferClassIndex, _buffer);
+    context->SetEmbedderData(kBufferPrototype, js_buffer->GetPrototype());
+}
+
 result_t SandBox::addBuiltinModules()
 {
     Isolate* isolate = holder();
@@ -139,29 +174,6 @@ result_t SandBox::addBuiltinModules()
     installBuffer();
 
     return 0;
-}
-
-void SandBox::installBuffer()
-{
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-
-    v8::Local<v8::Object> _global = context->Global();
-    v8::Local<v8::Value> _buffer;
-
-    obj_ptr<SandBox> sbox = new SandBox(false);
-
-    sbox->InstallModule("encoding", encoding_base::class_info().getModule(isolate));
-    sbox->require("buffer", "/builtin", _buffer);
-
-    InstallModule("buffer", _buffer);
-    InstallModule("node:buffer", _buffer);
-
-    _global->Set(context, isolate->NewString("Buffer"), _buffer).IsJust();
-    v8::Local<v8::Object> js_buffer = _buffer.As<v8::Function>()->CallAsConstructor(context, 0, NULL).FromMaybe(v8::Local<v8::Value>()).As<v8::Object>();
-
-    context->SetEmbedderData(kBufferClassIndex, _buffer);
-    context->SetEmbedderData(kBufferPrototype, js_buffer->GetPrototype());
 }
 
 result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)

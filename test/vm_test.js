@@ -612,9 +612,20 @@ describe("vm", () => {
     });
 
     it("modules(dict)", () => {
+        function get_modules(sbox) {
+            var mods = sbox.modules;
+
+            assert.equal(mods["buffer"], Buffer);
+            assert.equal(mods["node:buffer"], Buffer);
+            delete mods["buffer"];
+            delete mods["node:buffer"];
+
+            return mods;
+        }
+
         function assertSrcWithTarget(mods) {
             var sbox = new vm.SandBox(mods);
-            assert.deepEqual(mods, sbox.modules);
+            assert.deepEqual(mods, get_modules(sbox));
         }
 
         var modList = [];
@@ -667,12 +678,12 @@ describe("vm", () => {
         modList.forEach(mod => assertSrcWithTarget(mod))
 
         var sbox = new vm.SandBox(modList[0])
-        assert.deepEqual(modList[0], sbox.modules);
+        assert.deepEqual(modList[0], get_modules(sbox));
         sbox.add('123', {})
         assert.deepEqual({
             123: {},
             ...modList[0]
-        }, sbox.modules);
+        }, get_modules(sbox));
         sbox.addScript('123.js', "exports.__456 = {abc: 123}")
         assert.deepEqual({
             123: {},
@@ -682,7 +693,7 @@ describe("vm", () => {
                 },
             },
             ...modList[0]
-        }, sbox.modules)
+        }, get_modules(sbox))
     });
 
     xit("require.cache", () => {

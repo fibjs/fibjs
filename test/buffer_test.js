@@ -20,12 +20,12 @@ describe('Buffer', () => {
 
     it('sandbox', () => {
         var sbox = new vm.SandBox();
-        var b = sbox.addScript("t2.js", `var buf = new Buffer("abcd"); module.exports = {is_buffer: buf instanceof Buffer, is_uint8array: buf instanceof Uint8Array};`);
-        assert.deepEqual(b, { is_buffer: true, is_uint8array: true });
+        var b = sbox.addScript("t2.js", `var buffer = require('buffer');var buf = new Buffer("abcd"); module.exports = {is_buffer: buf instanceof Buffer, is_uint8array: buf instanceof Uint8Array, is_module: buffer === Buffer};`);
+        assert.deepEqual(b, { is_buffer: true, is_uint8array: true, is_module: true });
 
         var sbox1 = new vm.SandBox({}, {});
-        var b1 = sbox1.addScript("t2.js", `var buf = new Buffer("abcd"); module.exports = {is_buffer: buf instanceof Buffer, is_uint8array: buf instanceof Uint8Array};`);
-        assert.deepEqual(b1, { is_buffer: true, is_uint8array: true });
+        var b1 = sbox1.addScript("t2.js", `var buffer = require('buffer');var buf = new Buffer("abcd"); module.exports = {is_buffer: buf instanceof Buffer, is_uint8array: buf instanceof Uint8Array, is_module: buffer === Buffer};`);
+        assert.deepEqual(b1, { is_buffer: true, is_uint8array: true, is_module: true });
 
     });
 
