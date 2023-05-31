@@ -6,7 +6,7 @@
  */
 
 #include "object.h"
-#include "ifs/Buffer.h"
+#include "Buffer.h"
 
 namespace fibjs {
 
@@ -38,6 +38,20 @@ void* object_base::unwrap(v8::Local<v8::Value> o)
     if (o.IsEmpty() || !o->IsObject())
         return NULL;
     return get_instance_pointer(o.As<v8::Object>(), Buffer_base::class_info().getInstanceType());
+}
+
+result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<object_base>& vr, bool bStrict)
+{
+    vr = (object_base*)object_base::unwrap(v);
+    if (vr != NULL)
+        return 0;
+
+    if (IsJSBuffer(v)) {
+        vr = Buffer::getInstance(v);
+        return 0;
+    }
+
+    return CALL_E_TYPEMISMATCH;
 }
 
 }

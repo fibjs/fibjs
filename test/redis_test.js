@@ -176,7 +176,7 @@ describe("redis", () => {
             assert.isFalse(rdb.expire("test3", 100));
             assert.isTrue(rdb.expire("test2", 100));
 
-            assert.greaterThan(rdb.ttl("test2"), 0);
+            assert.greaterThan(new Number(rdb.ttl("test2")), 0);
 
             coroutine.sleep(150);
             assert.isFalse(rdb.exists("test2"));
@@ -184,7 +184,7 @@ describe("redis", () => {
 
         it("persist", () => {
             rdb.set("test", "aaa2", 100);
-            assert.greaterThan(rdb.ttl("test"), 0);
+            assert.greaterThan(new Number(rdb.ttl("test")), 0);
             assert.isTrue(rdb.persist("test"));
             assert.equal(rdb.ttl("test"), -1);
 
@@ -246,13 +246,13 @@ describe("redis", () => {
 
         it("dump", () => {
             rdb.set("greeting", "hello, dumping world!");
-            assert.equal(rdb.dump("greeting").hex(), "001568656c6c6f2c2064756d70696e6720776f726c642108006a60debd843e7775");
+            assert.equal(rdb.dump("greeting").hex(), "001568656c6c6f2c2064756d70696e6720776f726c64210a00d34d32022d27fd4d");
             assert.isNull(rdb.dump("greeting1"));
             rdb.del("greeting");
         });
 
         it("restore", () => {
-            rdb.restore("greeting", encoding.hex.decode("001568656c6c6f2c2064756d70696e6720776f726c642108006a60debd843e7775"));
+            rdb.restore("greeting", encoding.hex.decode("001568656c6c6f2c2064756d70696e6720776f726c64210a00d34d32022d27fd4d"));
             assert.equal(rdb.command("get", "greeting"), "hello, dumping world!");
         });
     });

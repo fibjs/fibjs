@@ -15,7 +15,6 @@ void importBuiltinModule()
     IMPORT_MODULE(base32);
     IMPORT_MODULE(base58);
     IMPORT_MODULE(base64);
-    IMPORT_MODULE(buffer);
     IMPORT_MODULE(child_process);
     IMPORT_MODULE(coroutine);
     IMPORT_MODULE(console);

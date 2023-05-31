@@ -6,8 +6,6 @@
 
 namespace fibjs {
 
-DECLARE_MODULE_EX(buffer, Buffer);
-
 inline result_t generateEnd(const int32_t buffer_length, const int32_t offset, int32_t& end)
 {
     if (end < 0)
@@ -222,46 +220,67 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
     return 0;
 }
 
-void Buffer::init(const void* data, size_t length)
-{
-    m_store = NewBackingStore(length);
-    if (data)
-        memcpy(Buffer::data(), data, Buffer::length());
-
-    extMemory(length);
-}
-
 v8::Local<v8::Object> Buffer::wrap(Isolate* isolate, v8::Local<v8::Object> This)
 {
     if (!hasJSHandle()) {
         v8::Local<v8::Context> context = isolate->context();
-        v8::Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate->m_isolate, m_store);
+        v8::Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate->m_isolate, m_store.m_store);
 
-        v8::Local<v8::Object> proto;
-        v8::Local<v8::Uint8Array> ui;
-        if (isolate->m_buffer_prototype.IsEmpty()) {
-            if (This.IsEmpty())
-                This = Classinfo().CreateInstance(isolate);
+        v8::Local<v8::Value> args[3] = {
+            buf,
+            v8::Integer::New(isolate->m_isolate, m_store.m_offset),
+            v8::Integer::New(isolate->m_isolate, m_store.m_length)
+        };
+        v8::Local<v8::Function> js_buffer_class = context->GetEmbedderData(kBufferClassIndex).As<v8::Function>();
+        v8::Local<v8::Value> js_buffer = js_buffer_class->CallAsConstructor(context, 3, args).FromMaybe(v8::Local<v8::Value>());
 
-            ui = v8::Uint8Array::New(buf, 0, m_store->ByteLength());
-
-            proto = This->GetPrototype().As<v8::Object>();
-            proto->SetPrototype(context, ui->GetPrototype()).IsJust();
-
-            set_instance_type(proto, Buffer_base::class_info().getInstanceType());
-
-            isolate->m_buffer_prototype.Reset(isolate->m_isolate, proto);
-        } else {
-            proto = isolate->m_buffer_prototype.Get(isolate->m_isolate);
-            ui = v8::Uint8Array::New(buf, 0, m_store->ByteLength());
-        }
-
-        ui->SetPrototype(context, proto).IsJust();
-
-        return object_base::wrap(isolate, ui);
+        if (js_buffer.IsEmpty())
+            return v8::Local<v8::Object>();
+        return js_buffer.As<v8::Object>();
     }
 
     return object_base::wrap(isolate);
+}
+
+Buffer* Buffer::getInstance(v8::Local<v8::Value> o)
+{
+    if (!IsJSBuffer(o))
+        return NULL;
+
+    return new Buffer(o.As<v8::Uint8Array>());
+}
+
+result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buffer_base>& vr, bool bStrict)
+{
+    if (v.IsEmpty() || v->IsNumber() || v->IsNumberObject())
+        return CALL_E_TYPEMISMATCH;
+
+    if (!IsJSBuffer(v)) {
+        if (bStrict)
+            return CALL_E_TYPEMISMATCH;
+
+        if (v->IsArrayBuffer()) {
+            vr = new Buffer(v.As<v8::ArrayBuffer>());
+            return 0;
+        }
+
+        if (v->IsString() || v->IsStringObject()) {
+            v8::Local<v8::String> str = v.As<v8::String>();
+            v8::String::Utf8Value utf8(isolate->m_isolate, str);
+            vr = new Buffer(*utf8, utf8.length());
+            return 0;
+        }
+
+        if (v->IsArray())
+            return Buffer_base::from(v.As<v8::Array>(), vr);
+
+        if (!v->IsUint8Array())
+            return CALL_E_TYPEMISMATCH;
+    }
+
+    vr = new Buffer(v.As<v8::Uint8Array>());
+
+    return 0;
 }
 
 inline bool is_native_codec(exlib::string codec)

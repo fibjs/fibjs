@@ -41,7 +41,7 @@ public:
     }
 
 public:
-    static exlib::string escape_binary(Buffer_base* bin)
+    static exlib::string escape_binary(Buffer* bin)
     {
         exlib::string retVal;
         exlib::string s;

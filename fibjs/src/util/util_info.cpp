@@ -142,6 +142,8 @@ result_t util_base::buildInfo(v8::Local<v8::Object>& retVal)
         RootModule* pModule = RootModule::g_root;
         intptr_t icnt = 0;
 
+        modules->Set(context, (int32_t)(icnt++), isolate->NewString("buffer")).IsJust();
+
         while (pModule) {
             modules->Set(context, (int32_t)(icnt++), isolate->NewString(pModule->name())).IsJust();
             pModule = pModule->m_next;

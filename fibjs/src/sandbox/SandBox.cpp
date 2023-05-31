@@ -133,6 +133,18 @@ result_t SandBox::addBuiltinModules()
         pModule = pModule->m_next;
     }
 
+    v8::Local<v8::Object> _global = context->Global();
+    v8::Local<v8::Value> _buffer;
+
+    require("buffer", "/builtin", _buffer);
+    InstallModule("node:buffer", _buffer);
+
+    _global->Set(context, isolate->NewString("Buffer"), _buffer).IsJust();
+    v8::Local<v8::Object> js_buffer = _buffer.As<v8::Function>()->CallAsConstructor(context, 0, NULL).FromMaybe(v8::Local<v8::Value>()).As<v8::Object>();
+
+    context->SetEmbedderData(kBufferClassIndex, _buffer);
+    context->SetEmbedderData(kBufferPrototype, js_buffer->GetPrototype());
+
     return 0;
 }
 

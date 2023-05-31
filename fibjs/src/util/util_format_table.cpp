@@ -244,8 +244,7 @@ inline void append_value(exlib::string& str, int32_t width, int32_t max_width, S
 
 exlib::string object_format(v8::Local<v8::Value> v, bool color, bool l2 = false)
 {
-    obj_ptr<Buffer_base> _buf = Buffer_base::getInstance(v);
-    if (_buf)
+    if (IsJSBuffer(v))
         return json_format(v, color, 2);
 
     Isolate* isolate = Isolate::current();

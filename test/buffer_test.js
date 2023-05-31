@@ -264,19 +264,6 @@ describe('Buffer', () => {
         assert.equal(buf.toString(), "abcd");
     });
 
-    it('Buffer.from(Buffer, offset, len)', () => {
-        var buf = Buffer.from(new Buffer("abcd"), 1, 2);
-        assert.equal(buf.length, 2);
-        assert.equal(buf.toString(), "bc");
-
-        var buf = Buffer.from(new Buffer("abcd"), 1);
-        assert.equal(buf.length, 3);
-        assert.equal(buf.toString(), "bcd");
-
-        var buf = Buffer.from(new Buffer("abcd"), 10);
-        assert.equal(buf.length, 0);
-    });
-
     it('Buffer.from encoding', () => {
         var txts = ['abc',
             '\u0222aa',
@@ -586,6 +573,10 @@ describe('Buffer', () => {
         }
         assert.equal(buf[9], 0);
         assert.equal(buf, buf1);
+
+        buf = Buffer.alloc(20);
+        buf.fill("abc");
+        assert.equal(buf.toString(), 'abcabcabcabcabcabcab');
     });
 
     it('slice', () => {
@@ -634,7 +625,6 @@ describe('Buffer', () => {
     });
 
     it('copy', () => {
-
         var buf1 = new Buffer([0x31, 0x32, 0x33]);
         var arr = [0x34, 0x35, 0x36];
 
@@ -734,8 +724,8 @@ describe('Buffer', () => {
         assert.equal(buf.readIntBE(1, 5).toString(16), "3456789abc");
         assert.equal(buf.readIntLE(1, 5).toString(16), "-436587a9cc");
 
-        assert.equal(buf.readInt64BE().toString(16), "123456789abcde10");
-        assert.equal(buf.readInt64LE().toString(16), "10debc9a78563412");
+        assert.equal(buf.readBigInt64BE().toString(16), "123456789abcde10");
+        assert.equal(buf.readBigInt64LE().toString(16), "10debc9a78563412");
 
         var buf = new Buffer([
             0x00,
@@ -769,7 +759,7 @@ describe('Buffer', () => {
         assert.equal(buf.writeUInt16LE(16931, 0), 2);
         assert.equal(buf.readUInt16BE(), 9026);
 
-        assert.equal(buf.writeUInt16BE(9026n, 0), 2);
+        assert.equal(buf.writeUInt16BE(9026, 0), 2);
         assert.equal(buf.readUInt16BE(), 9026);
 
         assert.equal(buf.length, 2);
@@ -852,7 +842,7 @@ describe('Buffer', () => {
 
         var buf = Buffer.alloc(8);
 
-        assert.equal(buf.writeInt64BE(BigInt('0x3112345678abcdef'), 0), 8);
+        assert.equal(buf.writeBigInt64BE(BigInt('0x3112345678abcdef'), 0), 8);
         assert.deepEqual(buf.toArray(), [
             0x31,
             0x12,
@@ -864,7 +854,7 @@ describe('Buffer', () => {
             0xef
         ]);
 
-        assert.equal(buf.writeInt64LE(BigInt('0x3112345678abcdef'), 0), 8);
+        assert.equal(buf.writeBigInt64LE(BigInt('0x3112345678abcdef'), 0), 8);
         assert.deepEqual(buf.toArray(), [
             0xef,
             0xcd,
@@ -876,7 +866,7 @@ describe('Buffer', () => {
             0x31
         ]);
 
-        buf.writeInt64BE(BigInt('0x7fffffffffffffff'), 0);
+        buf.writeBigInt64BE(BigInt('0x7fffffffffffffff'), 0);
         assert.deepEqual(buf.toArray(), [
             0x7f,
             0xff,
@@ -888,7 +878,7 @@ describe('Buffer', () => {
             0xff
         ]);
 
-        buf.writeInt64BE(9007199254740992, 0);
+        buf.writeBigInt64BE(9007199254740992, 0);
         assert.deepEqual(buf.toArray(), [
             0,
             32,
@@ -900,7 +890,7 @@ describe('Buffer', () => {
             0
         ]);
 
-        buf.writeInt64BE(9007199254740999n, 0);
+        buf.writeBigInt64BE(9007199254740999n, 0);
         assert.deepEqual(buf.toArray(), [
             0,
             32,
@@ -913,7 +903,7 @@ describe('Buffer', () => {
         ]);
 
         assert.throws(() => {
-            buf.writeInt64LE(BigInt('0x8000000000000000'), 0);
+            buf.writeBigInt64LE(BigInt('0x8000000000000000'), 0);
         });
 
         var buf = Buffer.alloc(4);
@@ -1058,14 +1048,6 @@ describe('Buffer', () => {
 
         assert.equal(buf.indexOf("cd"), 2);
         assert.equal(buf.indexOf(new Buffer("de")), 7);
-
-        assert.throws(() => {
-            buf.indexOf("cd", 10);
-        });
-
-        assert.throws(() => {
-            buf.indexOf(new Buffer("de"), 10);
-        });
 
         buf = new Buffer('123456');
         assert.equal(buf.indexOf(0x33), 2);

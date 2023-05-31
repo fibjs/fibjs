@@ -418,9 +418,9 @@ describe('encoding', () => {
             buf.writeUInt32LE(d[0]);
             var s = iconv.decode('utf32le', buf);
             var buf2 = Buffer.alloc(s.length * 2);
-            buf2.writeInt16LE(s.charCodeAt(0));
+            buf2.writeUInt16LE(s.charCodeAt(0));
             if (s.length > 1)
-                buf2.writeInt16LE(s.charCodeAt(1), 2);
+                buf2.writeUInt16LE(s.charCodeAt(1), 2);
             assert.equal(iconv.decode('utf16le', buf2), s);
         });
     });

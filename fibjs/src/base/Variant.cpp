@@ -8,6 +8,7 @@
 #include <math.h>
 #include "object.h"
 #include "ifs/json.h"
+#include "Buffer.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
@@ -56,6 +57,8 @@ Variant& Variant::operator=(v8::Local<v8::Value> v)
 
         if (obj)
             return operator=(obj);
+        else if (IsJSBuffer(v))
+            return operator=(new Buffer(v.As<v8::Uint8Array>()));
         else {
             set_type(VT_JSValue);
 

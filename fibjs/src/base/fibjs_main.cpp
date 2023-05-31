@@ -33,6 +33,9 @@ result_t FiberProcJsEntry(Isolate* isolate)
     isolate->start_profiler();
     v8::Local<v8::Context> _context = isolate->context();
 
+    isolate->m_topSandbox = new SandBox();
+    isolate->m_topSandbox->addBuiltinModules();
+
     if (!isolate->m_fname.empty()) {
         v8::Local<v8::Value> result;
         v8::Local<v8::Function> _main_func = isolate->NewFunction("main", main_stub);

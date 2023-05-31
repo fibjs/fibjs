@@ -700,40 +700,40 @@ describe("vm", () => {
         sbox = undefined;
 
         test_util.gc();
-        var no1 = test_util.countObject('Buffer');
+        var no1 = test_util.countObject('Event');
 
-        sbox = new vm.SandBox({});
-        assert.equal(no1, test_util.countObject('Buffer'));
+        sbox = new vm.SandBox({ coroutine });
+        assert.equal(no1, test_util.countObject('Event'));
 
-        var a = sbox.addScript("t1.js", "module.exports = {a : Buffer.alloc(0)};");
+        var a = sbox.addScript("t1.js", `const coroutine = require('coroutine'); module.exports = {a : new coroutine.Event()};`);
         test_util.gc();
-        assert.equal(no1 + 1, test_util.countObject('Buffer'));
+        assert.equal(no1 + 1, test_util.countObject('Event'));
 
         sbox = undefined;
 
         test_util.gc();
-        assert.equal(no1 + 1, test_util.countObject('Buffer'));
+        assert.equal(no1 + 1, test_util.countObject('Event'));
 
         a = undefined;
 
         test_util.gc();
-        assert.equal(no1, test_util.countObject('Buffer'));
+        assert.equal(no1, test_util.countObject('Event'));
     });
 
     it("Garbage Collection 1", () => {
         test_util.gc();
-        var no1 = test_util.countObject('Buffer');
+        var no1 = test_util.countObject('Event');
 
         var a = {
-            b: new vm.SandBox({}).addScript('b.js', "module.exports = Buffer.alloc(0)")
+            b: new vm.SandBox({ coroutine }).addScript('b.js', "const coroutine = require('coroutine'); module.exports = new coroutine.Event()")
         };
         test_util.gc();
-        assert.equal(no1 + 1, test_util.countObject('Buffer'));
+        assert.equal(no1 + 1, test_util.countObject('Event'));
 
         a = undefined;
         test_util.gc();
 
-        assert.equal(no1, test_util.countObject('Buffer'));
+        assert.equal(no1, test_util.countObject('Event'));
     });
 
     describe(`all builtin modules aliases with prefix node:`, () => {

@@ -80,19 +80,17 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
 
         result_t pack(v8::Local<v8::Object> element)
         {
-            obj_ptr<Buffer_base> buf;
+            obj_ptr<Buffer> buf;
             v8::Local<v8::Context> context = isolate->context();
 
             if (element->IsUint8Array())
-                Buffer_base::_new(v8::Local<v8::Uint8Array>::Cast(element), 0, -1, buf);
+                buf = new Buffer(element.As<v8::Uint8Array>());
             else
-                buf = Buffer_base::getInstance(element);
+                buf = Buffer::getInstance(element);
 
             if (buf) {
-                obj_ptr<Buffer> buff = Buffer::Cast(buf);
-
-                msgpack_pack_bin(&pk, buff->length());
-                msgpack_pack_bin_body(&pk, buff->data(), buff->length());
+                msgpack_pack_bin(&pk, buf->length());
+                msgpack_pack_bin_body(&pk, buf->data(), buf->length());
 
                 return 0;
             }

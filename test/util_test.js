@@ -2205,20 +2205,20 @@ describe('util', () => {
 
         it("Garbage Collection", () => {
             test_util.gc();
-            var no1 = process.memoryUsage().nativeObjects.objects;
+            var no1 = process.memoryUsage().nativeObjects.objects || 0;
 
             var lc = new util.LruCache(1024);
             lc.set("test", lc);
             assert.equal(no1 + 1, process.memoryUsage().nativeObjects.objects);
 
-            lc.set("test1", Buffer.alloc(0));
+            lc.set("test1", new util.LruCache(1));
             assert.equal(no1 + 2, process.memoryUsage().nativeObjects.objects);
 
             lc.remove("test1");
             lc = undefined;
 
             test_util.gc();
-            assert.equal(no1, process.memoryUsage().nativeObjects.objects);
+            assert.equal(no1, process.memoryUsage().nativeObjects.objects || 0);
         });
     });
 

@@ -8,6 +8,7 @@
 #pragma once
 
 #include "object.h"
+#include "Buffer.h"
 
 namespace fibjs {
 
@@ -610,11 +611,11 @@ private:
     {
         Isolate* isolate = Isolate::current();
         v8::Local<v8::Context> context = isolate->context();
-        obj_ptr<Buffer_base> bin = Buffer_base::getInstance(v);
 
-        if (bin)
+        if (IsJSBuffer(v)) {
+            obj_ptr<Buffer> bin = Buffer::getInstance(v);
             str.append(impl::escape_binary(bin));
-        else if (v->IsArray()) {
+        } else if (v->IsArray()) {
             v8::Local<v8::Array> a = v8::Local<v8::Array>::Cast(v);
             int32_t len = a->Length();
             int32_t i;

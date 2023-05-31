@@ -51,8 +51,10 @@ void Worker::_main()
     JSFiber::EnterJsScope s;
 
     m_isolate->start_profiler();
-
     m_worker->wrap();
+
+    m_isolate->m_topSandbox = new SandBox();
+    m_isolate->m_topSandbox->addBuiltinModules();
 
     s.m_hr = m_isolate->m_topSandbox->run_worker(m_isolate->m_fname, m_worker);
     if (s.m_hr < 0)

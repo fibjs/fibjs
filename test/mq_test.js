@@ -1106,10 +1106,10 @@ describe("mq", () => {
 
             var no1 = test_util.countObject('Chain');
             var no2 = test_util.countObject('Routing');
-            var no3 = test_util.countObject('Buffer');
+            var no3 = test_util.countObject('Event');
 
             (() => {
-                var data = Buffer.alloc(0);
+                var data = new coroutine.Event();
                 var svr = new http.Server(8892, new mq.Chain([
                     () => {
                         return hdlr
@@ -1124,7 +1124,7 @@ describe("mq", () => {
 
                 assert.equal(no1 + 1, test_util.countObject('Chain'));
                 assert.equal(no2 + 1, test_util.countObject('Routing'));
-                assert.equal(no3 + 1, test_util.countObject('Buffer'));
+                assert.equal(no3 + 1, test_util.countObject('Event'));
 
                 svr.start();
 
@@ -1138,20 +1138,20 @@ describe("mq", () => {
             assert.equal(closed, false);
             assert.equal(no1 + 1, test_util.countObject('Chain'));
             assert.equal(no2 + 1, test_util.countObject('Routing'));
-            assert.equal(no3 + 1, test_util.countObject('Buffer'));
+            assert.equal(no3 + 1, test_util.countObject('Event'));
 
             test_util.gc();
             assert.equal(closed, true);
             assert.equal(no1 + 1, test_util.countObject('Chain'));
             assert.equal(no2 + 1, test_util.countObject('Routing'));
-            assert.equal(no3 + 1, test_util.countObject('Buffer'));
+            assert.equal(no3 + 1, test_util.countObject('Event'));
 
             c.close();
 
             test_util.gc();
             assert.equal(no1, test_util.countObject('Chain'));
             assert.equal(no2, test_util.countObject('Routing'));
-            assert.equal(no3, test_util.countObject('Buffer'));
+            assert.equal(no3, test_util.countObject('Event'));
         });
     });
 

@@ -208,7 +208,7 @@ result_t util_base::isFunction(v8::Local<v8::Value> v, bool& retVal)
 
 result_t util_base::isBuffer(v8::Local<v8::Value> v, bool& retVal)
 {
-    retVal = !!Buffer_base::getInstance(v);
+    retVal = IsJSBuffer(v);
     return 0;
 }
 

@@ -9,9 +9,66 @@ namespace fibjs {
 
 class Buffer : public Buffer_base {
 public:
+    class store {
+    public:
+        store(const void* _data, size_t _length)
+            : m_length(_length)
+        {
+            m_store = NewBackingStore(_length);
+            if (_data)
+                memcpy(data(), _data, _length);
+        }
+
+        store(store& s)
+            : m_store(s.m_store)
+            , m_offset(s.m_offset)
+            , m_length(s.m_length)
+        {
+        }
+
+        store(v8::Local<v8::Uint8Array> ui)
+            : m_store(ui->Buffer()->GetBackingStore())
+            , m_offset(ui->ByteOffset())
+            , m_length(ui->ByteLength())
+        {
+        }
+
+        store(v8::Local<v8::ArrayBuffer> ab)
+            : m_store(ab->GetBackingStore())
+            , m_offset(0)
+            , m_length(ab->ByteLength())
+        {
+        }
+
+        store(std::shared_ptr<v8::BackingStore> _store, size_t offset, size_t length)
+            : m_store(_store)
+            , m_offset(offset)
+            , m_length(length)
+        {
+        }
+
+    public:
+        uint8_t* data()
+        {
+            return (uint8_t*)m_store->Data() + m_offset;
+        }
+
+        size_t length()
+        {
+            return m_length;
+        }
+
+    public:
+        std::shared_ptr<v8::BackingStore> m_store;
+        size_t m_offset = 0;
+        size_t m_length = 0;
+    };
+
+public:
     Buffer(const void* data = NULL, size_t length = 0)
+        : m_store(data, length)
     {
-        init(data, length);
+        extMemory(length);
     }
 
     Buffer(Buffer* buf)
@@ -19,15 +76,30 @@ public:
     {
     }
 
+    Buffer(v8::Local<v8::Uint8Array> ui)
+        : m_store(ui)
+    {
+    }
+
+    Buffer(v8::Local<v8::ArrayBuffer> ab)
+        : m_store(ab)
+    {
+    }
+
+    Buffer(std::shared_ptr<v8::BackingStore> _store, size_t offset, size_t length)
+        : m_store(_store, offset, length)
+    {
+    }
+
 public:
     uint8_t* data()
     {
-        return (uint8_t*)m_store->Data();
+        return m_store.data();
     }
 
     size_t length()
     {
-        return m_store->ByteLength();
+        return m_store.length();
     }
 
     static Buffer* Cast(Buffer_base* buf)
@@ -40,10 +112,7 @@ public:
         return static_cast<Buffer*>(Buffer_base::getInstance(o));
     }
 
-    static Buffer* getInstance(v8::Local<v8::Value> o)
-    {
-        return static_cast<Buffer*>(Buffer_base::getInstance(o));
-    }
+    static Buffer* getInstance(v8::Local<v8::Value> o);
 
 public:
     // object
@@ -123,11 +192,10 @@ public:
     result_t writeNumber(int32_t offset, const char* buf, int32_t size, int32_t value_size, bool le, int32_t& retVal);
 
 public:
-    void init(const void* data, size_t length);
     bool is_safe_codec(exlib::string codec);
 
 private:
-    std::shared_ptr<v8::BackingStore> m_store;
+    store m_store;
 };
 
 }

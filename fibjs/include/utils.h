@@ -187,7 +187,11 @@ typedef int32_t result_t;
 
 #define STREAM_BUFF_SIZE 65536
 
-const int32_t kObjectPrototype = 0;
+enum {
+    kObjectPrototype = 0,
+    kBufferClassIndex = 1,
+    kBufferPrototype = 2
+};
 
 #if 0
 #define V8_SCOPE(isolate) v8::EscapableHandleScope handle_scope(isolate)
@@ -870,6 +874,10 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<T>& 
     return 0;
 }
 
+class Buffer_base;
+result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buffer_base>& vr, bool bStrict = false);
+result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<object_base>& vr, bool bStrict = false);
+
 inline bool IsJSObject(v8::Local<v8::Value> v)
 {
     if (!v->IsObject())
@@ -878,6 +886,20 @@ inline bool IsJSObject(v8::Local<v8::Value> v)
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
     v8::Local<v8::Context> _context = o->GetCreationContextChecked();
     JSValue proto = _context->GetEmbedderData(kObjectPrototype);
+    if (!proto->Equals(_context, o->GetPrototype()).FromMaybe(false))
+        return false;
+
+    return true;
+}
+
+inline bool IsJSBuffer(v8::Local<v8::Value> v)
+{
+    if (!v->IsObject())
+        return false;
+
+    v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
+    v8::Local<v8::Context> _context = o->GetCreationContextChecked();
+    JSValue proto = _context->GetEmbedderData(kBufferPrototype);
     if (!proto->Equals(_context, o->GetPrototype()).FromMaybe(false))
         return false;
 

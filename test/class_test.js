@@ -5,7 +5,7 @@ describe("class test", () => {
     it("toString", () => {
         o = Buffer.from('aaa');
 
-        assert.equal(Object.prototype.toString.call(o), "[object Buffer]");
+        assert.equal(Object.prototype.toString.call(o), "[object Uint8Array]");
 
         assert.equal(Object.prototype.toString.call(process), "[object process]");
         assert.equal(Object.prototype.toString.call(console), "[object console]");

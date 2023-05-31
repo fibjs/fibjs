@@ -6,6 +6,7 @@ var test_util = require('./test_util');
 var os = require('os');
 var io = require('io');
 var path = require('path');
+var coroutine = require('coroutine');
 
 var isWindows = process.platform === 'win32';
 
@@ -61,12 +62,12 @@ describe('os', () => {
 
     it("nativeObjects", () => {
         test_util.gc();
-        var no1 = test_util.countObject('Buffer');
-        var b = Buffer.alloc(0);
-        assert.equal(no1 + 1, test_util.countObject('Buffer'));
+        var no1 = test_util.countObject('Event');
+        var b = new coroutine.Event();
+        assert.equal(no1 + 1, test_util.countObject('Event'));
         b = undefined;
         test_util.gc();
-        assert.equal(no1, test_util.countObject('Buffer'));
+        assert.equal(no1, test_util.countObject('Event'));
     });
 
     it('time', () => {

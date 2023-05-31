@@ -43,18 +43,18 @@ describe('coroutine', () => {
 
         it("Memory Leak detect", () => {
             test_util.gc();
-            var no1 = test_util.countObject('Buffer');
-            var f = coroutine.start((v) => { }, Buffer.alloc(0));
+            var no1 = test_util.countObject('Event');
+            var f = coroutine.start((v) => { }, new coroutine.Event());
             test_util.gc();
-            assert.equal(no1 + 1, test_util.countObject('Buffer'));
+            assert.equal(no1 + 1, test_util.countObject('Event'));
             f.join();
 
             test_util.gc();
-            assert.equal(no1, test_util.countObject('Buffer'));
+            assert.equal(no1, test_util.countObject('Event'));
 
             f = undefined;
             test_util.gc();
-            assert.equal(no1, test_util.countObject('Buffer'));
+            assert.equal(no1, test_util.countObject('Event'));
         });
 
         it('Fiber-local storage', () => {

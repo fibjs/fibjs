@@ -249,9 +249,6 @@ void Isolate::init()
     static const char* skips[] = { "Master", "argv", "__filename", "__dirname", NULL };
     global_base::class_info().Attach(this, _context->Global(), skips);
 
-    m_topSandbox = new SandBox();
-    m_topSandbox->addBuiltinModules();
-
     const char* assertion_error = "class AssertionError extends Error {"
                                   "   constructor(options) {"
                                   "       var { actual, expected, message, operator } = options;"
