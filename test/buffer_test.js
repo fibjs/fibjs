@@ -2,6 +2,7 @@ var test = require("test");
 test.setup();
 
 var os = require("os");
+var vm = require("vm");
 
 var is_big_endian = os.endianness() === 'BE';
 
@@ -15,6 +16,17 @@ describe('Buffer', () => {
         var buf = new Buffer("abcd");
         assert.equal(buf instanceof Buffer, true);
         assert.equal(buf instanceof Uint8Array, true);
+    });
+
+    it('sandbox', () => {
+        var sbox = new vm.SandBox();
+        var b = sbox.addScript("t2.js", `var buf = new Buffer("abcd"); module.exports = {is_buffer: buf instanceof Buffer, is_uint8array: buf instanceof Uint8Array};`);
+        assert.deepEqual(b, { is_buffer: true, is_uint8array: true });
+
+        var sbox1 = new vm.SandBox({}, {});
+        var b1 = sbox1.addScript("t2.js", `var buf = new Buffer("abcd"); module.exports = {is_buffer: buf instanceof Buffer, is_uint8array: buf instanceof Uint8Array};`);
+        assert.deepEqual(b1, { is_buffer: true, is_uint8array: true });
+
     });
 
     it('new Buffer(String)', () => {

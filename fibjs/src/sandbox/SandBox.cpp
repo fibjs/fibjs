@@ -11,6 +11,7 @@
 #include "ifs/vm.h"
 #include "ifs/util.h"
 #include "ifs/test.h"
+#include "ifs/encoding.h"
 #include "ifs/Buffer.h"
 #include "ifs/EventEmitter.h"
 #include "loaders/loaders.h"
@@ -106,6 +107,8 @@ void SandBox::initGlobal(v8::Local<v8::Object> global)
 
     SetPrivate("_global", _global);
     m_global = true;
+
+    installBuffer();
 }
 
 RootModule* RootModule::g_root = NULL;
@@ -133,10 +136,25 @@ result_t SandBox::addBuiltinModules()
         pModule = pModule->m_next;
     }
 
+    installBuffer();
+
+    return 0;
+}
+
+void SandBox::installBuffer()
+{
+    Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
+
     v8::Local<v8::Object> _global = context->Global();
     v8::Local<v8::Value> _buffer;
 
-    require("buffer", "/builtin", _buffer);
+    obj_ptr<SandBox> sbox = new SandBox(false);
+
+    sbox->InstallModule("encoding", encoding_base::class_info().getModule(isolate));
+    sbox->require("buffer", "/builtin", _buffer);
+
+    InstallModule("buffer", _buffer);
     InstallModule("node:buffer", _buffer);
 
     _global->Set(context, isolate->NewString("Buffer"), _buffer).IsJust();
@@ -144,8 +162,6 @@ result_t SandBox::addBuiltinModules()
 
     context->SetEmbedderData(kBufferClassIndex, _buffer);
     context->SetEmbedderData(kBufferPrototype, js_buffer->GetPrototype());
-
-    return 0;
 }
 
 result_t SandBox::add(exlib::string id, v8::Local<v8::Value> mod)
