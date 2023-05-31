@@ -32,7 +32,7 @@ void setAsyncFunctoin(v8::Local<v8::Function> func);
 
 std::unique_ptr<v8::BackingStore> NewBackingStore(size_t byte_length);
 
-void* get_instance_pointer(v8::Local<v8::Object> o, uint16_t buffer_type);
+void* get_instance_pointer(v8::Local<v8::Object> o);
 
 void set_instance_type(v8::Local<v8::Object> o, uint16_t type);
 uint16_t get_instance_type(v8::Local<v8::Object> o);

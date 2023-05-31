@@ -101,7 +101,7 @@ std::unique_ptr<v8::BackingStore> NewBackingStore(size_t byte_length)
     return std::unique_ptr<v8::BackingStore>((v8::BackingStore*)result);
 }
 
-void* get_instance_pointer(Local<Object> o, uint16_t buffer_type)
+void* get_instance_pointer(Local<Object> o)
 {
     const int32_t kObjectType = 0x600;
     const int32_t kLastObjectType = 0x700;
@@ -116,17 +116,6 @@ void* get_instance_pointer(Local<Object> o, uint16_t buffer_type)
         i::Address value = i::Internals::ReadExternalPointerField<internal::kEmbedderDataSlotPayloadTag>(
             isolate, obj, offset);
         return reinterpret_cast<void*>(value);
-    }
-
-    if (instance_type == i::Internals::kLastJSApiObjectType + i::kExternalUint8Array) {
-        v8::Local<v8::Object> proto = o->GetPrototype().As<v8::Object>();
-        obj = *reinterpret_cast<i::Address*>(*proto);
-        instance_type = i::Internals::GetInstanceType(obj);
-
-        if (instance_type != buffer_type)
-            return NULL;
-
-        return o->GetAlignedPointerFromInternalField(0);
     }
 
     return NULL;
