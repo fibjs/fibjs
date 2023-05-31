@@ -107,12 +107,12 @@ public:
 
     virtual void* AllocateUninitialized(size_t length)
     {
-        return new uint8_t[length];
+        return ::operator new(length);
     }
 
     virtual void Free(void* data, size_t)
     {
-        delete[] static_cast<uint8_t*>(data);
+        ::operator delete(data);
     }
 };
 
