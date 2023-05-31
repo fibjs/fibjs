@@ -128,25 +128,10 @@ void SandBox::attachBuffer()
 
 void SandBox::installBuffer()
 {
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-
-    v8::Local<v8::Object> _global = context->Global();
-    v8::Local<v8::Value> _buffer;
-
-    obj_ptr<SandBox> sbox = new SandBox(false);
-
-    sbox->InstallModule("encoding", encoding_base::class_info().getModule(isolate));
-    sbox->require("buffer", "/builtin", _buffer);
+    v8::Local<v8::Value> _buffer = Buffer::load_module();
 
     InstallModule("buffer", _buffer);
     InstallModule("node:buffer", _buffer);
-
-    _global->Set(context, isolate->NewString("Buffer"), _buffer).IsJust();
-    v8::Local<v8::Object> js_buffer = _buffer.As<v8::Function>()->CallAsConstructor(context, 0, NULL).FromMaybe(v8::Local<v8::Value>()).As<v8::Object>();
-
-    context->SetEmbedderData(kBufferClassIndex, _buffer);
-    context->SetEmbedderData(kBufferPrototype, js_buffer->GetPrototype());
 }
 
 result_t SandBox::addBuiltinModules()

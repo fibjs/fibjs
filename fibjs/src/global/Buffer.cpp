@@ -1,5 +1,6 @@
 #include "object.h"
 #include "Buffer.h"
+#include "SandBox.h"
 #include "encoding.h"
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -220,6 +221,40 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
     return 0;
 }
 
+v8::Local<v8::Value> Buffer::load_module()
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+
+    v8::Local<v8::Object> _global = context->Global();
+    v8::Local<v8::Value> _buffer;
+
+    obj_ptr<SandBox> sbox = new SandBox(false);
+
+    sbox->InstallModule("encoding", encoding_base::class_info().getModule(isolate));
+    sbox->require("buffer", "/builtin", _buffer);
+
+    _global->Set(context, isolate->NewString("Buffer"), _buffer).IsJust();
+    v8::Local<v8::Object> js_buffer = _buffer.As<v8::Function>()->CallAsConstructor(context, 0, NULL).FromMaybe(v8::Local<v8::Value>()).As<v8::Object>();
+    v8::Local<v8::Object> js_buffer_proto = js_buffer->GetPrototype().As<v8::Object>();
+
+    context->SetEmbedderData(kBufferClassIndex, _buffer);
+    context->SetEmbedderData(kBufferPrototype, js_buffer_proto);
+
+    js_buffer_proto->Set(context, isolate->NewString("compare"), isolate->NewFunction("compare", proto_compare)).IsJust();
+    js_buffer_proto->Set(context, isolate->NewString("copy"), isolate->NewFunction("copy", proto_copy)).IsJust();
+    js_buffer_proto->Set(context, isolate->NewString("equals"), isolate->NewFunction("equals", proto_equals)).IsJust();
+    js_buffer_proto->Set(context, isolate->NewString("fill"), isolate->NewFunction("fill", proto_fill)).IsJust();
+    js_buffer_proto->Set(context, isolate->NewString("indexOf"), isolate->NewFunction("indexOf", proto_indexOf)).IsJust();
+    js_buffer_proto->Set(context, isolate->NewString("write"), isolate->NewFunction("write", proto_write)).IsJust();
+
+    v8::Local<v8::Object> js_buffer_class = _buffer.As<v8::Object>();
+    js_buffer_class->Set(context, isolate->NewString("compare"), isolate->NewFunction("compare", s_static_compare)).IsJust();
+    js_buffer_class->Set(context, isolate->NewString("concat"), isolate->NewFunction("concat", s_static_concat)).IsJust();
+
+    return _buffer;
+}
+
 v8::Local<v8::Object> Buffer::wrap(Isolate* isolate, v8::Local<v8::Object> This)
 {
     if (!hasJSHandle()) {
@@ -281,6 +316,179 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buff
     vr = new Buffer(v.As<v8::Uint8Array>());
 
     return 0;
+}
+
+#define BUFFER_INSTANCE()                                     \
+    obj_ptr<Buffer> pInst = Buffer::getInstance(args.This()); \
+    if (pInst == NULL) {                                      \
+        ThrowResult(CALL_E_NOTINSTANCE);                      \
+        return;                                               \
+    }
+
+void Buffer::proto_compare(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    BUFFER_INSTANCE();
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Buffer>, 0);
+
+    hr = pInst->compare(v0, vr);
+
+    METHOD_RETURN();
+}
+
+void Buffer::proto_copy(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    BUFFER_INSTANCE();
+    METHOD_ENTER();
+
+    METHOD_OVER(4, 1);
+
+    ARG(obj_ptr<Buffer>, 0);
+    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG(int32_t, 2, 0);
+    OPT_ARG(int32_t, 3, -1);
+
+    hr = pInst->copy(v0, v1, v2, v3, vr);
+
+    METHOD_RETURN();
+}
+
+void Buffer::proto_equals(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    BUFFER_INSTANCE();
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Buffer>, 0);
+
+    hr = pInst->equals(v0, vr);
+
+    METHOD_RETURN();
+}
+
+void Buffer::proto_fill(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> vr = args.This();
+
+    BUFFER_INSTANCE();
+    METHOD_ENTER();
+
+    METHOD_OVER(3, 1);
+
+    ARG(int32_t, 0);
+    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG(int32_t, 2, -1);
+
+    hr = pInst->fill(v0, v1, v2);
+
+    METHOD_OVER(3, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG(int32_t, 2, -1);
+
+    hr = pInst->fill(v0, v1, v2);
+
+    METHOD_OVER(4, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG(int32_t, 2, -1);
+    OPT_ARG(exlib::string, 3, "utf8");
+
+    hr = pInst->fill(v0, v1, v2, v3);
+
+    METHOD_OVER(3, 3);
+
+    ARG(exlib::string, 0);
+    ARG(int32_t, 1);
+    ARG(exlib::string, 2);
+
+    hr = pInst->fill(v0, v1, v2);
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+
+    hr = pInst->fill(v0, v1);
+
+    METHOD_RETURN();
+}
+
+void Buffer::proto_indexOf(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    BUFFER_INSTANCE();
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(int32_t, 0);
+    OPT_ARG(int32_t, 1, 0);
+
+    hr = pInst->indexOf(v0, v1, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<Buffer>, 0);
+    OPT_ARG(int32_t, 1, 0);
+
+    hr = pInst->indexOf(v0, v1, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(int32_t, 1, 0);
+
+    hr = pInst->indexOf(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+void Buffer::proto_write(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    BUFFER_INSTANCE();
+    METHOD_ENTER();
+
+    METHOD_OVER(4, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG(int32_t, 2, -1);
+    OPT_ARG(exlib::string, 3, "utf8");
+
+    hr = pInst->write(v0, v1, v2, v3, vr);
+
+    METHOD_OVER(3, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(int32_t, 1, 0);
+    OPT_ARG(exlib::string, 2, "utf8");
+
+    hr = pInst->write(v0, v1, v2, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "utf8");
+
+    hr = pInst->write(v0, v1, vr);
+
+    METHOD_RETURN();
 }
 
 inline bool is_native_codec(exlib::string codec)
@@ -482,14 +690,21 @@ result_t Buffer::fill(const uint8_t* buf, size_t sz, int32_t offset, int32_t end
     if (hr < 0)
         return CHECK_ERROR(hr);
 
-    int32_t length = end - offset;
-
     uint8_t* _data = data();
-    while (length > 0) {
-        memcpy(_data + offset, buf, MIN(sz, length));
-        length -= sz;
-        offset += sz;
+    if (sz == 1)
+        memset(_data + offset, *buf, end - offset);
+    else {
+        int32_t length = end - offset;
+        while (length > 0) {
+            memcpy(_data + offset, buf, MIN(sz, length));
+            length -= sz;
+            offset += sz;
+
+            buf = _data;
+            sz = offset;
+        }
     }
+
     return 0;
 }
 
@@ -520,6 +735,64 @@ result_t Buffer::fill(exlib::string v, int32_t offset, int32_t end, exlib::strin
 
     retVal = this;
     return 0;
+}
+
+result_t Buffer::fill(exlib::string v, int32_t offset, exlib::string codec, obj_ptr<Buffer_base>& retVal)
+{
+    return fill(v, offset, -1, codec, retVal);
+}
+
+result_t Buffer::fill(exlib::string v, exlib::string codec, obj_ptr<Buffer_base>& retVal)
+{
+    return fill(v, 0, -1, codec, retVal);
+}
+
+result_t Buffer::fill(int32_t v, int32_t offset, int32_t end)
+{
+    result_t hr = generateEnd((int32_t)length(), offset, end);
+    if (hr < 0)
+        return CHECK_ERROR(hr);
+
+    memset(data() + offset, v & 255, end - offset);
+
+    return 0;
+}
+
+result_t Buffer::fill(Buffer_base* v, int32_t offset, int32_t end)
+{
+    Buffer* v_data = Buffer::Cast(v);
+    result_t hr = fill(v_data->data(), v_data->length(), offset, end);
+    if (hr < 0)
+        return hr;
+
+    return 0;
+}
+
+result_t Buffer::fill(exlib::string v, int32_t offset, int32_t end, exlib::string codec)
+{
+    if (!is_safe_codec(codec))
+        return CHECK_ERROR(Runtime::setError("Buffer: Unknown codec."));
+
+    exlib::string strBuf;
+    result_t hr = commonDecode(codec, v, strBuf);
+    if (hr < 0)
+        return hr;
+
+    hr = fill((const uint8_t*)strBuf.c_str(), strBuf.length(), offset, end);
+    if (hr < 0)
+        return hr;
+
+    return 0;
+}
+
+result_t Buffer::fill(exlib::string v, int32_t offset, exlib::string codec)
+{
+    return fill(v, offset, -1, codec);
+}
+
+result_t Buffer::fill(exlib::string v, exlib::string codec)
+{
+    return fill(v, 0, -1, codec);
 }
 
 result_t Buffer::copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t sourceStart,

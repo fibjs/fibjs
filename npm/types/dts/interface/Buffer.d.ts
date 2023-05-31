@@ -280,6 +280,25 @@ declare class Class_Buffer extends Class_object {
     fill(v: string, offset?: number, end?: number, codec?: string): Class_Buffer;
 
     /**
+     * @description 为 Buffer 对象填充指定内容数据
+     *      @param v 需要填充的数据，如果未指定 offset 和 end，将填充满整个 buffer
+     *      @param offset 填充起始位置
+     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
+     *      @return 返回当前 Buffer 对象
+     *      
+     */
+    fill(v: string, offset: number, codec: string): Class_Buffer;
+
+    /**
+     * @description 为 Buffer 对象填充指定内容数据
+     *      @param v 需要填充的数据，如果未指定 offset 和 end，将填充满整个 buffer
+     *      @param codec 指定编码格式，允许值为："hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
+     *      @return 返回当前 Buffer 对象
+     *      
+     */
+    fill(v: string, codec: string): Class_Buffer;
+
+    /**
      * @description 从源缓存对象区域拷贝数据到目标缓存对象区域
      *      @param targetBuffer 目标缓存对象
      *      @param targetStart 目标缓存对象开始拷贝字节位置，缺省为 0

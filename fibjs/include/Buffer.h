@@ -130,6 +130,8 @@ public:
     virtual result_t fill(int32_t v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal);
     virtual result_t fill(Buffer_base* v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal);
     virtual result_t fill(exlib::string v, int32_t offset, int32_t end, exlib::string codec, obj_ptr<Buffer_base>& retVal);
+    virtual result_t fill(exlib::string v, int32_t offset, exlib::string codec, obj_ptr<Buffer_base>& retVal);
+    virtual result_t fill(exlib::string v, exlib::string codec, obj_ptr<Buffer_base>& retVal);
     virtual result_t copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t& retVal);
     virtual result_t set(Buffer_base* src, int32_t start, int32_t& retVal);
     virtual result_t readUInt8(int32_t offset, int32_t& retVal);
@@ -193,6 +195,24 @@ public:
 
 public:
     bool is_safe_codec(exlib::string codec);
+
+public:
+    static v8::Local<v8::Value> load_module();
+
+public:
+    result_t fill(int32_t v, int32_t offset, int32_t end);
+    result_t fill(Buffer_base* v, int32_t offset, int32_t end);
+    result_t fill(exlib::string v, int32_t offset, int32_t end, exlib::string codec);
+    result_t fill(exlib::string v, int32_t offset, exlib::string codec);
+    result_t fill(exlib::string v, exlib::string codec);
+
+private:
+    static void proto_compare(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void proto_copy(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void proto_equals(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void proto_fill(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void proto_indexOf(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void proto_write(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 private:
     store m_store;

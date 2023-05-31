@@ -323,7 +323,8 @@ result_t fs_base::write(int32_t fd, exlib::string string, int32_t position,
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Buffer_base> buf;
-    result_t hr = Buffer_base::from(string, encoding, buf);
+    
+    result_t hr = iconv_base::encode(encoding, string, buf);
     if (hr < 0)
         return CHECK_ERROR(hr);
 

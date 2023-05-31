@@ -51,6 +51,8 @@ public:
     virtual result_t fill(int32_t v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t fill(Buffer_base* v, int32_t offset, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t fill(exlib::string v, int32_t offset, int32_t end, exlib::string codec, obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t fill(exlib::string v, int32_t offset, exlib::string codec, obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t fill(exlib::string v, exlib::string codec, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t copy(Buffer_base* targetBuffer, int32_t targetStart, int32_t sourceStart, int32_t sourceEnd, int32_t& retVal) = 0;
     virtual result_t set(Buffer_base* src, int32_t start, int32_t& retVal) = 0;
     virtual result_t readUInt8(int32_t offset, int32_t& retVal) = 0;
@@ -615,6 +617,21 @@ inline void Buffer_base::s_fill(const v8::FunctionCallbackInfo<v8::Value>& args)
     OPT_ARG(exlib::string, 3, "utf8");
 
     hr = pInst->fill(v0, v1, v2, v3, vr);
+
+    METHOD_OVER(3, 3);
+
+    ARG(exlib::string, 0);
+    ARG(int32_t, 1);
+    ARG(exlib::string, 2);
+
+    hr = pInst->fill(v0, v1, v2, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+
+    hr = pInst->fill(v0, v1, vr);
 
     METHOD_RETURN();
 }
