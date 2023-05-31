@@ -68,23 +68,6 @@ void setAsyncFunctoin(Local<Function> func)
     _func->shared().set_kind(i::FunctionKind::kAsyncFunction);
 }
 
-uint16_t get_instance_type(Local<Object> o)
-{
-    i::Address obj = *reinterpret_cast<i::Address*>(*o);
-    return i::Internals::GetInstanceType(obj);
-}
-
-void set_instance_type(Local<Object> o, uint16_t type)
-{
-    i::Address obj = *reinterpret_cast<i::Address*>(*o);
-    i::Address map = i::Internals::ReadTaggedPointerField(obj, i::Internals::kHeapObjectMapOffset);
-#ifdef V8_MAP_PACKING
-    map = UnpackMapWord(map);
-#endif
-    i::Address addr = map + i::Internals::kMapInstanceTypeOffset - i::kHeapObjectTag;
-    *reinterpret_cast<uint16_t*>(addr) = type;
-}
-
 static void s_store_deleter(void* data, size_t length, void* deleter_data)
 {
 }
@@ -99,26 +82,6 @@ std::unique_ptr<v8::BackingStore> NewBackingStore(size_t byte_length)
     result->type_specific_data_.deleter = { s_store_deleter, NULL };
 
     return std::unique_ptr<v8::BackingStore>((v8::BackingStore*)result);
-}
-
-void* get_instance_pointer(Local<Object> o)
-{
-    const int32_t kObjectType = 0x600;
-    const int32_t kLastObjectType = 0x700;
-
-    i::Address obj = *reinterpret_cast<i::Address*>(*o);
-    auto instance_type = i::Internals::GetInstanceType(obj);
-
-    if ((instance_type == i::Internals::kJSSpecialApiObjectType && o->InternalFieldCount() == 1)
-        || (instance_type >= kObjectType && instance_type < kLastObjectType)) {
-        int offset = i::Internals::kJSObjectHeaderSize + i::Internals::kEmbedderDataSlotExternalPointerOffset;
-        Isolate* isolate = i::Internals::GetIsolateForSandbox(obj);
-        i::Address value = i::Internals::ReadExternalPointerField<internal::kEmbedderDataSlotPayloadTag>(
-            isolate, obj, offset);
-        return reinterpret_cast<void*>(value);
-    }
-
-    return NULL;
 }
 
 bool path_isAbsolute(exlib::string path);

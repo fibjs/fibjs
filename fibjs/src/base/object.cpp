@@ -37,7 +37,12 @@ void* object_base::unwrap(v8::Local<v8::Value> o)
 {
     if (o.IsEmpty() || !o->IsObject())
         return NULL;
-    return get_instance_pointer(o.As<v8::Object>());
+
+    v8::Local<v8::Object> obj = o.As<v8::Object>();
+    if (obj->InternalFieldCount() == 1)
+        return obj->GetAlignedPointerFromInternalField(0);
+
+    return NULL;
 }
 
 result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<object_base>& vr, bool bStrict)

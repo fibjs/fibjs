@@ -894,7 +894,7 @@ inline bool IsJSObject(v8::Local<v8::Value> v)
 
 inline bool IsJSBuffer(v8::Local<v8::Value> v)
 {
-    if (!v->IsObject())
+    if (!v->IsUint8Array())
         return false;
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
