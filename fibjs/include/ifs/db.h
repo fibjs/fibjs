@@ -18,7 +18,6 @@ namespace fibjs {
 class MySQL_base;
 class SQLite_base;
 class DbConnection_base;
-class MongoDB_base;
 class LevelDB_base;
 class Redis_base;
 
@@ -33,7 +32,6 @@ public:
     static result_t openOdbc(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncEvent* ac);
     static result_t openMSSQL(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncEvent* ac);
     static result_t openPSQL(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncEvent* ac);
-    static result_t openMongoDB(exlib::string connString, obj_ptr<MongoDB_base>& retVal, AsyncEvent* ac);
     static result_t openLevelDB(exlib::string connString, obj_ptr<LevelDB_base>& retVal, AsyncEvent* ac);
     static result_t openRedis(exlib::string connString, obj_ptr<Redis_base>& retVal, AsyncEvent* ac);
 
@@ -53,7 +51,6 @@ public:
     static void s_static_openOdbc(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_openMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_openPSQL(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_openMongoDB(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_openLevelDB(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_openRedis(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -64,7 +61,6 @@ public:
     ASYNC_STATICVALUE2(db_base, openOdbc, exlib::string, obj_ptr<DbConnection_base>);
     ASYNC_STATICVALUE2(db_base, openMSSQL, exlib::string, obj_ptr<DbConnection_base>);
     ASYNC_STATICVALUE2(db_base, openPSQL, exlib::string, obj_ptr<DbConnection_base>);
-    ASYNC_STATICVALUE2(db_base, openMongoDB, exlib::string, obj_ptr<MongoDB_base>);
     ASYNC_STATICVALUE2(db_base, openLevelDB, exlib::string, obj_ptr<LevelDB_base>);
     ASYNC_STATICVALUE2(db_base, openRedis, exlib::string, obj_ptr<Redis_base>);
 };
@@ -73,7 +69,6 @@ public:
 #include "ifs/MySQL.h"
 #include "ifs/SQLite.h"
 #include "ifs/DbConnection.h"
-#include "ifs/MongoDB.h"
 #include "ifs/LevelDB.h"
 #include "ifs/Redis.h"
 
@@ -93,8 +88,6 @@ inline ClassInfo& db_base::class_info()
         { "openMSSQLSync", s_static_openMSSQL, true, false },
         { "openPSQL", s_static_openPSQL, true, true },
         { "openPSQLSync", s_static_openPSQL, true, false },
-        { "openMongoDB", s_static_openMongoDB, true, true },
-        { "openMongoDBSync", s_static_openMongoDB, true, false },
         { "openLevelDB", s_static_openLevelDB, true, true },
         { "openLevelDBSync", s_static_openLevelDB, true, false },
         { "openRedis", s_static_openRedis, true, true },
@@ -215,24 +208,6 @@ inline void db_base::s_static_openPSQL(const v8::FunctionCallbackInfo<v8::Value>
         hr = acb_openPSQL(v0, cb, args);
     else
         hr = ac_openPSQL(v0, vr);
-
-    METHOD_RETURN();
-}
-
-inline void db_base::s_static_openMongoDB(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<MongoDB_base> vr;
-
-    METHOD_ENTER();
-
-    ASYNC_METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    if (!cb.IsEmpty())
-        hr = acb_openMongoDB(v0, cb, args);
-    else
-        hr = ac_openMongoDB(v0, vr);
 
     METHOD_RETURN();
 }

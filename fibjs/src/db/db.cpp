@@ -38,9 +38,6 @@ result_t db_base::open(exlib::string connString, obj_ptr<object_base>& retVal, A
     if (!qstrcmp(connString.c_str(), "redis:", 6))
         return openRedis(connString, (obj_ptr<Redis_base>&)retVal, ac);
 
-    if (!qstrcmp(connString.c_str(), "mongodb:", 8))
-        return openMongoDB(connString, (obj_ptr<MongoDB_base>&)retVal, ac);
-
     if (!qstrcmp(connString.c_str(), "leveldb:", 8))
         return openLevelDB(connString, (obj_ptr<LevelDB_base>&)retVal, ac);
 

@@ -17,7 +17,6 @@
 #include <png/include/png.h>
 #include <pcre/pcre.h>
 #include <tiff/include/tiffvers.h>
-#include <mongo/include/mongo.h>
 #include <mbedtls/mbedtls/version.h>
 #include <snappy/include/snappy.h>
 #include <leveldb/db.h>
@@ -101,7 +100,6 @@ public:
             snprintf(str, sizeof(str), "%d.%d", leveldb::kMajorVersion, leveldb::kMinorVersion);
             g_vender->add("leveldb", str);
             g_vender->add("mbedtls", MBEDTLS_VERSION_STRING);
-            g_vender->add("mongo", STR(MONGO_MAJOR) "." STR(MONGO_MINOR));
             g_vender->add("msgpack", msgpack_version());
             g_vender->add("pcre", STR(PCRE_MAJOR) "." STR(PCRE_MINOR));
             g_vender->add("png", PNG_LIBPNG_VER_STRING);

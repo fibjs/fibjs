@@ -1903,7 +1903,6 @@ describe('util', () => {
             assert.property(util.buildInfo().vender, 'jpeg');
             assert.property(util.buildInfo().vender, 'png');
             assert.property(util.buildInfo().vender, 'leveldb');
-            assert.property(util.buildInfo().vender, 'mongo');
             assert.property(util.buildInfo().vender, 'pcre');
             assert.property(util.buildInfo().vender, 'mbedtls');
             assert.property(util.buildInfo().vender, 'snappy');

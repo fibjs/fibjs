@@ -3,7 +3,6 @@
 /// <reference path="../interface/MySQL.d.ts" />
 /// <reference path="../interface/SQLite.d.ts" />
 /// <reference path="../interface/DbConnection.d.ts" />
-/// <reference path="../interface/MongoDB.d.ts" />
 /// <reference path="../interface/LevelDB.d.ts" />
 /// <reference path="../interface/Redis.d.ts" />
 /**
@@ -83,16 +82,6 @@ declare module 'db' {
     function openPSQL(connString: string): Class_DbConnection;
 
     function openPSQL(connString: string, callback: (err: Error | undefined | null, retVal: Class_DbConnection)=>any): void;
-
-    /**
-     * @description 打开一个 mongodb 数据库
-     *      @param connString 数据库描述
-     *      @return 返回数据库连接对象
-     *      
-     */
-    function openMongoDB(connString: string): Class_MongoDB;
-
-    function openMongoDB(connString: string, callback: (err: Error | undefined | null, retVal: Class_MongoDB)=>any): void;
 
     /**
      * @description 打开一个 leveldb 数据库
