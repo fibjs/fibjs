@@ -281,12 +281,13 @@ result_t process_base::exit()
         WriteLcovData(isolate->m_isolate, g_cov);
     }
 
-#ifndef _WIN32
+#ifdef _WIN32
+    TerminateProcess(GetCurrentProcess(), code);
+#else
     if (g_in_readline && isatty(_fileno(stdin)))
         rl_deprep_terminal();
+    ::_exit(code);
 #endif
-
-    ::exit(code);
 
     return 0;
 }
@@ -350,11 +351,14 @@ result_t process_base::memoryUsage(v8::Local<v8::Object>& retVal)
     isolate->m_isolate->GetHeapStatistics(&v8_heap_stats);
 
     info->Set(context, isolate->NewString("heapTotal"),
-        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.total_heap_size())).IsJust();
+            v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.total_heap_size()))
+        .IsJust();
     info->Set(context, isolate->NewString("heapUsed"),
-        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.used_heap_size())).IsJust();
+            v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.used_heap_size()))
+        .IsJust();
     info->Set(context, isolate->NewString("external"),
-        v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.external_memory())).IsJust();
+            v8::Number::New(isolate->m_isolate, (double)v8_heap_stats.external_memory()))
+        .IsJust();
 
     v8::Local<v8::Object> objs;
     object_base::class_info().dump(objs);
@@ -362,7 +366,8 @@ result_t process_base::memoryUsage(v8::Local<v8::Object>& retVal)
         objs = v8::Object::New(isolate->m_isolate);
     info->Set(context, isolate->NewString("nativeObjects"), objs).IsJust();
     info->Set(context, isolate->NewString("ExtStrings"),
-        v8::Number::New(isolate->m_isolate, (double)g_ExtStringCount.value())).IsJust();
+            v8::Number::New(isolate->m_isolate, (double)g_ExtStringCount.value()))
+        .IsJust();
 
     retVal = info;
 
