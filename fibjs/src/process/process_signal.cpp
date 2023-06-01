@@ -20,7 +20,6 @@
 
 namespace fibjs {
 
-extern exlib::LockedList<Isolate> s_isolates;
 static exlib::atomic s_check_callback;
 
 static void _InterruptCallback(v8::Isolate* v8_isolate, void* data)
@@ -37,7 +36,7 @@ static void _InterruptCallback(v8::Isolate* v8_isolate, void* data)
 
 static result_t async_signal(const char* name)
 {
-    Isolate* isolate = s_isolates.head();
+    Isolate* isolate = Isolate::main();
 
     if (isolate)
         isolate->RequestInterrupt(_InterruptCallback, (void*)name);

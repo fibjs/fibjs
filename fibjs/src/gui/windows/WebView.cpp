@@ -26,8 +26,6 @@ namespace fibjs {
 static exlib::LockedList<AsyncEvent> s_uiPool;
 static uint32_t s_thread;
 
-extern exlib::LockedList<Isolate> s_isolates;
-
 void os_putGuiPool(AsyncEvent* ac)
 {
     s_uiPool.putTail(ac);
@@ -108,7 +106,7 @@ private:
             if (len > 0 && origin[len - 1] == '/')
                 origin.resize(len - 1);
 
-            result_t hr = fs_base::cc_openFile(origin, "r", m_file, s_isolates.head());
+            result_t hr = fs_base::cc_openFile(origin, "r", m_file, Isolate::main());
             if (hr < 0)
                 return INET_E_OBJECT_NOT_FOUND;
 

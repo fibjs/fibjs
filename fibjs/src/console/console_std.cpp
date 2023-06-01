@@ -13,8 +13,6 @@
 
 namespace fibjs {
 
-extern exlib::LockedList<Isolate> s_isolates;
-
 #ifdef WIN32
 
 inline bool is_atty(int32_t fd)
@@ -30,7 +28,7 @@ void std_logger::out(exlib::string& txt, bool is_error)
     static bool s_tty_err = is_atty(_fileno(stderr));
 
     obj_ptr<Stream_base> out;
-    Isolate* isolate = s_isolates.head();
+    Isolate* isolate = Isolate::main();
 
     if (is_error) {
         if (!s_tty_err) {
@@ -58,7 +56,7 @@ void std_logger::out(exlib::string& txt, bool is_error)
 {
     obj_ptr<Stream_base> out;
 
-    Isolate* isolate = s_isolates.head();
+    Isolate* isolate = Isolate::main();
 
     if (is_error) {
         isolate->get_stderr(out);

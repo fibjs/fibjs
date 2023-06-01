@@ -56,6 +56,8 @@ public:
 public:
     void init();
 
+    static Isolate* main();
+
     static Isolate* current();
 
     static Isolate* current(v8::Isolate* v8_isolate)

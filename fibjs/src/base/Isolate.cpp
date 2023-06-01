@@ -25,9 +25,10 @@ namespace fibjs {
 
 void init_process_ipc(Isolate* isolate);
 
-exlib::LockedList<Isolate> s_isolates;
-exlib::atomic s_iso_id;
-exlib::atomic s_iso_ref;
+static exlib::LockedList<Isolate> s_isolates;
+static exlib::atomic s_iso_id;
+static exlib::atomic s_iso_ref;
+
 extern v8::Platform* g_default_platform;
 
 static int32_t syncRunMicrotasks(Isolate* isolate)
@@ -182,6 +183,11 @@ Isolate* Isolate::current()
         return NULL;
 
     return rt->isolate();
+}
+
+Isolate* Isolate::main()
+{
+    return s_isolates.head();
 }
 
 static void _PromiseRejectCallback(v8::PromiseRejectMessage data)
