@@ -299,8 +299,15 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buff
             return 0;
         }
 
-        if (v->IsString() || v->IsStringObject()) {
+        if (v->IsString()) {
             v8::Local<v8::String> str = v.As<v8::String>();
+            v8::String::Utf8Value utf8(isolate->m_isolate, str);
+            vr = new Buffer(*utf8, utf8.length());
+            return 0;
+        }
+
+        if (v->IsStringObject()) {
+            v8::Local<v8::String> str = v.As<v8::StringObject>()->ValueOf();
             v8::String::Utf8Value utf8(isolate->m_isolate, str);
             vr = new Buffer(*utf8, utf8.length());
             return 0;
