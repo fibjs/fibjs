@@ -222,14 +222,14 @@ result_t SandBox::clone(obj_ptr<SandBox_base>& retVal)
     return 0;
 }
 
-result_t deepFreeze(v8::Local<v8::Value> v)
+static result_t deepFreeze(Isolate* isolate, v8::Local<v8::Value> v)
 {
     if (v.IsEmpty() || !v->IsObject())
         return 0;
 
     v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
 
-    if (!isFrozen(obj)) {
+    if (!isFrozen(isolate->m_isolate, obj)) {
         v8::Local<v8::Context> context = obj->GetCreationContextChecked();
         obj->SetIntegrityLevel(context, v8::IntegrityLevel::kFrozen);
         JSArray names = obj->GetPropertyNames(context, v8::KeyCollectionMode::kIncludePrototypes,
@@ -237,7 +237,7 @@ result_t deepFreeze(v8::Local<v8::Value> v)
 
         TryCatch try_catch;
         for (int32_t i = 0; i < (int32_t)names->Length(); i++)
-            deepFreeze(JSValue(obj->Get(context, JSValue(names->Get(context, i)))));
+            deepFreeze(isolate, JSValue(obj->Get(context, JSValue(names->Get(context, i)))));
     }
 
     return 0;
@@ -252,7 +252,8 @@ result_t SandBox::freeze()
     if (hr < 0)
         return hr;
 
-    deepFreeze(global);
+    Isolate* isolate = Isolate::current(global);
+    deepFreeze(isolate, global);
 
     return 0;
 }

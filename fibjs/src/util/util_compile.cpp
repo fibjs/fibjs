@@ -30,7 +30,6 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
         _script[1] = '/';
     }
 
-    v8::Local<v8::Script> code;
     {
         TryCatch try_catch;
 

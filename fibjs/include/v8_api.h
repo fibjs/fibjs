@@ -27,7 +27,7 @@ void beginCoverage(v8::Isolate* isolate);
 void pauseCoverage(v8::Isolate* isolate);
 void WriteLcovData(v8::Isolate* isolate, FILE* file);
 
-bool isFrozen(v8::Local<v8::Object> object);
+bool isFrozen(v8::Isolate* isolate, v8::Local<v8::Object> object);
 void setAsyncFunctoin(v8::Local<v8::Function> func);
 
 std::unique_ptr<v8::BackingStore> NewBackingStore(size_t byte_length);

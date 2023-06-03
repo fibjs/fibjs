@@ -83,7 +83,6 @@ public:
         exlib::string str("SELECT ");
         Isolate* isolate = Isolate::current(opts);
         v8::Local<v8::Value> v;
-        v8::Local<v8::Array> a;
         exlib::string table;
 
         hr = name(opts, "table", table);

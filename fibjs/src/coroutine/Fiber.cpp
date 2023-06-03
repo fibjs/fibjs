@@ -144,11 +144,11 @@ result_t JSFiber::get_stack_usage(int32_t& retVal)
     if (JSFiber::current() == this) {
         V8FrameInfo _fi = save_fi(holder()->m_isolate);
         if (_fi.entry_fp)
-            retVal = (int32_t)(m_bind_thread->stackguard() - (intptr_t)_fi.entry_fp);
+            retVal = (int32_t)(m_bind_thread->stack_start() - (intptr_t)_fi.entry_fp);
         else
             retVal = 0;
     } else if (m_bind_thread)
-        retVal = (int32_t)(m_bind_thread->stackguard() - (intptr_t)m_c_entry_fp_);
+        retVal = (int32_t)(m_bind_thread->stack_start() - (intptr_t)m_c_entry_fp_);
     else
         retVal = 0;
 

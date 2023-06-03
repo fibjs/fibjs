@@ -217,7 +217,6 @@ result_t StringDecoder::base64Text(Buffer_base* buf, int32_t offset, exlib::stri
     uint8_t* chars_data = Buffer::Cast(m_lastChar)->data();
 
     int32_t bufLen = buff->length();
-    int32_t b;
     int32_t n = (bufLen - offset) % 3;
 
     if (n == 0) {

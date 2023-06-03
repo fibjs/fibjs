@@ -12,20 +12,19 @@
 #define _WIN32_WINNT 0x0602
 #endif
 
-#include "v8/src/codegen/bailout-reason.h"
-#include "v8/src/objects/compressed-slots.h"
-#include "v8/src/objects/function-kind.h"
-#include "v8/src/objects/function-syntax-kind.h"
-#include "v8/src/objects/objects.h"
-#include "v8/src/objects/script.h"
-#include "v8/src/objects/slots.h"
-#include "v8/src/objects/smi.h"
-#include "v8/src/objects/struct.h"
-#include "v8/src/objects/object-macros.h"
+#include <memory>
+
+#include "src/base/bit-field.h"
+
+#include "v8-array-buffer.h"
+#include "v8-internal.h"
+#include "v8/src/base/optional.h"
+#include "v8/src/handles/handles.h"
+#include "v8/src/logging/counters.h"
 
 #define private public
-#include "v8/src/objects/shared-function-info.h"
 #include "v8/src/objects/backing-store.h"
+#include "v8/src/objects/shared-function-info.h"
 #undef private
 
 #include "v8/src/api/api-inl.h"
@@ -54,10 +53,11 @@ intptr_t RunMicrotaskSize(Isolate* isolate)
     return _isolate->default_microtask_queue()->size();
 }
 
-bool isFrozen(Local<Object> object)
+bool isFrozen(Isolate* isolate, Local<Object> object)
 {
+    i::Isolate* _isolate = reinterpret_cast<i::Isolate*>(isolate);
     auto obj = Utils::OpenHandle(*object);
-    Maybe<bool> test = i::JSReceiver::TestIntegrityLevel(obj, i::FROZEN);
+    Maybe<bool> test = i::JSReceiver::TestIntegrityLevel(_isolate, obj, i::FROZEN);
     return test.FromMaybe(false);
 }
 
@@ -111,7 +111,7 @@ exlib::string traceInfo(Isolate* isolate, int32_t deep, void* entry_fp, void* ha
     tt.c_entry_fp_ = (i::Address)entry_fp;
     tt.handler_ = (i::Address)handle;
 
-    i::JavaScriptFrameIterator it(v8_isolate, &tt);
+    i::JavaScriptStackFrameIterator it(v8_isolate, &tt);
 
     exlib::string strBuffer;
     bool bFirst = true;
@@ -124,7 +124,7 @@ exlib::string traceInfo(Isolate* isolate, int32_t deep, void* entry_fp, void* ha
 
         const i::FrameSummary::JavaScriptFrameSummary& summ = frames[0].AsJavaScript();
         i::Handle<i::Script> script = i::Handle<i::Script>::cast(summ.script());
-        if (script->type() == i::Script::TYPE_NORMAL) {
+        if (script->type() == i::Script::Type::kNormal) {
             strBuffer.append(bFirst ? "    at " : "\n    at ");
             bFirst = false;
 
@@ -138,7 +138,7 @@ exlib::string traceInfo(Isolate* isolate, int32_t deep, void* entry_fp, void* ha
             int32_t column_number = 0;
             i::Script::PositionInfo info;
             bool valid_pos = i::Script::GetPositionInfo(script, summ.SourcePosition(),
-                &info, i::Script::WITH_OFFSET);
+                &info, i::Script::OffsetFlag::kWithOffset);
 
             if (valid_pos) {
                 line_number = info.line + 1;

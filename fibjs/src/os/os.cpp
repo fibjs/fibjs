@@ -230,7 +230,6 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
     for (int32_t i = 0; i < ifs;) {
         char* if_name = interfaces[i].name;
         v8::Local<v8::Array> ret;
-        v8::Local<v8::Object> o;
         v8::Local<v8::Value> v;
         v8::Local<v8::String> name, family;
 
