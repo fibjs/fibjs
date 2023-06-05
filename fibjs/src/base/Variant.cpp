@@ -62,11 +62,7 @@ Variant& Variant::operator=(v8::Local<v8::Value> v)
         else {
             set_type(VT_JSValue);
 
-            if (isGlobal()) {
-                new (m_Val.jsVal) v8::Global<v8::Value>();
-                jsValEx().Reset(Isolate::current()->m_isolate, v);
-            } else
-                new (m_Val.jsVal) v8::Local<v8::Value>(v);
+            new (m_Val.jsVal) v8::Local<v8::Value>(v);
 
             return *this;
         }
@@ -85,7 +81,6 @@ Variant::operator v8::Local<v8::Value>() const
         return v8::Undefined(isolate->m_isolate);
     case VT_Null:
     case VT_Type:
-    case VT_Global:
         return v8::Null(isolate->m_isolate);
     case VT_Boolean:
         return m_Val.boolVal ? v8::True(isolate->m_isolate) : v8::False(isolate->m_isolate);
@@ -107,10 +102,7 @@ Variant::operator v8::Local<v8::Value>() const
         return v;
     }
     case VT_JSValue:
-        if (isGlobal())
-            return jsValEx().Get(isolate->m_isolate);
-        else
-            return jsVal();
+        return jsVal();
     case VT_JSON: {
         v8::Local<v8::Value> v;
         json_base::decode(strVal(), v);
@@ -270,7 +262,6 @@ void Variant::toString(exlib::string& retVal) const
         break;
     case VT_Null:
     case VT_Type:
-    case VT_Global:
         retVal = "null";
         break;
     case VT_Boolean:

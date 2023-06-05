@@ -448,7 +448,7 @@ result_t process_base::emitWarning(v8::Local<v8::Value> warning, v8::Local<v8::O
     opts->Set(context, isolate->NewString("code"), options->Get(context, isolate->NewString("code")).FromMaybe(v8::Local<v8::Value>())).IsJust();
     opts->Set(context, isolate->NewString("detail"), options->Get(context, isolate->NewString("detail")).FromMaybe(v8::Local<v8::Value>())).IsJust();
 
-    Variant v = v8::Local<v8::Value>(opts);
+    v8::Local<v8::Value> v = opts;
     (new JSTrigger::AsyncEmitter(isolate, class_info().getModule(isolate)))->emit("warning", &v, 1);
 
     return 0;
@@ -468,7 +468,7 @@ result_t process_base::emitWarning(v8::Local<v8::Value> warning, exlib::string t
     opts->Set(context, isolate->NewString("name"), isolate->NewString(type)).IsJust();
     opts->Set(context, isolate->NewString("code"), isolate->NewString(code)).IsJust();
 
-    Variant v = v8::Local<v8::Value>(opts);
+    v8::Local<v8::Value> v = opts;
     (new JSTrigger::AsyncEmitter(isolate, class_info().getModule(isolate)))->emit("warning", &v, 1);
 
     return 0;

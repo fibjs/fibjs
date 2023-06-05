@@ -79,7 +79,7 @@ public:
     }
 
 private:
-    typedef std::pair<exlib::string, VariantEx> pair;
+    typedef std::pair<exlib::string, Variant> pair;
     std::vector<pair> m_map;
     size_t m_count;
 };

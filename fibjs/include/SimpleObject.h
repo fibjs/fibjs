@@ -26,7 +26,7 @@ public:
 
     public:
         std::map<exlib::string, int32_t>::iterator m_pos;
-        VariantEx m_val;
+        Variant m_val;
     };
 
 public:
@@ -182,7 +182,7 @@ private:
     }
 
 public:
-    std::vector<VariantEx> m_array;
+    std::vector<Variant> m_array;
 };
 
 class NType : public object_base {

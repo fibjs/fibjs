@@ -63,8 +63,7 @@ public:
         VT_JSON,
         VT_UNBOUND_ARRAY,
         VT_UNBOUND_OBJECT,
-        VT_Type = 255,
-        VT_Global = 256
+        VT_Type = 255
     };
 
 public:
@@ -156,14 +155,8 @@ public:
         else if (_t == VT_Object && m_Val.objVal)
             m_Val.objVal->Unref();
         else if (_t == VT_JSValue) {
-            if (isGlobal()) {
-                v8::Global<v8::Value>& jsobj = jsValEx();
-                jsobj.Reset();
-                jsobj.~Global();
-            } else {
-                v8::Local<v8::Value>& jsobj = jsVal();
-                jsobj.~Local();
-            }
+            v8::Local<v8::Value>& jsobj = jsVal();
+            jsobj.~Local();
         }
 
         set_type(VT_Undefined);
@@ -184,12 +177,8 @@ public:
         if (_t == VT_Object)
             return operator=(v.m_Val.objVal);
 
-        if (_t == VT_JSValue) {
-            if (v.isGlobal())
-                return operator=(v.jsValEx().Get(Isolate::current()->m_isolate));
-            else
-                return operator=(v.jsVal());
-        }
+        if (_t == VT_JSValue)
+            return operator=(v.jsVal());
 
         assert(_t != VT_UNBOUND_ARRAY && _t != VT_UNBOUND_OBJECT);
 
@@ -344,22 +333,12 @@ public:
 
     void set_type(Type t)
     {
-        m_type = (Type)(t | (m_type & VT_Global));
+        m_type = t;
     }
 
     bool isUndefined()
     {
         return type() == VT_Undefined;
-    }
-
-    void toGlobal()
-    {
-        m_type = (Type)(m_type | VT_Global);
-    }
-
-    bool isGlobal() const
-    {
-        return (m_type & VT_Global) == VT_Global;
     }
 
     size_t size() const
@@ -418,7 +397,7 @@ public:
             return m_Val.dblVal;
         return 0;
     }
-    
+
     void parseInt(const char* str, int32_t len = -1);
     void parseNumber(const char* str, int32_t len = -1);
     void parseDate(const char* str, int32_t len = -1)
@@ -505,63 +484,6 @@ private:
         char jsVal[sizeof(v8::Global<v8::Value>)];
         buf buffer;
     } m_Val;
-};
-
-class VariantEx : public Variant {
-
-public:
-    VariantEx()
-    {
-        toGlobal();
-    }
-
-    VariantEx(const Variant& v)
-    {
-        toGlobal();
-        operator=(v);
-    }
-
-    VariantEx(const VariantEx& v)
-    {
-        toGlobal();
-        operator=(v);
-    }
-
-    VariantEx(v8::Local<v8::Value> v)
-    {
-        toGlobal();
-        operator=(v);
-    }
-
-    VariantEx(const exlib::string& v)
-    {
-        toGlobal();
-        operator=(v);
-    }
-
-    VariantEx(const char* v)
-    {
-        toGlobal();
-        operator=(v);
-    }
-
-    Variant& operator=(const VariantEx& v)
-    {
-        Variant::operator=((const Variant)v);
-        return *this;
-    }
-
-    template <typename T>
-    VariantEx& operator=(T v)
-    {
-        Variant::operator=(v);
-        return *this;
-    }
-
-    operator v8::Local<v8::Value>() const
-    {
-        return Variant::operator v8::Local<v8::Value>();
-    }
 };
 
 } /* namespace fibjs */

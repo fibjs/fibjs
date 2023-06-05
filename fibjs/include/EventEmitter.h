@@ -528,14 +528,24 @@ public:
         static result_t emitter_func(AsyncEmitter* p)
         {
             JSFiber::EnterJsScope s;
-            size_t i;
+            size_t i, sz;
             bool r;
 
             std::vector<v8::Local<v8::Value>> argv;
 
-            argv.resize(p->m_args.size());
-            for (i = 0; i < p->m_args.size(); i++)
-                argv[i] = v8::Local<v8::Value>::New(p->m_isolate->m_isolate, p->m_args[i]);
+            sz = p->m_variant_args.size();
+            if (sz) {
+                argv.resize(sz);
+                for (i = 0; i < sz; i++)
+                    argv[i] = p->m_variant_args[i];
+            } else {
+                sz = p->m_value_args.size();
+                if (sz) {
+                    argv.resize(sz);
+                    for (i = 0; i < sz; i++)
+                        argv[i] = p->m_value_args[i].Get(p->m_isolate->m_isolate);
+                }
+            }
 
             if (!p->m_obj)
                 p->m_obj = object_base::getInstance(p->m_o.Get(p->m_isolate->m_isolate));
@@ -554,7 +564,21 @@ public:
         void emit(exlib::string ev, Variant* args, int32_t argCount)
         {
             m_ev = ev;
-            m_args.append((VariantEx*)args, argCount);
+            m_variant_args.resize(argCount);
+
+            for (int32_t i = 0; i < argCount; i++)
+                m_variant_args[i] = args[i];
+
+            syncCall(m_isolate, emitter_func, this);
+        }
+
+        void emit(exlib::string ev, v8::Local<v8::Value>* args, int32_t argCount)
+        {
+            m_ev = ev;
+            m_value_args.resize(argCount);
+
+            for (int32_t i = 0; i < argCount; i++)
+                m_value_args[i].Reset(m_isolate->m_isolate, args[i]);
 
             syncCall(m_isolate, emitter_func, this);
         }
@@ -564,7 +588,8 @@ public:
         v8::Global<v8::Object> m_o;
         obj_ptr<object_base> m_obj;
         exlib::string m_ev;
-        QuickArray<VariantEx> m_args;
+        std::vector<Variant> m_variant_args;
+        std::vector<v8::Global<v8::Value>> m_value_args;
     };
 
     result_t emit(exlib::string ev, OptArgs args, bool& retVal)
