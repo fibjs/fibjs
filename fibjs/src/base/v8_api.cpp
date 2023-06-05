@@ -53,6 +53,16 @@ intptr_t RunMicrotaskSize(Isolate* isolate)
     return _isolate->default_microtask_queue()->size();
 }
 
+void* disable_gc()
+{
+    return new i::DisallowGarbageCollection();
+}
+
+void enable_gc(void* handle)
+{
+    delete (i::DisallowGarbageCollection*)handle;
+}
+
 bool isFrozen(Isolate* isolate, Local<Object> object)
 {
     i::Isolate* _isolate = reinterpret_cast<i::Isolate*>(isolate);

@@ -50,6 +50,22 @@ public:
         v8::Unlocker unlocker;
     };
 
+    class DisallowGarbageCollection {
+    public:
+        DisallowGarbageCollection()
+            : m_handle(disable_gc())
+        {
+        }
+
+        ~DisallowGarbageCollection()
+        {
+            enable_gc(m_handle);
+        }
+
+    private:
+        void* m_handle;
+    };
+
 public:
     Isolate(exlib::string jsFilename, exlib::string jsCode = "");
 
@@ -70,7 +86,7 @@ public:
         return current(context->GetIsolate());
     }
 
-    template<typename T>
+    template <typename T>
     static Isolate* current(v8::Local<T> object)
     {
         return current(object->GetCreationContextChecked());
