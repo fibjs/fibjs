@@ -78,18 +78,13 @@ void setAsyncFunctoin(Local<Function> func)
     _func->shared().set_kind(i::FunctionKind::kAsyncFunction);
 }
 
-static void s_store_deleter(void* data, size_t length, void* deleter_data)
-{
-}
-
 std::unique_ptr<v8::BackingStore> NewBackingStore(size_t byte_length)
 {
     CHECK_LE(byte_length, i::JSArrayBuffer::kMaxByteLength);
 
     uint8_t* data = new uint8_t[byte_length + sizeof(i::BackingStore)];
     auto result = new ((i::BackingStore*)data) i::BackingStore(data + sizeof(i::BackingStore), byte_length, byte_length, byte_length,
-        i::SharedFlag::kNotShared, i::ResizableFlag::kNotResizable, false, true, false, true, false);
-    result->type_specific_data_.deleter = { s_store_deleter, NULL };
+        i::SharedFlag::kNotShared, i::ResizableFlag::kNotResizable, false, false, false, false, false);
 
     return std::unique_ptr<v8::BackingStore>((v8::BackingStore*)result);
 }
