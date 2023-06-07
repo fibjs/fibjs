@@ -31,7 +31,7 @@ inline void on_env_update(Isolate* isolate, exlib::string key, exlib::string val
     }
 }
 
-void SetEnv(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info)
+static void SetEnv(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
     Isolate* isolate = Isolate::current(info);
 
@@ -44,7 +44,7 @@ void SetEnv(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::
     }
 }
 
-void DelEnv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& info)
+static void DelEnv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& info)
 {
     Isolate* isolate = Isolate::current(info);
 
@@ -54,6 +54,37 @@ void DelEnv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boo
     on_env_update(isolate, key, "");
 }
 
+static void EnumEnv(const v8::PropertyCallbackInfo<v8::Array>& info)
+{
+    Isolate* isolate = Isolate::current(info);
+    v8::Local<v8::Context> context = isolate->context();
+    char** env = environ;
+    const char *p, *p1;
+
+    v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate);
+    int32_t idx = 0;
+    while ((p = *env++) != NULL) {
+        p1 = qstrchr(p, '=');
+        if (p1)
+            arr->Set(context, idx++, isolate->NewString(p, (int32_t)(p1 - p))).IsJust();
+    }
+
+    info.GetReturnValue().Set(arr);
+}
+
+static void GetEnv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& info)
+{
+    Isolate* isolate = Isolate::current(info);
+    exlib::string key = isolate->toString(property);
+
+    char buf[4096];
+    size_t sz = sizeof(buf);
+    if (uv_os_getenv(key.c_str(), buf, &sz) == 0)
+        info.GetReturnValue().Set(isolate->NewString(buf, sz));
+    else
+        info.GetReturnValue().Set(v8::Undefined(isolate->m_isolate));
+}
+
 result_t process_base::get_env(v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
@@ -61,17 +92,8 @@ result_t process_base::get_env(v8::Local<v8::Object>& retVal)
 
     if (isolate->m_env.IsEmpty()) {
         v8::Local<v8::FunctionTemplate> templ = v8::FunctionTemplate::New(isolate->m_isolate);
-        templ->InstanceTemplate()->SetHandler(v8::NamedPropertyHandlerConfiguration(nullptr, SetEnv, nullptr, DelEnv));
+        templ->InstanceTemplate()->SetHandler(v8::NamedPropertyHandlerConfiguration(GetEnv, SetEnv, nullptr, DelEnv, EnumEnv));
         v8::Local<v8::Object> o = templ->GetFunction(context).ToLocalChecked()->NewInstance(context).ToLocalChecked();
-        char** env = environ;
-        const char *p, *p1;
-
-        while ((p = *env++) != NULL) {
-            p1 = qstrchr(p, '=');
-            if (p1)
-                o->Set(context, isolate->NewString(p, (int32_t)(p1 - p)), isolate->NewString(p1 + 1)).IsJust();
-        }
-
         isolate->m_env.Reset(isolate->m_isolate, o);
         retVal = o;
     } else
