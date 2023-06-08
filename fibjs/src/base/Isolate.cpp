@@ -134,7 +134,6 @@ Isolate::Isolate(exlib::string jsFilename, exlib::string jsCode)
     , m_exitCode(0)
     , m_enable_FileSystem(true)
     , m_safe_buffer(false)
-    , m_max_buffer_size(-1)
     , m_ca(new X509Cert())
 {
     s_isolates.putTail(this);

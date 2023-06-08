@@ -228,10 +228,8 @@ public:
 
     int32_t m_exitCode;
 
-    v8::Global<v8::Object> m_buffer_prototype;
     bool m_enable_FileSystem;
     bool m_safe_buffer;
-    int32_t m_max_buffer_size;
 
     obj_ptr<X509Cert_base> m_ca;
 
