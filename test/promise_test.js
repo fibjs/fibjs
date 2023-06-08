@@ -31,7 +31,7 @@ describe('promise', () => {
     });
 
     it("error in promise", () => {
-        t('promise3.js', 'Error: 1000\n    at /promise/promise3.js:2:11\n    at new Promise (<anonymous>)\n    at /promise/promise3.js:1:73\n');
+        t('promise3.js', 'Error: 1000\n    at /promise/promise3.js:2:11\n    at new Promise (<anonymous>)\n    at /promise/promise3.js:1:1\n');
     });
 
     it("error in promise with catch", () => {

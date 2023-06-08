@@ -29,30 +29,18 @@ result_t JsLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::strin
         _strScript[1] = '/';
     }
 
-    exlib::string src1 = arg_names + strScript + "\n});";
+    exlib::string src1 = arg_names + "\n" + strScript + "\n});";
 
     TryCatch try_catch;
-    v8::ScriptOrigin so_origin(isolate->m_isolate, soname);
-    script = v8::Script::Compile(
-        isolate->m_isolate->GetCurrentContext(),
-        isolate->NewString(src1), &so_origin).FromMaybe(v8::Local<v8::Script>());
 
-    if (script.IsEmpty()) {
-        TryCatch try_catch1;
+    v8::ScriptOrigin so_origin(isolate->m_isolate, soname, -1);
 
-        v8::ScriptCompiler::Source script_source(
-            isolate->NewString(strScript),
-            so_origin);
+    script = v8::Script::Compile(isolate->m_isolate->GetCurrentContext(),
+        isolate->NewString(src1), &so_origin)
+                 .FromMaybe(v8::Local<v8::Script>());
 
-        if (v8::ScriptCompiler::CompileUnboundScript(
-                isolate->m_isolate, &script_source)
-                .IsEmpty()) {
-            try_catch.Reset();
-            return throwSyntaxError(try_catch1);
-        }
-
+    if (script.IsEmpty())
         return throwSyntaxError(try_catch);
-    }
 
     return 0;
 }

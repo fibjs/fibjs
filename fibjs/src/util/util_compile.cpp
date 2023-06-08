@@ -43,7 +43,7 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
                 return throwSyntaxError(try_catch);
         }
 
-        const char* args;
+        exlib::string args;
 
         switch (mode) {
         case 2:
@@ -53,14 +53,14 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
             args = SandBox::module_args;
             break;
         }
-        script = args + script + "\n});";
+        script = args + "\n" + script + "\n});";
 
         exlib::wstring wscript(utf8to16String(script));
 
         v8::Local<v8::String> v8src = v8::String::NewFromTwoByte(isolate->m_isolate, (const uint16_t*)wscript.c_str(),
             v8::NewStringType::kNormal, (int32_t)wscript.length())
                                           .FromMaybe(v8::Local<v8::String>());
-        v8::ScriptCompiler::Source script_source(v8src, v8::ScriptOrigin(isolate->m_isolate, soname));
+        v8::ScriptCompiler::Source script_source(v8src, v8::ScriptOrigin(isolate->m_isolate, soname, -1));
 
         v8::Local<v8::UnboundScript> ubs = v8::ScriptCompiler::CompileUnboundScript(
             isolate->m_isolate, &script_source,

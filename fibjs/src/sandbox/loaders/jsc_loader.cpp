@@ -73,8 +73,10 @@ result_t JscLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::stri
         v8::ScriptCompiler::CachedData* cache;
         cache = new v8::ScriptCompiler::CachedData(code->data(), code_len);
 
+        v8::ScriptOrigin so_origin(isolate->m_isolate, soname, -1);
+
         v8::ScriptCompiler::Source source(isolate->NewString(s_temp_source),
-            v8::ScriptOrigin(isolate->m_isolate, soname), cache);
+            so_origin, cache);
 
         script = v8::ScriptCompiler::Compile(isolate->context(), &source,
             v8::ScriptCompiler::kConsumeCodeCache)
