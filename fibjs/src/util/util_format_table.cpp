@@ -13,7 +13,7 @@
 #include "StringBuffer.h"
 #include "TextColor.h"
 #include "Buffer.h"
-#include <map>
+#include <unordered_map>
 
 namespace fibjs {
 

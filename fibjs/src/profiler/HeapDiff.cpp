@@ -10,7 +10,7 @@
 #include "ifs/HeapGraphEdge.h"
 #include "ifs/profiler.h"
 #include <set>
-#include <map>
+#include <unordered_map>
 
 namespace fibjs {
 
@@ -129,15 +129,20 @@ inline v8::Local<v8::Value> changesetToObject(Isolate* isolate, changeset& chang
         changeset::iterator it = its[i];
         v8::Local<v8::Object> d = v8::Object::New(isolate->m_isolate);
         d->Set(context, isolate->NewString("type"),
-            isolate->NewString(it->first)).IsJust();
+             isolate->NewString(it->first))
+            .IsJust();
         d->Set(context, isolate->NewString("size_bytes"),
-            v8::Integer::New(isolate->m_isolate, (int32_t)it->second.size)).IsJust();
+             v8::Integer::New(isolate->m_isolate, (int32_t)it->second.size))
+            .IsJust();
         d->Set(context, isolate->NewString("size"),
-            isolate->NewString(niceSize(it->second.size))).IsJust();
+             isolate->NewString(niceSize(it->second.size)))
+            .IsJust();
         d->Set(context, isolate->NewString("+"),
-            v8::Integer::New(isolate->m_isolate, (int32_t)it->second.added)).IsJust();
+             v8::Integer::New(isolate->m_isolate, (int32_t)it->second.added))
+            .IsJust();
         d->Set(context, isolate->NewString("-"),
-            v8::Integer::New(isolate->m_isolate, (int32_t)it->second.released)).IsJust();
+             v8::Integer::New(isolate->m_isolate, (int32_t)it->second.released))
+            .IsJust();
         a->Set(context, a->Length(), d).IsJust();
     }
 
@@ -160,7 +165,8 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
     before->get_nodes(nodes);
     _count = nodes->length();
     b->Set(context, isolate->NewString("nodes"),
-        v8::Integer::New(isolate->m_isolate, _count)).IsJust();
+         v8::Integer::New(isolate->m_isolate, _count))
+        .IsJust();
 
     before->get_time(d);
     b->Set(context, isolate->NewString("time"), d.value(isolate->m_isolate)).IsJust();
@@ -170,7 +176,8 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
     after->get_nodes(nodes);
     _count = nodes->length();
     a->Set(context, isolate->NewString("nodes"),
-        v8::Integer::New(isolate->m_isolate, _count)).IsJust();
+         v8::Integer::New(isolate->m_isolate, _count))
+        .IsJust();
     after->get_time(d);
     a->Set(context, isolate->NewString("time"), d.value(isolate->m_isolate)).IsJust();
     o->Set(context, isolate->NewString("after"), a).IsJust();
@@ -181,32 +188,39 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
     buildIDSet(&beforeIDs, before, s);
 
     b->Set(context, isolate->NewString("size_bytes"),
-        v8::Integer::New(isolate->m_isolate, (int32_t)s)).IsJust();
+         v8::Integer::New(isolate->m_isolate, (int32_t)s))
+        .IsJust();
     b->Set(context, isolate->NewString("size"),
-        isolate->NewString(niceSize(s))).IsJust();
+         isolate->NewString(niceSize(s)))
+        .IsJust();
 
     diffBytes = s;
     s = 0;
     buildIDSet(&afterIDs, after, s);
 
     a->Set(context, isolate->NewString("size_bytes"),
-        v8::Integer::New(isolate->m_isolate, (int32_t)s)).IsJust();
+         v8::Integer::New(isolate->m_isolate, (int32_t)s))
+        .IsJust();
     a->Set(context, isolate->NewString("size"),
-        isolate->NewString(niceSize(s))).IsJust();
+         isolate->NewString(niceSize(s)))
+        .IsJust();
 
     diffBytes = s - diffBytes;
 
     v8::Local<v8::Object> c = v8::Object::New(isolate->m_isolate);
     c->Set(context, isolate->NewString("size_bytes"),
-        v8::Integer::New(isolate->m_isolate, (int32_t)diffBytes)).IsJust();
+         v8::Integer::New(isolate->m_isolate, (int32_t)diffBytes))
+        .IsJust();
     c->Set(context, isolate->NewString("size"),
-        isolate->NewString(niceSize(diffBytes))).IsJust();
+         isolate->NewString(niceSize(diffBytes)))
+        .IsJust();
     o->Set(context, isolate->NewString("change"), c).IsJust();
 
     std::vector<int32_t> changedIDs;
     setDiff(beforeIDs, afterIDs, changedIDs);
     c->Set(context, isolate->NewString("freed_nodes"),
-        v8::Integer::New(isolate->m_isolate, (int32_t)changedIDs.size())).IsJust();
+         v8::Integer::New(isolate->m_isolate, (int32_t)changedIDs.size()))
+        .IsJust();
 
     changeset changes;
 
@@ -222,7 +236,8 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
     setDiff(afterIDs, beforeIDs, changedIDs);
 
     c->Set(context, isolate->NewString("allocated_nodes"),
-        v8::Integer::New(isolate->m_isolate, (int32_t)changedIDs.size())).IsJust();
+         v8::Integer::New(isolate->m_isolate, (int32_t)changedIDs.size()))
+        .IsJust();
 
     for (size_t i = 0; i < changedIDs.size(); i++) {
         obj_ptr<HeapGraphNode_base> n;
@@ -232,7 +247,8 @@ result_t HeapSnapshot::diff(HeapSnapshot_base* before, HeapSnapshot_base* after,
     }
 
     c->Set(context, isolate->NewString("details"),
-        changesetToObject(isolate, changes)).IsJust();
+         changesetToObject(isolate, changes))
+        .IsJust();
 
     retVal = o;
 

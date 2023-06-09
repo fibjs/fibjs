@@ -14,7 +14,7 @@
 #include "XmlText.h"
 #include "XmlCDATASection.h"
 #include "Runtime.h"
-#include <map>
+#include <unordered_map>
 #define XML_STATIC
 #include <expat/include/expat.h>
 

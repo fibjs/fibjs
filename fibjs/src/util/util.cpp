@@ -11,7 +11,7 @@
 #include "QuickArray.h"
 #include "parse.h"
 #include "SimpleObject.h"
-#include <map>
+#include <unordered_map>
 
 namespace fibjs {
 

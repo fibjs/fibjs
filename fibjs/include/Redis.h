@@ -13,7 +13,7 @@
 #include "Variant.h"
 #include "QuickArray.h"
 #include "Buffer.h"
-#include <map>
+#include <unordered_map>
 #include <inttypes.h>
 
 namespace fibjs {

@@ -12,7 +12,7 @@
 #include "ifs/process.h"
 #include "ifs/util.h"
 #include "ifs/tty.h"
-#include <map>
+#include <unordered_map>
 #include "console.h"
 #include <stdlib.h>
 

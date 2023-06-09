@@ -11,7 +11,7 @@
 #include "ifs/Stream.h"
 #include "ifs/process.h"
 #include "ifs/Worker.h"
-#include <map>
+#include <unordered_map>
 #include <vector>
 
 namespace fibjs {

@@ -13,7 +13,7 @@
 #include "PKey.h"
 #include "StringBuffer.h"
 #include "Buffer.h"
-#include <map>
+#include <unordered_map>
 
 namespace fibjs {
 
