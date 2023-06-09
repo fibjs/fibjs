@@ -81,8 +81,6 @@ static void GetEnv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<
     size_t sz = sizeof(buf);
     if (uv_os_getenv(key.c_str(), buf, &sz) == 0)
         info.GetReturnValue().Set(isolate->NewString(buf, sz));
-    else
-        info.GetReturnValue().Set(v8::Undefined(isolate->m_isolate));
 }
 
 result_t process_base::get_env(v8::Local<v8::Object>& retVal)
