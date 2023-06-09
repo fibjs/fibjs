@@ -27,7 +27,7 @@ bool Redis::regsub(exlib::string& key, v8::Local<v8::Function> func)
     v8::Local<v8::Object> r;
     on(key, func, r);
 
-    std::map<exlib::string, int32_t>::iterator it = m_funcs.find(key);
+    std::unordered_map<exlib::string, int32_t>::iterator it = m_funcs.find(key);
 
     if (it != m_funcs.end())
         it->second++;
@@ -44,7 +44,7 @@ bool Redis::unregsub(exlib::string& key, v8::Local<v8::Function> func)
     v8::Local<v8::Object> r;
     off(key, func, r);
 
-    std::map<exlib::string, int32_t>::iterator it = m_funcs.find(key);
+    std::unordered_map<exlib::string, int32_t>::iterator it = m_funcs.find(key);
 
     if (it != m_funcs.end() && (--(it->second) == 0)) {
         m_funcs.erase(it);

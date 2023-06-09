@@ -380,7 +380,7 @@ exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields
     bool b_has_prop = false;
     std::vector<std::pair<QuickArray<exlib::string>&, int32_t>> props;
 
-    std::map<exlib::string, QuickArray<exlib::string>> prop_cols;
+    std::unordered_map<exlib::string, QuickArray<exlib::string>> prop_cols;
     QuickArray<exlib::string> value_cols;
     QuickArray<exlib::string> idx_cols;
 

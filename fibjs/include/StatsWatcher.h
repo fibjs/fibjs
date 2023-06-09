@@ -24,7 +24,7 @@ namespace fibjs {
 
 class StatsWatcher;
 static exlib::spinlock s_TargetWatcherMapLock;
-static std::map<exlib::string, StatsWatcher*> s_TargetWatcherMap;
+static std::unordered_map<exlib::string, StatsWatcher*> s_TargetWatcherMap;
 
 class StatsWatcher : public StatsWatcher_base {
 
@@ -55,7 +55,7 @@ public:
         setTargetWatcher(m_target, this);
     }
 
-    ~StatsWatcher(){};
+    ~StatsWatcher() {};
 
 public:
     EVENT_SUPPORT();
@@ -70,7 +70,7 @@ public:
     {
         s_TargetWatcherMapLock.lock();
 
-        std::pair<std::map<exlib::string, StatsWatcher*>::iterator, bool> ret;
+        std::pair<std::unordered_map<exlib::string, StatsWatcher*>::iterator, bool> ret;
         ret = s_TargetWatcherMap.insert(std::pair<exlib::string, StatsWatcher*>(target, watcher));
 
         s_TargetWatcherMapLock.unlock();
@@ -82,7 +82,7 @@ public:
     {
         s_TargetWatcherMapLock.lock();
 
-        std::map<exlib::string, StatsWatcher*>::iterator it = s_TargetWatcherMap.find(target);
+        std::unordered_map<exlib::string, StatsWatcher*>::iterator it = s_TargetWatcherMap.find(target);
         StatsWatcher* result = it != s_TargetWatcherMap.end() ? it->second : NULL;
 
         s_TargetWatcherMapLock.unlock();

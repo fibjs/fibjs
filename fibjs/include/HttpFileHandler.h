@@ -35,7 +35,7 @@ public:
 private:
     exlib::string m_root;
     bool m_autoIndex;
-    std::map<exlib::string, exlib::string> m_mimes;
+    std::unordered_map<exlib::string, exlib::string> m_mimes;
 };
 
 } /* namespace fibjs */

@@ -882,7 +882,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
         int64_t m_response_pos;
         obj_ptr<NObject> m_opts;
         obj_ptr<HttpResponse_base>& m_retVal;
-        std::map<exlib::string, bool> m_urls;
+        std::unordered_map<exlib::string, bool> m_urls;
         obj_ptr<Stream_base> m_conn;
         obj_ptr<HttpRequest> m_req;
         obj_ptr<HttpRequest> m_reqConn;

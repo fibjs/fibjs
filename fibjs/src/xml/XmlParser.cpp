@@ -53,7 +53,7 @@ void XmlParser::OnStartDoctypeDecl(const XML_Char* doctypeName, const XML_Char* 
 void XmlParser::OnStartElement(const XML_Char* name, const XML_Char** atts)
 {
     const XML_Char** p = atts;
-    std::map<exlib::string, exlib::string> nss;
+    std::unordered_map<exlib::string, exlib::string> nss;
     exlib::string def_ns;
     bool has_def = false;
 
@@ -77,7 +77,7 @@ void XmlParser::OnStartElement(const XML_Char* name, const XML_Char** atts)
     if (str) {
         exlib::string prefix(name, str - name);
         exlib::string qname(str + 1);
-        std::map<exlib::string, exlib::string>::iterator it;
+        std::unordered_map<exlib::string, exlib::string>::iterator it;
 
         it = nss.find(prefix);
         if (it != nss.end())
@@ -105,7 +105,7 @@ void XmlParser::OnStartElement(const XML_Char* name, const XML_Char** atts)
         if (str && str[1]) {
             exlib::string ns(name, str - name);
             exlib::string qname(str + 1);
-            std::map<exlib::string, exlib::string>::iterator it;
+            std::unordered_map<exlib::string, exlib::string>::iterator it;
 
             it = nss.find(ns);
             if (it != nss.end())

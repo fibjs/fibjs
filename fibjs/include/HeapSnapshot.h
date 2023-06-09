@@ -31,6 +31,6 @@ public:
 private:
     date_t m_time;
     obj_ptr<NArray> m_nodes;
-    std::map<int32_t, int32_t> _nodes;
+    std::unordered_map<int32_t, int32_t> _nodes;
 };
 }

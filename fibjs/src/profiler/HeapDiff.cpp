@@ -81,7 +81,7 @@ public:
     }
 };
 
-typedef std::map<exlib::string, change> changeset;
+typedef std::unordered_map<exlib::string, change> changeset;
 
 inline void manageChange(changeset& changes, HeapGraphNode_base* node,
     bool added)

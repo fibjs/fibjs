@@ -90,7 +90,7 @@ result_t profiler_base::loadSnapshot(exlib::string fname, obj_ptr<HeapSnapshot_b
 
 result_t HeapSnapshot::getNodeById(int32_t id, obj_ptr<HeapGraphNode_base>& retVal)
 {
-    std::map<int32_t, int32_t>::iterator it;
+    std::unordered_map<int32_t, int32_t>::iterator it;
 
     it = _nodes.find(id);
     if (it != _nodes.end()) {
@@ -375,7 +375,7 @@ result_t HeapSnapshot::save(exlib::string fname, AsyncEvent* ac)
     public:
         int32_t id(exlib::string _name)
         {
-            std::map<exlib::string, int32_t>::iterator it;
+            std::unordered_map<exlib::string, int32_t>::iterator it;
             int32_t _name_id;
 
             it = mapNames.find(_name);
@@ -390,7 +390,7 @@ result_t HeapSnapshot::save(exlib::string fname, AsyncEvent* ac)
         }
 
     public:
-        std::map<exlib::string, int32_t> mapNames;
+        std::unordered_map<exlib::string, int32_t> mapNames;
         QuickArray<exlib::string> names;
     };
 

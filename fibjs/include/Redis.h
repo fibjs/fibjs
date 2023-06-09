@@ -505,7 +505,7 @@ public:
     bool unregsub(exlib::string& key, v8::Local<v8::Function> func);
 
 public:
-    std::map<exlib::string, int32_t> m_funcs;
+    std::unordered_map<exlib::string, int32_t> m_funcs;
     obj_ptr<Socket_base> m_sock;
     obj_ptr<BufferedStream_base> m_stmBuffered;
     int32_t m_subMode;

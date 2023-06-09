@@ -47,7 +47,7 @@ private:
 private:
     const v8::HeapSnapshot* m_snapshot;
     date_t m_d;
-    std::map<int32_t, int32_t> _nodes;
+    std::unordered_map<int32_t, int32_t> _nodes;
     obj_ptr<NArray> m_nodes;
 };
 

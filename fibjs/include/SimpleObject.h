@@ -18,14 +18,14 @@ class NObject : public object_base {
 public:
     class Value {
     public:
-        Value(std::map<exlib::string, int32_t>::iterator pos, Variant val)
+        Value(std::unordered_map<exlib::string, int32_t>::iterator pos, Variant val)
             : m_pos(pos)
             , m_val(val)
         {
         }
 
     public:
-        std::map<exlib::string, int32_t>::iterator m_pos;
+        std::unordered_map<exlib::string, int32_t>::iterator m_pos;
         Variant m_val;
     };
 
@@ -49,7 +49,7 @@ public:
 
     result_t get(exlib::string key, Variant& retVal)
     {
-        std::map<exlib::string, int32_t>::iterator it = m_keys.find(key);
+        std::unordered_map<exlib::string, int32_t>::iterator it = m_keys.find(key);
 
         if (it == m_keys.end())
             return CALL_RETURN_NULL;
@@ -60,7 +60,7 @@ public:
 
     result_t remove(exlib::string key)
     {
-        std::map<exlib::string, int32_t>::iterator it = m_keys.find(key);
+        std::unordered_map<exlib::string, int32_t>::iterator it = m_keys.find(key);
 
         if (it == m_keys.end())
             return CALL_RETURN_NULL;
@@ -97,7 +97,7 @@ public:
     }
 
 public:
-    std::map<exlib::string, int32_t> m_keys;
+    std::unordered_map<exlib::string, int32_t> m_keys;
     std::vector<Value> m_values;
     bool m_multi_value = false;
 };
@@ -238,7 +238,7 @@ inline ClassInfo& NArray::class_info()
 
 inline void NObject::add(exlib::string key, Variant value)
 {
-    std::map<exlib::string, int32_t>::iterator it = m_keys.find(key);
+    std::unordered_map<exlib::string, int32_t>::iterator it = m_keys.find(key);
 
     if (it == m_keys.end()) {
         it = m_keys.insert(std::pair<exlib::string, int32_t>(key, (int32_t)m_values.size())).first;

@@ -1335,8 +1335,8 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
 
                 if (ext.length() > 0) {
                     const char* pKey = ext.c_str() + 1;
-                    std::map<exlib::string, exlib::string>& _mimes = m_pThis->m_mimes;
-                    std::map<exlib::string, exlib::string>::iterator it = _mimes.find(pKey);
+                    std::unordered_map<exlib::string, exlib::string>& _mimes = m_pThis->m_mimes;
+                    std::unordered_map<exlib::string, exlib::string>::iterator it = _mimes.find(pKey);
 
                     if (it != _mimes.end())
                         m_rep->addHeader("Content-Type", it->second);

@@ -282,7 +282,7 @@ result_t util_base::omit(v8::Local<v8::Value> v, OptArgs keys,
 
     v8::Local<v8::Object> obj = v->ToObject(context).FromMaybe(v8::Local<v8::Object>());
 
-    std::map<exlib::string, bool> _map;
+    std::unordered_map<exlib::string, bool> _map;
     int32_t argc = keys.Length();
     int32_t i, j;
     result_t hr;

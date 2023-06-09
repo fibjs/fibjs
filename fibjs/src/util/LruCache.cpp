@@ -20,7 +20,7 @@ result_t LruCache_base::_new(int32_t size, int32_t timeout,
 
 void LruCache::cleanup()
 {
-    std::map<exlib::string, _linkedNode>::iterator it;
+    std::unordered_map<exlib::string, _linkedNode>::iterator it;
 
     if (m_timeout > 0) {
         date_t t;
@@ -91,7 +91,7 @@ result_t LruCache::get(exlib::string name, v8::Local<v8::Function> updater,
     exlib::string sname(name);
     v8::Local<v8::Value> a = isolate->NewString(name);
 
-    std::map<exlib::string, _linkedNode>::iterator find;
+    std::unordered_map<exlib::string, _linkedNode>::iterator find;
 
     cleanup();
 
@@ -102,7 +102,7 @@ result_t LruCache::get(exlib::string name, v8::Local<v8::Function> updater,
         if (find != m_datas.end())
             break;
 
-        std::map<exlib::string, obj_ptr<Event_base>>::iterator padding;
+        std::unordered_map<exlib::string, obj_ptr<Event_base>>::iterator padding;
         padding = m_paddings.find(sname);
         if (padding == m_paddings.end()) {
             if (updater.IsEmpty())
@@ -118,7 +118,7 @@ result_t LruCache::get(exlib::string name, v8::Local<v8::Function> updater,
                 return CALL_E_JAVASCRIPT;
 
             if (!IsEmpty(v)) {
-                std::pair<std::map<exlib::string, _linkedNode>::iterator, bool> ret;
+                std::pair<std::unordered_map<exlib::string, _linkedNode>::iterator, bool> ret;
                 ret = m_datas.insert(std::pair<exlib::string, _linkedNode>(sname, newNode));
                 if (ret.second) {
                     find = ret.first;
@@ -146,7 +146,7 @@ result_t LruCache::get(exlib::string name, v8::Local<v8::Function> updater,
 result_t LruCache::set(exlib::string name, v8::Local<v8::Value> value)
 {
     static _linkedNode newNode;
-    std::map<exlib::string, _linkedNode>::iterator find = m_datas.find(name);
+    std::unordered_map<exlib::string, _linkedNode>::iterator find = m_datas.find(name);
 
     if (find == m_datas.end()) {
         find = m_datas.insert(std::pair<exlib::string, _linkedNode>(name, newNode)).first;
@@ -188,7 +188,7 @@ result_t LruCache::set(v8::Local<v8::Object> map)
 
 result_t LruCache::remove(exlib::string name)
 {
-    std::map<exlib::string, _linkedNode>::iterator find = m_datas.find(name);
+    std::unordered_map<exlib::string, _linkedNode>::iterator find = m_datas.find(name);
 
     if (find == m_datas.end())
         return 0;
@@ -212,7 +212,7 @@ result_t LruCache::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
 
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
-    std::map<exlib::string, _linkedNode>::iterator it = m_begin_lru;
+    std::unordered_map<exlib::string, _linkedNode>::iterator it = m_begin_lru;
     v8::Local<v8::Object> obj = v8::Object::New(isolate->m_isolate);
 
     while (it != m_datas.end()) {

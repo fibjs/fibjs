@@ -274,7 +274,7 @@ result_t console_base::table(v8::Local<v8::Value> obj, v8::Local<v8::Array> fiel
     return 0;
 }
 
-static std::map<exlib::string, int64_t> s_timers;
+static std::unordered_map<exlib::string, int64_t> s_timers;
 
 result_t console_base::time(exlib::string label)
 {

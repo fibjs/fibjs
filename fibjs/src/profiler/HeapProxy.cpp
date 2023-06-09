@@ -41,7 +41,7 @@ result_t HeapSnapshotProxy::getNodeById(int32_t id, obj_ptr<HeapGraphNode_base>&
 {
     fill_nodes();
 
-    std::map<int32_t, int32_t>::iterator it;
+    std::unordered_map<int32_t, int32_t>::iterator it;
 
     it = _nodes.find(id);
     if (it == _nodes.end())
