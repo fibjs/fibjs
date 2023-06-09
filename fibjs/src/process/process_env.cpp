@@ -34,11 +34,13 @@ inline void on_env_update(Isolate* isolate, exlib::string key, exlib::string val
 static void SetEnv(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
     Isolate* isolate = Isolate::current(info);
+    exlib::string key = isolate->toString(property);
 
-    if (!isolate->m_env.IsEmpty()) {
-        exlib::string key = isolate->toString(property);
+    if (value->IsUndefined()) {
+        uv_os_unsetenv(key.c_str());
+        on_env_update(isolate, key, "");
+    } else {
         exlib::string val = isolate->toString(value);
-
         uv_os_setenv(key.c_str(), val.c_str());
         on_env_update(isolate, key, val);
     }
@@ -47,7 +49,6 @@ static void SetEnv(v8::Local<v8::Name> property, v8::Local<v8::Value> value, con
 static void DelEnv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& info)
 {
     Isolate* isolate = Isolate::current(info);
-
     exlib::string key = isolate->toString(property);
 
     uv_os_unsetenv(key.c_str());
@@ -83,6 +84,11 @@ static void GetEnv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<
         info.GetReturnValue().Set(isolate->NewString(buf, sz));
 }
 
+void QueryEnv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Integer>& info)
+{
+    info.GetReturnValue().Set(v8::None);
+}
+
 result_t process_base::get_env(v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
@@ -90,7 +96,7 @@ result_t process_base::get_env(v8::Local<v8::Object>& retVal)
 
     if (isolate->m_env.IsEmpty()) {
         v8::Local<v8::FunctionTemplate> templ = v8::FunctionTemplate::New(isolate->m_isolate);
-        templ->InstanceTemplate()->SetHandler(v8::NamedPropertyHandlerConfiguration(GetEnv, SetEnv, nullptr, DelEnv, EnumEnv));
+        templ->InstanceTemplate()->SetHandler(v8::NamedPropertyHandlerConfiguration(GetEnv, SetEnv, QueryEnv, DelEnv, EnumEnv));
         v8::Local<v8::Object> o = templ->GetFunction(context).ToLocalChecked()->NewInstance(context).ToLocalChecked();
         isolate->m_env.Reset(isolate->m_isolate, o);
         retVal = o;
