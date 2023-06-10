@@ -8,7 +8,7 @@
 #pragma once
 
 #include "ifs/Handler.h"
-#include "map"
+#include <unordered_map>
 #include "path.h"
 
 namespace fibjs {

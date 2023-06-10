@@ -10,7 +10,7 @@
 #include "ifs/console.h"
 #include <exlib/include/thread.h>
 #include "console.h"
-#include "map"
+#include <unordered_map>
 #include "Fiber.h"
 
 namespace fibjs {

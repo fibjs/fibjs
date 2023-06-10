@@ -13,7 +13,7 @@
 #include "HttpRequest.h"
 #include "HttpClient.h"
 #include "BufferedStream.h"
-#include "map"
+#include <unordered_map>
 #include "Isolate.h"
 #include "ifs/zlib.h"
 
