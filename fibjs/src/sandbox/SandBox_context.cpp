@@ -68,7 +68,7 @@ void _require(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 
     Isolate* isolate = Isolate::current(args);
-    V8_SCOPE(isolate);
+    V8_SCOPE(isolate->m_isolate);
 
     exlib::string id;
     result_t hr = GetArgumentValue(isolate, args[0], id);
@@ -103,7 +103,7 @@ void _require(const v8::FunctionCallbackInfo<v8::Value>& args)
 void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     Isolate* isolate = Isolate::current(args);
-    V8_SCOPE(isolate);
+    V8_SCOPE(isolate->m_isolate);
     int32_t argc = args.Length();
 
     if (argc < 1) {

@@ -193,7 +193,7 @@ enum {
     kBufferPrototype = 2
 };
 
-#if 0
+#if 1
 #define V8_SCOPE(isolate) v8::EscapableHandleScope handle_scope(isolate)
 #define V8_RETURN(v) handle_scope.Escape(v)
 #else
