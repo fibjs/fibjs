@@ -208,10 +208,11 @@ public:
 
 private:
     static void proto_compare(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void proto_copy(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void proto_equals(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void proto_fill(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void proto_indexOf(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+    static void proto_copy(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void proto_fill(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void proto_write(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 private:

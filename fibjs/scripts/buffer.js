@@ -1,4 +1,11 @@
 var encoding = require('encoding');
+var {
+    Uint8Array,
+    ArrayBuffer,
+    TypedArrayPrototypeFill,
+    TypedArrayPrototypeCopyWithin,
+    TypedArrayPrototypeSet
+} = require('./internal/primordials.js');
 
 const poolSize = 8 * 1024;
 let poolOffset, allocPool;
@@ -339,7 +346,7 @@ class Buffer extends Uint8Array {
         if (length !== buf_byteLength)
             buf = new Uint8Array(buf.buffer, buf.byteOffset, length);
 
-        this.set(buf, offset);
+        TypedArrayPrototypeSet(this, buf, offset);
 
         return length;
     }
@@ -374,7 +381,7 @@ class Buffer extends Uint8Array {
             throw new Error('end < offset');
 
         if (typeof buf === 'number') {
-            super.fill(buf, offset, end);
+            TypedArrayPrototypeFill(this, buf, offset, end);
             return this;
         }
 
@@ -383,18 +390,18 @@ class Buffer extends Uint8Array {
             if (buf_byteLength >= end - offset) {
                 if (buf_byteLength > end - offset)
                     buf = new Uint8Array(buf.buffer, buf.byteOffset, end - offset);
-                this.set(buf, offset);
+                TypedArrayPrototypeSet(this, buf, offset);
             } else {
                 let fill_offset = offset;
 
-                this.set(buf, offset);
+                TypedArrayPrototypeSet(this, buf, offset);
                 offset += buf_byteLength;
 
                 while (offset < end) {
                     if (buf_byteLength > end - offset)
                         buf_byteLength = end - offset;
 
-                    this.copyWithin(offset, fill_offset, fill_offset + buf_byteLength);
+                        TypedArrayPrototypeCopyWithin(this, offset, fill_offset, fill_offset + buf_byteLength);
                     offset += buf_byteLength;
 
                     buf_byteLength *= 2;
@@ -1145,7 +1152,7 @@ class Buffer extends Uint8Array {
         if (sourceStart != 0 || sourceEnd != buf.byteLength)
             buf = new Uint8Array(buf.buffer, buf.byteOffset + sourceStart, sourceEnd - sourceStart);
 
-        target.set(buf, targetStart);
+        TypedArrayPrototypeSet(target, buf, targetStart);
 
         return sourceEnd - sourceStart;
 
@@ -1292,7 +1299,7 @@ Buffer.concat = function (list, length) {
             buf_byteLength = length - pos;
         }
 
-        buffer.set(buf, pos);
+        TypedArrayPrototypeSet(buffer, buf, pos);
         pos += buf_byteLength;
     }
 

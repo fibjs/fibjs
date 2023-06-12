@@ -242,15 +242,17 @@ v8::Local<v8::Value> Buffer::load_module()
     context->SetEmbedderData(kBufferPrototype, js_buffer_proto);
 
     js_buffer_proto->Set(context, isolate->NewString("compare"), isolate->NewFunction("compare", proto_compare)).IsJust();
-    js_buffer_proto->Set(context, isolate->NewString("copy"), isolate->NewFunction("copy", proto_copy)).IsJust();
     js_buffer_proto->Set(context, isolate->NewString("equals"), isolate->NewFunction("equals", proto_equals)).IsJust();
-    js_buffer_proto->Set(context, isolate->NewString("fill"), isolate->NewFunction("fill", proto_fill)).IsJust();
     js_buffer_proto->Set(context, isolate->NewString("indexOf"), isolate->NewFunction("indexOf", proto_indexOf)).IsJust();
-    js_buffer_proto->Set(context, isolate->NewString("write"), isolate->NewFunction("write", proto_write)).IsJust();
 
     v8::Local<v8::Object> js_buffer_class = _buffer.As<v8::Object>();
     js_buffer_class->Set(context, isolate->NewString("compare"), isolate->NewFunction("compare", s_static_compare)).IsJust();
-    js_buffer_class->Set(context, isolate->NewString("concat"), isolate->NewFunction("concat", s_static_concat)).IsJust();
+
+    // js_buffer_proto->Set(context, isolate->NewString("copy"), isolate->NewFunction("copy", proto_copy)).IsJust();
+    // js_buffer_proto->Set(context, isolate->NewString("fill"), isolate->NewFunction("fill", proto_fill)).IsJust();
+    // js_buffer_proto->Set(context, isolate->NewString("write"), isolate->NewFunction("write", proto_write)).IsJust();
+
+    // js_buffer_class->Set(context, isolate->NewString("concat"), isolate->NewFunction("concat", s_static_concat)).IsJust();
 
     return _buffer;
 }
