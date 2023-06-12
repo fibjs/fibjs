@@ -249,8 +249,8 @@ v8::Local<v8::Value> Buffer::load_module()
     js_buffer_class->Set(context, isolate->NewString("compare"), isolate->NewFunction("compare", s_static_compare)).IsJust();
 
     // js_buffer_proto->Set(context, isolate->NewString("copy"), isolate->NewFunction("copy", proto_copy)).IsJust();
-    // js_buffer_proto->Set(context, isolate->NewString("fill"), isolate->NewFunction("fill", proto_fill)).IsJust();
-    // js_buffer_proto->Set(context, isolate->NewString("write"), isolate->NewFunction("write", proto_write)).IsJust();
+    js_buffer_proto->Set(context, isolate->NewString("native_fill"), isolate->NewFunction("fill", proto_fill)).IsJust();
+    js_buffer_proto->Set(context, isolate->NewString("write"), isolate->NewFunction("write", proto_write)).IsJust();
 
     // js_buffer_class->Set(context, isolate->NewString("concat"), isolate->NewFunction("concat", s_static_concat)).IsJust();
 
@@ -470,34 +470,104 @@ void Buffer::proto_write(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    BUFFER_INSTANCE();
-    METHOD_ENTER();
+    if (!args.This()->IsUint8Array()) {
+        ThrowResult(CALL_E_NOTINSTANCE);
+        return;
+    }
 
-    METHOD_OVER(4, 1);
+    store buf(args.This().As<v8::Uint8Array>());
+    Isolate* isolate = Isolate::current(args.GetIsolate());
+    v8::Local<v8::Context> context = isolate->context();
 
-    ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(int32_t, 2, -1);
-    OPT_ARG(exlib::string, 3, "utf8");
+    int32_t arg_cnt = args.Length();
 
-    hr = pInst->write(v0, v1, v2, v3, vr);
+    if (arg_cnt == 0) {
+        ThrowResult(CALL_E_PARAMNOTOPTIONAL);
+        return;
+    }
 
-    METHOD_OVER(3, 1);
+    v8::Local<v8::String> data;
+    if (args[0]->IsString())
+        data = args[0].As<v8::String>();
+    else if (args[0]->IsStringObject())
+        data = args[0].As<v8::StringObject>()->ValueOf();
+    else {
+        ThrowResult(CALL_E_TYPEMISMATCH);
+        return;
+    }
 
-    ARG(exlib::string, 0);
-    OPT_ARG(int32_t, 1, 0);
-    OPT_ARG(exlib::string, 2, "utf8");
+    v8::Local<v8::String> codec;
+    if (arg_cnt > 1) {
+        if (args[arg_cnt - 1]->IsString())
+            codec = args[--arg_cnt].As<v8::String>();
+        else if (args[arg_cnt - 1]->IsStringObject())
+            codec = args[--arg_cnt].As<v8::StringObject>()->ValueOf();
+    }
 
-    hr = pInst->write(v0, v1, v2, vr);
+    size_t offset = 0;
+    if (arg_cnt > 1) {
+        if (!args[1]->IsNumber() && !args[1]->IsNumberObject()) {
+            ThrowResult(CALL_E_TYPEMISMATCH);
+            return;
+        }
 
-    METHOD_OVER(2, 1);
+        offset = args[1]->Int32Value(context).FromMaybe(0);
+        if (offset < 0 || offset > buf.length()) {
+            ThrowResult(CALL_E_OUTRANGE);
+            return;
+        }
+    }
 
-    ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "utf8");
+    size_t max_length = 0;
+    if (arg_cnt > 2) {
+        if (!args[2]->IsNumber() && !args[2]->IsNumberObject()) {
+            ThrowResult(CALL_E_TYPEMISMATCH);
+            return;
+        }
+        max_length = args[2]->Int32Value(context).FromMaybe(0);
+        max_length = std::min(buf.length() - offset, max_length);
+    } else
+        max_length = buf.length() - offset;
 
-    hr = pInst->write(v0, v1, vr);
+    int flags = v8::String::HINT_MANY_WRITES_EXPECTED | v8::String::NO_NULL_TERMINATION | v8::String::REPLACE_INVALID_UTF8;
 
-    METHOD_RETURN();
+    if (codec.IsEmpty()) {
+        data->WriteUtf8(isolate->m_isolate, (char*)buf.data() + offset, max_length, nullptr, flags);
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, max_length));
+        return;
+    }
+
+    v8::String::Utf8Value codec_utf8(isolate->m_isolate, codec);
+
+    if (!strcmp(*codec_utf8, "ascii") || !strcmp(*codec_utf8, "buffer")) {
+        if (data->IsExternalOneByte()) {
+            auto ext = data->GetExternalOneByteStringResource();
+            max_length = std::min(max_length, ext->length());
+            memcpy(buf.data() + offset, ext->data(), max_length);
+        } else
+            max_length = data->WriteOneByte(isolate->m_isolate, buf.data() + offset, 0, max_length, flags);
+
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, max_length));
+        return;
+    } else if (!strcmp(*codec_utf8, "utf8") || !strcmp(*codec_utf8, "buffer")) {
+        max_length = data->WriteUtf8(isolate->m_isolate, (char*)buf.data() + offset, max_length, nullptr, flags);
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, max_length));
+        return;
+    }
+
+    exlib::string data_str;
+    GetArgumentValue(isolate, data, data_str);
+
+    exlib::string strBuf;
+    result_t hr = commonDecode(*codec_utf8, data_str, strBuf);
+    if (hr < 0) {
+        ThrowResult(hr);
+        return;
+    }
+
+    max_length = std::min(max_length, strBuf.length());
+    memcpy(buf.data() + offset, strBuf.c_str(), max_length);
+    args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, max_length));
 }
 
 inline bool is_native_codec(exlib::string codec)
