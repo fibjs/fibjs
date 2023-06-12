@@ -249,9 +249,9 @@ v8::Local<v8::Value> Buffer::load_module()
     js_buffer_class->Set(context, isolate->NewString("compare"), isolate->NewFunction("compare", s_static_compare)).IsJust();
 
     // js_buffer_proto->Set(context, isolate->NewString("copy"), isolate->NewFunction("copy", proto_copy)).IsJust();
-    js_buffer_proto->Set(context, isolate->NewString("native_fill"), isolate->NewFunction("fill", proto_fill)).IsJust();
     js_buffer_proto->Set(context, isolate->NewString("write"), isolate->NewFunction("write", proto_write)).IsJust();
 
+    js_buffer_class->Set(context, isolate->NewString("native_fill"), isolate->NewFunction("fill", proto_fill)).IsJust();
     // js_buffer_class->Set(context, isolate->NewString("concat"), isolate->NewFunction("concat", s_static_concat)).IsJust();
 
     return _buffer;

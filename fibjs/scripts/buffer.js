@@ -362,7 +362,7 @@ class Buffer extends Uint8Array {
         }
 
         if (typeof buf === 'string')
-            return this.native_fill(buf, offset, end, codec);
+            return Buffer.native_fill.call(this, buf, offset, end, codec);
 
         let this_byteLength = this.byteLength;
         if (offset === undefined)
