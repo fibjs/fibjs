@@ -362,7 +362,7 @@ class Buffer extends Uint8Array {
         }
 
         if (typeof buf === 'string')
-            buf = encoding.decode(buf, codec || 'utf8');
+            return this.native_fill(buf, offset, end, codec);
 
         let this_byteLength = this.byteLength;
         if (offset === undefined)
@@ -401,7 +401,7 @@ class Buffer extends Uint8Array {
                     if (buf_byteLength > end - offset)
                         buf_byteLength = end - offset;
 
-                        TypedArrayPrototypeCopyWithin(this, offset, fill_offset, fill_offset + buf_byteLength);
+                    TypedArrayPrototypeCopyWithin(this, offset, fill_offset, fill_offset + buf_byteLength);
                     offset += buf_byteLength;
 
                     buf_byteLength *= 2;
