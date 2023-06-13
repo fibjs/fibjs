@@ -89,13 +89,13 @@ v8::Local<v8::Value> Isolate::WaitPromise(v8::Local<v8::Value> promise)
     } else {
         v8::MaybeLocal<v8::Value> v;
 
-        v = _then->Call(_context, result, 2, (v8::Local<v8::Value>*)&_handlers[0]);
+        v = _then->Call(_context, promise, 2, (v8::Local<v8::Value>*)&_handlers[0]);
         if (v.IsEmpty()) {
             ThrowError("promise error.");
             return result;
         }
 
-        v = _catch->Call(_context, result, 1, (v8::Local<v8::Value>*)&_handlers[1]);
+        v = _catch->Call(_context, promise, 1, (v8::Local<v8::Value>*)&_handlers[1]);
         if (v.IsEmpty()) {
             ThrowError("promise error.");
             return result;
@@ -105,7 +105,7 @@ v8::Local<v8::Value> Isolate::WaitPromise(v8::Local<v8::Value> promise)
     ev->wait();
 
     JSValue error = _data->Get(_context, NewString("_error"));
-    if (!error.IsEmpty() && !error->IsUndefined() && !error->IsNull())
+    if (!IsEmpty(error))
         m_isolate->ThrowException(error);
     else
         result = _data->Get(_context, NewString("_result")).FromMaybe(v8::Local<v8::Value>());
