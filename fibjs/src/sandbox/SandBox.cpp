@@ -63,20 +63,34 @@ result_t SandBox_base::_new(v8::Local<v8::Object> mods, v8::Local<v8::Function> 
 
 SandBox::SandBox(bool extLoader)
 {
+    Isolate* isolate = holder();
+
+    m_id = isolate->m_sandboxId++;
+    isolate->m_sandboxes.emplace(m_id, this);
+
     obj_ptr<ExtLoader> loader;
 
-    loader = new JsLoader();
+    loader = new js_Loader();
+    m_loaders.push_back(loader);
+
+    loader = new mjs_Loader();
     m_loaders.push_back(loader);
 
     if (extLoader) {
-        loader = new JscLoader();
+        loader = new jsc_Loader();
         m_loaders.push_back(loader);
     }
 
-    loader = new JsonLoader();
+    loader = new json_Loader();
     m_loaders.push_back(loader);
 
     m_global = false;
+}
+
+SandBox::~SandBox()
+{
+    Isolate* isolate = holder();
+    isolate->m_sandboxes.erase(m_id);
 }
 
 void SandBox::initGlobal(v8::Local<v8::Object> global)

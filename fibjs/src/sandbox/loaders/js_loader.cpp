@@ -13,7 +13,7 @@
 
 namespace fibjs {
 
-result_t JsLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
+result_t js_Loader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
     exlib::string arg_names, v8::Local<v8::Script>& script)
 {
     Isolate* isolate = ctx->m_sb->holder();
@@ -33,7 +33,10 @@ result_t JsLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::strin
 
     TryCatch try_catch;
 
-    v8::ScriptOrigin so_origin(isolate->m_isolate, soname, -1);
+    v8::Local<v8::PrimitiveArray> pargs = v8::PrimitiveArray::New(isolate->m_isolate, 1);
+    pargs->Set(isolate->m_isolate, 0, v8::Number::New(isolate->m_isolate, ctx->m_sb->m_id));
+    v8::ScriptOrigin so_origin(isolate->m_isolate, soname, -1, 0, false,
+        -1, v8::Local<v8::Value>(), false, false, false, pargs);
 
     script = v8::Script::Compile(isolate->m_isolate->GetCurrentContext(),
         isolate->NewString(src1), &so_origin)

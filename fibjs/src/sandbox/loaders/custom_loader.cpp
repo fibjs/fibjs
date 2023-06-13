@@ -13,7 +13,7 @@
 
 namespace fibjs {
 
-result_t CustomExtLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
+result_t custom_Loader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
     exlib::string arg_names, v8::Local<v8::Script>& script)
 {
     Isolate* isolate = ctx->m_sb->holder();
@@ -41,6 +41,6 @@ result_t CustomExtLoader::compile(SandBox::Context* ctx, Buffer_base* src, exlib
 
     obj_ptr<Buffer_base> buf = new Buffer(strScript.c_str(), strScript.length());
 
-    return JsLoader::compile(ctx, buf, name, arg_names, script);
+    return js_Loader::compile(ctx, buf, name, arg_names, script);
 }
 } // namespace fibjs

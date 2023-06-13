@@ -19,6 +19,7 @@ namespace fibjs {
 class SandBox : public SandBox_base {
 public:
     SandBox(bool extLoader = true);
+    ~SandBox();
 
 public:
     // SandBox_base
@@ -232,6 +233,7 @@ public:
 public:
     std::vector<obj_ptr<ExtLoader>> m_loaders;
     bool m_global;
+    uint32_t m_id;
 };
 
 } /* namespace fibjs */

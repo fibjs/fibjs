@@ -231,6 +231,30 @@ static void _PromiseRejectCallback(v8::PromiseRejectMessage data)
     }
 }
 
+v8::MaybeLocal<v8::Promise> _HostImportModuleDynamically(v8::Local<v8::Context> context,
+    v8::Local<v8::Data> host_defined_options, v8::Local<v8::Value> resource_name,
+    v8::Local<v8::String> specifier, v8::Local<v8::FixedArray> import_assertions)
+{
+    puts("_HostImportModuleDynamically");
+    Isolate* isolate = Isolate::current(context);
+
+    v8::Local<v8::PrimitiveArray> _host_options = host_defined_options.As<v8::PrimitiveArray>();
+    uint32_t id = _host_options->Get(isolate->m_isolate, 0)->Uint32Value(context).FromMaybe(0);
+
+    v8::String::Utf8Value _resource_name(isolate->m_isolate, resource_name);
+    v8::String::Utf8Value _specifier(isolate->m_isolate, specifier);
+
+    printf("id: %d, resource_name: %s, specifier: %s, import_assertions: %d\n", id, *_resource_name, *_specifier, import_assertions->Length());
+
+    for (int i = 0; i < import_assertions->Length(); i++) {
+        v8::Local<v8::Value> import_assertion = v8::Local<v8::Value>::Cast(import_assertions->Get(context, i));
+        v8::String::Utf8Value _value(isolate->m_isolate, import_assertion);
+        printf("value: %s\n", *_value);
+    }
+
+    return v8::MaybeLocal<v8::Promise>();
+}
+
 void Isolate::init()
 {
     v8::Locker locker(m_isolate);
@@ -283,6 +307,7 @@ void Isolate::init()
     m_AssertionError.Reset(m_isolate, AssertionError);
 
     m_isolate->SetPromiseRejectCallback(_PromiseRejectCallback);
+    m_isolate->SetHostImportModuleDynamicallyCallback(_HostImportModuleDynamically);
 
     init_process_ipc(this);
 }

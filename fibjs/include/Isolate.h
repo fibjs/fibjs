@@ -11,6 +11,7 @@
 #include <exlib/include/service.h>
 #include "QuickArray.h"
 #include "utf8.h"
+#include <unordered_map>
 
 namespace fibjs {
 
@@ -168,6 +169,8 @@ public:
         return v->NumberValue(context()).FromMaybe(0);
     }
 
+    v8::Local<v8::Value> WaitPromise(v8::Local<v8::Value> promise);
+
     void start_profiler();
 
     typedef v8::Platform* (*platform_creator)();
@@ -193,6 +196,9 @@ public:
     v8::Global<v8::Object> m_AssertionError;
 
     obj_ptr<SandBox> m_topSandbox;
+    std::unordered_map<uint32_t, SandBox*> m_sandboxes;
+    uint32_t m_sandboxId = 0;
+
     obj_ptr<HttpClient> m_httpclient;
 
     obj_ptr<Stream_base> m_stdio[3];

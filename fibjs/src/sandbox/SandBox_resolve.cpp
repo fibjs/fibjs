@@ -198,7 +198,7 @@ result_t SandBox::setModuleCompiler(exlib::string extname, v8::Local<v8::Functio
     find_loader("test" + extname, loader);
 
     if (!loader) {
-        loader = new CustomExtLoader(extname);
+        loader = new custom_Loader(extname);
         m_loaders.push_back(loader);
     }
     SetPrivate(SandBox::_get_extloader_pname(extname), compiler);

@@ -12,7 +12,7 @@
 
 namespace fibjs {
 
-result_t JsonLoader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
+result_t json_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
     exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args)
 {
     Isolate* isolate = ctx->m_sb->holder();
