@@ -306,7 +306,15 @@ class Buffer extends Uint8Array {
                 super(allocPool, offset, bufferOrLength);
         }
         else if (typeof bufferOrLength === 'string') {
-            super(encoding.decode(bufferOrLength, byte_offset || 'utf8').buffer);
+            var byte_length = Buffer.byteLength(bufferOrLength, byte_offset);
+
+            let offset = getPool(byte_length);
+            if (offset === -1)
+                super(byte_length);
+            else
+                super(allocPool, offset, byte_length);
+
+            this.write(bufferOrLength, byte_offset);
         }
         else if (bufferOrLength instanceof Uint8Array || Array.isArray(bufferOrLength))
             super(bufferOrLength);
@@ -352,60 +360,64 @@ class Buffer extends Uint8Array {
     }
 
     fill(buf, offset, end, codec) {
+        let this_byteLength = this.byteLength;
+
         if (typeof offset === 'string') {
             codec = offset;
-            offset = undefined;
-            end = undefined;
+            offset = 0;
+            end = this_byteLength;
         } else if (typeof end === 'string') {
             codec = end;
-            end = undefined;
+            end = this_byteLength;
         }
 
-        if (typeof buf === 'string')
-            return Buffer.native_fill.call(this, buf, offset, end, codec);
-
-        let this_byteLength = this.byteLength;
         if (offset === undefined)
             offset = 0;
 
-        if (offset > this_byteLength)
+        if (offset > this_byteLength || offset < 0)
             throw new Error('offset out of bounds');
 
         if (end === undefined)
             end = this_byteLength;
 
-        if (end > this_byteLength)
-            throw new Error('end out of bounds');
+        if (offset == end)
+            return this;
 
-        if (end < offset)
-            throw new Error('end < offset');
+        if (end > this_byteLength || end < offset)
+            throw new Error('end out of bounds');
 
         if (typeof buf === 'number') {
             TypedArrayPrototypeFill(this, buf, offset, end);
             return this;
         }
 
-        let buf_byteLength = buf.byteLength;
-        if (offset < end) {
-            if (buf_byteLength >= end - offset) {
+        let is_string = typeof buf === 'string';
+        let buf_byteLength = is_string ? Buffer.byteLength(buf, codec) : buf.byteLength;
+
+        if (buf_byteLength >= end - offset) {
+            if (is_string) {
+                this.write(buf, offset, end - offset, codec);
+            } else {
                 if (buf_byteLength > end - offset)
                     buf = new Uint8Array(buf.buffer, buf.byteOffset, end - offset);
                 TypedArrayPrototypeSet(this, buf, offset);
-            } else {
-                let fill_offset = offset;
-
+            }
+        } else {
+            let fill_offset = offset;
+            if (is_string)
+                this.write(buf, offset, end - offset, codec);
+            else
                 TypedArrayPrototypeSet(this, buf, offset);
+            offset += buf_byteLength;
+
+            while (offset < end) {
+                if (buf_byteLength > end - offset)
+                    buf_byteLength = end - offset;
+
+                TypedArrayPrototypeCopyWithin(this, offset, fill_offset, fill_offset + buf_byteLength);
                 offset += buf_byteLength;
 
-                while (offset < end) {
-                    if (buf_byteLength > end - offset)
-                        buf_byteLength = end - offset;
-
-                    TypedArrayPrototypeCopyWithin(this, offset, fill_offset, fill_offset + buf_byteLength);
-                    offset += buf_byteLength;
-
-                    buf_byteLength *= 2;
-                }
+                buf_byteLength *= 2;
             }
         }
 
@@ -1235,10 +1247,7 @@ class Buffer extends Uint8Array {
 }
 
 Buffer.from = function (bufferOrString, byte_offset, byte_length) {
-    if (typeof bufferOrLength === 'string')
-        return encoding.decode(bufferOrLength, byte_offset || 'utf8');
-    else
-        return new Buffer(bufferOrString, byte_offset, byte_length);
+    return new Buffer(bufferOrString, byte_offset, byte_length);
 };
 
 Buffer.alloc = function (size, fill, codec) {

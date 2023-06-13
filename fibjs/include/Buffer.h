@@ -216,6 +216,9 @@ private:
     static void proto_write(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 private:
+    static void class_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+private:
     store m_store;
 };
 

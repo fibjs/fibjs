@@ -252,6 +252,8 @@ v8::Local<v8::Value> Buffer::load_module()
     js_buffer_proto->Set(context, isolate->NewString("write"), isolate->NewFunction("write", proto_write)).IsJust();
 
     js_buffer_class->Set(context, isolate->NewString("native_fill"), isolate->NewFunction("fill", proto_fill)).IsJust();
+    js_buffer_class->Set(context, isolate->NewString("byteLength"), isolate->NewFunction("byteLength", class_byteLength)).IsJust();
+
     // js_buffer_class->Set(context, isolate->NewString("concat"), isolate->NewFunction("concat", s_static_concat)).IsJust();
 
     return _buffer;
@@ -468,18 +470,18 @@ void Buffer::proto_indexOf(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 void Buffer::proto_write(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    int32_t vr;
-
     if (!args.This()->IsUint8Array()) {
         ThrowResult(CALL_E_NOTINSTANCE);
         return;
     }
 
     store buf(args.This().As<v8::Uint8Array>());
-    Isolate* isolate = Isolate::current(args.GetIsolate());
+    Isolate* isolate = Isolate::current(args);
     v8::Local<v8::Context> context = isolate->context();
 
     int32_t arg_cnt = args.Length();
+    while (args[arg_cnt - 1]->IsUndefined())
+        --arg_cnt;
 
     if (arg_cnt == 0) {
         ThrowResult(CALL_E_PARAMNOTOPTIONAL);
@@ -549,7 +551,7 @@ void Buffer::proto_write(const v8::FunctionCallbackInfo<v8::Value>& args)
 
         args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, max_length));
         return;
-    } else if (!strcmp(*codec_utf8, "utf8") || !strcmp(*codec_utf8, "buffer")) {
+    } else if (!strcmp(*codec_utf8, "utf8") || !strcmp(*codec_utf8, "utf-8")) {
         max_length = data->WriteUtf8(isolate->m_isolate, (char*)buf.data() + offset, max_length, nullptr, flags);
         args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, max_length));
         return;
@@ -568,6 +570,79 @@ void Buffer::proto_write(const v8::FunctionCallbackInfo<v8::Value>& args)
     max_length = std::min(max_length, strBuf.length());
     memcpy(buf.data() + offset, strBuf.c_str(), max_length);
     args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, max_length));
+}
+
+void Buffer::class_byteLength(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t arg_cnt = args.Length();
+    while (args[arg_cnt - 1]->IsUndefined())
+        --arg_cnt;
+
+    if (arg_cnt == 0) {
+        ThrowResult(CALL_E_PARAMNOTOPTIONAL);
+        return;
+    }
+
+    Isolate* isolate = Isolate::current(args);
+
+    v8::Local<v8::String> data;
+    if (args[0]->IsString())
+        data = args[0].As<v8::String>();
+    else if (args[0]->IsStringObject())
+        data = args[0].As<v8::StringObject>()->ValueOf();
+    else if (args[0]->IsUint8Array()) {
+        v8::Local<v8::Uint8Array> buf = args[0].As<v8::Uint8Array>();
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, buf->ByteLength()));
+        return;
+    } else if (args[0]->IsArrayBuffer()) {
+        v8::Local<v8::ArrayBuffer> buf = args[0].As<v8::ArrayBuffer>();
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, buf->ByteLength()));
+        return;
+    } else {
+        ThrowResult(CALL_E_TYPEMISMATCH);
+        return;
+    }
+
+    v8::Local<v8::String> codec;
+    if (arg_cnt > 1) {
+        if (args[arg_cnt - 1]->IsString())
+            codec = args[--arg_cnt].As<v8::String>();
+        else if (args[arg_cnt - 1]->IsStringObject())
+            codec = args[--arg_cnt].As<v8::StringObject>()->ValueOf();
+    }
+
+    if (codec.IsEmpty()) {
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, data->Utf8Length(isolate->m_isolate)));
+        return;
+    }
+
+    v8::String::Utf8Value codec_utf8(isolate->m_isolate, codec);
+
+    if (!strcmp(*codec_utf8, "ascii") || !strcmp(*codec_utf8, "buffer")) {
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, data->Length()));
+        return;
+    } else if (!strcmp(*codec_utf8, "utf8") || !strcmp(*codec_utf8, "utf-8")) {
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, data->Utf8Length(isolate->m_isolate)));
+        return;
+    } else if (!strcmp(*codec_utf8, "ucs2") || !strcmp(*codec_utf8, "ucs-2")
+        || !strcmp(*codec_utf8, "utf16") || !strcmp(*codec_utf8, "utf-16")
+        || !strcmp(*codec_utf8, "utf16le") || !strcmp(*codec_utf8, "utf-16le")
+        || !strcmp(*codec_utf8, "utf16be") || !strcmp(*codec_utf8, "utf-16be")) {
+        args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, data->Length() * 2));
+        return;
+    }
+
+    exlib::string data_str;
+    GetArgumentValue(isolate, data, data_str);
+
+    exlib::string strBuf;
+    result_t hr = commonDecode(*codec_utf8, data_str, strBuf);
+    if (hr < 0) {
+        ThrowResult(hr);
+        return;
+    }
+
+    args.GetReturnValue().Set(v8::Integer::New(isolate->m_isolate, strBuf.length()));
 }
 
 inline bool is_native_codec(exlib::string codec)
