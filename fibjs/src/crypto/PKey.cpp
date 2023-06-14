@@ -242,13 +242,6 @@ result_t PKey::get_alg(exlib::string& retVal)
     return 0;
 }
 
-result_t PKey::set_alg(exlib::string newVal)
-{
-    if (newVal != m_alg)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
-    return 0;
-}
-
 result_t PKey::toString(exlib::string& retVal)
 {
     return pem(retVal);

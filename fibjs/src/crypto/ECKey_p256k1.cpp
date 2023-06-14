@@ -93,9 +93,6 @@ static void fix_sigature(const unsigned char* sig, unsigned char* sig1)
 
 result_t ECKey_p256k1::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
-    if (m_alg == "ECSDSA")
-        return ECKey::sign(data, opts, retVal, ac);
-
     result_t hr = check_opts(opts, ac);
     if (hr < 0)
         return hr;

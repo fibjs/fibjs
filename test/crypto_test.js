@@ -1053,54 +1053,6 @@ describe('crypto', () => {
         });
     });
 
-    describe("ecsdsa", () => {
-        ecsdsa_case.forEach(c => {
-            describe(c.key.crv, () => {
-                it("verify", () => {
-                    var pk = new crypto.PKey(c.key);
-                    pk.alg = 'ECSDSA';
-
-                    var sig = Buffer.from(c.sig, 'base64');
-                    assert.ok(pk.publicKey.verify('abc', sig));
-                });
-
-                it("sign/verify", () => {
-                    var pk = new crypto.PKey(c.key);
-                    pk.alg = 'ECSDSA';
-
-                    var sig = pk.sign('abc');
-                    assert.ok(pk.publicKey.verify('abc', sig));
-                });
-            });
-        });
-
-        describe("sm2", () => {
-            it("verify", () => {
-                var pk = new crypto.PKey({
-                    "kty": "EC",
-                    "crv": "SM2",
-                    "d": "fcRRalaycsaXpKQYGcbmU8Qi93KqXnpodAwIK3vEOoI"
-                });
-                pk.alg = 'ECSDSA';
-
-                var sig = Buffer.from("MEUCIQDhT4yilg4Y7iGmUFM8CfJ3VQCdqibyNNjjiQh2m9vM9AIgB7UETe0t9gw8Ga1sPMjFxgKYDVdeuPy7EZXanKM2VUo", 'base64');
-                assert.ok(pk.publicKey.verify('abc', sig));
-            });
-
-            it("sign/verify", () => {
-                var pk = new crypto.PKey({
-                    "kty": "EC",
-                    "crv": "SM2",
-                    "d": "fcRRalaycsaXpKQYGcbmU8Qi93KqXnpodAwIK3vEOoI"
-                });
-                pk.alg = 'ECSDSA';
-
-                var sig = pk.sign('abc');
-                assert.ok(pk.publicKey.verify('abc', sig));
-            });
-        });
-    });
-
     describe("ed25519", () => {
         var jwk = {
             "kty": "OKP", "crv": "Ed25519",
@@ -1452,17 +1404,6 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
 
                 it("json import", () => {
                     assert.equal(new crypto.PKey(pk.json()).alg, alg);
-                });
-
-                it('set alg', () => {
-                    all_algs.forEach(alg => {
-                        if (algs.indexOf(alg) != -1)
-                            pk.alg = alg;
-                        else
-                            assert.throws(() => {
-                                pk.alg = alg;
-                            });
-                    });
                 });
             });
         }

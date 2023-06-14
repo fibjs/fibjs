@@ -30,7 +30,6 @@ public:
 
 public:
     // PKey
-    result_t set_alg(exlib::string newVal);
     result_t get_publicKey(obj_ptr<PKey_base>& retVal);
     result_t clone(obj_ptr<PKey_base>& retVal);
     result_t equals(object_base* key, bool& retVal);
@@ -53,10 +52,6 @@ public:
 protected:
     result_t der2bin(const exlib::string& der, exlib::string& bin);
     result_t bin2der(const exlib::string& bin, exlib::string& der);
-
-private:
-    result_t sdsa_sign(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    result_t sdsa_verify(Buffer_base* data, Buffer_base* sign, bool& retVal, AsyncEvent* ac);
 
 private:
     result_t check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac);
@@ -92,11 +87,6 @@ public:
 
 public:
     // PKey
-    virtual result_t set_alg(exlib::string newVal)
-    {
-        return _PKey::set_alg(newVal);
-    }
-
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal)
     {
         return _PKey::get_publicKey(retVal);

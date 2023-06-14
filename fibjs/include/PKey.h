@@ -38,7 +38,6 @@ public:
     result_t get_name(exlib::string& retVal);
     result_t get_keySize(int32_t& retVal);
     result_t get_alg(exlib::string& retVal);
-    result_t set_alg(exlib::string newVal);
     result_t get_publicKey(obj_ptr<PKey_base>& retVal);
     result_t isPrivate(bool& retVal);
     result_t clone(obj_ptr<PKey_base>& retVal);
@@ -102,11 +101,6 @@ public:
     virtual result_t get_alg(exlib::string& retVal)
     {
         return _PKey::get_alg(retVal);
-    }
-
-    virtual result_t set_alg(exlib::string newVal)
-    {
-        return _PKey::set_alg(newVal);
     }
 
     virtual result_t get_publicKey(obj_ptr<PKey_base>& retVal)

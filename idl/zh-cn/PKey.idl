@@ -107,7 +107,7 @@ interface PKey : object
     readonly Integer keySize;
 
     /*! @brief 返回和设置当前对象签名算法 */
-    String alg;
+    readonly String alg;
 
     /*! @brief 返回当前密钥的公钥
      @return 当前密钥的公钥

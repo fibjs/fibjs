@@ -11,13 +11,6 @@
 #include "ECKey_p256k1.h"
 #include "ssl.h"
 
-extern "C" {
-int ecsdsa_sign(mbedtls_ecp_keypair* ctx, const unsigned char* hash, size_t hlen,
-    unsigned char* sig, size_t* slen, int (*f_rng)(void*, unsigned char*, size_t), void* p_rng);
-int ecsdsa_verify(mbedtls_ecp_keypair* ctx, const unsigned char* hash, size_t hlen,
-    const unsigned char* sig, size_t slen, int (*f_rng)(void*, unsigned char*, size_t), void* p_rng);
-}
-
 namespace fibjs {
 
 result_t ECKey_base::_new(Buffer_base* DerKey, exlib::string password, obj_ptr<ECKey_base>& retVal,
@@ -365,64 +358,6 @@ result_t ECKey::equals(object_base* key, bool& retVal)
     return 0;
 }
 
-result_t ECKey::sdsa_sign(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
-{
-    result_t hr;
-
-    int32_t ret;
-    exlib::string output;
-    size_t olen = MBEDTLS_ECDSA_MAX_LEN;
-
-    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
-    output.resize(MBEDTLS_ECDSA_MAX_LEN);
-
-    ret = ecsdsa_sign(mbedtls_pk_ec(m_key), buf_data->data(), buf_data->length(),
-        (unsigned char*)output.c_buffer(), &olen, mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
-    if (ret != 0)
-        return CHECK_ERROR(_ssl::setError(ret));
-
-    output.resize(olen);
-
-    if (ac->m_ctx[0].string() == "raw") {
-        hr = der2bin(output, output);
-        if (hr < 0)
-            return hr;
-    }
-
-    retVal = new Buffer(output.c_str(), output.length());
-
-    return 0;
-}
-
-result_t ECKey::sdsa_verify(Buffer_base* data, Buffer_base* sign, bool& retVal, AsyncEvent* ac)
-{
-    int32_t ret;
-
-    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
-
-    exlib::string strsign;
-    sign->toString(strsign);
-    if (ac->m_ctx[0].string() == "raw") {
-        result_t hr = bin2der(strsign, strsign);
-        if (hr < 0)
-            return hr;
-    }
-
-    ret = ecsdsa_verify(mbedtls_pk_ec(m_key), buf_data->data(), buf_data->length(),
-        (const unsigned char*)strsign.c_str(), strsign.length(), mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
-    if (ret == MBEDTLS_ERR_ECP_VERIFY_FAILED || ret == MBEDTLS_ERR_SM2_BAD_SIGNATURE) {
-        retVal = false;
-        return 0;
-    }
-
-    if (ret != 0)
-        return CHECK_ERROR(_ssl::setError(ret));
-
-    retVal = true;
-
-    return 0;
-}
-
 static int asn1_get_num(unsigned char** p, const unsigned char* end, unsigned char* data, size_t sz)
 {
     int ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
@@ -583,9 +518,6 @@ result_t ECKey::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buff
     if (!priv)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (m_alg == "ECSDSA")
-        return sdsa_sign(data, retVal, ac);
-
     int32_t ret;
     exlib::string output;
     size_t olen = MBEDTLS_ECDSA_MAX_SIG_LEN(mbedtls_pk_get_bitlen(&m_key));
@@ -618,9 +550,6 @@ result_t ECKey::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Objec
     result_t hr = check_opts(opts, ac);
     if (hr < 0)
         return hr;
-
-    if (m_alg == "ECSDSA")
-        return sdsa_verify(data, sign, retVal, ac);
 
     int32_t ret;
     exlib::string strsign;
@@ -705,25 +634,6 @@ result_t ECKey::get_curve(exlib::string& retVal)
     const char* _name = get_curve_name(ecp->grp.id);
     if (_name)
         retVal = _name;
-
-    return 0;
-}
-
-result_t ECKey::set_alg(exlib::string newVal)
-{
-    int32_t id = mbedtls_pk_ec(m_key)->grp.id;
-
-    if (id >= MBEDTLS_ECP_DP_ED25519 || id == MBEDTLS_ECP_DP_CURVE25519)
-        return PKey::set_alg(newVal);
-    else if (id == MBEDTLS_ECP_DP_SM2P256R1) {
-        if (newVal != "SM2" && newVal != "ECSDSA")
-            return CHECK_ERROR(CALL_E_INVALIDARG);
-        m_alg = newVal;
-    } else {
-        if (newVal != "ECDSA" && newVal != "ECSDSA")
-            return CHECK_ERROR(CALL_E_INVALIDARG);
-        m_alg = newVal;
-    }
 
     return 0;
 }

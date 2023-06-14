@@ -123,7 +123,7 @@ declare class Class_PKey extends Class_object {
     /**
      * @description 返回和设置当前对象签名算法 
      */
-    alg: string;
+    readonly alg: string;
 
     /**
      * @description 返回当前密钥的公钥
