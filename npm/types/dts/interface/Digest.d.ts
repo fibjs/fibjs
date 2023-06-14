@@ -47,8 +47,7 @@ declare class Class_Digest extends Class_object {
      *      opts 支持以下参数:
      *      ```JavaScript
      *      {
-     *         alg: 0， 指定签名的 hash 算法，仅在 RSA 时有效，缺省为 0. 支持算法: 0=NONE,1=MD5,2=SHA1,3=SHA224,4=SHA256,5=SHA384,6=SHA512,7=RIPEMD160
-     *         to: pk, 指定验证方公钥，仅在 ecsdsa 或 sm2 时有效
+     *         alg: 0 指定签名的 hash 算法，仅在 RSA 时有效，缺省为 0. 支持算法: 0=NONE,1=MD5,2=SHA1,3=SHA224,4=SHA256,5=SHA384,6=SHA512,7=RIPEMD160
      *      }
      *      ```
      * 
@@ -66,8 +65,7 @@ declare class Class_Digest extends Class_object {
      *      opts 支持以下参数:
      *      ```JavaScript
      *      {
-     *         alg: 0， 指定签名的 hash 算法，仅在 RSA 时有效，缺省为 0. 支持算法: 0=NONE,1=MD5,2=SHA1,3=SHA224,4=SHA256,5=SHA384,6=SHA512,7=RIPEMD160
-     *         to: pk, 指定验证方公钥，仅在 ecsdsa 或 sm2 时有效
+     *         alg: 0 指定签名的 hash 算法，仅在 RSA 时有效，缺省为 0. 支持算法: 0=NONE,1=MD5,2=SHA1,3=SHA224,4=SHA256,5=SHA384,6=SHA512,7=RIPEMD160
      *      }
      *      ```
      * 

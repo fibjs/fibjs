@@ -33,7 +33,7 @@ public:
     result_t set_alg(exlib::string newVal);
     result_t get_publicKey(obj_ptr<PKey_base>& retVal);
     result_t clone(obj_ptr<PKey_base>& retVal);
-    result_t equals(PKey_base* key, bool& retVal);
+    result_t equals(object_base* key, bool& retVal);
     result_t sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     result_t verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac);
 
@@ -107,7 +107,7 @@ public:
         return _PKey::clone(retVal);
     }
 
-    virtual result_t equals(PKey_base* key, bool& retVal)
+    virtual result_t equals(object_base* key, bool& retVal)
     {
         return _PKey::equals(key, retVal);
     }

@@ -251,7 +251,7 @@ declare class Class_PKey extends Class_object {
      *      @return 相同则返回 true
      *      
      */
-    equals(key: Class_PKey): boolean;
+    equals(key: Class_object): boolean;
 
     /**
      * @description 使用当前算法密码公钥加密数据
@@ -279,7 +279,6 @@ declare class Class_PKey extends Class_object {
      *      ```JavaScript
      *      {
      *         alg: 0， 指定签名的 hash 算法，仅在 RSA 时有效，缺省为 0. 支持算法: 0=NONE,1=MD5,2=SHA1,3=SHA224,4=SHA256,5=SHA384,6=SHA512,7=RIPEMD160
-     *         to: pk, 指定验证方公钥，仅在 ecsdsa 或 sm2 时有效
      *         format: "der", 指定签名格式，可选为 der 和 raw，缺省为 der
      *         recoverable: false 指定返回可恢复签名，仅在 secp256k1 有效
      *      }
@@ -300,7 +299,6 @@ declare class Class_PKey extends Class_object {
      *      ```JavaScript
      *      {
      *         alg: 0， 指定签名的 hash 算法，仅在 RSA 时有效，缺省为 0. 支持算法: 0=NONE,1=MD5,2=SHA1,3=SHA224,4=SHA256,5=SHA384,6=SHA512,7=RIPEMD160
-     *         to: pk, 指定验证方公钥，仅在 ecsdsa 或 sm2 时有效
      *         format: "der", 指定签名格式，可选为 der 和 raw，缺省为 der
      *      }
      *      ```

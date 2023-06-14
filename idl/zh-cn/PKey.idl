@@ -215,7 +215,7 @@ interface PKey : object
      @param key 指定对方的公/私钥
      @return 相同则返回 true
      */
-    Boolean equals(PKey key);
+    Boolean equals(object key);
 
     /*! @brief 使用当前算法密码公钥加密数据
      @param data 指定要加密的数据

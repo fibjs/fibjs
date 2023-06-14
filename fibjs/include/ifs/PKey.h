@@ -38,7 +38,7 @@ public:
     virtual result_t pem(exlib::string& retVal) = 0;
     virtual result_t der(obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t json(v8::Local<v8::Object> opts, v8::Local<v8::Object>& retVal) = 0;
-    virtual result_t equals(PKey_base* key, bool& retVal) = 0;
+    virtual result_t equals(object_base* key, bool& retVal) = 0;
     virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
@@ -320,7 +320,7 @@ inline void PKey_base::s_equals(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 1);
 
-    ARG(obj_ptr<PKey_base>, 0);
+    ARG(obj_ptr<object_base>, 0);
 
     hr = pInst->equals(v0, vr);
 

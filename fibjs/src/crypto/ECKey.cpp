@@ -335,11 +335,15 @@ result_t ECKey::clone(obj_ptr<PKey_base>& retVal)
     return 0;
 }
 
-result_t ECKey::equals(PKey_base* key, bool& retVal)
+result_t ECKey::equals(object_base* key, bool& retVal)
 {
     retVal = false;
 
-    mbedtls_pk_context& mkey = PKey::key(key);
+    PKey_base* _key = PKey_base::getInstance(key);
+    if (!_key)
+        return CALL_E_TYPEMISMATCH;
+
+    mbedtls_pk_context& mkey = PKey::key(_key);
 
     mbedtls_pk_type_t type = mbedtls_pk_get_type(&m_key);
     mbedtls_pk_type_t type1 = mbedtls_pk_get_type(&mkey);
