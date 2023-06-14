@@ -1056,48 +1056,35 @@ describe('crypto', () => {
             });
         });
 
-        it("ECDH", () => {
-            var alice = crypto.generateKey('secp256r1');
-            var bob = crypto.generateKey('secp256r1');
-            var aliceSecret = alice.computeSecret(bob.publicKey);
-            var bobSecret = bob.computeSecret(alice.publicKey);
+        describe("computeSecret", () => {
+            var ec_algo = [
+                'sm2',
+                'secp192r1',
+                'secp224r1',
+                'secp256r1',
+                'secp384r1',
+                'secp521r1',
+                'secp192k1',
+                'secp224k1',
+                'secp256k1',
+                'brainpoolP256r1',
+                'brainpoolP384r1',
+                'brainpoolP512r1',
+                'x25519',
+                'BLS12381_G1',
+                'BLS12381_G2'
+            ];
 
-            assert.deepEqual(aliceSecret, bobSecret);
+            ec_algo.forEach(ec => {
+                it(ec, () => {
+                    var alice = crypto.generateKey(ec);
+                    var bob = crypto.generateKey(ec);
+                    var aliceSecret = alice.computeSecret(bob.publicKey);
+                    var bobSecret = bob.computeSecret(alice.publicKey);
 
-            var alice = crypto.generateKey('secp256k1');
-            var bob = crypto.generateKey('secp256k1');
-            var aliceSecret = alice.computeSecret(bob.publicKey);
-            var bobSecret = bob.computeSecret(alice.publicKey);
-
-            assert.deepEqual(aliceSecret, bobSecret);
-
-            var alice = crypto.generateKey("SM2");
-            var bob = crypto.generateKey("SM2");
-            var aliceSecret = alice.computeSecret(bob.publicKey);
-            var bobSecret = bob.computeSecret(alice.publicKey);
-
-            assert.deepEqual(aliceSecret, bobSecret);
-
-            var alice = crypto.generateKey("X25519");
-            var bob = crypto.generateKey("X25519");
-            var aliceSecret = alice.computeSecret(bob.publicKey);
-            var bobSecret = bob.computeSecret(alice.publicKey);
-
-            assert.deepEqual(aliceSecret, bobSecret);
-
-            var alice = new crypto.PKey({
-                "kty": "EC",
-                "crv": "secp256k1",
-                "d": "D8VXPuvb2ROceGlswZ-TAao40WZvnbXw0sDOqQKoye8"
+                    assert.deepEqual(aliceSecret, bobSecret);
+                });
             });
-            var bob = new crypto.PKey({
-                "kty": "EC",
-                "crv": "secp256k1",
-                "d": "3S1mHUDELnyOtglI_3-cEJYoKWcVIAvixHEU5-SGCGU"
-            });
-
-            assert.equal("b2885b8ed48ad77ae3a531c64b85a2fcb08196e93cc13a4f783cc90674ed764a",
-                bob.computeSecret(alice.publicKey).hex());
         });
 
         it("name", () => {

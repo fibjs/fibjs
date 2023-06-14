@@ -151,4 +151,58 @@ result_t BlsKey_g2::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::O
     return 0;
 }
 
+result_t BlsKey_g2::computeSecret(ECKey_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    result_t hr;
+    bool priv;
+    mbedtls_pk_type_t type;
+
+    mbedtls_pk_context& mkey = PKey::key(publicKey);
+
+    type = mbedtls_pk_get_type(&mkey);
+    if (type != MBEDTLS_PK_ECKEY)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    type = mbedtls_pk_get_type(&m_key);
+    if (type != MBEDTLS_PK_ECKEY)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    hr = isPrivate(priv);
+    if (hr < 0)
+        return hr;
+
+    if (!priv)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    mbedtls_ecp_keypair* ecp1 = mbedtls_pk_ec(m_key);
+    mbedtls_ecp_keypair* ecp2 = mbedtls_pk_ec(mkey);
+    if (ecp1->grp.id != ecp2->grp.id)
+        return CHECK_ERROR(Runtime::setError("Public key is not valid for specified curve"));
+
+    unsigned char k[96];
+    blst_scalar sk;
+
+    mbedtls_mpi_write_binary(&ecp1->d, k, 32);
+    blst_scalar_from_bendian(&sk, k);
+
+    blst_p2_affine pk;
+    mbedtls_mpi_write_binary(&ecp2->Q.X, k, 96);
+    blst_p2_uncompress(&pk, k);
+
+    blst_p2 pk1;
+    blst_p2_from_affine(&pk1, &pk);
+
+    blst_p2 sec;
+    blst_p2_mult(&sec, &pk1, (const byte*)&sk, 256);
+
+    blst_p2_compress(k, &sec);
+
+    retVal = new Buffer(k, 96);
+
+    return 0;
+}
+
 }
