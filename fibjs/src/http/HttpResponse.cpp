@@ -354,7 +354,7 @@ result_t HttpResponse::sendTo(Stream_base* stm, AsyncEvent* ac)
     get_protocol(strCommand);
     strCommand.append(statusMessage);
 
-    return m_message->sendTo(stm, strCommand, ac);
+    return m_message->send(stm, strCommand, ac);
 }
 
 result_t HttpResponse::readFrom(Stream_base* stm, AsyncEvent* ac)

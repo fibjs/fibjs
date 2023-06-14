@@ -63,7 +63,7 @@ public:
     result_t clear();
 
 public:
-    result_t sendTo(Stream_base* stm, exlib::string& strCommand,
+    result_t send(Stream_base* stm, exlib::string& strCommand,
         AsyncEvent* ac);
     result_t sendHeader(Stream_base* stm, exlib::string& strCommand,
         AsyncEvent* ac);

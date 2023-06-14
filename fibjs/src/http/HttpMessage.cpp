@@ -167,7 +167,7 @@ result_t HttpMessage::pack(v8::Local<v8::Value>& retVal)
     return Message::pack(retVal);
 }
 
-result_t HttpMessage::sendTo(Stream_base* stm, exlib::string& strCommand,
+result_t HttpMessage::send(Stream_base* stm, exlib::string& strCommand,
     AsyncEvent* ac)
 {
     if (ac->isSync())
