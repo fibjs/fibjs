@@ -8,7 +8,6 @@ var os = require("os");
 var encoding = require("encoding");
 var hex = require("hex");
 var path = require("path");
-var ecsdsa_case = require("./crypto_case/ecsdsa.json");
 
 var rsa4096_pem = "-----BEGIN RSA PRIVATE KEY-----\n" +
     "MIIJJwIBAAKCAgEAiAUwIJyWHEnusONGDVCguTr3FkkVoSiDJ2mmFYYibt1paXpI\n" +
@@ -1368,9 +1367,7 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
     });
 
     describe("alg", () => {
-        var all_algs = ['RSA', 'ECDSA', 'SM2', 'ECSDSA', 'EdDSA', 'BLS', 'DH'];
-
-        function test_alg(alg, algs, pk) {
+        function test_alg(alg, pk) {
             describe(alg, () => {
                 it("generateKey", () => {
                     assert.equal(pk.alg, alg);
@@ -1408,12 +1405,12 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
             });
         }
 
-        test_alg("RSA", ['RSA'], crypto.generateKey(512));
-        test_alg("ECDSA", ['ECDSA', 'ECSDSA'], crypto.generateKey());
-        test_alg("SM2", ['SM2', 'ECSDSA'], crypto.generateKey("SM2"));
-        test_alg("EdDSA", ['EdDSA'], crypto.generateKey("ed25519"));
-        test_alg("DH", ['DH'], crypto.generateKey("X25519"));
-        test_alg("BLS", ['BLS'], crypto.generateKey("BLS12381_G1"));
+        test_alg("RSA", crypto.generateKey(512));
+        test_alg("ECDSA", crypto.generateKey());
+        test_alg("SM2", crypto.generateKey("SM2"));
+        test_alg("EdDSA", crypto.generateKey("ed25519"));
+        test_alg("DH", crypto.generateKey("X25519"));
+        test_alg("BLS", crypto.generateKey("BLS12381_G1"));
     });
 
     describe("X509 Cert", () => {
