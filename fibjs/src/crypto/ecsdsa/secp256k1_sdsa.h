@@ -65,7 +65,7 @@ static void secp256k1_ecsdsa_hash(secp256k1_scalar* e, const unsigned char* r64,
     secp256k1_scalar_set_b32(e, buf, NULL);
 }
 
-static int secp256k1_ecsdsa_sign_to(const secp256k1_context* ctx, const secp256k1_pubkey* to_pubkey, unsigned char* sig64,
+static int secp256k1_ecsdsa_sign(const secp256k1_context* ctx, unsigned char* sig64,
     const unsigned char* msg, size_t msglen, const secp256k1_keypair* keypair)
 {
     secp256k1_scalar sk;
@@ -114,18 +114,6 @@ static int secp256k1_ecsdsa_sign_to(const secp256k1_context* ctx, const secp256k
 
     secp256k1_ecsdsa_hash(&e, &sig64[0], msg, msglen);
 
-    if (to_pubkey) {
-        secp256k1_scalar c;
-
-        /*
-         * Steps 3.1: r = r + (k * PB).x
-         */
-        ret &= secp256k1_ecdh(ctx, buf, to_pubkey, buf, ecdh_hash_function_X, NULL);
-        secp256k1_scalar_set_b32(&c, buf, NULL);
-
-        secp256k1_scalar_add(&e, &e, &c);
-    }
-
     secp256k1_scalar_get_b32(&sig64[0], &e);
 
     /*
@@ -143,7 +131,7 @@ static int secp256k1_ecsdsa_sign_to(const secp256k1_context* ctx, const secp256k
     return ret;
 }
 
-static int secp256k1_ecsdsa_verify_to(const secp256k1_context* ctx, const unsigned char* to_key, const unsigned char* sig64,
+static int secp256k1_ecsdsa_verify(const secp256k1_context* ctx, const unsigned char* sig64,
     const unsigned char* msg, size_t msglen, const secp256k1_pubkey* pubkey)
 {
     secp256k1_scalar s;
@@ -190,21 +178,6 @@ static int secp256k1_ecsdsa_verify_to(const secp256k1_context* ctx, const unsign
     secp256k1_fe_get_b32(&hash64[32], &r.y);
 
     secp256k1_ecsdsa_hash(&e1, &hash64[0], msg, msglen);
-
-    if (to_key) {
-        secp256k1_scalar c;
-        secp256k1_pubkey r_pubkey;
-
-        /*
-         * Steps 3.1: e = e + (dB * Q).x
-         */
-        secp256k1_pubkey_save(&r_pubkey, &r);
-
-        ret &= secp256k1_ecdh(ctx, buf, &r_pubkey, to_key, ecdh_hash_function_X, NULL);
-        secp256k1_scalar_set_b32(&c, buf, NULL);
-
-        secp256k1_scalar_add(&e1, &e1, &c);
-    }
 
     /*
      * Steps 4: e ?= r

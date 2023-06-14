@@ -55,8 +55,8 @@ protected:
     result_t bin2der(const exlib::string& bin, exlib::string& der);
 
 private:
-    result_t sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    result_t verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, bool& retVal, AsyncEvent* ac);
+    result_t sdsa_sign(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    result_t sdsa_verify(Buffer_base* data, Buffer_base* sign, bool& retVal, AsyncEvent* ac);
 
 private:
     result_t check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac);

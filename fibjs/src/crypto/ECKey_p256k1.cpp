@@ -50,7 +50,7 @@ ECKey_p256k1::ECKey_p256k1()
 result_t ECKey_p256k1::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
 {
     static const char* s_keys[] = {
-        "to", "format", "recoverable", NULL
+        "format", "recoverable", NULL
     };
 
     if (!ac->isSync())
@@ -63,19 +63,13 @@ result_t ECKey_p256k1::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
     if (hr < 0)
         return hr;
 
-    ac->m_ctx.resize(3);
-
-    obj_ptr<PKey_base> to;
-    hr = GetConfigValue(isolate, opts, "to", to, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-        return hr;
-    ac->m_ctx[0] = to;
+    ac->m_ctx.resize(2);
 
     bool recoverable = false;
     hr = GetConfigValue(isolate, opts, "recoverable", recoverable, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
-    ac->m_ctx[2] = recoverable;
+    ac->m_ctx[1] = recoverable;
 
     exlib::string fmt = recoverable ? "raw" : "der";
     hr = GetConfigValue(isolate, opts, "format", fmt, true);
@@ -83,7 +77,7 @@ result_t ECKey_p256k1::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
         return hr;
     if (fmt != "der" && fmt != "raw")
         return CHECK_ERROR(Runtime::setError(exlib::string("unsupported format \'") + fmt + "\'."));
-    ac->m_ctx[1] = fmt;
+    ac->m_ctx[0] = fmt;
 
     return CHECK_ERROR(CALL_E_NOSYNC);
 }
@@ -106,7 +100,7 @@ result_t ECKey_p256k1::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_p
     if (hr < 0)
         return hr;
 
-    bool recoverable = ac->m_ctx[2].boolVal();
+    bool recoverable = ac->m_ctx[1].boolVal();
     if (!recoverable)
         return ECKey::sign(data, opts, retVal, ac);
 
@@ -119,10 +113,7 @@ result_t ECKey_p256k1::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_p
     if (!priv)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    if (ac->m_ctx[0].object())
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    exlib::string fmt = ac->m_ctx[1].string();
+    exlib::string fmt = ac->m_ctx[0].string();
     if (fmt != "raw")
         return CHECK_ERROR(Runtime::setError(exlib::string("unsupported format \'") + fmt + "\'."));
 

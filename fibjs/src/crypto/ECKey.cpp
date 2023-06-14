@@ -12,9 +12,9 @@
 #include "ssl.h"
 
 extern "C" {
-int ecsdsa_sign(mbedtls_ecp_keypair* ctx, int sdsa, mbedtls_ecp_keypair* to_ctx, const unsigned char* hash, size_t hlen,
+int ecsdsa_sign(mbedtls_ecp_keypair* ctx, const unsigned char* hash, size_t hlen,
     unsigned char* sig, size_t* slen, int (*f_rng)(void*, unsigned char*, size_t), void* p_rng);
-int ecsdsa_verify(mbedtls_ecp_keypair* ctx, int sdsa, mbedtls_ecp_keypair* to_ctx, const unsigned char* hash, size_t hlen,
+int ecsdsa_verify(mbedtls_ecp_keypair* ctx, const unsigned char* hash, size_t hlen,
     const unsigned char* sig, size_t slen, int (*f_rng)(void*, unsigned char*, size_t), void* p_rng);
 }
 
@@ -361,24 +361,9 @@ result_t ECKey::equals(PKey_base* key, bool& retVal)
     return 0;
 }
 
-result_t ECKey::sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t ECKey::sdsa_sign(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     result_t hr;
-
-    if (key) {
-        mbedtls_pk_type_t type;
-
-        mbedtls_pk_context& mkey = PKey::key(key);
-
-        type = mbedtls_pk_get_type(&mkey);
-        if (type != MBEDTLS_PK_ECKEY && type != MBEDTLS_PK_SM2)
-            return CHECK_ERROR(CALL_E_INVALIDARG);
-
-        mbedtls_ecp_keypair* ecp1 = mbedtls_pk_ec(m_key);
-        mbedtls_ecp_keypair* ecp2 = mbedtls_pk_ec(mkey);
-        if (ecp1->grp.id != ecp2->grp.id)
-            return CHECK_ERROR(Runtime::setError("Public key is not valid for specified curve"));
-    }
 
     int32_t ret;
     exlib::string output;
@@ -387,15 +372,14 @@ result_t ECKey::sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>& re
     obj_ptr<Buffer> buf_data = Buffer::Cast(data);
     output.resize(MBEDTLS_ECDSA_MAX_LEN);
 
-    ret = ecsdsa_sign(mbedtls_pk_ec(m_key), m_alg == "ECSDSA", key ? mbedtls_pk_ec(PKey::key(key)) : NULL,
-        buf_data->data(), buf_data->length(), (unsigned char*)output.c_buffer(), &olen,
-        mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
+    ret = ecsdsa_sign(mbedtls_pk_ec(m_key), buf_data->data(), buf_data->length(),
+        (unsigned char*)output.c_buffer(), &olen, mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
     output.resize(olen);
 
-    if (ac->m_ctx[1].string() == "raw") {
+    if (ac->m_ctx[0].string() == "raw") {
         hr = der2bin(output, output);
         if (hr < 0)
             return hr;
@@ -406,46 +390,22 @@ result_t ECKey::sign(Buffer_base* data, PKey_base* key, obj_ptr<Buffer_base>& re
     return 0;
 }
 
-result_t ECKey::verify(Buffer_base* data, Buffer_base* sign, PKey_base* key, bool& retVal, AsyncEvent* ac)
+result_t ECKey::sdsa_verify(Buffer_base* data, Buffer_base* sign, bool& retVal, AsyncEvent* ac)
 {
-    if (key) {
-        result_t hr;
-        bool priv;
-
-        mbedtls_pk_context& mkey = PKey::key(key);
-
-        mbedtls_pk_type_t type = mbedtls_pk_get_type(&mkey);
-        if (type != MBEDTLS_PK_ECKEY && type != MBEDTLS_PK_SM2)
-            return CHECK_ERROR(CALL_E_INVALIDARG);
-
-        hr = key->isPrivate(priv);
-        if (hr < 0)
-            return hr;
-
-        if (!priv)
-            return CHECK_ERROR(CALL_E_INVALIDARG);
-
-        mbedtls_ecp_keypair* ecp1 = mbedtls_pk_ec(m_key);
-        mbedtls_ecp_keypair* ecp2 = mbedtls_pk_ec(mkey);
-        if (ecp1->grp.id != ecp2->grp.id)
-            return CHECK_ERROR(Runtime::setError("Public key is not valid for specified curve"));
-    }
-
     int32_t ret;
 
     obj_ptr<Buffer> buf_data = Buffer::Cast(data);
 
     exlib::string strsign;
     sign->toString(strsign);
-    if (ac->m_ctx[1].string() == "raw") {
+    if (ac->m_ctx[0].string() == "raw") {
         result_t hr = bin2der(strsign, strsign);
         if (hr < 0)
             return hr;
     }
 
-    ret = ecsdsa_verify(mbedtls_pk_ec(m_key), m_alg == "ECSDSA", key ? mbedtls_pk_ec(PKey::key(key)) : NULL,
-        buf_data->data(), buf_data->length(), (const unsigned char*)strsign.c_str(), strsign.length(),
-        mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
+    ret = ecsdsa_verify(mbedtls_pk_ec(m_key), buf_data->data(), buf_data->length(),
+        (const unsigned char*)strsign.c_str(), strsign.length(), mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret == MBEDTLS_ERR_ECP_VERIFY_FAILED || ret == MBEDTLS_ERR_SM2_BAD_SIGNATURE) {
         retVal = false;
         return 0;
@@ -578,7 +538,7 @@ result_t ECKey::bin2der(const exlib::string& bin, exlib::string& der)
 result_t ECKey::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
 {
     static const char* s_keys[] = {
-        "to", "format", NULL
+        "format", NULL
     };
 
     if (!ac->isSync())
@@ -591,13 +551,7 @@ result_t ECKey::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
     if (hr < 0)
         return hr;
 
-    ac->m_ctx.resize(2);
-
-    obj_ptr<PKey_base> to;
-    hr = GetConfigValue(isolate, opts, "to", to, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-        return hr;
-    ac->m_ctx[0] = to;
+    ac->m_ctx.resize(1);
 
     exlib::string fmt = "der";
     hr = GetConfigValue(isolate, opts, "format", fmt, true);
@@ -605,7 +559,7 @@ result_t ECKey::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
         return hr;
     if (fmt != "der" && fmt != "raw")
         return CHECK_ERROR(Runtime::setError(exlib::string("unsupported format \'") + fmt + "\'."));
-    ac->m_ctx[1] = fmt;
+    ac->m_ctx[0] = fmt;
 
     return CHECK_ERROR(CALL_E_NOSYNC);
 }
@@ -625,12 +579,8 @@ result_t ECKey::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buff
     if (!priv)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    obj_ptr<PKey_base> to = PKey_base::getInstance(ac->m_ctx[0].object());
-    if (m_alg == "ECSDSA" || m_alg == "SM2")
-        return sign(data, to, retVal, ac);
-
-    if (to)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+    if (m_alg == "ECSDSA")
+        return sdsa_sign(data, retVal, ac);
 
     int32_t ret;
     exlib::string output;
@@ -648,7 +598,7 @@ result_t ECKey::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buff
 
     output.resize(olen);
 
-    if (ac->m_ctx[1].string() == "raw") {
+    if (ac->m_ctx[0].string() == "raw") {
         hr = der2bin(output, output);
         if (hr < 0)
             return hr;
@@ -665,12 +615,8 @@ result_t ECKey::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Objec
     if (hr < 0)
         return hr;
 
-    obj_ptr<PKey_base> to = PKey_base::getInstance(ac->m_ctx[0].object());
-    if (m_alg == "ECSDSA" || m_alg == "SM2")
-        return verify(data, sign, to, retVal, ac);
-
-    if (to)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+    if (m_alg == "ECSDSA")
+        return sdsa_verify(data, sign, retVal, ac);
 
     int32_t ret;
     exlib::string strsign;
@@ -678,7 +624,7 @@ result_t ECKey::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Objec
     obj_ptr<Buffer> buf_data = Buffer::Cast(data);
     sign->toString(strsign);
 
-    if (ac->m_ctx[1].string() == "raw") {
+    if (ac->m_ctx[0].string() == "raw") {
         hr = bin2der(strsign, strsign);
         if (hr < 0)
             return hr;

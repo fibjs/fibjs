@@ -63,8 +63,8 @@ static void mbedtls_ecsdsa_hash(mbedtls_ecp_group* grp, mbedtls_mpi* e, const mb
     mbedtls_mpi_mod_mpi(e, e, &grp->N);
 }
 
-static int mbedtls_ecsdsa_sign_to(mbedtls_ecp_group* grp, mbedtls_mpi* r, mbedtls_mpi* s,
-    const mbedtls_mpi* d, const mbedtls_ecp_point* to_pubkey, const unsigned char* buf, size_t blen,
+static int mbedtls_ecsdsa_sign(mbedtls_ecp_group* grp, mbedtls_mpi* r, mbedtls_mpi* s,
+    const mbedtls_mpi* d, const unsigned char* buf, size_t blen,
     int (*f_rng)(void*, unsigned char*, size_t), void* p_rng)
 {
     int ret = 0;
@@ -110,20 +110,6 @@ static int mbedtls_ecsdsa_sign_to(mbedtls_ecp_group* grp, mbedtls_mpi* r, mbedtl
          */
         mbedtls_ecsdsa_hash(grp, r, &Q, buf, blen);
 
-        if (to_pubkey) {
-            mbedtls_ecp_point C;
-
-            /*
-             * Steps 3.1: r = r + (k * PB).x
-             */
-            mbedtls_ecp_point_init(&C);
-            MBEDTLS_MPI_CHK(mbedtls_ecp_mul(grp, &C, &k, to_pubkey, f_rng, p_rng));
-            MBEDTLS_MPI_CHK(mbedtls_mpi_add_mpi(r, r, &C.X));
-            mbedtls_ecp_point_free(&C);
-
-            mbedtls_mpi_mod_mpi(r, r, &grp->N);
-        }
-
         /*
          * Steps 4: s = k + r * dA mod n
          */
@@ -140,8 +126,8 @@ cleanup:
     return (ret);
 }
 
-static int mbedtls_ecsdsa_verify_to(mbedtls_ecp_group* grp, const unsigned char* buf, size_t blen,
-    const mbedtls_ecp_point* P, const mbedtls_mpi* to_key, const mbedtls_mpi* r, const mbedtls_mpi* s,
+static int mbedtls_ecsdsa_verify(mbedtls_ecp_group* grp, const unsigned char* buf, size_t blen,
+    const mbedtls_ecp_point* P, const mbedtls_mpi* r, const mbedtls_mpi* s,
     int (*f_rng)(void*, unsigned char*, size_t), void* p_rng)
 {
     int ret = 0;
@@ -175,20 +161,6 @@ static int mbedtls_ecsdsa_verify_to(mbedtls_ecp_group* grp, const unsigned char*
      * Steps 3: e = OS2I(hash(FE2OS(xQ) ∥ FE2OS(yQ) ∥ M))
      */
     mbedtls_ecsdsa_hash(grp, &e, &Q, buf, blen);
-
-    if (to_key) {
-        mbedtls_ecp_point C;
-
-        /*
-         * Steps 3.1: e = e + (dB * Q).x
-         */
-        mbedtls_ecp_point_init(&C);
-        MBEDTLS_MPI_CHK(mbedtls_ecp_mul(grp, &C, to_key, &Q, f_rng, p_rng));
-        MBEDTLS_MPI_CHK(mbedtls_mpi_add_mpi(&e, &e, &C.X));
-        mbedtls_ecp_point_free(&C);
-
-        mbedtls_mpi_mod_mpi(&e, &e, &grp->N);
-    }
 
     /*
      * Steps 4: e ?= r

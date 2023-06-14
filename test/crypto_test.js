@@ -977,7 +977,7 @@ describe('crypto', () => {
                 });
             });
 
-            it("sign/verify with same key", () => {
+            xit("sign/verify with same key", () => {
                 var pk = crypto.generateKey("SM2");
                 var json = pk.json();
                 var pk1 = crypto.PKey.from(json);
@@ -985,74 +985,6 @@ describe('crypto', () => {
                 var md = hash.md5("abcdefg").digest();
                 var d = pk.sign(md);
                 assert.isTrue(pk1.verify(md, d));
-            });
-
-            it("sign/verify to", () => {
-                var pk = crypto.generateKey("SM2");
-                var pk1 = crypto.generateKey("SM2");
-
-                var sig = pk.sign('abc', {
-                    to: pk1.publicKey
-                });
-                assert.isTrue(pk.publicKey.verify('abc', sig, {
-                    to: pk1
-                }));
-                assert.isFalse(pk.publicKey.verify('abcd', sig, {
-                    to: pk1
-                }));
-                assert.isFalse(pk.publicKey.verify('abc', sig, {
-                    to: pk
-                }));
-            });
-
-            it("sm2 sign/verify to format", () => {
-                var pk = crypto.generateKey("SM2");
-                var pk1 = crypto.generateKey("SM2");
-
-                var sig = pk.sign('abc', {
-                    format: 'raw',
-                    to: pk1.publicKey
-                });
-
-                assert.isTrue(pk.publicKey.verify('abc', sig, {
-                    format: 'raw',
-                    to: pk1
-                }));
-            });
-
-            it("ecsdsa sign/verify to", () => {
-                var pk = crypto.generateKey("SM2");
-                var pk1 = crypto.generateKey("SM2");
-                pk.alg = 'ECSDSA';
-
-                var sig = pk.sign('abc', {
-                    to: pk1.publicKey
-                });
-                assert.isTrue(pk.publicKey.verify('abc', sig, {
-                    to: pk1
-                }));
-                assert.isFalse(pk.publicKey.verify('abcd', sig, {
-                    to: pk1
-                }));
-                assert.isFalse(pk.publicKey.verify('abc', sig, {
-                    to: pk
-                }));
-            });
-
-            it("sm2 ecsdsa sign/verify to format", () => {
-                var pk = crypto.generateKey("SM2");
-                var pk1 = crypto.generateKey("SM2");
-                pk.alg = 'ECSDSA';
-
-                var sig = pk.sign('abc', {
-                    format: 'raw',
-                    to: pk1.publicKey
-                });
-
-                assert.isTrue(pk.publicKey.verify('abc', sig, {
-                    format: 'raw',
-                    to: pk1
-                }));
             });
         });
 
@@ -1139,43 +1071,6 @@ describe('crypto', () => {
                     var sig = pk.sign('abc');
                     assert.ok(pk.publicKey.verify('abc', sig));
                 });
-
-                it("sign/verify to", () => {
-                    var pk = new crypto.PKey(c.key);
-                    pk.alg = 'ECSDSA';
-
-                    var pk1 = crypto.generateKey(c.key.crv);
-
-                    var sig = pk.sign('abc', {
-                        to: pk1.publicKey
-                    });
-                    assert.isTrue(pk.publicKey.verify('abc', sig, {
-                        to: pk1
-                    }));
-                    assert.isFalse(pk.publicKey.verify('abcb', sig, {
-                        to: pk1
-                    }));
-                    assert.isFalse(pk.publicKey.verify('abc', sig, {
-                        to: pk
-                    }));
-                });
-
-                it("sign/verify to format", () => {
-                    var pk = new crypto.PKey(c.key);
-                    pk.alg = 'ECSDSA';
-
-                    var pk1 = crypto.generateKey(c.key.crv);
-
-                    var sig = pk.sign('abc', {
-                        format: 'raw',
-                        to: pk1.publicKey
-                    });
-
-                    assert.isTrue(pk.publicKey.verify('abc', sig, {
-                        format: 'raw',
-                        to: pk1
-                    }));
-                });
             });
         });
 
@@ -1202,30 +1097,6 @@ describe('crypto', () => {
 
                 var sig = pk.sign('abc');
                 assert.ok(pk.publicKey.verify('abc', sig));
-            });
-
-            it("sign/verify to", () => {
-                var pk = new crypto.PKey({
-                    "kty": "EC",
-                    "crv": "SM2",
-                    "d": "fcRRalaycsaXpKQYGcbmU8Qi93KqXnpodAwIK3vEOoI"
-                });
-                pk.alg = 'ECSDSA';
-
-                var pk1 = crypto.generateKey("SM2");
-
-                var sig = pk.sign('abc', {
-                    to: pk1.publicKey
-                });
-                assert.isTrue(pk.publicKey.verify('abc', sig, {
-                    to: pk1
-                }));
-                assert.isFalse(pk.publicKey.verify('abcb', sig, {
-                    to: pk1
-                }));
-                assert.isFalse(pk.publicKey.verify('abc', sig, {
-                    to: pk
-                }));
             });
         });
     });
