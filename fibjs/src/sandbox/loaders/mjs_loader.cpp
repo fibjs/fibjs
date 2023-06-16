@@ -17,7 +17,7 @@ static v8::MaybeLocal<v8::Module> resolveModule(
     v8::Local<v8::Context> context, v8::Local<v8::String> specifier,
     v8::Local<v8::FixedArray> import_assertions, v8::Local<v8::Module> referrer)
 {
-    puts("===================== resolveModule =====================");
+    return v8::MaybeLocal<v8::Module>();
 }
 
 result_t mjs_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
