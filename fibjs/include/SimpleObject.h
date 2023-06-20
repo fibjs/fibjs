@@ -66,6 +66,7 @@ public:
             return CALL_RETURN_NULL;
 
         m_values[it->second].m_val.clear();
+        m_keys.erase(it);
         return 0;
     }
 
