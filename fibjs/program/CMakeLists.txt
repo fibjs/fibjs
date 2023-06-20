@@ -39,7 +39,9 @@ foreach(lib ${libs})
 		target_link_libraries(${name}_gui "${BIN_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}${lib}${CMAKE_STATIC_LIBRARY_SUFFIX}")
 	endif()
 
-	target_link_libraries(js "${BIN_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}${lib}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+	if(NOT ${lib} STREQUAL "jemalloc")
+		target_link_libraries(js "${BIN_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}${lib}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+	endif()
 endforeach()
 
 setup_result_library(${name})

@@ -15,7 +15,7 @@ void main(int32_t argc, char** argv)
     importBuiltinModule();
 
     start(argc, argv, FiberProcJsEntry);
-    run_gui(argc, argv);
+    // run_gui(argc, argv);
 }
 }
 
@@ -25,7 +25,7 @@ extern "C"
 #else
     __attribute__((visibility("default")))
 #endif
-int32_t main(int32_t argc, char* argv[])
+int32_t run_fibjs(int32_t argc, char* argv[])
 {
     fibjs::main(argc, argv);
     return 0;
