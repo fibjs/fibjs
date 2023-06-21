@@ -37,7 +37,12 @@ infos.forEach(function (info) {
 
 console.log(nodes.length, 'nodes');
 
-var conn = db.open('sqlite:./temp/docs.db');
+var db_path = __dirname + '/temp';
+if (!fs.stat(db_path)) {
+    fs.mkdir(db_path);
+}
+
+var conn = db.open(`sqlite:${db_path}/docs.db`);
 
 conn.execute('CREATE TABLE IF NOT EXISTS fibjs_docs (id PRIMARY KEY, deleted DEFAULT 0, text, embedding, total_tokens)');
 conn.execute("CREATE VIRTUAL TABLE IF NOT EXISTS fibjs_index USING vec_index(vec(1536))");
