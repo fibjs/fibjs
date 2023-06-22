@@ -1,0 +1,3 @@
+FROM dockcross/android-x86
+
+RUN adduser fibjs -q

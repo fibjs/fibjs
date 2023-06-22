@@ -16,4 +16,6 @@ docker image push fibjs/alpine-test-env:i386
 docker image push fibjs/alpine-test-env:arm64
 
 docker image push fibjs/android-build-env:amd64
+docker image push fibjs/android-build-env:i386
 docker image push fibjs/android-build-env:arm64
+docker image push fibjs/android-build-env:arm

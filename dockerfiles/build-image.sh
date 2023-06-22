@@ -16,4 +16,6 @@ docker build --rm -f alpine-test-env.i386 -t fibjs/alpine-test-env:i386 .
 docker build --rm -f alpine-test-env.arm64 -t fibjs/alpine-test-env:arm64 .
 
 docker build --rm -f android-build-env.amd64 -t fibjs/android-build-env:amd64 .
+docker build --rm -f android-build-env.i386 -t fibjs/android-build-env:i386 .
 docker build --rm -f android-build-env.arm64 -t fibjs/android-build-env:arm64 .
+docker build --rm -f android-build-env.arm -t fibjs/android-build-env:arm .
