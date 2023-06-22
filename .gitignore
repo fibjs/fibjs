@@ -1,6 +1,6 @@
 /out
 /bin
-/temp
+/temp/*
 *.sdf
 *.suo
 node_modules
