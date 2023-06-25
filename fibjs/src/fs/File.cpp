@@ -5,6 +5,10 @@
  *      Author: lion
  */
 
+#ifndef _WIN32
+#define _FILE_OFFSET_BITS 64
+#endif
+
 #include "object.h"
 
 #include "ifs/io.h"

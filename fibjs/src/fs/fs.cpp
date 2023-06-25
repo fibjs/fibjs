@@ -5,6 +5,10 @@
  *      Author: lion
  */
 
+#ifndef _WIN32
+#define _FILE_OFFSET_BITS 64
+#endif
+
 #include "ifs/fs.h"
 #include "ifs/zip.h"
 #include "ifs/iconv.h"
