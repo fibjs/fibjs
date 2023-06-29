@@ -226,7 +226,7 @@ result_t Cipher::process(const mbedtls_operation_t operation, Buffer_base* data,
     unsigned char buffer[1024];
     size_t olen, ilen, offset, block_size, data_size;
 
-    obj_ptr<Buffer> data_buf = Buffer::Cast(data);
+    Buffer* data_buf = Buffer::Cast(data);
     data_size = data_buf->length();
 
     block_size = mbedtls_cipher_get_block_size(&m_ctx);

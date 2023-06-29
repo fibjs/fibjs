@@ -168,7 +168,7 @@ result_t PKey_rsa::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<B
     exlib::string output;
     size_t olen = (mbedtls_pk_get_bitlen(&m_key) + 7) / 8;
 
-    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
+    Buffer* buf_data = Buffer::Cast(data);
     output.resize(olen);
 
     // alg=0~9  see https://tls.mbed.org/api/md_8h.html  enum mbedtls_md_type_t
@@ -192,8 +192,8 @@ result_t PKey_rsa::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Ob
 
     int32_t ret;
 
-    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
-    obj_ptr<Buffer> buf_sign = Buffer::Cast(sign);
+    Buffer* buf_data = Buffer::Cast(data);
+    Buffer* buf_sign = Buffer::Cast(sign);
 
     ret = mbedtls_pk_verify(&m_key, (mbedtls_md_type_t)alg, buf_data->data(), buf_data->length(),
         buf_sign->data(), buf_sign->length());

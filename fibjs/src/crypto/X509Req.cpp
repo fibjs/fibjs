@@ -125,7 +125,7 @@ result_t X509Req::import(Buffer_base* derReq)
 
     clear();
 
-    obj_ptr<Buffer> buf_csr = Buffer::Cast(derReq);
+    Buffer* buf_csr = Buffer::Cast(derReq);
     ret = mbedtls_x509_csr_parse(&m_csr, buf_csr->data(), buf_csr->length());
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));

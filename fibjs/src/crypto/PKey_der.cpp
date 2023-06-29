@@ -28,7 +28,7 @@ result_t PKey_base::from(Buffer_base* DerKey, exlib::string password, obj_ptr<PK
         if (hr >= 0)
             return hr;
 
-        obj_ptr<Buffer> buf_key = Buffer::Cast(DerKey);
+        Buffer* buf_key = Buffer::Cast(DerKey);
 
         ret = mbedtls_pk_parse_key(&ctx, buf_key->data(), buf_key->length(),
             !password.empty() ? (unsigned char*)password.c_str() : NULL,

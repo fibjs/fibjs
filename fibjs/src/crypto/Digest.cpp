@@ -50,7 +50,7 @@ result_t Digest::update(Buffer_base* data, obj_ptr<Digest_base>& retVal)
     if (m_iAlgo < 0)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    obj_ptr<Buffer> buf = Buffer::Cast(data);
+    Buffer* buf = Buffer::Cast(data);
     _md_update(&m_ctx, buf->data(), buf->length());
 
     retVal = this;

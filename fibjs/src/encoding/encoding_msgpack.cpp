@@ -214,7 +214,7 @@ result_t msgpack_base::decode(Buffer_base* data, v8::Local<v8::Value>& retVal)
 
         result_t unpack(Buffer_base* data)
         {
-            obj_ptr<Buffer> buf = Buffer::Cast(data);
+            Buffer* buf = Buffer::Cast(data);
             msgpack_unpack_return ret = msgpack_unpack((const char*)buf->data(), buf->length(), NULL, &mempool, &deserialized);
             if (ret != 2)
                 return -1;

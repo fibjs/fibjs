@@ -114,7 +114,7 @@ result_t ECKey_p256k1::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_p
     if (fmt != "raw")
         return CHECK_ERROR(Runtime::setError(exlib::string("unsupported format \'") + fmt + "\'."));
 
-    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
+    Buffer* buf_data = Buffer::Cast(data);
 
     const unsigned char* hash = buf_data->data();
     size_t hlen = buf_data->length();
@@ -144,8 +144,8 @@ result_t ECKey_base::recover(Buffer_base* data, Buffer_base* sig, obj_ptr<ECKey_
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
-    obj_ptr<Buffer> buf_sig = Buffer::Cast(sig);
+    Buffer* buf_data = Buffer::Cast(data);
+    Buffer* buf_sig = Buffer::Cast(sig);
     if (buf_sig->length() != 65)
         return CALL_RETURN_NULL;
 

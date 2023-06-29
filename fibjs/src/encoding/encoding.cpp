@@ -44,7 +44,7 @@ static void hexEncode(exlib::string data, bool upper, exlib::string& retVal)
 
 result_t hex_base::encode(Buffer_base* data, exlib::string& retVal)
 {
-    obj_ptr<Buffer> buf = Buffer::Cast(data);
+    Buffer* buf = Buffer::Cast(data);
     hexEncode((const char*)buf->data(), buf->length(), false, retVal);
     return 0;
 }
@@ -181,7 +181,7 @@ static void base32Encode(const char* data, size_t sz, bool upper, bool padding, 
 
 result_t base32_base::encode(Buffer_base* data, exlib::string& retVal)
 {
-    obj_ptr<Buffer> buf = Buffer::Cast(data);
+    Buffer* buf = Buffer::Cast(data);
     base32Encode((const char*)buf->data(), buf->length(), false, false, retVal);
     return 0;
 }
@@ -251,7 +251,7 @@ static void base64Decode(const char* data, size_t sz, obj_ptr<Buffer_base>& retV
 
 result_t base64_base::encode(Buffer_base* data, bool url, exlib::string& retVal)
 {
-    obj_ptr<Buffer> buf = Buffer::Cast(data);
+    Buffer* buf = Buffer::Cast(data);
     base64Encode((const char*)buf->data(), buf->length(), url, !url, retVal);
     return 0;
 }
@@ -282,14 +282,14 @@ static void base58Encode(const char* data, size_t sz, exlib::string& retVal)
 
 result_t base58_base::encode(Buffer_base* data, exlib::string& retVal)
 {
-    obj_ptr<Buffer> buf = Buffer::Cast(data);
+    Buffer* buf = Buffer::Cast(data);
     base58Encode((const char*)buf->data(), buf->length(), retVal);
     return 0;
 }
 
 result_t base58_base::encode(Buffer_base* data, int32_t chk_ver, exlib::string& retVal)
 {
-    obj_ptr<Buffer> buf = Buffer::Cast(data);
+    Buffer* buf = Buffer::Cast(data);
 
     size_t b58sz = (size_t)((buf->length() + 5) * 8 / log2l(58) + 2);
 

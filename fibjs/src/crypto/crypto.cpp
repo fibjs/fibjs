@@ -261,7 +261,7 @@ result_t crypto_base::randomArt(Buffer_base* data, exlib::string title,
     if (size < 1 || size > 128)
         return CHECK_ERROR(CALL_E_OUTRANGE);
 
-    obj_ptr<Buffer> buf = Buffer::Cast(data);
+    Buffer* buf = Buffer::Cast(data);
     char* str = randomart(buf->data(), buf->length(), title, size);
 
     if (str) {
@@ -360,8 +360,8 @@ result_t crypto_base::pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t i
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<Buffer> buf_pass = Buffer::Cast(password);
-    obj_ptr<Buffer> buf_salt = Buffer::Cast(salt);
+    Buffer* buf_pass = Buffer::Cast(password);
+    Buffer* buf_salt = Buffer::Cast(salt);
     obj_ptr<Buffer> buf_key = new Buffer(NULL, size);
 
     mbedtls_md_context_t ctx;
@@ -405,8 +405,8 @@ result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t i
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    obj_ptr<Buffer> buf_pass = Buffer::Cast(password);
-    obj_ptr<Buffer> buf_salt = Buffer::Cast(salt);
+    Buffer* buf_pass = Buffer::Cast(password);
+    Buffer* buf_salt = Buffer::Cast(salt);
     obj_ptr<Buffer> buf_key = new Buffer(NULL, size);
 
     mbedtls_md_context_t ctx;

@@ -113,7 +113,7 @@ result_t BlsKey_g2::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<
     mbedtls_mpi_write_binary(&ecp->d, k, 32);
     blst_scalar_from_bendian(&sk, k);
 
-    obj_ptr<Buffer> buf = Buffer::Cast(data);
+    Buffer* buf = Buffer::Cast(data);
 
     blst_p1 point;
     blst_hash_to_g1(&point, buf->data(), buf->length(),
@@ -135,8 +135,8 @@ result_t BlsKey_g2::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::O
     unsigned char k[96];
     mbedtls_ecp_keypair* ecp = mbedtls_pk_ec(m_key);
 
-    obj_ptr<Buffer> buf = Buffer::Cast(data);
-    obj_ptr<Buffer> sig = Buffer::Cast(sign);
+    Buffer* buf = Buffer::Cast(data);
+    Buffer* sig = Buffer::Cast(sign);
 
     blst_p2_affine pk;
     mbedtls_mpi_write_binary(&ecp->Q.X, k, 96);

@@ -41,7 +41,7 @@ result_t BlsKey_base::aggregateSignature(v8::Local<v8::Array> sigs, obj_ptr<Buff
         return hr;
 
     obj_ptr<Buffer> agg;
-    obj_ptr<Buffer> sig = Buffer::Cast(buf);
+    Buffer* sig = Buffer::Cast(buf);
     len = sig->length();
     if (len == 48) {
         blst_p1 point;

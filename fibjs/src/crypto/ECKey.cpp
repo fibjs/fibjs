@@ -522,7 +522,7 @@ result_t ECKey::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buff
     exlib::string output;
     size_t olen = MBEDTLS_ECDSA_MAX_SIG_LEN(mbedtls_pk_get_bitlen(&m_key));
 
-    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
+    Buffer* buf_data = Buffer::Cast(data);
     output.resize(olen);
 
     // alg=0~9  see https://tls.mbed.org/api/md_8h.html  enum mbedtls_md_type_t
@@ -554,7 +554,7 @@ result_t ECKey::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::Objec
     int32_t ret;
     exlib::string strsign;
 
-    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
+    Buffer* buf_data = Buffer::Cast(data);
     sign->toString(strsign);
 
     if (ac->m_ctx[0].string() == "raw") {

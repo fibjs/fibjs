@@ -77,7 +77,7 @@ result_t hash_base::hmac(int32_t algo, Buffer_base* key, Buffer_base* data,
     if (algo < MBEDTLS_MD_MD5 || algo >= MBEDTLS_MD_MAX)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    obj_ptr<Buffer> buf_key = Buffer::Cast(key);
+    Buffer* buf_key = Buffer::Cast(key);
 
     retVal = new Digest((mbedtls_md_type_t)algo, (const char*)buf_key->data(), buf_key->length());
 

@@ -224,7 +224,7 @@ result_t Ed25519Key::from(Buffer_base* DerKey, obj_ptr<PKey_base>& retVal)
     mbedtls_pk_init(&ctx);
 
     do {
-        obj_ptr<Buffer> buf_key = Buffer::Cast(DerKey);
+        Buffer* buf_key = Buffer::Cast(DerKey);
 
         ret = parse_key(ctx, buf_key->data(), buf_key->length());
         if (ret != MBEDTLS_ERR_PK_KEY_INVALID_FORMAT)
@@ -377,7 +377,7 @@ result_t Ed25519Key::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr
     mbedtls_mpi_write_binary(&ecp->d, sk, ed25519_public_key_size);
     mbedtls_mpi_write_binary(&ecp->Q.X, sk + ed25519_public_key_size, ed25519_public_key_size);
 
-    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
+    Buffer* buf_data = Buffer::Cast(data);
 
     sig.resize(ed25519_signature_size);
     ed25519_SignMessage((unsigned char*)sig.c_buffer(), sk, NULL, buf_data->data(), buf_data->length());
@@ -416,7 +416,7 @@ result_t Ed25519Key::verify(Buffer_base* data, Buffer_base* sign, v8::Local<v8::
         }
     }
 
-    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
+    Buffer* buf_data = Buffer::Cast(data);
     mbedtls_mpi_write_binary(&ecp->Q.X, pk, ed25519_public_key_size);
 
     retVal = ed25519_VerifySignature((const unsigned char*)sig.c_str(), pk, buf_data->data(), buf_data->length());

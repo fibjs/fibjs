@@ -167,7 +167,7 @@ result_t PKey::encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEve
     exlib::string output;
     size_t olen;
 
-    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
+    Buffer* buf_data = Buffer::Cast(data);
     output.resize(MBEDTLS_PREMASTER_SIZE);
 
     ret = mbedtls_pk_encrypt(&m_key, buf_data->data(), buf_data->length(),
@@ -200,7 +200,7 @@ result_t PKey::decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEve
     exlib::string output;
     size_t olen;
 
-    obj_ptr<Buffer> buf_data = Buffer::Cast(data);
+    Buffer* buf_data = Buffer::Cast(data);
     output.resize(MBEDTLS_PREMASTER_SIZE * 2);
 
     ret = mbedtls_pk_decrypt(&m_key, buf_data->data(), buf_data->length(),
