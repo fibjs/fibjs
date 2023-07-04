@@ -56,6 +56,18 @@ interface BlsKey : ECKey
     */
     BlsKey(Object jsonKey);
 
+    /**/
+    Buffer bbsSign(Buffer header, Array messages) async;
+
+    /**/
+    Boolean bbsVerify(Buffer header, Array messages, Buffer sig) async;
+
+    /**/
+    Buffer proofGen(Buffer sig, Buffer header, Buffer proofHeader, Array messages, Array idx) async;
+
+    /**/
+    Boolean proofVerify(Buffer header, Buffer proofHeader, Array messages, Array idx, Buffer proof) async;
+
     /*! @brief 合并一组签名为一个单一签名
      @param sigs 待合并的一组签名
      @return 返回合并的单一签名

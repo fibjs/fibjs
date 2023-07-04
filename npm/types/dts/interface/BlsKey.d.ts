@@ -62,6 +62,22 @@ declare class Class_BlsKey extends Class_ECKey {
      */
     constructor(jsonKey: FIBJS.GeneralObject);
 
+    bbsSign(header: Class_Buffer, messages: any[]): Class_Buffer;
+
+    bbsSign(header: Class_Buffer, messages: any[], callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    bbsVerify(header: Class_Buffer, messages: any[], sig: Class_Buffer): boolean;
+
+    bbsVerify(header: Class_Buffer, messages: any[], sig: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    proofGen(sig: Class_Buffer, header: Class_Buffer, proofHeader: Class_Buffer, messages: any[], idx: any[]): Class_Buffer;
+
+    proofGen(sig: Class_Buffer, header: Class_Buffer, proofHeader: Class_Buffer, messages: any[], idx: any[], callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    proofVerify(header: Class_Buffer, proofHeader: Class_Buffer, messages: any[], idx: any[], proof: Class_Buffer): boolean;
+
+    proofVerify(header: Class_Buffer, proofHeader: Class_Buffer, messages: any[], idx: any[], proof: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
     /**
      * @description 合并一组签名为一个单一签名
      *      @param sigs 待合并的一组签名

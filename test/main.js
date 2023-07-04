@@ -43,6 +43,7 @@ run("./dgram_test.js");
 run("./buffered_test.js");
 run("./hash_test.js");
 run("./crypto_test.js");
+run("./bbs_test.js");
 run("./ssl_test.js");
 run("./string_decoder_test.js");
 run("./url_test.js");

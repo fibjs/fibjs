@@ -1,0 +1,17 @@
+{
+  "caseName": "invalid multi-message signature (missing messages)",
+  "signerKeyPair": {
+    "secretKey": "57887f6e42cbf2a76fae89370474abe3d0f2e9db5d66c3f60b13e4fc724cde4e",
+    "publicKey": "a9df410a06798fafcc2a1cc004441c3cb831ffdc408500eb3c24f876714317798ec4ec7cfee653a4c3c44f6158ebebf70a0484cd7d8984a3325c154b7f39f8b1b97ab087e5218ab343011456953219b91cca6c5eb37613b2963e588691a42ec1"
+  },
+  "header": "11223344556677889900aabbccddeeff",
+  "messages": [
+    "9872ad089e452c7b6e283dfac2a80d58e8d0ff71cc4d5e310a1debdda4a45f02",
+    "87a8bd656d49ee07b8110e1d8fd4f1dcef6fb9bc368c492d9bc8c4f98a739ac6"
+  ],
+  "signature": "8f34cef031ce533fc060186a11ae01816499753e654cae2ec22158555e9a0e6fadb963661c73a0ccb1d3786702b1cad70bd529fafdc3ceff1ee5471091f7565f6f01324b7f08c546a4531a5ed722283e",
+  "result": {
+    "valid": false,
+    "reason": "missing messages"
+  }
+}
