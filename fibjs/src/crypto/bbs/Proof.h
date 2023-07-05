@@ -20,7 +20,7 @@ public:
         Buffer* buf = Buffer::Cast(sig);
 
         decoder dec(buf->data(), buf->length());
-        ssize_t sz = dec.decode(&abar, &bbar, &c, &r2hat, &r3hat);
+        intptr_t sz = dec.decode(&abar, &bbar, &c, &r2hat, &r3hat);
         if (sz < 0)
             return false;
 

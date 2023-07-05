@@ -10,6 +10,7 @@
 #include "defs.h"
 #include <exlib/include/utils.h>
 #include <blst/include/bbs.h>
+#include <memory>
 
 namespace fibjs {
 

@@ -238,16 +238,16 @@ public:
 
 public:
     template <typename... Ts>
-    ssize_t decode(Ts&&... ts)
+    intptr_t decode(Ts&&... ts)
     {
         size_t sz = (codec_impl::codec_length(*ts) + ...);
         if (sz > m_size)
-            return m_size - sz;
+            return (intptr_t)m_size - (intptr_t)sz;
 
         (codec_impl::decode_one(m_data, ts), ...);
         m_size -= sz;
 
-        return m_size;
+        return (intptr_t)m_size;
     }
 
 private:
