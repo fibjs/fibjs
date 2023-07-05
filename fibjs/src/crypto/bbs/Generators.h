@@ -8,13 +8,12 @@
 #pragma once
 
 #include "defs.h"
-#include <span>
 #include <exlib/include/utils.h>
 #include <blst/include/bbs.h>
 
 namespace fibjs {
 
-static void add_mul(blst_p1& b, blst_p1& p, blst_scalar& s)
+static void add_mul(blst_p1& b, const blst_p1& p, const blst_scalar& s)
 {
     blst_p1 g;
 
@@ -28,25 +27,27 @@ public:
         : h_ptr(g.h_ptr)
         , q1(g.q1)
         , h(g.h)
+        , size(g.size)
     {
     }
 
     Generators(size_t sz)
         : h_ptr(get(sz))
         , q1(h_ptr.get()[0])
-        , h(h_ptr.get() + 1, sz)
+        , h(h_ptr.get() + 1)
+        , size(sz)
     {
     }
 
 public:
-    blst_p1 compute_b(blst_scalar* msgs, blst_scalar& domain)
+    blst_p1 compute_b(const blst_scalar* msgs, const blst_scalar& domain)
     {
         blst_p1 b;
 
         blst_p1_from_affine(&b, &BLS12_381_G1_P1);
 
         add_mul(b, q1, domain);
-        for (size_t i = 0; i < h.size(); i++)
+        for (size_t i = 0; i < size; i++)
             add_mul(b, h[i], msgs[i]);
 
         return b;
@@ -57,7 +58,8 @@ private:
 
 public:
     blst_p1& q1;
-    std::span<blst_p1> h;
+    const blst_p1* h;
+    size_t size;
 
 private:
     static std::shared_ptr<blst_p1> get(size_t sz)

@@ -9,13 +9,38 @@
 
 #include "defs.h"
 #include <stdint.h>
-#include <span>
+#include <string.h>
 #include <vector>
 #include <blst/include/blst.h>
 
 namespace fibjs {
 
 namespace codec_impl {
+    template <typename T>
+    class span {
+    public:
+        span(const T* data, size_t size)
+            : m_data(data)
+            , m_size(size)
+        {
+        }
+
+    public:
+        const T* data() const
+        {
+            return m_data;
+        }
+
+        size_t size() const
+        {
+            return m_size;
+        }
+
+    private:
+        const T* m_data;
+        size_t m_size;
+    };
+
     // uint64_t
     namespace {
         void encode_one(std::vector<uint8_t>& result, uint64_t v)
@@ -162,22 +187,22 @@ namespace codec_impl {
         }
     }
 
-    // std::span
+    // span
     namespace {
         template <typename T>
-        void encode_one(std::vector<uint8_t>& result, const std::span<T>& v)
+        void encode_one(std::vector<uint8_t>& result, const span<T>& v)
         {
-            for (const auto& i : v)
-                encode_one(result, i);
+            for (size_t i = 0; i < v.size(); ++i)
+                encode_one(result, v.data()[i]);
         }
 
         template <typename T>
-        size_t codec_length(const std::span<T>& v)
+        size_t codec_length(const span<T>& v)
         {
             return codec_length(*v.data()) * v.size();
         }
 
-        void encode_one(std::vector<uint8_t>& result, const std::span<uint8_t>& v)
+        void encode_one(std::vector<uint8_t>& result, const span<uint8_t>& v)
         {
             const size_t pos = result.size();
             result.resize(pos + v.size());
@@ -185,7 +210,7 @@ namespace codec_impl {
             memcpy(result.data() + pos, v.data(), v.size());
         }
 
-        size_t codec_length(const std::span<uint8_t>& v)
+        size_t codec_length(const span<uint8_t>& v)
         {
             return v.size();
         }

@@ -15,7 +15,6 @@
 #include "ssl.h"
 #include <blst/include/bbs.h>
 #include "encoding.h"
-#include <span>
 
 namespace fibjs {
 
@@ -105,8 +104,9 @@ blst_scalar calculate_domain(const blst_p2& pk, const Generators& gens, Buffer_b
     Buffer* buf = Buffer::Cast(header);
 
     std::vector<uint8_t> data = encode(pk,
-        gens.h.size(), gens.q1, gens.h, std::span<uint8_t>((uint8_t*)DST_G1_BBS_SUITE, sizeof(DST_G1_BBS_SUITE) - 1),
-        buf->length(), std::span<uint8_t>(buf->data(), buf->length()));
+        gens.size, gens.q1, codec_impl::span(gens.h, gens.size),
+        codec_impl::span((uint8_t*)DST_G1_BBS_SUITE, sizeof(DST_G1_BBS_SUITE) - 1),
+        buf->length(), codec_impl::span(buf->data(), buf->length()));
     blst_hash_to_scalar(&s, data.data(), data.size(), DST_G1_BBS_H2S, sizeof(DST_G1_BBS_H2S) - 1);
 
     return s;
@@ -119,7 +119,7 @@ blst_scalar calculate_challenge(const blst_p1& abar, const blst_p1& bbar, const 
     Buffer* buf = Buffer::Cast(ph);
 
     std::vector<uint8_t> data = encode(abar, bbar, c, idx_i.size(), idx_i, fr_messages, domain,
-        buf->length(), std::span<uint8_t>(buf->data(), buf->length()));
+        buf->length(), codec_impl::span(buf->data(), buf->length()));
     blst_hash_to_scalar(&s, data.data(), data.size(), DST_G1_BBS_H2S, sizeof(DST_G1_BBS_H2S) - 1);
 
     return s;
