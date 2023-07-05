@@ -642,7 +642,7 @@ static int vecIndexFilter(sqlite3_vtab_cursor* pVtabCursor, int idxNum, const ch
 
         pCur->search_result.clear();
         if (((VecIndex*)pCur->pVtab)->exists(id))
-            pCur->search_result.push_back(std::make_pair(0.0, id));
+            pCur->search_result.push_back(std::make_pair(0.0f, id));
 
         pCur->iCurrent = 0;
         return SQLITE_OK;

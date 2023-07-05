@@ -96,9 +96,9 @@ result_t os_base::openPrinter(exlib::string name, obj_ptr<BufferedStream_base>& 
 
             DOC_INFO_1 DocInfo;
 
-            DocInfo.pDocName = "My Document";
+            DocInfo.pDocName = (LPSTR)"My Document";
             DocInfo.pOutputFile = NULL;
-            DocInfo.pDatatype = "RAW";
+            DocInfo.pDatatype = (LPSTR)"RAW";
 
             if (!StartDocPrinter(m_hPrinter, 1, (LPBYTE)&DocInfo))
                 return CHECK_ERROR(LastError());

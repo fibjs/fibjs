@@ -195,7 +195,7 @@ private:
     HRESULT OnClose(DISPPARAMS* pDispParams);
 
     result_t postMessage(exlib::string msg, _variant_t& retVal);
-    result_t WebView::postClose(_variant_t& retVal);
+    result_t postClose(_variant_t& retVal);
 
 protected:
     exlib::string m_url;

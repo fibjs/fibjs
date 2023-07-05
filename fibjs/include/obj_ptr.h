@@ -180,6 +180,11 @@ public:
         return p == pT;
     }
 
+    bool operator==(const obj_ptr<T>& lp) const
+    {
+        return p == (T*)lp;
+    }
+
     T* operator->()
     {
         return p;

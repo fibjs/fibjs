@@ -1570,7 +1570,7 @@ void WebView::exec_js(IWebBrowser2* frame, const wchar_t* code)
         pDoc->get_Script(&pScript);
 
         DISPID dispid = -1;
-        LPOLESTR pszName = L"eval";
+        LPOLESTR pszName = (LPOLESTR)L"eval";
 
         pScript->GetIDsOfNames(IID_NULL, &pszName, 1,
             LOCALE_USER_DEFAULT, &dispid);
