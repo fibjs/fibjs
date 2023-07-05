@@ -114,6 +114,11 @@ jobs:
             target_arch: arm64
             build_type: release
             skip_test: skip
+          - os: macos-11
+            build_target: iphone
+            target_arch: amd64
+            build_type: release
+            skip_test: skip
 
     steps:
       - name: Switch XCode to 13.0
