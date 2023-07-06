@@ -67,7 +67,7 @@ declare class Class_BlsKey extends Class_ECKey {
      *      opts 支持以下参数:
      *      ```JavaScript
      *      {
-     *         header: Buffer|string 指定签名使用的应用数据，缺省为空
+     *         header: Buffer|string // specified header for signature, default is empty
      *      }
      *      ```
      * 
@@ -85,7 +85,7 @@ declare class Class_BlsKey extends Class_ECKey {
      *      opts 支持以下参数:
      *      ```JavaScript
      *      {
-     *         header: Buffer|string 指定签名使用的应用数据，缺省为空
+     *         header: Buffer|string // specified header for signature, default is empty
      *      }
      *      ```
      * 
@@ -104,8 +104,8 @@ declare class Class_BlsKey extends Class_ECKey {
      *      opts 支持以下参数:
      *      ```JavaScript
      *      {
-     *         header: Buffer|string, 指定签名使用的应用数据，缺省为空
-     *         proof_header: Buffer|string 指定证明使用的应用数据，缺省为空
+     *         header: Buffer|string, // specified header for signature, default is empty
+     *         proof_header: Buffer|string // specified header for proof, default is empty
      *      }
      *      ```
      * 
@@ -125,8 +125,8 @@ declare class Class_BlsKey extends Class_ECKey {
      *      opts 支持以下参数:
      *      ```JavaScript
      *      {
-     *         header: Buffer|string, 指定签名使用的应用数据，缺省为空
-     *         proof_header: Buffer|string 指定证明使用的应用数据，缺省为空
+     *         header: Buffer|string, // specified header for signature, default is empty
+     *         proof_header: Buffer|string // specified header for proof, default is empty
      *      }
      *      ```
      * 

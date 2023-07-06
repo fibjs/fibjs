@@ -200,7 +200,7 @@ interface PKey : object
      opts 支持以下参数:
      ```JavaScript
      {
-       compress: false // 指定签名以压缩方式输出公钥
+       compress: false // specify whether to output public key in compressed form
      }
      ```
      支持压缩的曲线为：secp192r1, secp192k1, secp256r1, secp256k1, brainpoolP256r1,
@@ -233,9 +233,9 @@ interface PKey : object
      opts 支持以下参数:
      ```JavaScript
      {
-        alg: 0, // 指定签名的 hash 算法，仅在 RSA 时有效，缺省为 0. 支持算法: 0=NONE,1=MD5,2=SHA1,3=SHA224,4=SHA256,5=SHA384,6=SHA512,7=RIPEMD160
-        format: "der", // 指定签名格式，可选为 der 和 raw，缺省为 der
-        recoverable: false // 指定返回可恢复签名，仅在 secp256k1 有效
+        alg: 0, // specify the hash algorithm for signing, only valid for RSA, default is 0. Supported algorithms: 0=NONE,1=MD5,2=SHA1,3=SHA224,4=SHA256,5=SHA384,6=SHA512,7=RIPEMD160
+        format: "der", // specify the signature format, default is der, supported formats: der, raw
+        recoverable: false // specify whether to return a recoverable signature, only valid for secp256k1
      }
      ```
 
@@ -249,8 +249,8 @@ interface PKey : object
      opts 支持以下参数:
      ```JavaScript
      {
-        alg: 0, // 指定签名的 hash 算法，仅在 RSA 时有效，缺省为 0. 支持算法: 0=NONE,1=MD5,2=SHA1,3=SHA224,4=SHA256,5=SHA384,6=SHA512,7=RIPEMD160
-        format: "der" // 指定签名格式，可选为 der 和 raw，缺省为 der
+        alg: 0, // specify the hash algorithm for signing, only valid for RSA, default is 0. Supported algorithms: 0=NONE,1=MD5,2=SHA1,3=SHA224,4=SHA256,5=SHA384,6=SHA512,7=RIPEMD160
+        format: "der" // specify the signature format, default is der, supported formats: der, raw
      }
      ```
 
