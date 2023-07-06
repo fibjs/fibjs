@@ -25,10 +25,10 @@ class BlsKey_base : public ECKey_base {
 public:
     // BlsKey_base
     static result_t _new(v8::Local<v8::Object> jsonKey, obj_ptr<BlsKey_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t bbsSign(Buffer_base* header, v8::Local<v8::Array> messages, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t bbsVerify(Buffer_base* header, v8::Local<v8::Array> messages, Buffer_base* sig, bool& retVal, AsyncEvent* ac) = 0;
-    virtual result_t proofGen(Buffer_base* sig, Buffer_base* header, Buffer_base* proofHeader, v8::Local<v8::Array> messages, v8::Local<v8::Array> idx, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
-    virtual result_t proofVerify(Buffer_base* header, Buffer_base* proofHeader, v8::Local<v8::Array> messages, v8::Local<v8::Array> idx, Buffer_base* proof, bool& retVal, AsyncEvent* ac) = 0;
+    virtual result_t bbsSign(v8::Local<v8::Array> messages, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t bbsVerify(v8::Local<v8::Array> messages, Buffer_base* sig, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac) = 0;
+    virtual result_t proofGen(Buffer_base* sig, v8::Local<v8::Array> messages, v8::Local<v8::Array> idx, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t proofVerify(v8::Local<v8::Array> messages, v8::Local<v8::Array> idx, Buffer_base* proof, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac) = 0;
     static result_t aggregateSignature(v8::Local<v8::Array> sigs, obj_ptr<Buffer_base>& retVal);
     static result_t aggregatePublicKey(v8::Local<v8::Array> keys, obj_ptr<BlsKey_base>& retVal);
 
@@ -46,10 +46,10 @@ public:
     static void s_static_aggregatePublicKey(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_MEMBERVALUE3(BlsKey_base, bbsSign, Buffer_base*, v8::Local<v8::Array>, obj_ptr<Buffer_base>);
-    ASYNC_MEMBERVALUE4(BlsKey_base, bbsVerify, Buffer_base*, v8::Local<v8::Array>, Buffer_base*, bool);
-    ASYNC_MEMBERVALUE6(BlsKey_base, proofGen, Buffer_base*, Buffer_base*, Buffer_base*, v8::Local<v8::Array>, v8::Local<v8::Array>, obj_ptr<Buffer_base>);
-    ASYNC_MEMBERVALUE6(BlsKey_base, proofVerify, Buffer_base*, Buffer_base*, v8::Local<v8::Array>, v8::Local<v8::Array>, Buffer_base*, bool);
+    ASYNC_MEMBERVALUE3(BlsKey_base, bbsSign, v8::Local<v8::Array>, v8::Local<v8::Object>, obj_ptr<Buffer_base>);
+    ASYNC_MEMBERVALUE4(BlsKey_base, bbsVerify, v8::Local<v8::Array>, Buffer_base*, v8::Local<v8::Object>, bool);
+    ASYNC_MEMBERVALUE5(BlsKey_base, proofGen, Buffer_base*, v8::Local<v8::Array>, v8::Local<v8::Array>, v8::Local<v8::Object>, obj_ptr<Buffer_base>);
+    ASYNC_MEMBERVALUE5(BlsKey_base, proofVerify, v8::Local<v8::Array>, v8::Local<v8::Array>, Buffer_base*, v8::Local<v8::Object>, bool);
 };
 }
 
@@ -110,10 +110,10 @@ inline void BlsKey_base::s_bbsSign(const v8::FunctionCallbackInfo<v8::Value>& ar
     ASYNC_METHOD_INSTANCE(BlsKey_base);
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 2);
+    ASYNC_METHOD_OVER(2, 1);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(v8::Local<v8::Array>, 1);
+    ARG(v8::Local<v8::Array>, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = pInst->acb_bbsSign(v0, v1, cb, args);
@@ -130,11 +130,11 @@ inline void BlsKey_base::s_bbsVerify(const v8::FunctionCallbackInfo<v8::Value>& 
     ASYNC_METHOD_INSTANCE(BlsKey_base);
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(3, 3);
+    ASYNC_METHOD_OVER(3, 2);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(v8::Local<v8::Array>, 1);
-    ARG(obj_ptr<Buffer_base>, 2);
+    ARG(v8::Local<v8::Array>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = pInst->acb_bbsVerify(v0, v1, v2, cb, args);
@@ -151,18 +151,17 @@ inline void BlsKey_base::s_proofGen(const v8::FunctionCallbackInfo<v8::Value>& a
     ASYNC_METHOD_INSTANCE(BlsKey_base);
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(5, 5);
+    ASYNC_METHOD_OVER(4, 3);
 
     ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
-    ARG(obj_ptr<Buffer_base>, 2);
-    ARG(v8::Local<v8::Array>, 3);
-    ARG(v8::Local<v8::Array>, 4);
+    ARG(v8::Local<v8::Array>, 1);
+    ARG(v8::Local<v8::Array>, 2);
+    OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_proofGen(v0, v1, v2, v3, v4, cb, args);
+        hr = pInst->acb_proofGen(v0, v1, v2, v3, cb, args);
     else
-        hr = pInst->ac_proofGen(v0, v1, v2, v3, v4, vr);
+        hr = pInst->ac_proofGen(v0, v1, v2, v3, vr);
 
     METHOD_RETURN();
 }
@@ -174,18 +173,17 @@ inline void BlsKey_base::s_proofVerify(const v8::FunctionCallbackInfo<v8::Value>
     ASYNC_METHOD_INSTANCE(BlsKey_base);
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(5, 5);
+    ASYNC_METHOD_OVER(4, 3);
 
-    ARG(obj_ptr<Buffer_base>, 0);
-    ARG(obj_ptr<Buffer_base>, 1);
-    ARG(v8::Local<v8::Array>, 2);
-    ARG(v8::Local<v8::Array>, 3);
-    ARG(obj_ptr<Buffer_base>, 4);
+    ARG(v8::Local<v8::Array>, 0);
+    ARG(v8::Local<v8::Array>, 1);
+    ARG(obj_ptr<Buffer_base>, 2);
+    OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_proofVerify(v0, v1, v2, v3, v4, cb, args);
+        hr = pInst->acb_proofVerify(v0, v1, v2, v3, cb, args);
     else
-        hr = pInst->ac_proofVerify(v0, v1, v2, v3, v4, vr);
+        hr = pInst->ac_proofVerify(v0, v1, v2, v3, vr);
 
     METHOD_RETURN();
 }

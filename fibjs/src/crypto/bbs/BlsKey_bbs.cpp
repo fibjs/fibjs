@@ -106,7 +106,8 @@ blst_scalar calculate_domain(const blst_p2& pk, const Generators& gens, Buffer_b
     std::vector<uint8_t> data = encode(pk,
         gens.size, gens.q1, codec_impl::span(gens.h, gens.size),
         codec_impl::span((uint8_t*)DST_G1_BBS_SUITE, sizeof(DST_G1_BBS_SUITE) - 1),
-        buf->length(), codec_impl::span(buf->data(), buf->length()));
+        buf ? buf->length() : 0,
+        buf ? codec_impl::span(buf->data(), buf->length()) : codec_impl::span((uint8_t*)NULL, 0));
     blst_hash_to_scalar(&s, data.data(), data.size(), DST_G1_BBS_H2S, sizeof(DST_G1_BBS_H2S) - 1);
 
     return s;
@@ -119,7 +120,8 @@ blst_scalar calculate_challenge(const blst_p1& abar, const blst_p1& bbar, const 
     Buffer* buf = Buffer::Cast(ph);
 
     std::vector<uint8_t> data = encode(abar, bbar, c, idx_i.size(), idx_i, fr_messages, domain,
-        buf->length(), codec_impl::span(buf->data(), buf->length()));
+        buf ? buf->length() : 0,
+        buf ? codec_impl::span(buf->data(), buf->length()) : codec_impl::span((uint8_t*)NULL, 0));
     blst_hash_to_scalar(&s, data.data(), data.size(), DST_G1_BBS_H2S, sizeof(DST_G1_BBS_H2S) - 1);
 
     return s;
@@ -132,7 +134,47 @@ blst_scalar generate_random_scalar()
     return s;
 }
 
-result_t BlsKey_g2::bbsSign(Buffer_base* header, v8::Local<v8::Array> messages, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t BlsKey_g2::check_bbs_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
+{
+    static const char* s_keys[] = {
+        "format", "header", "proof_header", NULL
+    };
+
+    if (!ac->isSync())
+        return 0;
+
+    Isolate* isolate = holder();
+    result_t hr;
+
+    hr = CheckConfig(opts, s_keys);
+    if (hr < 0)
+        return hr;
+
+    exlib::string fmt = "raw";
+    hr = GetConfigValue(isolate, opts, "format", fmt, true);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+    if (fmt != "raw")
+        return CHECK_ERROR(Runtime::setError(exlib::string("unsupported format \'") + fmt + "\'."));
+
+    ac->m_ctx.resize(4);
+
+    obj_ptr<Buffer_base> header;
+    hr = GetConfigValue(isolate, opts, "header", header);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+    ac->m_ctx[2] = header;
+
+    obj_ptr<Buffer_base> proof_header;
+    hr = GetConfigValue(isolate, opts, "proof_header", proof_header);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+    ac->m_ctx[3] = proof_header;
+
+    return CHECK_ERROR(CALL_E_NOSYNC);
+}
+
+result_t BlsKey_g2::bbsSign(v8::Local<v8::Array> messages, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
         ac->m_ctx.resize(1);
@@ -144,13 +186,13 @@ result_t BlsKey_g2::bbsSign(Buffer_base* header, v8::Local<v8::Array> messages, 
 
         ac->m_ctx[0] = _msg;
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return check_bbs_opts(opts, ac);
     }
 
     std::vector<blst_scalar> fr_messages = messagesToFr(ac->m_ctx[0]);
     Generators gens(fr_messages.size());
 
-    blst_scalar domain = calculate_domain(get_pk(), gens, header);
+    blst_scalar domain = calculate_domain(get_pk(), gens, (Buffer_base*)ac->m_ctx[2].object());
     blst_p1 b = gens.compute_b(fr_messages.data(), domain);
 
     Signature s;
@@ -161,7 +203,7 @@ result_t BlsKey_g2::bbsSign(Buffer_base* header, v8::Local<v8::Array> messages, 
     return 0;
 }
 
-result_t BlsKey_g2::bbsVerify(Buffer_base* header, v8::Local<v8::Array> messages, Buffer_base* sig, bool& retVal, AsyncEvent* ac)
+result_t BlsKey_g2::bbsVerify(v8::Local<v8::Array> messages, Buffer_base* sig, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
         ac->m_ctx.resize(1);
@@ -173,7 +215,7 @@ result_t BlsKey_g2::bbsVerify(Buffer_base* header, v8::Local<v8::Array> messages
 
         ac->m_ctx[0] = _msg;
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return check_bbs_opts(opts, ac);
     }
 
     std::vector<blst_scalar> fr_messages = messagesToFr(ac->m_ctx[0]);
@@ -187,15 +229,15 @@ result_t BlsKey_g2::bbsVerify(Buffer_base* header, v8::Local<v8::Array> messages
     blst_p2 pk = get_pk();
 
     Generators gens(fr_messages.size());
-    blst_scalar domain = calculate_domain(pk, gens, header);
+    blst_scalar domain = calculate_domain(pk, gens, (Buffer_base*)ac->m_ctx[2].object());
     blst_p1 b = gens.compute_b(fr_messages.data(), domain);
 
     retVal = s.verify(pk, b);
     return 0;
 }
 
-result_t BlsKey_g2::proofGen(Buffer_base* sig, Buffer_base* header, Buffer_base* proofHeader, v8::Local<v8::Array> messages,
-    v8::Local<v8::Array> idx, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t BlsKey_g2::proofGen(Buffer_base* sig, v8::Local<v8::Array> messages, v8::Local<v8::Array> idx,
+    v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     result_t hr;
 
@@ -216,7 +258,7 @@ result_t BlsKey_g2::proofGen(Buffer_base* sig, Buffer_base* header, Buffer_base*
 
         ac->m_ctx[1] = _idx;
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return check_bbs_opts(opts, ac);
     }
 
     Signature s;
@@ -236,7 +278,7 @@ result_t BlsKey_g2::proofGen(Buffer_base* sig, Buffer_base* header, Buffer_base*
     blst_p2 pk = get_pk();
 
     Generators gens(msg_len);
-    blst_scalar domain = calculate_domain(pk, gens, header);
+    blst_scalar domain = calculate_domain(pk, gens, (Buffer_base*)ac->m_ctx[2].object());
 
     blst_scalar r1 = generate_random_scalar();
     blst_scalar r2 = generate_random_scalar();
@@ -273,7 +315,7 @@ result_t BlsKey_g2::proofGen(Buffer_base* sig, Buffer_base* header, Buffer_base*
     for (size_t i = 0; i < idx_i.size(); i++)
         idx_i[i]--;
 
-    p.c = calculate_challenge(p.abar, p.bbar, c, idx_i, fr_messages_i, domain, proofHeader);
+    p.c = calculate_challenge(p.abar, p.bbar, c, idx_i, fr_messages_i, domain, (Buffer_base*)ac->m_ctx[3].object());
 
     blst_fr fr4;
 
@@ -313,8 +355,8 @@ result_t BlsKey_g2::proofGen(Buffer_base* sig, Buffer_base* header, Buffer_base*
     return 0;
 }
 
-result_t BlsKey_g2::proofVerify(Buffer_base* header, Buffer_base* proofHeader, v8::Local<v8::Array> messages,
-    v8::Local<v8::Array> idx, Buffer_base* proof, bool& retVal, AsyncEvent* ac)
+result_t BlsKey_g2::proofVerify(v8::Local<v8::Array> messages, v8::Local<v8::Array> idx, Buffer_base* proof,
+    v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac)
 {
     result_t hr;
 
@@ -335,7 +377,7 @@ result_t BlsKey_g2::proofVerify(Buffer_base* header, Buffer_base* proofHeader, v
 
         ac->m_ctx[1] = _idx;
 
-        return CHECK_ERROR(CALL_E_NOSYNC);
+        return check_bbs_opts(opts, ac);
     }
 
     Proof p;
@@ -362,7 +404,7 @@ result_t BlsKey_g2::proofVerify(Buffer_base* header, Buffer_base* proofHeader, v
     blst_p2 pk = get_pk();
 
     Generators gens(msg_len);
-    blst_scalar domain = calculate_domain(pk, gens, header);
+    blst_scalar domain = calculate_domain(pk, gens, (Buffer_base*)ac->m_ctx[2].object());
 
     blst_p1 d, c;
 
@@ -380,7 +422,7 @@ result_t BlsKey_g2::proofVerify(Buffer_base* header, Buffer_base* proofHeader, v
     for (size_t i = 0; i < idx_i.size(); i++)
         idx_i[i]--;
 
-    blst_scalar cv = calculate_challenge(p.abar, p.bbar, c, idx_i, fr_messages, domain, proofHeader);
+    blst_scalar cv = calculate_challenge(p.abar, p.bbar, c, idx_i, fr_messages, domain, (Buffer_base*)ac->m_ctx[3].object());
     if (memcmp(&cv, &p.c, sizeof(blst_scalar))) {
         retVal = false;
         return 0;

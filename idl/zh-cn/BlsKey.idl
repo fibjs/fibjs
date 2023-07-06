@@ -57,39 +57,67 @@ interface BlsKey : ECKey
     BlsKey(Object jsonKey);
 
     /* @brief 使用当前私钥签名一组消息，仅支持 BLS12-381-G2 曲线
-     @param header 指定签名时使用的应用数据
+     opts 支持以下参数:
+     ```JavaScript
+     {
+        header: Buffer|string // specified header for signature, default is empty
+     }
+     ```
+
      @param messages 指定待签署的消息数组
+     @param opts 指定签名选项
      @return 返回签署的消息
     */
-    Buffer bbsSign(Buffer header, Array messages) async;
+    Buffer bbsSign(Array messages, Object opts = {}) async;
 
     /* @brief 使用当前公钥验证签名，仅支持 BLS12-381-G2 曲线
-     @param header 指定签名时使用的应用数据
+     opts 支持以下参数:
+     ```JavaScript
+     {
+        header: Buffer|string // specified header for signature, default is empty
+     }
+     ```
+
      @param messages 指定完整的消息数组
      @param sig 指定要验证的签名
+     @param opts 指定验证选项
      @return 返回验证后的结果
     */
-    Boolean bbsVerify(Buffer header, Array messages, Buffer sig) async;
+    Boolean bbsVerify(Array messages, Buffer sig, Object opts = {}) async;
 
     /* @brief 使用当前公钥和签名生成一个证明，仅支持 BLS12-381-G2 曲线
+     opts 支持以下参数:
+     ```JavaScript
+     {
+        header: Buffer|string, // specified header for signature, default is empty
+        proof_header: Buffer|string // specified header for proof, default is empty
+     }
+     ```
+
      @param sig 指定生成证明时使用的签名
-     @param header 指定签名时使用的应用数据
-     @param proofHeader 指定生成证明时使用的应用数据
      @param messages 指定完整的消息数组
      @param idx 指定生成证明时使用的消息索引，索引以 1 为基数
+     @param opts 指定证明选项
      @return 返回生成的证明
     */
-    Buffer proofGen(Buffer sig, Buffer header, Buffer proofHeader, Array messages, Array idx) async;
+    Buffer proofGen(Buffer sig, Array messages, Array idx, Object opts = {}) async;
 
     /* @brief 使用当前公钥验证证明，仅支持 BLS12-381-G2 曲线
-     @param header 指定签名时使用的应用数据
-     @param proofHeader 指定生成证明时使用的应用数据
+     opts 支持以下参数:
+     ```JavaScript
+     {
+        header: Buffer|string, // specified header for signature, default is empty
+        proof_header: Buffer|string // specified header for proof, default is empty
+     }
+     ```
+
      @param messages 指定根据索引过滤的消息数组
-     @param idx 指定生成证明时使用的消息索引，索引以 1 为基数
+     @param idx 指定证明使用的消息索引，索引以 1 为基数
      @param proof 指定生成的证明
+     @param opts 指定证明选项
      @return 返回验证后的结果
     */
-    Boolean proofVerify(Buffer header, Buffer proofHeader, Array messages, Array idx, Buffer proof) async;
+    Boolean proofVerify(Array messages, Array idx, Buffer proof, Object opts = {}) async;
 
     /*! @brief 合并一组签名为一个单一签名
      @param sigs 待合并的一组签名

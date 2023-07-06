@@ -29,22 +29,22 @@ public:
 
 public:
     // BlsKey
-    virtual result_t bbsSign(Buffer_base* header, v8::Local<v8::Array> messages, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+    virtual result_t bbsSign(v8::Local<v8::Array> messages, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     {
         return CALL_E_INVALID_CALL;
     }
 
-    virtual result_t bbsVerify(Buffer_base* header, v8::Local<v8::Array> messages, Buffer_base* sig, bool& retVal, AsyncEvent* ac)
+    virtual result_t bbsVerify(v8::Local<v8::Array> messages, Buffer_base* sig, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac)
     {
         return CALL_E_INVALID_CALL;
     }
 
-    virtual result_t proofGen(Buffer_base* sig, Buffer_base* header, Buffer_base* proofHeader, v8::Local<v8::Array> messages, v8::Local<v8::Array> idx, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+    virtual result_t proofGen(Buffer_base* sig, v8::Local<v8::Array> messages, v8::Local<v8::Array> idx, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     {
         return CALL_E_INVALID_CALL;
     }
 
-    virtual result_t proofVerify(Buffer_base* header, Buffer_base* proofHeader, v8::Local<v8::Array> messages, v8::Local<v8::Array> idx, Buffer_base* proof, bool& retVal, AsyncEvent* ac)
+    virtual result_t proofVerify(v8::Local<v8::Array> messages, v8::Local<v8::Array> idx, Buffer_base* proof, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac)
     {
         return CALL_E_INVALID_CALL;
     }
@@ -69,15 +69,16 @@ public:
 
 public:
     // BlsKey
-    virtual result_t bbsSign(Buffer_base* header, v8::Local<v8::Array> messages, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t bbsVerify(Buffer_base* header, v8::Local<v8::Array> messages, Buffer_base* sig, bool& retVal, AsyncEvent* ac);
-    virtual result_t proofGen(Buffer_base* sig, Buffer_base* header, Buffer_base* proofHeader, v8::Local<v8::Array> messages, v8::Local<v8::Array> idx, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t proofVerify(Buffer_base* header, Buffer_base* proofHeader, v8::Local<v8::Array> messages, v8::Local<v8::Array> idx, Buffer_base* proof, bool& retVal, AsyncEvent* ac);
+    virtual result_t bbsSign(v8::Local<v8::Array> messages, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    virtual result_t bbsVerify(v8::Local<v8::Array> messages, Buffer_base* sig, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac);
+    virtual result_t proofGen(Buffer_base* sig, v8::Local<v8::Array> messages, v8::Local<v8::Array> idx, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    virtual result_t proofVerify(v8::Local<v8::Array> messages, v8::Local<v8::Array> idx, Buffer_base* proof, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac);
 
 private:
     blst_p2 get_pk();
     blst_scalar get_sk();
     result_t check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac);
+    result_t check_bbs_opts(v8::Local<v8::Object> opts, AsyncEvent* ac);
 };
 
 }

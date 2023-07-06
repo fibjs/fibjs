@@ -64,54 +64,82 @@ declare class Class_BlsKey extends Class_ECKey {
 
     /**
      *  @description 使用当前私钥签名一组消息，仅支持 BLS12-381-G2 曲线
-     *      @param header 指定签名时使用的应用数据
+     *      opts 支持以下参数:
+     *      ```JavaScript
+     *      {
+     *         header: Buffer|string 指定签名使用的应用数据，缺省为空
+     *      }
+     *      ```
+     * 
      *      @param messages 指定待签署的消息数组
+     *      @param opts 指定签名选项
      *      @return 返回签署的消息
      *     
      */
-    bbsSign(header: Class_Buffer, messages: any[]): Class_Buffer;
+    bbsSign(messages: any[], opts?: FIBJS.GeneralObject): Class_Buffer;
 
-    bbsSign(header: Class_Buffer, messages: any[], callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    bbsSign(messages: any[], opts?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      *  @description 使用当前公钥验证签名，仅支持 BLS12-381-G2 曲线
-     *      @param header 指定签名时使用的应用数据
+     *      opts 支持以下参数:
+     *      ```JavaScript
+     *      {
+     *         header: Buffer|string 指定签名使用的应用数据，缺省为空
+     *      }
+     *      ```
+     * 
      *      @param messages 指定完整的消息数组
      *      @param sig 指定要验证的签名
+     *      @param opts 指定验证选项
      *      @return 返回验证后的结果
      *     
      */
-    bbsVerify(header: Class_Buffer, messages: any[], sig: Class_Buffer): boolean;
+    bbsVerify(messages: any[], sig: Class_Buffer, opts?: FIBJS.GeneralObject): boolean;
 
-    bbsVerify(header: Class_Buffer, messages: any[], sig: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    bbsVerify(messages: any[], sig: Class_Buffer, opts?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      *  @description 使用当前公钥和签名生成一个证明，仅支持 BLS12-381-G2 曲线
+     *      opts 支持以下参数:
+     *      ```JavaScript
+     *      {
+     *         header: Buffer|string, 指定签名使用的应用数据，缺省为空
+     *         proof_header: Buffer|string 指定证明使用的应用数据，缺省为空
+     *      }
+     *      ```
+     * 
      *      @param sig 指定生成证明时使用的签名
-     *      @param header 指定签名时使用的应用数据
-     *      @param proofHeader 指定生成证明时使用的应用数据
      *      @param messages 指定完整的消息数组
      *      @param idx 指定生成证明时使用的消息索引，索引以 1 为基数
+     *      @param opts 指定证明选项
      *      @return 返回生成的证明
      *     
      */
-    proofGen(sig: Class_Buffer, header: Class_Buffer, proofHeader: Class_Buffer, messages: any[], idx: any[]): Class_Buffer;
+    proofGen(sig: Class_Buffer, messages: any[], idx: any[], opts?: FIBJS.GeneralObject): Class_Buffer;
 
-    proofGen(sig: Class_Buffer, header: Class_Buffer, proofHeader: Class_Buffer, messages: any[], idx: any[], callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    proofGen(sig: Class_Buffer, messages: any[], idx: any[], opts?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      *  @description 使用当前公钥验证证明，仅支持 BLS12-381-G2 曲线
-     *      @param header 指定签名时使用的应用数据
-     *      @param proofHeader 指定生成证明时使用的应用数据
+     *      opts 支持以下参数:
+     *      ```JavaScript
+     *      {
+     *         header: Buffer|string, 指定签名使用的应用数据，缺省为空
+     *         proof_header: Buffer|string 指定证明使用的应用数据，缺省为空
+     *      }
+     *      ```
+     * 
      *      @param messages 指定根据索引过滤的消息数组
-     *      @param idx 指定生成证明时使用的消息索引，索引以 1 为基数
+     *      @param idx 指定证明使用的消息索引，索引以 1 为基数
      *      @param proof 指定生成的证明
+     *      @param opts 指定证明选项
      *      @return 返回验证后的结果
      *     
      */
-    proofVerify(header: Class_Buffer, proofHeader: Class_Buffer, messages: any[], idx: any[], proof: Class_Buffer): boolean;
+    proofVerify(messages: any[], idx: any[], proof: Class_Buffer, opts?: FIBJS.GeneralObject): boolean;
 
-    proofVerify(header: Class_Buffer, proofHeader: Class_Buffer, messages: any[], idx: any[], proof: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    proofVerify(messages: any[], idx: any[], proof: Class_Buffer, opts?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description 合并一组签名为一个单一签名
