@@ -62,18 +62,53 @@ declare class Class_BlsKey extends Class_ECKey {
      */
     constructor(jsonKey: FIBJS.GeneralObject);
 
+    /**
+     *  @description 使用当前私钥签名一组消息，仅支持 BLS12-381-G2 曲线
+     *      @param header 指定签名时使用的应用数据
+     *      @param messages 指定待签署的消息数组
+     *      @return 返回签署的消息
+     *     
+     */
     bbsSign(header: Class_Buffer, messages: any[]): Class_Buffer;
 
     bbsSign(header: Class_Buffer, messages: any[], callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
+    /**
+     *  @description 使用当前公钥验证签名，仅支持 BLS12-381-G2 曲线
+     *      @param header 指定签名时使用的应用数据
+     *      @param messages 指定完整的消息数组
+     *      @param sig 指定要验证的签名
+     *      @return 返回验证后的结果
+     *     
+     */
     bbsVerify(header: Class_Buffer, messages: any[], sig: Class_Buffer): boolean;
 
     bbsVerify(header: Class_Buffer, messages: any[], sig: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
+    /**
+     *  @description 使用当前公钥和签名生成一个证明，仅支持 BLS12-381-G2 曲线
+     *      @param sig 指定生成证明时使用的签名
+     *      @param header 指定签名时使用的应用数据
+     *      @param proofHeader 指定生成证明时使用的应用数据
+     *      @param messages 指定完整的消息数组
+     *      @param idx 指定生成证明时使用的消息索引，索引以 1 为基数
+     *      @return 返回生成的证明
+     *     
+     */
     proofGen(sig: Class_Buffer, header: Class_Buffer, proofHeader: Class_Buffer, messages: any[], idx: any[]): Class_Buffer;
 
     proofGen(sig: Class_Buffer, header: Class_Buffer, proofHeader: Class_Buffer, messages: any[], idx: any[], callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
+    /**
+     *  @description 使用当前公钥验证证明，仅支持 BLS12-381-G2 曲线
+     *      @param header 指定签名时使用的应用数据
+     *      @param proofHeader 指定生成证明时使用的应用数据
+     *      @param messages 指定根据索引过滤的消息数组
+     *      @param idx 指定生成证明时使用的消息索引，索引以 1 为基数
+     *      @param proof 指定生成的证明
+     *      @return 返回验证后的结果
+     *     
+     */
     proofVerify(header: Class_Buffer, proofHeader: Class_Buffer, messages: any[], idx: any[], proof: Class_Buffer): boolean;
 
     proofVerify(header: Class_Buffer, proofHeader: Class_Buffer, messages: any[], idx: any[], proof: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
@@ -88,11 +123,11 @@ declare class Class_BlsKey extends Class_ECKey {
 
     /**
      * @description 合并一组公钥为一个单一公钥
-     *      @param sigs 待合并的一组公钥
+     *      @param keys 待合并的一组公钥
      *      @return 返回合并的单一公钥
      *     
      */
-    static aggregatePublicKey(sigs: any[]): Class_BlsKey;
+    static aggregatePublicKey(keys: any[]): Class_BlsKey;
 
 }
 

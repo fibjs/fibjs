@@ -30,7 +30,7 @@ public:
     virtual result_t proofGen(Buffer_base* sig, Buffer_base* header, Buffer_base* proofHeader, v8::Local<v8::Array> messages, v8::Local<v8::Array> idx, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t proofVerify(Buffer_base* header, Buffer_base* proofHeader, v8::Local<v8::Array> messages, v8::Local<v8::Array> idx, Buffer_base* proof, bool& retVal, AsyncEvent* ac) = 0;
     static result_t aggregateSignature(v8::Local<v8::Array> sigs, obj_ptr<Buffer_base>& retVal);
-    static result_t aggregatePublicKey(v8::Local<v8::Array> sigs, obj_ptr<BlsKey_base>& retVal);
+    static result_t aggregatePublicKey(v8::Local<v8::Array> keys, obj_ptr<BlsKey_base>& retVal);
 
 public:
     template <typename T>

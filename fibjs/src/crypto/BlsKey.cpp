@@ -98,17 +98,17 @@ result_t BlsKey_base::aggregateSignature(v8::Local<v8::Array> sigs, obj_ptr<Buff
     return 0;
 }
 
-result_t BlsKey_base::aggregatePublicKey(v8::Local<v8::Array> sigs, obj_ptr<BlsKey_base>& retVal)
+result_t BlsKey_base::aggregatePublicKey(v8::Local<v8::Array> keys, obj_ptr<BlsKey_base>& retVal)
 {
-    Isolate* isolate = Isolate::current(sigs);
+    Isolate* isolate = Isolate::current(keys);
     obj_ptr<BlsKey_base> k;
     result_t hr;
-    int32_t key_len = sigs->Length();
+    int32_t key_len = keys->Length();
 
     if (key_len == 0)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    hr = GetConfigValue(isolate, sigs, 0, k);
+    hr = GetConfigValue(isolate, keys, 0, k);
     if (hr < 0)
         return hr;
 
@@ -125,7 +125,7 @@ result_t BlsKey_base::aggregatePublicKey(v8::Local<v8::Array> sigs, obj_ptr<BlsK
         for (int32_t i = 1; i < key_len; i++) {
             obj_ptr<BlsKey_base> k1;
 
-            hr = GetConfigValue(isolate, sigs, i, k1);
+            hr = GetConfigValue(isolate, keys, i, k1);
             if (hr < 0)
                 return hr;
 
@@ -152,7 +152,7 @@ result_t BlsKey_base::aggregatePublicKey(v8::Local<v8::Array> sigs, obj_ptr<BlsK
         for (int32_t i = 1; i < key_len; i++) {
             obj_ptr<BlsKey_base> k1;
 
-            hr = GetConfigValue(isolate, sigs, i, k1);
+            hr = GetConfigValue(isolate, keys, i, k1);
             if (hr < 0)
                 return hr;
 

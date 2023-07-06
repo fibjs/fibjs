@@ -56,16 +56,39 @@ interface BlsKey : ECKey
     */
     BlsKey(Object jsonKey);
 
-    /**/
+    /* @brief 使用当前私钥签名一组消息，仅支持 BLS12-381-G2 曲线
+     @param header 指定签名时使用的应用数据
+     @param messages 指定待签署的消息数组
+     @return 返回签署的消息
+    */
     Buffer bbsSign(Buffer header, Array messages) async;
 
-    /**/
+    /* @brief 使用当前公钥验证签名，仅支持 BLS12-381-G2 曲线
+     @param header 指定签名时使用的应用数据
+     @param messages 指定完整的消息数组
+     @param sig 指定要验证的签名
+     @return 返回验证后的结果
+    */
     Boolean bbsVerify(Buffer header, Array messages, Buffer sig) async;
 
-    /**/
+    /* @brief 使用当前公钥和签名生成一个证明，仅支持 BLS12-381-G2 曲线
+     @param sig 指定生成证明时使用的签名
+     @param header 指定签名时使用的应用数据
+     @param proofHeader 指定生成证明时使用的应用数据
+     @param messages 指定完整的消息数组
+     @param idx 指定生成证明时使用的消息索引，索引以 1 为基数
+     @return 返回生成的证明
+    */
     Buffer proofGen(Buffer sig, Buffer header, Buffer proofHeader, Array messages, Array idx) async;
 
-    /**/
+    /* @brief 使用当前公钥验证证明，仅支持 BLS12-381-G2 曲线
+     @param header 指定签名时使用的应用数据
+     @param proofHeader 指定生成证明时使用的应用数据
+     @param messages 指定根据索引过滤的消息数组
+     @param idx 指定生成证明时使用的消息索引，索引以 1 为基数
+     @param proof 指定生成的证明
+     @return 返回验证后的结果
+    */
     Boolean proofVerify(Buffer header, Buffer proofHeader, Array messages, Array idx, Buffer proof) async;
 
     /*! @brief 合并一组签名为一个单一签名
@@ -75,8 +98,8 @@ interface BlsKey : ECKey
     static Buffer aggregateSignature(Array sigs);
 
     /*! @brief 合并一组公钥为一个单一公钥
-     @param sigs 待合并的一组公钥
+     @param keys 待合并的一组公钥
      @return 返回合并的单一公钥
     */
-    static BlsKey aggregatePublicKey(Array sigs);
+    static BlsKey aggregatePublicKey(Array keys);
 };
