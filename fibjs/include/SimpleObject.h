@@ -65,8 +65,14 @@ public:
         if (it == m_keys.end())
             return CALL_RETURN_NULL;
 
-        m_values[it->second].m_val.clear();
+        m_values.erase(m_values.begin() + it->second);
         m_keys.erase(it);
+
+        for (it = m_keys.begin(); it != m_keys.end(); it++) {
+            if (it->second > it->second)
+                it->second--;
+        }
+
         return 0;
     }
 
