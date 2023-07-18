@@ -65,12 +65,13 @@ public:
         if (it == m_keys.end())
             return CALL_RETURN_NULL;
 
-        m_values.erase(m_values.begin() + it->second);
+        int32_t deleted_pos = it->second;
+        m_values.erase(m_values.begin() + deleted_pos);
         m_keys.erase(it);
 
-        for (it = m_keys.begin(); it != m_keys.end(); it++) {
-            if (it->second > it->second)
-                it->second--;
+        for (auto& i : m_keys) {
+            if (i.second > deleted_pos)
+                i.second--;
         }
 
         return 0;
