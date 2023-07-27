@@ -32,9 +32,10 @@ interface Socket : Stream
 
     /*! @brief 建立一个 tcp 连接
      @param host 指定对方地址或主机名，也可以指向 unix socket 和 Windows pipe 路径
-     @param port 指定对方端口，连接 unix socket 和 Windows pipe 时，忽略此参数
+     @param port 指定对方端口，连接 unix socket 和 Windows pipe 时，此参数需要为 0
+     @param timeout 指定超时时间，单位是毫秒，默认为 0
      */
-    connect(String host, Integer port = 0) async;
+    connect(String host, Integer port, Integer timeout = 0) async;
 
     /*! @brief 将当前 Socket 绑定至本地所有地址的指定端口
      @param port 指定绑定的端口

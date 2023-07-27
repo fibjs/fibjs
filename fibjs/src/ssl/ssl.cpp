@@ -64,9 +64,7 @@ result_t ssl_base::connect(exlib::string url, int32_t verification, X509Cert_bas
         ON_STATE(asyncConnect, connect)
         {
             Socket_base::_new(m_ipv6 ? net_base::C_AF_INET6 : net_base::C_AF_INET, m_sock);
-
-            m_sock->set_timeout(m_timeout);
-            return m_sock->connect(m_host, m_port, next(handshake));
+            return m_sock->connect(m_host, m_port, m_timeout, next(handshake));
         }
 
         ON_STATE(asyncConnect, handshake)

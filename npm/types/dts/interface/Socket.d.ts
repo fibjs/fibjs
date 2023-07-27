@@ -51,12 +51,13 @@ declare class Class_Socket extends Class_Stream {
     /**
      * @description 建立一个 tcp 连接
      *      @param host 指定对方地址或主机名，也可以指向 unix socket 和 Windows pipe 路径
-     *      @param port 指定对方端口，连接 unix socket 和 Windows pipe 时，忽略此参数
+     *      @param port 指定对方端口，连接 unix socket 和 Windows pipe 时，此参数需要为 0
+     *      @param timeout 指定超时时间，单位是毫秒，默认为 0
      *      
      */
-    connect(host: string, port?: number): void;
+    connect(host: string, port: number, timeout?: number): void;
 
-    connect(host: string, port?: number, callback?: (err: Error | undefined | null)=>any): void;
+    connect(host: string, port: number, timeout?: number, callback?: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 将当前 Socket 绑定至本地所有地址的指定端口

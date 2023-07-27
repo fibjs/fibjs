@@ -51,7 +51,7 @@ module net
 
     /*! @brief 创建一个 Socket 或 SslSocket 对象并建立连接
      @param url 指定连接的协议，可以是：tcp://host:port 或者 ssl://host:port，也可以是：unix:/usr/local/proc1 或者 pipe://./pipe/proc1，连接 pipe 时需要用 `/` 替换 `\`
-     @param timeout 指定超时时间，单位是毫秒，默认为0
+     @param timeout 指定超时时间，单位是毫秒，默认为 0
      @return 返回连接成功的 Socket 或者 SslSocket 对象
      */
     static Stream connect(String url, Integer timeout = 0) async;
@@ -61,7 +61,7 @@ module net
 
     /*! @brief 创建一个 Smtp 对象并建立连接，参见 Smtp
      @param url 指定连接的协议，可以是：tcp://host:port 或者 ssl://host:port
-     @param timeout 指定超时时间，单位是毫秒，默认为0
+     @param timeout 指定超时时间，单位是毫秒，默认为 0
      @return 返回连接成功的 Smtp 对象
      */
     static Smtp openSmtp(String url, Integer timeout = 0) async;

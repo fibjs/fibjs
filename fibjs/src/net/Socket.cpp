@@ -275,7 +275,7 @@ result_t Socket::listen(int32_t backlog)
     return 0;
 }
 
-result_t Socket::connect(exlib::string host, int32_t port, AsyncEvent* ac)
+result_t Socket::connect(exlib::string host, int32_t port, int32_t timeout, AsyncEvent* ac)
 {
 #ifdef _WIN32
     if (!m_bBind) {
@@ -286,8 +286,8 @@ result_t Socket::connect(exlib::string host, int32_t port, AsyncEvent* ac)
 #endif
 
     obj_ptr<Timer> timer;
-    if (ac->isAsync() && m_timeout > 0) {
-        timer = new IOTimer(m_timeout, this);
+    if (ac->isAsync() && timeout > 0) {
+        timer = new IOTimer(timeout, this);
         timer->sleep();
     }
 

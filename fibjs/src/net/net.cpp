@@ -179,10 +179,8 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
         if (hr < 0)
             return hr;
 
-        socket->set_timeout(timeout);
-
         retVal = socket;
-        return socket->connect(u->m_hostname, nPort, ac);
+        return socket->connect(u->m_hostname, nPort, timeout, ac);
     } else {
         obj_ptr<Socket_base> socket;
 
@@ -190,10 +188,8 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
         if (hr < 0)
             return hr;
 
-        socket->set_timeout(timeout);
-
         retVal = socket;
-        return socket->connect(url.substr(5), 0, ac);
+        return socket->connect(url.substr(5), 0, timeout, ac);
     }
 }
 

@@ -30,6 +30,16 @@ public:
             }
         }
 
+        UVTimeout(UVStream_tmpl* _this, int32_t timeout)
+            : m_this(_this)
+            , m_timeout(timeout)
+        {
+            if (m_timeout > 0) {
+                uv_timer_init(s_uv_loop, this);
+                uv_timer_start(this, on_timeout, m_timeout, 0);
+            }
+        }
+
         virtual ~UVTimeout()
         {
         }

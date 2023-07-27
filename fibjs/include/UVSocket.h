@@ -34,7 +34,7 @@ public:
     virtual result_t get_remotePort(int32_t& retVal);
     virtual result_t get_localAddress(exlib::string& retVal);
     virtual result_t get_localPort(int32_t& retVal);
-    virtual result_t connect(exlib::string host, int32_t port, AsyncEvent* ac);
+    virtual result_t connect(exlib::string host, int32_t port, int32_t timeout, AsyncEvent* ac);
     virtual result_t bind(exlib::string addr, int32_t port, bool allowIPv4);
     virtual result_t bind(int32_t port, bool allowIPv4);
     virtual result_t listen(int32_t backlog);

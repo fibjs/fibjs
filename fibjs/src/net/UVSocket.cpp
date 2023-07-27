@@ -187,13 +187,13 @@ result_t UVSocket::listen(int32_t backlog)
     });
 }
 
-result_t UVSocket::connect(exlib::string host, int32_t port, AsyncEvent* ac)
+result_t UVSocket::connect(exlib::string host, int32_t port, int32_t timeout, AsyncEvent* ac)
 {
     class AsyncConnect : public uv_connect_t,
                          public UVTimeout {
     public:
-        AsyncConnect(UVSocket* pThis, AsyncEvent* ac)
-            : UVTimeout(pThis)
+        AsyncConnect(UVSocket* pThis, int32_t timeout, AsyncEvent* ac)
+            : UVTimeout(pThis, timeout)
             , m_ac(ac)
         {
         }
@@ -215,7 +215,7 @@ result_t UVSocket::connect(exlib::string host, int32_t port, AsyncEvent* ac)
 
     if (m_family == net_base::C_AF_UNIX) {
         return uv_async([&] {
-            uv_pipe_connect(new AsyncConnect(this, ac), &m_pipe, host.c_str(), AsyncConnect::callback);
+            uv_pipe_connect(new AsyncConnect(this, timeout, ac), &m_pipe, host.c_str(), AsyncConnect::callback);
             return 0;
         });
     } else {
@@ -234,7 +234,7 @@ result_t UVSocket::connect(exlib::string host, int32_t port, AsyncEvent* ac)
         }
 
         return uv_async([&] {
-            return uv_tcp_connect(new AsyncConnect(this, ac), &m_tcp, (sockaddr*)&addr_info, AsyncConnect::callback);
+            return uv_tcp_connect(new AsyncConnect(this, timeout, ac), &m_tcp, (sockaddr*)&addr_info, AsyncConnect::callback);
         });
     }
 }

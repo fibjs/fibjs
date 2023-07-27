@@ -444,13 +444,12 @@ function test_net(eng, use_uv) {
 
             var c1 = new net.Socket();
 
-            c1.timeout = 300;
-
             test_util.gc();
 
             c1.connect('127.0.0.1', _port);
 
             var t1 = new Date();
+            c1.timeout = 300;
             assert.throws(() => {
                 c1.recv();
             });
@@ -461,10 +460,9 @@ function test_net(eng, use_uv) {
             assert.lessThan(t2 - t1, 1000);
 
             var c2 = new net.Socket();
-            c2.timeout = 300;
             var t1 = new Date();
             assert.throws(() => {
-                c2.connect('192.166.166.166', 8086 + base_port);
+                c2.connect('192.166.166.166', 8086 + base_port, 300);
             });
             var t2 = new Date();
 
@@ -661,7 +659,7 @@ function test_net(eng, use_uv) {
 
                 function conn_socket() {
                     var s1 = new net.Socket(net.AF_UNIX);
-                    s1.connect(_path);
+                    s1.connect(_path, 0);
                     s1.send(new Buffer("GET / HTTP/1.0"));
                     assert.equal("GET / HTTP/1.0", s1.recv());
                     s1.close();

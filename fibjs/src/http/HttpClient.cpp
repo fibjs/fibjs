@@ -661,6 +661,8 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
         ON_STATE(asyncRequest, socks_hello)
         {
             obj_ptr<Buffer_base> buf = new Buffer("\5\1\0", 3);
+
+            ((Socket_base*)(Stream_base*)m_conn)->set_timeout(m_hc->m_timeout);
             return m_conn->write(buf, next(socks_hello_response));
         }
 
@@ -745,6 +747,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
 
         ON_STATE(asyncRequest, ssl_connect)
         {
+            ((Socket_base*)(Stream_base*)m_conn)->set_timeout(m_hc->m_timeout);
             return m_hc->request(m_conn, m_reqConn, m_retVal, next(ssl_handshake));
         }
 
@@ -795,6 +798,9 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
 
         ON_STATE(asyncRequest, connected)
         {
+            if (!m_ssl)
+                ((Socket_base*)(Stream_base*)m_conn)->set_timeout(m_hc->m_timeout);
+
             return m_hc->request(m_conn, m_req, m_response_body, m_retVal, next(requested));
         }
 

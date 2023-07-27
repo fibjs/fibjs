@@ -37,7 +37,7 @@ namespace socket {
 
         assert(!Runtime::check());
 
-        result_t hr = ((Socket_base*)sock)->cc_connect(host, port);
+        result_t hr = ((Socket_base*)sock)->cc_connect(host, port, 0);
         if (hr < 0) {
             Runtime::setError(hr);
             return 0;
