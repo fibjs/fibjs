@@ -122,6 +122,31 @@ describe("vec", () => {
         ]);
     });
 
+    it("insert(binary vector)", () => {
+        conn.execute("create virtual table vindex using vec_index(title(3), description(3))");
+        conn.execute('insert into vindex(title, description, rowid) values(?, ?, ?)',
+            Buffer.from(Float32Array.from([1, 2, 3]).buffer), Buffer.from(Float32Array.from([3, 4, 5]).buffer), 1);
+
+        var res = conn.execute(`select name, data from vec_index where tbl="vindex" order by name desc`);
+        assert.equal(res.length, 2);
+        assert.deepEqual(decodeVec(res[0].data), [
+            [
+                "0.267261",
+                "0.534522",
+                "0.801784",
+                1
+            ]
+        ]);
+        assert.deepEqual(decodeVec(res[1].data), [
+            [
+                "0.424264",
+                "0.565685",
+                "0.707107",
+                1
+            ]
+        ]);
+    });
+
     it("select rowid", () => {
         conn.execute("create virtual table vindex using vec_index(title(3), description(3))");
         conn.execute(`insert into vindex(title, description, rowid) values("[1,2,3]", "[3,4,5]", 1)`);
@@ -412,7 +437,8 @@ describe("vec", () => {
                     description.push(Math.random());
                 }
 
-                conn.execute(`insert into vindex(title, description, rowid) values("${JSON.stringify(title)}", "${JSON.stringify(description)}", ${i})`);
+                conn.execute("insert into vindex(title, description, rowid) values(?,?,?)",
+                    Buffer.from(Float32Array.from(title).buffer), Buffer.from(Float32Array.from(description).buffer), i);
             }
         })
         console.timeEnd("insert");

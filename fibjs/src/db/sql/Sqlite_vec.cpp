@@ -428,6 +428,17 @@ std::vector<VecIndexColumn> parse_constructor(int argc, const char* const* argv)
     return columns;
 }
 
+void normalize_vector(std::vector<float>& v)
+{
+    float norm = 0.0f;
+    for (int i = 0; i < v.size(); i++)
+        norm += v[i] * v[i];
+    norm = 1.0f / (sqrtf(norm) + 1e-30f);
+
+    for (int i = 0; i < v.size(); i++)
+        v[i] *= norm;
+}
+
 std::vector<float> parse_vector(const char* txt, size_t dim)
 {
     std::vector<float> v;
@@ -438,13 +449,7 @@ std::vector<float> parse_vector(const char* txt, size_t dim)
         if (v.size() < dim)
             v.resize(dim, 0.0f);
 
-        float norm = 0.0f;
-        for (int i = 0; i < dim; i++)
-            norm += v[i] * v[i];
-        norm = 1.0f / (sqrtf(norm) + 1e-30f);
-
-        for (int i = 0; i < dim; i++)
-            v[i] *= norm;
+        normalize_vector(v);
 
         return v;
     } catch (const nlohmann::json::exception&) {
@@ -457,11 +462,35 @@ std::vector<float> parse_vector(sqlite3_value* value, size_t dim)
 {
     std::vector<float> v;
 
-    const char* txt = (const char*)sqlite3_value_text(value);
-    if (txt == NULL)
-        return v;
+    int type = sqlite3_value_type(value);
+    if (type == SQLITE_BLOB) {
+        const float* blob = (float*)sqlite3_value_blob(value);
+        if (blob == NULL)
+            return v;
 
-    return parse_vector(txt, dim);
+        size_t len = sqlite3_value_bytes(value);
+        if (len % sizeof(float) != 0 || len > dim * sizeof(float))
+            return v;
+
+        for (int i = 0; i < len / sizeof(float); i++)
+            if (std::isnan(blob[i]))
+                return v;
+
+        v.resize(dim);
+        memcpy(v.data(), blob, len);
+        for(int i = len / sizeof(float); i < dim; i++)
+            v[i] = 0.0f;
+
+        normalize_vector(v);
+
+        return v;
+    } else if (type == SQLITE_TEXT) {
+        const char* txt = (const char*)sqlite3_value_text(value);
+        if (txt == NULL)
+            return v;
+
+        return parse_vector(txt, dim);
+    }
 }
 
 static int init(sqlite3* db, void* pAux, int argc, const char* const* argv,
