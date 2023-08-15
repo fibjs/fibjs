@@ -52,28 +52,28 @@ static int _update_512(mbedtls_md_context_t* ctx, const unsigned char* input, si
 
 static int _finish_256(mbedtls_md_context_t* ctx, unsigned char* output)
 {
-    sha3_256_inc_finalize(output, (sha3_256incctx*)&ctx->md_ctx, 0x1);
+    sha3_256_inc_finalize(output, (sha3_256incctx*)&ctx->md_ctx);
     ctx->md_ctx = NULL;
     return 0;
 }
 
 static int _finish_384(mbedtls_md_context_t* ctx, unsigned char* output)
 {
-    sha3_384_inc_finalize(output, (sha3_384incctx*)&ctx->md_ctx, 0x1);
+    sha3_384_inc_finalize(output, (sha3_384incctx*)&ctx->md_ctx);
     ctx->md_ctx = NULL;
     return 0;
 }
 
 static int _finish_512(mbedtls_md_context_t* ctx, unsigned char* output)
 {
-    sha3_512_inc_finalize(output, (sha3_512incctx*)&ctx->md_ctx, 0x1);
+    sha3_512_inc_finalize(output, (sha3_512incctx*)&ctx->md_ctx);
     ctx->md_ctx = NULL;
     return 0;
 }
 
-mbedtls_md_info_x mbedtls_keccak256_info = {
-    { "KECCAK256",
-        MBEDTLS_MD_KECCAK256,
+mbedtls_md_info_x mbedtls_sha3_256_info = {
+    { "SHA3_256",
+        MBEDTLS_MD_SHA3_256,
         32,
         64 },
     0,
@@ -82,9 +82,9 @@ mbedtls_md_info_x mbedtls_keccak256_info = {
     _finish_256
 };
 
-mbedtls_md_info_x mbedtls_keccak384_info = {
-    { "KECCAK384",
-        MBEDTLS_MD_KECCAK384,
+mbedtls_md_info_x mbedtls_sha3_384_info = {
+    { "SHA3_384",
+        MBEDTLS_MD_SHA3_384,
         48,
         128 },
     0,
@@ -93,9 +93,9 @@ mbedtls_md_info_x mbedtls_keccak384_info = {
     _finish_384
 };
 
-mbedtls_md_info_x mbedtls_keccak512_info = {
-    { "KECCAK512",
-        MBEDTLS_MD_KECCAK512,
+mbedtls_md_info_x mbedtls_sha3_512_info = {
+    { "SHA3_512",
+        MBEDTLS_MD_SHA3_512,
         64,
         128 },
     0,

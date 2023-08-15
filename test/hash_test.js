@@ -136,7 +136,7 @@ describe("hash", () => {
         assert.equal(o.base64, hash[o.name.toLowerCase()]().update(o.text).digest('base64'));
         assert.equal(o.base64, crypto.createHash(o.name).update(o.text).digest('base64'));
 
-        if (hash[o.name] < hash.KECCAK256) {
+        if (hash[o.name] <= hash.SM2) {
             var s = crypto.createHash(o.name).update(o.text).sign(rsa4096_pem);
             assert.ok(crypto.createHash(o.name).update(o.text).verify(pub_rsa4096_pem, s));
             assert.ok(new crypto.PKey(pub_rsa4096_pem).verify(crypto.createHash(o.name).update(o.text).digest(), s, { alg: hash[o.name] }));
@@ -188,7 +188,7 @@ describe("hash", () => {
         assert.equal(o.base64, hash['hmac_' + o.name.toLowerCase()](o.key).update(o.text).digest('base64'));
         assert.equal(o.base64, crypto.createHmac(o.name, o.key).update(o.text).digest('base64'));
 
-        if (hash[o.name] < hash.KECCAK256) {
+        if (hash[o.name] <= hash.SM2) {
             var s = crypto.createHmac(o.name, o.key).update(o.text).sign(rsa4096_pem);
             assert.ok(crypto.createHmac(o.name, o.key).update(o.text).verify(pub_rsa4096_pem, s));
             assert.ok(new crypto.PKey(pub_rsa4096_pem).verify(crypto.createHmac(o.name, o.key).update(o.text).digest(), s, { alg: hash[o.name] }));
@@ -388,6 +388,69 @@ describe("hash", () => {
             assert.equal(t.hash1, r);
         });
 
+    });
+
+    it("sha3_256", () => {
+        var digest_case = [{
+            name: 'SHA3_256',
+            text: '',
+            hash: 'a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a',
+            base64: 'p//G+L8e12ZRwUdWoGHWYvWA/03kO0n6gtgKS4D4Q0o='
+        }, {
+            name: 'SHA3_256',
+            text: 'The quick brown fox jumps over the lazy dog',
+            hash: '69070dda01975c8c120c3aada1b282394e7f032fa9cf32f4cb2259a0897dfc04',
+            base64: 'aQcN2gGXXIwSDDqtobKCOU5/Ay+pzzL0yyJZoIl9/AQ='
+        }, {
+            name: 'SHA3_256',
+            text: 'The quick brown fox jumps over the lazy cog',
+            hash: 'cc80b0b13ba89613d93f02ee7ccbe72ee26c6edfe577f22e63a1380221caedbc',
+            base64: 'zICwsTuolhPZPwLufMvnLuJsbt/ld/IuY6E4AiHK7bw='
+        }];
+
+        digest_case.forEach(hash_test);
+    });
+
+    it("sha3_384", () => {
+        var digest_case = [{
+            name: 'SHA3_384',
+            text: '',
+            hash: '0c63a75b845e4f7d01107d852e4c2485c51a50aaaa94fc61995e71bbee983a2ac3713831264adb47fb6bd1e058d5f004',
+            base64: 'DGOnW4ReT30BEH2FLkwkhcUaUKqqlPxhmV5xu+6YOirDcTgxJkrbR/tr0eBY1fAE'
+        }, {
+            name: 'SHA3_384',
+            text: 'The quick brown fox jumps over the lazy dog',
+            hash: '7063465e08a93bce31cd89d2e3ca8f602498696e253592ed26f07bf7e703cf328581e1471a7ba7ab119b1a9ebdf8be41',
+            base64: 'cGNGXgipO84xzYnS48qPYCSYaW4lNZLtJvB79+cDzzKFgeFHGnunqxGbGp69+L5B'
+        }, {
+            name: 'SHA3_384',
+            text: 'The quick brown fox jumps over the lazy cog',
+            hash: 'e414797403c7d01ab64b41e90df4165d59b7f147e4292ba2da336acba242fd651949eb1cfff7e9012e134b40981842e1',
+            base64: '5BR5dAPH0Bq2S0HpDfQWXVm38UfkKSui2jNqy6JC/WUZSesc//fpAS4TS0CYGELh'
+        }];
+
+        digest_case.forEach(hash_test);
+    });
+
+    it("sha3_512", () => {
+        var digest_case = [{
+            name: 'SHA3_512',
+            text: '',
+            hash: 'a69f73cca23a9ac5c8b567dc185a756e97c982164fe25859e0d1dcc1475c80a615b2123af1f5f94c11e3e9402c3ac558f500199d95b6d3e301758586281dcd26',
+            base64: 'pp9zzKI6msXItWfcGFp1bpfJghZP4lhZ4NHcwUdcgKYVshI68fX5TBHj6UAsOsVY9QAZnZW20+MBdYWGKB3NJg=='
+        }, {
+            name: 'SHA3_512',
+            text: 'The quick brown fox jumps over the lazy dog',
+            hash: '01dedd5de4ef14642445ba5f5b97c15e47b9ad931326e4b0727cd94cefc44fff23f07bf543139939b49128caf436dc1bdee54fcb24023a08d9403f9b4bf0d450',
+            base64: 'Ad7dXeTvFGQkRbpfW5fBXke5rZMTJuSwcnzZTO/ET/8j8Hv1QxOZObSRKMr0Ntwb3uVPyyQCOgjZQD+bS/DUUA=='
+        }, {
+            name: 'SHA3_512',
+            text: 'The quick brown fox jumps over the lazy cog',
+            hash: '28e361fe8c56e617caa56c28c7c36e5c13be552b77081be82b642f08bb7ef085b9a81910fe98269386b9aacfd2349076c9506126e198f6f6ad44c12017ca77b1',
+            base64: 'KONh/oxW5hfKpWwox8NuXBO+VSt3CBvoK2QvCLt+8IW5qBkQ/pgmk4a5qs/SNJB2yVBhJuGY9vatRMEgF8p3sQ=='
+        }];
+
+        digest_case.forEach(hash_test);
     });
 
     it("keccak256", () => {
@@ -616,6 +679,60 @@ describe("hash", () => {
             text: 'The quick brown fox jumps over the lazy dog',
             hmac: 'bd4a34077888162b210645b8ebf74b9af357303789357a27c7fc457244ebd398',
             base64: 'vUo0B3iIFishBkW46/dLmvNXMDeJNXonx/xFckTr05g='
+        }];
+
+        hmac_case.forEach(hmac_test);
+    });
+
+    it("sha3_256_hmac", () => {
+        var hmac_case = [{
+            name: 'SHA3_256',
+            key: '',
+            text: '',
+            hmac: '61df1bd9741d4fb28efe5aceeec3893e08e171cf408d656098edfe01a7752c6d',
+            base64: 'Yd8b2XQdT7KO/lrO7sOJPgjhcc9AjWVgmO3+Aad1LG0='
+        }, {
+            name: 'SHA3_256',
+            key: 'key',
+            text: 'The quick brown fox jumps over the lazy dog',
+            hmac: 'cb4c0443b715240504f7d858977f40b44cfe280d17df633f1b67de06519c885f',
+            base64: 'y0wEQ7cVJAUE99hYl39AtEz+KA0X32M/G2feBlGciF8='
+        }];
+
+        hmac_case.forEach(hmac_test);
+    });
+
+    it("sha3_384_hmac", () => {
+        var hmac_case = [{
+            name: 'SHA3_384',
+            key: '',
+            text: '',
+            hmac: 'c558ccdeaa8accd327268d6d57120508638ebd236c6fe2e66e777c7162663c18da5b2f8c858c29f60cca7de3164bb2fe',
+            base64: 'xVjM3qqKzNMnJo1tVxIFCGOOvSNsb+Lmbnd8cWJmPBjaWy+MhYwp9gzKfeMWS7L+'
+        }, {
+            name: 'SHA3_384',
+            key: 'key',
+            text: 'The quick brown fox jumps over the lazy dog',
+            hmac: '0292d2c8971378a1a33a9e6de1ea66b27e9ff9616e7a2edc102da91c377f6dbc310feb7a32677ab52005d66982405fe4',
+            base64: 'ApLSyJcTeKGjOp5t4epmsn6f+WFuei7cEC2pHDd/bbwxD+t6Mmd6tSAF1mmCQF/k'
+        }];
+
+        hmac_case.forEach(hmac_test);
+    });
+
+    it("sha3_512_hmac", () => {
+        var hmac_case = [{
+            name: 'SHA3_512',
+            key: '',
+            text: '',
+            hmac: 'c5f1f22deac748435daef71cbdaef44a89be235dc6f4e6a6c421fe29bce45e90fdf77650b28132fb0cc9f66836055b0b48e1b61321f34d20f5618356d33bed75',
+            base64: 'xfHyLerHSENdrvccva70Som+I13G9OamxCH+KbzkXpD993ZQsoEy+wzJ9mg2BVsLSOG2EyHzTSD1YYNW0zvtdQ=='
+        }, {
+            name: 'SHA3_512',
+            key: 'key',
+            text: 'The quick brown fox jumps over the lazy dog',
+            hmac: '2a18de870613ad3cb1d3ed660320c8508c1107915ab7d9eadc06723237e97de491e8ba87b3a2e2f4c61775e24e11f77bdd9e7406d5dca68e9c692c67fc3307b1',
+            base64: 'KhjehwYTrTyx0+1mAyDIUIwRB5Fat9nq3AZyMjfpfeSR6LqHs6Li9MYXdeJOEfd73Z50BtXcpo6caSxn/DMHsQ=='
         }];
 
         hmac_case.forEach(hmac_test);

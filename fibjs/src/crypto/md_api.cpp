@@ -13,6 +13,9 @@
 
 namespace fibjs {
 
+extern mbedtls_md_info_x mbedtls_sha3_256_info;
+extern mbedtls_md_info_x mbedtls_sha3_384_info;
+extern mbedtls_md_info_x mbedtls_sha3_512_info;
 extern mbedtls_md_info_x mbedtls_keccak256_info;
 extern mbedtls_md_info_x mbedtls_keccak384_info;
 extern mbedtls_md_info_x mbedtls_keccak512_info;
@@ -22,6 +25,9 @@ extern mbedtls_md_info_x mbedtls_blake2sp_info;
 extern mbedtls_md_info_x mbedtls_blake2bp_info;
 
 static mbedtls_md_info_x* md_infos[] = {
+    &mbedtls_sha3_256_info,
+    &mbedtls_sha3_384_info,
+    &mbedtls_sha3_512_info,
     &mbedtls_keccak256_info,
     &mbedtls_keccak384_info,
     &mbedtls_keccak512_info,
@@ -47,16 +53,18 @@ mbedtls_md_type_t _md_type_from_string(const char* md_name)
 
 int _md_setup(mbedtls_md_context_t* ctx, mbedtls_md_type_t algo, int hmac)
 {
-    if (algo >= MBEDTLS_MD_KECCAK256 && algo < MBEDTLS_MD_MAX) {
-        mbedtls_md_info_x* infox = md_infos[algo - MBEDTLS_MD_KECCAK256];
+    if (algo > MBEDTLS_MD_SM3 && algo < MBEDTLS_MD_MAX) {
+        mbedtls_md_info_x* infox = md_infos[algo - MBEDTLS_MD_SM3 - 1];
 
         ctx->md_info = &infox->info;
         ctx->md_ctx = NULL;
         ctx->hmac_ctx = NULL;
 
-        ctx->md_ctx = calloc(1, infox->ctx_size);
-        if (ctx->md_ctx == NULL)
-            return (MBEDTLS_ERR_MD_ALLOC_FAILED);
+        if (infox->ctx_size) {
+            ctx->md_ctx = calloc(1, infox->ctx_size);
+            if (ctx->md_ctx == NULL)
+                return (MBEDTLS_ERR_MD_ALLOC_FAILED);
+        }
 
         if (hmac != 0) {
             ctx->hmac_ctx = calloc(2, infox->info.block_size);
@@ -74,7 +82,7 @@ int _md_setup(mbedtls_md_context_t* ctx, mbedtls_md_type_t algo, int hmac)
 
 int _md_starts(mbedtls_md_context_t* ctx)
 {
-    if (ctx->md_info->type >= MBEDTLS_MD_KECCAK256 && ctx->md_info->type < MBEDTLS_MD_MAX) {
+    if (ctx->md_info->type > MBEDTLS_MD_SM3 && ctx->md_info->type < MBEDTLS_MD_MAX) {
         mbedtls_md_info_x* infox = (mbedtls_md_info_x*)ctx->md_info;
         return infox->start(ctx);
     }
@@ -84,7 +92,7 @@ int _md_starts(mbedtls_md_context_t* ctx)
 
 int _md_update(mbedtls_md_context_t* ctx, const unsigned char* input, size_t ilen)
 {
-    if (ctx->md_info->type >= MBEDTLS_MD_KECCAK256 && ctx->md_info->type < MBEDTLS_MD_MAX) {
+    if (ctx->md_info->type > MBEDTLS_MD_SM3 && ctx->md_info->type < MBEDTLS_MD_MAX) {
         mbedtls_md_info_x* infox = (mbedtls_md_info_x*)ctx->md_info;
         return infox->update(ctx, input, ilen);
     }
@@ -94,7 +102,7 @@ int _md_update(mbedtls_md_context_t* ctx, const unsigned char* input, size_t ile
 
 int _md_finish(mbedtls_md_context_t* ctx, unsigned char* output)
 {
-    if (ctx->md_info->type >= MBEDTLS_MD_KECCAK256 && ctx->md_info->type < MBEDTLS_MD_MAX) {
+    if (ctx->md_info->type > MBEDTLS_MD_SM3 && ctx->md_info->type < MBEDTLS_MD_MAX) {
         mbedtls_md_info_x* infox = (mbedtls_md_info_x*)ctx->md_info;
         return infox->finish(ctx, output);
     }

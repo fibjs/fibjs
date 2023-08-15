@@ -30,6 +30,9 @@ public:
         g_hashes->append("sha512");
         g_hashes->append("ripemd160");
         g_hashes->append("sm3");
+        g_hashes->append("sha3_256");
+        g_hashes->append("sha3_384");
+        g_hashes->append("sha3_512");
         g_hashes->append("keccak256");
         g_hashes->append("keccak384");
         g_hashes->append("keccak512");
@@ -37,21 +40,6 @@ public:
         g_hashes->append("blake2b");
         g_hashes->append("blake2sp");
         g_hashes->append("blake2bp");
-        g_hashes->append("md5_hmac");
-        g_hashes->append("sha1_hmac");
-        g_hashes->append("sha224_hmac");
-        g_hashes->append("sha256_hmac");
-        g_hashes->append("sha384_hmac");
-        g_hashes->append("sha512_hmac");
-        g_hashes->append("ripemd160_hmac");
-        g_hashes->append("sm3_hmac");
-        g_hashes->append("keccak256_hmac");
-        g_hashes->append("keccak384_hmac");
-        g_hashes->append("keccak512_hmac");
-        g_hashes->append("blake2s_hmac");
-        g_hashes->append("blake2b_hmac");
-        g_hashes->append("blake2sp_hmac");
-        g_hashes->append("blake2bp_hmac");
     }
 } s_init_hashes;
 
@@ -106,6 +94,9 @@ DEF_FUNC(sha256, SHA256);
 DEF_FUNC(sha384, SHA384);
 DEF_FUNC(sha512, SHA512);
 DEF_FUNC(ripemd160, RIPEMD160);
+DEF_FUNC(sha3_256, SHA3_256);
+DEF_FUNC(sha3_384, SHA3_384);
+DEF_FUNC(sha3_512, SHA3_512);
 DEF_FUNC(keccak256, KECCAK256);
 DEF_FUNC(keccak384, KECCAK384);
 DEF_FUNC(keccak512, KECCAK512);

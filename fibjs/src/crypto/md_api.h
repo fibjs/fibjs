@@ -4,14 +4,17 @@
 
 #pragma once
 
-#define MBEDTLS_MD_KECCAK256 mbedtls_md_type_t(MBEDTLS_MD_SM3 + 1)
-#define MBEDTLS_MD_KECCAK384 mbedtls_md_type_t(MBEDTLS_MD_SM3 + 2)
-#define MBEDTLS_MD_KECCAK512 mbedtls_md_type_t(MBEDTLS_MD_SM3 + 3)
-#define MBEDTLS_MD_BLAKE2S mbedtls_md_type_t(MBEDTLS_MD_SM3 + 4)
-#define MBEDTLS_MD_BLAKE2B mbedtls_md_type_t(MBEDTLS_MD_SM3 + 5)
-#define MBEDTLS_MD_BLAKE2SP mbedtls_md_type_t(MBEDTLS_MD_SM3 + 6)
-#define MBEDTLS_MD_BLAKE2BP mbedtls_md_type_t(MBEDTLS_MD_SM3 + 7)
-#define MBEDTLS_MD_MAX mbedtls_md_type_t(MBEDTLS_MD_SM3 + 8)
+#define MBEDTLS_MD_SHA3_256 mbedtls_md_type_t(MBEDTLS_MD_SM3 + 1)
+#define MBEDTLS_MD_SHA3_384 mbedtls_md_type_t(MBEDTLS_MD_SM3 + 2)
+#define MBEDTLS_MD_SHA3_512 mbedtls_md_type_t(MBEDTLS_MD_SM3 + 3)
+#define MBEDTLS_MD_KECCAK256 mbedtls_md_type_t(MBEDTLS_MD_SM3 + 4)
+#define MBEDTLS_MD_KECCAK384 mbedtls_md_type_t(MBEDTLS_MD_SM3 + 5)
+#define MBEDTLS_MD_KECCAK512 mbedtls_md_type_t(MBEDTLS_MD_SM3 + 6)
+#define MBEDTLS_MD_BLAKE2S mbedtls_md_type_t(MBEDTLS_MD_SM3 + 7)
+#define MBEDTLS_MD_BLAKE2B mbedtls_md_type_t(MBEDTLS_MD_SM3 + 8)
+#define MBEDTLS_MD_BLAKE2SP mbedtls_md_type_t(MBEDTLS_MD_SM3 + 9)
+#define MBEDTLS_MD_BLAKE2BP mbedtls_md_type_t(MBEDTLS_MD_SM3 + 10)
+#define MBEDTLS_MD_MAX mbedtls_md_type_t(MBEDTLS_MD_SM3 + 11)
 
 namespace fibjs {
 

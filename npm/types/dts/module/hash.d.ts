@@ -73,39 +73,54 @@ declare module 'hash' {
     export const SM3: 8;
 
     /**
+     * @description SHA3_256 信息摘要算法标识常量 
+     */
+    export const SHA3_256: 9;
+
+    /**
+     * @description SHA3_384 信息摘要算法标识常量 
+     */
+    export const SHA3_384: 10;
+
+    /**
+     * @description SHA3_512 信息摘要算法标识常量 
+     */
+    export const SHA3_512: 11;
+
+    /**
      * @description KECCAK256 信息摘要算法标识常量 
      */
-    export const KECCAK256: 9;
+    export const KECCAK256: 12;
 
     /**
      * @description KECCAK384 信息摘要算法标识常量 
      */
-    export const KECCAK384: 10;
+    export const KECCAK384: 13;
 
     /**
      * @description KECCAK512 信息摘要算法标识常量 
      */
-    export const KECCAK512: 11;
+    export const KECCAK512: 14;
 
     /**
      * @description BLAKE2S 信息摘要算法标识常量 
      */
-    export const BLAKE2S: 12;
+    export const BLAKE2S: 15;
 
     /**
      * @description BLAKE2B 信息摘要算法标识常量 
      */
-    export const BLAKE2B: 13;
+    export const BLAKE2B: 16;
 
     /**
      * @description BLAKE2SP 信息摘要算法标识常量 
      */
-    export const BLAKE2SP: 14;
+    export const BLAKE2SP: 17;
 
     /**
      * @description BLAKE2BP 信息摘要算法标识常量 
      */
-    export const BLAKE2BP: 15;
+    export const BLAKE2BP: 18;
 
     /**
      * @description 根据指定的算法标识创建一个信息摘要运算对象
@@ -189,6 +204,30 @@ declare module 'hash' {
      *      
      */
     function sm3(pubKey: Class_PKey, id: string, data?: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 创建一个 SHA3_256 信息摘要运算对象
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function sha3_256(data?: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 创建一个 SHA3_384 信息摘要运算对象
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function sha3_384(data?: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 创建一个 SHA3_512 信息摘要运算对象
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function sha3_512(data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 KECCAK256 信息摘要运算对象
@@ -338,6 +377,33 @@ declare module 'hash' {
      *      
      */
     function hmac_sm3(pubKey: Class_PKey, id: string, key: Class_Buffer, data?: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 创建一个 SHA3_256 信息摘要签名运算对象
+     *      @param key 二进制签名密钥
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function hmac_sha3_256(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 创建一个 SHA3_384 信息摘要签名运算对象
+     *      @param key 二进制签名密钥
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function hmac_sha3_384(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 创建一个 SHA3_512 信息摘要签名运算对象
+     *      @param key 二进制签名密钥
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function hmac_sha3_512(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 KECCAK256 信息摘要签名运算对象
