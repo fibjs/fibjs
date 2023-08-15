@@ -284,7 +284,7 @@ declare class Class_PKey extends Class_object {
      *      }
      *      ```
      * 
-     *      @param data 指定要签名的数据
+     *      @param data 指定要签名的数据，当算法为 RSA，需对入参以 alg 指定的算法做 hash
      *      @param opts 指定签名选项
      *      @return 返回签名后的数据
      *      
