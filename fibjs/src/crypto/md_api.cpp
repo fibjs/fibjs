@@ -16,6 +16,8 @@ namespace fibjs {
 extern mbedtls_md_info_x mbedtls_sha3_256_info;
 extern mbedtls_md_info_x mbedtls_sha3_384_info;
 extern mbedtls_md_info_x mbedtls_sha3_512_info;
+extern mbedtls_md_info_x mbedtls_shake128_info;
+extern mbedtls_md_info_x mbedtls_shake256_info;
 extern mbedtls_md_info_x mbedtls_keccak256_info;
 extern mbedtls_md_info_x mbedtls_keccak384_info;
 extern mbedtls_md_info_x mbedtls_keccak512_info;
@@ -28,6 +30,8 @@ static mbedtls_md_info_x* md_infos[] = {
     &mbedtls_sha3_256_info,
     &mbedtls_sha3_384_info,
     &mbedtls_sha3_512_info,
+    &mbedtls_shake128_info,
+    &mbedtls_shake256_info,
     &mbedtls_keccak256_info,
     &mbedtls_keccak384_info,
     &mbedtls_keccak512_info,

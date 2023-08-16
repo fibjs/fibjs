@@ -88,39 +88,49 @@ declare module 'hash' {
     export const SHA3_512: 11;
 
     /**
+     * @description SHAKE128 信息摘要算法标识常量 
+     */
+    export const SHAKE128: 12;
+
+    /**
+     * @description SHAKE256 信息摘要算法标识常量 
+     */
+    export const SHAKE256: 13;
+
+    /**
      * @description KECCAK256 信息摘要算法标识常量 
      */
-    export const KECCAK256: 12;
+    export const KECCAK256: 14;
 
     /**
      * @description KECCAK384 信息摘要算法标识常量 
      */
-    export const KECCAK384: 13;
+    export const KECCAK384: 15;
 
     /**
      * @description KECCAK512 信息摘要算法标识常量 
      */
-    export const KECCAK512: 14;
+    export const KECCAK512: 16;
 
     /**
      * @description BLAKE2S 信息摘要算法标识常量 
      */
-    export const BLAKE2S: 15;
+    export const BLAKE2S: 17;
 
     /**
      * @description BLAKE2B 信息摘要算法标识常量 
      */
-    export const BLAKE2B: 16;
+    export const BLAKE2B: 18;
 
     /**
      * @description BLAKE2SP 信息摘要算法标识常量 
      */
-    export const BLAKE2SP: 17;
+    export const BLAKE2SP: 19;
 
     /**
      * @description BLAKE2BP 信息摘要算法标识常量 
      */
-    export const BLAKE2BP: 18;
+    export const BLAKE2BP: 20;
 
     /**
      * @description 根据指定的算法标识创建一个信息摘要运算对象
@@ -228,6 +238,22 @@ declare module 'hash' {
      *      
      */
     function sha3_512(data?: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 创建一个 SHAKE128 信息摘要运算对象
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function shake128(data?: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 创建一个 SHAKE256 信息摘要运算对象
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function shake256(data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 KECCAK256 信息摘要运算对象
@@ -395,6 +421,24 @@ declare module 'hash' {
      *      
      */
     function hmac_sha3_384(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 创建一个 SHAKE128 信息摘要签名运算对象
+     *      @param key 二进制签名密钥
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function hmac_shake128(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 创建一个 SHAKE256 信息摘要签名运算对象
+     *      @param key 二进制签名密钥
+     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
+     *      @return 返回构造的信息摘要对象
+     *      
+     */
+    function hmac_shake256(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 创建一个 SHA3_512 信息摘要签名运算对象

@@ -33,6 +33,8 @@ public:
         g_hashes->append("sha3_256");
         g_hashes->append("sha3_384");
         g_hashes->append("sha3_512");
+        g_hashes->append("shake128");
+        g_hashes->append("shake256");
         g_hashes->append("keccak256");
         g_hashes->append("keccak384");
         g_hashes->append("keccak512");
@@ -97,6 +99,8 @@ DEF_FUNC(ripemd160, RIPEMD160);
 DEF_FUNC(sha3_256, SHA3_256);
 DEF_FUNC(sha3_384, SHA3_384);
 DEF_FUNC(sha3_512, SHA3_512);
+DEF_FUNC(shake128, SHAKE128);
+DEF_FUNC(shake256, SHAKE256);
 DEF_FUNC(keccak256, KECCAK256);
 DEF_FUNC(keccak384, KECCAK384);
 DEF_FUNC(keccak512, KECCAK512);
