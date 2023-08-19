@@ -32,7 +32,4 @@ void setAsyncFunctoin(v8::Local<v8::Function> func);
 
 std::unique_ptr<v8::BackingStore> NewBackingStore(size_t byte_length);
 
-void* disable_gc();
-void enable_gc(void* handle);
-
 } /* namespace fibjs */

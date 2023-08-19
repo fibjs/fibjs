@@ -34,6 +34,9 @@ public:
         SnapshotJsScope(Isolate* cur = NULL);
         ~SnapshotJsScope();
 
+    public:
+        bool is_terminating();
+
     protected:
         Isolate* m_isolate;
         JSFiber* m_fb;
@@ -49,22 +52,6 @@ public:
 
     private:
         v8::Unlocker unlocker;
-    };
-
-    class DisallowGarbageCollection {
-    public:
-        DisallowGarbageCollection()
-            : m_handle(disable_gc())
-        {
-        }
-
-        ~DisallowGarbageCollection()
-        {
-            enable_gc(m_handle);
-        }
-
-    private:
-        void* m_handle;
     };
 
 public:

@@ -49,7 +49,7 @@ result_t Condition::wait(int32_t timeout, bool& retVal)
     Isolate::LeaveJsScope _rt(holder());
     retVal = m_cond.wait(m_lockCond->m_lock, timeout);
 
-    return 0;
+    return _rt.is_terminating() ? CALL_E_TIMEOUT : 0;
 }
 
 result_t Condition::notify()

@@ -109,6 +109,7 @@ result_t JSFiber::join()
     if (!m_quit.isSet()) {
         Isolate::LeaveJsScope _rt(holder());
         m_quit.wait();
+        return _rt.is_terminating() ? CALL_E_TIMEOUT : 0;
     }
 
     return 0;

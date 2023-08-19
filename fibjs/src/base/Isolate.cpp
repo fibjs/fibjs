@@ -70,6 +70,11 @@ Isolate::SnapshotJsScope::~SnapshotJsScope()
         m_isolate->m_isolate->TerminateExecution();
 }
 
+bool Isolate::SnapshotJsScope::is_terminating()
+{
+    return m_fb->m_termed;
+}
+
 static void fb_GCCallback(v8::Isolate* js_isolate, v8::GCType type, v8::GCCallbackFlags flags)
 {
     Isolate* isolate = Isolate::current(js_isolate);

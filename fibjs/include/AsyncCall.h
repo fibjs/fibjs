@@ -110,12 +110,18 @@ public:
             Isolate::LeaveJsScope _rt(m_isolate);
             invoke();
             weak.wait();
+
+            if (_rt.is_terminating())
+                m_v = CALL_E_TIMEOUT;
         } else if (hr == CALL_E_LONGSYNC || hr == CALL_E_GUICALL) {
             async(hr);
 
             if (!weak.isSet()) {
                 Isolate::LeaveJsScope _rt(m_isolate);
                 weak.wait();
+
+                if (_rt.is_terminating())
+                    m_v = CALL_E_TIMEOUT;
             }
         } else
             return hr;

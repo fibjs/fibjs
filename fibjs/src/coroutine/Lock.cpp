@@ -27,6 +27,7 @@ result_t Lock::acquire(bool blocking, bool& retVal)
     if (!m_lock.trylock()) {
         Isolate::LeaveJsScope _rt(holder());
         m_lock.lock();
+        return _rt.is_terminating() ? CALL_E_TIMEOUT : 0;
     }
 
     retVal = true;

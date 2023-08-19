@@ -54,7 +54,7 @@ result_t Semaphore::wait(int32_t timeout, bool& retVal)
     Isolate::LeaveJsScope _rt(holder());
     retVal = m_sem.wait(timeout);
 
-    return 0;
+    return _rt.is_terminating() ? CALL_E_TIMEOUT : 0;
 }
 
 result_t Semaphore::post()

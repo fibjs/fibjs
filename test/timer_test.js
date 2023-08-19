@@ -444,7 +444,7 @@ describe("timer", () => {
         it("sleep", () => {
             function test2() {
                 while (true)
-                    coroutine.sleep(10);
+                    coroutine.sleep(5);
             }
 
             var t1 = new Date();
@@ -452,8 +452,19 @@ describe("timer", () => {
                 timers.call(test2, 30);
             });
             var t2 = new Date();
-            assert.greaterThan(t2 - t1, 90);
+            assert.greaterThan(t2 - t1, 30);
             assert.lessThan(t2 - t1, 1000);
+        });
+
+        it("10 times sleep", () => {
+            function test2() {
+                while (true)
+                    coroutine.sleep(2);
+            }
+
+            assert.throws(() => {
+                timers.call(test2, 30);
+            });
         });
 
         it("util.format", () => {
