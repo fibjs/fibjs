@@ -77,6 +77,15 @@ result_t get_index(Variant& idx, size_t msg_len, std::vector<int32_t>& idx_i, st
     return 0;
 }
 
+static void blst_hash_to_scalar(blst_scalar* out, const byte* msg, size_t msg_len,
+    const byte* DST, size_t DST_len)
+{
+    byte buf[48];
+
+    blst_expand_message_xmd(buf, sizeof(buf), msg, msg_len, DST, DST_len);
+    blst_scalar_from_be_bytes(out, buf, sizeof(buf));
+}
+
 static std::vector<blst_scalar> messagesToFr(Variant& _msgs)
 {
     const NArray* msgs = (NArray*)_msgs.object();
@@ -92,7 +101,7 @@ static std::vector<blst_scalar> messagesToFr(Variant& _msgs)
 
         Buffer* buf = Buffer::Cast((Buffer_base*)v.object());
         blst_hash_to_scalar(&fr_messages[i], buf->data(), buf->length(),
-            DST_G1_BBS_MSG_TO_SCALAR, sizeof(DST_G1_BBS_MSG_TO_SCALAR) - 1);
+            DST_G1_BBS_SHA256_MSG_TO_SCALAR, sizeof(DST_G1_BBS_SHA256_MSG_TO_SCALAR) - 1);
     }
 
     return fr_messages;
@@ -105,10 +114,10 @@ blst_scalar calculate_domain(const blst_p2& pk, const Generators& gens, Buffer_b
 
     std::vector<uint8_t> data = encode(pk,
         gens.size, gens.q1, codec_impl::span(gens.h, gens.size),
-        codec_impl::span((uint8_t*)DST_G1_BBS_SUITE, sizeof(DST_G1_BBS_SUITE) - 1),
+        codec_impl::span((uint8_t*)DST_G1_BBS_SHA256_SUITE, sizeof(DST_G1_BBS_SHA256_SUITE) - 1),
         buf ? buf->length() : 0,
         buf ? codec_impl::span(buf->data(), buf->length()) : codec_impl::span((uint8_t*)NULL, 0));
-    blst_hash_to_scalar(&s, data.data(), data.size(), DST_G1_BBS_H2S, sizeof(DST_G1_BBS_H2S) - 1);
+    blst_hash_to_scalar(&s, data.data(), data.size(), DST_G1_BBS_SHA256_H2S, sizeof(DST_G1_BBS_SHA256_H2S) - 1);
 
     return s;
 }
@@ -122,15 +131,18 @@ blst_scalar calculate_challenge(const blst_p1& abar, const blst_p1& bbar, const 
     std::vector<uint8_t> data = encode(abar, bbar, c, idx_i.size(), idx_i, fr_messages, domain,
         buf ? buf->length() : 0,
         buf ? codec_impl::span(buf->data(), buf->length()) : codec_impl::span((uint8_t*)NULL, 0));
-    blst_hash_to_scalar(&s, data.data(), data.size(), DST_G1_BBS_H2S, sizeof(DST_G1_BBS_H2S) - 1);
+    blst_hash_to_scalar(&s, data.data(), data.size(), DST_G1_BBS_SHA256_H2S, sizeof(DST_G1_BBS_SHA256_H2S) - 1);
 
     return s;
 }
 
 blst_scalar generate_random_scalar()
 {
+    byte buf[48];
     blst_scalar s;
-    mbedtls_ctr_drbg_random(&g_ssl.ctr_drbg, (byte*)&s, sizeof(s));
+
+    mbedtls_ctr_drbg_random(&g_ssl.ctr_drbg, buf, sizeof(buf));
+    blst_scalar_from_be_bytes(&s, buf, sizeof(buf));
     return s;
 }
 
@@ -301,8 +313,8 @@ result_t BlsKey_g2::proofGen(Buffer_base* sig, v8::Local<v8::Array> messages, v8
 
     blst_p1 c;
 
-    blst_p1_mult(&c, &p.abar, (const byte*)&r3, 256);
-    add_mul(c, p.bbar, r2);
+    blst_p1_mult(&c, &p.bbar, (const byte*)&r3, 256);
+    add_mul(c, p.abar, r2);
     for (size_t i = 0; i < idx_j.size(); i++)
         add_mul(c, gens.h[idx_j[i] - 1], rs[i]);
 
@@ -329,12 +341,12 @@ result_t BlsKey_g2::proofGen(Buffer_base* sig, v8::Local<v8::Array> messages, v8
     blst_fr_from_scalar(&frc, &p.c);
     blst_fr_from_scalar(&fre, &s.e);
 
-    blst_fr_mul(&fr5, &fr4, &frc);
+    blst_fr_mul(&fr5, &fr4, &fre);
+    blst_fr_mul(&fr5, &fr5, &frc);
     blst_fr_add(&fr5, &fr5, &fr2);
     blst_scalar_from_fr(&p.r2hat, &fr5);
 
-    blst_fr_mul(&fr5, &fr4, &fre);
-    blst_fr_mul(&fr5, &fr5, &frc);
+    blst_fr_mul(&fr5, &fr4, &frc);
     blst_fr_add(&fr5, &fr5, &fr3);
     blst_scalar_from_fr(&p.r3hat, &fr5);
 
@@ -413,8 +425,8 @@ result_t BlsKey_g2::proofVerify(v8::Local<v8::Array> messages, v8::Local<v8::Arr
     for (size_t i = 0; i < idx_i.size(); i++)
         add_mul(d, gens.h[idx_i[i] - 1], fr_messages[i]);
 
-    blst_p1_mult(&c, &p.bbar, (const byte*)&p.r2hat, 256);
-    add_mul(c, p.abar, p.r3hat);
+    blst_p1_mult(&c, &p.abar, (const byte*)&p.r2hat, 256);
+    add_mul(c, p.bbar, p.r3hat);
     for (size_t i = 0; i < idx_j.size(); i++)
         add_mul(c, gens.h[idx_j[i] - 1], p.mhat[i]);
     add_mul(c, d, p.c);

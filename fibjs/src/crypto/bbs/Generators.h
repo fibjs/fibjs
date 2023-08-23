@@ -65,7 +65,7 @@ public:
 private:
     static std::shared_ptr<blst_p1> get(size_t sz)
     {
-        static int32_t num = 0;
+        static int64_t num = 0;
         static unsigned char v[G1_COMPRESSED_SIZE + sizeof(num)];
         static exlib::spinlock s_lock;
 
@@ -75,8 +75,8 @@ private:
         s_lock.lock();
 
         if (num == 0) {
-            blst_expand_message_xmd(v, G1_COMPRESSED_SIZE, DST_G1_BBS_MSG_SEED, sizeof(DST_G1_BBS_MSG_SEED) - 1,
-                DST_G1_BBS_SIG_SEED, sizeof(DST_G1_BBS_SIG_SEED) - 1);
+            blst_expand_message_xmd(v, G1_COMPRESSED_SIZE, DST_G1_BBS_SHA256_MSG_SEED, sizeof(DST_G1_BBS_SHA256_MSG_SEED) - 1,
+                DST_G1_BBS_SHA256_SIG_SEED, sizeof(DST_G1_BBS_SHA256_SIG_SEED) - 1);
             num++;
         }
 
@@ -88,24 +88,21 @@ private:
             h_ptr.reset(h_ptr_new);
 
             while (pos < sz + 1) {
-                v[G1_COMPRESSED_SIZE] = (num >> 24) & 0xff;
-                v[G1_COMPRESSED_SIZE + 1] = (num >> 16) & 0xff;
-                v[G1_COMPRESSED_SIZE + 2] = (num >> 8) & 0xff;
-                v[G1_COMPRESSED_SIZE + 3] = num & 0xff;
+                v[G1_COMPRESSED_SIZE] = (num >> 56) & 0xff;
+                v[G1_COMPRESSED_SIZE + 1] = (num >> 48) & 0xff;
+                v[G1_COMPRESSED_SIZE + 2] = (num >> 40) & 0xff;
+                v[G1_COMPRESSED_SIZE + 3] = (num >> 32) & 0xff;
+                v[G1_COMPRESSED_SIZE + 4] = (num >> 24) & 0xff;
+                v[G1_COMPRESSED_SIZE + 5] = (num >> 16) & 0xff;
+                v[G1_COMPRESSED_SIZE + 6] = (num >> 8) & 0xff;
+                v[G1_COMPRESSED_SIZE + 7] = num & 0xff;
 
                 blst_expand_message_xmd(v, G1_COMPRESSED_SIZE, v, sizeof(v),
-                    DST_G1_BBS_SIG_SEED, sizeof(DST_G1_BBS_SIG_SEED) - 1);
+                    DST_G1_BBS_SHA256_SIG_SEED, sizeof(DST_G1_BBS_SHA256_SIG_SEED) - 1);
                 num++;
 
                 blst_p1 k;
-                blst_hash_to_g1(&k, v, G1_COMPRESSED_SIZE, DST_G1_BBS_SIG, sizeof(DST_G1_BBS_SIG) - 1);
-
-                size_t i;
-                for (i = 0; i < pos; i++)
-                    if (memcmp(&k, &h_ptr.get()[i], sizeof(blst_p1)) == 0)
-                        break;
-                if (i < pos)
-                    continue;
+                blst_hash_to_g1(&k, v, G1_COMPRESSED_SIZE, DST_G1_BBS_SHA256_SIG, sizeof(DST_G1_BBS_SHA256_SIG) - 1);
 
                 h_ptr.get()[pos++] = k;
             }
