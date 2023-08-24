@@ -28,58 +28,30 @@ static int _start_256(mbedtls_md_context_t* ctx)
 
 static int _update_128(mbedtls_md_context_t* ctx, const unsigned char* input, size_t ilen)
 {
-    shake128_absorb((shake128ctx*)&ctx->md_ctx, input, ilen);
+    shake128_inc_absorb((shake128incctx*)&ctx->md_ctx, input, ilen);
     return 0;
 }
 
 static int _update_256(mbedtls_md_context_t* ctx, const unsigned char* input, size_t ilen)
 {
-    shake256_absorb((shake256ctx*)&ctx->md_ctx, input, ilen);
+    shake256_inc_absorb((shake256incctx*)&ctx->md_ctx, input, ilen);
     return 0;
 }
 
 static int _finish_128(mbedtls_md_context_t* ctx, unsigned char* output)
 {
-    size_t outlen = 16;
-    size_t nblocks = outlen / SHAKE128_RATE;
-    uint8_t t[SHAKE128_RATE];
-
-    shake128_squeezeblocks(output, nblocks, (shake128ctx*)&ctx->md_ctx);
-
-    output += nblocks * SHAKE128_RATE;
-    outlen -= nblocks * SHAKE128_RATE;
-
-    if (outlen) {
-        shake128_squeezeblocks(t, 1, (shake128ctx*)&ctx->md_ctx);
-        for (size_t i = 0; i < outlen; ++i) {
-            output[i] = t[i];
-        }
-    }
-
-    shake128_ctx_release((shake128ctx*)&ctx->md_ctx);
+    shake128_inc_finalize((shake128incctx*)&ctx->md_ctx);
+    shake128_inc_squeeze(output, 16, (shake128incctx*)&ctx->md_ctx);
+    shake128_inc_ctx_release((shake128incctx*)&ctx->md_ctx);
     ctx->md_ctx = NULL;
     return 0;
 }
 
 static int _finish_256(mbedtls_md_context_t* ctx, unsigned char* output)
 {
-    size_t outlen = 32;
-    size_t nblocks = outlen / SHAKE256_RATE;
-    uint8_t t[SHAKE256_RATE];
-
-    shake256_squeezeblocks(output, nblocks, (shake256ctx*)&ctx->md_ctx);
-
-    output += nblocks * SHAKE256_RATE;
-    outlen -= nblocks * SHAKE256_RATE;
-
-    if (outlen) {
-        shake256_squeezeblocks(t, 1, (shake256ctx*)&ctx->md_ctx);
-        for (size_t i = 0; i < outlen; ++i) {
-            output[i] = t[i];
-        }
-    }
-
-    shake256_ctx_release((shake256ctx*)&ctx->md_ctx);
+    shake256_inc_finalize((shake256incctx*)&ctx->md_ctx);
+    shake256_inc_squeeze(output, 32, (shake256incctx*)&ctx->md_ctx);
+    shake256_inc_ctx_release((shake256incctx*)&ctx->md_ctx);
     ctx->md_ctx = NULL;
     return 0;
 }

@@ -149,6 +149,9 @@ describe("hash", () => {
         var s = crypto.createHash(o.name).update(o.text).sign(sm2_pem);
         assert.ok(crypto.createHash(o.name).update(o.text).verify(pub_sm2_pem, s));
         assert.ok(new crypto.PKey(pub_sm2_pem).verify(crypto.createHash(o.name).update(o.text).digest(), s));
+
+        if (o.text != '')
+            assert.equal(o.hash, hash.digest(hash[o.name], o.text.substr(0, 1)).update(o.text.substr(1)).digest().hex());
     }
 
     function hmac_test(o) {
@@ -785,14 +788,14 @@ describe("hash", () => {
             name: 'SHAKE128',
             key: '',
             text: '',
-            hmac: 'f0378e7884b89146c1a5ab56977c5ed2',
-            base64: '8DeOeIS4kUbBpatWl3xe0g=='
+            hmac: 'e1d42a1194d3302116aa87447fc6e490',
+            base64: '4dQqEZTTMCEWqodEf8bkkA=='
         }, {
             name: 'SHAKE128',
             key: 'key',
             text: 'The quick brown fox jumps over the lazy dog',
-            hmac: '4f36643cbead9886a9a74f4781d42489',
-            base64: 'TzZkPL6tmIapp09HgdQkiQ=='
+            hmac: '173d5415e4ff548fc56cf04516b530f6',
+            base64: 'Fz1UFeT/VI/FbPBFFrUw9g=='
         }];
 
         hmac_case.forEach(hmac_test);
@@ -803,14 +806,14 @@ describe("hash", () => {
             name: 'SHAKE256',
             key: '',
             text: '',
-            hmac: 'a7b5e0262ecad6b6197c4b3b32112a9e55212fb47df59ccc845ac020517b5cf3',
-            base64: 'p7XgJi7K1rYZfEs7MhEqnlUhL7R99ZzMhFrAIFF7XPM='
+            hmac: '8f199276499167ab962c2a3d4c5f835301e013212b0b90ccec223747513feb2c',
+            base64: 'jxmSdkmRZ6uWLCo9TF+DUwHgEyErC5DM7CI3R1E/6yw='
         }, {
             name: 'SHAKE256',
             key: 'key',
             text: 'The quick brown fox jumps over the lazy dog',
-            hmac: '93fb26a27f6eafc5d7527cc59d5a0f6d2f2b49ce01815e7b475b2c3e922ea529',
-            base64: 'k/smon9ur8XXUnzFnVoPbS8rSc4BgV57R1ssPpIupSk='
+            hmac: '749687518fdf578cd372b837c4d521a9ab70ac56a7c8adceecbc9b3322485869',
+            base64: 'dJaHUY/fV4zTcrg3xNUhqatwrFanyK3O7LybMyJIWGk='
         }];
 
         hmac_case.forEach(hmac_test);
