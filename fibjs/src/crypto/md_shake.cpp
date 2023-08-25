@@ -9,7 +9,7 @@
 
 #include "object.h"
 #include <string.h>
-#include "fips202.h"
+#include <fips202/include/fips202.h>
 #include "md_api.h"
 
 namespace fibjs {

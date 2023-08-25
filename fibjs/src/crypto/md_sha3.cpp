@@ -9,7 +9,7 @@
 
 #include "object.h"
 #include <string.h>
-#include "fips202.h"
+#include <fips202/include/fips202.h>
 #include "md_api.h"
 
 namespace fibjs {
@@ -52,21 +52,21 @@ static int _update_512(mbedtls_md_context_t* ctx, const unsigned char* input, si
 
 static int _finish_256(mbedtls_md_context_t* ctx, unsigned char* output)
 {
-    sha3_256_inc_finalize(output, (sha3_256incctx*)&ctx->md_ctx);
+    sha3_256_inc_finalize(output, (sha3_256incctx*)&ctx->md_ctx, 0x06);
     ctx->md_ctx = NULL;
     return 0;
 }
 
 static int _finish_384(mbedtls_md_context_t* ctx, unsigned char* output)
 {
-    sha3_384_inc_finalize(output, (sha3_384incctx*)&ctx->md_ctx);
+    sha3_384_inc_finalize(output, (sha3_384incctx*)&ctx->md_ctx, 0x06);
     ctx->md_ctx = NULL;
     return 0;
 }
 
 static int _finish_512(mbedtls_md_context_t* ctx, unsigned char* output)
 {
-    sha3_512_inc_finalize(output, (sha3_512incctx*)&ctx->md_ctx);
+    sha3_512_inc_finalize(output, (sha3_512incctx*)&ctx->md_ctx, 0x06);
     ctx->md_ctx = NULL;
     return 0;
 }
