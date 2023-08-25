@@ -25,6 +25,8 @@ class BlsKey_base : public ECKey_base {
 public:
     // BlsKey_base
     static result_t _new(v8::Local<v8::Object> jsonKey, obj_ptr<BlsKey_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t get_bbs_suite(exlib::string& retVal) = 0;
+    virtual result_t set_bbs_suite(exlib::string newVal) = 0;
     virtual result_t bbsSign(v8::Local<v8::Array> messages, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t bbsVerify(v8::Local<v8::Array> messages, Buffer_base* sig, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac) = 0;
     virtual result_t proofGen(Buffer_base* sig, v8::Local<v8::Array> messages, v8::Local<v8::Array> idx, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
@@ -38,6 +40,8 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_bbs_suite(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_bbs_suite(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_bbsSign(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_bbsVerify(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_proofGen(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -71,9 +75,13 @@ inline ClassInfo& BlsKey_base::class_info()
         { "aggregatePublicKey", s_static_aggregatePublicKey, true, false }
     };
 
+    static ClassData::ClassProperty s_property[] = {
+        { "bbs_suite", s_get_bbs_suite, s_set_bbs_suite, false }
+    };
+
     static ClassData s_cd = {
         "BlsKey", false, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &ECKey_base::class_info()
     };
 
@@ -101,6 +109,29 @@ void BlsKey_base::__new(const T& args)
     hr = _new(v0, vr, args.This());
 
     CONSTRUCT_RETURN();
+}
+
+inline void BlsKey_base::s_get_bbs_suite(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_INSTANCE(BlsKey_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_bbs_suite(vr);
+
+    METHOD_RETURN();
+}
+
+inline void BlsKey_base::s_set_bbs_suite(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_INSTANCE(BlsKey_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(exlib::string);
+
+    hr = pInst->set_bbs_suite(v0);
+
+    PROPERTY_SET_LEAVE();
 }
 
 inline void BlsKey_base::s_bbsSign(const v8::FunctionCallbackInfo<v8::Value>& args)

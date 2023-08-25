@@ -22,6 +22,11 @@ static void add_mul(blst_p1& b, const blst_p1& p, const blst_scalar& s)
     blst_p1_add(&b, &b, &g);
 }
 
+static void bbs_expand_message(unsigned char* bytes, size_t len_in_bytes, const unsigned char* msg, size_t msg_len,
+    const unsigned char* DST, size_t DST_len, int32_t suite);
+static void bbs_hash_to_g1(blst_p1* out, const byte* msg, size_t msg_len,
+    const byte* DST, size_t DST_len, int32_t suite);
+
 class Generators {
 public:
     Generators(const Generators& g)
@@ -32,8 +37,8 @@ public:
     {
     }
 
-    Generators(size_t sz)
-        : h_ptr(get(sz))
+    Generators(size_t sz, int32_t suite)
+        : h_ptr(suite == 0 ? get<Bls12381Sha256>(sz) : get<Bls12381Shake256>(sz))
         , q1(h_ptr.get()[0])
         , h(h_ptr.get() + 1)
         , size(sz)
@@ -41,11 +46,11 @@ public:
     }
 
 public:
-    blst_p1 compute_b(const blst_scalar* msgs, const blst_scalar& domain)
+    blst_p1 compute_b(const blst_scalar* msgs, const blst_scalar& domain, int32_t suite)
     {
         blst_p1 b;
 
-        blst_p1_from_affine(&b, &BLS12_381_G1_P1);
+        blst_p1_from_affine(&b, suite == 0 ? &BLS12_381_G1_P1 : &BLS12_381_G1_P1_XOF);
 
         add_mul(b, q1, domain);
         for (size_t i = 0; i < size; i++)
@@ -63,6 +68,7 @@ public:
     size_t size;
 
 private:
+    template <int32_t suite = 0>
     static std::shared_ptr<blst_p1> get(size_t sz)
     {
         static int64_t num = 0;
@@ -75,8 +81,7 @@ private:
         s_lock.lock();
 
         if (num == 0) {
-            blst_expand_message_xmd(v, G1_COMPRESSED_SIZE, DST_G1_BBS_SHA256_MSG_SEED, sizeof(DST_G1_BBS_SHA256_MSG_SEED) - 1,
-                DST_G1_BBS_SHA256_SIG_SEED, sizeof(DST_G1_BBS_SHA256_SIG_SEED) - 1);
+            bbs_expand_message(v, G1_COMPRESSED_SIZE, DST(MSG_SEED, suite), DST(SIG_SEED, suite), suite);
             num++;
         }
 
@@ -96,15 +101,10 @@ private:
                 v[G1_COMPRESSED_SIZE + 5] = (num >> 16) & 0xff;
                 v[G1_COMPRESSED_SIZE + 6] = (num >> 8) & 0xff;
                 v[G1_COMPRESSED_SIZE + 7] = num & 0xff;
-
-                blst_expand_message_xmd(v, G1_COMPRESSED_SIZE, v, sizeof(v),
-                    DST_G1_BBS_SHA256_SIG_SEED, sizeof(DST_G1_BBS_SHA256_SIG_SEED) - 1);
                 num++;
 
-                blst_p1 k;
-                blst_hash_to_g1(&k, v, G1_COMPRESSED_SIZE, DST_G1_BBS_SHA256_SIG, sizeof(DST_G1_BBS_SHA256_SIG) - 1);
-
-                h_ptr.get()[pos++] = k;
+                bbs_expand_message(v, G1_COMPRESSED_SIZE, v, sizeof(v), DST(SIG_SEED, suite), suite);
+                bbs_hash_to_g1(&h_ptr.get()[pos++], v, G1_COMPRESSED_SIZE, DST(SIG, suite), suite);
             }
         }
 

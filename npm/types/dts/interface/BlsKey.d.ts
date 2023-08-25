@@ -63,6 +63,12 @@ declare class Class_BlsKey extends Class_ECKey {
     constructor(jsonKey: FIBJS.GeneralObject);
 
     /**
+     *  @description BBS 签名的加密套件，缺省为 Bls12381Sha256，可修改为 Bls12381Shake256，仅支持 BLS12-381-G2 曲线
+     *     
+     */
+    bbs_suite: string;
+
+    /**
      *  @description 使用当前私钥签名一组消息，仅支持 BLS12-381-G2 曲线
      *      opts 支持以下参数:
      *      ```JavaScript

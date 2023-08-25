@@ -1,0 +1,13 @@
+{
+    "caseName": "valid single message signature, single-message revealed proof",
+    "signerPublicKey": "92d37d1d6cd38fea3a873953333eab23a4c0377e3e049974eb62bd45949cdeb18fb0490edcd4429adff56e65cbce42cf188b31bddbd619e419b99c2c41b38179eb001963bc3decaae0d9f702c7a8c004f207f46c734a5eae2e8e82833f3e7ea5",
+    "header": "11223344556677889900aabbccddeeff",
+    "presentationHeader": "bed231d880675ed101ead304512e043ade9958dd0241ea70b4b3957fba941501",
+    "revealedMessages": {
+        "0": "9872ad089e452c7b6e283dfac2a80d58e8d0ff71cc4d5e310a1debdda4a45f02"
+    },
+    "proof": "85c250f9a52faeb883ad9598aed05d31fe5861478d9f33b8de2deed1d92de5c0b0ef34458e6cf8bad8caa0724fd3d3ca854abee98db3384e81a406d976643e239df0a924576eaf8f4eec2885e9c688af7a52e4a752bef2c6f07d0a45611db3795d83d9cd71dfe8a62e3ad992e6327413baaea14c1de798c8929f9c6b1524bab54d0494dd5354d5a0770b79d2911bb6591ce293e03a0d083bb81fc5bed8a44ff67386c0c33ddaaebf7d046849428fc6cf4d08815fa39c94144c79ac50e86a0f5d",
+    "result": {
+        "valid": true
+    }
+}

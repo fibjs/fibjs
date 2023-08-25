@@ -77,16 +77,34 @@ result_t get_index(Variant& idx, size_t msg_len, std::vector<int32_t>& idx_i, st
     return 0;
 }
 
-static void blst_hash_to_scalar(blst_scalar* out, const byte* msg, size_t msg_len,
-    const byte* DST, size_t DST_len)
+static void bbs_hash_to_g1(blst_p1* out, const byte* msg, size_t msg_len,
+    const byte* DST, size_t DST_len, int32_t suite)
 {
-    byte buf[48];
-
-    blst_expand_message_xmd(buf, sizeof(buf), msg, msg_len, DST, DST_len);
-    blst_scalar_from_be_bytes(out, buf, sizeof(buf));
+    if (suite == Bls12381Sha256)
+        blst_hash_to_g1(out, msg, msg_len, DST, DST_len);
+    else
+        blst_hash_to_g1_xof(out, msg, msg_len, DST, DST_len);
 }
 
-static std::vector<blst_scalar> messagesToFr(Variant& _msgs)
+static void bbs_expand_message(unsigned char* bytes, size_t len_in_bytes, const unsigned char* msg, size_t msg_len,
+    const unsigned char* DST, size_t DST_len, int32_t suite)
+{
+    if (suite == Bls12381Sha256)
+        blst_expand_message_xmd(bytes, len_in_bytes, msg, msg_len, DST, DST_len);
+    else
+        blst_expand_message_xof(bytes, len_in_bytes, msg, msg_len, DST, DST_len);
+}
+
+static void blst_hash_to_scalar(blst_scalar* out, const byte* msg, size_t msg_len,
+    const byte* DST, size_t DST_len, int32_t suite)
+{
+    byte buf[G1_COMPRESSED_SIZE];
+
+    bbs_expand_message(buf, G1_COMPRESSED_SIZE, msg, msg_len, DST, DST_len, suite);
+    blst_scalar_from_be_bytes(out, buf, G1_COMPRESSED_SIZE);
+}
+
+static std::vector<blst_scalar> messagesToFr(Variant& _msgs, int32_t suite)
 {
     const NArray* msgs = (NArray*)_msgs.object();
     size_t sz = msgs->length();
@@ -100,30 +118,29 @@ static std::vector<blst_scalar> messagesToFr(Variant& _msgs)
         msgs->_indexed_getter(i, v);
 
         Buffer* buf = Buffer::Cast((Buffer_base*)v.object());
-        blst_hash_to_scalar(&fr_messages[i], buf->data(), buf->length(),
-            DST_G1_BBS_SHA256_MSG_TO_SCALAR, sizeof(DST_G1_BBS_SHA256_MSG_TO_SCALAR) - 1);
+        blst_hash_to_scalar(&fr_messages[i], buf->data(), buf->length(), DST(MSG_TO_SCALAR, suite), suite);
     }
 
     return fr_messages;
 }
 
-blst_scalar calculate_domain(const blst_p2& pk, const Generators& gens, Buffer_base* header)
+blst_scalar calculate_domain(const blst_p2& pk, const Generators& gens, Buffer_base* header, int32_t suite)
 {
     blst_scalar s;
     Buffer* buf = Buffer::Cast(header);
 
     std::vector<uint8_t> data = encode(pk,
         gens.size, gens.q1, codec_impl::span(gens.h, gens.size),
-        codec_impl::span((uint8_t*)DST_G1_BBS_SHA256_SUITE, sizeof(DST_G1_BBS_SHA256_SUITE) - 1),
+        codec_impl::span(DST(SUITE, suite)),
         buf ? buf->length() : 0,
         buf ? codec_impl::span(buf->data(), buf->length()) : codec_impl::span((uint8_t*)NULL, 0));
-    blst_hash_to_scalar(&s, data.data(), data.size(), DST_G1_BBS_SHA256_H2S, sizeof(DST_G1_BBS_SHA256_H2S) - 1);
+    blst_hash_to_scalar(&s, data.data(), data.size(), DST(H2S, suite), suite);
 
     return s;
 }
 
 blst_scalar calculate_challenge(const blst_p1& abar, const blst_p1& bbar, const blst_p1& c,
-    const std::vector<int32_t>& idx_i, const std::vector<blst_scalar>& fr_messages, const blst_scalar& domain, Buffer_base* ph)
+    const std::vector<int32_t>& idx_i, const std::vector<blst_scalar>& fr_messages, const blst_scalar& domain, Buffer_base* ph, int32_t suite)
 {
     blst_scalar s;
     Buffer* buf = Buffer::Cast(ph);
@@ -131,7 +148,7 @@ blst_scalar calculate_challenge(const blst_p1& abar, const blst_p1& bbar, const 
     std::vector<uint8_t> data = encode(abar, bbar, c, idx_i.size(), idx_i, fr_messages, domain,
         buf ? buf->length() : 0,
         buf ? codec_impl::span(buf->data(), buf->length()) : codec_impl::span((uint8_t*)NULL, 0));
-    blst_hash_to_scalar(&s, data.data(), data.size(), DST_G1_BBS_SHA256_H2S, sizeof(DST_G1_BBS_SHA256_H2S) - 1);
+    blst_hash_to_scalar(&s, data.data(), data.size(), DST(H2S, suite), suite);
 
     return s;
 }
@@ -144,6 +161,24 @@ blst_scalar generate_random_scalar()
     mbedtls_ctr_drbg_random(&g_ssl.ctr_drbg, buf, sizeof(buf));
     blst_scalar_from_be_bytes(&s, buf, sizeof(buf));
     return s;
+}
+
+result_t BlsKey_g2::get_bbs_suite(exlib::string& retVal)
+{
+    retVal = m_bbs_suite == (int32_t)Bls12381Sha256 ? "Bls12381Sha256" : "Bls12381Shake256";
+    return 0;
+}
+
+result_t BlsKey_g2::set_bbs_suite(exlib::string newVal)
+{
+    if (newVal == "Bls12381Sha256")
+        m_bbs_suite = Bls12381Sha256;
+    else if (newVal == "Bls12381Shake256")
+        m_bbs_suite = Bls12381Shake256;
+    else
+        return CALL_E_INVALID_DATA;
+
+    return 0;
 }
 
 result_t BlsKey_g2::check_bbs_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
@@ -201,11 +236,11 @@ result_t BlsKey_g2::bbsSign(v8::Local<v8::Array> messages, v8::Local<v8::Object>
         return check_bbs_opts(opts, ac);
     }
 
-    std::vector<blst_scalar> fr_messages = messagesToFr(ac->m_ctx[0]);
-    Generators gens(fr_messages.size());
+    std::vector<blst_scalar> fr_messages = messagesToFr(ac->m_ctx[0], m_bbs_suite);
+    Generators gens(fr_messages.size(), m_bbs_suite);
 
-    blst_scalar domain = calculate_domain(get_pk(), gens, (Buffer_base*)ac->m_ctx[2].object());
-    blst_p1 b = gens.compute_b(fr_messages.data(), domain);
+    blst_scalar domain = calculate_domain(get_pk(), gens, (Buffer_base*)ac->m_ctx[2].object(), m_bbs_suite);
+    blst_p1 b = gens.compute_b(fr_messages.data(), domain, m_bbs_suite);
 
     Signature s;
 
@@ -230,7 +265,7 @@ result_t BlsKey_g2::bbsVerify(v8::Local<v8::Array> messages, Buffer_base* sig, v
         return check_bbs_opts(opts, ac);
     }
 
-    std::vector<blst_scalar> fr_messages = messagesToFr(ac->m_ctx[0]);
+    std::vector<blst_scalar> fr_messages = messagesToFr(ac->m_ctx[0], m_bbs_suite);
 
     Signature s;
     if (!s.parse(sig)) {
@@ -240,9 +275,9 @@ result_t BlsKey_g2::bbsVerify(v8::Local<v8::Array> messages, Buffer_base* sig, v
 
     blst_p2 pk = get_pk();
 
-    Generators gens(fr_messages.size());
-    blst_scalar domain = calculate_domain(pk, gens, (Buffer_base*)ac->m_ctx[2].object());
-    blst_p1 b = gens.compute_b(fr_messages.data(), domain);
+    Generators gens(fr_messages.size(), m_bbs_suite);
+    blst_scalar domain = calculate_domain(pk, gens, (Buffer_base*)ac->m_ctx[2].object(), m_bbs_suite);
+    blst_p1 b = gens.compute_b(fr_messages.data(), domain, m_bbs_suite);
 
     retVal = s.verify(pk, b);
     return 0;
@@ -277,7 +312,7 @@ result_t BlsKey_g2::proofGen(Buffer_base* sig, v8::Local<v8::Array> messages, v8
     if (!s.parse(sig))
         return CALL_E_INVALID_DATA;
 
-    std::vector<blst_scalar> fr_messages = messagesToFr(ac->m_ctx[0]);
+    std::vector<blst_scalar> fr_messages = messagesToFr(ac->m_ctx[0], m_bbs_suite);
     size_t msg_len = fr_messages.size();
 
     std::vector<int32_t> idx_i;
@@ -289,8 +324,8 @@ result_t BlsKey_g2::proofGen(Buffer_base* sig, v8::Local<v8::Array> messages, v8
 
     blst_p2 pk = get_pk();
 
-    Generators gens(msg_len);
-    blst_scalar domain = calculate_domain(pk, gens, (Buffer_base*)ac->m_ctx[2].object());
+    Generators gens(msg_len, m_bbs_suite);
+    blst_scalar domain = calculate_domain(pk, gens, (Buffer_base*)ac->m_ctx[2].object(), m_bbs_suite);
 
     blst_scalar r1 = generate_random_scalar();
     blst_scalar r2 = generate_random_scalar();
@@ -301,7 +336,7 @@ result_t BlsKey_g2::proofGen(Buffer_base* sig, v8::Local<v8::Array> messages, v8
     for (size_t i = 0; i < idx_j.size(); i++)
         rs.push_back(generate_random_scalar());
 
-    blst_p1 b = gens.compute_b(fr_messages.data(), domain);
+    blst_p1 b = gens.compute_b(fr_messages.data(), domain, m_bbs_suite);
 
     Proof p;
 
@@ -327,7 +362,7 @@ result_t BlsKey_g2::proofGen(Buffer_base* sig, v8::Local<v8::Array> messages, v8
     for (size_t i = 0; i < idx_i.size(); i++)
         idx_i[i]--;
 
-    p.c = calculate_challenge(p.abar, p.bbar, c, idx_i, fr_messages_i, domain, (Buffer_base*)ac->m_ctx[3].object());
+    p.c = calculate_challenge(p.abar, p.bbar, c, idx_i, fr_messages_i, domain, (Buffer_base*)ac->m_ctx[3].object(), m_bbs_suite);
 
     blst_fr fr4;
 
@@ -398,7 +433,7 @@ result_t BlsKey_g2::proofVerify(v8::Local<v8::Array> messages, v8::Local<v8::Arr
         return 0;
     }
 
-    std::vector<blst_scalar> fr_messages = messagesToFr(ac->m_ctx[0]);
+    std::vector<blst_scalar> fr_messages = messagesToFr(ac->m_ctx[0], m_bbs_suite);
     size_t msg_len = fr_messages.size() + p.mhat.size();
 
     std::vector<int32_t> idx_i;
@@ -415,12 +450,12 @@ result_t BlsKey_g2::proofVerify(v8::Local<v8::Array> messages, v8::Local<v8::Arr
 
     blst_p2 pk = get_pk();
 
-    Generators gens(msg_len);
-    blst_scalar domain = calculate_domain(pk, gens, (Buffer_base*)ac->m_ctx[2].object());
+    Generators gens(msg_len, m_bbs_suite);
+    blst_scalar domain = calculate_domain(pk, gens, (Buffer_base*)ac->m_ctx[2].object(), m_bbs_suite);
 
     blst_p1 d, c;
 
-    blst_p1_from_affine(&d, &BLS12_381_G1_P1);
+    blst_p1_from_affine(&d, m_bbs_suite == 0 ? &BLS12_381_G1_P1 : &BLS12_381_G1_P1_XOF);
     add_mul(d, gens.q1, domain);
     for (size_t i = 0; i < idx_i.size(); i++)
         add_mul(d, gens.h[idx_i[i] - 1], fr_messages[i]);
@@ -434,7 +469,7 @@ result_t BlsKey_g2::proofVerify(v8::Local<v8::Array> messages, v8::Local<v8::Arr
     for (size_t i = 0; i < idx_i.size(); i++)
         idx_i[i]--;
 
-    blst_scalar cv = calculate_challenge(p.abar, p.bbar, c, idx_i, fr_messages, domain, (Buffer_base*)ac->m_ctx[3].object());
+    blst_scalar cv = calculate_challenge(p.abar, p.bbar, c, idx_i, fr_messages, domain, (Buffer_base*)ac->m_ctx[3].object(), m_bbs_suite);
     if (memcmp(&cv, &p.c, sizeof(blst_scalar))) {
         retVal = false;
         return 0;

@@ -65,7 +65,21 @@ BlsKey_g2::BlsKey_g2()
     mbedtls_mpi_read_binary(&ecp->Q.X, k, 96);
 }
 
-result_t BlsKey_g1::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
+result_t BlsKey_g2::get_publicKey(obj_ptr<PKey_base>& retVal)
+{
+    result_t hr;
+
+    hr = ECKey_impl<BlsKey_base>::get_publicKey(retVal);
+    if (hr < 0)
+        return hr;
+
+    BlsKey_g2* pk = (BlsKey_g2*)(PKey_base*)retVal;
+    pk->m_bbs_suite = m_bbs_suite;
+
+    return 0;
+}
+
+result_t BlsKey_g2::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
 {
     static const char* s_keys[] = {
         "format", NULL

@@ -65,7 +65,7 @@ BlsKey_g1::BlsKey_g1()
     mbedtls_mpi_read_binary(&ecp->Q.X, k, 48);
 }
 
-result_t BlsKey_g2::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
+result_t BlsKey_g1::check_opts(v8::Local<v8::Object> opts, AsyncEvent* ac)
 {
     static const char* s_keys[] = {
         "format", NULL

@@ -1,0 +1,22 @@
+{
+  "caseName": "valid multi-message signature, all messages revealed proof",
+  "signerPublicKey": "92d37d1d6cd38fea3a873953333eab23a4c0377e3e049974eb62bd45949cdeb18fb0490edcd4429adff56e65cbce42cf188b31bddbd619e419b99c2c41b38179eb001963bc3decaae0d9f702c7a8c004f207f46c734a5eae2e8e82833f3e7ea5",
+  "header": "11223344556677889900aabbccddeeff",
+  "presentationHeader": "bed231d880675ed101ead304512e043ade9958dd0241ea70b4b3957fba941501",
+  "revealedMessages": {
+    "0": "9872ad089e452c7b6e283dfac2a80d58e8d0ff71cc4d5e310a1debdda4a45f02",
+    "1": "c344136d9ab02da4dd5908bbba913ae6f58c2cc844b802a6f811f5fb075f9b80",
+    "2": "7372e9daa5ed31e6cd5c825eac1b855e84476a1d94932aa348e07b73",
+    "3": "77fe97eb97a1ebe2e81e4e3597a3ee740a66e9ef2412472c",
+    "4": "496694774c5604ab1b2544eababcf0f53278ff50",
+    "5": "515ae153e22aae04ad16f759e07237b4",
+    "6": "d183ddc6e2665aa4e2f088af",
+    "7": "ac55fb33a75909ed",
+    "8": "96012096",
+    "9": ""
+  },
+  "proof": "94dfa4e26276f0ccf319b0ade65317e0bac41867aaebc73c7edc38673776cc6321dadd721920f5bd33f14be6dd101ec0b48f82f7ce8a8eb1d7cba2b93b66206bb7c3b5340e358be39380c7a9f17083fa1bcdf9c4e5ba5927edfd01519189b7b33fa2b5bbb5baf963598694e9f9c0c12e7aee29395e61a16129b43edaef245d5732bbc6e2e626ce241b8fdc60aea5532f829ace9ed443a679b3e6ffd712ce67681537982406ba09ff6a1c6dee258fd22b3f9aa1f28e19a83bbd1141f24171f380",
+  "result": {
+    "valid": true
+  }
+}
