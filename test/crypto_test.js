@@ -762,7 +762,7 @@ describe('crypto', () => {
                         })
                     }
 
-                    ['secp224r1', 'secp224k1', 'x25519', 'ed25519', 'BLS12381_G1', 'BLS12381_G2'].forEach(t);
+                    ['secp224r1', 'secp224k1', 'x25519', 'ed25519', 'Bls12381G1', 'Bls12381G2'].forEach(t);
                 });
 
                 function t(name) {
@@ -1002,8 +1002,8 @@ describe('crypto', () => {
                 'brainpoolP384r1',
                 'brainpoolP512r1',
                 'x25519',
-                'BLS12381_G1',
-                'BLS12381_G2'
+                'Bls12381G1',
+                'Bls12381G2'
             ];
 
             ec_algo.forEach(ec => {
@@ -1204,14 +1204,14 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
 
     describe("bls", () => {
         var g1_key = {
-            "kty": "EC",
-            "crv": "BLS12381_G1",
+            "kty": "OKP",
+            "crv": "Bls12381G1",
             "x": "tCgCNuUYQotPEsrljWi-lIRIPpzhqsnJV1NPnE7je6glUb-FJm9IYkuv2hbHw22i",
             "d": "TXNvJBBG3h23H5hFJcnRZmYd_j1TqpwtJOllYGU3yyw"
         };
         var g2_key = {
-            "kty": "EC",
-            "crv": "BLS12381_G2",
+            "kty": "OKP",
+            "crv": "Bls12381G2",
             "x": "h_rkcTKXXzRbOPr9UxSfegCbid2U_cVNXQUaKeGF7UhwrMJFP70uMH0VQ9-3-_2zDPAAjflsdeLkOXW3-ShktLxuPy8UlXSNgKNmkfb-rrj-FRwbs13pv_WsIf-eV66-",
             "d": "PofPmtCTsMilP9gluxrSDTC7DPbKwSMEzxVCZxq_L2I"
         };
@@ -1256,15 +1256,15 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
 
         it("private only key", () => {
             var sk = new crypto.BlsKey({
-                "kty": "EC",
-                "crv": "BLS12381_G1",
+                "kty": "OKP",
+                "crv": "Bls12381G1",
                 "d": "TXNvJBBG3h23H5hFJcnRZmYd_j1TqpwtJOllYGU3yyw"
             });
             assert.deepEqual(sk.json(), g1_key);
 
             var sk = new crypto.BlsKey({
-                "kty": "EC",
-                "crv": "BLS12381_G2",
+                "kty": "OKP",
+                "crv": "Bls12381G2",
                 "d": "PofPmtCTsMilP9gluxrSDTC7DPbKwSMEzxVCZxq_L2I"
             });
             assert.deepEqual(sk.json(), g2_key);
@@ -1273,13 +1273,13 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
         it("get public key", () => {
             var sk = new crypto.BlsKey(g1_key);
             assert.deepEqual(sk.publicKey.json(), {
-                "kty": "EC", "crv": "BLS12381_G1",
+                "kty": "OKP", "crv": "Bls12381G1",
                 "x": "tCgCNuUYQotPEsrljWi-lIRIPpzhqsnJV1NPnE7je6glUb-FJm9IYkuv2hbHw22i"
             });
 
             var sk = new crypto.BlsKey(g2_key);
             assert.deepEqual(sk.publicKey.json(), {
-                "kty": "EC", "crv": "BLS12381_G2",
+                "kty": "OKP", "crv": "Bls12381G2",
                 "x": "h_rkcTKXXzRbOPr9UxSfegCbid2U_cVNXQUaKeGF7UhwrMJFP70uMH0VQ9-3-_2zDPAAjflsdeLkOXW3-ShktLxuPy8UlXSNgKNmkfb-rrj-FRwbs13pv_WsIf-eV66-"
             });
         });
@@ -1298,12 +1298,12 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
         });
 
         it("generateKey", () => {
-            var sk = crypto.generateKey('BLS12381_G1');
+            var sk = crypto.generateKey('Bls12381G1');
             var sig = sk.sign('abcd');
             assert.isTrue(sk.verify('abcd', sig));
             assert.isFalse(sk.verify('abcd1', sig));
 
-            var sk = crypto.generateKey('BLS12381_G2');
+            var sk = crypto.generateKey('Bls12381G2');
             var sig = sk.sign('abcd');
             assert.isTrue(sk.verify('abcd', sig));
             assert.isFalse(sk.verify('abcd1', sig));
@@ -1312,7 +1312,7 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
         it("keySize/curve", () => {
             var sk = new crypto.BlsKey(g1_key);
             assert.deepEqual(sk.keySize, 256);
-            assert.deepEqual(sk.curve, "BLS12381_G1");
+            assert.deepEqual(sk.curve, "Bls12381G1");
         });
 
         it("format", () => {
@@ -1334,8 +1334,8 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
         it("test suite", () => {
             for (var i = 0; i < 4; i++) {
                 var sk = new crypto.BlsKey({
-                    "kty": "EC",
-                    "crv": "BLS12381_G1",
+                    "kty": "OKP",
+                    "crv": "Bls12381G1",
                     "x": hex.decode(data.pks[i]).base64()
                 });
 
@@ -1361,8 +1361,8 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
                 assert.isTrue(pk.verify(msg, sig));
             }
 
-            test_aggregate('BLS12381_G1');
-            test_aggregate('BLS12381_G2');
+            test_aggregate('Bls12381G1');
+            test_aggregate('Bls12381G2');
         });
     });
 
@@ -1410,7 +1410,7 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
         test_alg("SM2", crypto.generateKey("SM2"));
         test_alg("EdDSA", crypto.generateKey("ed25519"));
         test_alg("DH", crypto.generateKey("X25519"));
-        test_alg("BLS", crypto.generateKey("BLS12381_G1"));
+        test_alg("BLS", crypto.generateKey("Bls12381G1"));
     });
 
     describe("X509 Cert", () => {

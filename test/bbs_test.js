@@ -12,7 +12,7 @@ describe('bbs signature', () => {
         describe(suite, () => {
             describe('signature', () => {
                 it("sign/verify", () => {
-                    var sk = crypto.generateKey("BLS12381_G2");
+                    var sk = crypto.generateKey("Bls12381G2");
                     sk.bbs_suite = suite;
                     var pk = sk.publicKey;
 
@@ -23,7 +23,7 @@ describe('bbs signature', () => {
                 });
 
                 it("with header", () => {
-                    var sk = crypto.generateKey("BLS12381_G2");
+                    var sk = crypto.generateKey("Bls12381G2");
                     sk.bbs_suite = suite;
                     var pk = sk.publicKey;
 
@@ -56,15 +56,15 @@ describe('bbs signature', () => {
 
                         it(_case.caseName, () => {
                             var sk = crypto.PKey.from({
-                                "kty": "EC",
-                                "crv": "BLS12381_G2",
+                                "kty": "OKP",
+                                "crv": "Bls12381G2",
                                 "d": hex.decode(_case.signerKeyPair.secretKey).base64()
                             });
                             sk.bbs_suite = suite;
 
                             var pk = crypto.PKey.from({
-                                "kty": "EC",
-                                "crv": "BLS12381_G2",
+                                "kty": "OKP",
+                                "crv": "Bls12381G2",
                                 "x": hex.decode(_case.signerKeyPair.publicKey).base64()
                             });
                             pk.bbs_suite = suite;
@@ -92,7 +92,7 @@ describe('bbs signature', () => {
 
             describe('proof', () => {
                 it("sign/verify", () => {
-                    var sk = crypto.generateKey("BLS12381_G2");
+                    var sk = crypto.generateKey("Bls12381G2");
                     sk.bbs_suite = suite;
                     var pk = sk.publicKey;
 
@@ -106,7 +106,7 @@ describe('bbs signature', () => {
                 });
 
                 it("with proof_header", () => {
-                    var sk = crypto.generateKey("BLS12381_G2");
+                    var sk = crypto.generateKey("Bls12381G2");
                     sk.bbs_suite = suite;
                     var pk = sk.publicKey;
 
@@ -143,8 +143,8 @@ describe('bbs signature', () => {
 
                         it(_case.caseName, () => {
                             var pk = crypto.PKey.from({
-                                "kty": "EC",
-                                "crv": "BLS12381_G2",
+                                "kty": "OKP",
+                                "crv": "Bls12381G2",
                                 "x": hex.decode(_case.signerPublicKey).base64()
                             });
                             pk.bbs_suite = suite;

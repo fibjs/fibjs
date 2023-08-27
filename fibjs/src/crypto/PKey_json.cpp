@@ -215,7 +215,8 @@ result_t PKey::json(v8::Local<v8::Object> opts, v8::Local<v8::Object>& retVal)
         const char* _name = ECKey::get_curve_name(ecp->grp.id);
         int32_t id = ecp->grp.id;
 
-        if (id == MBEDTLS_ECP_DP_ED25519 || id == MBEDTLS_ECP_DP_CURVE25519 || id == MBEDTLS_ECP_DP_CURVE448)
+        if (id == MBEDTLS_ECP_DP_ED25519 || id == MBEDTLS_ECP_DP_CURVE25519 || id == MBEDTLS_ECP_DP_CURVE448
+            || id == MBEDTLS_ECP_DP_BLS12381_G1 || id == MBEDTLS_ECP_DP_BLS12381_G2)
             o->Set(context, isolate->NewString("kty"), isolate->NewString("OKP")).IsJust();
         else
             o->Set(context, isolate->NewString("kty"), isolate->NewString("EC")).IsJust();
