@@ -82,7 +82,8 @@ inline ClassInfo& Routing_base::class_info()
     static ClassData s_cd = {
         "Routing", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
-        &Handler_base::class_info()
+        &Handler_base::class_info(),
+        false
     };
 
     static ClassInfo s_ci(s_cd);

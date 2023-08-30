@@ -122,7 +122,8 @@ inline ClassInfo& XmlElement_base::class_info()
     static ClassData s_cd = {
         "XmlElement", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
-        &XmlNode_base::class_info()
+        &XmlNode_base::class_info(),
+        false
     };
 
     static ClassInfo s_ci(s_cd);

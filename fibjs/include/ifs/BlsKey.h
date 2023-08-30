@@ -82,7 +82,8 @@ inline ClassInfo& BlsKey_base::class_info()
     static ClassData s_cd = {
         "BlsKey", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
-        &ECKey_base::class_info()
+        &ECKey_base::class_info(),
+        true
     };
 
     static ClassInfo s_ci(s_cd);

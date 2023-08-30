@@ -93,7 +93,8 @@ inline ClassInfo& DgramSocket_base::class_info()
     static ClassData s_cd = {
         "DgramSocket", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
-        &EventEmitter_base::class_info()
+        &EventEmitter_base::class_info(),
+        true
     };
 
     static ClassInfo s_ci(s_cd);

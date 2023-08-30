@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ifs/File.h"
+#include "ifs/FileHandle.h"
 #include "Stat.h"
 #include "utf8.h"
 #include "Buffer.h"
@@ -135,4 +136,26 @@ inline result_t file_open(exlib::string fname, exlib::string flags, int32_t mode
 #endif
     return 0;
 }
-}
+
+class FileHandle : public FileHandle_base {
+public:
+    FileHandle(int32_t fd)
+        : m_fd(fd)
+    {
+    }
+
+public:
+    // FileHandle_base
+    virtual result_t get_fd(int32_t& retVal);
+    virtual result_t chmod(int32_t mode, AsyncEvent* ac);
+    virtual result_t stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac);
+    virtual result_t read(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t write(exlib::string string, int32_t position, exlib::string encoding, int32_t& retVal, AsyncEvent* ac);
+    virtual result_t close(AsyncEvent* ac);
+
+private:
+    int32_t m_fd;
+};
+
+} // namespace fibjs

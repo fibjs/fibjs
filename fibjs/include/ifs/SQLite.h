@@ -64,7 +64,8 @@ inline ClassInfo& SQLite_base::class_info()
     static ClassData s_cd = {
         "SQLite", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
-        &DbConnection_base::class_info()
+        &DbConnection_base::class_info(),
+        true
     };
 
     static ClassInfo s_ci(s_cd);

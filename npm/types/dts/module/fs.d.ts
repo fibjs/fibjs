@@ -1,6 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../module/fs_constants.d.ts" />
 /// <reference path="../interface/Stat.d.ts" />
+/// <reference path="../interface/FileHandle.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/SeekableStream.d.ts" />
 /// <reference path="../interface/BufferedStream.d.ts" />
@@ -242,6 +243,16 @@ declare module 'fs' {
     function lstat(path: string, callback: (err: Error | undefined | null, retVal: Class_Stat)=>any): void;
 
     /**
+     * @description 查询指定文件的基础信息
+     *      @param fd 文件描述符对象
+     *      @return 返回文件的基础信息
+     *      
+     */
+    function fstat(fd: Class_FileHandle): Class_Stat;
+
+    function fstat(fd: Class_FileHandle, callback: (err: Error | undefined | null, retVal: Class_Stat)=>any): void;
+
+    /**
      * @description 读取指定的软连接文件, windows 下不支持此方法
      *      @param path 指定读取的软连接文件
      *      @return 返回软连接指向的文件名
@@ -284,7 +295,7 @@ declare module 'fs' {
 
     /**
      * @description 根据文件描述符，读取文件内容
-     *      @param fd 文件描述符
+     *      @param fd 文件描述符对象
      *      @param buffer 读取结果写入的 Buffer 对象
      *      @param offset Buffer 写入偏移量， 默认为 0
      *      @param length 文件读取字节数，默认为 0
@@ -292,48 +303,48 @@ declare module 'fs' {
      *      @return 实际读取的字节数
      *      
      */
-    function read(fd: number, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
+    function read(fd: Class_FileHandle, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
 
-    function read(fd: number, buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
+    function read(fd: Class_FileHandle, buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 根据文件描述符，改变文件模式。只在 POSIX 系统有效。
-     *      @param fd 文件描述符
+     *      @param fd 文件描述符对象
      *      @param mode 文件的模式
      *      
      */
-    function fchmod(fd: number, mode: number): void;
+    function fchmod(fd: Class_FileHandle, mode: number): void;
 
-    function fchmod(fd: number, mode: number, callback: (err: Error | undefined | null)=>any): void;
+    function fchmod(fd: Class_FileHandle, mode: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 根据文件描述符，改变所有者。只在 POSIX 系统有效。
-     *      @param fd 文件描述符
+     *      @param fd 文件描述符对象
      *      @param uid 用户id
      *      @param gid 组id
      *      
      */
-    function fchown(fd: number, uid: number, gid: number): void;
+    function fchown(fd: Class_FileHandle, uid: number, gid: number): void;
 
-    function fchown(fd: number, uid: number, gid: number, callback: (err: Error | undefined | null)=>any): void;
-
-    /**
-     * @description 根据文件描述符，同步数据到磁盘
-     *      @param fd 文件描述符
-     *      
-     */
-    function fdatasync(fd: number): void;
-
-    function fdatasync(fd: number, callback: (err: Error | undefined | null)=>any): void;
+    function fchown(fd: Class_FileHandle, uid: number, gid: number, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 根据文件描述符，同步数据到磁盘
-     *      @param fd 文件描述符
+     *      @param fd 文件描述符对象
      *      
      */
-    function fsync(fd: number): void;
+    function fdatasync(fd: Class_FileHandle): void;
 
-    function fsync(fd: number, callback: (err: Error | undefined | null)=>any): void;
+    function fdatasync(fd: Class_FileHandle, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 根据文件描述符，同步数据到磁盘
+     *      @param fd 文件描述符对象
+     *      
+     */
+    function fsync(fd: Class_FileHandle): void;
+
+    function fsync(fd: Class_FileHandle, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 读取指定目录的文件信息
@@ -391,18 +402,18 @@ declare module 'fs' {
      *      @return 返回打开的文件描述符
      *      
      */
-    function open(fname: string, flags?: string, mode?: number): number;
+    function open(fname: string, flags?: string, mode?: number): Class_FileHandle;
 
-    function open(fname: string, flags?: string, mode?: number, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
+    function open(fname: string, flags?: string, mode?: number, callback?: (err: Error | undefined | null, retVal: Class_FileHandle)=>any): void;
 
     /**
      * @description 关闭文件描述符
-     *      @param fd 文件描述符
+     *      @param fd 文件描述符对象
      *      
      */
-    function close(fd: number): void;
+    function close(fd: Class_FileHandle): void;
 
-    function close(fd: number, callback: (err: Error | undefined | null)=>any): void;
+    function close(fd: Class_FileHandle, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 打开文本文件，用于读取，写入，或者同时读写
@@ -473,7 +484,7 @@ declare module 'fs' {
 
     /**
      * @description 根据文件描述符，向文件写入内容
-     *      @param fd 文件描述符
+     *      @param fd 文件描述符对象
      *      @param buffer 待写入的 Buffer 对象
      *      @param offset Buffer 数据读取偏移量， 默认为 0
      *      @param length 文件写入字节数，默认为 -1
@@ -481,22 +492,22 @@ declare module 'fs' {
      *      @return 实际写入的字节数
      *      
      */
-    function write(fd: number, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
+    function write(fd: Class_FileHandle, buffer: Class_Buffer, offset?: number, length?: number, position?: number): number;
 
-    function write(fd: number, buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
+    function write(fd: Class_FileHandle, buffer: Class_Buffer, offset?: number, length?: number, position?: number, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 根据文件描述符，向文件写入内容
-     *      @param fd 文件描述符
+     *      @param fd 文件描述符对象
      *      @param string 待写入的字符串
      *      @param position 文件写入取位置，默认为当前文件位置
      *      @param encoding 指定解码方式，缺省解码 utf8
      *      @return 实际写入的字节数
      *      
      */
-    function write(fd: number, string: string, position?: number, encoding?: string): number;
+    function write(fd: Class_FileHandle, string: string, position?: number, encoding?: string): number;
 
-    function write(fd: number, string: string, position?: number, encoding?: string, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
+    function write(fd: Class_FileHandle, string: string, position?: number, encoding?: string, callback?: (err: Error | undefined | null, retVal: number)=>any): void;
 
     /**
      * @description 创建文本文件，并写入内容

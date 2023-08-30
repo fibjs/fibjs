@@ -53,7 +53,8 @@ inline ClassInfo& Ed25519Key_base::class_info()
     static ClassData s_cd = {
         "Ed25519Key", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
-        &ECKey_base::class_info()
+        &ECKey_base::class_info(),
+        true
     };
 
     static ClassInfo s_ci(s_cd);

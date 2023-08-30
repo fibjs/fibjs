@@ -65,7 +65,8 @@ inline ClassInfo& XmlNamedNodeMap_base::class_info()
     static ClassData s_cd = {
         "XmlNamedNodeMap", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, &s_indexed, NULL,
-        &object_base::class_info()
+        &object_base::class_info(),
+        false
     };
 
     static ClassInfo s_ci(s_cd);

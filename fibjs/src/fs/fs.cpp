@@ -23,8 +23,61 @@ namespace fibjs {
 
 DECLARE_MODULE(fs);
 
+class AutoReq : public uv_fs_t {
+public:
+    ~AutoReq()
+    {
+        uv_fs_req_cleanup(this);
+    }
+};
+
+result_t FileHandle::get_fd(int32_t& retVal)
+{
+    retVal = m_fd;
+    return 0;
+}
+
+result_t FileHandle::chmod(int32_t mode, AsyncEvent* ac)
+{
+    return fs_base::fchmod(this, mode, ac);
+}
+
+result_t FileHandle::stat(obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+{
+    return fs_base::fstat(this, retVal, ac);
+}
+
+result_t FileHandle::read(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, int32_t& retVal, AsyncEvent* ac)
+{
+    return fs_base::read(this, buffer, offset, length, position, retVal, ac);
+}
+
+result_t FileHandle::write(Buffer_base* buffer, int32_t offset, int32_t length, int32_t position, int32_t& retVal, AsyncEvent* ac)
+{
+    return fs_base::write(this, buffer, offset, length, position, retVal, ac);
+}
+
+result_t FileHandle::write(exlib::string string, int32_t position, exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
+{
+    return fs_base::write(this, string, position, encoding, retVal, ac);
+}
+
+result_t FileHandle::close(AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    if (m_fd != -1) {
+        ::_close(m_fd);
+
+        m_fd = -1;
+    }
+
+    return 0;
+}
+
 result_t fs_base::open(exlib::string fname, exlib::string flags, int32_t mode,
-    int32_t& retVal, AsyncEvent* ac)
+    obj_ptr<FileHandle_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -32,21 +85,19 @@ result_t fs_base::open(exlib::string fname, exlib::string flags, int32_t mode,
     exlib::string safe_name;
     path_base::normalize(fname, safe_name);
 
-    return file_open(safe_name, flags, mode, retVal);
-}
+    int32_t _fd;
+    result_t hr = file_open(safe_name, flags, mode, _fd);
+    if (hr < 0)
+        return hr;
 
-result_t fs_base::close(int32_t fd, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    if (fd != -1) {
-        ::_close(fd);
-
-        fd = -1;
-    }
+    retVal = new FileHandle(_fd);
 
     return 0;
+}
+
+result_t fs_base::close(FileHandle_base* fd, AsyncEvent* ac)
+{
+    return fd->close(ac);
 }
 
 result_t fs_base::openTextStream(exlib::string fname, exlib::string flags,
@@ -221,10 +272,13 @@ result_t fs_base::appendFile(exlib::string fname, Buffer_base* data, AsyncEvent*
     return hr;
 }
 
-result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t length,
+result_t fs_base::read(FileHandle_base* fd, Buffer_base* buffer, int32_t offset, int32_t length,
     int32_t position, int32_t& retVal, AsyncEvent* ac)
 {
-    if (fd < 0)
+    int32_t _fd;
+    fd->get_fd(_fd);
+
+    if (_fd < 0)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
@@ -240,7 +294,7 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
     }
 
     if (position > -1) {
-        if (_lseeki64(fd, position, SEEK_SET) < 0)
+        if (_lseeki64(_fd, position, SEEK_SET) < 0)
             return CHECK_ERROR(LastError());
     }
 
@@ -251,7 +305,7 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
         char* p = strBuf.c_buffer();
 
         while (sz) {
-            int32_t n = (int32_t)::_read(fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
+            int32_t n = (int32_t)::_read(_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
             if (n < 0)
                 return CHECK_ERROR(LastError());
             if (n == 0)
@@ -272,10 +326,13 @@ result_t fs_base::read(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t 
     return buffer->write(strBuf, offset, (int32_t)strBuf.length(), "utf8", retVal);
 }
 
-result_t fs_base::write(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t length,
+result_t fs_base::write(FileHandle_base* fd, Buffer_base* buffer, int32_t offset, int32_t length,
     int32_t position, int32_t& retVal, AsyncEvent* ac)
 {
-    if (fd < 0)
+    int32_t _fd;
+    fd->get_fd(_fd);
+
+    if (_fd < 0)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
@@ -293,7 +350,7 @@ result_t fs_base::write(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t
         length = bufLength - offset;
 
     if (position > -1) {
-        if (_lseeki64(fd, position, SEEK_SET) < 0)
+        if (_lseeki64(_fd, position, SEEK_SET) < 0)
             return CHECK_ERROR(LastError());
     }
 
@@ -303,7 +360,7 @@ result_t fs_base::write(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t
         const uint8_t* p = buf->data() + offset;
 
         while (sz) {
-            int32_t n = (int32_t)::_write(fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
+            int32_t n = (int32_t)::_write(_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);
             if (n < 0)
                 return CHECK_ERROR(LastError());
 
@@ -317,31 +374,26 @@ result_t fs_base::write(int32_t fd, Buffer_base* buffer, int32_t offset, int32_t
     return 0;
 }
 
-result_t fs_base::write(int32_t fd, exlib::string string, int32_t position,
+result_t fs_base::write(FileHandle_base* fd, exlib::string string, int32_t position,
     exlib::string encoding, int32_t& retVal, AsyncEvent* ac)
 {
-    if (fd < 0)
+    int32_t _fd;
+    fd->get_fd(_fd);
+
+    if (_fd < 0)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     obj_ptr<Buffer_base> buf;
-    
+
     result_t hr = iconv_base::encode(encoding, string, buf);
     if (hr < 0)
         return CHECK_ERROR(hr);
 
     return write(fd, buf, 0, -1, position, retVal, ac);
 }
-
-class AutoReq : public uv_fs_t {
-public:
-    ~AutoReq()
-    {
-        uv_fs_req_cleanup(this);
-    }
-};
 
 result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
 {
@@ -374,6 +426,30 @@ result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEve
     obj_ptr<Stat> pStat = new Stat();
 
     pStat->fill(path, &req.statbuf);
+    retVal = pStat;
+
+    return 0;
+}
+
+result_t fs_base::fstat(FileHandle_base* fd, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+{
+    int32_t _fd;
+    fd->get_fd(_fd);
+
+    if (_fd < 0)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    AutoReq req;
+    int32_t ret = uv_fs_fstat(NULL, &req, _fd, NULL);
+    if (ret < 0)
+        return ret;
+
+    obj_ptr<Stat> pStat = new Stat();
+
+    pStat->fill("", &req.statbuf);
     retVal = pStat;
 
     return 0;
@@ -592,31 +668,40 @@ result_t fs_base::rmdir(exlib::string path, AsyncEvent* ac)
     return uv_fs_rmdir(NULL, &req, path.c_str(), NULL);
 }
 
-result_t fs_base::fchmod(int32_t fd, int32_t mode, AsyncEvent* ac)
+result_t fs_base::fchmod(FileHandle_base* fd, int32_t mode, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    int32_t _fd;
+    fd->get_fd(_fd);
+
     AutoReq req;
-    return uv_fs_fchmod(NULL, &req, fd, mode, NULL);
+    return uv_fs_fchmod(NULL, &req, _fd, mode, NULL);
 }
 
-result_t fs_base::fchown(int32_t fd, int32_t uid, int32_t gid, AsyncEvent* ac)
+result_t fs_base::fchown(FileHandle_base* fd, int32_t uid, int32_t gid, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    int32_t _fd;
+    fd->get_fd(_fd);
+
     AutoReq req;
-    return uv_fs_fchown(NULL, &req, fd, uid, gid, NULL);
+    return uv_fs_fchown(NULL, &req, _fd, uid, gid, NULL);
 }
 
-result_t fs_base::fsync(int32_t fd, AsyncEvent* ac)
+result_t fs_base::fsync(FileHandle_base* fd, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    int32_t _fd;
+    fd->get_fd(_fd);
+
     AutoReq req;
-    return uv_fs_fsync(NULL, &req, fd, NULL);
+    return uv_fs_fsync(NULL, &req, _fd, NULL);
 }
 
 result_t fs_base::chmod(exlib::string path, int32_t mode, AsyncEvent* ac)
@@ -655,13 +740,16 @@ result_t fs_base::rename(exlib::string from, exlib::string to, AsyncEvent* ac)
     return uv_fs_rename(NULL, &req, from.c_str(), to.c_str(), NULL);
 }
 
-result_t fs_base::fdatasync(int32_t fd, AsyncEvent* ac)
+result_t fs_base::fdatasync(FileHandle_base* fd, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
+    int32_t _fd;
+    fd->get_fd(_fd);
+
     AutoReq req;
-    return uv_fs_fdatasync(NULL, &req, fd, NULL);
+    return uv_fs_fdatasync(NULL, &req, _fd, NULL);
 }
 
 result_t fs_base::copyFile(exlib::string from, exlib::string to, int32_t mode, AsyncEvent* ac)

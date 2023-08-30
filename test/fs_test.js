@@ -129,8 +129,8 @@ describe('fs', () => {
     it("file open & close", () => {
         var fd = fs.open(path.join(__dirname, 'fs_test.js'));
 
-        assert.isNumber(fd);
-        assert.greaterThan(fd, -1);
+        assert.isNumber(fd.fd);
+        assert.greaterThan(fd.fd, -1);
         assert.doesNotThrow(() => {
             fs.close(fd);
         });
@@ -144,15 +144,14 @@ describe('fs', () => {
         var fd1 = fs.open(path.join(__dirname, 'fs_test.js'));
         var fd2 = fs.open(path.join(__dirname, 'fs_test.js'));
 
-        assert.greaterThan(fd2, fd1);
+        assert.greaterThan(fd2.fd, fd1.fd);
         fs.close(fd1);
         fs.close(fd2);
     });
 
     it("file openSync & closeSync", () => {
         var fd = fs.openSync(path.join(__dirname, 'fs_test.js'));
-        assert.isNumber(fd);
-        assert.greaterThan(fd, -1);
+        assert.greaterThan(fd.fd, -1);
         assert.doesNotThrow(() => {
             fs.closeSync(fd);
         });
@@ -165,7 +164,7 @@ describe('fs', () => {
         var fd1 = fs.openSync(path.join(__dirname, 'fs_test.js'));
         var fd2 = fs.openSync(path.join(__dirname, 'fs_test.js'));
 
-        assert.greaterThan(fd2, fd1);
+        assert.greaterThan(fd2.fd, fd1.fd);
         fs.closeSync(fd1);
         fs.closeSync(fd2);
     });
@@ -959,6 +958,19 @@ describe('fs', () => {
             fs.access(fn1, fs.constants.F_OK);
         })
     })
+
+    it("promises", async () => {
+        var f = await fs.promises.openFile(path.join(__dirname, 'fs_test.js'));
+        assert.isTrue(f.stat() instanceof Promise);
+        assert.property(await f.stat(), 'size');
+        await f.close();
+
+        var f = await fs.promises.open(path.join(__dirname, 'fs_test.js'));
+        assert.isTrue(f.stat() instanceof Promise);
+        assert.property(await f.stat(), 'size');
+        await f.close();
+    });
+
 });
 
 require.main === module && test.run(console.DEBUG);

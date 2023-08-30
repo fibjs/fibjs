@@ -67,7 +67,8 @@ inline ClassInfo& FSWatcher_base::class_info()
     static ClassData s_cd = {
         "FSWatcher", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
-        &EventEmitter_base::class_info()
+        &EventEmitter_base::class_info(),
+        false
     };
 
     static ClassInfo s_ci(s_cd);

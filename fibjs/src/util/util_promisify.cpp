@@ -12,7 +12,7 @@ namespace fibjs {
 
 static void promisify_callback(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Isolate* isolate = args.GetIsolate();
+    Isolate* isolate = Isolate::current(args);
     v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());
 
     v8::Local<v8::Promise::Resolver> resolver = v8::Local<v8::Promise::Resolver>::Cast(_data);
@@ -21,15 +21,26 @@ static void promisify_callback(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     if (len > 0) {
         if (!args[0].IsEmpty() && !args[0]->IsUndefined() && !args[0]->IsNull()) {
-            resolver->Reject(isolate->GetCurrentContext(), args[0]).IsJust();
+            resolver->Reject(isolate->context(), args[0]).IsJust();
             return;
         }
     }
 
-    if (len > 1)
-        resolver->Resolve(isolate->GetCurrentContext(), args[1]).IsJust();
-    else
-        resolver->Resolve(isolate->GetCurrentContext(), v8::Undefined(isolate)).IsJust();
+    if (len > 1) {
+        v8::Local<v8::Value> result = args[1];
+        if (result->IsObject()) {
+            v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(result);
+            obj_ptr<object_base> obj = object_base::getInstance(o);
+            if (obj) {
+                ClassInfo& ci = obj->Classinfo();
+                if (ci.hasAsync())
+                    o->SetPrototype(isolate->context(), ci.GetAsyncPrototype(isolate)).IsJust();
+            }
+        }
+
+        resolver->Resolve(isolate->context(), result).IsJust();
+    } else
+        resolver->Resolve(isolate->context(), v8::Undefined(isolate->m_isolate)).IsJust();
 }
 
 static void promisify_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -81,6 +92,19 @@ result_t promisify(Isolate* isolate, v8::Local<v8::Function> func, v8::Local<v8:
 result_t util_base::promisify(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal)
 {
     return fibjs::promisify(Isolate::current(func), func, retVal);
+}
+
+result_t promisify(Isolate* isolate, v8::Local<v8::Function> func, v8::Local<v8::FunctionTemplate>& retVal)
+{
+    v8::Local<v8::FunctionTemplate> func1;
+
+    func1 = v8::FunctionTemplate::New(isolate->m_isolate, promisify_stub, func);
+    if (func1.IsEmpty())
+        return CHECK_ERROR(Runtime::setError("function alloc error."));
+
+    retVal = func1;
+
+    return 0;
 }
 
 }

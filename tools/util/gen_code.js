@@ -794,6 +794,7 @@ function gen_code(cls, def, baseFolder) {
         var object_count = 0;
         var prop_count = 0;
         var const_count = 0;
+        var has_async = false;
 
         function gen_method_info() {
             var deflist = [];
@@ -812,8 +813,10 @@ function gen_code(cls, def, baseFolder) {
 
                     if (ov.memType == "method") {
                         deflist.push(`        { "${fn.symbol}${fname}", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, false, ${!!ov.async} }`);
-                        if (ov.async)
+                        if (ov.async) {
+                            has_async = true;
                             deflist.push(`        { "${fn.symbol}${fname}Sync", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, false, false }`);
+                        }
 
                         recorder_insts.record(ov.name);
                     }
@@ -825,8 +828,10 @@ function gen_code(cls, def, baseFolder) {
 
                     if (ov.memType == "method") {
                         deflist.push(`        { "${fn.symbol}${fname}", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, true, ${!!ov.async} }`);
-                        if (ov.async)
+                        if (ov.async) {
+                            has_async = true;
                             deflist.push(`        { "${fn.symbol}${fname}Sync", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, true, false }`);
+                        }
 
                         recorder_statics.record(ov.name);
                     }
@@ -920,9 +925,10 @@ function gen_code(cls, def, baseFolder) {
             ].join(''));
 
             if (def.declare.extend)
-                txts.push(`        &${def.declare.extend}_base::class_info()`);
+                txts.push(`        &${def.declare.extend}_base::class_info(),`);
             else
-                txts.push('        NULL');
+                txts.push('        NULL,');
+            txts.push(`        ${has_async}`);
             txts.push('    };\n');
         }
 

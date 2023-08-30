@@ -138,7 +138,8 @@ inline ClassInfo& Message_base::class_info()
     static ClassData s_cd = {
         "Message", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, ARRAYSIZE(s_const), s_const, NULL, NULL,
-        &object_base::class_info()
+        &object_base::class_info(),
+        true
     };
 
     static ClassInfo s_ci(s_cd);

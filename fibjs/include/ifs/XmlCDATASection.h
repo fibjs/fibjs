@@ -38,7 +38,8 @@ inline ClassInfo& XmlCDATASection_base::class_info()
     static ClassData s_cd = {
         "XmlCDATASection", false, s__new, NULL,
         0, NULL, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
-        &XmlText_base::class_info()
+        &XmlText_base::class_info(),
+        false
     };
 
     static ClassInfo s_ci(s_cd);

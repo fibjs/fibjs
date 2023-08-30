@@ -116,7 +116,8 @@ inline ClassInfo& X509Cert_base::class_info()
     static ClassData s_cd = {
         "X509Cert", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
-        &object_base::class_info()
+        &object_base::class_info(),
+        true
     };
 
     static ClassInfo s_ci(s_cd);

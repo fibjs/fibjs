@@ -61,7 +61,8 @@ inline ClassInfo& HeapGraphNode_base::class_info()
     static ClassData s_cd = {
         "HeapGraphNode", false, s__new, NULL,
         0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
-        &object_base::class_info()
+        &object_base::class_info(),
+        false
     };
 
     static ClassInfo s_ci(s_cd);
