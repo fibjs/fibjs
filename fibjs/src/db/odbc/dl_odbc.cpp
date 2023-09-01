@@ -57,6 +57,12 @@ SQLRETURN SQL_API SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd,
         szConnStrOut, cbConnStrOutMax, pcbConnStrOut, fDriverCompletion);
 }
 
+SQLRETURN SQL_API SQLDisconnect(SQLHDBC hdbc)
+{
+    odbc_func(SQLDisconnect);
+    return s_SQLDisconnect(hdbc);
+}
+
 SQLRETURN SQL_API SQLPrepare(SQLHSTMT StatementHandle, SQLCHAR* StatementText, SQLINTEGER TextLength)
 {
     odbc_func(SQLPrepare);

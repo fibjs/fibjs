@@ -43,8 +43,10 @@ result_t db_base::openOdbc(exlib::string connString, obj_ptr<DbConnection_base>&
 
 result_t odbc_disconnect(void* conn)
 {
-    if (conn)
+    if (conn) {
+        SQLDisconnect(conn);
         SQLFreeConnect(conn);
+    }
 
     return 0;
 }
