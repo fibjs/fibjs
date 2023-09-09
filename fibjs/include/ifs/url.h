@@ -25,6 +25,9 @@ public:
     static result_t format(v8::Local<v8::Object> args, exlib::string& retVal);
     static result_t parse(exlib::string url, bool parseQueryString, bool slashesDenoteHost, obj_ptr<UrlObject_base>& retVal);
     static result_t resolve(exlib::string _from, exlib::string to, exlib::string& retVal);
+    static result_t fileURLToPath(UrlObject_base* url, exlib::string& retVal);
+    static result_t fileURLToPath(exlib::string url, exlib::string& retVal);
+    static result_t pathToFileURL(exlib::string path, obj_ptr<UrlObject_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -39,6 +42,8 @@ public:
     static void s_static_format(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_parse(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_fileURLToPath(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_pathToFileURL(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -50,7 +55,9 @@ inline ClassInfo& url_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "format", s_static_format, true, false },
         { "parse", s_static_parse, true, false },
-        { "resolve", s_static_resolve, true, false }
+        { "resolve", s_static_resolve, true, false },
+        { "fileURLToPath", s_static_fileURLToPath, true, false },
+        { "pathToFileURL", s_static_pathToFileURL, true, false }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -112,6 +119,42 @@ inline void url_base::s_static_resolve(const v8::FunctionCallbackInfo<v8::Value>
     ARG(exlib::string, 1);
 
     hr = resolve(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void url_base::s_static_fileURLToPath(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<UrlObject_base>, 0);
+
+    hr = fileURLToPath(v0, vr);
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = fileURLToPath(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void url_base::s_static_pathToFileURL(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<UrlObject_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pathToFileURL(v0, vr);
 
     METHOD_RETURN();
 }

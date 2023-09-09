@@ -62,4 +62,25 @@ module url
 
     /*! @brief 创建一个 UrlObject 请求对象，参见 UrlObject */
     static UrlObject new URL();
+
+    /*! @brief 将一个 url 对象转换为跨平台相关的绝对路径
+
+     @param url 指定需要转换的 url 对象
+     @return 返回转换后的绝对路径
+    */
+    static String fileURLToPath(UrlObject url);
+
+    /*! @brief 将一个 url 字符串转换为跨平台相关的绝对路径
+
+     @param url 指定需要转换的 url 字符串
+     @return 返回转换后的绝对路径
+    */
+    static String fileURLToPath(String url);
+
+    /*! @brief 将一个跨平台相关的绝对路径转换为 url 对象
+    
+     @param path 指定需要转换的绝对路径
+     @return 返回转换后的 url 对象
+    */
+    static UrlObject pathToFileURL(String path);
 };

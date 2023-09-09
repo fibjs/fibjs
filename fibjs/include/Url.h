@@ -206,8 +206,8 @@ public:
 
 public:
     exlib::string m_protocol;
-    bool m_slashes;
-    bool m_defslashes;
+    bool m_slashes = false;
+    bool m_defslashes = false;
     exlib::string m_username;
     exlib::string m_password;
     exlib::string m_host;

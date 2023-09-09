@@ -18,6 +18,16 @@ namespace fibjs {
 
 DECLARE_MODULE(url);
 
+static const char* pathTable = " !  $%& ()*+,-./0123456789:; =  @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
+static const char* queryTable = " !  $%& ()*+,-./0123456789:; = ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
+static const char* hashTable = " ! #$%& ()*+,-./0123456789:; = ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
+
+#ifdef _WIN32
+static const char* pathToTable = " !  $ & ()*+,-./0123456789:; =  @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
+#else
+static const char* pathToTable = " !  $ & ()*+,-./0123456789:; =  @ABCDEFGHIJKLMNOPQRSTUVWXYZ[ ]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
+#endif
+
 result_t url_base::format(v8::Local<v8::Object> args, exlib::string& retVal)
 {
     obj_ptr<Url> u = new Url();
@@ -59,9 +69,125 @@ result_t url_base::resolve(exlib::string _from, exlib::string to,
     return u1->toString(retVal);
 }
 
-static const char* pathTable = " !  $%& ()*+,-./0123456789:; =  @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
-static const char* queryTable = " !  $%& ()*+,-./0123456789:; = ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
-static const char* hashTable = " ! #$%& ()*+,-./0123456789:; = ?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ abcdefghijklmnopqrstuvwxyz{|}~ ";
+#ifdef _WIN32
+result_t url_base::fileURLToPath(UrlObject_base* url, exlib::string& retVal)
+{
+    obj_ptr<Url> u = (Url*)url;
+
+    if (u->m_protocol != "file:")
+        return CALL_E_INVALID_DATA;
+
+    const char* p = u->m_pathname.c_str();
+
+    for (size_t i = 0; i < u->m_pathname.length(); i++)
+        if (p[i] == '%') {
+            if (p[i + 1] == '2' && (p[i + 2] == 'f' || p[i + 2] == 'F'))
+                return CALL_E_INVALID_DATA;
+            if (p[i + 1] == '5' && (p[i + 2] == 'c' || p[i + 2] == 'C'))
+                return CALL_E_INVALID_DATA;
+        }
+
+    exlib::string pathname;
+    encoding_base::decodeURI(u->m_pathname, pathname);
+
+    char* p1 = pathname.c_buffer();
+    for (size_t i = 0; i < pathname.length(); i++)
+        if (isPathSlash(p1[i]))
+            p1[i] = PATH_SLASH;
+
+    if (u->m_hostname.length() > 0)
+        retVal = exlib::string("\\\\") + u->m_hostname + pathname;
+    else {
+        p = pathname.c_str();
+        if (!qisascii(p[1]) || p[2] != ':')
+            return CALL_E_INVALID_DATA;
+
+        retVal = pathname.substr(1);
+    }
+
+    return 0;
+}
+#else
+result_t url_base::fileURLToPath(UrlObject_base* url, exlib::string& retVal)
+{
+    obj_ptr<Url> u = (Url*)url;
+
+    if (u->m_protocol != "file:")
+        return CALL_E_INVALID_DATA;
+
+    if (u->m_hostname.length() > 0)
+        return CALL_E_INVALID_DATA;
+
+    const char* p = u->m_pathname.c_str();
+
+    for (size_t i = 0; i < u->m_pathname.length(); i++)
+        if (p[i] == '%') {
+            if (p[i + 1] == '2' && (p[i + 2] == 'f' || p[i + 2] == 'F'))
+                return CALL_E_INVALID_DATA;
+        }
+
+    encoding_base::decodeURI(u->m_pathname, retVal);
+
+    return 0;
+}
+#endif
+
+result_t url_base::fileURLToPath(exlib::string url, exlib::string& retVal)
+{
+    obj_ptr<Url> u = new Url();
+
+    result_t hr = u->parse(url, false, false);
+    if (hr < 0)
+        return hr;
+
+    return fileURLToPath(u, retVal);
+}
+
+result_t url_base::pathToFileURL(exlib::string path, obj_ptr<UrlObject_base>& retVal)
+{
+    obj_ptr<Url> u = new Url();
+    exlib::string resolved(path);
+
+    u->m_protocol.assign("file:", 5);
+    u->m_slashes = true;
+
+#ifdef _WIN32
+    const char* p1 = resolved.c_str();
+    if (p1[0] == PATH_SLASH && p1[1] == PATH_SLASH) {
+        p1 += 2;
+
+        const char* p2 = p1;
+        while (*p2 && *p2 != PATH_SLASH)
+            p2++;
+
+        if (p2 == p1 || *p2 != PATH_SLASH)
+            return CALL_E_INVALID_DATA;
+
+        exlib::string domain(p1, p2 - p1);
+
+        u->m_host = domain;
+        resolved = resolved.substr(p2 - p1 + 2);
+    } else
+        _resolve_win32(resolved);
+
+    char* p = resolved.c_buffer();
+    for (size_t i = 0; i < resolved.length(); i++)
+        if (isPathSlash(p[i]))
+            p[i] = URL_SLASH;
+#else
+    _resolve(resolved);
+#endif
+
+    if (isPathSlash(path.c_str()[path.length() - 1])
+        && resolved.c_str()[resolved.length() - 1] != URL_SLASH)
+        resolved.append(1, URL_SLASH);
+
+    Url::encodeURI(resolved, u->m_pathname, pathToTable);
+
+    retVal = u;
+
+    return 0;
+}
 
 result_t UrlObject_base::_new(exlib::string url, bool parseQueryString,
     bool slashesDenoteHost,
@@ -625,7 +751,7 @@ result_t Url::get_href(exlib::string& retVal)
         retVal.append(m_protocol);
 
     if (m_slashes)
-        retVal.append("//", 2);
+        retVal.append(2, URL_SLASH);
 
     exlib::string str;
 
@@ -641,6 +767,12 @@ result_t Url::get_href(exlib::string& retVal)
     retVal.append(str);
 
     get_path(str);
+
+#ifdef _WIN32
+    if (m_slashes && qisascii(str[0]) && str[1] == ':')
+        retVal.append(1, URL_SLASH);
+#endif
+
     retVal.append(str);
 
     retVal.append(m_hash);

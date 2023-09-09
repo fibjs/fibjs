@@ -74,5 +74,32 @@ declare module 'url' {
      */
     const URL: typeof Class_UrlObject;
 
+    /**
+     * @description 将一个 url 对象转换为跨平台相关的绝对路径
+     * 
+     *      @param url 指定需要转换的 url 对象
+     *      @return 返回转换后的绝对路径
+     *     
+     */
+    function fileURLToPath(url: Class_UrlObject): string;
+
+    /**
+     * @description 将一个 url 字符串转换为跨平台相关的绝对路径
+     * 
+     *      @param url 指定需要转换的 url 字符串
+     *      @return 返回转换后的绝对路径
+     *     
+     */
+    function fileURLToPath(url: string): string;
+
+    /**
+     * @description 将一个跨平台相关的绝对路径转换为 url 对象
+     *     
+     *      @param path 指定需要转换的绝对路径
+     *      @return 返回转换后的 url 对象
+     *     
+     */
+    function pathToFileURL(path: string): Class_UrlObject;
+
 }
 
