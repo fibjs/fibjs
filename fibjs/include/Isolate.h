@@ -26,6 +26,7 @@ class LruCache;
 class Stream_base;
 class ValueHolder;
 class X509Cert_base;
+class Worker_base;
 
 class Isolate : public exlib::linkitem {
 public:
@@ -196,6 +197,8 @@ public:
 
     obj_ptr<Stream_base> m_channel;
     int32_t m_ipc_mode;
+
+    obj_ptr<Worker_base> m_worker;
 
     exlib::List<exlib::linkitem> m_fibers;
 

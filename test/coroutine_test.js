@@ -287,11 +287,9 @@ describe('coroutine', () => {
     });
 
     describe('Worker', () => {
-        var worker;
-
         it("new", () => {
             var flag = false;
-            worker = new coroutine.Worker(path.join(__dirname, 'worker_files/worker_main.js'));
+            var worker = new coroutine.Worker(path.join(__dirname, 'worker_files/worker_main.js'));
 
             worker.onload = e => {
                 flag = true;
@@ -334,87 +332,95 @@ describe('coroutine', () => {
         });
 
         describe("message", () => {
-            var msg_trans = util.sync((msg, done) => {
-                worker.onmessage = (evt) => {
-                    done(null, evt.data);
-                };
-                worker.postMessage(msg);
-            });
+            function test_port(name, port) {
+                describe(name, () => {
+                    var worker = new coroutine.Worker(path.join(__dirname, port));
 
-            it('value', () => {
-                assert.strictEqual(msg_trans(123), 123);
+                    var msg_trans = util.sync((msg, done) => {
+                        worker.onmessage = (evt) => {
+                            done(null, evt.data);
+                        };
+                        worker.postMessage(msg);
+                    });
 
-                var d = new Date();
-                assert.equal(msg_trans(d).getTime(), d.getTime());
+                    it('value', () => {
+                        assert.strictEqual(msg_trans(123), 123);
 
-                assert.strictEqual(msg_trans('abcded阿斯蒂芬'), 'abcded阿斯蒂芬');
-            });
+                        var d = new Date();
+                        assert.equal(msg_trans(d).getTime(), d.getTime());
 
-            it('array', () => {
-                var a = [1, 2, 3, 4];
-                assert.deepEqual(msg_trans(a), a);
+                        assert.strictEqual(msg_trans('abcded阿斯蒂芬'), 'abcded阿斯蒂芬');
+                    });
 
-                var a = [1, 2, [3, 4, 5, 6], 4];
-                assert.deepEqual(msg_trans(a), a);
-            });
+                    it('array', () => {
+                        var a = [1, 2, 3, 4];
+                        assert.deepEqual(msg_trans(a), a);
 
-            it('object', () => {
-                var o = {
-                    a: 1,
-                    b: 2,
-                    c: 3
-                };
-                assert.deepEqual(msg_trans(o), o);
+                        var a = [1, 2, [3, 4, 5, 6], 4];
+                        assert.deepEqual(msg_trans(a), a);
+                    });
 
-                var o = {
-                    a: 1,
-                    b: {
-                        d: 4,
-                        e: 5
-                    },
-                    c: 3
-                };
-                assert.deepEqual(msg_trans(o), o);
+                    it('object', () => {
+                        var o = {
+                            a: 1,
+                            b: 2,
+                            c: 3
+                        };
+                        assert.deepEqual(msg_trans(o), o);
 
-                var o = {
-                    a: 1,
-                    b: [
-                        4,
-                        5
-                    ],
-                    c: 3
-                };
-                assert.deepEqual(msg_trans(o), o);
-            });
+                        var o = {
+                            a: 1,
+                            b: {
+                                d: 4,
+                                e: 5
+                            },
+                            c: 3
+                        };
+                        assert.deepEqual(msg_trans(o), o);
 
-            describe('native object', () => {
-                it('default', () => {
-                    assert.throws(() => {
-                        msg_trans(worker);
+                        var o = {
+                            a: 1,
+                            b: [
+                                4,
+                                5
+                            ],
+                            c: 3
+                        };
+                        assert.deepEqual(msg_trans(o), o);
+                    });
+
+                    describe('native object', () => {
+                        it('default', () => {
+                            assert.throws(() => {
+                                msg_trans(worker);
+                            });
+                        });
+
+                        it('Buffer', () => {
+                            var v = new Buffer("1234567890");
+                            var v1 = msg_trans(v);
+                            assert.notEqual(v, v1);
+                            assert.ok(Buffer.isBuffer(v1));
+                            assert.deepEqual(v, v1);
+                        });
+
+                        it('Socket', () => {
+                            var v = new net.Socket(net.AF_INET);
+                            v.bind(8899 + base_port);
+
+                            var v1 = msg_trans(v);
+                            assert.throws(() => {
+                                v.localPort;
+                            });
+                            assert.equal(v1.localPort, 8899 + base_port);
+                            v1.close();
+                        });
                     });
                 });
+            }
 
-                it('Buffer', () => {
-                    var v = new Buffer("1234567890");
-                    var v1 = msg_trans(v);
-                    assert.notEqual(v, v1);
-                    assert.ok(Buffer.isBuffer(v1));
-                    assert.deepEqual(v, v1);
-                });
-
-                it('Socket', () => {
-                    var v = new net.Socket(net.AF_INET);
-                    v.bind(8899 + base_port);
-
-                    var v1 = msg_trans(v);
-                    assert.throws(() => {
-                        v.localPort;
-                    });
-                    assert.equal(v1.localPort, 8899 + base_port);
-                    v1.close();
-                });
-            });
-
+            test_port("Master", 'worker_files/worker_main.js');
+            test_port("parentPort", 'worker_files/worker_main2.js');
         });
 
         describe('opt', () => {

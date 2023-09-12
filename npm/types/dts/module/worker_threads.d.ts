@@ -20,5 +20,10 @@ declare module 'worker_threads' {
      */
     const isMainThread: boolean;
 
+    /**
+     * @description 查询当前 Worker 的父线程 
+     */
+    const parentPort: Class_Worker;
+
 }
 

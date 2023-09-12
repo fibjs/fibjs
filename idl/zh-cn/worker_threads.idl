@@ -12,4 +12,7 @@ module worker_threads
 
     /*! @brief 查询当前 Worker 是不是主线程 */
     static readonly Boolean isMainThread;
+
+    /*! @brief 查询当前 Worker 的父线程 */
+    static readonly Worker parentPort;
 };

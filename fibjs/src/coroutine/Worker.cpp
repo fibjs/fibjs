@@ -25,6 +25,18 @@ result_t worker_threads_base::get_isMainThread(bool& retVal)
     return 0;
 }
 
+result_t worker_threads_base::get_parentPort(obj_ptr<Worker_base>& retVal)
+{
+    Isolate* isolate = Isolate::current();
+
+    if (isolate->m_worker == NULL)
+        return CALL_RETURN_NULL;
+
+    retVal = isolate->m_worker;
+
+    return 0;
+}
+
 result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
     obj_ptr<Worker_base>& retVal, v8::Local<v8::Object> This)
 {
@@ -76,6 +88,7 @@ Worker::Worker(exlib::string path, v8::Local<v8::Object> opts)
 
     m_worker = new Worker(this);
     m_isolate = new Isolate(path);
+    m_isolate->m_worker = m_worker;
 
     v = true;
     hr = GetConfigValue(holder(), opts, "file_system", v, false);
