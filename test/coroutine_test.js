@@ -440,15 +440,11 @@ describe('coroutine', () => {
                 assert.isTrue(flag);
             });
 
-            it('workerData', () => {
+            it('workerData', (done) => {
                 var worker = new coroutine.Worker(path.join(__dirname, 'worker_files/worker_main3.js'), {
                     workerData: {
                         a: "hello worker"
                     }
-                });
-
-                worker.on('error', e => {
-                    console.log(e);
                 });
 
                 var msg_trans = util.sync((msg, done) => {
@@ -458,10 +454,17 @@ describe('coroutine', () => {
                     worker.postMessage(msg);
                 });
 
-                coroutine.sleep(10);
+                worker.on('error', e => {
+                    console.log(e);
+                });
 
-                assert.deepEqual(msg_trans("helo"), {
-                    a: "hello worker"
+                worker.on("load", () => {
+                    done(() => {
+                        assert.deepEqual(msg_trans("helo"), {
+                            a: "hello worker"
+                        });
+
+                    });
                 });
             });
         });
