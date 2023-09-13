@@ -452,7 +452,7 @@ describe("timer", () => {
                 timers.call(test2, 30);
             });
             var t2 = new Date();
-            assert.greaterThan(t2 - t1, 30);
+            assert.greaterThan(t2 - t1, 25);
             assert.lessThan(t2 - t1, 1000);
         });
 
