@@ -37,15 +37,55 @@ result_t worker_threads_base::get_parentPort(obj_ptr<Worker_base>& retVal)
     return 0;
 }
 
+result_t worker_threads_base::get_workerData(v8::Local<v8::Value>& retVal)
+{
+    Isolate* isolate = Isolate::current();
+
+    if (isolate->m_worker == NULL)
+        return CALL_RETURN_NULL;
+
+    obj_ptr<Worker> worker = (Worker*)(Worker_base*)isolate->m_worker;
+    if (worker->m_workerData == NULL)
+        return CALL_RETURN_NULL;
+
+    return worker->m_workerData->get_data(retVal);
+}
+
 result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
     obj_ptr<Worker_base>& retVal, v8::Local<v8::Object> This)
 {
+    Isolate* isolate = Isolate::current();
     bool isAbs = false;
     path_base::isAbsolute(path, isAbs);
     if (!isAbs)
         return CHECK_ERROR(Runtime::setError("Worker: only accept absolute path."));
 
     obj_ptr<Worker> worker = new Worker(path, opts);
+
+    bool v;
+    result_t hr;
+
+    v = true;
+    hr = GetConfigValue(isolate, opts, "file_system", v, false);
+    if (hr >= 0)
+        worker->m_isolate->m_enable_FileSystem = v;
+
+    v = false;
+    hr = GetConfigValue(isolate, opts, "safe_buffer", v, false);
+    if (hr >= 0)
+        worker->m_isolate->m_safe_buffer = v;
+
+    v8::Local<v8::Value> data;
+    hr = GetConfigValue(isolate, opts, "workerData", data, false);
+    if (hr >= 0) {
+        obj_ptr<WorkerMessage> wm = new WorkerMessage(data);
+        hr = wm->unbind();
+        if (hr < 0)
+            return hr;
+
+        worker->m_worker->m_workerData = wm;
+    }
+
     worker->wrap(This);
     worker->start();
 
@@ -83,22 +123,9 @@ result_t Worker::worker_fiber(Worker* worker)
 
 Worker::Worker(exlib::string path, v8::Local<v8::Object> opts)
 {
-    bool v;
-    result_t hr;
-
     m_worker = new Worker(this);
     m_isolate = new Isolate(path);
     m_isolate->m_worker = m_worker;
-
-    v = true;
-    hr = GetConfigValue(holder(), opts, "file_system", v, false);
-    if (hr >= 0)
-        m_isolate->m_enable_FileSystem = v;
-
-    v = false;
-    hr = GetConfigValue(holder(), opts, "safe_buffer", v, false);
-    if (hr >= 0)
-        m_isolate->m_safe_buffer = v;
 }
 
 result_t Worker::postMessage(v8::Local<v8::Value> data)

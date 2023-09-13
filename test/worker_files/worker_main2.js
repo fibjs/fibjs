@@ -1,5 +1,5 @@
-const { parentPort } = require('node:worker_threads');
+const { parentPort } = require('worker_threads');
 
-Master.onmessage = (evt) => {
+parentPort.onmessage = (evt) => {
     parentPort.postMessage(evt.data);
 };

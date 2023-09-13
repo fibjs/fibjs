@@ -25,5 +25,10 @@ declare module 'worker_threads' {
      */
     const parentPort: Class_Worker;
 
+    /**
+     * @description 查询父线程通过 Worker 构造函数传给该线程的的数据的克隆 
+     */
+    const workerData: any;
+
 }
 

@@ -9,6 +9,7 @@
 
 #include "ifs/Worker.h"
 #include "Event.h"
+#include "WorkerMessage.h"
 
 namespace fibjs {
 
@@ -40,8 +41,9 @@ private:
     static result_t worker_fiber(Worker* worker);
     void _main();
 
-private:
+public:
     Isolate* m_isolate;
     obj_ptr<Worker> m_worker;
+    obj_ptr<WorkerMessage> m_workerData;
 };
 }

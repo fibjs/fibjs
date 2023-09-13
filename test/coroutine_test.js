@@ -426,7 +426,7 @@ describe('coroutine', () => {
         describe('opt', () => {
             it('file system', () => {
                 var flag = false;
-                worker = new coroutine.Worker(path.join(__dirname, 'worker_files/worker_main.js'), {
+                var worker = new coroutine.Worker(path.join(__dirname, 'worker_files/worker_main.js'), {
                     file_system: false
                 });
 
@@ -438,6 +438,31 @@ describe('coroutine', () => {
                     coroutine.sleep(10);
 
                 assert.isTrue(flag);
+            });
+
+            it('workerData', () => {
+                var worker = new coroutine.Worker(path.join(__dirname, 'worker_files/worker_main3.js'), {
+                    workerData: {
+                        a: "hello worker"
+                    }
+                });
+
+                worker.on('error', e => {
+                    console.log(e);
+                });
+
+                var msg_trans = util.sync((msg, done) => {
+                    worker.onmessage = (evt) => {
+                        done(null, evt.data);
+                    };
+                    worker.postMessage(msg);
+                });
+
+                coroutine.sleep(10);
+
+                assert.deepEqual(msg_trans("helo"), {
+                    a: "hello worker"
+                });
             });
         });
     });

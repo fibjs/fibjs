@@ -15,4 +15,7 @@ module worker_threads
 
     /*! @brief 查询当前 Worker 的父线程 */
     static readonly Worker parentPort;
+
+    /*! @brief 查询父线程通过 Worker 构造函数传给该线程的的数据的克隆 */
+    static readonly Value workerData;
 };
