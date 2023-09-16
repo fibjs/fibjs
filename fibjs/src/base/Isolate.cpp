@@ -35,6 +35,7 @@ static int32_t syncRunMicrotasks(Isolate* isolate)
 {
     JSFiber::EnterJsScope s(NULL, true);
 
+    isolate->m_intask = true;
     isolate->m_isolate->PerformMicrotaskCheckpoint();
     if (isolate->m_isolate->HasPendingBackgroundTasks())
         while (v8::platform::PumpMessageLoop(g_default_platform, isolate->m_isolate,
@@ -42,13 +43,16 @@ static int32_t syncRunMicrotasks(Isolate* isolate)
                 ? v8::platform::MessageLoopBehavior::kWaitForWork
                 : platform::MessageLoopBehavior::kDoNotWait))
             ;
+    isolate->m_intask = false;
 
     return 0;
 }
 
 void Isolate::RunMicrotasks()
 {
-    if (RunMicrotaskSize(m_isolate) > 0 || m_isolate->HasPendingBackgroundTasks())
+    if (!m_intask
+        && (RunMicrotaskSize(m_isolate) > 0
+            || m_isolate->HasPendingBackgroundTasks()))
         syncCall(this, syncRunMicrotasks, this);
 }
 

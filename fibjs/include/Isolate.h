@@ -187,6 +187,8 @@ public:
     std::unordered_map<uint32_t, SandBox*> m_sandboxes;
     uint32_t m_sandboxId = 0;
 
+    bool m_intask = false;
+
     obj_ptr<HttpClient> m_httpclient;
 
     obj_ptr<Stream_base> m_stdio[3];
