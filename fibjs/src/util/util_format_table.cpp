@@ -14,81 +14,34 @@
 #include "TextColor.h"
 #include "Buffer.h"
 #include <unordered_map>
+#include <unicode/include/unicode/uchar.h>
 
 namespace fibjs {
 
 void string_format(StringBuffer& strBuffer, v8::Local<v8::Value> v, bool color);
 exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth);
 
-struct CharWidth {
-    int32_t m_char;
-    int32_t m_width;
-};
-
-static CharWidth s_char_width[] = {
-    { 0x0, 1 }, { 0x61c, 0 }, { 0x61d, 1 }, { 0x1100, 2 }, { 0x1160, 1 }, { 0x180e, 0 },
-    { 0x180f, 1 }, { 0x200b, 0 }, { 0x200d, 1 }, { 0x200e, 0 }, { 0x2010, 1 }, { 0x202a, 0 },
-    { 0x202f, 1 }, { 0x2060, 0 }, { 0x2065, 1 }, { 0x2066, 0 }, { 0x2070, 1 }, { 0x231a, 2 },
-    { 0x231c, 1 }, { 0x2329, 2 }, { 0x232b, 1 }, { 0x23e9, 2 }, { 0x23ed, 1 }, { 0x23f0, 2 },
-    { 0x23f1, 1 }, { 0x23f3, 2 }, { 0x23f4, 1 }, { 0x25fd, 2 }, { 0x25ff, 1 }, { 0x2614, 2 },
-    { 0x2616, 1 }, { 0x2648, 2 }, { 0x2654, 1 }, { 0x267f, 2 }, { 0x2680, 1 }, { 0x2693, 2 },
-    { 0x2694, 1 }, { 0x26a1, 2 }, { 0x26a2, 1 }, { 0x26aa, 2 }, { 0x26ac, 1 }, { 0x26bd, 2 },
-    { 0x26bf, 1 }, { 0x26c4, 2 }, { 0x26c6, 1 }, { 0x26ce, 2 }, { 0x26cf, 1 }, { 0x26d4, 2 },
-    { 0x26d5, 1 }, { 0x26ea, 2 }, { 0x26eb, 1 }, { 0x26f2, 2 }, { 0x26f4, 1 }, { 0x26f5, 2 },
-    { 0x26f6, 1 }, { 0x26fa, 2 }, { 0x26fb, 1 }, { 0x26fd, 2 }, { 0x26fe, 1 }, { 0x2705, 2 },
-    { 0x2706, 1 }, { 0x270a, 2 }, { 0x270c, 1 }, { 0x2728, 2 }, { 0x2729, 1 }, { 0x274c, 2 },
-    { 0x274d, 1 }, { 0x274e, 2 }, { 0x274f, 1 }, { 0x2753, 2 }, { 0x2756, 1 }, { 0x2757, 2 },
-    { 0x2758, 1 }, { 0x2795, 2 }, { 0x2798, 1 }, { 0x27b0, 2 }, { 0x27b1, 1 }, { 0x27bf, 2 },
-    { 0x27c0, 1 }, { 0x2b1b, 2 }, { 0x2b1d, 1 }, { 0x2b50, 2 }, { 0x2b51, 1 }, { 0x2b55, 2 },
-    { 0x2b56, 1 }, { 0x2e80, 2 }, { 0x2e9a, 1 }, { 0x2e9b, 2 }, { 0x2ef4, 1 }, { 0x2f00, 2 },
-    { 0x2fd6, 1 }, { 0x2ff0, 2 }, { 0x2ffc, 1 }, { 0x3000, 2 }, { 0x303f, 1 }, { 0x3041, 2 },
-    { 0x3097, 1 }, { 0x3099, 2 }, { 0x3100, 1 }, { 0x3105, 2 }, { 0x3130, 1 }, { 0x3131, 2 },
-    { 0x318f, 1 }, { 0x3190, 2 }, { 0x31e4, 1 }, { 0x31f0, 2 }, { 0x321f, 1 }, { 0x3220, 2 },
-    { 0x3248, 1 }, { 0x3250, 2 }, { 0x4dc0, 1 }, { 0x4e00, 2 }, { 0xa48d, 1 }, { 0xa490, 2 },
-    { 0xa4c7, 1 }, { 0xa960, 2 }, { 0xa97d, 1 }, { 0xac00, 2 }, { 0xd7a4, 1 }, { 0xd800, 2 },
-    { 0x10000, 1 }, { 0x16fe0, 2 }, { 0x16fe5, 1 }, { 0x16ff0, 2 }, { 0x16ff2, 1 }, { 0x17000, 2 },
-    { 0x187f8, 1 }, { 0x18800, 2 }, { 0x18cd6, 1 }, { 0x18d00, 2 }, { 0x18d09, 1 }, { 0x1b000, 2 },
-    { 0x1b11f, 1 }, { 0x1b150, 2 }, { 0x1b153, 1 }, { 0x1b164, 2 }, { 0x1b168, 1 }, { 0x1b170, 2 },
-    { 0x1b2fc, 1 }, { 0x1bca0, 0 }, { 0x1bca4, 1 }, { 0x1d15e, 2 }, { 0x1d160, 1 }, { 0x1d173, 0 },
-    { 0x1d17b, 1 }, { 0x1d1bb, 2 }, { 0x1d1bd, 1 }, { 0x1f004, 2 }, { 0x1f005, 1 }, { 0x1f0cf, 2 },
-    { 0x1f0d0, 1 }, { 0x1f18e, 2 }, { 0x1f18f, 1 }, { 0x1f191, 2 }, { 0x1f19b, 1 }, { 0x1f1e6, 2 },
-    { 0x1f203, 1 }, { 0x1f210, 2 }, { 0x1f23c, 1 }, { 0x1f240, 2 }, { 0x1f249, 1 }, { 0x1f250, 2 },
-    { 0x1f252, 1 }, { 0x1f260, 2 }, { 0x1f266, 1 }, { 0x1f300, 2 }, { 0x1f321, 1 }, { 0x1f32d, 2 },
-    { 0x1f336, 1 }, { 0x1f337, 2 }, { 0x1f37d, 1 }, { 0x1f37e, 2 }, { 0x1f394, 1 }, { 0x1f3a0, 2 },
-    { 0x1f3cb, 1 }, { 0x1f3cf, 2 }, { 0x1f3d4, 1 }, { 0x1f3e0, 2 }, { 0x1f3f1, 1 }, { 0x1f3f4, 2 },
-    { 0x1f3f5, 1 }, { 0x1f3f8, 2 }, { 0x1f43f, 1 }, { 0x1f440, 2 }, { 0x1f441, 1 }, { 0x1f442, 2 },
-    { 0x1f4fd, 1 }, { 0x1f4ff, 2 }, { 0x1f53e, 1 }, { 0x1f54b, 2 }, { 0x1f54f, 1 }, { 0x1f550, 2 },
-    { 0x1f568, 1 }, { 0x1f57a, 2 }, { 0x1f57b, 1 }, { 0x1f595, 2 }, { 0x1f597, 1 }, { 0x1f5a4, 2 },
-    { 0x1f5a5, 1 }, { 0x1f5fb, 2 }, { 0x1f650, 1 }, { 0x1f680, 2 }, { 0x1f6c6, 1 }, { 0x1f6cc, 2 },
-    { 0x1f6cd, 1 }, { 0x1f6d0, 2 }, { 0x1f6d3, 1 }, { 0x1f6d5, 2 }, { 0x1f6d8, 1 }, { 0x1f6eb, 2 },
-    { 0x1f6ed, 1 }, { 0x1f6f4, 2 }, { 0x1f6fd, 1 }, { 0x1f7e0, 2 }, { 0x1f7ec, 1 }, { 0x1f90c, 2 },
-    { 0x1f93b, 1 }, { 0x1f93c, 2 }, { 0x1f946, 1 }, { 0x1f947, 2 }, { 0x1f979, 1 }, { 0x1f97a, 2 },
-    { 0x1f9cc, 1 }, { 0x1f9cd, 2 }, { 0x1fa00, 1 }, { 0x1fa70, 2 }, { 0x1fa75, 1 }, { 0x1fa78, 2 },
-    { 0x1fa7b, 1 }, { 0x1fa80, 2 }, { 0x1fa87, 1 }, { 0x1fa90, 2 }, { 0x1faa9, 1 }, { 0x1fab0, 2 },
-    { 0x1fab7, 1 }, { 0x1fac0, 2 }, { 0x1fac3, 1 }, { 0x1fad0, 2 }, { 0x1fad7, 1 }, { 0x20000, 2 },
-    { 0x2fffe, 1 }, { 0x30000, 2 }, { 0x3fffe, 1 }, { 0xe0001, 0 }, { 0xe0002, 1 }
-};
-
 inline int32_t getCharWidth(int32_t ch)
 {
-    int32_t p0 = 0;
-    int32_t p1 = ARRAYSIZE(s_char_width) - 1;
-    int32_t p;
-
-    if (ch >= 0) {
-        if (ch >= s_char_width[p1].m_char)
-            p0 = p1;
-        else
-            while (p1 > p0 + 1) {
-                p = (p0 + p1) / 2;
-                if (ch >= s_char_width[p].m_char)
-                    p0 = p;
-                else
-                    p1 = p;
-            }
+    const int eaw = u_getIntPropertyValue(ch, UCHAR_EAST_ASIAN_WIDTH);
+    switch (eaw) {
+    case U_EA_FULLWIDTH:
+    case U_EA_WIDE:
+        return 2;
+    case U_EA_AMBIGUOUS:
+    case U_EA_NEUTRAL:
+        if (u_hasBinaryProperty(ch, UCHAR_EMOJI_PRESENTATION)) {
+            return 2;
+        }
+    case U_EA_HALFWIDTH:
+    case U_EA_NARROW:
+    default:
+        const auto zero_width_mask = U_GC_CC_MASK | U_GC_CF_MASK | U_GC_ME_MASK | U_GC_MN_MASK;
+        if (ch != 0x00AD && ((U_MASK(u_charType(ch)) & zero_width_mask) || u_hasBinaryProperty(ch, UCHAR_EMOJI_MODIFIER))) {
+            return 0;
+        }
+        return 1;
     }
-
-    return s_char_width[p0].m_width;
 }
 
 inline int32_t getStringWidth(exlib::string& str)
