@@ -59,6 +59,18 @@ int fcntl64(int fd, int cmd, ...)
 
     return result;
 }
+
+int fcntl(int fd, int cmd, ...)
+{
+    int result;
+    va_list va;
+
+    va_start(va, cmd);
+    result = _fcntl(fd, cmd, va_arg(va, void*));
+    va_end(va);
+
+    return result;
+}
 #endif
 
 // GLIBC_2.29
@@ -82,6 +94,13 @@ double _log(double x);
 double log(double x)
 {
     return _log(x);
+}
+
+__asm__(".symver _logf,logf@GLIBC_" GLIB_C_MATH);
+float _logf(float x);
+float logf(float x)
+{
+    return _logf(x);
 }
 
 __asm__(".symver _pow,pow@GLIBC_" GLIB_C_MATH);
