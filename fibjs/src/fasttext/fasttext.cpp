@@ -49,7 +49,7 @@ result_t FTModel::predict(exlib::string text, int32_t k, obj_ptr<NArray>& retVal
 
     std::vector<std::pair<fasttext::real, std::string>> predictions;
     std::istringstream in;
-    in.str(text);
+    in.str(text + '\n');
 
     try {
         fastText_.predictLine(in, predictions, k, 0);
