@@ -1034,6 +1034,11 @@ inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, exlib::string& str)
     return isolate->NewString(str);
 }
 
+inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, std::string& str)
+{
+    return isolate->NewString(str.c_str(), str.length());
+}
+
 inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, date_t& v)
 {
     return v.value(isolate->m_isolate);
@@ -1076,6 +1081,18 @@ inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, obj_ptr<T>& obj)
     obj->holder(isolate);
     obj->valueOf(v);
     return v;
+}
+
+template <typename T>
+inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, std::vector<T>& vec)
+{
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate, vec.size());
+
+    for (int i = 0; i < vec.size(); i++)
+        arr->Set(context, i, GetReturnValue(isolate, vec[i]));
+
+    return arr;
 }
 
 inline v8::Local<v8::Value> ThrowError(v8::Local<v8::Value> exception)

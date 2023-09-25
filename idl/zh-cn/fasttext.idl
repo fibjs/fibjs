@@ -12,4 +12,11 @@ module fasttext
      @return 返回加载的模型对象
      */
     static FTModel loadModel(String path) async;
+
+    /*! @brief 使用文件训练 fasttext 模型
+     @param trainFile 训练集文件路径
+     @param args 模型参数
+     @return 返回加载的模型对象
+     */
+    static FTModel train(String trainFile, Object args = {}) async;
 };

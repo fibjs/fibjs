@@ -20,5 +20,16 @@ declare module 'fasttext' {
 
     function loadModel(path: string, callback: (err: Error | undefined | null, retVal: Class_FTModel)=>any): void;
 
+    /**
+     * @description 使用文件训练 fasttext 模型
+     *      @param trainFile 训练集文件路径
+     *      @param args 模型参数
+     *      @return 返回加载的模型对象
+     *      
+     */
+    function train(trainFile: string, args?: FIBJS.GeneralObject): Class_FTModel;
+
+    function train(trainFile: string, args?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: Class_FTModel)=>any): void;
+
 }
 
