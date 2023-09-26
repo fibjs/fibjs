@@ -709,6 +709,21 @@ function test_net(eng, use_uv) {
                 assert.equal("GET / HTTP/1.0", s1.recv());
                 s1.close();
             });
+
+            it("FIX: multi bind", () => {
+                var _port = getPort();
+                var _path = process.platform === 'win32' ? "//./pipe/port1_" + _port : os.homedir() + '/port1_' + _port;
+
+                var s = new net.Socket(net.AF_UNIX);
+                test_util.push(s);
+
+                s.bind(_path);
+
+                var s1 = new net.Socket(net.AF_UNIX);
+                assert.throws(() => {
+                    s1.bind(_path);
+                });
+            });
         });
 
         if (global.full_test)
