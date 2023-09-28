@@ -2,6 +2,7 @@
 #include "ifs/tty.h"
 #include "AsyncUV.h"
 #include "TTYStream.h"
+#include "console.h"
 
 #ifdef _WIN32
 #include <io.h>
@@ -85,6 +86,49 @@ result_t TTYOutputStream::clearLine(int32_t dir)
 result_t TTYOutputStream::clearScreenDown()
 {
     asyncLog(console_base::C_PRINT, kClearScreenDown);
+
+    return 0;
+}
+
+result_t TTYOutputStream::cursorTo(int32_t x, int32_t y, AsyncEvent* ac)
+{
+    if (x < 0)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    char numStr[64];
+
+    if (y >= 0)
+        snprintf(numStr, sizeof(numStr), "\x1b[%d;%dH", y + 1, x + 1);
+    else
+        snprintf(numStr, sizeof(numStr), "\x1b[%dG", x + 1);
+
+    asyncLog(console_base::C_PRINT, numStr);
+
+    return 0;
+}
+
+result_t TTYOutputStream::moveCursor(int32_t dx, int32_t dy, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    char numStr[64];
+    char* data = numStr;
+
+    if (dx < 0)
+        data += snprintf(data, sizeof(numStr) / 2, "\x1b[%dD", -dx);
+    else if (dx > 0)
+        data += snprintf(data, sizeof(numStr) / 2, "\x1b[%dC", dx);
+
+    if (dy < 0)
+        data += snprintf(data, sizeof(numStr) / 2, "\x1b[%dA", -dy);
+    else if (dy > 0)
+        data += snprintf(data, sizeof(numStr) / 2, "\x1b[%dB", dy);
+
+    asyncLog(console_base::C_PRINT, numStr);
 
     return 0;
 }

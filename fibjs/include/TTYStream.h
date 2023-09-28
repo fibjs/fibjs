@@ -3,7 +3,7 @@
  * @email richardo2016
  * @create date 2021-04-10 02:16:35
  * @modify date 2021-04-10 02:16:35
- * 
+ *
  * @desc tty about stream implementation
  */
 
@@ -81,6 +81,8 @@ public:
     virtual result_t get_rows(int32_t& retVal);
     virtual result_t clearLine(int32_t dir);
     virtual result_t clearScreenDown();
+    virtual result_t cursorTo(int32_t x, int32_t y, AsyncEvent* ac);
+    virtual result_t moveCursor(int32_t dx, int32_t dy, AsyncEvent* ac);
     virtual result_t getWindowSize(obj_ptr<NArray>& retVal);
 
 public:

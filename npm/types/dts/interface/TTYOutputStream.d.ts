@@ -50,6 +50,26 @@ declare class Class_TTYOutputStream extends Class_Stream {
     clearScreenDown(): void;
 
     /**
+     * @description 将光标移动到指定位置
+     *      @param x 指定的列数
+     *      @param y 指定的行数，缺省为 -1，表示不改变行数
+     *      
+     */
+    cursorTo(x: number, y?: number): void;
+
+    cursorTo(x: number, y?: number, callback?: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 将光标移动指定的偏移量
+     *      @param dx 指定的列偏移量
+     *      @param dy 指定的行偏移量
+     *      
+     */
+    moveCursor(dx: number, dy: number): void;
+
+    moveCursor(dx: number, dy: number, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
      * @description 返回此 TTYOutputStream 对应的终端的尺寸
      *      @return 返回数组 [numColumns, numRows]，其中 numColumns 和 numRows 表示相应终端中的列数和行数
      *      

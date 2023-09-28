@@ -28,6 +28,8 @@ public:
     virtual result_t get_rows(int32_t& retVal) = 0;
     virtual result_t clearLine(int32_t dir) = 0;
     virtual result_t clearScreenDown() = 0;
+    virtual result_t cursorTo(int32_t x, int32_t y, AsyncEvent* ac) = 0;
+    virtual result_t moveCursor(int32_t dx, int32_t dy, AsyncEvent* ac) = 0;
     virtual result_t getWindowSize(obj_ptr<NArray>& retVal) = 0;
 
 public:
@@ -45,7 +47,13 @@ public:
     static void s_get_rows(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_clearLine(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clearScreenDown(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_cursorTo(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_moveCursor(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getWindowSize(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+public:
+    ASYNC_MEMBER2(TTYOutputStream_base, cursorTo, int32_t, int32_t);
+    ASYNC_MEMBER2(TTYOutputStream_base, moveCursor, int32_t, int32_t);
 };
 }
 
@@ -55,6 +63,10 @@ inline ClassInfo& TTYOutputStream_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "clearLine", s_clearLine, false, false },
         { "clearScreenDown", s_clearScreenDown, false, false },
+        { "cursorTo", s_cursorTo, false, true },
+        { "cursorToSync", s_cursorTo, false, false },
+        { "moveCursor", s_moveCursor, false, true },
+        { "moveCursorSync", s_moveCursor, false, false },
         { "getWindowSize", s_getWindowSize, false, false }
     };
 
@@ -68,7 +80,7 @@ inline ClassInfo& TTYOutputStream_base::class_info()
         "TTYOutputStream", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &Stream_base::class_info(),
-        false
+        true
     };
 
     static ClassInfo s_ci(s_cd);
@@ -133,6 +145,42 @@ inline void TTYOutputStream_base::s_clearScreenDown(const v8::FunctionCallbackIn
     METHOD_OVER(0, 0);
 
     hr = pInst->clearScreenDown();
+
+    METHOD_VOID();
+}
+
+inline void TTYOutputStream_base::s_cursorTo(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_INSTANCE(TTYOutputStream_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(2, 1);
+
+    ARG(int32_t, 0);
+    OPT_ARG(int32_t, 1, -1);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_cursorTo(v0, v1, cb, args);
+    else
+        hr = pInst->ac_cursorTo(v0, v1);
+
+    METHOD_VOID();
+}
+
+inline void TTYOutputStream_base::s_moveCursor(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_INSTANCE(TTYOutputStream_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(2, 2);
+
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_moveCursor(v0, v1, cb, args);
+    else
+        hr = pInst->ac_moveCursor(v0, v1);
 
     METHOD_VOID();
 }
