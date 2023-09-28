@@ -209,47 +209,47 @@ enum {
     do {                                                    \
         do {
 
-#define METHOD_OVER(c, o)                                       \
-    }                                                           \
-    while (0)                                                   \
-        ;                                                       \
-    if (hr > CALL_E_MIN_ARG && hr < CALL_E_MAX)                 \
-        do {                                                    \
-            hr = 0;                                             \
-            int32_t argc1 = args.Length();                      \
-            int32_t argc = argc1;                               \
-            while (argc > (o) && args[argc - 1]->IsUndefined()) \
-                argc--;                                         \
-            if ((c) >= 0 && argc > (c)) {                       \
-                hr = CALL_E_BADPARAMCOUNT;                      \
-                break;                                          \
-            }                                                   \
-            if ((o) > 0 && argc < (o)) {                        \
-                hr = CALL_E_PARAMNOTOPTIONAL;                   \
-                break;                                          \
+#define METHOD_OVER(c, o)                                                                     \
+    }                                                                                         \
+    while (0)                                                                                 \
+        ;                                                                                     \
+    if (hr > CALL_E_MIN_ARG && hr < CALL_E_MAX)                                               \
+        do {                                                                                  \
+            hr = 0;                                                                           \
+            int32_t argc1 = args.Length();                                                    \
+            int32_t argc = argc1;                                                             \
+            while (argc > (o) && (args[argc - 1]->IsUndefined() || args[argc - 1]->IsNull())) \
+                argc--;                                                                       \
+            if ((c) >= 0 && argc > (c)) {                                                     \
+                hr = CALL_E_BADPARAMCOUNT;                                                    \
+                break;                                                                        \
+            }                                                                                 \
+            if ((o) > 0 && argc < (o)) {                                                      \
+                hr = CALL_E_PARAMNOTOPTIONAL;                                                 \
+                break;                                                                        \
             }
 
-#define ASYNC_METHOD_OVER(c, o)                                    \
-    }                                                              \
-    while (0)                                                      \
-        ;                                                          \
-    if (hr > CALL_E_MIN_ARG && hr < CALL_E_MAX)                    \
-        do {                                                       \
-            hr = 0;                                                \
-            int32_t argc1 = args.Length();                         \
-            v8::Local<v8::Function> cb;                            \
-            if (argc1 > 0 && args[argc1 - 1]->IsFunction())        \
-                cb = v8::Local<v8::Function>::Cast(args[--argc1]); \
-            int32_t argc = argc1;                                  \
-            while (argc > (o) && args[argc - 1]->IsUndefined())    \
-                argc--;                                            \
-            if ((c) >= 0 && argc > (c)) {                          \
-                hr = CALL_E_BADPARAMCOUNT;                         \
-                break;                                             \
-            }                                                      \
-            if ((o) > 0 && argc < (o)) {                           \
-                hr = CALL_E_PARAMNOTOPTIONAL;                      \
-                break;                                             \
+#define ASYNC_METHOD_OVER(c, o)                                                               \
+    }                                                                                         \
+    while (0)                                                                                 \
+        ;                                                                                     \
+    if (hr > CALL_E_MIN_ARG && hr < CALL_E_MAX)                                               \
+        do {                                                                                  \
+            hr = 0;                                                                           \
+            int32_t argc1 = args.Length();                                                    \
+            v8::Local<v8::Function> cb;                                                       \
+            if (argc1 > 0 && args[argc1 - 1]->IsFunction())                                   \
+                cb = v8::Local<v8::Function>::Cast(args[--argc1]);                            \
+            int32_t argc = argc1;                                                             \
+            while (argc > (o) && (args[argc - 1]->IsUndefined() || args[argc - 1]->IsNull())) \
+                argc--;                                                                       \
+            if ((c) >= 0 && argc > (c)) {                                                     \
+                hr = CALL_E_BADPARAMCOUNT;                                                    \
+                break;                                                                        \
+            }                                                                                 \
+            if ((o) > 0 && argc < (o)) {                                                      \
+                hr = CALL_E_PARAMNOTOPTIONAL;                                                 \
+                break;                                                                        \
             }
 
 #define METHOD_ENTER()                                      \
@@ -360,12 +360,12 @@ enum {
     if (hr < 0)                                          \
         break;
 
-#define OPT_ARG(t, n, d)                                        \
-    t v##n = (d);                                               \
-    if ((n) < argc && !args[n]->IsUndefined()) {                \
-        hr = GetArgumentValue(isolate, args[n], v##n, bStrict); \
-        if (hr < 0)                                             \
-            break;                                              \
+#define OPT_ARG(t, n, d)                                                \
+    t v##n = (d);                                                       \
+    if ((n) < argc && !(args[n]->IsUndefined() || args[n]->IsNull())) { \
+        hr = GetArgumentValue(isolate, args[n], v##n, bStrict);         \
+        if (hr < 0)                                                     \
+            break;                                                      \
     }
 
 #define ARG_LIST(n) OptArgs v##n(args, n, argc1);
