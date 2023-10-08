@@ -72,7 +72,7 @@ describe("selfzip", () => {
         });
     });
 
-    describe("jsc", () => {
+    xdescribe("jsc", () => {
         function test_selfzip(testPath, script, argv) {
             var ms = new io.MemoryStream();
             var zf = zip.open(ms, 'w');

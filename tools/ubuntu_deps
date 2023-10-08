@@ -1,4 +1,4 @@
-clang,dpkg -s
+clang-12,dpkg -s
 g++,dpkg -s
 make,dpkg -s
 cmake,dpkg -s

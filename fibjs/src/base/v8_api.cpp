@@ -65,7 +65,7 @@ void setAsyncFunctoin(Local<Function> func)
 {
     i::Handle<i::Object> obj = Utils::OpenHandle(*func);
     i::Handle<i::JSFunction> _func = i::Handle<i::JSFunction>::cast(obj);
-    _func->shared().set_kind(i::FunctionKind::kAsyncFunction);
+    _func->shared()->set_kind(i::FunctionKind::kAsyncFunction);
 }
 
 std::unique_ptr<v8::BackingStore> NewBackingStore(size_t byte_length)

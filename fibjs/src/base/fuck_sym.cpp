@@ -117,6 +117,16 @@ float powf(float x, float y)
     return _powf(x, y);
 }
 #endif
+
+#ifdef GLIB_C_MATH2
+__asm__(".symver _log2,log2@GLIBC_" GLIB_C_MATH);
+double _log2(double x);
+double log2(double x)
+{
+    return _log2(x);
+}
+#endif
+
 }
 
 #endif
