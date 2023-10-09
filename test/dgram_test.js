@@ -204,6 +204,38 @@ describe('dgram', () => {
         assert.isTrue(t);
     });
 
+    it("multicast", () => {
+        const multicast_ip = "225.0.0.100";
+        var t = false;
+        const s = dgram.createSocket('udp4');
+        s.bind();
+
+        s.setBroadcast(true);
+        s.setMulticastTTL(128);
+        s.addMembership(multicast_ip);
+
+        const c = dgram.createSocket('udp4');
+        c.on('message', (msg, addr) => {
+            assert.equal(msg.toString(), '123456');
+            t = true;
+        });
+
+        c.bind(base_port + 1009);
+
+        c.setBroadcast(true);
+        c.setMulticastTTL(128);
+        c.addMembership(multicast_ip);
+
+        s.send('123456', base_port + 1009, multicast_ip);
+
+        coroutine.sleep(100);
+
+        c.close();
+        s.close();
+
+        assert.isTrue(t);
+    });
+
     if (has_ipv6)
         describe("ipv6", () => {
             it('ipv6 address', done => {
