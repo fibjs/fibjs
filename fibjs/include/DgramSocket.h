@@ -55,6 +55,9 @@ public:
     virtual result_t close(v8::Local<v8::Function> callback);
     virtual result_t getRecvBufferSize(int32_t& retVal);
     virtual result_t getSendBufferSize(int32_t& retVal);
+    virtual result_t addMembership(exlib::string multicastAddress, exlib::string multicastInterface);
+    virtual result_t dropMembership(exlib::string multicastAddress, exlib::string multicastInterface);
+    virtual result_t setMulticastTTL(int32_t ttl);
     virtual result_t setRecvBufferSize(int32_t size);
     virtual result_t setSendBufferSize(int32_t size);
     virtual result_t setBroadcast(bool flag);

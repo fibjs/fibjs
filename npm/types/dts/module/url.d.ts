@@ -26,9 +26,9 @@
  * 下面是一个 url 模块的示例：
  * 
  * ```JavaScript
- * const { Url } = require('url');
+ * const { URL } = require('url');
  * 
- * const url = new Url('http://www.baidu.com/s?ie=UTF-8&wd=fibjs#hash');
+ * const url = new URL('http://www.baidu.com/s?ie=UTF-8&wd=fibjs#hash');
  * console.log(url.protocol); // 'http:'
  * console.log(url.host); // 'www.baidu.com'
  * console.log(url.path); // '/s?ie=UTF-8&wd=fibjs'

@@ -33,6 +33,9 @@ public:
     virtual result_t close(v8::Local<v8::Function> callback) = 0;
     virtual result_t getRecvBufferSize(int32_t& retVal) = 0;
     virtual result_t getSendBufferSize(int32_t& retVal) = 0;
+    virtual result_t addMembership(exlib::string multicastAddress, exlib::string multicastInterface) = 0;
+    virtual result_t dropMembership(exlib::string multicastAddress, exlib::string multicastInterface) = 0;
+    virtual result_t setMulticastTTL(int32_t ttl) = 0;
     virtual result_t setRecvBufferSize(int32_t size) = 0;
     virtual result_t setSendBufferSize(int32_t size) = 0;
     virtual result_t setBroadcast(bool flag) = 0;
@@ -55,6 +58,9 @@ public:
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getRecvBufferSize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getSendBufferSize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_addMembership(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_dropMembership(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_setMulticastTTL(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setRecvBufferSize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setSendBufferSize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setBroadcast(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -83,6 +89,9 @@ inline ClassInfo& DgramSocket_base::class_info()
         { "close", s_close, false, false },
         { "getRecvBufferSize", s_getRecvBufferSize, false, false },
         { "getSendBufferSize", s_getSendBufferSize, false, false },
+        { "addMembership", s_addMembership, false, false },
+        { "dropMembership", s_dropMembership, false, false },
+        { "setMulticastTTL", s_setMulticastTTL, false, false },
         { "setRecvBufferSize", s_setRecvBufferSize, false, false },
         { "setSendBufferSize", s_setSendBufferSize, false, false },
         { "setBroadcast", s_setBroadcast, false, false },
@@ -220,6 +229,50 @@ inline void DgramSocket_base::s_getSendBufferSize(const v8::FunctionCallbackInfo
     hr = pInst->getSendBufferSize(vr);
 
     METHOD_RETURN();
+}
+
+inline void DgramSocket_base::s_addMembership(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(DgramSocket_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "");
+
+    hr = pInst->addMembership(v0, v1);
+
+    METHOD_VOID();
+}
+
+inline void DgramSocket_base::s_dropMembership(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(DgramSocket_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "");
+
+    hr = pInst->dropMembership(v0, v1);
+
+    METHOD_VOID();
+}
+
+inline void DgramSocket_base::s_setMulticastTTL(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(DgramSocket_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
+
+    hr = pInst->setMulticastTTL(v0);
+
+    METHOD_VOID();
 }
 
 inline void DgramSocket_base::s_setRecvBufferSize(const v8::FunctionCallbackInfo<v8::Value>& args)
