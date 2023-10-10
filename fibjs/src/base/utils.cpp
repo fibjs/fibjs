@@ -166,6 +166,9 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
     v8::Local<v8::Context> context = isolate->context();
     if (try_catch.HasCaught()) {
         v8::Local<v8::Value> err = try_catch.Exception();
+        if (err.IsEmpty() || !err->IsObject())
+            return "Unknown error.";
+
         v8::Local<v8::Object> err_obj = err.As<v8::Object>();
         v8::Local<v8::Message> message = try_catch.Message();
 
@@ -242,7 +245,7 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
         return strError;
     }
 
-    return "";
+    return "Unknown error.";
 }
 
 result_t throwSyntaxError(TryCatch& try_catch)
