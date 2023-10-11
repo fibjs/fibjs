@@ -104,35 +104,34 @@ describe("buffered stream", () => {
         f.close();
     });
 
-    if (Buffer.isEncoding("EUC-JP"))
-        it("charset", () => {
-            fs.unlink(path.join(__dirname, "test0000" + base_port));
+    it("charset", () => {
+        fs.unlink(path.join(__dirname, "test0000" + base_port));
 
-            f = fs.openFile(path.join(__dirname, "test0000" + base_port), "w+");
-            var r = new io.BufferedStream(f);
-            r.EOL = '\r\n';
+        f = fs.openFile(path.join(__dirname, "test0000" + base_port), "w+");
+        var r = new io.BufferedStream(f);
+        r.EOL = '\r\n';
 
-            assert.equal(r.charset, "utf-8");
+        assert.equal(r.charset, "utf-8");
 
-            f.write("哈哈哈\r\n");
-            f.rewind();
-            assert.equal(r.readLine(), "哈哈哈");
+        f.write("哈哈哈\r\n");
+        f.rewind();
+        assert.equal(r.readLine(), "哈哈哈");
 
-            r.charset = "EUC-JP";
+        r.charset = "EUC-JP";
 
-            f.rewind();
-            f.truncate(0);
-            r.writeText("我是好人");
-            r.writeLine("哈哈哈");
-            f.rewind();
-            assert.equal(f.readAll().toString("EUC-JP"), "我是好人哈哈哈\r\n");
+        f.rewind();
+        f.truncate(0);
+        r.writeText("我是好人");
+        r.writeLine("哈哈哈");
+        f.rewind();
+        assert.equal(f.readAll().toString("EUC-JP"), "我是好人哈哈哈\r\n");
 
-            f.rewind();
-            assert.equal(r.readText(8), "我是好人");
-            assert.equal(r.readLine(), "哈哈哈");
+        f.rewind();
+        assert.equal(r.readText(8), "我是好人");
+        assert.equal(r.readLine(), "哈哈哈");
 
-            f.close();
-        });
+        f.close();
+    });
 });
 
 require.main === module && test.run(console.DEBUG);

@@ -159,14 +159,6 @@ result_t encoding_iconv::decode(const char* data, size_t sz, exlib::string& retV
     if (ucs_decode(data, sz, retVal) == 0)
         return 0;
 
-    if (!m_iconv_de) {
-        m_iconv_de = iconv_open("utf-8", m_charset.c_str());
-        if (m_iconv_de == (iconv_t)(-1)) {
-            m_iconv_de = NULL;
-            return CHECK_ERROR(Runtime::setError("encoding: Unknown charset."));
-        }
-    }
-
     int32_t _sz;
     UErrorCode errorCode = U_ZERO_ERROR;
 
@@ -176,6 +168,14 @@ result_t encoding_iconv::decode(const char* data, size_t sz, exlib::string& retV
         errorCode = U_ZERO_ERROR;
         ucnv_convert("utf-8", m_charset.c_str(), retVal.c_buffer(), _sz, data, sz, &errorCode);
         return 0;
+    }
+
+    if (!m_iconv_de) {
+        m_iconv_de = iconv_open("utf-8", m_charset.c_str());
+        if (m_iconv_de == (iconv_t)(-1)) {
+            m_iconv_de = NULL;
+            return CHECK_ERROR(Runtime::setError("encoding: Unknown charset."));
+        }
     }
 
     exlib::string strBuf;
@@ -198,43 +198,13 @@ result_t encoding_iconv::decode(const char* data, size_t sz, exlib::string& retV
 
 result_t encoding_iconv::decode(const exlib::string& data, exlib::string& retVal)
 {
-    if (ucs_decode(data, retVal) == 0)
-        return 0;
-
-    if (!m_iconv_de) {
-        m_iconv_de = iconv_open("utf-8", m_charset.c_str());
-        if (m_iconv_de == (iconv_t)(-1)) {
-            m_iconv_de = NULL;
-            return CHECK_ERROR(Runtime::setError("encoding: Unknown charset."));
-        }
-    }
-
-    size_t sz = data.length();
-    const char* ptr = data.c_str();
-    exlib::string strBuf;
-
-    strBuf.resize(sz * 2);
-    char* output_buf = strBuf.c_buffer();
-    size_t output_size = strBuf.length();
-
-    size_t n = iconv((iconv_t)m_iconv_de, &ptr, &sz, &output_buf, &output_size);
-
-    if (n == (size_t)-1)
-        return CHECK_ERROR(Runtime::setError("encoding: convert error."));
-
-    strBuf.resize(strBuf.length() - output_size);
-
-    retVal = strBuf;
-
-    return 0;
+    return decode(data.c_str(), data.length(), retVal);
 }
 
 result_t encoding_iconv::decode(Buffer_base* data, exlib::string& retVal)
 {
-    exlib::string strData;
-    data->toString(strData);
-
-    return decode(strData, retVal);
+    Buffer* buf = Buffer::Cast(data);
+    return decode((const char*)buf->data(), buf->length(), retVal);
 }
 
 bool encoding_iconv::is_encoding(exlib::string charset)

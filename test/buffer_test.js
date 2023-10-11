@@ -384,8 +384,7 @@ describe('Buffer', () => {
         assert.equal(Buffer.isEncoding('binary'), true);
         assert.equal(Buffer.isEncoding('latin1'), true);
 
-        if (!process.env.QEMU_LD_PREFIX)
-            assert.equal(Buffer.isEncoding('EUC-JP'), true);
+        assert.equal(Buffer.isEncoding('EUC-JP'), true);
     });
 
     it('@iterator', () => {
@@ -1020,12 +1019,11 @@ describe('Buffer', () => {
         assert.equal(buf.readIntBE(0, 5), -0x0012000000);
     });
 
-    if (Buffer.isEncoding("EUC-JP"))
-        it('charset', () => {
-            assert.equal(new Buffer("哈哈哈").toString(), "哈哈哈");
-            assert.equal(new Buffer("哈哈哈哈", "EUC-JP").hex(), "d2fdd2fdd2fdd2fd");
-            assert.equal(new Buffer("哈哈哈", "EUC-JP").toString("EUC-JP"), "哈哈哈");
-        });
+    it('charset', () => {
+        assert.equal(new Buffer("哈哈哈").toString(), "哈哈哈");
+        assert.equal(new Buffer("哈哈哈哈", "EUC-JP").hex(), "d2fdd2fdd2fdd2fd");
+        assert.equal(new Buffer("哈哈哈", "EUC-JP").toString("EUC-JP"), "哈哈哈");
+    });
 
     it('forEach', () => {
         var buf = new Buffer([1, 2, 3, 4, 5]);
