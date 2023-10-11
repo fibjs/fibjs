@@ -1184,6 +1184,21 @@ describe('util', () => {
                 colors: false,
                 depth: 3
             }), "[\n  [\n    [\n      [\n        []\n      ]\n    ]\n  ]\n]");
+            assert.equal(util.inspect(["1", "2", "3"], {
+                colors: false,
+                max_array_length: 2
+            }), "[\n  \"1\",\n  \"2\",\n  1 more item\n]");
+            assert.equal(util.inspect(["1", "2", "3", "4"], {
+                colors: false,
+                max_array_length: 2
+            }), "[\n  \"1\",\n  \"2\",\n  2 more items\n]");
+            assert.equal(util.inspect(["1", "2", "3", "4"], {
+                colors: false,
+                max_array_length: -1
+            }), "[\n  4 more items\n]");
+            assert.equal(util.inspect(["1", "2", "3", "4"], {
+                colors: false,
+            }), "[\n  \"1\",\n  \"2\",\n  \"3\",\n  \"4\"\n]");
         });
     });
 

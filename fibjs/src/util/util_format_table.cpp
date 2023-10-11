@@ -5,21 +5,9 @@
  *      Author: lion
  */
 
-#include "object.h"
-#include "ifs/util.h"
-#include "utf8.h"
-#include "qstring.h"
-#include "QuickArray.h"
-#include "StringBuffer.h"
-#include "TextColor.h"
-#include "Buffer.h"
-#include <unordered_map>
-#include <unicode/include/unicode/uchar.h>
+#include "util.h"
 
 namespace fibjs {
-
-void string_format(StringBuffer& strBuffer, v8::Local<v8::Value> v, bool color);
-exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth);
 
 inline int32_t getCharWidth(int32_t ch)
 {
@@ -198,7 +186,7 @@ inline void append_value(exlib::string& str, int32_t width, int32_t max_width, S
 exlib::string object_format(v8::Local<v8::Value> v, bool color, bool l2 = false)
 {
     if (IsJSBuffer(v))
-        return json_format(v, color, 2);
+        return json_format(v, color, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH);
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> _context = isolate->context();
@@ -239,7 +227,7 @@ exlib::string object_format(v8::Local<v8::Value> v, bool color, bool l2 = false)
 
                 JSValue v = array->Get(_context, i);
                 if (isSimpleValue(v))
-                    buf.append(json_format(v, color, 2));
+                    buf.append(json_format(v, color, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH));
                 else
                     buf.append(object_format(v, color, true));
             }
@@ -275,7 +263,7 @@ exlib::string object_format(v8::Local<v8::Value> v, bool color, bool l2 = false)
                     buf.append(", ");
 
                 JSValue v = array->Get(_context, i);
-                buf.append(json_format(v, color, 2));
+                buf.append(json_format(v, color, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH));
             }
 
             if (len == len1 + 1)
@@ -311,7 +299,7 @@ exlib::string object_format(v8::Local<v8::Value> v, bool color, bool l2 = false)
 
         v = obj->Get(_context, v);
         if (isSimpleValue(v))
-            buf.append(json_format(v, color, 2));
+            buf.append(json_format(v, color, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH));
         else
             buf.append(object_format(v, color, true));
     }
@@ -323,7 +311,7 @@ exlib::string object_format(v8::Local<v8::Value> v, bool color, bool l2 = false)
 exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields, bool color, bool encode_string)
 {
     if (isSimpleValue(obj))
-        return json_format(obj, color, 2);
+        return json_format(obj, color, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH);
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(obj);
 
@@ -372,7 +360,7 @@ exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields
                     GetArgumentValue(isolate, v, val);
                     value_cols.append(val);
                 } else
-                    value_cols.append(json_format(v, color, 2));
+                    value_cols.append(json_format(v, color, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH));
             }
         } else {
             v8::Local<v8::Object> ro = v8::Local<v8::Object>::Cast(v);
@@ -398,7 +386,7 @@ exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields
                     if (!encode_string && (rv->IsString() || rv->IsStringObject()))
                         GetArgumentValue(isolate, rv, row_value);
                     else
-                        row_value = json_format(rv, color, 2);
+                        row_value = json_format(rv, color, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH);
                 } else
                     row_value = object_format(rv, color);
 
@@ -512,11 +500,15 @@ result_t util_base::inspect(v8::Local<v8::Value> obj, v8::Local<v8::Object> opti
         if (!options.IsEmpty())
             GetConfigValue(isolate, options, "colors", colors, true);
 
-        int32_t depth = 2;
+        int32_t depth = DEFAULT_DEPTH;
         if (!options.IsEmpty())
             GetConfigValue(isolate, options, "depth", depth, true);
 
-        retVal = json_format(obj, colors, depth);
+        int32_t max_array_length = DEFAULT_MAX_ARRAY_LENGTH;
+        if (!options.IsEmpty())
+            GetConfigValue(isolate, options, "max_array_length", max_array_length, true);
+
+        retVal = json_format(obj, colors, depth, max_array_length);
     }
 
     return 0;
