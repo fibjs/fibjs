@@ -47,7 +47,7 @@ static size_t iconv(iconv_t cd, const char** inbuf, size_t* inbytesleft,
 #include "object.h"
 #include "encoding_iconv.h"
 #include "ifs/encoding.h"
-
+#include <unicode/include/unicode/ucnv.h>
 namespace fibjs {
 
 DECLARE_MODULE(iconv);
@@ -92,8 +92,24 @@ void encoding_iconv::open(const char* charset)
 
 result_t encoding_iconv::encode(exlib::string data, exlib::string& retVal)
 {
+    if (data.empty()) {
+        retVal.clear();
+        return 0;
+    }
+
     if (ucs_encode(data, retVal) == 0)
         return 0;
+
+    int32_t _sz;
+    UErrorCode errorCode = U_ZERO_ERROR;
+
+    _sz = ucnv_convert(m_charset.c_str(), "utf-8", NULL, 0, data.c_str(), data.length(), &errorCode);
+    if (_sz) {
+        retVal.resize(_sz);
+        errorCode = U_ZERO_ERROR;
+        ucnv_convert(m_charset.c_str(), "utf-8", retVal.c_buffer(), _sz, data.c_str(), data.length(), &errorCode);
+        return 0;
+    }
 
     if (!m_iconv_en) {
         m_iconv_en = iconv_open(m_charset.c_str(), "utf-8");
@@ -135,6 +151,11 @@ result_t encoding_iconv::encode(exlib::string data, obj_ptr<Buffer_base>& retVal
 
 result_t encoding_iconv::decode(const char* data, size_t sz, exlib::string& retVal)
 {
+    if (sz == 0) {
+        retVal.clear();
+        return 0;
+    }
+
     if (ucs_decode(data, sz, retVal) == 0)
         return 0;
 
@@ -144,6 +165,17 @@ result_t encoding_iconv::decode(const char* data, size_t sz, exlib::string& retV
             m_iconv_de = NULL;
             return CHECK_ERROR(Runtime::setError("encoding: Unknown charset."));
         }
+    }
+
+    int32_t _sz;
+    UErrorCode errorCode = U_ZERO_ERROR;
+
+    _sz = ucnv_convert("utf-8", m_charset.c_str(), NULL, 0, data, sz, &errorCode);
+    if (_sz) {
+        retVal.resize(_sz);
+        errorCode = U_ZERO_ERROR;
+        ucnv_convert("utf-8", m_charset.c_str(), retVal.c_buffer(), _sz, data, sz, &errorCode);
+        return 0;
     }
 
     exlib::string strBuf;
@@ -209,6 +241,13 @@ bool encoding_iconv::is_encoding(exlib::string charset)
 {
     if (is_ucs_encoding(charset))
         return true;
+
+    UErrorCode err = U_ZERO_ERROR;
+    UConverter* icu_ec = ucnv_open(charset.c_str(), &err);
+    if (icu_ec) {
+        ucnv_close(icu_ec);
+        return true;
+    }
 
     void* iconv_ec = iconv_open(charset.c_str(), "utf-8");
     if (iconv_ec != (iconv_t)(-1)) {

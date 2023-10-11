@@ -328,111 +328,144 @@ describe('encoding', () => {
         }
     });
 
-    it('iconv ucs2', () => {
-        for (var i = 0; i < 0xd800; i++) {
-            var s = String.fromCharCode(i);
-            var buf = iconv.encode('utf16le', s);
-            var n = buf.readUInt16LE();
-            assert.equal(i, n);
-            assert.equal(iconv.decode('utf16le', buf), s);
-        }
+    describe("iconv", () => {
+        it('ucs2', () => {
+            for (var i = 0; i < 0xd800; i++) {
+                var s = String.fromCharCode(i);
+                var buf = iconv.encode('utf16le', s);
+                var n = buf.readUInt16LE();
+                assert.equal(i, n);
+                assert.equal(iconv.decode('utf16le', buf), s);
+            }
 
-        for (var i = 0; i < 0xd800; i++) {
-            var s = String.fromCharCode(i);
-            var buf = iconv.encode('utf16be', s);
-            var n = buf.readUInt16BE();
-            assert.equal(i, n);
-            assert.equal(iconv.decode('utf16be', buf), s);
-        }
+            for (var i = 0; i < 0xd800; i++) {
+                var s = String.fromCharCode(i);
+                var buf = iconv.encode('utf16be', s);
+                var n = buf.readUInt16BE();
+                assert.equal(i, n);
+                assert.equal(iconv.decode('utf16be', buf), s);
+            }
 
-        assert.equal(new Buffer([0xc8]).toString(), '\ufffd');
-        assert.equal(Buffer.from('3DD84DDC', 'hex').toString('utf16le'), '👍');
-    });
-
-    var datas = [
-        [
-            0x7f,
-            "7f000000",
-            "7f000000"
-        ],
-        [
-            0x80,
-            "80000000",
-            "80000000"
-        ],
-        [
-            0x7ff,
-            "ff070000",
-            "ff070000"
-        ],
-        [
-            0x800,
-            "00080000",
-            "00080000"
-        ],
-        [
-            0xffff,
-            "ffff0000",
-            "ffff0000"
-        ],
-        [
-            0x10000,
-            "00000100",
-            "00000100"
-        ],
-        [
-            0x10ffff,
-            "ffff1000",
-            "ffff1000"
-        ],
-        [
-            0x110000,
-            "00001100",
-            "00001100"
-        ],
-        [
-            0x1fffff,
-            "ffff1f00",
-            "ffff1f00"
-        ],
-        [
-            0x200000,
-            "00002000",
-            "00002000"
-        ],
-        [
-            0x3ffffff,
-            "ffffff03",
-            "bfff0000ffdf0000"
-        ],
-        [
-            0x4000000,
-            "00000004",
-            "c0ff000000dc0000"
-        ]
-    ];
-
-    it('iconv ucs2 multi', () => {
-        datas.forEach(d => {
-            var buf = Buffer.alloc(4);
-            buf.writeUInt32LE(d[0]);
-            var s = iconv.decode('utf32le', buf);
-            var buf2 = Buffer.alloc(s.length * 2);
-            buf2.writeUInt16LE(s.charCodeAt(0));
-            if (s.length > 1)
-                buf2.writeUInt16LE(s.charCodeAt(1), 2);
-            assert.equal(iconv.decode('utf16le', buf2), s);
+            assert.equal(new Buffer([0xc8]).toString(), '\ufffd');
+            assert.equal(Buffer.from('3DD84DDC', 'hex').toString('utf16le'), '👍');
         });
-    });
 
-    it('iconv ucs4', () => {
-        datas.forEach(d => {
-            var buf = Buffer.alloc(4);
-            buf.writeUInt32LE(d[0]);
-            var s = iconv.decode('utf32le', buf);
-            var buf1 = iconv.encode('utf32le', s);
-            assert.deepEqual(buf.hex(), d[1]);
-            assert.deepEqual(buf1.hex(), d[2]);
+        var datas = [
+            [
+                0x7f,
+                "7f000000",
+                "7f000000"
+            ],
+            [
+                0x80,
+                "80000000",
+                "80000000"
+            ],
+            [
+                0x7ff,
+                "ff070000",
+                "ff070000"
+            ],
+            [
+                0x800,
+                "00080000",
+                "00080000"
+            ],
+            [
+                0xffff,
+                "ffff0000",
+                "ffff0000"
+            ],
+            [
+                0x10000,
+                "00000100",
+                "00000100"
+            ],
+            [
+                0x10ffff,
+                "ffff1000",
+                "ffff1000"
+            ],
+            [
+                0x110000,
+                "00001100",
+                "00001100"
+            ],
+            [
+                0x1fffff,
+                "ffff1f00",
+                "ffff1f00"
+            ],
+            [
+                0x200000,
+                "00002000",
+                "00002000"
+            ],
+            [
+                0x3ffffff,
+                "ffffff03",
+                "bfff0000ffdf0000"
+            ],
+            [
+                0x4000000,
+                "00000004",
+                "c0ff000000dc0000"
+            ]
+        ];
+
+        it('ucs2 multi', () => {
+            datas.forEach(d => {
+                var buf = Buffer.alloc(4);
+                buf.writeUInt32LE(d[0]);
+                var s = iconv.decode('utf32le', buf);
+                var buf2 = Buffer.alloc(s.length * 2);
+                buf2.writeUInt16LE(s.charCodeAt(0));
+                if (s.length > 1)
+                    buf2.writeUInt16LE(s.charCodeAt(1), 2);
+                assert.equal(iconv.decode('utf16le', buf2), s);
+            });
+        });
+
+        it('ucs4', () => {
+            datas.forEach(d => {
+                var buf = Buffer.alloc(4);
+                buf.writeUInt32LE(d[0]);
+                var s = iconv.decode('utf32le', buf);
+                var buf1 = iconv.encode('utf32le', s);
+                assert.deepEqual(buf.hex(), d[1]);
+                assert.deepEqual(buf1.hex(), d[2]);
+            });
+        });
+
+        const builtin_datas = [
+            {
+                "name": "gbk",
+                "text": "你好",
+                "hex": "c4e3bac3"
+            },
+            {
+                "name": "big5",
+                "text": "你好",
+                "hex": "a741a66e"
+            },
+            {
+                "name": "shift_jis",
+                "text": "こんにちは",
+                "hex": "82b182f182c982bf82cd"
+            },
+            {
+                "name": "euc-kr",
+                "text": "안녕하세요",
+                "hex": "bec8b3e7c7cfbcbcbfe4"
+            }
+        ];
+
+        it("builtin codec", () => {
+            for (var d of builtin_datas) {
+                var buf = iconv.encode(d.name, d.text);
+                assert.equal(buf.hex(), d.hex);
+                assert.equal(iconv.decode(d.name, buf), d.text);
+            }
         });
     });
 
@@ -755,7 +788,7 @@ describe('encoding', () => {
         });
 
         it('test for Map', () => {
-            var tmp = {a: 12, b: [2, 3, 5], c: true};
+            var tmp = { a: 12, b: [2, 3, 5], c: true };
             var map = new Map(Object.entries(tmp));
             assert.deepEqual(tmp, msgpack.decode(msgpack.encode(map)));
             assert.isObject(msgpack.decode(msgpack.encode(map)));
