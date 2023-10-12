@@ -22,11 +22,11 @@ module global
     /*! @brief 基础性能监控模块 */
     static performance;
 
-    /*! @brief Worker 宿主对象，仅在 Worker 入口脚本有效 */
-    static readonly Worker Master;
-
     /*! @brief 全局对象 */
     static readonly Object global;
+
+    /*! @brief 全局对象 */
+    static readonly Object globalThis;
 
     /*! @brief 运行一个脚本
      @param fname 指定要运行的脚本路径
@@ -94,15 +94,6 @@ module global
      @return 返回加载模块的引出对象
      */
     static Value require(String id);
-
-    /*! @brief 获取当前脚本的运行参数，启动 js 获取进程启动参数，run 执行的脚本获取传递的参数 */
-    static readonly Array argv;
-
-    /*! @brief 当前脚本文件名 */
-    static readonly String __filename;
-
-    /*! @brief 当前脚本所在目录 */
-    static readonly String __dirname;
 
     /*! @brief 在指定的时间后调用函数
     @param callback 指定回调函数

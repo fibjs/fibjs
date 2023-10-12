@@ -210,7 +210,7 @@ public:
         return m_cd.name;
     }
 
-    void Attach(Isolate* isolate, v8::Local<v8::Object> o, const char** skips = NULL)
+    void Attach(Isolate* isolate, v8::Local<v8::Object> o)
     {
         int32_t i, j;
         v8::Local<v8::Context> _context = isolate->context();
@@ -218,64 +218,43 @@ public:
 
         for (i = 0; i < m_cd.mc; i++) {
             if (m_cd.cms[i].is_static) {
-                if (skips)
-                    for (j = 0; skips[j] && qstrcmp(skips[j], m_cd.cms[i].name); j++)
-                        ;
+                v8::Local<v8::Function> func = isolate->NewFunction(m_cd.cms[i].name, m_cd.cms[i].invoker);
+                v8::Local<v8::Function> pfunc;
+                v8::Local<v8::Name> name = get_prop_name(isolate, m_cd.cms[i].name);
 
-                if (!skips || !skips[j]) {
-                    v8::Local<v8::Function> func = isolate->NewFunction(m_cd.cms[i].name, m_cd.cms[i].invoker);
-                    v8::Local<v8::Function> pfunc;
-                    v8::Local<v8::Name> name = get_prop_name(isolate, m_cd.cms[i].name);
+                o->Set(_context, name, func).IsJust();
 
-                    o->Set(_context, name, func).IsJust();
+                if (m_cd.cms[i].is_async) {
+                    if (op.IsEmpty())
+                        op = v8::Object::New(isolate->m_isolate);
 
-                    if (m_cd.cms[i].is_async) {
-                        if (op.IsEmpty())
-                            op = v8::Object::New(isolate->m_isolate);
-
-                        promisify(isolate, func, pfunc);
-                        op->Set(_context, name, pfunc).IsJust();
-                    }
+                    promisify(isolate, func, pfunc);
+                    op->Set(_context, name, pfunc).IsJust();
                 }
             }
         }
 
         for (i = 0; i < m_cd.oc; i++) {
-            if (skips)
-                for (j = 0; skips[j] && qstrcmp(skips[j], m_cd.cos[i].name); j++)
-                    ;
-
-            if (!skips || !skips[j])
-                o->Set(_context, isolate->NewString(m_cd.cos[i].name),
-                     m_cd.cos[i].invoker().getModule(isolate))
-                    .IsJust();
+            o->Set(_context, isolate->NewString(m_cd.cos[i].name),
+                 m_cd.cos[i].invoker().getModule(isolate))
+                .IsJust();
         }
 
         for (i = 0; i < m_cd.pc; i++)
             if (m_cd.cps[i].is_static) {
-                if (skips)
-                    for (j = 0; skips[j] && qstrcmp(skips[j], m_cd.cps[i].name); j++)
-                        ;
-
-                if (!skips || !skips[j])
-                    o->SetAccessor(_context, get_prop_name(isolate, m_cd.cps[i].name),
-                         m_cd.cps[i].getter, m_cd.cps[i].setter)
-                        .IsJust();
+                o->SetAccessor(_context, get_prop_name(isolate, m_cd.cps[i].name),
+                     m_cd.cps[i].getter, m_cd.cps[i].setter)
+                    .IsJust();
             }
 
         for (i = 0; i < m_cd.cc; i++) {
-            if (skips)
-                for (j = 0; skips[j] && qstrcmp(skips[j], m_cd.ccs[i].name); j++)
-                    ;
-
-            if (!skips || !skips[j])
-                o->Set(_context, isolate->NewString(m_cd.ccs[i].name),
-                     v8::Integer::New(isolate->m_isolate, m_cd.ccs[i].value))
-                    .IsJust();
+            o->Set(_context, isolate->NewString(m_cd.ccs[i].name),
+                 v8::Integer::New(isolate->m_isolate, m_cd.ccs[i].value))
+                .IsJust();
         }
 
         if (m_cd.base)
-            m_cd.base->Attach(isolate, o, skips);
+            m_cd.base->Attach(isolate, o);
 
         if (!op.IsEmpty())
             o->Set(_context, isolate->NewString("promises"), op).IsJust();

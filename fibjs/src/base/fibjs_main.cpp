@@ -6,7 +6,7 @@
  */
 
 #include "fibjs.h"
-#include "ifs/global.h"
+#include "ifs/process.h"
 #include "SandBox.h"
 #include "Fiber.h"
 
@@ -18,7 +18,7 @@ static void main_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
     V8_SCOPE(isolate->m_isolate);
     v8::Local<v8::Array> argv;
 
-    global_base::get_argv(argv);
+    process_base::get_argv(argv);
     result_t hr = isolate->m_topSandbox->run_main(isolate->m_fname, argv);
 
     if (hr < 0) {

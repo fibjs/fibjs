@@ -10,12 +10,12 @@ namespace fibjs {
 
 extern exlib::string s_root;
 
-result_t global_base::get_Master(obj_ptr<Worker_base>& retVal)
+result_t global_base::get_global(v8::Local<v8::Object>& retVal)
 {
-    return CALL_RETURN_NULL;
+    return get_globalThis(retVal);
 }
 
-result_t global_base::get_global(v8::Local<v8::Object>& retVal)
+result_t global_base::get_globalThis(v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
     retVal = isolate->context()->Global();
@@ -31,21 +31,6 @@ result_t global_base::GC()
 result_t global_base::run(exlib::string fname)
 {
     return Isolate::current()->m_topSandbox->run(fname);
-}
-
-result_t global_base::get_argv(v8::Local<v8::Array>& retVal)
-{
-    return process_base::get_argv(retVal);
-}
-
-result_t global_base::get___filename(exlib::string& retVal)
-{
-    return 0;
-}
-
-result_t global_base::get___dirname(exlib::string& retVal)
-{
-    return 0;
 }
 
 result_t global_base::require(exlib::string id, v8::Local<v8::Value>& retVal)

@@ -22,7 +22,6 @@ class TextEncoder_base;
 class console_base;
 class process_base;
 class performance_base;
-class Worker_base;
 class Timer_base;
 
 class global_base : public object_base {
@@ -30,13 +29,10 @@ class global_base : public object_base {
 
 public:
     // global_base
-    static result_t get_Master(obj_ptr<Worker_base>& retVal);
     static result_t get_global(v8::Local<v8::Object>& retVal);
+    static result_t get_globalThis(v8::Local<v8::Object>& retVal);
     static result_t run(exlib::string fname);
     static result_t require(exlib::string id, v8::Local<v8::Value>& retVal);
-    static result_t get_argv(v8::Local<v8::Array>& retVal);
-    static result_t get___filename(exlib::string& retVal);
-    static result_t get___dirname(exlib::string& retVal);
     static result_t setTimeout(v8::Local<v8::Function> callback, double timeout, OptArgs args, obj_ptr<Timer_base>& retVal);
     static result_t clearTimeout(v8::Local<v8::Value> t);
     static result_t setInterval(v8::Local<v8::Function> callback, double timeout, OptArgs args, obj_ptr<Timer_base>& retVal);
@@ -59,13 +55,10 @@ public:
     }
 
 public:
-    static void s_static_get_Master(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_static_get_global(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_globalThis(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_static_run(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_require(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_get_argv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_get___filename(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_get___dirname(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_static_setTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_clearTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_setInterval(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -87,7 +80,6 @@ public:
 #include "ifs/console.h"
 #include "ifs/process.h"
 #include "ifs/performance.h"
-#include "ifs/Worker.h"
 #include "ifs/Timer.h"
 
 namespace fibjs {
@@ -120,11 +112,8 @@ inline ClassInfo& global_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "Master", s_static_get_Master, block_set, true },
         { "global", s_static_get_global, block_set, true },
-        { "argv", s_static_get_argv, block_set, true },
-        { "__filename", s_static_get___filename, block_set, true },
-        { "__dirname", s_static_get___dirname, block_set, true }
+        { "globalThis", s_static_get_globalThis, block_set, true }
     };
 
     static ClassData s_cd = {
@@ -138,17 +127,6 @@ inline ClassInfo& global_base::class_info()
     return s_ci;
 }
 
-inline void global_base::s_static_get_Master(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<Worker_base> vr;
-
-    PROPERTY_ENTER();
-
-    hr = get_Master(vr);
-
-    METHOD_RETURN();
-}
-
 inline void global_base::s_static_get_global(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
@@ -156,6 +134,17 @@ inline void global_base::s_static_get_global(v8::Local<v8::Name> property, const
     PROPERTY_ENTER();
 
     hr = get_global(vr);
+
+    METHOD_RETURN();
+}
+
+inline void global_base::s_static_get_globalThis(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    PROPERTY_ENTER();
+
+    hr = get_globalThis(vr);
 
     METHOD_RETURN();
 }
@@ -184,39 +173,6 @@ inline void global_base::s_static_require(const v8::FunctionCallbackInfo<v8::Val
     ARG(exlib::string, 0);
 
     hr = require(v0, vr);
-
-    METHOD_RETURN();
-}
-
-inline void global_base::s_static_get_argv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    v8::Local<v8::Array> vr;
-
-    PROPERTY_ENTER();
-
-    hr = get_argv(vr);
-
-    METHOD_RETURN();
-}
-
-inline void global_base::s_static_get___filename(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    exlib::string vr;
-
-    PROPERTY_ENTER();
-
-    hr = get___filename(vr);
-
-    METHOD_RETURN();
-}
-
-inline void global_base::s_static_get___dirname(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    exlib::string vr;
-
-    PROPERTY_ENTER();
-
-    hr = get___dirname(vr);
 
     METHOD_RETURN();
 }

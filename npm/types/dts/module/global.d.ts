@@ -6,7 +6,6 @@
 /// <reference path="../module/console.d.ts" />
 /// <reference path="../module/process.d.ts" />
 /// <reference path="../module/performance.d.ts" />
-/// <reference path="../interface/Worker.d.ts" />
 /// <reference path="../interface/Timer.d.ts" />
 /**
  * @description 全局对象，所有脚本均可以访问的基础对象
@@ -48,14 +47,14 @@ declare module 'global' {
     const performance: typeof import ('performance');
 
     /**
-     * @description Worker 宿主对象，仅在 Worker 入口脚本有效 
+     * @description 全局对象 
      */
-    const Master: Class_Worker;
+    const global: FIBJS.GeneralObject;
 
     /**
      * @description 全局对象 
      */
-    const global: FIBJS.GeneralObject;
+    const globalThis: FIBJS.GeneralObject;
 
     /**
      * @description 运行一个脚本
@@ -127,21 +126,6 @@ declare module 'global' {
      *      
      */
     function require(id: string): any;
-
-    /**
-     * @description 获取当前脚本的运行参数，启动 js 获取进程启动参数，run 执行的脚本获取传递的参数 
-     */
-    const argv: any[];
-
-    /**
-     * @description 当前脚本文件名 
-     */
-    const __filename: string;
-
-    /**
-     * @description 当前脚本所在目录 
-     */
-    const __dirname: string;
 
     /**
      * @description 在指定的时间后调用函数
