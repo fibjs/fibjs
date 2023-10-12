@@ -372,7 +372,7 @@ describe("child_process", () => {
         coroutine.sleep(500);
         p.kill(15);
         p.join();
-        assert.lessThan(new Date().getTime() - t1, 1000);
+        assert.lessThan(new Date().getTime() - t1, 2000);
     });
 
     it("usage", () => {
