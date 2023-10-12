@@ -270,7 +270,9 @@ void Isolate::init()
     v8::Isolate::Scope isolate_scope(m_isolate);
     v8::HandleScope handle_scope(m_isolate);
 
-    v8::Local<v8::Context> _context = v8::Context::New(m_isolate);
+    init_global_template();
+
+    v8::Local<v8::Context> _context = v8::Context::New(m_isolate, nullptr, m_global_template.Get(m_isolate));
     m_context.Reset(m_isolate, _context);
 
     v8::Context::Scope context_scope(_context);
@@ -283,6 +285,7 @@ void Isolate::init()
         beginCoverage(m_isolate);
 
     _context->SetEmbedderData(kObjectPrototype, v8::Object::New(m_isolate)->GetPrototype());
+    _context->SetEmbedderData(kSandboxObject, v8::Object::New(m_isolate));
 
     global_base::class_info().Attach(this, _context->Global());
 

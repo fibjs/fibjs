@@ -190,7 +190,8 @@ typedef int32_t result_t;
 enum {
     kObjectPrototype = 0,
     kBufferClassIndex = 1,
-    kBufferPrototype = 2
+    kBufferPrototype = 2,
+    kSandboxObject = 3
 };
 
 #if 1

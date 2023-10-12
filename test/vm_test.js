@@ -188,272 +188,274 @@ describe("vm", () => {
         assert.deepEqual(b, b1);
     });
 
-    it("setModuleCompiler: ext recognition", () => {
-        var sbox = new vm.SandBox({});
+    describe("setModuleCompiler", () => {
+        it("ext recognition", () => {
+            var sbox = new vm.SandBox({});
 
-        assert.throws(() => {
+            assert.throws(() => {
+                sbox.require('./vm_test/custom_ext', __dirname);
+            })
+            sbox.require('./vm_test/custom_ext.abc', __dirname);
+
+            sbox.setModuleCompiler('.abc', function (buf) { });
             sbox.require('./vm_test/custom_ext', __dirname);
         })
-        sbox.require('./vm_test/custom_ext.abc', __dirname);
 
-        sbox.setModuleCompiler('.abc', function (buf) { });
-        sbox.require('./vm_test/custom_ext', __dirname);
-    })
+        it("basic", () => {
+            var sbox = new vm.SandBox({});
 
-    it("setModuleCompiler: basic", () => {
-        var sbox = new vm.SandBox({});
+            var testVarValue = 'lalala'
 
-        var testVarValue = 'lalala'
-
-        sbox.setModuleCompiler('.abc', function (buf) {
-            return modulifyContent(JSON.stringify(
-                testVarValue
-            ));
-        });
-
-        var testVar = sbox.require('./vm_test/custom_ext.abc', __dirname);
-        assert.equal(testVar, 'lalala');
-
-        assert.throws(() => {
-            (new SandBox({})).setModuleCompiler('^abc', function (buf) {
-                return testVarValue;
+            sbox.setModuleCompiler('.abc', function (buf) {
+                return modulifyContent(JSON.stringify(
+                    testVarValue
+                ));
             });
-        });
-        assert.throws(() => {
-            (new SandBox({})).setModuleCompiler('-abc', function (buf) {
-                return testVarValue;
+
+            var testVar = sbox.require('./vm_test/custom_ext.abc', __dirname);
+            assert.equal(testVar, 'lalala');
+
+            assert.throws(() => {
+                (new SandBox({})).setModuleCompiler('^abc', function (buf) {
+                    return testVarValue;
+                });
             });
+            assert.throws(() => {
+                (new SandBox({})).setModuleCompiler('-abc', function (buf) {
+                    return testVarValue;
+                });
+            })
         })
-    })
 
-    it("setModuleCompiler: requireInfo", () => {
-        var sbox = new vm.SandBox({});
+        it("requireInfo", () => {
+            var sbox = new vm.SandBox({});
 
-        sbox.setModuleCompiler('.abc', function (buf, requireInfo) {
-            return modulifyContent(JSON.stringify(
-                requireInfo
-            ));
-        });
+            sbox.setModuleCompiler('.abc', function (buf, requireInfo) {
+                return modulifyContent(JSON.stringify(
+                    requireInfo
+                ));
+            });
 
-        var expectedRequireInfo = {
-            filename: path.resolve(__dirname, './vm_test/custom_ext.abc')
-        }
+            var expectedRequireInfo = {
+                filename: path.resolve(__dirname, './vm_test/custom_ext.abc')
+            }
 
-        var testArgs = sbox.require('./vm_test/custom_ext', __dirname);
-        assert.deepEqual(testArgs, expectedRequireInfo);
-    })
+            var testArgs = sbox.require('./vm_test/custom_ext', __dirname);
+            assert.deepEqual(testArgs, expectedRequireInfo);
+        })
 
-    it("setModuleCompiler: cached require", () => {
-        var sbox = new vm.SandBox({});
+        it("cached require", () => {
+            var sbox = new vm.SandBox({});
 
-        var testVarValue = 'I am not increasing:'
-        var initialCnt = cnt = 0;
-        sbox.setModuleCompiler('.abc', function (buf) {
-            var _return = testVarValue + cnt;
-            cnt++;
+            var testVarValue = 'I am not increasing:'
+            var initialCnt = cnt = 0;
+            sbox.setModuleCompiler('.abc', function (buf) {
+                var _return = testVarValue + cnt;
+                cnt++;
 
-            return modulifyContent(JSON.stringify(
-                _return
-            ));
-        });
-        assert.equal(cnt, initialCnt);
+                return modulifyContent(JSON.stringify(
+                    _return
+                ));
+            });
+            assert.equal(cnt, initialCnt);
 
-        for (var i = initialCnt; i < 10; i++) {
-            var requiredVal = sbox.require('./vm_test/custom_ext', __dirname);
-            assert.equal(cnt, initialCnt + 1);
-            assert.equal(requiredVal, testVarValue + initialCnt);
-        }
-    })
+            for (var i = initialCnt; i < 10; i++) {
+                var requiredVal = sbox.require('./vm_test/custom_ext', __dirname);
+                assert.equal(cnt, initialCnt + 1);
+                assert.equal(requiredVal, testVarValue + initialCnt);
+            }
+        })
 
-    it("setModuleCompiler: re-setModuleCompiler", () => {
-        var sbox1 = new vm.SandBox({});
-        var sbox2 = new vm.SandBox({});
+        it("re-setModuleCompiler", () => {
+            var sbox1 = new vm.SandBox({});
+            var sbox2 = new vm.SandBox({});
 
-        var testVarValue = 'miaomiaomiao'
+            var testVarValue = 'miaomiaomiao'
 
-        var t0 = Date.now();
-        sbox1.setModuleCompiler('.abc', function (buf) {
-            return modulifyContent(JSON.stringify({
+            var t0 = Date.now();
+            sbox1.setModuleCompiler('.abc', function (buf) {
+                return modulifyContent(JSON.stringify({
+                    test: testVarValue + t0
+                }));
+            });
+
+            var var0;
+
+            var0 = sbox1.require('./vm_test/custom_ext', __dirname);
+
+            assert.deepEqual(var0, {
+                test: testVarValue + t0
+            })
+            assert.equal(JSON.stringify(var0), JSON.stringify({
+                test: testVarValue + t0
+            }))
+
+            var0 = sbox1.require('./vm_test/custom_ext', __dirname);
+
+            assert.equal(JSON.stringify(var0), JSON.stringify({
                 test: testVarValue + t0
             }));
-        });
+            assert.notEqual(var0, testVarValue);
 
-        var var0;
+            var testVar1;
 
-        var0 = sbox1.require('./vm_test/custom_ext', __dirname);
+            /*
+                #4d04262b-d752-4d18-a9ad-a107cbd05682
+    
+                module would be cached via its moduleId. so if you really want to re-setModuleCompiler,
+                it's better to delete the sandbox and build new one, then re-require all modules.
+             */
+            sbox1 = new vm.SandBox({})
+            sbox1.setModuleCompiler('.abc', function (buf) {
+                return modulifyContent(JSON.stringify(
+                    testVarValue
+                ));
+            });
+            testVar1 = sbox1.require('./vm_test/custom_ext', __dirname);
+            assert.equal(testVar1, testVarValue);
 
-        assert.deepEqual(var0, {
-            test: testVarValue + t0
-        })
-        assert.equal(JSON.stringify(var0), JSON.stringify({
-            test: testVarValue + t0
-        }))
+            var t = Date.now();
 
-        var0 = sbox1.require('./vm_test/custom_ext', __dirname);
-
-        assert.equal(JSON.stringify(var0), JSON.stringify({
-            test: testVarValue + t0
-        }));
-        assert.notEqual(var0, testVarValue);
-
-        var testVar1;
-
-        /*
-            #4d04262b-d752-4d18-a9ad-a107cbd05682
-
-            module would be cached via its moduleId. so if you really want to re-setModuleCompiler,
-            it's better to delete the sandbox and build new one, then re-require all modules.
-         */
-        sbox1 = new vm.SandBox({})
-        sbox1.setModuleCompiler('.abc', function (buf) {
-            return modulifyContent(JSON.stringify(
-                testVarValue
-            ));
-        });
-        testVar1 = sbox1.require('./vm_test/custom_ext', __dirname);
-        assert.equal(testVar1, testVarValue);
-
-        var t = Date.now();
-
-        var testVar2;
-        sbox2.setModuleCompiler('.abc', function (buf) {
-            return modulifyContent(JSON.stringify(
-                testVarValue + t
-            ));
-        });
-        testVar2 = sbox2.require('./vm_test/custom_ext.abc', __dirname);
-        assert.equal(testVar2, testVarValue + t);
-    })
-
-    it("setModuleCompiler: internal extname", () => {
-        assert.throws(() => {
-            (new vm.SandBox({})).setModuleCompiler('.js', () => undefined);
-        });
-        assert.throws(() => {
-            (new vm.SandBox({})).setModuleCompiler('.jsc', () => undefined);
-        });
-        assert.throws(() => {
-            (new vm.SandBox({})).setModuleCompiler('.json', () => undefined);
-        });
-        assert.throws(() => {
-            (new vm.SandBox({})).setModuleCompiler('.wasm', () => undefined);
-        });
-
-        (new vm.SandBox({})).setModuleCompiler('.ts', () => undefined);
-    })
-
-    it("setModuleCompiler: binary", () => {
-        var sbox = new vm.SandBox({});
-        sbox.setModuleCompiler('.png', (buf) => {
-            return modulifyContent(JSON.stringify(
-                buf.toString('base64')
-            ));
-        });
-
-        var image1Base64 = sbox.require('./vm_test/custom_ext.png', __dirname);
-        var image1 = gd.load(Buffer.from(image1Base64, 'base64'));
-        var imageBuf1 = image1.getData(gd.PNG, 1);
-
-        var image2 = gd.load(
-            path.resolve(__dirname, './vm_test/custom_ext.png')
-        );
-        var imageBuf2 = image2.getData(gd.PNG, 1);
-
-        assert.equal(imageBuf1.toString('base64'), imageBuf2.toString('base64'))
-
-        sbox.setModuleCompiler('.error', (base64Str) => {
-            nonExistedValue = nonExistedValue1
-            gd.load(base64Str);
-            return nonExistedValue;
+            var testVar2;
+            sbox2.setModuleCompiler('.abc', function (buf) {
+                return modulifyContent(JSON.stringify(
+                    testVarValue + t
+                ));
+            });
+            testVar2 = sbox2.require('./vm_test/custom_ext.abc', __dirname);
+            assert.equal(testVar2, testVarValue + t);
         })
 
-        assert.throws(() => {
-            sbox.require('./vm_test/custom_ext.error, __dirname')
+        it("internal extname", () => {
+            assert.throws(() => {
+                (new vm.SandBox({})).setModuleCompiler('.js', () => undefined);
+            });
+            assert.throws(() => {
+                (new vm.SandBox({})).setModuleCompiler('.jsc', () => undefined);
+            });
+            assert.throws(() => {
+                (new vm.SandBox({})).setModuleCompiler('.json', () => undefined);
+            });
+            assert.throws(() => {
+                (new vm.SandBox({})).setModuleCompiler('.wasm', () => undefined);
+            });
+
+            (new vm.SandBox({})).setModuleCompiler('.ts', () => undefined);
         })
-    });
 
-    it("setModuleCompiler: repetitive extname, double first", () => {
-        var sbox = new vm.SandBox({});
-        sbox.setModuleCompiler('.double.double', buf => buf.toString());
+        it("binary", () => {
+            var sbox = new vm.SandBox({});
+            sbox.setModuleCompiler('.png', (buf) => {
+                return modulifyContent(JSON.stringify(
+                    buf.toString('base64')
+                ));
+            });
 
-        assert.deepEqual(sbox.require('./vm_test/custom_ext', __dirname), {
-            I: 'am .double.double',
-            a: 1,
-            b: 2
+            var image1Base64 = sbox.require('./vm_test/custom_ext.png', __dirname);
+            var image1 = gd.load(Buffer.from(image1Base64, 'base64'));
+            var imageBuf1 = image1.getData(gd.PNG, 1);
+
+            var image2 = gd.load(
+                path.resolve(__dirname, './vm_test/custom_ext.png')
+            );
+            var imageBuf2 = image2.getData(gd.PNG, 1);
+
+            assert.equal(imageBuf1.toString('base64'), imageBuf2.toString('base64'))
+
+            sbox.setModuleCompiler('.error', (base64Str) => {
+                nonExistedValue = nonExistedValue1
+                gd.load(base64Str);
+                return nonExistedValue;
+            })
+
+            assert.throws(() => {
+                sbox.require('./vm_test/custom_ext.error, __dirname')
+            })
         });
 
-        sbox.setModuleCompiler('.double', buf => buf.toString());
-        assert.deepEqual(sbox.require('./vm_test/custom_ext', __dirname), {
-            I: 'am .double.double',
-            a: 1,
-            b: 2
+        it("repetitive extname, double first", () => {
+            var sbox = new vm.SandBox({});
+            sbox.setModuleCompiler('.double.double', buf => buf.toString());
+
+            assert.deepEqual(sbox.require('./vm_test/custom_ext', __dirname), {
+                I: 'am .double.double',
+                a: 1,
+                b: 2
+            });
+
+            sbox.setModuleCompiler('.double', buf => buf.toString());
+            assert.deepEqual(sbox.require('./vm_test/custom_ext', __dirname), {
+                I: 'am .double.double',
+                a: 1,
+                b: 2
+            });
         });
-    });
 
-    it("setModuleCompiler: repetitive extname, single first", () => {
-        var sbox = new vm.SandBox({});
-        sbox.setModuleCompiler('.double', buf => buf.toString());
+        it("repetitive extname, single first", () => {
+            var sbox = new vm.SandBox({});
+            sbox.setModuleCompiler('.double', buf => buf.toString());
 
-        assert.deepEqual(sbox.require('./vm_test/custom_ext', __dirname), {
-            I: 'am .double',
-            a: 1,
-            b: 2
+            assert.deepEqual(sbox.require('./vm_test/custom_ext', __dirname), {
+                I: 'am .double',
+                a: 1,
+                b: 2
+            });
+
+            sbox.setModuleCompiler('.double.double', buf => buf.toString());
+            assert.deepEqual(sbox.require('./vm_test/custom_ext', __dirname), {
+                I: 'am .double',
+                a: 1,
+                b: 2
+            });
         });
-
-        sbox.setModuleCompiler('.double.double', buf => buf.toString());
-        assert.deepEqual(sbox.require('./vm_test/custom_ext', __dirname), {
-            I: 'am .double',
-            a: 1,
-            b: 2
-        });
-    });
-    /**
-     * SUMMARY: if repetitive extname(e.g. `.treble`/`.treble.treble`/`.treble.treble.treble`) set,
-     * the one set previously was found earlier than the other, just like case above.
-     * 
-     * That is, if '.treble' is registerd to SandBox earlier than '.treble.treble', when resolving moduleId
-     * './filename', SandBox try to found `./filename.treble` firstly, then(if not found) found `./filename.treble.treble`
-     * 
-     * On the other hand, multiple-dot extname with **post internal extname** makes NO sense.
-     * 
-     * **NOTICE**: '.js', '.json', '.jsc' is pre-registered internally, so it's in vain to register one
-     * extname like '.esm.js' or '.amd.js', though you did like that, SandBox would never found './filename.cjs.js' 
-     * by `require('./filename')`, it's walkmap of resolution is like that:
-     *  ---START---> ./filename/package.json ?
-     *      - 'main' in ./filename/package.json ?
-     *          - file specified by 'main' existed ?
-     *  ---NOT---> ./filename.js ?
-     *  ---NOT---> ./filename.jsc ?
-     *  ---NOT---> ./filename.json ?
-     *  <del>---NOT---> ./filename.cjs.js</del>
-     * 
-     * It's never try to found './filename' + '.cjs.js'!
-     * 
-     * But SandBox could find './filename.cjs.js' by `require('./filename.cjs')`. So just set compiler for
-     * extname without the post internal extname, such as 
-     * 
-     *  - .php
-     *  - .vue
-     *  - .jsx
-     *  - .md
-     *  - .vue
-     *  ...
-     */
-
-    it("setModuleCompiler: ext with internal extname", () => {
         /**
-         * never write code in you real project like below --- it's bad practice
+         * SUMMARY: if repetitive extname(e.g. `.treble`/`.treble.treble`/`.treble.treble.treble`) set,
+         * the one set previously was found earlier than the other, just like case above.
+         * 
+         * That is, if '.treble' is registerd to SandBox earlier than '.treble.treble', when resolving moduleId
+         * './filename', SandBox try to found `./filename.treble` firstly, then(if not found) found `./filename.treble.treble`
+         * 
+         * On the other hand, multiple-dot extname with **post internal extname** makes NO sense.
+         * 
+         * **NOTICE**: '.js', '.json', '.jsc' is pre-registered internally, so it's in vain to register one
+         * extname like '.esm.js' or '.amd.js', though you did like that, SandBox would never found './filename.cjs.js' 
+         * by `require('./filename')`, it's walkmap of resolution is like that:
+         *  ---START---> ./filename/package.json ?
+         *      - 'main' in ./filename/package.json ?
+         *          - file specified by 'main' existed ?
+         *  ---NOT---> ./filename.js ?
+         *  ---NOT---> ./filename.jsc ?
+         *  ---NOT---> ./filename.json ?
+         *  <del>---NOT---> ./filename.cjs.js</del>
+         * 
+         * It's never try to found './filename' + '.cjs.js'!
+         * 
+         * But SandBox could find './filename.cjs.js' by `require('./filename.cjs')`. So just set compiler for
+         * extname without the post internal extname, such as 
+         * 
+         *  - .php
+         *  - .vue
+         *  - .jsx
+         *  - .md
+         *  - .vue
+         *  ...
          */
-        var sbox = new vm.SandBox({});
-        sbox.setModuleCompiler('.cjs.js', buf => buf.toString());
 
-        assert.throws(() => {
-            sbox.require('./vm_test/custom_ext_js/custom_ext', __dirname)
-        });
+        it("ext with internal extname", () => {
+            /**
+             * never write code in you real project like below --- it's bad practice
+             */
+            var sbox = new vm.SandBox({});
+            sbox.setModuleCompiler('.cjs.js', buf => buf.toString());
 
-        sbox.setModuleCompiler('.cjs.json', buf => buf.toString());
-        assert.throws(() => {
-            sbox.require('./vm_test/custom_ext_json/custom_ext', __dirname)
+            assert.throws(() => {
+                sbox.require('./vm_test/custom_ext_js/custom_ext', __dirname)
+            });
+
+            sbox.setModuleCompiler('.cjs.json', buf => buf.toString());
+            assert.throws(() => {
+                sbox.require('./vm_test/custom_ext_json/custom_ext', __dirname)
+            });
         });
     });
 
@@ -559,56 +561,106 @@ describe("vm", () => {
         assert.equal(test_util.countObject('Buffer'), no1 + 1);
     });
 
-    xit("block global hacker", () => {
-        sbox = new vm.SandBox({});
-        assert.throws(() => {
-            sbox.addScript("t1.js", "});(() => {");
-        });
-    });
+    describe("standalone global", () => {
+        it("get/set", () => {
+            function _t() { }
+            var o = {
+                var1: 100,
+                func: _t
+            };
+            var sbox1 = new vm.SandBox({}, o);
+            assert.equal(sbox1.global, o);
 
-    it("block global argv", () => {
-        sbox = new vm.SandBox({});
+            sbox1.require('./vm_test/hack_global', __dirname);
+            sbox1.run(path.join(__dirname, 'vm_test', 'hack_global_1'));
+            var a = sbox1.addScript("t1.js", "global.var2 = 200;module.exports={var1:var1,var2:var2,var3:var3,var4:var4};");
 
-        assert.throws(() => {
-            sbox.addScript("t2.js", "argv[0];");
-        });
-    });
+            assert.equal(a.var1, 100);
+            assert.equal(a.var2, 200);
+            assert.equal(a.var3, 300);
+            assert.equal(a.var4, 400);
 
-    it("standalone global", () => {
-        function _t() { }
-        var sbox1 = new vm.SandBox({}, {
-            var1: 100,
-            func: _t
-        });
+            assert.equal(sbox1.global.var1, 100);
+            assert.equal(sbox1.global.var2, 200);
+            assert.equal(sbox1.global.var3, 300);
+            assert.equal(sbox1.global.var4, 400);
+            assert.equal(sbox1.global.func, _t);
+            assert.isUndefined(sbox1.global.console);
 
-        sbox1.require('./vm_test/hack_global', __dirname);
-        sbox1.run(path.join(__dirname, 'vm_test', 'hack_global_1'));
-        var a = sbox1.addScript("t1.js", "global.var2 = 200;module.exports={var1:var1,var2:var2,var3:var3,var4:var4};");
-
-        assert.equal(a.var1, 100);
-        assert.equal(a.var2, 200);
-        assert.equal(a.var3, 300);
-        assert.equal(a.var4, 400);
-
-        assert.equal(sbox1.global.var1, 100);
-        assert.equal(sbox1.global.var2, 200);
-        assert.equal(sbox1.global.var3, 300);
-        assert.equal(sbox1.global.var4, 400);
-        assert.equal(sbox1.global.func, _t);
-        assert.isUndefined(sbox1.global.console);
-
-        assert.isUndefined(global.var1);
-        assert.isUndefined(global.var2);
-        assert.isUndefined(global.var3);
-        assert.isUndefined(global.var4);
-    });
-
-    it("standalone global obj type error", () => {
-        var sbox1 = new vm.SandBox({}, {
-            mq: require('mq')
+            assert.isUndefined(global.var1);
+            assert.isUndefined(global.var2);
+            assert.isUndefined(global.var3);
+            assert.isUndefined(global.var4);
         });
 
-        sbox1.addScript("t1.js", "new mq.Routing({});");
+        it("delete", () => {
+            var o = {
+                var1: 100
+            };
+            var sbox1 = new vm.SandBox({}, o);
+            sbox1.addScript("t1.js", "delete global.var1");
+
+            assert.isUndefined(sbox1.global.var1);
+        });
+
+        it("enumerable", () => {
+            var o = {
+                var1: 100
+            };
+            var sbox1 = new vm.SandBox({}, o);
+            var a = sbox1.addScript("t1.js", "var o = {}; for(var k in global) {o[k] = global[k];} module.exports = o;");
+            assert.equal(a.var1, 100);
+        });
+
+        it("getOwnPropertyDescriptor", () => {
+            var o = {
+                var1: 100
+            };
+            var sbox1 = new vm.SandBox({}, o);
+            var a = sbox1.addScript("t1.js", "module.exports = Object.getOwnPropertyDescriptor(global, 'var1');");
+            assert.deepEqual(a, {
+                "value": 100,
+                "writable": true,
+                "enumerable": true,
+                "configurable": true
+            });
+        });
+
+        it("defineProperty", () => {
+            var o = {
+                var1: 100
+            };
+            var sbox1 = new vm.SandBox({}, o);
+            sbox1.addScript("t1.js", `Object.defineProperty(global, 'var2', {value: 200})`);
+            assert.equal(o.var2, 200);
+        });
+
+        it("console", () => {
+            var o = {
+                var1: 100
+            };
+            var sbox1 = new vm.SandBox({}, o);
+            var a = sbox1.addScript("t1.js", "try{exports.console = !!console;}catch(e){}");
+
+            assert.isUndefined(a.console);
+
+            var o = {
+                console: console,
+                var1: 100
+            };
+            var sbox1 = new vm.SandBox({}, o);
+            var a = sbox1.addScript("t1.js", "try{exports.console = !!console;}catch(e){}");
+
+            assert.isTrue(a.console);
+        });
+
+        it("standalone global obj type error", () => {
+            var sbox1 = new vm.SandBox({}, {
+                mq: require('mq')
+            });
+
+            sbox1.addScript("t1.js", "new mq.Routing({});");
+        });
     });
 
     it("modules(dict)", () => {

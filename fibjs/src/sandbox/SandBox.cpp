@@ -98,28 +98,21 @@ void SandBox::initGlobal(v8::Local<v8::Object> global)
     Isolate* isolate = holder();
     v8::Local<v8::Value> _token = isolate->context()->GetSecurityToken();
 
-    v8::Local<v8::Context> _context = v8::Context::New(isolate->m_isolate);
+    v8::Local<v8::Context> _context = v8::Context::New(isolate->m_isolate, nullptr,
+        isolate->m_global_template.Get(isolate->m_isolate));
     v8::Context::Scope context_scope(_context);
 
     _context->SetEmbedderData(kObjectPrototype, v8::Object::New(isolate->m_isolate)->GetPrototype());
+    _context->SetEmbedderData(kSandboxObject, global);
+
     _context->SetSecurityToken(_token);
 
     v8::Local<v8::Object> _global = _context->Global();
 
-    _global->Delete(_context, isolate->NewString("console")).IsJust();
+    if (!global->HasRealNamedProperty(_context, isolate->NewString("console")).FromMaybe(false))
+        _global->Delete(_context, isolate->NewString("console")).IsJust();
     _global->Set(_context, isolate->NewString("global"), _global).IsJust();
     _global->Set(_context, isolate->NewString("globalThis"), _global).IsJust();
-
-    JSArray ks = global->GetPropertyNames(_context);
-    int32_t len = ks->Length();
-    int32_t i;
-
-    for (i = 0; i < len; i++) {
-        JSValue k = ks->Get(_context, i);
-        JSValue v = global->Get(_context, k);
-
-        _global->Set(_context, k, v).IsJust();
-    }
 
     SetPrivate("_global", _global);
     m_global = true;
@@ -277,7 +270,8 @@ result_t SandBox::get_global(v8::Local<v8::Object>& retVal)
     if (!m_global)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-    retVal = v8::Local<v8::Object>::Cast(GetPrivate("_global"));
+    v8::Local<v8::Object> _global = GetPrivate("_global").As<v8::Object>();
+    retVal = _global->GetCreationContextChecked()->GetEmbedderData(kSandboxObject).As<v8::Object>();
     return 0;
 }
 

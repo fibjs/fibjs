@@ -160,6 +160,7 @@ public:
     v8::Local<v8::Value> WaitPromise(v8::Local<v8::Value> promise);
 
     void start_profiler();
+    void init_global_template();
 
     typedef v8::Platform* (*platform_creator)();
 
@@ -182,6 +183,8 @@ public:
     v8::Global<v8::Object> m_env;
 
     v8::Global<v8::Object> m_AssertionError;
+
+    v8::Global<v8::ObjectTemplate> m_global_template;
 
     obj_ptr<SandBox> m_topSandbox;
     std::unordered_map<uint32_t, SandBox*> m_sandboxes;
