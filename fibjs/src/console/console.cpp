@@ -15,6 +15,7 @@
 #include <unordered_map>
 #include "console.h"
 #include <stdlib.h>
+#include "../util/util.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -110,10 +111,6 @@ public:
         }
     }
 } s_color_initer;
-
-exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth);
-exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields, bool color, bool encode_string);
-result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string& retVal);
 
 extern std_logger* s_std;
 void asyncLog(int32_t priority, exlib::string msg);

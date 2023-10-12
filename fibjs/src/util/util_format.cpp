@@ -5,14 +5,8 @@
  *      Author: lion
  */
 
-#include "object.h"
-#include "ifs/util.h"
 #include "ifs/encoding.h"
-#include "QuickArray.h"
-#include "StringBuffer.h"
-#include "TextColor.h"
-#include "Buffer.h"
-#include <unordered_map>
+#include "util.h"
 
 namespace fibjs {
 
@@ -57,10 +51,9 @@ void string_format(StringBuffer& strBuffer, v8::Local<v8::Value> v, bool color)
     strBuffer.append(color_string(COLOR_GREEN, s, color));
 }
 
-#define MAX_ARRAY_ITEM 100
 #define MAX_BUFFER_ITEM 50
 
-exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
+exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth, int32_t maxArrayLength)
 {
     StringBuffer strBuffer;
 
@@ -335,10 +328,11 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth)
         }
 
         if (it) {
-            if (it->obj.IsEmpty() && it->pos >= MAX_ARRAY_ITEM && it->len > it->pos) {
+            if (it->obj.IsEmpty() && it->pos >= maxArrayLength && it->len > it->pos) {
                 char str_buf[256];
 
-                strBuffer.append(',');
+                if (maxArrayLength > 0)
+                    strBuffer.append(',');
                 newline(strBuffer, padding);
 
                 int32_t cnt = it->len - it->pos;
@@ -438,7 +432,7 @@ result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string&
                         v8::Local<v8::Value> v = v8::Number::New(isolate->m_isolate, (int32_t)n);
 
                         exlib::string s;
-                        s = json_format(v, color, 2);
+                        s = json_format(v, color, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH);
                         retVal.append(s);
                     }
                 } else
@@ -447,7 +441,7 @@ result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string&
             case 'j':
                 if (idx < argc) {
                     exlib::string s;
-                    s = json_format(args[idx++], color, 2);
+                    s = json_format(args[idx++], color, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH);
                     retVal.append(s);
                 } else
                     retVal.append("%j", 2);
@@ -475,7 +469,7 @@ result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string&
             retVal.append(isolate->toString(v));
         else {
             exlib::string s;
-            s = json_format(v, color, 2);
+            s = json_format(v, color, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH);
 
             retVal.append(s);
         }

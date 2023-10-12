@@ -11,13 +11,11 @@
 #include "ifs/encoding.h"
 #include "ifs/util.h"
 #include "QuickArray.h"
+#include "../util/util.h"
 
 namespace fibjs {
 
 DECLARE_MODULE(assert);
-
-exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth);
-
 class _msg {
 public:
     _msg(exlib::string s0, const char* s1)
@@ -108,19 +106,19 @@ public:
             str = strs[0];
 
             if (strs[1]) {
-                str.append(json_format(*vs[0], false, 2));
+                str.append(json_format(*vs[0], false, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH));
                 str.append(strs[1]);
 
                 if (strs[2]) {
-                    str.append(json_format(*vs[1], false, 2));
+                    str.append(json_format(*vs[1], false, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH));
                     str.append(strs[2]);
 
                     if (strs[3]) {
-                        str.append(json_format(*vs[2], false, 2));
+                        str.append(json_format(*vs[2], false, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH));
                         str.append(strs[3]);
 
                         if (strs[4]) {
-                            str.append(json_format(*vs[3], false, 2));
+                            str.append(json_format(*vs[3], false, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH));
                             str.append(strs[4]);
                         }
                     }
