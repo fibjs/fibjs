@@ -24,10 +24,10 @@ namespace fibjs {
 
 #define DEFAULT_DEPTH 2
 #define DEFAULT_MAX_ARRAY_LENGTH 100
+#define DEFAULT_MAX_STRING_LENGTH 10000
 
-void string_format(StringBuffer& strBuffer, v8::Local<v8::Value> v, bool color);
-exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth, int32_t maxArrayLength);
+void string_format(StringBuffer& strBuffer, v8::Local<v8::Value> v, bool color, int32_t maxStringLength);
+exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth, int32_t maxArrayLength, int32_t maxStringLength);
 exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields, bool color, bool encode_string);
 result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string& retVal);
-
 }
