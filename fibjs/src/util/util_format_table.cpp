@@ -186,7 +186,7 @@ inline void append_value(exlib::string& str, int32_t width, int32_t max_width, S
 exlib::string object_format(v8::Local<v8::Value> v, bool color, bool l2 = false)
 {
     if (IsJSBuffer(v))
-        return json_format(v, color, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH, DEFAULT_MAX_STRING_LENGTH);
+        return json_format(v, color);
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> _context = isolate->context();
@@ -227,7 +227,7 @@ exlib::string object_format(v8::Local<v8::Value> v, bool color, bool l2 = false)
 
                 JSValue v = array->Get(_context, i);
                 if (isSimpleValue(v))
-                    buf.append(json_format(v, color, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH, DEFAULT_MAX_STRING_LENGTH));
+                    buf.append(json_format(v, color));
                 else
                     buf.append(object_format(v, color, true));
             }
@@ -263,7 +263,7 @@ exlib::string object_format(v8::Local<v8::Value> v, bool color, bool l2 = false)
                     buf.append(", ");
 
                 JSValue v = array->Get(_context, i);
-                buf.append(json_format(v, color, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH, DEFAULT_MAX_STRING_LENGTH));
+                buf.append(json_format(v, color));
             }
 
             if (len == len1 + 1)
@@ -293,13 +293,13 @@ exlib::string object_format(v8::Local<v8::Value> v, bool color, bool l2 = false)
             buf.append(", ");
 
         JSValue v = keys->Get(_context, i);
-        string_format(buf, v, false, DEFAULT_MAX_STRING_LENGTH);
+        string_format(buf, v);
 
         buf.append(": ");
 
         v = obj->Get(_context, v);
         if (isSimpleValue(v))
-            buf.append(json_format(v, color, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH, DEFAULT_MAX_STRING_LENGTH));
+            buf.append(json_format(v, color));
         else
             buf.append(object_format(v, color, true));
     }
@@ -311,7 +311,7 @@ exlib::string object_format(v8::Local<v8::Value> v, bool color, bool l2 = false)
 exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields, bool color, bool encode_string)
 {
     if (isSimpleValue(obj))
-        return json_format(obj, color, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH, DEFAULT_MAX_STRING_LENGTH);
+        return json_format(obj, color);
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(obj);
 
@@ -360,7 +360,7 @@ exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields
                     GetArgumentValue(isolate, v, val);
                     value_cols.append(val);
                 } else
-                    value_cols.append(json_format(v, color, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH, DEFAULT_MAX_STRING_LENGTH));
+                    value_cols.append(json_format(v, color));
             }
         } else {
             v8::Local<v8::Object> ro = v8::Local<v8::Object>::Cast(v);
@@ -386,7 +386,7 @@ exlib::string table_format(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields
                     if (!encode_string && (rv->IsString() || rv->IsStringObject()))
                         GetArgumentValue(isolate, rv, row_value);
                     else
-                        row_value = json_format(rv, color, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH, DEFAULT_MAX_STRING_LENGTH);
+                        row_value = json_format(rv, color);
                 } else
                     row_value = object_format(rv, color);
 

@@ -395,7 +395,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth, i
 
             if (!it->obj.IsEmpty()) {
                 TryCatch try_catch;
-                string_format(strBuffer, v, false, DEFAULT_MAX_STRING_LENGTH);
+                string_format(strBuffer, v);
 
                 if (it->obj->IsMap()) {
                     strBuffer.append(" => ");
@@ -456,7 +456,7 @@ result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string&
                         v8::Local<v8::Value> v = v8::Number::New(isolate->m_isolate, (int32_t)n);
 
                         exlib::string s;
-                        s = json_format(v, color, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH, DEFAULT_MAX_STRING_LENGTH);
+                        s = json_format(v, color);
                         retVal.append(s);
                     }
                 } else
@@ -465,7 +465,7 @@ result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string&
             case 'j':
                 if (idx < argc) {
                     exlib::string s;
-                    s = json_format(args[idx++], color, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH, DEFAULT_MAX_STRING_LENGTH);
+                    s = json_format(args[idx++], color);
                     retVal.append(s);
                 } else
                     retVal.append("%j", 2);
@@ -493,7 +493,7 @@ result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string&
             retVal.append(isolate->toString(v));
         else {
             exlib::string s;
-            s = json_format(v, color, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH, DEFAULT_MAX_STRING_LENGTH);
+            s = json_format(v, color);
 
             retVal.append(s);
         }
