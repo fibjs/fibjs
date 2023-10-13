@@ -212,7 +212,7 @@ public:
 
     void Attach(Isolate* isolate, v8::Local<v8::Object> o)
     {
-        int32_t i, j;
+        int32_t i;
         v8::Local<v8::Context> _context = isolate->context();
         v8::Local<v8::Object> op;
 
