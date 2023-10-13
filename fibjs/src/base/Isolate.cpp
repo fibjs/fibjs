@@ -285,9 +285,7 @@ void Isolate::init()
         beginCoverage(m_isolate);
 
     _context->SetEmbedderData(kObjectPrototype, v8::Object::New(m_isolate)->GetPrototype());
-    _context->SetEmbedderData(kSandboxObject, v8::Object::New(m_isolate));
-
-    global_base::class_info().Attach(this, _context->Global());
+    _context->SetEmbedderData(kSandboxObject, global_base::class_info().getModule(this));
 
     const char* assertion_error = "class AssertionError extends Error {"
                                   "   constructor(options) {"
