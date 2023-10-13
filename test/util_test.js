@@ -1072,13 +1072,13 @@ describe('util', () => {
             txts.push('[');
             for (var i = 0; i < 100; i++)
                 txts.push(`  ${i},`);
-            txts.push('  1 more item');
+            txts.push('  ... 1 more item');
             txts.push(']');
 
             assert.equal(util.format(arr), txts.join('\n'));
 
             arr.push(i);
-            txts[101] = '  2 more items';
+            txts[101] = '  ... 2 more items';
 
             assert.equal(util.format(arr), txts.join('\n'));
         });
@@ -1175,8 +1175,10 @@ describe('util', () => {
         it("fix: crash on %d.", () => {
             util.format("%d", 2n);
         });
+    });
 
-        it('inspect', () => {
+    describe('inspect', () => {
+        it('depth', () => {
             assert.equal(util.inspect([[[[[]]]]], {
                 colors: false
             }), "[\n  [\n    [\n      [Array]\n    ]\n  ]\n]");
@@ -1184,22 +1186,47 @@ describe('util', () => {
                 colors: false,
                 depth: 3
             }), "[\n  [\n    [\n      [\n        []\n      ]\n    ]\n  ]\n]");
+        });
+
+        it('maxArrayLength', () => {
             assert.equal(util.inspect(["1", "2", "3"], {
                 colors: false,
-                max_array_length: 2
-            }), "[\n  \"1\",\n  \"2\",\n  1 more item\n]");
+                maxArrayLength: 2
+            }), "[\n  \"1\",\n  \"2\",\n  ... 1 more item\n]");
             assert.equal(util.inspect(["1", "2", "3", "4"], {
                 colors: false,
-                max_array_length: 2
-            }), "[\n  \"1\",\n  \"2\",\n  2 more items\n]");
+                maxArrayLength: 2
+            }), "[\n  \"1\",\n  \"2\",\n  ... 2 more items\n]");
             assert.equal(util.inspect(["1", "2", "3", "4"], {
                 colors: false,
-                max_array_length: -1
-            }), "[\n  4 more items\n]");
+                maxArrayLength: -1
+            }), "[\n  ... 4 more items\n]");
             assert.equal(util.inspect(["1", "2", "3", "4"], {
                 colors: false,
             }), "[\n  \"1\",\n  \"2\",\n  \"3\",\n  \"4\"\n]");
         });
+
+        it('maxStringLength', () => {
+            assert.equal(util.inspect("1234567890", {
+                colors: false,
+                maxStringLength: 5
+            }), "\"12345\"... 5 more characters");
+            assert.equal(util.inspect("1234567890", {
+                colors: false,
+                maxStringLength: 9
+            }), "\"123456789\"... 1 more character");
+            assert.equal(util.inspect("1234567890", {
+                colors: false,
+                maxStringLength: -1
+            }), "\"123456789\"... 11 more characters");
+            assert.equal(util.inspect("1234567890", {
+                colors: false,
+            }), "\"1234567890\"");
+            assert.equal(util.inspect("测\n试123", {
+                colors: false,
+                maxStringLength: 4
+            }), "\"测\\n试1\"... 2 more characters");
+        })
     });
 
     describe("table", () => {

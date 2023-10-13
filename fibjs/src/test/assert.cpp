@@ -106,19 +106,19 @@ public:
             str = strs[0];
 
             if (strs[1]) {
-                str.append(json_format(*vs[0], false, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH));
+                str.append(json_format(*vs[0], false, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH, DEFAULT_MAX_STRING_LENGTH));
                 str.append(strs[1]);
 
                 if (strs[2]) {
-                    str.append(json_format(*vs[1], false, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH));
+                    str.append(json_format(*vs[1], false, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH, DEFAULT_MAX_STRING_LENGTH));
                     str.append(strs[2]);
 
                     if (strs[3]) {
-                        str.append(json_format(*vs[2], false, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH));
+                        str.append(json_format(*vs[2], false, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH, DEFAULT_MAX_STRING_LENGTH));
                         str.append(strs[3]);
 
                         if (strs[4]) {
-                            str.append(json_format(*vs[3], false, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH));
+                            str.append(json_format(*vs[3], false, DEFAULT_DEPTH, DEFAULT_MAX_ARRAY_LENGTH, DEFAULT_MAX_STRING_LENGTH));
                             str.append(strs[4]);
                         }
                     }
