@@ -103,11 +103,6 @@ declare class Class_SandBox extends Class_object {
     clone(): Class_SandBox;
 
     /**
-     * @description 冻结当前沙箱，冻结后的沙箱，对 global 所做的修改将被忽略 
-     */
-    freeze(): void;
-
-    /**
      * @description 运行一个脚本
      *      @param fname 指定要运行的脚本路径，此路径与当前运行脚本无关，必须为绝对路径
      *      

@@ -111,7 +111,8 @@ declare module 'util' {
      *          "depth": 2, // specify the max depth of the output, defaults to 2
      *          "table": false, // specify if output should be a table, defaults to false
      *          "encode_string": true, // specify if string should be encoded, defaults to true
-     *          "max_array_length": 100, // specify max number of array elements to show, defaults to 100
+     *          "maxArrayLength": 100, // specify max number of array elements to show, set to 0 or negative to show no elements, defaults to 100
+     *          "maxStringLength": 10000, // specify max string length to output, set to 0 or negative to show no strings, defaults to 10000
      *          "fields": [], // specify the fields to be displayed, defaults to all
      *      }
      *      ```
