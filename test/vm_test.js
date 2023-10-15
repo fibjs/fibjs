@@ -748,6 +748,126 @@ describe("vm", () => {
         }, get_modules(sbox))
     });
 
+    it("createContext", () => {
+        const o = {
+            a: 100,
+            b: 200
+        };
+
+        assert.isFalse(vm.isContext(o));
+        const ctx = vm.createContext(o);
+        assert.isTrue(vm.isContext(o));
+
+        assert.equal(ctx, o);
+
+        const ctx1 = vm.createContext(o);
+        assert.equal(ctx1, o);
+    });
+
+    describe("Script", () => {
+        it("compile", () => {
+            var s = new vm.Script("console.log(100);");
+        });
+
+        it("compile error", () => {
+            try {
+                new vm.Script("console.log((100);");
+            } catch (e) {
+                assert.equal(e.message, "missing ) after argument list");
+            }
+        });
+
+        describe("runInThisContext", () => {
+            it("share context from global", () => {
+                global.a = 100;
+                const s = new vm.Script("a = 200;");
+                const v = s.runInThisContext();
+                assert.equal(v, 200);
+                assert.equal(global.a, 200);
+            });
+
+            it("filename", () => {
+                delete global.a;
+                const s = new vm.Script("a++;", {
+                    filename: "test.js"
+                });
+
+                try {
+                    s.runInThisContext();
+                } catch (e) {
+                    assert.isTrue(e.stack.indexOf("test.js:1:1") > 0);
+                }
+            });
+
+            it("offset", () => {
+                delete global.a;
+                const s = new vm.Script("a++;", {
+                    filename: "test.js",
+                    columnOffset: 10,
+                    lineOffset: 10
+                });
+
+                try {
+                    s.runInThisContext();
+                } catch (e) {
+                    assert.isTrue(e.stack.indexOf("test.js:11:11") > 0);
+                }
+            });
+
+            it("timeout", () => {
+                const s = new vm.Script("while(true);");
+
+                assert.throws(() => {
+                    s.runInThisContext({
+                        timeout: 100
+                    });
+                });
+            });
+        });
+
+        it("runInContext", () => {
+            const o = {
+                a: 100,
+                b: 200
+            };
+            const ctx = vm.createContext(o);
+            global.a = 100;
+            const s = new vm.Script("a = 200;");
+            const v = s.runInContext(ctx);
+            assert.equal(v, 200);
+            assert.equal(o.a, 200);
+            assert.equal(global.a, 100);
+        });
+
+        it("runInNewContext", () => {
+            const o = {
+                a: 100,
+                b: 200
+            };
+            global.a = 100;
+            const s = new vm.Script("a = 200;");
+            const v = s.runInNewContext(o);
+            assert.equal(v, 200);
+            assert.equal(o.a, 200);
+            assert.equal(global.a, 100);
+        });
+
+        it("runInContext after runInNewContext", () => {
+            const o = {
+                a: 100,
+                b: 200
+            };
+            const s = new vm.Script("a += 200;");
+            const v = s.runInNewContext(o);
+            assert.equal(v, 300);
+            assert.equal(o.a, 300);
+
+            const v1 = s.runInContext(o);
+            assert.equal(v1, 500);
+            assert.equal(o.a, 500);
+        });
+    });
+
     xit("require.cache", () => {
         assert.isObject(require.cache);
     });

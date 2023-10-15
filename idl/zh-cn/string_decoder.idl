@@ -15,5 +15,5 @@
 module string_decoder
 {
     /*! @brief 创建一个解码对象，参见 StringDecoder */
-    static StringDecoder new StringDecoder();
+    static StringDecoder;
 };

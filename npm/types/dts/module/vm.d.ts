@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/SandBox.d.ts" />
+/// <reference path="../interface/Script.d.ts" />
 /**
  * @description 沙箱模块，用于隔离不同安全等级的运行环境
  * 
@@ -23,6 +24,86 @@ declare module 'vm' {
      * @description 创建一个 SandBox 对象，参见 SandBox 
      */
     const SandBox: typeof Class_SandBox;
+
+    /**
+     * @description 创建一个 Script 对象，参见 Script 
+     */
+    const Script: typeof Class_Script;
+
+    /**
+     * @description 创建一个上下文对象
+     *      @param contextObject 指定将被上下文化的对象
+     *      @param opts 指定上下文选项
+     *      @return 返回上下文对象
+     *     
+     */
+    function createContext(contextObject?: FIBJS.GeneralObject, opts?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    /**
+     * @description 如果给定的 object 对象已使用 vm.createContext() 进行上下文化，则返回 true
+     *      @param contextObject 指定要检查的对象
+     *      @return 如果给定的 object 对象已使用 vm.createContext() 进行上下文化，则返回 true
+     *     
+     */
+    function isContext(contextObject: FIBJS.GeneralObject): boolean;
+
+    /**
+     * @description 在给定 contextifiedObject 内运行 code 指定的代码并返回结果
+     *      @param code 指定要编译和运行的脚本代码
+     *      @param contextifiedObject 指定运行时的上下文对象
+     *      @param opts 指定运行选项
+     *      @return 返回运行结果
+     *     
+     */
+    function runInContext(code: string, contextifiedObject: FIBJS.GeneralObject, opts?: FIBJS.GeneralObject): any;
+
+    /**
+     * @description 在给定 contextifiedObject 内运行 code 指定的代码并返回结果
+     *      @param code 指定要编译和运行的脚本代码
+     *      @param contextifiedObject 指定运行时的上下文对象
+     *      @param filename 指定脚本文件名
+     *      @return 返回运行结果
+     *     
+     */
+    function runInContext(code: string, contextifiedObject: FIBJS.GeneralObject, filename: string): any;
+
+    /**
+     * @description 使用给定的 contextObject 在创建的上下文中, 在其中运行 code 指定的代码并返回结果
+     *      @param code 指定要编译和运行的脚本代码
+     *      @param contextObject 指定将被上下文化的对象
+     *      @param opts 指定运行选项
+     *      @return 返回运行结果
+     *     
+     */
+    function runInNewContext(code: string, contextObject?: FIBJS.GeneralObject, opts?: FIBJS.GeneralObject): any;
+
+    /**
+     * @description 使用给定的 contextObject 在创建的上下文中, 在其中运行 code 指定的代码并返回结果
+     *      @param code 指定要编译和运行的脚本代码
+     *      @param contextObject 指定将被上下文化的对象
+     *      @param filename 指定脚本文件名
+     *      @return 返回运行结果
+     *     
+     */
+    function runInNewContext(code: string, contextObject?: FIBJS.GeneralObject, filename?: string): any;
+
+    /**
+     * @description 在当前上下文内内运行 code 指定的代码并返回结果
+     *      @param code 指定要编译和运行的脚本代码
+     *      @param opts 指定运行选项
+     *      @return 返回运行结果
+     *     
+     */
+    function runInThisContext(code: string, opts?: FIBJS.GeneralObject): any;
+
+    /**
+     * @description 在当前上下文内内运行 code 指定的代码并返回结果
+     *      @param code 指定要编译和运行的脚本代码
+     *      @param filename 指定脚本文件名
+     *      @return 返回运行结果
+     *     
+     */
+    function runInThisContext(code: string, filename: string): any;
 
 }
 

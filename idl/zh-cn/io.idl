@@ -8,13 +8,13 @@
 module io
 {
     /*! @brief 创建一个内存流对象，参见 MemoryStream */
-    static MemoryStream new MemoryStream();
+    static MemoryStream;
 
     /*! @brief 创建一个缓存流读取对象，参见 BufferedStream */
-    static BufferedStream new BufferedStream();
+    static BufferedStream;
 
     /*! @brief 创建一个 Range 查询流读取对象，参见 RangeStream */
-    static RangeStream new RangeStream();
+    static RangeStream;
 
     /*! @brief 复制流数据到目标流中
      @param from 源流对象

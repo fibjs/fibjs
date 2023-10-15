@@ -19,8 +19,6 @@
 
 namespace fibjs {
 
-DECLARE_MODULE(vm);
-
 result_t SandBox_base::_new(v8::Local<v8::Object> mods, obj_ptr<SandBox_base>& retVal,
     v8::Local<v8::Object> This)
 {
@@ -115,6 +113,10 @@ void SandBox::initGlobal(v8::Local<v8::Object> global)
     _global->Set(_context, isolate->NewString("globalThis"), _global).IsJust();
 
     SetPrivate("_global", _global);
+    global->SetPrivate(_context,
+              v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_global")), _global)
+        .IsJust();
+
     m_global = true;
 
     installBuffer();
