@@ -166,6 +166,15 @@ declare module 'process' {
     function cwd(): string;
 
     /**
+     * @description 动态加载 C++ Addons
+     *      @param module 指定要加载的模块
+     *      @param filename 指定要加载的模块文件名
+     *      @param flags 指定加载模块的方式，缺省为 1
+     *     
+     */
+    function dlopen(module: FIBJS.GeneralObject, filename: string, flags?: number): void;
+
+    /**
      * @description 修改操作系统当前工作路径
      *      @param directory 指定设定的新路径
      *      

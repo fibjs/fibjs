@@ -46,6 +46,7 @@ public:
     static result_t exit();
     static result_t exit(int32_t code);
     static result_t cwd(exlib::string& retVal);
+    static result_t dlopen(v8::Local<v8::Object> module, exlib::string filename, int32_t flags);
     static result_t chdir(exlib::string directory);
     static result_t uptime(double& retVal);
     static result_t cpuUsage(v8::Local<v8::Object> previousValue, v8::Local<v8::Object>& retVal);
@@ -91,6 +92,7 @@ public:
     static void s_static_hrtime(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_exit(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_cwd(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_dlopen(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_chdir(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_uptime(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_cpuUsage(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -118,6 +120,7 @@ inline ClassInfo& process_base::class_info()
         { "hrtime", s_static_hrtime, true, false },
         { "exit", s_static_exit, true, false },
         { "cwd", s_static_cwd, true, false },
+        { "dlopen", s_static_dlopen, true, false },
         { "chdir", s_static_chdir, true, false },
         { "uptime", s_static_uptime, true, false },
         { "cpuUsage", s_static_cpuUsage, true, false },
@@ -394,6 +397,21 @@ inline void process_base::s_static_cwd(const v8::FunctionCallbackInfo<v8::Value>
     hr = cwd(vr);
 
     METHOD_RETURN();
+}
+
+inline void process_base::s_static_dlopen(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(3, 2);
+
+    ARG(v8::Local<v8::Object>, 0);
+    ARG(exlib::string, 1);
+    OPT_ARG(int32_t, 2, 1);
+
+    hr = dlopen(v0, v1, v2);
+
+    METHOD_VOID();
 }
 
 inline void process_base::s_static_chdir(const v8::FunctionCallbackInfo<v8::Value>& args)

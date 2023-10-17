@@ -22,6 +22,7 @@ void InitializeAsyncIOThread();
 void initializeUVAsyncThread();
 void init_signal();
 void init_sym();
+void init_binding();
 
 void init_argv(int32_t argc, char** argv);
 void init_start_argv(int32_t argc, char** argv);
@@ -41,6 +42,7 @@ static void createBasisForFiberLoop(Isolate::platform_creator get_platform)
     if (cpus < 2)
         cpus = 2;
 
+    init_binding();
     exlib::Service::init(cpus + 1);
 
     InitializeDateUtils();

@@ -19,6 +19,10 @@ cd /d "%SOURCE_ROOT%/fibjs/program"
 call build %*%
 if ERRORLEVEL 1 goto exitbuild
 
+cd /d "%SOURCE_ROOT%/fibjs/addons"
+call build %*%
+if ERRORLEVEL 1 goto exitbuild
+
 cd /d "%SOURCE_ROOT%/fibjs/installer"
 call build %*%
 if ERRORLEVEL 1 goto exitbuild

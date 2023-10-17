@@ -23,6 +23,8 @@ run("./xml_test.js");
 if (process.env.CI)
     run("./xml_suite.js");
 
+run("./addons_test.js");
+
 run("./coroutine_test.js");
 run("./fibmod_test.js");
 run("./trigger_test.js");
