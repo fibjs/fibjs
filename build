@@ -61,17 +61,17 @@ if [[ $CC == "" ]]; then
 	fi
 fi
 
-if [ -f "${SOURCE_ROOT}/vender/build" ]; then 
-if [ -z $USE_VENDER_DIST ]; then
-cd "${SOURCE_ROOT}/vender"
-bash build "$@"
-if [ $? != 0 ]; then
-exit 1
-fi
-fi
-else
-inform
-fi
+# if [ -f "${SOURCE_ROOT}/vender/build" ]; then 
+# 	if [ -z $USE_VENDER_DIST ]; then
+# 		cd "${SOURCE_ROOT}/vender"
+# 		bash build "$@"
+# 		if [ $? != 0 ]; then
+# 			exit 1
+# 		fi
+# 	fi
+# else
+# 	inform
+# fi
 
 cd "${SOURCE_ROOT}/fibjs"
 bash build "$@"

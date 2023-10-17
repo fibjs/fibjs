@@ -13,7 +13,7 @@ include_directories("${PROJECT_SOURCE_DIR}/../../include/addons" "${PROJECT_SOUR
 if(MSVC)
     target_link_libraries(${name} "${BIN_PATH}/fibjs.lib")
 else()
-    target_link_libraries(${name} PRIVATE "-undefined dynamic_lookup")
+    set(link_flags "${link_flags} ${link_flags} -Wl,-undefined,dynamic_lookup")
 endif()
 
 setup_result_library(${name})
