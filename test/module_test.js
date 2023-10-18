@@ -5,6 +5,8 @@ var fs = require('fs');
 var path = require('path');
 var a, b;
 
+const bin_path = path.dirname(process.execPath);
+
 describe("module", () => {
     after(() => {
         try {
@@ -209,6 +211,11 @@ describe("module", () => {
         var s = require('stream');
         var s1 = require('stream.js');
         assert.equal(s, s1);
+    });
+
+    it("addon module", () => {
+        var m = require(path.join(bin_path, '1_hello_world'));
+        assert.equal(m.hello(), "world");
     });
 });
 

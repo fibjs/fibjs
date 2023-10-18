@@ -77,6 +77,9 @@ SandBox::SandBox(bool extLoader)
     if (extLoader) {
         loader = new jsc_Loader();
         m_loaders.push_back(loader);
+
+        loader = new node_Loader();
+        m_loaders.push_back(loader);
     }
 
     loader = new json_Loader();

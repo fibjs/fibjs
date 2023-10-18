@@ -28,6 +28,17 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
     if (hr < 0)
         return hr;
 
+    if (fname.substr(fname.length() - 5) == ".node") {
+#ifndef _WIN32
+        bool isExecutable = false;
+        stat->isExecutable(isExecutable);
+        if (!isExecutable)
+            return CALL_E_FILE_NOT_FOUND;
+#endif
+        data = new Buffer();
+        return 0;
+    }
+
     Variant var;
     hr = fs_base::cc_readFile(fname, "", var, isolate);
     if (hr == CALL_RETURN_NULL) {

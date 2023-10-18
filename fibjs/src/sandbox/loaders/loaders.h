@@ -59,6 +59,18 @@ public:
         exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args);
 };
 
+class node_Loader : public SandBox::ExtLoader {
+public:
+    node_Loader()
+        : ExtLoader(".node")
+    {
+    }
+
+public:
+    virtual result_t run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
+        exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args);
+};
+
 class custom_Loader : public js_Loader {
 public:
     custom_Loader(exlib::string extname)
