@@ -278,22 +278,41 @@ public:
     inline bool operator!=(const char* a) const { return !(*this == a); }
 };
 
-namespace Buffer {
-
+class Buffer {
+public:
     typedef void (*FreeCallback)(char* data, void* hint);
 
-    inline v8::MaybeLocal<v8::Object> New(v8::Isolate* isolate, char* data,
+    struct CallBackInfo {
+        FreeCallback callback;
+        void* hint;
+    };
+
+    static void BackingStoreDeleter(void* data, size_t length, void* arg)
+    {
+        CallBackInfo* info = static_cast<CallBackInfo*>(arg);
+        info->callback(static_cast<char*>(data), info->hint);
+        delete info;
+    }
+
+    static v8::MaybeLocal<v8::Object> New(v8::Isolate* isolate, char* data,
         size_t length, FreeCallback callback, void* hint)
     {
         v8::EscapableHandleScope handle_scope(isolate);
         Environment* env = Environment::GetCurrent(isolate);
 
-        fibjs::obj_ptr<fibjs::Buffer> buf = new fibjs::Buffer(data, length);
-        callback(data, hint);
+        std::shared_ptr<v8::BackingStore> bs;
+
+        if (callback)
+            bs = v8::ArrayBuffer::NewBackingStore(
+                data, length, BackingStoreDeleter, new CallBackInfo { callback, hint });
+        else
+            bs = v8::ArrayBuffer::NewBackingStore(data, length, NULL, 0);
+
+        fibjs::obj_ptr<fibjs::Buffer> buf = new fibjs::Buffer(bs, 0, length);
         return handle_scope.Escape(buf->wrap(env));
     }
 
-    inline v8::MaybeLocal<v8::Object> New(v8::Isolate* isolate, size_t length)
+    static v8::MaybeLocal<v8::Object> New(v8::Isolate* isolate, size_t length)
     {
         v8::EscapableHandleScope handle_scope(isolate);
         Environment* env = Environment::GetCurrent(isolate);
@@ -302,43 +321,43 @@ namespace Buffer {
         return handle_scope.Escape(buf->wrap(env));
     }
 
-    inline bool HasInstance(v8::Local<v8::Value> val)
+    static bool HasInstance(v8::Local<v8::Value> val)
     {
         return val->IsArrayBufferView();
     }
 
-    inline bool HasInstance(v8::Local<v8::Object> obj)
+    static bool HasInstance(v8::Local<v8::Object> obj)
     {
         return obj->IsArrayBufferView();
     }
 
-    inline char* Data(v8::Local<v8::Value> val)
+    static char* Data(v8::Local<v8::Value> val)
     {
         CHECK(val->IsArrayBufferView());
         v8::Local<v8::ArrayBufferView> ui = val.As<v8::ArrayBufferView>();
         return static_cast<char*>(ui->Buffer()->Data()) + ui->ByteOffset();
     }
 
-    inline char* Data(v8::Local<v8::Object> obj)
+    static char* Data(v8::Local<v8::Object> obj)
     {
         return Data(obj.As<v8::Value>());
     }
 
-    inline size_t Length(v8::Local<v8::Value> val)
+    static size_t Length(v8::Local<v8::Value> val)
     {
         CHECK(val->IsArrayBufferView());
         v8::Local<v8::ArrayBufferView> ui = val.As<v8::ArrayBufferView>();
         return ui->ByteLength();
     }
 
-    inline size_t Length(v8::Local<v8::Object> obj)
+    static size_t Length(v8::Local<v8::Object> obj)
     {
         CHECK(obj->IsArrayBufferView());
         v8::Local<v8::ArrayBufferView> ui = obj.As<v8::ArrayBufferView>();
         return ui->ByteLength();
     }
 
-    inline v8::MaybeLocal<v8::Object> Copy(v8::Isolate* isolate, const char* data, size_t length)
+    static v8::MaybeLocal<v8::Object> Copy(v8::Isolate* isolate, const char* data, size_t length)
     {
         v8::EscapableHandleScope handle_scope(isolate);
         Environment* env = Environment::GetCurrent(isolate);
@@ -346,7 +365,7 @@ namespace Buffer {
         fibjs::obj_ptr<fibjs::Buffer> buf = new fibjs::Buffer(data, length);
         return handle_scope.Escape(buf->wrap(env));
     }
-}
+};
 
 typedef void* AsyncCleanupHookHandle;
 

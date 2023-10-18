@@ -245,11 +245,23 @@ describe('addons api', () => {
 
         assert.strictEqual(binding.newBuffer().toString(), binding.theText);
         assert.strictEqual(binding.newExternalBuffer().toString(), binding.theText);
+
+        assert.strictEqual(binding.getDeleterCallCount(), 0);
+        GC();
+        assert.strictEqual(binding.getDeleterCallCount(), 1);
+        assert.strictEqual(binding.copyBuffer().toString(), binding.theText);
+
         assert.strictEqual(binding.copyBuffer().toString(), binding.theText);
 
         let buffer = binding.staticBuffer();
         assert.strictEqual(binding.bufferHasInstance(buffer), true);
         assert.strictEqual(binding.bufferInfo(buffer), true);
+
+        buffer = null;
+        assert.strictEqual(binding.getDeleterCallCount(), 1);
+        GC();
+        assert.strictEqual(binding.getDeleterCallCount(), 2);
+
     });
 
     it('test_cannot_run_js', () => {
