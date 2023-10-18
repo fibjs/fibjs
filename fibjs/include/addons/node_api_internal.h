@@ -372,6 +372,194 @@ inline void* RemoveEnvironmentCleanupHook(v8::Isolate* isolate, T fn, void* arg)
     return nullptr;
 }
 
+typedef double async_id;
+struct async_context {
+    ::node::async_id async_id;
+    ::node::async_id trigger_async_id;
+};
+
+inline v8::MaybeLocal<v8::Value> MakeCallback(v8::Isolate* isolate, v8::Local<v8::Object> recv,
+    v8::Local<v8::Function> callback, int argc, v8::Local<v8::Value> argv[], async_context asyncContext)
+{
+    // Observe the following two subtleties:
+    //
+    // 1. The environment is retrieved from the callback function's context.
+    // 2. The context to enter is retrieved from the environment.
+    //
+    // Because of the AssignToContext() call in src/node_contextify.cc,
+    // the two contexts need not be the same.
+    Environment* env = Environment::GetCurrent(callback->GetCreationContext().ToLocalChecked());
+    CHECK_NOT_NULL(env);
+    v8::Context::Scope context_scope(env->context());
+    v8::MaybeLocal<v8::Value> ret = callback->Call(env->context(), recv, argc, argv);
+    if (ret.IsEmpty()) {
+        // This is only for legacy compatibility and we may want to look into
+        // removing/adjusting it.
+        return v8::Undefined(isolate);
+    }
+    return ret;
+}
+
+inline v8::MaybeLocal<v8::Value> MakeCallback(v8::Isolate* isolate, v8::Local<v8::Object> recv,
+    v8::Local<v8::String> symbol, int argc, v8::Local<v8::Value> argv[], async_context asyncContext)
+{
+    // Check can_call_into_js() first because calling Get() might do so.
+    Environment* env = Environment::GetCurrent(recv->GetCreationContext().ToLocalChecked());
+    CHECK_NOT_NULL(env);
+    if (!env->can_call_into_js())
+        return v8::Local<v8::Value>();
+
+    v8::Local<v8::Value> callback_v;
+    if (!recv->Get(isolate->GetCurrentContext(), symbol).ToLocal(&callback_v))
+        return v8::Local<v8::Value>();
+    if (!callback_v->IsFunction()) {
+        // This used to return an empty value, but Undefined() makes more sense
+        // since no exception is pending here.
+        return v8::Undefined(isolate);
+    }
+    v8::Local<v8::Function> callback = callback_v.As<v8::Function>();
+    return MakeCallback(isolate, recv, callback, argc, argv, asyncContext);
+}
+
+inline v8::MaybeLocal<v8::Value> MakeCallback(v8::Isolate* isolate, v8::Local<v8::Object> recv,
+    const char* method, int argc, v8::Local<v8::Value> argv[], async_context asyncContext)
+{
+    v8::Local<v8::String> method_string = v8::String::NewFromUtf8(isolate, method).ToLocalChecked();
+    return MakeCallback(isolate, recv, method_string, argc, argv, asyncContext);
+}
+
+class AsyncResource {
+public:
+    AsyncResource(v8::Isolate* isolate,
+        v8::Local<v8::Object> resource,
+        const char* name,
+        async_id trigger_async_id = -1)
+        : env_(Environment::GetCurrent(isolate))
+        , resource_(isolate, resource)
+    {
+        CHECK_NOT_NULL(env_);
+    }
+
+    virtual ~AsyncResource()
+    {
+    }
+
+    AsyncResource(const AsyncResource&) = delete;
+    void operator=(const AsyncResource&) = delete;
+
+    v8::MaybeLocal<v8::Value> MakeCallback(
+        v8::Local<v8::Function> callback,
+        int argc,
+        v8::Local<v8::Value>* argv)
+    {
+        return node::MakeCallback(env_->isolate(), get_resource(),
+            callback, argc, argv,
+            async_context_);
+    }
+
+    v8::MaybeLocal<v8::Value> MakeCallback(
+        const char* method,
+        int argc,
+        v8::Local<v8::Value>* argv)
+    {
+        return node::MakeCallback(env_->isolate(), get_resource(),
+            method, argc, argv,
+            async_context_);
+    }
+
+    v8::MaybeLocal<v8::Value> MakeCallback(
+        v8::Local<v8::String> symbol,
+        int argc,
+        v8::Local<v8::Value>* argv)
+    {
+        return node::MakeCallback(env_->isolate(), get_resource(),
+            symbol, argc, argv,
+            async_context_);
+    }
+
+    v8::Local<v8::Object> get_resource()
+    {
+        return resource_.Get(env_->isolate());
+    }
+
+    async_id get_async_id() const
+    {
+        return async_context_.async_id;
+    }
+
+    async_id get_trigger_async_id() const
+    {
+        return async_context_.trigger_async_id;
+    }
+
+protected:
+    class CallbackScope {
+    public:
+        CallbackScope(AsyncResource* res)
+            : try_catch_(res->env_->isolate())
+        {
+            try_catch_.SetVerbose(true);
+        }
+
+        ~CallbackScope()
+        {
+        }
+
+    private:
+        v8::TryCatch try_catch_;
+    };
+
+private:
+    Environment* env_;
+    v8::Global<v8::Object> resource_;
+    async_context async_context_;
+};
+
+class ThreadPoolWork : private fibjs::AsyncEvent {
+public:
+    explicit inline ThreadPoolWork(Environment* env, const char* type)
+        : fibjs::AsyncEvent(env)
+        , env_(env)
+        , type_(type)
+    {
+        CHECK_NOT_NULL(env);
+    }
+    inline virtual ~ThreadPoolWork() = default;
+
+    inline void ScheduleWork()
+    {
+        env_->Ref();
+        async(CALL_E_LONGSYNC);
+    }
+
+    inline int CancelWork()
+    {
+    }
+
+    virtual void invoke()
+    {
+        DoThreadPoolWork();
+        sync(isolate());
+        env_->Unref();
+    }
+
+    virtual fibjs::result_t js_invoke()
+    {
+        AfterThreadPoolWork(0);
+        return 0;
+    }
+
+    virtual void DoThreadPoolWork() = 0;
+    virtual void AfterThreadPoolWork(int status) = 0;
+
+    Environment* env() const { return env_; }
+
+private:
+    Environment* env_;
+    uv_work_t work_req_;
+    const char* type_;
+};
+
 typedef void (*addon_register_func)(
     v8::Local<v8::Object> exports,
     v8::Local<v8::Value> module,

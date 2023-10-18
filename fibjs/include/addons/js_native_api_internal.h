@@ -886,7 +886,10 @@ struct node_napi_env__ : public napi_env__ {
 
     void trigger_fatal_exception(v8::Local<v8::Value> local_err);
     template <bool enforceUncaughtExceptionPolicy, typename T>
-    void CallbackIntoModule(T&& call);
+    void CallbackIntoModule(T&& call)
+    {
+        CallIntoModule(call);
+    }
 
     void DeleteMe() override;
 
