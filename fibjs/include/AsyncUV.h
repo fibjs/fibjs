@@ -24,4 +24,13 @@ inline int uv_async(std::function<int(void)> proc)
     int ret = uv_call(proc);
     return ret ? ret : CALL_E_PENDDING;
 }
+
+class AutoReq : public uv_fs_t {
+public:
+    ~AutoReq()
+    {
+        uv_fs_req_cleanup(this);
+    }
+};
+
 }

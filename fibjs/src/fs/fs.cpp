@@ -23,14 +23,6 @@ namespace fibjs {
 
 DECLARE_MODULE(fs);
 
-class AutoReq : public uv_fs_t {
-public:
-    ~AutoReq()
-    {
-        uv_fs_req_cleanup(this);
-    }
-};
-
 result_t FileHandle::get_fd(int32_t& retVal)
 {
     retVal = m_fd;
@@ -393,42 +385,6 @@ result_t fs_base::write(FileHandle_base* fd, exlib::string string, int32_t posit
         return CHECK_ERROR(hr);
 
     return write(fd, buf, 0, -1, position, retVal, ac);
-}
-
-result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    AutoReq req;
-    int32_t ret = uv_fs_stat(NULL, &req, path.c_str(), NULL);
-    if (ret < 0)
-        return ret;
-
-    obj_ptr<Stat> pStat = new Stat();
-
-    pStat->fill(path, &req.statbuf);
-    retVal = pStat;
-
-    return 0;
-}
-
-result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
-{
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    AutoReq req;
-    int32_t ret = uv_fs_lstat(NULL, &req, path.c_str(), NULL);
-    if (ret < 0)
-        return ret;
-
-    obj_ptr<Stat> pStat = new Stat();
-
-    pStat->fill(path, &req.statbuf);
-    retVal = pStat;
-
-    return 0;
 }
 
 result_t fs_base::fstat(FileHandle_base* fd, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)

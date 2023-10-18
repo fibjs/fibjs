@@ -12,6 +12,7 @@
 #include "File.h"
 #include "MemoryStream.h"
 #include "ZipFile.h"
+#include "AsyncUV.h"
 #include <list>
 
 namespace fibjs {
@@ -88,19 +89,12 @@ result_t fs_base::clearZipFS(exlib::string fname)
     return 0;
 }
 
-result_t fs_base::openFile(exlib::string fname, exlib::string flags,
-    obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac)
+static result_t resolve_zip_file(exlib::string fname, obj_ptr<ZipFile::Info>& retVal, AsyncEvent* ac)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-
-    exlib::string safe_name;
-    path_base::normalize(fname, safe_name);
-
-    size_t pos = safe_name.find('$');
-    if (pos != exlib::string::npos && safe_name[pos + 1] == PATH_SLASH) {
-        exlib::string zip_file = safe_name.substr(0, pos);
-        exlib::string member = safe_name.substr(pos + 2);
+    size_t pos = fname.find('$');
+    if (pos != exlib::string::npos && fname[pos + 1] == PATH_SLASH) {
+        exlib::string zip_file = fname.substr(0, pos);
+        exlib::string member = fname.substr(pos + 2);
         obj_ptr<ZipFile_base> zfile;
         obj_ptr<Buffer_base> data;
         exlib::string strData;
@@ -140,11 +134,11 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
         s_cachelock.unlock();
 
         if (_node && (_now.diff(_node->m_date) > 3000)) {
-            hr = openFile(zip_file, "r", zip_stream, ac);
+            hr = fs_base::openFile(zip_file, "r", zip_stream, ac);
             if (hr < 0)
                 return hr;
 
-            hr = zip_stream->cc_stat(stat);
+            hr = zip_stream->stat(stat, ac);
             if (hr < 0)
                 return hr;
 
@@ -159,26 +153,26 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
 
         if (_node == NULL) {
             if (zip_stream == NULL) {
-                hr = openFile(zip_file, "r", zip_stream, ac);
+                hr = fs_base::openFile(zip_file, "r", zip_stream, ac);
                 if (hr < 0)
                     return hr;
 
-                hr = zip_stream->cc_stat(stat);
+                hr = zip_stream->stat(stat, ac);
                 if (hr < 0)
                     return hr;
             }
 
             obj_ptr<Buffer_base> zip_data;
-            hr = zip_stream->cc_readAll(zip_data);
+            hr = zip_stream->readAll(zip_data, ac);
             if (hr < 0)
                 return hr;
 
-            hr = zip_base::cc_open(zip_data, "r", "utf-8", zfile);
+            hr = zip_base::open(zip_data, "r", "utf-8", zfile, ac);
             if (hr < 0)
                 return hr;
 
             obj_ptr<NArray> list;
-            hr = zfile->cc_readAll("", list);
+            hr = zfile->readAll("", list, ac);
             if (hr < 0)
                 return hr;
 
@@ -200,8 +194,6 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
         }
 
         int32_t len, i;
-        bool bFound = false;
-        obj_ptr<ZipFile::Info> zi;
 
         len = _node->m_list->length();
 
@@ -210,27 +202,119 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
             exlib::string s;
 
             _node->m_list->_indexed_getter(i, v);
-            zi = (ZipFile::Info*)v.object();
 
-            zi->get_filename(s);
+            retVal = (ZipFile::Info*)v.object();
+            if (retVal->m_date.empty())
+                retVal->m_date = _node->m_date;
 
-            if (member == s) {
-                bFound = true;
-                break;
-            }
+            retVal->get_filename(s);
+
+            if (member == s)
+                return 0;
 
 #ifdef _WIN32
-            if (bChanged && member1 == s) {
-                member = member1;
-                bFound = true;
-                break;
-            }
+            if (bChanged && member1 == s)
+                return 0;
 #endif
         }
+    }
 
-        if (!bFound)
-            return CALL_E_FILE_NOT_FOUND;
+    return CALL_E_FILE_NOT_FOUND;
+}
 
+static result_t zip_stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+{
+    obj_ptr<ZipFile::Info> zi;
+    result_t hr = resolve_zip_file(path, zi, ac);
+    if (hr >= 0) {
+        obj_ptr<Stat> pStat = new Stat();
+        pStat->init();
+
+        path_base::basename(path, "", pStat->name);
+
+        pStat->m_mode = S_IRUSR;
+        pStat->size = zi->m_file_size;
+        pStat->mtime = pStat->atime = pStat->ctime = pStat->birthtime = zi->m_date;
+        pStat->m_isMemory = true;
+
+        retVal = pStat;
+
+        return 0;
+    }
+
+    return CALL_E_FILE_NOT_FOUND;
+}
+
+result_t fs_base::lstat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    exlib::string safe_name;
+    path_base::normalize(path, safe_name);
+
+    result_t hr = zip_stat(safe_name, retVal, ac);
+    if (hr >= 0)
+        return 0;
+
+    if (!ac->isolate()->m_enable_FileSystem)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    AutoReq req;
+    int32_t ret = uv_fs_lstat(NULL, &req, safe_name.c_str(), NULL);
+    if (ret < 0)
+        return ret;
+
+    obj_ptr<Stat> pStat = new Stat();
+
+    pStat->fill(safe_name, &req.statbuf);
+    retVal = pStat;
+
+    return 0;
+}
+
+result_t fs_base::stat(exlib::string path, obj_ptr<Stat_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    exlib::string safe_name;
+    path_base::normalize(path, safe_name);
+
+    result_t hr = zip_stat(safe_name, retVal, ac);
+    if (hr >= 0)
+        return 0;
+
+    if (!ac->isolate()->m_enable_FileSystem)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    AutoReq req;
+    int32_t ret = uv_fs_stat(NULL, &req, safe_name.c_str(), NULL);
+    if (ret < 0)
+        return ret;
+
+    obj_ptr<Stat> pStat = new Stat();
+
+    pStat->fill(safe_name, &req.statbuf);
+    retVal = pStat;
+
+    return 0;
+}
+
+result_t fs_base::openFile(exlib::string fname, exlib::string flags,
+    obj_ptr<SeekableStream_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    exlib::string safe_name;
+    path_base::normalize(fname, safe_name);
+
+    obj_ptr<ZipFile::Info> zi;
+    result_t hr = resolve_zip_file(safe_name, zi, ac);
+    if (hr >= 0) {
+        obj_ptr<Buffer_base> data;
+        exlib::string strData;
         date_t _d;
 
         zi->get_data(data);
@@ -238,23 +322,19 @@ result_t fs_base::openFile(exlib::string fname, exlib::string flags,
             data->toString(strData);
 
         zi->get_date(_d);
-        if (_d.empty())
-            _d = _node->m_date;
-
         retVal = new MemoryStream::CloneStream(strData, _d);
-    } else {
-        if (!ac->isolate()->m_enable_FileSystem)
-            return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-        obj_ptr<File> pFile = new File();
-        result_t hr;
-
-        hr = pFile->open(safe_name, flags);
-        if (hr < 0)
-            return hr;
-
-        retVal = pFile;
+        return 0;
     }
+
+    if (!ac->isolate()->m_enable_FileSystem)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    obj_ptr<File> pFile = new File();
+    hr = pFile->open(safe_name, flags);
+    if (hr < 0)
+        return hr;
+
+    retVal = pFile;
 
     return 0;
 }

@@ -100,7 +100,6 @@ public:
 private:
     int64_t dev, rdev;
     int64_t ino;
-    uint64_t m_mode;
     int64_t nlink;
     int64_t uid, gid;
     int64_t blksize;
@@ -108,6 +107,7 @@ private:
 
 public:
     exlib::string name;
+    uint64_t m_mode;
     int64_t size;
     date_t mtime, atime, ctime, birthtime;
     int64_t mtimeNs, atimeNs, ctimeNs, birthtimeNs;

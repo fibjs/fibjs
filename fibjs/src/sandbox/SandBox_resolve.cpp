@@ -21,9 +21,15 @@ namespace fibjs {
 result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
 {
     result_t hr;
+    Isolate* isolate = holder();
+
+    obj_ptr<Stat_base> stat;
+    hr = fs_base::cc_stat(fname, stat, isolate);
+    if (hr < 0)
+        return hr;
 
     Variant var;
-    hr = fs_base::cc_readFile(fname, "", var, holder());
+    hr = fs_base::cc_readFile(fname, "", var, isolate);
     if (hr == CALL_RETURN_NULL) {
         data = new Buffer();
         hr = 0;
@@ -39,8 +45,9 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
     size_t cnt = m_loaders.size();
     result_t hr;
     exlib::string fname1;
+    Isolate* isolate = holder();
 
-    hr = fs_base::cc_realpath(fname, fname1, holder());
+    hr = fs_base::cc_realpath(fname, fname1, isolate);
     if (hr < 0)
         fname1 = fname;
 
@@ -62,7 +69,7 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
         obj_ptr<ExtLoader>& l = m_loaders[i];
         exlib::string fname2 = fname + l->m_ext;
 
-        hr = fs_base::cc_realpath(fname2, fname1, holder());
+        hr = fs_base::cc_realpath(fname2, fname1, isolate);
         if (hr < 0)
             fname1 = fname2;
 
@@ -179,8 +186,10 @@ static const char* predefine_exts[] = {
     ".js",
     ".jsc",
     ".json",
+    ".node",
     ".wasm"
 };
+
 result_t SandBox::setModuleCompiler(exlib::string extname, v8::Local<v8::Function> compiler)
 {
     if (extname.empty())
