@@ -553,6 +553,7 @@ public:
 
     inline int CancelWork()
     {
+        return -1;
     }
 
     virtual void invoke()
