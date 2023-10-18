@@ -2,68 +2,12 @@
 
 #include <unordered_set>
 #include <limits.h>
-
-#include "object.h"
+#include <uv/include/uv.h>
 
 #define NAPI_EXPERIMENTAL
 #include "js_native_api.h"
 #include "node_api.h"
-
-#define NODE_API_SUPPORTED_VERSION_MAX 9
-#define NODE_API_SUPPORTED_VERSION_MIN 1
-
-#define NODE_API_DEFAULT_MODULE_API_VERSION 8
-
-#ifdef __GNUC__
-#define LIKELY(expr) __builtin_expect(!!(expr), 1)
-#define UNLIKELY(expr) __builtin_expect(!!(expr), 0)
-#define PRETTY_FUNCTION_NAME __PRETTY_FUNCTION__
-#else
-#define LIKELY(expr) expr
-#define UNLIKELY(expr) expr
-#define PRETTY_FUNCTION_NAME ""
-#endif
-
-#define STRINGIFY_(x) #x
-#define STRINGIFY(x) STRINGIFY_(x)
-
-#define ERROR_AND_ABORT(expr)                                                     \
-    do {                                                                          \
-        /* Make sure that this struct does not end up in inline code, but      */ \
-        /* rather in a read-only data section when modifying this code.        */ \
-        static const node::AssertionInfo args = {                                 \
-            __FILE__ ":" STRINGIFY(__LINE__), #expr, PRETTY_FUNCTION_NAME         \
-        };                                                                        \
-        node::Assert(args);                                                       \
-    } while (0)
-
-#define CHECK(expr)                \
-    do {                           \
-        if (UNLIKELY(!(expr))) {   \
-            ERROR_AND_ABORT(expr); \
-        }                          \
-    } while (0)
-
-#define CHECK_EQ(a, b) CHECK((a) == (b))
-#define CHECK_GE(a, b) CHECK((a) >= (b))
-#define CHECK_GT(a, b) CHECK((a) > (b))
-#define CHECK_LE(a, b) CHECK((a) <= (b))
-#define CHECK_LT(a, b) CHECK((a) < (b))
-#define CHECK_NE(a, b) CHECK((a) != (b))
-#define CHECK_NULL(val) CHECK((val) == nullptr)
-#define CHECK_NOT_NULL(val) CHECK((val) != nullptr)
-#define CHECK_IMPLIES(a, b) CHECK(!(a) || (b))
-
-#define DCHECK(expr)
-#define DCHECK_EQ(a, b)
-#define DCHECK_GE(a, b)
-#define DCHECK_GT(a, b)
-#define DCHECK_LE(a, b)
-#define DCHECK_LT(a, b)
-#define DCHECK_NE(a, b)
-#define DCHECK_NULL(val)
-#define DCHECK_NOT_NULL(val)
-#define DCHECK_IMPLIES(a, b)
+#include "node_api_internal.h"
 
 #define CHECK_ENV(env)               \
     do {                             \
@@ -201,36 +145,6 @@ inline v8::Local<v8::Private> napi_private_key(v8::Local<v8::Context> context, c
 inline napi_status napi_clear_last_error(napi_env env);
 inline napi_status napi_set_last_error(napi_env env, napi_status error_code,
     uint32_t engine_error_code = 0, void* engine_reserved = nullptr);
-
-namespace node {
-template <typename Fn>
-inline int32_t OnScopeLeave(Fn&& fn)
-{
-    return 0;
-}
-
-struct AssertionInfo {
-    const char* file_line; // filename:line
-    const char* message;
-    const char* function;
-};
-
-inline void Assert(const AssertionInfo& info)
-{
-    std::string name = "fibjs";
-
-    fprintf(stderr,
-        "%s: %s:%s%s Assertion `%s' failed.\n",
-        name.c_str(),
-        info.file_line,
-        info.function,
-        *info.function ? ":" : "",
-        info.message);
-    fflush(stderr);
-
-    abort();
-}
-}
 
 namespace v8impl {
 
@@ -956,3 +870,35 @@ inline v8::PropertyAttribute V8PropertyAttributesFromDescriptor(
     return static_cast<v8::PropertyAttribute>(attribute_flags);
 }
 }
+
+struct node_napi_env__ : public napi_env__ {
+    node_napi_env__(v8::Local<v8::Context> context,
+        const std::string& module_filename,
+        int32_t module_api_version);
+
+    bool can_call_into_js() const override;
+    void CallFinalizer(napi_finalize cb, void* data, void* hint) override;
+    template <bool enforceUncaughtExceptionPolicy>
+    void CallFinalizer(napi_finalize cb, void* data, void* hint);
+
+    void EnqueueFinalizer(v8impl::RefTracker* finalizer) override;
+    void DrainFinalizerQueue();
+
+    void trigger_fatal_exception(v8::Local<v8::Value> local_err);
+    template <bool enforceUncaughtExceptionPolicy, typename T>
+    void CallbackIntoModule(T&& call);
+
+    void DeleteMe() override;
+
+    inline node::Environment* node_env() const
+    {
+        return node::Environment::GetCurrent(context());
+    }
+    inline const char* GetFilename() const { return filename.c_str(); }
+
+    std::string filename;
+    bool destructing = false;
+    bool finalization_scheduled = false;
+};
+
+using node_napi_env = node_napi_env__*;

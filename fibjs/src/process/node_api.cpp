@@ -6,27 +6,6 @@
  */
 
 #include "addons/js_native_api_internal.h"
-#include "Buffer.h"
-
-namespace node {
-
-namespace Buffer {
-
-    typedef void (*FreeCallback)(char* data, void* hint);
-
-    v8::MaybeLocal<v8::Object> New(v8::Isolate* isolate, char* data,
-        size_t length, FreeCallback callback, void* hint)
-    {
-        v8::EscapableHandleScope handle_scope(isolate);
-        fibjs::Isolate* _isolate = fibjs::Isolate::current(isolate);
-
-        fibjs::obj_ptr<fibjs::Buffer> buf = new fibjs::Buffer(data, length);
-        callback(data, hint);
-        return v8::MaybeLocal<v8::Object>(buf->wrap(_isolate));
-    }
-}
-
-}
 
 namespace v8impl {
 

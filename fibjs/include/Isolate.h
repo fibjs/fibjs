@@ -19,6 +19,15 @@ v8::Local<v8::String> NewString(v8::Isolate* isolate, const char* data, ssize_t 
 v8::Local<v8::String> NewString(v8::Isolate* isolate, exlib::string str);
 exlib::string ToString(v8::Isolate* isolate, v8::Local<v8::Value> v);
 
+inline v8::Local<v8::String> OneByteString(v8::Isolate* isolate,
+    const char* data, int length = -1)
+{
+    return v8::String::NewFromOneByte(isolate,
+        reinterpret_cast<const uint8_t*>(data),
+        v8::NewStringType::kNormal, length)
+        .ToLocalChecked();
+}
+
 class SandBox;
 class JSFiber;
 class HttpClient;
@@ -93,6 +102,17 @@ public:
         return current(args.GetIsolate());
     }
 
+    template <typename T>
+    static Isolate* GetCurrent(T v)
+    {
+        return current(v);
+    }
+
+    inline bool can_call_into_js() const
+    {
+        return true;
+    }
+
     void RequestInterrupt(v8::InterruptCallback callback, void* data);
     void RunMicrotasks();
 
@@ -158,6 +178,54 @@ public:
     }
 
     v8::Local<v8::Value> WaitPromise(v8::Local<v8::Value> promise);
+
+    template <typename Fn>
+    void SetImmediate(Fn&& cb, int32_t flags = 1)
+    {
+        syncCall(
+            this, [cb](Isolate* isolate) {
+                cb(isolate);
+                return 0;
+            },
+            this);
+    }
+
+    void ThrowError(const char* errmsg)
+    {
+        ThrowError(v8::Exception::Error, errmsg);
+    }
+
+    void ThrowTypeError(const char* errmsg)
+    {
+        ThrowError(v8::Exception::TypeError, errmsg);
+    }
+
+    void ThrowRangeError(const char* errmsg)
+    {
+        ThrowError(v8::Exception::RangeError, errmsg);
+    }
+
+    void ThrowError(
+        v8::Local<v8::Value> (*fun)(v8::Local<v8::String>),
+        const char* errmsg)
+    {
+        v8::HandleScope handle_scope(m_isolate);
+        m_isolate->ThrowException(fun(OneByteString(m_isolate, errmsg)));
+    }
+
+    v8::Isolate* isolate() const
+    {
+        return m_isolate;
+    }
+
+    typedef void (*CleanupCallback)(void*);
+    void AddCleanupHook(CleanupCallback fn, void* arg)
+    {
+    }
+
+    void RemoveCleanupHook(CleanupCallback fn, void* arg)
+    {
+    }
 
     void start_profiler();
     void init_global_template();

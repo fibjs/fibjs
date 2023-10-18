@@ -24,6 +24,7 @@
 #include <uv/include/uv/version.h>
 #include <unicode/uvernum.h>
 #include <msgpack/version.hpp>
+#include "addons/node_version.h"
 
 namespace v8 {
 namespace internal {
@@ -83,6 +84,8 @@ public:
 #ifndef NDEBUG
         g_info->add("debug", true);
 #endif
+
+        g_info->add("napi", NODE_API_DEFAULT_MODULE_API_VERSION);
 
         g_vender = new NObject();
         g_info->add("vender", g_vender);
