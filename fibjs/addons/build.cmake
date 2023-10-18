@@ -17,6 +17,7 @@ if(NOT "${CLEAN_BUILD}" STREQUAL "true")
         6_object_wrap
         test_array
         test_bigint
+        test_buffer
         test_cannot_run_js
         test_constructor
         test_conversions

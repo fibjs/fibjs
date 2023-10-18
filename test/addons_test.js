@@ -2,6 +2,7 @@ var test = require("test");
 test.setup();
 
 const path = require('path');
+const coroutine = require('coroutine');
 
 const bin_path = path.dirname(process.execPath);
 
@@ -233,6 +234,22 @@ describe('addons api', () => {
             name: 'RangeError',
             message: 'Maximum BigInt size exceeded',
         });
+    });
+
+    it('test_buffer', () => {
+        var module = {
+            exports: {}
+        }
+        process.dlopen(module, path.join(bin_path, 'test_buffer.node'));
+        const binding = module.exports;
+
+        assert.strictEqual(binding.newBuffer().toString(), binding.theText);
+        assert.strictEqual(binding.newExternalBuffer().toString(), binding.theText);
+        assert.strictEqual(binding.copyBuffer().toString(), binding.theText);
+
+        let buffer = binding.staticBuffer();
+        assert.strictEqual(binding.bufferHasInstance(buffer), true);
+        assert.strictEqual(binding.bufferInfo(buffer), true);
     });
 
     it('test_cannot_run_js', () => {

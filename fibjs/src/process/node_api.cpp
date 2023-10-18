@@ -57,6 +57,29 @@ namespace {
 
 }
 
+napi_status NAPI_CDECL napi_create_buffer(napi_env env,
+    size_t length,
+    void** data,
+    napi_value* result)
+{
+    NAPI_PREAMBLE(env);
+    CHECK_ARG(env, result);
+
+    v8::MaybeLocal<v8::Object> maybe = node::Buffer::New(env->isolate, length);
+
+    CHECK_MAYBE_EMPTY(env, maybe, napi_generic_failure);
+
+    v8::Local<v8::Object> buffer = maybe.ToLocalChecked();
+
+    *result = v8impl::JsValueFromV8LocalValue(buffer);
+
+    if (data != nullptr) {
+        *data = node::Buffer::Data(buffer);
+    }
+
+    return GET_RETURN_STATUS(env);
+}
+
 napi_status NAPI_CDECL napi_create_external_buffer(napi_env env,
     size_t length,
     void* data,
@@ -87,4 +110,73 @@ napi_status NAPI_CDECL napi_create_external_buffer(napi_env env,
     // as it will be deleted when the buffer to which it is associated
     // is finalized.
     // coverity[leaked_storage]
+}
+
+napi_status NAPI_CDECL napi_create_buffer_copy(napi_env env,
+    size_t length,
+    const void* data,
+    void** result_data,
+    napi_value* result)
+{
+    NAPI_PREAMBLE(env);
+    CHECK_ARG(env, result);
+
+    v8::MaybeLocal<v8::Object> maybe = node::Buffer::Copy(env->isolate, static_cast<const char*>(data), length);
+
+    CHECK_MAYBE_EMPTY(env, maybe, napi_generic_failure);
+
+    v8::Local<v8::Object> buffer = maybe.ToLocalChecked();
+    *result = v8impl::JsValueFromV8LocalValue(buffer);
+
+    if (result_data != nullptr) {
+        *result_data = node::Buffer::Data(buffer);
+    }
+
+    return GET_RETURN_STATUS(env);
+}
+
+napi_status NAPI_CDECL napi_is_buffer(napi_env env,
+    napi_value value,
+    bool* result)
+{
+    CHECK_ENV(env);
+    env->CheckGCAccess();
+    CHECK_ARG(env, value);
+    CHECK_ARG(env, result);
+
+    *result = node::Buffer::HasInstance(v8impl::V8LocalValueFromJsValue(value));
+    return napi_clear_last_error(env);
+}
+
+napi_status NAPI_CDECL napi_get_buffer_info(napi_env env,
+    napi_value value,
+    void** data,
+    size_t* length)
+{
+    CHECK_ENV(env);
+    env->CheckGCAccess();
+    CHECK_ARG(env, value);
+
+    v8::Local<v8::Value> buffer = v8impl::V8LocalValueFromJsValue(value);
+
+    if (data != nullptr) {
+        *data = node::Buffer::Data(buffer);
+    }
+    if (length != nullptr) {
+        *length = node::Buffer::Length(buffer);
+    }
+
+    return napi_clear_last_error(env);
+}
+
+napi_status NAPI_CDECL napi_get_node_version(napi_env env,
+    const napi_node_version** result)
+{
+    CHECK_ENV(env);
+    CHECK_ARG(env, result);
+    static const napi_node_version version = {
+        NODE_MAJOR_VERSION, NODE_MINOR_VERSION, NODE_PATCH_VERSION, NODE_RELEASE
+    };
+    *result = &version;
+    return napi_clear_last_error(env);
 }

@@ -11,7 +11,7 @@ add_library(${name} SHARED ${src_list})
 include_directories("${PROJECT_SOURCE_DIR}/../../include/addons" "${PROJECT_SOURCE_DIR}/../")
 
 if(MSVC)
-    target_link_libraries(${name} "${BIN_PATH}/fibjs.lib")
+    target_link_libraries(${name} "${PROJECT_SOURCE_DIR}/../lib/node_${ARCH}.lib")
 else()
     set(link_flags "${link_flags} ${link_flags} -Wl,-undefined,dynamic_lookup")
 endif()
