@@ -2,6 +2,7 @@
 /// <reference path="../interface/LruCache.d.ts" />
 /// <reference path="../interface/TextDecoder.d.ts" />
 /// <reference path="../interface/TextEncoder.d.ts" />
+/// <reference path="../module/types.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
  * @description util 模块提供了对数据类型的判断、对象属性的复制、模版字符串的解析、事件处理等实用的工具函数
@@ -72,6 +73,11 @@ declare module 'util' {
      * @description TextEncoder 编码对象，参见 TextEncoder 对象。
      */
     const TextEncoder: typeof Class_TextEncoder;
+
+    /**
+     * @description types 模块提供了对数据类型判断的工具函数。
+     */
+    const types: typeof import ('types');
 
     /**
      * @description 按照指定的格式格式化变量

@@ -1,0 +1,222 @@
+/*! @brief types 模块提供了对数据类型判断的工具函数
+
+下面是具体的介绍和示例：
+
+```JavaScript
+var util = require('util');
+console.log(util.types.isDate(new Date()));
+console.log(util.types.isRegExp(/some regexp/));
+```
+*/
+module types
+{
+    /*! @brief 检测给定的变量是否不包含任何值(没有可枚举的属性)
+     @param v 给定需要检测的变量
+     @return 如果为空则返回 True
+     */
+    static Boolean isEmpty(Value v);
+
+    /*! @brief 检测给定的变量是否是数组
+     @param v 给定需要检测的变量
+     @return 如果是数组则返回 True
+     */
+    static Boolean isArray(Value v);
+
+    /*! @brief 检测给定的变量是否是 Boolean
+     @param v 给定需要检测的变量
+     @return 如果是 Boolean 则返回 True
+     */
+    static Boolean isBoolean(Value v);
+
+    /*! @brief 检测给定的变量是否是 Null
+     @param v 给定需要检测的变量
+     @return 如果是 Null 则返回 True
+     */
+    static Boolean isNull(Value v);
+
+    /*! @brief 检测给定的变量是否是 Null 或者 Undefined
+     @param v 给定需要检测的变量
+     @return 如果是 Null 或者 Undefined 则返回 True
+     */
+    static Boolean isNullOrUndefined(Value v);
+
+    /*! @brief 检测给定的变量是否是数字
+     @param v 给定需要检测的变量
+     @return 如果是数字则返回 True
+     */
+    static Boolean isNumber(Value v);
+
+    /*! @brief 检测给定的变量是否是 BigInt
+     @param v 给定需要检测的变量
+     @return 如果是数字则返回 True
+     */
+    static Boolean isBigInt(Value v);
+
+    /*! @brief 检测给定的变量是否是字符串
+     @param v 给定需要检测的变量
+     @return 如果是字符串则返回 True
+     */
+    static Boolean isString(Value v);
+
+    /*! @brief 检测给定的变量是否是 Undefined
+     @param v 给定需要检测的变量
+     @return 如果是 Undefined 则返回 True
+     */
+    static Boolean isUndefined(Value v);
+
+    /*! @brief 检测给定的变量是否是正则对象
+     @param v 给定需要检测的变量
+     @return 如果是正则对象则返回 True
+     */
+    static Boolean isRegExp(Value v);
+
+    /*! @brief 检测给定的变量是否是对象
+     @param v 给定需要检测的变量
+     @return 如果是对象则返回 True
+     */
+    static Boolean isObject(Value v);
+
+    /*! @brief 检测给定的变量是否是日期对象
+     @param v 给定需要检测的变量
+     @return 如果是日期对象则返回 True
+     */
+    static Boolean isDate(Value v);
+
+    /*! @brief 检测给定的变量是否是错误对象
+     @param v 给定需要检测的变量
+     @return 如果是错误对象则返回 True
+     */
+    static Boolean isNativeError(Value v);
+
+    /*! @brief 检测给定的变量是否是原始类型
+     @param v 给定需要检测的变量
+     @return 如果是原始类型则返回 True
+     */
+    static Boolean isPrimitive(Value v);
+
+    /*! @brief 检测给定的变量是否是Symbol类型
+     @param v 给定需要检测的变量
+     @return 如果是Symbol类型则返回 True
+     */
+    static Boolean isSymbol(Value v);
+
+    /*! @brief 检测给定的变量是否是 DataView 类型
+     @param v 给定需要检测的变量
+     @return 如果是 DataView 类型则返回 True
+     */
+    static Boolean isDataView(Value v);
+
+    /*! @brief 检测给定的变量是否是 External 类型
+     @param v 给定需要检测的变量
+     @return 如果是 External 类型则返回 True
+     */
+    static Boolean isExternal(Value v);
+
+    /*! @brief 检测给定的变量是否是 Map 类型
+     @param v 给定需要检测的变量
+     @return 如果是 Map 类型则返回 True
+     */
+    static Boolean isMap(Value v);
+
+    /*! @brief 检测给定的变量是否是 MapIterator 类型
+     @param v 给定需要检测的变量
+     @return 如果是 MapIterator 类型则返回 True
+     */
+    static Boolean isMapIterator(Value v);
+
+    /*! @brief 检测给定的变量是否是 Promise 类型
+     @param v 给定需要检测的变量
+     @return 如果是 Promise 类型则返回 True
+     */
+    static Boolean isPromise(Value v);
+
+    /*! @brief 检测给定的变量是否是 AsyncFunction 类型
+     @param v 给定需要检测的变量
+     @return 如果是 AsyncFunction 类型则返回 True
+     */
+    static Boolean isAsyncFunction(Value v);
+
+    /*! @brief 检测给定的变量是否是 Set 类型
+     @param v 给定需要检测的变量
+     @return 如果是 Set 类型则返回 True
+     */
+    static Boolean isSet(Value v);
+
+    /*! @brief 检测给定的变量是否是 SetIterator 类型
+     @param v 给定需要检测的变量
+     @return 如果是 SetIterator 类型则返回 True
+     */
+    static Boolean isSetIterator(Value v);
+
+    /*! @brief 检测给定的变量是否是 TypedArray 类型
+     @param v 给定需要检测的变量
+     @return 如果是 TypedArray 类型则返回 True
+     */
+    static Boolean isTypedArray(Value v);
+
+    /*! @brief 检测给定的变量是否是 Float32Array 类型
+     @param v 给定需要检测的变量
+     @return 如果是 Float32Array 类型则返回 True
+     */
+    static Boolean isFloat32Array(Value v);
+
+    /*! @brief 检测给定的变量是否是 Float64Array 类型
+     @param v 给定需要检测的变量
+     @return 如果是 Float64Array 类型则返回 True
+     */
+    static Boolean isFloat64Array(Value v);
+
+    /*! @brief 检测给定的变量是否是 Int8Array 类型
+     @param v 给定需要检测的变量
+     @return 如果是 Int8Array 类型则返回 True
+     */
+    static Boolean isInt8Array(Value v);
+
+    /*! @brief 检测给定的变量是否是 Int16Array 类型
+     @param v 给定需要检测的变量
+     @return 如果是 Int16Array 类型则返回 True
+     */
+    static Boolean isInt16Array(Value v);
+
+    /*! @brief 检测给定的变量是否是 Int32Array 类型
+     @param v 给定需要检测的变量
+     @return 如果是 Int32Array 类型则返回 True
+     */
+    static Boolean isInt32Array(Value v);
+
+    /*! @brief 检测给定的变量是否是 Uint8Array 类型
+     @param v 给定需要检测的变量
+     @return 如果是 Uint8Array 类型则返回 True
+     */
+    static Boolean isUint8Array(Value v);
+
+    /*! @brief 检测给定的变量是否是 Uint8ClampedArray 类型
+     @param v 给定需要检测的变量
+     @return 如果是 Uint8ClampedArray 类型则返回 True
+     */
+    static Boolean isUint8ClampedArray(Value v);
+
+    /*! @brief 检测给定的变量是否是 Uint16Array 类型
+     @param v 给定需要检测的变量
+     @return 如果是 Uint16Array 类型则返回 True
+     */
+    static Boolean isUint16Array(Value v);
+
+    /*! @brief 检测给定的变量是否是 Uint32Array 类型
+     @param v 给定需要检测的变量
+     @return 如果是 Uint32Array 类型则返回 True
+     */
+    static Boolean isUint32Array(Value v);
+
+    /*! @brief 检测给定的变量是否是函数对象
+     @param v 给定需要检测的变量
+     @return 如果是函数对象则返回 True
+     */
+    static Boolean isFunction(Value v);
+
+    /*! @brief 检测给定的变量是否是函数 Buffer 对象
+     @param v 给定需要检测的变量
+     @return 如果是函数 Buffer 对象则返回 True
+     */
+    static Boolean isBuffer(Value v);
+};
