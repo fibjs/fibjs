@@ -1620,43 +1620,79 @@ describe('addons api', () => {
         }
         process.dlopen(module, path.join(bin_path, 'test_promise.node'));
         const test_promise = module.exports;
+        var ev;
+        var test_result;
 
+        // A resolution
+        {
+            test_result = {};
+            ev = new coroutine.Event();
 
-        // // A resolution
-        // {
-        //     const expected_result = 42;
-        //     const promise = test_promise.createPromise();
-        //     promise.then(
-        //         common.mustCall(function (result) {
-        //             assert.strictEqual(result, expected_result);
-        //         }),
-        //         common.mustNotCall());
-        //     test_promise.concludeCurrentPromise(expected_result, true);
-        // }
+            const expected_result = 42;
+            const promise = test_promise.createPromise();
+            promise.then(
+                function (result) {
+                    test_result.result = result;
+                    ev.set();
+                },
+                function () {
+                    test_result.rejected = true;
+                    ev.set();
+                }
+            );
+            test_promise.concludeCurrentPromise(expected_result, true);
+            ev.wait();
+            assert.equal(test_result.result, expected_result);
+            assert.equal(test_result.rejected, undefined);
+        }
 
-        // // A rejection
-        // {
-        //     const expected_result = 'It\'s not you, it\'s me.';
-        //     const promise = test_promise.createPromise();
-        //     promise.then(
-        //         common.mustNotCall(),
-        //         common.mustCall(function (result) {
-        //             assert.strictEqual(result, expected_result);
-        //         }));
-        //     test_promise.concludeCurrentPromise(expected_result, false);
-        // }
+        // A rejection
+        {
+            test_result = {};
+            ev = new coroutine.Event();
 
-        // // Chaining
-        // {
-        //     const expected_result = 'chained answer';
-        //     const promise = test_promise.createPromise();
-        //     promise.then(
-        //         common.mustCall(function (result) {
-        //             assert.strictEqual(result, expected_result);
-        //         }),
-        //         common.mustNotCall());
-        //     test_promise.concludeCurrentPromise(Promise.resolve('chained answer'), true);
-        // }
+            const expected_result = 'It\'s not you, it\'s me.';
+            const promise = test_promise.createPromise();
+            promise.then(
+                function (result) {
+                    test_result.result = result;
+                    ev.set();
+                },
+                function (result) {
+                    test_result.rejected = result;
+                    ev.set();
+                }
+            );
+            test_promise.concludeCurrentPromise(expected_result, false);
+
+            ev.wait();
+            assert.equal(test_result.result, undefined);
+            assert.equal(test_result.rejected, expected_result);
+        }
+
+        // Chaining
+        {
+            test_result = {};
+            ev = new coroutine.Event();
+
+            const expected_result = 'chained answer';
+            const promise = test_promise.createPromise();
+            promise.then(
+                function (result) {
+                    test_result.result = result;
+                    ev.set();
+                },
+                function (result) {
+                    test_result.rejected = result;
+                    ev.set();
+                }
+            );
+            test_promise.concludeCurrentPromise(Promise.resolve('chained answer'), true);
+
+            ev.wait();
+            assert.equal(test_result.result, expected_result);
+            assert.equal(test_result.rejected, undefined);
+        }
 
         const promiseTypeTestPromise = test_promise.createPromise();
         assert.strictEqual(test_promise.isPromise(promiseTypeTestPromise), true);
