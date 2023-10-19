@@ -28,6 +28,7 @@ if(NOT "${CLEAN_BUILD}" STREQUAL "true")
         test_function
         test_general
         test_handle_scope
+        test_init_order
         test_new_target
         test_number
         test_object

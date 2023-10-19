@@ -1057,6 +1057,17 @@ describe('addons api', () => {
             RangeError);
     });
 
+    it('test_init_order', () => {
+        var module = {
+            exports: {}
+        }
+        process.dlopen(module, path.join(bin_path, 'test_init_order.node'));
+        const test_init_order = module.exports;
+
+        assert.strictEqual(test_init_order.cppIntValue, 42);
+        assert.strictEqual(test_init_order.cppStringValue, '123');
+    });
+
     it('test_new_target', () => {
         var module = {
             exports: {}
