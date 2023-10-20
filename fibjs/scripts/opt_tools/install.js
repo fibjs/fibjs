@@ -14,6 +14,7 @@ const untar = require('internal/helpers/untar');
 const helpers_pkg = require('internal/helpers/package');
 const helpers_fs = require('internal/helpers/fs');
 const helpers_string = require('internal/helpers/string');
+const versioning = require('internal/helpers/versioning');
 const CST = require('internal/constant');
 
 const DEPENDENCIES = 'dependencies';
@@ -165,10 +166,20 @@ function fetch_leveled_module_info(m, v, parent) {
             const dep_vs = util.clone(minfo.dependencies || {});
             const dev_dep_vs = util.clone(minfo.devDependencies || {});
 
+            var binary;
+            if (minfo.binary) {
+                const opt = versioning.evaluate(minfo, { module_root: '/' }, 3);
+                binary = {
+                    module: opt.module,
+                    hosted_tarball: opt.hosted_tarball
+                }
+            }
+
             return {
                 name: minfo.name,
                 version: minfo.version,
                 bin: minfo.bin,
+                binary: binary,
                 dep_vs: dep_vs,
                 dev_dep_vs: dev_dep_vs,
                 node_modules: {},
@@ -198,10 +209,15 @@ function fetch_leveled_module_info(m, v, parent) {
 
             }
 
+            var binary;
+            if (pkgjson_info.binary)
+                binary = versioning.evaluate(pkgjson_info, { root: '/' }, 3);
+
             return {
                 name: pkgjson_info.name,
                 version: pkgjson_info.version,
                 bin: pkgjson_info.bin,
+                binary: binary,
                 dep_vs: util.extend({}, pkgjson_info.dependencies),
                 dev_dep_vs: util.extend({}, pkgjson_info.devDependencies),
                 node_modules: {},
@@ -351,6 +367,7 @@ function generate_mv_paths(level_info, parent_p) {
                             ps = {
                                 pkg_install_typeinfo: lmod.pkg_install_typeinfo,
                                 bin: lmod.bin,
+                                binary: lmod.binary,
                                 dist: lmod.dist,
                                 path: [mp]
                             };
@@ -359,6 +376,7 @@ function generate_mv_paths(level_info, parent_p) {
                             ps = {
                                 pkg_install_typeinfo: lmod.pkg_install_typeinfo,
                                 bin: lmod.bin,
+                                binary: lmod.binary,
                                 dist: null,
                                 path: [mp]
                             };
@@ -483,6 +501,34 @@ function download_module() {
                     break
             }
 
+            if (mvm.binary) {
+                const binary_r = http_get(mvm.binary.hosted_tarball);
+
+                if (binary_r.statusCode !== 200) {
+                    console.error('download error::', mvm.binary.hosted_tarball);
+                    process.exit();
+                }
+
+                const tgz = binary_r.data;
+
+                let t;
+                if (tgz[0] === 0x1f && tgz[1] === 0x8b)
+                    t = zlib.gunzip(tgz);
+                else
+                    t = tgz;
+
+                const untar_files = untar(t.buffer);
+
+                var addons_data = untar_files[0];
+                mvm.path.forEach(bp => {
+                    var bpath = path.join(bp, mvm.binary.module);
+                    helpers_fs.mkdirp(path.dirname(bpath));
+                    fs.writeFile(bpath, addons_data.fileData);
+                    fs.chmod(bpath, parseInt(addons_data.mode, 8));
+                    install_log("extract addons:", bpath);
+                });
+            }
+
             if (mvm.bin) {
                 var bins = mvm.bin;
 
@@ -503,7 +549,7 @@ function download_module() {
 
                         fs.symlink(cli_file_r, cli_link);
                         fs.chmod(cli_file, 0755);
-                        console.log("install cli:", cli_link);
+                        install_log("install cli:", cli_link);
                     });
                 }
             }
@@ -624,7 +670,6 @@ if (!pkgjson_path_specified) {
 
                 ctx.new_pkgname = new_pkginstall_typeinfo.registry_pkg_path
             }
-
 
             if (ctx.new_pkgname && rootsnap[dep_type][ctx.new_pkgname] === undefined) rootsnap[dep_type][ctx.new_pkgname] = '*';
             break
