@@ -30,7 +30,11 @@ result_t process_base::dlopen(v8::Local<v8::Object> module, exlib::string filena
 
     void* handle_ = ::dlopen(filename.c_str(), flags);
     if (handle_ == nullptr)
+#ifdef WIN32
         return CHECK_ERROR(LastError());
+#else
+        return CHECK_ERROR(Runtime::setError(dlerror()));
+#endif
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
