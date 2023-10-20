@@ -920,9 +920,9 @@ describe("vm", () => {
     });
 
     describe(`all builtin modules aliases with prefix node:`, () => {
-        const modules = require('util').buildInfo().modules;
+        const builtins = require('util').buildInfo().builtins;
 
-        modules.forEach((mod) => {
+        builtins.forEach((mod) => {
             it(`topLevel: could require('${mod}'), could require('node:${mod}')`, () => {
                 var m = require(mod);
                 assert.equal(require(`node:${mod}`), m);

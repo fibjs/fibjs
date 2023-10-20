@@ -57,7 +57,7 @@ public:
         g_info = new NObject();
 
         g_info->add("fibjs", fibjs_version);
-        g_info->add("node", "0.0.0");
+        g_info->add("node", STR(NODE_MAJOR_VERSION) "." STR(NODE_MINOR_VERSION) "." STR(NODE_PATCH_VERSION));
 
         exlib::string str;
 
@@ -85,6 +85,7 @@ public:
         g_info->add("debug", true);
 #endif
 
+        g_info->add("modules", "115");
         g_info->add("napi", NODE_API_DEFAULT_MODULE_API_VERSION);
 
         g_vender = new NObject();
@@ -138,7 +139,7 @@ result_t util_base::buildInfo(v8::Local<v8::Object>& retVal)
 
     {
         v8::Local<v8::Array> modules = v8::Array::New(isolate->m_isolate);
-        retVal->Set(context, isolate->NewString("modules"), modules).IsJust();
+        retVal->Set(context, isolate->NewString("builtins"), modules).IsJust();
 
         RootModule* pModule = RootModule::g_root;
         intptr_t icnt = 0;

@@ -1670,11 +1670,10 @@ describe('util', () => {
             assert.property(util.buildInfo().vender, 'zlib');
         });
 
-        it('modules', () => {
-            const modules = util.buildInfo().modules;
+        it('builtins', () => {
+            const builtins = util.buildInfo().builtins;
 
-            // built-in modules
-            ;
+            // builtins
             [
                 "zlib",
                 "zip",
@@ -1719,7 +1718,7 @@ describe('util', () => {
                 "base32",
                 "assert"
             ].forEach(moduleName => {
-                assert.isTrue(modules.includes(moduleName))
+                assert.isTrue(builtins.includes(moduleName))
                 assert.isObject(require(moduleName))
             });
         });
