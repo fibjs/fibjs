@@ -25,7 +25,7 @@ void importBuiltinModule()
     IMPORT_MODULE(dns);
     IMPORT_MODULE(encoding);
     IMPORT_MODULE(events);
-    // IMPORT_MODULE(fasttext);
+    IMPORT_MODULE(fasttext);
     IMPORT_MODULE(fs);
     IMPORT_MODULE(gd);
     IMPORT_MODULE(gui);
