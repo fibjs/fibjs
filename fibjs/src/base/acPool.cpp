@@ -181,11 +181,8 @@ result_t AsyncCallBack::syncFunc(AsyncCallBack* pThis)
         if (pThis->m_v == CALL_E_EXCEPTION)
             Runtime::setError(pThis->m_error);
 
-        v8::Local<v8::Object> cb_err = v8::Exception::Error(isolate->NewString(getResultMessage(pThis->m_v))).As<v8::Object>();
-        cb_err->Set(isolate->context(), isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -pThis->m_v)).IsJust();
-
         args.resize(1);
-        args[0] = cb_err;
+        args[0] = FillError(pThis->m_v);
     }
 
     func->Call(func->GetCreationContextChecked(), v8::Undefined(isolate->m_isolate), (int32_t)args.size(), args.data()).IsEmpty();

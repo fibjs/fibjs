@@ -139,11 +139,10 @@ exlib::string getResultMessage(result_t hr)
 #endif
 }
 
-v8::Local<v8::Value> ThrowResult(result_t hr)
+v8::Local<v8::Value> FillError(result_t hr, exlib::string msg)
 {
     Isolate* isolate = Isolate::current();
-    v8::Local<v8::Value> v = v8::Exception::Error(
-        isolate->NewString(getResultMessage(hr)));
+    v8::Local<v8::Value> v = v8::Exception::Error(isolate->NewString(msg));
     v8::Local<v8::Object> e = v8::Local<v8::Object>::Cast(v);
     v8::Local<v8::Context> context = isolate->context();
 
@@ -153,7 +152,18 @@ v8::Local<v8::Value> ThrowResult(result_t hr)
     if (_name)
         e->Set(context, isolate->NewString("code"), isolate->NewString(_name)).IsJust();
 
-    return isolate->m_isolate->ThrowException(e);
+    return e;
+}
+
+v8::Local<v8::Value> FillError(result_t hr)
+{
+    return FillError(hr, getResultMessage(hr));
+}
+
+v8::Local<v8::Value> ThrowResult(result_t hr)
+{
+    Isolate* isolate = Isolate::current();
+    return isolate->m_isolate->ThrowException(FillError(hr));
 }
 
 exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)

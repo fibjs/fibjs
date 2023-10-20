@@ -1096,6 +1096,9 @@ inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, std::vector<T>& vec
     return arr;
 }
 
+v8::Local<v8::Value> FillError(result_t hr);
+v8::Local<v8::Value> FillError(result_t hr, exlib::string msg);
+
 inline v8::Local<v8::Value> ThrowError(v8::Local<v8::Value> exception)
 {
     Isolate* isolate = Isolate::current();
@@ -1104,14 +1107,7 @@ inline v8::Local<v8::Value> ThrowError(v8::Local<v8::Value> exception)
 
 inline v8::Local<v8::Value> ThrowError(result_t hr, exlib::string msg)
 {
-    Isolate* isolate = Isolate::current();
-    JSValue exception = v8::Exception::Error(isolate->NewString(msg));
-    v8::Local<v8::Context> context = isolate->context();
-
-    v8::Local<v8::Object>::Cast(exception)
-        ->Set(context, isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr))
-        .IsJust();
-    return ThrowError(exception);
+    return ThrowError(FillError(hr, msg));
 }
 
 inline v8::Local<v8::Value> ThrowError(const char* msg)
