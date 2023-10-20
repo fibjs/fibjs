@@ -1092,6 +1092,15 @@ describe('addons api', () => {
             new binding.Constructor(binding.Constructor) instanceof binding.Constructor);
     });
 
+    it('test_null_init', () => {
+        var module = {
+            exports: {}
+        }
+        assert.throws(() => {
+            process.dlopen(module, path.join(bin_path, 'test_null_init.node'));
+        });
+    });
+
     it('test_number', () => {
         var module = {
             exports: {}

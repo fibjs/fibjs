@@ -30,6 +30,7 @@ if(NOT "${CLEAN_BUILD}" STREQUAL "true")
         test_handle_scope
         test_init_order
         test_new_target
+        test_null_init
         test_number
         test_object
         test_promise

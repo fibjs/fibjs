@@ -8,7 +8,6 @@
 #include "addons/js_native_api_internal.h"
 
 namespace v8impl {
-
 namespace {
     class BufferFinalizer : private Finalizer {
     public:
@@ -349,4 +348,91 @@ napi_status NAPI_CDECL napi_get_node_version(napi_env env,
     };
     *result = &version;
     return napi_clear_last_error(env);
+}
+
+NAPI_NO_RETURN void NAPI_CDECL napi_fatal_error(const char* location,
+    size_t location_len,
+    const char* message,
+    size_t message_len)
+{
+    std::string location_string;
+    std::string message_string;
+
+    if (location_len != NAPI_AUTO_LENGTH) {
+        location_string.assign(const_cast<char*>(location), location_len);
+    } else {
+        location_string.assign(const_cast<char*>(location), strlen(location));
+    }
+
+    if (message_len != NAPI_AUTO_LENGTH) {
+        message_string.assign(const_cast<char*>(message), message_len);
+    } else {
+        message_string.assign(const_cast<char*>(message), strlen(message));
+    }
+
+    node::OnFatalError(location_string.c_str(), message_string.c_str());
+}
+
+static void napi_module_register_cb(v8::Local<v8::Object> exports,
+    v8::Local<v8::Value> module,
+    v8::Local<v8::Context> context,
+    void* priv)
+{
+    napi_module_register_by_symbol(
+        exports,
+        module,
+        context,
+        static_cast<const napi_module*>(priv)->nm_register_func);
+}
+
+void napi_module_register_by_symbol(v8::Local<v8::Object> exports, v8::Local<v8::Value> module,
+    v8::Local<v8::Context> context, napi_addon_register_func init, int32_t module_api_version)
+{
+    node::Environment* node_env = node::Environment::GetCurrent(context);
+    std::string module_filename = "";
+    if (init == nullptr) {
+        CHECK_NOT_NULL(node_env);
+        node_env->ThrowError("Module has no declared entry point.");
+        return;
+    }
+
+    // Create a new napi_env for this specific module.
+    napi_env env = new napi_env__(context, module_api_version);
+
+    napi_value _exports = nullptr;
+    env->CallIntoModule([&](napi_env env) {
+        _exports = init(env, v8impl::JsValueFromV8LocalValue(exports));
+    });
+
+    // If register function returned a non-null exports object different from
+    // the exports object we passed it, set that as the "exports" property of
+    // the module.
+    if (_exports != nullptr && _exports != v8impl::JsValueFromV8LocalValue(exports)) {
+        napi_value _module = v8impl::JsValueFromV8LocalValue(module);
+        napi_set_named_property(env, _module, "exports", _exports);
+    }
+}
+
+namespace node {
+node_module napi_module_to_node_module(const napi_module* mod)
+{
+    return {
+        -1,
+        mod->nm_flags,
+        nullptr,
+        mod->nm_filename,
+        nullptr,
+        napi_module_register_cb,
+        mod->nm_modname,
+        const_cast<napi_module*>(mod), // priv
+        nullptr,
+    };
+}
+} // namespace node
+
+// Registers a NAPI module.
+void NAPI_CDECL napi_module_register(napi_module* mod)
+{
+    node::node_module* nm = new node::node_module(node::napi_module_to_node_module(mod));
+    node::node_module_register(nm);
 }
