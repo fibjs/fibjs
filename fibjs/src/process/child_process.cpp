@@ -270,6 +270,7 @@ result_t child_process_base::spawnSync(exlib::string command, v8::Local<v8::Arra
                 m_retVal->stderr = getBuffer(m_buferr, m_codec);
 
                 m_retVal->output = new NArray();
+                m_retVal->output->append(Variant().setNull());
                 m_retVal->output->append(m_retVal->stdout);
                 m_retVal->output->append(m_retVal->stderr);
 
@@ -308,7 +309,7 @@ result_t child_process_base::spawnSync(exlib::string command, v8::Local<v8::Arra
 
         opts = v8::Local<v8::Object>::Cast(opts_);
 
-        exlib::string codec("utf8");
+        exlib::string codec("buffer");
         GetConfigValue(isolate, opts, "encoding", codec);
 
         result_t hr = spawn(command, args, opts, cp);
@@ -322,6 +323,7 @@ result_t child_process_base::spawnSync(exlib::string command, v8::Local<v8::Arra
             retVal->stderr.setNull();
 
             retVal->output = new NArray();
+            retVal->output->append(Variant().setNull());
             retVal->output->append(retVal->stdout);
             retVal->output->append(retVal->stderr);
 

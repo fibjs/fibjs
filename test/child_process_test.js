@@ -415,9 +415,30 @@ describe("child_process", () => {
             cmd, path.join(__dirname, "process", "exec2.js"), "arg1", "arg2"
         ]);
 
-        assert.equal(result.stdout, result.output[0]);
-        assert.equal(result.stderr, result.output[1]);
+        assert.isNull(result.output[0]);
+        assert.deepEqual(result.stdout, result.output[1]);
+        assert.deepEqual(result.stderr, result.output[2]);
         assert.equal(result.status, 2);
+        assert.equal(result.error, undefined);
+    });
+
+    it("spawnSync encoding", () => {
+        var result = child_process.spawnSync(cmd, [path.join(__dirname, "process", "exec28.js")], {
+            encoding: 'utf8'
+        });
+
+        assert.equal(result.stdout, result.output[1]);
+        assert.equal(result.stderr, result.output[2]);
+
+        assert.equal(result.stdout, "stdout output.\n");
+        assert.equal(result.stderr, "stderr output.\n");
+    });
+
+    it("spawnSync env option", () => {
+        var result = child_process.spawnSync(cmd, [path.join(__dirname, "process", "exec28.js")], {
+            env: process.env
+        });
+
         assert.equal(result.error, undefined);
     });
 
