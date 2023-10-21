@@ -430,8 +430,13 @@ describe("child_process", () => {
         assert.equal(result.stdout, result.output[1]);
         assert.equal(result.stderr, result.output[2]);
 
-        assert.equal(result.stdout, "stdout output.\n");
-        assert.equal(result.stderr, "stderr output.\n");
+        if (process.platform == "win32") {
+            assert.equal(result.stdout, "stdout output.\r\n");
+            assert.equal(result.stderr, "stderr output.\r\n");
+        } else {
+            assert.equal(result.stdout, "stdout output.\n");
+            assert.equal(result.stderr, "stderr output.\n");
+        }
     });
 
     it("spawnSync env option", () => {
