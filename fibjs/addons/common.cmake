@@ -4,7 +4,7 @@ project(${name})
 
 include(${CMAKE_CURRENT_LIST_DIR}/../../vender/build_tools/cmake/option.cmake)
 
-file(GLOB_RECURSE src_list "*.c*")
+file(GLOB_RECURSE src_list "*.c*" "../win_delay_load_hook.cpp")
 
 add_library(${name} SHARED ${src_list})
 
@@ -12,8 +12,9 @@ include_directories("${PROJECT_SOURCE_DIR}/../../include/addons" "${PROJECT_SOUR
 
 if(MSVC)
     target_link_libraries(${name} "${PROJECT_SOURCE_DIR}/../lib/node_${ARCH}.lib")
+    set(link_flags "${link_flags} /DELAYLOAD:node.exe")
 else()
-    set(link_flags "${link_flags} ${link_flags} -Wl,-undefined,dynamic_lookup")
+    set(link_flags "${link_flags} -Wl,-undefined,dynamic_lookup")
 endif()
 
 setup_result_library(${name})

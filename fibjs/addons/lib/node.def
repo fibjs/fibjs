@@ -1,4 +1,4 @@
-LIBRARY   fibjs.exe
+LIBRARY   node.exe
 EXPORTS
     napi_acquire_threadsafe_function
     napi_add_async_cleanup_hook
