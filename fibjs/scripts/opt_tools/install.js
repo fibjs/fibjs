@@ -168,10 +168,17 @@ function fetch_leveled_module_info(m, v, parent) {
 
             var binary;
             if (minfo.binary) {
-                const opt = versioning.evaluate(minfo, { module_root: '/' }, 3);
-                binary = {
-                    module: opt.module,
-                    hosted_tarball: opt.hosted_tarball
+                var opt;
+                try {
+                    opt = versioning.evaluate(minfo, { module_root: '/' }, 3);
+
+                    binary = {
+                        module: opt.module,
+                        hosted_tarball: opt.hosted_tarball
+                    }
+                } catch (e) {
+                    console.log("ode-pre-gyp", e);
+                    // process.exit();
                 }
             }
 

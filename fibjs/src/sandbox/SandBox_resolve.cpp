@@ -29,12 +29,6 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
         return hr;
 
     if (fname.substr(fname.length() - 5) == ".node") {
-#ifndef _WIN32
-        bool isExecutable = false;
-        stat->isExecutable(isExecutable);
-        if (!isExecutable)
-            return CALL_E_FILE_NOT_FOUND;
-#endif
         data = new Buffer();
         return 0;
     }
