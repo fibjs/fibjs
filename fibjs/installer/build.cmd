@@ -1,3 +1,3 @@
 @echo off
 
-../../vender/build %*%
+../../vender/build_tools/scripts/build %*%
