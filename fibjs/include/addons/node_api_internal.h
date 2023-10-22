@@ -583,10 +583,9 @@ public:
 
 private:
     Environment* env_;
-    uv_work_t work_req_;
     const char* type_;
     int status_ = 0;
-    std::atomic_bool not_running_;
+    std::atomic_bool not_running_ = false;
 };
 
 typedef void (*addon_register_func)(
