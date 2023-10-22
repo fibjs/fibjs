@@ -34,6 +34,9 @@ public:
     static result_t after(v8::Local<v8::Function> func);
     static result_t beforeEach(v8::Local<v8::Function> func);
     static result_t afterEach(v8::Local<v8::Function> func);
+    static result_t mustCall(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal);
+    static result_t mustNotCall(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal);
+    static result_t mustNotCall(v8::Local<v8::Function>& retVal);
     static result_t run(int32_t mode, v8::Local<v8::Object>& retVal);
     static result_t setup();
     static result_t get_slow(int32_t& retVal);
@@ -60,6 +63,8 @@ public:
     static void s_static_after(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_beforeEach(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_afterEach(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_mustCall(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_mustNotCall(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_run(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_setup(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_slow(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -85,6 +90,8 @@ inline ClassInfo& test_base::class_info()
         { "after", s_static_after, true, false },
         { "beforeEach", s_static_beforeEach, true, false },
         { "afterEach", s_static_afterEach, true, false },
+        { "mustCall", s_static_mustCall, true, false },
+        { "mustNotCall", s_static_mustNotCall, true, false },
         { "run", s_static_run, true, false },
         { "setup", s_static_setup, true, false }
     };
@@ -256,6 +263,40 @@ inline void test_base::s_static_afterEach(const v8::FunctionCallbackInfo<v8::Val
     hr = afterEach(v0);
 
     METHOD_VOID();
+}
+
+inline void test_base::s_static_mustCall(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = mustCall(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void test_base::s_static_mustNotCall(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = mustNotCall(v0, vr);
+
+    METHOD_OVER(0, 0);
+
+    hr = mustNotCall(vr);
+
+    METHOD_RETURN();
 }
 
 inline void test_base::s_static_run(const v8::FunctionCallbackInfo<v8::Value>& args)

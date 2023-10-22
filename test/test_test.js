@@ -3,12 +3,25 @@ test.setup();
 
 var vm = require("vm");
 var util = require("util");
+var coroutine = require("coroutine");
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+assert.throws(() => {
+    test.mustCall(function (a, b) {
+        return a + b;
+    });
+})
+
 describe("test", () => {
+    assert.throws(() => {
+        test.mustCall(function (a, b) {
+            return a + b;
+        });
+    })
+
     it("skip & only", () => {
         assert.equal(describe.skip, xdescribe);
         assert.equal(describe.only, odescribe);
@@ -267,6 +280,37 @@ describe("test", () => {
         it("check", () => {
             assert.equal(t, true);
         });
+    });
+
+    it('mustCall', () => {
+        setImmediate(test.mustCall(function (a, b) {
+            return a + b;
+        }));
+    });
+
+    it('result of mustCall', () => {
+        assert.equal(test.mustCall(function (a, b) {
+            return a + b;
+        })(1, 2), 3);
+    });
+
+    xit('mustNotCall', () => {
+        assert.throws(() => {
+            test.mustNotCall(function (a, b) {
+                return a + b;
+            })();
+        });
+    });
+
+    xit('asyn mustNotCall', () => {
+        var not_call = test.mustNotCall(function (a, b) {
+            return a + b;
+        });
+        setImmediate(() => {
+            not_call(1, 2);
+        });
+
+        coroutine.sleep(1);
     });
 
     describe("callback case", () => {

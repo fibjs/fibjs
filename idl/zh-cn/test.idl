@@ -142,6 +142,19 @@ module test
      */
     static afterEach(Function func);
 
+    /*! @brief 测试一个函数必须被调用指定次数
+     @param func 被测试的函数
+     */
+    static Function mustCall(Function func);
+
+    /*! @brief 测试一个函数必须不被调用
+     @param func 被测试的函数
+     */
+    static Function mustNotCall(Function func);
+
+    /*! @brief 测试一个函数必须不被调用 */
+    static Function mustNotCall();
+
     /*! @brief 开始执行定义的测试模块
 
     测试运行完成后，将以以下形式返回测试结果：

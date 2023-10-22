@@ -10,7 +10,9 @@
 #include "ifs/assert.h"
 #include "ifs/util.h"
 #include "ifs/process.h"
+#include "Event.h"
 #include "QuickArray.h"
+#include "StringBuffer.h"
 #include "date.h"
 #include "console.h"
 #include "parse.h"
@@ -28,7 +30,8 @@ void asyncLog(int32_t priority, exlib::string msg);
 class TestData {
 public:
     obj_ptr<_case> m_root;
-    obj_ptr<_case> m_now;
+    obj_ptr<_case> m_describe;
+    _case* m_running = NULL;
 
     static TestData* current()
     {
@@ -89,7 +92,7 @@ public:
         TestData* td = TestData::current();
 
         if (td->m_root == NULL)
-            td->m_root = td->m_now = new _case();
+            td->m_root = td->m_describe = new _case();
     }
 
     static result_t describe(exlib::string name, v8::Local<v8::Function> block, int32_t level)
@@ -98,16 +101,16 @@ public:
 
         _case::init();
 
-        _case* now = td->m_now;
+        _case* now = td->m_describe;
         if (!now)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         _case* p = new _case(name, level);
         now->append(p);
 
-        td->m_now = p;
+        td->m_describe = p;
         block->Call(block->GetCreationContextChecked(), v8::Object::New(Isolate::current()->m_isolate), 0, NULL).IsEmpty();
-        td->m_now = now;
+        td->m_describe = now;
 
         return 0;
     }
@@ -116,8 +119,8 @@ public:
     {
         TestData* td = TestData::current();
 
-        _case* now = td->m_now;
-        if (!now || td->m_now == td->m_root)
+        _case* now = td->m_describe;
+        if (!now || !td->m_root)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         _case* p = new _case(name, level);
@@ -132,8 +135,8 @@ public:
     {
         TestData* td = TestData::current();
 
-        _case* now = td->m_now;
-        if (!td->m_now)
+        _case* now = td->m_describe;
+        if (!td->m_describe)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
         QuickArray<v8::Global<v8::Function>>& fa = now->m_hooks[type];
@@ -152,10 +155,10 @@ public:
         if (!td->m_root)
             return 0;
 
-        if (td->m_now != td->m_root)
+        if (td->m_describe != td->m_root)
             return CHECK_ERROR(CALL_E_INVALID_CALL);
 
-        td->m_now = NULL;
+        td->m_describe = NULL;
 
         QuickArray<obj_ptr<_case>> stack;
         QuickArray<exlib::string> names;
@@ -238,6 +241,8 @@ public:
                     if (p1->m_level >= p->m_run_level && p1->m_level != _case::TEST_TODO) {
                         v8::HandleScope handle_scope(isolate->m_isolate);
 
+                        td->m_running = p1;
+
                         v8::Local<v8::Function> func = p1->m_block.Get(isolate->m_isolate);
                         func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty();
                         if (try_catch.HasCaught()) {
@@ -248,17 +253,26 @@ public:
                                 func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty();
                             }
                         }
+
+                        if (try_catch.HasCaught()) {
+                            p1->m_errors.append(GetException(try_catch, 0));
+                        } else
+                            for (int32_t i = 0; i < p1->m_evs.size(); i++)
+                                p1->m_evs[i]->wait();
+
+                        td->m_running = NULL;
                     }
 
                     d2.now();
                     p1->m_duration = d2.diff(d1);
 
                     v8::Local<v8::Object> val = v8::Object::New(isolate->m_isolate);
-
                     val->Set(_context, isolate->NewString("title"), isolate->NewString(p1->m_title)).IsJust();
 
                     p->m_total++;
-                    if (try_catch.HasCaught()) {
+                    if (p1->m_errors.size()) {
+                        exlib::string err_msg = p1->m_errors.str();
+
                         p->m_fail++;
                         snprintf(buf, sizeof(buf), "%d) ", ++errcnt);
 
@@ -266,7 +280,7 @@ public:
                         p->m_status = false;
 
                         if (mode > console_base::C_ERROR)
-                            ReportException(try_catch, 0);
+                            errorLog(err_msg);
                         else if (mode == console_base::C_ERROR) {
                             exlib::string str1(buf);
 
@@ -277,11 +291,11 @@ public:
                             str1.append(p1->m_title);
                             names.append(logger::highLight() + str1 + COLOR_RESET);
 
-                            msgs.append(GetException(try_catch, 0));
+                            msgs.append(err_msg);
                         }
 
                         val->Set(_context, isolate->NewString("status"), isolate->NewString("failed")).IsJust();
-                        val->Set(_context, isolate->NewString("trace"), isolate->NewString(GetException(try_catch, 0))).IsJust();
+                        val->Set(_context, isolate->NewString("trace"), isolate->NewString(err_msg)).IsJust();
 
                         str.append(buf);
                         str.append(p1->m_title);
@@ -446,8 +460,12 @@ public:
         TestData* td = TestData::current();
 
         td->m_root = NULL;
-        td->m_now = NULL;
+        td->m_describe = NULL;
     }
+
+public:
+    QuickArray<obj_ptr<Event_base>> m_evs;
+    StringBuffer m_errors;
 
 private:
     exlib::string m_title;
@@ -544,6 +562,103 @@ result_t test_base::afterEach(v8::Local<v8::Function> func)
 result_t test_base::run(int32_t mode, v8::Local<v8::Object>& retVal)
 {
     return _case::run(mode, retVal);
+}
+
+static void must_call(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    Isolate* isolate = Isolate::current(args);
+    v8::Local<v8::Context> _context = isolate->context();
+
+    v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());
+    v8::Local<v8::Function> func = _data->Get(_context, isolate->NewString("func")).FromMaybe(v8::Local<v8::Value>()).As<v8::Function>();
+    obj_ptr<Event_base> ev = Event_base::getInstance(_data->Get(_context, isolate->NewString("ev")).FromMaybe(v8::Local<v8::Value>()));
+    _case* running = (_case*)v8::Local<v8::External>::Cast(_data->Get(_context, isolate->NewString("case")).FromMaybe(v8::Local<v8::Value>()).As<v8::External>())->Value();
+
+    TestData* td = TestData::current();
+    if (td->m_running != running) {
+        ThrowError("This function must be called in the same case.");
+        return;
+    }
+
+    std::vector<v8::Local<v8::Value>> argv;
+    argv.resize(args.Length());
+    for (int32_t i = 0; i < args.Length(); i++)
+        argv[i] = args[i];
+
+    TryCatch try_catch;
+
+    v8::Local<v8::Value> result;
+    func->Call(func->GetCreationContextChecked(), args.This(), argv.size(), argv.data()).ToLocal(&result);
+    args.GetReturnValue().Set(result);
+
+    if (try_catch.HasCaught()) {
+        td->m_running->m_errors.append(GetException(try_catch, 0));
+        try_catch.ReThrow();
+    }
+
+    ev->set();
+}
+
+result_t test_base::mustCall(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal)
+{
+    TestData* td = TestData::current();
+    if (!td->m_running)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> _context = isolate->context();
+
+    v8::Local<v8::Object> _data = v8::Object::New(isolate->m_isolate);
+    obj_ptr<Event_base> ev = new Event();
+
+    td->m_running->m_evs.append(ev);
+
+    _data->Set(_context, isolate->NewString("func"), func).IsJust();
+    _data->Set(_context, isolate->NewString("ev"), ev->wrap()).IsJust();
+    _data->Set(_context, isolate->NewString("case"), v8::External::New(isolate->m_isolate, td->m_running)).IsJust();
+
+    retVal = isolate->NewFunction("mustNotCall", must_call, _data);
+
+    return 0;
+}
+
+static void not_call(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    Isolate* isolate = Isolate::current(args);
+    v8::Local<v8::Context> _context = isolate->context();
+
+    _case* running = (_case*)v8::Local<v8::External>::Cast(args.Data().As<v8::External>())->Value();
+    TestData* td = TestData::current();
+    if (td->m_running != running) {
+        ThrowError("This function must be called in the same case.");
+        return;
+    }
+
+    v8::Local<v8::Value> exp = FillError(CALL_E_EXCEPTION, "This function must never be called.");
+    td->m_running->m_errors.append(GetException(exp));
+    ThrowError(exp);
+}
+
+result_t test_base::mustNotCall(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal)
+{
+    TestData* td = TestData::current();
+    if (!td->m_running)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    Isolate* isolate = Isolate::current();
+    retVal = isolate->NewFunction("mustNotCall", not_call, v8::External::New(isolate->m_isolate, td->m_running));
+    return 0;
+}
+
+result_t test_base::mustNotCall(v8::Local<v8::Function>& retVal)
+{
+    TestData* td = TestData::current();
+    if (!td->m_running)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    Isolate* isolate = Isolate::current();
+    retVal = isolate->NewFunction("mustNotCall", not_call, v8::External::New(isolate->m_isolate, td->m_running));
+    return 0;
 }
 
 result_t test_base::setup()

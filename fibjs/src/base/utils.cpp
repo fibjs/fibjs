@@ -166,6 +166,92 @@ v8::Local<v8::Value> ThrowResult(result_t hr)
     return isolate->m_isolate->ThrowException(FillError(hr));
 }
 
+exlib::string GetException(v8::Local<v8::Value> err, bool repl)
+{
+    if (err.IsEmpty() || !err->IsObject())
+        return "Unknown error.";
+
+    Isolate* isolate = Isolate::current();
+    v8::HandleScope handle_scope(isolate->m_isolate);
+    v8::Local<v8::Context> context = isolate->context();
+
+    v8::Local<v8::Object> err_obj = err.As<v8::Object>();
+    v8::Local<v8::Message> message = v8::Exception::CreateMessage(isolate->m_isolate, err);
+    // try_catch.Message();
+
+    if (message.IsEmpty())
+        return isolate->toString(err_obj);
+
+    exlib::string strError;
+    v8::Local<v8::Value> res = message->GetScriptResourceName();
+    if (!res->IsUndefined()) {
+        strError.append(isolate->toString(res));
+        int32_t lineNumber = message->GetLineNumber(context).FromMaybe(0);
+        if (lineNumber > 0) {
+            char numStr[32];
+            strError.append(1, ':');
+            snprintf(numStr, sizeof(numStr), "%d", lineNumber);
+            strError.append(numStr);
+            strError.append(1, ':');
+            snprintf(numStr, sizeof(numStr), "%d", message->GetStartColumn() + 1);
+            strError.append(numStr);
+        }
+        strError.append("\n");
+
+        v8::Local<v8::String> sourceline = message->GetSourceLine(context).FromMaybe(v8::Local<v8::String>());
+        if (!sourceline.IsEmpty()) {
+            // Print line of source code.
+            v8::String::Utf8Value sourcelinevalue(isolate->m_isolate, sourceline);
+            const char* sourceline_string = ToCString(sourcelinevalue);
+            strError.append(sourceline_string);
+            strError.append("\n");
+            // Print wavy underline (GetUnderline is deprecated).
+            int start = message->GetStartColumn(context).FromMaybe(0);
+            for (int i = 0; i < start; i++) {
+                if (sourceline_string[i] == '\0') {
+                    break;
+                }
+                strError.append((sourceline_string[i] == '\t') ? "\t" : " ");
+            }
+            int end = message->GetEndColumn(context).FromMaybe(start);
+            for (int i = start; i < end; i++) {
+                strError.append("^");
+            }
+            strError.append("\n");
+        }
+    }
+
+    if (err_obj->IsNativeError()) {
+        v8::Local<v8::Value> stack_trace_string = v8::TryCatch::StackTrace(context, err).FromMaybe(v8::Local<v8::Value>());
+        if (!stack_trace_string.IsEmpty())
+            strError.append(isolate->toString(stack_trace_string));
+    } else {
+        JSValue message;
+        JSValue name;
+
+        if (repl) {
+            strError.append("Thrown: ");
+        }
+
+        if (!repl && err->IsObject()) {
+            message = err_obj->Get(context, isolate->NewString("message"));
+            name = err_obj->Get(context, isolate->NewString("name"));
+        }
+
+        if (message.IsEmpty() || message->IsUndefined() || name.IsEmpty() || name->IsUndefined()) {
+            // Not an error object. Just print as-is.
+            strError.append(isolate->toString(err));
+            strError.append("\n");
+        } else {
+            strError.append(isolate->toString(name));
+            strError.append(": ");
+            strError.append(isolate->toString(message));
+        }
+    }
+
+    return strError;
+}
+
 exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
 {
     if (hr < 0 && hr != CALL_E_JAVASCRIPT)
@@ -174,86 +260,8 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
     Isolate* isolate = Isolate::current();
     v8::HandleScope handle_scope(isolate->m_isolate);
     v8::Local<v8::Context> context = isolate->context();
-    if (try_catch.HasCaught()) {
-        v8::Local<v8::Value> err = try_catch.Exception();
-        if (err.IsEmpty() || !err->IsObject())
-            return "Unknown error.";
-
-        v8::Local<v8::Object> err_obj = err.As<v8::Object>();
-        v8::Local<v8::Message> message = try_catch.Message();
-
-        if (message.IsEmpty())
-            return isolate->toString(err_obj);
-
-        exlib::string strError;
-        v8::Local<v8::Value> res = message->GetScriptResourceName();
-        if (!res->IsUndefined()) {
-            strError.append(isolate->toString(res));
-            int32_t lineNumber = message->GetLineNumber(context).FromMaybe(0);
-            if (lineNumber > 0) {
-                char numStr[32];
-                strError.append(1, ':');
-                snprintf(numStr, sizeof(numStr), "%d", lineNumber);
-                strError.append(numStr);
-                strError.append(1, ':');
-                snprintf(numStr, sizeof(numStr), "%d", message->GetStartColumn() + 1);
-                strError.append(numStr);
-            }
-            strError.append("\n");
-
-            v8::Local<v8::String> sourceline = message->GetSourceLine(context).FromMaybe(v8::Local<v8::String>());
-            if (!sourceline.IsEmpty()) {
-                // Print line of source code.
-                v8::String::Utf8Value sourcelinevalue(isolate->m_isolate, sourceline);
-                const char* sourceline_string = ToCString(sourcelinevalue);
-                strError.append(sourceline_string);
-                strError.append("\n");
-                // Print wavy underline (GetUnderline is deprecated).
-                int start = message->GetStartColumn(context).FromMaybe(0);
-                for (int i = 0; i < start; i++) {
-                    if (sourceline_string[i] == '\0') {
-                        break;
-                    }
-                    strError.append((sourceline_string[i] == '\t') ? "\t" : " ");
-                }
-                int end = message->GetEndColumn(context).FromMaybe(start);
-                for (int i = start; i < end; i++) {
-                    strError.append("^");
-                }
-                strError.append("\n");
-            }
-        }
-
-        if (err_obj->IsNativeError()) {
-            v8::Local<v8::Value> stack_trace_string = try_catch.StackTrace(context).FromMaybe(v8::Local<v8::Value>());
-            if (!stack_trace_string.IsEmpty())
-                strError.append(isolate->toString(stack_trace_string));
-        } else {
-            JSValue message;
-            JSValue name;
-
-            if (repl) {
-                strError.append("Thrown: ");
-            }
-
-            if (!repl && err->IsObject()) {
-                message = err_obj->Get(context, isolate->NewString("message"));
-                name = err_obj->Get(context, isolate->NewString("name"));
-            }
-
-            if (message.IsEmpty() || message->IsUndefined() || name.IsEmpty() || name->IsUndefined()) {
-                // Not an error object. Just print as-is.
-                strError.append(isolate->toString(err));
-                strError.append("\n");
-            } else {
-                strError.append(isolate->toString(name));
-                strError.append(": ");
-                strError.append(isolate->toString(message));
-            }
-        }
-
-        return strError;
-    }
+    if (try_catch.HasCaught())
+        return GetException(try_catch.Exception(), repl);
 
     return "Unknown error.";
 }

@@ -168,6 +168,25 @@ declare module 'test' {
     function afterEach(func: (...args: any[])=>any): void;
 
     /**
+     * @description 测试一个函数必须被调用指定次数
+     *      @param func 被测试的函数
+     *      
+     */
+    function mustCall(func: (...args: any[])=>any): (...args: any[])=>any;
+
+    /**
+     * @description 测试一个函数必须不被调用
+     *      @param func 被测试的函数
+     *      
+     */
+    function mustNotCall(func: (...args: any[])=>any): (...args: any[])=>any;
+
+    /**
+     * @description 测试一个函数必须不被调用 
+     */
+    function mustNotCall(): (...args: any[])=>any;
+
+    /**
      * @description 开始执行定义的测试模块
      * 
      *     测试运行完成后，将以以下形式返回测试结果：
