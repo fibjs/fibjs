@@ -34,10 +34,10 @@ jobs:
       matrix:
         include:
           - os: ubuntu-20.04
-            target_arch: amd64
+            target_arch: x64
             build_type: release
           - os: ubuntu-20.04
-            target_arch: i386
+            target_arch: x86
             build_type: release
           - os: ubuntu-20.04
             target_arch: arm64
@@ -59,11 +59,11 @@ jobs:
             build_type: release
           - os: ubuntu-20.04
             build_target: alpine
-            target_arch: amd64
+            target_arch: x64
             build_type: release
           - os: ubuntu-20.04
             build_target: alpine
-            target_arch: i386
+            target_arch: x86
             build_type: release
           - os: ubuntu-20.04
             build_target: alpine
@@ -71,12 +71,12 @@ jobs:
             build_type: release
           - os: ubuntu-20.04
             build_target: android
-            target_arch: amd64
+            target_arch: x64
             build_type: release
             skip_test: skip
           - os: ubuntu-20.04
             build_target: android
-            target_arch: i386
+            target_arch: x86
             build_type: release
             skip_test: skip
           - os: ubuntu-20.04
@@ -90,24 +90,24 @@ jobs:
             build_type: release
             skip_test: skip
           - os: windows-2022
-            target_arch: amd64
+            target_arch: x64
             build_type: release
           - os: windows-2022
-            target_arch: i386
+            target_arch: x86
             build_type: release
           - os: windows-2022
             target_arch: arm64
             build_type: release
             skip_test: skip
           - os: macos-11
-            target_arch: amd64
+            target_arch: x64
             build_type: release
           - os: macos-11
             target_arch: arm64
             build_type: release
             skip_test: skip
           - os: macos-11
-            target_arch: amd64
+            target_arch: x64
             build_type: debug
           - os: macos-11
             build_target: iphone
@@ -116,7 +116,7 @@ jobs:
             skip_test: skip
           - os: macos-11
             build_target: iphone
-            target_arch: amd64
+            target_arch: x64
             build_type: release
             skip_test: skip
 
@@ -189,8 +189,8 @@ jobs:
         if: runner.os == 'Windows'
         shell: cmd
         run: |
-          IF /I "%DIST_ARCH%" == "x64" ECHO "x64 building..." && .\build.cmd release amd64
-          IF /I "%DIST_ARCH%" == "x86" ECHO "x86 building..." && .\build.cmd release i386
+          IF /I "%DIST_ARCH%" == "x64" ECHO "x64 building..." && .\build.cmd release x64
+          IF /I "%DIST_ARCH%" == "x86" ECHO "x86 building..." && .\build.cmd release x86
           IF /I "%DIST_ARCH%" == "arm64" ECHO "arm64 building..." && .\build.cmd release arm64
         env:
           TARGET_ARCH: ${{ matrix.target_arch }}

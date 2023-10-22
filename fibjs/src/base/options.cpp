@@ -17,7 +17,7 @@
 
 namespace fibjs {
 
-#ifdef amd64
+#if ARCH_BITS == 64
 int32_t stack_size = 512;
 #else
 int32_t stack_size = 256;

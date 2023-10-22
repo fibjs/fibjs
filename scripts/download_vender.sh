@@ -9,15 +9,6 @@ fi
 echo "VENDER_ARCH to downloaed is $VENDER_ARCH";
 VENDER_OS=`echo "$TARGET_OS" | tr "[:upper:]" "[:lower:]"`
 
-case "${VENDER_ARCH}" in
-  i386)
-    VENDER_ARCH=x86
-      ;;
-  amd64)
-    VENDER_ARCH=x64
-      ;;
-esac
-
 VENDER_ASSETS_FILE="vender-$VENDER_OS-$VENDER_ARCH-$BUILD_TYPE.zip"
 if [[ "$BUILD_TARGET" != "" ]]; then
     VENDER_RELEASE_FILE="vender-${BUILD_TARGET}-$VENDER_ARCH-$BUILD_TYPE.zip"
