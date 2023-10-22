@@ -64,7 +64,11 @@ result_t os_base::platform(exlib::string& retVal)
 #elif defined(Windows)
     retVal = "win32";
 #elif defined(Darwin)
+#ifdef iPhone
+    retVal = "ios";
+#else
     retVal = "darwin";
+#endif
 #elif defined(FreeBSD)
     retVal = "freebsd";
 #endif
@@ -74,30 +78,12 @@ result_t os_base::platform(exlib::string& retVal)
 
 result_t os_base::arch(exlib::string& retVal)
 {
-#ifdef amd64
-    retVal = "x64";
-#elif defined(i386)
-    retVal = "ia32";
-#elif defined(arm)
-#ifdef __ARM_ARCH_6__
-    retVal = "armv6";
-#else
-    retVal = "arm";
-#endif
-#elif defined(arm64)
-    retVal = "arm64";
-#elif defined(mips)
-    retVal = "mips";
-#elif defined(mips64)
-    retVal = "mips64";
-#elif defined(ppc64)
-    retVal = "ppc64";
-#elif defined(riscv64)
-    retVal = "riscv64";
-#elif defined(loong64)
-    retVal = "loong64";
-#endif
+    uv_utsname_t info;
+    int32_t ret = uv_os_uname(&info);
+    if (ret < 0)
+        return CHECK_ERROR(ret);
 
+    retVal = info.machine;
     return 0;
 }
 
