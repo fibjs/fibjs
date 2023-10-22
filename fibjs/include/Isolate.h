@@ -13,6 +13,8 @@
 #include "utf8.h"
 #include <unordered_map>
 
+struct uv_loop_s;
+
 namespace fibjs {
 
 v8::Local<v8::String> NewString(v8::Isolate* isolate, const char* data, ssize_t length = -1);
@@ -226,6 +228,8 @@ public:
     void RemoveCleanupHook(CleanupCallback fn, void* arg)
     {
     }
+
+    static uv_loop_s* event_loop();
 
     void start_profiler();
     void init_global_template();

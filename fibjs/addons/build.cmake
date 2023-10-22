@@ -16,6 +16,7 @@ if(NOT "${CLEAN_BUILD}" STREQUAL "true")
         5_function_factory
         6_object_wrap
         test_array
+        test_async
         test_bigint
         test_buffer
         test_cannot_run_js

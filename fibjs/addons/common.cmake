@@ -8,7 +8,10 @@ file(GLOB_RECURSE src_list "*.c*" "../win_delay_load_hook.cpp")
 
 add_library(${name} SHARED ${src_list})
 
-include_directories("${PROJECT_SOURCE_DIR}/../../include/addons" "${PROJECT_SOURCE_DIR}/../")
+include_directories(
+    "${PROJECT_SOURCE_DIR}/../../include/addons"
+    "${PROJECT_SOURCE_DIR}/../../../vender/uv/include"
+    "${PROJECT_SOURCE_DIR}/../")
 
 if(MSVC)
     target_link_libraries(${name} "${PROJECT_SOURCE_DIR}/../lib/node_${ARCH}.lib")

@@ -338,6 +338,13 @@ napi_status NAPI_CDECL napi_cancel_async_work(napi_env env,
     return napi_clear_last_error(env);
 }
 
+napi_status NAPI_CDECL napi_get_uv_event_loop(napi_env env, uv_loop_t** loop) {
+  CHECK_ENV(env);
+  CHECK_ARG(env, loop);
+  *loop = reinterpret_cast<node_napi_env>(env)->node_env()->event_loop();
+  return napi_clear_last_error(env);
+}
+
 napi_status NAPI_CDECL napi_get_node_version(napi_env env,
     const napi_node_version** result)
 {

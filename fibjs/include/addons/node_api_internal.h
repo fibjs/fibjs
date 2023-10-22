@@ -553,19 +553,26 @@ public:
 
     inline int CancelWork()
     {
-        return -1;
+        bool expected = false;
+        return not_running_.compare_exchange_strong(expected, true) ? 0 : UV_EBUSY;
     }
 
     virtual void invoke()
     {
-        DoThreadPoolWork();
+        bool expected = false;
+        if (not_running_.compare_exchange_strong(expected, true))
+            DoThreadPoolWork();
+        else
+            status_ = UV_ECANCELED;
+
         sync(isolate());
+
         env_->Unref();
     }
 
     virtual fibjs::result_t js_invoke()
     {
-        AfterThreadPoolWork(0);
+        AfterThreadPoolWork(status_);
         return 0;
     }
 
@@ -578,6 +585,8 @@ private:
     Environment* env_;
     uv_work_t work_req_;
     const char* type_;
+    int status_ = 0;
+    std::atomic_bool not_running_;
 };
 
 typedef void (*addon_register_func)(

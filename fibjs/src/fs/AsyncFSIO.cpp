@@ -11,6 +11,11 @@ namespace fibjs {
 uv_loop_t* s_uv_loop;
 exlib::LockedList<AsyncEvent> s_uv_tasks;
 
+uv_loop_s* Isolate::event_loop()
+{
+    return s_uv_loop;
+}
+
 class UVAsyncThread : public exlib::OSThread {
 public:
     UVAsyncThread()

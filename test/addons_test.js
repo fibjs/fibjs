@@ -179,6 +179,29 @@ describe('addons api', () => {
 
     });
 
+    it('test_async', () => {
+        var module = {
+            exports: {}
+        }
+        process.dlopen(module, path.join(bin_path, 'test_async.node'));
+        const test_async = module.exports;
+
+        test_async.Test(5, {}, test.mustCall(function (err, val) {
+            assert.strictEqual(err, null);
+            assert.strictEqual(val, 10);
+        }));
+
+        test_async.TestCancel(test.mustCall(function () { }));
+
+        test_async.DoRepeatedWork(test.mustCall((status) => {
+            assert.strictEqual(status, 0);
+
+            test_async.DoRepeatedWork(test.mustCall((status) => {
+                assert.strictEqual(status, 0);
+            }));
+        }));
+    });
+
     it('test_bigint', () => {
         var module = {
             exports: {}
