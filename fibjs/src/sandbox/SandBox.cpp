@@ -7,6 +7,7 @@
 
 #include "object.h"
 #include "SandBox.h"
+#include "Lock.h"
 #include "path.h"
 #include "ifs/vm.h"
 #include "ifs/util.h"
@@ -62,6 +63,8 @@ result_t SandBox_base::_new(v8::Local<v8::Object> mods, v8::Local<v8::Function> 
 SandBox::SandBox(bool extLoader)
 {
     Isolate* isolate = holder();
+
+    m_lock = new Lock();
 
     m_id = isolate->m_sandboxId++;
     isolate->m_sandboxes.emplace(m_id, this);

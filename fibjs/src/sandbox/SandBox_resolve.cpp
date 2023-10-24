@@ -13,6 +13,7 @@
 #include "path.h"
 #include "LruCache.h"
 #include "Buffer.h"
+#include "LockScope.h"
 #include "options.h"
 #include "loaders/loaders.h"
 
@@ -24,7 +25,7 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
     Isolate* isolate = holder();
 
     obj_ptr<Stat_base> stat;
-    hr = fs_base::cc_stat(fname, stat, isolate);
+    hr = fs_base::ac_stat(fname, stat);
     if (hr < 0)
         return hr;
 
@@ -34,7 +35,7 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
     }
 
     Variant var;
-    hr = fs_base::cc_readFile(fname, "", var, isolate);
+    hr = fs_base::ac_readFile(fname, "", var);
     if (hr == CALL_RETURN_NULL) {
         data = new Buffer();
         hr = 0;
@@ -52,7 +53,7 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
     exlib::string fname1;
     Isolate* isolate = holder();
 
-    hr = fs_base::cc_realpath(fname, fname1, isolate);
+    hr = fs_base::ac_realpath(fname, fname1);
     if (hr < 0)
         fname1 = fname;
 
@@ -74,7 +75,7 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
         obj_ptr<ExtLoader>& l = m_loaders[i];
         exlib::string fname2 = fname + l->m_ext;
 
-        hr = fs_base::cc_realpath(fname2, fname1, isolate);
+        hr = fs_base::ac_realpath(fname2, fname1);
         if (hr < 0)
             fname1 = fname2;
 
@@ -334,6 +335,8 @@ result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_
         path_base::normalize(base, id);
     } else
         path_base::normalize(id, id);
+
+    LockScope s(m_lock);
 
     bool isAbs;
     path_base::isAbsolute(id, isAbs);

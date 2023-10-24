@@ -11,6 +11,7 @@
 #include "ifs/Stream.h"
 #include "ifs/process.h"
 #include "ifs/Worker.h"
+#include "Lock.h"
 #include <unordered_map>
 #include <vector>
 
@@ -228,6 +229,7 @@ public:
     static const char* worker_args;
     static const char* module_args;
     static const char* base_args;
+    obj_ptr<Lock_base> m_lock;
 
 public:
     std::vector<obj_ptr<ExtLoader>> m_loaders;
