@@ -12,58 +12,12 @@ inform()
 }
 
 TIME_BEGIN=$(date +%s)
-export WORK_ROOT=`pwd`
 
-SOURCE_ROOT="`dirname \"$0\"`"
-SOURCE_ROOT="`( cd \"$SOURCE_ROOT\" && pwd )`"
+. ./vender/build_tools/scripts/build_env.sh
 
-. ${SOURCE_ROOT}/vender/build_tools/scripts/inst_deps.sh
-
-args=$@
-
-for i in $@
-do
-	case $i in
-		i386|amd64|arm|arm64|mips64|ppc64|s390x|riscv64|loong64) BUILD_ARCH=$i
-			;;
-		linux|alpine|android) BUILD_OS=$i
-			args="${args/$BUILD_OS/}" 
-			;;
-	esac
-done
-
-if [[ $BUILD_OS ]]; then
-	if [[ "${BUILD_ARCH}" == "" ]]; then
-		BUILD_ARCH=amd64
-	fi
-
-	USER_ID=`id -u ${USER}`
-
-	docker run -ti --rm -v ${SOURCE_ROOT}:${SOURCE_ROOT} fibjs/${BUILD_OS}-build-env:${BUILD_ARCH} \
-		bash -c "cd ${SOURCE_ROOT} && usermod -u ${USER_ID} fibjs && groupmod -g ${USER_ID} fibjs && sudo -E -u fibjs bash build ${args}"
-	exit $?
-fi
-
-TEMP_DIR=${SOURCE_ROOT}/out
-if [ ! -e "${TEMP_DIR}" ]; then
-	mkdir "${TEMP_DIR}"
-fi
-
-if [[ $CC == "" ]]; then
-	if [[ $OS == "Darwin" ]]; then
-		ensure_brew_packages "${WORK_ROOT}/tools/darwin_deps"
-	elif [[ $OS == "Linux" ]]; then
-		if [[ $NAME =~ "Ubuntu" ]] || [[ $NAME =~ "Debian" ]]; then
-			ensure_apt_packages "${WORK_ROOT}/tools/ubuntu_deps"
-		elif [[ $NAME =~ "CentOS" ]] || [[ $NAME =~ "Fedora" ]]; then
-			ensure_yum_packages "${WORK_ROOT}/tools/centos_deps"
-		fi
-	fi
-fi
-
-if [ -f "${SOURCE_ROOT}/vender/build" ]; then 
+if [ -f "${WORK_ROOT}/vender/build" ]; then 
 	if [ -z $USE_VENDER_DIST ]; then
-		cd "${SOURCE_ROOT}/vender"
+		cd "${WORK_ROOT}/vender"
 		bash build "$@"
 		if [ $? != 0 ]; then
 			exit 1
@@ -73,25 +27,25 @@ else
 	inform
 fi
 
-cd "${SOURCE_ROOT}/fibjs"
+cd "${WORK_ROOT}/fibjs"
 bash build "$@"
 if [ $? != 0 ]; then
 	exit 1
 fi
 
-cd "${SOURCE_ROOT}/fibjs/program"
+cd "${WORK_ROOT}/fibjs/program"
 bash build "$@"
 if [ $? != 0 ]; then
 	exit 1
 fi
 
-cd "${SOURCE_ROOT}/fibjs/addons"
+cd "${WORK_ROOT}/fibjs/addons"
 bash build "$@"
 if [ $? != 0 ]; then
 	exit 1
 fi
 
-cd "${SOURCE_ROOT}/fibjs/installer"
+cd "${WORK_ROOT}/fibjs/installer"
 bash build "$@"
 if [ $? != 0 ]; then
 	exit 1
