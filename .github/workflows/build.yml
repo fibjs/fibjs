@@ -37,7 +37,7 @@ jobs:
             target_arch: x64
             build_type: release
           - os: ubuntu-20.04
-            target_arch: x86
+            target_arch: ia32
             build_type: release
           - os: ubuntu-20.04
             target_arch: arm64
@@ -63,7 +63,7 @@ jobs:
             build_type: release
           - os: ubuntu-20.04
             build_target: alpine
-            target_arch: x86
+            target_arch: ia32
             build_type: release
           - os: ubuntu-20.04
             build_target: alpine
@@ -76,7 +76,7 @@ jobs:
             skip_test: skip
           - os: ubuntu-20.04
             build_target: android
-            target_arch: x86
+            target_arch: ia32
             build_type: release
             skip_test: skip
           - os: ubuntu-20.04
@@ -93,7 +93,7 @@ jobs:
             target_arch: x64
             build_type: release
           - os: windows-2022
-            target_arch: x86
+            target_arch: ia32
             build_type: release
           - os: windows-2022
             target_arch: arm64
@@ -190,7 +190,7 @@ jobs:
         shell: cmd
         run: |
           IF /I "%DIST_ARCH%" == "x64" ECHO "x64 building..." && .\build.cmd release x64
-          IF /I "%DIST_ARCH%" == "x86" ECHO "x86 building..." && .\build.cmd release x86
+          IF /I "%DIST_ARCH%" == "ia32" ECHO "ia32 building..." && .\build.cmd release ia32
           IF /I "%DIST_ARCH%" == "arm64" ECHO "arm64 building..." && .\build.cmd release arm64
         env:
           TARGET_ARCH: ${{ matrix.target_arch }}

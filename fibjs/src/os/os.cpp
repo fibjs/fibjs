@@ -78,12 +78,26 @@ result_t os_base::platform(exlib::string& retVal)
 
 result_t os_base::arch(exlib::string& retVal)
 {
-    uv_utsname_t info;
-    int32_t ret = uv_os_uname(&info);
-    if (ret < 0)
-        return CHECK_ERROR(ret);
+#ifdef x64
+    retVal = "x64";
+#elif defined(ia32)
+    retVal = "ia32";
+#elif defined(arm)
+    retVal = "arm";
+#elif defined(arm64)
+    retVal = "arm64";
+#elif defined(mips)
+    retVal = "mips";
+#elif defined(mips64)
+    retVal = "mips64";
+#elif defined(ppc64)
+    retVal = "ppc64";
+#elif defined(riscv64)
+    retVal = "riscv64";
+#elif defined(loong64)
+    retVal = "loong64";
+#endif
 
-    retVal = info.machine;
     return 0;
 }
 

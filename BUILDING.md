@@ -19,7 +19,7 @@ Run bat to install clang/LLVM.
 ```bat
 REM for x64
 curl -Ls -o "llvm-installer.exe" "https://github.com/llvm/llvm-project/releases/download/llvmorg-8.0.1/LLVM-8.0.1-win64.exe"
-REM for x86
+REM for ia32
 curl -Ls -o "llvm-installer.exe" "https://github.com/llvm/llvm-project/releases/download/llvmorg-8.0.1/LLVM-8.0.1-win32.exe"
 
 START /WAIT llvm-installer.exe /S /D=C:\"Program Files\LLVM"
