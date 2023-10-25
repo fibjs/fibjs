@@ -26,6 +26,17 @@
 #include <msgpack/version.hpp>
 #include "addons/node_version.h"
 
+#ifdef Linux
+    #define _GNU_SOURCE
+    #include <features.h>
+    #ifndef __USE_GNU
+        #ifndef __MUSL__
+            #define __MUSL__
+        #endif
+    #endif
+    #undef _GNU_SOURCE
+#endif
+
 namespace v8 {
 namespace internal {
     class StartupData;
@@ -75,6 +86,9 @@ public:
         g_info->add("clang", STR(__clang_major__) "." STR(__clang_minor__));
 #elif defined(__GNUC__)
         g_info->add("gcc", STR(__GNUC__) "." STR(__GNUC_MINOR__) "." STR(__GNUC_PATCHLEVEL__));
+#ifdef __MUSL__
+        g_info->add("musl", true);
+#endif
 #elif defined(_MSC_VER)
         g_info->add("msvc", STR(_MSC_VER));
 #endif
