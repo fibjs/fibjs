@@ -170,7 +170,10 @@ function fetch_leveled_module_info(m, v, parent) {
             if (minfo.binary) {
                 var opt;
                 try {
-                    opt = versioning.evaluate(minfo, { module_root: '/' }, 3);
+                    opt = versioning.evaluate(minfo, {
+                        target_platform: process.versions.musl ? "alpine" : process.platform,
+                        module_root: '/'
+                    }, 3);
 
                     binary = {
                         module: opt.module,
@@ -509,6 +512,7 @@ function download_module() {
             }
 
             if (mvm.binary) {
+                console.error(mvm.binary.hosted_tarball);
                 const binary_r = http_get(mvm.binary.hosted_tarball);
 
                 if (binary_r.statusCode !== 200) {
