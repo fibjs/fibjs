@@ -1,3 +1,5 @@
+export DOCKER_BUILDKIT=1
+
 docker build --rm -f linux-build-env.x64 -t fibjs/linux-build-env:x64 .
 docker build --rm -f linux-build-env.ia32 -t fibjs/linux-build-env:ia32 .
 docker build --rm -f linux-build-env.arm64 -t fibjs/linux-build-env:arm64 .

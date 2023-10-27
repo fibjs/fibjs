@@ -1,6 +1,6 @@
 FROM ubuntu:20.04
 
-RUN apt-get update && apt-get install sudo curl tar xz-utils -y
+RUN apt-get update && apt-get upgrade -y && apt-get install sudo curl tar xz-utils -y
 RUN apt-get install cmake make -y && apt-get install git -y
 
 RUN curl -o loongarch64-linux-gnu.tar.xz --retry 5 -LO http://ftp.loongnix.cn/toolchain/gcc/release/loongarch/gcc8/loongson-gnu-toolchain-8.3.novec-x86_64-loongarch64-linux-gnu-rc1.1.tar.xz && \

@@ -1,4 +1,4 @@
-FROM fibjs/linux-build-env:amd64
+FROM fibjs/linux-build-env:x64
 
-RUN apt-get install qemu-user-static -y && apt-get install g++-aarch64-linux-gnu -y
+RUN apt-get install g++-aarch64-linux-gnu -y
 ENV QEMU_LD_PREFIX="/usr/aarch64-linux-gnu"

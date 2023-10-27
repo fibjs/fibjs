@@ -1,8 +1,8 @@
 FROM ubuntu:20.04
 
-RUN apt-get update && apt-get install sudo -y && apt-get install make -y && \
+RUN apt-get update && apt-get upgrade -y && apt-get install sudo -y && apt-get install make -y && \
     apt-get install cmake -y && apt-get install ccache -y && apt-get install git -y && \
-    apt-get install libx11-dev -y && apt-get install clang -y && \
-    apt-get install clang-12 -y && apt-get install g++ -y
+    apt-get install libx11-dev -y && apt-get install clang -y && apt-get install clang-12 -y && \
+    apt-get install g++ -y && apt-get install qemu-user-static -y
 
 RUN adduser fibjs -q && chmod 777 /root

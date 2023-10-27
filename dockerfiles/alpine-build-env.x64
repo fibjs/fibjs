@@ -1,6 +1,6 @@
 FROM ubuntu:20.04
 
-RUN apt-get update && apt-get install sudo curl tar -y
+RUN apt-get update && apt-get upgrade -y && apt-get install sudo curl tar -y
 RUN apt-get install cmake make -y && apt-get install git -y && apt-get install xz-utils -y
 RUN curl --retry 5 -LO http://musl.cc/x86_64-linux-musl-cross.tgz && \
     tar -C /usr -xvf x86_64-linux-musl-cross.tgz && \
