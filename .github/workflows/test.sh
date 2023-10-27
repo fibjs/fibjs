@@ -2,20 +2,21 @@
 
 set -ev
 
-if [[ $TARGET_OS_NAME == 'Linux' ]]; then
-    CUR=`pwd`
+DIST_EXEC="bin/${BUILD_OS}_${BUILD_ARCH}_${BUILD_TYPE}/fibjs"
+if [[ $HOST_OS == 'Linux' ]]; then
+    CUR=$(pwd)
 
-    if [[ "$BUILD_TARGET" != "" ]]; then
-        docker run -t --rm -e CI=${CI} -v ${CUR}:/fibjs fibjs/${BUILD_TARGET}-test-env:${TARGET_ARCH} bash -c "cd /fibjs; ./bin/${DIST_DIR}/fibjs test/main.js"
-    else
-        if [[ $TARGET_ARCH == 'x64' ]]; then
-            docker run -t --rm -e CI=${CI} -v ${CUR}:/fibjs ubuntu:12.04 bash -c "cd /fibjs; ./bin/${DIST_DIR}/fibjs test/main.js"
+    if [[ "$BUILD_TARGET" == "linux" ]]; then
+        if [[ $BUILD_ARCH == 'x64' ]]; then
+            docker run -t --rm -v ${CUR}:${CUR} ubuntu:12.04 bash -c "cd ${CUR}; ${DIST_EXEC} test"
         else
-            docker run -t --rm -e CI=${CI} -v ${CUR}:/fibjs fibjs/linux-build-env:${TARGET_ARCH} bash -c "cd /fibjs; ./bin/${DIST_DIR}/fibjs test/main.js"
+            docker run -t --rm -v ${CUR}:${CUR} fibjs/${BUILD_TARGET}-build-env:${BUILD_ARCH} bash -c "cd ${CUR}; ${DIST_EXEC} test"
         fi
+    else
+        docker run -t --rm -v ${CUR}:${CUR} fibjs/${BUILD_TARGET}-test-env:${BUILD_ARCH} bash -c "cd ${CUR}; ${DIST_EXEC} test"
     fi
 else # Windows/Darwin
-    ./bin/$DIST_DIR/fibjs test
+    ${DIST_EXEC} test
 fi
 
-exit 0;
+exit 0

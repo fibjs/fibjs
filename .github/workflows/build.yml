@@ -34,228 +34,130 @@ jobs:
       matrix:
         include:
           - os: ubuntu-20.04
-            target_arch: x64
-            build_type: release
+            arch: x64
+            type: release
           - os: ubuntu-20.04
-            target_arch: ia32
-            build_type: release
+            arch: ia32
+            type: release
           - os: ubuntu-20.04
-            target_arch: arm64
-            build_type: release
+            arch: arm64
+            type: release
           - os: ubuntu-20.04
-            target_arch: arm
-            build_type: release
+            arch: arm
+            type: release
           - os: ubuntu-20.04
-            target_arch: mips64
-            build_type: release
+            arch: mips64
+            type: release
           - os: ubuntu-20.04
-            target_arch: ppc64
-            build_type: release
+            arch: ppc64
+            type: release
           - os: ubuntu-20.04
-            target_arch: riscv64
-            build_type: release
+            arch: riscv64
+            type: release
           - os: ubuntu-20.04
-            target_arch: loong64
-            build_type: release
+            arch: loong64
+            type: release
           - os: ubuntu-20.04
-            build_target: alpine
-            target_arch: x64
-            build_type: release
+            target: alpine
+            arch: x64
+            type: release
           - os: ubuntu-20.04
-            build_target: alpine
-            target_arch: ia32
-            build_type: release
+            target: alpine
+            arch: ia32
+            type: release
           - os: ubuntu-20.04
-            build_target: alpine
-            target_arch: arm64
-            build_type: release
+            target: alpine
+            arch: arm64
+            type: release
           - os: ubuntu-20.04
-            build_target: android
-            target_arch: x64
-            build_type: release
-            skip_test: skip
+            target: android
+            arch: x64
+            type: release
+            test: skip
           - os: ubuntu-20.04
-            build_target: android
-            target_arch: ia32
-            build_type: release
-            skip_test: skip
+            target: android
+            arch: ia32
+            type: release
+            test: skip
           - os: ubuntu-20.04
-            build_target: android
-            target_arch: arm64
-            build_type: release
-            skip_test: skip
+            target: android
+            arch: arm64
+            type: release
+            test: skip
           - os: ubuntu-20.04
-            build_target: android
-            target_arch: arm
-            build_type: release
-            skip_test: skip
+            target: android
+            arch: arm
+            type: release
+            test: skip
           - os: windows-2022
-            target_arch: x64
-            build_type: release
+            arch: x64
+            type: release
           - os: windows-2022
-            target_arch: ia32
-            build_type: release
+            arch: ia32
+            type: release
           - os: windows-2022
-            target_arch: arm64
-            build_type: release
-            skip_test: skip
-          - os: macos-11
-            target_arch: x64
-            build_type: release
-          - os: macos-11
-            target_arch: arm64
-            build_type: release
-            skip_test: skip
-          - os: macos-11
-            target_arch: x64
-            build_type: debug
-          - os: macos-11
-            build_target: iphone
-            target_arch: arm64
-            build_type: release
-            skip_test: skip
-          - os: macos-11
-            build_target: iphone
-            target_arch: x64
-            build_type: release
-            skip_test: skip
+            arch: arm64
+            type: release
+            test: skip
+          - os: macos-13
+            arch: x64
+            type: release
+          - os: macos-13
+            arch: arm64
+            type: release
+            test: skip
+          - os: macos-13
+            arch: x64
+            type: debug
+          - os: macos-13
+            target: iphone
+            arch: arm64
+            type: release
+            test: skip
+          - os: macos-13
+            target: iphone
+            arch: x64
+            type: release
+            test: skip
 
     steps:
-      - name: Switch XCode to 13.0
-        uses: maxim-lobanov/setup-xcode@v1
-        if: runner.os == 'macOS'
-        with:
-          xcode-version: '13.0'
       - name: Check out Git repository
         uses: actions/checkout@v3
         with:
           submodules: 'recursive'
 
-      - name: Set Env Variables
-        id: set-env-vars
+      - name: Setup the environment
+        shell: bash
+        run: . ./build_tools/scripts/actions-env.sh
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
+          BUILD_ARCH: ${{ matrix.arch }}
+          BUILD_TYPE: ${{ matrix.type }}
+
+      - name: Download vender
         shell: bash
         run: |
-          bash .github/workflows/set-env-vars.sh
-        env:
-          TARGET_ARCH: ${{ matrix.target_arch }}
-          BUILD_TYPE: ${{ matrix.build_type }}
-          BUILD_TARGET: ${{ matrix.build_target }}
+          set ev
+          cd vender
+          VENDER_TAG=`git tag --contains HEAD`
+          cd ..
+          curl -sL https://github.com/fibjs/fibjs_vender/releases/download/${VENDER_TAG}/fibjs_vender-${BUILD_TARGET}-${BUILD_ARCH}-${BUILD_TYPE}.tar.gz | tar xz
 
-      - name: Setup ubuntu
-        if: runner.os == 'Linux'
+      - name: Build the project
         shell: bash
-        run: |
-          bash .github/workflows/setup_ubuntu.sh
-        env:
-          TARGET_ARCH: ${{ matrix.target_arch }}
-          BUILD_TARGET: ${{ matrix.build_target }}
+        run: . ./.github/workflows/build.sh
 
-      - name: Prepare on Windows
-        if: runner.os == 'Windows'
-        shell: bash
-        run: |
-          # download venders
-          if [[ ! -z $USE_VENDER_DIST ]]; then
-            bash ./scripts/download_vender.sh;
-          fi
-        env:
-          TARGET_OS: ${{ steps.set-env-vars.outputs.TARGET_OS }}
-          TARGET_ARCH: ${{ matrix.target_arch }}
-          BUILD_TYPE: ${{ matrix.build_type }}
-
-      - name: Build/Release on Posix
-        if: runner.os != 'Windows'
-        shell: bash
-        run: |
-          bash .github/workflows/build.sh
-
-          if [[ ! -z "$IS_UPLOAD_ASSETS" && "$BUILD_TYPE" == 'release' ]]; then
-            bash .github/workflows/release.sh;
-          fi
-        env:
-          TARGET_ARCH: ${{ matrix.target_arch }}
-          BUILD_TYPE: ${{ matrix.build_type }}
-          BUILD_TARGET: ${{ matrix.build_target }}
-          TARGET_OS: ${{ steps.set-env-vars.outputs.TARGET_OS }}
-          GIT_BRANCH: ${{ steps.set-env-vars.outputs.GIT_BRANCH }}
-          RELEASE_TAG: ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
-          TARGET_OS_NAME: ${{ steps.set-env-vars.outputs.TARGET_OS_NAME }}
-          GIT_TAG: ${{ steps.set-env-vars.outputs.GIT_TAG }}
-          DIST_DIR: ${{ steps.set-env-vars.outputs.DIST_DIR }}
-          DIST_ARCH: ${{ steps.set-env-vars.outputs.DIST_ARCH }}
-          IS_UPLOAD_ASSETS: ${{ steps.set-env-vars.outputs.IS_UPLOAD_ASSETS }}
-
-      - name: Build on Windows
-        if: runner.os == 'Windows'
-        shell: cmd
-        run: |
-          IF /I "%DIST_ARCH%" == "x64" ECHO "x64 building..." && .\build.cmd release x64
-          IF /I "%DIST_ARCH%" == "ia32" ECHO "ia32 building..." && .\build.cmd release ia32
-          IF /I "%DIST_ARCH%" == "arm64" ECHO "arm64 building..." && .\build.cmd release arm64
-        env:
-          TARGET_ARCH: ${{ matrix.target_arch }}
-          BUILD_TYPE: ${{ matrix.build_type }}
-          HOST_ARCH: ${{ steps.set-env-vars.outputs.HOST_ARCH }}
-          TARGET_OS: ${{ steps.set-env-vars.outputs.TARGET_OS }}
-          DIST_ARCH: ${{ steps.set-env-vars.outputs.DIST_ARCH }}
-          DIST_DIR: ${{ steps.set-env-vars.outputs.DIST_DIR }}
-          RELEASE_TAG: ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
-
-      - name: Prepare Release on Windows
-        if: runner.os == 'Windows'
-        shell: bash
-        run: |
-          mkdir -p $RELEASE_TAG
-          cp ./bin/$DIST_DIR/fibjs.exe ./$RELEASE_TAG/fibjs-$RELEASE_TAG-windows-$DIST_ARCH.exe
-          cp ./bin/$DIST_DIR/fibjs_gui.exe ./$RELEASE_TAG/fibjs-$RELEASE_TAG-windows-gui-$DIST_ARCH.exe
-          cp ./bin/$DIST_DIR/installer.exe ./$RELEASE_TAG/installer-$RELEASE_TAG-windows-$DIST_ARCH.exe
-          cp ./bin/$DIST_DIR/fibjs.cab ./$RELEASE_TAG/fibjs-$RELEASE_TAG-windows-$DIST_ARCH.cab
-        env:
-          DIST_ARCH: ${{ steps.set-env-vars.outputs.DIST_ARCH }}
-          DIST_DIR: ${{ steps.set-env-vars.outputs.DIST_DIR }}
-          RELEASE_TAG: ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
-          
-      - name: Create Release For non-git-tagged Commitish Only
-        id: create_release
-        uses: actions/create-release@v1
-        # notice: we create release programmatically for non-production release
-        if: ${{ steps.set-env-vars.outputs.IS_UPLOAD_ASSETS != '' && matrix.build_type == 'release' && steps.set-env-vars.outputs.RELEASE_TAG_FROM_GIT_ORIGIN == '' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: true
-        with:
-          tag_name: ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
-          release_name: Release ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
-          body: ${{ steps.set-env-vars.outputs.GIT_COMMIT_HEAD_MSG }}
-          draft: false
-          prerelease: ${{ steps.set-env-vars.outputs.IS_GIT_TAG_MATCH_SEMVER != 'true'  }}
-
-      - name: Upload Release Assets For Production Only
-        # notice: we upload files to release (if it's not existed, create it automatically)
-        if: ${{ steps.set-env-vars.outputs.IS_UPLOAD_ASSETS != '' && matrix.build_type == 'release' }}
+      - name: Release the project
+        if: env.BUILD_TAG != '' && matrix.type == 'release'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./${{ steps.set-env-vars.outputs.RELEASE_TAG }}/*
-          file_glob: true
-          tag: ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
-          release_name: ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
-          asset_name: ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
+          file: bin/${BUILD_OS}_${BUILD_ARCH}_${BUILD_TYPE}/release/*
+          tag: ${{ env.BUILD_TAG }}
           overwrite: true
-          body: Release ${{ steps.set-env-vars.outputs.RELEASE_TAG }}
-          prerelease: ${{ steps.set-env-vars.outputs.IS_GIT_TAG_MATCH_SEMVER != 'true'  }}
 
       - name: Test
         # only test for release version now, some test cases cannot passed in debug mode
-        if: ${{ matrix.build_type == 'release' && matrix.skip_test != 'skip' }}
+        if: ${{ matrix.type == 'release' && matrix.test != 'skip' }}
         shell: bash
-        run: |
-          if [[ -z $GIT_TAG && $GIT_BRANCH != "beta" ]]; then
-            bash .github/workflows/test.sh;
-          fi
-        env:
-          DIST_DIR: ${{ steps.set-env-vars.outputs.DIST_DIR }}
-          TARGET_ARCH: ${{ matrix.target_arch }}
-          BUILD_TYPE: ${{ matrix.build_type }}
-          BUILD_TARGET: ${{ matrix.build_target }}
-          TARGET_OS_NAME: ${{ steps.set-env-vars.outputs.TARGET_OS_NAME }}
+        run: . ./.github/workflows/test.sh

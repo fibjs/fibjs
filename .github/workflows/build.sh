@@ -1,25 +1,25 @@
-#!/bin/bash
-
 set -ev
 
-if [[ ! -z $USE_VENDER_DIST ]]; then
-    bash ./scripts/download_vender.sh;
+if [[ "${HOST_OS}" == "Linux" ]]; then
+    CUR=$(pwd)
+    docker run -t --rm -e USE_VENDER_DIST -v ${CUR}:${CUR} fibjs/${BUILD_TARGET}-build-env:${BUILD_ARCH} bash -c "cd ${CUR}; bash build -j2 ${BUILD_ARCH} ${BUILD_TYPE} ci"
+else
+    bash build -j2 ${BUILD_ARCH} ${BUILD_TARGET} ${BUILD_TYPE} ci
 fi
 
-if [[ "$TARGET_OS" != 'Windows' ]]; then
-    TARGET_OS=`uname`
-    if [[ "$TARGET_OS" == "Linux" ]]; then
-        if [[ "$BUILD_TARGET" == "" ]]; then
-            BUILD_TARGET="linux"
-        fi
+if [ "${BUILD_TAG}" != "" && "${BUILD_TYPE}" == "release" ]; then
+    cd bin/${BUILD_OS}_${BUILD_ARCH}_${BUILD_TYPE}
+    mkdir release
 
-        CUR=`pwd`
-        docker run -t --rm -e USE_VENDER_DIST -v ${CUR}:/fibjs fibjs/${BUILD_TARGET}-build-env:${TARGET_ARCH} bash -c "cd /fibjs; bash build -j2 ${TARGET_ARCH} ${BUILD_TYPE} ci"
+    if [ "${HOST_OS}" == "Windows" ]; then
+        cp fibjs.exe release/fibjs-${BUILD_TAG}-${BUILD_TARGET}-${BUILD_ARCH}.exe
+        cp fibjs_gui.exe release/fibjs-${BUILD_TAG}-${BUILD_TARGET}-gui-${BUILD_ARCH}.exe
+        cp installer.exe release/installer-${BUILD_TAG}-${BUILD_TARGET}-${BUILD_ARCH}.exe
+        zip release/fibjs-${BUILD_TAG}-${BUILD_TARGET}-${BUILD_ARCH}.zip fibjs.exe
+        zip release/fibjs-${BUILD_TAG}-${BUILD_TARGET}-gui-${BUILD_ARCH}.zip fibjs_gui.exe
     else
-        bash build -j2 ${TARGET_ARCH} ${BUILD_TYPE} ${BUILD_TARGET} ci
+        cp fibjs release/fibjs-${BUILD_TAG}-${BUILD_TARGET}-${BUILD_ARCH}
+        cp installer.sh release/installer-${BUILD_TAG}-${BUILD_TARGET}-${BUILD_ARCH}.sh
+        tar -zcf release/fibjs-${BUILD_TAG}-${BUILD_TARGET}-${BUILD_ARCH}.tar.gz fibjs
     fi
-else # Window
-    exit 1;
 fi
-
-exit 0;
