@@ -7,7 +7,7 @@ else
     bash build -j2 ${BUILD_ARCH} ${BUILD_TARGET} ${BUILD_TYPE} ci
 fi
 
-if [ "${BUILD_TAG}" != "" && "${BUILD_TYPE}" == "release" ]; then
+if [[ "${BUILD_TAG}" != "" && "${BUILD_TYPE}" == "release" ]]; then
     cd bin/${BUILD_OS}_${BUILD_ARCH}_${BUILD_TYPE}
     mkdir release
 
