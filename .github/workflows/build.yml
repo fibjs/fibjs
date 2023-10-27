@@ -128,7 +128,7 @@ jobs:
 
       - name: Setup the environment
         shell: bash
-        run: . ./build_tools/scripts/actions-env.sh
+        run: . ./vender/build_tools/scripts/actions-env.sh
         env:
           BUILD_TARGET: ${{ matrix.target }}
           BUILD_ARCH: ${{ matrix.arch }}
