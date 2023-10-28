@@ -152,7 +152,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: bin/${BUILD_OS}_${BUILD_ARCH}_${BUILD_TYPE}/release/*
+          file: ./bin/${{ env.BUILD_OS }}_${{ env.BUILD_ARCH }}_${{ env.BUILD_TYPE }}/release/*
+          file_glob: true
           tag: ${{ env.BUILD_TAG }}
           overwrite: true
 

@@ -15,11 +15,13 @@ if [[ "${BUILD_TAG}" != "" && "${BUILD_TYPE}" == "release" ]]; then
         cp fibjs.exe release/fibjs-${BUILD_TAG}-${BUILD_TARGET}-${BUILD_ARCH}.exe
         cp fibjs_gui.exe release/fibjs-${BUILD_TAG}-${BUILD_TARGET}-gui-${BUILD_ARCH}.exe
         cp installer.exe release/installer-${BUILD_TAG}-${BUILD_TARGET}-${BUILD_ARCH}.exe
-        zip release/fibjs-${BUILD_TAG}-${BUILD_TARGET}-${BUILD_ARCH}.zip fibjs.exe
-        zip release/fibjs-${BUILD_TAG}-${BUILD_TARGET}-gui-${BUILD_ARCH}.zip fibjs_gui.exe
+        cp fibjs.cab release/fibjs-${BUILD_TAG}-${BUILD_TARGET}-${BUILD_ARCH}.cab
+        7z a -tzip release/fibjs-${BUILD_TAG}-${BUILD_TARGET}-${BUILD_ARCH}.zip fibjs.exe
+        7z a -tzip release/fibjs-${BUILD_TAG}-${BUILD_TARGET}-gui-${BUILD_ARCH}.zip fibjs_gui.exe
     else
         cp fibjs release/fibjs-${BUILD_TAG}-${BUILD_TARGET}-${BUILD_ARCH}
         cp installer.sh release/installer-${BUILD_TAG}-${BUILD_TARGET}-${BUILD_ARCH}.sh
-        tar -zcf release/fibjs-${BUILD_TAG}-${BUILD_TARGET}-${BUILD_ARCH}.tar.gz fibjs
+        cp fibjs.xz release/fibjs-${BUILD_TAG}-${BUILD_TARGET}-${BUILD_ARCH}.xz
+        cp fibjs.tar.gz release/fibjs-${BUILD_TAG}-${BUILD_TARGET}-${BUILD_ARCH}.tar.gz
     fi
 fi
