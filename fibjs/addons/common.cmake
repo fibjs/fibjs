@@ -24,5 +24,3 @@ setup_result_library(${name})
 
 set_target_properties(${name} PROPERTIES PREFIX "")
 set_target_properties(${name} PROPERTIES SUFFIX ".node")
-
-set_target_properties(${name} PROPERTIES LINK_FLAGS ${link_flags})
