@@ -14,7 +14,7 @@ include_directories(
     "${PROJECT_SOURCE_DIR}/../")
 
 if(MSVC)
-    target_link_libraries(${name} "${PROJECT_SOURCE_DIR}/../lib/node_${ARCH}.lib")
+    target_link_libraries(${name} "${PROJECT_SOURCE_DIR}/../lib/node_${BUILD_ARCH}.lib")
     set(link_flags "${link_flags} /DELAYLOAD:node.exe")
 else()
     set(link_flags "${link_flags} -Wl,-undefined,dynamic_lookup")

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.6)
 set(name "fibjs")
 project(${name})
 
-include(${CMAKE_CURRENT_LIST_DIR}/../../vender/build_tools/cmake//option.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/../../vender/build_tools/cmake/option.cmake)
 
 if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 	if(NOT MSVC)
