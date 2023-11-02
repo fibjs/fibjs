@@ -1819,6 +1819,7 @@ describe('util', () => {
         it("timeout", () => {
             c = new util.LruCache(3, 1000);
 
+            var d1 = new Date();
             c.set('f', 100);
             c.set('d', 300);
             c.set('e', 400);
@@ -1831,7 +1832,7 @@ describe('util', () => {
                 "d": 300
             });
 
-            coroutine.sleep(200);
+            coroutine.sleep(700 - (new Date() - d1));
             deepEqual(c.toJSON(), {
                 "f": 500,
                 "e": 400,
@@ -1841,14 +1842,14 @@ describe('util', () => {
             c.set('e', 700);
 
             assert.equal(c.get('d'), 300);
-            coroutine.sleep(510);
+            coroutine.sleep(1210 - (new Date() - d1));
             deepEqual(c.toJSON(), {
                 "e": 700,
                 "f": 500
             });
 
             assert.equal(c.get('f'), 500);
-            coroutine.sleep(300);
+            coroutine.sleep(1510 - (new Date() - d1));
             deepEqual(c.toJSON(), {
                 "e": 700
             });
