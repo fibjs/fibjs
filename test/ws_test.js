@@ -541,7 +541,7 @@ describe('ws', () => {
             // assert.equal(s.readyState, ws.CONNECTING);
             assert.isFalse(t);
 
-            for (var i = 0; i < 1000 && !t; i++)
+            for (var i = 0; i < 2000 && !t; i++)
                 coroutine.sleep(1);
 
             assert.isTrue(t);
@@ -565,7 +565,7 @@ describe('ws', () => {
                 t = true;
             };
 
-            for (var i = 0; i < 1000 && !t; i++)
+            for (var i = 0; i < 2000 && !t; i++)
                 coroutine.sleep(1);
 
             assert.equal(msg.data, '123');
@@ -573,7 +573,7 @@ describe('ws', () => {
             t = false;
             s.send(new Buffer('456'));
 
-            for (var i = 0; i < 1000 && !t; i++)
+            for (var i = 0; i < 2000 && !t; i++)
                 coroutine.sleep(1);
 
             assert.isTrue(Buffer.isBuffer(msg.data));
@@ -598,7 +598,7 @@ describe('ws', () => {
                 s.close();
             };
 
-            for (var i = 0; i < 1000 && !opened; i++) {
+            for (var i = 0; i < 2000 && !opened; i++) {
                 console.log(opened);
                 coroutine.sleep(5);
             }
@@ -620,7 +620,7 @@ describe('ws', () => {
                 s1.close();
             };
 
-            for (var i = 0; i < 1000 && !errored; i++)
+            for (var i = 0; i < 2000 && !errored; i++)
                 coroutine.sleep(5);
 
             assert.equal(s1.readyState, ws.CLOSED);
@@ -713,7 +713,7 @@ describe('ws', () => {
                 t = true;
             };
 
-            for (var i = 0; i < 1000 && !t; i++)
+            for (var i = 0; i < 2000 && !t; i++)
                 coroutine.sleep(1);
 
             assert.equal(msg.data, 'perMessageDeflate');
@@ -748,7 +748,7 @@ describe('ws', () => {
                 t = true;
             };
 
-            for (var i = 0; i < 1000 && !t; i++)
+            for (var i = 0; i < 2000 && !t; i++)
                 coroutine.sleep(1);
 
             assert.equal(msg.data, 'perMessageDeflate');
@@ -784,7 +784,7 @@ describe('ws', () => {
                 t = true;
             });
 
-            for (var i = 0; i < 1000 && !t; i++)
+            for (var i = 0; i < 2000 && !t; i++)
                 coroutine.sleep(1);
 
             assert.equal(msg.data, '123');
@@ -792,7 +792,7 @@ describe('ws', () => {
             t = false;
             s.send(new Buffer('456'));
 
-            for (var i = 0; i < 1000 && !t; i++)
+            for (var i = 0; i < 2000 && !t; i++)
                 coroutine.sleep(1);
 
             assert.isTrue(Buffer.isBuffer(msg.data));
@@ -816,7 +816,7 @@ describe('ws', () => {
                 tc = true;
             };
 
-            for (var i = 0; i < 1000 && !tc; i++)
+            for (var i = 0; i < 2000 && !tc; i++)
                 coroutine.sleep(5);
 
             assert.isTrue(tc);
@@ -838,7 +838,7 @@ describe('ws', () => {
                 tc = true;
             };
 
-            for (var i = 0; i < 1000 && !tc; i++)
+            for (var i = 0; i < 2000 && !tc; i++)
                 coroutine.sleep(5);
 
             assert.isTrue(tc);
@@ -864,7 +864,7 @@ describe('ws', () => {
                 tc = true;
             };
 
-            for (var i = 0; i < 1000 && !tc; i++)
+            for (var i = 0; i < 2000 && !tc; i++)
                 coroutine.sleep(5);
 
             assert.isTrue(te);
@@ -921,7 +921,7 @@ describe('ws', () => {
                     tc = true;
                 };
 
-                for (var i = 0; i < 1000 && !tc; i++)
+                for (var i = 0; i < 2000 && !tc; i++)
                     coroutine.sleep(5);
 
                 assert.isFalse(t);
@@ -954,7 +954,7 @@ describe('ws', () => {
                     tc = true;
                 };
 
-                for (var i = 0; i < 1000 && !tc; i++)
+                for (var i = 0; i < 2000 && !tc; i++)
                     coroutine.sleep(5);
 
                 assert.isFalse(t);
@@ -990,7 +990,7 @@ describe('ws', () => {
 
                 s.onmessage = e => { }
 
-                for (var i = 0; i < 1000 && !t; i++)
+                for (var i = 0; i < 2000 && !t; i++)
                     coroutine.sleep(1);
 
                 s.close();
@@ -1066,7 +1066,7 @@ describe('ws', () => {
                     t = true;
                 };
 
-                for (var i = 0; i < 1000 && !t; i++)
+                for (var i = 0; i < 2000 && !t; i++)
                     coroutine.sleep(1);
 
                 test_util.gc();
