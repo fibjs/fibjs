@@ -2,6 +2,7 @@
 
 #include "object.h"
 #include "Buffer.h"
+#include "Fiber.h"
 #include "node_version.h"
 
 #ifdef __GNUC__
@@ -572,6 +573,7 @@ public:
 
     virtual fibjs::result_t js_invoke()
     {
+        fibjs::JSFiber::EnterJsScope s;
         AfterThreadPoolWork(status_);
         return 0;
     }
@@ -583,7 +585,7 @@ public:
 
 private:
     Environment* env_;
-    const char* type_;
+    const char* type_ = NULL;
     int status_ = 0;
     std::atomic_bool not_running_ = false;
 };

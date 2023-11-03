@@ -1,4 +1,5 @@
 var test = require("test");
+var fs = require("fs");
 test.setup();
 
 const path = require('path');
@@ -187,6 +188,7 @@ describe('addons api', () => {
         const test_async = module.exports;
 
         test_async.Test(5, {}, test.mustCall(function (err, val) {
+            fs.readFileSync(__filename);
             assert.strictEqual(err, null);
             assert.strictEqual(val, 10);
         }));
