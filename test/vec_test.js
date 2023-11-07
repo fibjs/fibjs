@@ -23,6 +23,15 @@ describe("vec", () => {
         assert.equal(conn.execute("select vec_version() as v")[0].v, 'v0.0.1');
     });
 
+    it("vec_distance", () => {
+        var n = conn.execute(`select vec_distance("[1,2,3]", "[3,4,5]") as v`)[0].v.toFixed(6);
+        assert.equal(n, 0.017292);
+
+        var n = conn.execute(`select vec_distance("[1,2]", "[3,4,5]") as v`)[0].v.toFixed(6);
+        var n1 = conn.execute(`select vec_distance("[1,2, 0]", "[3,4,5]") as v`)[0].v.toFixed(6);
+        assert.equal(n, n1);
+    });
+
     function decodeVec(buf) {
         var res = [];
 

@@ -446,7 +446,7 @@ std::vector<float> parse_vector(const char* txt, size_t dim)
     try {
         nlohmann::json data = nlohmann::json::parse(txt);
         data.get_to(v);
-        if (v.size() < dim)
+        if (dim > 0 && v.size() < dim)
             v.resize(dim, 0.0f);
 
         normalize_vector(v);
@@ -469,16 +469,20 @@ std::vector<float> parse_vector(sqlite3_value* value, size_t dim)
             return v;
 
         size_t len = sqlite3_value_bytes(value);
-        if (len % sizeof(float) != 0 || len > dim * sizeof(float))
+        if (len % sizeof(float) != 0 || (dim > 0 && len > dim * sizeof(float)))
             return v;
 
         for (int i = 0; i < len / sizeof(float); i++)
             if (std::isnan(blob[i]))
                 return v;
 
-        v.resize(dim);
+        if (dim > 0)
+            v.resize(dim);
+        else
+            v.resize(len);
+
         memcpy(v.data(), blob, len);
-        for(int i = len / sizeof(float); i < dim; i++)
+        for (int i = len / sizeof(float); i < dim; i++)
             v[i] = 0.0f;
 
         normalize_vector(v);
@@ -854,6 +858,29 @@ static int vecIndexRollback(sqlite3_vtab* pVtab)
     return SQLITE_OK;
 }
 
+static void vecDistanceFunc(sqlite3_context* context, int argc, sqlite3_value** argv)
+{
+    if (argc != 2) {
+        sqlite3_result_error(context, "Incorrect number of arguments", -1);
+        return;
+    }
+
+    std::vector<float> vec0 = parse_vector(argv[0], 0);
+    std::vector<float> vec1 = parse_vector(argv[1], 0);
+    if (vec0.size() == 0 || vec1.size() == 0) {
+        sqlite3_result_error(context, "Argument must be a vector", -1);
+        return;
+    }
+
+    if (vec0.size() < vec1.size())
+        vec0.resize(vec1.size(), 0.0f);
+    else if (vec0.size() > vec1.size())
+        vec1.resize(vec0.size(), 0.0f);
+
+    size_t dim = vec0.size();
+    sqlite3_result_double(context, hnswlib::InnerProductDistance(vec0.data(), vec1.data(), &dim));
+}
+
 static void vecSearchFunc(sqlite3_context* context, int argc, sqlite3_value** argv)
 {
 }
@@ -903,6 +930,7 @@ int SQLite::vec_init()
 
     sqlite3_create_function_v2(db, "vec_version", 0, SQLITE_UTF8 | SQLITE_DETERMINISTIC | SQLITE_INNOCUOUS, 0, vec_version, 0, 0, 0);
     sqlite3_create_function_v2(db, "vec_search", 2, SQLITE_UTF8 | SQLITE_DETERMINISTIC | SQLITE_INNOCUOUS, 0, vecSearchFunc, 0, 0, 0);
+    sqlite3_create_function_v2(db, "vec_distance", 2, SQLITE_UTF8 | SQLITE_DETERMINISTIC | SQLITE_INNOCUOUS, 0, vecDistanceFunc, 0, 0, 0);
     sqlite3_create_module_v2(db, "vec_index", &vecIndexModule, 0, 0);
 
     return 0;
