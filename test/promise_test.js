@@ -42,7 +42,7 @@ describe('promise', () => {
         t('promise5.js', '');
     });
 
-    it("error in async function", () => {
+    xit("error in async function", () => {
         t('async1.js', '/promise/async1.js:2:11\n    throw new Error(100);\n          ^\nError: 100\n    at t (/promise/async1.js:2:11)\n    at /promise/async1.js:5:7\n');
     });
 

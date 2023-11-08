@@ -14,9 +14,9 @@
 
 namespace fibjs {
 
-const char* SandBox::worker_args = "(async function(exports,require,module,__filename,__dirname,run,Master){";
-const char* SandBox::module_args = "(async function(exports,require,module,__filename,__dirname,run){";
-const char* SandBox::base_args = "(async function(exports,require,module,__filename,__dirname,run";
+const char* SandBox::worker_args = "(function(exports,require,module,__filename,__dirname,run,Master){";
+const char* SandBox::module_args = "(function(exports,require,module,__filename,__dirname,run){";
+const char* SandBox::base_args = "(function(exports,require,module,__filename,__dirname,run";
 
 result_t SandBox::ExtLoader::run_script(Context* ctx, Buffer_base* src, exlib::string name,
     std::vector<arg>& extarg, bool is_main)

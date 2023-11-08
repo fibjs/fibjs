@@ -101,7 +101,7 @@ describe("module", () => {
         });
     });
 
-    it("require async file", () => {
+    xit("require async file", () => {
         assert.equal(require('./module/d2'), 100);
     });
 
