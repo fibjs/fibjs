@@ -2,7 +2,7 @@ set -ev
 
 if [[ "${HOST_OS}" == "Linux" ]]; then
     CUR=$(pwd)
-    docker run -t --rm -e USE_VENDER_DIST -v ${CUR}:${CUR} fibjs/${BUILD_TARGET}-build-env:${BUILD_ARCH} bash -c "cd ${CUR}; bash build -j2 ${BUILD_ARCH} ${BUILD_TYPE} ci"
+    docker run -t --rm -e USE_VENDER_DIST -v ${CUR}:${CUR} fibjs/${BUILD_TARGET}-build-env:${BUILD_ARCH} bash -c "cd ${CUR}; git config --global --add safe.directory ${CUR}/vender; bash build -j2 ${BUILD_ARCH} ${BUILD_TYPE} ci"
 else
     bash build -j2 ${BUILD_ARCH} ${BUILD_TARGET} ${BUILD_TYPE} ci
 fi

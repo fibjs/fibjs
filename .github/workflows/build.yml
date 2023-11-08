@@ -134,15 +134,6 @@ jobs:
           BUILD_ARCH: ${{ matrix.arch }}
           BUILD_TYPE: ${{ matrix.type }}
 
-      - name: Download vender
-        shell: bash
-        run: |
-          set ev
-          cd vender
-          VENDER_TAG=`git describe --tags --abbrev=0`
-          cd ..
-          curl -sL https://github.com/fibjs/fibjs_vender/releases/download/${VENDER_TAG}/fibjs_vender-${BUILD_TARGET}-${BUILD_ARCH}-${BUILD_TYPE}.tar.gz | tar xz
-
       - name: Build the project
         shell: bash
         run: . ./.github/workflows/build.sh
