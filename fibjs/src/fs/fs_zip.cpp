@@ -19,19 +19,85 @@ namespace fibjs {
 
 class cache_node : public obj_base {
 public:
+    void init(exlib::string name, obj_ptr<NArray> list, date_t date = INFINITY);
+    static cache_node* lookup(exlib::string name);
+    static void erase(exlib::string name);
+
+public:
     exlib::string m_name;
     date_t m_date;
     date_t m_mtime;
-    obj_ptr<NArray> m_list;
+    std::unordered_map<exlib::string, obj_ptr<ZipFile::Info>> m_map;
 };
 
-static std::list<obj_ptr<cache_node>> s_cache;
+static std::unordered_map<exlib::string, obj_ptr<cache_node>> s_cache_map;
 static exlib::spinlock s_cachelock;
+
+void cache_node::erase(exlib::string name)
+{
+    if (name.empty()) {
+        s_cachelock.lock();
+        s_cache_map.clear();
+        s_cachelock.unlock();
+    } else {
+        std::list<obj_ptr<cache_node>>::iterator it;
+
+        exlib::string safe_name;
+        path_base::normalize(name, safe_name);
+
+        s_cachelock.lock();
+        s_cache_map.erase(safe_name);
+        s_cachelock.unlock();
+    }
+}
+
+cache_node* cache_node::lookup(exlib::string name)
+{
+    std::unordered_map<exlib::string, obj_ptr<cache_node>>::iterator it;
+    cache_node* _node = NULL;
+
+    s_cachelock.lock();
+    it = s_cache_map.find(name);
+    if (it != s_cache_map.end())
+        _node = it->second;
+
+    s_cachelock.unlock();
+
+    return _node;
+}
+
+void cache_node::init(exlib::string name, obj_ptr<NArray> list, date_t date)
+{
+    m_name = name;
+    m_date = date;
+    m_mtime.now();
+
+    obj_ptr<ZipFile::Info> zi;
+    int32_t len = list->length();
+
+    for (int32_t i = 0; i < len; i++) {
+        Variant v;
+        exlib::string s;
+
+        list->_indexed_getter(i, v);
+
+        zi = (ZipFile::Info*)v.object();
+        if (zi->m_date.empty())
+            zi->m_date = date;
+
+        zi->get_filename(s);
+
+        m_map.insert_or_assign(s, zi);
+    }
+
+    s_cachelock.lock();
+    s_cache_map.insert_or_assign(name, this);
+    s_cachelock.unlock();
+}
 
 result_t fs_base::setZipFS(exlib::string fname, Buffer_base* data)
 {
     result_t hr;
-    std::list<obj_ptr<cache_node>>::iterator it;
     obj_ptr<ZipFile_base> zfile;
     obj_ptr<cache_node> _node;
 
@@ -48,44 +114,14 @@ result_t fs_base::setZipFS(exlib::string fname, Buffer_base* data)
     path_base::normalize(fname, safe_name);
 
     _node = new cache_node();
-    _node->m_name = safe_name;
-    _node->m_list = list;
-    _node->m_date = INFINITY;
-    _node->m_mtime.now();
+    _node->init(safe_name, list);
 
-    s_cachelock.lock();
-    for (it = s_cache.begin(); it != s_cache.end(); ++it)
-        if ((*it)->m_name == safe_name) {
-            *it = _node;
-            break;
-        }
-    if (it == s_cache.end())
-        s_cache.push_back(_node);
-    s_cachelock.unlock();
     return 0;
 }
 
 result_t fs_base::clearZipFS(exlib::string fname)
 {
-    if (fname.empty()) {
-        s_cachelock.lock();
-        s_cache.clear();
-        s_cachelock.unlock();
-    } else {
-        std::list<obj_ptr<cache_node>>::iterator it;
-
-        exlib::string safe_name;
-        path_base::normalize(fname, safe_name);
-
-        s_cachelock.lock();
-        for (it = s_cache.begin(); it != s_cache.end(); ++it)
-            if ((*it)->m_name == safe_name) {
-                s_cache.erase(it);
-                break;
-            }
-        s_cachelock.unlock();
-    }
-
+    cache_node::erase(fname);
     return 0;
 }
 
@@ -120,18 +156,11 @@ static result_t resolve_zip_file(exlib::string fname, obj_ptr<ZipFile::Info>& re
         obj_ptr<cache_node> _node;
         obj_ptr<SeekableStream_base> zip_stream;
         obj_ptr<Stat_base> stat;
-        std::list<obj_ptr<cache_node>>::iterator it;
 
         date_t _now;
         _now.now();
 
-        s_cachelock.lock();
-        for (it = s_cache.begin(); it != s_cache.end(); ++it)
-            if ((*it)->m_name == zip_file) {
-                _node = *it;
-                break;
-            }
-        s_cachelock.unlock();
+        _node = cache_node::lookup(zip_file);
 
         if (_node && (_now.diff(_node->m_date) > 3000)) {
             hr = fs_base::openFile(zip_file, "r", zip_stream, ac);
@@ -177,46 +206,23 @@ static result_t resolve_zip_file(exlib::string fname, obj_ptr<ZipFile::Info>& re
                 return hr;
 
             _node = new cache_node();
-            _node->m_name = zip_file;
-            _node->m_list = list;
-            _node->m_date.now();
+            _node->init(zip_file, list, _now);
             stat->get_mtime(_node->m_mtime);
-
-            s_cachelock.lock();
-            for (it = s_cache.begin(); it != s_cache.end(); ++it)
-                if ((*it)->m_name == zip_file) {
-                    *it = _node;
-                    break;
-                }
-            if (it == s_cache.end())
-                s_cache.push_back(_node);
-            s_cachelock.unlock();
         }
 
-        int32_t len, i;
+        std::unordered_map<exlib::string, obj_ptr<ZipFile::Info>>::iterator it;
 
-        len = _node->m_list->length();
-
-        for (i = 0; i < len; i++) {
-            Variant v;
-            exlib::string s;
-
-            _node->m_list->_indexed_getter(i, v);
-
-            retVal = (ZipFile::Info*)v.object();
-            if (retVal->m_date.empty())
-                retVal->m_date = _node->m_date;
-
-            retVal->get_filename(s);
-
-            if (member == s)
-                return 0;
-
+        it = _node->m_map.find(member);
 #ifdef _WIN32
-            if (bChanged && member1 == s)
-                return 0;
+        if (bChanged && it == _node->m_map.end())
+            it = _node->m_map.find(member1);
 #endif
-        }
+
+        if (it == _node->m_map.end())
+            return CALL_E_FILE_NOT_FOUND;
+
+        retVal = it->second;
+        return 0;
     }
 
     return CALL_E_FILE_NOT_FOUND;
