@@ -24,12 +24,12 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
     result_t hr;
     Isolate* isolate = holder();
 
-    obj_ptr<Stat_base> stat;
-    hr = fs_base::ac_stat(fname, stat);
-    if (hr < 0)
-        return hr;
-
     if (fname.substr(fname.length() - 5) == ".node") {
+        obj_ptr<Stat_base> stat;
+        hr = fs_base::ac_stat(fname, stat);
+        if (hr < 0)
+            return hr;
+
         data = new Buffer();
         return 0;
     }
