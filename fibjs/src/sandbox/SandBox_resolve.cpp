@@ -22,7 +22,6 @@ namespace fibjs {
 result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
 {
     result_t hr;
-    Isolate* isolate = holder();
 
     if (fname.substr(fname.length() - 5) == ".node") {
         obj_ptr<Stat_base> stat;
@@ -51,7 +50,6 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
     size_t cnt = m_loaders.size();
     result_t hr;
     exlib::string fname1;
-    Isolate* isolate = holder();
 
     hr = fs_base::ac_realpath(fname, fname1);
     if (hr < 0)

@@ -65,19 +65,22 @@ add_library(js SHARED src/so.cpp)
 
 include_directories("${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/../include" "${PROJECT_SOURCE_DIR}/../../vender" "${PROJECT_SOURCE_DIR}/../../vender/v8" "${PROJECT_SOURCE_DIR}/../../vender/v8/include" "${PROJECT_SOURCE_DIR}/../../vender/mbedtls" "${PROJECT_SOURCE_DIR}/../../vender/zlib/include" "${CMAKE_CURRENT_BINARY_DIR}")
 
-include(${CMAKE_CURRENT_LIST_DIR}/../../vender/libs.cmake)
+target_link_libraries(${name} "${BIN_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}fibjs${CMAKE_STATIC_LIBRARY_SUFFIX}")
+target_link_libraries(js "${BIN_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}fibjs${CMAKE_STATIC_LIBRARY_SUFFIX}")
 
+if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
+	target_link_libraries(${name}_gui "${BIN_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}fibjs${CMAKE_STATIC_LIBRARY_SUFFIX}")
+endif()
+
+include(${CMAKE_CURRENT_LIST_DIR}/../../vender/libs.cmake)
 foreach(lib ${libs})
-	target_link_libraries(${name} "${BIN_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}fibjs${CMAKE_STATIC_LIBRARY_SUFFIX}")
 	target_link_libraries(${name} "${VENDER_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}${lib}${CMAKE_STATIC_LIBRARY_SUFFIX}")
 
 	if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-		target_link_libraries(${name}_gui "${BIN_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}fibjs${CMAKE_STATIC_LIBRARY_SUFFIX}")
 		target_link_libraries(${name}_gui "${VENDER_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}${lib}${CMAKE_STATIC_LIBRARY_SUFFIX}")
 	endif()
 
 	if(NOT ${lib} STREQUAL "jemalloc")
-		target_link_libraries(js "${BIN_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}fibjs${CMAKE_STATIC_LIBRARY_SUFFIX}")
 		target_link_libraries(js "${VENDER_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}${lib}${CMAKE_STATIC_LIBRARY_SUFFIX}")
 	endif()
 endforeach()
