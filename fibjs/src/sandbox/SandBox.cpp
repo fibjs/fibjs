@@ -237,6 +237,36 @@ result_t SandBox::clone(obj_ptr<SandBox_base>& retVal)
     return 0;
 }
 
+static result_t deepFreeze(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::Value> root)
+{
+    v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
+
+    if (!isFrozen(isolate->m_isolate, obj)) {
+        v8::Local<v8::Context> context = obj->GetCreationContextChecked();
+        obj->SetIntegrityLevel(context, v8::IntegrityLevel::kFrozen);
+
+        JSArray names = obj->GetPropertyNames(context, v8::KeyCollectionMode::kIncludePrototypes,
+            v8::ALL_PROPERTIES, v8::IndexFilter::kIncludeIndices);
+        for (int32_t i = 0; i < (int32_t)names->Length(); i++) {
+            v8::Local<v8::Value> k = names->Get(context, i).FromMaybe(v8::Local<v8::Value>());
+            v8::Local<v8::Value> v = obj->Get(context, k).FromMaybe(v8::Local<v8::Value>());
+            if (!v.IsEmpty() && v->IsObject() && !v->Equals(context, root).FromMaybe(false))
+                deepFreeze(isolate, v, root);
+        }
+    }
+
+    return 0;
+}
+
+result_t SandBox::freeze()
+{
+    if (!m_global)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    v8::Local<v8::Object> global = GetPrivate("_global").As<v8::Object>();
+    return deepFreeze(holder(), global, global);
+}
+
 result_t SandBox::get_global(v8::Local<v8::Object>& retVal)
 {
     if (!m_global)
