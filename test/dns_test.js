@@ -5,7 +5,7 @@ test.setup();
 
 describe('dns', () => {
     it('dns.resolve', () => {
-        dns.resolve('www.icann.org');
+        dns.resolve('localhost');
     });
 
     it('FIX: crash in dns.resolve when host is unknown', () => {
@@ -15,7 +15,7 @@ describe('dns', () => {
     });
 
     it('dns.lookup', () => {
-        dns.lookup('www.icann.org');
+        dns.lookup('localhost');
     });
 
     it('FIX: error result in dns.lookup when host is unknown', () => {
@@ -25,7 +25,7 @@ describe('dns', () => {
     });
 
     it('net.resolve', () => {
-        net.resolve('www.icann.org');
+        net.resolve('localhost');
     });
 
     it('FIX: crash in net.resolve when host is unknown', () => {
