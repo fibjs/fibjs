@@ -29,6 +29,9 @@ interface HttpResponse : HttpMessage
     /*! @brief 查询和设置响应消息的返回消息 */
     String statusMessage;
 
+    /*! @brief 查询和设置响应消息的返回状态，等同于 statusCode */
+    Integer status;
+
     /*! @brief 查询当前响应是否正常 */
     readonly Boolean ok;
 

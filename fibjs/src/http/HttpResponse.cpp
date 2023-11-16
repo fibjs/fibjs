@@ -453,6 +453,16 @@ result_t HttpResponse::set_statusMessage(exlib::string newVal)
     return 0;
 }
 
+result_t HttpResponse::get_status(int32_t& retVal)
+{
+    return get_statusCode(retVal);
+}
+
+result_t HttpResponse::set_status(int32_t newVal)
+{
+    return set_statusCode(newVal);
+}
+
 result_t HttpResponse::get_ok(bool& retVal)
 {
     retVal = m_statusCode >= 200 && m_statusCode < 300;

@@ -41,6 +41,11 @@ declare class Class_HttpResponse extends Class_HttpMessage {
     statusMessage: string;
 
     /**
+     * @description 查询和设置响应消息的返回状态，等同于 statusCode 
+     */
+    status: number;
+
+    /**
      * @description 查询当前响应是否正常 
      */
     readonly ok: boolean;
