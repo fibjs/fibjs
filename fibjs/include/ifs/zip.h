@@ -103,7 +103,7 @@ inline void zip_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ARG(exlib::string, 0);
     OPT_ARG(exlib::string, 1, "r");
-    OPT_ARG(exlib::string, 2, "utf-8");
+    OPT_ARG(exlib::string, 2, "utf8");
 
     if (!cb.IsEmpty())
         hr = acb_open(v0, v1, v2, cb, args);
@@ -114,7 +114,7 @@ inline void zip_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(exlib::string, 1, "r");
-    OPT_ARG(exlib::string, 2, "utf-8");
+    OPT_ARG(exlib::string, 2, "utf8");
 
     if (!cb.IsEmpty())
         hr = acb_open(v0, v1, v2, cb, args);
@@ -125,7 +125,7 @@ inline void zip_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& a
 
     ARG(obj_ptr<SeekableStream_base>, 0);
     OPT_ARG(exlib::string, 1, "r");
-    OPT_ARG(exlib::string, 2, "utf-8");
+    OPT_ARG(exlib::string, 2, "utf8");
 
     if (!cb.IsEmpty())
         hr = acb_open(v0, v1, v2, cb, args);

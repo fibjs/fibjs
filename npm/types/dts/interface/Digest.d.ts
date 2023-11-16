@@ -35,6 +35,15 @@ declare class Class_Digest extends Class_object {
     update(data: Class_Buffer): Class_Digest;
 
     /**
+     * @description 更新字符串摘要信息
+     *      @param data 字符串数据
+     *      @param codec 指定编码格式，允许值为："buffer", "hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
+     *      @return 返回信息摘要对象本身
+     *      
+     */
+    update(data: string, codec?: string): Class_Digest;
+
+    /**
      * @description 计算并返回摘要
      *      @param codec 指定编码格式，允许值为："buffer", "hex", "base32", "base58", "base64", "utf8", 或者 iconv 模块支持的字符集
      *      @return 返回指定编码的摘要表示

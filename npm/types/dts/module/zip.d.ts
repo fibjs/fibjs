@@ -51,7 +51,7 @@ declare module 'zip' {
      * @description 打开一个zip文件
      * 	 @param path 文件路径
      * 	 @param mod 打开文件模式, "r"代表读取, "w"代表创建, "a"代表在zip文件后追加
-     * 	 @param codec 设置 zip 文件编码方式，缺省为 "utf-8"
+     * 	 @param codec 设置 zip 文件编码方式，缺省为 "utf8"
      * 	 @return 返回zip文件对象
      * 	 
      */
@@ -63,7 +63,7 @@ declare module 'zip' {
      * @description 打开一个zip文件
      * 	 @param data zip文件数据
      * 	 @param mod 打开文件模式, "r"代表读取, "w"代表创建, "a"代表在zip文件后追加
-     * 	 @param codec 设置 zip 文件编码方式，缺省为 "utf-8"
+     * 	 @param codec 设置 zip 文件编码方式，缺省为 "utf8"
      * 	 @return 返回zip文件对象
      * 	 
      */
@@ -75,7 +75,7 @@ declare module 'zip' {
      * @description 打开一个zip文件
      * 	 @param strm zip文件流
      * 	 @param mod 打开文件模式, "r"代表读取, "w"代表创建, "a"代表在zip文件后追加
-     * 	 @param codec 设置 zip 文件编码方式，缺省为 "utf-8"
+     * 	 @param codec 设置 zip 文件编码方式，缺省为 "utf8"
      * 	 @return 返回zip文件对象
      * 	 
      */

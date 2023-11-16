@@ -58,6 +58,23 @@ result_t Digest::update(Buffer_base* data, obj_ptr<Digest_base>& retVal)
     return 0;
 }
 
+result_t Digest::update(exlib::string data, exlib::string codec, obj_ptr<Digest_base>& retVal)
+{
+    if (m_iAlgo < 0)
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    exlib::string _data;
+    result_t hr = commonDecode(codec, data, _data);
+    if (hr < 0)
+        return hr;
+
+    _md_update(&m_ctx, (const unsigned char*)_data.c_str(), _data.length());
+
+    retVal = this;
+
+    return 0;
+}
+
 result_t Digest::digest(obj_ptr<Buffer_base>& retVal)
 {
     if (m_iAlgo < 0)

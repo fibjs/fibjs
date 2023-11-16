@@ -24,6 +24,7 @@ class Digest_base : public object_base {
 public:
     // Digest_base
     virtual result_t update(Buffer_base* data, obj_ptr<Digest_base>& retVal) = 0;
+    virtual result_t update(exlib::string data, exlib::string codec, obj_ptr<Digest_base>& retVal) = 0;
     virtual result_t digest(exlib::string codec, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t sign(PKey_base* key, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t verify(PKey_base* key, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac) = 0;
@@ -93,6 +94,13 @@ inline void Digest_base::s_update(const v8::FunctionCallbackInfo<v8::Value>& arg
     ARG(obj_ptr<Buffer_base>, 0);
 
     hr = pInst->update(v0, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "utf8");
+
+    hr = pInst->update(v0, v1, vr);
 
     METHOD_RETURN();
 }
