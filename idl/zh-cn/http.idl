@@ -56,7 +56,7 @@ module http
     static HttpRepeater new Repeater();
 
     /*! @brief 返回标准的 HTTP 响应状态码的集合，以及各自的简短描述。 */
-    static readonly Array STATUS_CODES;
+    static readonly Object STATUS_CODES;
 
     /*! @brief 返回http客户端的 HttpCookie 对象列表 */
     static readonly NArray cookies;

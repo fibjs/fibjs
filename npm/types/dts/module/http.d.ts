@@ -89,7 +89,7 @@ declare module 'http' {
     /**
      * @description 返回标准的 HTTP 响应状态码的集合，以及各自的简短描述。 
      */
-    const STATUS_CODES: any[];
+    const STATUS_CODES: FIBJS.GeneralObject;
 
     /**
      * @description 返回http客户端的 HttpCookie 对象列表 

@@ -284,15 +284,23 @@ public:
     }
 } s_init_status_line;
 
-result_t http_base::get_STATUS_CODES(v8::Local<v8::Array>& retVal)
+result_t http_base::get_STATUS_CODES(v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
     int32_t i;
 
-    retVal = v8::Array::New(isolate->m_isolate);
+    if (!isolate->STATUS_CODES.IsEmpty()) {
+        retVal = isolate->STATUS_CODES.Get(isolate->m_isolate);
+        return 0;
+    }
+
+    v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
     for (i = 0; i < RESPONSE_CODES; i++)
-        retVal->Set(context, atoi(status_lines[i]), isolate->NewString(status_lines[i] + 5)).IsJust();
+        o->Set(context, isolate->NewString(status_lines[i] + 1, 3), isolate->NewString(status_lines[i] + 5)).IsJust();
+
+    isolate->STATUS_CODES.Reset(isolate->m_isolate, o);
+    retVal = o;
 
     return 0;
 }

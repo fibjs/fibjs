@@ -265,6 +265,7 @@ public:
     bool m_intask = false;
 
     obj_ptr<HttpClient> m_httpclient;
+    v8::Global<v8::Object> STATUS_CODES;
 
     obj_ptr<Stream_base> m_stdio[3];
 

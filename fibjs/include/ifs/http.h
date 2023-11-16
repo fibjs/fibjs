@@ -34,7 +34,7 @@ class http_base : public object_base {
 
 public:
     // http_base
-    static result_t get_STATUS_CODES(v8::Local<v8::Array>& retVal);
+    static result_t get_STATUS_CODES(v8::Local<v8::Object>& retVal);
     static result_t get_cookies(obj_ptr<NArray>& retVal);
     static result_t get_timeout(int32_t& retVal);
     static result_t set_timeout(int32_t newVal);
@@ -202,7 +202,7 @@ inline ClassInfo& http_base::class_info()
 
 inline void http_base::s_static_get_STATUS_CODES(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Array> vr;
+    v8::Local<v8::Object> vr;
 
     PROPERTY_ENTER();
 
