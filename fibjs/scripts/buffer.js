@@ -5,7 +5,7 @@ var {
     TypedArrayPrototypeFill,
     TypedArrayPrototypeCopyWithin,
     TypedArrayPrototypeSet
-} = require('./internal/primordials.js');
+} = require('internal/primordials.js');
 
 const poolSize = 8 * 1024;
 let poolOffset, allocPool;
@@ -1303,7 +1303,7 @@ Buffer.concat = function (list, length) {
     let pos = 0;
     for (let i = 0; i < list.length; i++) {
         let buf = list[i];
-        if (!buf instanceof Uint8Array)
+        if (!(buf instanceof Uint8Array))
             throw new Error('not a Uint8Array');
 
         let buf_byteLength = buf.byteLength;

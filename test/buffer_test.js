@@ -137,6 +137,12 @@ describe('Buffer', () => {
         assert.equal(buf2.length, 0);
     });
 
+    it('concat type error', () => {
+        assert.throws(() => {
+            Buffer.concat(["aaa"]);
+        });
+    });
+
     it('Buffer.from(String)', () => {
         var buf = Buffer.from("abcd");
         assert.equal(buf.length, 4);
