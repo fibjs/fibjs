@@ -180,7 +180,7 @@ function fetch_leveled_module_info(m, v, parent) {
                         hosted_tarball: opt.hosted_tarball
                     }
                 } catch (e) {
-                    console.log("ode-pre-gyp", e);
+                    console.log("node-pre-gyp", e);
                     // process.exit();
                 }
             }
@@ -343,9 +343,6 @@ function walkthrough_deps(level_info, need_dev_deps = false) {
 
 function move_up(level_info, parent) {
     if (level_info.new_module) {
-        for (let k in level_info.node_modules)
-            move_up(level_info.node_modules[k], level_info);
-
         if (parent !== undefined)
             for (let k in level_info.node_modules) {
                 const m = level_info.node_modules[k];
@@ -354,9 +351,15 @@ function move_up(level_info, parent) {
                     if (m1 === undefined || m1.version === m.version) {
                         parent.node_modules[k] = m;
                         delete level_info.node_modules[k];
+
+                        parent.module_list.push(k);
                     }
                 }
             }
+
+        level_info.module_list = Object.keys(level_info.node_modules);
+        for (let i = 0; i < level_info.module_list.length; i++)
+            move_up(level_info.node_modules[level_info.module_list[i]], level_info);
     }
 }
 
