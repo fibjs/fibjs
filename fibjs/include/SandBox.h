@@ -227,6 +227,12 @@ public:
     }
 
 public:
+    static v8::MaybeLocal<v8::Promise> ImportModuleDynamically(v8::Local<v8::Context> context,
+        v8::Local<v8::Data> host_defined_options, v8::Local<v8::Value> resource_name,
+        v8::Local<v8::String> specifier, v8::Local<v8::FixedArray> import_assertions);
+    v8::MaybeLocal<v8::Promise> async_import(exlib::string id, exlib::string base);
+
+public:
     static const char* worker_args;
     static const char* module_args;
     static const char* base_args;
