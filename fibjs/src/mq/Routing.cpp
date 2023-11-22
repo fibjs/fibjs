@@ -86,6 +86,7 @@ result_t Routing::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             obj_ptr<NArray> list;
 
             msg->get_params(list);
+            list->resize(0);
 
             if (rc > 1) {
                 int32_t levelCount[RE_SIZE] = { 0 };
