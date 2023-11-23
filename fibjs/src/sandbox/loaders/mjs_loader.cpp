@@ -11,7 +11,6 @@
 #include "Fiber.h"
 #include "loaders.h"
 #include "ifs/util.h"
-#include "Path.h"
 namespace fibjs {
 
 static v8::MaybeLocal<v8::Module> resolveModule(
