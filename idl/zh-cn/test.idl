@@ -144,15 +144,19 @@ module test
 
     /*! @brief 测试一个函数必须被调用指定次数
      @param func 被测试的函数
+     @return 返回被包裹的函数
      */
     static Function mustCall(Function func);
 
     /*! @brief 测试一个函数必须不被调用
      @param func 被测试的函数
+     @return 返回被包裹的函数
      */
     static Function mustNotCall(Function func);
 
-    /*! @brief 测试一个函数必须不被调用 */
+    /*! @brief 测试一个函数必须不被调用
+     @return 返回被包裹的函数
+    */
     static Function mustNotCall();
 
     /*! @brief 开始执行定义的测试模块

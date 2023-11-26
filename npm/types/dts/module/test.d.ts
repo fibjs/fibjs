@@ -170,6 +170,7 @@ declare module 'test' {
     /**
      * @description 测试一个函数必须被调用指定次数
      *      @param func 被测试的函数
+     *      @return 返回被包裹的函数
      *      
      */
     function mustCall(func: (...args: any[])=>any): (...args: any[])=>any;
@@ -177,12 +178,15 @@ declare module 'test' {
     /**
      * @description 测试一个函数必须不被调用
      *      @param func 被测试的函数
+     *      @return 返回被包裹的函数
      *      
      */
     function mustNotCall(func: (...args: any[])=>any): (...args: any[])=>any;
 
     /**
-     * @description 测试一个函数必须不被调用 
+     * @description 测试一个函数必须不被调用
+     *      @return 返回被包裹的函数
+     *     
      */
     function mustNotCall(): (...args: any[])=>any;
 
