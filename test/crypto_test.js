@@ -1050,6 +1050,12 @@ describe('crypto', () => {
             pk = crypto.PKey.from(sm2_pem);
             assert.equal(pk.curve, 'SM2');
         });
+
+        it("BUG: crash when new PKey with empty string", () => {
+            assert.throws(() => {
+                new crypto.PKey('');
+            });
+        });
     });
 
     describe("ed25519", () => {

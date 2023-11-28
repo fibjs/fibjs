@@ -27,7 +27,7 @@ result_t PKey_base::_new(Buffer_base* DerKey, exlib::string password, obj_ptr<PK
     if (hr >= 0)
         retVal->wrap();
 
-    return 0;
+    return hr;
 }
 
 result_t PKey_base::_new(exlib::string pemKey, exlib::string password, obj_ptr<PKey_base>& retVal,
@@ -37,7 +37,7 @@ result_t PKey_base::_new(exlib::string pemKey, exlib::string password, obj_ptr<P
     if (hr >= 0)
         retVal->wrap();
 
-    return 0;
+    return hr;
 }
 
 result_t PKey_base::_new(v8::Local<v8::Object> jsonKey, obj_ptr<PKey_base>& retVal,
