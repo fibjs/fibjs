@@ -74,8 +74,7 @@ void napi_env__::InvokeFinalizerFromGC(v8impl::RefTracker* finalizer)
         // objects as soon as possible. In that state any code that may affect GC
         // state causes a fatal error. To work around this issue the finalizer code
         // can call node_api_post_finalizer.
-        auto restore_state = node::OnScopeLeave(
-            [this, saved = in_gc_finalizer] { in_gc_finalizer = saved; });
+        node::OnScopeLeave([this, saved = in_gc_finalizer] { in_gc_finalizer = saved; });
         in_gc_finalizer = true;
         finalizer->Finalize();
     }

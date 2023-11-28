@@ -540,7 +540,6 @@ public:
     explicit inline ThreadPoolWork(Environment* env, const char* type)
         : fibjs::AsyncEvent(env)
         , env_(env)
-        , type_(type)
     {
         CHECK_NOT_NULL(env);
     }
@@ -585,7 +584,6 @@ public:
 
 private:
     Environment* env_;
-    const char* type_ = NULL;
     int status_ = 0;
     std::atomic_bool not_running_ = false;
 };

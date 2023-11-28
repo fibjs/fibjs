@@ -259,7 +259,6 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
 
     Isolate* isolate = Isolate::current();
     v8::HandleScope handle_scope(isolate->m_isolate);
-    v8::Local<v8::Context> context = isolate->context();
     if (try_catch.HasCaught())
         return GetException(try_catch.Exception(), repl);
 
