@@ -929,6 +929,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
         obj_ptr<SeekableStream_base> stm;
         v8::Local<v8::Object> o;
         JSValue v;
+        Variant ct;
         result_t hr;
 
         ac->m_ctx.resize(5);
@@ -1001,7 +1002,8 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
                         return hr;
 
                     buf = new Buffer(s.c_str(), s.length());
-                    map->add("Content-Type", "application/x-www-form-urlencoded");
+                    if (map->get("Content-Type", ct) == CALL_RETURN_NULL)
+                        map->add("Content-Type", "application/x-www-form-urlencoded");
                 } else {
                     hr = GetArgumentValue(isolate, v, buf);
                     if (hr < 0)
@@ -1029,7 +1031,8 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
                         return hr;
 
                     stm->cc_write(buf);
-                    map->add("Content-Type", "application/msgpack");
+                    if (map->get("Content-Type", ct) == CALL_RETURN_NULL)
+                        map->add("Content-Type", "application/msgpack");
                 }
             } else {
                 obj_ptr<Buffer_base> buf;
@@ -1042,7 +1045,8 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
 
                 buf = new Buffer(s.c_str(), s.length());
                 stm->cc_write(buf);
-                map->add("Content-Type", "application/json");
+                if (map->get("Content-Type", ct) == CALL_RETURN_NULL)
+                    map->add("Content-Type", "application/json");
             }
         }
         ac->m_ctx[3] = stm;
