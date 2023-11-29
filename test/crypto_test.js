@@ -1056,6 +1056,10 @@ describe('crypto', () => {
                 new crypto.PKey('');
             });
         });
+
+        it("BUG: crash in PKey.toJSON()", () => {
+            crypto.generateKey("P-256").toJSON();
+        });
     });
 
     describe("ed25519", () => {

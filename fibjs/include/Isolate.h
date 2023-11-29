@@ -89,7 +89,7 @@ public:
     template <typename T>
     static Isolate* current(v8::Local<T> object)
     {
-        return current(object->GetCreationContextChecked());
+        return object.IsEmpty() ? current() : current(object->GetCreationContextChecked());
     }
 
     template <typename T>
