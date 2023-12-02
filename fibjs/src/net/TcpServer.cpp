@@ -44,6 +44,10 @@ result_t TcpServer_base::_new(exlib::string addr, int32_t port,
 result_t TcpServer_base::_new(exlib::string addr, Handler_base* listener,
     obj_ptr<TcpServer_base>& retVal, v8::Local<v8::Object> This)
 {
+    int32_t n = get_port(addr.c_str());
+
+    if (n >= 0)
+        return _new_tcpServer("", n, listener, retVal, This);
     return _new_tcpServer(addr, 0, listener, retVal, This);
 }
 

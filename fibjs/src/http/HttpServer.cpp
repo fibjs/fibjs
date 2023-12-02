@@ -36,6 +36,10 @@ result_t HttpServer_base::_new(exlib::string addr, int32_t port, Handler_base* h
 result_t HttpServer_base::_new(exlib::string addr, Handler_base* hdlr,
     obj_ptr<HttpServer_base>& retVal, v8::Local<v8::Object> This)
 {
+    int32_t n = get_port(addr.c_str());
+
+    if (n >= 0)
+        return _new("", n, hdlr, retVal, This);
     return _new(addr, 0, hdlr, retVal, This);
 }
 

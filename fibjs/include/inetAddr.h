@@ -131,4 +131,24 @@ union inetAddr {
     }
 };
 
+inline int32_t get_port(const char* str)
+{
+    int32_t n = 0;
+
+    if (!str)
+        return 0;
+
+    if (*str < '1' || *str > '9')
+        return -1;
+
+    n = *str++ - '0';
+    while (*str >= '0' && *str <= '9')
+        n = n * 10 + *str++ - '0';
+
+    if (*str)
+        return -1;
+
+    return n;
+}
+
 } /* namespace fibjs */
