@@ -802,6 +802,9 @@ result_t HttpHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             }
 
             if (at(read)) {
+                if (v == CALL_E_CLOSED)
+                    return next(CALL_RETURN_NULL);
+
                 m_rep->set_keepAlive(false);
                 m_rep->set_statusCode(400);
                 next(send);
