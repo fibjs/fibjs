@@ -86,6 +86,11 @@ describe('Buffer', () => {
         var buf = new Buffer({});
     });
 
+    it('new Buffer(date)', () => {
+        var data = Buffer.from(new Date("2016-03-09T07:58:57.303Z"));
+        assert.equal(new Date(data.toString()).toISOString(), "2016-03-09T07:58:57.000Z");
+    });
+
     it('isBuffer', () => {
         var buf = new Buffer("abcd");
         var str = "abcd"

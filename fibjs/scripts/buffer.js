@@ -305,25 +305,30 @@ class Buffer extends Uint8Array {
             else
                 super(allocPool, offset, bufferOrLength);
         }
-        else if (typeof bufferOrLength === 'string') {
-            var codec = byte_offset;
-            if (codec === undefined || codec === 'utf8' || codec === 'utf-8' || codec == 'ascii' || codec === 'binary') {
-                var byte_length = Buffer.byteLength(bufferOrLength, codec);
-
-                let offset = getPool(byte_length);
-                if (offset === -1)
-                    super(byte_length);
-                else
-                    super(allocPool, offset, byte_length);
-
-                this.write(bufferOrLength, codec);
-            } else
-                super(encoding.decode(bufferOrLength, codec).buffer);
-        }
         else if (bufferOrLength instanceof Uint8Array || Array.isArray(bufferOrLength))
             super(bufferOrLength);
-        else
-            super(bufferOrLength, byte_offset, byte_length);
+        else {
+            if (bufferOrLength instanceof Date)
+                bufferOrLength = bufferOrLength.toString();
+
+            if (typeof bufferOrLength === 'string') {
+                var codec = byte_offset;
+                if (codec === undefined || codec === 'utf8' || codec === 'utf-8' || codec == 'ascii' || codec === 'binary') {
+                    var byte_length = Buffer.byteLength(bufferOrLength, codec);
+
+                    let offset = getPool(byte_length);
+                    if (offset === -1)
+                        super(byte_length);
+                    else
+                        super(allocPool, offset, byte_length);
+
+                    this.write(bufferOrLength, codec);
+                } else
+                    super(encoding.decode(bufferOrLength, codec).buffer);
+            }
+            else
+                super(bufferOrLength, byte_offset, byte_length);
+        }
     }
 
     write(buf, offset, length, codec) {
