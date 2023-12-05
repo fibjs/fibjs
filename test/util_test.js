@@ -667,6 +667,10 @@ describe('util', () => {
             assert.equal(util.format('foo', 'bar', 'baz'), 'foo bar baz');
         });
 
+        it("date", () => {
+            assert.equal(util.format(new Date("2016-03-09T07:58:57.303Z")), '2016-03-09T07:58:57.303Z');
+        });
+
         it("array", () => {
             assert.equal(util.format([]), '[]');
             assert.equal(util.format(["1"]), '[\n  "1"\n]');
