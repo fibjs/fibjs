@@ -326,6 +326,25 @@ declare module 'console' {
     function alert(...args: any[]): void;
 
     /**
+     * @description 输出当前调用堆栈
+     * 
+     *      通过日志输出当前调用堆栈。
+     *      @param fmt 格式化字符串
+     *      @param args 可选参数列表
+     *      
+     */
+    function trace(fmt: string, ...args: any[]): void;
+
+    /**
+     * @description 输出当前调用堆栈
+     * 
+     *      通过日志输出当前调用堆栈。
+     *      @param args 可选参数列表
+     *      
+     */
+    function trace(...args: any[]): void;
+
+    /**
      * @description 用 JSON 格式输出对象
      * 
      *      支持以下参数:
@@ -384,15 +403,6 @@ declare module 'console' {
      *      
      */
     function timeEnd(label?: string): void;
-
-    /**
-     * @description 输出当前调用堆栈
-     * 
-     *      通过日志输出当前调用堆栈。
-     *      @param label 标题，缺省为空字符串。
-     *      
-     */
-    function trace(label?: string): void;
 
     /**
      * @description 断言测试，如果测试值为假，则报错

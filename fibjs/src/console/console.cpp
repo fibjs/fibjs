@@ -140,20 +140,6 @@ void _log(int32_t type, exlib::string fmt, OptArgs args)
     }
 }
 
-void _log(int32_t type, OptArgs args)
-{
-    int32_t level;
-
-    console_base::get_loglevel(level);
-
-    if (type <= level) {
-        exlib::string str;
-
-        util_format("", args, colors(type), str);
-        asyncLog(type, str);
-    }
-}
-
 result_t console_base::log(exlib::string fmt, OptArgs args)
 {
     _log(C_INFO, fmt, args);
@@ -162,7 +148,7 @@ result_t console_base::log(exlib::string fmt, OptArgs args)
 
 result_t console_base::log(OptArgs args)
 {
-    _log(C_INFO, args);
+    _log(C_INFO, "", args);
     return 0;
 }
 
@@ -174,7 +160,7 @@ result_t console_base::debug(exlib::string fmt, OptArgs args)
 
 result_t console_base::debug(OptArgs args)
 {
-    _log(C_DEBUG, args);
+    _log(C_DEBUG, "", args);
     return 0;
 }
 
@@ -186,7 +172,7 @@ result_t console_base::info(exlib::string fmt, OptArgs args)
 
 result_t console_base::info(OptArgs args)
 {
-    _log(C_INFO, args);
+    _log(C_INFO, "", args);
     return 0;
 }
 
@@ -198,7 +184,7 @@ result_t console_base::notice(exlib::string fmt, OptArgs args)
 
 result_t console_base::notice(OptArgs args)
 {
-    _log(C_NOTICE, args);
+    _log(C_NOTICE, "", args);
     return 0;
 }
 
@@ -210,7 +196,7 @@ result_t console_base::warn(exlib::string fmt, OptArgs args)
 
 result_t console_base::warn(OptArgs args)
 {
-    _log(C_WARN, args);
+    _log(C_WARN, "", args);
     return 0;
 }
 
@@ -222,7 +208,7 @@ result_t console_base::error(exlib::string fmt, OptArgs args)
 
 result_t console_base::error(OptArgs args)
 {
-    _log(C_ERROR, args);
+    _log(C_ERROR, "", args);
     return 0;
 }
 
@@ -234,7 +220,7 @@ result_t console_base::crit(exlib::string fmt, OptArgs args)
 
 result_t console_base::crit(OptArgs args)
 {
-    _log(C_CRIT, args);
+    _log(C_CRIT, "", args);
     return 0;
 }
 
@@ -246,8 +232,37 @@ result_t console_base::alert(exlib::string fmt, OptArgs args)
 
 result_t console_base::alert(OptArgs args)
 {
-    _log(C_ALERT, args);
+    _log(C_ALERT, "", args);
     return 0;
+}
+
+result_t console_base::trace(exlib::string fmt, OptArgs args)
+{
+    int32_t type = C_WARN;
+    int32_t level;
+
+    console_base::get_loglevel(level);
+
+    if (type <= level) {
+        exlib::string str;
+
+        util_format(fmt, args, colors(type), str);
+        if (str.empty())
+            str = "Trace";
+        else
+            str = "Trace: " + str;
+
+        str.append(1, '\n');
+        str.append(traceInfo(Isolate::current()->m_isolate, 10));
+        asyncLog(type, str);
+    }
+
+    return 0;
+}
+
+result_t console_base::trace(OptArgs args)
+{
+    return trace("", args);
 }
 
 result_t console_base::dir(v8::Local<v8::Value> obj, v8::Local<v8::Object> options)
@@ -318,19 +333,6 @@ result_t console_base::timeEnd(exlib::string label)
     return 0;
 }
 
-result_t console_base::trace(exlib::string label)
-{
-    exlib::string strBuffer;
-
-    strBuffer.append("console.trace: ", 15);
-    strBuffer.append(label);
-    strBuffer.append(1, '\n');
-    strBuffer.append(traceInfo(Isolate::current()->m_isolate, 10));
-
-    asyncLog(C_WARN, strBuffer);
-    return 0;
-}
-
 result_t console_base::_assert(v8::Local<v8::Value> value, exlib::string msg)
 {
     return assert_base::ok(value, msg);
@@ -344,7 +346,7 @@ result_t console_base::print(exlib::string fmt, OptArgs args)
 
 result_t console_base::print(OptArgs args)
 {
-    _log(C_PRINT, args);
+    _log(C_PRINT, "", args);
     return 0;
 }
 
