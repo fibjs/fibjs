@@ -34,6 +34,7 @@ public:
     virtual result_t set_id(exlib::string newVal) = 0;
     virtual result_t get_innerHTML(exlib::string& retVal) = 0;
     virtual result_t set_innerHTML(exlib::string newVal) = 0;
+    virtual result_t get_outerHTML(exlib::string& retVal) = 0;
     virtual result_t get_className(exlib::string& retVal) = 0;
     virtual result_t set_className(exlib::string newVal) = 0;
     virtual result_t get_attributes(obj_ptr<XmlNamedNodeMap_base>& retVal) = 0;
@@ -69,6 +70,7 @@ public:
     static void s_set_id(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_innerHTML(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_innerHTML(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_outerHTML(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_className(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_className(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_attributes(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -115,6 +117,7 @@ inline ClassInfo& XmlElement_base::class_info()
         { "tagName", s_get_tagName, block_set, false },
         { "id", s_get_id, s_set_id, false },
         { "innerHTML", s_get_innerHTML, s_set_innerHTML, false },
+        { "outerHTML", s_get_outerHTML, block_set, false },
         { "className", s_get_className, s_set_className, false },
         { "attributes", s_get_attributes, block_set, false }
     };
@@ -233,6 +236,18 @@ inline void XmlElement_base::s_set_innerHTML(v8::Local<v8::Name> property, v8::L
     hr = pInst->set_innerHTML(v0);
 
     PROPERTY_SET_LEAVE();
+}
+
+inline void XmlElement_base::s_get_outerHTML(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_INSTANCE(XmlElement_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_outerHTML(vr);
+
+    METHOD_RETURN();
 }
 
 inline void XmlElement_base::s_get_className(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)

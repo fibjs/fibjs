@@ -106,6 +106,7 @@ public:
     virtual result_t set_id(exlib::string newVal);
     virtual result_t get_innerHTML(exlib::string& retVal);
     virtual result_t set_innerHTML(exlib::string newVal);
+    virtual result_t get_outerHTML(exlib::string& retVal);
     virtual result_t get_className(exlib::string& retVal);
     virtual result_t set_className(exlib::string newVal);
     virtual result_t get_attributes(obj_ptr<XmlNamedNodeMap_base>& retVal);

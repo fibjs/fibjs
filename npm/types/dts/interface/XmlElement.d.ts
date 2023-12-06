@@ -38,10 +38,16 @@ declare class Class_XmlElement extends Class_XmlNode {
     id: string;
 
     /**
-     * ! 查询和设置选定元素的 HTML 文本，仅在 html 模式有效。查询时，返回元素节点内所有子节点的 HTML 编码；设置时，删除所有子节点，并用指定的 HTML 解码后替换它们。
+     * ! 查询和设置选定元素后代的 HTML 文本，仅在 html 模式有效。查询时，返回元素节点内所有子节点的 HTML 编码；设置时，删除所有子节点，并用指定的 HTML 解码后替换它们。
      *     
      */
     innerHTML: string;
+
+    /**
+     * ! 查询选定元素及其后代的 HTML 文本，仅在 html 模式有效。查询时，返回元素及节点内所有子节点的 HTML 编码。
+     *     
+     */
+    readonly outerHTML: string;
 
     /**
      * ! 查询和设置元素的 class 属性，仅在 html 模式有效
