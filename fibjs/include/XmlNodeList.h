@@ -56,7 +56,7 @@ public:
 
     void appendChild(XmlNodeImpl* newChild)
     {
-        m_childs.append(newChild);
+        m_childs.push_back(newChild);
     }
 
     bool hasChildNodes()
@@ -73,7 +73,7 @@ private:
 
 public:
     XmlNodeImpl* m_this;
-    QuickArray<XmlNodeImpl*> m_childs;
+    std::vector<XmlNodeImpl*> m_childs;
 };
 
 } /* namespace fibjs */

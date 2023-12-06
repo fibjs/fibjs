@@ -29,7 +29,11 @@ result_t XmlDocument_base::_new(exlib::string type, obj_ptr<XmlDocument_base>& r
     if (!isXml && (type != "text/html"))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    retVal = new XmlDocument(isXml);
+    obj_ptr<XmlDocument> doc = new XmlDocument(isXml);
+    retVal = doc;
+
+    if (!isXml)
+        doc->create_root();
 
     return 0;
 }
@@ -61,6 +65,13 @@ result_t xml_base::parse(Buffer_base* source, exlib::string type, obj_ptr<XmlDoc
 result_t xml_base::serialize(XmlNode_base* node, exlib::string& retVal)
 {
     return node->toString(retVal);
+}
+
+void XmlDocument::create_root()
+{
+    obj_ptr<XmlNode_base> tmp;
+    m_element = new XmlElement(this, "html", false);
+    appendChild(m_element, tmp);
 }
 
 result_t XmlDocument::get_nodeName(exlib::string& retVal)
@@ -168,7 +179,7 @@ result_t XmlDocument::checkNode(XmlNode_base* newChild)
     } else if (type == xml_base::C_DOCUMENT_TYPE_NODE) {
         if (m_doctype) {
             if (m_doctype != newChild)
-                return Runtime::setError("XmlDocument: The document node contains only one element node.");
+                return Runtime::setError("XmlDocument: The document node contains only one doctype node.");
         } else
             m_doctype = (XmlDocumentType_base*)newChild;
     }
@@ -275,7 +286,13 @@ result_t XmlDocument::normalize()
 
 result_t XmlDocument::load(exlib::string source)
 {
-    return m_isXml ? XmlParser::parse(this, source) : XmlParser::parseHtml(this, source);
+    if (m_isXml)
+        return XmlParser::parse(this, source);
+
+    m_childs->removeAll();
+    m_element.Release();
+
+    return XmlParser::parseHtml(this, source);
 }
 
 result_t XmlDocument::load(Buffer_base* source)
@@ -501,13 +518,13 @@ result_t XmlDocument::getElementsByClassName(exlib::string className, obj_ptr<Xm
     XmlElement* pEl = (XmlElement*)(XmlElement_base*)m_element;
 
     if (pEl) {
-        QuickArray<exlib::string> classNames;
+        std::vector<exlib::string> classNames;
         _parser p(className);
         exlib::string str;
 
         p.skipSpace();
         while (p.getWord(str)) {
-            classNames.append(str);
+            classNames.push_back(str);
             p.skipSpace();
         }
 

@@ -100,6 +100,8 @@ public:
         m_standalone = standalone;
     }
 
+    void create_root();
+
 private:
     result_t checkNode(XmlNode_base* newChild);
 

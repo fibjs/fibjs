@@ -302,7 +302,7 @@ result_t XmlNodeList::appendChild(XmlNode_base* newChild, obj_ptr<XmlNode_base>&
         return CHECK_ERROR(Runtime::setError("XmlNodeList: The new child element contains the parent."));
 
     pNew->setParent(m_this, (int32_t)m_childs.size());
-    m_childs.append(pNew);
+    m_childs.push_back(pNew);
 
     retVal = newChild;
     return 0;
@@ -324,7 +324,7 @@ result_t XmlNodeList::get_children(obj_ptr<XmlNodeList_base>& retVal)
     for (i = 0; i < sz; i++) {
         XmlNodeImpl* child = m_childs[i];
         if (child->m_type == xml_base::C_ELEMENT_NODE)
-            children->m_childs.append(child);
+            children->m_childs.push_back(child);
     }
 
     retVal = children;

@@ -909,6 +909,40 @@ describe('xml', () => {
     });
 
     describe("html", () => {
+        describe("documentElement", () => {
+            it("default", () => {
+                var hdoc = new xml.Document("text/html");
+                assert.equal(hdoc.documentElement.tagName, "HTML");
+            });
+
+            it("rejection appendChild", () => {
+                var hdoc = new xml.Document("text/html");
+                var e = hdoc.createElement("aaa");
+                assert.throws(() => {
+                    hdoc.appendChild(e);
+                });
+            });
+
+            it("clear after removeChild", () => {
+                var hdoc = new xml.Document("text/html");
+                hdoc.removeChild(hdoc.documentElement);
+                assert.equal(hdoc.documentElement, null);
+            });
+
+            it("clear after replaceChild", () => {
+                var hdoc = new xml.Document("text/html");
+                hdoc.replaceChild(hdoc.createElement("aaa"), hdoc.documentElement);
+                assert.equal(hdoc.documentElement.tagName, "AAA");
+            });
+
+            it("appendChild after removeChild", () => {
+                var hdoc = new xml.Document("text/html");
+                hdoc.removeChild(hdoc.documentElement);
+                hdoc.appendChild(hdoc.createElement("aaa"));
+                assert.equal(hdoc.documentElement.tagName, "AAA");
+            });
+        });
+
         it("body", () => {
             var hdoc = parseHtml("<div>");
             assert.equal(hdoc.body, hdoc.documentElement.getElementsByTagName("body")[0]);
@@ -946,6 +980,11 @@ describe('xml', () => {
             var data = new Buffer('<html><meta http-equiv=content-type content="text/html; test=111; charset=EUC-JP; ccc=222">哈哈哈哈', "EUC-JP");
             var doc = xml.parse(data, "text/html");
             assert.equal(doc.documentElement.textContent, "哈哈哈哈");
+        });
+
+        it("toString()", () => {
+            var hdoc = parseHtml("<Div>    <p>abcdef</div>");
+            assert.equal(hdoc.toString(), "<html><head/><body><div>    <p>abcdef</p></div></body></html>");
         });
     });
 });

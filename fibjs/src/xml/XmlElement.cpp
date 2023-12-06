@@ -391,7 +391,7 @@ result_t XmlElement::getElementById(exlib::string id, obj_ptr<XmlElement_base>& 
     if (id.empty())
         return CHECK_ERROR(CALL_RETURN_NULL);
 
-    QuickArray<XmlNodeImpl*>& childs = m_childs->m_childs;
+    std::vector<XmlNodeImpl*>& childs = m_childs->m_childs;
     int32_t sz = (int32_t)childs.size();
     int32_t i;
     result_t hr;
@@ -409,13 +409,13 @@ result_t XmlElement::getElementById(exlib::string id, obj_ptr<XmlElement_base>& 
 
 result_t XmlElement::getElementsByClassName(exlib::string className, obj_ptr<XmlNodeList_base>& retVal)
 {
-    QuickArray<exlib::string> classNames;
+    std::vector<exlib::string> classNames;
     _parser p(className);
     exlib::string str;
 
     p.skipSpace();
     while (p.getWord(str)) {
-        classNames.append(str);
+        classNames.push_back(str);
         p.skipSpace();
     }
 
