@@ -984,7 +984,7 @@ describe('xml', () => {
 
         it("toString()", () => {
             var hdoc = parseHtml("<Div>    <p>abcdef</div>");
-            assert.equal(hdoc.toString(), "<html><head/><body><div>    <p>abcdef</p></div></body></html>");
+            assert.equal(hdoc.toString(), "<html><head></head><body><div>    <p>abcdef</p></div></body></html>");
         });
     });
 });

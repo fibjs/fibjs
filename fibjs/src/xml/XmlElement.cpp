@@ -475,6 +475,35 @@ void XmlElement::fix_prefix(exlib::string namespaceURI, exlib::string& prefix)
     }
 }
 
+static bool is_self_closing_tag(const char* tagName)
+{
+    static const char* self_closing_tags[] = {
+        "area",
+        "base",
+        "br",
+        "col",
+        "command",
+        "embed",
+        "hr",
+        "img",
+        "input",
+        "keygen",
+        "link",
+        "meta",
+        "param",
+        "source",
+        "track",
+        "wbr",
+        NULL
+    };
+
+    for (int32_t i = 0; self_closing_tags[i]; i++)
+        if (!qstrcmp(tagName, self_closing_tags[i]))
+            return true;
+
+    return false;
+}
+
 result_t XmlElement::toString(exlib::string& retVal)
 {
     retVal = "<";
@@ -526,6 +555,13 @@ result_t XmlElement::toString(exlib::string& retVal)
         retVal.append("</");
         retVal.append(tagName);
         retVal += '>';
+    } else if (!m_isXml) {
+        retVal += '>';
+        if (!is_self_closing_tag(tagName.c_str())) {
+            retVal.append("</");
+            retVal.append(tagName);
+            retVal += '>';
+        }
     } else
         retVal.append("/>");
 
