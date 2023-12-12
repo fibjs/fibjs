@@ -7,6 +7,7 @@
 
 #include "object.h"
 #include "SandBox.h"
+#include "Lock.h"
 #include "path.h"
 
 namespace fibjs {
@@ -22,6 +23,18 @@ v8::Local<v8::Value> SandBox::get_module(v8::Local<v8::Object> mods, exlib::stri
         return m;
 
     v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(m);
+
+    v8::Local<v8::Private> strPendding = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("pendding"));
+    JSValue l = module->GetPrivate(_context, strPendding);
+    if (!l->IsUndefined()) {
+        obj_ptr<Lock_base> lock = Lock_base::getInstance(l);
+        if (lock) {
+            bool is_lock = false;
+            lock->acquire(true, is_lock);
+            lock->release();
+        }
+    }
+
     JSValue o = module->Get(_context, strExports);
     return o;
 }
@@ -62,10 +75,22 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
     v8::Local<v8::Object> _mods = mods();
     _mods->Set(_context, strModule, mod).IsJust();
 
+    obj_ptr<Lock> lock = new Lock();
+    v8::Local<v8::Private> strPendding = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("pendding"));
+    mod->SetPrivate(_context, strPendding, lock->wrap()).IsJust();
+
+    bool is_lock = false;
+    lock->acquire(true, is_lock);
+
     std::vector<ExtLoader::arg> extarg;
     hr = l->run_module(&context, script, srcname, mod, exports, extarg);
+
+    lock->release();
+    mod->DeletePrivate(_context, strPendding).IsJust();
+
     if (hr < 0) {
         // delete from modules
+        mod->Delete(_context, strExports).IsJust();
         _mods->Delete(_context, strModule).IsJust();
         return hr;
     }

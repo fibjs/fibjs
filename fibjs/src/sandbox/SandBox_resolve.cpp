@@ -13,7 +13,6 @@
 #include "path.h"
 #include "LruCache.h"
 #include "Buffer.h"
-#include "LockScope.h"
 #include "options.h"
 #include "loaders/loaders.h"
 
@@ -333,8 +332,6 @@ result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_
         path_base::normalize(base, id);
     } else
         path_base::normalize(id, id);
-
-    LockScope s(m_lock);
 
     bool isAbs;
     path_base::isAbsolute(id, isAbs);

@@ -64,8 +64,6 @@ SandBox::SandBox(bool extLoader)
 {
     Isolate* isolate = holder();
 
-    m_lock = new Lock();
-
     m_id = isolate->m_sandboxId++;
     isolate->m_sandboxes.emplace(m_id, this);
 
