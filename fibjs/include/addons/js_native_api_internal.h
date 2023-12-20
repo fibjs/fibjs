@@ -22,12 +22,12 @@
 #define CHECK_MAYBE_NOTHING(env, maybe, status) \
     RETURN_STATUS_IF_FALSE((env), !((maybe).IsNothing()), (status))
 
-#define CHECK_TO_TYPE(env, type, context, result, src, status)                    \
-    do {                                                                          \
-        CHECK_ARG((env), (src));                                                  \
-        auto maybe = v8impl::V8LocalValueFromJsValue((src))->To##type((context)); \
-        CHECK_MAYBE_EMPTY((env), maybe, (status));                                \
-        (result) = maybe.ToLocalChecked();                                        \
+#define CHECK_TO_TYPE(env, type, context, result, src, status)                      \
+    do {                                                                            \
+        CHECK_ARG((env), (src));                                                    \
+        auto maybe = v8impl::V8LocalValueFromJsValue((src)) -> To##type((context)); \
+        CHECK_MAYBE_EMPTY((env), maybe, (status));                                  \
+        (result) = maybe.ToLocalChecked();                                          \
     } while (0)
 
 #define CHECK_TO_OBJECT(env, context, result, src) \
@@ -96,12 +96,12 @@
     RETURN_STATUS_IF_FALSE_WITH_PREAMBLE( \
         (env), ((arg) != nullptr), napi_invalid_arg)
 
-#define CHECK_TO_TYPE_WITH_PREAMBLE(env, type, context, result, src, status)      \
-    do {                                                                          \
-        CHECK_ARG_WITH_PREAMBLE((env), (src));                                    \
-        auto maybe = v8impl::V8LocalValueFromJsValue((src))->To##type((context)); \
-        CHECK_MAYBE_EMPTY_WITH_PREAMBLE((env), maybe, (status));                  \
-        (result) = maybe.ToLocalChecked();                                        \
+#define CHECK_TO_TYPE_WITH_PREAMBLE(env, type, context, result, src, status)        \
+    do {                                                                            \
+        CHECK_ARG_WITH_PREAMBLE((env), (src));                                      \
+        auto maybe = v8impl::V8LocalValueFromJsValue((src)) -> To##type((context)); \
+        CHECK_MAYBE_EMPTY_WITH_PREAMBLE((env), maybe, (status));                    \
+        (result) = maybe.ToLocalChecked();                                          \
     } while (0)
 
 #define CHECK_TO_OBJECT_WITH_PREAMBLE(env, context, result, src) \
@@ -325,9 +325,11 @@ public:
 
 struct napi_env__ {
     explicit napi_env__(v8::Local<v8::Context> context,
+        const std::string& module_filename,
         int32_t module_api_version)
         : isolate(context->GetIsolate())
         , context_persistent(isolate, context)
+        , filename(module_filename)
         , module_api_version(module_api_version)
     {
         napi_clear_last_error(this);
@@ -428,9 +430,13 @@ struct napi_env__ {
         delete this;
     }
 
+    inline const char* GetFilename() const { return filename.c_str(); }
+
     void CheckGCAccess()
     {
     }
+
+    std::string filename;
 
     v8::Isolate* const isolate; // Shortcut for context()->GetIsolate()
     v8impl::Persistent<v8::Context> context_persistent;

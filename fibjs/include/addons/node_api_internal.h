@@ -66,9 +66,35 @@ namespace node {
 typedef fibjs::Isolate Environment;
 
 template <typename Fn>
-inline int32_t OnScopeLeave(Fn&& fn)
+struct OnScopeLeaveImpl {
+    Fn fn_;
+    bool active_;
+
+    explicit OnScopeLeaveImpl(Fn&& fn)
+        : fn_(std::move(fn))
+        , active_(true)
+    {
+    }
+    ~OnScopeLeaveImpl()
+    {
+        if (active_)
+            fn_();
+    }
+
+    OnScopeLeaveImpl(const OnScopeLeaveImpl& other) = delete;
+    OnScopeLeaveImpl& operator=(const OnScopeLeaveImpl& other) = delete;
+    OnScopeLeaveImpl(OnScopeLeaveImpl&& other)
+        : fn_(std::move(other.fn_))
+        , active_(other.active_)
+    {
+        other.active_ = false;
+    }
+};
+
+template <typename Fn>
+inline OnScopeLeaveImpl<Fn> OnScopeLeave(Fn&& fn)
 {
-    return 0;
+    return OnScopeLeaveImpl<Fn> { std::move(fn) };
 }
 
 struct AssertionInfo {

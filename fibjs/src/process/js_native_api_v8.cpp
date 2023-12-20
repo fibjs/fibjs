@@ -74,7 +74,7 @@ void napi_env__::InvokeFinalizerFromGC(v8impl::RefTracker* finalizer)
         // objects as soon as possible. In that state any code that may affect GC
         // state causes a fatal error. To work around this issue the finalizer code
         // can call node_api_post_finalizer.
-        node::OnScopeLeave([this, saved = in_gc_finalizer] { in_gc_finalizer = saved; });
+        auto restore_state = node::OnScopeLeave([this, saved = in_gc_finalizer] { in_gc_finalizer = saved; });
         in_gc_finalizer = true;
         finalizer->Finalize();
     }
@@ -2166,52 +2166,6 @@ napi_status NAPI_CDECL napi_call_function(napi_env env,
         }
         return napi_clear_last_error(env);
     }
-}
-
-napi_status NAPI_CDECL napi_make_callback(napi_env env,
-    napi_async_context async_context,
-    napi_value recv,
-    napi_value func,
-    size_t argc,
-    const napi_value* argv,
-    napi_value* result)
-{
-    NAPI_PREAMBLE(env);
-    CHECK_ARG(env, recv);
-    if (argc > 0) {
-        CHECK_ARG(env, argv);
-    }
-
-    CHECK_NULL(async_context);
-
-    v8::Local<v8::Context> context = env->context();
-
-    v8::Local<v8::Object> v8recv;
-    CHECK_TO_OBJECT(env, context, v8recv, recv);
-
-    v8::Local<v8::Function> v8func;
-    CHECK_TO_FUNCTION(env, v8func, func);
-
-    v8::MaybeLocal<v8::Value> callback_result;
-
-    callback_result = node::MakeCallback(
-        env->isolate,
-        v8recv,
-        v8func,
-        argc,
-        reinterpret_cast<v8::Local<v8::Value>*>(const_cast<napi_value*>(argv)),
-        { 0, 0 });
-
-    if (try_catch.HasCaught()) {
-        return napi_set_last_error(env, napi_pending_exception);
-    } else {
-        CHECK_MAYBE_EMPTY(env, callback_result, napi_generic_failure);
-        if (result != nullptr) {
-            *result = v8impl::JsValueFromV8LocalValue(callback_result.ToLocalChecked());
-        }
-    }
-
-    return GET_RETURN_STATUS(env);
 }
 
 napi_status NAPI_CDECL napi_get_global(napi_env env, napi_value* result)
