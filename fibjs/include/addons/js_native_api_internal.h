@@ -4,9 +4,21 @@
 #include <limits.h>
 #include <uv/include/uv.h>
 
+#ifndef NAPI_EXTERN
+#ifdef _WIN32
+#define NAPI_EXTERN __declspec(dllexport)
+#elif defined(__wasm__)
+#define NAPI_EXTERN                        \
+    __attribute__((visibility("default"))) \
+    __attribute__((__import_module__("napi")))
+#else
+#define NAPI_EXTERN __attribute__((visibility("default"))) __attribute__((used))
+#endif
+#endif
+
 #define NAPI_EXPERIMENTAL
-#include "js_native_api.h"
-#include "node_api.h"
+#include "node_api/js_native_api.h"
+#include "node_api/node_api.h"
 #include "node_api_internal.h"
 
 #define CHECK_ENV(env)               \

@@ -24,7 +24,7 @@
 #include <uv/include/uv/version.h>
 #include <unicode/uvernum.h>
 #include <msgpack/version.hpp>
-#include "addons/node_version.h"
+#include "addons/node_api/node_version.h"
 
 #ifdef Linux
     #define _GNU_SOURCE

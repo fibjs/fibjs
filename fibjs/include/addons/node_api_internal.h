@@ -3,7 +3,7 @@
 #include "object.h"
 #include "Buffer.h"
 #include "Fiber.h"
-#include "node_version.h"
+#include "node_api/node_version.h"
 
 #ifdef __GNUC__
 #define LIKELY(expr) __builtin_expect(!!(expr), 1)
