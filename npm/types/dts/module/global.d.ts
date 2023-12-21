@@ -228,7 +228,7 @@ declare module 'global' {
     /**
      * @description 强制要求进行垃圾回收
      */
-    function GC(): void;
+    function gc(): void;
 
 }
 

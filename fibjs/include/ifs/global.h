@@ -43,7 +43,7 @@ public:
     static result_t clearImmediate(v8::Local<v8::Value> t);
     static result_t btoa(Buffer_base* data, bool url, exlib::string& retVal);
     static result_t atob(exlib::string data, obj_ptr<Buffer_base>& retVal);
-    static result_t GC();
+    static result_t gc();
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -69,7 +69,7 @@ public:
     static void s_static_clearImmediate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_btoa(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_atob(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_GC(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_gc(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -98,7 +98,7 @@ inline ClassInfo& global_base::class_info()
         { "clearImmediate", s_static_clearImmediate, true, false },
         { "btoa", s_static_btoa, true, false },
         { "atob", s_static_atob, true, false },
-        { "GC", s_static_GC, true, false }
+        { "gc", s_static_gc, true, false }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -327,13 +327,13 @@ inline void global_base::s_static_atob(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_RETURN();
 }
 
-inline void global_base::s_static_GC(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void global_base::s_static_gc(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
 
     METHOD_OVER(0, 0);
 
-    hr = GC();
+    hr = gc();
 
     METHOD_VOID();
 }

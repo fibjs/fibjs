@@ -22,7 +22,7 @@ result_t global_base::get_globalThis(v8::Local<v8::Object>& retVal)
     return 0;
 }
 
-result_t global_base::GC()
+result_t global_base::gc()
 {
     Isolate::current()->m_isolate->LowMemoryNotification();
     return 0;

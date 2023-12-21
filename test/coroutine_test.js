@@ -92,9 +92,9 @@ describe('coroutine', () => {
             assert.equal(n, 1300);
         });
 
-        it('do not recycle fiber objects during GC', () => {
+        it('do not recycle fiber objects during gc', () => {
             coroutine.current().v = 100;
-            GC();
+            gc();
             assert.equal(coroutine.current().v, 100);
         });
 

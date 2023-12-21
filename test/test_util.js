@@ -43,7 +43,7 @@ exports.gc = () => {
     var t1 = new Date();
     while (new Date() - t1 < 1000) {
         coroutine.sleep(1);
-        GC();
+        gc();
     }
 }
 

@@ -272,7 +272,7 @@ describe('addons api', () => {
         assert.strictEqual(binding.newExternalBuffer().toString(), binding.theText);
 
         assert.strictEqual(binding.getDeleterCallCount(), 0);
-        GC();
+        gc();
         assert.strictEqual(binding.getDeleterCallCount(), 1);
         assert.strictEqual(binding.copyBuffer().toString(), binding.theText);
 
@@ -284,7 +284,7 @@ describe('addons api', () => {
 
         buffer = null;
         assert.strictEqual(binding.getDeleterCallCount(), 1);
-        GC();
+        gc();
         assert.strictEqual(binding.getDeleterCallCount(), 2);
 
     });
@@ -895,7 +895,7 @@ describe('addons api', () => {
         // let tracked_function = test_function.MakeTrackedFunction(common.mustCall());
         // assert(!!tracked_function);
         // tracked_function = null;
-        global.GC();
+        gc();
 
         assert.deepEqual(test_function.TestCreateFunctionParameters(), {
             envIsNull: 'Invalid argument',
@@ -1976,7 +1976,7 @@ describe('addons api', () => {
         for (let i = 0; i < 1000; i++) {
             const wrapObject = new Object();
             test_reference.validateDeleteBeforeFinalize(wrapObject);
-            global.GC();
+            gc();
         }
     });
 
