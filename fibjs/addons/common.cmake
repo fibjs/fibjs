@@ -8,7 +8,7 @@ file(GLOB src_list "*.c*" "../*.c*")
 add_library(${name} SHARED ${src_list})
 
 include_directories(
-    "${PROJECT_SOURCE_DIR}/../../include/addons"
+    "${PROJECT_SOURCE_DIR}/../../include/addons/node_api"
     "${PROJECT_SOURCE_DIR}/../../../vender/uv/include"
     "${PROJECT_SOURCE_DIR}/../"
     "${CMAKE_CURRENT_BINARY_DIR}")
