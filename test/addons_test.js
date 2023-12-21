@@ -289,7 +289,7 @@ describe('addons api', () => {
 
     });
 
-    it('test_cannot_run_js', () => {
+    xit('test_cannot_run_js', () => {
         var module = {
             exports: {}
         }

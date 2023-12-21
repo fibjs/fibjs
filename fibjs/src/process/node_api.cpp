@@ -7,6 +7,108 @@
 
 #include "addons/js_native_api_internal.h"
 
+node_napi_env__::node_napi_env__(v8::Local<v8::Context> context,
+    const std::string& module_filename,
+    int32_t module_api_version)
+    : napi_env__(context, module_api_version)
+    , filename(module_filename)
+{
+    CHECK_NOT_NULL(node_env());
+}
+
+void node_napi_env__::DeleteMe()
+{
+    destructing = true;
+    DrainFinalizerQueue();
+    napi_env__::DeleteMe();
+}
+
+bool node_napi_env__::can_call_into_js() const
+{
+    return node_env()->can_call_into_js();
+}
+
+void node_napi_env__::CallFinalizer(napi_finalize cb, void* data, void* hint)
+{
+    CallFinalizer<true>(cb, data, hint);
+}
+
+template <bool enforceUncaughtExceptionPolicy>
+void node_napi_env__::CallFinalizer(napi_finalize cb, void* data, void* hint)
+{
+    v8::HandleScope handle_scope(isolate);
+    v8::Context::Scope context_scope(context());
+    CallbackIntoModule<enforceUncaughtExceptionPolicy>(
+        [&](napi_env env) { cb(env, data, hint); });
+}
+
+void node_napi_env__::EnqueueFinalizer(v8impl::RefTracker* finalizer)
+{
+    napi_env__::EnqueueFinalizer(finalizer);
+    // Schedule a second pass only when it has not been scheduled, and not
+    // destructing the env.
+    // When the env is being destructed, queued finalizers are drained in the
+    // loop of `node_napi_env__::DrainFinalizerQueue`.
+    if (!finalization_scheduled && !destructing) {
+        finalization_scheduled = true;
+        Ref();
+        node_env()->SetImmediate([this](node::Environment* node_env) {
+            finalization_scheduled = false;
+            Unref();
+            DrainFinalizerQueue();
+        });
+    }
+}
+
+void node_napi_env__::DrainFinalizerQueue()
+{
+    // As userland code can delete additional references in one finalizer,
+    // the list of pending finalizers may be mutated as we execute them, so
+    // we keep iterating it until it is empty.
+    while (!pending_finalizers.empty()) {
+        v8impl::RefTracker* ref_tracker = *pending_finalizers.begin();
+        pending_finalizers.erase(ref_tracker);
+        ref_tracker->Finalize();
+    }
+}
+
+void node_napi_env__::trigger_fatal_exception(v8::Local<v8::Value> local_err)
+{
+    v8::Local<v8::Message> local_msg = v8::Exception::CreateMessage(isolate, local_err);
+    node::errors::TriggerUncaughtException(isolate, local_err, local_msg);
+}
+
+// The option enforceUncaughtExceptionPolicy is added for not breaking existing
+// running Node-API add-ons.
+template <bool enforceUncaughtExceptionPolicy, typename T>
+void node_napi_env__::CallbackIntoModule(T&& call)
+{
+    CallIntoModule(call, [](napi_env env_, v8::Local<v8::Value> local_err) {
+        node_napi_env__* env = static_cast<node_napi_env__*>(env_);
+        if (env->terminatedOrTerminating()) {
+            return;
+        }
+        node::Environment* node_env = env->node_env();
+        // If the module api version is less than NAPI_VERSION_EXPERIMENTAL,
+        // and the option --force-node-api-uncaught-exceptions-policy is not
+        // specified, emit a warning about the uncaught exception instead of
+        // triggering uncaught exception event.
+        // if (env->module_api_version < NAPI_VERSION_EXPERIMENTAL && !node_env->options()->force_node_api_uncaught_exceptions_policy && !enforceUncaughtExceptionPolicy) {
+        //     ProcessEmitDeprecationWarning(
+        //         node_env,
+        //         "Uncaught N-API callback exception detected, please run node "
+        //         "with option --force-node-api-uncaught-exceptions-policy=true "
+        //         "to handle those exceptions properly.",
+        //         "DEP0168");
+        //     return;
+        // }
+        // If there was an unhandled exception in the complete callback,
+        // report it as a fatal exception. (There is no JavaScript on the
+        // call stack that can possibly handle it.)
+        env->trigger_fatal_exception(local_err);
+    });
+}
+
 namespace v8impl {
 
 namespace {
@@ -65,6 +167,38 @@ namespace {
         error_message += ", but this version of Node.js only supports version ";
         error_message += NODE_STRINGIFY(NODE_API_SUPPORTED_VERSION_MAX) " add-ons.";
         node_env->ThrowError(error_message.c_str());
+    }
+
+    inline napi_env NewEnv(v8::Local<v8::Context> context,
+        const std::string& module_filename,
+        int32_t module_api_version)
+    {
+        node_napi_env result;
+
+        // Validate module_api_version.
+        if (module_api_version < NODE_API_DEFAULT_MODULE_API_VERSION) {
+            module_api_version = NODE_API_DEFAULT_MODULE_API_VERSION;
+        } else if (module_api_version > NODE_API_SUPPORTED_VERSION_MAX && module_api_version != NAPI_VERSION_EXPERIMENTAL) {
+            node::Environment* node_env = node::Environment::GetCurrent(context);
+            CHECK_NOT_NULL(node_env);
+            ThrowNodeApiVersionError(
+                node_env, module_filename.c_str(), module_api_version);
+            return nullptr;
+        }
+
+        result = new node_napi_env__(context, module_filename, module_api_version);
+        // TODO(addaleax): There was previously code that tried to delete the
+        // napi_env when its v8::Context was garbage collected;
+        // However, as long as N-API addons using this napi_env are in place,
+        // the Context needs to be accessible and alive.
+        // Ideally, we'd want an on-addon-unload hook that takes care of this
+        // once all N-API addons using this napi_env are unloaded.
+        // For now, a per-Environment cleanup hook is the best we can do.
+        result->node_env()->AddCleanupHook(
+            [](void* arg) { static_cast<napi_env>(arg)->Unref(); },
+            static_cast<void*>(result));
+
+        return result;
     }
 
 } // end of anonymous namespace
@@ -158,7 +292,7 @@ void napi_module_register_by_symbol(v8::Local<v8::Object> exports,
     // }
 
     // Create a new napi_env for this specific module.
-    napi_env env = new napi_env__(context, module_filename, module_api_version);
+    napi_env env = v8impl::NewEnv(context, module_filename, module_api_version);
 
     napi_value _exports = nullptr;
     env->CallIntoModule([&](napi_env env) {
