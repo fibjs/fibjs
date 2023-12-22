@@ -19,6 +19,7 @@
 #define NAPI_EXPERIMENTAL
 #include "node_api/js_native_api.h"
 #include "node_api/node_api.h"
+#include "node_mutex.h"
 #include "node_api_internal.h"
 #include "util.h"
 #include "js_native_api_v8_internals.h"
