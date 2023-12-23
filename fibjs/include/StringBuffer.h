@@ -31,7 +31,7 @@ public:
                 s = m_array[0];
             else {
                 s.resize(m_size);
-                char* _s = s.c_buffer();
+                char* _s = s.data();
 
                 for (i = 0; i < (int32_t)m_array.size(); i++) {
                     exlib::string& s1 = m_array[i];

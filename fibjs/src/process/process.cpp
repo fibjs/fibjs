@@ -158,7 +158,7 @@ result_t process_base::umask(exlib::string mask, int32_t& retVal)
     int oct = 0;
     // Parse the octal string.
     for (size_t i = 0; i < mask.length(); i++) {
-        char c = mask[i];
+        char c = mask.c_str()[i];
 
         if (c > '7' || c < '0')
             return CHECK_ERROR(Runtime::setError("process: invalid octal string"));

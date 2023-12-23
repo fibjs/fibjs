@@ -103,7 +103,7 @@ private:
             }
 
             int len = (int)origin.length();
-            if (len > 0 && origin[len - 1] == '/')
+            if (len > 0 && origin.c_str()[len - 1] == '/')
                 origin.resize(len - 1);
 
             result_t hr = fs_base::cc_openFile(origin, "r", m_file, Isolate::main());

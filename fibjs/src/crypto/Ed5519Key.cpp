@@ -267,8 +267,8 @@ static int write_key(mbedtls_pk_context& ctx, exlib::string& buf)
     int32_t id = ecp->grp.id;
 
     buf.resize(ed25519_public_key_size + sizeof(s_der_priv_lead));
-    memcpy(buf.c_buffer(), id == MBEDTLS_ECP_DP_ED25519 ? s_der_priv_lead : s_der_priv_lead_x, sizeof(s_der_priv_lead));
-    mbedtls_mpi_write_binary(&ecp->d, (unsigned char*)buf.c_buffer() + sizeof(s_der_priv_lead), ed25519_public_key_size);
+    memcpy(buf.data(), id == MBEDTLS_ECP_DP_ED25519 ? s_der_priv_lead : s_der_priv_lead_x, sizeof(s_der_priv_lead));
+    mbedtls_mpi_write_binary(&ecp->d, (unsigned char*)buf.data() + sizeof(s_der_priv_lead), ed25519_public_key_size);
     return 0;
 }
 
@@ -278,8 +278,8 @@ static int write_pub_key(mbedtls_pk_context& ctx, exlib::string& buf)
     int32_t id = ecp->grp.id;
 
     buf.resize(ed25519_public_key_size + sizeof(s_der_pub_lead));
-    memcpy(buf.c_buffer(), id == MBEDTLS_ECP_DP_ED25519 ? s_der_pub_lead : s_der_pub_lead_x, sizeof(s_der_pub_lead));
-    mbedtls_mpi_write_binary(&ecp->Q.X, (unsigned char*)buf.c_buffer() + sizeof(s_der_pub_lead), ed25519_public_key_size);
+    memcpy(buf.data(), id == MBEDTLS_ECP_DP_ED25519 ? s_der_pub_lead : s_der_pub_lead_x, sizeof(s_der_pub_lead));
+    mbedtls_mpi_write_binary(&ecp->Q.X, (unsigned char*)buf.data() + sizeof(s_der_pub_lead), ed25519_public_key_size);
     return 0;
 }
 
@@ -295,11 +295,11 @@ result_t Ed25519Key::pem(exlib::string& retVal)
     if (mbedtls_mpi_cmp_int(&ecp->d, 0)) {
         write_key(m_key, der_buf);
         ret = mbedtls_pem_write_buffer(PEM_BEGIN_PRIVATE_KEY "\n", PEM_END_PRIVATE_KEY "\n",
-            (const unsigned char*)der_buf.c_str(), der_buf.length(), (unsigned char*)retVal.c_buffer(), retVal.length(), &olen);
+            (const unsigned char*)der_buf.c_str(), der_buf.length(), (unsigned char*)retVal.data(), retVal.length(), &olen);
     } else {
         write_pub_key(m_key, der_buf);
         ret = mbedtls_pem_write_buffer(PEM_BEGIN_PUBLIC_KEY "\n", PEM_END_PUBLIC_KEY "\n",
-            (const unsigned char*)der_buf.c_str(), der_buf.length(), (unsigned char*)retVal.c_buffer(), retVal.length(), &olen);
+            (const unsigned char*)der_buf.c_str(), der_buf.length(), (unsigned char*)retVal.data(), retVal.length(), &olen);
     }
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
@@ -380,7 +380,7 @@ result_t Ed25519Key::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr
     Buffer* buf_data = Buffer::Cast(data);
 
     sig.resize(ed25519_signature_size);
-    ed25519_SignMessage((unsigned char*)sig.c_buffer(), sk, NULL, buf_data->data(), buf_data->length());
+    ed25519_SignMessage((unsigned char*)sig.data(), sk, NULL, buf_data->data(), buf_data->length());
 
     if (ac->m_ctx[0].string() == "der") {
         hr = bin2der(sig, sig);

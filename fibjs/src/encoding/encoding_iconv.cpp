@@ -107,7 +107,7 @@ result_t encoding_iconv::encode(exlib::string data, exlib::string& retVal)
     if (_sz) {
         retVal.resize(_sz);
         errorCode = U_ZERO_ERROR;
-        ucnv_convert(m_charset.c_str(), "utf-8", retVal.c_buffer(), _sz, data.c_str(), data.length(), &errorCode);
+        ucnv_convert(m_charset.c_str(), "utf-8", retVal.data(), _sz, data.c_str(), data.length(), &errorCode);
         return 0;
     }
 
@@ -123,7 +123,7 @@ result_t encoding_iconv::encode(exlib::string data, exlib::string& retVal)
     size_t sz = data.length();
 
     retVal.resize(sz * 2);
-    char* output_buf = retVal.c_buffer();
+    char* output_buf = retVal.data();
     size_t output_size = retVal.length();
 
     size_t n = iconv((iconv_t)m_iconv_en, &_data, &sz, &output_buf, &output_size);
@@ -166,7 +166,7 @@ result_t encoding_iconv::decode(const char* data, size_t sz, exlib::string& retV
     if (_sz) {
         retVal.resize(_sz);
         errorCode = U_ZERO_ERROR;
-        ucnv_convert("utf-8", m_charset.c_str(), retVal.c_buffer(), _sz, data, sz, &errorCode);
+        ucnv_convert("utf-8", m_charset.c_str(), retVal.data(), _sz, data, sz, &errorCode);
         return 0;
     }
 
@@ -181,7 +181,7 @@ result_t encoding_iconv::decode(const char* data, size_t sz, exlib::string& retV
     exlib::string strBuf;
 
     strBuf.resize(sz * 2);
-    char* output_buf = strBuf.c_buffer();
+    char* output_buf = strBuf.data();
     size_t output_size = strBuf.length();
 
     size_t n = iconv((iconv_t)m_iconv_de, &data, &sz, &output_buf, &output_size);

@@ -126,7 +126,7 @@ void DgramSocket::on_alloc(uv_handle_t* handle, size_t suggested_size, uv_buf_t*
     DgramSocket* pThis = container_of(handle, DgramSocket, m_handle);
 
     pThis->m_buf.resize(suggested_size);
-    *buf = uv_buf_init(pThis->m_buf.c_buffer(), (int32_t)pThis->m_buf.length());
+    *buf = uv_buf_init(pThis->m_buf.data(), (int32_t)pThis->m_buf.length());
 }
 
 void DgramSocket::on_recv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf, const struct sockaddr* addr, unsigned flags)

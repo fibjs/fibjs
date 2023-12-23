@@ -24,7 +24,7 @@ result_t js_Loader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::stri
     const char* c_str = strScript.c_str();
 
     if (strScript.length() > 2 && c_str[0] == '#' && c_str[1] == '!') {
-        char* _strScript = strScript.c_buffer();
+        char* _strScript = strScript.data();
         _strScript[0] = '/';
         _strScript[1] = '/';
     }

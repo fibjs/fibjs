@@ -126,7 +126,7 @@ result_t encoding_iconv::ucs_encode(exlib::string data, exlib::string& retVal)
         const exlib::wchar* s = wdata.c_str();
 
         retVal.resize(sz);
-        char* s1 = retVal.c_buffer();
+        char* s1 = retVal.data();
         for (size_t i = 0; i < sz; i++)
             *s1++ = (char)*s++;
         return 0;
@@ -135,7 +135,7 @@ result_t encoding_iconv::ucs_encode(exlib::string data, exlib::string& retVal)
     if (is_ucs2(m_charset)) {
         ssize_t n = utf_convert(data.c_str(), data.length(), (exlib::wchar*)NULL, 0);
         retVal.resize(n * sizeof(exlib::wchar));
-        utf_convert(data.c_str(), data.length(), (exlib::wchar*)retVal.c_buffer(), n);
+        utf_convert(data.c_str(), data.length(), (exlib::wchar*)retVal.data(), n);
 
         return 0;
     }
@@ -143,7 +143,7 @@ result_t encoding_iconv::ucs_encode(exlib::string data, exlib::string& retVal)
     if (is_ucs4(m_charset)) {
         ssize_t n = utf_convert(data.c_str(), data.length(), (exlib::wchar32*)NULL, 0);
         retVal.resize(n * sizeof(exlib::wchar32));
-        utf_convert(data.c_str(), data.length(), (exlib::wchar32*)retVal.c_buffer(), n);
+        utf_convert(data.c_str(), data.length(), (exlib::wchar32*)retVal.data(), n);
 
         return 0;
     }
@@ -151,7 +151,7 @@ result_t encoding_iconv::ucs_encode(exlib::string data, exlib::string& retVal)
     if (is_ucs2_s(m_charset)) {
         ssize_t n = utf_convert_s(data.c_str(), data.length(), (exlib::wchar*)NULL, 0);
         retVal.resize(n * sizeof(exlib::wchar));
-        utf_convert_s(data.c_str(), data.length(), (exlib::wchar*)retVal.c_buffer(), n);
+        utf_convert_s(data.c_str(), data.length(), (exlib::wchar*)retVal.data(), n);
 
         return 0;
     }
@@ -159,7 +159,7 @@ result_t encoding_iconv::ucs_encode(exlib::string data, exlib::string& retVal)
     if (is_ucs4_s(m_charset)) {
         ssize_t n = utf_convert_s(data.c_str(), data.length(), (exlib::wchar32*)NULL, 0);
         retVal.resize(n * sizeof(exlib::wchar32));
-        utf_convert_s(data.c_str(), data.length(), (exlib::wchar32*)retVal.c_buffer(), n);
+        utf_convert_s(data.c_str(), data.length(), (exlib::wchar32*)retVal.data(), n);
 
         return 0;
     }
@@ -177,7 +177,7 @@ result_t encoding_iconv::ucs_decode(const char* data, size_t sz, exlib::string& 
     if ((m_charset == "binary") || (m_charset == "latin1")) {
         exlib::wstring wdata;
         wdata.resize(sz);
-        exlib::wchar* s1 = wdata.c_buffer();
+        exlib::wchar* s1 = wdata.data();
         for (size_t i = 0; i < sz; i++)
             *s1++ = *data++;
 

@@ -56,9 +56,9 @@ public:
             m_retVal.append(strLine);
         }
 
-        if (qisdigit(strLine[0]) && qisdigit(strLine[1]) && qisdigit(strLine[2])
-            && strLine[3] == ' ') {
-            if (strLine[0] == '5')
+        if (qisdigit(strLine.c_str()[0]) && qisdigit(strLine.c_str()[1]) && qisdigit(strLine.c_str()[2])
+            && strLine.c_str()[3] == ' ') {
+            if (strLine.c_str()[0] == '5')
                 return CHECK_ERROR(Runtime::setError(strLine));
 
             return recv_ok();

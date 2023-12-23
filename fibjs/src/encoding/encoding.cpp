@@ -27,7 +27,7 @@ static void hexEncode(const char* data, size_t sz, bool upper, exlib::string& re
     size_t i;
 
     retVal.resize(sz * 2);
-    char* _retVal = retVal.c_buffer();
+    char* _retVal = retVal.data();
 
     for (i = 0; i < sz; i++) {
         unsigned char ch = (unsigned char)data[i];
@@ -57,7 +57,7 @@ static void hexDecode(const char* _data, int32_t len, exlib::string& retVal)
     unsigned char ch1, ch2;
 
     strBuf.resize(len / 2);
-    char* _strBuf = strBuf.c_buffer();
+    char* _strBuf = strBuf.data();
 
     pos = 0;
     while ((_data < end - 1) && (ch1 = (unsigned char)*_data++)) {
@@ -111,7 +111,7 @@ static void baseEncode(const char* pEncodingTable, size_t dwBits,
         dwSize = (sz + 4) / 5 * 8;
 
     retVal.resize(dwSize);
-    char* _retVal = retVal.c_buffer();
+    char* _retVal = retVal.data();
 
     for (i = 0; i < sz; i++) {
         dwData <<= 8;
@@ -141,7 +141,7 @@ static void baseDecode(const char* pdecodeTable, size_t dwBits,
     const char* end = _baseString + len;
 
     retVal.resize(len * dwBits / 8);
-    char* _retVal = retVal.c_buffer();
+    char* _retVal = retVal.data();
 
     size_t dwCurr = 0;
     size_t nBits = 0;
@@ -276,7 +276,7 @@ static void base58Encode(const char* data, size_t sz, exlib::string& retVal)
     size_t b58sz = (size_t)(sz * 8 / log2l(58) + 2);
 
     retVal.resize(b58sz);
-    b58enc(retVal.c_buffer(), &b58sz, data, sz);
+    b58enc(retVal.data(), &b58sz, data, sz);
     retVal.resize(b58sz - 1);
 }
 
@@ -294,7 +294,7 @@ result_t base58_base::encode(Buffer_base* data, int32_t chk_ver, exlib::string& 
     size_t b58sz = (size_t)((buf->length() + 5) * 8 / log2l(58) + 2);
 
     retVal.resize(b58sz);
-    b58check_enc(retVal.c_buffer(), &b58sz, chk_ver, buf->data(), buf->length());
+    b58check_enc(retVal.data(), &b58sz, chk_ver, buf->data(), buf->length());
     retVal.resize(b58sz - 1);
 
     return 0;
@@ -306,7 +306,7 @@ static result_t base58Decode(const char* data, size_t sz, exlib::string& retVal)
     exlib::string buffer;
 
     buffer.resize(binsz);
-    if (!b58tobin(buffer.c_buffer(), &binsz, data, sz))
+    if (!b58tobin(buffer.data(), &binsz, data, sz))
         return CHECK_ERROR(Runtime::setError("base58: encode error."));
     if (binsz < buffer.length())
         buffer = buffer.substr(buffer.length() - binsz);
@@ -339,7 +339,7 @@ result_t base58_base::decode(exlib::string data, int32_t chk_ver, obj_ptr<Buffer
     exlib::string buffer;
 
     buffer.resize(binsz);
-    if (!b58tobin(buffer.c_buffer(), &binsz, data.c_str(), data.length()))
+    if (!b58tobin(buffer.data(), &binsz, data.c_str(), data.length()))
         return CHECK_ERROR(Runtime::setError("base58: decode error."));
     if (b58check(buffer.c_str() + buffer.length() - binsz, binsz, data.c_str(), data.length()) != chk_ver)
         return CHECK_ERROR(Runtime::setError("base58: check error."));
@@ -372,7 +372,7 @@ result_t commonEncode(exlib::string codec, const char* data, size_t sz, exlib::s
 
             retVal.resize(sz);
 
-            char* _retVal = retVal.c_buffer();
+            char* _retVal = retVal.data();
 
             for (i = 0; i < sz; i++)
                 _retVal[i] = data[i] & 0x7f;
@@ -411,10 +411,10 @@ result_t commonDecode(exlib::string codec, exlib::string data, exlib::string& re
 
             retVal.resize(sz);
 
-            char* _retVal = retVal.c_buffer();
+            char* _retVal = retVal.data();
 
             for (i = 0; i < sz; i++)
-                _retVal[i] = data[i] & 0x7f;
+                _retVal[i] = data.c_str()[i] & 0x7f;
         } else
             return encoding_iconv(codec).encode(data, retVal);
     }
@@ -505,7 +505,7 @@ result_t encoding_base::encode(Buffer_base* data, exlib::string codec, exlib::st
 
             retVal.resize(sz);
 
-            char* _retVal = retVal.c_buffer();
+            char* _retVal = retVal.data();
 
             for (i = 0; i < sz; i++)
                 _retVal[i] = p[i] & 0x7f;

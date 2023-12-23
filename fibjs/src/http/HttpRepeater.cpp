@@ -140,7 +140,7 @@ result_t HttpRepeater::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                 pThis->m_idx = 0;
             pThis->m_lock.unlock();
 
-            if (!isUrlSlash(v[0]))
+            if (!isUrlSlash(v.c_str()[0]))
                 u->m_pathname.append(1, '/');
 
             u->m_pathname.append(v);

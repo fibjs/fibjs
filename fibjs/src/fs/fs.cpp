@@ -294,7 +294,7 @@ result_t fs_base::read(FileHandle_base* fd, Buffer_base* buffer, int32_t offset,
     if (length > 0) {
         strBuf.resize(length);
         int32_t sz = length;
-        char* p = strBuf.c_buffer();
+        char* p = strBuf.data();
 
         while (sz) {
             int32_t n = (int32_t)::_read(_fd, p, sz > STREAM_BUFF_SIZE ? STREAM_BUFF_SIZE : sz);

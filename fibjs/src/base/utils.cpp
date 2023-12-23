@@ -16,7 +16,7 @@ static exlib::string fmtString(result_t hr, const char* str, int32_t len = -1)
         len = (int32_t)qstrlen(str);
 
     s.resize(len + 16);
-    s.resize(snprintf(s.c_buffer(), len + 17, "[%d] %s", hr, str));
+    s.resize(snprintf(s.data(), len + 17, "[%d] %s", hr, str));
 
     return s;
 }
@@ -128,7 +128,7 @@ exlib::string getResultMessage(result_t hr)
         exlib::string s = fmtString(hr, UTF8_A(MsgBuf));
         size_t sz = s.length();
 
-        if (sz > 0 && s[sz - 1] == '\n')
+        if (sz > 0 && s.c_str()[sz - 1] == '\n')
             s.resize(sz - 1);
         return s;
     }

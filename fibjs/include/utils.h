@@ -1035,10 +1035,10 @@ inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, exlib::string& str)
     return isolate->NewString(str);
 }
 
-inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, std::string& str)
-{
-    return isolate->NewString(str.c_str(), str.length());
-}
+// inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, std::string& str)
+// {
+//     return isolate->NewString(str.c_str(), str.length());
+// }
 
 inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, date_t& v)
 {
@@ -1390,7 +1390,7 @@ const auto ToCString = [](const v8::String::Utf8Value& value) {
 inline exlib::string clean_string(const char* s, size_t len)
 {
     exlib::string s1(s, len);
-    char* c_buf = s1.c_buffer();
+    char* c_buf = s1.data();
 
     for (int32_t i = 0; i < len; i++)
         if ((c_buf[i] < 32 && c_buf[i] != 0xd && c_buf[i] != 0xa) || c_buf[i] > 127)

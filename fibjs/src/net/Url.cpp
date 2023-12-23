@@ -90,7 +90,7 @@ result_t url_base::fileURLToPath(UrlObject_base* url, exlib::string& retVal)
     exlib::string pathname;
     encoding_base::decodeURI(u->m_pathname, pathname);
 
-    char* p1 = pathname.c_buffer();
+    char* p1 = pathname.data();
     for (size_t i = 0; i < pathname.length(); i++)
         if (isPathSlash(p1[i]))
             p1[i] = PATH_SLASH;
@@ -170,7 +170,7 @@ result_t url_base::pathToFileURL(exlib::string path, obj_ptr<UrlObject_base>& re
     } else
         _resolve_win32(resolved);
 
-    char* p = resolved.c_buffer();
+    char* p = resolved.data();
     for (size_t i = 0; i < resolved.length(); i++)
         if (isPathSlash(p[i]))
             p[i] = URL_SLASH;
@@ -339,7 +339,7 @@ void Url::parseHost(const char*& url, exlib::string& hostname, exlib::string& po
         hostname.assign(url, p1 - url);
 
     if (hostname.length() > 0) {
-        qstrlwr(hostname.c_buffer());
+        exlib::qstrlwr(hostname);
         punycode_base::toASCII(hostname, hostname);
     }
 
@@ -434,7 +434,7 @@ void Url::trimUrl(exlib::string url, exlib::string& retVal)
     int32_t lastPos = 0;
     int32_t i;
     bool isWs;
-    unsigned char* _url = (unsigned char*)url.c_buffer();
+    unsigned char* _url = (unsigned char*)url.data();
 
     bool inWs = false;
 
@@ -639,10 +639,10 @@ result_t Url::resolve(obj_ptr<Url>& u, obj_ptr<UrlObject_base>& retVal)
 
         base->normalize();
     } else if (u->m_pathname.length()) {
-        if (isUrlSlash(u->m_pathname[0]))
+        if (isUrlSlash(u->m_pathname.c_str()[0]))
             base->m_pathname = u->m_pathname;
         else {
-            if (!isUrlSlash(base->m_pathname[base->m_pathname.length() - 1]))
+            if (!isUrlSlash(base->m_pathname.c_str()[base->m_pathname.length() - 1]))
                 base->m_pathname.append("/../", 4);
             base->m_pathname.append(u->m_pathname);
         }
@@ -686,7 +686,7 @@ result_t Url::normalize()
     bool bRoot = false;
 
     str.resize(m_pathname.length());
-    pstr = str.c_buffer();
+    pstr = str.data();
 
     if (isUrlSlash(p1[0])) {
         pstr[pos++] = URL_SLASH;
@@ -762,14 +762,14 @@ result_t Url::get_href(exlib::string& retVal)
     }
 
     get__host(str);
-    if (str[0] == URL_SLASH)
+    if (str.c_str()[0] == URL_SLASH)
         encoding_base::encodeURIComponent(str, str);
     retVal.append(str);
 
     get_path(str);
 
 #ifdef _WIN32
-    if (m_slashes && qisascii(str[0]) && str[1] == ':')
+    if (m_slashes && qisascii(str.c_str()[0]) && str.c_str()[1] == ':')
         retVal.append(1, URL_SLASH);
 #endif
 
@@ -802,9 +802,9 @@ result_t Url::set_protocol(exlib::string newVal)
     m_protocol = newVal;
     m_defslashes = false;
     if (m_protocol.length() > 0) {
-        qstrlwr(m_protocol.c_buffer());
+        exlib::qstrlwr(m_protocol);
 
-        if (m_protocol[m_protocol.length() - 1] != ':')
+        if (m_protocol.c_str()[m_protocol.length() - 1] != ':')
             m_protocol.append(1, ':');
 
         for (i = 0; i < (int32_t)(sizeof(s_slashed) / sizeof(const char*)); i++)
@@ -962,7 +962,7 @@ result_t Url::get_pathname(exlib::string& retVal)
 result_t Url::set_pathname(exlib::string newVal)
 {
     m_pathname = newVal;
-    if (m_pathname.length() > 0 && !isUrlSlash(m_pathname[0])
+    if (m_pathname.length() > 0 && !isUrlSlash(m_pathname.c_str()[0])
         && m_hostname.length() > 0)
         m_pathname = URL_SLASH + m_pathname;
 
@@ -1054,7 +1054,7 @@ result_t Url::get_hash(exlib::string& retVal)
 result_t Url::set_hash(exlib::string newVal)
 {
     m_hash = newVal;
-    if (m_hash.length() > 0 && m_hash[0] != '#')
+    if (m_hash.length() > 0 && m_hash.c_str()[0] != '#')
         m_hash = '#' + m_hash;
 
     return 0;

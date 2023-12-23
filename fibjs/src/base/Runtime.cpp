@@ -100,7 +100,7 @@ void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), Isolat
                 ptrArg.resize(argc + 1);
 
                 ptrArg[0] = argv[0];
-                ptrArg[1] = exePath.c_buffer();
+                ptrArg[1] = exePath.data();
 
                 int32_t i;
                 for (i = 1; i < argc; i++)

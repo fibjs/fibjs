@@ -112,7 +112,7 @@ inline exlib::string repeat(int32_t sz, bool bLine = false)
         sz *= 3;
 
     str.resize(sz);
-    char* p = str.c_buffer();
+    char* p = str.data();
 
     while (sz) {
         int32_t sz1 = sz;

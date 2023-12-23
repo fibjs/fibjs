@@ -145,10 +145,10 @@ Cipher::Cipher(const mbedtls_cipher_info_t* info)
 Cipher::~Cipher()
 {
     if (m_key.length())
-        memset(m_key.c_buffer(), 0, m_key.length());
+        memset(m_key.data(), 0, m_key.length());
 
     if (m_iv.length())
-        memset(m_iv.c_buffer(), 0, m_iv.length());
+        memset(m_iv.data(), 0, m_iv.length());
 
     mbedtls_cipher_free(&m_ctx);
 }

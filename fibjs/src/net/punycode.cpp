@@ -105,7 +105,7 @@ result_t punycode_base::encode(exlib::string domain, exlib::string& retVal)
     exlib::string new_domain;
     int32_t output_length = srclen * 5;
     new_domain.resize(output_length);
-    char* dst = new_domain.c_buffer();
+    char* dst = new_domain.data();
 
     int32_t b, h;
     int32_t delta, bias;
@@ -164,7 +164,7 @@ result_t punycode_base::decode(exlib::string domain, exlib::string& retVal)
     exlib::wstring32 new_domain;
     new_domain.resize(srclen);
 
-    exlib::wchar32* dst = new_domain.c_buffer();
+    exlib::wchar32* dst = new_domain.data();
 
     const char* p;
     int32_t b, n, t;
@@ -266,13 +266,13 @@ result_t punycode_base::toASCII(exlib::string domain, exlib::string& retVal)
     wdomain = utf8to32String(left);
     length = wdomain.length();
     for (size_t i = 0; i < length; i++) {
-        if (i + 1 == length || wdomain[i] == '\x2E' || wdomain[i] == 0x3002 || wdomain[i] == 0xff0e || wdomain[i] == 0xff61) {
+        if (i + 1 == length || wdomain.c_str()[i] == '\x2E' || wdomain.c_str()[i] == 0x3002 || wdomain.c_str()[i] == 0xff0e || wdomain.c_str()[i] == 0xff61) {
             if (i + 1 == length) {
                 finished = true;
                 i++;
             }
             for (size_t j = p1; j < i; j++)
-                if (wdomain[j] > '\x7E' || wdomain[j] < '\x20') {
+                if (wdomain.c_str()[j] > '\x7E' || wdomain.c_str()[j] < '\x20') {
                     notAscii = true;
                     break;
                 }
@@ -319,7 +319,7 @@ result_t punycode_base::toUnicode(exlib::string domain, exlib::string& retVal)
     length = left.length();
     const char* _left = left.c_str();
     for (size_t i = 0; i < length; i++) {
-        if (left[i] == '\x2E' || i + 1 == length) {
+        if (left.c_str()[i] == '\x2E' || i + 1 == length) {
             if (i + 1 == length) {
                 i++;
                 finished = true;
@@ -327,7 +327,7 @@ result_t punycode_base::toUnicode(exlib::string domain, exlib::string& retVal)
 
             if (qstrcmp(_left + p1, "xn--", 4) == 0) {
                 str = left.substr(p1 + 4, i - p1 - 4);
-                str.tolower();
+                exlib::qstrlwr(str);
                 hr = decode(str, str);
                 if (hr < 0)
                     return CHECK_ERROR(hr);

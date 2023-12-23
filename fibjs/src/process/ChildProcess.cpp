@@ -246,7 +246,7 @@ result_t ChildProcess::fill_env(v8::Local<v8::Object> options)
     return 0;
 }
 
-result_t ChildProcess::fill_arg(exlib::string command, v8::Local<v8::Array> args)
+result_t ChildProcess::fill_arg(v8::Local<v8::Array> args)
 {
     result_t hr;
     Isolate* isolate = holder();
@@ -257,7 +257,7 @@ result_t ChildProcess::fill_arg(exlib::string command, v8::Local<v8::Array> args
     argStr.resize(len);
     _args.resize(len + 2);
 
-    _args[0] = (char*)command.c_str();
+    _args[0] = (char*)m_command.c_str();
     for (i = 0; i < len; i++) {
         hr = GetArgumentValue(isolate, JSValue(args->Get(context, i)), argStr[i]);
         if (hr < 0)
@@ -268,7 +268,7 @@ result_t ChildProcess::fill_arg(exlib::string command, v8::Local<v8::Array> args
     _args[i + 1] = NULL;
 
     uv_options.args = _args.data();
-    uv_options.file = command.c_str();
+    uv_options.file = m_command.c_str();
 
     return 0;
 }
@@ -313,7 +313,8 @@ result_t ChildProcess::spawn(exlib::string command, v8::Local<v8::Array> args, v
     if (hr < 0)
         return hr;
 
-    hr = fill_arg(command, args);
+    m_command = command;
+    hr = fill_arg(args);
     if (hr < 0)
         return hr;
 

@@ -286,10 +286,10 @@ result_t BufferedStream::readUntil(exlib::string mk, int32_t maxlen,
             while ((pos < (int32_t)pThis->m_buf.length())
                 && (pThis->m_temp < mklen)) {
                 if (pThis->m_temp == 0) {
-                    char ch = mk[0];
+                    char ch = mk.c_str()[0];
 
                     while (pos < (int32_t)pThis->m_buf.length())
-                        if (pThis->m_buf[pos++] == ch) {
+                        if (pThis->m_buf.c_str()[pos++] == ch) {
                             pThis->m_temp++;
                             break;
                         }
@@ -298,7 +298,7 @@ result_t BufferedStream::readUntil(exlib::string mk, int32_t maxlen,
                 if (pThis->m_temp > 0) {
                     while ((pos < (int32_t)pThis->m_buf.length())
                         && (pThis->m_temp < mklen)) {
-                        if (pThis->m_buf[pos] != mk[pThis->m_temp]) {
+                        if (pThis->m_buf.c_str()[pos] != mk.c_str()[pThis->m_temp]) {
                             pThis->m_temp = 0;
                             break;
                         }
@@ -412,9 +412,9 @@ result_t BufferedStream::get_EOL(exlib::string& retVal)
 
 result_t BufferedStream::set_EOL(exlib::string newVal)
 {
-    if (newVal[0] == '\r' && newVal[1] == '\n')
+    if (newVal.c_str()[0] == '\r' && newVal.c_str()[1] == '\n')
         m_eol.assign(newVal.c_str(), 2);
-    else if (newVal[1] == '\0' && (newVal[0] == '\r' || newVal[0] == '\n'))
+    else if (newVal.c_str()[1] == '\0' && (newVal.c_str()[0] == '\r' || newVal.c_str()[0] == '\n'))
         m_eol.assign(newVal.c_str(), 1);
     else
         return CHECK_ERROR(CALL_E_INVALIDARG);

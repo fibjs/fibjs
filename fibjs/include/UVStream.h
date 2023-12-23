@@ -139,7 +139,7 @@ public:
                 ar->m_buf.resize(suggested_size);
             }
 
-            buf->base = ar->m_buf.c_buffer() + ar->m_pos;
+            buf->base = ar->m_buf.data() + ar->m_pos;
             buf->len = (int32_t)(ar->m_buf.length() - ar->m_pos);
         }
 

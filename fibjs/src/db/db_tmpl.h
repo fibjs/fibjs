@@ -284,7 +284,7 @@ public:
 
         retVal.resize(len + 2);
 
-        bstr = retVal.c_buffer();
+        bstr = retVal.data();
         *bstr++ = '\'';
 
         for (src = str, l = sz; l > 0; l--) {

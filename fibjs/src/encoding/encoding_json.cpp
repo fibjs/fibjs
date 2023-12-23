@@ -217,7 +217,7 @@ inline result_t _jsonDecode(exlib::string data,
                     ssize_t n1 = str.length();
 
                     str.resize(n + n1);
-                    utf_convert(src, srclen, str.c_buffer() + n1, n);
+                    utf_convert(src, srclen, str.data() + n1, n);
                 } else {
                     Advance();
                     switch (c0_) {
@@ -473,7 +473,7 @@ result_t encoding_base::jsstr(exlib::string str, bool json, exlib::string& retVa
 
     s.resize(len);
 
-    for (p1 = s.c_buffer(), p = ptr; p < ptr_end; p++) {
+    for (p1 = s.data(), p = ptr; p < ptr_end; p++) {
         ch = *p;
         switch (ch) {
         case '\\':

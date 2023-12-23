@@ -26,7 +26,7 @@ public:
         , m_attrs(new XmlNamedNodeMap())
     {
         if (!m_isXml)
-            qstrupr(m_tagName.c_buffer());
+            exlib::qstrupr(m_tagName);
     }
 
     XmlElement(XmlDocument_base* document, exlib::string namespaceURI, exlib::string qualifiedName, bool isXml)
@@ -46,7 +46,7 @@ public:
         }
 
         if (!m_isXml)
-            qstrupr(m_tagName.c_buffer());
+            exlib::qstrupr(m_tagName);
     }
 
     XmlElement(const XmlElement& from)

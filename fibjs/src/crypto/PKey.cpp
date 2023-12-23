@@ -171,7 +171,7 @@ result_t PKey::encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEve
     output.resize(MBEDTLS_PREMASTER_SIZE);
 
     ret = mbedtls_pk_encrypt(&m_key, buf_data->data(), buf_data->length(),
-        (unsigned char*)output.c_buffer(), &olen, output.length(),
+        (unsigned char*)output.data(), &olen, output.length(),
         mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
@@ -204,7 +204,7 @@ result_t PKey::decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEve
     output.resize(MBEDTLS_PREMASTER_SIZE * 2);
 
     ret = mbedtls_pk_decrypt(&m_key, buf_data->data(), buf_data->length(),
-        (unsigned char*)output.c_buffer(), &olen, output.length(),
+        (unsigned char*)output.data(), &olen, output.length(),
         mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));

@@ -30,7 +30,7 @@ DECLARE_MODULE(crypto);
 
 result_t crypto_base::createHash(exlib::string algo, obj_ptr<Digest_base>& retVal)
 {
-    algo.toupper();
+    exlib::qstrupr(algo);
     if (algo == "RMD160")
         algo = "RIPEMD160";
 
@@ -46,7 +46,7 @@ result_t crypto_base::createHash(exlib::string algo, obj_ptr<Digest_base>& retVa
 result_t crypto_base::createHmac(exlib::string algo, Buffer_base* key,
     obj_ptr<Digest_base>& retVal)
 {
-    algo.toupper();
+    exlib::qstrupr(algo);
     if (algo == "RMD160")
         algo = "RIPEMD160";
 
@@ -385,7 +385,7 @@ result_t crypto_base::pbkdf1(Buffer_base* password, Buffer_base* salt, int32_t i
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    algoName.toupper();
+    exlib::qstrupr(algoName);
     mbedtls_md_type_t algo_id = _md_type_from_string(algoName.c_str());
     if (algo_id == MBEDTLS_MD_NONE)
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -430,7 +430,7 @@ result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t i
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    algoName.toupper();
+    exlib::qstrupr(algoName);
     mbedtls_md_type_t algo_id = _md_type_from_string(algoName.c_str());
     if (algo_id == MBEDTLS_MD_NONE)
         return CHECK_ERROR(CALL_E_INVALIDARG);

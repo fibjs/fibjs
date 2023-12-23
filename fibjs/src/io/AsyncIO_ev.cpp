@@ -430,7 +430,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
             if (m_buf.empty())
                 m_buf.resize(m_bytes);
 
-            char* _buf = m_buf.c_buffer();
+            char* _buf = m_buf.data();
             do {
                 int32_t n;
 

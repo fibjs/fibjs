@@ -110,7 +110,7 @@ exlib::string safe_conn_string(const char* str)
 
     exlib::string new_str;
     new_str.resize(len + esc_cnt + 2);
-    char* ptr = new_str.c_buffer();
+    char* ptr = new_str.data();
     len = 0;
 
     *ptr++ = '{';
@@ -341,14 +341,14 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                     case SQL_VARBINARY:
                     case SQL_LONGVARBINARY: {
                         exlib::string value;
-                        hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.c_buffer(), 0, &len);
+                        hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.data(), 0, &len);
                         if (hr < 0)
                             break;
                         if (len == SQL_NULL_DATA)
                             v.setNull();
                         else {
                             value.resize(len);
-                            hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.c_buffer(), len, &len);
+                            hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.data(), len, &len);
                             if (hr >= 0)
                                 v = new Buffer(value.c_str(), value.length());
                         }
@@ -358,14 +358,14 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                     case SQL_VARCHAR:
                     case SQL_LONGVARCHAR: {
                         exlib::string value;
-                        hr = SQLGetData(stmt, i + 1, SQL_C_CHAR, value.c_buffer(), 1, &len);
+                        hr = SQLGetData(stmt, i + 1, SQL_C_CHAR, value.data(), 1, &len);
                         if (hr < 0)
                             break;
                         if (len == SQL_NULL_DATA)
                             v.setNull();
                         else {
                             value.resize(len);
-                            hr = SQLGetData(stmt, i + 1, SQL_C_CHAR, value.c_buffer(), len + 1, &len);
+                            hr = SQLGetData(stmt, i + 1, SQL_C_CHAR, value.data(), len + 1, &len);
                             if (hr >= 0) {
                                 if (codec == "utf8" || codec == "utf-8") {
                                     v = value;
@@ -383,14 +383,14 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                     case SQL_WLONGVARCHAR:
                     case SQL_SS_VARIANT: {
                         exlib::wstring value;
-                        hr = SQLGetData(stmt, i + 1, SQL_C_WCHAR, value.c_buffer(), 2, &len);
+                        hr = SQLGetData(stmt, i + 1, SQL_C_WCHAR, value.data(), 2, &len);
                         if (hr < 0)
                             break;
                         if (len == SQL_NULL_DATA)
                             v.setNull();
                         else {
                             value.resize(len / 2);
-                            hr = SQLGetData(stmt, i + 1, SQL_C_WCHAR, value.c_buffer(), len + 2, &len);
+                            hr = SQLGetData(stmt, i + 1, SQL_C_WCHAR, value.data(), len + 2, &len);
                             if (hr >= 0)
                                 v = utf16to8String(value);
                         }
@@ -398,14 +398,14 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                     }
                     default: {
                         exlib::string value;
-                        hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.c_buffer(), 0, &len);
+                        hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.data(), 0, &len);
                         if (hr < 0)
                             break;
                         if (len == SQL_NULL_DATA)
                             v.setNull();
                         else {
                             value.resize(len);
-                            hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.c_buffer(), len, &len);
+                            hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.data(), len, &len);
                             if (hr >= 0) {
                                 if (codec == "utf8" || codec == "utf-8") {
                                     v = value;

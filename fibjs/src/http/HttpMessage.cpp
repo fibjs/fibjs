@@ -62,7 +62,7 @@ public:
         m_strBuf = m_strCommand;
         m_strBuf.resize(sz + sz1 + 2 + m_body_length);
 
-        pBuf = m_strBuf.c_buffer() + sz;
+        pBuf = m_strBuf.data() + sz;
         *pBuf++ = '\r';
         *pBuf++ = '\n';
 

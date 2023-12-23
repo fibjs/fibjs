@@ -173,7 +173,7 @@ result_t PKey_rsa::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<B
 
     // alg=0~9  see https://tls.mbed.org/api/md_8h.html  enum mbedtls_md_type_t
     ret = mbedtls_pk_sign(&m_key, (mbedtls_md_type_t)alg, buf_data->data(), buf_data->length(),
-        (unsigned char*)output.c_buffer(), olen, &olen, mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
+        (unsigned char*)output.data(), olen, &olen, mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 

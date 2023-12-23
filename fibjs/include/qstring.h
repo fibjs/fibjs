@@ -190,22 +190,4 @@ inline const T* qstrstr(const T* in, const T* str)
         in++;
     return in;
 }
-
-template <typename T>
-inline void qstrlwr(T* s)
-{
-    T c;
-
-    while ((c = *s) != 0)
-        *s++ = qtolower(c);
-}
-
-template <typename T>
-inline void qstrupr(T* s)
-{
-    T c;
-
-    while ((c = *s) != 0)
-        *s++ = qtoupper(c);
-}
 }

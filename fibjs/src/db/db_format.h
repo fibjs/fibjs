@@ -719,7 +719,7 @@ private:
 
             key = escape_field(k);
             while (len == 1 && (!qstrcmp(key.c_str(), or_str.c_str(), 5) || !qstrcmp(key.c_str(), and_str.c_str(), 6))) {
-                bAnd = key[2] == 'a';
+                bAnd = key.c_str()[2] == 'a';
 
                 if (v->IsArray())
                     return where(v8::Local<v8::Array>::Cast(v), bAnd, retVal, retAnd);

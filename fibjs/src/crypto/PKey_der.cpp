@@ -63,9 +63,9 @@ result_t PKey::der(obj_ptr<Buffer_base>& retVal)
 
     buf.resize(8192);
     if (priv)
-        ret = mbedtls_pk_write_key_der(&m_key, (unsigned char*)buf.c_buffer(), buf.length());
+        ret = mbedtls_pk_write_key_der(&m_key, (unsigned char*)buf.data(), buf.length());
     else
-        ret = mbedtls_pk_write_pubkey_der(&m_key, (unsigned char*)buf.c_buffer(), buf.length());
+        ret = mbedtls_pk_write_pubkey_der(&m_key, (unsigned char*)buf.data(), buf.length());
     if (ret < 0)
         return CHECK_ERROR(_ssl::setError(ret));
 

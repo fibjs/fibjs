@@ -216,7 +216,7 @@ public:
             sz = snprintf(numStr, sizeof(numStr), "*%d\r\n", (int32_t)m_params.size() / 2);
 
             str.resize(sz + m_size);
-            p = str.c_buffer();
+            p = str.data();
 
             memcpy(p, numStr, sz);
             p += sz;

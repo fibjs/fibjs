@@ -133,7 +133,7 @@ result_t XmlAttr::toString(exlib::string& retVal)
             str = m_value;
         else {
             str.resize(sz1);
-            char* data1 = str.c_buffer();
+            char* data1 = str.data();
 
             for (i = 0; i < sz; i++) {
                 char ch;

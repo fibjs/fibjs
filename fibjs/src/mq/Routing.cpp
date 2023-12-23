@@ -172,7 +172,7 @@ exlib::string Routing::path2RegExp(exlib::string pattern)
 {
     size_t len = pattern.length();
 
-    if (len > 0 && pattern[len - 1] == '/')
+    if (len > 0 && pattern.c_str()[len - 1] == '/')
         pattern.resize(len - 1);
 
     _parser p(pattern);
@@ -195,7 +195,7 @@ exlib::string Routing::path2RegExp(exlib::string pattern)
             res.append("((?:.*))");
         } else if ((ch == ':') || (ch == '(')) {
             if (res.length() > 0)
-                last_ch = res[res.length() - 1];
+                last_ch = res.c_str()[res.length() - 1];
             else
                 last_ch = 0;
 
@@ -263,7 +263,7 @@ exlib::string Routing::host2RegExp(exlib::string pattern)
 {
     size_t len = pattern.length();
 
-    if (len > 0 && pattern[len - 1] == '/')
+    if (len > 0 && pattern.c_str()[len - 1] == '/')
         pattern.resize(len - 1);
 
     _parser p(pattern);
@@ -298,14 +298,14 @@ result_t Routing::append(exlib::string method, exlib::string pattern, Handler_ba
     pcre* re;
     bool bSub = false;
 
-    if (pattern.length() > 0 && pattern[0] != '^') {
+    if (pattern.length() > 0 && pattern.c_str()[0] != '^') {
         if (!qstricmp(method.c_str(), "HOST"))
             pattern = host2RegExp(pattern);
         else {
             obj_ptr<Routing_base> rt = Routing_base::getInstance(hdlr);
             if (rt) {
                 int32_t len = (int32_t)pattern.length();
-                if (len > 0 && pattern[len - 1] == '/')
+                if (len > 0 && pattern.c_str()[len - 1] == '/')
                     pattern.resize(len - 1);
                 pattern += "(.*)";
                 bSub = true;

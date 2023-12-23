@@ -61,16 +61,16 @@ result_t file_logger::config(Isolate* isolate, v8::Local<v8::Object> o)
                 return CHECK_ERROR(Runtime::setError("console: Unknown split mode."));
 
             for (i = 0; i < l - 1; i++)
-                if (!qisdigit(split[i]))
+                if (!qisdigit(split.c_str()[i]))
                     return CHECK_ERROR(Runtime::setError("console: Unknown split mode."));
                 else
-                    m_split_size = m_split_size * 10 + split[i] - '0';
+                    m_split_size = m_split_size * 10 + split.c_str()[i] - '0';
 
-            if (split[i] == 'k')
+            if (split.c_str()[i] == 'k')
                 m_split_size <<= 10;
-            else if (split[i] == 'm')
+            else if (split.c_str()[i] == 'm')
                 m_split_size <<= 20;
-            else if (split[i] == 'g')
+            else if (split.c_str()[i] == 'g')
                 m_split_size <<= 30;
             else
                 return CHECK_ERROR(Runtime::setError("console: Unknown split mode."));

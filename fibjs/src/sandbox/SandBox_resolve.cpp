@@ -198,7 +198,7 @@ result_t SandBox::setModuleCompiler(exlib::string extname, v8::Local<v8::Functio
     if (extname.empty())
         return CALL_E_INVALIDARG;
 
-    if (extname[0] != '.')
+    if (extname.c_str()[0] != '.')
         return CALL_E_INVALIDARG;
 
     for (int32_t i = 0; i < (int32_t)ARRAYSIZE(predefine_exts); i++)
@@ -282,7 +282,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
             for (int32_t i = 0; i < sz; i++)
                 if (buf[i] == PATH_SLASH) {
                     if (!_fname)
-                        _fname = fname.c_buffer();
+                        _fname = fname.data();
                     _fname[i] = '/';
                 }
         }
@@ -296,7 +296,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
             return 0;
         }
 
-        if (isPathSlash(base[base.length() - 1]))
+        if (isPathSlash(base.c_str()[base.length() - 1]))
             base.resize(base.length() - 1);
         fname = base;
 

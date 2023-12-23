@@ -128,7 +128,7 @@ result_t fs_base::clearZipFS(exlib::string fname)
 static result_t resolve_zip_file(exlib::string fname, obj_ptr<ZipFile::Info>& retVal, AsyncEvent* ac)
 {
     size_t pos = fname.find('$');
-    if (pos != exlib::string::npos && fname[pos + 1] == PATH_SLASH) {
+    if (pos != exlib::string::npos && fname.c_str()[pos + 1] == PATH_SLASH) {
         exlib::string zip_file = fname.substr(0, pos);
         exlib::string member = fname.substr(pos + 2);
         obj_ptr<ZipFile_base> zfile;
@@ -146,7 +146,7 @@ static result_t resolve_zip_file(exlib::string fname, obj_ptr<ZipFile::Info>& re
             for (int32_t i = 0; i < sz; i++)
                 if (buf[i] == PATH_SLASH) {
                     if (!_member)
-                        _member = member.c_buffer();
+                        _member = member.data();
                     _member[i] = '/';
                     bChanged = true;
                 }

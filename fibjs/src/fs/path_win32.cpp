@@ -109,14 +109,14 @@ result_t path_win32_base::toNamespacedPath(v8::Local<v8::Value> path,
         result_t hr = _resolve_win32(str);
         if (hr < 0)
             return hr;
-        if (str[0] == '\\' && str[1] == '\\') {
-            if (str[2] != '?' && str[2] != '.') {
+        if (str.c_str()[0] == '\\' && str.c_str()[1] == '\\') {
+            if (str.c_str()[2] != '?' && str.c_str()[2] != '.') {
                 str = "\\\\?\\UNC" + str.substr(1);
                 retVal = GetReturnValue(isolate, str);
                 return 0;
             }
-        } else if (qisascii(str[0])) {
-            if (str[1] == ':' && str[2] == '\\') {
+        } else if (qisascii(str.c_str()[0])) {
+            if (str.c_str()[1] == ':' && str.c_str()[2] == '\\') {
                 str = "\\\\?\\" + str.substr(0);
                 retVal = GetReturnValue(isolate, str);
                 return 0;

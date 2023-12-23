@@ -60,9 +60,9 @@ result_t PKey::pem(exlib::string& retVal)
 
     buf.resize(mbedtls_pk_get_len(&m_key) * 8 + 128);
     if (priv)
-        ret = mbedtls_pk_write_key_pem(&m_key, (unsigned char*)buf.c_buffer(), buf.length());
+        ret = mbedtls_pk_write_key_pem(&m_key, (unsigned char*)buf.data(), buf.length());
     else
-        ret = mbedtls_pk_write_pubkey_pem(&m_key, (unsigned char*)buf.c_buffer(), buf.length());
+        ret = mbedtls_pk_write_pubkey_pem(&m_key, (unsigned char*)buf.data(), buf.length());
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 

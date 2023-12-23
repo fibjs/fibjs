@@ -1221,7 +1221,7 @@ result_t HttpFileHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         {
             m_path = m_url;
 
-            if (isPathSlash(m_path[m_path.length() - 1])) {
+            if (isPathSlash(m_path.c_str()[m_path.length() - 1])) {
                 m_path.append("index.html", 10);
                 m_index = true;
             }

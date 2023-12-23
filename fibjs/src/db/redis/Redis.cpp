@@ -191,7 +191,7 @@ result_t Redis::_command(exlib::string& req, Variant& retVal, AsyncEvent* ac)
             if (m_strLine.length() == 0)
                 return CHECK_ERROR(Runtime::setError("Redis: Invalid response."));
 
-            char ch = m_strLine[0];
+            char ch = m_strLine.c_str()[0];
 
             if (ch == '+') {
                 m_val = new Buffer(m_strLine.c_str() + 1, m_strLine.length() - 1);

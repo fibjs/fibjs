@@ -105,7 +105,7 @@ result_t X509Req::create(exlib::string subject, PKey_base* key, int32_t hash)
     exlib::string buf;
     buf.resize(mbedtls_pk_get_bitlen(k) * 8 + 128);
 
-    ret = mbedtls_x509write_csr_pem(&csr, (unsigned char*)buf.c_buffer(), buf.length(),
+    ret = mbedtls_x509write_csr_pem(&csr, (unsigned char*)buf.data(), buf.length(),
         mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     mbedtls_x509write_csr_free(&csr);
     if (ret != 0)
@@ -181,7 +181,7 @@ result_t X509Req::pem(exlib::string& retVal)
     buf.resize(m_csr.raw.len * 2 + 64);
     ret = mbedtls_pem_write_buffer(PEM_BEGIN_CSR, PEM_END_CSR,
         m_csr.raw.p, m_csr.raw.len,
-        (unsigned char*)buf.c_buffer(), buf.length(), &olen);
+        (unsigned char*)buf.data(), buf.length(), &olen);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));
 
@@ -428,7 +428,7 @@ result_t X509Req::sign(exlib::string issuer, PKey_base* key,
 
     buf.resize(mbedtls_pk_get_bitlen(pk) * 8 + 128);
 
-    ret = mbedtls_x509write_crt_pem(&m_crt, (unsigned char*)buf.c_buffer(), buf.length(),
+    ret = mbedtls_x509write_crt_pem(&m_crt, (unsigned char*)buf.data(), buf.length(),
         mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret < 0) {
         hr = CHECK_ERROR(_ssl::setError(ret));
@@ -455,7 +455,7 @@ result_t X509Req::get_subject(exlib::string& retVal)
 
     buf.resize(1024);
 
-    ret = mbedtls_x509_dn_gets(buf.c_buffer(), buf.length(), &m_csr.subject);
+    ret = mbedtls_x509_dn_gets(buf.data(), buf.length(), &m_csr.subject);
     if (ret < 0)
         return CHECK_ERROR(_ssl::setError(ret));
 

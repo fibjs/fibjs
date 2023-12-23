@@ -180,7 +180,7 @@ inline exlib::string normalizeEncoding(exlib::string encoding)
         } else {
             if (retried)
                 return "$not valid$";
-            encoding.tolower();
+            exlib::qstrlwr(encoding);
             retried = true;
         }
     }

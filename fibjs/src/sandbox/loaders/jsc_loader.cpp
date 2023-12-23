@@ -46,7 +46,7 @@ result_t jsc_Loader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::str
     int32_t i;
 
     s_temp_source.resize(src_len);
-    char* _temp_source = s_temp_source.c_buffer();
+    char* _temp_source = s_temp_source.data();
 
     for (i = 0; i < src_len; i++)
         _temp_source[i] = '.';

@@ -346,7 +346,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
             int32_t nError;
 
             DWORD len = (DWORD)m_buf.length() - m_pos;
-            if (ReadFile((HANDLE)m_s, m_buf.c_buffer() + m_pos, (len <= 65536) ? len : 65536, NULL, this))
+            if (ReadFile((HANDLE)m_s, m_buf.data() + m_pos, (len <= 65536) ? len : 65536, NULL, this))
                 return CHECK_ERROR(CALL_E_PENDDING);
 
             nError = GetLastError();

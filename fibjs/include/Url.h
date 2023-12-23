@@ -122,7 +122,7 @@ public:
         }
 
         str.resize(len);
-        bstr = str.c_buffer();
+        bstr = str.data();
 
         for (len = 0, src = url, l = sz; l > 0; src++, len++, l--) {
             ch = (unsigned char)*src;
@@ -181,7 +181,7 @@ public:
         }
 
         str.resize(len);
-        bstr = str.c_buffer();
+        bstr = str.data();
 
         for (src = url, l = sz; l > 0; l--) {
             ch = (unsigned char)*src++;

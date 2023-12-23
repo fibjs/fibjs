@@ -173,7 +173,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth, i
                     else
                         s.resize(MAX_BUFFER_ITEM * 3 + 8 + 32);
 
-                    char* _s = s.c_buffer();
+                    char* _s = s.data();
 
                     memcpy(_s, "<Buffer", 7);
 

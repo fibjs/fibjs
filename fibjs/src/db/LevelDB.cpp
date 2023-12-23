@@ -45,7 +45,7 @@ result_t LevelDB::open(const char* connString)
 
     int chars_num = (int)WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), (int)wstr.length(), NULL, 0, NULL, NULL);
     str.resize(chars_num);
-    WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), (int)wstr.length(), str.c_buffer(), chars_num + 1, NULL, NULL);
+    WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), (int)wstr.length(), str.data(), chars_num + 1, NULL, NULL);
     connString = str.c_str();
 #endif
 

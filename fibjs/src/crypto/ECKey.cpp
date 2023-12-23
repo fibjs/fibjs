@@ -168,8 +168,8 @@ void ECKey::init(mbedtls_pk_context& key, bool genpub, exlib::string algo)
                 exlib::string data;
 
                 data.resize(ksz + 1);
-                mbedtls_mpi_write_binary(&ecp->Q.X, (unsigned char*)data.c_buffer(), ksz + 1);
-                if (data[0] == 2 || data[0] == 3) {
+                mbedtls_mpi_write_binary(&ecp->Q.X, (unsigned char*)data.data(), ksz + 1);
+                if (data.c_str()[0] == 2 || data.c_str()[0] == 3) {
                     mbedtls_mpi_read_binary(&ecp->Q.X, (const unsigned char*)data.c_str() + 1, ksz);
 
                     mbedtls_mpi r, n;
@@ -207,7 +207,7 @@ void ECKey::init(mbedtls_pk_context& key, bool genpub, exlib::string algo)
                     mbedtls_mpi_exp_mod(&r, &r, &n, &ecp->grp.P, NULL);
 
                     // Select solution that has the correct "sign" (equals odd/even solution in finite group)
-                    if ((data[0] == 0x03) != mbedtls_mpi_get_bit(&r, 0)) {
+                    if ((data.c_str()[0] == 0x03) != mbedtls_mpi_get_bit(&r, 0)) {
                         // r = p - r
                         mbedtls_mpi_sub_mpi(&r, &ecp->grp.P, &r);
                     }
@@ -398,7 +398,7 @@ result_t ECKey::der2bin(const exlib::string& der, exlib::string& bin)
 
     r.resize(ksz * 2);
 
-    unsigned char* sig = (unsigned char*)r.c_buffer();
+    unsigned char* sig = (unsigned char*)r.data();
 
     if (mbedtls_asn1_get_tag(&p, end, &len, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE))
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
@@ -447,7 +447,7 @@ result_t ECKey::bin2der(const exlib::string& bin, exlib::string& der)
         size++;
 
     r.resize(size);
-    unsigned char* sig = (unsigned char*)r.c_buffer();
+    unsigned char* sig = (unsigned char*)r.data();
 
     *sig++ = MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE;
 
@@ -530,7 +530,7 @@ result_t ECKey::sign(Buffer_base* data, v8::Local<v8::Object> opts, obj_ptr<Buff
 
     // alg=0~9  see https://tls.mbed.org/api/md_8h.html  enum mbedtls_md_type_t
     ret = mbedtls_pk_sign(&m_key, MBEDTLS_MD_NONE, buf_data->data(), buf_data->length(),
-        (unsigned char*)output.c_buffer(), olen, &olen,
+        (unsigned char*)output.data(), olen, &olen,
         mbedtls_ctr_drbg_random, &g_ssl.ctr_drbg);
     if (ret != 0)
         return CHECK_ERROR(_ssl::setError(ret));

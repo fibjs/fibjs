@@ -56,7 +56,7 @@ inline exlib::wstring utf8to16String(const char* src, ssize_t srclen = -1)
         ssize_t n = utf_convert(src, srclen, (exlib::wchar*)NULL, 0);
         str.resize(n);
 
-        utf_convert(src, srclen, str.c_buffer(), n);
+        utf_convert(src, srclen, str.data(), n);
     }
 
     return str;
@@ -80,7 +80,7 @@ inline exlib::string utf16to8String(const exlib::wchar* src, ssize_t srclen = -1
         ssize_t n = utf_convert(src, srclen, (char*)NULL, 0);
         str.resize(n);
 
-        utf_convert(src, srclen, str.c_buffer(), n);
+        utf_convert(src, srclen, str.data(), n);
     }
 
     return str;
@@ -104,7 +104,7 @@ inline exlib::wstring32 utf8to32String(const char* src, ssize_t srclen = -1)
         ssize_t n = utf_convert(src, srclen, (exlib::wchar32*)NULL, 0);
         str.resize(n);
 
-        utf_convert(src, srclen, str.c_buffer(), n);
+        utf_convert(src, srclen, str.data(), n);
     }
 
     return str;
@@ -126,7 +126,7 @@ inline exlib::string utf32to8String(const exlib::wchar32* src, ssize_t srclen = 
         ssize_t n = utf_convert(src, srclen, (char*)NULL, 0);
         str.resize(n);
 
-        utf_convert(src, srclen, str.c_buffer(), n);
+        utf_convert(src, srclen, str.data(), n);
     }
 
     return str;
@@ -153,7 +153,7 @@ inline exlib::wstring utf8to16String_s(const char* src, ssize_t srclen = -1)
         ssize_t n = utf_convert_s(src, srclen, (exlib::wchar*)NULL, 0);
         str.resize(n);
 
-        utf_convert_s(src, srclen, str.c_buffer(), n);
+        utf_convert_s(src, srclen, str.data(), n);
     }
 
     return str;
@@ -175,7 +175,7 @@ inline exlib::string utf16to8String_s(const exlib::wchar* src, ssize_t srclen = 
         ssize_t n = utf_convert_s(src, srclen, (char*)NULL, 0);
         str.resize(n);
 
-        utf_convert_s(src, srclen, str.c_buffer(), n);
+        utf_convert_s(src, srclen, str.data(), n);
     }
 
     return str;
@@ -197,7 +197,7 @@ inline exlib::wstring32 utf8to32String_s(const char* src, ssize_t srclen = -1)
         ssize_t n = utf_convert_s(src, srclen, (exlib::wchar32*)NULL, 0);
         str.resize(n);
 
-        utf_convert_s(src, srclen, str.c_buffer(), n);
+        utf_convert_s(src, srclen, str.data(), n);
     }
 
     return str;
@@ -219,7 +219,7 @@ inline exlib::string utf32to8String_s(const exlib::wchar32* src, ssize_t srclen 
         ssize_t n = utf_convert_s(src, srclen, (char*)NULL, 0);
         str.resize(n);
 
-        utf_convert_s(src, srclen, str.c_buffer(), n);
+        utf_convert_s(src, srclen, str.data(), n);
     }
 
     return str;

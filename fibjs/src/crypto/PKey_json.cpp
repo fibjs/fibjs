@@ -25,7 +25,7 @@ static void mpi_dump(Isolate* isolate, v8::Local<v8::Object> o, exlib::string ke
             sz = ksz;
 
         data.resize(sz);
-        mbedtls_mpi_write_binary(n, (unsigned char*)data.c_buffer(), sz);
+        mbedtls_mpi_write_binary(n, (unsigned char*)data.data(), sz);
 
         exlib::string b64;
         base64Encode(data.c_str(), data.length(), true, b64);
@@ -253,10 +253,10 @@ result_t PKey::json(v8::Local<v8::Object> opts, v8::Local<v8::Object>& retVal)
                 data_x.resize(ksz + 1);
                 data_y.resize(ksz);
 
-                mbedtls_mpi_write_binary(&ecp->Q.X, (unsigned char*)data_x.c_buffer() + 1, ksz);
-                mbedtls_mpi_write_binary(&ecp->Q.Y, (unsigned char*)data_y.c_buffer(), ksz);
+                mbedtls_mpi_write_binary(&ecp->Q.X, (unsigned char*)data_x.data() + 1, ksz);
+                mbedtls_mpi_write_binary(&ecp->Q.Y, (unsigned char*)data_y.data(), ksz);
 
-                data_x.c_buffer()[0] = 2 + (data_y[ksz - 1] & 1);
+                data_x.data()[0] = 2 + (data_y.c_str()[ksz - 1] & 1);
 
                 exlib::string b64;
                 base64Encode(data_x.c_str(), ksz + 1, true, b64);

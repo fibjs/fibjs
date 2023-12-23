@@ -511,7 +511,7 @@ result_t XmlElement::toString(exlib::string& retVal)
     exlib::string tagName(m_tagName);
 
     if (!m_isXml)
-        qstrlwr(tagName.c_buffer());
+        exlib::qstrlwr(tagName);
 
     if (m_prefix.empty()) {
         if (!m_namespaceURI.empty()) {

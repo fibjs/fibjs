@@ -163,7 +163,7 @@ exlib::string ToString(v8::Isolate* isolate, v8::Local<v8::String> str)
     n.resize(bufUtf8Len);
     int flags = v8::String::HINT_MANY_WRITES_EXPECTED | v8::String::NO_NULL_TERMINATION;
 
-    str->WriteUtf8(isolate, n.c_buffer(), bufUtf8Len, NULL, flags);
+    str->WriteUtf8(isolate, n.data(), bufUtf8Len, NULL, flags);
     return n;
 }
 

@@ -46,7 +46,7 @@ result_t MemoryStream::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
             m_buffer.seekg(sz, std::ios::beg);
         } else {
             strBuf.resize(bytes);
-            m_buffer.read(strBuf.c_buffer(), bytes);
+            m_buffer.read(strBuf.data(), bytes);
         }
 
         m_buffer.seekp(m_buffer.tellg(), std::ios::beg);

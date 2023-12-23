@@ -68,7 +68,7 @@ private:
     result_t create_pipe(int32_t idx);
     result_t fill_stdio(v8::Local<v8::Object> options, bool fork);
     result_t fill_env(v8::Local<v8::Object> options);
-    result_t fill_arg(exlib::string command, v8::Local<v8::Array> args);
+    result_t fill_arg(v8::Local<v8::Array> args);
     result_t fill_opt(v8::Local<v8::Object> options);
 
 public:
@@ -94,6 +94,8 @@ public:
     int32_t m_exitCode;
 
     std::vector<char*> envp;
+
+    exlib::string m_command;
 
     std::vector<exlib::string> argStr;
     std::vector<char*> _args;

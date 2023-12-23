@@ -49,7 +49,7 @@ public:
         exlib::string path;
         exlib::string sk;
 
-        if ((key.length() > 0) && (key[key.length() - 1] == '\\'))
+        if ((key.length() > 0) && (key.c_str()[key.length() - 1] == '\\'))
             path = key.substr(0, key.length() - 1);
         else {
             path_base::dirname(key, path);
@@ -220,7 +220,7 @@ result_t registry_base::get(int32_t root, exlib::string key, v8::Local<v8::Value
         exlib::string sbuf;
 
         buf.resize(dwSize / 2 - 1);
-        RegQueryValueExW(r.hKey, r.skey.c_str(), NULL, &dwType, (LPBYTE)buf.c_buffer(), &dwSize);
+        RegQueryValueExW(r.hKey, r.skey.c_str(), NULL, &dwType, (LPBYTE)buf.data(), &dwSize);
 
         sbuf = utf16to8String(buf);
         retVal = GetReturnValue(isolate, sbuf);
@@ -233,7 +233,7 @@ result_t registry_base::get(int32_t root, exlib::string key, v8::Local<v8::Value
         exlib::string sbuf;
 
         buf.resize(dwSize / 2);
-        RegQueryValueExW(r.hKey, r.skey.c_str(), NULL, &dwType, (LPBYTE)buf.c_buffer(), &dwSize);
+        RegQueryValueExW(r.hKey, r.skey.c_str(), NULL, &dwType, (LPBYTE)buf.data(), &dwSize);
 
         v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate);
         int32_t n = 0;

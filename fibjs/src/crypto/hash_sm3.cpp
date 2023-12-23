@@ -52,7 +52,7 @@ result_t prepare_data(PKey_base* pubKey, exlib::string id, obj_ptr<Buffer_base>&
     int32_t ld_len = (int32_t)id.length();
     int32_t len = ld_len + sizeof(s_iv) + key_size * 2 + 2;
     pdata.resize(len);
-    char* p = pdata.c_buffer();
+    char* p = pdata.data();
 
     *p++ = (ld_len * 8) >> 8;
     *p++ = (ld_len * 8) & 0xff;

@@ -24,8 +24,8 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
 
     v8::Local<v8::String> soname = isolate->NewString(oname);
 
-    if (script.length() > 2 && script[0] == '#' && script[1] == '!') {
-        char* _script = script.c_buffer();
+    if (script.length() > 2 && script.c_str()[0] == '#' && script.c_str()[1] == '!') {
+        char* _script = script.data();
         _script[0] = '/';
         _script[1] = '/';
     }
@@ -97,7 +97,7 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
         pos = (int32_t)buf.length();
 
         buf.resize(pos + (n + 3) * sizeof(int32_t));
-        int32_t* p = (int32_t*)(buf.c_buffer() + pos);
+        int32_t* p = (int32_t*)(buf.data() + pos);
         int32_t i;
 
         for (i = 0; i < n; i++) {
