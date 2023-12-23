@@ -1,6 +1,6 @@
 #ifndef _WIN32
 
-#include "config.h"
+#include "glibc_config.h"
 
 #include <string.h>
 #include <stdarg.h>
@@ -126,7 +126,6 @@ double log2(double x)
     return _log2(x);
 }
 #endif
-
 }
 
 #endif
