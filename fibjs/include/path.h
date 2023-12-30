@@ -1139,7 +1139,7 @@ inline result_t _fullpath_win32(exlib::string path, exlib::string& retVal)
 {
 #ifdef _WIN32
     exlib::wstring str = utf8to16String(path);
-    exlib::wchar utf16_buffer[MAX_PATH];
+    char16_t utf16_buffer[MAX_PATH];
 
     DWORD utf16_len = GetFullPathNameW(str.c_str(), MAX_PATH, utf16_buffer, NULL);
     if (!utf16_len)

@@ -7,13 +7,13 @@ inline char _swap(char ch)
     return ch;
 }
 
-inline exlib::wchar _swap(exlib::wchar ch)
+inline char16_t _swap(char16_t ch)
 {
     return ((ch & 0xff) << 8)
         | ((ch & 0xff00) >> 8);
 }
 
-inline exlib::wchar32 _swap(exlib::wchar32 ch)
+inline char32_t _swap(char32_t ch)
 {
     return ((ch & 0xff) << 24)
         | ((ch & 0xff00) << 8)
@@ -21,14 +21,14 @@ inline exlib::wchar32 _swap(exlib::wchar32 ch)
         | ((ch & 0xff000000) >> 24);
 }
 
-inline exlib::wchar32 _getchar(const char*& src, const char* end)
+inline char32_t _getchar(const char*& src, const char* end)
 {
     unsigned char ch = (unsigned char)*src++;
     if (ch < 0x80)
         return ch;
 
     ssize_t len;
-    exlib::wchar32 res;
+    char32_t res;
 
     if (ch < 0xc0 || ch >= 0xfe) {
         len = 0;
@@ -88,12 +88,12 @@ inline exlib::wchar32 _getchar(const char*& src, const char* end)
     return res;
 }
 
-inline exlib::wchar32 _getchar_s(const char*& src, const char* end)
+inline char32_t _getchar_s(const char*& src, const char* end)
 {
     return _getchar(src, end);
 }
 
-inline ssize_t _putchar(exlib::wchar32 ch, char*& dst, const char* end)
+inline ssize_t _putchar(char32_t ch, char*& dst, const char* end)
 {
     ssize_t count;
     ssize_t i;
@@ -103,7 +103,7 @@ inline ssize_t _putchar(exlib::wchar32 ch, char*& dst, const char* end)
             *dst++ = (char)ch;
         return 1;
     } else {
-        exlib::wchar ch1;
+        char16_t ch1;
 
         if (ch < 0x800) {
             count = 2;
@@ -144,19 +144,19 @@ inline ssize_t _putchar(exlib::wchar32 ch, char*& dst, const char* end)
     return 0;
 }
 
-inline ssize_t _putchar_s(exlib::wchar32 ch, char*& dst, const char* end)
+inline ssize_t _putchar_s(char32_t ch, char*& dst, const char* end)
 {
     return _putchar(ch, dst, end);
 }
 
-inline exlib::wchar32 _getchar(const exlib::wchar*& src, const exlib::wchar* end)
+inline char32_t _getchar(const char16_t*& src, const char16_t* end)
 {
-    exlib::wchar32 ch;
+    char32_t ch;
 
     if (((ch = *src++) & 0xf800) != 0xd800)
         return ch;
 
-    exlib::wchar32 ch1;
+    char32_t ch1;
     if (src >= end || ((ch1 = *src) & 0xfc00) != 0xdc00)
         return ch;
 
@@ -164,14 +164,14 @@ inline exlib::wchar32 _getchar(const exlib::wchar*& src, const exlib::wchar* end
     return ((ch & 0x7ff) << 10) + (ch1 & 0x3ff) + 0x10000;
 }
 
-inline exlib::wchar32 _getchar_s(const exlib::wchar*& src, const exlib::wchar* end)
+inline char32_t _getchar_s(const char16_t*& src, const char16_t* end)
 {
-    exlib::wchar32 ch;
+    char32_t ch;
 
     if (((ch = _swap(*src++)) & 0xf800) != 0xd800)
         return ch;
 
-    exlib::wchar32 ch1;
+    char32_t ch1;
     if (src >= end || ((ch1 = _swap(*src)) & 0xfc00) != 0xdc00)
         return ch;
 
@@ -179,55 +179,55 @@ inline exlib::wchar32 _getchar_s(const exlib::wchar*& src, const exlib::wchar* e
     return ((ch & 0x7ff) << 10) + (ch1 & 0x3ff) + 0x10000;
 }
 
-inline ssize_t _putchar(exlib::wchar32 ch, exlib::wchar*& dst, const exlib::wchar* end)
+inline ssize_t _putchar(char32_t ch, char16_t*& dst, const char16_t* end)
 {
     if (!dst)
         return ch >= 0x10000 ? 2 : 1;
 
     if (ch >= 0x10000) {
         ch -= 0x10000;
-        *dst++ = (exlib::wchar)((ch >> 10) | 0xd800);
+        *dst++ = (char16_t)((ch >> 10) | 0xd800);
         if (dst == end)
             return 1;
 
-        *dst++ = (exlib::wchar)((ch & 0x3ff) | 0xdc00);
+        *dst++ = (char16_t)((ch & 0x3ff) | 0xdc00);
         return 2;
     }
 
-    *dst++ = (exlib::wchar)ch;
+    *dst++ = (char16_t)ch;
     return 1;
 }
 
-inline ssize_t _putchar_s(exlib::wchar32 ch, exlib::wchar*& dst, const exlib::wchar* end)
+inline ssize_t _putchar_s(char32_t ch, char16_t*& dst, const char16_t* end)
 {
     if (!dst)
         return ch >= 0x10000 ? 2 : 1;
 
     if (ch >= 0x10000) {
         ch -= 0x10000;
-        *dst++ = _swap((exlib::wchar)((ch >> 10) | 0xd800));
+        *dst++ = _swap((char16_t)((ch >> 10) | 0xd800));
         if (dst == end)
             return 1;
 
-        *dst++ = _swap((exlib::wchar)((ch & 0x3ff) | 0xdc00));
+        *dst++ = _swap((char16_t)((ch & 0x3ff) | 0xdc00));
         return 2;
     }
 
-    *dst++ = _swap((exlib::wchar)ch);
+    *dst++ = _swap((char16_t)ch);
     return 1;
 }
 
-inline exlib::wchar32 _getchar(const exlib::wchar32*& src, const exlib::wchar32* end)
+inline char32_t _getchar(const char32_t*& src, const char32_t* end)
 {
     return *src++;
 }
 
-inline exlib::wchar32 _getchar_s(const exlib::wchar32*& src, const exlib::wchar32* end)
+inline char32_t _getchar_s(const char32_t*& src, const char32_t* end)
 {
     return _swap(*src++);
 }
 
-inline ssize_t _putchar(exlib::wchar32 ch, exlib::wchar32*& dst, const exlib::wchar32* end)
+inline ssize_t _putchar(char32_t ch, char32_t*& dst, const char32_t* end)
 {
     if (!dst)
         return 1;
@@ -236,7 +236,7 @@ inline ssize_t _putchar(exlib::wchar32 ch, exlib::wchar32*& dst, const exlib::wc
     return 1;
 }
 
-inline ssize_t _putchar_s(exlib::wchar32 ch, exlib::wchar32*& dst, const exlib::wchar32* end)
+inline ssize_t _putchar_s(char32_t ch, char32_t*& dst, const char32_t* end)
 {
     if (!dst)
         return 1;
@@ -245,7 +245,7 @@ inline ssize_t _putchar_s(exlib::wchar32 ch, exlib::wchar32*& dst, const exlib::
     return 1;
 }
 
-exlib::wchar32 utf_getchar(const char*& src, const char* end)
+char32_t utf_getchar(const char*& src, const char* end)
 {
     if (src >= end)
         return 0;
@@ -253,7 +253,7 @@ exlib::wchar32 utf_getchar(const char*& src, const char* end)
     return _getchar(src, end);
 }
 
-ssize_t utf_putchar(exlib::wchar32 ch, char*& dst, const char* end)
+ssize_t utf_putchar(char32_t ch, char*& dst, const char* end)
 {
     if (dst >= end)
         return 0;
@@ -261,7 +261,7 @@ ssize_t utf_putchar(exlib::wchar32 ch, char*& dst, const char* end)
     return _putchar(ch, dst, end);
 }
 
-exlib::wchar32 utf_getchar(const exlib::wchar*& src, const exlib::wchar* end)
+char32_t utf_getchar(const char16_t*& src, const char16_t* end)
 {
     if (src >= end)
         return 0;
@@ -269,7 +269,7 @@ exlib::wchar32 utf_getchar(const exlib::wchar*& src, const exlib::wchar* end)
     return _getchar(src, end);
 }
 
-ssize_t utf_putchar(exlib::wchar32 ch, exlib::wchar*& dst, const exlib::wchar* end)
+ssize_t utf_putchar(char32_t ch, char16_t*& dst, const char16_t* end)
 {
     if (dst >= end)
         return 0;
@@ -277,7 +277,7 @@ ssize_t utf_putchar(exlib::wchar32 ch, exlib::wchar*& dst, const exlib::wchar* e
     return _putchar(ch, dst, end);
 }
 
-exlib::wchar32 utf_getchar(const exlib::wchar32*& src, const exlib::wchar32* end)
+char32_t utf_getchar(const char32_t*& src, const char32_t* end)
 {
     if (src >= end)
         return 0;
@@ -285,7 +285,7 @@ exlib::wchar32 utf_getchar(const exlib::wchar32*& src, const exlib::wchar32* end
     return _getchar(src, end);
 }
 
-ssize_t utf_putchar(exlib::wchar32 ch, exlib::wchar32*& dst, const exlib::wchar32* end)
+ssize_t utf_putchar(char32_t ch, char32_t*& dst, const char32_t* end)
 {
     if (dst >= end)
         return 0;
@@ -313,7 +313,7 @@ inline ssize_t _convert(const T1* src, ssize_t srclen, T2* dst, ssize_t dstlen)
     const T2* dst_end = dst + dstlen;
 
     while (src < src_end && dst < dst_end) {
-        exlib::wchar32 ch = *src;
+        char32_t ch = *src;
 
         if (ch < 0x80) {
             src++;
@@ -326,22 +326,22 @@ inline ssize_t _convert(const T1* src, ssize_t srclen, T2* dst, ssize_t dstlen)
     return count;
 }
 
-ssize_t utf_convert(const char* src, ssize_t srclen, exlib::wchar* dst, ssize_t dstlen)
+ssize_t utf_convert(const char* src, ssize_t srclen, char16_t* dst, ssize_t dstlen)
 {
-    return dst ? _convert(src, srclen, dst, dstlen) : _test(src, srclen, (exlib::wchar*)NULL);
+    return dst ? _convert(src, srclen, dst, dstlen) : _test(src, srclen, (char16_t*)NULL);
 }
 
-ssize_t utf_convert(const exlib::wchar* src, ssize_t srclen, char* dst, ssize_t dstlen)
+ssize_t utf_convert(const char16_t* src, ssize_t srclen, char* dst, ssize_t dstlen)
 {
     return dst ? _convert(src, srclen, dst, dstlen) : _test(src, srclen, (char*)NULL);
 }
 
-ssize_t utf_convert(const char* src, ssize_t srclen, exlib::wchar32* dst, ssize_t dstlen)
+ssize_t utf_convert(const char* src, ssize_t srclen, char32_t* dst, ssize_t dstlen)
 {
-    return dst ? _convert(src, srclen, dst, dstlen) : _test(src, srclen, (exlib::wchar32*)NULL);
+    return dst ? _convert(src, srclen, dst, dstlen) : _test(src, srclen, (char32_t*)NULL);
 }
 
-ssize_t utf_convert(const exlib::wchar32* src, ssize_t srclen, char* dst, ssize_t dstlen)
+ssize_t utf_convert(const char32_t* src, ssize_t srclen, char* dst, ssize_t dstlen)
 {
     return dst ? _convert(src, srclen, dst, dstlen) : _test(src, srclen, (char*)NULL);
 }
@@ -366,7 +366,7 @@ inline ssize_t _convert_s(const T1* src, ssize_t srclen, T2* dst, ssize_t dstlen
     const T2* dst_end = dst + dstlen;
 
     while (src < src_end && dst < dst_end) {
-        exlib::wchar32 ch = _swap(*src);
+        char32_t ch = _swap(*src);
 
         if (ch < 0x80) {
             src++;
@@ -379,22 +379,22 @@ inline ssize_t _convert_s(const T1* src, ssize_t srclen, T2* dst, ssize_t dstlen
     return count;
 }
 
-ssize_t utf_convert_s(const char* src, ssize_t srclen, exlib::wchar* dst, ssize_t dstlen)
+ssize_t utf_convert_s(const char* src, ssize_t srclen, char16_t* dst, ssize_t dstlen)
 {
-    return dst ? _convert_s(src, srclen, dst, dstlen) : _test_s(src, srclen, (exlib::wchar*)NULL);
+    return dst ? _convert_s(src, srclen, dst, dstlen) : _test_s(src, srclen, (char16_t*)NULL);
 }
 
-ssize_t utf_convert_s(const exlib::wchar* src, ssize_t srclen, char* dst, ssize_t dstlen)
+ssize_t utf_convert_s(const char16_t* src, ssize_t srclen, char* dst, ssize_t dstlen)
 {
     return dst ? _convert_s(src, srclen, dst, dstlen) : _test_s(src, srclen, (char*)NULL);
 }
 
-ssize_t utf_convert_s(const char* src, ssize_t srclen, exlib::wchar32* dst, ssize_t dstlen)
+ssize_t utf_convert_s(const char* src, ssize_t srclen, char32_t* dst, ssize_t dstlen)
 {
-    return dst ? _convert_s(src, srclen, dst, dstlen) : _test_s(src, srclen, (exlib::wchar32*)NULL);
+    return dst ? _convert_s(src, srclen, dst, dstlen) : _test_s(src, srclen, (char32_t*)NULL);
 }
 
-ssize_t utf_convert_s(const exlib::wchar32* src, ssize_t srclen, char* dst, ssize_t dstlen)
+ssize_t utf_convert_s(const char32_t* src, ssize_t srclen, char* dst, ssize_t dstlen)
 {
     return dst ? _convert_s(src, srclen, dst, dstlen) : _test_s(src, srclen, (char*)NULL);
 }

@@ -76,7 +76,7 @@ result_t util_base::compile(exlib::string srcname, exlib::string script,
         int32_t len = (int32_t)wscript.length();
         QuickArray<int32_t> lines;
         int32_t pos, n;
-        const exlib::wchar* c_str = wscript.c_str();
+        const char16_t* c_str = wscript.c_str();
 
         pos = 0;
         while (pos < len) {

@@ -104,7 +104,7 @@ result_t StringDecoder::utf16Text(Buffer_base* buf, int32_t offset, exlib::strin
 
     Buffer* buff = Buffer::Cast(buf);
     const uint8_t* buff_data = buff->data();
-    exlib::wchar* ws = (exlib::wchar*)(buff_data + offset);
+    char16_t* ws = (char16_t*)(buff_data + offset);
 
     int32_t bufLen = buff->length();
     int32_t len = (bufLen - offset) / 2;

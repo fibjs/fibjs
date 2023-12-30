@@ -26,9 +26,9 @@ DECLARE_MODULE(punycode);
 #define INITIAL_BIAS 72
 #define delimiter '-'
 
-static exlib::wchar32 adapt_bias(exlib::wchar32 delta, uint32_t n_points, bool is_first)
+static char32_t adapt_bias(char32_t delta, uint32_t n_points, bool is_first)
 {
-    exlib::wchar32 k;
+    char32_t k;
 
     delta /= is_first ? DAMP : 2;
     delta += delta / n_points;
@@ -99,7 +99,7 @@ static int32_t encode_var_int(int32_t bias, int32_t delta, char* dst, int32_t ds
 result_t punycode_base::encode(exlib::string domain, exlib::string& retVal)
 {
     exlib::wstring32 wdomain = utf8to32String(domain);
-    const exlib::wchar32* src = wdomain.c_str();
+    const char32_t* src = wdomain.c_str();
     int32_t srclen = (int32_t)wdomain.length();
 
     exlib::string new_domain;
@@ -109,7 +109,7 @@ result_t punycode_base::encode(exlib::string domain, exlib::string& retVal)
 
     int32_t b, h;
     int32_t delta, bias;
-    exlib::wchar32 m, n;
+    char32_t m, n;
     int32_t si, di;
 
     for (si = 0, di = 0; si < srclen && di < output_length; si++)
@@ -164,7 +164,7 @@ result_t punycode_base::decode(exlib::string domain, exlib::string& retVal)
     exlib::wstring32 new_domain;
     new_domain.resize(srclen);
 
-    exlib::wchar32* dst = new_domain.data();
+    char32_t* dst = new_domain.data();
 
     const char* p;
     int32_t b, n, t;
@@ -231,7 +231,7 @@ result_t punycode_base::decode(exlib::string domain, exlib::string& retVal)
         n += i / (di + 1);
         i %= (di + 1);
 
-        memmove(dst + i + 1, dst + i, (di - i) * sizeof(exlib::wchar32));
+        memmove(dst + i + 1, dst + i, (di - i) * sizeof(char32_t));
         dst[i++] = n;
     }
 

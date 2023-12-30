@@ -37,10 +37,10 @@ inline int32_t getStringWidth(exlib::string& str)
     exlib::wstring32 str32 = utf8to32String(str);
     int32_t sz = 0;
     size_t len = str32.length();
-    const exlib::wchar32* ptr = str32.c_str();
+    const char32_t* ptr = str32.c_str();
 
     for (size_t i = 0; i < len; i++) {
-        exlib::wchar32 ch = ptr[i];
+        char32_t ch = ptr[i];
 
         if (ch == 0x1b) {
             for (i++; i < len && ptr[i] != 'm'; i++)

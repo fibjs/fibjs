@@ -121,7 +121,7 @@ exlib::string getResultMessage(result_t hr)
     hr = -hr;
 
 #ifdef _WIN32
-    exlib::wchar MsgBuf[1024];
+    char16_t MsgBuf[1024];
 
     if (FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
             NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), MsgBuf, 1024, NULL)) {

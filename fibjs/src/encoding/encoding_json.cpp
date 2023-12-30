@@ -56,11 +56,11 @@ inline int32_t AsciiAlphaToLower(char c)
     return c | 0x20;
 }
 
-inline int32_t qstrcmp(const exlib::wchar* s1, const char* s2, ssize_t sz = -1)
+inline int32_t qstrcmp(const char16_t* s1, const char* s2, ssize_t sz = -1)
 {
     int32_t n = 0;
 
-    while (*s1 && !(n = *s1++ - (exlib::wchar)*s2++))
+    while (*s1 && !(n = *s1++ - (char16_t)*s2++))
         if ((sz > 0) && (!--sz))
             return 0;
 
@@ -213,7 +213,7 @@ inline result_t _jsonDecode(exlib::string data,
                     const char* src = source_ + beg_pos;
                     ssize_t srclen = position_ - beg_pos;
 
-                    ssize_t n = utf_convert(src, srclen, (exlib::wchar*)NULL, 0);
+                    ssize_t n = utf_convert(src, srclen, (char16_t*)NULL, 0);
                     ssize_t n1 = str.length();
 
                     str.resize(n + n1);
