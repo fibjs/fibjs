@@ -9,7 +9,7 @@
 #include <winiconv/win_iconv.h>
 #else
 
-#include "config.h"
+#include "glibc_config.h"
 
 #include <stddef.h>
 

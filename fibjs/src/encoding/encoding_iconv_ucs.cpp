@@ -5,7 +5,7 @@
  *      Author: lion
  */
 
-#include "config.h"
+#include "glibc_config.h"
 
 #include <stddef.h>
 
