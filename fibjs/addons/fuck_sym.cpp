@@ -1,6 +1,6 @@
 #ifdef __linux__
 
-#include "config.h"
+#include "glibc_config.h"
 
 #include <string.h>
 #include <stdarg.h>
