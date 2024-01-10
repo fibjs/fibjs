@@ -193,6 +193,15 @@ Isolate* Isolate::current()
     return rt->isolate();
 }
 
+Isolate* Isolate::safe_current()
+{
+    Runtime* rt = Runtime::current();
+    if (rt == NULL)
+        return NULL;
+
+    return rt->safe_isolate();
+}
+
 Isolate* Isolate::main()
 {
     return s_isolates.head();
