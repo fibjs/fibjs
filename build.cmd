@@ -25,6 +25,7 @@ for /f %%a in ('set new_args[ 2^>nul ^| find /c "="') do set args_count=%%a
 
 if %dev%==0 (
     set USE_VENDER_DIST=1
+	git submodule update --init --recursive
 )
 
 if "%USE_VENDER_DIST%" == "" (

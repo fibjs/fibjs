@@ -8,13 +8,19 @@ include(${CMAKE_CURRENT_LIST_DIR}/../../vender/build_tools/cmake/option.cmake)
 set(VENDER_PATH ${BIN_PATH})
 
 if(NOT "$ENV{USE_VENDER_DIST}" STREQUAL "")
+	file(READ ${CMAKE_CURRENT_LIST_DIR}/../../vender/.git GIT_DIR)
+	string(REPLACE "gitdir: " "" GIT_DIR ${GIT_DIR})
+	string(REPLACE "\n" "" GIT_DIR ${GIT_DIR})
 
-	execute_process(
-		COMMAND git describe --tags --abbrev=0
-		WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/../../vender"
-		OUTPUT_VARIABLE VENDER_TAG
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
+	file(READ "${CMAKE_CURRENT_LIST_DIR}/../${GIT_DIR}/refs/heads/dev" REF_HEAD)
+	file(GLOB ALL_TAGS "${CMAKE_CURRENT_LIST_DIR}/../${GIT_DIR}/refs/tags/*")
+	foreach(FILE ${ALL_TAGS})
+		file(READ ${FILE} CONTENT)
+		if("${CONTENT}" STREQUAL "${REF_HEAD}")
+			get_filename_component(VENDER_TAG ${FILE} NAME)
+			break()
+		endif()
+	endforeach()
 
 	if("${VENDER_TAG}" STREQUAL "")
 		message(FATAL_ERROR "cannot find vender tag")
