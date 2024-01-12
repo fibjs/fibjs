@@ -115,14 +115,14 @@ result_t HttpResponse::set_maxHeadersCount(int32_t newVal)
     return m_message->set_maxHeadersCount(newVal);
 }
 
-result_t HttpResponse::get_maxHeaderLength(int32_t& retVal)
+result_t HttpResponse::get_maxHeaderSize(int32_t& retVal)
 {
-    return m_message->get_maxHeaderLength(retVal);
+    return m_message->get_maxHeaderSize(retVal);
 }
 
-result_t HttpResponse::set_maxHeaderLength(int32_t newVal)
+result_t HttpResponse::set_maxHeaderSize(int32_t newVal)
 {
-    return m_message->set_maxHeaderLength(newVal);
+    return m_message->set_maxHeaderSize(newVal);
 }
 
 result_t HttpResponse::get_maxBodySize(int32_t& retVal)
@@ -390,7 +390,7 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncEvent* ac)
 
         ON_STATE(asyncReadFrom, begin)
         {
-            return m_stm->readLine(m_pThis->m_message->m_maxHeaderLength, m_strLine, next(command));
+            return m_stm->readLine(m_pThis->m_message->m_maxHeaderSize, m_strLine, next(command));
         }
 
         ON_STATE(asyncReadFrom, command)

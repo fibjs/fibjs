@@ -19,7 +19,7 @@ public:
         : m_bResponse(bResponse)
         , m_bNoBody(false)
         , m_maxHeadersCount(128)
-        , m_maxHeaderLength(8192)
+        , m_maxHeaderSize(8192)
         , m_maxBodySize(64)
     {
         m_headers = new HttpCollection();
@@ -44,8 +44,8 @@ public:
     result_t set_upgrade(bool newVal);
     result_t get_maxHeadersCount(int32_t& retVal);
     result_t set_maxHeadersCount(int32_t newVal);
-    result_t get_maxHeaderLength(int32_t& retVal);
-    result_t set_maxHeaderLength(int32_t newVal);
+    result_t get_maxHeaderSize(int32_t& retVal);
+    result_t set_maxHeaderSize(int32_t newVal);
     result_t get_maxBodySize(int32_t& retVal);
     result_t set_maxBodySize(int32_t newVal);
     result_t get_socket(obj_ptr<Stream_base>& retVal);
@@ -91,7 +91,7 @@ public:
     bool m_keepAlive;
     bool m_upgrade;
     int32_t m_maxHeadersCount;
-    int32_t m_maxHeaderLength;
+    int32_t m_maxHeaderSize;
     int32_t m_maxBodySize;
     exlib::string m_origin;
     exlib::string m_encoding;

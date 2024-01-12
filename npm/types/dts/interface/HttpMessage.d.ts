@@ -34,7 +34,7 @@ declare class Class_HttpMessage extends Class_Message {
     /**
      * @description 查询和设置最大请求头长度，缺省为 8192 
      */
-    maxHeaderLength: number;
+    maxHeaderSize: number;
 
     /**
      * @description 查询和设置 body 最大尺寸，以 MB 为单位，缺省为 64 

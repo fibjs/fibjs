@@ -25,7 +25,7 @@ interface HttpHandler : Handler
     Integer maxHeadersCount;
 
     /*! @brief 查询和设置最大请求头长度，缺省为 8192 */
-    Integer maxHeaderLength;
+    Integer maxHeaderSize;
 
     /*! @brief 查询和设置 body 最大尺寸，以 MB 为单位，缺省为 64 */
     Integer maxBodySize;

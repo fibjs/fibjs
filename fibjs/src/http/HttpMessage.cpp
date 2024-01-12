@@ -203,7 +203,7 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
 
         ON_STATE(asyncReadFrom, begin)
         {
-            return m_stm->readLine(m_pThis->m_maxHeaderLength, m_strLine, next(header));
+            return m_stm->readLine(m_pThis->m_maxHeaderSize, m_strLine, next(header));
         }
 
         ON_STATE(asyncReadFrom, header)
@@ -245,7 +245,7 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
                 if (m_headCount > m_pThis->m_maxHeadersCount)
                     return CHECK_ERROR(Runtime::setError("HttpMessage: too many headers."));
 
-                return m_stm->readLine(m_pThis->m_maxHeaderLength, m_strLine, this);
+                return m_stm->readLine(m_pThis->m_maxHeaderSize, m_strLine, this);
             }
 
             if (m_bChunked) {
@@ -279,7 +279,7 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
 
         ON_STATE(asyncReadFrom, chunk_head)
         {
-            return m_stm->readLine(m_pThis->m_maxHeaderLength, m_strLine, next(chunk_body));
+            return m_stm->readLine(m_pThis->m_maxHeaderSize, m_strLine, next(chunk_body));
         }
 
         ON_STATE(asyncReadFrom, chunk_body)
@@ -305,13 +305,13 @@ result_t HttpMessage::readFrom(Stream_base* stm, AsyncEvent* ac)
                 return m_stm->copyTo(m_body, sz, m_copySize, next(chunk_body_end));
             }
 
-            return m_stm->readLine(m_pThis->m_maxHeaderLength, m_strLine, next(chunk_end));
+            return m_stm->readLine(m_pThis->m_maxHeaderSize, m_strLine, next(chunk_end));
         }
 
         ON_STATE(asyncReadFrom, chunk_body_end)
         {
             m_contentLength += m_copySize;
-            return m_stm->readLine(m_pThis->m_maxHeaderLength, m_strLine, next(chunk_head));
+            return m_stm->readLine(m_pThis->m_maxHeaderSize, m_strLine, next(chunk_head));
         }
 
         ON_STATE(asyncReadFrom, chunk_end)
@@ -516,18 +516,18 @@ result_t HttpMessage::set_maxHeadersCount(int32_t newVal)
     return 0;
 }
 
-result_t HttpMessage::get_maxHeaderLength(int32_t& retVal)
+result_t HttpMessage::get_maxHeaderSize(int32_t& retVal)
 {
-    retVal = m_maxHeaderLength;
+    retVal = m_maxHeaderSize;
     return 0;
 }
 
-result_t HttpMessage::set_maxHeaderLength(int32_t newVal)
+result_t HttpMessage::set_maxHeaderSize(int32_t newVal)
 {
     if (newVal < 0)
         return CHECK_ERROR(CALL_E_OUTRANGE);
 
-    m_maxHeaderLength = newVal;
+    m_maxHeaderSize = newVal;
     return 0;
 }
 

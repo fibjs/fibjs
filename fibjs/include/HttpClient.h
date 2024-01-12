@@ -24,7 +24,7 @@ public:
         , m_enableEncoding(true)
         , m_sslVerification(-1)
         , m_maxHeadersCount(128)
-        , m_maxHeaderLength(8192)
+        , m_maxHeaderSize(8192)
         , m_maxBodySize(-1)
         , m_poolSize(128)
         , m_poolTimeout(10000)
@@ -46,8 +46,8 @@ public:
     virtual result_t set_enableEncoding(bool newVal);
     virtual result_t get_maxHeadersCount(int32_t& retVal);
     virtual result_t set_maxHeadersCount(int32_t newVal);
-    virtual result_t get_maxHeaderLength(int32_t& retVal);
-    virtual result_t set_maxHeaderLength(int32_t newVal);
+    virtual result_t get_maxHeaderSize(int32_t& retVal);
+    virtual result_t set_maxHeaderSize(int32_t newVal);
     virtual result_t get_maxBodySize(int32_t& retVal);
     virtual result_t set_maxBodySize(int32_t newVal);
     virtual result_t get_userAgent(exlib::string& retVal);
@@ -153,7 +153,7 @@ private:
     bool m_enableEncoding;
     int32_t m_sslVerification;
     int32_t m_maxHeadersCount;
-    int32_t m_maxHeaderLength;
+    int32_t m_maxHeaderSize;
     int32_t m_maxBodySize;
     exlib::string m_userAgent;
     obj_ptr<X509Cert_base> m_crt;

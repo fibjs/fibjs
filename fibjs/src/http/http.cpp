@@ -101,14 +101,14 @@ result_t http_base::set_maxHeadersCount(int32_t newVal)
     return get_httpClient()->set_maxHeadersCount(newVal);
 }
 
-result_t http_base::get_maxHeaderLength(int32_t& retVal)
+result_t http_base::get_maxHeaderSize(int32_t& retVal)
 {
-    return get_httpClient()->get_maxHeaderLength(retVal);
+    return get_httpClient()->get_maxHeaderSize(retVal);
 }
 
-result_t http_base::set_maxHeaderLength(int32_t newVal)
+result_t http_base::set_maxHeaderSize(int32_t newVal)
 {
-    return get_httpClient()->set_maxHeaderLength(newVal);
+    return get_httpClient()->set_maxHeaderSize(newVal);
 }
 
 result_t http_base::get_maxBodySize(int32_t& retVal)
