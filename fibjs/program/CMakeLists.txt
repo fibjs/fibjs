@@ -9,15 +9,12 @@ set(VENDER_PATH ${BIN_PATH})
 
 if(NOT "$ENV{USE_VENDER_DIST}" STREQUAL "")
 
-	file(READ ${CMAKE_CURRENT_LIST_DIR}/../../.git/modules/vender/refs/heads/dev REF_HEAD)
-	file(GLOB ALL_TAGS ${CMAKE_CURRENT_LIST_DIR}/../../.git/modules/vender/refs/tags/*)
-	foreach(FILE ${ALL_TAGS})
-		file(READ ${FILE} CONTENT)
-		if("${CONTENT}" STREQUAL "${REF_HEAD}")
-			get_filename_component(VENDER_TAG ${FILE} NAME)
-			break()
-		endif()
-	endforeach()
+	execute_process(
+		COMMAND git describe --tags --abbrev=0
+		WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/../../vender"
+		OUTPUT_VARIABLE VENDER_TAG
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
 
 	if("${VENDER_TAG}" STREQUAL "")
 		message(FATAL_ERROR "cannot find vender tag")
