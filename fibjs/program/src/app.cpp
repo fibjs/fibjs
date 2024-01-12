@@ -38,7 +38,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     strArgList.resize(argc);
     ptrArgList.resize(argc);
     for (i = 0; i < argc; i++) {
-        strArgList[i] = fibjs::utf16to8String(szArglist[i]);
+        strArgList[i] = fibjs::utf16to8String((const char16_t*)szArglist[i]);
         ptrArgList[i] = strArgList[i].data();
     }
 
