@@ -124,7 +124,7 @@ exlib::string getResultMessage(result_t hr)
     char16_t MsgBuf[1024];
 
     if (FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), MsgBuf, 1024, NULL)) {
+            NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)MsgBuf, 1024, NULL)) {
         exlib::string s = fmtString(hr, UTF8_A(MsgBuf));
         size_t sz = s.length();
 

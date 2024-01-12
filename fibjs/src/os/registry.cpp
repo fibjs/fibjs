@@ -65,7 +65,7 @@ public:
         int32_t type = bWrite ? KEY_WRITE | KEY_SET_VALUE : KEY_READ;
         exlib::wstring wpath = utf8to16String(path);
 
-        LONG lResult = RegOpenKeyExW(s_hkeys[root], wpath.c_str(), 0, type, &hKey);
+        LONG lResult = RegOpenKeyExW(s_hkeys[root], (const wchar_t*)wpath.c_str(), 0, type, &hKey);
         if (lResult != ERROR_SUCCESS) {
             if (bCreate && lResult == ERROR_FILE_NOT_FOUND) {
                 SECURITY_DESCRIPTOR SD;
@@ -82,7 +82,7 @@ public:
                 SA.lpSecurityDescriptor = &SD;
                 SA.bInheritHandle = false;
 
-                lResult = RegCreateKeyExW(s_hkeys[root], wpath.c_str(), 0, (LPWSTR)NULL,
+                lResult = RegCreateKeyExW(s_hkeys[root], (const wchar_t*)wpath.c_str(), 0, (LPWSTR)NULL,
                     REG_OPTION_NON_VOLATILE, KEY_WRITE, &SA, &hKey,
                     &dwFunc);
 
@@ -135,7 +135,7 @@ result_t registry_base::listSubKey(int32_t root, exlib::string key, obj_ptr<NArr
             retCode = RegEnumKeyExW(r.hKey, i, achValue, &cchValue, NULL,
                 NULL, NULL, &ftLastWriteTime);
             if (retCode == ERROR_SUCCESS)
-                l->append(utf16to8String(achValue, cchValue));
+                l->append(utf16to8String((const char16_t*)achValue, cchValue));
         }
 
     retVal = l;
@@ -173,7 +173,7 @@ result_t registry_base::listValue(int32_t root, exlib::string key, obj_ptr<NArra
             retCode = RegEnumValueW(r.hKey, i, achValue, &cchValue, NULL,
                 NULL, NULL, NULL);
             if (retCode == ERROR_SUCCESS)
-                l->append(utf16to8String(achValue, cchValue));
+                l->append(utf16to8String((const char16_t*)achValue, cchValue));
         }
 
     retVal = l;
@@ -190,7 +190,7 @@ result_t registry_base::get(int32_t root, exlib::string key, v8::Local<v8::Value
 
     DWORD dwType = 0, dwSize = 0;
 
-    LONG lResult = RegQueryValueExW(r.hKey, r.skey.c_str(), NULL, &dwType, NULL, &dwSize);
+    LONG lResult = RegQueryValueExW(r.hKey, (const wchar_t*)r.skey.c_str(), NULL, &dwType, NULL, &dwSize);
     if (lResult != ERROR_SUCCESS)
         return CHECK_ERROR(-lResult);
 
@@ -200,7 +200,7 @@ result_t registry_base::get(int32_t root, exlib::string key, v8::Local<v8::Value
         int32_t value = 0;
         dwSize = sizeof(value);
 
-        RegQueryValueExW(r.hKey, r.skey.c_str(), NULL, &dwType, (LPBYTE)&value, &dwSize);
+        RegQueryValueExW(r.hKey, (const wchar_t*)r.skey.c_str(), NULL, &dwType, (LPBYTE)&value, &dwSize);
         retVal = GetReturnValue(isolate, value);
         break;
     }
@@ -209,7 +209,7 @@ result_t registry_base::get(int32_t root, exlib::string key, v8::Local<v8::Value
         int64_t value = 0;
         dwSize = sizeof(value);
 
-        RegQueryValueExW(r.hKey, r.skey.c_str(), NULL, &dwType, (LPBYTE)&value, &dwSize);
+        RegQueryValueExW(r.hKey, (const wchar_t*)r.skey.c_str(), NULL, &dwType, (LPBYTE)&value, &dwSize);
         retVal = GetReturnValue(isolate, value);
         break;
     }
@@ -220,7 +220,7 @@ result_t registry_base::get(int32_t root, exlib::string key, v8::Local<v8::Value
         exlib::string sbuf;
 
         buf.resize(dwSize / 2 - 1);
-        RegQueryValueExW(r.hKey, r.skey.c_str(), NULL, &dwType, (LPBYTE)buf.data(), &dwSize);
+        RegQueryValueExW(r.hKey, (const wchar_t*)r.skey.c_str(), NULL, &dwType, (LPBYTE)buf.data(), &dwSize);
 
         sbuf = utf16to8String(buf);
         retVal = GetReturnValue(isolate, sbuf);
@@ -233,19 +233,19 @@ result_t registry_base::get(int32_t root, exlib::string key, v8::Local<v8::Value
         exlib::string sbuf;
 
         buf.resize(dwSize / 2);
-        RegQueryValueExW(r.hKey, r.skey.c_str(), NULL, &dwType, (LPBYTE)buf.data(), &dwSize);
+        RegQueryValueExW(r.hKey, (const wchar_t*)r.skey.c_str(), NULL, &dwType, (LPBYTE)buf.data(), &dwSize);
 
         v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate);
         int32_t n = 0;
 
-        const wchar_t* p1 = buf.c_str();
+        const wchar_t* p1 = (const wchar_t*)buf.c_str();
         const wchar_t* pn = p1 + dwSize / 2;
         while ((p1 < pn) && *p1) {
             const wchar_t* p2 = p1;
             while (*p2)
                 p2++;
 
-            sbuf = utf16to8String(p1, (int32_t)(p2 - p1));
+            sbuf = utf16to8String((const char16_t*)p1, (int32_t)(p2 - p1));
             arr->Set(context, n++, GetReturnValue(isolate, sbuf));
             p1 = p2 + 1;
         }
@@ -258,7 +258,7 @@ result_t registry_base::get(int32_t root, exlib::string key, v8::Local<v8::Value
         obj_ptr<Buffer> buf;
 
         buf = new Buffer(NULL, dwSize);
-        RegQueryValueExW(r.hKey, r.skey.c_str(), NULL, &dwType, buf->data(), &dwSize);
+        RegQueryValueExW(r.hKey, (const wchar_t*)r.skey.c_str(), NULL, &dwType, buf->data(), &dwSize);
 
         buf->valueOf(retVal);
 
@@ -279,7 +279,7 @@ result_t set_reg(int32_t root, exlib::string key, int32_t type, const void* data
     if (hr < 0)
         return hr;
 
-    LONG lResult = RegSetValueExW(r.hKey, r.skey.c_str(), 0, type, (const BYTE*)data, size);
+    LONG lResult = RegSetValueExW(r.hKey, (const wchar_t*)r.skey.c_str(), 0, type, (const BYTE*)data, size);
     if (lResult != ERROR_SUCCESS)
         return CHECK_ERROR(-lResult);
 
@@ -346,9 +346,9 @@ result_t registry_base::del(int32_t root, exlib::string key)
     if (hr < 0)
         return hr;
 
-    LONG lResult = RegDeleteValueW(r.hKey, r.skey.c_str());
+    LONG lResult = RegDeleteValueW(r.hKey, (const wchar_t*)r.skey.c_str());
     if (lResult == ERROR_FILE_NOT_FOUND)
-        lResult = RegDeleteKeyW(r.hKey, r.skey.c_str());
+        lResult = RegDeleteKeyW(r.hKey, (const wchar_t*)r.skey.c_str());
 
     if (lResult != ERROR_SUCCESS)
         return CHECK_ERROR(-lResult);

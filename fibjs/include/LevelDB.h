@@ -92,8 +92,8 @@ private:
         std::string str = s.ToString();
 
         int wchars_num = (int)MultiByteToWideChar(CP_ACP, 0, str.c_str(), (int)str.length(), NULL, 0);
-        wchar_t* wstr = new wchar_t[wchars_num + 1];
-        MultiByteToWideChar(CP_ACP, 0, str.c_str(), (int)str.length(), wstr, wchars_num + 1);
+        char16_t* wstr = new char16_t[wchars_num + 1];
+        MultiByteToWideChar(CP_ACP, 0, str.c_str(), (int)str.length(), (wchar_t*)wstr, wchars_num + 1);
 
         result_t hr = Runtime::setError(utf16to8String(wstr, wchars_num));
         delete[] wstr;

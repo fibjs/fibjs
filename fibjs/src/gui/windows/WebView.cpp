@@ -97,7 +97,7 @@ private:
             m_pProtSink = pIProtSink;
             m_pProtSink->AddRef();
 
-            exlib::string origin(utf16to8String(szUrl));
+            exlib::string origin(utf16to8String((const char16_t*)szUrl));
             if (!qstrcmp(origin.c_str(), "fs://", 5)) {
                 origin = origin.substr(5, origin.length());
             }
@@ -245,12 +245,12 @@ private:
                     return INET_E_DEFAULT_ACTION;
             }
 
-            exlib::string base(utf16to8String(pwzBaseUrl + 5));
+            exlib::string base(utf16to8String((const char16_t*)pwzBaseUrl + 5));
             exlib::string path;
             exlib::string out;
 
             path_base::dirname(base, path);
-            resolvePath(path, utf16to8String(pwzRelativeUrl));
+            resolvePath(path, utf16to8String((const char16_t*)pwzRelativeUrl));
             path_base::normalize(path, out);
 
             exlib::wstring outw = utf8to16String("fs://" + out);
@@ -258,7 +258,7 @@ private:
             if (cchResult < outw.length() + 1)
                 return E_POINTER;
 
-            exlib::qmemcpy(pwzResult, outw.c_str(), outw.length() + 1);
+            exlib::qmemcpy((char16_t*)pwzResult, outw.c_str(), outw.length() + 1);
             *pcchResult = (ULONG)outw.length() + 1;
 
             return S_OK;
@@ -659,7 +659,7 @@ result_t WebView::getUrl(exlib::string& retVal, AsyncEvent* ac)
 
     BSTR url;
     if (webBrowser2->get_LocationURL(&url) == 0) {
-        retVal = utf16to8String(url);
+        retVal = utf16to8String((const char16_t*)url);
         ::SysFreeString(url);
     }
 
@@ -1297,9 +1297,9 @@ HRESULT WebView::Exec(const GUID* pguidCmdGroup, DWORD nCmdID, DWORD nCmdexecopt
             char buf[32];
 
             if (rgvaEventInfo[3].bstrVal) {
-                msg += utf16to8String(rgvaEventInfo[3].bstrVal);
+                msg += utf16to8String((const char16_t*)rgvaEventInfo[3].bstrVal);
                 if (rgvaEventInfo[4].bstrVal) {
-                    msg += "\n    at " + utf16to8String(rgvaEventInfo[4].bstrVal);
+                    msg += "\n    at " + utf16to8String((const char16_t*)rgvaEventInfo[4].bstrVal);
                     snprintf(buf, sizeof(buf), ":%d:%d", rgvaEventInfo[0].intVal, rgvaEventInfo[1].intVal);
                     msg += buf;
                 }
@@ -1656,7 +1656,7 @@ HRESULT WebView::OnPostMessage(DISPPARAMS* pDispParams)
         return DISP_E_BADPARAMCOUNT;
 
     if (pDispParams->rgvarg[0].vt == VT_BSTR)
-        _emit("message", utf16to8String(pDispParams->rgvarg[0].bstrVal));
+        _emit("message", utf16to8String((const char16_t*)pDispParams->rgvarg[0].bstrVal));
     else {
         _variant_t vstr;
         HRESULT hr = VariantChangeType(&vstr, &pDispParams->rgvarg[0],
@@ -1664,7 +1664,7 @@ HRESULT WebView::OnPostMessage(DISPPARAMS* pDispParams)
         if (!SUCCEEDED(hr))
             return hr;
 
-        _emit("message", utf16to8String(vstr.bstrVal));
+        _emit("message", utf16to8String((const char16_t*)vstr.bstrVal));
     }
 
     return S_OK;
@@ -1690,7 +1690,7 @@ HRESULT WebView::OnLog(DISPPARAMS* pDispParams)
 
         exlib::string msg;
         if (pDispParams->rgvarg[0].vt == VT_BSTR) {
-            msg = utf16to8String(pDispParams->rgvarg[0].bstrVal);
+            msg = utf16to8String((const char16_t*)pDispParams->rgvarg[0].bstrVal);
         } else {
             _variant_t vstr;
             HRESULT hr = VariantChangeType(&vstr, &pDispParams->rgvarg[0],
@@ -1699,7 +1699,7 @@ HRESULT WebView::OnLog(DISPPARAMS* pDispParams)
                 return hr;
 
             if (vstr.bstrVal)
-                msg = utf16to8String(vstr.bstrVal);
+                msg = utf16to8String((const char16_t*)vstr.bstrVal);
         }
 
         outLog(priority, msg);

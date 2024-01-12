@@ -67,7 +67,9 @@ inline exlib::wstring utf8to16String(exlib::string src)
     return utf8to16String(src.c_str(), (ssize_t)src.length());
 }
 
-#define UTF8_W(s) utf8to16String(s).c_str()
+#ifdef _WIN32
+#define UTF8_W(s) (LPCWSTR)utf8to16String(s).c_str()
+#endif
 
 inline exlib::string utf16to8String(const char16_t* src, ssize_t srclen = -1)
 {

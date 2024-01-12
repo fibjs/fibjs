@@ -40,8 +40,8 @@ result_t os_base::printerInfo(v8::Local<v8::Array>& retVal)
     for (DWORD i = 0; i < dwReturned; i++) {
         v8::Local<v8::Object> o = v8::Object::New(isolate->m_isolate);
         PRINTER_INFO_5W* pItem = &pinfo[i];
-        o->Set(context, isolate->NewString("name"), isolate->NewString(utf16to8String(pItem->pPrinterName)));
-        o->Set(context, isolate->NewString("port"), isolate->NewString(utf16to8String(pItem->pPortName)));
+        o->Set(context, isolate->NewString("name"), isolate->NewString(utf16to8String((const char16_t*)pItem->pPrinterName)));
+        o->Set(context, isolate->NewString("port"), isolate->NewString(utf16to8String((const char16_t*)pItem->pPortName)));
         if (PRINTER_ATTRIBUTE_LOCAL & pItem->Attributes)
             o->Set(context, isolate->NewString("type"), isolate->NewString("local"));
         else if (PRINTER_ATTRIBUTE_NETWORK & pItem->Attributes)

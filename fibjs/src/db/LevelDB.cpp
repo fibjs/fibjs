@@ -43,9 +43,9 @@ result_t LevelDB::open(const char* connString)
     exlib::wstring wstr = utf8to16String(connString);
     exlib::string str;
 
-    int chars_num = (int)WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), (int)wstr.length(), NULL, 0, NULL, NULL);
+    int chars_num = (int)WideCharToMultiByte(CP_ACP, 0, (const wchar_t*)wstr.c_str(), (int)wstr.length(), NULL, 0, NULL, NULL);
     str.resize(chars_num);
-    WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), (int)wstr.length(), str.data(), chars_num + 1, NULL, NULL);
+    WideCharToMultiByte(CP_ACP, 0, (const wchar_t*)wstr.c_str(), (int)wstr.length(), str.data(), chars_num + 1, NULL, NULL);
     connString = str.c_str();
 #endif
 

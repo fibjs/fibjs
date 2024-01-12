@@ -609,7 +609,7 @@ result_t readInput(exlib::string msg, exlib::string& retVal, AsyncEvent* ac, boo
         if (textLen > 0 && utext[textLen - 1] == '\r')
             utext[--textLen] = '\0';
 
-        retVal = utf16to8String(utext, textLen);
+        retVal = utf16to8String((const char16_t*)utext, textLen);
         free(utext);
 
         return 0;
