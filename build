@@ -15,6 +15,28 @@ TIME_BEGIN=$(date +%s)
 
 . ./vender/build_tools/scripts/build_env.sh
 
+dev=0
+build_addon=0
+
+new_args=()
+for arg in "$@"
+do
+    if [ "$arg" == "dev" ]; then
+		dev=1
+		build_addon=1
+	elif [ "$arg" == "ci" ]; then
+		export USE_VENDER_DIST=1
+		build_addon=1
+	else
+		new_args+=("$arg")
+	fi
+done
+set -- "${new_args[@]}"
+
+if [ $dev == 0 ]; then
+	export USE_VENDER_DIST=1
+fi
+
 if [ -f "${WORK_ROOT}/vender/build" ]; then 
 	if [ -z $USE_VENDER_DIST ]; then
 		cd "${WORK_ROOT}/vender"
@@ -39,10 +61,12 @@ if [ $? != 0 ]; then
 	exit 1
 fi
 
-cd "${WORK_ROOT}/fibjs/addons"
-bash build "$@"
-if [ $? != 0 ]; then
-	exit 1
+if [ $build_addon == 1 ]; then
+	cd "${WORK_ROOT}/fibjs/addons"
+	bash build "$@"
+	if [ $? != 0 ]; then
+		exit 1
+	fi
 fi
 
 cd "${WORK_ROOT}/fibjs/installer"

@@ -35,13 +35,6 @@ if(NOT "${CLEAN_BUILD}" STREQUAL "true")
                 execute_process(COMMAND otool -L ${BIN_PATH}/fibjs)
             endif()
             message("")
-
-            message("ENV:CI is $ENV{CI}")
-            if(NOT "$ENV{CI}" STREQUAL "")
-                execute_process(OUTPUT_FILE ${BIN_PATH}/fibjs.xz
-                    COMMAND xz -cz -T2 ${BIN_PATH}/fibjs)
-                message("[100%] Built target fibjs.xz")
-            endif()
         endif()
     endif()
 endif()

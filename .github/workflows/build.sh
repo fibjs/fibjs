@@ -21,7 +21,6 @@ if [[ "${BUILD_TAG}" != "" && "${BUILD_TYPE}" == "release" ]]; then
     else
         cp fibjs release/fibjs-${BUILD_TAG}-${BUILD_TARGET}-${BUILD_ARCH}
         cp installer.sh release/installer-${BUILD_TAG}-${BUILD_TARGET}-${BUILD_ARCH}.sh
-        cp fibjs.xz release/fibjs-${BUILD_TAG}-${BUILD_TARGET}-${BUILD_ARCH}.xz
         cp fibjs.tar.gz release/fibjs-${BUILD_TAG}-${BUILD_TARGET}-${BUILD_ARCH}.tar.gz
     fi
 fi
