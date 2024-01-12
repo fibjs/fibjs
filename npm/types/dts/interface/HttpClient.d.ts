@@ -79,6 +79,16 @@ declare class Class_HttpClient extends Class_object {
     enableEncoding: boolean;
 
     /**
+     * @description 查询和设置最大请求头个数，缺省为 128 
+     */
+    maxHeadersCount: number;
+
+    /**
+     * @description 查询和设置最大请求头长度，缺省为 8192 
+     */
+    maxHeaderLength: number;
+
+    /**
      * @description 查询和设置 body 最大尺寸，以 MB 为单位，缺省为 -1，不限制尺寸 
      */
     maxBodySize: number;

@@ -81,6 +81,36 @@ result_t HttpClient::set_enableEncoding(bool newVal)
     return 0;
 }
 
+result_t HttpClient::get_maxHeadersCount(int32_t& retVal)
+{
+    retVal = m_maxHeadersCount;
+    return 0;
+}
+
+result_t HttpClient::set_maxHeadersCount(int32_t newVal)
+{
+    if (newVal < 0)
+        return CHECK_ERROR(CALL_E_OUTRANGE);
+
+    m_maxHeadersCount = newVal;
+    return 0;
+}
+
+result_t HttpClient::get_maxHeaderLength(int32_t& retVal)
+{
+    retVal = m_maxHeaderLength;
+    return 0;
+}
+
+result_t HttpClient::set_maxHeaderLength(int32_t newVal)
+{
+    if (newVal < 0)
+        return CHECK_ERROR(CALL_E_OUTRANGE);
+
+    m_maxHeaderLength = newVal;
+    return 0;
+}
+
 result_t HttpClient::get_maxBodySize(int32_t& retVal)
 {
     retVal = m_maxBodySize;
@@ -395,13 +425,12 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req, SeekableS
 {
     class asyncRequest : public AsyncState {
     public:
-        asyncRequest(Stream_base* conn, HttpRequest_base* req, SeekableStream_base* response_body, int32_t maxBodySize,
-            bool enableEncoding, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+        asyncRequest(HttpClient* hc, Stream_base* conn, HttpRequest_base* req, SeekableStream_base* response_body,
+            obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
             : AsyncState(ac)
+            , m_hc(hc)
             , m_conn(conn)
             , m_req(req)
-            , m_maxBodySize(maxBodySize)
-            , m_enableEncoding(enableEncoding)
             , m_response_body(response_body)
             , m_retVal(retVal)
         {
@@ -426,11 +455,13 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req, SeekableS
                 resp->set_body(m_response_body);
 
             m_retVal = resp;
-            m_retVal->set_maxBodySize(m_maxBodySize);
+            m_retVal->set_maxHeadersCount(m_hc->m_maxHeadersCount);
+            m_retVal->set_maxHeaderLength(m_hc->m_maxHeaderLength);
+            m_retVal->set_maxBodySize(m_hc->m_maxBodySize);
             m_bs = new BufferedStream(m_conn);
             m_bs->set_EOL("\r\n");
 
-            return m_retVal->readFrom(m_bs, next(m_enableEncoding ? unzip : close));
+            return m_retVal->readFrom(m_bs, next(m_hc->m_enableEncoding ? unzip : close));
         }
 
         ON_STATE(asyncRequest, unzip)
@@ -445,10 +476,10 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req, SeekableS
 
                 if (hdr == "gzip")
                     return zlib_base::gunzipTo(m_body, m_unzip,
-                        m_maxBodySize, next(close));
+                        m_hc->m_maxBodySize, next(close));
                 else if (hdr == "deflate")
                     return zlib_base::inflateRawTo(m_body, m_unzip,
-                        m_maxBodySize, next(close));
+                        m_hc->m_maxBodySize, next(close));
             }
 
             return next(close);
@@ -465,10 +496,9 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req, SeekableS
         }
 
     private:
+        obj_ptr<HttpClient> m_hc;
         Stream_base* m_conn;
         HttpRequest_base* m_req;
-        int32_t m_maxBodySize;
-        bool m_enableEncoding;
         obj_ptr<BufferedStream> m_bs;
         obj_ptr<MemoryStream> m_unzip;
         obj_ptr<SeekableStream_base> m_body;
@@ -480,7 +510,7 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req, SeekableS
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncRequest(conn, req, response_body, m_maxBodySize, m_enableEncoding, retVal, ac))->post(0);
+    return (new asyncRequest(this, conn, req, response_body, retVal, ac))->post(0);
 }
 
 result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,

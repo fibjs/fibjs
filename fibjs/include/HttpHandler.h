@@ -27,6 +27,8 @@ public:
     virtual result_t enableCrossOrigin(exlib::string allowHeaders);
     virtual result_t get_maxHeadersCount(int32_t& retVal);
     virtual result_t set_maxHeadersCount(int32_t newVal);
+    virtual result_t get_maxHeaderLength(int32_t& retVal);
+    virtual result_t set_maxHeaderLength(int32_t newVal);
     virtual result_t get_maxBodySize(int32_t& retVal);
     virtual result_t set_maxBodySize(int32_t newVal);
     virtual result_t get_enableEncoding(bool& retVal);
@@ -42,6 +44,7 @@ private:
     bool m_crossDomain;
     exlib::string m_allowHeaders;
     int32_t m_maxHeadersCount;
+    int32_t m_maxHeaderLength;
     int32_t m_maxBodySize;
     bool m_enableEncoding;
     exlib::string m_serverName;

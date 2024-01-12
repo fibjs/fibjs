@@ -30,6 +30,8 @@ public:
     virtual result_t enableCrossOrigin(exlib::string allowHeaders) = 0;
     virtual result_t get_maxHeadersCount(int32_t& retVal) = 0;
     virtual result_t set_maxHeadersCount(int32_t newVal) = 0;
+    virtual result_t get_maxHeaderLength(int32_t& retVal) = 0;
+    virtual result_t set_maxHeaderLength(int32_t newVal) = 0;
     virtual result_t get_maxBodySize(int32_t& retVal) = 0;
     virtual result_t set_maxBodySize(int32_t newVal) = 0;
     virtual result_t get_enableEncoding(bool& retVal) = 0;
@@ -46,6 +48,8 @@ public:
     static void s_enableCrossOrigin(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_maxHeadersCount(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_maxHeadersCount(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_maxHeaderLength(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_maxHeaderLength(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_maxBodySize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_maxBodySize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_enableEncoding(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -66,6 +70,7 @@ inline ClassInfo& HttpServer_base::class_info()
 
     static ClassData::ClassProperty s_property[] = {
         { "maxHeadersCount", s_get_maxHeadersCount, s_set_maxHeadersCount, false },
+        { "maxHeaderLength", s_get_maxHeaderLength, s_set_maxHeaderLength, false },
         { "maxBodySize", s_get_maxBodySize, s_set_maxBodySize, false },
         { "enableEncoding", s_get_enableEncoding, s_set_enableEncoding, false },
         { "serverName", s_get_serverName, s_set_serverName, false }
@@ -153,6 +158,29 @@ inline void HttpServer_base::s_set_maxHeadersCount(v8::Local<v8::Name> property,
     PROPERTY_VAL(int32_t);
 
     hr = pInst->set_maxHeadersCount(v0);
+
+    PROPERTY_SET_LEAVE();
+}
+
+inline void HttpServer_base::s_get_maxHeaderLength(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(HttpServer_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_maxHeaderLength(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpServer_base::s_set_maxHeaderLength(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_INSTANCE(HttpServer_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(int32_t);
+
+    hr = pInst->set_maxHeaderLength(v0);
 
     PROPERTY_SET_LEAVE();
 }

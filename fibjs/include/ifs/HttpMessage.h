@@ -34,6 +34,8 @@ public:
     virtual result_t set_upgrade(bool newVal) = 0;
     virtual result_t get_maxHeadersCount(int32_t& retVal) = 0;
     virtual result_t set_maxHeadersCount(int32_t newVal) = 0;
+    virtual result_t get_maxHeaderLength(int32_t& retVal) = 0;
+    virtual result_t set_maxHeaderLength(int32_t newVal) = 0;
     virtual result_t get_maxBodySize(int32_t& retVal) = 0;
     virtual result_t set_maxBodySize(int32_t newVal) = 0;
     virtual result_t get_socket(obj_ptr<Stream_base>& retVal) = 0;
@@ -67,6 +69,8 @@ public:
     static void s_set_upgrade(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_maxHeadersCount(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_maxHeadersCount(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_maxHeaderLength(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_maxHeaderLength(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_maxBodySize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_maxBodySize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_socket(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -100,6 +104,7 @@ inline ClassInfo& HttpMessage_base::class_info()
         { "keepAlive", s_get_keepAlive, s_set_keepAlive, false },
         { "upgrade", s_get_upgrade, s_set_upgrade, false },
         { "maxHeadersCount", s_get_maxHeadersCount, s_set_maxHeadersCount, false },
+        { "maxHeaderLength", s_get_maxHeaderLength, s_set_maxHeaderLength, false },
         { "maxBodySize", s_get_maxBodySize, s_set_maxBodySize, false },
         { "socket", s_get_socket, block_set, false }
     };
@@ -215,6 +220,29 @@ inline void HttpMessage_base::s_set_maxHeadersCount(v8::Local<v8::Name> property
     PROPERTY_VAL(int32_t);
 
     hr = pInst->set_maxHeadersCount(v0);
+
+    PROPERTY_SET_LEAVE();
+}
+
+inline void HttpMessage_base::s_get_maxHeaderLength(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(HttpMessage_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_maxHeaderLength(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpMessage_base::s_set_maxHeaderLength(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_INSTANCE(HttpMessage_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(int32_t);
+
+    hr = pInst->set_maxHeaderLength(v0);
 
     PROPERTY_SET_LEAVE();
 }

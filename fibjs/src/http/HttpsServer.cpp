@@ -145,6 +145,16 @@ result_t HttpsServer::set_maxHeadersCount(int32_t newVal)
     return m_hdlr->set_maxHeadersCount(newVal);
 }
 
+result_t HttpsServer::get_maxHeaderLength(int32_t& retVal)
+{
+    return m_hdlr->get_maxHeaderLength(retVal);
+}
+
+result_t HttpsServer::set_maxHeaderLength(int32_t newVal)
+{
+    return m_hdlr->set_maxHeaderLength(newVal);
+}
+
 result_t HttpsServer::get_maxBodySize(int32_t& retVal)
 {
     return m_hdlr->get_maxBodySize(retVal);

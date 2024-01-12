@@ -57,6 +57,12 @@ interface HttpClient : object
     /*! @brief 自动解压缩功能开关，默认开启 */
     Boolean enableEncoding;
 
+    /*! @brief 查询和设置最大请求头个数，缺省为 128 */
+    Integer maxHeadersCount;
+
+    /*! @brief 查询和设置最大请求头长度，缺省为 8192 */
+    Integer maxHeaderLength;
+
     /*! @brief 查询和设置 body 最大尺寸，以 MB 为单位，缺省为 -1，不限制尺寸 */
     Integer maxBodySize;
 

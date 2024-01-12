@@ -91,6 +91,26 @@ result_t http_base::set_enableEncoding(bool newVal)
     return get_httpClient()->set_enableEncoding(newVal);
 }
 
+result_t http_base::get_maxHeadersCount(int32_t& retVal)
+{
+    return get_httpClient()->get_maxHeadersCount(retVal);
+}
+
+result_t http_base::set_maxHeadersCount(int32_t newVal)
+{
+    return get_httpClient()->set_maxHeadersCount(newVal);
+}
+
+result_t http_base::get_maxHeaderLength(int32_t& retVal)
+{
+    return get_httpClient()->get_maxHeaderLength(retVal);
+}
+
+result_t http_base::set_maxHeaderLength(int32_t newVal)
+{
+    return get_httpClient()->set_maxHeaderLength(newVal);
+}
+
 result_t http_base::get_maxBodySize(int32_t& retVal)
 {
     return get_httpClient()->get_maxBodySize(retVal);

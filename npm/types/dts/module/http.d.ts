@@ -117,6 +117,16 @@ declare module 'http' {
     var enableEncoding: boolean;
 
     /**
+     * @description 查询和设置最大请求头个数，缺省为 128 
+     */
+    var maxHeadersCount: number;
+
+    /**
+     * @description 查询和设置最大请求头长度，缺省为 8192 
+     */
+    var maxHeaderLength: number;
+
+    /**
      * @description 查询和设置 body 最大尺寸，以 MB 为单位，缺省为 -1，不限制尺寸 
      */
     var maxBodySize: number;

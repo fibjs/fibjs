@@ -37,6 +37,10 @@ public:
     virtual result_t set_autoRedirect(bool newVal) = 0;
     virtual result_t get_enableEncoding(bool& retVal) = 0;
     virtual result_t set_enableEncoding(bool newVal) = 0;
+    virtual result_t get_maxHeadersCount(int32_t& retVal) = 0;
+    virtual result_t set_maxHeadersCount(int32_t newVal) = 0;
+    virtual result_t get_maxHeaderLength(int32_t& retVal) = 0;
+    virtual result_t set_maxHeaderLength(int32_t newVal) = 0;
     virtual result_t get_maxBodySize(int32_t& retVal) = 0;
     virtual result_t set_maxBodySize(int32_t newVal) = 0;
     virtual result_t get_userAgent(exlib::string& retVal) = 0;
@@ -79,6 +83,10 @@ public:
     static void s_set_autoRedirect(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_enableEncoding(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_enableEncoding(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_maxHeadersCount(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_maxHeadersCount(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_maxHeaderLength(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_maxHeaderLength(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_maxBodySize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_maxBodySize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_userAgent(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -151,6 +159,8 @@ inline ClassInfo& HttpClient_base::class_info()
         { "enableCookie", s_get_enableCookie, s_set_enableCookie, false },
         { "autoRedirect", s_get_autoRedirect, s_set_autoRedirect, false },
         { "enableEncoding", s_get_enableEncoding, s_set_enableEncoding, false },
+        { "maxHeadersCount", s_get_maxHeadersCount, s_set_maxHeadersCount, false },
+        { "maxHeaderLength", s_get_maxHeaderLength, s_set_maxHeaderLength, false },
         { "maxBodySize", s_get_maxBodySize, s_set_maxBodySize, false },
         { "userAgent", s_get_userAgent, s_set_userAgent, false },
         { "poolSize", s_get_poolSize, s_set_poolSize, false },
@@ -291,6 +301,52 @@ inline void HttpClient_base::s_set_enableEncoding(v8::Local<v8::Name> property, 
     PROPERTY_VAL(bool);
 
     hr = pInst->set_enableEncoding(v0);
+
+    PROPERTY_SET_LEAVE();
+}
+
+inline void HttpClient_base::s_get_maxHeadersCount(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(HttpClient_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_maxHeadersCount(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpClient_base::s_set_maxHeadersCount(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_INSTANCE(HttpClient_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(int32_t);
+
+    hr = pInst->set_maxHeadersCount(v0);
+
+    PROPERTY_SET_LEAVE();
+}
+
+inline void HttpClient_base::s_get_maxHeaderLength(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(HttpClient_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_maxHeaderLength(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpClient_base::s_set_maxHeaderLength(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_INSTANCE(HttpClient_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(int32_t);
+
+    hr = pInst->set_maxHeaderLength(v0);
 
     PROPERTY_SET_LEAVE();
 }

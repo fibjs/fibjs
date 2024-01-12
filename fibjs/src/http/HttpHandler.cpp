@@ -601,6 +601,7 @@ result_t HttpHandler_base::_new(Handler_base* hdlr, obj_ptr<HttpHandler_base>& r
 HttpHandler::HttpHandler()
     : m_crossDomain(false)
     , m_maxHeadersCount(128)
+    , m_maxHeaderLength(8192)
     , m_maxBodySize(64)
     , m_enableEncoding(false)
 {
@@ -862,6 +863,21 @@ result_t HttpHandler::set_maxHeadersCount(int32_t newVal)
         return CHECK_ERROR(CALL_E_OUTRANGE);
 
     m_maxHeadersCount = newVal;
+    return 0;
+}
+
+result_t HttpHandler::get_maxHeaderLength(int32_t& retVal)
+{
+    retVal = m_maxHeaderLength;
+    return 0;
+}
+
+result_t HttpHandler::set_maxHeaderLength(int32_t newVal)
+{
+    if (newVal < 0)
+        return CHECK_ERROR(CALL_E_OUTRANGE);
+
+    m_maxHeaderLength = newVal;
     return 0;
 }
 
