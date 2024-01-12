@@ -5,15 +5,25 @@ project(${name})
 
 include(${CMAKE_CURRENT_LIST_DIR}/../../vender/build_tools/cmake/option.cmake)
 
-if(NOT "$ENV{USE_VENDER_DIST}" STREQUAL "")
-	include(FetchContent)
+set(VENDER_PATH ${BIN_PATH})
 
-	execute_process(
-		COMMAND git describe --tags --abbrev=0
-		WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/../../vender"
-		OUTPUT_VARIABLE VENDER_TAG
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
+if(NOT "$ENV{USE_VENDER_DIST}" STREQUAL "")
+
+	file(READ ${CMAKE_CURRENT_LIST_DIR}/../../.git/modules/vender/refs/heads/dev REF_HEAD)
+	file(GLOB ALL_TAGS ${CMAKE_CURRENT_LIST_DIR}/../../.git/modules/vender/refs/tags/*)
+	foreach(FILE ${ALL_TAGS})
+		file(READ ${FILE} CONTENT)
+		if("${CONTENT}" STREQUAL "${REF_HEAD}")
+			get_filename_component(VENDER_TAG ${FILE} NAME)
+			break()
+		endif()
+	endforeach()
+
+	if("${VENDER_TAG}" STREQUAL "")
+		message(FATAL_ERROR "cannot find vender tag")
+	endif()
+
+	include(FetchContent)
 
 	if("${BUILD_OS}" STREQUAL "Linux")
 		set(BUILD_TARGET "linux")
@@ -40,9 +50,7 @@ if(NOT "$ENV{USE_VENDER_DIST}" STREQUAL "")
   		FetchContent_Populate(vender)
 	endif ()
 
-	set(VENDER_PATH ${vender_SOURCE_DIR}/${BUILD_OS}_${BUILD_ARCH}_${BUILD_TYPE})
-else()
-	set(VENDER_PATH ${BIN_PATH})
+	file(COPY ${vender_SOURCE_DIR}/${BUILD_OS}_${BUILD_ARCH}_${BUILD_TYPE}/ DESTINATION ${VENDER_PATH})
 endif()
 
 if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
