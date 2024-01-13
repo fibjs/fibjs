@@ -90,9 +90,11 @@ void symbol_format(Isolate* isolate, StringBuffer& strBuffer, v8::Local<v8::Valu
 
 void key_format(Isolate* isolate, StringBuffer& strBuffer, v8::Local<v8::Value> v, bool color)
 {
-    if (v->IsSymbol())
+    if (v->IsSymbol()) {
+        strBuffer.append("[");
         symbol_format(isolate, strBuffer, v, color);
-    else
+        strBuffer.append("]");
+    } else
         string_format(isolate, strBuffer, v);
 }
 
