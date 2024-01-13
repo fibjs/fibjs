@@ -172,6 +172,7 @@ function fetch_leveled_module_info(m, v, parent) {
                 try {
                     opt = versioning.evaluate(minfo, {
                         target_platform: process.versions.musl ? "alpine" : process.platform,
+                        target_libc: process.platform === 'linux' ? process.versions.musl ? "musl" : "glibc" : undefined,
                         module_root: '/'
                     }, 3);
 
@@ -368,7 +369,7 @@ function generate_mv_paths(level_info, parent_p) {
     if (level_info.new_module) {
         for (let k in level_info.node_modules) {
             const lmod = level_info.node_modules[k];
-            const mp = path.join(parent_p, 'node_modules', lmod.name);
+            const bp = path.join(parent_p, 'node_modules');
 
             if (lmod.new_module) {
                 const mv = k + '@' + lmod.version;
@@ -378,30 +379,32 @@ function generate_mv_paths(level_info, parent_p) {
                     switch (lmod.pkg_install_typeinfo.type) {
                         case 'registry':
                             ps = {
+                                name: lmod.name,
                                 pkg_install_typeinfo: lmod.pkg_install_typeinfo,
                                 bin: lmod.bin,
                                 binary: lmod.binary,
                                 dist: lmod.dist,
-                                path: [mp]
+                                base_path: [bp]
                             };
                             break
                         case 'git':
                             ps = {
+                                name: lmod.name,
                                 pkg_install_typeinfo: lmod.pkg_install_typeinfo,
                                 bin: lmod.bin,
                                 binary: lmod.binary,
                                 dist: null,
-                                path: [mp]
+                                base_path: [bp]
                             };
                             break
                     }
 
                     mv_paths[mv] = ps;
                 } else
-                    ps.path.push(mp);
+                    ps.base_path.push(bp);
             }
 
-            generate_mv_paths(lmod, mp);
+            generate_mv_paths(lmod, path.join(bp, lmod.name));
         }
     }
 }
@@ -455,13 +458,13 @@ function download_module() {
                         )
                     }
 
-                    mvm.path.forEach(bp => {
+                    mvm.base_path.forEach(bp => {
                         coroutine.parallel(untar_files, (file) => {
                             const relpath = file.filename.slice(archive_root_name.length);
 
                             if (!relpath) return;
 
-                            const tpath = path.join(bp, relpath);
+                            const tpath = path.join(bp, mvm.name, relpath);
                             helpers_fs.mkdirp(path.dirname(tpath));
 
                             fs.writeFile(tpath, file.fileData);
@@ -489,12 +492,12 @@ function download_module() {
                         )
                     }
 
-                    mvm.path.forEach(bp => {
+                    mvm.base_path.forEach(bp => {
                         namelist.forEach((member) => {
                             const relpath = member.slice(archive_root_name.length);
                             if (!relpath) return;
 
-                            const tpath = path.join(bp, relpath);
+                            const tpath = path.join(bp, mvm.name, relpath);
 
                             // skip directory
                             if (tpath.endsWith(SEP)) return;
@@ -533,13 +536,15 @@ function download_module() {
 
                 const untar_files = untar(t.buffer);
 
-                var addons_data = untar_files[0];
                 mvm.path.forEach(bp => {
-                    var bpath = path.join(bp, mvm.binary.module);
-                    helpers_fs.mkdirp(path.dirname(bpath));
-                    fs.writeFile(bpath, addons_data.fileData);
-                    fs.chmod(bpath, parseInt(addons_data.mode, 8));
-                    install_log("extract addons:", bpath);
+                    coroutine.parallel(untar_files, (file) => {
+                        console.error(file.filename);
+                        var bpath = path.join(bp, file.filename);
+                        helpers_fs.mkdirp(path.dirname(bpath));
+                        fs.writeFile(bpath, file.fileData);
+                        fs.chmod(bpath, parseInt(file.mode, 8));
+                        install_log("extract addons:", bpath);
+                    })
                 });
             }
 
@@ -548,15 +553,15 @@ function download_module() {
 
                 if (util.isString(bins)) {
                     var bins1 = {};
-                    bins1[path.basename(mvm.path[0])] = bins;
+                    bins1[path.basename(bins)] = bins;
                     bins = bins1;
                 }
 
                 for (var bin in bins) {
-                    mvm.path.forEach(p => {
-                        var bin_path = path.join(path.dirname(p), '.bin');
+                    mvm.base_path.forEach(p => {
+                        var bin_path = path.join(p, '.bin');
                         var cli_link = path.join(bin_path, bin);
-                        var cli_file = path.join(p, bins[bin]);
+                        var cli_file = path.join(p, mvm.name, bins[bin]);
                         var cli_file_r = path.relative(bin_path, cli_file);
 
                         helpers_fs.mkdirp(bin_path);
