@@ -135,7 +135,7 @@ void _log(int32_t type, exlib::string fmt, OptArgs args)
     if (type <= level) {
         exlib::string str;
 
-        util_format(fmt, args, colors(type), str);
+        util_format(Isolate::current(), fmt, args, colors(type), str);
         asyncLog(type, str);
     }
 }
@@ -246,7 +246,7 @@ result_t console_base::trace(exlib::string fmt, OptArgs args)
     if (type <= level) {
         exlib::string str;
 
-        util_format(fmt, args, colors(type), str);
+        util_format(Isolate::current(), fmt, args, colors(type), str);
         if (str.empty())
             str = "Trace";
         else
@@ -281,7 +281,7 @@ result_t console_base::table(v8::Local<v8::Value> obj)
 
 result_t console_base::table(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields)
 {
-    exlib::string strBuffer = table_format(obj, fields, colors(C_INFO), true);
+    exlib::string strBuffer = table_format(Isolate::current(), obj, fields, colors(C_INFO), true);
     asyncLog(C_INFO, strBuffer);
     return 0;
 }

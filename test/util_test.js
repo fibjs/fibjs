@@ -849,6 +849,9 @@ describe('util', () => {
         it("Symbol", () => {
             assert.equal(util.format(Symbol()), 'Symbol()');
             assert.equal(util.format(Symbol('debug')), 'Symbol(debug)');
+            const o = {};
+            o[Symbol('debug')] = 100;
+            assert.equal(util.format(o), '{\n  Symbol(debug): 100\n}');
         });
 
         it("Error", () => {

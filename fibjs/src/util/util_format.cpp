@@ -44,11 +44,10 @@ public:
     int32_t mode;
 };
 
-void string_format(StringBuffer& strBuffer, v8::Local<v8::Value> v, bool color, int32_t maxStringLength)
+void string_format(Isolate* isolate, StringBuffer& strBuffer, v8::Local<v8::Value> v, bool color, int32_t maxStringLength)
 {
     exlib::string ret;
 
-    Isolate* isolate = Isolate::current();
     exlib::string s = isolate->toString(v);
     exlib::wstring32 str32 = utf8to32String(s);
 
@@ -76,13 +75,33 @@ void string_format(StringBuffer& strBuffer, v8::Local<v8::Value> v, bool color, 
     strBuffer.append(color_string(COLOR_GREEN, ret, color));
 }
 
+void symbol_format(Isolate* isolate, StringBuffer& strBuffer, v8::Local<v8::Value> v, bool color)
+{
+    exlib::string s("Symbol(");
+
+    v8::Local<v8::Symbol> _symbol = v8::Local<v8::Symbol>::Cast(v);
+    v8::Local<v8::Value> _name = _symbol->Description(isolate->m_isolate);
+
+    if (!_name->IsUndefined())
+        s.append(isolate->toString(_name));
+
+    strBuffer.append(color_string(COLOR_GREEN, s + ')', color));
+}
+
+void key_format(Isolate* isolate, StringBuffer& strBuffer, v8::Local<v8::Value> v, bool color)
+{
+    if (v->IsSymbol())
+        symbol_format(isolate, strBuffer, v, color);
+    else
+        string_format(isolate, strBuffer, v);
+}
+
 #define MAX_BUFFER_ITEM 50
 
-exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth, int32_t maxArrayLength, int32_t maxStringLength)
+exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color, int32_t depth, int32_t maxArrayLength, int32_t maxStringLength)
 {
     StringBuffer strBuffer;
 
-    Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> _context = isolate->context();
 
     QuickArray<_item> stk;
@@ -106,7 +125,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth, i
         else if (v->IsBigInt() || v->IsBigIntObject())
             strBuffer.append(color_string(COLOR_YELLOW, isolate->toString(v) + 'n', color));
         else if (v->IsString() || v->IsStringObject())
-            string_format(strBuffer, v, color, maxStringLength);
+            string_format(isolate, strBuffer, v, color, maxStringLength);
         else if (v->IsRegExp()) {
             exlib::string s;
             v8::Local<v8::RegExp> re = v8::Local<v8::RegExp>::Cast(v);
@@ -132,15 +151,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth, i
             exlib::string s(isolate->toString(JSValue(obj->Get(_context, isolate->NewString("stack")))));
             strBuffer.append(color_string(COLOR_LIGHTRED, s, color));
         } else if (v->IsSymbol()) {
-            exlib::string s("Symbol(");
-
-            v8::Local<v8::Symbol> _symbol = v8::Local<v8::Symbol>::Cast(v);
-            v8::Local<v8::Value> _name = _symbol->Description(isolate->m_isolate);
-
-            if (!_name->IsUndefined())
-                s.append(isolate->toString(_name));
-
-            strBuffer.append(color_string(COLOR_GREEN, s + ')', color));
+            symbol_format(isolate, strBuffer, v, color);
         } else if (v->IsObject()) {
             bool isFunction = false;
 
@@ -218,7 +229,9 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth, i
                     } else
                         keys = vs;
                 } else
-                    keys = obj->GetPropertyNames(_context);
+                    keys = obj->GetPropertyNames(_context, v8::KeyCollectionMode::kOwnOnly,
+                                  v8::PropertyFilter::ONLY_ENUMERABLE, v8::IndexFilter::kSkipIndices)
+                               .FromMaybe(v8::Local<v8::Array>());
 
                 if (keys.IsEmpty()) {
                     if (!isFunction)
@@ -395,7 +408,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth, i
 
             if (!it->obj.IsEmpty()) {
                 TryCatch try_catch;
-                string_format(strBuffer, v);
+                key_format(isolate, strBuffer, v, color);
 
                 if (it->obj->IsMap()) {
                     strBuffer.append(" => ");
@@ -413,7 +426,7 @@ exlib::string json_format(v8::Local<v8::Value> obj, bool color, int32_t depth, i
     return strBuffer.str();
 }
 
-result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string& retVal)
+result_t util_format(Isolate* isolate, exlib::string fmt, OptArgs args, bool color, exlib::string& retVal)
 {
     const char* s1;
     char ch;
@@ -424,8 +437,6 @@ result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string&
         retVal = fmt;
         return 0;
     }
-
-    Isolate* isolate = Isolate::current();
 
     const char* s = fmt.c_str();
     const char* s_end = s + fmt.length();
@@ -456,7 +467,7 @@ result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string&
                         v8::Local<v8::Value> v = v8::Number::New(isolate->m_isolate, (int32_t)n);
 
                         exlib::string s;
-                        s = json_format(v, color);
+                        s = json_format(isolate, v, color);
                         retVal.append(s);
                     }
                 } else
@@ -465,7 +476,7 @@ result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string&
             case 'j':
                 if (idx < argc) {
                     exlib::string s;
-                    s = json_format(args[idx++], color);
+                    s = json_format(isolate, args[idx++], color);
                     retVal.append(s);
                 } else
                     retVal.append("%j", 2);
@@ -493,7 +504,7 @@ result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string&
             retVal.append(isolate->toString(v));
         else {
             exlib::string s;
-            s = json_format(v, color);
+            s = json_format(isolate, v, color);
 
             retVal.append(s);
         }
@@ -504,11 +515,11 @@ result_t util_format(exlib::string fmt, OptArgs args, bool color, exlib::string&
 
 result_t util_base::format(exlib::string fmt, OptArgs args, exlib::string& retVal)
 {
-    return util_format(fmt, args, false, retVal);
+    return util_format(Isolate::current(), fmt, args, false, retVal);
 }
 
 result_t util_base::format(OptArgs args, exlib::string& retVal)
 {
-    return util_format("", args, false, retVal);
+    return util_format(Isolate::current(), "", args, false, retVal);
 }
 }

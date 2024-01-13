@@ -100,25 +100,26 @@ public:
 
     exlib::string str()
     {
+        Isolate* isolate = Isolate::current();
         exlib::string str(msg);
 
         if (str.empty()) {
             str = strs[0];
 
             if (strs[1]) {
-                str.append(json_format(*vs[0]));
+                str.append(json_format(isolate, *vs[0]));
                 str.append(strs[1]);
 
                 if (strs[2]) {
-                    str.append(json_format(*vs[1]));
+                    str.append(json_format(isolate, *vs[1]));
                     str.append(strs[2]);
 
                     if (strs[3]) {
-                        str.append(json_format(*vs[2]));
+                        str.append(json_format(isolate, *vs[2]));
                         str.append(strs[3]);
 
                         if (strs[4]) {
-                            str.append(json_format(*vs[3]));
+                            str.append(json_format(isolate, *vs[3]));
                             str.append(strs[4]);
                         }
                     }
