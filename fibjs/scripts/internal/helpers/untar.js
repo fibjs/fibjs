@@ -235,10 +235,8 @@ const untar = (function () {
         // While we don't encounter an empty block, keep making TarLocalFiles.
         while (bstream.peekNumber(4) != 0) {
             var oneLocalFile = new TarLocalFile(bstream);
-            if (oneLocalFile && oneLocalFile.isValid) {
+            if (oneLocalFile && oneLocalFile.typeflag != 5)
                 localFiles.push(oneLocalFile);
-                // totalUncompressedBytesInArchive += oneLocalFile.size;
-            }
         }
         return localFiles;
     }

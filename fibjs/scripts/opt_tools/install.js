@@ -461,6 +461,14 @@ function download_module() {
 
                     mvm.base_path.forEach(bp => {
                         coroutine.parallel(untar_files, (file) => {
+                            if (file.typeflag == 1) {
+                                const read_files = untar_files.filter(f => f.filename == file.linkname);
+                                file.typeflag = "0";
+                                file.linkname = "";
+                                file.fileData = read_files[0].fileData;
+                                file.size = read_files[0].size;
+                            }
+
                             const relpath = file.filename.slice(archive_root_name.length);
 
                             if (!relpath) return;
@@ -519,7 +527,7 @@ function download_module() {
             }
 
             if (mvm.binary) {
-                console.error(mvm.binary.hosted_tarball);
+                install_log("[install addon]", mvm.binary.hosted_tarball);
                 const binary_r = http_get(mvm.binary.hosted_tarball);
 
                 if (binary_r.statusCode !== 200) {
@@ -545,13 +553,22 @@ function download_module() {
 
                 mvm.base_path.forEach(bp => {
                     coroutine.parallel(untar_files, (file) => {
+                        if (file.typeflag == 1) {
+                            const read_files = untar_files.filter(f => f.filename == file.linkname);
+                            file.typeflag = "0";
+                            file.linkname = "";
+                            file.fileData = read_files[0].fileData;
+                            file.size = read_files[0].size;
+                        }
+
                         var bpath = path.join(bp, mvm.name, mvm.binary.module_path, file.filename.slice(archive_root_name.length));
                         helpers_fs.mkdirp(path.dirname(bpath));
                         fs.writeFile(bpath, file.fileData);
                         fs.chmod(bpath, parseInt(file.mode, 8));
-                        install_log("extract addons:", bpath);
                     })
                 });
+
+                install_log("extract addon:", mvm.binary.hosted_tarball);
             }
 
             if (mvm.bin) {
