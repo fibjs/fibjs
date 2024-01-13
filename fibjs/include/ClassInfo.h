@@ -358,12 +358,14 @@ private:
             }
 
             v8::Local<v8::ObjectTemplate> pt = _class->PrototypeTemplate();
-            pt->Set(get_prop_name(isolate, "@toStringTag"), isolate->NewString(m_cd.name));
+            pt->Set(get_prop_name(isolate, "@toStringTag"), isolate->NewString(m_cd.name),
+                v8::PropertyAttribute::DontEnum);
 
             v8::Local<v8::ObjectTemplate> ppt;
             if (m_cd.has_async) {
                 ppt = _pclass->PrototypeTemplate();
-                ppt->Set(get_prop_name(isolate, "@toStringTag"), isolate->NewString(m_cd.name));
+                ppt->Set(get_prop_name(isolate, "@toStringTag"), isolate->NewString(m_cd.name),
+                    v8::PropertyAttribute::DontEnum);
             }
 
             int32_t i;
