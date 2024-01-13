@@ -231,7 +231,7 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
                     } else
                         keys = vs;
                 } else
-                    keys = obj->GetPropertyNames(_context, v8::KeyCollectionMode::kOwnOnly,
+                    keys = obj->GetPropertyNames(_context, v8::KeyCollectionMode::kIncludePrototypes,
                                   v8::PropertyFilter::ONLY_ENUMERABLE, v8::IndexFilter::kSkipIndices)
                                .FromMaybe(v8::Local<v8::Array>());
 
