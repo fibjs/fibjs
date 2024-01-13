@@ -178,6 +178,7 @@ function fetch_leveled_module_info(m, v, parent) {
 
                     binary = {
                         module: opt.module,
+                        module_path: minfo.binary.module_path,
                         hosted_tarball: opt.hosted_tarball
                     }
                 } catch (e) {
@@ -536,10 +537,15 @@ function download_module() {
 
                 const untar_files = untar(t.buffer);
 
-                mvm.path.forEach(bp => {
+                archive_root_name = path.dirname(untar_files[0].filename);
+                untar_files.forEach(file => {
+                    archive_root_name = helpers_string.find_least_common_str(archive_root_name, file.filename)
+                });
+                archive_root_name = helpers_string.ensure_unsuffx(archive_root_name);
+
+                mvm.base_path.forEach(bp => {
                     coroutine.parallel(untar_files, (file) => {
-                        console.error(file.filename);
-                        var bpath = path.join(bp, file.filename);
+                        var bpath = path.join(bp, mvm.name, mvm.binary.module_path, file.filename.slice(archive_root_name.length));
                         helpers_fs.mkdirp(path.dirname(bpath));
                         fs.writeFile(bpath, file.fileData);
                         fs.chmod(bpath, parseInt(file.mode, 8));
@@ -566,8 +572,10 @@ function download_module() {
 
                         helpers_fs.mkdirp(bin_path);
 
-                        fs.symlink(cli_file_r, cli_link);
-                        fs.chmod(cli_file, 0755);
+                        try {
+                            fs.symlink(cli_file_r, cli_link);
+                            fs.chmod(cli_file, 0755);
+                        } catch (e) { }
                         install_log("install cli:", cli_link);
                     });
                 }
