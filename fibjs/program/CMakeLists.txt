@@ -100,6 +100,10 @@ foreach(lib ${libs})
 	endif()
 endforeach()
 
+if(NOT ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
+	set(link_flags "${link_flags} -rdynamic")
+endif()
+
 setup_result_library(${name})
 setup_result_library(js)
 
