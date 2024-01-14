@@ -12,7 +12,11 @@ if(NOT "$ENV{USE_VENDER_DIST}" STREQUAL "")
 	string(REPLACE "gitdir: " "" GIT_DIR ${GIT_DIR})
 	string(REPLACE "\n" "" GIT_DIR ${GIT_DIR})
 
-	file(READ "${CMAKE_CURRENT_LIST_DIR}/../${GIT_DIR}/refs/heads/dev" REF_HEAD)
+	file(READ "${CMAKE_CURRENT_LIST_DIR}/../${GIT_DIR}/HEAD" REF_HEAD)
+	if("${REF_HEAD}" MATCHES "ref: ([^\n\r]*)")
+		file(READ "${CMAKE_CURRENT_LIST_DIR}/../${GIT_DIR}/${CMAKE_MATCH_1}" REF_HEAD)
+	endif()
+
 	file(GLOB ALL_TAGS "${CMAKE_CURRENT_LIST_DIR}/../${GIT_DIR}/refs/tags/*")
 	foreach(FILE ${ALL_TAGS})
 		file(READ ${FILE} CONTENT)
