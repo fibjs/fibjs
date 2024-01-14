@@ -120,14 +120,51 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& fnam
         return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json"));
 
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
-    JSValue main = o->Get(context, isolate->NewString("main", 4));
-    if (IsEmpty(main))
-        return CALL_E_FILE_NOT_FOUND;
+    exlib::string config_name;
 
-    if (!main->IsString() && !main->IsStringObject())
-        return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json"));
+    JSValue exports = o->Get(context, isolate->NewString("exports", 7));
+    if (!IsEmpty(exports)) {
+        if (exports->IsObject()) {
+            JSValue exports_value;
+            o = v8::Local<v8::Object>::Cast(exports);
 
-    resolvePath(fname, isolate->toString(main));
+            exports_value = o->Get(context, isolate->NewString(".", 1));
+            if (!IsEmpty(exports_value))
+                exports = exports_value;
+        }
+
+        if (exports->IsString()) {
+            config_name = isolate->toString(exports);
+        } else if (exports->IsObject()) {
+            JSValue exports_value;
+            o = v8::Local<v8::Object>::Cast(exports);
+
+            exports_value = o->Get(context, isolate->NewString("require", 7));
+            if (IsEmpty(exports_value)) {
+                puts("resolvePackage 1");
+                exports_value = o->Get(context, isolate->NewString("default", 7));
+            }
+            if (IsEmpty(exports_value))
+                return CALL_E_FILE_NOT_FOUND;
+
+            if (!exports_value->IsString())
+                return CHECK_ERROR(Runtime::setError("SandBox: \"exports.require\" in package.json must be a string"));
+
+            config_name = isolate->toString(exports_value);
+        } else
+            return CHECK_ERROR(Runtime::setError("SandBox: \"exports\" in package.json must be a string or object"));
+    } else {
+        JSValue main = o->Get(context, isolate->NewString("main", 4));
+        if (IsEmpty(main))
+            return CALL_E_FILE_NOT_FOUND;
+
+        if (!main->IsString() && !main->IsStringObject())
+            return CHECK_ERROR(Runtime::setError("SandBox: \"main\" in package.json must be a string"));
+
+        config_name = isolate->toString(main);
+    }
+
+    resolvePath(fname, config_name);
     path_base::normalize(fname, fname);
 
     hr = resolveFile(mods, fname, data, retVal);

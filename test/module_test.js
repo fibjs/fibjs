@@ -11,7 +11,7 @@ describe("module", () => {
     after(() => {
         try {
             fs.unlink(path.join(__dirname, 'module', 'p6_1'));
-        } catch (e) {}
+        } catch (e) { }
     });
 
     it("native module toJSON", () => {
@@ -119,6 +119,59 @@ describe("module", () => {
 
             assert.equal(a, require('./module/p1'));
             assert.equal(a, require('./module/p1/main'));
+        });
+
+        describe("exports", () => {
+            it("simple", () => {
+                var a = require('./module/p1.1');
+                assert.deepEqual(a, {
+                    "a": 101
+                });
+
+                assert.equal(a, require('./module/p1.1'));
+                assert.equal(a, require('./module/p1.1/main'));
+            });
+
+            it(".", () => {
+                var a = require('./module/p1.2');
+                assert.deepEqual(a, {
+                    "a": 102
+                });
+
+                assert.equal(a, require('./module/p1.2'));
+                assert.equal(a, require('./module/p1.2/main'));
+            });
+
+            it("require", () => {
+                var a = require('./module/p1.3');
+                assert.deepEqual(a, {
+                    "a": 103
+                });
+
+                assert.equal(a, require('./module/p1.3'));
+                assert.equal(a, require('./module/p1.3/main'));
+            });
+
+            it("default", () => {
+                var a = require('./module/p1.4');
+                assert.deepEqual(a, {
+                    "a": 104
+                });
+
+                assert.equal(a, require('./module/p1.4'));
+                assert.equal(a, require('./module/p1.4/main'));
+            });
+
+            it("./require", () => {
+                var a = require('./module/p1.5');
+                assert.deepEqual(a, {
+                    "a": 105
+                });
+
+                assert.equal(a, require('./module/p1.5'));
+                assert.equal(a, require('./module/p1.5/main'));
+            });
+
         });
 
         it("default entry", () => {
