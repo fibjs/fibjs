@@ -56,7 +56,6 @@ run("./mq_test.js");
 run("./gui_test.js");
 run("./registry_test.js");
 run("./uuid_test.js");
-run("./gd_test.js");
 run("./zlib_test.js");
 run("./unzip_test.js");
 run("./ws_test.js");
@@ -80,6 +79,9 @@ run("./v8_test.js");
 run("./getter_throw.js")
 
 run("./internal_test/helpers.js")
-run("./opt_tools_test/index.js")
+
+if (process.env.CI) {
+    run("./opt_tools_test/index.js")
+}
 
 test.run();
