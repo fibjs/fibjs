@@ -469,15 +469,12 @@ function download_module() {
                                 file.size = read_files[0].size;
                             }
 
-                            const relpath = file.filename.slice(archive_root_name.length);
-
-                            if (!relpath) return;
-
-                            const tpath = path.join(bp, mvm.name, relpath);
-                            helpers_fs.mkdirp(path.dirname(tpath));
-
-                            fs.writeFile(tpath, file.fileData);
-                            fs.chmod(tpath, parseInt(file.mode, 8));
+                            if (file.typeflag == "0") {
+                                const tpath = path.join(bp, mvm.name, file.filename.slice(archive_root_name.length));
+                                helpers_fs.mkdirp(path.dirname(tpath));
+                                fs.writeFile(tpath, file.fileData);
+                                fs.chmod(tpath, parseInt(file.mode, 8));
+                            }
                         })
                     });
 
@@ -561,10 +558,12 @@ function download_module() {
                             file.size = read_files[0].size;
                         }
 
-                        var bpath = path.join(bp, mvm.name, mvm.binary.module_path, file.filename.slice(archive_root_name.length));
-                        helpers_fs.mkdirp(path.dirname(bpath));
-                        fs.writeFile(bpath, file.fileData);
-                        fs.chmod(bpath, parseInt(file.mode, 8));
+                        if (file.typeflag == "0") {
+                            var bpath = path.join(bp, mvm.name, mvm.binary.module_path, file.filename.slice(archive_root_name.length));
+                            helpers_fs.mkdirp(path.dirname(bpath));
+                            fs.writeFile(bpath, file.fileData);
+                            fs.chmod(bpath, parseInt(file.mode, 8));
+                        }
                     })
                 });
 
