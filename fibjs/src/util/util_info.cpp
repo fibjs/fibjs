@@ -12,11 +12,7 @@
 #include <zlib/include/zlib.h>
 #include <sqlite/sqlite3.h>
 #include <ev/ev.h>
-#include <gd/include/gd.h>
-#include <jpeg/include/jpeglib.h>
-#include <png/include/png.h>
 #include <pcre/pcre.h>
-#include <tiff/include/tiffvers.h>
 #include <mbedtls/mbedtls/version.h>
 #include <snappy/include/snappy.h>
 #include <leveldb/db.h>
@@ -110,20 +106,16 @@ public:
 
             g_vender->add("ev", STR(EV_VERSION_MAJOR) "." STR(EV_VERSION_MINOR));
             g_vender->add("expat", STR(XML_MAJOR_VERSION) "." STR(XML_MINOR_VERSION) "." STR(XML_MICRO_VERSION));
-            g_vender->add("gd", GD_VERSION_STRING);
             g_vender->add("gumbo", "0.10.0");
             g_vender->add("icu", STR(U_ICU_VERSION_MAJOR_NUM) "." STR(U_ICU_VERSION_MINOR_NUM) "." STR(U_ICU_VERSION_PATCHLEVEL_NUM));
             g_vender->add("jemalloc", "5.2.1");
-            g_vender->add("jpeg", STR(JPEG_LIB_VERSION_MAJOR) "." STR(JPEG_LIB_VERSION_MINOR));
             snprintf(str, sizeof(str), "%d.%d", leveldb::kMajorVersion, leveldb::kMinorVersion);
             g_vender->add("leveldb", str);
             g_vender->add("mbedtls", MBEDTLS_VERSION_STRING);
             g_vender->add("msgpack", msgpack_version());
             g_vender->add("pcre", STR(PCRE_MAJOR) "." STR(PCRE_MINOR));
-            g_vender->add("png", PNG_LIBPNG_VER_STRING);
             g_vender->add("snappy", STR(SNAPPY_MAJOR) "." STR(SNAPPY_MINOR) "." STR(SNAPPY_PATCHLEVEL));
             g_vender->add("sqlite", SQLITE_VERSION);
-            g_vender->add("tiff", TIFFLIB_VERSION_STR);
             g_vender->add("uuid", "1.6.2");
 
 #if UV_VERSION_IS_RELEASE

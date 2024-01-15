@@ -4,7 +4,6 @@ test.setup();
 var test_util = require('./test_util');
 
 var vm = require('vm');
-var gd = require('gd');
 var os = require('os');
 var fs = require('fs');
 var path = require('path');
@@ -343,7 +342,7 @@ describe("vm", () => {
             (new vm.SandBox({})).setModuleCompiler('.ts', () => undefined);
         })
 
-        it("binary", () => {
+        xit("binary", () => {
             var sbox = new vm.SandBox({});
             sbox.setModuleCompiler('.png', (buf) => {
                 return modulifyContent(JSON.stringify(

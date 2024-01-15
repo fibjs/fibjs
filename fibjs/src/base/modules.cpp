@@ -26,7 +26,6 @@ void importBuiltinModule()
     IMPORT_MODULE(encoding);
     IMPORT_MODULE(events);
     IMPORT_MODULE(fs);
-    IMPORT_MODULE(gd);
     IMPORT_MODULE(gui);
     IMPORT_MODULE(hash);
     IMPORT_MODULE(hex);
