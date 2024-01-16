@@ -79,12 +79,11 @@ result_t LevelDB::has(Buffer_base* key, bool& retVal, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    exlib::string key1;
-    key->toString(key1);
+    Buffer* buf = (Buffer*)key;
 
     std::string value;
     leveldb::Status s = db()->Get(leveldb::ReadOptions(),
-        leveldb::Slice(key1.c_str(), key1.length()),
+        leveldb::Slice((const char*)buf->data(), buf->length()),
         &value);
     if (s.IsNotFound()) {
         retVal = false;
@@ -105,12 +104,11 @@ result_t LevelDB::get(Buffer_base* key, obj_ptr<Buffer_base>& retVal, AsyncEvent
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    exlib::string key1;
-    key->toString(key1);
+    Buffer* buf = (Buffer*)key;
 
     std::string value;
     leveldb::Status s = db()->Get(leveldb::ReadOptions(),
-        leveldb::Slice(key1.c_str(), key1.length()),
+        leveldb::Slice((const char*)buf->data(), buf->length()),
         &value);
     if (s.IsNotFound())
         return CALL_RETURN_NULL;
@@ -208,14 +206,11 @@ result_t LevelDB::set(Buffer_base* key, Buffer_base* value, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    exlib::string key1;
-    key->toString(key1);
+    Buffer* buf_key = (Buffer*)key;
+    Buffer* buf_val = (Buffer*)value;
 
-    exlib::string value1;
-    value->toString(value1);
-
-    leveldb::Status s = Set(leveldb::Slice(key1.c_str(), key1.length()),
-        leveldb::Slice(value1.c_str(), value1.length()));
+    leveldb::Status s = Set(leveldb::Slice((const char*)buf_key->data(), buf_key->length()),
+        leveldb::Slice((const char*)buf_val->data(), buf_val->length()));
     if (!s.ok())
         return CHECK_ERROR(error(s));
 
@@ -293,11 +288,10 @@ result_t LevelDB::remove(Buffer_base* key, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    exlib::string key1;
-    key->toString(key1);
+    Buffer* buf = (Buffer*)key;
 
     exlib::string value;
-    leveldb::Status s = Delete(leveldb::Slice(key1.c_str(), key1.length()));
+    leveldb::Status s = Delete(leveldb::Slice((const char*)buf->data(), buf->length()));
     if (!s.ok())
         return CHECK_ERROR(error(s));
 
