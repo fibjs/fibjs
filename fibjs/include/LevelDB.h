@@ -34,8 +34,14 @@ public:
     virtual result_t mset(v8::Local<v8::Object> map);
     virtual result_t mremove(v8::Local<v8::Array> keys);
     virtual result_t remove(Buffer_base* key, AsyncEvent* ac);
+    virtual result_t firstKey(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    virtual result_t lastKey(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t forEach(v8::Local<v8::Function> func);
-    virtual result_t between(Buffer_base* from, Buffer_base* to, v8::Local<v8::Function> func);
+    virtual result_t forEach(Buffer_base* from, v8::Local<v8::Function> func);
+    virtual result_t forEach(Buffer_base* from, Buffer_base* to, v8::Local<v8::Function> func);
+    virtual result_t forEach(v8::Local<v8::Object> opt, v8::Local<v8::Function> func);
+    virtual result_t forEach(Buffer_base* from, v8::Local<v8::Object> opt, v8::Local<v8::Function> func);
+    virtual result_t forEach(Buffer_base* from, Buffer_base* to, v8::Local<v8::Object> opt, v8::Local<v8::Function> func);
     virtual result_t begin(obj_ptr<LevelDB_base>& retVal);
     virtual result_t commit();
     virtual result_t close(AsyncEvent* ac);
@@ -109,9 +115,6 @@ private:
     class Iter : public object_base {
     public:
         Iter(leveldb::DB* db)
-            : m_count(0)
-            , m_first(true)
-            , m_end(false)
         {
             m_it = db->NewIterator(leveldb::ReadOptions());
         }
@@ -126,20 +129,26 @@ private:
 
         result_t iter(Isolate* isolate, v8::Local<v8::Function> func);
 
-        result_t getValue(Buffer_base* from, Buffer_base* to)
+        result_t getValue(Buffer_base* from, Buffer_base* to = NULL)
         {
-            from->toString(m_from);
-            to->toString(m_to);
+            if (from)
+                from->toString(m_from);
+            if (to)
+                to->toString(m_to);
             return 0;
         }
 
     public:
         obj_ptr<Buffer_base> m_kvs[ITER_BLOCK_SIZE * 2];
         leveldb::Iterator* m_it;
-        int32_t m_count;
-        bool m_first;
-        bool m_end;
+        bool m_reverse = false;
+        int32_t m_skip = 0;
+        int32_t m_limit = -1;
         exlib::string m_from, m_to;
+
+        int32_t m_count = 0;
+        bool m_first = true;
+        bool m_end = false;
     };
 
 private:

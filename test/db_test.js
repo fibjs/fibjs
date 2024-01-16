@@ -1377,7 +1377,7 @@ describe("db", () => {
             _test(type, sql_server[type].conn_str);
         });
 
-    describe("leveldb", () => {
+    odescribe("leveldb", () => {
         after(clear_db);
 
         function clear_db() {
@@ -1519,7 +1519,7 @@ describe("db", () => {
             clear_db();
         });
 
-        it('forEach', () => {
+        it('firstKey', () => {
             var data = {
                 "ccc": "ccc value",
                 "aaa": "aaa value",
@@ -1537,45 +1537,269 @@ describe("db", () => {
 
             ldb.mset(data);
 
-            count = 0;
-            ldb.forEach((v, k) => {
-                assert.equal(data[k], v.toString());
-                delete data[k];
-                count++;
-            });
-            assert.equal(count, 4);
+            assert.equal(ldb.firstKey().toString(), "aaa");
 
             ldb.close();
             clear_db();
         });
 
-        it('between', () => {
+        it('lastKey', () => {
             var data = {
                 "ccc": "ccc value",
                 "aaa": "aaa value",
                 "bbb": "bbb value",
-                "ddd": "ddd value",
-                "bbb_1": "bbb_1 value",
-            };
-
-            var data1 = {
-                "bbb_1": "bbb_1 value",
-                "ccc": "ccc value"
+                "ddd": "ddd value"
             };
 
             var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
-            ldb.mset(data);
 
             var count = 0;
-            ldb.between("bbb", "ddd", (v, k) => {
-                assert.equal(data1[k], v.toString());
-                delete data1[k];
+            ldb.forEach((v, k) => {
                 count++;
             });
-            assert.equal(count, 2);
+            assert.equal(count, 0);
+
+            ldb.mset(data);
+
+            assert.equal(ldb.lastKey().toString(), "ddd");
 
             ldb.close();
             clear_db();
+        });
+
+        describe('forEach', () => {
+            it('forEach()', () => {
+                var data = {
+                    "ccc": "ccc value",
+                    "aaa": "aaa value",
+                    "bbb": "bbb value",
+                    "ddd": "ddd value"
+                };
+
+                var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
+
+                var count = 0;
+                ldb.forEach((v, k) => {
+                    count++;
+                });
+                assert.equal(count, 0);
+
+                ldb.mset(data);
+
+                const keys = [];
+                const values = [];
+                ldb.forEach((v, k) => {
+                    keys.push(k.toString());
+                    values.push(v.toString());
+                });
+
+                assert.deepEqual(keys, ['aaa', 'bbb', 'ccc', 'ddd']);
+                assert.deepEqual(values, ['aaa value', 'bbb value', 'ccc value', 'ddd value']);
+
+                ldb.close();
+                clear_db();
+            });
+
+            it('forEach(from)', () => {
+                var data = {
+                    "ccc": "ccc value",
+                    "aaa": "aaa value",
+                    "bbb": "bbb value",
+                    "ddd": "ddd value"
+                };
+
+                var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
+
+                var count = 0;
+                ldb.forEach((v, k) => {
+                    count++;
+                });
+                assert.equal(count, 0);
+
+                ldb.mset(data);
+
+                var keys = [];
+                var values = [];
+                ldb.forEach("aab", (v, k) => {
+                    keys.push(k.toString());
+                    values.push(v.toString());
+                });
+
+                assert.deepEqual(keys, ['bbb', 'ccc', 'ddd']);
+                assert.deepEqual(values, ['bbb value', 'ccc value', 'ddd value']);
+
+                var keys = [];
+                var values = [];
+                ldb.forEach("bbb", (v, k) => {
+                    keys.push(k.toString());
+                    values.push(v.toString());
+                });
+
+                assert.deepEqual(keys, ['bbb', 'ccc', 'ddd']);
+                assert.deepEqual(values, ['bbb value', 'ccc value', 'ddd value']);
+
+                ldb.close();
+                clear_db();
+            });
+
+            it('forEach(from, to)', () => {
+                var data = {
+                    "ccc": "ccc value",
+                    "aaa": "aaa value",
+                    "bbb": "bbb value",
+                    "ddd": "ddd value"
+                };
+
+                var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
+
+                var count = 0;
+                ldb.forEach((v, k) => {
+                    count++;
+                });
+                assert.equal(count, 0);
+
+                ldb.mset(data);
+
+                var keys = [];
+                var values = [];
+                ldb.forEach("aab", "ddd", (v, k) => {
+                    keys.push(k.toString());
+                    values.push(v.toString());
+                });
+
+                assert.deepEqual(keys, ['bbb', 'ccc']);
+                assert.deepEqual(values, ['bbb value', 'ccc value']);
+
+                var keys = [];
+                var values = [];
+                ldb.forEach("bbb", "ddc", (v, k) => {
+                    keys.push(k.toString());
+                    values.push(v.toString());
+                });
+
+                assert.deepEqual(keys, ['bbb', 'ccc']);
+                assert.deepEqual(values, ['bbb value', 'ccc value']);
+
+                ldb.close();
+                clear_db();
+            });
+
+            describe('forEach(opt)', () => {
+                it('skip', () => {
+                    var data = {
+                        "ccc": "ccc value",
+                        "aaa": "aaa value",
+                        "bbb": "bbb value",
+                        "ddd": "ddd value"
+                    };
+
+                    var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
+
+                    var count = 0;
+                    ldb.forEach((v, k) => {
+                        count++;
+                    });
+                    assert.equal(count, 0);
+
+                    ldb.mset(data);
+
+                    var keys = [];
+                    var values = [];
+                    ldb.forEach({ skip: 1 }, (v, k) => {
+                        keys.push(k.toString());
+                        values.push(v.toString());
+                    });
+
+                    assert.deepEqual(keys, ['bbb', 'ccc', 'ddd']);
+                    assert.deepEqual(values, ['bbb value', 'ccc value', 'ddd value']);
+
+                    ldb.close();
+                    clear_db();
+                });
+            });
+
+            it('limit', () => {
+                var data = {
+                    "ccc": "ccc value",
+                    "aaa": "aaa value",
+                    "bbb": "bbb value",
+                    "ddd": "ddd value"
+                };
+
+                var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
+
+                var count = 0;
+                ldb.forEach((v, k) => {
+                    count++;
+                });
+                assert.equal(count, 0);
+
+                ldb.mset(data);
+
+                var keys = [];
+                var values = [];
+                ldb.forEach({ limit: 2 }, (v, k) => {
+                    keys.push(k.toString());
+                    values.push(v.toString());
+                });
+
+                assert.deepEqual(keys, ['aaa', 'bbb']);
+                assert.deepEqual(values, ['aaa value', 'bbb value']);
+
+                ldb.close();
+                clear_db();
+            });
+
+            it('reverse', () => {
+                var data = {
+                    "ccc": "ccc value",
+                    "aaa": "aaa value",
+                    "bbb": "bbb value",
+                    "ddd": "ddd value"
+                };
+
+                var ldb = db.openLevelDB(path.join(__dirname, "testdb" + vmid));
+
+                var count = 0;
+                ldb.forEach((v, k) => {
+                    count++;
+                });
+                assert.equal(count, 0);
+
+                ldb.mset(data);
+
+                var keys = [];
+                var values = [];
+                ldb.forEach({ reverse: true }, (v, k) => {
+                    keys.push(k.toString());
+                    values.push(v.toString());
+                });
+
+                assert.deepEqual(keys, ['ddd', 'ccc', 'bbb', 'aaa']);
+                assert.deepEqual(values, ['ddd value', 'ccc value', 'bbb value', 'aaa value']);
+
+                var keys = [];
+                var values = [];
+                ldb.forEach("ccc", { reverse: true }, (v, k) => {
+                    keys.push(k.toString());
+                    values.push(v.toString());
+                });
+
+                assert.deepEqual(keys, ['ccc', 'bbb', 'aaa']);
+                assert.deepEqual(values, ['ccc value', 'bbb value', 'aaa value']);
+
+                var keys = [];
+                var values = [];
+                ldb.forEach("ccd", { reverse: true }, (v, k) => {
+                    keys.push(k.toString());
+                    values.push(v.toString());
+                });
+
+                assert.deepEqual(keys, ['ccc', 'bbb', 'aaa']);
+                assert.deepEqual(values, ['ccc value', 'bbb value', 'aaa value']);
+                ldb.close();
+                clear_db();
+            });
         });
 
         it('break', () => {

@@ -110,6 +110,20 @@ declare class Class_LevelDB extends Class_object {
     remove(key: Class_Buffer, callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     *  @description 查询最小的 key 
+     */
+    firstKey(): Class_Buffer;
+
+    firstKey(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     *  @description 查询最大的 key 
+     */
+    lastKey(): Class_Buffer;
+
+    lastKey(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
      * @description 枚举数据库中所有的键值对
      * 
      *      回调函数有两个参数，(value, key)
@@ -128,7 +142,7 @@ declare class Class_LevelDB extends Class_object {
     forEach(func: (...args: any[])=>any): void;
 
     /**
-     * @description 枚举数据库中键值在 from 和 to 之间的键值对
+     * @description 枚举数据库中所有的键值对
      * 
      *      回调函数有两个参数，(value, key)
      * 
@@ -136,7 +150,26 @@ declare class Class_LevelDB extends Class_object {
      *      var db = require("db");
      *      var test = new db.openLevelDB("test.db");
      * 
-     *      test.between("aaa", "bbb", function(value, key){
+     *      test.forEach("aaa", "bbb", function(value, key){
+     *         ...
+     *      });
+     *      ```
+     *      @param from 枚举的最小键值，枚举时包含此键值
+     *      @param func 枚举回调函数
+     *      
+     */
+    forEach(from: Class_Buffer, func: (...args: any[])=>any): void;
+
+    /**
+     * @description 枚举数据库中所有的键值对
+     * 
+     *      回调函数有两个参数，(value, key)
+     * 
+     *      ```JavaScript
+     *      var db = require("db");
+     *      var test = new db.openLevelDB("test.db");
+     * 
+     *      test.forEach("aaa", "bbb", function(value, key){
      *         ...
      *      });
      *      ```
@@ -145,7 +178,67 @@ declare class Class_LevelDB extends Class_object {
      *      @param func 枚举回调函数
      *      
      */
-    between(from: Class_Buffer, to: Class_Buffer, func: (...args: any[])=>any): void;
+    forEach(from: Class_Buffer, to: Class_Buffer, func: (...args: any[])=>any): void;
+
+    /**
+     * @description 枚举数据库中所有的键值对
+     * 
+     *      回调函数有两个参数，(value, key)
+     * 
+     *      ```JavaScript
+     *      var db = require("db");
+     *      var test = new db.openLevelDB("test.db");
+     * 
+     *      test.forEach(function(value, key){
+     *         ...
+     *      });
+     *      ```
+     *      @param func 枚举回调函数
+     *      @param opt 枚举选项，支持 skip, limit, reverse
+     *      
+     */
+    forEach(opt: FIBJS.GeneralObject, func: (...args: any[])=>any): void;
+
+    /**
+     * @description 枚举数据库中所有的键值对
+     * 
+     *      回调函数有两个参数，(value, key)
+     * 
+     *      ```JavaScript
+     *      var db = require("db");
+     *      var test = new db.openLevelDB("test.db");
+     * 
+     *      test.forEach("aaa", "bbb", function(value, key){
+     *         ...
+     *      });
+     *      ```
+     *      @param from 枚举的最小键值，枚举时包含此键值
+     *      @param opt 枚举选项，支持 skip, limit, reverse
+     *      @param func 枚举回调函数
+     *      
+     */
+    forEach(from: Class_Buffer, opt: FIBJS.GeneralObject, func: (...args: any[])=>any): void;
+
+    /**
+     * @description 枚举数据库中所有的键值对
+     * 
+     *      回调函数有两个参数，(value, key)
+     * 
+     *      ```JavaScript
+     *      var db = require("db");
+     *      var test = new db.openLevelDB("test.db");
+     * 
+     *      test.forEach("aaa", "bbb", function(value, key){
+     *         ...
+     *      });
+     *      ```
+     *      @param from 枚举的最小键值，枚举时包含此键值
+     *      @param to 枚举的最大键值，枚举时不包含此键值
+     *      @param opt 枚举选项，支持 skip, limit, reverse
+     *      @param func 枚举回调函数
+     *      
+     */
+    forEach(from: Class_Buffer, to: Class_Buffer, opt: FIBJS.GeneralObject, func: (...args: any[])=>any): void;
 
     /**
      * @description 在当前数据库上开启一个事务

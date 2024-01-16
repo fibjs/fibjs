@@ -83,6 +83,12 @@ interface LevelDB : object
      */
     remove(Buffer key) async;
 
+    /* @brief 查询最小的 key */
+    Buffer firstKey() async;
+
+    /* @brief 查询最大的 key */
+    Buffer lastKey() async;
+
     /*! @brief 枚举数据库中所有的键值对
 
      回调函数有两个参数，(value, key)
@@ -99,7 +105,7 @@ interface LevelDB : object
      */
     forEach(Function func);
 
-    /*! @brief 枚举数据库中键值在 from 和 to 之间的键值对
+    /*! @brief 枚举数据库中所有的键值对
 
      回调函数有两个参数，(value, key)
 
@@ -107,7 +113,24 @@ interface LevelDB : object
      var db = require("db");
      var test = new db.openLevelDB("test.db");
 
-     test.between("aaa", "bbb", function(value, key){
+     test.forEach("aaa", "bbb", function(value, key){
+        ...
+     });
+     ```
+     @param from 枚举的最小键值，枚举时包含此键值
+     @param func 枚举回调函数
+     */
+    forEach(Buffer from, Function func);
+
+    /*! @brief 枚举数据库中所有的键值对
+
+     回调函数有两个参数，(value, key)
+
+     ```JavaScript
+     var db = require("db");
+     var test = new db.openLevelDB("test.db");
+
+     test.forEach("aaa", "bbb", function(value, key){
         ...
      });
      ```
@@ -115,7 +138,61 @@ interface LevelDB : object
      @param to 枚举的最大键值，枚举时不包含此键值
      @param func 枚举回调函数
      */
-    between(Buffer from, Buffer to, Function func);
+    forEach(Buffer from, Buffer to, Function func);
+
+    /*! @brief 枚举数据库中所有的键值对
+
+     回调函数有两个参数，(value, key)
+
+     ```JavaScript
+     var db = require("db");
+     var test = new db.openLevelDB("test.db");
+
+     test.forEach(function(value, key){
+        ...
+     });
+     ```
+     @param func 枚举回调函数
+     @param opt 枚举选项，支持 skip, limit, reverse
+     */
+    forEach(Object opt, Function func);
+
+    /*! @brief 枚举数据库中所有的键值对
+
+     回调函数有两个参数，(value, key)
+
+     ```JavaScript
+     var db = require("db");
+     var test = new db.openLevelDB("test.db");
+
+     test.forEach("aaa", "bbb", function(value, key){
+        ...
+     });
+     ```
+     @param from 枚举的最小键值，枚举时包含此键值
+     @param opt 枚举选项，支持 skip, limit, reverse
+     @param func 枚举回调函数
+     */
+    forEach(Buffer from, Object opt, Function func);
+
+    /*! @brief 枚举数据库中所有的键值对
+
+     回调函数有两个参数，(value, key)
+
+     ```JavaScript
+     var db = require("db");
+     var test = new db.openLevelDB("test.db");
+
+     test.forEach("aaa", "bbb", function(value, key){
+        ...
+     });
+     ```
+     @param from 枚举的最小键值，枚举时包含此键值
+     @param to 枚举的最大键值，枚举时不包含此键值
+     @param opt 枚举选项，支持 skip, limit, reverse
+     @param func 枚举回调函数
+     */
+    forEach(Buffer from, Buffer to, Object opt, Function func);
 
     /*! @brief 在当前数据库上开启一个事务
      @return 返回一个开启的事务对象 */

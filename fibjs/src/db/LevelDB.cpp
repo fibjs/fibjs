@@ -298,32 +298,75 @@ result_t LevelDB::remove(Buffer_base* key, AsyncEvent* ac)
     return 0;
 }
 
+result_t LevelDB::firstKey(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    if (!db())
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    leveldb::Iterator* it = db()->NewIterator(leveldb::ReadOptions());
+    it->SeekToFirst();
+    if (!it->Valid()) {
+        delete it;
+        return CALL_RETURN_NULL;
+    }
+
+    retVal = new Buffer(it->key().data(), it->key().size());
+    delete it;
+
+    return 0;
+}
+
+result_t LevelDB::lastKey(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    if (!db())
+        return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    leveldb::Iterator* it = db()->NewIterator(leveldb::ReadOptions());
+    it->SeekToLast();
+    if (!it->Valid()) {
+        delete it;
+        return CALL_RETURN_NULL;
+    }
+
+    retVal = new Buffer(it->key().data(), it->key().size());
+    delete it;
+
+    return 0;
+}
+
 result_t LevelDB::Iter::_iter(AsyncEvent* ac)
 {
     m_count = 0;
 
     if (m_first) {
-        if (m_from.empty())
-            m_it->SeekToFirst();
-        else
-            m_it->Seek(leveldb::Slice(m_from.c_str(), m_from.length()));
+        if (m_reverse) {
+            if (m_from.empty())
+                m_it->SeekToLast();
+            else {
+                m_it->Seek(leveldb::Slice(m_from.c_str(), m_from.length()));
+
+                leveldb::Slice key = m_it->key();
+                if (key.compare(leveldb::Slice(m_from.c_str(), m_from.length())) != 0)
+                    m_it->Prev();
+            }
+        } else {
+            if (m_from.empty())
+                m_it->SeekToFirst();
+            else
+                m_it->Seek(leveldb::Slice(m_from.c_str(), m_from.length()));
+        }
 
         m_first = false;
 
         if (!m_it->Valid()) {
             m_end = true;
             return 0;
-        }
-
-        if (!m_from.empty()) {
-            leveldb::Slice key = m_it->key();
-            if (key.compare(leveldb::Slice(m_from.c_str(), m_from.length())) == 0) {
-                m_it->Next();
-                if (!m_it->Valid()) {
-                    m_end = true;
-                    return 0;
-                }
-            }
         }
     }
 
@@ -334,13 +377,28 @@ result_t LevelDB::Iter::_iter(AsyncEvent* ac)
             break;
         }
 
-        m_kvs[m_count * 2] = new Buffer(key.data(), key.size());
-        leveldb::Slice value = m_it->value();
-        m_kvs[m_count * 2 + 1] = new Buffer(value.data(), value.size());
+        if (m_skip == 0) {
+            m_kvs[m_count * 2] = new Buffer(key.data(), key.size());
+            leveldb::Slice value = m_it->value();
+            m_kvs[m_count * 2 + 1] = new Buffer(value.data(), value.size());
 
-        m_count++;
+            m_count++;
 
-        m_it->Next();
+            if (m_limit > 0) {
+                m_limit--;
+                if (m_limit == 0) {
+                    m_end = true;
+                    break;
+                }
+            }
+        } else
+            m_skip--;
+
+        if (m_reverse)
+            m_it->Prev();
+        else
+            m_it->Next();
+
         if (!m_it->Valid()) {
             m_end = true;
             break;
@@ -392,16 +450,49 @@ result_t LevelDB::forEach(v8::Local<v8::Function> func)
     return Iter(db()).iter(holder(), func);
 }
 
-result_t LevelDB::between(Buffer_base* from, Buffer_base* to, v8::Local<v8::Function> func)
+result_t LevelDB::forEach(Buffer_base* from, v8::Local<v8::Function> func)
 {
-    if (!db())
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+    return forEach(from, NULL, v8::Local<v8::Object>(), func);
+}
 
+result_t LevelDB::forEach(Buffer_base* from, Buffer_base* to, v8::Local<v8::Function> func)
+{
+    return forEach(from, to, v8::Local<v8::Object>(), func);
+}
+
+result_t LevelDB::forEach(v8::Local<v8::Object> opt, v8::Local<v8::Function> func)
+{
+    return forEach(NULL, NULL, opt, func);
+}
+
+result_t LevelDB::forEach(Buffer_base* from, v8::Local<v8::Object> opt, v8::Local<v8::Function> func)
+{
+    return forEach(from, NULL, opt, func);
+}
+
+result_t LevelDB::forEach(Buffer_base* from, Buffer_base* to, v8::Local<v8::Object> opt, v8::Local<v8::Function> func)
+{
     obj_ptr<Iter> it = new Iter(db());
 
-    result_t hr = it->getValue(from, to);
-    if (hr < 0)
-        return hr;
+    it->getValue(from, to);
+    if (!opt.IsEmpty()) {
+        Isolate* isolate = holder();
+        result_t hr;
+
+        hr = GetConfigValue(isolate, opt, "skip", it->m_skip, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+
+        hr = GetConfigValue(isolate, opt, "limit", it->m_limit, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+        if (it->m_limit == 0)
+            return Runtime::setError("limit must be greater than 0");
+
+        hr = GetConfigValue(isolate, opt, "reverse", it->m_reverse, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+    }
 
     return it->iter(holder(), func);
 }
