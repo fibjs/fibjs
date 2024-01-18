@@ -23,9 +23,6 @@ on:
   #   # Only use the types keyword to narrow down the activity types that will trigger your workflow.
   #   types: [published, created, edited]
 
-env:
-  USE_VENDER_DIST: 1
-
 jobs:
   build:
     runs-on: ${{ matrix.os }}
