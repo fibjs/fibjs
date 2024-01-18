@@ -1,6 +1,5 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Service.d.ts" />
-/// <reference path="../interface/BufferedStream.d.ts" />
 /**
  * @description `os` 模块是核心模块之一，用于运行的操作系统函数。它提供了与操作系统交互的实用程序功能，包括文件地址、文件路径、网络接口、主机名、操作系统类型等
  * 
@@ -218,23 +217,6 @@ declare module 'os' {
      *     
      */
     function networkInterfaces(): FIBJS.GeneralObject;
-
-    /**
-     * @description 查询当前主机的打印机信息
-     *      @return 返回打印机信息
-     *     
-     */
-    function printerInfo(): any[];
-
-    /**
-     * @description 创建一个打印机输出对象
-     *      @param name 打印机名称
-     *      @return 返回打印机输出对象
-     *     
-     */
-    function openPrinter(name: string): Class_BufferedStream;
-
-    function openPrinter(name: string, callback: (err: Error | undefined | null, retVal: Class_BufferedStream)=>any): void;
 
     /**
      * @description 查询当前平台名称

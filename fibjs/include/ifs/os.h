@@ -16,7 +16,6 @@
 namespace fibjs {
 
 class Service_base;
-class BufferedStream_base;
 
 class os_base : public object_base {
     DECLARE_CLASS(os_base);
@@ -39,8 +38,6 @@ public:
     static result_t tmpdir(exlib::string& retVal);
     static result_t userInfo(v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal);
     static result_t networkInterfaces(v8::Local<v8::Object>& retVal);
-    static result_t printerInfo(v8::Local<v8::Array>& retVal);
-    static result_t openPrinter(exlib::string name, obj_ptr<BufferedStream_base>& retVal, AsyncEvent* ac);
     static result_t platform(exlib::string& retVal);
     static result_t time(exlib::string tmString, date_t& retVal);
     static result_t dateAdd(date_t d, int32_t num, exlib::string part, date_t& retVal);
@@ -71,19 +68,13 @@ public:
     static void s_static_tmpdir(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_userInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_networkInterfaces(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_printerInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_openPrinter(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_platform(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_time(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_dateAdd(const v8::FunctionCallbackInfo<v8::Value>& args);
-
-public:
-    ASYNC_STATICVALUE2(os_base, openPrinter, exlib::string, obj_ptr<BufferedStream_base>);
 };
 }
 
 #include "ifs/Service.h"
-#include "ifs/BufferedStream.h"
 
 namespace fibjs {
 inline ClassInfo& os_base::class_info()
@@ -103,9 +94,6 @@ inline ClassInfo& os_base::class_info()
         { "tmpdir", s_static_tmpdir, true, false },
         { "userInfo", s_static_userInfo, true, false },
         { "networkInterfaces", s_static_networkInterfaces, true, false },
-        { "printerInfo", s_static_printerInfo, true, false },
-        { "openPrinter", s_static_openPrinter, true, true },
-        { "openPrinterSync", s_static_openPrinter, true, false },
         { "platform", s_static_platform, true, false },
         { "time", s_static_time, true, false },
         { "dateAdd", s_static_dateAdd, true, false }
@@ -124,7 +112,7 @@ inline ClassInfo& os_base::class_info()
         "os", true, s__new, NULL,
         ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &object_base::class_info(),
-        true
+        false
     };
 
     static ClassInfo s_ci(s_cd);
@@ -333,37 +321,6 @@ inline void os_base::s_static_networkInterfaces(const v8::FunctionCallbackInfo<v
     METHOD_OVER(0, 0);
 
     hr = networkInterfaces(vr);
-
-    METHOD_RETURN();
-}
-
-inline void os_base::s_static_printerInfo(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    v8::Local<v8::Array> vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = printerInfo(vr);
-
-    METHOD_RETURN();
-}
-
-inline void os_base::s_static_openPrinter(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<BufferedStream_base> vr;
-
-    METHOD_ENTER();
-
-    ASYNC_METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    if (!cb.IsEmpty())
-        hr = acb_openPrinter(v0, cb, args);
-    else
-        hr = ac_openPrinter(v0, vr);
 
     METHOD_RETURN();
 }

@@ -181,17 +181,6 @@ module os
     */
     static Object networkInterfaces();
 
-    /*! @brief 查询当前主机的打印机信息
-     @return 返回打印机信息
-    */
-    static Array printerInfo();
-
-    /*! @brief 创建一个打印机输出对象
-     @param name 打印机名称
-     @return 返回打印机输出对象
-    */
-    static BufferedStream openPrinter(String name) async;
-
     /*! @brief 查询当前平台名称
      @return 返回平台名称，可能的结果为 'darwin', 'freebsd', 'linux', 或 'win32' 
      */
