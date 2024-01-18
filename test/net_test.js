@@ -298,6 +298,8 @@ function test_net(eng, use_uv) {
 
             t_conn();
 
+            str = undefined;
+
             del(path.join(__dirname, 'net_temp_000001' + base_port));
             del(path.join(__dirname, 'net_temp_000002' + base_port));
         });

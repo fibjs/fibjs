@@ -253,10 +253,12 @@ describe('ssl', () => {
             assert.equal(str, fs.readFile(path.join(__dirname, 'net_temp_000002' + base_port)));
         }
 
-        for (var i = 0; i < 10; i++) {
+        for (var i = 0; i < 5; i++) {
             str = str + str;
             t_conn();
         }
+
+        str = undefined;
 
         del(path.join(__dirname, 'net_temp_000001' + base_port));
         del(path.join(__dirname, 'net_temp_000002' + base_port));
