@@ -5,6 +5,7 @@ set SOURCE_ROOT=%~dp0
 
 set dev=0
 set build_addon=0
+set USE_VENDER_DIST=
 
 set i=0
 for %%a in (%*) do (
@@ -44,7 +45,7 @@ cd /d "%SOURCE_ROOT%/fibjs/program"
 call build %new_args%
 if ERRORLEVEL 1 goto exitbuild
 
-if %build_addon%==0 (
+if %build_addon%==1 (
 	cd /d "%SOURCE_ROOT%/fibjs/addons"
 	call build %new_args%
 	if ERRORLEVEL 1 goto exitbuild
