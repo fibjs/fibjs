@@ -354,8 +354,16 @@ module fs
     /*! @brief 创建二进制文件，并写入内容
      @param fname 指定文件名
      @param data 指定要写入的二进制数据
+     @param opt 指定写入选项，将被忽略
      */
-    static writeFile(String fname, Buffer data) async;
+    static writeFile(String fname, Buffer data, String opt = "binary") async;
+
+    /*! @brief 创建二进制文件，并写入内容
+     @param fname 指定文件名
+     @param data 指定要写入的二进制数据
+     @param options 指定写入选项，将被忽略
+     */
+    static writeFile(String fname, Buffer data, Object options) async;
 
     /*! @brief 创建文件，并写入内容
      @param fname 指定文件名

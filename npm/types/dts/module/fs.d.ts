@@ -523,11 +523,23 @@ declare module 'fs' {
      * @description 创建二进制文件，并写入内容
      *      @param fname 指定文件名
      *      @param data 指定要写入的二进制数据
+     *      @param opt 指定写入选项，将被忽略
      *      
      */
-    function writeFile(fname: string, data: Class_Buffer): void;
+    function writeFile(fname: string, data: Class_Buffer, opt?: string): void;
 
-    function writeFile(fname: string, data: Class_Buffer, callback: (err: Error | undefined | null)=>any): void;
+    function writeFile(fname: string, data: Class_Buffer, opt?: string, callback?: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 创建二进制文件，并写入内容
+     *      @param fname 指定文件名
+     *      @param data 指定要写入的二进制数据
+     *      @param options 指定写入选项，将被忽略
+     *      
+     */
+    function writeFile(fname: string, data: Class_Buffer, options: FIBJS.GeneralObject): void;
+
+    function writeFile(fname: string, data: Class_Buffer, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 创建文件，并写入内容
