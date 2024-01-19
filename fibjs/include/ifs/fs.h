@@ -75,6 +75,8 @@ public:
     static result_t write(FileHandle_base* fd, exlib::string string, int32_t position, exlib::string encoding, int32_t& retVal, AsyncEvent* ac);
     static result_t writeTextFile(exlib::string fname, exlib::string txt, AsyncEvent* ac);
     static result_t writeFile(exlib::string fname, Buffer_base* data, AsyncEvent* ac);
+    static result_t writeFile(exlib::string fname, exlib::string data, exlib::string opt, AsyncEvent* ac);
+    static result_t writeFile(exlib::string fname, exlib::string data, v8::Local<v8::Object> options, AsyncEvent* ac);
     static result_t appendFile(exlib::string fname, Buffer_base* data, AsyncEvent* ac);
     static result_t setZipFS(exlib::string fname, Buffer_base* data);
     static result_t clearZipFS(exlib::string fname);
@@ -178,6 +180,8 @@ public:
     ASYNC_STATICVALUE5(fs_base, write, FileHandle_base*, exlib::string, int32_t, exlib::string, int32_t);
     ASYNC_STATIC2(fs_base, writeTextFile, exlib::string, exlib::string);
     ASYNC_STATIC2(fs_base, writeFile, exlib::string, Buffer_base*);
+    ASYNC_STATIC3(fs_base, writeFile, exlib::string, exlib::string, exlib::string);
+    ASYNC_STATIC3(fs_base, writeFile, exlib::string, exlib::string, v8::Local<v8::Object>);
     ASYNC_STATIC2(fs_base, appendFile, exlib::string, Buffer_base*);
 };
 }
@@ -953,6 +957,28 @@ inline void fs_base::s_static_writeFile(const v8::FunctionCallbackInfo<v8::Value
         hr = acb_writeFile(v0, v1, cb, args);
     else
         hr = ac_writeFile(v0, v1);
+
+    ASYNC_METHOD_OVER(3, 2);
+
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+    OPT_ARG(exlib::string, 2, "utf8");
+
+    if (!cb.IsEmpty())
+        hr = acb_writeFile(v0, v1, v2, cb, args);
+    else
+        hr = ac_writeFile(v0, v1, v2);
+
+    ASYNC_METHOD_OVER(3, 3);
+
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+    ARG(v8::Local<v8::Object>, 2);
+
+    if (!cb.IsEmpty())
+        hr = acb_writeFile(v0, v1, v2, cb, args);
+    else
+        hr = ac_writeFile(v0, v1, v2);
 
     METHOD_VOID();
 }

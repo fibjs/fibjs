@@ -18,6 +18,7 @@
 #include "File.h"
 #include "AsyncUV.h"
 #include "utils.h"
+#include "encoding.h"
 
 namespace fibjs {
 
@@ -245,6 +246,38 @@ result_t fs_base::writeFile(exlib::string fname, Buffer_base* data, AsyncEvent* 
     f->cc_close();
 
     return hr;
+}
+
+result_t fs_base::writeFile(exlib::string fname, exlib::string data, exlib::string opt, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    result_t hr = commonEncode(opt, data, data);
+    if (hr < 0)
+        return hr;
+
+    return writeTextFile(fname, data, ac);
+}
+
+result_t fs_base::writeFile(exlib::string fname, exlib::string data, v8::Local<v8::Object> options, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        Isolate* isolate = Isolate::current(options);
+        result_t hr;
+
+        ac->m_ctx.resize(1);
+
+        exlib::string encoding = "utf8";
+        hr = GetConfigValue(isolate, options, "encoding", encoding, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+        ac->m_ctx[0] = encoding;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    return writeFile(fname, data, ac->m_ctx[0].string(), ac);
 }
 
 result_t fs_base::appendFile(exlib::string fname, Buffer_base* data, AsyncEvent* ac)

@@ -530,6 +530,36 @@ declare module 'fs' {
     function writeFile(fname: string, data: Class_Buffer, callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 创建文件，并写入内容
+     *      @param fname 指定文件名
+     *      @param data 指定要写入的数据
+     *      @param opt 指定写入选项
+     *      
+     */
+    function writeFile(fname: string, data: string, opt?: string): void;
+
+    function writeFile(fname: string, data: string, opt?: string, callback?: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 创建文件，并写入内容
+     * 
+     *      options 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "encoding": "utf8" // specify the encoding, default is utf8.
+     *      }
+     *      ```
+     * 
+     *      @param fname 指定文件名
+     *      @param data 指定要写入的数据
+     *      @param options 指定写入选项
+     *      
+     */
+    function writeFile(fname: string, data: string, options: FIBJS.GeneralObject): void;
+
+    function writeFile(fname: string, data: string, options: FIBJS.GeneralObject, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
      * @description 创建二进制文件，并写入内容
      *      @param fname 指定文件名
      *      @param data 指定要写入的二进制数据

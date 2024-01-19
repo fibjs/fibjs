@@ -357,6 +357,28 @@ module fs
      */
     static writeFile(String fname, Buffer data) async;
 
+    /*! @brief 创建文件，并写入内容
+     @param fname 指定文件名
+     @param data 指定要写入的数据
+     @param opt 指定写入选项
+     */
+    static writeFile(String fname, String data, String opt = "utf8") async;
+
+    /*! @brief 创建文件，并写入内容
+
+     options 支持的选项如下：
+     ```JavaScript
+     {
+         "encoding": "utf8" // specify the encoding, default is utf8.
+     }
+     ```
+
+     @param fname 指定文件名
+     @param data 指定要写入的数据
+     @param options 指定写入选项
+     */
+    static writeFile(String fname, String data, Object options) async;
+
     /*! @brief 创建二进制文件，并写入内容
      @param fname 指定文件名
      @param data 指定要写入的二进制数据

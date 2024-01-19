@@ -883,6 +883,15 @@ describe('fs', () => {
 
         fs.writeFile(fn, 'data to be written');
         assert.equal(fs.readFile(fn), 'data to be written');
+
+        fs.writeFile(fn, 'data to be written', "utf8");
+        assert.equal(fs.readFile(fn), 'data to be written');
+
+        fs.writeFile(fn, 'data to be written', {
+            encoding: "utf8"
+        });
+        assert.equal(fs.readFile(fn), 'data to be written');
+
         fs.appendFile(fn, 'data to be appended');
         assert.equal(fs.readFile(fn), 'data to be writtendata to be appended');
 
