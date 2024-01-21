@@ -1,7 +1,6 @@
 #!/bin/bash
 
-inform()
-{
+inform() {
 	echo ""
 	echo "submodule vender is not existed!"
 	echo "you can execute the given command to init and update it."
@@ -17,9 +16,8 @@ dev=0
 build_addon=0
 
 new_args=()
-for arg in "$@"
-do
-    if [ "$arg" == "dev" ]; then
+for arg in "$@"; do
+	if [ "$arg" == "dev" ]; then
 		dev=1
 		build_addon=1
 	elif [ "$arg" == "ci" ]; then
@@ -38,7 +36,7 @@ fi
 
 . ./vender/build_tools/scripts/build_env.sh
 
-if [ -f "${WORK_ROOT}/vender/build" ]; then 
+if [ -f "${WORK_ROOT}/vender/build" ]; then
 	if [ -z $USE_VENDER_DIST ]; then
 		cd "${WORK_ROOT}/vender"
 		bash build "$@"
@@ -94,6 +92,6 @@ printf ""
 printf "\\n\\tFIBJS has been successfully built during  $(($TIME_END / 3600)):$(($TIME_END % 3600 / 60)):$(($TIME_END % 60))\\n\\n"
 
 printf "\\tFor more information:\\n\\n"
-printf "\\twebsite: http://fibjs.org\\n"
+printf "\\twebsite: https://fibjs.org\\n"
 printf "\\trepository: https://github.com/fibjs\\n"
 printf "\n\n"
