@@ -55,6 +55,9 @@ jobs:
             arch: loong64
             type: release
           - os: ubuntu-20.04
+            arch: loong64ow
+            type: release
+          - os: ubuntu-20.04
             target: alpine
             arch: x64
             type: release

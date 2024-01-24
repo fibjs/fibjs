@@ -12,6 +12,8 @@ inform() {
 
 TIME_BEGIN=$(date +%s)
 
+. ./vender/build_tools/scripts/build_env.sh
+
 dev=0
 build_addon=0
 
@@ -33,8 +35,6 @@ if [ $dev == 0 ]; then
 	export USE_VENDER_DIST=1
 	git submodule update --init --recursive
 fi
-
-. ./vender/build_tools/scripts/build_env.sh
 
 if [ -f "${WORK_ROOT}/vender/build" ]; then
 	if [ -z $USE_VENDER_DIST ]; then
