@@ -358,14 +358,21 @@ declare module 'fs' {
 
     /**
      * @description 读取指定目录的文件信息
+     * 
+     *      参数 opts 支持的选项如下：
+     *      ```JavaScript
+     *      {
+     *          "recursive": false // specify whether all subdirectories should be watched or only the current directory
+     *      }
+     *      ```
      *      @param path 指定查询的目录
-     *      @param opts 指定参数，暂时不支持
+     *      @param opts 指定参数
      *      @return 返回目录的文件信息数组
      *      
      */
-    function readdir(path: string, opts: FIBJS.GeneralObject): any[];
+    function readdir(path: string, opts?: FIBJS.GeneralObject): any[];
 
-    function readdir(path: string, opts: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+    function readdir(path: string, opts?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
      * @description 打开文件，用于读取，写入，或者同时读写

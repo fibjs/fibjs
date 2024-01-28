@@ -779,6 +779,58 @@ result_t fs_base::readdir(exlib::string path, obj_ptr<NArray>& retVal, AsyncEven
 
 result_t fs_base::readdir(exlib::string path, v8::Local<v8::Object> opts, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
-    return fs_base::readdir(path, retVal, ac);
+    if (ac->isSync()) {
+        Isolate* isolate = Isolate::current(opts);
+        ac->m_ctx.resize(1);
+
+        bool recursive = false;
+        GetConfigValue(isolate, opts, "recursive", recursive);
+        ac->m_ctx[0] = recursive;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    os_normalize(path, path, true);
+
+    bool recursive = ac->m_ctx[0].boolVal();
+    QuickArray<exlib::string> paths;
+    retVal = new NArray();
+
+    {
+        AutoReq req;
+        int32_t ret = uv_fs_scandir(NULL, &req, path.c_str(), 0, NULL);
+        if (ret < 0)
+            return ret;
+
+        uv_dirent_t dirent;
+        while (uv_fs_scandir_next(&req, &dirent) != UV_EOF) {
+            retVal->append(dirent.name);
+            if (dirent.type == UV_DIRENT_DIR && recursive)
+                paths.append(dirent.name);
+        }
+    }
+
+    if (recursive) {
+        size_t pos = 0;
+        while (pos < paths.size()) {
+            exlib::string& _path = paths[pos++];
+
+            AutoReq req;
+            int32_t ret = uv_fs_scandir(NULL, &req, (path + PATH_SLASH + _path).c_str(), 0, NULL);
+            if (ret < 0)
+                return ret;
+
+            uv_dirent_t dirent;
+
+            while (uv_fs_scandir_next(&req, &dirent) != UV_EOF) {
+                exlib::string full_path = _path + PATH_SLASH + dirent.name;
+                retVal->append(full_path);
+                if (dirent.type == UV_DIRENT_DIR)
+                    paths.append(full_path);
+            }
+        }
+    }
+
+    return 0;
 }
 }

@@ -869,13 +869,11 @@ describe('fs', () => {
     });
 
     it("readdir", () => {
-        var fl = fs.readdir(path.join(__dirname, 'vm_test'));
-        fl.sort();
-        var sz = fl.length;
-        assert.greaterThan(sz, 3);
-        assert.equal(fl[sz - 4], 't1.js');
-        assert.equal(fl[sz - 3], 't2.js');
-        assert.equal(fl[sz - 2], 'test_refresh.js');
+        var fl = fs.readdir(path.join(__dirname, 'dir_test'));
+        assert.deepEqual(fl, ["dir1", "file1", "file2"]);
+
+        var fl = fs.readdir(path.join(__dirname, 'dir_test'), { recursive: true });
+        assert.deepEqual(fl, ["dir1", "file1", "file2", "dir1/file3"]);
     });
 
     it("writeFile & appendFile", () => {

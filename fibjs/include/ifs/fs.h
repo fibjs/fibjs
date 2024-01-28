@@ -745,10 +745,10 @@ inline void fs_base::s_static_readdir(const v8::FunctionCallbackInfo<v8::Value>&
     else
         hr = ac_readdir(v0, vr);
 
-    ASYNC_METHOD_OVER(2, 2);
+    ASYNC_METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
-    ARG(v8::Local<v8::Object>, 1);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     if (!cb.IsEmpty())
         hr = acb_readdir(v0, v1, cb, args);
