@@ -6,6 +6,7 @@ set SOURCE_ROOT=%~dp0
 set dev=0
 set build_addon=0
 set USE_VENDER_DIST=
+set new_args=
 
 set i=0
 for %%a in (%*) do (
@@ -16,7 +17,7 @@ for %%a in (%*) do (
         set USE_VENDER_DIST=1
         set build_addon=1
     ) else (
-        set new_args[!i!]=%%a
+        set new_args=%new_args% %%a
         set /a i+=1
     )
 )
