@@ -99,22 +99,22 @@ jobs:
             arch: arm64
             type: release
             test: skip
-          - os: macos-13
+          - os: macos-14
             arch: x64
             type: release
-          - os: macos-13
+          - os: macos-14
             arch: arm64
             type: release
             test: skip
-          - os: macos-13
+          - os: macos-14
             arch: x64
             type: debug
-          - os: macos-13
+          - os: macos-14
             target: iphone
             arch: arm64
             type: release
             test: skip
-          - os: macos-13
+          - os: macos-14
             target: iphone
             arch: x64
             type: release
