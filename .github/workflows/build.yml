@@ -105,7 +105,6 @@ jobs:
           - os: macos-14
             arch: arm64
             type: release
-            test: skip
           - os: macos-14
             arch: x64
             type: debug
