@@ -873,7 +873,11 @@ describe('fs', () => {
         assert.deepEqual(fl, ["dir1", "file1", "file2"]);
 
         var fl = fs.readdir(path.join(__dirname, 'dir_test'), { recursive: true });
-        assert.deepEqual(fl, ["dir1", "file1", "file2", "dir1/file3"]);
+
+        if (win)
+            assert.deepEqual(fl, ["dir1", "file1", "file2", "dir1\\file3"]);
+        else
+            assert.deepEqual(fl, ["dir1", "file1", "file2", "dir1/file3"]);
     });
 
     it("writeFile & appendFile", () => {

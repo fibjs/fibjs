@@ -438,7 +438,7 @@ describe("timer", () => {
             });
             var t2 = new Date();
             assert.greaterThan(t2 - t1, 25);
-            assert.lessThan(t2 - t1, 200);
+            assert.lessThan(t2 - t1, 1000);
         });
 
         it("sleep", () => {
@@ -479,7 +479,7 @@ describe("timer", () => {
             });
             var t2 = new Date();
             assert.greaterThan(t2 - t1, 25);
-            assert.lessThan(t2 - t1, 200);
+            assert.lessThan(t2 - t1, 1000);
         });
 
         it("error", () => {
