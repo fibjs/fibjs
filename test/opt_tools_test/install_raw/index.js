@@ -11,10 +11,8 @@ var { chdirAndDo, ensureDirectoryExisted, readJson } = require('../../_helpers/p
 
 const processRunOptions = {
     env: {
-        FIBJS_SILENT_INSALL: process.env.hasOwnProperty('FIBJS_SILENT_INSALL') ? process.env.FIBJS_SILENT_INSALL : 1,
-        QEMU_LD_PREFIX: process.env.QEMU_LD_PREFIX,
-        http_proxy: process.env.http_proxy,
-        https_proxy: process.env.https_proxy,
+        ...process.env,
+        FIBJS_SILENT_INSALL: process.env.hasOwnProperty('FIBJS_SILENT_INSALL') ? process.env.FIBJS_SILENT_INSALL : 1
     }
 }
 

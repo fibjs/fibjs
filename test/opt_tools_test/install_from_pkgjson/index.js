@@ -12,11 +12,9 @@ const { is_special_installname } = require('internal/helpers/package')
 
 const processRunOptions = {
     env: {
+        ...process.env,
         // all required environment would fallback to the parent's one
-        FIBJS_SILENT_INSALL: process.env.hasOwnProperty('FIBJS_SILENT_INSALL') ? process.env.FIBJS_SILENT_INSALL : 1,
-        QEMU_LD_PREFIX: process.env.QEMU_LD_PREFIX,
-        http_proxy: process.env.http_proxy,
-        https_proxy: process.env.https_proxy,
+        FIBJS_SILENT_INSALL: process.env.hasOwnProperty('FIBJS_SILENT_INSALL') ? process.env.FIBJS_SILENT_INSALL : 1
     }
 }
 
@@ -91,6 +89,20 @@ describe('opt_tools/install from package.json', () => {
 
                     assert.ok(fs.exists(
                         resolveNodeModules(installTarget, 'ejs')
+                    ));
+
+                    assert.notOk(
+                        readJson(pkgJson).dependencies
+                    );
+                });
+
+                it('install alias package', () => {
+                    chdirAndDo(installTarget, () => {
+                        child_process.run(bin, ['--install', 'js-beautify'], processRunOptions)
+                    })();
+
+                    assert.ok(fs.exists(
+                        resolveNodeModules(installTarget, 'js-beautify')
                     ));
 
                     assert.notOk(

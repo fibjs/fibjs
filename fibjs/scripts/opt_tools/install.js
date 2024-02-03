@@ -131,7 +131,7 @@ function fetch_leveled_module_info(m, v, parent) {
         case 'registry':
             let info = pkg_registrytype_module_infos[m];
             if (info === undefined) {
-                const registry_url = `${rootsnap.registry}${encodeURIComponent(m)}`
+                const registry_url = `${rootsnap.registry}${encodeURIComponent(pkg_install_typeinfo.registry_pkg_path)}`
                 install_log('fetch metadata:', m, "=>", registry_url);
                 pkg_registrytype_module_infos[m] = info = json_parse_response(http_get(registry_url));
             }
@@ -143,13 +143,13 @@ function fetch_leveled_module_info(m, v, parent) {
             const all_vers = Object.keys(info.versions);
             let filtered_vers = [];
 
-            switch (v) {
+            switch (pkg_install_typeinfo.registry_semver) {
                 case 'latest':
                 case '*':
                     filtered_vers = all_vers.sort(semver.rcompare);
                     break
                 default:
-                    all_vers.forEach(ver => semver.satisfies(ver, v) ? filtered_vers.push(ver) : undefined)
+                    all_vers.forEach(ver => semver.satisfies(ver, pkg_install_typeinfo.registry_semver) ? filtered_vers.push(ver) : undefined)
 
                     filtered_vers.sort(semver.rcompare);
                     break
@@ -158,7 +158,7 @@ function fetch_leveled_module_info(m, v, parent) {
             matched_ver = filtered_vers[0];
 
             if (!matched_ver)
-                throw new Error(`[package/${info.name}]no matched for pattern '${v}'`)
+                throw new Error(`[package/${info.name}]no matched for pattern '${pkg_install_typeinfo.registry_semver}'`)
             /* registry: match version :end */
 
             const minfo = info.versions[matched_ver];
@@ -188,7 +188,7 @@ function fetch_leveled_module_info(m, v, parent) {
             }
 
             return {
-                name: minfo.name,
+                name: m,
                 version: minfo.version,
                 bin: minfo.bin,
                 binary: binary,

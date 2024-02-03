@@ -16,61 +16,116 @@ exports.is_special_installname = function (pkg_name = '') {
     return false;
 }
 
-const parse_pkg_installname = exports.parse_pkg_installname = function (input_uri = '', version = '') {
-    /**
-     * when providing version but not semantic version, consider it as special installation name
-     */
-    if (version && exports.is_special_installname(version)) {
-        input_uri = version
+const GIT_PATTERN = /^([a-zA-Z0-9_.~-]+\/([a-zA-Z0-9_.~-]+)(\.git)?)(\#(.+))?$/
+const MODULE_NAME_PATTERN = /^[a-z][a-z0-9_.~-]*$/;
+
+const parse_pkg_installname = exports.parse_pkg_installname = function (pkg_name, input_uri) {
+    if (!input_uri || input_uri === '*')
+        input_uri = pkg_name;
+
+    input_uri = input_uri.replace(/^npm:/, '');
+    input_uri = input_uri.replace(/^https?:\/\/[^\/]+\//, '');
+
+    const registry_part = input_uri.split('@');
+    if (registry_part.length == 2 && registry_part[0] !== '')
+        return {
+            type: 'registry',
+            package_name: registry_part[0],
+            registry_pkg_path: registry_part[0],
+            registry_semver: registry_part[1],
+            from_http: false,
+            git_origin: '',
+            git_basename: null,
+            git_path: null,
+            git_reference: null,
+        }
+
+    if (registry_part.length == 2 && registry_part[0] === '')
+        return {
+            type: 'registry',
+            package_name: input_uri,
+            registry_pkg_path: input_uri,
+            registry_semver: "*",
+            from_http: false,
+            git_origin: '',
+            git_basename: null,
+            git_path: null,
+            git_reference: null,
+        }
+
+    if (registry_part.length == 3) {
+        if (registry_part[0] !== '')
+            throw new Error(`[parse_pkg_installname] invalid input_uri: ${input_uri}`);
+
+        const pkg_name = '@' + registry_part[1];
+        return {
+            type: 'registry',
+            package_name: pkg_name,
+            registry_pkg_path: pkg_name,
+            registry_semver: registry_part[2],
+            from_http: false,
+            git_origin: '',
+            git_basename: null,
+            git_path: null,
+            git_reference: null,
+        }
     }
 
-    const Is = {
-        http: false,
-        github: false,
-        registry: false,
-        file: false,
-    }
-    const uriObj = url.parse(input_uri)
-    Is.http = uriObj.protocol === 'http:' || uriObj.protocol === 'https:'
+    if (registry_part.length > 1)
+        throw new Error(`[parse_pkg_installname] invalid input_uri: ${input_uri}`);
 
-    const origin = !Is.http ? '' : `${uriObj.protocol}//${uriObj.host}`;
+    const git_part = input_uri.match(GIT_PATTERN);
+    if (git_part)
+        return {
+            type: 'git',
+            package_name: null,
+            registry_pkg_path: null,
+            registry_semver: null,
+            from_http: false,
+            git_origin: helpers_string.ensure_suffx(CST.DEFAULT_GIT_ORIGIN),
+            git_basename: git_part[2],
+            git_path: git_part[1],
+            git_reference: git_part[5] || 'master',
+        }
 
+    const git_part1 = pkg_name.match(GIT_PATTERN);
+    if (git_part1)
+        return {
+            type: 'git',
+            package_name: null,
+            registry_pkg_path: null,
+            registry_semver: null,
+            from_http: false,
+            git_origin: helpers_string.ensure_suffx(CST.DEFAULT_GIT_ORIGIN),
+            git_basename: git_part1[2],
+            git_path: git_part1[1],
+            git_reference: input_uri || git_part1[5] || 'master',
+        }
 
-    let pkg_pattern = input_uri;
-    if (Is.http) pkg_pattern = `${uriObj.pathname}${uriObj.hash}`;
-
-    pkg_pattern = helpers_string.ensure_unprefix(pkg_pattern);
-    
-    let [scope_str, pkg] = (pkg_pattern || '').split('/')
-    
-    if (!pkg) {
-        pkg = scope_str
-        scope_str = ''
-    }
-
-    Is.github = scope_str && /[a-zA-Z]/.test(scope_str[0])
-    Is.registry = !scope_str || scope_str[0] === '@'
-
-    let github_org_str = ''
-    if (Is.github) github_org_str = scope_str
-
-    const [name1, registry_semver = null] = (pkg || '').split('@')
-
-    const [name0, git_reference = null] = (name1 || '').split('#')
-    
-    const installation_name = Is.github ? null : (scope_str ? `${scope_str}/${name0}` : name0)
+    if (MODULE_NAME_PATTERN.test(input_uri))
+        return {
+            type: 'registry',
+            package_name: input_uri,
+            registry_pkg_path: input_uri,
+            registry_semver: "*",
+            from_http: false,
+            git_origin: '',
+            git_basename: null,
+            git_path: null,
+            git_reference: null,
+        };
 
     return {
-        type: Is.github ? 'git' : 'registry',
-        package_name: installation_name,
-        registry_pkg_path: !Is.registry ? null : installation_name,
-        registry_semver: registry_semver,
-        from_http: Is.http,
-        git_origin: Is.github ? (null || helpers_string.ensure_suffx(CST.DEFAULT_GIT_ORIGIN)) : origin,
-        git_basename: !Is.github ? null : name0,
-        git_path: !Is.github ? null : `${github_org_str}/${name0}`,
-        git_reference: !Is.github ? null : (git_reference || 'master'),
-    }
+        type: 'registry',
+        package_name: pkg_name,
+        registry_pkg_path: pkg_name,
+        registry_semver: input_uri,
+        from_http: false,
+        git_origin: '',
+        git_basename: null,
+        git_path: null,
+        git_reference: null,
+    };
 }
 
 /**

@@ -4,15 +4,14 @@ test.setup();
 describe('internal/helpers', () => {
     describe('@package', () => {
         var helpers_package = require("internal/helpers/package");
-
         describe('parse_pkg_installname', () => {
             ;[
                 [
-                    '@scope/pkg', {
+                    "pkg_name", '^1.2.3', {
                         "type": "registry",
-                        "package_name": "@scope/pkg",
-                        "registry_pkg_path": "@scope/pkg",
-                        "registry_semver": null,
+                        "package_name": "pkg_name",
+                        "registry_pkg_path": "pkg_name",
+                        "registry_semver": "^1.2.3",
                         "from_http": false,
                         "git_origin": "",
                         "git_basename": null,
@@ -21,7 +20,20 @@ describe('internal/helpers', () => {
                     }
                 ],
                 [
-                    '@scope/pkg@^1.2.3', {
+                    "@scope/pkg", '@scope/pkg', {
+                        "type": "registry",
+                        "package_name": "@scope/pkg",
+                        "registry_pkg_path": "@scope/pkg",
+                        "registry_semver": "*",
+                        "from_http": false,
+                        "git_origin": "",
+                        "git_basename": null,
+                        "git_path": null,
+                        "git_reference": null,
+                    }
+                ],
+                [
+                    "@scope/pkg", '@scope/pkg@^1.2.3', {
                         "type": "registry",
                         "package_name": "@scope/pkg",
                         "registry_pkg_path": "@scope/pkg",
@@ -34,7 +46,7 @@ describe('internal/helpers', () => {
                     }
                 ],
                 [
-                    '@scope/pkg123@>1.2.4', {
+                    "@scope/pkg123", '@scope/pkg123@>1.2.4', {
                         "type": "registry",
                         "package_name": "@scope/pkg123",
                         "registry_pkg_path": "@scope/pkg123",
@@ -47,11 +59,11 @@ describe('internal/helpers', () => {
                     }
                 ],
                 [
-                    '@scope123/pkg123', {
+                    "@scope123/pkg123", '@scope123/pkg123', {
                         "type": "registry",
                         "package_name": "@scope123/pkg123",
                         "registry_pkg_path": "@scope123/pkg123",
-                        "registry_semver": null,
+                        "registry_semver": "*",
                         "from_http": false,
                         "git_origin": "",
                         "git_basename": null,
@@ -60,11 +72,11 @@ describe('internal/helpers', () => {
                     }
                 ],
                 [
-                    'pkg123', {
+                    "pkg_name", 'pkg123', {
                         "type": "registry",
                         "package_name": "pkg123",
                         "registry_pkg_path": "pkg123",
-                        "registry_semver": null,
+                        "registry_semver": "*",
                         "from_http": false,
                         "git_origin": "",
                         "git_basename": null,
@@ -73,7 +85,7 @@ describe('internal/helpers', () => {
                     }
                 ],
                 [
-                    'pkg123@3.8.1', {
+                    "pkg123", 'pkg123@3.8.1', {
                         "type": "registry",
                         "package_name": "pkg123",
                         "registry_pkg_path": "pkg123",
@@ -86,7 +98,7 @@ describe('internal/helpers', () => {
                     }
                 ],
                 [
-                    'pkg123@~3.8.1', {
+                    "pkg123", 'pkg123@~3.8.1', {
                         "type": "registry",
                         "package_name": "pkg123",
                         "registry_pkg_path": "pkg123",
@@ -99,7 +111,33 @@ describe('internal/helpers', () => {
                     }
                 ],
                 [
-                    'org/github123', {
+                    "pkg", 'npm:pkg123', {
+                        "type": "registry",
+                        "package_name": "pkg123",
+                        "registry_pkg_path": "pkg123",
+                        "registry_semver": "*",
+                        "from_http": false,
+                        "git_origin": "",
+                        "git_basename": null,
+                        "git_path": null,
+                        "git_reference": null,
+                    }
+                ],
+                [
+                    "pkg", 'npm:pkg123@3.8.1', {
+                        "type": "registry",
+                        "package_name": "pkg123",
+                        "registry_pkg_path": "pkg123",
+                        "registry_semver": "3.8.1",
+                        "from_http": false,
+                        "git_origin": "",
+                        "git_basename": null,
+                        "git_path": null,
+                        "git_reference": null,
+                    }
+                ],
+                [
+                    "org/github123", 'org/github123', {
                         "type": "git",
                         "registry_pkg_path": null,
                         "registry_semver": null,
@@ -112,7 +150,7 @@ describe('internal/helpers', () => {
                     }
                 ],
                 [
-                    'org/github123#branch', {
+                    "org/github123", 'org/github123#branch', {
                         "type": "git",
                         "registry_pkg_path": null,
                         "registry_semver": null,
@@ -125,7 +163,7 @@ describe('internal/helpers', () => {
                     }
                 ],
                 [
-                    'org/github123#v1.7.0', {
+                    "org/github123", 'org/github123#v1.7.0', {
                         "type": "git",
                         "registry_pkg_path": null,
                         "registry_semver": null,
@@ -138,7 +176,7 @@ describe('internal/helpers', () => {
                     }
                 ],
                 [
-                    'org/github123#43c5d0be', {
+                    "pkg_name", 'org/github123#43c5d0be', {
                         "type": "git",
                         "registry_pkg_path": null,
                         "registry_semver": null,
@@ -150,10 +188,49 @@ describe('internal/helpers', () => {
                         "package_name": null
                     }
                 ],
-            ].forEach(([pkg_input, result]) => {
-                it(`parse ${pkg_input}`, () => {
+                [
+                    "pkg_name", 'https://github.com/project/module#dev', {
+                        "type": "git",
+                        "registry_pkg_path": null,
+                        "registry_semver": null,
+                        "from_http": false,
+                        "git_origin": "https://github.com/",
+                        "git_basename": "module",
+                        "git_path": "project/module",
+                        "git_reference": "dev",
+                        "package_name": null
+                    }
+                ],
+                [
+                    "pkg_name", 'PROJECT/pkg_name.js', {
+                        "type": "git",
+                        "registry_pkg_path": null,
+                        "registry_semver": null,
+                        "from_http": false,
+                        "git_origin": "https://github.com/",
+                        "git_basename": "pkg_name.js",
+                        "git_path": "PROJECT/pkg_name.js",
+                        "git_reference": "master",
+                        "package_name": null
+                    }
+                ],
+                [
+                    "proto-list", "~1.2.1", {
+                        "type": "registry",
+                        "package_name": "proto-list",
+                        "registry_pkg_path": "proto-list",
+                        "registry_semver": "~1.2.1",
+                        "from_http": false,
+                        "git_origin": "",
+                        "git_basename": null,
+                        "git_path": null,
+                        "git_reference": null
+                    }
+                ]
+            ].forEach(([module, semver, result]) => {
+                it(`parse ${module}, ${semver}`, () => {
                     assert.deepEqual(
-                        helpers_package.parse_pkg_installname(pkg_input),
+                        helpers_package.parse_pkg_installname(module, semver),
                         result
                     )
                 })
