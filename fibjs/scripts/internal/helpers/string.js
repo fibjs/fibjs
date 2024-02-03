@@ -1,8 +1,15 @@
 exports.find_least_common_str = function (str1 = '', str2 = '') {
-    let idx = 0;
-    while (str1[idx] === str2[idx]) idx++;
+    var idx = 0;
+    var str1_parts = str1.split('/');
+    var str2_parts = str2.split('/');
 
-    return str1.slice(0, idx);
+    while (idx < str1_parts.length - 1 && str1_parts[idx] === str2_parts[idx])
+        idx++;
+
+    if (idx === 0)
+        return '';
+
+    return str1_parts.slice(0, idx).join('/') + '/';
 }
 
 exports.ensure_prefix = function (base = '', prefix = '/') {
