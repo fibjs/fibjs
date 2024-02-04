@@ -12,7 +12,6 @@ const semver = require('internal/helpers/semver');
 const untar = require('internal/helpers/untar');
 
 const helpers_pkg = require('internal/helpers/package');
-const helpers_fs = require('internal/helpers/fs');
 const helpers_string = require('internal/helpers/string');
 const versioning = require('internal/helpers/versioning');
 const CST = require('internal/constant');
@@ -425,7 +424,7 @@ function download_module() {
                     if (existed_dirs[dirname]) return;
 
                 existed_dirs[dirname] = true;
-                helpers_fs.mkdirp(dirname);
+                fs.mkdir(dirname, { recursive: true });
             }
 
             switch (mvm.pkg_install_typeinfo.type) {
@@ -471,7 +470,7 @@ function download_module() {
 
                             if (file.typeflag == "0") {
                                 const tpath = path.join(bp, mvm.name, file.filename.slice(archive_root_name.length));
-                                helpers_fs.mkdirp(path.dirname(tpath));
+                                fs.mkdir(path.dirname(tpath), { recursive: true });
                                 fs.writeFile(tpath, file.fileData);
                                 fs.chmod(tpath, parseInt(file.mode, 8));
                             }
@@ -560,7 +559,7 @@ function download_module() {
 
                         if (file.typeflag == "0") {
                             var bpath = path.join(bp, mvm.name, mvm.binary.module_path, file.filename.slice(archive_root_name.length));
-                            helpers_fs.mkdirp(path.dirname(bpath));
+                            fs.mkdir(path.dirname(bpath), { recursive: true });
                             fs.writeFile(bpath, file.fileData);
                             fs.chmod(bpath, parseInt(file.mode, 8));
                         }
@@ -586,7 +585,7 @@ function download_module() {
                         var cli_file = path.join(p, mvm.name, bins[bin]);
                         var cli_file_r = path.relative(bin_path, cli_file);
 
-                        helpers_fs.mkdirp(bin_path);
+                        fs.mkdir(bin_path, { recursive: true });
 
                         try {
                             fs.symlink(cli_file_r, cli_link);
