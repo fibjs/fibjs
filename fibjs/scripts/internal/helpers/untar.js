@@ -127,41 +127,24 @@ const untar = (function () {
 
 
     /**
-     * Peeks at the next n bytes as a string but does not advance the pointer.
-     * @param {number} n The number of bytes to peek at.
-     * @return {string} The next n bytes as a string.
-     */
-    ByteStream.prototype.peekString = function (n) {
-        if (n <= 0 || typeof n != typeof 1) {
-            return "";
-        }
-
-        var result = "";
-        for (var p = this.ptr, end = this.ptr + n; p < end; ++p) {
-            result += String.fromCharCode(this.bytes[p]);
-        }
-        return result;
-    };
-
-
-    /**
      * Returns the next n bytes as an ASCII string and advances the stream pointer
      * n bytes.
      * @param {number} n The number of bytes to read.
      * @return {string} The next n bytes as a string.
      */
     ByteStream.prototype.readString = function (n) {
-        var strToReturn = this.peekString(n);
+        var p = this.ptr;
+
+        for (var i = 0; i < n; i++)
+            if (this.bytes[p] == 0)
+                break;
+            else p++;
+
+        var binaryString = Buffer.from(this.bytes.buffer, this.ptr, p - this.ptr);
+        var strToReturn = binaryString.toString('latin1');
+
         this.ptr += n;
         return strToReturn;
-    };
-
-
-    // Removes all characters from the first zero-byte in the string onwards.
-    var readCleanString = function (bstr, numBytes) {
-        var str = bstr.readString(numBytes);
-        var zIndex = str.indexOf(String.fromCharCode(0));
-        return zIndex != -1 ? str.substr(0, zIndex) : str;
     };
 
     // takes a ByteStream and parses out the local file information
@@ -169,33 +152,36 @@ const untar = (function () {
         this.isValid = false;
 
         // Read in the header block
-        this.name = readCleanString(bstream, 100);
-        this.mode = readCleanString(bstream, 8);
-        this.uid = readCleanString(bstream, 8);
-        this.gid = readCleanString(bstream, 8);
+        this.name = bstream.readString(100);
+        this.mode = bstream.readString(8);
+        this.uid = bstream.readString(8);
+        this.gid = bstream.readString(8);
 
-        this.size = parseInt(readCleanString(bstream, 12), 8);
-        this.mtime = readCleanString(bstream, 12);
-        this.chksum = readCleanString(bstream, 8);
-        this.typeflag = readCleanString(bstream, 1);
-        this.linkname = readCleanString(bstream, 100);
-        this.maybeMagic = readCleanString(bstream, 6);
+        this.size = parseInt(bstream.readString(12), 8);
+        this.mtime = bstream.readString(12);
+        this.chksum = bstream.readString(8);
+        this.typeflag = bstream.readString(1);
+        this.linkname = bstream.readString(100);
+        this.maybeMagic = bstream.readString(6);
 
         // 100+8+8+8+12+12+8+1+100+6 = 263 Bytes
 
         if (this.maybeMagic == "ustar") {
-            this.version = readCleanString(bstream, 2);
-            this.uname = readCleanString(bstream, 32);
-            this.gname = readCleanString(bstream, 32);
-            this.devmajor = readCleanString(bstream, 8);
-            this.devminor = readCleanString(bstream, 8);
-            this.prefix = readCleanString(bstream, 155);
+            this.version = bstream.readString(2);
+            this.uname = bstream.readString(32);
+            this.gname = bstream.readString(32);
+            this.devmajor = bstream.readString(8);
+            this.devminor = bstream.readString(8);
+            this.prefix = bstream.readString(155);
 
             // 2+32+32+8+8+155 = 237 Bytes
 
-            if (this.prefix.length) {
-                this.name = this.prefix + this.name;
-            }
+            if (this.prefix.length)
+                if (this.prefix.endsWith('/'))
+                    this.name = this.prefix + this.name;
+                else
+                    this.name = this.prefix + '/' + this.name;
+
             bstream.readBytes(12); // 512 - 263 - 237
         } else {
             bstream.readBytes(249); // 512 - 263
