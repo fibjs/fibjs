@@ -18,6 +18,7 @@
 #include <leveldb/db.h>
 #include <expat/include/expat.h>
 #include <uv/include/uv/version.h>
+#include <unicode/uchar.h>
 #include <unicode/uvernum.h>
 #include <msgpack/version.hpp>
 #include "addons/node_api/node_version.h"
@@ -107,7 +108,7 @@ public:
             g_vender->add("ev", STR(EV_VERSION_MAJOR) "." STR(EV_VERSION_MINOR));
             g_vender->add("expat", STR(XML_MAJOR_VERSION) "." STR(XML_MINOR_VERSION) "." STR(XML_MICRO_VERSION));
             g_vender->add("gumbo", "0.10.0");
-            g_vender->add("icu", STR(U_ICU_VERSION_MAJOR_NUM) "." STR(U_ICU_VERSION_MINOR_NUM) "." STR(U_ICU_VERSION_PATCHLEVEL_NUM));
+            g_vender->add("icu", U_ICU_VERSION);
             g_vender->add("jemalloc", "5.2.1");
             snprintf(str, sizeof(str), "%d.%d", leveldb::kMajorVersion, leveldb::kMinorVersion);
             g_vender->add("leveldb", str);
@@ -116,6 +117,7 @@ public:
             g_vender->add("pcre", STR(PCRE_MAJOR) "." STR(PCRE_MINOR));
             g_vender->add("snappy", STR(SNAPPY_MAJOR) "." STR(SNAPPY_MINOR) "." STR(SNAPPY_PATCHLEVEL));
             g_vender->add("sqlite", SQLITE_VERSION);
+            g_vender->add("unicode", U_UNICODE_VERSION);
             g_vender->add("uuid", "1.6.2");
 
 #if UV_VERSION_IS_RELEASE
