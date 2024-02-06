@@ -1,4 +1,0 @@
-FROM fibjs/linux-build-env:x64
-
-RUN apt-get install g++-powerpc64le-linux-gnu -y
-ENV QEMU_LD_PREFIX="/usr/powerpc64le-linux-gnu"

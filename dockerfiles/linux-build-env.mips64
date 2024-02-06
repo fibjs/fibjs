@@ -1,4 +1,0 @@
-FROM fibjs/linux-build-env:x64
-
-RUN apt-get install g++-mips64el-linux-gnuabi64 -y
-ENV QEMU_LD_PREFIX="/usr/mips64el-linux-gnuabi64"

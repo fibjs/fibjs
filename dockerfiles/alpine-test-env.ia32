@@ -1,3 +1,0 @@
-FROM multiarch/alpine:i386-latest-stable
-
-RUN apk add bash

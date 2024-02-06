@@ -1,5 +1,0 @@
-FROM dockcross/android-arm
-
-RUN apt-get update && apt-get upgrade -y
-
-RUN adduser fibjs -q

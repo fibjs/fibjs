@@ -1,3 +1,0 @@
-FROM multiarch/alpine:arm64-latest-stable
-
-RUN apk add bash
