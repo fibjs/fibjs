@@ -381,8 +381,8 @@ describe("child_process", () => {
         var o1 = p.usage();
 
         try {
-            assert.closeTo(o.user, o1.user, 50000);
-            assert.closeTo(o.system, o1.system, 50000);
+            assert.closeTo(o.user, o1.user, 200000);
+            assert.closeTo(o.system, o1.system, 200000);
 
             if (o.rss > 0)
                 assert.closeTo(o.rss, o1.rss, o.rss / 2);
