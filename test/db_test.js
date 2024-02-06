@@ -1377,7 +1377,7 @@ describe("db", () => {
             _test(type, sql_server[type].conn_str);
         });
 
-    odescribe("leveldb", () => {
+    describe("leveldb", () => {
         after(clear_db);
 
         function clear_db() {

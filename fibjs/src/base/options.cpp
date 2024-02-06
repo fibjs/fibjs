@@ -181,10 +181,10 @@ void options(int32_t& pos, char* argv[])
         icu::TimeZone::setDefault(*zone);
     }
 
-    int64_t sz = uv_get_total_memory() / 1024 / 1024;
+    size_t sz = uv_get_total_memory() / 1024 / 1024;
     sz = sz * 3 / 4;
 
-    v8::internal::v8_flags.max_old_space_size = sz;
+    v8::internal::v8_flags.max_heap_size = sz;
     v8::internal::v8_flags.stack_size = stack_size - GUARD_SIZE;
     v8::internal::v8_flags.wasm_code_gc = false;
 }

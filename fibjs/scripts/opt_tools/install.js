@@ -429,13 +429,14 @@ function download_module() {
 
             switch (mvm.pkg_install_typeinfo.type) {
                 case 'registry':
-                    const r = http_get(mvm.dist.tarball);
+                    var r = http_get(mvm.dist.tarball);
                     if (r.statusCode !== 200) {
                         console.error('download error::', mvm.dist.tarball);
                         process.exit();
                     }
 
-                    const tgz = r.data;
+                    let tgz = r.data;
+                    r = null;
 
                     if (hash.sha1(tgz).digest().hex() !== mvm.dist.shasum) {
                         console.error('shasum:', mvm.dist.tarball);
@@ -447,6 +448,7 @@ function download_module() {
                         t = zlib.gunzip(tgz);
                     else
                         t = tgz;
+                    tgz = null;
 
                     const untar_files = untar(t.buffer);
 
@@ -458,8 +460,8 @@ function download_module() {
                         )
                     }
 
-                    mvm.base_path.forEach(bp => {
-                        coroutine.parallel(untar_files, (file) => {
+                    untar_files.forEach(file => {
+                        mvm.base_path.forEach(bp => {
                             if (file.typeflag == 1) {
                                 const read_files = untar_files.filter(f => f.filename == file.linkname);
                                 file.typeflag = "0";
@@ -474,21 +476,22 @@ function download_module() {
                                 fs.writeFile(tpath, file.fileData);
                                 fs.chmod(tpath, parseInt(file.mode, 8));
                             }
-                        })
+                        });
                     });
 
                     install_log('extract:', mvm.dist.tarball);
                     break
                 case 'git':
                     const git_archive_url = helpers_pkg.get_git_archive_url(mvm.pkg_install_typeinfo);
-                    const git_r = http_get(git_archive_url);
+                    var git_r = http_get(git_archive_url);
 
                     if (git_r.statusCode !== 200) {
                         console.error('download error::', mvm.dist.tarball);
                         process.exit();
                     }
-                    const git_zip_file = zip.open(git_r.body.readAll());
+                    var git_zip_file = zip.open(git_r.body.readAll());
                     const namelist = git_zip_file.namelist();
+                    git_r = null;
 
                     archive_root_name = `${mvm.pkg_install_typeinfo.git_basename}-${mvm.pkg_install_typeinfo.git_reference}`;
                     if (namelist[0].indexOf(archive_root_name) !== 0) {
@@ -514,7 +517,7 @@ function download_module() {
                         })
                     });
 
-                    coroutine.parallel(git_i_tuples, ([member, tpath]) => {
+                    git_i_tuples.forEach(([member, tpath]) => {
                         git_zip_file.extract(member, tpath);
                     });
 
@@ -524,22 +527,25 @@ function download_module() {
 
             if (mvm.binary) {
                 install_log("[install addon]", mvm.binary.hosted_tarball);
-                const binary_r = http_get(mvm.binary.hosted_tarball);
+                var binary_r = http_get(mvm.binary.hosted_tarball);
 
                 if (binary_r.statusCode !== 200) {
                     console.error('download error::', mvm.binary.hosted_tarball);
                     process.exit();
                 }
 
-                const tgz = binary_r.data;
+                var tgz = binary_r.data;
+                binary_r = null;
 
                 let t;
                 if (tgz[0] === 0x1f && tgz[1] === 0x8b)
                     t = zlib.gunzip(tgz);
                 else
                     t = tgz;
+                tgz = null;
 
                 const untar_files = untar(t.buffer);
+                t = null;
 
                 archive_root_name = path.dirname(untar_files[0].filename);
                 untar_files.forEach(file => {
@@ -548,7 +554,7 @@ function download_module() {
                 archive_root_name = helpers_string.ensure_unsuffx(archive_root_name);
 
                 mvm.base_path.forEach(bp => {
-                    coroutine.parallel(untar_files, (file) => {
+                    untar_files.forEach(file => {
                         if (file.typeflag == 1) {
                             const read_files = untar_files.filter(f => f.filename == file.linkname);
                             file.typeflag = "0";
@@ -563,7 +569,7 @@ function download_module() {
                             fs.writeFile(bpath, file.fileData);
                             fs.chmod(bpath, parseInt(file.mode, 8));
                         }
-                    })
+                    });
                 });
 
                 install_log("extract addon:", mvm.binary.hosted_tarball);

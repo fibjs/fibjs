@@ -110,14 +110,17 @@ declare class Class_LevelDB extends Class_object {
     remove(key: Class_Buffer, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     *  @description 查询最小的 key 
+     *  @description 查询最小的 key
+     *       @return 返回最小的 key
+     *      
      */
     firstKey(): Class_Buffer;
 
     firstKey(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     *  @description 查询最大的 key 
+     *  @description 查询最大的 key
+     *     @return 返回最大的 key 
      */
     lastKey(): Class_Buffer;
 
@@ -193,8 +196,8 @@ declare class Class_LevelDB extends Class_object {
      *         ...
      *      });
      *      ```
-     *      @param func 枚举回调函数
      *      @param opt 枚举选项，支持 skip, limit, reverse
+     *      @param func 枚举回调函数
      *      
      */
     forEach(opt: FIBJS.GeneralObject, func: (...args: any[])=>any): void;

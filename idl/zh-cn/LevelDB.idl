@@ -83,10 +83,13 @@ interface LevelDB : object
      */
     remove(Buffer key) async;
 
-    /* @brief 查询最小的 key */
+    /* @brief 查询最小的 key
+      @return 返回最小的 key
+     */
     Buffer firstKey() async;
 
-    /* @brief 查询最大的 key */
+    /* @brief 查询最大的 key
+    @return 返回最大的 key */
     Buffer lastKey() async;
 
     /*! @brief 枚举数据库中所有的键值对
@@ -152,8 +155,8 @@ interface LevelDB : object
         ...
      });
      ```
-     @param func 枚举回调函数
      @param opt 枚举选项，支持 skip, limit, reverse
+     @param func 枚举回调函数
      */
     forEach(Object opt, Function func);
 
