@@ -209,11 +209,11 @@ public:
     }
 
     void ThrowError(
-        v8::Local<v8::Value> (*fun)(v8::Local<v8::String>),
+        v8::Local<v8::Value> (*fun)(v8::Local<v8::String>, v8::Local<v8::Value>),
         const char* errmsg)
     {
         v8::HandleScope handle_scope(m_isolate);
-        m_isolate->ThrowException(fun(OneByteString(m_isolate, errmsg)));
+        m_isolate->ThrowException(fun(OneByteString(m_isolate, errmsg), {}));
     }
 
     v8::Isolate* isolate() const
