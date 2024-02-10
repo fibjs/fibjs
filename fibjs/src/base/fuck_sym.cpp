@@ -10,15 +10,10 @@ void init_sym()
 #include "glibc_config.h"
 
 #include <string.h>
+#include <stdarg.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <pthread.h>
-#include <time.h>
-#include <elf.h>
 #include <errno.h>
 #include <sys/syscall.h>
-#include <linux/random.h>
 
 extern "C" {
 
@@ -35,25 +30,29 @@ void* memcpy(void* dest, const void* src, size_t n)
 // GLIBC_2.17
 #ifdef GLIB_C_TIME
 __asm__(".symver _clock_gettime,clock_gettime@GLIBC_" GLIB_C_TIME);
-int _clock_gettime(clockid_t clk_id, struct timespec* tp);
-int clock_gettime(clockid_t clk_id, struct timespec* tp)
+int _clock_gettime(__clockid_t clk_id, struct timespec* tp);
+int clock_gettime(__clockid_t clk_id, struct timespec* tp)
 {
     return _clock_gettime(clk_id, tp);
 }
 
 __asm__(".symver _clock_getres,clock_getres@GLIBC_" GLIB_C_TIME);
-int _clock_getres(clockid_t clk_id, struct timespec* tp);
-int clock_getres(clockid_t clk_id, struct timespec* tp)
+int _clock_getres(__clockid_t clk_id, struct timespec* tp);
+int clock_getres(__clockid_t clk_id, struct timespec* tp)
 {
     return _clock_getres(clk_id, tp);
 }
 #endif
 
 // GLIBC_2.17
-char* secure_getenv(const char* name) throw()
+char* getenv(const char* name);
+char* secure_getenv(const char* name)
 {
     return getenv(name);
 }
+
+
+long syscall(long number, ...);
 
 // GLIBC_2.25
 static ssize_t __getrandom(void* buffer, size_t length, unsigned int flags)
