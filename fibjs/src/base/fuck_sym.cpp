@@ -1,19 +1,24 @@
-#ifndef _WIN32
-
-#include "glibc_config.h"
-
-#include <string.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <stdio.h>
-
 namespace fibjs {
+
 void init_sym()
 {
 }
 }
 
-#ifdef NDEBUG
+#if defined(NDEBUG) && defined(linux)
+
+#include "glibc_config.h"
+
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <time.h>
+#include <elf.h>
+#include <errno.h>
+#include <sys/syscall.h>
+#include <linux/random.h>
 
 extern "C" {
 
@@ -43,6 +48,40 @@ int clock_getres(clockid_t clk_id, struct timespec* tp)
     return _clock_getres(clk_id, tp);
 }
 #endif
+
+// GLIBC_2.17
+char* secure_getenv(const char* name) throw()
+{
+    return getenv(name);
+}
+
+// GLIBC_2.25
+static ssize_t __getrandom(void* buffer, size_t length, unsigned int flags)
+{
+    return syscall(SYS_getrandom, buffer, length, flags);
+}
+
+int getentropy(void* buf, size_t length)
+{
+    char* buffer = (char*)buf;
+    if (length > 256)
+        return EIO;
+
+    char* end = buffer + length;
+    while (buffer < end) {
+        ssize_t bytes = __getrandom(buffer, end - buffer, 0);
+        if (bytes < 0) {
+            if (errno == EINTR)
+                continue;
+            else
+                return -1;
+        }
+        if (bytes == 0)
+            return EIO;
+        buffer += bytes;
+    }
+    return 0;
+}
 
 // GLIBC_2.28
 #ifdef GLIB_C_FCNTL
@@ -127,7 +166,5 @@ double log2(double x)
 }
 #endif
 }
-
-#endif
 
 #endif
