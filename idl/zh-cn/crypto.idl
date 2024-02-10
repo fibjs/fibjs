@@ -175,18 +175,6 @@ module crypto
      */
     static Buffer randomBytes(Integer size = 16) async;
 
-    /*! @brief 生成指定尺寸的低强度随机数，使用快速的算法
-     @param size 指定生成的随机数尺寸
-     @return 返回生成的随机数
-     */
-    static Buffer simpleRandomBytes(Integer size = 16) async;
-
-    /*! @brief 生成指定尺寸的伪随机数，使用 entropy 生成器
-     @param size 指定生成的随机数尺寸
-     @return 返回生成的随机数
-     */
-    static Buffer pseudoRandomBytes(Integer size = 16) async;
-
     /*! @brief 使用随机数填充指定的 Buffer，使用 havege 生成器
      @param buffer 指定生成的 Buffer
      @param offset 指定起始偏移，缺省为 0
@@ -194,14 +182,6 @@ module crypto
      @return 返回生成的随机数
      */
     static Buffer randomFill(Buffer buffer, Integer offset = 0, Integer size = -1) async;
-
-    /*! @brief 生成给定数据的可视化字符图像
-     @param data 指定要展示的数据
-     @param title 指定字符图像的标题，多字节字符会导致宽度错误
-     @param size 字符图像尺寸
-     @return 返回生成的可视化字符串图像
-     */
-    static String randomArt(Buffer data, String title, Integer size = 8);
 
     /*! @brief 生成一个 RSA 私钥
      @param size 指定 RSA 密钥长度，bit 为单位

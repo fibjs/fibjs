@@ -259,27 +259,11 @@ var art3 = "+01234567890123456+\n" +
 
 describe('crypto', () => {
 
-    it("random", () => {
+    it("randomBytes", () => {
         assert.notEqual(crypto.randomBytes(8).hex(), crypto.randomBytes(8).hex());
 
         assert.throws(() => {
             crypto.randomBytes(-125);
-        });
-    });
-
-    it("simpleRandomBytes", () => {
-        assert.notEqual(crypto.simpleRandomBytes(8).hex(), crypto.simpleRandomBytes(8).hex());
-
-        assert.throws(() => {
-            crypto.simpleRandomBytes(-125);
-        });
-    });
-
-    it("pseudoRandomBytes", () => {
-        assert.notEqual(crypto.pseudoRandomBytes(8).hex(), crypto.pseudoRandomBytes(8).hex());
-
-        assert.throws(() => {
-            crypto.pseudoRandomBytes(-125);
         });
     });
 
@@ -304,20 +288,6 @@ describe('crypto', () => {
         crypto.randomFill(buf, 9, 1);
         assert.throws(() => {
             crypto.randomFill(buf, 9, 2);
-        });
-    });
-
-    it("randomArt", () => {
-        assert.notEqual(crypto.randomArt(data, "lion"), art1);
-        assert.notEqual(crypto.randomArt(data, ""), art2);
-        assert.notEqual(crypto.randomArt(data, "01234567890123456789"), art3);
-
-        assert.throws(() => {
-            crypto.randomArt(data, "title", 0);
-        });
-
-        assert.throws(() => {
-            crypto.randomArt(undefined, '', 1064203628);
         });
     });
 

@@ -263,26 +263,6 @@ declare module 'crypto' {
     function randomBytes(size?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 生成指定尺寸的低强度随机数，使用快速的算法
-     *      @param size 指定生成的随机数尺寸
-     *      @return 返回生成的随机数
-     *      
-     */
-    function simpleRandomBytes(size?: number): Class_Buffer;
-
-    function simpleRandomBytes(size?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description 生成指定尺寸的伪随机数，使用 entropy 生成器
-     *      @param size 指定生成的随机数尺寸
-     *      @return 返回生成的随机数
-     *      
-     */
-    function pseudoRandomBytes(size?: number): Class_Buffer;
-
-    function pseudoRandomBytes(size?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
      * @description 使用随机数填充指定的 Buffer，使用 havege 生成器
      *      @param buffer 指定生成的 Buffer
      *      @param offset 指定起始偏移，缺省为 0
@@ -293,16 +273,6 @@ declare module 'crypto' {
     function randomFill(buffer: Class_Buffer, offset?: number, size?: number): Class_Buffer;
 
     function randomFill(buffer: Class_Buffer, offset?: number, size?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description 生成给定数据的可视化字符图像
-     *      @param data 指定要展示的数据
-     *      @param title 指定字符图像的标题，多字节字符会导致宽度错误
-     *      @param size 字符图像尺寸
-     *      @return 返回生成的可视化字符串图像
-     *      
-     */
-    function randomArt(data: Class_Buffer, title: string, size?: number): string;
 
     /**
      * @description 生成一个 RSA 私钥
