@@ -11,6 +11,7 @@
 #include "Digest.h"
 #include "Buffer.h"
 #include "crypto.h"
+#include <openssl/kdf.h>
 
 namespace fibjs {
 
@@ -159,6 +160,42 @@ DEF_FUNC(shake128, SHAKE128);
 DEF_FUNC(shake256, SHAKE256);
 DEF_FUNC(blake2s, BLAKE2S);
 DEF_FUNC(blake2b, BLAKE2B);
+
+result_t crypto_base::hkdf(exlib::string algoName, Buffer_base* password, Buffer_base* salt, Buffer_base* info,
+    int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    if (size < 1)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    const EVP_MD* md = _evp_md_type(algoName.c_str());
+    if (!md)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    Buffer* buf = Buffer::Cast(password);
+    Buffer* saltBuf = Buffer::Cast(salt);
+    Buffer* infoBuf = Buffer::Cast(info);
+    obj_ptr<Buffer> ret = new Buffer(NULL, size);
+    EVP_PKEY_CTX* pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL);
+    size_t keylen = size;
+
+    if (EVP_PKEY_derive_init(pctx) <= 0
+        || EVP_PKEY_CTX_set_hkdf_md(pctx, md) <= 0
+        || EVP_PKEY_CTX_set1_hkdf_salt(pctx, (const unsigned char*)saltBuf->data(), saltBuf->length()) <= 0
+        || EVP_PKEY_CTX_set1_hkdf_key(pctx, (const unsigned char*)buf->data(), buf->length()) <= 0
+        || EVP_PKEY_CTX_add1_hkdf_info(pctx, (const unsigned char*)infoBuf->data(), infoBuf->length()) <= 0
+        || EVP_PKEY_derive(pctx, (unsigned char*)ret->data(), &keylen) <= 0) {
+        EVP_PKEY_CTX_free(pctx);
+        return openssl_error();
+    }
+
+    EVP_PKEY_CTX_free(pctx);
+    retVal = ret;
+
+    return 0;
+}
 
 result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t iterations,
     int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal,

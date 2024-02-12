@@ -1715,6 +1715,153 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
         // ca_test(sm2_pem, pub_sm2_pem, hash.SM3);
     });
 
+    it('hkdf', () => {
+        const kDerivedKeys = {
+            short: '5040737377307264',
+            long: '55736572732073686f756c64207069636b206c6f6e6720706173737068726' +
+                '173657320286e6f74207573652073686f72742070617373776f7264732921',
+            empty: ''
+        };
+
+        const kSalts = {
+            normal: '536f6469756d2043686c6f7269646520636f6d706f756e64',
+            empty: ''
+        };
+
+        const kInfos = {
+            normal: '484b444620657874726120696e666f',
+            empty: ''
+        };
+
+        const kDerivations = {
+            short: {
+                normal: {
+                    'sha384': {
+                        normal: '19ba74368e6b993390f27fe9a7d02bc338173f72be71a19fc744fcdb3fd4b84b',
+                        empty: '97601f4e0c53a5d3f3a2810099bc6820ec50083434769b59fc24a417a9543734'
+                    },
+                    'sha512': {
+                        normal: '4bbd6db2435fb696157f6089c977c3c73f3eac5ef3dd6baae604cb53bfbb153e',
+                        empty: '2f3157e7fe0c10b01298c8f0886a90edcf80abdef5dbc1df2b1482532b52b934'
+                    },
+                    'sha1': {
+                        normal: '05ad22ed2138c9600e4d9e2725ded301f5d287fbfb5702f999bc6536d3edef98',
+                        empty: 'd51b6fb7e599ca30c5ee264593e4b85f2220c7c3ab003157bff8cb4f369c7560'
+                    },
+                    'sha256': {
+                        normal: '2af5901e28849c28443857386aa1ac3bb127e92631c1c051482d6690941772b4',
+                        empty: '9e4b719033742101e90f1ad61e2ff3b4256863667296d74389f1f02af2c4e6a6'
+                    }
+                },
+                empty: {
+                    'sha384': {
+                        normal: 'fb482ff22c4f8d466c4dfe6e29f2cc2ecdabf5884328fbf08a738fd945f166cb',
+                        empty: '1e023c17b340533ceaef39230cb8b3bbdbf663a13d6075d0dd326c049478fba5'
+                    },
+                    'sha512': {
+                        normal: 'f17b5bdcd8d7d3d4601036a19436317d1644f9a4e0956efc0e372b83acdacfdb',
+                        empty: 'c7b474942f31f83faf5d14731802b1bd49478549cb3a8f3dbfedc4d3209cf5b6'
+                    },
+                    'sha1': {
+                        normal: 'c126f1e6f25a9de42cf7d427059a52ed9601f29a5815cbfbc64bc7f668c6a341',
+                        empty: '3215c3f08de70549b051b7033745a8184f8cbaa6b1735330d2bcb6b16f4642ef'
+                    },
+                    'sha256': {
+                        normal: '733c8b6bcfac875c7f08982a6e3ffb560acea6f165476eb83460b9353ed41dfe',
+                        empty: 'c8e12774135305c9147f2cc4766e5ead25d8f457b9a1953d52677361ced558fb'
+                    }
+                }
+            },
+            long: {
+                normal: {
+                    'sha384': {
+                        normal: 'f91571b521f7eef13e573aa46378659ef3b7f36ffdd1bb055db2cd77d260c467',
+                        empty: '68af1c2cf6b9370d2054344798bdbb1847ccf407b7652b793dd136d4640e0348'
+                    },
+                    'sha512': {
+                        normal: '710aae2fdf889e45fe0fb995b2c26b33eb988650ec0faef167028a7a6ccb3638',
+                        empty: 'e5de568081c71e562750829871c342758104765ed6f306f0613c9d4bb336f2aa'
+                    },
+                    'sha1': {
+                        normal: '7f957edcbce3cb0b70566e1eb60efd1e405a13304c661d3663778109bf06899c',
+                        empty: '3062f3cf1a730b9cef51f02c1dfac85ed91e4b0065eb50ca9fd8b0107e728733'
+                    },
+                    'sha256': {
+                        normal: '31b7d68530a863e717c081ca6917b68650b3dd9a29f30606e2cad199bec14d13',
+                        empty: 'e579d1f9e7f08e6f990ffcfcce1ed201c5e37e62cdf606f0ba4aca80427fbc44'
+                    }
+                },
+                empty: {
+                    'sha384': {
+                        normal: '619eb6f9287395bbd5ed6a67c968465ad82b6c559f3c38b604bbb08f58320b03',
+                        empty: 'ff447b423d83fe76836c32337228b56b5bd9bf68d58e7dca4b7cca842a45e11a'
+                    },
+                    'sha512': {
+                        normal: '133e8a7f7ff433690cc88432c2a338c277e5c13756ff878f46753fe6a564e3e5',
+                        empty: 'de54f7eec80c9cc66d349fc987f80d461db2ef4ff4e18505d28bd80cb42c7d76'
+                    },
+                    'sha1': {
+                        normal: 'adb93cdbce79b7d51159b6c0131a2b62f23828d26acd685e34c06535e6f77496',
+                        empty: '47710d2a7507e05a1ddcc87a7c2f906177a266efb9e622510cccb3713cd08d58'
+                    },
+                    'sha256': {
+                        normal: 'a401d7c9158a29e5c7193ab9730f0748851cc5baadb42cad024b6290fe213436',
+                        empty: 'b4f7e7557674d501cbfbc0148ad800c0750189fe295a2aca5e1bf4122c85edf9'
+                    }
+                }
+            },
+            empty: {
+                normal: {
+                    'sha384': {
+                        normal: '6a8632e486899dc264f1a1f920593f2880804e0e1adacf94eb4ed5e5f83d0d12',
+                        empty: 'ea5012feb58751d5bc8eb64e0deacd597ed710c9f35258ae6b9a087aed0725ae'
+                    },
+                    'sha512': {
+                        normal: 'c797e1d1f2cab7f28a5f43455c10597f943385edfb428cfe2b98bed4a955d7a1',
+                        empty: 'e08cdcc4c5a6aa799d86bc03a95475276ebb801d9ade016e14a8fa5b64051651'
+                    },
+                    'sha1': {
+                        normal: 'ab679e67bcb4305fee42ef940e509cddd406e3498f857418a979ab39cf315f51',
+                        empty: 'fe422187188c8636d36daad58ef28431a433bf0fef72d1cae735a04bdbbeb9d3'
+                    },
+                    'sha256': {
+                        normal: 'df92b9a9fa9c01b898ceeaa13134832e31cb1c081d16a5235c69d85651e317ac',
+                        empty: 'e60d432b06ee889dfab7299a20ec23697531d119fcf766d0988d0acb0c00c7f7'
+                    }
+                },
+                empty: {
+                    'sha384': {
+                        normal: 'eacb9d6670ff3b1904779a419101b1ffaabd6d6510bd50856801746a871f7b31',
+                        empty: '470cc65387ca4a10c7a68a3b5148c8e513daa63101000739c4c6659b86118884'
+                    },
+                    'sha512': {
+                        normal: '57039174f16f5418a86856daeb77f69d4b4d5000334b6dd1f4f4b3e7b3dcb9d3',
+                        empty: '9d73c98e791e80ebe5b4cb45693aa32fdd44b5fa3edab3ec82f9d0f4d66905e2'
+                    },
+                    'sha1': {
+                        normal: 'a1bdd8c332c6464a4bb6a2f231aec9a444237eabe04d2f55f2ab25d40c54ebee',
+                        empty: '885fc029b3224b896e09e0bbe5eb347ec59e6827c8e857b394f54ff49b88a8f6'
+                    },
+                    'sha256': {
+                        normal: 'b7b86e422ad1c8a571fda528da16a066f42486dd4056792fd93362088e5dd4c2',
+                        empty: 'eb70f01dede9afafa449eee1b1286504e1f62388b3f7dd4f956697b0e828fe18'
+                    }
+                }
+            }
+        };
+
+        for (var key in kDerivedKeys) {
+            for (var salt in kSalts) {
+                for (var digest in kDerivations[key][salt]) {
+                    for (var info in kInfos) {
+                        const result = crypto.hkdfSync(digest, Buffer.from(kDerivedKeys[key], 'hex'), Buffer.from(kSalts[salt], 'hex'), Buffer.from(kInfos[info], 'hex'), 32).hex();
+                        assert.equal(result, kDerivations[key][salt][digest][info]);
+                    }
+                }
+            }
+        }
+    });
+
     it('pbkdf2', () => {
         var tests = [
             ["password", "salt", 1, 20,

@@ -310,6 +310,20 @@ declare module 'crypto' {
     function generateKey(curve?: string, callback?: (err: Error | undefined | null, retVal: Class_PKey)=>any): void;
 
     /**
+     * @description 依据 rfc5869 根据明文 password 生成要求的二进制钥匙
+     *      @param algoName 指定要使用的 hash 算法，详见 hash 模块
+     *      @param password 指定使用的密码
+     *      @param salt 指定 khdf 使用的 salt
+     *      @param info 指定 khdf 使用的 info
+     *      @param size 指定钥匙尺寸
+     *      @return 返回生成的二进制钥匙
+     *      
+     */
+    function hkdf(algoName: string, password: Class_Buffer, salt: Class_Buffer, info: Class_Buffer, size: number): Class_Buffer;
+
+    function hkdf(algoName: string, password: Class_Buffer, salt: Class_Buffer, info: Class_Buffer, size: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
      * @description 依据 rfc2898 根据明文 password 生成要求的二进制钥匙
      *      @param password 指定使用的密码
      *      @param salt 指定 hmac 使用的 salt

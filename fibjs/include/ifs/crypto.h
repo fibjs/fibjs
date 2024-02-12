@@ -67,6 +67,7 @@ public:
     static result_t randomFill(Buffer_base* buffer, int32_t offset, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t generateKey(int32_t size, obj_ptr<PKey_base>& retVal, AsyncEvent* ac);
     static result_t generateKey(exlib::string curve, obj_ptr<PKey_base>& retVal, AsyncEvent* ac);
+    static result_t hkdf(exlib::string algoName, Buffer_base* password, Buffer_base* salt, Buffer_base* info, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t getHashes(v8::Local<v8::Array>& retVal);
 
@@ -89,6 +90,7 @@ public:
     static void s_static_randomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_randomFill(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_generateKey(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_hkdf(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_getHashes(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -97,6 +99,7 @@ public:
     ASYNC_STATICVALUE4(crypto_base, randomFill, Buffer_base*, int32_t, int32_t, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE2(crypto_base, generateKey, int32_t, obj_ptr<PKey_base>);
     ASYNC_STATICVALUE2(crypto_base, generateKey, exlib::string, obj_ptr<PKey_base>);
+    ASYNC_STATICVALUE6(crypto_base, hkdf, exlib::string, Buffer_base*, Buffer_base*, Buffer_base*, int32_t, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE6(crypto_base, pbkdf2, Buffer_base*, Buffer_base*, int32_t, int32_t, exlib::string, obj_ptr<Buffer_base>);
 };
 }
@@ -127,6 +130,8 @@ inline ClassInfo& crypto_base::class_info()
         { "randomFillSync", s_static_randomFill, true, false },
         { "generateKey", s_static_generateKey, true, true },
         { "generateKeySync", s_static_generateKey, true, false },
+        { "hkdf", s_static_hkdf, true, true },
+        { "hkdfSync", s_static_hkdf, true, false },
         { "pbkdf2", s_static_pbkdf2, true, true },
         { "pbkdf2Sync", s_static_pbkdf2, true, false },
         { "getHashes", s_static_getHashes, true, false }
@@ -331,6 +336,28 @@ inline void crypto_base::s_static_generateKey(const v8::FunctionCallbackInfo<v8:
         hr = acb_generateKey(v0, cb, args);
     else
         hr = ac_generateKey(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_hkdf(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(5, 5);
+
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(obj_ptr<Buffer_base>, 2);
+    ARG(obj_ptr<Buffer_base>, 3);
+    ARG(int32_t, 4);
+
+    if (!cb.IsEmpty())
+        hr = acb_hkdf(v0, v1, v2, v3, v4, cb, args);
+    else
+        hr = ac_hkdf(v0, v1, v2, v3, v4, vr);
 
     METHOD_RETURN();
 }
