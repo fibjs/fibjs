@@ -14,6 +14,7 @@
 #include "Smtp.h"
 #include "Url.h"
 #include "options.h"
+#include "AsyncUV.h"
 
 #ifndef INET6_ADDRSTRLEN
 #define INET6_ADDRSTRLEN 46
@@ -25,54 +26,116 @@ DECLARE_MODULE(dns);
 
 result_t dns_base::resolve(exlib::string name, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
+    class resolve_data : public uv_getaddrinfo_t {
+    public:
+        resolve_data(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+            : _retVal(retVal)
+            , _ac(ac)
+        {
+        }
+
+    public:
+        obj_ptr<NArray>& _retVal;
+        AsyncEvent* _ac;
+    };
+
     if (ac->isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     addrinfo hints = { 0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, 0, 0, 0 };
     addrinfo* result = NULL;
     addrinfo* ptr = NULL;
 
-    int res = getaddrinfo(name.c_str(), NULL, &hints, &result);
-    if (res)
-        return CHECK_ERROR(Runtime::setError(gai_strerror(res)));
+    resolve_data* resolver = new resolve_data(retVal, ac);
+    int r = uv_getaddrinfo(
+        s_uv_loop, resolver,
+        [](uv_getaddrinfo_t* _resolver, int status, struct addrinfo* res) {
+            resolve_data* resolver = (resolve_data*)_resolver;
 
-    obj_ptr<NArray> arr = new NArray();
-    for (ptr = result; ptr != NULL; ptr = ptr->ai_next) {
-        inetAddr addr_info;
-        addr_info.init(ptr->ai_addr);
-        arr->append(addr_info.str());
+            if (status < 0) {
+                uv_freeaddrinfo(res);
+                delete resolver;
+
+                resolver->_ac->post(status);
+                return;
+            }
+
+            obj_ptr<NArray> arr = new NArray();
+            for (struct addrinfo* ptr = res; ptr != NULL; ptr = ptr->ai_next) {
+                inetAddr addr_info;
+                addr_info.init(ptr->ai_addr);
+                arr->append(addr_info.str());
+            }
+
+            resolver->_retVal = arr;
+            resolver->_ac->post(0);
+
+            uv_freeaddrinfo(res);
+            delete resolver;
+        },
+        name.c_str(), NULL, &hints);
+
+    if (r < 0) {
+        delete resolver;
+        return CHECK_ERROR(r);
     }
 
-    freeaddrinfo(result);
-
-    retVal = arr;
-
-    return 0;
+    return CALL_E_PENDDING;
 }
 
 result_t dns_base::lookup(exlib::string name, exlib::string& retVal, AsyncEvent* ac)
 {
+    class resolve_data : public uv_getaddrinfo_t {
+    public:
+        resolve_data(exlib::string& retVal, AsyncEvent* ac)
+            : _retVal(retVal)
+            , _ac(ac)
+        {
+        }
+
+    public:
+        exlib::string& _retVal;
+        AsyncEvent* _ac;
+    };
+
     if (ac->isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     addrinfo hints = { 0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, 0, 0, 0 };
     addrinfo* result = NULL;
     addrinfo* ptr = NULL;
 
-    int res = getaddrinfo(name.c_str(), NULL, &hints, &result);
-    if (res)
-        return CHECK_ERROR(Runtime::setError(gai_strerror(res)));
+    resolve_data* resolver = new resolve_data(retVal, ac);
+    int r = uv_getaddrinfo(
+        s_uv_loop, resolver,
+        [](uv_getaddrinfo_t* _resolver, int status, struct addrinfo* res) {
+            resolve_data* resolver = (resolve_data*)_resolver;
 
-    for (ptr = result; ptr != NULL; ptr = ptr->ai_next) {
-        inetAddr addr_info;
-        addr_info.init(ptr->ai_addr);
-        retVal = addr_info.str();
-        break;
+            if (status < 0) {
+                uv_freeaddrinfo(res);
+                delete resolver;
+
+                resolver->_ac->post(status);
+                return;
+            }
+
+            inetAddr addr_info;
+            addr_info.init(res->ai_addr);
+
+            resolver->_retVal = addr_info.str();
+            resolver->_ac->post(0);
+
+            uv_freeaddrinfo(res);
+            delete resolver;
+        },
+        name.c_str(), NULL, &hints);
+
+    if (r < 0) {
+        delete resolver;
+        return CHECK_ERROR(r);
     }
 
-    freeaddrinfo(result);
-
-    return 0;
+    return CALL_E_PENDDING;
 }
 
 DECLARE_MODULE(net);
@@ -100,40 +163,72 @@ result_t net_base::resolve(exlib::string name, int32_t family,
     if (family != net_base::C_AF_INET && family != net_base::C_AF_INET6)
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
+    class resolve_data : public uv_getaddrinfo_t {
+    public:
+        resolve_data(int32_t family, exlib::string& retVal, AsyncEvent* ac)
+            : _family(family)
+            , _retVal(retVal)
+            , _ac(ac)
+        {
+        }
+
+    public:
+        int32_t _family;
+        exlib::string& _retVal;
+        AsyncEvent* _ac;
+    };
+
     if (ac->isSync())
-        return CHECK_ERROR(CALL_E_LONGSYNC);
-
-    inetAddr addr_info;
-
-    addr_info.init(family);
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
     addrinfo hints = { 0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, 0, 0, 0 };
     addrinfo* result = NULL;
     addrinfo* ptr = NULL;
 
-    int res = getaddrinfo(name.c_str(), NULL, &hints, &result);
-    if (res)
-        return CHECK_ERROR(Runtime::setError(gai_strerror(res)));
+    resolve_data* resolver = new resolve_data(family, retVal, ac);
+    int r = uv_getaddrinfo(
+        s_uv_loop, resolver,
+        [](uv_getaddrinfo_t* _resolver, int status, struct addrinfo* res) {
+            resolve_data* resolver = (resolve_data*)_resolver;
 
-    for (ptr = result; ptr != NULL; ptr = ptr->ai_next)
-        if (ptr->ai_family == addr_info.addr4.sin_family) {
-            memcpy(&addr_info, ptr->ai_addr, addr_info.size());
-            break;
-        }
+            if (status < 0) {
+                uv_freeaddrinfo(res);
+                delete resolver;
 
-    freeaddrinfo(result);
+                resolver->_ac->post(status);
+                return;
+            }
 
-    if (ptr == NULL) {
+            struct addrinfo* ptr = NULL;
+            for (ptr = res; ptr != NULL; ptr = ptr->ai_next) {
+                if (ptr->ai_family == resolver->_family) {
+                    inetAddr addr_info;
+                    addr_info.init(ptr->ai_addr);
+                    resolver->_retVal = addr_info.str();
+                    break;
+                }
+            }
+
+            if (ptr == NULL) {
 #ifdef _WIN32
-        return -WSAHOST_NOT_FOUND;
+                resolver->_ac->post(-WSAHOST_NOT_FOUND);
 #else
-        return -ETIME;
+                resolver->_ac->post(-ETIME);
 #endif
+            } else
+                resolver->_ac->post(0);
+
+            uv_freeaddrinfo(res);
+            delete resolver;
+        },
+        name.c_str(), NULL, &hints);
+
+    if (r < 0) {
+        delete resolver;
+        return CHECK_ERROR(r);
     }
 
-    retVal = addr_info.str();
-
-    return 0;
+    return CALL_E_PENDDING;
 }
 
 result_t net_base::ip(exlib::string name, exlib::string& retVal,
