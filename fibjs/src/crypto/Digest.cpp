@@ -5,54 +5,52 @@
  *      Author: lion
  */
 
-#define MBEDTLS_ALLOW_PRIVATE_ACCESS
-
 #include "object.h"
 #include "ifs/hash.h"
 #include "ifs/util.h"
+#include "crypto.h"
 #include "Digest.h"
 #include "Buffer.h"
 #include "encoding.h"
 #include <string.h>
-#include "mbedtls/src/md_wrap.h"
-#include "mbedtls/error.h"
-#include "md_api.h"
 
 namespace fibjs {
 
-Digest::Digest(mbedtls_md_type_t algo)
+Digest::Digest(const EVP_MD* md)
 {
     m_bMac = false;
-    m_iAlgo = algo;
+    m_iAlgo = EVP_MD_type(md);
 
-    mbedtls_md_init(&m_ctx);
-    _md_setup(&m_ctx, algo, 0);
-    _md_starts(&m_ctx);
+    m_ctx = EVP_MD_CTX_new();
+    EVP_DigestInit_ex(m_ctx, md, NULL);
 }
 
-Digest::Digest(mbedtls_md_type_t algo, const char* key, int32_t sz)
+Digest::Digest(const EVP_MD* md, const char* key, int32_t sz)
 {
     m_bMac = true;
-    m_iAlgo = algo;
+    m_iAlgo = EVP_MD_type(md);
 
-    mbedtls_md_init(&m_ctx);
-    _md_setup(&m_ctx, algo, 1);
-    _md_hmac_starts(&m_ctx, (unsigned char*)key, sz);
+    m_ctx = EVP_MD_CTX_new();
+    EVP_DigestInit_ex(m_ctx, md, NULL);
+
+    EVP_PKEY* pkey = EVP_PKEY_new_mac_key(EVP_PKEY_HMAC, NULL, (const unsigned char*)key, sz);
+    EVP_DigestSignInit(m_ctx, NULL, md, NULL, pkey);
+    EVP_PKEY_free(pkey);
 }
 
 Digest::~Digest()
 {
-    mbedtls_md_free(&m_ctx);
+    EVP_MD_CTX_free(m_ctx);
 }
 
 result_t Digest::update(Buffer_base* data, obj_ptr<Digest_base>& retVal)
 {
-    if (m_iAlgo < 0)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
     Buffer* buf = Buffer::Cast(data);
-    _md_update(&m_ctx, buf->data(), buf->length());
 
+    if (m_bMac)
+        EVP_DigestSignUpdate(m_ctx, buf->data(), buf->length());
+    else
+        EVP_DigestUpdate(m_ctx, buf->data(), buf->length());
     retVal = this;
 
     return 0;
@@ -60,16 +58,15 @@ result_t Digest::update(Buffer_base* data, obj_ptr<Digest_base>& retVal)
 
 result_t Digest::update(exlib::string data, exlib::string codec, obj_ptr<Digest_base>& retVal)
 {
-    if (m_iAlgo < 0)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
     exlib::string _data;
     result_t hr = commonDecode(codec, data, _data);
     if (hr < 0)
         return hr;
 
-    _md_update(&m_ctx, (const unsigned char*)_data.c_str(), _data.length());
-
+    if (m_bMac)
+        EVP_DigestSignUpdate(m_ctx, (const unsigned char*)_data.c_str(), _data.length());
+    else
+        EVP_DigestUpdate(m_ctx, (const unsigned char*)_data.c_str(), _data.length());
     retVal = this;
 
     return 0;
@@ -77,18 +74,17 @@ result_t Digest::update(exlib::string data, exlib::string codec, obj_ptr<Digest_
 
 result_t Digest::digest(obj_ptr<Buffer_base>& retVal)
 {
-    if (m_iAlgo < 0)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+    obj_ptr<Buffer> buf = new Buffer(NULL, EVP_MD_size(EVP_MD_CTX_md(m_ctx)));
 
-    obj_ptr<Buffer> buf = new Buffer(NULL, mbedtls_md_get_size(m_ctx.md_info));
+    if (m_bMac) {
+        size_t len = buf->length();
+        EVP_DigestSignFinal(m_ctx, buf->data(), &len);
+    } else {
+        uint32_t len = buf->length();
+        EVP_DigestFinal(m_ctx, buf->data(), &len);
+    }
 
-    if (m_bMac)
-        _md_hmac_finish(&m_ctx, buf->data());
-    else
-        _md_finish(&m_ctx, buf->data());
-
-    m_iAlgo = -1;
-    _md_hmac_reset(&m_ctx);
+    EVP_MD_CTX_reset(m_ctx);
 
     retVal = buf;
     return 0;
@@ -111,6 +107,7 @@ result_t Digest::digest(exlib::string codec, v8::Local<v8::Value>& retVal)
 
         retVal = holder()->NewString(data);
     }
+
     return 0;
 }
 
@@ -168,10 +165,7 @@ result_t Digest::verify(PKey_base* key, Buffer_base* sign, v8::Local<v8::Object>
 
 result_t Digest::get_size(int32_t& retVal)
 {
-    if (m_iAlgo < 0)
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
-    retVal = mbedtls_md_get_size(m_ctx.md_info);
+    retVal = EVP_MD_size(EVP_MD_CTX_md(m_ctx));
     return 0;
 }
 

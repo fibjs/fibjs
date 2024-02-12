@@ -1,7 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/Digest.d.ts" />
-/// <reference path="../interface/PKey.d.ts" />
 /**
  * @description hash 模块主要用于实现消息摘要算法，是实现加密算法中，非常重要的一个子模块。同时，消息摘要算法也是许多加密算法的基础。
  * 
@@ -98,39 +97,14 @@ declare module 'hash' {
     export const SHAKE256: 13;
 
     /**
-     * @description KECCAK256 信息摘要算法标识常量 
-     */
-    export const KECCAK256: 14;
-
-    /**
-     * @description KECCAK384 信息摘要算法标识常量 
-     */
-    export const KECCAK384: 15;
-
-    /**
-     * @description KECCAK512 信息摘要算法标识常量 
-     */
-    export const KECCAK512: 16;
-
-    /**
      * @description BLAKE2S 信息摘要算法标识常量 
      */
-    export const BLAKE2S: 17;
+    export const BLAKE2S: 14;
 
     /**
      * @description BLAKE2B 信息摘要算法标识常量 
      */
-    export const BLAKE2B: 18;
-
-    /**
-     * @description BLAKE2SP 信息摘要算法标识常量 
-     */
-    export const BLAKE2SP: 19;
-
-    /**
-     * @description BLAKE2BP 信息摘要算法标识常量 
-     */
-    export const BLAKE2BP: 20;
+    export const BLAKE2B: 15;
 
     /**
      * @description 根据指定的算法标识创建一个信息摘要运算对象
@@ -206,16 +180,6 @@ declare module 'hash' {
     function sm3(data?: Class_Buffer): Class_Digest;
 
     /**
-     * @description 创建一个 SM3 信息摘要运算对象并进行预处理
-     *      @param pubKey 签名公钥
-     *      @param id 签名 ID
-     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
-     *      @return 返回构造的信息摘要对象
-     *      
-     */
-    function sm3(pubKey: Class_PKey, id: string, data?: Class_Buffer): Class_Digest;
-
-    /**
      * @description 创建一个 SHA3_256 信息摘要运算对象
      *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
@@ -256,30 +220,6 @@ declare module 'hash' {
     function shake256(data?: Class_Buffer): Class_Digest;
 
     /**
-     * @description 创建一个 KECCAK256 信息摘要运算对象
-     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
-     *      @return 返回构造的信息摘要对象
-     *      
-     */
-    function keccak256(data?: Class_Buffer): Class_Digest;
-
-    /**
-     * @description 创建一个 KECCAK384 信息摘要运算对象
-     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
-     *      @return 返回构造的信息摘要对象
-     *      
-     */
-    function keccak384(data?: Class_Buffer): Class_Digest;
-
-    /**
-     * @description 创建一个 KECCAK512 信息摘要运算对象
-     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
-     *      @return 返回构造的信息摘要对象
-     *      
-     */
-    function keccak512(data?: Class_Buffer): Class_Digest;
-
-    /**
      * @description 创建一个 BLAKE2S 信息摘要运算对象
      *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
      *      @return 返回构造的信息摘要对象
@@ -294,22 +234,6 @@ declare module 'hash' {
      *      
      */
     function blake2b(data?: Class_Buffer): Class_Digest;
-
-    /**
-     * @description 创建一个 BLAKE2SP 信息摘要运算对象
-     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
-     *      @return 返回构造的信息摘要对象
-     *      
-     */
-    function blake2sp(data?: Class_Buffer): Class_Digest;
-
-    /**
-     * @description 创建一个 BLAKE2BP 信息摘要运算对象
-     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
-     *      @return 返回构造的信息摘要对象
-     *      
-     */
-    function blake2bp(data?: Class_Buffer): Class_Digest;
 
     /**
      * @description 根据指定的算法标识创建一个信息摘要签名运算对象
@@ -394,17 +318,6 @@ declare module 'hash' {
     function hmac_sm3(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
 
     /**
-     * @description 创建一个 SM3 信息摘要签名运算对象并进行预处理
-     *      @param pubKey 签名公钥
-     *      @param id 签名 ID
-     *      @param key 二进制签名密钥
-     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
-     *      @return 返回构造的信息摘要对象
-     *      
-     */
-    function hmac_sm3(pubKey: Class_PKey, id: string, key: Class_Buffer, data?: Class_Buffer): Class_Digest;
-
-    /**
      * @description 创建一个 SHA3_256 信息摘要签名运算对象
      *      @param key 二进制签名密钥
      *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
@@ -450,33 +363,6 @@ declare module 'hash' {
     function hmac_sha3_512(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
 
     /**
-     * @description 创建一个 KECCAK256 信息摘要签名运算对象
-     *      @param key 二进制签名密钥
-     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
-     *      @return 返回构造的信息摘要对象
-     *      
-     */
-    function hmac_keccak256(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
-
-    /**
-     * @description 创建一个 KECCAK384 信息摘要签名运算对象
-     *      @param key 二进制签名密钥
-     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
-     *      @return 返回构造的信息摘要对象
-     *      
-     */
-    function hmac_keccak384(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
-
-    /**
-     * @description 创建一个 KECCAK512 信息摘要签名运算对象
-     *      @param key 二进制签名密钥
-     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
-     *      @return 返回构造的信息摘要对象
-     *      
-     */
-    function hmac_keccak512(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
-
-    /**
      * @description 创建一个 BLAKE2S 信息摘要签名运算对象
      *      @param key 二进制签名密钥
      *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
@@ -493,24 +379,6 @@ declare module 'hash' {
      *      
      */
     function hmac_blake2b(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
-
-    /**
-     * @description 创建一个 BLAKE2SP 信息摘要签名运算对象
-     *      @param key 二进制签名密钥
-     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
-     *      @return 返回构造的信息摘要对象
-     *      
-     */
-    function hmac_blake2sp(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
-
-    /**
-     * @description 创建一个 BLAKE2BP 信息摘要签名运算对象
-     *      @param key 二进制签名密钥
-     *      @param data 创建同时更新的二进制数据，缺省为 null，不更新数据
-     *      @return 返回构造的信息摘要对象
-     *      
-     */
-    function hmac_blake2bp(key: Class_Buffer, data?: Class_Buffer): Class_Digest;
 
 }
 

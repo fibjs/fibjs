@@ -310,48 +310,6 @@ declare module 'crypto' {
     function generateKey(curve?: string, callback?: (err: Error | undefined | null, retVal: Class_PKey)=>any): void;
 
     /**
-     * @description 依据 pbkdf1 根据明文 password 生成要求的二进制钥匙
-     *      @param password 指定使用的密码
-     *      @param salt 指定 hmac 使用的 salt
-     *      @param iterations 指定迭代次数
-     *      @param size 指定钥匙尺寸
-     *      @param algo 指定要使用的 hash 算法，详见 hash 模块
-     *      @return 返回生成的二进制钥匙
-     *      
-     */
-    function pbkdf1(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algo: number): Class_Buffer;
-
-    function pbkdf1(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algo: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description 依据 pbkdf1 根据明文 password 生成要求的二进制钥匙
-     *      @param password 指定使用的密码
-     *      @param salt 指定 hmac 使用的 salt
-     *      @param iterations 指定迭代次数
-     *      @param size 指定钥匙尺寸
-     *      @param algoName 指定要使用的 hash 算法，详见 hash 模块
-     *      @return 返回生成的二进制钥匙
-     *      
-     */
-    function pbkdf1(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algoName: string): Class_Buffer;
-
-    function pbkdf1(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algoName: string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description 依据 rfc2898 根据明文 password 生成要求的二进制钥匙
-     *      @param password 指定使用的密码
-     *      @param salt 指定 hmac 使用的 salt
-     *      @param iterations 指定迭代次数
-     *      @param size 指定钥匙尺寸
-     *      @param algo 指定要使用的 hash 算法，详见 hash 模块
-     *      @return 返回生成的二进制钥匙
-     *      
-     */
-    function pbkdf2(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algo: number): Class_Buffer;
-
-    function pbkdf2(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algo: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
      * @description 依据 rfc2898 根据明文 password 生成要求的二进制钥匙
      *      @param password 指定使用的密码
      *      @param salt 指定 hmac 使用的 salt

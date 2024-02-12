@@ -7,9 +7,10 @@
 
 #include "object.h"
 #include "ifs/hash.h"
+#include "ifs/crypto.h"
 #include "Digest.h"
 #include "Buffer.h"
-#include "md_api.h"
+#include "crypto.h"
 
 namespace fibjs {
 
@@ -22,36 +23,90 @@ public:
     {
         g_hashes = new NArray();
 
-        g_hashes->append("md5");
-        g_hashes->append("sha1");
-        g_hashes->append("sha224");
-        g_hashes->append("sha256");
-        g_hashes->append("sha384");
-        g_hashes->append("sha512");
-        g_hashes->append("ripemd160");
-        g_hashes->append("sm3");
-        g_hashes->append("sha3_256");
-        g_hashes->append("sha3_384");
-        g_hashes->append("sha3_512");
-        g_hashes->append("shake128");
-        g_hashes->append("shake256");
-        g_hashes->append("keccak256");
-        g_hashes->append("keccak384");
-        g_hashes->append("keccak512");
-        g_hashes->append("blake2s");
-        g_hashes->append("blake2b");
-        g_hashes->append("blake2sp");
-        g_hashes->append("blake2bp");
+        EVP_MD_do_all_sorted([](const EVP_MD* md,
+                                 const char* from, const char* to,
+                                 void* x) {
+            if (from)
+                g_hashes->append(from);
+        },
+            NULL);
     }
 } s_init_hashes;
+
+static const struct {
+    const char* name;
+    const EVP_MD* md;
+} s_algos[] = {
+    { "sha3_256", EVP_sha3_256() },
+    { "sha3_384", EVP_sha3_384() },
+    { "sha3_512", EVP_sha3_512() },
+    { "blake2s", EVP_blake2s256() },
+    { "blake2b", EVP_blake2b512() }
+};
+
+static const char* s_md_names[] = {
+    "md5",
+    "sha1",
+    "sha224",
+    "sha256",
+    "sha384",
+    "sha512",
+    "ripemd160",
+    "sm3",
+    "sha3_256",
+    "sha3_384",
+    "sha3_512",
+    "shake128",
+    "shake256",
+    "blake2s",
+    "blake2b"
+};
+
+const EVP_MD* _evp_md_type(const char* algo)
+{
+    for (int i = 0; i < ARRAYSIZE(s_algos); i++)
+        if (!qstricmp(algo, s_algos[i].name))
+            return s_algos[i].md;
+
+    return EVP_get_digestbyname(algo);
+}
+
+result_t crypto_base::createHash(exlib::string algo, obj_ptr<Digest_base>& retVal)
+{
+    const EVP_MD* md = _evp_md_type(algo.c_str());
+    if (md) {
+        retVal = new Digest(md);
+        return 0;
+    }
+
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
+}
+
+result_t crypto_base::createHmac(exlib::string algo, Buffer_base* key,
+    obj_ptr<Digest_base>& retVal)
+{
+    const EVP_MD* md = _evp_md_type(algo.c_str());
+    if (md) {
+        if (EVP_MD_get_flags(md) & EVP_MD_FLAG_XOF)
+            return CHECK_ERROR(CALL_E_INVALID_CALL);
+
+        Buffer* buf = Buffer::Cast(key);
+        retVal = new Digest(md, (const char*)buf->data(), buf->length());
+        return 0;
+    }
+
+    return CHECK_ERROR(CALL_E_INVALID_CALL);
+}
 
 result_t hash_base::digest(int32_t algo, Buffer_base* data,
     obj_ptr<Digest_base>& retVal)
 {
-    if (algo < MBEDTLS_MD_MD5 || algo >= MBEDTLS_MD_MAX)
+    if (algo < C_MD5 || algo > ARRAYSIZE(s_md_names))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    retVal = new Digest((mbedtls_md_type_t)algo);
+    result_t hr = crypto_base::createHash(s_md_names[algo - 1], retVal);
+    if (hr < 0)
+        return hr;
 
     if (data) {
         obj_ptr<Digest_base> r;
@@ -64,12 +119,12 @@ result_t hash_base::digest(int32_t algo, Buffer_base* data,
 result_t hash_base::hmac(int32_t algo, Buffer_base* key, Buffer_base* data,
     obj_ptr<Digest_base>& retVal)
 {
-    if (algo < MBEDTLS_MD_MD5 || algo >= MBEDTLS_MD_MAX)
+    if (algo < C_MD5 || algo > ARRAYSIZE(s_md_names))
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    Buffer* buf_key = Buffer::Cast(key);
-
-    retVal = new Digest((mbedtls_md_type_t)algo, (const char*)buf_key->data(), buf_key->length());
+    result_t hr = crypto_base::createHmac(s_md_names[algo - 1], key, retVal);
+    if (hr < 0)
+        return hr;
 
     if (data) {
         obj_ptr<Digest_base> r;
@@ -96,17 +151,51 @@ DEF_FUNC(sha256, SHA256);
 DEF_FUNC(sha384, SHA384);
 DEF_FUNC(sha512, SHA512);
 DEF_FUNC(ripemd160, RIPEMD160);
+DEF_FUNC(sm3, SM3);
 DEF_FUNC(sha3_256, SHA3_256);
 DEF_FUNC(sha3_384, SHA3_384);
 DEF_FUNC(sha3_512, SHA3_512);
 DEF_FUNC(shake128, SHAKE128);
 DEF_FUNC(shake256, SHAKE256);
-DEF_FUNC(keccak256, KECCAK256);
-DEF_FUNC(keccak384, KECCAK384);
-DEF_FUNC(keccak512, KECCAK512);
 DEF_FUNC(blake2s, BLAKE2S);
 DEF_FUNC(blake2b, BLAKE2B);
-DEF_FUNC(blake2sp, BLAKE2SP);
-DEF_FUNC(blake2bp, BLAKE2BP);
+
+result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t iterations,
+    int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal,
+    AsyncEvent* ac)
+{
+    if (iterations < 1 || size < 1)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    const EVP_MD* md = _evp_md_type(algoName.c_str());
+    if (!md)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    Buffer* buf = Buffer::Cast(password);
+    Buffer* saltBuf = Buffer::Cast(salt);
+    obj_ptr<Buffer> ret = new Buffer(NULL, size);
+
+    int32_t hr = PKCS5_PBKDF2_HMAC((const char*)buf->data(), buf->length(),
+        (const unsigned char*)saltBuf->data(), saltBuf->length(),
+        iterations, md, size, ret->data());
+    if (hr != 1)
+        return openssl_error();
+
+    retVal = ret;
+    return 0;
+}
+
+result_t crypto_base::getHashes(v8::Local<v8::Array>& retVal)
+{
+    v8::Local<v8::Value> v;
+    g_hashes->valueOf(v);
+
+    retVal = v8::Local<v8::Array>::Cast(v);
+
+    return 0;
+}
 
 } /* namespace fibjs */

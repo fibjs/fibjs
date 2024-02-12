@@ -9,7 +9,7 @@
 #include "crypto.h"
 #include "ifs/crypto.h"
 #include "Buffer.h"
-#include <openssl/rand.h>
+#include <crypto/rand.h>
 
 namespace fibjs {
 

@@ -8,14 +8,14 @@
 #pragma once
 
 #include "ifs/Digest.h"
-#include <mbedtls/mbedtls/md.h>
+#include <crypto/evp.h>
 
 namespace fibjs {
 
 class Digest : public Digest_base {
 public:
-    Digest(mbedtls_md_type_t algo);
-    Digest(mbedtls_md_type_t algo, const char* key, int32_t sz);
+    Digest(const EVP_MD* md);
+    Digest(const EVP_MD* md, const char* key, int32_t sz);
     ~Digest();
 
 public:
@@ -31,7 +31,7 @@ private:
     result_t digest(obj_ptr<Buffer_base>& retVal);
 
 private:
-    mbedtls_md_context_t m_ctx;
+    EVP_MD_CTX* m_ctx;
     int32_t m_iAlgo;
     bool m_bMac;
 };
