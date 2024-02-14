@@ -8,6 +8,7 @@
 #pragma once
 
 #include "ifs/Digest.h"
+#include "Buffer.h"
 #include <crypto/evp.h>
 
 namespace fibjs {
@@ -28,7 +29,7 @@ public:
     virtual result_t get_size(int32_t& retVal);
 
 private:
-    result_t digest(obj_ptr<Buffer_base>& retVal);
+    result_t digest(obj_ptr<Buffer>& retVal);
 
 private:
     EVP_MD_CTX* m_ctx;

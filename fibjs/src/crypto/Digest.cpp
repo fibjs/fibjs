@@ -72,7 +72,7 @@ result_t Digest::update(exlib::string data, exlib::string codec, obj_ptr<Digest_
     return 0;
 }
 
-result_t Digest::digest(obj_ptr<Buffer_base>& retVal)
+result_t Digest::digest(obj_ptr<Buffer>& retVal)
 {
     obj_ptr<Buffer> buf = new Buffer(NULL, EVP_MD_size(EVP_MD_CTX_md(m_ctx)));
 
@@ -92,28 +92,17 @@ result_t Digest::digest(obj_ptr<Buffer_base>& retVal)
 
 result_t Digest::digest(exlib::string codec, v8::Local<v8::Value>& retVal)
 {
-    obj_ptr<Buffer_base> buf;
+    obj_ptr<Buffer> buf;
     result_t hr = digest(buf);
     if (hr < 0)
         return hr;
 
-    if ((codec == "buffer"))
-        retVal = buf->wrap();
-    else {
-        exlib::string data;
-        result_t hr = buf->toString(codec, 0, data);
-        if (hr < 0)
-            return hr;
-
-        retVal = holder()->NewString(data);
-    }
-
-    return 0;
+    return buf->toValue(codec, retVal);
 }
 
 result_t Digest::sign(PKey_base* key, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
-    obj_ptr<Buffer_base> buf;
+    obj_ptr<Buffer> buf;
 
     if (ac->isSync()) {
         exlib::string name;
@@ -139,7 +128,7 @@ result_t Digest::sign(PKey_base* key, v8::Local<v8::Object> opts, obj_ptr<Buffer
 
 result_t Digest::verify(PKey_base* key, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac)
 {
-    obj_ptr<Buffer_base> buf;
+    obj_ptr<Buffer> buf;
 
     if (ac->isSync()) {
         exlib::string name;

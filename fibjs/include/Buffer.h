@@ -58,6 +58,12 @@ public:
             return m_length;
         }
 
+        void resize(size_t length)
+        {
+            if (length < m_length)
+                m_length = length;
+        }
+
     public:
         std::shared_ptr<v8::BackingStore> m_store;
         size_t m_offset = 0;
@@ -102,6 +108,11 @@ public:
         return m_store.length();
     }
 
+    void resize(size_t length)
+    {
+        m_store.resize(length);
+    }
+
     static Buffer* Cast(Buffer_base* buf)
     {
         return static_cast<Buffer*>(buf);
@@ -113,6 +124,38 @@ public:
     }
 
     static Buffer* getInstance(v8::Local<v8::Value> o);
+
+    result_t toVariant(exlib::string codec, Variant& retVal)
+    {
+        if (codec == "buffer") {
+            retVal = this;
+            return 0;
+        }
+
+        exlib::string str;
+        result_t hr = toString(codec, 0, str);
+        if (hr < 0)
+            return hr;
+
+        retVal = str;
+        return 0;
+    }
+
+    result_t toValue(exlib::string codec, v8::Local<v8::Value>& retVal)
+    {
+        if (codec == "buffer") {
+            retVal = wrap(holder());
+            return 0;
+        }
+
+        exlib::string str;
+        result_t hr = toString(codec, 0, str);
+        if (hr < 0)
+            return hr;
+
+        retVal = holder()->NewString(str);
+        return 0;
+    }
 
 public:
     // object
