@@ -148,9 +148,11 @@ result_t StringDecoder::utf16End1(exlib::string& retVal)
 
 result_t StringDecoder::utf16End2(Buffer_base* buf, exlib::string& retVal)
 {
-    exlib::string t;
+    exlib::string t, t1;
     write(buf, t);
-    return utf16End1(retVal);
+    utf16End1(t1);
+    retVal = t + t1;
+    return 0;
 }
 
 result_t StringDecoder::utf8FillLast(Buffer_base* buf, exlib::string& retVal)
@@ -267,9 +269,11 @@ result_t StringDecoder::base64End1(exlib::string& retVal)
 
 result_t StringDecoder::base64End2(Buffer_base* buf, exlib::string& retVal)
 {
-    exlib::string t;
+    exlib::string t, t1;
     write(buf, t);
-    return base64End1(retVal);
+    base64End1(t1);
+    retVal = t + t1;
+    return 0;
 }
 
 result_t StringDecoder::simpleWrite(Buffer_base* buf, exlib::string& retVal)
@@ -327,9 +331,11 @@ result_t StringDecoder::simpleEnd1(exlib::string& retVal)
 
 result_t StringDecoder::simpleEnd2(Buffer_base* buf, exlib::string& retVal) // ??
 {
-    exlib::string t;
+    exlib::string t, t1;
     write(buf, t);
-    return simpleEnd1(retVal);
+    simpleEnd1(t1);
+    retVal = t + t1;
+    return 0;
 }
 
 result_t StringDecoder::utf8End1(exlib::string& retVal)
@@ -343,9 +349,11 @@ result_t StringDecoder::utf8End1(exlib::string& retVal)
 
 result_t StringDecoder::utf8End2(Buffer_base* buf, exlib::string& retVal)
 {
-    exlib::string t;
+    exlib::string t, t1;
     write(buf, t);
-    return utf8End1(retVal);
+    utf8End1(t1);
+    retVal = t + t1;
+    return 0;
 }
 
 } /* namespace fibjs */

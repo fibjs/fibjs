@@ -168,7 +168,7 @@ inline exlib::string normalizeEncoding(exlib::string encoding)
         } else if (encoding == "ucs2"
             || encoding == "ucs-2"
             || encoding == "utf16le"
-            || encoding == "utf16le") {
+            || encoding == "utf-16le") {
             return "utf16le";
         } else if (encoding == "latin1"
             || encoding == "binary") {
