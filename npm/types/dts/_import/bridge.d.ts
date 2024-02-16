@@ -44,7 +44,6 @@
 /// <reference path="../module/profiler.d.ts" />
 /// <reference path="../module/test.d.ts" />
 /// <reference path="../module/db.d.ts" />
-/// <reference path="../module/gd.d.ts" />
 /// <reference path="../module/registry.d.ts" />
 /// <reference path="../module/util.d.ts" />
 /// <reference path="../module/uuid.d.ts" />

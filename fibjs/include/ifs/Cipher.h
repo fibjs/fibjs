@@ -32,6 +32,15 @@ public:
     virtual result_t paddingMode(int32_t mode) = 0;
     virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t setAuthTag(Buffer_base* buffer, exlib::string encoding, obj_ptr<Cipher_base>& retVal) = 0;
+    virtual result_t setAuthTag(exlib::string buffer, exlib::string encoding, obj_ptr<Cipher_base>& retVal) = 0;
+    virtual result_t getAuthTag(obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t setAAD(Buffer_base* buffer, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal) = 0;
+    virtual result_t setAAD(exlib::string buffer, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal) = 0;
+    virtual result_t setAutoPadding(bool autoPadding, obj_ptr<Cipher_base>& retVal) = 0;
+    virtual result_t update(Buffer_base* data, exlib::string inputEncoding, exlib::string outputEncoding, v8::Local<v8::Value>& retVal) = 0;
+    virtual result_t update(exlib::string data, exlib::string inputEncoding, exlib::string outputEncoding, v8::Local<v8::Value>& retVal) = 0;
+    virtual result_t final(exlib::string outputEncoding, v8::Local<v8::Value>& retVal) = 0;
 
 public:
     template <typename T>
@@ -46,6 +55,12 @@ public:
     static void s_paddingMode(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_encrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_setAuthTag(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getAuthTag(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_setAAD(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_setAutoPadding(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_update(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_final(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE2(Cipher_base, encrypt, Buffer_base*, obj_ptr<Buffer_base>);
@@ -63,7 +78,13 @@ inline ClassInfo& Cipher_base::class_info()
         { "encrypt", s_encrypt, false, true },
         { "encryptSync", s_encrypt, false, false },
         { "decrypt", s_decrypt, false, true },
-        { "decryptSync", s_decrypt, false, false }
+        { "decryptSync", s_decrypt, false, false },
+        { "setAuthTag", s_setAuthTag, false, false },
+        { "getAuthTag", s_getAuthTag, false, false },
+        { "setAAD", s_setAAD, false, false },
+        { "setAutoPadding", s_setAutoPadding, false, false },
+        { "update", s_update, false, false },
+        { "final", s_final, false, false }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -220,6 +241,126 @@ inline void Cipher_base::s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& ar
         hr = pInst->acb_decrypt(v0, cb, args);
     else
         hr = pInst->ac_decrypt(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Cipher_base::s_setAuthTag(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Cipher_base> vr;
+
+    METHOD_INSTANCE(Cipher_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(exlib::string, 1, "buffer");
+
+    hr = pInst->setAuthTag(v0, v1, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "utf8");
+
+    hr = pInst->setAuthTag(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Cipher_base::s_getAuthTag(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_INSTANCE(Cipher_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->getAuthTag(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Cipher_base::s_setAAD(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Cipher_base> vr;
+
+    METHOD_INSTANCE(Cipher_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    hr = pInst->setAAD(v0, v1, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    hr = pInst->setAAD(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Cipher_base::s_setAutoPadding(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Cipher_base> vr;
+
+    METHOD_INSTANCE(Cipher_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(bool, 0, true);
+
+    hr = pInst->setAutoPadding(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Cipher_base::s_update(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> vr;
+
+    METHOD_INSTANCE(Cipher_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(3, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(exlib::string, 1, "buffer");
+    OPT_ARG(exlib::string, 2, "buffer");
+
+    hr = pInst->update(v0, v1, v2, vr);
+
+    METHOD_OVER(3, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "utf8");
+    OPT_ARG(exlib::string, 2, "buffer");
+
+    hr = pInst->update(v0, v1, v2, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Cipher_base::s_final(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> vr;
+
+    METHOD_INSTANCE(Cipher_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(exlib::string, 0, "buffer");
+
+    hr = pInst->final(v0, vr);
 
     METHOD_RETURN();
 }

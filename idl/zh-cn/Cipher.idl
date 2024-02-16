@@ -87,4 +87,65 @@ interface Cipher : object
      @return 返回解密后的数据
      */
     Buffer decrypt(Buffer data) async;
+
+    /*! @brief 设置认证标签
+     @param buffer 指定认证标签数据
+     @param encoding 指定认证标签数据编码方式
+     @return 返回当前 Cipher 对象
+     */
+    Cipher setAuthTag(Buffer buffer, String encoding = "buffer");
+
+    /*! @brief 设置认证标签
+     @param buffer 指定认证标签数据
+     @param encoding 指定认证标签数据编码方式
+     @return 返回当前 Cipher 对象
+     */
+    Cipher setAuthTag(String buffer, String encoding = "utf8");
+
+    /*! @brief 查询认证标签 
+      @return 返回认证标签数据
+    */
+    Buffer getAuthTag();
+
+    /*! @brief 设置附加身份验证数据
+     @param buffer 指定附加身份验证数据
+     @param options 指定附加身份验证数据选项
+     @return 返回当前 Cipher 对象
+    */
+    Cipher setAAD(Buffer buffer, Object options = {});
+
+    /*! @brief 设置附加身份验证数据
+     @param buffer 指定附加身份验证数据
+     @param options 指定附加身份验证数据选项
+     @return 返回当前 Cipher 对象
+    */
+    Cipher setAAD(String buffer, Object options = {});
+
+    /*! @brief 设置自动填充
+     @param autoPadding 指定是否自动填充
+     @return 返回当前 Cipher 对象
+    */
+    Cipher setAutoPadding(Boolean autoPadding = true);
+
+    /*! @brief 更新数据
+      @param data 指定要更新的数据
+      @param inputEncoding 指定输入数据编码方式
+      @param outputEncoding 指定输出数据编码方式
+      @return 返回更新后的数据
+    */
+    Value update(Buffer data, String inputEncoding = "buffer", String outputEncoding = "buffer");
+
+    /*! @brief 更新数据
+      @param data 指定要更新的数据
+      @param inputEncoding 指定输入数据编码方式
+      @param outputEncoding 指定输出数据编码方式
+      @return 返回更新后的数据
+    */
+    Value update(String data, String inputEncoding = "utf8", String outputEncoding = "buffer");
+
+    /*! @brief 终止数据
+      @param outputEncoding 指定输出数据编码方式
+      @return 返回更新后的数据
+    */
+    Value final(String outputEncoding = "buffer");
 };

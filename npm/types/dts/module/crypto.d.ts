@@ -204,6 +204,13 @@ declare module 'crypto' {
     const X509Req: typeof Class_X509Req;
 
     /**
+     * @description 获取 crypto 模块支持的的 hash(摘要) 算法
+     *      @return 返回支持的 hash 算法数组
+     *      
+     */
+    function getHashes(): any[];
+
+    /**
      * @description 根据给定的算法名称创建一个信息摘要对象
      *      @param algo 指定信息摘要对象的算法
      *      @return 返回信息摘要对象
@@ -219,6 +226,55 @@ declare module 'crypto' {
      *     
      */
     function createHmac(algo: string, key: Class_Buffer): Class_Digest;
+
+    /**
+     * @description 获取 crypto 模块支持的的对称加密算法
+     *      @return 返回支持的对称加密算法数组
+     *      
+     */
+    function getCiphers(): any[];
+
+    /**
+     * @description 创建一个对称加密的加密对象
+     *      @param algorithm 指定加密算法
+     *      @param key 指定加密解密密码
+     *      @param options 指定加密选项
+     *      @return 返回对称加密的加密对象
+     *      
+     */
+    function createCipher(algorithm: string, key: Class_Buffer, options?: FIBJS.GeneralObject): Class_Cipher;
+
+    /**
+     * @description 创建一个对称加密的加密对象
+     *      @param algorithm 指定加密算法
+     *      @param key 指定加密解密密码
+     *      @param iv 指定初始向量
+     *      @param options 指定加密选项
+     *      @return 返回对称加密的加密对象
+     *      
+     */
+    function createCipheriv(algorithm: string, key: Class_Buffer, iv: Class_Buffer, options?: FIBJS.GeneralObject): Class_Cipher;
+
+    /**
+     * @description 创建一个对称加密的解密对象
+     *      @param algorithm 指定加密算法
+     *      @param key 指定加密解密密码
+     *      @param options 指定加密选项
+     *      @return 返回对称加密的解密对象
+     *      
+     */
+    function createDecipher(algorithm: string, key: Class_Buffer, options?: FIBJS.GeneralObject): Class_Cipher;
+
+    /**
+     * @description 创建一个对称加密的解密对象
+     *      @param algorithm 指定加密算法
+     *      @param key 指定加密解密密码
+     *      @param iv 指定初始向量
+     *      @param options 指定加密选项
+     *      @return 返回对称加密的解密对象
+     *      
+     */
+    function createDecipheriv(algorithm: string, key: Class_Buffer, iv: Class_Buffer, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
      * @description 加载一个 CRT/PEM/DER 格式的证书，可多次调用
@@ -336,13 +392,6 @@ declare module 'crypto' {
     function pbkdf2(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algoName: string): Class_Buffer;
 
     function pbkdf2(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algoName: string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description 获取 crypto 模块支持的的 hash(摘要) 算法, 比如 'md5', 'sha224'
-     *      @return 返回 fibjs 支持的 hash 算法数组
-     *      
-     */
-    function getHashes(): any[];
 
 }
 

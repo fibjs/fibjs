@@ -132,6 +132,11 @@ module crypto
     /*! @brief X509Req 构造函数，参见 X509Req */
     static X509Req;
 
+    /*! @brief 获取 crypto 模块支持的的 hash(摘要) 算法
+     @return 返回支持的 hash 算法数组
+     */
+    static Array getHashes();
+
     /*! @brief 根据给定的算法名称创建一个信息摘要对象
      @param algo 指定信息摘要对象的算法
      @return 返回信息摘要对象
@@ -144,6 +149,45 @@ module crypto
      @return 返回信息摘要对象
     */
     static Digest createHmac(String algo, Buffer key);
+
+    /*! @brief 获取 crypto 模块支持的的对称加密算法
+     @return 返回支持的对称加密算法数组
+     */
+    static Array getCiphers();
+
+    /*! @brief 创建一个对称加密的加密对象
+     @param algorithm 指定加密算法
+     @param key 指定加密解密密码
+     @param options 指定加密选项
+     @return 返回对称加密的加密对象
+     */
+    static Cipher createCipher(String algorithm, Buffer key, Object options = {});
+
+    /*! @brief 创建一个对称加密的加密对象
+     @param algorithm 指定加密算法
+     @param key 指定加密解密密码
+     @param iv 指定初始向量
+     @param options 指定加密选项
+     @return 返回对称加密的加密对象
+     */
+    static Cipher createCipheriv(String algorithm, Buffer key, Buffer iv, Object options = {});
+
+    /*! @brief 创建一个对称加密的解密对象
+     @param algorithm 指定加密算法
+     @param key 指定加密解密密码
+     @param options 指定加密选项
+     @return 返回对称加密的解密对象
+     */
+    static Cipher createDecipher(String algorithm, Buffer key, Object options = {});
+
+    /*! @brief 创建一个对称加密的解密对象
+     @param algorithm 指定加密算法
+     @param key 指定加密解密密码
+     @param iv 指定初始向量
+     @param options 指定加密选项
+     @return 返回对称加密的解密对象
+     */
+    static Cipher createDecipheriv(String algorithm, Buffer key, Buffer iv, Object options = {});
 
     /*! @brief 加载一个 CRT/PEM/DER 格式的证书，可多次调用
      @param filename 证书文件名
@@ -229,9 +273,4 @@ module crypto
      @return 返回生成的二进制钥匙
      */
     static Buffer pbkdf2(Buffer password, Buffer salt, Integer iterations, Integer size, String algoName) async;
-
-    /*! @brief 获取 crypto 模块支持的的 hash(摘要) 算法, 比如 'md5', 'sha224'
-     @return 返回 fibjs 支持的 hash 算法数组
-     */
-    static Array getHashes();
 };

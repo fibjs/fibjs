@@ -57,8 +57,14 @@ public:
 
 public:
     // crypto_base
+    static result_t getHashes(v8::Local<v8::Array>& retVal);
     static result_t createHash(exlib::string algo, obj_ptr<Digest_base>& retVal);
     static result_t createHmac(exlib::string algo, Buffer_base* key, obj_ptr<Digest_base>& retVal);
+    static result_t getCiphers(v8::Local<v8::Array>& retVal);
+    static result_t createCipher(exlib::string algorithm, Buffer_base* key, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
+    static result_t createCipheriv(exlib::string algorithm, Buffer_base* key, Buffer_base* iv, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
+    static result_t createDecipher(exlib::string algorithm, Buffer_base* key, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
+    static result_t createDecipheriv(exlib::string algorithm, Buffer_base* key, Buffer_base* iv, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
     static result_t loadCert(exlib::string filename, obj_ptr<X509Cert_base>& retVal);
     static result_t loadCrl(exlib::string filename, obj_ptr<X509Crl_base>& retVal);
     static result_t loadReq(exlib::string filename, obj_ptr<X509Req_base>& retVal);
@@ -69,7 +75,6 @@ public:
     static result_t generateKey(exlib::string curve, obj_ptr<PKey_base>& retVal, AsyncEvent* ac);
     static result_t hkdf(exlib::string algoName, Buffer_base* password, Buffer_base* salt, Buffer_base* info, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    static result_t getHashes(v8::Local<v8::Array>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -81,8 +86,14 @@ public:
     }
 
 public:
+    static void s_static_getHashes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createHash(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createHmac(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_getCiphers(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createCipher(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createCipheriv(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createDecipher(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createDecipheriv(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_loadCert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_loadCrl(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_loadReq(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -92,7 +103,6 @@ public:
     static void s_static_generateKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_hkdf(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_getHashes(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(crypto_base, randomBytes, int32_t, obj_ptr<Buffer_base>);
@@ -118,8 +128,14 @@ namespace fibjs {
 inline ClassInfo& crypto_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
+        { "getHashes", s_static_getHashes, true, false },
         { "createHash", s_static_createHash, true, false },
         { "createHmac", s_static_createHmac, true, false },
+        { "getCiphers", s_static_getCiphers, true, false },
+        { "createCipher", s_static_createCipher, true, false },
+        { "createCipheriv", s_static_createCipheriv, true, false },
+        { "createDecipher", s_static_createDecipher, true, false },
+        { "createDecipheriv", s_static_createDecipheriv, true, false },
         { "loadCert", s_static_loadCert, true, false },
         { "loadCrl", s_static_loadCrl, true, false },
         { "loadReq", s_static_loadReq, true, false },
@@ -133,8 +149,7 @@ inline ClassInfo& crypto_base::class_info()
         { "hkdf", s_static_hkdf, true, true },
         { "hkdfSync", s_static_hkdf, true, false },
         { "pbkdf2", s_static_pbkdf2, true, true },
-        { "pbkdf2Sync", s_static_pbkdf2, true, false },
-        { "getHashes", s_static_getHashes, true, false }
+        { "pbkdf2Sync", s_static_pbkdf2, true, false }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -184,6 +199,19 @@ inline ClassInfo& crypto_base::class_info()
     return s_ci;
 }
 
+inline void crypto_base::s_static_getHashes(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Array> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = getHashes(vr);
+
+    METHOD_RETURN();
+}
+
 inline void crypto_base::s_static_createHash(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Digest_base> vr;
@@ -211,6 +239,89 @@ inline void crypto_base::s_static_createHmac(const v8::FunctionCallbackInfo<v8::
     ARG(obj_ptr<Buffer_base>, 1);
 
     hr = createHmac(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_getCiphers(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Array> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = getCiphers(vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_createCipher(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Cipher_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(3, 2);
+
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+
+    hr = createCipher(v0, v1, v2, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_createCipheriv(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Cipher_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(4, 3);
+
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(obj_ptr<Buffer_base>, 2);
+    OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate));
+
+    hr = createCipheriv(v0, v1, v2, v3, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_createDecipher(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Cipher_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(3, 2);
+
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+
+    hr = createDecipher(v0, v1, v2, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_createDecipheriv(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Cipher_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(4, 3);
+
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(obj_ptr<Buffer_base>, 2);
+    OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate));
+
+    hr = createDecipheriv(v0, v1, v2, v3, vr);
 
     METHOD_RETURN();
 }
@@ -380,19 +491,6 @@ inline void crypto_base::s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Valu
         hr = acb_pbkdf2(v0, v1, v2, v3, v4, cb, args);
     else
         hr = ac_pbkdf2(v0, v1, v2, v3, v4, vr);
-
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_static_getHashes(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    v8::Local<v8::Array> vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = getHashes(vr);
 
     METHOD_RETURN();
 }

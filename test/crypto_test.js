@@ -337,6 +337,1055 @@ describe('crypto', () => {
 
             assert.equal(key, cipher.decrypt(new Buffer(encrypted, "hex")).toString("utf8"));
         });
+
+        describe("cipher/decipher", () => {
+            it("normal", () => {
+                function testCipher1(key) {
+                    const plaintext = 'Keep this a secret? No! Tell everyone about node.js!';
+                    const cipher = crypto.createCipher('aes192', key);
+
+                    let ciph = cipher.update(plaintext, 'utf8', 'hex');
+                    ciph += cipher.final('hex');
+
+                    const decipher = crypto.createDecipher('aes192', key);
+                    let txt = decipher.update(ciph, 'hex', 'utf8');
+                    txt += decipher.final('utf8');
+
+                    assert.equal(txt, plaintext);
+                }
+
+                testCipher1('MySecretKey123');
+                testCipher1(Buffer.from('MySecretKey123'));
+            });
+
+            it("encoding", () => {
+                function testCipher2(key) {
+                    const plaintext =
+                        '32|RmVZZkFUVmpRRkp0TmJaUm56ZU9qcnJkaXNNWVNpTTU*|iXmckfRWZBGWWELw' +
+                        'eCBsThSsfUHLeRe0KCsK8ooHgxie0zOINpXxfZi/oNG7uq9JWFVCk70gfzQH8ZUJ' +
+                        'jAfaFg**';
+                    const cipher = crypto.createCipher('aes256', key);
+
+                    let ciph = cipher.update(plaintext, 'utf8', 'base64');
+                    ciph += cipher.final('base64');
+
+                    const decipher = crypto.createDecipher('aes256', key);
+                    let txt = decipher.update(ciph, 'base64', 'utf8');
+                    txt += decipher.final('utf8');
+
+                    assert.equal(txt, plaintext);
+                }
+
+                testCipher2('0123456789abcdef');
+                testCipher2(Buffer.from('0123456789abcdef'));
+            });
+
+            it("check arguments", () => {
+                assert.throws(() => crypto.createCipher(null));
+                assert.throws(() => crypto.createCipher('aes-256-cbc', null));
+                assert.throws(() => crypto.createCipher('aes-256-cbc', 'secret').setAAD(null));
+
+                assert.throws(() => crypto.createDecipher(null));
+                assert.throws(() => crypto.createDecipher('aes-256-cbc', 'secret').setAuthTag(null));
+                assert.throws(() => crypto.createDecipher('aes-256-cbc', null));
+            });
+
+            it("base64 padding regression", () => {
+                const c = crypto.createCipher('aes-256-cbc', 'secret');
+                const s = c.update('test', 'utf8', 'base64') + c.final('base64');
+                assert.equal(s, '375oxUQCIocvxmC5At+rvA==');
+            });
+
+            it("calling final() twice", () => {
+                const c = crypto.createCipher('aes-256-cbc', 'secret');
+                assert.throws(() => c.final('xxx'));
+                assert.throws(() => c.final('xxx'));
+                assert.throws(() => c.final('xxx'));
+
+                const d = crypto.createDecipher('aes-256-cbc', 'secret');
+                assert.throws(() => d.final('xxx'));
+                assert.throws(() => d.final('xxx'));
+                assert.throws(() => d.final('xxx'));
+            });
+
+            it("utf8 encoding", () => {
+                let c = crypto.createCipher('aes192', '0123456789abcdef');
+                c.update('update', '');  // Defaults to "utf8".
+                c.final('utf-8');  // Should not throw.
+
+                c = crypto.createCipher('aes192', '0123456789abcdef');
+                c.update('update', 'utf8');
+                c.final('utf-8');  // Should not throw.
+
+                c = crypto.createCipher('aes192', '0123456789abcdef');
+                c.update('update', 'utf-8');
+                c.final('utf8');  // Should not throw.              
+            });
+
+            it("ucs2 encoding", () => {
+                const key = '0123456789abcdef';
+                const plaintext = 'Top secret!!!';
+                const c = crypto.createCipher('aes192', key);
+                let ciph = c.update(plaintext, 'utf16le', 'base64');
+                ciph += c.final('base64');
+
+                let decipher = crypto.createDecipher('aes192', key);
+
+                let txt;
+                txt = decipher.update(ciph, 'base64', 'ucs2');
+                txt += decipher.final('ucs2');
+                assert.equal(txt, plaintext);
+
+                decipher = crypto.createDecipher('aes192', key);
+                txt = decipher.update(ciph, 'base64', 'ucs-2');
+                txt += decipher.final('ucs-2');
+                assert.equal(txt, plaintext);
+
+                decipher = crypto.createDecipher('aes192', key);
+                txt = decipher.update(ciph, 'base64', 'utf-16le');
+                txt += decipher.final('utf-16le');
+                assert.equal(txt, plaintext);
+            });
+
+            it("result for setAutoPadding/setAuthTag/setAAD", () => {
+                const key = '0123456789';
+                const tagbuf = Buffer.from('auth_tag');
+                const aadbuf = Buffer.from('aadbuf');
+                const decipher = crypto.createDecipher('aes-256-gcm', key);
+                assert.equal(decipher.setAutoPadding(), decipher);
+                assert.equal(decipher.setAuthTag(tagbuf), decipher);
+                assert.equal(decipher.setAAD(aadbuf), decipher);
+            });
+
+            it("Error throwing in setAAD/setAuthTag/getAuthTag/setAutoPadding", () => {
+                const key = '0123456789';
+                const aadbuf = Buffer.from('aadbuf');
+                const data = Buffer.from('test-crypto-cipher-decipher');
+
+                const cipher = crypto.createCipher('aes-256-gcm', key);
+                cipher.setAAD(aadbuf);
+                cipher.setAutoPadding();
+
+                assert.throws(() => cipher.getAuthTag());
+
+                const encrypted = Buffer.concat([cipher.update(data), cipher.final()]);
+
+                const decipher = crypto.createDecipher('aes-256-gcm', key);
+                decipher.setAAD(aadbuf);
+                decipher.setAuthTag(cipher.getAuthTag());
+                decipher.setAutoPadding();
+                decipher.update(encrypted);
+                decipher.final();
+
+                assert.throws(() => decipher.setAAD(aadbuf));
+                assert.throws(() => decipher.setAuthTag(cipher.getAuthTag()));
+                assert.throws(() => decipher.setAutoPadding());
+            });
+        });
+
+        describe("cipheriv/decipheriv", () => {
+            it("key and iv", () => {
+                function testCipher1(key, iv) {
+                    const plaintext =
+                        '32|RmVZZkFUVmpRRkp0TmJaUm56ZU9qcnJkaXNNWVNpTTU*|iXmckfRWZBGWWELw' +
+                        'eCBsThSsfUHLeRe0KCsK8ooHgxie0zOINpXxfZi/oNG7uq9JWFVCk70gfzQH8ZUJ' +
+                        'jAfaFg**';
+                    const cipher = crypto.createCipheriv('des-ede3-cbc', key, iv);
+                    let ciph = cipher.update(plaintext, 'utf8', 'hex');
+                    ciph += cipher.final('hex');
+
+                    const decipher = crypto.createDecipheriv('des-ede3-cbc', key, iv);
+                    let txt = decipher.update(ciph, 'hex', 'utf8');
+                    txt += decipher.final('utf8');
+
+                    assert.equal(txt, plaintext);
+                }
+
+                function testCipher2(key, iv) {
+                    // Test encryption and decryption with explicit key and iv
+                    const plaintext =
+                        '32|RmVZZkFUVmpRRkp0TmJaUm56ZU9qcnJkaXNNWVNpTTU*|iXmckfRWZBGWWELw' +
+                        'eCBsThSsfUHLeRe0KCsK8ooHgxie0zOINpXxfZi/oNG7uq9JWFVCk70gfzQH8ZUJ' +
+                        'jAfaFg**';
+                    const cipher = crypto.createCipheriv('des-ede3-cbc', key, iv);
+                    let ciph = cipher.update(plaintext, 'utf8', 'buffer');
+                    ciph = Buffer.concat([ciph, cipher.final('buffer')]);
+
+                    const decipher = crypto.createDecipheriv('des-ede3-cbc', key, iv);
+                    let txt = decipher.update(ciph, 'buffer', 'utf8');
+                    txt += decipher.final('utf8');
+
+                    assert.equal(txt, plaintext);
+                }
+
+
+                testCipher1('0123456789abcd0123456789', '12345678');
+                testCipher1('0123456789abcd0123456789', Buffer.from('12345678'));
+                testCipher1(Buffer.from('0123456789abcd0123456789'), '12345678');
+                testCipher1(Buffer.from('0123456789abcd0123456789'), Buffer.from('12345678'));
+                testCipher2(Buffer.from('0123456789abcd0123456789'), Buffer.from('12345678'));
+            });
+
+            it("check arguments", () => {
+                assert.throws(() => crypto.createCipheriv(null));
+                assert.throws(() => crypto.createCipheriv('des-ede3-cbc', null));
+                assert.throws(() => crypto.createCipheriv('des-ede3-cbc', key, 10));
+
+                assert.throws(() => crypto.createDecipheriv(null));
+                assert.throws(() => crypto.createDecipheriv('des-ede3-cbc', null));
+                assert.throws(() => crypto.createDecipheriv('des-ede3-cbc', key, 10));
+            });
+
+            it("iv size", () => {
+                crypto.createCipheriv('aes-128-ecb', Buffer.alloc(16), Buffer.alloc(0));
+                for (let n = 1; n < 256; n += 1)
+                    assert.throws(() => crypto.createCipheriv('aes-128-ecb', Buffer.alloc(16),
+                        Buffer.alloc(n)));
+            });
+
+            it("iv in cbc", () => {
+                crypto.createCipheriv('aes-128-cbc', Buffer.alloc(16), Buffer.alloc(16));
+                for (let n = 0; n < 256; n += 1) {
+                    if (n === 16) continue;
+                    assert.throws(() => crypto.createCipheriv('aes-128-cbc', Buffer.alloc(16),
+                        Buffer.alloc(n)));
+                }
+            });
+
+            it("iv in gcm mode", () => {
+                assert.throws(() => crypto.createCipheriv('aes-128-gcm', Buffer.alloc(16),
+                    Buffer.alloc(0)));
+
+                const minIvLength = 8;
+                const maxIvLength = 64;
+                for (let n = minIvLength; n < maxIvLength; n += 1)
+                    crypto.createCipheriv('aes-128-gcm', Buffer.alloc(16), Buffer.alloc(n));
+            });
+
+            it("invalid cipher name", () => {
+                assert.throws(() => crypto.createCipheriv('aes-127', Buffer.alloc(16), null));
+                assert.throws(() => crypto.createCipheriv('aes-128-ecb', Buffer.alloc(17), null));
+            });
+        });
+
+        describe("authenticated", () => {
+            const TEST_CASES = require('../test/crypto_case/aead-vectors.js');
+            const ciphers = crypto.getCiphers();
+
+            it("authenticated test", () => {
+                for (const test of TEST_CASES) {
+                    if (!ciphers.includes(test.algo)) {
+                        common.printSkipMessage(`unsupported ${test.algo} test`);
+                        continue;
+                    }
+
+                    const isCCM = /^aes-(128|192|256)-ccm$/.test(test.algo);
+                    const isOCB = /^aes-(128|192|256)-ocb$/.test(test.algo);
+
+                    let options;
+                    if (isCCM || isOCB)
+                        options = { authTagLength: test.tag.length / 2 };
+
+                    const inputEncoding = test.plainIsHex ? 'hex' : 'ascii';
+
+                    let aadOptions;
+                    if (isCCM) {
+                        aadOptions = {
+                            plaintextLength: Buffer.from(test.plain, inputEncoding).length
+                        };
+                    }
+
+                    {
+                        const encrypt = crypto.createCipheriv(test.algo,
+                            Buffer.from(test.key, 'hex'),
+                            Buffer.from(test.iv, 'hex'),
+                            options);
+
+                        if (test.aad)
+                            encrypt.setAAD(Buffer.from(test.aad, 'hex'), aadOptions);
+
+                        let hex = encrypt.update(test.plain, inputEncoding, 'hex');
+                        hex += encrypt.final('hex');
+
+                        const auth_tag = encrypt.getAuthTag();
+                        // Only test basic encryption run if output is marked as tampered.
+                        if (!test.tampered) {
+                            assert.equal(hex, test.ct);
+                            assert.equal(auth_tag.toString('hex'), test.tag);
+                        }
+                    }
+
+                    {
+                        const decrypt = crypto.createDecipheriv(test.algo,
+                            Buffer.from(test.key, 'hex'),
+                            Buffer.from(test.iv, 'hex'),
+                            options);
+                        decrypt.setAuthTag(Buffer.from(test.tag, 'hex'));
+                        if (test.aad)
+                            decrypt.setAAD(Buffer.from(test.aad, 'hex'), aadOptions);
+
+                        const outputEncoding = test.plainIsHex ? 'hex' : 'ascii';
+
+                        let msg = decrypt.update(test.ct, 'hex', outputEncoding);
+                        if (!test.tampered) {
+                            msg += decrypt.final(outputEncoding);
+                            assert.equal(msg, test.plain);
+                        } else {
+                            // Assert that final throws if input data could not be verified!
+                            assert.throws(function () { decrypt.final('hex'); });
+                        }
+                    }
+
+                    if (test.password) {
+                        const encrypt = crypto.createCipher(test.algo, test.password, options);
+                        if (test.aad)
+                            encrypt.setAAD(Buffer.from(test.aad, 'hex'), aadOptions);
+                        let hex = encrypt.update(test.plain, 'ascii', 'hex');
+                        hex += encrypt.final('hex');
+                        const auth_tag = encrypt.getAuthTag();
+                        // Only test basic encryption run if output is marked as tampered.
+                        if (!test.tampered) {
+                            assert.equal(hex, test.ct);
+                            assert.equal(auth_tag.toString('hex'), test.tag);
+                        }
+                    }
+
+                    if (test.password) {
+                        const decrypt = crypto.createDecipher(test.algo, test.password, options);
+                        decrypt.setAuthTag(Buffer.from(test.tag, 'hex'));
+                        if (test.aad)
+                            decrypt.setAAD(Buffer.from(test.aad, 'hex'), aadOptions);
+                        let msg = decrypt.update(test.ct, 'hex', 'ascii');
+                        if (!test.tampered) {
+                            msg += decrypt.final('ascii');
+                            assert.equal(msg, test.plain);
+                        } else {
+                            // Assert that final throws if input data could not be verified!
+                            assert.throws(function () { decrypt.final('ascii'); });
+                        }
+                    }
+
+                    {
+                        // Trying to get tag before inputting all data:
+                        const encrypt = crypto.createCipheriv(test.algo,
+                            Buffer.from(test.key, 'hex'),
+                            Buffer.from(test.iv, 'hex'),
+                            options);
+                        encrypt.update('blah', 'ascii');
+                        assert.throws(function () { encrypt.getAuthTag(); });
+                    }
+
+                    {
+                        // Trying to create cipher with incorrect IV length
+                        assert.throws(function () {
+                            crypto.createCipheriv(
+                                test.algo,
+                                Buffer.from(test.key, 'hex'),
+                                Buffer.alloc(0)
+                            );
+                        });
+                    }
+                }
+            });
+
+            it("non-authenticating", () => {
+                const encrypt = crypto.createCipheriv('aes-128-cbc',
+                    'ipxp9a6i1Mb4USb4', '6fKjEjR3Vl30EUYC');
+                encrypt.update('blah', 'ascii');
+                encrypt.final();
+                assert.throws(() => encrypt.getAuthTag());
+                assert.throws(() => encrypt.setAAD(Buffer.from('123', 'ascii')));
+            });
+
+            describe("GCM mode", () => {
+                it("specific authentication tag lengths", () => {
+                    for (const length of [0, 1, 2, 6, 9, 10, 11, 17]) {
+                        assert.throws(() => {
+                            const decrypt = crypto.createDecipheriv('aes-128-gcm',
+                                'FxLKsqdmv0E9xrQh',
+                                'qkuZpJWCewa6Szih');
+                            decrypt.setAuthTag(Buffer.from('1'.repeat(length)));
+                        });
+
+                        assert.throws(() => {
+                            crypto.createCipheriv('aes-256-gcm',
+                                'FxLKsqdmv0E9xrQhp0b1ZgI0K7JFZJM8',
+                                'qkuZpJWCewa6Szih',
+                                {
+                                    authTagLength: length
+                                });
+                        });
+
+                        assert.throws(() => {
+                            crypto.createDecipheriv('aes-256-gcm',
+                                'FxLKsqdmv0E9xrQhp0b1ZgI0K7JFZJM8',
+                                'qkuZpJWCewa6Szih',
+                                {
+                                    authTagLength: length
+                                });
+                        });
+                    }
+                });
+
+                it("shorter authentication tags", () => {
+                    const fullTag = '1debb47b2c91ba2cea16fad021703070';
+                    for (const [authTagLength, e] of [[undefined, 16], [12, 12], [4, 4]]) {
+                        const cipher = crypto.createCipheriv('aes-256-gcm',
+                            'FxLKsqdmv0E9xrQhp0b1ZgI0K7JFZJM8', 'qkuZpJWCewa6Szih', {
+                            authTagLength
+                        });
+                        cipher.setAAD(Buffer.from('abcd'));
+                        cipher.update('01234567', 'hex');
+                        cipher.final();
+                        const tag = cipher.getAuthTag();
+                        assert.equal(tag.toString('hex'), fullTag.substr(0, 2 * e));
+                    }
+                });
+
+                it("manually restrict tag length", () => {
+                    const decipher = crypto.createDecipheriv('aes-256-gcm',
+                        'FxLKsqdmv0E9xrQhp0b1ZgI0K7JFZJM8', 'qkuZpJWCewa6Szih', {
+                        authTagLength: 8
+                    });
+
+                    assert.throws(() => {
+                        // This tag would normally be allowed.
+                        decipher.setAuthTag(Buffer.from('1'.repeat(12)));
+                    });
+
+                    // The Decipher object should be left intact.
+                    decipher.setAuthTag(Buffer.from('445352d3ff85cf94', 'hex'));
+                    const text = Buffer.concat([
+                        decipher.update('3a2a3647', 'hex'),
+                        decipher.final(),
+                    ]);
+                    assert.equal(text.toString('utf8'), 'node');
+                });
+            });
+
+            it("invalid authentication tag length in CCM mode", () => {
+                for (const authTagLength of [-1, true, false, NaN, 5.5]) {
+                    assert.throws(() => {
+                        crypto.createCipheriv('aes-256-ccm',
+                            'FxLKsqdmv0E9xrQhp0b1ZgI0K7JFZJM8',
+                            'qkuZpJWCewa6S',
+                            {
+                                authTagLength
+                            });
+                    });
+
+                    assert.throws(() => {
+                        crypto.createDecipheriv('aes-256-ccm',
+                            'FxLKsqdmv0E9xrQhp0b1ZgI0K7JFZJM8',
+                            'qkuZpJWCewa6S',
+                            {
+                                authTagLength
+                            });
+                    });
+
+                    assert.throws(() => {
+                        crypto.createCipher('aes-256-ccm', 'bad password', { authTagLength });
+                    });
+
+                    assert.throws(() => {
+                        crypto.createDecipher('aes-256-ccm', 'bad password', { authTagLength });
+                    });
+                }
+
+                for (const authTagLength of [0, 1, 2, 3, 5, 7, 9, 11, 13, 15, 17, 18]) {
+                    assert.throws(() => {
+                        crypto.createCipheriv('aes-256-ccm',
+                            'FxLKsqdmv0E9xrQhp0b1ZgI0K7JFZJM8',
+                            'qkuZpJWCewa6S',
+                            {
+                                authTagLength
+                            });
+                    });
+
+                    assert.throws(() => {
+                        crypto.createDecipheriv('aes-256-ccm',
+                            'FxLKsqdmv0E9xrQhp0b1ZgI0K7JFZJM8',
+                            'qkuZpJWCewa6S',
+                            {
+                                authTagLength
+                            });
+                    });
+
+                    assert.throws(() => {
+                        crypto.createCipher('aes-256-ccm', 'bad password', { authTagLength });
+                    });
+
+                    assert.throws(() => {
+                        crypto.createDecipher('aes-256-ccm', 'bad password', { authTagLength });
+                    });
+                }
+            });
+
+            it("no authentication tag in CCM and OCB mode", () => {
+                for (const mode of ['ccm', 'ocb']) {
+                    assert.throws(() => {
+                        crypto.createCipheriv(`aes-256-${mode}`,
+                            'FxLKsqdmv0E9xrQhp0b1ZgI0K7JFZJM8',
+                            'qkuZpJWCewa6S');
+                    }, {
+                        message: `authTagLength required for aes-256-${mode}`
+                    });
+
+                    // CCM decryption and create(De|C)ipher are unsupported in FIPS mode.
+                    assert.throws(() => {
+                        crypto.createDecipheriv(`aes-256-${mode}`,
+                            'FxLKsqdmv0E9xrQhp0b1ZgI0K7JFZJM8',
+                            'qkuZpJWCewa6S');
+                    }, {
+                        message: `authTagLength required for aes-256-${mode}`
+                    });
+
+                    assert.throws(() => {
+                        crypto.createCipher(`aes-256-${mode}`, 'very bad password');
+                    }, {
+                        message: `authTagLength required for aes-256-${mode}`
+                    });
+
+                    assert.throws(() => {
+                        crypto.createDecipher(`aes-256-${mode}`, 'very bad password');
+                    }, {
+                        message: `authTagLength required for aes-256-${mode}`
+                    });
+                }
+            });
+
+            describe("setAAD", () => {
+                it("invalid plaintext length", () => {
+                    const cipher = crypto.createCipheriv('aes-256-ccm',
+                        'FxLKsqdmv0E9xrQhp0b1ZgI0K7JFZJM8',
+                        'qkuZpJWCewa6S',
+                        {
+                            authTagLength: 10
+                        });
+
+                    for (const plaintextLength of [-1, true, false, NaN]) {
+                        assert.throws(() => {
+                            cipher.setAAD(Buffer.from('0123456789', 'hex'), { plaintextLength });
+                        });
+                    }
+                });
+
+                it("plaintext is too long", () => {
+                    for (const ivLength of [13, 12]) {
+                        const maxMessageSize = (1 << (8 * (15 - ivLength))) - 1;
+                        const key = 'FxLKsqdmv0E9xrQhp0b1ZgI0K7JFZJM8';
+                        const cipher = () => crypto.createCipheriv('aes-256-ccm', key,
+                            '0'.repeat(ivLength),
+                            {
+                                authTagLength: 10
+                            });
+
+                        assert.throws(() => {
+                            cipher().setAAD(Buffer.alloc(0), {
+                                plaintextLength: maxMessageSize + 1
+                            });
+                        }, /Invalid message length$/);
+
+                        const msg = Buffer.alloc(maxMessageSize + 1);
+                        assert.throws(() => {
+                            cipher().update(msg);
+                        }, /Invalid message length/);
+
+                        const c = cipher();
+                        c.setAAD(Buffer.alloc(0), {
+                            plaintextLength: maxMessageSize
+                        });
+                        c.update(msg.slice(1));
+                    }
+                });
+
+                it("plaintext length has not been specified in CCM mode", () => {
+                    assert.throws(() => {
+                        const cipher = crypto.createCipheriv('aes-256-ccm',
+                            'FxLKsqdmv0E9xrQhp0b1ZgI0K7JFZJM8',
+                            'qkuZpJWCewa6S',
+                            {
+                                authTagLength: 10
+                            });
+                        cipher.setAAD(Buffer.from('0123456789', 'hex'));
+                    });
+
+                    assert.throws(() => {
+                        const cipher = crypto.createDecipheriv('aes-256-ccm',
+                            'FxLKsqdmv0E9xrQhp0b1ZgI0K7JFZJM8',
+                            'qkuZpJWCewa6S',
+                            {
+                                authTagLength: 10
+                            });
+                        cipher.setAAD(Buffer.from('0123456789', 'hex'));
+                    });
+                });
+
+                it("final() throws in CCM mode when no authentication tag is provided", () => {
+                    const key = Buffer.from('1ed2233fa2223ef5d7df08546049406c', 'hex');
+                    const iv = Buffer.from('7305220bca40d4c90e1791e9', 'hex');
+                    const ct = Buffer.from('8beba09d4d4d861f957d51c0794f4abf8030848e', 'hex');
+                    const decrypt = crypto.createDecipheriv('aes-128-ccm', key, iv, {
+                        authTagLength: 10
+                    });
+
+                    assert.throws(() => {
+                        decrypt.setAAD(Buffer.from('63616c76696e', 'hex'), {
+                            plaintextLength: ct.length
+                        });
+                        decrypt.update(ct);
+                        decrypt.final();
+                    });
+                });
+
+                it("setAuthTag does not throw in GCM mode when called after setAAD", () => {
+                    const key = Buffer.from('1ed2233fa2223ef5d7df08546049406c', 'hex');
+                    const iv = Buffer.from('579d9dfde9cd93d743da1ceaeebb86e4', 'hex');
+                    const decrypt = crypto.createDecipheriv('aes-128-gcm', key, iv);
+                    decrypt.setAAD(Buffer.from('0123456789', 'hex'));
+                    decrypt.setAuthTag(Buffer.from('1bb9253e250b8069cde97151d7ef32d9', 'hex'));
+                    assert.equal(decrypt.update('807022', 'hex', 'hex'), 'abcdef');
+                    assert.equal(decrypt.final('hex'), '');
+                });
+            });
+
+            it("IV length of 11 does not overflow max_message_size_", () => {
+                const key = 'x'.repeat(16);
+                const iv = Buffer.from('112233445566778899aabb', 'hex');
+                const options = { authTagLength: 8 };
+                const encrypt = crypto.createCipheriv('aes-128-ccm', key, iv, options);
+                encrypt.update('boom');  // Should not throw 'Message exceeds maximum size'.
+                encrypt.final();
+            });
+
+            it("authentication tag can be set at any point before final()", () => {
+                const plain = Buffer.from('Hello world', 'utf8');
+                const key = Buffer.from('0123456789abcdef', 'utf8');
+                const iv = Buffer.from('0123456789ab', 'utf8');
+
+                for (const mode of ['gcm', 'ocb']) {
+                    for (const authTagLength of mode === 'gcm' ? [undefined, 8] : [8]) {
+                        const cipher = crypto.createCipheriv(`aes-128-${mode}`, key, iv, {
+                            authTagLength
+                        });
+                        const ciphertext = Buffer.concat([cipher.update(plain), cipher.final()]);
+                        const authTag = cipher.getAuthTag();
+
+                        for (const authTagBeforeUpdate of [true, false]) {
+                            const decipher = crypto.createDecipheriv(`aes-128-${mode}`, key, iv, {
+                                authTagLength
+                            });
+                            if (authTagBeforeUpdate) {
+                                decipher.setAuthTag(authTag);
+                            }
+                            const resultUpdate = decipher.update(ciphertext);
+                            if (!authTagBeforeUpdate) {
+                                decipher.setAuthTag(authTag);
+                            }
+                            const resultFinal = decipher.final();
+                            const result = Buffer.concat([resultUpdate, resultFinal]);
+                            assert.deepEqual(result, plain);
+                        }
+                    }
+                }
+            });
+
+            it("setAuthTag can only be called once", () => {
+                const plain = Buffer.from('Hello world', 'utf8');
+                const key = Buffer.from('0123456789abcdef', 'utf8');
+                const iv = Buffer.from('0123456789ab', 'utf8');
+                const opts = { authTagLength: 8 };
+
+                for (const mode of ['gcm', 'ccm', 'ocb']) {
+                    const cipher = crypto.createCipheriv(`aes-128-${mode}`, key, iv, opts);
+                    const ciphertext = Buffer.concat([cipher.update(plain), cipher.final()]);
+                    const tag = cipher.getAuthTag();
+
+                    const decipher = crypto.createDecipheriv(`aes-128-${mode}`, key, iv, opts);
+                    decipher.setAuthTag(tag);
+                    assert.throws(() => {
+                        decipher.setAuthTag(tag);
+                    });
+                    // Decryption should still work.
+                    const plaintext = Buffer.concat([
+                        decipher.update(ciphertext),
+                        decipher.final(),
+                    ]);
+                    assert.deepEqual(plain, plaintext);
+                }
+            });
+
+            describe("chacha20-poly1305", () => {
+                it("rejects invalid IV lengths", () => {
+                    const valid = {
+                        algo: 'chacha20-poly1305',
+                        key: '808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9f',
+                        iv: '070000004041424344454647',
+                        plain: '4c616469657320616e642047656e746c656d656e206f662074686520636c6173' +
+                            '73206f66202739393a204966204920636f756c64206f6666657220796f75206f' +
+                            '6e6c79206f6e652074697020666f7220746865206675747572652c2073756e73' +
+                            '637265656e20776f756c642062652069742e',
+                        plainIsHex: true,
+                        aad: '50515253c0c1c2c3c4c5c6c7',
+                        ct: 'd31a8d34648e60db7b86afbc53ef7ec2a4aded51296e08fea9e2b5' +
+                            'a736ee62d63dbea45e8ca9671282fafb69da92728b1a71de0a9e06' +
+                            '0b2905d6a5b67ecd3b3692ddbd7f2d778b8c9803aee328091b58fa' +
+                            'b324e4fad675945585808b4831d7bc3ff4def08e4b7a9de576d265' +
+                            '86cec64b6116',
+                        tag: '1ae10b594f09e26a7e902ecbd0600691',
+                        tampered: false,
+                    };
+
+                    // Invalid IV lengths should be detected:
+                    // - 12 and below are valid.
+                    // - 13-16 are not detected as invalid by some OpenSSL versions.
+                    check(13);
+                    check(14);
+                    check(15);
+                    check(16);
+                    // - 17 and above were always detected as invalid by OpenSSL.
+                    check(17);
+
+                    function check(ivLength) {
+                        const prefix = ivLength - valid.iv.length / 2;
+                        assert.throws(() => crypto.createCipheriv(
+                            valid.algo,
+                            Buffer.from(valid.key, 'hex'),
+                            Buffer.from(H(prefix) + valid.iv, 'hex')
+                        ));
+
+                        function H(length) { return '00'.repeat(length); }
+                    }
+
+                    const key = Buffer.alloc(32);
+                    const iv = Buffer.alloc(12);
+
+                    for (const authTagLength of [0, 17]) {
+                        assert.throws(() => {
+                            crypto.createCipheriv('chacha20-poly1305', key, iv, { authTagLength });
+                        });
+                    }
+                });
+
+                it("respect the authTagLength option and should not require the authentication tag before calls to update() during decryption", () => {
+                    const key = Buffer.alloc(32);
+                    const iv = Buffer.alloc(12);
+
+                    for (let authTagLength = 1; authTagLength <= 16; authTagLength++) {
+                        const cipher =
+                            crypto.createCipheriv('chacha20-poly1305', key, iv, { authTagLength });
+                        const ciphertext = Buffer.concat([cipher.update('foo'), cipher.final()]);
+                        const authTag = cipher.getAuthTag();
+                        assert.equal(authTag.length, authTagLength);
+
+                        // The decipher operation should reject all authentication tags other than
+                        // that of the expected length.
+                        for (let other = 1; other <= 16; other++) {
+                            const decipher = crypto.createDecipheriv('chacha20-poly1305', key, iv, {
+                                authTagLength: other
+                            });
+                            // ChaCha20 is a stream cipher so we do not need to call final() to obtain
+                            // the full plaintext.
+                            const plaintext = decipher.update(ciphertext);
+                            assert.equal(plaintext.toString(), 'foo');
+                            if (other === authTagLength) {
+                                // The authentication tag length is as expected and the tag itself is
+                                // correct, so this should work.
+                                decipher.setAuthTag(authTag);
+                                decipher.final();
+                            } else {
+                                // The authentication tag that we are going to pass to setAuthTag is
+                                // either too short or too long. If other < authTagLength, the
+                                // authentication tag is still correct, but it should still be rejected
+                                // because its security assurance is lower than expected.
+                                assert.throws(() => {
+                                    decipher.setAuthTag(authTag);
+                                }, {
+                                    code: 'ERR_CRYPTO_INVALID_AUTH_TAG',
+                                    message: `Invalid authentication tag length: ${authTagLength}`
+                                });
+                            }
+                        }
+                    }
+                });
+
+                it("default to an authTagLength of 16", () => {
+                    const rfcTestCases = TEST_CASES.filter(({ algo, tampered }) => {
+                        return algo === 'chacha20-poly1305' && tampered === false;
+                    });
+                    assert.equal(rfcTestCases.length, 1);
+
+                    const [testCase] = rfcTestCases;
+                    const key = Buffer.from(testCase.key, 'hex');
+                    const iv = Buffer.from(testCase.iv, 'hex');
+                    const aad = Buffer.from(testCase.aad, 'hex');
+
+                    for (const opt of [
+                        undefined,
+                        { authTagLength: undefined },
+                        { authTagLength: 16 },
+                    ]) {
+                        const cipher = crypto.createCipheriv('chacha20-poly1305', key, iv, opt);
+                        const ciphertext = Buffer.concat([
+                            cipher.setAAD(aad).update(testCase.plain, 'hex'),
+                            cipher.final(),
+                        ]);
+                        const authTag = cipher.getAuthTag();
+
+                        assert.equal(ciphertext.toString('hex'), testCase.ct);
+                        assert.equal(authTag.toString('hex'), testCase.tag);
+
+                        const decipher = crypto.createDecipheriv('chacha20-poly1305', key, iv, opt);
+                        const plaintext = Buffer.concat([
+                            decipher.setAAD(aad).update(ciphertext),
+                            decipher.setAuthTag(authTag).final(),
+                        ]);
+
+                        assert.equal(plaintext.toString('hex'), testCase.plain);
+                    }
+                });
+
+                it("without setting authTag on decypher", () => {
+                    const rfcTestCases = TEST_CASES.filter(({ algo, tampered }) => {
+                        return algo === 'chacha20-poly1305' && tampered === false;
+                    });
+                    assert.equal(rfcTestCases.length, 1);
+
+                    const [testCase] = rfcTestCases;
+                    const key = Buffer.from(testCase.key, 'hex');
+                    const iv = Buffer.from(testCase.iv, 'hex');
+                    const aad = Buffer.from(testCase.aad, 'hex');
+                    const opt = { authTagLength: 16 };
+
+                    const cipher = crypto.createCipheriv('chacha20-poly1305', key, iv, opt);
+                    const ciphertext = Buffer.concat([
+                        cipher.setAAD(aad).update(testCase.plain, 'hex'),
+                        cipher.final(),
+                    ]);
+                    const authTag = cipher.getAuthTag();
+
+                    assert.equal(ciphertext.toString('hex'), testCase.ct);
+                    assert.equal(authTag.toString('hex'), testCase.tag);
+
+                    const decipher = crypto.createDecipheriv('chacha20-poly1305', key, iv, opt);
+                    decipher.setAAD(aad).update(ciphertext);
+
+                    assert.throws(() => {
+                        decipher.final();
+                    });
+                });
+            });
+
+            it("CCM cipher without data should not crash", () => {
+                const algo = 'aes-128-ccm';
+                const key = Buffer.alloc(16);
+                const iv = Buffer.alloc(12);
+                const opts = { authTagLength: 10 };
+
+                for (const cipher of [
+                    crypto.createCipher(algo, 'foo', opts),
+                    crypto.createCipheriv(algo, key, iv, opts),
+                ]) {
+                    assert.throws(() => {
+                        cipher.final();
+                    });
+                }
+            });
+        });
+
+        it("padding", () => {
+            // Input data.
+            const ODD_LENGTH_PLAIN = 'Hello node world!';
+            const EVEN_LENGTH_PLAIN = 'Hello node world!AbC09876dDeFgHi';
+
+            const KEY_PLAIN = 'S3c.r.e.t.K.e.Y!';
+            const IV_PLAIN = 'blahFizz2011Buzz';
+
+            const CIPHER_NAME = 'aes-128-cbc';
+
+            const ODD_LENGTH_ENCRYPTED = '7f57859550d4d2fdb9806da2a750461a9fe77253cd1cbd4b07beee4e070d561f';
+
+            const EVEN_LENGTH_ENCRYPTED = '7f57859550d4d2fdb9806da2a750461ab46e71b3d78ebe2d9684dfc87f7575b988' +
+                '6119866912cb8c7bcaf76c5ebc2378';
+
+            const EVEN_LENGTH_ENCRYPTED_NOPAD = '7f57859550d4d2fdb9806da2a750461ab46e71b3d78ebe2d9684dfc87f7575b9';
+
+            function enc(plain, pad) {
+                const encrypt = crypto.createCipheriv(CIPHER_NAME, KEY_PLAIN, IV_PLAIN);
+                encrypt.setAutoPadding(pad);
+                let hex = encrypt.update(plain, 'ascii', 'hex');
+                hex += encrypt.final('hex');
+                return hex;
+            }
+
+            function dec(encd, pad) {
+                const decrypt = crypto.createDecipheriv(CIPHER_NAME, KEY_PLAIN, IV_PLAIN);
+                decrypt.setAutoPadding(pad);
+                let plain = decrypt.update(encd, 'hex');
+                plain += decrypt.final('latin1');
+                return plain;
+            }
+
+            assert.equal(enc(ODD_LENGTH_PLAIN, true), ODD_LENGTH_ENCRYPTED);
+            assert.equal(enc(EVEN_LENGTH_PLAIN, true), EVEN_LENGTH_ENCRYPTED);
+
+            assert.throws(function () {
+                enc(ODD_LENGTH_PLAIN, false);
+            });
+
+            assert.equal(enc(EVEN_LENGTH_PLAIN, false), EVEN_LENGTH_ENCRYPTED_NOPAD);
+
+            assert.equal(dec(ODD_LENGTH_ENCRYPTED, true), ODD_LENGTH_PLAIN);
+            assert.equal(dec(EVEN_LENGTH_ENCRYPTED, true), EVEN_LENGTH_PLAIN);
+
+            assert.equal(dec(ODD_LENGTH_ENCRYPTED, false).length, 32);
+            assert.equal(dec(EVEN_LENGTH_ENCRYPTED, false).length, 48);
+
+            assert.throws(function () {
+                assert.equal(dec(EVEN_LENGTH_ENCRYPTED_NOPAD, true), EVEN_LENGTH_PLAIN);
+            });
+
+            assert.equal(dec(EVEN_LENGTH_ENCRYPTED_NOPAD, false), EVEN_LENGTH_PLAIN);
+        });
+
+        it("padding in aes256", () => {
+            const iv = Buffer.from('00000000000000000000000000000000', 'hex');
+            const key = Buffer.from('0123456789abcdef0123456789abcdef' +
+                '0123456789abcdef0123456789abcdef', 'hex');
+
+            function encrypt(val, pad) {
+                const c = crypto.createCipheriv('aes256', key, iv);
+                c.setAutoPadding(pad);
+                return c.update(val, 'utf8', 'latin1') + c.final('latin1');
+            }
+
+            function decrypt(val, pad) {
+                const c = crypto.createDecipheriv('aes256', key, iv);
+                c.setAutoPadding(pad);
+                return c.update(val, 'latin1', 'utf8') + c.final('utf8');
+            }
+
+            let plaintext = '0123456789abcdef0123456789abcdef'; // Multiple of block size
+            let encrypted = encrypt(plaintext, false);
+            let decrypted = decrypt(encrypted, false);
+            assert.equal(decrypted, plaintext);
+
+            plaintext = '0123456789abcdef0123456789abcde'; // not a multiple
+            encrypted = encrypt(plaintext, true);
+            decrypted = decrypt(encrypted, true);
+            assert.equal(decrypted, plaintext);
+        });
+
+        it("aes wrap", () => {
+            const datas = [
+                {
+                    algorithm: 'aes128-wrap',
+                    key: 'b26f309fbe57e9b3bb6ae5ef31d54450',
+                    iv: '3fd838af4093d749',
+                    text: '12345678123456781234567812345678',
+                    enc: '612abece03d514c6a81b7a21f8895061877c43c4064bb89120bf80185809642d341ea88ff92bdf03'
+                },
+                {
+                    algorithm: 'id-aes128-wrap-pad',
+                    key: 'b26f309fbe57e9b3bb6ae5ef31d54450',
+                    iv: '3fd838af',
+                    text: '12345678123456781234567812345678123',
+                    enc: 'dabf2d9db41ada96198435b0a3fe5b168959c19fff959a487953d60be8eb45c09f87e1ef609111b9a61db8e2be326c9b'
+                },
+                {
+                    algorithm: 'aes192-wrap',
+                    key: '40978085d68091f7dfca0d7dfc7a5ee76d2cc7f2f345a304',
+                    iv: '3fd838af4093d749',
+                    text: '12345678123456781234567812345678',
+                    enc: 'e24c00fb63fe165ba5e180c786c3349f938081a1acbb48926f7f8219bd912fc41bf1d844b14e1472'
+                },
+                {
+                    algorithm: 'id-aes192-wrap-pad',
+                    key: '40978085d68091f7dfca0d7dfc7a5ee76d2cc7f2f345a304',
+                    iv: '3fd838af',
+                    text: '12345678123456781234567812345678123',
+                    enc: 'ae32ae4c8914774fd6cc304ce26ee050aea98fb8189a4c808ce984d3debb1e79611792be5108a3355167eecb0900a72e'
+                },
+                {
+                    algorithm: 'aes256-wrap',
+                    key: '29c9eab5ed5ad44134a1437fe2e673b4d88a5b7c72e68454fea08721392b7323',
+                    iv: '3fd838af4093d749',
+                    text: '12345678123456781234567812345678',
+                    enc: '83e4569782f43a2af901c4c371ffbc0dcf6ea5ce3e189b2420e7535318fc7243f84220074a7c61a1'
+                },
+                {
+                    algorithm: 'id-aes256-wrap-pad',
+                    key: '29c9eab5ed5ad44134a1437fe2e673b4d88a5b7c72e68454fea08721392b7323',
+                    iv: '3fd838af',
+                    text: '12345678123456781234567812345678123',
+                    enc: '24ae1865a97f596c45a2594c565f2e55ffc874890b36526040ae520fffe33115ddbdcfe4ef4716bc40d64643ea5bbf8c'
+                },
+            ];
+
+            datas.forEach((data) => {
+                const cipher = crypto.createCipheriv(
+                    data.algorithm,
+                    Buffer.from(data.key, 'hex'),
+                    Buffer.from(data.iv, 'hex'));
+                const ciphertext = cipher.update(data.text);
+                assert.equal(ciphertext.toString('hex'), data.enc);
+
+                const decipher = crypto.createDecipheriv(
+                    data.algorithm,
+                    Buffer.from(data.key, 'hex'),
+                    Buffer.from(data.iv, 'hex'));
+                const msg = decipher.update(ciphertext, 'buffer', 'utf8');
+
+                assert.equal(msg, data.text);
+            });
+        });
+
+        it("des3 wrap", () => {
+            const data = {
+                key: Buffer.from('3c08e25be22352910671cfe4ba3652b1220a8a7769b490ba', 'hex'),
+                iv: Buffer.alloc(0),
+                plaintext: '32|RmVZZkFUVmpRRkp0TmJaUm56ZU9qcnJkaXNNWVNpTTU*|iXmckfRWZBG' +
+                    'WWELweCBsThSsfUHLeRe0KCsK8ooHgxie0zOINpXxfZi/oNG7uq9JWFVCk70gfzQH8ZU' +
+                    'JjAfaFg**'
+            };
+
+            const cipher = crypto.createCipheriv('des3-wrap', data.key, data.iv);
+            const ciphertext = cipher.update(data.plaintext, 'utf8');
+
+            const decipher = crypto.createDecipheriv('des3-wrap', data.key, data.iv);
+            const msg = decipher.update(ciphertext, 'buffer', 'utf8');
+
+            assert.equal(msg, data.plaintext);
+        });
+
+        it("wrong encoding", () => {
+            const createCipher = () => {
+                return crypto.createCipheriv('aes-256-cbc', crypto.randomBytes(32), crypto.randomBytes(16));
+            };
+
+            {
+                const cipher = createCipher();
+                cipher.update('test', 'utf-8', 'utf-8');
+                assert.throws(() => cipher.update('666f6f', 'hex', 'hex'));
+            }
+
+            {
+                const cipher = createCipher();
+                cipher.update('test', 'utf-8', 'utf-8');
+                assert.throws(() => cipher.final('hex'));
+            }
+
+            {
+                const cipher = createCipher();
+                cipher.update('test', 'utf-8', 'utf-8');
+                assert.throws(() => cipher.final('bad2'));
+            }
+
+            {
+                const cipher = createCipher();
+                assert.throws(() => cipher.update('test', 'utf-8', 'bad3'));
+            }
+        });
     });
 
     describe("PKey", () => {
