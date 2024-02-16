@@ -60,7 +60,6 @@
     ],
     "Utility": [
         "db",
-        "gd",
         "registry",
         "util",
         "uuid",
