@@ -14,6 +14,7 @@
 #include <ev/ev.h>
 #include <pcre/pcre.h>
 #include <mbedtls/mbedtls/version.h>
+#include <openssl/opensslv.h>
 #include <snappy/include/snappy.h>
 #include <leveldb/db.h>
 #include <expat/include/expat.h>
@@ -114,6 +115,7 @@ public:
             g_vender->add("leveldb", str);
             g_vender->add("mbedtls", MBEDTLS_VERSION_STRING);
             g_vender->add("msgpack", msgpack_version());
+            g_vender->add("openssl", OPENSSL_FULL_VERSION_STR);
             g_vender->add("pcre", STR(PCRE_MAJOR) "." STR(PCRE_MINOR));
             g_vender->add("snappy", STR(SNAPPY_MAJOR) "." STR(SNAPPY_MINOR) "." STR(SNAPPY_PATCHLEVEL));
             g_vender->add("sqlite", SQLITE_VERSION);
