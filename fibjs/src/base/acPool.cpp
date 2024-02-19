@@ -204,7 +204,7 @@ int32_t AsyncCallBack::check_result(int32_t hr, const v8::FunctionCallbackInfo<v
     else
         args.GetReturnValue().SetUndefined();
 
-    return CALL_RETURN_CALLBACK;
+    return CALL_RETURN_UNDEFINED;
 }
 
 void InitializeAcPool()
