@@ -9,7 +9,7 @@
 
 #include "ifs/Digest.h"
 #include "Buffer.h"
-#include <crypto/evp.h>
+#include "crypto.h"
 
 namespace fibjs {
 
@@ -17,7 +17,6 @@ class Digest : public Digest_base {
 public:
     Digest(const EVP_MD* md);
     Digest(const EVP_MD* md, const char* key, int32_t sz);
-    ~Digest();
 
 public:
     // Digest_base
@@ -32,7 +31,7 @@ private:
     result_t digest(obj_ptr<Buffer>& retVal);
 
 private:
-    EVP_MD_CTX* m_ctx;
+    EVPMDPointer m_ctx;
     int32_t m_iAlgo;
     bool m_bMac;
 };

@@ -443,12 +443,6 @@ result_t crypto_base::createDecipheriv(exlib::string algorithm, KeyObject_base* 
     return 0;
 }
 
-CipherX::~CipherX()
-{
-    if (m_ctx)
-        EVP_CIPHER_CTX_free(m_ctx);
-}
-
 static bool IsSupportedAuthenticatedMode(const EVP_CIPHER* cipher)
 {
     switch (EVP_CIPHER_mode(cipher)) {

@@ -38,11 +38,6 @@ Digest::Digest(const EVP_MD* md, const char* key, int32_t sz)
     EVP_PKEY_free(pkey);
 }
 
-Digest::~Digest()
-{
-    EVP_MD_CTX_free(m_ctx);
-}
-
 result_t Digest::update(Buffer_base* data, obj_ptr<Digest_base>& retVal)
 {
     Buffer* buf = Buffer::Cast(data);

@@ -10,7 +10,7 @@
 #include "ifs/Cipher.h"
 #include "StringDecoder.h"
 #include <mbedtls/mbedtls/cipher.h>
-#include <openssl/evp.h>
+#include "crypto.h"
 
 namespace fibjs {
 
@@ -74,8 +74,6 @@ public:
     {
     }
 
-    ~CipherX();
-
 public:
     // Cipher_base
     virtual result_t get_name(exlib::string& retVal);
@@ -113,7 +111,7 @@ private:
     result_t get_result(Buffer* out, exlib::string outputEncoding, v8::Local<v8::Value>& retVal, bool final);
 
 private:
-    EVP_CIPHER_CTX* m_ctx = NULL;
+    CipherCtxPointer m_ctx;
     const CipherKind kind_;
     AuthTagState auth_tag_state_ = kAuthTagUnknown;
     unsigned int auth_tag_len_ = kNoAuthTagLength;
