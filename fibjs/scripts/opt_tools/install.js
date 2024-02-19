@@ -409,6 +409,21 @@ function generate_mv_paths(level_info, parent_p) {
     }
 }
 
+function find_tar_home(untar_files) {
+    var archive_root_name;
+
+    untar_files.forEach(file => {
+        if (file.typeflag == "0" || file.typeflag == "1") {
+            if (!archive_root_name)
+                archive_root_name = file.filename;
+            else
+                archive_root_name = helpers_string.find_least_common_str(archive_root_name, file.filename);
+        }
+    });
+
+    return helpers_string.ensure_unsuffx(archive_root_name);
+}
+
 function download_module() {
     coroutine.parallel(
         Object.keys(mv_paths),
@@ -453,16 +468,11 @@ function download_module() {
                     const untar_files = untar(t.buffer);
 
                     // most package from registry is archived with root directory `package`
-                    archive_root_name = `package`;
-                    if (untar_files[0].filename.indexOf(archive_root_name) !== 0) {
-                        archive_root_name = helpers_string.ensure_unsuffx(
-                            helpers_string.find_least_common_str(untar_files[0].filename, untar_files[1].filename)
-                        )
-                    }
+                    archive_root_name = find_tar_home(untar_files);
 
                     untar_files.forEach(file => {
                         mvm.base_path.forEach(bp => {
-                            if (file.typeflag == 1) {
+                            if (file.typeflag == "1") {
                                 const read_files = untar_files.filter(f => f.filename == file.linkname);
                                 file.typeflag = "0";
                                 file.linkname = "";
@@ -547,15 +557,11 @@ function download_module() {
                 const untar_files = untar(t.buffer);
                 t = null;
 
-                archive_root_name = path.dirname(untar_files[0].filename);
-                untar_files.forEach(file => {
-                    archive_root_name = helpers_string.find_least_common_str(archive_root_name, file.filename)
-                });
-                archive_root_name = helpers_string.ensure_unsuffx(archive_root_name);
+                archive_root_name = find_tar_home(untar_files);
 
                 mvm.base_path.forEach(bp => {
                     untar_files.forEach(file => {
-                        if (file.typeflag == 1) {
+                        if (file.typeflag == "1") {
                             const read_files = untar_files.filter(f => f.filename == file.linkname);
                             file.typeflag = "0";
                             file.linkname = "";

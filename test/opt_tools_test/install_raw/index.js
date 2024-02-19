@@ -16,8 +16,8 @@ const processRunOptions = {
     }
 }
 
-function resolveNodeModules(baseroot, pkgName) {
-    return path.resolve(baseroot, `./node_modules/${pkgName}`)
+function checkNodeModules(baseroot, pkgName) {
+    return fs.existsSync(path.resolve(baseroot, `./node_modules/${pkgName}/package.json`));
 }
 
 describe('opt_tools/install from raw', () => {
@@ -71,9 +71,7 @@ describe('opt_tools/install from raw', () => {
                         child_process.run(bin, ['--install', 'ejs'], processRunOptions)
                     })();
 
-                    assert.ok(fs.exists(
-                        resolveNodeModules(installTarget, 'ejs')
-                    ));
+                    assert.ok(checkNodeModules(installTarget, 'ejs'));
 
                     assert.notOk(
                         fs.exists(pkgJson)
@@ -85,9 +83,7 @@ describe('opt_tools/install from raw', () => {
                         child_process.run(bin, ['--install', '--save', 'ejs'], processRunOptions)
                     })();
 
-                    assert.ok(fs.exists(
-                        resolveNodeModules(installTarget, 'ejs')
-                    ));
+                    assert.ok(checkNodeModules(installTarget, 'ejs'));
 
                     assert.ok(
                         readJson(pkgJson).dependencies['ejs']
@@ -99,9 +95,7 @@ describe('opt_tools/install from raw', () => {
                         child_process.run(bin, ['--install', '-S', 'ejs'], processRunOptions)
                     })();
 
-                    assert.ok(fs.exists(
-                        resolveNodeModules(installTarget, 'ejs')
-                    ));
+                    assert.ok(checkNodeModules(installTarget, 'ejs'));
 
                     assert.ok(
                         readJson(pkgJson).dependencies['ejs']
@@ -113,9 +107,7 @@ describe('opt_tools/install from raw', () => {
                         child_process.run(bin, ['--install', '@fibjs/chalk'], processRunOptions)
                     })()
 
-                    assert.ok(fs.exists(
-                        resolveNodeModules(installTarget, '@fibjs/chalk')
-                    ));
+                    assert.ok(checkNodeModules(installTarget, '@fibjs/chalk'));
 
                     assert.notOk(
                         fs.exists(pkgJson)
@@ -127,9 +119,7 @@ describe('opt_tools/install from raw', () => {
                         child_process.run(bin, ['--install', '--save', '@fibjs/chalk'], processRunOptions)
                     })()
 
-                    assert.ok(fs.exists(
-                        resolveNodeModules(installTarget, '@fibjs/chalk')
-                    ));
+                    assert.ok(checkNodeModules(installTarget, '@fibjs/chalk'));
 
                     assert.ok(
                         readJson(pkgJson).dependencies['@fibjs/chalk']
@@ -141,9 +131,7 @@ describe('opt_tools/install from raw', () => {
                         child_process.run(bin, ['--install', '-S', '@fibjs/chalk'], processRunOptions)
                     })()
 
-                    assert.ok(fs.exists(
-                        resolveNodeModules(installTarget, '@fibjs/chalk')
-                    ));
+                    assert.ok(checkNodeModules(installTarget, '@fibjs/chalk'));
 
                     assert.ok(
                         readJson(pkgJson).dependencies['@fibjs/chalk']
@@ -155,9 +143,7 @@ describe('opt_tools/install from raw', () => {
                         child_process.run(bin, ['--install', '--save-dev', 'ejs'], processRunOptions)
                     })();
 
-                    assert.ok(fs.exists(
-                        resolveNodeModules(installTarget, 'ejs')
-                    ));
+                    assert.ok(checkNodeModules(installTarget, 'ejs'));
 
                     assert.ok(
                         fs.exists(pkgJson)
@@ -224,9 +210,7 @@ describe('opt_tools/install from raw', () => {
                     child_process.run(bin, ['--install', target], processRunOptions)
                 })();
 
-                assert.ok(fs.exists(
-                    resolveNodeModules(installTarget, pkg_name)
-                ));
+                assert.ok(checkNodeModules(installTarget, pkg_name));
 
                 assert.notOk(
                     fs.exists(pkgJson)
@@ -238,9 +222,7 @@ describe('opt_tools/install from raw', () => {
                     child_process.run(bin, ['--install', '--save', target], processRunOptions)
                 })();
 
-                assert.ok(fs.exists(
-                    resolveNodeModules(installTarget, pkg_name)
-                ));
+                assert.ok(checkNodeModules(installTarget, pkg_name));
 
                 assert.equal(readJson(pkgJson).version, '1.0.0');
 
@@ -254,9 +236,7 @@ describe('opt_tools/install from raw', () => {
                     child_process.run(bin, ['--install', '-S', target], processRunOptions)
                 })();
 
-                assert.ok(fs.exists(
-                    resolveNodeModules(installTarget, pkg_name)
-                ));
+                assert.ok(checkNodeModules(installTarget, pkg_name));
 
                 assert.equal(readJson(pkgJson).version, '1.0.0');
 
@@ -270,9 +250,7 @@ describe('opt_tools/install from raw', () => {
                     child_process.run(bin, ['--install', '-D', target], processRunOptions)
                 })();
 
-                assert.ok(fs.exists(
-                    resolveNodeModules(installTarget, pkg_name)
-                ));
+                assert.ok(checkNodeModules(installTarget, pkg_name));
 
                 assert.equal(readJson(pkgJson).version, '1.0.0');
 
