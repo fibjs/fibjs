@@ -33,9 +33,8 @@ Digest::Digest(const EVP_MD* md, const char* key, int32_t sz)
     m_ctx = EVP_MD_CTX_new();
     EVP_DigestInit_ex(m_ctx, md, NULL);
 
-    EVP_PKEY* pkey = EVP_PKEY_new_mac_key(EVP_PKEY_HMAC, NULL, (const unsigned char*)key, sz);
+    EVPKeyPointer pkey = EVP_PKEY_new_mac_key(EVP_PKEY_HMAC, NULL, (const unsigned char*)key, sz);
     EVP_DigestSignInit(m_ctx, NULL, md, NULL, pkey);
-    EVP_PKEY_free(pkey);
 }
 
 result_t Digest::update(Buffer_base* data, obj_ptr<Digest_base>& retVal)

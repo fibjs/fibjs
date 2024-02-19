@@ -15,8 +15,10 @@ namespace fibjs {
 template <typename T, void (*deleter)(T*)>
 class AutoPointer {
 public:
-    AutoPointer()
-    {}
+    AutoPointer(T* ptr = NULL)
+        : m_ptr(ptr)
+    {
+    }
 
     ~AutoPointer()
     {

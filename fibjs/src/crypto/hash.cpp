@@ -178,7 +178,7 @@ result_t crypto_base::hkdf(exlib::string algoName, Buffer_base* password, Buffer
     Buffer* saltBuf = Buffer::Cast(salt);
     Buffer* infoBuf = Buffer::Cast(info);
     obj_ptr<Buffer> ret = new Buffer(NULL, size);
-    EVP_PKEY_CTX* pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL);
+    EVPKeyCtxPointer pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL);
     size_t keylen = size;
 
     if (EVP_PKEY_derive_init(pctx) <= 0
@@ -187,11 +187,9 @@ result_t crypto_base::hkdf(exlib::string algoName, Buffer_base* password, Buffer
         || EVP_PKEY_CTX_set1_hkdf_key(pctx, (const unsigned char*)buf->data(), buf->length()) <= 0
         || EVP_PKEY_CTX_add1_hkdf_info(pctx, (const unsigned char*)infoBuf->data(), infoBuf->length()) <= 0
         || EVP_PKEY_derive(pctx, (unsigned char*)ret->data(), &keylen) <= 0) {
-        EVP_PKEY_CTX_free(pctx);
         return openssl_error();
     }
 
-    EVP_PKEY_CTX_free(pctx);
     retVal = ret;
 
     return 0;
