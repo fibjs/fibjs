@@ -303,7 +303,15 @@ describe('crypto', () => {
             assert.strictEqual(key.asymmetricKeyDetails, undefined);
 
             const exportedKey = key.export();
-            assert(keybuf.equals(exportedKey));
+            assert.ok(keybuf.equals(exportedKey));
+        });
+
+        it('encoding', () => {
+            const buffer = Buffer.from('Hello World');
+            const key1 = crypto.createSecretKey(buffer);
+            const key2 = crypto.createSecretKey('Hello World');
+
+            assert.ok(key1.export().equals(key2.export()));
         });
 
         it('export', () => {
@@ -341,10 +349,10 @@ describe('crypto', () => {
             const first = crypto.createSecretKey(Buffer.alloc(0));
             const second = crypto.createSecretKey(new ArrayBuffer(0));
             const third = crypto.createSecretKey(Buffer.alloc(1));
-            assert(first.equals(first));
-            assert(first.equals(second));
-            assert(!first.equals(third));
-            assert(!third.equals(first));
+            assert.ok(first.equals(first));
+            assert.ok(first.equals(second));
+            assert.ok(!first.equals(third));
+            assert.ok(!third.equals(first));
         });
     });
 
