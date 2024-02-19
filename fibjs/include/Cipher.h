@@ -97,6 +97,7 @@ public:
 
 public:
     result_t init(const exlib::string& name, Buffer_base* key, v8::Local<v8::Object> options);
+    result_t initiv(const exlib::string& name, const unsigned char* key, size_t size, Buffer_base* iv, v8::Local<v8::Object> options);
     result_t initiv(const exlib::string& name, Buffer_base* key, Buffer_base* iv, v8::Local<v8::Object> options);
 
 private:

@@ -331,7 +331,9 @@ public:
 
     virtual result_t toString(exlib::string& retVal)
     {
-        retVal = Classinfo().name();
+        retVal = "[object ";
+        retVal.append(Classinfo().name());
+        retVal.append("]");
         return 0;
     }
 

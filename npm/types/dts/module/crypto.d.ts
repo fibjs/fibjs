@@ -8,6 +8,7 @@
 /// <reference path="../interface/X509Req.d.ts" />
 /// <reference path="../interface/Digest.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
+/// <reference path="../interface/KeyObject.d.ts" />
 /**
  * @description `crypto` 模块是 `fibjs` 内置的加密算法模块。它提供了对称加密、非对称加密、摘要算法、密码学随机数生成器等功能。在使用之前，需要通过 `require('crypto')` 加载该模块。
  * 
@@ -256,6 +257,17 @@ declare module 'crypto' {
     function createCipheriv(algorithm: string, key: Class_Buffer, iv: Class_Buffer, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
+     * @description 创建一个对称加密的加密对象
+     *      @param algorithm 指定加密算法
+     *      @param key 指定加密解密密码
+     *      @param iv 指定初始向量
+     *      @param options 指定加密选项
+     *      @return 返回对称加密的加密对象
+     *      
+     */
+    function createCipheriv(algorithm: string, key: Class_KeyObject, iv: Class_Buffer, options?: FIBJS.GeneralObject): Class_Cipher;
+
+    /**
      * @description 创建一个对称加密的解密对象
      *      @param algorithm 指定加密算法
      *      @param key 指定加密解密密码
@@ -275,6 +287,35 @@ declare module 'crypto' {
      *      
      */
     function createDecipheriv(algorithm: string, key: Class_Buffer, iv: Class_Buffer, options?: FIBJS.GeneralObject): Class_Cipher;
+
+    /**
+     * @description 创建一个对称加密的解密对象
+     *      @param algorithm 指定加密算法
+     *      @param key 指定加密解密密码
+     *      @param iv 指定初始向量
+     *      @param options 指定加密选项
+     *      @return 返回对称加密的解密对象
+     *      
+     */
+    function createDecipheriv(algorithm: string, key: Class_KeyObject, iv: Class_Buffer, options?: FIBJS.GeneralObject): Class_Cipher;
+
+    /**
+     * @description 创建一个新的密钥对象，其中包含对称加密或 Hmac 的密钥
+     *      @param key 指定加密解密密码
+     *      @param encoding 指定密码的编码，缺省为 "buffer"
+     *      @return 返回对称加密的解密对象
+     *      
+     */
+    function createSecretKey(key: Class_Buffer, encoding?: string): Class_KeyObject;
+
+    /**
+     * @description 创建一个新的密钥对象，其中包含对称加密或 Hmac 的密钥
+     *      @param key 指定加密解密密码
+     *      @param encoding 指定密码的编码，缺省为 "buffer"
+     *      @return 返回对称加密的解密对象
+     *      
+     */
+    function createSecretKey(key: string, encoding: string): Class_KeyObject;
 
     /**
      * @description 加载一个 CRT/PEM/DER 格式的证书，可多次调用

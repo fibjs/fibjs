@@ -13,6 +13,7 @@
 #include "StringBuffer.h"
 #include "Cipher.h"
 #include "Buffer.h"
+#include "KeyObject.h"
 #include "ssl.h"
 #include "encoding.h"
 #include <string.h>
@@ -354,6 +355,7 @@ result_t crypto_base::createCipher(exlib::string algorithm, Buffer_base* key,
     v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
 {
     obj_ptr<CipherX> ci = new CipherX(CipherX::kCipher);
+
     result_t hr = ci->init(algorithm, key, options);
     if (hr < 0)
         return hr;
@@ -367,7 +369,26 @@ result_t crypto_base::createCipheriv(exlib::string algorithm, Buffer_base* key, 
     v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
 {
     obj_ptr<CipherX> ci = new CipherX(CipherX::kCipher);
+
     result_t hr = ci->initiv(algorithm, key, iv, options);
+    if (hr < 0)
+        return hr;
+
+    retVal = ci;
+
+    return 0;
+}
+
+result_t crypto_base::createCipheriv(exlib::string algorithm, KeyObject_base* key, Buffer_base* iv,
+    v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
+{
+    KeyObject* ko = (KeyObject*)key;
+    if (ko->type() != KeyObject::kKeyTypeSecret)
+        return CHECK_ERROR(Runtime::setError("Cipher: Invalid key type"));
+
+    obj_ptr<CipherX> ci = new CipherX(CipherX::kCipher);
+
+    result_t hr = ci->initiv(algorithm, ko->data(), ko->length(), iv, options);
     if (hr < 0)
         return hr;
 
@@ -380,6 +401,7 @@ result_t crypto_base::createDecipher(exlib::string algorithm, Buffer_base* key,
     v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
 {
     obj_ptr<CipherX> ci = new CipherX(CipherX::kDecipher);
+
     result_t hr = ci->init(algorithm, key, options);
     if (hr < 0)
         return hr;
@@ -393,7 +415,26 @@ result_t crypto_base::createDecipheriv(exlib::string algorithm, Buffer_base* key
     v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
 {
     obj_ptr<CipherX> ci = new CipherX(CipherX::kDecipher);
+
     result_t hr = ci->initiv(algorithm, key, iv, options);
+    if (hr < 0)
+        return hr;
+
+    retVal = ci;
+
+    return 0;
+}
+
+result_t crypto_base::createDecipheriv(exlib::string algorithm, KeyObject_base* key, Buffer_base* iv,
+    v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal)
+{
+    KeyObject* ko = (KeyObject*)key;
+    if (ko->type() != KeyObject::kKeyTypeSecret)
+        return CHECK_ERROR(Runtime::setError("Cipher: Invalid key type"));
+
+    obj_ptr<CipherX> ci = new CipherX(CipherX::kDecipher);
+
+    result_t hr = ci->initiv(algorithm, ko->data(), ko->length(), iv, options);
     if (hr < 0)
         return hr;
 
@@ -514,7 +555,7 @@ result_t CipherX::init(const exlib::string& name, Buffer_base* key, v8::Local<v8
     return CommonInit(cipher, key1, key_len, iv1, EVP_CIPHER_iv_length(cipher), options);
 }
 
-result_t CipherX::initiv(const exlib::string& name, Buffer_base* key, Buffer_base* iv, v8::Local<v8::Object> options)
+result_t CipherX::initiv(const exlib::string& name, const unsigned char* key, size_t size, Buffer_base* iv, v8::Local<v8::Object> options)
 {
     const EVP_CIPHER* cipher = EVP_get_cipherbyname(name.c_str());
     if (cipher == NULL)
@@ -541,8 +582,13 @@ result_t CipherX::initiv(const exlib::string& name, Buffer_base* key, Buffer_bas
             return CHECK_ERROR(Runtime::setError("Cipher: Invalid iv size"));
     }
 
+    return CommonInit(cipher, key, size, (const unsigned char*)iv_buf->data(), iv_len, options);
+}
+
+result_t CipherX::initiv(const exlib::string& name, Buffer_base* key, Buffer_base* iv, v8::Local<v8::Object> options)
+{
     Buffer* key_buf = Buffer::Cast(key);
-    return CommonInit(cipher, (const unsigned char*)key_buf->data(), key_buf->length(), (const unsigned char*)iv_buf->data(), iv_len, options);
+    return initiv(name, (const unsigned char*)key_buf->data(), key_buf->length(), iv, options);
 }
 
 result_t CipherX::CommonInit(const EVP_CIPHER* cipher, const unsigned char* key, unsigned int key_len,

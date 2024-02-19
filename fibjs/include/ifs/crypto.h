@@ -24,6 +24,7 @@ class X509Crl_base;
 class X509Req_base;
 class Digest_base;
 class Buffer_base;
+class KeyObject_base;
 
 class crypto_base : public object_base {
     DECLARE_CLASS(crypto_base);
@@ -63,8 +64,12 @@ public:
     static result_t getCiphers(v8::Local<v8::Array>& retVal);
     static result_t createCipher(exlib::string algorithm, Buffer_base* key, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
     static result_t createCipheriv(exlib::string algorithm, Buffer_base* key, Buffer_base* iv, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
+    static result_t createCipheriv(exlib::string algorithm, KeyObject_base* key, Buffer_base* iv, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
     static result_t createDecipher(exlib::string algorithm, Buffer_base* key, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
     static result_t createDecipheriv(exlib::string algorithm, Buffer_base* key, Buffer_base* iv, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
+    static result_t createDecipheriv(exlib::string algorithm, KeyObject_base* key, Buffer_base* iv, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
+    static result_t createSecretKey(Buffer_base* key, exlib::string encoding, obj_ptr<KeyObject_base>& retVal);
+    static result_t createSecretKey(exlib::string key, exlib::string encoding, obj_ptr<KeyObject_base>& retVal);
     static result_t loadCert(exlib::string filename, obj_ptr<X509Cert_base>& retVal);
     static result_t loadCrl(exlib::string filename, obj_ptr<X509Crl_base>& retVal);
     static result_t loadReq(exlib::string filename, obj_ptr<X509Req_base>& retVal);
@@ -94,6 +99,7 @@ public:
     static void s_static_createCipheriv(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createDecipher(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createDecipheriv(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createSecretKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_loadCert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_loadCrl(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_loadReq(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -123,6 +129,7 @@ public:
 #include "ifs/X509Req.h"
 #include "ifs/Digest.h"
 #include "ifs/Buffer.h"
+#include "ifs/KeyObject.h"
 
 namespace fibjs {
 inline ClassInfo& crypto_base::class_info()
@@ -136,6 +143,7 @@ inline ClassInfo& crypto_base::class_info()
         { "createCipheriv", s_static_createCipheriv, true, false },
         { "createDecipher", s_static_createDecipher, true, false },
         { "createDecipheriv", s_static_createDecipheriv, true, false },
+        { "createSecretKey", s_static_createSecretKey, true, false },
         { "loadCert", s_static_loadCert, true, false },
         { "loadCrl", s_static_loadCrl, true, false },
         { "loadReq", s_static_loadReq, true, false },
@@ -288,6 +296,15 @@ inline void crypto_base::s_static_createCipheriv(const v8::FunctionCallbackInfo<
 
     hr = createCipheriv(v0, v1, v2, v3, vr);
 
+    METHOD_OVER(4, 3);
+
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<KeyObject_base>, 1);
+    ARG(obj_ptr<Buffer_base>, 2);
+    OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate));
+
+    hr = createCipheriv(v0, v1, v2, v3, vr);
+
     METHOD_RETURN();
 }
 
@@ -322,6 +339,38 @@ inline void crypto_base::s_static_createDecipheriv(const v8::FunctionCallbackInf
     OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate));
 
     hr = createDecipheriv(v0, v1, v2, v3, vr);
+
+    METHOD_OVER(4, 3);
+
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<KeyObject_base>, 1);
+    ARG(obj_ptr<Buffer_base>, 2);
+    OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate));
+
+    hr = createDecipheriv(v0, v1, v2, v3, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_createSecretKey(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<KeyObject_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(exlib::string, 1, "buffer");
+
+    hr = createSecretKey(v0, v1, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+
+    hr = createSecretKey(v0, v1, vr);
 
     METHOD_RETURN();
 }

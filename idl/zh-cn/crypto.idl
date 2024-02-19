@@ -172,6 +172,15 @@ module crypto
      */
     static Cipher createCipheriv(String algorithm, Buffer key, Buffer iv, Object options = {});
 
+    /*! @brief 创建一个对称加密的加密对象
+     @param algorithm 指定加密算法
+     @param key 指定加密解密密码
+     @param iv 指定初始向量
+     @param options 指定加密选项
+     @return 返回对称加密的加密对象
+     */
+    static Cipher createCipheriv(String algorithm, KeyObject key, Buffer iv, Object options = {});
+
     /*! @brief 创建一个对称加密的解密对象
      @param algorithm 指定加密算法
      @param key 指定加密解密密码
@@ -188,6 +197,29 @@ module crypto
      @return 返回对称加密的解密对象
      */
     static Cipher createDecipheriv(String algorithm, Buffer key, Buffer iv, Object options = {});
+
+    /*! @brief 创建一个对称加密的解密对象
+     @param algorithm 指定加密算法
+     @param key 指定加密解密密码
+     @param iv 指定初始向量
+     @param options 指定加密选项
+     @return 返回对称加密的解密对象
+     */
+    static Cipher createDecipheriv(String algorithm, KeyObject key, Buffer iv, Object options = {});
+
+    /*! @brief 创建一个新的密钥对象，其中包含对称加密或 Hmac 的密钥
+     @param key 指定加密解密密码
+     @param encoding 指定密码的编码，缺省为 "buffer"
+     @return 返回对称加密的解密对象
+     */
+    static KeyObject createSecretKey(Buffer key, String encoding = "buffer");
+
+    /*! @brief 创建一个新的密钥对象，其中包含对称加密或 Hmac 的密钥
+     @param key 指定加密解密密码
+     @param encoding 指定密码的编码，缺省为 "buffer"
+     @return 返回对称加密的解密对象
+     */
+    static KeyObject createSecretKey(String key, String encoding);
 
     /*! @brief 加载一个 CRT/PEM/DER 格式的证书，可多次调用
      @param filename 证书文件名

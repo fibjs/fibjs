@@ -291,6 +291,63 @@ describe('crypto', () => {
         });
     });
 
+    describe('createSecretKey', () => {
+        it('normal', () => {
+            const keybuf = crypto.randomBytes(32);
+            const key = crypto.createSecretKey(keybuf);
+
+            assert.strictEqual(key.type, 'secret');
+            assert.strictEqual(key.toString(), '[object KeyObject]');
+            assert.strictEqual(key.symmetricKeySize, 32);
+            assert.strictEqual(key.asymmetricKeyType, undefined);
+            assert.strictEqual(key.asymmetricKeyDetails, undefined);
+
+            const exportedKey = key.export();
+            assert(keybuf.equals(exportedKey));
+        });
+
+        it('export', () => {
+            const buffer = Buffer.from('Hello World');
+            const keyObject = crypto.createSecretKey(buffer);
+            assert.deepEqual(keyObject.export(), buffer);
+            assert.deepEqual(keyObject.export({}), buffer);
+            assert.deepEqual(keyObject.export({ format: 'buffer' }), buffer);
+            assert.deepEqual(keyObject.export({ format: undefined }), buffer);
+        });
+
+        it('export jwk', () => {
+            const buffer = Buffer.from('Hello World');
+            const keyObject = crypto.createSecretKey(buffer);
+            assert.deepEqual(
+                keyObject.export({ format: 'jwk' }),
+                { kty: 'oct', k: 'SGVsbG8gV29ybGQ' }
+            );
+        });
+
+        it('equals', () => {
+            const first = Buffer.from('Hello');
+            const second = Buffer.from('World');
+
+            const keyObject = crypto.createSecretKey(first);
+            assert.ok(crypto.createSecretKey(first).equals(crypto.createSecretKey(first)));
+            assert.ok(!crypto.createSecretKey(first).equals(crypto.createSecretKey(second)));
+
+            assert.throws(() => keyObject.equals(0));
+
+            assert.ok(keyObject.equals(keyObject));
+        });
+
+        it('equals with empty key', () => {
+            const first = crypto.createSecretKey(Buffer.alloc(0));
+            const second = crypto.createSecretKey(new ArrayBuffer(0));
+            const third = crypto.createSecretKey(Buffer.alloc(1));
+            assert(first.equals(first));
+            assert(first.equals(second));
+            assert(!first.equals(third));
+            assert(!third.equals(first));
+        });
+    });
+
     describe('Cipher', () => {
         function test_cipher(provider, file) {
             it(file, () => {
@@ -518,12 +575,12 @@ describe('crypto', () => {
                     assert.equal(txt, plaintext);
                 }
 
-
                 testCipher1('0123456789abcd0123456789', '12345678');
                 testCipher1('0123456789abcd0123456789', Buffer.from('12345678'));
                 testCipher1(Buffer.from('0123456789abcd0123456789'), '12345678');
                 testCipher1(Buffer.from('0123456789abcd0123456789'), Buffer.from('12345678'));
                 testCipher2(Buffer.from('0123456789abcd0123456789'), Buffer.from('12345678'));
+                testCipher2(crypto.createSecretKey(Buffer.from('0123456789abcd0123456789')), Buffer.from('12345678'));
             });
 
             it("check arguments", () => {

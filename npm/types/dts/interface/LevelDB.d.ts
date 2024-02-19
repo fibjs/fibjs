@@ -2,7 +2,7 @@
 /// <reference path="../interface/object.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
- * @description evelDB 是 fibjs 内置的数据库操作对象，用于创建和管理键值对形式的字典对象。使用 LevelDB 对象，可轻松实现键值对数据的存储、查询、删除、枚举等操作。它基于 Google 开源的 LevelDB 实现，具有高效、可靠、可扩展等优点
+ * @description LevelDB 是 fibjs 内置的数据库操作对象，用于创建和管理键值对形式的字典对象。使用 LevelDB 对象，可轻松实现键值对数据的存储、查询、删除、枚举等操作。它基于 Google 开源的 LevelDB 实现，具有高效、可靠、可扩展等优点
  * 
  * LevelDB 对象的创建非常简单，只需通过 db.openLevelDB 方法即可创建一个指定名称的数据库对象。例如：
  * 

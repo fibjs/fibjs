@@ -519,6 +519,7 @@ function gen_code(cls, def, baseFolder) {
             "new": true,
             "host": true,
             "assert": true,
+            "export": true,
             "delete": true
         };
 
