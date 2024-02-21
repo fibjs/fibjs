@@ -9,7 +9,7 @@
 
 #include "object.h"
 #include "ifs/crypto.h"
-#include "crypto.h"
+#include "crypto_util.h"
 #include "StringBuffer.h"
 #include "Cipher.h"
 #include "Buffer.h"

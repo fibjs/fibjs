@@ -68,6 +68,12 @@ public:
     static result_t createDecipher(exlib::string algorithm, Buffer_base* key, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
     static result_t createDecipheriv(exlib::string algorithm, Buffer_base* key, Buffer_base* iv, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
     static result_t createDecipheriv(exlib::string algorithm, KeyObject_base* key, Buffer_base* iv, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
+    static result_t getCurves(v8::Local<v8::Array>& retVal);
+    static result_t createPrivateKey(Buffer_base* key, obj_ptr<KeyObject_base>& retVal);
+    static result_t createPrivateKey(v8::Local<v8::Object> key, obj_ptr<KeyObject_base>& retVal);
+    static result_t createPublicKey(Buffer_base* key, obj_ptr<KeyObject_base>& retVal);
+    static result_t createPublicKey(KeyObject_base* key, obj_ptr<KeyObject_base>& retVal);
+    static result_t createPublicKey(v8::Local<v8::Object> key, obj_ptr<KeyObject_base>& retVal);
     static result_t createSecretKey(Buffer_base* key, exlib::string encoding, obj_ptr<KeyObject_base>& retVal);
     static result_t createSecretKey(exlib::string key, exlib::string encoding, obj_ptr<KeyObject_base>& retVal);
     static result_t loadCert(exlib::string filename, obj_ptr<X509Cert_base>& retVal);
@@ -99,6 +105,9 @@ public:
     static void s_static_createCipheriv(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createDecipher(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createDecipheriv(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_getCurves(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createPrivateKey(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createPublicKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createSecretKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_loadCert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_loadCrl(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -143,6 +152,9 @@ inline ClassInfo& crypto_base::class_info()
         { "createCipheriv", s_static_createCipheriv, true, false },
         { "createDecipher", s_static_createDecipher, true, false },
         { "createDecipheriv", s_static_createDecipheriv, true, false },
+        { "getCurves", s_static_getCurves, true, false },
+        { "createPrivateKey", s_static_createPrivateKey, true, false },
+        { "createPublicKey", s_static_createPublicKey, true, false },
         { "createSecretKey", s_static_createSecretKey, true, false },
         { "loadCert", s_static_loadCert, true, false },
         { "loadCrl", s_static_loadCrl, true, false },
@@ -348,6 +360,67 @@ inline void crypto_base::s_static_createDecipheriv(const v8::FunctionCallbackInf
     OPT_ARG(v8::Local<v8::Object>, 3, v8::Object::New(isolate->m_isolate));
 
     hr = createDecipheriv(v0, v1, v2, v3, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_getCurves(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Array> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = getCurves(vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_createPrivateKey(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<KeyObject_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+
+    hr = createPrivateKey(v0, vr);
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
+
+    hr = createPrivateKey(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_createPublicKey(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<KeyObject_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+
+    hr = createPublicKey(v0, vr);
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<KeyObject_base>, 0);
+
+    hr = createPublicKey(v0, vr);
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
+
+    hr = createPublicKey(v0, vr);
 
     METHOD_RETURN();
 }

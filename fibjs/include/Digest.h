@@ -9,7 +9,7 @@
 
 #include "ifs/Digest.h"
 #include "Buffer.h"
-#include "crypto.h"
+#include "crypto_util.h"
 
 namespace fibjs {
 

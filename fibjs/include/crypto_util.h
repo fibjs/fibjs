@@ -8,6 +8,8 @@
 #pragma once
 
 #include "utils.h"
+#include "encoding.h"
+#include "Buffer.h"
 #include <openssl/ssl.h>
 
 namespace fibjs {
@@ -39,6 +41,13 @@ public:
     operator T*() const
     {
         return m_ptr;
+    }
+
+    T* release()
+    {
+        T* ptr = m_ptr;
+        m_ptr = NULL;
+        return ptr;
     }
 
 private:
@@ -77,5 +86,41 @@ using X509Pointer = AutoPointer<X509, X509_free>;
 result_t randomBytes(uint8_t* buf, int32_t size);
 
 result_t openssl_error();
+
+inline result_t GetKeyBuffer(Isolate* isolate, v8::Local<v8::Object> o, obj_ptr<Buffer>& buf)
+{
+    result_t hr;
+    v8::Local<v8::Value> v;
+    hr = GetConfigValue(isolate, o, "key", v, true);
+    if (hr < 0)
+        return hr;
+
+    if (v->IsString()) {
+        exlib::string _buf;
+        exlib::string encoding = "utf8";
+
+        hr = GetArgumentValue(isolate, v, _buf);
+        if (hr < 0)
+            return hr;
+
+        hr = GetConfigValue(isolate, o, "encoding", encoding, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+
+        hr = commonDecode(encoding, _buf, _buf);
+        if (hr < 0)
+            return hr;
+
+        buf = new Buffer((const unsigned char*)_buf.c_str(), _buf.length());
+    } else {
+        obj_ptr<Buffer_base> _buf;
+        hr = GetArgumentValue(isolate, v, _buf);
+        if (hr < 0)
+            return hr;
+        buf = Buffer::Cast(_buf);
+    }
+
+    return 0;
+}
 
 } /* namespace fibjs */

@@ -10,7 +10,7 @@
 #include "ifs/Cipher.h"
 #include "StringDecoder.h"
 #include <mbedtls/mbedtls/cipher.h>
-#include "crypto.h"
+#include "crypto_util.h"
 
 namespace fibjs {
 

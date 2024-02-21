@@ -10,7 +10,7 @@
 #include "ifs/crypto.h"
 #include "Digest.h"
 #include "Buffer.h"
-#include "crypto.h"
+#include "crypto_util.h"
 #include <openssl/kdf.h>
 
 namespace fibjs {

@@ -300,6 +300,68 @@ declare module 'crypto' {
     function createDecipheriv(algorithm: string, key: Class_KeyObject, iv: Class_Buffer, options?: FIBJS.GeneralObject): Class_Cipher;
 
     /**
+     * @description 获取 crypto 模块支持的的 ecc 曲线
+     *      @return 返回支持的 ecc 曲线
+     *      
+     */
+    function getCurves(): any[];
+
+    /**
+     * @description 创建一个新的密钥对象，其中包含非对称加密的私钥
+     *      @param key 指定 pem 格式的私钥
+     *      @return 返回私钥的密钥对象
+     *      
+     */
+    function createPrivateKey(key: Class_Buffer): Class_KeyObject;
+
+    /**
+     * @description 创建一个新的密钥对象，其中包含非对称加密的私钥
+     * 
+     *     参数 key 用于指定创建私钥的配置属性，支持的属性包括：
+     *     - key: PEM 字符串，DER 二进制 或者 JWK 格式对象
+     *     - format: 必须是 'pem', 'der' 或 'jwk'。默认值：'pem'
+     *     - type: 必须是 'pkcs1', 'pkcs8' 或 'sec1'。仅当 format 为 'der' 时才需要此选项，否则忽略
+     *     - passphrase: 用于解密的密码字符串
+     *     - encoding: 当 key 是字符串时使用的字符串编码
+     * 
+     *      @param key 创建私钥的配置属性
+     *      @return 返回私钥的密钥对象
+     *      
+     */
+    function createPrivateKey(key: FIBJS.GeneralObject): Class_KeyObject;
+
+    /**
+     * @description 创建一个新的密钥对象，其中包含非对称加密的公钥
+     *      @param key 指定 pem 格式的公钥
+     *      @return 返回公钥的密钥对象
+     *      
+     */
+    function createPublicKey(key: Class_Buffer): Class_KeyObject;
+
+    /**
+     * @description 基于给定的私钥创建一个新的密钥对象，其中包含给定私钥对应的公钥
+     *      @param key 指定一个非对称加密的私钥
+     *      @return 返回公钥的密钥对象
+     *      
+     */
+    function createPublicKey(key: Class_KeyObject): Class_KeyObject;
+
+    /**
+     * @description 创建一个新的密钥对象，其中包含非对称加密的公钥
+     * 
+     *     参数 key 用于指定创建公钥的配置属性，支持的属性包括：
+     *     - key: PEM 字符串，DER 二进制 或者 JWK 格式对象
+     *     - format: 必须是 'pem', 'der' 或 'jwk'。默认值：'pem'
+     *     - type: 必须是 'pkcs1', 或 'sec1'。仅当 format 为 'der' 时才需要此选项，否则忽略
+     *     - encoding: 当 key 是字符串时使用的字符串编码
+     * 
+     *      @param key 创建公钥的配置属性
+     *      @return 返回公钥的密钥对象
+     *      
+     */
+    function createPublicKey(key: FIBJS.GeneralObject): Class_KeyObject;
+
+    /**
      * @description 创建一个新的密钥对象，其中包含对称加密或 Hmac 的密钥
      *      @param key 指定加密解密密码
      *      @param encoding 指定密码的编码，缺省为 "buffer"

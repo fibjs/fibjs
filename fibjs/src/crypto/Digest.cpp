@@ -8,7 +8,7 @@
 #include "object.h"
 #include "ifs/hash.h"
 #include "ifs/util.h"
-#include "crypto.h"
+#include "crypto_util.h"
 #include "Digest.h"
 #include "Buffer.h"
 #include "encoding.h"

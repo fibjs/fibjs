@@ -7,12 +7,20 @@
 
 #pragma once
 
+#include "crypto_util.h"
 #include "ifs/KeyObject.h"
 
 namespace fibjs {
 
 class KeyObject : public KeyObject_base {
 public:
+    enum PKEncodingType {
+        kKeyEncodingPKCS1,
+        kKeyEncodingPKCS8,
+        kKeyEncodingSPKI,
+        kKeyEncodingSEC1
+    };
+
     enum KeyType {
         kKeyTypeSecret,
         kKeyTypePublic,
@@ -30,6 +38,35 @@ public:
 
 public:
     result_t createSecretKey(const unsigned char* key, size_t size);
+    result_t createAsymmetricKey(v8::Local<v8::Object> key, KeyType type);
+    result_t ImportJWKAsymmetricKey(v8::Local<v8::Object> key, KeyType type);
+    result_t ImportJWKRsaKey(v8::Local<v8::Object> key, KeyType type);
+    result_t ImportJWKEcKey(v8::Local<v8::Object> key, KeyType type);
+    result_t ImportJWKEdKey(v8::Local<v8::Object> key, KeyType type);
+
+public:
+    result_t TryParsePublicKey(const BIOPointer& bp, const char* name, const std::function<EVP_PKEY*(const unsigned char** p, long l)>& parse);
+    result_t ParsePublicKeyPEM(const char* key_pem, int key_pem_len);
+    result_t createPublicKeyFromPrivateKey(KeyObject_base* key);
+    result_t createPublicKeyFromPrivateKey(EVP_PKEY* key);
+
+public:
+    result_t ParsePrivateKeyPEM(const char* key_pem, int key_pem_len, Buffer* passphrase);
+
+public:
+    result_t ExportPublicKey(v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal);
+    result_t ParsePublicKey(v8::Local<v8::Object> key);
+
+public:
+    result_t ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal);
+    result_t ParsePrivateKey(v8::Local<v8::Object> key);
+
+public:
+    result_t export_json(v8::Local<v8::Value>& retVal);
+    result_t ExportJWKEdKey(v8::Local<v8::Value>& retVal);
+    result_t ExportJWKRsaKey(v8::Local<v8::Value>& retVal);
+    result_t ExportJWKEcKey(v8::Local<v8::Value>& retVal);
+    result_t ExportJWKSecretKey(v8::Local<v8::Value>& retVal);
 
 public:
     KeyType type() const
@@ -47,9 +84,21 @@ public:
         return m_key.size();
     }
 
+    EVP_PKEY* pkey() const
+    {
+        return m_pkey;
+    }
+
+private:
+    result_t GetRsaKeyDetail(v8::Local<v8::Object>& retVal, bool is_pss);
+    result_t GetDsaKeyDetail(v8::Local<v8::Object>& retVal);
+    result_t GetEcKeyDetail(v8::Local<v8::Object>& retVal);
+    result_t GetDhKeyDetail(v8::Local<v8::Object>& retVal);
+
 private:
     KeyType m_keyType;
     std::vector<unsigned char> m_key;
+    EVPKeyPointer m_pkey;
 };
 
 }
