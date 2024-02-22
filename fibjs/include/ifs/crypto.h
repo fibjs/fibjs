@@ -15,6 +15,7 @@
 
 namespace fibjs {
 
+class crypto_constants_base;
 class Cipher_base;
 class PKey_base;
 class ECKey_base;
@@ -86,6 +87,18 @@ public:
     static result_t generateKey(exlib::string curve, obj_ptr<PKey_base>& retVal, AsyncEvent* ac);
     static result_t hkdf(exlib::string algoName, Buffer_base* password, Buffer_base* salt, Buffer_base* info, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    static result_t privateDecrypt(Buffer_base* privateKey, Buffer_base* buffer, obj_ptr<Buffer_base>& retVal);
+    static result_t privateDecrypt(KeyObject_base* privateKey, Buffer_base* buffer, obj_ptr<Buffer_base>& retVal);
+    static result_t privateDecrypt(v8::Local<v8::Object> key, v8::Local<v8::Value> buffer, obj_ptr<Buffer_base>& retVal);
+    static result_t privateEncrypt(Buffer_base* privateKey, Buffer_base* buffer, obj_ptr<Buffer_base>& retVal);
+    static result_t privateEncrypt(KeyObject_base* privateKey, Buffer_base* buffer, obj_ptr<Buffer_base>& retVal);
+    static result_t privateEncrypt(v8::Local<v8::Object> key, v8::Local<v8::Value> buffer, obj_ptr<Buffer_base>& retVal);
+    static result_t publicDecrypt(Buffer_base* publicKey, Buffer_base* buffer, obj_ptr<Buffer_base>& retVal);
+    static result_t publicDecrypt(KeyObject_base* publicKey, Buffer_base* buffer, obj_ptr<Buffer_base>& retVal);
+    static result_t publicDecrypt(v8::Local<v8::Object> key, v8::Local<v8::Value> buffer, obj_ptr<Buffer_base>& retVal);
+    static result_t publicEncrypt(Buffer_base* publicKey, Buffer_base* buffer, obj_ptr<Buffer_base>& retVal);
+    static result_t publicEncrypt(KeyObject_base* publicKey, Buffer_base* buffer, obj_ptr<Buffer_base>& retVal);
+    static result_t publicEncrypt(v8::Local<v8::Object> key, v8::Local<v8::Value> buffer, obj_ptr<Buffer_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -118,6 +131,10 @@ public:
     static void s_static_generateKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_hkdf(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_privateDecrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_privateEncrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_publicDecrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_publicEncrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(crypto_base, randomBytes, int32_t, obj_ptr<Buffer_base>);
@@ -129,6 +146,7 @@ public:
 };
 }
 
+#include "ifs/crypto_constants.h"
 #include "ifs/Cipher.h"
 #include "ifs/PKey.h"
 #include "ifs/ECKey.h"
@@ -169,10 +187,15 @@ inline ClassInfo& crypto_base::class_info()
         { "hkdf", s_static_hkdf, true, true },
         { "hkdfSync", s_static_hkdf, true, false },
         { "pbkdf2", s_static_pbkdf2, true, true },
-        { "pbkdf2Sync", s_static_pbkdf2, true, false }
+        { "pbkdf2Sync", s_static_pbkdf2, true, false },
+        { "privateDecrypt", s_static_privateDecrypt, true, false },
+        { "privateEncrypt", s_static_privateEncrypt, true, false },
+        { "publicDecrypt", s_static_publicDecrypt, true, false },
+        { "publicEncrypt", s_static_publicEncrypt, true, false }
     };
 
     static ClassData::ClassObject s_object[] = {
+        { "constants", crypto_constants_base::class_info },
         { "Cipher", Cipher_base::class_info },
         { "PKey", PKey_base::class_info },
         { "ECKey", ECKey_base::class_info },
@@ -613,6 +636,126 @@ inline void crypto_base::s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Valu
         hr = acb_pbkdf2(v0, v1, v2, v3, v4, cb, args);
     else
         hr = ac_pbkdf2(v0, v1, v2, v3, v4, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_privateDecrypt(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+
+    hr = privateDecrypt(v0, v1, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<KeyObject_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+
+    hr = privateDecrypt(v0, v1, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+
+    hr = privateDecrypt(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_privateEncrypt(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+
+    hr = privateEncrypt(v0, v1, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<KeyObject_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+
+    hr = privateEncrypt(v0, v1, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+
+    hr = privateEncrypt(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_publicDecrypt(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+
+    hr = publicDecrypt(v0, v1, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<KeyObject_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+
+    hr = publicDecrypt(v0, v1, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+
+    hr = publicDecrypt(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_publicEncrypt(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+
+    hr = publicEncrypt(v0, v1, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<KeyObject_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+
+    hr = publicEncrypt(v0, v1, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Value>, 1);
+
+    hr = publicEncrypt(v0, v1, vr);
 
     METHOD_RETURN();
 }

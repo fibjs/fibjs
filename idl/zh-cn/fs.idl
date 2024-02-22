@@ -56,7 +56,7 @@ module fs
     /*! @brief seek 方式常量，移动到文件结尾的相对位置 */
     const SEEK_END = 2;
 
-    /*! fs模块的常量对象 */
+    /*! fs模块的常量对象，参见 fs_constants */
     static fs_constants new constants();
 
     /*! @brief 查询指定的文件或目录是否存在

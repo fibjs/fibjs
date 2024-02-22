@@ -261,6 +261,10 @@ function readKey(name, enc) {
     return fs.readFileSync(path.join(__dirname, "crypto_case", 'keys', name), enc);
 }
 
+function readSync(name, enc) {
+    return fs.readFileSync(path.join(__dirname, "..", "test", "crypto_case", name), enc);
+}
+
 const publicPem = readKey('rsa_public.pem', 'ascii');
 const privatePem = readKey('rsa_private.pem', 'ascii');
 
@@ -833,6 +837,290 @@ describe('crypto', () => {
                     divisorLength: 160,
                     modulusLength: 1088
                 });
+            });
+        });
+
+        describe('encrypt', () => {
+            const certPem = readKey('rsa_cert.crt');
+            const keyPem = readKey('rsa_private.pem');
+            const rsaKeySize = 2048;
+            const rsaPubPem = readKey('rsa_public.pem', 'ascii');
+            const rsaKeyPem = readKey('rsa_private.pem', 'ascii');
+            const rsaKeyPemEncrypted = readKey('rsa_private_encrypted.pem', 'ascii');
+            const dsaPubPem = readKey('dsa_public.pem', 'ascii');
+            const dsaKeyPem = readKey('dsa_private.pem', 'ascii');
+            const dsaKeyPemEncrypted = readKey('dsa_private_encrypted.pem', 'ascii');
+            const rsaPkcs8KeyPem = readKey('rsa_private_pkcs8.pem');
+            const dsaPkcs8KeyPem = readKey('dsa_private_pkcs8.pem');
+
+            const ec = new TextEncoder();
+
+            function getBufferCopy(buf) {
+                return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+            }
+
+            describe('RSA encryption/decryption', () => {
+                const input = 'I AM THE WALRUS';
+                const bufferToEncrypt = Buffer.from(input);
+                const bufferPassword = Buffer.from('password');
+                var encryptedBuffer;
+                var decryptedBuffer;
+                var otherEncrypted;
+
+                it('publicEncrypt/privateDecrypt', () => {
+                    encryptedBuffer = crypto.publicEncrypt(rsaPubPem, bufferToEncrypt);
+
+                    const ab = getBufferCopy(ec.encode(rsaPubPem));
+                    const ab2enc = getBufferCopy(bufferToEncrypt);
+
+                    crypto.publicEncrypt(ab, ab2enc);
+                    crypto.publicEncrypt(new Uint8Array(ab), new Uint8Array(ab2enc));
+                    crypto.publicEncrypt(new DataView(ab), new DataView(ab2enc));
+                    otherEncrypted = crypto.publicEncrypt({
+                        key: Buffer.from(ab).toString('hex'),
+                        encoding: 'hex'
+                    }, Buffer.from(ab2enc).toString('hex'));
+
+                    decryptedBuffer = crypto.privateDecrypt(rsaKeyPem, encryptedBuffer);
+                    const otherDecrypted = crypto.privateDecrypt(rsaKeyPem, otherEncrypted);
+                    assert.equal(decryptedBuffer.toString(), input);
+                    assert.equal(otherDecrypted.toString(), input);
+
+                    decryptedBuffer = crypto.privateDecrypt(rsaPkcs8KeyPem, encryptedBuffer);
+                    assert.equal(decryptedBuffer.toString(), input);
+
+                    let decryptedBufferWithPassword = crypto.privateDecrypt({
+                        key: rsaKeyPemEncrypted,
+                        passphrase: 'password'
+                    }, encryptedBuffer);
+
+                    const otherDecryptedBufferWithPassword = crypto.privateDecrypt({
+                        key: rsaKeyPemEncrypted,
+                        passphrase: ec.encode('password')
+                    }, encryptedBuffer);
+
+                    assert.equal(
+                        otherDecryptedBufferWithPassword.toString(),
+                        decryptedBufferWithPassword.toString());
+
+                    decryptedBufferWithPassword = crypto.privateDecrypt({
+                        key: rsaKeyPemEncrypted,
+                        passphrase: 'password'
+                    }, encryptedBuffer);
+
+                    assert.equal(decryptedBufferWithPassword.toString(), input);
+
+                    encryptedBuffer = crypto.publicEncrypt({
+                        key: rsaKeyPemEncrypted,
+                        passphrase: 'password'
+                    }, bufferToEncrypt);
+
+                    decryptedBufferWithPassword = crypto.privateDecrypt({
+                        key: rsaKeyPemEncrypted,
+                        passphrase: 'password'
+                    }, encryptedBuffer);
+                    assert.equal(decryptedBufferWithPassword.toString(), input);
+                });
+
+                it('privateEncrypt/publicDecrypt', () => {
+                    encryptedBuffer = crypto.privateEncrypt({
+                        key: rsaKeyPemEncrypted,
+                        passphrase: bufferPassword
+                    }, bufferToEncrypt);
+
+                    decryptedBufferWithPassword = crypto.publicDecrypt({
+                        key: rsaKeyPemEncrypted,
+                        passphrase: bufferPassword
+                    }, encryptedBuffer);
+                    assert.equal(decryptedBufferWithPassword.toString(), input);
+
+                    // Now with explicit RSA_PKCS1_PADDING.
+                    encryptedBuffer = crypto.privateEncrypt({
+                        padding: crypto.constants.RSA_PKCS1_PADDING,
+                        key: rsaKeyPemEncrypted,
+                        passphrase: bufferPassword
+                    }, bufferToEncrypt);
+
+                    decryptedBufferWithPassword = crypto.publicDecrypt({
+                        padding: crypto.constants.RSA_PKCS1_PADDING,
+                        key: rsaKeyPemEncrypted,
+                        passphrase: bufferPassword
+                    }, encryptedBuffer);
+                    assert.equal(decryptedBufferWithPassword.toString(), input);
+
+                    // Omitting padding should be okay because RSA_PKCS1_PADDING is the default.
+                    decryptedBufferWithPassword = crypto.publicDecrypt({
+                        key: rsaKeyPemEncrypted,
+                        passphrase: bufferPassword
+                    }, encryptedBuffer);
+                    assert.equal(decryptedBufferWithPassword.toString(), input);
+
+                    {
+                        const plaintext = 'x'.repeat(rsaKeySize / 8);
+                        encryptedBuffer = crypto.privateEncrypt({
+                            padding: crypto.constants.RSA_NO_PADDING,
+                            key: rsaKeyPemEncrypted,
+                            passphrase: bufferPassword
+                        }, Buffer.from(plaintext));
+
+                        decryptedBufferWithPassword = crypto.publicDecrypt({
+                            padding: crypto.constants.RSA_NO_PADDING,
+                            key: rsaKeyPemEncrypted,
+                            passphrase: bufferPassword
+                        }, encryptedBuffer);
+                        assert.equal(decryptedBufferWithPassword.toString(), plaintext);
+                    }
+
+                    encryptedBuffer = crypto.publicEncrypt(certPem, bufferToEncrypt);
+
+                    decryptedBuffer = crypto.privateDecrypt(keyPem, encryptedBuffer);
+                    assert.equal(decryptedBuffer.toString(), input);
+
+                    encryptedBuffer = crypto.publicEncrypt(keyPem, bufferToEncrypt);
+
+                    decryptedBuffer = crypto.privateDecrypt(keyPem, encryptedBuffer);
+                    assert.equal(decryptedBuffer.toString(), input);
+
+                    encryptedBuffer = crypto.privateEncrypt(keyPem, bufferToEncrypt);
+
+                    decryptedBuffer = crypto.publicDecrypt(keyPem, encryptedBuffer);
+                    assert.equal(decryptedBuffer.toString(), input);
+                });
+
+                it('passphrase error', () => {
+                    assert.throws(() => {
+                        crypto.privateDecrypt({
+                            key: rsaKeyPemEncrypted,
+                            passphrase: 'wrong'
+                        }, bufferToEncrypt);
+                    });
+
+                    assert.throws(() => {
+                        crypto.publicEncrypt({
+                            key: rsaKeyPemEncrypted,
+                            passphrase: 'wrong'
+                        }, encryptedBuffer);
+                    });
+
+                    encryptedBuffer = crypto.privateEncrypt({
+                        key: rsaKeyPemEncrypted,
+                        passphrase: Buffer.from('password')
+                    }, bufferToEncrypt);
+
+                    assert.throws(() => {
+                        crypto.publicDecrypt({
+                            key: rsaKeyPemEncrypted,
+                            passphrase: Buffer.from('wrong')
+                        }, encryptedBuffer);
+                    });
+                });
+            });
+
+            describe('rsa', () => {
+                const constants = crypto.constants;
+
+                function test_rsa(padding, encryptOaepHash, decryptOaepHash) {
+                    it(`${padding}, ${encryptOaepHash}, ${decryptOaepHash}`, () => {
+                        const size = (padding === 'RSA_NO_PADDING') ? rsaKeySize / 8 : 32;
+                        const input = Buffer.allocUnsafe(size);
+                        for (let i = 0; i < input.length; i++)
+                            input[i] = (i * 7 + 11) & 0xff;
+                        const bufferToEncrypt = Buffer.from(input);
+
+                        padding = constants[padding];
+
+                        const encryptedBuffer = crypto.publicEncrypt({
+                            key: rsaPubPem,
+                            padding: padding,
+                            oaepHash: encryptOaepHash
+                        }, bufferToEncrypt);
+
+                        let decryptedBuffer = crypto.privateDecrypt({
+                            key: rsaKeyPem,
+                            padding: padding,
+                            oaepHash: decryptOaepHash
+                        }, encryptedBuffer);
+                        assert.deepEqual(decryptedBuffer, input);
+
+                        decryptedBuffer = crypto.privateDecrypt({
+                            key: rsaPkcs8KeyPem,
+                            padding: padding,
+                            oaepHash: decryptOaepHash
+                        }, encryptedBuffer);
+                        assert.deepEqual(decryptedBuffer, input);
+                    });
+                }
+
+                test_rsa('RSA_NO_PADDING');
+                test_rsa('RSA_PKCS1_PADDING');
+                test_rsa('RSA_PKCS1_OAEP_PADDING');
+
+                // Test OAEP with different hash functions.
+                test_rsa('RSA_PKCS1_OAEP_PADDING', undefined, 'sha1');
+                test_rsa('RSA_PKCS1_OAEP_PADDING', 'sha1', undefined);
+                test_rsa('RSA_PKCS1_OAEP_PADDING', 'sha256', 'sha256');
+                test_rsa('RSA_PKCS1_OAEP_PADDING', 'sha512', 'sha512');
+
+                it('invalid padding', () => {
+                    assert.throws(() => {
+                        test_rsa('RSA_PKCS1_OAEP_PADDING', 'sha256', 'sha512');
+                    });
+                });
+            });
+
+            it('non-SHA1 hash', () => {
+                const { decryptionTests } =
+                    JSON.parse(readSync('rsa-oaep-test-vectors.js', 'utf8'));
+
+                for (const { ct, oaepHash, oaepLabel } of decryptionTests) {
+                    const label = oaepLabel ? Buffer.from(oaepLabel, 'hex') : undefined;
+                    const copiedLabel = oaepLabel ? getBufferCopy(label) : undefined;
+
+                    const decrypted = crypto.privateDecrypt({
+                        key: rsaPkcs8KeyPem,
+                        oaepHash,
+                        oaepLabel: oaepLabel ? label : undefined
+                    }, Buffer.from(ct, 'hex'));
+
+                    assert.equal(decrypted.toString('utf8'), 'Hello Node.js');
+
+                    const otherDecrypted = crypto.privateDecrypt({
+                        key: rsaPkcs8KeyPem,
+                        oaepHash,
+                        oaepLabel: copiedLabel
+                    }, Buffer.from(ct, 'hex'));
+
+                    assert.equal(otherDecrypted.toString('utf8'), 'Hello Node.js');
+                }
+            });
+
+            it('invalid oaepHash and oaepLabel options', () => {
+                for (const fn of [crypto.publicEncrypt, crypto.privateDecrypt]) {
+                    assert.throws(() => {
+                        fn({
+                            key: rsaPubPem,
+                            oaepHash: 'Hello world'
+                        }, Buffer.alloc(10));
+                    });
+
+                    for (const oaepHash of [0, false, null, Symbol(), () => { }]) {
+                        assert.throws(() => {
+                            fn({
+                                key: rsaPubPem,
+                                oaepHash
+                            }, Buffer.alloc(10));
+                        });
+                    }
+
+                    for (const oaepLabel of [0, false, null, Symbol(), () => { }, {}]) {
+                        assert.throws(() => {
+                            fn({
+                                key: rsaPubPem,
+                                oaepLabel
+                            }, Buffer.alloc(10));
+                        });
+                    }
+                }
             });
         });
     });

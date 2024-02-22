@@ -61,12 +61,14 @@
     "Utility": [
         "db",
         "registry",
+        "types",
         "util",
         "uuid",
         "xml"
     ],
     "Constants": [
         "constants",
-        "fs_constants"
+        "fs_constants",
+        "crypto_constants"
     ]
 }

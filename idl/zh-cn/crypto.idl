@@ -111,6 +111,9 @@ module crypto
     /*! @brief 指定填充模式为 NOPADDING */
     const NOPADDING = 4;
 
+    /*! crypto 模块的常量对象，参见 crypto_constants */
+    static crypto_constants new constants();
+
     /*! @brief Cipher 构造函数，参见 Cipher */
     static Cipher;
 
@@ -355,4 +358,88 @@ module crypto
      @return 返回生成的二进制钥匙
      */
     static Buffer pbkdf2(Buffer password, Buffer salt, Integer iterations, Integer size, String algoName) async;
+
+    /*! @brief 使用 privateKey 解密 buffer。buffer 之前已使用相应的公钥进行加密
+     @param privateKey 指定私钥
+     @param buffer 指定要解密的数据
+     @return 返回解密后的数据
+     */
+    static Buffer privateDecrypt(Buffer privateKey, Buffer buffer);
+
+    /*! @brief 使用 privateKey 解密 buffer。buffer 之前已使用相应的公钥进行加密
+     @param privateKey 指定私钥
+     @param buffer 指定要解密的数据
+     @return 返回解密后的数据
+     */
+    static Buffer privateDecrypt(KeyObject privateKey, Buffer buffer);
+
+    /*! @brief 使用 key 指定的私钥和配置解密 buffer。buffer 之前已使用相应的公钥进行加密
+     @param key 指定私钥和配置
+     @param buffer 指定要解密的数据
+     @return 返回解密后的数据
+     */
+    static Buffer privateDecrypt(Object key, Value buffer);
+
+    /*! @brief 使用 privateKey 加密 buffer。返回的数据可以使用相应的公钥进行解密
+     @param privateKey 指定私钥
+     @param buffer 指定要加密的数据
+     @return 返回加密后的数据
+     */
+    static Buffer privateEncrypt(Buffer privateKey, Buffer buffer);
+
+    /*! @brief 使用 privateKey 加密 buffer。返回的数据可以使用相应的公钥进行解密
+     @param privateKey 指定私钥
+     @param buffer 指定要加密的数据
+     @return 返回加密后的数据
+     */
+    static Buffer privateEncrypt(KeyObject privateKey, Buffer buffer);
+
+    /*! @brief 使用 key 指定的私钥和配置加密 buffer。返回的数据可以使用相应的公钥进行解密
+     @param key 指定私钥和配置
+     @param buffer 指定要加密的数据
+     @return 返回加密后的数据
+     */
+    static Buffer privateEncrypt(Object key, Value buffer);
+
+    /*! @brief 使用 publicKey 解密 buffer。buffer 之前已使用相应的私钥加密
+     @param publicKey 指定公钥
+     @param buffer 指定要解密的数据
+     @return 返回解密后的数据
+     */
+    static Buffer publicDecrypt(Buffer publicKey, Buffer buffer);
+
+    /*! @brief 使用 publicKey 解密 buffer。buffer 之前已使用相应的私钥加密
+     @param publicKey 指定公钥
+     @param buffer 指定要解密的数据
+     @return 返回解密后的数据
+     */
+    static Buffer publicDecrypt(KeyObject publicKey, Buffer buffer);
+
+    /*! @brief 使用 key 指定的公钥和配置解密 buffer。buffer 之前已使用相应的私钥加密
+     @param key 指定公钥和配置
+     @param buffer 指定要解密的数据
+     @return 返回解密后的数据
+     */
+    static Buffer publicDecrypt(Object key, Value buffer);
+
+    /*! @brief 使用 publicKey 加密 buffer。返回的数据可以使用相应的私钥进行解密
+     @param publicKey 指定私钥
+     @param buffer 指定要加密的数据
+     @return 返回加密后的数据
+     */
+    static Buffer publicEncrypt(Buffer publicKey, Buffer buffer);
+
+    /*! @brief 使用 publicKey 加密 buffer。返回的数据可以使用相应的私钥进行解密
+     @param publicKey 指定私钥
+     @param buffer 指定要加密的数据
+     @return 返回加密后的数据
+     */
+    static Buffer publicEncrypt(KeyObject publicKey, Buffer buffer);
+
+    /*! @brief 使用 key 指定的私钥和配置加密 buffer。返回的数据可以使用相应的私钥进行解密
+     @param key 指定私钥和配置
+     @param buffer 指定要加密的数据
+     @return 返回加密后的数据
+     */
+    static Buffer publicEncrypt(Object key, Value buffer);
 };

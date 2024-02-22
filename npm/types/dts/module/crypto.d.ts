@@ -1,4 +1,5 @@
 /// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../module/crypto_constants.d.ts" />
 /// <reference path="../interface/Cipher.d.ts" />
 /// <reference path="../interface/PKey.d.ts" />
 /// <reference path="../interface/ECKey.d.ts" />
@@ -168,6 +169,11 @@ declare module 'crypto' {
      * @description 指定填充模式为 NOPADDING 
      */
     export const NOPADDING: 4;
+
+    /**
+     * ! crypto 模块的常量对象，参见 crypto_constants 
+     */
+    const constants: typeof import ('crypto_constants');
 
     /**
      * @description Cipher 构造函数，参见 Cipher 
@@ -495,6 +501,114 @@ declare module 'crypto' {
     function pbkdf2(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algoName: string): Class_Buffer;
 
     function pbkdf2(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algoName: string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description 使用 privateKey 解密 buffer。buffer 之前已使用相应的公钥进行加密
+     *      @param privateKey 指定私钥
+     *      @param buffer 指定要解密的数据
+     *      @return 返回解密后的数据
+     *      
+     */
+    function privateDecrypt(privateKey: Class_Buffer, buffer: Class_Buffer): Class_Buffer;
+
+    /**
+     * @description 使用 privateKey 解密 buffer。buffer 之前已使用相应的公钥进行加密
+     *      @param privateKey 指定私钥
+     *      @param buffer 指定要解密的数据
+     *      @return 返回解密后的数据
+     *      
+     */
+    function privateDecrypt(privateKey: Class_KeyObject, buffer: Class_Buffer): Class_Buffer;
+
+    /**
+     * @description 使用 key 指定的私钥和配置解密 buffer。buffer 之前已使用相应的公钥进行加密
+     *      @param key 指定私钥和配置
+     *      @param buffer 指定要解密的数据
+     *      @return 返回解密后的数据
+     *      
+     */
+    function privateDecrypt(key: FIBJS.GeneralObject, buffer: any): Class_Buffer;
+
+    /**
+     * @description 使用 privateKey 加密 buffer。返回的数据可以使用相应的公钥进行解密
+     *      @param privateKey 指定私钥
+     *      @param buffer 指定要加密的数据
+     *      @return 返回加密后的数据
+     *      
+     */
+    function privateEncrypt(privateKey: Class_Buffer, buffer: Class_Buffer): Class_Buffer;
+
+    /**
+     * @description 使用 privateKey 加密 buffer。返回的数据可以使用相应的公钥进行解密
+     *      @param privateKey 指定私钥
+     *      @param buffer 指定要加密的数据
+     *      @return 返回加密后的数据
+     *      
+     */
+    function privateEncrypt(privateKey: Class_KeyObject, buffer: Class_Buffer): Class_Buffer;
+
+    /**
+     * @description 使用 key 指定的私钥和配置加密 buffer。返回的数据可以使用相应的公钥进行解密
+     *      @param key 指定私钥和配置
+     *      @param buffer 指定要加密的数据
+     *      @return 返回加密后的数据
+     *      
+     */
+    function privateEncrypt(key: FIBJS.GeneralObject, buffer: any): Class_Buffer;
+
+    /**
+     * @description 使用 publicKey 解密 buffer。buffer 之前已使用相应的私钥加密
+     *      @param publicKey 指定公钥
+     *      @param buffer 指定要解密的数据
+     *      @return 返回解密后的数据
+     *      
+     */
+    function publicDecrypt(publicKey: Class_Buffer, buffer: Class_Buffer): Class_Buffer;
+
+    /**
+     * @description 使用 publicKey 解密 buffer。buffer 之前已使用相应的私钥加密
+     *      @param publicKey 指定公钥
+     *      @param buffer 指定要解密的数据
+     *      @return 返回解密后的数据
+     *      
+     */
+    function publicDecrypt(publicKey: Class_KeyObject, buffer: Class_Buffer): Class_Buffer;
+
+    /**
+     * @description 使用 key 指定的公钥和配置解密 buffer。buffer 之前已使用相应的私钥加密
+     *      @param key 指定公钥和配置
+     *      @param buffer 指定要解密的数据
+     *      @return 返回解密后的数据
+     *      
+     */
+    function publicDecrypt(key: FIBJS.GeneralObject, buffer: any): Class_Buffer;
+
+    /**
+     * @description 使用 publicKey 加密 buffer。返回的数据可以使用相应的私钥进行解密
+     *      @param publicKey 指定私钥
+     *      @param buffer 指定要加密的数据
+     *      @return 返回加密后的数据
+     *      
+     */
+    function publicEncrypt(publicKey: Class_Buffer, buffer: Class_Buffer): Class_Buffer;
+
+    /**
+     * @description 使用 publicKey 加密 buffer。返回的数据可以使用相应的私钥进行解密
+     *      @param publicKey 指定私钥
+     *      @param buffer 指定要加密的数据
+     *      @return 返回加密后的数据
+     *      
+     */
+    function publicEncrypt(publicKey: Class_KeyObject, buffer: Class_Buffer): Class_Buffer;
+
+    /**
+     * @description 使用 key 指定的私钥和配置加密 buffer。返回的数据可以使用相应的私钥进行解密
+     *      @param key 指定私钥和配置
+     *      @param buffer 指定要加密的数据
+     *      @return 返回加密后的数据
+     *      
+     */
+    function publicEncrypt(key: FIBJS.GeneralObject, buffer: any): Class_Buffer;
 
 }
 

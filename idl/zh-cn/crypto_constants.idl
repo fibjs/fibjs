@@ -1,0 +1,33 @@
+/*! @brief crypto 模块常用常量定义模块
+
+ 引用方法：
+ ```JavaScript
+ var constants = require('crypto').constants
+ ```
+ */
+module crypto_constants
+{
+    /**/
+    const RSA_PKCS1_PADDING = 1;
+
+    /**/
+    const RSA_NO_PADDING = 3;
+
+    /**/
+    const RSA_PKCS1_OAEP_PADDING = 4;
+
+    /**/
+    const RSA_X931_PADDING = 5;
+
+    /**/
+    const RSA_PKCS1_PSS_PADDING = 6;
+
+    /**/
+    const RSA_PSS_SALTLEN_DIGEST = -1;
+
+    /**/
+    const RSA_PSS_SALTLEN_MAX_SIGN = -2;
+
+    /**/
+    const RSA_PSS_SALTLEN_AUTO = -2;
+};

@@ -73,7 +73,7 @@ declare module 'fs' {
     export const SEEK_END: 2;
 
     /**
-     * ! fs模块的常量对象 
+     * ! fs模块的常量对象，参见 fs_constants 
      */
     const constants: typeof import ('fs_constants');
 

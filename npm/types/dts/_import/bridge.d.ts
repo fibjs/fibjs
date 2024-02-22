@@ -45,12 +45,13 @@
 /// <reference path="../module/test.d.ts" />
 /// <reference path="../module/db.d.ts" />
 /// <reference path="../module/registry.d.ts" />
+/// <reference path="../module/types.d.ts" />
 /// <reference path="../module/util.d.ts" />
 /// <reference path="../module/uuid.d.ts" />
 /// <reference path="../module/xml.d.ts" />
 /// <reference path="../module/constants.d.ts" />
 /// <reference path="../module/fs_constants.d.ts" />
-/// <reference path="../module/types.d.ts" />
+/// <reference path="../module/crypto_constants.d.ts" />
 declare module '@fibjs/types/bridge' {
 }
 
