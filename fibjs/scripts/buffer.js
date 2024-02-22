@@ -307,6 +307,8 @@ class Buffer extends Uint8Array {
         }
         else if (bufferOrLength instanceof Uint8Array || Array.isArray(bufferOrLength))
             super(bufferOrLength);
+        else if(bufferOrLength instanceof DataView)
+            super(bufferOrLength.buffer, bufferOrLength.byteOffset, bufferOrLength.byteLength);
         else {
             if (bufferOrLength instanceof Date)
                 bufferOrLength = bufferOrLength.toString();

@@ -79,6 +79,14 @@ describe('Buffer', () => {
         assert.equal(buf.hex(), is_big_endian ? "13880fa0" : "8813a00f");
     });
 
+    it('new Buffer(DataView)', () => {
+        var arr = new Uint8Array([0x10, 0x20, 0x30]);
+        var buf = new Buffer(new DataView(arr.buffer));
+
+        assert.equal(buf.length, 3);
+        assert.equal(buf.hex(), "102030");
+    });
+
     it('new Buffer(Buffer)', () => {
         var buf = new Buffer(new Buffer("abcd"));
         assert.equal(buf.length, 4);

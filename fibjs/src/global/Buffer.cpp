@@ -303,6 +303,12 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buff
             return 0;
         }
 
+        if (v->IsDataView()) {
+            v8::Local<v8::DataView> view = v.As<v8::DataView>();
+            vr = new Buffer(view->Buffer()->GetBackingStore(), view->ByteOffset(), view->ByteLength());
+            return 0;
+        }
+
         if (v->IsString()) {
             v8::Local<v8::String> str = v.As<v8::String>();
             v8::String::Utf8Value utf8(isolate->m_isolate, str);
