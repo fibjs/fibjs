@@ -289,7 +289,7 @@ Buffer* Buffer::getInstance(v8::Local<v8::Value> o)
     return new Buffer(o.As<v8::Uint8Array>());
 }
 
-result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buffer_base>& vr, bool bStrict)
+result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buffer_base>& vr, bool bStrict, const char* encoding)
 {
     if (v.IsEmpty() || v->IsNumber() || v->IsNumberObject())
         return CALL_E_TYPEMISMATCH;
@@ -309,18 +309,10 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buff
             return 0;
         }
 
-        if (v->IsString()) {
-            v8::Local<v8::String> str = v.As<v8::String>();
-            v8::String::Utf8Value utf8(isolate->m_isolate, str);
-            vr = new Buffer(*utf8, utf8.length());
-            return 0;
-        }
-
-        if (v->IsStringObject()) {
-            v8::Local<v8::String> str = v.As<v8::StringObject>()->ValueOf();
-            v8::String::Utf8Value utf8(isolate->m_isolate, str);
-            vr = new Buffer(*utf8, utf8.length());
-            return 0;
+        if (v->IsString() || v->IsStringObject()) {
+            exlib::string str;
+            GetArgumentValue(isolate, v, str);
+            return Buffer_base::from(str, encoding, vr);
         }
 
         if (v->IsArray())
