@@ -310,7 +310,7 @@ enum {
 
 #define METHOD_RETURN()                                                    \
     CHECK_ARGUMENT()                                                       \
-    if (hr == CALL_RETURN_UNDEFINED)                                        \
+    if (hr == CALL_RETURN_UNDEFINED)                                       \
         return;                                                            \
     if (hr == CALL_RETURN_NULL) {                                          \
         args.GetReturnValue().SetNull();                                   \
@@ -992,7 +992,7 @@ template <typename T>
 result_t GetConfigValue(Isolate* isolate, v8::Local<v8::Object> o, const char* key, T& n, bool bStrict = false)
 {
     JSValue v = o->Get(isolate->context(), isolate->NewString(key));
-    if (IsEmpty(v))
+    if (v->IsUndefined())
         return CALL_E_PARAMNOTOPTIONAL;
 
     return GetArgumentValue(isolate, v, n, bStrict);
@@ -1002,7 +1002,7 @@ template <typename T>
 result_t GetConfigValue(Isolate* isolate, v8::Local<v8::Array> o, int32_t i, T& n, bool bStrict = false)
 {
     JSValue v = o->Get(isolate->context(), i);
-    if (IsEmpty(v))
+    if (v->IsUndefined())
         return CALL_E_PARAMNOTOPTIONAL;
 
     return GetArgumentValue(isolate, v, n, bStrict);
