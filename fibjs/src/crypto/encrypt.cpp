@@ -102,6 +102,12 @@ result_t PKEY_cipher(v8::Local<v8::Object> key, int padding, v8::Local<v8::Value
     v8::Local<v8::Value> v;
     result_t hr;
 
+    obj_ptr<KeyObject_base> key_;
+    hr = createKey(key, key_);
+    if (hr < 0)
+        return hr;
+    KeyObject* key__ = (KeyObject*)(KeyObject_base*)key_;
+
     hr = GetConfigValue(isolate, key, "padding", padding, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
@@ -110,12 +116,6 @@ result_t PKEY_cipher(v8::Local<v8::Object> key, int padding, v8::Local<v8::Value
     hr = GetConfigValue(isolate, key, "encoding", encoding, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
-
-    obj_ptr<KeyObject_base> key_;
-    hr = createKey(key, key_);
-    if (hr < 0)
-        return hr;
-    KeyObject* key__ = (KeyObject*)(KeyObject_base*)key_;
 
     const EVP_MD* digest = nullptr;
     if (useo_aep) {
