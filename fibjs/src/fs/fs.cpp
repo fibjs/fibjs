@@ -166,11 +166,8 @@ result_t fs_base::readFile(exlib::string fname, exlib::string encoding,
         }
     } else {
         if (encoding != "") {
-            exlib::string str;
-            hr = iconv_base::decode(encoding, buf, str);
-            if (hr < 0)
-                return hr;
-            retVal = str;
+            Buffer* pBuf = Buffer::Cast(buf);
+            return pBuf->toValue(encoding, retVal);
         } else
             retVal = buf;
     }

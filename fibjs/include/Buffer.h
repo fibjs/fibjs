@@ -157,6 +157,22 @@ public:
         return 0;
     }
 
+    result_t toValue(exlib::string codec, Variant& retVal)
+    {
+        if (codec == "buffer") {
+            retVal = this;
+            return 0;
+        }
+
+        exlib::string str;
+        result_t hr = toString(codec, 0, str);
+        if (hr < 0)
+            return hr;
+
+        retVal = str;
+        return 0;
+    }
+
 public:
     // object
     virtual v8::Local<v8::Object> wrap(Isolate* isolate, v8::Local<v8::Object> o = v8::Local<v8::Object>());
