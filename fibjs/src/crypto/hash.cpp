@@ -38,6 +38,7 @@ static const struct {
     const char* name;
     const EVP_MD* md;
 } s_algos[] = {
+    { "dss1", EVP_sha1() },
     { "sha3_256", EVP_sha3_256() },
     { "sha3_384", EVP_sha3_384() },
     { "sha3_512", EVP_sha3_512() },

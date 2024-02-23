@@ -217,15 +217,10 @@ result_t KeyObject::ImportJWKEdKey(v8::Local<v8::Object> key, KeyType type)
     return 0;
 }
 
-result_t KeyObject::ImportJWKAsymmetricKey(v8::Local<v8::Object> key, KeyType type)
+result_t KeyObject::ImportJWKAsymmetricKey(v8::Local<v8::Object> jwk, KeyType type)
 {
     Isolate* isolate = holder();
     result_t hr;
-
-    v8::Local<v8::Object> jwk;
-    hr = GetConfigValue(isolate, key, "key", jwk, true);
-    if (hr < 0)
-        return hr;
 
     exlib::string kty;
     hr = GetConfigValue(isolate, jwk, "kty", kty, true);

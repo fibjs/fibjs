@@ -39,7 +39,7 @@ public:
 public:
     result_t createSecretKey(const unsigned char* key, size_t size);
     result_t createAsymmetricKey(v8::Local<v8::Object> key, KeyType type);
-    result_t ImportJWKAsymmetricKey(v8::Local<v8::Object> key, KeyType type);
+    result_t ImportJWKAsymmetricKey(v8::Local<v8::Object> hwk, KeyType type);
     result_t ImportJWKRsaKey(v8::Local<v8::Object> key, KeyType type);
     result_t ImportJWKEcKey(v8::Local<v8::Object> key, KeyType type);
     result_t ImportJWKEdKey(v8::Local<v8::Object> key, KeyType type);

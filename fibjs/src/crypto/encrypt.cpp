@@ -111,26 +111,8 @@ result_t PKEY_cipher(v8::Local<v8::Object> key, int padding, v8::Local<v8::Value
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    v8::Local<v8::Object> key_opt = v8::Object::New(isolate->m_isolate);
-    hr = GetConfigValue(isolate, key, "key", v);
-    if (hr < 0)
-        return hr;
-    key_opt->Set(context, isolate->NewString("key"), v)
-        .IsNothing();
-
-    key_opt->Set(context, isolate->NewString("kty"), isolate->NewString(IsJSObject(v) ? "jwk" : "pem"))
-        .IsNothing();
-
-    key_opt->Set(context, isolate->NewString("encoding"), isolate->NewString(encoding))
-        .IsNothing();
-
-    hr = GetConfigValue(isolate, key, "passphrase", v);
-    if (hr != CALL_E_PARAMNOTOPTIONAL)
-        key_opt->Set(context, isolate->NewString("passphrase"), v)
-            .IsNothing();
-
     obj_ptr<KeyObject_base> key_;
-    hr = createKey(key_opt, key_);
+    hr = createKey(key, key_);
     if (hr < 0)
         return hr;
     KeyObject* key__ = (KeyObject*)(KeyObject_base*)key_;
@@ -142,7 +124,7 @@ result_t PKEY_cipher(v8::Local<v8::Object> key, int padding, v8::Local<v8::Value
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
 
-        digest = EVP_get_digestbyname(oaepHash.c_str());
+        digest = _evp_md_type(oaepHash.c_str());
         if (!digest)
             return Runtime::setError("Invalid oaepHash");
     }

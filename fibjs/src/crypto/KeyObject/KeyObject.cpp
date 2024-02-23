@@ -182,11 +182,24 @@ result_t KeyObject::createAsymmetricKey(v8::Local<v8::Object> key, KeyType type)
 
     exlib::string format = "pem";
     hr = GetConfigValue(isolate, key, "format", format, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+    if (hr == CALL_E_PARAMNOTOPTIONAL) {
+        v8::Local<v8::Object> jwk;
+
+        hr = GetConfigValue(isolate, key, "key", jwk, true);
+        if (hr == 0)
+            return ImportJWKAsymmetricKey(jwk, type);
+    } else if (hr < 0)
         return hr;
 
-    if (format == "jwk")
-        return ImportJWKAsymmetricKey(key, type);
+    if (format == "jwk") {
+        v8::Local<v8::Object> jwk;
+
+        hr = GetConfigValue(isolate, key, "key", jwk, true);
+        if (hr < 0)
+            return hr;
+
+        return ImportJWKAsymmetricKey(jwk, type);
+    }
 
     if (type == kKeyTypePublic)
         return ParsePublicKey(key);
