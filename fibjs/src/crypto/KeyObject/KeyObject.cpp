@@ -201,12 +201,16 @@ result_t KeyObject::equals(KeyObject_base* otherKey, bool& retVal)
 {
     KeyObject* other = (KeyObject*)otherKey;
 
-    if (m_keyType != other->m_keyType)
+    if (this == other)
+        retVal = true;
+    else if (m_keyType != other->m_keyType)
         retVal = false;
     else if (m_key.size() != other->m_key.size())
         retVal = false;
-    else
+    else if (m_keyType == kKeyTypeSecret)
         retVal = memcmp(m_key.data(), other->m_key.data(), m_key.size()) == 0;
+    else
+        retVal = EVP_PKEY_eq(m_pkey, other->m_pkey) == 1;
 
     return 0;
 }

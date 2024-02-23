@@ -838,6 +838,11 @@ describe('crypto', () => {
                     modulusLength: 1088
                 });
             });
+
+            it('equals', () => {
+                assert.ok(crypto.createPublicKey(publicPem).equals(crypto.createPublicKey(publicPem)));
+                assert.ok(!crypto.createPublicKey(publicPem).equals(crypto.createPublicKey(publicDsa)));
+            });
         });
 
         describe('encrypt', () => {
