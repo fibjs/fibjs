@@ -183,11 +183,30 @@ result_t KeyObject::createAsymmetricKey(v8::Local<v8::Object> key, KeyType type)
     exlib::string format = "pem";
     hr = GetConfigValue(isolate, key, "format", format, true);
     if (hr == CALL_E_PARAMNOTOPTIONAL) {
-        v8::Local<v8::Object> jwk;
+        v8::Local<v8::Value> k;
 
-        hr = GetConfigValue(isolate, key, "key", jwk, true);
-        if (hr == 0)
-            return ImportJWKAsymmetricKey(jwk, type);
+        hr = GetConfigValue(isolate, key, "key", k);
+        if (hr < 0)
+            return hr;
+
+        if (IsJSObject(k))
+            return ImportJWKAsymmetricKey(k.As<v8::Object>(), type);
+
+        obj_ptr<KeyObject_base> key_ = KeyObject_base::getInstance(k);
+        if (key_) {
+            KeyObject* key__ = (KeyObject*)(KeyObject_base*)key_;
+
+            if (key__->m_keyType == kKeyTypeSecret)
+                return Runtime::setError("Invalid key type");
+
+            if (type == kKeyTypePrivate && key__->m_keyType == kKeyTypePublic)
+                return Runtime::setError("Invalid key type");
+
+            m_pkey = EVP_PKEY_dup(key__->m_pkey);
+            m_keyType = type;
+
+            return 0;
+        }
     } else if (hr < 0)
         return hr;
 

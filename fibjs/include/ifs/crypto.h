@@ -26,6 +26,8 @@ class X509Req_base;
 class Digest_base;
 class Buffer_base;
 class KeyObject_base;
+class Sign_base;
+class Verify_base;
 
 class crypto_base : public object_base {
     DECLARE_CLASS(crypto_base);
@@ -75,6 +77,8 @@ public:
     static result_t createPublicKey(Buffer_base* key, obj_ptr<KeyObject_base>& retVal);
     static result_t createPublicKey(KeyObject_base* key, obj_ptr<KeyObject_base>& retVal);
     static result_t createPublicKey(v8::Local<v8::Object> key, obj_ptr<KeyObject_base>& retVal);
+    static result_t createSign(exlib::string algorithm, v8::Local<v8::Object> options, obj_ptr<Sign_base>& retVal);
+    static result_t createVerify(exlib::string algorithm, v8::Local<v8::Object> options, obj_ptr<Verify_base>& retVal);
     static result_t createSecretKey(Buffer_base* key, exlib::string encoding, obj_ptr<KeyObject_base>& retVal);
     static result_t createSecretKey(exlib::string key, exlib::string encoding, obj_ptr<KeyObject_base>& retVal);
     static result_t loadCert(exlib::string filename, obj_ptr<X509Cert_base>& retVal);
@@ -99,6 +103,12 @@ public:
     static result_t publicEncrypt(Buffer_base* publicKey, Buffer_base* buffer, obj_ptr<Buffer_base>& retVal);
     static result_t publicEncrypt(KeyObject_base* publicKey, Buffer_base* buffer, obj_ptr<Buffer_base>& retVal);
     static result_t publicEncrypt(v8::Local<v8::Object> key, v8::Local<v8::Value> buffer, obj_ptr<Buffer_base>& retVal);
+    static result_t sign(v8::Local<v8::Value> algorithm, Buffer_base* data, Buffer_base* privateKey, obj_ptr<Buffer_base>& retVal);
+    static result_t sign(v8::Local<v8::Value> algorithm, Buffer_base* data, KeyObject_base* privateKey, obj_ptr<Buffer_base>& retVal);
+    static result_t sign(v8::Local<v8::Value> algorithm, Buffer_base* data, v8::Local<v8::Object> key, obj_ptr<Buffer_base>& retVal);
+    static result_t verify(v8::Local<v8::Value> algorithm, Buffer_base* data, Buffer_base* publicKey, Buffer_base* signature, bool& retVal);
+    static result_t verify(v8::Local<v8::Value> algorithm, Buffer_base* data, KeyObject_base* publicKey, Buffer_base* signature, bool& retVal);
+    static result_t verify(v8::Local<v8::Value> algorithm, Buffer_base* data, v8::Local<v8::Object> key, Buffer_base* signature, bool& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -121,6 +131,8 @@ public:
     static void s_static_getCurves(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createPrivateKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createPublicKey(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createSign(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createVerify(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createSecretKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_loadCert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_loadCrl(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -135,6 +147,8 @@ public:
     static void s_static_privateEncrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_publicDecrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_publicEncrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_sign(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_verify(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(crypto_base, randomBytes, int32_t, obj_ptr<Buffer_base>);
@@ -157,6 +171,8 @@ public:
 #include "ifs/Digest.h"
 #include "ifs/Buffer.h"
 #include "ifs/KeyObject.h"
+#include "ifs/Sign.h"
+#include "ifs/Verify.h"
 
 namespace fibjs {
 inline ClassInfo& crypto_base::class_info()
@@ -173,6 +189,8 @@ inline ClassInfo& crypto_base::class_info()
         { "getCurves", s_static_getCurves, true, false },
         { "createPrivateKey", s_static_createPrivateKey, true, false },
         { "createPublicKey", s_static_createPublicKey, true, false },
+        { "createSign", s_static_createSign, true, false },
+        { "createVerify", s_static_createVerify, true, false },
         { "createSecretKey", s_static_createSecretKey, true, false },
         { "loadCert", s_static_loadCert, true, false },
         { "loadCrl", s_static_loadCrl, true, false },
@@ -191,7 +209,9 @@ inline ClassInfo& crypto_base::class_info()
         { "privateDecrypt", s_static_privateDecrypt, true, false },
         { "privateEncrypt", s_static_privateEncrypt, true, false },
         { "publicDecrypt", s_static_publicDecrypt, true, false },
-        { "publicEncrypt", s_static_publicEncrypt, true, false }
+        { "publicEncrypt", s_static_publicEncrypt, true, false },
+        { "sign", s_static_sign, true, false },
+        { "verify", s_static_verify, true, false }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -444,6 +464,38 @@ inline void crypto_base::s_static_createPublicKey(const v8::FunctionCallbackInfo
     ARG(v8::Local<v8::Object>, 0);
 
     hr = createPublicKey(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_createSign(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Sign_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    hr = createSign(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_createVerify(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Verify_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    hr = createVerify(v0, v1, vr);
 
     METHOD_RETURN();
 }
@@ -756,6 +808,75 @@ inline void crypto_base::s_static_publicEncrypt(const v8::FunctionCallbackInfo<v
     ARG(v8::Local<v8::Value>, 1);
 
     hr = publicEncrypt(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(3, 3);
+
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(obj_ptr<Buffer_base>, 2);
+
+    hr = sign(v0, v1, v2, vr);
+
+    METHOD_OVER(3, 3);
+
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(obj_ptr<KeyObject_base>, 2);
+
+    hr = sign(v0, v1, v2, vr);
+
+    METHOD_OVER(3, 3);
+
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(v8::Local<v8::Object>, 2);
+
+    hr = sign(v0, v1, v2, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_verify(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(4, 4);
+
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(obj_ptr<Buffer_base>, 2);
+    ARG(obj_ptr<Buffer_base>, 3);
+
+    hr = verify(v0, v1, v2, v3, vr);
+
+    METHOD_OVER(4, 4);
+
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(obj_ptr<KeyObject_base>, 2);
+    ARG(obj_ptr<Buffer_base>, 3);
+
+    hr = verify(v0, v1, v2, v3, vr);
+
+    METHOD_OVER(4, 4);
+
+    ARG(v8::Local<v8::Value>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(v8::Local<v8::Object>, 2);
+    ARG(obj_ptr<Buffer_base>, 3);
+
+    hr = verify(v0, v1, v2, v3, vr);
 
     METHOD_RETURN();
 }

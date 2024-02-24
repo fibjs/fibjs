@@ -1128,6 +1128,676 @@ describe('crypto', () => {
                 }
             });
         });
+
+        describe('sign/verify', () => {
+            const certPem = readKey('rsa_cert.crt');
+            const keyPem = readKey('rsa_private.pem');
+            const keySize = 2048;
+            const rsaPubPem = readKey('rsa_public.pem', 'ascii');
+            const rsaKeyPem = readKey('rsa_private.pem', 'ascii');
+            const rsaPkcs8KeyPem = readKey('rsa_private_pkcs8.pem');
+            const rsaKeyPemEncrypted = readKey('rsa_private_encrypted.pem', 'ascii');
+            const dsaPubPem = readKey('dsa_public.pem', 'ascii');
+            const dsaKeyPem = readKey('dsa_private.pem', 'ascii');
+            const dsaKeyPemEncrypted = readKey('dsa_private_encrypted.pem', 'ascii');
+            const dsaPkcs8KeyPem = readKey('dsa_private_pkcs8.pem');
+
+            it('RSA key signing/verification', () => {
+                let rsaSign = crypto.createSign('SHA1');
+                let rsaVerify = crypto.createVerify('SHA1');
+                assert.ok(rsaSign);
+                assert.ok(rsaVerify);
+
+                const expectedSignature = readKey(
+                    'rsa_public_sha1_signature_signedby_rsa_private_pkcs8.sha1',
+                    'hex'
+                );
+
+                rsaSign.update(rsaPubPem);
+                let rsaSignature = rsaSign.sign(rsaKeyPem, 'hex');
+                assert.equal(rsaSignature, expectedSignature);
+
+                rsaVerify.update(rsaPubPem);
+                assert.equal(rsaVerify.verify(rsaPubPem, rsaSignature, 'hex'), true);
+
+                // Test RSA PKCS#8 key signing/verification
+                rsaSign = crypto.createSign('SHA1');
+                rsaSign.update(rsaPubPem);
+                rsaSignature = rsaSign.sign(rsaPkcs8KeyPem, 'hex');
+                assert.equal(rsaSignature, expectedSignature);
+
+                rsaVerify = crypto.createVerify('SHA1');
+                rsaVerify.update(rsaPubPem);
+                assert.equal(rsaVerify.verify(rsaPubPem, rsaSignature, 'hex'), true);
+
+                // Test RSA key signing/verification with encrypted key
+                rsaSign = crypto.createSign('SHA1');
+                rsaSign.update(rsaPubPem);
+                const signOptions = { key: rsaKeyPemEncrypted, passphrase: 'password' };
+                rsaSignature = rsaSign.sign(signOptions, 'hex');
+                assert.equal(rsaSignature, expectedSignature);
+
+                rsaVerify = crypto.createVerify('SHA1');
+                rsaVerify.update(rsaPubPem);
+                assert.equal(rsaVerify.verify(rsaPubPem, rsaSignature, 'hex'), true);
+
+                rsaSign = crypto.createSign('SHA1');
+                rsaSign.update(rsaPubPem);
+                assert.throws(() => {
+                    const signOptions = { key: rsaKeyPemEncrypted, passphrase: 'wrong' };
+                    rsaSign.sign(signOptions, 'hex');
+                });
+            });
+
+            it('RSA signing and verification', () => {
+                const privateKey = readKey('rsa_private_b.pem');
+                const publicKey = readKey('rsa_public_b.pem');
+
+                const input = 'I AM THE WALRUS';
+
+                const signature = readKey(
+                    'I_AM_THE_WALRUS_sha256_signature_signedby_rsa_private_b.sha256',
+                    'hex'
+                );
+
+                const sign = crypto.createSign('SHA256');
+                sign.update(input);
+
+                const output = sign.sign(privateKey, 'hex');
+                assert.equal(output, signature);
+
+                const verify = crypto.createVerify('SHA256');
+                verify.update(input);
+
+                assert.equal(verify.verify(publicKey, signature, 'hex'), true);
+
+                const sign2 = crypto.createSign('RSA-SHA256');
+                sign2.update(input);
+
+                const output2 = sign2.sign(privateKey, 'hex');
+                assert.equal(output2, signature);
+
+                const verify2 = crypto.createVerify('SHA256');
+                verify2.update(input);
+
+                assert.equal(verify2.verify(publicKey, signature, 'hex'), true);
+            });
+
+            it('DSA signing and verification', () => {
+                const input = 'I AM THE WALRUS';
+
+                const sign = crypto.createSign('SHA1');
+                sign.update(input);
+                const signature = sign.sign(dsaKeyPem, 'hex');
+
+                const verify = crypto.createVerify('SHA1');
+                verify.update(input);
+
+                assert.equal(verify.verify(dsaPubPem, signature, 'hex'), true);
+
+                const sign2 = crypto.createSign('DSS1');
+                sign2.update(input);
+                const signature2 = sign2.sign(dsaKeyPem, 'hex');
+
+                const verify2 = crypto.createVerify('DSS1');
+                verify2.update(input);
+
+                assert.equal(verify2.verify(dsaPubPem, signature2, 'hex'), true);
+            });
+
+            it('DSA signing and verification with PKCS#8 private key', () => {
+                const input = 'I AM THE WALRUS';
+
+                const sign = crypto.createSign('SHA1');
+                sign.update(input);
+                const signature = sign.sign(dsaPkcs8KeyPem, 'hex');
+
+                const verify = crypto.createVerify('SHA1');
+                verify.update(input);
+
+                assert.equal(verify.verify(dsaPubPem, signature, 'hex'), true);
+            });
+
+            it('DSA signing and verification with encrypted key', () => {
+                const input = 'I AM THE WALRUS';
+
+                const sign = crypto.createSign('SHA1');
+                sign.update(input);
+                assert.throws(() => {
+                    sign.sign({ key: dsaKeyPemEncrypted, passphrase: 'wrong' }, 'hex');
+                });
+            });
+
+            it('signatures vary across runs so there is no static string to verify against', () => {
+                const input = 'I AM THE WALRUS';
+
+                const sign = crypto.createSign('SHA1');
+                sign.update(input);
+                const signOptions = { key: dsaKeyPemEncrypted, passphrase: 'password' };
+                const signature = sign.sign(signOptions, 'hex');
+
+                const verify = crypto.createVerify('SHA1');
+                verify.update(input);
+
+                assert.equal(verify.verify(dsaPubPem, signature, 'hex'), true);
+            });
+
+            it('check arguments', () => {
+                assert.throws(
+                    () => crypto.createVerify('SHA256').verify({
+                        key: certPem,
+                        padding: null,
+                    }));
+
+                assert.throws(
+                    () => crypto.createVerify('SHA256').verify({
+                        key: certPem,
+                        saltLength: null,
+                    }));
+
+                const sign = crypto.createSign('SHA1');
+                const verify = crypto.createVerify('SHA1');
+
+                [1, [], {}, undefined, null, true, Infinity].forEach((input) => {
+                    assert.throws(() => crypto.createSign(input));
+                    assert.throws(() => crypto.createVerify(input));
+                    // assert.throws(() => sign.update(input));
+                    // assert.throws(() => verify.update(input));
+                    assert.throws(() => sign._write(input, 'utf8', () => { }));
+                    assert.throws(() => verify._write(input, 'utf8', () => { }));
+                });
+
+                [
+                    Uint8Array, Uint16Array, Uint32Array, Float32Array, Float64Array,
+                ].forEach((clazz) => {
+                    // These should all just work
+                    sign.update(new clazz());
+                    verify.update(new clazz());
+                });
+
+                [1, {}, [], Infinity].forEach((input) => {
+                    assert.throws(() => sign.sign(input));
+                    assert.throws(() => verify.verify(input));
+                    assert.throws(() => verify.verify('test', input));
+                });
+
+                assert.throws(() => crypto.createSign('sha8'));
+                assert.throws(() => crypto.sign('sha8', Buffer.alloc(1), keyPem));
+
+                assert.throws(() => crypto.createSign('SHA1').update('Test123').sign(null, 'base64'));
+
+                [1, {}, [], true, Infinity].forEach((input) => {
+                    const data = Buffer.alloc(1);
+                    const sig = Buffer.alloc(1);
+
+                    assert.throws(() => crypto.sign(null, input, 'asdf'));
+                    assert.throws(() => crypto.verify(null, input, 'asdf', sig));
+
+                    assert.throws(() => crypto.sign(null, data, input));
+                    assert.throws(() => crypto.verify(null, data, input, sig));
+
+                    assert.throws(() => crypto.verify(null, data, 'test', input));
+                });
+
+                for (const key of ['', 'foo', null, undefined, true, Boolean]) {
+                    assert.throws(() => {
+                        crypto.verify('sha256', 'foo', { key, format: 'jwk' }, Buffer.alloc(0));
+                    });
+                    assert.throws(() => {
+                        crypto.createVerify('sha256').verify({ key, format: 'jwk' }, Buffer.alloc(0));
+                    });
+                    assert.throws(() => {
+                        crypto.sign('sha256', 'foo', { key, format: 'jwk' });
+                    });
+                    assert.throws(() => {
+                        crypto.createSign('sha256').sign({ key, format: 'jwk' });
+                    });
+                }
+            });
+
+            it('Special tests for RSA_PKCS1_PSS_PADDING', () => {
+                function testPSS(algo, hLen) {
+                    // Maximum permissible salt length
+                    const max = keySize / 8 - hLen - 2;
+
+                    function getEffectiveSaltLength(saltLength) {
+                        switch (saltLength) {
+                            case crypto.constants.RSA_PSS_SALTLEN_DIGEST:
+                                return hLen;
+                            case crypto.constants.RSA_PSS_SALTLEN_MAX_SIGN:
+                                return max;
+                            default:
+                                return saltLength;
+                        }
+                    }
+
+                    const signSaltLengths = [
+                        crypto.constants.RSA_PSS_SALTLEN_DIGEST,
+                        getEffectiveSaltLength(crypto.constants.RSA_PSS_SALTLEN_DIGEST),
+                        crypto.constants.RSA_PSS_SALTLEN_MAX_SIGN,
+                        getEffectiveSaltLength(crypto.constants.RSA_PSS_SALTLEN_MAX_SIGN),
+                        0, 16, 32, 64, 128,
+                    ];
+
+                    const verifySaltLengths = [
+                        crypto.constants.RSA_PSS_SALTLEN_DIGEST,
+                        getEffectiveSaltLength(crypto.constants.RSA_PSS_SALTLEN_DIGEST),
+                        getEffectiveSaltLength(crypto.constants.RSA_PSS_SALTLEN_MAX_SIGN),
+                        0, 16, 32, 64, 128,
+                    ];
+                    const errMessage = /^Error:.*data too large for key size$/;
+
+                    const data = Buffer.from('Test123');
+
+                    signSaltLengths.forEach((signSaltLength) => {
+                        if (signSaltLength > max) {
+                            // If the salt length is too big, an Error should be thrown
+                            assert.throws(() => {
+                                crypto.createSign(algo)
+                                    .update(data)
+                                    .sign({
+                                        key: keyPem,
+                                        padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+                                        saltLength: signSaltLength
+                                    });
+                            }, errMessage);
+                            assert.throws(() => {
+                                crypto.sign(algo, data, {
+                                    key: keyPem,
+                                    padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+                                    saltLength: signSaltLength
+                                });
+                            }, errMessage);
+                        } else {
+                            // Otherwise, a valid signature should be generated
+                            const s4 = crypto.createSign(algo)
+                                .update(data)
+                                .sign({
+                                    key: keyPem,
+                                    padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+                                    saltLength: signSaltLength
+                                });
+                            const s4_2 = crypto.sign(algo, data, {
+                                key: keyPem,
+                                padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+                                saltLength: signSaltLength
+                            });
+
+                            [s4, s4_2].forEach((sig) => {
+                                let verified;
+                                verifySaltLengths.forEach((verifySaltLength) => {
+                                    // Verification should succeed if and only if the salt length is
+                                    // correct
+                                    verified = crypto.createVerify(algo)
+                                        .update(data)
+                                        .verify({
+                                            key: certPem,
+                                            padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+                                            saltLength: verifySaltLength
+                                        }, sig);
+                                    assert.strictEqual(verified, crypto.verify(algo, data, {
+                                        key: certPem,
+                                        padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+                                        saltLength: verifySaltLength
+                                    }, sig));
+                                    const saltLengthCorrect = getEffectiveSaltLength(signSaltLength) ===
+                                        getEffectiveSaltLength(verifySaltLength);
+                                    assert.strictEqual(verified, saltLengthCorrect);
+                                });
+
+                                // Verification using RSA_PSS_SALTLEN_AUTO should always work
+                                verified = crypto.createVerify(algo)
+                                    .update(data)
+                                    .verify({
+                                        key: certPem,
+                                        padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+                                        saltLength: crypto.constants.RSA_PSS_SALTLEN_AUTO
+                                    }, sig);
+                                assert.strictEqual(verified, true);
+                                assert.strictEqual(verified, crypto.verify(algo, data, {
+                                    key: certPem,
+                                    padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+                                    saltLength: crypto.constants.RSA_PSS_SALTLEN_AUTO
+                                }, sig));
+
+                                // Verifying an incorrect message should never work
+                                const wrongData = Buffer.from('Test1234');
+                                verified = crypto.createVerify(algo)
+                                    .update(wrongData)
+                                    .verify({
+                                        key: certPem,
+                                        padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+                                        saltLength: crypto.constants.RSA_PSS_SALTLEN_AUTO
+                                    }, sig);
+                                assert.strictEqual(verified, false);
+                                assert.strictEqual(verified, crypto.verify(algo, wrongData, {
+                                    key: certPem,
+                                    padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+                                    saltLength: crypto.constants.RSA_PSS_SALTLEN_AUTO
+                                }, sig));
+                            });
+                        }
+                    });
+                }
+
+                testPSS('SHA1', 20);
+                testPSS('SHA256', 32);
+            });
+
+            it('Test vectors for RSA_PKCS1_PSS_PADDING provided by the RSA Laboratories', () => {
+                function testVerify(cert, vector) {
+                    const verified = crypto.createVerify('SHA1')
+                        .update(Buffer.from(vector.message, 'hex'))
+                        .verify({
+                            key: cert,
+                            padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+                            saltLength: vector.salt.length / 2
+                        }, vector.signature, 'hex');
+                    assert.strictEqual(verified, true);
+                }
+
+                const examples = JSON.parse(readSync('pss-vectors.json', 'utf8'));
+
+                for (const key in examples) {
+                    const example = examples[key];
+                    const publicKey = example.publicKey.join('\n');
+                    example.tests.forEach((test) => testVerify(publicKey, test));
+                }
+            });
+
+            it('exceptions for invalid `padding` and `saltLength` values', () => {
+                [null, NaN, 'boom', {}, [], true, false]
+                    .forEach((invalidValue) => {
+                        assert.throws(() => {
+                            crypto.createSign('SHA256')
+                                .update('Test123')
+                                .sign({
+                                    key: keyPem,
+                                    padding: invalidValue
+                                });
+                        }, {
+                            code: 'ERR_INVALID_ARG_VALUE',
+                            name: 'TypeError'
+                        });
+
+                        assert.throws(() => {
+                            crypto.createSign('SHA256')
+                                .update('Test123')
+                                .sign({
+                                    key: keyPem,
+                                    padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+                                    saltLength: invalidValue
+                                });
+                        }, {
+                            code: 'ERR_INVALID_ARG_VALUE',
+                            name: 'TypeError'
+                        });
+                    });
+
+                assert.throws(() => {
+                    crypto.createSign('SHA1')
+                        .update('Test123')
+                        .sign({
+                            key: keyPem,
+                            padding: crypto.constants.RSA_PKCS1_OAEP_PADDING
+                        });
+                });
+            });
+
+            it('ed signing and verification', () => {
+                [
+                    {
+                        private: readKey('ed25519_private.pem', 'ascii'),
+                        public: readKey('ed25519_public.pem', 'ascii'),
+                        algo: null,
+                        sigLen: 64
+                    },
+                    {
+                        private: readKey('ed448_private.pem', 'ascii'),
+                        public: readKey('ed448_public.pem', 'ascii'),
+                        algo: null,
+                        sigLen: 114
+                    },
+                    {
+                        private: readKey('rsa_private_2048.pem', 'ascii'),
+                        public: readKey('rsa_public_2048.pem', 'ascii'),
+                        algo: 'sha1',
+                        sigLen: 256
+                    },
+                ].forEach((pair) => {
+                    const algo = pair.algo;
+
+                    {
+                        const data = Buffer.from('Hello world');
+                        const sig = crypto.sign(algo, data, pair.private);
+                        assert.strictEqual(sig.length, pair.sigLen);
+
+                        assert.strictEqual(crypto.verify(algo, data, pair.private, sig),
+                            true);
+                        assert.strictEqual(crypto.verify(algo, data, pair.public, sig),
+                            true);
+                    }
+
+                    {
+                        const data = Buffer.from('Hello world');
+                        const privKeyObj = crypto.createPrivateKey(pair.private);
+                        const pubKeyObj = crypto.createPublicKey(pair.public);
+
+                        const sig = crypto.sign(algo, data, privKeyObj);
+                        assert.strictEqual(sig.length, pair.sigLen);
+
+                        assert.strictEqual(crypto.verify(algo, data, privKeyObj, sig), true);
+                        assert.strictEqual(crypto.verify(algo, data, pubKeyObj, sig), true);
+                    }
+
+                    {
+                        const data = Buffer.from('Hello world');
+                        const otherData = Buffer.from('Goodbye world');
+                        const otherSig = crypto.sign(algo, otherData, pair.private);
+                        assert.strictEqual(crypto.verify(algo, data, pair.private, otherSig),
+                            false);
+                    }
+                });
+            });
+
+            it('ec signing and verification', () => {
+                const data = Buffer.from('Hello world');
+                const keys = [['ec-key.pem', 64], ['dsa_private_1025.pem', 40]];
+
+                for (const [file, length] of keys) {
+                    const privKey = readKey(file);
+                    [
+                        crypto.createSign('sha1').update(data).sign(privKey),
+                        crypto.sign('sha1', data, privKey),
+                        crypto.sign('sha1', data, { key: privKey, dsaEncoding: 'der' }),
+                    ].forEach((sig) => {
+                        // Signature length variability due to DER encoding
+                        assert(sig.length >= length + 4 && sig.length <= length + 8);
+
+                        assert.strictEqual(
+                            crypto.createVerify('sha1').update(data).verify(privKey, sig),
+                            true
+                        );
+                        assert.strictEqual(crypto.verify('sha1', data, privKey, sig), true);
+                    });
+
+                    // Test (EC)DSA signature conversion.
+                    const opts = { key: privKey, dsaEncoding: 'ieee-p1363' };
+                    let sig = crypto.sign('sha1', data, opts);
+                    // Unlike DER signatures, IEEE P1363 signatures have a predictable length.
+                    assert.strictEqual(sig.length, length);
+                    assert.strictEqual(crypto.verify('sha1', data, opts, sig), true);
+                    assert.strictEqual(crypto.createVerify('sha1')
+                        .update(data)
+                        .verify(opts, sig), true);
+
+                    // Test invalid signature lengths.
+                    for (const i of [-2, -1, 1, 2, 4, 8]) {
+                        sig = crypto.randomBytes(length + i);
+                        let result;
+                        try {
+                            result = crypto.verify('sha1', data, opts, sig);
+                        } catch (err) {
+                            assert.match(err.message, /asn1 encoding/);
+                            assert.strictEqual(err.library, 'asn1 encoding routines');
+                            continue;
+                        }
+                        assert.strictEqual(result, false);
+                    }
+                }
+
+                // Test verifying externally signed messages.
+                const extSig = Buffer.from('494c18ab5c8a62a72aea5041966902bcfa229821af2bf65' +
+                    '0b5b4870d1fe6aebeaed9460c62210693b5b0a300033823' +
+                    '33d9529c8abd8c5948940af944828be16c', 'hex');
+                for (const ok of [true, false]) {
+                    assert.strictEqual(
+                        crypto.verify('sha256', data, {
+                            key: readKey('ec-key.pem'),
+                            dsaEncoding: 'ieee-p1363'
+                        }, extSig),
+                        ok
+                    );
+
+                    assert.strictEqual(
+                        crypto.createVerify('sha256').update(data).verify({
+                            key: readKey('ec-key.pem'),
+                            dsaEncoding: 'ieee-p1363'
+                        }, extSig),
+                        ok
+                    );
+
+                    extSig[Math.floor(Math.random() * extSig.length)] ^= 1;
+                }
+
+                // Non-(EC)DSA keys should ignore the option.
+                const sig = crypto.sign('sha1', data, {
+                    key: keyPem,
+                    dsaEncoding: 'ieee-p1363'
+                });
+                assert.strictEqual(crypto.verify('sha1', data, certPem, sig), true);
+                assert.strictEqual(
+                    crypto.verify('sha1', data, {
+                        key: certPem,
+                        dsaEncoding: 'ieee-p1363'
+                    }, sig),
+                    true
+                );
+                assert.strictEqual(
+                    crypto.verify('sha1', data, {
+                        key: certPem,
+                        dsaEncoding: 'der'
+                    }, sig),
+                    true
+                );
+
+                for (const dsaEncoding of ['foo', null, {}, 5, true, NaN]) {
+                    assert.throws(() => {
+                        crypto.sign('sha1', data, {
+                            key: certPem,
+                            dsaEncoding
+                        });
+                    });
+                }
+            });
+
+            describe('RSA-PSS', () => {
+                it('This key pair does not restrict the message digest algorithm or salt length', () => {
+                    const publicPem = readKey('rsa_pss_public_2048.pem');
+                    const privatePem = readKey('rsa_pss_private_2048.pem');
+
+                    const publicKey = crypto.createPublicKey(publicPem);
+                    const privateKey = crypto.createPrivateKey(privatePem);
+
+                    for (const key of [privatePem, privateKey]) {
+                        // Any algorithm should work.
+                        for (const algo of ['sha1', 'sha256']) {
+                            // Any salt length should work.
+                            for (const saltLength of [undefined, 8, 10, 12, 16, 18, 20]) {
+                                const signature = crypto.sign(algo, 'foo', { key, saltLength });
+
+                                for (const pkey of [key, publicKey, publicPem]) {
+                                    const okay = crypto.verify(
+                                        algo,
+                                        'foo',
+                                        { key: pkey, saltLength },
+                                        signature
+                                    );
+
+                                    assert.ok(okay);
+                                }
+                            }
+                        }
+                    }
+                });
+
+                it('This key pair enforces sha256 as the message digest and the MGF1 message digest and a salt length of at least 16 bytes', () => {
+                    const publicPem = readKey('rsa_pss_public_2048_sha256_sha256_16.pem');
+                    const privatePem = readKey('rsa_pss_private_2048_sha256_sha256_16.pem');
+
+                    const publicKey = crypto.createPublicKey(publicPem);
+                    const privateKey = crypto.createPrivateKey(privatePem);
+
+                    for (const key of [privatePem, privateKey]) {
+                        // Signing with anything other than sha256 should fail.
+                        assert.throws(() => {
+                            crypto.sign('sha1', 'foo', key);
+                        }, /digest not allowed/);
+
+                        // Signing with salt lengths less than 16 bytes should fail.
+                        for (const saltLength of [8, 10, 12]) {
+                            assert.throws(() => {
+                                crypto.sign('sha256', 'foo', { key, saltLength });
+                            }, /pss saltlen too small/);
+                        }
+
+                        // Signing with sha256 and appropriate salt lengths should work.
+                        for (const saltLength of [undefined, 16, 18, 20]) {
+                            const signature = crypto.sign('sha256', 'foo', { key, saltLength });
+
+                            for (const pkey of [key, publicKey, publicPem]) {
+                                const okay = crypto.verify(
+                                    'sha256',
+                                    'foo',
+                                    { key: pkey, saltLength },
+                                    signature
+                                );
+
+                                assert.ok(okay);
+                            }
+                        }
+                    }
+                });
+
+                it('This key enforces sha512 as the message digest and sha256 as the MGF1 message digest', () => {
+                    const publicPem = readKey('rsa_pss_public_2048_sha512_sha256_20.pem');
+                    const privatePem = readKey('rsa_pss_private_2048_sha512_sha256_20.pem');
+
+                    const publicKey = crypto.createPublicKey(publicPem);
+                    const privateKey = crypto.createPrivateKey(privatePem);
+
+                    for (const key of [privatePem, privateKey]) {
+                        // sha256 matches the MGF1 hash function and should be used internally,
+                        // but it should not be permitted as the main message digest algorithm.
+                        for (const algo of ['sha1', 'sha256']) {
+                            assert.throws(() => {
+                                crypto.sign(algo, 'foo', key);
+                            }, /digest not allowed/);
+                        }
+
+                        // sha512 should produce a valid signature.
+                        const signature = crypto.sign('sha512', 'foo', key);
+
+                        for (const pkey of [key, publicKey, publicPem]) {
+                            const okay = crypto.verify('sha512', 'foo', pkey, signature);
+
+                            assert.ok(okay);
+                        }
+                    }
+                });
+
+            });
+        });
     });
 
     describe('Cipher', () => {
@@ -1723,7 +2393,7 @@ describe('crypto', () => {
                             cipher().setAAD(Buffer.alloc(0), {
                                 plaintextLength: maxMessageSize + 1
                             });
-                        }, /Invalid message length$/);
+                        });
 
                         const msg = Buffer.alloc(maxMessageSize + 1);
                         assert.throws(() => {
@@ -1939,9 +2609,6 @@ describe('crypto', () => {
                                 // because its security assurance is lower than expected.
                                 assert.throws(() => {
                                     decipher.setAuthTag(authTag);
-                                }, {
-                                    code: 'ERR_CRYPTO_INVALID_AUTH_TAG',
-                                    message: `Invalid authentication tag length: ${authTagLength}`
                                 });
                             }
                         }

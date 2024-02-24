@@ -10,6 +10,8 @@
 /// <reference path="../interface/Digest.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/KeyObject.d.ts" />
+/// <reference path="../interface/Sign.d.ts" />
+/// <reference path="../interface/Verify.d.ts" />
 /**
  * @description `crypto` 模块是 `fibjs` 内置的加密算法模块。它提供了对称加密、非对称加密、摘要算法、密码学随机数生成器等功能。在使用之前，需要通过 `require('crypto')` 加载该模块。
  * 
@@ -367,6 +369,10 @@ declare module 'crypto' {
      */
     function createPublicKey(key: FIBJS.GeneralObject): Class_KeyObject;
 
+    function createSign(algorithm: string, options?: FIBJS.GeneralObject): Class_Sign;
+
+    function createVerify(algorithm: string, options?: FIBJS.GeneralObject): Class_Verify;
+
     /**
      * @description 创建一个新的密钥对象，其中包含对称加密或 Hmac 的密钥
      *      @param key 指定加密解密密码
@@ -609,6 +615,18 @@ declare module 'crypto' {
      *      
      */
     function publicEncrypt(key: FIBJS.GeneralObject, buffer: any): Class_Buffer;
+
+    function sign(algorithm: any, data: Class_Buffer, privateKey: Class_Buffer): Class_Buffer;
+
+    function sign(algorithm: any, data: Class_Buffer, privateKey: Class_KeyObject): Class_Buffer;
+
+    function sign(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject): Class_Buffer;
+
+    function verify(algorithm: any, data: Class_Buffer, publicKey: Class_Buffer, signature: Class_Buffer): boolean;
+
+    function verify(algorithm: any, data: Class_Buffer, publicKey: Class_KeyObject, signature: Class_Buffer): boolean;
+
+    function verify(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject, signature: Class_Buffer): boolean;
 
 }
 

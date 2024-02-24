@@ -1,0 +1,27 @@
+/**/
+interface Verify : object
+{
+    /**/
+    Verify update(Buffer data);
+
+    /**/
+    Verify update(String data, String codec = "utf8");
+
+    /**/
+    Boolean verify(Buffer privateKey, Buffer signature);
+
+    /**/
+    Boolean verify(KeyObject privateKey, Buffer signature);
+
+    /**/
+    Boolean verify(Object key, Buffer signature);
+
+    /**/
+    Boolean verify(Buffer privateKey, String signature, String encoding = "buffer");
+
+    /**/
+    Boolean verify(KeyObject privateKey, String signature, String encoding = "buffer");
+
+    /**/
+    Boolean verify(Object key, String signature, String encoding = "buffer");
+};

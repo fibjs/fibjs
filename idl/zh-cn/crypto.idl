@@ -260,6 +260,12 @@ module crypto
      */
     static KeyObject createPublicKey(Object key);
 
+    /**/
+    static Sign createSign(String algorithm, Object options = {});
+
+    /**/
+    static Verify createVerify(String algorithm, Object options = {});
+
     /*! @brief 创建一个新的密钥对象，其中包含对称加密或 Hmac 的密钥
      @param key 指定加密解密密码
      @param encoding 指定密码的编码，缺省为 "buffer"
@@ -442,4 +448,22 @@ module crypto
      @return 返回加密后的数据
      */
     static Buffer publicEncrypt(Object key, Value buffer);
+
+    /**/
+    static Buffer sign(Value algorithm, Buffer data, Buffer privateKey);
+
+    /**/
+    static Buffer sign(Value algorithm, Buffer data, KeyObject privateKey);
+
+    /**/
+    static Buffer sign(Value algorithm, Buffer data, Object key);
+
+    /**/
+    static Boolean verify(Value algorithm, Buffer data, Buffer publicKey, Buffer signature);
+
+    /**/
+    static Boolean verify(Value algorithm, Buffer data, KeyObject publicKey, Buffer signature);
+
+    /**/
+    static Boolean verify(Value algorithm, Buffer data, Object key, Buffer signature);
 };

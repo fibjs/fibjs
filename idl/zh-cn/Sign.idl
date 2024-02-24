@@ -1,0 +1,18 @@
+/**/
+interface Sign : object
+{
+    /**/
+    Sign update(Buffer data);
+
+    /**/
+    Sign update(String data, String codec = "utf8");
+
+    /**/
+    Value sign(Buffer privateKey, String encoding = "buffer");
+
+    /**/
+    Value sign(KeyObject privateKey, String encoding = "buffer");
+
+    /**/
+    Value sign(Object key, String encoding = "buffer");
+};

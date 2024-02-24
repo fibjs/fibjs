@@ -73,8 +73,6 @@ result_t KeyObject::createPublicKeyFromPrivateKey(EVP_PKEY* key)
         RSA_get0_key(rsa, &n, &e, nullptr);
         if (RSA_set0_key(EVP_PKEY_get1_RSA(m_pkey), BN_dup(n), BN_dup(e), nullptr) != 1)
             return CHECK_ERROR(Runtime::setError("Invalid RSA private key"));
-
-        m_keyType = kKeyTypePublic;
     } else if (type == EVP_PKEY_EC) {
         const EC_KEY* ec = EVP_PKEY_get0_EC_KEY(key);
         const EC_GROUP* group = EC_KEY_get0_group(ec);
@@ -94,8 +92,6 @@ result_t KeyObject::createPublicKeyFromPrivateKey(EVP_PKEY* key)
         m_pkey = EVP_PKEY_new();
         if (EVP_PKEY_set1_EC_KEY(m_pkey, pub.release()) != 1)
             return CHECK_ERROR(Runtime::setError("Invalid EC public key"));
-
-        m_keyType = kKeyTypePublic;
     } else if (type == EVP_PKEY_ED25519 || type == EVP_PKEY_ED448
         || type == EVP_PKEY_X25519 || type == EVP_PKEY_X448) {
 
@@ -110,10 +106,13 @@ result_t KeyObject::createPublicKeyFromPrivateKey(EVP_PKEY* key)
         m_pkey = EVP_PKEY_new_raw_public_key(type, nullptr, key_buf.data(), len);
         if (!m_pkey)
             return openssl_error();
+    } else {
+        m_pkey = EVP_PKEY_dup(key);
+        if (!m_pkey)
+            return openssl_error();
+    }
 
-        m_keyType = kKeyTypePublic;
-    } else
-        return CHECK_ERROR(Runtime::setError("Invalid key type"));
+    m_keyType = kKeyTypePublic;
 
     return 0;
 }
@@ -170,11 +169,13 @@ result_t KeyObject::ParsePublicKeyPEM(const char* key_pem, int key_pem_len)
         return hr;
 
     BIO_reset(bp);
-    EVPKeyPointer pk = PEM_read_bio_PrivateKey(bp, nullptr, NoPasswordCallback, nullptr);
-    if (!pk)
+    m_pkey = PEM_read_bio_PrivateKey(bp, nullptr, NoPasswordCallback, nullptr);
+    if (!m_pkey)
         return 1;
 
-    return createPublicKeyFromPrivateKey(pk);
+    m_keyType = kKeyTypePublic;
+
+    return 0;
 }
 
 result_t KeyObject::ParsePublicKey(v8::Local<v8::Object> key)
