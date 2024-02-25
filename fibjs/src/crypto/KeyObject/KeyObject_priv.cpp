@@ -221,8 +221,9 @@ result_t KeyObject::ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8
         } else
             return Runtime::setError("Invalid format");
     } else if (type == "spki") {
-        if (EVP_PKEY_id(m_pkey) != EVP_PKEY_EC)
-            return Runtime::setError("spki only support EC key");
+        int nid = EVP_PKEY_id(m_pkey);
+        if (nid != EVP_PKEY_EC && nid != EVP_PKEY_SM2)
+            return Runtime::setError("spki only support EC and SM2 key");
 
         ECKeyPointer ec = EVP_PKEY_get1_EC_KEY(m_pkey);
         if (format == "pem") {
