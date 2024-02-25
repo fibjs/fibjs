@@ -94,7 +94,6 @@ result_t KeyObject::createPublicKeyFromPrivateKey(EVP_PKEY* key)
             return CHECK_ERROR(Runtime::setError("Invalid EC public key"));
     } else if (type == EVP_PKEY_ED25519 || type == EVP_PKEY_ED448
         || type == EVP_PKEY_X25519 || type == EVP_PKEY_X448) {
-
         size_t len = 0;
         if (EVP_PKEY_get_raw_public_key(key, nullptr, &len) != 1)
             return CHECK_ERROR(Runtime::setError("Invalid OKP private key"));

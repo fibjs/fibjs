@@ -845,6 +845,100 @@ describe('crypto', () => {
             });
         });
 
+        describe('generateKeyPair', () => {
+            it('rsa', () => {
+                const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
+                    publicExponent: 0x10001,
+                    modulusLength: 512
+                });
+
+                assert.equal(publicKey.type, 'public');
+                assert.equal(publicKey.asymmetricKeyType, 'rsa');
+                assert.equal(publicKey.symmetricKeySize, undefined);
+                assert.deepEqual(publicKey.asymmetricKeyDetails, {
+                    modulusLength: 512,
+                    publicExponent: 65537n
+                });
+
+                assert.equal(privateKey.type, 'private');
+                assert.equal(privateKey.asymmetricKeyType, 'rsa');
+                assert.equal(privateKey.symmetricKeySize, undefined);
+                assert.deepEqual(privateKey.asymmetricKeyDetails, {
+                    modulusLength: 512,
+                    publicExponent: 65537n
+                });
+            });
+
+            it('dsa', () => {
+                const { publicKey, privateKey } = crypto.generateKeyPairSync('dsa', {
+                    modulusLength: 1024,
+                    divisorLength: 160
+                });
+
+                assert.equal(publicKey.type, 'public');
+                assert.equal(publicKey.asymmetricKeyType, 'dsa');
+                assert.equal(publicKey.symmetricKeySize, undefined);
+                assert.throws(() => publicKey.export({ format: 'jwk' }));
+                assert.deepEqual(publicKey.asymmetricKeyDetails, {
+                    divisorLength: 160,
+                    modulusLength: 1024
+                });
+
+                assert.equal(privateKey.type, 'private');
+                assert.equal(privateKey.asymmetricKeyType, 'dsa');
+                assert.equal(privateKey.symmetricKeySize, undefined);
+                assert.throws(() => privateKey.export({ format: 'jwk' }));
+                assert.deepEqual(privateKey.asymmetricKeyDetails, {
+                    divisorLength: 160,
+                    modulusLength: 1024
+                });
+            });
+
+            it('ec', () => {
+                const { publicKey, privateKey } = crypto.generateKeyPairSync('ec', {
+                    namedCurve: 'secp256k1'
+                });
+
+                assert.equal(publicKey.type, 'public');
+                assert.equal(publicKey.asymmetricKeyType, 'ec');
+                assert.equal(publicKey.symmetricKeySize, undefined);
+                assert.deepEqual(publicKey.asymmetricKeyDetails, { namedCurve: 'secp256k1' });
+
+                assert.equal(privateKey.type, 'private');
+                assert.equal(privateKey.asymmetricKeyType, 'ec');
+                assert.equal(privateKey.symmetricKeySize, undefined);
+                assert.deepEqual(privateKey.asymmetricKeyDetails, { namedCurve: 'secp256k1' });
+            });
+
+            it('ed25519', () => {
+                const { publicKey, privateKey } = crypto.generateKeyPairSync('ed25519');
+
+                assert.equal(publicKey.type, 'public');
+                assert.equal(publicKey.asymmetricKeyType, 'ed25519');
+                assert.equal(publicKey.symmetricKeySize, undefined);
+                assert.equal(publicKey.asymmetricKeyDetails, undefined);
+
+                assert.equal(privateKey.type, 'private');
+                assert.equal(privateKey.asymmetricKeyType, 'ed25519');
+                assert.equal(privateKey.symmetricKeySize, undefined);
+                assert.equal(privateKey.asymmetricKeyDetails, undefined);
+            });
+
+            it('callback', (done) => {
+                crypto.generateKeyPair('rsa', {
+                    publicExponent: 0x10001,
+                    modulusLength: 512,
+                    publicKeyEncoding: { type: 'spki', format: 'pem' },
+                    privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
+                }, (err, publicKey, privateKey) => {
+                    done(() => {
+                        assert.isString(publicKey);
+                        assert.isString(privateKey);
+                    });
+                });
+            });
+        });
+
         describe('encrypt', () => {
             const certPem = readKey('rsa_cert.crt');
             const keyPem = readKey('rsa_private.pem');

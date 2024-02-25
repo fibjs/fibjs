@@ -480,6 +480,10 @@ declare module 'crypto' {
 
     function generateKey(curve?: string, callback?: (err: Error | undefined | null, retVal: Class_PKey)=>any): void;
 
+    function generateKeyPair(type: string, options?: FIBJS.GeneralObject): [publicKey: any, privateKey: any];
+
+    function generateKeyPair(type: string, options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: [publicKey: any, privateKey: any])=>any): void;
+
     /**
      * @description 依据 rfc5869 根据明文 password 生成要求的二进制钥匙
      *      @param algoName 指定要使用的 hash 算法，详见 hash 模块

@@ -345,6 +345,9 @@ module crypto
     */
     static PKey generateKey(String curve = "secp521r1") async;
 
+    /**/
+    static (Variant publicKey, Variant privateKey) generateKeyPair(String type, Object options = {}) async;
+
     /*! @brief 依据 rfc5869 根据明文 password 生成要求的二进制钥匙
      @param algoName 指定要使用的 hash 算法，详见 hash 模块
      @param password 指定使用的密码

@@ -12,6 +12,18 @@
 
 namespace fibjs {
 
+class generateKeyPairParam : public obj_base {
+public:
+    int32_t modulusLength = 0;
+    int32_t publicExponent = 0x10001;
+    exlib::string hashAlgorithm;
+    exlib::string mgf1Algorithm;
+    int32_t saltLength = -1;
+    int32_t divisorLength = -1;
+    exlib::string namedCurve;
+    exlib::string paramEncoding;
+};
+
 class KeyObject : public KeyObject_base {
 public:
     enum PKEncodingType {
@@ -67,6 +79,13 @@ public:
     result_t ExportJWKRsaKey(v8::Local<v8::Value>& retVal);
     result_t ExportJWKEcKey(v8::Local<v8::Value>& retVal);
     result_t ExportJWKSecretKey(v8::Local<v8::Value>& retVal);
+
+public:
+    result_t generateKey(exlib::string type, generateKeyPairParam* param);
+    result_t generateRsaKey(int nid, generateKeyPairParam* param);
+    result_t generateDsaKey(int nid, generateKeyPairParam* param);
+    result_t generateEcKey(int nid, generateKeyPairParam* param);
+    result_t generateEdKey(int nid, generateKeyPairParam* param);
 
 public:
     KeyType type() const

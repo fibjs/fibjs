@@ -60,6 +60,27 @@ public:
     };
 
 public:
+    class GenerateKeyPairType : public NType {
+    public:
+        virtual void fillMembers(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        {
+            v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
+            retVal->Set(context, isolate->NewString("publicKey"), GetReturnValue(isolate, publicKey)).Check();
+            retVal->Set(context, isolate->NewString("privateKey"), GetReturnValue(isolate, privateKey)).Check();
+        }
+
+        virtual void fillArguments(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        {
+            args.push_back(GetReturnValue(isolate, publicKey));
+            args.push_back(GetReturnValue(isolate, privateKey));
+        }
+
+    public:
+        Variant publicKey;
+        Variant privateKey;
+    };
+
+public:
     // crypto_base
     static result_t getHashes(v8::Local<v8::Array>& retVal);
     static result_t createHash(exlib::string algo, obj_ptr<Digest_base>& retVal);
@@ -89,6 +110,7 @@ public:
     static result_t randomFill(Buffer_base* buffer, int32_t offset, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t generateKey(int32_t size, obj_ptr<PKey_base>& retVal, AsyncEvent* ac);
     static result_t generateKey(exlib::string curve, obj_ptr<PKey_base>& retVal, AsyncEvent* ac);
+    static result_t generateKeyPair(exlib::string type, v8::Local<v8::Object> options, obj_ptr<GenerateKeyPairType>& retVal, AsyncEvent* ac);
     static result_t hkdf(exlib::string algoName, Buffer_base* password, Buffer_base* salt, Buffer_base* info, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t privateDecrypt(Buffer_base* privateKey, Buffer_base* buffer, obj_ptr<Buffer_base>& retVal);
@@ -141,6 +163,7 @@ public:
     static void s_static_randomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_randomFill(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_generateKey(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_generateKeyPair(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_hkdf(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_privateDecrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -155,6 +178,7 @@ public:
     ASYNC_STATICVALUE4(crypto_base, randomFill, Buffer_base*, int32_t, int32_t, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE2(crypto_base, generateKey, int32_t, obj_ptr<PKey_base>);
     ASYNC_STATICVALUE2(crypto_base, generateKey, exlib::string, obj_ptr<PKey_base>);
+    ASYNC_STATICVALUE3(crypto_base, generateKeyPair, exlib::string, v8::Local<v8::Object>, obj_ptr<GenerateKeyPairType>);
     ASYNC_STATICVALUE6(crypto_base, hkdf, exlib::string, Buffer_base*, Buffer_base*, Buffer_base*, int32_t, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE6(crypto_base, pbkdf2, Buffer_base*, Buffer_base*, int32_t, int32_t, exlib::string, obj_ptr<Buffer_base>);
 };
@@ -202,6 +226,8 @@ inline ClassInfo& crypto_base::class_info()
         { "randomFillSync", s_static_randomFill, true, false },
         { "generateKey", s_static_generateKey, true, true },
         { "generateKeySync", s_static_generateKey, true, false },
+        { "generateKeyPair", s_static_generateKeyPair, true, true },
+        { "generateKeyPairSync", s_static_generateKeyPair, true, false },
         { "hkdf", s_static_hkdf, true, true },
         { "hkdfSync", s_static_hkdf, true, false },
         { "pbkdf2", s_static_pbkdf2, true, true },
@@ -644,6 +670,25 @@ inline void crypto_base::s_static_generateKey(const v8::FunctionCallbackInfo<v8:
         hr = acb_generateKey(v0, cb, args);
     else
         hr = ac_generateKey(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_generateKeyPair(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<GenerateKeyPairType> vr;
+
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    if (!cb.IsEmpty())
+        hr = acb_generateKeyPair(v0, v1, cb, args);
+    else
+        hr = ac_generateKeyPair(v0, v1, vr);
 
     METHOD_RETURN();
 }
