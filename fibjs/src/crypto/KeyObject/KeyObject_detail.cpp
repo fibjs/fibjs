@@ -167,6 +167,7 @@ result_t KeyObject::get_asymmetricKeyDetails(v8::Local<v8::Object>& retVal)
     case EVP_PKEY_DSA:
         return GetDsaKeyDetail(retVal);
     case EVP_PKEY_EC:
+    case EVP_PKEY_SM2:
         return GetEcKeyDetail(retVal);
     case EVP_PKEY_DH:
         return GetDhKeyDetail(retVal);

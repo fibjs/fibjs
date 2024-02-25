@@ -94,6 +94,9 @@ result_t KeyObject::get_asymmetricKeyType(exlib::string& retVal)
     case EVP_PKEY_EC:
         retVal = "ec";
         break;
+    case EVP_PKEY_SM2:
+        retVal = "sm2";
+        break;
     case EVP_PKEY_ED25519:
         retVal = "ed25519";
         break;

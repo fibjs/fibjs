@@ -924,6 +924,16 @@ describe('crypto', () => {
                 assert.equal(privateKey.asymmetricKeyDetails, undefined);
             });
 
+            it('sm2', () => {
+                const { publicKey, privateKey } = crypto.generateKeyPairSync('sm2');
+
+                assert.equal(publicKey.type, 'public');
+                assert.equal(publicKey.asymmetricKeyType, 'sm2');
+
+                assert.equal(privateKey.type, 'private');
+                assert.equal(privateKey.asymmetricKeyType, 'sm2');
+            });
+
             it('callback', (done) => {
                 crypto.generateKeyPair('rsa', {
                     publicExponent: 0x10001,

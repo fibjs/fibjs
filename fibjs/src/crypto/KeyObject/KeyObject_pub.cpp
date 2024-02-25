@@ -73,7 +73,7 @@ result_t KeyObject::createPublicKeyFromPrivateKey(EVP_PKEY* key)
         RSA_get0_key(rsa, &n, &e, nullptr);
         if (RSA_set0_key(EVP_PKEY_get1_RSA(m_pkey), BN_dup(n), BN_dup(e), nullptr) != 1)
             return CHECK_ERROR(Runtime::setError("Invalid RSA private key"));
-    } else if (type == EVP_PKEY_EC) {
+    } else if (type == EVP_PKEY_EC || type == EVP_PKEY_SM2) {
         const EC_KEY* ec = EVP_PKEY_get0_EC_KEY(key);
         const EC_GROUP* group = EC_KEY_get0_group(ec);
         const EC_POINT* pt = EC_KEY_get0_public_key(ec);
@@ -88,6 +88,9 @@ result_t KeyObject::createPublicKeyFromPrivateKey(EVP_PKEY* key)
         ECKeyPointer pub = EC_KEY_new_by_curve_name(nid);
         if (EC_KEY_set_public_key_affine_coordinates(pub, x, y) != 1)
             return CHECK_ERROR(Runtime::setError("Invalid EC public key"));
+
+        x.release();
+        y.release();
 
         m_pkey = EVP_PKEY_new();
         if (EVP_PKEY_set1_EC_KEY(m_pkey, pub.release()) != 1)

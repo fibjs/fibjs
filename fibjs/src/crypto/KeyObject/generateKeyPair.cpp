@@ -167,13 +167,33 @@ result_t KeyObject::generateEcKey(int nid, generateKeyPairParam* param)
 
 result_t KeyObject::generateEdKey(int nid, generateKeyPairParam* param)
 {
-    EVPKeyCtxPointer key_ctx;
-
-    key_ctx = EVP_PKEY_CTX_new_id(nid, nullptr);
+    EVPKeyCtxPointer key_ctx = EVP_PKEY_CTX_new_id(nid, nullptr);
     if (!key_ctx)
         return openssl_error();
 
     if (EVP_PKEY_keygen_init(key_ctx) <= 0)
+        return openssl_error();
+
+    EVP_PKEY* pkey = nullptr;
+    if (EVP_PKEY_keygen(key_ctx, &pkey) <= 0)
+        return openssl_error();
+    m_pkey = pkey;
+
+    m_keyType = kKeyTypePrivate;
+
+    return 0;
+}
+
+result_t KeyObject::generateSm2Key(int nid, generateKeyPairParam* param)
+{
+    EVPKeyCtxPointer key_ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_SM2, nullptr);
+    if (!key_ctx)
+        return openssl_error();
+
+    if (EVP_PKEY_keygen_init(key_ctx) <= 0)
+        return openssl_error();
+
+    if (EVP_PKEY_CTX_set_ec_paramgen_curve_nid(key_ctx, NID_sm2) <= 0)
         return openssl_error();
 
     EVP_PKEY* pkey = nullptr;
@@ -197,13 +217,15 @@ result_t KeyObject::generateKey(exlib::string type, generateKeyPairParam* param)
     else if (type == "ec")
         return generateEcKey(EVP_PKEY_EC, param);
     else if (type == "ed25519")
-        return generateEdKey(NID_ED25519, param);
+        return generateEdKey(EVP_PKEY_ED25519, param);
     else if (type == "ed448")
-        return generateEdKey(NID_ED448, param);
+        return generateEdKey(EVP_PKEY_ED448, param);
     else if (type == "x25519")
-        return generateEdKey(NID_X25519, param);
+        return generateEdKey(EVP_PKEY_X25519, param);
     else if (type == "x448")
-        return generateEdKey(NID_X448, param);
+        return generateEdKey(EVP_PKEY_X448, param);
+    else if (type == "sm2")
+        return generateSm2Key(EVP_PKEY_SM2, param);
 
     return Runtime::setError("Invalid key type");
 }
