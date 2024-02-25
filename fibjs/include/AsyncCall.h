@@ -8,10 +8,17 @@
 namespace fibjs {
 
 class AsyncEvent : public exlib::Task_base {
+private:
+    enum kStateType {
+        kStateSync,
+        kStateAsync,
+        kStatePost
+    };
+
 public:
     AsyncEvent(Isolate* isolate = NULL)
         : m_isolate(isolate)
-        , m_async(false)
+        , m_state(kStateSync)
     {
     }
 
@@ -61,17 +68,27 @@ public:
 
     bool isAsync() const
     {
-        return m_async;
+        return m_state == kStateAsync;
     }
 
     bool isSync() const
     {
-        return !m_async;
+        return m_state == kStateSync;
+    }
+
+    bool isPost() const
+    {
+        return m_state == kStatePost;
     }
 
     void setAsync()
     {
-        m_async = true;
+        m_state = kStateAsync;
+    }
+
+    void setPost()
+    {
+        m_state = kStatePost;
     }
 
 public:
@@ -82,7 +99,7 @@ protected:
     Isolate* m_isolate;
 
 private:
-    bool m_async;
+    kStateType m_state;
 };
 
 class AsyncCall : public AsyncEvent {
@@ -128,6 +145,9 @@ public:
 
         if (m_v == CALL_E_EXCEPTION)
             Runtime::setError(m_error);
+
+        if (isPost())
+            m_v = js_invoke();
 
         return m_v;
     }
@@ -380,6 +400,25 @@ public:
 
 private:
     obj_ptr<T> m_v;
+};
+
+template <>
+class _at<v8::Local<v8::Object>> {
+public:
+    _at(v8::Local<v8::Object>& v)
+    {
+        m_isolate = v->GetCreationContextChecked()->GetIsolate();
+        m_v.Reset(m_isolate, v);
+    }
+
+    v8::Local<v8::Object> value()
+    {
+        return m_v.Get(m_isolate);
+    }
+
+private:
+    v8::Isolate* m_isolate;
+    v8::Global<v8::Object> m_v;
 };
 
 class NType;

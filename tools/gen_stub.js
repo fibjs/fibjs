@@ -59,10 +59,11 @@ function gen_stub(argn, bInst, bRet) {
             txt.push((bInst ? '	' : '	static ') + 'result_t ' + ac + '_##m(' + (bCCall ? 'Isolate* isolate = NULL' : '') + ') { \\');
         }
 
-        txt.push('	class _t : public ' + AsyncCall + ' { public: \\');
+        txt.push('	class _t : public ' + AsyncCall + ' \\\n	{ \\\n	public: \\');
         txt.push('		_t(void ** a' + (bCCall ? ', Isolate* isolate' : '') + ') : ' +
             AsyncCall + '(a' + (bCCall ? ', isolate' : '') + ') {} \\');
-        txt.push('		virtual void invoke() { \\\n			setAsync(); \\');
+
+        txt.push('		virtual void invoke() \\\n		{ \\\n			setAsync(); \\');
         txt.push('			result_t hr = ' + (bInst ? '((cls*)args[' + (argn) + '])->' : 'cls::') + 'm( \\');
 
         s = '				';
@@ -74,7 +75,25 @@ function gen_stub(argn, bInst, bRet) {
         s += '); \\'
         txt.push(s);
 
-        txt.push('			if(hr != CALL_E_PENDDING)post(hr); } }; \\');
+        txt.push('			if(hr != CALL_E_PENDDING)post(hr); \\');
+        txt.push('		} \\');
+
+        if (bRet) {
+            txt.push('		virtual result_t js_invoke() \\\n		{ \\');
+            txt.push('			return ' + (bInst ? '((cls*)args[' + (argn) + '])->' : 'cls::') + 'm( \\');
+
+            s = '				';
+            a = [];
+            for (i = 0; i < argn; i++)
+                a.push('*(T' + i + '*) args[' + i + ']');
+            a.push('this');
+            s += a.join(', ');
+            s += '); \\'
+            txt.push(s);
+            txt.push('		} \\');
+        }
+
+        txt.push('	}; \\');
 
         if (argn > 0 || bInst) {
             s = '	void* args[] = {';
@@ -157,6 +176,21 @@ function gen_stub(argn, bInst, bRet) {
         txt.push('			if (hr != CALL_E_PENDDING)post(hr); \\\n' + '		} \\');
 
         if (bRet) {
+            txt.push('		virtual result_t js_invoke() \\\n		{ \\');
+            if (bInst)
+                s = '			return ((cls*)(object_base*)m_pThis)->m(';
+            else
+                s = '			return cls::m(';
+    
+            for (i = 0; i < argn1; i++)
+                s += 'm_v' + i + '.value(), ';
+            if (bRet)
+                s += 'retVal, ';
+            s += 'this); \\';
+            txt.push(s);
+    
+            txt.push('		} \\');
+    
             txt.push('    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \\');
             txt.push('    	{ fillRetVal(args, retVal); } \\');
 
