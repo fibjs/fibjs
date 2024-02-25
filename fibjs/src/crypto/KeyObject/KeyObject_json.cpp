@@ -9,6 +9,8 @@
 #include "ifs/crypto.h"
 #include "KeyObject.h"
 #include "Buffer.h"
+#include <crypto/evp.h>
+#include <crypto/asn1.h>
 
 namespace fibjs {
 
@@ -39,14 +41,14 @@ result_t KeyObject::ImportJWKRsaKey(v8::Local<v8::Object> key, KeyType type)
     Isolate* isolate = holder();
     result_t hr;
 
-    BIGNUM* n;
-    BIGNUM* e;
+    BignumPointer n;
+    BignumPointer e;
 
-    hr = GetJwkValue(isolate, key, "n", n);
+    hr = GetJwkValue(isolate, key, "e", e);
     if (hr < 0)
         return hr;
 
-    hr = GetJwkValue(isolate, key, "e", e);
+    hr = GetJwkValue(isolate, key, "n", n);
     if (hr < 0)
         return hr;
 
@@ -54,13 +56,16 @@ result_t KeyObject::ImportJWKRsaKey(v8::Local<v8::Object> key, KeyType type)
     if (RSA_set0_key(rsa, n, e, nullptr) != 1)
         return openssl_error();
 
+    n.release();
+    e.release();
+
     if (type == kKeyTypePrivate) {
-        BIGNUM* d;
-        BIGNUM* p;
-        BIGNUM* q;
-        BIGNUM* dp;
-        BIGNUM* dq;
-        BIGNUM* qi;
+        BignumPointer d;
+        BignumPointer p;
+        BignumPointer q;
+        BignumPointer dp;
+        BignumPointer dq;
+        BignumPointer qi;
 
         hr = GetJwkValue(isolate, key, "d", d);
         if (hr < 0)
@@ -94,18 +99,29 @@ result_t KeyObject::ImportJWKRsaKey(v8::Local<v8::Object> key, KeyType type)
 
         if (RSA_set0_crt_params(rsa, dp, dq, qi) != 1)
             return openssl_error();
+
+        d.release();
+        p.release();
+        q.release();
+        dp.release();
+        dq.release();
+        qi.release();
     }
 
     m_pkey = EVP_PKEY_new();
     if (EVP_PKEY_set1_RSA(m_pkey, rsa.release()) != 1)
         return openssl_error();
 
+    if (type == kKeyTypePrivate)
+        if (m_pkey->ameth->pkey_check(m_pkey) != 1)
+            return Runtime::setError("Invalid private key");
+
     m_keyType = type;
 
     return 0;
 }
 
-static int GetCurveFromName(const char* name)
+int GetCurveFromName(const char* name)
 {
     int nid = EC_curve_nist2nid(name);
     if (nid == NID_undef)
@@ -127,8 +143,8 @@ result_t KeyObject::ImportJWKEcKey(v8::Local<v8::Object> key, KeyType type)
     if (nid == NID_undef)
         return Runtime::setError("Invalid JWK EC key");
 
-    BIGNUM* x;
-    BIGNUM* y;
+    BignumPointer x;
+    BignumPointer y;
 
     hr = GetJwkValue(isolate, key, "x", x);
     if (hr < 0)
@@ -142,19 +158,28 @@ result_t KeyObject::ImportJWKEcKey(v8::Local<v8::Object> key, KeyType type)
     if (EC_KEY_set_public_key_affine_coordinates(ec, x, y) != 1)
         return openssl_error();
 
+    x.release();
+    y.release();
+
     if (type == kKeyTypePrivate) {
-        BIGNUM* d;
+        BignumPointer d;
         hr = GetJwkValue(isolate, key, "d", d);
         if (hr < 0)
             return hr;
 
         if (EC_KEY_set_private_key(ec, d) != 1)
             return openssl_error();
+
+        d.release();
     }
 
     m_pkey = EVP_PKEY_new();
     if (EVP_PKEY_set1_EC_KEY(m_pkey, ec.release()) != 1)
         return openssl_error();
+
+    if (type == kKeyTypePrivate)
+        if (m_pkey->ameth->pkey_check(m_pkey) != 1)
+            return Runtime::setError("Invalid private key");
 
     m_keyType = type;
 
@@ -285,8 +310,8 @@ result_t KeyObject::ExportJWKRsaKey(v8::Local<v8::Value>& retVal)
     const BIGNUM* d;
 
     RSA_get0_key(rsa, &n, &e, &d);
-    jwk->Set(context, isolate->NewString("n", 1), base64Encode(isolate, n)).FromJust();
     jwk->Set(context, isolate->NewString("e", 1), base64Encode(isolate, e)).FromJust();
+    jwk->Set(context, isolate->NewString("n", 1), base64Encode(isolate, n)).FromJust();
 
     if (m_keyType == kKeyTypePrivate) {
         const BIGNUM* p;
