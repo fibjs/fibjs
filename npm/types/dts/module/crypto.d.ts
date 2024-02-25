@@ -15,21 +15,21 @@
 /**
  * @description `crypto` 模块是 `fibjs` 内置的加密算法模块。它提供了对称加密、非对称加密、摘要算法、密码学随机数生成器等功能。在使用之前，需要通过 `require('crypto')` 加载该模块。
  * 
- * 在 `crypto` 模块中，有很多对象可以使用，比如：
+ * 在 `crypto` 模块中，有很多对象可以使用，比如: 
  * 
- * - `PKey`：不对称加密算法对象
- * - `X509Cert`：用于操作 X.509 证书的对象
- * - `Cipher`：用于实现对称加密的对象
- * - `Digest`：用于实现摘要算法的对象
+ * - `PKey`: 不对称加密算法对象
+ * - `X509Cert`: 用于操作 X.509 证书的对象
+ * - `Cipher`: 用于实现对称加密的对象
+ * - `Digest`: 用于实现摘要算法的对象
  * 
- * 在使用加密算法之前，需要先创建一个密钥对象，比如以下创建一个 `AES` 密钥对象的示例：
+ * 在使用加密算法之前，需要先创建一个密钥对象，比如以下创建一个 `AES` 密钥对象的示例: 
  * 
  * ```javascript
  * const crypto = require('crypto');
  * const key = crypto.randomBytes(16); // generate a 16-byte random key
  * ```
  * 
- * 接下来，使用 `Cipher` 对象来对明文进行加密：
+ * 接下来，使用 `Cipher` 对象来对明文进行加密: 
  * 
  * ```javascript
  * const c = new crypto.Cipher(crypto.AES, crypto.ECB, key);
@@ -40,7 +40,7 @@
  * 
  * 以上示例中，创建了一个 `AES` 加密的 `Cipher` 对象，使用 `encrypt` 方法对明文进行加密，并返回加密结果。
  * 
- * 除了对称加密算法，`crypto` 模块还可以支持非对称加密算法和摘要算法。比如以下示例是使用 `PKey` 和 `Digest` 对象实现 SHA256 加密的代码：
+ * 除了对称加密算法，`crypto` 模块还可以支持非对称加密算法和摘要算法。比如以下示例是使用 `PKey` 和 `Digest` 对象实现 SHA256 加密的代码: 
  * 
  * ```javascript
  * const privateKey = crypto.loadPKey('private.pem'); // read private key from file
@@ -325,9 +325,9 @@ declare module 'crypto' {
     /**
      * @description 创建一个新的密钥对象，其中包含非对称加密的私钥
      * 
-     *     参数 key 用于指定创建私钥的配置属性，支持的属性包括：
+     *     参数 key 用于指定创建私钥的配置属性，支持的属性包括: 
      *     - key: PEM 字符串，DER 二进制 或者 JWK 格式对象
-     *     - format: 必须是 'pem', 'der' 或 'jwk'。默认值：'pem'
+     *     - format: 必须是 'pem', 'der' 或 'jwk'。默认值: 'pem'
      *     - type: 必须是 'pkcs1', 'pkcs8' 或 'sec1'。仅当 format 为 'der' 时才需要此选项，否则忽略
      *     - passphrase: 用于解密的密码字符串
      *     - encoding: 当 key 是字符串时使用的字符串编码
@@ -357,9 +357,9 @@ declare module 'crypto' {
     /**
      * @description 创建一个新的密钥对象，其中包含非对称加密的公钥
      * 
-     *     参数 key 用于指定创建公钥的配置属性，支持的属性包括：
+     *     参数 key 用于指定创建公钥的配置属性，支持的属性包括: 
      *     - key: PEM 字符串，DER 二进制 或者 JWK 格式对象
-     *     - format: 必须是 'pem', 'der' 或 'jwk'。默认值：'pem'
+     *     - format: 必须是 'pem', 'der' 或 'jwk'。默认值: 'pem'
      *     - type: 必须是 'pkcs1', 或 'sec1'。仅当 format 为 'der' 时才需要此选项，否则忽略
      *     - encoding: 当 key 是字符串时使用的字符串编码
      * 
@@ -369,8 +369,22 @@ declare module 'crypto' {
      */
     function createPublicKey(key: FIBJS.GeneralObject): Class_KeyObject;
 
+    /**
+     * @description 基于 algorithm 指定的算法创建一个新的签名对象
+     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
+     *      @param options 指定签名选项，未使用
+     *      @return 返回签名对象
+     *      
+     */
     function createSign(algorithm: string, options?: FIBJS.GeneralObject): Class_Sign;
 
+    /**
+     * @description 基于 algorithm 指定的算法创建一个新的验签对象
+     *      @param algorithm 指定验签算法，使用 crypto.getHashes 获取可用摘要算法的名称
+     *      @param options 指定验签选项，未使用
+     *      @return 返回验签对象
+     *      
+     */
     function createVerify(algorithm: string, options?: FIBJS.GeneralObject): Class_Verify;
 
     /**
@@ -458,7 +472,7 @@ declare module 'crypto' {
     /**
      * @description 生成一个椭圆曲线私钥
      * 
-     *      curve 可选的曲线包含 NIST 曲线和别名如下：
+     *      curve 可选的曲线包含 NIST 曲线和别名如下: 
      * 
      *      | 曲线 | 别名 |
      *      | ----------- | ----------- |
@@ -468,7 +482,7 @@ declare module 'crypto' {
      *      | NIST P-384 | 'NIST P-384', 'p384', 'P-384', 'prime384v1', 'secp384r1' |
      *      | NIST P-521 | 'NIST P-521', 'p521', 'P-521', 'prime521v1', 'secp521r1' |
      * 
-     *      其它支持的曲线包括：
+     *      其它支持的曲线包括:
      *      "brainpoolP512r1", "brainpoolP384r1", "secp256k1", "P-256K", "brainpoolP256r1",
      *      "sm2p256r1", "SM2", "Ed25519", "BLS12381_G1", "BLS12381_G2"
      * 
@@ -480,6 +494,30 @@ declare module 'crypto' {
 
     function generateKey(curve?: string, callback?: (err: Error | undefined | null, retVal: Class_PKey)=>any): void;
 
+    /**
+     * @description 生成给定 type 的新非对称密钥对。目前支持 RSA、RSA-PSS、DSA、EC、Ed25519、Ed448、X25519、X448、SM2
+     * 
+     *     options 支持以下属性:
+     *     - modulusLength: 密钥大小（以位为单位）（RSA、DSA）。
+     *     - publicExponent: 公共指数 (RSA)。默认值: 0x10001。
+     *     - hashAlgorithm: 消息摘要的名称 (RSA-PSS)。
+     *     - mgf1HashAlgorithm: MGF1 (RSA-PSS) 使用的消息摘要的名称。
+     *     - saltLength: 最小盐长度（以字节为单位）（RSA-PSS）。
+     *     - divisorLength: q 的大小（以位 (DSA) 为单位）。
+     *     - namedCurve: 要使用的曲线名称 (EC)。
+     *     - prime: 主要参数 (DH)。
+     *     - primeLength: 质数长度（以位 (DH) 为单位）。
+     *     - generator: 自定义生成器 (DH)。默认值: 2。
+     *     - groupName: <字符串> Diffie-Hellman 组名称 (DH)。请参阅 crypto.getDiffieHellman。
+     *     - paramEncoding: 必须是 'named' 或 'explicit'(EC)。默认值: 'named'。
+     *     - publicKeyEncoding: 请参阅 keyObject.export。
+     *     - privateKeyEncoding: 请参阅 keyObject.export。
+     * 
+     *     @param type 指定要生成的密钥类型，必须是 'rsa'、'rsa-pss'、'dsa'、'ec'、'ed25519'、'x25519'、'x448' 或 'sm2'
+     *     @param options 指定生成密钥的选项
+     *     @return 返回包含生成密钥对的对象
+     *     
+     */
     function generateKeyPair(type: string, options?: FIBJS.GeneralObject): [publicKey: any, privateKey: any];
 
     function generateKeyPair(type: string, options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: [publicKey: any, privateKey: any])=>any): void;
@@ -620,16 +658,87 @@ declare module 'crypto' {
      */
     function publicEncrypt(key: FIBJS.GeneralObject, buffer: any): Class_Buffer;
 
+    /**
+     * @description 使用给定的私钥和算法计算并返回 data 的签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
+     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
+     *      @param data 指定要签名的数据
+     *      @param privateKey 指定私钥
+     *      @return 返回签名后的数据
+     *     
+     */
     function sign(algorithm: any, data: Class_Buffer, privateKey: Class_Buffer): Class_Buffer;
 
+    /**
+     * @description 使用给定的私钥和算法计算并返回 data 的签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
+     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
+     *      @param data 指定要签名的数据
+     *      @param privateKey 指定私钥
+     *      @return 返回签名后的数据
+     *     
+     */
     function sign(algorithm: any, data: Class_Buffer, privateKey: Class_KeyObject): Class_Buffer;
 
+    /**
+     * @description 使用给定的私钥和算法计算并返回 data 的签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
+     * 
+     *      key 内的参数会用于调用 crypto.createPrivateKey 创建私钥对象，此外还支持以下签名参数：
+     *      - dsaEncoding 对于 DSA 和 ECDSA，此选项指定生成的签名的格式。它可以是以下之一: 
+     *       - 'der'（默认）: DER 编码的 ASN.1 签名结构编码 (r, s) 
+     *       - 'ieee-p1363' : IEEE-P1363 中提议的签名格式 r || s
+     *      - padding RSA 的可选填充值，以下之一: 
+     *       - RSA_PKCS1_PADDING（默认）
+     *       - RSA_PKCS1_PSS_PADDING，RSA_PKCS1_PSS_PADDING 将使用 MGF1，其哈希函数与用于对 RFC 4055 第 3.1 节中指定的消息进行签名的哈希函数相同
+     *      - saltLength 当填充为 RSA_PKCS1_PSS_PADDING 时的盐长度。特殊值 RSA_PSS_SALTLEN_DIGEST 将盐长度设置为摘要大小，RSA_PSS_SALTLEN_MAX_SIGN（默认）将其设置为最大允许值
+     * 
+     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
+     *      @param data 指定要签名的数据
+     *      @param key 指定私钥和签名参数
+     *      @return 返回签名后的数据
+     *     
+     */
     function sign(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject): Class_Buffer;
 
+    /**
+     * @description 使用给定的密钥和算法验证 data 的给定签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
+     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
+     *      @param data 指定要验证的数据
+     *      @param publicKey 指定公钥
+     *      @param signature 指定签名数据
+     *      @return 返回验证结果
+     *     
+     */
     function verify(algorithm: any, data: Class_Buffer, publicKey: Class_Buffer, signature: Class_Buffer): boolean;
 
+    /**
+     * @description 使用给定的密钥和算法验证 data 的给定签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
+     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
+     *      @param data 指定要验证的数据
+     *      @param publicKey 指定公钥
+     *      @param signature 指定签名数据
+     *      @return 返回验证结果
+     *     
+     */
     function verify(algorithm: any, data: Class_Buffer, publicKey: Class_KeyObject, signature: Class_Buffer): boolean;
 
+    /**
+     * @description 使用给定的密钥和算法验证 data 的给定签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
+     * 
+     *      key 内的参数会用于调用 crypto.createPublicKey 创建私钥对象，此外还支持以下签名参数：
+     *      - dsaEncoding 对于 DSA 和 ECDSA，此选项指定生成的签名的格式。它可以是以下之一: 
+     *       - 'der'（默认）: DER 编码的 ASN.1 签名结构编码 (r, s) 
+     *       - 'ieee-p1363' : IEEE-P1363 中提议的签名格式 r || s
+     *      - padding RSA 的可选填充值，以下之一: 
+     *       - RSA_PKCS1_PADDING（默认）
+     *       - RSA_PKCS1_PSS_PADDING，RSA_PKCS1_PSS_PADDING 将使用 MGF1，其哈希函数与用于对 RFC 4055 第 3.1 节中指定的消息进行签名的哈希函数相同
+     *      - saltLength 当填充为 RSA_PKCS1_PSS_PADDING 时的盐长度。特殊值 RSA_PSS_SALTLEN_DIGEST 将盐长度设置为摘要大小，RSA_PSS_SALTLEN_MAX_SIGN（默认）将其设置为最大允许值
+     * 
+     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
+     *      @param data 指定要验证的数据
+     *      @param key 指定私钥和签名参数
+     *      @param signature 指定签名数据
+     *      @return 返回验证结果
+     *     
+     */
     function verify(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject, signature: Class_Buffer): boolean;
 
 }
