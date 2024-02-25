@@ -43,6 +43,16 @@ public:
         return m_ptr;
     }
 
+    T* operator->() const
+    {
+        return m_ptr;
+    }
+
+    operator T*&()
+    {
+        return m_ptr;
+    }
+
     T* release()
     {
         T* ptr = m_ptr;
@@ -86,6 +96,7 @@ using X509Pointer = AutoPointer<X509, X509_free>;
 result_t randomBytes(uint8_t* buf, int32_t size);
 
 const EVP_MD* _evp_md_type(const char* algo);
+int GetCurveFromName(const char* name);
 result_t openssl_error();
 
 inline result_t GetKeyBuffer(Isolate* isolate, v8::Local<v8::Object> o, obj_ptr<Buffer>& buf)
