@@ -7,6 +7,7 @@
 /// <reference path="../interface/X509Cert.d.ts" />
 /// <reference path="../interface/X509Crl.d.ts" />
 /// <reference path="../interface/X509Req.d.ts" />
+/// <reference path="../interface/X509Certificate.d.ts" />
 /// <reference path="../interface/Digest.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/KeyObject.d.ts" />
@@ -211,6 +212,11 @@ declare module 'crypto' {
      * @description X509Req 构造函数，参见 X509Req 
      */
     const X509Req: typeof Class_X509Req;
+
+    /**
+     * @description X509Certificate 构造函数，参见 X509Certificate 
+     */
+    const X509Certificate: typeof Class_X509Certificate;
 
     /**
      * @description 获取 crypto 模块支持的的 hash(摘要) 算法

@@ -23,6 +23,7 @@ class BlsKey_base;
 class X509Cert_base;
 class X509Crl_base;
 class X509Req_base;
+class X509Certificate_base;
 class Digest_base;
 class Buffer_base;
 class KeyObject_base;
@@ -192,6 +193,7 @@ public:
 #include "ifs/X509Cert.h"
 #include "ifs/X509Crl.h"
 #include "ifs/X509Req.h"
+#include "ifs/X509Certificate.h"
 #include "ifs/Digest.h"
 #include "ifs/Buffer.h"
 #include "ifs/KeyObject.h"
@@ -248,7 +250,8 @@ inline ClassInfo& crypto_base::class_info()
         { "BlsKey", BlsKey_base::class_info },
         { "X509Cert", X509Cert_base::class_info },
         { "X509Crl", X509Crl_base::class_info },
-        { "X509Req", X509Req_base::class_info }
+        { "X509Req", X509Req_base::class_info },
+        { "X509Certificate", X509Certificate_base::class_info }
     };
 
     static ClassData::ClassConst s_const[] = {

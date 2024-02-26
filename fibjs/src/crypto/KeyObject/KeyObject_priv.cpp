@@ -198,7 +198,7 @@ result_t KeyObject::ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8
         if (EVP_PKEY_id(m_pkey) != EVP_PKEY_RSA)
             return Runtime::setError("pkcs1 only support RSA key");
 
-        RSAPointer rsa = EVP_PKEY_get1_RSA(m_pkey);
+        RsaPointer rsa = EVP_PKEY_get1_RSA(m_pkey);
         if (format == "pem") {
             ret = PEM_write_bio_RSAPrivateKey(bio, rsa, cipher,
                 cipher ? (unsigned char*)pass_buf->data() : nullptr,

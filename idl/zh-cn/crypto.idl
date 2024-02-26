@@ -135,6 +135,9 @@ module crypto
     /*! @brief X509Req 构造函数，参见 X509Req */
     static X509Req;
 
+    /*! @brief X509Certificate 构造函数，参见 X509Certificate */
+    static X509Certificate;
+
     /*! @brief 获取 crypto 模块支持的的 hash(摘要) 算法
      @return 返回支持的 hash 算法数组
      */

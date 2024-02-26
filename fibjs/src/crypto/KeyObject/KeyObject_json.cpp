@@ -52,7 +52,7 @@ result_t KeyObject::ImportJWKRsaKey(v8::Local<v8::Object> key, KeyType type)
     if (hr < 0)
         return hr;
 
-    RSAPointer rsa = RSA_new();
+    RsaPointer rsa = RSA_new();
     if (RSA_set0_key(rsa, n, e, nullptr) != 1)
         return openssl_error();
 

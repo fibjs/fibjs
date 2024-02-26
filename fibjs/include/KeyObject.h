@@ -60,7 +60,7 @@ public:
     result_t TryParsePublicKey(const BIOPointer& bp, const char* name, const std::function<EVP_PKEY*(const unsigned char** p, long l)>& parse);
     result_t ParsePublicKeyPEM(const char* key_pem, int key_pem_len);
     result_t createPublicKeyFromPrivateKey(KeyObject_base* key);
-    result_t createPublicKeyFromPrivateKey(EVP_PKEY* key);
+    result_t createPublicKeyFromPKey(EVP_PKEY* key);
 
 public:
     result_t ParsePrivateKeyPEM(const char* key_pem, int key_pem_len, Buffer* passphrase);

@@ -1,0 +1,118 @@
+/*! @brief 封装 X509 证书并提供信息读取
+
+```JavaScript
+const crypto = require('crypto');
+const cert = new crypto.X509Certificate(Buffer.from('...'));
+```
+*/
+interface X509Certificate : object
+{
+    /*! @brief 从证书创建一个 X509Certificate 对象
+    @param cert 证书的二进制数据
+    @return 返回一个 X509Certificate 对象
+    */
+    X509Certificate(Buffer cert);
+
+    /*! @brief 证书是否是 CA 证书 */
+    readonly Boolean ca;
+
+    /*! @brief 证书的 SHA-1 指纹 */
+    readonly String fingerprint;
+
+    /*! @brief 证书的 SHA-256 指纹 */
+    readonly String fingerprint256;
+
+    /*! @brief 证书的 SHA-512 指纹 */
+    readonly String fingerprint512;
+
+    /*! @brief 证书的信息访问扩展，返回一个换行分隔的访问描述列表。每行开头为访问方法和访问位置的类型，后跟冒号和与访问位置关联的值 */
+    readonly String infoAccess;
+
+    /*! @brief 证书的颁发者 */
+    readonly String issuer;
+
+    /*! @brief 证书的颁发者证书 */
+    readonly X509Certificate issuerCertificate;
+
+    /*! @brief 证书的认证的公钥 */
+    readonly KeyObject publicKey;
+
+    /*! @brief 证书的原始二进制数据 */
+    readonly Buffer raw;
+
+    /*! @brief 证书的序列号 */
+    readonly String serialNumber;
+
+    /*! @brief 证书的主题 */
+    readonly String subject;
+
+    /*! @brief 证书的主题备用名称 */
+    readonly String subjectAltName;
+
+    /*! @brief 证书的有效期开始时间 */
+    readonly String validFrom;
+
+    /*! @brief 证书的有效期结束时间 */
+    readonly String validTo;
+
+    /*! @brief 检查证书是否与给定的电子邮件地址匹配
+
+    如果 options.subject 选项未定义或设置为 'default'，则仅当主题备用名称扩展不存在或不包含任何电子邮件地址时才考虑证书主题。
+
+    如果 options.subject 选项设置为 'always' 并且主题备用名称扩展不存在或不包含匹配的电子邮件地址，则考虑证书主题。
+
+    如果 options.subject 选项设置为 'never'，则永远不会考虑证书主题，即使证书不包含主题备用名称。
+
+    @param email 电子邮件地址
+    @param options 选项
+    @return 如果证书匹配，则返回 email，如果不匹配，则返回 undefined
+    */
+    String checkEmail(String email, Object options = {});
+
+    /*! @brief 检查证书是否与给定的主机名匹配
+
+    如果证书与给定的主机名匹配，则返回匹配的主题名称。返回的名称可能是完全匹配的（foo.example.com），也可能包含通配符（*.example.com ）。由于主机名比较不区分大小写，因此返回的使用者名称的大小写也可能与给定的 name 不同。
+
+    options 支持一下属性：
+     - subject: 'default'、'always' 或 'never'。默认值：'default'。
+     - wildcards: 默认值 true。
+     - partialWildcards: 默认值 true。
+     - multiLabelWildcards: 默认值 false。
+     - singleLabelSubdomains: 默认值 false。
+
+    如果 options.subject 选项未定义或设置为 'default'，则仅当使用者备用名称扩展不存在或不包含任何 DNS 名称时才考虑证书使用者。
+
+    如果 options.subject 选项设置为 'always' 并且使用者备用名称扩展不存在或不包含匹配的 DNS 名称，则将考虑证书使用者。
+
+    如果 options.subject 选项设置为 'never'，则永远不会考虑证书主题，即使证书不包含主题备用名称。
+
+     @param name 主机名
+     @param options 选项
+     @return 返回与 name 匹配的主题名称，如果没有主题名称与 name 匹配，则返回 undefined
+    */
+    String checkHost(String name, Object options = {});
+
+    /*! @brief 检查证书是否与给定的 IP 地址（IPv4 或 IPv6）匹配
+    @param ip IP 地址
+    @return 如果证书匹配，则返回 ip ，如果不匹配，则返回 undefined
+    */
+    String checkIP(String ip);
+
+    /*! @brief 检查此证书是否由给定的 issuer 颁发
+    @param issuer 颁发者证书
+    @return 如果证书由 issuer 颁发，则返回 true，否则返回 false
+    */
+    Boolean checkIssued(X509Certificate issuer);
+
+    /*! @brief 检查证书的公钥是否与给定的私钥签名匹配
+    @param privateKey 私钥
+    @return 如果匹配，则返回 true，否则返回 false
+    */
+    Boolean checkPrivateKey(KeyObject privateKey);
+
+    /*! @brief 验证此证书是否由给定的公钥签名。不对证书执行任何其他验证检查
+    @param publicKey 公钥
+    @return 如果验证成功，则返回 true，否则返回 false
+    */
+    Boolean verify(KeyObject publicKey);
+};

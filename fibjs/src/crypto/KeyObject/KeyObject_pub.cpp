@@ -55,10 +55,10 @@ result_t KeyObject::createPublicKeyFromPrivateKey(KeyObject_base* key)
     if (keyObj->type() != KeyObject::kKeyTypePrivate)
         return CHECK_ERROR(Runtime::setError("Invalid key type"));
 
-    return createPublicKeyFromPrivateKey(keyObj->pkey());
+    return createPublicKeyFromPKey(keyObj->pkey());
 }
 
-result_t KeyObject::createPublicKeyFromPrivateKey(EVP_PKEY* key)
+result_t KeyObject::createPublicKeyFromPKey(EVP_PKEY* key)
 {
     int type = EVP_PKEY_id(key);
 
@@ -139,11 +139,6 @@ result_t KeyObject::TryParsePublicKey(const BIOPointer& bp, const char* name, co
     return 0;
 }
 
-static int NoPasswordCallback(char* buf, int size, int rwflag, void* u)
-{
-    return 0;
-}
-
 result_t KeyObject::ParsePublicKeyPEM(const char* key_pem, int key_pem_len)
 {
     BIOPointer bp(BIO_new_mem_buf(const_cast<char*>(key_pem), key_pem_len));
@@ -171,7 +166,11 @@ result_t KeyObject::ParsePublicKeyPEM(const char* key_pem, int key_pem_len)
         return hr;
 
     BIO_reset(bp);
-    m_pkey = PEM_read_bio_PrivateKey(bp, nullptr, NoPasswordCallback, nullptr);
+    m_pkey = PEM_read_bio_PrivateKey(
+        bp, nullptr, [](char*, int, int, void*) {
+            return 0;
+        },
+        nullptr);
     if (!m_pkey)
         return 1;
 
@@ -251,7 +250,7 @@ result_t KeyObject::ExportPublicKey(v8::Local<v8::Object> options, v8::Local<v8:
         if (EVP_PKEY_id(m_pkey) != EVP_PKEY_RSA)
             return Runtime::setError("pkcs1 only support RSA key");
 
-        RSAPointer rsa = EVP_PKEY_get1_RSA(m_pkey);
+        RsaPointer rsa = EVP_PKEY_get1_RSA(m_pkey);
         if (format == "pem") {
             ret = PEM_write_bio_RSAPublicKey(bio, rsa);
             id_pem = true;
