@@ -21,24 +21,24 @@ declare class Class_X509Certificate extends Class_object {
     constructor(cert: Class_Buffer);
 
     /**
-     * @description 证书是否是 CA 证书 
+     * @description 证书的主题 
      */
-    readonly ca: boolean;
+    readonly subject: string;
 
     /**
-     * @description 证书的 SHA-1 指纹 
+     * @description 证书的主题备用名称 
      */
-    readonly fingerprint: string;
+    readonly subjectAltName: string;
 
     /**
-     * @description 证书的 SHA-256 指纹 
+     * @description 证书的序列号 
      */
-    readonly fingerprint256: string;
+    readonly serialNumber: string;
 
     /**
-     * @description 证书的 SHA-512 指纹 
+     * @description 证书的认证的公钥 
      */
-    readonly fingerprint512: string;
+    readonly publicKey: Class_KeyObject;
 
     /**
      * @description 证书的信息访问扩展，返回一个换行分隔的访问描述列表。每行开头为访问方法和访问位置的类型，后跟冒号和与访问位置关联的值 
@@ -56,29 +56,9 @@ declare class Class_X509Certificate extends Class_object {
     readonly issuerCertificate: Class_X509Certificate;
 
     /**
-     * @description 证书的认证的公钥 
+     * @description 证书是否是 CA 证书 
      */
-    readonly publicKey: Class_KeyObject;
-
-    /**
-     * @description 证书的原始二进制数据 
-     */
-    readonly raw: Class_Buffer;
-
-    /**
-     * @description 证书的序列号 
-     */
-    readonly serialNumber: string;
-
-    /**
-     * @description 证书的主题 
-     */
-    readonly subject: string;
-
-    /**
-     * @description 证书的主题备用名称 
-     */
-    readonly subjectAltName: string;
+    readonly ca: boolean;
 
     /**
      * @description 证书的有效期开始时间 
@@ -89,6 +69,26 @@ declare class Class_X509Certificate extends Class_object {
      * @description 证书的有效期结束时间 
      */
     readonly validTo: string;
+
+    /**
+     * @description 证书的原始二进制数据 
+     */
+    readonly raw: Class_Buffer;
+
+    /**
+     * @description 证书的 SHA-1 指纹 
+     */
+    readonly fingerprint: string;
+
+    /**
+     * @description 证书的 SHA-256 指纹 
+     */
+    readonly fingerprint256: string;
+
+    /**
+     * @description 证书的 SHA-512 指纹 
+     */
+    readonly fingerprint512: string;
 
     /**
      * @description 检查证书是否与给定的电子邮件地址匹配
