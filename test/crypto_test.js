@@ -3006,9 +3006,7 @@ describe('crypto', () => {
         const privateKey = crypto.createPrivateKey(key);
 
         const subjectCheck = `C=US\nST=CA\nL=SF\nO=Joyent\nOU=Node.js\nCN=agent1\nemailAddress=ry@tinyclouds.org`;
-
         const issuerCheck = `C=US\nST=CA\nL=SF\nO=Joyent\nOU=Node.js\nCN=ca1\nemailAddress=ry@tinyclouds.org`;
-
         let infoAccessCheck = `OCSP - URI:http://ocsp.nodejs.org/\nCA Issuers - URI:http://ca.nodejs.org/ca.cert`;
 
         const der = Buffer.from(
@@ -3150,6 +3148,74 @@ describe('crypto', () => {
         it('verify', () => {
             assert(x509.verify(ca_cert.publicKey));
             assert(!x509.verify(x509.publicKey));
+        });
+
+        it('subjectAltName', () => {
+            const expectedSANs = [
+                'DNS:"good.example.com\\u002c DNS:evil.example.com"',
+                'URI:http://example.com/',
+                'URI:http://example.com/?a=b&c=d',
+                'URI:"http://example.com/a\\u002cb"',
+                'URI:http://example.com/a%2Cb',
+                'URI:"http://example.com/a\\u002c DNS:good.example.com"',
+                'DNS:"ex\\u00e4mple.com"',
+                'DNS:"\\"evil.example.com\\""',
+                'IP Address:8.8.8.8',
+                'IP Address:8.8.4.4',
+                'IP Address:<invalid length=5>',
+                'IP Address:<invalid length=6>',
+                'IP Address:A0B:C0D:E0F:0:0:0:7A7B:7C7D',
+                'email:foo@example.com',
+                'email:"foo@example.com\\u002c DNS:good.example.com"',
+                'DirName:"L=Hannover\\u002cC=DE"',
+                'DirName:"L=München\\u002cC=DE"',
+                'DirName:"L=Berlin\\\\\\u002c DNS:good.example.com\\u002cC=DE"',
+                'DirName:"L=Berlin\\\\\\u002c DNS:good.example.com\\u0000' +
+                'evil.example.com\\u002cC=DE"',
+                'DirName:"L=Berlin\\\\\\u002c DNS:good.example.com\\\\\\\\\\u0000' +
+                'evil.example.com\\u002cC=DE"',
+                'DirName:"L=Berlin\\u000d\\u000a\\u002cC=DE"',
+                'DirName:"L=Berlin/CN=good.example.com\\u002cC=DE"',
+                'Registered ID:1.2.840.113549.1.1.11',
+                'Registered ID:1.3.9999.12.34',
+                'othername:XmppAddr:abc123',
+                'othername:"XmppAddr:abc123\\u002c DNS:good.example.com"',
+                'othername:"XmppAddr:good.example.com\\u0000abc123"',
+                'othername:<unsupported>',
+                'othername:SRVName:abc123',
+                'othername:<unsupported>',
+                'othername:"SRVName:abc\\u0000def"',
+            ];
+
+            for (let i = 0; i < expectedSANs.length; i++) {
+                const pem = readSync(`x509-escaping/alt-${i}-cert.pem`, 'utf8');
+                const cert = new crypto.X509Certificate(pem);
+                assert.equal(cert.subjectAltName, expectedSANs[i]);
+            }
+        });
+
+        it('infoAccess', () => {
+            const expectedInfoAccess = [
+                'OCSP - URI:"http://good.example.com/\\u000a' +
+                'OCSP - URI:http://evil.example.com/"',
+                'CA Issuers - URI:"http://ca.example.com/\\u000a' +
+                'OCSP - URI:http://evil.example.com"\n' +
+                'OCSP - DNS:"good.example.com\\u000a' +
+                'OCSP - URI:http://ca.nodejs.org/ca.cert"',
+                '1.3.9999.12.34 - URI:http://ca.example.com/',
+                'OCSP - othername:XmppAddr:good.example.com\n' +
+                'OCSP - othername:<unsupported>\n' +
+                'OCSP - othername:SRVName:abc123',
+                'OCSP - othername:"XmppAddr:good.example.com\\u0000abc123"'
+            ];
+
+            for (let i = 0; i < expectedInfoAccess.length; i++) {
+                const pem = readSync(`x509-escaping/info-${i}-cert.pem`, 'utf8');
+                const expected = expectedInfoAccess[i];
+
+                const cert = new crypto.X509Certificate(pem);
+                assert.equal(cert.infoAccess, expected);
+            }
         });
     });
 
