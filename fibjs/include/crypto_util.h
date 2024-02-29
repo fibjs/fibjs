@@ -96,10 +96,6 @@ using X509Pointer = AutoPointer<X509, X509_free>;
 using X509ReqPointer = AutoPointer<X509_REQ, X509_REQ_free>;
 using X509ExtPointer = AutoPointer<X509_EXTENSION, X509_EXTENSION_free>;
 
-using StackOfASN1 = AutoPointer<STACK_OF(ASN1_OBJECT), [](STACK_OF(ASN1_OBJECT) * p) {
-    sk_ASN1_OBJECT_pop_free(p, ASN1_OBJECT_free);
-}>;
-
 result_t randomBytes(uint8_t* buf, int32_t size);
 
 const EVP_MD* _evp_md_type(const char* algo);
