@@ -9,7 +9,7 @@
 
 namespace fibjs {
 
-const const char* xfKeyUsages[8] = {
+const char* xfKeyUsages[8] = {
     "digitalSignature",
     "nonRepudiation",
     "keyEncipherment",
@@ -20,7 +20,7 @@ const const char* xfKeyUsages[8] = {
     "encipherOnly"
 };
 
-const const char* xfCertTypes[8] = {
+const char* xfCertTypes[8] = {
     "client",
     "server",
     "email",

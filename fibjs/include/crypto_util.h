@@ -149,7 +149,7 @@ inline result_t return_bio(BIO* bio, exlib::string& retVal)
 const int kX509NameFlagsMultiline = ASN1_STRFLGS_ESC_2253 | ASN1_STRFLGS_ESC_CTRL | ASN1_STRFLGS_UTF8_CONVERT | XN_FLAG_SEP_MULTILINE | XN_FLAG_FN_SN;
 const int kX509NameFlagsRFC2253WithinUtf8JSON = XN_FLAG_RFC2253 & ~ASN1_STRFLGS_ESC_MSB & ~ASN1_STRFLGS_ESC_CTRL;
 
-extern const const char* xfKeyUsages[8];
-extern const const char* xfCertTypes[8];
+extern const char* xfKeyUsages[];
+extern const char* xfCertTypes[];
 
 } /* namespace fibjs */
