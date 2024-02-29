@@ -24,12 +24,12 @@ class X509Cert_base;
 class X509Crl_base;
 class X509Req_base;
 class X509Certificate_base;
-class X509CertificateRequest_base;
 class Digest_base;
 class Buffer_base;
 class KeyObject_base;
 class Sign_base;
 class Verify_base;
+class X509CertificateRequest_base;
 
 class crypto_base : public object_base {
     DECLARE_CLASS(crypto_base);
@@ -104,6 +104,7 @@ public:
     static result_t createVerify(exlib::string algorithm, v8::Local<v8::Object> options, obj_ptr<Verify_base>& retVal);
     static result_t createSecretKey(Buffer_base* key, exlib::string encoding, obj_ptr<KeyObject_base>& retVal);
     static result_t createSecretKey(exlib::string key, exlib::string encoding, obj_ptr<KeyObject_base>& retVal);
+    static result_t createCertificateRequest(Buffer_base* csr, obj_ptr<X509CertificateRequest_base>& retVal);
     static result_t createCertificateRequest(v8::Local<v8::Object> options, obj_ptr<X509CertificateRequest_base>& retVal);
     static result_t loadCert(exlib::string filename, obj_ptr<X509Cert_base>& retVal);
     static result_t loadCrl(exlib::string filename, obj_ptr<X509Crl_base>& retVal);
@@ -197,12 +198,12 @@ public:
 #include "ifs/X509Crl.h"
 #include "ifs/X509Req.h"
 #include "ifs/X509Certificate.h"
-#include "ifs/X509CertificateRequest.h"
 #include "ifs/Digest.h"
 #include "ifs/Buffer.h"
 #include "ifs/KeyObject.h"
 #include "ifs/Sign.h"
 #include "ifs/Verify.h"
+#include "ifs/X509CertificateRequest.h"
 
 namespace fibjs {
 inline ClassInfo& crypto_base::class_info()
@@ -256,8 +257,7 @@ inline ClassInfo& crypto_base::class_info()
         { "X509Cert", X509Cert_base::class_info },
         { "X509Crl", X509Crl_base::class_info },
         { "X509Req", X509Req_base::class_info },
-        { "X509Certificate", X509Certificate_base::class_info },
-        { "X509CertificateRequest", X509CertificateRequest_base::class_info }
+        { "X509Certificate", X509Certificate_base::class_info }
     };
 
     static ClassData::ClassConst s_const[] = {
@@ -563,6 +563,12 @@ inline void crypto_base::s_static_createCertificateRequest(const v8::FunctionCal
     obj_ptr<X509CertificateRequest_base> vr;
 
     METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+
+    hr = createCertificateRequest(v0, vr);
 
     METHOD_OVER(1, 1);
 

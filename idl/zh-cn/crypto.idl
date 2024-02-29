@@ -138,9 +138,6 @@ module crypto
     /*! @brief X509Certificate 构造函数，参见 X509Certificate */
     static X509Certificate;
 
-    /*! @brief X509CertificateRequest 构造函数，参见 X509CertificateRequest */
-    static X509CertificateRequest;
-
     /*! @brief 获取 crypto 模块支持的的 hash(摘要) 算法
      @return 返回支持的 hash 算法数组
      */
@@ -294,7 +291,32 @@ module crypto
      */
     static KeyObject createSecretKey(String key, String encoding);
 
-    /**/
+    /*! @brief 创建一个新的证书请求对象
+     @param csr 指定 PEM 格式的证书请求的数据
+     @return 返回证书请求对象
+    */
+    static X509CertificateRequest createCertificateRequest(Buffer csr);
+
+    /*! @brief 创建一个新的证书请求对象
+
+     options 内的参数会用于调用 crypto.createPrivateKey 创建私钥对象，此外还支持指定 subject 和 hashAlgorithm。示例如下：
+
+     ```JavaScript
+        var pk = crypto.createPrivateKey(rsa4096_pem);
+        var req = crypto.createCertificateRequest({
+            key: pk,
+            hashAlgorithm: 'sha256', // 缺省为 'sha256'
+            subject: {
+                C: "CN",
+                O: "baoz.cn",
+                CN: "baoz.me"
+            }
+        });
+     ```
+
+     @param options 指定创建证书请求的选项
+     @return 返回证书请求对象
+    */
     static X509CertificateRequest createCertificateRequest(Object options);
 
     /*! @brief 加载一个 CRT/PEM/DER 格式的证书，可多次调用

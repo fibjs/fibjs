@@ -15,8 +15,8 @@
 
 namespace fibjs {
 
-class Buffer_base;
 class KeyObject_base;
+class Buffer_base;
 class X509Certificate_base;
 
 class X509CertificateRequest_base : public object_base {
@@ -24,7 +24,6 @@ class X509CertificateRequest_base : public object_base {
 
 public:
     // X509CertificateRequest_base
-    static result_t _new(Buffer_base* csr, obj_ptr<X509CertificateRequest_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_subject(exlib::string& retVal) = 0;
     virtual result_t get_publicKey(obj_ptr<KeyObject_base>& retVal) = 0;
     virtual result_t get_subjectAltName(exlib::string& retVal) = 0;
@@ -35,11 +34,15 @@ public:
     virtual result_t issue(v8::Local<v8::Object> options, obj_ptr<X509Certificate_base>& retVal) = 0;
 
 public:
-    template <typename T>
-    static void __new(const T& args);
+    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        CONSTRUCT_INIT();
+
+        isolate->m_isolate->ThrowException(
+            isolate->NewString("not a constructor"));
+    }
 
 public:
-    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_subject(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_publicKey(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_subjectAltName(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -51,8 +54,8 @@ public:
 };
 }
 
-#include "ifs/Buffer.h"
 #include "ifs/KeyObject.h"
+#include "ifs/Buffer.h"
 #include "ifs/X509Certificate.h"
 
 namespace fibjs {
@@ -81,28 +84,6 @@ inline ClassInfo& X509CertificateRequest_base::class_info()
 
     static ClassInfo s_ci(s_cd);
     return s_ci;
-}
-
-inline void X509CertificateRequest_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    CONSTRUCT_INIT();
-    __new(args);
-}
-
-template <typename T>
-void X509CertificateRequest_base::__new(const T& args)
-{
-    obj_ptr<X509CertificateRequest_base> vr;
-
-    CONSTRUCT_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(obj_ptr<Buffer_base>, 0);
-
-    hr = _new(v0, vr, args.This());
-
-    CONSTRUCT_RETURN();
 }
 
 inline void X509CertificateRequest_base::s_get_subject(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)

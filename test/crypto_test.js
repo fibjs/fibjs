@@ -3260,13 +3260,13 @@ describe('crypto', () => {
             })
 
             it("info", () => {
-                var req = new crypto.X509CertificateRequest(req2);
+                var req = crypto.createCertificateRequest(req2);
                 assert.equal(req.subject, "C=CN\nO=baoz.cn\nCN=baoz.me");
                 assert.equal(req.publicKey.export({ type: 'spki', format: 'pem' }), pub_rsa4096_pem);
             });
 
             it("sm2 info", () => {
-                var req = new crypto.X509CertificateRequest(sm2_req);
+                var req = crypto.createCertificateRequest(sm2_req);
                 assert.equal(req.subject, "C=CN\nO=baoz.cn\nCN=baoz.me");
                 assert.equal(req.publicKey.export({ type: 'spki', format: 'pem' }), pub_sm2_pem);
             });
@@ -3399,7 +3399,7 @@ describe('crypto', () => {
                         describe(s, () => {
                             var req;
                             it('load', () => {
-                                req = new crypto.X509CertificateRequest(fs.readTextFile(path.join(__dirname, 'req_files', s)));
+                                req = crypto.createCertificateRequest(fs.readTextFile(path.join(__dirname, 'req_files', s)));
                             });
 
                             it('pem', () => {
@@ -3409,10 +3409,10 @@ describe('crypto', () => {
                             it("import/export pem", () => {
                                 var s = req.pem;
 
-                                var req1 = new crypto.X509CertificateRequest(s);
+                                var req1 = crypto.createCertificateRequest(s);
 
                                 assert.equal(req1.pem, s);
-                                assert.equal(new crypto.X509CertificateRequest(s).pem, s);
+                                assert.equal(crypto.createCertificateRequest(s).pem, s);
                             });
                         });
                     }

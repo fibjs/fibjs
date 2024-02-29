@@ -16,8 +16,7 @@ namespace fibjs {
 
 bool SafeX509SubjectAltNamePrint(const BIOPointer& out, X509_EXTENSION* ext);
 
-result_t X509CertificateRequest_base::_new(Buffer_base* csr, obj_ptr<X509CertificateRequest_base>& retVal,
-    v8::Local<v8::Object> This)
+result_t crypto_base::createCertificateRequest(Buffer_base* csr, obj_ptr<X509CertificateRequest_base>& retVal)
 {
     obj_ptr<X509CertificateRequest> csr_ = new X509CertificateRequest();
     result_t hr = csr_->load_csr(csr);

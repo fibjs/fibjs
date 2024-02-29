@@ -8,12 +8,12 @@
 /// <reference path="../interface/X509Crl.d.ts" />
 /// <reference path="../interface/X509Req.d.ts" />
 /// <reference path="../interface/X509Certificate.d.ts" />
-/// <reference path="../interface/X509CertificateRequest.d.ts" />
 /// <reference path="../interface/Digest.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/KeyObject.d.ts" />
 /// <reference path="../interface/Sign.d.ts" />
 /// <reference path="../interface/Verify.d.ts" />
+/// <reference path="../interface/X509CertificateRequest.d.ts" />
 /**
  * @description `crypto` 模块是 `fibjs` 内置的加密算法模块。它提供了对称加密、非对称加密、摘要算法、密码学随机数生成器等功能。在使用之前，需要通过 `require('crypto')` 加载该模块。
  * 
@@ -220,11 +220,6 @@ declare module 'crypto' {
     const X509Certificate: typeof Class_X509Certificate;
 
     /**
-     * @description X509CertificateRequest 构造函数，参见 X509CertificateRequest 
-     */
-    const X509CertificateRequest: typeof Class_X509CertificateRequest;
-
-    /**
      * @description 获取 crypto 模块支持的的 hash(摘要) 算法
      *      @return 返回支持的 hash 算法数组
      *      
@@ -416,6 +411,8 @@ declare module 'crypto' {
      *      
      */
     function createSecretKey(key: string, encoding: string): Class_KeyObject;
+
+    function createCertificateRequest(csr: Class_Buffer): Class_X509CertificateRequest;
 
     function createCertificateRequest(options: FIBJS.GeneralObject): Class_X509CertificateRequest;
 

@@ -1,9 +1,38 @@
-/**/
+/*! @brief X509CertificateRequest 对象是用于创建 x509 证书请求的对象，属于 crypto 模块
+
+可以使用 crpto.createCertificateRequest 创建证书请求，例如：
+
+```JavaScript
+var crypto = require('crypto');
+
+var pk = crypto.createPrivateKey(rsa4096_pem);
+var req = crypto.createCertificateRequest({
+    key: pk,
+    subject: {
+        C: "CN",
+        O: "baoz.cn",
+        CN: "baoz.me"
+    }
+});
+```
+
+通过调用 X509CertificateRequest 的 issue 方法可以生成正式的证书对象，例如：
+
+```JavaScript
+let crt = req.issue({
+    key: issuer_pk,
+    issuer: {
+        C: "CN",
+        O: "baoz.cn",
+        CN: "baoz.me"
+    }
+}); 
+```
+
+需要注意的是，X509CertificateRequest 对象的作用是创建 x509 证书请求，而不是证书本身，要想获得有效的证书还需要对其进行签名。同时，签名证书所使用的公钥必须和证书请求中使用的公钥一致。
+ */
 interface X509CertificateRequest : object
 {
-    /**/
-    X509CertificateRequest(Buffer csr);
-
     /*! @brief 证书请求的主题 */
     readonly String subject;
 
@@ -28,6 +57,37 @@ interface X509CertificateRequest : object
     */
     Boolean checkPrivateKey(KeyObject privateKey);
 
-    /**/
+    /*! @brief 根据请求内容签发正式证书
+
+     options 内的参数会用于调用 crypto.createPrivateKey 创建私钥对象，此外还支持以下签名参数：
+      - issuer: 签发者的主题信息，包含 key/value 对的 subject 信息
+      - ca: 是否是 CA 证书，缺省为 false
+      - pathlen: 证书链的最大长度，缺省为 -1
+      - days: 证书有效期，缺省为 100 天
+      - hashAlgorithm: 签名的 hash 算法，缺省为 'sha256'
+      - keyUsage: 证书的密钥用途，以数组形式提供，缺省为 []，支持的值有：
+        - 'digitalSignature': 数字签名
+        - 'nonRepudiation': 非否认
+        - 'keyEncipherment': 密钥加密
+        - 'dataEncipherment': 数据加密
+        - 'keyAgreement': 密钥协商
+        - 'keyCertSign': 证书签名
+        - 'cRLSign': CRL 签名
+        - 'encipherOnly': 加密
+        - 'decipherOnly': 解密
+
+     - type: 证书的 Nescape 类型，以数组形式提供，缺省为 []，支持的值有：
+        - 'client': 客户端
+        - 'server': 服务器
+        - 'email': 电子邮件
+        - 'objsign': 对象签名
+        - 'reserved': 保留
+        - 'sslCA': SSL CA
+        - 'emailCA': 电子邮件 CA
+        - 'objCA': 对象 CA
+
+     @param options 证书签发选项
+     @return 返回签发的证书对象
+    */
     X509Certificate issue(Object options);
 };

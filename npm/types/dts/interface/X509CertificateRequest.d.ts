@@ -1,11 +1,9 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
-/// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/KeyObject.d.ts" />
+/// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/X509Certificate.d.ts" />
 declare class Class_X509CertificateRequest extends Class_object {
-    constructor(csr: Class_Buffer);
-
     /**
      * @description 证书请求的主题 
      */
