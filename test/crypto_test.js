@@ -3075,6 +3075,13 @@ describe('crypto', () => {
             ca_cert = new crypto.X509Certificate(ca);
         });
 
+        it('chain', () => {
+            const pems = cert + ca + ca1 + ca2 + ca3;
+
+            var chain = new crypto.X509Certificate(pems);
+            assert.equal(chain.pem, pems);
+        });
+
         it('ca', () => {
             assert(!x509.ca);
         });

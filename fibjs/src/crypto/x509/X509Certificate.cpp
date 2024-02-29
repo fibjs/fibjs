@@ -280,13 +280,23 @@ result_t X509Certificate::load_cert(Buffer_base* cert)
     if (bio == nullptr)
         return openssl_error();
 
-    m_cert = PEM_read_bio_X509(
-        bio, nullptr, [](char*, int, int, void*) {
-            return 0;
-        },
-        nullptr);
-    if (m_cert == nullptr)
-        return openssl_error();
+    X509Certificate* now = nullptr;
+
+    while (true) {
+        X509* cert_ = PEM_read_bio_X509(
+            bio, nullptr, [](char*, int, int, void*) {
+                return 0;
+            },
+            nullptr);
+        if (cert_ == nullptr)
+            return now ? 0 : openssl_error();
+
+        if (now == nullptr) {
+            now = this;
+            m_cert = cert_;
+        } else
+            now = now->m_next = new X509Certificate(cert_);
+    }
 
     return 0;
 }
@@ -419,8 +429,13 @@ result_t X509Certificate::get_pem(exlib::string& retVal)
 {
     BIOPointer bio(BIO_new(BIO_s_mem()));
 
-    if (PEM_write_bio_X509(bio, m_cert) <= 0)
-        return openssl_error();
+    X509Certificate* now = this;
+
+    while (now) {
+        if (PEM_write_bio_X509(bio, now->m_cert) <= 0)
+            return openssl_error();
+        now = now->m_next;
+    }
 
     return return_bio(bio, retVal);
 }
@@ -487,6 +502,15 @@ result_t X509Certificate::get_validTo(exlib::string& retVal)
     BIOPointer bio(BIO_new(BIO_s_mem()));
     ASN1_TIME_print(bio, X509_get0_notAfter(m_cert));
     return return_bio(bio, retVal);
+}
+
+result_t X509Certificate::get_next(obj_ptr<X509Certificate_base>& retVal)
+{
+    if (!m_next)
+        return CALL_RETURN_UNDEFINED;
+
+    retVal = m_next;
+    return 0;
 }
 
 result_t X509Certificate::checkEmail(exlib::string email, v8::Local<v8::Object> options, exlib::string& retVal)

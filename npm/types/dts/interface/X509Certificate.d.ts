@@ -106,6 +106,11 @@ declare class Class_X509Certificate extends Class_object {
     readonly fingerprint512: string;
 
     /**
+     * @description 证书链的下一个证书 
+     */
+    readonly next: Class_X509Certificate;
+
+    /**
      * @description 检查证书是否与给定的电子邮件地址匹配
      * 
      *     如果 options.subject 选项未定义或设置为 'default'，则仅当主题备用名称扩展不存在或不包含任何电子邮件地址时才考虑证书主题。
