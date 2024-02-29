@@ -200,6 +200,33 @@ var req1 = "-----BEGIN CERTIFICATE REQUEST-----\n" +
     "2ojyVJc1FZSUL8gHRbcZn8eR13wdkzZ91uTpWCu94iTtU0+69S9m5qri\n" +
     "-----END CERTIFICATE REQUEST-----\n"
 
+var req2 = "-----BEGIN CERTIFICATE REQUEST-----\n" +
+    "MIIEdjCCAl4CAQEwMTELMAkGA1UEBhMCQ04xEDAOBgNVBAoMB2Jhb3ouY24xEDAO\n" +
+    "BgNVBAMMB2Jhb3oubWUwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQCI\n" +
+    "BTAgnJYcSe6w40YNUKC5OvcWSRWhKIMnaaYVhiJu3WlpekiIQpDL47DKQVw4bQTD\n" +
+    "1QYQS+95FBso35ulRXm4fqrumCd8O5sDZVItJPuUdxcl3ZqzgM3IUy2Bcs6PR1VK\n" +
+    "Tg125aVWBjZ9S7XuwkkGbKxiMKOYHvo/3YMt8i+Uj7g5gQ4VItAIbnooDxm8/0dO\n" +
+    "ceIjQud6uN/XhyOvVRuDDRx70own3osudmn1DqEEJdqVqAOj0yh+7JJykVfVfSLG\n" +
+    "KtDZW2ibNO+V70Qh1+Zq3oSgvPHPxg1+XqaWW8JWuUUnDUO9d/EuWQNH0j617UHz\n" +
+    "0vsSWO33RUEqbOOMmIqa6GZbweEkyl7dUEbu3xzcn4X9wkvHtkOTr9c2HFY9vMv1\n" +
+    "I2FNGDrTXlgOxfTVsXKLUZQd0Whw+bOBnqfDdqcVPzn6ruX0zjIaFFBt9RZDitPT\n" +
+    "MIWhsllB47hnKIEzR+4AaGWfQyiAh0VqiHvGZWCAvpfElU4CldcZXtnzEOPNsukE\n" +
+    "jZQeJfxbfdlutdiIN7G98FC5HZIXDfvaH8sIX584jyTFmv0E1TVFJ/bpEJfQyLQV\n" +
+    "1vPR55ctrc3jZ8YDEdhQI3kzhYS0A9x1CNABnuBn5WjL2c2MyhAxbPMfzhcdQjVv\n" +
+    "IDxPv3kKdWYoyIfIJYSc4ZXWm2ZmvOhmhrrHps4e6QIDAQABoAAwDQYJKoZIhvcN\n" +
+    "AQELBQADggIBAGiHM/lXJGlP9ZEpxz6AZZRsJDg76JNG0msdZ61eQzwJMuTM2Dqj\n" +
+    "EiLPcKbYXRE13hhQ2MOLmsGBo8K3u1xfygYtTwR5ux9TliVCEftuMfCDN5EW57K5\n" +
+    "MSdLNZEpLsNqVo7J7r37uR71Qj9o9H6hUMSEQke6HJsamK3n9YFj8/DtOzc9OkHS\n" +
+    "Xqobx6sipX5vEncpPh5VYGsi+XnRTn7TCn8lSC3Q14CC9kSf3sJ3bOgDhBFMNPc6\n" +
+    "Msar7o+TXD7dCqHlDh542++mkBSS8G0+BJsnsiPLNfgve4+whHnR3O9JRNhoShtY\n" +
+    "pVUlBzlmiRVL62jU1q/FUOMZGzDC2fZCYDbd/1dxexFGe3lK+bTz73rHBYx7uUdQ\n" +
+    "aTb4vZnBqGvDv3FWpX0+bDtKlP+KfVM5goqY38/kBA4aHNEnBjj0usZqyd27Sa2D\n" +
+    "kcdOGTMn8fYpZr2MZyigP68gRfdHlWs0ifYJz/8qkP36DXfLUZ7HzTKky7Bk9znU\n" +
+    "/O7bioOcMGyoCPnIs3RaKEkyH2fVEnx+WgtzLoQNbl7BXiRYIlVWc67Vq0VSpyIm\n" +
+    "VG0w1246rTKctJlSSscexrhd4ZDydRjtAci8CxvktJbcSCXZ1xbY06D94SjNdHwr\n" +
+    "70bSxKA8pkQFV+EYhYetOTFL3tqnru+YNoNY4crDjTTxaiBphn6KeUNw\n" +
+    "-----END CERTIFICATE REQUEST-----\n"
+
 var sm2_req = "-----BEGIN CERTIFICATE REQUEST-----\n" +
     "MIHnMIGTAgEAMDExCzAJBgNVBAYTAkNOMRAwDgYDVQQKEwdiYW96LmNuMRAwDgYD\n" +
     "VQQDEwdiYW96Lm1lMFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAE1KnIoMvdNODU\n" +
@@ -3216,6 +3243,181 @@ describe('crypto', () => {
                 const cert = new crypto.X509Certificate(pem);
                 assert.equal(cert.infoAccess, expected);
             }
+        });
+
+        describe("X509CertificateRequest", () => {
+            it("create", () => {
+                var pk = crypto.createPrivateKey(rsa4096_pem);
+                var req = crypto.createCertificateRequest({
+                    key: pk,
+                    subject: {
+                        C: "CN",
+                        O: "baoz.cn",
+                        CN: "baoz.me"
+                    }
+                });
+                assert.deepEqual(req.pem, req2);
+            })
+
+            it("info", () => {
+                var req = new crypto.X509CertificateRequest(req2);
+                assert.equal(req.subject, "C=CN\nO=baoz.cn\nCN=baoz.me");
+                assert.equal(req.publicKey.export({ type: 'spki', format: 'pem' }), pub_rsa4096_pem);
+            });
+
+            it("sm2 info", () => {
+                var req = new crypto.X509CertificateRequest(sm2_req);
+                assert.equal(req.subject, "C=CN\nO=baoz.cn\nCN=baoz.me");
+                assert.equal(req.publicKey.export({ type: 'spki', format: 'pem' }), pub_sm2_pem);
+            });
+
+            it("issue", () => {
+                var pk = crypto.createPrivateKey(rsa4096_pem);
+                var req = crypto.createCertificateRequest({
+                    key: pk,
+                    subject: {
+                        C: "CN",
+                        O: "baoz.cn",
+                        CN: "baoz.me"
+                    }
+                });
+
+                var cert = req.issue({
+                    key: pk,
+                    issuer: {
+                        commonName: 'ca.com',
+                        countryName: 'US',
+                        localityName: 'CA',
+                        organizationName: 'example',
+                        stateOrProvinceName: 'CA',
+                    }
+                });
+
+                assert.equal(cert.issuer, "CN=ca.com\nC=US\nL=CA\nO=example\nST=CA");
+            });
+
+            it("ca", () => {
+                var pk = crypto.createPrivateKey(rsa4096_pem);
+                var req = crypto.createCertificateRequest({ key: pk });
+
+                assert.deepEqual(req.issue({
+                    key: pk,
+                    ca: true
+                }).ca, true);
+
+                assert.deepEqual(req.issue({ key: pk }).ca, false);
+            });
+
+            it("pathlen", () => {
+                var pk = crypto.createPrivateKey(rsa4096_pem);
+                var req = crypto.createCertificateRequest({ key: pk });
+
+                assert.deepEqual(req.issue({
+                    key: pk,
+                    pathlen: 100
+                }).pathlen, 100);
+
+                assert.deepEqual(req.issue({ key: pk }).pathlen, -1);
+            });
+
+            it("days", () => {
+                var pk = crypto.createPrivateKey(rsa4096_pem);
+                var req = crypto.createCertificateRequest({ key: pk });
+
+                var cert = req.issue({
+                    key: pk,
+                    days: 100
+                });
+
+                assert.equal(new Date(cert.validTo) - new Date(cert.validFrom), 100 * 24 * 60 * 60 * 1000);
+            });
+
+            it("KeyUsage", () => {
+                var pk = crypto.createPrivateKey(rsa4096_pem);
+                var req = crypto.createCertificateRequest({
+                    key: pk,
+                    subject: {
+                        C: "CN",
+                        O: "baoz.cn",
+                        CN: "baoz.me"
+                    }
+                });
+
+                [
+                    "digitalSignature",
+                    "nonRepudiation",
+                    "keyEncipherment",
+                    "dataEncipherment",
+                    "keyAgreement",
+                    "keyCertSign",
+                    "cRLSign",
+                    "encipherOnly"
+                ].forEach((k) => {
+                    var cert = req.issue({
+                        key: pk,
+                        keyUsage: [k]
+                    });
+
+                    assert.deepEqual(cert.keyUsage, [k]);
+                });
+            });
+
+            it("type", () => {
+                var pk = crypto.createPrivateKey(rsa4096_pem);
+                var req = crypto.createCertificateRequest({
+                    key: pk,
+                    subject: {
+                        C: "CN",
+                        O: "baoz.cn",
+                        CN: "baoz.me"
+                    }
+                });
+
+                [
+                    "client",
+                    "server",
+                    "email",
+                    "objsign",
+                    "reserved",
+                    "sslCA",
+                    "emailCA",
+                    "objCA"
+                ].forEach((k) => {
+                    var cert = req.issue({
+                        key: pk,
+                        type: [k]
+                    });
+
+                    assert.deepEqual(cert.type, [k]);
+                });
+            });
+
+            describe("suites", () => {
+                var fl = fs.readdir(path.join(__dirname, 'req_files'));
+                fl.forEach((s) => {
+                    if (s.match(/\.req/)) {
+                        describe(s, () => {
+                            var req;
+                            it('load', () => {
+                                req = new crypto.X509CertificateRequest(fs.readTextFile(path.join(__dirname, 'req_files', s)));
+                            });
+
+                            it('pem', () => {
+                                assert.equal(req.pem, req);
+                            });
+
+                            it("import/export pem", () => {
+                                var s = req.pem;
+
+                                var req1 = new crypto.X509CertificateRequest(s);
+
+                                assert.equal(req1.pem, s);
+                                assert.equal(new crypto.X509CertificateRequest(s).pem, s);
+                            });
+                        });
+                    }
+                });
+            });
         });
     });
 

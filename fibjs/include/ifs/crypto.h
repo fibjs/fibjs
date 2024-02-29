@@ -24,6 +24,7 @@ class X509Cert_base;
 class X509Crl_base;
 class X509Req_base;
 class X509Certificate_base;
+class X509CertificateRequest_base;
 class Digest_base;
 class Buffer_base;
 class KeyObject_base;
@@ -103,6 +104,7 @@ public:
     static result_t createVerify(exlib::string algorithm, v8::Local<v8::Object> options, obj_ptr<Verify_base>& retVal);
     static result_t createSecretKey(Buffer_base* key, exlib::string encoding, obj_ptr<KeyObject_base>& retVal);
     static result_t createSecretKey(exlib::string key, exlib::string encoding, obj_ptr<KeyObject_base>& retVal);
+    static result_t createCertificateRequest(v8::Local<v8::Object> options, obj_ptr<X509CertificateRequest_base>& retVal);
     static result_t loadCert(exlib::string filename, obj_ptr<X509Cert_base>& retVal);
     static result_t loadCrl(exlib::string filename, obj_ptr<X509Crl_base>& retVal);
     static result_t loadReq(exlib::string filename, obj_ptr<X509Req_base>& retVal);
@@ -157,6 +159,7 @@ public:
     static void s_static_createSign(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createVerify(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createSecretKey(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createCertificateRequest(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_loadCert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_loadCrl(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_loadReq(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -194,6 +197,7 @@ public:
 #include "ifs/X509Crl.h"
 #include "ifs/X509Req.h"
 #include "ifs/X509Certificate.h"
+#include "ifs/X509CertificateRequest.h"
 #include "ifs/Digest.h"
 #include "ifs/Buffer.h"
 #include "ifs/KeyObject.h"
@@ -218,6 +222,7 @@ inline ClassInfo& crypto_base::class_info()
         { "createSign", s_static_createSign, true, false },
         { "createVerify", s_static_createVerify, true, false },
         { "createSecretKey", s_static_createSecretKey, true, false },
+        { "createCertificateRequest", s_static_createCertificateRequest, true, false },
         { "loadCert", s_static_loadCert, true, false },
         { "loadCrl", s_static_loadCrl, true, false },
         { "loadReq", s_static_loadReq, true, false },
@@ -251,7 +256,8 @@ inline ClassInfo& crypto_base::class_info()
         { "X509Cert", X509Cert_base::class_info },
         { "X509Crl", X509Crl_base::class_info },
         { "X509Req", X509Req_base::class_info },
-        { "X509Certificate", X509Certificate_base::class_info }
+        { "X509Certificate", X509Certificate_base::class_info },
+        { "X509CertificateRequest", X509CertificateRequest_base::class_info }
     };
 
     static ClassData::ClassConst s_const[] = {
@@ -548,6 +554,21 @@ inline void crypto_base::s_static_createSecretKey(const v8::FunctionCallbackInfo
     ARG(exlib::string, 1);
 
     hr = createSecretKey(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_createCertificateRequest(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<X509CertificateRequest_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
+
+    hr = createCertificateRequest(v0, vr);
 
     METHOD_RETURN();
 }

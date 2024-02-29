@@ -8,6 +8,7 @@
 /// <reference path="../interface/X509Crl.d.ts" />
 /// <reference path="../interface/X509Req.d.ts" />
 /// <reference path="../interface/X509Certificate.d.ts" />
+/// <reference path="../interface/X509CertificateRequest.d.ts" />
 /// <reference path="../interface/Digest.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/KeyObject.d.ts" />
@@ -219,6 +220,11 @@ declare module 'crypto' {
     const X509Certificate: typeof Class_X509Certificate;
 
     /**
+     * @description X509CertificateRequest 构造函数，参见 X509CertificateRequest 
+     */
+    const X509CertificateRequest: typeof Class_X509CertificateRequest;
+
+    /**
      * @description 获取 crypto 模块支持的的 hash(摘要) 算法
      *      @return 返回支持的 hash 算法数组
      *      
@@ -410,6 +416,8 @@ declare module 'crypto' {
      *      
      */
     function createSecretKey(key: string, encoding: string): Class_KeyObject;
+
+    function createCertificateRequest(options: FIBJS.GeneralObject): Class_X509CertificateRequest;
 
     /**
      * @description 加载一个 CRT/PEM/DER 格式的证书，可多次调用

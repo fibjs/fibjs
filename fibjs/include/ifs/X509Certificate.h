@@ -25,16 +25,19 @@ public:
     // X509Certificate_base
     static result_t _new(Buffer_base* cert, obj_ptr<X509Certificate_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_subject(exlib::string& retVal) = 0;
-    virtual result_t get_subjectAltName(exlib::string& retVal) = 0;
     virtual result_t get_serialNumber(exlib::string& retVal) = 0;
     virtual result_t get_publicKey(obj_ptr<KeyObject_base>& retVal) = 0;
+    virtual result_t get_subjectAltName(exlib::string& retVal) = 0;
     virtual result_t get_infoAccess(exlib::string& retVal) = 0;
     virtual result_t get_issuer(exlib::string& retVal) = 0;
-    virtual result_t get_issuerCertificate(obj_ptr<X509Certificate_base>& retVal) = 0;
     virtual result_t get_ca(bool& retVal) = 0;
+    virtual result_t get_pathlen(int32_t& retVal) = 0;
+    virtual result_t get_keyUsage(v8::Local<v8::Array>& retVal) = 0;
+    virtual result_t get_type(v8::Local<v8::Array>& retVal) = 0;
     virtual result_t get_validFrom(exlib::string& retVal) = 0;
     virtual result_t get_validTo(exlib::string& retVal) = 0;
     virtual result_t get_raw(obj_ptr<Buffer_base>& retVal) = 0;
+    virtual result_t get_pem(exlib::string& retVal) = 0;
     virtual result_t get_fingerprint(exlib::string& retVal) = 0;
     virtual result_t get_fingerprint256(exlib::string& retVal) = 0;
     virtual result_t get_fingerprint512(exlib::string& retVal) = 0;
@@ -52,16 +55,19 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_subject(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_subjectAltName(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_serialNumber(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_publicKey(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_subjectAltName(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_infoAccess(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_issuer(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_issuerCertificate(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_ca(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_pathlen(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_keyUsage(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_validFrom(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_validTo(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_raw(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_pem(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_fingerprint(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_fingerprint256(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_fingerprint512(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -91,16 +97,19 @@ inline ClassInfo& X509Certificate_base::class_info()
 
     static ClassData::ClassProperty s_property[] = {
         { "subject", s_get_subject, block_set, false },
-        { "subjectAltName", s_get_subjectAltName, block_set, false },
         { "serialNumber", s_get_serialNumber, block_set, false },
         { "publicKey", s_get_publicKey, block_set, false },
+        { "subjectAltName", s_get_subjectAltName, block_set, false },
         { "infoAccess", s_get_infoAccess, block_set, false },
         { "issuer", s_get_issuer, block_set, false },
-        { "issuerCertificate", s_get_issuerCertificate, block_set, false },
         { "ca", s_get_ca, block_set, false },
+        { "pathlen", s_get_pathlen, block_set, false },
+        { "keyUsage", s_get_keyUsage, block_set, false },
+        { "type", s_get_type, block_set, false },
         { "validFrom", s_get_validFrom, block_set, false },
         { "validTo", s_get_validTo, block_set, false },
         { "raw", s_get_raw, block_set, false },
+        { "pem", s_get_pem, block_set, false },
         { "fingerprint", s_get_fingerprint, block_set, false },
         { "fingerprint256", s_get_fingerprint256, block_set, false },
         { "fingerprint512", s_get_fingerprint512, block_set, false }
@@ -151,18 +160,6 @@ inline void X509Certificate_base::s_get_subject(v8::Local<v8::Name> property, co
     METHOD_RETURN();
 }
 
-inline void X509Certificate_base::s_get_subjectAltName(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    exlib::string vr;
-
-    METHOD_INSTANCE(X509Certificate_base);
-    PROPERTY_ENTER();
-
-    hr = pInst->get_subjectAltName(vr);
-
-    METHOD_RETURN();
-}
-
 inline void X509Certificate_base::s_get_serialNumber(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
@@ -183,6 +180,18 @@ inline void X509Certificate_base::s_get_publicKey(v8::Local<v8::Name> property, 
     PROPERTY_ENTER();
 
     hr = pInst->get_publicKey(vr);
+
+    METHOD_RETURN();
+}
+
+inline void X509Certificate_base::s_get_subjectAltName(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_INSTANCE(X509Certificate_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_subjectAltName(vr);
 
     METHOD_RETURN();
 }
@@ -211,18 +220,6 @@ inline void X509Certificate_base::s_get_issuer(v8::Local<v8::Name> property, con
     METHOD_RETURN();
 }
 
-inline void X509Certificate_base::s_get_issuerCertificate(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<X509Certificate_base> vr;
-
-    METHOD_INSTANCE(X509Certificate_base);
-    PROPERTY_ENTER();
-
-    hr = pInst->get_issuerCertificate(vr);
-
-    METHOD_RETURN();
-}
-
 inline void X509Certificate_base::s_get_ca(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     bool vr;
@@ -231,6 +228,42 @@ inline void X509Certificate_base::s_get_ca(v8::Local<v8::Name> property, const v
     PROPERTY_ENTER();
 
     hr = pInst->get_ca(vr);
+
+    METHOD_RETURN();
+}
+
+inline void X509Certificate_base::s_get_pathlen(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(X509Certificate_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_pathlen(vr);
+
+    METHOD_RETURN();
+}
+
+inline void X509Certificate_base::s_get_keyUsage(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Array> vr;
+
+    METHOD_INSTANCE(X509Certificate_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_keyUsage(vr);
+
+    METHOD_RETURN();
+}
+
+inline void X509Certificate_base::s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Array> vr;
+
+    METHOD_INSTANCE(X509Certificate_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_type(vr);
 
     METHOD_RETURN();
 }
@@ -267,6 +300,18 @@ inline void X509Certificate_base::s_get_raw(v8::Local<v8::Name> property, const 
     PROPERTY_ENTER();
 
     hr = pInst->get_raw(vr);
+
+    METHOD_RETURN();
+}
+
+inline void X509Certificate_base::s_get_pem(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    METHOD_INSTANCE(X509Certificate_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_pem(vr);
 
     METHOD_RETURN();
 }

@@ -1,0 +1,33 @@
+/**/
+interface X509CertificateRequest : object
+{
+    /**/
+    X509CertificateRequest(Buffer csr);
+
+    /*! @brief 证书请求的主题 */
+    readonly String subject;
+
+    /*! @brief 证书请求认证的公钥 */
+    readonly KeyObject publicKey;
+
+    /*! @brief 证书请求的主题备用名称 */
+    readonly String subjectAltName;
+
+    /*! @brief 证书请求的信息访问扩展，返回一个换行分隔的访问描述列表。每行开头为访问方法和访问位置的类型，后跟冒号和与访问位置关联的值 */
+    readonly String infoAccess;
+
+    /*! @brief 证书请求的原始二进制数据 */
+    readonly Buffer raw;
+
+    /*! @brief 证书请求的 PEM 编码 */
+    readonly String pem;
+
+    /*! @brief 检查证书请求的公钥是否与给定的私钥签名匹配
+    @param privateKey 私钥
+    @return 如果匹配，则返回 true，否则返回 false
+    */
+    Boolean checkPrivateKey(KeyObject privateKey);
+
+    /**/
+    X509Certificate issue(Object options);
+};

@@ -15,18 +15,27 @@ namespace fibjs {
 
 class X509Certificate : public X509Certificate_base {
 public:
+    X509Certificate(X509* cert = nullptr)
+        : m_cert(cert)
+    {
+    }
+
+public:
     // X509Certificate_base
     virtual result_t get_subject(exlib::string& retVal);
-    virtual result_t get_subjectAltName(exlib::string& retVal);
     virtual result_t get_serialNumber(exlib::string& retVal);
     virtual result_t get_publicKey(obj_ptr<KeyObject_base>& retVal);
+    virtual result_t get_subjectAltName(exlib::string& retVal);
     virtual result_t get_infoAccess(exlib::string& retVal);
     virtual result_t get_issuer(exlib::string& retVal);
-    virtual result_t get_issuerCertificate(obj_ptr<X509Certificate_base>& retVal);
     virtual result_t get_ca(bool& retVal);
+    virtual result_t get_pathlen(int32_t& retVal);
+    virtual result_t get_keyUsage(v8::Local<v8::Array>& retVal);
+    virtual result_t get_type(v8::Local<v8::Array>& retVal);
     virtual result_t get_validFrom(exlib::string& retVal);
     virtual result_t get_validTo(exlib::string& retVal);
     virtual result_t get_raw(obj_ptr<Buffer_base>& retVal);
+    virtual result_t get_pem(exlib::string& retVal);
     virtual result_t get_fingerprint(exlib::string& retVal);
     virtual result_t get_fingerprint256(exlib::string& retVal);
     virtual result_t get_fingerprint512(exlib::string& retVal);
@@ -42,11 +51,11 @@ public:
 
 public:
     result_t load_cert(Buffer_base* cert);
+    result_t get_x509_array(int32_t nid, const char** names, v8::Local<v8::Array>& retVal);
 
 private:
     X509Pointer m_cert;
     obj_ptr<KeyObject_base> m_publicKey;
-    obj_ptr<X509Certificate_base> m_issuer;
 };
 
 }

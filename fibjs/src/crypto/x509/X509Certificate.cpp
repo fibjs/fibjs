@@ -8,12 +8,10 @@
 #include "ifs/crypto.h"
 #include "X509Certificate.h"
 #include "Buffer.h"
+#include "openssl/x509.h"
 #include "openssl/x509v3.h"
 
 namespace fibjs {
-
-static constexpr int kX509NameFlagsMultiline = ASN1_STRFLGS_ESC_2253 | ASN1_STRFLGS_ESC_CTRL | ASN1_STRFLGS_UTF8_CONVERT | XN_FLAG_SEP_MULTILINE | XN_FLAG_FN_SN;
-static constexpr int kX509NameFlagsRFC2253WithinUtf8JSON = XN_FLAG_RFC2253 & ~ASN1_STRFLGS_ESC_MSB & ~ASN1_STRFLGS_ESC_CTRL;
 
 static inline bool IsSafeAltName(const char* name, size_t length, bool utf8)
 {
@@ -175,7 +173,7 @@ static bool PrintGeneralName(const BIOPointer& out, const GENERAL_NAME* gen)
     return true;
 }
 
-static bool SafeX509SubjectAltNamePrint(const BIOPointer& out, X509_EXTENSION* ext)
+bool SafeX509SubjectAltNamePrint(const BIOPointer& out, X509_EXTENSION* ext)
 {
     const X509V3_EXT_METHOD* method = X509V3_EXT_get(ext);
 
@@ -263,14 +261,6 @@ result_t GetFingerprintDigest(const EVP_MD* method, X509* cert, exlib::string& r
     return 0;
 }
 
-static result_t return_bio(BIO* bio, exlib::string& retVal)
-{
-    BUF_MEM* mem = nullptr;
-    BIO_get_mem_ptr(bio, &mem);
-    retVal = exlib::string(mem->data, mem->length);
-    return 0;
-}
-
 result_t X509Certificate_base::_new(Buffer_base* cert, obj_ptr<X509Certificate_base>& retVal,
     v8::Local<v8::Object> This)
 {
@@ -305,6 +295,43 @@ result_t X509Certificate::get_ca(bool& retVal)
 {
     retVal = X509_check_ca(m_cert) != 0;
     return 0;
+}
+
+result_t X509Certificate::get_pathlen(int32_t& retVal)
+{
+    retVal = X509_get_pathlen(m_cert);
+    return 0;
+}
+
+result_t X509Certificate::get_x509_array(int32_t nid, const char** names, v8::Local<v8::Array>& retVal)
+{
+    ASN1_BIT_STRING* usage = (ASN1_BIT_STRING*)X509_get_ext_d2i(m_cert, nid, nullptr, nullptr);
+    if (!usage || usage->length == 0)
+        return CALL_RETURN_UNDEFINED;
+
+    Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
+    unsigned char keyUsage = usage->data[0];
+
+    v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate);
+    int j = 0;
+    for (int32_t i = 0; i < 8; i++)
+        if (keyUsage & (0x80 >> i))
+            arr->Set(context, j++, isolate->NewString(names[i]));
+
+    retVal = arr;
+
+    return 0;
+}
+
+result_t X509Certificate::get_keyUsage(v8::Local<v8::Array>& retVal)
+{
+    return get_x509_array(NID_key_usage, xfKeyUsages, retVal);
+}
+
+result_t X509Certificate::get_type(v8::Local<v8::Array>& retVal)
+{
+    return get_x509_array(NID_netscape_cert_type, xfCertTypes, retVal);
 }
 
 result_t X509Certificate::get_fingerprint(exlib::string& retVal)
@@ -352,16 +379,6 @@ result_t X509Certificate::get_issuer(exlib::string& retVal)
     return return_bio(bio, retVal);
 }
 
-result_t X509Certificate::get_issuerCertificate(obj_ptr<X509Certificate_base>& retVal)
-{
-    if (m_issuer) {
-        retVal = m_issuer;
-        return 0;
-    }
-
-    return CALL_RETURN_UNDEFINED;
-}
-
 result_t X509Certificate::get_publicKey(obj_ptr<KeyObject_base>& retVal)
 {
     if (m_publicKey) {
@@ -396,6 +413,16 @@ result_t X509Certificate::get_raw(obj_ptr<Buffer_base>& retVal)
     retVal = buf;
 
     return 0;
+}
+
+result_t X509Certificate::get_pem(exlib::string& retVal)
+{
+    BIOPointer bio(BIO_new(BIO_s_mem()));
+
+    if (PEM_write_bio_X509(bio, m_cert) <= 0)
+        return openssl_error();
+
+    return return_bio(bio, retVal);
 }
 
 result_t X509Certificate::get_serialNumber(exlib::string& retVal)
@@ -602,12 +629,7 @@ result_t X509Certificate::verify(KeyObject_base* publicKey, bool& retVal)
 
 result_t X509Certificate::toString(exlib::string& retVal)
 {
-    BIOPointer bio(BIO_new(BIO_s_mem()));
-
-    if (PEM_write_bio_X509(bio, m_cert) <= 0)
-        return openssl_error();
-
-    return return_bio(bio, retVal);
+    return get_pem(retVal);
 }
 
 }

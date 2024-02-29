@@ -16,14 +16,14 @@ interface X509Certificate : object
     /*! @brief 证书的主题 */
     readonly String subject;
 
-    /*! @brief 证书的主题备用名称 */
-    readonly String subjectAltName;
-
     /*! @brief 证书的序列号 */
     readonly String serialNumber;
 
     /*! @brief 证书的认证的公钥 */
     readonly KeyObject publicKey;
+
+    /*! @brief 证书的主题备用名称 */
+    readonly String subjectAltName;
 
     /*! @brief 证书的信息访问扩展，返回一个换行分隔的访问描述列表。每行开头为访问方法和访问位置的类型，后跟冒号和与访问位置关联的值 */
     readonly String infoAccess;
@@ -31,11 +31,17 @@ interface X509Certificate : object
     /*! @brief 证书的颁发者 */
     readonly String issuer;
 
-    /*! @brief 证书的颁发者证书 */
-    readonly X509Certificate issuerCertificate;
-
     /*! @brief 证书是否是 CA 证书 */
     readonly Boolean ca;
+
+    /*! @brief 证书的路径长度约束 */
+    readonly Integer pathlen;
+
+    /*! @brief 证书的密钥用法 */
+    readonly Array keyUsage;
+
+    /*! @brief 证书的 Netscape 类型 */
+    readonly Array type;
 
     /*! @brief 证书的有效期开始时间 */
     readonly String validFrom;
@@ -45,6 +51,9 @@ interface X509Certificate : object
 
     /*! @brief 证书的原始二进制数据 */
     readonly Buffer raw;
+
+    /*! @brief 证书的 PEM 编码 */
+    readonly String pem;
 
     /*! @brief 证书的 SHA-1 指纹 */
     readonly String fingerprint;

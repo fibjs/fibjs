@@ -138,6 +138,9 @@ module crypto
     /*! @brief X509Certificate 构造函数，参见 X509Certificate */
     static X509Certificate;
 
+    /*! @brief X509CertificateRequest 构造函数，参见 X509CertificateRequest */
+    static X509CertificateRequest;
+
     /*! @brief 获取 crypto 模块支持的的 hash(摘要) 算法
      @return 返回支持的 hash 算法数组
      */
@@ -290,6 +293,9 @@ module crypto
      @return 返回对称加密的解密对象
      */
     static KeyObject createSecretKey(String key, String encoding);
+
+    /**/
+    static X509CertificateRequest createCertificateRequest(Object options);
 
     /*! @brief 加载一个 CRT/PEM/DER 格式的证书，可多次调用
      @param filename 证书文件名

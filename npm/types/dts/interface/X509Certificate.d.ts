@@ -26,11 +26,6 @@ declare class Class_X509Certificate extends Class_object {
     readonly subject: string;
 
     /**
-     * @description 证书的主题备用名称 
-     */
-    readonly subjectAltName: string;
-
-    /**
      * @description 证书的序列号 
      */
     readonly serialNumber: string;
@@ -39,6 +34,11 @@ declare class Class_X509Certificate extends Class_object {
      * @description 证书的认证的公钥 
      */
     readonly publicKey: Class_KeyObject;
+
+    /**
+     * @description 证书的主题备用名称 
+     */
+    readonly subjectAltName: string;
 
     /**
      * @description 证书的信息访问扩展，返回一个换行分隔的访问描述列表。每行开头为访问方法和访问位置的类型，后跟冒号和与访问位置关联的值 
@@ -51,14 +51,24 @@ declare class Class_X509Certificate extends Class_object {
     readonly issuer: string;
 
     /**
-     * @description 证书的颁发者证书 
-     */
-    readonly issuerCertificate: Class_X509Certificate;
-
-    /**
      * @description 证书是否是 CA 证书 
      */
     readonly ca: boolean;
+
+    /**
+     * @description 证书的路径长度约束 
+     */
+    readonly pathlen: number;
+
+    /**
+     * @description 证书的密钥用法 
+     */
+    readonly keyUsage: any[];
+
+    /**
+     * @description 证书的 Netscape 类型 
+     */
+    readonly type: any[];
 
     /**
      * @description 证书的有效期开始时间 
@@ -74,6 +84,11 @@ declare class Class_X509Certificate extends Class_object {
      * @description 证书的原始二进制数据 
      */
     readonly raw: Class_Buffer;
+
+    /**
+     * @description 证书的 PEM 编码 
+     */
+    readonly pem: string;
 
     /**
      * @description 证书的 SHA-1 指纹 

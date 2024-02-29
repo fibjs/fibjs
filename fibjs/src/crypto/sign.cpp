@@ -211,7 +211,7 @@ result_t Sign::sign(KeyObject_base* privateKey, exlib::string encoding, v8::Loca
 
 result_t Sign::sign(v8::Local<v8::Object> key, exlib::string encoding, v8::Local<v8::Value>& retVal)
 {
-    Isolate* isolate = Isolate::GetCurrent(key);
+    Isolate* isolate = Isolate::current(key);
     v8::Local<v8::Context> context = isolate->context();
     result_t hr;
 

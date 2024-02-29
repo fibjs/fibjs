@@ -68,6 +68,7 @@ private:
     T* m_ptr = NULL;
 };
 
+using ASN1Pointer = AutoPointer<ASN1_STRING, ASN1_STRING_free>;
 using BignumCtxPointer = AutoPointer<BN_CTX, BN_CTX_free>;
 using BignumPointer = AutoPointer<BIGNUM, BN_clear_free>;
 using BIOPointer = AutoPointer<BIO, BIO_free_all>;
@@ -92,6 +93,12 @@ using SSLCtxPointer = AutoPointer<SSL_CTX, SSL_CTX_free>;
 using SSLPointer = AutoPointer<SSL, SSL_free>;
 using SSLSessionPointer = AutoPointer<SSL_SESSION, SSL_SESSION_free>;
 using X509Pointer = AutoPointer<X509, X509_free>;
+using X509ReqPointer = AutoPointer<X509_REQ, X509_REQ_free>;
+using X509ExtPointer = AutoPointer<X509_EXTENSION, X509_EXTENSION_free>;
+
+using StackOfASN1 = AutoPointer<STACK_OF(ASN1_OBJECT), [](STACK_OF(ASN1_OBJECT) * p) {
+    sk_ASN1_OBJECT_pop_free(p, ASN1_OBJECT_free);
+}>;
 
 result_t randomBytes(uint8_t* buf, int32_t size);
 
@@ -134,5 +141,19 @@ inline result_t GetKeyBuffer(Isolate* isolate, v8::Local<v8::Object> o, obj_ptr<
 
     return 0;
 }
+
+inline result_t return_bio(BIO* bio, exlib::string& retVal)
+{
+    BUF_MEM* mem = nullptr;
+    BIO_get_mem_ptr(bio, &mem);
+    retVal = exlib::string(mem->data, mem->length);
+    return 0;
+}
+
+const int kX509NameFlagsMultiline = ASN1_STRFLGS_ESC_2253 | ASN1_STRFLGS_ESC_CTRL | ASN1_STRFLGS_UTF8_CONVERT | XN_FLAG_SEP_MULTILINE | XN_FLAG_FN_SN;
+const int kX509NameFlagsRFC2253WithinUtf8JSON = XN_FLAG_RFC2253 & ~ASN1_STRFLGS_ESC_MSB & ~ASN1_STRFLGS_ESC_CTRL;
+
+extern const const char* xfKeyUsages[8];
+extern const const char* xfCertTypes[8];
 
 } /* namespace fibjs */
