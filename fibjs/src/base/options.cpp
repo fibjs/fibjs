@@ -30,6 +30,7 @@ FILE* g_cov = nullptr;
 
 bool g_tcpdump = false;
 bool g_ssldump = false;
+bool g_no_deprecation = false;
 
 bool g_uv_socket = false;
 
@@ -54,6 +55,7 @@ static void printHelp()
          "  -e code               evaluate script\n"
          "\n"
          "  --use-thread          run fibjs in thread mode.\n"
+         "  --no-deprecation      silence deprecation warnings.\n"
          "  --tcpdump             print out the contents of the tcp package.\n"
          "  --ssldump             print out the contents of the ssl package.\n"
          "\n"
@@ -112,6 +114,9 @@ void options(int32_t& pos, char* argv[])
             _exit(0);
         } else if (!qstrcmp(arg, "--use-thread")) {
             exlib::Service::use_thread = true;
+            df++;
+        } else if (!qstrcmp(arg, "--no-deprecation")) {
+            g_no_deprecation = true;
             df++;
         } else if (!qstrcmp(arg, "--tcpdump")) {
             g_tcpdump = true;

@@ -1346,12 +1346,13 @@ inline result_t _error_checker(result_t hr, const char* file, int32_t line)
 
 #define DEPRECATED_SOON(name)                                         \
     {                                                                 \
+        extern bool g_no_deprecation;                                 \
         static bool once = false;                                     \
-        if (!once) {                                                  \
+        if (!g_no_deprecation && !once) {                             \
             once = true;                                              \
             exlib::string str(name);                                  \
             str.append(" is deprecated and will soon be removed.\n"); \
-            errorLog(str + traceInfo(isolate, 16));                   \
+            errorLog(str + traceInfo(isolate->m_isolate, 16));        \
         }                                                             \
     }
 
