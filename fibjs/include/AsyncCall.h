@@ -376,6 +376,11 @@ public:
     {
     }
 
+    T& c_value()
+    {
+        return m_v;
+    }
+
     T& value()
     {
         return m_v;
@@ -391,6 +396,11 @@ public:
     _at(T* v)
         : m_v(v)
     {
+    }
+
+    T* c_value()
+    {
+        return m_v;
     }
 
     T* value()
@@ -409,6 +419,11 @@ public:
     {
         m_isolate = v->GetCreationContextChecked()->GetIsolate();
         m_v.Reset(m_isolate, v);
+    }
+
+    v8::Local<v8::Object> c_value()
+    {
+        return v8::Local<v8::Object>();
     }
 
     v8::Local<v8::Object> value()
