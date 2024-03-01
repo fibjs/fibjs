@@ -1344,9 +1344,9 @@ inline result_t _error_checker(result_t hr, const char* file, int32_t line)
 #define CHECK_ERROR(hr) (hr)
 #endif
 
+extern bool g_no_deprecation;
 #define DEPRECATED_SOON(name)                                         \
     {                                                                 \
-        extern bool g_no_deprecation;                                 \
         static bool once = false;                                     \
         if (!g_no_deprecation && !once) {                             \
             once = true;                                              \
