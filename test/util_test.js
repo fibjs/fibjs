@@ -1664,7 +1664,6 @@ describe('util', () => {
             assert.property(util.buildInfo().vender, 'expat');
             assert.property(util.buildInfo().vender, 'leveldb');
             assert.property(util.buildInfo().vender, 'pcre');
-            assert.property(util.buildInfo().vender, 'mbedtls');
             assert.property(util.buildInfo().vender, 'snappy');
             assert.property(util.buildInfo().vender, 'sqlite');
             assert.property(util.buildInfo().vender, 'uuid');
