@@ -79,18 +79,9 @@ result_t KeyObject::createPublicKeyFromPKey(EVP_PKEY* key)
         const EC_POINT* pt = EC_KEY_get0_public_key(ec);
         const int nid = EC_GROUP_get_curve_name(group);
 
-        BignumPointer x(BN_new());
-        BignumPointer y(BN_new());
-
-        if (EC_POINT_get_affine_coordinates(group, pt, x, y, nullptr) != 1)
-            return CHECK_ERROR(Runtime::setError("Invalid EC private key"));
-
         ECKeyPointer pub = EC_KEY_new_by_curve_name(nid);
-        if (EC_KEY_set_public_key_affine_coordinates(pub, x, y) != 1)
+        if (EC_KEY_set_public_key(pub, pt) != 1)
             return CHECK_ERROR(Runtime::setError("Invalid EC public key"));
-
-        x.release();
-        y.release();
 
         m_pkey = EVP_PKEY_new();
         if (EVP_PKEY_set1_EC_KEY(m_pkey, pub.release()) != 1)
