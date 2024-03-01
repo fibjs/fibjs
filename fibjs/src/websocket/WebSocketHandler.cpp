@@ -14,7 +14,7 @@
 #include "ifs/HttpResponse.h"
 #include "JSHandler.h"
 #include "ifs/console.h"
-#include <mbedtls/mbedtls/sha1.h>
+#include "openssl/sha.h"
 #include "encoding.h"
 
 namespace fibjs {
@@ -107,7 +107,7 @@ result_t WebSocketHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             key.append("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
 
             unsigned char output[20];
-            mbedtls_sha1((const unsigned char*)key.c_str(), key.length(), output);
+            SHA1((const unsigned char*)key.c_str(), key.length(), output);
 
             exlib::string out;
 

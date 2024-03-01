@@ -12,7 +12,7 @@
 #include "ifs/io.h"
 #include "ifs/http.h"
 #include "ifs/zlib.h"
-#include <mbedtls/mbedtls/sha1.h>
+#include "openssl/sha.h"
 #include "encoding.h"
 #include "MemoryStream.h"
 #include "HttpClient.h"
@@ -250,7 +250,7 @@ result_t WebSocket_base::_new(exlib::string url, v8::Local<v8::Object> opts,
             key.append("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
 
             unsigned char output[20];
-            mbedtls_sha1((const unsigned char*)key.c_str(), key.length(), output);
+            SHA1((const unsigned char*)key.c_str(), key.length(), output);
 
             base64Encode((const char*)output, 20, false, m_accept);
 
