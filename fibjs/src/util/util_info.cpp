@@ -13,7 +13,6 @@
 #include <sqlite/sqlite3.h>
 #include <ev/ev.h>
 #include <pcre/pcre.h>
-#include <mbedtls/mbedtls/version.h>
 #include <openssl/opensslv.h>
 #include <snappy/include/snappy.h>
 #include <leveldb/db.h>
@@ -113,7 +112,6 @@ public:
             g_vender->add("jemalloc", "5.2.1");
             snprintf(str, sizeof(str), "%d.%d", leveldb::kMajorVersion, leveldb::kMinorVersion);
             g_vender->add("leveldb", str);
-            g_vender->add("mbedtls", MBEDTLS_VERSION_STRING);
             g_vender->add("msgpack", msgpack_version());
             g_vender->add("openssl", OPENSSL_FULL_VERSION_STR);
             g_vender->add("pcre", STR(PCRE_MAJOR) "." STR(PCRE_MINOR));
