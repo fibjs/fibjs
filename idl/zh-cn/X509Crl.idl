@@ -28,17 +28,17 @@ for (var i = 0; i < crl.serials.length; i++) {
 interface X509Crl : object
 {
     /*! @brief X509Crl 构造函数 */
-    X509Crl();
+    deprecated X509Crl();
 
     /*! @brief X509Crl 构造函数,加载一个 DER 格式的撤销证书
      @param derCrl DER 格式的撤销证书
     */
-    X509Crl(Buffer derCrl);
+    deprecated X509Crl(Buffer derCrl);
 
     /*! @brief X509Crl 构造函数,加载一个 PEM 格式的撤销证书
      @param pemCrl PEM 格式的撤销证书
     */
-    X509Crl(String pemCrl);
+    deprecated X509Crl(String pemCrl);
 
     /*! @brief 加载一个 DER 格式的撤销证书，可多次调用
      @param derCrl DER 格式的撤销证书

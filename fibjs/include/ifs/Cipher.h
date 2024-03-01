@@ -123,6 +123,8 @@ void Cipher_base::__new(const T& args)
     ARG(int32_t, 0);
     ARG(obj_ptr<Buffer_base>, 1);
 
+    DEPRECATED_SOON("Cipher.Cipher");
+
     hr = _new(v0, v1, vr, args.This());
 
     METHOD_OVER(3, 3);
@@ -130,6 +132,8 @@ void Cipher_base::__new(const T& args)
     ARG(int32_t, 0);
     ARG(int32_t, 1);
     ARG(obj_ptr<Buffer_base>, 2);
+
+    DEPRECATED_SOON("Cipher.Cipher");
 
     hr = _new(v0, v1, v2, vr, args.This());
 
@@ -139,6 +143,8 @@ void Cipher_base::__new(const T& args)
     ARG(int32_t, 1);
     ARG(obj_ptr<Buffer_base>, 2);
     ARG(obj_ptr<Buffer_base>, 3);
+
+    DEPRECATED_SOON("Cipher.Cipher");
 
     hr = _new(v0, v1, v2, v3, vr, args.This());
 

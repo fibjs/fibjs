@@ -132,12 +132,16 @@ void PKey_base::__new(const T& args)
     ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(exlib::string, 1, "");
 
+    DEPRECATED_SOON("PKey.PKey");
+
     hr = _new(v0, v1, vr, args.This());
 
     METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
     OPT_ARG(exlib::string, 1, "");
+
+    DEPRECATED_SOON("PKey.PKey");
 
     hr = _new(v0, v1, vr, args.This());
 

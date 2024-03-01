@@ -27,17 +27,17 @@ console.log(`证书有效时间: ${strDate}`)
 interface X509Cert : object
 {
     /*! @brief X509Cert 构造函数 */
-    X509Cert();
+    deprecated X509Cert();
 
     /*! @brief X509Cert 构造函数，加载一个 DER 格式的证书
      @param derCert DER 格式的证书
     */
-    X509Cert(Buffer derCert);
+    deprecated X509Cert(Buffer derCert);
 
     /*! @brief X509Cert 构造函数，加载一个 CRT/PEM 格式的证书
      @param txtCert CRT/PEM 格式的证书
     */
-    X509Cert(String txtCert);
+    deprecated X509Cert(String txtCert);
 
     /*! @brief 加载一个 DER 格式的证书，可多次调用
      @param derCert DER 格式的证书

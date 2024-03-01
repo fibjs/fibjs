@@ -412,8 +412,36 @@ declare module 'crypto' {
      */
     function createSecretKey(key: string, encoding: string): Class_KeyObject;
 
+    /**
+     * @description 创建一个新的证书请求对象
+     *      @param csr 指定 PEM 格式的证书请求的数据
+     *      @return 返回证书请求对象
+     *     
+     */
     function createCertificateRequest(csr: Class_Buffer): Class_X509CertificateRequest;
 
+    /**
+     * @description 创建一个新的证书请求对象
+     * 
+     *      options 内的参数会用于调用 crypto.createPrivateKey 创建私钥对象，此外还支持指定 subject 和 hashAlgorithm。示例如下：
+     * 
+     *      ```JavaScript
+     *         var pk = crypto.createPrivateKey(rsa4096_pem);
+     *         var req = crypto.createCertificateRequest({
+     *             key: pk,
+     *             hashAlgorithm: 'sha256', // 缺省为 'sha256'
+     *             subject: {
+     *                 C: "CN",
+     *                 O: "baoz.cn",
+     *                 CN: "baoz.me"
+     *             }
+     *         });
+     *      ```
+     * 
+     *      @param options 指定创建证书请求的选项
+     *      @return 返回证书请求对象
+     *     
+     */
     function createCertificateRequest(options: FIBJS.GeneralObject): Class_X509CertificateRequest;
 
     /**

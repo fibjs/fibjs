@@ -139,17 +139,23 @@ void X509Cert_base::__new(const T& args)
 
     METHOD_OVER(0, 0);
 
+    DEPRECATED_SOON("X509Cert.X509Cert");
+
     hr = _new(vr, args.This());
 
     METHOD_OVER(1, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
 
+    DEPRECATED_SOON("X509Cert.X509Cert");
+
     hr = _new(v0, vr, args.This());
 
     METHOD_OVER(1, 1);
 
     ARG(exlib::string, 0);
+
+    DEPRECATED_SOON("X509Cert.X509Cert");
 
     hr = _new(v0, vr, args.This());
 

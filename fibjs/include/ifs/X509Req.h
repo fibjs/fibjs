@@ -108,6 +108,8 @@ void X509Req_base::__new(const T& args)
 
     METHOD_OVER(0, 0);
 
+    DEPRECATED_SOON("X509Req.X509Req");
+
     hr = _new(vr, args.This());
 
     METHOD_OVER(3, 2);
@@ -116,17 +118,23 @@ void X509Req_base::__new(const T& args)
     ARG(obj_ptr<PKey_base>, 1);
     OPT_ARG(int32_t, 2, hash_base::C_SHA256);
 
+    DEPRECATED_SOON("X509Req.X509Req");
+
     hr = _new(v0, v1, v2, vr, args.This());
 
     METHOD_OVER(1, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
 
+    DEPRECATED_SOON("X509Req.X509Req");
+
     hr = _new(v0, vr, args.This());
 
     METHOD_OVER(1, 1);
 
     ARG(exlib::string, 0);
+
+    DEPRECATED_SOON("X509Req.X509Req");
 
     hr = _new(v0, vr, args.This());
 

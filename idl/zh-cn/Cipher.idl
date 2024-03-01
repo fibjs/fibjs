@@ -42,14 +42,14 @@ interface Cipher : object
      @param provider 指定加密算法
      @param key 指定加密解密密码
     */
-    Cipher(Integer provider, Buffer key);
+    deprecated Cipher(Integer provider, Buffer key);
 
     /*! @brief Cipher 构造函数
      @param provider 指定加密算法
      @param mode 指定分组密码工作模式
      @param key 指定加密解密密码
     */
-    Cipher(Integer provider, Integer mode, Buffer key);
+    deprecated Cipher(Integer provider, Integer mode, Buffer key);
 
     /*! @brief Cipher 构造函数
      @param provider 指定加密算法
@@ -57,7 +57,7 @@ interface Cipher : object
      @param key 指定加密解密密码
      @param iv 指定初始向量
     */
-    Cipher(Integer provider, Integer mode, Buffer key, Buffer iv);
+    deprecated Cipher(Integer provider, Integer mode, Buffer key, Buffer iv);
 
     /*! @brief 返回当前算法名称 */
     readonly String name;
