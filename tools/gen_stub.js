@@ -167,7 +167,7 @@ function gen_stub(argn, bInst, bRet) {
             s = '			result_t hr = cls::m(';
 
         for (i = 0; i < argn1; i++)
-            s += 'm_v' + i + '.value(), ';
+            s += 'm_v' + i + '.c_value(), ';
         if (bRet)
             s += 'retVal, ';
         s += 'this); \\';
