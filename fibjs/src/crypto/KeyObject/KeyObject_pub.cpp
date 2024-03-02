@@ -84,7 +84,7 @@ result_t KeyObject::createPublicKeyFromPKey(EVP_PKEY* key)
             return CHECK_ERROR(Runtime::setError("Invalid EC public key"));
 
         m_pkey = EVP_PKEY_new();
-        if (EVP_PKEY_set1_EC_KEY(m_pkey, pub.release()) != 1)
+        if (EVP_PKEY_set1_EC_KEY(m_pkey, pub) != 1)
             return CHECK_ERROR(Runtime::setError("Invalid EC public key"));
     } else if (type == EVP_PKEY_ED25519 || type == EVP_PKEY_ED448
         || type == EVP_PKEY_X25519 || type == EVP_PKEY_X448) {

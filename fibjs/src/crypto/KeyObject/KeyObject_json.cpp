@@ -109,7 +109,7 @@ result_t KeyObject::ImportJWKRsaKey(v8::Local<v8::Object> key, KeyType type)
     }
 
     m_pkey = EVP_PKEY_new();
-    if (EVP_PKEY_set1_RSA(m_pkey, rsa.release()) != 1)
+    if (EVP_PKEY_set1_RSA(m_pkey, rsa) != 1)
         return openssl_error();
 
     if (type == kKeyTypePrivate)
@@ -174,7 +174,7 @@ result_t KeyObject::ImportJWKEcKey(v8::Local<v8::Object> key, KeyType type)
     }
 
     m_pkey = EVP_PKEY_new();
-    if (EVP_PKEY_set1_EC_KEY(m_pkey, ec.release()) != 1)
+    if (EVP_PKEY_set1_EC_KEY(m_pkey, ec) != 1)
         return openssl_error();
 
     if (type == kKeyTypePrivate)

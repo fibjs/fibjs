@@ -390,7 +390,6 @@ result_t X509CertificateRequest::issue(v8::Local<v8::Object> options, obj_ptr<X5
             return Runtime::setError("no public key in csr");
         if (!X509_set_pubkey(cert, pubkey))
             return openssl_error();
-        pubkey.release();
     }
 
     if (!X509_set_issuer_name(cert, name))
