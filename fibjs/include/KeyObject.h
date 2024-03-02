@@ -86,7 +86,6 @@ public:
     result_t generateDsaKey(int nid, generateKeyPairParam* param);
     result_t generateEcKey(int nid, generateKeyPairParam* param);
     result_t generateEdKey(int nid, generateKeyPairParam* param);
-    result_t generateSm2Key(int nid, generateKeyPairParam* param);
 
 public:
     KeyType type() const

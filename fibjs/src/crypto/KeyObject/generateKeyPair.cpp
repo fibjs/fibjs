@@ -139,9 +139,13 @@ result_t KeyObject::generateEcKey(int nid, generateKeyPairParam* param)
     if (!param_ctx)
         return openssl_error();
 
-    int cid = GetCurveFromName(param->namedCurve.c_str());
-    if (cid == NID_undef)
-        return Runtime::setError("Invalid curve name");
+    int cid;
+    if (nid == EVP_PKEY_EC) {
+        cid = GetCurveFromName(param->namedCurve.c_str());
+        if (cid == NID_undef)
+            return Runtime::setError("Invalid curve name");
+    } else
+        cid = NID_sm2;
 
     if (EVP_PKEY_CTX_set_ec_paramgen_curve_nid(param_ctx, cid) <= 0)
         return openssl_error();
@@ -184,28 +188,6 @@ result_t KeyObject::generateEdKey(int nid, generateKeyPairParam* param)
     return 0;
 }
 
-result_t KeyObject::generateSm2Key(int nid, generateKeyPairParam* param)
-{
-    EVPKeyCtxPointer key_ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_SM2, nullptr);
-    if (!key_ctx)
-        return openssl_error();
-
-    if (EVP_PKEY_keygen_init(key_ctx) <= 0)
-        return openssl_error();
-
-    if (EVP_PKEY_CTX_set_ec_paramgen_curve_nid(key_ctx, NID_sm2) <= 0)
-        return openssl_error();
-
-    EVP_PKEY* pkey = nullptr;
-    if (EVP_PKEY_keygen(key_ctx, &pkey) <= 0)
-        return openssl_error();
-    m_pkey = pkey;
-
-    m_keyType = kKeyTypePrivate;
-
-    return 0;
-}
-
 result_t KeyObject::generateKey(exlib::string type, generateKeyPairParam* param)
 {
     if (type == "rsa")
@@ -216,6 +198,8 @@ result_t KeyObject::generateKey(exlib::string type, generateKeyPairParam* param)
         return generateDsaKey(EVP_PKEY_DSA, param);
     else if (type == "ec")
         return generateEcKey(EVP_PKEY_EC, param);
+    else if (type == "sm2")
+        return generateEcKey(EVP_PKEY_SM2, param);
     else if (type == "ed25519")
         return generateEdKey(EVP_PKEY_ED25519, param);
     else if (type == "ed448")
@@ -224,8 +208,6 @@ result_t KeyObject::generateKey(exlib::string type, generateKeyPairParam* param)
         return generateEdKey(EVP_PKEY_X25519, param);
     else if (type == "x448")
         return generateEdKey(EVP_PKEY_X448, param);
-    else if (type == "sm2")
-        return generateSm2Key(EVP_PKEY_SM2, param);
 
     return Runtime::setError("Invalid key type");
 }
