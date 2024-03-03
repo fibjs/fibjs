@@ -4,8 +4,8 @@ var child_process = require("child_process");
 
 child_process.run('perl', ['mk-ca-bundle.pl']);
 
-var cert = new crypto.loadCert('ca-bundle.crt');
-var a = cert.pem().split('-----END CERTIFICATE-----');
+var cert = new crypto.X509Certificate(fs.readFile('ca-bundle.crt'));
+var a = cert.pem.split('-----END CERTIFICATE-----');
 var a1 = [];
 
 a.forEach(txt => {
