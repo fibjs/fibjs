@@ -13,12 +13,26 @@
  */
 declare class Class_X509Certificate extends Class_object {
     /**
-     * @description 从证书创建一个 X509Certificate 对象
-     *     @param cert 证书的二进制数据
+     * @description 从证书创建 X509Certificate 对象
+     * 
+     *     如果 cert 中包含多个证书，则返回的对象将包含第一个证书，并且 next() 方法将返回下一个证书
+     * 
+     *     @param cert PEM 格式证书的二进制数据
      *     @return 返回一个 X509Certificate 对象
      *     
      */
     constructor(cert: Class_Buffer);
+
+    /**
+     * @description 从一组证书创建 X509Certificate 对象
+     * 
+     *     如果 cert 中包含多个证书，则返回的对象将包含第一个证书，并且 next() 方法将返回下一个证书
+     * 
+     *     @param certs PEM 格式证书的数组
+     *     @return 返回一个 X509Certificate 对象
+     *     
+     */
+    constructor(certs: any[]);
 
     /**
      * @description 证书的主题 

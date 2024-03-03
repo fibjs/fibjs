@@ -277,9 +277,6 @@ result_t X509Certificate::load_cert(Buffer_base* cert)
 {
     Buffer* buf_cert = Buffer::Cast(cert);
     BIOPointer bio = BIO_new_mem_buf(buf_cert->data(), buf_cert->length());
-    if (bio == nullptr)
-        return openssl_error();
-
     X509Certificate* now = nullptr;
 
     while (true) {
@@ -289,7 +286,7 @@ result_t X509Certificate::load_cert(Buffer_base* cert)
             },
             nullptr);
         if (cert_ == nullptr)
-            return now ? 0 : openssl_error();
+            break;
 
         if (now == nullptr) {
             now = this;
@@ -297,6 +294,59 @@ result_t X509Certificate::load_cert(Buffer_base* cert)
         } else
             now = now->m_next = new X509Certificate(cert_);
     }
+
+    if (!now)
+        return openssl_error();
+
+    return 0;
+}
+
+result_t X509Certificate_base::_new(v8::Local<v8::Array> certs, obj_ptr<X509Certificate_base>& retVal,
+    v8::Local<v8::Object> This)
+{
+    obj_ptr<X509Certificate> cert_ = new X509Certificate();
+    result_t hr = cert_->load_cert(certs);
+    if (hr != 0)
+        return hr;
+
+    retVal = cert_;
+    return 0;
+}
+
+result_t X509Certificate::load_cert(v8::Local<v8::Array> certs)
+{
+    int32_t len = certs->Length();
+    X509Certificate* now = nullptr;
+    result_t hr;
+
+    for (int32_t i = 0; i < len; i++) {
+        obj_ptr<Buffer_base> cert;
+        hr = GetConfigValue(holder(), certs, i, cert);
+        if (hr < 0)
+            return hr;
+
+        Buffer* buf_cert = Buffer::Cast(cert);
+        BIOPointer bio = BIO_new_mem_buf(buf_cert->data(), buf_cert->length());
+
+        while (true) {
+            X509* cert_ = PEM_read_bio_X509(
+                bio, nullptr, [](char*, int, int, void*) {
+                    return 0;
+                },
+                nullptr);
+            if (cert_ == nullptr)
+                break;
+
+            if (now == nullptr) {
+                now = this;
+                m_cert = cert_;
+            } else
+                now = now->m_next = new X509Certificate(cert_);
+        }
+    }
+
+    if (!now)
+        return openssl_error();
 
     return 0;
 }

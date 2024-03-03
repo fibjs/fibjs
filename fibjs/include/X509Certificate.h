@@ -52,6 +52,7 @@ public:
 
 public:
     result_t load_cert(Buffer_base* cert);
+    result_t load_cert(v8::Local<v8::Array> certs);
     result_t get_x509_array(int32_t nid, const char** names, v8::Local<v8::Array>& retVal);
 
 private:

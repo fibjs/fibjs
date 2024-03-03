@@ -3080,6 +3080,26 @@ describe('crypto', () => {
 
             var chain = new crypto.X509Certificate(pems);
             assert.equal(chain.pem, pems);
+
+            var chain = new crypto.X509Certificate([cert + ca, ca1 + ca2 + ca3]);
+            assert.equal(chain.pem, pems);
+
+            var chain = new crypto.X509Certificate([cert, ca, ca1 + ca2 + ca3]);
+            assert.equal(chain.pem, pems);
+
+            var chain = new crypto.X509Certificate([cert, ca, "", ca1 + ca2 + ca3]);
+            assert.equal(chain.pem, pems);
+
+            var chain = new crypto.X509Certificate(["", cert, ca, ca1 + ca2 + ca3]);
+            assert.equal(chain.pem, pems);
+
+            assert.throws(() => {
+                new crypto.X509Certificate("");
+            });
+
+            assert.throws(() => {
+                new crypto.X509Certificate([]);
+            });
         });
 
         it('ca', () => {
