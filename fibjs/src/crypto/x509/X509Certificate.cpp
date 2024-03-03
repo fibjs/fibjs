@@ -504,7 +504,7 @@ result_t X509Certificate::get_validTo(exlib::string& retVal)
     return return_bio(bio, retVal);
 }
 
-result_t X509Certificate::get_next(obj_ptr<X509Certificate_base>& retVal)
+result_t X509Certificate::next(obj_ptr<X509Certificate_base>& retVal)
 {
     if (!m_next)
         return CALL_RETURN_UNDEFINED;

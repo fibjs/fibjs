@@ -39,7 +39,7 @@ public:
     virtual result_t get_fingerprint(exlib::string& retVal);
     virtual result_t get_fingerprint256(exlib::string& retVal);
     virtual result_t get_fingerprint512(exlib::string& retVal);
-    virtual result_t get_next(obj_ptr<X509Certificate_base>& retVal);
+    virtual result_t next(obj_ptr<X509Certificate_base>& retVal);
     virtual result_t checkEmail(exlib::string email, v8::Local<v8::Object> options, exlib::string& retVal);
     virtual result_t checkHost(exlib::string name, v8::Local<v8::Object> options, exlib::string& retVal);
     virtual result_t checkIP(exlib::string ip, exlib::string& retVal);

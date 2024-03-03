@@ -108,7 +108,7 @@ declare class Class_X509Certificate extends Class_object {
     /**
      * @description 证书链的下一个证书 
      */
-    readonly next: Class_X509Certificate;
+    next(): Class_X509Certificate;
 
     /**
      * @description 检查证书是否与给定的电子邮件地址匹配

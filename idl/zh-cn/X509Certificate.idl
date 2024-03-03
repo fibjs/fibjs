@@ -65,7 +65,7 @@ interface X509Certificate : object
     readonly String fingerprint512;
 
     /*! @brief 证书链的下一个证书 */
-    readonly X509Certificate next;
+    X509Certificate next();
 
     /*! @brief 检查证书是否与给定的电子邮件地址匹配
 

@@ -41,7 +41,7 @@ public:
     virtual result_t get_fingerprint(exlib::string& retVal) = 0;
     virtual result_t get_fingerprint256(exlib::string& retVal) = 0;
     virtual result_t get_fingerprint512(exlib::string& retVal) = 0;
-    virtual result_t get_next(obj_ptr<X509Certificate_base>& retVal) = 0;
+    virtual result_t next(obj_ptr<X509Certificate_base>& retVal) = 0;
     virtual result_t checkEmail(exlib::string email, v8::Local<v8::Object> options, exlib::string& retVal) = 0;
     virtual result_t checkHost(exlib::string name, v8::Local<v8::Object> options, exlib::string& retVal) = 0;
     virtual result_t checkIP(exlib::string ip, exlib::string& retVal) = 0;
@@ -72,7 +72,7 @@ public:
     static void s_get_fingerprint(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_fingerprint256(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_fingerprint512(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_next(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_next(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_checkEmail(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_checkHost(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_checkIP(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -89,6 +89,7 @@ namespace fibjs {
 inline ClassInfo& X509Certificate_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
+        { "next", s_next, false, false },
         { "checkEmail", s_checkEmail, false, false },
         { "checkHost", s_checkHost, false, false },
         { "checkIP", s_checkIP, false, false },
@@ -114,8 +115,7 @@ inline ClassInfo& X509Certificate_base::class_info()
         { "pem", s_get_pem, block_set, false },
         { "fingerprint", s_get_fingerprint, block_set, false },
         { "fingerprint256", s_get_fingerprint256, block_set, false },
-        { "fingerprint512", s_get_fingerprint512, block_set, false },
-        { "next", s_get_next, block_set, false }
+        { "fingerprint512", s_get_fingerprint512, block_set, false }
     };
 
     static ClassData s_cd = {
@@ -355,14 +355,16 @@ inline void X509Certificate_base::s_get_fingerprint512(v8::Local<v8::Name> prope
     METHOD_RETURN();
 }
 
-inline void X509Certificate_base::s_get_next(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void X509Certificate_base::s_next(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<X509Certificate_base> vr;
 
     METHOD_INSTANCE(X509Certificate_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
 
-    hr = pInst->get_next(vr);
+    METHOD_OVER(0, 0);
+
+    hr = pInst->next(vr);
 
     METHOD_RETURN();
 }
