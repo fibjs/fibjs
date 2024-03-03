@@ -80,13 +80,13 @@ interface Cipher : object
      @param data 指定要加密的数据
      @return 返回加密后的数据
      */
-    Buffer encrypt(Buffer data) async;
+    deprecated Buffer encrypt(Buffer data) async;
 
     /*! @brief 使用当前算法密码解密数据
      @param data 指定要解密的数据
      @return 返回解密后的数据
      */
-    Buffer decrypt(Buffer data) async;
+    deprecated Buffer decrypt(Buffer data) async;
 
     /*! @brief 设置认证标签
      @param buffer 指定认证标签数据

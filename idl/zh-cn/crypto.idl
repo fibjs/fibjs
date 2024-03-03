@@ -323,25 +323,25 @@ module crypto
      @param filename 证书文件名
      @return 返回包含证书的对象
     */
-    static X509Cert loadCert(String filename);
+    deprecated static X509Cert loadCert(String filename);
 
     /*! @brief 加载一个 PEM/DER 格式的撤销证书，可多次调用
      @param filename 撤销证书文件名
      @return 返回包含撤销证书的对象
     */
-    static X509Crl loadCrl(String filename);
+    deprecated static X509Crl loadCrl(String filename);
 
     /*! @brief 加载一个 PEM/DER 格式的证书请求，可多次调用
      @param filename 证书请求文件名
      @return 返回包含请求证书的对象
     */
-    static X509Req loadReq(String filename);
+    deprecated static X509Req loadReq(String filename);
 
     /*! @brief 加载一个 CRT/PEM/DER 格式的非对称公钥或者私钥
      @param filename 公钥或者私钥文件名
      @return 返回包含 PKey 的对象
     */
-    static PKey loadPKey(String filename);
+    deprecated static PKey loadPKey(String filename);
 
     /*! @brief 生成指定尺寸的随机数，使用 havege 生成器
      @param size 指定生成的随机数尺寸

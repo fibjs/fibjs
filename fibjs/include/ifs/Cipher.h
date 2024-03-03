@@ -224,6 +224,8 @@ inline void Cipher_base::s_encrypt(const v8::FunctionCallbackInfo<v8::Value>& ar
 
     ARG(obj_ptr<Buffer_base>, 0);
 
+    DEPRECATED_SOON("Cipher.encrypt");
+
     if (!cb.IsEmpty())
         hr = pInst->acb_encrypt(v0, cb, args);
     else
@@ -242,6 +244,8 @@ inline void Cipher_base::s_decrypt(const v8::FunctionCallbackInfo<v8::Value>& ar
     ASYNC_METHOD_OVER(1, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
+
+    DEPRECATED_SOON("Cipher.decrypt");
 
     if (!cb.IsEmpty())
         hr = pInst->acb_decrypt(v0, cb, args);

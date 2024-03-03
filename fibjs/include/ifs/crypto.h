@@ -589,6 +589,8 @@ inline void crypto_base::s_static_loadCert(const v8::FunctionCallbackInfo<v8::Va
 
     ARG(exlib::string, 0);
 
+    DEPRECATED_SOON("crypto.loadCert");
+
     hr = loadCert(v0, vr);
 
     METHOD_RETURN();
@@ -603,6 +605,8 @@ inline void crypto_base::s_static_loadCrl(const v8::FunctionCallbackInfo<v8::Val
     METHOD_OVER(1, 1);
 
     ARG(exlib::string, 0);
+
+    DEPRECATED_SOON("crypto.loadCrl");
 
     hr = loadCrl(v0, vr);
 
@@ -619,6 +623,8 @@ inline void crypto_base::s_static_loadReq(const v8::FunctionCallbackInfo<v8::Val
 
     ARG(exlib::string, 0);
 
+    DEPRECATED_SOON("crypto.loadReq");
+
     hr = loadReq(v0, vr);
 
     METHOD_RETURN();
@@ -633,6 +639,8 @@ inline void crypto_base::s_static_loadPKey(const v8::FunctionCallbackInfo<v8::Va
     METHOD_OVER(1, 1);
 
     ARG(exlib::string, 0);
+
+    DEPRECATED_SOON("crypto.loadPKey");
 
     hr = loadPKey(v0, vr);
 
