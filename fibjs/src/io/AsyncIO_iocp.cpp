@@ -338,15 +338,15 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
             , m_bRead(bRead)
             , m_timer(timer)
         {
-            m_buf.resize(bytes > 0 ? bytes : SOCKET_BUFF_SIZE);
+            m_read_buf = new Buffer(NULL, bytes > 0 ? bytes : SOCKET_BUFF_SIZE);
         }
 
         virtual result_t process()
         {
             int32_t nError;
 
-            DWORD len = (DWORD)m_buf.length() - m_pos;
-            if (ReadFile((HANDLE)m_s, m_buf.data() + m_pos, (len <= 65536) ? len : 65536, NULL, this))
+            DWORD len = (DWORD)m_read_buf->length() - m_pos;
+            if (ReadFile((HANDLE)m_s, m_read_buf->data() + m_pos, (len <= 65536) ? len : 65536, NULL, this))
                 return CHECK_ERROR(CALL_E_PENDDING);
 
             nError = GetLastError();
@@ -388,17 +388,17 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
             if (!nError) {
                 m_pos += dwBytes;
 
-                if (m_bRead && m_pos < (int32_t)m_buf.length()) {
+                if (m_bRead && m_pos < (int32_t)m_read_buf->length()) {
                     proc();
                     return;
                 }
 
                 if (m_pos) {
-                    m_buf.resize(m_pos);
-                    m_retVal = new Buffer(m_buf.c_str(), m_buf.length());
+                    m_read_buf->resize(m_pos);
+                    m_retVal = m_read_buf;
 
                     if (g_tcpdump)
-                        outLog(console_base::C_NOTICE, clean_string(m_buf));
+                        outLog(console_base::C_NOTICE, clean_string((char*)m_read_buf->data(), m_pos));
                 } else
                     nError = CALL_RETURN_NULL;
             }
@@ -410,7 +410,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         obj_ptr<Buffer_base>& m_retVal;
         int32_t m_pos;
         bool m_bRead;
-        exlib::string m_buf;
+        obj_ptr<Buffer> m_read_buf;
         obj_ptr<Timer_base> m_timer;
     };
 

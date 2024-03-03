@@ -427,25 +427,25 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
 
         virtual result_t process()
         {
-            if (m_buf.empty())
-                m_buf.resize(m_bytes);
+            if (!m_read_buf)
+                m_read_buf = new Buffer(NULL, m_bytes);
 
-            char* _buf = m_buf.data();
+            char* _buf = (char*)m_read_buf->data();
             do {
                 int32_t n;
 
                 if (m_family)
-                    n = (int32_t)::recv(m_sockfd, _buf + m_pos, m_buf.length() - m_pos,
+                    n = (int32_t)::recv(m_sockfd, _buf + m_pos, m_read_buf->length() - m_pos,
                         MSG_NOSIGNAL);
                 else
-                    n = (int32_t)::read(m_sockfd, _buf + m_pos, m_buf.length() - m_pos);
+                    n = (int32_t)::read(m_sockfd, _buf + m_pos, m_read_buf->length() - m_pos);
                 if (n == SOCKET_ERROR) {
                     int32_t nError = errno;
                     if (nError == ECONNRESET)
                         n = 0;
                     else {
                         if (m_pos == 0)
-                            m_buf.resize(0);
+                            m_read_buf.Release();
 
                         if (nError == EWOULDBLOCK)
                             return CHECK_ERROR(CALL_E_PENDDING);
@@ -469,12 +469,12 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
                     }
                     return CALL_RETURN_NULL;
                 }
-            } while (m_bRead && m_pos < (int32_t)m_buf.length());
+            } while (m_bRead && m_pos < (int32_t)m_read_buf->length());
 
-            m_buf.resize(m_pos);
-            m_retVal = new Buffer(m_buf.c_str(), m_buf.length());
+            m_read_buf->resize(m_pos);
+            m_retVal = m_read_buf;
             if (g_tcpdump)
-                outLog(console_base::C_NOTICE, clean_string(m_buf));
+                outLog(console_base::C_NOTICE, clean_string((char*)m_read_buf->data(), m_pos));
 
             return 0;
         }
@@ -500,7 +500,7 @@ result_t AsyncIO::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,
         int32_t m_bytes;
         int32_t m_family;
         bool m_bRead;
-        exlib::string m_buf;
+        obj_ptr<Buffer> m_read_buf;
         obj_ptr<Timer_base> m_timer;
     };
 
