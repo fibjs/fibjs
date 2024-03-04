@@ -52,7 +52,7 @@ result_t TTYInputStream::setRawMode(bool isRawMode, obj_ptr<TTYInputStream_base>
     });
     m_isRaw = isRawMode;
 
-    retVal = (TTYInputStream_base*)(Stream_base*)this;
+    retVal = this;
 
     return 0;
 }

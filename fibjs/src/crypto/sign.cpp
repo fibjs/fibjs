@@ -219,7 +219,7 @@ result_t Sign::sign(v8::Local<v8::Object> key, exlib::string encoding, v8::Local
     hr = crypto_base::createPrivateKey(key, key_);
     if (hr < 0)
         return hr;
-    KeyObject* key__ = (KeyObject*)(KeyObject_base*)key_;
+    KeyObject* key__ = key_.As<KeyObject>();
 
     DSASigEnc enc = kSigEncDER;
     int padding = DEFAULT_PADDING;
@@ -340,7 +340,7 @@ result_t Verify::verify(v8::Local<v8::Object> key, Buffer_base* signature, bool&
     hr = crypto_base::createPublicKey(key, key_);
     if (hr < 0)
         return hr;
-    KeyObject* key__ = (KeyObject*)(KeyObject_base*)key_;
+    KeyObject* key__ = key_.As<KeyObject>();
 
     DSASigEnc enc = kSigEncDER;
     int padding = DEFAULT_PADDING;
@@ -377,7 +377,7 @@ result_t Verify::verify(v8::Local<v8::Object> key, exlib::string signature, exli
     hr = crypto_base::createPublicKey(key, key_);
     if (hr < 0)
         return hr;
-    KeyObject* key__ = (KeyObject*)(KeyObject_base*)key_;
+    KeyObject* key__ = key_.As<KeyObject>();
 
     DSASigEnc enc = kSigEncDER;
     int padding = DEFAULT_PADDING;

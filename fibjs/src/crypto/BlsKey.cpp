@@ -21,7 +21,7 @@ result_t BlsKey_base::_new(v8::Local<v8::Object> jsonKey, obj_ptr<BlsKey_base>& 
     if (hr < 0)
         return hr;
 
-    retVal = dynamic_cast<BlsKey_base*>((PKey_base*)key);
+    retVal = key.As<BlsKey_base>();
     return retVal ? 0 : CHECK_ERROR(_ssl::setError(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT));
 }
 

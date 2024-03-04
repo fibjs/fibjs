@@ -9,6 +9,7 @@
 
 #include <exlib/include/utils.h>
 #include <atomic>
+#include <type_traits>
 
 namespace fibjs {
 
@@ -157,7 +158,15 @@ public:
     template <class Q>
     T* operator=(const obj_ptr<Q>& lp)
     {
+        static_assert(std::is_base_of<T, Q>::value, "Q must be derived from T");
         return operator=((Q*)lp);
+    }
+
+    template <class Q>
+    Q* As() const
+    {
+        static_assert(std::is_base_of<T, Q>::value, "Q must be derived from T");
+        return (Q*)p.value();
     }
 
     operator T*() const

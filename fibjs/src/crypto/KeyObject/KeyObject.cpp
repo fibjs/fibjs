@@ -197,7 +197,7 @@ result_t KeyObject::createAsymmetricKey(v8::Local<v8::Object> key, KeyType type)
 
         obj_ptr<KeyObject_base> key_ = KeyObject_base::getInstance(k);
         if (key_) {
-            KeyObject* key__ = (KeyObject*)(KeyObject_base*)key_;
+            KeyObject* key__ = key_.As<KeyObject>();
 
             if (key__->m_keyType == kKeyTypeSecret)
                 return Runtime::setError("Invalid key type");

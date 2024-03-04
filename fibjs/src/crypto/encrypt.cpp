@@ -106,7 +106,7 @@ result_t PKEY_cipher(v8::Local<v8::Object> key, int padding, v8::Local<v8::Value
     hr = createKey(key, key_);
     if (hr < 0)
         return hr;
-    KeyObject* key__ = (KeyObject*)(KeyObject_base*)key_;
+    KeyObject* key__ = key_.As<KeyObject>();
 
     hr = GetConfigValue(isolate, key, "padding", padding, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)

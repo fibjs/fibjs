@@ -185,7 +185,7 @@ result_t HttpRepeater::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             m_rep->set_statusMessage(msg);
 
             m_ret->allHeader("", headers);
-            ((HttpResponse*)(HttpResponse_base*)m_rep)->addHeader(headers);
+            m_rep.As<HttpResponse>()->addHeader(headers);
 
             m_ret->get_body(body);
             m_rep->set_body(body);

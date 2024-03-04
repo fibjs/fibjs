@@ -73,7 +73,7 @@ result_t BlsKey_g2::get_publicKey(obj_ptr<PKey_base>& retVal)
     if (hr < 0)
         return hr;
 
-    BlsKey_g2* pk = (BlsKey_g2*)(PKey_base*)retVal;
+    BlsKey_g2* pk = retVal.As<BlsKey_g2>();
     pk->m_bbs_suite = m_bbs_suite;
 
     return 0;

@@ -46,7 +46,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
             , m_ac(ac)
         {
             setAsync();
-            ChildProcess_base* cp = (ChildProcess_base*)(object_base*)ac->m_ctxo;
+            ChildProcess_base* cp = ac->m_ctxo.As<ChildProcess_base>();
 
             cp->get_stdout(m_stdout);
             if (m_stdout) {
@@ -203,7 +203,7 @@ result_t child_process_base::spawnSync(exlib::string command, v8::Local<v8::Arra
             , m_ac(ac)
         {
             setAsync();
-            ChildProcess_base* cp = (ChildProcess_base*)(object_base*)ac->m_ctxo;
+            ChildProcess_base* cp = ac->m_ctxo.As<ChildProcess_base>();
 
             cp->get_stdout(m_stdout);
             if (m_stdout) {
@@ -261,7 +261,7 @@ result_t child_process_base::spawnSync(exlib::string command, v8::Local<v8::Arra
             if (m_cnt.dec() == 0) {
                 m_retVal = new SpawnSyncType();
 
-                ChildProcess_base* cp = (ChildProcess_base*)(object_base*)m_ac->m_ctxo;
+                ChildProcess_base* cp = m_ac->m_ctxo.As<ChildProcess_base>();
 
                 cp->get_pid(m_retVal->pid);
                 cp->get_exitCode(m_retVal->status);
@@ -401,7 +401,7 @@ result_t child_process_base::run(exlib::string command, v8::Local<v8::Array> arg
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
-    obj_ptr<ChildProcess_base> cp = (ChildProcess*)(object_base*)ac->m_ctxo;
+    obj_ptr<ChildProcess_base> cp = ac->m_ctxo.As<ChildProcess_base>();
     return cp->join(retVal, ac);
 }
 

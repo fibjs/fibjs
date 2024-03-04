@@ -88,7 +88,7 @@ void XmlParser::OnStartElement(const XML_Char* name, const XML_Char** atts)
         int32_t type;
         m_now->get_nodeType(type);
         if (type == xml_base::C_ELEMENT_NODE)
-            ((XmlElement*)(XmlNode_base*)m_now)->get_defaultNamespace(def_ns);
+            m_now.As<XmlElement>()->get_defaultNamespace(def_ns);
     }
 
     if (!def_ns.empty())
@@ -148,7 +148,7 @@ void XmlParser::OnCharacterData(const XML_Char* s, int32_t len)
 
     m_now->get_nodeType(type);
     if (type == xml_base::C_CDATA_SECTION_NODE)
-        ((XmlCDATASection_base*)(XmlNode_base*)m_now)->appendData(data);
+        m_now.As<XmlCDATASection_base>()->appendData(data);
     else {
         obj_ptr<XmlNode_base> last;
         m_now->get_lastChild(last);
@@ -156,7 +156,7 @@ void XmlParser::OnCharacterData(const XML_Char* s, int32_t len)
         if (last) {
             last->get_nodeType(type);
             if (type == xml_base::C_TEXT_NODE) {
-                ((XmlText_base*)(XmlNode_base*)last)->appendData(data);
+                last.As<XmlText_base>()->appendData(data);
                 return;
             }
         }

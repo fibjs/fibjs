@@ -692,7 +692,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
         {
             obj_ptr<Buffer_base> buf = new Buffer("\5\1\0", 3);
 
-            ((Socket_base*)(Stream_base*)m_conn)->set_timeout(m_hc->m_timeout);
+            m_conn.As<Socket_base>()->set_timeout(m_hc->m_timeout);
             return m_conn->write(buf, next(socks_hello_response));
         }
 
@@ -777,7 +777,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
 
         ON_STATE(asyncRequest, ssl_connect)
         {
-            ((Socket_base*)(Stream_base*)m_conn)->set_timeout(m_hc->m_timeout);
+            m_conn.As<Socket_base>()->set_timeout(m_hc->m_timeout);
             return m_hc->request(m_conn, m_reqConn, m_retVal, next(ssl_handshake));
         }
 
@@ -829,7 +829,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
         ON_STATE(asyncRequest, connected)
         {
             if (!m_ssl)
-                ((Socket_base*)(Stream_base*)m_conn)->set_timeout(m_hc->m_timeout);
+                m_conn.As<Socket_base>()->set_timeout(m_hc->m_timeout);
 
             return m_hc->request(m_conn, m_req, m_response_body, m_retVal, next(requested));
         }
@@ -882,7 +882,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
                 return hr;
 
             m_u->resolve(location, u1);
-            m_u = (Url*)(UrlObject_base*)u1;
+            m_u = u1.As<Url>();
             m_url.resize(0);
             m_u->toString(m_url);
 
@@ -979,7 +979,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
         obj_ptr<UrlObject_base> uo;
         u->resolve(u1, uo);
 
-        u = (Url*)(UrlObject_base*)uo;
+        u = uo.As<Url>();
         ac->m_ctx[1] = u;
 
         ac->m_ctx[2] = map;

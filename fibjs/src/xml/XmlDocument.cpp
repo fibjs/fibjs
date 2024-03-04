@@ -439,7 +439,7 @@ result_t XmlDocument::get_head(obj_ptr<XmlElement_base>& retVal)
     if (m_isXml)
         return CALL_E_INVALID_CALL;
 
-    XmlElement* pEl = (XmlElement*)(XmlElement_base*)m_element;
+    XmlElement* pEl = m_element.As<XmlElement>();
     if (pEl)
         return pEl->getFirstElementsByTagName("head", retVal);
 
@@ -451,7 +451,7 @@ result_t XmlDocument::get_title(exlib::string& retVal)
     if (m_isXml)
         return CALL_E_INVALID_CALL;
 
-    XmlElement* pEl = (XmlElement*)(XmlElement_base*)m_element;
+    XmlElement* pEl = m_element.As<XmlElement>();
     if (pEl) {
         obj_ptr<XmlElement_base> title;
         if (pEl->getFirstElementsByTagName("title", title) == CALL_RETURN_NULL)
@@ -468,7 +468,7 @@ result_t XmlDocument::get_body(obj_ptr<XmlElement_base>& retVal)
     if (m_isXml)
         return CALL_E_INVALID_CALL;
 
-    XmlElement* pEl = (XmlElement*)(XmlElement_base*)m_element;
+    XmlElement* pEl = m_element.As<XmlElement>();
     if (pEl)
         return pEl->getFirstElementsByTagName("body", retVal);
 
@@ -478,7 +478,7 @@ result_t XmlDocument::get_body(obj_ptr<XmlElement_base>& retVal)
 result_t XmlDocument::getElementsByTagName(exlib::string tagName, obj_ptr<XmlNodeList_base>& retVal)
 {
     obj_ptr<XmlNodeList> ret = new XmlNodeList(NULL);
-    XmlElement* pEl = (XmlElement*)(XmlElement_base*)m_element;
+    XmlElement* pEl = m_element.As<XmlElement>();
 
     if (pEl)
         pEl->getElementsByTagNameFromThis(tagName, ret);
@@ -491,7 +491,7 @@ result_t XmlDocument::getElementsByTagNameNS(exlib::string namespaceURI, exlib::
     obj_ptr<XmlNodeList_base>& retVal)
 {
     obj_ptr<XmlNodeList> ret = new XmlNodeList(NULL);
-    XmlElement* pEl = (XmlElement*)(XmlElement_base*)m_element;
+    XmlElement* pEl = m_element.As<XmlElement>();
 
     if (pEl)
         pEl->getElementsByTagNameNSFromThis(namespaceURI, localName, ret);
@@ -505,7 +505,7 @@ result_t XmlDocument::getElementById(exlib::string id, obj_ptr<XmlElement_base>&
     if (id.empty())
         return CHECK_ERROR(CALL_RETURN_NULL);
 
-    XmlElement* pEl = (XmlElement*)(XmlElement_base*)m_element;
+    XmlElement* pEl = m_element.As<XmlElement>();
     if (!pEl)
         return CHECK_ERROR(CALL_RETURN_NULL);
 
@@ -515,7 +515,7 @@ result_t XmlDocument::getElementById(exlib::string id, obj_ptr<XmlElement_base>&
 result_t XmlDocument::getElementsByClassName(exlib::string className, obj_ptr<XmlNodeList_base>& retVal)
 {
     obj_ptr<XmlNodeList> ret = new XmlNodeList(NULL);
-    XmlElement* pEl = (XmlElement*)(XmlElement_base*)m_element;
+    XmlElement* pEl = m_element.As<XmlElement>();
 
     if (pEl) {
         std::vector<exlib::string> classNames;

@@ -68,7 +68,7 @@ static result_t get_opt(v8::Local<v8::Object> options, const char* subject_name,
     hr = crypto_base::createPrivateKey(options, key_);
     if (hr < 0)
         return hr;
-    key = (KeyObject*)(KeyObject_base*)key_;
+    key = key_.As<KeyObject>();
 
     name = X509_NAME_new();
     v8::Local<v8::Object> subject;
@@ -245,7 +245,7 @@ result_t X509CertificateRequest::checkPrivateKey(KeyObject_base* privateKey, boo
 {
     KeyObject* key = (KeyObject*)privateKey;
     if (key->type() != KeyObject::kKeyTypePrivate)
-        return CALL_E_INVALIDARG;
+        return Runtime::setError("key must be a private KeyObject.");
 
     retVal = X509_REQ_check_private_key(m_csr, key->pkey()) != 0;
     return 0;

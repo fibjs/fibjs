@@ -22,7 +22,7 @@ result_t ECKey_base::_new(Buffer_base* DerKey, exlib::string password, obj_ptr<E
     if (hr < 0)
         return hr;
 
-    retVal = dynamic_cast<ECKey_base*>((PKey_base*)key);
+    retVal = key.As<ECKey_base>();
     return retVal ? 0 : CHECK_ERROR(_ssl::setError(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT));
 }
 
@@ -35,7 +35,7 @@ result_t ECKey_base::_new(exlib::string pemKey, exlib::string password, obj_ptr<
     if (hr < 0)
         return hr;
 
-    retVal = dynamic_cast<ECKey_base*>((PKey_base*)key);
+    retVal = key.As<ECKey_base>();
     return retVal ? 0 : CHECK_ERROR(_ssl::setError(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT));
 }
 
@@ -48,7 +48,7 @@ result_t ECKey_base::_new(v8::Local<v8::Object> jsonKey, obj_ptr<ECKey_base>& re
     if (hr < 0)
         return hr;
 
-    retVal = dynamic_cast<ECKey_base*>((PKey_base*)key);
+    retVal = key.As<ECKey_base>();
     return retVal ? 0 : CHECK_ERROR(_ssl::setError(MBEDTLS_ERR_PK_KEY_INVALID_FORMAT));
 }
 

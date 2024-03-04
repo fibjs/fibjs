@@ -44,7 +44,7 @@ result_t worker_threads_base::get_workerData(v8::Local<v8::Value>& retVal)
     if (isolate->m_worker == NULL)
         return CALL_RETURN_NULL;
 
-    obj_ptr<Worker> worker = (Worker*)(Worker_base*)isolate->m_worker;
+    obj_ptr<Worker> worker = isolate->m_worker.As<Worker>();
     if (worker->m_workerData == NULL)
         return CALL_RETURN_NULL;
 
