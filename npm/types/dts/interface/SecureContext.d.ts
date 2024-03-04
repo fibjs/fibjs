@@ -32,6 +32,8 @@ declare class Class_SecureContext extends Class_object {
 
     readonly secureProtocol: string;
 
+    readonly rejectUnauthorized: boolean;
+
     readonly sessionTimeout: number;
 
 }

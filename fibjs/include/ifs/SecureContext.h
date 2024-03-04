@@ -29,6 +29,7 @@ public:
     virtual result_t get_maxVersion(exlib::string& retVal) = 0;
     virtual result_t get_minVersion(exlib::string& retVal) = 0;
     virtual result_t get_secureProtocol(exlib::string& retVal) = 0;
+    virtual result_t get_rejectUnauthorized(bool& retVal) = 0;
     virtual result_t get_sessionTimeout(int32_t& retVal) = 0;
 
 public:
@@ -47,6 +48,7 @@ public:
     static void s_get_maxVersion(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_minVersion(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_secureProtocol(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_rejectUnauthorized(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_sessionTimeout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 };
 }
@@ -64,6 +66,7 @@ inline ClassInfo& SecureContext_base::class_info()
         { "maxVersion", s_get_maxVersion, block_set, false },
         { "minVersion", s_get_minVersion, block_set, false },
         { "secureProtocol", s_get_secureProtocol, block_set, false },
+        { "rejectUnauthorized", s_get_rejectUnauthorized, block_set, false },
         { "sessionTimeout", s_get_sessionTimeout, block_set, false }
     };
 
@@ -146,6 +149,18 @@ inline void SecureContext_base::s_get_secureProtocol(v8::Local<v8::Name> propert
     PROPERTY_ENTER();
 
     hr = pInst->get_secureProtocol(vr);
+
+    METHOD_RETURN();
+}
+
+inline void SecureContext_base::s_get_rejectUnauthorized(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(SecureContext_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_rejectUnauthorized(vr);
 
     METHOD_RETURN();
 }

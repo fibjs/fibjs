@@ -33,7 +33,7 @@ result_t SecureContext::init(v8::Local<v8::Object> options, bool is_server)
     if (hr < 0)
         return hr;
 
-    hr = set_ca(options);
+    hr = set_ca(options, is_server);
     if (hr < 0)
         return hr;
 
@@ -42,6 +42,10 @@ result_t SecureContext::init(v8::Local<v8::Object> options, bool is_server)
         return hr;
 
     hr = set_key(options);
+    if (hr < 0)
+        return hr;
+
+    hr = set_verify(options);
     if (hr < 0)
         return hr;
 
@@ -65,7 +69,7 @@ void SecureContext::init_ctx(const SSL_METHOD* method)
         SSL_SESS_CACHE_CLIENT | SSL_SESS_CACHE_SERVER | SSL_SESS_CACHE_NO_INTERNAL | SSL_SESS_CACHE_NO_AUTO_CLEAR);
 }
 
-result_t SecureContext::set_ca(v8::Local<v8::Object> options)
+result_t SecureContext::set_ca(v8::Local<v8::Object> options, bool is_server)
 {
     Isolate* isolate = holder();
     result_t hr;
@@ -76,8 +80,10 @@ result_t SecureContext::set_ca(v8::Local<v8::Object> options)
         return Runtime::setError("SecureContext: ca must be a valid X509Certificate.");
     if (hr != CALL_E_PARAMNOTOPTIONAL)
         return set_ca(ca);
-    else
+    else if (!is_server)
         return set_ca(isolate->m_ctx.As<SecureContext>()->m_ca);
+
+    return 0;
 }
 
 result_t SecureContext::set_ca(X509Certificate_base* cas)
@@ -373,6 +379,40 @@ result_t SecureContext::get_secureProtocol(exlib::string& retVal)
     else
         return CALL_RETURN_UNDEFINED;
 
+    return 0;
+}
+
+result_t SecureContext::set_verify(v8::Local<v8::Object> options)
+{
+    Isolate* isolate = holder();
+    result_t hr;
+
+    int32_t verify_mode;
+
+    if (!m_ca)
+        verify_mode = SSL_VERIFY_NONE;
+    else {
+        verify_mode = SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE;
+
+        bool rejectUnauthorized = true;
+        hr = GetConfigValue(isolate, options, "rejectUnauthorized", rejectUnauthorized);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return Runtime::setError("SecureContext: rejectUnauthorized must be a valid boolean.");
+
+        if (rejectUnauthorized)
+            verify_mode |= SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
+    }
+
+    printf("verify_mode: %d\n", verify_mode);
+
+    SSL_CTX_set_verify(m_ctx, verify_mode, nullptr);
+
+    return 0;
+}
+
+result_t SecureContext::get_rejectUnauthorized(bool& retVal)
+{
+    retVal = !!(SSL_CTX_get_verify_mode(m_ctx) & SSL_VERIFY_FAIL_IF_NO_PEER_CERT);
     return 0;
 }
 

@@ -34,5 +34,8 @@ interface SecureContext : object
     readonly String secureProtocol;
 
     /**/
+    readonly Boolean rejectUnauthorized;
+
+    /**/
     readonly Integer sessionTimeout;
 };
