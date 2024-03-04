@@ -52,6 +52,7 @@
 /// <reference path="../module/constants.d.ts" />
 /// <reference path="../module/fs_constants.d.ts" />
 /// <reference path="../module/crypto_constants.d.ts" />
+/// <reference path="../module/tls.d.ts" />
 declare module '@fibjs/types/bridge' {
 }
 

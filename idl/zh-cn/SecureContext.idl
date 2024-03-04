@@ -1,0 +1,38 @@
+/*! @brief tls 安全上下文对象，用于多个 tls 连接共享基础配置
+
+  SecureContext 对象是一个安全上下文对象，用于多个 tls 连接共享基础配置。SecureContext 对象可以通过 tls.createSecureContext 方法创建。
+  ```JavaScript
+    const tls = require('tls');
+    const fs = require('fs');
+
+    const options = {
+      key: fs.readFileSync('server-key.pem'),
+      cert: fs.readFileSync('server-cert.pem')
+    };
+
+    const context = tls.createSecureContext(options);
+  ```
+ */
+interface SecureContext : object
+{
+    /**/
+    readonly X509Certificate ca;
+
+    /**/
+    readonly KeyObject key;
+
+    /**/
+    readonly X509Certificate cert;
+
+    /**/
+    readonly String maxVersion;
+
+    /**/
+    readonly String minVersion;
+
+    /**/
+    readonly String secureProtocol;
+
+    /**/
+    readonly Integer sessionTimeout;
+};

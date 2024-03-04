@@ -13,6 +13,7 @@
 #include "ifs/profiler.h"
 #include "ifs/global.h"
 #include "X509Cert.h"
+#include "SecureContext.h"
 #include "HttpClient.h"
 #include "SandBox.h"
 #include "TTYStream.h"
@@ -178,6 +179,10 @@ Isolate::Isolate(exlib::string jsFilename, exlib::string jsCode)
     m_idleFibers++;
 
     m_ca->loadRootCerts();
+
+    SecureContext* ctx = new SecureContext();
+    ctx->SetRootCerts();
+    m_ctx = ctx;
 
     m_httpclient = new HttpClient();
 

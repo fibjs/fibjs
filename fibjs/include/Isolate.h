@@ -37,6 +37,7 @@ class LruCache;
 class Stream_base;
 class ValueHolder;
 class X509Cert_base;
+class SecureContext_base;
 class Worker_base;
 
 class Isolate : public exlib::linkitem {
@@ -307,6 +308,7 @@ public:
     bool m_safe_buffer;
 
     obj_ptr<X509Cert_base> m_ca;
+    obj_ptr<SecureContext_base> m_ctx;
 
 public:
     void get_stdin(obj_ptr<Stream_base>& retVal);

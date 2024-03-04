@@ -63,7 +63,7 @@ public:
 private:
     mbedtls_x509_crt* get_crt();
 
-private:
+public:
     struct _cert {
         int32_t size;
         const char* data;

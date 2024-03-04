@@ -46,10 +46,10 @@ void importBuiltinModule()
     IMPORT_MODULE(punycode);
     IMPORT_MODULE(querystring);
     IMPORT_MODULE(ssl);
-    IMPORT_MODULE(tls);
     IMPORT_MODULE(string_decoder);
     IMPORT_MODULE(test);
     IMPORT_MODULE(timers);
+    IMPORT_MODULE(tls);
     IMPORT_MODULE(tty);
     IMPORT_MODULE(url);
     IMPORT_MODULE(util);

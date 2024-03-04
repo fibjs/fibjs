@@ -7,6 +7,7 @@
 
 #include "ifs/crypto.h"
 #include "X509Certificate.h"
+#include "X509Cert.h"
 #include "Buffer.h"
 #include "openssl/x509.h"
 #include "openssl/x509v3.h"
@@ -349,6 +350,25 @@ result_t X509Certificate::load_cert(v8::Local<v8::Array> certs)
         return openssl_error();
 
     return 0;
+}
+
+void X509Certificate::LoadRootCerts()
+{
+    X509Certificate* now = nullptr;
+    X509Cert::_cert* pca = X509Cert::g_root_ca;
+
+    while (pca->size) {
+        const unsigned char* der = (const unsigned char*)pca->data;
+        X509* cert_ = d2i_X509(nullptr, &der, pca->size);
+
+        if (now == nullptr) {
+            now = this;
+            m_cert = cert_;
+        } else
+            now = now->m_next = new X509Certificate(cert_);
+
+        pca++;
+    }
 }
 
 result_t X509Certificate::get_ca(bool& retVal)

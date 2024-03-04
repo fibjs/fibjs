@@ -29,6 +29,8 @@ void init_start_argv(int32_t argc, char** argv);
 void options(int32_t& pos, char* argv[]);
 result_t ifZipFile(exlib::string filename, bool& retVal);
 
+void init_tls();
+
 exlib::string s_root;
 v8::Platform* g_default_platform;
 
@@ -49,6 +51,7 @@ static void createBasisForFiberLoop(Isolate::platform_creator get_platform)
     InitializeAcPool();
     InitializeAsyncIOThread();
     initializeUVAsyncThread();
+    init_tls();
 
 #ifdef Linux
     init_sym();

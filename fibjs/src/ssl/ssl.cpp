@@ -17,7 +17,6 @@
 namespace fibjs {
 
 DECLARE_MODULE(ssl);
-DECLARE_MODULE_EX(tls, ssl);
 
 _ssl g_ssl;
 

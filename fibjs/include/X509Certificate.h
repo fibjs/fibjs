@@ -51,9 +51,20 @@ public:
     virtual result_t toString(exlib::string& retVal);
 
 public:
+    void LoadRootCerts();
     result_t load_cert(Buffer_base* cert);
     result_t load_cert(v8::Local<v8::Array> certs);
     result_t get_x509_array(int32_t nid, const char** names, v8::Local<v8::Array>& retVal);
+
+    X509Certificate* next()
+    {
+        return m_next;
+    }
+
+    X509* cert()
+    {
+        return m_cert;
+    }
 
 private:
     X509Pointer m_cert;
