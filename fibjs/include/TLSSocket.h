@@ -83,6 +83,10 @@ public:
     long m_eof = 0;
     exlib::atomic m_closed;
 
+public:
+    exlib::Locker m_read_lock;
+    exlib::Locker m_write_lock;
+
 private:
     obj_ptr<X509Certificate_base> m_cert;
     obj_ptr<X509Certificate_base> m_peer_cert;
