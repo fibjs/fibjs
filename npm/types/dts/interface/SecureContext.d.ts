@@ -34,6 +34,8 @@ declare class Class_SecureContext extends Class_object {
 
     readonly rejectUnauthorized: boolean;
 
+    readonly requestOCSP: boolean;
+
     readonly sessionTimeout: number;
 
 }
