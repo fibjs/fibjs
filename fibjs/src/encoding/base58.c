@@ -21,8 +21,6 @@
 #include "libbase58.h"
 # include "openssl/sha.h"
 
-extern calculate_sha256(void* input, long length, unsigned char* md);
-
 bool b58_sha256(void * buf, const void * data, size_t sz)
 {
 	SHA256((const unsigned char *)data, sz, (unsigned char *)buf);
