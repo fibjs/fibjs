@@ -43,8 +43,6 @@ result_t dns_base::resolve(exlib::string name, obj_ptr<NArray>& retVal, AsyncEve
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     addrinfo hints = { 0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, 0, 0, 0 };
-    addrinfo* result = NULL;
-    addrinfo* ptr = NULL;
 
     resolve_data* resolver = new resolve_data(retVal, ac);
     int r = uv_getaddrinfo(
@@ -102,8 +100,6 @@ result_t dns_base::lookup(exlib::string name, exlib::string& retVal, AsyncEvent*
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     addrinfo hints = { 0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, 0, 0, 0 };
-    addrinfo* result = NULL;
-    addrinfo* ptr = NULL;
 
     resolve_data* resolver = new resolve_data(retVal, ac);
     int r = uv_getaddrinfo(
@@ -182,8 +178,6 @@ result_t net_base::resolve(exlib::string name, int32_t family,
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     addrinfo hints = { 0, AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP, 0, 0, 0, 0 };
-    addrinfo* result = NULL;
-    addrinfo* ptr = NULL;
 
     resolve_data* resolver = new resolve_data(family, retVal, ac);
     int r = uv_getaddrinfo(

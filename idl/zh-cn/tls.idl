@@ -3,5 +3,8 @@
 module tls
 {
     /**/
+    static TLSSocket;
+
+    /**/
     static SecureContext createSecureContext(Object options);
 };

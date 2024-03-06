@@ -15,6 +15,7 @@
 
 namespace fibjs {
 
+class TLSSocket_base;
 class SecureContext_base;
 
 class tls_base : public object_base {
@@ -38,6 +39,7 @@ public:
 };
 }
 
+#include "ifs/TLSSocket.h"
 #include "ifs/SecureContext.h"
 
 namespace fibjs {
@@ -47,9 +49,13 @@ inline ClassInfo& tls_base::class_info()
         { "createSecureContext", s_static_createSecureContext, true, false }
     };
 
+    static ClassData::ClassObject s_object[] = {
+        { "TLSSocket", TLSSocket_base::class_info }
+    };
+
     static ClassData s_cd = {
         "tls", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, 0, NULL, NULL, NULL,
         &object_base::class_info(),
         false
     };

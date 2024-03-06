@@ -1,0 +1,33 @@
+/**/
+interface TLSSocket : Stream
+{
+    /**/
+    TLSSocket(Object options = {});
+
+    /**/
+    connect(Stream socket) async;
+
+    /**/
+    accept(Stream socket) async;
+
+    /**/
+    String getProtocol();
+
+    /**/
+    X509Certificate getX509Certificate();
+
+    /**/
+    X509Certificate getPeerX509Certificate();
+
+    /*! @brief 查询当前连接的对方地址 */
+    readonly String remoteAddress;
+
+    /*! @brief 查询当前连接的对方端口 */
+    readonly Integer remotePort;
+
+    /*! @brief 查询当前连接的本地地址 */
+    readonly String localAddress;
+
+    /*! @brief 查询当前连接的本地端口 */
+    readonly Integer localPort;
+};
