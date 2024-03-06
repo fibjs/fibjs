@@ -2,7 +2,10 @@
 interface TLSSocket : Stream
 {
     /**/
-    TLSSocket(Object options = {});
+    TLSSocket();
+
+    /**/
+    TLSSocket(SecureContext context);
 
     /**/
     connect(Stream socket) async;
@@ -18,6 +21,9 @@ interface TLSSocket : Stream
 
     /**/
     X509Certificate getPeerX509Certificate();
+
+    /**/
+    readonly SecureContext secureContext;
 
     /*! @brief 查询当前连接的对方地址 */
     readonly String remoteAddress;

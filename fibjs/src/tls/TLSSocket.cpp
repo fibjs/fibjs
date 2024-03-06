@@ -57,23 +57,33 @@ static const BIO_METHOD* s_method = []() {
     return method;
 }();
 
-result_t TLSSocket_base::_new(v8::Local<v8::Object> options,
-    obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This)
+result_t TLSSocket_base::_new(obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This)
 {
+    Isolate* isolate = Isolate::current(This);
+
     obj_ptr<TLSSocket> sock = new TLSSocket();
     sock->wrap(This);
-    sock->init(options);
+    sock->init(isolate->m_ctx);
 
     retVal = sock;
 
     return 0;
 }
 
-result_t TLSSocket::init(v8::Local<v8::Object> options)
+result_t TLSSocket_base::_new(SecureContext_base* context, obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This)
 {
-    Isolate* isolate = holder();
+    obj_ptr<TLSSocket> sock = new TLSSocket();
+    sock->wrap(This);
+    sock->init(context);
 
-    m_ctx = isolate->m_ctx;
+    retVal = sock;
+
+    return 0;
+}
+
+result_t TLSSocket::init(SecureContext_base* context)
+{
+    m_ctx = context;
     m_tls = SSL_new(m_ctx.As<SecureContext>()->ctx());
 
     return 0;
@@ -211,6 +221,12 @@ result_t TLSSocket::getPeerX509Certificate(obj_ptr<X509Certificate_base>& retVal
     }
 
     retVal = m_peer_cert;
+    return 0;
+}
+
+result_t TLSSocket::get_secureContext(obj_ptr<SecureContext_base>& retVal)
+{
+    retVal = m_ctx;
     return 0;
 }
 

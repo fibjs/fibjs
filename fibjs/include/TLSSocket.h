@@ -23,6 +23,7 @@ public:
     virtual result_t getProtocol(exlib::string& retVal);
     virtual result_t getX509Certificate(obj_ptr<X509Certificate_base>& retVal);
     virtual result_t getPeerX509Certificate(obj_ptr<X509Certificate_base>& retVal);
+    virtual result_t get_secureContext(obj_ptr<SecureContext_base>& retVal);
     virtual result_t get_remoteAddress(exlib::string& retVal);
     virtual result_t get_remotePort(int32_t& retVal);
     virtual result_t get_localAddress(exlib::string& retVal);
@@ -42,7 +43,7 @@ public:
     int Read(char* out, int len);
 
 public:
-    result_t init(v8::Local<v8::Object> options);
+    result_t init(SecureContext_base* context);
 
     static TLSSocket* FromBIO(BIO* bio)
     {

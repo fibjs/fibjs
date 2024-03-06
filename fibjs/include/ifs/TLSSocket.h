@@ -17,6 +17,7 @@
 namespace fibjs {
 
 class Stream_base;
+class SecureContext_base;
 class X509Certificate_base;
 
 class TLSSocket_base : public Stream_base {
@@ -24,12 +25,14 @@ class TLSSocket_base : public Stream_base {
 
 public:
     // TLSSocket_base
-    static result_t _new(v8::Local<v8::Object> options, obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(SecureContext_base* context, obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t connect(Stream_base* socket, AsyncEvent* ac) = 0;
     virtual result_t accept(Stream_base* socket, AsyncEvent* ac) = 0;
     virtual result_t getProtocol(exlib::string& retVal) = 0;
     virtual result_t getX509Certificate(obj_ptr<X509Certificate_base>& retVal) = 0;
     virtual result_t getPeerX509Certificate(obj_ptr<X509Certificate_base>& retVal) = 0;
+    virtual result_t get_secureContext(obj_ptr<SecureContext_base>& retVal) = 0;
     virtual result_t get_remoteAddress(exlib::string& retVal) = 0;
     virtual result_t get_remotePort(int32_t& retVal) = 0;
     virtual result_t get_localAddress(exlib::string& retVal) = 0;
@@ -46,6 +49,7 @@ public:
     static void s_getProtocol(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getX509Certificate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getPeerX509Certificate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_secureContext(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_remoteAddress(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_remotePort(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_localAddress(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -57,6 +61,7 @@ public:
 };
 }
 
+#include "ifs/SecureContext.h"
 #include "ifs/X509Certificate.h"
 
 namespace fibjs {
@@ -73,6 +78,7 @@ inline ClassInfo& TLSSocket_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
+        { "secureContext", s_get_secureContext, block_set, false },
         { "remoteAddress", s_get_remoteAddress, block_set, false },
         { "remotePort", s_get_remotePort, block_set, false },
         { "localAddress", s_get_localAddress, block_set, false },
@@ -103,9 +109,13 @@ void TLSSocket_base::__new(const T& args)
 
     CONSTRUCT_ENTER();
 
-    METHOD_OVER(1, 0);
+    METHOD_OVER(0, 0);
 
-    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+    hr = _new(vr, args.This());
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<SecureContext_base>, 0);
 
     hr = _new(v0, vr, args.This());
 
@@ -184,6 +194,18 @@ inline void TLSSocket_base::s_getPeerX509Certificate(const v8::FunctionCallbackI
     METHOD_OVER(0, 0);
 
     hr = pInst->getPeerX509Certificate(vr);
+
+    METHOD_RETURN();
+}
+
+inline void TLSSocket_base::s_get_secureContext(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<SecureContext_base> vr;
+
+    METHOD_INSTANCE(TLSSocket_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_secureContext(vr);
 
     METHOD_RETURN();
 }
