@@ -1,28 +1,51 @@
-/**/
+/*! @brief SSL/TLS 网络套接口对象
+
+TLSSocket 属于 tls 模块，创建方法
+ ```JavaScript
+ var s = new tls.TLSSocket();
+ ```
+*/
 interface TLSSocket : Stream
 {
-    /**/
+    /*! @brief 创建一个新的 TLSSocket 对象，使用当前缺省 SecureContext */
     TLSSocket();
 
-    /**/
+    /*! @brief 根据 context 创建一个新的 TLSSocket 对象
+     @param context 指定创建 TLSSocket 使用的安全上下文
+    */
     TLSSocket(SecureContext context);
 
-    /**/
+    /*! @brief 根据 options 创建一个新的 TLSSocket 对象
+     @param options 使用 tls.createSecureContext 创建安全上下文需要的选项
+    */
+    TLSSocket(Object options);
+
+    /*! @brief 在给定的连接上连接 SSL/TLS 连接，客户端模式
+     @param socket 给定的底层连接
+    */
     connect(Stream socket) async;
 
-    /**/
+    /*! @brief 在给定的连接上连接 SSL/TLS 连接，服务端模式
+     @param socket 给定的底层连接
+    */
     accept(Stream socket) async;
 
-    /**/
+    /*! @brief 当前连接协商的 SSL/TLS 协议版本
+     @return 返回 SSL/TLS 协议版本
+    */
     String getProtocol();
 
-    /**/
+    /*! @brief 当前连接协商的本地证书
+     @return 返回本地证书
+    */
     X509Certificate getX509Certificate();
 
-    /**/
+    /*! @brief 当前连接协商的对等证书
+     @return 返回对等证书
+    */
     X509Certificate getPeerX509Certificate();
 
-    /**/
+    /*! @brief 查询当前 TLSSocket 使用的 SecureContext */
     readonly SecureContext secureContext;
 
     /*! @brief 查询当前连接的对方地址 */

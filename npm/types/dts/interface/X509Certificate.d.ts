@@ -120,7 +120,9 @@ declare class Class_X509Certificate extends Class_object {
     readonly fingerprint512: string;
 
     /**
-     * @description 证书链的下一个证书 
+     * @description 证书链的下一个证书
+     *      @return 返回下一个证书
+     *     
      */
     next(): Class_X509Certificate;
 

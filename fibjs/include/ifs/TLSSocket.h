@@ -27,6 +27,7 @@ public:
     // TLSSocket_base
     static result_t _new(obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(SecureContext_base* context, obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    static result_t _new(v8::Local<v8::Object> options, obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t connect(Stream_base* socket, AsyncEvent* ac) = 0;
     virtual result_t accept(Stream_base* socket, AsyncEvent* ac) = 0;
     virtual result_t getProtocol(exlib::string& retVal) = 0;
@@ -116,6 +117,12 @@ void TLSSocket_base::__new(const T& args)
     METHOD_OVER(1, 1);
 
     ARG(obj_ptr<SecureContext_base>, 0);
+
+    hr = _new(v0, vr, args.This());
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
 
     hr = _new(v0, vr, args.This());
 

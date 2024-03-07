@@ -2,7 +2,7 @@
  */
 module tls
 {
-    /**/
+    /*! @brief SSL/TLS 网络套接口对象，参见 TLSSocket */
     static TLSSocket;
 
     /*! @brief 创建一个 SecureContext 对象，用于在 tls 模块中维护安全上下文
@@ -20,7 +20,7 @@ module tls
 
      @param options 创建安全上下文的选项
      @return 返回创建的安全上下文
-     */ 
+     */
     static SecureContext createSecureContext(Object options);
 
     /**/

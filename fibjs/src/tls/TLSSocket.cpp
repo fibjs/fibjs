@@ -6,6 +6,7 @@
  */
 
 #include "ifs/io.h"
+#include "ifs/tls.h"
 #include "ifs/Socket.h"
 #include "ifs/console.h"
 #include "TLSSocket.h"
@@ -79,6 +80,16 @@ result_t TLSSocket_base::_new(SecureContext_base* context, obj_ptr<TLSSocket_bas
     retVal = sock;
 
     return 0;
+}
+
+result_t TLSSocket_base::_new(v8::Local<v8::Object> options, obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This)
+{
+    obj_ptr<SecureContext_base> context;
+    result_t hr = tls_base::createSecureContext(options, context);
+    if(hr < 0)
+        return hr;
+
+    return _new(context, retVal, This);
 }
 
 result_t TLSSocket::init(SecureContext_base* context)
