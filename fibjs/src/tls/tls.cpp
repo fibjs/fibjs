@@ -19,4 +19,24 @@ void init_tls()
     OpenSSL_add_all_algorithms();
 }
 
+result_t tls_base::connect(v8::Local<v8::Object> optionns, obj_ptr<TLSSocket_base>& retVal, AsyncEvent* ac)
+{
+    return 0;
+}
+
+result_t tls_base::connect(exlib::string url, v8::Local<v8::Object> optionns, obj_ptr<TLSSocket_base>& retVal, AsyncEvent* ac)
+{
+    return 0;
+}
+
+result_t tls_base::connect(int32_t port, v8::Local<v8::Object> optionns, obj_ptr<TLSSocket_base>& retVal, AsyncEvent* ac)
+{
+    return 0;
+}
+
+result_t tls_base::connect(int32_t port, exlib::string host, v8::Local<v8::Object> optionns, obj_ptr<TLSSocket_base>& retVal, AsyncEvent* ac)
+{
+    return 0;
+}
+
 }

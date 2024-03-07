@@ -49,10 +49,6 @@ result_t SecureContext::init(v8::Local<v8::Object> options, bool is_server)
     if (hr < 0)
         return hr;
 
-    hr = set_requestOCSP(options);
-    if (hr < 0)
-        return hr;
-
     hr = set_sessionTimeout(options);
     if (hr < 0)
         return hr;
@@ -415,28 +411,6 @@ result_t SecureContext::set_verify(v8::Local<v8::Object> options)
 result_t SecureContext::get_rejectUnauthorized(bool& retVal)
 {
     retVal = !!(SSL_CTX_get_verify_mode(m_ctx) & SSL_VERIFY_FAIL_IF_NO_PEER_CERT);
-    return 0;
-}
-
-result_t SecureContext::set_requestOCSP(v8::Local<v8::Object> options)
-{
-    Isolate* isolate = holder();
-    result_t hr;
-
-    bool requestOCSP = false;
-    hr = GetConfigValue(isolate, options, "requestOCSP", requestOCSP);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-        return Runtime::setError("SecureContext: requestOCSP must be a valid boolean.");
-
-    if (hr != CALL_E_PARAMNOTOPTIONAL && requestOCSP)
-        SSL_CTX_set_tlsext_status_type(m_ctx, TLSEXT_STATUSTYPE_ocsp);
-
-    return 0;
-}
-
-result_t SecureContext::get_requestOCSP(bool& retVal)
-{
-    retVal = SSL_CTX_get_tlsext_status_type(m_ctx) == TLSEXT_STATUSTYPE_ocsp;
     return 0;
 }
 

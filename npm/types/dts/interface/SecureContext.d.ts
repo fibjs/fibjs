@@ -20,22 +20,44 @@
  *  
  */
 declare class Class_SecureContext extends Class_object {
+    /**
+     * @description 查询安全上下文的受信任的 CA 证书 
+     */
     readonly ca: Class_X509Certificate;
 
+    /**
+     * @description 查询安全上下文连接的私钥 
+     */
     readonly key: Class_KeyObject;
 
+    /**
+     * @description 查询安全上下文连接的证书 
+     */
     readonly cert: Class_X509Certificate;
 
+    /**
+     * @description 查询安全上下文允许的最大 TLS 版本 
+     */
     readonly maxVersion: string;
 
+    /**
+     * @description 查询安全上下文允许的最小 TLS 版本 
+     */
     readonly minVersion: string;
 
+    /**
+     * @description 查询安全上下文使用的 TLS 协议版本
+     */
     readonly secureProtocol: string;
 
+    /**
+     * @description 查询安全上下文是否拒绝任何未经所提供 CA 列表授权的连接 
+     */
     readonly rejectUnauthorized: boolean;
 
-    readonly requestOCSP: boolean;
-
+    /**
+     * @description 查询安全上下文回话超时 
+     */
     readonly sessionTimeout: number;
 
 }

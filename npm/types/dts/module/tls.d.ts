@@ -10,5 +10,21 @@ declare module 'tls' {
 
     function createSecureContext(options: FIBJS.GeneralObject): Class_SecureContext;
 
+    function connect(optionns: FIBJS.GeneralObject): Class_TLSSocket;
+
+    function connect(optionns: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_TLSSocket)=>any): void;
+
+    function connect(url: string, optionns?: FIBJS.GeneralObject): Class_TLSSocket;
+
+    function connect(url: string, optionns?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: Class_TLSSocket)=>any): void;
+
+    function connect(port: number, optionns?: FIBJS.GeneralObject): Class_TLSSocket;
+
+    function connect(port: number, optionns?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: Class_TLSSocket)=>any): void;
+
+    function connect(port: number, host: string, optionns?: FIBJS.GeneralObject): Class_TLSSocket;
+
+    function connect(port: number, host: string, optionns?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: Class_TLSSocket)=>any): void;
+
 }
 

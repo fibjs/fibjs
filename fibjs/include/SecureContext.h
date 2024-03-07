@@ -22,7 +22,6 @@ public:
     virtual result_t get_minVersion(exlib::string& retVal);
     virtual result_t get_secureProtocol(exlib::string& retVal);
     virtual result_t get_rejectUnauthorized(bool& retVal);
-    virtual result_t get_requestOCSP(bool& retVal);
     virtual result_t get_sessionTimeout(int32_t& retVal);
 
 public:
@@ -39,7 +38,6 @@ private:
     result_t set_cert(v8::Local<v8::Object> options);
     result_t set_key(v8::Local<v8::Object> options);
     result_t set_verify(v8::Local<v8::Object> options);
-    result_t set_requestOCSP(v8::Local<v8::Object> options);
     result_t set_sessionTimeout(v8::Local<v8::Object> options);
 
 private:

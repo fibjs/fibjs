@@ -15,30 +15,27 @@
  */
 interface SecureContext : object
 {
-    /**/
+    /*! @brief 查询安全上下文的受信任的 CA 证书 */
     readonly X509Certificate ca;
 
-    /**/
+    /*! @brief 查询安全上下文连接的私钥 */
     readonly KeyObject key;
 
-    /**/
+    /*! @brief 查询安全上下文连接的证书 */
     readonly X509Certificate cert;
 
-    /**/
+    /*! @brief 查询安全上下文允许的最大 TLS 版本 */
     readonly String maxVersion;
 
-    /**/
+    /*! @brief 查询安全上下文允许的最小 TLS 版本 */
     readonly String minVersion;
 
-    /**/
+    /*! @brief 查询安全上下文使用的 TLS 协议版本*/
     readonly String secureProtocol;
 
-    /**/
+    /*! @brief 查询安全上下文是否拒绝任何未经所提供 CA 列表授权的连接 */
     readonly Boolean rejectUnauthorized;
 
-    /**/
-    readonly Boolean requestOCSP;
-
-    /**/
+    /*! @brief 查询安全上下文回话超时 */
     readonly Integer sessionTimeout;
 };

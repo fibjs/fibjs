@@ -24,6 +24,10 @@ class tls_base : public object_base {
 public:
     // tls_base
     static result_t createSecureContext(v8::Local<v8::Object> options, obj_ptr<SecureContext_base>& retVal);
+    static result_t connect(v8::Local<v8::Object> optionns, obj_ptr<TLSSocket_base>& retVal, AsyncEvent* ac);
+    static result_t connect(exlib::string url, v8::Local<v8::Object> optionns, obj_ptr<TLSSocket_base>& retVal, AsyncEvent* ac);
+    static result_t connect(int32_t port, v8::Local<v8::Object> optionns, obj_ptr<TLSSocket_base>& retVal, AsyncEvent* ac);
+    static result_t connect(int32_t port, exlib::string host, v8::Local<v8::Object> optionns, obj_ptr<TLSSocket_base>& retVal, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -36,6 +40,13 @@ public:
 
 public:
     static void s_static_createSecureContext(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+public:
+    ASYNC_STATICVALUE2(tls_base, connect, v8::Local<v8::Object>, obj_ptr<TLSSocket_base>);
+    ASYNC_STATICVALUE3(tls_base, connect, exlib::string, v8::Local<v8::Object>, obj_ptr<TLSSocket_base>);
+    ASYNC_STATICVALUE3(tls_base, connect, int32_t, v8::Local<v8::Object>, obj_ptr<TLSSocket_base>);
+    ASYNC_STATICVALUE4(tls_base, connect, int32_t, exlib::string, v8::Local<v8::Object>, obj_ptr<TLSSocket_base>);
 };
 }
 
@@ -46,7 +57,9 @@ namespace fibjs {
 inline ClassInfo& tls_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "createSecureContext", s_static_createSecureContext, true, false }
+        { "createSecureContext", s_static_createSecureContext, true, false },
+        { "connect", s_static_connect, true, true },
+        { "connectSync", s_static_connect, true, false }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -57,7 +70,7 @@ inline ClassInfo& tls_base::class_info()
         "tls", true, s__new, NULL,
         ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, 0, NULL, NULL, NULL,
         &object_base::class_info(),
-        false
+        true
     };
 
     static ClassInfo s_ci(s_cd);
@@ -75,6 +88,55 @@ inline void tls_base::s_static_createSecureContext(const v8::FunctionCallbackInf
     ARG(v8::Local<v8::Object>, 0);
 
     hr = createSecureContext(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void tls_base::s_static_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<TLSSocket_base> vr;
+
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
+
+    if (!cb.IsEmpty())
+        hr = acb_connect(v0, cb, args);
+    else
+        hr = ac_connect(v0, vr);
+
+    ASYNC_METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    if (!cb.IsEmpty())
+        hr = acb_connect(v0, v1, cb, args);
+    else
+        hr = ac_connect(v0, v1, vr);
+
+    ASYNC_METHOD_OVER(2, 1);
+
+    ARG(int32_t, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    if (!cb.IsEmpty())
+        hr = acb_connect(v0, v1, cb, args);
+    else
+        hr = ac_connect(v0, v1, vr);
+
+    ASYNC_METHOD_OVER(3, 2);
+
+    ARG(int32_t, 0);
+    ARG(exlib::string, 1);
+    OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+
+    if (!cb.IsEmpty())
+        hr = acb_connect(v0, v1, v2, cb, args);
+    else
+        hr = ac_connect(v0, v1, v2, vr);
 
     METHOD_RETURN();
 }
