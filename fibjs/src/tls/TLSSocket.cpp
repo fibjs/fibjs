@@ -86,7 +86,7 @@ result_t TLSSocket_base::_new(v8::Local<v8::Object> options, obj_ptr<TLSSocket_b
 {
     obj_ptr<SecureContext_base> context;
     result_t hr = tls_base::createSecureContext(options, context);
-    if(hr < 0)
+    if (hr < 0)
         return hr;
 
     return _new(context, retVal, This);
@@ -144,14 +144,16 @@ public:
     {
         m_sock->m_out.Release();
 
-        if (m_state == SSL_ERROR_SSL)
-            return openssl_error();
-
-        if (m_state == SSL_ERROR_NONE)
+        switch (m_state) {
+        case SSL_ERROR_NONE:
             return next();
-
-        if (m_state == SSL_ERROR_WANT_READ)
+        case SSL_ERROR_WANT_READ:
             return m_sock->m_stream->read(0, m_sock->m_in, next(read_ok));
+        case SSL_ERROR_WANT_WRITE:
+            return next(handshake);
+        case SSL_ERROR_SSL:
+            return openssl_error();
+        }
 
         return Runtime::setError("handshake failed");
     }
@@ -471,7 +473,7 @@ result_t TLSSocket::close(AsyncEvent* ac)
             if (m_sock->m_out)
                 return m_sock->m_stream->write(m_sock->m_out, next(write));
 
-            if (m_state == SSL_ERROR_NONE)
+            if (m_state == SSL_ERROR_NONE || m_state == SSL_ERROR_WANT_READ)
                 return next();
 
             return Runtime::setError("close failed");
