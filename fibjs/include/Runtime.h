@@ -31,27 +31,45 @@ public:
         return rt->m_code;
     }
 
-    static result_t setError(exlib::string err)
+    static result_t setError(result_t code, exlib::string err)
     {
         Runtime* rt = Runtime::current();
 
-        rt->m_code = CALL_E_EXCEPTION;
+        rt->m_code = code;
         rt->m_error = err;
         return rt->m_code;
     }
 
-    static result_t setError(const char* err = NULL)
+    static result_t setError(result_t code, const char* err)
     {
         Runtime* rt = Runtime::current();
 
-        rt->m_code = CALL_E_EXCEPTION;
-        rt->m_error.assign(err ? err : "");
+        rt->m_code = code;
+
+        if (err)
+            rt->m_error.assign(err);
+        else
+            rt->m_error.clear();
+
         return rt->m_code;
     }
 
-    static const exlib::string& errMessage()
+    static result_t setError(exlib::string err)
     {
-        return Runtime::current()->m_error;
+        return setError(CALL_E_EXCEPTION, err);
+    }
+
+    static result_t setError(const char* err)
+    {
+        return setError(CALL_E_EXCEPTION, err);
+    }
+
+    static exlib::string errMessage()
+    {
+        Runtime* rt = Runtime::current();
+        exlib::string msg = rt->m_error;
+        rt->m_error.clear();
+        return msg;
     }
 
     static result_t errNumber()

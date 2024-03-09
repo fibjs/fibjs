@@ -169,4 +169,9 @@ Runtime* Runtime::current()
     return s_rt;
 }
 
+result_t setRuntimeError(result_t code, const char* err)
+{
+    return Runtime::setError(code, err);
+}
+
 } /* namespace fibjs */

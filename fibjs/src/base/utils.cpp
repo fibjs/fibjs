@@ -109,6 +109,11 @@ exlib::string getResultMessage(result_t hr)
 
         if (s.length() > 0)
             return s;
+    } else if (hr == CALL_E_PARAMNOTOPTIONAL) {
+        exlib::string s = Runtime::errMessage();
+
+        if (s.length() > 0)
+            return "property " + s + " is not optional.";
     }
 
     if (hr > CALL_E_MIN && hr < CALL_E_MAX)

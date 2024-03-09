@@ -988,12 +988,14 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, T& vr
     return GetArgumentValue(v, vr, bStrict);
 }
 
+result_t setRuntimeError(result_t code, const char* err);
+
 template <typename T>
 result_t GetConfigValue(Isolate* isolate, v8::Local<v8::Object> o, const char* key, T& n, bool bStrict = false)
 {
     JSValue v = o->Get(isolate->context(), isolate->NewString(key));
     if (v->IsUndefined())
-        return CALL_E_PARAMNOTOPTIONAL;
+        return setRuntimeError(CALL_E_PARAMNOTOPTIONAL, key);
 
     return GetArgumentValue(isolate, v, n, bStrict);
 }
@@ -1002,8 +1004,11 @@ template <typename T>
 result_t GetConfigValue(Isolate* isolate, v8::Local<v8::Array> o, int32_t i, T& n, bool bStrict = false)
 {
     JSValue v = o->Get(isolate->context(), i);
-    if (v->IsUndefined())
-        return CALL_E_PARAMNOTOPTIONAL;
+    if (v->IsUndefined()) {
+        char key[32];
+        snprintf(key, sizeof(key), "%d", i + 1);
+        return setRuntimeError(CALL_E_PARAMNOTOPTIONAL, key);
+    }
 
     return GetArgumentValue(isolate, v, n, bStrict);
 }
