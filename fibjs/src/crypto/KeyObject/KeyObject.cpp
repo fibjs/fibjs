@@ -199,11 +199,14 @@ result_t KeyObject::createAsymmetricKey(v8::Local<v8::Object> key, KeyType type)
         if (key_) {
             KeyObject* key__ = key_.As<KeyObject>();
 
-            if (key__->m_keyType == kKeyTypeSecret)
-                return Runtime::setError("Invalid key type");
+            if (type == kKeyTypePublic)
+                return createPublicKeyFromKeyObject(key__);
 
-            if (type == kKeyTypePrivate && key__->m_keyType == kKeyTypePublic)
-                return Runtime::setError("Invalid key type");
+            if (key__->m_keyType == kKeyTypeSecret)
+                return Runtime::setError("cannot create private key from a secret key.");
+
+            if (key__->m_keyType == kKeyTypePublic)
+                return Runtime::setError("cannot create private key from a public key.");
 
             m_pkey = EVP_PKEY_dup(key__->m_pkey);
             m_keyType = type;

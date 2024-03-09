@@ -12,6 +12,10 @@
 #include "Buffer.h"
 #include <openssl/ssl.h>
 
+extern "C" {
+#include <crypto/evp.h>
+}
+
 namespace fibjs {
 
 template <typename T, void (*deleter)(T*)>

@@ -432,7 +432,7 @@ describe('crypto', () => {
         describe('createPublicKey/createPrivateKey', () => {
             it('check arguments', () => {
                 const publicKey = crypto.createPublicKey(publicPem);
-                assert.throws(() => crypto.createPublicKey(publicKey));
+                const publicKey1 = crypto.createPublicKey(publicKey);
 
                 assert.throws(() => crypto.createPrivateKey(crypto.createPublicKey(privatePem)));
 

@@ -30,7 +30,7 @@ result_t crypto_base::createPublicKey(Buffer_base* key, obj_ptr<KeyObject_base>&
 result_t crypto_base::createPublicKey(KeyObject_base* key, obj_ptr<KeyObject_base>& retVal)
 {
     obj_ptr<KeyObject> keyObj = new KeyObject();
-    result_t hr = keyObj->createPublicKeyFromPrivateKey(key);
+    result_t hr = keyObj->createPublicKeyFromKeyObject(key);
     if (hr < 0)
         return hr;
 
@@ -49,11 +49,11 @@ result_t crypto_base::createPublicKey(v8::Local<v8::Object> key, obj_ptr<KeyObje
     return 0;
 }
 
-result_t KeyObject::createPublicKeyFromPrivateKey(KeyObject_base* key)
+result_t KeyObject::createPublicKeyFromKeyObject(KeyObject_base* key)
 {
     KeyObject* keyObj = (KeyObject*)key;
-    if (keyObj->type() != KeyObject::kKeyTypePrivate)
-        return CHECK_ERROR(Runtime::setError("Invalid key type"));
+    if (keyObj->type() == kKeyTypeSecret)
+        return Runtime::setError("cannot create public key from a secret key.");
 
     return createPublicKeyFromPKey(keyObj->pkey());
 }
@@ -62,18 +62,9 @@ result_t KeyObject::createPublicKeyFromPKey(EVP_PKEY* key)
 {
     int type = EVP_PKEY_id(key);
 
-    if (type == EVP_PKEY_RSA || type == EVP_PKEY_RSA_PSS) {
-        const BIGNUM* e;
-        const BIGNUM* n;
-        const RSA* rsa = EVP_PKEY_get0_RSA(key);
+    m_pkey = EVP_PKEY_new();
 
-        m_pkey = EVP_PKEY_new();
-        EVP_PKEY_set1_RSA(m_pkey, RSA_new());
-
-        RSA_get0_key(rsa, &n, &e, nullptr);
-        if (RSA_set0_key(EVP_PKEY_get1_RSA(m_pkey), BN_dup(n), BN_dup(e), nullptr) != 1)
-            return CHECK_ERROR(Runtime::setError("Invalid RSA private key"));
-    } else if (type == EVP_PKEY_EC || type == EVP_PKEY_SM2) {
+    if (type == EVP_PKEY_SM2) {
         const EC_KEY* ec = EVP_PKEY_get0_EC_KEY(key);
         const EC_GROUP* group = EC_KEY_get0_group(ec);
         const EC_POINT* pt = EC_KEY_get0_public_key(ec);
@@ -81,29 +72,13 @@ result_t KeyObject::createPublicKeyFromPKey(EVP_PKEY* key)
 
         ECKeyPointer pub = EC_KEY_new_by_curve_name(nid);
         if (EC_KEY_set_public_key(pub, pt) != 1)
-            return CHECK_ERROR(Runtime::setError("Invalid EC public key"));
+            return CHECK_ERROR(Runtime::setError("Invalid SM2 public key"));
 
-        m_pkey = EVP_PKEY_new();
         if (EVP_PKEY_set1_EC_KEY(m_pkey, pub) != 1)
-            return CHECK_ERROR(Runtime::setError("Invalid EC public key"));
-    } else if (type == EVP_PKEY_ED25519 || type == EVP_PKEY_ED448
-        || type == EVP_PKEY_X25519 || type == EVP_PKEY_X448) {
-        size_t len = 0;
-        if (EVP_PKEY_get_raw_public_key(key, nullptr, &len) != 1)
-            return CHECK_ERROR(Runtime::setError("Invalid OKP private key"));
-
-        std::vector<unsigned char> key_buf(len);
-        if (EVP_PKEY_get_raw_public_key(key, key_buf.data(), &len) != 1)
-            return CHECK_ERROR(Runtime::setError("Invalid OKP private key"));
-
-        m_pkey = EVP_PKEY_new_raw_public_key(type, nullptr, key_buf.data(), len);
-        if (!m_pkey)
-            return openssl_error();
-    } else {
-        m_pkey = EVP_PKEY_dup(key);
-        if (!m_pkey)
-            return openssl_error();
-    }
+            return CHECK_ERROR(Runtime::setError("Invalid SM2 public key"));
+    } else if (!evp_keymgmt_util_copy(m_pkey, key,
+                   OSSL_KEYMGMT_SELECT_PUBLIC_KEY | OSSL_KEYMGMT_SELECT_ALL_PARAMETERS))
+        return openssl_error();
 
     m_keyType = kKeyTypePublic;
 
