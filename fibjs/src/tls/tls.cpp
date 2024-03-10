@@ -7,6 +7,7 @@
 
 #include "crypto_util.h"
 #include "ifs/tls.h"
+#include "TLSSocket.h"
 
 namespace fibjs {
 
@@ -17,6 +18,13 @@ void init_tls()
     SSL_library_init();
     SSL_load_error_strings();
     OpenSSL_add_all_algorithms();
+}
+
+result_t tls_base::get_secureContext(obj_ptr<SecureContext_base>& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    retVal = isolate->m_ctx;
+    return 0;
 }
 
 result_t tls_base::connect(v8::Local<v8::Object> optionns, obj_ptr<TLSSocket_base>& retVal, AsyncEvent* ac)

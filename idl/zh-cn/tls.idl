@@ -23,6 +23,9 @@ module tls
      */
     static SecureContext createSecureContext(Object options);
 
+    /*! @brief 查询缺省 SecureContext */
+    static readonly SecureContext secureContext;
+
     /**/
     static TLSSocket connect(Object optionns) async;
 

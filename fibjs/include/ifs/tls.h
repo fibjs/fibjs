@@ -24,6 +24,7 @@ class tls_base : public object_base {
 public:
     // tls_base
     static result_t createSecureContext(v8::Local<v8::Object> options, obj_ptr<SecureContext_base>& retVal);
+    static result_t get_secureContext(obj_ptr<SecureContext_base>& retVal);
     static result_t connect(v8::Local<v8::Object> optionns, obj_ptr<TLSSocket_base>& retVal, AsyncEvent* ac);
     static result_t connect(exlib::string url, v8::Local<v8::Object> optionns, obj_ptr<TLSSocket_base>& retVal, AsyncEvent* ac);
     static result_t connect(int32_t port, v8::Local<v8::Object> optionns, obj_ptr<TLSSocket_base>& retVal, AsyncEvent* ac);
@@ -40,6 +41,7 @@ public:
 
 public:
     static void s_static_createSecureContext(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_secureContext(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_static_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -66,9 +68,13 @@ inline ClassInfo& tls_base::class_info()
         { "TLSSocket", TLSSocket_base::class_info }
     };
 
+    static ClassData::ClassProperty s_property[] = {
+        { "secureContext", s_static_get_secureContext, block_set, true }
+    };
+
     static ClassData s_cd = {
         "tls", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &object_base::class_info(),
         true
     };
@@ -88,6 +94,17 @@ inline void tls_base::s_static_createSecureContext(const v8::FunctionCallbackInf
     ARG(v8::Local<v8::Object>, 0);
 
     hr = createSecureContext(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void tls_base::s_static_get_secureContext(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<SecureContext_base> vr;
+
+    PROPERTY_ENTER();
+
+    hr = get_secureContext(vr);
 
     METHOD_RETURN();
 }

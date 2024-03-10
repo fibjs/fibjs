@@ -6,6 +6,9 @@
  *  
  */
 declare module 'tls' {
+    /**
+     * @description SSL/TLS 网络套接口对象，参见 TLSSocket 
+     */
     const TLSSocket: typeof Class_TLSSocket;
 
     /**
@@ -27,6 +30,11 @@ declare module 'tls' {
      *      
      */
     function createSecureContext(options: FIBJS.GeneralObject): Class_SecureContext;
+
+    /**
+     * @description 查询缺省 SecureContext 
+     */
+    const secureContext: Class_SecureContext;
 
     function connect(optionns: FIBJS.GeneralObject): Class_TLSSocket;
 
