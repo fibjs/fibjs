@@ -114,6 +114,7 @@ public:
         BIO_set_data(m_sock->m_bio, m_sock);
 
         SSL_set_bio(m_sock->m_tls, m_sock->m_bio, m_sock->m_bio);
+        BIO_up_ref(m_sock->m_bio);
 
         if (is_server)
             SSL_set_accept_state(m_sock->m_tls);
@@ -125,8 +126,8 @@ public:
 
     ~AsyncHandshake()
     {
-        m_sock->m_write_lock.unlock();
-        m_sock->m_read_lock.unlock();
+        m_sock->m_write_lock.unlock(this);
+        m_sock->m_read_lock.unlock(this);
     }
 
 public:
@@ -304,7 +305,7 @@ result_t TLSSocket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent
         ~AsyncRead()
         {
             m_sock->m_eof = 0;
-            m_sock->m_read_lock.unlock();
+            m_sock->m_read_lock.unlock(this);
         }
 
     public:
@@ -382,7 +383,7 @@ result_t TLSSocket::write(Buffer_base* data, AsyncEvent* ac)
 
         ~AsyncWrite()
         {
-            m_sock->m_write_lock.unlock();
+            m_sock->m_write_lock.unlock(this);
         }
 
     public:
@@ -453,7 +454,7 @@ result_t TLSSocket::close(AsyncEvent* ac)
 
         ~AsyncClose()
         {
-            m_sock->m_write_lock.unlock();
+            m_sock->m_write_lock.unlock(this);
         }
 
     public:
