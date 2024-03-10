@@ -132,7 +132,7 @@ result_t SecureContext::set_key(v8::Local<v8::Object> options)
     if (options->Has(context, isolate->NewString("key")).FromMaybe(false)) {
         hr = crypto_base::createPrivateKey(options, key);
         if (hr < 0)
-            return Runtime::setError("SecureContext: key must be a valid KeyObject.");
+            return hr;
     }
 
     if (key) {
