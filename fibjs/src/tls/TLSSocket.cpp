@@ -36,7 +36,6 @@ static const BIO_METHOD* s_method = []() {
             return (long)0;
         }
 
-        printf("BIO_meth_set_ctrl: %d, %ld, %p\n", cmd, num, ptr);
         return (long)0;
     });
     BIO_meth_set_create(method, [](BIO* bio) {
@@ -316,14 +315,19 @@ result_t TLSSocket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent
 
         ON_STATE(AsyncRead, read)
         {
+            if (n == CALL_RETURN_NULL)
+                return next(CALL_RETURN_NULL);
+
             char buf[1];
-            if (n == CALL_RETURN_NULL
-                || (m_bytes < 0 && (m_sock->m_in || SSL_peek(m_sock->m_tls, buf, 1) == 1)))
+            if (m_bytes < 0 && SSL_peek(m_sock->m_tls, buf, 1) == 1)
                 m_sock->m_eof = 1;
 
             int32_t size = SSL_read(m_sock->m_tls, m_data->data(), m_data->length());
             m_state = SSL_get_error(m_sock->m_tls, size);
             switch (m_state) {
+            case SSL_ERROR_SSL:
+                if (m_sock->m_in)
+                    return openssl_error();
             case SSL_ERROR_WANT_READ:
                 return m_sock->m_stream->read(0, m_sock->m_in, next(read));
             case SSL_ERROR_ZERO_RETURN:
@@ -336,8 +340,6 @@ result_t TLSSocket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent
                     outLog(console_base::C_NOTICE, clean_string((const char*)m_data->data(), m_data->length()));
 
                 return next();
-            case SSL_ERROR_SSL:
-                return openssl_error();
             }
 
             return Runtime::setError("read failed");
@@ -462,21 +464,15 @@ result_t TLSSocket::close(AsyncEvent* ac)
 
         ON_STATE(AsyncClose, write)
         {
-            if (m_state == SSL_ERROR_SSL)
-                return openssl_error();
-
-            if (m_state == SSL_ERROR_NONE)
+            m_sock->m_out.Release();
+            if (m_state != SSL_ERROR_WANT_WRITE)
                 return next();
 
-            m_sock->m_out.Release();
             m_state = SSL_get_error(m_sock->m_tls, SSL_shutdown(m_sock->m_tls));
             if (m_sock->m_out)
                 return m_sock->m_stream->write(m_sock->m_out, next(write));
 
-            if (m_state == SSL_ERROR_NONE || m_state == SSL_ERROR_WANT_READ)
-                return next();
-
-            return Runtime::setError("close failed");
+            return next();
         }
 
         result_t lock(exlib::Locker& l, AsyncState* pThis)
@@ -518,7 +514,10 @@ int TLSSocket::Write(const char* data, int len)
     }
 
     m_biolock.lock();
-    BIO_clear_flags(m_bio, BIO_FLAGS_WRITE);
+    BIO_clear_flags(m_bio,
+        BIO_test_flags(m_bio, BIO_FLAGS_READ)
+            ? BIO_FLAGS_WRITE
+            : BIO_FLAGS_WRITE | BIO_FLAGS_SHOULD_RETRY);
     m_biolock.unlock();
 
     m_out = new Buffer((const unsigned char*)data, len);
@@ -535,7 +534,10 @@ int TLSSocket::Read(char* out, int len)
     }
 
     m_biolock.lock();
-    BIO_clear_flags(m_bio, BIO_FLAGS_READ);
+    BIO_clear_flags(m_bio,
+        BIO_test_flags(m_bio, BIO_FLAGS_WRITE)
+            ? BIO_FLAGS_READ
+            : BIO_FLAGS_READ | BIO_FLAGS_SHOULD_RETRY);
     m_biolock.unlock();
 
     const unsigned char* data = m_in.As<Buffer>()->data();
