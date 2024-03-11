@@ -73,8 +73,7 @@ private:
 public:
     obj_ptr<Stream_base> m_stream;
     obj_ptr<SecureContext_base> m_ctx;
-    BIOPointer m_bio;
-    exlib::spinlock m_biolock;
+    BIO *m_bio_in, *m_bio_out;
     SSLPointer m_tls;
 
 public:

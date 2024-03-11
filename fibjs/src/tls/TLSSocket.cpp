@@ -110,11 +110,13 @@ public:
 
         m_sock->m_stream = socket;
 
-        m_sock->m_bio = BIO_new(s_method);
-        BIO_set_data(m_sock->m_bio, m_sock);
+        m_sock->m_bio_in = BIO_new(s_method);
+        BIO_set_data(m_sock->m_bio_in, m_sock);
 
-        SSL_set_bio(m_sock->m_tls, m_sock->m_bio, m_sock->m_bio);
-        BIO_up_ref(m_sock->m_bio);
+        m_sock->m_bio_out = BIO_new(s_method);
+        BIO_set_data(m_sock->m_bio_out, m_sock);
+
+        SSL_set_bio(m_sock->m_tls, m_sock->m_bio_in, m_sock->m_bio_out);
 
         if (is_server)
             SSL_set_accept_state(m_sock->m_tls);
@@ -507,19 +509,11 @@ result_t TLSSocket::copyTo(Stream_base* stm, int64_t bytes, int64_t& retVal, Asy
 
 int TLSSocket::Write(const char* data, int len)
 {
+    BIO_clear_retry_flags(m_bio_out);
     if (m_out) {
-        m_biolock.lock();
-        BIO_set_retry_write(m_bio);
-        m_biolock.unlock();
+        BIO_set_retry_write(m_bio_out);
         return 0;
     }
-
-    m_biolock.lock();
-    BIO_clear_flags(m_bio,
-        BIO_test_flags(m_bio, BIO_FLAGS_READ)
-            ? BIO_FLAGS_WRITE
-            : BIO_FLAGS_WRITE | BIO_FLAGS_SHOULD_RETRY);
-    m_biolock.unlock();
 
     m_out = new Buffer((const unsigned char*)data, len);
     return len;
@@ -527,19 +521,11 @@ int TLSSocket::Write(const char* data, int len)
 
 int TLSSocket::Read(char* out, int len)
 {
+    BIO_clear_retry_flags(m_bio_in);
     if (!m_in) {
-        m_biolock.lock();
-        BIO_set_retry_read(m_bio);
-        m_biolock.unlock();
+        BIO_set_retry_read(m_bio_in);
         return 0;
     }
-
-    m_biolock.lock();
-    BIO_clear_flags(m_bio,
-        BIO_test_flags(m_bio, BIO_FLAGS_WRITE)
-            ? BIO_FLAGS_READ
-            : BIO_FLAGS_READ | BIO_FLAGS_SHOULD_RETRY);
-    m_biolock.unlock();
 
     const unsigned char* data = m_in.As<Buffer>()->data();
     int n = m_in.As<Buffer>()->length();
