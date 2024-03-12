@@ -1175,7 +1175,7 @@ describe('path', () => {
                 path.toNamespacedPath('\\\\.\\pipe\\somepipe'));
         }
 
-        assert.strictEqual(path.toNamespacedPath(null), null);
+        assert.strictEqual(path.toNamespacedPath(null), undefined);
         assert.strictEqual(path.toNamespacedPath(100), 100);
         assert.strictEqual(path.toNamespacedPath(path), path);
         assert.strictEqual(path.toNamespacedPath(false), false);
@@ -1184,7 +1184,7 @@ describe('path', () => {
         const emptyObj = {};
         assert.strictEqual(path.posix.toNamespacedPath('/foo/bar'), '/foo/bar');
         assert.strictEqual(path.posix.toNamespacedPath('foo/bar'), 'foo/bar');
-        assert.strictEqual(path.posix.toNamespacedPath(null), null);
+        assert.strictEqual(path.posix.toNamespacedPath(null), undefined);
         assert.strictEqual(path.posix.toNamespacedPath(true), true);
         assert.strictEqual(path.posix.toNamespacedPath(1), 1);
         assert.strictEqual(path.posix.toNamespacedPath(), undefined);
@@ -1210,7 +1210,7 @@ describe('path', () => {
         assert.strictEqual(path.win32.toNamespacedPath('//foo//bar'),
             '\\\\?\\UNC\\foo\\bar\\');
         assert.strictEqual(path.win32.toNamespacedPath('\\\\?\\foo'), '\\\\?\\foo');
-        assert.strictEqual(path.win32.toNamespacedPath(null), null);
+        assert.strictEqual(path.win32.toNamespacedPath(null), undefined);
         assert.strictEqual(path.win32.toNamespacedPath(true), true);
         assert.strictEqual(path.win32.toNamespacedPath(1), 1);
         assert.strictEqual(path.win32.toNamespacedPath(), undefined);

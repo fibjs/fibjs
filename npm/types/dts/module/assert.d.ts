@@ -32,7 +32,7 @@ declare module 'assert' {
      *      @param msg 断言失败时的提示信息
      *      
      */
-    function ok(actual?: any, msg?: string): void;
+    function ok(actual: any, msg?: string): void;
 
     /**
      * @description 测试数值为假，为真则断言失败
@@ -40,7 +40,7 @@ declare module 'assert' {
      *      @param msg 断言失败时的提示信息
      *      
      */
-    function notOk(actual?: any, msg?: string): void;
+    function notOk(actual: any, msg?: string): void;
 
     /**
      * @description 测试数值等于预期值，不相等则断言失败
@@ -49,7 +49,7 @@ declare module 'assert' {
      *      @param msg 断言失败时的提示信息
      *      
      */
-    function equal(actual?: any, expected?: any, msg?: string): void;
+    function equal(actual: any, expected: any, msg?: string): void;
 
     /**
      * @description 测试数值不等于预期值，相等则断言失败
@@ -58,7 +58,7 @@ declare module 'assert' {
      *      @param msg 断言失败时的提示信息
      *      
      */
-    function notEqual(actual?: any, expected?: any, msg?: string): void;
+    function notEqual(actual: any, expected: any, msg?: string): void;
 
     /**
      * @description 测试数值严格等于预期值，不相等则断言失败
@@ -67,7 +67,7 @@ declare module 'assert' {
      *      @param msg 断言失败时的提示信息
      *      
      */
-    function strictEqual(actual?: any, expected?: any, msg?: string): void;
+    function strictEqual(actual: any, expected: any, msg?: string): void;
 
     /**
      * @description 测试数值不严格等于预期值，相等则断言失败
@@ -76,7 +76,7 @@ declare module 'assert' {
      *      @param msg 断言失败时的提示信息
      *      
      */
-    function notStrictEqual(actual?: any, expected?: any, msg?: string): void;
+    function notStrictEqual(actual: any, expected: any, msg?: string): void;
 
     /**
      * @description 测试数值深度等于预期值，不相等则断言失败
@@ -85,7 +85,7 @@ declare module 'assert' {
      *      @param msg 断言失败时的提示信息
      *      
      */
-    function deepEqual(actual?: any, expected?: any, msg?: string): void;
+    function deepEqual(actual: any, expected: any, msg?: string): void;
 
     /**
      * @description 测试数值不深度等于预期值，相等则断言失败
@@ -94,7 +94,7 @@ declare module 'assert' {
      *      @param msg 断言失败时的提示信息
      *      
      */
-    function notDeepEqual(actual?: any, expected?: any, msg?: string): void;
+    function notDeepEqual(actual: any, expected: any, msg?: string): void;
 
     /**
      * @description 测试数值近似等于预期值，否则断言失败
