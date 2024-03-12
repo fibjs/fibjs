@@ -200,12 +200,12 @@ result_t KeyObject::ExportPublicKey(v8::Local<v8::Object> options, v8::Local<v8:
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
 
-    exlib::string type;
+    exlib::string type = "spki";
     hr = GetConfigValue(isolate, options, "type", type, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    exlib::string format;
+    exlib::string format = "pem";
     GetConfigValue(isolate, options, "format", format, true);
 
     BIOPointer bio(BIO_new(BIO_s_mem()));

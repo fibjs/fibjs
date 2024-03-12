@@ -137,7 +137,7 @@ result_t KeyObject::ParsePrivateKey(v8::Local<v8::Object> key)
                 if (p8inf)
                     m_pkey = EVP_PKCS82PKEY(p8inf);
             }
-        } else if (type == "spki")
+        } else if (type == "sec1")
             m_pkey = d2i_PrivateKey(EVP_PKEY_EC, nullptr, &p, _key->length());
         else
             return Runtime::setError("Invalid type");
@@ -158,12 +158,12 @@ result_t KeyObject::ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
 
-    exlib::string type;
+    exlib::string type = "pkcs8";
     hr = GetConfigValue(isolate, options, "type", type, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    exlib::string format;
+    exlib::string format = "pem";
     GetConfigValue(isolate, options, "format", format, true);
 
     exlib::string name;
@@ -220,7 +220,7 @@ result_t KeyObject::ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8
                 cipher ? pass_buf->length() : 0, nullptr, nullptr);
         } else
             return Runtime::setError("Invalid format");
-    } else if (type == "spki") {
+    } else if (type == "sec1") {
         int nid = EVP_PKEY_id(m_pkey);
         if (nid != EVP_PKEY_EC && nid != EVP_PKEY_SM2)
             return Runtime::setError("spki only support EC and SM2 key");

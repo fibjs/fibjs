@@ -534,6 +534,16 @@ describe('crypto', () => {
 
                 assert(Buffer.isBuffer(publicDER));
                 assert(Buffer.isBuffer(privateDER));
+
+                assert.equal(publicKey.export(), publicKey.export({
+                    format: 'pem',
+                    type: 'spki'
+                }));
+
+                assert.equal(privateKey.export(), privateKey.export({
+                    format: 'pem',
+                    type: 'pkcs8'
+                }));
             });
 
             describe('suite', () => {
