@@ -306,7 +306,6 @@ result_t TLSSocket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent
 
         ~AsyncRead()
         {
-            m_sock->m_eof = 0;
             m_sock->m_read_lock.unlock(this);
         }
 
@@ -319,33 +318,30 @@ result_t TLSSocket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent
         ON_STATE(AsyncRead, read)
         {
             if (n == CALL_RETURN_NULL)
-                return next(CALL_RETURN_NULL);
-
-            char buf[1];
-            if (m_bytes < 0 && SSL_peek(m_sock->m_tls, buf, 1) == 1)
                 m_sock->m_eof = 1;
 
-            int32_t size = SSL_read(m_sock->m_tls, m_data->data(), m_data->length());
-            m_state = SSL_get_error(m_sock->m_tls, size);
-            switch (m_state) {
-            case SSL_ERROR_SSL:
-                if (m_sock->m_in)
+            if (!m_sock->m_eof) {
+                int32_t size = SSL_read(m_sock->m_tls, m_data->data() + m_pos, m_data->length() - m_pos);
+                if (size < 0 && m_sock->m_in)
                     return openssl_error();
-            case SSL_ERROR_WANT_READ:
-                return m_sock->m_stream->read(0, m_sock->m_in, next(read));
-            case SSL_ERROR_ZERO_RETURN:
-                return next(CALL_RETURN_NULL);
-            case SSL_ERROR_NONE:
-                m_data->resize(size);
-                m_retVal = m_data;
 
-                if (g_ssldump)
-                    outLog(console_base::C_NOTICE, clean_string((const char*)m_data->data(), m_data->length()));
-
-                return next();
+                if (size > 0)
+                    m_pos += size;
+                if ((size <= 0 && SSL_get_error(m_sock->m_tls, size) != SSL_ERROR_ZERO_RETURN)
+                    || (m_bytes > 0 && size > 0 && m_pos < m_bytes))
+                    return m_sock->m_in ? next(read) : m_sock->m_stream->read(0, m_sock->m_in, next(read));
             }
 
-            return Runtime::setError("read failed");
+            if (m_pos == 0)
+                return next(CALL_RETURN_NULL);
+
+            m_data->resize(m_pos);
+            m_retVal = m_data;
+
+            if (g_ssldump)
+                outLog(console_base::C_NOTICE, clean_string((const char*)m_data->data(), m_data->length()));
+
+            return next();
         }
 
         result_t lock(exlib::Locker& l, AsyncState* pThis)
@@ -358,7 +354,7 @@ result_t TLSSocket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent
         int32_t m_bytes;
         obj_ptr<Buffer_base>& m_retVal;
         obj_ptr<Buffer> m_data;
-        int32_t m_state = SSL_ERROR_WANT_WRITE;
+        int32_t m_pos = 0;
     };
 
     result_t hr = is_ready();
