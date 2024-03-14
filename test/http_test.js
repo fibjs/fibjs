@@ -12,6 +12,7 @@ var zip = require('zip');
 var coroutine = require("coroutine");
 var path = require("path");
 
+var tls = require("tls");
 var ssl = require("ssl");
 var crypto = require("crypto");
 
@@ -21,14 +22,37 @@ const {
 
 var base_port = coroutine.vmid * 10000;
 
-var pk = crypto.generateKey();
-
-var crt = new crypto.X509Req("CN=localhost", pk).sign("CN=baoz.me", pk);
-var ca = new crypto.X509Req("CN=baoz.me", pk).sign("CN=baoz.me", pk, {
-    ca: true
+var pk = crypto.generateKeyPair('rsa', {
+    modulusLength: 2048
+});
+var pk1 = crypto.generateKeyPair('rsa', {
+    modulusLength: 2048
 });
 
-var ca_pem = ca.pem();
+var ca = crypto.createCertificateRequest({
+    key: pk.privateKey,
+    subject: {
+        CN: "fibjs.org"
+    }
+}).issue({
+    key: pk.privateKey,
+    ca: true,
+    issuer: {
+        CN: "fibjs.org"
+    }
+});
+
+var crt = crypto.createCertificateRequest({
+    key: pk1.privateKey,
+    subject: {
+        CN: "localhost"
+    }
+}).issue({
+    key: pk.privateKey,
+    issuer: {
+        CN: "fibjs.org"
+    }
+});
 
 function Step() {
     this.step = 0;
@@ -2110,11 +2134,15 @@ describe("http", () => {
 
         before(() => {
             hc = new http.Client({
-                ca: ca_pem,
+                ca: ca,
                 enableCookie: true
             });
 
-            svr = new http.HttpsServer(crt, pk, 8883 + base_port, (r) => {
+            svr = new http.HttpsServer({
+                cert: crt,
+                key: pk1.privateKey,
+                port: 8883 + base_port
+            }, (r) => {
                 cookie_for['_'] = r.headers.cookie;
 
                 set_header_for_head_req(r, cookie_for);
@@ -2138,10 +2166,6 @@ describe("http", () => {
             svr.start();
 
             test_util.push(svr.socket);
-        });
-
-        after(() => {
-            ssl.ca.clear();
         });
 
         describe("request", () => {
@@ -2774,8 +2798,10 @@ describe("http", () => {
         var svr;
 
         before(() => {
-            ssl.ca.import(ca_pem);
-            var sslhdr = new ssl.Handler(crt, pk, new http.Handler((r) => {
+            var sslhdr = new tls.Handler({
+                cert: crt.pem,
+                key: pk1.privateKey.export()
+            }, new http.Handler((r) => {
                 r.response.write('https: ' + (r.stream.stream.stream.test || '') + r.address);
             }));
 
@@ -2803,17 +2829,13 @@ describe("http", () => {
             test_util.push(svr.socket);
         });
 
-        after(() => {
-            ssl.ca.clear();
-        });
-
         function test_proxy(hc, url) {
             return hc.get(url).data.toString();
         }
 
         it('basic request', () => {
             var hc = new http.Client({
-                ca: ca_pem
+                ca: ca
             });
             hc.http_proxy = 'http://127.0.0.1:' + (8886 + base_port);
 
@@ -2832,7 +2854,7 @@ describe("http", () => {
 
         it('use http connection to connect https server', () => {
             var hc = new http.Client({
-                ca: ca_pem
+                ca: ca
             });
             hc.http_proxy = 'http://127.0.0.1:' + (8886 + base_port);
 
@@ -2850,17 +2872,9 @@ describe("http", () => {
     describe("verification", () => {
         var hc;
 
-        beforeEach(() => {
-            ssl.ca.loadRootCerts();
-        });
-
-        afterEach(() => {
-            ssl.ca.clear();
-        });
-
         it("request https error by default", () => {
             hc = new http.Client({
-                ca: ca_pem
+                ca: ca
             });
 
             assert.throws(() => {
@@ -2870,7 +2884,7 @@ describe("http", () => {
 
         it("requestCert: false", () => {
             hc = new http.Client({
-                ca: ca_pem,
+                ca: ca,
                 requestCert: false
             });
 

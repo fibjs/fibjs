@@ -30,6 +30,7 @@ public:
     static result_t _new(v8::Local<v8::Object> options, bool isServer, obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t connect(Stream_base* socket, exlib::string server_name, AsyncEvent* ac) = 0;
     virtual result_t accept(Stream_base* socket, AsyncEvent* ac) = 0;
+    virtual result_t get_stream(obj_ptr<Stream_base>& retVal) = 0;
     virtual result_t getProtocol(exlib::string& retVal) = 0;
     virtual result_t getX509Certificate(obj_ptr<X509Certificate_base>& retVal) = 0;
     virtual result_t getPeerX509Certificate(obj_ptr<X509Certificate_base>& retVal) = 0;
@@ -47,6 +48,7 @@ public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_accept(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_stream(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_getProtocol(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getX509Certificate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getPeerX509Certificate(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -79,6 +81,7 @@ inline ClassInfo& TLSSocket_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
+        { "stream", s_get_stream, block_set, false },
         { "secureContext", s_get_secureContext, block_set, false },
         { "remoteAddress", s_get_remoteAddress, block_set, false },
         { "remotePort", s_get_remotePort, block_set, false },
@@ -163,6 +166,18 @@ inline void TLSSocket_base::s_accept(const v8::FunctionCallbackInfo<v8::Value>& 
         hr = pInst->ac_accept(v0);
 
     METHOD_VOID();
+}
+
+inline void TLSSocket_base::s_get_stream(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Stream_base> vr;
+
+    METHOD_INSTANCE(TLSSocket_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_stream(vr);
+
+    METHOD_RETURN();
 }
 
 inline void TLSSocket_base::s_getProtocol(const v8::FunctionCallbackInfo<v8::Value>& args)
