@@ -9,50 +9,11 @@
 
 #include "ifs/Cipher.h"
 #include "StringDecoder.h"
-#include <mbedtls/mbedtls/cipher.h>
 #include "crypto_util.h"
 
 namespace fibjs {
 
 class Cipher : public Cipher_base {
-public:
-    Cipher(const mbedtls_cipher_info_t* ci);
-    ~Cipher();
-
-public:
-    // Cipher_base
-    virtual result_t get_name(exlib::string& retVal);
-    virtual result_t get_keySize(int32_t& retVal);
-    virtual result_t get_ivSize(int32_t& retVal);
-    virtual result_t get_blockSize(int32_t& retVal);
-    virtual result_t paddingMode(int32_t mode);
-    virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t setAuthTag(Buffer_base* buffer, exlib::string encoding, obj_ptr<Cipher_base>& retVal);
-    virtual result_t setAuthTag(exlib::string buffer, exlib::string encoding, obj_ptr<Cipher_base>& retVal);
-    virtual result_t getAuthTag(obj_ptr<Buffer_base>& retVal);
-    virtual result_t setAAD(Buffer_base* buffer, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
-    virtual result_t setAAD(exlib::string buffer, v8::Local<v8::Object> options, obj_ptr<Cipher_base>& retVal);
-    virtual result_t setAutoPadding(bool autoPadding, obj_ptr<Cipher_base>& retVal);
-    virtual result_t update(Buffer_base* data, exlib::string inputEncoding, exlib::string outputEncoding, v8::Local<v8::Value>& retVal);
-    virtual result_t update(exlib::string data, exlib::string inputEncoding, exlib::string outputEncoding, v8::Local<v8::Value>& retVal);
-    virtual result_t final(exlib::string outputEncoding, v8::Local<v8::Value>& retVal);
-
-public:
-    result_t init(exlib::string& key, exlib::string& iv);
-
-private:
-    void reset();
-    result_t process(const mbedtls_operation_t operation, Buffer_base* data, obj_ptr<Buffer_base>& retVal);
-
-private:
-    const mbedtls_cipher_info_t* m_info;
-    mbedtls_cipher_context_t m_ctx;
-    exlib::string m_key;
-    exlib::string m_iv;
-};
-
-class CipherX : public Cipher_base {
 public:
     enum CipherKind {
         kCipher,
@@ -69,20 +30,13 @@ public:
     static const unsigned kNoAuthTagLength = static_cast<unsigned>(-1);
 
 public:
-    CipherX(CipherKind kind)
+    Cipher(CipherKind kind)
         : kind_(kind)
     {
     }
 
 public:
     // Cipher_base
-    virtual result_t get_name(exlib::string& retVal);
-    virtual result_t get_keySize(int32_t& retVal);
-    virtual result_t get_ivSize(int32_t& retVal);
-    virtual result_t get_blockSize(int32_t& retVal);
-    virtual result_t paddingMode(int32_t mode);
-    virtual result_t encrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    virtual result_t decrypt(Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t setAuthTag(Buffer_base* buffer, exlib::string encoding, obj_ptr<Cipher_base>& retVal);
     virtual result_t setAuthTag(exlib::string buffer, exlib::string encoding, obj_ptr<Cipher_base>& retVal);
     virtual result_t getAuthTag(obj_ptr<Buffer_base>& retVal);

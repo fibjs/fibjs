@@ -16,13 +16,13 @@
 namespace fibjs {
 
 class crypto_constants_base;
-class Cipher_base;
 class PKey_base;
 class ECKey_base;
 class BlsKey_base;
 class X509Certificate_base;
 class Digest_base;
 class Buffer_base;
+class Cipher_base;
 class KeyObject_base;
 class Sign_base;
 class Verify_base;
@@ -30,33 +30,6 @@ class X509CertificateRequest_base;
 
 class crypto_base : public object_base {
     DECLARE_CLASS(crypto_base);
-
-public:
-    enum {
-        C_AES = 1,
-        C_DES = 2,
-        C_DES_EDE3 = 3,
-        C_CAMELLIA = 4,
-        C_ARIA = 5,
-        C_CHACHA20 = 6,
-        C_SM4 = 7,
-        C_ECB = 1,
-        C_CBC = 2,
-        C_CFB64 = 3,
-        C_CFB128 = 4,
-        C_OFB = 5,
-        C_CTR = 6,
-        C_GCM = 7,
-        C_STREAM = 8,
-        C_CCM = 9,
-        C_XTS = 10,
-        C_POLY1305 = 11,
-        C_PKCS7 = 0,
-        C_ONE_AND_ZEROS = 1,
-        C_ZEROS_AND_LEN = 2,
-        C_ZEROS = 3,
-        C_NOPADDING = 4
-    };
 
 public:
     class GenerateKeyPairType : public NType {
@@ -181,13 +154,13 @@ public:
 }
 
 #include "ifs/crypto_constants.h"
-#include "ifs/Cipher.h"
 #include "ifs/PKey.h"
 #include "ifs/ECKey.h"
 #include "ifs/BlsKey.h"
 #include "ifs/X509Certificate.h"
 #include "ifs/Digest.h"
 #include "ifs/Buffer.h"
+#include "ifs/Cipher.h"
 #include "ifs/KeyObject.h"
 #include "ifs/Sign.h"
 #include "ifs/Verify.h"
@@ -235,42 +208,15 @@ inline ClassInfo& crypto_base::class_info()
 
     static ClassData::ClassObject s_object[] = {
         { "constants", crypto_constants_base::class_info },
-        { "Cipher", Cipher_base::class_info },
         { "PKey", PKey_base::class_info },
         { "ECKey", ECKey_base::class_info },
         { "BlsKey", BlsKey_base::class_info },
         { "X509Certificate", X509Certificate_base::class_info }
     };
 
-    static ClassData::ClassConst s_const[] = {
-        { "AES", C_AES },
-        { "DES", C_DES },
-        { "DES_EDE3", C_DES_EDE3 },
-        { "CAMELLIA", C_CAMELLIA },
-        { "ARIA", C_ARIA },
-        { "CHACHA20", C_CHACHA20 },
-        { "SM4", C_SM4 },
-        { "ECB", C_ECB },
-        { "CBC", C_CBC },
-        { "CFB64", C_CFB64 },
-        { "CFB128", C_CFB128 },
-        { "OFB", C_OFB },
-        { "CTR", C_CTR },
-        { "GCM", C_GCM },
-        { "STREAM", C_STREAM },
-        { "CCM", C_CCM },
-        { "XTS", C_XTS },
-        { "POLY1305", C_POLY1305 },
-        { "PKCS7", C_PKCS7 },
-        { "ONE_AND_ZEROS", C_ONE_AND_ZEROS },
-        { "ZEROS_AND_LEN", C_ZEROS_AND_LEN },
-        { "ZEROS", C_ZEROS },
-        { "NOPADDING", C_NOPADDING }
-    };
-
     static ClassData s_cd = {
         "crypto", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, ARRAYSIZE(s_const), s_const, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, 0, NULL, NULL, NULL,
         &object_base::class_info(),
         true
     };

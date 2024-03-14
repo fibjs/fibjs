@@ -1942,52 +1942,6 @@ describe('crypto', () => {
     });
 
     describe('Cipher', () => {
-        function test_cipher(provider, file) {
-            it(file, () => {
-                var cases = encoding.json.decode(fs.readTextFile(path.join(__dirname, "crypto_case", file + ".json")));
-
-                cases.forEach((item) => {
-                    var c;
-                    var mode = crypto[item[2]];
-
-                    if (item.length == 7)
-                        c = new crypto.Cipher(provider, mode,
-                            hex.decode(item[3]), hex.decode(item[6]));
-                    else if (item.length == 6)
-                        c = new crypto.Cipher(provider, mode,
-                            hex.decode(item[3]));
-
-                    if (mode == crypto.CBC)
-                        c.paddingMode(crypto.NOPADDING);
-                    assert.equal(c[item[1]](hex.decode(item[4])).hex(), item[5]);
-                });
-
-            });
-        }
-
-        describe('AES', () => {
-            test_cipher(crypto.AES, "aes.cbc");
-            test_cipher(crypto.AES, "aes.cfb");
-            test_cipher(crypto.AES, "aes.ecb");
-            // test_cipher(crypto.AES, "aes.xts");
-        });
-
-        test_cipher(crypto.DES, "des");
-        test_cipher(crypto.DES_EDE3, "des_ede3");
-        test_cipher(crypto.CAMELLIA, "camellia");
-        test_cipher(crypto.SM4, "sm4");
-
-        // test_cipher(crypto.ARIA, "aria");
-
-        it('DES bug fix', () => {
-            let passwd = "vio7t449";
-            let key = "5KLPqC7pAUUfL";
-            let cipher = new crypto.Cipher(crypto.DES, crypto.CBC, new Buffer(passwd));
-            let encrypted = cipher.encrypt(new Buffer(key)).hex();
-
-            assert.equal(key, cipher.decrypt(new Buffer(encrypted, "hex")).toString("utf8"));
-        });
-
         describe("cipher/decipher", () => {
             it("normal", () => {
                 function testCipher1(key) {

@@ -1,183 +1,24 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../module/crypto_constants.d.ts" />
-/// <reference path="../interface/Cipher.d.ts" />
 /// <reference path="../interface/PKey.d.ts" />
 /// <reference path="../interface/ECKey.d.ts" />
 /// <reference path="../interface/BlsKey.d.ts" />
 /// <reference path="../interface/X509Certificate.d.ts" />
 /// <reference path="../interface/Digest.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
+/// <reference path="../interface/Cipher.d.ts" />
 /// <reference path="../interface/KeyObject.d.ts" />
 /// <reference path="../interface/Sign.d.ts" />
 /// <reference path="../interface/Verify.d.ts" />
 /// <reference path="../interface/X509CertificateRequest.d.ts" />
 /**
- * @description `crypto` 模块是 `fibjs` 内置的加密算法模块。它提供了对称加密、非对称加密、摘要算法、密码学随机数生成器等功能。在使用之前，需要通过 `require('crypto')` 加载该模块。
- * 
- * 在 `crypto` 模块中，有很多对象可以使用，比如: 
- * 
- * - `Cipher`: 用于实现对称加密的对象
- * - `Digest`: 用于实现摘要算法的对象
- * 
- * 在使用加密算法之前，需要先创建一个密钥对象，比如以下创建一个 `AES` 密钥对象的示例: 
- * 
- * ```javascript
- * const crypto = require('crypto');
- * const key = crypto.randomBytes(16); // generate a 16-byte random key
- * ```
- * 
- * 接下来，使用 `Cipher` 对象来对明文进行加密: 
- * 
- * ```javascript
- * const c = new crypto.Cipher(crypto.AES, crypto.ECB, key);
- * const data = 'hello, world';
- * const encrypted = c.encrypt(data).hex();
- * console.log(encrypted); // output encrypted data
- * ```
- * 
- * 以上示例中，创建了一个 `AES` 加密的 `Cipher` 对象，使用 `encrypt` 方法对明文进行加密，并返回加密结果。
- * 
- * 除了对称加密算法，`crypto` 模块还可以支持非对称加密算法和摘要算法。比如以下示例是使用 `PKey` 和 `Digest` 对象实现 SHA256 加密的代码: 
- * 
- * ```javascript
- * const privateKey = crypto.loadPKey('private.pem'); // read private key from file
- * const data = 'hello, world';
- * const digest = new crypto.Digest(hash.SHA256);
- * digest.update(data);
- * const signature = privateKey.sign(digest.digest());
- * console.log(signature); // output signature
- * ```
- * 
- * 在以上示例中，首先读取了一个私钥文件，并准备了输入数据。然后，创建了一个 SHA256 的 `Digest` 对象，使用 `update` 方法把数据加入到 Hash 计算中。在计算完成后，使用 `privateKey.sign` 方法进行签名，并输出签名结果。
- * 
- * 综上所述，`crypto` 模块提供了多种加密算法、摘要算法以及相关对象，这些功能可以帮助我们实现多方面的安全需求，比如对称和非对称加密、数字签名和加密验证等。
- *  
+ * @description `crypto` 模块是 `fibjs` 内置的加密算法模块。它提供了对称加密、非对称加密、摘要算法、密码学随机数生成器等功能。在使用之前，需要通过 `require('crypto')` 加载该模块 
  */
 declare module 'crypto' {
-    /**
-     * @description 指定对称加密算法 AES，支持 128, 192, 256 位 key，分组密码工作模式支持 ECB, CBC, CFB128, CTR, GCM，CCM，XTS 
-     */
-    export const AES: 1;
-
-    /**
-     * @description 指定对称加密算法 DES，支持 64 位 key，分组密码工作模式支持 ECB, CBC 
-     */
-    export const DES: 2;
-
-    /**
-     * @description 指定对称加密算法 DES-EDE3，支持 192 位 key，分组密码工作模式支持 ECB, CBC 
-     */
-    export const DES_EDE3: 3;
-
-    /**
-     * @description 指定对称加密算法 CAMELLIA，支持 128, 192, 256 位 key，分组密码工作模式支持 ECB, CBC, CFB128, CTR, GCM，CCM 
-     */
-    export const CAMELLIA: 4;
-
-    /**
-     * @description 指定对称加密算法 ARIA，支持 128, 192, 256 位 key，分组密码工作模式支持 ECB, CBC, CFB128, CTR, GCM，CCM 
-     */
-    export const ARIA: 5;
-
-    /**
-     * @description 指定对称加密算法 CHACHA20，支持 256 位 key，分组密码工作模式支持 POLY1305 
-     */
-    export const CHACHA20: 6;
-
-    /**
-     * @description 指定对称加密算法 SM4, 分组密码工作模式支持 ECB, CBC 
-     */
-    export const SM4: 7;
-
-    /**
-     * @description 指定分组密码工作模式支持 ECB 
-     */
-    export const ECB: 1;
-
-    /**
-     * @description 指定分组密码工作模式支持 CBC 
-     */
-    export const CBC: 2;
-
-    /**
-     * @description 指定分组密码工作模式支持 CFB64 
-     */
-    export const CFB64: 3;
-
-    /**
-     * @description 指定分组密码工作模式支持 CFB128 
-     */
-    export const CFB128: 4;
-
-    /**
-     * @description 指定分组密码工作模式支持 OFB 
-     */
-    export const OFB: 5;
-
-    /**
-     * @description 指定分组密码工作模式支持 CTR 
-     */
-    export const CTR: 6;
-
-    /**
-     * @description 指定分组密码工作模式支持 GCM 
-     */
-    export const GCM: 7;
-
-    /**
-     * @description 指定流密码模式 
-     */
-    export const STREAM: 8;
-
-    /**
-     * @description 指定分组密码工作模式支持 CCM 
-     */
-    export const CCM: 9;
-
-    /**
-     * @description 指定分组密码工作模式支持 XTS 
-     */
-    export const XTS: 10;
-
-    /**
-     * @description 指定分组密码工作模式支持 POLY1305 
-     */
-    export const POLY1305: 11;
-
-    /**
-     * @description 指定填充模式为 PKCS7 
-     */
-    export const PKCS7: 0;
-
-    /**
-     * @description 指定填充模式为 ONE_AND_ZEROS 
-     */
-    export const ONE_AND_ZEROS: 1;
-
-    /**
-     * @description 指定填充模式为 ZEROS_AND_LEN 
-     */
-    export const ZEROS_AND_LEN: 2;
-
-    /**
-     * @description 指定填充模式为 ZEROS 
-     */
-    export const ZEROS: 3;
-
-    /**
-     * @description 指定填充模式为 NOPADDING 
-     */
-    export const NOPADDING: 4;
-
     /**
      * ! crypto 模块的常量对象，参见 crypto_constants 
      */
     const constants: typeof import ('crypto_constants');
-
-    /**
-     * @description Cipher 构造函数，参见 Cipher 
-     */
-    const Cipher: typeof Class_Cipher;
 
     /**
      * @description PKey 构造函数，参见 PKey 
