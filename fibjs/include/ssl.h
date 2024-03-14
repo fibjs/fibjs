@@ -15,7 +15,6 @@
 #include <mbedtls/mbedtls/platform.h>
 #include <mbedtls/mbedtls/ssl.h>
 #include <mbedtls/mbedtls/ssl_cache.h>
-#include "X509Cert.h"
 
 namespace fibjs {
 

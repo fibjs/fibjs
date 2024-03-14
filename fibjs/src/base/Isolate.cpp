@@ -12,7 +12,6 @@
 #include "Fiber.h"
 #include "ifs/profiler.h"
 #include "ifs/global.h"
-#include "X509Cert.h"
 #include "SecureContext.h"
 #include "HttpClient.h"
 #include "SandBox.h"
@@ -144,7 +143,6 @@ Isolate::Isolate(exlib::string jsFilename, exlib::string jsCode)
     , m_exitCode(0)
     , m_enable_FileSystem(true)
     , m_safe_buffer(false)
-    , m_ca(new X509Cert())
 {
     s_isolates.putTail(this);
 
@@ -177,8 +175,6 @@ Isolate::Isolate(exlib::string jsFilename, exlib::string jsCode)
 
     m_currentFibers++;
     m_idleFibers++;
-
-    m_ca->loadRootCerts();
 
     SecureContext* ctx = new SecureContext();
     ctx->SetRootCerts();

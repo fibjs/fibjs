@@ -2,8 +2,6 @@
 
 在 `crypto` 模块中，有很多对象可以使用，比如: 
 
-- `PKey`: 不对称加密算法对象
-- `X509Cert`: 用于操作 X.509 证书的对象
 - `Cipher`: 用于实现对称加密的对象
 - `Digest`: 用于实现摘要算法的对象
 
@@ -125,15 +123,6 @@ module crypto
 
     /*! @brief BlsKey 构造函数，参见 BlsKey */
     static BlsKey;
-
-    /*! @brief X509Cert 构造函数，参见 X509Cert */
-    static X509Cert;
-
-    /*! @brief X509Crl 构造函数，参见 X509Crl */
-    static X509Crl;
-
-    /*! @brief X509Req 构造函数，参见 X509Req */
-    static X509Req;
 
     /*! @brief X509Certificate 构造函数，参见 X509Certificate */
     static X509Certificate;
@@ -318,24 +307,6 @@ module crypto
      @return 返回证书请求对象
     */
     static X509CertificateRequest createCertificateRequest(Object options);
-
-    /*! @brief 加载一个 CRT/PEM/DER 格式的证书，可多次调用
-     @param filename 证书文件名
-     @return 返回包含证书的对象
-    */
-    deprecated static X509Cert loadCert(String filename);
-
-    /*! @brief 加载一个 PEM/DER 格式的撤销证书，可多次调用
-     @param filename 撤销证书文件名
-     @return 返回包含撤销证书的对象
-    */
-    deprecated static X509Crl loadCrl(String filename);
-
-    /*! @brief 加载一个 PEM/DER 格式的证书请求，可多次调用
-     @param filename 证书请求文件名
-     @return 返回包含请求证书的对象
-    */
-    deprecated static X509Req loadReq(String filename);
 
     /*! @brief 加载一个 CRT/PEM/DER 格式的非对称公钥或者私钥
      @param filename 公钥或者私钥文件名

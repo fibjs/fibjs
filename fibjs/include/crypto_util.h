@@ -18,6 +18,13 @@ extern "C" {
 
 namespace fibjs {
 
+struct EmbedCert {
+    int32_t size;
+    const char* data;
+};
+
+extern EmbedCert g_root_ca[];
+
 template <typename T, void (*deleter)(T*)>
 class AutoPointer {
 public:

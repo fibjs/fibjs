@@ -20,9 +20,6 @@ class Cipher_base;
 class PKey_base;
 class ECKey_base;
 class BlsKey_base;
-class X509Cert_base;
-class X509Crl_base;
-class X509Req_base;
 class X509Certificate_base;
 class Digest_base;
 class Buffer_base;
@@ -106,9 +103,6 @@ public:
     static result_t createSecretKey(exlib::string key, exlib::string encoding, obj_ptr<KeyObject_base>& retVal);
     static result_t createCertificateRequest(Buffer_base* csr, obj_ptr<X509CertificateRequest_base>& retVal);
     static result_t createCertificateRequest(v8::Local<v8::Object> options, obj_ptr<X509CertificateRequest_base>& retVal);
-    static result_t loadCert(exlib::string filename, obj_ptr<X509Cert_base>& retVal);
-    static result_t loadCrl(exlib::string filename, obj_ptr<X509Crl_base>& retVal);
-    static result_t loadReq(exlib::string filename, obj_ptr<X509Req_base>& retVal);
     static result_t loadPKey(exlib::string filename, obj_ptr<PKey_base>& retVal);
     static result_t randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t randomFill(Buffer_base* buffer, int32_t offset, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
@@ -161,9 +155,6 @@ public:
     static void s_static_createVerify(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createSecretKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createCertificateRequest(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_loadCert(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_loadCrl(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_loadReq(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_loadPKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_randomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_randomFill(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -194,9 +185,6 @@ public:
 #include "ifs/PKey.h"
 #include "ifs/ECKey.h"
 #include "ifs/BlsKey.h"
-#include "ifs/X509Cert.h"
-#include "ifs/X509Crl.h"
-#include "ifs/X509Req.h"
 #include "ifs/X509Certificate.h"
 #include "ifs/Digest.h"
 #include "ifs/Buffer.h"
@@ -224,9 +212,6 @@ inline ClassInfo& crypto_base::class_info()
         { "createVerify", s_static_createVerify, true, false },
         { "createSecretKey", s_static_createSecretKey, true, false },
         { "createCertificateRequest", s_static_createCertificateRequest, true, false },
-        { "loadCert", s_static_loadCert, true, false },
-        { "loadCrl", s_static_loadCrl, true, false },
-        { "loadReq", s_static_loadReq, true, false },
         { "loadPKey", s_static_loadPKey, true, false },
         { "randomBytes", s_static_randomBytes, true, true },
         { "randomBytesSync", s_static_randomBytes, true, false },
@@ -254,9 +239,6 @@ inline ClassInfo& crypto_base::class_info()
         { "PKey", PKey_base::class_info },
         { "ECKey", ECKey_base::class_info },
         { "BlsKey", BlsKey_base::class_info },
-        { "X509Cert", X509Cert_base::class_info },
-        { "X509Crl", X509Crl_base::class_info },
-        { "X509Req", X509Req_base::class_info },
         { "X509Certificate", X509Certificate_base::class_info }
     };
 
@@ -575,57 +557,6 @@ inline void crypto_base::s_static_createCertificateRequest(const v8::FunctionCal
     ARG(v8::Local<v8::Object>, 0);
 
     hr = createCertificateRequest(v0, vr);
-
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_static_loadCert(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<X509Cert_base> vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    DEPRECATED_SOON("crypto.loadCert");
-
-    hr = loadCert(v0, vr);
-
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_static_loadCrl(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<X509Crl_base> vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    DEPRECATED_SOON("crypto.loadCrl");
-
-    hr = loadCrl(v0, vr);
-
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_static_loadReq(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<X509Req_base> vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    DEPRECATED_SOON("crypto.loadReq");
-
-    hr = loadReq(v0, vr);
 
     METHOD_RETURN();
 }

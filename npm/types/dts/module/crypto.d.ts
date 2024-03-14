@@ -4,9 +4,6 @@
 /// <reference path="../interface/PKey.d.ts" />
 /// <reference path="../interface/ECKey.d.ts" />
 /// <reference path="../interface/BlsKey.d.ts" />
-/// <reference path="../interface/X509Cert.d.ts" />
-/// <reference path="../interface/X509Crl.d.ts" />
-/// <reference path="../interface/X509Req.d.ts" />
 /// <reference path="../interface/X509Certificate.d.ts" />
 /// <reference path="../interface/Digest.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
@@ -19,8 +16,6 @@
  * 
  * 在 `crypto` 模块中，有很多对象可以使用，比如: 
  * 
- * - `PKey`: 不对称加密算法对象
- * - `X509Cert`: 用于操作 X.509 证书的对象
  * - `Cipher`: 用于实现对称加密的对象
  * - `Digest`: 用于实现摘要算法的对象
  * 
@@ -198,21 +193,6 @@ declare module 'crypto' {
      * @description BlsKey 构造函数，参见 BlsKey 
      */
     const BlsKey: typeof Class_BlsKey;
-
-    /**
-     * @description X509Cert 构造函数，参见 X509Cert 
-     */
-    const X509Cert: typeof Class_X509Cert;
-
-    /**
-     * @description X509Crl 构造函数，参见 X509Crl 
-     */
-    const X509Crl: typeof Class_X509Crl;
-
-    /**
-     * @description X509Req 构造函数，参见 X509Req 
-     */
-    const X509Req: typeof Class_X509Req;
 
     /**
      * @description X509Certificate 构造函数，参见 X509Certificate 
@@ -443,30 +423,6 @@ declare module 'crypto' {
      *     
      */
     function createCertificateRequest(options: FIBJS.GeneralObject): Class_X509CertificateRequest;
-
-    /**
-     * @description 加载一个 CRT/PEM/DER 格式的证书，可多次调用
-     *      @param filename 证书文件名
-     *      @return 返回包含证书的对象
-     *     
-     */
-    function loadCert(filename: string): Class_X509Cert;
-
-    /**
-     * @description 加载一个 PEM/DER 格式的撤销证书，可多次调用
-     *      @param filename 撤销证书文件名
-     *      @return 返回包含撤销证书的对象
-     *     
-     */
-    function loadCrl(filename: string): Class_X509Crl;
-
-    /**
-     * @description 加载一个 PEM/DER 格式的证书请求，可多次调用
-     *      @param filename 证书请求文件名
-     *      @return 返回包含请求证书的对象
-     *     
-     */
-    function loadReq(filename: string): Class_X509Req;
 
     /**
      * @description 加载一个 CRT/PEM/DER 格式的非对称公钥或者私钥

@@ -5,12 +5,12 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "X509Cert.h"
+#include "crypto_util.h"
 
 namespace fibjs
 {
 
-X509Cert::_cert X509Cert::g_root_ca[] =
+EmbedCert g_root_ca[] =
 {
     {
         889,

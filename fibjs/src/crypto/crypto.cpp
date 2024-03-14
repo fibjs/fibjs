@@ -13,9 +13,6 @@
 #include "PKey.h"
 #include "ECKey.h"
 #include "PKey_rsa.h"
-#include "X509Cert.h"
-#include "X509Crl.h"
-#include "X509Req.h"
 #include "ssl.h"
 #include <time.h>
 #include <string.h>
@@ -23,21 +20,6 @@
 namespace fibjs {
 
 DECLARE_MODULE(crypto);
-
-result_t crypto_base::loadCert(exlib::string filename, obj_ptr<X509Cert_base>& retVal)
-{
-    return X509Cert::loadFile(filename, retVal);
-}
-
-result_t crypto_base::loadCrl(exlib::string filename, obj_ptr<X509Crl_base>& retVal)
-{
-    return X509Crl::loadFile(filename, retVal);
-}
-
-result_t crypto_base::loadReq(exlib::string filename, obj_ptr<X509Req_base>& retVal)
-{
-    return X509Req::loadFile(filename, retVal);
-}
 
 result_t crypto_base::loadPKey(exlib::string filename, obj_ptr<PKey_base>& retVal)
 {

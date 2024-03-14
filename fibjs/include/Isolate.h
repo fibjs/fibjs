@@ -36,7 +36,6 @@ class HttpClient;
 class LruCache;
 class Stream_base;
 class ValueHolder;
-class X509Cert_base;
 class SecureContext_base;
 class Worker_base;
 
@@ -307,7 +306,6 @@ public:
     bool m_enable_FileSystem;
     bool m_safe_buffer;
 
-    obj_ptr<X509Cert_base> m_ca;
     obj_ptr<SecureContext_base> m_ctx;
 
 public:

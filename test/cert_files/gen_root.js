@@ -2,7 +2,7 @@ var crypto = require("crypto");
 var fs = require("fs");
 var child_process = require("child_process");
 
-child_process.run('perl', ['mk-ca-bundle.pl']);
+// child_process.run('perl', ['mk-ca-bundle.pl']);
 
 var cert = new crypto.X509Certificate(fs.readFile('ca-bundle.crt'));
 var a = cert.pem.split('-----END CERTIFICATE-----');
@@ -33,12 +33,12 @@ var txts = ['/******************************************************************
     ' *                                                                         *',
     ' ***************************************************************************/',
     '',
-    '#include "X509Cert.h"',
+    '#include "crypto_util.h"',
     '',
     'namespace fibjs',
     '{',
     '',
-    'X509Cert::_cert X509Cert::g_root_ca[] =',
+    'EmbedCert g_root_ca[] =',
     '{',
     ''
 ];
