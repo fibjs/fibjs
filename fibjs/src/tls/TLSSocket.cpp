@@ -155,7 +155,7 @@ public:
         case SSL_ERROR_NONE:
             return next();
         case SSL_ERROR_WANT_READ:
-            return m_sock->m_stream->read(0, m_sock->m_in, next(read_ok));
+            return m_sock->m_stream->read(-1, m_sock->m_in, next(read_ok));
         case SSL_ERROR_WANT_WRITE:
             return next(handshake);
         case SSL_ERROR_SSL:
@@ -202,6 +202,12 @@ result_t TLSSocket::accept(Stream_base* socket, AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_NOSYNC);
 
     return (new AsyncHandshake(this, socket, true, "", ac))->post(0);
+}
+
+result_t TLSSocket::get_stream(obj_ptr<Stream_base>& retVal)
+{
+    retVal = m_stream;
+    return 0;
 }
 
 result_t TLSSocket::getProtocol(exlib::string& retVal)
@@ -334,7 +340,7 @@ result_t TLSSocket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent
                     m_pos += size;
                 if ((size <= 0 && SSL_get_error(m_sock->m_tls, size) != SSL_ERROR_ZERO_RETURN)
                     || (m_bytes > 0 && size > 0 && m_pos < m_bytes))
-                    return m_sock->m_in ? next(read) : m_sock->m_stream->read(0, m_sock->m_in, next(read));
+                    return m_sock->m_in ? next(read) : m_sock->m_stream->read(-1, m_sock->m_in, next(read));
             }
 
             if (m_pos == 0)

@@ -20,6 +20,7 @@ public:
     // TLSSocket_base
     virtual result_t connect(Stream_base* socket, exlib::string server_name, AsyncEvent* ac);
     virtual result_t accept(Stream_base* socket, AsyncEvent* ac);
+    virtual result_t get_stream(obj_ptr<Stream_base>& retVal);
     virtual result_t getProtocol(exlib::string& retVal);
     virtual result_t getX509Certificate(obj_ptr<X509Certificate_base>& retVal);
     virtual result_t getPeerX509Certificate(obj_ptr<X509Certificate_base>& retVal);

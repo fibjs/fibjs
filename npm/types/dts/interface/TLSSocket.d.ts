@@ -3,7 +3,7 @@
 /// <reference path="../interface/SecureContext.d.ts" />
 /// <reference path="../interface/X509Certificate.d.ts" />
 /**
- * @description SSL/TLS 网络套接口对象
+ * @description tls/ssl 网络套接口对象
  * 
  * TLSSocket 属于 tls 模块，创建方法
  *  ```JavaScript
@@ -33,7 +33,7 @@ declare class Class_TLSSocket extends Class_Stream {
     constructor(options: FIBJS.GeneralObject, isServer?: boolean);
 
     /**
-     * @description 在给定的连接上连接 SSL/TLS 连接，客户端模式
+     * @description 在给定的连接上连接 tls/ssl 连接，客户端模式
      *      @param socket 给定的底层连接
      *      @param server_name 服务端名称，用于验证服务端证书
      *     
@@ -43,7 +43,7 @@ declare class Class_TLSSocket extends Class_Stream {
     connect(socket: Class_Stream, server_name?: string, callback?: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 在给定的连接上连接 SSL/TLS 连接，服务端模式
+     * @description 在给定的连接上连接 tls/ssl 连接，服务端模式
      *      @param socket 给定的底层连接
      *     
      */
@@ -52,8 +52,13 @@ declare class Class_TLSSocket extends Class_Stream {
     accept(socket: Class_Stream, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 当前连接协商的 SSL/TLS 协议版本
-     *      @return 返回 SSL/TLS 协议版本
+     * @description 查询消息 tls/ssl 建立时的下层流对象 
+     */
+    readonly stream: Class_Stream;
+
+    /**
+     * @description 当前连接协商的 tls/ssl 协议版本
+     *      @return 返回 tls/ssl 协议版本
      *     
      */
     getProtocol(): string;

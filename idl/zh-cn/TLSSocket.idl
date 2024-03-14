@@ -1,4 +1,4 @@
-/*! @brief SSL/TLS 网络套接口对象
+/*! @brief tls/ssl 网络套接口对象
 
 TLSSocket 属于 tls 模块，创建方法
  ```JavaScript
@@ -21,19 +21,22 @@ interface TLSSocket : Stream
     */
     TLSSocket(Object options, Boolean isServer = false);
 
-    /*! @brief 在给定的连接上连接 SSL/TLS 连接，客户端模式
+    /*! @brief 在给定的连接上连接 tls/ssl 连接，客户端模式
      @param socket 给定的底层连接
      @param server_name 服务端名称，用于验证服务端证书
     */
     connect(Stream socket, String server_name = "") async;
 
-    /*! @brief 在给定的连接上连接 SSL/TLS 连接，服务端模式
+    /*! @brief 在给定的连接上连接 tls/ssl 连接，服务端模式
      @param socket 给定的底层连接
     */
     accept(Stream socket) async;
 
-    /*! @brief 当前连接协商的 SSL/TLS 协议版本
-     @return 返回 SSL/TLS 协议版本
+    /*! @brief 查询消息 tls/ssl 建立时的下层流对象 */
+    readonly Stream stream;
+
+    /*! @brief 当前连接协商的 tls/ssl 协议版本
+     @return 返回 tls/ssl 协议版本
     */
     String getProtocol();
 
