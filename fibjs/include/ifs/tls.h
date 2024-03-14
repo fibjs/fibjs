@@ -16,6 +16,8 @@
 namespace fibjs {
 
 class TLSSocket_base;
+class TLSHandler_base;
+class TLSServer_base;
 class SecureContext_base;
 class Stream_base;
 
@@ -53,6 +55,8 @@ public:
 }
 
 #include "ifs/TLSSocket.h"
+#include "ifs/TLSHandler.h"
+#include "ifs/TLSServer.h"
 #include "ifs/SecureContext.h"
 #include "ifs/Stream.h"
 
@@ -66,7 +70,9 @@ inline ClassInfo& tls_base::class_info()
     };
 
     static ClassData::ClassObject s_object[] = {
-        { "TLSSocket", TLSSocket_base::class_info }
+        { "TLSSocket", TLSSocket_base::class_info },
+        { "Handler", TLSHandler_base::class_info },
+        { "Server", TLSServer_base::class_info }
     };
 
     static ClassData::ClassProperty s_property[] = {

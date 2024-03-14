@@ -45,10 +45,20 @@ var crt = crypto.createCertificateRequest({
     }
 });
 
+function del(f) {
+    try {
+        fs.unlink(f);
+    } catch (e) { }
+}
+
 describe('tls', () => {
     const ctx = tls.createSecureContext({
         ca: ca
     });
+    const ctx_svr = tls.createSecureContext({
+        key: pk1.privateKey,
+        cert: crt
+    }, true);
 
     after(test_util.cleanup);
 
@@ -133,17 +143,12 @@ describe('tls', () => {
     });
 
     it("echo server", () => {
-        const ctx = tls.createSecureContext({
-            key: pk1.privateKey,
-            cert: crt
-        }, true);
-
         var svr = new net.TcpServer(9080 + base_port, (s) => {
             var ss;
             var buf;
 
             test_util.push(s);
-            var ss = new tls.TLSSocket(ctx);
+            var ss = new tls.TLSSocket(ctx_svr);
 
             try {
                 ss.accept(s);
@@ -318,6 +323,105 @@ describe('tls', () => {
                 tls.connect(`ssl://localhost:${9080 + base_port}`);
             });
         });
+    });
+
+    it("copyTo", () => {
+        var str = "012345678901234567890123456789";
+
+        for (var i = 0; i < 10; i++)
+            str = str + str;
+
+        var svr = new net.TcpServer(9082 + base_port, (s) => {
+            var ss = new tls.TLSSocket(ctx_svr);
+            ss.accept(s);
+
+            fs.writeFile(path.join(__dirname, 'net_temp_000001' + base_port), str);
+            var f = fs.openFile(path.join(__dirname, 'net_temp_000001' + base_port));
+            assert.equal(f.copyTo(ss), str.length);
+
+            f.close();
+            ss.close();
+            s.close();
+        });
+        test_util.push(svr.socket);
+        svr.start();
+
+        function t_conn() {
+            var c1 = new net.Socket();
+            c1.connect('127.0.0.1', 9082 + base_port);
+
+            var ss = new tls.TLSSocket(ctx);
+            ss.connect(c1);
+
+            var f1 = fs.openFile(path.join(__dirname, 'net_temp_000002' + base_port), 'w');
+            assert.equal(ss.copyTo(f1), str.length);
+
+            ss.close();
+            c1.close();
+            f1.close();
+
+            assert.equal(str, fs.readFile(path.join(__dirname, 'net_temp_000002' + base_port)));
+        }
+
+        for (var i = 0; i < 5; i++) {
+            str = str + str;
+            t_conn();
+        }
+
+        str = undefined;
+
+        del(path.join(__dirname, 'net_temp_000001' + base_port));
+        del(path.join(__dirname, 'net_temp_000002' + base_port));
+    });
+
+    it("Handler", () => {
+        var svr = new net.TcpServer(9083 + base_port, new tls.Handler(ctx_svr, (s) => {
+            var buf;
+
+            while (buf = s.read())
+                s.write(buf);
+        }));
+        test_util.push(svr.socket);
+        svr.start();
+
+        for (var i = 0; i < 10; i++) {
+            var s1 = new net.Socket();
+            s1.connect("127.0.0.1", 9083 + base_port);
+
+            var cs = new tls.TLSSocket(ctx);
+            cs.connect(s1);
+
+            cs.write("GET / HTTP/1.0");
+            assert.equal("GET / HTTP/1.0", cs.read());
+
+            cs.close();
+            s1.close();
+        }
+    });
+
+    it("Server", () => {
+        var svr = new tls.Server(ctx_svr, 9084 + base_port, (s) => {
+            var buf;
+
+            while (buf = s.read())
+                s.write(buf);
+        });
+        test_util.push(svr.socket);
+        svr.start();
+
+        for (var i = 0; i < 10; i++) {
+            var s1 = new net.Socket();
+            s1.connect("127.0.0.1", 9084 + base_port);
+
+            var cs = new tls.TLSSocket(ctx);
+            cs.connect(s1);
+
+            cs.write("GET / HTTP/1.0");
+            assert.equal("GET / HTTP/1.0", cs.read());
+
+            cs.close();
+            s1.close();
+        }
     });
 });
 

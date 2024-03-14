@@ -1,16 +1,28 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/TLSSocket.d.ts" />
+/// <reference path="../interface/TLSHandler.d.ts" />
+/// <reference path="../interface/TLSServer.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /**
- * @description tls 模块是 fibjs 内置的加密模块，可以用于建立网络连接的 SSL 超文本传输协议。该模块提供加密验证，客户端和服务器可以确保连接是安全的
+ * @description tls 模块是 fibjs 内置的加密模块，可以用于建立网络连接的 tls/ssl 超文本传输协议。该模块提供加密验证，客户端和服务器可以确保连接是安全的
  *  
  */
 declare module 'tls' {
     /**
-     * @description SSL/TLS 网络套接口对象，参见 TLSSocket 
+     * @description tls/ssl 网络套接口对象，参见 TLSSocket 
      */
     const TLSSocket: typeof Class_TLSSocket;
+
+    /**
+     * @description tls/ssl 协议转换处理器，参见 TLSSocket 
+     */
+    const Handler: typeof Class_TLSHandler;
+
+    /**
+     * @description tls/ssl 协议转换处理器，参见 TLSSocket 
+     */
+    const Server: typeof Class_TLSServer;
 
     /**
      * @description 创建一个 SecureContext 对象，用于在 tls 模块中维护安全上下文
@@ -48,10 +60,10 @@ declare module 'tls' {
     const secureContext: Class_SecureContext;
 
     /**
-     * @description 根据 url 创建一个 TLS/SSL 连接
+     * @description 根据 url 创建一个 tls/ssl 连接
      *      @param url 指定连接的 URL
      *      @param timeout 指定连接超时时间，默认为 0
-     *      @return 返回 TLS/SSL 连接对象
+     *      @return 返回 tls/ssl 连接对象
      *      
      */
     function connect(url: string, timeout?: number): Class_Stream;
@@ -59,11 +71,11 @@ declare module 'tls' {
     function connect(url: string, timeout?: number, callback?: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
-     * @description 根据 url 创建一个 TLS/SSL 连接
+     * @description 根据 url 创建一个 tls/ssl 连接
      *      @param url 指定连接的 URL
      *      @param secureContext 指定安全上下文
      *      @param timeout 指定连接超时时间，默认为 0
-     *      @return 返回 TLS/SSL 连接对象
+     *      @return 返回 tls/ssl 连接对象
      *      
      */
     function connect(url: string, secureContext: Class_SecureContext, timeout?: number): Class_Stream;
@@ -71,10 +83,10 @@ declare module 'tls' {
     function connect(url: string, secureContext: Class_SecureContext, timeout?: number, callback?: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
     /**
-     * @description 根据 url 创建一个 TLS/SSL 连接
+     * @description 根据 url 创建一个 tls/ssl 连接
      *      @param url 指定连接的 URL
      *      @param optionns 指定连接的选项
-     *      @return 返回 TLS/SSL 连接对象
+     *      @return 返回 tls/ssl 连接对象
      *      
      */
     function connect(url: string, optionns: FIBJS.GeneralObject): Class_Stream;

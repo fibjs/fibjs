@@ -1,9 +1,15 @@
-/*! @brief tls 模块是 fibjs 内置的加密模块，可以用于建立网络连接的 SSL 超文本传输协议。该模块提供加密验证，客户端和服务器可以确保连接是安全的
+/*! @brief tls 模块是 fibjs 内置的加密模块，可以用于建立网络连接的 tls/ssl 超文本传输协议。该模块提供加密验证，客户端和服务器可以确保连接是安全的
  */
 module tls
 {
-    /*! @brief SSL/TLS 网络套接口对象，参见 TLSSocket */
+    /*! @brief tls/ssl 网络套接口对象，参见 TLSSocket */
     static TLSSocket;
+
+    /*! @brief tls/ssl 协议转换处理器，参见 TLSSocket */
+    static TLSHandler new Handler();
+
+    /*! @brief tls/ssl 协议转换处理器，参见 TLSSocket */
+    static TLSServer new Server();
 
     /*! @brief 创建一个 SecureContext 对象，用于在 tls 模块中维护安全上下文
 
@@ -34,25 +40,25 @@ module tls
     /*! @brief 查询缺省 SecureContext */
     static readonly SecureContext secureContext;
 
-    /*! @brief 根据 url 创建一个 TLS/SSL 连接
+    /*! @brief 根据 url 创建一个 tls/ssl 连接
      @param url 指定连接的 URL
      @param timeout 指定连接超时时间，默认为 0
-     @return 返回 TLS/SSL 连接对象
+     @return 返回 tls/ssl 连接对象
      */
     static Stream connect(String url, Integer timeout = 0) async;
 
-    /*! @brief 根据 url 创建一个 TLS/SSL 连接
+    /*! @brief 根据 url 创建一个 tls/ssl 连接
      @param url 指定连接的 URL
      @param secureContext 指定安全上下文
      @param timeout 指定连接超时时间，默认为 0
-     @return 返回 TLS/SSL 连接对象
+     @return 返回 tls/ssl 连接对象
      */
     static Stream connect(String url, SecureContext secureContext, Integer timeout = 0) async;
 
-    /*! @brief 根据 url 创建一个 TLS/SSL 连接
+    /*! @brief 根据 url 创建一个 tls/ssl 连接
      @param url 指定连接的 URL
      @param optionns 指定连接的选项
-     @return 返回 TLS/SSL 连接对象
+     @return 返回 tls/ssl 连接对象
      */
     static Stream connect(String url, Object optionns) async;
 };
