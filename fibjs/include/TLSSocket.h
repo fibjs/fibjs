@@ -18,7 +18,7 @@ class TLSSocket : public TLSSocket_base {
 
 public:
     // TLSSocket_base
-    virtual result_t connect(Stream_base* socket, AsyncEvent* ac);
+    virtual result_t connect(Stream_base* socket, exlib::string server_name, AsyncEvent* ac);
     virtual result_t accept(Stream_base* socket, AsyncEvent* ac);
     virtual result_t getProtocol(exlib::string& retVal);
     virtual result_t getX509Certificate(obj_ptr<X509Certificate_base>& retVal);

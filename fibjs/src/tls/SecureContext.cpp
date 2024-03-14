@@ -12,10 +12,10 @@
 
 namespace fibjs {
 
-result_t tls_base::createSecureContext(v8::Local<v8::Object> options, obj_ptr<SecureContext_base>& retVal)
+result_t tls_base::createSecureContext(v8::Local<v8::Object> options, bool isServer, obj_ptr<SecureContext_base>& retVal)
 {
     obj_ptr<SecureContext> ctx = new SecureContext();
-    result_t hr = ctx->init(options, false);
+    result_t hr = ctx->init(options, isServer);
     if (hr)
         return hr;
 
@@ -24,16 +24,22 @@ result_t tls_base::createSecureContext(v8::Local<v8::Object> options, obj_ptr<Se
     return 0;
 }
 
-result_t SecureContext::init(v8::Local<v8::Object> options, bool is_server)
+result_t tls_base::createSecureContext(bool isServer, obj_ptr<SecureContext_base>& retVal)
+{
+    Isolate* isolate = Isolate::current();
+    return createSecureContext(v8::Object::New(isolate->m_isolate), isServer, retVal);
+}
+
+result_t SecureContext::init(v8::Local<v8::Object> options, bool isServer)
 {
     Isolate* isolate = holder();
     result_t hr;
 
-    hr = set_secureProtocol(options, is_server);
+    hr = set_secureProtocol(options, isServer);
     if (hr < 0)
         return hr;
 
-    hr = set_ca(options, is_server);
+    hr = set_ca(options, isServer);
     if (hr < 0)
         return hr;
 
@@ -45,7 +51,7 @@ result_t SecureContext::init(v8::Local<v8::Object> options, bool is_server)
     if (hr < 0)
         return hr;
 
-    hr = set_verify(options);
+    hr = set_verify(options, isServer);
     if (hr < 0)
         return hr;
 
@@ -69,7 +75,7 @@ void SecureContext::init_ctx(const SSL_METHOD* method)
         SSL_SESS_CACHE_CLIENT | SSL_SESS_CACHE_SERVER | SSL_SESS_CACHE_NO_INTERNAL | SSL_SESS_CACHE_NO_AUTO_CLEAR);
 }
 
-result_t SecureContext::set_ca(v8::Local<v8::Object> options, bool is_server)
+result_t SecureContext::set_ca(v8::Local<v8::Object> options, bool isServer)
 {
     Isolate* isolate = holder();
     result_t hr;
@@ -80,7 +86,7 @@ result_t SecureContext::set_ca(v8::Local<v8::Object> options, bool is_server)
         return Runtime::setError("SecureContext: ca must be a valid X509Certificate.");
     if (hr != CALL_E_PARAMNOTOPTIONAL)
         return set_ca(ca);
-    else if (!is_server)
+    else if (!isServer)
         return set_ca(isolate->m_ctx.As<SecureContext>()->m_ca);
 
     return 0;
@@ -107,9 +113,13 @@ result_t SecureContext::SetRootCerts()
     init_ctx(TLS_client_method());
 
     obj_ptr<X509Certificate> root = new X509Certificate();
-    root->LoadRootCerts();
 
-    return set_ca(root);
+    root->LoadRootCerts();
+    set_ca(root);
+
+    SSL_CTX_set_verify(m_ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, nullptr);
+
+    return 0;
 }
 
 result_t SecureContext::get_ca(obj_ptr<X509Certificate_base>& retVal)
@@ -249,7 +259,7 @@ inline result_t ver_string(int32_t ver, exlib::string& retVal)
     return CALL_RETURN_UNDEFINED;
 }
 
-result_t SecureContext::set_secureProtocol(v8::Local<v8::Object> options, bool is_server)
+result_t SecureContext::set_secureProtocol(v8::Local<v8::Object> options, bool isServer)
 {
     Isolate* isolate = holder();
     result_t hr;
@@ -343,7 +353,7 @@ result_t SecureContext::set_secureProtocol(v8::Local<v8::Object> options, bool i
             return Runtime::setError("SecureContext: secureProtocol \"" + secureProtocol + "\" is not supported.");
     }
 
-    if (is_server && method == TLS_client_method())
+    if (isServer && method == TLS_client_method())
         return Runtime::setError("SecureContext: secureProtocol \"" + secureProtocol + "\" is not supported for server.");
 
     init_ctx(method);
@@ -382,29 +392,39 @@ result_t SecureContext::get_secureProtocol(exlib::string& retVal)
     return 0;
 }
 
-result_t SecureContext::set_verify(v8::Local<v8::Object> options)
+result_t SecureContext::set_verify(v8::Local<v8::Object> options, bool isServer)
 {
     Isolate* isolate = holder();
     result_t hr;
 
     int32_t verify_mode;
+    bool requestCert = true;
+    bool rejectUnauthorized = !isServer;
 
-    if (!m_ca)
+    hr = GetConfigValue(isolate, options, "requestCert", requestCert);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return Runtime::setError("SecureContext: requestCert must be a valid boolean.");
+
+    hr = GetConfigValue(isolate, options, "rejectUnauthorized", rejectUnauthorized);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return Runtime::setError("SecureContext: rejectUnauthorized must be a valid boolean.");
+
+    if (!requestCert)
         verify_mode = SSL_VERIFY_NONE;
     else {
         verify_mode = SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE;
-
-        bool rejectUnauthorized = true;
-        hr = GetConfigValue(isolate, options, "rejectUnauthorized", rejectUnauthorized);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-            return Runtime::setError("SecureContext: rejectUnauthorized must be a valid boolean.");
-
         if (rejectUnauthorized)
             verify_mode |= SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
     }
 
     SSL_CTX_set_verify(m_ctx, verify_mode, nullptr);
 
+    return 0;
+}
+
+result_t SecureContext::get_requestCert(bool& retVal)
+{
+    retVal = !!(SSL_CTX_get_verify_mode(m_ctx) & SSL_VERIFY_PEER);
     return 0;
 }
 

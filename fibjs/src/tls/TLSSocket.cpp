@@ -81,10 +81,10 @@ result_t TLSSocket_base::_new(SecureContext_base* context, obj_ptr<TLSSocket_bas
     return 0;
 }
 
-result_t TLSSocket_base::_new(v8::Local<v8::Object> options, obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This)
+result_t TLSSocket_base::_new(v8::Local<v8::Object> options, bool isServer, obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<SecureContext_base> context;
-    result_t hr = tls_base::createSecureContext(options, context);
+    result_t hr = tls_base::createSecureContext(options, isServer, context);
     if (hr < 0)
         return hr;
 
@@ -101,7 +101,7 @@ result_t TLSSocket::init(SecureContext_base* context)
 
 class AsyncHandshake : public AsyncState {
 public:
-    AsyncHandshake(TLSSocket* sock, Stream_base* socket, bool is_server, AsyncEvent* ac)
+    AsyncHandshake(TLSSocket* sock, Stream_base* socket, bool is_server, exlib::string server_name, AsyncEvent* ac)
         : AsyncState(ac)
         , m_sock(sock)
     {
@@ -120,8 +120,11 @@ public:
 
         if (is_server)
             SSL_set_accept_state(m_sock->m_tls);
-        else
+        else {
             SSL_set_connect_state(m_sock->m_tls);
+            if (!server_name.empty())
+                SSL_set1_host(m_sock->m_tls, server_name.c_str());
+        }
 
         next(handshake);
     }
@@ -175,7 +178,7 @@ public:
     int32_t m_state;
 };
 
-result_t TLSSocket::connect(Stream_base* socket, AsyncEvent* ac)
+result_t TLSSocket::connect(Stream_base* socket, exlib::string server_name, AsyncEvent* ac)
 {
     result_t hr = is_not_connected();
     if (hr < 0)
@@ -184,7 +187,7 @@ result_t TLSSocket::connect(Stream_base* socket, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new AsyncHandshake(this, socket, false, ac))->post(0);
+    return (new AsyncHandshake(this, socket, false, server_name, ac))->post(0);
 }
 
 result_t TLSSocket::accept(Stream_base* socket, AsyncEvent* ac)
@@ -196,7 +199,7 @@ result_t TLSSocket::accept(Stream_base* socket, AsyncEvent* ac)
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new AsyncHandshake(this, socket, true, ac))->post(0);
+    return (new AsyncHandshake(this, socket, true, "", ac))->post(0);
 }
 
 result_t TLSSocket::getProtocol(exlib::string& retVal)

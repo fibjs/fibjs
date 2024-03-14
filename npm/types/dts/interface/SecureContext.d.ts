@@ -51,6 +51,11 @@ declare class Class_SecureContext extends Class_object {
     readonly secureProtocol: string;
 
     /**
+     * @description 查询安全上下文是否需要客户端证书 
+     */
+    readonly requestCert: boolean;
+
+    /**
      * @description 查询安全上下文是否拒绝任何未经所提供 CA 列表授权的连接 
      */
     readonly rejectUnauthorized: boolean;

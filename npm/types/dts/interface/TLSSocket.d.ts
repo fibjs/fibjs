@@ -27,18 +27,20 @@ declare class Class_TLSSocket extends Class_Stream {
     /**
      * @description 根据 options 创建一个新的 TLSSocket 对象
      *      @param options 使用 tls.createSecureContext 创建安全上下文需要的选项
+     *      @param isServer 是否是服务端模式
      *     
      */
-    constructor(options: FIBJS.GeneralObject);
+    constructor(options: FIBJS.GeneralObject, isServer?: boolean);
 
     /**
      * @description 在给定的连接上连接 SSL/TLS 连接，客户端模式
      *      @param socket 给定的底层连接
+     *      @param server_name 服务端名称，用于验证服务端证书
      *     
      */
-    connect(socket: Class_Stream): void;
+    connect(socket: Class_Stream, server_name?: string): void;
 
-    connect(socket: Class_Stream, callback: (err: Error | undefined | null)=>any): void;
+    connect(socket: Class_Stream, server_name?: string, callback?: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 在给定的连接上连接 SSL/TLS 连接，服务端模式

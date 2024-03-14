@@ -27,8 +27,8 @@ public:
     // TLSSocket_base
     static result_t _new(obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(SecureContext_base* context, obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Object> options, obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t connect(Stream_base* socket, AsyncEvent* ac) = 0;
+    static result_t _new(v8::Local<v8::Object> options, bool isServer, obj_ptr<TLSSocket_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t connect(Stream_base* socket, exlib::string server_name, AsyncEvent* ac) = 0;
     virtual result_t accept(Stream_base* socket, AsyncEvent* ac) = 0;
     virtual result_t getProtocol(exlib::string& retVal) = 0;
     virtual result_t getX509Certificate(obj_ptr<X509Certificate_base>& retVal) = 0;
@@ -57,7 +57,7 @@ public:
     static void s_get_localPort(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_MEMBER1(TLSSocket_base, connect, Stream_base*);
+    ASYNC_MEMBER2(TLSSocket_base, connect, Stream_base*, exlib::string);
     ASYNC_MEMBER1(TLSSocket_base, accept, Stream_base*);
 };
 }
@@ -120,11 +120,12 @@ void TLSSocket_base::__new(const T& args)
 
     hr = _new(v0, vr, args.This());
 
-    METHOD_OVER(1, 1);
+    METHOD_OVER(2, 1);
 
     ARG(v8::Local<v8::Object>, 0);
+    OPT_ARG(bool, 1, false);
 
-    hr = _new(v0, vr, args.This());
+    hr = _new(v0, v1, vr, args.This());
 
     CONSTRUCT_RETURN();
 }
@@ -134,14 +135,15 @@ inline void TLSSocket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>&
     ASYNC_METHOD_INSTANCE(TLSSocket_base);
     METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    ASYNC_METHOD_OVER(2, 1);
 
     ARG(obj_ptr<Stream_base>, 0);
+    OPT_ARG(exlib::string, 1, "");
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_connect(v0, cb, args);
+        hr = pInst->acb_connect(v0, v1, cb, args);
     else
-        hr = pInst->ac_connect(v0);
+        hr = pInst->ac_connect(v0, v1);
 
     METHOD_VOID();
 }

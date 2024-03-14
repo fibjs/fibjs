@@ -1,6 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/TLSSocket.d.ts" />
 /// <reference path="../interface/SecureContext.d.ts" />
+/// <reference path="../interface/Stream.d.ts" />
 /**
  * @description tls 模块是 fibjs 内置的加密模块，可以用于建立网络连接的 SSL 超文本传输协议。该模块提供加密验证，客户端和服务器可以确保连接是安全的
  *  
@@ -26,31 +27,58 @@ declare module 'tls' {
      *      - sessionTimeout: 经过多少秒后，服务器创建的 TLS 会话将不再可恢复。默认值: 300。
      * 
      *      @param options 创建安全上下文的选项
+     *      @param isServer 是否是服务器模式
      *      @return 返回创建的安全上下文
      *      
      */
-    function createSecureContext(options: FIBJS.GeneralObject): Class_SecureContext;
+    function createSecureContext(options: FIBJS.GeneralObject, isServer?: boolean): Class_SecureContext;
+
+    /**
+     * @description 创建一个 SecureContext 对象，用于在 tls 模块中维护安全上下文
+     *      @param isServer 是否是服务器模式
+     *      @return 返回创建的安全上下文
+     *      
+     */
+    function createSecureContext(isServer?: boolean): Class_SecureContext;
 
     /**
      * @description 查询缺省 SecureContext 
      */
     const secureContext: Class_SecureContext;
 
-    function connect(optionns: FIBJS.GeneralObject): Class_TLSSocket;
+    /**
+     * @description 根据 url 创建一个 TLS/SSL 连接
+     *      @param url 指定连接的 URL
+     *      @param timeout 指定连接超时时间
+     *      @return 返回 TLS/SSL 连接对象
+     *      
+     */
+    function connect(url: string, timeout?: number): Class_Stream;
 
-    function connect(optionns: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_TLSSocket)=>any): void;
+    function connect(url: string, timeout?: number, callback?: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
-    function connect(url: string, optionns?: FIBJS.GeneralObject): Class_TLSSocket;
+    /**
+     * @description 根据 url 创建一个 TLS/SSL 连接
+     *      @param url 指定连接的 URL
+     *      @param secureContext 指定安全上下文
+     *      @param timeout 指定连接超时时间
+     *      @return 返回 TLS/SSL 连接对象
+     *      
+     */
+    function connect(url: string, secureContext: Class_SecureContext, timeout?: number): Class_Stream;
 
-    function connect(url: string, optionns?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: Class_TLSSocket)=>any): void;
+    function connect(url: string, secureContext: Class_SecureContext, timeout?: number, callback?: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
-    function connect(port: number, optionns?: FIBJS.GeneralObject): Class_TLSSocket;
+    /**
+     * @description 根据 url 创建一个 TLS/SSL 连接
+     *      @param url 指定连接的 URL
+     *      @param optionns 指定连接的选项
+     *      @return 返回 TLS/SSL 连接对象
+     *      
+     */
+    function connect(url: string, optionns: FIBJS.GeneralObject): Class_Stream;
 
-    function connect(port: number, optionns?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: Class_TLSSocket)=>any): void;
-
-    function connect(port: number, host: string, optionns?: FIBJS.GeneralObject): Class_TLSSocket;
-
-    function connect(port: number, host: string, optionns?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: Class_TLSSocket)=>any): void;
+    function connect(url: string, optionns: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Stream)=>any): void;
 
 }
 
