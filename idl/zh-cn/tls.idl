@@ -5,10 +5,10 @@ module tls
     /*! @brief tls/ssl 网络套接口对象，参见 TLSSocket */
     static TLSSocket;
 
-    /*! @brief tls/ssl 协议转换处理器，参见 TLSSocket */
+    /*! @brief tls/ssl 协议转换处理器，参见 TLSHandler */
     static TLSHandler new Handler();
 
-    /*! @brief tls/ssl 协议转换处理器，参见 TLSSocket */
+    /*! @brief tls/ssl 协议转换处理器，参见 TLSServer */
     static TLSServer new Server();
 
     /*! @brief 创建一个 SecureContext 对象，用于在 tls 模块中维护安全上下文
