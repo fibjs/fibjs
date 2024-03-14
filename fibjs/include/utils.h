@@ -226,7 +226,7 @@ enum {
                 break;                                                                        \
             }                                                                                 \
             if ((o) > 0 && argc < (o)) {                                                      \
-                hr = CALL_E_PARAMNOTOPTIONAL;                                                 \
+                hr = setRuntimeError(CALL_E_PARAMNOTOPTIONAL);                                \
                 break;                                                                        \
             }
 
@@ -249,7 +249,7 @@ enum {
                 break;                                                                        \
             }                                                                                 \
             if ((o) > 0 && argc < (o)) {                                                      \
-                hr = CALL_E_PARAMNOTOPTIONAL;                                                 \
+                hr = setRuntimeError(CALL_E_PARAMNOTOPTIONAL);                                \
                 break;                                                                        \
             }
 
@@ -988,7 +988,7 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, T& vr
     return GetArgumentValue(v, vr, bStrict);
 }
 
-result_t setRuntimeError(result_t code, const char* err);
+result_t setRuntimeError(result_t code, const char* err = nullptr);
 
 template <typename T>
 result_t GetConfigValue(Isolate* isolate, v8::Local<v8::Object> o, const char* key, T& n, bool bStrict = false)
