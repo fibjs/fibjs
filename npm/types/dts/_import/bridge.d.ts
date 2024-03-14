@@ -21,7 +21,7 @@
 /// <reference path="../module/net.d.ts" />
 /// <reference path="../module/punycode.d.ts" />
 /// <reference path="../module/querystring.d.ts" />
-/// <reference path="../module/ssl.d.ts" />
+/// <reference path="../module/tls.d.ts" />
 /// <reference path="../module/url.d.ts" />
 /// <reference path="../module/ws.d.ts" />
 /// <reference path="../module/base32.d.ts" />
@@ -52,7 +52,6 @@
 /// <reference path="../module/constants.d.ts" />
 /// <reference path="../module/fs_constants.d.ts" />
 /// <reference path="../module/crypto_constants.d.ts" />
-/// <reference path="../module/tls.d.ts" />
 declare module '@fibjs/types/bridge' {
 }
 

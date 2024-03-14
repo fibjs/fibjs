@@ -8,7 +8,6 @@
 
 #include "ifs/HttpClient.h"
 #include "HttpCookie.h"
-#include "ifs/ssl.h"
 #include "Url.h"
 
 namespace fibjs {

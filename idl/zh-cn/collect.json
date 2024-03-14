@@ -27,7 +27,7 @@
         "net",
         "punycode",
         "querystring",
-        "ssl",
+        "tls",
         "url",
         "ws"
     ],

@@ -8,7 +8,6 @@ var fs = require('fs');
 var path = require('path');
 var os = require('os');
 var coroutine = require('coroutine');
-var ssl = require('ssl');
 
 var base_port = coroutine.vmid * 10000;
 
@@ -731,14 +730,6 @@ function test_net(eng, use_uv) {
         if (global.full_test)
             describe("Smtp", () => {
                 var s;
-
-                before(() => {
-                    ssl.ca.loadRootCerts();
-                });
-
-                after(() => {
-                    ssl.ca.clear();
-                });
 
                 it("new & connect", () => {
                     s = new net.Smtp();

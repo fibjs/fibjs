@@ -3,7 +3,6 @@ test.setup();
 
 var test_util = require('./test_util');
 
-var ssl = require("ssl");
 var tls = require("tls");
 var crypto = require("crypto");
 var fs = require('fs');

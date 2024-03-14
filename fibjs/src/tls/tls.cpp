@@ -15,6 +15,7 @@
 namespace fibjs {
 
 DECLARE_MODULE(tls);
+DECLARE_MODULE_EX(ssl, tls);
 
 void init_tls()
 {

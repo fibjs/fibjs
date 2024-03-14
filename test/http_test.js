@@ -13,7 +13,6 @@ var coroutine = require("coroutine");
 var path = require("path");
 
 var tls = require("tls");
-var ssl = require("ssl");
 var crypto = require("crypto");
 
 const {
