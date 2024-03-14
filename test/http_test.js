@@ -2051,8 +2051,57 @@ describe("http", () => {
         })
     });
 
+    describe("new http.Client", () => {
+        it("simple", () => {
+            var hc = new http.Client();
+            assert.equal(hc.timeout, 0);
+            assert.equal(hc.enableCookie, true);
+            assert.equal(hc.autoRedirect, true);
+            assert.equal(hc.enableEncoding, true);
+            assert.equal(hc.maxHeadersCount, 128);
+            assert.equal(hc.maxHeaderSize, 8192);
+            assert.equal(hc.maxBodySize, -1);
+            assert.equal(hc.poolSize, 128);
+            assert.equal(hc.poolTimeout, 10000);
+            assert.equal(hc.userAgent, "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36");
+            assert.equal(hc.http_proxy, "");
+            assert.equal(hc.https_proxy, "");
+        });
+
+        it("options", () => {
+            var hc = new http.Client({
+                timeout: 1000,
+                enableCookie: false,
+                autoRedirect: false,
+                enableEncoding: false,
+                maxHeadersCount: 100,
+                maxHeaderSize: 1000,
+                maxBodySize: 100,
+                poolSize: 100,
+                poolTimeout: 1000,
+                userAgent: "test agent",
+                http_proxy: "http://127.0.0.1:9998",
+                https_proxy: "https://127.0.0.1:9999"
+            });
+
+            assert.equal(hc.timeout, 1000);
+            assert.equal(hc.enableCookie, false);
+            assert.equal(hc.autoRedirect, false);
+            assert.equal(hc.enableEncoding, false);
+            assert.equal(hc.maxHeadersCount, 100);
+            assert.equal(hc.maxHeaderSize, 1000);
+            assert.equal(hc.maxBodySize, 100);
+            assert.equal(hc.poolSize, 100);
+            assert.equal(hc.poolTimeout, 1000);
+            assert.equal(hc.userAgent, "test agent");
+            assert.equal(hc.http_proxy, "http://127.0.0.1:9998");
+            assert.equal(hc.https_proxy, "https://127.0.0.1:9999");
+        });
+    });
+
     describe("https server/global https request", () => {
         var svr;
+        var hc;
 
         var cookie_for = {
             _: undefined,
@@ -2060,9 +2109,11 @@ describe("http", () => {
         };
 
         before(() => {
-            ssl.ca.import(ca_pem);
+            hc = new http.Client({
+                ca: ca_pem,
+                enableCookie: true
+            });
 
-            http.enableCookie = true;
             svr = new http.HttpsServer(crt, pk, 8883 + base_port, (r) => {
                 cookie_for['_'] = r.headers.cookie;
 
@@ -2095,22 +2146,22 @@ describe("http", () => {
 
         describe("request", () => {
             it("simple", () => {
-                assert.equal(http.request("GET", "https://localhost:" + (8883 + base_port) + "/request").body.read().toString(),
+                assert.equal(hc.request("GET", "https://localhost:" + (8883 + base_port) + "/request").body.read().toString(),
                     "/request");
                 assert.equal(cookie_for['_'], undefined);
-                http.request("GET", "https://localhost:" + (8883 + base_port) + "/request");
+                hc.request("GET", "https://localhost:" + (8883 + base_port) + "/request");
                 assert.equal(cookie_for['_'], "request1=value; request2=value");
             });
 
             it("body", () => {
-                assert.equal(http.request("GET", "https://localhost:" + (8883 + base_port) + "/request:", {
+                assert.equal(hc.request("GET", "https://localhost:" + (8883 + base_port) + "/request:", {
                     body: "body"
                 }).body.read().toString(),
                     "/request:body");
             });
 
             it("header", () => {
-                assert.equal(http.request("GET", "https://localhost:" + (8883 + base_port) + "/request:", {
+                assert.equal(hc.request("GET", "https://localhost:" + (8883 + base_port) + "/request:", {
                     headers: {
                         "test_header": "header"
                     }
@@ -2118,7 +2169,7 @@ describe("http", () => {
             });
 
             it("gzip", () => {
-                assert.equal(http.get("https://localhost:" + (8883 + base_port) + "/gzip_test").body.read().toString(),
+                assert.equal(hc.get("https://localhost:" + (8883 + base_port) + "/gzip_test").body.read().toString(),
                     "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
             });
         });
@@ -2126,36 +2177,36 @@ describe("http", () => {
         describe("head", () => {
             before(() => {
                 try {
-                    http.request("HEAD", "https://localhost:" + (8883 + base_port) + "/clear_cookie");
+                    hc.request("HEAD", "https://localhost:" + (8883 + base_port) + "/clear_cookie");
                 } catch (e) { }
             })
 
             after(() => {
                 try {
-                    http.request("HEAD", "https://localhost:" + (8883 + base_port) + "/clear_cookie");
+                    hc.request("HEAD", "https://localhost:" + (8883 + base_port) + "/clear_cookie");
                 } catch (e) { }
             })
 
             it("simple", () => {
                 assert.equal(cookie_for['head'], undefined);
-                assert.equal(http.head("https://localhost:" + (8883 + base_port) + "/request").body.read(), null);
+                assert.equal(hc.head("https://localhost:" + (8883 + base_port) + "/request").body.read(), null);
                 assert.equal(cookie_for['head'], "request1=value; request2=value");
             });
 
             it("header", () => {
-                assert.equal(http.head("https://localhost:" + (8883 + base_port) + "/request:", {
+                assert.equal(hc.head("https://localhost:" + (8883 + base_port) + "/request:", {
                     headers: {
                         "test_header": "header"
                     }
                 }).body.read(), null);
 
-                assert.equal(http.head("https://localhost:" + (8883 + base_port) + "/request:", {
+                assert.equal(hc.head("https://localhost:" + (8883 + base_port) + "/request:", {
                     headers: {
                         "test_header": "header"
                     }
                 }).headers['test_header'], 'foobar');
 
-                assert.equal(http.head("https://localhost:" + (8883 + base_port) + "/request:", {
+                assert.equal(hc.head("https://localhost:" + (8883 + base_port) + "/request:", {
                     headers: {
                         "test_header": "header"
                     }
@@ -2163,7 +2214,7 @@ describe("http", () => {
             });
 
             it("async", (done) => {
-                http.head("https://localhost:" + (8883 + base_port) + "/request", (e, r) => {
+                hc.head("https://localhost:" + (8883 + base_port) + "/request", (e, r) => {
                     done(() => {
                         assert.equal(r.data, null);
                         assert.equal(r.headers['no_test_header'], "true");
@@ -2174,18 +2225,18 @@ describe("http", () => {
 
         describe("get", () => {
             it("simple", () => {
-                assert.equal(http.get("https://localhost:" + (8883 + base_port) + "/request").body.read().toString(),
+                assert.equal(hc.get("https://localhost:" + (8883 + base_port) + "/request").body.read().toString(),
                     "/request");
             });
 
             it("header", () => {
-                assert.equal(http.get("https://localhost:" + (8883 + base_port) + "/request:", {
+                assert.equal(hc.get("https://localhost:" + (8883 + base_port) + "/request:", {
                     headers: {
                         "test_header": "header"
                     }
                 }).body.read().toString(), "/request:header");
 
-                assert.equal(http.get("https://localhost:" + (8883 + base_port) + "/request:", {
+                assert.equal(hc.get("https://localhost:" + (8883 + base_port) + "/request:", {
                     headers: {
                         "test_header": "header"
                     }
@@ -2195,7 +2246,7 @@ describe("http", () => {
 
         describe("post", () => {
             it("body", () => {
-                assert.equal(http.post(
+                assert.equal(hc.post(
                     "https://localhost:" + (8883 + base_port) + "/request:", {
                     body: "body"
                 }).body
@@ -2203,7 +2254,7 @@ describe("http", () => {
             });
 
             it("header", () => {
-                assert.equal(http.post(
+                assert.equal(hc.post(
                     "https://localhost:" + (8883 + base_port) + "/request:", {
                     body: "",
                     headers: {
@@ -2211,7 +2262,7 @@ describe("http", () => {
                     }
                 }).body.read().toString(), "/request:header");
 
-                assert.equal(http.post(
+                assert.equal(hc.post(
                     "https://localhost:" + (8883 + base_port) + "/request:", {
                     body: "",
                     headers: {
@@ -2761,7 +2812,9 @@ describe("http", () => {
         }
 
         it('basic request', () => {
-            var hc = new http.Client();
+            var hc = new http.Client({
+                ca: ca_pem
+            });
             hc.http_proxy = 'http://127.0.0.1:' + (8886 + base_port);
 
             test_proxy(hc, 'http://fibjs.org/test.html');
@@ -2778,7 +2831,9 @@ describe("http", () => {
         });
 
         it('use http connection to connect https server', () => {
-            var hc = new http.Client();
+            var hc = new http.Client({
+                ca: ca_pem
+            });
             hc.http_proxy = 'http://127.0.0.1:' + (8886 + base_port);
 
             assert.equal(test_proxy(hc, 'http://fibjs.org/share_1'), 'share_1');
@@ -2792,7 +2847,7 @@ describe("http", () => {
 
     });
 
-    describe("sslVerification", () => {
+    describe("verification", () => {
         var hc;
 
         beforeEach(() => {
@@ -2803,109 +2858,25 @@ describe("http", () => {
             ssl.ca.clear();
         });
 
-        it("use ssl.VERIFY_REQUIRED by default", () => {
-            hc = new http.Client();
-            assert.strictEqual(hc.sslVerification, null);
-        });
-
         it("request https error by default", () => {
-            hc = new http.Client();
+            hc = new http.Client({
+                ca: ca_pem
+            });
 
-            try {
-                hc.get('https://www.icann.org/')
-            } catch (error) {
-                assert.ok(error.message.includes('Certificate verification failed'))
-            }
+            assert.throws(() => {
+                hc.get('https://www.icann.org/');
+            });
         });
 
-        it("make https verification optional", () => {
-            ssl.ca.clear();
-
-            hc = new http.Client();
-
-            hc.sslVerification = ssl.VERIFY_OPTIONAL
+        it("requestCert: false", () => {
+            hc = new http.Client({
+                ca: ca_pem,
+                requestCert: false
+            });
 
             var resp = hc.get('https://www.icann.org/');
 
             assert.equal(resp.statusCode, 200);
-        });
-
-        function testEffectByHttpClient(sslVerification, cb) {
-            const orig = ssl.verification
-
-            hc = new http.Client();
-            if (sslVerification !== undefined)
-                hc.sslVerification = sslVerification;
-
-            cb(hc);
-
-            ssl.verification = orig
-        }
-
-        describe("disable https verification", () => {
-            it("get + ssl.VERIFY_NONE", () => {
-                testEffectByHttpClient(ssl.VERIFY_NONE, hc => {
-                    var resp = hc.get('https://www.icann.org/');
-
-                    assert.equal(resp.statusCode, 200);
-                });
-            });
-
-            it("post + ssl.VERIFY_NONE", () => {
-                testEffectByHttpClient(ssl.VERIFY_NONE, hc => {
-                    var resp = hc.post('https://www.icann.org/');
-
-                    assert.equal(Math.floor(resp.statusCode / 10), 40);
-                });
-            });
-
-            it("post + ssl.VERIFY_OPTIONAL", () => {
-                testEffectByHttpClient(ssl.VERIFY_OPTIONAL, hc => {
-                    var resp = hc.post('https://www.icann.org/');
-
-                    assert.equal(Math.floor(resp.statusCode / 10), 40);
-                });
-            });
-        });
-
-        function testEffectBySsl(verification, cb) {
-            const orig = ssl.verification
-            if (verification !== undefined)
-                ssl.verification = verification;
-            cb();
-            ssl.verification = orig
-        }
-
-        describe("affected by ssl.verification", () => {
-            it("default", () => {
-                testEffectBySsl(undefined, () => {
-                    try {
-                        hc.get('https://www.icann.org/')
-                    } catch (error) {
-                        assert.ok(error.message.includes('Certificate verification failed'))
-                    }
-                });
-            });
-
-            it("ssl.VERIFY_NONE", () => {
-                testEffectBySsl(ssl.VERIFY_NONE, () => {
-                    hc = new http.Client();
-
-                    var resp = hc.get('https://www.icann.org/');
-
-                    assert.equal(resp.statusCode, 200);
-                });
-            });
-
-            it("ssl.VERIFY_OPTIONAL", () => {
-                testEffectBySsl(ssl.VERIFY_OPTIONAL, () => {
-                    hc = new http.Client();
-
-                    var resp = hc.get('https://www.icann.org/');
-
-                    assert.equal(resp.statusCode, 200);
-                });
-            });
         });
     });
 

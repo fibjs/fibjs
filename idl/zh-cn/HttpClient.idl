@@ -42,6 +42,31 @@ interface HttpClient : object
     /*! @brief HttpClient 构造函数，创建一个新的HttpClient对象 */
     HttpClient();
 
+    /*! @brief HttpClient 构造函数，创建一个新的HttpClient对象
+     @param context 指定创建 HttpClient 使用的安全上下文
+     */
+    HttpClient(SecureContext context);
+
+    /*! @brief HttpClient 构造函数，创建一个新的HttpClient对象
+
+     options 除用于创建 SecureContext 的属性之外，还需提供以下属性：
+     - timeout: 指定超时时间
+     - enableCookie: 指定是否启用 cookie 功能
+     - autoRedirect: 指定是否启用自动重定向功能
+     - enableEncoding: 指定是否启用自动解压缩功能
+     - maxHeadersCount: 指定最大请求头个数
+     - maxHeaderSize: 指定最大请求头长度
+     - maxBodySize: 指定 body 最大尺寸
+     - userAgent: 指定浏览器标识
+     - poolSize: 指定 keep-alive 最大缓存连接数
+     - poolTimeout: 指定 keep-alive 缓存连接超时时间
+     - http_proxy: 指定 http 代理地址
+     - https_Proxy: 指定 https 代理地址
+
+     @param options 使用 tls.createSecureContext 创建安全上下文需要的选项
+     */
+    HttpClient(Object options);
+
     /*! @brief 返回http客户端的 HttpCookie 对象列表 */
     readonly NArray cookies;
 
@@ -80,15 +105,6 @@ interface HttpClient : object
 
     /*! @brief 查询和设置 https 请求代理，支持 http/https/socks5 代理，不设置，或者设置为空，则复用 http_proxy */
     String https_proxy;
-
-    /*! @brief 查询和设置连接 https 时的证书验证模式, 参考 ssl 模块的 VERIFY_* 常量, 默认值为 ssl.verification */
-    Integer sslVerification;
-
-    /*! @brief 设定缺省客户端证书
-    @param crt 证书，用于发送给服务器验证客户端
-    @param key 私钥，用于与客户端会话
-   */
-    setClientCert(X509Cert crt, PKey key);
 
     /*! @brief 发送 http 请求到指定的流对象，并返回结果
      @param conn 指定处理请求的流对象

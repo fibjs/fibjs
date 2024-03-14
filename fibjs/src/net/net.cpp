@@ -7,7 +7,7 @@
 
 #include "object.h"
 #include "ifs/dns.h"
-#include "ifs/ssl.h"
+#include "ifs/tls.h"
 #include "ifs/os.h"
 #include "Socket.h"
 #include "inetAddr.h"
@@ -241,7 +241,7 @@ result_t net_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_ba
     AsyncEvent* ac)
 {
     if (!qstrcmp(url.c_str(), "ssl:", 4))
-        return ssl_base::connect(url, timeout, retVal, ac);
+        return tls_base::connect(url, timeout, retVal, ac);
 
     if (qstrcmp(url.c_str(), "tcp:", 4) && qstrcmp(url.c_str(), "unix:", 5) && qstrcmp(url.c_str(), "pipe:", 5))
         return CHECK_ERROR(CALL_E_INVALIDARG);

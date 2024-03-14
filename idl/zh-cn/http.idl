@@ -108,12 +108,6 @@ module http
      */
     static Handler fileHandler(String root, Object mimes = {}, Boolean autoIndex = false);
 
-    /*! @brief 设定缺省客户端证书
-    @param crt 证书，用于发送给服务器验证客户端
-    @param key 私钥，用于与客户端会话
-   */
-    static setClientCert(X509Cert crt, PKey key);
-
     /*! @brief 发送 http 请求到指定的流对象，并返回结果
      @param conn 指定处理请求的流对象
      @param req 要发送的 HttpRequest 对象

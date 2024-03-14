@@ -11,7 +11,7 @@
 #include "Url.h"
 #include "ifs/encoding.h"
 #include "ifs/net.h"
-#include "SslSocket.h"
+#include "TLSSocket.h"
 
 namespace fibjs {
 
@@ -164,17 +164,13 @@ result_t Smtp::connect(exlib::string url, AsyncEvent* ac)
 
         ON_STATE(asyncConnect, ssl_handshake)
         {
-            obj_ptr<SslSocket> ss = new SslSocket();
+            obj_ptr<TLSSocket> ss = new TLSSocket();
             obj_ptr<Stream_base> conn = m_pThis->m_conn;
             m_pThis->m_conn = ss;
 
-            if (g_ssl.m_crt && g_ssl.m_key) {
-                result_t hr = ss->setCert("", g_ssl.m_crt, g_ssl.m_key);
-                if (hr < 0)
-                    return hr;
-            }
+            ss->init(isolate()->m_ctx);
 
-            return ss->connect(conn, m_u->m_hostname, m_temp, next(ssl_connected));
+            return ss->connect(conn, m_u->m_hostname, next(ssl_connected));
         }
 
         ON_STATE(asyncConnect, ssl_connected)
@@ -210,7 +206,6 @@ result_t Smtp::connect(exlib::string url, AsyncEvent* ac)
         obj_ptr<Url> m_u;
         obj_ptr<Buffer> m_buf;
         bool m_tls;
-        int32_t m_temp;
     };
 
     if (m_conn)
@@ -277,17 +272,13 @@ result_t Smtp::hello(exlib::string hostname, AsyncEvent* ac)
 
         ON_STATE(asyncHello, ssl_handshake)
         {
-            obj_ptr<SslSocket> ss = new SslSocket();
+            obj_ptr<TLSSocket> ss = new TLSSocket();
             obj_ptr<Stream_base> conn = m_pThis->m_conn;
             m_pThis->m_conn = ss;
 
-            if (g_ssl.m_crt && g_ssl.m_key) {
-                result_t hr = ss->setCert("", g_ssl.m_crt, g_ssl.m_key);
-                if (hr < 0)
-                    return hr;
-            }
+            ss->init(isolate()->m_ctx);
 
-            return ss->connect(conn, "", m_temp, next(ssl_connected));
+            return ss->connect(conn, "", next(ssl_connected));
         }
 
         ON_STATE(asyncHello, ssl_connected)
@@ -328,7 +319,6 @@ result_t Smtp::hello(exlib::string hostname, AsyncEvent* ac)
         exlib::string m_hostname;
         obj_ptr<Buffer> m_buf;
         int32_t step;
-        int32_t m_temp;
     };
 
     if (!m_conn)

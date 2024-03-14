@@ -17,12 +17,12 @@ class HttpClient : public HttpClient_base {
     FIBER_FREE();
 
 public:
-    HttpClient()
-        : m_timeout(0)
+    HttpClient(SecureContext_base* context)
+        : m_context(context)
+        , m_timeout(0)
         , m_enableCookie(true)
         , m_autoRedirect(true)
         , m_enableEncoding(true)
-        , m_sslVerification(-1)
         , m_maxHeadersCount(128)
         , m_maxHeaderSize(8192)
         , m_maxBodySize(-1)
@@ -60,9 +60,6 @@ public:
     virtual result_t set_http_proxy(exlib::string newVal);
     virtual result_t get_https_proxy(exlib::string& retVal);
     virtual result_t set_https_proxy(exlib::string newVal);
-    virtual result_t get_sslVerification(int32_t& retVal);
-    virtual result_t set_sslVerification(int32_t newVal);
-    virtual result_t setClientCert(X509Cert_base* crt, PKey_base* key);
     virtual result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     virtual result_t request(Stream_base* conn, HttpRequest_base* req, SeekableStream_base* response_body, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     virtual result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
@@ -76,6 +73,7 @@ public:
     virtual result_t head(exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
 
 public:
+    result_t init(v8::Local<v8::Object> options);
     result_t request(exlib::string method, obj_ptr<Url>& u, SeekableStream_base* body,
         SeekableStream_base* response_body, NObject* opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     result_t request(exlib::string method, exlib::string url, SeekableStream_base* body,
@@ -145,19 +143,17 @@ private:
     result_t update(HttpCookie_base* cookie);
 
 private:
+    obj_ptr<SecureContext_base> m_context;
     obj_ptr<NArray> m_cookies;
     exlib::spinlock m_lock;
     int32_t m_timeout;
     bool m_enableCookie;
     bool m_autoRedirect;
     bool m_enableEncoding;
-    int32_t m_sslVerification;
     int32_t m_maxHeadersCount;
     int32_t m_maxHeaderSize;
     int32_t m_maxBodySize;
     exlib::string m_userAgent;
-    obj_ptr<X509Cert_base> m_crt;
-    obj_ptr<PKey_base> m_key;
 
 private:
     class Conn : public obj_base {

@@ -56,7 +56,8 @@ result_t HttpRepeater_base::_new(v8::Local<v8::Array> urls, obj_ptr<HttpRepeater
 
 HttpRepeater::HttpRepeater()
 {
-    m_client = new HttpClient();
+    Isolate* isolate = holder();
+    m_client = new HttpClient(isolate->m_ctx);
     m_client->set_enableCookie(false);
     m_client->set_autoRedirect(false);
     m_client->set_enableEncoding(false);

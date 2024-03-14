@@ -15,12 +15,12 @@ declare module 'tls' {
     const TLSSocket: typeof Class_TLSSocket;
 
     /**
-     * @description tls/ssl 协议转换处理器，参见 TLSSocket 
+     * @description tls/ssl 协议转换处理器，参见 TLSHandler 
      */
     const Handler: typeof Class_TLSHandler;
 
     /**
-     * @description tls/ssl 协议转换处理器，参见 TLSSocket 
+     * @description tls/ssl 协议转换处理器，参见 TLSServer 
      */
     const Server: typeof Class_TLSServer;
 

@@ -9,10 +9,11 @@
 #include "Buffer.h"
 #include "MemoryStream.h"
 #include "HttpRequest.h"
-#include "SslSocket.h"
+#include "TLSSocket.h"
 #include "BufferedStream.h"
 #include "inetAddr.h"
 #include "ifs/net.h"
+#include "ifs/tls.h"
 #include "ifs/zlib.h"
 #include "ifs/json.h"
 #include "ifs/msgpack.h"
@@ -23,7 +24,91 @@ namespace fibjs {
 
 result_t HttpClient_base::_new(obj_ptr<HttpClient_base>& retVal, v8::Local<v8::Object> This)
 {
-    retVal = new HttpClient();
+    Isolate* isolate = Isolate::current(This);
+    return _new(isolate->m_ctx, retVal, This);
+}
+
+result_t HttpClient_base::_new(SecureContext_base* context, obj_ptr<HttpClient_base>& retVal, v8::Local<v8::Object> This)
+{
+    retVal = new HttpClient(context);
+    return 0;
+}
+
+result_t HttpClient_base::_new(v8::Local<v8::Object> options, obj_ptr<HttpClient_base>& retVal, v8::Local<v8::Object> This)
+{
+    obj_ptr<HttpClient> hc = new HttpClient(nullptr);
+    hc->wrap(This);
+
+    result_t hr = hc->init(options);
+    if (hr < 0)
+        return hr;
+
+    retVal = hc;
+
+    return 0;
+}
+
+result_t HttpClient::init(v8::Local<v8::Object> options)
+{
+    result_t hr = tls_base::createSecureContext(options, true, m_context);
+    if (hr < 0)
+        return hr;
+
+    Isolate* isolate = holder();
+    hr = GetConfigValue(isolate, options, "timeout", m_timeout);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    hr = GetConfigValue(isolate, options, "enableCookie", m_enableCookie);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    hr = GetConfigValue(isolate, options, "autoRedirect", m_autoRedirect);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    hr = GetConfigValue(isolate, options, "enableEncoding", m_enableEncoding);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    hr = GetConfigValue(isolate, options, "maxHeadersCount", m_maxHeadersCount);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    hr = GetConfigValue(isolate, options, "maxHeaderSize", m_maxHeaderSize);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    hr = GetConfigValue(isolate, options, "maxBodySize", m_maxBodySize);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    hr = GetConfigValue(isolate, options, "userAgent", m_userAgent);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    hr = GetConfigValue(isolate, options, "poolSize", m_poolSize);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    hr = GetConfigValue(isolate, options, "poolTimeout", m_poolTimeout);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    hr = GetConfigValue(isolate, options, "http_proxy", m_http_proxy);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+    hr = set_http_proxy(m_http_proxy);
+    if (hr < 0)
+        return hr;
+
+    hr = GetConfigValue(isolate, options, "https_proxy", m_https_proxy);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+    hr = set_https_proxy(m_https_proxy);
+    if (hr < 0)
+        return hr;
+
     return 0;
 }
 
@@ -231,25 +316,6 @@ result_t HttpClient::set_https_proxy(exlib::string newVal)
     return 0;
 }
 
-result_t HttpClient::get_sslVerification(int32_t& retVal)
-{
-    retVal = m_sslVerification;
-
-    if (retVal < 0)
-        return CALL_RETURN_NULL;
-
-    return 0;
-}
-
-result_t HttpClient::set_sslVerification(int32_t newVal)
-{
-    if (newVal < ssl_base::C_VERIFY_NONE || newVal > ssl_base::C_VERIFY_REQUIRED)
-        return CHECK_ERROR(CALL_E_INVALIDARG);
-
-    m_sslVerification = newVal;
-    return 0;
-}
-
 result_t HttpClient::update(HttpCookie_base* cookie)
 {
     int32_t length, i;
@@ -409,14 +475,6 @@ result_t HttpClient::get_cookie(exlib::string url, exlib::string& retVal)
         retVal = s.substr(0, s.length() - 2);
 
     m_lock.unlock();
-    return 0;
-}
-
-result_t HttpClient::setClientCert(X509Cert_base* crt, PKey_base* key)
-{
-    m_crt = crt;
-    m_key = key;
-
     return 0;
 }
 
@@ -632,8 +690,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
 
             if (m_http_proxy.empty()) {
                 if (m_ssl)
-                    return ssl_base::connect(m_connUrl, m_hc->m_sslVerification,
-                        m_hc->m_crt, m_hc->m_key, m_hc->m_timeout, m_conn, next(connected));
+                    return tls_base::connect(m_connUrl, m_hc->m_context, m_hc->m_timeout, m_conn, next(connected));
                 else
                     return net_base::connect(m_connUrl, m_hc->m_timeout, m_conn, next(connected));
             } else {
@@ -805,25 +862,13 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
 
         ON_STATE(asyncRequest, ssl_handshake)
         {
-            obj_ptr<SslSocket> ss = new SslSocket();
-
-            if (m_hc->m_sslVerification >= 0)
-                ss->set_verification(m_hc->m_sslVerification);
+            obj_ptr<TLSSocket> ss = new TLSSocket();
+            ss->init(m_hc->m_context);
 
             obj_ptr<Stream_base> conn = m_conn;
             m_conn = ss;
 
-            if (m_hc->m_crt && m_hc->m_key) {
-                result_t hr = ss->setCert("", m_hc->m_crt, m_hc->m_key);
-                if (hr < 0)
-                    return hr;
-            } else if (g_ssl.m_crt && g_ssl.m_key) {
-                result_t hr = ss->setCert("", g_ssl.m_crt, g_ssl.m_key);
-                if (hr < 0)
-                    return hr;
-            }
-
-            return ss->connect(conn, m_sslhost, m_temp, next(connected));
+            return ss->connect(conn, m_sslhost, next(connected));
         }
 
         ON_STATE(asyncRequest, connected)
@@ -925,7 +970,6 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
         exlib::string m_connUrl;
         obj_ptr<HttpClient> m_hc;
         obj_ptr<Buffer_base> m_buffer;
-        int32_t m_temp;
         bool m_reuse;
     };
 

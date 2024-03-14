@@ -8,8 +8,6 @@
 /// <reference path="../interface/HttpHandler.d.ts" />
 /// <reference path="../interface/HttpRepeater.d.ts" />
 /// <reference path="../interface/Handler.d.ts" />
-/// <reference path="../interface/X509Cert.d.ts" />
-/// <reference path="../interface/PKey.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/SeekableStream.d.ts" />
 /**
@@ -168,14 +166,6 @@ declare module 'http' {
      *      
      */
     function fileHandler(root: string, mimes?: FIBJS.GeneralObject, autoIndex?: boolean): Class_Handler;
-
-    /**
-     * @description 设定缺省客户端证书
-     *     @param crt 证书，用于发送给服务器验证客户端
-     *     @param key 私钥，用于与客户端会话
-     *    
-     */
-    function setClientCert(crt: Class_X509Cert, key: Class_PKey): void;
 
     /**
      * @description 发送 http 请求到指定的流对象，并返回结果

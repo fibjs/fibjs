@@ -122,8 +122,10 @@ public:
             SSL_set_accept_state(m_sock->m_tls);
         else {
             SSL_set_connect_state(m_sock->m_tls);
-            if (!server_name.empty())
+            if (!server_name.empty()) {
                 SSL_set1_host(m_sock->m_tls, server_name.c_str());
+                SSL_set_tlsext_host_name(m_sock->m_tls, server_name.c_str());
+            }
         }
 
         next(handshake);

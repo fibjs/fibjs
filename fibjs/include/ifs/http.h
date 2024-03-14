@@ -24,8 +24,6 @@ class HttpsServer_base;
 class HttpHandler_base;
 class HttpRepeater_base;
 class Handler_base;
-class X509Cert_base;
-class PKey_base;
 class Stream_base;
 class SeekableStream_base;
 
@@ -61,7 +59,6 @@ public:
     static result_t get_https_proxy(exlib::string& retVal);
     static result_t set_https_proxy(exlib::string newVal);
     static result_t fileHandler(exlib::string root, v8::Local<v8::Object> mimes, bool autoIndex, obj_ptr<Handler_base>& retVal);
-    static result_t setClientCert(X509Cert_base* crt, PKey_base* key);
     static result_t request(Stream_base* conn, HttpRequest_base* req, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t request(Stream_base* conn, HttpRequest_base* req, SeekableStream_base* response_body, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     static result_t request(exlib::string method, exlib::string url, v8::Local<v8::Object> opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
@@ -111,7 +108,6 @@ public:
     static void s_static_get_https_proxy(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_static_set_https_proxy(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_static_fileHandler(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_setClientCert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_request(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_post(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -144,8 +140,6 @@ public:
 #include "ifs/HttpHandler.h"
 #include "ifs/HttpRepeater.h"
 #include "ifs/Handler.h"
-#include "ifs/X509Cert.h"
-#include "ifs/PKey.h"
 #include "ifs/Stream.h"
 #include "ifs/SeekableStream.h"
 
@@ -154,7 +148,6 @@ inline ClassInfo& http_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "fileHandler", s_static_fileHandler, true, false },
-        { "setClientCert", s_static_setClientCert, true, false },
         { "request", s_static_request, true, true },
         { "requestSync", s_static_request, true, false },
         { "get", s_static_get, true, true },
@@ -499,20 +492,6 @@ inline void http_base::s_static_fileHandler(const v8::FunctionCallbackInfo<v8::V
     hr = fileHandler(v0, v1, v2, vr);
 
     METHOD_RETURN();
-}
-
-inline void http_base::s_static_setClientCert(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 2);
-
-    ARG(obj_ptr<X509Cert_base>, 0);
-    ARG(obj_ptr<PKey_base>, 1);
-
-    hr = setClientCert(v0, v1);
-
-    METHOD_VOID();
 }
 
 inline void http_base::s_static_request(const v8::FunctionCallbackInfo<v8::Value>& args)
