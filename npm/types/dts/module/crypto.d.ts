@@ -504,6 +504,8 @@ declare module 'crypto' {
      */
     function sign(algorithm: any, data: Class_Buffer, privateKey: Class_Buffer): Class_Buffer;
 
+    function sign(algorithm: any, data: Class_Buffer, privateKey: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
     /**
      * @description 使用给定的私钥和算法计算并返回 data 的签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
      *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
@@ -513,6 +515,8 @@ declare module 'crypto' {
      *     
      */
     function sign(algorithm: any, data: Class_Buffer, privateKey: Class_KeyObject): Class_Buffer;
+
+    function sign(algorithm: any, data: Class_Buffer, privateKey: Class_KeyObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description 使用给定的私钥和算法计算并返回 data 的签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
@@ -534,6 +538,8 @@ declare module 'crypto' {
      */
     function sign(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject): Class_Buffer;
 
+    function sign(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
     /**
      * @description 使用给定的密钥和算法验证 data 的给定签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
      *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
@@ -545,6 +551,8 @@ declare module 'crypto' {
      */
     function verify(algorithm: any, data: Class_Buffer, publicKey: Class_Buffer, signature: Class_Buffer): boolean;
 
+    function verify(algorithm: any, data: Class_Buffer, publicKey: Class_Buffer, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
     /**
      * @description 使用给定的密钥和算法验证 data 的给定签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
      *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
@@ -555,6 +563,8 @@ declare module 'crypto' {
      *     
      */
     function verify(algorithm: any, data: Class_Buffer, publicKey: Class_KeyObject, signature: Class_Buffer): boolean;
+
+    function verify(algorithm: any, data: Class_Buffer, publicKey: Class_KeyObject, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description 使用给定的密钥和算法验证 data 的给定签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
@@ -576,6 +586,8 @@ declare module 'crypto' {
      *     
      */
     function verify(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject, signature: Class_Buffer): boolean;
+
+    function verify(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
 }
 

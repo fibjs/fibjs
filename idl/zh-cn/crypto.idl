@@ -378,7 +378,7 @@ module crypto
      @param privateKey 指定私钥
      @return 返回签名后的数据
     */
-    static Buffer sign(Value algorithm, Buffer data, Buffer privateKey);
+    static Buffer sign(Value algorithm, Buffer data, Buffer privateKey) async;
 
     /*! @brief 使用给定的私钥和算法计算并返回 data 的签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
@@ -386,7 +386,7 @@ module crypto
      @param privateKey 指定私钥
      @return 返回签名后的数据
     */
-    static Buffer sign(Value algorithm, Buffer data, KeyObject privateKey);
+    static Buffer sign(Value algorithm, Buffer data, KeyObject privateKey) async;
 
     /*! @brief 使用给定的私钥和算法计算并返回 data 的签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
 
@@ -404,7 +404,7 @@ module crypto
      @param key 指定私钥和签名参数
      @return 返回签名后的数据
     */
-    static Buffer sign(Value algorithm, Buffer data, Object key);
+    static Buffer sign(Value algorithm, Buffer data, Object key) async;
 
     /*! @brief 使用给定的密钥和算法验证 data 的给定签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
@@ -413,7 +413,7 @@ module crypto
      @param signature 指定签名数据
      @return 返回验证结果
     */
-    static Boolean verify(Value algorithm, Buffer data, Buffer publicKey, Buffer signature);
+    static Boolean verify(Value algorithm, Buffer data, Buffer publicKey, Buffer signature) async;
 
     /*! @brief 使用给定的密钥和算法验证 data 的给定签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
@@ -422,7 +422,7 @@ module crypto
      @param signature 指定签名数据
      @return 返回验证结果
     */
-    static Boolean verify(Value algorithm, Buffer data, KeyObject publicKey, Buffer signature);
+    static Boolean verify(Value algorithm, Buffer data, KeyObject publicKey, Buffer signature) async;
 
     /*! @brief 使用给定的密钥和算法验证 data 的给定签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
 
@@ -441,5 +441,5 @@ module crypto
      @param signature 指定签名数据
      @return 返回验证结果
     */
-    static Boolean verify(Value algorithm, Buffer data, Object key, Buffer signature);
+    static Boolean verify(Value algorithm, Buffer data, Object key, Buffer signature) async;
 };

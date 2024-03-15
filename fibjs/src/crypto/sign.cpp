@@ -409,17 +409,26 @@ result_t crypto_base::createVerify(exlib::string algorithm, v8::Local<v8::Object
     return 0;
 }
 
-result_t _sign(v8::Local<v8::Value> algorithm, Buffer_base* data, KeyObject_base* privateKey, DSASigEnc enc, int padding, int salt_len, obj_ptr<Buffer_base>& retVal)
+result_t get_algorithm(Isolate* isolate, v8::Local<v8::Value> algorithm, exlib::string& retVal)
 {
-    result_t hr;
-    const EVP_MD* md = nullptr;
-    if (algorithm->IsString()) {
-        exlib::string algo;
-        hr = GetArgumentValue(Isolate::current(), algorithm, algo, true);
-        if (hr < 0)
-            return hr;
+    if (algorithm->IsNull() || algorithm->IsUndefined())
+        return 0;
 
-        md = _evp_md_type(algo.c_str());
+    result_t hr = GetArgumentValue(isolate, algorithm, retVal, true);
+    if (hr < 0)
+        return hr;
+
+    if (retVal.empty())
+        return Runtime::setError("Invalid algorithm");
+
+    return 0;
+}
+
+result_t _sign(exlib::string algorithm, Buffer_base* data, KeyObject_base* privateKey, DSASigEnc enc, int padding, int salt_len, obj_ptr<Buffer_base>& retVal)
+{
+    const EVP_MD* md = nullptr;
+    if (!algorithm.empty()) {
+        md = _evp_md_type(algorithm.c_str());
         if (!md)
             return Runtime::setError("Invalid algorithm");
     }
@@ -455,50 +464,92 @@ result_t _sign(v8::Local<v8::Value> algorithm, Buffer_base* data, KeyObject_base
     return 0;
 }
 
-result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Buffer_base* data, Buffer_base* privateKey, obj_ptr<Buffer_base>& retVal)
+result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Buffer_base* data, Buffer_base* privateKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
+    if (ac->isSync()) {
+        ac->m_ctx.resize(1);
+
+        exlib::string algo;
+        result_t hr = get_algorithm(ac->isolate(), algorithm, algo);
+        if (hr < 0)
+            return hr;
+        ac->m_ctx[0] = algo;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    exlib::string algo = ac->m_ctx[0].string();
     obj_ptr<KeyObject_base> key_;
     result_t hr = crypto_base::createPrivateKey(privateKey, key_);
     if (hr != 0)
         return hr;
 
-    return _sign(algorithm, data, key_, kSigEncDER, DEFAULT_PADDING, NO_SALTLEN, retVal);
+    return _sign(algo, data, key_, kSigEncDER, DEFAULT_PADDING, NO_SALTLEN, retVal);
 }
 
-result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Buffer_base* data, KeyObject_base* privateKey, obj_ptr<Buffer_base>& retVal)
+result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Buffer_base* data, KeyObject_base* privateKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
-    return _sign(algorithm, data, privateKey, kSigEncDER, DEFAULT_PADDING, NO_SALTLEN, retVal);
-}
+    if (ac->isSync()) {
+        ac->m_ctx.resize(1);
 
-result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Buffer_base* data, v8::Local<v8::Object> key, obj_ptr<Buffer_base>& retVal)
-{
-    obj_ptr<KeyObject_base> key_;
-    result_t hr = crypto_base::createPrivateKey(key, key_);
-    if (hr != 0)
-        return hr;
-
-    DSASigEnc enc = kSigEncDER;
-    int padding = DEFAULT_PADDING;
-    int salt_len = NO_SALTLEN;
-    hr = get_sig_opt(Isolate::current(), key, enc, padding, salt_len);
-    if (hr < 0)
-        return hr;
-
-    return _sign(algorithm, data, key_, enc, padding, salt_len, retVal);
-}
-
-result_t _verify(v8::Local<v8::Value> algorithm, Buffer_base* data, KeyObject_base* publicKey, Buffer_base* signature,
-    DSASigEnc enc, int padding, int salt_len, bool& retVal)
-{
-    result_t hr;
-    const EVP_MD* md = nullptr;
-    if (algorithm->IsString()) {
         exlib::string algo;
-        hr = GetArgumentValue(Isolate::current(), algorithm, algo, true);
+        result_t hr = get_algorithm(ac->isolate(), algorithm, algo);
         if (hr < 0)
             return hr;
+        ac->m_ctx[0] = algo;
 
-        md = _evp_md_type(algo.c_str());
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    exlib::string algo = ac->m_ctx[0].string();
+    return _sign(algo, data, privateKey, kSigEncDER, DEFAULT_PADDING, NO_SALTLEN, retVal);
+}
+
+result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Buffer_base* data, v8::Local<v8::Object> key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        ac->m_ctx.resize(5);
+
+        exlib::string algo;
+        result_t hr = get_algorithm(ac->isolate(), algorithm, algo);
+        if (hr < 0)
+            return hr;
+        ac->m_ctx[0] = algo;
+
+        obj_ptr<KeyObject_base> key_;
+        hr = crypto_base::createPrivateKey(key, key_);
+        if (hr != 0)
+            return hr;
+        ac->m_ctx[1] = key_;
+
+        DSASigEnc enc = kSigEncDER;
+        int padding = DEFAULT_PADDING;
+        int salt_len = NO_SALTLEN;
+        hr = get_sig_opt(Isolate::current(), key, enc, padding, salt_len);
+        if (hr < 0)
+            return hr;
+        ac->m_ctx[2] = (int)enc;
+        ac->m_ctx[3] = padding;
+        ac->m_ctx[4] = salt_len;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    exlib::string algo = ac->m_ctx[0].string();
+    obj_ptr<KeyObject_base> key_ = (KeyObject_base*)ac->m_ctx[1].object();
+    DSASigEnc enc = (DSASigEnc)ac->m_ctx[2].intVal();
+    int padding = ac->m_ctx[3].intVal();
+    int salt_len = ac->m_ctx[4].intVal();
+
+    return _sign(algo, data, key_, enc, padding, salt_len, retVal);
+}
+
+result_t _verify(exlib::string algorithm, Buffer_base* data, KeyObject_base* publicKey, Buffer_base* signature,
+    DSASigEnc enc, int padding, int salt_len, bool& retVal)
+{
+    const EVP_MD* md = nullptr;
+    if (!algorithm.empty()) {
+        md = _evp_md_type(algorithm.c_str());
         if (!md)
             return Runtime::setError("Invalid algorithm");
     }
@@ -529,36 +580,84 @@ result_t _verify(v8::Local<v8::Value> algorithm, Buffer_base* data, KeyObject_ba
     return 0;
 }
 
-result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Buffer_base* data, Buffer_base* publicKey, Buffer_base* signature, bool& retVal)
+result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Buffer_base* data, Buffer_base* publicKey, Buffer_base* signature, bool& retVal, AsyncEvent* ac)
 {
+    if (ac->isSync()) {
+        ac->m_ctx.resize(1);
+
+        exlib::string algo;
+        result_t hr = get_algorithm(ac->isolate(), algorithm, algo);
+        if (hr < 0)
+            return hr;
+        ac->m_ctx[0] = algo;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    exlib::string algo = ac->m_ctx[0].string();
     obj_ptr<KeyObject_base> key_;
     result_t hr = crypto_base::createPublicKey(publicKey, key_);
     if (hr != 0)
         return hr;
 
-    return _verify(algorithm, data, key_, signature, kSigEncDER, DEFAULT_PADDING, NO_SALTLEN, retVal);
+    return _verify(algo, data, key_, signature, kSigEncDER, DEFAULT_PADDING, NO_SALTLEN, retVal);
 }
 
-result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Buffer_base* data, KeyObject_base* publicKey, Buffer_base* signature, bool& retVal)
+result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Buffer_base* data, KeyObject_base* publicKey, Buffer_base* signature, bool& retVal, AsyncEvent* ac)
 {
-    return _verify(algorithm, data, publicKey, signature, kSigEncDER, DEFAULT_PADDING, NO_SALTLEN, retVal);
+    if (ac->isSync()) {
+        ac->m_ctx.resize(1);
+
+        exlib::string algo;
+        result_t hr = get_algorithm(ac->isolate(), algorithm, algo);
+        if (hr < 0)
+            return hr;
+        ac->m_ctx[0] = algo;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    exlib::string algo = ac->m_ctx[0].string();
+    return _verify(algo, data, publicKey, signature, kSigEncDER, DEFAULT_PADDING, NO_SALTLEN, retVal);
 }
 
-result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Buffer_base* data, v8::Local<v8::Object> key, Buffer_base* signature, bool& retVal)
+result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Buffer_base* data, v8::Local<v8::Object> key, Buffer_base* signature, bool& retVal, AsyncEvent* ac)
 {
-    obj_ptr<KeyObject_base> key_;
-    result_t hr = crypto_base::createPublicKey(key, key_);
-    if (hr != 0)
-        return hr;
+    if (ac->isSync()) {
+        ac->m_ctx.resize(5);
 
-    DSASigEnc enc = kSigEncDER;
-    int padding = DEFAULT_PADDING;
-    int salt_len = NO_SALTLEN;
-    hr = get_sig_opt(Isolate::current(), key, enc, padding, salt_len);
-    if (hr < 0)
-        return hr;
+        exlib::string algo;
+        result_t hr = get_algorithm(ac->isolate(), algorithm, algo);
+        if (hr < 0)
+            return hr;
+        ac->m_ctx[0] = algo;
 
-    return _verify(algorithm, data, key_, signature, enc, padding, salt_len, retVal);
+        obj_ptr<KeyObject_base> key_;
+        hr = crypto_base::createPublicKey(key, key_);
+        if (hr != 0)
+            return hr;
+        ac->m_ctx[1] = key_;
+
+        DSASigEnc enc = kSigEncDER;
+        int padding = DEFAULT_PADDING;
+        int salt_len = NO_SALTLEN;
+        hr = get_sig_opt(Isolate::current(), key, enc, padding, salt_len);
+        if (hr < 0)
+            return hr;
+        ac->m_ctx[2] = (int)enc;
+        ac->m_ctx[3] = padding;
+        ac->m_ctx[4] = salt_len;
+
+        return CHECK_ERROR(CALL_E_NOSYNC);
+    }
+
+    exlib::string algo = ac->m_ctx[0].string();
+    obj_ptr<KeyObject_base> key_ = (KeyObject_base*)ac->m_ctx[1].object();
+    DSASigEnc enc = (DSASigEnc)ac->m_ctx[2].intVal();
+    int padding = ac->m_ctx[3].intVal();
+    int salt_len = ac->m_ctx[4].intVal();
+
+    return _verify(algo, data, key_, signature, enc, padding, salt_len, retVal);
 }
 
 }
