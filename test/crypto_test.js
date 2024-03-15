@@ -880,6 +880,15 @@ describe('crypto', () => {
                 assert.ok(crypto.createPublicKey(publicPem).equals(crypto.createPublicKey(publicPem)));
                 assert.ok(!crypto.createPublicKey(publicPem).equals(crypto.createPublicKey(publicDsa)));
             });
+
+            it("createPrivateKey({sm2}) issue", () => {
+                const key = crypto.generateKeyPair("sm2");
+                const key2 = crypto.createPrivateKey({
+                    key: key.privateKey
+                });
+
+                assert.equal(key2.asymmetricKeyType, "sm2");
+            });
         });
 
         describe('generateKeyPair', () => {

@@ -208,7 +208,17 @@ result_t KeyObject::createAsymmetricKey(v8::Local<v8::Object> key, KeyType type)
             if (key__->m_keyType == kKeyTypePublic)
                 return Runtime::setError("cannot create private key from a public key.");
 
-            m_pkey = EVP_PKEY_dup(key__->m_pkey);
+            if (EVP_PKEY_id(key__->m_pkey) == EVP_PKEY_SM2) {
+                const EC_KEY* ec = EVP_PKEY_get0_EC_KEY(key__->m_pkey);
+
+                ECKeyPointer ec1 = EC_KEY_new_by_curve_name(NID_sm2);
+                EC_KEY_set_public_key(ec1, EC_KEY_get0_public_key(ec));
+                EC_KEY_set_private_key(ec1, EC_KEY_get0_private_key(ec));
+
+                m_pkey = EVP_PKEY_new();
+                EVP_PKEY_set1_EC_KEY(m_pkey, ec1);
+            } else
+                m_pkey = EVP_PKEY_dup(key__->m_pkey);
             m_keyType = type;
 
             return 0;

@@ -66,16 +66,11 @@ result_t KeyObject::createPublicKeyFromPKey(EVP_PKEY* key)
 
     if (type == EVP_PKEY_SM2) {
         const EC_KEY* ec = EVP_PKEY_get0_EC_KEY(key);
-        const EC_GROUP* group = EC_KEY_get0_group(ec);
-        const EC_POINT* pt = EC_KEY_get0_public_key(ec);
-        const int nid = EC_GROUP_get_curve_name(group);
 
-        ECKeyPointer pub = EC_KEY_new_by_curve_name(nid);
-        if (EC_KEY_set_public_key(pub, pt) != 1)
-            return CHECK_ERROR(Runtime::setError("Invalid SM2 public key"));
+        ECKeyPointer ec1 = EC_KEY_new_by_curve_name(NID_sm2);
+        EC_KEY_set_public_key(ec1, EC_KEY_get0_public_key(ec));
 
-        if (EVP_PKEY_set1_EC_KEY(m_pkey, pub) != 1)
-            return CHECK_ERROR(Runtime::setError("Invalid SM2 public key"));
+        EVP_PKEY_set1_EC_KEY(m_pkey, ec1);
     } else if (!evp_keymgmt_util_copy(m_pkey, key,
                    OSSL_KEYMGMT_SELECT_PUBLIC_KEY | OSSL_KEYMGMT_SELECT_ALL_PARAMETERS))
         return openssl_error();
