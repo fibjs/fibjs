@@ -115,13 +115,16 @@ static void ConvertSignatureToDER(EVP_PKEY* pkey, const unsigned char* sig_data,
     BN_bin2bn(sig_data + n, n, s);
     ECDSA_SIG_set0(asn1_sig, r, s);
 
-    unsigned char* data = nullptr;
+    size_t sig_len_ = EVP_PKEY_size(pkey);
+    sig = new Buffer(NULL, sig_len_);
+
+    unsigned char* data = sig->data();
     int len = i2d_ECDSA_SIG(asn1_sig, &data);
 
     if (len <= 0)
         return;
 
-    sig = new Buffer(data, len);
+    sig->resize(len);
 }
 
 Sign::Sign(const EVP_MD* md)
