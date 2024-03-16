@@ -191,12 +191,9 @@ result_t KeyObject::ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8
     }
 
     BIOPointer bio(BIO_new(BIO_s_mem()));
-    bool is_pem = false;
     int ret;
 
     if (format == "pem") {
-        is_pem = true;
-
         if (type == "pkcs1") {
             if (EVP_PKEY_id(m_pkey) != EVP_PKEY_RSA)
                 return Runtime::setError("pkcs1 only support RSA key");
@@ -220,6 +217,14 @@ result_t KeyObject::ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8
                 cipher ? pass_buf->length() : 0, nullptr, nullptr);
         } else
             return Runtime::setError("Invalid type");
+
+        if (ret != 1)
+            return openssl_error();
+
+        BUF_MEM* bptr;
+        BIO_get_mem_ptr(bio, &bptr);
+
+        retVal = isolate->NewString(bptr->data, bptr->length);
     } else if (format == "der") {
         if (type == "pkcs1") {
             if (EVP_PKEY_id(m_pkey) != EVP_PKEY_RSA)
@@ -241,21 +246,17 @@ result_t KeyObject::ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8
 
         } else
             return Runtime::setError("Invalid type");
-    } else
-        return Runtime::setError("Invalid format");
 
-    if (ret != 1)
-        return openssl_error();
+        if (ret != 1)
+            return openssl_error();
 
-    BUF_MEM* bptr;
-    BIO_get_mem_ptr(bio, &bptr);
+        BUF_MEM* bptr;
+        BIO_get_mem_ptr(bio, &bptr);
 
-    if (is_pem) {
-        retVal = isolate->NewString(bptr->data, bptr->length);
-    } else {
         obj_ptr<Buffer_base> buf = new Buffer((const unsigned char*)bptr->data, bptr->length);
         retVal = buf->wrap(isolate);
-    }
+    } else
+        return Runtime::setError("Invalid format");
 
     return 0;
 }
