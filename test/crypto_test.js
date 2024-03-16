@@ -889,6 +889,13 @@ describe('crypto', () => {
 
                 assert.equal(key2.asymmetricKeyType, "sm2");
             });
+
+            todo("createPublicKey(pem) issue", () => {
+                const key = crypto.generateKeyPair("sm2");
+                const key2 = crypto.createPublicKey(key.publicKey.export());
+
+                assert.equal(key2.asymmetricKeyType, "sm2");
+            });
         });
 
         describe('generateKeyPair', () => {

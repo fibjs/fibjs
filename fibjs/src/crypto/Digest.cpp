@@ -94,58 +94,6 @@ result_t Digest::digest(exlib::string codec, v8::Local<v8::Value>& retVal)
     return buf->toValue(codec, retVal);
 }
 
-result_t Digest::sign(PKey_base* key, v8::Local<v8::Object> opts, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
-{
-    obj_ptr<Buffer> buf;
-
-    if (ac->isSync()) {
-        exlib::string name;
-
-        key->get_name(name);
-        if (name == "RSA") {
-            Isolate* isolate = holder();
-            v8::Local<v8::Value> v;
-
-            util_base::clone(opts, v);
-            opts = v8::Local<v8::Object>::Cast(v);
-
-            opts->Set(isolate->context(), isolate->NewString("alg"), v8::Int32::New(isolate->m_isolate, m_iAlgo)).IsJust();
-        }
-    } else {
-        result_t hr = digest(buf);
-        if (hr < 0)
-            return hr;
-    }
-
-    return key->sign(buf, opts, retVal, ac);
-}
-
-result_t Digest::verify(PKey_base* key, Buffer_base* sign, v8::Local<v8::Object> opts, bool& retVal, AsyncEvent* ac)
-{
-    obj_ptr<Buffer> buf;
-
-    if (ac->isSync()) {
-        exlib::string name;
-
-        key->get_name(name);
-        if (name == "RSA") {
-            Isolate* isolate = holder();
-            v8::Local<v8::Value> v;
-
-            util_base::clone(opts, v);
-            opts = v8::Local<v8::Object>::Cast(v);
-
-            opts->Set(isolate->context(), isolate->NewString("alg"), v8::Int32::New(isolate->m_isolate, m_iAlgo)).IsJust();
-        }
-    } else {
-        result_t hr = digest(buf);
-        if (hr < 0)
-            return hr;
-    }
-
-    return key->verify(buf, sign, opts, retVal, ac);
-}
-
 result_t Digest::get_size(int32_t& retVal)
 {
     retVal = EVP_MD_size(EVP_MD_CTX_md(m_ctx));

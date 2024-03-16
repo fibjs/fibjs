@@ -136,20 +136,6 @@ describe("hash", () => {
         assert.equal(o.base64, hash[o.name.toLowerCase()]().update(o.text).digest('base64'));
         assert.equal(o.base64, crypto.createHash(o.name).update(o.text).digest('base64'));
 
-        if (hash[o.name] <= hash.SM2) {
-            var s = crypto.createHash(o.name).update(o.text).sign(rsa4096_pem);
-            assert.ok(crypto.createHash(o.name).update(o.text).verify(pub_rsa4096_pem, s));
-            assert.ok(new crypto.PKey(pub_rsa4096_pem).verify(crypto.createHash(o.name).update(o.text).digest(), s, { alg: hash[o.name] }));
-        }
-
-        var s = crypto.createHash(o.name).update(o.text).sign(ec_pem);
-        assert.ok(crypto.createHash(o.name).update(o.text).verify(pub_ec_pem, s));
-        assert.ok(new crypto.PKey(pub_ec_pem).verify(crypto.createHash(o.name).update(o.text).digest(), s));
-
-        var s = crypto.createHash(o.name).update(o.text).sign(sm2_pem);
-        assert.ok(crypto.createHash(o.name).update(o.text).verify(pub_sm2_pem, s));
-        assert.ok(new crypto.PKey(pub_sm2_pem).verify(crypto.createHash(o.name).update(o.text).digest(), s));
-
         if (o.text != '')
             assert.equal(o.hash, hash.digest(hash[o.name], o.text.substr(0, 1)).update(o.text.substr(1)).digest().hex());
     }
@@ -190,20 +176,6 @@ describe("hash", () => {
         assert.equal(o.base64, hash['hmac_' + o.name.toLowerCase()](o.key, o.text).digest('base64'));
         assert.equal(o.base64, hash['hmac_' + o.name.toLowerCase()](o.key).update(o.text).digest('base64'));
         assert.equal(o.base64, crypto.createHmac(o.name, o.key).update(o.text).digest('base64'));
-
-        if (hash[o.name] <= hash.SM2) {
-            var s = crypto.createHmac(o.name, o.key).update(o.text).sign(rsa4096_pem);
-            assert.ok(crypto.createHmac(o.name, o.key).update(o.text).verify(pub_rsa4096_pem, s));
-            assert.ok(new crypto.PKey(pub_rsa4096_pem).verify(crypto.createHmac(o.name, o.key).update(o.text).digest(), s, { alg: hash[o.name] }));
-        }
-
-        var s = crypto.createHmac(o.name, o.key).update(o.text).sign(ec_pem);
-        assert.ok(crypto.createHmac(o.name, o.key).update(o.text).verify(pub_ec_pem, s));
-        assert.ok(new crypto.PKey(pub_ec_pem).verify(crypto.createHmac(o.name, o.key).update(o.text).digest(), s));
-
-        var s = crypto.createHmac(o.name, o.key).update(o.text).sign(sm2_pem);
-        assert.ok(crypto.createHmac(o.name, o.key).update(o.text).verify(pub_sm2_pem, s));
-        assert.ok(new crypto.PKey(pub_sm2_pem).verify(crypto.createHmac(o.name, o.key).update(o.text).digest(), s));
     }
 
     it('getHashes', () => {

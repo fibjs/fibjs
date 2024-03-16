@@ -4,7 +4,7 @@ exports.translate = exports.langs = void 0;
 const http = require("http");
 const url = require("url");
 const ssl = require("ssl");
-ssl.loadRootCerts();
+
 const { encodeTextToTk } = require('./uglified');
 function getToken(text, opts) {
     var tk = encodeTextToTk(text, opts.tld);
