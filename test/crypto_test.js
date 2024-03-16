@@ -3042,6 +3042,119 @@ describe('crypto', () => {
         });
     });
 
+    it("diffie-hellman", () => {
+        const dh_datas = [
+            {
+                "k1": {
+                    "kty": "EC",
+                    "crv": "secp256k1",
+                    "x": "zjs2JIs0H5B3YpmXeQ8H7gBwjTWAhMBZ2f7yNPLunws",
+                    "y": "2eaKLGlhQ4_FaTdTzADBkh87-JTgbP5jRyawEHSOTRM",
+                    "d": "Befeh4WP_5-z_fujSCNK4B_cgM7cxe0saXc1Xk2H7_E"
+                },
+                "k2": {
+                    "kty": "EC",
+                    "crv": "secp256k1",
+                    "x": "rnh1Pdyngihl7H9lLo0LXrKaFt80xMP-47jH3v6MQSw",
+                    "y": "NIYva2P56-m_BMyIR5syIxwNYrWej-B56r6UUNwYzaQ",
+                    "d": "wHgJZW2jg20Y7_p3XD0Wt6r8dNSUIS4ur7f9A0G-tWI"
+                },
+                "secret": "35b422687250a0d3f88de9b00fe3f129484af3fceadb44a8ee405c067840d1e2"
+            },
+            {
+                "k1": {
+                    "kty": "EC",
+                    "crv": "P-256",
+                    "x": "K-6GqkKg66r2RA7Q9fs3DUY-s3fgawg7A_vg4EqkN4g",
+                    "y": "WNK3kl4Y1pQSqUbCU4u2RkO61B31lAAnXn6jvf4oi9A",
+                    "d": "Bd7agtBTsSBIFG1ADu2tTFV40SPjl2p2pBZoZ0lnp-I"
+                },
+                "k2": {
+                    "kty": "EC",
+                    "crv": "P-256",
+                    "x": "3p-DI6u8YwjBd1qWYcI7FS0xTmrrfo2toQLPvOY9AUY",
+                    "y": "tjupBbC_Lo530taw0-5xJdr1cNE3NPpfLRQSUbBCDeI",
+                    "d": "gw1AThs5T00yPbjD0ZlCUt5bo2nJc4rSuLnURyQE8_U"
+                },
+                "secret": "9a2f77996770755afeb373e67445550a632edb2001cbb0265c206ecd2a7de557"
+            },
+            {
+                "k1": {
+                    "kty": "EC",
+                    "crv": "P-384",
+                    "x": "nIjPfmf4vyEDi4g7MszBTHpl6la5Ng19bpLUAOizlTvFPovCmRQOlQL7154z_0PO",
+                    "y": "JRT1IUEeKeNoxYv0LIux9PLsNGDPqxF6ybhALi_ajNREQhwOgH06uHnxfyFiZ9Gp",
+                    "d": "gugR5r6MmJkUJZwJyRp0UoUutVRjFc8yYkJ52h0J0T0ZUVrGyw2WN5NSunlKoJF0"
+                },
+                "k2": {
+                    "kty": "EC",
+                    "crv": "P-384",
+                    "x": "KTQGykVJIW5gkBio-FbEGIGq1Wlmd9SqPjRGSegk1YizS1-7eDNEs4aIrViun_13",
+                    "y": "WnlAagWZRcNsAes3Kzb3L60cIS-XAY9RR9YyDwiw2233Gw748dj0Nmypdb8lbuwf",
+                    "d": "Anu79INCjmJjwq9DEUxs62a-6wOYV4ajiAKW52lGYJKZvP5EevgfNMSLJIA14G9h"
+                },
+                "secret": "47a2b06932a91234a69f3c7ffe93d7b09d8c20122f6a0503b0a6aabf5635b0e8db60a63ab68eb73f52adac3507158b42"
+            },
+            {
+                "k1": {
+                    "kty": "EC",
+                    "crv": "P-521",
+                    "x": "AeltsZkWzF18bjSeMmzfbC7ixAnkO_b7YHe0hv1FL7qEqV2gwk7zn2LT4ibbkYuznEBcmw9Z-xwQMAmYlBX4Z-uB",
+                    "y": "AOG_to96IsoeubLtO_W-24GEaq-EuSiq2Eg2bSDO5P9M2ZoccUQKpi61YlTCzkXgw6wamjoU6A5TVkZtcEZ6XMuF",
+                    "d": "AGob8ojvPw-4h9onkp72xbjeWXo5iySH-v4Mj6B2qa0SSORbabj-6F_YBniTLcY6i-GUurFhG8mSRb12GH8d5x-S"
+                },
+                "k2": {
+                    "kty": "EC",
+                    "crv": "P-521",
+                    "x": "AOuFvJm0Z-YKJ_ZdVmEGM6bHIs079JSL5KMj-QgbdxH5uDAugPgo8GgZ4JRuVHwhW9eaB5_H90Bqy92G27tvFKnR",
+                    "y": "AHrHWFOY2c9lErQE2rIHjJ9F8LZ8uIT_iFZIcXTOoE7iQ0fnw1J6eea_C553SgmGqQH19JiGt_Lv0uhNtrPsl_i5",
+                    "d": "AWUUBbXdRJbLvpvZ_ImewAkqWYPrrBTPb38UZ7F1hjWGSorP_keFdn2q8VOYjlgtuT-1zx331wu_7Cf1SrfVOM0X"
+                },
+                "secret": "009142f3d12b0d9906e4c4ab13e1286d28e0f1b2f50a5bac74bbf371ad85fa790a5a3abdb121e6ebc1f84e7d761a48c0b39aa15204ddf80e47626d4915c704f19691"
+            },
+            {
+                "k1": {
+                    "kty": "OKP",
+                    "crv": "X25519",
+                    "x": "oNCtPQiG1puTroIx7a31-5YSDaKDmIDRXZ8ghh--Ljc",
+                    "d": "YLLshaVlLbqUoaHGG1iKRxkgKvJdBv90cfx0aJFeQks"
+                },
+                "k2": {
+                    "kty": "OKP",
+                    "crv": "X25519",
+                    "x": "oNCtPQiG1puTroIx7a31-5YSDaKDmIDRXZ8ghh--Ljc",
+                    "d": "YLLshaVlLbqUoaHGG1iKRxkgKvJdBv90cfx0aJFeQks"
+                },
+                "secret": "3e68d70be27570ecb5d9a3f7b903f6d9a4a29d5b09205baf48e8046f328c9207"
+            }
+        ]
+
+        dh_datas.forEach(data => {
+            var k1 = crypto.createPrivateKey({
+                key: data.k1,
+                format: 'jwk'
+            });
+
+            var k2 = crypto.createPrivateKey({
+                key: data.k2,
+                format: 'jwk'
+            });
+
+            var s1 = crypto.diffieHellman({
+                privateKey: k1,
+                publicKey: crypto.createPublicKey(k2)
+            });
+
+            var s2 = crypto.diffieHellman({
+                privateKey: k2,
+                publicKey: crypto.createPublicKey(k1)
+            });
+
+            assert.equal(s1.toString("hex"), data.secret);
+            assert.equal(s2.toString("hex"), data.secret);
+        });
+    });
+
     describe('X509Certificate', () => {
         const cert = readKey('agent1-cert.pem');
         const key = readKey('agent1-key.pem');

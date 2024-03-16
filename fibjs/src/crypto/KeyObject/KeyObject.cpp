@@ -65,6 +65,70 @@ result_t crypto_base::createSecretKey(exlib::string key, exlib::string encoding,
     return _createSecretKey((const unsigned char*)key.c_str(), key.length(), retVal);
 }
 
+result_t crypto_base::diffieHellman(v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal)
+{
+    Isolate* isolate = Isolate::current(options);
+    result_t hr;
+
+    obj_ptr<KeyObject_base> privateKey;
+    hr = GetConfigValue(isolate, options, "privateKey", privateKey, true);
+    if (hr < 0)
+        return hr;
+    KeyObject* privateKey_ = privateKey.As<KeyObject>();
+    int32_t privateKeyType = EVP_PKEY_id(privateKey_->pkey());
+    if (privateKey_->type() != KeyObject::kKeyTypePrivate)
+        return Runtime::setError("property 'privateKey' must be a private key");
+
+    obj_ptr<KeyObject_base> publicKey;
+    hr = GetConfigValue(isolate, options, "publicKey", publicKey, true);
+    if (hr < 0)
+        return hr;
+    KeyObject* publicKey_ = publicKey.As<KeyObject>();
+    int32_t publicKeyType = EVP_PKEY_id(publicKey_->pkey());
+    if (publicKey_->type() != KeyObject::kKeyTypePublic)
+        return Runtime::setError("property 'publicKey' must be a public key");
+
+    if (privateKeyType != publicKeyType)
+    {
+        printf("privateKeyType: %d, publicKeyType: %d\n", privateKeyType, publicKeyType);
+        return Runtime::setError("privateKey and publicKey must have the same type");
+    }
+
+    if (privateKeyType == EVP_PKEY_SM2) {
+        const EC_POINT* pub_key = EC_KEY_get0_public_key(EVP_PKEY_get0_EC_KEY(publicKey_->pkey()));
+        const EC_KEY* eckey = EVP_PKEY_get0_EC_KEY(privateKey_->pkey());
+
+        size_t len = 32;
+        obj_ptr<Buffer> buf = new Buffer(nullptr, len);
+        if (ECDH_compute_key(buf->data(), len, pub_key, eckey, nullptr) != len)
+            return openssl_error();
+
+        retVal = buf;
+    } else {
+        EVPKeyCtxPointer ctx = EVP_PKEY_CTX_new(privateKey_->pkey(), nullptr);
+        if (!ctx)
+            return openssl_error();
+
+        if (EVP_PKEY_derive_init(ctx) <= 0)
+            return openssl_error();
+
+        if (EVP_PKEY_derive_set_peer(ctx, publicKey_->pkey()) <= 0)
+            return openssl_error();
+
+        size_t len;
+        if (EVP_PKEY_derive(ctx, nullptr, &len) <= 0)
+            return openssl_error();
+
+        obj_ptr<Buffer> buf = new Buffer(nullptr, len);
+        if (EVP_PKEY_derive(ctx, buf->data(), &len) <= 0)
+            return openssl_error();
+
+        retVal = buf;
+    }
+
+    return 0;
+}
+
 result_t KeyObject::createSecretKey(const unsigned char* key, size_t size)
 {
     m_keyType = kKeyTypeSecret;

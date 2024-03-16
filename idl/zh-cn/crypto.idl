@@ -197,6 +197,17 @@ module crypto
     */
     static X509CertificateRequest createCertificateRequest(Object options);
 
+    /*! @brief 基于 privateKey 和 publicKey 计算 Diffie-Hellman 密钥
+
+     options 支持以下属性:
+      - privateKey: 用于计算的私钥
+      - publicKey: 用于计算的公钥
+
+     @param options 指定 Diffie-Hellman 密钥计算的选项
+     @return 返回 Diffie-Hellman 密钥
+    */
+    static Buffer diffieHellman(Object options);
+
     /*! @brief 加载一个 CRT/PEM/DER 格式的非对称公钥或者私钥
      @param filename 公钥或者私钥文件名
      @return 返回包含 PKey 的对象
