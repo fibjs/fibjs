@@ -180,6 +180,47 @@ result_t KeyObject::ParsePublicKey(v8::Local<v8::Object> key)
             m_pkey = d2i_PUBKEY(nullptr, &p, _key->length());
         else
             return Runtime::setError("Invalid type");
+    } else if (format == "raw") {
+        exlib::string namedCurve;
+        hr = GetConfigValue(isolate, key, "namedCurve", namedCurve, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+
+        int32_t key_type = EVP_PKEY_EC;
+
+        if (namedCurve == "ed25519")
+            key_type = EVP_PKEY_ED25519;
+        else if (namedCurve == "ed448")
+            key_type = EVP_PKEY_ED448;
+        else if (namedCurve == "x25519")
+            key_type = EVP_PKEY_X25519;
+        else if (namedCurve == "x448")
+            key_type = EVP_PKEY_X448;
+
+        if (key_type == EVP_PKEY_EC) {
+            int32_t cid = GetCurveFromName(namedCurve.c_str());
+            if (cid == NID_undef)
+                return Runtime::setError("Invalid curve name");
+
+            ECPointer ec = EC_KEY_new_by_curve_name(cid);
+            if (ec == nullptr)
+                return Runtime::setError("Invalid namedCurve");
+
+            const EC_GROUP* group = EC_KEY_get0_group(ec);
+            ECPointPointer point = EC_POINT_new(group);
+            if (EC_POINT_oct2point(group, point, _key->data(), _key->length(), nullptr) != 1)
+                return openssl_error();
+
+            if (EC_KEY_set_public_key(ec, point) != 1)
+                return openssl_error();
+
+            m_pkey = EVP_PKEY_new();
+            EVP_PKEY_set1_EC_KEY(m_pkey, ec);
+        } else {
+            m_pkey = EVP_PKEY_new_raw_public_key(key_type, nullptr, _key->data(), _key->length());
+            if (m_pkey == nullptr)
+                return openssl_error();
+        }
     } else
         return Runtime::setError("Invalid format");
 
@@ -197,7 +238,7 @@ result_t KeyObject::ExportPublicKey(v8::Local<v8::Object> options, v8::Local<v8:
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
 
-    exlib::string type = "spki";
+    exlib::string type;
     hr = GetConfigValue(isolate, options, "type", type, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
@@ -215,7 +256,7 @@ result_t KeyObject::ExportPublicKey(v8::Local<v8::Object> options, v8::Local<v8:
 
             RsaPointer rsa = EVP_PKEY_get1_RSA(m_pkey);
             ret = PEM_write_bio_RSAPublicKey(bio, rsa);
-        } else if (type == "spki") {
+        } else if (type == "spki" || type == "") {
             ret = PEM_write_bio_PUBKEY(bio, m_pkey);
         } else
             return Runtime::setError("Invalid type");
@@ -234,7 +275,7 @@ result_t KeyObject::ExportPublicKey(v8::Local<v8::Object> options, v8::Local<v8:
 
             RsaPointer rsa = EVP_PKEY_get1_RSA(m_pkey);
             ret = i2d_RSAPublicKey_bio(bio, rsa);
-        } else if (type == "spki") {
+        } else if (type == "spki" || type == "") {
             ret = i2d_PUBKEY_bio(bio, m_pkey);
         } else
             return Runtime::setError("Invalid type");
@@ -253,7 +294,7 @@ result_t KeyObject::ExportPublicKey(v8::Local<v8::Object> options, v8::Local<v8:
             point_conversion_form_t form = POINT_CONVERSION_UNCOMPRESSED;
             if (type == "compressed")
                 form = POINT_CONVERSION_COMPRESSED;
-            else if (type == "uncompressed")
+            else if (type == "uncompressed" || type == "")
                 form = POINT_CONVERSION_UNCOMPRESSED;
             else if (type == "hybrid")
                 form = POINT_CONVERSION_HYBRID;

@@ -141,6 +141,54 @@ result_t KeyObject::ParsePrivateKey(v8::Local<v8::Object> key)
             m_pkey = d2i_PrivateKey(EVP_PKEY_EC, nullptr, &p, _key->length());
         else
             return Runtime::setError("Invalid type");
+    } else if (format == "raw") {
+        exlib::string namedCurve;
+        hr = GetConfigValue(isolate, key, "namedCurve", namedCurve, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+
+        int32_t key_type = EVP_PKEY_EC;
+
+        if (namedCurve == "ed25519")
+            key_type = EVP_PKEY_ED25519;
+        else if (namedCurve == "ed448")
+            key_type = EVP_PKEY_ED448;
+        else if (namedCurve == "x25519")
+            key_type = EVP_PKEY_X25519;
+        else if (namedCurve == "x448")
+            key_type = EVP_PKEY_X448;
+
+        if (key_type == EVP_PKEY_EC) {
+            int32_t cid = GetCurveFromName(namedCurve.c_str());
+            if (cid == NID_undef)
+                return Runtime::setError("Invalid curve name");
+
+            ECPointer ec = EC_KEY_new_by_curve_name(cid);
+            if (ec == nullptr)
+                return Runtime::setError("Invalid namedCurve");
+
+            BignumPointer d = BN_bin2bn(_key->data(), _key->length(), nullptr);
+            const EC_GROUP* group = EC_KEY_get0_group(ec);
+            ECPointPointer point = EC_POINT_new(group);
+
+            if (EC_POINT_mul(group, point, d, nullptr, nullptr, nullptr) != 1)
+                return openssl_error();
+
+            if (EC_KEY_set_public_key(ec, point) != 1)
+                return openssl_error();
+
+            if (EC_KEY_set_private_key(ec, d) != 1)
+                return openssl_error();
+
+            d.release();
+
+            m_pkey = EVP_PKEY_new();
+            EVP_PKEY_set1_EC_KEY(m_pkey, ec);
+        } else {
+            m_pkey = EVP_PKEY_new_raw_private_key(key_type, nullptr, _key->data(), _key->length());
+            if (m_pkey == nullptr)
+                return openssl_error();
+        }
     } else
         return Runtime::setError("Invalid format");
 

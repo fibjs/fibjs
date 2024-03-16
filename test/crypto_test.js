@@ -765,6 +765,109 @@ describe('crypto', () => {
                     });
                 });
 
+                describe("raw", () => {
+                    [
+                        {
+                            type: "ec",
+                            gen_curve: "P-224",
+                            import_curve: "P-224",
+                        },
+                        {
+                            type: "ec",
+                            gen_curve: "P-256",
+                            import_curve: "P-256",
+                        },
+                        {
+                            type: "ec",
+                            gen_curve: "P-384",
+                            import_curve: "P-384",
+                        },
+                        {
+                            type: "ec",
+                            gen_curve: "P-521",
+                            import_curve: "P-521",
+                        },
+                        {
+                            type: "ec",
+                            gen_curve: "secp256k1",
+                            import_curve: "secp256k1",
+                        },
+                        {
+                            type: "sm2",
+                            import_curve: "SM2",
+                        },
+                        {
+                            type: "ed25519",
+                            import_curve: "ed25519"
+                        },
+                        {
+                            type: "x25519",
+                            import_curve: "x25519"
+                        },
+                        {
+                            type: "x448",
+                            import_curve: "x448"
+                        },
+                        {
+                            type: "ed448",
+                            import_curve: "ed448"
+                        }
+                    ].forEach((t) => {
+                        it(t.import_curve, () => {
+                            const key = crypto.generateKeyPairSync(t.type, {
+                                namedCurve: t.gen_curve
+                            });
+
+                            if (t.type === "ec" || t.type === "sm2") {
+                                ['compressed', 'uncompressed', 'hybrid'].forEach((type) => {
+                                    var key1 = crypto.createPublicKey({
+                                        key: key.publicKey.export({
+                                            format: 'raw',
+                                            type
+                                        }),
+                                        format: 'raw',
+                                        namedCurve: t.import_curve
+                                    });
+
+                                    assert.deepEqual(key.publicKey.export({
+                                        format: "jwk"
+                                    }), key1.export({
+                                        format: "jwk"
+                                    }));
+                                });
+                            } else {
+                                var key1 = crypto.createPublicKey({
+                                    key: key.publicKey.export({
+                                        format: 'raw'
+                                    }),
+                                    format: 'raw',
+                                    namedCurve: t.import_curve
+                                });
+
+                                assert.deepEqual(key.publicKey.export({
+                                    format: "jwk"
+                                }), key1.export({
+                                    format: "jwk"
+                                }));
+                            }
+
+                            var key1 = crypto.createPrivateKey({
+                                key: key.privateKey.export({
+                                    format: 'raw'
+                                }),
+                                format: 'raw',
+                                namedCurve: t.import_curve
+                            });
+
+                            assert.deepEqual(key.privateKey.export({
+                                format: "jwk"
+                            }), key1.export({
+                                format: "jwk"
+                            }));
+                        });
+                    });
+                });
+
                 describe('rsa', () => {
                     it('rsa_pss_public_2048', () => {
                         const publicPem = readKey('rsa_pss_public_2048.pem');
