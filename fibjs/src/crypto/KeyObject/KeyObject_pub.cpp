@@ -204,31 +204,35 @@ result_t KeyObject::ExportPublicKey(v8::Local<v8::Object> options, v8::Local<v8:
     GetConfigValue(isolate, options, "format", format, true);
 
     BIOPointer bio(BIO_new(BIO_s_mem()));
-    bool id_pem = false;
+    bool is_pem = false;
     int ret;
 
-    if (type == "pkcs1") {
-        if (EVP_PKEY_id(m_pkey) != EVP_PKEY_RSA)
-            return Runtime::setError("pkcs1 only support RSA key");
+    if (format == "pem") {
+        is_pem = true;
 
-        RsaPointer rsa = EVP_PKEY_get1_RSA(m_pkey);
-        if (format == "pem") {
+        if (type == "pkcs1") {
+            if (EVP_PKEY_id(m_pkey) != EVP_PKEY_RSA)
+                return Runtime::setError("pkcs1 only support RSA key");
+
+            RsaPointer rsa = EVP_PKEY_get1_RSA(m_pkey);
             ret = PEM_write_bio_RSAPublicKey(bio, rsa);
-            id_pem = true;
-        } else if (format == "der")
-            ret = i2d_RSAPublicKey_bio(bio, rsa);
-        else
-            return Runtime::setError("Invalid format");
-    } else if (type == "spki") {
-        if (format == "pem") {
+        } else if (type == "spki") {
             ret = PEM_write_bio_PUBKEY(bio, m_pkey);
-            id_pem = true;
-        } else if (format == "der")
+        } else
+            return Runtime::setError("Invalid type");
+    } else if (format == "der") {
+        if (type == "pkcs1") {
+            if (EVP_PKEY_id(m_pkey) != EVP_PKEY_RSA)
+                return Runtime::setError("pkcs1 only support RSA key");
+
+            RsaPointer rsa = EVP_PKEY_get1_RSA(m_pkey);
+            ret = i2d_RSAPublicKey_bio(bio, rsa);
+        } else if (type == "spki") {
             ret = i2d_PUBKEY_bio(bio, m_pkey);
-        else
-            return Runtime::setError("Invalid format");
+        } else
+            return Runtime::setError("Invalid type");
     } else
-        return Runtime::setError("Invalid type");
+        return Runtime::setError("Invalid format");
 
     if (ret != 1)
         return openssl_error();
@@ -236,7 +240,7 @@ result_t KeyObject::ExportPublicKey(v8::Local<v8::Object> options, v8::Local<v8:
     BUF_MEM* bptr;
     BIO_get_mem_ptr(bio, &bptr);
 
-    if (id_pem) {
+    if (is_pem) {
         retVal = isolate->NewString(bptr->data, bptr->length);
     } else {
         obj_ptr<Buffer_base> buf = new Buffer((const unsigned char*)bptr->data, bptr->length);

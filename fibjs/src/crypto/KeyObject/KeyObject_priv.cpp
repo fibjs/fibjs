@@ -191,52 +191,58 @@ result_t KeyObject::ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8
     }
 
     BIOPointer bio(BIO_new(BIO_s_mem()));
-    bool id_pem = false;
+    bool is_pem = false;
     int ret;
 
-    if (type == "pkcs1") {
-        if (EVP_PKEY_id(m_pkey) != EVP_PKEY_RSA)
-            return Runtime::setError("pkcs1 only support RSA key");
+    if (format == "pem") {
+        is_pem = true;
 
-        RsaPointer rsa = EVP_PKEY_get1_RSA(m_pkey);
-        if (format == "pem") {
+        if (type == "pkcs1") {
+            if (EVP_PKEY_id(m_pkey) != EVP_PKEY_RSA)
+                return Runtime::setError("pkcs1 only support RSA key");
+
+            RsaPointer rsa = EVP_PKEY_get1_RSA(m_pkey);
             ret = PEM_write_bio_RSAPrivateKey(bio, rsa, cipher,
                 cipher ? (unsigned char*)pass_buf->data() : nullptr,
                 cipher ? pass_buf->length() : 0, nullptr, nullptr);
-            id_pem = true;
-        } else if (format == "der") {
-            ret = i2d_RSAPrivateKey_bio(bio, rsa);
-        } else
-            return Runtime::setError("Invalid format");
-    } else if (type == "pkcs8") {
-        if (format == "pem") {
+        } else if (type == "pkcs8") {
             ret = PEM_write_bio_PKCS8PrivateKey(bio, m_pkey, cipher,
                 cipher ? (char*)pass_buf->data() : nullptr,
                 cipher ? pass_buf->length() : 0, nullptr, nullptr);
-            id_pem = true;
-        } else if (format == "der") {
-            ret = i2d_PKCS8PrivateKey_bio(bio, m_pkey, cipher,
-                cipher ? (char*)pass_buf->data() : nullptr,
-                cipher ? pass_buf->length() : 0, nullptr, nullptr);
-        } else
-            return Runtime::setError("Invalid format");
-    } else if (type == "sec1") {
-        int nid = EVP_PKEY_id(m_pkey);
-        if (nid != EVP_PKEY_EC && nid != EVP_PKEY_SM2)
-            return Runtime::setError("spki only support EC and SM2 key");
+        } else if (type == "sec1") {
+            int nid = EVP_PKEY_id(m_pkey);
+            if (nid != EVP_PKEY_EC && nid != EVP_PKEY_SM2)
+                return Runtime::setError("spki only support EC and SM2 key");
 
-        ECKeyPointer ec = EVP_PKEY_get1_EC_KEY(m_pkey);
-        if (format == "pem") {
+            ECKeyPointer ec = EVP_PKEY_get1_EC_KEY(m_pkey);
             ret = PEM_write_bio_ECPrivateKey(bio, ec, cipher,
                 cipher ? (unsigned char*)pass_buf->data() : nullptr,
                 cipher ? pass_buf->length() : 0, nullptr, nullptr);
-            id_pem = true;
-        } else if (format == "der") {
-            ret = i2d_ECPrivateKey_bio(bio, ec);
         } else
-            return Runtime::setError("Invalid format");
+            return Runtime::setError("Invalid type");
+    } else if (format == "der") {
+        if (type == "pkcs1") {
+            if (EVP_PKEY_id(m_pkey) != EVP_PKEY_RSA)
+                return Runtime::setError("pkcs1 only support RSA key");
+
+            RsaPointer rsa = EVP_PKEY_get1_RSA(m_pkey);
+            ret = i2d_RSAPrivateKey_bio(bio, rsa);
+        } else if (type == "pkcs8") {
+            ret = i2d_PKCS8PrivateKey_bio(bio, m_pkey, cipher,
+                cipher ? (char*)pass_buf->data() : nullptr,
+                cipher ? pass_buf->length() : 0, nullptr, nullptr);
+        } else if (type == "sec1") {
+            int nid = EVP_PKEY_id(m_pkey);
+            if (nid != EVP_PKEY_EC && nid != EVP_PKEY_SM2)
+                return Runtime::setError("spki only support EC and SM2 key");
+
+            ECKeyPointer ec = EVP_PKEY_get1_EC_KEY(m_pkey);
+            ret = i2d_ECPrivateKey_bio(bio, ec);
+
+        } else
+            return Runtime::setError("Invalid type");
     } else
-        return Runtime::setError("Invalid type");
+        return Runtime::setError("Invalid format");
 
     if (ret != 1)
         return openssl_error();
@@ -244,7 +250,7 @@ result_t KeyObject::ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8
     BUF_MEM* bptr;
     BIO_get_mem_ptr(bio, &bptr);
 
-    if (id_pem) {
+    if (is_pem) {
         retVal = isolate->NewString(bptr->data, bptr->length);
     } else {
         obj_ptr<Buffer_base> buf = new Buffer((const unsigned char*)bptr->data, bptr->length);
