@@ -3133,16 +3133,31 @@ describe('crypto', () => {
                 "k1": {
                     "kty": "OKP",
                     "crv": "X25519",
-                    "x": "oNCtPQiG1puTroIx7a31-5YSDaKDmIDRXZ8ghh--Ljc",
-                    "d": "YLLshaVlLbqUoaHGG1iKRxkgKvJdBv90cfx0aJFeQks"
+                    "x": "VaU3ox_yStPvIJrEWcyqW-_0A5GvDldFuqyDw0ZMNmA",
+                    "d": "WC9svS01NT0c43L379u8hjKeJ0NpOlq42RE3BnJLKG8"
                 },
                 "k2": {
                     "kty": "OKP",
                     "crv": "X25519",
-                    "x": "oNCtPQiG1puTroIx7a31-5YSDaKDmIDRXZ8ghh--Ljc",
-                    "d": "YLLshaVlLbqUoaHGG1iKRxkgKvJdBv90cfx0aJFeQks"
+                    "x": "YxXJrr20buB3m71o30vKGVIOsQZSa0K3FbpnMgotBHk",
+                    "d": "iLV3YXmDZSq_Py6brY0SrZKBh-5IvS146YpODGXQiGE"
                 },
-                "secret": "3e68d70be27570ecb5d9a3f7b903f6d9a4a29d5b09205baf48e8046f328c9207"
+                "secret": "939a92329dd167724368a33a93747f0bf1647345847adf8dbf230ad320d1446a"
+            },
+            {
+                "k1": {
+                    "kty": "OKP",
+                    "crv": "X448",
+                    "x": "EhPFjMVfNe3LACYIJUUaKGln5GagUq2VWvzQj39hMvIKgECzAN8GrmZ4y8-5vluPxjLoKF3126o",
+                    "d": "wKpwoZ56rx2-WwKcONj05H7e1h-16Fc-55DIqTpESpLwTBSOyAQqiWnhnL5BmG6qH4ORnylG7pY"
+                },
+                "k2": {
+                    "kty": "OKP",
+                    "crv": "X448",
+                    "x": "8EPT5JHeEFo13msoX_-Nw0NipAz00dKsDqt2GmlXTfYkbZ3Ew_ML6MAA0nR1dGJ2KedRIIT-fGc",
+                    "d": "bMz55cfk1gKw5eub7ukXB7Kkgmoeg0-nF6zMkm2HgfPNRmfofbV_M85r4zn4gG-HF8Hv-DBXLI8"
+                },
+                "secret": "b96a1f324cb226919afb51420d06cc24bf236b656d5dcc8974c04400ef6037c976c5bb7c3b42aa221eb45135426b843a5b935c00cb6694a6"
             }
         ]
 
