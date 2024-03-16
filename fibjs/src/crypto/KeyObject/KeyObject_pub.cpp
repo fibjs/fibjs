@@ -71,9 +71,11 @@ result_t KeyObject::createPublicKeyFromPKey(EVP_PKEY* key)
         EC_KEY_set_public_key(ec1, EC_KEY_get0_public_key(ec));
 
         EVP_PKEY_set1_EC_KEY(m_pkey, ec1);
-    } else if (!evp_keymgmt_util_copy(m_pkey, key,
-                   OSSL_KEYMGMT_SELECT_PUBLIC_KEY | OSSL_KEYMGMT_SELECT_ALL_PARAMETERS))
-        return openssl_error();
+    } else if (evp_keymgmt_util_copy(m_pkey, key, OSSL_KEYMGMT_SELECT_PUBLIC_KEY | OSSL_KEYMGMT_SELECT_ALL_PARAMETERS) <= 0) {
+        m_pkey = EVP_PKEY_dup(m_pkey);
+        if (m_pkey == nullptr)
+            return openssl_error();
+    }
 
     m_keyType = kKeyTypePublic;
 

@@ -918,6 +918,21 @@ describe('crypto', () => {
 
                 assert.equal(key2.asymmetricKeyType, "sm2");
             });
+
+            it("BUGFIX: createPublicKey(sk) issue", () => {
+                var k = crypto.createPrivateKey({
+                    key: {
+                        "kty": "EC",
+                        "crv": "secp256k1",
+                        "x": "rnh1Pdyngihl7H9lLo0LXrKaFt80xMP-47jH3v6MQSw",
+                        "y": "NIYva2P56-m_BMyIR5syIxwNYrWej-B56r6UUNwYzaQ",
+                        "d": "wHgJZW2jg20Y7_p3XD0Wt6r8dNSUIS4ur7f9A0G-tWI"
+                    },
+                    format: 'jwk'
+                });
+
+                var k1 = crypto.createPublicKey(k);
+            });
         });
 
         describe('generateKeyPair', () => {
