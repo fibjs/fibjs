@@ -621,7 +621,7 @@ describe('crypto', () => {
                             assert.deepEqual(
                                 key.export({ format: 'jwk' }), info.jwk);
 
-                            assert.equal(key.export({ format: 'buffer' }).toString("base64url"), info.jwk.d);
+                            assert.equal(key.export({ format: 'raw' }).toString("base64url"), info.jwk.d);
                         }
 
                         {
@@ -638,7 +638,7 @@ describe('crypto', () => {
                                 assert.deepEqual(
                                     key.export({ format: 'jwk' }), jwk);
 
-                                assert.equal(key.export({ format: 'buffer' }).toString("base64url"), info.jwk.x);
+                                assert.equal(key.export({ format: 'raw' }).toString("base64url"), info.jwk.x);
                             }
                         }
                     });
@@ -739,7 +739,7 @@ describe('crypto', () => {
                             assert.deepEqual(
                                 key.export({ format: 'jwk' }), info.jwk);
 
-                            assert.equal(key.export({ format: 'buffer' }).toString("base64url"), info.jwk.d);
+                            assert.equal(key.export({ format: 'raw' }).toString("base64url"), info.jwk.d);
                         }
 
                         {
@@ -757,9 +757,9 @@ describe('crypto', () => {
                                 assert.deepEqual(
                                     key.export({ format: 'jwk' }), jwk);
 
-                                assert.equal(key.export({ format: 'buffer', type: "uncompressed" }).toString("hex"), info.uncompressed);
-                                assert.equal(key.export({ format: 'buffer', type: "compressed" }).toString("hex"), info.compressed);
-                                assert.equal(key.export({ format: 'buffer', type: "hybrid" }).toString("hex"), info.hybrid);
+                                assert.equal(key.export({ format: 'raw', type: "uncompressed" }).toString("hex"), info.uncompressed);
+                                assert.equal(key.export({ format: 'raw', type: "compressed" }).toString("hex"), info.compressed);
+                                assert.equal(key.export({ format: 'raw', type: "hybrid" }).toString("hex"), info.hybrid);
                             }
                         }
                     });

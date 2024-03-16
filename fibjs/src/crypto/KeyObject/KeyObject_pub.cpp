@@ -247,7 +247,7 @@ result_t KeyObject::ExportPublicKey(v8::Local<v8::Object> options, v8::Local<v8:
 
         obj_ptr<Buffer_base> buf = new Buffer((const unsigned char*)bptr->data, bptr->length);
         retVal = buf->wrap(isolate);
-    } else if (format == "buffer") {
+    } else if (format == "raw") {
         int nid = EVP_PKEY_id(m_pkey);
         if (nid == EVP_PKEY_EC || nid == EVP_PKEY_SM2) {
             point_conversion_form_t form = POINT_CONVERSION_UNCOMPRESSED;
