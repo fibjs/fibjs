@@ -255,6 +255,30 @@ result_t KeyObject::ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8
 
         obj_ptr<Buffer_base> buf = new Buffer((const unsigned char*)bptr->data, bptr->length);
         retVal = buf->wrap(isolate);
+    } else if (format == "buffer") {
+        int nid = EVP_PKEY_id(m_pkey);
+        if (nid == EVP_PKEY_EC || nid == EVP_PKEY_SM2) {
+            const EC_KEY* ec = EVP_PKEY_get0_EC_KEY(m_pkey);
+            const EC_GROUP* group = EC_KEY_get0_group(ec);
+
+            int degree_bits = EC_GROUP_get_degree(group);
+            int degree_bytes = (degree_bits / CHAR_BIT) + (7 + (degree_bits % CHAR_BIT)) / 8;
+
+            const BIGNUM* d = EC_KEY_get0_private_key(ec);
+            obj_ptr<Buffer> buf = new Buffer(nullptr, degree_bytes);
+            BN_bn2binpad(d, buf->data(), degree_bytes);
+
+            retVal = buf->wrap(isolate);
+        } else if (nid == EVP_PKEY_ED25519 || nid == EVP_PKEY_ED448 || nid == EVP_PKEY_X25519 || nid == EVP_PKEY_X448) {
+            size_t len = 0;
+            EVP_PKEY_get_raw_private_key(m_pkey, nullptr, &len);
+
+            obj_ptr<Buffer> buf = new Buffer(nullptr, len);
+            EVP_PKEY_get_raw_private_key(m_pkey, buf->data(), &len);
+
+            retVal = buf->wrap(isolate);
+        } else
+            return Runtime::setError("only support EC, SM2, ED25519, ED448, X25519, X448 key");
     } else
         return Runtime::setError("Invalid format");
 

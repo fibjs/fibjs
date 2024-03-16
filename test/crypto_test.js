@@ -620,6 +620,8 @@ describe('crypto', () => {
                                 key.export({ type: 'pkcs8', format: 'pem' }), info.private);
                             assert.deepEqual(
                                 key.export({ format: 'jwk' }), info.jwk);
+
+                            assert.equal(key.export({ format: 'buffer' }).toString("base64url"), info.jwk.d);
                         }
 
                         {
@@ -635,6 +637,8 @@ describe('crypto', () => {
                                 delete jwk.d;
                                 assert.deepEqual(
                                     key.export({ format: 'jwk' }), jwk);
+
+                                assert.equal(key.export({ format: 'buffer' }).toString("base64url"), info.jwk.x);
                             }
                         }
                     });
@@ -653,7 +657,10 @@ describe('crypto', () => {
                                 kty: 'EC',
                                 x: 'X0mMYR_uleZSIPjNztIkAS3_ud5LhNpbiIFp6fNf2Gs',
                                 y: 'UbJuPy2Xi0lW7UYTBxPK3yGgDu9EAKYIecjkHX5s2lI'
-                            }
+                            },
+                            uncompressed: "045f498c611fee95e65220f8cdced224012dffb9de4b84da5b888169e9f35fd86b51b26e3f2d978b4956ed46130713cadf21a00eef4400a60879c8e41d7e6cda52",
+                            compressed: "025f498c611fee95e65220f8cdced224012dffb9de4b84da5b888169e9f35fd86b",
+                            hybrid: "065f498c611fee95e65220f8cdced224012dffb9de4b84da5b888169e9f35fd86b51b26e3f2d978b4956ed46130713cadf21a00eef4400a60879c8e41d7e6cda52"
                         },
                         {
                             private: readKey('ec_secp256k1_private.pem', 'ascii'),
@@ -666,7 +673,10 @@ describe('crypto', () => {
                                 kty: 'EC',
                                 x: 'cOzhFSpWxhalCbWNdP2H_yUkdC81C9T2deDpfxK7owA',
                                 y: '-A3DAZTk9IPppN-f03JydgHaFvL1fAHaoXf4SX4NXyo'
-                            }
+                            },
+                            uncompressed: "0470ece1152a56c616a509b58d74fd87ff2524742f350bd4f675e0e97f12bba300f80dc30194e4f483e9a4df9fd372727601da16f2f57c01daa177f8497e0d5f2a",
+                            compressed: "0270ece1152a56c616a509b58d74fd87ff2524742f350bd4f675e0e97f12bba300",
+                            hybrid: "0670ece1152a56c616a509b58d74fd87ff2524742f350bd4f675e0e97f12bba300f80dc30194e4f483e9a4df9fd372727601da16f2f57c01daa177f8497e0d5f2a"
                         },
                         {
                             private: readKey('ec_p384_private.pem', 'ascii'),
@@ -679,7 +689,10 @@ describe('crypto', () => {
                                 kty: 'EC',
                                 x: 'hON3nzGJgv-08fdHpQxgRJFZzlK-GZDGa5f3KnvM31cvvjJmsj4UeOgIdy3rDAjV',
                                 y: 'fidHhtecNCGCfLqmrLjDena1NSzWzWH1u_oUdMKGo5XSabxzD7-8JZxjpc8sR9cl'
-                            }
+                            },
+                            uncompressed: "0484e3779f318982ffb4f1f747a50c60449159ce52be1990c66b97f72a7bccdf572fbe3266b23e1478e808772deb0c08d57e274786d79c3421827cbaa6acb8c37a76b5352cd6cd61f5bbfa1474c286a395d269bc730fbfbc259c63a5cf2c47d725",
+                            compressed: "0384e3779f318982ffb4f1f747a50c60449159ce52be1990c66b97f72a7bccdf572fbe3266b23e1478e808772deb0c08d5",
+                            hybrid: "0784e3779f318982ffb4f1f747a50c60449159ce52be1990c66b97f72a7bccdf572fbe3266b23e1478e808772deb0c08d57e274786d79c3421827cbaa6acb8c37a76b5352cd6cd61f5bbfa1474c286a395d269bc730fbfbc259c63a5cf2c47d725"
                         },
                         {
                             private: readKey('ec_p521_private.pem', 'ascii'),
@@ -695,7 +708,10 @@ describe('crypto', () => {
                                     'CbhMeHRavUS6P10rsTtBn',
                                 y: 'Ad3flexBeAfXceNzRBH128kFbOWD6W41NjwKRqqIF26vmgW_8COldGKZjFkOSEASxPB' +
                                     'cvA2iFJRUyQ3whC00j0Np'
-                            }
+                            },
+                            uncompressed: "0401a2c5823c19b739ccdcdeeab1f6fce9ac155dee9ce9d8d460ea1bd4537e92595e92fd0a1175746f07038cf190cf97fa3312c26e131e1d16af512e8fd74aec4ed06701dddf95ec417807d771e3734411f5dbc9056ce583e96e35363c0a46aa88176eaf9a05bff023a57462998c590e484012c4f05cbc0da2149454c90df0842d348f4369",
+                            compressed: "0301a2c5823c19b739ccdcdeeab1f6fce9ac155dee9ce9d8d460ea1bd4537e92595e92fd0a1175746f07038cf190cf97fa3312c26e131e1d16af512e8fd74aec4ed067",
+                            hybrid: "0701a2c5823c19b739ccdcdeeab1f6fce9ac155dee9ce9d8d460ea1bd4537e92595e92fd0a1175746f07038cf190cf97fa3312c26e131e1d16af512e8fd74aec4ed06701dddf95ec417807d771e3734411f5dbc9056ce583e96e35363c0a46aa88176eaf9a05bff023a57462998c590e484012c4f05cbc0da2149454c90df0842d348f4369"
                         },
                     ].forEach((info) => {
                         const { keyType, namedCurve } = info;
@@ -722,6 +738,8 @@ describe('crypto', () => {
                                 key.export({ type: 'pkcs8', format: 'pem' }), info.private);
                             assert.deepEqual(
                                 key.export({ format: 'jwk' }), info.jwk);
+
+                            assert.equal(key.export({ format: 'buffer' }).toString("base64url"), info.jwk.d);
                         }
 
                         {
@@ -738,6 +756,10 @@ describe('crypto', () => {
                                 delete jwk.d;
                                 assert.deepEqual(
                                     key.export({ format: 'jwk' }), jwk);
+
+                                assert.equal(key.export({ format: 'buffer', type: "uncompressed" }).toString("hex"), info.uncompressed);
+                                assert.equal(key.export({ format: 'buffer', type: "compressed" }).toString("hex"), info.compressed);
+                                assert.equal(key.export({ format: 'buffer', type: "hybrid" }).toString("hex"), info.hybrid);
                             }
                         }
                     });

@@ -245,7 +245,45 @@ result_t KeyObject::ExportPublicKey(v8::Local<v8::Object> options, v8::Local<v8:
 
         obj_ptr<Buffer_base> buf = new Buffer((const unsigned char*)bptr->data, bptr->length);
         retVal = buf->wrap(isolate);
+    } else if (format == "buffer") {
+        int nid = EVP_PKEY_id(m_pkey);
+        if (nid == EVP_PKEY_EC || nid == EVP_PKEY_SM2) {
+            point_conversion_form_t form = POINT_CONVERSION_UNCOMPRESSED;
+            if (type == "compressed")
+                form = POINT_CONVERSION_COMPRESSED;
+            else if (type == "uncompressed")
+                form = POINT_CONVERSION_UNCOMPRESSED;
+            else if (type == "hybrid")
+                form = POINT_CONVERSION_HYBRID;
+            else
+                return Runtime::setError("Invalid type");
 
+            const EC_KEY* ec = EVP_PKEY_get0_EC_KEY(m_pkey);
+            if (ec == nullptr)
+                return Runtime::setError("only support EC key");
+
+            const EC_POINT* point = EC_KEY_get0_public_key(ec);
+            if (point == nullptr)
+                return Runtime::setError("only support EC key");
+
+            size_t len = EC_POINT_point2oct(EC_KEY_get0_group(ec), point, form, nullptr, 0, nullptr);
+            if (len == 0)
+                return openssl_error();
+
+            obj_ptr<Buffer> buf = new Buffer(nullptr, len);
+            EC_POINT_point2oct(EC_KEY_get0_group(ec), point, form, (unsigned char*)buf->data(), len, nullptr);
+
+            retVal = buf->wrap(isolate);
+        } else if (nid == EVP_PKEY_ED25519 || nid == EVP_PKEY_ED448 || nid == EVP_PKEY_X25519 || nid == EVP_PKEY_X448) {
+            size_t len = 0;
+            EVP_PKEY_get_raw_public_key(m_pkey, nullptr, &len);
+
+            obj_ptr<Buffer> buf = new Buffer(nullptr, len);
+            EVP_PKEY_get_raw_public_key(m_pkey, buf->data(), &len);
+
+            retVal = buf->wrap(isolate);
+        } else
+            return Runtime::setError("only support EC, SM2, ED25519, ED448, X25519, X448 key");
     } else
         return Runtime::setError("Invalid format");
 

@@ -61,12 +61,12 @@ declare class Class_KeyObject extends Class_object {
      *     - format: 必须是 'buffer' （默认）或 'jwk'
      * 
      *     对于公钥，可以使用以下编码选项：
-     *     - type: 必须是 'pkcs1' （仅限 RSA）或 'spki' 之一
-     *     - format: 必须是 'pem' 、 'der' 或 'jwk'
+     *     - type: format 为 'pem'、'der' 时，type 必须是 'pkcs1' （仅限 RSA）或 'spki' 之一，format 为 'buffer' 时，type 必须是 'uncompressed'、'compressed' 或 'hybrid' 之一
+     *     - format: 必须是 'pem'、'der' 或 'jwk'、'buffer'（仅限 EC/SM2/Ed25519/Ed448/X25519/X448）
      * 
      *     对于私钥，可以使用以下编码选项：
-     *     - type: 必须是 'pkcs1' （仅限 RSA）、 'pkcs8' 或 'sec1' （仅限 EC）之一
-     *     - format: 必须是 'pem' 、 'der' 或 'jwk'
+     *     - type: 必须是 'pkcs1' （仅限 RSA）、'pkcs8' 或 'sec1' （仅限 EC）之一
+     *     - format: 必须是 'pem'、'der' 或 'jwk'、'buffer'（仅限 EC/SM2/Ed25519/Ed448/X25519/X448）
      *     - cipher: 如果指定，则将使用基于 PKCS#5 v2.0 密码的加密，使用给定的 cipher 和 passphrase 对私钥进行加密
      *     - passphrase: <字符串> | 用于加密的密码，请参阅 cipher
      * 
