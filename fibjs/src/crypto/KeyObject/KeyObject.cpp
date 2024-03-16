@@ -98,7 +98,7 @@ result_t crypto_base::diffieHellman(v8::Local<v8::Object> options, obj_ptr<Buffe
         const EC_POINT* pub_key = EC_KEY_get0_public_key(EVP_PKEY_get0_EC_KEY(publicKey_->pkey()));
         const EC_KEY* eckey = EVP_PKEY_get0_EC_KEY(privateKey_->pkey());
 
-        size_t len = 32;
+        size_t len = (EC_GROUP_get_degree(EC_KEY_get0_group(eckey)) + 7) / 8;
         obj_ptr<Buffer> buf = new Buffer(nullptr, len);
         if (ECDH_compute_key(buf->data(), len, pub_key, eckey, nullptr) != len)
             return openssl_error();

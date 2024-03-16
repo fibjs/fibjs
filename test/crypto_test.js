@@ -3114,6 +3114,23 @@ describe('crypto', () => {
             },
             {
                 "k1": {
+                    "kty": "EC",
+                    "crv": "SM2",
+                    "x": "gTYUCa7XW13FXcmkngTuvAQia9mriVnWoNzh5FmYxO0",
+                    "y": "6wjKH9g5Uw2OEhOPSlCAjs3osul8J75v6s9r8Z-uz24",
+                    "d": "CPj44rkASC_FiY__rgAfJLZDG60cl_dEP-fD70ahnxI"
+                },
+                "k2": {
+                    "kty": "EC",
+                    "crv": "SM2",
+                    "x": "6ZIdJNvyQGIY_cEhaozczcASCg36IsZb9cCNI1wcprU",
+                    "y": "mF9ncL0bB9EwNCo4xLY7J_O3ypfucMZl4R-HVZlBmAo",
+                    "d": "ROIu2ngTt0xTpg5-6UQblqH1xgXJUPNkASIPSlq8Bos"
+                },
+                "secret": "a6584084f00dced610494f9b115d7d79aba3bdee18efff1d9e53e19c14029cb7"
+            },
+            {
+                "k1": {
                     "kty": "OKP",
                     "crv": "X25519",
                     "x": "oNCtPQiG1puTroIx7a31-5YSDaKDmIDRXZ8ghh--Ljc",
