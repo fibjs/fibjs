@@ -50,7 +50,7 @@ result_t HttpClient_base::_new(v8::Local<v8::Object> options, obj_ptr<HttpClient
 
 result_t HttpClient::init(v8::Local<v8::Object> options)
 {
-    result_t hr = tls_base::createSecureContext(options, true, m_context);
+    result_t hr = tls_base::createSecureContext(options, false, m_context);
     if (hr < 0)
         return hr;
 
