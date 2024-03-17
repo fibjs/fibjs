@@ -15,9 +15,8 @@ class TLSHandler : public TLSHandler_base {
     FIBER_FREE();
 
 public:
-    TLSHandler(SecureContext_base* context, Handler_base* handler)
+    TLSHandler(SecureContext_base* context)
         : m_ctx(context)
-        , m_handler(handler)
     {
     }
 

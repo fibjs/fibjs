@@ -15,7 +15,10 @@ namespace fibjs {
 
 result_t TLSHandler_base::_new(SecureContext_base* context, Handler_base* handler, obj_ptr<TLSHandler_base>& retVal, v8::Local<v8::Object> This)
 {
-    retVal = new TLSHandler(context, handler);
+    retVal = new TLSHandler(context);
+    retVal->wrap(This);
+    retVal->set_handler(handler);
+
     return 0;
 }
 
