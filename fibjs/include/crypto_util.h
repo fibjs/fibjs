@@ -164,3 +164,8 @@ extern const char* xfKeyUsages[];
 extern const char* xfCertTypes[];
 
 } /* namespace fibjs */
+
+extern "C" {
+void ossl_x25519_public_from_ed25519(uint8_t out_public_value[32], const uint8_t public_value[32]);
+void ossl_x25519_private_from_ed25519(uint8_t out_private_key[32], const uint8_t private_key[32]);
+}

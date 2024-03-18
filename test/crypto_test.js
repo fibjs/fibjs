@@ -652,6 +652,45 @@ describe('crypto', () => {
                     });
                 });
 
+                it('toX25519', () => {
+                    var ed_jwk = {
+                        "kty": "OKP",
+                        "crv": "Ed25519",
+                        "x": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+                        "d": "nWGxne_9WmC6hEr0kuwsxERJxWl7MmkZcDusAxyuf2A"
+                    };
+
+                    var x_jwk = {
+                        "kty": "OKP",
+                        "crv": "X25519",
+                        "x": "2F4H7CKwrYgVN8L0TWYtGhQ8-DDFespDBdhcepD2ti4",
+                        "d": "MHyDhk8oM8tCei7xwAoBPP3_J2jZgMCjpSDwBpBN6U8"
+                    };
+
+                    var x_jwk_pub = {
+                        "kty": "OKP",
+                        "crv": "X25519",
+                        "x": "2F4H7CKwrYgVN8L0TWYtGhQ8-DDFespDBdhcepD2ti4"
+                    };
+
+                    var ed_key = crypto.createPrivateKey({ key: ed_jwk, format: 'jwk' });
+
+                    var x_key = crypto.createPrivateKey({ key: ed_jwk, format: 'jwk', toX25519: true });
+                    assert.deepEqual(x_key.export({ format: 'jwk' }), x_jwk);
+
+                    var x_key = crypto.createPrivateKey({ key: ed_key, toX25519: true });
+                    assert.deepEqual(x_key.export({ format: 'jwk' }), x_jwk);
+
+                    var ed_key = crypto.createPublicKey({ key: ed_jwk, format: 'jwk' });
+
+                    var x_key = crypto.createPublicKey({ key: ed_jwk, format: 'jwk', toX25519: true });
+                    assert.deepEqual(x_key.export({ format: 'jwk' }), x_jwk_pub);
+
+                    var x_key = crypto.createPublicKey({ key: ed_key, toX25519: true });
+                    assert.deepEqual(x_key.export({ format: 'jwk' }), x_jwk_pub);
+
+                });
+
                 it('ec', () => {
                     [
                         {

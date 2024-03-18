@@ -31,7 +31,37 @@ result_t crypto_base::createPrivateKey(v8::Local<v8::Object> key, obj_ptr<KeyObj
     if (hr < 0)
         return hr;
 
+    hr = keyObj->toX25519_privateKey(key);
+    if (hr < 0)
+        return hr;
+
     retVal = keyObj;
+    return 0;
+}
+
+result_t KeyObject::toX25519_privateKey(v8::Local<v8::Object> options)
+{
+    Isolate* isolate = holder();
+
+    int32_t key_type = EVP_PKEY_id(m_pkey);
+    if (key_type == EVP_PKEY_ED25519) {
+        bool toX25519 = false;
+        result_t hr = GetConfigValue(isolate, options, "toX25519", toX25519, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+
+        if (toX25519) {
+            unsigned char sk[32];
+            size_t sz = 32;
+
+            EVP_PKEY_get_raw_private_key(m_pkey, sk, &sz);
+            ossl_x25519_private_from_ed25519(sk, sk);
+            m_pkey = EVP_PKEY_new_raw_private_key(EVP_PKEY_X25519, nullptr, sk, sizeof(sk));
+            if (m_pkey == nullptr)
+                return openssl_error();
+        }
+    }
+
     return 0;
 }
 

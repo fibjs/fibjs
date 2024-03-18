@@ -88,6 +88,10 @@ public:
     result_t generateEdKey(int nid, generateKeyPairParam* param);
 
 public:
+    result_t toX25519_privateKey(v8::Local<v8::Object> options);
+    result_t toX25519_publicKey(v8::Local<v8::Object> options);
+
+public:
     KeyType type() const
     {
         return m_keyType;
