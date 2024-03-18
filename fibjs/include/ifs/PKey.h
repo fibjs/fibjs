@@ -241,6 +241,8 @@ inline void PKey_base::s_static_from(const v8::FunctionCallbackInfo<v8::Value>& 
     ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(exlib::string, 1, "");
 
+    DEPRECATED_SOON("PKey.from");
+
     hr = from(v0, v1, vr);
 
     METHOD_OVER(2, 1);
@@ -248,11 +250,15 @@ inline void PKey_base::s_static_from(const v8::FunctionCallbackInfo<v8::Value>& 
     ARG(exlib::string, 0);
     OPT_ARG(exlib::string, 1, "");
 
+    DEPRECATED_SOON("PKey.from");
+
     hr = from(v0, v1, vr);
 
     METHOD_OVER(1, 1);
 
     ARG(v8::Local<v8::Object>, 0);
+
+    DEPRECATED_SOON("PKey.from");
 
     hr = from(v0, vr);
 

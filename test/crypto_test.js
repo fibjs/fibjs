@@ -430,6 +430,14 @@ describe('crypto', () => {
         });
 
         describe('createPublicKey/createPrivateKey', () => {
+            it('instanceof', () => {
+                const publicKey = crypto.createPublicKey(publicPem);
+                const privateKey = crypto.createPrivateKey(privatePem);
+
+                assert.ok(publicKey instanceof crypto.KeyObject);
+                assert.ok(privateKey instanceof crypto.KeyObject);
+            });
+
             it('check arguments', () => {
                 const publicKey = crypto.createPublicKey(publicPem);
                 const publicKey1 = crypto.createPublicKey(publicKey);

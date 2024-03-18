@@ -13,6 +13,9 @@ module crypto
     /*! @brief BlsKey 构造函数，参见 BlsKey */
     static BlsKey;
 
+    /*! @brief KeyObject 对象，参见 KeyObject */
+    static KeyObject;
+
     /*! @brief X509Certificate 构造函数，参见 X509Certificate */
     static X509Certificate;
 

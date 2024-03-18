@@ -129,14 +129,14 @@ interface PKey : object
      @param password 解密密码
      @return 返回包含密钥的对象
     */
-    static PKey from(Buffer DerKey, String password = "");
+    deprecated static PKey from(Buffer DerKey, String password = "");
 
     /*! @brief 加载一个 PEM 格式的密钥
      @param pemKey PEM 格式的密钥
      @param password 解密密码
      @return 返回包含密钥的对象
     */
-    static PKey from(String pemKey, String password = "");
+    deprecated static PKey from(String pemKey, String password = "");
 
     /*! @brief 加载一个 JSON 格式的密钥
 
@@ -184,7 +184,7 @@ interface PKey : object
      @param jsonKey JSON 格式的密钥
      @return 返回包含密钥的对象
     */
-    static PKey from(Object jsonKey);
+    deprecated static PKey from(Object jsonKey);
 
     /*! @brief 返回当前 key 的 PEM 格式编码
      @return 当前 key 的 PEM 格式编码

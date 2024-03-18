@@ -19,11 +19,11 @@ class crypto_constants_base;
 class PKey_base;
 class ECKey_base;
 class BlsKey_base;
+class KeyObject_base;
 class X509Certificate_base;
 class Digest_base;
 class Buffer_base;
 class Cipher_base;
-class KeyObject_base;
 class Sign_base;
 class Verify_base;
 class X509CertificateRequest_base;
@@ -165,11 +165,11 @@ public:
 #include "ifs/PKey.h"
 #include "ifs/ECKey.h"
 #include "ifs/BlsKey.h"
+#include "ifs/KeyObject.h"
 #include "ifs/X509Certificate.h"
 #include "ifs/Digest.h"
 #include "ifs/Buffer.h"
 #include "ifs/Cipher.h"
-#include "ifs/KeyObject.h"
 #include "ifs/Sign.h"
 #include "ifs/Verify.h"
 #include "ifs/X509CertificateRequest.h"
@@ -222,6 +222,7 @@ inline ClassInfo& crypto_base::class_info()
         { "PKey", PKey_base::class_info },
         { "ECKey", ECKey_base::class_info },
         { "BlsKey", BlsKey_base::class_info },
+        { "KeyObject", KeyObject_base::class_info },
         { "X509Certificate", X509Certificate_base::class_info }
     };
 

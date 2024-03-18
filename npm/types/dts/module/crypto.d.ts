@@ -3,11 +3,11 @@
 /// <reference path="../interface/PKey.d.ts" />
 /// <reference path="../interface/ECKey.d.ts" />
 /// <reference path="../interface/BlsKey.d.ts" />
+/// <reference path="../interface/KeyObject.d.ts" />
 /// <reference path="../interface/X509Certificate.d.ts" />
 /// <reference path="../interface/Digest.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /// <reference path="../interface/Cipher.d.ts" />
-/// <reference path="../interface/KeyObject.d.ts" />
 /// <reference path="../interface/Sign.d.ts" />
 /// <reference path="../interface/Verify.d.ts" />
 /// <reference path="../interface/X509CertificateRequest.d.ts" />
@@ -34,6 +34,11 @@ declare module 'crypto' {
      * @description BlsKey 构造函数，参见 BlsKey 
      */
     const BlsKey: typeof Class_BlsKey;
+
+    /**
+     * @description KeyObject 对象，参见 KeyObject 
+     */
+    const KeyObject: typeof Class_KeyObject;
 
     /**
      * @description X509Certificate 构造函数，参见 X509Certificate 
