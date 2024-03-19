@@ -179,13 +179,13 @@ result_t KeyObject::ParsePrivateKey(v8::Local<v8::Object> key)
 
         int32_t key_type = EVP_PKEY_EC;
 
-        if (namedCurve == "ed25519")
+        if (qstricmp(namedCurve.c_str(), "ed25519") == 0)
             key_type = EVP_PKEY_ED25519;
-        else if (namedCurve == "ed448")
+        else if (qstricmp(namedCurve.c_str(), "ed448") == 0)
             key_type = EVP_PKEY_ED448;
-        else if (namedCurve == "x25519")
+        else if (qstricmp(namedCurve.c_str(), "x25519") == 0)
             key_type = EVP_PKEY_X25519;
-        else if (namedCurve == "x448")
+        else if (qstricmp(namedCurve.c_str(), "x448") == 0)
             key_type = EVP_PKEY_X448;
 
         if (key_type == EVP_PKEY_EC) {

@@ -123,6 +123,11 @@ result_t KeyObject::ImportJWKRsaKey(v8::Local<v8::Object> key, KeyType type)
 
 int GetCurveFromName(const char* name)
 {
+    if (qstricmp(name, "secp256r1") == 0)
+        return NID_X9_62_prime256v1;
+    if (qstricmp(name, "sm2") == 0)
+        return NID_sm2;
+
     int nid = EC_curve_nist2nid(name);
     if (nid == NID_undef)
         nid = OBJ_sn2nid(name);
