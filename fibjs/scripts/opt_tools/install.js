@@ -7,7 +7,7 @@ const ssl = require('ssl');
 const http = require('http');
 const zlib = require('zlib');
 const zip = require('zip');
-const hash = require('hash');
+const crypto = require('crypto');
 const semver = require('internal/helpers/semver');
 const untar = require('internal/helpers/untar');
 
@@ -120,6 +120,10 @@ function normalize_registry_origin(registry) {
     return `${protocol}//${hostname}/`
 }
 // ---------------------- UTILS :end ------------------------- //
+
+function sha1(data) {
+    return crypto.createHash('sha1').update(data).digest('hex');
+}
 
 const pkg_registrytype_module_infos = {};
 const pkg_githubtype_module_infos = {};
@@ -453,7 +457,7 @@ function download_module() {
                     let tgz = r.data;
                     r = null;
 
-                    if (hash.sha1(tgz).digest().hex() !== mvm.dist.shasum) {
+                    if (sha1(tgz) !== mvm.dist.shasum) {
                         console.error('shasum:', mvm.dist.tarball);
                         process.exit();
                     }
