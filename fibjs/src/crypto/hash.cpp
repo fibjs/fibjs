@@ -6,7 +6,6 @@
  */
 
 #include "object.h"
-#include "ifs/hash.h"
 #include "ifs/crypto.h"
 #include "Digest.h"
 #include "Buffer.h"
@@ -14,8 +13,6 @@
 #include <openssl/kdf.h>
 
 namespace fibjs {
-
-DECLARE_MODULE(hash);
 
 obj_ptr<NArray> g_hashes;
 class init_hashes {
@@ -99,68 +96,6 @@ result_t crypto_base::createHmac(exlib::string algo, Buffer_base* key,
 
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
-
-result_t hash_base::digest(int32_t algo, Buffer_base* data,
-    obj_ptr<Digest_base>& retVal)
-{
-    if (algo < C_MD5 || algo > ARRAYSIZE(s_md_names))
-        return CHECK_ERROR(CALL_E_INVALIDARG);
-
-    result_t hr = crypto_base::createHash(s_md_names[algo - 1], retVal);
-    if (hr < 0)
-        return hr;
-
-    if (data) {
-        obj_ptr<Digest_base> r;
-        retVal->update(data, r);
-    }
-
-    return 0;
-}
-
-result_t hash_base::hmac(int32_t algo, Buffer_base* key, Buffer_base* data,
-    obj_ptr<Digest_base>& retVal)
-{
-    if (algo < C_MD5 || algo > ARRAYSIZE(s_md_names))
-        return CHECK_ERROR(CALL_E_INVALIDARG);
-
-    result_t hr = crypto_base::createHmac(s_md_names[algo - 1], key, retVal);
-    if (hr < 0)
-        return hr;
-
-    if (data) {
-        obj_ptr<Digest_base> r;
-        retVal->update(data, r);
-    }
-
-    return 0;
-}
-
-#define DEF_FUNC(fn, typ)                                                                            \
-    result_t hash_base::fn(Buffer_base* data, obj_ptr<Digest_base>& retVal)                          \
-    {                                                                                                \
-        return digest(hash_base::C_##typ, data, retVal);                                             \
-    }                                                                                                \
-    result_t hash_base::hmac_##fn(Buffer_base* key, Buffer_base* data, obj_ptr<Digest_base>& retVal) \
-    {                                                                                                \
-        return hmac(hash_base::C_##typ, key, data, retVal);                                          \
-    }
-
-DEF_FUNC(md5, MD5);
-DEF_FUNC(sha1, SHA1);
-DEF_FUNC(sha224, SHA224);
-DEF_FUNC(sha256, SHA256);
-DEF_FUNC(sha384, SHA384);
-DEF_FUNC(sha512, SHA512);
-DEF_FUNC(ripemd160, RIPEMD160);
-DEF_FUNC(sm3, SM3);
-DEF_FUNC(sha3_256, SHA3_256);
-DEF_FUNC(sha3_384, SHA3_384);
-DEF_FUNC(sha3_512, SHA3_512);
-DEF_FUNC(shake128, SHAKE128);
-DEF_FUNC(shake256, SHAKE256);
-DEF_FUNC(blake2s, BLAKE2S);
-DEF_FUNC(blake2b, BLAKE2B);
 
 result_t crypto_base::hkdf(exlib::string algoName, Buffer_base* password, Buffer_base* salt, Buffer_base* info,
     int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)

@@ -35,7 +35,6 @@
 /// <reference path="../module/msgpack.d.ts" />
 /// <reference path="../module/string_decoder.d.ts" />
 /// <reference path="../module/crypto.d.ts" />
-/// <reference path="../module/hash.d.ts" />
 /// <reference path="../module/zip.d.ts" />
 /// <reference path="../module/zlib.d.ts" />
 /// <reference path="../module/assert.d.ts" />

@@ -44,8 +44,7 @@
         "string_decoder"
     ],
     "Crypto": [
-        "crypto",
-        "hash"
+        "crypto"
     ],
     "Compress": [
         "zip",

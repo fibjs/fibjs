@@ -1,7 +1,6 @@
 var test = require("test");
 test.setup();
 
-var hash = require('hash');
 var crypto = require('crypto');
 
 var rsa4096_pem = "-----BEGIN RSA PRIVATE KEY-----\n" +
@@ -100,81 +99,20 @@ var pub_sm2_pem = "-----BEGIN PUBLIC KEY-----\n" +
 
 describe("hash", () => {
     function hash_test(o) {
-        assert.equal(o.hash, hash.digest(hash[o.name], o.text).digest().hex());
-        assert.equal(o.hash, hash.digest(hash[o.name]).update(o.text).digest().hex());
-        assert.equal(o.hash, hash[o.name.toLowerCase()](o.text).digest().hex());
-        assert.equal(o.hash, hash[o.name.toLowerCase()]().update(o.text).digest().hex());
         assert.equal(o.hash, crypto.createHash(o.name).update(o.text).digest().hex());
-
-        assert.equal(o.base64, hash.digest(hash[o.name], o.text).digest().base64());
-        assert.equal(o.base64, hash.digest(hash[o.name]).update(o.text).digest().base64());
-        assert.equal(o.base64, hash[o.name.toLowerCase()](o.text).digest().base64());
-        assert.equal(o.base64, hash[o.name.toLowerCase()]().update(o.text).digest().base64());
         assert.equal(o.base64, crypto.createHash(o.name).update(o.text).digest().base64());
-
-        assert.equal(o.hash, hash.digest(hash[o.name], o.text).digest('buffer').hex());
-        assert.equal(o.hash, hash.digest(hash[o.name]).update(o.text).digest('buffer').hex());
-        assert.equal(o.hash, hash[o.name.toLowerCase()](o.text).digest('buffer').hex());
-        assert.equal(o.hash, hash[o.name.toLowerCase()]().update(o.text).digest('buffer').hex());
         assert.equal(o.hash, crypto.createHash(o.name).update(o.text).digest('buffer').hex());
-
-        assert.equal(o.base64, hash.digest(hash[o.name], o.text).digest('buffer').base64());
-        assert.equal(o.base64, hash.digest(hash[o.name]).update(o.text).digest('buffer').base64());
-        assert.equal(o.base64, hash[o.name.toLowerCase()](o.text).digest('buffer').base64());
-        assert.equal(o.base64, hash[o.name.toLowerCase()]().update(o.text).digest('buffer').base64());
         assert.equal(o.base64, crypto.createHash(o.name).update(o.text).digest('buffer').base64());
-
-        assert.equal(o.hash, hash.digest(hash[o.name], o.text).digest('hex'));
-        assert.equal(o.hash, hash.digest(hash[o.name]).update(o.text).digest('hex'));
-        assert.equal(o.hash, hash[o.name.toLowerCase()](o.text).digest('hex'));
-        assert.equal(o.hash, hash[o.name.toLowerCase()]().update(o.text).digest('hex'));
         assert.equal(o.hash, crypto.createHash(o.name).update(o.text).digest('hex'));
-
-        assert.equal(o.base64, hash.digest(hash[o.name], o.text).digest('base64'));
-        assert.equal(o.base64, hash.digest(hash[o.name]).update(o.text).digest('base64'));
-        assert.equal(o.base64, hash[o.name.toLowerCase()](o.text).digest('base64'));
-        assert.equal(o.base64, hash[o.name.toLowerCase()]().update(o.text).digest('base64'));
         assert.equal(o.base64, crypto.createHash(o.name).update(o.text).digest('base64'));
-
-        if (o.text != '')
-            assert.equal(o.hash, hash.digest(hash[o.name], o.text.substr(0, 1)).update(o.text.substr(1)).digest().hex());
     }
 
     function hmac_test(o) {
-        assert.equal(o.hmac, hash.hmac(hash[o.name], o.key, o.text).digest().hex());
-        assert.equal(o.hmac, hash.hmac(hash[o.name], o.key).update(o.text).digest().hex());
-        assert.equal(o.hmac, hash['hmac_' + o.name.toLowerCase()](o.key, o.text).digest().hex());
-        assert.equal(o.hmac, hash['hmac_' + o.name.toLowerCase()](o.key).update(o.text).digest().hex());
         assert.equal(o.hmac, crypto.createHmac(o.name, o.key).update(o.text).digest().hex());
-
-        assert.equal(o.base64, hash.hmac(hash[o.name], o.key, o.text).digest().base64());
-        assert.equal(o.base64, hash.hmac(hash[o.name], o.key).update(o.text).digest().base64());
-        assert.equal(o.base64, hash['hmac_' + o.name.toLowerCase()](o.key, o.text).digest().base64());
-        assert.equal(o.base64, hash['hmac_' + o.name.toLowerCase()](o.key).update(o.text).digest().base64());
         assert.equal(o.base64, crypto.createHmac(o.name, o.key).update(o.text).digest().base64());
-
-        assert.equal(o.hmac, hash.hmac(hash[o.name], o.key, o.text).digest('buffer').hex());
-        assert.equal(o.hmac, hash.hmac(hash[o.name], o.key).update(o.text).digest('buffer').hex());
-        assert.equal(o.hmac, hash['hmac_' + o.name.toLowerCase()](o.key, o.text).digest('buffer').hex());
-        assert.equal(o.hmac, hash['hmac_' + o.name.toLowerCase()](o.key).update(o.text).digest('buffer').hex());
         assert.equal(o.hmac, crypto.createHmac(o.name, o.key).update(o.text).digest('buffer').hex());
-
-        assert.equal(o.base64, hash.hmac(hash[o.name], o.key, o.text).digest('buffer').base64());
-        assert.equal(o.base64, hash.hmac(hash[o.name], o.key).update(o.text).digest('buffer').base64());
-        assert.equal(o.base64, hash['hmac_' + o.name.toLowerCase()](o.key, o.text).digest('buffer').base64());
-        assert.equal(o.base64, hash['hmac_' + o.name.toLowerCase()](o.key).update(o.text).digest('buffer').base64());
         assert.equal(o.base64, crypto.createHmac(o.name, o.key).update(o.text).digest('buffer').base64());
-
-        assert.equal(o.hmac, hash.hmac(hash[o.name], o.key, o.text).digest('hex'));
-        assert.equal(o.hmac, hash.hmac(hash[o.name], o.key).update(o.text).digest('hex'));
-        assert.equal(o.hmac, hash['hmac_' + o.name.toLowerCase()](o.key, o.text).digest('hex'));
-        assert.equal(o.hmac, hash['hmac_' + o.name.toLowerCase()](o.key).update(o.text).digest('hex'));
         assert.equal(o.hmac, crypto.createHmac(o.name, o.key).update(o.text).digest('hex'));
-
-        assert.equal(o.base64, hash.hmac(hash[o.name], o.key, o.text).digest('base64'));
-        assert.equal(o.base64, hash.hmac(hash[o.name], o.key).update(o.text).digest('base64'));
-        assert.equal(o.base64, hash['hmac_' + o.name.toLowerCase()](o.key, o.text).digest('base64'));
-        assert.equal(o.base64, hash['hmac_' + o.name.toLowerCase()](o.key).update(o.text).digest('base64'));
         assert.equal(o.base64, crypto.createHmac(o.name, o.key).update(o.text).digest('base64'));
     }
 

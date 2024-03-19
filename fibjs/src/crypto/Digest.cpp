@@ -6,7 +6,6 @@
  */
 
 #include "object.h"
-#include "ifs/hash.h"
 #include "ifs/util.h"
 #include "crypto_util.h"
 #include "Digest.h"

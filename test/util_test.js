@@ -1705,7 +1705,6 @@ describe('util', () => {
                 "https",
                 "http",
                 "hex",
-                "hash",
                 "fs",
                 "events",
                 "encoding",

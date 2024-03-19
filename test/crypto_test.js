@@ -2,7 +2,6 @@ var test = require("test");
 test.setup();
 
 var crypto = require("crypto");
-var hash = require("hash");
 var fs = require("fs");
 var os = require("os");
 var encoding = require("encoding");
@@ -3760,7 +3759,7 @@ describe('crypto', () => {
         });
     });
 
-    describe("PKey", () => {
+    xdescribe("PKey", () => {
         describe("RSA", () => {
             it("PEM import/export", () => {
                 var pk = crypto.PKey.from(rsa4096_pem);

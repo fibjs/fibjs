@@ -27,7 +27,6 @@ void importBuiltinModule()
     IMPORT_MODULE(events);
     IMPORT_MODULE(fs);
     IMPORT_MODULE(gui);
-    IMPORT_MODULE(hash);
     IMPORT_MODULE(hex);
     IMPORT_MODULE(http);
     IMPORT_MODULE(https);
