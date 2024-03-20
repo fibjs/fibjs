@@ -16,9 +16,6 @@
 namespace fibjs {
 
 class crypto_constants_base;
-class PKey_base;
-class ECKey_base;
-class BlsKey_base;
 class KeyObject_base;
 class X509Certificate_base;
 class Digest_base;
@@ -77,11 +74,8 @@ public:
     static result_t createCertificateRequest(Buffer_base* csr, obj_ptr<X509CertificateRequest_base>& retVal);
     static result_t createCertificateRequest(v8::Local<v8::Object> options, obj_ptr<X509CertificateRequest_base>& retVal);
     static result_t diffieHellman(v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal);
-    static result_t loadPKey(exlib::string filename, obj_ptr<PKey_base>& retVal);
     static result_t randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t randomFill(Buffer_base* buffer, int32_t offset, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
-    static result_t generateKey(int32_t size, obj_ptr<PKey_base>& retVal, AsyncEvent* ac);
-    static result_t generateKey(exlib::string curve, obj_ptr<PKey_base>& retVal, AsyncEvent* ac);
     static result_t generateKeyPair(exlib::string type, v8::Local<v8::Object> options, obj_ptr<GenerateKeyPairType>& retVal, AsyncEvent* ac);
     static result_t hkdf(exlib::string algoName, Buffer_base* password, Buffer_base* salt, Buffer_base* info, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t iterations, int32_t size, exlib::string algoName, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
@@ -130,10 +124,8 @@ public:
     static void s_static_createSecretKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createCertificateRequest(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_diffieHellman(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_loadPKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_randomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_randomFill(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_generateKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_generateKeyPair(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_hkdf(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -147,8 +139,6 @@ public:
 public:
     ASYNC_STATICVALUE2(crypto_base, randomBytes, int32_t, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE4(crypto_base, randomFill, Buffer_base*, int32_t, int32_t, obj_ptr<Buffer_base>);
-    ASYNC_STATICVALUE2(crypto_base, generateKey, int32_t, obj_ptr<PKey_base>);
-    ASYNC_STATICVALUE2(crypto_base, generateKey, exlib::string, obj_ptr<PKey_base>);
     ASYNC_STATICVALUE3(crypto_base, generateKeyPair, exlib::string, v8::Local<v8::Object>, obj_ptr<GenerateKeyPairType>);
     ASYNC_STATICVALUE6(crypto_base, hkdf, exlib::string, Buffer_base*, Buffer_base*, Buffer_base*, int32_t, obj_ptr<Buffer_base>);
     ASYNC_STATICVALUE6(crypto_base, pbkdf2, Buffer_base*, Buffer_base*, int32_t, int32_t, exlib::string, obj_ptr<Buffer_base>);
@@ -162,9 +152,6 @@ public:
 }
 
 #include "ifs/crypto_constants.h"
-#include "ifs/PKey.h"
-#include "ifs/ECKey.h"
-#include "ifs/BlsKey.h"
 #include "ifs/KeyObject.h"
 #include "ifs/X509Certificate.h"
 #include "ifs/Digest.h"
@@ -194,13 +181,10 @@ inline ClassInfo& crypto_base::class_info()
         { "createSecretKey", s_static_createSecretKey, true, false },
         { "createCertificateRequest", s_static_createCertificateRequest, true, false },
         { "diffieHellman", s_static_diffieHellman, true, false },
-        { "loadPKey", s_static_loadPKey, true, false },
         { "randomBytes", s_static_randomBytes, true, true },
         { "randomBytesSync", s_static_randomBytes, true, false },
         { "randomFill", s_static_randomFill, true, true },
         { "randomFillSync", s_static_randomFill, true, false },
-        { "generateKey", s_static_generateKey, true, true },
-        { "generateKeySync", s_static_generateKey, true, false },
         { "generateKeyPair", s_static_generateKeyPair, true, true },
         { "generateKeyPairSync", s_static_generateKeyPair, true, false },
         { "hkdf", s_static_hkdf, true, true },
@@ -219,9 +203,6 @@ inline ClassInfo& crypto_base::class_info()
 
     static ClassData::ClassObject s_object[] = {
         { "constants", crypto_constants_base::class_info },
-        { "PKey", PKey_base::class_info },
-        { "ECKey", ECKey_base::class_info },
-        { "BlsKey", BlsKey_base::class_info },
         { "KeyObject", KeyObject_base::class_info },
         { "X509Certificate", X509Certificate_base::class_info }
     };
@@ -534,23 +515,6 @@ inline void crypto_base::s_static_diffieHellman(const v8::FunctionCallbackInfo<v
     METHOD_RETURN();
 }
 
-inline void crypto_base::s_static_loadPKey(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<PKey_base> vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(exlib::string, 0);
-
-    DEPRECATED_SOON("crypto.loadPKey");
-
-    hr = loadPKey(v0, vr);
-
-    METHOD_RETURN();
-}
-
 inline void crypto_base::s_static_randomBytes(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
@@ -585,33 +549,6 @@ inline void crypto_base::s_static_randomFill(const v8::FunctionCallbackInfo<v8::
         hr = acb_randomFill(v0, v1, v2, cb, args);
     else
         hr = ac_randomFill(v0, v1, v2, vr);
-
-    METHOD_RETURN();
-}
-
-inline void crypto_base::s_static_generateKey(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    obj_ptr<PKey_base> vr;
-
-    METHOD_ENTER();
-
-    ASYNC_METHOD_OVER(1, 1);
-
-    ARG(int32_t, 0);
-
-    if (!cb.IsEmpty())
-        hr = acb_generateKey(v0, cb, args);
-    else
-        hr = ac_generateKey(v0, vr);
-
-    ASYNC_METHOD_OVER(1, 0);
-
-    OPT_ARG(exlib::string, 0, "secp521r1");
-
-    if (!cb.IsEmpty())
-        hr = acb_generateKey(v0, cb, args);
-    else
-        hr = ac_generateKey(v0, vr);
 
     METHOD_RETURN();
 }

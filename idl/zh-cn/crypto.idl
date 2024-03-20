@@ -4,15 +4,6 @@ module crypto
     /*! crypto 模块的常量对象，参见 crypto_constants */
     static crypto_constants new constants();
 
-    /*! @brief PKey 构造函数，参见 PKey */
-    static PKey;
-
-    /*! @brief ECKey 构造函数，参见 ECKey */
-    static ECKey;
-
-    /*! @brief BlsKey 构造函数，参见 BlsKey */
-    static BlsKey;
-
     /*! @brief KeyObject 对象，参见 KeyObject */
     static KeyObject;
 
@@ -213,12 +204,6 @@ module crypto
     */
     static Buffer diffieHellman(Object options);
 
-    /*! @brief 加载一个 CRT/PEM/DER 格式的非对称公钥或者私钥
-     @param filename 公钥或者私钥文件名
-     @return 返回包含 PKey 的对象
-    */
-    deprecated static PKey loadPKey(String filename);
-
     /*! @brief 生成指定尺寸的随机数，使用 havege 生成器
      @param size 指定生成的随机数尺寸
      @return 返回生成的随机数
@@ -232,33 +217,6 @@ module crypto
      @return 返回生成的随机数
      */
     static Buffer randomFill(Buffer buffer, Integer offset = 0, Integer size = -1) async;
-
-    /*! @brief 生成一个 RSA 私钥
-     @param size 指定 RSA 密钥长度，bit 为单位
-     @return 返回包含生成私钥的对象
-    */
-    static PKey generateKey(Integer size) async;
-
-    /*! @brief 生成一个椭圆曲线私钥
-
-     curve 可选的曲线包含 NIST 曲线和别名如下: 
-
-     | 曲线 | 别名 |
-     | ----------- | ----------- |
-     | NIST P-192 | 'NIST P-192', 'p192', 'P-192', 'prime192v1', 'secp192r1' |
-     | NIST P-224 | 'NIST P-224', 'p224', 'P-224', 'prime224v1', 'secp224r1' |
-     | NIST P-256 | 'NIST P-256', 'p256', 'P-256', 'prime256v1', 'secp256r1' |
-     | NIST P-384 | 'NIST P-384', 'p384', 'P-384', 'prime384v1', 'secp384r1' |
-     | NIST P-521 | 'NIST P-521', 'p521', 'P-521', 'prime521v1', 'secp521r1' |
-
-     其它支持的曲线包括:
-     "brainpoolP512r1", "brainpoolP384r1", "secp256k1", "P-256K", "brainpoolP256r1",
-     "sm2p256r1", "SM2", "Ed25519", "BLS12381_G1", "BLS12381_G2"
-
-     @param curve 指定预置椭圆曲线，缺省为 'secp256r1'
-     @return 返回包含生成私钥的对象
-    */
-    static PKey generateKey(String curve = "secp521r1") async;
 
     /*! @brief 生成给定 type 的新非对称密钥对。目前支持 RSA、RSA-PSS、DSA、EC、Ed25519、Ed448、X25519、X448、SM2
 

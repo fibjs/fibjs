@@ -1,8 +1,5 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../module/crypto_constants.d.ts" />
-/// <reference path="../interface/PKey.d.ts" />
-/// <reference path="../interface/ECKey.d.ts" />
-/// <reference path="../interface/BlsKey.d.ts" />
 /// <reference path="../interface/KeyObject.d.ts" />
 /// <reference path="../interface/X509Certificate.d.ts" />
 /// <reference path="../interface/Digest.d.ts" />
@@ -19,21 +16,6 @@ declare module 'crypto' {
      * ! crypto 模块的常量对象，参见 crypto_constants 
      */
     const constants: typeof import ('crypto_constants');
-
-    /**
-     * @description PKey 构造函数，参见 PKey 
-     */
-    const PKey: typeof Class_PKey;
-
-    /**
-     * @description ECKey 构造函数，参见 ECKey 
-     */
-    const ECKey: typeof Class_ECKey;
-
-    /**
-     * @description BlsKey 构造函数，参见 BlsKey 
-     */
-    const BlsKey: typeof Class_BlsKey;
 
     /**
      * @description KeyObject 对象，参见 KeyObject 
@@ -286,14 +268,6 @@ declare module 'crypto' {
     function diffieHellman(options: FIBJS.GeneralObject): Class_Buffer;
 
     /**
-     * @description 加载一个 CRT/PEM/DER 格式的非对称公钥或者私钥
-     *      @param filename 公钥或者私钥文件名
-     *      @return 返回包含 PKey 的对象
-     *     
-     */
-    function loadPKey(filename: string): Class_PKey;
-
-    /**
      * @description 生成指定尺寸的随机数，使用 havege 生成器
      *      @param size 指定生成的随机数尺寸
      *      @return 返回生成的随机数
@@ -314,41 +288,6 @@ declare module 'crypto' {
     function randomFill(buffer: Class_Buffer, offset?: number, size?: number): Class_Buffer;
 
     function randomFill(buffer: Class_Buffer, offset?: number, size?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
-
-    /**
-     * @description 生成一个 RSA 私钥
-     *      @param size 指定 RSA 密钥长度，bit 为单位
-     *      @return 返回包含生成私钥的对象
-     *     
-     */
-    function generateKey(size: number): Class_PKey;
-
-    function generateKey(size: number, callback: (err: Error | undefined | null, retVal: Class_PKey)=>any): void;
-
-    /**
-     * @description 生成一个椭圆曲线私钥
-     * 
-     *      curve 可选的曲线包含 NIST 曲线和别名如下: 
-     * 
-     *      | 曲线 | 别名 |
-     *      | ----------- | ----------- |
-     *      | NIST P-192 | 'NIST P-192', 'p192', 'P-192', 'prime192v1', 'secp192r1' |
-     *      | NIST P-224 | 'NIST P-224', 'p224', 'P-224', 'prime224v1', 'secp224r1' |
-     *      | NIST P-256 | 'NIST P-256', 'p256', 'P-256', 'prime256v1', 'secp256r1' |
-     *      | NIST P-384 | 'NIST P-384', 'p384', 'P-384', 'prime384v1', 'secp384r1' |
-     *      | NIST P-521 | 'NIST P-521', 'p521', 'P-521', 'prime521v1', 'secp521r1' |
-     * 
-     *      其它支持的曲线包括:
-     *      "brainpoolP512r1", "brainpoolP384r1", "secp256k1", "P-256K", "brainpoolP256r1",
-     *      "sm2p256r1", "SM2", "Ed25519", "BLS12381_G1", "BLS12381_G2"
-     * 
-     *      @param curve 指定预置椭圆曲线，缺省为 'secp256r1'
-     *      @return 返回包含生成私钥的对象
-     *     
-     */
-    function generateKey(curve?: string): Class_PKey;
-
-    function generateKey(curve?: string, callback?: (err: Error | undefined | null, retVal: Class_PKey)=>any): void;
 
     /**
      * @description 生成给定 type 的新非对称密钥对。目前支持 RSA、RSA-PSS、DSA、EC、Ed25519、Ed448、X25519、X448、SM2

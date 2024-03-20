@@ -14,7 +14,6 @@
 #include "Cipher.h"
 #include "Buffer.h"
 #include "KeyObject.h"
-#include "ssl.h"
 #include "encoding.h"
 #include <string.h>
 
