@@ -172,6 +172,15 @@ describe("module", () => {
                 assert.equal(a, require('./module/p1.5/main'));
             });
 
+            it("./require/default", () => {
+                var a = require('./module/p1.6');
+                assert.deepEqual(a, {
+                    "a": 106
+                });
+
+                assert.equal(a, require('./module/p1.6'));
+                assert.equal(a, require('./module/p1.6/main'));
+            });
         });
 
         it("default entry", () => {

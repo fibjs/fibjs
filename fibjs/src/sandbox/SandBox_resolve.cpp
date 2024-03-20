@@ -140,10 +140,13 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& fnam
             o = v8::Local<v8::Object>::Cast(exports);
 
             exports_value = o->Get(context, isolate->NewString("require", 7));
-            if (IsEmpty(exports_value)) {
-                puts("resolvePackage 1");
+            if (IsEmpty(exports_value))
+                exports_value = o->Get(context, isolate->NewString("default", 7));
+            else if (!exports_value->IsString() && exports_value->IsObject()) {
+                o = v8::Local<v8::Object>::Cast(exports_value);
                 exports_value = o->Get(context, isolate->NewString("default", 7));
             }
+
             if (IsEmpty(exports_value))
                 return CALL_E_FILE_NOT_FOUND;
 
