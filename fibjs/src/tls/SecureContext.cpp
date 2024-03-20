@@ -422,8 +422,10 @@ result_t SecureContext::set_verify(v8::Local<v8::Object> options, bool isServer)
             verify_mode |= SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
     }
 
-    SSL_CTX_set_verify(
-        m_ctx, verify_mode, rejectUnverified ? nullptr : [](int ok, X509_STORE_CTX* ctx) -> int {
+    if (rejectUnverified)
+        SSL_CTX_set_verify(m_ctx, verify_mode, nullptr);
+    else
+        SSL_CTX_set_verify(m_ctx, verify_mode, [](int ok, X509_STORE_CTX* ctx) -> int {
             return 1;
         });
 
