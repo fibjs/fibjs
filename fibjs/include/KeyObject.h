@@ -49,6 +49,10 @@ public:
     virtual result_t equals(KeyObject_base* otherKey, bool& retVal);
 
 public:
+    // object_base
+    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal);
+
+public:
     result_t createSecretKey(const unsigned char* key, size_t size);
     result_t createAsymmetricKey(v8::Local<v8::Object> key, KeyType type);
     result_t ImportJWKAsymmetricKey(v8::Local<v8::Object> hwk, KeyType type);

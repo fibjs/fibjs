@@ -551,6 +551,18 @@ describe('crypto', () => {
                     format: 'pem',
                     type: 'pkcs8'
                 }));
+
+                assert.deepEqual(privateKey.toJSON(), {
+                    "kty": "RSA",
+                    "e": "AQAB",
+                    "n": "t9xYiIonscC3vz_A2ceR7KhZZlDu_5bye53nCVTcKnWd2seY6UAdKersX6njr83Dd5OVe1BW_wJvp5EjWTAGYbFswlNmeD44edEGM939B6Lq-_8iBkrTi8mGN4YCytivE24YI0D4XZMPfkLSpab2y_Hy4DjQKBq1ThZ0UBnK-9IhX37Ju_ZoGYSlTIGIhzyaiYBh7wrZBoPczIEu6et_kN2VnnbRUtkYTF97ggcv5h-hDpUQjQW0ZgOMcTc8n-RkGpIt0_iM_bTjI3Tz_gsFdi6hHcpZgbopPL630296iByyigQCPJVzdusFrQN5DeC-zT_nGypQkZanLb4ZspSx9Q",
+                    "d": "ktnq2LvIMqBj4txP82IEOorIRQGVsw1khbm8A-cEpuEkgM71Yi_0WzupKktucUeevQ5i0Yh8w9e1SJiTLDRAlJz66kdky9uejiWWl6zR4dyNZVMFYRM43ijLC-P8rPne9Fz16IqHFW5VbJqA1xCBhKmuPMsD71RNxZ4Hrsa7Kt_xglQTYsLbdGIwDmcZihId9VGXRzvmCPsDRf2fCkAj7HDeRxpUdEiEDpajADc-PWikra3r3b40tVHKWm8wxJLivOIN7GiYXKQIW6RhZgH-Rk45JIRNKxNagxdeXUqqyhnwhbTo1Hite0iBDexN9tgoZk0XmdYWBn6ElXHRZ7VCDQ",
+                    "p": "8UovlB4nrBm7xH-u7XXBMbqxADQm5vaEZxw9eluc-tP7cIAI4sglMIvL_FMpbd2pEeP_BkR76NTDzzDuPAZvUGRavgEjy0O9j2NAs_WPK4tZF-vFdunhnSh4EHAF4Ij9kbsUi90NOpbGfVqPdOaHqzgHKoR23Cuusk9wFQ2XTV8",
+                    "q": "wxHdEYT9xrpfrHPqSBQPpO0dWGKJEkrWOb-76rSfuL8wGR4OBNmQdhLuU9zTIh22pog-XPnLPAecC-4yu_wtJ2SPCKiKDbJBre0CKPyRfGqzvA3njXwMxXazU4kGs-2Fg-xu_iKbaIjxXrclBLhkxhBtySrwAFhxxOk6fFcPLSs",
+                    "dp": "qS_Mdr5CMRGGMH0bKhPUWEtAixUGZhJaunX5wY71Xoc_Gh4cnO-b7BNJ_-5L8WZog0vr6PgiLhrqBaCYm2wjpyoG2o2wDHm-NAlzN_wp3G2EFhrSxdOux-S1c0kpRcyoiAO2n29rNDa-jOzwBBcU8ACEPdLOCQl0IEFFJO33tl8",
+                    "dq": "WAziKpxLKL7LnL4dzDcx8JIPIuwnTxh0plCDdCffyLaT8WJ9lXbXHFTjOvt8WfPrlDP_Ylxmfkw5BbGZOP1VLGjZn2DkH9aMiwNmbDXFPdG0G3hzQovx_9fajiRV4DWghLHeT9wzJfZabRRiI0VQR472300AVEeX4vgbrDBn600",
+                    "qi": "k7czBCT9rHn_PNwCa17hlTy88C4vXkwbz83Oa-aX5L4e5gw5lhcR2ZuZHLb2r6oMt9rlD7EIDItSs-u21LOXWPTAlazdnpYUyw_CzogM_PN-qNwMRXn5uXFFhmlP2mVg2EdELTahXch8kWqHaCSX53yvqCtRKu_j76V31TfQZGM"
+                });
             });
 
             describe('suite', () => {
@@ -616,6 +628,8 @@ describe('crypto', () => {
                                 key.export({ type: 'pkcs8', format: 'pem' }), info.private);
                             assert.deepEqual(
                                 key.export({ format: 'jwk' }), info.jwk);
+
+                            assert.deepEqual(key.toJSON(), info.jwk);
                         }
 
                         {
@@ -676,6 +690,7 @@ describe('crypto', () => {
 
                     var x_key = crypto.createPrivateKey({ key: ed_jwk, format: 'jwk', toX25519: true });
                     assert.deepEqual(x_key.export({ format: 'jwk' }), x_jwk);
+                    assert.deepEqual(x_key.toJSON(), x_jwk);
 
                     var x_key = crypto.createPrivateKey({ key: ed_key, toX25519: true });
                     assert.deepEqual(x_key.export({ format: 'jwk' }), x_jwk);
@@ -770,8 +785,8 @@ describe('crypto', () => {
                             assert.equal(key.symmetricKeySize, undefined);
                             assert.equal(
                                 key.export({ type: 'pkcs8', format: 'pem' }), info.private);
-                            assert.deepEqual(
-                                key.export({ format: 'jwk' }), info.jwk);
+                            assert.deepEqual(key.export({ format: 'jwk' }), info.jwk);
+                            assert.deepEqual(key.toJSON(), info.jwk);
                         }
 
                         {
@@ -3403,6 +3418,7 @@ describe('crypto', () => {
 
             var chain = new crypto.X509Certificate(["", cert, ca, ca1 + ca2 + ca3]);
             assert.equal(chain.pem, pems);
+            assert.equal(chain.toString(), pems);
 
             assert.throws(() => {
                 new crypto.X509Certificate("");
@@ -3594,7 +3610,8 @@ describe('crypto', () => {
                         CN: "baoz.me"
                     }
                 });
-                assert.deepEqual(req.pem, req2);
+                assert.equal(req.pem, req2);
+                assert.equal(req.toString(), req2);
             })
 
             it("info", () => {

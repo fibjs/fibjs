@@ -48,7 +48,9 @@ public:
     virtual result_t verify(KeyObject_base* publicKey, bool& retVal);
 
 public:
+    // object_base
     virtual result_t toString(exlib::string& retVal);
+    virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal);
 
 public:
     void LoadRootCerts();

@@ -725,4 +725,17 @@ result_t X509Certificate::toString(exlib::string& retVal)
     return get_pem(retVal);
 }
 
+result_t X509Certificate::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
+{
+    exlib::string str;
+
+    result_t hr = get_pem(str);
+    if (hr < 0)
+        return hr;
+
+    retVal = holder()->NewString(str);
+
+    return 0;
+}
+
 }

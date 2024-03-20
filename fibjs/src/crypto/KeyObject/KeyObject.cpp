@@ -89,10 +89,7 @@ result_t crypto_base::diffieHellman(v8::Local<v8::Object> options, obj_ptr<Buffe
         return Runtime::setError("property 'publicKey' must be a public key");
 
     if (privateKeyType != publicKeyType)
-    {
-        printf("privateKeyType: %d, publicKeyType: %d\n", privateKeyType, publicKeyType);
         return Runtime::setError("privateKey and publicKey must have the same type");
-    }
 
     if (privateKeyType == EVP_PKEY_SM2) {
         const EC_POINT* pub_key = EC_KEY_get0_public_key(EVP_PKEY_get0_EC_KEY(publicKey_->pkey()));
@@ -325,6 +322,11 @@ result_t KeyObject::equals(KeyObject_base* otherKey, bool& retVal)
         retVal = EVP_PKEY_eq(m_pkey, other->m_pkey) == 1;
 
     return 0;
+}
+
+result_t KeyObject::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
+{
+    return export_json(retVal);
 }
 
 }
