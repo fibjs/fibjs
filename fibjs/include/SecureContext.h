@@ -22,6 +22,7 @@ public:
     virtual result_t get_minVersion(exlib::string& retVal);
     virtual result_t get_secureProtocol(exlib::string& retVal);
     virtual result_t get_requestCert(bool& retVal);
+    virtual result_t get_rejectUnverified(bool& retVal);
     virtual result_t get_rejectUnauthorized(bool& retVal);
     virtual result_t get_sessionTimeout(int32_t& retVal);
 

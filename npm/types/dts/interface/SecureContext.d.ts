@@ -56,7 +56,12 @@ declare class Class_SecureContext extends Class_object {
     readonly requestCert: boolean;
 
     /**
-     * @description 查询安全上下文是否拒绝任何未经所提供 CA 列表授权的连接 
+     * @description 查询安全上下文是否拒绝任何未通过 CA 列表验证证书的连接 
+     */
+    readonly rejectUnverified: boolean;
+
+    /**
+     * @description 查询安全上下文是否拒绝任何未提供 CA 列表授权证书的连接 
      */
     readonly rejectUnauthorized: boolean;
 

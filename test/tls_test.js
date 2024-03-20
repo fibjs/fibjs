@@ -66,6 +66,7 @@ describe('tls', () => {
             var ctx = tls.createSecureContext();
             assert.equal(ctx.sessionTimeout, 7200);
             assert.equal(ctx.requestCert, true);
+            assert.equal(ctx.rejectUnverified, true);
             assert.equal(ctx.rejectUnauthorized, true);
             assert.isUndefined(ctx.minVersion);
             assert.isUndefined(ctx.maxVersion);
@@ -129,6 +130,14 @@ describe('tls', () => {
 
             assert.equal(ctx.requestCert, true);
             assert.equal(ctx.rejectUnauthorized, true);
+        });
+
+        it('rejectUnverified', () => {
+            var ctx = tls.createSecureContext({
+                rejectUnverified: false
+            });
+
+            assert.equal(ctx.rejectUnverified, false);
         });
     });
 
@@ -288,17 +297,34 @@ describe('tls', () => {
             });
         });
 
-        it('not verify', () => {
+        it('not request cert', () => {
             var ss = new tls.TLSSocket({
                 requestCert: false
             });
             ss.connect(connect());
+            assert.equal(ss.getPeerX509Certificate().pem, crt.pem);
 
             var ss = new tls.TLSSocket({
                 ca: ca,
                 requestCert: false
             });
             ss.connect(connect(), "fibjs.org");
+            assert.equal(ss.getPeerX509Certificate().pem, crt.pem);
+        });
+
+        it('not verify cert', () => {
+            var ss = new tls.TLSSocket({
+                rejectUnverified: false
+            });
+            ss.connect(connect());
+            assert.equal(ss.getPeerX509Certificate().pem, crt.pem);
+
+            var ss = new tls.TLSSocket({
+                ca: ca,
+                rejectUnverified: false
+            });
+            ss.connect(connect(), "fibjs.org");
+            assert.equal(ss.getPeerX509Certificate().pem, crt.pem);
         });
     });
 

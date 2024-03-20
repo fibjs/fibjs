@@ -33,7 +33,8 @@ declare module 'tls' {
      *      - key: PEM 格式的私钥。PEM 允许选择加密私钥。加密的密钥将使用 options.passphrase 进行解密。
      *      - passphrase: 用于单个私钥和/或 PFX 的共享密码。
      *      - requestCert: 如果为 true，则服务器将要求客户端证书进行身份验证。默认值: true。
-     *      - rejectUnauthorized: 如果不是 false，服务器将拒绝任何未经所提供 CA 列表授权的连接。客户端模式默认值: true，服务端模式默认值: false。
+     *      - rejectUnverified: 如果不是 false，服务器将拒绝任何未通过 CA 列表验证证书的连接。默认值: true。
+     *      - rejectUnauthorized: 如果不是 false，服务器将拒绝任何未提供 CA 列表授权证书的连接。客户端模式默认值: true，服务端模式默认值: false。
      *      - maxVersion: 设置允许的最大 TLS 版本。 'TLSv1.3' 、 'TLSv1.2' 、 'TLSv1.1' 或 'TLSv1' 之一。不能与 secureProtocol 选项一起指定。
      *      - minVersion: 设置允许的最低 TLS 版本。 'TLSv1.3' 、 'TLSv1.2' 、 'TLSv1.1' 或 'TLSv1' 之一。不能与 secureProtocol 选项一起指定。
      *      - secureProtocol: 传统机制选择要使用的 TLS 协议版本，不支持最小和最大版本的独立控制，也不支持将协议限制为 TLSv1.3。建议改用 minVersion 和 maxVersion。

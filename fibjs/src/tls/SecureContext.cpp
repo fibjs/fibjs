@@ -399,11 +399,16 @@ result_t SecureContext::set_verify(v8::Local<v8::Object> options, bool isServer)
 
     int32_t verify_mode;
     bool requestCert = true;
+    bool rejectUnverified = true;
     bool rejectUnauthorized = !isServer;
 
     hr = GetConfigValue(isolate, options, "requestCert", requestCert);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return Runtime::setError("SecureContext: requestCert must be a valid boolean.");
+
+    hr = GetConfigValue(isolate, options, "rejectUnverified", rejectUnverified);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return Runtime::setError("SecureContext: rejectUnverified must be a valid boolean.");
 
     hr = GetConfigValue(isolate, options, "rejectUnauthorized", rejectUnauthorized);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
@@ -417,7 +422,10 @@ result_t SecureContext::set_verify(v8::Local<v8::Object> options, bool isServer)
             verify_mode |= SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
     }
 
-    SSL_CTX_set_verify(m_ctx, verify_mode, nullptr);
+    SSL_CTX_set_verify(
+        m_ctx, verify_mode, rejectUnverified ? nullptr : [](int ok, X509_STORE_CTX* ctx) -> int {
+            return 1;
+        });
 
     return 0;
 }
@@ -425,6 +433,12 @@ result_t SecureContext::set_verify(v8::Local<v8::Object> options, bool isServer)
 result_t SecureContext::get_requestCert(bool& retVal)
 {
     retVal = !!(SSL_CTX_get_verify_mode(m_ctx) & SSL_VERIFY_PEER);
+    return 0;
+}
+
+result_t SecureContext::get_rejectUnverified(bool& retVal)
+{
+    retVal = SSL_CTX_get_verify_callback(m_ctx) == nullptr;
     return 0;
 }
 
