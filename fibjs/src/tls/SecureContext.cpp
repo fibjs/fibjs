@@ -71,6 +71,11 @@ void SecureContext::init_ctx(const SSL_METHOD* method)
     SSL_CTX_set_options(m_ctx, SSL_OP_ALLOW_CLIENT_RENEGOTIATION);
     SSL_CTX_clear_mode(m_ctx, SSL_MODE_NO_AUTO_CHAIN);
 
+    static std::atomic<uint32_t> s_sid_ctx = 1;
+    uint32_t sid_ctx = s_sid_ctx++;
+
+    SSL_CTX_set_session_id_context(m_ctx, (const unsigned char*)&sid_ctx, sizeof(sid_ctx));
+
     SSL_CTX_set_session_cache_mode(m_ctx,
         SSL_SESS_CACHE_CLIENT | SSL_SESS_CACHE_SERVER | SSL_SESS_CACHE_NO_INTERNAL | SSL_SESS_CACHE_NO_AUTO_CLEAR);
 }
