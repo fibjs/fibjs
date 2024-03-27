@@ -105,6 +105,8 @@ describe("hash", () => {
         assert.equal(o.base64, crypto.createHash(o.name).update(o.text).digest('buffer').base64());
         assert.equal(o.hash, crypto.createHash(o.name).update(o.text).digest('hex'));
         assert.equal(o.base64, crypto.createHash(o.name).update(o.text).digest('base64'));
+        assert.equal(o.hash, crypto.hash(o.name, o.text, 'hex'));
+        assert.equal(o.base64, crypto.hash(o.name, o.text, 'base64'));
     }
 
     function hmac_test(o) {

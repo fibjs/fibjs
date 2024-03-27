@@ -268,6 +268,16 @@ declare module 'crypto' {
     function diffieHellman(options: FIBJS.GeneralObject): Class_Buffer;
 
     /**
+     * @description 用于创建数据的一次性哈希摘要的实用程序。当散列少量可用的数据（<= 5MB）时，它比基于对象的 crypto.createHash() 更快。如果数据很大或者是流式传输，仍然建议使用 crypto.createHash()
+     *      @param algorithm 指定签名算法，使用 crypto.getHashes 获取可用摘要算法的名称
+     *      @param data 指定要签名的数据
+     *      @param outputEncoding 指定输出编码，缺省为 "hex"
+     *      @return 返回散列后的数据
+     *     
+     */
+    function hash(algorithm: string, data: Class_Buffer, outputEncoding?: string): any;
+
+    /**
      * @description 生成指定尺寸的随机数，使用 havege 生成器
      *      @param size 指定生成的随机数尺寸
      *      @return 返回生成的随机数

@@ -97,6 +97,21 @@ result_t crypto_base::createHmac(exlib::string algo, Buffer_base* key,
     return CHECK_ERROR(CALL_E_INVALID_CALL);
 }
 
+result_t crypto_base::hash(exlib::string algorithm, Buffer_base* data,
+    exlib::string outputEncoding, v8::Local<v8::Value>& retVal)
+{
+    const EVP_MD* md = _evp_md_type(algorithm.c_str());
+    if (!md)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    Buffer* buf = Buffer::Cast(data);
+    obj_ptr<Buffer> ret = new Buffer(NULL, EVP_MD_size(md));
+
+    EVP_Digest((const unsigned char*)buf->data(), buf->length(), (unsigned char*)ret->data(), NULL, md, NULL);
+
+    return ret->toValue(outputEncoding, retVal);
+}
+
 result_t crypto_base::hkdf(exlib::string algoName, Buffer_base* password, Buffer_base* salt, Buffer_base* info,
     int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {

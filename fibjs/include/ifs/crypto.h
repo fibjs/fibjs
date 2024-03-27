@@ -74,6 +74,7 @@ public:
     static result_t createCertificateRequest(Buffer_base* csr, obj_ptr<X509CertificateRequest_base>& retVal);
     static result_t createCertificateRequest(v8::Local<v8::Object> options, obj_ptr<X509CertificateRequest_base>& retVal);
     static result_t diffieHellman(v8::Local<v8::Object> options, obj_ptr<Buffer_base>& retVal);
+    static result_t hash(exlib::string algorithm, Buffer_base* data, exlib::string outputEncoding, v8::Local<v8::Value>& retVal);
     static result_t randomBytes(int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t randomFill(Buffer_base* buffer, int32_t offset, int32_t size, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t generateKeyPair(exlib::string type, v8::Local<v8::Object> options, obj_ptr<GenerateKeyPairType>& retVal, AsyncEvent* ac);
@@ -124,6 +125,7 @@ public:
     static void s_static_createSecretKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createCertificateRequest(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_diffieHellman(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_hash(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_randomBytes(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_randomFill(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_generateKeyPair(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -181,6 +183,7 @@ inline ClassInfo& crypto_base::class_info()
         { "createSecretKey", s_static_createSecretKey, true, false },
         { "createCertificateRequest", s_static_createCertificateRequest, true, false },
         { "diffieHellman", s_static_diffieHellman, true, false },
+        { "hash", s_static_hash, true, false },
         { "randomBytes", s_static_randomBytes, true, true },
         { "randomBytesSync", s_static_randomBytes, true, false },
         { "randomFill", s_static_randomFill, true, true },
@@ -511,6 +514,23 @@ inline void crypto_base::s_static_diffieHellman(const v8::FunctionCallbackInfo<v
     ARG(v8::Local<v8::Object>, 0);
 
     hr = diffieHellman(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_hash(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Value> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(3, 2);
+
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    OPT_ARG(exlib::string, 2, "hex");
+
+    hr = hash(v0, v1, v2, vr);
 
     METHOD_RETURN();
 }
