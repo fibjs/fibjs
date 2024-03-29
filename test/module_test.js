@@ -181,6 +181,26 @@ describe("module", () => {
                 assert.equal(a, require('./module/p1.6'));
                 assert.equal(a, require('./module/p1.6/main'));
             });
+
+            it("./default/require", () => {
+                var a = require('./module/p1.7');
+                assert.deepEqual(a, {
+                    "a": 107
+                });
+
+                assert.equal(a, require('./module/p1.7'));
+                assert.equal(a, require('./module/p1.7/main'));
+            });
+
+            it("./node/require", () => {
+                var a = require('./module/p1.8');
+                assert.deepEqual(a, {
+                    "a": 108
+                });
+
+                assert.equal(a, require('./module/p1.8'));
+                assert.equal(a, require('./module/p1.8/main'));
+            });
         });
 
         it("default entry", () => {

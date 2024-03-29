@@ -122,15 +122,26 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& fnam
     v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
     exlib::string config_name;
 
-    JSValue exports = o->Get(context, isolate->NewString("exports", 7));
+    v8::Local<v8::String> strExports = isolate->NewString("exports", 7);
+    JSValue exports = o->Get(context, strExports);
     if (!IsEmpty(exports)) {
-        if (exports->IsObject()) {
-            JSValue exports_value;
+        v8::Local<v8::String> strRoot = isolate->NewString(".", 1);
+        v8::Local<v8::String> strNode = isolate->NewString("node", 4);
+        v8::Local<v8::String> strDefault = isolate->NewString("default", 7);
+
+        while (exports->IsObject()) {
+            JSValue def_value;
             o = v8::Local<v8::Object>::Cast(exports);
 
-            exports_value = o->Get(context, isolate->NewString(".", 1));
-            if (!IsEmpty(exports_value))
-                exports = exports_value;
+            def_value = o->Get(context, strRoot);
+            if (IsEmpty(def_value))
+                def_value = o->Get(context, strNode);
+            if (IsEmpty(def_value))
+                def_value = o->Get(context, strDefault);
+            if (IsEmpty(def_value))
+                break;
+
+            exports = def_value;
         }
 
         if (exports->IsString()) {
@@ -141,10 +152,10 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& fnam
 
             exports_value = o->Get(context, isolate->NewString("require", 7));
             if (IsEmpty(exports_value))
-                exports_value = o->Get(context, isolate->NewString("default", 7));
+                exports_value = o->Get(context, strDefault);
             else if (!exports_value->IsString() && exports_value->IsObject()) {
                 o = v8::Local<v8::Object>::Cast(exports_value);
-                exports_value = o->Get(context, isolate->NewString("default", 7));
+                exports_value = o->Get(context, strDefault);
             }
 
             if (IsEmpty(exports_value))

@@ -1,0 +1,9 @@
+{
+	"exports": {
+		".": {
+			"node": {
+				"require": "./main.js"
+			}
+		}
+	}
+}

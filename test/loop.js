@@ -1,2 +1,11 @@
 var child_process = require('child_process');
-while (child_process.run(process.execPath, ['test']) == 0);
+var test = require('test');
+test.setup();
+
+while (1) {
+    gc();
+    run('./tls_test.js');
+    var result = test.run();
+    if (result.failed > 0)
+        break;
+}
