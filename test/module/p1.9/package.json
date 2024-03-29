@@ -1,0 +1,10 @@
+{
+	"exports": {
+		".": {
+			"default": {
+				"require": "./main.js",
+				"default": "./main1.js"
+			}
+		}
+	}
+}

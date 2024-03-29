@@ -126,6 +126,7 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& fnam
     JSValue exports = o->Get(context, strExports);
     if (!IsEmpty(exports)) {
         v8::Local<v8::String> strRoot = isolate->NewString(".", 1);
+        v8::Local<v8::String> strRequire = isolate->NewString("require", 7);
         v8::Local<v8::String> strNode = isolate->NewString("node", 4);
         v8::Local<v8::String> strDefault = isolate->NewString("default", 7);
 
@@ -136,6 +137,8 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& fnam
             def_value = o->Get(context, strRoot);
             if (IsEmpty(def_value))
                 def_value = o->Get(context, strNode);
+            if (IsEmpty(def_value))
+                def_value = o->Get(context, strRequire);
             if (IsEmpty(def_value))
                 def_value = o->Get(context, strDefault);
             if (IsEmpty(def_value))
@@ -150,7 +153,7 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& fnam
             JSValue exports_value;
             o = v8::Local<v8::Object>::Cast(exports);
 
-            exports_value = o->Get(context, isolate->NewString("require", 7));
+            exports_value = o->Get(context, strRequire);
             if (IsEmpty(exports_value))
                 exports_value = o->Get(context, strDefault);
             else if (!exports_value->IsString() && exports_value->IsObject()) {
