@@ -1,4 +1,5 @@
 /// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../module/zlib_constants.d.ts" />
 /// <reference path="../interface/Stream.d.ts" />
 /// <reference path="../interface/Buffer.d.ts" />
 /**
@@ -59,6 +60,11 @@ declare module 'zlib' {
      * @description deflate 压缩级别，设定缺省设置 
      */
     export const DEFAULT_COMPRESSION: -1;
+
+    /**
+     * ! zlib 模块的常量对象，参见 zlib_constants 
+     */
+    const constants: typeof import ('zlib_constants');
 
     /**
      * @description 创建一个 deflate 流对象 

@@ -1,0 +1,147 @@
+/*! @brief zlib 模块常用常量定义模块
+
+ 引用方法：
+ ```JavaScript
+ var constants = require('zlib').constants
+ ```
+ */
+module zlib_constants
+{
+    /**/
+    const Z_NO_FLUSH = 0;
+
+    /**/
+    const Z_PARTIAL_FLUSH = 1;
+
+    /**/
+    const Z_SYNC_FLUSH = 2;
+
+    /**/
+    const Z_FULL_FLUSH = 3;
+
+    /**/
+    const Z_FINISH = 4;
+
+    /**/
+    const Z_BLOCK = 5;
+
+    /**/
+    const Z_OK = 0;
+
+    /**/
+    const Z_STREAM_END = 1;
+
+    /**/
+    const Z_NEED_DICT = 2;
+
+    /**/
+    const Z_ERRNO = -1;
+
+    /**/
+    const Z_STREAM_ERROR = -2;
+
+    /**/
+    const Z_DATA_ERROR = -3;
+
+    /**/
+    const Z_MEM_ERROR = -4;
+
+    /**/
+    const Z_BUF_ERROR = -5;
+
+    /**/
+    const Z_VERSION_ERROR = -6;
+
+    /**/
+    const Z_NO_COMPRESSION = 0;
+
+    /**/
+    const Z_BEST_SPEED = 1;
+
+    /**/
+    const Z_BEST_COMPRESSION = 9;
+
+    /**/
+    const Z_DEFAULT_COMPRESSION = -1;
+
+    /**/
+    const Z_FILTERED = 1;
+
+    /**/
+    const Z_HUFFMAN_ONLY = 2;
+
+    /**/
+    const Z_RLE = 3;
+
+    /**/
+    const Z_FIXED = 4;
+
+    /**/
+    const Z_DEFAULT_STRATEGY = 0;
+
+    /**/
+    const ZLIB_VERNUM = 4800;
+
+    /**/
+    const DEFLATE = 1;
+
+    /**/
+    const INFLATE = 2;
+
+    /**/
+    const GZIP = 3;
+
+    /**/
+    const GUNZIP = 4;
+
+    /**/
+    const DEFLATERAW = 5;
+
+    /**/
+    const INFLATERAW = 6;
+
+    /**/
+    const UNZIP = 7;
+
+    /**/
+    const BROTLI_DECODE = 8;
+
+    /**/
+    const BROTLI_ENCODE = 9;
+
+    /**/
+    const Z_MIN_WINDOWBITS = 8;
+
+    /**/
+    const Z_MAX_WINDOWBITS = 15;
+
+    /**/
+    const Z_DEFAULT_WINDOWBITS = 15;
+
+    /**/
+    const Z_MIN_CHUNK = 64;
+
+    /**/
+    const Z_MAX_CHUNK = -1;
+
+    /**/
+    const Z_DEFAULT_CHUNK = 16384;
+
+    /**/
+    const Z_MIN_MEMLEVEL = 1;
+
+    /**/
+    const Z_MAX_MEMLEVEL = 9;
+
+    /**/
+    const Z_DEFAULT_MEMLEVEL = 8;
+
+    /**/
+    const Z_MIN_LEVEL = -1;
+
+    /**/
+    const Z_MAX_LEVEL = 9;
+
+    /**/
+    const Z_DEFAULT_LEVEL = -1;
+};

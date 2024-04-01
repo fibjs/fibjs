@@ -15,6 +15,7 @@
 
 namespace fibjs {
 
+class zlib_constants_base;
 class Stream_base;
 class Buffer_base;
 
@@ -107,6 +108,7 @@ public:
 };
 }
 
+#include "ifs/zlib_constants.h"
 #include "ifs/Stream.h"
 #include "ifs/Buffer.h"
 
@@ -146,6 +148,10 @@ inline ClassInfo& zlib_base::class_info()
         { "inflateRawToSync", s_static_inflateRawTo, true, false }
     };
 
+    static ClassData::ClassObject s_object[] = {
+        { "constants", zlib_constants_base::class_info }
+    };
+
     static ClassData::ClassConst s_const[] = {
         { "NO_COMPRESSION", C_NO_COMPRESSION },
         { "BEST_SPEED", C_BEST_SPEED },
@@ -155,7 +161,7 @@ inline ClassInfo& zlib_base::class_info()
 
     static ClassData s_cd = {
         "zlib", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, ARRAYSIZE(s_const), s_const, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, ARRAYSIZE(s_const), s_const, NULL, NULL,
         &object_base::class_info(),
         true
     };
