@@ -11,6 +11,8 @@
 #include "ifs/Socket.h"
 #include "TLSSocket.h"
 #include "Url.h"
+#include "options.h"
+#include "openssl/provider.h"
 
 namespace fibjs {
 
@@ -22,6 +24,10 @@ void init_tls()
     SSL_library_init();
     SSL_load_error_strings();
     OpenSSL_add_all_algorithms();
+
+    OSSL_PROVIDER_load(NULL, "default");
+    if (g_openssl_legacy_provider)
+        OSSL_PROVIDER_load(nullptr, "legacy");
 }
 
 result_t tls_base::get_secureContext(obj_ptr<SecureContext_base>& retVal)
