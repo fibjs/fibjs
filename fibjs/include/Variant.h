@@ -84,6 +84,12 @@ public:
         operator=(v);
     }
 
+    Variant(const std::string& v)
+        : m_type(VT_Undefined)
+    {
+        operator=(v);
+    }
+
     Variant(const char* v)
         : m_type(VT_Undefined)
     {
@@ -272,6 +278,18 @@ public:
     }
 
     Variant& operator=(const exlib::string& v)
+    {
+        if (type() != VT_String) {
+            clear();
+            set_type(VT_String);
+            new (m_Val.strVal) exlib::string(v);
+        } else
+            strVal() = v;
+
+        return *this;
+    }
+
+    Variant& operator=(const std::string& v)
     {
         if (type() != VT_String) {
             clear();
