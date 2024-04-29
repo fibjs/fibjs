@@ -117,7 +117,7 @@ result_t object_base::setListener(exlib::string ev, v8::Local<v8::Function> func
     return e.on(ev, func, r);
 }
 
-result_t object_base::getListener(exlib::string ev, v8::Local<v8::Function> func)
+result_t object_base::getListener(exlib::string ev, v8::Local<v8::Function>& func)
 {
     result_t hr;
     JSTrigger e(this);
