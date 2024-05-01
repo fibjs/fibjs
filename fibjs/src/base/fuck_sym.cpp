@@ -51,11 +51,16 @@ char* secure_getenv(const char* name)
     return getenv(name);
 }
 
+// GLIBC_2.18
+int __cxa_thread_atexit_impl(void (*dtor)(void*), void* obj, void* dso_symbol)
+{
+    return 0;
+}
 
 long syscall(long number, ...);
 
 // GLIBC_2.25
-static ssize_t __getrandom(void* buffer, size_t length, unsigned int flags)
+ssize_t getrandom(void* buffer, size_t length, unsigned int flags)
 {
     return syscall(SYS_getrandom, buffer, length, flags);
 }
@@ -68,7 +73,7 @@ int getentropy(void* buf, size_t length)
 
     char* end = buffer + length;
     while (buffer < end) {
-        ssize_t bytes = __getrandom(buffer, end - buffer, 0);
+        ssize_t bytes = getrandom(buffer, end - buffer, 0);
         if (bytes < 0) {
             if (errno == EINTR)
                 continue;

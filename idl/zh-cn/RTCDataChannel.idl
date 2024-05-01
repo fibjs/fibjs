@@ -1,0 +1,39 @@
+/**/
+interface RTCDataChannel : EventEmitter
+{
+    /**/
+    send(Buffer data);
+
+    /**/
+    send(String data);
+
+    /**/
+    close();
+
+    /**/
+    readonly Integer id;
+
+    /**/
+    readonly String label;
+
+    /**/
+    readonly String protocol;
+
+    /**/
+    readonly Number bufferedAmount;
+
+    /**/
+    Function onopen;
+
+    /**/
+    Function onmessage;
+
+    /**/
+    Function onclose;
+
+    /**/
+    Function onerror;
+
+    /**/
+    Function onbufferedamountlow;
+};

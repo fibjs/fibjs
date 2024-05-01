@@ -1,0 +1,27 @@
+/**/
+interface RTCIceCandidate : object
+{
+    /**/
+    RTCIceCandidate(Object description = {});
+
+    /**/
+    readonly String candidate;
+
+    /**/
+    readonly String sdpMid;
+
+    /**/
+    readonly Integer priority;
+
+    /**/
+    readonly String transport;
+
+    /**/
+    readonly String address;
+
+    /**/
+    readonly Integer port;
+
+    /**/
+    readonly String type;
+};

@@ -1,0 +1,12 @@
+/*! @brief WebRTC 网络实时通信模块 */
+module rtc
+{
+    /**/
+    static RTCPeerConnection;
+
+    /**/
+    static RTCSessionDescription;
+
+    /**/
+    static RTCIceCandidate;
+};

@@ -1,0 +1,12 @@
+/**/
+interface RTCSessionDescription : object
+{
+    /**/
+    RTCSessionDescription(Object description = {});
+
+    /**/
+    readonly String type;
+
+    /**/
+    readonly String sdp;
+};

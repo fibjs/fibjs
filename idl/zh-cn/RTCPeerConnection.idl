@@ -1,0 +1,72 @@
+/**/
+interface RTCPeerConnection : EventEmitter
+{
+    /**/
+    RTCPeerConnection(Object options = {});
+
+    /**/
+    RTCDataChannel createDataChannel(String label, Object options = {});
+
+    /**/
+    setLocalDescription() promise;
+
+    /**/
+    setLocalDescription(RTCSessionDescription description) promise;
+
+    /**/
+    setRemoteDescription(RTCSessionDescription description) promise;
+
+    /**/
+    addIceCandidate(RTCIceCandidate candidate) promise;
+
+    /**/
+    Variant createOffer(Object options = {}) promise;
+
+    /**/
+    Variant createAnswer(Object options = {}) promise;
+
+    /**/
+    close();
+
+    /**/
+    readonly String connectionState;
+
+    /**/
+    readonly String iceConnectionState;
+
+    /**/
+    readonly String iceGatheringState;
+
+    /**/
+    readonly Object localDescription;
+
+    /**/
+    readonly Object remoteDescription;
+
+    /**/
+    readonly String signalingState;
+
+    /**/
+    Function onconnectionstatechange;
+
+    /**/
+    Function ondatachannel;
+
+    /**/
+    Function onicecandidate;
+
+    /**/
+    Function oniceconnectionstatechange;
+
+    /**/
+    Function onicegatheringstatechange;
+
+    /**/
+    Function onlocaldescription;
+
+    /**/
+    Function onsignalingstatechange;
+
+    /**/
+    Function ontrack;
+};
