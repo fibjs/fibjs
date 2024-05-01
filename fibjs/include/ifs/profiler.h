@@ -85,14 +85,14 @@ namespace fibjs {
 inline ClassInfo& profiler_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "getHeapCodeStatistics", s_static_getHeapCodeStatistics, true, false },
-        { "getHeapSpaceStatistics", s_static_getHeapSpaceStatistics, true, false },
-        { "getHeapStatistics", s_static_getHeapStatistics, true, false },
-        { "saveSnapshot", s_static_saveSnapshot, true, false },
-        { "loadSnapshot", s_static_loadSnapshot, true, false },
-        { "takeSnapshot", s_static_takeSnapshot, true, false },
-        { "diff", s_static_diff, true, false },
-        { "start", s_static_start, true, false }
+        { "getHeapCodeStatistics", s_static_getHeapCodeStatistics, true, ClassData::ASYNC_SYNC },
+        { "getHeapSpaceStatistics", s_static_getHeapSpaceStatistics, true, ClassData::ASYNC_SYNC },
+        { "getHeapStatistics", s_static_getHeapStatistics, true, ClassData::ASYNC_SYNC },
+        { "saveSnapshot", s_static_saveSnapshot, true, ClassData::ASYNC_SYNC },
+        { "loadSnapshot", s_static_loadSnapshot, true, ClassData::ASYNC_SYNC },
+        { "takeSnapshot", s_static_takeSnapshot, true, ClassData::ASYNC_SYNC },
+        { "diff", s_static_diff, true, ClassData::ASYNC_SYNC },
+        { "start", s_static_start, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassConst s_const[] = {

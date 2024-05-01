@@ -54,8 +54,8 @@ namespace fibjs {
 inline ClassInfo& Verify_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "update", s_update, false, false },
-        { "verify", s_verify, false, false }
+        { "update", s_update, false, ClassData::ASYNC_SYNC },
+        { "verify", s_verify, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {

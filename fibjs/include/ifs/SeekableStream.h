@@ -69,17 +69,17 @@ namespace fibjs {
 inline ClassInfo& SeekableStream_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "seek", s_seek, false, false },
-        { "tell", s_tell, false, false },
-        { "rewind", s_rewind, false, false },
-        { "size", s_size, false, false },
-        { "readAll", s_readAll, false, true },
-        { "readAllSync", s_readAll, false, false },
-        { "truncate", s_truncate, false, true },
-        { "truncateSync", s_truncate, false, false },
-        { "eof", s_eof, false, false },
-        { "stat", s_stat, false, true },
-        { "statSync", s_stat, false, false }
+        { "seek", s_seek, false, ClassData::ASYNC_SYNC },
+        { "tell", s_tell, false, ClassData::ASYNC_SYNC },
+        { "rewind", s_rewind, false, ClassData::ASYNC_SYNC },
+        { "size", s_size, false, ClassData::ASYNC_SYNC },
+        { "readAll", s_readAll, false, ClassData::ASYNC_ASYNC },
+        { "readAllSync", s_readAll, false, ClassData::ASYNC_SYNC },
+        { "truncate", s_truncate, false, ClassData::ASYNC_ASYNC },
+        { "truncateSync", s_truncate, false, ClassData::ASYNC_SYNC },
+        { "eof", s_eof, false, ClassData::ASYNC_SYNC },
+        { "stat", s_stat, false, ClassData::ASYNC_ASYNC },
+        { "statSync", s_stat, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {

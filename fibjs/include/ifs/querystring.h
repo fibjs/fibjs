@@ -50,10 +50,10 @@ namespace fibjs {
 inline ClassInfo& querystring_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "escape", s_static_escape, true, false },
-        { "unescape", s_static_unescape, true, false },
-        { "parse", s_static_parse, true, false },
-        { "stringify", s_static_stringify, true, false }
+        { "escape", s_static_escape, true, ClassData::ASYNC_SYNC },
+        { "unescape", s_static_unescape, true, ClassData::ASYNC_SYNC },
+        { "parse", s_static_parse, true, ClassData::ASYNC_SYNC },
+        { "stringify", s_static_stringify, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {

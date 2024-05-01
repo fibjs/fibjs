@@ -69,17 +69,17 @@ namespace fibjs {
 inline ClassInfo& SandBox_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "addBuiltinModules", s_addBuiltinModules, false, false },
-        { "add", s_add, false, false },
-        { "addScript", s_addScript, false, false },
-        { "remove", s_remove, false, false },
-        { "has", s_has, false, false },
-        { "clone", s_clone, false, false },
-        { "freeze", s_freeze, false, false },
-        { "run", s_run, false, false },
-        { "resolve", s_resolve, false, false },
-        { "require", s_require, false, false },
-        { "setModuleCompiler", s_setModuleCompiler, false, false }
+        { "addBuiltinModules", s_addBuiltinModules, false, ClassData::ASYNC_SYNC },
+        { "add", s_add, false, ClassData::ASYNC_SYNC },
+        { "addScript", s_addScript, false, ClassData::ASYNC_SYNC },
+        { "remove", s_remove, false, ClassData::ASYNC_SYNC },
+        { "has", s_has, false, ClassData::ASYNC_SYNC },
+        { "clone", s_clone, false, ClassData::ASYNC_SYNC },
+        { "freeze", s_freeze, false, ClassData::ASYNC_SYNC },
+        { "run", s_run, false, ClassData::ASYNC_SYNC },
+        { "resolve", s_resolve, false, ClassData::ASYNC_SYNC },
+        { "require", s_require, false, ClassData::ASYNC_SYNC },
+        { "setModuleCompiler", s_setModuleCompiler, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

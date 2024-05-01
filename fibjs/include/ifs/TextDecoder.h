@@ -44,7 +44,7 @@ namespace fibjs {
 inline ClassInfo& TextDecoder_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "decode", s_decode, false, false }
+        { "decode", s_decode, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

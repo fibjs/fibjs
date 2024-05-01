@@ -79,21 +79,21 @@ namespace fibjs {
 inline ClassInfo& test_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "describe", s_static_describe, true, false },
-        { "xdescribe", s_static_xdescribe, true, false },
-        { "odescribe", s_static_odescribe, true, false },
-        { "it", s_static_it, true, false },
-        { "xit", s_static_xit, true, false },
-        { "oit", s_static_oit, true, false },
-        { "todo", s_static_todo, true, false },
-        { "before", s_static_before, true, false },
-        { "after", s_static_after, true, false },
-        { "beforeEach", s_static_beforeEach, true, false },
-        { "afterEach", s_static_afterEach, true, false },
-        { "mustCall", s_static_mustCall, true, false },
-        { "mustNotCall", s_static_mustNotCall, true, false },
-        { "run", s_static_run, true, false },
-        { "setup", s_static_setup, true, false }
+        { "describe", s_static_describe, true, ClassData::ASYNC_SYNC },
+        { "xdescribe", s_static_xdescribe, true, ClassData::ASYNC_SYNC },
+        { "odescribe", s_static_odescribe, true, ClassData::ASYNC_SYNC },
+        { "it", s_static_it, true, ClassData::ASYNC_SYNC },
+        { "xit", s_static_xit, true, ClassData::ASYNC_SYNC },
+        { "oit", s_static_oit, true, ClassData::ASYNC_SYNC },
+        { "todo", s_static_todo, true, ClassData::ASYNC_SYNC },
+        { "before", s_static_before, true, ClassData::ASYNC_SYNC },
+        { "after", s_static_after, true, ClassData::ASYNC_SYNC },
+        { "beforeEach", s_static_beforeEach, true, ClassData::ASYNC_SYNC },
+        { "afterEach", s_static_afterEach, true, ClassData::ASYNC_SYNC },
+        { "mustCall", s_static_mustCall, true, ClassData::ASYNC_SYNC },
+        { "mustNotCall", s_static_mustNotCall, true, ClassData::ASYNC_SYNC },
+        { "run", s_static_run, true, ClassData::ASYNC_SYNC },
+        { "setup", s_static_setup, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {

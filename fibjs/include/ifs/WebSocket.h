@@ -75,10 +75,10 @@ namespace fibjs {
 inline ClassInfo& WebSocket_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "close", s_close, false, false },
-        { "send", s_send, false, false },
-        { "ref", s_ref, false, false },
-        { "unref", s_unref, false, false }
+        { "close", s_close, false, ClassData::ASYNC_SYNC },
+        { "send", s_send, false, ClassData::ASYNC_SYNC },
+        { "ref", s_ref, false, ClassData::ASYNC_SYNC },
+        { "unref", s_unref, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

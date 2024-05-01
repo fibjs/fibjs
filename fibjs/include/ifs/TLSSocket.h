@@ -71,13 +71,13 @@ namespace fibjs {
 inline ClassInfo& TLSSocket_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "connect", s_connect, false, true },
-        { "connectSync", s_connect, false, false },
-        { "accept", s_accept, false, true },
-        { "acceptSync", s_accept, false, false },
-        { "getProtocol", s_getProtocol, false, false },
-        { "getX509Certificate", s_getX509Certificate, false, false },
-        { "getPeerX509Certificate", s_getPeerX509Certificate, false, false }
+        { "connect", s_connect, false, ClassData::ASYNC_ASYNC },
+        { "connectSync", s_connect, false, ClassData::ASYNC_SYNC },
+        { "accept", s_accept, false, ClassData::ASYNC_ASYNC },
+        { "acceptSync", s_accept, false, ClassData::ASYNC_SYNC },
+        { "getProtocol", s_getProtocol, false, ClassData::ASYNC_SYNC },
+        { "getX509Certificate", s_getX509Certificate, false, ClassData::ASYNC_SYNC },
+        { "getPeerX509Certificate", s_getPeerX509Certificate, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

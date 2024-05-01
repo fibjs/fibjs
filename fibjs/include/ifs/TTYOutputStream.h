@@ -61,13 +61,13 @@ namespace fibjs {
 inline ClassInfo& TTYOutputStream_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "clearLine", s_clearLine, false, false },
-        { "clearScreenDown", s_clearScreenDown, false, false },
-        { "cursorTo", s_cursorTo, false, true },
-        { "cursorToSync", s_cursorTo, false, false },
-        { "moveCursor", s_moveCursor, false, true },
-        { "moveCursorSync", s_moveCursor, false, false },
-        { "getWindowSize", s_getWindowSize, false, false }
+        { "clearLine", s_clearLine, false, ClassData::ASYNC_SYNC },
+        { "clearScreenDown", s_clearScreenDown, false, ClassData::ASYNC_SYNC },
+        { "cursorTo", s_cursorTo, false, ClassData::ASYNC_ASYNC },
+        { "cursorToSync", s_cursorTo, false, ClassData::ASYNC_SYNC },
+        { "moveCursor", s_moveCursor, false, ClassData::ASYNC_ASYNC },
+        { "moveCursorSync", s_moveCursor, false, ClassData::ASYNC_SYNC },
+        { "getWindowSize", s_getWindowSize, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

@@ -64,16 +64,16 @@ namespace fibjs {
 inline ClassInfo& RedisSortedSet_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "add", s_add, false, false },
-        { "score", s_score, false, false },
-        { "incr", s_incr, false, false },
-        { "remove", s_remove, false, false },
-        { "len", s_len, false, false },
-        { "count", s_count, false, false },
-        { "range", s_range, false, false },
-        { "rangeRev", s_rangeRev, false, false },
-        { "rank", s_rank, false, false },
-        { "rankRev", s_rankRev, false, false }
+        { "add", s_add, false, ClassData::ASYNC_SYNC },
+        { "score", s_score, false, ClassData::ASYNC_SYNC },
+        { "incr", s_incr, false, ClassData::ASYNC_SYNC },
+        { "remove", s_remove, false, ClassData::ASYNC_SYNC },
+        { "len", s_len, false, ClassData::ASYNC_SYNC },
+        { "count", s_count, false, ClassData::ASYNC_SYNC },
+        { "range", s_range, false, ClassData::ASYNC_SYNC },
+        { "rangeRev", s_rangeRev, false, ClassData::ASYNC_SYNC },
+        { "rank", s_rank, false, ClassData::ASYNC_SYNC },
+        { "rankRev", s_rankRev, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {

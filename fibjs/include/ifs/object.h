@@ -42,8 +42,8 @@ namespace fibjs {
 inline ClassInfo& object_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "toString", s_toString, false, false },
-        { "toJSON", s_toJSON, false, false }
+        { "toString", s_toString, false, ClassData::ASYNC_SYNC },
+        { "toJSON", s_toJSON, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {

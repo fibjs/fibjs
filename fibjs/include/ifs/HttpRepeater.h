@@ -48,7 +48,7 @@ namespace fibjs {
 inline ClassInfo& HttpRepeater_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "load", s_load, false, false }
+        { "load", s_load, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

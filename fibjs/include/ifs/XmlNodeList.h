@@ -48,7 +48,7 @@ namespace fibjs {
 inline ClassInfo& XmlNodeList_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "item", s_item, false, false }
+        { "item", s_item, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

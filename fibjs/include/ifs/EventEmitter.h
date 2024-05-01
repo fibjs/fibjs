@@ -78,20 +78,20 @@ namespace fibjs {
 inline ClassInfo& EventEmitter_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "on", s_on, false, false },
-        { "addListener", s_addListener, false, false },
-        { "prependListener", s_prependListener, false, false },
-        { "once", s_once, false, false },
-        { "prependOnceListener", s_prependOnceListener, false, false },
-        { "off", s_off, false, false },
-        { "removeListener", s_removeListener, false, false },
-        { "removeAllListeners", s_removeAllListeners, false, false },
-        { "setMaxListeners", s_setMaxListeners, false, false },
-        { "getMaxListeners", s_getMaxListeners, false, false },
-        { "listeners", s_listeners, false, false },
-        { "listenerCount", s_listenerCount, false, false },
-        { "eventNames", s_eventNames, false, false },
-        { "emit", s_emit, false, false }
+        { "on", s_on, false, ClassData::ASYNC_SYNC },
+        { "addListener", s_addListener, false, ClassData::ASYNC_SYNC },
+        { "prependListener", s_prependListener, false, ClassData::ASYNC_SYNC },
+        { "once", s_once, false, ClassData::ASYNC_SYNC },
+        { "prependOnceListener", s_prependOnceListener, false, ClassData::ASYNC_SYNC },
+        { "off", s_off, false, ClassData::ASYNC_SYNC },
+        { "removeListener", s_removeListener, false, ClassData::ASYNC_SYNC },
+        { "removeAllListeners", s_removeAllListeners, false, ClassData::ASYNC_SYNC },
+        { "setMaxListeners", s_setMaxListeners, false, ClassData::ASYNC_SYNC },
+        { "getMaxListeners", s_getMaxListeners, false, ClassData::ASYNC_SYNC },
+        { "listeners", s_listeners, false, ClassData::ASYNC_SYNC },
+        { "listenerCount", s_listenerCount, false, ClassData::ASYNC_SYNC },
+        { "eventNames", s_eventNames, false, ClassData::ASYNC_SYNC },
+        { "emit", s_emit, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {

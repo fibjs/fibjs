@@ -80,23 +80,23 @@ namespace fibjs {
 inline ClassInfo& os_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "hostname", s_static_hostname, true, false },
-        { "endianness", s_static_endianness, true, false },
-        { "type", s_static_type, true, false },
-        { "release", s_static_release, true, false },
-        { "homedir", s_static_homedir, true, false },
-        { "arch", s_static_arch, true, false },
-        { "loadavg", s_static_loadavg, true, false },
-        { "totalmem", s_static_totalmem, true, false },
-        { "freemem", s_static_freemem, true, false },
-        { "cpus", s_static_cpus, true, false },
-        { "cpuNumbers", s_static_cpuNumbers, true, false },
-        { "tmpdir", s_static_tmpdir, true, false },
-        { "userInfo", s_static_userInfo, true, false },
-        { "networkInterfaces", s_static_networkInterfaces, true, false },
-        { "platform", s_static_platform, true, false },
-        { "time", s_static_time, true, false },
-        { "dateAdd", s_static_dateAdd, true, false }
+        { "hostname", s_static_hostname, true, ClassData::ASYNC_SYNC },
+        { "endianness", s_static_endianness, true, ClassData::ASYNC_SYNC },
+        { "type", s_static_type, true, ClassData::ASYNC_SYNC },
+        { "release", s_static_release, true, ClassData::ASYNC_SYNC },
+        { "homedir", s_static_homedir, true, ClassData::ASYNC_SYNC },
+        { "arch", s_static_arch, true, ClassData::ASYNC_SYNC },
+        { "loadavg", s_static_loadavg, true, ClassData::ASYNC_SYNC },
+        { "totalmem", s_static_totalmem, true, ClassData::ASYNC_SYNC },
+        { "freemem", s_static_freemem, true, ClassData::ASYNC_SYNC },
+        { "cpus", s_static_cpus, true, ClassData::ASYNC_SYNC },
+        { "cpuNumbers", s_static_cpuNumbers, true, ClassData::ASYNC_SYNC },
+        { "tmpdir", s_static_tmpdir, true, ClassData::ASYNC_SYNC },
+        { "userInfo", s_static_userInfo, true, ClassData::ASYNC_SYNC },
+        { "networkInterfaces", s_static_networkInterfaces, true, ClassData::ASYNC_SYNC },
+        { "platform", s_static_platform, true, ClassData::ASYNC_SYNC },
+        { "time", s_static_time, true, ClassData::ASYNC_SYNC },
+        { "dateAdd", s_static_dateAdd, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {

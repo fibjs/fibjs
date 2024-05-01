@@ -90,13 +90,13 @@ namespace fibjs {
 inline ClassInfo& X509Certificate_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "next", s_next, false, false },
-        { "checkEmail", s_checkEmail, false, false },
-        { "checkHost", s_checkHost, false, false },
-        { "checkIP", s_checkIP, false, false },
-        { "checkIssued", s_checkIssued, false, false },
-        { "checkPrivateKey", s_checkPrivateKey, false, false },
-        { "verify", s_verify, false, false }
+        { "next", s_next, false, ClassData::ASYNC_SYNC },
+        { "checkEmail", s_checkEmail, false, ClassData::ASYNC_SYNC },
+        { "checkHost", s_checkHost, false, ClassData::ASYNC_SYNC },
+        { "checkIP", s_checkIP, false, ClassData::ASYNC_SYNC },
+        { "checkIssued", s_checkIssued, false, ClassData::ASYNC_SYNC },
+        { "checkPrivateKey", s_checkPrivateKey, false, ClassData::ASYNC_SYNC },
+        { "verify", s_verify, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

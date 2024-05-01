@@ -74,7 +74,7 @@ if(m.memType == 'method'){
             if(p.default)
                 ps += ' = ' + def_value(p.default, p);
         });
-    }%>(<%-ps%>)<% if(m.async){%> async<%}}else if(m.default){%> = <%-def_value(m.default, m)%><%}%>;
+    }%>(<%-ps%>)<% if(m.async){%> <%-m.async%><%}}else if(m.default){%> = <%-def_value(m.default, m)%><%}%>;
 ```
 <%if(m.params){%>
 调用参数:<% m.doc.params.forEach(function(p){%>

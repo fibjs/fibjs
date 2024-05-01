@@ -41,9 +41,9 @@ namespace fibjs {
 inline ClassInfo& Script_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "runInContext", s_runInContext, false, false },
-        { "runInNewContext", s_runInNewContext, false, false },
-        { "runInThisContext", s_runInThisContext, false, false }
+        { "runInContext", s_runInContext, false, ClassData::ASYNC_SYNC },
+        { "runInNewContext", s_runInNewContext, false, ClassData::ASYNC_SYNC },
+        { "runInThisContext", s_runInThisContext, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {

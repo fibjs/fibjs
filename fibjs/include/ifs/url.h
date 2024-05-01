@@ -53,11 +53,11 @@ namespace fibjs {
 inline ClassInfo& url_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "format", s_static_format, true, false },
-        { "parse", s_static_parse, true, false },
-        { "resolve", s_static_resolve, true, false },
-        { "fileURLToPath", s_static_fileURLToPath, true, false },
-        { "pathToFileURL", s_static_pathToFileURL, true, false }
+        { "format", s_static_format, true, ClassData::ASYNC_SYNC },
+        { "parse", s_static_parse, true, ClassData::ASYNC_SYNC },
+        { "resolve", s_static_resolve, true, ClassData::ASYNC_SYNC },
+        { "fileURLToPath", s_static_fileURLToPath, true, ClassData::ASYNC_SYNC },
+        { "pathToFileURL", s_static_pathToFileURL, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {

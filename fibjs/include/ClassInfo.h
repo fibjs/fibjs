@@ -19,6 +19,13 @@ extern bool g_track_native_object;
 class ClassInfo;
 
 struct ClassData {
+
+    enum AsyncType {
+        ASYNC_SYNC = 0,
+        ASYNC_ASYNC = 1,
+        ASYNC_PROMISE = 2
+    };
+
     struct ClassProperty {
         const char* name;
         v8::AccessorNameGetterCallback getter;
@@ -35,7 +42,7 @@ struct ClassData {
         const char* name;
         v8::FunctionCallback invoker;
         bool is_static;
-        bool is_async;
+        AsyncType async_type;
     };
 
     struct ClassObject {
@@ -222,14 +229,19 @@ public:
                 v8::Local<v8::Function> pfunc;
                 v8::Local<v8::Name> name = get_prop_name(isolate, m_cd.cms[i].name);
 
-                o->Set(_context, name, func).IsJust();
-
-                if (m_cd.cms[i].is_async) {
-                    if (op.IsEmpty())
-                        op = v8::Object::New(isolate->m_isolate);
-
+                if (m_cd.cms[i].async_type == ClassData::ASYNC_PROMISE) {
                     promisify(isolate, func, pfunc);
-                    op->Set(_context, name, pfunc).IsJust();
+                    o->Set(_context, name, func).IsJust();
+                } else {
+                    o->Set(_context, name, func).IsJust();
+
+                    if (m_cd.cms[i].async_type == ClassData::ASYNC_ASYNC) {
+                        if (op.IsEmpty())
+                            op = v8::Object::New(isolate->m_isolate);
+
+                        promisify(isolate, func, pfunc);
+                        op->Set(_context, name, pfunc).IsJust();
+                    }
                 }
             }
         }
@@ -373,14 +385,24 @@ private:
                 if (!m_cd.cms[i].is_static) {
                     v8::Local<v8::FunctionTemplate> ft = v8::FunctionTemplate::New(isolate->m_isolate, m_cd.cms[i].invoker);
 
-                    pt->Set(get_prop_name(isolate, m_cd.cms[i].name), ft);
-                    if (m_cd.has_async) {
-                        if (!m_cd.cms[i].is_async)
-                            ppt->Set(get_prop_name(isolate, m_cd.cms[i].name), ft);
-                        else {
-                            v8::Local<v8::FunctionTemplate> pft;
-                            promisify(isolate, ft->GetFunction(context).FromMaybe(v8::Local<v8::Function>()), pft);
+                    if (m_cd.cms[i].async_type == ClassData::ASYNC_PROMISE) {
+                        v8::Local<v8::FunctionTemplate> pft;
+
+                        promisify(isolate, ft->GetFunction(context).FromMaybe(v8::Local<v8::Function>()), pft);
+                        pt->Set(get_prop_name(isolate, m_cd.cms[i].name), pft);
+
+                        if (m_cd.has_async)
                             ppt->Set(get_prop_name(isolate, m_cd.cms[i].name), pft);
+                    } else {
+                        pt->Set(get_prop_name(isolate, m_cd.cms[i].name), ft);
+                        if (m_cd.has_async) {
+                            if (m_cd.cms[i].async_type == ClassData::ASYNC_SYNC)
+                                ppt->Set(get_prop_name(isolate, m_cd.cms[i].name), ft);
+                            else {
+                                v8::Local<v8::FunctionTemplate> pft;
+                                promisify(isolate, ft->GetFunction(context).FromMaybe(v8::Local<v8::Function>()), pft);
+                                ppt->Set(get_prop_name(isolate, m_cd.cms[i].name), pft);
+                            }
                         }
                     }
                 }

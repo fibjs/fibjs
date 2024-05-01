@@ -81,22 +81,22 @@ namespace fibjs {
 inline ClassInfo& DgramSocket_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "bind", s_bind, false, true },
-        { "bindSync", s_bind, false, false },
-        { "send", s_send, false, true },
-        { "sendSync", s_send, false, false },
-        { "address", s_address, false, false },
-        { "close", s_close, false, false },
-        { "getRecvBufferSize", s_getRecvBufferSize, false, false },
-        { "getSendBufferSize", s_getSendBufferSize, false, false },
-        { "addMembership", s_addMembership, false, false },
-        { "dropMembership", s_dropMembership, false, false },
-        { "setMulticastTTL", s_setMulticastTTL, false, false },
-        { "setRecvBufferSize", s_setRecvBufferSize, false, false },
-        { "setSendBufferSize", s_setSendBufferSize, false, false },
-        { "setBroadcast", s_setBroadcast, false, false },
-        { "ref", s_ref, false, false },
-        { "unref", s_unref, false, false }
+        { "bind", s_bind, false, ClassData::ASYNC_ASYNC },
+        { "bindSync", s_bind, false, ClassData::ASYNC_SYNC },
+        { "send", s_send, false, ClassData::ASYNC_ASYNC },
+        { "sendSync", s_send, false, ClassData::ASYNC_SYNC },
+        { "address", s_address, false, ClassData::ASYNC_SYNC },
+        { "close", s_close, false, ClassData::ASYNC_SYNC },
+        { "getRecvBufferSize", s_getRecvBufferSize, false, ClassData::ASYNC_SYNC },
+        { "getSendBufferSize", s_getSendBufferSize, false, ClassData::ASYNC_SYNC },
+        { "addMembership", s_addMembership, false, ClassData::ASYNC_SYNC },
+        { "dropMembership", s_dropMembership, false, ClassData::ASYNC_SYNC },
+        { "setMulticastTTL", s_setMulticastTTL, false, ClassData::ASYNC_SYNC },
+        { "setRecvBufferSize", s_setRecvBufferSize, false, ClassData::ASYNC_SYNC },
+        { "setSendBufferSize", s_setSendBufferSize, false, ClassData::ASYNC_SYNC },
+        { "setBroadcast", s_setBroadcast, false, ClassData::ASYNC_SYNC },
+        { "ref", s_ref, false, ClassData::ASYNC_SYNC },
+        { "unref", s_unref, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {

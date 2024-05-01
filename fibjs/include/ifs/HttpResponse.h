@@ -72,11 +72,11 @@ namespace fibjs {
 inline ClassInfo& HttpResponse_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "writeHead", s_writeHead, false, false },
-        { "addCookie", s_addCookie, false, false },
-        { "redirect", s_redirect, false, false },
-        { "sendHeader", s_sendHeader, false, true },
-        { "sendHeaderSync", s_sendHeader, false, false }
+        { "writeHead", s_writeHead, false, ClassData::ASYNC_SYNC },
+        { "addCookie", s_addCookie, false, ClassData::ASYNC_SYNC },
+        { "redirect", s_redirect, false, ClassData::ASYNC_SYNC },
+        { "sendHeader", s_sendHeader, false, ClassData::ASYNC_ASYNC },
+        { "sendHeaderSync", s_sendHeader, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

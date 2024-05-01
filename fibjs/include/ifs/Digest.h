@@ -49,8 +49,8 @@ namespace fibjs {
 inline ClassInfo& Digest_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "update", s_update, false, false },
-        { "digest", s_digest, false, false }
+        { "update", s_update, false, ClassData::ASYNC_SYNC },
+        { "digest", s_digest, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

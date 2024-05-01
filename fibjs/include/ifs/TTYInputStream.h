@@ -47,7 +47,7 @@ namespace fibjs {
 inline ClassInfo& TTYInputStream_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "setRawMode", s_setRawMode, false, false }
+        { "setRawMode", s_setRawMode, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

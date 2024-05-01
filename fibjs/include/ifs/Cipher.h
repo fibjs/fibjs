@@ -57,12 +57,12 @@ namespace fibjs {
 inline ClassInfo& Cipher_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "setAuthTag", s_setAuthTag, false, false },
-        { "getAuthTag", s_getAuthTag, false, false },
-        { "setAAD", s_setAAD, false, false },
-        { "setAutoPadding", s_setAutoPadding, false, false },
-        { "update", s_update, false, false },
-        { "final", s_final, false, false }
+        { "setAuthTag", s_setAuthTag, false, ClassData::ASYNC_SYNC },
+        { "getAuthTag", s_getAuthTag, false, ClassData::ASYNC_SYNC },
+        { "setAAD", s_setAAD, false, ClassData::ASYNC_SYNC },
+        { "setAutoPadding", s_setAutoPadding, false, ClassData::ASYNC_SYNC },
+        { "update", s_update, false, ClassData::ASYNC_SYNC },
+        { "final", s_final, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {

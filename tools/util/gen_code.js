@@ -797,6 +797,16 @@ function gen_code(cls, def, baseFolder) {
         var const_count = 0;
         var has_async = false;
 
+        function async_type(async_) {
+            switch (async_) {
+                case 'async':
+                    return 'ClassData::ASYNC_ASYNC';
+                case 'promise':
+                    return 'ClassData::ASYNC_PROMISE';
+            }
+            return 'ClassData::ASYNC_SYNC';
+        }
+
         function gen_method_info() {
             var deflist = [];
 
@@ -813,10 +823,10 @@ function gen_code(cls, def, baseFolder) {
                     if (recorder_insts.isRecorded(ov.name)) return;
 
                     if (ov.memType == "method") {
-                        deflist.push(`        { "${fn.symbol}${fname}", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, false, ${!!ov.async} }`);
-                        if (ov.async) {
+                        deflist.push(`        { "${fn.symbol}${fname}", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, false, ${async_type(ov.async)} }`);
+                        if (ov.async == 'async') {
                             has_async = true;
-                            deflist.push(`        { "${fn.symbol}${fname}Sync", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, false, false }`);
+                            deflist.push(`        { "${fn.symbol}${fname}Sync", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, false, ClassData::ASYNC_SYNC }`);
                         }
 
                         recorder_insts.record(ov.name);
@@ -828,10 +838,10 @@ function gen_code(cls, def, baseFolder) {
                     if (recorder_statics.isRecorded(ov.name)) return;
 
                     if (ov.memType == "method") {
-                        deflist.push(`        { "${fn.symbol}${fname}", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, true, ${!!ov.async} }`);
-                        if (ov.async) {
+                        deflist.push(`        { "${fn.symbol}${fname}", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, true, ${async_type(ov.async)} }`);
+                        if (ov.async == 'async') {
                             has_async = true;
-                            deflist.push(`        { "${fn.symbol}${fname}Sync", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, true, false }`);
+                            deflist.push(`        { "${fn.symbol}${fname}Sync", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, true, ClassData::ASYNC_SYNC }`);
                         }
 
                         recorder_statics.record(ov.name);

@@ -62,12 +62,12 @@ namespace fibjs {
 inline ClassInfo& LruCache_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "clear", s_clear, false, false },
-        { "has", s_has, false, false },
-        { "get", s_get, false, false },
-        { "set", s_set, false, false },
-        { "remove", s_remove, false, false },
-        { "isEmpty", s_isEmpty, false, false }
+        { "clear", s_clear, false, ClassData::ASYNC_SYNC },
+        { "has", s_has, false, ClassData::ASYNC_SYNC },
+        { "get", s_get, false, ClassData::ASYNC_SYNC },
+        { "set", s_set, false, ClassData::ASYNC_SYNC },
+        { "remove", s_remove, false, ClassData::ASYNC_SYNC },
+        { "isEmpty", s_isEmpty, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

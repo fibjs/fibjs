@@ -98,17 +98,17 @@ namespace fibjs {
 inline ClassInfo& XmlDocument_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "load", s_load, false, false },
-        { "getElementsByTagName", s_getElementsByTagName, false, false },
-        { "getElementsByTagNameNS", s_getElementsByTagNameNS, false, false },
-        { "getElementById", s_getElementById, false, false },
-        { "getElementsByClassName", s_getElementsByClassName, false, false },
-        { "createElement", s_createElement, false, false },
-        { "createElementNS", s_createElementNS, false, false },
-        { "createTextNode", s_createTextNode, false, false },
-        { "createComment", s_createComment, false, false },
-        { "createCDATASection", s_createCDATASection, false, false },
-        { "createProcessingInstruction", s_createProcessingInstruction, false, false }
+        { "load", s_load, false, ClassData::ASYNC_SYNC },
+        { "getElementsByTagName", s_getElementsByTagName, false, ClassData::ASYNC_SYNC },
+        { "getElementsByTagNameNS", s_getElementsByTagNameNS, false, ClassData::ASYNC_SYNC },
+        { "getElementById", s_getElementById, false, ClassData::ASYNC_SYNC },
+        { "getElementsByClassName", s_getElementsByClassName, false, ClassData::ASYNC_SYNC },
+        { "createElement", s_createElement, false, ClassData::ASYNC_SYNC },
+        { "createElementNS", s_createElementNS, false, ClassData::ASYNC_SYNC },
+        { "createTextNode", s_createTextNode, false, ClassData::ASYNC_SYNC },
+        { "createComment", s_createComment, false, ClassData::ASYNC_SYNC },
+        { "createCDATASection", s_createCDATASection, false, ClassData::ASYNC_SYNC },
+        { "createProcessingInstruction", s_createProcessingInstruction, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

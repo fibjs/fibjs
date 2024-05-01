@@ -64,9 +64,9 @@ namespace fibjs {
 inline ClassInfo& tls_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "createSecureContext", s_static_createSecureContext, true, false },
-        { "connect", s_static_connect, true, true },
-        { "connectSync", s_static_connect, true, false }
+        { "createSecureContext", s_static_createSecureContext, true, ClassData::ASYNC_SYNC },
+        { "connect", s_static_connect, true, ClassData::ASYNC_ASYNC },
+        { "connectSync", s_static_connect, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {

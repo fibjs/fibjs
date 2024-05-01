@@ -68,8 +68,8 @@ namespace fibjs {
 inline ClassInfo& HttpCookie_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "parse", s_parse, false, false },
-        { "match", s_match, false, false }
+        { "parse", s_parse, false, ClassData::ASYNC_SYNC },
+        { "match", s_match, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

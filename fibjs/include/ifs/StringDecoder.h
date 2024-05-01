@@ -64,10 +64,10 @@ namespace fibjs {
 inline ClassInfo& StringDecoder_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "end", s_end, false, false },
-        { "write", s_write, false, false },
-        { "text", s_text, false, false },
-        { "fillLast", s_fillLast, false, false }
+        { "end", s_end, false, ClassData::ASYNC_SYNC },
+        { "write", s_write, false, ClassData::ASYNC_SYNC },
+        { "text", s_text, false, ClassData::ASYNC_SYNC },
+        { "fillLast", s_fillLast, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

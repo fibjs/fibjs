@@ -68,18 +68,18 @@ namespace fibjs {
 inline ClassInfo& RedisList_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "push", s_push, false, false },
-        { "pop", s_pop, false, false },
-        { "rpush", s_rpush, false, false },
-        { "rpop", s_rpop, false, false },
-        { "set", s_set, false, false },
-        { "get", s_get, false, false },
-        { "insertBefore", s_insertBefore, false, false },
-        { "insertAfter", s_insertAfter, false, false },
-        { "remove", s_remove, false, false },
-        { "trim", s_trim, false, false },
-        { "len", s_len, false, false },
-        { "range", s_range, false, false }
+        { "push", s_push, false, ClassData::ASYNC_SYNC },
+        { "pop", s_pop, false, ClassData::ASYNC_SYNC },
+        { "rpush", s_rpush, false, ClassData::ASYNC_SYNC },
+        { "rpop", s_rpop, false, ClassData::ASYNC_SYNC },
+        { "set", s_set, false, ClassData::ASYNC_SYNC },
+        { "get", s_get, false, ClassData::ASYNC_SYNC },
+        { "insertBefore", s_insertBefore, false, ClassData::ASYNC_SYNC },
+        { "insertAfter", s_insertAfter, false, ClassData::ASYNC_SYNC },
+        { "remove", s_remove, false, ClassData::ASYNC_SYNC },
+        { "trim", s_trim, false, ClassData::ASYNC_SYNC },
+        { "len", s_len, false, ClassData::ASYNC_SYNC },
+        { "range", s_range, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {

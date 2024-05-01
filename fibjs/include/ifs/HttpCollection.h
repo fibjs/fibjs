@@ -74,18 +74,18 @@ namespace fibjs {
 inline ClassInfo& HttpCollection_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "clear", s_clear, false, false },
-        { "has", s_has, false, false },
-        { "first", s_first, false, false },
-        { "get", s_get, false, false },
-        { "all", s_all, false, false },
-        { "add", s_add, false, false },
-        { "set", s_set, false, false },
-        { "remove", s_remove, false, false },
-        { "delete", s__delete, false, false },
-        { "sort", s_sort, false, false },
-        { "keys", s_keys, false, false },
-        { "values", s_values, false, false }
+        { "clear", s_clear, false, ClassData::ASYNC_SYNC },
+        { "has", s_has, false, ClassData::ASYNC_SYNC },
+        { "first", s_first, false, ClassData::ASYNC_SYNC },
+        { "get", s_get, false, ClassData::ASYNC_SYNC },
+        { "all", s_all, false, ClassData::ASYNC_SYNC },
+        { "add", s_add, false, ClassData::ASYNC_SYNC },
+        { "set", s_set, false, ClassData::ASYNC_SYNC },
+        { "remove", s_remove, false, ClassData::ASYNC_SYNC },
+        { "delete", s__delete, false, ClassData::ASYNC_SYNC },
+        { "sort", s_sort, false, ClassData::ASYNC_SYNC },
+        { "keys", s_keys, false, ClassData::ASYNC_SYNC },
+        { "values", s_values, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassNamed s_named = {

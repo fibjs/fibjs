@@ -57,9 +57,9 @@ namespace fibjs {
 inline ClassInfo& mq_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "nullHandler", s_static_nullHandler, true, false },
-        { "invoke", s_static_invoke, true, true },
-        { "invokeSync", s_static_invoke, true, false }
+        { "nullHandler", s_static_nullHandler, true, ClassData::ASYNC_SYNC },
+        { "invoke", s_static_invoke, true, ClassData::ASYNC_ASYNC },
+        { "invokeSync", s_static_invoke, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {

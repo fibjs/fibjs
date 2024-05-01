@@ -116,24 +116,24 @@ namespace fibjs {
 inline ClassInfo& process_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "umask", s_static_umask, true, false },
-        { "hrtime", s_static_hrtime, true, false },
-        { "exit", s_static_exit, true, false },
-        { "cwd", s_static_cwd, true, false },
-        { "dlopen", s_static_dlopen, true, false },
-        { "chdir", s_static_chdir, true, false },
-        { "uptime", s_static_uptime, true, false },
-        { "cpuUsage", s_static_cpuUsage, true, false },
-        { "memoryUsage", s_static_memoryUsage, true, false },
-        { "nextTick", s_static_nextTick, true, false },
-        { "binding", s_static_binding, true, false },
-        { "getgid", s_static_getgid, true, false },
-        { "getuid", s_static_getuid, true, false },
-        { "setgid", s_static_setgid, true, false },
-        { "setuid", s_static_setuid, true, false },
-        { "emitWarning", s_static_emitWarning, true, false },
-        { "disconnect", s_static_disconnect, true, false },
-        { "send", s_static_send, true, false }
+        { "umask", s_static_umask, true, ClassData::ASYNC_SYNC },
+        { "hrtime", s_static_hrtime, true, ClassData::ASYNC_SYNC },
+        { "exit", s_static_exit, true, ClassData::ASYNC_SYNC },
+        { "cwd", s_static_cwd, true, ClassData::ASYNC_SYNC },
+        { "dlopen", s_static_dlopen, true, ClassData::ASYNC_SYNC },
+        { "chdir", s_static_chdir, true, ClassData::ASYNC_SYNC },
+        { "uptime", s_static_uptime, true, ClassData::ASYNC_SYNC },
+        { "cpuUsage", s_static_cpuUsage, true, ClassData::ASYNC_SYNC },
+        { "memoryUsage", s_static_memoryUsage, true, ClassData::ASYNC_SYNC },
+        { "nextTick", s_static_nextTick, true, ClassData::ASYNC_SYNC },
+        { "binding", s_static_binding, true, ClassData::ASYNC_SYNC },
+        { "getgid", s_static_getgid, true, ClassData::ASYNC_SYNC },
+        { "getuid", s_static_getuid, true, ClassData::ASYNC_SYNC },
+        { "setgid", s_static_setgid, true, ClassData::ASYNC_SYNC },
+        { "setuid", s_static_setuid, true, ClassData::ASYNC_SYNC },
+        { "emitWarning", s_static_emitWarning, true, ClassData::ASYNC_SYNC },
+        { "disconnect", s_static_disconnect, true, ClassData::ASYNC_SYNC },
+        { "send", s_static_send, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

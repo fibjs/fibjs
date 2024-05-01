@@ -100,18 +100,18 @@ namespace fibjs {
 inline ClassInfo& Stat_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "isWritable", s_isWritable, false, false },
-        { "isReadable", s_isReadable, false, false },
-        { "isExecutable", s_isExecutable, false, false },
-        { "isHidden", s_isHidden, false, false },
-        { "isBlockDevice", s_isBlockDevice, false, false },
-        { "isCharacterDevice", s_isCharacterDevice, false, false },
-        { "isDirectory", s_isDirectory, false, false },
-        { "isFIFO", s_isFIFO, false, false },
-        { "isFile", s_isFile, false, false },
-        { "isSymbolicLink", s_isSymbolicLink, false, false },
-        { "isMemory", s_isMemory, false, false },
-        { "isSocket", s_isSocket, false, false }
+        { "isWritable", s_isWritable, false, ClassData::ASYNC_SYNC },
+        { "isReadable", s_isReadable, false, ClassData::ASYNC_SYNC },
+        { "isExecutable", s_isExecutable, false, ClassData::ASYNC_SYNC },
+        { "isHidden", s_isHidden, false, ClassData::ASYNC_SYNC },
+        { "isBlockDevice", s_isBlockDevice, false, ClassData::ASYNC_SYNC },
+        { "isCharacterDevice", s_isCharacterDevice, false, ClassData::ASYNC_SYNC },
+        { "isDirectory", s_isDirectory, false, ClassData::ASYNC_SYNC },
+        { "isFIFO", s_isFIFO, false, ClassData::ASYNC_SYNC },
+        { "isFile", s_isFile, false, ClassData::ASYNC_SYNC },
+        { "isSymbolicLink", s_isSymbolicLink, false, ClassData::ASYNC_SYNC },
+        { "isMemory", s_isMemory, false, ClassData::ASYNC_SYNC },
+        { "isSocket", s_isSocket, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

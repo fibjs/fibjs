@@ -62,8 +62,8 @@ namespace fibjs {
 inline ClassInfo& X509CertificateRequest_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "checkPrivateKey", s_checkPrivateKey, false, false },
-        { "issue", s_issue, false, false }
+        { "checkPrivateKey", s_checkPrivateKey, false, ClassData::ASYNC_SYNC },
+        { "issue", s_issue, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

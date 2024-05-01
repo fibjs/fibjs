@@ -78,11 +78,11 @@ namespace fibjs {
 inline ClassInfo& coroutine_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "start", s_static_start, true, false },
-        { "parallel", s_static_parallel, true, false },
-        { "current", s_static_current, true, false },
-        { "sleep", s_static_sleep, true, true },
-        { "sleepSync", s_static_sleep, true, false }
+        { "start", s_static_start, true, ClassData::ASYNC_SYNC },
+        { "parallel", s_static_parallel, true, ClassData::ASYNC_SYNC },
+        { "current", s_static_current, true, ClassData::ASYNC_SYNC },
+        { "sleep", s_static_sleep, true, ClassData::ASYNC_ASYNC },
+        { "sleepSync", s_static_sleep, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {

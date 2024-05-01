@@ -50,8 +50,8 @@ namespace fibjs {
 inline ClassInfo& KeyObject_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "export", s__export, false, false },
-        { "equals", s_equals, false, false }
+        { "export", s__export, false, ClassData::ASYNC_SYNC },
+        { "equals", s_equals, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

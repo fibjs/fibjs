@@ -57,10 +57,10 @@ namespace fibjs {
 inline ClassInfo& HeapSnapshot_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "diff", s_diff, false, false },
-        { "getNodeById", s_getNodeById, false, false },
-        { "save", s_save, false, true },
-        { "saveSync", s_save, false, false }
+        { "diff", s_diff, false, ClassData::ASYNC_SYNC },
+        { "getNodeById", s_getNodeById, false, ClassData::ASYNC_SYNC },
+        { "save", s_save, false, ClassData::ASYNC_ASYNC },
+        { "saveSync", s_save, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

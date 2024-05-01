@@ -64,7 +64,7 @@ namespace fibjs {
 inline ClassInfo& HttpHandler_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "enableCrossOrigin", s_enableCrossOrigin, false, false }
+        { "enableCrossOrigin", s_enableCrossOrigin, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

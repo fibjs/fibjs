@@ -68,11 +68,11 @@ namespace fibjs {
 inline ClassInfo& registry_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "listSubKey", s_static_listSubKey, true, false },
-        { "listValue", s_static_listValue, true, false },
-        { "get", s_static_get, true, false },
-        { "set", s_static_set, true, false },
-        { "del", s_static_del, true, false }
+        { "listSubKey", s_static_listSubKey, true, ClassData::ASYNC_SYNC },
+        { "listValue", s_static_listValue, true, ClassData::ASYNC_SYNC },
+        { "get", s_static_get, true, ClassData::ASYNC_SYNC },
+        { "set", s_static_set, true, ClassData::ASYNC_SYNC },
+        { "del", s_static_del, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassConst s_const[] = {

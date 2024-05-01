@@ -48,8 +48,8 @@ namespace fibjs {
 inline ClassInfo& base58_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "encode", s_static_encode, true, false },
-        { "decode", s_static_decode, true, false }
+        { "encode", s_static_encode, true, ClassData::ASYNC_SYNC },
+        { "decode", s_static_decode, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {

@@ -43,7 +43,7 @@ namespace fibjs {
 inline ClassInfo& TextEncoder_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "encode", s_encode, false, false }
+        { "encode", s_encode, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

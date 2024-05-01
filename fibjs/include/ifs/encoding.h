@@ -72,13 +72,13 @@ namespace fibjs {
 inline ClassInfo& encoding_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "isEncoding", s_static_isEncoding, true, false },
-        { "encode", s_static_encode, true, false },
-        { "decode", s_static_decode, true, false },
-        { "jsstr", s_static_jsstr, true, false },
-        { "encodeURI", s_static_encodeURI, true, false },
-        { "encodeURIComponent", s_static_encodeURIComponent, true, false },
-        { "decodeURI", s_static_decodeURI, true, false }
+        { "isEncoding", s_static_isEncoding, true, ClassData::ASYNC_SYNC },
+        { "encode", s_static_encode, true, ClassData::ASYNC_SYNC },
+        { "decode", s_static_decode, true, ClassData::ASYNC_SYNC },
+        { "jsstr", s_static_jsstr, true, ClassData::ASYNC_SYNC },
+        { "encodeURI", s_static_encodeURI, true, ClassData::ASYNC_SYNC },
+        { "encodeURIComponent", s_static_encodeURIComponent, true, ClassData::ASYNC_SYNC },
+        { "decodeURI", s_static_decodeURI, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {

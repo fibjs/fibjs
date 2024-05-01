@@ -112,7 +112,7 @@ object1
   }
 
 method
-  = comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken? _* symbol:"@"? name:Identifier _* "(" params:params? _* ")" _* async:asyncToken? ";" {
+  = comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken? _* symbol:"@"? name:Identifier _* "(" params:params? _* ")" _* async:async_type? ";" {
     return {
       memType: "method",
       comments: comments.join(""),
@@ -125,7 +125,7 @@ method
       params: params
     };
   }
-  / comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken? _* type:method_type _* symbol:"@"? name:Identifier _* "(" params:params? _* ")" _* async:asyncToken? ";" {
+  / comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken? _* type:method_type _* symbol:"@"? name:Identifier _* "(" params:params? _* ")" _* async:async_type? ";" {
     return {
       memType: "method",
       comments: comments.join(""),
@@ -144,6 +144,10 @@ method_type
   / "(" params:params? _* ")" {
     return params
   }
+
+async_type
+  = asyncToken
+  / promiseToken
 
 params
   = first:param nexts:nextparam* {
@@ -323,5 +327,6 @@ staticToken     = "static"
 deprecatedToken = "deprecated"
 readonlyToken   = "readonly"
 asyncToken      = "async"
+promiseToken    = "promise"
 constToken      = "const"
 newToken        = "new"

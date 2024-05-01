@@ -61,16 +61,16 @@ namespace fibjs {
 inline ClassInfo& Stream_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "read", s_read, false, true },
-        { "readSync", s_read, false, false },
-        { "write", s_write, false, true },
-        { "writeSync", s_write, false, false },
-        { "flush", s_flush, false, true },
-        { "flushSync", s_flush, false, false },
-        { "close", s_close, false, true },
-        { "closeSync", s_close, false, false },
-        { "copyTo", s_copyTo, false, true },
-        { "copyToSync", s_copyTo, false, false }
+        { "read", s_read, false, ClassData::ASYNC_ASYNC },
+        { "readSync", s_read, false, ClassData::ASYNC_SYNC },
+        { "write", s_write, false, ClassData::ASYNC_ASYNC },
+        { "writeSync", s_write, false, ClassData::ASYNC_SYNC },
+        { "flush", s_flush, false, ClassData::ASYNC_ASYNC },
+        { "flushSync", s_flush, false, ClassData::ASYNC_SYNC },
+        { "close", s_close, false, ClassData::ASYNC_ASYNC },
+        { "closeSync", s_close, false, ClassData::ASYNC_SYNC },
+        { "copyTo", s_copyTo, false, ClassData::ASYNC_ASYNC },
+        { "copyToSync", s_copyTo, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

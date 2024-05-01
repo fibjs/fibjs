@@ -48,7 +48,7 @@ namespace fibjs {
 inline ClassInfo& Fiber_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "join", s_join, false, false }
+        { "join", s_join, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

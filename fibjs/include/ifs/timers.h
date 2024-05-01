@@ -60,15 +60,15 @@ namespace fibjs {
 inline ClassInfo& timers_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "setTimeout", s_static_setTimeout, true, false },
-        { "clearTimeout", s_static_clearTimeout, true, false },
-        { "setInterval", s_static_setInterval, true, false },
-        { "clearInterval", s_static_clearInterval, true, false },
-        { "setHrInterval", s_static_setHrInterval, true, false },
-        { "clearHrInterval", s_static_clearHrInterval, true, false },
-        { "setImmediate", s_static_setImmediate, true, false },
-        { "clearImmediate", s_static_clearImmediate, true, false },
-        { "call", s_static_call, true, false }
+        { "setTimeout", s_static_setTimeout, true, ClassData::ASYNC_SYNC },
+        { "clearTimeout", s_static_clearTimeout, true, ClassData::ASYNC_SYNC },
+        { "setInterval", s_static_setInterval, true, ClassData::ASYNC_SYNC },
+        { "clearInterval", s_static_clearInterval, true, ClassData::ASYNC_SYNC },
+        { "setHrInterval", s_static_setHrInterval, true, ClassData::ASYNC_SYNC },
+        { "clearHrInterval", s_static_clearHrInterval, true, ClassData::ASYNC_SYNC },
+        { "setImmediate", s_static_setImmediate, true, ClassData::ASYNC_SYNC },
+        { "clearImmediate", s_static_clearImmediate, true, ClassData::ASYNC_SYNC },
+        { "call", s_static_call, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {

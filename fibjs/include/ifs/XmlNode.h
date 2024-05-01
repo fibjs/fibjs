@@ -100,16 +100,16 @@ namespace fibjs {
 inline ClassInfo& XmlNode_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "hasChildNodes", s_hasChildNodes, false, false },
-        { "normalize", s_normalize, false, false },
-        { "cloneNode", s_cloneNode, false, false },
-        { "lookupPrefix", s_lookupPrefix, false, false },
-        { "lookupNamespaceURI", s_lookupNamespaceURI, false, false },
-        { "insertBefore", s_insertBefore, false, false },
-        { "insertAfter", s_insertAfter, false, false },
-        { "appendChild", s_appendChild, false, false },
-        { "replaceChild", s_replaceChild, false, false },
-        { "removeChild", s_removeChild, false, false }
+        { "hasChildNodes", s_hasChildNodes, false, ClassData::ASYNC_SYNC },
+        { "normalize", s_normalize, false, ClassData::ASYNC_SYNC },
+        { "cloneNode", s_cloneNode, false, ClassData::ASYNC_SYNC },
+        { "lookupPrefix", s_lookupPrefix, false, ClassData::ASYNC_SYNC },
+        { "lookupNamespaceURI", s_lookupNamespaceURI, false, ClassData::ASYNC_SYNC },
+        { "insertBefore", s_insertBefore, false, ClassData::ASYNC_SYNC },
+        { "insertAfter", s_insertAfter, false, ClassData::ASYNC_SYNC },
+        { "appendChild", s_appendChild, false, ClassData::ASYNC_SYNC },
+        { "replaceChild", s_replaceChild, false, ClassData::ASYNC_SYNC },
+        { "removeChild", s_removeChild, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

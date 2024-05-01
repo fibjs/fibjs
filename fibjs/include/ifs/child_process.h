@@ -139,16 +139,16 @@ namespace fibjs {
 inline ClassInfo& child_process_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "spawn", s_static_spawn, true, false },
-        { "exec", s_static_exec, true, true },
-        { "execSync", s_static_exec, true, false },
-        { "execFile", s_static_execFile, true, true },
-        { "execFileSync", s_static_execFile, true, false },
-        { "spawnSync", s_static_spawnSync, true, true },
-        { "spawnSyncSync", s_static_spawnSync, true, false },
-        { "fork", s_static_fork, true, false },
-        { "run", s_static_run, true, true },
-        { "runSync", s_static_run, true, false }
+        { "spawn", s_static_spawn, true, ClassData::ASYNC_SYNC },
+        { "exec", s_static_exec, true, ClassData::ASYNC_ASYNC },
+        { "execSync", s_static_exec, true, ClassData::ASYNC_SYNC },
+        { "execFile", s_static_execFile, true, ClassData::ASYNC_ASYNC },
+        { "execFileSync", s_static_execFile, true, ClassData::ASYNC_SYNC },
+        { "spawnSync", s_static_spawnSync, true, ClassData::ASYNC_ASYNC },
+        { "spawnSyncSync", s_static_spawnSync, true, ClassData::ASYNC_SYNC },
+        { "fork", s_static_fork, true, ClassData::ASYNC_SYNC },
+        { "run", s_static_run, true, ClassData::ASYNC_ASYNC },
+        { "runSync", s_static_run, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {

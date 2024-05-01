@@ -59,13 +59,13 @@ namespace fibjs {
 inline ClassInfo& RedisSet_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "add", s_add, false, false },
-        { "remove", s_remove, false, false },
-        { "len", s_len, false, false },
-        { "exists", s_exists, false, false },
-        { "members", s_members, false, false },
-        { "pop", s_pop, false, false },
-        { "randMember", s_randMember, false, false }
+        { "add", s_add, false, ClassData::ASYNC_SYNC },
+        { "remove", s_remove, false, ClassData::ASYNC_SYNC },
+        { "len", s_len, false, ClassData::ASYNC_SYNC },
+        { "exists", s_exists, false, ClassData::ASYNC_SYNC },
+        { "members", s_members, false, ClassData::ASYNC_SYNC },
+        { "pop", s_pop, false, ClassData::ASYNC_SYNC },
+        { "randMember", s_randMember, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {

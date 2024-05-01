@@ -56,9 +56,9 @@ namespace fibjs {
 inline ClassInfo& TcpServer_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "start", s_start, false, false },
-        { "stop", s_stop, false, true },
-        { "stopSync", s_stop, false, false }
+        { "start", s_start, false, ClassData::ASYNC_SYNC },
+        { "stop", s_stop, false, ClassData::ASYNC_ASYNC },
+        { "stopSync", s_stop, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

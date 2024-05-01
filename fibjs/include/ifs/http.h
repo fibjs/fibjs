@@ -147,21 +147,21 @@ namespace fibjs {
 inline ClassInfo& http_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "fileHandler", s_static_fileHandler, true, false },
-        { "request", s_static_request, true, true },
-        { "requestSync", s_static_request, true, false },
-        { "get", s_static_get, true, true },
-        { "getSync", s_static_get, true, false },
-        { "post", s_static_post, true, true },
-        { "postSync", s_static_post, true, false },
-        { "del", s_static_del, true, true },
-        { "delSync", s_static_del, true, false },
-        { "put", s_static_put, true, true },
-        { "putSync", s_static_put, true, false },
-        { "patch", s_static_patch, true, true },
-        { "patchSync", s_static_patch, true, false },
-        { "head", s_static_head, true, true },
-        { "headSync", s_static_head, true, false }
+        { "fileHandler", s_static_fileHandler, true, ClassData::ASYNC_SYNC },
+        { "request", s_static_request, true, ClassData::ASYNC_ASYNC },
+        { "requestSync", s_static_request, true, ClassData::ASYNC_SYNC },
+        { "get", s_static_get, true, ClassData::ASYNC_ASYNC },
+        { "getSync", s_static_get, true, ClassData::ASYNC_SYNC },
+        { "post", s_static_post, true, ClassData::ASYNC_ASYNC },
+        { "postSync", s_static_post, true, ClassData::ASYNC_SYNC },
+        { "del", s_static_del, true, ClassData::ASYNC_ASYNC },
+        { "delSync", s_static_del, true, ClassData::ASYNC_SYNC },
+        { "put", s_static_put, true, ClassData::ASYNC_ASYNC },
+        { "putSync", s_static_put, true, ClassData::ASYNC_SYNC },
+        { "patch", s_static_patch, true, ClassData::ASYNC_ASYNC },
+        { "patchSync", s_static_patch, true, ClassData::ASYNC_SYNC },
+        { "head", s_static_head, true, ClassData::ASYNC_ASYNC },
+        { "headSync", s_static_head, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {

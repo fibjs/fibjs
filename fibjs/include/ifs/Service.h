@@ -73,15 +73,15 @@ namespace fibjs {
 inline ClassInfo& Service_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "run", s_run, false, true },
-        { "runSync", s_run, false, false },
-        { "install", s_static_install, true, false },
-        { "remove", s_static_remove, true, false },
-        { "start", s_static_start, true, false },
-        { "stop", s_static_stop, true, false },
-        { "restart", s_static_restart, true, false },
-        { "isInstalled", s_static_isInstalled, true, false },
-        { "isRunning", s_static_isRunning, true, false }
+        { "run", s_run, false, ClassData::ASYNC_ASYNC },
+        { "runSync", s_run, false, ClassData::ASYNC_SYNC },
+        { "install", s_static_install, true, ClassData::ASYNC_SYNC },
+        { "remove", s_static_remove, true, ClassData::ASYNC_SYNC },
+        { "start", s_static_start, true, ClassData::ASYNC_SYNC },
+        { "stop", s_static_stop, true, ClassData::ASYNC_SYNC },
+        { "restart", s_static_restart, true, ClassData::ASYNC_SYNC },
+        { "isInstalled", s_static_isInstalled, true, ClassData::ASYNC_SYNC },
+        { "isRunning", s_static_isRunning, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

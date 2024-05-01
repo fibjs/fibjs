@@ -51,8 +51,8 @@ namespace fibjs {
 inline ClassInfo& Sign_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "update", s_update, false, false },
-        { "sign", s_sign, false, false }
+        { "update", s_update, false, ClassData::ASYNC_SYNC },
+        { "sign", s_sign, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {

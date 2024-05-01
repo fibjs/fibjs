@@ -82,26 +82,26 @@ namespace fibjs {
 inline ClassInfo& LevelDB_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "has", s_has, false, true },
-        { "hasSync", s_has, false, false },
-        { "get", s_get, false, true },
-        { "getSync", s_get, false, false },
-        { "mget", s_mget, false, false },
-        { "set", s_set, false, true },
-        { "setSync", s_set, false, false },
-        { "mset", s_mset, false, false },
-        { "mremove", s_mremove, false, false },
-        { "remove", s_remove, false, true },
-        { "removeSync", s_remove, false, false },
-        { "firstKey", s_firstKey, false, true },
-        { "firstKeySync", s_firstKey, false, false },
-        { "lastKey", s_lastKey, false, true },
-        { "lastKeySync", s_lastKey, false, false },
-        { "forEach", s_forEach, false, false },
-        { "begin", s_begin, false, false },
-        { "commit", s_commit, false, false },
-        { "close", s_close, false, true },
-        { "closeSync", s_close, false, false }
+        { "has", s_has, false, ClassData::ASYNC_ASYNC },
+        { "hasSync", s_has, false, ClassData::ASYNC_SYNC },
+        { "get", s_get, false, ClassData::ASYNC_ASYNC },
+        { "getSync", s_get, false, ClassData::ASYNC_SYNC },
+        { "mget", s_mget, false, ClassData::ASYNC_SYNC },
+        { "set", s_set, false, ClassData::ASYNC_ASYNC },
+        { "setSync", s_set, false, ClassData::ASYNC_SYNC },
+        { "mset", s_mset, false, ClassData::ASYNC_SYNC },
+        { "mremove", s_mremove, false, ClassData::ASYNC_SYNC },
+        { "remove", s_remove, false, ClassData::ASYNC_ASYNC },
+        { "removeSync", s_remove, false, ClassData::ASYNC_SYNC },
+        { "firstKey", s_firstKey, false, ClassData::ASYNC_ASYNC },
+        { "firstKeySync", s_firstKey, false, ClassData::ASYNC_SYNC },
+        { "lastKey", s_lastKey, false, ClassData::ASYNC_ASYNC },
+        { "lastKeySync", s_lastKey, false, ClassData::ASYNC_SYNC },
+        { "forEach", s_forEach, false, ClassData::ASYNC_SYNC },
+        { "begin", s_begin, false, ClassData::ASYNC_SYNC },
+        { "commit", s_commit, false, ClassData::ASYNC_SYNC },
+        { "close", s_close, false, ClassData::ASYNC_ASYNC },
+        { "closeSync", s_close, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {

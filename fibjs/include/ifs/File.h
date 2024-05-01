@@ -50,8 +50,8 @@ namespace fibjs {
 inline ClassInfo& File_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "chmod", s_chmod, false, true },
-        { "chmodSync", s_chmod, false, false }
+        { "chmod", s_chmod, false, ClassData::ASYNC_ASYNC },
+        { "chmodSync", s_chmod, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

@@ -47,7 +47,7 @@ namespace fibjs {
 inline ClassInfo& dgram_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "createSocket", s_static_createSocket, true, false }
+        { "createSocket", s_static_createSocket, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {

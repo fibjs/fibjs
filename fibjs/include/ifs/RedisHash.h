@@ -67,17 +67,17 @@ namespace fibjs {
 inline ClassInfo& RedisHash_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "set", s_set, false, false },
-        { "setNX", s_setNX, false, false },
-        { "mset", s_mset, false, false },
-        { "get", s_get, false, false },
-        { "mget", s_mget, false, false },
-        { "incr", s_incr, false, false },
-        { "getAll", s_getAll, false, false },
-        { "keys", s_keys, false, false },
-        { "len", s_len, false, false },
-        { "exists", s_exists, false, false },
-        { "del", s_del, false, false }
+        { "set", s_set, false, ClassData::ASYNC_SYNC },
+        { "setNX", s_setNX, false, ClassData::ASYNC_SYNC },
+        { "mset", s_mset, false, ClassData::ASYNC_SYNC },
+        { "get", s_get, false, ClassData::ASYNC_SYNC },
+        { "mget", s_mget, false, ClassData::ASYNC_SYNC },
+        { "incr", s_incr, false, ClassData::ASYNC_SYNC },
+        { "getAll", s_getAll, false, ClassData::ASYNC_SYNC },
+        { "keys", s_keys, false, ClassData::ASYNC_SYNC },
+        { "len", s_len, false, ClassData::ASYNC_SYNC },
+        { "exists", s_exists, false, ClassData::ASYNC_SYNC },
+        { "del", s_del, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {

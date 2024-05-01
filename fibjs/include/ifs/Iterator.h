@@ -63,8 +63,8 @@ namespace fibjs {
 inline ClassInfo& Iterator_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "@iterator", s_symbol_iterator, false, false },
-        { "next", s_next, false, false }
+        { "@iterator", s_symbol_iterator, false, ClassData::ASYNC_SYNC },
+        { "next", s_next, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {

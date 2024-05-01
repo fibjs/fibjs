@@ -102,21 +102,21 @@ namespace fibjs {
 inline ClassInfo& Message_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "read", s_read, false, true },
-        { "readSync", s_read, false, false },
-        { "readAll", s_readAll, false, true },
-        { "readAllSync", s_readAll, false, false },
-        { "write", s_write, false, true },
-        { "writeSync", s_write, false, false },
-        { "json", s_json, false, false },
-        { "pack", s_pack, false, false },
-        { "end", s_end, false, false },
-        { "isEnded", s_isEnded, false, false },
-        { "clear", s_clear, false, false },
-        { "sendTo", s_sendTo, false, true },
-        { "sendToSync", s_sendTo, false, false },
-        { "readFrom", s_readFrom, false, true },
-        { "readFromSync", s_readFrom, false, false }
+        { "read", s_read, false, ClassData::ASYNC_ASYNC },
+        { "readSync", s_read, false, ClassData::ASYNC_SYNC },
+        { "readAll", s_readAll, false, ClassData::ASYNC_ASYNC },
+        { "readAllSync", s_readAll, false, ClassData::ASYNC_SYNC },
+        { "write", s_write, false, ClassData::ASYNC_ASYNC },
+        { "writeSync", s_write, false, ClassData::ASYNC_SYNC },
+        { "json", s_json, false, ClassData::ASYNC_SYNC },
+        { "pack", s_pack, false, ClassData::ASYNC_SYNC },
+        { "end", s_end, false, ClassData::ASYNC_SYNC },
+        { "isEnded", s_isEnded, false, ClassData::ASYNC_SYNC },
+        { "clear", s_clear, false, ClassData::ASYNC_SYNC },
+        { "sendTo", s_sendTo, false, ClassData::ASYNC_ASYNC },
+        { "sendToSync", s_sendTo, false, ClassData::ASYNC_SYNC },
+        { "readFrom", s_readFrom, false, ClassData::ASYNC_ASYNC },
+        { "readFromSync", s_readFrom, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

@@ -70,18 +70,18 @@ namespace fibjs {
 inline ClassInfo& path_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "normalize", s_static_normalize, true, false },
-        { "basename", s_static_basename, true, false },
-        { "extname", s_static_extname, true, false },
-        { "format", s_static_format, true, false },
-        { "parse", s_static_parse, true, false },
-        { "dirname", s_static_dirname, true, false },
-        { "fullpath", s_static_fullpath, true, false },
-        { "isAbsolute", s_static_isAbsolute, true, false },
-        { "join", s_static_join, true, false },
-        { "resolve", s_static_resolve, true, false },
-        { "relative", s_static_relative, true, false },
-        { "toNamespacedPath", s_static_toNamespacedPath, true, false }
+        { "normalize", s_static_normalize, true, ClassData::ASYNC_SYNC },
+        { "basename", s_static_basename, true, ClassData::ASYNC_SYNC },
+        { "extname", s_static_extname, true, ClassData::ASYNC_SYNC },
+        { "format", s_static_format, true, ClassData::ASYNC_SYNC },
+        { "parse", s_static_parse, true, ClassData::ASYNC_SYNC },
+        { "dirname", s_static_dirname, true, ClassData::ASYNC_SYNC },
+        { "fullpath", s_static_fullpath, true, ClassData::ASYNC_SYNC },
+        { "isAbsolute", s_static_isAbsolute, true, ClassData::ASYNC_SYNC },
+        { "join", s_static_join, true, ClassData::ASYNC_SYNC },
+        { "resolve", s_static_resolve, true, ClassData::ASYNC_SYNC },
+        { "relative", s_static_relative, true, ClassData::ASYNC_SYNC },
+        { "toNamespacedPath", s_static_toNamespacedPath, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

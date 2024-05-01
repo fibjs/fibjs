@@ -40,7 +40,7 @@ namespace fibjs {
 inline ClassInfo& performance_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "now", s_static_now, true, false }
+        { "now", s_static_now, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {

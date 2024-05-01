@@ -56,10 +56,10 @@ namespace fibjs {
 inline ClassInfo& io_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "copyStream", s_static_copyStream, true, true },
-        { "copyStreamSync", s_static_copyStream, true, false },
-        { "bridge", s_static_bridge, true, true },
-        { "bridgeSync", s_static_bridge, true, false }
+        { "copyStream", s_static_copyStream, true, ClassData::ASYNC_ASYNC },
+        { "copyStreamSync", s_static_copyStream, true, ClassData::ASYNC_SYNC },
+        { "bridge", s_static_bridge, true, ClassData::ASYNC_ASYNC },
+        { "bridgeSync", s_static_bridge, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {

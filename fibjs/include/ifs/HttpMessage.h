@@ -90,12 +90,12 @@ namespace fibjs {
 inline ClassInfo& HttpMessage_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "hasHeader", s_hasHeader, false, false },
-        { "firstHeader", s_firstHeader, false, false },
-        { "allHeader", s_allHeader, false, false },
-        { "addHeader", s_addHeader, false, false },
-        { "setHeader", s_setHeader, false, false },
-        { "removeHeader", s_removeHeader, false, false }
+        { "hasHeader", s_hasHeader, false, ClassData::ASYNC_SYNC },
+        { "firstHeader", s_firstHeader, false, ClassData::ASYNC_SYNC },
+        { "allHeader", s_allHeader, false, ClassData::ASYNC_SYNC },
+        { "addHeader", s_addHeader, false, ClassData::ASYNC_SYNC },
+        { "setHeader", s_setHeader, false, ClassData::ASYNC_SYNC },
+        { "removeHeader", s_removeHeader, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

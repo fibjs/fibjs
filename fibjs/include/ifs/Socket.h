@@ -76,16 +76,16 @@ namespace fibjs {
 inline ClassInfo& Socket_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "connect", s_connect, false, true },
-        { "connectSync", s_connect, false, false },
-        { "bind", s_bind, false, false },
-        { "listen", s_listen, false, false },
-        { "accept", s_accept, false, true },
-        { "acceptSync", s_accept, false, false },
-        { "recv", s_recv, false, true },
-        { "recvSync", s_recv, false, false },
-        { "send", s_send, false, true },
-        { "sendSync", s_send, false, false }
+        { "connect", s_connect, false, ClassData::ASYNC_ASYNC },
+        { "connectSync", s_connect, false, ClassData::ASYNC_SYNC },
+        { "bind", s_bind, false, ClassData::ASYNC_SYNC },
+        { "listen", s_listen, false, ClassData::ASYNC_SYNC },
+        { "accept", s_accept, false, ClassData::ASYNC_ASYNC },
+        { "acceptSync", s_accept, false, ClassData::ASYNC_SYNC },
+        { "recv", s_recv, false, ClassData::ASYNC_ASYNC },
+        { "recvSync", s_recv, false, ClassData::ASYNC_SYNC },
+        { "send", s_send, false, ClassData::ASYNC_ASYNC },
+        { "sendSync", s_send, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

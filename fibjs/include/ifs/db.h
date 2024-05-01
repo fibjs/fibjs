@@ -76,22 +76,22 @@ namespace fibjs {
 inline ClassInfo& db_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "open", s_static_open, true, true },
-        { "openSync", s_static_open, true, false },
-        { "openMySQL", s_static_openMySQL, true, true },
-        { "openMySQLSync", s_static_openMySQL, true, false },
-        { "openSQLite", s_static_openSQLite, true, true },
-        { "openSQLiteSync", s_static_openSQLite, true, false },
-        { "openOdbc", s_static_openOdbc, true, true },
-        { "openOdbcSync", s_static_openOdbc, true, false },
-        { "openMSSQL", s_static_openMSSQL, true, true },
-        { "openMSSQLSync", s_static_openMSSQL, true, false },
-        { "openPSQL", s_static_openPSQL, true, true },
-        { "openPSQLSync", s_static_openPSQL, true, false },
-        { "openLevelDB", s_static_openLevelDB, true, true },
-        { "openLevelDBSync", s_static_openLevelDB, true, false },
-        { "openRedis", s_static_openRedis, true, true },
-        { "openRedisSync", s_static_openRedis, true, false }
+        { "open", s_static_open, true, ClassData::ASYNC_ASYNC },
+        { "openSync", s_static_open, true, ClassData::ASYNC_SYNC },
+        { "openMySQL", s_static_openMySQL, true, ClassData::ASYNC_ASYNC },
+        { "openMySQLSync", s_static_openMySQL, true, ClassData::ASYNC_SYNC },
+        { "openSQLite", s_static_openSQLite, true, ClassData::ASYNC_ASYNC },
+        { "openSQLiteSync", s_static_openSQLite, true, ClassData::ASYNC_SYNC },
+        { "openOdbc", s_static_openOdbc, true, ClassData::ASYNC_ASYNC },
+        { "openOdbcSync", s_static_openOdbc, true, ClassData::ASYNC_SYNC },
+        { "openMSSQL", s_static_openMSSQL, true, ClassData::ASYNC_ASYNC },
+        { "openMSSQLSync", s_static_openMSSQL, true, ClassData::ASYNC_SYNC },
+        { "openPSQL", s_static_openPSQL, true, ClassData::ASYNC_ASYNC },
+        { "openPSQLSync", s_static_openPSQL, true, ClassData::ASYNC_SYNC },
+        { "openLevelDB", s_static_openLevelDB, true, ClassData::ASYNC_ASYNC },
+        { "openLevelDBSync", s_static_openLevelDB, true, ClassData::ASYNC_SYNC },
+        { "openRedis", s_static_openRedis, true, ClassData::ASYNC_ASYNC },
+        { "openRedisSync", s_static_openRedis, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {

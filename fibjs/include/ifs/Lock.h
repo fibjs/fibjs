@@ -41,9 +41,9 @@ namespace fibjs {
 inline ClassInfo& Lock_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "acquire", s_acquire, false, false },
-        { "release", s_release, false, false },
-        { "count", s_count, false, false }
+        { "acquire", s_acquire, false, ClassData::ASYNC_SYNC },
+        { "release", s_release, false, ClassData::ASYNC_SYNC },
+        { "count", s_count, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {

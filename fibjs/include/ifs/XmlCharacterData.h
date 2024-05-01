@@ -57,11 +57,11 @@ namespace fibjs {
 inline ClassInfo& XmlCharacterData_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "substringData", s_substringData, false, false },
-        { "appendData", s_appendData, false, false },
-        { "insertData", s_insertData, false, false },
-        { "deleteData", s_deleteData, false, false },
-        { "replaceData", s_replaceData, false, false }
+        { "substringData", s_substringData, false, ClassData::ASYNC_SYNC },
+        { "appendData", s_appendData, false, ClassData::ASYNC_SYNC },
+        { "insertData", s_insertData, false, ClassData::ASYNC_SYNC },
+        { "deleteData", s_deleteData, false, ClassData::ASYNC_SYNC },
+        { "replaceData", s_replaceData, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

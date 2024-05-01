@@ -96,18 +96,18 @@ namespace fibjs {
 inline ClassInfo& XmlElement_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "getAttribute", s_getAttribute, false, false },
-        { "getAttributeNS", s_getAttributeNS, false, false },
-        { "setAttribute", s_setAttribute, false, false },
-        { "setAttributeNS", s_setAttributeNS, false, false },
-        { "removeAttribute", s_removeAttribute, false, false },
-        { "removeAttributeNS", s_removeAttributeNS, false, false },
-        { "hasAttribute", s_hasAttribute, false, false },
-        { "hasAttributeNS", s_hasAttributeNS, false, false },
-        { "getElementsByTagName", s_getElementsByTagName, false, false },
-        { "getElementsByTagNameNS", s_getElementsByTagNameNS, false, false },
-        { "getElementById", s_getElementById, false, false },
-        { "getElementsByClassName", s_getElementsByClassName, false, false }
+        { "getAttribute", s_getAttribute, false, ClassData::ASYNC_SYNC },
+        { "getAttributeNS", s_getAttributeNS, false, ClassData::ASYNC_SYNC },
+        { "setAttribute", s_setAttribute, false, ClassData::ASYNC_SYNC },
+        { "setAttributeNS", s_setAttributeNS, false, ClassData::ASYNC_SYNC },
+        { "removeAttribute", s_removeAttribute, false, ClassData::ASYNC_SYNC },
+        { "removeAttributeNS", s_removeAttributeNS, false, ClassData::ASYNC_SYNC },
+        { "hasAttribute", s_hasAttribute, false, ClassData::ASYNC_SYNC },
+        { "hasAttributeNS", s_hasAttributeNS, false, ClassData::ASYNC_SYNC },
+        { "getElementsByTagName", s_getElementsByTagName, false, ClassData::ASYNC_SYNC },
+        { "getElementsByTagNameNS", s_getElementsByTagNameNS, false, ClassData::ASYNC_SYNC },
+        { "getElementById", s_getElementById, false, ClassData::ASYNC_SYNC },
+        { "getElementsByClassName", s_getElementsByClassName, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

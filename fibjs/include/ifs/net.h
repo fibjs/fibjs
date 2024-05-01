@@ -89,21 +89,21 @@ namespace fibjs {
 inline ClassInfo& net_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "info", s_static_info, true, false },
-        { "resolve", s_static_resolve, true, true },
-        { "resolveSync", s_static_resolve, true, false },
-        { "ip", s_static_ip, true, true },
-        { "ipSync", s_static_ip, true, false },
-        { "ipv6", s_static_ipv6, true, true },
-        { "ipv6Sync", s_static_ipv6, true, false },
-        { "connect", s_static_connect, true, true },
-        { "connectSync", s_static_connect, true, false },
-        { "openSmtp", s_static_openSmtp, true, true },
-        { "openSmtpSync", s_static_openSmtp, true, false },
-        { "backend", s_static_backend, true, false },
-        { "isIP", s_static_isIP, true, false },
-        { "isIPv4", s_static_isIPv4, true, false },
-        { "isIPv6", s_static_isIPv6, true, false }
+        { "info", s_static_info, true, ClassData::ASYNC_SYNC },
+        { "resolve", s_static_resolve, true, ClassData::ASYNC_ASYNC },
+        { "resolveSync", s_static_resolve, true, ClassData::ASYNC_SYNC },
+        { "ip", s_static_ip, true, ClassData::ASYNC_ASYNC },
+        { "ipSync", s_static_ip, true, ClassData::ASYNC_SYNC },
+        { "ipv6", s_static_ipv6, true, ClassData::ASYNC_ASYNC },
+        { "ipv6Sync", s_static_ipv6, true, ClassData::ASYNC_SYNC },
+        { "connect", s_static_connect, true, ClassData::ASYNC_ASYNC },
+        { "connectSync", s_static_connect, true, ClassData::ASYNC_SYNC },
+        { "openSmtp", s_static_openSmtp, true, ClassData::ASYNC_ASYNC },
+        { "openSmtpSync", s_static_openSmtp, true, ClassData::ASYNC_SYNC },
+        { "backend", s_static_backend, true, ClassData::ASYNC_SYNC },
+        { "isIP", s_static_isIP, true, ClassData::ASYNC_SYNC },
+        { "isIPv4", s_static_isIPv4, true, ClassData::ASYNC_SYNC },
+        { "isIPv6", s_static_isIPv6, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {

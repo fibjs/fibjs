@@ -43,8 +43,8 @@ namespace fibjs {
 inline ClassInfo& Handler_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "invoke", s_invoke, false, true },
-        { "invokeSync", s_invoke, false, false }
+        { "invoke", s_invoke, false, ClassData::ASYNC_ASYNC },
+        { "invokeSync", s_invoke, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {

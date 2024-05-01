@@ -57,11 +57,11 @@ namespace fibjs {
 inline ClassInfo& vm_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "createContext", s_static_createContext, true, false },
-        { "isContext", s_static_isContext, true, false },
-        { "runInContext", s_static_runInContext, true, false },
-        { "runInNewContext", s_static_runInNewContext, true, false },
-        { "runInThisContext", s_static_runInThisContext, true, false }
+        { "createContext", s_static_createContext, true, ClassData::ASYNC_SYNC },
+        { "isContext", s_static_isContext, true, ClassData::ASYNC_SYNC },
+        { "runInContext", s_static_runInContext, true, ClassData::ASYNC_SYNC },
+        { "runInNewContext", s_static_runInNewContext, true, ClassData::ASYNC_SYNC },
+        { "runInThisContext", s_static_runInThisContext, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {

@@ -46,9 +46,9 @@ namespace fibjs {
 inline ClassInfo& Timer_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "ref", s_ref, false, false },
-        { "unref", s_unref, false, false },
-        { "clear", s_clear, false, false }
+        { "ref", s_ref, false, ClassData::ASYNC_SYNC },
+        { "unref", s_unref, false, ClassData::ASYNC_SYNC },
+        { "clear", s_clear, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

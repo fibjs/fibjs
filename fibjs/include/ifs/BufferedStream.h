@@ -67,17 +67,17 @@ namespace fibjs {
 inline ClassInfo& BufferedStream_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "readText", s_readText, false, true },
-        { "readTextSync", s_readText, false, false },
-        { "readLine", s_readLine, false, true },
-        { "readLineSync", s_readLine, false, false },
-        { "readLines", s_readLines, false, false },
-        { "readUntil", s_readUntil, false, true },
-        { "readUntilSync", s_readUntil, false, false },
-        { "writeText", s_writeText, false, true },
-        { "writeTextSync", s_writeText, false, false },
-        { "writeLine", s_writeLine, false, true },
-        { "writeLineSync", s_writeLine, false, false }
+        { "readText", s_readText, false, ClassData::ASYNC_ASYNC },
+        { "readTextSync", s_readText, false, ClassData::ASYNC_SYNC },
+        { "readLine", s_readLine, false, ClassData::ASYNC_ASYNC },
+        { "readLineSync", s_readLine, false, ClassData::ASYNC_SYNC },
+        { "readLines", s_readLines, false, ClassData::ASYNC_SYNC },
+        { "readUntil", s_readUntil, false, ClassData::ASYNC_ASYNC },
+        { "readUntilSync", s_readUntil, false, ClassData::ASYNC_SYNC },
+        { "writeText", s_writeText, false, ClassData::ASYNC_ASYNC },
+        { "writeTextSync", s_writeText, false, ClassData::ASYNC_SYNC },
+        { "writeLine", s_writeLine, false, ClassData::ASYNC_ASYNC },
+        { "writeLineSync", s_writeLine, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

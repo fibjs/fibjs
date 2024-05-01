@@ -65,16 +65,16 @@ namespace fibjs {
 inline ClassInfo& FileHandle_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "chmod", s_chmod, false, true },
-        { "chmodSync", s_chmod, false, false },
-        { "stat", s_stat, false, true },
-        { "statSync", s_stat, false, false },
-        { "read", s_read, false, true },
-        { "readSync", s_read, false, false },
-        { "write", s_write, false, true },
-        { "writeSync", s_write, false, false },
-        { "close", s_close, false, true },
-        { "closeSync", s_close, false, false }
+        { "chmod", s_chmod, false, ClassData::ASYNC_ASYNC },
+        { "chmodSync", s_chmod, false, ClassData::ASYNC_SYNC },
+        { "stat", s_stat, false, ClassData::ASYNC_ASYNC },
+        { "statSync", s_stat, false, ClassData::ASYNC_SYNC },
+        { "read", s_read, false, ClassData::ASYNC_ASYNC },
+        { "readSync", s_read, false, ClassData::ASYNC_SYNC },
+        { "write", s_write, false, ClassData::ASYNC_ASYNC },
+        { "writeSync", s_write, false, ClassData::ASYNC_SYNC },
+        { "close", s_close, false, ClassData::ASYNC_ASYNC },
+        { "closeSync", s_close, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

@@ -55,7 +55,7 @@ namespace fibjs {
 inline ClassInfo& FSWatcher_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "close", s_close, false, false }
+        { "close", s_close, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
