@@ -9,6 +9,31 @@
 
 namespace fibjs {
 
+result_t RTCIceCandidate_base::_new(v8::Local<v8::Object> description,
+    obj_ptr<RTCIceCandidate_base>& retVal, v8::Local<v8::Object> This)
+{
+    Isolate* isolate = Isolate::current(description);
+
+    result_t hr;
+    exlib::string candidate, sdpMid;
+
+    hr = GetConfigValue(isolate, description, "candidate", candidate, true);
+    if (hr < 0)
+        return hr;
+
+    hr = GetConfigValue(isolate, description, "sdpMid", sdpMid, true);
+    if (hr < 0)
+        return hr;
+
+    try {
+        retVal = new RTCIceCandidate(candidate, sdpMid);
+    } catch (std::exception& e) {
+        return Runtime::setError(e.what());
+    }
+
+    return 0;
+}
+
 result_t RTCIceCandidate::get_candidate(exlib::string& retVal)
 {
     retVal = m_candidate.candidate();

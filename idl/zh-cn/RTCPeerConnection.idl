@@ -26,6 +26,9 @@ interface RTCPeerConnection : EventEmitter
     Variant createAnswer(Object options = {}) promise;
 
     /**/
+    NMap getStats() promise;
+
+    /**/
     close();
 
     /**/

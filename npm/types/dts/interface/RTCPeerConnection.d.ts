@@ -32,6 +32,10 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
 
     createAnswer(options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: any)=>any): void;
 
+    getStats(): FIBJS.GeneralObject;
+
+    getStats(callback: (err: Error | undefined | null, retVal: FIBJS.GeneralObject)=>any): void;
+
     close(): void;
 
     readonly connectionState: string;

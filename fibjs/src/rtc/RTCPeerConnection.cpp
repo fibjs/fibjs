@@ -58,29 +58,130 @@ result_t RTCSessionDescription_base::_new(v8::Local<v8::Object> description,
     return 0;
 }
 
-result_t RTCIceCandidate_base::_new(v8::Local<v8::Object> description,
-    obj_ptr<RTCIceCandidate_base>& retVal, v8::Local<v8::Object> This)
+inline const char* connection_state_str(rtc::PeerConnection::State state)
 {
-    Isolate* isolate = Isolate::current(description);
+    switch (state) {
+    case rtc::PeerConnection::State::New:
+        return "new";
+    case rtc::PeerConnection::State::Connecting:
+        return "connecting";
+    case rtc::PeerConnection::State::Connected:
+        return "connected";
+    case rtc::PeerConnection::State::Disconnected:
+        return "disconnected";
+    case rtc::PeerConnection::State::Failed:
+        return "failed";
+    case rtc::PeerConnection::State::Closed:
+        return "closed";
+    default:
+        return "unknown";
+    }
+}
 
-    result_t hr;
-    exlib::string candidate, sdpMid;
+inline const char* ice_connection_state_str(rtc::PeerConnection::IceState state)
+{
+    switch (state) {
+    case rtc::PeerConnection::IceState::New:
+        return "new";
+    case rtc::PeerConnection::IceState::Checking:
+        return "checking";
+    case rtc::PeerConnection::IceState::Connected:
+        return "connected";
+    case rtc::PeerConnection::IceState::Completed:
+        return "completed";
+    case rtc::PeerConnection::IceState::Failed:
+        return "failed";
+    case rtc::PeerConnection::IceState::Disconnected:
+        return "disconnected";
+    case rtc::PeerConnection::IceState::Closed:
+        return "closed";
+    default:
+        return "unknown";
+    }
+}
 
-    hr = GetConfigValue(isolate, description, "candidate", candidate, true);
-    if (hr < 0)
-        return hr;
+inline const char* ice_gathering_state_str(rtc::PeerConnection::GatheringState state)
+{
+    switch (state) {
+    case rtc::PeerConnection::GatheringState::New:
+        return "new";
+    case rtc::PeerConnection::GatheringState::InProgress:
+        return "in-progress";
+    case rtc::PeerConnection::GatheringState::Complete:
+        return "complete";
+    default:
+        return "unknown";
+    }
+}
 
-    hr = GetConfigValue(isolate, description, "sdpMid", sdpMid, true);
-    if (hr < 0)
-        return hr;
+inline const char* signaling_state_str(rtc::PeerConnection::SignalingState state)
+{
+    switch (state) {
+    case rtc::PeerConnection::SignalingState::Stable:
+        return "stable";
+    case rtc::PeerConnection::SignalingState::HaveLocalOffer:
+        return "have-local-offer";
+    case rtc::PeerConnection::SignalingState::HaveRemoteOffer:
+        return "have-remote-offer";
+    case rtc::PeerConnection::SignalingState::HaveLocalPranswer:
+        return "have-local-pranswer";
+    case rtc::PeerConnection::SignalingState::HaveRemotePranswer:
+        return "have-remote-pranswer";
+    default:
+        return "unknown";
+    }
+}
 
-    try {
-        retVal = new RTCIceCandidate(candidate, sdpMid);
-    } catch (std::exception& e) {
-        return Runtime::setError(e.what());
+inline exlib::string candidate_type_str(rtc::Candidate::Type type)
+{
+    switch (type) {
+    case rtc::Candidate::Type::Host:
+        return "host";
+    case rtc::Candidate::Type::ServerReflexive:
+        return "srflx";
+    case rtc::Candidate::Type::PeerReflexive:
+        return "prflx";
+    case rtc::Candidate::Type::Relayed:
+        return "relay";
+    default:
+        return "unknown";
+    }
+}
+
+v8::Local<v8::Object> RTCPeerConnection::description_to_object(rtc::Description description)
+{
+    Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Object> obj = v8::Object::New(isolate->m_isolate);
+
+    switch (description.type()) {
+    case rtc::Description::Type::Unspec:
+        obj->Set(context, isolate->NewString("type"), isolate->NewString("unspec")).Check();
+        break;
+    case rtc::Description::Type::Offer:
+        obj->Set(context, isolate->NewString("type"), isolate->NewString("offer")).Check();
+        break;
+    case rtc::Description::Type::Answer:
+        obj->Set(context, isolate->NewString("type"), isolate->NewString("answer")).Check();
+        break;
+    case rtc::Description::Type::Pranswer:
+        obj->Set(context, isolate->NewString("type"), isolate->NewString("pranswer")).Check();
+        break;
+    case rtc::Description::Type::Rollback:
+        obj->Set(context, isolate->NewString("type"), isolate->NewString("rollback")).Check();
+        break;
+    default:
+        obj->Set(context, isolate->NewString("type"), isolate->NewString("unknown")).Check();
+        break;
     }
 
-    return 0;
+    obj->Set(context, isolate->NewString("sdp"), isolate->NewString(description.generateSdp())).Check();
+
+    auto ufrag = description.iceUfrag();
+    if (ufrag.has_value())
+        obj->Set(context, isolate->NewString("usernameFragment"), isolate->NewString(ufrag.value())).Check();
+
+    return obj;
 }
 
 RTCPeerConnection::~RTCPeerConnection()
@@ -233,122 +334,90 @@ result_t RTCPeerConnection::createAnswer(v8::Local<v8::Object> options, Variant&
     return CALL_E_PENDDING;
 }
 
+result_t RTCPeerConnection::getStats(obj_ptr<NMap>& retVal, AsyncEvent* ac)
+{
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    obj_ptr<NMap> stats = new NMap();
+
+    rtc::Candidate local, remote;
+    size_t bytesSent, bytesReceived;
+    std::chrono::milliseconds rtt;
+    std::chrono::milliseconds timestamp;
+
+    m_peerConnection->getSelectedCandidatePair(&local, &remote);
+
+    bytesSent = m_peerConnection->bytesSent();
+    bytesReceived = m_peerConnection->bytesReceived();
+    rtt = m_peerConnection->rtt().value_or(std::chrono::milliseconds(0));
+    timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+
+    obj_ptr<NObject> stat;
+
+    exlib::string local_id = "RTCIceCandidate_" + m_local_id;
+    stat = new NObject();
+    stats->add(local_id, stat);
+
+    stat->add("id", local_id);
+    stat->add("type", "localcandidate");
+    stat->add("timestamp", (double)timestamp.count());
+    stat->add("candidateType", candidate_type_str(local.type()));
+    stat->add("ip", local.address().value());
+    stat->add("port", local.port().value());
+
+    exlib::string remote_id = "RTCIceCandidate_" + m_remote_id;
+    stat = new NObject();
+    stats->add(remote_id, stat);
+
+    stat->add("id", remote_id);
+    stat->add("type", "remotecandidate");
+    stat->add("timestamp", (double)timestamp.count());
+    stat->add("candidateType", candidate_type_str(remote.type()));
+    stat->add("ip", remote.address().value());
+    stat->add("port", remote.port().value());
+
+    exlib::string peer_id = "RTCIceCandidatePair_" + m_local_id + "_" + m_remote_id;
+    stat = new NObject();
+    stats->add(peer_id, stat);
+
+    stat->add("id", peer_id);
+    stat->add("type", "candidate-pair");
+    stat->add("timestamp", (double)timestamp.count());
+    stat->add("localCandidateId", local_id);
+    stat->add("remoteCandidateId", remote_id);
+    stat->add("state", "succeeded");
+    stat->add("nominated", true);
+    stat->add("writable", true);
+    stat->add("bytesSent", (double)bytesSent);
+    stat->add("bytesReceived", (double)bytesReceived);
+    stat->add("totalRoundTripTime", (double)rtt.count());
+    stat->add("currentRoundTripTime", (double)rtt.count());
+
+    exlib::string transport_id = "RTCTransport_0_1";
+    stat = new NObject();
+    stats->add(transport_id, stat);
+
+    stat->add("id", transport_id);
+    stat->add("type", "transport");
+    stat->add("timestamp", (double)timestamp.count());
+    stat->add("bytesSent", (double)bytesSent);
+    stat->add("bytesReceived", (double)bytesReceived);
+    stat->add("dtlsState", "connected");
+    stat->add("selectedCandidatePairId", peer_id);
+    stat->add("selectedCandidatePairChanges", 1);
+
+    retVal = stats;
+
+    return 0;
+}
+
 result_t RTCPeerConnection::close()
 {
     m_peerConnection->resetCallbacks();
     m_peerConnection->close();
 
     return 0;
-}
-
-inline const char* connection_state_str(rtc::PeerConnection::State state)
-{
-    switch (state) {
-    case rtc::PeerConnection::State::New:
-        return "new";
-    case rtc::PeerConnection::State::Connecting:
-        return "connecting";
-    case rtc::PeerConnection::State::Connected:
-        return "connected";
-    case rtc::PeerConnection::State::Disconnected:
-        return "disconnected";
-    case rtc::PeerConnection::State::Failed:
-        return "failed";
-    case rtc::PeerConnection::State::Closed:
-        return "closed";
-    default:
-        return "unknown";
-    }
-}
-
-inline const char* ice_connection_state_str(rtc::PeerConnection::IceState state)
-{
-    switch (state) {
-    case rtc::PeerConnection::IceState::New:
-        return "new";
-    case rtc::PeerConnection::IceState::Checking:
-        return "checking";
-    case rtc::PeerConnection::IceState::Connected:
-        return "connected";
-    case rtc::PeerConnection::IceState::Completed:
-        return "completed";
-    case rtc::PeerConnection::IceState::Failed:
-        return "failed";
-    case rtc::PeerConnection::IceState::Disconnected:
-        return "disconnected";
-    case rtc::PeerConnection::IceState::Closed:
-        return "closed";
-    default:
-        return "unknown";
-    }
-}
-
-inline const char* ice_gathering_state_str(rtc::PeerConnection::GatheringState state)
-{
-    switch (state) {
-    case rtc::PeerConnection::GatheringState::New:
-        return "new";
-    case rtc::PeerConnection::GatheringState::InProgress:
-        return "in-progress";
-    case rtc::PeerConnection::GatheringState::Complete:
-        return "complete";
-    default:
-        return "unknown";
-    }
-}
-
-inline const char* signaling_state_str(rtc::PeerConnection::SignalingState state)
-{
-    switch (state) {
-    case rtc::PeerConnection::SignalingState::Stable:
-        return "stable";
-    case rtc::PeerConnection::SignalingState::HaveLocalOffer:
-        return "have-local-offer";
-    case rtc::PeerConnection::SignalingState::HaveRemoteOffer:
-        return "have-remote-offer";
-    case rtc::PeerConnection::SignalingState::HaveLocalPranswer:
-        return "have-local-pranswer";
-    case rtc::PeerConnection::SignalingState::HaveRemotePranswer:
-        return "have-remote-pranswer";
-    default:
-        return "unknown";
-    }
-}
-
-v8::Local<v8::Object> RTCPeerConnection::description_to_object(rtc::Description description)
-{
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Object> obj = v8::Object::New(isolate->m_isolate);
-
-    switch (description.type()) {
-    case rtc::Description::Type::Unspec:
-        obj->Set(context, isolate->NewString("type"), isolate->NewString("unspec")).Check();
-        break;
-    case rtc::Description::Type::Offer:
-        obj->Set(context, isolate->NewString("type"), isolate->NewString("offer")).Check();
-        break;
-    case rtc::Description::Type::Answer:
-        obj->Set(context, isolate->NewString("type"), isolate->NewString("answer")).Check();
-        break;
-    case rtc::Description::Type::Pranswer:
-        obj->Set(context, isolate->NewString("type"), isolate->NewString("pranswer")).Check();
-        break;
-    case rtc::Description::Type::Rollback:
-        obj->Set(context, isolate->NewString("type"), isolate->NewString("rollback")).Check();
-        break;
-    default:
-        obj->Set(context, isolate->NewString("type"), isolate->NewString("unknown")).Check();
-        break;
-    }
-
-    obj->Set(context, isolate->NewString("sdp"), isolate->NewString(description.generateSdp())).Check();
-
-    auto ufrag = description.iceUfrag();
-    if (ufrag.has_value())
-        obj->Set(context, isolate->NewString("usernameFragment"), isolate->NewString(ufrag.value())).Check();
-
-    return obj;
 }
 
 result_t RTCPeerConnection::get_connectionState(exlib::string& retVal)
@@ -446,23 +515,7 @@ void RTCPeerConnection::onLocalCandidate(rtc::Candidate candidate)
         obj_candidate->add("port", candidate.port().value());
     }
 
-    switch (candidate.type()) {
-    case rtc::Candidate::Type::Host:
-        obj_candidate->add("type", "host");
-        break;
-    case rtc::Candidate::Type::ServerReflexive:
-        obj_candidate->add("type", "srflx");
-        break;
-    case rtc::Candidate::Type::PeerReflexive:
-        obj_candidate->add("type", "prflx");
-        break;
-    case rtc::Candidate::Type::Relayed:
-        obj_candidate->add("type", "relay");
-        break;
-    default:
-        obj_candidate->add("type", "unknown");
-        break;
-    }
+    obj_candidate->add("type", candidate_type_str(candidate.type()));
 
     _emit("icecandidate", ev);
 }
@@ -642,6 +695,9 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
         }
     } else
         config.iceServers.push_back(rtc::IceServer("stun:stun.l.google.com:19302"));
+
+    m_local_id = std::to_string(rand());
+    m_remote_id = std::to_string(rand());
 
     m_peerConnection = std::make_shared<rtc::PeerConnection>(config);
 

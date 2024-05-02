@@ -34,6 +34,7 @@ public:
     virtual result_t addIceCandidate(RTCIceCandidate_base* candidate, AsyncEvent* ac) = 0;
     virtual result_t createOffer(v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac) = 0;
     virtual result_t createAnswer(v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac) = 0;
+    virtual result_t getStats(obj_ptr<NMap>& retVal, AsyncEvent* ac) = 0;
     virtual result_t close() = 0;
     virtual result_t get_connectionState(exlib::string& retVal) = 0;
     virtual result_t get_iceConnectionState(exlib::string& retVal) = 0;
@@ -70,6 +71,7 @@ public:
     static void s_addIceCandidate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_createOffer(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_createAnswer(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getStats(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_connectionState(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_iceConnectionState(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
@@ -101,6 +103,7 @@ public:
     ASYNC_MEMBER1(RTCPeerConnection_base, addIceCandidate, RTCIceCandidate_base*);
     ASYNC_MEMBERVALUE2(RTCPeerConnection_base, createOffer, v8::Local<v8::Object>, Variant);
     ASYNC_MEMBERVALUE2(RTCPeerConnection_base, createAnswer, v8::Local<v8::Object>, Variant);
+    ASYNC_MEMBERVALUE1(RTCPeerConnection_base, getStats, obj_ptr<NMap>);
 };
 }
 
@@ -118,6 +121,7 @@ inline ClassInfo& RTCPeerConnection_base::class_info()
         { "addIceCandidate", s_addIceCandidate, false, ClassData::ASYNC_PROMISE },
         { "createOffer", s_createOffer, false, ClassData::ASYNC_PROMISE },
         { "createAnswer", s_createAnswer, false, ClassData::ASYNC_PROMISE },
+        { "getStats", s_getStats, false, ClassData::ASYNC_PROMISE },
         { "close", s_close, false, ClassData::ASYNC_SYNC }
     };
 
@@ -280,6 +284,23 @@ inline void RTCPeerConnection_base::s_createAnswer(const v8::FunctionCallbackInf
         hr = pInst->acb_createAnswer(v0, cb, args);
     else
         hr = pInst->ac_createAnswer(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void RTCPeerConnection_base::s_getStats(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<NMap> vr;
+
+    ASYNC_METHOD_INSTANCE(RTCPeerConnection_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_getStats(cb, args);
+    else
+        hr = pInst->ac_getStats(vr);
 
     METHOD_RETURN();
 }

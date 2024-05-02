@@ -30,6 +30,7 @@ public:
     virtual result_t addIceCandidate(RTCIceCandidate_base* candidate, AsyncEvent* ac);
     virtual result_t createOffer(v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac);
     virtual result_t createAnswer(v8::Local<v8::Object> options, Variant& retVal, AsyncEvent* ac);
+    virtual result_t getStats(obj_ptr<NMap>& retVal, AsyncEvent* ac);
     virtual result_t close();
     virtual result_t get_connectionState(exlib::string& retVal);
     virtual result_t get_iceConnectionState(exlib::string& retVal);
@@ -64,6 +65,7 @@ private:
 
 private:
     std::shared_ptr<rtc::PeerConnection> m_peerConnection;
+    exlib::string m_local_id, m_remote_id;
 
     exlib::spinlock m_lock;
 
