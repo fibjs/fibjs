@@ -193,6 +193,29 @@ public:
     std::vector<Variant> m_array;
 };
 
+class NMap : public NObject {
+    DECLARE_CLASS(NMap);
+
+public:
+    // object_base
+    virtual result_t valueOf(v8::Local<v8::Value>& retVal)
+    {
+        Isolate* isolate = holder();
+        v8::Local<v8::Context> context = isolate->context();
+        v8::Local<v8::Map> obj;
+
+        obj = v8::Map::New(isolate->m_isolate);
+        retVal = obj;
+
+        for (int32_t i = 0; i < (int32_t)m_values.size(); i++) {
+            Value& v = m_values[i];
+            obj->Set(context, isolate->NewString(v.m_pos->first), v.m_val);
+        }
+
+        return 0;
+    }
+};
+
 class NType : public object_base {
 
 public:
@@ -238,6 +261,18 @@ inline ClassInfo& NArray::class_info()
         "NArray", false, NULL, NULL,
         0, NULL, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
         &NObject::class_info()
+    };
+
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
+
+inline ClassInfo& NMap::class_info()
+{
+    static ClassData s_cd = {
+        "NMap", false, NULL, NULL,
+        0, NULL, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
+        &object_base::class_info()
     };
 
     static ClassInfo s_ci(s_cd);

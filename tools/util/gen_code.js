@@ -44,6 +44,7 @@ function gen_code(cls, def, baseFolder) {
         "Value": "v8::Local<v8::Value>",
         "Variant": "Variant",
         "NObject": "obj_ptr<NObject>",
+        "NMap": "obj_ptr<NMap>",
         "NArray": "obj_ptr<NArray>",
         "...": "OptArgs"
     };
