@@ -243,7 +243,12 @@ result_t RTCPeerConnection::createDataChannel(exlib::string label, v8::Local<v8:
         init.id = id;
     }
 
-    retVal = new RTCDataChannel(m_peerConnection->createDataChannel(label, init));
+    try {
+        retVal = new RTCDataChannel(m_peerConnection->createDataChannel(label, init));
+    } catch (std::exception& e) {
+        return Runtime::setError(e.what());
+    }
+
     return 0;
 }
 
