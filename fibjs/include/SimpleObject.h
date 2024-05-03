@@ -209,7 +209,7 @@ public:
 
         for (int32_t i = 0; i < (int32_t)m_values.size(); i++) {
             Value& v = m_values[i];
-            obj->Set(context, isolate->NewString(v.m_pos->first), v.m_val);
+            obj->Set(context, isolate->NewString(v.m_pos->first), v.m_val).IsEmpty();
         }
 
         return 0;
