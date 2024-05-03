@@ -649,19 +649,6 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
             return CALL_E_INVALIDARG;
     }
 
-    exlib::string rtcpMuxPolicy;
-    hr = GetConfigValue(holder(), options, "rtcpMuxPolicy", rtcpMuxPolicy, true);
-    if (hr != CALL_E_PARAMNOTOPTIONAL) {
-        if (hr < 0)
-            return hr;
-        if (rtcpMuxPolicy == "require")
-            config.disableAutoNegotiation = true;
-        else if (rtcpMuxPolicy == "negotiate")
-            config.disableAutoNegotiation = false;
-        else
-            return CALL_E_INVALIDARG;
-    }
-
     v8::Local<v8::Array> iceServers;
     hr = GetConfigValue(isolate, options, "iceServers", iceServers, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
@@ -695,6 +682,22 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
         }
     } else
         config.iceServers.push_back(rtc::IceServer("stun:stun.l.google.com:19302"));
+
+    int32_t port;
+    hr = GetConfigValue(isolate, options, "port", port, true);
+    if (hr != CALL_E_PARAMNOTOPTIONAL) {
+        if (hr < 0)
+            return hr;
+        config.portRangeBegin = config.portRangeEnd = port;
+    }
+
+    bool enableIceUdpMux;
+    hr = GetConfigValue(isolate, options, "enableIceUdpMux", enableIceUdpMux, true);
+    if (hr != CALL_E_PARAMNOTOPTIONAL) {
+        if (hr < 0)
+            return hr;
+        config.enableIceUdpMux = enableIceUdpMux;
+    }
 
     m_local_id = std::to_string(rand());
     m_remote_id = std::to_string(rand());
