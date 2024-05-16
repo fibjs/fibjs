@@ -12,5 +12,9 @@ declare module 'rtc' {
 
     const RTCIceCandidate: typeof Class_RTCIceCandidate;
 
+    function bind(bind_address: string, local_port: number, cb: (...args: any[])=>any): void;
+
+    function bind(local_port: number, cb: (...args: any[])=>any): void;
+
 }
 

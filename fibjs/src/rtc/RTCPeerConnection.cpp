@@ -10,7 +10,9 @@
 #include "RTCSessionDescription.h"
 #include "RTCIceCandidate.h"
 #include "SimpleObject.h"
+#include "Fiber.h"
 #include "ifs/rtc.h"
+#include "juice/include/juice/juice.h"
 
 namespace fibjs {
 DECLARE_MODULE(rtc);
@@ -19,10 +21,61 @@ DECLARE_MODULE(rtc);
 // public:
 //     _init_rtc()
 //     {
-//         rtc::InitLogger(rtc::LogLevel::Debug);
-//         rtc::Preload();
+//         rtc::InitLogger(rtc::LogLevel::Verbose);
 //     }
 // } s_init_rtc;
+
+result_t rtc_base::bind(exlib::string bind_address, int32_t local_port, v8::Local<v8::Function> cb)
+{
+    struct cb_data {
+        exlib::string ufrag;
+        exlib::string pwd;
+        exlib::string bind_address;
+    };
+
+    Isolate* isolate = Isolate::current(cb);
+    if (isolate->m_id != 1)
+        return Runtime::setError("rtc.bind() can only be called in the main isolate");
+
+    static v8::Global<v8::Function> s_cb_global(isolate->m_isolate, cb);
+
+    int ret = juice_bind_stun(bind_address.c_str(), local_port,
+        [](const char* ufrag, const char* pwd, const char* bind_address) {
+            cb_data* data_ = new cb_data();
+
+            data_->ufrag = ufrag;
+            data_->pwd = pwd;
+            data_->bind_address = bind_address;
+
+            syncCall(Isolate::main(), [](cb_data* data_) {
+                Isolate* isolate = Isolate::main();
+                JSFiber::EnterJsScope s(NULL, true);
+
+                v8::Local<v8::Function> cb = v8::Local<v8::Function>::New(isolate->m_isolate, s_cb_global);
+                v8::Local<v8::Object> data = v8::Object::New(isolate->m_isolate);
+
+                data->Set(isolate->context(), isolate->NewString("ufrag"), isolate->NewString(data_->ufrag)).Check();
+                data->Set(isolate->context(), isolate->NewString("pwd"), isolate->NewString(data_->pwd)).Check();
+                data->Set(isolate->context(), isolate->NewString("address"), isolate->NewString(data_->bind_address)).Check();
+                delete data_;
+
+                v8::Local<v8::Value> argv[] = { data };
+
+                v8::Local<v8::Value> result = cb->Call(isolate->context(), v8::Undefined(isolate->m_isolate), 1, argv).FromMaybe(v8::Local<v8::Value>());
+
+                return 0; }, data_);
+        });
+
+    if (ret < 0)
+        return Runtime::setError("rtc.bind() need to be called before RTCPeerConnection object is created");
+
+    return 0;
+}
+
+result_t rtc_base::bind(int32_t local_port, v8::Local<v8::Function> cb)
+{
+    return bind("", local_port, cb);
+}
 
 result_t RTCPeerConnection_base::_new(v8::Local<v8::Object> options,
     obj_ptr<RTCPeerConnection_base>& retVal, v8::Local<v8::Object> This)
@@ -614,7 +667,6 @@ void RTCPeerConnection::onTrack(std::shared_ptr<rtc::Track> track)
 result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
 {
     Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
     result_t hr;
     rtc::Configuration config;
 
@@ -696,12 +748,60 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
         config.portRangeBegin = config.portRangeEnd = port;
     }
 
+    int32_t maxMessageSize;
+    hr = GetConfigValue(isolate, options, "maxMessageSize", maxMessageSize, true);
+    if (hr != CALL_E_PARAMNOTOPTIONAL) {
+        if (hr < 0)
+            return hr;
+        config.maxMessageSize = maxMessageSize;
+    }
+
     bool enableIceUdpMux;
     hr = GetConfigValue(isolate, options, "enableIceUdpMux", enableIceUdpMux, true);
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         if (hr < 0)
             return hr;
         config.enableIceUdpMux = enableIceUdpMux;
+    }
+
+    bool disableFingerprintVerification;
+    hr = GetConfigValue(isolate, options, "disableFingerprintVerification", disableFingerprintVerification, true);
+    if (hr != CALL_E_PARAMNOTOPTIONAL) {
+        if (hr < 0)
+            return hr;
+        config.disableFingerprintVerification = disableFingerprintVerification;
+    }
+
+    exlib::string iceUfrag;
+    hr = GetConfigValue(isolate, options, "iceUfrag", iceUfrag, true);
+    if (hr != CALL_E_PARAMNOTOPTIONAL) {
+        if (hr < 0)
+            return hr;
+        config.iceUfrag = iceUfrag;
+    }
+
+    exlib::string icePwd;
+    hr = GetConfigValue(isolate, options, "icePwd", icePwd, true);
+    if (hr != CALL_E_PARAMNOTOPTIONAL) {
+        if (hr < 0)
+            return hr;
+        config.icePwd = icePwd;
+    }
+
+    exlib::string certPem;
+    hr = GetConfigValue(isolate, options, "certPem", certPem, true);
+    if (hr != CALL_E_PARAMNOTOPTIONAL) {
+        if (hr < 0)
+            return hr;
+        config.certPem = certPem;
+    }
+
+    exlib::string keyPem;
+    hr = GetConfigValue(isolate, options, "keyPem", keyPem, true);
+    if (hr != CALL_E_PARAMNOTOPTIONAL) {
+        if (hr < 0)
+            return hr;
+        config.keyPem = keyPem;
     }
 
     m_local_id = std::to_string(rand());
