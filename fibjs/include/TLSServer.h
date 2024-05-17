@@ -27,6 +27,8 @@ public:
 public:
     // TLSServer_base
     virtual result_t get_secureContext(obj_ptr<SecureContext_base>& retVal);
+    virtual result_t setSecureContext(SecureContext_base* context);
+    virtual result_t setSecureContext(v8::Local<v8::Object> options);
 
 public:
     result_t create(SecureContext_base* context, exlib::string addr, int32_t port, Handler_base* listener);

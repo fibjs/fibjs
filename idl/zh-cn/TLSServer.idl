@@ -45,4 +45,14 @@ interface TLSServer : TcpServer
 
     /*! @brief 查询当前 TLSServer 使用的 SecureContext */
     readonly SecureContext secureContext;
+
+    /*! @brief 设置当前 TLSServer 使用的 SecureContext
+    @param context 指定新的 SecureContext
+    */
+    setSecureContext(SecureContext context);
+
+    /*! @brief 设置当前 TLSServer 使用的 SecureContext
+    @param options 使用 tls.createSecureContext 创建安全上下文需要的选项
+    */
+    setSecureContext(Object options);
 };

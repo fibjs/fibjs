@@ -159,4 +159,19 @@ result_t HttpsServer::set_serverName(exlib::string newVal)
     return m_handler->set_serverName(newVal);
 }
 
+result_t HttpsServer::get_secureContext(obj_ptr<SecureContext_base>& retVal)
+{
+    return m_server->get_secureContext(retVal);
+}
+
+result_t HttpsServer::setSecureContext(SecureContext_base* context)
+{
+    return m_server->setSecureContext(context);
+}
+
+result_t HttpsServer::setSecureContext(v8::Local<v8::Object> options)
+{
+    return m_server->setSecureContext(options);
+}
+
 } /* namespace fibjs */

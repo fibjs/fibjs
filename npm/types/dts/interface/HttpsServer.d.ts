@@ -67,5 +67,24 @@ declare class Class_HttpsServer extends Class_HttpServer {
      */
     constructor(options: FIBJS.GeneralObject, hdlr: Class_Handler);
 
+    /**
+     * @description 查询当前 HttpsServer 使用的 SecureContext 
+     */
+    readonly secureContext: Class_SecureContext;
+
+    /**
+     * @description 设置当前 HttpsServer 使用的 SecureContext
+     *     @param context 指定新的 SecureContext
+     *     
+     */
+    setSecureContext(context: Class_SecureContext): void;
+
+    /**
+     * @description 设置当前 HttpsServer 使用的 SecureContext
+     *     @param options 使用 tls.createSecureContext 创建安全上下文需要的选项
+     *     
+     */
+    setSecureContext(options: FIBJS.GeneralObject): void;
+
 }
 

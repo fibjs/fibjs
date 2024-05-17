@@ -28,6 +28,8 @@ public:
 public:
     // TLSHandler_base
     virtual result_t get_secureContext(obj_ptr<SecureContext_base>& retVal);
+    virtual result_t setSecureContext(SecureContext_base* context);
+    virtual result_t setSecureContext(v8::Local<v8::Object> options);
     virtual result_t get_handler(obj_ptr<Handler_base>& retVal);
     virtual result_t set_handler(Handler_base* newVal);
 

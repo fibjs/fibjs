@@ -39,6 +39,20 @@ declare class Class_TLSHandler extends Class_Handler {
     readonly secureContext: Class_SecureContext;
 
     /**
+     * @description 设置当前 TLSHandler 使用的 SecureContext
+     *     @param context 指定新的 SecureContext
+     *     
+     */
+    setSecureContext(context: Class_SecureContext): void;
+
+    /**
+     * @description 设置当前 TLSHandler 使用的 SecureContext
+     *     @param options 使用 tls.createSecureContext 创建安全上下文需要的选项
+     *     
+     */
+    setSecureContext(options: FIBJS.GeneralObject): void;
+
+    /**
      * @description ssl 协议转换处理器当前事件处理接口对象 
      */
     handler: Class_Handler;

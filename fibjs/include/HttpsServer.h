@@ -8,6 +8,7 @@
 #pragma once
 
 #include "ifs/HttpsServer.h"
+#include "ifs/TLSServer.h"
 #include "HttpHandler.h"
 
 namespace fibjs {
@@ -38,10 +39,16 @@ public:
     virtual result_t set_serverName(exlib::string newVal);
 
 public:
+    // HttpsServer_base
+    virtual result_t get_secureContext(obj_ptr<SecureContext_base>& retVal);
+    virtual result_t setSecureContext(SecureContext_base* context);
+    virtual result_t setSecureContext(v8::Local<v8::Object> options);
+
+public:
     result_t create(SecureContext_base* context, exlib::string addr, int32_t port, Handler_base* hdlr);
 
 private:
-    obj_ptr<TcpServer_base> m_server;
+    obj_ptr<TLSServer_base> m_server;
     obj_ptr<HttpHandler_base> m_handler;
 };
 

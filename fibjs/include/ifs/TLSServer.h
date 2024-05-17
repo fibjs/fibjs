@@ -29,6 +29,8 @@ public:
     static result_t _new(SecureContext_base* context, exlib::string addr, int32_t port, Handler_base* listener, obj_ptr<TLSServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::Object> options, Handler_base* listener, obj_ptr<TLSServer_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_secureContext(obj_ptr<SecureContext_base>& retVal) = 0;
+    virtual result_t setSecureContext(SecureContext_base* context) = 0;
+    virtual result_t setSecureContext(v8::Local<v8::Object> options) = 0;
 
 public:
     template <typename T>
@@ -37,6 +39,7 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_secureContext(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_setSecureContext(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -46,13 +49,17 @@ public:
 namespace fibjs {
 inline ClassInfo& TLSServer_base::class_info()
 {
+    static ClassData::ClassMethod s_method[] = {
+        { "setSecureContext", s_setSecureContext, false, ClassData::ASYNC_SYNC }
+    };
+
     static ClassData::ClassProperty s_property[] = {
         { "secureContext", s_get_secureContext, block_set, false }
     };
 
     static ClassData s_cd = {
         "TLSServer", false, s__new, NULL,
-        0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &TcpServer_base::class_info(),
         false
     };
@@ -111,5 +118,25 @@ inline void TLSServer_base::s_get_secureContext(v8::Local<v8::Name> property, co
     hr = pInst->get_secureContext(vr);
 
     METHOD_RETURN();
+}
+
+inline void TLSServer_base::s_setSecureContext(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(TLSServer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<SecureContext_base>, 0);
+
+    hr = pInst->setSecureContext(v0);
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
+
+    hr = pInst->setSecureContext(v0);
+
+    METHOD_VOID();
 }
 }

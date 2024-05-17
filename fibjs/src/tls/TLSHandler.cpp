@@ -90,6 +90,23 @@ result_t TLSHandler::get_secureContext(obj_ptr<SecureContext_base>& retVal)
     return 0;
 }
 
+result_t TLSHandler::setSecureContext(SecureContext_base* context)
+{
+    m_ctx = context;
+    return 0;
+}
+
+result_t TLSHandler::setSecureContext(v8::Local<v8::Object> options)
+{
+    obj_ptr<SecureContext_base> ctx;
+    result_t hr = tls_base::createSecureContext(options, true, ctx);
+    if (hr < 0)
+        return hr;
+
+    m_ctx = ctx;
+    return 0;
+}
+
 result_t TLSHandler::get_handler(obj_ptr<Handler_base>& retVal)
 {
     retVal = m_handler;

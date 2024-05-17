@@ -107,4 +107,14 @@ result_t TLSServer::get_secureContext(obj_ptr<SecureContext_base>& retVal)
     return m_handler->get_secureContext(retVal);
 }
 
+result_t TLSServer::setSecureContext(SecureContext_base* context)
+{
+    return m_handler->setSecureContext(context);
+}
+
+result_t TLSServer::setSecureContext(v8::Local<v8::Object> options)
+{
+    return m_handler->setSecureContext(options);
+}
+
 }
