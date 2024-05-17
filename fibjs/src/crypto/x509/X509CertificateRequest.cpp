@@ -328,15 +328,34 @@ result_t X509CertificateRequest::issue(v8::Local<v8::Object> options, obj_ptr<X5
         if (!BN_to_ASN1_INTEGER(bn, &xi->serialNumber))
             return openssl_error();
 
-        int32_t days = 100;
-        hr = GetConfigValue(isolate, options, "days", days, true);
+        date_t validFrom;
+        validFrom.now();
+        hr = GetConfigValue(isolate, options, "validFrom", validFrom, true);
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
 
-        if (X509_gmtime_adj(xi->validity.notBefore, 0) == NULL)
+        time_t tm = validFrom.date() / 1000;
+        if (X509_time_adj(xi->validity.notBefore, 0, &tm) == NULL)
             return openssl_error();
-        if (X509_gmtime_adj(xi->validity.notAfter, (long)60 * 60 * 24 * days) == NULL)
-            return openssl_error();
+
+        date_t validTo;
+        hr = GetConfigValue(isolate, options, "validTo", validTo, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+
+        if (hr != CALL_E_PARAMNOTOPTIONAL) {
+            tm = validTo.date() / 1000;
+            if (X509_time_adj(xi->validity.notAfter, 0, &tm) == NULL)
+                return openssl_error();
+        } else {
+            int32_t days = 100;
+            hr = GetConfigValue(isolate, options, "days", days, true);
+            if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+                return hr;
+
+            if (X509_time_adj(xi->validity.notAfter, (long)60 * 60 * 24 * days, &tm) == NULL)
+                return openssl_error();
+        }
     }
 
     {

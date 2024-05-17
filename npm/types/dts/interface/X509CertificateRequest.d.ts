@@ -84,6 +84,8 @@ declare class Class_X509CertificateRequest extends Class_object {
      *       - issuer: 签发者的主题信息，包含 key/value 对的 subject 信息
      *       - ca: 是否是 CA 证书，缺省为 false
      *       - pathlen: 证书链的最大长度，缺省为 -1
+     *       - notBefore: 证书的生效时间，缺省为当前时间
+     *       - notAfter: 证书的失效时间，如果同时设定 days，则以 notAfter 为准
      *       - days: 证书有效期，缺省为 100 天
      *       - hashAlgorithm: 签名的 hash 算法，缺省为 'sha256'
      *       - keyUsage: 证书的密钥用途，以数组形式提供，缺省为 []，支持的值有：
