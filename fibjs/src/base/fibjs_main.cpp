@@ -22,6 +22,7 @@ static void main_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
     result_t hr = isolate->m_topSandbox->run_main(isolate->m_fname, argv);
 
     if (hr < 0) {
+        isolate->m_exitCode = 1;
         THROW_ERROR();
     }
 }

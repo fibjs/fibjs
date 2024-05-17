@@ -10,6 +10,9 @@ var json = require('json');
 var ws = require('ws');
 var net = require('net');
 var http = require('http');
+var child_process = require('child_process');
+var io = require('io');
+var os = require('os');
 
 var cmd;
 var s;
@@ -61,10 +64,6 @@ describe('process', () => {
      * @why issues: #620, #622
      */
     describe("access process.std[xx]", () => {
-        const child_process = require('child_process');
-        const io = require('io');
-        const os = require('os');
-
         process.env.CI && it("test process.stdout in this proc", () => {
             // access it
             process.stdout;
@@ -106,6 +105,18 @@ describe('process', () => {
             })
 
             assert.deepEqual(stdout.readLines(), strs);
+        });
+    });
+
+    describe("exitCode", () => {
+        it("exit 0 when no error", () => {
+            var code = child_process.run(cmd, [path.join(__dirname, 'process', 'exit.js')]);
+            assert.equal(code, 0);
+        });
+
+        it("exit 1 when error", () => {
+            var code = child_process.run(cmd, [path.join(__dirname, 'process', 'exit_error.js')]);
+            assert.equal(code, 1);
         });
     });
 
