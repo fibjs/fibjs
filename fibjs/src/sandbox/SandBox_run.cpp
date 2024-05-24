@@ -5,6 +5,11 @@
  *      Author: lion
  */
 
+#ifdef _WIN32
+#undef stdout
+#undef stderr
+#endif
+
 #include "object.h"
 #include "SandBox.h"
 #include "Buffer.h"

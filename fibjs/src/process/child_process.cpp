@@ -5,10 +5,13 @@
  *      Author: lion
  */
 
-#include "object.h"
-#include "ifs/util.h"
+#ifdef _WIN32
 #undef stdout
 #undef stderr
+#endif
+
+#include "object.h"
+#include "ifs/util.h"
 #include "ifs/child_process.h"
 #include "ChildProcess.h"
 #include "AsyncUV.h"
