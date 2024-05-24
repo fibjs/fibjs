@@ -13,6 +13,8 @@
 #include "options.h"
 #include "ifs/global.h"
 #include "ifs/encoding.h"
+#include "ifs/child_process.h"
+#include "ifs/process.h"
 
 namespace fibjs {
 
@@ -24,6 +26,7 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
     result_t hr;
     obj_ptr<Buffer_base> bin;
     int32_t step = 0;
+    bool is_exec = false;
 
     while (true) {
         if (fname.c_str()[0] == '-' && fname.c_str()[1] == '-') {
@@ -59,8 +62,20 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
         os_resolve(fname);
 
         hr = resolveFile(fname, bin, NULL);
-        if (hr >= 0)
+        if (hr >= 0) {
+            Buffer* b = Buffer::Cast(bin);
+            const char* pdata = (const char*)b->data();
+
+            if (pdata[0] == '#' && pdata[1] == '!') {
+                _parser p(pdata, (int32_t)b->length());
+                exlib::string line;
+                p.getLine(line);
+                is_exec = (line.find("node") == exlib::string::npos && line.find("fibjs") == exlib::string::npos);
+            } else
+                is_exec = true;
+
             break;
+        }
 
         if (step > 0)
             return CALL_E_FILE_NOT_FOUND;
@@ -136,17 +151,35 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
         step++;
     }
 
-    obj_ptr<ExtLoader> l;
-    hr = get_loader(fname, l);
-    if (hr < 0)
-        return hr;
+    if (is_exec) {
+        Isolate* isolate = holder();
+        v8::Local<v8::Context> context = isolate->context();
+        v8::Local<v8::Array> exec_argv = v8::Array::New(isolate->m_isolate, (int32_t)s_argv.size() - 2);
+        v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
+        int32_t exitCode;
 
-    Context context(this, fname);
+        for (size_t i = 2; i < s_argv.size(); i++)
+            exec_argv->Set(context, i, isolate->NewString(s_argv[i])).IsNothing();
 
-    std::vector<ExtLoader::arg> extarg(1);
-    extarg[0] = ExtLoader::arg("__argv", argv);
+        result_t hr = child_process_base::ac_run(fname, exec_argv, opts, exitCode);
+        if (hr < 0)
+            return hr;
 
-    return l->run_script(&context, bin, fname, extarg, true);
+        process_base::exit(exitCode);
+        return 0;
+    } else {
+        obj_ptr<ExtLoader> l;
+        hr = get_loader(fname, l);
+        if (hr < 0)
+            return hr;
+
+        Context context(this, fname);
+
+        std::vector<ExtLoader::arg> extarg(1);
+        extarg[0] = ExtLoader::arg("__argv", argv);
+
+        return l->run_script(&context, bin, fname, extarg, true);
+    }
 }
 
 result_t SandBox::run_worker(exlib::string fname, Worker_base* master)
