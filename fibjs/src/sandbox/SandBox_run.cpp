@@ -5,11 +5,6 @@
  *      Author: lion
  */
 
-#ifdef _WIN32
-#undef stdout
-#undef stderr
-#endif
-
 #include "object.h"
 #include "SandBox.h"
 #include "Buffer.h"
@@ -18,8 +13,10 @@
 #include "options.h"
 #include "ifs/global.h"
 #include "ifs/encoding.h"
-#include "ifs/child_process.h"
 #include "ifs/process.h"
+#undef stdout
+#undef stderr
+#include "ifs/child_process.h"
 
 namespace fibjs {
 
