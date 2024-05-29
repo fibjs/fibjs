@@ -79,8 +79,11 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
             break;
         }
 
-        if (step > 0)
-            return CALL_E_FILE_NOT_FOUND;
+        if (step > 0) {
+            fname = rname;
+            is_exec = true;
+            break;
+        }
 
         v8::Local<v8::Value> v;
         exlib::string buf;
@@ -161,7 +164,7 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
         int32_t exitCode;
 
         for (size_t i = 2; i < s_argv.size(); i++)
-            exec_argv->Set(context, i, isolate->NewString(s_argv[i])).IsNothing();
+            exec_argv->Set(context, i - 2, isolate->NewString(s_argv[i])).IsNothing();
 
         result_t hr = child_process_base::ac_run(fname, exec_argv, opts, exitCode);
         if (hr < 0)
