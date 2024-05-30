@@ -1,5 +1,4 @@
 /// <reference path="../_import/_fibjs.d.ts" />
-/// <reference path="../interface/LruCache.d.ts" />
 /// <reference path="../interface/TextDecoder.d.ts" />
 /// <reference path="../interface/TextEncoder.d.ts" />
 /// <reference path="../module/types.d.ts" />
@@ -59,11 +58,6 @@
  * 
  */
 declare module 'util' {
-    /**
-     * @description LRU(least recently used) 缓存对象，参见 LruCache 对象。
-     */
-    const LruCache: typeof Class_LruCache;
-
     /**
      * @description TextDecoder 解码对象，参见 TextDecoder 对象。
      */

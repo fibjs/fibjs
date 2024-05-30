@@ -52,9 +52,6 @@ console.log(str2) // => 'foo:bar baz'
 */
 module util
 {
-    /*! @brief LRU(least recently used) 缓存对象，参见 LruCache 对象。*/
-    static LruCache;
-
     /*! @brief TextDecoder 解码对象，参见 TextDecoder 对象。*/
     static TextDecoder;
 

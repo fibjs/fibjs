@@ -11,7 +11,6 @@
 #include "ifs/fs.h"
 #include "ifs/util.h"
 #include "path.h"
-#include "LruCache.h"
 #include "Buffer.h"
 #include "options.h"
 #include "loaders/loaders.h"

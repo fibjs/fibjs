@@ -15,7 +15,6 @@
 
 namespace fibjs {
 
-class LruCache_base;
 class TextDecoder_base;
 class TextEncoder_base;
 class types_base;
@@ -159,7 +158,6 @@ public:
 };
 }
 
-#include "ifs/LruCache.h"
 #include "ifs/TextDecoder.h"
 #include "ifs/TextEncoder.h"
 #include "ifs/types.h"
@@ -230,7 +228,6 @@ inline ClassInfo& util_base::class_info()
     };
 
     static ClassData::ClassObject s_object[] = {
-        { "LruCache", LruCache_base::class_info },
         { "TextDecoder", TextDecoder_base::class_info },
         { "TextEncoder", TextEncoder_base::class_info },
         { "types", types_base::class_info }
