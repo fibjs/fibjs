@@ -24,9 +24,9 @@ private:
         exlib::Event m_ready;
         std::chrono::time_point<std::chrono::system_clock> m_updated;
 
-        std::unordered_map<exlib::string, CacheItem*>::iterator m_map_iter;
-        std::list<CacheItem*>::iterator m_used_iter;
-        std::list<obj_ptr<CacheItem>>::iterator m_expired_iter;
+        typename std::unordered_map<exlib::string, CacheItem*>::iterator m_map_iter;
+        typename std::list<CacheItem*>::iterator m_used_iter;
+        typename std::list<obj_ptr<CacheItem>>::iterator m_expired_iter;
     };
 
 public:
