@@ -51,9 +51,32 @@ function del(f) {
 }
 
 describe('tls', () => {
+    function sni_resolver(domain) {
+        if (domain === "no_cert")
+            return;
+
+        var cert = crypto.createCertificateRequest({
+            key: pk.privateKey,
+            subject: {
+                CN: domain
+            }
+        }).issue({
+            key: pk.privateKey,
+            issuer: {
+                CN: "fibjs.org"
+            }
+        });
+
+        return tls.createSecureContext({
+            key: pk.privateKey,
+            cert: cert
+        });
+    }
+
     const ctx = tls.createSecureContext({
         ca: ca
     });
+
     const ctx_svr = tls.createSecureContext({
         key: pk1.privateKey,
         cert: crt
@@ -138,6 +161,111 @@ describe('tls', () => {
             });
 
             assert.equal(ctx.rejectUnverified, false);
+        });
+
+        describe('SNIContext', () => {
+            it('set/get', () => {
+                var ctx = tls.createSecureContext(true);
+                ctx.setSNIContext("test", sni_resolver("test"));
+                ctx.setSNIContext("test1", sni_resolver("test1"));
+
+                assert.equal(ctx.getSNIContext("test").cert.subject, 'CN=test');
+                assert.equal(ctx.getSNIContext("test1").cert.subject, 'CN=test1');
+            });
+
+            it('resolver', () => {
+                var ctx = tls.createSecureContext({
+                    "SNIResolver": sni_resolver
+                }, true);
+
+                assert.equal(ctx.getSNIContext("test", true).cert.subject, 'CN=test');
+                assert.equal(ctx.getSNIContext("test1", true).cert.subject, 'CN=test1');
+            });
+
+            it('delete', () => {
+                var ctx = tls.createSecureContext(true);
+                ctx.setSNIContext("test", sni_resolver("test"));
+                ctx.setSNIContext("test1", sni_resolver("test1"));
+
+                ctx.removeSNIContext("test");
+
+                assert.equal(ctx.getSNIContext("test"), undefined);
+                assert.equal(ctx.getSNIContext("test1").cert.subject, 'CN=test1');
+            });
+
+            it('throw error in resolver', () => {
+                var ctx = tls.createSecureContext({
+                    "SNIResolver": (domain) => {
+                        throw new Error("test");
+                    }
+                }, true);
+
+                assert.equal(ctx.getSNIContext("test", true), undefined);
+            });
+
+            it('return nothing in resolver', () => {
+                var ctx = tls.createSecureContext({
+                    "SNIResolver": (domain) => {
+                    }
+                }, true);
+
+                assert.equal(ctx.getSNIContext("test", true), undefined);
+            });
+
+            it('deleted during resolve', () => {
+                var ctx = tls.createSecureContext({
+                    "SNIResolver": (domain) => {
+                        coroutine.sleep(100);
+                        return sni_resolver(domain);
+                    }
+                }, true);
+
+                setImmediate(() => {
+                    ctx.removeSNIContext("test");
+                });
+
+                assert.equal(ctx.getSNIContext("test", true).cert.subject, 'CN=test');
+                assert.equal(ctx.getSNIContext("test"), undefined);
+            });
+
+            it('deleted during resolve return nothing', () => {
+                var ctx = tls.createSecureContext({
+                    "SNIResolver": (domain) => {
+                        coroutine.sleep(100);
+                        return;
+                    }
+                }, true);
+
+                setImmediate(() => {
+                    ctx.removeSNIContext("test");
+                });
+
+                assert.equal(ctx.getSNIContext("test", true), undefined);
+                assert.equal(ctx.getSNIContext("test"), undefined);
+            });
+
+            it('size', () => {
+                var ctx = tls.createSecureContext({
+                    "SNICacheSize": 2
+                }, true);
+                ctx.setSNIContext("test", sni_resolver("test"));
+                ctx.setSNIContext("test1", sni_resolver("test1"));
+                ctx.setSNIContext("test2", sni_resolver("test2"));
+
+                assert.equal(ctx.getSNIContext("test"), undefined);
+                assert.equal(ctx.getSNIContext("test1").cert.subject, 'CN=test1');
+                assert.equal(ctx.getSNIContext("test2").cert.subject, 'CN=test2');
+            });
+
+            it('timeout', () => {
+                var ctx = tls.createSecureContext({
+                    "SNICacheTimeout": 1
+                }, true);
+                ctx.setSNIContext("test", sni_resolver("test"));
+
+                coroutine.sleep(1500);
+                assert.equal(ctx.getSNIContext("test"), undefined);
+            });
         });
     });
 
@@ -447,6 +575,44 @@ describe('tls', () => {
             cs.close();
             s1.close();
         }
+    });
+
+    const ctx_sni = tls.createSecureContext({
+        key: pk1.privateKey,
+        cert: crt,
+        SNIResolver: sni_resolver
+    }, true);
+
+    it("SNI Server", () => {
+        var svr = new tls.Server(ctx_sni, 9086 + base_port, (s) => {
+            var buf;
+
+            while (buf = s.read())
+                s.write(buf);
+        });
+        test_util.push(svr.socket);
+        svr.start();
+
+        var s1 = new net.Socket();
+        s1.connect("127.0.0.1", 9086 + base_port);
+
+        var cs = new tls.TLSSocket(ctx);
+        cs.connect(s1, "test1");
+
+        var cert = cs.getPeerX509Certificate();
+        assert.equal(cert.subject, 'CN=test1');
+
+        cs.close();
+
+        var s2 = new net.Socket();
+        s2.connect("127.0.0.1", 9086 + base_port);
+        var cs1 = new tls.TLSSocket(ctx);
+
+        assert.throws(() => {
+            cs1.connect(s2, "no_cert");
+        });
+
+        cs1.close();
     });
 });
 

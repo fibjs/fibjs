@@ -39,6 +39,9 @@ declare module 'tls' {
      *      - minVersion: 设置允许的最低 TLS 版本。 'TLSv1.3' 、 'TLSv1.2' 、 'TLSv1.1' 或 'TLSv1' 之一。不能与 secureProtocol 选项一起指定。
      *      - secureProtocol: 传统机制选择要使用的 TLS 协议版本，不支持最小和最大版本的独立控制，也不支持将协议限制为 TLSv1.3。建议改用 minVersion 和 maxVersion。
      *      - sessionTimeout: 经过多少秒后，服务器创建的 TLS 会话将不再可恢复。默认值: 300。
+     *      - SNIResolver: 用于在 SNI 回调中解析服务器名称。函数签名为 function(servername)，其中 servername 是客户端发送的服务器名称指示符。返回值是 SecureContext 对象，如果不能解析，则返回 null。
+     *      - SNICacheSize: SNI 上下文缓存的大小。默认值: 1024。
+     *      - SNICacheTimeout: SNI 上下文缓存的超时时间（以秒为单位）。默认值: 300。
      * 
      *      @param options 创建安全上下文的选项
      *      @param isServer 是否是服务器模式，默认为 false

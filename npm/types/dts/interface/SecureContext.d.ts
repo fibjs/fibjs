@@ -70,5 +70,44 @@ declare class Class_SecureContext extends Class_object {
      */
     readonly sessionTimeout: number;
 
+    /**
+     * @description 设置 SNI 上下文
+     *     @param servername 指定的服务器名
+     *     @param context 指定的安全上下文
+     *     
+     */
+    setSNIContext(servername: string, context: Class_SecureContext): void;
+
+    /**
+     * @description 设置 SNI 上下文
+     *     @param servername 指定的服务器名
+     *     @param options 使用 tls.createSecureContext 创建安全上下文需要的选项
+     *     
+     */
+    setSNIContext(servername: string, options: FIBJS.GeneralObject): void;
+
+    /**
+     * @description 查询 SNI 上下文
+     *     @param servername 指定的服务器名
+     *     @param auto_resolve 是否自动创建上下文
+     *     @return 返回指定的安全上下文
+     *     
+     */
+    getSNIContext(servername: string, auto_resolve?: boolean): Class_SecureContext;
+
+    getSNIContext(servername: string, auto_resolve?: boolean, callback?: (err: Error | undefined | null, retVal: Class_SecureContext)=>any): void;
+
+    /**
+     * @description 删除 SNI 上下文
+     *     @param servername 指定的服务器名
+     *     
+     */
+    removeSNIContext(servername: string): void;
+
+    /**
+     * @description 清除所有 SNI 上下文 
+     */
+    clearSNIContexts(): void;
+
 }
 

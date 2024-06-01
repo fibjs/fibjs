@@ -44,4 +44,31 @@ interface SecureContext : object
 
     /*! @brief 查询安全上下文回话超时 */
     readonly Integer sessionTimeout;
+
+    /*! @brief 设置 SNI 上下文
+    @param servername 指定的服务器名
+    @param context 指定的安全上下文
+    */
+    setSNIContext(String servername, SecureContext context);
+
+    /*! @brief 设置 SNI 上下文
+    @param servername 指定的服务器名
+    @param options 使用 tls.createSecureContext 创建安全上下文需要的选项
+    */
+    setSNIContext(String servername, Object options);
+
+    /*! @brief 查询 SNI 上下文
+    @param servername 指定的服务器名
+    @param auto_resolve 是否自动创建上下文
+    @return 返回指定的安全上下文
+    */
+    SecureContext getSNIContext(String servername, Boolean auto_resolve = false) async;
+
+    /*! @brief 删除 SNI 上下文
+    @param servername 指定的服务器名
+    */
+    removeSNIContext(String servername);
+
+    /*! @brief 清除所有 SNI 上下文 */
+    clearSNIContexts();
 };

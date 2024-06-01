@@ -9,6 +9,7 @@
 #include "ifs/crypto.h"
 #include "SecureContext.h"
 #include "X509Certificate.h"
+#include "Fiber.h"
 
 namespace fibjs {
 
@@ -58,6 +59,13 @@ result_t SecureContext::init(v8::Local<v8::Object> options, bool isServer)
     hr = set_sessionTimeout(options);
     if (hr < 0)
         return hr;
+
+    if (isServer) {
+        hr = set_sn_callback(options);
+        if (hr < 0)
+            return hr;
+    } else
+        m_sniContexts.resize(0);
 
     return 0;
 }
@@ -437,6 +445,87 @@ result_t SecureContext::set_verify(v8::Local<v8::Object> options, bool isServer)
     return 0;
 }
 
+int SecureContext::sn_callback(SSL* ssl, int* ad)
+{
+    const char* servername = SSL_get_servername(ssl, TLSEXT_NAMETYPE_host_name);
+    if (servername) {
+        obj_ptr<SecureContext> ctx;
+
+        if (!m_sniContexts.lookup(servername, ctx))
+            return SSL_TLSEXT_ERR_NOACK;
+
+        SSL_set_SSL_CTX(ssl, ctx->m_ctx);
+        return SSL_TLSEXT_ERR_OK;
+    }
+
+    return SSL_TLSEXT_ERR_NOACK;
+}
+
+int SecureContext::s_sn_callback(SSL* ssl, int* ad, void* arg)
+{
+    return ((SecureContext*)arg)->sn_callback(ssl, ad);
+}
+
+result_t SecureContext::set_sn_callback(v8::Local<v8::Object> options)
+{
+    Isolate* isolate = holder();
+    result_t hr;
+
+    int32_t SNICacheSize;
+    hr = GetConfigValue(isolate, options, "SNICacheSize", SNICacheSize);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return Runtime::setError("SecureContext: SNICacheSize must be a valid number.");
+    if (hr != CALL_E_PARAMNOTOPTIONAL)
+        m_sniContexts.resize(SNICacheSize);
+
+    int64_t SNICacheTimeout;
+    hr = GetConfigValue(isolate, options, "SNICacheTimeout", SNICacheTimeout);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return Runtime::setError("SecureContext: SNICacheTimeout must be a valid number.");
+    if (hr != CALL_E_PARAMNOTOPTIONAL)
+        m_sniContexts.set_timeout(SNICacheTimeout);
+
+    v8::Local<v8::Function> js_sn_resolver;
+    hr = GetConfigValue(isolate, options, "SNIResolver", js_sn_resolver);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return Runtime::setError("SecureContext: SNIResolver must be a valid function.");
+
+    if (hr != CALL_E_PARAMNOTOPTIONAL) {
+        m_sn_callback.Reset(isolate->m_isolate, js_sn_resolver);
+        m_sniContexts.set_resolver([this](exlib::string key) -> SecureContext* {
+            struct Param {
+                SecureContext* self;
+                exlib::string key;
+                obj_ptr<SecureContext_base> retVal;
+                exlib::Event ready;
+            } param = { this, key };
+
+            syncCall(this->holder(), [](Param* param) -> int {
+                JSFiber::EnterJsScope s;
+                Isolate* isolate = param->self->holder();
+                v8::Local<v8::Context> context = isolate->context();
+                v8::Local<v8::Function> js_sn_resolver = param->self->m_sn_callback.Get(isolate->m_isolate);
+                v8::Local<v8::Value> argv[] = { isolate->NewString(param->key) };
+
+                v8::Local<v8::Value> retVal = js_sn_resolver->Call(context, param->self->wrap(), 1, argv).FromMaybe(v8::Local<v8::Value>());
+                param->retVal = SecureContext_base::getInstance(retVal);
+
+                param->ready.set();
+
+                return 0; }, &param);
+
+            param.ready.wait();
+
+            return param.retVal.As<SecureContext>();
+        });
+    }
+
+    SSL_CTX_set_tlsext_servername_arg(m_ctx, this);
+    SSL_CTX_set_tlsext_servername_callback(m_ctx, s_sn_callback);
+
+    return 0;
+}
+
 result_t SecureContext::get_requestCert(bool& retVal)
 {
     retVal = !!(SSL_CTX_get_verify_mode(m_ctx) & SSL_VERIFY_PEER);
@@ -475,6 +564,49 @@ result_t SecureContext::set_sessionTimeout(v8::Local<v8::Object> options)
 result_t SecureContext::get_sessionTimeout(int32_t& retVal)
 {
     retVal = SSL_CTX_get_timeout(m_ctx);
+    return 0;
+}
+
+result_t SecureContext::setSNIContext(exlib::string servername, SecureContext_base* context)
+{
+    m_sniContexts.set(servername, (SecureContext*)context);
+    return 0;
+}
+
+result_t SecureContext::setSNIContext(exlib::string servername, v8::Local<v8::Object> options)
+{
+    obj_ptr<SecureContext_base> ctx;
+    result_t hr = tls_base::createSecureContext(options, true, ctx);
+    if (hr < 0)
+        return hr;
+
+    return setSNIContext(servername, ctx);
+}
+
+result_t SecureContext::getSNIContext(exlib::string servername, bool auto_resolve,
+    obj_ptr<SecureContext_base>& retVal, AsyncEvent* ac)
+{
+    if (auto_resolve && ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
+    obj_ptr<SecureContext> ctx;
+    if (!m_sniContexts.lookup(servername, ctx, auto_resolve))
+        return CALL_RETURN_UNDEFINED;
+
+    retVal = ctx;
+
+    return 0;
+}
+
+result_t SecureContext::removeSNIContext(exlib::string servername)
+{
+    m_sniContexts.erase(servername);
+    return 0;
+}
+
+result_t SecureContext::clearSNIContexts()
+{
+    m_sniContexts.clear();
     return 0;
 }
 

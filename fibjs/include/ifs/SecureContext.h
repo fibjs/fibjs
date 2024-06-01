@@ -33,6 +33,11 @@ public:
     virtual result_t get_rejectUnverified(bool& retVal) = 0;
     virtual result_t get_rejectUnauthorized(bool& retVal) = 0;
     virtual result_t get_sessionTimeout(int32_t& retVal) = 0;
+    virtual result_t setSNIContext(exlib::string servername, SecureContext_base* context) = 0;
+    virtual result_t setSNIContext(exlib::string servername, v8::Local<v8::Object> options) = 0;
+    virtual result_t getSNIContext(exlib::string servername, bool auto_resolve, obj_ptr<SecureContext_base>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t removeSNIContext(exlib::string servername) = 0;
+    virtual result_t clearSNIContexts() = 0;
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -54,6 +59,13 @@ public:
     static void s_get_rejectUnverified(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_rejectUnauthorized(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_sessionTimeout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_setSNIContext(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getSNIContext(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_removeSNIContext(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_clearSNIContexts(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+public:
+    ASYNC_MEMBERVALUE3(SecureContext_base, getSNIContext, exlib::string, bool, obj_ptr<SecureContext_base>);
 };
 }
 
@@ -63,6 +75,14 @@ public:
 namespace fibjs {
 inline ClassInfo& SecureContext_base::class_info()
 {
+    static ClassData::ClassMethod s_method[] = {
+        { "setSNIContext", s_setSNIContext, false, ClassData::ASYNC_SYNC },
+        { "getSNIContext", s_getSNIContext, false, ClassData::ASYNC_ASYNC },
+        { "getSNIContextSync", s_getSNIContext, false, ClassData::ASYNC_SYNC },
+        { "removeSNIContext", s_removeSNIContext, false, ClassData::ASYNC_SYNC },
+        { "clearSNIContexts", s_clearSNIContexts, false, ClassData::ASYNC_SYNC }
+    };
+
     static ClassData::ClassProperty s_property[] = {
         { "ca", s_get_ca, block_set, false },
         { "key", s_get_key, block_set, false },
@@ -78,9 +98,9 @@ inline ClassInfo& SecureContext_base::class_info()
 
     static ClassData s_cd = {
         "SecureContext", false, s__new, NULL,
-        0, NULL, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, 0, NULL, NULL, NULL,
         &object_base::class_info(),
-        false
+        true
     };
 
     static ClassInfo s_ci(s_cd);
@@ -205,5 +225,73 @@ inline void SecureContext_base::s_get_sessionTimeout(v8::Local<v8::Name> propert
     hr = pInst->get_sessionTimeout(vr);
 
     METHOD_RETURN();
+}
+
+inline void SecureContext_base::s_setSNIContext(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(SecureContext_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(obj_ptr<SecureContext_base>, 1);
+
+    hr = pInst->setSNIContext(v0, v1);
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Object>, 1);
+
+    hr = pInst->setSNIContext(v0, v1);
+
+    METHOD_VOID();
+}
+
+inline void SecureContext_base::s_getSNIContext(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<SecureContext_base> vr;
+
+    ASYNC_METHOD_INSTANCE(SecureContext_base);
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(bool, 1, false);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_getSNIContext(v0, v1, cb, args);
+    else
+        hr = pInst->ac_getSNIContext(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void SecureContext_base::s_removeSNIContext(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(SecureContext_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->removeSNIContext(v0);
+
+    METHOD_VOID();
+}
+
+inline void SecureContext_base::s_clearSNIContexts(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(SecureContext_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->clearSNIContexts();
+
+    METHOD_VOID();
 }
 }
