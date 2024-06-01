@@ -266,6 +266,26 @@ describe('tls', () => {
                 coroutine.sleep(1500);
                 assert.equal(ctx.getSNIContext("test"), undefined);
             });
+
+            it('memory recycling', () => {
+                var ctx = tls.createSecureContext({
+                    "SNIResolver": sni_resolver,
+                    "SNICacheSize": 2
+                }, true);
+
+                ctx.getSNIContext("test", true);
+                ctx.getSNIContext("test1", true);
+
+                test_util.gc();
+                const cnt = test_util.countObject("SecureContext");
+
+                for (var i = 0; i < 10; i++)
+                    ctx.getSNIContext("test" + i, true);
+
+                test_util.gc();
+                const cnt1 = test_util.countObject("SecureContext");
+                assert.equal(cnt, cnt1);
+            });
         });
     });
 
