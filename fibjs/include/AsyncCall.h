@@ -141,12 +141,12 @@ public:
                     m_v = CALL_E_TIMEOUT;
             }
         } else
-            return hr;
+            m_v = hr;
 
         if (m_v == CALL_E_EXCEPTION)
             Runtime::setError(m_error);
 
-        if (isPost())
+        if (m_v >= 0 && isPost())
             m_v = js_invoke();
 
         return m_v;
