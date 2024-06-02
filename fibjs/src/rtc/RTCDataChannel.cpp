@@ -18,6 +18,7 @@ RTCDataChannel::RTCDataChannel(const std::shared_ptr<rtc::DataChannel>& dataChan
     });
 
     m_dataChannel->onClosed([this]() {
+        this->m_self.Release();
         this->_emit("close");
     });
 
@@ -68,6 +69,7 @@ result_t RTCDataChannel::send(exlib::string data)
 
 result_t RTCDataChannel::close()
 {
+    m_self.Release();
     m_dataChannel->resetCallbacks();
     m_dataChannel->close();
     return 0;

@@ -69,6 +69,8 @@ result_t rtc_base::bind(exlib::string bind_address, int32_t local_port, v8::Loca
     if (ret < 0)
         return Runtime::setError("rtc.bind() need to be called before RTCPeerConnection object is created");
 
+    isolate->Ref();
+
     return 0;
 }
 
@@ -296,11 +298,18 @@ result_t RTCPeerConnection::createDataChannel(exlib::string label, v8::Local<v8:
         init.id = id;
     }
 
+    obj_ptr<RTCDataChannel> dc;
     try {
-        retVal = new RTCDataChannel(m_peerConnection->createDataChannel(label, init));
+        dc = new RTCDataChannel(m_peerConnection->createDataChannel(label, init));
+        retVal = dc;
     } catch (std::exception& e) {
         return Runtime::setError(e.what());
     }
+
+    m_lock.lock();
+    if (m_peerConnection->state() != rtc::PeerConnection::State::Connected)
+        m_dataChannels.emplace_back(dc);
+    m_lock.unlock();
 
     return 0;
 }
@@ -332,10 +341,17 @@ result_t RTCPeerConnection::setRemoteDescription(RTCSessionDescription_base* des
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
+    else if (ac->isPost()) {
+        m_self = new ValueHolder(wrap());
+        isolate_ref();
+
+        return 0;
+    }
 
     RTCSessionDescription* desc = static_cast<RTCSessionDescription*>(description);
     try {
         m_peerConnection->setRemoteDescription(desc->m_desc);
+        ac->setPost();
     } catch (std::exception& e) {
         return Runtime::setError(e.what());
     }
@@ -520,6 +536,22 @@ result_t RTCPeerConnection::get_signalingState(exlib::string& retVal)
 
 void RTCPeerConnection::onStateChange(rtc::PeerConnection::State state)
 {
+    if (state == rtc::PeerConnection::State::Connected) {
+        m_lock.lock();
+        m_dataChannels.clear();
+        m_lock.unlock();
+    } else if (state == rtc::PeerConnection::State::Closed) {
+        m_lock.lock();
+        while (!m_dataChannels.empty()) {
+            m_dataChannels.front()->close();
+            m_dataChannels.pop_front();
+        }
+        m_lock.unlock();
+
+        m_self.Release();
+        isolate_unref();
+    }
+
     obj_ptr<NObject> ev = new NObject();
 
     ev->add("state", connection_state_str(state));

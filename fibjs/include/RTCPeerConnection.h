@@ -11,6 +11,7 @@
 
 #include "ifs/RTCPeerConnection.h"
 #include "datachannel/include/rtc/rtc.hpp"
+#include "RTCDataChannel.h"
 #include <list>
 
 namespace fibjs {
@@ -67,6 +68,8 @@ private:
     std::shared_ptr<rtc::PeerConnection> m_peerConnection;
     exlib::string m_local_id, m_remote_id;
 
+    obj_ptr<ValueHolder> m_self;
+
     exlib::spinlock m_lock;
 
     obj_ptr<NObject> m_offer_description;
@@ -74,6 +77,8 @@ private:
 
     obj_ptr<NObject> m_answer_description;
     std::list<std::pair<Variant&, AsyncEvent*>> m_answers;
+
+    std::list<obj_ptr<RTCDataChannel>> m_dataChannels;
 };
 
 } /* namespace fibjs */

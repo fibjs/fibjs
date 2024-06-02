@@ -38,8 +38,22 @@ public:
     EVENT_FUNC(error);
     EVENT_FUNC(bufferedamountlow);
 
+public:
+    virtual result_t onEventChange(exlib::string type, exlib::string ev, v8::Local<v8::Function> func)
+    {
+        if (!m_inited) {
+            m_self = new ValueHolder(wrap());
+            m_inited = true;
+        }
+
+        return 0;
+    }
+
 private:
     std::shared_ptr<rtc::DataChannel> m_dataChannel;
+
+    bool m_inited = false;
+    obj_ptr<ValueHolder> m_self;
 };
 
 } /* namespace fibjs */
