@@ -22,11 +22,12 @@ private:
     public:
         obj_ptr<T> m_obj;
         exlib::Event m_ready;
-        std::chrono::time_point<std::chrono::system_clock> m_updated;
 
-        typename std::unordered_map<exlib::string, CacheItem*>::iterator m_map_iter;
+        typename std::unordered_map<exlib::string, obj_ptr<CacheItem>>::iterator m_map_iter;
         typename std::list<CacheItem*>::iterator m_used_iter;
-        typename std::list<obj_ptr<CacheItem>>::iterator m_expired_iter;
+
+        std::chrono::time_point<std::chrono::system_clock> m_updated;
+        typename std::list<CacheItem*>::iterator m_expired_iter;
     };
 
 public:
@@ -161,9 +162,10 @@ private:
     void erase_item(CacheItem* item)
     {
         if (item->m_map_iter != m_map.end()) {
-            m_map.erase(item->m_map_iter);
             m_used.erase(item->m_used_iter);
             m_expired.erase(item->m_expired_iter);
+
+            m_map.erase(item->m_map_iter);
             item->m_map_iter = m_map.end();
         }
     }
@@ -179,22 +181,22 @@ private:
                 item->m_used_iter = m_used.insert(m_used.begin(), item);
             }
 
+            item->m_updated = std::chrono::system_clock::now();
             if (item->m_expired_iter != m_expired.begin()) {
                 m_expired.erase(item->m_expired_iter);
                 item->m_expired_iter = m_expired.insert(m_expired.begin(), item);
             }
 
-            item->m_updated = std::chrono::system_clock::now();
-
             return false;
         }
 
         item = new CacheItem();
+
         item->m_map_iter = m_map.emplace(key, item).first;
         item->m_used_iter = m_used.insert(m_used.begin(), item);
-        item->m_expired_iter = m_expired.insert(m_expired.begin(), item);
 
         item->m_updated = std::chrono::system_clock::now();
+        item->m_expired_iter = m_expired.insert(m_expired.begin(), item);
 
         clean_used();
 
@@ -209,6 +211,9 @@ private:
 
     void clean_expired()
     {
+        if (m_timeout <= 0)
+            return;
+
         std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
         while (!m_expired.empty()) {
             CacheItem* item = m_expired.back();
@@ -221,9 +226,9 @@ private:
 
 private:
     Resolver m_resolver;
-    std::unordered_map<exlib::string, CacheItem*> m_map;
+    std::unordered_map<exlib::string, obj_ptr<CacheItem>> m_map;
     std::list<CacheItem*> m_used;
-    std::list<obj_ptr<CacheItem>> m_expired;
+    std::list<CacheItem*> m_expired;
 
     int32_t m_size;
     int64_t m_timeout;
