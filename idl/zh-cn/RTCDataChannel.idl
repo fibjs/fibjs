@@ -1,39 +1,45 @@
-/**/
+/*! @brief RTCDataChannel接口定义了一个双向的数据通道 */
 interface RTCDataChannel : EventEmitter
 {
-    /**/
+    /*! @brief 发送二进制数据，该方法用于发送数据到远程端
+
+     @param data 要发送的二进制数据
+    */
     send(Buffer data);
 
-    /**/
+    /*! @brief 发送文本数据，该方法用于发送数据到远程端
+
+     @param data 要发送的文本数据
+    */
     send(String data);
 
-    /**/
+    /*! @brief 关闭通道，该方法用于关闭通道 */
     close();
 
-    /**/
+    /*! @brief 返回唯一标识 RTCDataChannel 的 ID 号 */
     readonly Integer id;
 
-    /**/
+    /*! @brief 返回一个字符串，其中包含描述数据通道的名称 */
     readonly String label;
 
-    /**/
+    /*! @brief 返回包含正在使用的子协议名称的字符串 */
     readonly String protocol;
 
-    /**/
+    /*! @brief 返回当前排队通过数据通道发送的数据的字节数 */
     readonly Number bufferedAmount;
 
-    /**/
+    /*! @brief 通道打开事件，当通道打开时触发 */
     Function onopen;
 
-    /**/
+    /*! @brief 通道消息事件，当接收到消息时触发 */
     Function onmessage;
 
-    /**/
+    /*! @brief 通道关闭事件，当通道关闭时触发 */
     Function onclose;
 
-    /**/
+    /*! @brief 通道错误事件，当通道发生错误时触发 */
     Function onerror;
 
-    /**/
+    /*! @brief 通道缓冲区低事件，当通道缓冲区低时触发 */
     Function onbufferedamountlow;
 };

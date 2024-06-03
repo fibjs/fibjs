@@ -1,27 +1,34 @@
-/**/
+/*! @brief WebRTC ICE 候选参数对象 */
 interface RTCIceCandidate : object
 {
-    /**/
+    /*! @brief 构造函数
+
+     description 初始化参数，支持以下字段：
+        - candidate: 候选项字符串
+        - sdpMid: 媒体流标识
+
+      @param description 初始化参数
+    */
     RTCIceCandidate(Object description = {});
 
-    /**/
+    /*! @brief 返回候选项字符串 */
     readonly String candidate;
 
-    /**/
+    /*! @brief 返回媒体流标识 */
     readonly String sdpMid;
 
-    /**/
+    /*! @brief 返回优先级 */
     readonly Integer priority;
 
-    /**/
+    /*! @brief 返回传输协议 */
     readonly String transport;
 
-    /**/
+    /*! @brief 返回地址 */
     readonly String address;
 
-    /**/
+    /*! @brief 返回端口 */
     readonly Integer port;
 
-    /**/
+    /*! @brief 返回类型 */
     readonly String type;
 };

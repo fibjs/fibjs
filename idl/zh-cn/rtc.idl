@@ -1,18 +1,31 @@
 /*! @brief WebRTC 网络实时通信模块 */
 module rtc
 {
-    /**/
+    /*! @brief WebRTC 连接对象，参见 RTCPeerConnection */
     static RTCPeerConnection;
 
-    /**/
+    /*! @brief WebRTC 会话描述对象，参见 RTCSessionDescription */
     static RTCSessionDescription;
 
-    /**/
+    /*! @brief WebRTC ICE 候选参数对象，参见 RTCIceCandidate */
     static RTCIceCandidate;
 
-    /**/
+    /*! @brief 在指定地址和端口上绑定一个 WebRTC 侦听服务
+
+    bind 方法用于在指定地址和端口上绑定一个 WebRTC 侦听服务，用于响应未握手的 WebRTC 连接请求。
+
+     @param bind_address 绑定地址
+     @param local_port 本地端口
+     @param cb 回调函数
+    */
     static bind(String bind_address, Integer local_port, Function cb);
 
-    /**/
+    /*! @brief 在指定端口上绑定一个 WebRTC 侦听服务
+
+    bind 方法用于在指定端口上绑定一个 WebRTC 侦听服务，用于响应未握手的 WebRTC 连接请求。
+
+     @param local_port 本地端口
+     @param cb 回调函数
+    */
     static bind(Integer local_port, Function cb);
 };
