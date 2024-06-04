@@ -30,7 +30,9 @@ result_t rtc_base::bind(exlib::string bind_address, int32_t local_port, v8::Loca
     struct cb_data {
         exlib::string ufrag;
         exlib::string pwd;
-        exlib::string bind_address;
+        uint8_t family;
+        exlib::string address;
+        uint16_t port;
     };
 
     Isolate* isolate = Isolate::current(cb);
@@ -40,12 +42,14 @@ result_t rtc_base::bind(exlib::string bind_address, int32_t local_port, v8::Loca
     static v8::Global<v8::Function> s_cb_global(isolate->m_isolate, cb);
 
     int ret = juice_bind_stun(bind_address.c_str(), local_port,
-        [](const char* ufrag, const char* pwd, const char* bind_address) {
+        [](const juice_stun_binding_t* binding_info) {
             cb_data* data_ = new cb_data();
 
-            data_->ufrag = ufrag;
-            data_->pwd = pwd;
-            data_->bind_address = bind_address;
+            data_->ufrag = binding_info->ufrag;
+            data_->pwd = binding_info->pwd;
+            data_->family = binding_info->family;
+            data_->address = binding_info->address;
+            data_->port = binding_info->port;
 
             syncCall(Isolate::main(), [](cb_data* data_) {
                 Isolate* isolate = Isolate::main();
@@ -56,7 +60,9 @@ result_t rtc_base::bind(exlib::string bind_address, int32_t local_port, v8::Loca
 
                 data->Set(isolate->context(), isolate->NewString("ufrag"), isolate->NewString(data_->ufrag)).Check();
                 data->Set(isolate->context(), isolate->NewString("pwd"), isolate->NewString(data_->pwd)).Check();
-                data->Set(isolate->context(), isolate->NewString("address"), isolate->NewString(data_->bind_address)).Check();
+                data->Set(isolate->context(), isolate->NewString("family"), data_->family == 4 ? isolate->NewString("IP4") : isolate->NewString("IP6")).Check();
+                data->Set(isolate->context(), isolate->NewString("address"), isolate->NewString(data_->address)).Check();
+                data->Set(isolate->context(), isolate->NewString("port"), v8::Number::New(isolate->m_isolate, data_->port)).Check();
                 delete data_;
 
                 v8::Local<v8::Value> argv[] = { data };
