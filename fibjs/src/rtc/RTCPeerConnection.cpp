@@ -108,7 +108,11 @@ result_t RTCSessionDescription_base::_new(v8::Local<v8::Object> description,
     if (hr < 0)
         return hr;
 
-    retVal = new RTCSessionDescription(sdp, type);
+    try {
+        retVal = new RTCSessionDescription(sdp, type);
+    } catch (std::exception& e) {
+        return Runtime::setError(e.what());
+    }
 
     return 0;
 }
