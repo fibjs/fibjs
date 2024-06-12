@@ -40,8 +40,9 @@ result_t rtc_base::bind(exlib::string bind_address, int32_t local_port, v8::Loca
         return Runtime::setError("rtc.bind() can only be called in the main isolate");
 
     static v8::Global<v8::Function> s_cb_global(isolate->m_isolate, cb);
+    const char* bind_address_ = bind_address.empty() ? nullptr : bind_address.c_str();
 
-    int ret = juice_bind_stun(bind_address.c_str(), local_port,
+    int ret = juice_bind_stun(bind_address_, local_port,
         [](const juice_stun_binding_t* binding_info) {
             cb_data* data_ = new cb_data();
 
@@ -72,8 +73,11 @@ result_t rtc_base::bind(exlib::string bind_address, int32_t local_port, v8::Loca
                 return 0; }, data_);
         });
 
-    if (ret < 0)
+    if (ret == -1)
         return Runtime::setError("rtc.bind() need to be called before RTCPeerConnection object is created");
+
+    if (ret == -2)
+        return Runtime::setError("rtc.bind() failed to bind to the specified address");
 
     isolate->Ref();
 
