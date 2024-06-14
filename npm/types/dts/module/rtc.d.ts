@@ -44,5 +44,10 @@ declare module 'rtc' {
      */
     function bind(local_port: number, cb: (...args: any[])=>any): void;
 
+    /**
+     * @description 解除 WebRTC 侦听服务绑定 
+     */
+    function unbind(): void;
+
 }
 

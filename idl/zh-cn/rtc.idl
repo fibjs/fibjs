@@ -28,4 +28,7 @@ module rtc
      @param cb 回调函数
     */
     static bind(Integer local_port, Function cb);
+
+    /*! @brief 解除 WebRTC 侦听服务绑定 */
+    static unbind();
 };

@@ -39,11 +39,11 @@ result_t rtc_base::bind(exlib::string bind_address, int32_t local_port, v8::Loca
     if (isolate->m_id != 1)
         return Runtime::setError("rtc.bind() can only be called in the main isolate");
 
-    static v8::Global<v8::Function> s_cb_global(isolate->m_isolate, cb);
+    static v8::Global<v8::Function> s_cb_global;
+    s_cb_global.Reset(isolate->m_isolate, cb);
     const char* bind_address_ = bind_address.empty() ? nullptr : bind_address.c_str();
 
-    int ret = juice_bind_stun(bind_address_, local_port,
-        [](const juice_stun_binding_t* binding_info) {
+    int ret = juice_bind_stun(bind_address_, local_port, [](const juice_stun_binding_t* binding_info, void* user_data) {
             cb_data* data_ = new cb_data();
 
             data_->ufrag = binding_info->ufrag;
@@ -52,8 +52,8 @@ result_t rtc_base::bind(exlib::string bind_address, int32_t local_port, v8::Loca
             data_->address = binding_info->address;
             data_->port = binding_info->port;
 
-            syncCall(Isolate::main(), [](cb_data* data_) {
-                Isolate* isolate = Isolate::main();
+            syncCall((Isolate*)user_data, [](cb_data* data_) {
+                Isolate* isolate = Isolate::current();
                 JSFiber::EnterJsScope s(NULL, true);
 
                 v8::Local<v8::Function> cb = v8::Local<v8::Function>::New(isolate->m_isolate, s_cb_global);
@@ -70,16 +70,27 @@ result_t rtc_base::bind(exlib::string bind_address, int32_t local_port, v8::Loca
 
                 v8::Local<v8::Value> result = cb->Call(isolate->context(), v8::Undefined(isolate->m_isolate), 1, argv).FromMaybe(v8::Local<v8::Value>());
 
-                return 0; }, data_);
-        });
+                return 0; }, data_); }, isolate);
 
     if (ret == -1)
         return Runtime::setError("rtc.bind() need to be called before RTCPeerConnection object is created");
-
-    if (ret == -2)
-        return Runtime::setError("rtc.bind() failed to bind to the specified address");
+    else if (ret < 0)
+        return Runtime::setError("rtc.bind() failed to bind to the specified port");
 
     isolate->Ref();
+
+    return 0;
+}
+
+result_t rtc_base::unbind()
+{
+    Isolate* isolate = Isolate::current();
+    if (isolate->m_id != 1)
+        return Runtime::setError("rtc.unbind() can only be called in the main isolate");
+
+    int ret = juice_unbind_stun();
+    if (ret == 0)
+        isolate->Unref();
 
     return 0;
 }
