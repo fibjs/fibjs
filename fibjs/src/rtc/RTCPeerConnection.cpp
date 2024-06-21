@@ -553,6 +553,39 @@ result_t RTCPeerConnection::get_remoteDescription(v8::Local<v8::Object>& retVal)
     return 0;
 }
 
+result_t RTCPeerConnection::get_remoteFingerprint(v8::Local<v8::Object>& retVal)
+{
+    Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Object> obj = v8::Object::New(isolate->m_isolate);
+
+    rtc::CertificateFingerprint fingerprint = m_peerConnection->remoteFingerprint();
+
+    switch (fingerprint.algorithm) {
+    case rtc::CertificateFingerprint::Algorithm::Sha1:
+        obj->Set(context, isolate->NewString("algorithm"), isolate->NewString("SHA-1")).Check();
+        break;
+    case rtc::CertificateFingerprint::Algorithm::Sha224:
+        obj->Set(context, isolate->NewString("algorithm"), isolate->NewString("SHA-224")).Check();
+        break;
+    case rtc::CertificateFingerprint::Algorithm::Sha256:
+        obj->Set(context, isolate->NewString("algorithm"), isolate->NewString("SHA-256")).Check();
+        break;
+    case rtc::CertificateFingerprint::Algorithm::Sha384:
+        obj->Set(context, isolate->NewString("algorithm"), isolate->NewString("SHA-384")).Check();
+        break;
+    case rtc::CertificateFingerprint::Algorithm::Sha512:
+        obj->Set(context, isolate->NewString("algorithm"), isolate->NewString("SHA-512")).Check();
+        break;
+    }
+
+    obj->Set(context, isolate->NewString("fingerprint"), isolate->NewString(fingerprint.value)).Check();
+
+    retVal = obj;
+
+    return 0;
+}
+
 result_t RTCPeerConnection::get_signalingState(exlib::string& retVal)
 {
     retVal = signaling_state_str(m_peerConnection->signalingState());

@@ -41,6 +41,7 @@ public:
     virtual result_t get_iceGatheringState(exlib::string& retVal) = 0;
     virtual result_t get_localDescription(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t get_remoteDescription(v8::Local<v8::Object>& retVal) = 0;
+    virtual result_t get_remoteFingerprint(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t get_signalingState(exlib::string& retVal) = 0;
     virtual result_t get_onconnectionstatechange(v8::Local<v8::Function>& retVal) = 0;
     virtual result_t set_onconnectionstatechange(v8::Local<v8::Function> newVal) = 0;
@@ -78,6 +79,7 @@ public:
     static void s_get_iceGatheringState(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_localDescription(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_remoteDescription(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_remoteFingerprint(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_signalingState(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_get_onconnectionstatechange(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_onconnectionstatechange(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
@@ -131,6 +133,7 @@ inline ClassInfo& RTCPeerConnection_base::class_info()
         { "iceGatheringState", s_get_iceGatheringState, block_set, false },
         { "localDescription", s_get_localDescription, block_set, false },
         { "remoteDescription", s_get_remoteDescription, block_set, false },
+        { "remoteFingerprint", s_get_remoteFingerprint, block_set, false },
         { "signalingState", s_get_signalingState, block_set, false },
         { "onconnectionstatechange", s_get_onconnectionstatechange, s_set_onconnectionstatechange, false },
         { "ondatachannel", s_get_ondatachannel, s_set_ondatachannel, false },
@@ -373,6 +376,18 @@ inline void RTCPeerConnection_base::s_get_remoteDescription(v8::Local<v8::Name> 
     PROPERTY_ENTER();
 
     hr = pInst->get_remoteDescription(vr);
+
+    METHOD_RETURN();
+}
+
+inline void RTCPeerConnection_base::s_get_remoteFingerprint(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Object> vr;
+
+    METHOD_INSTANCE(RTCPeerConnection_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_remoteFingerprint(vr);
 
     METHOD_RETURN();
 }

@@ -122,6 +122,9 @@ interface RTCPeerConnection : EventEmitter
     /*! @brief 获取远程描述，返回远程描述对象 */
     readonly Object remoteDescription;
 
+    /*! @brief 获取远程指纹，返回远程指纹对象 */
+    readonly Object remoteFingerprint;
+
     /*! @brief 获取信令状态，返回信令状态字符串，可能的值有：'stable'、'have-local-offer'、'have-remote-offer'、'have-local-pranswer'、'have-remote-pranswer'、'closed' */
     readonly String signalingState;
 

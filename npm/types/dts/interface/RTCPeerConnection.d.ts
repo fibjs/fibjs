@@ -173,6 +173,11 @@ declare class Class_RTCPeerConnection extends Class_EventEmitter {
     readonly remoteDescription: FIBJS.GeneralObject;
 
     /**
+     * @description 获取远程指纹，返回远程指纹对象 
+     */
+    readonly remoteFingerprint: FIBJS.GeneralObject;
+
+    /**
      * @description 获取信令状态，返回信令状态字符串，可能的值有：'stable'、'have-local-offer'、'have-remote-offer'、'have-local-pranswer'、'have-remote-pranswer'、'closed' 
      */
     readonly signalingState: string;

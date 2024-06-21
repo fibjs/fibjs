@@ -38,6 +38,7 @@ public:
     virtual result_t get_iceGatheringState(exlib::string& retVal);
     virtual result_t get_localDescription(v8::Local<v8::Object>& retVal);
     virtual result_t get_remoteDescription(v8::Local<v8::Object>& retVal);
+    virtual result_t get_remoteFingerprint(v8::Local<v8::Object>& retVal);
     virtual result_t get_signalingState(exlib::string& retVal);
 
 public:
