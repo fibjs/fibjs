@@ -3600,7 +3600,7 @@ describe('crypto', () => {
         });
 
         describe("X509CertificateRequest", () => {
-            it("create", () => {
+            it("create rsa", () => {
                 var pk = crypto.createPrivateKey(rsa4096_pem);
                 var req = crypto.createCertificateRequest({
                     key: pk,
@@ -3612,6 +3612,18 @@ describe('crypto', () => {
                 });
                 assert.equal(req.pem, req2);
                 assert.equal(req.toString(), req2);
+            })
+
+            it("create sm2", () => {
+                var pk = crypto.createPrivateKey(sm2_pem);
+                var req = crypto.createCertificateRequest({
+                    key: pk,
+                    subject: {
+                        C: "CN",
+                        O: "baoz.cn",
+                        CN: "baoz.me"
+                    }
+                });
             })
 
             it("info", () => {

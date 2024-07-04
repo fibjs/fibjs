@@ -90,7 +90,7 @@ static result_t get_opt(v8::Local<v8::Object> options, const char* subject_name,
     } else if (hr != CALL_E_PARAMNOTOPTIONAL)
         return Runtime::setError("subject must be object");
 
-    exlib::string hashAlgorithm = "sha256";
+    exlib::string hashAlgorithm = EVP_PKEY_id(key->pkey()) == EVP_PKEY_SM2 ? "sm3" : "sha256";
     hr = GetConfigValue(isolate, options, "hashAlgorithm", hashAlgorithm, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;

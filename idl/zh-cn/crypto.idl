@@ -179,7 +179,7 @@ module crypto
         var pk = crypto.createPrivateKey(rsa4096_pem);
         var req = crypto.createCertificateRequest({
             key: pk,
-            hashAlgorithm: 'sha256', // 缺省为 'sha256'
+            hashAlgorithm: 'sha256', // 缺省为 'sha256'，如果 key 是 SM2 类型，缺省为 'sm3'
             subject: {
                 C: "CN",
                 O: "baoz.cn",
