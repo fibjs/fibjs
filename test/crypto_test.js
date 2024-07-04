@@ -1350,6 +1350,28 @@ describe('crypto', () => {
                     assert.equal(decryptedBuffer.toString(), input);
                 });
 
+                it('publicEncrypt/privateDecrypt with sm2', () => {
+                    function encrypt_test(key, data) {
+                        let encrypt_res = crypto.publicEncrypt(key.publicKey, Buffer.from(data)).toString("hex");
+                        console.log(key.publicKey.asymmetricKeyType, " encrypt_res:", encrypt_res);
+                        return encrypt_res;
+                    }
+
+                    function decrypt_test(key, encrypt_data) {
+                        let decrypt_res = crypto.privateDecrypt(key.privateKey, Buffer.from(encrypt_data, "hex")).toString();
+                        console.log(key.privateKey.asymmetricKeyType, " decrypt_res:", decrypt_res);
+                        return decrypt_res;
+                    }
+
+                    let data = Buffer.from("aaa");
+
+                    let sm2_key = crypto.generateKeyPairSync('sm2');
+                    var sm2_encrypt = encrypt_test(sm2_key, data);
+                    var sm2_decrypt = decrypt_test(sm2_key, sm2_encrypt);
+
+                    assert.deepEqual("aaa", sm2_decrypt);
+                });
+
                 it('passphrase error', () => {
                     assert.throws(() => {
                         crypto.privateDecrypt({

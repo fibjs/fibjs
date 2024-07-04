@@ -48,8 +48,10 @@ result_t PKEY_cipher(EVP_PKEY* pkey, int padding, const EVP_MD* digest,
     if (EVP_PKEY_cipher_init(ctx) <= 0)
         return openssl_error();
 
-    if (EVP_PKEY_CTX_set_rsa_padding(ctx, padding) <= 0)
-        return openssl_error();
+    if (EVP_PKEY_id(pkey) == EVP_PKEY_RSA) {
+        if (EVP_PKEY_CTX_set_rsa_padding(ctx, padding) <= 0)
+            return openssl_error();
+    }
 
     if (digest != nullptr)
         if (EVP_PKEY_CTX_set_rsa_oaep_md(ctx, digest) <= 0)
