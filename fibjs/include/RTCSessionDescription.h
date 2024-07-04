@@ -7,7 +7,9 @@
 
 #pragma once
 
+#ifndef RTC_STATIC
 #define RTC_STATIC
+#endif
 
 #include "ifs/RTCSessionDescription.h"
 #include "datachannel/include/rtc/rtc.hpp"

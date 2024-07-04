@@ -12,6 +12,10 @@
 #include "SimpleObject.h"
 #include "Fiber.h"
 #include "ifs/rtc.h"
+
+#ifndef JUICE_STATIC
+#define JUICE_STATIC
+#endif
 #include "juice/include/juice/juice.h"
 
 namespace fibjs {
