@@ -24,9 +24,10 @@ class rtc_base : public object_base {
 
 public:
     // rtc_base
-    static result_t bind(exlib::string bind_address, int32_t local_port, v8::Local<v8::Function> cb);
-    static result_t bind(int32_t local_port, v8::Local<v8::Function> cb);
-    static result_t unbind();
+    static result_t listen(exlib::string bind_address, int32_t local_port, v8::Local<v8::Function> cb);
+    static result_t listen(int32_t local_port, v8::Local<v8::Function> cb);
+    static result_t stop_listen(exlib::string bind_address, int32_t local_port);
+    static result_t stop_listen(int32_t local_port);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -38,8 +39,8 @@ public:
     }
 
 public:
-    static void s_static_bind(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_unbind(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_listen(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_stop_listen(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -51,8 +52,8 @@ namespace fibjs {
 inline ClassInfo& rtc_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "bind", s_static_bind, true, ClassData::ASYNC_SYNC },
-        { "unbind", s_static_unbind, true, ClassData::ASYNC_SYNC }
+        { "listen", s_static_listen, true, ClassData::ASYNC_SYNC },
+        { "stop_listen", s_static_stop_listen, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -72,7 +73,7 @@ inline ClassInfo& rtc_base::class_info()
     return s_ci;
 }
 
-inline void rtc_base::s_static_bind(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void rtc_base::s_static_listen(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
 
@@ -82,25 +83,34 @@ inline void rtc_base::s_static_bind(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG(int32_t, 1);
     ARG(v8::Local<v8::Function>, 2);
 
-    hr = bind(v0, v1, v2);
+    hr = listen(v0, v1, v2);
 
     METHOD_OVER(2, 2);
 
     ARG(int32_t, 0);
     ARG(v8::Local<v8::Function>, 1);
 
-    hr = bind(v0, v1);
+    hr = listen(v0, v1);
 
     METHOD_VOID();
 }
 
-inline void rtc_base::s_static_unbind(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void rtc_base::s_static_stop_listen(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
 
-    METHOD_OVER(0, 0);
+    METHOD_OVER(2, 2);
 
-    hr = unbind();
+    ARG(exlib::string, 0);
+    ARG(int32_t, 1);
+
+    hr = stop_listen(v0, v1);
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
+
+    hr = stop_listen(v0);
 
     METHOD_VOID();
 }

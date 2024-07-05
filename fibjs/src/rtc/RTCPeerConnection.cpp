@@ -29,12 +29,11 @@ DECLARE_MODULE(rtc);
 //     }
 // } s_init_rtc;
 
-result_t rtc_base::bind(exlib::string bind_address, int32_t local_port, v8::Local<v8::Function> cb)
+result_t rtc_base::listen(exlib::string bind_address, int32_t local_port, v8::Local<v8::Function> cb)
 {
     struct cb_data {
-        exlib::string ufrag;
-        exlib::string pwd;
-        uint8_t family;
+        exlib::string local_ufrag;
+        exlib::string remote_ufrag;
         exlib::string address;
         uint16_t port;
     };
@@ -47,14 +46,13 @@ result_t rtc_base::bind(exlib::string bind_address, int32_t local_port, v8::Loca
     s_cb_global.Reset(isolate->m_isolate, cb);
     const char* bind_address_ = bind_address.empty() ? nullptr : bind_address.c_str();
 
-    int ret = juice_bind_stun(bind_address_, local_port, [](const juice_stun_binding_t* binding_info, void* user_data) {
+    int ret = juice_mux_listen(bind_address_, local_port, [](const juice_mux_incoming_t* incoming_info, void* user_data) {
             cb_data* data_ = new cb_data();
 
-            data_->ufrag = binding_info->ufrag;
-            data_->pwd = binding_info->pwd;
-            data_->family = binding_info->family;
-            data_->address = binding_info->address;
-            data_->port = binding_info->port;
+            data_->local_ufrag = incoming_info->local_ufrag;
+            data_->remote_ufrag = incoming_info->remote_ufrag;
+            data_->address = incoming_info->address;
+            data_->port = incoming_info->port;
 
             syncCall((Isolate*)user_data, [](cb_data* data_) {
                 Isolate* isolate = Isolate::current();
@@ -63,9 +61,8 @@ result_t rtc_base::bind(exlib::string bind_address, int32_t local_port, v8::Loca
                 v8::Local<v8::Function> cb = v8::Local<v8::Function>::New(isolate->m_isolate, s_cb_global);
                 v8::Local<v8::Object> data = v8::Object::New(isolate->m_isolate);
 
-                data->Set(isolate->context(), isolate->NewString("ufrag"), isolate->NewString(data_->ufrag)).Check();
-                data->Set(isolate->context(), isolate->NewString("pwd"), isolate->NewString(data_->pwd)).Check();
-                data->Set(isolate->context(), isolate->NewString("family"), data_->family == 4 ? isolate->NewString("IP4") : isolate->NewString("IP6")).Check();
+                data->Set(isolate->context(), isolate->NewString("local_ufrag"), isolate->NewString(data_->local_ufrag)).Check();
+                data->Set(isolate->context(), isolate->NewString("remote_ufrag"), isolate->NewString(data_->remote_ufrag)).Check();
                 data->Set(isolate->context(), isolate->NewString("address"), isolate->NewString(data_->address)).Check();
                 data->Set(isolate->context(), isolate->NewString("port"), v8::Number::New(isolate->m_isolate, data_->port)).Check();
                 delete data_;
@@ -86,22 +83,27 @@ result_t rtc_base::bind(exlib::string bind_address, int32_t local_port, v8::Loca
     return 0;
 }
 
-result_t rtc_base::unbind()
+result_t rtc_base::stop_listen(exlib::string bind_address, int32_t local_port)
 {
     Isolate* isolate = Isolate::current();
     if (isolate->m_id != 1)
         return Runtime::setError("rtc.unbind() can only be called in the main isolate");
 
-    int ret = juice_unbind_stun();
+    int ret = juice_mux_stop_listen(bind_address.empty() ? nullptr : bind_address.c_str(), local_port);
     if (ret == 0)
         isolate->Unref();
 
     return 0;
 }
 
-result_t rtc_base::bind(int32_t local_port, v8::Local<v8::Function> cb)
+result_t rtc_base::stop_listen(int32_t local_port)
 {
-    return bind("", local_port, cb);
+    return stop_listen("", local_port);
+}
+
+result_t rtc_base::listen(int32_t local_port, v8::Local<v8::Function> cb)
+{
+    return listen("", local_port, cb);
 }
 
 result_t RTCPeerConnection_base::_new(v8::Local<v8::Object> options,

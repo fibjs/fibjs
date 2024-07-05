@@ -18,7 +18,7 @@ module rtc
      @param local_port 本地端口
      @param cb 回调函数
     */
-    static bind(String bind_address, Integer local_port, Function cb);
+    static listen(String bind_address, Integer local_port, Function cb);
 
     /*! @brief 在指定端口上绑定一个 WebRTC 侦听服务
 
@@ -27,8 +27,16 @@ module rtc
      @param local_port 本地端口
      @param cb 回调函数
     */
-    static bind(Integer local_port, Function cb);
+    static listen(Integer local_port, Function cb);
 
-    /*! @brief 解除 WebRTC 侦听服务绑定 */
-    static unbind();
+    /*! @brief 解除 WebRTC 侦听服务绑定
+     @param bind_address 绑定地址
+     @param local_port 本地端口
+     */
+    static stop_listen(String bind_address, Integer local_port);
+
+    /*! @brief 解除 WebRTC 侦听服务绑定
+     @param local_port 本地端口
+     */
+    static stop_listen(Integer local_port);
 };

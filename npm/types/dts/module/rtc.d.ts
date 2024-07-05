@@ -31,7 +31,7 @@ declare module 'rtc' {
      *      @param cb 回调函数
      *     
      */
-    function bind(bind_address: string, local_port: number, cb: (...args: any[])=>any): void;
+    function listen(bind_address: string, local_port: number, cb: (...args: any[])=>any): void;
 
     /**
      * @description 在指定端口上绑定一个 WebRTC 侦听服务
@@ -42,12 +42,22 @@ declare module 'rtc' {
      *      @param cb 回调函数
      *     
      */
-    function bind(local_port: number, cb: (...args: any[])=>any): void;
+    function listen(local_port: number, cb: (...args: any[])=>any): void;
 
     /**
-     * @description 解除 WebRTC 侦听服务绑定 
+     * @description 解除 WebRTC 侦听服务绑定
+     *      @param bind_address 绑定地址
+     *      @param local_port 本地端口
+     *      
      */
-    function unbind(): void;
+    function stop_listen(bind_address: string, local_port: number): void;
+
+    /**
+     * @description 解除 WebRTC 侦听服务绑定
+     *      @param local_port 本地端口
+     *      
+     */
+    function stop_listen(local_port: number): void;
 
 }
 
