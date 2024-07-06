@@ -26,8 +26,8 @@ public:
     // rtc_base
     static result_t listen(exlib::string bind_address, int32_t local_port, v8::Local<v8::Function> cb);
     static result_t listen(int32_t local_port, v8::Local<v8::Function> cb);
-    static result_t stop_listen(exlib::string bind_address, int32_t local_port);
-    static result_t stop_listen(int32_t local_port);
+    static result_t stopListen(exlib::string bind_address, int32_t local_port);
+    static result_t stopListen(int32_t local_port);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -40,7 +40,7 @@ public:
 
 public:
     static void s_static_listen(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_stop_listen(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_stopListen(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -53,7 +53,7 @@ inline ClassInfo& rtc_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "listen", s_static_listen, true, ClassData::ASYNC_SYNC },
-        { "stop_listen", s_static_stop_listen, true, ClassData::ASYNC_SYNC }
+        { "stopListen", s_static_stopListen, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -95,7 +95,7 @@ inline void rtc_base::s_static_listen(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_VOID();
 }
 
-inline void rtc_base::s_static_stop_listen(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void rtc_base::s_static_stopListen(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
 
@@ -104,13 +104,13 @@ inline void rtc_base::s_static_stop_listen(const v8::FunctionCallbackInfo<v8::Va
     ARG(exlib::string, 0);
     ARG(int32_t, 1);
 
-    hr = stop_listen(v0, v1);
+    hr = stopListen(v0, v1);
 
     METHOD_OVER(1, 1);
 
     ARG(int32_t, 0);
 
-    hr = stop_listen(v0);
+    hr = stopListen(v0);
 
     METHOD_VOID();
 }

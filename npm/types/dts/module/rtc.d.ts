@@ -50,14 +50,14 @@ declare module 'rtc' {
      *      @param local_port 本地端口
      *      
      */
-    function stop_listen(bind_address: string, local_port: number): void;
+    function stopListen(bind_address: string, local_port: number): void;
 
     /**
      * @description 解除 WebRTC 侦听服务绑定
      *      @param local_port 本地端口
      *      
      */
-    function stop_listen(local_port: number): void;
+    function stopListen(local_port: number): void;
 
 }
 

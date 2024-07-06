@@ -83,7 +83,7 @@ result_t rtc_base::listen(exlib::string bind_address, int32_t local_port, v8::Lo
     return 0;
 }
 
-result_t rtc_base::stop_listen(exlib::string bind_address, int32_t local_port)
+result_t rtc_base::stopListen(exlib::string bind_address, int32_t local_port)
 {
     Isolate* isolate = Isolate::current();
     if (isolate->m_id != 1)
@@ -96,9 +96,9 @@ result_t rtc_base::stop_listen(exlib::string bind_address, int32_t local_port)
     return 0;
 }
 
-result_t rtc_base::stop_listen(int32_t local_port)
+result_t rtc_base::stopListen(int32_t local_port)
 {
-    return stop_listen("", local_port);
+    return stopListen("", local_port);
 }
 
 result_t rtc_base::listen(int32_t local_port, v8::Local<v8::Function> cb)
