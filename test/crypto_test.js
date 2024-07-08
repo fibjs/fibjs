@@ -1074,13 +1074,15 @@ describe('crypto', () => {
                 });
 
                 assert.equal(key2.asymmetricKeyType, "sm2");
+                assert.ok(key.privateKey.equals(key2));
             });
 
-            todo("createPublicKey(pem) issue", () => {
+            it("createPublicKey(pem) issue", () => {
                 const key = crypto.generateKeyPair("sm2");
                 const key2 = crypto.createPublicKey(key.publicKey.export());
 
                 assert.equal(key2.asymmetricKeyType, "sm2");
+                assert.ok(key.publicKey.equals(key2));
             });
 
             it("BUGFIX: createPublicKey(sk) issue", () => {

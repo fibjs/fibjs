@@ -11,9 +11,12 @@
 #include "encoding.h"
 #include "Buffer.h"
 #include <openssl/ssl.h>
+#include <openssl/core_names.h>
+
 
 extern "C" {
 #include <crypto/evp.h>
+#include <crypto/ec.h>
 }
 
 namespace fibjs {

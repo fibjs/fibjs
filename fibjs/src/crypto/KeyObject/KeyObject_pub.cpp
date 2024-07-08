@@ -23,6 +23,10 @@ result_t crypto_base::createPublicKey(Buffer_base* key, obj_ptr<KeyObject_base>&
     if (hr == 1)
         return CHECK_ERROR(Runtime::setError("Public key not recognized"));
 
+    hr = keyObj->fixSM2PublicKey();
+    if (hr < 0)
+        return hr;
+
     retVal = keyObj;
     return 0;
 }
@@ -50,6 +54,27 @@ result_t crypto_base::createPublicKey(v8::Local<v8::Object> key, obj_ptr<KeyObje
         return hr;
 
     retVal = keyObj;
+    return 0;
+}
+
+result_t KeyObject::fixSM2PublicKey()
+{
+    if (EVP_PKEY_id(m_pkey) == -1 && EVP_PKEY_is_a(m_pkey, "sm2")) {
+        EC_KEY* ec_key = EC_KEY_new_by_curve_name(NID_sm2);
+
+        int32_t success = evp_keymgmt_util_export(m_pkey, EVP_PKEY_PUBLIC_KEY, [](const OSSL_PARAM params[], void* arg) {
+            EC_KEY* ec_key = reinterpret_cast<EC_KEY*>(arg);
+            return ossl_ec_key_fromdata(ec_key, params, 0); }, ec_key);
+
+        if (success)
+            EVP_PKEY_set1_EC_KEY(m_pkey, ec_key);
+
+        EC_KEY_free(ec_key);
+
+        if (!success)
+            return openssl_error();
+    }
+
     return 0;
 }
 

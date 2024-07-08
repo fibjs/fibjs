@@ -65,6 +65,7 @@ public:
     result_t ParsePublicKeyPEM(const char* key_pem, int key_pem_len);
     result_t createPublicKeyFromKeyObject(KeyObject_base* key);
     result_t createPublicKeyFromPKey(EVP_PKEY* key);
+    result_t fixSM2PublicKey();
 
 public:
     result_t ParsePrivateKeyPEM(const char* key_pem, int key_pem_len, Buffer* passphrase);
