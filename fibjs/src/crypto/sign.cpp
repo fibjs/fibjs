@@ -156,6 +156,18 @@ result_t Sign::update(exlib::string data, exlib::string codec, obj_ptr<Sign_base
     return 0;
 }
 
+static bool IsOneShot(const EVP_PKEY* key)
+{
+    switch (EVP_PKEY_id(key)) {
+    case EVP_PKEY_ED25519:
+    case EVP_PKEY_ED448:
+    case EVP_PKEY_SM2:
+        return true;
+    default:
+        return false;
+    }
+}
+
 result_t Sign::sign(KeyObject_base* key, DSASigEnc enc, int padding, int salt_len,
     exlib::string encoding, v8::Local<v8::Value>& retVal)
 {
@@ -167,6 +179,9 @@ result_t Sign::sign(KeyObject_base* key, DSASigEnc enc, int padding, int salt_le
     KeyObject* key_ = (KeyObject*)key;
     EVP_PKEY* pkey = key_->pkey();
     size_t sig_len = EVP_PKEY_size(pkey);
+
+    if (IsOneShot(pkey))
+        return Runtime::setError("One-shot signature algorithms do not support sign");
 
     obj_ptr<Buffer> sig = new Buffer(NULL, sig_len);
 
@@ -273,6 +288,9 @@ result_t Verify::verify(KeyObject_base* key, const unsigned char* signature, siz
 
     KeyObject* key_ = (KeyObject*)key;
     EVP_PKEY* pkey = key_->pkey();
+
+    if (IsOneShot(pkey))
+        return Runtime::setError("One-shot signature algorithms do not support verify");
 
     EVPKeyCtxPointer pkctx = EVP_PKEY_CTX_new(pkey, nullptr);
     if (!pkctx)
