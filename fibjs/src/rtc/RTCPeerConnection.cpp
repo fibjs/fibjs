@@ -74,20 +74,25 @@ result_t rtc_base::listen(exlib::string bind_address, int32_t local_port, v8::Lo
                 return 0; }, data_); }, isolate);
 
     if (ret == -1)
-        return Runtime::setError("rtc.bind() need to be called before RTCPeerConnection object is created");
+        return Runtime::setError("rtc.listen() need to be called before RTCPeerConnection object is created");
     else if (ret < 0)
-        return Runtime::setError("rtc.bind() failed to bind to the specified port");
+        return Runtime::setError("rtc.listen() failed to bind to the specified port");
 
     isolate->Ref();
 
     return 0;
 }
 
+result_t rtc_base::listen(int32_t local_port, v8::Local<v8::Function> cb)
+{
+    return listen("", local_port, cb);
+}
+
 result_t rtc_base::stopListen(exlib::string bind_address, int32_t local_port)
 {
     Isolate* isolate = Isolate::current();
     if (isolate->m_id != 1)
-        return Runtime::setError("rtc.unbind() can only be called in the main isolate");
+        return Runtime::setError("rtc.stopListen() can only be called in the main isolate");
 
     int ret = juice_mux_stop_listen(bind_address.empty() ? nullptr : bind_address.c_str(), local_port);
     if (ret == 0)
@@ -99,11 +104,6 @@ result_t rtc_base::stopListen(exlib::string bind_address, int32_t local_port)
 result_t rtc_base::stopListen(int32_t local_port)
 {
     return stopListen("", local_port);
-}
-
-result_t rtc_base::listen(int32_t local_port, v8::Local<v8::Function> cb)
-{
-    return listen("", local_port, cb);
 }
 
 result_t RTCPeerConnection_base::_new(v8::Local<v8::Object> options,
