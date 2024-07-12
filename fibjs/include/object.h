@@ -203,6 +203,7 @@ public:
     // Event
     result_t on(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
     result_t on(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal);
+    result_t addEventListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal);
     result_t prependListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
     result_t prependListener(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal);
     result_t once(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
@@ -212,6 +213,7 @@ public:
     result_t off(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal);
     result_t off(exlib::string ev, v8::Local<v8::Object>& retVal);
     result_t off(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal);
+    result_t removeEventListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal);
     result_t removeAllListeners(exlib::string ev, v8::Local<v8::Object>& retVal);
     result_t removeAllListeners(v8::Local<v8::Array> evs, v8::Local<v8::Object>& retVal);
     result_t setMaxListeners(int32_t n);

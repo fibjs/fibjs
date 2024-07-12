@@ -39,6 +39,11 @@ result_t object_base::on(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVa
     return JSTrigger(this).on(map, retVal);
 }
 
+result_t object_base::addEventListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
+{
+    return JSTrigger(this).addEventListener(ev, func, options, retVal);
+}
+
 result_t object_base::prependListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).prependListener(ev, func, retVal);
@@ -82,6 +87,12 @@ result_t object_base::off(exlib::string ev, v8::Local<v8::Object>& retVal)
 result_t object_base::off(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
 {
     return JSTrigger(this).off(map, retVal);
+}
+
+result_t object_base::removeEventListener(exlib::string ev, v8::Local<v8::Function> func,
+    v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
+{
+    return JSTrigger(this).removeEventListener(ev, func, options, retVal);
 }
 
 result_t object_base::removeAllListeners(exlib::string ev, v8::Local<v8::Object>& retVal)

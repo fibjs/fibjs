@@ -73,6 +73,18 @@ interface EventEmitter : object
    */
     Object addListener(Object map);
 
+    /*! @brief 绑定一个事件处理函数到对象
+
+    options 参数是一个对象，它可以包含以下属性：
+    - once: 如果为 true，则事件处理函数只会触发一次，触发后会被移除
+
+    @param ev 指定事件的名称
+    @param func 指定事件处理函数
+    @param options 指定事件处理函数的选项
+    @return 返回事件对象本身，便于链式调用
+    */
+    Object addEventListener(String ev, Function func, Object options = {});
+
     /*! @brief 绑定一个事件处理函数到对象起始
     @param ev 指定事件的名称
     @param func 指定事件处理函数
@@ -149,6 +161,14 @@ interface EventEmitter : object
     @return 返回事件对象本身，便于链式调用
    */
     Object removeListener(Object map);
+
+    /*! @brief 从对象处理队列中取消指定函数
+    @param ev 指定事件的名称
+    @param func 指定事件处理函数
+    @param options 指定事件处理函数的选项
+    @return 返回事件对象本身，便于链式调用
+    */
+    Object removeEventListener(String ev, Function func, Object options = {});
 
     /*! @brief 从对象处理队列中取消所有事件的所有监听器， 如果指定事件，则移除指定事件的所有监听器。
     @param ev 指定事件的名称

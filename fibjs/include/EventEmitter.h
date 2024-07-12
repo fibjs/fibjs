@@ -273,6 +273,18 @@ public:
         return _map(map, &JSTrigger::once, retVal);
     }
 
+    result_t addEventListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
+    {
+        Isolate* _isolate = Isolate::current(func);
+
+        bool _once = false;
+        result_t hr = GetConfigValue(_isolate, options, "once", _once, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+
+        return _once ? once(ev, func, retVal) : on(ev, func, retVal);
+    }
+
     result_t prependOnceListener(exlib::string ev, v8::Local<v8::Function> func, v8::Local<v8::Object>& retVal)
     {
         Isolate* _isolate = Isolate::current(func);
@@ -340,6 +352,12 @@ public:
     result_t off(v8::Local<v8::Object> map, v8::Local<v8::Object>& retVal)
     {
         return _map(map, &JSTrigger::off, retVal);
+    }
+
+    result_t removeEventListener(exlib::string ev, v8::Local<v8::Function> func,
+        v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)
+    {
+        return off(ev, func, retVal);
     }
 
     result_t removeAllListeners(exlib::string ev, v8::Local<v8::Object>& retVal)
@@ -643,6 +661,23 @@ public:
         METHOD_RETURN();
     }
 
+    static void s_addEventListener(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        v8::Local<v8::Object> vr;
+
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
+
+        ARG(exlib::string, 0);
+        ARG(v8::Local<v8::Function>, 1);
+        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+
+        hr = JSTrigger(args).addEventListener(v0, v1, v2, vr);
+
+        METHOD_RETURN();
+    }
+
     static void s_prependListener(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         v8::Local<v8::Object> vr;
@@ -733,6 +768,23 @@ public:
         ARG(v8::Local<v8::Object>, 0);
 
         hr = JSTrigger(args).off(v0, vr);
+
+        METHOD_RETURN();
+    }
+
+    static void s_removeEventListener(const v8::FunctionCallbackInfo<v8::Value>& args)
+    {
+        v8::Local<v8::Object> vr;
+
+        METHOD_ENTER();
+
+        METHOD_OVER(3, 2);
+
+        ARG(exlib::string, 0);
+        ARG(v8::Local<v8::Function>, 1);
+        OPT_ARG(v8::Local<v8::Object>, 2, v8::Object::New(isolate->m_isolate));
+
+        hr = JSTrigger(args).removeEventListener(v0, v1, v2, vr);
 
         METHOD_RETURN();
     }

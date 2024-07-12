@@ -479,6 +479,11 @@ public:                                                                         
     {                                                                                         \
         return object_base::on(map, retVal);                                                  \
     }                                                                                         \
+    virtual result_t addEventListener(exlib::string ev, v8::Local<v8::Function> func,         \
+        v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)                         \
+    {                                                                                         \
+        return object_base::addEventListener(ev, func, options, retVal);                      \
+    }                                                                                         \
     virtual result_t prependOnceListener(exlib::string ev, v8::Local<v8::Function> func,      \
         v8::Local<v8::Object>& retVal)                                                        \
     {                                                                                         \
@@ -524,6 +529,11 @@ public:                                                                         
         v8::Local<v8::Object>& retVal)                                                        \
     {                                                                                         \
         return object_base::off(map, retVal);                                                 \
+    }                                                                                         \
+    virtual result_t removeEventListener(exlib::string ev, v8::Local<v8::Function> func,      \
+        v8::Local<v8::Object> options, v8::Local<v8::Object>& retVal)                         \
+    {                                                                                         \
+        return object_base::removeEventListener(ev, func, options, retVal);                   \
     }                                                                                         \
     virtual result_t removeAllListeners(exlib::string ev,                                     \
         v8::Local<v8::Object>& retVal)                                                        \
@@ -599,7 +609,7 @@ public:                                                  \
 
 #ifndef container_of
 #define container_of(ptr, TYPE, MEMBER) \
-    ((TYPE*)((char*)(ptr)-_offsetof(TYPE, MEMBER)))
+    ((TYPE*)((char*)(ptr) - _offsetof(TYPE, MEMBER)))
 #endif
 
 result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, exlib::string& n, bool bStrict = false);

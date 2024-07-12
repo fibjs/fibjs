@@ -22,17 +22,21 @@ function evevt_test(name, e) {
             v2 = v2 + a1 - a2 + 4321;
         }
 
+        beforeEach(() => {
+            v1 = 123456;
+            v2 = 654321;
+        });
+
         it("on", () => {
-            v1 = v2 = 0;
             assert.equal(e.on('test', t1), e);
             assert.isTrue(e.emit('test', 200, 100));
-            assert.equal(1334, v1);
-            assert.equal(0, v2);
+            assert.equal(124790, v1);
+            assert.equal(654321, v2);
 
             assert.equal(e.on('test', t2), e);
             assert.isTrue(e.emit('test', 2000, 1000));
-            assert.equal(3568, v1);
-            assert.equal(5321, v2);
+            assert.equal(127024, v1);
+            assert.equal(659642, v2);
         });
 
         it("listenerCount", () => {
@@ -56,22 +60,22 @@ function evevt_test(name, e) {
         it("off", () => {
             assert.equal(e.off('test', t1), e);
             assert.isTrue(e.emit('test', 20, 10));
-            assert.equal(8380, v1);
-            assert.equal(23725, v2);
+            assert.equal(124700, v1);
+            assert.equal(662983, v2);
         });
 
         it("prependOnceListener", () => {
             assert.equal(e.prependOnceListener('test', t1), e);
             assert.isTrue(e.emit('test', 20, 10));
-            assert.equal(10868, v1);
-            assert.equal(32387, v2);
+            assert.equal(125944, v1);
+            assert.equal(662983, v2);
         });
 
         it("once", () => {
             assert.equal(e.once('test', t1), e);
             assert.isTrue(e.emit('test', 20, 10));
-            assert.equal(13356, v1);
-            assert.equal(41049, v2);
+            assert.equal(125944, v1);
+            assert.equal(662983, v2);
         });
 
         it("off all", () => {
@@ -79,8 +83,33 @@ function evevt_test(name, e) {
             assert.equal(e.off('test', t2), e);
             assert.equal(e.off('test', t2), e);
             assert.isFalse(e.emit('test', 20, 10));
-            assert.equal(13356, v1);
-            assert.equal(41049, v2);
+            assert.equal(123456, v1);
+            assert.equal(654321, v2);
+        });
+
+        it("addEventListener", () => {
+            assert.equal(e.addEventListener('test7', t1), e);
+            assert.isTrue(e.emit('test7', 200, 100));
+            assert.equal(124790, v1);
+            assert.equal(654321, v2);
+
+            assert.equal(e.addEventListener('test8', t2, {
+                once: true
+            }), e);
+            assert.isTrue(e.emit('test8', 200, 100));
+            assert.equal(124790, v1);
+            assert.equal(658742, v2);
+
+            assert.isFalse(e.emit('test8', 200, 100));
+            assert.equal(124790, v1);
+            assert.equal(658742, v2);
+        });
+
+        it("removeEventListener", () => {
+            assert.equal(e.removeEventListener('test', t1), e);
+            assert.isFalse(e.emit('test', 20, 10));
+            assert.equal(123456, v1);
+            assert.equal(654321, v2);
         });
 
         it("on({...})", () => {
@@ -89,11 +118,11 @@ function evevt_test(name, e) {
                 test1: t2
             }), e);
             assert.isTrue(e.emit('test', 20, 10));
-            assert.equal(14600, v1);
-            assert.equal(41049, v2);
+            assert.equal(124700, v1);
+            assert.equal(654321, v2);
             assert.isTrue(e.emit('test1', 20, 10));
-            assert.equal(14600, v1);
-            assert.equal(45380, v2);
+            assert.equal(124700, v1);
+            assert.equal(658652, v2);
         });
 
         it("off({...})", () => {
@@ -103,34 +132,34 @@ function evevt_test(name, e) {
             }), e);
             assert.isFalse(e.emit('test', 20, 10));
             assert.isFalse(e.emit('test1', 20, 10));
-            assert.equal(14600, v1);
-            assert.equal(45380, v2);
+            assert.equal(123456, v1);
+            assert.equal(654321, v2);
         });
 
         it("off(name)", () => {
             assert.equal(e.on('test', t1), e);
             assert.equal(e.on('test', t2), e);
             e.emit('test', 20, 10);
-            assert.equal(15844, v1);
-            assert.equal(49711, v2);
+            assert.equal(124700, v1);
+            assert.equal(658652, v2);
 
             assert.equal(e.off("test"), e);
 
             e.emit('test', 20, 10);
-            assert.equal(15844, v1);
-            assert.equal(49711, v2);
+            assert.equal(124700, v1);
+            assert.equal(658652, v2);
         });
 
         it("more than on listeners", () => {
             assert.equal(e.on('test', t1), e);
             assert.equal(e.once('test', t1), e);
             e.emit('test', 20, 10);
-            assert.equal(18332, v1);
-            assert.equal(49711, v2);
+            assert.equal(125944, v1);
+            assert.equal(654321, v2);
 
             e.emit('test', 20, 10);
-            assert.equal(19576, v1);
-            assert.equal(49711, v2);
+            assert.equal(127188, v1);
+            assert.equal(654321, v2);
         });
 
         it("order", () => {
@@ -219,12 +248,12 @@ function evevt_test(name, e) {
             assert.equal(e.on('test3', t2), e);
 
             e.emit('test2', 20, 10);
-            assert.equal(20820, v1);
+            assert.equal(124700, v1);
 
             assert.equal(e.removeAllListeners(['test2', "test3"]), e);
 
             e.emit('test2', 20, 10);
-            assert.equal(20820, v1);
+            assert.equal(124700, v1);
         });
 
         it("removeAllListeners(name)", () => {
@@ -235,12 +264,12 @@ function evevt_test(name, e) {
             assert.equal(e.on('test3', t2), e);
 
             e.emit('test2', 20, 10);
-            assert.equal(22064, v1);
+            assert.equal(124700, v1);
 
             assert.equal(e.removeAllListeners(), e);
 
             e.emit('test2', 20, 10);
-            assert.equal(22064, v1);
+            assert.equal(124700, v1);
         });
 
         it("eventNames()", () => {

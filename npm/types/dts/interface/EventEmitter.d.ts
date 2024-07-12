@@ -91,6 +91,20 @@ declare class Class_EventEmitter extends Class_object {
     addListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
+     * @description 绑定一个事件处理函数到对象
+     * 
+     *     options 参数是一个对象，它可以包含以下属性：
+     *     - once: 如果为 true，则事件处理函数只会触发一次，触发后会被移除
+     * 
+     *     @param ev 指定事件的名称
+     *     @param func 指定事件处理函数
+     *     @param options 指定事件处理函数的选项
+     *     @return 返回事件对象本身，便于链式调用
+     *     
+     */
+    addEventListener(ev: string, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    /**
      * @description 绑定一个事件处理函数到对象起始
      *     @param ev 指定事件的名称
      *     @param func 指定事件处理函数
@@ -190,6 +204,16 @@ declare class Class_EventEmitter extends Class_object {
      *    
      */
     removeListener(map: FIBJS.GeneralObject): FIBJS.GeneralObject;
+
+    /**
+     * @description 从对象处理队列中取消指定函数
+     *     @param ev 指定事件的名称
+     *     @param func 指定事件处理函数
+     *     @param options 指定事件处理函数的选项
+     *     @return 返回事件对象本身，便于链式调用
+     *     
+     */
+    removeEventListener(ev: string, func: (...args: any[])=>any, options?: FIBJS.GeneralObject): FIBJS.GeneralObject;
 
     /**
      * @description 从对象处理队列中取消所有事件的所有监听器， 如果指定事件，则移除指定事件的所有监听器。
