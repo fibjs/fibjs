@@ -19,6 +19,7 @@ class Buffer_base;
 class UrlObject_base;
 class TextDecoder_base;
 class TextEncoder_base;
+class AbortController_base;
 class console_base;
 class process_base;
 class performance_base;
@@ -77,6 +78,7 @@ public:
 #include "ifs/UrlObject.h"
 #include "ifs/TextDecoder.h"
 #include "ifs/TextEncoder.h"
+#include "ifs/AbortController.h"
 #include "ifs/console.h"
 #include "ifs/process.h"
 #include "ifs/performance.h"
@@ -106,6 +108,7 @@ inline ClassInfo& global_base::class_info()
         { "URL", UrlObject_base::class_info },
         { "TextDecoder", TextDecoder_base::class_info },
         { "TextEncoder", TextEncoder_base::class_info },
+        { "AbortController", AbortController_base::class_info },
         { "console", console_base::class_info },
         { "process", process_base::class_info },
         { "performance", performance_base::class_info }

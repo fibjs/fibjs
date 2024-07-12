@@ -150,6 +150,11 @@ result_t object_base::listeners(exlib::string ev, v8::Local<v8::Array>& retVal)
     return JSTrigger(this).listeners(ev, retVal);
 }
 
+result_t object_base::_emit(exlib::string ev, v8::Local<v8::Value>* args, int32_t argCount, bool& retVal)
+{
+    return JSTrigger(this)._emit(ev, args, argCount, retVal);
+}
+
 result_t object_base::_emit(exlib::string ev, Variant arg)
 {
     return _emit(ev, &arg, 1);

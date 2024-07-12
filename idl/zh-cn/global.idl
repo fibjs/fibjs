@@ -13,6 +13,9 @@ module global
     /*! @brief TextEncoder 编码对象，参见 TextEncoder 对象。*/
     static TextEncoder;
 
+    /*! @brief 控制器对象，用于在需要时中止一个或多个 Web 请求，参见 AbortController 对象。*/
+    static AbortController;
+
     /*! @brief 控制台访问对象 */
     static console;
 

@@ -3,6 +3,7 @@
 /// <reference path="../interface/UrlObject.d.ts" />
 /// <reference path="../interface/TextDecoder.d.ts" />
 /// <reference path="../interface/TextEncoder.d.ts" />
+/// <reference path="../interface/AbortController.d.ts" />
 /// <reference path="../module/console.d.ts" />
 /// <reference path="../module/process.d.ts" />
 /// <reference path="../module/performance.d.ts" />
@@ -30,6 +31,11 @@ declare module 'global' {
      * @description TextEncoder 编码对象，参见 TextEncoder 对象。
      */
     const TextEncoder: typeof Class_TextEncoder;
+
+    /**
+     * @description 控制器对象，用于在需要时中止一个或多个 Web 请求，参见 AbortController 对象。
+     */
+    const AbortController: typeof Class_AbortController;
 
     /**
      * @description 控制台访问对象 
