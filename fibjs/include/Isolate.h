@@ -33,7 +33,6 @@ inline v8::Local<v8::String> OneByteString(v8::Isolate* isolate,
 class SandBox;
 class JSFiber;
 class HttpClient;
-class LruCache;
 class Stream_base;
 class ValueHolder;
 class SecureContext_base;
