@@ -54,6 +54,9 @@ interface TcpServer : object
     /*! @brief 服务器当前侦听的 Socket 对象  */
     readonly Socket socket;
 
+    /*! @brief 查询和设置超时时间，单位毫秒，此超时时间用于设置接收到的新连接*/
+    Integer timeout;
+
     /*! @brief 服务器当前事件处理接口对象 */
     Handler handler;
 };

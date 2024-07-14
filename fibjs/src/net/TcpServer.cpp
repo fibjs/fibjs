@@ -105,6 +105,7 @@ result_t TcpServer::start()
     public:
         ON_STATE(asyncInvoke, invoke)
         {
+            m_sock->set_timeout(m_pThis->m_timeout);
             return mq_base::invoke(m_pThis->m_hdlr, m_sock, next(close));
         }
 
@@ -194,6 +195,18 @@ result_t TcpServer::stop(AsyncEvent* ac)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
 
     return m_socket->close(ac);
+}
+
+result_t TcpServer::get_timeout(int32_t& retVal)
+{
+    retVal = m_timeout;
+    return 0;
+}
+
+result_t TcpServer::set_timeout(int32_t newVal)
+{
+    m_timeout = newVal;
+    return 0;
 }
 
 result_t TcpServer::get_socket(obj_ptr<Socket_base>& retVal)

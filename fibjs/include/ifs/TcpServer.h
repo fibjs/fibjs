@@ -29,6 +29,8 @@ public:
     virtual result_t start() = 0;
     virtual result_t stop(AsyncEvent* ac) = 0;
     virtual result_t get_socket(obj_ptr<Socket_base>& retVal) = 0;
+    virtual result_t get_timeout(int32_t& retVal) = 0;
+    virtual result_t set_timeout(int32_t newVal) = 0;
     virtual result_t get_handler(obj_ptr<Handler_base>& retVal) = 0;
     virtual result_t set_handler(Handler_base* newVal) = 0;
 
@@ -41,6 +43,8 @@ public:
     static void s_start(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_stop(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_socket(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_timeout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_set_timeout(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
     static void s_get_handler(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void s_set_handler(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
 
@@ -63,6 +67,7 @@ inline ClassInfo& TcpServer_base::class_info()
 
     static ClassData::ClassProperty s_property[] = {
         { "socket", s_get_socket, block_set, false },
+        { "timeout", s_get_timeout, s_set_timeout, false },
         { "handler", s_get_handler, s_set_handler, false }
     };
 
@@ -152,6 +157,29 @@ inline void TcpServer_base::s_get_socket(v8::Local<v8::Name> property, const v8:
     hr = pInst->get_socket(vr);
 
     METHOD_RETURN();
+}
+
+inline void TcpServer_base::s_get_timeout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(TcpServer_base);
+    PROPERTY_ENTER();
+
+    hr = pInst->get_timeout(vr);
+
+    METHOD_RETURN();
+}
+
+inline void TcpServer_base::s_set_timeout(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+{
+    METHOD_INSTANCE(TcpServer_base);
+    PROPERTY_ENTER();
+    PROPERTY_VAL(int32_t);
+
+    hr = pInst->set_timeout(v0);
+
+    PROPERTY_SET_LEAVE();
 }
 
 inline void TcpServer_base::s_get_handler(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)

@@ -24,6 +24,8 @@ public:
     // TcpServer_base
     virtual result_t start();
     virtual result_t stop(AsyncEvent* ac);
+    virtual result_t get_timeout(int32_t& retVal);
+    virtual result_t set_timeout(int32_t newVal);
     virtual result_t get_socket(obj_ptr<Socket_base>& retVal);
     virtual result_t get_handler(obj_ptr<Handler_base>& retVal);
     virtual result_t set_handler(Handler_base* newVal);
@@ -36,6 +38,9 @@ public:
 
 public:
     result_t create(exlib::string addr, int32_t port, Handler_base* listener);
+
+public:
+    int32_t m_timeout = 0;
 
 private:
     bool m_running;

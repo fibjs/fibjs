@@ -74,6 +74,11 @@ declare class Class_TcpServer extends Class_object {
     readonly socket: Class_Socket;
 
     /**
+     * @description 查询和设置超时时间，单位毫秒，此超时时间用于设置接收到的新连接
+     */
+    timeout: number;
+
+    /**
      * @description 服务器当前事件处理接口对象 
      */
     handler: Class_Handler;

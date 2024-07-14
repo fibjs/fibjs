@@ -74,6 +74,16 @@ result_t HttpServer::stop(AsyncEvent* ac)
     return m_server->stop(ac);
 }
 
+result_t HttpServer::get_timeout(int32_t& retVal)
+{
+    return m_server->get_timeout(retVal);
+}
+
+result_t HttpServer::set_timeout(int32_t newVal)
+{
+    return m_server->set_timeout(newVal);
+}
+
 result_t HttpServer::get_socket(obj_ptr<Socket_base>& retVal)
 {
     return m_server->get_socket(retVal);
