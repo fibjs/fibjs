@@ -415,15 +415,22 @@ function generate_mv_paths(level_info, parent_p) {
 
 function find_tar_home(untar_files) {
     var archive_root_name;
+    var first_file_name;
+    var found = false;
 
     untar_files.forEach(file => {
         if (file.typeflag == "0" || file.typeflag == "1") {
             if (!archive_root_name)
-                archive_root_name = file.filename;
-            else
+                first_file_name = archive_root_name = file.filename;
+            else {
+                found = true;
                 archive_root_name = helpers_string.find_least_common_str(archive_root_name, file.filename);
+            }
         }
     });
+
+    if (!found)
+        archive_root_name = path.dirname(first_file_name);
 
     return helpers_string.ensure_unsuffx(archive_root_name);
 }
