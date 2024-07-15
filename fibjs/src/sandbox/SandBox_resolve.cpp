@@ -129,45 +129,42 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& fnam
         v8::Local<v8::String> strNode = isolate->NewString("node", 4);
         v8::Local<v8::String> strDefault = isolate->NewString("default", 7);
 
-        while (exports->IsObject()) {
+        std::function<bool(JSValue)> resolve_export;
+        resolve_export = [&](JSValue exports) -> bool {
             JSValue def_value;
-            o = v8::Local<v8::Object>::Cast(exports);
 
-            def_value = o->Get(context, strRoot);
-            if (IsEmpty(def_value))
-                def_value = o->Get(context, strNode);
-            if (IsEmpty(def_value))
-                def_value = o->Get(context, strRequire);
-            if (IsEmpty(def_value))
-                def_value = o->Get(context, strDefault);
-            if (IsEmpty(def_value))
-                break;
+            if (exports->IsArray()) {
+                v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(exports);
+                int32_t len = arr->Length();
 
-            exports = def_value;
-        }
+                for (int32_t i = 0; i < len; i++) {
+                    def_value = arr->Get(context, i);
+                    if (resolve_export(def_value))
+                        return true;
+                }
+            } else if (exports->IsObject()) {
+                o = v8::Local<v8::Object>::Cast(exports);
 
-        if (exports->IsString()) {
-            config_name = isolate->toString(exports);
-        } else if (exports->IsObject()) {
-            JSValue exports_value;
-            o = v8::Local<v8::Object>::Cast(exports);
+                def_value = o->Get(context, strRoot);
+                if (IsEmpty(def_value))
+                    def_value = o->Get(context, strNode);
+                if (IsEmpty(def_value))
+                    def_value = o->Get(context, strRequire);
+                if (IsEmpty(def_value))
+                    def_value = o->Get(context, strDefault);
+                if (IsEmpty(def_value))
+                    return false;
 
-            exports_value = o->Get(context, strRequire);
-            if (IsEmpty(exports_value))
-                exports_value = o->Get(context, strDefault);
-            else if (!exports_value->IsString() && exports_value->IsObject()) {
-                o = v8::Local<v8::Object>::Cast(exports_value);
-                exports_value = o->Get(context, strDefault);
+                return resolve_export(def_value);
+            } else if (exports->IsString()) {
+                config_name = isolate->toString(exports);
+                return true;
             }
 
-            if (IsEmpty(exports_value))
-                return CALL_E_FILE_NOT_FOUND;
+            return false;
+        };
 
-            if (!exports_value->IsString())
-                return CHECK_ERROR(Runtime::setError("SandBox: \"exports.require\" in package.json must be a string"));
-
-            config_name = isolate->toString(exports_value);
-        } else
+        if (!resolve_export(exports))
             return CHECK_ERROR(Runtime::setError("SandBox: \"exports\" in package.json must be a string or object"));
     } else {
         JSValue main = o->Get(context, isolate->NewString("main", 4));
