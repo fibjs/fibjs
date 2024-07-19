@@ -12,6 +12,8 @@ void init_sym()
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <pthread.h>
+#include <time.h>
 #include <errno.h>
 #include <sys/syscall.h>
 
@@ -169,6 +171,27 @@ double log2(double x)
     return _log2(x);
 }
 #endif
+
+// GLIBC_2.30
+int pthread_cond_clockwait(pthread_cond_t* cond, pthread_mutex_t* mutex, clockid_t clock_id, const struct timespec* reltime)
+{
+    struct timespec current_time;
+    struct timespec abs_timeout;
+
+    int ret = clock_gettime(clock_id, &current_time);
+    if (ret != 0)
+        return ret;
+
+    abs_timeout.tv_sec = current_time.tv_sec + reltime->tv_sec;
+    abs_timeout.tv_nsec = current_time.tv_nsec + reltime->tv_nsec;
+
+    if (abs_timeout.tv_nsec >= 1000000000L) {
+        abs_timeout.tv_nsec -= 1000000000L;
+        abs_timeout.tv_sec++;
+    }
+
+    return pthread_cond_timedwait(cond, mutex, &abs_timeout);
+}
 }
 
 #endif
