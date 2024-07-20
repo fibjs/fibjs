@@ -34,6 +34,9 @@ void* memcpy(void* dest, const void* src, size_t n)
 __asm__(".symver _clock_gettime,clock_gettime@GLIBC_" GLIB_C_TIME);
 int _clock_gettime(__clockid_t clk_id, struct timespec* tp);
 int clock_gettime(__clockid_t clk_id, struct timespec* tp)
+#ifdef __THROW
+    __THROW
+#endif
 {
     return _clock_gettime(clk_id, tp);
 }
@@ -41,6 +44,9 @@ int clock_gettime(__clockid_t clk_id, struct timespec* tp)
 __asm__(".symver _clock_getres,clock_getres@GLIBC_" GLIB_C_TIME);
 int _clock_getres(__clockid_t clk_id, struct timespec* tp);
 int clock_getres(__clockid_t clk_id, struct timespec* tp)
+#ifdef __THROW
+    __THROW
+#endif
 {
     return _clock_getres(clk_id, tp);
 }
