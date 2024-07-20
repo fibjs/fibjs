@@ -1,5 +1,7 @@
 @echo off
 
+setlocal enabledelayedexpansion
+
 set start=%time%
 
 set WORK_ROOT=%cd%
