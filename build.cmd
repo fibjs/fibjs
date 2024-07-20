@@ -1,5 +1,7 @@
 @echo off
 
+set start=%time%
+
 set WORK_ROOT=%cd%
 set SOURCE_ROOT=%~dp0
 
@@ -72,6 +74,23 @@ cd /d "%SOURCE_ROOT%"
 exit /B 1
 
 :finished
+set end=%time%
+
+set start=!start::=!
+set start=!start:.=!
+set end=!end::=!
+set end=!end:.=!
+
+set /a diff=end-start
+
+set /a hours=diff/360000
+set /a mins=(diff%%360000)/6000
+set /a secs=(diff%%6000)/100
+
+if %hours% lss 10 set hours=0%hours%
+if %mins% lss 10 set mins=0%mins%
+if %secs% lss 10 set secs=0%secs%
+
 echo.
 echo.
 cmake -E cmake_echo_color --red ^
@@ -85,10 +104,10 @@ cmake -E cmake_echo_color --red ^
 	"        (__/     \_______/(______/ \____/   \_______) "
 echo.
 echo.
-echo         FIBJS has been successfully built.
+echo         FIBJS has been successfully built during %hours%:%mins%:%secs%
 echo.
 echo         For more information:
-echo         website: http://fibjs.org
+echo         website: https://fibjs.org
 echo         repository: https://github.com/fibjs
 echo.
 echo.
