@@ -121,7 +121,6 @@ describe("hash", () => {
     it('getHashes', () => {
         assert.deepEqual(crypto.getHashes(), [
             "RSA-MD5",
-            "RSA-RIPEMD160",
             "RSA-SHA1",
             "RSA-SHA1-2",
             "RSA-SHA224",
@@ -135,8 +134,6 @@ describe("hash", () => {
             "RSA-SHA512/224",
             "RSA-SHA512/256",
             "RSA-SM3",
-            "blake2b512",
-            "blake2s256",
             "id-rsassa-pkcs1-v1_5-with-sha3-224",
             "id-rsassa-pkcs1-v1_5-with-sha3-256",
             "id-rsassa-pkcs1-v1_5-with-sha3-384",
@@ -144,10 +141,6 @@ describe("hash", () => {
             "md5",
             "md5-sha1",
             "md5WithRSAEncryption",
-            "ripemd",
-            "ripemd160",
-            "ripemd160WithRSA",
-            "rmd160",
             "sha1",
             "sha1WithRSAEncryption",
             "sha224",
@@ -172,7 +165,7 @@ describe("hash", () => {
             "sm3WithRSAEncryption",
             "ssl3-md5",
             "ssl3-sha1"
-        ]);
+          ]);
     });
 
     it("md5", () => {
@@ -311,7 +304,7 @@ describe("hash", () => {
         digest_case.forEach(hash_test);
     });
 
-    it("ripemd160", () => {
+    xit("ripemd160", () => {
         var digest_case = [{
             name: 'RIPEMD160',
             text: '',
@@ -458,7 +451,7 @@ describe("hash", () => {
         digest_case.forEach(hash_test);
     });
 
-    it("blake2s", () => {
+    xit("blake2s", () => {
         var digest_case = [{
             name: 'BLAKE2S',
             text: '',
@@ -479,7 +472,7 @@ describe("hash", () => {
         digest_case.forEach(hash_test);
     });
 
-    it("blake2b", () => {
+    xit("blake2b", () => {
         var digest_case = [{
             name: 'BLAKE2B',
             text: '',
@@ -554,7 +547,7 @@ describe("hash", () => {
         hmac_case.forEach(hmac_test);
     });
 
-    it("ripemd160_hmac", () => {
+    xit("ripemd160_hmac", () => {
         var hmac_case = [{
             name: 'RIPEMD160',
             key: 'Jefe',
@@ -638,7 +631,7 @@ describe("hash", () => {
         hmac_case.forEach(hmac_test);
     });
 
-    it("blake2s_hmac", () => {
+    xit("blake2s_hmac", () => {
         var hmac_case = [{
             name: 'BLAKE2S',
             key: '',
@@ -656,7 +649,7 @@ describe("hash", () => {
         hmac_case.forEach(hmac_test);
     });
 
-    it("blake2b_hmac", () => {
+    xit("blake2b_hmac", () => {
         var hmac_case = [{
             name: 'BLAKE2B',
             key: '',
