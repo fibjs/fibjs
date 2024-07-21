@@ -33,39 +33,23 @@ public:
 
 static const struct {
     const char* name;
-    const EVP_MD* md;
+    const char* md_name;
 } s_algos[] = {
-    { "dss1", EVP_sha1() },
-    { "sha3_256", EVP_sha3_256() },
-    { "sha3_384", EVP_sha3_384() },
-    { "sha3_512", EVP_sha3_512() },
-    { "blake2s", EVP_blake2s256() },
-    { "blake2b", EVP_blake2b512() }
-};
-
-static const char* s_md_names[] = {
-    "md5",
-    "sha1",
-    "sha224",
-    "sha256",
-    "sha384",
-    "sha512",
-    "ripemd160",
-    "sm3",
-    "sha3_256",
-    "sha3_384",
-    "sha3_512",
-    "shake128",
-    "shake256",
-    "blake2s",
-    "blake2b"
+    { "dss1", "sha1" },
+    { "sha3_256", "sha3-256" },
+    { "sha3_384", "sha3-384" },
+    { "sha3_512", "sha3-512" },
+    { "blake2s", "blake2s256" },
+    { "blake2b", "blake2s512" }
 };
 
 const EVP_MD* _evp_md_type(const char* algo)
 {
     for (int i = 0; i < ARRAYSIZE(s_algos); i++)
-        if (!qstricmp(algo, s_algos[i].name))
-            return s_algos[i].md;
+        if (!qstricmp(algo, s_algos[i].name)) {
+            algo = s_algos[i].md_name;
+            break;
+        }
 
     return EVP_get_digestbyname(algo);
 }
