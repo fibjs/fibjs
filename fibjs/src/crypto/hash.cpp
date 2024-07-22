@@ -40,7 +40,7 @@ static const struct {
     { "sha3_384", "sha3-384" },
     { "sha3_512", "sha3-512" },
     { "blake2s", "blake2s256" },
-    { "blake2b", "blake2s512" }
+    { "blake2b", "blake2b512" }
 };
 
 const EVP_MD* _evp_md_type(const char* algo)
