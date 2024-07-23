@@ -462,9 +462,6 @@ result_t _sign(exlib::string algorithm, Buffer_base* data, KeyObject_base* priva
     if (EVP_DigestSignInit(context, &ctx, md, nullptr, pkey) <= 0)
         return openssl_error();
 
-    if (EVP_PKEY_id(pkey) == EVP_PKEY_SM2)
-        EVP_PKEY_CTX_set1_id(ctx, "1234567812345678", 16);
-
     if (!ApplyRSAOptions(pkey, ctx, padding, salt_len))
         return openssl_error();
 
@@ -585,9 +582,6 @@ result_t _verify(exlib::string algorithm, Buffer_base* data, KeyObject_base* pub
 
     if (EVP_DigestVerifyInit(context, &ctx, md, nullptr, pkey) <= 0)
         return openssl_error();
-
-    if (EVP_PKEY_id(pkey) == EVP_PKEY_SM2)
-        EVP_PKEY_CTX_set1_id(ctx, "1234567812345678", 16);
 
     if (!ApplyRSAOptions(pkey, ctx, padding, salt_len))
         return openssl_error();
