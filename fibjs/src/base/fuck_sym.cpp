@@ -179,25 +179,27 @@ double log2(double x)
 #endif
 
 // GLIBC_2.30
-int pthread_cond_clockwait(pthread_cond_t* cond, pthread_mutex_t* mutex, clockid_t clock_id, const struct timespec* reltime)
+int pthread_cond_clockwait(pthread_cond_t* cond, pthread_mutex_t* mutex,
+    clockid_t clock, const struct timespec* abstime)
 {
-    struct timespec current_time;
-    struct timespec abs_timeout;
+    struct timespec now;
+    if (clock_gettime(clock, &now) != 0)
+        return -1;
 
-    int ret = clock_gettime(clock_id, &current_time);
-    if (ret != 0)
-        return ret;
+    if ((abstime->tv_sec < now.tv_sec) || (abstime->tv_sec == now.tv_sec && abstime->tv_nsec <= now.tv_nsec))
+        return ETIMEDOUT;
 
-    abs_timeout.tv_sec = current_time.tv_sec + reltime->tv_sec;
-    abs_timeout.tv_nsec = current_time.tv_nsec + reltime->tv_nsec;
-
-    if (abs_timeout.tv_nsec >= 1000000000L) {
-        abs_timeout.tv_nsec -= 1000000000L;
-        abs_timeout.tv_sec++;
+    struct timespec reltime;
+    reltime.tv_sec = abstime->tv_sec - now.tv_sec;
+    reltime.tv_nsec = abstime->tv_nsec - now.tv_nsec;
+    if (reltime.tv_nsec < 0) {
+        reltime.tv_nsec += 1000000000;
+        reltime.tv_sec--;
     }
 
-    return pthread_cond_timedwait(cond, mutex, &abs_timeout);
+    return pthread_cond_timedwait(cond, mutex, &reltime);
 }
+
 }
 
 #endif
