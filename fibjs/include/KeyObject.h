@@ -58,7 +58,7 @@ public:
     result_t ImportJWKAsymmetricKey(v8::Local<v8::Object> hwk, KeyType type);
     result_t ImportJWKRsaKey(v8::Local<v8::Object> key, KeyType type);
     result_t ImportJWKEcKey(v8::Local<v8::Object> key, KeyType type);
-    result_t ImportJWKEdKey(v8::Local<v8::Object> key, KeyType type);
+    result_t ImportJWKOKPKey(v8::Local<v8::Object> key, KeyType type);
 
 public:
     result_t TryParsePublicKey(const BIOPointer& bp, const char* name, const std::function<EVP_PKEY*(const unsigned char** p, long l)>& parse);
@@ -80,7 +80,7 @@ public:
 
 public:
     result_t export_json(v8::Local<v8::Value>& retVal);
-    result_t ExportJWKEdKey(v8::Local<v8::Value>& retVal);
+    result_t ExportJWKOKPKey(v8::Local<v8::Value>& retVal);
     result_t ExportJWKRsaKey(v8::Local<v8::Value>& retVal);
     result_t ExportJWKEcKey(v8::Local<v8::Value>& retVal);
     result_t ExportJWKSecretKey(v8::Local<v8::Value>& retVal);
@@ -90,7 +90,7 @@ public:
     result_t generateRsaKey(int nid, generateKeyPairParam* param);
     result_t generateDsaKey(int nid, generateKeyPairParam* param);
     result_t generateEcKey(int nid, generateKeyPairParam* param);
-    result_t generateEdKey(int nid, generateKeyPairParam* param);
+    result_t generateOKPKey(int nid, generateKeyPairParam* param);
 
 public:
     result_t toX25519_privateKey(v8::Local<v8::Object> options);

@@ -13,11 +13,18 @@
 #include <openssl/ssl.h>
 #include <openssl/core_names.h>
 
-
 extern "C" {
 #include <crypto/evp.h>
 #include <crypto/ec.h>
+
+void ossl_x25519_public_from_ed25519(uint8_t out_public_value[32], const uint8_t public_value[32]);
+void ossl_x25519_private_from_ed25519(uint8_t out_private_key[32], const uint8_t private_key[32]);
 }
+
+#define NID_BLS12_381_G1 1301
+#define EVP_PKEY_BLS12_381_G1 NID_BLS12_381_G1
+#define NID_BLS12_381_G2 1302
+#define EVP_PKEY_BLS12_381_G2 NID_BLS12_381_G2
 
 namespace fibjs {
 
@@ -166,9 +173,49 @@ const int kX509NameFlagsRFC2253WithinUtf8JSON = XN_FLAG_RFC2253 & ~ASN1_STRFLGS_
 extern const char* xfKeyUsages[];
 extern const char* xfCertTypes[];
 
-} /* namespace fibjs */
+inline int okp_curve_nid(const char* name)
+{
+    if (!qstricmp(name, "X25519"))
+        return NID_X25519;
+    if (!qstricmp(name, "X448"))
+        return NID_X448;
+    if (!qstricmp(name, "Ed25519"))
+        return NID_ED25519;
+    if (!qstricmp(name, "Ed448"))
+        return NID_ED448;
+    if (!qstricmp(name, "Bls12381G1"))
+        return NID_BLS12_381_G1;
+    if (!qstricmp(name, "Bls12381G2"))
+        return NID_BLS12_381_G2;
 
-extern "C" {
-void ossl_x25519_public_from_ed25519(uint8_t out_public_value[32], const uint8_t public_value[32]);
-void ossl_x25519_private_from_ed25519(uint8_t out_private_key[32], const uint8_t private_key[32]);
+    return NID_undef;
+}
+
+inline const char* okp_curve_name(int nid)
+{
+    switch (nid) {
+    case NID_X25519:
+        return "X25519";
+    case NID_X448:
+        return "X448";
+    case NID_ED25519:
+        return "Ed25519";
+    case NID_ED448:
+        return "Ed448";
+    case NID_BLS12_381_G1:
+        return "Bls12381G1";
+    case NID_BLS12_381_G2:
+        return "Bls12381G2";
+    }
+
+    return NULL;
+}
+
+inline bool is_okp_curve(int nid)
+{
+    return nid == NID_X25519 || nid == NID_X448
+        || nid == NID_ED25519 || nid == NID_ED448
+        || nid == NID_BLS12_381_G1 || nid == NID_BLS12_381_G2;
+}
+
 }

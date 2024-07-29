@@ -169,7 +169,7 @@ result_t KeyObject::generateEcKey(int nid, generateKeyPairParam* param)
     return 0;
 }
 
-result_t KeyObject::generateEdKey(int nid, generateKeyPairParam* param)
+result_t KeyObject::generateOKPKey(int nid, generateKeyPairParam* param)
 {
     EVPKeyCtxPointer key_ctx = EVP_PKEY_CTX_new_id(nid, nullptr);
     if (!key_ctx)
@@ -190,26 +190,22 @@ result_t KeyObject::generateEdKey(int nid, generateKeyPairParam* param)
 
 result_t KeyObject::generateKey(exlib::string type, generateKeyPairParam* param)
 {
-    if (type == "rsa")
+    if (!qstricmp(type.c_str(), "rsa"))
         return generateRsaKey(EVP_PKEY_RSA, param);
-    else if (type == "rsa-pss")
+    else if (!qstricmp(type.c_str(), "rsa-pss"))
         return generateRsaKey(EVP_PKEY_RSA_PSS, param);
-    else if (type == "dsa")
+    else if (!qstricmp(type.c_str(), "dsa"))
         return generateDsaKey(EVP_PKEY_DSA, param);
-    else if (type == "ec")
+    else if (!qstricmp(type.c_str(), "ec"))
         return generateEcKey(EVP_PKEY_EC, param);
-    else if (type == "sm2")
+    else if (!qstricmp(type.c_str(), "sm2"))
         return generateEcKey(EVP_PKEY_SM2, param);
-    else if (type == "ed25519")
-        return generateEdKey(EVP_PKEY_ED25519, param);
-    else if (type == "ed448")
-        return generateEdKey(EVP_PKEY_ED448, param);
-    else if (type == "x25519")
-        return generateEdKey(EVP_PKEY_X25519, param);
-    else if (type == "x448")
-        return generateEdKey(EVP_PKEY_X448, param);
 
-    return Runtime::setError("Invalid key type");
+    int nid = okp_curve_nid(type.c_str());
+    if (nid == NID_undef)
+        return Runtime::setError("Invalid key type");
+
+    return generateOKPKey(nid, param);
 }
 
 #define GET_GEN_PARAM(name)                                          \
