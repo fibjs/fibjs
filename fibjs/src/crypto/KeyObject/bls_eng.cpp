@@ -425,7 +425,17 @@ static EVP_PKEY_METHOD bls_pkey_meth[] = {
 
 int bls_get_ans1_meth(ENGINE* e, EVP_PKEY_ASN1_METHOD** meths, const int** nids, int n)
 {
-    int pos = n == NID_BLS12_381_G1 ? 0 : 1;
+    int pos;
+    switch (n) {
+    case NID_BLS12_381_G1:
+        pos = 0;
+        break;
+    case NID_BLS12_381_G2:
+        pos = 1;
+        break;
+    default:
+        return 0;
+    }
 
     if (meths)
         *meths = &bls_asn1_meth[pos];
@@ -433,12 +443,22 @@ int bls_get_ans1_meth(ENGINE* e, EVP_PKEY_ASN1_METHOD** meths, const int** nids,
     if (nids)
         *nids = &bls_nid[pos];
 
-    return 2;
+    return 1;
 }
 
 int bls_get_pkey_meth(ENGINE* e, EVP_PKEY_METHOD** meth, const int** nids, int n)
 {
-    int pos = n == NID_BLS12_381_G1 ? 0 : 1;
+    int pos;
+    switch (n) {
+    case NID_BLS12_381_G1:
+        pos = 0;
+        break;
+    case NID_BLS12_381_G2:
+        pos = 1;
+        break;
+    default:
+        return 0;
+    }
 
     if (meth)
         *meth = &bls_pkey_meth[pos];
@@ -446,7 +466,7 @@ int bls_get_pkey_meth(ENGINE* e, EVP_PKEY_METHOD** meth, const int** nids, int n
     if (nids)
         *nids = &bls_nid[pos];
 
-    return 2;
+    return 1;
 }
 
 void init_blst_eng()
