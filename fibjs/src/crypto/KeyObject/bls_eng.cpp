@@ -351,8 +351,8 @@ static EVP_PKEY_ASN1_METHOD bls_asn1_meth[] = {
     { NID_BLS12_381_G1,
         NID_BLS12_381_G1,
         0,
-        "Bls12381G1",
-        "OpenSSL Bls12381G1 algorithm",
+        (char*)"Bls12381G1",
+        (char*)"OpenSSL Bls12381G1 algorithm",
 
         0, 0, 0, 0, 0, 0, 0,
         bls_size,
@@ -375,8 +375,8 @@ static EVP_PKEY_ASN1_METHOD bls_asn1_meth[] = {
     { NID_BLS12_381_G2,
         NID_BLS12_381_G2,
         0,
-        "Bls12381G2",
-        "OpenSSL Bls12381G2 algorithm",
+        (char*)"Bls12381G2",
+        (char*)"OpenSSL Bls12381G2 algorithm",
 
         0, 0, 0, 0, 0, 0, 0,
         bls_size,
