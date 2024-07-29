@@ -191,24 +191,7 @@ result_t KeyObject::ImportJWKEcKey(v8::Local<v8::Object> key, KeyType type)
     return 0;
 }
 
-static int GetOKPCurveFromName(const char* name)
-{
-    int nid;
-    if (strcmp(name, "Ed25519") == 0) {
-        nid = EVP_PKEY_ED25519;
-    } else if (strcmp(name, "Ed448") == 0) {
-        nid = EVP_PKEY_ED448;
-    } else if (strcmp(name, "X25519") == 0) {
-        nid = EVP_PKEY_X25519;
-    } else if (strcmp(name, "X448") == 0) {
-        nid = EVP_PKEY_X448;
-    } else {
-        nid = NID_undef;
-    }
-    return nid;
-}
-
-result_t KeyObject::ImportJWKEdKey(v8::Local<v8::Object> key, KeyType type)
+result_t KeyObject::ImportJWKOKPKey(v8::Local<v8::Object> key, KeyType type)
 {
     Isolate* isolate = holder();
     result_t hr;
@@ -218,7 +201,7 @@ result_t KeyObject::ImportJWKEdKey(v8::Local<v8::Object> key, KeyType type)
     if (hr < 0)
         return hr;
 
-    int nid = GetOKPCurveFromName(crv_name.c_str());
+    int nid = okp_curve_nid(crv_name.c_str());
     if (nid == NID_undef)
         return Runtime::setError("Invalid JWK OKP key");
 
@@ -262,7 +245,7 @@ result_t KeyObject::ImportJWKAsymmetricKey(v8::Local<v8::Object> jwk, KeyType ty
     else if (kty == "EC")
         return ImportJWKEcKey(jwk, type);
     else if (kty == "OKP")
-        return ImportJWKEdKey(jwk, type);
+        return ImportJWKOKPKey(jwk, type);
 
     return CALL_E_INVALID_CALL;
 }
@@ -384,44 +367,26 @@ result_t KeyObject::ExportJWKEcKey(v8::Local<v8::Value>& retVal)
     return 0;
 }
 
-static const char* GetOKPNameFromCurve(int nid)
-{
-    const char* name = nullptr;
-    switch (nid) {
-    case EVP_PKEY_ED25519:
-        name = "Ed25519";
-        break;
-    case EVP_PKEY_ED448:
-        name = "Ed448";
-        break;
-    case EVP_PKEY_X25519:
-        name = "X25519";
-        break;
-    case EVP_PKEY_X448:
-        name = "X448";
-        break;
-    }
-    return name;
-}
-
-result_t KeyObject::ExportJWKEdKey(v8::Local<v8::Value>& retVal)
+result_t KeyObject::ExportJWKOKPKey(v8::Local<v8::Value>& retVal)
 {
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
 
     v8::Local<v8::Object> jwk = v8::Object::New(isolate->m_isolate);
     jwk->Set(context, isolate->NewString("kty", 3), isolate->NewString("OKP", 3)).FromJust();
-    jwk->Set(context, isolate->NewString("crv", 3), isolate->NewString(GetOKPNameFromCurve(EVP_PKEY_id(m_pkey)))).FromJust();
+    jwk->Set(context, isolate->NewString("crv", 3), isolate->NewString(okp_curve_name(EVP_PKEY_id(m_pkey)))).FromJust();
 
     size_t len = 0;
-    EVP_PKEY_get_raw_public_key(m_pkey, nullptr, &len);
+    std::vector<unsigned char> key;
 
-    std::vector<unsigned char> key(len);
+    EVP_PKEY_get_raw_public_key(m_pkey, nullptr, &len);
+    key.resize(len);
     EVP_PKEY_get_raw_public_key(m_pkey, key.data(), &len);
     jwk->Set(context, isolate->NewString("x", 1), base64Encode(isolate, (const char*)key.data(), len)).FromJust();
 
     if (m_keyType == kKeyTypePrivate) {
-        len = key.size();
+        EVP_PKEY_get_raw_private_key(m_pkey, nullptr, &len);
+        key.resize(len);
         EVP_PKEY_get_raw_private_key(m_pkey, key.data(), &len);
         jwk->Set(context, isolate->NewString("d", 1), base64Encode(isolate, (const char*)key.data(), len)).FromJust();
     }
@@ -435,6 +400,8 @@ result_t KeyObject::export_json(v8::Local<v8::Value>& retVal)
 {
     if (m_keyType == kKeyTypeSecret)
         return ExportJWKSecretKey(retVal);
+    else if (is_okp_curve(EVP_PKEY_id(m_pkey)))
+        return ExportJWKOKPKey(retVal);
     else
         switch (EVP_PKEY_id(m_pkey)) {
         case EVP_PKEY_RSA:
@@ -442,11 +409,6 @@ result_t KeyObject::export_json(v8::Local<v8::Value>& retVal)
         case EVP_PKEY_SM2:
         case EVP_PKEY_EC:
             return ExportJWKEcKey(retVal);
-        case EVP_PKEY_ED25519:
-        case EVP_PKEY_ED448:
-        case EVP_PKEY_X25519:
-        case EVP_PKEY_X448:
-            return ExportJWKEdKey(retVal);
         }
 
     return Runtime::setError("Not supported key type");

@@ -19,6 +19,8 @@ namespace fibjs {
 DECLARE_MODULE(tls);
 DECLARE_MODULE_EX(ssl, tls);
 
+void init_blst_eng();
+
 void init_tls()
 {
     SSL_library_init();
@@ -28,6 +30,8 @@ void init_tls()
     OSSL_PROVIDER_load(NULL, "default");
     if (g_openssl_legacy_provider)
         OSSL_PROVIDER_load(nullptr, "legacy");
+
+    init_blst_eng();
 }
 
 result_t tls_base::get_secureContext(obj_ptr<SecureContext_base>& retVal)

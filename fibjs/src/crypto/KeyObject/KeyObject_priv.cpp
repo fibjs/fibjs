@@ -177,18 +177,9 @@ result_t KeyObject::ParsePrivateKey(v8::Local<v8::Object> key)
         if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
             return hr;
 
-        int32_t key_type = EVP_PKEY_EC;
+        int32_t key_type = okp_curve_nid(namedCurve.c_str());
 
-        if (qstricmp(namedCurve.c_str(), "ed25519") == 0)
-            key_type = EVP_PKEY_ED25519;
-        else if (qstricmp(namedCurve.c_str(), "ed448") == 0)
-            key_type = EVP_PKEY_ED448;
-        else if (qstricmp(namedCurve.c_str(), "x25519") == 0)
-            key_type = EVP_PKEY_X25519;
-        else if (qstricmp(namedCurve.c_str(), "x448") == 0)
-            key_type = EVP_PKEY_X448;
-
-        if (key_type == EVP_PKEY_EC) {
+        if (key_type == NID_undef) {
             int32_t cid = GetCurveFromName(namedCurve.c_str());
             if (cid == NID_undef)
                 return Runtime::setError("Invalid curve name");
@@ -347,7 +338,7 @@ result_t KeyObject::ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8
             BN_bn2binpad(d, buf->data(), degree_bytes);
 
             retVal = buf->wrap(isolate);
-        } else if (nid == EVP_PKEY_ED25519 || nid == EVP_PKEY_ED448 || nid == EVP_PKEY_X25519 || nid == EVP_PKEY_X448) {
+        } else if (is_okp_curve(nid)) {
             size_t len = 0;
             EVP_PKEY_get_raw_private_key(m_pkey, nullptr, &len);
 
@@ -356,7 +347,7 @@ result_t KeyObject::ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8
 
             retVal = buf->wrap(isolate);
         } else
-            return Runtime::setError("only support EC, SM2, ED25519, ED448, X25519, X448 key");
+            return Runtime::setError("only support EC, SM2, ED25519, ED448, X25519, X448, Bls12381G1, Bls12381G2 key");
     } else
         return Runtime::setError("Invalid format");
 

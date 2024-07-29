@@ -6,6 +6,7 @@ var fs = require("fs");
 var os = require("os");
 var encoding = require("encoding");
 var hex = require("hex");
+var base64 = require("base64");
 var path = require("path");
 
 var rsa4096_pem = "-----BEGIN RSA PRIVATE KEY-----\n" +
@@ -1355,13 +1356,11 @@ describe('crypto', () => {
                 it('publicEncrypt/privateDecrypt with sm2', () => {
                     function encrypt_test(key, data) {
                         let encrypt_res = crypto.publicEncrypt(key.publicKey, Buffer.from(data)).toString("hex");
-                        console.log(key.publicKey.asymmetricKeyType, " encrypt_res:", encrypt_res);
                         return encrypt_res;
                     }
 
                     function decrypt_test(key, encrypt_data) {
                         let decrypt_res = crypto.privateDecrypt(key.privateKey, Buffer.from(encrypt_data, "hex")).toString();
-                        console.log(key.privateKey.asymmetricKeyType, " decrypt_res:", decrypt_res);
                         return decrypt_res;
                     }
 
@@ -2178,6 +2177,229 @@ describe('crypto', () => {
                     }
                 });
 
+            });
+        });
+
+        describe('bls', () => {
+            var g1_key = {
+                "kty": "OKP",
+                "crv": "Bls12381G1",
+                "x": "tCgCNuUYQotPEsrljWi-lIRIPpzhqsnJV1NPnE7je6glUb-FJm9IYkuv2hbHw22i",
+                "d": "TXNvJBBG3h23H5hFJcnRZmYd_j1TqpwtJOllYGU3yyw"
+            };
+            var g2_key = {
+                "kty": "OKP",
+                "crv": "Bls12381G2",
+                "x": "h_rkcTKXXzRbOPr9UxSfegCbid2U_cVNXQUaKeGF7UhwrMJFP70uMH0VQ9-3-_2zDPAAjflsdeLkOXW3-ShktLxuPy8UlXSNgKNmkfb-rrj-FRwbs13pv_WsIf-eV66-",
+                "d": "PofPmtCTsMilP9gluxrSDTC7DPbKwSMEzxVCZxq_L2I"
+            };
+
+            var data = [
+                {
+                    "key": {
+                        "kty": "OKP",
+                        "crv": "Bls12381G1",
+                        "x": "uElgtW9XsEMOa9tPoVcOe2JeShWPP10ChSFnh3V7Q-7R5qwX8BDtzMfJumlzsORn",
+                        "d": "CSSRytF2pUMEA6Bogcr0iL3nhj14Lk9vQeA1pzfi6rY"
+                    },
+                    "msg": "jElpsgs1VmagSI1PBFsZjy2pqgIDdY7IhjhYNZ6keZESuBlqfeUgm7tLUFCiQkS0fkFDvppKA4nVdjUmlTR6oxkogtVD0TBO4ZupYrupy4S01Vzq2a2pdJ5GeG2JVHNEPdk2pysreghhkbR1ivdBoW3FuuL61hNP3KTa4l7BiEg=",
+                    "sig": "kv83d2R0yGvrm6W111HTwo9Dj2NkIWXP/Uxc/93Nxe5aMkSQoL/Aa4D2tex0G+p/E3mzNJ6GZfTQrtMardoVXFq84EAahifIwgABo53dmPzFV56n5hfojOn9uYKJeS8f"
+                },
+                {
+                    "key": {
+                        "kty": "OKP",
+                        "crv": "Bls12381G1",
+                        "x": "iL__ckqXV81buV8-hlvwbwauTw14ZWTR43q6ldpKvCz-WrAMyWTlRgGhF2wqwPRm",
+                        "d": "aA3_w3JT3al7_tnTjcqxLW4qR9b9Yg1z_0nW2SCdPX0"
+                    },
+                    "msg": "HIlNfFLhWwjgM/qmSH5Z2ssSbHr8PSL+eTuVUclvAd5SfNAFDWaN0yK9lGrPnXXjhNg6mBdFKFWq5kqAN69p2JLEylN5XmVHvnQ3mpToxL1HgQ6wHdCecoDFKw2Xz0OLyxBDazLqxlIIx2HYIY996zh2QoxR+weuSK2tzs2P6cw=",
+                    "sig": "suveDMw9QwNvwHNX0kVeicxdrcflsxWgG/d24zlHDuVfn1b61bXlg5I6LhGoiUkyFvo1htWwIoYM8gfMBagYoTm7plfRRKlVNT/w7Kc6Le/YWsF/vioVQesPBgprFh23"
+                },
+                {
+                    "key": {
+                        "kty": "OKP",
+                        "crv": "Bls12381G1",
+                        "x": "tUDPV1FO8O095QrxsrAdn8mqv6J4pZV-Y8befAUM3Q2MMSvnVLdzw-CcDFOOcFim",
+                        "d": "EZgncKJp5TuYoNVnsrkiZskoB5Mtni3ak27gTqCHUUY"
+                    },
+                    "msg": "ioTlVvHd45u7qKcFe31QBXlpLWM2LOTGXPQPbf/qMLk67I0nxT3G7rZ7KP54xRJFV+qscadyepgGBnqNk9EHjbUmt5+4bB9F2/JSr+0g5v99krUVR0R1+bQfjO83eleejMzzDUxe60uXUPkKxOg7vxAhOaeR6JG6gGpm1gXAp2U=",
+                    "sig": "jreHdvZoTJAsaovcGz2icn0GK2qQAyU35kB1hhLGJDl8ErHFhiAJDjhMPHnhimTaEf5eaKiHqCqoOTDpLzXEzbY3jK+tNqN3/Qh+KxX8aQXFWU62JuqjiQxiuIrCTkhm"
+                },
+                {
+                    "key": {
+                        "kty": "OKP",
+                        "crv": "Bls12381G1",
+                        "x": "iCNl2W1XJ6T5I7P5jYng32ZooWxdf2fwgGTG0O8pRSpkk_ghYnl-iy51glBOvBkG",
+                        "d": "YI3BbYXyb7-NrgAyz_0mzGyp0mivOswUT-H_I4pTKRs"
+                    },
+                    "msg": "uzZ52nehqBO1CaBgACRsOO79gMHQzAF85vChfnMA31qHNKKaWPaVYXiXLxRxydLF+I8YwzsLq9PjWFyseKXD/o+xQ9OJNasfpofGhJ+2aHIrUl4CcLNvDwfJBdUPl4f9NoEpJPYnoXs4NJ7snlOQ7Zw0WdXcLTqE5iXgudUDPuE=",
+                    "sig": "qiRqZDulMGbho2cTuiGMPcqfZmVEmknAnq6dzQ9yksBgOIxCI/C1HVRicT773CODEftxAjgnY2/E9ERac2mBkj1rkiaKcFbWLUi5+JfMzNQaxdo5YAwX2ylRY+aVTjIW"
+                },
+                {
+                    "key": {
+                        "kty": "OKP",
+                        "crv": "Bls12381G1",
+                        "x": "oPMpdV39d4eJnqrZTEu2ynLNc4Y5mDF0FN66XZqpi4TJBn5pvtO-DTcbSH6KV9sA",
+                        "d": "beISCSgyCIyNBFUQWtk54W_zt8BakojKzxbFKzz7FvA"
+                    },
+                    "msg": "iM5SZ7qFMGMzX7gPRvWVnMuWAwaqep0KB9FHHKTuPqSOdnR15BLBuJvfmvVRtVKgeDf73739WQyd5N8h5JDPa2cuOomhjmK5KpwJ7SUxmnuQINK6Dlp8GlYXj8asVv6w0JLsRebsui/YQosNCaLXuZKxfhgXq1K9uP+nLU7KesY=",
+                    "sig": "uXsyK7BbREOomV9GcIProtwe6Rl6rsVcB4hgRGIjYygS6hSGi//A/L0fl+EVrSGEFndF4UyqK10K8pPl2fDZC182eGqZeDc4X/Wh5EUjFvR1TcEqjTNMj/3/oPt70bAz"
+                },
+                {
+                    "key": {
+                        "kty": "OKP",
+                        "crv": "Bls12381G2",
+                        "x": "tgtAZDN060uN5g_PuHMkUV6h1nSAlM9qX6y1WxEe5AQNX3BXbnxMozbfvcCI6ga8CnA-uqMjhd1faq_y3V_lRcuY6bw2AdlRHoIWQRF3EmEdZNfQbLF1oLJrQg7gIBhE",
+                        "d": "LMiMiwVdG2qiBw-GnIxeGDoGjBeHEKXP5FX5OqKS-wU"
+                    },
+                    "msg": "1GwhHJGZaB84s/S1lUD6fDS0ud+kfD755wpBvYwh1aJEXsVMxveoZ92mTi14PG2ppnLcC0FcnPJHj3QCKBlnbokx5pTei1mC1tPMxHRxG0JgrfX4XR8Fk7tFErVIQVu7FnCyyuZtcSc+dijTxVvssGOKggVe0yihR6MnFbdK/ok=",
+                    "sig": "iQHZfwQWbFItoEZaF1DwNuFkoU7j9NWvMbdlc/5gaL2uRXvxCrfkTK7ZefaxdvlS"
+                },
+                {
+                    "key": {
+                        "kty": "OKP",
+                        "crv": "Bls12381G2",
+                        "x": "gROJOPH9n1ylOfSXOZlw0_wN-MR44IZIESsOG51OaRaSjtoVW-BT2e5OCl9Jdy-oChtPDfTqcTdzsyCNNBKMIETTxGHhcAbsV3nvM5ZZAyDvzvFF2-q3BnElzORpg9AF",
+                        "d": "PTVSoVgZWlQZGjs_xEK6EsNot44DSlgIgN9jEFrjsU8"
+                    },
+                    "msg": "TkDnNc0eSPLqkqqI+OgZsP2ZUS6q5nNTk0/PHuP9vYfckBXE/ZZjHW0hyNu/bySDle/htSSNph8TIb0mhdjmAEdYH6CnvwzA/LWzc1tDO8RPBPuonKWVogfn3IrW7X7vIYX27QTsNGw/Vhd6V5jM6sg0IN7l/TFU114SdLVb/kw=",
+                    "sig": "svIOXfy5H0F8bSf36O5sOD0Zbn7BYQ80p3GBD6atwLZjOskYp34KPLcF4PA4d4Mr"
+                },
+                {
+                    "key": {
+                        "kty": "OKP",
+                        "crv": "Bls12381G2",
+                        "x": "keE8femPCf2ySK2T-_RapxMdhhRYDCqqwu3aCUXbASj2nzhnYroO-WUj0NNxcehaADRdHMraw-fLLwyENm1sw0P_lOOV3zWf6UHE30B8uDJD7l5fzpoXaRLjAIjfED8y",
+                        "d": "PYg77h91cMKYX9g66IpiGl7lkzrhM97jjd0MPIl_EG8"
+                    },
+                    "msg": "ATWwyqbyWIJnZf+8ogqnfoe78BtiQafBVePVx9BMAPO+AAMnY3Fe9bh5D3wbqUPOksv84prFdn+8vXgxnu71elfdzjd9XIZKKLgB2/VmQKW8d8QgahcX+1KG/j9FniOmWshTUmnv3Tk3ssJn/iSRrV0r9vWan+NUu/2ski+rBBc=",
+                    "sig": "kK9bKX7DdkBB6e2l9ima2iV9APdXFupfGaCY1YeL09I/o7FpmAYoO69zEhzoTGuN"
+                },
+                {
+                    "key": {
+                        "kty": "OKP",
+                        "crv": "Bls12381G2",
+                        "x": "te4Ca0MzlN-oRx0Yn6-RSW-k4Erg8IXvWjgIrgePOjnkQoZEZlxPHCP3awIp1X76Aj4w3HADDTXGpvyiJiT7lfUWcN3FM9YCthI7eDI5P6IW4_XBGBlRkzHB3_Fl8239",
+                        "d": "aez939T2kwIwinRaAQkvhCy6COKCd2wdilmWQNAYHRs"
+                    },
+                    "msg": "BwCzYxHjRVMAO2ORRh3VxSqEadRJn9YAleoMOF1JoMqxYir0brCCe66WVvFHHYEZ8mqPGj+4pBpK6+JdzQM/clIL98YDGl2w5L0BpAK4GcaV87+K37uCoq9Vugj5Fx/1jKqYeeGasSLJ8jcGUDDmrSfIpkJtrJ+lPLUtzgmUwhM=",
+                    "sig": "hIW/7naMNFKHq3/tn0GvczGaUP/4XGIE45HeG3f5FCyAaIen/SSxTtrwxk0ykPMM"
+                },
+                {
+                    "key": {
+                        "kty": "OKP",
+                        "crv": "Bls12381G2",
+                        "x": "sTkg0tr5zKlD6RBUZPd6lss51M68bgKOuygneAgEoS5BItuBjnbrZ-Wf4z7Uw1ZSGaTZILiz8BMsSxlUJZQlBFfRpY6SSDKwY9s82tHCrU1P2l0M6zO_wxI6ZI8zqk23",
+                        "d": "ZTazAk2Zzj0y0wZx0q2lazNiTDlBsAgeUaXywUgPcNA"
+                    },
+                    "msg": "PhYCksp+xgq8xMIdcMXur4KQSAPJQEc3YMuW74FUj3duOnBZharx1ToEFaUS5U/vq8mWr4zZp8NCN5rqXi1WVX/XPDXmSQRgSXq29dA3Ry8AY5tiBH3i4ka65TACzdMLxT3u7zkiKlKrsosmt+uPZha+AGdg+99w/+XAcNUWZFU=",
+                    "sig": "slZnay/PUX6yXQxnhCzla7NMlx7FRD4OqlXDj+mXzqFLIgffY4r3nmN4aR7WIV7o"
+                }
+            ];
+
+            it("export/import json", () => {
+                var sk = crypto.createPrivateKey({
+                    key: g1_key
+                });
+                assert.deepEqual(sk.toJSON(), g1_key);
+
+                var sk = crypto.createPrivateKey({
+                    key: g2_key
+                });
+                assert.deepEqual(sk.toJSON(), g2_key);
+            });
+
+            it("private only key", () => {
+                var sk = crypto.createPrivateKey({
+                    key: {
+                        "kty": "OKP",
+                        "crv": "Bls12381G1",
+                        "d": "TXNvJBBG3h23H5hFJcnRZmYd_j1TqpwtJOllYGU3yyw"
+                    }
+                });
+                assert.deepEqual(sk.toJSON(), g1_key);
+
+                var sk = crypto.createPrivateKey({
+                    key: {
+                        "kty": "OKP",
+                        "crv": "Bls12381G2",
+                        "d": "PofPmtCTsMilP9gluxrSDTC7DPbKwSMEzxVCZxq_L2I"
+                    }
+                });
+                assert.deepEqual(sk.toJSON(), g2_key);
+            });
+
+            it("get public key", () => {
+                var sk = crypto.createPrivateKey({
+                    key: g1_key
+                });
+                assert.deepEqual(crypto.createPublicKey(sk).toJSON(), {
+                    "kty": "OKP", "crv": "Bls12381G1",
+                    "x": "tCgCNuUYQotPEsrljWi-lIRIPpzhqsnJV1NPnE7je6glUb-FJm9IYkuv2hbHw22i"
+                });
+
+                var sk = crypto.createPrivateKey({
+                    key: g2_key
+                });
+                assert.deepEqual(crypto.createPublicKey(sk).toJSON(), {
+                    "kty": "OKP", "crv": "Bls12381G2",
+                    "x": "h_rkcTKXXzRbOPr9UxSfegCbid2U_cVNXQUaKeGF7UhwrMJFP70uMH0VQ9-3-_2zDPAAjflsdeLkOXW3-ShktLxuPy8UlXSNgKNmkfb-rrj-FRwbs13pv_WsIf-eV66-"
+                });
+            });
+
+            it("sign/verify", () => {
+                var sk = crypto.createPrivateKey({
+                    key: g1_key
+                });
+                var pk = crypto.createPublicKey(sk);
+
+                var sig = crypto.sign('SHA256', 'abcd', sk);
+                assert.isTrue(crypto.verify('SHA256', 'abcd', pk, sig));
+                assert.isFalse(crypto.verify('SHA256', 'abcd1', pk, sig));
+            });
+
+            it("generateKey", () => {
+                var keys = crypto.generateKeyPair('Bls12381G1');
+
+                var sig = crypto.sign('SHA256', 'abcd', keys.privateKey);
+                assert.isTrue(crypto.verify('SHA256', 'abcd', keys.publicKey, sig));
+                assert.isFalse(crypto.verify('SHA256', 'abcd1', keys.publicKey, sig));
+
+                var keys = crypto.generateKeyPair('Bls12381G2');
+
+                var sig = crypto.sign('SHA256', 'abcd', keys.privateKey);
+                assert.isTrue(crypto.verify('SHA256', 'abcd', keys.publicKey, sig));
+                assert.isFalse(crypto.verify('SHA256', 'abcd1', keys.publicKey, sig));
+            });
+
+            it("asymmetricKeyType", () => {
+                var sk = crypto.createPrivateKey({
+                    key: g1_key
+                });
+                assert.deepEqual(sk.asymmetricKeyType, "Bls12381G1");
+
+                var sk = crypto.createPrivateKey({
+                    key: g2_key
+                });
+                assert.deepEqual(sk.asymmetricKeyType, "Bls12381G2");
+            });
+
+            it("test suite", () => {
+                data.forEach(c => {
+                    var sk = crypto.createPrivateKey({
+                        key: c.key
+                    });
+
+                    var pk = crypto.createPublicKey(sk);
+
+                    var data = base64.decode(c.msg);
+
+                    var sig = crypto.sign('SHA256', data, sk);
+                    assert.equal(sig.base64(), c.sig);
+                    assert.isTrue(crypto.verify('SHA256', data, pk, sig));
+                    data[0] = (data[0] + 1) & 0xff;
+                    assert.isFalse(crypto.verify('SHA256', data, pk, sig));
+                });
             });
         });
     });

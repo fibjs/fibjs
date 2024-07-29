@@ -170,6 +170,12 @@ result_t KeyObject::get_asymmetricKeyType(exlib::string& retVal)
     case EVP_PKEY_X448:
         retVal = "x448";
         break;
+    case EVP_PKEY_BLS12_381_G1:
+        retVal = "Bls12381G1";
+        break;    
+    case EVP_PKEY_BLS12_381_G2:
+        retVal = "Bls12381G2";
+        break;    
     default:
         return CALL_RETURN_UNDEFINED;
     }
