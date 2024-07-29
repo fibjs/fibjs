@@ -427,6 +427,9 @@ int bls_get_ans1_meth(ENGINE* e, EVP_PKEY_ASN1_METHOD** meths, const int** nids,
 {
     int pos;
     switch (n) {
+    case 0:
+        *nids = bls_nid;
+        return 2;
     case NID_BLS12_381_G1:
         pos = 0;
         break;
@@ -450,6 +453,9 @@ int bls_get_pkey_meth(ENGINE* e, EVP_PKEY_METHOD** meth, const int** nids, int n
 {
     int pos;
     switch (n) {
+    case 0:
+        *nids = bls_nid;
+        return 2;
     case NID_BLS12_381_G1:
         pos = 0;
         break;
