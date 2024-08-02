@@ -55,7 +55,7 @@ public:
 
 public:
     result_t create(v8::Local<v8::Object> options);
-    v8::Local<v8::Object> description_to_object(rtc::Description description);
+    obj_ptr<NObject> description_to_object(rtc::Description description);
 
 private:
     void onStateChange(rtc::PeerConnection::State state);
