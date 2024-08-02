@@ -81,19 +81,28 @@ public:
     // object_base
     virtual result_t valueOf(v8::Local<v8::Value>& retVal)
     {
-        Isolate* isolate = holder();
-        v8::Local<v8::Context> context = isolate->context();
         v8::Local<v8::Object> obj;
 
-        if (retVal.IsEmpty()) {
-            obj = v8::Object::New(isolate->m_isolate);
-            retVal = obj;
-        } else
-            obj = v8::Local<v8::Object>::Cast(retVal);
+        result_t hr = valueOf(obj);
+        if (hr < 0)
+            return hr;
+
+        retVal = obj;
+
+        return 0;
+    }
+
+    result_t valueOf(v8::Local<v8::Object>& retVal)
+    {
+        Isolate* isolate = holder();
+        v8::Local<v8::Context> context = isolate->context();
+
+        if (retVal.IsEmpty())
+            retVal = v8::Object::New(isolate->m_isolate);
 
         for (int32_t i = 0; i < (int32_t)m_values.size(); i++) {
             Value& v = m_values[i];
-            obj->Set(context, isolate->NewString(v.m_pos->first), v.m_val).IsJust();
+            retVal->Set(context, isolate->NewString(v.m_pos->first), v.m_val).IsJust();
         }
 
         return 0;

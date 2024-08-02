@@ -141,9 +141,7 @@ result_t util_base::buildInfo(v8::Local<v8::Object>& retVal)
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
 
-    v8::Local<v8::Value> v;
-    g_info->valueOf(v);
-    retVal = v8::Local<v8::Object>::Cast(v);
+    g_info->valueOf(retVal);
 
     {
         v8::Local<v8::Array> modules = v8::Array::New(isolate->m_isolate);
