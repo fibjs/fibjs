@@ -790,18 +790,28 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
                 if (hr < 0)
                     return hr;
 
-                v8::Local<v8::Array> urls;
-                hr = GetConfigValue(isolate, iceServer, "urls", urls, true);
+                v8::Local<v8::Value> urlv;
+                hr = GetConfigValue(isolate, iceServer, "urls", urlv, true);
                 if (hr < 0)
                     return hr;
 
-                for (uint32_t j = 0; j < urls->Length(); j++) {
+                if (urlv->IsString()) {
                     exlib::string url;
-                    hr = GetConfigValue(isolate, urls, j, url, true);
-                    if (hr < 0)
-                        return hr;
+                    GetArgumentValue(isolate, urlv, url);
 
                     config.iceServers.push_back(rtc::IceServer(url));
+                } else if (urlv->IsArray()) {
+                    v8::Local<v8::Array> urls;
+                    GetArgumentValue(isolate, urlv, urls);
+
+                    for (uint32_t j = 0; j < urls->Length(); j++) {
+                        exlib::string url;
+                        hr = GetConfigValue(isolate, urls, j, url, true);
+                        if (hr < 0)
+                            return hr;
+
+                        config.iceServers.push_back(rtc::IceServer(url));
+                    }
                 }
             }
         } catch (std::exception& e) {
