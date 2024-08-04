@@ -175,6 +175,19 @@ public:
     // object_base
     virtual result_t valueOf(v8::Local<v8::Value>& retVal)
     {
+        v8::Local<v8::Object> obj;
+
+        result_t hr = valueOf(obj);
+        if (hr < 0)
+            return hr;
+
+        retVal = obj;
+
+        return 0;
+    }
+
+    result_t valueOf(v8::Local<v8::Object>& retVal)
+    {
         Isolate* isolate = holder();
         v8::Local<v8::Context> context = isolate->context();
         v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate);
@@ -209,6 +222,19 @@ public:
     // object_base
     virtual result_t valueOf(v8::Local<v8::Value>& retVal)
     {
+        v8::Local<v8::Object> obj;
+
+        result_t hr = valueOf(obj);
+        if (hr < 0)
+            return hr;
+
+        retVal = obj;
+
+        return 0;
+    }
+
+    result_t valueOf(v8::Local<v8::Object>& retVal)
+    {
         Isolate* isolate = holder();
         v8::Local<v8::Context> context = isolate->context();
         v8::Local<v8::Map> obj;
@@ -230,6 +256,19 @@ class NType : public object_base {
 public:
     // object_base
     virtual result_t valueOf(v8::Local<v8::Value>& retVal)
+    {
+        v8::Local<v8::Object> obj;
+
+        result_t hr = valueOf(obj);
+        if (hr < 0)
+            return hr;
+
+        retVal = obj;
+
+        return 0;
+    }
+
+    result_t valueOf(v8::Local<v8::Object>& retVal)
     {
         Isolate* isolate = holder();
         v8::Local<v8::Object> obj;
