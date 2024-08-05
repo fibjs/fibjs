@@ -10,6 +10,7 @@
 #include "utils.h"
 #include "encoding.h"
 #include "Buffer.h"
+#include <openssl/rand.h>
 #include <openssl/ssl.h>
 #include <openssl/core_names.h>
 

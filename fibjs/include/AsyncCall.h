@@ -140,7 +140,9 @@ public:
                 if (_rt.is_terminating())
                     m_v = CALL_E_TIMEOUT;
             }
-        } else
+        } else if (hr < 0)
+            return hr;
+        else
             m_v = hr;
 
         if (m_v == CALL_E_EXCEPTION)

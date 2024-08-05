@@ -234,40 +234,38 @@ inline exlib::string candidate_type_str(rtc::Candidate::Type type)
     }
 }
 
-v8::Local<v8::Object> RTCPeerConnection::description_to_object(rtc::Description description)
+obj_ptr<NObject> RTCPeerConnection::description_to_object(rtc::Description description)
 {
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Object> obj = v8::Object::New(isolate->m_isolate);
+    NObject* obj_description = new NObject();
 
     switch (description.type()) {
     case rtc::Description::Type::Unspec:
-        obj->Set(context, isolate->NewString("type"), isolate->NewString("unspec")).Check();
+        obj_description->add("type", "unspec");
         break;
     case rtc::Description::Type::Offer:
-        obj->Set(context, isolate->NewString("type"), isolate->NewString("offer")).Check();
+        obj_description->add("type", "offer");
         break;
     case rtc::Description::Type::Answer:
-        obj->Set(context, isolate->NewString("type"), isolate->NewString("answer")).Check();
+        obj_description->add("type", "answer");
         break;
     case rtc::Description::Type::Pranswer:
-        obj->Set(context, isolate->NewString("type"), isolate->NewString("pranswer")).Check();
+        obj_description->add("type", "pranswer");
         break;
     case rtc::Description::Type::Rollback:
-        obj->Set(context, isolate->NewString("type"), isolate->NewString("rollback")).Check();
+        obj_description->add("type", "rollback");
         break;
     default:
-        obj->Set(context, isolate->NewString("type"), isolate->NewString("unknown")).Check();
+        obj_description->add("type", "unknown");
         break;
     }
 
-    obj->Set(context, isolate->NewString("sdp"), isolate->NewString(description.generateSdp())).Check();
+    obj_description->add("sdp", description.generateSdp());
 
     auto ufrag = description.iceUfrag();
     if (ufrag.has_value())
-        obj->Set(context, isolate->NewString("usernameFragment"), isolate->NewString(ufrag.value())).Check();
+        obj_description->add("usernameFragment", ufrag.value());
 
-    return obj;
+    return obj_description;
 }
 
 RTCPeerConnection::~RTCPeerConnection()
@@ -547,7 +545,8 @@ result_t RTCPeerConnection::get_localDescription(v8::Local<v8::Object>& retVal)
 {
     auto desc = m_peerConnection->localDescription();
     if (desc.has_value())
-        retVal = description_to_object(desc.value());
+        return description_to_object(desc.value())->valueOf(retVal);
+
     return 0;
 }
 
@@ -555,7 +554,8 @@ result_t RTCPeerConnection::get_remoteDescription(v8::Local<v8::Object>& retVal)
 {
     auto desc = m_peerConnection->remoteDescription();
     if (desc.has_value())
-        retVal = description_to_object(desc.value());
+        return description_to_object(desc.value())->valueOf(retVal);
+
     return 0;
 }
 
@@ -695,35 +695,9 @@ void RTCPeerConnection::onGatheringStateChange(rtc::PeerConnection::GatheringSta
 void RTCPeerConnection::onLocalDescription(rtc::Description description)
 {
     obj_ptr<NObject> ev = new NObject();
-    obj_ptr<NObject> obj_description = new NObject();
+    obj_ptr<NObject> obj_description = description_to_object(description);
 
     ev->add("description", obj_description);
-    switch (description.type()) {
-    case rtc::Description::Type::Unspec:
-        obj_description->add("type", "unspec");
-        break;
-    case rtc::Description::Type::Offer:
-        obj_description->add("type", "offer");
-        break;
-    case rtc::Description::Type::Answer:
-        obj_description->add("type", "answer");
-        break;
-    case rtc::Description::Type::Pranswer:
-        obj_description->add("type", "pranswer");
-        break;
-    case rtc::Description::Type::Rollback:
-        obj_description->add("type", "rollback");
-        break;
-    default:
-        obj_description->add("type", "unknown");
-        break;
-    }
-
-    obj_description->add("sdp", description.generateSdp());
-
-    auto ufrag = description.iceUfrag();
-    if (ufrag.has_value())
-        obj_description->add("usernameFragment", ufrag.value());
 
     m_lock.lock();
     if (description.type() == rtc::Description::Type::Offer) {
@@ -816,18 +790,28 @@ result_t RTCPeerConnection::create(v8::Local<v8::Object> options)
                 if (hr < 0)
                     return hr;
 
-                v8::Local<v8::Array> urls;
-                hr = GetConfigValue(isolate, iceServer, "urls", urls, true);
+                v8::Local<v8::Value> urlv;
+                hr = GetConfigValue(isolate, iceServer, "urls", urlv, true);
                 if (hr < 0)
                     return hr;
 
-                for (uint32_t j = 0; j < urls->Length(); j++) {
+                if (urlv->IsString()) {
                     exlib::string url;
-                    hr = GetConfigValue(isolate, urls, j, url, true);
-                    if (hr < 0)
-                        return hr;
+                    GetArgumentValue(isolate, urlv, url);
 
                     config.iceServers.push_back(rtc::IceServer(url));
+                } else if (urlv->IsArray()) {
+                    v8::Local<v8::Array> urls;
+                    GetArgumentValue(isolate, urlv, urls);
+
+                    for (uint32_t j = 0; j < urls->Length(); j++) {
+                        exlib::string url;
+                        hr = GetConfigValue(isolate, urls, j, url, true);
+                        if (hr < 0)
+                            return hr;
+
+                        config.iceServers.push_back(rtc::IceServer(url));
+                    }
                 }
             }
         } catch (std::exception& e) {

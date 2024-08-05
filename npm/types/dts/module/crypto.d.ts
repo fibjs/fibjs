@@ -142,9 +142,9 @@ declare module 'crypto' {
      * 
      *     参数 key 用于指定创建私钥的配置属性，支持的属性包括: 
      *     - key: PEM 字符串，DER 二进制 或者 JWK 格式对象
-     *     - format: 必须是 'pem', 'der', 'jwk' 或 'raw'。默认值: 'pem'
+     *     - format: 必须是 'pem', 'der', 'jwk' 或 'raw'。默认值: 'pem'。Bls12381G1/Bls12381G2 仅支持 'raw'
      *     - type: 必须是 'pkcs1', 'pkcs8' 或 'sec1'。仅当 format 为 'der' 时才需要此选项，否则忽略
-     *     - namedCurve: 当 format 为 'raw' 时用于指定 key 的曲线名称，可以是 EC 曲线名，SM2 或者 Ed25519/Ed448/X25519/X448
+     *     - namedCurve: 当 format 为 'raw' 时用于指定 key 的曲线名称，可以是 EC 曲线名，或者 SM2/Ed25519/Ed448/X25519/X448/Bls12381G1/Bls12381G2
      *     - passphrase: 用于解密的密码字符串
      *     - encoding: 当 key 是字符串时使用的字符串编码
      * 
@@ -177,7 +177,7 @@ declare module 'crypto' {
      *     - key: PEM 字符串，DER 二进制 或者 JWK 格式对象
      *     - format: 必须是 'pem', 'der', 'jwk' 或 'raw'。默认值: 'pem'
      *     - type: 必须是 'pkcs1', 或 'sec1'。仅当 format 为 'der' 时才需要此选项，否则忽略
-     *     - namedCurve: 当 format 为 'raw' 时用于指定 key 的曲线名称，可以是 EC 曲线名，SM2 或者 Ed25519/Ed448/X25519/X448
+     *     - namedCurve: 当 format 为 'raw' 时用于指定 key 的曲线名称，可以是 EC 曲线名，或者 SM2/Ed25519/Ed448/X25519/X448/Bls12381G1/Bls12381G2
      *     - encoding: 当 key 是字符串时使用的字符串编码
      * 
      *      @param key 创建公钥的配置属性
@@ -300,7 +300,7 @@ declare module 'crypto' {
     function randomFill(buffer: Class_Buffer, offset?: number, size?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
-     * @description 生成给定 type 的新非对称密钥对。目前支持 RSA、RSA-PSS、DSA、EC、Ed25519、Ed448、X25519、X448、SM2
+     * @description 生成给定 type 的新非对称密钥对。目前支持 RSA、RSA-PSS、DSA、EC、Ed25519、Ed448、X25519、X448、SM2、Bls12381G1、Bls12381G2
      * 
      *     options 支持以下属性:
      *     - modulusLength: 密钥大小（以位为单位）（RSA、DSA）。
@@ -318,7 +318,7 @@ declare module 'crypto' {
      *     - publicKeyEncoding: 请参阅 keyObject.export。
      *     - privateKeyEncoding: 请参阅 keyObject.export。
      * 
-     *     @param type 指定要生成的密钥类型，必须是 'rsa'、'rsa-pss'、'dsa'、'ec'、'ed25519'、'x25519'、'x448' 或 'sm2'
+     *     @param type 指定要生成的密钥类型，必须是 'rsa'、'rsa-pss'、'dsa'、'ec'、'ed25519'、'x25519'、'x448'、'sm2'、'Bls12381G1'、'Bls12381G2'
      *     @param options 指定生成密钥的选项
      *     @return 返回包含生成密钥对的对象
      *     
@@ -557,6 +557,175 @@ declare module 'crypto' {
     function verify(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject, signature: Class_Buffer): boolean;
 
     function verify(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    /**
+     * @description 使用 Bls12381G2 进行 BBS 签名的函数
+     *      @param messages 指定要签名的一组消息
+     *      @param privateKey 指定私钥，必须是 Bls12381G2 的私钥
+     *      @return 返回签名后的数据
+     *     
+     */
+    function bbsSign(messages: any[], privateKey: Class_Buffer): Class_Buffer;
+
+    function bbsSign(messages: any[], privateKey: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description 使用 Bls12381G2 进行 BBS 签名的函数
+     *      @param messages 指定要签名的一组消息
+     *      @param privateKey 指定私钥，必须是 Bls12381G2 的私钥
+     *      @return 返回签名后的数据
+     *     
+     */
+    function bbsSign(messages: any[], privateKey: Class_KeyObject): Class_Buffer;
+
+    function bbsSign(messages: any[], privateKey: Class_KeyObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description 使用 Bls12381G2 进行 BBS 签名的函数
+     * 
+     *      key 内的参数会用于调用 crypto.createPrivateKey 创建私钥对象，此外还支持以下签名参数：
+     *       - suite: 必须是 'Bls12381Sha256', 'Bls12381Shake256'。默认值: 'Bls12381Sha256'
+     *       - header: 用于签名的附加数据
+     * 
+     *      @param messages 指定要签名的一组消息
+     *      @param key 指定私钥和选项
+     *      @return 返回签名后的数据
+     *     
+     */
+    function bbsSign(messages: any[], key: FIBJS.GeneralObject): Class_Buffer;
+
+    function bbsSign(messages: any[], key: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description 使用 Bls12381G2 进行 BBS 验证的函数
+     *      @param messages 指定要验证的一组消息
+     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
+     *      @param signature 指定签名数据
+     *      @return 返回验证结果
+     *     
+     */
+    function bbsVerify(messages: any[], publicKey: Class_Buffer, signature: Class_Buffer): boolean;
+
+    function bbsVerify(messages: any[], publicKey: Class_Buffer, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    /**
+     * @description 使用 Bls12381G2 进行 BBS 验证的函数
+     *      @param messages 指定要验证的一组消息
+     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
+     *      @param signature 指定签名数据
+     *      @return 返回验证结果
+     *     
+     */
+    function bbsVerify(messages: any[], publicKey: Class_KeyObject, signature: Class_Buffer): boolean;
+
+    function bbsVerify(messages: any[], publicKey: Class_KeyObject, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    /**
+     * @description 使用 Bls12381G2 进行 BBS 验证的函数
+     * 
+     *      key 内的参数会用于调用 crypto.createPublicKey 创建公钥对象，此外还支持以下签名参数：
+     *       - suite: 必须是 'Bls12381Sha256', 'Bls12381Shake256'。默认值: 'Bls12381Sha256'
+     *       - header: 用于签名的附加数据
+     * 
+     *      @param messages 指定要验证的一组消息
+     *      @param key 指定公钥和选项
+     *      @param signature 指定签名数据
+     *      @return 返回验证结果
+     *     
+     */
+    function bbsVerify(messages: any[], key: FIBJS.GeneralObject, signature: Class_Buffer): boolean;
+
+    function bbsVerify(messages: any[], key: FIBJS.GeneralObject, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    /**
+     * @description 使用 Bls12381G2 生成 BBS 选择证明的函数
+     *      @param signature 指定 BBS 签名
+     *      @param messages 指定要签名的一组消息
+     *      @param index 指定要选择的证明的索引
+     *      @param privateKey 指定私钥，必须是 Bls12381G2 的公钥
+     *      @return 返回证明数据
+     *     
+     */
+    function proofGen(signature: Class_Buffer, messages: any[], index: any[], publicKey: Class_Buffer): Class_Buffer;
+
+    function proofGen(signature: Class_Buffer, messages: any[], index: any[], publicKey: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description 使用 Bls12381G2 生成 BBS 选择证明的函数
+     *      @param signature 指定 BBS 签名
+     *      @param messages 指定要签名的一组消息
+     *      @param index 指定要选择的证明的索引
+     *      @param privateKey 指定私钥，必须是 Bls12381G2 的公钥
+     *      @return 返回证明数据
+     *     
+     */
+    function proofGen(signature: Class_Buffer, messages: any[], index: any[], publicKey: Class_KeyObject): Class_Buffer;
+
+    function proofGen(signature: Class_Buffer, messages: any[], index: any[], publicKey: Class_KeyObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description 使用 Bls12381G2 生成 BBS 选择证明的函数
+     * 
+     *      key 内的参数会用于调用 crypto.createPublicKey 创建公钥对象，此外还支持以下签名参数：
+     *       - suite: 必须是 'Bls12381Sha256', 'Bls12381Shake256'。默认值: 'Bls12381Sha256'
+     *       - header: 用于签名的附加数据
+     *       - proof_header: 用于证明的附加数据
+     * 
+     *      @param signature 指定 BBS 签名
+     *      @param messages 指定要签名的一组消息
+     *      @param index 指定要选择的证明的索引
+     *      @param key 指定公钥和选项
+     *      @return 返回证明数据
+     *     
+     */
+    function proofGen(signature: Class_Buffer, messages: any[], index: any[], key: FIBJS.GeneralObject): Class_Buffer;
+
+    function proofGen(signature: Class_Buffer, messages: any[], index: any[], key: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description 使用 Bls12381G2 验证 BBS 选择证明的函数
+     *      @param messages 指定要验证的一组消息
+     *      @param index 指定要选择的证明的索引
+     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
+     *      @param proof 指定证明数据
+     *      @return 返回验证结果
+     *     
+     */
+    function proofVerify(messages: any[], index: any[], publicKey: Class_Buffer, proof: Class_Buffer): boolean;
+
+    function proofVerify(messages: any[], index: any[], publicKey: Class_Buffer, proof: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    /**
+     * @description 使用 Bls12381G2 验证 BBS 选择证明的函数
+     *      @param messages 指定要验证的一组消息
+     *      @param index 指定要选择的证明的索引
+     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
+     *      @param proof 指定证明数据
+     *      @return 返回验证结果
+     *     
+     */
+    function proofVerify(messages: any[], index: any[], publicKey: Class_KeyObject, proof: Class_Buffer): boolean;
+
+    function proofVerify(messages: any[], index: any[], publicKey: Class_KeyObject, proof: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    /**
+     * @description 使用 Bls12381G2 验证 BBS 选择证明的函数
+     * 
+     *      key 内的参数会用于调用 crypto.createPublicKey 创建公钥对象，此外还支持以下签名参数：
+     *       - suite: 必须是 'Bls12381Sha256', 'Bls12381Shake256'。默认值: 'Bls12381Sha256'
+     *       - header: 用于签名的附加数据
+     *       - proof_header: 用于证明的附加数据
+     * 
+     *      @param messages 指定要验证的一组消息
+     *      @param index 指定要选择的证明的索引
+     *      @param key 指定公钥和选项
+     *      @param proof 指定证明数据
+     *      @return 返回验证结果
+     *     
+     */
+    function proofVerify(messages: any[], index: any[], key: FIBJS.GeneralObject, proof: Class_Buffer): boolean;
+
+    function proofVerify(messages: any[], index: any[], key: FIBJS.GeneralObject, proof: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
 }
 

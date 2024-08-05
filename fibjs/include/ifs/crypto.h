@@ -98,6 +98,18 @@ public:
     static result_t verify(v8::Local<v8::Value> algorithm, Buffer_base* data, Buffer_base* publicKey, Buffer_base* signature, bool& retVal, AsyncEvent* ac);
     static result_t verify(v8::Local<v8::Value> algorithm, Buffer_base* data, KeyObject_base* publicKey, Buffer_base* signature, bool& retVal, AsyncEvent* ac);
     static result_t verify(v8::Local<v8::Value> algorithm, Buffer_base* data, v8::Local<v8::Object> key, Buffer_base* signature, bool& retVal, AsyncEvent* ac);
+    static result_t bbsSign(v8::Local<v8::Array> messages, Buffer_base* privateKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    static result_t bbsSign(v8::Local<v8::Array> messages, KeyObject_base* privateKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    static result_t bbsSign(v8::Local<v8::Array> messages, v8::Local<v8::Object> key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    static result_t bbsVerify(v8::Local<v8::Array> messages, Buffer_base* publicKey, Buffer_base* signature, bool& retVal, AsyncEvent* ac);
+    static result_t bbsVerify(v8::Local<v8::Array> messages, KeyObject_base* publicKey, Buffer_base* signature, bool& retVal, AsyncEvent* ac);
+    static result_t bbsVerify(v8::Local<v8::Array> messages, v8::Local<v8::Object> key, Buffer_base* signature, bool& retVal, AsyncEvent* ac);
+    static result_t proofGen(Buffer_base* signature, v8::Local<v8::Array> messages, v8::Local<v8::Array> index, Buffer_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    static result_t proofGen(Buffer_base* signature, v8::Local<v8::Array> messages, v8::Local<v8::Array> index, KeyObject_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    static result_t proofGen(Buffer_base* signature, v8::Local<v8::Array> messages, v8::Local<v8::Array> index, v8::Local<v8::Object> key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    static result_t proofVerify(v8::Local<v8::Array> messages, v8::Local<v8::Array> index, Buffer_base* publicKey, Buffer_base* proof, bool& retVal, AsyncEvent* ac);
+    static result_t proofVerify(v8::Local<v8::Array> messages, v8::Local<v8::Array> index, KeyObject_base* publicKey, Buffer_base* proof, bool& retVal, AsyncEvent* ac);
+    static result_t proofVerify(v8::Local<v8::Array> messages, v8::Local<v8::Array> index, v8::Local<v8::Object> key, Buffer_base* proof, bool& retVal, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -137,6 +149,10 @@ public:
     static void s_static_publicEncrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_sign(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_verify(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_bbsSign(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_bbsVerify(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_proofGen(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_proofVerify(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(crypto_base, randomBytes, int32_t, obj_ptr<Buffer_base>);
@@ -150,6 +166,18 @@ public:
     ASYNC_STATICVALUE5(crypto_base, verify, v8::Local<v8::Value>, Buffer_base*, Buffer_base*, Buffer_base*, bool);
     ASYNC_STATICVALUE5(crypto_base, verify, v8::Local<v8::Value>, Buffer_base*, KeyObject_base*, Buffer_base*, bool);
     ASYNC_STATICVALUE5(crypto_base, verify, v8::Local<v8::Value>, Buffer_base*, v8::Local<v8::Object>, Buffer_base*, bool);
+    ASYNC_STATICVALUE3(crypto_base, bbsSign, v8::Local<v8::Array>, Buffer_base*, obj_ptr<Buffer_base>);
+    ASYNC_STATICVALUE3(crypto_base, bbsSign, v8::Local<v8::Array>, KeyObject_base*, obj_ptr<Buffer_base>);
+    ASYNC_STATICVALUE3(crypto_base, bbsSign, v8::Local<v8::Array>, v8::Local<v8::Object>, obj_ptr<Buffer_base>);
+    ASYNC_STATICVALUE4(crypto_base, bbsVerify, v8::Local<v8::Array>, Buffer_base*, Buffer_base*, bool);
+    ASYNC_STATICVALUE4(crypto_base, bbsVerify, v8::Local<v8::Array>, KeyObject_base*, Buffer_base*, bool);
+    ASYNC_STATICVALUE4(crypto_base, bbsVerify, v8::Local<v8::Array>, v8::Local<v8::Object>, Buffer_base*, bool);
+    ASYNC_STATICVALUE5(crypto_base, proofGen, Buffer_base*, v8::Local<v8::Array>, v8::Local<v8::Array>, Buffer_base*, obj_ptr<Buffer_base>);
+    ASYNC_STATICVALUE5(crypto_base, proofGen, Buffer_base*, v8::Local<v8::Array>, v8::Local<v8::Array>, KeyObject_base*, obj_ptr<Buffer_base>);
+    ASYNC_STATICVALUE5(crypto_base, proofGen, Buffer_base*, v8::Local<v8::Array>, v8::Local<v8::Array>, v8::Local<v8::Object>, obj_ptr<Buffer_base>);
+    ASYNC_STATICVALUE5(crypto_base, proofVerify, v8::Local<v8::Array>, v8::Local<v8::Array>, Buffer_base*, Buffer_base*, bool);
+    ASYNC_STATICVALUE5(crypto_base, proofVerify, v8::Local<v8::Array>, v8::Local<v8::Array>, KeyObject_base*, Buffer_base*, bool);
+    ASYNC_STATICVALUE5(crypto_base, proofVerify, v8::Local<v8::Array>, v8::Local<v8::Array>, v8::Local<v8::Object>, Buffer_base*, bool);
 };
 }
 
@@ -201,7 +229,15 @@ inline ClassInfo& crypto_base::class_info()
         { "sign", s_static_sign, true, ClassData::ASYNC_ASYNC },
         { "signSync", s_static_sign, true, ClassData::ASYNC_SYNC },
         { "verify", s_static_verify, true, ClassData::ASYNC_ASYNC },
-        { "verifySync", s_static_verify, true, ClassData::ASYNC_SYNC }
+        { "verifySync", s_static_verify, true, ClassData::ASYNC_SYNC },
+        { "bbsSign", s_static_bbsSign, true, ClassData::ASYNC_ASYNC },
+        { "bbsSignSync", s_static_bbsSign, true, ClassData::ASYNC_SYNC },
+        { "bbsVerify", s_static_bbsVerify, true, ClassData::ASYNC_ASYNC },
+        { "bbsVerifySync", s_static_bbsVerify, true, ClassData::ASYNC_SYNC },
+        { "proofGen", s_static_proofGen, true, ClassData::ASYNC_ASYNC },
+        { "proofGenSync", s_static_proofGen, true, ClassData::ASYNC_SYNC },
+        { "proofVerify", s_static_proofVerify, true, ClassData::ASYNC_ASYNC },
+        { "proofVerifySync", s_static_proofVerify, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -839,6 +875,177 @@ inline void crypto_base::s_static_verify(const v8::FunctionCallbackInfo<v8::Valu
         hr = acb_verify(v0, v1, v2, v3, cb, args);
     else
         hr = ac_verify(v0, v1, v2, v3, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_bbsSign(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Array>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+
+    if (!cb.IsEmpty())
+        hr = acb_bbsSign(v0, v1, cb, args);
+    else
+        hr = ac_bbsSign(v0, v1, vr);
+
+    ASYNC_METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Array>, 0);
+    ARG(obj_ptr<KeyObject_base>, 1);
+
+    if (!cb.IsEmpty())
+        hr = acb_bbsSign(v0, v1, cb, args);
+    else
+        hr = ac_bbsSign(v0, v1, vr);
+
+    ASYNC_METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Array>, 0);
+    ARG(v8::Local<v8::Object>, 1);
+
+    if (!cb.IsEmpty())
+        hr = acb_bbsSign(v0, v1, cb, args);
+    else
+        hr = ac_bbsSign(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_bbsVerify(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(3, 3);
+
+    ARG(v8::Local<v8::Array>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+    ARG(obj_ptr<Buffer_base>, 2);
+
+    if (!cb.IsEmpty())
+        hr = acb_bbsVerify(v0, v1, v2, cb, args);
+    else
+        hr = ac_bbsVerify(v0, v1, v2, vr);
+
+    ASYNC_METHOD_OVER(3, 3);
+
+    ARG(v8::Local<v8::Array>, 0);
+    ARG(obj_ptr<KeyObject_base>, 1);
+    ARG(obj_ptr<Buffer_base>, 2);
+
+    if (!cb.IsEmpty())
+        hr = acb_bbsVerify(v0, v1, v2, cb, args);
+    else
+        hr = ac_bbsVerify(v0, v1, v2, vr);
+
+    ASYNC_METHOD_OVER(3, 3);
+
+    ARG(v8::Local<v8::Array>, 0);
+    ARG(v8::Local<v8::Object>, 1);
+    ARG(obj_ptr<Buffer_base>, 2);
+
+    if (!cb.IsEmpty())
+        hr = acb_bbsVerify(v0, v1, v2, cb, args);
+    else
+        hr = ac_bbsVerify(v0, v1, v2, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_proofGen(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(4, 4);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(v8::Local<v8::Array>, 1);
+    ARG(v8::Local<v8::Array>, 2);
+    ARG(obj_ptr<Buffer_base>, 3);
+
+    if (!cb.IsEmpty())
+        hr = acb_proofGen(v0, v1, v2, v3, cb, args);
+    else
+        hr = ac_proofGen(v0, v1, v2, v3, vr);
+
+    ASYNC_METHOD_OVER(4, 4);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(v8::Local<v8::Array>, 1);
+    ARG(v8::Local<v8::Array>, 2);
+    ARG(obj_ptr<KeyObject_base>, 3);
+
+    if (!cb.IsEmpty())
+        hr = acb_proofGen(v0, v1, v2, v3, cb, args);
+    else
+        hr = ac_proofGen(v0, v1, v2, v3, vr);
+
+    ASYNC_METHOD_OVER(4, 4);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(v8::Local<v8::Array>, 1);
+    ARG(v8::Local<v8::Array>, 2);
+    ARG(v8::Local<v8::Object>, 3);
+
+    if (!cb.IsEmpty())
+        hr = acb_proofGen(v0, v1, v2, v3, cb, args);
+    else
+        hr = ac_proofGen(v0, v1, v2, v3, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_proofVerify(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(4, 4);
+
+    ARG(v8::Local<v8::Array>, 0);
+    ARG(v8::Local<v8::Array>, 1);
+    ARG(obj_ptr<Buffer_base>, 2);
+    ARG(obj_ptr<Buffer_base>, 3);
+
+    if (!cb.IsEmpty())
+        hr = acb_proofVerify(v0, v1, v2, v3, cb, args);
+    else
+        hr = ac_proofVerify(v0, v1, v2, v3, vr);
+
+    ASYNC_METHOD_OVER(4, 4);
+
+    ARG(v8::Local<v8::Array>, 0);
+    ARG(v8::Local<v8::Array>, 1);
+    ARG(obj_ptr<KeyObject_base>, 2);
+    ARG(obj_ptr<Buffer_base>, 3);
+
+    if (!cb.IsEmpty())
+        hr = acb_proofVerify(v0, v1, v2, v3, cb, args);
+    else
+        hr = ac_proofVerify(v0, v1, v2, v3, vr);
+
+    ASYNC_METHOD_OVER(4, 4);
+
+    ARG(v8::Local<v8::Array>, 0);
+    ARG(v8::Local<v8::Array>, 1);
+    ARG(v8::Local<v8::Object>, 2);
+    ARG(obj_ptr<Buffer_base>, 3);
+
+    if (!cb.IsEmpty())
+        hr = acb_proofVerify(v0, v1, v2, v3, cb, args);
+    else
+        hr = ac_proofVerify(v0, v1, v2, v3, vr);
 
     METHOD_RETURN();
 }
