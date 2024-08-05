@@ -20,7 +20,7 @@ public:
         Buffer* buf = Buffer::Cast(sig);
 
         decoder dec(buf->data(), buf->length());
-        intptr_t sz = dec.decode(&abar, &bbar, &r2hat, &r3hat);
+        intptr_t sz = dec.decode(&abar, &bbar, &d, &ehat, &r1hat, &r3hat);
         if (sz < FR_BYTE_SIZE)
             return false;
 
@@ -36,7 +36,7 @@ public:
 
     void serialize(obj_ptr<Buffer_base>& retVal)
     {
-        std::vector<uint8_t> data = encode(abar, bbar, r2hat, r3hat, mhat, c);
+        std::vector<uint8_t> data = encode(abar, bbar, d, ehat, r1hat, r3hat, mhat, c);
         retVal = new Buffer(data.data(), data.size());
     }
 
@@ -68,6 +68,9 @@ public:
 public:
     blst_p1 abar;
     blst_p1 bbar;
+    blst_p1 d;
+    blst_scalar ehat;
+    blst_scalar r1hat;
     blst_scalar r2hat;
     blst_scalar r3hat;
     std::vector<blst_scalar> mhat;

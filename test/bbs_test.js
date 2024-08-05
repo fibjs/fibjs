@@ -126,32 +126,39 @@ describe('bbs signature', () => {
 
             describe('proof', () => {
                 it("sign/verify", () => {
-                    var messages = ["message1", "message2", "message3"];
-                    var idx = [1, 3];
-                    var revealedMessages = idx.map(i => messages[i - 1]);
+                    for (var i = 0; i < 10; i++) {
+                        var messages = [];
+                        var num = Math.floor(Math.random() * 50) + 1;
+                        const idx = Array(num).fill(0).map((v, i, a) => i).filter(v => { return Math.random() > 0.5; });
 
-                    var keys = crypto.generateKeyPair("Bls12381G2");
+                        for (var j = 0; j < num; j++)
+                            messages.push("message_" + j);
 
-                    var sig = crypto.bbsSign(messages, {
-                        key: keys.privateKey,
-                        suite: suite
-                    });
+                        var revealedMessages = idx.map(i => messages[i]);
 
-                    var proof = crypto.proofGen(sig, messages, idx, {
-                        key: keys.publicKey,
-                        suite: suite
-                    });
+                        var keys = crypto.generateKeyPair("Bls12381G2");
 
-                    assert.isTrue(crypto.proofVerify(revealedMessages, idx, {
-                        key: keys.publicKey,
-                        suite: suite
-                    }, proof));
+                        var sig = crypto.bbsSign(messages, {
+                            key: keys.privateKey,
+                            suite: suite
+                        });
+
+                        var proof = crypto.proofGen(sig, messages, idx, {
+                            key: keys.publicKey,
+                            suite: suite
+                        });
+
+                        assert.isTrue(crypto.proofVerify(revealedMessages, idx, {
+                            key: keys.publicKey,
+                            suite: suite
+                        }, proof));
+                    }
                 });
 
                 it("with proof_header", () => {
                     var messages = ["message1", "message2", "message3"];
-                    var idx = [1, 3];
-                    var revealedMessages = idx.map(i => messages[i - 1]);
+                    var idx = [0, 2];
+                    var revealedMessages = idx.map(i => messages[i]);
 
                     var keys = crypto.generateKeyPair("Bls12381G2");
 
@@ -212,8 +219,7 @@ describe('bbs signature', () => {
                                 namedCurve: "Bls12381G2"
                             });
 
-                            var result = crypto.proofVerify(Object.values(_case.revealedMessages).map(m => hex.decode(m)),
-                                Object.keys(_case.revealedMessages).map(m => Number(m) + 1), {
+                            var result = crypto.proofVerify(_case.disclosedIndexes.map(m => hex.decode(_case.messages[m])), _case.disclosedIndexes, {
                                 key: pk,
                                 suite: suite,
                                 header: hex.decode(_case.header),
