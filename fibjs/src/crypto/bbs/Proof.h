@@ -71,7 +71,6 @@ public:
     blst_p1 d;
     blst_scalar ehat;
     blst_scalar r1hat;
-    blst_scalar r2hat;
     blst_scalar r3hat;
     std::vector<blst_scalar> mhat;
     blst_scalar c;
