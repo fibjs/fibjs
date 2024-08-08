@@ -22,7 +22,7 @@ public:
     }
 };
 
-inline bool IsEmpty(v8::Local<v8::Value>& v)
+inline bool IsEmpty(v8::Local<v8::Value> v)
 {
     return v.IsEmpty() || v->IsUndefined() || v->IsNull();
 }

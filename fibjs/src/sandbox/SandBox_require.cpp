@@ -7,40 +7,12 @@
 
 #include "object.h"
 #include "SandBox.h"
-#include "Lock.h"
 #include "path.h"
 
 namespace fibjs {
 
-v8::Local<v8::Value> SandBox::get_module(v8::Local<v8::Object> mods, exlib::string id)
-{
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> _context = isolate->context();
-    v8::Local<v8::String> strExports = isolate->NewString("exports");
-
-    JSValue m = mods->Get(_context, isolate->NewString(id));
-    if (m->IsUndefined())
-        return m;
-
-    v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(m);
-
-    v8::Local<v8::Private> strPendding = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("pendding"));
-    JSValue l = module->GetPrivate(_context, strPendding);
-    if (!l->IsUndefined()) {
-        obj_ptr<Lock_base> lock = Lock_base::getInstance(l);
-        if (lock) {
-            bool is_lock = false;
-            lock->acquire(true, is_lock);
-            lock->release();
-        }
-    }
-
-    JSValue o = module->Get(_context, strExports);
-    return o;
-}
-
 result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
-    v8::Local<v8::Value>& retVal)
+    v8::Local<v8::Object>& retVal)
 {
     result_t hr;
 
@@ -96,7 +68,7 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
     }
 
     // use module.exports as result value
-    retVal = JSValue(mod->Get(_context, strExports));
+    retVal = mod;
     return 0;
 }
 
@@ -109,18 +81,36 @@ result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
         return CHECK_ERROR(Runtime::setError("SandBox: AddScript does not accept relative path."));
 
     path_base::normalize(srcname, srcname);
-    return installScript(srcname, script, retVal);
+
+    v8::Local<v8::Object> mod;
+    result_t hr = installScript(srcname, script, mod);
+    if (hr < 0)
+        return hr;
+
+    retVal = wait_module(mod);
+    return 0;
 }
 
 result_t SandBox::run_module(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal)
 {
     result_t hr;
     obj_ptr<Buffer_base> data;
+    v8::Local<v8::Object> mod;
 
-    hr = resolve(base, id, data, retVal);
-    if (hr < 0 || !IsEmpty(retVal))
+    hr = resolve(base, id, data, mod);
+    if (hr < 0)
         return hr;
-    return installScript(id, data, retVal);
+    else if (!IsEmpty(mod)) {
+        retVal = wait_module(mod);
+        return 0;
+    }
+
+    hr = installScript(id, data, mod);
+    if (hr < 0)
+        return hr;
+
+    retVal = wait_module(mod);
+    return 0;
 }
 
 result_t SandBox::require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal)

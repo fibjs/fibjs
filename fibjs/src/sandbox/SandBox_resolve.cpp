@@ -10,6 +10,7 @@
 #include "ifs/encoding.h"
 #include "ifs/fs.h"
 #include "ifs/util.h"
+#include "Event.h"
 #include "path.h"
 #include "Buffer.h"
 #include "options.h"
@@ -17,13 +18,50 @@
 
 namespace fibjs {
 
+v8::Local<v8::Value> SandBox::wait_module(v8::Local<v8::Object> module)
+{
+    Isolate* isolate = holder();
+    v8::Local<v8::Context> _context = isolate->context();
+    v8::Local<v8::String> strExports = isolate->NewString("exports");
+
+    v8::Local<v8::Private> strPendding = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("pendding"));
+    JSValue l = module->GetPrivate(_context, strPendding);
+    if (!l->IsUndefined()) {
+        if (l->IsPromise()) {
+            isolate->WaitPromise(v8::Local<v8::Promise>::Cast(l));
+        } else {
+            obj_ptr<Lock_base> lock = Lock_base::getInstance(l);
+            if (lock) {
+                bool is_lock = false;
+                lock->acquire(true, is_lock);
+                lock->release();
+            }
+        }
+    }
+
+    JSValue o = module->Get(_context, strExports);
+    return o;
+}
+
+v8::Local<v8::Object> SandBox::get_module(v8::Local<v8::Object> mods, exlib::string id)
+{
+    Isolate* isolate = holder();
+    v8::Local<v8::Context> _context = isolate->context();
+
+    JSValue m = mods->Get(_context, isolate->NewString(id));
+    if (m->IsObject())
+        return v8::Local<v8::Object>::Cast(m);
+    return v8::Local<v8::Object>();
+}
+
 result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
 {
+    Isolate* isolate = holder();
     result_t hr;
 
     if (fname.substr(fname.length() - 5) == ".node") {
         obj_ptr<Stat_base> stat;
-        hr = fs_base::ac_stat(fname, stat);
+        hr = fs_base::cc_stat(fname, stat, isolate);
         if (hr < 0)
             return hr;
 
@@ -32,7 +70,7 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
     }
 
     Variant var;
-    hr = fs_base::ac_readFile(fname, "", var);
+    hr = fs_base::cc_readFile(fname, "", var, isolate);
     if (hr == CALL_RETURN_NULL) {
         data = new Buffer();
         hr = 0;
@@ -43,13 +81,14 @@ result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
 }
 
 result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, obj_ptr<Buffer_base>& data,
-    v8::Local<v8::Value>* retVal)
+    v8::Local<v8::Object>* retVal)
 {
+    Isolate* isolate = holder();
     size_t cnt = m_loaders.size();
     result_t hr;
     exlib::string fname1;
 
-    hr = fs_base::ac_realpath(fname, fname1);
+    hr = fs_base::cc_realpath(fname, fname1, isolate);
     if (hr < 0)
         fname1 = fname;
 
@@ -71,7 +110,7 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
         obj_ptr<ExtLoader>& l = m_loaders[i];
         exlib::string fname2 = fname + l->m_ext;
 
-        hr = fs_base::ac_realpath(fname2, fname1);
+        hr = fs_base::cc_realpath(fname2, fname1, isolate);
         if (hr < 0)
             fname1 = fname2;
 
@@ -94,7 +133,7 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
 }
 
 result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& fname,
-    obj_ptr<Buffer_base>& data, v8::Local<v8::Value>* retVal)
+    obj_ptr<Buffer_base>& data, v8::Local<v8::Object>* retVal)
 {
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
@@ -193,7 +232,7 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& fnam
 }
 
 result_t SandBox::resolveFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
-    v8::Local<v8::Value>* retVal)
+    v8::Local<v8::Object>* retVal)
 {
     v8::Local<v8::Object> _mods;
     exlib::string fname1;
@@ -268,7 +307,7 @@ result_t SandBox::setModuleCompiler(exlib::string extname, v8::Local<v8::Functio
     return 0;
 }
 
-result_t SandBox::custom_resolveId(exlib::string& id, v8::Local<v8::Value>& retVal)
+result_t SandBox::custom_resolveId(exlib::string& id, v8::Local<v8::Object>& retVal)
 {
     Isolate* isolate = holder();
     v8::Local<v8::Value> _require = GetPrivate("require");
@@ -277,12 +316,12 @@ result_t SandBox::custom_resolveId(exlib::string& id, v8::Local<v8::Value>& retV
         v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(_require);
 
         v8::Local<v8::Value> arg = isolate->NewString(id);
-        retVal = func->Call(func->GetCreationContextChecked(), wrap(), 1, &arg).FromMaybe(v8::Local<v8::Value>());
-        if (retVal.IsEmpty())
+        v8::Local<v8::Value> result = func->Call(func->GetCreationContextChecked(), wrap(), 1, &arg).FromMaybe(v8::Local<v8::Value>());
+        if (result.IsEmpty())
             return CALL_E_JAVASCRIPT;
 
-        if (!IsEmpty(retVal)) {
-            InstallModule(id, retVal);
+        if (!IsEmpty(result)) {
+            retVal = InstallModule(id, result);
             return 0;
         }
     }
@@ -290,7 +329,7 @@ result_t SandBox::custom_resolveId(exlib::string& id, v8::Local<v8::Value>& retV
     return CALL_E_FILE_NOT_FOUND;
 }
 
-result_t SandBox::resolveId(exlib::string& id, v8::Local<v8::Value>& retVal)
+result_t SandBox::resolveId(exlib::string& id, v8::Local<v8::Object>& retVal)
 {
     v8::Local<v8::Object> _mods = mods();
     size_t cnt = m_loaders.size();
@@ -311,7 +350,7 @@ result_t SandBox::resolveId(exlib::string& id, v8::Local<v8::Value>& retVal)
 }
 
 result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
-    v8::Local<v8::Value>& retVal)
+    v8::Local<v8::Object>& retVal)
 {
     result_t hr;
     exlib::string fname;
@@ -375,7 +414,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
 }
 
 result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
-    v8::Local<v8::Value>& retVal)
+    v8::Local<v8::Object>& retVal)
 {
     if (is_relative(id)) {
         resolvePath(base, id);
@@ -401,7 +440,7 @@ result_t SandBox::resolve(exlib::string id, exlib::string base, exlib::string& r
 {
     result_t hr;
     obj_ptr<Buffer_base> data;
-    v8::Local<v8::Value> v;
+    v8::Local<v8::Object> v;
 
     hr = resolve(base, id, data, v);
     if (hr < 0)

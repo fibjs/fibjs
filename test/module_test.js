@@ -3,6 +3,7 @@ test.setup();
 
 var fs = require('fs');
 var path = require('path');
+var coroutine = require('coroutine');
 var a, b;
 
 const bin_path = path.dirname(process.execPath);
@@ -307,6 +308,21 @@ describe("module", () => {
 
     it("support exports in script", () => {
         run('./module/exec18');
+    });
+
+    it("parallel require", () => {
+        var v1;
+        var ev = new coroutine.Event();
+
+        setImmediate(() => {
+            v1 = require('./module/p8');
+            ev.set();
+        });
+
+        var v2 = require('./module/p8');
+        ev.wait();
+
+        assert.equal(v1, v2);
     });
 
     it("support embed script module", () => {

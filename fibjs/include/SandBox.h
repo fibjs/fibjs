@@ -57,7 +57,7 @@ public:
         return o;
     }
 
-    void InstallModule(exlib::string fname, v8::Local<v8::Value> o, v8::Local<v8::Object> m = v8::Local<v8::Object>())
+    v8::Local<v8::Object> InstallModule(exlib::string fname, v8::Local<v8::Value> o, v8::Local<v8::Object> m = v8::Local<v8::Object>())
     {
         Isolate* isolate = holder();
         v8::Local<v8::Context> _context = isolate->context();
@@ -69,9 +69,12 @@ public:
         }
 
         mods()->Set(_context, isolate->NewString(fname), m).IsJust();
+
+        return m;
     }
 
-    v8::Local<v8::Value> get_module(v8::Local<v8::Object> mods, exlib::string id);
+    v8::Local<v8::Object> get_module(v8::Local<v8::Object> mods, exlib::string id);
+    v8::Local<v8::Value> wait_module(v8::Local<v8::Object> mods);
 
     void installBuffer();
     void attachBuffer();
@@ -148,7 +151,7 @@ public:
     }
 
 public:
-    virtual result_t custom_resolveId(exlib::string& id, v8::Local<v8::Value>& retVal);
+    virtual result_t custom_resolveId(exlib::string& id, v8::Local<v8::Object>& retVal);
 
 public:
     void initRequire(v8::Local<v8::Function> func)
@@ -158,22 +161,22 @@ public:
 
     void initGlobal(v8::Local<v8::Object> global);
 
-    result_t installScript(exlib::string srcname, Buffer_base* script, v8::Local<v8::Value>& retVal);
+    result_t installScript(exlib::string srcname, Buffer_base* script, v8::Local<v8::Object>& retVal);
 
     result_t loadFile(exlib::string fname, obj_ptr<Buffer_base>& data);
 
     result_t resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, obj_ptr<Buffer_base>& data,
-        v8::Local<v8::Value>* retVal);
+        v8::Local<v8::Object>* retVal);
     result_t resolvePackage(v8::Local<v8::Object> mods, exlib::string& fname, obj_ptr<Buffer_base>& data,
-        v8::Local<v8::Value>* retVal);
+        v8::Local<v8::Object>* retVal);
 
     result_t resolveFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
-        v8::Local<v8::Value>* retVal);
-    result_t resolveId(exlib::string& id, v8::Local<v8::Value>& retVal);
+        v8::Local<v8::Object>* retVal);
+    result_t resolveId(exlib::string& id, v8::Local<v8::Object>& retVal);
     result_t resolveModule(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
-        v8::Local<v8::Value>& retVal);
+        v8::Local<v8::Object>& retVal);
     result_t resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
-        v8::Local<v8::Value>& retVal);
+        v8::Local<v8::Object>& retVal);
 
     result_t repl(exlib::string src);
 
