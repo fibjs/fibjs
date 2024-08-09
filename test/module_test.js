@@ -325,6 +325,29 @@ describe("module", () => {
         assert.equal(v1, v2);
     });
 
+    it("error process in parallel require", () => {
+        var v1, v2;
+        var ev = new coroutine.Event();
+
+        setImmediate(() => {
+            try {
+                require('./module/p9');
+            } catch (e) {
+                v1 = 1;
+            }
+            ev.set();
+        });
+
+        try {
+            require('./module/p9');
+        } catch (e) {
+            v2 = 1;
+        }
+        ev.wait();
+
+        assert.equal(v1, v2);
+    });
+
     it("support embed script module", () => {
         var s = require('stream');
         var s1 = require('stream.js');

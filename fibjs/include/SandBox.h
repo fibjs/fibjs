@@ -74,7 +74,7 @@ public:
     }
 
     v8::Local<v8::Object> get_module(v8::Local<v8::Object> mods, exlib::string id);
-    v8::Local<v8::Value> wait_module(v8::Local<v8::Object> mods);
+    result_t wait_module(v8::Local<v8::Object> module, v8::Local<v8::Value>& retVal);
 
     void installBuffer();
     void attachBuffer();

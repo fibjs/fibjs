@@ -18,7 +18,7 @@
 
 namespace fibjs {
 
-v8::Local<v8::Value> SandBox::wait_module(v8::Local<v8::Object> module)
+result_t SandBox::wait_module(v8::Local<v8::Object> module, v8::Local<v8::Value>& retVal)
 {
     Isolate* isolate = holder();
     v8::Local<v8::Context> _context = isolate->context();
@@ -37,10 +37,13 @@ v8::Local<v8::Value> SandBox::wait_module(v8::Local<v8::Object> module)
                 lock->release();
             }
         }
+
+        if (!module->Has(_context, strExports).FromMaybe(false))
+            return Runtime::setError("SandBox: unknown error during module loading.");
     }
 
-    JSValue o = module->Get(_context, strExports);
-    return o;
+    retVal = module->Get(_context, strExports).FromMaybe(v8::Local<v8::Value>());
+    return 0;
 }
 
 v8::Local<v8::Object> SandBox::get_module(v8::Local<v8::Object> mods, exlib::string id)

@@ -87,8 +87,7 @@ result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
     if (hr < 0)
         return hr;
 
-    retVal = wait_module(mod);
-    return 0;
+    return wait_module(mod, retVal);
 }
 
 result_t SandBox::run_module(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal)
@@ -100,17 +99,14 @@ result_t SandBox::run_module(exlib::string id, exlib::string base, v8::Local<v8:
     hr = resolve(base, id, data, mod);
     if (hr < 0)
         return hr;
-    else if (!IsEmpty(mod)) {
-        retVal = wait_module(mod);
-        return 0;
-    }
+    else if (!IsEmpty(mod))
+        return wait_module(mod, retVal);
 
     hr = installScript(id, data, mod);
     if (hr < 0)
         return hr;
 
-    retVal = wait_module(mod);
-    return 0;
+    return wait_module(mod, retVal);
 }
 
 result_t SandBox::require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal)
