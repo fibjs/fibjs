@@ -61,16 +61,19 @@ static void promise_then(const v8::FunctionCallbackInfo<v8::Value>& args)
     resolver->Resolve(context, result).IsJust();
 }
 
-static void promise_catch(const v8::FunctionCallbackInfo<v8::Value>& args)
+static void promise_reject(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    puts("================== promise_reject ==================");
     Isolate* isolate = Isolate::current(args);
     v8::Local<v8::Context> context = isolate->context();
     obj_ptr<promise_data> datas = promise_data::getInstance(args.Data());
 
     v8::Local<v8::Object> mods = datas->mods.Get(isolate->m_isolate);
     v8::Local<v8::Object> mod = datas->mod.Get(isolate->m_isolate);
-    v8::Local<v8::Module> module = datas->module.Get(isolate->m_isolate);
     v8::Local<v8::Promise::Resolver> resolver = datas->m_resolver.Get(isolate->m_isolate);
+
+    v8::Local<v8::Private> strPendding = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("pendding"));
+    mod->DeletePrivate(context, strPendding).IsJust();
 
     mod->Delete(context, isolate->NewString("exports")).IsJust();
     mods->Delete(context, isolate->NewString(datas->id)).IsJust();
@@ -78,47 +81,10 @@ static void promise_catch(const v8::FunctionCallbackInfo<v8::Value>& args)
     resolver->Reject(context, args[0]).IsJust();
 }
 
-v8::MaybeLocal<v8::Promise> SandBox::async_import(exlib::string id, exlib::string base)
+v8::MaybeLocal<v8::Promise> SandBox::async_import(exlib::string id, Buffer_base* data, v8::Local<v8::Object> mod)
 {
     Isolate* isolate = holder();
     v8::Local<v8::Context> _context = isolate->context();
-
-    result_t hr;
-    obj_ptr<Buffer_base> data;
-    v8::Local<v8::Object> mod;
-
-    exlib::string pname;
-    path_base::dirname(base, pname);
-
-    hr = resolve(pname, id, data, mod);
-    if (hr < 0) {
-        ThrowResult(hr);
-        return v8::MaybeLocal<v8::Promise>();
-    } else if (!IsEmpty(mod)) {
-        v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(_context).FromMaybe(v8::Local<v8::Promise::Resolver>());
-        v8::Local<v8::Value> v;
-
-        hr = wait_module(mod, v);
-        resolver->Resolve(_context, v).IsJust();
-
-        return resolver->GetPromise();
-    }
-
-    Context context(this, id);
-
-    v8::Local<v8::String> strExports = isolate->NewString("exports");
-    v8::Local<v8::String> strModule = isolate->NewString(id);
-    v8::Local<v8::Object> exports = v8::Object::New(isolate->m_isolate);
-
-    mod = v8::Object::New(isolate->m_isolate);
-    mod->Set(_context, isolate->NewString("id"), strModule).IsJust();
-    mod->Set(_context, strExports, exports).IsJust();
-    mod->Set(_context, isolate->NewString("filename"), strModule).IsJust();
-    mod->Set(_context, isolate->NewString("require"), context.m_fnRequest).IsJust();
-    mod->Set(_context, isolate->NewString("run"), context.m_fnRun).IsJust();
-
-    v8::Local<v8::Object> _mods = mods();
-    _mods->Set(_context, strModule, mod).IsJust();
 
     exlib::string strScript;
     data->toString(strScript);
@@ -131,7 +97,7 @@ v8::MaybeLocal<v8::Promise> SandBox::async_import(exlib::string id, exlib::strin
 
         v8::Local<v8::PrimitiveArray> pargs = v8::PrimitiveArray::New(isolate->m_isolate, 1);
         pargs->Set(isolate->m_isolate, 0, v8::Number::New(isolate->m_isolate, m_id));
-        v8::ScriptOrigin so_origin(isolate->m_isolate, strModule, 0, 0, false,
+        v8::ScriptOrigin so_origin(isolate->m_isolate, isolate->NewString(id), 0, 0, false,
             -1, v8::Local<v8::Value>(), false, false, true, pargs);
 
         v8::ScriptCompiler::Source source(isolate->NewString(strScript), so_origin);
@@ -171,10 +137,53 @@ v8::MaybeLocal<v8::Promise> SandBox::async_import(exlib::string id, exlib::strin
 
     promise->Then(_context,
                v8::Function::New(_context, promise_then, datas->wrap(isolate)).ToLocalChecked(),
-               v8::Function::New(_context, promise_catch, datas->wrap(isolate)).ToLocalChecked())
+               v8::Function::New(_context, promise_reject, datas->wrap(isolate)).ToLocalChecked())
         .FromMaybe(v8::Local<v8::Promise>());
 
     return resolver->GetPromise();
+}
+
+v8::MaybeLocal<v8::Promise> SandBox::async_import(exlib::string id, exlib::string base)
+{
+    Isolate* isolate = holder();
+    v8::Local<v8::Context> _context = isolate->context();
+
+    Context context(this, id);
+
+    result_t hr;
+    obj_ptr<Buffer_base> data;
+    v8::Local<v8::Object> mod;
+
+    exlib::string pname;
+    path_base::dirname(base, pname);
+
+    hr = resolve(pname, id, data, mod);
+    if (hr < 0) {
+        ThrowResult(hr);
+        return v8::MaybeLocal<v8::Promise>();
+    } else if (!IsEmpty(mod)) {
+        v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(_context).FromMaybe(v8::Local<v8::Promise::Resolver>());
+        v8::Local<v8::Value> v;
+
+        hr = wait_module(mod, v);
+        resolver->Resolve(_context, v).IsJust();
+
+        return resolver->GetPromise();
+    }
+
+    v8::Local<v8::String> strExports = isolate->NewString("exports");
+    v8::Local<v8::String> strModule = isolate->NewString(id);
+    v8::Local<v8::Object> exports = v8::Object::New(isolate->m_isolate);
+
+    mod = v8::Object::New(isolate->m_isolate);
+    mod->Set(_context, isolate->NewString("id"), strModule).IsJust();
+    mod->Set(_context, strExports, exports).IsJust();
+    mod->Set(_context, isolate->NewString("filename"), strModule).IsJust();
+
+    v8::Local<v8::Object> _mods = mods();
+    _mods->Set(_context, strModule, mod).IsJust();
+
+    return async_import(id, data, mod);
 }
 
 v8::MaybeLocal<v8::Promise> SandBox::ImportModuleDynamically(v8::Local<v8::Context> context,
@@ -197,40 +206,13 @@ result_t mjs_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string 
     Isolate* isolate = ctx->m_sb->holder();
     v8::Local<v8::Context> context = isolate->context();
 
-    v8::Local<v8::String> soname = isolate->NewString(name);
-
-    exlib::string strScript;
-    src->toString(strScript);
-
-    TryCatch try_catch;
-
-    v8::Local<v8::PrimitiveArray> pargs = v8::PrimitiveArray::New(isolate->m_isolate, 1);
-    pargs->Set(isolate->m_isolate, 0, v8::Number::New(isolate->m_isolate, ctx->m_sb->m_id));
-    v8::ScriptOrigin so_origin(isolate->m_isolate, soname, 0, 0, false,
-        -1, v8::Local<v8::Value>(), false, false, true, pargs);
-
-    v8::ScriptCompiler::Source source(isolate->NewString(strScript), so_origin);
-    v8::Local<v8::Module> module = v8::ScriptCompiler::CompileModule(isolate->m_isolate, &source)
-                                       .FromMaybe(v8::Local<v8::Module>());
-
-    if (module.IsEmpty())
-        return throwSyntaxError(try_catch);
-
-    module->InstantiateModule(context, _resolveModule).IsJust();
-
-    v8::Local<v8::Value> promise = module->Evaluate(context).FromMaybe(v8::Local<v8::Value>());
-    if (promise.IsEmpty()) {
-        try_catch.ReThrow();
+    v8::Local<v8::Promise> promise = ctx->m_sb->async_import(name, src, args[2].As<v8::Object>()).FromMaybe(v8::Local<v8::Promise>());
+    if (promise.IsEmpty())
         return CALL_E_JAVASCRIPT;
-    }
 
     v8::Local<v8::Value> result = isolate->WaitPromise(promise);
-    if (result.IsEmpty()) {
-        try_catch.ReThrow();
+    if (result.IsEmpty())
         return CALL_E_JAVASCRIPT;
-    }
-
-    v8::Local<v8::Object>::Cast(args[2])->Set(context, isolate->NewString("exports"), module->GetModuleNamespace()).IsJust();
 
     return 0;
 }

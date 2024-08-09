@@ -234,6 +234,7 @@ public:
         v8::Local<v8::Data> host_defined_options, v8::Local<v8::Value> resource_name,
         v8::Local<v8::String> specifier, v8::Local<v8::FixedArray> import_assertions);
     v8::MaybeLocal<v8::Promise> async_import(exlib::string id, exlib::string base);
+    v8::MaybeLocal<v8::Promise> async_import(exlib::string id, Buffer_base* data, v8::Local<v8::Object> mod);
 
 public:
     static const char* worker_args;

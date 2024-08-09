@@ -37,10 +37,10 @@ result_t SandBox::wait_module(v8::Local<v8::Object> module, v8::Local<v8::Value>
                 lock->release();
             }
         }
-
-        if (!module->Has(_context, strExports).FromMaybe(false))
-            return Runtime::setError("SandBox: unknown error during module loading.");
     }
+
+    if (!module->Has(_context, strExports).FromMaybe(false))
+        return Runtime::setError("SandBox: unknown error during module loading.");
 
     retVal = module->Get(_context, strExports).FromMaybe(v8::Local<v8::Value>());
     return 0;
