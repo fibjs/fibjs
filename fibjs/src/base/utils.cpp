@@ -171,7 +171,7 @@ v8::Local<v8::Value> ThrowResult(result_t hr)
     return isolate->m_isolate->ThrowException(FillError(hr));
 }
 
-exlib::string GetException(v8::Local<v8::Value> err, bool repl)
+exlib::string GetException(v8::Local<v8::Value> err, bool repl, bool trace)
 {
     if (err.IsEmpty() || !err->IsObject())
         return "Unknown error.";
@@ -180,12 +180,11 @@ exlib::string GetException(v8::Local<v8::Value> err, bool repl)
     v8::HandleScope handle_scope(isolate->m_isolate);
     v8::Local<v8::Context> context = isolate->context();
 
-    v8::Local<v8::Object> err_obj = err.As<v8::Object>();
     v8::Local<v8::Message> message = v8::Exception::CreateMessage(isolate->m_isolate, err);
     // try_catch.Message();
 
     if (message.IsEmpty())
-        return isolate->toString(err_obj);
+        return isolate->toString(err);
 
     exlib::string strError;
     v8::Local<v8::Value> res = message->GetScriptResourceName();
@@ -226,38 +225,42 @@ exlib::string GetException(v8::Local<v8::Value> err, bool repl)
         }
     }
 
-    if (err_obj->IsNativeError()) {
-        v8::Local<v8::Value> stack_trace_string = v8::TryCatch::StackTrace(context, err).FromMaybe(v8::Local<v8::Value>());
-        if (!stack_trace_string.IsEmpty())
-            strError.append(isolate->toString(stack_trace_string));
-    } else {
-        JSValue message;
-        JSValue name;
+    if (err->IsObject()) {
+        v8::Local<v8::Object> err_obj = err.As<v8::Object>();
 
-        if (repl) {
-            strError.append("Thrown: ");
-        }
-
-        if (!repl && err->IsObject()) {
-            message = err_obj->Get(context, isolate->NewString("message"));
-            name = err_obj->Get(context, isolate->NewString("name"));
-        }
-
-        if (message.IsEmpty() || message->IsUndefined() || name.IsEmpty() || name->IsUndefined()) {
-            // Not an error object. Just print as-is.
-            strError.append(isolate->toString(err));
-            strError.append("\n");
+        if (trace && err_obj->IsNativeError()) {
+            v8::Local<v8::Value> stack_trace_string = v8::TryCatch::StackTrace(context, err).FromMaybe(v8::Local<v8::Value>());
+            if (!stack_trace_string.IsEmpty())
+                strError.append(isolate->toString(stack_trace_string));
         } else {
-            strError.append(isolate->toString(name));
-            strError.append(": ");
-            strError.append(isolate->toString(message));
+            JSValue message;
+            JSValue name;
+
+            if (repl) {
+                strError.append("Thrown: ");
+            }
+
+            if (!repl) {
+                message = err_obj->Get(context, isolate->NewString("message"));
+                name = err_obj->Get(context, isolate->NewString("name"));
+            }
+
+            if (message.IsEmpty() || message->IsUndefined() || name.IsEmpty() || name->IsUndefined()) {
+                // Not an error object. Just print as-is.
+                strError.append(isolate->toString(err));
+                strError.append("\n");
+            } else {
+                strError.append(isolate->toString(name));
+                strError.append(": ");
+                strError.append(isolate->toString(message));
+            }
         }
     }
 
     return strError;
 }
 
-exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
+exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl, bool trace)
 {
     if (hr < 0 && hr != CALL_E_JAVASCRIPT)
         return getResultMessage(hr);
@@ -265,7 +268,7 @@ exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl)
     Isolate* isolate = Isolate::current();
     v8::HandleScope handle_scope(isolate->m_isolate);
     if (try_catch.HasCaught())
-        return GetException(try_catch.Exception(), repl);
+        return GetException(try_catch.Exception(), repl, trace);
 
     return "Unknown error.";
 }
@@ -278,7 +281,7 @@ result_t throwSyntaxError(TryCatch& try_catch)
     if (message.IsEmpty())
         ThrowError(isolate->toString(try_catch.Exception()));
     else {
-        return Runtime::setError(GetException(try_catch, 0));
+        return Runtime::setError(GetException(try_catch, 0, false, true));
     }
 
     return CALL_E_JAVASCRIPT;
@@ -289,7 +292,7 @@ exlib::string ReportException(TryCatch& try_catch, result_t hr, bool repl)
     exlib::string msg;
 
     if (try_catch.HasCaught() || hr < 0) {
-        msg = GetException(try_catch, hr, repl);
+        msg = GetException(try_catch, hr, repl, true);
         errorLog(msg);
     }
 

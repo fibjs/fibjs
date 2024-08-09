@@ -213,7 +213,7 @@ JSFiber::EnterJsScope::~EnterJsScope()
     if (!m_task)
         isolate->RunMicrotasks();
 
-    m_pFiber->m_message = ReportException(try_catch, m_hr);
+    m_pFiber->m_message = ReportException(try_catch, m_hr, false);
 
     if (!rt->m_promise_error.IsEmpty()) {
         v8::Local<v8::Context> _context = isolate->context();

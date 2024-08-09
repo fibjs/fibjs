@@ -1257,9 +1257,9 @@ inline result_t SocketError()
 
 exlib::string getResultMessage(result_t hr);
 v8::Local<v8::Value> ThrowResult(result_t hr);
-exlib::string ReportException(TryCatch& try_catch, result_t hr, bool repl = false);
-exlib::string GetException(v8::Local<v8::Value> err, bool repl = false);
-exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl = false);
+exlib::string ReportException(TryCatch& try_catch, result_t hr, bool repl);
+exlib::string GetException(v8::Local<v8::Value> err, bool repl, bool trace);
+exlib::string GetException(TryCatch& try_catch, result_t hr, bool repl, bool trace);
 result_t throwSyntaxError(TryCatch& try_catch);
 const char* signo_string(int signo);
 

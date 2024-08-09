@@ -255,7 +255,7 @@ public:
                         }
 
                         if (try_catch.HasCaught()) {
-                            p1->m_errors.append(GetException(try_catch, 0));
+                            p1->m_errors.append(GetException(try_catch, 0, false, true));
                         } else
                             for (int32_t i = 0; i < p1->m_evs.size(); i++)
                                 p1->m_evs[i]->wait();
@@ -592,7 +592,7 @@ static void must_call(const v8::FunctionCallbackInfo<v8::Value>& args)
     args.GetReturnValue().Set(result);
 
     if (try_catch.HasCaught()) {
-        td->m_running->m_errors.append(GetException(try_catch, 0));
+        td->m_running->m_errors.append(GetException(try_catch, 0, false, true));
         try_catch.ReThrow();
     }
 
@@ -635,7 +635,7 @@ static void not_call(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 
     v8::Local<v8::Value> exp = FillError(CALL_E_EXCEPTION, "This function must never be called.");
-    td->m_running->m_errors.append(GetException(exp));
+    td->m_running->m_errors.append(GetException(exp, false, true));
     ThrowError(exp);
 }
 

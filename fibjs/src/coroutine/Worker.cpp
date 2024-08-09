@@ -110,7 +110,7 @@ void Worker::_main()
 
     s.m_hr = m_isolate->m_topSandbox->run_worker(m_isolate->m_fname, m_worker);
     if (s.m_hr < 0)
-        _emit("error", new EventInfo(this, "error", s.m_hr, GetException(s.try_catch, s.m_hr)));
+        _emit("error", new EventInfo(this, "error", s.m_hr, GetException(s.try_catch, s.m_hr, false, true)));
     else
         _emit("load");
 }

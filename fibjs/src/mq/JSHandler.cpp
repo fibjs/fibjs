@@ -111,7 +111,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
                     try_catch.ReThrow();
                     return CALL_E_JAVASCRIPT;
                 } else
-                    return CHECK_ERROR(Runtime::setError(GetException(try_catch, 0)));
+                    return CHECK_ERROR(Runtime::setError(GetException(try_catch, 0, false, true)));
             }
         }
 
