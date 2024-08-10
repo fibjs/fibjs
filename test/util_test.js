@@ -1551,6 +1551,29 @@ describe('util', () => {
                 util.sync(async_test1, true)(100, 200);
             });
         });
+
+        todo("BUGFIX: deadlock when calling sync functions after await", async function () {
+            async function test1() {
+            }
+
+            async function test2() {
+            }
+
+            var test1_sync = util.sync(test1);
+            var test2_sync = util.sync(test2);
+
+            try {
+                await test1();
+            } catch (e) {
+                console.log(e);
+            }
+
+            try {
+                test2_sync();
+            } catch (e) {
+                console.log(e);
+            }
+        });
     });
 
     it('promisify', async () => {
