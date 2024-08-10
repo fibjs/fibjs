@@ -760,6 +760,9 @@ result_t assert_base::deepPropertyNotVal(v8::Local<v8::Value> object,
 
 result_t assert_base::throws(v8::Local<v8::Function> block, exlib::string msg)
 {
+    if (block->IsAsyncFunction())
+        util_base::sync(block, true, block);
+
     bool err;
     {
         TryCatch try_catch;
@@ -774,6 +777,9 @@ result_t assert_base::throws(v8::Local<v8::Function> block, exlib::string msg)
 result_t assert_base::doesNotThrow(v8::Local<v8::Function> block,
     exlib::string msg)
 {
+    if (block->IsAsyncFunction())
+        util_base::sync(block, true, block);
+
     bool err;
     {
         TryCatch try_catch;
