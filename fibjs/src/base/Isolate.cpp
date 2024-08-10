@@ -33,16 +33,18 @@ extern v8::Platform* g_default_platform;
 
 static int32_t syncRunMicrotasks(Isolate* isolate)
 {
-    JSFiber::EnterJsScope s(NULL, true);
+    {
+        JSFiber::EnterJsScope s;
 
-    isolate->m_intask = true;
-    isolate->m_isolate->PerformMicrotaskCheckpoint();
-    if (isolate->m_isolate->HasPendingBackgroundTasks())
-        while (v8::platform::PumpMessageLoop(g_default_platform, isolate->m_isolate,
-            isolate->m_isolate->HasPendingBackgroundTasks()
-                ? v8::platform::MessageLoopBehavior::kWaitForWork
-                : platform::MessageLoopBehavior::kDoNotWait))
-            ;
+        isolate->m_isolate->PerformMicrotaskCheckpoint();
+        if (isolate->m_isolate->HasPendingBackgroundTasks())
+            while (v8::platform::PumpMessageLoop(g_default_platform, isolate->m_isolate,
+                isolate->m_isolate->HasPendingBackgroundTasks()
+                    ? v8::platform::MessageLoopBehavior::kWaitForWork
+                    : platform::MessageLoopBehavior::kDoNotWait))
+                ;
+    }
+
     isolate->m_intask = false;
 
     return 0;
@@ -52,8 +54,10 @@ void Isolate::RunMicrotasks()
 {
     if (!m_intask
         && (RunMicrotaskSize(m_isolate) > 0
-            || m_isolate->HasPendingBackgroundTasks()))
+            || m_isolate->HasPendingBackgroundTasks())) {
+        m_intask = true;
         syncCall(this, syncRunMicrotasks, this);
+    }
 }
 
 Isolate::SnapshotJsScope::SnapshotJsScope(Isolate* cur)

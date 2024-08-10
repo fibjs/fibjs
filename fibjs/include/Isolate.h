@@ -262,7 +262,7 @@ public:
     std::unordered_map<uint32_t, SandBox*> m_sandboxes;
     uint32_t m_sandboxId = 0;
 
-    bool m_intask = false;
+    std::atomic_bool m_intask;
 
     obj_ptr<HttpClient> m_httpclient;
     v8::Global<v8::Object> STATUS_CODES;

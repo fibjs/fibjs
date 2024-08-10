@@ -18,7 +18,7 @@ class JSFiber : public Fiber_base,
 public:
     class EnterJsScope {
     public:
-        EnterJsScope(JSFiber* fb = NULL, bool task = false);
+        EnterJsScope(JSFiber* fb = NULL);
         ~EnterJsScope();
 
         JSFiber* operator->()
@@ -31,7 +31,6 @@ public:
 
     public:
         obj_ptr<JSFiber> m_pFiber;
-        bool m_task;
         v8::Global<v8::Object> m_fiber;
         TryCatch try_catch;
     };
