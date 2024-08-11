@@ -63,7 +63,6 @@ static void promise_then(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 static void promise_reject(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    puts("================== promise_reject ==================");
     Isolate* isolate = Isolate::current(args);
     v8::Local<v8::Context> context = isolate->context();
     obj_ptr<promise_data> datas = promise_data::getInstance(args.Data());
@@ -143,12 +142,21 @@ v8::MaybeLocal<v8::Promise> SandBox::async_import(exlib::string id, Buffer_base*
     return resolver->GetPromise();
 }
 
+static bool is_esm(exlib::string id)
+{
+    return id.length() > 4 && !qstricmp(id.c_str() + id.length() - 4, ".mjs");
+}
+
+static v8::MaybeLocal<v8::Promise> throw_hr(result_t hr)
+{
+    ThrowResult(hr);
+    return v8::MaybeLocal<v8::Promise>();
+}
+
 v8::MaybeLocal<v8::Promise> SandBox::async_import(exlib::string id, exlib::string base)
 {
     Isolate* isolate = holder();
     v8::Local<v8::Context> _context = isolate->context();
-
-    Context context(this, id);
 
     result_t hr;
     obj_ptr<Buffer_base> data;
@@ -158,18 +166,28 @@ v8::MaybeLocal<v8::Promise> SandBox::async_import(exlib::string id, exlib::strin
     path_base::dirname(base, pname);
 
     hr = resolve(pname, id, data, mod);
-    if (hr < 0) {
-        ThrowResult(hr);
-        return v8::MaybeLocal<v8::Promise>();
-    } else if (!IsEmpty(mod)) {
-        v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(_context).FromMaybe(v8::Local<v8::Promise::Resolver>());
-        v8::Local<v8::Value> v;
+    if (hr < 0)
+        return throw_hr(hr);
 
+    if (IsEmpty(mod) && !is_esm(id)) {
+        hr = installScript(id, data, mod);
+        if (hr < 0)
+            return throw_hr(hr);
+    }
+
+    if (!IsEmpty(mod)) {
+        v8::Local<v8::Value> v;
         hr = wait_module(mod, v);
+        if (hr < 0)
+            return throw_hr(hr);
+
+        v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(_context).FromMaybe(v8::Local<v8::Promise::Resolver>());
         resolver->Resolve(_context, v).IsJust();
 
         return resolver->GetPromise();
     }
+
+    Context context(this, id);
 
     v8::Local<v8::String> strExports = isolate->NewString("exports");
     v8::Local<v8::String> strModule = isolate->NewString(id);
