@@ -113,6 +113,8 @@ public:
     v8::Global<v8::Array> m_promise_error;
     int32_t m_promise_error_no;
 
+    SandBox* m_module_pending = nullptr;
+
 private:
     result_t m_code;
     exlib::string m_error;
