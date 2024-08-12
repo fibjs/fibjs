@@ -179,7 +179,7 @@ public:
         return v->NumberValue(context()).FromMaybe(0);
     }
 
-    v8::Local<v8::Value> WaitPromise(v8::Local<v8::Value> promise);
+    v8::Local<v8::Value> await(v8::Local<v8::Value> promise);
 
     template <typename Fn>
     void SetImmediate(Fn&& cb, int32_t flags = 1)

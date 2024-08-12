@@ -28,7 +28,7 @@ result_t SandBox::wait_module(v8::Local<v8::Object> module, v8::Local<v8::Value>
     JSValue l = module->GetPrivate(_context, strPendding);
     if (!l->IsUndefined()) {
         if (l->IsPromise()) {
-            isolate->WaitPromise(v8::Local<v8::Promise>::Cast(l));
+            isolate->await(v8::Local<v8::Promise>::Cast(l));
         } else {
             obj_ptr<Lock_base> lock = Lock_base::getInstance(l);
             if (lock) {

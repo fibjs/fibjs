@@ -63,7 +63,7 @@ public:
         if (promise.IsEmpty())
             return CALL_E_JAVASCRIPT;
 
-        v8::Local<v8::Value> result = m_isolate->WaitPromise(promise);
+        v8::Local<v8::Value> result = m_isolate->await(promise);
         if (result.IsEmpty())
             return CALL_E_JAVASCRIPT;
 
