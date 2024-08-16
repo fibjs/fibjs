@@ -61,11 +61,41 @@ describe('ECMAScript modules', () => {
         it("simple import", async () => {
             var m = await import('./esm_files/esm5.mjs');
             assert.equal(m.test2.test, m.test2.test1);
+            assert.deepEqual(m.test2.test, {
+                test: 5
+            });
         });
 
-        it("import(js)", async () => {
-            var m = await import('./esm_files/esm5.mjs');
-            assert.equal(m.test2.test, m.test2.test1);
+        describe('import js', () => {
+            it("simple import", async () => {
+                var m = await import('./esm_files/esm6.mjs');
+                assert.equal(m.test2.test, m.test2.test1);
+                assert.deepEqual(m.test2.test, {
+                    test: 6
+                });
+            });
+
+            it("default export", async () => {
+                var m = await import('./esm_files/esm7.mjs');
+                assert.deepEqual(m.test2.test, {
+                    test: {
+                        test: 7
+                    }
+                });
+            });
+
+            it("default export array", async () => {
+                var m = await import('./esm_files/esm8.mjs');
+                assert.deepEqual(m.test2.test, {
+                    test: [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ]
+                });
+            });
         });
     });
 });

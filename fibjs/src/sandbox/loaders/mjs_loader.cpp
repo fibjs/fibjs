@@ -214,10 +214,11 @@ private:
                     v8::Local<v8::Object> obj = exports->ToObject(_context).ToLocalChecked();
                     v8::Local<v8::Array> names = obj->GetPropertyNames(_context).ToLocalChecked();
                     int length = names->Length();
-                    std::vector<v8::Local<v8::String>> export_names(length);
+                    std::vector<v8::Local<v8::String>> export_names(length + 1);
 
+                    export_names[0] = m_isolate->NewString("default");
                     for (int i = 0; i < length; ++i)
-                        export_names[i] = names->Get(_context, i).ToLocalChecked()->ToString(_context).ToLocalChecked();
+                        export_names[i + 1] = names->Get(_context, i).ToLocalChecked()->ToString(_context).ToLocalChecked();
 
                     dep_module = v8::Module::CreateSyntheticModule(m_isolate->m_isolate, m_isolate->NewString(id),
                         export_names, ModuleEvaluationSteps);
@@ -225,8 +226,12 @@ private:
                     dep_module->InstantiateModule(_context, resolveModuleCallback).IsJust();
                     dep_module->Evaluate(_context).FromMaybe(v8::Local<v8::Value>());
 
+                    v8::Maybe<bool> result = dep_module->SetSyntheticModuleExport(m_isolate->m_isolate, export_names[0], exports);
+                    if (!result.FromMaybe(false))
+                        return CALL_E_JAVASCRIPT;
+
                     for (int i = 0; i < length; ++i) {
-                        v8::Local<v8::String> name = export_names[i];
+                        v8::Local<v8::String> name = export_names[i + 1];
                         v8::Local<v8::Value> value = obj->Get(_context, name).ToLocalChecked();
                         v8::Maybe<bool> result = dep_module->SetSyntheticModuleExport(m_isolate->m_isolate, name, value);
                         if (!result.FromMaybe(false))
