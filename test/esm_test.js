@@ -55,9 +55,19 @@ describe('ECMAScript modules', () => {
                 m = await import('./esm_files/esm4');
             });
         });
-
     });
 
+    describe('import from mjs', () => {
+        it("simple import", async () => {
+            var m = await import('./esm_files/esm5.mjs');
+            assert.equal(m.test2.test, m.test2.test1);
+        });
+
+        it("import(js)", async () => {
+            var m = await import('./esm_files/esm5.mjs');
+            assert.equal(m.test2.test, m.test2.test1);
+        });
+    });
 });
 
 require.main === module && test.run(console.DEBUG);

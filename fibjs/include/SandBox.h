@@ -242,7 +242,7 @@ public:
 public:
     int32_t m_module_pendings = 0;
     std::unordered_map<exlib::string, v8::Global<v8::Module>> module_map;
-    std::unordered_map<int32_t, exlib::string> module_to_specifier_map;
+    std::unordered_map<int32_t, std::unordered_map<exlib::string, v8::Global<v8::Module>>> module_deps_map;
 
 public:
     std::vector<obj_ptr<ExtLoader>> m_loaders;
