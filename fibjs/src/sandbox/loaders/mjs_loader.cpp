@@ -226,16 +226,11 @@ private:
                     dep_module->InstantiateModule(_context, resolveModuleCallback).IsJust();
                     dep_module->Evaluate(_context).FromMaybe(v8::Local<v8::Value>());
 
-                    v8::Maybe<bool> result = dep_module->SetSyntheticModuleExport(m_isolate->m_isolate, export_names[0], exports);
-                    if (!result.FromMaybe(false))
-                        return CALL_E_JAVASCRIPT;
-
+                    dep_module->SetSyntheticModuleExport(m_isolate->m_isolate, export_names[0], exports).IsJust();
                     for (int i = 0; i < length; ++i) {
                         v8::Local<v8::String> name = export_names[i + 1];
                         v8::Local<v8::Value> value = obj->Get(_context, name).ToLocalChecked();
-                        v8::Maybe<bool> result = dep_module->SetSyntheticModuleExport(m_isolate->m_isolate, name, value);
-                        if (!result.FromMaybe(false))
-                            return CALL_E_JAVASCRIPT;
+                        dep_module->SetSyntheticModuleExport(m_isolate->m_isolate, name, value).IsJust();
                     }
                 } else {
                     dep_module = compile_module(id, data.As<Buffer>());
@@ -271,8 +266,11 @@ private:
             m_sb->module_map.emplace(id, v8::Global<v8::Module>(m_isolate->m_isolate, root_module));
 
             hr = resolveModuleTree(id, root_module);
-            if (hr >= 0)
-                root_module->InstantiateModule(_context, resolveModuleCallback).IsJust();
+            if (hr >= 0) {
+                v8::Maybe<bool> result = root_module->InstantiateModule(_context, resolveModuleCallback);
+                if (!result.FromMaybe(false))
+                    hr = CALL_E_JAVASCRIPT;
+            }
 
             rt->m_module_pending = nullptr;
             if (--m_sb->m_module_pendings == 0) {

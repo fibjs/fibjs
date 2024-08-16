@@ -55,6 +55,13 @@ describe('ECMAScript modules', () => {
                 m = await import('./esm_files/esm4');
             });
         });
+
+        it("throw error when 'default' not exists", async () => {
+            var m;
+            try {
+                m = await import('./esm_files/esm9.mjs');
+            } catch (e) { }
+        });
     });
 
     describe('import from mjs', () => {
