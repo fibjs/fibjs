@@ -106,6 +106,28 @@ describe('ECMAScript modules', () => {
                 });
             });
         });
+
+        describe('module tree', () => {
+            it("dependency module", async () => {
+                var mod1 = await import('./esm_files/esm12.mjs');
+                var mod2 = await import('./esm_files/esm12.1.mjs');
+
+                assert.equal(mod1.test2.test, mod2.test);
+            });
+
+            it("dependency module when top import failed", async () => {
+                try {
+                    var mod1 = await import('./esm_files/esm13.mjs');
+                } catch (e) { }
+
+                var mod2 = await import('./esm_files/esm13.1.mjs');
+
+                assert.deepEqual(mod2.test, {
+                    a: 13,
+                    b: 13
+                });
+            });
+        });
     });
 
     describe('parallel import', () => {

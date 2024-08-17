@@ -55,8 +55,10 @@ public:
         mod->SetPrivate(_context, strPendding, resolver->GetPromise()).IsJust();
 
         result_t hr = evaluate(id, mod, root_module);
-        if (hr < 0)
+        if (hr < 0) {
+            saveModule();
             return hr;
+        }
 
         v8::Local<v8::Value> result = m_isolate->await(resolver->GetPromise());
         if (result.IsEmpty())
@@ -114,6 +116,8 @@ public:
         hr = evaluate(id, mod, root_module);
         if (hr >= 0)
             return m_resolver.Get(m_isolate->m_isolate)->GetPromise();
+
+        saveModule();
 
         mod->DeletePrivate(_context, strPendding).IsJust();
 
@@ -346,6 +350,8 @@ private:
         v8::Local<v8::Private> strPendding = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("pendding"));
         mod->DeletePrivate(context, strPendding).IsJust();
 
+        impoter->saveModule();
+
         v8::Local<v8::Value> result = module->GetModuleNamespace();
         mod->Set(context, isolate->NewString("exports"), result).IsJust();
         resolver->Resolve(context, result).IsJust();
@@ -368,8 +374,40 @@ private:
         mod->Delete(context, isolate->NewString("exports")).IsJust();
         mods->Delete(context, isolate->NewString(root_module->first)).IsJust();
 
+        impoter->saveModule();
+
         v8::Local<v8::Promise::Resolver> resolver = impoter->m_resolver.Get(isolate->m_isolate);
         resolver->Reject(context, args[0]).IsJust();
+    }
+
+    void saveModule()
+    {
+        v8::Local<v8::Context> _context = m_isolate->context();
+        v8::Local<v8::Object> mods = m_sb->mods();
+
+        for (int32_t i = 0, length = module_refs.size(); i < length; ++i) {
+            SandBox::module_map_iter& it = module_refs[i];
+
+            if (i > 0) {
+                v8::Local<v8::Module> module = it->second.first.Get(m_isolate->m_isolate);
+                v8::Module::Status status = module->GetStatus();
+                if (status == v8::Module::Status::kEvaluated) {
+                    v8::Local<v8::String> strId = m_isolate->NewString(it->first);
+                    if (!mods->Has(_context, strId).FromMaybe(false)) {
+                        v8::Local<v8::Object> mod = v8::Object::New(m_isolate->m_isolate);
+
+                        mod->Set(_context, m_isolate->NewString("id"), strId).IsJust();
+                        mod->Set(_context, m_isolate->NewString("exports"), module->GetModuleNamespace()).IsJust();
+                        mod->Set(_context, m_isolate->NewString("filename"), strId).IsJust();
+
+                        mods->Set(_context, strId, mod).IsJust();
+                    }
+                }
+            }
+
+            if (--it->second.second == 0)
+                m_sb->module_map.erase(it);
+        }
     }
 
 public:
