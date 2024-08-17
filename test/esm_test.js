@@ -113,40 +113,44 @@ describe('ECMAScript modules', () => {
 
         it("require a pendding module", async () => {
             var m1, m2;
+            const ev1 = new coroutine.Event();
 
             ev.clear();
 
             setImmediate(() => {
                 m1 = require('./esm_files/esm10.mjs');
+                ev1.set();
             });
 
-            coroutine.sleep(10);
+            coroutine.sleep(1);
 
             ev.set();
 
             m2 = require('./esm_files/esm10.mjs');
 
-            coroutine.sleep(10);
+            ev1.wait();
 
             assert.equal(m1, m2);
         });
 
         it("import a pendding module", async () => {
             var m1, m2;
+            const ev1 = new coroutine.Event();
 
             ev.clear();
 
             setImmediate(async () => {
                 m1 = await import('./esm_files/esm11.mjs');
+                ev1.set();
             });
 
-            coroutine.sleep(10);
+            coroutine.sleep(1);
 
             ev.set();
 
             m2 = await import('./esm_files/esm11.mjs');
 
-            coroutine.sleep(10);
+            ev1.wait();
 
             assert.equal(m1, m2);
         });
