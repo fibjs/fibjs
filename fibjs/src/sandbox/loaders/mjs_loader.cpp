@@ -42,15 +42,23 @@ public:
 public:
     result_t require(exlib::string id, Buffer_base* data, v8::Local<v8::Object> mod)
     {
-        v8::Local<v8::Module> root_module = compile_module(id, (Buffer*)data);
+        v8::Local<v8::Context> _context = m_isolate->context();
+
+        v8::Local<v8::Module> root_module = compile_module(id, (Buffer*)data, v8::Local<v8::Value>());
         if (root_module.IsEmpty())
             return CALL_E_JAVASCRIPT;
 
-        v8::Local<v8::Promise> promise = evaluate(id, mod, root_module).FromMaybe(v8::Local<v8::Promise>());
-        if (promise.IsEmpty())
-            return CALL_E_JAVASCRIPT;
+        v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(_context).FromMaybe(v8::Local<v8::Promise::Resolver>());
+        m_resolver.Reset(m_isolate->m_isolate, resolver);
 
-        v8::Local<v8::Value> result = m_isolate->await(promise);
+        v8::Local<v8::Private> strPendding = v8::Private::ForApi(m_isolate->m_isolate, m_isolate->NewString("pendding"));
+        mod->SetPrivate(_context, strPendding, resolver->GetPromise()).IsJust();
+
+        result_t hr = evaluate(id, mod, root_module);
+        if (hr < 0)
+            return hr;
+
+        v8::Local<v8::Value> result = m_isolate->await(resolver->GetPromise());
         if (result.IsEmpty())
             return CALL_E_JAVASCRIPT;
 
@@ -80,7 +88,7 @@ public:
 
         SandBox::Context context(m_sb, id);
 
-        v8::Local<v8::Module> root_module = compile_module(id, data.As<Buffer>());
+        v8::Local<v8::Module> root_module = compile_module(id, data.As<Buffer>(), exports);
         if (root_module.IsEmpty())
             return v8::MaybeLocal<v8::Promise>();
 
@@ -93,15 +101,20 @@ public:
         mod->Set(_context, strExports, exports).IsJust();
         mod->Set(_context, m_isolate->NewString("filename"), strModule).IsJust();
 
+        v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(_context).FromMaybe(v8::Local<v8::Promise::Resolver>());
+        m_resolver.Reset(m_isolate->m_isolate, resolver);
+
+        v8::Local<v8::Private> strPendding = v8::Private::ForApi(m_isolate->m_isolate, m_isolate->NewString("pendding"));
+        mod->SetPrivate(_context, strPendding, resolver->GetPromise()).IsJust();
+
         v8::Local<v8::Object> mods = m_sb->mods();
 
         mods->Set(_context, strModule, mod).IsJust();
 
-        v8::MaybeLocal<v8::Promise> promise = evaluate(id, mod, root_module);
-        if (!promise.IsEmpty())
-            return promise;
+        hr = evaluate(id, mod, root_module);
+        if (hr >= 0)
+            return m_resolver.Get(m_isolate->m_isolate)->GetPromise();
 
-        v8::Local<v8::Private> strPendding = v8::Private::ForApi(m_isolate->m_isolate, m_isolate->NewString("pendding"));
         mod->DeletePrivate(_context, strPendding).IsJust();
 
         mod->Delete(_context, strExports).IsJust();
@@ -141,33 +154,66 @@ private:
         return 0;
     }
 
-    v8::Local<v8::Module> compile_module(exlib::string id, Buffer* data_)
+    v8::Local<v8::Module> compile_module(exlib::string id, Buffer* data_, v8::Local<v8::Value> exports)
     {
-        std::unordered_map<exlib::string, v8::Global<v8::Module>>::iterator it = m_sb->module_map.find(id);
-        if (it != m_sb->module_map.end())
-            return it->second.Get(m_isolate->m_isolate);
-
+        v8::Local<v8::Context> _context = m_isolate->context();
         v8::Local<v8::Module> module;
-        exlib::string exception;
 
-        {
-            TryCatch try_catch;
+        SandBox::module_map_iter it = m_sb->module_map.find(id);
+        if (it != m_sb->module_map.end()) {
+            it->second.second++;
+            module_refs.push_back(it);
 
-            v8::Local<v8::PrimitiveArray> pargs = v8::PrimitiveArray::New(m_isolate->m_isolate, 1);
-            pargs->Set(m_isolate->m_isolate, 0, v8::Number::New(m_isolate->m_isolate, m_sb->m_id));
-            v8::ScriptOrigin so_origin(m_isolate->m_isolate, m_isolate->NewString(id), 0, 0, false,
-                -1, v8::Local<v8::Value>(), false, false, true, pargs);
-
-            v8::ScriptCompiler::Source source(m_isolate->NewString((const char*)data_->data(), data_->length()), so_origin);
-            module = v8::ScriptCompiler::CompileModule(m_isolate->m_isolate, &source).FromMaybe(v8::Local<v8::Module>());
-            if (module.IsEmpty())
-                exception = GetException(try_catch, 0, false, false);
+            return it->second.first.Get(m_isolate->m_isolate);
         }
 
-        if (module.IsEmpty()) {
-            ThrowError(exception);
-            return v8::Local<v8::Module>();
+        if (!IsEmpty(exports)) {
+            v8::Local<v8::Object> obj = exports->ToObject(_context).ToLocalChecked();
+            v8::Local<v8::Array> names = obj->GetPropertyNames(_context).ToLocalChecked();
+            int length = names->Length();
+            std::vector<v8::Local<v8::String>> export_names(length + 1);
+
+            export_names[0] = m_isolate->NewString("default");
+            for (int i = 0; i < length; ++i)
+                export_names[i + 1] = names->Get(_context, i).ToLocalChecked()->ToString(_context).ToLocalChecked();
+
+            module = v8::Module::CreateSyntheticModule(m_isolate->m_isolate, m_isolate->NewString(id),
+                export_names, ModuleEvaluationSteps);
+
+            module->InstantiateModule(_context, resolveModuleCallback).IsJust();
+            module->Evaluate(_context).FromMaybe(v8::Local<v8::Value>());
+
+            module->SetSyntheticModuleExport(m_isolate->m_isolate, export_names[0], exports).IsJust();
+            for (int i = 0; i < length; ++i) {
+                v8::Local<v8::String> name = export_names[i + 1];
+                v8::Local<v8::Value> value = obj->Get(_context, name).ToLocalChecked();
+                module->SetSyntheticModuleExport(m_isolate->m_isolate, name, value).IsJust();
+            }
+        } else {
+            exlib::string exception;
+
+            {
+                TryCatch try_catch;
+
+                v8::Local<v8::PrimitiveArray> pargs = v8::PrimitiveArray::New(m_isolate->m_isolate, 1);
+                pargs->Set(m_isolate->m_isolate, 0, v8::Number::New(m_isolate->m_isolate, m_sb->m_id));
+                v8::ScriptOrigin so_origin(m_isolate->m_isolate, m_isolate->NewString(id), 0, 0, false,
+                    -1, v8::Local<v8::Value>(), false, false, true, pargs);
+
+                v8::ScriptCompiler::Source source(m_isolate->NewString((const char*)data_->data(), data_->length()), so_origin);
+                module = v8::ScriptCompiler::CompileModule(m_isolate->m_isolate, &source).FromMaybe(v8::Local<v8::Module>());
+                if (module.IsEmpty())
+                    exception = GetException(try_catch, 0, false, false);
+            }
+
+            if (module.IsEmpty()) {
+                ThrowError(exception);
+                return v8::Local<v8::Module>();
+            }
         }
+
+        it = m_sb->module_map.emplace(id, std::make_pair<v8::Global<v8::Module>, int32_t>(v8::Global<v8::Module>(m_isolate->m_isolate, module), 1)).first;
+        module_refs.push_back(it);
 
         return module;
     }
@@ -197,43 +243,9 @@ private:
             if (hr < 0)
                 return hr;
 
-            v8::Local<v8::Module> dep_module;
-
-            std::unordered_map<exlib::string, v8::Global<v8::Module>>::iterator it = m_sb->module_map.find(id);
-            if (it != m_sb->module_map.end()) {
-                dep_module = it->second.Get(m_isolate->m_isolate);
-            } else {
-                if (!IsEmpty(exports)) {
-                    v8::Local<v8::Object> obj = exports->ToObject(_context).ToLocalChecked();
-                    v8::Local<v8::Array> names = obj->GetPropertyNames(_context).ToLocalChecked();
-                    int length = names->Length();
-                    std::vector<v8::Local<v8::String>> export_names(length + 1);
-
-                    export_names[0] = m_isolate->NewString("default");
-                    for (int i = 0; i < length; ++i)
-                        export_names[i + 1] = names->Get(_context, i).ToLocalChecked()->ToString(_context).ToLocalChecked();
-
-                    dep_module = v8::Module::CreateSyntheticModule(m_isolate->m_isolate, m_isolate->NewString(id),
-                        export_names, ModuleEvaluationSteps);
-
-                    dep_module->InstantiateModule(_context, resolveModuleCallback).IsJust();
-                    dep_module->Evaluate(_context).FromMaybe(v8::Local<v8::Value>());
-
-                    dep_module->SetSyntheticModuleExport(m_isolate->m_isolate, export_names[0], exports).IsJust();
-                    for (int i = 0; i < length; ++i) {
-                        v8::Local<v8::String> name = export_names[i + 1];
-                        v8::Local<v8::Value> value = obj->Get(_context, name).ToLocalChecked();
-                        dep_module->SetSyntheticModuleExport(m_isolate->m_isolate, name, value).IsJust();
-                    }
-                } else {
-                    dep_module = compile_module(id, data.As<Buffer>());
-                }
-
-                if (dep_module.IsEmpty())
-                    return CALL_E_JAVASCRIPT;
-
-                m_sb->module_map.emplace(id, v8::Global<v8::Module>(m_isolate->m_isolate, dep_module));
-            }
+            v8::Local<v8::Module> dep_module = compile_module(id, data.As<Buffer>(), exports);
+            if (dep_module.IsEmpty())
+                return CALL_E_JAVASCRIPT;
 
             deps.emplace(dep_id, v8::Global<v8::Module>(m_isolate->m_isolate, dep_module));
 
@@ -245,7 +257,7 @@ private:
         return 0;
     }
 
-    v8::MaybeLocal<v8::Promise> evaluate(exlib::string id, v8::Local<v8::Object> mod, v8::Local<v8::Module> root_module)
+    result_t evaluate(exlib::string id, v8::Local<v8::Object> mod, v8::Local<v8::Module> root_module)
     {
         v8::Local<v8::Context> _context = m_isolate->context();
 
@@ -255,8 +267,6 @@ private:
         m_sb->m_module_pendings++;
         rt->m_module_pending = m_sb;
 
-        m_sb->module_map.emplace(id, v8::Global<v8::Module>(m_isolate->m_isolate, root_module));
-
         hr = resolveModuleTree(id, root_module);
         if (hr >= 0) {
             v8::Maybe<bool> result = root_module->InstantiateModule(_context, resolveModuleCallback);
@@ -265,37 +275,26 @@ private:
         }
 
         rt->m_module_pending = nullptr;
-        if (--m_sb->m_module_pendings == 0) {
-            m_sb->module_map.clear();
+        if (--m_sb->m_module_pendings == 0)
             m_sb->module_deps_map.clear();
-        }
 
         if (hr < 0)
-            return v8::MaybeLocal<v8::Promise>();
+            return hr;
 
         TryCatch try_catch;
         v8::Local<v8::Value> result = root_module->Evaluate(_context).FromMaybe(v8::Local<v8::Value>());
         if (result.IsEmpty()) {
             try_catch.ReThrow();
-            return v8::MaybeLocal<v8::Promise>();
+            return CALL_E_JAVASCRIPT;
         }
 
-        v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(_context).FromMaybe(v8::Local<v8::Promise::Resolver>());
-        m_resolver.Reset(m_isolate->m_isolate, resolver);
-
-        module_eval_map.emplace(id, v8::Global<v8::Module>(m_isolate->m_isolate, root_module));
-
         v8::Local<v8::Promise> promise = v8::Local<v8::Promise>::Cast(result);
-
-        v8::Local<v8::Private> strPendding = v8::Private::ForApi(m_isolate->m_isolate, m_isolate->NewString("pendding"));
-        mod->SetPrivate(_context, strPendding, resolver->GetPromise()).IsJust();
-
         promise->Then(_context,
                    v8::Function::New(_context, promise_then, wrap(m_isolate)).ToLocalChecked(),
                    v8::Function::New(_context, promise_reject, wrap(m_isolate)).ToLocalChecked())
             .FromMaybe(v8::Local<v8::Promise>());
 
-        return resolver->GetPromise();
+        return 0;
     }
 
 private:
@@ -337,11 +336,11 @@ private:
         Isolate* isolate = Isolate::current(args);
         v8::Local<v8::Context> context = isolate->context();
         obj_ptr<esm_importer> impoter = esm_importer::getInstance(args.Data());
-        std::unordered_map<exlib::string, v8::Global<v8::Module>>::iterator it = impoter->module_eval_map.begin();
+        SandBox::module_map_iter& root_module = impoter->module_refs[0];
 
         v8::Local<v8::Object> mods = impoter->m_sb->mods();
-        v8::Local<v8::Object> mod = mods->Get(context, isolate->NewString(it->first)).ToLocalChecked().As<v8::Object>();
-        v8::Local<v8::Module> module = it->second.Get(isolate->m_isolate);
+        v8::Local<v8::Object> mod = mods->Get(context, isolate->NewString(root_module->first)).ToLocalChecked().As<v8::Object>();
+        v8::Local<v8::Module> module = root_module->second.first.Get(isolate->m_isolate);
         v8::Local<v8::Promise::Resolver> resolver = impoter->m_resolver.Get(isolate->m_isolate);
 
         v8::Local<v8::Private> strPendding = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("pendding"));
@@ -357,17 +356,17 @@ private:
         Isolate* isolate = Isolate::current(args);
         v8::Local<v8::Context> context = isolate->context();
         obj_ptr<esm_importer> impoter = esm_importer::getInstance(args.Data());
-        std::unordered_map<exlib::string, v8::Global<v8::Module>>::iterator it = impoter->module_eval_map.begin();
+        SandBox::module_map_iter& root_module = impoter->module_refs[0];
 
         v8::Local<v8::Object> mods = impoter->m_sb->mods();
-        v8::Local<v8::Object> mod = mods->Get(context, isolate->NewString(it->first)).ToLocalChecked().As<v8::Object>();
-        v8::Local<v8::Module> module = it->second.Get(isolate->m_isolate);
+        v8::Local<v8::Object> mod = mods->Get(context, isolate->NewString(root_module->first)).ToLocalChecked().As<v8::Object>();
+        v8::Local<v8::Module> module = root_module->second.first.Get(isolate->m_isolate);
 
         v8::Local<v8::Private> strPendding = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("pendding"));
         mod->DeletePrivate(context, strPendding).IsJust();
 
         mod->Delete(context, isolate->NewString("exports")).IsJust();
-        mods->Delete(context, isolate->NewString(it->first)).IsJust();
+        mods->Delete(context, isolate->NewString(root_module->first)).IsJust();
 
         v8::Local<v8::Promise::Resolver> resolver = impoter->m_resolver.Get(isolate->m_isolate);
         resolver->Reject(context, args[0]).IsJust();
@@ -377,7 +376,7 @@ public:
     obj_ptr<SandBox> m_sb;
     Isolate* m_isolate;
 
-    std::unordered_map<exlib::string, v8::Global<v8::Module>> module_eval_map;
+    std::vector<SandBox::module_map_iter> module_refs;
     v8::Global<v8::Promise::Resolver> m_resolver;
 };
 

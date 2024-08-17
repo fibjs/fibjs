@@ -1,6 +1,8 @@
 var test = require("test");
 test.setup();
 
+const coroutine = require('coroutine');
+
 describe('ECMAScript modules', () => {
     describe('await import', () => {
         it("simple import", async () => {
@@ -103,6 +105,50 @@ describe('ECMAScript modules', () => {
                     ]
                 });
             });
+        });
+    });
+
+    describe('parallel import', () => {
+        const ev = require('./esm_files/sync');
+
+        it("require a pendding module", async () => {
+            var m1, m2;
+
+            ev.clear();
+
+            setImmediate(() => {
+                m1 = require('./esm_files/esm10.mjs');
+            });
+
+            coroutine.sleep(10);
+
+            ev.set();
+
+            m2 = require('./esm_files/esm10.mjs');
+
+            coroutine.sleep(10);
+
+            assert.equal(m1, m2);
+        });
+
+        it("import a pendding module", async () => {
+            var m1, m2;
+
+            ev.clear();
+
+            setImmediate(async () => {
+                m1 = await import('./esm_files/esm11.mjs');
+            });
+
+            coroutine.sleep(10);
+
+            ev.set();
+
+            m2 = await import('./esm_files/esm11.mjs');
+
+            coroutine.sleep(10);
+
+            assert.equal(m1, m2);
         });
     });
 });

@@ -241,7 +241,8 @@ public:
 
 public:
     int32_t m_module_pendings = 0;
-    std::unordered_map<exlib::string, v8::Global<v8::Module>> module_map;
+    typedef std::unordered_map<exlib::string, std::pair<v8::Global<v8::Module>, int32_t>>::iterator module_map_iter;
+    std::unordered_map<exlib::string, std::pair<v8::Global<v8::Module>, int32_t>> module_map;
     std::unordered_map<int32_t, std::unordered_map<exlib::string, v8::Global<v8::Module>>> module_deps_map;
 
 public:
