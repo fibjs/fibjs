@@ -1,5 +1,5 @@
-import ev from './sync.js';
+import ev from './async.js';
 
-ev.wait();
+await ev.wait();
 
 export var test = 11;

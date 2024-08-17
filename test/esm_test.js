@@ -131,50 +131,72 @@ describe('ECMAScript modules', () => {
     });
 
     describe('parallel import', () => {
-        const ev = require('./esm_files/sync');
+        const ev = require('./esm_files/async');
 
         it("require a pendding module", async () => {
             var m1, m2;
-            const ev1 = new coroutine.Event();
 
             ev.clear();
 
             setImmediate(() => {
                 m1 = require('./esm_files/esm10.mjs');
-                ev1.set();
+                ev.set();
             });
 
             coroutine.sleep();
 
             ev.set();
+            ev.clear();
 
             m2 = require('./esm_files/esm10.mjs');
 
-            ev1.wait();
+            await ev.wait();
 
             assert.equal(m1, m2);
         });
 
         it("import a pendding module", async () => {
             var m1, m2;
-            const ev1 = new coroutine.Event();
 
             ev.clear();
 
             setImmediate(async () => {
                 m1 = await import('./esm_files/esm11.mjs');
-                ev1.set();
+                ev.set();
             });
 
             coroutine.sleep();
 
             ev.set();
+            ev.clear();
 
             m2 = await import('./esm_files/esm11.mjs');
 
-            ev1.wait();
+            await ev.wait();
 
             assert.equal(m1, m2);
+        });
+
+        it("import a pendding dependency module", async () => {
+            var m1, m2;
+
+            ev.clear();
+
+            setImmediate(async () => {
+                m1 = await import('./esm_files/esm14.mjs');
+                ev.set();
+            });
+
+            coroutine.sleep();
+
+            ev.set();
+            ev.clear();
+
+            m2 = await import('./esm_files/esm14.1.mjs');
+
+            await ev.wait();
+
+            assert.equal(m1.test2.test, m2.test);
         });
     });
 });
