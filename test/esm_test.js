@@ -122,7 +122,7 @@ describe('ECMAScript modules', () => {
                 ev1.set();
             });
 
-            coroutine.sleep(1);
+            coroutine.sleep();
 
             ev.set();
 
@@ -144,7 +144,7 @@ describe('ECMAScript modules', () => {
                 ev1.set();
             });
 
-            coroutine.sleep(1);
+            coroutine.sleep();
 
             ev.set();
 
