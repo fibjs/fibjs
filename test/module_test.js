@@ -111,6 +111,20 @@ describe("module", () => {
         assert.equal(require('./module/p6/t'), require('./module/p6_1/t'));
     });
 
+    describe("require cjs", () => {
+        it("require .cjs", () => {
+            assert.equal(require('./module/p10.cjs').test, "p10.cjs");
+        });
+
+        it("require .js", () => {
+            assert.equal(require('./module/p10.js').test, "p10.js");
+        });
+
+        it("js first", () => {
+            assert.equal(require('./module/p10').test, "p10.js");
+        });
+    });
+
     describe("package.json", () => {
         it("main", () => {
             var a = require('./module/p1');

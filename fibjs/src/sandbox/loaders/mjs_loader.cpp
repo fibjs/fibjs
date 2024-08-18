@@ -1,5 +1,5 @@
 /*
- * js_loader.cpp
+ * mjs_loader.cpp
  *
  *  Created on: Jun 10, 2023
  *      Author: lion
@@ -131,7 +131,6 @@ private:
     result_t resove_module(exlib::string& id, exlib::string base, obj_ptr<Buffer_base>& data, v8::Local<v8::Value>& exports)
     {
         result_t hr;
-        v8::Local<v8::Context> _context = m_isolate->context();
 
         exlib::string pname;
         path_base::dirname(base, pname);
@@ -317,7 +316,6 @@ private:
     {
         Isolate* isolate = Isolate::current(context);
         Runtime* rt = Runtime::current();
-        result_t hr;
 
         SandBox* sb = rt->m_module_pending;
 
@@ -366,7 +364,6 @@ private:
 
         v8::Local<v8::Object> mods = impoter->m_sb->mods();
         v8::Local<v8::Object> mod = mods->Get(context, isolate->NewString(root_module->first)).ToLocalChecked().As<v8::Object>();
-        v8::Local<v8::Module> module = root_module->second.first.Get(isolate->m_isolate);
 
         v8::Local<v8::Private> strPendding = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("pendding"));
         mod->DeletePrivate(context, strPendding).IsJust();
