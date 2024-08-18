@@ -12,6 +12,7 @@
 #include <chrono>
 #include <unordered_map>
 #include <map>
+#include <optional>
 
 namespace fibjs {
 
