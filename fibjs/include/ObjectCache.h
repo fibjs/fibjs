@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "object.h"
+#include "obj_ptr.h"
 #include <list>
 #include <chrono>
 #include <unordered_map>
@@ -18,9 +18,9 @@ namespace fibjs {
 template <typename T>
 class ObjectCache {
 private:
-    class CacheItem : public T {
+    class CacheItem : public obj_base {
     public:
-        obj_ptr<T> m_obj;
+        std::optional<T> m_value;
         exlib::Event m_ready;
 
         typename std::unordered_map<exlib::string, obj_ptr<CacheItem>>::iterator m_map_iter;
@@ -31,7 +31,7 @@ private:
     };
 
 public:
-    typedef std::function<T*(exlib::string&)> Resolver;
+    typedef std::function<bool(exlib::string&, T&)> Resolver;
 
 public:
     ObjectCache(int32_t size = 1024, int64_t timeout = 300)
@@ -48,19 +48,19 @@ public:
     }
 
 public:
-    void set(exlib::string key, T* obj)
+    void set(exlib::string key, T value)
     {
         m_lock.lock();
 
         obj_ptr<CacheItem> item;
-        alloc(key, item);
-        item->m_obj = obj;
+        find_item(key, item);
+        item->m_value = value;
         item->m_ready.set();
 
         m_lock.unlock();
     }
 
-    bool lookup(exlib::string key, obj_ptr<T>& obj, bool auto_resolve = true)
+    bool lookup(exlib::string key, T& value, bool auto_resolve = true)
     {
         obj_ptr<CacheItem> item;
 
@@ -69,23 +69,24 @@ public:
         clean_expired();
 
         if (auto_resolve && m_resolver) {
-            bool alloced = alloc(key, item);
+            bool alloced = find_item(key, item);
             if (alloced) {
                 m_lock.unlock();
 
-                obj = m_resolver(key);
+                if (m_resolver(key, value)) {
+                    item->m_value = value;
+                    item->m_ready.set();
 
-                item->m_obj = obj;
-                item->m_ready.set();
-
-                if (obj == nullptr) {
-                    m_lock.lock();
-                    erase_item(item);
-                    m_lock.unlock();
-                    return false;
+                    return true;
                 }
 
-                return true;
+                item->m_ready.set();
+
+                m_lock.lock();
+                erase_item(item);
+                m_lock.unlock();
+
+                return false;
             }
         } else {
             auto it = m_map.find(key);
@@ -105,9 +106,12 @@ public:
         m_lock.unlock();
 
         item->m_ready.wait();
-        obj = item->m_obj;
+        if (item->m_value.has_value()) {
+            value = item->m_value.value();
+            return true;
+        }
 
-        return obj != nullptr;
+        return false;
     }
 
     bool erase(exlib::string key)
@@ -170,7 +174,7 @@ private:
         }
     }
 
-    bool alloc(exlib::string key, obj_ptr<CacheItem>& item)
+    bool find_item(exlib::string key, obj_ptr<CacheItem>& item)
     {
         auto itr = m_map.find(key);
         if (itr != m_map.end()) {

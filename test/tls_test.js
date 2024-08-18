@@ -51,7 +51,10 @@ function del(f) {
 }
 
 describe('tls', () => {
+    var resolve_cnt = 0;
     function sni_resolver(domain) {
+        resolve_cnt++;
+
         if (domain === "no_cert")
             return;
 
@@ -180,6 +183,10 @@ describe('tls', () => {
 
                 assert.equal(ctx.getSNIContext("test", true).cert.subject, 'CN=test');
                 assert.equal(ctx.getSNIContext("test1", true).cert.subject, 'CN=test1');
+
+                var n = resolve_cnt;
+                assert.equal(ctx.getSNIContext("test", true).cert.subject, 'CN=test');
+                assert.equal(n, resolve_cnt);
             });
 
             it('delete', () => {

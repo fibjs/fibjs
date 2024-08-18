@@ -58,7 +58,7 @@ private:
     obj_ptr<X509Certificate_base> m_cert;
     obj_ptr<KeyObject_base> m_key;
 
-    ObjectCache<SecureContext> m_sniContexts;
+    ObjectCache<obj_ptr<SecureContext>> m_sniContexts;
     v8::Global<v8::Function> m_sn_callback;
 };
 

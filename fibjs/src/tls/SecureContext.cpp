@@ -492,7 +492,7 @@ result_t SecureContext::set_sn_callback(v8::Local<v8::Object> options)
 
     if (hr != CALL_E_PARAMNOTOPTIONAL) {
         m_sn_callback.Reset(isolate->m_isolate, js_sn_resolver);
-        m_sniContexts.set_resolver([this](exlib::string key) -> SecureContext* {
+        m_sniContexts.set_resolver([this](exlib::string key, obj_ptr<SecureContext>& ctx) -> bool {
             struct Param {
                 SecureContext* self;
                 exlib::string key;
@@ -516,7 +516,11 @@ result_t SecureContext::set_sn_callback(v8::Local<v8::Object> options)
 
             param.ready.wait();
 
-            return param.retVal.As<SecureContext>();
+            if(!param.retVal)
+                return false;
+
+            ctx = param.retVal.As<SecureContext>();
+            return true;
         });
     }
 
