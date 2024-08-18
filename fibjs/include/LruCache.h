@@ -1,5 +1,5 @@
 /*
- * ObjectCache.h
+ * LruCache.h
  *
  *  Created on: May 27, 2024
  *      Author: lion
@@ -16,7 +16,7 @@
 namespace fibjs {
 
 template <typename T>
-class ObjectCache {
+class LruCache {
 private:
     class CacheItem : public obj_base {
     public:
@@ -34,13 +34,13 @@ public:
     typedef std::function<bool(exlib::string&, T&)> Resolver;
 
 public:
-    ObjectCache(int32_t size = 1024, int64_t timeout = 300)
+    LruCache(int32_t size = 1024, int64_t timeout = 300)
         : m_size(size)
         , m_timeout(timeout)
     {
     }
 
-    ObjectCache(Resolver resolver, int32_t size = 1024, int64_t timeout = 300)
+    LruCache(Resolver resolver, int32_t size = 1024, int64_t timeout = 300)
         : m_resolver(resolver)
         , m_size(size)
         , m_timeout(timeout)
@@ -62,18 +62,23 @@ public:
 
     bool lookup(exlib::string key, T& value, bool auto_resolve = true)
     {
+        return lookup(key, value, auto_resolve ? m_resolver : nullptr);
+    }
+
+    bool lookup(exlib::string key, T& value, Resolver resolver)
+    {
         obj_ptr<CacheItem> item;
 
         m_lock.lock();
 
         clean_expired();
 
-        if (auto_resolve && m_resolver) {
+        if (resolver) {
             bool alloced = find_item(key, item);
             if (alloced) {
                 m_lock.unlock();
 
-                if (m_resolver(key, value)) {
+                if (resolver(key, value)) {
                     item->m_value = value;
                     item->m_ready.set();
 

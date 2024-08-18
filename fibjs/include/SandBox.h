@@ -164,6 +164,7 @@ public:
     result_t installScript(exlib::string srcname, Buffer_base* script, v8::Local<v8::Object>& retVal);
 
     result_t loadFile(exlib::string fname, obj_ptr<Buffer_base>& data);
+    result_t realpath(exlib::string fname, exlib::string& retVal);
 
     result_t resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, obj_ptr<Buffer_base>& data,
         v8::Local<v8::Object>* retVal);

@@ -60,27 +60,54 @@ v8::Local<v8::Object> SandBox::get_module(v8::Local<v8::Object> mods, exlib::str
 result_t SandBox::loadFile(exlib::string fname, obj_ptr<Buffer_base>& data)
 {
     Isolate* isolate = holder();
-    result_t hr;
+    std::pair<int, obj_ptr<Buffer_base>> result;
 
-    if (fname.substr(fname.length() - 5) == ".node") {
-        obj_ptr<Stat_base> stat;
-        hr = fs_base::cc_stat(fname, stat, isolate);
-        if (hr < 0)
-            return hr;
+    isolate->m_file_cache.lookup(fname, result, [isolate](exlib::string& fname, std::pair<int, obj_ptr<Buffer_base>>& result) -> bool {
+        result_t hr;
 
-        data = new Buffer();
-        return 0;
-    }
+        if (fname.substr(fname.length() - 5) == ".node") {
+            obj_ptr<Stat_base> stat;
+            hr = fs_base::cc_stat(fname, stat, isolate);
+            result.first = hr;
+            if (hr >= 0)
+                result.second = new Buffer();
 
-    Variant var;
-    hr = fs_base::cc_readFile(fname, "", var, isolate);
-    if (hr == CALL_RETURN_NULL) {
-        data = new Buffer();
-        hr = 0;
-    } else
-        data = (Buffer_base*)var.object();
+            return true;
+        }
 
-    return hr;
+        Variant var;
+        hr = fs_base::cc_readFile(fname, "", var, isolate);
+        if (hr == CALL_RETURN_NULL) {
+            result.second = new Buffer();
+            result.first = 0;
+        } else {
+            result.second = (Buffer_base*)var.object();
+            result.first = hr;
+        }
+
+        return true;
+    });
+
+    data = result.second;
+    return result.first;
+}
+
+result_t SandBox::realpath(exlib::string fname, exlib::string& retVal)
+{
+    Isolate* isolate = holder();
+    std::pair<int, exlib::string> result;
+
+    isolate->m_realpath_cache.lookup(fname, result, [isolate](exlib::string& fname, std::pair<int, exlib::string>& result) -> bool {
+        exlib::string retVal;
+
+        result.first = fs_base::cc_realpath(fname, retVal, isolate);
+        result.second = retVal;
+
+        return true;
+    });
+
+    retVal = result.second;
+    return result.first;
 }
 
 result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, obj_ptr<Buffer_base>& data,
@@ -91,7 +118,7 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
     result_t hr;
     exlib::string fname1;
 
-    hr = fs_base::cc_realpath(fname, fname1, isolate);
+    hr = realpath(fname, fname1);
     if (hr < 0)
         fname1 = fname;
 
@@ -113,7 +140,7 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
         obj_ptr<ExtLoader>& l = m_loaders[i];
         exlib::string fname2 = fname + l->m_ext;
 
-        hr = fs_base::cc_realpath(fname2, fname1, isolate);
+        hr = realpath(fname2, fname1);
         if (hr < 0)
             fname1 = fname2;
 

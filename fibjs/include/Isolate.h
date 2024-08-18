@@ -10,6 +10,7 @@
 #include <exlib/include/list.h>
 #include <exlib/include/service.h>
 #include "QuickArray.h"
+#include "LruCache.h"
 #include "utf8.h"
 #include <unordered_map>
 
@@ -36,6 +37,7 @@ class HttpClient;
 class Stream_base;
 class ValueHolder;
 class SecureContext_base;
+class Buffer_base;
 class Worker_base;
 
 class Isolate : public exlib::linkitem {
@@ -306,6 +308,9 @@ public:
     bool m_safe_buffer;
 
     obj_ptr<SecureContext_base> m_ctx;
+
+    LruCache<std::pair<int, obj_ptr<Buffer_base>>> m_file_cache;
+    LruCache<std::pair<int, exlib::string>> m_realpath_cache;
 
 public:
     void get_stdin(obj_ptr<Stream_base>& retVal);

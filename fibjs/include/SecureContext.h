@@ -9,7 +9,7 @@
 
 #include "ifs/SecureContext.h"
 #include "crypto_util.h"
-#include "ObjectCache.h"
+#include "LruCache.h"
 
 namespace fibjs {
 
@@ -58,7 +58,7 @@ private:
     obj_ptr<X509Certificate_base> m_cert;
     obj_ptr<KeyObject_base> m_key;
 
-    ObjectCache<obj_ptr<SecureContext>> m_sniContexts;
+    LruCache<obj_ptr<SecureContext>> m_sniContexts;
     v8::Global<v8::Function> m_sn_callback;
 };
 
