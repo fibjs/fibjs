@@ -339,42 +339,45 @@ private:
         v8::Local<v8::Context> context = isolate->context();
         obj_ptr<esm_importer> impoter = esm_importer::getInstance(args.Data());
         SandBox::module_map_iter& root_module = impoter->module_refs[0];
+        v8::Local<v8::Module> module = root_module->second.first.Get(isolate->m_isolate);
+        v8::Local<v8::Value> result = module->GetModuleNamespace();
+
+        v8::Local<v8::Promise::Resolver> resolver = impoter->m_resolver.Get(isolate->m_isolate);
+        resolver->Resolve(context, result).IsJust();
 
         v8::Local<v8::Object> mods = impoter->m_sb->mods();
         v8::Local<v8::Object> mod = mods->Get(context, isolate->NewString(root_module->first)).ToLocalChecked().As<v8::Object>();
-        v8::Local<v8::Module> module = root_module->second.first.Get(isolate->m_isolate);
-        v8::Local<v8::Promise::Resolver> resolver = impoter->m_resolver.Get(isolate->m_isolate);
+        if (!IsEmpty(mod)) {
+            v8::Local<v8::Private> strPendding = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("pendding"));
+            mod->DeletePrivate(context, strPendding).IsJust();
 
-        v8::Local<v8::Private> strPendding = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("pendding"));
-        mod->DeletePrivate(context, strPendding).IsJust();
+            mod->Set(context, isolate->NewString("exports"), result).IsJust();
+        }
 
         impoter->saveModule();
-
-        v8::Local<v8::Value> result = module->GetModuleNamespace();
-        mod->Set(context, isolate->NewString("exports"), result).IsJust();
-        resolver->Resolve(context, result).IsJust();
     }
 
     static void promise_reject(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         Isolate* isolate = Isolate::current(args);
         v8::Local<v8::Context> context = isolate->context();
+
         obj_ptr<esm_importer> impoter = esm_importer::getInstance(args.Data());
-        SandBox::module_map_iter& root_module = impoter->module_refs[0];
-
-        v8::Local<v8::Object> mods = impoter->m_sb->mods();
-        v8::Local<v8::Object> mod = mods->Get(context, isolate->NewString(root_module->first)).ToLocalChecked().As<v8::Object>();
-
-        v8::Local<v8::Private> strPendding = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("pendding"));
-        mod->DeletePrivate(context, strPendding).IsJust();
-
-        mod->Delete(context, isolate->NewString("exports")).IsJust();
-        mods->Delete(context, isolate->NewString(root_module->first)).IsJust();
-
-        impoter->saveModule();
-
         v8::Local<v8::Promise::Resolver> resolver = impoter->m_resolver.Get(isolate->m_isolate);
         resolver->Reject(context, args[0]).IsJust();
+
+        SandBox::module_map_iter& root_module = impoter->module_refs[0];
+        v8::Local<v8::Object> mods = impoter->m_sb->mods();
+        v8::Local<v8::Object> mod = mods->Get(context, isolate->NewString(root_module->first)).ToLocalChecked().As<v8::Object>();
+        if (!IsEmpty(mod)) {
+            v8::Local<v8::Private> strPendding = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("pendding"));
+            mod->DeletePrivate(context, strPendding).IsJust();
+
+            mod->Delete(context, isolate->NewString("exports")).IsJust();
+            mods->Delete(context, isolate->NewString(root_module->first)).IsJust();
+        }
+
+        impoter->saveModule();
     }
 
     void saveModule()
