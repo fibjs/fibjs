@@ -161,103 +161,109 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
     return CALL_E_FILE_NOT_FOUND;
 }
 
-result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& fname,
+result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& module_name,
     obj_ptr<Buffer_base>& data, v8::Local<v8::Object>* retVal)
 {
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
-    exlib::string fname1;
+    exlib::string module_name1;
     result_t hr;
-    v8::Local<v8::Value> v;
-    exlib::string buf;
     obj_ptr<Buffer_base> bin;
-
-    fname1 = fname;
-    resolvePath(fname1, "package.json");
-    hr = loadFile(fname1, bin);
-    if (hr < 0)
-        return CALL_E_FILE_NOT_FOUND;
-
-    bin->toString(buf);
-    hr = json_base::decode(buf, v);
-    if (hr < 0)
-        return hr;
-
-    if (v.IsEmpty() || !v->IsObject())
-        return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json"));
-
-    v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
     exlib::string config_name;
 
-    v8::Local<v8::String> strExports = isolate->NewString("exports", 7);
-    JSValue exports = o->Get(context, strExports);
-    if (!IsEmpty(exports)) {
-        v8::Local<v8::String> strRoot = isolate->NewString(".", 1);
-        v8::Local<v8::String> strRequire = isolate->NewString("require", 7);
-        v8::Local<v8::String> strNode = isolate->NewString("node", 4);
-        v8::Local<v8::String> strDefault = isolate->NewString("default", 7);
+    module_name1 = module_name;
+    resolvePath(module_name1, "package.json");
+    hr = loadFile(module_name1, bin);
+    if (hr >= 0) {
+        v8::Local<v8::Value> v;
+        exlib::string buf;
 
-        std::function<bool(JSValue)> resolve_export;
-        resolve_export = [&](JSValue exports) -> bool {
-            JSValue def_value;
+        bin->toString(buf);
+        hr = json_base::decode(buf, v);
+        if (hr < 0)
+            return hr;
 
-            if (exports->IsArray()) {
-                v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(exports);
-                int32_t len = arr->Length();
+        if (v.IsEmpty() || !v->IsObject())
+            return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json file '" + module_name1 + "'"));
 
-                for (int32_t i = 0; i < len; i++) {
-                    def_value = arr->Get(context, i);
-                    if (resolve_export(def_value))
-                        return true;
+        v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
+
+        v8::Local<v8::String> strExports = isolate->NewString("exports", 7);
+        JSValue exports = o->Get(context, strExports);
+        if (!IsEmpty(exports)) {
+            v8::Local<v8::String> strRoot = isolate->NewString(".", 1);
+            v8::Local<v8::String> strRequire = isolate->NewString("require", 7);
+            v8::Local<v8::String> strNode = isolate->NewString("node", 4);
+            v8::Local<v8::String> strDefault = isolate->NewString("default", 7);
+
+            std::function<bool(JSValue)> resolve_export;
+            resolve_export = [&](JSValue exports) -> bool {
+                JSValue def_value;
+
+                if (exports->IsArray()) {
+                    v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(exports);
+                    int32_t len = arr->Length();
+
+                    for (int32_t i = 0; i < len; i++) {
+                        def_value = arr->Get(context, i);
+                        if (resolve_export(def_value))
+                            return true;
+                    }
+                } else if (exports->IsObject()) {
+                    o = v8::Local<v8::Object>::Cast(exports);
+
+                    def_value = o->Get(context, strRoot);
+                    if (IsEmpty(def_value))
+                        def_value = o->Get(context, strNode);
+                    if (IsEmpty(def_value))
+                        def_value = o->Get(context, strRequire);
+                    if (IsEmpty(def_value))
+                        def_value = o->Get(context, strDefault);
+                    if (IsEmpty(def_value))
+                        return false;
+
+                    return resolve_export(def_value);
+                } else if (exports->IsString()) {
+                    config_name = isolate->toString(exports);
+                    return true;
                 }
-            } else if (exports->IsObject()) {
-                o = v8::Local<v8::Object>::Cast(exports);
 
-                def_value = o->Get(context, strRoot);
-                if (IsEmpty(def_value))
-                    def_value = o->Get(context, strNode);
-                if (IsEmpty(def_value))
-                    def_value = o->Get(context, strRequire);
-                if (IsEmpty(def_value))
-                    def_value = o->Get(context, strDefault);
-                if (IsEmpty(def_value))
-                    return false;
+                return false;
+            };
 
-                return resolve_export(def_value);
-            } else if (exports->IsString()) {
-                config_name = isolate->toString(exports);
-                return true;
+            if (!resolve_export(exports))
+                return CHECK_ERROR(Runtime::setError("SandBox: 'exports' in '" + module_name1 + "' must be a string or object"));
+        } else {
+            JSValue main = o->Get(context, isolate->NewString("main", 4));
+            if (!IsEmpty(main)) {
+                if (!main->IsString() && !main->IsStringObject())
+                    return CHECK_ERROR(Runtime::setError("SandBox: 'main' in '" + module_name1 + "' must be a string"));
+
+                config_name = isolate->toString(main);
             }
-
-            return false;
-        };
-
-        if (!resolve_export(exports))
-            return CHECK_ERROR(Runtime::setError("SandBox: \"exports\" in package.json must be a string or object"));
-    } else {
-        JSValue main = o->Get(context, isolate->NewString("main", 4));
-        if (IsEmpty(main))
-            return CALL_E_FILE_NOT_FOUND;
-
-        if (!main->IsString() && !main->IsStringObject())
-            return CHECK_ERROR(Runtime::setError("SandBox: \"main\" in package.json must be a string"));
-
-        config_name = isolate->toString(main);
+        }
     }
 
-    resolvePath(fname, config_name);
-    path_base::normalize(fname, fname);
+    module_name1 = module_name;
+    if (!config_name.empty()) {
+        resolvePath(module_name1, config_name);
+        path_base::normalize(module_name1, module_name1);
 
-    hr = resolveFile(mods, fname, data, retVal);
-    if (hr >= 0)
+        hr = resolveFile(mods, module_name1, data, retVal);
+        if (hr >= 0) {
+            module_name = module_name1;
+            return hr;
+        }
+    }
+
+    resolvePath(module_name1, "index");
+    hr = resolveFile(mods, module_name1, data, retVal);
+    if (hr >= 0) {
+        module_name = module_name1;
         return hr;
+    }
 
-    resolvePath(fname, "index");
-    hr = resolveFile(mods, fname, data, retVal);
-    if (hr >= 0)
-        return hr;
-
-    return CHECK_ERROR(Runtime::setError("SandBox: main script in package.json not found"));
+    return CALL_E_FILE_NOT_FOUND;
 }
 
 result_t SandBox::resolveModuleType(exlib::string fname, ModuleType& retVal)
@@ -291,7 +297,7 @@ result_t SandBox::resolveModuleType(exlib::string fname, ModuleType& retVal)
                 return hr;
 
             if (v.IsEmpty() || !v->IsObject())
-                return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json"));
+                return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json file '" + fname1 + "'"));
 
             exlib::string type;
             v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
@@ -306,43 +312,32 @@ result_t SandBox::resolveModuleType(exlib::string fname, ModuleType& retVal)
     return 0;
 }
 
-result_t SandBox::resolveFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
+result_t SandBox::resolveFile(exlib::string& module_name, obj_ptr<Buffer_base>& data,
     v8::Local<v8::Object>* retVal)
 {
     v8::Local<v8::Object> _mods;
-    exlib::string fname1;
     result_t hr;
 
     if (retVal)
         _mods = mods();
 
-    hr = resolveFile(_mods, fname, data, retVal);
+    hr = resolveFile(_mods, module_name, data, retVal);
     if (hr >= 0)
         return hr;
 
-    hr = resolvePackage(_mods, fname, data, retVal);
-    if (hr != CALL_E_FILE_NOT_FOUND)
-        return hr;
+    exlib::string module_name1;
 
-    fname1 = fname;
-    resolvePath(fname1, "index");
-    hr = resolveFile(_mods, fname1, data, retVal);
-    if (hr >= 0) {
-        fname = fname1;
-        return hr;
-    }
-
-    fname1 = fname + ".zip$";
-    hr = resolvePackage(_mods, fname1, data, retVal);
+    module_name1 = module_name;
+    hr = resolvePackage(_mods, module_name1, data, retVal);
     if (hr != CALL_E_FILE_NOT_FOUND) {
-        fname = fname1;
+        module_name = module_name1;
         return hr;
     }
 
-    resolvePath(fname1, "index");
-    hr = resolveFile(_mods, fname1, data, retVal);
-    if (hr >= 0) {
-        fname = fname1;
+    module_name1 = module_name + ".zip$";
+    hr = resolvePackage(_mods, module_name1, data, retVal);
+    if (hr != CALL_E_FILE_NOT_FOUND) {
+        module_name = module_name1;
         return hr;
     }
 

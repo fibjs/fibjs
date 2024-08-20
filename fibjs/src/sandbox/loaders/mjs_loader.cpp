@@ -132,6 +132,9 @@ private:
 
         v8::Local<v8::Object> mod;
         hr = m_sb->resolve(pname, id, data, mod);
+        if (hr == CALL_E_FILE_NOT_FOUND)
+            return CHECK_ERROR(Runtime::setError("Cannot find module '" + id + "' imported from " + base));
+
         if (hr < 0)
             return hr;
 
