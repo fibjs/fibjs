@@ -14,11 +14,6 @@
 #include "ifs/util.h"
 namespace fibjs {
 
-static bool is_esm(exlib::string id)
-{
-    return id.length() > 4 && !qstricmp(id.c_str() + id.length() - 4, ".mjs");
-}
-
 class esm_importer : public object_base {
 private:
     struct module_data {
@@ -140,10 +135,19 @@ private:
         if (hr < 0)
             return hr;
 
-        if (IsEmpty(mod) && !is_esm(id)) {
-            hr = m_sb->installScript(id, data, mod);
-            if (hr < 0)
+        if (IsEmpty(mod)) {
+            result_t hr;
+            SandBox::ModuleType type;
+
+            hr = m_sb->resolveModuleType(id, type);
+            if (hr)
                 return hr;
+
+            if (type == SandBox::ModuleType::kCommonJS) {
+                hr = m_sb->installScript(id, data, mod);
+                if (hr < 0)
+                    return hr;
+            }
         }
 
         if (!IsEmpty(mod)) {

@@ -268,6 +268,13 @@ describe("module", () => {
             assert.equal(a, require('./module/p5/lib'));
             assert.equal(a, require('./module/p5/lib/index'));
         });
+
+        it("type", () => {
+            var a = require('./module/p11');
+            assert.deepEqual(a, {
+                "p11": "p11"
+            });
+        });
     });
 
     describe("node_modules", () => {

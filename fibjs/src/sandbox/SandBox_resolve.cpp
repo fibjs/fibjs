@@ -113,7 +113,6 @@ result_t SandBox::realpath(exlib::string fname, exlib::string& retVal)
 result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, obj_ptr<Buffer_base>& data,
     v8::Local<v8::Object>* retVal)
 {
-    Isolate* isolate = holder();
     size_t cnt = m_loaders.size();
     result_t hr;
     exlib::string fname1;
@@ -259,6 +258,52 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& fnam
         return hr;
 
     return CHECK_ERROR(Runtime::setError("SandBox: main script in package.json not found"));
+}
+
+result_t SandBox::resolveModuleType(exlib::string fname, ModuleType& retVal)
+{
+    if (fname.length() > 4 && !qstricmp(fname.c_str() + fname.length() - 4, ".mjs")) {
+        retVal = ModuleType::kESModule;
+        return 0;
+    }
+
+    Isolate* isolate = holder();
+    result_t hr;
+
+    while (true) {
+        exlib::string fname1;
+        obj_ptr<Buffer_base> bin;
+
+        path_base::dirname(fname, fname1);
+        if (fname.length() == fname1.length())
+            break;
+        fname = fname1;
+
+        resolvePath(fname1, "package.json");
+        hr = loadFile(fname1, bin);
+        if (hr >= 0) {
+            v8::Local<v8::Value> v;
+            exlib::string buf;
+
+            bin->toString(buf);
+            hr = json_base::decode(buf, v);
+            if (hr < 0)
+                return hr;
+
+            if (v.IsEmpty() || !v->IsObject())
+                return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json"));
+
+            exlib::string type;
+            v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
+            GetConfigValue(isolate, o, "type", type);
+
+            retVal = type == "module" ? ModuleType::kESModule : ModuleType::kCommonJS;
+            return 0;
+        }
+    }
+
+    retVal = ModuleType::kCommonJS;
+    return 0;
 }
 
 result_t SandBox::resolveFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
