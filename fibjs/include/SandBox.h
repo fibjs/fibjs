@@ -174,11 +174,11 @@ public:
 
     result_t resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, obj_ptr<Buffer_base>& data,
         v8::Local<v8::Object>* retVal);
-    result_t resolvePackage(v8::Local<v8::Object> mods, exlib::string& fname, obj_ptr<Buffer_base>& data,
-        v8::Local<v8::Object>* retVal);
+    result_t resolvePackage(v8::Local<v8::Object> mods, exlib::string module_name, exlib::string script_name,
+        obj_ptr<Buffer_base>& data, exlib::string& out, v8::Local<v8::Object>* retVal);
 
-    result_t resolveFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
-        v8::Local<v8::Object>* retVal);
+    result_t resolveFile(exlib::string module_name, exlib::string script_name, obj_ptr<Buffer_base>& data,
+        exlib::string& out, v8::Local<v8::Object>* retVal);
     result_t resolveId(exlib::string& id, v8::Local<v8::Object>& retVal);
     result_t resolveModule(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
         v8::Local<v8::Object>& retVal);

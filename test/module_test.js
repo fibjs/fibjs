@@ -313,6 +313,64 @@ describe("module", () => {
 
             assert.equal(a, require('./module/node_modules/node_mod3'));
         });
+
+        describe("sub script", () => {
+            it("sub script when package has no main", () => {
+                var a = require('sub_script1/test');
+                assert.deepEqual(a, {
+                    "test": "sub_script1"
+                });
+            });
+
+            it("sub script when package has main", () => {
+                var a = require('sub_script2/test');
+                assert.deepEqual(a, {
+                    "test": "sub_script2"
+                });
+            });
+
+            it("simple sub script in exports", () => {
+                var a = require('sub_script3/module2');
+                assert.deepEqual(a, {
+                    "test": "sub_script3"
+                });
+            });
+
+            it("cannt require sub script not in exports", () => {
+                assert.throws(() => {
+                    require('sub_script3/script2.js');
+                });
+            });
+
+            it("pattern sub script", () => {
+                var a = require('sub_script4/module4/test_script3.js');
+                assert.deepEqual(a, {
+                    "test": "sub_script4"
+                });
+            });
+
+            it("pattern order", () => {
+                var a = require('sub_script5/module5/test_script3.js');
+                assert.deepEqual(a, {
+                    "test": "sub_script5"
+                });
+
+                var a = require('sub_script5/module5/test_first.js');
+                assert.deepEqual(a, {
+                    "test": "sub_script5_first"
+                });
+            });
+
+            it("internal module", () => {
+                var a = require('sub_script6/module6');
+                assert.deepEqual(a, {
+                    "test": {
+                        "test": "sub_script6 native script"
+                    }
+                });
+            });
+
+        });
     });
 
     it("zip virtual path", () => {

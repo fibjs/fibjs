@@ -161,15 +161,14 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
     return CALL_E_FILE_NOT_FOUND;
 }
 
-result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& module_name,
-    obj_ptr<Buffer_base>& data, v8::Local<v8::Object>* retVal)
+result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string module_name, exlib::string script_name,
+    obj_ptr<Buffer_base>& data, exlib::string& out, v8::Local<v8::Object>* retVal)
 {
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
     exlib::string module_name1;
     result_t hr;
     obj_ptr<Buffer_base> bin;
-    exlib::string config_name;
 
     module_name1 = module_name;
     resolvePath(module_name1, "package.json");
@@ -189,12 +188,16 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& modu
         v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
 
         v8::Local<v8::String> strExports = isolate->NewString("exports", 7);
-        JSValue exports = o->Get(context, strExports);
+        v8::Local<v8::String> strImports = isolate->NewString("imports", 7);
+        bool is_internal = script_name.c_str()[0] == '#';
+        JSValue exports = o->Get(context, is_internal ? strImports : strExports);
         if (!IsEmpty(exports)) {
             v8::Local<v8::String> strRoot = isolate->NewString(".", 1);
             v8::Local<v8::String> strRequire = isolate->NewString("require", 7);
+            v8::Local<v8::String> strImport = isolate->NewString("import", 6);
             v8::Local<v8::String> strNode = isolate->NewString("node", 4);
             v8::Local<v8::String> strDefault = isolate->NewString("default", 7);
+            exlib::string script_part;
 
             std::function<bool(JSValue)> resolve_export;
             resolve_export = [&](JSValue exports) -> bool {
@@ -212,19 +215,68 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& modu
                 } else if (exports->IsObject()) {
                     o = v8::Local<v8::Object>::Cast(exports);
 
-                    def_value = o->Get(context, strRoot);
-                    if (IsEmpty(def_value))
-                        def_value = o->Get(context, strNode);
-                    if (IsEmpty(def_value))
-                        def_value = o->Get(context, strRequire);
-                    if (IsEmpty(def_value))
-                        def_value = o->Get(context, strDefault);
-                    if (IsEmpty(def_value))
-                        return false;
+                    if (script_name.empty()) {
+                        def_value = o->Get(context, strRoot);
+                        if (IsEmpty(def_value))
+                            def_value = o->Get(context, strNode);
+                        if (IsEmpty(def_value))
+                            def_value = o->Get(context, strRequire);
+                        if (IsEmpty(def_value))
+                            def_value = o->Get(context, strDefault);
+                        if (IsEmpty(def_value))
+                            def_value = o->Get(context, strImport);
+                        if (IsEmpty(def_value))
+                            return false;
+                    } else {
+                        v8::Local<v8::Array> keys = o->GetPropertyNames(context).FromMaybe(v8::Local<v8::Array>());
+                        int32_t len = keys->Length();
+
+                        for (int32_t i = len - 1; i >= 0; i--) {
+                            v8::Local<v8::String> key = keys->Get(context, i).FromMaybe(v8::Local<v8::Value>())->ToString(context).FromMaybe(v8::Local<v8::String>());
+                            exlib::string skey = isolate->toString(key);
+
+                            if (skey == "." || skey == "require" || skey == "import" || skey == "node" || skey == "default")
+                                continue;
+
+                            path_base::normalize(skey, skey);
+
+                            size_t skey_left_len = skey.find('*');
+                            if (skey_left_len != exlib::string::npos) {
+                                size_t skey_len = skey.length();
+                                size_t skey_right_len = skey_len - skey_left_len - 1;
+                                size_t script_name_len = script_name.length();
+
+                                if (!qstrcmp(skey.c_str(), script_name.c_str(), skey_left_len)
+                                    && !qstrcmp(skey.c_str() + skey_len - skey_right_len,
+                                        script_name.c_str() + script_name_len - skey_right_len, skey_right_len)) {
+                                    script_part = script_name.substr(skey_left_len, script_name_len - skey_right_len - skey_left_len);
+                                    script_name.clear();
+                                    def_value = o->Get(context, key);
+                                    break;
+                                }
+                            } else if (skey == script_name) {
+                                script_name.clear();
+                                def_value = o->Get(context, key);
+                                break;
+                            }
+                        }
+
+                        if (!script_name.empty())
+                            return false;
+                    }
 
                     return resolve_export(def_value);
                 } else if (exports->IsString()) {
-                    config_name = isolate->toString(exports);
+                    exlib::string match_name = isolate->toString(exports);
+                    size_t match_left_len = match_name.find('*');
+                    if (match_left_len != exlib::string::npos) {
+                        size_t match_len = match_name.length();
+                        size_t match_right_len = match_len - match_left_len - 1;
+
+                        script_name = match_name.substr(0, match_left_len) + script_part + match_name.substr(match_len - match_right_len, match_right_len);
+                    } else
+                        script_name = match_name;
+
                     return true;
                 }
 
@@ -233,25 +285,25 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& modu
 
             if (!resolve_export(exports))
                 return CHECK_ERROR(Runtime::setError("SandBox: 'exports' in '" + module_name1 + "' must be a string or object"));
-        } else {
+        } else if (script_name.empty()) {
             JSValue main = o->Get(context, isolate->NewString("main", 4));
             if (!IsEmpty(main)) {
                 if (!main->IsString() && !main->IsStringObject())
                     return CHECK_ERROR(Runtime::setError("SandBox: 'main' in '" + module_name1 + "' must be a string"));
 
-                config_name = isolate->toString(main);
+                script_name = isolate->toString(main);
             }
         }
     }
 
     module_name1 = module_name;
-    if (!config_name.empty()) {
-        resolvePath(module_name1, config_name);
+    if (!script_name.empty()) {
+        resolvePath(module_name1, script_name);
         path_base::normalize(module_name1, module_name1);
 
         hr = resolveFile(mods, module_name1, data, retVal);
         if (hr >= 0) {
-            module_name = module_name1;
+            out = module_name1;
             return hr;
         }
     }
@@ -259,7 +311,7 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string& modu
     resolvePath(module_name1, "index");
     hr = resolveFile(mods, module_name1, data, retVal);
     if (hr >= 0) {
-        module_name = module_name1;
+        out = module_name1;
         return hr;
     }
 
@@ -312,8 +364,8 @@ result_t SandBox::resolveModuleType(exlib::string fname, ModuleType& retVal)
     return 0;
 }
 
-result_t SandBox::resolveFile(exlib::string& module_name, obj_ptr<Buffer_base>& data,
-    v8::Local<v8::Object>* retVal)
+result_t SandBox::resolveFile(exlib::string module_name, exlib::string script_name, obj_ptr<Buffer_base>& data,
+    exlib::string& out, v8::Local<v8::Object>* retVal)
 {
     v8::Local<v8::Object> _mods;
     result_t hr;
@@ -321,25 +373,21 @@ result_t SandBox::resolveFile(exlib::string& module_name, obj_ptr<Buffer_base>& 
     if (retVal)
         _mods = mods();
 
-    hr = resolveFile(_mods, module_name, data, retVal);
-    if (hr >= 0)
-        return hr;
-
-    exlib::string module_name1;
-
-    module_name1 = module_name;
-    hr = resolvePackage(_mods, module_name1, data, retVal);
-    if (hr != CALL_E_FILE_NOT_FOUND) {
-        module_name = module_name1;
-        return hr;
+    if (script_name.empty()) {
+        hr = resolveFile(_mods, module_name, data, retVal);
+        if (hr >= 0) {
+            out = module_name;
+            return hr;
+        }
     }
 
-    module_name1 = module_name + ".zip$";
-    hr = resolvePackage(_mods, module_name1, data, retVal);
-    if (hr != CALL_E_FILE_NOT_FOUND) {
-        module_name = module_name1;
+    hr = resolvePackage(_mods, module_name, script_name, data, out, retVal);
+    if (hr != CALL_E_FILE_NOT_FOUND)
         return hr;
-    }
+
+    hr = resolvePackage(_mods, module_name + ".zip$", script_name, data, out, retVal);
+    if (hr != CALL_E_FILE_NOT_FOUND)
+        return hr;
 
     return CALL_E_FILE_NOT_FOUND;
 }
@@ -459,24 +507,63 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
             base.resize(base.length() - 1);
         fname = base;
 
-        while (true) {
-            base = fname;
+        if (id.c_str()[0] == '#') {
+            while (true) {
+                base = fname;
 
-            if (fname.length())
-                resolvePath(fname, "node_modules");
-            else
-                fname = "node_modules";
-            resolvePath(fname, id);
+                hr = resolveFile(fname, id, data, id, &retVal);
+                if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
+                    return hr;
 
-            hr = resolveFile(fname, data, &retVal);
-            if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND) {
-                id = fname;
-                return hr;
+                path_base::dirname(base, fname);
+                if (base.length() == fname.length())
+                    break;
+            }
+        } else {
+            std::vector<exlib::string> paths;
+            exlib::string module_name;
+            exlib::string script_name;
+
+            _path_array(id, paths);
+            if (paths.size() == 0)
+                return CHECK_ERROR(CALL_E_PATH_NOT_FOUND);
+            else if (paths.size() == 1) {
+                module_name = paths[0];
+            } else if (paths[0].c_str()[0] == '@') {
+                module_name = paths[0] + PATH_SLASH_POSIX + paths[1];
+
+                for (i = 2; i < (int32_t)paths.size(); i++) {
+                    if (i > 2)
+                        script_name += PATH_SLASH_POSIX;
+                    script_name += paths[i];
+                }
+            } else {
+                module_name = paths[0];
+
+                for (i = 1; i < (int32_t)paths.size(); i++) {
+                    if (i > 1)
+                        script_name += PATH_SLASH_POSIX;
+                    script_name += paths[i];
+                }
             }
 
-            path_base::dirname(base, fname);
-            if (base.length() == fname.length())
-                break;
+            while (true) {
+                base = fname;
+
+                if (fname.length())
+                    resolvePath(fname, "node_modules");
+                else
+                    fname = "node_modules";
+                resolvePath(fname, module_name);
+
+                hr = resolveFile(fname, script_name, data, id, &retVal);
+                if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
+                    return hr;
+
+                path_base::dirname(base, fname);
+                if (base.length() == fname.length())
+                    break;
+            }
         }
     }
 
@@ -503,7 +590,7 @@ result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_
         return resolveModule(base, id, data, retVal);
     }
 
-    return resolveFile(id, data, &retVal);
+    return resolveFile(id, "", data, id, &retVal);
 }
 
 result_t SandBox::resolve(exlib::string id, exlib::string base, exlib::string& retVal)
