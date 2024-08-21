@@ -279,6 +279,7 @@ private:
         result_t hr;
 
         m_sb->m_module_pendings++;
+        SandBox* prev_sb = rt->m_module_pending;
         rt->m_module_pending = m_sb;
 
         hr = resolveModuleTree(id, root_module);
@@ -288,7 +289,7 @@ private:
                 hr = CALL_E_JAVASCRIPT;
         }
 
-        rt->m_module_pending = nullptr;
+        rt->m_module_pending = prev_sb;
         if (--m_sb->m_module_pendings == 0)
             m_sb->module_deps_map.clear();
 

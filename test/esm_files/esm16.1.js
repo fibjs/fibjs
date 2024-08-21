@@ -1,0 +1,1 @@
+module.exports = require('./esm16.2.mjs');

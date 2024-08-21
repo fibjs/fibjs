@@ -210,6 +210,17 @@ describe('ECMAScript modules', () => {
             }
         });
     });
+
+    it("BUGFIX: Initiating a top-level import in MIS will cause a crash", async () => {
+        var m = await import('./esm_files/esm16.mjs');
+        assert.deepEqual(m, {
+            "test": {
+                "test1": {
+                    "test": 16
+                }
+            }
+        });
+    });
 });
 
 require.main === module && test.run(console.DEBUG);
