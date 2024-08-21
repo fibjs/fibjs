@@ -382,6 +382,56 @@ describe("module", () => {
                 "test": "other sub package"
             });
         });
+
+        describe("exports order", () => {
+            it("default first", async () => {
+                var a = require("test_order1");
+                assert.deepEqual(a, {
+                    "test": "test3"
+                });
+
+                var a = await import("test_order1");
+                assert.deepEqual(a, {
+                    "test": "test3"
+                });
+            });
+
+            it("node first", async () => {
+                var a = require("test_order2");
+                assert.deepEqual(a, {
+                    "test": "test2"
+                });
+
+                var a = await import("test_order2");
+                assert.deepEqual(a, {
+                    "test": "test2"
+                });
+            });
+
+            it("import first", async () => {
+                var a = require("test_order3");
+                assert.deepEqual(a, {
+                    "test": "test4"
+                });
+
+                var a = await import("test_order3");
+                assert.deepEqual(a, {
+                    "test": "test5"
+                });
+            });
+
+            it("require first", async () => {
+                var a = require("test_order4");
+                assert.deepEqual(a, {
+                    "test": "test4"
+                });
+
+                var a = await import("test_order4");
+                assert.deepEqual(a, {
+                    "test": "test5"
+                });
+            });
+        });
     });
 
     it("zip virtual path", () => {

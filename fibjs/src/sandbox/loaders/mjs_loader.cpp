@@ -131,7 +131,7 @@ private:
         path_base::dirname(base, pname);
 
         v8::Local<v8::Object> mod;
-        hr = m_sb->resolve(pname, id, data, mod);
+        hr = m_sb->resolve(pname, id, data, SandBox::kESModule, mod);
         if (hr == CALL_E_FILE_NOT_FOUND)
             return CHECK_ERROR(Runtime::setError("Cannot find module '" + id + "' imported from " + base));
 

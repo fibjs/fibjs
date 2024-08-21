@@ -53,7 +53,7 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
         } else
             path_base::normalize(fname, fname);
 
-        hr = resolveFile(fname, "", bin, fname, NULL);
+        hr = resolveFile(fname, "", bin, kCommonJS, fname, NULL);
         if (hr >= 0)
             break;
 
@@ -63,7 +63,7 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
         fname = "node_modules/.bin/" + rname;
         os_resolve(fname);
 
-        hr = resolveFile(fname, "", bin, fname, NULL);
+        hr = resolveFile(fname, "", bin, kCommonJS, fname, NULL);
         if (hr >= 0) {
             Buffer* b = Buffer::Cast(bin);
             const char* pdata = (const char*)b->data();
@@ -198,7 +198,7 @@ result_t SandBox::run_worker(exlib::string fname, Worker_base* master)
     path_base::normalize(fname, fname);
 
     obj_ptr<Buffer_base> bin;
-    hr = resolveFile(fname, "", bin, fname, NULL);
+    hr = resolveFile(fname, "", bin, kCommonJS, fname, NULL);
     if (hr < 0)
         return hr;
 
@@ -228,7 +228,7 @@ result_t SandBox::run(exlib::string fname)
     path_base::normalize(fname, fname);
 
     obj_ptr<Buffer_base> bin;
-    hr = resolveFile(fname, "", bin, fname, NULL);
+    hr = resolveFile(fname, "", bin, kCommonJS, fname, NULL);
     if (hr < 0)
         return hr;
 

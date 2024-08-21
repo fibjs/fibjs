@@ -162,7 +162,7 @@ result_t SandBox::resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, 
 }
 
 result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string module_name, exlib::string script_name,
-    obj_ptr<Buffer_base>& data, exlib::string& out, v8::Local<v8::Object>* retVal)
+    obj_ptr<Buffer_base>& data, ModuleType type, exlib::string& out, v8::Local<v8::Object>* retVal)
 {
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
@@ -192,11 +192,6 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
         bool is_internal = script_name.c_str()[0] == '#';
         JSValue exports = o->Get(context, is_internal ? strImports : strExports);
         if (!IsEmpty(exports)) {
-            v8::Local<v8::String> strRoot = isolate->NewString(".", 1);
-            v8::Local<v8::String> strRequire = isolate->NewString("require", 7);
-            v8::Local<v8::String> strImport = isolate->NewString("import", 6);
-            v8::Local<v8::String> strNode = isolate->NewString("node", 4);
-            v8::Local<v8::String> strDefault = isolate->NewString("default", 7);
             exlib::string script_part;
 
             std::function<bool(JSValue)> resolve_export;
@@ -214,23 +209,30 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
                     }
                 } else if (exports->IsObject()) {
                     o = v8::Local<v8::Object>::Cast(exports);
+                    v8::Local<v8::Array> keys = o->GetPropertyNames(context).FromMaybe(v8::Local<v8::Array>());
+                    int32_t len = keys->Length();
 
                     if (script_name.empty()) {
-                        def_value = o->Get(context, strRoot);
-                        if (IsEmpty(def_value))
-                            def_value = o->Get(context, strNode);
-                        if (IsEmpty(def_value))
-                            def_value = o->Get(context, strRequire);
-                        if (IsEmpty(def_value))
-                            def_value = o->Get(context, strDefault);
-                        if (IsEmpty(def_value))
-                            def_value = o->Get(context, strImport);
+                        JSValue def_value1;
+                        for (int32_t i = 0; i < len; i++) {
+                            v8::Local<v8::String> key = keys->Get(context, i).FromMaybe(v8::Local<v8::Value>())->ToString(context).FromMaybe(v8::Local<v8::String>());
+                            exlib::string skey = isolate->toString(key);
+
+                            if (skey == "." || skey == "node" || skey == "default") {
+                                def_value = o->Get(context, key);
+                                break;
+                            } else if (skey == (type == kESModule ? "import" : "require")) {
+                                def_value = o->Get(context, key);
+                                break;
+                            } else if (skey == (type == kESModule ? "require" : "import"))
+                                def_value1 = o->Get(context, key);
+                        }
+
+                        if (IsEmpty(def_value) && !IsEmpty(def_value1))
+                            def_value = def_value1;
                         if (IsEmpty(def_value))
                             return false;
                     } else {
-                        v8::Local<v8::Array> keys = o->GetPropertyNames(context).FromMaybe(v8::Local<v8::Array>());
-                        int32_t len = keys->Length();
-
                         for (int32_t i = len - 1; i >= 0; i--) {
                             v8::Local<v8::String> key = keys->Get(context, i).FromMaybe(v8::Local<v8::Value>())->ToString(context).FromMaybe(v8::Local<v8::String>());
                             exlib::string skey = isolate->toString(key);
@@ -317,11 +319,11 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
     }
 
     if (!script_name.empty()) {
-        hr = resolvePackage(mods, module_name1, "", data, out, retVal);
+        hr = resolvePackage(mods, module_name1, "", data, type, out, retVal);
         if (hr != CALL_E_FILE_NOT_FOUND)
             return hr;
 
-        hr = resolvePackage(mods, module_name1 + ".zip$", "", data, out, retVal);
+        hr = resolvePackage(mods, module_name1 + ".zip$", "", data, type, out, retVal);
         if (hr != CALL_E_FILE_NOT_FOUND)
             return hr;
     }
@@ -332,7 +334,7 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
 result_t SandBox::resolveModuleType(exlib::string fname, ModuleType& retVal)
 {
     if (fname.length() > 4 && !qstricmp(fname.c_str() + fname.length() - 4, ".mjs")) {
-        retVal = ModuleType::kESModule;
+        retVal = kESModule;
         return 0;
     }
 
@@ -366,16 +368,16 @@ result_t SandBox::resolveModuleType(exlib::string fname, ModuleType& retVal)
             v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
             GetConfigValue(isolate, o, "type", type);
 
-            retVal = type == "module" ? ModuleType::kESModule : ModuleType::kCommonJS;
+            retVal = type == "module" ? kESModule : kCommonJS;
             return 0;
         }
     }
 
-    retVal = ModuleType::kCommonJS;
+    retVal = kCommonJS;
     return 0;
 }
 
-result_t SandBox::resolveFile(exlib::string module_name, exlib::string script_name, obj_ptr<Buffer_base>& data,
+result_t SandBox::resolveFile(exlib::string module_name, exlib::string script_name, obj_ptr<Buffer_base>& data, ModuleType type,
     exlib::string& out, v8::Local<v8::Object>* retVal)
 {
     v8::Local<v8::Object> _mods;
@@ -392,11 +394,11 @@ result_t SandBox::resolveFile(exlib::string module_name, exlib::string script_na
         }
     }
 
-    hr = resolvePackage(_mods, module_name, script_name, data, out, retVal);
+    hr = resolvePackage(_mods, module_name, script_name, data, type, out, retVal);
     if (hr != CALL_E_FILE_NOT_FOUND)
         return hr;
 
-    hr = resolvePackage(_mods, module_name + ".zip$", script_name, data, out, retVal);
+    hr = resolvePackage(_mods, module_name + ".zip$", script_name, data, type, out, retVal);
     if (hr != CALL_E_FILE_NOT_FOUND)
         return hr;
 
@@ -478,7 +480,7 @@ result_t SandBox::resolveId(exlib::string& id, v8::Local<v8::Object>& retVal)
     return custom_resolveId(id, retVal);
 }
 
-result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
+result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data, ModuleType type,
     v8::Local<v8::Object>& retVal)
 {
     result_t hr;
@@ -522,7 +524,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
             while (true) {
                 base = fname;
 
-                hr = resolveFile(fname, id, data, id, &retVal);
+                hr = resolveFile(fname, id, data, type, id, &retVal);
                 if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
                     return hr;
 
@@ -567,7 +569,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
                     fname = "node_modules";
                 resolvePath(fname, module_name);
 
-                hr = resolveFile(fname, script_name, data, id, &retVal);
+                hr = resolveFile(fname, script_name, data, type, id, &retVal);
                 if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
                     return hr;
 
@@ -581,7 +583,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
     return CHECK_ERROR(CALL_E_FILE_NOT_FOUND);
 }
 
-result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
+result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data, ModuleType type,
     v8::Local<v8::Object>& retVal)
 {
     if (is_relative(id)) {
@@ -598,10 +600,16 @@ result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_
         hr = resolveId(id, retVal);
         if (hr != CALL_E_FILE_NOT_FOUND && hr != CALL_E_PATH_NOT_FOUND)
             return hr;
-        return resolveModule(base, id, data, retVal);
+        return resolveModule(base, id, data, type, retVal);
     }
 
-    return resolveFile(id, "", data, id, &retVal);
+    return resolveFile(id, "", data, type, id, &retVal);
+}
+
+result_t SandBox::resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
+    v8::Local<v8::Object>& retVal)
+{
+    return resolve(base, id, data, kCommonJS, retVal);
 }
 
 result_t SandBox::resolve(exlib::string id, exlib::string base, exlib::string& retVal)
