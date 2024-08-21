@@ -199,6 +199,17 @@ describe('ECMAScript modules', () => {
             assert.equal(m1.test2.test, m2.test);
         });
     });
+
+    it("BUGFIX: crash when cjs export 'default'", async () => {
+        var m = await import('./esm_files/esm15.mjs');
+        assert.deepEqual(m, {
+            "test": {
+                "test1": {
+                    "default": 15
+                }
+            }
+        });
+    });
 });
 
 require.main === module && test.run(console.DEBUG);

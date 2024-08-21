@@ -181,11 +181,15 @@ private:
             v8::Local<v8::Object> obj = exports->ToObject(_context).ToLocalChecked();
             v8::Local<v8::Array> names = obj->GetPropertyNames(_context).ToLocalChecked();
             int length = names->Length();
-            std::vector<v8::Local<v8::String>> export_names(length + 1);
+            std::vector<v8::Local<v8::String>> export_names;
 
-            export_names[0] = m_isolate->NewString("default");
-            for (int i = 0; i < length; ++i)
-                export_names[i + 1] = names->Get(_context, i).ToLocalChecked()->ToString(_context).ToLocalChecked();
+            export_names.push_back(m_isolate->NewString("default"));
+            for (int i = 0; i < length; ++i) {
+                v8::Local<v8::String> name = names->Get(_context, i).ToLocalChecked()->ToString(_context).ToLocalChecked();
+                v8::String::Utf8Value sname(m_isolate->m_isolate, name);
+                if (qstrcmp(*sname, "default"))
+                    export_names.push_back(name);
+            }
 
             module = v8::Module::CreateSyntheticModule(m_isolate->m_isolate, m_isolate->NewString(id),
                 export_names, ModuleEvaluationSteps);
@@ -194,7 +198,7 @@ private:
             module->Evaluate(_context).FromMaybe(v8::Local<v8::Value>());
 
             module->SetSyntheticModuleExport(m_isolate->m_isolate, export_names[0], exports).IsJust();
-            for (int i = 0; i < length; ++i) {
+            for (int i = 0; i < export_names.size() - 1; ++i) {
                 v8::Local<v8::String> name = export_names[i + 1];
                 v8::Local<v8::Value> value = obj->Get(_context, name).ToLocalChecked();
                 module->SetSyntheticModuleExport(m_isolate->m_isolate, name, value).IsJust();
