@@ -369,7 +369,18 @@ describe("module", () => {
                     }
                 });
             });
+        });
 
+        it("sub package", () => {
+            var a = require("sub_package");
+            assert.deepEqual(a, {
+                "test": "sub package"
+            });
+
+            var a = require("sub_package/other");
+            assert.deepEqual(a, {
+                "test": "other sub package"
+            });
         });
     });
 

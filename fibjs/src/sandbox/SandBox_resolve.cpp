@@ -308,11 +308,22 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
         }
     }
 
-    resolvePath(module_name1, "index");
-    hr = resolveFile(mods, module_name1, data, retVal);
+    exlib::string module_name2 = module_name1;
+    resolvePath(module_name2, "index");
+    hr = resolveFile(mods, module_name2, data, retVal);
     if (hr >= 0) {
-        out = module_name1;
+        out = module_name2;
         return hr;
+    }
+
+    if (!script_name.empty()) {
+        hr = resolvePackage(mods, module_name1, "", data, out, retVal);
+        if (hr != CALL_E_FILE_NOT_FOUND)
+            return hr;
+
+        hr = resolvePackage(mods, module_name1 + ".zip$", "", data, out, retVal);
+        if (hr != CALL_E_FILE_NOT_FOUND)
+            return hr;
     }
 
     return CALL_E_FILE_NOT_FOUND;
