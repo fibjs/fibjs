@@ -480,6 +480,23 @@ result_t SandBox::resolveId(exlib::string& id, v8::Local<v8::Object>& retVal)
     return custom_resolveId(id, retVal);
 }
 
+static void split_path(exlib::string path, std::vector<exlib::string>& a)
+{
+    const char* p = path.c_str();
+    int32_t len = (int32_t)path.length();
+
+    int32_t p1, i;
+
+    p1 = 0;
+    for (i = 0; i < len; i++) {
+        if (isPathSlash(p[i])) {
+            a.push_back(exlib::string(p + p1, i - p1));
+            p1 = i + 1;
+        }
+    }
+    a.push_back(exlib::string(p + p1, i - p1));
+}
+
 result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data, ModuleType type,
     v8::Local<v8::Object>& retVal)
 {
@@ -539,17 +556,17 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
             exlib::string module_name;
             exlib::string script_name;
 
-            _path_array(id, paths);
+            split_path(id, paths);
             if (paths.size() == 0)
                 return CHECK_ERROR(CALL_E_PATH_NOT_FOUND);
             else if (paths.size() == 1) {
                 module_name = paths[0];
             } else if (paths[0].c_str()[0] == '@') {
-                module_name = paths[0] + PATH_SLASH_POSIX + paths[1];
+                module_name = paths[0] + PATH_SLASH + paths[1];
 
                 for (i = 2; i < (int32_t)paths.size(); i++) {
                     if (i > 2)
-                        script_name += PATH_SLASH_POSIX;
+                        script_name += PATH_SLASH;
                     script_name += paths[i];
                 }
             } else {
@@ -557,7 +574,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
 
                 for (i = 1; i < (int32_t)paths.size(); i++) {
                     if (i > 1)
-                        script_name += PATH_SLASH_POSIX;
+                        script_name += PATH_SLASH;
                     script_name += paths[i];
                 }
             }
