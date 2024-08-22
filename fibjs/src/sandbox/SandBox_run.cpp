@@ -39,6 +39,7 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
             for (i = 0; opt_tools[i].name && qstrcmp(opt_tools[i].name, tmp.c_str()); i++)
                 ;
             opt_tools[i].getDate(bin);
+            fname += ".cjs";
 
             break;
         }
