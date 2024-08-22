@@ -532,6 +532,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
             opt_tools[i].getDate(data);
             if (fname.substr(fname.length() - 5) != ".json")
                 id = fname + ".cjs";
+            retVal = get_module(mods(), id);
             return 0;
         }
 
