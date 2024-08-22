@@ -513,6 +513,7 @@ result_t SandBox::resolveModule(exlib::string base, exlib::string& id, obj_ptr<B
 
         if (opt_tools[i].name) {
             opt_tools[i].getDate(data);
+            id = fname + ".cjs";
             return 0;
         }
 
