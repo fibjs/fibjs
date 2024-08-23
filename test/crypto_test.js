@@ -4240,6 +4240,58 @@ describe('crypto', () => {
             crypto.pbkdf2(null, null, 0, -1, 1);
         })
     });
+
+    describe("webcrypto", () => {
+        it("global.crypto equal require('crypto').webcrypto", () => {
+            assert.equal(global.crypto, require('crypto').webcrypto);
+        });
+
+        it("getRandomValues", () => {
+            const arrays = [
+                'Int8Array',
+                'Int16Array',
+                'Int32Array',
+                'BigInt64Array',
+                'Uint8Array',
+                'Uint8ClampedArray',
+                'Uint16Array',
+                'Uint32Array',
+                'BigUint64Array',
+            ];
+
+            for (const array of arrays) {
+                const ctor = globalThis[array];
+
+                assert.equal(global.crypto.getRandomValues(new ctor(8)).constructor, ctor);
+
+                const maxlength = 65536 / ctor.BYTES_PER_ELEMENT;
+                assert.throws(() => {
+                    global.crypto.getRandomValues(new ctor(maxlength + 1))
+                });
+
+                assert.equal(global.crypto.getRandomValues(new ctor(0)).length, 0);
+            }
+        });
+
+        it("randomUUID", () => {
+            const iterations = 256;
+            const uuids = new Set()
+            function randomUUID() {
+                const uuid = global.crypto.randomUUID();
+                if (uuids.has(uuid)) {
+                    throw new Error(`uuid collision ${uuid}`)
+                }
+                uuids.add(uuid);
+                return uuid;
+            }
+
+            for (let i = 0; i < iterations; i++) {
+                let value = parseInt(randomUUID().split('-')[2].slice(0, 2), 16);
+                value &= 0b11110000;
+                assert.equal(value, 0b01000000);
+            }
+        });
+    });
 });
 
 require.main === module && test.run(console.DEBUG);

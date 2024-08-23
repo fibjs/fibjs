@@ -25,6 +25,9 @@ module global
     /*! @brief 基础性能监控模块 */
     static performance;
 
+    /**/
+    static webcrypto new crypto();
+
     /*! @brief 全局对象 */
     static readonly Object global;
 

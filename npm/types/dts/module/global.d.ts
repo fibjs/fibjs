@@ -7,6 +7,7 @@
 /// <reference path="../module/console.d.ts" />
 /// <reference path="../module/process.d.ts" />
 /// <reference path="../module/performance.d.ts" />
+/// <reference path="../module/webcrypto.d.ts" />
 /// <reference path="../interface/Timer.d.ts" />
 /**
  * @description 全局对象，所有脚本均可以访问的基础对象
@@ -51,6 +52,8 @@ declare module 'global' {
      * @description 基础性能监控模块 
      */
     const performance: typeof import ('performance');
+
+    const crypto: typeof import ('webcrypto');
 
     /**
      * @description 全局对象 

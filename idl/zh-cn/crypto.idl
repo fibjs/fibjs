@@ -545,4 +545,7 @@ module crypto
      @return 返回验证结果
     */
     static Boolean proofVerify(Array messages, Array index, Object key, Buffer proof) async;
+
+    /*! @brief WebCrypto API 模块 */
+    static webcrypto;
 };

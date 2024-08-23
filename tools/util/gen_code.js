@@ -40,6 +40,7 @@ function gen_code(cls, def, baseFolder) {
         "Array": "v8::Local<v8::Array>",
         "Uint8Array": "v8::Local<v8::Uint8Array>",
         "ArrayBuffer": "v8::Local<v8::ArrayBuffer>",
+        "TypedArray": "v8::Local<v8::TypedArray>",
         "Function": "v8::Local<v8::Function>",
         "Value": "v8::Local<v8::Value>",
         "Variant": "Variant",

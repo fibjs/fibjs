@@ -8,6 +8,7 @@
 /// <reference path="../interface/Sign.d.ts" />
 /// <reference path="../interface/Verify.d.ts" />
 /// <reference path="../interface/X509CertificateRequest.d.ts" />
+/// <reference path="../module/webcrypto.d.ts" />
 /**
  * @description `crypto` 模块是 `fibjs` 内置的加密算法模块。它提供了对称加密、非对称加密、摘要算法、密码学随机数生成器等功能。在使用之前，需要通过 `require('crypto')` 加载该模块 
  */
@@ -726,6 +727,11 @@ declare module 'crypto' {
     function proofVerify(messages: any[], index: any[], key: FIBJS.GeneralObject, proof: Class_Buffer): boolean;
 
     function proofVerify(messages: any[], index: any[], key: FIBJS.GeneralObject, proof: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    /**
+     * @description WebCrypto API 模块 
+     */
+    const webcrypto: typeof import ('webcrypto');
 
 }
 
