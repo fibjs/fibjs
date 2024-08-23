@@ -30,7 +30,7 @@ result_t webcrypto_base::getRandomValues(v8::Local<v8::TypedArray> data, v8::Loc
 
 result_t webcrypto_base::randomUUID(exlib::string& retVal)
 {
-    unsigned char buf[17];
+    unsigned char buf[16];
 
     if (RAND_bytes(buf, sizeof(buf)) != 1)
         return openssl_error();
@@ -41,14 +41,13 @@ result_t webcrypto_base::randomUUID(exlib::string& retVal)
     char* sbuf = retVal.data();
     static char hex[] = "0123456789abcdef";
 
-    for(int32_t i = 0; i < 17; i++)
-    {
+    for (int32_t i = 0; i < 16; i++) {
         if (i == 4 || i == 6 || i == 8 || i == 10)
             *sbuf++ = '-';
         *sbuf++ = hex[buf[i] >> 4];
         *sbuf++ = hex[buf[i] & 0x0f];
     }
-    
+
     return 0;
 }
 
