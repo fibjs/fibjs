@@ -1,4 +1,5 @@
 /// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../module/subtle.d.ts" />
 /**
  * @description WebCrypto API 模块
  * 
@@ -22,6 +23,11 @@ declare module 'webcrypto' {
      *     
      */
     function randomUUID(): string;
+
+    /**
+     * @description 提供对 SubtleCrypto API 的访问 
+     */
+    const subtle: typeof import ('subtle');
 
 }
 

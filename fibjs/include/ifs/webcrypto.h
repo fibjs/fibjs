@@ -15,6 +15,8 @@
 
 namespace fibjs {
 
+class subtle_base;
+
 class webcrypto_base : public object_base {
     DECLARE_CLASS(webcrypto_base);
 
@@ -38,6 +40,8 @@ public:
 };
 }
 
+#include "ifs/subtle.h"
+
 namespace fibjs {
 inline ClassInfo& webcrypto_base::class_info()
 {
@@ -46,9 +50,13 @@ inline ClassInfo& webcrypto_base::class_info()
         { "randomUUID", s_static_randomUUID, true, ClassData::ASYNC_SYNC }
     };
 
+    static ClassData::ClassObject s_object[] = {
+        { "subtle", subtle_base::class_info }
+    };
+
     static ClassData s_cd = {
         "webcrypto", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, 0, NULL, NULL, NULL,
         &object_base::class_info(),
         false
     };

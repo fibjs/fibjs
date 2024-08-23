@@ -16,4 +16,7 @@ module webcrypto
     @return 返回生成的 UUID 字符串。
     */
     static String randomUUID();
+
+    /*! @brief 提供对 SubtleCrypto API 的访问 */
+    static subtle;
 };

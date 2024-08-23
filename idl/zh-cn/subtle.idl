@@ -1,0 +1,29 @@
+/*! @brief 提供对 SubtleCrypto API 的访问
+
+SubtleCrypto API 模块提供了一组用于加密和解密的函数。可以通过 global.webcrypto.subtle 属性或者 require("crypto").webcrypto.subtle 来获取。
+*/
+module subtle
+{
+    /*! @brief 计算给定数据的哈希值
+
+    @param algorithm 指定哈希算法
+    @param data 指定要计算哈希值的数据
+    @return 返回计算得到的哈希值
+    */
+    static Buffer digest(String algorithm, Buffer data) promise;
+
+    /*! @brief 计算给定数据的哈希值
+
+    algorithm 的 name 属性指定哈希算法，例如：
+    ```
+    {
+        name: "SHA-256"
+    }
+    ```
+
+    @param algorithm 指定哈希算法
+    @param data 指定要计算哈希值的数据
+    @return 返回计算得到的哈希值
+    */
+    static Buffer digest(Object algorithm, Buffer data) promise;
+};

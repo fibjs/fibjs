@@ -45,6 +45,7 @@
     ],
     "Crypto": [
         "crypto",
+        "subtle",
         "webcrypto"
     ],
     "Compress": [
