@@ -926,69 +926,27 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::L
     return 0;
 }
 
-inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::Array>& vr, bool bStrict = false)
-{
-    if (v.IsEmpty())
-        return CALL_E_TYPEMISMATCH;
+#define GET_JSVALUE(type)                                                                                                     \
+    inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::type>& vr, bool bStrict = false) \
+    {                                                                                                                         \
+        if (v.IsEmpty())                                                                                                      \
+            return CALL_E_TYPEMISMATCH;                                                                                       \
+        if (!v->Is##type())                                                                                                   \
+            return CALL_E_TYPEMISMATCH;                                                                                       \
+        vr = v8::Local<v8::type>::Cast(v);                                                                                    \
+        return 0;                                                                                                             \
+    }
 
-    if (!v->IsArray())
-        return CALL_E_TYPEMISMATCH;
-
-    vr = v8::Local<v8::Array>::Cast(v);
-    return 0;
-}
-
-inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::Uint8Array>& vr, bool bStrict = false)
-{
-    if (v.IsEmpty())
-        return CALL_E_TYPEMISMATCH;
-
-    if (!v->IsUint8Array())
-        return CALL_E_TYPEMISMATCH;
-
-    vr = v8::Local<v8::Uint8Array>::Cast(v);
-    return 0;
-}
-
-inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::ArrayBuffer>& vr, bool bStrict = false)
-{
-    if (v.IsEmpty())
-        return CALL_E_TYPEMISMATCH;
-
-    if (!v->IsArrayBuffer())
-        return CALL_E_TYPEMISMATCH;
-
-    vr = v8::Local<v8::ArrayBuffer>::Cast(v);
-    return 0;
-}
-
-inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::ArrayBufferView>& vr, bool bStrict = false)
-{
-    if (v.IsEmpty())
-        return CALL_E_TYPEMISMATCH;
-
-    if (!v->IsArrayBufferView())
-        return CALL_E_TYPEMISMATCH;
-
-    vr = v8::Local<v8::ArrayBufferView>::Cast(v);
-    return 0;
-}
+GET_JSVALUE(Array);
+GET_JSVALUE(Uint8Array);
+GET_JSVALUE(TypedArray);
+GET_JSVALUE(ArrayBuffer);
+GET_JSVALUE(ArrayBufferView);
+GET_JSVALUE(Function);
 
 inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::Value>& vr, bool bStrict = false)
 {
     vr = v;
-    return 0;
-}
-
-inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::Function>& vr, bool bStrict = false)
-{
-    if (v.IsEmpty())
-        return CALL_E_TYPEMISMATCH;
-
-    if (!v->IsFunction())
-        return CALL_E_TYPEMISMATCH;
-
-    vr = v8::Local<v8::Function>::Cast(v);
     return 0;
 }
 
@@ -1065,29 +1023,10 @@ inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, Variant& v)
     return v;
 }
 
-inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, v8::Local<v8::Object>& obj)
+template <typename T>
+inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, v8::Local<T>& v)
 {
-    return obj;
-}
-
-inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, v8::Local<v8::Array>& array)
-{
-    return array;
-}
-
-inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, v8::Local<v8::Value>& value)
-{
-    return value;
-}
-
-inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, v8::Local<v8::Function>& func)
-{
-    return func;
-}
-
-inline v8::Local<v8::Value> GetReturnValue(Isolate* isolate, v8::Local<v8::ArrayBuffer>& array)
-{
-    return array;
+    return v;
 }
 
 template <class T>
