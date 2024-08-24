@@ -83,10 +83,7 @@ public:
     {
         v8::Local<v8::Object> obj;
 
-        result_t hr = valueOf(obj);
-        if (hr < 0)
-            return hr;
-
+        valueOf(obj);
         retVal = obj;
 
         return 0;
@@ -175,29 +172,37 @@ public:
     // object_base
     virtual result_t valueOf(v8::Local<v8::Value>& retVal)
     {
-        v8::Local<v8::Object> obj;
+        v8::Local<v8::Array> arr;
 
-        result_t hr = valueOf(obj);
-        if (hr < 0)
-            return hr;
-
-        retVal = obj;
+        valueOf(arr);
+        retVal = arr;
 
         return 0;
     }
 
     result_t valueOf(v8::Local<v8::Object>& retVal)
     {
+        v8::Local<v8::Array> arr;
+
+        valueOf(arr);
+        retVal = arr;
+
+        return 0;
+    }
+
+    result_t valueOf(v8::Local<v8::Array>& retVal)
+    {
         Isolate* isolate = holder();
         v8::Local<v8::Context> context = isolate->context();
         v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate);
+        v8::Local<v8::Object> o = arr;
 
         for (int32_t i = 0; i < (int32_t)m_array.size(); i++)
             arr->Set(context, i, m_array[i]).IsJust();
 
         retVal = arr;
 
-        return NObject::valueOf(retVal);
+        return NObject::valueOf(o);
     }
 
 private:
