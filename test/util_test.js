@@ -678,15 +678,15 @@ describe('util', () => {
         });
 
         it("typedarray", () => {
-            assert.equal(util.format(new Uint8Array([])), '[]');
-            assert.equal(util.format(new Uint8Array([100, 200])), '[\n  100,\n  200\n]');
+            assert.equal(util.format(new Uint8Array([])), '[Uint8Array] []');
+            assert.equal(util.format(new Uint8Array([100, 200])), '[Uint8Array] [\n  100,\n  200\n]');
         });
 
         it('Uint8Array, offset', () => {
             var buf = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8, 9]);
             var arr = new Uint8Array(buf.buffer, 2, 4);
 
-            assert.equal(util.format(arr), "[\n  3,\n  4,\n  5,\n  6\n]");
+            assert.equal(util.format(arr), "[Uint8Array] [\n  3,\n  4,\n  5,\n  6\n]");
         });
 
         it("object", () => {
