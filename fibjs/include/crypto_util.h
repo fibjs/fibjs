@@ -124,7 +124,7 @@ const EVP_MD* _evp_md_type(const char* algo);
 int GetCurveFromName(const char* name);
 result_t openssl_error();
 
-inline result_t GetKeyBuffer(Isolate* isolate, v8::Local<v8::Object> o, obj_ptr<Buffer>& buf)
+inline result_t GetKeyBuffer(Isolate* isolate, v8::Local<v8::Object> o, obj_ptr<Buffer_base>& buf)
 {
     result_t hr;
     v8::Local<v8::Value> v;
@@ -154,7 +154,7 @@ inline result_t GetKeyBuffer(Isolate* isolate, v8::Local<v8::Object> o, obj_ptr<
         hr = GetArgumentValue(isolate, v, _buf);
         if (hr < 0)
             return hr;
-        buf = Buffer::Cast(_buf);
+        buf = _buf;
     }
 
     return 0;

@@ -34,6 +34,7 @@ public:
     };
 
     enum KeyType {
+        kKeyTypeUnknown,
         kKeyTypeSecret,
         kKeyTypePublic,
         kKeyTypePrivate
@@ -55,10 +56,17 @@ public:
 public:
     result_t createSecretKey(const unsigned char* key, size_t size);
     result_t createAsymmetricKey(v8::Local<v8::Object> key, KeyType type);
-    result_t ImportJWKAsymmetricKey(v8::Local<v8::Object> hwk, KeyType type);
-    result_t ImportJWKRsaKey(v8::Local<v8::Object> key, KeyType type);
-    result_t ImportJWKEcKey(v8::Local<v8::Object> key, KeyType type);
-    result_t ImportJWKOKPKey(v8::Local<v8::Object> key, KeyType type);
+    result_t ImportJWKAsymmetricKey(NObject* hwk, KeyType type);
+    result_t ImportJWKRsaKey(NObject* key, KeyType type);
+    result_t ImportJWKEcKey(NObject* key, KeyType type);
+    result_t ImportJWKOKPKey(NObject* key, KeyType type);
+
+    result_t ImportJWKAsymmetricKey(v8::Local<v8::Object> jwk, KeyType type)
+    {
+        obj_ptr<NObject> key = new NObject();
+        key->add(jwk);
+        return ImportJWKAsymmetricKey(key, type);
+    }
 
 public:
     result_t TryParsePublicKey(const BIOPointer& bp, const char* name, const std::function<EVP_PKEY*(const unsigned char** p, long l)>& parse);
@@ -71,19 +79,26 @@ public:
     result_t ParsePrivateKeyPEM(const char* key_pem, int key_pem_len, Buffer* passphrase);
 
 public:
+    result_t ExportPublicKey(exlib::string format, exlib::string type, Variant& retVal);
     result_t ExportPublicKey(v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal);
+
+    result_t ParsePublicKey(exlib::string format, exlib::string type, exlib::string namedCurve, Buffer_base* passphrase, Buffer_base* key);
     result_t ParsePublicKey(v8::Local<v8::Object> key);
 
 public:
+    result_t ExportPrivateKey(exlib::string format, exlib::string type, exlib::string cipher_name,
+        Buffer_base* passphrase, Variant& retVal);
     result_t ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal);
+
+    result_t ParsePrivateKey(exlib::string format, exlib::string type, exlib::string namedCurve, Buffer_base* passphrase, Buffer_base* key);
     result_t ParsePrivateKey(v8::Local<v8::Object> key);
 
 public:
-    result_t export_json(v8::Local<v8::Value>& retVal);
-    result_t ExportJWKOKPKey(v8::Local<v8::Value>& retVal);
-    result_t ExportJWKRsaKey(v8::Local<v8::Value>& retVal);
-    result_t ExportJWKEcKey(v8::Local<v8::Value>& retVal);
-    result_t ExportJWKSecretKey(v8::Local<v8::Value>& retVal);
+    result_t export_json(Variant& retVal);
+    result_t ExportJWKOKPKey(Variant& retVal);
+    result_t ExportJWKRsaKey(Variant& retVal);
+    result_t ExportJWKEcKey(Variant& retVal);
+    result_t ExportJWKSecretKey(Variant& retVal);
 
 public:
     result_t generateKey(exlib::string type, generateKeyPairParam* param);
@@ -115,6 +130,21 @@ public:
     EVP_PKEY* pkey() const
     {
         return m_pkey;
+    }
+
+    const char* namedCurve() const
+    {
+        const EC_KEY* ec = EVP_PKEY_get0_EC_KEY(m_pkey);
+        if (!ec)
+            return nullptr;
+
+        const EC_GROUP* group = EC_KEY_get0_group(ec);
+        int nid = EC_GROUP_get_curve_name(group);
+
+        const char* name = EC_curve_nid2nist(nid);
+        if (!name)
+            name = OBJ_nid2sn(nid);
+        return name;
     }
 
 private:

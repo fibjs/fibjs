@@ -172,10 +172,10 @@ result_t KeyObject::get_asymmetricKeyType(exlib::string& retVal)
         break;
     case EVP_PKEY_BLS12_381_G1:
         retVal = "Bls12381G1";
-        break;    
+        break;
     case EVP_PKEY_BLS12_381_G2:
         retVal = "Bls12381G2";
-        break;    
+        break;
     default:
         return CALL_RETURN_UNDEFINED;
     }
@@ -204,6 +204,9 @@ result_t KeyObject::get_type(exlib::string& retVal)
     case kKeyTypePrivate:
         retVal = "private";
         break;
+    case kKeyTypeUnknown:
+        retVal = "unknown";
+        break;
     }
 
     return 0;
@@ -223,7 +226,14 @@ result_t KeyObject::_export(v8::Local<v8::Object> options, v8::Local<v8::Value>&
     if (format == "jwk") {
         if (options->HasOwnProperty(context, isolate->NewString("passphrase")).FromMaybe(false))
             return Runtime::setError("The property 'options.passphrase' is not supported for 'jwk' format.");
-        return export_json(retVal);
+
+        Variant _json;
+        hr = export_json(_json);
+        if (hr < 0)
+            return hr;
+
+        retVal = _json;
+        return 0;
     }
 
     switch (m_keyType) {
@@ -332,7 +342,13 @@ result_t KeyObject::equals(KeyObject_base* otherKey, bool& retVal)
 
 result_t KeyObject::toJSON(exlib::string key, v8::Local<v8::Value>& retVal)
 {
-    return export_json(retVal);
+    Variant _json;
+    result_t hr = export_json(_json);
+    if (hr < 0)
+        return hr;
+
+    retVal = _json;
+    return 0;
 }
 
 }

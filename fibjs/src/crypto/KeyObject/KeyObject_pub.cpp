@@ -197,60 +197,42 @@ result_t KeyObject::ParsePublicKeyPEM(const char* key_pem, int key_pem_len)
     return 0;
 }
 
-result_t KeyObject::ParsePublicKey(v8::Local<v8::Object> key)
+result_t KeyObject::ParsePublicKey(exlib::string format, exlib::string type, exlib::string namedCurve, Buffer_base* passphrase, Buffer_base* key)
 {
+    Buffer* _passphrase = (Buffer*)passphrase;
+    Buffer* _key = (Buffer*)key;
     result_t hr;
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-
-    exlib::string format = "pem";
-    GetConfigValue(isolate, key, "format", format, true);
-
-    obj_ptr<Buffer> _key;
-    hr = GetKeyBuffer(isolate, key, _key);
-    if (hr < 0)
-        return hr;
 
     if (format == "pem") {
         hr = ParsePublicKeyPEM((const char*)_key->data(), _key->length());
         if (hr <= 0)
             return hr;
 
-        hr = ParsePrivateKey(key);
+        hr = ParsePrivateKey(format, type, namedCurve, _passphrase, key);
         if (hr < 0)
             return hr;
 
         m_keyType = kKeyTypePublic;
         return 0;
     } else if (format == "der") {
-        exlib::string type;
-        hr = GetConfigValue(isolate, key, "type", type, true);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-            return hr;
-
         const unsigned char* p = (unsigned char*)_key->data();
         if (type == "pkcs1")
             m_pkey = d2i_PublicKey(EVP_PKEY_RSA, nullptr, &p, _key->length());
         else if (type == "spki")
             m_pkey = d2i_PUBKEY(nullptr, &p, _key->length());
         else
-            return Runtime::setError("Invalid type");
+            return Runtime::setError("Invalid type: " + type);
     } else if (format == "raw") {
-        exlib::string namedCurve;
-        hr = GetConfigValue(isolate, key, "namedCurve", namedCurve, true);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-            return hr;
-
         int32_t key_type = okp_curve_nid(namedCurve.c_str());
 
         if (key_type == NID_undef) {
             int32_t cid = GetCurveFromName(namedCurve.c_str());
             if (cid == NID_undef)
-                return Runtime::setError("Invalid curve name");
+                return Runtime::setError("Invalid curve name: " + namedCurve);
 
             ECPointer ec = EC_KEY_new_by_curve_name(cid);
             if (ec == nullptr)
-                return Runtime::setError("Invalid namedCurve");
+                return Runtime::setError("Invalid curve name: " + namedCurve);
 
             const EC_GROUP* group = EC_KEY_get0_group(ec);
             ECPointPointer point = EC_POINT_new(group);
@@ -268,7 +250,7 @@ result_t KeyObject::ParsePublicKey(v8::Local<v8::Object> key)
                 return openssl_error();
         }
     } else
-        return Runtime::setError("Invalid format");
+        return Runtime::setError("Invalid format: " + format);
 
     if (m_pkey == nullptr)
         return openssl_error();
@@ -278,20 +260,45 @@ result_t KeyObject::ParsePublicKey(v8::Local<v8::Object> key)
     return 0;
 }
 
-result_t KeyObject::ExportPublicKey(v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)
+result_t KeyObject::ParsePublicKey(v8::Local<v8::Object> key)
 {
     result_t hr;
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
 
+    exlib::string format = "pem";
     exlib::string type;
-    hr = GetConfigValue(isolate, options, "type", type, true);
+    exlib::string namedCurve;
+
+    hr = GetConfigValue(isolate, key, "format", format, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    exlib::string format = "pem";
-    GetConfigValue(isolate, options, "format", format, true);
+    obj_ptr<Buffer_base> _key;
+    hr = GetKeyBuffer(isolate, key, _key);
+    if (hr < 0)
+        return hr;
 
+    obj_ptr<Buffer_base> _passphrase;
+    hr = GetConfigValue(isolate, key, "passphrase", _passphrase);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    if (format == "der") {
+        hr = GetConfigValue(isolate, key, "type", type, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+    } else if (format == "raw") {
+        hr = GetConfigValue(isolate, key, "namedCurve", namedCurve, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+    }
+
+    return ParsePublicKey(format, type, namedCurve, _passphrase, _key);
+}
+
+result_t KeyObject::ExportPublicKey(exlib::string format, exlib::string type, Variant& retVal)
+{
     BIOPointer bio(BIO_new(BIO_s_mem()));
     int ret;
 
@@ -305,7 +312,7 @@ result_t KeyObject::ExportPublicKey(v8::Local<v8::Object> options, v8::Local<v8:
         } else if (type == "spki" || type == "") {
             ret = PEM_write_bio_PUBKEY(bio, m_pkey);
         } else
-            return Runtime::setError("Invalid type");
+            return Runtime::setError("Invalid type: " + type);
 
         if (ret != 1)
             return openssl_error();
@@ -313,7 +320,7 @@ result_t KeyObject::ExportPublicKey(v8::Local<v8::Object> options, v8::Local<v8:
         BUF_MEM* bptr;
         BIO_get_mem_ptr(bio, &bptr);
 
-        retVal = isolate->NewString(bptr->data, bptr->length);
+        retVal = exlib::string(bptr->data, bptr->length);
     } else if (format == "der") {
         if (type == "pkcs1") {
             if (EVP_PKEY_id(m_pkey) != EVP_PKEY_RSA)
@@ -324,7 +331,7 @@ result_t KeyObject::ExportPublicKey(v8::Local<v8::Object> options, v8::Local<v8:
         } else if (type == "spki" || type == "") {
             ret = i2d_PUBKEY_bio(bio, m_pkey);
         } else
-            return Runtime::setError("Invalid type");
+            return Runtime::setError("Invalid type: " + type);
 
         if (ret != 1)
             return openssl_error();
@@ -333,7 +340,7 @@ result_t KeyObject::ExportPublicKey(v8::Local<v8::Object> options, v8::Local<v8:
         BIO_get_mem_ptr(bio, &bptr);
 
         obj_ptr<Buffer_base> buf = new Buffer((const unsigned char*)bptr->data, bptr->length);
-        retVal = buf->wrap(isolate);
+        retVal = buf;
     } else if (format == "raw") {
         int nid = EVP_PKEY_id(m_pkey);
         if (nid == EVP_PKEY_EC || nid == EVP_PKEY_SM2) {
@@ -345,7 +352,7 @@ result_t KeyObject::ExportPublicKey(v8::Local<v8::Object> options, v8::Local<v8:
             else if (type == "hybrid")
                 form = POINT_CONVERSION_HYBRID;
             else
-                return Runtime::setError("Invalid type");
+                return Runtime::setError("Invalid type: " + type);
 
             const EC_KEY* ec = EVP_PKEY_get0_EC_KEY(m_pkey);
             if (ec == nullptr)
@@ -362,7 +369,7 @@ result_t KeyObject::ExportPublicKey(v8::Local<v8::Object> options, v8::Local<v8:
             obj_ptr<Buffer> buf = new Buffer(nullptr, len);
             EC_POINT_point2oct(EC_KEY_get0_group(ec), point, form, (unsigned char*)buf->data(), len, nullptr);
 
-            retVal = buf->wrap(isolate);
+            retVal = buf;
         } else if (is_okp_curve(nid)) {
             size_t len = 0;
             EVP_PKEY_get_raw_public_key(m_pkey, nullptr, &len);
@@ -370,11 +377,38 @@ result_t KeyObject::ExportPublicKey(v8::Local<v8::Object> options, v8::Local<v8:
             obj_ptr<Buffer> buf = new Buffer(nullptr, len);
             EVP_PKEY_get_raw_public_key(m_pkey, buf->data(), &len);
 
-            retVal = buf->wrap(isolate);
+            retVal = buf;
         } else
             return Runtime::setError("only support EC, SM2, ED25519, ED448, X25519, X448, Bls12381G1, Bls12381G2 key");
     } else
-        return Runtime::setError("Invalid format");
+        return Runtime::setError("Invalid format: " + format);
+
+    return 0;
+}
+
+result_t KeyObject::ExportPublicKey(v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)
+{
+    result_t hr;
+    Isolate* isolate = holder();
+    v8::Local<v8::Context> context = isolate->context();
+
+    exlib::string type;
+    hr = GetConfigValue(isolate, options, "type", type, true);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    exlib::string format = "pem";
+    hr = GetConfigValue(isolate, options, "format", format, true);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    Variant _retVal;
+
+    hr = ExportPublicKey(format, type, _retVal);
+    if (hr < 0)
+        return hr;
+
+    retVal = _retVal;
 
     return 0;
 }

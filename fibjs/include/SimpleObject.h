@@ -58,6 +58,12 @@ public:
         return 0;
     }
 
+    Variant& get(exlib::string key)
+    {
+        std::unordered_map<exlib::string, int32_t>::iterator it = m_keys.find(key);
+        return m_values[it->second].m_val;
+    }
+
     bool has(exlib::string key)
     {
         return m_keys.find(key) != m_keys.end();
