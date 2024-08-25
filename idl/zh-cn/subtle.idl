@@ -26,4 +26,32 @@ module subtle
     @return 返回计算得到的哈希值
     */
     static Buffer digest(Object algorithm, Buffer data) promise;
+
+    /*! @brief 导出 key 的信息，如果 key 不可导出，则返回一个错误
+
+    @param format 导出的格式，可以是 'raw'，'pkcs8'，'spki' 或 'jwk'.
+    @param key 要导出的 key
+    @return 返回导出的 key 信息
+    */
+    static Variant exportKey(String format, CryptoKey key) promise;
+
+    /*! @brief 生成一个新的 key
+
+    @param algorithm 指定生成 key 的算法
+    @param extractable 指定 key 是否可以导出到外部
+    @param usages 指定 key 的用途
+    @return 返回生成的 key
+    */
+    static Variant generateKey(Object algorithm, Boolean extractable, Array usages) promise;
+
+    /*! @brief 导入 key
+
+    @param format 导入的格式，可以是 'raw'，'pkcs8'，'spki' 或 'jwk'.
+    @param keyData 包含 key 数据的对象
+    @param algorithm 指定 key 的算法
+    @param extractable 指定 key 是否可以导出到外部
+    @param usages 指定 key 的用途
+    @return 返回导入的 key
+    */
+    static CryptoKey importKey(String format, Value keyData, Object algorithm, Boolean extractable, Array usages) promise;
 };

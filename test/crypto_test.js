@@ -4332,8 +4332,8 @@ describe('crypto', () => {
                     },
                 }
 
-                for(var source in sourceData) {
-                    for(var digest in digestedData) {
+                for (var source in sourceData) {
+                    for (var digest in digestedData) {
                         const sourceBuffer = sourceData[source];
                         const digestedBuffer = digestedData[digest][source];
 
@@ -4341,6 +4341,263 @@ describe('crypto', () => {
                         assert.deepEqual(hash, digestedBuffer);
                     }
                 }
+            });
+        });
+
+        describe("generateKey", async () => {
+            it("ECDSA", async () => {
+                const key = await global.crypto.subtle.generateKey(
+                    {
+                        name: "ECDSA",
+                        namedCurve: "P-256"
+                    },
+                    true,
+                    ["sign", "verify"]
+                );
+
+                assert.equal(key.privateKey.algorithm.name, "ECDSA");
+                assert.equal(key.privateKey.algorithm.namedCurve, "P-256");
+                assert.equal(key.publicKey.algorithm.name, "ECDSA");
+                assert.equal(key.publicKey.algorithm.namedCurve, "P-256");
+
+                assert.deepEqual(key.privateKey.usages, ["sign"]);
+                assert.deepEqual(key.publicKey.usages, ["verify"]);
+
+                assert.isTrue(key.privateKey.extractable);
+                assert.isTrue(key.publicKey.extractable);
+            });
+
+            it("should not include 'verify' when it is not included in the keyUsages", async () => {
+                const key = await global.crypto.subtle.generateKey(
+                    {
+                        name: "ECDSA",
+                        namedCurve: "P-256"
+                    },
+                    true,
+                    ["sign"]
+                );
+
+                assert.deepEqual(key.privateKey.usages, ["sign"]);
+                assert.deepEqual(key.publicKey.usages, []);
+            });
+
+            it("should set extractable of public key to true by default", async () => {
+                const key = await global.crypto.subtle.generateKey(
+                    {
+                        name: "ECDSA",
+                        namedCurve: "P-256"
+                    },
+                    false,
+                    ["sign", "verify"]
+                );
+
+                assert.isFalse(key.privateKey.extractable);
+                assert.isTrue(key.publicKey.extractable);
+            });
+
+            it("should throw if the key type is not supported", async () => {
+                assert.throws(async () => {
+                    const key = await global.crypto.subtle.generateKey(
+                        {
+                            name: "ECDSA",
+                            namedCurve: "P-256"
+                        },
+                        true,
+                        ["sign", "verify", "encrypt"]
+                    );
+                });
+            });
+
+            it("should throw if 'sign' is not included in the keyUsages", async () => {
+                assert.throws(async () => {
+                    const key = await global.crypto.subtle.generateKey(
+                        {
+                            name: "ECDSA",
+                            namedCurve: "P-256"
+                        },
+                        true,
+                        ["verify"]
+                    );
+                });
+            });
+
+            it("should throw if namedCurve is not supported", async () => {
+                assert.throws(async () => {
+                    const key = await global.crypto.subtle.generateKey(
+                        {
+                            name: "ECDSA",
+                            namedCurve: "P-128"
+                        },
+                        true,
+                        ["verify"]
+                    );
+                });
+            });
+        });
+
+        describe("exportKey/importKey", async () => {
+            var test_keys = crypto.generateKeyPairSync("ec", {
+                namedCurve: "P-256",
+                publicKeyEncoding: {
+                    format: "jwk"
+                },
+                privateKeyEncoding: {
+                    format: "jwk"
+                }
+            });
+
+            it("imoprt/export JWK", async () => {
+                const importedPublicKey = await global.crypto.subtle.importKey("jwk", test_keys.publicKey, {
+                    name: "ECDSA",
+                    namedCurve: "P-256"
+                }, true, ["verify"]);
+
+                const importedPrivateKey = await global.crypto.subtle.importKey("jwk", test_keys.privateKey, {
+                    name: "ECDSA",
+                    namedCurve: "P-256"
+                }, true, ["sign"]);
+
+                const exportedPublicKey = await global.crypto.subtle.exportKey("jwk", importedPublicKey);
+                const exportedPrivateKey = await global.crypto.subtle.exportKey("jwk", importedPrivateKey);
+
+                assert.deepEqual(exportedPublicKey, test_keys.publicKey);
+                assert.deepEqual(exportedPrivateKey, test_keys.privateKey);
+            });
+
+            it("export pkcs8", async () => {
+                const importedPrivateKey = await global.crypto.subtle.importKey("jwk", test_keys.privateKey, {
+                    name: "ECDSA",
+                    namedCurve: "P-256"
+                }, true, ["sign"]);
+
+                const exportedPrivateKey = await global.crypto.subtle.exportKey("pkcs8", importedPrivateKey);
+
+                const sk = crypto.createPrivateKey({
+                    key: test_keys.privateKey
+                });
+
+                const exportedPrivateKey2 = sk.export({ format: "der", type: "pkcs8" });
+
+                assert.deepEqual(exportedPrivateKey, exportedPrivateKey2);
+            });
+
+            it("import pkcs8", async () => {
+                const sk = crypto.createPrivateKey({
+                    key: test_keys.privateKey
+                });
+
+                const exportedPrivateKey2 = sk.export({ format: "der", type: "pkcs8" });
+
+                const importedPrivateKey = await global.crypto.subtle.importKey("pkcs8", exportedPrivateKey2, {
+                    name: "ECDSA",
+                    namedCurve: "P-256"
+                }, true, ["sign"]);
+
+                const exportedPrivateKey = await global.crypto.subtle.exportKey("jwk", importedPrivateKey);
+
+                assert.deepEqual(exportedPrivateKey, test_keys.privateKey);
+            });
+
+            it("export spki", async () => {
+                const importedPublicKey = await global.crypto.subtle.importKey("jwk", test_keys.publicKey, {
+                    name: "ECDSA",
+                    namedCurve: "P-256"
+                }, true, ["verify"]);
+
+                const exportedPublicKey = await global.crypto.subtle.exportKey("spki", importedPublicKey);
+
+                const pk = crypto.createPublicKey({
+                    key: test_keys.publicKey
+                });
+
+                const exportedPublicKey2 = pk.export({ format: "der", type: "spki" });
+
+                assert.deepEqual(exportedPublicKey, exportedPublicKey2);
+            });
+
+            it("import spki", async () => {
+                const pk = crypto.createPublicKey({
+                    key: test_keys.publicKey
+                });
+
+                const exportedPublicKey2 = pk.export({ format: "der", type: "spki" });
+
+                const importedPublicKey = await global.crypto.subtle.importKey("spki", exportedPublicKey2, {
+                    name: "ECDSA",
+                    namedCurve: "P-256"
+                }, true, ["verify"]);
+
+                const exportedPublicKey = await global.crypto.subtle.exportKey("jwk", importedPublicKey);
+
+                assert.deepEqual(exportedPublicKey, test_keys.publicKey);
+            });
+
+            it("export raw", async () => {
+                const importedPublicKey = await global.crypto.subtle.importKey("jwk", test_keys.publicKey, {
+                    name: "ECDSA",
+                    namedCurve: "P-256"
+                }, true, ["verify"]);
+
+                const exportedPublicKey = await global.crypto.subtle.exportKey("raw", importedPublicKey);
+
+                const pk = crypto.createPublicKey({
+                    key: test_keys.publicKey
+                });
+
+                const exportedPublicKey2 = pk.export({ format: "raw" });
+
+                assert.deepEqual(exportedPublicKey, exportedPublicKey2);
+            });
+
+            it("import raw", async () => {
+                const pk = crypto.createPublicKey({
+                    key: test_keys.publicKey
+                });
+
+                const exportedPublicKey2 = pk.export({ format: "raw" });
+
+                const importedPublicKey = await global.crypto.subtle.importKey("raw", exportedPublicKey2, {
+                    name: "ECDSA",
+                    namedCurve: "P-256"
+                }, true, ["verify"]);
+
+                const exportedPublicKey = await global.crypto.subtle.exportKey("jwk", importedPublicKey);
+
+                assert.deepEqual(exportedPublicKey, test_keys.publicKey);
+            });
+
+            it("should throw if name is not matching", async () => {
+                assert.throws(async () => {
+                    await global.crypto.subtle.importKey("jwk", test_keys.publicKey, {
+                        name: "Ed25519",
+                        namedCurve: "P-256"
+                    }, true, ["verify"]);
+                });
+            });
+
+            it("should throw if namedCurve is not matching", async () => {
+                assert.throws(async () => {
+                    await global.crypto.subtle.importKey("jwk", test_keys.publicKey, {
+                        name: "ECDSA",
+                        namedCurve: "P-384"
+                    }, true, ["verify"]);
+                });
+            });
+
+            it("should throw if the key type is not supported", async () => {
+                assert.throws(async () => {
+                    await global.crypto.subtle.importKey("jwk", test_keys.publicKey, {
+                        name: "ECDSA",
+                        namedCurve: "P-256"
+                    }, true, ["sign"]);
+                });
+
+                assert.throws(async () => {
+                    await global.crypto.subtle.importKey("jwk", test_keys.privateKey, {
+                        name: "ECDSA",
+                        namedCurve: "P-256"
+                    }, true, ["verify"]);
+                });
             });
         });
     });

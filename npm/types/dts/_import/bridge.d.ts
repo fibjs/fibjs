@@ -35,6 +35,7 @@
 /// <reference path="../module/msgpack.d.ts" />
 /// <reference path="../module/string_decoder.d.ts" />
 /// <reference path="../module/crypto.d.ts" />
+/// <reference path="../module/subtle.d.ts" />
 /// <reference path="../module/webcrypto.d.ts" />
 /// <reference path="../module/zip.d.ts" />
 /// <reference path="../module/zlib.d.ts" />
@@ -53,7 +54,6 @@
 /// <reference path="../module/fs_constants.d.ts" />
 /// <reference path="../module/crypto_constants.d.ts" />
 /// <reference path="../module/rtc.d.ts" />
-/// <reference path="../module/subtle.d.ts" />
 /// <reference path="../module/zlib_constants.d.ts" />
 declare module '@fibjs/types/bridge' {
 }
