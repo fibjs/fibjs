@@ -58,6 +58,11 @@ public:
         return 0;
     }
 
+    bool has(exlib::string key)
+    {
+        return m_keys.find(key) != m_keys.end();
+    }
+
     result_t remove(exlib::string key)
     {
         std::unordered_map<exlib::string, int32_t>::iterator it = m_keys.find(key);
@@ -280,18 +285,18 @@ public:
 
         obj = v8::Object::New(isolate->m_isolate);
 
-        fillMembers(isolate, obj);
+        to_value(isolate, obj);
 
         retVal = obj;
         return 0;
     }
 
 public:
-    virtual void fillMembers(Isolate* isolate, v8::Local<v8::Object>& retVal)
+    virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
     {
     }
 
-    virtual void fillArguments(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+    virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
     {
     }
 };

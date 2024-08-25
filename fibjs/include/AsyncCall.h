@@ -494,7 +494,7 @@ protected:
         args.push_back(GetReturnValue(m_isolate, v));
     }
 
-    virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args)
+    virtual void to_args(std::vector<v8::Local<v8::Value>>& args)
     {
     }
 

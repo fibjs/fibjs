@@ -189,7 +189,7 @@ function gen_stub(argn, bInst, bRet) {
         txt.push('		} \\');
 
         if (bRet) {
-            txt.push('    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \\');
+            txt.push('    	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \\');
             txt.push('    	{ fillRetVal(args, retVal); } \\');
 
             txt.push('	public: \\\n		T' + argn1 + ' retVal; \\');

@@ -157,7 +157,7 @@ void AsyncCallBack::fillRetVal(std::vector<v8::Local<v8::Value>>& args, object_b
 
 void AsyncCallBack::fillRetVal(std::vector<v8::Local<v8::Value>>& args, NType* v)
 {
-    v->fillArguments(m_isolate, args);
+    v->to_args(m_isolate, args);
 }
 
 result_t AsyncCallBack::syncFunc(AsyncCallBack* pThis)
@@ -179,7 +179,7 @@ result_t AsyncCallBack::syncFunc(AsyncCallBack* pThis)
     } else if (pThis->m_v >= 0) {
         args.resize(1);
         args[0] = v8::Undefined(isolate->m_isolate);
-        pThis->fillArguments(args);
+        pThis->to_args(args);
     } else {
         if (pThis->m_v == CALL_E_EXCEPTION)
             Runtime::setError(pThis->m_error);

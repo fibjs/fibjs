@@ -658,7 +658,7 @@ function gen_code(cls, def, baseFolder) {
                     ts.push(`    class ${name} : public NType {`);
 
                     ts.push('    public:');
-                    ts.push('        virtual void fillMembers(Isolate* isolate, v8::Local<v8::Object>& retVal)');
+                    ts.push('        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)');
                     ts.push('        {');
                     ts.push('            v8::Local<v8::Context> context = retVal->GetCreationContextChecked();');
 
@@ -668,7 +668,7 @@ function gen_code(cls, def, baseFolder) {
 
                     ts.push('        }\n');
 
-                    ts.push('        virtual void fillArguments(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)');
+                    ts.push('        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)');
                     ts.push('        {');
 
                     fn.type.forEach(t => {
