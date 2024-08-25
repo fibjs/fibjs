@@ -125,7 +125,7 @@ method
       params: params
     };
   }
-  / comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken? _* type:method_type _* symbol:"@"? name:Identifier _* "(" params:params? _* ")" _* async:async_type? ";" {
+  / comments:_* _* deprecated:deprecatedToken? _* staticMode:staticToken? _* type:type _* symbol:"@"? name:Identifier _* "(" params:params? _* ")" _* async:async_type? ";" {
     return {
       memType: "method",
       comments: comments.join(""),
@@ -137,12 +137,6 @@ method
       type: type,
       params: params
     };
-  }
-
-method_type
-  = Identifier
-  / "(" params:params? _* ")" {
-    return params
   }
 
 async_type
@@ -160,7 +154,7 @@ nextparam
   }
 
 param
-  = paramtype
+  = paramitem
   / paramopt
 
 paramopt
@@ -177,7 +171,35 @@ paramopt
     }
   }
 
-paramtype
+paramitem
+  = _* type:type _* name:Identifier def:def? {
+    return {
+      type: type,
+      name: name,
+      default:def
+    }
+  }
+
+type
+  = Identifier
+  / struct
+
+struct
+  = "(" items:items? _* ")" {
+    return items
+  }
+
+items
+  = first:itemtype nexts:nextitem* {
+     return [first].concat(nexts);
+  }
+
+nextitem
+  = "," itemtype:itemtype {
+    return itemtype;
+  }
+
+itemtype
   = _* type:Identifier _* name:Identifier def:def? {
     return {
       type: type,
@@ -185,6 +207,7 @@ paramtype
       default:def
     }
   }
+
 
 def
   = defValue
