@@ -68,7 +68,7 @@ result_t subtle_base::importKey(exlib::string format, v8::Local<v8::Value> keyDa
             ac->m_ctx[1] = jwk;
         } else {
             obj_ptr<Buffer_base> buf;
-            hr = GetArgumentValue(isolate, keyData, buf, true);
+            hr = GetArgumentValue(isolate, keyData, buf);
             if (hr < 0)
                 return hr;
             ac->m_ctx[1] = buf;

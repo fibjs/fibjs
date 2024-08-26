@@ -4433,6 +4433,22 @@ describe('crypto', () => {
                     );
                 });
             });
+
+            it("should accept UInt8Array as keydata", async () => {
+                var spki = Uint8Array.from([
+                    48, 57, 48, 19, 6, 7, 42, 134, 72, 206, 61, 2, 1, 6, 8, 42, 134, 72, 206, 61, 3, 1, 7,
+                    3, 34, 0, 3, 177, 130, 208, 28, 236, 189, 76, 208, 22, 192, 87, 0, 150, 156, 100, 169,
+                    16, 57, 58, 235, 105, 88, 42, 213, 60, 69, 172, 129, 233, 98, 252, 160
+                ]);
+
+                publicKey = await globalThis.crypto.subtle.importKey(
+                    'spki', spki, {
+                    "name": "ECDSA",
+                    "namedCurve": "P-256"
+                }, true, [
+                    "verify"
+                ]);
+            });
         });
 
         var test_keys = crypto.generateKeyPairSync("ec", {
