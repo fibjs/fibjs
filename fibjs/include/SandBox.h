@@ -242,6 +242,8 @@ public:
     static v8::MaybeLocal<v8::Promise> ImportModuleDynamically(v8::Local<v8::Context> context,
         v8::Local<v8::Data> host_defined_options, v8::Local<v8::Value> resource_name,
         v8::Local<v8::String> specifier, v8::Local<v8::FixedArray> import_assertions);
+    static void ImportMetaObjectCallback(v8::Local<v8::Context> context, v8::Local<v8::Module> module,
+        v8::Local<v8::Object> meta);
 
 public:
     static const char* worker_args;
@@ -253,6 +255,7 @@ public:
     typedef std::unordered_map<exlib::string, std::pair<v8::Global<v8::Module>, int32_t>>::iterator module_map_iter;
     std::unordered_map<exlib::string, std::pair<v8::Global<v8::Module>, int32_t>> module_map;
     std::unordered_map<int32_t, std::unordered_map<exlib::string, v8::Global<v8::Module>>> module_deps_map;
+    exlib::string m_pending_module;
 
 public:
     std::vector<obj_ptr<ExtLoader>> m_loaders;

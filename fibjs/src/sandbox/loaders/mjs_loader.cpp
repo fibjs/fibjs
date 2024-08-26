@@ -39,7 +39,7 @@ public:
     {
         v8::Local<v8::Context> _context = m_isolate->context();
 
-        v8::Local<v8::Module> root_module = compile_module(id, (Buffer*)data, v8::Local<v8::Value>());
+        v8::Local<v8::Module> root_module = load_module(id, (Buffer*)data, v8::Local<v8::Value>());
         if (root_module.IsEmpty())
             return CALL_E_JAVASCRIPT;
 
@@ -85,7 +85,7 @@ public:
 
         SandBox::Context context(m_sb, id);
 
-        v8::Local<v8::Module> root_module = compile_module(id, data.As<Buffer>(), exports);
+        v8::Local<v8::Module> root_module = load_module(id, data.As<Buffer>(), exports);
         if (root_module.IsEmpty())
             return v8::MaybeLocal<v8::Promise>();
 
@@ -164,6 +164,56 @@ private:
         return 0;
     }
 
+    v8::Local<v8::Module> load_module(exlib::string id, Buffer* data_, v8::Local<v8::Value> exports)
+    {
+        class LoadScope {
+        public:
+            LoadScope(SandBox* sb)
+                : m_rt(Runtime::current())
+                , m_sb(sb)
+
+            {
+                m_sb->m_module_pendings++;
+                m_prev_sb = m_rt->m_module_pending;
+                m_rt->m_module_pending = m_sb;
+            }
+
+            ~LoadScope()
+            {
+                m_rt->m_module_pending = m_prev_sb;
+                if (--m_sb->m_module_pendings == 0)
+                    m_sb->module_deps_map.clear();
+            }
+
+        private:
+            Runtime* m_rt;
+            SandBox* m_sb;
+            SandBox* m_prev_sb;
+        };
+
+        v8::Local<v8::Context> _context = m_isolate->context();
+
+        LoadScope scope(m_sb);
+
+        v8::Local<v8::Module> root_module = compile_module(id, data_, exports);
+        if (root_module.IsEmpty())
+            return root_module;
+
+        result_t hr = resolveModuleTree(id, root_module);
+        if (hr >= 0) {
+            v8::Maybe<bool> result = root_module->InstantiateModule(_context, resolveModuleCallback);
+            if (!result.FromMaybe(false))
+                hr = CALL_E_JAVASCRIPT;
+        }
+
+        if (hr < 0) {
+            ThrowResult(hr);
+            return v8::Local<v8::Module>();
+        }
+
+        return root_module;
+    }
+
     v8::Local<v8::Module> compile_module(exlib::string id, Buffer* data_, v8::Local<v8::Value> exports)
     {
         v8::Local<v8::Context> _context = m_isolate->context();
@@ -224,6 +274,9 @@ private:
                 ThrowError(exception);
                 return v8::Local<v8::Module>();
             }
+
+            m_sb->m_pending_module = id;
+            initImportMeta(m_isolate->m_isolate, module);
         }
 
         it = m_sb->module_map.emplace(id, std::make_pair<v8::Global<v8::Module>, int32_t>(v8::Global<v8::Module>(m_isolate->m_isolate, module), 1)).first;
@@ -274,27 +327,6 @@ private:
     result_t evaluate(exlib::string id, v8::Local<v8::Object> mod, v8::Local<v8::Module> root_module)
     {
         v8::Local<v8::Context> _context = m_isolate->context();
-
-        Runtime* rt = Runtime::current();
-        result_t hr;
-
-        m_sb->m_module_pendings++;
-        SandBox* prev_sb = rt->m_module_pending;
-        rt->m_module_pending = m_sb;
-
-        hr = resolveModuleTree(id, root_module);
-        if (hr >= 0) {
-            v8::Maybe<bool> result = root_module->InstantiateModule(_context, resolveModuleCallback);
-            if (!result.FromMaybe(false))
-                hr = CALL_E_JAVASCRIPT;
-        }
-
-        rt->m_module_pending = prev_sb;
-        if (--m_sb->m_module_pendings == 0)
-            m_sb->module_deps_map.clear();
-
-        if (hr < 0)
-            return hr;
 
         TryCatch try_catch;
         v8::Local<v8::Value> result = root_module->Evaluate(_context).FromMaybe(v8::Local<v8::Value>());
@@ -429,6 +461,21 @@ public:
     std::vector<SandBox::module_map_iter> module_refs;
     v8::Global<v8::Promise::Resolver> m_resolver;
 };
+
+void SandBox::ImportMetaObjectCallback(v8::Local<v8::Context> context, v8::Local<v8::Module> module,
+    v8::Local<v8::Object> meta)
+{
+    Isolate* isolate = Isolate::current(context);
+    Runtime* rt = Runtime::current();
+
+    SandBox* sb = rt->m_module_pending;
+
+    exlib::string path_name;
+    path_base::dirname(sb->m_pending_module, path_name);
+
+    meta->Set(context, isolate->NewString("dirname"), isolate->NewString(path_name)).IsJust();
+    meta->Set(context, isolate->NewString("filename"), isolate->NewString(sb->m_pending_module)).IsJust();
+}
 
 v8::MaybeLocal<v8::Promise> SandBox::ImportModuleDynamically(v8::Local<v8::Context> context,
     v8::Local<v8::Data> host_defined_options, v8::Local<v8::Value> resource_name,

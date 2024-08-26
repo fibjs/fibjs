@@ -2,6 +2,7 @@ var test = require("test");
 test.setup();
 
 const coroutine = require('coroutine');
+const path = require('path');
 
 describe('ECMAScript modules', () => {
     describe('await import', () => {
@@ -197,6 +198,16 @@ describe('ECMAScript modules', () => {
             await ev.wait();
 
             assert.equal(m1.test2.test, m2.test);
+        });
+    });
+
+    it("support import.meta", async () => {
+        var m = await import('./esm_files/esm17.mjs');
+        assert.deepEqual(m, {
+            test: {
+                dirname: path.join(__dirname, 'esm_files'),
+                filename: path.join(__dirname, 'esm_files', 'esm17.mjs')
+            }
         });
     });
 

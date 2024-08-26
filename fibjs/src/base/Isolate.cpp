@@ -307,6 +307,7 @@ void Isolate::init()
 
     m_isolate->SetPromiseRejectCallback(_PromiseRejectCallback);
     m_isolate->SetHostImportModuleDynamicallyCallback(SandBox::ImportModuleDynamically);
+    m_isolate->SetHostInitializeImportMetaObjectCallback(SandBox::ImportMetaObjectCallback);
 
     init_process_ipc(this);
 }
