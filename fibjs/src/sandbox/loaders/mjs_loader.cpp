@@ -207,7 +207,8 @@ private:
         }
 
         if (hr < 0) {
-            ThrowResult(hr);
+            if (hr != CALL_E_JAVASCRIPT)
+                ThrowResult(hr);
             return v8::Local<v8::Module>();
         }
 
