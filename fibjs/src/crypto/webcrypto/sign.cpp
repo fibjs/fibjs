@@ -15,6 +15,7 @@ static result_t get_options(v8::Local<v8::Object> algorithm, CryptoKey* key, Asy
 {
     result_t hr;
     Isolate* isolate = ac->isolate();
+    v8::Local<v8::Context> context = isolate->context();
 
     ac->m_ctx.resize(2);
 
@@ -31,9 +32,22 @@ static result_t get_options(v8::Local<v8::Object> algorithm, CryptoKey* key, Asy
 
     if (qstricmp(name.c_str(), "ecdsa") == 0) {
         exlib::string hash;
-        hr = GetConfigValue(isolate, algorithm, "hash", hash, true);
-        if (hr < 0)
-            return hr;
+
+        v8::Local<v8::Value> _hash = algorithm->Get(context, isolate->NewString("hash")).FromMaybe(v8::Local<v8::Value>());
+        if (!_hash.IsEmpty()) {
+            if (_hash->IsString() || _hash->IsStringObject())
+                hash = isolate->toString(_hash);
+            else {
+                v8::Local<v8::Object> _hash_obj;
+                hr = GetArgumentValue(isolate, _hash, _hash_obj, true);
+                if (hr < 0)
+                    return hr;
+
+                hr = GetConfigValue(isolate, _hash_obj, "name", name, true);
+                if (hr < 0)
+                    return hr;
+            }
+        }
 
         ac->m_ctx[1] = hash;
     }

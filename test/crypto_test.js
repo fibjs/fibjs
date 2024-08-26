@@ -4636,6 +4636,26 @@ describe('crypto', () => {
 
             assert.isTrue(verified);
         });
+
+        it("hash as object", async () => {
+            const sig = crypto.sign("sha256", new Uint8Array([1, 2, 3, 4]), {
+                format: 'jwk',
+                key: test_keys.privateKey,
+                dsaEncoding: 'ieee-p1363'
+            });
+
+            var verified = await globalThis.crypto.subtle.verify({
+                name: "ecdsa",
+                hash: {
+                    name: "SHA-256"
+                }
+            }, await globalThis.crypto.subtle.importKey("jwk", test_keys.publicKey, {
+                name: "ECDSA",
+                namedCurve: "P-256"
+            }, true, ["verify"]), sig, new Uint8Array([1, 2, 3, 4]));
+
+            assert.isTrue(verified);
+        });
     });
 });
 

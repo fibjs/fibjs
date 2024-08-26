@@ -4,6 +4,7 @@
 /// <reference path="../interface/TextDecoder.d.ts" />
 /// <reference path="../interface/TextEncoder.d.ts" />
 /// <reference path="../interface/AbortController.d.ts" />
+/// <reference path="../interface/CryptoKey.d.ts" />
 /// <reference path="../module/console.d.ts" />
 /// <reference path="../module/process.d.ts" />
 /// <reference path="../module/performance.d.ts" />
@@ -37,6 +38,11 @@ declare module 'global' {
      * @description 控制器对象，用于在需要时中止一个或多个 Web 请求，参见 AbortController 对象。
      */
     const AbortController: typeof Class_AbortController;
+
+    /**
+     * @description CryptoKey 类来表示对称或非对称密钥，每种密钥公开不同的功能 
+     */
+    const CryptoKey: typeof Class_CryptoKey;
 
     /**
      * @description 控制台访问对象 

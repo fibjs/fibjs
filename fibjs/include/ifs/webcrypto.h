@@ -15,6 +15,7 @@
 
 namespace fibjs {
 
+class CryptoKey_base;
 class subtle_base;
 
 class webcrypto_base : public object_base {
@@ -40,6 +41,7 @@ public:
 };
 }
 
+#include "ifs/CryptoKey.h"
 #include "ifs/subtle.h"
 
 namespace fibjs {
@@ -51,6 +53,7 @@ inline ClassInfo& webcrypto_base::class_info()
     };
 
     static ClassData::ClassObject s_object[] = {
+        { "CryptoKey", CryptoKey_base::class_info },
         { "subtle", subtle_base::class_info }
     };
 

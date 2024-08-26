@@ -17,6 +17,9 @@ module webcrypto
     */
     static String randomUUID();
 
+    /*! @brief CryptoKey 类来表示对称或非对称密钥，每种密钥公开不同的功能 */
+    static CryptoKey;
+
     /*! @brief 提供对 SubtleCrypto API 的访问 */
     static subtle;
 };

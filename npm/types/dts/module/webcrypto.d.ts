@@ -1,4 +1,5 @@
 /// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../interface/CryptoKey.d.ts" />
 /// <reference path="../module/subtle.d.ts" />
 /**
  * @description WebCrypto API 模块
@@ -23,6 +24,11 @@ declare module 'webcrypto' {
      *     
      */
     function randomUUID(): string;
+
+    /**
+     * @description CryptoKey 类来表示对称或非对称密钥，每种密钥公开不同的功能 
+     */
+    const CryptoKey: typeof Class_CryptoKey;
 
     /**
      * @description 提供对 SubtleCrypto API 的访问 
