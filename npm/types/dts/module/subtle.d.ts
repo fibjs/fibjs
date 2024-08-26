@@ -79,5 +79,32 @@ declare module 'subtle' {
 
     function importKey(format: string, keyData: any, algorithm: FIBJS.GeneralObject, extractable: boolean, usages: any[], callback: (err: Error | undefined | null, retVal: Class_CryptoKey)=>any): void;
 
+    /**
+     * @description 使用 key 对数据进行签名
+     * 
+     *     @param algorithm 指定签名算法
+     *     @param key 指定用于签名的 key
+     *     @param data 指定要签名的数据
+     *     @return 返回签名后的数据
+     *     
+     */
+    function sign(algorithm: FIBJS.GeneralObject, key: Class_CryptoKey, data: Class_Buffer): Class_Buffer;
+
+    function sign(algorithm: FIBJS.GeneralObject, key: Class_CryptoKey, data: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+
+    /**
+     * @description 使用 key 对数据进行验签
+     * 
+     *     @param algorithm 指定签名算法
+     *     @param key 指定用于验签的 key
+     *     @param signature 指定签名数据
+     *     @param data 指定要验签的数据
+     *     @return 返回验签结果
+     *     
+     */
+    function verify(algorithm: FIBJS.GeneralObject, key: Class_CryptoKey, signature: Class_Buffer, data: Class_Buffer): boolean;
+
+    function verify(algorithm: FIBJS.GeneralObject, key: Class_CryptoKey, signature: Class_Buffer, data: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
 }
 

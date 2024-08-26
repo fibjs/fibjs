@@ -14,10 +14,6 @@
 
 namespace fibjs {
 
-static const unsigned int kNoDsaSignature = std::numeric_limits<unsigned int>::max();
-static const int DEFAULT_PADDING = std::numeric_limits<int>::max();
-static const int NO_SALTLEN = std::numeric_limits<int>::max();
-
 static result_t get_sig_opt(Isolate* isolate, v8::Local<v8::Object> key, DSASigEnc& enc, int& padding, int& salt_len)
 {
     v8::Local<v8::Context> context = isolate->context();

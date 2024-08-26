@@ -11,11 +11,6 @@
 
 namespace fibjs {
 
-enum DSASigEnc {
-    kSigEncDER,
-    kSigEncP1363
-};
-
 class Sign : public Sign_base {
 public:
     Sign(const EVP_MD* md);

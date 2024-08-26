@@ -119,4 +119,12 @@ result_t CryptoKey::check_import_param()
     return check_asymmetric_import_usage();
 }
 
+result_t CryptoKey::check_name(exlib::string name)
+{
+    if (m_key_type == kKeyNameECDSA && qstricmp(name.c_str(), "ecdsa"))
+        return Runtime::setError("CryptoKey: invalid key algorithm");
+
+    return 0;
+}
+
 }

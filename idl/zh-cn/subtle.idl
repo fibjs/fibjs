@@ -54,4 +54,23 @@ module subtle
     @return 返回导入的 key
     */
     static CryptoKey importKey(String format, Value keyData, Object algorithm, Boolean extractable, Array usages) promise;
+
+    /*! @brief 使用 key 对数据进行签名
+
+    @param algorithm 指定签名算法
+    @param key 指定用于签名的 key
+    @param data 指定要签名的数据
+    @return 返回签名后的数据
+    */
+    static Buffer sign(Object algorithm, CryptoKey key, Buffer data) promise;
+
+    /*! @brief 使用 key 对数据进行验签
+
+    @param algorithm 指定签名算法
+    @param key 指定用于验签的 key
+    @param signature 指定签名数据
+    @param data 指定要验签的数据
+    @return 返回验签结果
+    */
+    static Boolean verify(Object algorithm, CryptoKey key, Buffer signature, Buffer data) promise;
 };

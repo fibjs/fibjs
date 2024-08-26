@@ -39,6 +39,8 @@ public:
     result_t check_ecdsa_import_param();
     result_t check_asymmetric_import_usage();
 
+    result_t check_name(exlib::string name);
+
 public:
     result_t generate();
     result_t generate_ecdsa();

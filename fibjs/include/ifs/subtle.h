@@ -28,6 +28,8 @@ public:
     static result_t exportKey(exlib::string format, CryptoKey_base* key, Variant& retVal, AsyncEvent* ac);
     static result_t generateKey(v8::Local<v8::Object> algorithm, bool extractable, v8::Local<v8::Array> usages, Variant& retVal, AsyncEvent* ac);
     static result_t importKey(exlib::string format, v8::Local<v8::Value> keyData, v8::Local<v8::Object> algorithm, bool extractable, v8::Local<v8::Array> usages, obj_ptr<CryptoKey_base>& retVal, AsyncEvent* ac);
+    static result_t sign(v8::Local<v8::Object> algorithm, CryptoKey_base* key, Buffer_base* data, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
+    static result_t verify(v8::Local<v8::Object> algorithm, CryptoKey_base* key, Buffer_base* signature, Buffer_base* data, bool& retVal, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -43,6 +45,8 @@ public:
     static void s_static_exportKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_generateKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_importKey(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_sign(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_verify(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE3(subtle_base, digest, exlib::string, Buffer_base*, obj_ptr<Buffer_base>);
@@ -50,6 +54,8 @@ public:
     ASYNC_STATICVALUE3(subtle_base, exportKey, exlib::string, CryptoKey_base*, Variant);
     ASYNC_STATICVALUE4(subtle_base, generateKey, v8::Local<v8::Object>, bool, v8::Local<v8::Array>, Variant);
     ASYNC_STATICVALUE6(subtle_base, importKey, exlib::string, v8::Local<v8::Value>, v8::Local<v8::Object>, bool, v8::Local<v8::Array>, obj_ptr<CryptoKey_base>);
+    ASYNC_STATICVALUE4(subtle_base, sign, v8::Local<v8::Object>, CryptoKey_base*, Buffer_base*, obj_ptr<Buffer_base>);
+    ASYNC_STATICVALUE5(subtle_base, verify, v8::Local<v8::Object>, CryptoKey_base*, Buffer_base*, Buffer_base*, bool);
 };
 }
 
@@ -63,7 +69,9 @@ inline ClassInfo& subtle_base::class_info()
         { "digest", s_static_digest, true, ClassData::ASYNC_PROMISE },
         { "exportKey", s_static_exportKey, true, ClassData::ASYNC_PROMISE },
         { "generateKey", s_static_generateKey, true, ClassData::ASYNC_PROMISE },
-        { "importKey", s_static_importKey, true, ClassData::ASYNC_PROMISE }
+        { "importKey", s_static_importKey, true, ClassData::ASYNC_PROMISE },
+        { "sign", s_static_sign, true, ClassData::ASYNC_PROMISE },
+        { "verify", s_static_verify, true, ClassData::ASYNC_PROMISE }
     };
 
     static ClassData s_cd = {
@@ -163,6 +171,47 @@ inline void subtle_base::s_static_importKey(const v8::FunctionCallbackInfo<v8::V
         hr = acb_importKey(v0, v1, v2, v3, v4, cb, args);
     else
         hr = ac_importKey(v0, v1, v2, v3, v4, vr);
+
+    METHOD_RETURN();
+}
+
+inline void subtle_base::s_static_sign(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(3, 3);
+
+    ARG(v8::Local<v8::Object>, 0);
+    ARG(obj_ptr<CryptoKey_base>, 1);
+    ARG(obj_ptr<Buffer_base>, 2);
+
+    if (!cb.IsEmpty())
+        hr = acb_sign(v0, v1, v2, cb, args);
+    else
+        hr = ac_sign(v0, v1, v2, vr);
+
+    METHOD_RETURN();
+}
+
+inline void subtle_base::s_static_verify(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    ASYNC_METHOD_OVER(4, 4);
+
+    ARG(v8::Local<v8::Object>, 0);
+    ARG(obj_ptr<CryptoKey_base>, 1);
+    ARG(obj_ptr<Buffer_base>, 2);
+    ARG(obj_ptr<Buffer_base>, 3);
+
+    if (!cb.IsEmpty())
+        hr = acb_verify(v0, v1, v2, v3, cb, args);
+    else
+        hr = ac_verify(v0, v1, v2, v3, vr);
 
     METHOD_RETURN();
 }

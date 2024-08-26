@@ -4435,17 +4435,17 @@ describe('crypto', () => {
             });
         });
 
-        describe("exportKey/importKey", async () => {
-            var test_keys = crypto.generateKeyPairSync("ec", {
-                namedCurve: "P-256",
-                publicKeyEncoding: {
-                    format: "jwk"
-                },
-                privateKeyEncoding: {
-                    format: "jwk"
-                }
-            });
+        var test_keys = crypto.generateKeyPairSync("ec", {
+            namedCurve: "P-256",
+            publicKeyEncoding: {
+                format: "jwk"
+            },
+            privateKeyEncoding: {
+                format: "jwk"
+            }
+        });
 
+        describe("exportKey/importKey", async () => {
             it("imoprt/export JWK", async () => {
                 const importedPublicKey = await global.crypto.subtle.importKey("jwk", test_keys.publicKey, {
                     name: "ECDSA",
@@ -4599,6 +4599,42 @@ describe('crypto', () => {
                     }, true, ["verify"]);
                 });
             });
+        });
+
+        it("sign", async () => {
+            var sig = await globalThis.crypto.subtle.sign({
+                name: "ecdsa",
+                hash: "SHA-256"
+            }, await globalThis.crypto.subtle.importKey("jwk", test_keys.privateKey, {
+                name: "ECDSA",
+                namedCurve: "P-256"
+            }, true, ["sign"]), new Uint8Array([1, 2, 3, 4]));
+
+            const verified = crypto.verify("sha256", new Uint8Array([1, 2, 3, 4]), {
+                format: 'jwk',
+                key: test_keys.publicKey,
+                dsaEncoding: 'ieee-p1363'
+            }, sig);
+
+            assert.isTrue(verified);
+        });
+
+        it("verify", async () => {
+            const sig = crypto.sign("sha256", new Uint8Array([1, 2, 3, 4]), {
+                format: 'jwk',
+                key: test_keys.privateKey,
+                dsaEncoding: 'ieee-p1363'
+            });
+
+            var verified = await globalThis.crypto.subtle.verify({
+                name: "ecdsa",
+                hash: "SHA-256"
+            }, await globalThis.crypto.subtle.importKey("jwk", test_keys.publicKey, {
+                name: "ECDSA",
+                namedCurve: "P-256"
+            }, true, ["verify"]), sig, new Uint8Array([1, 2, 3, 4]));
+
+            assert.isTrue(verified);
         });
     });
 });
