@@ -560,6 +560,15 @@ declare module 'crypto' {
     function verify(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
+     * @description 比较给定的两个数据是否相等，使用时间常量比较，防止时间侧信道攻击
+     *      @param a 指定要比较的数据
+     *      @param b 指定要比较的数据
+     *      @return 返回比较结果
+     *      
+     */
+    function timingSafeEqual(a: Class_Buffer, b: Class_Buffer): boolean;
+
+    /**
      * @description 使用 Bls12381G2 进行 BBS 签名的函数
      *      @param messages 指定要签名的一组消息
      *      @param privateKey 指定私钥，必须是 Bls12381G2 的私钥

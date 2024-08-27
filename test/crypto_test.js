@@ -4673,6 +4673,66 @@ describe('crypto', () => {
             assert.isTrue(verified);
         });
     });
+
+    it("timingSafeEqual", () => {
+        assert.strictEqual(
+            crypto.timingSafeEqual(Buffer.from('foo'), Buffer.from('foo')),
+            true
+        );
+
+        assert.strictEqual(
+            crypto.timingSafeEqual(Buffer.from('foo'), Buffer.from('bar')),
+            false
+        );
+
+        {
+            const buf = crypto.randomBytes(16).buffer;
+            const a1 = new Uint8Array(buf);
+            const a2 = new Uint16Array(buf);
+            const a3 = new Uint32Array(buf);
+
+            for (const left of [a1, a2, a3]) {
+                for (const right of [a1, a2, a3]) {
+                    assert.strictEqual(crypto.timingSafeEqual(left, right), true);
+                }
+            }
+        }
+
+        {
+            const cmp = (fn) => (a, b) => a.every((x, i) => fn(x, b[i]));
+            const eq = cmp((a, b) => a === b);
+            const is = cmp(Object.is);
+
+            function test(a, b, { equal, sameValue, timingSafeEqual }) {
+                assert.strictEqual(eq(a, b), equal);
+                assert.strictEqual(is(a, b), sameValue);
+                assert.strictEqual(crypto.timingSafeEqual(a, b), timingSafeEqual);
+            }
+
+            test(new Float32Array([NaN]), new Float32Array([NaN]), {
+                equal: false,
+                sameValue: true,
+                timingSafeEqual: true
+            });
+
+            test(new Float64Array([0]), new Float64Array([-0]), {
+                equal: true,
+                sameValue: false,
+                timingSafeEqual: false
+            });
+
+            const x = new BigInt64Array([0x7ff0000000000001n, 0xfff0000000000001n]);
+            test(new Float64Array(x.buffer), new Float64Array([NaN, NaN]), {
+                equal: false,
+                sameValue: true,
+                timingSafeEqual: false
+            });
+        }
+
+        assert.throws(() => crypto.timingSafeEqual(Buffer.from([1, 2, 3]), Buffer.from([1, 2])));
+        assert.throws(() => crypto.timingSafeEqual('not a buffer', Buffer.from([1, 2])));
+        assert.throws(() => crypto.timingSafeEqual(Buffer.from([1, 2]), 'not a buffer'));
+    });
 });
 
 require.main === module && test.run(console.DEBUG);

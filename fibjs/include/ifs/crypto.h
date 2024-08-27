@@ -99,6 +99,7 @@ public:
     static result_t verify(v8::Local<v8::Value> algorithm, Buffer_base* data, Buffer_base* publicKey, Buffer_base* signature, bool& retVal, AsyncEvent* ac);
     static result_t verify(v8::Local<v8::Value> algorithm, Buffer_base* data, KeyObject_base* publicKey, Buffer_base* signature, bool& retVal, AsyncEvent* ac);
     static result_t verify(v8::Local<v8::Value> algorithm, Buffer_base* data, v8::Local<v8::Object> key, Buffer_base* signature, bool& retVal, AsyncEvent* ac);
+    static result_t timingSafeEqual(Buffer_base* a, Buffer_base* b, bool& retVal);
     static result_t bbsSign(v8::Local<v8::Array> messages, Buffer_base* privateKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t bbsSign(v8::Local<v8::Array> messages, KeyObject_base* privateKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t bbsSign(v8::Local<v8::Array> messages, v8::Local<v8::Object> key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
@@ -150,6 +151,7 @@ public:
     static void s_static_publicEncrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_sign(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_verify(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_timingSafeEqual(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_bbsSign(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_bbsVerify(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_proofGen(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -225,6 +227,7 @@ inline ClassInfo& crypto_base::class_info()
         { "publicEncrypt", s_static_publicEncrypt, true, ClassData::ASYNC_SYNC },
         { "sign", s_static_sign, true, ClassData::ASYNC_ASYNC },
         { "verify", s_static_verify, true, ClassData::ASYNC_ASYNC },
+        { "timingSafeEqual", s_static_timingSafeEqual, true, ClassData::ASYNC_SYNC },
         { "bbsSign", s_static_bbsSign, true, ClassData::ASYNC_ASYNC },
         { "bbsVerify", s_static_bbsVerify, true, ClassData::ASYNC_ASYNC },
         { "proofGen", s_static_proofGen, true, ClassData::ASYNC_ASYNC },
@@ -867,6 +870,22 @@ inline void crypto_base::s_static_verify(const v8::FunctionCallbackInfo<v8::Valu
         hr = acb_verify(v0, v1, v2, v3, cb, args);
     else
         hr = ac_verify(v0, v1, v2, v3, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_timingSafeEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+
+    hr = timingSafeEqual(v0, v1, vr);
 
     METHOD_RETURN();
 }
