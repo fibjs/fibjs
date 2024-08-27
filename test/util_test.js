@@ -1609,8 +1609,8 @@ describe('util', () => {
         const generateKeyPairAsync = util.promisify(crypto.generateKeyPair);
         const keys = await generateKeyPairAsync('x25519');
 
-        assert.hasOwnProperty(keys, 'privateKey');
-        assert.hasOwnProperty(keys, 'publicKey');
+        assert.property(keys, 'privateKey');
+        assert.property(keys, 'publicKey');
     });
 
     it('callbackify', () => {
