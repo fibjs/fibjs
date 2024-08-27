@@ -4,6 +4,7 @@ test.setup();
 var test_util = require('./test_util');
 
 var util = require('util');
+var fs = require('fs');
 var mq = require('mq');
 var coroutine = require('coroutine');
 
@@ -1714,6 +1715,40 @@ describe('util', () => {
             assert.equal(sync_test, util.sync(cb_test));
         });
 
+        describe("static native function", () => {
+            it("sync function equal async function", () => {
+                assert.equal(fs.open, fs.openSync);
+                assert.equal(fs.open, util.sync(fs.open));
+            });
+
+            it("cache promise function", () => {
+                assert.equal(fs.promises.openSync, fs.open);
+
+                assert.equal(fs.promises.open, util.promisify(fs.open));
+                assert.equal(util.callbackify(fs.promises.open), fs.open);
+                assert.equal(util.sync(fs.promises.open), fs.open);
+            });
+        });
+
+        describe("member native function", () => {
+            it("sync function equal async function", () => {
+                const f = fs.open(__filename);
+
+                assert.equal(f.read, f.readSync);
+                assert.equal(f.read, util.sync(f.read));
+            });
+
+            it("cache promise function", async () => {
+                const f = fs.open(__filename);
+                const f1 = await fs.promises.open(__filename);
+
+                assert.equal(f1.readSync, f.read);
+
+                assert.equal(f1.read, util.promisify(f.read));
+                assert.equal(util.callbackify(f1.read), f.read);
+                assert.equal(util.sync(f1.read), f.read);
+            });
+        });
     });
 
     describe('buildInfo', () => {

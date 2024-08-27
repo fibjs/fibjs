@@ -236,6 +236,9 @@ public:
                     if (m_cd.has_async)
                         op->Set(_context, name, func).IsJust();
                 } else {
+                    func->SetPrivate(_context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")), func);
+                    func->SetPrivate(_context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_sync")), func);
+
                     v8::Local<v8::Function> pfunc;
                     exlib::string name_sync(m_cd.cms[i].name);
                     name_sync.append("Sync");
@@ -401,6 +404,10 @@ private:
                         if (m_cd.has_async)
                             ppt->Set(name, ft);
                     } else {
+                        v8::Local<v8::Function> func = ft->GetFunction(context).FromMaybe(v8::Local<v8::Function>());
+                        func->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")), func);
+                        func->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_sync")), func);
+
                         v8::Local<v8::FunctionTemplate> pft;
                         exlib::string name_sync(m_cd.cms[i].name);
                         name_sync.append("Sync");
@@ -434,11 +441,9 @@ private:
             for (i = 0; i < m_cd.cc; i++) {
                 v8::Local<v8::String> name = isolate->NewString(m_cd.ccs[i].name);
 
-                pt->Set(name,
-                    v8::Integer::New(isolate->m_isolate, m_cd.ccs[i].value));
+                pt->Set(name, v8::Integer::New(isolate->m_isolate, m_cd.ccs[i].value));
                 if (m_cd.has_async)
-                    ppt->Set(name,
-                        v8::Integer::New(isolate->m_isolate, m_cd.ccs[i].value));
+                    ppt->Set(name, v8::Integer::New(isolate->m_isolate, m_cd.ccs[i].value));
             }
 
             v8::Local<v8::ObjectTemplate> ot = _class->InstanceTemplate();

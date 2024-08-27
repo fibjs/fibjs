@@ -110,6 +110,7 @@ result_t util_base::promisify(v8::Local<v8::Function> func, v8::Local<v8::Functi
 
 result_t promisify(Isolate* isolate, v8::Local<v8::Function> func, v8::Local<v8::FunctionTemplate>& retVal)
 {
+    v8::Local<v8::Context> context = isolate->context();
     v8::Local<v8::FunctionTemplate> func1;
 
     func1 = v8::FunctionTemplate::New(isolate->m_isolate, promisify_stub, func);
@@ -118,6 +119,10 @@ result_t promisify(Isolate* isolate, v8::Local<v8::Function> func, v8::Local<v8:
 
     v8::Local<v8::Function> _func1 = func1->GetFunction(isolate->context()).FromMaybe(v8::Local<v8::Function>());
     setAsyncFunctoin(_func1);
+
+    func->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_promise")), _func1);
+    _func1->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")), func);
+    _func1->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_sync")), func);
 
     retVal = func1;
 
