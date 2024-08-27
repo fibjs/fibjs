@@ -66,15 +66,10 @@ inline ClassInfo& FileHandle_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "chmod", s_chmod, false, ClassData::ASYNC_ASYNC },
-        { "chmodSync", s_chmod, false, ClassData::ASYNC_SYNC },
         { "stat", s_stat, false, ClassData::ASYNC_ASYNC },
-        { "statSync", s_stat, false, ClassData::ASYNC_SYNC },
         { "read", s_read, false, ClassData::ASYNC_ASYNC },
-        { "readSync", s_read, false, ClassData::ASYNC_SYNC },
         { "write", s_write, false, ClassData::ASYNC_ASYNC },
-        { "writeSync", s_write, false, ClassData::ASYNC_SYNC },
-        { "close", s_close, false, ClassData::ASYNC_ASYNC },
-        { "closeSync", s_close, false, ClassData::ASYNC_SYNC }
+        { "close", s_close, false, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

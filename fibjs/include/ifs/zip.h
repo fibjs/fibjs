@@ -59,9 +59,7 @@ inline ClassInfo& zip_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "isZipFile", s_static_isZipFile, true, ClassData::ASYNC_ASYNC },
-        { "isZipFileSync", s_static_isZipFile, true, ClassData::ASYNC_SYNC },
-        { "open", s_static_open, true, ClassData::ASYNC_ASYNC },
-        { "openSync", s_static_open, true, ClassData::ASYNC_SYNC }
+        { "open", s_static_open, true, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData s_cd = {

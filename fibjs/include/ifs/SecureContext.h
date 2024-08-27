@@ -78,7 +78,6 @@ inline ClassInfo& SecureContext_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "setSNIContext", s_setSNIContext, false, ClassData::ASYNC_SYNC },
         { "getSNIContext", s_getSNIContext, false, ClassData::ASYNC_ASYNC },
-        { "getSNIContextSync", s_getSNIContext, false, ClassData::ASYNC_SYNC },
         { "removeSNIContext", s_removeSNIContext, false, ClassData::ASYNC_SYNC },
         { "clearSNIContexts", s_clearSNIContexts, false, ClassData::ASYNC_SYNC }
     };

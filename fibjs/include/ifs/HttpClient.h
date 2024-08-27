@@ -131,19 +131,12 @@ inline ClassInfo& HttpClient_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "request", s_request, false, ClassData::ASYNC_ASYNC },
-        { "requestSync", s_request, false, ClassData::ASYNC_SYNC },
         { "get", s_get, false, ClassData::ASYNC_ASYNC },
-        { "getSync", s_get, false, ClassData::ASYNC_SYNC },
         { "post", s_post, false, ClassData::ASYNC_ASYNC },
-        { "postSync", s_post, false, ClassData::ASYNC_SYNC },
         { "del", s_del, false, ClassData::ASYNC_ASYNC },
-        { "delSync", s_del, false, ClassData::ASYNC_SYNC },
         { "put", s_put, false, ClassData::ASYNC_ASYNC },
-        { "putSync", s_put, false, ClassData::ASYNC_SYNC },
         { "patch", s_patch, false, ClassData::ASYNC_ASYNC },
-        { "patchSync", s_patch, false, ClassData::ASYNC_SYNC },
-        { "head", s_head, false, ClassData::ASYNC_ASYNC },
-        { "headSync", s_head, false, ClassData::ASYNC_SYNC }
+        { "head", s_head, false, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

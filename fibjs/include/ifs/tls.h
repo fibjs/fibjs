@@ -65,8 +65,7 @@ inline ClassInfo& tls_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "createSecureContext", s_static_createSecureContext, true, ClassData::ASYNC_SYNC },
-        { "connect", s_static_connect, true, ClassData::ASYNC_ASYNC },
-        { "connectSync", s_static_connect, true, ClassData::ASYNC_SYNC }
+        { "connect", s_static_connect, true, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData::ClassObject s_object[] = {

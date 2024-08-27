@@ -110,25 +110,15 @@ inline ClassInfo& WebView_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "loadUrl", s_loadUrl, false, ClassData::ASYNC_ASYNC },
-        { "loadUrlSync", s_loadUrl, false, ClassData::ASYNC_SYNC },
         { "getUrl", s_getUrl, false, ClassData::ASYNC_ASYNC },
-        { "getUrlSync", s_getUrl, false, ClassData::ASYNC_SYNC },
         { "setHtml", s_setHtml, false, ClassData::ASYNC_ASYNC },
-        { "setHtmlSync", s_setHtml, false, ClassData::ASYNC_SYNC },
         { "reload", s_reload, false, ClassData::ASYNC_ASYNC },
-        { "reloadSync", s_reload, false, ClassData::ASYNC_SYNC },
         { "goBack", s_goBack, false, ClassData::ASYNC_ASYNC },
-        { "goBackSync", s_goBack, false, ClassData::ASYNC_SYNC },
         { "goForward", s_goForward, false, ClassData::ASYNC_ASYNC },
-        { "goForwardSync", s_goForward, false, ClassData::ASYNC_SYNC },
         { "print", s_print, false, ClassData::ASYNC_ASYNC },
-        { "printSync", s_print, false, ClassData::ASYNC_SYNC },
         { "executeJavaScript", s_executeJavaScript, false, ClassData::ASYNC_ASYNC },
-        { "executeJavaScriptSync", s_executeJavaScript, false, ClassData::ASYNC_SYNC },
         { "close", s_close, false, ClassData::ASYNC_ASYNC },
-        { "closeSync", s_close, false, ClassData::ASYNC_SYNC },
-        { "postMessage", s_postMessage, false, ClassData::ASYNC_ASYNC },
-        { "postMessageSync", s_postMessage, false, ClassData::ASYNC_SYNC }
+        { "postMessage", s_postMessage, false, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

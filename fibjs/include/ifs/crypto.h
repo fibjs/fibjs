@@ -215,31 +215,20 @@ inline ClassInfo& crypto_base::class_info()
         { "diffieHellman", s_static_diffieHellman, true, ClassData::ASYNC_SYNC },
         { "hash", s_static_hash, true, ClassData::ASYNC_SYNC },
         { "randomBytes", s_static_randomBytes, true, ClassData::ASYNC_ASYNC },
-        { "randomBytesSync", s_static_randomBytes, true, ClassData::ASYNC_SYNC },
         { "randomFill", s_static_randomFill, true, ClassData::ASYNC_ASYNC },
-        { "randomFillSync", s_static_randomFill, true, ClassData::ASYNC_SYNC },
         { "generateKeyPair", s_static_generateKeyPair, true, ClassData::ASYNC_ASYNC },
-        { "generateKeyPairSync", s_static_generateKeyPair, true, ClassData::ASYNC_SYNC },
         { "hkdf", s_static_hkdf, true, ClassData::ASYNC_ASYNC },
-        { "hkdfSync", s_static_hkdf, true, ClassData::ASYNC_SYNC },
         { "pbkdf2", s_static_pbkdf2, true, ClassData::ASYNC_ASYNC },
-        { "pbkdf2Sync", s_static_pbkdf2, true, ClassData::ASYNC_SYNC },
         { "privateDecrypt", s_static_privateDecrypt, true, ClassData::ASYNC_SYNC },
         { "privateEncrypt", s_static_privateEncrypt, true, ClassData::ASYNC_SYNC },
         { "publicDecrypt", s_static_publicDecrypt, true, ClassData::ASYNC_SYNC },
         { "publicEncrypt", s_static_publicEncrypt, true, ClassData::ASYNC_SYNC },
         { "sign", s_static_sign, true, ClassData::ASYNC_ASYNC },
-        { "signSync", s_static_sign, true, ClassData::ASYNC_SYNC },
         { "verify", s_static_verify, true, ClassData::ASYNC_ASYNC },
-        { "verifySync", s_static_verify, true, ClassData::ASYNC_SYNC },
         { "bbsSign", s_static_bbsSign, true, ClassData::ASYNC_ASYNC },
-        { "bbsSignSync", s_static_bbsSign, true, ClassData::ASYNC_SYNC },
         { "bbsVerify", s_static_bbsVerify, true, ClassData::ASYNC_ASYNC },
-        { "bbsVerifySync", s_static_bbsVerify, true, ClassData::ASYNC_SYNC },
         { "proofGen", s_static_proofGen, true, ClassData::ASYNC_ASYNC },
-        { "proofGenSync", s_static_proofGen, true, ClassData::ASYNC_SYNC },
-        { "proofVerify", s_static_proofVerify, true, ClassData::ASYNC_ASYNC },
-        { "proofVerifySync", s_static_proofVerify, true, ClassData::ASYNC_SYNC }
+        { "proofVerify", s_static_proofVerify, true, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData::ClassObject s_object[] = {

@@ -1659,6 +1659,63 @@ describe('util', () => {
         }
     });
 
+    describe("async wrap cache", () => {
+        it("multi sync", () => {
+            function cb_test(cb) { }
+            async function async_test() { }
+
+            assert.equal(util.sync(cb_test), util.sync(cb_test));
+            assert.equal(util.sync(async_test), util.sync(async_test));
+        });
+
+        it("multi promisify", () => {
+            function cb_test(cb) { }
+            const async_test = util.promisify(cb_test);
+
+            assert.equal(async_test, util.promisify(cb_test));
+            assert.equal(util.callbackify(async_test), cb_test);
+        });
+
+        it("multi callbackify", () => {
+            async function async_test() { }
+            const cb_test = util.callbackify(async_test);
+
+            assert.equal(cb_test, util.callbackify(async_test));
+            assert.equal(async_test, util.promisify(cb_test));
+        });
+
+        it("sync with promisify", () => {
+            function cb_test(cb) { }
+            const async_test = util.promisify(cb_test);
+
+            assert.equal(util.sync(cb_test), util.sync(async_test));
+        });
+
+        it("sync with callbackify", () => {
+            async function async_test() { }
+            const cb_test = util.callbackify(async_test);
+
+            assert.equal(util.sync(cb_test), util.sync(async_test));
+        });
+
+        it("promisify with sync", () => {
+            function cb_test(cb) { }
+            const sync_test = util.sync(cb_test);
+            const async_test = util.promisify(cb_test);
+
+            assert.equal(sync_test, util.sync(async_test));
+        });
+
+        it("callbackify with sync", () => {
+            async function async_test() { }
+            const sync_test = util.sync(async_test);
+            const cb_test = util.callbackify(async_test);
+
+            assert.equal(sync_test, util.sync(cb_test));
+        });
+
+    });
+
     describe('buildInfo', () => {
         it('properties', () => {
             assert.property(util.buildInfo(), 'fibjs');

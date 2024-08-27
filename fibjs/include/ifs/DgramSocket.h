@@ -82,9 +82,7 @@ inline ClassInfo& DgramSocket_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "bind", s_bind, false, ClassData::ASYNC_ASYNC },
-        { "bindSync", s_bind, false, ClassData::ASYNC_SYNC },
         { "send", s_send, false, ClassData::ASYNC_ASYNC },
-        { "sendSync", s_send, false, ClassData::ASYNC_SYNC },
         { "address", s_address, false, ClassData::ASYNC_SYNC },
         { "close", s_close, false, ClassData::ASYNC_SYNC },
         { "getRecvBufferSize", s_getRecvBufferSize, false, ClassData::ASYNC_SYNC },

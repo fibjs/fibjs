@@ -123,29 +123,17 @@ inline ClassInfo& zlib_base::class_info()
         { "createInflate", s_static_createInflate, true, ClassData::ASYNC_SYNC },
         { "createInflateRaw", s_static_createInflateRaw, true, ClassData::ASYNC_SYNC },
         { "deflate", s_static_deflate, true, ClassData::ASYNC_ASYNC },
-        { "deflateSync", s_static_deflate, true, ClassData::ASYNC_SYNC },
         { "deflateTo", s_static_deflateTo, true, ClassData::ASYNC_ASYNC },
-        { "deflateToSync", s_static_deflateTo, true, ClassData::ASYNC_SYNC },
         { "inflate", s_static_inflate, true, ClassData::ASYNC_ASYNC },
-        { "inflateSync", s_static_inflate, true, ClassData::ASYNC_SYNC },
         { "inflateTo", s_static_inflateTo, true, ClassData::ASYNC_ASYNC },
-        { "inflateToSync", s_static_inflateTo, true, ClassData::ASYNC_SYNC },
         { "gzip", s_static_gzip, true, ClassData::ASYNC_ASYNC },
-        { "gzipSync", s_static_gzip, true, ClassData::ASYNC_SYNC },
         { "gzipTo", s_static_gzipTo, true, ClassData::ASYNC_ASYNC },
-        { "gzipToSync", s_static_gzipTo, true, ClassData::ASYNC_SYNC },
         { "gunzip", s_static_gunzip, true, ClassData::ASYNC_ASYNC },
-        { "gunzipSync", s_static_gunzip, true, ClassData::ASYNC_SYNC },
         { "gunzipTo", s_static_gunzipTo, true, ClassData::ASYNC_ASYNC },
-        { "gunzipToSync", s_static_gunzipTo, true, ClassData::ASYNC_SYNC },
         { "deflateRaw", s_static_deflateRaw, true, ClassData::ASYNC_ASYNC },
-        { "deflateRawSync", s_static_deflateRaw, true, ClassData::ASYNC_SYNC },
         { "deflateRawTo", s_static_deflateRawTo, true, ClassData::ASYNC_ASYNC },
-        { "deflateRawToSync", s_static_deflateRawTo, true, ClassData::ASYNC_SYNC },
         { "inflateRaw", s_static_inflateRaw, true, ClassData::ASYNC_ASYNC },
-        { "inflateRawSync", s_static_inflateRaw, true, ClassData::ASYNC_SYNC },
-        { "inflateRawTo", s_static_inflateRawTo, true, ClassData::ASYNC_ASYNC },
-        { "inflateRawToSync", s_static_inflateRawTo, true, ClassData::ASYNC_SYNC }
+        { "inflateRawTo", s_static_inflateRawTo, true, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData::ClassObject s_object[] = {

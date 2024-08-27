@@ -62,15 +62,10 @@ inline ClassInfo& Stream_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "read", s_read, false, ClassData::ASYNC_ASYNC },
-        { "readSync", s_read, false, ClassData::ASYNC_SYNC },
         { "write", s_write, false, ClassData::ASYNC_ASYNC },
-        { "writeSync", s_write, false, ClassData::ASYNC_SYNC },
         { "flush", s_flush, false, ClassData::ASYNC_ASYNC },
-        { "flushSync", s_flush, false, ClassData::ASYNC_SYNC },
         { "close", s_close, false, ClassData::ASYNC_ASYNC },
-        { "closeSync", s_close, false, ClassData::ASYNC_SYNC },
-        { "copyTo", s_copyTo, false, ClassData::ASYNC_ASYNC },
-        { "copyToSync", s_copyTo, false, ClassData::ASYNC_SYNC }
+        { "copyTo", s_copyTo, false, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

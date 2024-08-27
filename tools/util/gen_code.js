@@ -826,10 +826,8 @@ function gen_code(cls, def, baseFolder) {
 
                     if (ov.memType == "method") {
                         deflist.push(`        { "${fn.symbol}${fname}", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, false, ${async_type(ov.async)} }`);
-                        if (ov.async == 'async') {
+                        if (ov.async == 'async')
                             has_async = true;
-                            deflist.push(`        { "${fn.symbol}${fname}Sync", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, false, ClassData::ASYNC_SYNC }`);
-                        }
 
                         recorder_insts.record(ov.name);
                     }
@@ -841,10 +839,8 @@ function gen_code(cls, def, baseFolder) {
 
                     if (ov.memType == "method") {
                         deflist.push(`        { "${fn.symbol}${fname}", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, true, ${async_type(ov.async)} }`);
-                        if (ov.async == 'async') {
+                        if (ov.async == 'async')
                             has_async = true;
-                            deflist.push(`        { "${fn.symbol}${fname}Sync", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, true, ClassData::ASYNC_SYNC }`);
-                        }
 
                         recorder_statics.record(ov.name);
                     }

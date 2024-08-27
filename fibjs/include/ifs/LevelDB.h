@@ -83,25 +83,18 @@ inline ClassInfo& LevelDB_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "has", s_has, false, ClassData::ASYNC_ASYNC },
-        { "hasSync", s_has, false, ClassData::ASYNC_SYNC },
         { "get", s_get, false, ClassData::ASYNC_ASYNC },
-        { "getSync", s_get, false, ClassData::ASYNC_SYNC },
         { "mget", s_mget, false, ClassData::ASYNC_SYNC },
         { "set", s_set, false, ClassData::ASYNC_ASYNC },
-        { "setSync", s_set, false, ClassData::ASYNC_SYNC },
         { "mset", s_mset, false, ClassData::ASYNC_SYNC },
         { "mremove", s_mremove, false, ClassData::ASYNC_SYNC },
         { "remove", s_remove, false, ClassData::ASYNC_ASYNC },
-        { "removeSync", s_remove, false, ClassData::ASYNC_SYNC },
         { "firstKey", s_firstKey, false, ClassData::ASYNC_ASYNC },
-        { "firstKeySync", s_firstKey, false, ClassData::ASYNC_SYNC },
         { "lastKey", s_lastKey, false, ClassData::ASYNC_ASYNC },
-        { "lastKeySync", s_lastKey, false, ClassData::ASYNC_SYNC },
         { "forEach", s_forEach, false, ClassData::ASYNC_SYNC },
         { "begin", s_begin, false, ClassData::ASYNC_SYNC },
         { "commit", s_commit, false, ClassData::ASYNC_SYNC },
-        { "close", s_close, false, ClassData::ASYNC_ASYNC },
-        { "closeSync", s_close, false, ClassData::ASYNC_SYNC }
+        { "close", s_close, false, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData s_cd = {
