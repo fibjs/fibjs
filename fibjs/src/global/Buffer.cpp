@@ -318,11 +318,11 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Buff
         if (v->IsArray())
             return Buffer_base::from(v.As<v8::Array>(), vr);
 
-        if (!v->IsUint8Array())
+        if (!v->IsTypedArray())
             return CALL_E_TYPEMISMATCH;
     }
 
-    vr = new Buffer(v.As<v8::Uint8Array>());
+    vr = new Buffer(v.As<v8::TypedArray>());
 
     return 0;
 }

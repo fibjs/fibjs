@@ -33,6 +33,13 @@ public:
         {
         }
 
+        store(v8::Local<v8::TypedArray> ui)
+            : m_store(ui->Buffer()->GetBackingStore())
+            , m_offset(ui->ByteOffset())
+            , m_length(ui->ByteLength())
+        {
+        }
+
         store(v8::Local<v8::ArrayBuffer> ab)
             : m_store(ab->GetBackingStore())
             , m_offset(0)
@@ -83,6 +90,11 @@ public:
     }
 
     Buffer(v8::Local<v8::Uint8Array> ui)
+        : m_store(ui)
+    {
+    }
+
+    Buffer(v8::Local<v8::TypedArray> ui)
         : m_store(ui)
     {
     }
