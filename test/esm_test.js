@@ -158,15 +158,18 @@ describe('ECMAScript modules', () => {
 
         it("import a pendding module", async () => {
             var m1, m2;
+            var s = 0;
 
             ev.clear();
 
             setImmediate(async () => {
+                s = 1;
                 m1 = await import('./esm_files/esm11.mjs');
                 ev.set();
             });
 
-            coroutine.sleep();
+            while (!s)
+                coroutine.sleep();
 
             ev.set();
             ev.clear();
@@ -180,15 +183,18 @@ describe('ECMAScript modules', () => {
 
         it("import a pendding dependency module", async () => {
             var m1, m2;
+            var s = 0;
 
             ev.clear();
 
             setImmediate(async () => {
+                s = 1;
                 m1 = await import('./esm_files/esm14.mjs');
                 ev.set();
             });
 
-            coroutine.sleep();
+            while (!s)
+                coroutine.sleep();
 
             ev.set();
             ev.clear();
