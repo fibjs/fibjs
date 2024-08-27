@@ -208,11 +208,6 @@ result_t KeyObject::generateKey(exlib::string type, generateKeyPairParam* param)
     return generateOKPKey(nid, param);
 }
 
-#define GET_GEN_PARAM(name)                                          \
-    hr = GetConfigValue(isolate, options, #name, param->name, true); \
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)                     \
-        return hr;
-
 result_t crypto_base::generateKeyPair(exlib::string type, v8::Local<v8::Object> options,
     obj_ptr<GenerateKeyPairType>& retVal, AsyncEvent* ac)
 {
@@ -220,54 +215,30 @@ result_t crypto_base::generateKeyPair(exlib::string type, v8::Local<v8::Object> 
         Isolate* isolate = ac->isolate();
         result_t hr;
 
-        obj_ptr<generateKeyPairParam> param = new generateKeyPairParam();
+        ac->m_ctx.resize(3);
 
-        GET_GEN_PARAM(modulusLength);
-        GET_GEN_PARAM(publicExponent);
-        GET_GEN_PARAM(hashAlgorithm);
-        GET_GEN_PARAM(mgf1Algorithm);
-        GET_GEN_PARAM(saltLength);
-        GET_GEN_PARAM(divisorLength);
-        GET_GEN_PARAM(namedCurve);
-        GET_GEN_PARAM(paramEncoding);
+        obj_ptr<generateKeyPairParam> param;
+        hr = generateKeyPairParam::load(options, param);
+        if (hr < 0)
+            return hr;
 
-        ac->m_ctx.resize(1);
         ac->m_ctx[0] = param;
 
+        obj_ptr<keyEncodingParam> publicKeyEncodingParam;
+        hr = keyEncodingParam::load(options, "publicKeyEncoding", publicKeyEncodingParam);
+        if (hr < 0)
+            return hr;
+
+        ac->m_ctx[1] = publicKeyEncodingParam;
+
+        obj_ptr<keyEncodingParam> privateKeyEncodingParam;
+        hr = keyEncodingParam::load(options, "privateKeyEncoding", privateKeyEncodingParam);
+        if (hr < 0)
+            return hr;
+
+        ac->m_ctx[2] = privateKeyEncodingParam;
+
         return CALL_E_NOSYNC;
-    } else if (ac->isPost()) {
-        Isolate* isolate = ac->isolate();
-        obj_ptr<generateKeyPairParam> param = (generateKeyPairParam*)ac->m_ctx[0].object();
-
-        obj_ptr<KeyObject_base> key;
-        v8::Local<v8::Value> v;
-        result_t hr;
-
-        v8::Local<v8::Object> publicKeyEncoding;
-        hr = GetConfigValue(isolate, options, "publicKeyEncoding", publicKeyEncoding);
-        if (hr == 0) {
-            key = (KeyObject_base*)retVal->publicKey.object();
-            hr = key->_export(publicKeyEncoding, v);
-            if (hr != 0)
-                return hr;
-
-            retVal->publicKey = v;
-        } else if (hr != CALL_E_PARAMNOTOPTIONAL)
-            return hr;
-
-        v8::Local<v8::Object> privateKeyEncoding;
-        hr = GetConfigValue(isolate, options, "privateKeyEncoding", privateKeyEncoding);
-        if (hr == 0) {
-            key = (KeyObject_base*)retVal->privateKey.object();
-            hr = key->_export(privateKeyEncoding, v);
-            if (hr != 0)
-                return hr;
-
-            retVal->privateKey = v;
-        } else if (hr != CALL_E_PARAMNOTOPTIONAL)
-            return hr;
-
-        return 0;
     }
 
     obj_ptr<generateKeyPairParam> param = (generateKeyPairParam*)ac->m_ctx[0].object();
@@ -284,10 +255,27 @@ result_t crypto_base::generateKeyPair(exlib::string type, v8::Local<v8::Object> 
     if (hr < 0)
         return hr;
 
-    retVal->privateKey = privaterKey;
-    retVal->publicKey = publicKey;
+    obj_ptr<keyEncodingParam> publicKeyEncodingParam = (keyEncodingParam*)ac->m_ctx[1].object();
+    if (publicKeyEncodingParam) {
+        Variant v;
+        hr = publicKey.As<KeyObject>()->ExportKey(publicKeyEncodingParam, v);
+        if (hr < 0)
+            return hr;
 
-    ac->setPost();
+        retVal->publicKey = v;
+    } else
+        retVal->publicKey = publicKey;
+
+    obj_ptr<keyEncodingParam> privateKeyEncodingParam = (keyEncodingParam*)ac->m_ctx[2].object();
+    if (privateKeyEncodingParam) {
+        Variant v;
+        hr = privaterKey->ExportKey(privateKeyEncodingParam, v);
+        if (hr < 0)
+            return hr;
+
+        retVal->privateKey = v;
+    } else
+        retVal->privateKey = privaterKey;
 
     return 0;
 }

@@ -12,7 +12,33 @@
 
 namespace fibjs {
 
+#define GET_OPT_PARAM(name)                                      \
+    hr = GetConfigValue(isolate, options, #name, o->name, true); \
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)                 \
+        return hr;
+
 class generateKeyPairParam : public obj_base {
+public:
+    static result_t load(v8::Local<v8::Object> options, obj_ptr<generateKeyPairParam>& retVal)
+    {
+        obj_ptr<generateKeyPairParam> o = new generateKeyPairParam();
+        Isolate* isolate = Isolate::current(options);
+        result_t hr;
+
+        GET_OPT_PARAM(modulusLength);
+        GET_OPT_PARAM(publicExponent);
+        GET_OPT_PARAM(hashAlgorithm);
+        GET_OPT_PARAM(mgf1Algorithm);
+        GET_OPT_PARAM(saltLength);
+        GET_OPT_PARAM(divisorLength);
+        GET_OPT_PARAM(namedCurve);
+        GET_OPT_PARAM(paramEncoding);
+
+        retVal = o;
+
+        return 0;
+    }
+
 public:
     int32_t modulusLength = 0;
     int32_t publicExponent = 0x10001;
@@ -22,6 +48,46 @@ public:
     int32_t divisorLength = -1;
     exlib::string namedCurve;
     exlib::string paramEncoding;
+};
+
+class keyEncodingParam : public obj_base {
+public:
+    static result_t load(v8::Local<v8::Object> options, obj_ptr<keyEncodingParam>& retVal)
+    {
+        obj_ptr<keyEncodingParam> o = new keyEncodingParam();
+        Isolate* isolate = Isolate::current(options);
+        result_t hr;
+
+        GET_OPT_PARAM(format);
+        GET_OPT_PARAM(type);
+        GET_OPT_PARAM(cipher);
+        GET_OPT_PARAM(passphrase);
+
+        retVal = o;
+
+        return 0;
+    }
+
+    static result_t load(v8::Local<v8::Object> options, const char* key, obj_ptr<keyEncodingParam>& retVal)
+    {
+        Isolate* isolate = Isolate::current(options);
+        result_t hr;
+
+        v8::Local<v8::Object> opt;
+        hr = GetConfigValue(isolate, options, key, opt, true);
+        if (hr == CALL_E_PARAMNOTOPTIONAL)
+            return 0;
+        if (hr < 0)
+            return hr;
+
+        return load(opt, retVal);
+    }
+
+public:
+    exlib::string format;
+    exlib::string type;
+    exlib::string cipher;
+    obj_ptr<Buffer_base> passphrase;
 };
 
 class KeyObject : public KeyObject_base {
@@ -79,8 +145,12 @@ public:
     result_t ParsePrivateKeyPEM(const char* key_pem, int key_pem_len, Buffer* passphrase);
 
 public:
+    result_t ExportKey(keyEncodingParam* param, Variant& retVal);
+
+public:
     result_t ExportPublicKey(exlib::string format, exlib::string type, Variant& retVal);
-    result_t ExportPublicKey(v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal);
+    result_t ExportPublicKey(keyEncodingParam* param, Variant& retVal);
+    result_t ExportPublicKey(keyEncodingParam* param, v8::Local<v8::Value>& retVal);
 
     result_t ParsePublicKey(exlib::string format, exlib::string type, exlib::string namedCurve, Buffer_base* passphrase, Buffer_base* key);
     result_t ParsePublicKey(v8::Local<v8::Object> key);
@@ -88,7 +158,8 @@ public:
 public:
     result_t ExportPrivateKey(exlib::string format, exlib::string type, exlib::string cipher_name,
         Buffer_base* passphrase, Variant& retVal);
-    result_t ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal);
+    result_t ExportPrivateKey(keyEncodingParam* param, Variant& retVal);
+    result_t ExportPrivateKey(keyEncodingParam* param, v8::Local<v8::Value>& retVal);
 
     result_t ParsePrivateKey(exlib::string format, exlib::string type, exlib::string namedCurve, Buffer_base* passphrase, Buffer_base* key);
     result_t ParsePrivateKey(v8::Local<v8::Object> key);

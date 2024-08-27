@@ -253,7 +253,7 @@ result_t KeyObject::ExportPrivateKey(exlib::string format, exlib::string type, e
     BIOPointer bio(BIO_new(BIO_s_mem()));
     int ret;
 
-    if (format == "pem") {
+    if (format.empty() || format == "pem") {
         if (type == "pkcs1") {
             if (EVP_PKEY_id(m_pkey) != EVP_PKEY_RSA)
                 return Runtime::setError("pkcs1 only support RSA key");
@@ -262,7 +262,7 @@ result_t KeyObject::ExportPrivateKey(exlib::string format, exlib::string type, e
             ret = PEM_write_bio_RSAPrivateKey(bio, rsa, cipher,
                 cipher ? (unsigned char*)pass_buf->data() : nullptr,
                 cipher ? pass_buf->length() : 0, nullptr, nullptr);
-        } else if (type == "pkcs8") {
+        } else if (type.empty() || type == "pkcs8") {
             ret = PEM_write_bio_PKCS8PrivateKey(bio, m_pkey, cipher,
                 cipher ? (char*)pass_buf->data() : nullptr,
                 cipher ? pass_buf->length() : 0, nullptr, nullptr);
@@ -292,7 +292,7 @@ result_t KeyObject::ExportPrivateKey(exlib::string format, exlib::string type, e
 
             RsaPointer rsa = EVP_PKEY_get1_RSA(m_pkey);
             ret = i2d_RSAPrivateKey_bio(bio, rsa);
-        } else if (type == "pkcs8") {
+        } else if (type.empty() || type == "pkcs8") {
             ret = i2d_PKCS8PrivateKey_bio(bio, m_pkey, cipher,
                 cipher ? (char*)pass_buf->data() : nullptr,
                 cipher ? pass_buf->length() : 0, nullptr, nullptr);
@@ -344,36 +344,17 @@ result_t KeyObject::ExportPrivateKey(exlib::string format, exlib::string type, e
     return 0;
 }
 
-result_t KeyObject::ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)
+result_t KeyObject::ExportPrivateKey(keyEncodingParam* param, Variant& retVal)
+{
+    return ExportPrivateKey(param->format, param->type, param->cipher, param->passphrase, retVal);
+}
+
+result_t KeyObject::ExportPrivateKey(keyEncodingParam* param, v8::Local<v8::Value>& retVal)
 {
     result_t hr;
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-
-    exlib::string type = "pkcs8";
-    hr = GetConfigValue(isolate, options, "type", type, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-        return hr;
-
-    exlib::string format = "pem";
-    hr = GetConfigValue(isolate, options, "format", format, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-        return hr;
-
-    exlib::string cipher_name;
-    hr = GetConfigValue(isolate, options, "cipher", cipher_name, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-        return hr;
-
-    Buffer* pass_buf = NULL;
-    obj_ptr<Buffer_base> passphrase;
-    hr = GetConfigValue(isolate, options, "passphrase", passphrase);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-        return hr;
-
     Variant _retVal;
 
-    hr = ExportPrivateKey(format, type, cipher_name, passphrase, _retVal);
+    hr = ExportPrivateKey(param, _retVal);
     if (hr < 0)
         return hr;
 

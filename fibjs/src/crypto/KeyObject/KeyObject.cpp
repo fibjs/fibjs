@@ -212,19 +212,12 @@ result_t KeyObject::get_type(exlib::string& retVal)
     return 0;
 }
 
-result_t KeyObject::_export(v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)
+result_t KeyObject::ExportKey(keyEncodingParam* param, Variant& retVal)
 {
     result_t hr;
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
 
-    exlib::string format = "buffer";
-    hr = GetConfigValue(isolate, options, "format", format, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-        return hr;
-
-    if (format == "jwk") {
-        if (options->HasOwnProperty(context, isolate->NewString("passphrase")).FromMaybe(false))
+    if (param->format == "jwk") {
+        if (param->passphrase)
             return Runtime::setError("The property 'options.passphrase' is not supported for 'jwk' format.");
 
         Variant _json;
@@ -238,20 +231,41 @@ result_t KeyObject::_export(v8::Local<v8::Object> options, v8::Local<v8::Value>&
 
     switch (m_keyType) {
     case kKeyTypeSecret:
-        if (format == "buffer") {
+        if (param->format.empty() || param->format == "buffer") {
             obj_ptr<Buffer_base> buf = new Buffer(m_key.data(), m_key.size());
             retVal = buf->wrap(holder());
             return 0;
         }
 
+        puts(param->format.c_str());
         return CHECK_ERROR(Runtime::setError("The property 'options.format' must be one of: undefined, 'buffer', 'jwk'."));
     case kKeyTypePublic:
-        return ExportPublicKey(options, retVal);
+        return ExportPublicKey(param, retVal);
     case kKeyTypePrivate:
-        return ExportPrivateKey(options, retVal);
+        return ExportPrivateKey(param, retVal);
     }
 
     return Runtime::setError("Invalid key type");
+}
+
+result_t KeyObject::_export(v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)
+{
+    result_t hr;
+    Isolate* isolate = holder();
+
+    obj_ptr<keyEncodingParam> param;
+    hr = keyEncodingParam::load(options, param);
+    if (hr < 0)
+        return hr;
+
+    Variant v;
+    hr = ExportKey(param, v);
+    if (hr < 0)
+        return hr;
+
+    retVal = v;
+
+    return 0;
 }
 
 result_t KeyObject::createAsymmetricKey(v8::Local<v8::Object> key, KeyType type)

@@ -302,7 +302,7 @@ result_t KeyObject::ExportPublicKey(exlib::string format, exlib::string type, Va
     BIOPointer bio(BIO_new(BIO_s_mem()));
     int ret;
 
-    if (format == "pem") {
+    if (format.empty() || format == "pem") {
         if (type == "pkcs1") {
             if (EVP_PKEY_id(m_pkey) != EVP_PKEY_RSA)
                 return Runtime::setError("pkcs1 only support RSA key");
@@ -386,25 +386,17 @@ result_t KeyObject::ExportPublicKey(exlib::string format, exlib::string type, Va
     return 0;
 }
 
-result_t KeyObject::ExportPublicKey(v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)
+result_t KeyObject::ExportPublicKey(keyEncodingParam* param, Variant& retVal)
+{
+    return ExportPublicKey(param->format, param->type, retVal);
+}
+
+result_t KeyObject::ExportPublicKey(keyEncodingParam* param, v8::Local<v8::Value>& retVal)
 {
     result_t hr;
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-
-    exlib::string type;
-    hr = GetConfigValue(isolate, options, "type", type, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-        return hr;
-
-    exlib::string format = "pem";
-    hr = GetConfigValue(isolate, options, "format", format, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-        return hr;
-
     Variant _retVal;
 
-    hr = ExportPublicKey(format, type, _retVal);
+    hr = ExportPublicKey(param, _retVal);
     if (hr < 0)
         return hr;
 
