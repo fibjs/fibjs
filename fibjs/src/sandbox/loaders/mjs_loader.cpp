@@ -470,6 +470,8 @@ void SandBox::ImportMetaObjectCallback(v8::Local<v8::Context> context, v8::Local
     Runtime* rt = Runtime::current();
 
     SandBox* sb = rt->m_module_pending;
+    if (sb == nullptr)
+        return;
 
     exlib::string path_name;
     path_base::dirname(sb->m_pending_module, path_name);
