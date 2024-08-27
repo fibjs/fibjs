@@ -27,17 +27,22 @@ static void promisify_callback(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 
     if (len > 1) {
-        v8::Local<v8::Value> result = args[1];
-        if (result->IsObject()) {
-            v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(result);
-            obj_ptr<object_base> obj = object_base::getInstance(o);
-            if (obj) {
-                ClassInfo& ci = obj->Classinfo();
-                if (ci.hasAsync())
-                    o->SetPrototype(isolate->context(), ci.GetAsyncPrototype(isolate)).IsJust();
+        v8::Local<v8::Value> result;
+        obj_ptr<NType> ntype_ressult = NType::getInstance(args.This());
+        if (ntype_ressult)
+            ntype_ressult->valueOf(result);
+        else {
+            result = args[1];
+            if (result->IsObject()) {
+                v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(result);
+                obj_ptr<object_base> obj = object_base::getInstance(o);
+                if (obj) {
+                    ClassInfo& ci = obj->Classinfo();
+                    if (ci.hasAsync())
+                        o->SetPrototype(isolate->context(), ci.GetAsyncPrototype(isolate)).IsJust();
+                }
             }
         }
-
         resolver->Resolve(isolate->context(), result).IsJust();
     } else
         resolver->Resolve(isolate->context(), v8::Undefined(isolate->m_isolate)).IsJust();

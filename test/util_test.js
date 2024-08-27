@@ -5,6 +5,7 @@ var test_util = require('./test_util');
 
 var util = require('util');
 var fs = require('fs');
+var crypto = require('crypto');
 var mq = require('mq');
 var coroutine = require('coroutine');
 
@@ -1602,6 +1603,14 @@ describe('util', () => {
         }
 
         assert.equal(t2, 500);
+    });
+
+    it('support promisify with multi result', async () => {
+        const generateKeyPairAsync = util.promisify(crypto.generateKeyPair);
+        const keys = await generateKeyPairAsync('x25519');
+
+        assert.hasOwnProperty(keys, 'privateKey');
+        assert.hasOwnProperty(keys, 'publicKey');
     });
 
     it('callbackify', () => {

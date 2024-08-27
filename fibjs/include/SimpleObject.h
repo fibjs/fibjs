@@ -268,6 +268,7 @@ public:
 };
 
 class NType : public object_base {
+    DECLARE_CLASS(NType);
 
 public:
     // object_base
@@ -335,6 +336,18 @@ inline ClassInfo& NMap::class_info()
 {
     static ClassData s_cd = {
         "NMap", false, NULL, NULL,
+        0, NULL, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
+        &object_base::class_info()
+    };
+
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
+
+inline ClassInfo& NType::class_info()
+{
+    static ClassData s_cd = {
+        "NType", false, NULL, NULL,
         0, NULL, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
         &object_base::class_info()
     };

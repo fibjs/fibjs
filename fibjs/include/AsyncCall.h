@@ -503,6 +503,7 @@ protected:
 protected:
     obj_ptr<object_base> m_pThis;
     v8::Global<v8::Function> m_cb;
+    obj_ptr<NType> m_result;
 
 private:
     exlib::string m_error;
