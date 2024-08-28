@@ -338,6 +338,11 @@ result_t SandBox::resolveModuleType(exlib::string fname, ModuleType& retVal)
         return 0;
     }
 
+    if (fname.length() < 3 || qstricmp(fname.c_str() + fname.length() - 3, ".js")) {
+        retVal = kCommonJS;
+        return 0;
+    }
+
     Isolate* isolate = holder();
     result_t hr;
 

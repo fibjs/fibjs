@@ -275,6 +275,13 @@ describe("module", () => {
                 "p11": "p11"
             });
         });
+
+        it("cjs type", () => {
+            var a = require('./module/p12');
+            assert.deepEqual(a, {
+                "p12": "p12"
+            });
+        });
     });
 
     describe("node_modules", () => {
