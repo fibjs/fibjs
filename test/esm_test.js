@@ -42,6 +42,17 @@ describe('ECMAScript modules', () => {
             assert.deepEqual(m, { test: 500 });
         });
 
+        it("import json with 'assert'", async () => {
+            assert.throws(async () => {
+                var m = await import('./esm_files/esm18.mjs');
+            });
+        });
+
+        it("import json with 'with'", async () => {
+            var m = await import('./esm_files/esm19');
+            assert.deepEqual(m, { test: 10000 });
+        });
+
         it("import builtin module", async () => {
             var m = await import('buffer');
             var m1 = require('buffer');

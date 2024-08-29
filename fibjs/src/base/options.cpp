@@ -199,5 +199,8 @@ void options(int32_t& pos, char* argv[])
     v8::internal::v8_flags.max_heap_size = sz;
     v8::internal::v8_flags.stack_size = stack_size - GUARD_SIZE;
     v8::internal::v8_flags.wasm_code_gc = false;
+
+    v8::internal::v8_flags.harmony_import_assertions = false;
+    v8::internal::v8_flags.harmony_import_attributes = true;
 }
 }
