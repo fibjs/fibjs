@@ -186,6 +186,8 @@ namespace codec_impl {
         template <typename T>
         size_t codec_length(const std::vector<T>& v)
         {
+            if (v.size() == 0)
+                return 0;
             return codec_length(*v.data()) * v.size();
         }
 
@@ -215,6 +217,8 @@ namespace codec_impl {
         template <typename T>
         size_t codec_length(const span<T>& v)
         {
+            if (v.size() == 0)
+                return 0;
             return codec_length(*v.data()) * v.size();
         }
 

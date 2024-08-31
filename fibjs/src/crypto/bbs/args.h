@@ -90,7 +90,6 @@ static result_t bbs_get_args(v8::Local<v8::Array> messages, v8::Local<v8::Array>
 
 static result_t bbs_get_args(v8::Local<v8::Array> messages, v8::Local<v8::Array> index, KeyObject_base* key, bool priv, AsyncEvent* ac)
 {
-    Isolate* isolate = ac->isolate();
     result_t hr;
 
     ac->m_ctx.resize(6);
@@ -120,11 +119,8 @@ static result_t bbs_get_args(v8::Local<v8::Array> messages, v8::Local<v8::Array>
 
     ac->m_ctx[3] = _idx;
 
-    obj_ptr<Buffer_base> header;
-    ac->m_ctx[4] = header;
-
-    obj_ptr<Buffer_base> proof_header;
-    ac->m_ctx[5] = proof_header;
+    ac->m_ctx[4] = (Buffer_base*)nullptr;
+    ac->m_ctx[5] = (Buffer_base*)nullptr;
 
     return CALL_E_NOSYNC;
 }
