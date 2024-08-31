@@ -24,10 +24,13 @@ result_t get_index(Variant& idx, size_t msg_len, std::vector<int32_t>& idx_i, st
 {
     obj_ptr<NArray> _idx = (NArray*)idx.object();
 
+    if (_idx->length() > msg_len)
+        return CALL_E_INVALID_DATA;
+
     idx_i.reserve(_idx->length());
     idx_j.reserve(msg_len - _idx->length());
 
-    size_t pos_j = 1;
+    size_t pos_j = 0;
 
     for (size_t i = 0; i < _idx->length(); i++) {
         Variant v;
@@ -35,7 +38,7 @@ result_t get_index(Variant& idx, size_t msg_len, std::vector<int32_t>& idx_i, st
         _idx->_indexed_getter(i, v);
 
         int32_t n = v.intVal();
-        if (n < pos_j || n > msg_len)
+        if (n < pos_j || n >= msg_len)
             return CALL_E_INVALID_DATA;
 
         while (pos_j < n)
@@ -45,7 +48,7 @@ result_t get_index(Variant& idx, size_t msg_len, std::vector<int32_t>& idx_i, st
         idx_i.push_back(n);
     }
 
-    while (pos_j <= msg_len)
+    while (pos_j < msg_len)
         idx_j.push_back(pos_j++);
 
     return 0;
@@ -143,13 +146,20 @@ blst_scalar get_sk(object_base* key)
     return sk;
 }
 
-static blst_scalar calculate_challenge(const blst_p1& abar, const blst_p1& bbar, const blst_p1& c,
-    const std::vector<int32_t>& idx_i, const std::vector<blst_scalar>& fr_messages, const blst_scalar& domain, Buffer_base* ph, int32_t suite)
+static blst_scalar calculate_challenge(const blst_p1& abar, const blst_p1& bbar,
+    const blst_p1& d, const blst_p1& T1, const blst_p1& T2,
+    const std::vector<int32_t>& idx_i, const std::vector<blst_scalar>& fr_messages,
+    const blst_scalar& domain, Buffer_base* ph, int32_t suite)
 {
     blst_scalar s;
     Buffer* buf = Buffer::Cast(ph);
+    std::vector<std::pair<int32_t, blst_scalar>> idx_i_fr;
 
-    std::vector<uint8_t> data = encode(abar, bbar, c, idx_i.size(), idx_i, fr_messages, domain,
+    idx_i_fr.reserve(idx_i.size());
+    for (size_t i = 0; i < idx_i.size(); i++)
+        idx_i_fr.push_back(std::make_pair(idx_i[i], fr_messages[i]));
+
+    std::vector<uint8_t> data = encode(idx_i.size(), idx_i_fr, abar, bbar, d, T1, T2, domain,
         buf ? buf->length() : 0,
         buf ? codec_impl::span(buf->data(), buf->length()) : codec_impl::span((uint8_t*)NULL, 0));
     blst_hash_to_scalar(&s, data.data(), data.size(), DST(H2S, suite), suite);
@@ -276,72 +286,81 @@ static result_t proofGen_(Buffer_base* signature, obj_ptr<Buffer_base>& retVal, 
 
     blst_scalar r1 = generate_random_scalar();
     blst_scalar r2 = generate_random_scalar();
-    blst_scalar r3 = generate_random_scalar();
-    std::vector<blst_scalar> rs;
+    blst_scalar eTilda = generate_random_scalar();
+    blst_scalar r1Tilda = generate_random_scalar();
+    blst_scalar r3Tilda = generate_random_scalar();
 
-    rs.reserve(idx_j.size());
+    std::vector<blst_scalar> mTilda;
+    mTilda.reserve(idx_j.size());
     for (size_t i = 0; i < idx_j.size(); i++)
-        rs.push_back(generate_random_scalar());
+        mTilda.push_back(generate_random_scalar());
 
     blst_p1 b = gens.compute_b(fr_messages.data(), domain, suite);
+    blst_p1 c;
 
     Proof p;
 
-    blst_p1_mult(&p.abar, &s.a, (const byte*)&r1, 256);
+    // D = B * r2
+    blst_p1_mult(&p.d, &b, (const byte*)&r2, 256);
 
-    blst_p1_mult(&p.bbar, &p.abar, (const byte*)&s.e, 256);
-    blst_p1_cneg(&p.bbar, 1);
-    add_mul(p.bbar, b, r1);
+    // Abar = A * (r1 * r2)
+    blst_fr fr1, fr2, fr3;
+    blst_scalar r3;
+    blst_fr_from_scalar(&fr1, &r1);
+    blst_fr_from_scalar(&fr2, &r2);
+    blst_fr_mul(&fr3, &fr1, &fr2);
+    blst_scalar_from_fr(&r3, &fr3);
+    blst_p1_mult(&p.abar, &s.a, (const byte*)&r3, 256);
 
-    blst_p1 c;
+    // Bbar = D * r1 - Abar * e
+    blst_p1_mult(&p.bbar, &p.d, (const byte*)&r1, 256);
+    sub_mul(p.bbar, p.abar, s.e);
 
-    blst_p1_mult(&c, &p.bbar, (const byte*)&r3, 256);
-    add_mul(c, p.abar, r2);
+    // T1 = Abar * e~ + D * r1~
+    blst_p1 T1;
+    blst_p1_mult(&T1, &p.abar, (const byte*)&eTilda, 256);
+    add_mul(T1, p.d, r1Tilda);
+
+    // T2 = D * r3~ + H_j1 * m~_j1 + ... + H_jU * m~_jU
+    blst_p1 T2;
+    blst_p1_mult(&T2, &p.d, (const byte*)&r3Tilda, 256);
     for (size_t i = 0; i < idx_j.size(); i++)
-        add_mul(c, gens.h[idx_j[i] - 1], rs[i]);
+        add_mul(T2, gens.h[idx_j[i]], mTilda[i]);
 
     std::vector<blst_scalar> fr_messages_i;
 
     fr_messages_i.reserve(idx_i.size());
     for (size_t i = 0; i < idx_i.size(); i++)
-        fr_messages_i.push_back(fr_messages[idx_i[i] - 1]);
+        fr_messages_i.push_back(fr_messages[idx_i[i]]);
 
-    for (size_t i = 0; i < idx_i.size(); i++)
-        idx_i[i]--;
+    p.c = calculate_challenge(p.abar, p.bbar, p.d, T1, T2,
+        idx_i, fr_messages_i, domain, (Buffer_base*)ac->m_ctx[5].object(), suite);
 
-    p.c = calculate_challenge(p.abar, p.bbar, c, idx_i, fr_messages_i, domain, (Buffer_base*)ac->m_ctx[5].object(), suite);
+    // r3 = r2^-1 (mod r)
+    blst_fr_inverse(&fr3, &fr2);
+    blst_scalar_from_fr(&r3, &fr3);
 
-    blst_fr fr4;
+    // e^ = e~ + e_value * challenge
+    scalar_add_mul(p.ehat, eTilda, s.e, p.c);
 
-    blst_fr_from_scalar(&fr4, &r1);
-    blst_fr_cneg(&fr4, &fr4, 1);
-    blst_fr_inverse(&fr4, &fr4);
+    // r1^ = r1~ - r1 * challenge
+    scalar_sub_mul(p.r1hat, r1Tilda, r1, p.c);
 
-    blst_fr fr2, fr3, fr5, frc, fre;
-    blst_fr_from_scalar(&fr2, &r2);
-    blst_fr_from_scalar(&fr3, &r3);
+    // r3^ = r3~ - r3 * challenge
+    scalar_sub_mul(p.r3hat, r3Tilda, r3, p.c);
+
+    blst_fr fr4, fr5, frc;
     blst_fr_from_scalar(&frc, &p.c);
-    blst_fr_from_scalar(&fre, &s.e);
 
-    blst_fr_mul(&fr5, &fr4, &fre);
-    blst_fr_mul(&fr5, &fr5, &frc);
-    blst_fr_add(&fr5, &fr5, &fr2);
-    blst_scalar_from_fr(&p.r2hat, &fr5);
-
-    blst_fr_mul(&fr5, &fr4, &frc);
-    blst_fr_add(&fr5, &fr5, &fr3);
-    blst_scalar_from_fr(&p.r3hat, &fr5);
-
+    // m^_j = m~_j + m_j * c (mod r)
     p.mhat.resize(idx_j.size());
     for (size_t i = 0; i < idx_j.size(); i++) {
-        blst_fr fr6;
+        blst_fr_from_scalar(&fr4, &fr_messages[idx_j[i]]);
+        blst_fr_mul(&fr4, &fr4, &frc);
 
-        blst_fr_from_scalar(&fr5, &fr_messages[idx_j[i] - 1]);
-        blst_fr_mul(&fr5, &fr5, &frc);
-
-        blst_fr_from_scalar(&fr6, &rs[i]);
-        blst_fr_add(&fr5, &fr5, &fr6);
-        blst_scalar_from_fr(&p.mhat[i], &fr5);
+        blst_fr_from_scalar(&fr5, &mTilda[i]);
+        blst_fr_add(&fr4, &fr4, &fr5);
+        blst_scalar_from_fr(&p.mhat[i], &fr4);
     }
 
     p.serialize(retVal);
@@ -394,8 +413,10 @@ static result_t proofVerify_(Buffer_base* proof, bool& retVal, AsyncEvent* ac)
     std::vector<int32_t> idx_j;
 
     result_t hr = get_index(ac->m_ctx[3], msg_len, idx_i, idx_j);
-    if (hr < 0)
-        return hr;
+    if (hr < 0) {
+        retVal = false;
+        return 0;
+    }
 
     if (fr_messages.size() != idx_i.size()) {
         retVal = false;
@@ -405,23 +426,29 @@ static result_t proofVerify_(Buffer_base* proof, bool& retVal, AsyncEvent* ac)
     Generators gens(msg_len, suite);
     blst_scalar domain = calculate_domain(pk, gens, (Buffer_base*)ac->m_ctx[4].object(), suite);
 
-    blst_p1 d, c;
+    // T1 = Bbar * c + Abar * e^ + D * r1^
+    blst_p1 T1;
+    blst_p1_mult(&T1, &p.bbar, (const byte*)&p.c, 256);
+    add_mul(T1, p.abar, p.ehat);
+    add_mul(T1, p.d, p.r1hat);
 
-    blst_p1_from_affine(&d, suite == 0 ? &BLS12_381_G1_P1 : &BLS12_381_G1_P1_XOF);
-    add_mul(d, gens.q1, domain);
+    // Bv = P1 + Q_1 * domain + H_i1 * msg_i1 + ... + H_iR * msg_iR
+    blst_p1 Bv;
+    blst_p1_from_affine(&Bv, suite == 0 ? &BLS12_381_G1_P1 : &BLS12_381_G1_P1_XOF);
+    add_mul(Bv, gens.q1, domain);
     for (size_t i = 0; i < idx_i.size(); i++)
-        add_mul(d, gens.h[idx_i[i] - 1], fr_messages[i]);
+        add_mul(Bv, gens.h[idx_i[i]], fr_messages[i]);
 
-    blst_p1_mult(&c, &p.abar, (const byte*)&p.r2hat, 256);
-    add_mul(c, p.bbar, p.r3hat);
+    // T2 = Bv * c + D * r3^ + H_j1 * m^_j1 + ... +  H_jU * m^_jU
+    blst_p1 T2;
+    blst_p1_mult(&T2, &Bv, (const byte*)&p.c, 256);
+    add_mul(T2, p.d, p.r3hat);
     for (size_t i = 0; i < idx_j.size(); i++)
-        add_mul(c, gens.h[idx_j[i] - 1], p.mhat[i]);
-    add_mul(c, d, p.c);
+        add_mul(T2, gens.h[idx_j[i]], p.mhat[i]);
 
-    for (size_t i = 0; i < idx_i.size(); i++)
-        idx_i[i]--;
+    blst_scalar cv = calculate_challenge(p.abar, p.bbar, p.d, T1, T2,
+        idx_i, fr_messages, domain, (Buffer_base*)ac->m_ctx[5].object(), suite);
 
-    blst_scalar cv = calculate_challenge(p.abar, p.bbar, c, idx_i, fr_messages, domain, (Buffer_base*)ac->m_ctx[5].object(), suite);
     if (memcmp(&cv, &p.c, sizeof(blst_scalar))) {
         retVal = false;
         return 0;

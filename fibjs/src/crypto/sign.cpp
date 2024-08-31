@@ -14,10 +14,6 @@
 
 namespace fibjs {
 
-static const unsigned int kNoDsaSignature = std::numeric_limits<unsigned int>::max();
-static const int DEFAULT_PADDING = std::numeric_limits<int>::max();
-static const int NO_SALTLEN = std::numeric_limits<int>::max();
-
 static result_t get_sig_opt(Isolate* isolate, v8::Local<v8::Object> key, DSASigEnc& enc, int& padding, int& salt_len)
 {
     v8::Local<v8::Context> context = isolate->context();
@@ -529,10 +525,12 @@ result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Buffer_base* data, Ke
 result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Buffer_base* data, v8::Local<v8::Object> key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
+        Isolate* isolate = ac->isolate();
+
         ac->m_ctx.resize(5);
 
         exlib::string algo;
-        result_t hr = get_algorithm(ac->isolate(), algorithm, algo);
+        result_t hr = get_algorithm(isolate, algorithm, algo);
         if (hr < 0)
             return hr;
         ac->m_ctx[0] = algo;
@@ -546,7 +544,7 @@ result_t crypto_base::sign(v8::Local<v8::Value> algorithm, Buffer_base* data, v8
         DSASigEnc enc = kSigEncDER;
         int padding = DEFAULT_PADDING;
         int salt_len = NO_SALTLEN;
-        hr = get_sig_opt(Isolate::current(), key, enc, padding, salt_len);
+        hr = get_sig_opt(isolate, key, enc, padding, salt_len);
         if (hr < 0)
             return hr;
         ac->m_ctx[2] = (int)enc;
@@ -645,10 +643,12 @@ result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Buffer_base* data, 
 result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Buffer_base* data, v8::Local<v8::Object> key, Buffer_base* signature, bool& retVal, AsyncEvent* ac)
 {
     if (ac->isSync()) {
+        Isolate* isolate = ac->isolate();
+
         ac->m_ctx.resize(5);
 
         exlib::string algo;
-        result_t hr = get_algorithm(ac->isolate(), algorithm, algo);
+        result_t hr = get_algorithm(isolate, algorithm, algo);
         if (hr < 0)
             return hr;
         ac->m_ctx[0] = algo;
@@ -662,7 +662,7 @@ result_t crypto_base::verify(v8::Local<v8::Value> algorithm, Buffer_base* data, 
         DSASigEnc enc = kSigEncDER;
         int padding = DEFAULT_PADDING;
         int salt_len = NO_SALTLEN;
-        hr = get_sig_opt(Isolate::current(), key, enc, padding, salt_len);
+        hr = get_sig_opt(isolate, key, enc, padding, salt_len);
         if (hr < 0)
             return hr;
         ac->m_ctx[2] = (int)enc;

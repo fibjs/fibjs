@@ -187,10 +187,9 @@ result_t JSFiber::js_invoke()
     return 0;
 }
 
-JSFiber::EnterJsScope::EnterJsScope(JSFiber* fb, bool task)
+JSFiber::EnterJsScope::EnterJsScope(JSFiber* fb)
     : m_hr(0)
     , m_pFiber(fb)
-    , m_task(task)
 {
     if (fb == NULL)
         m_pFiber = new JSFiber();
@@ -210,10 +209,9 @@ JSFiber::EnterJsScope::~EnterJsScope()
     Runtime* rt = Runtime::current();
     Isolate* isolate = m_pFiber->holder();
 
-    if (!m_task)
-        isolate->RunMicrotasks();
+    isolate->RunMicrotasks();
 
-    m_pFiber->m_message = ReportException(try_catch, m_hr);
+    m_pFiber->m_message = ReportException(try_catch, m_hr, false);
 
     if (!rt->m_promise_error.IsEmpty()) {
         v8::Local<v8::Context> _context = isolate->context();

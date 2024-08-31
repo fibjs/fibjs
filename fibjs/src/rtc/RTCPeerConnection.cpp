@@ -56,7 +56,7 @@ result_t rtc_base::listen(exlib::string bind_address, int32_t local_port, v8::Lo
 
             syncCall((Isolate*)user_data, [](cb_data* data_) {
                 Isolate* isolate = Isolate::current();
-                JSFiber::EnterJsScope s(NULL, true);
+                JSFiber::EnterJsScope s;
 
                 v8::Local<v8::Function> cb = v8::Local<v8::Function>::New(isolate->m_isolate, s_cb_global);
                 v8::Local<v8::Object> data = v8::Object::New(isolate->m_isolate);

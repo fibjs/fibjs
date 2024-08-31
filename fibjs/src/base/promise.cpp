@@ -34,7 +34,7 @@ static void promise_catch(const v8::FunctionCallbackInfo<v8::Value>& args)
     ev->set();
 }
 
-v8::Local<v8::Value> Isolate::WaitPromise(v8::Local<v8::Value> promise)
+v8::Local<v8::Value> Isolate::await(v8::Local<v8::Value> promise)
 {
     v8::Local<v8::Context> _context = context();
 

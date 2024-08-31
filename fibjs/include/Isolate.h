@@ -10,6 +10,7 @@
 #include <exlib/include/list.h>
 #include <exlib/include/service.h>
 #include "QuickArray.h"
+#include "LruCache.h"
 #include "utf8.h"
 #include <unordered_map>
 
@@ -36,6 +37,7 @@ class HttpClient;
 class Stream_base;
 class ValueHolder;
 class SecureContext_base;
+class Buffer_base;
 class Worker_base;
 
 class Isolate : public exlib::linkitem {
@@ -179,7 +181,7 @@ public:
         return v->NumberValue(context()).FromMaybe(0);
     }
 
-    v8::Local<v8::Value> WaitPromise(v8::Local<v8::Value> promise);
+    v8::Local<v8::Value> await(v8::Local<v8::Value> promise);
 
     template <typename Fn>
     void SetImmediate(Fn&& cb, int32_t flags = 1)
@@ -262,7 +264,7 @@ public:
     std::unordered_map<uint32_t, SandBox*> m_sandboxes;
     uint32_t m_sandboxId = 0;
 
-    bool m_intask = false;
+    std::atomic_bool m_intask;
 
     obj_ptr<HttpClient> m_httpclient;
     v8::Global<v8::Object> STATUS_CODES;
@@ -306,6 +308,9 @@ public:
     bool m_safe_buffer;
 
     obj_ptr<SecureContext_base> m_ctx;
+
+    LruCache<std::pair<int, obj_ptr<Buffer_base>>> m_file_cache;
+    LruCache<std::pair<int, exlib::string>> m_realpath_cache;
 
 public:
     void get_stdin(obj_ptr<Stream_base>& retVal);

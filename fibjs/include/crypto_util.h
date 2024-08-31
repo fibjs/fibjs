@@ -10,6 +10,7 @@
 #include "utils.h"
 #include "encoding.h"
 #include "Buffer.h"
+#include "ifs/KeyObject.h"
 #include <openssl/rand.h>
 #include <openssl/ssl.h>
 #include <openssl/core_names.h>
@@ -124,7 +125,7 @@ const EVP_MD* _evp_md_type(const char* algo);
 int GetCurveFromName(const char* name);
 result_t openssl_error();
 
-inline result_t GetKeyBuffer(Isolate* isolate, v8::Local<v8::Object> o, obj_ptr<Buffer>& buf)
+inline result_t GetKeyBuffer(Isolate* isolate, v8::Local<v8::Object> o, obj_ptr<Buffer_base>& buf)
 {
     result_t hr;
     v8::Local<v8::Value> v;
@@ -154,7 +155,7 @@ inline result_t GetKeyBuffer(Isolate* isolate, v8::Local<v8::Object> o, obj_ptr<
         hr = GetArgumentValue(isolate, v, _buf);
         if (hr < 0)
             return hr;
-        buf = Buffer::Cast(_buf);
+        buf = _buf;
     }
 
     return 0;
@@ -218,5 +219,18 @@ inline bool is_okp_curve(int nid)
         || nid == NID_ED25519 || nid == NID_ED448
         || nid == NID_BLS12_381_G1 || nid == NID_BLS12_381_G2;
 }
+
+enum DSASigEnc {
+    kSigEncDER,
+    kSigEncP1363
+};
+
+static const unsigned int kNoDsaSignature = std::numeric_limits<unsigned int>::max();
+static const int DEFAULT_PADDING = std::numeric_limits<int>::max();
+static const int NO_SALTLEN = std::numeric_limits<int>::max();
+
+result_t _sign(exlib::string algorithm, Buffer_base* data, KeyObject_base* privateKey, DSASigEnc enc, int padding, int salt_len, obj_ptr<Buffer_base>& retVal);
+result_t _verify(exlib::string algorithm, Buffer_base* data, KeyObject_base* publicKey, Buffer_base* signature,
+    DSASigEnc enc, int padding, int salt_len, bool& retVal);
 
 }

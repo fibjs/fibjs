@@ -16,6 +16,9 @@ module global
     /*! @brief 控制器对象，用于在需要时中止一个或多个 Web 请求，参见 AbortController 对象。*/
     static AbortController;
 
+    /*! @brief CryptoKey 类来表示对称或非对称密钥，每种密钥公开不同的功能 */
+    static CryptoKey;
+
     /*! @brief 控制台访问对象 */
     static console;
 
@@ -24,6 +27,9 @@ module global
 
     /*! @brief 基础性能监控模块 */
     static performance;
+
+    /**/
+    static webcrypto new crypto();
 
     /*! @brief 全局对象 */
     static readonly Object global;

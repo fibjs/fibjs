@@ -58,6 +58,17 @@ public:
         return 0;
     }
 
+    Variant& get(exlib::string key)
+    {
+        std::unordered_map<exlib::string, int32_t>::iterator it = m_keys.find(key);
+        return m_values[it->second].m_val;
+    }
+
+    bool has(exlib::string key)
+    {
+        return m_keys.find(key) != m_keys.end();
+    }
+
     result_t remove(exlib::string key)
     {
         std::unordered_map<exlib::string, int32_t>::iterator it = m_keys.find(key);
@@ -83,10 +94,7 @@ public:
     {
         v8::Local<v8::Object> obj;
 
-        result_t hr = valueOf(obj);
-        if (hr < 0)
-            return hr;
-
+        valueOf(obj);
         retVal = obj;
 
         return 0;
@@ -175,29 +183,37 @@ public:
     // object_base
     virtual result_t valueOf(v8::Local<v8::Value>& retVal)
     {
-        v8::Local<v8::Object> obj;
+        v8::Local<v8::Array> arr;
 
-        result_t hr = valueOf(obj);
-        if (hr < 0)
-            return hr;
-
-        retVal = obj;
+        valueOf(arr);
+        retVal = arr;
 
         return 0;
     }
 
     result_t valueOf(v8::Local<v8::Object>& retVal)
     {
+        v8::Local<v8::Array> arr;
+
+        valueOf(arr);
+        retVal = arr;
+
+        return 0;
+    }
+
+    result_t valueOf(v8::Local<v8::Array>& retVal)
+    {
         Isolate* isolate = holder();
         v8::Local<v8::Context> context = isolate->context();
         v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate);
+        v8::Local<v8::Object> o = arr;
 
         for (int32_t i = 0; i < (int32_t)m_array.size(); i++)
             arr->Set(context, i, m_array[i]).IsJust();
 
         retVal = arr;
 
-        return NObject::valueOf(retVal);
+        return NObject::valueOf(o);
     }
 
 private:
@@ -252,6 +268,7 @@ public:
 };
 
 class NType : public object_base {
+    DECLARE_CLASS(NType);
 
 public:
     // object_base
@@ -275,18 +292,18 @@ public:
 
         obj = v8::Object::New(isolate->m_isolate);
 
-        fillMembers(isolate, obj);
+        to_value(isolate, obj);
 
         retVal = obj;
         return 0;
     }
 
 public:
-    virtual void fillMembers(Isolate* isolate, v8::Local<v8::Object>& retVal)
+    virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
     {
     }
 
-    virtual void fillArguments(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+    virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
     {
     }
 };
@@ -319,6 +336,18 @@ inline ClassInfo& NMap::class_info()
 {
     static ClassData s_cd = {
         "NMap", false, NULL, NULL,
+        0, NULL, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
+        &object_base::class_info()
+    };
+
+    static ClassInfo s_ci(s_cd);
+    return s_ci;
+}
+
+inline ClassInfo& NType::class_info()
+{
+    static ClassData s_cd = {
+        "NType", false, NULL, NULL,
         0, NULL, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
         &object_base::class_info()
     };

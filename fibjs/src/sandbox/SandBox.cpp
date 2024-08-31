@@ -72,6 +72,9 @@ SandBox::SandBox(bool extLoader)
     loader = new js_Loader();
     m_loaders.push_back(loader);
 
+    loader = new cjs_Loader();
+    m_loaders.push_back(loader);
+
     loader = new mjs_Loader();
     m_loaders.push_back(loader);
 

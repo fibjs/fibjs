@@ -24,6 +24,7 @@ class Cipher_base;
 class Sign_base;
 class Verify_base;
 class X509CertificateRequest_base;
+class webcrypto_base;
 
 class crypto_base : public object_base {
     DECLARE_CLASS(crypto_base);
@@ -31,14 +32,14 @@ class crypto_base : public object_base {
 public:
     class GenerateKeyPairType : public NType {
     public:
-        virtual void fillMembers(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
         {
             v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
             retVal->Set(context, isolate->NewString("publicKey"), GetReturnValue(isolate, publicKey)).Check();
             retVal->Set(context, isolate->NewString("privateKey"), GetReturnValue(isolate, privateKey)).Check();
         }
 
-        virtual void fillArguments(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
         {
             args.push_back(GetReturnValue(isolate, publicKey));
             args.push_back(GetReturnValue(isolate, privateKey));
@@ -98,6 +99,7 @@ public:
     static result_t verify(v8::Local<v8::Value> algorithm, Buffer_base* data, Buffer_base* publicKey, Buffer_base* signature, bool& retVal, AsyncEvent* ac);
     static result_t verify(v8::Local<v8::Value> algorithm, Buffer_base* data, KeyObject_base* publicKey, Buffer_base* signature, bool& retVal, AsyncEvent* ac);
     static result_t verify(v8::Local<v8::Value> algorithm, Buffer_base* data, v8::Local<v8::Object> key, Buffer_base* signature, bool& retVal, AsyncEvent* ac);
+    static result_t timingSafeEqual(Buffer_base* a, Buffer_base* b, bool& retVal);
     static result_t bbsSign(v8::Local<v8::Array> messages, Buffer_base* privateKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t bbsSign(v8::Local<v8::Array> messages, KeyObject_base* privateKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     static result_t bbsSign(v8::Local<v8::Array> messages, v8::Local<v8::Object> key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
@@ -149,6 +151,7 @@ public:
     static void s_static_publicEncrypt(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_sign(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_verify(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_timingSafeEqual(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_bbsSign(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_bbsVerify(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_proofGen(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -190,6 +193,7 @@ public:
 #include "ifs/Sign.h"
 #include "ifs/Verify.h"
 #include "ifs/X509CertificateRequest.h"
+#include "ifs/webcrypto.h"
 
 namespace fibjs {
 inline ClassInfo& crypto_base::class_info()
@@ -213,37 +217,28 @@ inline ClassInfo& crypto_base::class_info()
         { "diffieHellman", s_static_diffieHellman, true, ClassData::ASYNC_SYNC },
         { "hash", s_static_hash, true, ClassData::ASYNC_SYNC },
         { "randomBytes", s_static_randomBytes, true, ClassData::ASYNC_ASYNC },
-        { "randomBytesSync", s_static_randomBytes, true, ClassData::ASYNC_SYNC },
         { "randomFill", s_static_randomFill, true, ClassData::ASYNC_ASYNC },
-        { "randomFillSync", s_static_randomFill, true, ClassData::ASYNC_SYNC },
         { "generateKeyPair", s_static_generateKeyPair, true, ClassData::ASYNC_ASYNC },
-        { "generateKeyPairSync", s_static_generateKeyPair, true, ClassData::ASYNC_SYNC },
         { "hkdf", s_static_hkdf, true, ClassData::ASYNC_ASYNC },
-        { "hkdfSync", s_static_hkdf, true, ClassData::ASYNC_SYNC },
         { "pbkdf2", s_static_pbkdf2, true, ClassData::ASYNC_ASYNC },
-        { "pbkdf2Sync", s_static_pbkdf2, true, ClassData::ASYNC_SYNC },
         { "privateDecrypt", s_static_privateDecrypt, true, ClassData::ASYNC_SYNC },
         { "privateEncrypt", s_static_privateEncrypt, true, ClassData::ASYNC_SYNC },
         { "publicDecrypt", s_static_publicDecrypt, true, ClassData::ASYNC_SYNC },
         { "publicEncrypt", s_static_publicEncrypt, true, ClassData::ASYNC_SYNC },
         { "sign", s_static_sign, true, ClassData::ASYNC_ASYNC },
-        { "signSync", s_static_sign, true, ClassData::ASYNC_SYNC },
         { "verify", s_static_verify, true, ClassData::ASYNC_ASYNC },
-        { "verifySync", s_static_verify, true, ClassData::ASYNC_SYNC },
+        { "timingSafeEqual", s_static_timingSafeEqual, true, ClassData::ASYNC_SYNC },
         { "bbsSign", s_static_bbsSign, true, ClassData::ASYNC_ASYNC },
-        { "bbsSignSync", s_static_bbsSign, true, ClassData::ASYNC_SYNC },
         { "bbsVerify", s_static_bbsVerify, true, ClassData::ASYNC_ASYNC },
-        { "bbsVerifySync", s_static_bbsVerify, true, ClassData::ASYNC_SYNC },
         { "proofGen", s_static_proofGen, true, ClassData::ASYNC_ASYNC },
-        { "proofGenSync", s_static_proofGen, true, ClassData::ASYNC_SYNC },
-        { "proofVerify", s_static_proofVerify, true, ClassData::ASYNC_ASYNC },
-        { "proofVerifySync", s_static_proofVerify, true, ClassData::ASYNC_SYNC }
+        { "proofVerify", s_static_proofVerify, true, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData::ClassObject s_object[] = {
         { "constants", crypto_constants_base::class_info },
         { "KeyObject", KeyObject_base::class_info },
-        { "X509Certificate", X509Certificate_base::class_info }
+        { "X509Certificate", X509Certificate_base::class_info },
+        { "webcrypto", webcrypto_base::class_info }
     };
 
     static ClassData s_cd = {
@@ -875,6 +870,22 @@ inline void crypto_base::s_static_verify(const v8::FunctionCallbackInfo<v8::Valu
         hr = acb_verify(v0, v1, v2, v3, cb, args);
     else
         hr = ac_verify(v0, v1, v2, v3, vr);
+
+    METHOD_RETURN();
+}
+
+inline void crypto_base::s_static_timingSafeEqual(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    ARG(obj_ptr<Buffer_base>, 1);
+
+    hr = timingSafeEqual(v0, v1, vr);
 
     METHOD_RETURN();
 }

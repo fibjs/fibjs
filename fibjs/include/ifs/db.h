@@ -77,21 +77,13 @@ inline ClassInfo& db_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "open", s_static_open, true, ClassData::ASYNC_ASYNC },
-        { "openSync", s_static_open, true, ClassData::ASYNC_SYNC },
         { "openMySQL", s_static_openMySQL, true, ClassData::ASYNC_ASYNC },
-        { "openMySQLSync", s_static_openMySQL, true, ClassData::ASYNC_SYNC },
         { "openSQLite", s_static_openSQLite, true, ClassData::ASYNC_ASYNC },
-        { "openSQLiteSync", s_static_openSQLite, true, ClassData::ASYNC_SYNC },
         { "openOdbc", s_static_openOdbc, true, ClassData::ASYNC_ASYNC },
-        { "openOdbcSync", s_static_openOdbc, true, ClassData::ASYNC_SYNC },
         { "openMSSQL", s_static_openMSSQL, true, ClassData::ASYNC_ASYNC },
-        { "openMSSQLSync", s_static_openMSSQL, true, ClassData::ASYNC_SYNC },
         { "openPSQL", s_static_openPSQL, true, ClassData::ASYNC_ASYNC },
-        { "openPSQLSync", s_static_openPSQL, true, ClassData::ASYNC_SYNC },
         { "openLevelDB", s_static_openLevelDB, true, ClassData::ASYNC_ASYNC },
-        { "openLevelDBSync", s_static_openLevelDB, true, ClassData::ASYNC_SYNC },
-        { "openRedis", s_static_openRedis, true, ClassData::ASYNC_ASYNC },
-        { "openRedisSync", s_static_openRedis, true, ClassData::ASYNC_SYNC }
+        { "openRedis", s_static_openRedis, true, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData s_cd = {

@@ -57,7 +57,7 @@ public:
         return o;
     }
 
-    void InstallModule(exlib::string fname, v8::Local<v8::Value> o, v8::Local<v8::Object> m = v8::Local<v8::Object>())
+    v8::Local<v8::Object> InstallModule(exlib::string fname, v8::Local<v8::Value> o, v8::Local<v8::Object> m = v8::Local<v8::Object>())
     {
         Isolate* isolate = holder();
         v8::Local<v8::Context> _context = isolate->context();
@@ -69,9 +69,12 @@ public:
         }
 
         mods()->Set(_context, isolate->NewString(fname), m).IsJust();
+
+        return m;
     }
 
-    v8::Local<v8::Value> get_module(v8::Local<v8::Object> mods, exlib::string id);
+    v8::Local<v8::Object> get_module(v8::Local<v8::Object> mods, exlib::string id);
+    result_t wait_module(v8::Local<v8::Object> module, v8::Local<v8::Value>& retVal);
 
     void installBuffer();
     void attachBuffer();
@@ -148,7 +151,7 @@ public:
     }
 
 public:
-    virtual result_t custom_resolveId(exlib::string& id, v8::Local<v8::Value>& retVal);
+    virtual result_t custom_resolveId(exlib::string& id, v8::Local<v8::Object>& retVal);
 
 public:
     void initRequire(v8::Local<v8::Function> func)
@@ -156,24 +159,33 @@ public:
         SetPrivate("require", func);
     }
 
+    enum ModuleType {
+        kCommonJS = 0,
+        kESModule = 1,
+    };
+
     void initGlobal(v8::Local<v8::Object> global);
 
-    result_t installScript(exlib::string srcname, Buffer_base* script, v8::Local<v8::Value>& retVal);
+    result_t installScript(exlib::string srcname, Buffer_base* script, v8::Local<v8::Object>& retVal);
 
     result_t loadFile(exlib::string fname, obj_ptr<Buffer_base>& data);
+    result_t realpath(exlib::string fname, exlib::string& retVal);
+    result_t resolveModuleType(exlib::string fname, ModuleType& retVal);
 
     result_t resolveFile(v8::Local<v8::Object> mods, exlib::string& fname, obj_ptr<Buffer_base>& data,
-        v8::Local<v8::Value>* retVal);
-    result_t resolvePackage(v8::Local<v8::Object> mods, exlib::string& fname, obj_ptr<Buffer_base>& data,
-        v8::Local<v8::Value>* retVal);
+        v8::Local<v8::Object>* retVal);
+    result_t resolvePackage(v8::Local<v8::Object> mods, exlib::string module_name, exlib::string script_name,
+        obj_ptr<Buffer_base>& data, ModuleType type, exlib::string& out, v8::Local<v8::Object>* retVal);
 
-    result_t resolveFile(exlib::string& fname, obj_ptr<Buffer_base>& data,
-        v8::Local<v8::Value>* retVal);
-    result_t resolveId(exlib::string& id, v8::Local<v8::Value>& retVal);
-    result_t resolveModule(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
-        v8::Local<v8::Value>& retVal);
+    result_t resolveFile(exlib::string module_name, exlib::string script_name, obj_ptr<Buffer_base>& data, ModuleType type,
+        exlib::string& out, v8::Local<v8::Object>* retVal);
+    result_t resolveId(exlib::string& id, v8::Local<v8::Object>& retVal);
+    result_t resolveModule(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data, ModuleType type,
+        v8::Local<v8::Object>& retVal);
+    result_t resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data, ModuleType type,
+        v8::Local<v8::Object>& retVal);
     result_t resolve(exlib::string base, exlib::string& id, obj_ptr<Buffer_base>& data,
-        v8::Local<v8::Value>& retVal);
+        v8::Local<v8::Object>& retVal);
 
     result_t repl(exlib::string src);
 
@@ -230,12 +242,20 @@ public:
     static v8::MaybeLocal<v8::Promise> ImportModuleDynamically(v8::Local<v8::Context> context,
         v8::Local<v8::Data> host_defined_options, v8::Local<v8::Value> resource_name,
         v8::Local<v8::String> specifier, v8::Local<v8::FixedArray> import_assertions);
-    v8::MaybeLocal<v8::Promise> async_import(exlib::string id, exlib::string base);
+    static void ImportMetaObjectCallback(v8::Local<v8::Context> context, v8::Local<v8::Module> module,
+        v8::Local<v8::Object> meta);
 
 public:
     static const char* worker_args;
     static const char* module_args;
     static const char* base_args;
+
+public:
+    int32_t m_module_pendings = 0;
+    typedef std::unordered_map<exlib::string, std::pair<v8::Global<v8::Module>, int32_t>>::iterator module_map_iter;
+    std::unordered_map<exlib::string, std::pair<v8::Global<v8::Module>, int32_t>> module_map;
+    std::unordered_map<int32_t, std::unordered_map<exlib::string, v8::Global<v8::Module>>> module_deps_map;
+    exlib::string m_pending_module;
 
 public:
     std::vector<obj_ptr<ExtLoader>> m_loaders;

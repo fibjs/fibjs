@@ -22,6 +22,49 @@ static void add_mul(blst_p1& b, const blst_p1& p, const blst_scalar& s)
     blst_p1_add(&b, &b, &g);
 }
 
+static void sub_mul(blst_p1& b, const blst_p1& p, const blst_scalar& s)
+{
+    blst_p1 g;
+
+    blst_p1_mult(&g, &p, (const byte*)&s, 256);
+    blst_p1_cneg(&g, 1);
+    blst_p1_add(&b, &b, &g);
+}
+
+static void scalar_add_mul(blst_scalar& r, const blst_scalar& a, const blst_scalar& b, const blst_scalar& c)
+{
+    blst_fr fra;
+    blst_fr frb;
+    blst_fr frc;
+    blst_fr frd;
+
+    blst_fr_from_scalar(&fra, &a);
+    blst_fr_from_scalar(&frb, &b);
+    blst_fr_from_scalar(&frc, &c);
+
+    blst_fr_mul(&frd, &frb, &frc);
+    blst_fr_add(&frd, &fra, &frd);
+
+    blst_scalar_from_fr(&r, &frd);
+}
+
+static void scalar_sub_mul(blst_scalar& r, const blst_scalar& a, const blst_scalar& b, const blst_scalar& c)
+{
+    blst_fr fra;
+    blst_fr frb;
+    blst_fr frc;
+    blst_fr frd;
+
+    blst_fr_from_scalar(&fra, &a);
+    blst_fr_from_scalar(&frb, &b);
+    blst_fr_from_scalar(&frc, &c);
+
+    blst_fr_mul(&frd, &frb, &frc);
+    blst_fr_sub(&frd, &fra, &frd);
+
+    blst_scalar_from_fr(&r, &frd);
+}
+
 static void bbs_expand_message(unsigned char* bytes, size_t len_in_bytes, const unsigned char* msg, size_t msg_len,
     const unsigned char* DST, size_t DST_len, int32_t suite);
 static void bbs_hash_to_g1(blst_p1* out, const byte* msg, size_t msg_len,

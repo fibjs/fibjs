@@ -72,21 +72,13 @@ inline ClassInfo& Smtp_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "connect", s_connect, false, ClassData::ASYNC_ASYNC },
-        { "connectSync", s_connect, false, ClassData::ASYNC_SYNC },
         { "command", s_command, false, ClassData::ASYNC_ASYNC },
-        { "commandSync", s_command, false, ClassData::ASYNC_SYNC },
         { "hello", s_hello, false, ClassData::ASYNC_ASYNC },
-        { "helloSync", s_hello, false, ClassData::ASYNC_SYNC },
         { "login", s_login, false, ClassData::ASYNC_ASYNC },
-        { "loginSync", s_login, false, ClassData::ASYNC_SYNC },
         { "from", s_from, false, ClassData::ASYNC_ASYNC },
-        { "fromSync", s_from, false, ClassData::ASYNC_SYNC },
         { "to", s_to, false, ClassData::ASYNC_ASYNC },
-        { "toSync", s_to, false, ClassData::ASYNC_SYNC },
         { "data", s_data, false, ClassData::ASYNC_ASYNC },
-        { "dataSync", s_data, false, ClassData::ASYNC_SYNC },
-        { "quit", s_quit, false, ClassData::ASYNC_ASYNC },
-        { "quitSync", s_quit, false, ClassData::ASYNC_SYNC }
+        { "quit", s_quit, false, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

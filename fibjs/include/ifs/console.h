@@ -148,9 +148,7 @@ inline ClassInfo& console_base::class_info()
         { "showCursor", s_static_showCursor, true, ClassData::ASYNC_SYNC },
         { "clear", s_static_clear, true, ClassData::ASYNC_SYNC },
         { "readLine", s_static_readLine, true, ClassData::ASYNC_ASYNC },
-        { "readLineSync", s_static_readLine, true, ClassData::ASYNC_SYNC },
-        { "getpass", s_static_getpass, true, ClassData::ASYNC_ASYNC },
-        { "getpassSync", s_static_getpass, true, ClassData::ASYNC_SYNC }
+        { "getpass", s_static_getpass, true, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

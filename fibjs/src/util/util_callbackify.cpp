@@ -98,11 +98,26 @@ static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
 result_t util_base::callbackify(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal)
 {
     Isolate* isolate = Isolate::current(func);
+    v8::Local<v8::Context> context = isolate->context();
     v8::Local<v8::Function> func1;
+    v8::Local<v8::Value> v;
+
+    v = func->GetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async"))).FromMaybe(v8::Local<v8::Value>());
+    if (!IsEmpty(v)) {
+        retVal = v.As<v8::Function>();
+        return 0;
+    }
 
     func1 = isolate->NewFunction("async_promise", async_promise, func);
     if (func1.IsEmpty())
         return CHECK_ERROR(Runtime::setError("function alloc error."));
+
+    func->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")), func1);
+    func1->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_promise")), func);
+
+    v = func->GetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_sync"))).FromMaybe(v8::Local<v8::Value>());
+    if (!IsEmpty(v))
+        func1->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_sync")), v);
 
     v8::Local<v8::Value> name = func->GetName();
     if (!name.IsEmpty())

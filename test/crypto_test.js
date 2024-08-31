@@ -4240,6 +4240,499 @@ describe('crypto', () => {
             crypto.pbkdf2(null, null, 0, -1, 1);
         })
     });
+
+    describe("webcrypto", () => {
+        it("global.crypto equal require('crypto').webcrypto", () => {
+            assert.equal(global.crypto, require('crypto').webcrypto);
+        });
+
+        it("getRandomValues", () => {
+            const arrays = [
+                'Int8Array',
+                'Int16Array',
+                'Int32Array',
+                'BigInt64Array',
+                'Uint8Array',
+                'Uint8ClampedArray',
+                'Uint16Array',
+                'Uint32Array',
+                'BigUint64Array',
+            ];
+
+            for (const array of arrays) {
+                const ctor = globalThis[array];
+
+                assert.equal(global.crypto.getRandomValues(new ctor(8)).constructor, ctor);
+
+                const maxlength = 65536 / ctor.BYTES_PER_ELEMENT;
+                assert.throws(() => {
+                    global.crypto.getRandomValues(new ctor(maxlength + 1))
+                });
+
+                assert.equal(global.crypto.getRandomValues(new ctor(0)).length, 0);
+            }
+        });
+
+        it("randomUUID", () => {
+            const iterations = 256;
+            const uuids = new Set()
+            function randomUUID() {
+                const uuid = global.crypto.randomUUID();
+                if (uuids.has(uuid)) {
+                    throw new Error(`uuid collision ${uuid}`)
+                }
+                uuids.add(uuid);
+                return uuid;
+            }
+
+            for (let i = 0; i < iterations; i++) {
+                let value = parseInt(randomUUID().split('-')[2].slice(0, 2), 16);
+                value &= 0b11110000;
+                assert.equal(value, 0b01000000);
+            }
+        });
+
+        describe("subtle", () => {
+            it("digest", async () => {
+                var sourceData = {
+                    empty: Buffer.alloc(0),
+                    short: Buffer.from([21, 110, 234, 124, 193, 76, 86, 203, 148, 219, 3, 10, 74, 157, 149, 255]),
+                    medium: Buffer.from([182, 200, 249, 223, 100, 140, 208, 136, 183, 15, 56, 231, 65, 151, 177, 140, 184, 30, 30, 67, 80, 213, 11, 204, 184, 251, 90, 115, 121, 200, 123, 178, 227, 214, 237, 84, 97, 237, 30, 159, 54, 243, 64, 163, 150, 42, 68, 107, 129, 91, 121, 75, 75, 212, 58, 68, 3, 80, 32, 119, 178, 37, 108, 200, 7, 131, 127, 58, 172, 209, 24, 235, 75, 156, 43, 174, 184, 151, 6, 134, 37, 171, 172, 161, 147])
+                };
+
+                sourceData.long = Buffer.alloc(1024 * sourceData.medium.byteLength);
+                for (var i = 0; i < 1024; i++) {
+                    sourceData.long.set(sourceData.medium, i * sourceData.medium.byteLength);
+                }
+
+                var digestedData = {
+                    "sha-1": {
+                        empty: Buffer.from([218, 57, 163, 238, 94, 107, 75, 13, 50, 85, 191, 239, 149, 96, 24, 144, 175, 216, 7, 9]),
+                        short: Buffer.from([201, 19, 24, 205, 242, 57, 106, 1, 94, 63, 78, 106, 134, 160, 186, 101, 184, 99, 89, 68]),
+                        medium: Buffer.from([229, 65, 6, 8, 112, 235, 22, 191, 51, 182, 142, 81, 245, 19, 82, 104, 147, 152, 103, 41]),
+                        long: Buffer.from([48, 152, 181, 0, 55, 236, 208, 46, 189, 101, 118, 83, 178, 191, 160, 30, 238, 39, 162, 234])
+                    },
+                    "sha-256": {
+                        empty: Buffer.from([227, 176, 196, 66, 152, 252, 28, 20, 154, 251, 244, 200, 153, 111, 185, 36, 39, 174, 65, 228, 100, 155, 147, 76, 164, 149, 153, 27, 120, 82, 184, 85]),
+                        short: Buffer.from([162, 131, 17, 134, 152, 71, 146, 199, 211, 45, 89, 200, 151, 64, 104, 127, 25, 173, 220, 27, 149, 158, 113, 161, 204, 83, 138, 59, 126, 216, 67, 242]),
+                        medium: Buffer.from([83, 83, 103, 135, 126, 240, 20, 215, 252, 113, 126, 92, 183, 132, 62, 89, 182, 26, 238, 98, 199, 2, 156, 236, 126, 198, 193, 47, 217, 36, 224, 228]),
+                        long: Buffer.from([20, 205, 234, 157, 199, 95, 90, 98, 116, 217, 252, 30, 100, 0, 153, 18, 241, 220, 211, 6, 180, 143, 232, 233, 207, 18, 45, 230, 113, 87, 23, 129])
+                    },
+                    "sha-384": {
+                        empty: Buffer.from([56, 176, 96, 167, 81, 172, 150, 56, 76, 217, 50, 126, 177, 177, 227, 106, 33, 253, 183, 17, 20, 190, 7, 67, 76, 12, 199, 191, 99, 246, 225, 218, 39, 78, 222, 191, 231, 111, 101, 251, 213, 26, 210, 241, 72, 152, 185, 91]),
+                        short: Buffer.from([107, 245, 234, 101, 36, 209, 205, 220, 67, 247, 207, 59, 86, 238, 5, 146, 39, 64, 74, 47, 83, 143, 2, 42, 61, 183, 68, 122, 120, 44, 6, 193, 237, 5, 232, 171, 79, 94, 220, 23, 243, 113, 20, 64, 223, 233, 119, 49]),
+                        medium: Buffer.from([203, 194, 197, 136, 254, 91, 37, 249, 22, 218, 40, 180, 228, 122, 72, 74, 230, 252, 31, 228, 144, 45, 213, 201, 147, 154, 107, 253, 3, 74, 179, 180, 139, 57, 8, 116, 54, 1, 31, 106, 153, 135, 157, 39, 149, 64, 233, 119]),
+                        long: Buffer.from([73, 244, 253, 179, 152, 25, 104, 249, 125, 87, 55, 15, 133, 52, 80, 103, 205, 82, 150, 169, 125, 209, 161, 142, 6, 145, 30, 117, 110, 150, 8, 73, 37, 41, 135, 14, 26, 209, 48, 153, 141, 87, 203, 251, 183, 193, 208, 158])
+                    },
+                    "sha-512": {
+                        empty: Buffer.from([207, 131, 225, 53, 126, 239, 184, 189, 241, 84, 40, 80, 214, 109, 128, 7, 214, 32, 228, 5, 11, 87, 21, 220, 131, 244, 169, 33, 211, 108, 233, 206, 71, 208, 209, 60, 93, 133, 242, 176, 255, 131, 24, 210, 135, 126, 236, 47, 99, 185, 49, 189, 71, 65, 122, 129, 165, 56, 50, 122, 249, 39, 218, 62]),
+                        short: Buffer.from([55, 82, 72, 190, 95, 243, 75, 231, 76, 171, 79, 241, 195, 188, 141, 198, 139, 213, 248, 223, 244, 2, 62, 152, 248, 123, 134, 92, 255, 44, 114, 66, 146, 223, 24, 148, 67, 166, 79, 244, 19, 74, 101, 205, 70, 53, 185, 212, 245, 220, 13, 63, 182, 117, 40, 0, 42, 99, 172, 242, 108, 157, 165, 117]),
+                        medium: Buffer.from([185, 16, 159, 131, 158, 142, 164, 60, 137, 15, 41, 60, 225, 29, 198, 226, 121, 141, 30, 36, 49, 241, 228, 185, 25, 227, 178, 12, 79, 54, 48, 59, 163, 156, 145, 109, 179, 6, 196, 90, 59, 101, 118, 31, 245, 190, 133, 50, 142, 234, 244, 44, 56, 48, 241, 217, 94, 122, 65, 22, 91, 125, 45, 54]),
+                        long: Buffer.from([75, 2, 202, 246, 80, 39, 96, 48, 234, 86, 23, 229, 151, 197, 213, 63, 217, 218, 166, 139, 120, 191, 230, 11, 34, 170, 184, 211, 106, 76, 42, 58, 255, 219, 113, 35, 79, 73, 39, 103, 55, 197, 117, 221, 247, 77, 20, 5, 76, 189, 111, 219, 152, 253, 13, 220, 188, 180, 111, 145, 173, 118, 182, 238])
+                    },
+                }
+
+                for (var source in sourceData) {
+                    for (var digest in digestedData) {
+                        const sourceBuffer = sourceData[source];
+                        const digestedBuffer = digestedData[digest][source];
+
+                        const hash = await global.crypto.subtle.digest(digest, sourceBuffer);
+                        assert.deepEqual(hash, digestedBuffer);
+                    }
+                }
+            });
+        });
+
+        describe("generateKey", async () => {
+            it("ECDSA", async () => {
+                const key = await global.crypto.subtle.generateKey(
+                    {
+                        name: "ECDSA",
+                        namedCurve: "P-256"
+                    },
+                    true,
+                    ["sign", "verify"]
+                );
+
+                assert.equal(key.privateKey.algorithm.name, "ECDSA");
+                assert.equal(key.privateKey.algorithm.namedCurve, "P-256");
+                assert.equal(key.publicKey.algorithm.name, "ECDSA");
+                assert.equal(key.publicKey.algorithm.namedCurve, "P-256");
+
+                assert.deepEqual(key.privateKey.usages, ["sign"]);
+                assert.deepEqual(key.publicKey.usages, ["verify"]);
+
+                assert.isTrue(key.privateKey.extractable);
+                assert.isTrue(key.publicKey.extractable);
+            });
+
+            it("should not include 'verify' when it is not included in the keyUsages", async () => {
+                const key = await global.crypto.subtle.generateKey(
+                    {
+                        name: "ECDSA",
+                        namedCurve: "P-256"
+                    },
+                    true,
+                    ["sign"]
+                );
+
+                assert.deepEqual(key.privateKey.usages, ["sign"]);
+                assert.deepEqual(key.publicKey.usages, []);
+            });
+
+            it("should set extractable of public key to true by default", async () => {
+                const key = await global.crypto.subtle.generateKey(
+                    {
+                        name: "ECDSA",
+                        namedCurve: "P-256"
+                    },
+                    false,
+                    ["sign", "verify"]
+                );
+
+                assert.isFalse(key.privateKey.extractable);
+                assert.isTrue(key.publicKey.extractable);
+            });
+
+            it("should throw if the key type is not supported", async () => {
+                assert.throws(async () => {
+                    const key = await global.crypto.subtle.generateKey(
+                        {
+                            name: "ECDSA",
+                            namedCurve: "P-256"
+                        },
+                        true,
+                        ["sign", "verify", "encrypt"]
+                    );
+                });
+            });
+
+            it("should throw if 'sign' is not included in the keyUsages", async () => {
+                assert.throws(async () => {
+                    const key = await global.crypto.subtle.generateKey(
+                        {
+                            name: "ECDSA",
+                            namedCurve: "P-256"
+                        },
+                        true,
+                        ["verify"]
+                    );
+                });
+            });
+
+            it("should throw if namedCurve is not supported", async () => {
+                assert.throws(async () => {
+                    const key = await global.crypto.subtle.generateKey(
+                        {
+                            name: "ECDSA",
+                            namedCurve: "P-128"
+                        },
+                        true,
+                        ["verify"]
+                    );
+                });
+            });
+
+            it("should accept UInt8Array as keydata", async () => {
+                var spki = Uint8Array.from([
+                    48, 57, 48, 19, 6, 7, 42, 134, 72, 206, 61, 2, 1, 6, 8, 42, 134, 72, 206, 61, 3, 1, 7,
+                    3, 34, 0, 3, 177, 130, 208, 28, 236, 189, 76, 208, 22, 192, 87, 0, 150, 156, 100, 169,
+                    16, 57, 58, 235, 105, 88, 42, 213, 60, 69, 172, 129, 233, 98, 252, 160
+                ]);
+
+                publicKey = await globalThis.crypto.subtle.importKey(
+                    'spki', spki, {
+                    "name": "ECDSA",
+                    "namedCurve": "P-256"
+                }, true, [
+                    "verify"
+                ]);
+            });
+        });
+
+        var test_keys = crypto.generateKeyPairSync("ec", {
+            namedCurve: "P-256",
+            publicKeyEncoding: {
+                format: "jwk"
+            },
+            privateKeyEncoding: {
+                format: "jwk"
+            }
+        });
+
+        describe("exportKey/importKey", async () => {
+            it("imoprt/export JWK", async () => {
+                const importedPublicKey = await global.crypto.subtle.importKey("jwk", test_keys.publicKey, {
+                    name: "ECDSA",
+                    namedCurve: "P-256"
+                }, true, ["verify"]);
+
+                const importedPrivateKey = await global.crypto.subtle.importKey("jwk", test_keys.privateKey, {
+                    name: "ECDSA",
+                    namedCurve: "P-256"
+                }, true, ["sign"]);
+
+                const exportedPublicKey = await global.crypto.subtle.exportKey("jwk", importedPublicKey);
+                const exportedPrivateKey = await global.crypto.subtle.exportKey("jwk", importedPrivateKey);
+
+                assert.deepEqual(exportedPublicKey, test_keys.publicKey);
+                assert.deepEqual(exportedPrivateKey, test_keys.privateKey);
+            });
+
+            it("export pkcs8", async () => {
+                const importedPrivateKey = await global.crypto.subtle.importKey("jwk", test_keys.privateKey, {
+                    name: "ECDSA",
+                    namedCurve: "P-256"
+                }, true, ["sign"]);
+
+                const exportedPrivateKey = await global.crypto.subtle.exportKey("pkcs8", importedPrivateKey);
+
+                const sk = crypto.createPrivateKey({
+                    key: test_keys.privateKey
+                });
+
+                const exportedPrivateKey2 = sk.export({ format: "der", type: "pkcs8" });
+
+                assert.deepEqual(exportedPrivateKey, exportedPrivateKey2);
+            });
+
+            it("import pkcs8", async () => {
+                const sk = crypto.createPrivateKey({
+                    key: test_keys.privateKey
+                });
+
+                const exportedPrivateKey2 = sk.export({ format: "der", type: "pkcs8" });
+
+                const importedPrivateKey = await global.crypto.subtle.importKey("pkcs8", exportedPrivateKey2, {
+                    name: "ECDSA",
+                    namedCurve: "P-256"
+                }, true, ["sign"]);
+
+                const exportedPrivateKey = await global.crypto.subtle.exportKey("jwk", importedPrivateKey);
+
+                assert.deepEqual(exportedPrivateKey, test_keys.privateKey);
+            });
+
+            it("export spki", async () => {
+                const importedPublicKey = await global.crypto.subtle.importKey("jwk", test_keys.publicKey, {
+                    name: "ECDSA",
+                    namedCurve: "P-256"
+                }, true, ["verify"]);
+
+                const exportedPublicKey = await global.crypto.subtle.exportKey("spki", importedPublicKey);
+
+                const pk = crypto.createPublicKey({
+                    key: test_keys.publicKey
+                });
+
+                const exportedPublicKey2 = pk.export({ format: "der", type: "spki" });
+
+                assert.deepEqual(exportedPublicKey, exportedPublicKey2);
+            });
+
+            it("import spki", async () => {
+                const pk = crypto.createPublicKey({
+                    key: test_keys.publicKey
+                });
+
+                const exportedPublicKey2 = pk.export({ format: "der", type: "spki" });
+
+                const importedPublicKey = await global.crypto.subtle.importKey("spki", exportedPublicKey2, {
+                    name: "ECDSA",
+                    namedCurve: "P-256"
+                }, true, ["verify"]);
+
+                const exportedPublicKey = await global.crypto.subtle.exportKey("jwk", importedPublicKey);
+
+                assert.deepEqual(exportedPublicKey, test_keys.publicKey);
+            });
+
+            it("export raw", async () => {
+                const importedPublicKey = await global.crypto.subtle.importKey("jwk", test_keys.publicKey, {
+                    name: "ECDSA",
+                    namedCurve: "P-256"
+                }, true, ["verify"]);
+
+                const exportedPublicKey = await global.crypto.subtle.exportKey("raw", importedPublicKey);
+
+                const pk = crypto.createPublicKey({
+                    key: test_keys.publicKey
+                });
+
+                const exportedPublicKey2 = pk.export({ format: "raw" });
+
+                assert.deepEqual(exportedPublicKey, exportedPublicKey2);
+            });
+
+            it("import raw", async () => {
+                const pk = crypto.createPublicKey({
+                    key: test_keys.publicKey
+                });
+
+                const exportedPublicKey2 = pk.export({ format: "raw" });
+
+                const importedPublicKey = await global.crypto.subtle.importKey("raw", exportedPublicKey2, {
+                    name: "ECDSA",
+                    namedCurve: "P-256"
+                }, true, ["verify"]);
+
+                const exportedPublicKey = await global.crypto.subtle.exportKey("jwk", importedPublicKey);
+
+                assert.deepEqual(exportedPublicKey, test_keys.publicKey);
+            });
+
+            it("should throw if name is not matching", async () => {
+                assert.throws(async () => {
+                    await global.crypto.subtle.importKey("jwk", test_keys.publicKey, {
+                        name: "Ed25519",
+                        namedCurve: "P-256"
+                    }, true, ["verify"]);
+                });
+            });
+
+            it("should throw if namedCurve is not matching", async () => {
+                assert.throws(async () => {
+                    await global.crypto.subtle.importKey("jwk", test_keys.publicKey, {
+                        name: "ECDSA",
+                        namedCurve: "P-384"
+                    }, true, ["verify"]);
+                });
+            });
+
+            it("should throw if the key type is not supported", async () => {
+                assert.throws(async () => {
+                    await global.crypto.subtle.importKey("jwk", test_keys.publicKey, {
+                        name: "ECDSA",
+                        namedCurve: "P-256"
+                    }, true, ["sign"]);
+                });
+
+                assert.throws(async () => {
+                    await global.crypto.subtle.importKey("jwk", test_keys.privateKey, {
+                        name: "ECDSA",
+                        namedCurve: "P-256"
+                    }, true, ["verify"]);
+                });
+            });
+        });
+
+        it("sign", async () => {
+            var sig = await globalThis.crypto.subtle.sign({
+                name: "ecdsa",
+                hash: "SHA-256"
+            }, await globalThis.crypto.subtle.importKey("jwk", test_keys.privateKey, {
+                name: "ECDSA",
+                namedCurve: "P-256"
+            }, true, ["sign"]), new Uint8Array([1, 2, 3, 4]));
+
+            const verified = crypto.verify("sha256", new Uint8Array([1, 2, 3, 4]), {
+                format: 'jwk',
+                key: test_keys.publicKey,
+                dsaEncoding: 'ieee-p1363'
+            }, sig);
+
+            assert.isTrue(verified);
+        });
+
+        it("verify", async () => {
+            const sig = crypto.sign("sha256", new Uint8Array([1, 2, 3, 4]), {
+                format: 'jwk',
+                key: test_keys.privateKey,
+                dsaEncoding: 'ieee-p1363'
+            });
+
+            var verified = await globalThis.crypto.subtle.verify({
+                name: "ecdsa",
+                hash: "SHA-256"
+            }, await globalThis.crypto.subtle.importKey("jwk", test_keys.publicKey, {
+                name: "ECDSA",
+                namedCurve: "P-256"
+            }, true, ["verify"]), sig, new Uint8Array([1, 2, 3, 4]));
+
+            assert.isTrue(verified);
+        });
+
+        it("hash as object", async () => {
+            const sig = crypto.sign("sha256", new Uint8Array([1, 2, 3, 4]), {
+                format: 'jwk',
+                key: test_keys.privateKey,
+                dsaEncoding: 'ieee-p1363'
+            });
+
+            var verified = await globalThis.crypto.subtle.verify({
+                name: "ecdsa",
+                hash: {
+                    name: "SHA-256"
+                }
+            }, await globalThis.crypto.subtle.importKey("jwk", test_keys.publicKey, {
+                name: "ECDSA",
+                namedCurve: "P-256"
+            }, true, ["verify"]), sig, new Uint8Array([1, 2, 3, 4]));
+
+            assert.isTrue(verified);
+        });
+    });
+
+    it("timingSafeEqual", () => {
+        assert.strictEqual(
+            crypto.timingSafeEqual(Buffer.from('foo'), Buffer.from('foo')),
+            true
+        );
+
+        assert.strictEqual(
+            crypto.timingSafeEqual(Buffer.from('foo'), Buffer.from('bar')),
+            false
+        );
+
+        {
+            const buf = crypto.randomBytes(16).buffer;
+            const a1 = new Uint8Array(buf);
+            const a2 = new Uint16Array(buf);
+            const a3 = new Uint32Array(buf);
+
+            for (const left of [a1, a2, a3]) {
+                for (const right of [a1, a2, a3]) {
+                    assert.strictEqual(crypto.timingSafeEqual(left, right), true);
+                }
+            }
+        }
+
+        {
+            const cmp = (fn) => (a, b) => a.every((x, i) => fn(x, b[i]));
+            const eq = cmp((a, b) => a === b);
+            const is = cmp(Object.is);
+
+            function test(a, b, { equal, sameValue, timingSafeEqual }) {
+                assert.strictEqual(eq(a, b), equal);
+                assert.strictEqual(is(a, b), sameValue);
+                assert.strictEqual(crypto.timingSafeEqual(a, b), timingSafeEqual);
+            }
+
+            test(new Float32Array([NaN]), new Float32Array([NaN]), {
+                equal: false,
+                sameValue: true,
+                timingSafeEqual: true
+            });
+
+            test(new Float64Array([0]), new Float64Array([-0]), {
+                equal: true,
+                sameValue: false,
+                timingSafeEqual: false
+            });
+
+            const x = new BigInt64Array([0x7ff0000000000001n, 0xfff0000000000001n]);
+            test(new Float64Array(x.buffer), new Float64Array([NaN, NaN]), {
+                equal: false,
+                sameValue: true,
+                timingSafeEqual: false
+            });
+        }
+
+        assert.throws(() => crypto.timingSafeEqual(Buffer.from([1, 2, 3]), Buffer.from([1, 2])));
+        assert.throws(() => crypto.timingSafeEqual('not a buffer', Buffer.from([1, 2])));
+        assert.throws(() => crypto.timingSafeEqual(Buffer.from([1, 2]), 'not a buffer'));
+    });
 });
 
 require.main === module && test.run(console.DEBUG);

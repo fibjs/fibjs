@@ -77,15 +77,11 @@ inline ClassInfo& Socket_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "connect", s_connect, false, ClassData::ASYNC_ASYNC },
-        { "connectSync", s_connect, false, ClassData::ASYNC_SYNC },
         { "bind", s_bind, false, ClassData::ASYNC_SYNC },
         { "listen", s_listen, false, ClassData::ASYNC_SYNC },
         { "accept", s_accept, false, ClassData::ASYNC_ASYNC },
-        { "acceptSync", s_accept, false, ClassData::ASYNC_SYNC },
         { "recv", s_recv, false, ClassData::ASYNC_ASYNC },
-        { "recvSync", s_recv, false, ClassData::ASYNC_SYNC },
-        { "send", s_send, false, ClassData::ASYNC_ASYNC },
-        { "sendSync", s_send, false, ClassData::ASYNC_SYNC }
+        { "send", s_send, false, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

@@ -21,14 +21,14 @@ class Iterator_base : public object_base {
 public:
     class NextType : public NType {
     public:
-        virtual void fillMembers(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
         {
             v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
             retVal->Set(context, isolate->NewString("value"), GetReturnValue(isolate, value)).Check();
             retVal->Set(context, isolate->NewString("done"), GetReturnValue(isolate, done)).Check();
         }
 
-        virtual void fillArguments(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
         {
             args.push_back(GetReturnValue(isolate, value));
             args.push_back(GetReturnValue(isolate, done));

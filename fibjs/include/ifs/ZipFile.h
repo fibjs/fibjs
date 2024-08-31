@@ -80,23 +80,14 @@ inline ClassInfo& ZipFile_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "namelist", s_namelist, false, ClassData::ASYNC_ASYNC },
-        { "namelistSync", s_namelist, false, ClassData::ASYNC_SYNC },
         { "infolist", s_infolist, false, ClassData::ASYNC_ASYNC },
-        { "infolistSync", s_infolist, false, ClassData::ASYNC_SYNC },
         { "getinfo", s_getinfo, false, ClassData::ASYNC_ASYNC },
-        { "getinfoSync", s_getinfo, false, ClassData::ASYNC_SYNC },
         { "read", s_read, false, ClassData::ASYNC_ASYNC },
-        { "readSync", s_read, false, ClassData::ASYNC_SYNC },
         { "readAll", s_readAll, false, ClassData::ASYNC_ASYNC },
-        { "readAllSync", s_readAll, false, ClassData::ASYNC_SYNC },
         { "extract", s_extract, false, ClassData::ASYNC_ASYNC },
-        { "extractSync", s_extract, false, ClassData::ASYNC_SYNC },
         { "extractAll", s_extractAll, false, ClassData::ASYNC_ASYNC },
-        { "extractAllSync", s_extractAll, false, ClassData::ASYNC_SYNC },
         { "write", s_write, false, ClassData::ASYNC_ASYNC },
-        { "writeSync", s_write, false, ClassData::ASYNC_SYNC },
-        { "close", s_close, false, ClassData::ASYNC_ASYNC },
-        { "closeSync", s_close, false, ClassData::ASYNC_SYNC }
+        { "close", s_close, false, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData s_cd = {

@@ -4,9 +4,11 @@
 /// <reference path="../interface/TextDecoder.d.ts" />
 /// <reference path="../interface/TextEncoder.d.ts" />
 /// <reference path="../interface/AbortController.d.ts" />
+/// <reference path="../interface/CryptoKey.d.ts" />
 /// <reference path="../module/console.d.ts" />
 /// <reference path="../module/process.d.ts" />
 /// <reference path="../module/performance.d.ts" />
+/// <reference path="../module/webcrypto.d.ts" />
 /// <reference path="../interface/Timer.d.ts" />
 /**
  * @description 全局对象，所有脚本均可以访问的基础对象
@@ -38,6 +40,11 @@ declare module 'global' {
     const AbortController: typeof Class_AbortController;
 
     /**
+     * @description CryptoKey 类来表示对称或非对称密钥，每种密钥公开不同的功能 
+     */
+    const CryptoKey: typeof Class_CryptoKey;
+
+    /**
      * @description 控制台访问对象 
      */
     const console: typeof import ('console');
@@ -51,6 +58,8 @@ declare module 'global' {
      * @description 基础性能监控模块 
      */
     const performance: typeof import ('performance');
+
+    const crypto: typeof import ('webcrypto');
 
     /**
      * @description 全局对象 

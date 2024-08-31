@@ -18,7 +18,7 @@ v8::Local<v8::Value> JSFunction::Call(v8::Local<v8::Context> context, v8::Local<
 
     if (async || (*this)->IsAsyncFunction()) {
         Isolate* isolate = Isolate::current(context);
-        return isolate->WaitPromise(result);
+        return isolate->await(result);
     }
 
     return result;

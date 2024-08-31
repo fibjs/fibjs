@@ -207,7 +207,7 @@
 		{ \
 			return cls::m(retVal, this); \
 		} \
-    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
 	public: \
 		T0 retVal; \
@@ -286,7 +286,7 @@
 		{ \
 			return ((cls*)(object_base*)m_pThis)->m(retVal, this); \
 		} \
-    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
 	public: \
 		T0 retVal; \
@@ -520,7 +520,7 @@
 		{ \
 			return cls::m(m_v0.value(), retVal, this); \
 		} \
-    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
 	public: \
 		T1 retVal; \
@@ -601,7 +601,7 @@
 		{ \
 			return ((cls*)(object_base*)m_pThis)->m(m_v0.value(), retVal, this); \
 		} \
-    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
 	public: \
 		T1 retVal; \
@@ -838,7 +838,7 @@
 		{ \
 			return cls::m(m_v0.value(), m_v1.value(), retVal, this); \
 		} \
-    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
 	public: \
 		T2 retVal; \
@@ -920,7 +920,7 @@
 		{ \
 			return ((cls*)(object_base*)m_pThis)->m(m_v0.value(), m_v1.value(), retVal, this); \
 		} \
-    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
 	public: \
 		T2 retVal; \
@@ -1160,7 +1160,7 @@
 		{ \
 			return cls::m(m_v0.value(), m_v1.value(), m_v2.value(), retVal, this); \
 		} \
-    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
 	public: \
 		T3 retVal; \
@@ -1243,7 +1243,7 @@
 		{ \
 			return ((cls*)(object_base*)m_pThis)->m(m_v0.value(), m_v1.value(), m_v2.value(), retVal, this); \
 		} \
-    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
 	public: \
 		T3 retVal; \
@@ -1486,7 +1486,7 @@
 		{ \
 			return cls::m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), retVal, this); \
 		} \
-    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
 	public: \
 		T4 retVal; \
@@ -1570,7 +1570,7 @@
 		{ \
 			return ((cls*)(object_base*)m_pThis)->m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), retVal, this); \
 		} \
-    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
 	public: \
 		T4 retVal; \
@@ -1816,7 +1816,7 @@
 		{ \
 			return cls::m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), m_v4.value(), retVal, this); \
 		} \
-    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
 	public: \
 		T5 retVal; \
@@ -1901,7 +1901,7 @@
 		{ \
 			return ((cls*)(object_base*)m_pThis)->m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), m_v4.value(), retVal, this); \
 		} \
-    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
 	public: \
 		T5 retVal; \
@@ -2150,7 +2150,7 @@
 		{ \
 			return cls::m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), m_v4.value(), m_v5.value(), retVal, this); \
 		} \
-    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
 	public: \
 		T6 retVal; \
@@ -2236,7 +2236,7 @@
 		{ \
 			return ((cls*)(object_base*)m_pThis)->m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), m_v4.value(), m_v5.value(), retVal, this); \
 		} \
-    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
 	public: \
 		T6 retVal; \
@@ -2488,7 +2488,7 @@
 		{ \
 			return cls::m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), m_v4.value(), m_v5.value(), m_v6.value(), retVal, this); \
 		} \
-    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
 	public: \
 		T7 retVal; \
@@ -2575,7 +2575,7 @@
 		{ \
 			return ((cls*)(object_base*)m_pThis)->m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), m_v4.value(), m_v5.value(), m_v6.value(), retVal, this); \
 		} \
-    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
 	public: \
 		T7 retVal; \
@@ -2830,7 +2830,7 @@
 		{ \
 			return cls::m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), m_v4.value(), m_v5.value(), m_v6.value(), m_v7.value(), retVal, this); \
 		} \
-    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
 	public: \
 		T8 retVal; \
@@ -2918,7 +2918,7 @@
 		{ \
 			return ((cls*)(object_base*)m_pThis)->m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), m_v4.value(), m_v5.value(), m_v6.value(), m_v7.value(), retVal, this); \
 		} \
-    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
 	public: \
 		T8 retVal; \
@@ -3176,7 +3176,7 @@
 		{ \
 			return cls::m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), m_v4.value(), m_v5.value(), m_v6.value(), m_v7.value(), m_v8.value(), retVal, this); \
 		} \
-    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
 	public: \
 		T9 retVal; \
@@ -3265,7 +3265,7 @@
 		{ \
 			return ((cls*)(object_base*)m_pThis)->m(m_v0.value(), m_v1.value(), m_v2.value(), m_v3.value(), m_v4.value(), m_v5.value(), m_v6.value(), m_v7.value(), m_v8.value(), retVal, this); \
 		} \
-    	virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args) \
+    	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \
     	{ fillRetVal(args, retVal); } \
 	public: \
 		T9 retVal; \

@@ -11,10 +11,10 @@
 
 namespace fibjs {
 
-class js_Loader : public SandBox::ExtLoader {
+class cjs_Loader : public SandBox::ExtLoader {
 public:
-    js_Loader()
-        : ExtLoader(".js")
+    cjs_Loader()
+        : ExtLoader(".cjs")
     {
     }
 
@@ -33,6 +33,22 @@ public:
 public:
     virtual result_t run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
         exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args);
+};
+
+class js_Loader : public SandBox::ExtLoader {
+public:
+    js_Loader()
+        : ExtLoader(".js")
+    {
+    }
+
+public:
+    virtual result_t run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
+        exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args);
+
+private:
+    cjs_Loader m_cjs;
+    mjs_Loader m_mjs;
 };
 
 class jsc_Loader : public SandBox::ExtLoader {
@@ -71,10 +87,10 @@ public:
         exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args);
 };
 
-class custom_Loader : public js_Loader {
+class custom_Loader : public cjs_Loader {
 public:
     custom_Loader(exlib::string extname)
-        : js_Loader()
+        : cjs_Loader()
     {
         m_ext = extname;
     }

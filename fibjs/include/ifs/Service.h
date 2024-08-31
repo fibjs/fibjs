@@ -74,7 +74,6 @@ inline ClassInfo& Service_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "run", s_run, false, ClassData::ASYNC_ASYNC },
-        { "runSync", s_run, false, ClassData::ASYNC_SYNC },
         { "install", s_static_install, true, ClassData::ASYNC_SYNC },
         { "remove", s_static_remove, true, ClassData::ASYNC_SYNC },
         { "start", s_static_start, true, ClassData::ASYNC_SYNC },

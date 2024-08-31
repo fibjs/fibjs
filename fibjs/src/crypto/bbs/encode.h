@@ -158,6 +158,22 @@ namespace codec_impl {
         }
     }
 
+    // std::pair
+    namespace {
+        template <typename T1, typename T2>
+        void encode_one(std::vector<uint8_t>& result, const std::pair<T1, T2>& v)
+        {
+            encode_one(result, v.first);
+            encode_one(result, v.second);
+        }
+
+        template <typename T1, typename T2>
+        size_t codec_length(const std::pair<T1, T2>& v)
+        {
+            return codec_length(v.first) + codec_length(v.second);
+        }
+    }
+
     // std::vector
     namespace {
         template <typename T>
@@ -170,6 +186,8 @@ namespace codec_impl {
         template <typename T>
         size_t codec_length(const std::vector<T>& v)
         {
+            if (v.size() == 0)
+                return 0;
             return codec_length(*v.data()) * v.size();
         }
 
@@ -199,6 +217,8 @@ namespace codec_impl {
         template <typename T>
         size_t codec_length(const span<T>& v)
         {
+            if (v.size() == 0)
+                return 0;
             return codec_length(*v.data()) * v.size();
         }
 

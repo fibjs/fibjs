@@ -494,7 +494,7 @@ protected:
         args.push_back(GetReturnValue(m_isolate, v));
     }
 
-    virtual void fillArguments(std::vector<v8::Local<v8::Value>>& args)
+    virtual void to_args(std::vector<v8::Local<v8::Value>>& args)
     {
     }
 
@@ -503,6 +503,7 @@ protected:
 protected:
     obj_ptr<object_base> m_pThis;
     v8::Global<v8::Function> m_cb;
+    obj_ptr<NType> m_result;
 
 private:
     exlib::string m_error;

@@ -223,24 +223,37 @@ public:
         v8::Local<v8::Context> _context = isolate->context();
         v8::Local<v8::Object> op;
 
+        if (m_cd.has_async)
+            op = v8::Object::New(isolate->m_isolate);
+
         for (i = 0; i < m_cd.mc; i++) {
             if (m_cd.cms[i].is_static) {
                 v8::Local<v8::Function> func = isolate->NewFunction(m_cd.cms[i].name, m_cd.cms[i].invoker);
-                v8::Local<v8::Function> pfunc;
                 v8::Local<v8::Name> name = get_prop_name(isolate, m_cd.cms[i].name);
 
-                if (m_cd.cms[i].async_type == ClassData::ASYNC_PROMISE) {
-                    promisify(isolate, func, pfunc);
+                if (m_cd.cms[i].async_type == ClassData::ASYNC_SYNC) {
                     o->Set(_context, name, func).IsJust();
+                    if (m_cd.has_async)
+                        op->Set(_context, name, func).IsJust();
                 } else {
-                    o->Set(_context, name, func).IsJust();
+                    func->SetPrivate(_context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")), func);
+                    func->SetPrivate(_context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_sync")), func);
 
-                    if (m_cd.cms[i].async_type == ClassData::ASYNC_ASYNC) {
-                        if (op.IsEmpty())
-                            op = v8::Object::New(isolate->m_isolate);
+                    v8::Local<v8::Function> pfunc;
+                    exlib::string name_sync(m_cd.cms[i].name);
+                    name_sync.append("Sync");
+                    v8::Local<v8::Name> _name_sync = get_prop_name(isolate, name_sync.c_str());
 
-                        promisify(isolate, func, pfunc);
+                    promisify(isolate, func, pfunc);
+                    if (m_cd.cms[i].async_type == ClassData::ASYNC_ASYNC)
+                        o->Set(_context, name, func).IsJust();
+                    else
+                        o->Set(_context, name, pfunc).IsJust();
+                    o->Set(_context, _name_sync, func).IsJust();
+
+                    if (m_cd.has_async) {
                         op->Set(_context, name, pfunc).IsJust();
+                        op->Set(_context, _name_sync, func).IsJust();
                     }
                 }
             }
@@ -345,18 +358,18 @@ private:
         isolate->m_classInfo[m_id] = _cache = new cache();
 
         v8::Local<v8::Context> context = isolate->context();
+        v8::Local<v8::String> class_name = isolate->NewString(m_cd.name);
 
         if (!m_cd.module) {
             v8::Local<v8::FunctionTemplate> _pclass;
-            v8::Local<v8::FunctionTemplate> _class = v8::FunctionTemplate::New(
-                isolate->m_isolate, m_cd.cor);
-            _class->SetClassName(isolate->NewString(m_cd.name));
+            v8::Local<v8::FunctionTemplate> _class = v8::FunctionTemplate::New(isolate->m_isolate, m_cd.cor);
 
+            _class->SetClassName(class_name);
             _cache->m_class.Reset(isolate->m_isolate, _class);
 
             if (m_cd.has_async) {
                 _pclass = v8::FunctionTemplate::New(isolate->m_isolate, m_cd.cor);
-                _pclass->SetClassName(isolate->NewString(m_cd.name));
+                _pclass->SetClassName(class_name);
 
                 _cache->m_pclass.Reset(isolate->m_isolate, _pclass);
             } else
@@ -370,13 +383,13 @@ private:
             }
 
             v8::Local<v8::ObjectTemplate> pt = _class->PrototypeTemplate();
-            pt->Set(get_prop_name(isolate, "@toStringTag"), isolate->NewString(m_cd.name),
+            pt->Set(get_prop_name(isolate, "@toStringTag"), class_name,
                 v8::PropertyAttribute::DontEnum);
 
             v8::Local<v8::ObjectTemplate> ppt;
             if (m_cd.has_async) {
                 ppt = _pclass->PrototypeTemplate();
-                ppt->Set(get_prop_name(isolate, "@toStringTag"), isolate->NewString(m_cd.name),
+                ppt->Set(get_prop_name(isolate, "@toStringTag"), class_name,
                     v8::PropertyAttribute::DontEnum);
             }
 
@@ -384,46 +397,53 @@ private:
             for (i = 0; i < m_cd.mc; i++)
                 if (!m_cd.cms[i].is_static) {
                     v8::Local<v8::FunctionTemplate> ft = v8::FunctionTemplate::New(isolate->m_isolate, m_cd.cms[i].invoker);
+                    v8::Local<v8::Name> name = get_prop_name(isolate, m_cd.cms[i].name);
 
-                    if (m_cd.cms[i].async_type == ClassData::ASYNC_PROMISE) {
+                    if (m_cd.cms[i].async_type == ClassData::ASYNC_SYNC) {
+                        pt->Set(name, ft);
+                        if (m_cd.has_async)
+                            ppt->Set(name, ft);
+                    } else {
+                        v8::Local<v8::Function> func = ft->GetFunction(context).FromMaybe(v8::Local<v8::Function>());
+                        func->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")), func);
+                        func->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_sync")), func);
+
                         v8::Local<v8::FunctionTemplate> pft;
+                        exlib::string name_sync(m_cd.cms[i].name);
+                        name_sync.append("Sync");
+                        v8::Local<v8::Name> _name_sync = get_prop_name(isolate, name_sync.c_str());
 
                         promisify(isolate, ft->GetFunction(context).FromMaybe(v8::Local<v8::Function>()), pft);
-                        pt->Set(get_prop_name(isolate, m_cd.cms[i].name), pft);
+                        if (m_cd.cms[i].async_type == ClassData::ASYNC_ASYNC)
+                            pt->Set(name, ft);
+                        else
+                            pt->Set(name, pft);
+                        pt->Set(_name_sync, ft);
 
-                        if (m_cd.has_async)
-                            ppt->Set(get_prop_name(isolate, m_cd.cms[i].name), pft);
-                    } else {
-                        pt->Set(get_prop_name(isolate, m_cd.cms[i].name), ft);
                         if (m_cd.has_async) {
-                            if (m_cd.cms[i].async_type == ClassData::ASYNC_SYNC)
-                                ppt->Set(get_prop_name(isolate, m_cd.cms[i].name), ft);
-                            else {
-                                v8::Local<v8::FunctionTemplate> pft;
-                                promisify(isolate, ft->GetFunction(context).FromMaybe(v8::Local<v8::Function>()), pft);
-                                ppt->Set(get_prop_name(isolate, m_cd.cms[i].name), pft);
-                            }
+                            ppt->Set(name, pft);
+                            ppt->Set(_name_sync, ft);
                         }
                     }
                 }
 
             for (i = 0; i < m_cd.pc; i++)
                 if (!m_cd.cps[i].is_static) {
-                    pt->SetAccessor(get_prop_name(isolate, m_cd.cps[i].name),
-                        m_cd.cps[i].getter, m_cd.cps[i].setter,
+                    v8::Local<v8::Name> name = get_prop_name(isolate, m_cd.cps[i].name);
+
+                    pt->SetAccessor(name, m_cd.cps[i].getter, m_cd.cps[i].setter,
                         v8::Local<v8::Value>(), v8::DEFAULT, v8::DontDelete);
                     if (m_cd.has_async)
-                        ppt->SetAccessor(get_prop_name(isolate, m_cd.cps[i].name),
-                            m_cd.cps[i].getter, m_cd.cps[i].setter,
+                        ppt->SetAccessor(name, m_cd.cps[i].getter, m_cd.cps[i].setter,
                             v8::Local<v8::Value>(), v8::DEFAULT, v8::DontDelete);
                 }
 
             for (i = 0; i < m_cd.cc; i++) {
-                pt->Set(isolate->NewString(m_cd.ccs[i].name),
-                    v8::Integer::New(isolate->m_isolate, m_cd.ccs[i].value));
+                v8::Local<v8::String> name = isolate->NewString(m_cd.ccs[i].name);
+
+                pt->Set(name, v8::Integer::New(isolate->m_isolate, m_cd.ccs[i].value));
                 if (m_cd.has_async)
-                    ppt->Set(isolate->NewString(m_cd.ccs[i].name),
-                        v8::Integer::New(isolate->m_isolate, m_cd.ccs[i].value));
+                    ppt->Set(name, v8::Integer::New(isolate->m_isolate, m_cd.ccs[i].value));
             }
 
             v8::Local<v8::ObjectTemplate> ot = _class->InstanceTemplate();
@@ -495,7 +515,7 @@ private:
             else
                 o = v8::Object::New(isolate->m_isolate);
 
-            o->Set(context, get_prop_name(isolate, "@toStringTag"), isolate->NewString(m_cd.name)).IsJust();
+            o->Set(context, get_prop_name(isolate, "@toStringTag"), class_name).IsJust();
 
             _cache->m_cache.Reset(isolate->m_isolate, o);
 

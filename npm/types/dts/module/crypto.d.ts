@@ -8,6 +8,7 @@
 /// <reference path="../interface/Sign.d.ts" />
 /// <reference path="../interface/Verify.d.ts" />
 /// <reference path="../interface/X509CertificateRequest.d.ts" />
+/// <reference path="../module/webcrypto.d.ts" />
 /**
  * @description `crypto` 模块是 `fibjs` 内置的加密算法模块。它提供了对称加密、非对称加密、摘要算法、密码学随机数生成器等功能。在使用之前，需要通过 `require('crypto')` 加载该模块 
  */
@@ -15,7 +16,7 @@ declare module 'crypto' {
     /**
      * ! crypto 模块的常量对象，参见 crypto_constants 
      */
-    const constants: typeof import ('crypto_constants');
+    const constants: typeof import('crypto_constants');
 
     /**
      * @description KeyObject 对象，参见 KeyObject 
@@ -285,7 +286,7 @@ declare module 'crypto' {
      */
     function randomBytes(size?: number): Class_Buffer;
 
-    function randomBytes(size?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function randomBytes(size?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer) => any): void;
 
     /**
      * @description 使用随机数填充指定的 Buffer，使用 havege 生成器
@@ -297,7 +298,7 @@ declare module 'crypto' {
      */
     function randomFill(buffer: Class_Buffer, offset?: number, size?: number): Class_Buffer;
 
-    function randomFill(buffer: Class_Buffer, offset?: number, size?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function randomFill(buffer: Class_Buffer, offset?: number, size?: number, callback?: (err: Error | undefined | null, retVal: Class_Buffer) => any): void;
 
     /**
      * @description 生成给定 type 的新非对称密钥对。目前支持 RSA、RSA-PSS、DSA、EC、Ed25519、Ed448、X25519、X448、SM2、Bls12381G1、Bls12381G2
@@ -325,7 +326,7 @@ declare module 'crypto' {
      */
     function generateKeyPair(type: string, options?: FIBJS.GeneralObject): [publicKey: any, privateKey: any];
 
-    function generateKeyPair(type: string, options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: [publicKey: any, privateKey: any])=>any): void;
+    function generateKeyPair(type: string, options?: FIBJS.GeneralObject, callback?: (err: Error | undefined | null, retVal: [publicKey: any, privateKey: any]) => any): void;
 
     /**
      * @description 依据 rfc5869 根据明文 password 生成要求的二进制钥匙
@@ -339,7 +340,7 @@ declare module 'crypto' {
      */
     function hkdf(algoName: string, password: Class_Buffer, salt: Class_Buffer, info: Class_Buffer, size: number): Class_Buffer;
 
-    function hkdf(algoName: string, password: Class_Buffer, salt: Class_Buffer, info: Class_Buffer, size: number, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function hkdf(algoName: string, password: Class_Buffer, salt: Class_Buffer, info: Class_Buffer, size: number, callback: (err: Error | undefined | null, retVal: Class_Buffer) => any): void;
 
     /**
      * @description 依据 rfc2898 根据明文 password 生成要求的二进制钥匙
@@ -353,7 +354,7 @@ declare module 'crypto' {
      */
     function pbkdf2(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algoName: string): Class_Buffer;
 
-    function pbkdf2(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algoName: string, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function pbkdf2(password: Class_Buffer, salt: Class_Buffer, iterations: number, size: number, algoName: string, callback: (err: Error | undefined | null, retVal: Class_Buffer) => any): void;
 
     /**
      * @description 使用 privateKey 解密 buffer。buffer 之前已使用相应的公钥进行加密
@@ -473,7 +474,7 @@ declare module 'crypto' {
      */
     function sign(algorithm: any, data: Class_Buffer, privateKey: Class_Buffer): Class_Buffer;
 
-    function sign(algorithm: any, data: Class_Buffer, privateKey: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function sign(algorithm: any, data: Class_Buffer, privateKey: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Buffer) => any): void;
 
     /**
      * @description 使用给定的私钥和算法计算并返回 data 的签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
@@ -485,7 +486,7 @@ declare module 'crypto' {
      */
     function sign(algorithm: any, data: Class_Buffer, privateKey: Class_KeyObject): Class_Buffer;
 
-    function sign(algorithm: any, data: Class_Buffer, privateKey: Class_KeyObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function sign(algorithm: any, data: Class_Buffer, privateKey: Class_KeyObject, callback: (err: Error | undefined | null, retVal: Class_Buffer) => any): void;
 
     /**
      * @description 使用给定的私钥和算法计算并返回 data 的签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
@@ -507,7 +508,7 @@ declare module 'crypto' {
      */
     function sign(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject): Class_Buffer;
 
-    function sign(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function sign(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer) => any): void;
 
     /**
      * @description 使用给定的密钥和算法验证 data 的给定签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
@@ -520,7 +521,7 @@ declare module 'crypto' {
      */
     function verify(algorithm: any, data: Class_Buffer, publicKey: Class_Buffer, signature: Class_Buffer): boolean;
 
-    function verify(algorithm: any, data: Class_Buffer, publicKey: Class_Buffer, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    function verify(algorithm: any, data: Class_Buffer, publicKey: Class_Buffer, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean) => any): void;
 
     /**
      * @description 使用给定的密钥和算法验证 data 的给定签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
@@ -533,7 +534,7 @@ declare module 'crypto' {
      */
     function verify(algorithm: any, data: Class_Buffer, publicKey: Class_KeyObject, signature: Class_Buffer): boolean;
 
-    function verify(algorithm: any, data: Class_Buffer, publicKey: Class_KeyObject, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    function verify(algorithm: any, data: Class_Buffer, publicKey: Class_KeyObject, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean) => any): void;
 
     /**
      * @description 使用给定的密钥和算法验证 data 的给定签名。如果 algorithm 是 null 或 undefined，则算法取决于密钥类型（尤其是 Ed25519 和 Ed448）
@@ -556,7 +557,16 @@ declare module 'crypto' {
      */
     function verify(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject, signature: Class_Buffer): boolean;
 
-    function verify(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    function verify(algorithm: any, data: Class_Buffer, key: FIBJS.GeneralObject, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean) => any): void;
+
+    /**
+     * @description 比较给定的两个数据是否相等，使用时间常量比较，防止时间侧信道攻击
+     *      @param a 指定要比较的数据
+     *      @param b 指定要比较的数据
+     *      @return 返回比较结果
+     *      
+     */
+    function timingSafeEqual(a: Class_Buffer, b: Class_Buffer): boolean;
 
     /**
      * @description 使用 Bls12381G2 进行 BBS 签名的函数
@@ -567,7 +577,7 @@ declare module 'crypto' {
      */
     function bbsSign(messages: any[], privateKey: Class_Buffer): Class_Buffer;
 
-    function bbsSign(messages: any[], privateKey: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function bbsSign(messages: any[], privateKey: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Buffer) => any): void;
 
     /**
      * @description 使用 Bls12381G2 进行 BBS 签名的函数
@@ -578,7 +588,7 @@ declare module 'crypto' {
      */
     function bbsSign(messages: any[], privateKey: Class_KeyObject): Class_Buffer;
 
-    function bbsSign(messages: any[], privateKey: Class_KeyObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function bbsSign(messages: any[], privateKey: Class_KeyObject, callback: (err: Error | undefined | null, retVal: Class_Buffer) => any): void;
 
     /**
      * @description 使用 Bls12381G2 进行 BBS 签名的函数
@@ -594,7 +604,7 @@ declare module 'crypto' {
      */
     function bbsSign(messages: any[], key: FIBJS.GeneralObject): Class_Buffer;
 
-    function bbsSign(messages: any[], key: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function bbsSign(messages: any[], key: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer) => any): void;
 
     /**
      * @description 使用 Bls12381G2 进行 BBS 验证的函数
@@ -606,7 +616,7 @@ declare module 'crypto' {
      */
     function bbsVerify(messages: any[], publicKey: Class_Buffer, signature: Class_Buffer): boolean;
 
-    function bbsVerify(messages: any[], publicKey: Class_Buffer, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    function bbsVerify(messages: any[], publicKey: Class_Buffer, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean) => any): void;
 
     /**
      * @description 使用 Bls12381G2 进行 BBS 验证的函数
@@ -618,7 +628,7 @@ declare module 'crypto' {
      */
     function bbsVerify(messages: any[], publicKey: Class_KeyObject, signature: Class_Buffer): boolean;
 
-    function bbsVerify(messages: any[], publicKey: Class_KeyObject, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    function bbsVerify(messages: any[], publicKey: Class_KeyObject, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean) => any): void;
 
     /**
      * @description 使用 Bls12381G2 进行 BBS 验证的函数
@@ -635,7 +645,7 @@ declare module 'crypto' {
      */
     function bbsVerify(messages: any[], key: FIBJS.GeneralObject, signature: Class_Buffer): boolean;
 
-    function bbsVerify(messages: any[], key: FIBJS.GeneralObject, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    function bbsVerify(messages: any[], key: FIBJS.GeneralObject, signature: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean) => any): void;
 
     /**
      * @description 使用 Bls12381G2 生成 BBS 选择证明的函数
@@ -648,7 +658,7 @@ declare module 'crypto' {
      */
     function proofGen(signature: Class_Buffer, messages: any[], index: any[], publicKey: Class_Buffer): Class_Buffer;
 
-    function proofGen(signature: Class_Buffer, messages: any[], index: any[], publicKey: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function proofGen(signature: Class_Buffer, messages: any[], index: any[], publicKey: Class_Buffer, callback: (err: Error | undefined | null, retVal: Class_Buffer) => any): void;
 
     /**
      * @description 使用 Bls12381G2 生成 BBS 选择证明的函数
@@ -661,7 +671,7 @@ declare module 'crypto' {
      */
     function proofGen(signature: Class_Buffer, messages: any[], index: any[], publicKey: Class_KeyObject): Class_Buffer;
 
-    function proofGen(signature: Class_Buffer, messages: any[], index: any[], publicKey: Class_KeyObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function proofGen(signature: Class_Buffer, messages: any[], index: any[], publicKey: Class_KeyObject, callback: (err: Error | undefined | null, retVal: Class_Buffer) => any): void;
 
     /**
      * @description 使用 Bls12381G2 生成 BBS 选择证明的函数
@@ -680,7 +690,7 @@ declare module 'crypto' {
      */
     function proofGen(signature: Class_Buffer, messages: any[], index: any[], key: FIBJS.GeneralObject): Class_Buffer;
 
-    function proofGen(signature: Class_Buffer, messages: any[], index: any[], key: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
+    function proofGen(signature: Class_Buffer, messages: any[], index: any[], key: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: Class_Buffer) => any): void;
 
     /**
      * @description 使用 Bls12381G2 验证 BBS 选择证明的函数
@@ -693,7 +703,7 @@ declare module 'crypto' {
      */
     function proofVerify(messages: any[], index: any[], publicKey: Class_Buffer, proof: Class_Buffer): boolean;
 
-    function proofVerify(messages: any[], index: any[], publicKey: Class_Buffer, proof: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    function proofVerify(messages: any[], index: any[], publicKey: Class_Buffer, proof: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean) => any): void;
 
     /**
      * @description 使用 Bls12381G2 验证 BBS 选择证明的函数
@@ -706,7 +716,7 @@ declare module 'crypto' {
      */
     function proofVerify(messages: any[], index: any[], publicKey: Class_KeyObject, proof: Class_Buffer): boolean;
 
-    function proofVerify(messages: any[], index: any[], publicKey: Class_KeyObject, proof: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    function proofVerify(messages: any[], index: any[], publicKey: Class_KeyObject, proof: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean) => any): void;
 
     /**
      * @description 使用 Bls12381G2 验证 BBS 选择证明的函数
@@ -725,7 +735,12 @@ declare module 'crypto' {
      */
     function proofVerify(messages: any[], index: any[], key: FIBJS.GeneralObject, proof: Class_Buffer): boolean;
 
-    function proofVerify(messages: any[], index: any[], key: FIBJS.GeneralObject, proof: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    function proofVerify(messages: any[], index: any[], key: FIBJS.GeneralObject, proof: Class_Buffer, callback: (err: Error | undefined | null, retVal: boolean) => any): void;
+
+    /**
+     * @description WebCrypto API 模块 
+     */
+    const webcrypto: typeof import('webcrypto');
 
 }
 

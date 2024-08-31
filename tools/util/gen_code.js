@@ -40,6 +40,7 @@ function gen_code(cls, def, baseFolder) {
         "Array": "v8::Local<v8::Array>",
         "Uint8Array": "v8::Local<v8::Uint8Array>",
         "ArrayBuffer": "v8::Local<v8::ArrayBuffer>",
+        "TypedArray": "v8::Local<v8::TypedArray>",
         "Function": "v8::Local<v8::Function>",
         "Value": "v8::Local<v8::Value>",
         "Variant": "Variant",
@@ -657,7 +658,7 @@ function gen_code(cls, def, baseFolder) {
                     ts.push(`    class ${name} : public NType {`);
 
                     ts.push('    public:');
-                    ts.push('        virtual void fillMembers(Isolate* isolate, v8::Local<v8::Object>& retVal)');
+                    ts.push('        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)');
                     ts.push('        {');
                     ts.push('            v8::Local<v8::Context> context = retVal->GetCreationContextChecked();');
 
@@ -667,7 +668,7 @@ function gen_code(cls, def, baseFolder) {
 
                     ts.push('        }\n');
 
-                    ts.push('        virtual void fillArguments(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)');
+                    ts.push('        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)');
                     ts.push('        {');
 
                     fn.type.forEach(t => {
@@ -825,10 +826,8 @@ function gen_code(cls, def, baseFolder) {
 
                     if (ov.memType == "method") {
                         deflist.push(`        { "${fn.symbol}${fname}", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, false, ${async_type(ov.async)} }`);
-                        if (ov.async == 'async') {
+                        if (ov.async == 'async')
                             has_async = true;
-                            deflist.push(`        { "${fn.symbol}${fname}Sync", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, false, ClassData::ASYNC_SYNC }`);
-                        }
 
                         recorder_insts.record(ov.name);
                     }
@@ -840,10 +839,8 @@ function gen_code(cls, def, baseFolder) {
 
                     if (ov.memType == "method") {
                         deflist.push(`        { "${fn.symbol}${fname}", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, true, ${async_type(ov.async)} }`);
-                        if (ov.async == 'async') {
+                        if (ov.async == 'async')
                             has_async = true;
-                            deflist.push(`        { "${fn.symbol}${fname}Sync", ${get_stub_func_prefix(ov, def)}${get_name(fname, ov, def)}, true, ClassData::ASYNC_SYNC }`);
-                        }
 
                         recorder_statics.record(ov.name);
                     }

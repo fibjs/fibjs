@@ -44,7 +44,9 @@
         "string_decoder"
     ],
     "Crypto": [
-        "crypto"
+        "crypto",
+        "subtle",
+        "webcrypto"
     ],
     "Compress": [
         "zip",

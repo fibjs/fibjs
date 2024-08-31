@@ -35,6 +35,7 @@
 #include "v8/src/execution/frames-inl.h"
 #include "v8/src/debug/debug-interface.h"
 #include "v8/src/execution/microtask-queue.h"
+#include "v8/src/objects/source-text-module.h"
 
 #include "exlib/include/qstring.h"
 
@@ -66,6 +67,14 @@ void setAsyncFunctoin(Local<Function> func)
     i::Handle<i::Object> obj = Utils::OpenHandle(*func);
     i::Handle<i::JSFunction> _func = i::Handle<i::JSFunction>::cast(obj);
     _func->shared()->set_kind(i::FunctionKind::kAsyncFunction);
+}
+
+void initImportMeta(Isolate* isolate, Local<Module> module)
+{
+    i::Isolate* _isolate = reinterpret_cast<i::Isolate*>(isolate);
+    i::Handle<i::Object> obj = Utils::OpenHandle(*module);
+    i::Handle<i::SourceTextModule> _module = i::Handle<i::SourceTextModule>::cast(obj);
+    i::SourceTextModule::GetImportMeta(_isolate, _module);
 }
 
 static void custom_deleter(void* data, size_t length, void* deleter_data)

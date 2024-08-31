@@ -103,20 +103,15 @@ inline ClassInfo& Message_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
         { "read", s_read, false, ClassData::ASYNC_ASYNC },
-        { "readSync", s_read, false, ClassData::ASYNC_SYNC },
         { "readAll", s_readAll, false, ClassData::ASYNC_ASYNC },
-        { "readAllSync", s_readAll, false, ClassData::ASYNC_SYNC },
         { "write", s_write, false, ClassData::ASYNC_ASYNC },
-        { "writeSync", s_write, false, ClassData::ASYNC_SYNC },
         { "json", s_json, false, ClassData::ASYNC_SYNC },
         { "pack", s_pack, false, ClassData::ASYNC_SYNC },
         { "end", s_end, false, ClassData::ASYNC_SYNC },
         { "isEnded", s_isEnded, false, ClassData::ASYNC_SYNC },
         { "clear", s_clear, false, ClassData::ASYNC_SYNC },
         { "sendTo", s_sendTo, false, ClassData::ASYNC_ASYNC },
-        { "sendToSync", s_sendTo, false, ClassData::ASYNC_SYNC },
-        { "readFrom", s_readFrom, false, ClassData::ASYNC_ASYNC },
-        { "readFromSync", s_readFrom, false, ClassData::ASYNC_SYNC }
+        { "readFrom", s_readFrom, false, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

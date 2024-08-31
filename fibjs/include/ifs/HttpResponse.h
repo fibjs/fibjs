@@ -75,8 +75,7 @@ inline ClassInfo& HttpResponse_base::class_info()
         { "writeHead", s_writeHead, false, ClassData::ASYNC_SYNC },
         { "addCookie", s_addCookie, false, ClassData::ASYNC_SYNC },
         { "redirect", s_redirect, false, ClassData::ASYNC_SYNC },
-        { "sendHeader", s_sendHeader, false, ClassData::ASYNC_ASYNC },
-        { "sendHeaderSync", s_sendHeader, false, ClassData::ASYNC_SYNC }
+        { "sendHeader", s_sendHeader, false, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {

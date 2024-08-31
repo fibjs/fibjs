@@ -80,7 +80,6 @@ inline ClassInfo& ChildProcess_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "kill", s_kill, false, ClassData::ASYNC_SYNC },
         { "join", s_join, false, ClassData::ASYNC_ASYNC },
-        { "joinSync", s_join, false, ClassData::ASYNC_SYNC },
         { "disconnect", s_disconnect, false, ClassData::ASYNC_SYNC },
         { "send", s_send, false, ClassData::ASYNC_SYNC },
         { "usage", s_usage, false, ClassData::ASYNC_SYNC }

@@ -230,16 +230,41 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
                             keys->Set(_context, i, JSValue(vs->Get(_context, i * 2))).IsJust();
                     } else
                         keys = vs;
-                } else
+                } else {
+                    if (!isFunction && !v->IsArray()) {
+                        v8::Local<v8::Value> prototype = obj->GetPrototype();
+                        if (prototype->IsObject()) {
+                            v8::Local<v8::Object> protoObj = prototype->ToObject(_context).ToLocalChecked();
+                            v8::Local<v8::Value> protoName = protoObj->Get(_context, v8::String::NewFromUtf8(isolate->m_isolate, "constructor").ToLocalChecked()).ToLocalChecked();
+                            if (protoName->IsFunction()) {
+                                v8::Local<v8::Function> constructor = v8::Local<v8::Function>::Cast(protoName);
+                                v8::Local<v8::String> name = constructor->GetName().As<v8::String>();
+                                v8::String::Utf8Value utf8(isolate->m_isolate, name);
+
+                                if (**utf8 && qstrcmp(*utf8, "Object")) {
+                                    exlib::string prototypeName("[");
+                                    prototypeName.append(*utf8);
+                                    prototypeName.append("] ");
+
+                                    strBuffer.append(color_string(COLOR_CYAN, prototypeName, color));
+                                }
+                            }
+                        }
+                    }
+
                     keys = obj->GetPropertyNames(_context, v8::KeyCollectionMode::kIncludePrototypes,
                                   v8::PropertyFilter::ONLY_ENUMERABLE, v8::IndexFilter::kSkipIndices)
                                .FromMaybe(v8::Local<v8::Array>());
+                }
 
                 if (keys.IsEmpty()) {
                     if (!isFunction)
                         strBuffer.append("{}");
                     break;
                 }
+
+                if (isFunction && keys->Length() == 0)
+                    break;
 
                 int32_t i, sz1 = (int32_t)vals.size();
                 for (i = 0; i < sz1; i++)
@@ -268,7 +293,6 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
                 int32_t sz = (int32_t)stk.size();
 
                 if (v->IsSet()) {
-                    strBuffer.append(color_string(COLOR_CYAN, "[Set] ", color));
                     v8::Local<v8::Set> s = v8::Local<v8::Set>::Cast(obj);
                     v = s->AsArray();
                 }

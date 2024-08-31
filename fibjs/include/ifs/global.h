@@ -20,9 +20,11 @@ class UrlObject_base;
 class TextDecoder_base;
 class TextEncoder_base;
 class AbortController_base;
+class CryptoKey_base;
 class console_base;
 class process_base;
 class performance_base;
+class webcrypto_base;
 class Timer_base;
 
 class global_base : public object_base {
@@ -79,9 +81,11 @@ public:
 #include "ifs/TextDecoder.h"
 #include "ifs/TextEncoder.h"
 #include "ifs/AbortController.h"
+#include "ifs/CryptoKey.h"
 #include "ifs/console.h"
 #include "ifs/process.h"
 #include "ifs/performance.h"
+#include "ifs/webcrypto.h"
 #include "ifs/Timer.h"
 
 namespace fibjs {
@@ -109,9 +113,11 @@ inline ClassInfo& global_base::class_info()
         { "TextDecoder", TextDecoder_base::class_info },
         { "TextEncoder", TextEncoder_base::class_info },
         { "AbortController", AbortController_base::class_info },
+        { "CryptoKey", CryptoKey_base::class_info },
         { "console", console_base::class_info },
         { "process", process_base::class_info },
-        { "performance", performance_base::class_info }
+        { "performance", performance_base::class_info },
+        { "crypto", webcrypto_base::class_info }
     };
 
     static ClassData::ClassProperty s_property[] = {

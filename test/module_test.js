@@ -3,6 +3,7 @@ test.setup();
 
 var fs = require('fs');
 var path = require('path');
+var coroutine = require('coroutine');
 var a, b;
 
 const bin_path = path.dirname(process.execPath);
@@ -108,6 +109,20 @@ describe("module", () => {
     it("support symlink", () => {
         fs.symlink(path.join(__dirname, 'module', 'p6'), path.join(__dirname, 'module', 'p6_1'));
         assert.equal(require('./module/p6/t'), require('./module/p6_1/t'));
+    });
+
+    describe("require cjs", () => {
+        it("require .cjs", () => {
+            assert.equal(require('./module/p10.cjs').test, "p10.cjs");
+        });
+
+        it("require .js", () => {
+            assert.equal(require('./module/p10.js').test, "p10.js");
+        });
+
+        it("js first", () => {
+            assert.equal(require('./module/p10').test, "p10.js");
+        });
     });
 
     describe("package.json", () => {
@@ -253,6 +268,20 @@ describe("module", () => {
             assert.equal(a, require('./module/p5/lib'));
             assert.equal(a, require('./module/p5/lib/index'));
         });
+
+        it("type", () => {
+            var a = require('./module/p11');
+            assert.deepEqual(a, {
+                "p11": "p11"
+            });
+        });
+
+        it("cjs type", () => {
+            var a = require('./module/p12');
+            assert.deepEqual(a, {
+                "p12": "p12"
+            });
+        });
     });
 
     describe("node_modules", () => {
@@ -291,6 +320,125 @@ describe("module", () => {
 
             assert.equal(a, require('./module/node_modules/node_mod3'));
         });
+
+        describe("sub script", () => {
+            it("sub script when package has no main", () => {
+                var a = require('sub_script1/test');
+                assert.deepEqual(a, {
+                    "test": "sub_script1"
+                });
+            });
+
+            it("sub script when package has main", () => {
+                var a = require('sub_script2/test');
+                assert.deepEqual(a, {
+                    "test": "sub_script2"
+                });
+            });
+
+            it("simple sub script in exports", () => {
+                var a = require('sub_script3/module2');
+                assert.deepEqual(a, {
+                    "test": "sub_script3"
+                });
+            });
+
+            it("cannt require sub script not in exports", () => {
+                assert.throws(() => {
+                    require('sub_script3/script2.js');
+                });
+            });
+
+            it("pattern sub script", () => {
+                var a = require('sub_script4/module4/test_script3.js');
+                assert.deepEqual(a, {
+                    "test": "sub_script4"
+                });
+            });
+
+            it("pattern order", () => {
+                var a = require('sub_script5/module5/test_script3.js');
+                assert.deepEqual(a, {
+                    "test": "sub_script5"
+                });
+
+                var a = require('sub_script5/module5/test_first.js');
+                assert.deepEqual(a, {
+                    "test": "sub_script5_first"
+                });
+            });
+
+            it("internal module", () => {
+                var a = require('sub_script6/module6');
+                assert.deepEqual(a, {
+                    "test": {
+                        "test": "sub_script6 native script"
+                    }
+                });
+            });
+        });
+
+        it("sub package", () => {
+            var a = require("sub_package");
+            assert.deepEqual(a, {
+                "test": "sub package"
+            });
+
+            var a = require("sub_package/other");
+            assert.deepEqual(a, {
+                "test": "other sub package"
+            });
+        });
+
+        describe("exports order", () => {
+            it("default first", async () => {
+                var a = require("test_order1");
+                assert.deepEqual(a, {
+                    "test": "test3"
+                });
+
+                var a = await import("test_order1");
+                assert.deepEqual(a, {
+                    "test": "test3"
+                });
+            });
+
+            it("node first", async () => {
+                var a = require("test_order2");
+                assert.deepEqual(a, {
+                    "test": "test2"
+                });
+
+                var a = await import("test_order2");
+                assert.deepEqual(a, {
+                    "test": "test2"
+                });
+            });
+
+            it("import first", async () => {
+                var a = require("test_order3");
+                assert.deepEqual(a, {
+                    "test": "test4"
+                });
+
+                var a = await import("test_order3");
+                assert.deepEqual(a, {
+                    "test": "test5"
+                });
+            });
+
+            it("require first", async () => {
+                var a = require("test_order4");
+                assert.deepEqual(a, {
+                    "test": "test4"
+                });
+
+                var a = await import("test_order4");
+                assert.deepEqual(a, {
+                    "test": "test5"
+                });
+            });
+        });
     });
 
     it("zip virtual path", () => {
@@ -307,6 +455,44 @@ describe("module", () => {
 
     it("support exports in script", () => {
         run('./module/exec18');
+    });
+
+    it("parallel require", () => {
+        var v1;
+        var ev = new coroutine.Event();
+
+        setImmediate(() => {
+            v1 = require('./module/p8');
+            ev.set();
+        });
+
+        var v2 = require('./module/p8');
+        ev.wait();
+
+        assert.equal(v1, v2);
+    });
+
+    it("error process in parallel require", () => {
+        var v1, v2;
+        var ev = new coroutine.Event();
+
+        setImmediate(() => {
+            try {
+                require('./module/p9');
+            } catch (e) {
+                v1 = 1;
+            }
+            ev.set();
+        });
+
+        try {
+            require('./module/p9');
+        } catch (e) {
+            v2 = 1;
+        }
+        ev.wait();
+
+        assert.equal(v1, v2);
     });
 
     it("support embed script module", () => {

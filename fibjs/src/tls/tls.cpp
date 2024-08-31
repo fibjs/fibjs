@@ -111,7 +111,7 @@ result_t tls_base::connect(exlib::string url, SecureContext_base* secureContext,
 
 result_t tls_base::connect(exlib::string url, int32_t timeout, obj_ptr<Stream_base>& retVal, AsyncEvent* ac)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = ac->isolate();
     return connect(url, isolate->m_ctx, timeout, retVal, ac);
 }
 

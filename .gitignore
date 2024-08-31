@@ -3,7 +3,6 @@
 /temp/*
 *.sdf
 *.suo
-node_modules
 out
 
 /*.dmp
@@ -14,3 +13,7 @@ out
 idl/__snapshots__
 
 /.vscode/launch.json
+
+tools/node_modules
+test/opt_tools_test/install_from_pkgjson/node_modules
+test/opt_tools_test/install_from_pkgjson/target_folder/node_modules

@@ -157,7 +157,8 @@ void AsyncCallBack::fillRetVal(std::vector<v8::Local<v8::Value>>& args, object_b
 
 void AsyncCallBack::fillRetVal(std::vector<v8::Local<v8::Value>>& args, NType* v)
 {
-    v->fillArguments(m_isolate, args);
+    m_result = v;
+    v->to_args(m_isolate, args);
 }
 
 result_t AsyncCallBack::syncFunc(AsyncCallBack* pThis)
@@ -179,7 +180,7 @@ result_t AsyncCallBack::syncFunc(AsyncCallBack* pThis)
     } else if (pThis->m_v >= 0) {
         args.resize(1);
         args[0] = v8::Undefined(isolate->m_isolate);
-        pThis->fillArguments(args);
+        pThis->to_args(args);
     } else {
         if (pThis->m_v == CALL_E_EXCEPTION)
             Runtime::setError(pThis->m_error);
@@ -188,7 +189,14 @@ result_t AsyncCallBack::syncFunc(AsyncCallBack* pThis)
         args[0] = FillError(pThis->m_v);
     }
 
-    func->Call(func->GetCreationContextChecked(), v8::Undefined(isolate->m_isolate), (int32_t)args.size(), args.data()).IsEmpty();
+    v8::Local<v8::Value> oThis;
+    if (pThis->m_result != nullptr)
+        oThis = pThis->m_result->wrap(isolate);
+    else
+        oThis = v8::Undefined(isolate->m_isolate);
+
+    func->Call(func->GetCreationContextChecked(), oThis, (int32_t)args.size(), args.data())
+        .IsEmpty();
 
     delete pThis;
 

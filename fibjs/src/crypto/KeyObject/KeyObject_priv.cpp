@@ -124,36 +124,14 @@ static bool IsEncryptedPrivateKeyInfo(const unsigned char* data, size_t size)
     return len >= 1 && data[offset] != 2;
 }
 
-result_t KeyObject::ParsePrivateKey(v8::Local<v8::Object> key)
+result_t KeyObject::ParsePrivateKey(exlib::string format, exlib::string type, exlib::string namedCurve, Buffer_base* passphrase, Buffer_base* key)
 {
-    result_t hr;
-    Isolate* isolate = holder();
-    v8::Local<v8::Context> context = isolate->context();
-
-    exlib::string format = "pem";
-    GetConfigValue(isolate, key, "format", format, true);
-
-    obj_ptr<Buffer> _key;
-    hr = GetKeyBuffer(isolate, key, _key);
-    if (hr < 0)
-        return hr;
-
-    Buffer* passphrase = nullptr;
-    obj_ptr<Buffer_base> _passphrase;
-    hr = GetConfigValue(isolate, key, "passphrase", _passphrase);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-        return hr;
-    if (_passphrase != nullptr)
-        passphrase = Buffer::Cast(_passphrase);
+    Buffer* _passphrase = (Buffer*)passphrase;
+    Buffer* _key = (Buffer*)key;
 
     if (format == "pem") {
-        return ParsePrivateKeyPEM((const char*)_key->data(), _key->length(), passphrase);
+        return ParsePrivateKeyPEM((const char*)_key->data(), _key->length(), _passphrase);
     } else if (format == "der") {
-        exlib::string type;
-        hr = GetConfigValue(isolate, key, "type", type, true);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-            return hr;
-
         const unsigned char* p = (unsigned char*)_key->data();
         if (type == "pkcs1")
             m_pkey = d2i_PrivateKey(EVP_PKEY_RSA, nullptr, &p, _key->length());
@@ -161,7 +139,7 @@ result_t KeyObject::ParsePrivateKey(v8::Local<v8::Object> key)
             BIOPointer bio = BIO_new_mem_buf(p, _key->length());
 
             if (IsEncryptedPrivateKeyInfo(p, _key->length()))
-                m_pkey = d2i_PKCS8PrivateKey_bio(bio, nullptr, PasswordCallback, passphrase);
+                m_pkey = d2i_PKCS8PrivateKey_bio(bio, nullptr, PasswordCallback, _passphrase);
             else {
                 PKCS8Pointer p8inf = d2i_PKCS8_PRIV_KEY_INFO_bio(bio, nullptr);
                 if (p8inf)
@@ -170,23 +148,18 @@ result_t KeyObject::ParsePrivateKey(v8::Local<v8::Object> key)
         } else if (type == "sec1")
             m_pkey = d2i_PrivateKey(EVP_PKEY_EC, nullptr, &p, _key->length());
         else
-            return Runtime::setError("Invalid type");
+            return Runtime::setError("Invalid type: " + type);
     } else if (format == "raw") {
-        exlib::string namedCurve;
-        hr = GetConfigValue(isolate, key, "namedCurve", namedCurve, true);
-        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-            return hr;
-
         int32_t key_type = okp_curve_nid(namedCurve.c_str());
 
         if (key_type == NID_undef) {
             int32_t cid = GetCurveFromName(namedCurve.c_str());
             if (cid == NID_undef)
-                return Runtime::setError("Invalid curve name");
+                return Runtime::setError("Invalid curve name: " + namedCurve);
 
             ECPointer ec = EC_KEY_new_by_curve_name(cid);
             if (ec == nullptr)
-                return Runtime::setError("Invalid namedCurve");
+                return Runtime::setError("Invalid namedCurve: " + namedCurve);
 
             BignumPointer d = BN_bin2bn(_key->data(), _key->length(), nullptr);
             const EC_GROUP* group = EC_KEY_get0_group(ec);
@@ -211,7 +184,7 @@ result_t KeyObject::ParsePrivateKey(v8::Local<v8::Object> key)
                 return openssl_error();
         }
     } else
-        return Runtime::setError("Invalid format");
+        return Runtime::setError("Invalid format: " + format);
 
     if (m_pkey == nullptr)
         return openssl_error();
@@ -221,38 +194,56 @@ result_t KeyObject::ParsePrivateKey(v8::Local<v8::Object> key)
     return 0;
 }
 
-result_t KeyObject::ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8::Value>& retVal)
+result_t KeyObject::ParsePrivateKey(v8::Local<v8::Object> key)
 {
     result_t hr;
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
 
-    exlib::string type = "pkcs8";
-    hr = GetConfigValue(isolate, options, "type", type, true);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-        return hr;
-
     exlib::string format = "pem";
-    GetConfigValue(isolate, options, "format", format, true);
+    exlib::string type;
+    exlib::string namedCurve;
 
-    exlib::string name;
-    hr = GetConfigValue(isolate, options, "cipher", name, true);
+    hr = GetConfigValue(isolate, key, "format", format, true);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
+
+    obj_ptr<Buffer_base> _key;
+    hr = GetKeyBuffer(isolate, key, _key);
+    if (hr < 0)
+        return hr;
+
+    obj_ptr<Buffer_base> _passphrase;
+    hr = GetConfigValue(isolate, key, "passphrase", _passphrase);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    if (format == "der") {
+        hr = GetConfigValue(isolate, key, "type", type, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+    } else if (format == "raw") {
+        hr = GetConfigValue(isolate, key, "namedCurve", namedCurve, true);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+    }
+
+    return ParsePrivateKey(format, type, namedCurve, _passphrase, _key);
+}
+
+result_t KeyObject::ExportPrivateKey(exlib::string format, exlib::string type, exlib::string cipher_name,
+    Buffer_base* passphrase, Variant& retVal)
+{
+    result_t hr;
 
     const EVP_CIPHER* cipher = nullptr;
-    if (!name.empty()) {
-        cipher = EVP_get_cipherbyname(name.c_str());
+    if (!cipher_name.empty()) {
+        cipher = EVP_get_cipherbyname(cipher_name.c_str());
         if (cipher == nullptr)
             return openssl_error();
     }
 
     Buffer* pass_buf = NULL;
-    obj_ptr<Buffer_base> passphrase;
-    hr = GetConfigValue(isolate, options, "passphrase", passphrase);
-    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-        return hr;
-
     if (passphrase != nullptr) {
         if (cipher == nullptr)
             return Runtime::setError("cipher is required when passphrase is set");
@@ -262,7 +253,7 @@ result_t KeyObject::ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8
     BIOPointer bio(BIO_new(BIO_s_mem()));
     int ret;
 
-    if (format == "pem") {
+    if (format.empty() || format == "pem") {
         if (type == "pkcs1") {
             if (EVP_PKEY_id(m_pkey) != EVP_PKEY_RSA)
                 return Runtime::setError("pkcs1 only support RSA key");
@@ -271,7 +262,7 @@ result_t KeyObject::ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8
             ret = PEM_write_bio_RSAPrivateKey(bio, rsa, cipher,
                 cipher ? (unsigned char*)pass_buf->data() : nullptr,
                 cipher ? pass_buf->length() : 0, nullptr, nullptr);
-        } else if (type == "pkcs8") {
+        } else if (type.empty() || type == "pkcs8") {
             ret = PEM_write_bio_PKCS8PrivateKey(bio, m_pkey, cipher,
                 cipher ? (char*)pass_buf->data() : nullptr,
                 cipher ? pass_buf->length() : 0, nullptr, nullptr);
@@ -285,7 +276,7 @@ result_t KeyObject::ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8
                 cipher ? (unsigned char*)pass_buf->data() : nullptr,
                 cipher ? pass_buf->length() : 0, nullptr, nullptr);
         } else
-            return Runtime::setError("Invalid type");
+            return Runtime::setError("Invalid type: " + type);
 
         if (ret != 1)
             return openssl_error();
@@ -293,7 +284,7 @@ result_t KeyObject::ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8
         BUF_MEM* bptr;
         BIO_get_mem_ptr(bio, &bptr);
 
-        retVal = isolate->NewString(bptr->data, bptr->length);
+        retVal = exlib::string(bptr->data, bptr->length);
     } else if (format == "der") {
         if (type == "pkcs1") {
             if (EVP_PKEY_id(m_pkey) != EVP_PKEY_RSA)
@@ -301,7 +292,7 @@ result_t KeyObject::ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8
 
             RsaPointer rsa = EVP_PKEY_get1_RSA(m_pkey);
             ret = i2d_RSAPrivateKey_bio(bio, rsa);
-        } else if (type == "pkcs8") {
+        } else if (type.empty() || type == "pkcs8") {
             ret = i2d_PKCS8PrivateKey_bio(bio, m_pkey, cipher,
                 cipher ? (char*)pass_buf->data() : nullptr,
                 cipher ? pass_buf->length() : 0, nullptr, nullptr);
@@ -312,9 +303,8 @@ result_t KeyObject::ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8
 
             ECKeyPointer ec = EVP_PKEY_get1_EC_KEY(m_pkey);
             ret = i2d_ECPrivateKey_bio(bio, ec);
-
         } else
-            return Runtime::setError("Invalid type");
+            return Runtime::setError("Invalid type: " + type);
 
         if (ret != 1)
             return openssl_error();
@@ -323,7 +313,7 @@ result_t KeyObject::ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8
         BIO_get_mem_ptr(bio, &bptr);
 
         obj_ptr<Buffer_base> buf = new Buffer((const unsigned char*)bptr->data, bptr->length);
-        retVal = buf->wrap(isolate);
+        retVal = buf;
     } else if (format == "raw") {
         int nid = EVP_PKEY_id(m_pkey);
         if (nid == EVP_PKEY_EC || nid == EVP_PKEY_SM2) {
@@ -337,7 +327,7 @@ result_t KeyObject::ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8
             obj_ptr<Buffer> buf = new Buffer(nullptr, degree_bytes);
             BN_bn2binpad(d, buf->data(), degree_bytes);
 
-            retVal = buf->wrap(isolate);
+            retVal = buf;
         } else if (is_okp_curve(nid)) {
             size_t len = 0;
             EVP_PKEY_get_raw_private_key(m_pkey, nullptr, &len);
@@ -345,11 +335,30 @@ result_t KeyObject::ExportPrivateKey(v8::Local<v8::Object> options, v8::Local<v8
             obj_ptr<Buffer> buf = new Buffer(nullptr, len);
             EVP_PKEY_get_raw_private_key(m_pkey, buf->data(), &len);
 
-            retVal = buf->wrap(isolate);
+            retVal = buf;
         } else
             return Runtime::setError("only support EC, SM2, ED25519, ED448, X25519, X448, Bls12381G1, Bls12381G2 key");
     } else
-        return Runtime::setError("Invalid format");
+        return Runtime::setError("Invalid format: " + format);
+
+    return 0;
+}
+
+result_t KeyObject::ExportPrivateKey(keyEncodingParam* param, Variant& retVal)
+{
+    return ExportPrivateKey(param->format, param->type, param->cipher, param->passphrase, retVal);
+}
+
+result_t KeyObject::ExportPrivateKey(keyEncodingParam* param, v8::Local<v8::Value>& retVal)
+{
+    result_t hr;
+    Variant _retVal;
+
+    hr = ExportPrivateKey(param, _retVal);
+    if (hr < 0)
+        return hr;
+
+    retVal = _retVal;
 
     return 0;
 }

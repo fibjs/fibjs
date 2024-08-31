@@ -74,12 +74,9 @@ inline ClassInfo& SeekableStream_base::class_info()
         { "rewind", s_rewind, false, ClassData::ASYNC_SYNC },
         { "size", s_size, false, ClassData::ASYNC_SYNC },
         { "readAll", s_readAll, false, ClassData::ASYNC_ASYNC },
-        { "readAllSync", s_readAll, false, ClassData::ASYNC_SYNC },
         { "truncate", s_truncate, false, ClassData::ASYNC_ASYNC },
-        { "truncateSync", s_truncate, false, ClassData::ASYNC_SYNC },
         { "eof", s_eof, false, ClassData::ASYNC_SYNC },
-        { "stat", s_stat, false, ClassData::ASYNC_ASYNC },
-        { "statSync", s_stat, false, ClassData::ASYNC_SYNC }
+        { "stat", s_stat, false, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData s_cd = {

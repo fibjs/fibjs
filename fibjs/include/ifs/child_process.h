@@ -23,14 +23,14 @@ class child_process_base : public object_base {
 public:
     class ExecType : public NType {
     public:
-        virtual void fillMembers(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
         {
             v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
             retVal->Set(context, isolate->NewString("stdout"), GetReturnValue(isolate, stdout)).Check();
             retVal->Set(context, isolate->NewString("stderr"), GetReturnValue(isolate, stderr)).Check();
         }
 
-        virtual void fillArguments(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
         {
             args.push_back(GetReturnValue(isolate, stdout));
             args.push_back(GetReturnValue(isolate, stderr));
@@ -42,14 +42,14 @@ public:
     };
     class ExecFileType : public NType {
     public:
-        virtual void fillMembers(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
         {
             v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
             retVal->Set(context, isolate->NewString("stdout"), GetReturnValue(isolate, stdout)).Check();
             retVal->Set(context, isolate->NewString("stderr"), GetReturnValue(isolate, stderr)).Check();
         }
 
-        virtual void fillArguments(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
         {
             args.push_back(GetReturnValue(isolate, stdout));
             args.push_back(GetReturnValue(isolate, stderr));
@@ -61,7 +61,7 @@ public:
     };
     class SpawnSyncType : public NType {
     public:
-        virtual void fillMembers(Isolate* isolate, v8::Local<v8::Object>& retVal)
+        virtual void to_value(Isolate* isolate, v8::Local<v8::Object>& retVal)
         {
             v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
             retVal->Set(context, isolate->NewString("pid"), GetReturnValue(isolate, pid)).Check();
@@ -72,7 +72,7 @@ public:
             retVal->Set(context, isolate->NewString("error"), GetReturnValue(isolate, error)).Check();
         }
 
-        virtual void fillArguments(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
+        virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
         {
             args.push_back(GetReturnValue(isolate, pid));
             args.push_back(GetReturnValue(isolate, output));
@@ -141,14 +141,10 @@ inline ClassInfo& child_process_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "spawn", s_static_spawn, true, ClassData::ASYNC_SYNC },
         { "exec", s_static_exec, true, ClassData::ASYNC_ASYNC },
-        { "execSync", s_static_exec, true, ClassData::ASYNC_SYNC },
         { "execFile", s_static_execFile, true, ClassData::ASYNC_ASYNC },
-        { "execFileSync", s_static_execFile, true, ClassData::ASYNC_SYNC },
         { "spawnSync", s_static_spawnSync, true, ClassData::ASYNC_ASYNC },
-        { "spawnSyncSync", s_static_spawnSync, true, ClassData::ASYNC_SYNC },
         { "fork", s_static_fork, true, ClassData::ASYNC_SYNC },
-        { "run", s_static_run, true, ClassData::ASYNC_ASYNC },
-        { "runSync", s_static_run, true, ClassData::ASYNC_SYNC }
+        { "run", s_static_run, true, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData s_cd = {

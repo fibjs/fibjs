@@ -109,6 +109,10 @@ function generalTypeMap(dataType, {
             info.type = dom.create.namedTypeReference('ArrayBuffer');
             break;
         }
+        case 'TypedArray': {
+            info.type = dom.create.namedTypeReference('TypedArray');
+            break;
+        }
         case 'Value':
         case 'Variant': {
             info.type = dom.type.any;

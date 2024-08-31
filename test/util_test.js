@@ -4,6 +4,8 @@ test.setup();
 var test_util = require('./test_util');
 
 var util = require('util');
+var fs = require('fs');
+var crypto = require('crypto');
 var mq = require('mq');
 var coroutine = require('coroutine');
 
@@ -678,15 +680,15 @@ describe('util', () => {
         });
 
         it("typedarray", () => {
-            assert.equal(util.format(new Uint8Array([])), '[]');
-            assert.equal(util.format(new Uint8Array([100, 200])), '[\n  100,\n  200\n]');
+            assert.equal(util.format(new Uint8Array([])), '[Uint8Array] []');
+            assert.equal(util.format(new Uint8Array([100, 200])), '[Uint8Array] [\n  100,\n  200\n]');
         });
 
         it('Uint8Array, offset', () => {
             var buf = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8, 9]);
             var arr = new Uint8Array(buf.buffer, 2, 4);
 
-            assert.equal(util.format(arr), "[\n  3,\n  4,\n  5,\n  6\n]");
+            assert.equal(util.format(arr), "[Uint8Array] [\n  3,\n  4,\n  5,\n  6\n]");
         });
 
         it("object", () => {
@@ -1551,6 +1553,29 @@ describe('util', () => {
                 util.sync(async_test1, true)(100, 200);
             });
         });
+
+        todo("BUGFIX: deadlock when calling sync functions after await", async function () {
+            async function test1() {
+            }
+
+            async function test2() {
+            }
+
+            var test1_sync = util.sync(test1);
+            var test2_sync = util.sync(test2);
+
+            try {
+                await test1();
+            } catch (e) {
+                console.log(e);
+            }
+
+            try {
+                test2_sync();
+            } catch (e) {
+                console.log(e);
+            }
+        });
     });
 
     it('promisify', async () => {
@@ -1578,6 +1603,14 @@ describe('util', () => {
         }
 
         assert.equal(t2, 500);
+    });
+
+    it('support promisify with multi result', async () => {
+        const generateKeyPairAsync = util.promisify(crypto.generateKeyPair);
+        const keys = await generateKeyPairAsync('x25519');
+
+        assert.property(keys, 'privateKey');
+        assert.property(keys, 'publicKey');
     });
 
     it('callbackify', () => {
@@ -1634,6 +1667,97 @@ describe('util', () => {
             ev.wait();
             assert.strictEqual(value1, value);
         }
+    });
+
+    describe("async wrap cache", () => {
+        it("multi sync", () => {
+            function cb_test(cb) { }
+            async function async_test() { }
+
+            assert.equal(util.sync(cb_test), util.sync(cb_test));
+            assert.equal(util.sync(async_test), util.sync(async_test));
+        });
+
+        it("multi promisify", () => {
+            function cb_test(cb) { }
+            const async_test = util.promisify(cb_test);
+
+            assert.equal(async_test, util.promisify(cb_test));
+            assert.equal(util.callbackify(async_test), cb_test);
+        });
+
+        it("multi callbackify", () => {
+            async function async_test() { }
+            const cb_test = util.callbackify(async_test);
+
+            assert.equal(cb_test, util.callbackify(async_test));
+            assert.equal(async_test, util.promisify(cb_test));
+        });
+
+        it("sync with promisify", () => {
+            function cb_test(cb) { }
+            const async_test = util.promisify(cb_test);
+
+            assert.equal(util.sync(cb_test), util.sync(async_test));
+        });
+
+        it("sync with callbackify", () => {
+            async function async_test() { }
+            const cb_test = util.callbackify(async_test);
+
+            assert.equal(util.sync(cb_test), util.sync(async_test));
+        });
+
+        it("promisify with sync", () => {
+            function cb_test(cb) { }
+            const sync_test = util.sync(cb_test);
+            const async_test = util.promisify(cb_test);
+
+            assert.equal(sync_test, util.sync(async_test));
+        });
+
+        it("callbackify with sync", () => {
+            async function async_test() { }
+            const sync_test = util.sync(async_test);
+            const cb_test = util.callbackify(async_test);
+
+            assert.equal(sync_test, util.sync(cb_test));
+        });
+
+        describe("static native function", () => {
+            it("sync function equal async function", () => {
+                assert.equal(fs.open, fs.openSync);
+                assert.equal(fs.open, util.sync(fs.open));
+            });
+
+            it("cache promise function", () => {
+                assert.equal(fs.promises.openSync, fs.open);
+
+                assert.equal(fs.promises.open, util.promisify(fs.open));
+                assert.equal(util.callbackify(fs.promises.open), fs.open);
+                assert.equal(util.sync(fs.promises.open), fs.open);
+            });
+        });
+
+        describe("member native function", () => {
+            it("sync function equal async function", () => {
+                const f = fs.open(__filename);
+
+                assert.equal(f.read, f.readSync);
+                assert.equal(f.read, util.sync(f.read));
+            });
+
+            it("cache promise function", async () => {
+                const f = fs.open(__filename);
+                const f1 = await fs.promises.open(__filename);
+
+                assert.equal(f1.readSync, f.read);
+
+                assert.equal(f1.read, util.promisify(f.read));
+                assert.equal(util.callbackify(f1.read), f.read);
+                assert.equal(util.sync(f1.read), f.read);
+            });
+        });
     });
 
     describe('buildInfo', () => {

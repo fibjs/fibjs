@@ -41,6 +41,6 @@ result_t custom_Loader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::
 
     obj_ptr<Buffer_base> buf = new Buffer(strScript.c_str(), strScript.length());
 
-    return js_Loader::compile(ctx, buf, name, arg_names, script);
+    return cjs_Loader::compile(ctx, buf, name, arg_names, script);
 }
 } // namespace fibjs
