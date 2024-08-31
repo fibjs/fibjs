@@ -14,7 +14,7 @@ DECLARE_MODULE(vm);
 
 void vm_get_global(v8::Local<v8::Object> obj, v8::Local<v8::Object>& retVal)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(obj);
     v8::Local<v8::Context> context = isolate->context();
 
     v8::MaybeLocal<v8::Value> maybe_value = obj->GetPrivate(context,
@@ -34,7 +34,7 @@ result_t vm_base::createContext(v8::Local<v8::Object> contextObject, v8::Local<v
         return 0;
     }
 
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(contextObject);
     obj_ptr<SandBox_base> sbox;
 
     retVal = contextObject;
@@ -65,7 +65,7 @@ result_t vm_base::runInContext(exlib::string code, v8::Local<v8::Object> context
 result_t vm_base::runInContext(exlib::string code, v8::Local<v8::Object> contextifiedObject,
     exlib::string filename, v8::Local<v8::Value>& retVal)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(contextifiedObject);
     v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
     opts->Set(isolate->context(), isolate->NewString("filename"), isolate->NewString(filename)).FromJust();
     return runInContext(code, contextifiedObject, opts, retVal);
@@ -85,7 +85,7 @@ result_t vm_base::runInNewContext(exlib::string code, v8::Local<v8::Object> cont
 result_t vm_base::runInNewContext(exlib::string code, v8::Local<v8::Object> contextObject,
     exlib::string filename, v8::Local<v8::Value>& retVal)
 {
-    Isolate* isolate = Isolate::current();
+    Isolate* isolate = Isolate::current(contextObject);
     v8::Local<v8::Object> opts = v8::Object::New(isolate->m_isolate);
     opts->Set(isolate->context(), isolate->NewString("filename"), isolate->NewString(filename)).FromJust();
     return runInNewContext(code, contextObject, opts, retVal);

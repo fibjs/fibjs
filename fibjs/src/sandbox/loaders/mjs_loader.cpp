@@ -12,6 +12,7 @@
 #include "Buffer.h"
 #include "loaders.h"
 #include "ifs/util.h"
+
 namespace fibjs {
 
 class esm_importer : public object_base {
@@ -391,11 +392,12 @@ private:
         resolver->Resolve(context, result).IsJust();
 
         v8::Local<v8::Object> mods = impoter->m_sb->mods();
-        v8::Local<v8::Object> mod = mods->Get(context, isolate->NewString(root_module->first)).ToLocalChecked().As<v8::Object>();
-        if (!IsEmpty(mod)) {
+        v8::Local<v8::Value> _mod = mods->Get(context, isolate->NewString(root_module->first)).FromMaybe(v8::Local<v8::Value>());
+        if (!IsEmpty(_mod)) {
+            v8::Local<v8::Object> mod = _mod.As<v8::Object>();
             v8::Local<v8::Private> strPendding = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("pendding"));
-            mod->DeletePrivate(context, strPendding).IsJust();
 
+            mod->DeletePrivate(context, strPendding).IsJust();
             mod->Set(context, isolate->NewString("exports"), result).IsJust();
         }
 
@@ -413,11 +415,12 @@ private:
 
         SandBox::module_map_iter& root_module = impoter->module_refs[0];
         v8::Local<v8::Object> mods = impoter->m_sb->mods();
-        v8::Local<v8::Object> mod = mods->Get(context, isolate->NewString(root_module->first)).ToLocalChecked().As<v8::Object>();
-        if (!IsEmpty(mod)) {
+        v8::Local<v8::Value> _mod = mods->Get(context, isolate->NewString(root_module->first)).FromMaybe(v8::Local<v8::Value>());
+        if (!IsEmpty(_mod)) {
+            v8::Local<v8::Object> mod = _mod.As<v8::Object>();
             v8::Local<v8::Private> strPendding = v8::Private::ForApi(isolate->m_isolate, isolate->NewString("pendding"));
-            mod->DeletePrivate(context, strPendding).IsJust();
 
+            mod->DeletePrivate(context, strPendding).IsJust();
             mod->Delete(context, isolate->NewString("exports")).IsJust();
             mods->Delete(context, isolate->NewString(root_module->first)).IsJust();
         }
