@@ -11,8 +11,7 @@ class AsyncEvent : public exlib::Task_base {
 private:
     enum kStateType {
         kStateSync,
-        kStateAsync,
-        kStatePost
+        kStateAsync
     };
 
 public:
@@ -76,19 +75,9 @@ public:
         return m_state == kStateSync;
     }
 
-    bool isPost() const
-    {
-        return m_state == kStatePost;
-    }
-
     void setAsync()
     {
         m_state = kStateAsync;
-    }
-
-    void setPost()
-    {
-        m_state = kStatePost;
     }
 
 public:
@@ -147,9 +136,6 @@ public:
 
         if (m_v == CALL_E_EXCEPTION)
             Runtime::setError(m_error);
-
-        if (m_v >= 0 && isPost())
-            m_v = js_invoke();
 
         return m_v;
     }

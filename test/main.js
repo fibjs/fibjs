@@ -54,6 +54,7 @@ run("./url_test.js");
 run("./querystring_test.js");
 run("./http_test.js");
 run("./mq_test.js");
+run("./rtc_test.js");
 run("./gui_test.js");
 run("./registry_test.js");
 run("./uuid_test.js");

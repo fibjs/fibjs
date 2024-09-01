@@ -368,20 +368,17 @@ result_t RTCPeerConnection::setLocalDescription(RTCSessionDescription_base* desc
 
 result_t RTCPeerConnection::setRemoteDescription(RTCSessionDescription_base* description, AsyncEvent* ac)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-    else if (ac->isPost()) {
+    if (ac->isSync()) {
         m_self = new ValueHolder(wrap());
-        isolate_ref();
-
-        return 0;
+        return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
     RTCSessionDescription* desc = static_cast<RTCSessionDescription*>(description);
     try {
         m_peerConnection->setRemoteDescription(desc->m_desc);
-        ac->setPost();
+        isolate_ref();
     } catch (std::exception& e) {
+        m_self.Release();
         return Runtime::setError(e.what());
     }
 
@@ -520,6 +517,16 @@ result_t RTCPeerConnection::close()
     m_peerConnection->resetCallbacks();
     m_peerConnection->close();
 
+    m_lock.lock();
+    while (!m_dataChannels.empty()) {
+        m_dataChannels.front()->close();
+        m_dataChannels.pop_front();
+    }
+    m_lock.unlock();
+
+    m_self.Release();
+    isolate_unref();
+
     return 0;
 }
 
@@ -604,17 +611,8 @@ void RTCPeerConnection::onStateChange(rtc::PeerConnection::State state)
         m_lock.lock();
         m_dataChannels.clear();
         m_lock.unlock();
-    } else if (state == rtc::PeerConnection::State::Closed) {
-        m_lock.lock();
-        while (!m_dataChannels.empty()) {
-            m_dataChannels.front()->close();
-            m_dataChannels.pop_front();
-        }
-        m_lock.unlock();
-
-        m_self.Release();
-        isolate_unref();
-    }
+    } else if (state == rtc::PeerConnection::State::Closed)
+        close();
 
     obj_ptr<NObject> ev = new NObject();
 
