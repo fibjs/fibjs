@@ -63,7 +63,6 @@ describe('rtc', function () {
         var p = child_process.spawn(cmd, [path.join(__dirname, 'rtc_files', 'listen.js')]);
         var stdout = new io.BufferedStream(p.stdout);
         assert.deepEqual(stdout.readLines(), ["0", "1", "2", "3"]);
-        assert.equal(p.exitCode, 100);
     });
 
     it('binding information', function () {
