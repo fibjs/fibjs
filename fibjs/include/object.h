@@ -32,6 +32,7 @@ public:
         , m_isJSObject(0)
         , m_nExtMemory(sizeof(object_base) * 2)
         , m_nExtMemoryDelay(0)
+        , m_holding(false)
     {
         object_base::class_info().Ref();
     }
