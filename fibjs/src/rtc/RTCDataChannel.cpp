@@ -10,12 +10,15 @@
 
 namespace fibjs {
 
-RTCDataChannel::RTCDataChannel(const std::shared_ptr<rtc::DataChannel>& dataChannel)
+RTCDataChannel::RTCDataChannel(Isolate* isolate, const std::shared_ptr<rtc::DataChannel>& dataChannel, bool opened)
     : m_dataChannel(dataChannel)
 {
-    m_dataChannel->onOpen([this]() {
-        this->_emit("open");
-    });
+    holder(isolate);
+
+    if (!opened)
+        m_dataChannel->onOpen([this]() {
+            this->_emit("open");
+        });
 
     m_dataChannel->onClosed([this]() {
         this->m_self.Release();

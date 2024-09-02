@@ -20,8 +20,8 @@ zfHHWlO7xSDTzdyoxzroFdwy+gIhAKmZizEVvDlBiIe+3ptCArU3dbp+bzLynTcr
 Ma9ayzQy
 -----END CERTIFICATE-----`
 
-rtc.listen(60917, function (binding) {
-    rtc.stopListen(60917);
+rtc.listen(60918, function (binding) {
+    rtc.stopListen(60918);
 
     var { local_ufrag, remote_ufrag, address, port } = binding;
     var family = address.indexOf(':') >= 0 ? 'IP6' : 'IP4';
@@ -43,12 +43,12 @@ rtc.listen(60917, function (binding) {
         "sdp": sdp
     });
 
-    peer1.ondatachannel = function (channel) {
-        console.log("ondatachannel");
-
-        setTimeout(function () {
-            peer1.close();
-            console.log("closed");
-        }, 100);
+    peer1.ondatachannel = function (ev) {
+        console.log('server ondatachannel');
+        const channel = ev.channel;
+        channel.onmessage = function (ev) {
+            console.log('server accept message:', ev.data);
+            channel.send(ev.data);
+        }
     };
 });

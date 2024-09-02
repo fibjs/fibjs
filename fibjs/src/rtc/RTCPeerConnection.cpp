@@ -329,7 +329,7 @@ result_t RTCPeerConnection::createDataChannel(exlib::string label, v8::Local<v8:
 
     obj_ptr<RTCDataChannel> dc;
     try {
-        dc = new RTCDataChannel(m_peerConnection->createDataChannel(label, init));
+        dc = new RTCDataChannel(isolate, m_peerConnection->createDataChannel(label, init), false);
         retVal = dc;
     } catch (std::exception& e) {
         return Runtime::setError(e.what());
@@ -625,7 +625,7 @@ void RTCPeerConnection::onDataChannel(std::shared_ptr<rtc::DataChannel> dataChan
 {
     obj_ptr<NObject> ev = new NObject();
 
-    ev->add("channel", new RTCDataChannel(dataChannel));
+    ev->add("channel", new RTCDataChannel(holder(), dataChannel, true));
 
     _emit("datachannel", ev);
 }

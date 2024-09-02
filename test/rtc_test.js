@@ -40,10 +40,10 @@ function connect(ip, port, ufrag) {
         maxMessageSize: 16384
     });
 
-    const handshakeDataChannel = peerConnection.createDataChannel('');
+    const handshakeDataChannel = peerConnection.createDataChannel('temp');
 
     handshakeDataChannel.onopen = (_) => {
-        peerConnection.close();
+        // peerConnection.close();
     };
 
     peerConnection.createOffer().then(offerSdp => {
@@ -82,18 +82,54 @@ describe('rtc', function () {
     it('accept', function () {
         var p = child_process.spawn(cmd, [path.join(__dirname, 'rtc_files', 'accept.js')]);
         const ufrag = 'libp2p+webrtc+v1/' + genUfrag(16);
-        const peerConnection = connect('127.0.0.1', 60916, ufrag);
+        const peerConnection = connect('127.0.0.1', 60917, ufrag);
 
         var stdout = new io.BufferedStream(p.stdout);
         assert.deepEqual(stdout.readLines(), [
             "ondatachannel",
             "closed"
         ]);
+
+        peerConnection.close();
+    });
+
+    it('datachannel', function () {
+        var p = child_process.spawn(cmd, [path.join(__dirname, 'rtc_files', 'datachannel.js')], {
+            stdio: "inherit"
+        });
+
+        const ufrag = 'libp2p+webrtc+v1/' + genUfrag(16);
+        const peerConnection = connect('127.0.0.1', 60918, ufrag);
+
+        for (var i = 0; i < 10; i++) {
+            var msg = '';
+
+            console.log(`channel_${i}`);
+            var test_channel = peerConnection.createDataChannel(`channel_${i}`);
+
+            test_channel.onmessage = (ev) => {
+                console.log('client accept message:', ev.data);
+                msg = ev.data;
+            };
+
+            test_channel.onopen = (_) => {
+                console.log('client onopen');
+                test_channel.send('hello');
+            };
+
+            for (var j = 0; j < 100 && msg !== 'hello'; j++)
+                coroutine.sleep(100);
+
+            assert.equal(msg, 'hello');
+        }
+
+        p.kill(0);
+        peerConnection.close();
     });
 
     it('connect timeout', function () {
         const ufrag = 'libp2p+webrtc+v1/' + genUfrag(16);
-        const peerConnection = connect('127.0.0.1', 60916, ufrag);
+        const peerConnection = connect('127.0.0.1', 60919, ufrag);
 
         while (peerConnection.connectionState !== 'closed') {
             console.log(peerConnection.connectionState);
