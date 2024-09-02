@@ -21,13 +21,13 @@
 namespace fibjs {
 DECLARE_MODULE(rtc);
 
-// class _init_rtc {
-// public:
-//     _init_rtc()
-//     {
-//         rtc::InitLogger(rtc::LogLevel::Verbose);
-//     }
-// } s_init_rtc;
+class _init_rtc {
+public:
+    _init_rtc()
+    {
+        rtc::InitLogger(rtc::LogLevel::None);
+    }
+} s_init_rtc;
 
 result_t rtc_base::listen(exlib::string bind_address, int32_t local_port, v8::Local<v8::Function> cb)
 {
