@@ -133,6 +133,7 @@ public:
 Isolate::Isolate(exlib::string jsFilename, exlib::string jsCode)
     : m_id((int32_t)s_iso_id.inc())
     , m_hr(0)
+    , m_intask(false)
     , m_ipc_mode(0)
     , m_test(NULL)
     , m_currentFibers(0)

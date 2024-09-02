@@ -33,7 +33,7 @@ public:
     }
 
 private:
-    std::atomic<bool> m_aborted;
+    std::atomic_bool m_aborted = false;
 };
 
 class AbortController : public AbortController_base {

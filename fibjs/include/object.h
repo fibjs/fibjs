@@ -261,18 +261,16 @@ public:
 
     void isolate_ref()
     {
-        if (!m_holding) {
-            m_holding = true;
+        bool expected = false;
+        if (m_holding.compare_exchange_strong(expected, true))
             holder()->Ref();
-        }
     }
 
     void isolate_unref()
     {
-        if (m_holding) {
-            m_holding = false;
+        bool expected = true;
+        if (m_holding.compare_exchange_strong(expected, false))
             holder()->Unref();
-        }
     }
 
 private:
@@ -282,7 +280,7 @@ private:
 private:
     int32_t m_nExtMemory;
     int32_t m_nExtMemoryDelay;
-    bool m_holding;
+    std::atomic_bool m_holding;
 
 public:
     template <typename T>

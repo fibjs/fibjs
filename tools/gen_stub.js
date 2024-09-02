@@ -78,19 +78,6 @@ function gen_stub(argn, bInst, bRet) {
         txt.push('			if(hr != CALL_E_PENDDING)post(hr); \\');
         txt.push('		} \\');
 
-        txt.push('		virtual result_t js_invoke() \\\n		{ \\');
-        txt.push('			return ' + (bInst ? '((cls*)args[' + (argn) + '])->' : 'cls::') + 'm( \\');
-
-        s = '				';
-        a = [];
-        for (i = 0; i < argn; i++)
-            a.push('*(T' + i + '*) args[' + i + ']');
-        a.push('this');
-        s += a.join(', ');
-        s += '); \\'
-        txt.push(s);
-        txt.push('		} \\');
-
         txt.push('	}; \\');
 
         if (argn > 0 || bInst) {
@@ -172,21 +159,6 @@ function gen_stub(argn, bInst, bRet) {
         txt.push(s);
 
         txt.push('			if (hr != CALL_E_PENDDING)post(hr); \\\n' + '		} \\');
-
-        txt.push('		virtual result_t js_invoke() \\\n		{ \\');
-        if (bInst)
-            s = '			return ((cls*)(object_base*)m_pThis)->m(';
-        else
-            s = '			return cls::m(';
-
-        for (i = 0; i < argn1; i++)
-            s += 'm_v' + i + '.value(), ';
-        if (bRet)
-            s += 'retVal, ';
-        s += 'this); \\';
-        txt.push(s);
-
-        txt.push('		} \\');
 
         if (bRet) {
             txt.push('    	virtual void to_args(std::vector<v8::Local<v8::Value>>& args) \\');

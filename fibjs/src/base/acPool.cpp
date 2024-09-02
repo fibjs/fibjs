@@ -170,9 +170,6 @@ result_t AsyncCallBack::syncFunc(AsyncCallBack* pThis)
 
     std::vector<v8::Local<v8::Value>> args;
 
-    if (pThis->m_v >= 0 && pThis->isPost())
-        pThis->m_v = pThis->js_invoke();
-
     if (pThis->m_v == CALL_RETURN_NULL) {
         args.resize(2);
         args[0] = v8::Undefined(isolate->m_isolate);

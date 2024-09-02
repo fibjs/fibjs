@@ -21,13 +21,13 @@
 namespace fibjs {
 DECLARE_MODULE(rtc);
 
-// class _init_rtc {
-// public:
-//     _init_rtc()
-//     {
-//         rtc::InitLogger(rtc::LogLevel::Verbose);
-//     }
-// } s_init_rtc;
+class _init_rtc {
+public:
+    _init_rtc()
+    {
+        rtc::InitLogger(rtc::LogLevel::None);
+    }
+} s_init_rtc;
 
 result_t rtc_base::listen(exlib::string bind_address, int32_t local_port, v8::Local<v8::Function> cb)
 {
@@ -329,7 +329,7 @@ result_t RTCPeerConnection::createDataChannel(exlib::string label, v8::Local<v8:
 
     obj_ptr<RTCDataChannel> dc;
     try {
-        dc = new RTCDataChannel(m_peerConnection->createDataChannel(label, init));
+        dc = new RTCDataChannel(isolate, m_peerConnection->createDataChannel(label, init), false);
         retVal = dc;
     } catch (std::exception& e) {
         return Runtime::setError(e.what());
@@ -368,20 +368,17 @@ result_t RTCPeerConnection::setLocalDescription(RTCSessionDescription_base* desc
 
 result_t RTCPeerConnection::setRemoteDescription(RTCSessionDescription_base* description, AsyncEvent* ac)
 {
-    if (ac->isSync())
-        return CHECK_ERROR(CALL_E_NOSYNC);
-    else if (ac->isPost()) {
+    if (ac->isSync()) {
         m_self = new ValueHolder(wrap());
-        isolate_ref();
-
-        return 0;
+        return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
     RTCSessionDescription* desc = static_cast<RTCSessionDescription*>(description);
     try {
         m_peerConnection->setRemoteDescription(desc->m_desc);
-        ac->setPost();
+        isolate_ref();
     } catch (std::exception& e) {
+        m_self.Release();
         return Runtime::setError(e.what());
     }
 
@@ -520,6 +517,16 @@ result_t RTCPeerConnection::close()
     m_peerConnection->resetCallbacks();
     m_peerConnection->close();
 
+    m_lock.lock();
+    while (!m_dataChannels.empty()) {
+        m_dataChannels.front()->close();
+        m_dataChannels.pop_front();
+    }
+    m_lock.unlock();
+
+    m_self.Release();
+    isolate_unref();
+
     return 0;
 }
 
@@ -604,17 +611,8 @@ void RTCPeerConnection::onStateChange(rtc::PeerConnection::State state)
         m_lock.lock();
         m_dataChannels.clear();
         m_lock.unlock();
-    } else if (state == rtc::PeerConnection::State::Closed) {
-        m_lock.lock();
-        while (!m_dataChannels.empty()) {
-            m_dataChannels.front()->close();
-            m_dataChannels.pop_front();
-        }
-        m_lock.unlock();
-
-        m_self.Release();
-        isolate_unref();
-    }
+    } else if (state == rtc::PeerConnection::State::Closed)
+        close();
 
     obj_ptr<NObject> ev = new NObject();
 
@@ -627,7 +625,7 @@ void RTCPeerConnection::onDataChannel(std::shared_ptr<rtc::DataChannel> dataChan
 {
     obj_ptr<NObject> ev = new NObject();
 
-    ev->add("channel", new RTCDataChannel(dataChannel));
+    ev->add("channel", new RTCDataChannel(holder(), dataChannel, true));
 
     _emit("datachannel", ev);
 }

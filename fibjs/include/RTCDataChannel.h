@@ -18,7 +18,7 @@ namespace fibjs {
 
 class RTCDataChannel : public RTCDataChannel_base {
 public:
-    RTCDataChannel(const std::shared_ptr<rtc::DataChannel>& dataChannel);
+    RTCDataChannel(Isolate* isolate, const std::shared_ptr<rtc::DataChannel>& dataChannel, bool opened);
     ~RTCDataChannel();
 
     EVENT_SUPPORT();
