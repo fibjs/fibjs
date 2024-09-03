@@ -25,7 +25,7 @@ result_t get_index(Variant& idx, size_t msg_len, std::vector<int32_t>& idx_i, st
     obj_ptr<NArray> _idx = (NArray*)idx.object();
 
     if (_idx->length() > msg_len)
-        return CALL_E_INVALID_DATA;
+        return Runtime::setError("crypto: index array length must be less than or equal to messages length");
 
     idx_i.reserve(_idx->length());
     idx_j.reserve(msg_len - _idx->length());
@@ -38,8 +38,10 @@ result_t get_index(Variant& idx, size_t msg_len, std::vector<int32_t>& idx_i, st
         _idx->_indexed_getter(i, v);
 
         int32_t n = v.intVal();
-        if (n < pos_j || n >= msg_len)
-            return CALL_E_INVALID_DATA;
+        if (n < pos_j)
+            return Runtime::setError("crypto: index array must be sorted");
+        if (n >= msg_len)
+            return Runtime::setError("crypto: index array must be less than messages length");
 
         while (pos_j < n)
             idx_j.push_back(pos_j++);
@@ -267,7 +269,7 @@ static result_t proofGen_(Buffer_base* signature, obj_ptr<Buffer_base>& retVal, 
 {
     Signature s;
     if (!s.parse(signature))
-        return CALL_E_INVALID_DATA;
+        return Runtime::setError("crypto: invalid signature");
 
     blst_p2 pk = get_pk(ac->m_ctx[0].object());
     int suite = ac->m_ctx[1].intVal();
