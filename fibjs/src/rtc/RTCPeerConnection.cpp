@@ -270,6 +270,7 @@ obj_ptr<NObject> RTCPeerConnection::description_to_object(rtc::Description descr
 
 RTCPeerConnection::~RTCPeerConnection()
 {
+    m_peerConnection->resetCallbacks();
     close();
 }
 
@@ -514,18 +515,7 @@ result_t RTCPeerConnection::getStats(obj_ptr<NMap>& retVal, AsyncEvent* ac)
 
 result_t RTCPeerConnection::close()
 {
-    m_peerConnection->resetCallbacks();
     m_peerConnection->close();
-
-    m_lock.lock();
-    while (!m_dataChannels.empty()) {
-        m_dataChannels.front()->close();
-        m_dataChannels.pop_front();
-    }
-    m_lock.unlock();
-
-    m_self.Release();
-    isolate_unref();
 
     return 0;
 }
@@ -611,14 +601,27 @@ void RTCPeerConnection::onStateChange(rtc::PeerConnection::State state)
         m_lock.lock();
         m_dataChannels.clear();
         m_lock.unlock();
-    } else if (state == rtc::PeerConnection::State::Closed)
-        close();
+    } else if (state == rtc::PeerConnection::State::Closed) {
+        m_peerConnection->resetCallbacks();
+
+        m_lock.lock();
+        while (!m_dataChannels.empty()) {
+            m_dataChannels.front()->close();
+            m_dataChannels.pop_front();
+        }
+        m_lock.unlock();
+    }
 
     obj_ptr<NObject> ev = new NObject();
 
     ev->add("state", connection_state_str(state));
 
     _emit("connectionstatechange", ev);
+
+    if (state == rtc::PeerConnection::State::Closed) {
+        m_self.Release();
+        isolate_unref();
+    }
 }
 
 void RTCPeerConnection::onDataChannel(std::shared_ptr<rtc::DataChannel> dataChannel)
