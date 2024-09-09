@@ -61,6 +61,9 @@ module http
     /*! @brief 返回http客户端的 HttpCookie 对象列表 */
     static readonly NArray cookies;
 
+    /*! @brief 查询和设定是否保持连接 */
+    static Boolean keepAlive;
+
     /*! @brief 查询和设置超时时间 */
     static Integer timeout;
 
@@ -135,6 +138,7 @@ module http
          "hostname": "",
          "port": "",
          "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
          "query": {},
          "body": SeekableStream | Buffer | String | {},
          "json": {},
@@ -163,6 +167,7 @@ module http
          "hostname": "",
          "port": "",
          "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
          "query": {},
          "body": SeekableStream | Buffer | String | {},
          "json": {},
@@ -189,6 +194,7 @@ module http
          "hostname": "",
          "port": "",
          "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
          "query": {},
          "body": SeekableStream | Buffer | String | {},
          "json": {},
@@ -214,6 +220,7 @@ module http
          "hostname": "",
          "port": "",
          "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
          "query": {},
          "body": SeekableStream | Buffer | String | {},
          "json": {},
@@ -240,6 +247,7 @@ module http
          "hostname": "",
          "port": "",
          "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
          "query": {},
          "body": SeekableStream | Buffer | String | {},
          "json": {},
@@ -266,6 +274,7 @@ module http
          "hostname": "",
          "port": "",
          "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
          "query": {},
          "body": SeekableStream | Buffer | String | {},
          "json": {},
@@ -292,6 +301,7 @@ module http
          "hostname": "",
          "port": "",
          "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
          "query": {},
          "body": SeekableStream | Buffer | String | {},
          "json": {},
@@ -318,6 +328,7 @@ module http
          "hostname": "",
          "port": "",
          "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
          "query": {},
          "body": SeekableStream | Buffer | String | {},
          "json": {},
@@ -344,6 +355,7 @@ module http
          "hostname": "",
          "port": "",
          "pathname": "",
+         "keepAlive": unknown, // If not specified, the default settings of the client will be used.
          "query": {},
          "body": SeekableStream | Buffer | String | {},
          "json": {},

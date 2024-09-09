@@ -34,6 +34,8 @@ public:
     // http_base
     static result_t get_STATUS_CODES(v8::Local<v8::Object>& retVal);
     static result_t get_cookies(obj_ptr<NArray>& retVal);
+    static result_t get_keepAlive(bool& retVal);
+    static result_t set_keepAlive(bool newVal);
     static result_t get_timeout(int32_t& retVal);
     static result_t set_timeout(int32_t newVal);
     static result_t get_enableCookie(bool& retVal);
@@ -83,6 +85,8 @@ public:
 public:
     static void s_static_get_STATUS_CODES(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_cookies(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_keepAlive(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_set_keepAlive(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_timeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_set_timeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_enableCookie(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -171,6 +175,7 @@ inline ClassInfo& http_base::class_info()
     static ClassData::ClassProperty s_property[] = {
         { "STATUS_CODES", s_static_get_STATUS_CODES, block_set, true },
         { "cookies", s_static_get_cookies, block_set, true },
+        { "keepAlive", s_static_get_keepAlive, s_static_set_keepAlive, true },
         { "timeout", s_static_get_timeout, s_static_set_timeout, true },
         { "enableCookie", s_static_get_enableCookie, s_static_set_enableCookie, true },
         { "autoRedirect", s_static_get_autoRedirect, s_static_set_autoRedirect, true },
@@ -220,6 +225,32 @@ inline void http_base::s_static_get_cookies(const v8::FunctionCallbackInfo<v8::V
     hr = get_cookies(vr);
 
     METHOD_RETURN();
+}
+
+inline void http_base::s_static_get_keepAlive(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = get_keepAlive(vr);
+
+    METHOD_RETURN();
+}
+
+inline void http_base::s_static_set_keepAlive(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(bool, 0);
+
+    hr = set_keepAlive(v0);
+
+    METHOD_VOID();
 }
 
 inline void http_base::s_static_get_timeout(const v8::FunctionCallbackInfo<v8::Value>& args)

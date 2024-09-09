@@ -2077,6 +2077,7 @@ describe("http", () => {
     describe("new http.Client", () => {
         it("simple", () => {
             var hc = new http.Client();
+            assert.equal(hc.keepAlive, true);
             assert.equal(hc.timeout, 0);
             assert.equal(hc.enableCookie, true);
             assert.equal(hc.autoRedirect, true);
@@ -2093,6 +2094,7 @@ describe("http", () => {
 
         it("options", () => {
             var hc = new http.Client({
+                keepAlive: false,
                 timeout: 1000,
                 enableCookie: false,
                 autoRedirect: false,
@@ -2107,6 +2109,7 @@ describe("http", () => {
                 https_proxy: "https://127.0.0.1:9999"
             });
 
+            assert.equal(hc.keepAlive, false);
             assert.equal(hc.timeout, 1000);
             assert.equal(hc.enableCookie, false);
             assert.equal(hc.autoRedirect, false);
@@ -2351,6 +2354,8 @@ describe("http", () => {
                     setTimeout(() => {
                         _stream.close();
                     }, 50);
+                } else if (r.address == "/connection") {
+                    r.response.write(r.keepAlive.toString());
                 } else if (r.address != "/gzip_test") {
                     r.response.addHeader("set-cookie", "request=value; domain=127.0.0.1; path=/request");
                     r.response.addHeader("set-cookie", "request1=value; domain=127.0.0.1; path=/request");
@@ -2551,6 +2556,49 @@ describe("http", () => {
                 http.timeout = 1000;
                 assert.equal(http.get("http://127.0.0.1:" + (8884 + base_port) + "/timeout").body.readAll().toString(),
                     "/timeout");
+            });
+        });
+
+        describe("keep-alive", () => {
+            function test_keep_alive(def_conn, req_conn) {
+                const hc = new http.Client(def_conn);
+
+                var r1 = hc.get("http://127.0.0.1:" + (8884 + base_port) + "/connection", req_conn);
+
+                return r1.body.read().toString();
+            }
+
+            it("contructor", () => {
+                assert.equal(test_keep_alive({}, {}), "true");
+                assert.equal(test_keep_alive({
+                    keepAlive: false
+                }, {}), "false");
+            });
+
+            it("request", () => {
+                assert.equal(test_keep_alive({}, {
+                    keepAlive: false
+                }), "false");
+                assert.equal(test_keep_alive({
+                    keepAlive: false
+                }, {
+                    keepAlive: true
+                }), "true");
+            });
+
+            it("header", () => {
+                assert.equal(test_keep_alive({}, {
+                    keepAlive: false,
+                    headers: {
+                        "Connection": "keep-alive"
+                    }
+                }), "true");
+                assert.equal(test_keep_alive({}, {
+                    keepAlive: true,
+                    headers: {
+                        "Connection": "close"
+                    }
+                }), "false");
             });
         });
 

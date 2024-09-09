@@ -30,6 +30,8 @@ public:
     static result_t _new(SecureContext_base* context, obj_ptr<HttpClient_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(v8::Local<v8::Object> options, obj_ptr<HttpClient_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     virtual result_t get_cookies(obj_ptr<NArray>& retVal) = 0;
+    virtual result_t get_keepAlive(bool& retVal) = 0;
+    virtual result_t set_keepAlive(bool newVal) = 0;
     virtual result_t get_timeout(int32_t& retVal) = 0;
     virtual result_t set_timeout(int32_t newVal) = 0;
     virtual result_t get_enableCookie(bool& retVal) = 0;
@@ -73,6 +75,8 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_cookies(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_keepAlive(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_keepAlive(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_timeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_timeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_enableCookie(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -141,6 +145,7 @@ inline ClassInfo& HttpClient_base::class_info()
 
     static ClassData::ClassProperty s_property[] = {
         { "cookies", s_get_cookies, block_set, false },
+        { "keepAlive", s_get_keepAlive, s_set_keepAlive, false },
         { "timeout", s_get_timeout, s_set_timeout, false },
         { "enableCookie", s_get_enableCookie, s_set_enableCookie, false },
         { "autoRedirect", s_get_autoRedirect, s_set_autoRedirect, false },
@@ -210,6 +215,34 @@ inline void HttpClient_base::s_get_cookies(const v8::FunctionCallbackInfo<v8::Va
     hr = pInst->get_cookies(vr);
 
     METHOD_RETURN();
+}
+
+inline void HttpClient_base::s_get_keepAlive(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    METHOD_INSTANCE(HttpClient_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_keepAlive(vr);
+
+    METHOD_RETURN();
+}
+
+inline void HttpClient_base::s_set_keepAlive(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(HttpClient_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(bool, 0);
+
+    hr = pInst->set_keepAlive(v0);
+
+    METHOD_VOID();
 }
 
 inline void HttpClient_base::s_get_timeout(const v8::FunctionCallbackInfo<v8::Value>& args)

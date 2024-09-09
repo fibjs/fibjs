@@ -91,6 +91,21 @@ public:
     virtual result_t get_query(obj_ptr<HttpCollection_base>& retVal);
 
 public:
+    void _addHeader(exlib::string name, exlib::string value)
+    {
+        if (!qstricmp(name.c_str(), "connection")) {
+            if (qstristr(value.c_str(), "keep-alive")) {
+                m_message->set_keepAlive(true);
+                return;
+            } else if (qstristr(value.c_str(), "close")) {
+                m_message->set_keepAlive(false);
+                return;
+            }
+        }
+
+        m_message->addHeader(name, value);
+    }
+
     result_t addHeader(NObject* map)
     {
         for (int32_t i = 0; i < (int32_t)map->m_values.size(); i++) {
@@ -101,9 +116,9 @@ public:
 
                 if (list) {
                     for (int32_t i = 0; i < (int32_t)list->m_array.size(); i++)
-                        addHeader(v.m_pos->first, list->m_array[i].string());
+                        _addHeader(v.m_pos->first, list->m_array[i].string());
                 } else
-                    addHeader(v.m_pos->first, v.m_val.string());
+                    _addHeader(v.m_pos->first, v.m_val.string());
             }
         }
 
