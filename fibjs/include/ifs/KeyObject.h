@@ -37,10 +37,10 @@ public:
     }
 
 public:
-    static void s_get_asymmetricKeyDetails(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_asymmetricKeyType(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_symmetricKeySize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_asymmetricKeyDetails(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_asymmetricKeyType(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_symmetricKeySize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_type(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s__export(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_equals(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -72,48 +72,56 @@ inline ClassInfo& KeyObject_base::class_info()
     return s_ci;
 }
 
-inline void KeyObject_base::s_get_asymmetricKeyDetails(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void KeyObject_base::s_get_asymmetricKeyDetails(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
     METHOD_INSTANCE(KeyObject_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_asymmetricKeyDetails(vr);
 
     METHOD_RETURN();
 }
 
-inline void KeyObject_base::s_get_asymmetricKeyType(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void KeyObject_base::s_get_asymmetricKeyType(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(KeyObject_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_asymmetricKeyType(vr);
 
     METHOD_RETURN();
 }
 
-inline void KeyObject_base::s_get_symmetricKeySize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void KeyObject_base::s_get_symmetricKeySize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(KeyObject_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_symmetricKeySize(vr);
 
     METHOD_RETURN();
 }
 
-inline void KeyObject_base::s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void KeyObject_base::s_get_type(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(KeyObject_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_type(vr);
 

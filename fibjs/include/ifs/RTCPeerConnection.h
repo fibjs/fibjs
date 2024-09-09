@@ -74,29 +74,29 @@ public:
     static void s_createAnswer(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getStats(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_connectionState(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_iceConnectionState(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_iceGatheringState(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_localDescription(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_remoteDescription(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_remoteFingerprint(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_signalingState(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_onconnectionstatechange(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onconnectionstatechange(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_ondatachannel(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_ondatachannel(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onicecandidate(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onicecandidate(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_oniceconnectionstatechange(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_oniceconnectionstatechange(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onicegatheringstatechange(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onicegatheringstatechange(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onlocaldescription(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onlocaldescription(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onsignalingstatechange(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onsignalingstatechange(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_ontrack(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_ontrack(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_connectionState(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_iceConnectionState(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_iceGatheringState(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_localDescription(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_remoteDescription(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_remoteFingerprint(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_signalingState(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onconnectionstatechange(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onconnectionstatechange(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_ondatachannel(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_ondatachannel(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onicecandidate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onicecandidate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_oniceconnectionstatechange(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_oniceconnectionstatechange(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onicegatheringstatechange(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onicegatheringstatechange(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onlocaldescription(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onlocaldescription(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onsignalingstatechange(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onsignalingstatechange(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_ontrack(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_ontrack(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBER0(RTCPeerConnection_base, setLocalDescription);
@@ -320,271 +320,325 @@ inline void RTCPeerConnection_base::s_close(const v8::FunctionCallbackInfo<v8::V
     METHOD_VOID();
 }
 
-inline void RTCPeerConnection_base::s_get_connectionState(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCPeerConnection_base::s_get_connectionState(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(RTCPeerConnection_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_connectionState(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCPeerConnection_base::s_get_iceConnectionState(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCPeerConnection_base::s_get_iceConnectionState(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(RTCPeerConnection_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_iceConnectionState(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCPeerConnection_base::s_get_iceGatheringState(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCPeerConnection_base::s_get_iceGatheringState(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(RTCPeerConnection_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_iceGatheringState(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCPeerConnection_base::s_get_localDescription(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCPeerConnection_base::s_get_localDescription(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
     METHOD_INSTANCE(RTCPeerConnection_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_localDescription(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCPeerConnection_base::s_get_remoteDescription(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCPeerConnection_base::s_get_remoteDescription(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
     METHOD_INSTANCE(RTCPeerConnection_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_remoteDescription(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCPeerConnection_base::s_get_remoteFingerprint(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCPeerConnection_base::s_get_remoteFingerprint(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
     METHOD_INSTANCE(RTCPeerConnection_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_remoteFingerprint(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCPeerConnection_base::s_get_signalingState(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCPeerConnection_base::s_get_signalingState(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(RTCPeerConnection_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_signalingState(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCPeerConnection_base::s_get_onconnectionstatechange(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCPeerConnection_base::s_get_onconnectionstatechange(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(RTCPeerConnection_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_onconnectionstatechange(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCPeerConnection_base::s_set_onconnectionstatechange(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void RTCPeerConnection_base::s_set_onconnectionstatechange(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(RTCPeerConnection_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_onconnectionstatechange(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void RTCPeerConnection_base::s_get_ondatachannel(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCPeerConnection_base::s_get_ondatachannel(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(RTCPeerConnection_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_ondatachannel(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCPeerConnection_base::s_set_ondatachannel(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void RTCPeerConnection_base::s_set_ondatachannel(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(RTCPeerConnection_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_ondatachannel(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void RTCPeerConnection_base::s_get_onicecandidate(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCPeerConnection_base::s_get_onicecandidate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(RTCPeerConnection_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_onicecandidate(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCPeerConnection_base::s_set_onicecandidate(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void RTCPeerConnection_base::s_set_onicecandidate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(RTCPeerConnection_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_onicecandidate(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void RTCPeerConnection_base::s_get_oniceconnectionstatechange(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCPeerConnection_base::s_get_oniceconnectionstatechange(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(RTCPeerConnection_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_oniceconnectionstatechange(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCPeerConnection_base::s_set_oniceconnectionstatechange(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void RTCPeerConnection_base::s_set_oniceconnectionstatechange(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(RTCPeerConnection_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_oniceconnectionstatechange(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void RTCPeerConnection_base::s_get_onicegatheringstatechange(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCPeerConnection_base::s_get_onicegatheringstatechange(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(RTCPeerConnection_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_onicegatheringstatechange(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCPeerConnection_base::s_set_onicegatheringstatechange(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void RTCPeerConnection_base::s_set_onicegatheringstatechange(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(RTCPeerConnection_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_onicegatheringstatechange(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void RTCPeerConnection_base::s_get_onlocaldescription(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCPeerConnection_base::s_get_onlocaldescription(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(RTCPeerConnection_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_onlocaldescription(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCPeerConnection_base::s_set_onlocaldescription(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void RTCPeerConnection_base::s_set_onlocaldescription(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(RTCPeerConnection_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_onlocaldescription(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void RTCPeerConnection_base::s_get_onsignalingstatechange(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCPeerConnection_base::s_get_onsignalingstatechange(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(RTCPeerConnection_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_onsignalingstatechange(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCPeerConnection_base::s_set_onsignalingstatechange(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void RTCPeerConnection_base::s_set_onsignalingstatechange(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(RTCPeerConnection_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_onsignalingstatechange(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void RTCPeerConnection_base::s_get_ontrack(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCPeerConnection_base::s_get_ontrack(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(RTCPeerConnection_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_ontrack(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCPeerConnection_base::s_set_ontrack(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void RTCPeerConnection_base::s_set_ontrack(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(RTCPeerConnection_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_ontrack(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 }

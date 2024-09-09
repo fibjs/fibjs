@@ -52,7 +52,7 @@ public:
     }
 
 public:
-    static void s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_type(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_use(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_begin(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -129,12 +129,14 @@ inline ClassInfo& DbConnection_base::class_info()
     return s_ci;
 }
 
-inline void DbConnection_base::s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void DbConnection_base::s_get_type(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(DbConnection_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_type(vr);
 

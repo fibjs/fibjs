@@ -280,6 +280,13 @@ enum {
         return;                                 \
     }
 
+#define NAMED_METHOD_INSTANCE(cls)              \
+    cls* pInst = cls::getInstance(args.This()); \
+    if (pInst == NULL) {                        \
+        ThrowResult(CALL_E_NOTINSTANCE);        \
+        return v8::Intercepted::kNo;            \
+    }
+
 #define ASYNC_METHOD_INSTANCE(cls) \
     METHOD_INSTANCE(cls)           \
     scope l(pInst);
@@ -308,6 +315,14 @@ enum {
     ThrowResult(hr);                                                  \
     return;
 
+#define NAMED_THROW_ERROR()                                           \
+    if (hr == CALL_E_JAVASCRIPT) {                                    \
+        args.GetReturnValue().Set(V8_RETURN(v8::Local<v8::Value>())); \
+        return v8::Intercepted::kNo;                                  \
+    }                                                                 \
+    ThrowResult(hr);                                                  \
+    return v8::Intercepted::kNo;
+
 #define METHOD_RETURN()                                                    \
     CHECK_ARGUMENT()                                                       \
     if (hr == CALL_RETURN_UNDEFINED)                                       \
@@ -327,6 +342,25 @@ enum {
     args.GetReturnValue().Set(V8_RETURN(vr)); \
     return;
 
+#define METHOD_RETURN2()                      \
+    CHECK_ARGUMENT()                          \
+    args.GetReturnValue().Set(V8_RETURN(vr)); \
+    return v8::Intercepted::kNo;
+
+#define NAMED_METHOD_RETURN()                                              \
+    CHECK_ARGUMENT()                                                       \
+    if (hr == CALL_RETURN_UNDEFINED)                                       \
+        return v8::Intercepted::kNo;                                       \
+    if (hr == CALL_RETURN_NULL) {                                          \
+        args.GetReturnValue().SetNull();                                   \
+        return v8::Intercepted::kNo;                                       \
+    }                                                                      \
+    if (hr >= 0) {                                                         \
+        args.GetReturnValue().Set(V8_RETURN(GetReturnValue(isolate, vr))); \
+        return v8::Intercepted::kYes;                                      \
+    }                                                                      \
+    NAMED_THROW_ERROR()
+
 #define METHOD_VOID()                         \
     CHECK_ARGUMENT()                          \
     if (hr >= 0) {                            \
@@ -334,6 +368,13 @@ enum {
         return;                               \
     }                                         \
     THROW_ERROR()
+
+#define NAMED_METHOD_VOID()          \
+    CHECK_ARGUMENT()                 \
+    if (hr >= 0) {                   \
+        return v8::Intercepted::kNo; \
+    }                                \
+    NAMED_THROW_ERROR()
 
 #define CONSTRUCT_RETURN()                                                                                \
     CHECK_ARGUMENT()                                                                                      \

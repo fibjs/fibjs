@@ -34,7 +34,7 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_decode(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_encoding(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_encoding(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -106,12 +106,14 @@ inline void TextDecoder_base::s_decode(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_RETURN();
 }
 
-inline void TextDecoder_base::s_get_encoding(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void TextDecoder_base::s_get_encoding(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(TextDecoder_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_encoding(vr);
 

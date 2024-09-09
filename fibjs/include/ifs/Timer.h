@@ -38,7 +38,7 @@ public:
     static void s_ref(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_unref(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clear(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_stopped(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_stopped(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -106,12 +106,14 @@ inline void Timer_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void Timer_base::s_get_stopped(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Timer_base::s_get_stopped(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
     METHOD_INSTANCE(Timer_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_stopped(vr);
 

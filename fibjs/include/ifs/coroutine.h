@@ -55,12 +55,12 @@ public:
     static void s_static_parallel(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_current(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_sleep(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_get_fibers(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_get_spareFibers(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_set_spareFibers(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_static_get_vmid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_get_loglevel(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_set_loglevel(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_static_get_fibers(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_spareFibers(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_set_spareFibers(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_vmid(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_loglevel(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_set_loglevel(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATIC1(coroutine_base, sleep, int32_t);
@@ -193,67 +193,81 @@ inline void coroutine_base::s_static_sleep(const v8::FunctionCallbackInfo<v8::Va
     METHOD_VOID();
 }
 
-inline void coroutine_base::s_static_get_fibers(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void coroutine_base::s_static_get_fibers(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_fibers(vr);
 
     METHOD_RETURN();
 }
 
-inline void coroutine_base::s_static_get_spareFibers(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void coroutine_base::s_static_get_spareFibers(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_spareFibers(vr);
 
     METHOD_RETURN();
 }
 
-inline void coroutine_base::s_static_set_spareFibers(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void coroutine_base::s_static_set_spareFibers(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    PROPERTY_ENTER();
-    PROPERTY_VAL(int32_t);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
 
     hr = set_spareFibers(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void coroutine_base::s_static_get_vmid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void coroutine_base::s_static_get_vmid(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_vmid(vr);
 
     METHOD_RETURN();
 }
 
-inline void coroutine_base::s_static_get_loglevel(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void coroutine_base::s_static_get_loglevel(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_loglevel(vr);
 
     METHOD_RETURN();
 }
 
-inline void coroutine_base::s_static_set_loglevel(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void coroutine_base::s_static_set_loglevel(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    PROPERTY_ENTER();
-    PROPERTY_VAL(int32_t);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
 
     hr = set_loglevel(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 }

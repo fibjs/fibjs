@@ -58,8 +58,8 @@ public:
     static void s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_require(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setModuleCompiler(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_global(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_modules(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_global(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_modules(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -311,24 +311,28 @@ inline void SandBox_base::s_setModuleCompiler(const v8::FunctionCallbackInfo<v8:
     METHOD_VOID();
 }
 
-inline void SandBox_base::s_get_global(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void SandBox_base::s_get_global(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
     METHOD_INSTANCE(SandBox_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_global(vr);
 
     METHOD_RETURN();
 }
 
-inline void SandBox_base::s_get_modules(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void SandBox_base::s_get_modules(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
     METHOD_INSTANCE(SandBox_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_modules(vr);
 

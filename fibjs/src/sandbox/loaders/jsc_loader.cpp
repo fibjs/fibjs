@@ -75,7 +75,7 @@ result_t jsc_Loader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::str
 
         v8::Local<v8::PrimitiveArray> pargs = v8::PrimitiveArray::New(isolate->m_isolate, 1);
         pargs->Set(isolate->m_isolate, 0, v8::Number::New(isolate->m_isolate, ctx->m_sb->m_id));
-        v8::ScriptOrigin so_origin(isolate->m_isolate, soname, -1, 0, false,
+        v8::ScriptOrigin so_origin(soname, -1, 0, false,
             -1, v8::Local<v8::Value>(), false, false, false, pargs);
 
         v8::ScriptCompiler::Source source(isolate->NewString(s_temp_source),

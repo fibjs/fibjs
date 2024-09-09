@@ -60,20 +60,20 @@ public:
     }
 
 public:
-    static void s_get_protocol(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_protocol(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_headers(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_keepAlive(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_keepAlive(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_upgrade(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_upgrade(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_maxHeadersCount(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_maxHeadersCount(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_maxHeaderSize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_maxHeaderSize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_maxBodySize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_maxBodySize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_socket(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_protocol(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_protocol(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_headers(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_keepAlive(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_keepAlive(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_upgrade(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_upgrade(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_maxHeadersCount(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_maxHeadersCount(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_maxHeaderSize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_maxHeaderSize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_maxBodySize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_maxBodySize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_socket(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_hasHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_firstHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_allHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -120,162 +120,196 @@ inline ClassInfo& HttpMessage_base::class_info()
     return s_ci;
 }
 
-inline void HttpMessage_base::s_get_protocol(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpMessage_base::s_get_protocol(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(HttpMessage_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_protocol(vr);
 
     METHOD_RETURN();
 }
 
-inline void HttpMessage_base::s_set_protocol(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpMessage_base::s_set_protocol(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(HttpMessage_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(exlib::string);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
 
     hr = pInst->set_protocol(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void HttpMessage_base::s_get_headers(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpMessage_base::s_get_headers(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<HttpCollection_base> vr;
 
     METHOD_INSTANCE(HttpMessage_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_headers(vr);
 
     METHOD_RETURN();
 }
 
-inline void HttpMessage_base::s_get_keepAlive(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpMessage_base::s_get_keepAlive(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
     METHOD_INSTANCE(HttpMessage_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_keepAlive(vr);
 
     METHOD_RETURN();
 }
 
-inline void HttpMessage_base::s_set_keepAlive(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpMessage_base::s_set_keepAlive(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(HttpMessage_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(bool);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(bool, 0);
 
     hr = pInst->set_keepAlive(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void HttpMessage_base::s_get_upgrade(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpMessage_base::s_get_upgrade(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
     METHOD_INSTANCE(HttpMessage_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_upgrade(vr);
 
     METHOD_RETURN();
 }
 
-inline void HttpMessage_base::s_set_upgrade(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpMessage_base::s_set_upgrade(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(HttpMessage_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(bool);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(bool, 0);
 
     hr = pInst->set_upgrade(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void HttpMessage_base::s_get_maxHeadersCount(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpMessage_base::s_get_maxHeadersCount(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(HttpMessage_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_maxHeadersCount(vr);
 
     METHOD_RETURN();
 }
 
-inline void HttpMessage_base::s_set_maxHeadersCount(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpMessage_base::s_set_maxHeadersCount(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(HttpMessage_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(int32_t);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
 
     hr = pInst->set_maxHeadersCount(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void HttpMessage_base::s_get_maxHeaderSize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpMessage_base::s_get_maxHeaderSize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(HttpMessage_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_maxHeaderSize(vr);
 
     METHOD_RETURN();
 }
 
-inline void HttpMessage_base::s_set_maxHeaderSize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpMessage_base::s_set_maxHeaderSize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(HttpMessage_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(int32_t);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
 
     hr = pInst->set_maxHeaderSize(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void HttpMessage_base::s_get_maxBodySize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpMessage_base::s_get_maxBodySize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(HttpMessage_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_maxBodySize(vr);
 
     METHOD_RETURN();
 }
 
-inline void HttpMessage_base::s_set_maxBodySize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpMessage_base::s_set_maxBodySize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(HttpMessage_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(int32_t);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
 
     hr = pInst->set_maxBodySize(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void HttpMessage_base::s_get_socket(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpMessage_base::s_get_socket(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stream_base> vr;
 
     METHOD_INSTANCE(HttpMessage_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_socket(vr);
 

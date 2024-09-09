@@ -42,9 +42,9 @@ public:
     }
 
 public:
-    static void s_get_isTTY(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_columns(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_rows(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_isTTY(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_columns(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_rows(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clearLine(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_clearScreenDown(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_cursorTo(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -85,36 +85,42 @@ inline ClassInfo& TTYOutputStream_base::class_info()
     return s_ci;
 }
 
-inline void TTYOutputStream_base::s_get_isTTY(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void TTYOutputStream_base::s_get_isTTY(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
     METHOD_INSTANCE(TTYOutputStream_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_isTTY(vr);
 
     METHOD_RETURN();
 }
 
-inline void TTYOutputStream_base::s_get_columns(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void TTYOutputStream_base::s_get_columns(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(TTYOutputStream_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_columns(vr);
 
     METHOD_RETURN();
 }
 
-inline void TTYOutputStream_base::s_get_rows(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void TTYOutputStream_base::s_get_rows(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(TTYOutputStream_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_rows(vr);
 

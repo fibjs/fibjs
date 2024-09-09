@@ -62,7 +62,7 @@ result_t SandBox::Context::repl(exlib::string src)
         if (!buf.empty()) {
             TryCatch try_catch;
 
-            v8::ScriptOrigin origin(isolate->m_isolate, strFname);
+            v8::ScriptOrigin origin(strFname);
             v8::Local<v8::Context> context = isolate->m_isolate->GetCurrentContext();
             v8::Local<v8::Script> script = v8::Script::Compile(context, isolate->NewString(buf), &origin).FromMaybe(v8::Local<v8::Script>());
 

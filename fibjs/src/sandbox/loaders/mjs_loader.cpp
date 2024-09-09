@@ -244,7 +244,7 @@ private:
             }
 
             module = v8::Module::CreateSyntheticModule(m_isolate->m_isolate, m_isolate->NewString(id),
-                export_names, ModuleEvaluationSteps);
+                v8::MemorySpan<const v8::Local<v8::String>>(export_names.data(), export_names.size()), ModuleEvaluationSteps);
 
             module->InstantiateModule(_context, resolveModuleCallback).IsJust();
             module->Evaluate(_context).FromMaybe(v8::Local<v8::Value>());
@@ -263,7 +263,7 @@ private:
 
                 v8::Local<v8::PrimitiveArray> pargs = v8::PrimitiveArray::New(m_isolate->m_isolate, 1);
                 pargs->Set(m_isolate->m_isolate, 0, v8::Number::New(m_isolate->m_isolate, m_sb->m_id));
-                v8::ScriptOrigin so_origin(m_isolate->m_isolate, m_isolate->NewString(id), 0, 0, false,
+                v8::ScriptOrigin so_origin(m_isolate->NewString(id), 0, 0, false,
                     -1, v8::Local<v8::Value>(), false, false, true, pargs);
 
                 v8::ScriptCompiler::Source source(m_isolate->NewString((const char*)data_->data(), data_->length()), so_origin);

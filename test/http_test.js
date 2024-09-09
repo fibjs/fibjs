@@ -2877,7 +2877,7 @@ describe("http", () => {
             });
 
             assert.throws(() => {
-                hc.get('https://www.icann.org/');
+                hc.get('https://www.baidu.com/');
             });
         });
 
@@ -2887,7 +2887,7 @@ describe("http", () => {
                 requestCert: false
             });
 
-            var resp = hc.get('https://www.icann.org/');
+            var resp = hc.get('https://www.baidu.com/');
 
             assert.equal(resp.statusCode, 200);
         });

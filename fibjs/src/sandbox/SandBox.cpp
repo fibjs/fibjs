@@ -202,7 +202,11 @@ result_t SandBox::add(v8::Local<v8::Object> mods)
 
     for (i = 0; i < len; i++) {
         JSValue k = ks->Get(context, i);
-        hr = add(isolate->toString(k), JSValue(mods->Get(context, k)));
+        v8::Local<v8::Value> v = mods->Get(context, k).FromMaybe(v8::Local<v8::Value>());
+        if (v.IsEmpty())
+            return CALL_E_JAVASCRIPT;
+
+        hr = add(isolate->toString(k), v);
         if (hr < 0)
             return hr;
     }

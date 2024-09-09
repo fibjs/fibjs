@@ -47,14 +47,14 @@ public:
     static void s_write(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_text(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_fillLast(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_lastNeed(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_lastNeed(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_lastTotal(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_lastTotal(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_lastChar(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_lastChar(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_encoding(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_encoding(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_lastNeed(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_lastNeed(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_lastTotal(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_lastTotal(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_lastChar(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_lastChar(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_encoding(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_encoding(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -179,95 +179,115 @@ inline void StringDecoder_base::s_fillLast(const v8::FunctionCallbackInfo<v8::Va
     METHOD_RETURN();
 }
 
-inline void StringDecoder_base::s_get_lastNeed(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void StringDecoder_base::s_get_lastNeed(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(StringDecoder_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_lastNeed(vr);
 
     METHOD_RETURN();
 }
 
-inline void StringDecoder_base::s_set_lastNeed(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void StringDecoder_base::s_set_lastNeed(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(StringDecoder_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(int32_t);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
 
     hr = pInst->set_lastNeed(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void StringDecoder_base::s_get_lastTotal(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void StringDecoder_base::s_get_lastTotal(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(StringDecoder_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_lastTotal(vr);
 
     METHOD_RETURN();
 }
 
-inline void StringDecoder_base::s_set_lastTotal(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void StringDecoder_base::s_set_lastTotal(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(StringDecoder_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(int32_t);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
 
     hr = pInst->set_lastTotal(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void StringDecoder_base::s_get_lastChar(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void StringDecoder_base::s_get_lastChar(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
     METHOD_INSTANCE(StringDecoder_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_lastChar(vr);
 
     METHOD_RETURN();
 }
 
-inline void StringDecoder_base::s_set_lastChar(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void StringDecoder_base::s_set_lastChar(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(StringDecoder_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(obj_ptr<Buffer_base>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
 
     hr = pInst->set_lastChar(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void StringDecoder_base::s_get_encoding(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void StringDecoder_base::s_get_encoding(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(StringDecoder_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_encoding(vr);
 
     METHOD_RETURN();
 }
 
-inline void StringDecoder_base::s_set_encoding(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void StringDecoder_base::s_set_encoding(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(StringDecoder_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(exlib::string);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
 
     hr = pInst->set_encoding(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 }

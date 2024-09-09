@@ -31,7 +31,7 @@ inline void on_env_update(Isolate* isolate, exlib::string key, exlib::string val
     }
 }
 
-static void SetEnv(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info)
+static v8::Intercepted SetEnv(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& info)
 {
     Isolate* isolate = Isolate::current(info);
     exlib::string key = isolate->toString(property);
@@ -44,15 +44,19 @@ static void SetEnv(v8::Local<v8::Name> property, v8::Local<v8::Value> value, con
         uv_os_setenv(key.c_str(), val.c_str());
         on_env_update(isolate, key, val);
     }
+
+    return v8::Intercepted::kYes;
 }
 
-static void DelEnv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& info)
+static v8::Intercepted DelEnv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& info)
 {
     Isolate* isolate = Isolate::current(info);
     exlib::string key = isolate->toString(property);
 
     uv_os_unsetenv(key.c_str());
     on_env_update(isolate, key, "");
+
+    return v8::Intercepted::kYes;
 }
 
 static void EnumEnv(const v8::PropertyCallbackInfo<v8::Array>& info)
@@ -73,20 +77,25 @@ static void EnumEnv(const v8::PropertyCallbackInfo<v8::Array>& info)
     info.GetReturnValue().Set(arr);
 }
 
-static void GetEnv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& info)
+static v8::Intercepted GetEnv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
     Isolate* isolate = Isolate::current(info);
     exlib::string key = isolate->toString(property);
 
     char buf[4096];
     size_t sz = sizeof(buf);
-    if (uv_os_getenv(key.c_str(), buf, &sz) == 0)
+    if (uv_os_getenv(key.c_str(), buf, &sz) == 0) {
         info.GetReturnValue().Set(isolate->NewString(buf, sz));
+        return v8::Intercepted::kYes;
+    }
+
+    return v8::Intercepted::kNo;
 }
 
-void QueryEnv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Integer>& info)
+v8::Intercepted QueryEnv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Integer>& info)
 {
     info.GetReturnValue().Set(v8::None);
+    return v8::Intercepted::kYes;
 }
 
 result_t process_base::get_env(v8::Local<v8::Object>& retVal)

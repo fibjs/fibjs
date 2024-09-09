@@ -18,7 +18,6 @@
 
 #include "v8-array-buffer.h"
 #include "v8-internal.h"
-#include "v8/src/base/optional.h"
 #include "v8/src/handles/handles.h"
 #include "v8/src/logging/counters.h"
 
@@ -65,7 +64,7 @@ bool isFrozen(Isolate* isolate, Local<Object> object)
 void setAsyncFunctoin(Local<Function> func)
 {
     i::Handle<i::Object> obj = Utils::OpenHandle(*func);
-    i::Handle<i::JSFunction> _func = i::Handle<i::JSFunction>::cast(obj);
+    i::Handle<i::JSFunction> _func = i::Cast<i::JSFunction>(obj);
     _func->shared()->set_kind(i::FunctionKind::kAsyncFunction);
 }
 
@@ -73,7 +72,7 @@ void initImportMeta(Isolate* isolate, Local<Module> module)
 {
     i::Isolate* _isolate = reinterpret_cast<i::Isolate*>(isolate);
     i::Handle<i::Object> obj = Utils::OpenHandle(*module);
-    i::Handle<i::SourceTextModule> _module = i::Handle<i::SourceTextModule>::cast(obj);
+    i::Handle<i::SourceTextModule> _module = i::Cast<i::SourceTextModule>(obj);
     i::SourceTextModule::GetImportMeta(_isolate, _module);
 }
 
@@ -87,7 +86,7 @@ std::shared_ptr<v8::BackingStore> NewBackingStore(size_t byte_length)
 
     uint8_t* data = new uint8_t[byte_length + sizeof(i::BackingStore)];
     auto result = new ((i::BackingStore*)data) i::BackingStore(data + sizeof(i::BackingStore), byte_length, byte_length, byte_length,
-        i::SharedFlag::kNotShared, i::ResizableFlag::kNotResizable, false, false, true, false);
+        i::SharedFlag::kNotShared, i::ResizableFlag::kNotResizable, false, false, false, true, false);
     result->type_specific_data_.deleter = { custom_deleter, nullptr };
 
     return std::shared_ptr<v8::BackingStore>((v8::BackingStore*)result);
@@ -132,7 +131,7 @@ exlib::string traceInfo(Isolate* isolate, int32_t deep, void* entry_fp, void* ha
         frame->Summarize(&frames);
 
         const i::FrameSummary::JavaScriptFrameSummary& summ = frames[0].AsJavaScript();
-        i::Handle<i::Script> script = i::Handle<i::Script>::cast(summ.script());
+        i::Handle<i::Script> script = i::Cast<i::Script>(summ.script());
         if (script->type() == i::Script::Type::kNormal) {
             strBuffer.append(bFirst ? "    at " : "\n    at ");
             bFirst = false;

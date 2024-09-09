@@ -62,16 +62,16 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_load(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_inputEncoding(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_xmlStandalone(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_xmlStandalone(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_xmlVersion(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_xmlVersion(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_doctype(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_documentElement(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_head(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_title(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_body(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_inputEncoding(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_xmlStandalone(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_xmlStandalone(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_xmlVersion(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_xmlVersion(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_doctype(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_documentElement(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_head(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_title(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_body(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getElementsByTagName(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getElementsByTagNameNS(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getElementById(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -175,118 +175,140 @@ inline void XmlDocument_base::s_load(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_VOID();
 }
 
-inline void XmlDocument_base::s_get_inputEncoding(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlDocument_base::s_get_inputEncoding(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_inputEncoding(vr);
 
     METHOD_RETURN();
 }
 
-inline void XmlDocument_base::s_get_xmlStandalone(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlDocument_base::s_get_xmlStandalone(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_xmlStandalone(vr);
 
     METHOD_RETURN();
 }
 
-inline void XmlDocument_base::s_set_xmlStandalone(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void XmlDocument_base::s_set_xmlStandalone(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(XmlDocument_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(bool);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(bool, 0);
 
     hr = pInst->set_xmlStandalone(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void XmlDocument_base::s_get_xmlVersion(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlDocument_base::s_get_xmlVersion(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_xmlVersion(vr);
 
     METHOD_RETURN();
 }
 
-inline void XmlDocument_base::s_set_xmlVersion(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void XmlDocument_base::s_set_xmlVersion(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(XmlDocument_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(exlib::string);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
 
     hr = pInst->set_xmlVersion(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void XmlDocument_base::s_get_doctype(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlDocument_base::s_get_doctype(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<XmlDocumentType_base> vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_doctype(vr);
 
     METHOD_RETURN();
 }
 
-inline void XmlDocument_base::s_get_documentElement(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlDocument_base::s_get_documentElement(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<XmlElement_base> vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_documentElement(vr);
 
     METHOD_RETURN();
 }
 
-inline void XmlDocument_base::s_get_head(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlDocument_base::s_get_head(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<XmlElement_base> vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_head(vr);
 
     METHOD_RETURN();
 }
 
-inline void XmlDocument_base::s_get_title(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlDocument_base::s_get_title(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_title(vr);
 
     METHOD_RETURN();
 }
 
-inline void XmlDocument_base::s_get_body(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlDocument_base::s_get_body(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<XmlElement_base> vr;
 
     METHOD_INSTANCE(XmlDocument_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_body(vr);
 

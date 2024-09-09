@@ -57,8 +57,8 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_get_defaultMaxListeners(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_set_defaultMaxListeners(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_static_get_defaultMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_set_defaultMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_on(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_addListener(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_addEventListener(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -139,25 +139,30 @@ void EventEmitter_base::__new(const T& args)
     CONSTRUCT_RETURN();
 }
 
-inline void EventEmitter_base::s_static_get_defaultMaxListeners(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void EventEmitter_base::s_static_get_defaultMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_defaultMaxListeners(vr);
 
     METHOD_RETURN();
 }
 
-inline void EventEmitter_base::s_static_set_defaultMaxListeners(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void EventEmitter_base::s_static_set_defaultMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    PROPERTY_ENTER();
-    PROPERTY_VAL(int32_t);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
 
     hr = set_defaultMaxListeners(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
 inline void EventEmitter_base::s_on(const v8::FunctionCallbackInfo<v8::Value>& args)

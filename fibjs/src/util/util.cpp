@@ -100,7 +100,11 @@ result_t util_base::values(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal)
 
         for (i = 0; i < len; i++) {
             JSValue key = keys->Get(context, i);
-            arr->Set(context, n++, JSValue(obj->Get(context, key))).IsJust();
+            v8::Local<v8::Value> v = obj->Get(context, key).FromMaybe(v8::Local<v8::Value>());
+            if (v.IsEmpty())
+                return CALL_E_JAVASCRIPT;
+
+            arr->Set(context, n++, v).IsJust();
         }
 
         retVal = arr;
@@ -206,7 +210,11 @@ result_t util_base::extend(v8::Local<v8::Value> v, OptArgs objs,
 
         for (j = 0; j < len; j++) {
             JSValue key = keys->Get(context, j);
-            obj->Set(context, key, JSValue(obj1->Get(context, key))).IsJust();
+            v8::Local<v8::Value> v = obj1->Get(context, key).FromMaybe(v8::Local<v8::Value>());
+            if (v.IsEmpty())
+                return CALL_E_JAVASCRIPT;
+
+            obj->Set(context, key, v).IsJust();
         }
     }
 
@@ -249,15 +257,21 @@ result_t util_base::pick(v8::Local<v8::Value> v, OptArgs objs,
 
             for (j = 0; j < len; j++) {
                 JSValue k = arr->Get(context, j);
+                v8::Local<v8::Value> v = obj->Get(context, k).FromMaybe(v8::Local<v8::Value>());
+                if (v.IsEmpty())
+                    return CALL_E_JAVASCRIPT;
 
                 if (obj->Has(context, k).FromMaybe(false))
-                    obj1->Set(context, k, JSValue(obj->Get(context, k))).IsJust();
+                    obj1->Set(context, k, v).IsJust();
             }
         } else {
             JSValue k = o;
+            v8::Local<v8::Value> v = obj->Get(context, k).FromMaybe(v8::Local<v8::Value>());
+            if (v.IsEmpty())
+                return CALL_E_JAVASCRIPT;
 
             if (obj->Has(context, k).FromMaybe(false))
-                obj1->Set(context, k, JSValue(obj->Get(context, k))).IsJust();
+                obj1->Set(context, k, v).IsJust();
         }
     }
 
@@ -319,7 +333,10 @@ result_t util_base::omit(v8::Local<v8::Value> v, OptArgs keys,
         JSValue key = keys1->Get(context, i);
 
         if (_map.find(isolate->toString(key)) == _map.end()) {
-            JSValue value = obj->Get(context, key);
+            v8::Local<v8::Value> value = obj->Get(context, key).FromMaybe(v8::Local<v8::Value>());
+            if (value.IsEmpty())
+                return CALL_E_JAVASCRIPT;
+
             obj1->Set(context, key, value).IsJust();
         }
     }
@@ -748,7 +765,7 @@ result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iter
         for (i = 0; i < len; i++) {
             v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[1] = JSValue(keys->Get(_context, i));
-            args[0] = JSValue(o->Get(_context, args[1]));
+            args[0] = o->Get(_context, args[1]).FromMaybe(v8::Local<v8::Value>());
             if (args[0].IsEmpty() || args[1].IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
@@ -765,7 +782,7 @@ result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iter
         for (i = 0; i < len; i++) {
             v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[1] = v8::Int32::New(isolate->m_isolate, i);
-            args[0] = JSValue(o->Get(_context, args[1]));
+            args[0] = o->Get(_context, args[1]).FromMaybe(v8::Local<v8::Value>());
             if (args[0].IsEmpty() || args[1].IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
@@ -810,7 +827,7 @@ result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> itera
         for (i = 0; i < len; i++) {
             v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[1] = JSValue(keys->Get(_context, i));
-            args[0] = JSValue(o->Get(_context, args[1]));
+            args[0] = o->Get(_context, args[1]).FromMaybe(v8::Local<v8::Value>());
             if (args[0].IsEmpty() || args[1].IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
@@ -828,7 +845,7 @@ result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> itera
         for (i = 0; i < len; i++) {
             v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[1] = v8::Int32::New(isolate->m_isolate, i);
-            args[0] = JSValue(o->Get(_context, args[1]));
+            args[0] = o->Get(_context, args[1]).FromMaybe(v8::Local<v8::Value>());
             if (args[0].IsEmpty() || args[1].IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
@@ -873,7 +890,7 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
         for (i = 0; i < len; i++) {
             v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[2] = JSValue(keys->Get(_context, i));
-            args[1] = JSValue(o->Get(_context, args[2]));
+            args[1] = o->Get(_context, args[2]).FromMaybe(v8::Local<v8::Value>());
             if (args[1].IsEmpty() || args[2].IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
@@ -892,7 +909,7 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
         for (i = 0; i < len; i++) {
             v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[2] = v8::Int32::New(isolate->m_isolate, i);
-            args[1] = JSValue(o->Get(_context, args[2]));
+            args[1] = o->Get(_context, args[2]).FromMaybe(v8::Local<v8::Value>());
             if (args[1].IsEmpty() || args[2].IsEmpty())
                 return CALL_E_JAVASCRIPT;
 

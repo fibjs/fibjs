@@ -38,8 +38,8 @@ public:
 
 public:
     static void s_abort(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_aborted(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_onabort(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_aborted(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onabort(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -80,24 +80,28 @@ inline void AbortSignal_base::s_abort(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_VOID();
 }
 
-inline void AbortSignal_base::s_get_aborted(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void AbortSignal_base::s_get_aborted(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
     METHOD_INSTANCE(AbortSignal_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_aborted(vr);
 
     METHOD_RETURN();
 }
 
-inline void AbortSignal_base::s_get_onabort(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void AbortSignal_base::s_get_onabort(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(AbortSignal_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_onabort(vr);
 

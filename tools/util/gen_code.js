@@ -322,20 +322,20 @@ function gen_code(cls, def, baseFolder) {
                 var fname = fn.name;
 
                 if (fname) {
-                    txts.push(`    static void ${get_stub_func_prefix(fn, def)}get_${get_name(fname, fn, def)}(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);`);
+                    txts.push(`    static void ${get_stub_func_prefix(fn, def)}get_${get_name(fname, fn, def)}(const v8::FunctionCallbackInfo<v8::Value>& args);`);
                     if (!fn.readonly)
-                        txts.push(`    static void ${get_stub_func_prefix(fn, def)}set_${get_name(fname, fn, def)}(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);`);
+                        txts.push(`    static void ${get_stub_func_prefix(fn, def)}set_${get_name(fname, fn, def)}(const v8::FunctionCallbackInfo<v8::Value>& args);`);
                 }
             },
             "stub_func": fn => {
                 var fname = fn.name;
                 var fstatic = fn.static;
 
-                txts.push(`inline void ${cls}_base::${get_stub_func_prefix(fn, def)}get_${get_name(fname, fn, def)}(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)\n{\n    ${get_rtype(fn.type)} vr;\n`);
+                txts.push(`inline void ${cls}_base::${get_stub_func_prefix(fn, def)}get_${get_name(fname, fn, def)}(const v8::FunctionCallbackInfo<v8::Value>& args)\n{\n    ${get_rtype(fn.type)} vr;\n`);
 
                 if (!fstatic)
                     txts.push(`    METHOD_INSTANCE(${cls}_base);`);
-                txts.push(`    PROPERTY_ENTER();\n`);
+                txts.push(`    METHOD_ENTER();\n\n    METHOD_OVER(0, 0);\n`);
 
                 if (fn.deprecated)
                     txts.push(`    DEPRECATED_SOON("${cls}.${fn.symbol}${fname}");\n`);
@@ -347,10 +347,10 @@ function gen_code(cls, def, baseFolder) {
                 txts.push(`    METHOD_RETURN();\n}\n`);
 
                 if (!fn.readonly) {
-                    txts.push(`inline void ${cls}_base::${get_stub_func_prefix(fn, def)}set_${get_name(fname, fn, def)}(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)\n{`);
+                    txts.push(`inline void ${cls}_base::${get_stub_func_prefix(fn, def)}set_${get_name(fname, fn, def)}(const v8::FunctionCallbackInfo<v8::Value>& args)\n{`);
                     if (!fstatic)
                         txts.push(`    METHOD_INSTANCE(${cls}_base);`);
-                    txts.push(`    PROPERTY_ENTER();\n    PROPERTY_VAL(${get_rtype(fn.type)});\n`);
+                    txts.push(`    METHOD_ENTER();\n\n    METHOD_OVER(1, 1);\n\n    ARG(${get_rtype(fn.type)}, 0);\n`);
 
                     if (fn.deprecated)
                         txts.push(`    DEPRECATED_SOON("${cls}.${fn.symbol}${fname}");\n`);
@@ -359,7 +359,7 @@ function gen_code(cls, def, baseFolder) {
                         txts.push(`    hr = set_${get_name(fname, fn, def)}(v0);\n`);
                     else
                         txts.push(`    hr = pInst->set_${get_name(fname, fn, def)}(v0);\n`);
-                    txts.push(`    PROPERTY_SET_LEAVE();\n}\n`);
+                    txts.push(`    METHOD_VOID();\n}\n`);
                 }
 
             }
@@ -394,61 +394,61 @@ function gen_code(cls, def, baseFolder) {
             },
             "stub": fn => {
                 if (fn.index) {
-                    txts.push("    static void i_NamedGetter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);");
+                    txts.push("    static v8::Intercepted i_NamedGetter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);");
                     txts.push("    static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array>& args);");
                     if (!fn.readonly) {
-                        txts.push("    static void i_NamedSetter(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args);");
-                        txts.push("    static void i_NamedDeleter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& args);");
+                        txts.push("    static v8::Intercepted i_NamedSetter(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);");
+                        txts.push("    static v8::Intercepted i_NamedDeleter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& args);");
                     }
                 } else {
-                    txts.push("    static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args);");
+                    txts.push("    static v8::Intercepted i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args);");
                     if (!fn.readonly)
-                        txts.push("    static void i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args);");
+                        txts.push("    static v8::Intercepted i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args);");
                 }
             },
             "stub_func": fn => {
                 if (fn.index) {
-                    txts.push(`inline void ${cls}_base::i_NamedGetter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)\n{\n    ${get_rtype(fn.type)} vr;\n`);
-                    txts.push(`    METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
-                    txts.push('    exlib::string k;\n    GetArgumentValue(isolate, property, k);\n    if (class_info().has(k.c_str()))\n        return;\n');
+                    txts.push(`inline v8::Intercepted ${cls}_base::i_NamedGetter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)\n{\n    ${get_rtype(fn.type)} vr;\n`);
+                    txts.push(`    NAMED_METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
+                    txts.push('    exlib::string k;\n    GetArgumentValue(isolate, property, k);\n    if (class_info().has(k.c_str()))\n        return v8::Intercepted::kNo;\n');
                     if (fn.deprecated)
                         txts.push(`    DEPRECATED_SOON("${cls}${fn.name}");\n`);
-                    txts.push('    hr = pInst->_named_getter(k, vr);\n    if (hr == CALL_RETURN_NULL)\n        return;\n');
-                    txts.push('    METHOD_RETURN();\n}\n');
+                    txts.push('    hr = pInst->_named_getter(k, vr);\n    if (hr == CALL_RETURN_NULL)\n        return v8::Intercepted::kNo;\n');
+                    txts.push('    NAMED_METHOD_RETURN();\n}\n');
                     txts.push(`inline void ${cls}_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array>& args)\n{\n    v8::Local<v8::Array> vr;\n`);
                     txts.push(`    METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
                     txts.push('    hr = pInst->_named_enumerator(vr);\n');
                     txts.push('    METHOD_RETURN1();\n}\n');
 
                     if (!fn.readonly) {
-                        txts.push(`inline void ${cls}_base::i_NamedSetter(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args)\n{`);
-                        txts.push(`    METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
-                        txts.push(`    PROPERTY_VAL(${get_rtype(fn.type)});\n    exlib::string k;\n    GetArgumentValue(isolate, property, k);\n    if (class_info().has(k.c_str()))\n        return;\n`);
+                        txts.push(`inline v8::Intercepted ${cls}_base::i_NamedSetter(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)\n{`);
+                        txts.push(`    NAMED_METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
+                        txts.push(`    PROPERTY_VAL(${get_rtype(fn.type)});\n    exlib::string k;\n    GetArgumentValue(isolate, property, k);\n    if (class_info().has(k.c_str()))\n        return v8::Intercepted::kNo;\n`);
                         if (fn.deprecated)
                             txts.push(`    DEPRECATED_SOON("${cls}${fn.name}");\n`);
-                        txts.push('    hr = pInst->_named_setter(k, v0);\n    if (hr == CALL_RETURN_NULL)\n        return;\n');
-                        txts.push('    METHOD_VOID();\n}\n');
-                        txts.push(`inline void ${cls}_base::i_NamedDeleter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& args)\n{\n    v8::Local<v8::Boolean> vr;\n`);
-                        txts.push(`    METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
-                        txts.push('    exlib::string k;\n    GetArgumentValue(isolate, property, k);\n    if (class_info().has(k.c_str())) {\n        args.GetReturnValue().Set(v8::False(isolate->m_isolate));\n        return;\n    }\n');
-                        txts.push('    hr = pInst->_named_deleter(k, vr);\n    METHOD_RETURN1();\n}\n');
+                        txts.push('    hr = pInst->_named_setter(k, v0);\n    if (hr == CALL_RETURN_NULL)\n        return v8::Intercepted::kNo;\n');
+                        txts.push('    NAMED_METHOD_VOID();\n}\n');
+                        txts.push(`inline v8::Intercepted ${cls}_base::i_NamedDeleter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& args)\n{\n    v8::Local<v8::Boolean> vr;\n`);
+                        txts.push(`    NAMED_METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
+                        txts.push('    exlib::string k;\n    GetArgumentValue(isolate, property, k);\n    if (class_info().has(k.c_str())) {\n        args.GetReturnValue().Set(v8::False(isolate->m_isolate));\n        return v8::Intercepted::kYes;\n    }\n');
+                        txts.push('    hr = pInst->_named_deleter(k, vr);\n    METHOD_RETURN2();\n}\n');
                     }
                 } else {
-                    txts.push(`inline void ${cls}_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args)\n{`);
+                    txts.push(`inline v8::Intercepted ${cls}_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args)\n{`);
                     txts.push(`    ${get_rtype(fn.type)} vr;\n`);
-                    txts.push(`    METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
+                    txts.push(`    NAMED_METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
                     if (fn.deprecated)
                         txts.push(`    DEPRECATED_SOON("${cls}${fn.name}");\n`);
-                    txts.push('    hr = pInst->_indexed_getter(index, vr);\n    if (hr == CALL_RETURN_NULL)\n        return;\n');
-                    txts.push('    METHOD_RETURN();\n}\n');
+                    txts.push('    hr = pInst->_indexed_getter(index, vr);\n    if (hr == CALL_RETURN_NULL)\n        return v8::Intercepted::kNo;\n');
+                    txts.push('    NAMED_METHOD_RETURN();\n}\n');
 
                     if (!fn.readonly) {
-                        txts.push(`inline void ${cls}_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args)\n{`);
-                        txts.push(`    METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
+                        txts.push(`inline v8::Intercepted ${cls}_base::i_IndexedSetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args)\n{`);
+                        txts.push(`    NAMED_METHOD_INSTANCE(${cls}_base);\n    PROPERTY_ENTER();\n`);
                         if (fn.deprecated)
                             txts.push(`    DEPRECATED_SOON("${cls}${fn.name}");\n`);
                         txts.push(`    PROPERTY_VAL(${get_rtype(fn.type)});\n    hr = pInst->_indexed_setter(index, v0);\n`);
-                        txts.push(`    METHOD_VOID();\n}\n`);
+                        txts.push(`    NAMED_METHOD_VOID();\n}\n`);
                     }
                 }
             }
