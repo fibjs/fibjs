@@ -589,6 +589,24 @@ describe("child_process", () => {
                 "other exit 101"
             ]);
         });
+
+        if (process.platform != "win32")
+            it("SIGINT", () => {
+                var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'signal1.js')]);
+                var stdout = new io.BufferedStream(bs.stdout);
+
+                setImmediate(() => {
+                    coroutine.sleep(1000);
+                    bs.kill('SIGINT');
+                    coroutine.sleep(1000);
+                    bs.kill('SIGINT');
+                });
+
+                assert.deepEqual(stdout.readLines(), [
+                    "SIGINT received",
+                    "SIGINT received"
+                ]);
+            });
     });
 
     describe("ipc", () => {

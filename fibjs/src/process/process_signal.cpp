@@ -26,11 +26,17 @@ static void _InterruptCallback(v8::Isolate* v8_isolate, void* data)
 {
     s_check_callback = 0;
     Isolate* isolate = Isolate::current(v8_isolate);
-    JSTrigger t(isolate->m_isolate, process_base::class_info().getModule(isolate));
     bool r = false;
+    result_t hr;
 
-    t._emit((const char*)data, NULL, 0, r);
-    if (!r)
+    {
+        JSFiber::EnterJsScope s;
+        JSTrigger t(isolate->m_isolate, process_base::class_info().getModule(isolate));
+
+        hr = t._emit((const char*)data, NULL, 0, r);
+    }
+
+    if (!r || hr < 0)
         process_base::exit(1);
 }
 
