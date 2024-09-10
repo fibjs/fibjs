@@ -63,15 +63,17 @@ static void EnumEnv(const v8::PropertyCallbackInfo<v8::Array>& info)
 {
     Isolate* isolate = Isolate::current(info);
     v8::Local<v8::Context> context = isolate->context();
-    char** env = environ;
-    const char *p, *p1;
+
+    uv_env_item_t* env_items;
+    int env_count;
+    int r = uv_os_environ(&env_items, &env_count);
 
     v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate);
     int32_t idx = 0;
-    while ((p = *env++) != NULL) {
-        p1 = qstrchr(p, '=');
-        if (p1)
-            arr->Set(context, idx++, isolate->NewString(p, (int32_t)(p1 - p))).IsJust();
+
+    for (int i = 0; i < env_count; ++i) {
+        uv_env_item_t* item = &env_items[i];
+        arr->Set(context, idx++, isolate->NewString(item->name)).IsJust();
     }
 
     info.GetReturnValue().Set(arr);
