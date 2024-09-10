@@ -152,6 +152,21 @@ static LONG WINAPI GPTUnhandledExceptionFilter(PEXCEPTION_POINTERS pExceptionInf
     return EXCEPTION_EXECUTE_HANDLER;
 }
 
+static BOOL WINAPI ConsoleCtrlHandler(DWORD ctrlType)
+{
+    switch (ctrlType) {
+    case CTRL_C_EVENT:
+    case CTRL_BREAK_EVENT:
+    case CTRL_CLOSE_EVENT:
+    case CTRL_LOGOFF_EVENT:
+    case CTRL_SHUTDOWN_EVENT:
+        on_signal(SIGBREAK);
+        return TRUE;
+    default:
+        return FALSE;
+    }
+}
+
 void init_signal()
 {
     HMODULE hDll;
@@ -161,6 +176,8 @@ void init_signal()
         if (s_pDump)
             SetUnhandledExceptionFilter(GPTUnhandledExceptionFilter);
     }
+
+    SetConsoleCtrlHandler(ConsoleCtrlHandler, TRUE);
 
     signal(SIGINT, on_signal);
     signal(SIGTERM, on_signal);
