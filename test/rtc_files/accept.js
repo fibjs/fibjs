@@ -20,8 +20,8 @@ zfHHWlO7xSDTzdyoxzroFdwy+gIhAKmZizEVvDlBiIe+3ptCArU3dbp+bzLynTcr
 Ma9ayzQy
 -----END CERTIFICATE-----`
 
-rtc.listen(60917, function (binding) {
-    rtc.stopListen(60917);
+rtc.listen(3224, function (binding) {
+    rtc.stopListen(3224);
 
     var { local_ufrag, remote_ufrag, address, port } = binding;
     var family = address.indexOf(':') >= 0 ? 'IP6' : 'IP4';

@@ -1,6 +1,6 @@
 var rtc = require("rtc");
 
-rtc.listen(60916, function (binding) {
+rtc.listen(3223, function (binding) {
     console.log(JSON.stringify(binding));
-    rtc.stopListen(60916);
+    rtc.stopListen(3223);
 });
