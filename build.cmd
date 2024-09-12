@@ -21,7 +21,7 @@ for %%a in (%*) do (
         set USE_VENDER_DIST=1
         set build_addon=1
     ) else (
-        set new_args=%new_args% %%a
+        set new_args=!new_args! %%a
         set /a i+=1
     )
 )
@@ -78,16 +78,16 @@ exit /B 1
 :finished
 set end=%time%
 
-set start=!start::=!
-set start=!start:.=!
-set end=!end::=!
-set end=!end:.=!
+call :TimeToMilliseconds %start% start_ms
+call :TimeToMilliseconds %end% end_ms
 
-set /a diff=end-start
+set /a diff=end_ms-start_ms
 
-set /a hours=diff/360000
-set /a mins=(diff%%360000)/6000
-set /a secs=(diff%%6000)/100
+if %diff% lss 0 set /a diff=8640000+diff
+
+set /a hours=diff/3600000
+set /a mins=(diff%%3600000)/60000
+set /a secs=(diff%%60000)/1000
 
 if %hours% lss 10 set hours=0%hours%
 if %mins% lss 10 set mins=0%mins%
@@ -106,10 +106,26 @@ cmake -E cmake_echo_color --red ^
 	"        (__/     \_______/(______/ \____/   \_______) "
 echo.
 echo.
-echo         FIBJS has been successfully built during %hours%:%mins%:%secs%
+echo         FIBJS has been successfully built during %hours%:%mins%:%secs%.
 echo.
 echo         For more information:
 echo         website: https://fibjs.org
 echo         repository: https://github.com/fibjs
 echo.
 echo.
+
+goto :eof
+
+:TimeToMilliseconds
+set time=%1
+
+for /f "tokens=1-4 delims=:.," %%a in ("%time%") do (
+    set hours=%%a
+    set minutes=%%b
+    set seconds=%%c
+    set milliseconds=%%d
+)
+
+set /a total_ms=(hours*3600 + minutes*60 + seconds)*1000 + milliseconds*10
+set %2=%total_ms%
+goto :eof
