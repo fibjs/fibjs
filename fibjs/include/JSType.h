@@ -112,8 +112,13 @@ public:
     }
 
 public:
-    v8::Local<v8::Value> Call(v8::Local<v8::Context> context, v8::Local<v8::Value> recv,
-        int argc, v8::Local<v8::Value> argv[], bool async = false);
+    v8::Local<v8::Value> Call(v8::Local<v8::Value> recv, int argc, v8::Local<v8::Value> argv[])
+    {
+        Isolate* isolate = Isolate::current(*this);
+        v8::Local<v8::Context> context = isolate->context();
+
+        return isolate->await((*this)->Call(context, recv, argc, argv).FromMaybe(v8::Local<v8::Value>()));
+    }
 };
 
 }

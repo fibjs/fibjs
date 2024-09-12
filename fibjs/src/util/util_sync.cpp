@@ -77,9 +77,9 @@ static void promise_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
     for (i = 0; i < len; i++)
         argv[i] = args[i];
 
-    JSFunction func = v8::Local<v8::Function>::Cast(args.Data());
+    JSFunction func = args.Data().As<v8::Function>();
     v8::Local<v8::Value> result;
-    result = func.Call(context, args.This(), (int32_t)argv.size(), argv.data(), true);
+    result = func.Call(args.This(), (int32_t)argv.size(), argv.data());
     if (result.IsEmpty())
         return;
 

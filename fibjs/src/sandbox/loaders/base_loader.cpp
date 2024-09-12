@@ -89,11 +89,8 @@ result_t SandBox::ExtLoader::run(Context* ctx, Buffer_base* src, exlib::string n
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
-    JSFunction func = v8::Local<v8::Function>::Cast(v);
-
-    v8::Local<v8::Object> glob = context->Global();
-
-    v = func.Call(context, glob, (int32_t)args.size(), args.data());
+    JSFunction func = v.As<v8::Function>();
+    v = func.Call(context->Global(), (int32_t)args.size(), args.data());
     if (v.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
