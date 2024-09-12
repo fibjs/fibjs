@@ -43,7 +43,7 @@ private:
 
             m_pos++;
             if (func.IsEmpty()) {
-                v8::Local<v8::Function> func1 = v8::Local<v8::Function>::Cast(JSValue(datas->Get(context, pos)));
+                v8::Local<v8::Function> func1 = JSValue(datas->Get(context, pos)).As<v8::Function>();
                 if (!func1.IsEmpty())
                     v = func1->Call(context, s->wrap(), 0, NULL).FromMaybe(v8::Local<v8::Value>());
             } else {

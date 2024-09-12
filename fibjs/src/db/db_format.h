@@ -388,7 +388,7 @@ public:
             if (hr < 0) {
                 if (!IsJSObject(v))
                     return CHECK_ERROR(Runtime::setError("db: No field type specified."));
-                prop = v8::Local<v8::Object>::Cast(v);
+                prop = v.As<v8::Object>();
 
                 hr = GetConfigValue(isolate, prop, "type", type, true);
                 if (hr == CALL_E_PARAMNOTOPTIONAL)
@@ -615,7 +615,7 @@ private:
             obj_ptr<Buffer> bin = Buffer::getInstance(v);
             str.append(impl::escape_binary(bin));
         } else if (v->IsArray()) {
-            v8::Local<v8::Array> a = v8::Local<v8::Array>::Cast(v);
+            v8::Local<v8::Array> a = v.As<v8::Array>();
             int32_t len = a->Length();
             int32_t i;
 
@@ -689,12 +689,12 @@ private:
         }
 
         if (val->IsArray())
-            return where(v8::Local<v8::Array>::Cast(val), true, retVal, retAnd);
+            return where(val.As<v8::Array>(), true, retVal, retAnd);
 
         if (!IsJSObject(val))
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
-        v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(val);
+        v8::Local<v8::Object> o = val.As<v8::Object>();
         exlib::string str;
         JSArray ks = o->GetPropertyNames(context);
         int32_t len = ks->Length();
@@ -722,9 +722,9 @@ private:
                 bAnd = key.c_str()[2] == 'a';
 
                 if (v->IsArray())
-                    return where(v8::Local<v8::Array>::Cast(v), bAnd, retVal, retAnd);
+                    return where(v.As<v8::Array>(), bAnd, retVal, retAnd);
                 else if (IsJSObject(v)) {
-                    o = v8::Local<v8::Object>::Cast(v);
+                    o = v.As<v8::Object>();
                     ks = o->GetPropertyNames(context);
                     len = ks->Length();
                     if (len == 0)
@@ -739,7 +739,7 @@ private:
             }
 
             if (IsJSObject(v)) {
-                v8::Local<v8::Object> ops = v8::Local<v8::Object>::Cast(v);
+                v8::Local<v8::Object> ops = v.As<v8::Object>();
                 JSArray opks = ops->GetPropertyNames(context);
                 int32_t oplen = opks->Length();
 
@@ -788,7 +788,7 @@ private:
                 v = ops->Get(context, opv);
 
                 if (!bField && !bIn && !bBetween && IsJSObject(v)) {
-                    ops = v8::Local<v8::Object>::Cast(v);
+                    ops = v.As<v8::Object>();
                     opks = ops->GetPropertyNames(context);
                     oplen = opks->Length();
 
@@ -819,7 +819,7 @@ private:
                     if (!v->IsArray())
                         return CHECK_ERROR(Runtime::setError("db: The argument of the [between/not_between] operation must be an array."));
 
-                    JSArray vals = v8::Local<v8::Array>::Cast(v);
+                    JSArray vals = v.As<v8::Array>();
                     int32_t vals_len = vals->Length();
                     if (vals_len != 2)
                         return CHECK_ERROR(Runtime::setError("db: The argument size of the [between/not_between] operation must be 2."));
@@ -831,7 +831,7 @@ private:
 
                 if (IsJSObject(v)) {
                     exlib::string sub_query;
-                    result_t hr = format("find", v8::Local<v8::Object>::Cast(v), sub_query);
+                    result_t hr = format("find", v.As<v8::Object>(), sub_query);
                     if (hr < 0)
                         return hr;
 
@@ -863,7 +863,7 @@ private:
         exlib::string table;
 
         if (v->IsArray()) {
-            v8::Local<v8::Array> tables = v8::Local<v8::Array>::Cast(v);
+            v8::Local<v8::Array> tables = v.As<v8::Array>();
 
             int32_t len = tables->Length();
             int32_t i;
@@ -876,7 +876,7 @@ private:
                 }
             }
         } else if (IsJSObject(v)) {
-            v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
+            v8::Local<v8::Object> o = v.As<v8::Object>();
             JSArray ks = o->GetPropertyNames(context);
             int32_t len = ks->Length();
             int32_t i;

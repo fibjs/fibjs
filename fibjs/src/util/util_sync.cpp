@@ -15,7 +15,7 @@ static void sync_callback(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Isolate* isolate = args.GetIsolate();
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
-    v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());
+    v8::Local<v8::Object> _data = args.Data().As<v8::Object>();
 
     int32_t len = args.Length();
     if (len > 0)
@@ -49,7 +49,7 @@ static void sync_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
         return;
     }
 
-    v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(args.Data());
+    v8::Local<v8::Function> func = args.Data().As<v8::Function>();
     v8::Local<v8::Value> result = func->Call(context, args.This(), (int32_t)argv.size(), argv.data()).FromMaybe(v8::Local<v8::Value>());
     if (result.IsEmpty())
         return;
@@ -120,7 +120,7 @@ result_t util_base::sync(v8::Local<v8::Function> func, bool async_func, v8::Loca
 
     v8::Local<v8::Value> name = func->GetName();
     if (!name.IsEmpty())
-        func1->SetName(v8::Local<v8::String>::Cast(name));
+        func1->SetName(name.As<v8::String>());
 
     retVal = func1;
 

@@ -61,13 +61,13 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
                 d.get_timestamp(_d);
                 msgpack_pack_timestamp(&pk, &_d);
             } else if (element->IsArray()) {
-                return pack(v8::Local<v8::Array>::Cast(element));
+                return pack(element.As<v8::Array>());
             } else if (element->IsSet()) {
-                return pack(v8::Local<v8::Set>::Cast(element)->AsArray());
+                return pack(element.As<v8::Set>()->AsArray());
             } else if (element->IsMap()) {
-                return pack(v8::Local<v8::Map>::Cast(element));
+                return pack(element.As<v8::Map>());
             } else if (element->IsObject() && !element->IsStringObject()) {
-                return pack(v8::Local<v8::Object>::Cast(element));
+                return pack(element.As<v8::Object>());
             } else {
                 v8::String::Utf8Value v(isolate->m_isolate, element);
 
@@ -98,16 +98,16 @@ result_t msgpack_base::encode(v8::Local<v8::Value> data, obj_ptr<Buffer_base>& r
             JSValue jsonFun = element->Get(context, isolate->NewString("toJSON", 6));
             if (!IsEmpty(jsonFun) && jsonFun->IsFunction()) {
                 JSValue p = isolate->NewString("");
-                JSValue element1 = v8::Local<v8::Function>::Cast(jsonFun)->Call(context, element, 1, &p);
+                JSValue element1 = jsonFun.As<v8::Function>()->Call(context, element, 1, &p);
 
                 if (!IsEmpty(element1)) {
                     if (element1->IsArray())
-                        return pack(v8::Local<v8::Array>::Cast(element1));
+                        return pack(element1.As<v8::Array>());
 
                     if (!element1->IsObject())
                         return pack(element1);
 
-                    element = v8::Local<v8::Object>::Cast(element1);
+                    element = element1.As<v8::Object>();
                 }
             }
 

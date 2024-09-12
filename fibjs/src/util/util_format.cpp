@@ -79,7 +79,7 @@ void symbol_format(Isolate* isolate, StringBuffer& strBuffer, v8::Local<v8::Valu
 {
     exlib::string s("Symbol(");
 
-    v8::Local<v8::Symbol> _symbol = v8::Local<v8::Symbol>::Cast(v);
+    v8::Local<v8::Symbol> _symbol = v.As<v8::Symbol>();
     v8::Local<v8::Value> _name = _symbol->Description(isolate->m_isolate);
 
     if (!_name->IsUndefined())
@@ -130,7 +130,7 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
             string_format(isolate, strBuffer, v, color, maxStringLength);
         else if (v->IsRegExp()) {
             exlib::string s;
-            v8::Local<v8::RegExp> re = v8::Local<v8::RegExp>::Cast(v);
+            v8::Local<v8::RegExp> re = v.As<v8::RegExp>();
             v8::Local<v8::String> src = re->GetSource();
             v8::RegExp::Flags flgs = re->GetFlags();
 
@@ -149,7 +149,7 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
         } else if (v->IsPromise()) {
             strBuffer.append(color_string(COLOR_CYAN, "[Promise]", color));
         } else if (v->IsNativeError()) {
-            v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
+            v8::Local<v8::Object> obj = v.As<v8::Object>();
             exlib::string s(isolate->toString(JSValue(obj->Get(_context, isolate->NewString("stack")))));
             strBuffer.append(color_string(COLOR_LIGHTRED, s, color));
         } else if (v->IsSymbol()) {
@@ -159,7 +159,7 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
 
             if (v->IsFunction()) {
                 exlib::string s(v->IsAsyncFunction() ? "[AsyncFunction" : "[Function");
-                v8::String::Utf8Value n(isolate->m_isolate, v8::Local<v8::Function>::Cast(v)->GetName());
+                v8::String::Utf8Value n(isolate->m_isolate, v.As<v8::Function>()->GetName());
 
                 if (n.length()) {
                     s.append(1, ' ');
@@ -170,7 +170,7 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
             }
 
             do {
-                v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
+                v8::Local<v8::Object> obj = v.As<v8::Object>();
 
                 obj_ptr<Buffer> buf = Buffer::getInstance(v);
                 if (buf) {
@@ -220,7 +220,7 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
 
                 if (obj->IsMap()) {
                     strBuffer.append(color_string(COLOR_CYAN, "[Map] ", color));
-                    v8::Local<v8::Map> m = v8::Local<v8::Map>::Cast(obj);
+                    v8::Local<v8::Map> m = obj.As<v8::Map>();
                     JSArray vs = m->AsArray();
                     int32_t len = vs->Length() / 2;
 
@@ -237,7 +237,7 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
                             v8::Local<v8::Object> protoObj = prototype->ToObject(_context).ToLocalChecked();
                             v8::Local<v8::Value> protoName = protoObj->Get(_context, v8::String::NewFromUtf8(isolate->m_isolate, "constructor").ToLocalChecked()).ToLocalChecked();
                             if (protoName->IsFunction()) {
-                                v8::Local<v8::Function> constructor = v8::Local<v8::Function>::Cast(protoName);
+                                v8::Local<v8::Function> constructor = protoName.As<v8::Function>();
                                 v8::Local<v8::String> name = constructor->GetName().As<v8::String>();
                                 v8::String::Utf8Value utf8(isolate->m_isolate, name);
 
@@ -280,25 +280,25 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
 
                 JSValue v_toArray = obj->Get(_context, isolate->NewString("toArray"));
                 if (v_toArray->IsFunction()) {
-                    v8::Local<v8::Function> toArray = v8::Local<v8::Function>::Cast(v_toArray);
+                    v8::Local<v8::Function> toArray = v_toArray.As<v8::Function>();
 
                     TryCatch try_catch;
                     v8::Local<v8::Value> v1 = toArray->Call(_context, obj, 0, NULL).FromMaybe(v8::Local<v8::Value>());
                     if (!IsEmpty(v1) && v1->IsObject()) {
                         v = v1;
-                        obj = v8::Local<v8::Object>::Cast(v1);
+                        obj = v1.As<v8::Object>();
                     }
                 }
 
                 int32_t sz = (int32_t)stk.size();
 
                 if (v->IsSet()) {
-                    v8::Local<v8::Set> s = v8::Local<v8::Set>::Cast(obj);
+                    v8::Local<v8::Set> s = obj.As<v8::Set>();
                     v = s->AsArray();
                 }
 
                 if (v->IsArray()) {
-                    v8::Local<v8::Array> array = v8::Local<v8::Array>::Cast(v);
+                    v8::Local<v8::Array> array = v.As<v8::Array>();
                     int32_t len = array->Length();
 
                     if (len == 0)
@@ -324,7 +324,7 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
                 }
 
                 if (v->IsTypedArray()) {
-                    v8::Local<v8::TypedArray> typedarray = v8::Local<v8::TypedArray>::Cast(v);
+                    v8::Local<v8::TypedArray> typedarray = v.As<v8::TypedArray>();
                     int32_t len = (int32_t)typedarray->Length();
 
                     if (len == 0)
@@ -438,7 +438,7 @@ exlib::string json_format(Isolate* isolate, v8::Local<v8::Value> obj, bool color
 
                 if (it->obj->IsMap()) {
                     strBuffer.append(" => ");
-                    v8::Local<v8::Map> m = v8::Local<v8::Map>::Cast(it->obj);
+                    v8::Local<v8::Map> m = it->obj.As<v8::Map>();
                     v = JSValue(m->Get(_context, v));
                 } else {
                     strBuffer.append(": ");

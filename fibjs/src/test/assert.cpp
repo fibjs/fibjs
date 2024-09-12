@@ -554,7 +554,7 @@ result_t has_prop(v8::Local<v8::Value> v, v8::Local<v8::Value> prop,
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     Isolate* isolate = Isolate::current();
-    retVal = v8::Local<v8::Object>::Cast(v)->Has(isolate->context(), prop).FromMaybe(false);
+    retVal = v.As<v8::Object>()->Has(isolate->context(), prop).FromMaybe(false);
 
     return 0;
 }
@@ -591,7 +591,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Object> v = v8::Local<v8::Object>::Cast(object);
+    v8::Local<v8::Object> v = object.As<v8::Object>();
     v8::String::Utf8Value s(isolate->m_isolate, prop);
     const char *p, *p1;
 
@@ -604,7 +604,7 @@ result_t deep_has_prop(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
             return 0;
         }
 
-        v = v8::Local<v8::Object>::Cast(object);
+        v = object.As<v8::Object>();
         p = p1 + 1;
     }
 
@@ -648,7 +648,7 @@ result_t has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
 
-    got = JSValue(v8::Local<v8::Object>::Cast(object)->Get(context, prop));
+    got = JSValue(object.As<v8::Object>()->Get(context, prop));
     if (got.IsEmpty())
         return CALL_E_JAVASCRIPT;
 
@@ -699,7 +699,7 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Object> v = v8::Local<v8::Object>::Cast(object);
+    v8::Local<v8::Object> v = object.As<v8::Object>();
     v8::String::Utf8Value s(isolate->m_isolate, prop);
     const char *p, *p1;
 
@@ -712,7 +712,7 @@ result_t deep_has_val(v8::Local<v8::Value> object, v8::Local<v8::Value> prop,
             return 0;
         }
 
-        v = v8::Local<v8::Object>::Cast(object);
+        v = object.As<v8::Object>();
         p = p1 + 1;
     }
 

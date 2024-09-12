@@ -12,7 +12,7 @@ namespace fibjs {
 
 static void promise_then(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(args.Data());
+    v8::Local<v8::Function> func = args.Data().As<v8::Function>();
     v8::Local<v8::Value> argv[2] = {
         v8::Null(args.GetIsolate()), args[0]
     };
@@ -22,7 +22,7 @@ static void promise_then(const v8::FunctionCallbackInfo<v8::Value>& args)
 
 static void promise_catch(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(args.Data());
+    v8::Local<v8::Function> func = args.Data().As<v8::Function>();
     v8::Local<v8::Value> argv[2] = {
         args[0], v8::Null(args.GetIsolate())
     };
@@ -43,7 +43,7 @@ static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
     for (i = 0; i < len - 1; i++)
         argv[i] = args[i];
 
-    v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(args.Data());
+    v8::Local<v8::Function> func = args.Data().As<v8::Function>();
     v8::Local<v8::Value> result = func->Call(context, args.This(), (int32_t)argv.size(), argv.data()).FromMaybe(v8::Local<v8::Value>());
     if (result.IsEmpty())
         return;
@@ -53,18 +53,18 @@ static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
     v8::Local<v8::Function> _catch;
 
     if (result->IsPromise()) {
-        _promise = v8::Local<v8::Promise>::Cast(result);
+        _promise = result.As<v8::Promise>();
     } else if (result->IsObject()) {
         JSValue v;
-        v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(result);
+        v8::Local<v8::Object> o = result.As<v8::Object>();
 
         v = o->Get(context, isolate->NewString("then"));
         if (v->IsFunction())
-            _then = v8::Local<v8::Function>::Cast(v);
+            _then = v.As<v8::Function>();
 
         v = o->Get(context, isolate->NewString("catch"));
         if (v->IsFunction())
-            _catch = v8::Local<v8::Function>::Cast(v);
+            _catch = v.As<v8::Function>();
     }
 
     if (_promise.IsEmpty() && (_then.IsEmpty() || _catch.IsEmpty())) {
@@ -121,7 +121,7 @@ result_t util_base::callbackify(v8::Local<v8::Function> func, v8::Local<v8::Func
 
     v8::Local<v8::Value> name = func->GetName();
     if (!name.IsEmpty())
-        func1->SetName(v8::Local<v8::String>::Cast(name));
+        func1->SetName(name.As<v8::String>());
 
     retVal = func1;
 

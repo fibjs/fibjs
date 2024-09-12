@@ -244,7 +244,7 @@ result_t SandBox::clone(obj_ptr<SandBox_base>& retVal)
 
 static result_t deepFreeze(Isolate* isolate, v8::Local<v8::Value> v, v8::Local<v8::Value> root)
 {
-    v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
+    v8::Local<v8::Object> obj = v.As<v8::Object>();
 
     if (!isFrozen(isolate->m_isolate, obj)) {
         v8::Local<v8::Context> context = obj->GetCreationContextChecked();
@@ -296,7 +296,7 @@ result_t SandBox::get_modules(v8::Local<v8::Object>& retVal)
 
     for (int32_t i = 0, len = ks->Length(); i < len; i++) {
         JSValue k = ks->Get(context, i);
-        retVal->Set(context, k, JSValue((v8::Local<v8::Object>::Cast(JSValue(ms->Get(context, k))))->Get(context, mgetter))).IsJust();
+        retVal->Set(context, k, JSValue(JSValue(ms->Get(context, k)).As<v8::Object>()->Get(context, mgetter))).IsJust();
     }
 
     return 0;

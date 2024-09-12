@@ -173,7 +173,7 @@ exlib::string ToString(v8::Isolate* isolate, v8::Local<v8::Value> v)
     v8::Local<v8::String> str;
 
     if (v->IsDate())
-        str = v8::Local<v8::Date>::Cast(v)->ToISOString();
+        str = v.As<v8::Date>()->ToISOString();
     else
         str = v->ToString(isolate->GetCurrentContext()).FromMaybe(v8::Local<v8::String>());
     if (str.IsEmpty())
@@ -190,12 +190,12 @@ result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, exlib::strin
     v8::Local<v8::String> str;
 
     if (v->IsString())
-        str = v8::Local<v8::String>::Cast(v);
+        str = v.As<v8::String>();
     else if (v->IsStringObject())
-        str = v8::Local<v8::StringObject>::Cast(v)->ValueOf();
+        str = v.As<v8::StringObject>()->ValueOf();
     else if (!bStrict) {
         if (v->IsDate())
-            str = v8::Local<v8::Date>::Cast(v)->ToISOString();
+            str = v.As<v8::Date>()->ToISOString();
         else
             str = v->ToString(isolate->context()).FromMaybe(v8::Local<v8::String>());
     } else

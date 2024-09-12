@@ -255,7 +255,7 @@ static result_t service_worker(Service* srv)
 
     v = srv->GetPrivate("worker");
     if (!v.IsEmpty()) {
-        func = v8::Local<v8::Function>::Cast(v);
+        func = v.As<v8::Function>();
         func->Call(func->GetCreationContextChecked(), srv->wrap(), 0, &v).IsEmpty();
     }
 

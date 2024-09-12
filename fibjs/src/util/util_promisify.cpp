@@ -13,9 +13,9 @@ namespace fibjs {
 static void promisify_callback(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     Isolate* isolate = Isolate::current(args);
-    v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());
+    v8::Local<v8::Object> _data = args.Data().As<v8::Object>();
 
-    v8::Local<v8::Promise::Resolver> resolver = v8::Local<v8::Promise::Resolver>::Cast(_data);
+    v8::Local<v8::Promise::Resolver> resolver = _data.As<v8::Promise::Resolver>();
 
     int32_t len = args.Length();
 
@@ -34,7 +34,7 @@ static void promisify_callback(const v8::FunctionCallbackInfo<v8::Value>& args)
         else {
             result = args[1];
             if (result->IsObject()) {
-                v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(result);
+                v8::Local<v8::Object> o = result.As<v8::Object>();
                 obj_ptr<object_base> obj = object_base::getInstance(o);
                 if (obj) {
                     ClassInfo& ci = obj->Classinfo();
@@ -68,7 +68,7 @@ static void promisify_stub(const v8::FunctionCallbackInfo<v8::Value>& args)
         return;
     }
 
-    v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(args.Data());
+    v8::Local<v8::Function> func = args.Data().As<v8::Function>();
     v8::Local<v8::Value> result = func->Call(func->GetCreationContextChecked(), args.This(), (int32_t)argv.size(), argv.data()).FromMaybe(v8::Local<v8::Value>());
     if (result.IsEmpty())
         return;
@@ -102,7 +102,7 @@ result_t promisify(Isolate* isolate, v8::Local<v8::Function> func, v8::Local<v8:
 
     v8::Local<v8::Value> name = func->GetName();
     if (!name.IsEmpty())
-        func1->SetName(v8::Local<v8::String>::Cast(name));
+        func1->SetName(name.As<v8::String>());
 
     retVal = func1;
 

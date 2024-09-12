@@ -436,10 +436,10 @@ result_t process_base::emitWarning(v8::Local<v8::Value> warning, v8::Local<v8::O
     v8::Local<v8::Context> context = isolate->context();
 
     if (warning->IsString() || warning->IsStringObject()) {
-        warning = v8::Exception::Error(v8::Local<v8::String>::Cast(warning));
+        warning = v8::Exception::Error(warning.As<v8::String>());
     } else if (!warning->IsNativeError())
         return CALL_E_BADVARTYPE;
-    v8::Local<v8::Object> opts = v8::Local<v8::Object>::Cast(warning);
+    v8::Local<v8::Object> opts = warning.As<v8::Object>();
 
     exlib::string type("Warning");
     GetConfigValue(isolate, options, "type", type, true);
@@ -460,10 +460,10 @@ result_t process_base::emitWarning(v8::Local<v8::Value> warning, exlib::string t
     v8::Local<v8::Context> context = isolate->context();
 
     if (warning->IsString() || warning->IsStringObject()) {
-        warning = v8::Exception::Error(v8::Local<v8::String>::Cast(warning));
+        warning = v8::Exception::Error(warning.As<v8::String>());
     } else if (!warning->IsNativeError())
         return CALL_E_BADVARTYPE;
-    v8::Local<v8::Object> opts = v8::Local<v8::Object>::Cast(warning);
+    v8::Local<v8::Object> opts = warning.As<v8::Object>();
 
     opts->Set(context, isolate->NewString("name"), isolate->NewString(type)).IsJust();
     opts->Set(context, isolate->NewString("code"), isolate->NewString(code)).IsJust();

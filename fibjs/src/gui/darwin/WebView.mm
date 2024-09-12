@@ -200,7 +200,7 @@ static int32_t asyncOutputMessageFromWKWebview(exlib::string& jsonFmt)
 {
     JSValue _logInfo;
     json_base::decode(jsonFmt, _logInfo);
-    v8::Local<v8::Object> logInfo = v8::Local<v8::Object>::Cast(_logInfo);
+    v8::Local<v8::Object> logInfo = _logInfo.As<v8::Object>();
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();

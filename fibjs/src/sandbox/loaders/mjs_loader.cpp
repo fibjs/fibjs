@@ -337,7 +337,7 @@ private:
             return CALL_E_JAVASCRIPT;
         }
 
-        v8::Local<v8::Promise> promise = v8::Local<v8::Promise>::Cast(result);
+        v8::Local<v8::Promise> promise = result.As<v8::Promise>();
         promise->Then(_context,
                    v8::Function::New(_context, promise_then, wrap(m_isolate)).ToLocalChecked(),
                    v8::Function::New(_context, promise_reject, wrap(m_isolate)).ToLocalChecked())

@@ -148,7 +148,7 @@ v8::Local<v8::Value> FillError(result_t hr, exlib::string msg)
 {
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Value> v = v8::Exception::Error(isolate->NewString(msg));
-    v8::Local<v8::Object> e = v8::Local<v8::Object>::Cast(v);
+    v8::Local<v8::Object> e = v.As<v8::Object>();
     v8::Local<v8::Context> context = isolate->context();
 
     e->Set(context, isolate->NewString("number"), v8::Int32::New(isolate->m_isolate, -hr)).IsJust();

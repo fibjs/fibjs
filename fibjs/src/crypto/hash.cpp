@@ -160,11 +160,7 @@ result_t crypto_base::pbkdf2(Buffer_base* password, Buffer_base* salt, int32_t i
 
 result_t crypto_base::getHashes(v8::Local<v8::Array>& retVal)
 {
-    v8::Local<v8::Value> v;
-    g_hashes->valueOf(v);
-
-    retVal = v8::Local<v8::Array>::Cast(v);
-
+    g_hashes->valueOf(retVal);
     return 0;
 }
 

@@ -196,7 +196,7 @@ result_t Buffer_base::concat(v8::Local<v8::Array> buflist, int32_t cutLength, ob
         v8::Local<v8::Value> val = buflist->Get(context, i).FromMaybe(v8::Local<v8::Value>());
         if (val.IsEmpty() || !val->IsUint8Array())
             return CALL_E_INVALIDARG;
-        bufs[i] = v8::Local<v8::Uint8Array>::Cast(val);
+        bufs[i] = val.As<v8::Uint8Array>();
         sz += bufs[i]->ByteLength();
     }
 

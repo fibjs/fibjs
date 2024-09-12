@@ -1064,7 +1064,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
 
                 if (v->IsArray()) {
                     obj_ptr<NArray> arr = new NArray();
-                    v8::Local<v8::Array> a = v8::Local<v8::Array>::Cast(v);
+                    v8::Local<v8::Array> a = v.As<v8::Array>();
                     int32_t len1 = a->Length();
                     int32_t i1;
 

@@ -103,12 +103,12 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
         if (v.IsEmpty() || !v->IsObject())
             return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json"));
 
-        v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
+        v8::Local<v8::Object> o = v.As<v8::Object>();
         v8::Local<v8::Value> scripts = o->Get(context, isolate->NewString("scripts", 7)).FromMaybe(v8::Local<v8::Value>());
         if (IsEmpty(scripts) || !scripts->IsObject())
             return CALL_E_FILE_NOT_FOUND;
 
-        o = v8::Local<v8::Object>::Cast(scripts);
+        o = scripts.As<v8::Object>();
 
         v8::Local<v8::Value> cmd = o->Get(context, isolate->NewString(rname)).FromMaybe(v8::Local<v8::Value>());
         if (IsEmpty(cmd) || !cmd->IsString())

@@ -1025,7 +1025,7 @@ result_t Url::set_query(v8::Local<v8::Value> newVal)
             obj_ptr<HttpCollection> queryParsed = (HttpCollection*)HttpCollection_base::getInstance(newVal);
             if (!queryParsed) {
                 if (newVal->IsObject()) {
-                    hr = querystring_base::stringify(v8::Local<v8::Object>::Cast(newVal), "&", "=", v8::Local<v8::Object>(), m_query);
+                    hr = querystring_base::stringify(newVal.As<v8::Object>(), "&", "=", v8::Local<v8::Object>(), m_query);
                     if (hr < 0)
                         return hr;
 

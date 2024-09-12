@@ -20,22 +20,22 @@ result_t types_base::isEmpty(v8::Local<v8::Value> v, bool& retVal)
     }
 
     if (v->IsString()) {
-        retVal = v8::Local<v8::String>::Cast(v)->Length() == 0;
+        retVal = v.As<v8::String>()->Length() == 0;
         return 0;
     }
 
     if (v->IsStringObject()) {
-        retVal = v8::Local<v8::StringObject>::Cast(v)->ValueOf()->Length() == 0;
+        retVal = v.As<v8::StringObject>()->ValueOf()->Length() == 0;
         return 0;
     }
 
     if (v->IsArray()) {
-        retVal = v8::Local<v8::Array>::Cast(v)->Length() == 0;
+        retVal = v.As<v8::Array>()->Length() == 0;
         return 0;
     }
 
     if (v->IsObject()) {
-        v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
+        v8::Local<v8::Object> o = v.As<v8::Object>();
         retVal = o->GetOwnPropertyNames(o->GetCreationContextChecked()).FromMaybe(v8::Local<v8::Array>())->Length() == 0;
         return 0;
     }

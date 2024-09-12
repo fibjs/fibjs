@@ -237,7 +237,7 @@ result_t os_base::networkInterfaces(v8::Local<v8::Object>& retVal)
 
         v = retVal->Get(context, name).FromMaybe(v8::Local<v8::Value>());
         if (!v.IsEmpty() && !v->IsUndefined())
-            ret = v8::Local<v8::Array>::Cast(v);
+            ret = v.As<v8::Array>();
         else
             ret = v8::Array::New(isolate->m_isolate);
 

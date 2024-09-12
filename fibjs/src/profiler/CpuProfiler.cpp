@@ -34,7 +34,7 @@ static void cpu_profiler(const v8::FunctionCallbackInfo<v8::Value>& args)
             stacks->Set(context, cnt++, NewString(isolate, stack)).IsJust();
     }
 
-    v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());
+    v8::Local<v8::Object> _data = args.Data().As<v8::Object>();
     if (cnt > 0) {
         exlib::string str;
         json_base::encode(stacks, str);

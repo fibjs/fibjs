@@ -15,7 +15,6 @@ namespace fibjs {
 result_t node_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
     exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args)
 {
-    v8::Local<v8::Object> module = v8::Local<v8::Object>::Cast(args[2]);
-    return process_base::dlopen(module, name, 1);
+    return process_base::dlopen(args[2].As<v8::Object>(), name, 1);
 }
 }
