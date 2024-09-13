@@ -110,7 +110,7 @@ inline result_t GetArray(v8::Local<v8::Value> v, QuickArray<T>& n)
     if (v.IsEmpty() || !v->IsArray())
         return CALL_E_INVALIDARG;
 
-    JSArray a = v8::Local<v8::Array>::Cast(v);
+    JSArray a = v.As<v8::Array>();
     result_t hr;
     Isolate* isolate = Isolate::current(a);
     v8::Local<v8::Context> context = isolate->context();
@@ -184,7 +184,7 @@ result_t HeapSnapshot::load(exlib::string fname)
     if (!v->IsObject())
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-    o = v8::Local<v8::Object>::Cast(v);
+    o = v.As<v8::Object>();
     hr = GetArray(JSValue(o->Get(context, isolate->NewString("nodes"))),
         nodes);
     if (hr < 0)
@@ -204,7 +204,7 @@ result_t HeapSnapshot::load(exlib::string fname)
     if (v.IsEmpty() || !v->IsObject())
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-    o = v8::Local<v8::Object>::Cast(v);
+    o = v.As<v8::Object>();
     hr = GetConfigValue(isolate, o, "node_count", node_count);
     if (hr < 0)
         return CHECK_ERROR(CALL_E_INVALID_DATA);
@@ -217,7 +217,7 @@ result_t HeapSnapshot::load(exlib::string fname)
     if (v.IsEmpty() || !v->IsObject())
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-    o = v8::Local<v8::Object>::Cast(v);
+    o = v.As<v8::Object>();
     hr = GetArray(JSValue(o->Get(context, isolate->NewString("node_fields"))),
         node_fields);
     if (hr < 0 || checkArray(node_fields, node_fields_chk, ARRAYSIZE(node_fields_chk)))
@@ -238,7 +238,7 @@ result_t HeapSnapshot::load(exlib::string fname)
     if (v.IsEmpty() || !v->IsArray())
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-    hr = GetArray(JSValue(v8::Local<v8::Array>::Cast(v)->Get(context, 0)), node_types);
+    hr = GetArray(JSValue(v.As<v8::Array>()->Get(context, 0)), node_types);
     if (hr < 0 || checkArray(node_types, node_types_chk, ARRAYSIZE(node_types_chk)))
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
@@ -246,7 +246,7 @@ result_t HeapSnapshot::load(exlib::string fname)
     if (v.IsEmpty() || !v->IsArray())
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 
-    hr = GetArray(JSValue(v8::Local<v8::Array>::Cast(v)->Get(context, 0)), edge_types);
+    hr = GetArray(JSValue(v.As<v8::Array>()->Get(context, 0)), edge_types);
     if (hr < 0 || checkArray(edge_types, edge_types_chk, ARRAYSIZE(edge_types_chk)))
         return CHECK_ERROR(CALL_E_INVALID_DATA);
 

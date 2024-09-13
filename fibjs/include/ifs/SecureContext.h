@@ -49,16 +49,16 @@ public:
     }
 
 public:
-    static void s_get_ca(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_key(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_cert(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_maxVersion(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_minVersion(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_secureProtocol(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_requestCert(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_rejectUnverified(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_rejectUnauthorized(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_sessionTimeout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_ca(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_key(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_cert(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_maxVersion(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_minVersion(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_secureProtocol(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_requestCert(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_rejectUnverified(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_rejectUnauthorized(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_sessionTimeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setSNIContext(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getSNIContext(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_removeSNIContext(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -106,120 +106,140 @@ inline ClassInfo& SecureContext_base::class_info()
     return s_ci;
 }
 
-inline void SecureContext_base::s_get_ca(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void SecureContext_base::s_get_ca(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<X509Certificate_base> vr;
 
     METHOD_INSTANCE(SecureContext_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_ca(vr);
 
     METHOD_RETURN();
 }
 
-inline void SecureContext_base::s_get_key(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void SecureContext_base::s_get_key(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<KeyObject_base> vr;
 
     METHOD_INSTANCE(SecureContext_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_key(vr);
 
     METHOD_RETURN();
 }
 
-inline void SecureContext_base::s_get_cert(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void SecureContext_base::s_get_cert(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<X509Certificate_base> vr;
 
     METHOD_INSTANCE(SecureContext_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_cert(vr);
 
     METHOD_RETURN();
 }
 
-inline void SecureContext_base::s_get_maxVersion(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void SecureContext_base::s_get_maxVersion(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(SecureContext_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_maxVersion(vr);
 
     METHOD_RETURN();
 }
 
-inline void SecureContext_base::s_get_minVersion(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void SecureContext_base::s_get_minVersion(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(SecureContext_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_minVersion(vr);
 
     METHOD_RETURN();
 }
 
-inline void SecureContext_base::s_get_secureProtocol(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void SecureContext_base::s_get_secureProtocol(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(SecureContext_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_secureProtocol(vr);
 
     METHOD_RETURN();
 }
 
-inline void SecureContext_base::s_get_requestCert(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void SecureContext_base::s_get_requestCert(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
     METHOD_INSTANCE(SecureContext_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_requestCert(vr);
 
     METHOD_RETURN();
 }
 
-inline void SecureContext_base::s_get_rejectUnverified(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void SecureContext_base::s_get_rejectUnverified(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
     METHOD_INSTANCE(SecureContext_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_rejectUnverified(vr);
 
     METHOD_RETURN();
 }
 
-inline void SecureContext_base::s_get_rejectUnauthorized(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void SecureContext_base::s_get_rejectUnauthorized(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
     METHOD_INSTANCE(SecureContext_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_rejectUnauthorized(vr);
 
     METHOD_RETURN();
 }
 
-inline void SecureContext_base::s_get_sessionTimeout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void SecureContext_base::s_get_sessionTimeout(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(SecureContext_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_sessionTimeout(vr);
 

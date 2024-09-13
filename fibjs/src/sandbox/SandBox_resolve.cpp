@@ -28,7 +28,7 @@ result_t SandBox::wait_module(v8::Local<v8::Object> module, v8::Local<v8::Value>
     JSValue l = module->GetPrivate(_context, strPendding);
     if (!l->IsUndefined()) {
         if (l->IsPromise()) {
-            isolate->await(v8::Local<v8::Promise>::Cast(l));
+            isolate->await(l);
         } else {
             obj_ptr<Lock_base> lock = Lock_base::getInstance(l);
             if (lock) {
@@ -53,7 +53,7 @@ v8::Local<v8::Object> SandBox::get_module(v8::Local<v8::Object> mods, exlib::str
 
     JSValue m = mods->Get(_context, isolate->NewString(id));
     if (m->IsObject())
-        return v8::Local<v8::Object>::Cast(m);
+        return m.As<v8::Object>();
     return v8::Local<v8::Object>();
 }
 
@@ -185,7 +185,7 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
         if (v.IsEmpty() || !v->IsObject())
             return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json file '" + module_name1 + "'"));
 
-        v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
+        v8::Local<v8::Object> o = v.As<v8::Object>();
 
         v8::Local<v8::String> strExports = isolate->NewString("exports", 7);
         v8::Local<v8::String> strImports = isolate->NewString("imports", 7);
@@ -199,7 +199,7 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
                 JSValue def_value;
 
                 if (exports->IsArray()) {
-                    v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(exports);
+                    v8::Local<v8::Array> arr = exports.As<v8::Array>();
                     int32_t len = arr->Length();
 
                     for (int32_t i = 0; i < len; i++) {
@@ -208,7 +208,7 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
                             return true;
                     }
                 } else if (exports->IsObject()) {
-                    o = v8::Local<v8::Object>::Cast(exports);
+                    o = exports.As<v8::Object>();
                     v8::Local<v8::Array> keys = o->GetPropertyNames(context).FromMaybe(v8::Local<v8::Array>());
                     int32_t len = keys->Length();
 
@@ -370,7 +370,7 @@ result_t SandBox::resolveModuleType(exlib::string fname, ModuleType& retVal)
                 return CHECK_ERROR(Runtime::setError("SandBox: Invalid package.json file '" + fname1 + "'"));
 
             exlib::string type;
-            v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(v);
+            v8::Local<v8::Object> o = v.As<v8::Object>();
             GetConfigValue(isolate, o, "type", type);
 
             retVal = type == "module" ? kESModule : kCommonJS;
@@ -449,7 +449,7 @@ result_t SandBox::custom_resolveId(exlib::string& id, v8::Local<v8::Object>& ret
     v8::Local<v8::Value> _require = GetPrivate("require");
 
     if (_require->IsFunction()) {
-        v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(_require);
+        v8::Local<v8::Function> func = _require.As<v8::Function>();
 
         v8::Local<v8::Value> arg = isolate->NewString(id);
         v8::Local<v8::Value> result = func->Call(func->GetCreationContextChecked(), wrap(), 1, &arg).FromMaybe(v8::Local<v8::Value>());

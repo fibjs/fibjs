@@ -62,7 +62,7 @@ result_t SandBox::Context::repl(exlib::string src)
         if (!buf.empty()) {
             TryCatch try_catch;
 
-            v8::ScriptOrigin origin(isolate->m_isolate, strFname);
+            v8::ScriptOrigin origin(strFname);
             v8::Local<v8::Context> context = isolate->m_isolate->GetCurrentContext();
             v8::Local<v8::Script> script = v8::Script::Compile(context, isolate->NewString(buf), &origin).FromMaybe(v8::Local<v8::Script>());
 
@@ -103,7 +103,9 @@ result_t SandBox::Context::repl(exlib::string src)
             p.getWord(cmd_word);
 
             if (cmd_word == ".help") {
-                exlib::string help_str = ".exit     Exit the repl\n"
+                exlib::string help_str = ".break    Sometimes you get stuck, this gets you out\n"
+                                         ".clear    Clear repl output information\n"
+                                         ".exit     Exit the repl\n"
                                          ".help     Show repl options\n"
                                          ".info     Show fibjs build information";
 
@@ -119,6 +121,17 @@ result_t SandBox::Context::repl(exlib::string src)
 
                 process_base::get_versions(o);
                 console_base::dir(o, v8::Local<v8::Object>());
+                continue;
+            }
+
+            if (cmd_word == ".break") {
+                buf.clear();
+                continue;
+            }
+
+            if (cmd_word == ".clear") {
+                output(console_base::C_PRINT, "\x1b"
+                                              "c");
                 continue;
             }
         }

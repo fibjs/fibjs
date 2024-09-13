@@ -37,8 +37,8 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_load(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_urls(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_client(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_urls(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_client(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -109,24 +109,28 @@ inline void HttpRepeater_base::s_load(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_VOID();
 }
 
-inline void HttpRepeater_base::s_get_urls(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpRepeater_base::s_get_urls(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<NArray> vr;
 
     METHOD_INSTANCE(HttpRepeater_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_urls(vr);
 
     METHOD_RETURN();
 }
 
-inline void HttpRepeater_base::s_get_client(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpRepeater_base::s_get_client(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<HttpClient_base> vr;
 
     METHOD_INSTANCE(HttpRepeater_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_client(vr);
 

@@ -38,10 +38,10 @@ public:
     }
 
 public:
-    static void s_get_rxBufferSize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_rxBufferSize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_txBufferSize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_txBufferSize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_rxBufferSize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_rxBufferSize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_txBufferSize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_txBufferSize(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -64,49 +64,59 @@ inline ClassInfo& MySQL_base::class_info()
     return s_ci;
 }
 
-inline void MySQL_base::s_get_rxBufferSize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void MySQL_base::s_get_rxBufferSize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(MySQL_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_rxBufferSize(vr);
 
     METHOD_RETURN();
 }
 
-inline void MySQL_base::s_set_rxBufferSize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void MySQL_base::s_set_rxBufferSize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(MySQL_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(int32_t);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
 
     hr = pInst->set_rxBufferSize(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void MySQL_base::s_get_txBufferSize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void MySQL_base::s_get_txBufferSize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(MySQL_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_txBufferSize(vr);
 
     METHOD_RETURN();
 }
 
-inline void MySQL_base::s_set_txBufferSize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void MySQL_base::s_set_txBufferSize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(MySQL_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(int32_t);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
 
     hr = pInst->set_txBufferSize(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 }

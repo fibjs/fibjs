@@ -35,13 +35,13 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_candidate(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_sdpMid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_priority(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_transport(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_address(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_port(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_candidate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_sdpMid(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_priority(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_transport(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_address(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_port(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_type(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -91,84 +91,98 @@ void RTCIceCandidate_base::__new(const T& args)
     CONSTRUCT_RETURN();
 }
 
-inline void RTCIceCandidate_base::s_get_candidate(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCIceCandidate_base::s_get_candidate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(RTCIceCandidate_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_candidate(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCIceCandidate_base::s_get_sdpMid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCIceCandidate_base::s_get_sdpMid(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(RTCIceCandidate_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_sdpMid(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCIceCandidate_base::s_get_priority(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCIceCandidate_base::s_get_priority(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(RTCIceCandidate_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_priority(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCIceCandidate_base::s_get_transport(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCIceCandidate_base::s_get_transport(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(RTCIceCandidate_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_transport(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCIceCandidate_base::s_get_address(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCIceCandidate_base::s_get_address(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(RTCIceCandidate_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_address(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCIceCandidate_base::s_get_port(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCIceCandidate_base::s_get_port(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(RTCIceCandidate_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_port(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCIceCandidate_base::s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCIceCandidate_base::s_get_type(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(RTCIceCandidate_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_type(vr);
 

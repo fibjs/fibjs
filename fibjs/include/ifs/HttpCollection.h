@@ -63,10 +63,10 @@ public:
     static void s_sort(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_keys(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_values(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void i_NamedGetter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static v8::Intercepted i_NamedGetter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
     static void i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array>& args);
-    static void i_NamedSetter(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void i_NamedDeleter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& args);
+    static v8::Intercepted i_NamedSetter(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static v8::Intercepted i_NamedDeleter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& args);
 };
 }
 
@@ -303,23 +303,23 @@ inline void HttpCollection_base::s_values(const v8::FunctionCallbackInfo<v8::Val
     METHOD_RETURN();
 }
 
-inline void HttpCollection_base::i_NamedGetter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline v8::Intercepted HttpCollection_base::i_NamedGetter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     Variant vr;
 
-    METHOD_INSTANCE(HttpCollection_base);
+    NAMED_METHOD_INSTANCE(HttpCollection_base);
     PROPERTY_ENTER();
 
     exlib::string k;
     GetArgumentValue(isolate, property, k);
     if (class_info().has(k.c_str()))
-        return;
+        return v8::Intercepted::kNo;
 
     hr = pInst->_named_getter(k, vr);
     if (hr == CALL_RETURN_NULL)
-        return;
+        return v8::Intercepted::kNo;
 
-    METHOD_RETURN();
+    NAMED_METHOD_RETURN();
 }
 
 inline void HttpCollection_base::i_NamedEnumerator(const v8::PropertyCallbackInfo<v8::Array>& args)
@@ -334,39 +334,39 @@ inline void HttpCollection_base::i_NamedEnumerator(const v8::PropertyCallbackInf
     METHOD_RETURN1();
 }
 
-inline void HttpCollection_base::i_NamedSetter(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline v8::Intercepted HttpCollection_base::i_NamedSetter(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
 {
-    METHOD_INSTANCE(HttpCollection_base);
+    NAMED_METHOD_INSTANCE(HttpCollection_base);
     PROPERTY_ENTER();
 
     PROPERTY_VAL(Variant);
     exlib::string k;
     GetArgumentValue(isolate, property, k);
     if (class_info().has(k.c_str()))
-        return;
+        return v8::Intercepted::kNo;
 
     hr = pInst->_named_setter(k, v0);
     if (hr == CALL_RETURN_NULL)
-        return;
+        return v8::Intercepted::kNo;
 
-    METHOD_VOID();
+    NAMED_METHOD_VOID();
 }
 
-inline void HttpCollection_base::i_NamedDeleter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& args)
+inline v8::Intercepted HttpCollection_base::i_NamedDeleter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& args)
 {
     v8::Local<v8::Boolean> vr;
 
-    METHOD_INSTANCE(HttpCollection_base);
+    NAMED_METHOD_INSTANCE(HttpCollection_base);
     PROPERTY_ENTER();
 
     exlib::string k;
     GetArgumentValue(isolate, property, k);
     if (class_info().has(k.c_str())) {
         args.GetReturnValue().Set(v8::False(isolate->m_isolate));
-        return;
+        return v8::Intercepted::kYes;
     }
 
     hr = pInst->_named_deleter(k, vr);
-    METHOD_RETURN1();
+    METHOD_RETURN2();
 }
 }

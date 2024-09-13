@@ -248,7 +248,7 @@ public:
                         if (try_catch.HasCaught()) {
                             v8::Local<v8::Value> exp = try_catch.Exception();
                             if (exp->IsFunction()) {
-                                func = v8::Local<v8::Function>::Cast(exp);
+                                func = exp.As<v8::Function>();
                                 try_catch.Reset();
                                 func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 0, NULL).IsEmpty();
                             }
@@ -569,10 +569,10 @@ static void must_call(const v8::FunctionCallbackInfo<v8::Value>& args)
     Isolate* isolate = Isolate::current(args);
     v8::Local<v8::Context> _context = isolate->context();
 
-    v8::Local<v8::Object> _data = v8::Local<v8::Object>::Cast(args.Data());
+    v8::Local<v8::Object> _data = args.Data().As<v8::Object>();
     v8::Local<v8::Function> func = _data->Get(_context, isolate->NewString("func")).FromMaybe(v8::Local<v8::Value>()).As<v8::Function>();
     obj_ptr<Event_base> ev = Event_base::getInstance(_data->Get(_context, isolate->NewString("ev")).FromMaybe(v8::Local<v8::Value>()));
-    _case* running = (_case*)v8::Local<v8::External>::Cast(_data->Get(_context, isolate->NewString("case")).FromMaybe(v8::Local<v8::Value>()).As<v8::External>())->Value();
+    _case* running = (_case*)_data->Get(_context, isolate->NewString("case")).FromMaybe(v8::Local<v8::Value>()).As<v8::External>()->Value();
 
     TestData* td = TestData::current();
     if (td->m_running != running) {
@@ -627,7 +627,7 @@ static void not_call(const v8::FunctionCallbackInfo<v8::Value>& args)
     Isolate* isolate = Isolate::current(args);
     v8::Local<v8::Context> _context = isolate->context();
 
-    _case* running = (_case*)v8::Local<v8::External>::Cast(args.Data().As<v8::External>())->Value();
+    _case* running = (_case*)args.Data().As<v8::External>()->Value();
     TestData* td = TestData::current();
     if (td->m_running != running) {
         ThrowError("This function must be called in the same case.");

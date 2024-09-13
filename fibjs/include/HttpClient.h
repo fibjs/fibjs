@@ -18,6 +18,7 @@ class HttpClient : public HttpClient_base {
 public:
     HttpClient(SecureContext_base* context)
         : m_context(context)
+        , m_keepAlive(true)
         , m_timeout(0)
         , m_enableCookie(true)
         , m_autoRedirect(true)
@@ -35,6 +36,8 @@ public:
 public:
     // HttpClient_base
     virtual result_t get_cookies(obj_ptr<NArray>& retVal);
+    virtual result_t get_keepAlive(bool& retVal);
+    virtual result_t set_keepAlive(bool newVal);
     virtual result_t get_timeout(int32_t& retVal);
     virtual result_t set_timeout(int32_t newVal);
     virtual result_t get_enableCookie(bool& retVal);
@@ -74,11 +77,17 @@ public:
 public:
     result_t init(v8::Local<v8::Object> options);
     result_t request(exlib::string method, obj_ptr<Url>& u, SeekableStream_base* body,
-        SeekableStream_base* response_body, NObject* opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+        SeekableStream_base* response_body, bool keepAlive, NObject* opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     result_t request(exlib::string method, exlib::string url, SeekableStream_base* body,
-        SeekableStream_base* response_body, NObject* opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
+        SeekableStream_base* response_body, bool keepAlive, NObject* opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac);
     result_t update_cookies(exlib::string url, NArray* cookies);
     result_t get_cookie(exlib::string url, exlib::string& retVal);
+
+    result_t request(exlib::string method, exlib::string url, SeekableStream_base* body,
+        SeekableStream_base* response_body, NObject* opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    {
+        return request(method, url, body, response_body, m_keepAlive, opts, retVal, ac);
+    }
 
     exlib::string agent()
     {
@@ -145,6 +154,7 @@ private:
     obj_ptr<SecureContext_base> m_context;
     obj_ptr<NArray> m_cookies;
     exlib::spinlock m_lock;
+    bool m_keepAlive;
     int32_t m_timeout;
     bool m_enableCookie;
     bool m_autoRedirect;

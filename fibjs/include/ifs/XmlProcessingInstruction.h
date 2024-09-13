@@ -37,9 +37,9 @@ public:
     }
 
 public:
-    static void s_get_target(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_data(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_data(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_target(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_data(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_data(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -62,38 +62,45 @@ inline ClassInfo& XmlProcessingInstruction_base::class_info()
     return s_ci;
 }
 
-inline void XmlProcessingInstruction_base::s_get_target(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlProcessingInstruction_base::s_get_target(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(XmlProcessingInstruction_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_target(vr);
 
     METHOD_RETURN();
 }
 
-inline void XmlProcessingInstruction_base::s_get_data(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlProcessingInstruction_base::s_get_data(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(XmlProcessingInstruction_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_data(vr);
 
     METHOD_RETURN();
 }
 
-inline void XmlProcessingInstruction_base::s_set_data(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void XmlProcessingInstruction_base::s_set_data(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(XmlProcessingInstruction_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(exlib::string);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
 
     hr = pInst->set_data(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 }

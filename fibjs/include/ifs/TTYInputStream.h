@@ -37,8 +37,8 @@ public:
     }
 
 public:
-    static void s_get_isTTY(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_isRaw(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_isTTY(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_isRaw(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setRawMode(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
@@ -66,24 +66,28 @@ inline ClassInfo& TTYInputStream_base::class_info()
     return s_ci;
 }
 
-inline void TTYInputStream_base::s_get_isTTY(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void TTYInputStream_base::s_get_isTTY(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
     METHOD_INSTANCE(TTYInputStream_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_isTTY(vr);
 
     METHOD_RETURN();
 }
 
-inline void TTYInputStream_base::s_get_isRaw(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void TTYInputStream_base::s_get_isRaw(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
     METHOD_INSTANCE(TTYInputStream_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_isRaw(vr);
 

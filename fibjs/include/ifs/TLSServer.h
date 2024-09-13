@@ -38,7 +38,7 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_secureContext(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_secureContext(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setSecureContext(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
@@ -108,12 +108,14 @@ void TLSServer_base::__new(const T& args)
     CONSTRUCT_RETURN();
 }
 
-inline void TLSServer_base::s_get_secureContext(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void TLSServer_base::s_get_secureContext(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<SecureContext_base> vr;
 
     METHOD_INSTANCE(TLSServer_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_secureContext(vr);
 

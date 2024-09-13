@@ -47,13 +47,13 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_family(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_remoteAddress(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_remotePort(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_localAddress(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_localPort(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_timeout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_timeout(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_family(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_remoteAddress(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_remotePort(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_localAddress(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_localPort(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_timeout(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_timeout(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_bind(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_listen(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -126,87 +126,102 @@ void Socket_base::__new(const T& args)
     CONSTRUCT_RETURN();
 }
 
-inline void Socket_base::s_get_family(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Socket_base::s_get_family(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(Socket_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_family(vr);
 
     METHOD_RETURN();
 }
 
-inline void Socket_base::s_get_remoteAddress(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Socket_base::s_get_remoteAddress(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(Socket_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_remoteAddress(vr);
 
     METHOD_RETURN();
 }
 
-inline void Socket_base::s_get_remotePort(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Socket_base::s_get_remotePort(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(Socket_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_remotePort(vr);
 
     METHOD_RETURN();
 }
 
-inline void Socket_base::s_get_localAddress(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Socket_base::s_get_localAddress(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(Socket_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_localAddress(vr);
 
     METHOD_RETURN();
 }
 
-inline void Socket_base::s_get_localPort(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Socket_base::s_get_localPort(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(Socket_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_localPort(vr);
 
     METHOD_RETURN();
 }
 
-inline void Socket_base::s_get_timeout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Socket_base::s_get_timeout(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(Socket_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_timeout(vr);
 
     METHOD_RETURN();
 }
 
-inline void Socket_base::s_set_timeout(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void Socket_base::s_set_timeout(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Socket_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(int32_t);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
 
     hr = pInst->set_timeout(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
 inline void Socket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)

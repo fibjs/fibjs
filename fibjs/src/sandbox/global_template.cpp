@@ -9,7 +9,7 @@
 
 namespace fibjs {
 
-static void PropertyGetterCallback(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+static v8::Intercepted PropertyGetterCallback(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     Isolate* isolate = Isolate::current(args);
     v8::Local<v8::Context> context = isolate->context();
@@ -17,7 +17,7 @@ static void PropertyGetterCallback(v8::Local<v8::Name> property, const v8::Prope
 
     v8::MaybeLocal<v8::Value> maybe_rv = sandbox->GetRealNamedProperty(context, property);
     if (maybe_rv.IsEmpty())
-        return;
+        return v8::Intercepted::kNo;
 
     v8::Local<v8::Value> rv;
     if (maybe_rv.ToLocal(&rv)) {
@@ -25,11 +25,15 @@ static void PropertyGetterCallback(v8::Local<v8::Name> property, const v8::Prope
             rv = context->Global();
 
         args.GetReturnValue().Set(rv);
+
+        return v8::Intercepted::kYes;
     }
+
+    return v8::Intercepted::kNo;
 }
 
-static void PropertySetterCallback(v8::Local<v8::Name> property, v8::Local<v8::Value> value,
-    const v8::PropertyCallbackInfo<v8::Value>& args)
+static v8::Intercepted PropertySetterCallback(v8::Local<v8::Name> property, v8::Local<v8::Value> value,
+    const v8::PropertyCallbackInfo<void>& args)
 {
     Isolate* isolate = Isolate::current(args);
     v8::Local<v8::Context> context = isolate->context();
@@ -37,9 +41,11 @@ static void PropertySetterCallback(v8::Local<v8::Name> property, v8::Local<v8::V
 
     sandbox->Set(context, property, value).IsJust();
     args.GetReturnValue().Set(value);
+
+    return v8::Intercepted::kYes;
 }
 
-static void PropertyDescriptorCallback(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+static v8::Intercepted PropertyDescriptorCallback(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     Isolate* isolate = Isolate::current(args);
     v8::Local<v8::Context> context = isolate->context();
@@ -47,12 +53,16 @@ static void PropertyDescriptorCallback(v8::Local<v8::Name> property, const v8::P
 
     if (sandbox->HasOwnProperty(context, property).FromMaybe(false)) {
         v8::Local<v8::Value> desc;
-        if (sandbox->GetOwnPropertyDescriptor(context, property).ToLocal(&desc))
-            args.GetReturnValue().Set(desc);
+        sandbox->GetOwnPropertyDescriptor(context, property).ToLocal(&desc);
+        args.GetReturnValue().Set(desc);
+
+        return v8::Intercepted::kYes;
     }
+
+    return v8::Intercepted::kNo;
 }
 
-static void PropertyDeleterCallback(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& args)
+static v8::Intercepted PropertyDeleterCallback(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean>& args)
 {
     Isolate* isolate = Isolate::current(args);
     v8::Local<v8::Context> context = isolate->context();
@@ -61,7 +71,10 @@ static void PropertyDeleterCallback(v8::Local<v8::Name> property, const v8::Prop
     if (sandbox->HasRealNamedProperty(context, property).FromMaybe(false)) {
         sandbox->Delete(context, property).IsJust();
         args.GetReturnValue().Set(v8::True(args.GetIsolate()));
+        return v8::Intercepted::kYes;
     }
+
+    return v8::Intercepted::kNo;
 }
 
 static void PropertyEnumeratorCallback(const v8::PropertyCallbackInfo<v8::Array>& args)
@@ -76,8 +89,8 @@ static void PropertyEnumeratorCallback(const v8::PropertyCallbackInfo<v8::Array>
     args.GetReturnValue().Set(properties);
 }
 
-static void PropertyDefinerCallback(v8::Local<v8::Name> property, const v8::PropertyDescriptor& desc,
-    const v8::PropertyCallbackInfo<v8::Value>& args)
+static v8::Intercepted PropertyDefinerCallback(v8::Local<v8::Name> property, const v8::PropertyDescriptor& desc,
+    const v8::PropertyCallbackInfo<void>& args)
 {
     Isolate* isolate = Isolate::current(args);
     v8::Local<v8::Context> context = isolate->context();
@@ -112,7 +125,7 @@ static void PropertyDefinerCallback(v8::Local<v8::Name> property, const v8::Prop
         }
     }
 
-    args.GetReturnValue().Set(v8::Undefined(args.GetIsolate()));
+    return v8::Intercepted::kYes;
 }
 
 void Isolate::init_global_template()

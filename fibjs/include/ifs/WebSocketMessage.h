@@ -38,12 +38,12 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_masked(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_masked(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_compress(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_compress(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_maxSize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_maxSize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_masked(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_masked(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_compress(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_compress(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_maxSize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_maxSize(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -94,72 +94,87 @@ void WebSocketMessage_base::__new(const T& args)
     CONSTRUCT_RETURN();
 }
 
-inline void WebSocketMessage_base::s_get_masked(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void WebSocketMessage_base::s_get_masked(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
     METHOD_INSTANCE(WebSocketMessage_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_masked(vr);
 
     METHOD_RETURN();
 }
 
-inline void WebSocketMessage_base::s_set_masked(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void WebSocketMessage_base::s_set_masked(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(WebSocketMessage_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(bool);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(bool, 0);
 
     hr = pInst->set_masked(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void WebSocketMessage_base::s_get_compress(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void WebSocketMessage_base::s_get_compress(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
     METHOD_INSTANCE(WebSocketMessage_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_compress(vr);
 
     METHOD_RETURN();
 }
 
-inline void WebSocketMessage_base::s_set_compress(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void WebSocketMessage_base::s_set_compress(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(WebSocketMessage_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(bool);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(bool, 0);
 
     hr = pInst->set_compress(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void WebSocketMessage_base::s_get_maxSize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void WebSocketMessage_base::s_get_maxSize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(WebSocketMessage_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_maxSize(vr);
 
     METHOD_RETURN();
 }
 
-inline void WebSocketMessage_base::s_set_maxSize(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void WebSocketMessage_base::s_set_maxSize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(WebSocketMessage_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(int32_t);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
 
     hr = pInst->set_maxSize(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 }

@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 set(name "fibjs")
 project(${name})
 
+include(../../vender/v8/cmake/options.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/../../vender/build_tools/cmake/option.cmake)
 
 set(VENDER_PATH ${BIN_PATH})
@@ -90,7 +91,15 @@ endif()
 
 add_library(js SHARED src/so.cpp)
 
-include_directories("${PROJECT_SOURCE_DIR}/include" "${PROJECT_SOURCE_DIR}/../include" "${PROJECT_SOURCE_DIR}/../../vender" "${PROJECT_SOURCE_DIR}/../../vender/v8" "${PROJECT_SOURCE_DIR}/../../vender/v8/include" "${PROJECT_SOURCE_DIR}/../../vender/zlib/include" "${CMAKE_CURRENT_BINARY_DIR}")
+include_directories(
+	"${PROJECT_SOURCE_DIR}/include"
+	"${PROJECT_SOURCE_DIR}/../include"
+	"${PROJECT_SOURCE_DIR}/../../vender"
+	"${PROJECT_SOURCE_DIR}/../../vender/v8"
+	"${PROJECT_SOURCE_DIR}/../../vender/v8/include"
+	"${PROJECT_SOURCE_DIR}/../../vender/zlib/include"
+	"${CMAKE_CURRENT_BINARY_DIR}"
+)
 
 target_link_libraries(${name} "${BIN_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}fibjs${CMAKE_STATIC_LIBRARY_SUFFIX}")
 target_link_libraries(js "${BIN_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}fibjs${CMAKE_STATIC_LIBRARY_SUFFIX}")

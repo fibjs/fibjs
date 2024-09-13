@@ -35,10 +35,10 @@ public:
     }
 
 public:
-    static void s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_algorithm(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_extractable(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_usages(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_type(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_algorithm(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_extractable(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_usages(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -63,48 +63,56 @@ inline ClassInfo& CryptoKey_base::class_info()
     return s_ci;
 }
 
-inline void CryptoKey_base::s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void CryptoKey_base::s_get_type(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(CryptoKey_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_type(vr);
 
     METHOD_RETURN();
 }
 
-inline void CryptoKey_base::s_get_algorithm(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void CryptoKey_base::s_get_algorithm(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
     METHOD_INSTANCE(CryptoKey_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_algorithm(vr);
 
     METHOD_RETURN();
 }
 
-inline void CryptoKey_base::s_get_extractable(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void CryptoKey_base::s_get_extractable(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
     METHOD_INSTANCE(CryptoKey_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_extractable(vr);
 
     METHOD_RETURN();
 }
 
-inline void CryptoKey_base::s_get_usages(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void CryptoKey_base::s_get_usages(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
     METHOD_INSTANCE(CryptoKey_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_usages(vr);
 

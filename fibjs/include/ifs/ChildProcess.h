@@ -53,19 +53,19 @@ public:
 public:
     static void s_kill(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_join(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_connected(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_connected(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_disconnect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_send(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_usage(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_pid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_exitCode(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_stdin(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_stdout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_stderr(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_onexit(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onexit(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onmessage(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onmessage(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_pid(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_exitCode(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_stdin(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_stdout(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_stderr(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onexit(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onexit(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onmessage(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onmessage(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBERVALUE1(ChildProcess_base, join, int32_t);
@@ -144,12 +144,14 @@ inline void ChildProcess_base::s_join(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_RETURN();
 }
 
-inline void ChildProcess_base::s_get_connected(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void ChildProcess_base::s_get_connected(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
     METHOD_INSTANCE(ChildProcess_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_connected(vr);
 
@@ -196,109 +198,129 @@ inline void ChildProcess_base::s_usage(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_RETURN();
 }
 
-inline void ChildProcess_base::s_get_pid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void ChildProcess_base::s_get_pid(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(ChildProcess_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_pid(vr);
 
     METHOD_RETURN();
 }
 
-inline void ChildProcess_base::s_get_exitCode(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void ChildProcess_base::s_get_exitCode(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(ChildProcess_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_exitCode(vr);
 
     METHOD_RETURN();
 }
 
-inline void ChildProcess_base::s_get_stdin(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void ChildProcess_base::s_get_stdin(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stream_base> vr;
 
     METHOD_INSTANCE(ChildProcess_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_stdin(vr);
 
     METHOD_RETURN();
 }
 
-inline void ChildProcess_base::s_get_stdout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void ChildProcess_base::s_get_stdout(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stream_base> vr;
 
     METHOD_INSTANCE(ChildProcess_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_stdout(vr);
 
     METHOD_RETURN();
 }
 
-inline void ChildProcess_base::s_get_stderr(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void ChildProcess_base::s_get_stderr(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stream_base> vr;
 
     METHOD_INSTANCE(ChildProcess_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_stderr(vr);
 
     METHOD_RETURN();
 }
 
-inline void ChildProcess_base::s_get_onexit(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void ChildProcess_base::s_get_onexit(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(ChildProcess_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_onexit(vr);
 
     METHOD_RETURN();
 }
 
-inline void ChildProcess_base::s_set_onexit(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void ChildProcess_base::s_set_onexit(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(ChildProcess_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_onexit(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void ChildProcess_base::s_get_onmessage(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void ChildProcess_base::s_get_onmessage(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(ChildProcess_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_onmessage(vr);
 
     METHOD_RETURN();
 }
 
-inline void ChildProcess_base::s_set_onmessage(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void ChildProcess_base::s_set_onmessage(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(ChildProcess_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_onmessage(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 }

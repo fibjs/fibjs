@@ -12,11 +12,11 @@ namespace fibjs {
 
 static bool regexpEquals(v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 {
-    v8::Local<v8::RegExp> re1 = v8::Local<v8::RegExp>::Cast(actual);
+    v8::Local<v8::RegExp> re1 = actual.As<v8::RegExp>();
     v8::Local<v8::String> src1 = re1->GetSource();
     v8::RegExp::Flags flgs1 = re1->GetFlags();
 
-    v8::Local<v8::RegExp> re2 = v8::Local<v8::RegExp>::Cast(expected);
+    v8::Local<v8::RegExp> re2 = expected.As<v8::RegExp>();
     v8::Local<v8::String> src2 = re2->GetSource();
     v8::RegExp::Flags flgs2 = re2->GetFlags();
 
@@ -50,8 +50,8 @@ static bool arrayEquals(Isolate* isolate, QuickArray<v8::Local<v8::Object>>& act
     QuickArray<v8::Local<v8::Object>>& exps,
     v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 {
-    v8::Local<v8::Array> act = v8::Local<v8::Array>::Cast(actual);
-    v8::Local<v8::Array> exp = v8::Local<v8::Array>::Cast(expected);
+    v8::Local<v8::Array> act = actual.As<v8::Array>();
+    v8::Local<v8::Array> exp = expected.As<v8::Array>();
     int32_t len = (int32_t)act->Length();
     int32_t i;
 
@@ -85,8 +85,8 @@ static bool objectEquals(Isolate* isolate, QuickArray<v8::Local<v8::Object>>& ac
     QuickArray<v8::Local<v8::Object>>& exps,
     v8::Local<v8::Value> actual, v8::Local<v8::Value> expected)
 {
-    v8::Local<v8::Object> act = v8::Local<v8::Object>::Cast(actual);
-    v8::Local<v8::Object> exp = v8::Local<v8::Object>::Cast(expected);
+    v8::Local<v8::Object> act = actual.As<v8::Object>();
+    v8::Local<v8::Object> exp = expected.As<v8::Object>();
 
     int32_t i;
 

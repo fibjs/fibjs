@@ -47,15 +47,15 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_statusCode(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_statusCode(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_statusMessage(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_statusMessage(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_status(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_status(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_ok(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_statusCode(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_statusCode(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_statusMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_statusMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_status(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_status(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_ok(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_writeHead(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_cookies(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_cookies(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_addCookie(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_redirect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_sendHeader(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -117,81 +117,98 @@ void HttpResponse_base::__new(const T& args)
     CONSTRUCT_RETURN();
 }
 
-inline void HttpResponse_base::s_get_statusCode(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpResponse_base::s_get_statusCode(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(HttpResponse_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_statusCode(vr);
 
     METHOD_RETURN();
 }
 
-inline void HttpResponse_base::s_set_statusCode(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpResponse_base::s_set_statusCode(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(HttpResponse_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(int32_t);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
 
     hr = pInst->set_statusCode(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void HttpResponse_base::s_get_statusMessage(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpResponse_base::s_get_statusMessage(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(HttpResponse_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_statusMessage(vr);
 
     METHOD_RETURN();
 }
 
-inline void HttpResponse_base::s_set_statusMessage(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpResponse_base::s_set_statusMessage(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(HttpResponse_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(exlib::string);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
 
     hr = pInst->set_statusMessage(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void HttpResponse_base::s_get_status(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpResponse_base::s_get_status(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(HttpResponse_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_status(vr);
 
     METHOD_RETURN();
 }
 
-inline void HttpResponse_base::s_set_status(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpResponse_base::s_set_status(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(HttpResponse_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(int32_t);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
 
     hr = pInst->set_status(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void HttpResponse_base::s_get_ok(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpResponse_base::s_get_ok(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
     METHOD_INSTANCE(HttpResponse_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_ok(vr);
 
@@ -221,12 +238,14 @@ inline void HttpResponse_base::s_writeHead(const v8::FunctionCallbackInfo<v8::Va
     METHOD_VOID();
 }
 
-inline void HttpResponse_base::s_get_cookies(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpResponse_base::s_get_cookies(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<NArray> vr;
 
     METHOD_INSTANCE(HttpResponse_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_cookies(vr);
 

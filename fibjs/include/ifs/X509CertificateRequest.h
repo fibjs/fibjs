@@ -43,12 +43,12 @@ public:
     }
 
 public:
-    static void s_get_subject(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_publicKey(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_subjectAltName(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_infoAccess(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_raw(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_pem(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_subject(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_publicKey(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_subjectAltName(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_infoAccess(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_raw(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_pem(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_checkPrivateKey(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_issue(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -86,72 +86,84 @@ inline ClassInfo& X509CertificateRequest_base::class_info()
     return s_ci;
 }
 
-inline void X509CertificateRequest_base::s_get_subject(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void X509CertificateRequest_base::s_get_subject(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(X509CertificateRequest_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_subject(vr);
 
     METHOD_RETURN();
 }
 
-inline void X509CertificateRequest_base::s_get_publicKey(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void X509CertificateRequest_base::s_get_publicKey(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<KeyObject_base> vr;
 
     METHOD_INSTANCE(X509CertificateRequest_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_publicKey(vr);
 
     METHOD_RETURN();
 }
 
-inline void X509CertificateRequest_base::s_get_subjectAltName(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void X509CertificateRequest_base::s_get_subjectAltName(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(X509CertificateRequest_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_subjectAltName(vr);
 
     METHOD_RETURN();
 }
 
-inline void X509CertificateRequest_base::s_get_infoAccess(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void X509CertificateRequest_base::s_get_infoAccess(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(X509CertificateRequest_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_infoAccess(vr);
 
     METHOD_RETURN();
 }
 
-inline void X509CertificateRequest_base::s_get_raw(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void X509CertificateRequest_base::s_get_raw(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Buffer_base> vr;
 
     METHOD_INSTANCE(X509CertificateRequest_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_raw(vr);
 
     METHOD_RETURN();
 }
 
-inline void X509CertificateRequest_base::s_get_pem(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void X509CertificateRequest_base::s_get_pem(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(X509CertificateRequest_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_pem(vr);
 

@@ -48,7 +48,7 @@ result_t Script::init(exlib::string code, v8::Local<v8::Object> opts)
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
-    v8::ScriptOrigin origin(isolate->m_isolate, isolate->NewString(filename), lineOffset, columnOffset);
+    v8::ScriptOrigin origin(isolate->NewString(filename), lineOffset, columnOffset);
     v8::ScriptCompiler::Source source(isolate->NewString(code), origin);
     v8::MaybeLocal<v8::UnboundScript> maybe_ub_script
         = v8::ScriptCompiler::CompileUnboundScript(isolate->m_isolate, &source);

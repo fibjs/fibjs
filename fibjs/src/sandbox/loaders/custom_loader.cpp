@@ -18,7 +18,7 @@ result_t custom_Loader::compile(SandBox::Context* ctx, Buffer_base* src, exlib::
 {
     Isolate* isolate = ctx->m_sb->holder();
     v8::Local<v8::Context> context = isolate->context();
-    v8::Local<v8::Function> require_fn = v8::Local<v8::Function>::Cast(ctx->m_sb->GetPrivate(SandBox::_get_extloader_pname(m_ext)));
+    v8::Local<v8::Function> require_fn = ctx->m_sb->GetPrivate(SandBox::_get_extloader_pname(m_ext)).As<v8::Function>();
 
     exlib::string strScript;
     // read filecontent and compile to strScript :start

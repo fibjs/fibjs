@@ -46,7 +46,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
             return CALL_RETURN_NULL;
 
         retVal = new AsyncWaitHandler();
-        v8::Local<v8::Function> proc = v8::Local<v8::Function>::Cast(v1);
+        v8::Local<v8::Function> proc = v1.As<v8::Function>();
 
         obj_ptr<NArray> params;
         std::vector<v8::Local<v8::Value>> argv;
@@ -76,7 +76,7 @@ result_t JSHandler::invoke(object_base* v, obj_ptr<Handler_base>& retVal,
     v8::Local<v8::Value> hdlr = GetPrivate("handler");
 
     while (hdlr->IsFunction()) {
-        v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(hdlr);
+        v8::Local<v8::Function> func = hdlr.As<v8::Function>();
         obj_ptr<NArray> params;
         std::vector<v8::Local<v8::Value>> argv;
         v8::Local<v8::Value>* pargv;

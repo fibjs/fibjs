@@ -44,7 +44,7 @@ public:
 
 public:
     static void s_static_createSecureContext(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_get_secureContext(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_secureContext(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
@@ -111,11 +111,13 @@ inline void tls_base::s_static_createSecureContext(const v8::FunctionCallbackInf
     METHOD_RETURN();
 }
 
-inline void tls_base::s_static_get_secureContext(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void tls_base::s_static_get_secureContext(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<SecureContext_base> vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_secureContext(vr);
 

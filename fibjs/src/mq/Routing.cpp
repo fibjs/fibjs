@@ -152,7 +152,10 @@ result_t Routing::_append(exlib::string method, v8::Local<v8::Object> map,
 
     for (i = 0; i < len; i++) {
         JSValue k = ks->Get(context, i);
-        JSValue v = map->Get(context, k);
+        v8::Local<v8::Value> v = map->Get(context, k).FromMaybe(v8::Local<v8::Value>());
+        if (v.IsEmpty())
+            return CALL_E_JAVASCRIPT;
+
         obj_ptr<Handler_base> hdlr;
         obj_ptr<Routing_base> r;
 

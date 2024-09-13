@@ -28,8 +28,8 @@ struct ClassData {
 
     struct ClassProperty {
         const char* name;
-        v8::AccessorNameGetterCallback getter;
-        v8::AccessorNameSetterCallback setter;
+        v8::FunctionCallback getter;
+        v8::FunctionCallback setter;
         bool is_static;
     };
 
@@ -51,15 +51,15 @@ struct ClassData {
     };
 
     struct ClassIndexed {
-        v8::IndexedPropertyGetterCallback getter;
-        v8::IndexedPropertySetterCallback setter;
+        v8::IndexedPropertyGetterCallbackV2 getter;
+        v8::IndexedPropertySetterCallbackV2 setter;
     };
 
     struct ClassNamed {
-        v8::GenericNamedPropertyGetterCallback getter;
-        v8::GenericNamedPropertySetterCallback setter;
-        v8::GenericNamedPropertyDeleterCallback remover;
-        v8::GenericNamedPropertyEnumeratorCallback enumerator;
+        v8::NamedPropertyGetterCallback getter;
+        v8::NamedPropertySetterCallback setter;
+        v8::NamedPropertyDeleterCallback remover;
+        v8::NamedPropertyEnumeratorCallback enumerator;
     };
 
     const char* name;
@@ -267,9 +267,9 @@ public:
 
         for (i = 0; i < m_cd.pc; i++)
             if (m_cd.cps[i].is_static) {
-                o->SetAccessor(_context, get_prop_name(isolate, m_cd.cps[i].name),
-                     m_cd.cps[i].getter, m_cd.cps[i].setter)
-                    .IsJust();
+                o->SetAccessorProperty(get_prop_name(isolate, m_cd.cps[i].name),
+                    isolate->NewFunction(m_cd.cps[i].name, m_cd.cps[i].getter),
+                    isolate->NewFunction(m_cd.cps[i].name, m_cd.cps[i].setter));
             }
 
         for (i = 0; i < m_cd.cc; i++) {
@@ -430,12 +430,12 @@ private:
             for (i = 0; i < m_cd.pc; i++)
                 if (!m_cd.cps[i].is_static) {
                     v8::Local<v8::Name> name = get_prop_name(isolate, m_cd.cps[i].name);
+                    v8::Local<v8::FunctionTemplate> ft_getter = v8::FunctionTemplate::New(isolate->m_isolate, m_cd.cps[i].getter);
+                    v8::Local<v8::FunctionTemplate> ft_setter = v8::FunctionTemplate::New(isolate->m_isolate, m_cd.cps[i].setter);
 
-                    pt->SetAccessor(name, m_cd.cps[i].getter, m_cd.cps[i].setter,
-                        v8::Local<v8::Value>(), v8::DEFAULT, v8::DontDelete);
+                    pt->SetAccessorProperty(name, ft_getter, ft_setter, v8::DontDelete);
                     if (m_cd.has_async)
-                        ppt->SetAccessor(name, m_cd.cps[i].getter, m_cd.cps[i].setter,
-                            v8::Local<v8::Value>(), v8::DEFAULT, v8::DontDelete);
+                        ppt->SetAccessorProperty(name, ft_getter, ft_setter, v8::DontDelete);
                 }
 
             for (i = 0; i < m_cd.cc; i++) {
@@ -462,9 +462,11 @@ private:
                 pcd = pcd->base ? &pcd->base->m_cd : NULL;
 
             if (pcd) {
-                ot->SetIndexedPropertyHandler(pcd->cis->getter, pcd->cis->setter);
+                ot->SetHandler(v8::IndexedPropertyHandlerConfiguration(
+                    pcd->cis->getter, pcd->cis->setter));
                 if (m_cd.has_async)
-                    pot->SetIndexedPropertyHandler(pcd->cis->getter, pcd->cis->setter);
+                    pot->SetHandler(v8::IndexedPropertyHandlerConfiguration(
+                        pcd->cis->getter, pcd->cis->setter));
             }
 
             pcd = &m_cd;

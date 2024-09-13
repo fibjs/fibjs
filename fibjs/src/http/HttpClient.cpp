@@ -55,6 +55,11 @@ result_t HttpClient::init(v8::Local<v8::Object> options)
         return hr;
 
     Isolate* isolate = holder();
+
+    hr = GetConfigValue(isolate, options, "keepAlive", m_keepAlive);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
     hr = GetConfigValue(isolate, options, "timeout", m_timeout);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
@@ -121,6 +126,18 @@ result_t HttpClient::get_enableCookie(bool& retVal)
 result_t HttpClient::set_enableCookie(bool newVal)
 {
     m_enableCookie = newVal;
+    return 0;
+}
+
+result_t HttpClient::get_keepAlive(bool& retVal)
+{
+    retVal = m_keepAlive;
+    return 0;
+}
+
+result_t HttpClient::set_keepAlive(bool newVal)
+{
+    m_keepAlive = newVal;
     return 0;
 }
 
@@ -579,18 +596,19 @@ result_t HttpClient::request(Stream_base* conn, HttpRequest_base* req,
 }
 
 result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStream_base* body,
-    SeekableStream_base* response_body, NObject* opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    SeekableStream_base* response_body, bool keepAlive, NObject* opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
     class asyncRequest : public AsyncState {
     public:
         asyncRequest(HttpClient* hc, exlib::string method, obj_ptr<Url>& u,
-            SeekableStream_base* body, SeekableStream_base* response_body, NObject* opts,
-            obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+            SeekableStream_base* body, SeekableStream_base* response_body, bool keepAlive,
+            NObject* opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
             : AsyncState(ac)
             , m_method(method)
             , m_u(u)
             , m_body(body)
             , m_response_body(response_body)
+            , m_keepAlive(keepAlive)
             , m_opts(opts)
             , m_retVal(retVal)
             , m_hc(hc)
@@ -657,6 +675,8 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
                 if (cookie.length() > 0)
                     m_req->addHeader("Cookie", cookie);
             }
+
+            m_req->set_keepAlive(m_keepAlive);
 
             if (m_opts)
                 m_req->addHeader(m_opts);
@@ -894,9 +914,9 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
             if (upgrade)
                 return next(closed);
 
-            bool keepalive;
-            m_retVal->get_keepAlive(keepalive);
-            if (keepalive) {
+            bool keepAlive;
+            m_retVal->get_keepAlive(keepAlive);
+            if (keepAlive) {
                 if (m_http_proxy.empty() || m_http_proxy.c_str()[0] == 's' || !m_sslhost.empty())
                     m_hc->save_conn(m_connUrl, m_conn);
                 else
@@ -961,6 +981,7 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
         obj_ptr<SeekableStream_base> m_body;
         obj_ptr<SeekableStream_base> m_response_body;
         int64_t m_response_pos;
+        bool m_keepAlive;
         obj_ptr<NObject> m_opts;
         obj_ptr<HttpResponse_base>& m_retVal;
         std::unordered_map<exlib::string, bool> m_urls;
@@ -976,11 +997,11 @@ result_t HttpClient::request(exlib::string method, obj_ptr<Url>& u, SeekableStre
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return (new asyncRequest(this, method, u, body, response_body, opts, retVal, ac))->post(0);
+    return (new asyncRequest(this, method, u, body, response_body, keepAlive, opts, retVal, ac))->post(0);
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url, SeekableStream_base* body,
-    SeekableStream_base* response_body, NObject* opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
+    SeekableStream_base* response_body, bool keepAlive, NObject* opts, obj_ptr<HttpResponse_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
         return CHECK_ERROR(CALL_E_NOSYNC);
@@ -990,7 +1011,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url, SeekableSt
     if (hr < 0)
         return hr;
 
-    return request(method, u, body, response_body, opts, retVal, ac);
+    return request(method, u, body, response_body, keepAlive, opts, retVal, ac);
 }
 
 result_t HttpClient::request(exlib::string method, exlib::string url,
@@ -1006,7 +1027,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
         Variant ct;
         result_t hr;
 
-        ac->m_ctx.resize(5);
+        ac->m_ctx.resize(6);
 
         exlib::string _method(method);
         GetConfigValue(isolate, opts, "method", _method, true);
@@ -1043,7 +1064,7 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
 
                 if (v->IsArray()) {
                     obj_ptr<NArray> arr = new NArray();
-                    v8::Local<v8::Array> a = v8::Local<v8::Array>::Cast(v);
+                    v8::Local<v8::Array> a = v.As<v8::Array>();
                     int32_t len1 = a->Length();
                     int32_t i1;
 
@@ -1130,6 +1151,12 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
         if (hr >= 0)
             ac->m_ctx[4] = rsp_stm;
 
+        bool keepAlive = m_keepAlive;
+        hr = GetConfigValue(isolate, opts, "keepAlive", keepAlive);
+        if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+            return hr;
+        ac->m_ctx[5] = keepAlive;
+
         return CHECK_ERROR(CALL_E_NOSYNC);
     }
 
@@ -1138,8 +1165,9 @@ result_t HttpClient::request(exlib::string method, exlib::string url,
     obj_ptr<NObject> map = (NObject*)ac->m_ctx[2].object();
     obj_ptr<SeekableStream_base> stm = SeekableStream_base::getInstance(ac->m_ctx[3].object());
     obj_ptr<SeekableStream_base> rsp_stm = SeekableStream_base::getInstance(ac->m_ctx[4].object());
+    bool keepAlive = ac->m_ctx[5].boolVal();
 
-    return request(_method, u, stm, rsp_stm, map, retVal, ac);
+    return request(_method, u, stm, rsp_stm, keepAlive, map, retVal, ac);
 }
 
 result_t HttpClient::request(exlib::string url, v8::Local<v8::Object> opts,

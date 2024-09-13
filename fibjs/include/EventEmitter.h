@@ -836,25 +836,30 @@ public:
         METHOD_RETURN();
     }
 
-    static void s_get_defaultMaxListeners(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+    static void s_get_defaultMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
         int32_t vr;
 
-        PROPERTY_ENTER();
+        METHOD_ENTER();
+
+        METHOD_OVER(0, 0);
 
         hr = get_defaultMaxListeners(vr);
 
         METHOD_RETURN();
     }
 
-    static void s_set_defaultMaxListeners(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+    static void s_set_defaultMaxListeners(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        PROPERTY_ENTER();
-        PROPERTY_VAL(int32_t);
+        METHOD_ENTER();
+
+        METHOD_OVER(1, 1);
+
+        ARG(int32_t, 0);
 
         hr = set_defaultMaxListeners(v0);
 
-        PROPERTY_SET_LEAVE();
+        METHOD_VOID();
     }
 
     static void s_listeners(const v8::FunctionCallbackInfo<v8::Value>& args)

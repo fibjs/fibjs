@@ -51,6 +51,16 @@ result_t http_base::get_cookies(obj_ptr<NArray>& retVal)
     return get_httpClient()->get_cookies(retVal);
 }
 
+result_t http_base::get_keepAlive(bool& retVal)
+{
+    return get_httpClient()->get_keepAlive(retVal);
+}
+
+result_t http_base::set_keepAlive(bool newVal)
+{
+    return get_httpClient()->set_keepAlive(newVal);
+}
+
 result_t http_base::get_timeout(int32_t& retVal)
 {
     return get_httpClient()->get_timeout(retVal);

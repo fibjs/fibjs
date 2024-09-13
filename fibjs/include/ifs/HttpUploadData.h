@@ -37,10 +37,10 @@ public:
     }
 
 public:
-    static void s_get_fileName(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_contentType(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_contentTransferEncoding(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_body(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_fileName(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_contentType(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_contentTransferEncoding(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_body(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -67,48 +67,56 @@ inline ClassInfo& HttpUploadData_base::class_info()
     return s_ci;
 }
 
-inline void HttpUploadData_base::s_get_fileName(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpUploadData_base::s_get_fileName(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(HttpUploadData_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_fileName(vr);
 
     METHOD_RETURN();
 }
 
-inline void HttpUploadData_base::s_get_contentType(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpUploadData_base::s_get_contentType(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(HttpUploadData_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_contentType(vr);
 
     METHOD_RETURN();
 }
 
-inline void HttpUploadData_base::s_get_contentTransferEncoding(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpUploadData_base::s_get_contentTransferEncoding(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(HttpUploadData_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_contentTransferEncoding(vr);
 
     METHOD_RETURN();
 }
 
-inline void HttpUploadData_base::s_get_body(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpUploadData_base::s_get_body(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<SeekableStream_base> vr;
 
     METHOD_INSTANCE(HttpUploadData_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_body(vr);
 

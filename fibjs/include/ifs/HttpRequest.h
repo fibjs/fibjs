@@ -43,16 +43,16 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_response(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_method(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_method(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_address(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_address(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_queryString(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_queryString(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_cookies(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_form(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_query(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_response(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_method(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_method(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_address(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_address(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_queryString(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_queryString(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_cookies(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_form(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_query(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -103,117 +103,140 @@ void HttpRequest_base::__new(const T& args)
     CONSTRUCT_RETURN();
 }
 
-inline void HttpRequest_base::s_get_response(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpRequest_base::s_get_response(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<HttpResponse_base> vr;
 
     METHOD_INSTANCE(HttpRequest_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_response(vr);
 
     METHOD_RETURN();
 }
 
-inline void HttpRequest_base::s_get_method(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpRequest_base::s_get_method(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(HttpRequest_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_method(vr);
 
     METHOD_RETURN();
 }
 
-inline void HttpRequest_base::s_set_method(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpRequest_base::s_set_method(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(HttpRequest_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(exlib::string);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
 
     hr = pInst->set_method(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void HttpRequest_base::s_get_address(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpRequest_base::s_get_address(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(HttpRequest_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_address(vr);
 
     METHOD_RETURN();
 }
 
-inline void HttpRequest_base::s_set_address(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpRequest_base::s_set_address(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(HttpRequest_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(exlib::string);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
 
     hr = pInst->set_address(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void HttpRequest_base::s_get_queryString(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpRequest_base::s_get_queryString(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(HttpRequest_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_queryString(vr);
 
     METHOD_RETURN();
 }
 
-inline void HttpRequest_base::s_set_queryString(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void HttpRequest_base::s_set_queryString(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(HttpRequest_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(exlib::string);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
 
     hr = pInst->set_queryString(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void HttpRequest_base::s_get_cookies(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpRequest_base::s_get_cookies(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<HttpCollection_base> vr;
 
     METHOD_INSTANCE(HttpRequest_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_cookies(vr);
 
     METHOD_RETURN();
 }
 
-inline void HttpRequest_base::s_get_form(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpRequest_base::s_get_form(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<HttpCollection_base> vr;
 
     METHOD_INSTANCE(HttpRequest_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_form(vr);
 
     METHOD_RETURN();
 }
 
-inline void HttpRequest_base::s_get_query(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HttpRequest_base::s_get_query(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<HttpCollection_base> vr;
 
     METHOD_INSTANCE(HttpRequest_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_query(vr);
 

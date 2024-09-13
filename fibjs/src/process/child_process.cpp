@@ -140,7 +140,7 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Array
 
         util_base::clone(options, opts_);
 
-        opts = v8::Local<v8::Object>::Cast(opts_);
+        opts = opts_.As<v8::Object>();
 
         exlib::string codec("utf8");
         GetConfigValue(isolate, opts, "encoding", codec);
@@ -307,7 +307,7 @@ result_t child_process_base::spawnSync(exlib::string command, v8::Local<v8::Arra
 
         util_base::clone(options, opts_);
 
-        opts = v8::Local<v8::Object>::Cast(opts_);
+        opts = opts_.As<v8::Object>();
 
         exlib::string codec("buffer");
         GetConfigValue(isolate, opts, "encoding", codec);
@@ -389,7 +389,7 @@ result_t child_process_base::run(exlib::string command, v8::Local<v8::Array> arg
 
         util_base::clone(options, opts_);
 
-        opts = v8::Local<v8::Object>::Cast(opts_);
+        opts = opts_.As<v8::Object>();
         opts->Set(context, isolate->NewString("stdio"), isolate->NewString("inherit")).IsJust();
 
         result_t hr = spawn(command, args, opts, cp);

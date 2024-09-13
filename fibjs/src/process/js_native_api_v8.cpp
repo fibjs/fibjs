@@ -350,9 +350,9 @@ namespace {
         auto v8_resolver = v8_deferred.As<v8::Promise::Resolver>();
 
         v8::Maybe<bool> success = is_resolved ? v8_resolver->Resolve(
-                                      context, v8impl::V8LocalValueFromJsValue(result))
+                                                    context, v8impl::V8LocalValueFromJsValue(result))
                                               : v8_resolver->Reject(
-                                                  context, v8impl::V8LocalValueFromJsValue(result));
+                                                    context, v8impl::V8LocalValueFromJsValue(result));
 
         delete deferred_ref;
 
@@ -474,7 +474,7 @@ namespace {
         inline CallbackWrapperBase(const v8::FunctionCallbackInfo<v8::Value>& cbinfo,
             const size_t args_length)
             : CallbackWrapper(
-                JsValueFromV8LocalValue(cbinfo.This()), args_length, nullptr)
+                  JsValueFromV8LocalValue(cbinfo.This()), args_length, nullptr)
             , _cbinfo(cbinfo)
         {
             _bundle = reinterpret_cast<CallbackBundle*>(
@@ -1034,11 +1034,8 @@ napi_define_class(napi_env env,
                     env, p->setter, p->data, &setter_tpl));
             }
 
-            tpl->PrototypeTemplate()->SetAccessorProperty(property_name,
-                getter_tpl,
-                setter_tpl,
-                attributes,
-                v8::AccessControl::DEFAULT);
+            tpl->PrototypeTemplate()->SetAccessorProperty(
+                property_name, getter_tpl, setter_tpl, attributes);
         } else if (p->method != nullptr) {
             v8::Local<v8::FunctionTemplate> t;
             STATUS_CALL(v8impl::FunctionCallbackWrapper::NewTemplate(

@@ -117,7 +117,7 @@ result_t Redis::_map(v8::Local<v8::Object>& map, int32_t cmd)
         if (!value->IsFunction())
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
-        v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(value);
+        v8::Local<v8::Function> func = value.As<v8::Function>();
 
         if ((cmd & 1) ? unregsub(s, func) : regsub(s, func))
             subs->Set(context, count++, channel).IsJust();

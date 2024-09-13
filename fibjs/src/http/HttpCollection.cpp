@@ -261,7 +261,7 @@ result_t HttpCollection::add(v8::Local<v8::Object> map)
             return CALL_E_JAVASCRIPT;
 
         if (v->IsArray())
-            add(isolate->toString(k), v8::Local<v8::Array>::Cast(v));
+            add(isolate->toString(k), v.As<v8::Array>());
         else
             add(isolate->toString(k), (Variant)v);
     }
@@ -303,7 +303,7 @@ result_t HttpCollection::set(v8::Local<v8::Object> map)
             return CALL_E_JAVASCRIPT;
 
         if (v->IsArray())
-            set(isolate->toString(k), v8::Local<v8::Array>::Cast(v));
+            set(isolate->toString(k), v.As<v8::Array>());
         else
             set(isolate->toString(k), (Variant)v);
     }

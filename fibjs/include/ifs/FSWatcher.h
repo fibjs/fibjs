@@ -41,12 +41,12 @@ public:
     }
 
 public:
-    static void s_get_onchange(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onchange(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onclose(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onclose(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onerror(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onerror(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_onchange(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onchange(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onclose(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onclose(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
@@ -75,73 +75,88 @@ inline ClassInfo& FSWatcher_base::class_info()
     return s_ci;
 }
 
-inline void FSWatcher_base::s_get_onchange(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void FSWatcher_base::s_get_onchange(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(FSWatcher_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_onchange(vr);
 
     METHOD_RETURN();
 }
 
-inline void FSWatcher_base::s_set_onchange(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void FSWatcher_base::s_set_onchange(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(FSWatcher_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_onchange(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void FSWatcher_base::s_get_onclose(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void FSWatcher_base::s_get_onclose(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(FSWatcher_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_onclose(vr);
 
     METHOD_RETURN();
 }
 
-inline void FSWatcher_base::s_set_onclose(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void FSWatcher_base::s_set_onclose(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(FSWatcher_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_onclose(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void FSWatcher_base::s_get_onerror(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void FSWatcher_base::s_get_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(FSWatcher_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_onerror(vr);
 
     METHOD_RETURN();
 }
 
-inline void FSWatcher_base::s_set_onerror(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void FSWatcher_base::s_set_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(FSWatcher_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_onerror(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
 inline void FSWatcher_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)

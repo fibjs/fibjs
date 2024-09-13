@@ -326,7 +326,7 @@ static result_t syncExit(Isolate* isolate)
         if (isolate->m_hr >= 0)
             process_base::exit();
         else
-            process_base::exit(isolate->m_hr);
+            process_base::exit(1);
     }
 
     return 0;

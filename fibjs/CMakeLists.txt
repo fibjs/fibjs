@@ -5,6 +5,7 @@ project(${name})
 
 add_definitions(-DOPENSSL_DEV_NO_ATOMICS)
 
+include(../vender/v8/cmake/options.cmake)
 include(../vender/build_tools/cmake/option.cmake)
 
 add_library(${name} ${src_list} ${src_platform_list})
@@ -17,7 +18,5 @@ include_directories("${PROJECT_SOURCE_DIR}/include"
 	"${PROJECT_SOURCE_DIR}/../vender/msgpack/include"
 	"${PROJECT_SOURCE_DIR}/../vender/openssl/include"
 	"${CMAKE_CURRENT_BINARY_DIR}")
-
-include(../vender/v8/cmake/options.cmake)
 
 setup_result_library(${name})

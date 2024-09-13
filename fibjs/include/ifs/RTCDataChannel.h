@@ -54,20 +54,20 @@ public:
 public:
     static void s_send(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_id(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_label(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_protocol(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_bufferedAmount(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_onopen(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onopen(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onmessage(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onmessage(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onclose(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onclose(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onerror(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onerror(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onbufferedamountlow(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onbufferedamountlow(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_id(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_label(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_protocol(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_bufferedAmount(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onopen(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onopen(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onmessage(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onmessage(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onclose(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onclose(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onbufferedamountlow(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onbufferedamountlow(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -136,166 +136,199 @@ inline void RTCDataChannel_base::s_close(const v8::FunctionCallbackInfo<v8::Valu
     METHOD_VOID();
 }
 
-inline void RTCDataChannel_base::s_get_id(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCDataChannel_base::s_get_id(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(RTCDataChannel_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_id(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCDataChannel_base::s_get_label(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCDataChannel_base::s_get_label(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(RTCDataChannel_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_label(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCDataChannel_base::s_get_protocol(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCDataChannel_base::s_get_protocol(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(RTCDataChannel_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_protocol(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCDataChannel_base::s_get_bufferedAmount(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCDataChannel_base::s_get_bufferedAmount(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     double vr;
 
     METHOD_INSTANCE(RTCDataChannel_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_bufferedAmount(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCDataChannel_base::s_get_onopen(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCDataChannel_base::s_get_onopen(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(RTCDataChannel_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_onopen(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCDataChannel_base::s_set_onopen(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void RTCDataChannel_base::s_set_onopen(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(RTCDataChannel_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_onopen(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void RTCDataChannel_base::s_get_onmessage(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCDataChannel_base::s_get_onmessage(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(RTCDataChannel_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_onmessage(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCDataChannel_base::s_set_onmessage(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void RTCDataChannel_base::s_set_onmessage(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(RTCDataChannel_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_onmessage(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void RTCDataChannel_base::s_get_onclose(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCDataChannel_base::s_get_onclose(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(RTCDataChannel_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_onclose(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCDataChannel_base::s_set_onclose(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void RTCDataChannel_base::s_set_onclose(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(RTCDataChannel_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_onclose(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void RTCDataChannel_base::s_get_onerror(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCDataChannel_base::s_get_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(RTCDataChannel_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_onerror(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCDataChannel_base::s_set_onerror(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void RTCDataChannel_base::s_set_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(RTCDataChannel_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_onerror(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void RTCDataChannel_base::s_get_onbufferedamountlow(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RTCDataChannel_base::s_get_onbufferedamountlow(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(RTCDataChannel_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_onbufferedamountlow(vr);
 
     METHOD_RETURN();
 }
 
-inline void RTCDataChannel_base::s_set_onbufferedamountlow(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void RTCDataChannel_base::s_set_onbufferedamountlow(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(RTCDataChannel_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_onbufferedamountlow(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 }

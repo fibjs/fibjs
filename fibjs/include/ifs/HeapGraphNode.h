@@ -37,12 +37,12 @@ public:
     }
 
 public:
-    static void s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_name(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_description(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_id(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_shallowSize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_childs(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_type(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_name(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_description(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_id(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_shallowSize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_childs(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -69,72 +69,84 @@ inline ClassInfo& HeapGraphNode_base::class_info()
     return s_ci;
 }
 
-inline void HeapGraphNode_base::s_get_type(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HeapGraphNode_base::s_get_type(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(HeapGraphNode_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_type(vr);
 
     METHOD_RETURN();
 }
 
-inline void HeapGraphNode_base::s_get_name(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HeapGraphNode_base::s_get_name(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(HeapGraphNode_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_name(vr);
 
     METHOD_RETURN();
 }
 
-inline void HeapGraphNode_base::s_get_description(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HeapGraphNode_base::s_get_description(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(HeapGraphNode_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_description(vr);
 
     METHOD_RETURN();
 }
 
-inline void HeapGraphNode_base::s_get_id(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HeapGraphNode_base::s_get_id(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(HeapGraphNode_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_id(vr);
 
     METHOD_RETURN();
 }
 
-inline void HeapGraphNode_base::s_get_shallowSize(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HeapGraphNode_base::s_get_shallowSize(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(HeapGraphNode_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_shallowSize(vr);
 
     METHOD_RETURN();
 }
 
-inline void HeapGraphNode_base::s_get_childs(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void HeapGraphNode_base::s_get_childs(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<NArray> vr;
 
     METHOD_INSTANCE(HeapGraphNode_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_childs(vr);
 

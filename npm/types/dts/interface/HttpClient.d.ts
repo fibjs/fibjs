@@ -63,6 +63,7 @@ declare class Class_HttpClient extends Class_object {
      * @description HttpClient 构造函数，创建一个新的HttpClient对象
      * 
      *      options 除用于创建 SecureContext 的属性之外，还需提供以下属性：
+     *      - keepAlive: 指定是否保持连接
      *      - timeout: 指定超时时间
      *      - enableCookie: 指定是否启用 cookie 功能
      *      - autoRedirect: 指定是否启用自动重定向功能
@@ -85,6 +86,11 @@ declare class Class_HttpClient extends Class_object {
      * @description 返回http客户端的 HttpCookie 对象列表 
      */
     readonly cookies: any[];
+
+    /**
+     * @description 查询和设定是否保持连接 
+     */
+    keepAlive: boolean;
 
     /**
      * @description 查询和设置超时时间 单位毫秒
@@ -182,6 +188,7 @@ declare class Class_HttpClient extends Class_object {
      *          "hostname": "",
      *          "port": "",
      *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -214,6 +221,7 @@ declare class Class_HttpClient extends Class_object {
      *          "hostname": "",
      *          "port": "",
      *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -244,6 +252,7 @@ declare class Class_HttpClient extends Class_object {
      *          "hostname": "",
      *          "port": "",
      *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -273,6 +282,7 @@ declare class Class_HttpClient extends Class_object {
      *          "hostname": "",
      *          "port": "",
      *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -303,6 +313,7 @@ declare class Class_HttpClient extends Class_object {
      *          "hostname": "",
      *          "port": "",
      *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -333,6 +344,7 @@ declare class Class_HttpClient extends Class_object {
      *          "hostname": "",
      *          "port": "",
      *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -363,6 +375,7 @@ declare class Class_HttpClient extends Class_object {
      *          "hostname": "",
      *          "port": "",
      *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -393,6 +406,7 @@ declare class Class_HttpClient extends Class_object {
      *          "hostname": "",
      *          "port": "",
      *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -423,6 +437,7 @@ declare class Class_HttpClient extends Class_object {
      *          "hostname": "",
      *          "port": "",
      *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},

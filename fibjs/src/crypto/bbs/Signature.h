@@ -68,18 +68,20 @@ public:
 
     void sign(const blst_scalar& sk, const blst_p1& b)
     {
-        blst_fr exp;
-        blst_fr e1;
-        blst_scalar s;
+        byte bin[32];
+        RAND_bytes_ex(nullptr, bin, sizeof(bin), 0);
+        blst_scalar_from_le_bytes(&e, bin, sizeof(bin));
 
-        RAND_bytes_ex(nullptr, (byte*)&e, sizeof(e), 0);
+        blst_fr e1;
         blst_fr_from_scalar(&e1, &e);
 
+        blst_fr exp;
         blst_fr_from_scalar(&exp, &sk);
         blst_fr_add(&exp, &exp, &e1);
 
         blst_fr_eucl_inverse(&exp, &exp);
 
+        blst_scalar s;
         blst_scalar_from_fr(&s, &exp);
         blst_sign_pk_in_g2(&a, &b, &s);
     }

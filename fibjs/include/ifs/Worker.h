@@ -39,12 +39,12 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_onload(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onload(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onmessage(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onmessage(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onerror(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onerror(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_onload(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onload(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onmessage(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onmessage(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onerror(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -109,72 +109,87 @@ inline void Worker_base::s_postMessage(const v8::FunctionCallbackInfo<v8::Value>
     METHOD_VOID();
 }
 
-inline void Worker_base::s_get_onload(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Worker_base::s_get_onload(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(Worker_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_onload(vr);
 
     METHOD_RETURN();
 }
 
-inline void Worker_base::s_set_onload(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void Worker_base::s_set_onload(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Worker_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_onload(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void Worker_base::s_get_onmessage(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Worker_base::s_get_onmessage(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(Worker_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_onmessage(vr);
 
     METHOD_RETURN();
 }
 
-inline void Worker_base::s_set_onmessage(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void Worker_base::s_set_onmessage(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Worker_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_onmessage(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void Worker_base::s_get_onerror(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Worker_base::s_get_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(Worker_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_onerror(vr);
 
     METHOD_RETURN();
 }
 
-inline void Worker_base::s_set_onerror(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void Worker_base::s_set_onerror(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Worker_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_onerror(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 }

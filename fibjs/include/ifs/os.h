@@ -58,8 +58,8 @@ public:
     static void s_static_release(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_homedir(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_arch(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_get_timezone(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_get_EOL(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_timezone(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_EOL(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_loadavg(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_totalmem(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_freemem(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -197,22 +197,26 @@ inline void os_base::s_static_arch(const v8::FunctionCallbackInfo<v8::Value>& ar
     METHOD_RETURN();
 }
 
-inline void os_base::s_static_get_timezone(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_get_timezone(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_timezone(vr);
 
     METHOD_RETURN();
 }
 
-inline void os_base::s_static_get_EOL(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void os_base::s_static_get_EOL(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_EOL(vr);
 

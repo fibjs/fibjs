@@ -36,9 +36,9 @@ public:
     }
 
 public:
-    static void s_static_get_isMainThread(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_get_parentPort(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_get_workerData(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_isMainThread(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_parentPort(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_workerData(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -68,33 +68,39 @@ inline ClassInfo& worker_threads_base::class_info()
     return s_ci;
 }
 
-inline void worker_threads_base::s_static_get_isMainThread(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void worker_threads_base::s_static_get_isMainThread(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_isMainThread(vr);
 
     METHOD_RETURN();
 }
 
-inline void worker_threads_base::s_static_get_parentPort(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void worker_threads_base::s_static_get_parentPort(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Worker_base> vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_parentPort(vr);
 
     METHOD_RETURN();
 }
 
-inline void worker_threads_base::s_static_get_workerData(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void worker_threads_base::s_static_get_workerData(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Value> vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_workerData(vr);
 

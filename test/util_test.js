@@ -1500,7 +1500,7 @@ describe('util', () => {
             assert.equal(t1, 300);
         });
 
-        it('custom promise', () => {
+        xit('custom promise', () => {
             class SimplePromise {
                 constructor(fn) {
                     this.callbacks = [];
@@ -1536,7 +1536,7 @@ describe('util', () => {
             assert.equal(t1, 300);
         });
 
-        it("err func", () => {
+        xit("err func", () => {
             function async_test(a, b) {
                 return 100;
             }

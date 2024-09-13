@@ -59,14 +59,24 @@ RTCDataChannel::~RTCDataChannel()
 result_t RTCDataChannel::send(Buffer_base* data)
 {
     Buffer* buffer = Buffer::Cast(data);
-    m_dataChannel->send((const rtc::byte*)buffer->data(), buffer->length());
+
+    try {
+        m_dataChannel->send((const rtc::byte*)buffer->data(), buffer->length());
+    } catch (std::exception& e) {
+        return Runtime::setError(e.what());
+    }
 
     return 0;
 }
 
 result_t RTCDataChannel::send(exlib::string data)
 {
-    m_dataChannel->send(std::string(data));
+    try {
+        m_dataChannel->send(std::string(data));
+    } catch (std::exception& e) {
+        return Runtime::setError(e.what());
+    }
+
     return 0;
 }
 

@@ -189,7 +189,7 @@ exlib::string object_format(Isolate* isolate, v8::Local<v8::Value> v, bool color
         return json_format(isolate, v, color);
 
     v8::Local<v8::Context> _context = isolate->context();
-    v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
+    v8::Local<v8::Object> obj = v.As<v8::Object>();
 
     JSArray keys = obj->GetPropertyNames(_context);
     if (keys.IsEmpty())
@@ -197,17 +197,17 @@ exlib::string object_format(Isolate* isolate, v8::Local<v8::Value> v, bool color
 
     v8::Local<v8::Value> v_toArray = obj->Get(_context, isolate->NewString("toArray")).FromMaybe(v8::Local<v8::Value>());
     if (!v_toArray.IsEmpty() && v_toArray->IsFunction()) {
-        v8::Local<v8::Function> toArray = v8::Local<v8::Function>::Cast(v_toArray);
+        v8::Local<v8::Function> toArray = v_toArray.As<v8::Function>();
         TryCatch try_catch;
         v8::Local<v8::Value> v1 = toArray->Call(_context, obj, 0, NULL).FromMaybe(v8::Local<v8::Value>());
         if (!IsEmpty(v1) && v1->IsObject()) {
             v = v1;
-            obj = v8::Local<v8::Object>::Cast(v1);
+            obj = v1.As<v8::Object>();
         }
     }
 
     if (v->IsArray()) {
-        v8::Local<v8::Array> array = v8::Local<v8::Array>::Cast(v);
+        v8::Local<v8::Array> array = v.As<v8::Array>();
         int32_t len = array->Length();
 
         if (len == 0)
@@ -244,7 +244,7 @@ exlib::string object_format(Isolate* isolate, v8::Local<v8::Value> v, bool color
     }
 
     if (v->IsTypedArray()) {
-        v8::Local<v8::TypedArray> array = v8::Local<v8::TypedArray>::Cast(v);
+        v8::Local<v8::TypedArray> array = v.As<v8::TypedArray>();
         int32_t len = (int32_t)array->Length();
 
         if (len == 0)
@@ -311,7 +311,7 @@ exlib::string table_format(Isolate* isolate, v8::Local<v8::Value> obj, v8::Local
     if (isSimpleValue(obj))
         return json_format(isolate, obj, color);
 
-    v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(obj);
+    v8::Local<v8::Object> o = obj.As<v8::Object>();
 
     v8::Local<v8::Context> _context = isolate->context();
 
@@ -360,7 +360,7 @@ exlib::string table_format(Isolate* isolate, v8::Local<v8::Value> obj, v8::Local
                     value_cols.append(json_format(isolate, v, color));
             }
         } else {
-            v8::Local<v8::Object> ro = v8::Local<v8::Object>::Cast(v);
+            v8::Local<v8::Object> ro = v.As<v8::Object>();
             QuickArray<exlib::string> row_props;
 
             GetPropertyNames(ro, row_props);

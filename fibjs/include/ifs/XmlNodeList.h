@@ -36,9 +36,9 @@ public:
     }
 
 public:
-    static void s_get_length(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_length(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_item(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static v8::Intercepted i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -70,12 +70,14 @@ inline ClassInfo& XmlNodeList_base::class_info()
     return s_ci;
 }
 
-inline void XmlNodeList_base::s_get_length(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void XmlNodeList_base::s_get_length(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(XmlNodeList_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_length(vr);
 
@@ -98,17 +100,17 @@ inline void XmlNodeList_base::s_item(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_RETURN();
 }
 
-inline void XmlNodeList_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline v8::Intercepted XmlNodeList_base::i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args)
 {
     obj_ptr<XmlNode_base> vr;
 
-    METHOD_INSTANCE(XmlNodeList_base);
+    NAMED_METHOD_INSTANCE(XmlNodeList_base);
     PROPERTY_ENTER();
 
     hr = pInst->_indexed_getter(index, vr);
     if (hr == CALL_RETURN_NULL)
-        return;
+        return v8::Intercepted::kNo;
 
-    METHOD_RETURN();
+    NAMED_METHOD_RETURN();
 }
 }

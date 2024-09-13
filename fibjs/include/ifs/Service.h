@@ -48,14 +48,14 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_name(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_name(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onstop(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onstop(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_onpause(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_onpause(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
-    static void s_get_oncontinue(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_set_oncontinue(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_get_name(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_name(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onstop(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onstop(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onpause(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onpause(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_oncontinue(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_oncontinue(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_install(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_start(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -140,96 +140,116 @@ inline void Service_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
     METHOD_VOID();
 }
 
-inline void Service_base::s_get_name(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Service_base::s_get_name(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(Service_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_name(vr);
 
     METHOD_RETURN();
 }
 
-inline void Service_base::s_set_name(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void Service_base::s_set_name(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Service_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(exlib::string);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
 
     hr = pInst->set_name(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void Service_base::s_get_onstop(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Service_base::s_get_onstop(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(Service_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_onstop(vr);
 
     METHOD_RETURN();
 }
 
-inline void Service_base::s_set_onstop(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void Service_base::s_set_onstop(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Service_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_onstop(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void Service_base::s_get_onpause(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Service_base::s_get_onpause(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(Service_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_onpause(vr);
 
     METHOD_RETURN();
 }
 
-inline void Service_base::s_set_onpause(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void Service_base::s_set_onpause(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Service_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_onpause(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
-inline void Service_base::s_get_oncontinue(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void Service_base::s_get_oncontinue(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
     METHOD_INSTANCE(Service_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_oncontinue(vr);
 
     METHOD_RETURN();
 }
 
-inline void Service_base::s_set_oncontinue(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void Service_base::s_set_oncontinue(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(Service_base);
-    PROPERTY_ENTER();
-    PROPERTY_VAL(v8::Local<v8::Function>);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
 
     hr = pInst->set_oncontinue(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
 inline void Service_base::s_static_install(const v8::FunctionCallbackInfo<v8::Value>& args)

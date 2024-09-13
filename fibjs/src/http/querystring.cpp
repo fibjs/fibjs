@@ -59,7 +59,9 @@ result_t querystring_base::stringify(v8::Local<v8::Object> obj, exlib::string se
         exlib::string strKey, strValue, str;
         v8::Local<v8::Array> vs;
         JSValue k = ks->Get(context, i);
-        JSValue v = obj->Get(context, k);
+        v8::Local<v8::Value> v = obj->Get(context, k).FromMaybe(v8::Local<v8::Value>());
+        if (v.IsEmpty())
+            return CALL_E_JAVASCRIPT;
 
         GetArgumentValue(isolate, k, strKey);
         encoding_base::encodeURIComponent(strKey, strKey);

@@ -48,15 +48,15 @@ public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_connect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_accept(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_stream(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_stream(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getProtocol(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getX509Certificate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getPeerX509Certificate(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_secureContext(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_remoteAddress(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_remotePort(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_localAddress(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_localPort(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_secureContext(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_remoteAddress(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_remotePort(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_localAddress(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_localPort(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_MEMBER2(TLSSocket_base, connect, Stream_base*, exlib::string);
@@ -166,12 +166,14 @@ inline void TLSSocket_base::s_accept(const v8::FunctionCallbackInfo<v8::Value>& 
     METHOD_VOID();
 }
 
-inline void TLSSocket_base::s_get_stream(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void TLSSocket_base::s_get_stream(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stream_base> vr;
 
     METHOD_INSTANCE(TLSSocket_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_stream(vr);
 
@@ -220,60 +222,70 @@ inline void TLSSocket_base::s_getPeerX509Certificate(const v8::FunctionCallbackI
     METHOD_RETURN();
 }
 
-inline void TLSSocket_base::s_get_secureContext(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void TLSSocket_base::s_get_secureContext(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<SecureContext_base> vr;
 
     METHOD_INSTANCE(TLSSocket_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_secureContext(vr);
 
     METHOD_RETURN();
 }
 
-inline void TLSSocket_base::s_get_remoteAddress(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void TLSSocket_base::s_get_remoteAddress(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(TLSSocket_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_remoteAddress(vr);
 
     METHOD_RETURN();
 }
 
-inline void TLSSocket_base::s_get_remotePort(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void TLSSocket_base::s_get_remotePort(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(TLSSocket_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_remotePort(vr);
 
     METHOD_RETURN();
 }
 
-inline void TLSSocket_base::s_get_localAddress(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void TLSSocket_base::s_get_localAddress(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
     METHOD_INSTANCE(TLSSocket_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_localAddress(vr);
 
     METHOD_RETURN();
 }
 
-inline void TLSSocket_base::s_get_localPort(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void TLSSocket_base::s_get_localPort(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
     METHOD_INSTANCE(TLSSocket_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_localPort(vr);
 

@@ -95,6 +95,11 @@ declare module 'http' {
     const cookies: any[];
 
     /**
+     * @description 查询和设定是否保持连接 
+     */
+    var keepAlive: boolean;
+
+    /**
      * @description 查询和设置超时时间 
      */
     var timeout: number;
@@ -203,6 +208,7 @@ declare module 'http' {
      *          "hostname": "",
      *          "port": "",
      *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -235,6 +241,7 @@ declare module 'http' {
      *          "hostname": "",
      *          "port": "",
      *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -265,6 +272,7 @@ declare module 'http' {
      *          "hostname": "",
      *          "port": "",
      *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -294,6 +302,7 @@ declare module 'http' {
      *          "hostname": "",
      *          "port": "",
      *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -324,6 +333,7 @@ declare module 'http' {
      *          "hostname": "",
      *          "port": "",
      *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -354,6 +364,7 @@ declare module 'http' {
      *          "hostname": "",
      *          "port": "",
      *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -384,6 +395,7 @@ declare module 'http' {
      *          "hostname": "",
      *          "port": "",
      *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -414,6 +426,7 @@ declare module 'http' {
      *          "hostname": "",
      *          "port": "",
      *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},
@@ -444,6 +457,7 @@ declare module 'http' {
      *          "hostname": "",
      *          "port": "",
      *          "pathname": "",
+     *          "keepAlive": unknown, // If not specified, the default settings of the client will be used.
      *          "query": {},
      *          "body": SeekableStream | Buffer | String | {},
      *          "json": {},

@@ -37,11 +37,7 @@ public:
 
 result_t crypto_base::getCiphers(v8::Local<v8::Array>& retVal)
 {
-    v8::Local<v8::Value> v;
-    g_ciphers->valueOf(v);
-
-    retVal = v8::Local<v8::Array>::Cast(v);
-
+    g_ciphers->valueOf(retVal);
     return 0;
 }
 

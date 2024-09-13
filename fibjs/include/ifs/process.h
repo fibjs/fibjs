@@ -73,21 +73,21 @@ public:
     }
 
 public:
-    static void s_static_get_argv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_get_execArgv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_get_version(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_get_versions(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_get_execPath(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_get_env(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_get_arch(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_get_platform(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_get_pid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_get_ppid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_get_stdin(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_get_stdout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_get_stderr(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_get_exitCode(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_set_exitCode(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_static_get_argv(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_execArgv(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_version(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_versions(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_execPath(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_env(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_arch(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_platform(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_pid(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_ppid(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_stdin(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_stdout(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_stderr(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_get_exitCode(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_set_exitCode(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_umask(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_hrtime(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_exit(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -104,7 +104,7 @@ public:
     static void s_static_setgid(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_setuid(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_emitWarning(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_get_connected(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_static_get_connected(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_disconnect(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_send(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
@@ -165,168 +165,199 @@ inline ClassInfo& process_base::class_info()
     return s_ci;
 }
 
-inline void process_base::s_static_get_argv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_argv(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_argv(vr);
 
     METHOD_RETURN();
 }
 
-inline void process_base::s_static_get_execArgv(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_execArgv(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Array> vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_execArgv(vr);
 
     METHOD_RETURN();
 }
 
-inline void process_base::s_static_get_version(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_version(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_version(vr);
 
     METHOD_RETURN();
 }
 
-inline void process_base::s_static_get_versions(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_versions(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_versions(vr);
 
     METHOD_RETURN();
 }
 
-inline void process_base::s_static_get_execPath(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_execPath(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_execPath(vr);
 
     METHOD_RETURN();
 }
 
-inline void process_base::s_static_get_env(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_env(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Object> vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_env(vr);
 
     METHOD_RETURN();
 }
 
-inline void process_base::s_static_get_arch(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_arch(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_arch(vr);
 
     METHOD_RETURN();
 }
 
-inline void process_base::s_static_get_platform(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_platform(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     exlib::string vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_platform(vr);
 
     METHOD_RETURN();
 }
 
-inline void process_base::s_static_get_pid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_pid(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_pid(vr);
 
     METHOD_RETURN();
 }
 
-inline void process_base::s_static_get_ppid(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_ppid(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_ppid(vr);
 
     METHOD_RETURN();
 }
 
-inline void process_base::s_static_get_stdin(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_stdin(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stream_base> vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_stdin(vr);
 
     METHOD_RETURN();
 }
 
-inline void process_base::s_static_get_stdout(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_stdout(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stream_base> vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_stdout(vr);
 
     METHOD_RETURN();
 }
 
-inline void process_base::s_static_get_stderr(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_stderr(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Stream_base> vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_stderr(vr);
 
     METHOD_RETURN();
 }
 
-inline void process_base::s_static_get_exitCode(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_exitCode(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_exitCode(vr);
 
     METHOD_RETURN();
 }
 
-inline void process_base::s_static_set_exitCode(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void process_base::s_static_set_exitCode(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    PROPERTY_ENTER();
-    PROPERTY_VAL(int32_t);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
 
     hr = set_exitCode(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 
 inline void process_base::s_static_umask(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -571,11 +602,13 @@ inline void process_base::s_static_emitWarning(const v8::FunctionCallbackInfo<v8
     METHOD_VOID();
 }
 
-inline void process_base::s_static_get_connected(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void process_base::s_static_get_connected(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_connected(vr);
 

@@ -67,8 +67,8 @@ public:
     static void s_static_mustNotCall(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_run(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_setup(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_get_slow(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_static_set_slow(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args);
+    static void s_static_get_slow(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_set_slow(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -325,24 +325,29 @@ inline void test_base::s_static_setup(const v8::FunctionCallbackInfo<v8::Value>&
     METHOD_VOID();
 }
 
-inline void test_base::s_static_get_slow(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void test_base::s_static_get_slow(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int32_t vr;
 
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = get_slow(vr);
 
     METHOD_RETURN();
 }
 
-inline void test_base::s_static_set_slow(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& args)
+inline void test_base::s_static_set_slow(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    PROPERTY_ENTER();
-    PROPERTY_VAL(int32_t);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(int32_t, 0);
 
     hr = set_slow(v0);
 
-    PROPERTY_SET_LEAVE();
+    METHOD_VOID();
 }
 }

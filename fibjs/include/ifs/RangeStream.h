@@ -34,8 +34,8 @@ public:
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_begin(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
-    static void s_get_end(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args);
+    static void s_get_begin(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_end(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -89,24 +89,28 @@ void RangeStream_base::__new(const T& args)
     CONSTRUCT_RETURN();
 }
 
-inline void RangeStream_base::s_get_begin(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RangeStream_base::s_get_begin(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int64_t vr;
 
     METHOD_INSTANCE(RangeStream_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_begin(vr);
 
     METHOD_RETURN();
 }
 
-inline void RangeStream_base::s_get_end(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& args)
+inline void RangeStream_base::s_get_end(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     int64_t vr;
 
     METHOD_INSTANCE(RangeStream_base);
-    PROPERTY_ENTER();
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
 
     hr = pInst->get_end(vr);
 

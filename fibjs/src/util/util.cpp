@@ -100,7 +100,11 @@ result_t util_base::values(v8::Local<v8::Value> v, v8::Local<v8::Array>& retVal)
 
         for (i = 0; i < len; i++) {
             JSValue key = keys->Get(context, i);
-            arr->Set(context, n++, JSValue(obj->Get(context, key))).IsJust();
+            v8::Local<v8::Value> v = obj->Get(context, key).FromMaybe(v8::Local<v8::Value>());
+            if (v.IsEmpty())
+                return CALL_E_JAVASCRIPT;
+
+            arr->Set(context, n++, v).IsJust();
         }
 
         retVal = arr;
@@ -128,13 +132,13 @@ result_t util_base::clone(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
         else if (v->IsNumberObject())
             retVal = v8::NumberObject::New(isolate->m_isolate, isolate->toNumber(v));
         else if (v->IsStringObject()) {
-            v8::Local<v8::StringObject> so = v8::Local<v8::StringObject>::Cast(v);
+            v8::Local<v8::StringObject> so = v.As<v8::StringObject>();
             retVal = v8::StringObject::New(isolate->m_isolate, so->ValueOf());
         } else if (v->IsRegExp()) {
-            v8::Local<v8::RegExp> re = v8::Local<v8::RegExp>::Cast(v);
+            v8::Local<v8::RegExp> re = v.As<v8::RegExp>();
             retVal = v8::RegExp::New(_context, re->GetSource(), re->GetFlags()).FromMaybe(v8::Local<v8::Value>());
         } else if (v->IsFunction() || v->IsArray() || IsJSObject(v))
-            retVal = v8::Local<v8::Object>::Cast(v)->Clone();
+            retVal = v.As<v8::Object>()->Clone();
         else
             retVal = v;
     } else
@@ -148,7 +152,7 @@ static result_t _deepFreeze(Isolate* isolate, v8::Local<v8::Value> v)
     if (v.IsEmpty() || !v->IsObject())
         return 0;
 
-    v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(v);
+    v8::Local<v8::Object> obj = v.As<v8::Object>();
 
     if (!isFrozen(isolate->m_isolate, obj)) {
         v8::Local<v8::Context> _context = obj->GetCreationContextChecked();
@@ -200,13 +204,17 @@ result_t util_base::extend(v8::Local<v8::Value> v, OptArgs objs,
         if (!val->IsObject())
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
-        v8::Local<v8::Object> obj1 = v8::Local<v8::Object>::Cast(val);
+        v8::Local<v8::Object> obj1 = val.As<v8::Object>();
         JSArray keys = obj1->GetPropertyNames(context);
         int32_t len = keys->Length();
 
         for (j = 0; j < len; j++) {
             JSValue key = keys->Get(context, j);
-            obj->Set(context, key, JSValue(obj1->Get(context, key))).IsJust();
+            v8::Local<v8::Value> v = obj1->Get(context, key).FromMaybe(v8::Local<v8::Value>());
+            if (v.IsEmpty())
+                return CALL_E_JAVASCRIPT;
+
+            obj->Set(context, key, v).IsJust();
         }
     }
 
@@ -244,20 +252,26 @@ result_t util_base::pick(v8::Local<v8::Value> v, OptArgs objs,
     for (i = 0; i < argc; i++) {
         v8::Local<v8::Value> o = objs[i];
         if (o->IsArray()) {
-            v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(o);
+            v8::Local<v8::Array> arr = o.As<v8::Array>();
             int32_t len = arr->Length();
 
             for (j = 0; j < len; j++) {
                 JSValue k = arr->Get(context, j);
+                v8::Local<v8::Value> v = obj->Get(context, k).FromMaybe(v8::Local<v8::Value>());
+                if (v.IsEmpty())
+                    return CALL_E_JAVASCRIPT;
 
                 if (obj->Has(context, k).FromMaybe(false))
-                    obj1->Set(context, k, JSValue(obj->Get(context, k))).IsJust();
+                    obj1->Set(context, k, v).IsJust();
             }
         } else {
             JSValue k = o;
+            v8::Local<v8::Value> v = obj->Get(context, k).FromMaybe(v8::Local<v8::Value>());
+            if (v.IsEmpty())
+                return CALL_E_JAVASCRIPT;
 
             if (obj->Has(context, k).FromMaybe(false))
-                obj1->Set(context, k, JSValue(obj->Get(context, k))).IsJust();
+                obj1->Set(context, k, v).IsJust();
         }
     }
 
@@ -290,7 +304,7 @@ result_t util_base::omit(v8::Local<v8::Value> v, OptArgs keys,
     for (i = 0; i < argc; i++) {
         v8::Local<v8::Value> o = keys[i];
         if (o->IsArray()) {
-            v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(o);
+            v8::Local<v8::Array> arr = o.As<v8::Array>();
             int32_t len = arr->Length();
 
             for (j = 0; j < len; j++) {
@@ -319,7 +333,10 @@ result_t util_base::omit(v8::Local<v8::Value> v, OptArgs keys,
         JSValue key = keys1->Get(context, i);
 
         if (_map.find(isolate->toString(key)) == _map.end()) {
-            JSValue value = obj->Get(context, key);
+            v8::Local<v8::Value> value = obj->Get(context, key).FromMaybe(v8::Local<v8::Value>());
+            if (value.IsEmpty())
+                return CALL_E_JAVASCRIPT;
+
             obj1->Set(context, key, value).IsJust();
         }
     }
@@ -349,7 +366,7 @@ result_t util_base::intersection(OptArgs arrs,
         if (!v0->IsArray())
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
-        v8::Local<v8::Array> base = v8::Local<v8::Array>::Cast(v0);
+        v8::Local<v8::Array> base = v0.As<v8::Array>();
         int32_t len = base->Length();
         int32_t left = len;
         QuickArray<JSValue> erase;
@@ -363,7 +380,7 @@ result_t util_base::intersection(OptArgs arrs,
             if (!v0->IsArray())
                 return CHECK_ERROR(CALL_E_INVALIDARG);
 
-            v8::Local<v8::Array> other = v8::Local<v8::Array>::Cast(v0);
+            v8::Local<v8::Array> other = v0.As<v8::Array>();
             int32_t len1 = other->Length();
 
             for (j = 0; left > 0 && j < len; j++)
@@ -410,7 +427,7 @@ result_t util_base::first(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
     if (!v->IsArray())
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(v);
+    v8::Local<v8::Array> arr = v.As<v8::Array>();
     int32_t len = arr->Length();
 
     if (len == 0) {
@@ -436,7 +453,7 @@ result_t util_base::first(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value
     if (!v->IsArray())
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(v);
+    v8::Local<v8::Array> arr = v.As<v8::Array>();
     int32_t len = arr->Length();
     int32_t i;
 
@@ -466,7 +483,7 @@ result_t util_base::last(v8::Local<v8::Value> v, v8::Local<v8::Value>& retVal)
     if (!v->IsArray())
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(v);
+    v8::Local<v8::Array> arr = v.As<v8::Array>();
     int32_t len = arr->Length();
 
     if (len == 0) {
@@ -490,7 +507,7 @@ result_t util_base::last(v8::Local<v8::Value> v, int32_t n, v8::Local<v8::Value>
     if (!v->IsArray())
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
-    v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(v);
+    v8::Local<v8::Array> arr = v.As<v8::Array>();
     int32_t len = arr->Length();
     int32_t i;
 
@@ -520,7 +537,7 @@ result_t util_base::unique(v8::Local<v8::Value> v, bool sorted, v8::Local<v8::Ar
         return CHECK_ERROR(CALL_E_INVALIDARG);
 
     v8::Local<v8::Array> arr1 = v8::Array::New(isolate->m_isolate);
-    v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(v);
+    v8::Local<v8::Array> arr = v.As<v8::Array>();
     int32_t len = arr->Length();
     QuickArray<JSValue> vals;
     int32_t i, j, n = 0;
@@ -568,7 +585,7 @@ result_t util_base::_union(OptArgs arrs,
         if (!a->IsArray())
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
-        v8::Local<v8::Array> arr1 = v8::Local<v8::Array>::Cast(a);
+        v8::Local<v8::Array> arr1 = a.As<v8::Array>();
         int32_t len = arr1->Length();
 
         for (j = 0; j < len; j++) {
@@ -606,7 +623,7 @@ static result_t util_flatten(v8::Local<v8::Value> list, bool shallow,
     else if (shallow)
         bNext = false;
 
-    v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(list);
+    v8::Local<v8::Object> o = list.As<v8::Object>();
     JSValue v = o->Get(context, isolate->NewString("length"));
     if (IsEmpty(v))
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -618,7 +635,7 @@ static result_t util_flatten(v8::Local<v8::Value> list, bool shallow,
     for (i = 0; i < len; i++) {
         v = o->Get(context, i);
         if (bNext && v->IsObject()) {
-            v8::Local<v8::Object> o1 = v8::Local<v8::Object>::Cast(v);
+            v8::Local<v8::Object> o1 = v.As<v8::Object>();
             v = o->Get(context, isolate->NewString("length"));
             if (IsEmpty(v))
                 retVal->Set(context, cnt++, JSValue(o->Get(context, i))).IsJust();
@@ -656,7 +673,7 @@ result_t util_base::without(v8::Local<v8::Value> arr, OptArgs els,
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> context = isolate->context();
 
-    v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(arr);
+    v8::Local<v8::Object> o = arr.As<v8::Object>();
     JSValue v = o->Get(context, isolate->NewString("length"));
     if (IsEmpty(v))
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -701,7 +718,7 @@ result_t util_base::difference(v8::Local<v8::Array> arr, OptArgs arrs,
             if (!o->IsArray())
                 return CHECK_ERROR(CALL_E_INVALIDARG);
 
-            v8::Local<v8::Array> without = v8::Local<v8::Array>::Cast(o);
+            v8::Local<v8::Array> without = o.As<v8::Array>();
             len1 = without->Length();
 
             for (k = 0; k < len1; k++)
@@ -734,7 +751,7 @@ result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iter
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> _context = isolate->context();
-    v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(list);
+    v8::Local<v8::Object> o = list.As<v8::Object>();
     JSValue v = o->Get(_context, isolate->NewString("length"));
 
     if (IsEmpty(v)) {
@@ -748,7 +765,7 @@ result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iter
         for (i = 0; i < len; i++) {
             v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[1] = JSValue(keys->Get(_context, i));
-            args[0] = JSValue(o->Get(_context, args[1]));
+            args[0] = o->Get(_context, args[1]).FromMaybe(v8::Local<v8::Value>());
             if (args[0].IsEmpty() || args[1].IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
@@ -765,7 +782,7 @@ result_t util_base::each(v8::Local<v8::Value> list, v8::Local<v8::Function> iter
         for (i = 0; i < len; i++) {
             v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[1] = v8::Int32::New(isolate->m_isolate, i);
-            args[0] = JSValue(o->Get(_context, args[1]));
+            args[0] = o->Get(_context, args[1]).FromMaybe(v8::Local<v8::Value>());
             if (args[0].IsEmpty() || args[1].IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
@@ -796,7 +813,7 @@ result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> itera
     v8::Local<v8::Value> args[3];
     args[2] = list;
 
-    v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(list);
+    v8::Local<v8::Object> o = list.As<v8::Object>();
     JSValue v = o->Get(_context, isolate->NewString("length"));
     int32_t cnt = 0;
 
@@ -810,7 +827,7 @@ result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> itera
         for (i = 0; i < len; i++) {
             v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[1] = JSValue(keys->Get(_context, i));
-            args[0] = JSValue(o->Get(_context, args[1]));
+            args[0] = o->Get(_context, args[1]).FromMaybe(v8::Local<v8::Value>());
             if (args[0].IsEmpty() || args[1].IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
@@ -828,7 +845,7 @@ result_t util_base::map(v8::Local<v8::Value> list, v8::Local<v8::Function> itera
         for (i = 0; i < len; i++) {
             v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[1] = v8::Int32::New(isolate->m_isolate, i);
-            args[0] = JSValue(o->Get(_context, args[1]));
+            args[0] = o->Get(_context, args[1]).FromMaybe(v8::Local<v8::Value>());
             if (args[0].IsEmpty() || args[1].IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
@@ -859,7 +876,7 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
 
     Isolate* isolate = Isolate::current();
     v8::Local<v8::Context> _context = isolate->context();
-    v8::Local<v8::Object> o = v8::Local<v8::Object>::Cast(list);
+    v8::Local<v8::Object> o = list.As<v8::Object>();
     JSValue v = o->Get(_context, isolate->NewString("length"));
 
     if (IsEmpty(v)) {
@@ -873,7 +890,7 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
         for (i = 0; i < len; i++) {
             v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[2] = JSValue(keys->Get(_context, i));
-            args[1] = JSValue(o->Get(_context, args[2]));
+            args[1] = o->Get(_context, args[2]).FromMaybe(v8::Local<v8::Value>());
             if (args[1].IsEmpty() || args[2].IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
@@ -892,7 +909,7 @@ result_t util_base::reduce(v8::Local<v8::Value> list, v8::Local<v8::Function> it
         for (i = 0; i < len; i++) {
             v8::EscapableHandleScope handle_scope(isolate->m_isolate);
             args[2] = v8::Int32::New(isolate->m_isolate, i);
-            args[1] = JSValue(o->Get(_context, args[2]));
+            args[1] = o->Get(_context, args[2]).FromMaybe(v8::Local<v8::Value>());
             if (args[1].IsEmpty() || args[2].IsEmpty())
                 return CALL_E_JAVASCRIPT;
 
