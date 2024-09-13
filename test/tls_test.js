@@ -6,6 +6,7 @@ var test_util = require('./test_util');
 var tls = require("tls");
 var crypto = require("crypto");
 var fs = require('fs');
+var io = require('io');
 var path = require('path');
 var net = require('net');
 var coroutine = require('coroutine');
@@ -515,11 +516,11 @@ describe('tls', () => {
             var ss = new tls.TLSSocket(ctx_svr);
             ss.accept(s);
 
-            fs.writeFile(path.join(__dirname, 'net_temp_000001' + base_port), str);
-            var f = fs.openFile(path.join(__dirname, 'net_temp_000001' + base_port));
-            assert.equal(f.copyTo(ss), str.length);
+            var strm = new io.MemoryStream();
+            strm.write(str);
+            strm.seek(0, io.SEEK_SET);
+            assert.equal(strm.copyTo(ss), str.length);
 
-            f.close();
             ss.close();
             s.close();
         });
@@ -533,14 +534,14 @@ describe('tls', () => {
             var ss = new tls.TLSSocket(ctx);
             ss.connect(c1);
 
-            var f1 = fs.openFile(path.join(__dirname, 'net_temp_000002' + base_port), 'w');
-            assert.equal(ss.copyTo(f1), str.length);
+            var strm = new io.MemoryStream();
+            assert.equal(ss.copyTo(strm), str.length);
 
             ss.close();
             c1.close();
-            f1.close();
 
-            assert.equal(str, fs.readFile(path.join(__dirname, 'net_temp_000002' + base_port)));
+            strm.seek(0, io.SEEK_SET);
+            assert.equal(str, strm.readAll().toString());
         }
 
         for (var i = 0; i < 5; i++) {
@@ -549,9 +550,6 @@ describe('tls', () => {
         }
 
         str = undefined;
-
-        del(path.join(__dirname, 'net_temp_000001' + base_port));
-        del(path.join(__dirname, 'net_temp_000002' + base_port));
     });
 
     it("Handler", () => {
