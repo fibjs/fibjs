@@ -28,6 +28,7 @@ var ca = crypto.createCertificateRequest({
 }).issue({
     key: pk.privateKey,
     ca: true,
+    validFrom: new Date(new Date() - 1000),
     issuer: {
         CN: "fibjs.org"
     }
@@ -40,6 +41,7 @@ var crt = crypto.createCertificateRequest({
     }
 }).issue({
     key: pk.privateKey,
+    validFrom: new Date(new Date() - 1000),
     issuer: {
         CN: "fibjs.org"
     }
@@ -66,6 +68,7 @@ describe('tls', () => {
             }
         }).issue({
             key: pk.privateKey,
+            validFrom: new Date(new Date() - 1000),
             issuer: {
                 CN: "fibjs.org"
             }
