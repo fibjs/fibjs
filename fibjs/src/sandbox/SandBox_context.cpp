@@ -87,7 +87,7 @@ void _require(const v8::FunctionCallbackInfo<v8::Value>& args)
     path_base::dirname(isolate->toString(path), strPath);
 
     v8::Local<v8::Value> v;
-    hr = sbox->run_module(id, strPath, v);
+    hr = sbox->run_module(id, strPath, v, true);
     if (hr < 0) {
         if (hr == CALL_E_JAVASCRIPT) {
             args.GetReturnValue().Set(v8::Local<v8::Value>());
@@ -140,7 +140,7 @@ void _run(const v8::FunctionCallbackInfo<v8::Value>& args)
         }
     }
 
-    hr = sbox->run(id);
+    hr = sbox->run(id, true);
     if (hr < 0) {
         if (hr == CALL_E_JAVASCRIPT) {
             args.GetReturnValue().Set(v8::Local<v8::Value>());

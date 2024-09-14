@@ -184,7 +184,7 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
         std::vector<ExtLoader::arg> extarg(1);
         extarg[0] = ExtLoader::arg("__argv", argv);
 
-        return l->run_script(&context, bin, fname, extarg, true);
+        return l->run_script(&context, bin, fname, extarg, true, true);
     }
 }
 
@@ -213,10 +213,10 @@ result_t SandBox::run_worker(exlib::string fname, Worker_base* master)
     std::vector<ExtLoader::arg> extarg(1);
     extarg[0] = ExtLoader::arg("Master", master->wrap());
 
-    return l->run_script(&context, bin, fname, extarg, false);
+    return l->run_script(&context, bin, fname, extarg, false, true);
 }
 
-result_t SandBox::run(exlib::string fname)
+result_t SandBox::run(exlib::string fname, bool in_cjs)
 {
     Scope _scope(this);
 
@@ -241,6 +241,12 @@ result_t SandBox::run(exlib::string fname)
     Context context(this, fname);
     std::vector<ExtLoader::arg> extarg;
 
-    return l->run_script(&context, bin, fname, extarg, false);
+    return l->run_script(&context, bin, fname, extarg, false, in_cjs);
 }
+
+result_t SandBox::run(exlib::string fname)
+{
+    return run(fname, false);
+}
+
 }

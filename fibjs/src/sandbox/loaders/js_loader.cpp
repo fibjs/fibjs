@@ -11,7 +11,7 @@
 namespace fibjs {
 
 result_t js_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
-    exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args)
+    exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args, bool in_cjs)
 {
     result_t hr;
     SandBox::ModuleType type;
@@ -21,9 +21,9 @@ result_t js_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string n
         return hr;
 
     if (type == SandBox::ModuleType::kCommonJS)
-        return m_cjs.run(ctx, src, name, arg_names, args);
+        return m_cjs.run(ctx, src, name, arg_names, args, in_cjs);
     else if (type == SandBox::ModuleType::kESModule)
-        return m_mjs.run(ctx, src, name, arg_names, args);
+        return m_mjs.run(ctx, src, name, arg_names, args, in_cjs);
 
     return CHECK_ERROR(Runtime::setError("SandBox: Invalid file format."));
 }

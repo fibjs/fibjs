@@ -13,7 +13,7 @@
 namespace fibjs {
 
 result_t node_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
-    exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args)
+    exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args, bool in_cjs)
 {
     return process_base::dlopen(args[2].As<v8::Object>(), name, 1);
 }

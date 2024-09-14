@@ -37,6 +37,7 @@ function gen_code(cls, def, baseFolder) {
         "String": "exlib::string",
         "Date": "date_t",
         "Object": "v8::Local<v8::Object>",
+        "Promise": "v8::Local<v8::Promise>",
         "Array": "v8::Local<v8::Array>",
         "Uint8Array": "v8::Local<v8::Uint8Array>",
         "ArrayBuffer": "v8::Local<v8::ArrayBuffer>",
