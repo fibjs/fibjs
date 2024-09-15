@@ -37,12 +37,11 @@ static int32_t syncRunMicrotasks(Isolate* isolate)
         JSFiber::EnterJsScope s;
 
         isolate->m_isolate->PerformMicrotaskCheckpoint();
-        if (isolate->m_isolate->HasPendingBackgroundTasks())
-            while (v8::platform::PumpMessageLoop(g_default_platform, isolate->m_isolate,
-                isolate->m_isolate->HasPendingBackgroundTasks()
-                    ? v8::platform::MessageLoopBehavior::kWaitForWork
-                    : platform::MessageLoopBehavior::kDoNotWait))
-                ;
+        while (v8::platform::PumpMessageLoop(g_default_platform, isolate->m_isolate,
+            isolate->m_isolate->HasPendingBackgroundTasks()
+                ? v8::platform::MessageLoopBehavior::kWaitForWork
+                : platform::MessageLoopBehavior::kDoNotWait))
+            isolate->m_isolate->PerformMicrotaskCheckpoint();
     }
 
     isolate->m_intask = false;
@@ -52,11 +51,13 @@ static int32_t syncRunMicrotasks(Isolate* isolate)
 
 void Isolate::RunMicrotasks()
 {
-    if (!m_intask
-        && (RunMicrotaskSize(m_isolate) > 0
-            || m_isolate->HasPendingBackgroundTasks())) {
-        m_intask = true;
-        syncCall(this, syncRunMicrotasks, this);
+    bool not_in_task = false;
+    if (m_intask.compare_exchange_strong(not_in_task, true)) {
+        if ((RunMicrotaskSize(m_isolate) > 0 || m_isolate->HasPendingBackgroundTasks())) {
+            m_intask = true;
+            syncCall(this, syncRunMicrotasks, this);
+        } else
+            m_intask = false;
     }
 }
 
@@ -309,6 +310,8 @@ void Isolate::init()
     m_isolate->SetPromiseRejectCallback(_PromiseRejectCallback);
     m_isolate->SetHostImportModuleDynamicallyCallback(SandBox::ImportModuleDynamically);
     m_isolate->SetHostInitializeImportMetaObjectCallback(SandBox::ImportMetaObjectCallback);
+
+    m_isolate->SetMicrotasksPolicy(v8::MicrotasksPolicy::kExplicit);
 
     init_process_ipc(this);
 }
