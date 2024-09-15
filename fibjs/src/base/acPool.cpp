@@ -111,6 +111,16 @@ static acPool* s_lsPool;
 
 void putGuiPool(AsyncEvent* ac);
 
+AsyncEvent::AsyncEvent(Isolate* isolate)
+    : m_isolate(isolate)
+    , m_state(kStateSync)
+{
+}
+
+AsyncEvent::~AsyncEvent()
+{
+}
+
 void AsyncEvent::async(int32_t type)
 {
     if (type == CALL_E_NOSYNC)
@@ -131,6 +141,12 @@ AsyncCallBack::AsyncCallBack(v8::Local<v8::Function> cb, object_base* pThis)
 
     m_isolate->Ref();
     m_cb.Reset(m_isolate->m_isolate, cb);
+}
+
+AsyncCallBack::~AsyncCallBack()
+{
+    m_isolate->Unref();
+    m_cb.Reset();
 }
 
 void AsyncCallBack::async_call(int32_t v)

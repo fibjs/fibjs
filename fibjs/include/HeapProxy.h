@@ -9,7 +9,7 @@
 
 #include "ifs/HeapSnapshot.h"
 #include "ifs/HeapGraphEdge.h"
-#include <v8/include/v8-profiler.h>
+#include <v8-profiler.h>
 #include <unordered_map>
 
 namespace fibjs {

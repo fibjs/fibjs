@@ -15,15 +15,8 @@ private:
     };
 
 public:
-    AsyncEvent(Isolate* isolate = NULL)
-        : m_isolate(isolate)
-        , m_state(kStateSync)
-    {
-    }
-
-    virtual ~AsyncEvent()
-    {
-    }
+    AsyncEvent(Isolate* isolate = NULL);
+    virtual ~AsyncEvent();
 
 public:
     virtual void resume()
@@ -428,12 +421,7 @@ class NType;
 class AsyncCallBack : public AsyncEvent {
 public:
     AsyncCallBack(v8::Local<v8::Function> cb, object_base* pThis = NULL);
-
-    ~AsyncCallBack()
-    {
-        m_isolate->Unref();
-        m_cb.Reset();
-    }
+    ~AsyncCallBack();
 
 public:
     virtual void resume()

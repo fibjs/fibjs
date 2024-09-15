@@ -17,7 +17,7 @@
 #include "SandBox.h"
 #include "TTYStream.h"
 #include "EventEmitter.h"
-#include "v8/include/libplatform/libplatform.h"
+#include "libplatform/libplatform.h"
 
 using namespace v8;
 
