@@ -343,6 +343,16 @@ describe('coroutine', () => {
                         worker.postMessage(msg);
                     });
 
+                    it('send message immediately', done => {
+                        var worker = new coroutine.Worker(path.join(__dirname, port));
+                        worker.postMessage(123456);
+                        worker.onmessage = (evt) => {
+                            done(() => {
+                                assert.equal(evt.data, 123456);
+                            });
+                        };
+                    });
+
                     it('value', () => {
                         assert.strictEqual(msg_trans(123), 123);
 

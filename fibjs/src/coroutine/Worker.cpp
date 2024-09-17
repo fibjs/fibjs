@@ -29,10 +29,10 @@ result_t worker_threads_base::get_parentPort(obj_ptr<Worker_base>& retVal)
 {
     Isolate* isolate = Isolate::current();
 
-    if (isolate->m_worker == NULL)
+    if (isolate->m_parent_worker == NULL)
         return CALL_RETURN_NULL;
 
-    retVal = isolate->m_worker;
+    retVal = isolate->m_parent_worker;
 
     return 0;
 }
@@ -41,10 +41,10 @@ result_t worker_threads_base::get_workerData(v8::Local<v8::Value>& retVal)
 {
     Isolate* isolate = Isolate::current();
 
-    if (isolate->m_worker == NULL)
+    if (isolate->m_parent_worker == NULL)
         return CALL_RETURN_NULL;
 
-    obj_ptr<Worker> worker = isolate->m_worker.As<Worker>();
+    obj_ptr<Worker> worker = isolate->m_parent_worker.As<Worker>();
     if (worker->m_workerData == NULL)
         return CALL_RETURN_NULL;
 
@@ -83,7 +83,7 @@ result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
         if (hr < 0)
             return hr;
 
-        worker->m_worker->m_workerData = wm;
+        worker->m_peer_worker->m_workerData = wm;
     }
 
     worker->wrap(This);
@@ -95,7 +95,10 @@ result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
 
 void Worker::start()
 {
-    syncCall(m_isolate, worker_fiber, this);
+    syncCall(m_isolate, [](Worker* worker) -> int {
+        worker->_main();
+        return 0;
+    },  this);
 }
 
 void Worker::_main()
@@ -103,29 +106,23 @@ void Worker::_main()
     JSFiber::EnterJsScope s;
 
     m_isolate->start_profiler();
-    m_worker->wrap();
+    m_peer_worker->wrap();
 
     m_isolate->m_topSandbox = new SandBox();
     m_isolate->m_topSandbox->addBuiltinModules();
 
-    s.m_hr = m_isolate->m_topSandbox->run_worker(m_isolate->m_fname, m_worker);
+    s.m_hr = m_isolate->m_topSandbox->run_worker(m_isolate->m_fname, m_peer_worker);
     if (s.m_hr < 0)
         _emit("error", new EventInfo(this, "error", s.m_hr, GetException(s.try_catch, s.m_hr, false, true)));
     else
         _emit("load");
 }
 
-result_t Worker::worker_fiber(Worker* worker)
-{
-    worker->_main();
-    return 0;
-}
-
 Worker::Worker(exlib::string path, v8::Local<v8::Object> opts)
 {
-    m_worker = new Worker(this);
     m_isolate = new Isolate(path);
-    m_isolate->m_worker = m_worker;
+    m_isolate->m_parent_worker = m_peer_worker = new Worker(this);
+    m_peer_worker->holder(m_isolate);
 }
 
 result_t Worker::postMessage(v8::Local<v8::Value> data)
@@ -135,7 +132,7 @@ result_t Worker::postMessage(v8::Local<v8::Value> data)
     if (hr < 0)
         return hr;
 
-    m_worker->_emit("message", wm);
+    m_peer_worker->_emit("message", wm);
 
     return 0;
 }
