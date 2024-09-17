@@ -18,6 +18,8 @@ struct uv_loop_s;
 
 namespace fibjs {
 
+extern v8::Platform* g_default_platform;
+
 v8::Local<v8::String> NewString(v8::Isolate* isolate, const char* data, ssize_t length = -1);
 v8::Local<v8::String> NewString(v8::Isolate* isolate, exlib::string str);
 exlib::string ToString(v8::Isolate* isolate, v8::Local<v8::Value> v);
@@ -119,6 +121,7 @@ public:
 
     void RequestInterrupt(v8::InterruptCallback callback, void* data);
     void RunMicrotasks();
+    void PerformMicrotaskCheckpoint();
 
     v8::Local<v8::String> NewString(const char* data, int length = -1)
     {

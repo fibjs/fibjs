@@ -9,7 +9,6 @@
 
 #include "object.h"
 #include "options.h"
-#include "Fiber.h"
 #include "ifs/profiler.h"
 #include "ifs/global.h"
 #include "SecureContext.h"
@@ -17,7 +16,6 @@
 #include "SandBox.h"
 #include "TTYStream.h"
 #include "EventEmitter.h"
-#include "libplatform/libplatform.h"
 
 using namespace v8;
 
@@ -28,38 +26,6 @@ void init_process_ipc(Isolate* isolate);
 static exlib::LockedList<Isolate> s_isolates;
 static exlib::atomic s_iso_id;
 static exlib::atomic s_iso_ref;
-
-extern v8::Platform* g_default_platform;
-
-static int32_t syncRunMicrotasks(Isolate* isolate)
-{
-    {
-        JSFiber::EnterJsScope s;
-
-        isolate->m_isolate->PerformMicrotaskCheckpoint();
-        while (v8::platform::PumpMessageLoop(g_default_platform, isolate->m_isolate,
-            isolate->m_isolate->HasPendingBackgroundTasks()
-                ? v8::platform::MessageLoopBehavior::kWaitForWork
-                : platform::MessageLoopBehavior::kDoNotWait))
-            isolate->m_isolate->PerformMicrotaskCheckpoint();
-    }
-
-    isolate->m_intask = false;
-
-    return 0;
-}
-
-void Isolate::RunMicrotasks()
-{
-    bool not_in_task = false;
-    if (m_intask.compare_exchange_strong(not_in_task, true)) {
-        if ((RunMicrotaskSize(m_isolate) > 0 || m_isolate->HasPendingBackgroundTasks())) {
-            m_intask = true;
-            syncCall(this, syncRunMicrotasks, this);
-        } else
-            m_intask = false;
-    }
-}
 
 Isolate::SnapshotJsScope::SnapshotJsScope(Isolate* cur)
     : m_isolate((cur ? cur : Isolate::current()))

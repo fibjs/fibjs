@@ -24,12 +24,6 @@ using namespace v8;
 
 namespace fibjs {
 
-intptr_t RunMicrotaskSize(Isolate* isolate)
-{
-    i::Isolate* _isolate = reinterpret_cast<i::Isolate*>(isolate);
-    return _isolate->default_microtask_queue()->size();
-}
-
 bool isFrozen(Isolate* isolate, Local<Object> object)
 {
     i::Isolate* _isolate = reinterpret_cast<i::Isolate*>(isolate);

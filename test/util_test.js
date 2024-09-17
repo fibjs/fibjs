@@ -1554,27 +1554,20 @@ describe('util', () => {
             });
         });
 
-        todo("BUGFIX: deadlock when calling sync functions after await", async function () {
+        it("BUGFIX: deadlock when calling sync functions after await", async function () {
+            var ev = new coroutine.Event();
+
             async function test1() {
             }
 
-            async function test2() {
-            }
-
-            var test1_sync = util.sync(test1);
-            var test2_sync = util.sync(test2);
-
-            try {
+            async function _aync() {
                 await test1();
-            } catch (e) {
-                console.log(e);
+                ev.set();
             }
 
-            try {
-                test2_sync();
-            } catch (e) {
-                console.log(e);
-            }
+            await test1();
+            _aync();
+            ev.wait();
         });
     });
 
