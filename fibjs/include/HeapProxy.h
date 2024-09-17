@@ -21,15 +21,12 @@ public:
     {
     }
 
-    static result_t del_(const v8::HeapSnapshot* snapshot)
-    {
-        ((v8::HeapSnapshot*)snapshot)->Delete();
-        return 0;
-    }
-
     ~HeapSnapshotProxy()
     {
-        syncCall(holder(), del_, m_snapshot);
+        holder()->sync([snapshot = m_snapshot]() -> int {
+            ((v8::HeapSnapshot*)snapshot)->Delete();
+            return 0;
+        });
     }
 
 public:

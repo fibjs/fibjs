@@ -591,7 +591,7 @@ public:
         else
             status_ = UV_ECANCELED;
 
-        sync(isolate());
+        isolate()->post_task(this);
 
         env_->Unref();
     }

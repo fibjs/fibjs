@@ -247,29 +247,26 @@ static void WINAPI service_ctrl(DWORD dwCtrlCode)
     }
 }
 
-static result_t service_worker(Service* srv)
-{
-    JSFiber::EnterJsScope s;
-    v8::Local<v8::Value> v;
-    v8::Local<v8::Function> func;
-
-    v = srv->GetPrivate("worker");
-    if (!v.IsEmpty()) {
-        func = v.As<v8::Function>();
-        func->Call(func->GetCreationContextChecked(), srv->wrap(), 0, &v).IsEmpty();
-    }
-
-    ReportStatusToSCMgr(SERVICE_STOPPED, NO_ERROR, 0);
-
-    return 0;
-}
-
 static void WINAPI service_main(DWORD dwArgc, LPWSTR* lpszArgv)
 {
     s_hSStat = RegisterServiceCtrlHandlerW(s_dispatchTable[0].lpServiceName, service_ctrl);
     if (s_hSStat) {
         Service* srv = s_srv;
-        syncCall(s_isolate, service_worker, srv);
+        s_isolate->sync([srv]() -> int {
+            JSFiber::EnterJsScope s;
+            v8::Local<v8::Value> v;
+            v8::Local<v8::Function> func;
+
+            v = srv->GetPrivate("worker");
+            if (!v.IsEmpty()) {
+                func = v.As<v8::Function>();
+                func->Call(func->GetCreationContextChecked(), srv->wrap(), 0, &v).IsEmpty();
+            }
+
+            ReportStatusToSCMgr(SERVICE_STOPPED, NO_ERROR, 0);
+
+            return 0;
+        });
         ReportStatusToSCMgr(SERVICE_RUNNING, NO_ERROR, 0);
     }
 }

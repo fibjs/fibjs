@@ -13,6 +13,7 @@
 #include "LruCache.h"
 #include "utf8.h"
 #include <unordered_map>
+#include <functional>
 
 struct uv_loop_s;
 
@@ -119,6 +120,16 @@ public:
         return true;
     }
 
+public:
+    void sync(std::function<int(void)> func);
+    void post_task(exlib::linkitem* task)
+    {
+        Ref();
+        m_jobs.putTail(task);
+        m_sem.post();
+    }
+
+public:
     void RequestInterrupt(v8::InterruptCallback callback, void* data);
     void RunMicrotasks();
     void PerformMicrotaskCheckpoint();
@@ -189,12 +200,10 @@ public:
     template <typename Fn>
     void SetImmediate(Fn&& cb, int32_t flags = 1)
     {
-        syncCall(
-            this, [cb](Isolate* isolate) {
-                cb(isolate);
-                return 0;
-            },
-            this);
+        sync([this, cb]() -> int {
+            cb(this);
+            return 0;
+        });
     }
 
     void ThrowError(const char* errmsg)

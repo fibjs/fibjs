@@ -92,16 +92,13 @@ void JSFiber::set_caller(Fiber_base* caller)
     }
 }
 
-result_t sync_invoke(JSFiber* fiber)
-{
-    return fiber->js_invoke();
-}
-
 void JSFiber::start()
 {
     Ref();
     set_caller(JSFiber::current());
-    syncCall(holder(), sync_invoke, this);
+    holder()->sync([this]() -> int {
+        return js_invoke();
+    });
 }
 
 result_t JSFiber::join()

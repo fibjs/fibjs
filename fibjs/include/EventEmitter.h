@@ -543,7 +543,7 @@ public:
         }
 
     public:
-        static result_t emitter_func(AsyncEmitter* p)
+        result_t emitter_func()
         {
             JSFiber::EnterJsScope s;
             size_t i, sz;
@@ -551,30 +551,30 @@ public:
 
             std::vector<v8::Local<v8::Value>> argv;
 
-            sz = p->m_variant_args.size();
+            sz = m_variant_args.size();
             if (sz) {
                 argv.resize(sz);
                 for (i = 0; i < sz; i++)
-                    argv[i] = p->m_variant_args[i];
+                    argv[i] = m_variant_args[i];
             } else {
-                sz = p->m_value_args.size();
+                sz = m_value_args.size();
                 if (sz) {
                     argv.resize(sz);
                     for (i = 0; i < sz; i++)
-                        argv[i] = p->m_value_args[i].Get(p->m_isolate->m_isolate);
+                        argv[i] = m_value_args[i].Get(m_isolate->m_isolate);
                 }
             }
 
-            if (!p->m_obj)
-                p->m_obj = object_base::getInstance(p->m_o.Get(p->m_isolate->m_isolate));
+            if (!m_obj)
+                m_obj = object_base::getInstance(m_o.Get(m_isolate->m_isolate));
 
-            if (p->m_obj) {
-                p->m_obj->onEventEmit(p->m_ev);
-                JSTrigger(p->m_obj)._emit(p->m_ev, argv.data(), (int32_t)argv.size(), r);
+            if (m_obj) {
+                m_obj->onEventEmit(m_ev);
+                JSTrigger(m_obj)._emit(m_ev, argv.data(), (int32_t)argv.size(), r);
             } else
-                JSTrigger(p->m_isolate->m_isolate, p->m_o.Get(p->m_isolate->m_isolate))._emit(p->m_ev, argv.data(), (int32_t)argv.size(), r);
+                JSTrigger(m_isolate->m_isolate, m_o.Get(m_isolate->m_isolate))._emit(m_ev, argv.data(), (int32_t)argv.size(), r);
 
-            delete p;
+            delete this;
 
             return 0;
         }
@@ -587,7 +587,9 @@ public:
             for (int32_t i = 0; i < argCount; i++)
                 m_variant_args[i] = args[i];
 
-            syncCall(m_isolate, emitter_func, this);
+            m_isolate->sync([this]() -> int {
+                return emitter_func();
+            });
         }
 
         void emit(exlib::string ev, v8::Local<v8::Value>* args, int32_t argCount)
@@ -598,7 +600,9 @@ public:
             for (int32_t i = 0; i < argCount; i++)
                 m_value_args[i].Reset(m_isolate->m_isolate, args[i]);
 
-            syncCall(m_isolate, emitter_func, this);
+            m_isolate->sync([this]() -> int {
+                return emitter_func();
+            });
         }
 
     public:

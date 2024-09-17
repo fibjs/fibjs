@@ -95,10 +95,10 @@ result_t Worker_base::_new(exlib::string path, v8::Local<v8::Object> opts,
 
 void Worker::start()
 {
-    syncCall(m_isolate, [](Worker* worker) -> int {
-        worker->_main();
+    m_isolate->sync([this]() -> int {
+        _main();
         return 0;
-    },  this);
+    });
 }
 
 void Worker::_main()

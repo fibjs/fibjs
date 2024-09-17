@@ -196,28 +196,6 @@ void WebView::onWKWebViewInwardMessage(WKScriptMessage* message)
     }
 }
 
-static int32_t asyncOutputMessageFromWKWebview(exlib::string& jsonFmt)
-{
-    JSValue _logInfo;
-    json_base::decode(jsonFmt, _logInfo);
-    v8::Local<v8::Object> logInfo = _logInfo.As<v8::Object>();
-
-    Isolate* isolate = Isolate::current();
-    v8::Local<v8::Context> context = isolate->context();
-
-    int32_t logLevel = isolate->toInteger(JSValue(logInfo->Get(context, isolate->NewString("level"))));
-
-    JSValue _fmtMessage = logInfo->Get(context, isolate->NewString("fmt"));
-    exlib::string fmtMessage(isolate->toString(_fmtMessage));
-
-    if (logLevel == console_base::C_ERROR)
-        fmtMessage = ("WebView Error: " + fmtMessage);
-
-    asyncLog(logLevel, fmtMessage);
-
-    return 0;
-}
-
 void WebView::onWKWebViewExternalLogMessage(WKScriptMessage* message)
 {
     if (!m_bDebug)
@@ -226,7 +204,26 @@ void WebView::onWKWebViewExternalLogMessage(WKScriptMessage* message)
     const char* externalLogMsg = (const char*)([[message body] UTF8String]);
     exlib::string payload(externalLogMsg);
 
-    syncCall(holder(), asyncOutputMessageFromWKWebview, payload);
+    holder()->sync([payload]() -> int {
+        JSValue _logInfo;
+        json_base::decode(payload, _logInfo);
+        v8::Local<v8::Object> logInfo = _logInfo.As<v8::Object>();
+
+        Isolate* isolate = Isolate::current();
+        v8::Local<v8::Context> context = isolate->context();
+
+        int32_t logLevel = isolate->toInteger(JSValue(logInfo->Get(context, isolate->NewString("level"))));
+
+        JSValue _fmtMessage = logInfo->Get(context, isolate->NewString("fmt"));
+        exlib::string fmtMessage(isolate->toString(_fmtMessage));
+
+        if (logLevel == console_base::C_ERROR)
+            fmtMessage = ("WebView Error: " + fmtMessage);
+
+        asyncLog(logLevel, fmtMessage);
+
+        return 0;
+    });
 }
 
 extern const wchar_t* g_console_js;
@@ -296,7 +293,7 @@ id WebView::createWKWebViewConfig()
     /**
      * WKWebViewConfiguration would put the field value:
      * `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) {applicationNameForUserAgent}`
-     * 
+     *
      * we could set the field `applicationNameForUserAgent` to customize our AppName, like this
      * "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36"
      * @real safari
@@ -308,7 +305,7 @@ id WebView::createWKWebViewConfig()
      * register customized protocol `fs://`
      * @warning `setURLSchemeHandler:forURLScheme:` is only available on macOS 10.13 or newer
      */
-    NSOperatingSystemVersion macOS10_13 = (NSOperatingSystemVersion){ 10, 13, 0 };
+    NSOperatingSystemVersion macOS10_13 = (NSOperatingSystemVersion) { 10, 13, 0 };
     if ([[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:macOS10_13]) {
         [configuration setURLSchemeHandler:[FileSystemWKURLSchemeHandler new] forURLScheme:@"fs"];
     }

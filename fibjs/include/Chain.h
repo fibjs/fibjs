@@ -78,7 +78,7 @@ public:
 
             hr = m_hdlr->invoke(m_v, m_next, this);
             if (hr == CALL_E_NOASYNC) {
-                sync(m_hdlr->holder());
+                m_hdlr->holder()->post_task(this);
                 return CALL_E_PENDDING;
             }
 

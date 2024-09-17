@@ -54,7 +54,7 @@ result_t rtc_base::listen(exlib::string bind_address, int32_t local_port, v8::Lo
             data_->address = incoming_info->address;
             data_->port = incoming_info->port;
 
-            syncCall((Isolate*)user_data, [](cb_data* data_) {
+            ((Isolate*)user_data)->sync([data_]() -> int {
                 Isolate* isolate = Isolate::current();
                 JSFiber::EnterJsScope s;
 
@@ -71,7 +71,8 @@ result_t rtc_base::listen(exlib::string bind_address, int32_t local_port, v8::Lo
 
                 v8::Local<v8::Value> result = cb->Call(isolate->context(), v8::Undefined(isolate->m_isolate), 1, argv).FromMaybe(v8::Local<v8::Value>());
 
-                return 0; }, data_); }, isolate);
+                return 0;
+            }); }, isolate);
 
     if (ret == -1)
         return Runtime::setError("rtc.listen() need to be called before RTCPeerConnection object is created");

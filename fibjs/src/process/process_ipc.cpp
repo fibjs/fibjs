@@ -31,16 +31,16 @@ ChildProcess::Ipc::Ipc(Isolate* _isolate, v8::Local<v8::Object> _o, obj_ptr<Stre
         }
 
     public:
-        static result_t sync_emit(EventMessage* msg)
+        int emit()
         {
             JSFiber::EnterJsScope s;
-            v8::Local<v8::Object> o = msg->m_ipc->m_o.Get(msg->m_ipc->m_isolate->m_isolate);
-            JSTrigger t(msg->m_ipc->m_isolate->m_isolate, o);
+            v8::Local<v8::Object> o = m_ipc->m_o.Get(m_ipc->m_isolate->m_isolate);
+            JSTrigger t(m_ipc->m_isolate->m_isolate, o);
             v8::Local<v8::Value> v;
 
-            result_t hr = json_base::decode(msg->m_data, v);
+            result_t hr = json_base::decode(m_data, v);
 
-            delete msg;
+            delete this;
 
             if (hr < 0)
                 return hr;
@@ -70,7 +70,23 @@ ChildProcess::Ipc::Ipc(Isolate* _isolate, v8::Local<v8::Object> _o, obj_ptr<Stre
 
         ~asyncRead()
         {
-            syncCall(m_this->m_isolate, sync_delete, m_this);
+            m_this->m_isolate->sync([ipc = m_this]() -> int {
+                JSFiber::EnterJsScope s;
+
+                if (ipc->m_channel) {
+                    ipc->m_channel.Release();
+
+                    v8::Local<v8::Object> o = ipc->m_o.Get(ipc->m_isolate->m_isolate);
+                    JSTrigger t(ipc->m_isolate->m_isolate, o);
+                    bool r;
+
+                    t._emit("disconnect", NULL, 0, r);
+                }
+
+                delete ipc;
+
+                return 0;
+            });
             m_this->m_isolate->Unref();
         }
 
@@ -86,7 +102,10 @@ ChildProcess::Ipc::Ipc(Isolate* _isolate, v8::Local<v8::Object> _o, obj_ptr<Stre
             if (n == CALL_RETURN_NULL)
                 return next();
 
-            syncCall(m_this->m_isolate, EventMessage::sync_emit, new EventMessage(m_this, m_line));
+            m_this->m_isolate->sync([msg = new EventMessage(m_this, m_line)]() -> int {
+                return msg->emit();
+            });
+
             return next(read);
         }
 

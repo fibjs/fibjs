@@ -176,9 +176,12 @@ public:
     void safe_release()
     {
         if (m_isolate)
-            syncCall(m_isolate, final_release, this);
+            m_isolate->sync([this]() {
+                delete this;
+                return 0;
+            });
         else
-            final_release(this);
+            delete this;
     }
 
 public:
@@ -454,7 +457,10 @@ public:
     virtual void Unref()
     {
         if (internalUnref() == 0)
-            syncCall(m_isolate, final_release, this);
+            m_isolate->sync([this]() -> int {
+                delete this;
+                return 0;
+            });
     }
 
 private:

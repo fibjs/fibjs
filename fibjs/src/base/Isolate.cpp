@@ -78,6 +78,29 @@ static void FiberProcIsolate(void* p)
     JSFiber::FiberProcRunJavascript(p);
 }
 
+void Isolate::sync(std::function<int(void)> func)
+{
+    class SyncFunc : public AsyncEvent {
+    public:
+        SyncFunc(std::function<int(void)> func)
+            : m_func(func)
+        {
+        }
+
+        virtual result_t js_invoke()
+        {
+            result_t hr = m_func();
+            delete this;
+            return hr;
+        }
+
+    private:
+        std::function<int(void)> m_func;
+    };
+
+    post_task(new SyncFunc(func));
+}
+
 class ShellArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
 public:
     virtual void* Allocate(size_t length)
@@ -282,25 +305,6 @@ void Isolate::init()
     init_process_ipc(this);
 }
 
-static result_t syncExit(Isolate* isolate)
-{
-    v8::HandleScope handle_scope(isolate->m_isolate);
-    JSFiber::EnterJsScope s;
-    JSTrigger t(isolate->m_isolate, process_base::class_info().getModule(isolate));
-    v8::Local<v8::Value> code = v8::Number::New(isolate->m_isolate, isolate->m_exitCode);
-    bool r;
-
-    t._emit("beforeExit", &code, 1, r);
-    if (s_iso_ref == 1) {
-        if (isolate->m_hr >= 0)
-            process_base::exit();
-        else
-            process_base::exit(1);
-    }
-
-    return 0;
-}
-
 void Isolate::Ref()
 {
     s_iso_ref.inc();
@@ -311,7 +315,24 @@ void Isolate::Unref(int32_t hr)
     if (s_iso_ref.dec() == 0) {
         Isolate* isolate = s_isolates.head();
         isolate->m_hr = hr;
-        syncCall(isolate, syncExit, isolate);
+
+        isolate->sync([isolate]() -> int {
+            v8::HandleScope handle_scope(isolate->m_isolate);
+            JSFiber::EnterJsScope s;
+            JSTrigger t(isolate->m_isolate, process_base::class_info().getModule(isolate));
+            v8::Local<v8::Value> code = v8::Number::New(isolate->m_isolate, isolate->m_exitCode);
+            bool r;
+
+            t._emit("beforeExit", &code, 1, r);
+            if (s_iso_ref == 1) {
+                if (isolate->m_hr >= 0)
+                    process_base::exit();
+                else
+                    process_base::exit(1);
+            }
+
+            return 0;
+        });
     }
 }
 
@@ -325,19 +346,16 @@ void Isolate::start_profiler()
     }
 }
 void InvokeApiInterruptCallbacks(v8::Isolate* isolate);
-static result_t js_timer(Isolate* isolate)
-{
-    JSFiber::EnterJsScope s;
-    isolate->m_has_timer = 0;
-    InvokeApiInterruptCallbacks(isolate->m_isolate);
-    return 0;
-}
-
 void Isolate::RequestInterrupt(v8::InterruptCallback callback, void* data)
 {
     m_isolate->RequestInterrupt(callback, data);
     if (m_has_timer.CompareAndSwap(0, 1) == 0)
-        syncCall(this, js_timer, this);
+        sync([this]() {
+            JSFiber::EnterJsScope s;
+            m_has_timer = 0;
+            InvokeApiInterruptCallbacks(m_isolate);
+            return 0;
+        });
 }
 
 void Isolate::get_stdin(obj_ptr<Stream_base>& retVal)

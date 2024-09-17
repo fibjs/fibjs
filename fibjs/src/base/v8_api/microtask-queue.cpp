@@ -71,7 +71,7 @@ void Isolate::PerformMicrotaskCheckpoint()
 
             if (instance_type == i::PROMISE_REJECT_REACTION_JOB_TASK_TYPE
                 || instance_type == i::PROMISE_FULFILL_REACTION_JOB_TASK_TYPE) {
-                syncCall(this, [](i::Address* addr) -> int32_t {
+                sync([addr = api_internal::GlobalizeReference(_isolate, _task)]() -> int {
                     i::Address _task = *addr;
                     api_internal::DisposeGlobal(addr);
 
@@ -93,7 +93,8 @@ void Isolate::PerformMicrotaskCheckpoint()
                     } else
                         i::Execution::Call(scope.isolate_, handler, promise, 1, &argument);
 
-                    return 0; }, api_internal::GlobalizeReference(_isolate, _task));
+                    return 0;
+                });
             } else {
                 queue->ring_buffer_[(p++ + queue->start_) % queue->capacity_] = _task;
                 size1++;
@@ -112,21 +113,22 @@ void Isolate::RunMicrotasks()
     if (m_intask.compare_exchange_strong(not_in_task, true)) {
         if ((RunMicrotaskSize(m_isolate) > 0 || m_isolate->HasPendingBackgroundTasks())) {
             m_intask = true;
-            syncCall(this, [](Isolate* isolate) -> int32_t {
+            sync([this]() -> int {
                 {
                     JSFiber::EnterJsScope s;
 
-                    isolate->PerformMicrotaskCheckpoint();
-                    while (v8::platform::PumpMessageLoop(g_default_platform, isolate->m_isolate,
-                        isolate->m_isolate->HasPendingBackgroundTasks()
+                    PerformMicrotaskCheckpoint();
+                    while (v8::platform::PumpMessageLoop(g_default_platform, m_isolate,
+                        m_isolate->HasPendingBackgroundTasks()
                             ? v8::platform::MessageLoopBehavior::kWaitForWork
                             : platform::MessageLoopBehavior::kDoNotWait))
-                        isolate->PerformMicrotaskCheckpoint();
+                        PerformMicrotaskCheckpoint();
                 }
 
-                isolate->m_intask = false;
+                m_intask = false;
 
-                return 0; }, this);
+                return 0;
+            });
         } else
             m_intask = false;
     }

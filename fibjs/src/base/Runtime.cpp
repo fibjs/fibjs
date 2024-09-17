@@ -78,13 +78,6 @@ void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), Isolat
         }
 
     public:
-        static void FirstFiber(void* p)
-        {
-            EntryThread* th = (EntryThread*)p;
-            Isolate* isolate = new Isolate(th->m_fibjsEntry, g_exec_code);
-            syncCall(isolate, th->m_jsFiber, isolate);
-        }
-
         virtual void Run()
         {
             int32_t argc = m_argc;
@@ -135,7 +128,10 @@ void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), Isolat
 
             init_argv(argc, argv);
 
-            exlib::Service::CreateFiber(FirstFiber, this, 256 * 1024, "start");
+            Isolate* isolate = new Isolate(m_fibjsEntry, g_exec_code);
+            isolate->sync([this, isolate]() -> int {
+                return m_jsFiber(isolate);
+            });
             exlib::Service::dispatch();
         }
 
