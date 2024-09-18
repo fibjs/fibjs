@@ -140,7 +140,10 @@ public:
 public:
     ON_STATE(AsyncHandshake, handshake)
     {
+        ERR_clear_error();
         m_state = SSL_get_error(m_sock->m_tls, SSL_do_handshake(m_sock->m_tls));
+        if (m_state == SSL_ERROR_SSL)
+            return openssl_error();
         if (m_sock->m_out)
             return m_sock->m_stream->write(m_sock->m_out, next(read));
 
@@ -332,6 +335,7 @@ result_t TLSSocket::read(int32_t bytes, obj_ptr<Buffer_base>& retVal, AsyncEvent
                 m_sock->m_eof = 1;
 
             if (!m_sock->m_eof) {
+                ERR_clear_error();
                 int32_t size = SSL_read(m_sock->m_tls, m_data->data() + m_pos, m_data->length() - m_pos);
                 if (size < 0 && m_sock->m_in)
                     return openssl_error();
@@ -403,8 +407,7 @@ result_t TLSSocket::write(Buffer_base* data, AsyncEvent* ac)
 
         ON_STATE(AsyncWrite, write)
         {
-            if (m_state == SSL_ERROR_SSL)
-                return openssl_error();
+            m_sock->m_out.Release();
 
             if (m_state == SSL_ERROR_NONE) {
                 if (g_ssldump)
@@ -412,9 +415,12 @@ result_t TLSSocket::write(Buffer_base* data, AsyncEvent* ac)
                 return next();
             }
 
-            m_sock->m_out.Release();
+            ERR_clear_error();
             m_state = SSL_get_error(m_sock->m_tls,
                 SSL_write(m_sock->m_tls, m_data.As<Buffer>()->data(), m_data.As<Buffer>()->length()));
+            if (m_state == SSL_ERROR_SSL)
+                return openssl_error();
+
             if (m_sock->m_out)
                 return m_sock->m_stream->write(m_sock->m_out, next(write));
 
@@ -478,6 +484,7 @@ result_t TLSSocket::close(AsyncEvent* ac)
             if (m_state != SSL_ERROR_WANT_WRITE)
                 return next();
 
+            ERR_clear_error();
             m_state = SSL_get_error(m_sock->m_tls, SSL_shutdown(m_sock->m_tls));
             if (m_sock->m_out)
                 return m_sock->m_stream->write(m_sock->m_out, next(write));
