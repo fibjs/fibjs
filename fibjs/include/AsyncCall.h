@@ -15,15 +15,8 @@ private:
     };
 
 public:
-    AsyncEvent(Isolate* isolate = NULL)
-        : m_isolate(isolate)
-        , m_state(kStateSync)
-    {
-    }
-
-    virtual ~AsyncEvent()
-    {
-    }
+    AsyncEvent(Isolate* isolate = NULL);
+    virtual ~AsyncEvent();
 
 public:
     virtual void resume()
@@ -32,13 +25,6 @@ public:
     }
 
 public:
-    void sync(Isolate* isolate)
-    {
-        isolate->Ref();
-        isolate->m_jobs.putTail(this);
-        isolate->m_sem.post();
-    }
-
     virtual result_t js_invoke()
     {
         return 0;
@@ -332,13 +318,6 @@ public:
         delete this;
     }
 
-    virtual result_t js_invoke()
-    {
-        result_t hr = m_func(m_v);
-        delete this;
-        return hr;
-    }
-
 private:
     T m_func;
     T1 m_v;
@@ -348,12 +327,6 @@ template <typename T, typename T1>
 void asyncCall(T func, T1 v, int32_t mode = CALL_E_NOSYNC)
 {
     (new AsyncFunc<T, T1>(func, v))->async(mode);
-}
-
-template <typename T, typename T1>
-void syncCall(Isolate* isolate, T func, T1 v)
-{
-    (new AsyncFunc<T, T1>(func, v))->sync(isolate);
 }
 
 template <typename T>
@@ -428,12 +401,7 @@ class NType;
 class AsyncCallBack : public AsyncEvent {
 public:
     AsyncCallBack(v8::Local<v8::Function> cb, object_base* pThis = NULL);
-
-    ~AsyncCallBack()
-    {
-        m_isolate->Unref();
-        m_cb.Reset();
-    }
+    ~AsyncCallBack();
 
 public:
     virtual void resume()
@@ -448,7 +416,9 @@ public:
             m_error = Runtime::errMessage();
 
         m_v = v;
-        syncCall(m_isolate, syncFunc, this);
+        m_isolate->sync([this]() -> int {
+            return syncFunc();
+        });
 
         return 0;
     }
@@ -484,7 +454,7 @@ protected:
     {
     }
 
-    static result_t syncFunc(AsyncCallBack* pThis);
+    int syncFunc();
 
 protected:
     obj_ptr<object_base> m_pThis;

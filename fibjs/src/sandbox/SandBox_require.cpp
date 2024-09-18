@@ -12,7 +12,7 @@
 namespace fibjs {
 
 result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
-    v8::Local<v8::Object>& retVal)
+    v8::Local<v8::Object>& retVal, bool in_cjs)
 {
     result_t hr;
 
@@ -55,7 +55,7 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
     lock->acquire(true, is_lock);
 
     std::vector<ExtLoader::arg> extarg;
-    hr = l->run_module(&context, script, srcname, mod, exports, extarg);
+    hr = l->run_module(&context, script, srcname, mod, exports, extarg, in_cjs);
 
     lock->release();
     mod->DeletePrivate(_context, strPendding).IsJust();
@@ -83,14 +83,14 @@ result_t SandBox::addScript(exlib::string srcname, Buffer_base* script,
     path_base::normalize(srcname, srcname);
 
     v8::Local<v8::Object> mod;
-    result_t hr = installScript(srcname, script, mod);
+    result_t hr = installScript(srcname, script, mod, false);
     if (hr < 0)
         return hr;
 
     return wait_module(mod, retVal);
 }
 
-result_t SandBox::run_module(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal)
+result_t SandBox::run_module(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal, bool in_cjs)
 {
     result_t hr;
     obj_ptr<Buffer_base> data;
@@ -102,16 +102,34 @@ result_t SandBox::run_module(exlib::string id, exlib::string base, v8::Local<v8:
     else if (!IsEmpty(mod))
         return wait_module(mod, retVal);
 
-    hr = installScript(id, data, mod);
+    hr = installScript(id, data, mod, in_cjs);
     if (hr < 0)
         return hr;
 
     return wait_module(mod, retVal);
 }
 
-result_t SandBox::require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal)
+result_t SandBox::require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal, bool in_cjs)
 {
     Scope _scope(this);
-    return run_module(id, base, retVal);
+    return run_module(id, base, retVal, in_cjs);
 }
+
+result_t SandBox::require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal)
+{
+    return require(id, base, retVal, false);
+}
+
+result_t SandBox::import(exlib::string id, exlib::string base, v8::Local<v8::Promise>& retVal)
+{
+    Scope _scope(this);
+
+    v8::MaybeLocal<v8::Promise> result = async_import(id, base);
+    if (result.IsEmpty())
+        return CALL_E_JAVASCRIPT;
+
+    retVal = result.ToLocalChecked();
+    return 0;
+}
+
 }

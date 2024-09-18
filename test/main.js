@@ -20,6 +20,7 @@ run("./path_test.js");
 run("./util_test.js");
 run("./types_test.js");
 run("./promise_test.js");
+run("./microtask_test.js");
 run("./xml_test.js");
 
 if (process.env.CI)

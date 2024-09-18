@@ -20,7 +20,7 @@
 #include "v8/src/execution/frames.h"
 #include "v8/src/execution/frames-inl.h"
 #include "v8/src/base/vector.h"
-#include "v8/include/v8-json.h"
+#include "v8-json.h"
 
 #include "src/objects/string-inl.h"
 

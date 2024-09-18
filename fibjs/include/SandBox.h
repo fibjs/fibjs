@@ -35,6 +35,7 @@ public:
     virtual result_t run(exlib::string fname);
     virtual result_t resolve(exlib::string id, exlib::string base, exlib::string& retVal);
     virtual result_t require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal);
+    virtual result_t import(exlib::string id, exlib::string base, v8::Local<v8::Promise>& retVal);
     virtual result_t setModuleCompiler(exlib::string extname, v8::Local<v8::Function> compiler);
     virtual result_t get_global(v8::Local<v8::Object>& retVal);
     virtual result_t get_modules(v8::Local<v8::Object>& retVal);
@@ -126,10 +127,10 @@ public:
 
     public:
         result_t run_script(Context* ctx, Buffer_base* src, exlib::string name,
-            std::vector<arg>& extarg, bool is_main);
+            std::vector<arg>& extarg, bool is_main, bool in_cjs);
         result_t run_module(Context* ctx, Buffer_base* src, exlib::string name,
             v8::Local<v8::Object> module, v8::Local<v8::Object> exports,
-            std::vector<arg>& extarg);
+            std::vector<arg>& extarg, bool in_cjs);
 
     public:
         virtual result_t compile(Context* ctx, Buffer_base* src, exlib::string name,
@@ -139,7 +140,7 @@ public:
         }
 
         virtual result_t run(Context* ctx, Buffer_base* src, exlib::string name,
-            exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args);
+            exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args, bool in_cjs);
 
     public:
         exlib::string m_ext;
@@ -166,7 +167,9 @@ public:
 
     void initGlobal(v8::Local<v8::Object> global);
 
-    result_t installScript(exlib::string srcname, Buffer_base* script, v8::Local<v8::Object>& retVal);
+    result_t installScript(exlib::string srcname, Buffer_base* script, v8::Local<v8::Object>& retVal, bool in_cjs);
+    result_t require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal, bool in_cjs);
+    result_t run(exlib::string fname, bool in_cjs);
 
     result_t loadFile(exlib::string fname, obj_ptr<Buffer_base>& data);
     result_t realpath(exlib::string fname, exlib::string& retVal);
@@ -189,7 +192,7 @@ public:
 
     result_t repl(exlib::string src);
 
-    result_t run_module(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal);
+    result_t run_module(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal, bool in_cjs);
     result_t run_main(exlib::string fname, v8::Local<v8::Array> argv);
     result_t run_worker(exlib::string fname, Worker_base* worker);
 
@@ -239,6 +242,7 @@ public:
     }
 
 public:
+    v8::MaybeLocal<v8::Promise> async_import(exlib::string id, exlib::string base);
     static v8::MaybeLocal<v8::Promise> ImportModuleDynamically(v8::Local<v8::Context> context,
         v8::Local<v8::Data> host_defined_options, v8::Local<v8::Value> resource_name,
         v8::Local<v8::String> specifier, v8::Local<v8::FixedArray> import_assertions);

@@ -111,6 +111,16 @@ static acPool* s_lsPool;
 
 void putGuiPool(AsyncEvent* ac);
 
+AsyncEvent::AsyncEvent(Isolate* isolate)
+    : m_isolate(isolate)
+    , m_state(kStateSync)
+{
+}
+
+AsyncEvent::~AsyncEvent()
+{
+}
+
 void AsyncEvent::async(int32_t type)
 {
     if (type == CALL_E_NOSYNC)
@@ -131,6 +141,12 @@ AsyncCallBack::AsyncCallBack(v8::Local<v8::Function> cb, object_base* pThis)
 
     m_isolate->Ref();
     m_cb.Reset(m_isolate->m_isolate, cb);
+}
+
+AsyncCallBack::~AsyncCallBack()
+{
+    m_isolate->Unref();
+    m_cb.Reset();
 }
 
 void AsyncCallBack::async_call(int32_t v)
@@ -161,41 +177,40 @@ void AsyncCallBack::fillRetVal(std::vector<v8::Local<v8::Value>>& args, NType* v
     v->to_args(m_isolate, args);
 }
 
-result_t AsyncCallBack::syncFunc(AsyncCallBack* pThis)
+int AsyncCallBack::syncFunc()
 {
     JSFiber::EnterJsScope s;
-    Isolate* isolate = pThis->m_isolate;
 
-    v8::Local<v8::Function> func = pThis->m_cb.Get(isolate->m_isolate);
+    v8::Local<v8::Function> func = m_cb.Get(m_isolate->m_isolate);
 
     std::vector<v8::Local<v8::Value>> args;
 
-    if (pThis->m_v == CALL_RETURN_NULL) {
+    if (m_v == CALL_RETURN_NULL) {
         args.resize(2);
-        args[0] = v8::Undefined(isolate->m_isolate);
-        args[1] = v8::Null(isolate->m_isolate);
-    } else if (pThis->m_v >= 0) {
+        args[0] = v8::Undefined(m_isolate->m_isolate);
+        args[1] = v8::Null(m_isolate->m_isolate);
+    } else if (m_v >= 0) {
         args.resize(1);
-        args[0] = v8::Undefined(isolate->m_isolate);
-        pThis->to_args(args);
+        args[0] = v8::Undefined(m_isolate->m_isolate);
+        to_args(args);
     } else {
-        if (pThis->m_v == CALL_E_EXCEPTION)
-            Runtime::setError(pThis->m_error);
+        if (m_v == CALL_E_EXCEPTION)
+            Runtime::setError(m_error);
 
         args.resize(1);
-        args[0] = FillError(pThis->m_v);
+        args[0] = FillError(m_v);
     }
 
     v8::Local<v8::Value> oThis;
-    if (pThis->m_result != nullptr)
-        oThis = pThis->m_result->wrap(isolate);
+    if (m_result != nullptr)
+        oThis = m_result->wrap(m_isolate);
     else
-        oThis = v8::Undefined(isolate->m_isolate);
+        oThis = v8::Undefined(m_isolate->m_isolate);
 
     func->Call(func->GetCreationContextChecked(), oThis, (int32_t)args.size(), args.data())
         .IsEmpty();
 
-    delete pThis;
+    delete this;
 
     return 0;
 }

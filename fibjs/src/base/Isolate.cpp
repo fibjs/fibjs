@@ -9,7 +9,6 @@
 
 #include "object.h"
 #include "options.h"
-#include "Fiber.h"
 #include "ifs/profiler.h"
 #include "ifs/global.h"
 #include "SecureContext.h"
@@ -17,7 +16,6 @@
 #include "SandBox.h"
 #include "TTYStream.h"
 #include "EventEmitter.h"
-#include "v8/include/libplatform/libplatform.h"
 
 using namespace v8;
 
@@ -28,37 +26,6 @@ void init_process_ipc(Isolate* isolate);
 static exlib::LockedList<Isolate> s_isolates;
 static exlib::atomic s_iso_id;
 static exlib::atomic s_iso_ref;
-
-extern v8::Platform* g_default_platform;
-
-static int32_t syncRunMicrotasks(Isolate* isolate)
-{
-    {
-        JSFiber::EnterJsScope s;
-
-        isolate->m_isolate->PerformMicrotaskCheckpoint();
-        if (isolate->m_isolate->HasPendingBackgroundTasks())
-            while (v8::platform::PumpMessageLoop(g_default_platform, isolate->m_isolate,
-                isolate->m_isolate->HasPendingBackgroundTasks()
-                    ? v8::platform::MessageLoopBehavior::kWaitForWork
-                    : platform::MessageLoopBehavior::kDoNotWait))
-                ;
-    }
-
-    isolate->m_intask = false;
-
-    return 0;
-}
-
-void Isolate::RunMicrotasks()
-{
-    if (!m_intask
-        && (RunMicrotaskSize(m_isolate) > 0
-            || m_isolate->HasPendingBackgroundTasks())) {
-        m_intask = true;
-        syncCall(this, syncRunMicrotasks, this);
-    }
-}
 
 Isolate::SnapshotJsScope::SnapshotJsScope(Isolate* cur)
     : m_isolate((cur ? cur : Isolate::current()))
@@ -109,6 +76,29 @@ static void FiberProcIsolate(void* p)
 
     isolate->init();
     JSFiber::FiberProcRunJavascript(p);
+}
+
+void Isolate::sync(std::function<int(void)> func)
+{
+    class SyncFunc : public AsyncEvent {
+    public:
+        SyncFunc(std::function<int(void)> func)
+            : m_func(func)
+        {
+        }
+
+        virtual result_t js_invoke()
+        {
+            result_t hr = m_func();
+            delete this;
+            return hr;
+        }
+
+    private:
+        std::function<int(void)> m_func;
+    };
+
+    post_task(new SyncFunc(func));
 }
 
 class ShellArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
@@ -310,26 +300,9 @@ void Isolate::init()
     m_isolate->SetHostImportModuleDynamicallyCallback(SandBox::ImportModuleDynamically);
     m_isolate->SetHostInitializeImportMetaObjectCallback(SandBox::ImportMetaObjectCallback);
 
+    m_isolate->SetMicrotasksPolicy(v8::MicrotasksPolicy::kExplicit);
+
     init_process_ipc(this);
-}
-
-static result_t syncExit(Isolate* isolate)
-{
-    v8::HandleScope handle_scope(isolate->m_isolate);
-    JSFiber::EnterJsScope s;
-    JSTrigger t(isolate->m_isolate, process_base::class_info().getModule(isolate));
-    v8::Local<v8::Value> code = v8::Number::New(isolate->m_isolate, isolate->m_exitCode);
-    bool r;
-
-    t._emit("beforeExit", &code, 1, r);
-    if (s_iso_ref == 1) {
-        if (isolate->m_hr >= 0)
-            process_base::exit();
-        else
-            process_base::exit(1);
-    }
-
-    return 0;
 }
 
 void Isolate::Ref()
@@ -342,7 +315,24 @@ void Isolate::Unref(int32_t hr)
     if (s_iso_ref.dec() == 0) {
         Isolate* isolate = s_isolates.head();
         isolate->m_hr = hr;
-        syncCall(isolate, syncExit, isolate);
+
+        isolate->sync([isolate]() -> int {
+            v8::HandleScope handle_scope(isolate->m_isolate);
+            JSFiber::EnterJsScope s;
+            JSTrigger t(isolate->m_isolate, process_base::class_info().getModule(isolate));
+            v8::Local<v8::Value> code = v8::Number::New(isolate->m_isolate, isolate->m_exitCode);
+            bool r;
+
+            t._emit("beforeExit", &code, 1, r);
+            if (s_iso_ref == 1) {
+                if (isolate->m_hr >= 0)
+                    process_base::exit();
+                else
+                    process_base::exit(1);
+            }
+
+            return 0;
+        });
     }
 }
 
@@ -356,19 +346,16 @@ void Isolate::start_profiler()
     }
 }
 void InvokeApiInterruptCallbacks(v8::Isolate* isolate);
-static result_t js_timer(Isolate* isolate)
-{
-    JSFiber::EnterJsScope s;
-    isolate->m_has_timer = 0;
-    InvokeApiInterruptCallbacks(isolate->m_isolate);
-    return 0;
-}
-
 void Isolate::RequestInterrupt(v8::InterruptCallback callback, void* data)
 {
     m_isolate->RequestInterrupt(callback, data);
     if (m_has_timer.CompareAndSwap(0, 1) == 0)
-        syncCall(this, js_timer, this);
+        sync([this]() {
+            JSFiber::EnterJsScope s;
+            m_has_timer = 0;
+            InvokeApiInterruptCallbacks(m_isolate);
+            return 0;
+        });
 }
 
 void Isolate::get_stdin(obj_ptr<Stream_base>& retVal)

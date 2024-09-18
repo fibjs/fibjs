@@ -8,7 +8,7 @@
 #pragma once
 
 #include "ifs/HeapGraphNode.h"
-#include <v8/include/v8-profiler.h>
+#include <v8-profiler.h>
 
 namespace fibjs {
 

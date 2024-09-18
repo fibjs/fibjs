@@ -32,7 +32,7 @@ public:
 
 public:
     virtual result_t run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
-        exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args);
+        exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args, bool in_cjs);
 };
 
 class js_Loader : public SandBox::ExtLoader {
@@ -44,7 +44,7 @@ public:
 
 public:
     virtual result_t run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
-        exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args);
+        exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args, bool in_cjs);
 
 private:
     cjs_Loader m_cjs;
@@ -72,7 +72,7 @@ public:
 
 public:
     virtual result_t run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
-        exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args);
+        exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args, bool in_cjs);
 };
 
 class node_Loader : public SandBox::ExtLoader {
@@ -84,7 +84,7 @@ public:
 
 public:
     virtual result_t run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
-        exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args);
+        exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args, bool in_cjs);
 };
 
 class custom_Loader : public cjs_Loader {

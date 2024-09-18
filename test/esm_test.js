@@ -2,6 +2,7 @@ var test = require("test");
 test.setup();
 
 const coroutine = require('coroutine');
+const vm = require('vm');
 const path = require('path');
 
 describe('ECMAScript modules', () => {
@@ -138,6 +139,21 @@ describe('ECMAScript modules', () => {
                     a: 13,
                     b: 13
                 });
+            });
+        });
+    });
+
+    describe('sandbox', () => {
+        it('import esm in sandbox', async () => {
+            var sbox = new vm.SandBox();
+            var m = await sbox.import('./esm_files/esm1.mjs', __dirname);
+            assert.deepEqual(m, { test: 4 });
+        });
+
+        it('cannot require esm in sandbox', () => {
+            var sbox = new vm.SandBox();
+            assert.throws(() => {
+                sbox.require('./esm_files/esm1.mjs', __dirname);
             });
         });
     });

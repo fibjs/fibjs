@@ -37,6 +37,7 @@ public:
     virtual result_t run(exlib::string fname) = 0;
     virtual result_t resolve(exlib::string id, exlib::string base, exlib::string& retVal) = 0;
     virtual result_t require(exlib::string id, exlib::string base, v8::Local<v8::Value>& retVal) = 0;
+    virtual result_t import(exlib::string id, exlib::string base, v8::Local<v8::Promise>& retVal) = 0;
     virtual result_t setModuleCompiler(exlib::string extname, v8::Local<v8::Function> compiler) = 0;
     virtual result_t get_global(v8::Local<v8::Object>& retVal) = 0;
     virtual result_t get_modules(v8::Local<v8::Object>& retVal) = 0;
@@ -57,6 +58,7 @@ public:
     static void s_run(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_resolve(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_require(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_import(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setModuleCompiler(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_global(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_modules(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -79,6 +81,7 @@ inline ClassInfo& SandBox_base::class_info()
         { "run", s_run, false, ClassData::ASYNC_SYNC },
         { "resolve", s_resolve, false, ClassData::ASYNC_SYNC },
         { "require", s_require, false, ClassData::ASYNC_SYNC },
+        { "import", s_import, false, ClassData::ASYNC_SYNC },
         { "setModuleCompiler", s_setModuleCompiler, false, ClassData::ASYNC_SYNC }
     };
 
@@ -292,6 +295,23 @@ inline void SandBox_base::s_require(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG(exlib::string, 1);
 
     hr = pInst->require(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void SandBox_base::s_import(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Promise> vr;
+
+    METHOD_INSTANCE(SandBox_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
+
+    hr = pInst->import(v0, v1, vr);
 
     METHOD_RETURN();
 }

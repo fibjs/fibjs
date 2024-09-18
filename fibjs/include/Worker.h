@@ -17,7 +17,7 @@ class Worker : public Worker_base {
 public:
     Worker(Worker* worker)
         : m_isolate(NULL)
-        , m_worker(worker)
+        , m_peer_worker(worker)
     {
     }
 
@@ -38,12 +38,11 @@ public:
     void start();
 
 private:
-    static result_t worker_fiber(Worker* worker);
     void _main();
 
 public:
     Isolate* m_isolate;
-    obj_ptr<Worker> m_worker;
+    obj_ptr<Worker> m_peer_worker;
     obj_ptr<WorkerMessage> m_workerData;
 };
 }

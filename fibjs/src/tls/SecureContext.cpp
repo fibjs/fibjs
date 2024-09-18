@@ -500,23 +500,24 @@ result_t SecureContext::set_sn_callback(v8::Local<v8::Object> options)
                 exlib::Event ready;
             } param = { this, key };
 
-            syncCall(this->holder(), [](Param* param) -> int {
+            holder()->sync([&param]() -> int {
                 JSFiber::EnterJsScope s;
-                Isolate* isolate = param->self->holder();
+                Isolate* isolate = param.self->holder();
                 v8::Local<v8::Context> context = isolate->context();
-                v8::Local<v8::Function> js_sn_resolver = param->self->m_sn_callback.Get(isolate->m_isolate);
-                v8::Local<v8::Value> argv[] = { isolate->NewString(param->key) };
+                v8::Local<v8::Function> js_sn_resolver = param.self->m_sn_callback.Get(isolate->m_isolate);
+                v8::Local<v8::Value> argv[] = { isolate->NewString(param.key) };
 
-                v8::Local<v8::Value> retVal = js_sn_resolver->Call(context, param->self->wrap(), 1, argv).FromMaybe(v8::Local<v8::Value>());
-                param->retVal = SecureContext_base::getInstance(retVal);
+                v8::Local<v8::Value> retVal = js_sn_resolver->Call(context, param.self->wrap(), 1, argv).FromMaybe(v8::Local<v8::Value>());
+                param.retVal = SecureContext_base::getInstance(retVal);
 
-                param->ready.set();
+                param.ready.set();
 
-                return 0; }, &param);
+                return 0;
+            });
 
             param.ready.wait();
 
-            if(!param.retVal)
+            if (!param.retVal)
                 return false;
 
             ctx = param.retVal.As<SecureContext>();

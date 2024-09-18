@@ -64,11 +64,6 @@ private:
         return 0;
     }
 
-    static result_t worker(_parallels* pThis)
-    {
-        return pThis->_worker();
-    }
-
     result_t run(v8::Local<v8::Array>& retVal)
     {
         int32_t i;
@@ -82,7 +77,9 @@ private:
         m_caller = JSFiber::current();
 
         for (i = 0; i < m_fibers; i++)
-            syncCall(m_isolate, worker, this);
+            m_isolate->sync([this]() -> int {
+                return _worker();
+            });
 
         m_event->wait();
 

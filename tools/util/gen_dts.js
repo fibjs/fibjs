@@ -101,18 +101,14 @@ function generalTypeMap(dataType, {
             info.type = dom.type.array('any')
             break;
         }
-        case 'Uint8Array': {
-            info.type = dom.create.namedTypeReference('Uint8Array');
-            break;
-        }
-        case 'ArrayBuffer': {
-            info.type = dom.create.namedTypeReference('ArrayBuffer');
-            break;
-        }
-        case 'TypedArray': {
-            info.type = dom.create.namedTypeReference('TypedArray');
-            break;
-        }
+        case 'Promise':
+        case 'Uint8Array':
+        case 'ArrayBuffer':
+        case 'TypedArray':
+            {
+                info.type = dom.create.namedTypeReference(dataType);
+                break;
+            }
         case 'Value':
         case 'Variant': {
             info.type = dom.type.any;
@@ -867,6 +863,7 @@ function gen_fibjs_import_dts({
     const topDeclarition = dom.create.namespace('FIBJS');
 
     const typedArrayType = dom.create.union([
+        dom.create.namedTypeReference('Promise'),
         dom.create.namedTypeReference('Int8Array'),
         dom.create.namedTypeReference('Uint8Array'),
         dom.create.namedTypeReference('Int16Array'),

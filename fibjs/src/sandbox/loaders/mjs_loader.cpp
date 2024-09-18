@@ -128,11 +128,8 @@ private:
     {
         result_t hr;
 
-        exlib::string pname;
-        path_base::dirname(base, pname);
-
         v8::Local<v8::Object> mod;
-        hr = m_sb->resolve(pname, id, data, SandBox::kESModule, mod);
+        hr = m_sb->resolve(base, id, data, SandBox::kESModule, mod);
         if (hr == CALL_E_FILE_NOT_FOUND)
             return CHECK_ERROR(Runtime::setError("Cannot find module '" + id + "' imported from " + base));
 
@@ -148,7 +145,7 @@ private:
                 return hr;
 
             if (type == SandBox::ModuleType::kCommonJS) {
-                hr = m_sb->installScript(id, data, mod);
+                hr = m_sb->installScript(id, data, mod, false);
                 if (hr < 0)
                     return hr;
             }
@@ -308,7 +305,11 @@ private:
             result_t hr;
             obj_ptr<Buffer_base> data;
             v8::Local<v8::Value> exports;
-            hr = resove_module(id, base, data, exports);
+
+            exlib::string pname;
+            path_base::dirname(base, pname);
+
+            hr = resove_module(id, pname, data, exports);
             if (hr < 0)
                 return hr;
 
@@ -483,6 +484,13 @@ void SandBox::ImportMetaObjectCallback(v8::Local<v8::Context> context, v8::Local
     meta->Set(context, isolate->NewString("filename"), isolate->NewString(sb->m_pending_module)).IsJust();
 }
 
+v8::MaybeLocal<v8::Promise> SandBox::async_import(exlib::string id, exlib::string base)
+{
+    Isolate* isolate = holder();
+    obj_ptr<esm_importer> importer = new esm_importer(this);
+    return importer->async_import(id, base);
+}
+
 v8::MaybeLocal<v8::Promise> SandBox::ImportModuleDynamically(v8::Local<v8::Context> context,
     v8::Local<v8::Data> host_defined_options, v8::Local<v8::Value> resource_name,
     v8::Local<v8::String> specifier, v8::Local<v8::FixedArray> import_assertions)
@@ -491,13 +499,19 @@ v8::MaybeLocal<v8::Promise> SandBox::ImportModuleDynamically(v8::Local<v8::Conte
     v8::Local<v8::PrimitiveArray> _host_options = host_defined_options.As<v8::PrimitiveArray>();
     uint32_t id = _host_options->Get(isolate->m_isolate, 0)->Uint32Value(context).FromMaybe(0);
 
-    obj_ptr<esm_importer> importer = new esm_importer(isolate->m_sandboxes.find(id)->second);
-    return importer->async_import(ToString(isolate->m_isolate, specifier), ToString(isolate->m_isolate, resource_name));
+    exlib::string base = ToString(isolate->m_isolate, resource_name);
+    exlib::string pname;
+    path_base::dirname(base, pname);
+
+    return isolate->m_sandboxes.find(id)->second->async_import(ToString(isolate->m_isolate, specifier), pname);
 }
 
 result_t mjs_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string name,
-    exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args)
+    exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args, bool in_cjs)
 {
+    if (!in_cjs)
+        return Runtime::setError("SandBox: ECMAScript modules are not supported in require; please use import instead.");
+
     obj_ptr<esm_importer> importer = new esm_importer(ctx->m_sb);
     return importer->require(name, src, args[2].As<v8::Object>());
 }

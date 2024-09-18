@@ -2,16 +2,22 @@
 
   所有的代码都运行在自己的沙箱中，全局的 require 会调用当前沙箱加载模块，沙箱会通过 require 传递给加载的沙箱。下面的示例创建一个沙箱，限制只允许访问全局基础模块中的 assert 模块，并添加 a 和 b 两个定制模块：
  ```JavaScript
- var vm = require('vm');
- var sbox = new vm.SandBox({
+  var vm = require('vm');
+  var sbox = new vm.SandBox({
    a: 100,
    b: 200,
    assert: require('assert')
- });
+  });
 
- var mod_in_sbox = sbox.require('./path/to/mod');
- ```
+  var mod_in_sbox = sbox.require('./path/to/mod');
+  ```
  需要注意，SandBox 不是防攻击的安全沙箱，SandBox 只是一个独立的运行空间，可以用来隔离不同的代码，避免相互干扰，但是不能防止恶意代码。
+ 如果要加载 ECMAScript 模块，可以使用以下代码：
+ ```JavaScript
+  import vm from 'vm';
+  var sbox = new vm.SandBox();
+  var mod = await sbox.import('./a.mjs', __dirname);
+  ```
  */
 interface SandBox : object
 {
@@ -91,12 +97,19 @@ interface SandBox : object
      */
     String resolve(String id, String base);
 
-    /*! @brief 加载一个模块并返回模块对象
+    /*! @brief 加载一个模块并返回模块对象，require 不能加载 ECMAScript 模块
      @param id 指定要加载的模块名称
      @param base 指定查找路径
      @return 返回加载的模块对象
      */
     Value require(String id, String base);
+
+    /*! @brief 异步加载一个模块并返回模块对象，可以加载 ECMAScript 模块，也可以加载 CommonJS 模块
+     @param id 指定要加载的模块名称
+     @param base 指定查找路径
+     @return 返回加载的模块对象
+     */
+    Promise import(String id, String base);
 
     /*! @brief 对指定的 extname 添加 compiler, extname 不可为系统内置扩展名 (包括 {'.js', '.json', '.jsc', '.wasm'}), compiler 需返回有效的 javascript 脚本.
 

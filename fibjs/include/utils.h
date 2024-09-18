@@ -76,7 +76,7 @@ typedef int32_t SOCKET;
 
 #include "qstring.h"
 
-#include <v8/include/v8.h>
+#include <v8.h>
 #include "v8_api.h"
 
 #include "obj_ptr.h"

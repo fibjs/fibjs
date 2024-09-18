@@ -48,51 +48,15 @@ static void async_promise(const v8::FunctionCallbackInfo<v8::Value>& args)
     if (result.IsEmpty())
         return;
 
-    v8::Local<v8::Promise> _promise;
-    v8::Local<v8::Function> _then;
-    v8::Local<v8::Function> _catch;
-
-    if (result->IsPromise()) {
-        _promise = result.As<v8::Promise>();
-    } else if (result->IsObject()) {
-        JSValue v;
-        v8::Local<v8::Object> o = result.As<v8::Object>();
-
-        v = o->Get(context, isolate->NewString("then"));
-        if (v->IsFunction())
-            _then = v.As<v8::Function>();
-
-        v = o->Get(context, isolate->NewString("catch"));
-        if (v->IsFunction())
-            _catch = v.As<v8::Function>();
-    }
-
-    if (_promise.IsEmpty() && (_then.IsEmpty() || _catch.IsEmpty())) {
-        ThrowError("not async function.");
+    if (!result->IsPromise()) {
+        args.GetReturnValue().Set(result);
         return;
     }
 
-    v8::Local<v8::Function> _then_func;
-    v8::Local<v8::Function> _catch_func;
-
-    _then_func = isolate->NewFunction("promise_then", promise_then, args[len - 1]);
-    if (_then_func.IsEmpty()) {
-        ThrowError("function alloc error.");
-        return;
-    }
-    _catch_func = isolate->NewFunction("promise_catch", promise_catch, args[len - 1]);
-    if (_catch_func.IsEmpty()) {
-        ThrowError("function alloc error.");
-        return;
-    }
-
-    if (!_promise.IsEmpty()) {
-        _promise->Then(isolate->context(), _then_func).IsEmpty();
-        _promise->Catch(isolate->context(), _catch_func).IsEmpty();
-    } else {
-        _then->Call(_then->GetCreationContextChecked(), result, 1, (v8::Local<v8::Value>*)&_then_func).IsEmpty();
-        _catch->Call(_catch->GetCreationContextChecked(), result, 1, (v8::Local<v8::Value>*)&_catch_func).IsEmpty();
-    }
+    v8::Local<v8::Promise> _promise = result.As<v8::Promise>();
+    _promise->Then(isolate->context(),
+        isolate->NewFunction("promise_then", promise_then, args[len - 1]),
+        isolate->NewFunction("promise_catch", promise_catch, args[len - 1]));
 }
 
 result_t util_base::callbackify(v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal)

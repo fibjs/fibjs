@@ -13,10 +13,13 @@
 #include "LruCache.h"
 #include "utf8.h"
 #include <unordered_map>
+#include <functional>
 
 struct uv_loop_s;
 
 namespace fibjs {
+
+extern v8::Platform* g_default_platform;
 
 v8::Local<v8::String> NewString(v8::Isolate* isolate, const char* data, ssize_t length = -1);
 v8::Local<v8::String> NewString(v8::Isolate* isolate, exlib::string str);
@@ -117,8 +120,19 @@ public:
         return true;
     }
 
+public:
+    void sync(std::function<int(void)> func);
+    void post_task(exlib::linkitem* task)
+    {
+        Ref();
+        m_jobs.putTail(task);
+        m_sem.post();
+    }
+
+public:
     void RequestInterrupt(v8::InterruptCallback callback, void* data);
     void RunMicrotasks();
+    void PerformMicrotaskCheckpoint();
 
     v8::Local<v8::String> NewString(const char* data, int length = -1)
     {
@@ -186,12 +200,10 @@ public:
     template <typename Fn>
     void SetImmediate(Fn&& cb, int32_t flags = 1)
     {
-        syncCall(
-            this, [cb](Isolate* isolate) {
-                cb(isolate);
-                return 0;
-            },
-            this);
+        sync([this, cb]() -> int {
+            cb(this);
+            return 0;
+        });
     }
 
     void ThrowError(const char* errmsg)
@@ -278,7 +290,7 @@ public:
     obj_ptr<Stream_base> m_channel;
     int32_t m_ipc_mode;
 
-    obj_ptr<Worker_base> m_worker;
+    obj_ptr<Worker_base> m_parent_worker;
 
     exlib::List<exlib::linkitem> m_fibers;
 

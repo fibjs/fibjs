@@ -19,7 +19,7 @@ const char* SandBox::module_args = "(function(exports,require,module,__filename,
 const char* SandBox::base_args = "(function(exports,require,module,__filename,__dirname,run";
 
 result_t SandBox::ExtLoader::run_script(Context* ctx, Buffer_base* src, exlib::string name,
-    std::vector<arg>& extarg, bool is_main)
+    std::vector<arg>& extarg, bool is_main, bool in_cjs)
 {
     Isolate* isolate = ctx->m_sb->holder();
     v8::Local<v8::Context> context = isolate->context();
@@ -36,12 +36,11 @@ result_t SandBox::ExtLoader::run_script(Context* ctx, Buffer_base* src, exlib::s
     if (is_main)
         ctx->m_fnRequest->Set(context, isolate->NewString("main"), module).IsJust();
 
-    return run_module(ctx, src, name, module, exports, extarg);
+    return run_module(ctx, src, name, module, exports, extarg, in_cjs);
 }
 
 result_t SandBox::ExtLoader::run_module(Context* ctx, Buffer_base* src, exlib::string name,
-    v8::Local<v8::Object> module, v8::Local<v8::Object> exports,
-    std::vector<arg>& extarg)
+    v8::Local<v8::Object> module, v8::Local<v8::Object> exports, std::vector<arg>& extarg, bool in_cjs)
 {
     Isolate* isolate = ctx->m_sb->holder();
 
@@ -70,11 +69,11 @@ result_t SandBox::ExtLoader::run_module(Context* ctx, Buffer_base* src, exlib::s
 
     arg_names.append("){", 2);
 
-    return run(ctx, src, name, arg_names, args);
+    return run(ctx, src, name, arg_names, args, in_cjs);
 }
 
 result_t SandBox::ExtLoader::run(Context* ctx, Buffer_base* src, exlib::string name,
-    exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args)
+    exlib::string arg_names, std::vector<v8::Local<v8::Value>>& args, bool in_cjs)
 {
     result_t hr;
     v8::Local<v8::Script> script;
