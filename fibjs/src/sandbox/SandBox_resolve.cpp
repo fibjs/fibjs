@@ -333,12 +333,16 @@ result_t SandBox::resolvePackage(v8::Local<v8::Object> mods, exlib::string modul
 
 result_t SandBox::resolveModuleType(exlib::string fname, ModuleType& retVal)
 {
-    if (fname.length() > 4 && !qstricmp(fname.c_str() + fname.length() - 4, ".mjs")) {
+    if (fname.length() > 4
+        && (!qstricmp(fname.c_str() + fname.length() - 4, ".mjs")
+            || !qstricmp(fname.c_str() + fname.length() - 4, ".mts"))) {
         retVal = kESModule;
         return 0;
     }
 
-    if (fname.length() < 3 || qstricmp(fname.c_str() + fname.length() - 3, ".js")) {
+    if (fname.length() < 3
+        || (qstricmp(fname.c_str() + fname.length() - 3, ".js")
+            && qstricmp(fname.c_str() + fname.length() - 3, ".ts"))) {
         retVal = kCommonJS;
         return 0;
     }

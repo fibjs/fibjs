@@ -6,10 +6,8 @@
  */
 
 #include "object.h"
-#include "path.h"
 #include "SandBox.h"
 #include "loaders.h"
-#include "ifs/util.h"
 
 namespace fibjs {
 
