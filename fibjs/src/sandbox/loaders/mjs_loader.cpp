@@ -12,9 +12,7 @@
 #include "Buffer.h"
 #include "loaders.h"
 #include "ifs/util.h"
-
 namespace fibjs {
-
 class esm_importer : public object_base {
 private:
     struct module_data {
@@ -33,6 +31,24 @@ public:
     static esm_importer* getInstance(v8::Local<v8::Value> o)
     {
         return (esm_importer*)object_base::getInstance(o);
+    }
+
+    static bool is_typescript(exlib::string id)
+    {
+        if (id.length() < 3)
+            return false;
+
+        if (!qstrcmp(id.c_str() + id.length() - 3, ".ts"))
+            return true;
+
+        if (id.length() < 4)
+            return false;
+
+        if (!qstrcmp(id.c_str() + id.length() - 4, ".cts")
+            || !qstrcmp(id.c_str() + id.length() - 4, ".mts"))
+            return true;
+
+        return false;
     }
 
 public:
@@ -262,6 +278,15 @@ private:
                 pargs->Set(m_isolate->m_isolate, 0, v8::Number::New(m_isolate->m_isolate, m_sb->m_id));
                 v8::ScriptOrigin so_origin(m_isolate->NewString(id), 0, 0, false,
                     -1, v8::Local<v8::Value>(), false, false, true, pargs);
+
+                obj_ptr<Buffer_base> data;
+                if (is_typescript(id)) {
+                    result_t hr = cts_Loader::ts_compile(m_isolate, data_, data);
+                    if (hr < 0)
+                        return v8::Local<v8::Module>();
+
+                    data_ = data.As<Buffer>();
+                }
 
                 v8::ScriptCompiler::Source source(m_isolate->NewString((const char*)data_->data(), data_->length()), so_origin);
                 module = v8::ScriptCompiler::CompileModule(m_isolate->m_isolate, &source).FromMaybe(v8::Local<v8::Module>());

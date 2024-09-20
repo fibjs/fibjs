@@ -20,9 +20,9 @@ result_t js_Loader::run(SandBox::Context* ctx, Buffer_base* src, exlib::string n
     if (hr)
         return hr;
 
-    if (type == SandBox::ModuleType::kCommonJS)
+    if (type == SandBox::kCommonJS)
         return m_cjs.run(ctx, src, name, arg_names, args, in_cjs);
-    else if (type == SandBox::ModuleType::kESModule)
+    else if (type == SandBox::kESModule)
         return m_mjs.run(ctx, src, name, arg_names, args, in_cjs);
 
     return CHECK_ERROR(Runtime::setError("SandBox: Invalid file format."));

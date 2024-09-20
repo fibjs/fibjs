@@ -268,6 +268,8 @@ public:
     v8::Global<v8::Context> m_context;
     v8::Global<v8::Object> m_env;
 
+    v8::Global<v8::Function> m_amaro;
+
     v8::Global<v8::Object> m_AssertionError;
 
     v8::Global<v8::ObjectTemplate> m_global_template;
