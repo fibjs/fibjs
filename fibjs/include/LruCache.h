@@ -166,7 +166,7 @@ public:
     }
 
 private:
-    std::unordered_map<exlib::string, obj_ptr<CacheItem>>::iterator find_map(exlib::string key)
+    typename std::unordered_map<exlib::string, obj_ptr<CacheItem>>::iterator find_map(exlib::string key)
     {
         auto it = m_map.find(key);
         if (it == m_map.end() || m_updateTimeout <= 0)
