@@ -1,6 +1,12 @@
 var test = require("test");
 test.setup();
 
+async function sleep(ms) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
+
 describe('assert', () => {
     it('assert', () => {
         var foo = 'bar';
@@ -498,6 +504,13 @@ describe('assert', () => {
         assert.throws(() => {
             assert.throws(() => { });
         }, "expected [Function] to throw an error");
+    });
+
+    it("throws async", async () => {
+        await sleep(1);
+        assert.throws(async () => {
+            throw "error";
+        });
     });
 
     it('doesNotThrow', () => {

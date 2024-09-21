@@ -37,73 +37,28 @@ intptr_t RunMicrotaskSize(v8::Isolate* isolate)
 
 void Isolate::PerformMicrotaskCheckpoint()
 {
-    class NativeContextScope {
-    public:
-        NativeContextScope(i::Tagged<i::NativeContext> context)
-            : isolate_(context->GetIsolate())
-        {
-            i::HandleScopeImplementer* impl = isolate_->handle_scope_implementer();
-            impl->EnterContext(context);
-            impl->SaveContext(isolate_->context());
-            isolate_->set_context(context);
-        }
-
-        ~NativeContextScope()
-        {
-            i::HandleScopeImplementer* impl = isolate_->handle_scope_implementer();
-            impl->LeaveContext();
-            isolate_->set_context(impl->RestoreContext());
-        }
-
-    public:
-        i::Isolate* isolate_;
-    };
-
     i::Isolate* _isolate = reinterpret_cast<i::Isolate*>(m_isolate);
-
     i::MicrotaskQueue* queue = _isolate->default_microtask_queue();
     if (queue->size_ > 0) {
-        intptr_t size1 = 0;
-
         for (intptr_t i = 0, p = 0; i < queue->size_; i++) {
             i::Address _task = queue->ring_buffer_[(i + queue->start_) % queue->capacity_];
-            int instance_type = i::Internals::GetInstanceType(_task);
+            sync([addr = api_internal::GlobalizeReference(_isolate, _task), _isolate]() -> int {
+                JSFiber::EnterJsScope s;
 
-            if (instance_type == i::PROMISE_REJECT_REACTION_JOB_TASK_TYPE
-                || instance_type == i::PROMISE_FULFILL_REACTION_JOB_TASK_TYPE) {
-                sync([addr = api_internal::GlobalizeReference(_isolate, _task)]() -> int {
-                    i::Address _task = *addr;
-                    api_internal::DisposeGlobal(addr);
+                std::unique_ptr<i::MicrotaskQueue> queue = i::MicrotaskQueue::New(_isolate);
+                queue->EnqueueMicrotask(i::Cast<i::Microtask>(i::Tagged<i::Object>(*addr)));
 
-                    auto _react_task = i::Cast<i::PromiseReactionJobTask>(i::Tagged<i::Object>(_task));
-                    auto context = _react_task->context()->native_context();
+                std::optional<v8::MicrotasksScope> microtasks_scope;
+                queue->RunMicrotasks(_isolate);
+                _isolate->ClearKeptObjects();
 
-                    NativeContextScope scope(context);
-                    JSFiber::EnterJsScope s;
+                api_internal::DisposeGlobal(addr);
 
-                    auto handler = i::direct_handle(_react_task->handler(), scope.isolate_);
-                    auto argument = i::direct_handle(_react_task->argument(), scope.isolate_);
-                    auto promise = i::direct_handle(_react_task->promise_or_capability(), scope.isolate_);
-
-                    if (i::IsUndefined(*handler)) {
-                        if (i::Internals::GetInstanceType(_task) == i::PROMISE_REJECT_REACTION_JOB_TASK_TYPE)
-                            i::JSPromise::Reject(i::Cast<i::JSPromise>(promise), argument);
-                        else
-                            i::JSPromise::Resolve(i::Cast<i::JSPromise>(promise), argument);
-                    } else
-                        i::Execution::Call(scope.isolate_, handler, promise, 1, &argument);
-
-                    return 0;
-                });
-            } else {
-                queue->ring_buffer_[(p++ + queue->start_) % queue->capacity_] = _task;
-                size1++;
-            }
+                return 0;
+            });
         }
 
-        queue->size_ = size1;
-        if (queue->size_)
-            m_isolate->PerformMicrotaskCheckpoint();
+        queue->size_ = 0;
     }
 }
 
@@ -115,8 +70,6 @@ void Isolate::RunMicrotasks()
             m_intask = true;
             sync([this]() -> int {
                 {
-                    JSFiber::EnterJsScope s;
-
                     PerformMicrotaskCheckpoint();
                     while (v8::platform::PumpMessageLoop(g_default_platform, m_isolate,
                         m_isolate->HasPendingBackgroundTasks()

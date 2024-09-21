@@ -8,7 +8,7 @@ var child_process = require('child_process');
 describe('promise', () => {
     function t(f, t) {
         var p = child_process.spawn(process.execPath, [path.join(__dirname, 'promise', f)]);
-        var d = p.stderr.read();
+        var d = p.stderr.read() || p.stdout.read();
         var t1 = d ? d.toString() : "";
 
         for (var i = 0; i < 5; i++)
@@ -23,11 +23,11 @@ describe('promise', () => {
     }
 
     it("error in promise.then", () => {
-        t('promise1.js', '/promise/promise1.js:2:11\n    throw new Error(1000);\n          ^\nError: 1000\n    at Promise.<anonymous> (/promise/promise1.js:2:11)\n');
+        t('promise1.js', 'Error: 1000\n    at /promise/promise1.js:2:11\n');
     });
 
     it("error in promise.then with catch", () => {
-        t('promise2.js', '/promise/promise2.js:2:11\n    throw new Error(1000);\n          ^\nError: 1000\n    at Promise.<anonymous> (/promise/promise2.js:2:11)\n');
+        t('promise2.js', 'catch promise error.\n');
     });
 
     it("error in promise", () => {
@@ -35,11 +35,11 @@ describe('promise', () => {
     });
 
     it("error in promise with catch", () => {
-        t('promise4.js', '');
+        t('promise4.js', 'catch promise error.\n');
     });
 
     it("error in promise with reject", () => {
-        t('promise5.js', '');
+        t('promise5.js', 'catch promise error.\n');
     });
 
     xit("error in async function", () => {
