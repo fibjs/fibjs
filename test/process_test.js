@@ -150,6 +150,8 @@ describe('process', () => {
 
         assert.equal(warnings.length, 2);
         assert.equal(warnings[1], 200);
+
+        process.off('warning');
     });
 
     it("cpuUsage", () => {
