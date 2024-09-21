@@ -268,13 +268,31 @@ describe('tls', () => {
                 assert.equal(ctx.getSNIContext("test2").cert.subject, 'CN=test2');
             });
 
-            it('timeout', () => {
+            it('SNICacheIdleTimeout', () => {
+                var ctx = tls.createSecureContext({
+                    "SNICacheIdleTimeout": 1
+                }, true);
+                ctx.setSNIContext("test", sni_resolver("test"));
+
+                for (var i = 0; i < 10; i++) {
+                    assert.notEqual(ctx.getSNIContext("test"), undefined);
+                    coroutine.sleep(150);
+                }
+
+                assert.notEqual(ctx.getSNIContext("test"), undefined);
+            });
+
+            it('SNICacheTimeout', () => {
                 var ctx = tls.createSecureContext({
                     "SNICacheTimeout": 1
                 }, true);
                 ctx.setSNIContext("test", sni_resolver("test"));
 
-                coroutine.sleep(1500);
+                for (var i = 0; i < 10; i++) {
+                    ctx.getSNIContext("test");
+                    coroutine.sleep(150);
+                }
+
                 assert.equal(ctx.getSNIContext("test"), undefined);
             });
 

@@ -27,7 +27,8 @@ module tls
      - sessionTimeout: 经过多少秒后，服务器创建的 TLS 会话将不再可恢复。默认值: 300。
      - SNIResolver: 用于在 SNI 回调中解析服务器名称。函数签名为 function(servername)，其中 servername 是客户端发送的服务器名称指示符。返回值是 SecureContext 对象，如果不能解析，则返回 null。
      - SNICacheSize: SNI 上下文缓存的大小。默认值: 1024。
-     - SNICacheTimeout: SNI 上下文缓存的超时时间（以秒为单位）。默认值: 300。如果设置为 0 或者负数，则缓存将永远不会过期。
+     - SNICacheTimeout: SNI 上下文缓存的超时时间（以秒为单位）。默认值: 300。如果设置为 0 或者负数，则缓存将不会过期。
+     - SNICacheIdleTimeout: SNI 空闲上下文缓存的超时时间（以秒为单位）。默认值: 300。如果设置为 0 或者负数，则空闲缓存将不会过期。
 
      @param options 创建安全上下文的选项
      @param isServer 是否是服务器模式，默认为 false

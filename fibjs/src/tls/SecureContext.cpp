@@ -478,12 +478,17 @@ result_t SecureContext::set_sn_callback(v8::Local<v8::Object> options)
     if (hr != CALL_E_PARAMNOTOPTIONAL)
         m_sniContexts.resize(SNICacheSize);
 
-    int64_t SNICacheTimeout;
+    int64_t SNICacheIdleTimeout = 300;
+    hr = GetConfigValue(isolate, options, "SNICacheIdleTimeout", SNICacheIdleTimeout);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return Runtime::setError("SecureContext: SNICacheIdleTimeout must be a valid number.");
+
+    int64_t SNICacheTimeout = 300;
     hr = GetConfigValue(isolate, options, "SNICacheTimeout", SNICacheTimeout);
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return Runtime::setError("SecureContext: SNICacheTimeout must be a valid number.");
-    if (hr != CALL_E_PARAMNOTOPTIONAL)
-        m_sniContexts.set_timeout(SNICacheTimeout);
+
+    m_sniContexts.set_timeout(SNICacheIdleTimeout, SNICacheTimeout);
 
     v8::Local<v8::Function> js_sn_resolver;
     hr = GetConfigValue(isolate, options, "SNIResolver", js_sn_resolver);

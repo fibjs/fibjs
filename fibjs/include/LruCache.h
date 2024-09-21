@@ -27,6 +27,7 @@ private:
         typename std::unordered_map<exlib::string, obj_ptr<CacheItem>>::iterator m_map_iter;
         typename std::list<CacheItem*>::iterator m_used_iter;
 
+        std::chrono::time_point<std::chrono::system_clock> m_visited;
         std::chrono::time_point<std::chrono::system_clock> m_updated;
         typename std::list<CacheItem*>::iterator m_expired_iter;
     };
@@ -35,16 +36,18 @@ public:
     typedef std::function<bool(exlib::string&, T&)> Resolver;
 
 public:
-    LruCache(int32_t size = 1024, int64_t timeout = 300)
+    LruCache(int32_t size = 1024, int64_t idleTimeout = 300, int64_t updateTimeout = 300)
         : m_size(size)
-        , m_timeout(timeout)
+        , m_idleTimeout(idleTimeout > 0 ? idleTimeout : updateTimeout)
+        , m_updateTimeout(updateTimeout)
     {
     }
 
-    LruCache(Resolver resolver, int32_t size = 1024, int64_t timeout = 300)
+    LruCache(Resolver resolver, int32_t size = 1024, int64_t idleTimeout = 300, int64_t updateTimeout = 300)
         : m_resolver(resolver)
         , m_size(size)
-        , m_timeout(timeout)
+        , m_idleTimeout(idleTimeout > 0 ? idleTimeout : updateTimeout)
+        , m_updateTimeout(updateTimeout)
     {
     }
 
@@ -54,7 +57,7 @@ public:
         m_lock.lock();
 
         obj_ptr<CacheItem> item;
-        find_item(key, item);
+        find_item(key, item, true);
         item->m_value = value;
         item->m_ready.set();
 
@@ -75,7 +78,7 @@ public:
         clean_expired();
 
         if (resolver) {
-            bool alloced = find_item(key, item);
+            bool alloced = find_item(key, item, true);
             if (alloced) {
                 m_lock.unlock();
 
@@ -95,18 +98,11 @@ public:
                 return false;
             }
         } else {
-            auto it = m_map.find(key);
-            if (it == m_map.end()) {
+            find_item(key, item, false);
+            if (item == nullptr) {
                 m_lock.unlock();
                 return false;
             }
-
-            item = it->second;
-        }
-
-        if (item->m_used_iter != m_used.begin()) {
-            m_used.erase(item->m_used_iter);
-            item->m_used_iter = m_used.insert(m_used.begin(), item);
         }
 
         m_lock.unlock();
@@ -124,7 +120,7 @@ public:
     {
         m_lock.lock();
 
-        auto it = m_map.find(key);
+        auto it = find_map(key);
         if (it == m_map.end()) {
             m_lock.unlock();
             return false;
@@ -152,10 +148,11 @@ public:
         m_lock.unlock();
     }
 
-    void set_timeout(int64_t timeout)
+    void set_timeout(int64_t idleTimeout, int64_t updateTimeout)
     {
         m_lock.lock();
-        m_timeout = timeout;
+        m_idleTimeout = idleTimeout > 0 ? idleTimeout : updateTimeout;
+        m_updateTimeout = updateTimeout;
         clean_expired();
         m_lock.unlock();
     }
@@ -169,6 +166,22 @@ public:
     }
 
 private:
+    std::unordered_map<exlib::string, obj_ptr<CacheItem>>::iterator find_map(exlib::string key)
+    {
+        auto it = m_map.find(key);
+        if (it == m_map.end() || m_updateTimeout <= 0)
+            return it;
+
+        CacheItem* item = it->second;
+        std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - item->m_updated).count() >= m_updateTimeout * 1000) {
+            erase_item(item);
+            return m_map.end();
+        }
+
+        return it;
+    }
+
     void erase_item(CacheItem* item)
     {
         if (item->m_map_iter != m_map.end()) {
@@ -180,9 +193,9 @@ private:
         }
     }
 
-    bool find_item(exlib::string key, obj_ptr<CacheItem>& item)
+    bool find_item(exlib::string key, obj_ptr<CacheItem>& item, bool alloc)
     {
-        auto itr = m_map.find(key);
+        auto itr = find_map(key);
         if (itr != m_map.end()) {
             item = itr->second;
 
@@ -191,7 +204,7 @@ private:
                 item->m_used_iter = m_used.insert(m_used.begin(), item);
             }
 
-            item->m_updated = std::chrono::system_clock::now();
+            item->m_visited = std::chrono::system_clock::now();
             if (item->m_expired_iter != m_expired.begin()) {
                 m_expired.erase(item->m_expired_iter);
                 item->m_expired_iter = m_expired.insert(m_expired.begin(), item);
@@ -200,12 +213,15 @@ private:
             return false;
         }
 
+        if (!alloc)
+            return false;
+
         item = new CacheItem();
 
         item->m_map_iter = m_map.emplace(key, item).first;
         item->m_used_iter = m_used.insert(m_used.begin(), item);
 
-        item->m_updated = std::chrono::system_clock::now();
+        item->m_updated = item->m_visited = std::chrono::system_clock::now();
         item->m_expired_iter = m_expired.insert(m_expired.begin(), item);
 
         clean_used();
@@ -221,13 +237,13 @@ private:
 
     void clean_expired()
     {
-        if (m_timeout <= 0)
+        if (m_idleTimeout <= 0)
             return;
 
         std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
         while (!m_expired.empty()) {
             CacheItem* item = m_expired.back();
-            if (std::chrono::duration_cast<std::chrono::milliseconds>(now - item->m_updated).count() < m_timeout * 1000)
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(now - item->m_visited).count() < m_idleTimeout * 1000)
                 break;
 
             erase_item(item);
@@ -241,7 +257,8 @@ private:
     std::list<CacheItem*> m_expired;
 
     int32_t m_size;
-    int64_t m_timeout;
+    int64_t m_idleTimeout;
+    int64_t m_updateTimeout;
 
     exlib::spinlock m_lock;
 };
