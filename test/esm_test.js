@@ -163,15 +163,18 @@ describe('ECMAScript modules', () => {
 
         it("require a pendding module", async () => {
             var m1, m2;
+            var s = 0;
 
             ev.clear();
 
             setImmediate(() => {
+                s = 1;
                 m1 = require('./esm_files/esm10.mjs');
                 ev.set();
             });
 
-            coroutine.sleep();
+            while (!s)
+                coroutine.sleep();
 
             ev.set();
             ev.clear();
