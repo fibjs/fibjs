@@ -138,6 +138,8 @@ Isolate::Isolate(exlib::string jsFilename, exlib::string jsCode)
     , m_exitCode(0)
     , m_enable_FileSystem(true)
     , m_safe_buffer(false)
+    , m_file_cache(1024, 30, 30)
+    , m_realpath_cache(1024, 30, 30)
 {
     s_isolates.putTail(this);
 
