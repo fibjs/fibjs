@@ -148,6 +148,7 @@ void SandBox::attachBuffer()
     v8::Local<v8::Value> _buffer = context->GetEmbedderData(kBufferClassIndex);
 
     InstallModule("buffer", _buffer);
+    InstallModule("fibjs:buffer", _buffer);
     InstallModule("node:buffer", _buffer);
 }
 
@@ -156,6 +157,7 @@ void SandBox::installBuffer()
     v8::Local<v8::Value> _buffer = Buffer::load_module();
 
     InstallModule("buffer", _buffer);
+    InstallModule("fibjs:buffer", _buffer);
     InstallModule("node:buffer", _buffer);
 }
 
@@ -170,11 +172,13 @@ result_t SandBox::addBuiltinModules()
         exlib::string name = pModule->name();
         v8::Local<v8::Object> mod = pModule->getModule(isolate);
         InstallModule(name, mod);
+        InstallModule("fibjs:" + name, mod);
         InstallModule("node:" + name, mod);
 
         v8::Local<v8::Value> promises = mod->Get(context, isolate->NewString("promises")).FromMaybe(v8::Local<v8::Value>());
         if (!promises.IsEmpty() && promises->IsObject()) {
             InstallModule(name + PATH_SLASH + "promises", promises.As<v8::Object>());
+            InstallModule("fibjs:" + name + PATH_SLASH + "promises", promises.As<v8::Object>());
             InstallModule("node:" + name + PATH_SLASH + "promises", promises.As<v8::Object>());
         }
 
