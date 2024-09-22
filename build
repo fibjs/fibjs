@@ -31,13 +31,15 @@ for arg in "$@"; do
 done
 set -- "${new_args[@]}"
 
-if [ $dev == 0 ]; then
+if [ $dev == 0 ] && [ -z $USE_VENDER_DIST ]; then
 	export USE_VENDER_DIST=1
 	git submodule update --init --recursive
+elif [ ! -z $VENDER_TAG ]; then
+	export USE_VENDER_DIST=1
 fi
 
 if [ -f "${WORK_ROOT}/vender/build" ]; then
-	if [ -z $USE_VENDER_DIST ]; then
+	if [ "$USE_VENDER_DIST" != "1" ]; then
 		cd "${WORK_ROOT}/vender"
 		bash build "$@"
 		if [ $? != 0 ]; then
