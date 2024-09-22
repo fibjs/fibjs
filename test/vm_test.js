@@ -668,8 +668,10 @@ describe("vm", () => {
 
             assert.equal(mods["buffer"], Buffer);
             assert.equal(mods["node:buffer"], Buffer);
+            assert.equal(mods["fibjs:buffer"], Buffer);
             delete mods["buffer"];
             delete mods["node:buffer"];
+            delete mods["fibjs:buffer"];
 
             return mods;
         }
@@ -918,36 +920,40 @@ describe("vm", () => {
         assert.equal(no1, test_util.countObject('Event'));
     });
 
-    describe(`all builtin modules aliases with prefix node:`, () => {
+    describe(`all builtin modules aliases with prefix fibjs: / node:`, () => {
         const builtins = require('util').buildInfo().builtins;
 
         builtins.forEach((mod) => {
-            it(`topLevel: could require('${mod}'), could require('node:${mod}')`, () => {
+            it(`topLevel: could require('${mod}'), could require('fibjs:${mod}'), could require('node:${mod}')`, () => {
                 var m = require(mod);
+                assert.equal(require(`fibjs:${mod}`), m);
                 assert.equal(require(`node:${mod}`), m);
             });
 
-            it(`Sandbox: could require('${mod}'), could require('node:${mod}')`, () => {
+            it(`Sandbox: could require('${mod}'), could require('fibjs:${mod}'), could require('node:${mod}')`, () => {
                 const sandbox = new vm.SandBox({});
                 sandbox.addBuiltinModules();
 
                 var m = sandbox.require(mod, __dirname);
+                assert.equal(sandbox.require(`fibjs:${mod}`, __dirname), m);
                 assert.equal(sandbox.require(`node:${mod}`, __dirname), m);
             });
 
             if (require(mod).promises) {
-                it(`topLevel: could require('node:${mod}/promises')`, () => {
+                it(`topLevel: could require('fibjs:${mod}/promises'), require('node:${mod}/promises')`, () => {
                     var m = require(mod);
                     assert.equal(require(`${mod}/promises`), m.promises);
+                    assert.equal(require(`fibjs:${mod}/promises`), m.promises);
                     assert.equal(require(`node:${mod}/promises`), m.promises);
                 });
 
-                it(`Sandbox: could require('node:${mod}/promises')`, () => {
+                it(`Sandbox: could require('fibjs:${mod}/promises'), require('node:${mod}/promises')`, () => {
                     const sandbox = new vm.SandBox({});
                     sandbox.addBuiltinModules();
 
                     var m = sandbox.require(mod, __dirname);
                     assert.equal(sandbox.require(`${mod}/promises`, __dirname), m.promises);
+                    assert.equal(sandbox.require(`fibjs:${mod}/promises`, __dirname), m.promises);
                     assert.equal(sandbox.require(`node:${mod}/promises`, __dirname), m.promises);
                 });
             }
