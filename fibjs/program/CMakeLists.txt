@@ -8,39 +8,51 @@ include(${CMAKE_CURRENT_LIST_DIR}/../../vender/build_tools/cmake/option.cmake)
 
 set(VENDER_PATH ${BIN_PATH})
 
-if(NOT "$ENV{USE_VENDER_DIST}" STREQUAL "")
-	file(READ ${CMAKE_CURRENT_LIST_DIR}/../../vender/.git GIT_DIR)
-	string(REPLACE "gitdir: " "" GIT_DIR ${GIT_DIR})
-	string(REPLACE "\n" "" GIT_DIR ${GIT_DIR})
-	set(GIT_DIR "${CMAKE_CURRENT_LIST_DIR}/../${GIT_DIR}")
-
-	file(READ "${GIT_DIR}/HEAD" REF_HEAD)
-	if("${REF_HEAD}" MATCHES "ref: ([^\n\r]*)")
-		file(READ "${GIT_DIR}/${CMAKE_MATCH_1}" REF_HEAD)
-	endif()
-	string(STRIP "${REF_HEAD}" REF_HEAD)
-
-	file(READ ${GIT_DIR}/packed-refs GIT_TAGS)
-	string(REGEX MATCH "${REF_HEAD} refs/tags/([^\n\r]+)" MATCHED_LINE ${GIT_TAGS})
-
-	if(NOT "${MATCHED_LINE}" STREQUAL "")
-		string(REGEX REPLACE "${REF_HEAD} refs/tags/([^\n\r]+)" "\\1" VENDER_TAG ${MATCHED_LINE})
-	endif()
-
+if("$ENV{USE_VENDER_DIST}" STREQUAL "1")
 	if("${VENDER_TAG}" STREQUAL "")
-		file(GLOB ALL_TAGS "${GIT_DIR}/refs/tags/*")
-		foreach(FILE ${ALL_TAGS})
-			file(READ ${FILE} CONTENT)
-			string(STRIP "${CONTENT}" CONTENT)
-			if("${CONTENT}" STREQUAL "${REF_HEAD}")
-				get_filename_component(VENDER_TAG ${FILE} NAME)
-				break()
+		if(NOT "$ENV{VENDER_TAG}" STREQUAL "")
+			message(NOTICE "env vender tag: $ENV{VENDER_TAG}\n")
+			set(VENDER_TAG $ENV{VENDER_TAG})
+		else()
+			message(NOTICE "no vender tag specified, try to find the latest tag\n")
+			file(READ ${CMAKE_CURRENT_LIST_DIR}/../../vender/.git GIT_DIR)
+			string(REPLACE "gitdir: " "" GIT_DIR ${GIT_DIR})
+			string(REPLACE "\n" "" GIT_DIR ${GIT_DIR})
+			set(GIT_DIR "${CMAKE_CURRENT_LIST_DIR}/../${GIT_DIR}")
+
+			file(READ "${GIT_DIR}/HEAD" REF_HEAD)
+
+			if("${REF_HEAD}" MATCHES "ref: ([^\n\r]*)")
+				file(READ "${GIT_DIR}/${CMAKE_MATCH_1}" REF_HEAD)
 			endif()
-		endforeach()
+
+			string(STRIP "${REF_HEAD}" REF_HEAD)
+
+			file(READ ${GIT_DIR}/packed-refs GIT_TAGS)
+			string(REGEX MATCH "${REF_HEAD} refs/tags/([^\n\r]+)" MATCHED_LINE ${GIT_TAGS})
+
+			if(NOT "${MATCHED_LINE}" STREQUAL "")
+				string(REGEX REPLACE "${REF_HEAD} refs/tags/([^\n\r]+)" "\\1" VENDER_TAG ${MATCHED_LINE})
+			endif()
+
+			file(GLOB ALL_TAGS "${GIT_DIR}/refs/tags/*")
+
+			foreach(FILE ${ALL_TAGS})
+				file(READ ${FILE} CONTENT)
+				string(STRIP "${CONTENT}" CONTENT)
+
+				if("${CONTENT}" STREQUAL "${REF_HEAD}")
+					get_filename_component(VENDER_TAG ${FILE} NAME)
+					break()
+				endif()
+			endforeach()
+		endif()
 	endif()
 
 	if("${VENDER_TAG}" STREQUAL "")
 		message(FATAL_ERROR "cannot find vender tag")
+	else()
+		message("using vender tag: ${VENDER_TAG}\n")
 	endif()
 
 	include(FetchContent)
@@ -66,14 +78,15 @@ if(NOT "$ENV{USE_VENDER_DIST}" STREQUAL "")
 	)
 
 	FetchContent_GetProperties(vender)
-	if (NOT vender_POPULATED)
-  		FetchContent_Populate(vender)
-	endif ()
+
+	if(NOT vender_POPULATED)
+		FetchContent_Populate(vender)
+	endif()
 
 	file(COPY ${vender_SOURCE_DIR}/${BUILD_OS}_${BUILD_ARCH}_${BUILD_TYPE}/ DESTINATION ${VENDER_PATH})
 endif()
 
-if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
+if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 	if(NOT MSVC)
 		# add quote to all paths in CMAKE_RC_COMPILE_OBJECT to make it robustic on Windows.
 		#
@@ -109,6 +122,7 @@ if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 endif()
 
 include(${CMAKE_CURRENT_LIST_DIR}/../../vender/libs.cmake)
+
 foreach(lib ${libs})
 	target_link_libraries(${name} "${VENDER_PATH}/${CMAKE_STATIC_LIBRARY_PREFIX}${lib}${CMAKE_STATIC_LIBRARY_SUFFIX}")
 
