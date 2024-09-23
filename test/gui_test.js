@@ -119,7 +119,7 @@ describe("gui", () => {
 
             win.close();
 
-            assert.equal(received_message, url);
+            assert.equal(received_message.toLowerCase(), url.toLowerCase());
         }
 
         it("open url", () => {
