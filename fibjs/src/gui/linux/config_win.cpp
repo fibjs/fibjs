@@ -8,9 +8,6 @@
 #include <exlib/include/osconfig.h>
 #if defined(Linux) && defined(OS_DESKTOP)
 
-#include <glib.h>
-#include <gtk/gtk.h>
-
 #include "object.h"
 #include "ifs/gui.h"
 #include "EventInfo.h"
