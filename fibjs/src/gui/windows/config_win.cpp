@@ -25,23 +25,36 @@ void putGuiPool(AsyncEvent* ac)
     PostThreadMessage(s_thread, WM_USER + 1000, 0, 0);
 }
 
-void WebView::run_os_gui()
+void WebView::run_os_gui(exlib::Event& gui_ready)
 {
     exlib::OSThread* _thGUI = exlib::OSThread::current();
     s_thread = _thGUI->thread_id;
 
     OleInitialize(NULL);
 
+    gui_ready.set();
+
     while (true) {
         MSG msg;
-        while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
 
-        AsyncEvent* p = s_uiPool.getHead();
-        if (p)
-            p->invoke();
+        while (true) {
+            bool has_event = false;
+
+            while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+                TranslateMessage(&msg);
+                DispatchMessage(&msg);
+                has_event = true;
+            }
+
+            AsyncEvent* p = s_uiPool.getHead();
+            if (p) {
+                p->invoke();
+                has_event = true;
+            }
+
+            if (!has_event)
+                break;
+        }
 
         GetMessage(&msg, NULL, 0, 0);
 

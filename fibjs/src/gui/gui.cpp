@@ -27,9 +27,7 @@ void run_gui(int argc, char* argv[])
     Runtime rt(NULL);
 
     s_gui.wait();
-    s_gui_ready.set();
-
-    WebView::run_os_gui();
+    WebView::run_os_gui(s_gui_ready);
 }
 
 result_t WebView::open(NObject* opt, obj_ptr<WebView_base>& retVal)

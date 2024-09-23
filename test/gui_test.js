@@ -111,7 +111,7 @@ describe("gui", () => {
             for (var i = 0; i < 1000; i++) {
                 win.eval(`window.postMessage(window.location.href);`);
                 coroutine.sleep(100);
-                if (received_message && last_received_message == received_message) {
+                if (received_message && received_message != "about:blank" && last_received_message == received_message) {
                     break;
                 }
                 last_received_message = received_message;

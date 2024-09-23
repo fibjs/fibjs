@@ -23,6 +23,20 @@ WebView::WebView(NObject* opt)
     isolate_ref();
 }
 
+void WebView::release()
+{
+    if (!m_closed) {
+        m_closed = true;
+#ifdef __APPLE__
+        m_webview->set_html("");
+#endif
+        webview_destroy(m_webview);
+        _emit("close");
+        isolate_unref();
+        Unref();
+    }
+}
+
 result_t WebView::open()
 {
     Variant v;

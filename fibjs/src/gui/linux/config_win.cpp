@@ -31,9 +31,11 @@ void putGuiPool(AsyncEvent* ac)
         nullptr);
 }
 
-void WebView::run_os_gui()
+void WebView::run_os_gui(exlib::Event& gui_ready)
 {
     main_loop = g_main_loop_new(NULL, FALSE);
+    gui_ready.set();
+
     g_main_loop_run(main_loop);
 }
 

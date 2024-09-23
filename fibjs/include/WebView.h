@@ -35,20 +35,11 @@ public:
 
 public:
     static result_t open(NObject* opt, obj_ptr<WebView_base>& retVal);
-    static void run_os_gui();
+    static void run_os_gui(exlib::Event& gui_ready);
 
 public:
     void internal_close();
-    void release()
-    {
-        if (!m_closed) {
-            m_closed = true;
-            webview_destroy(m_webview);
-            _emit("close");
-            isolate_unref();
-            Unref();
-        }
-    }
+    void release();
 
 public:
     EVENT_FUNC(open);

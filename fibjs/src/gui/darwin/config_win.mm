@@ -112,13 +112,15 @@ id fetchEventFromNSRunLoop(int blocking)
                       dequeue:YES];
 }
 
-void WebView::run_os_gui()
+void WebView::run_os_gui(exlib::Event& gui_ready)
 {
     @autoreleasepool {
         [NSApplication sharedApplication];
         [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
         [[NSApplication sharedApplication] finishLaunching];
         [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
+
+        gui_ready.set();
 
         while (true) {
             AsyncEvent* p = s_uiPool.getHead();
