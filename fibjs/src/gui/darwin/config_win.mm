@@ -6,24 +6,22 @@
  */
 
 #include <exlib/include/osconfig.h>
-#if defined(Darwin) && !defined(iPhone)
+#if defined(Darwin) && defined(OS_DESKTOP)
 
 #import <Cocoa/Cocoa.h>
 #import <objc/runtime.h>
+
 #include "object.h"
 #include "EventInfo.h"
-#include "ifs/WebView.h"
+#include "WebView.h"
 
-NSRect s_screen_rect;
-
-static fibjs::WebView_base* getWebViewFromNSWindow(NSWindow* win)
+static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
 {
-    return (fibjs::WebView_base*)objc_getAssociatedObject(win, "webview");
+    return (fibjs::WebView*)objc_getAssociatedObject(win, "webview");
 }
 
 @interface GuiWindowDelegate : NSObject <NSWindowDelegate>
 - (void)windowWillClose:(NSNotification*)willCloseNotification;
-- (bool)windowShouldClose:(NSWindow*)window;
 - (void)windowDidMove:(NSNotification*)didMoveNotification;
 - (void)windowDidResize:(NSNotification*)notification;
 @end
@@ -32,43 +30,29 @@ static fibjs::WebView_base* getWebViewFromNSWindow(NSWindow* win)
 - (void)windowWillClose:(NSNotification*)willCloseNotification
 {
     NSWindow* currentWindow = willCloseNotification.object;
-    fibjs::WebView_base* wv = getWebViewFromNSWindow(currentWindow);
+    fibjs::WebView* webview = getWebViewFromNSWindow(currentWindow);
 
-    if (wv == NULL)
+    if (webview == NULL)
         return;
 
-    wv->_emit("closed");
-    wv->isolate_unref();
-    wv->Unref();
-}
-
-- (bool)windowShouldClose:(NSWindow*)window
-{
-    fibjs::WebView_base* wv = getWebViewFromNSWindow(window);
-
-    if (wv == NULL)
-        return YES;
-
-    if (wv->close(nil)) {
-        [window setIsVisible:NO];
-        return YES;
-    }
-
-    return NO;
+    webview->release();
 }
 
 - (void)windowDidMove:(NSNotification*)didMoveNotification
 {
     NSWindow* currentWindow = didMoveNotification.object;
-    fibjs::WebView_base* wv = getWebViewFromNSWindow(currentWindow);
+    fibjs::WebView* wv = getWebViewFromNSWindow(currentWindow);
 
     if (wv == NULL)
         return;
 
-    fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(wv, "move");
     CGPoint wcoord = currentWindow.frame.origin;
-    ei->add("left", (int32_t)wcoord.x);
-    ei->add("top", (int32_t)(s_screen_rect.size.height - (currentWindow.frame.size.height + wcoord.y)));
+    CGSize ws = currentWindow.frame.size;
+    NSRect screen_rect = [[NSScreen mainScreen] frame];
+
+    fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(wv, "move");
+    ei->add("left", (int32_t)(wcoord.x - screen_rect.origin.x));
+    ei->add("top", (int32_t)(screen_rect.size.height + screen_rect.origin.y - (ws.height + wcoord.y)));
 
     wv->_emit("move", ei);
 }
@@ -76,13 +60,14 @@ static fibjs::WebView_base* getWebViewFromNSWindow(NSWindow* win)
 - (void)windowDidResize:(NSNotification*)notification
 {
     NSWindow* currentWindow = notification.object;
-    fibjs::WebView_base* wv = getWebViewFromNSWindow(currentWindow);
+    fibjs::WebView* wv = getWebViewFromNSWindow(currentWindow);
 
     if (wv == NULL)
         return;
 
-    fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(wv, "resize");
     CGSize ws = currentWindow.frame.size;
+
+    fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(wv, "resize");
     ei->add("width", (int32_t)ws.width);
     ei->add("height", (int32_t)ws.height);
 
@@ -92,11 +77,71 @@ static fibjs::WebView_base* getWebViewFromNSWindow(NSWindow* win)
 
 namespace fibjs {
 
-#define CW_USEDEFAULT -1
-
-void os_config_window(WebView_base* webview, void* _window, NObject* opt)
+NSEvent* getEmptyCustomNSEvent()
 {
-    NSWindow* window = (NSWindow*)_window;
+    return [NSEvent otherEventWithType:NSEventTypeApplicationDefined
+                              location:NSMakePoint(0, 0)
+                         modifierFlags:0
+                             timestamp:0.0
+                          windowNumber:0
+                               context:nil
+                               subtype:0
+                                 data1:0
+                                 data2:0];
+}
+
+static exlib::LockedList<AsyncEvent> s_uiPool;
+
+void putGuiPool(AsyncEvent* ac)
+{
+    s_uiPool.putTail(ac);
+
+    [[NSApplication sharedApplication]
+        postEvent:getEmptyCustomNSEvent()
+          atStart:YES];
+}
+
+id fetchEventFromNSRunLoop(int blocking)
+{
+    id until = blocking ? [NSDate distantFuture] : [NSDate distantPast];
+
+    return [[NSApplication sharedApplication]
+        nextEventMatchingMask:NSEventMaskAny
+                    untilDate:until
+                       inMode:@"kCFRunLoopDefaultMode"
+                      dequeue:YES];
+}
+
+void WebView::run_os_gui()
+{
+    @autoreleasepool {
+        [NSApplication sharedApplication];
+        [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
+        [[NSApplication sharedApplication] finishLaunching];
+        [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
+
+        while (true) {
+            AsyncEvent* p = s_uiPool.getHead();
+
+            if (p)
+                p->invoke();
+
+            id event = fetchEventFromNSRunLoop(1);
+            [[NSApplication sharedApplication] sendEvent:event];
+        }
+    }
+}
+
+void WebView::internal_close()
+{
+    NSWindow* window = (NSWindow*)m_webview->window().value();
+    [window close];
+}
+
+#define CW_USEDEFAULT -1
+void WebView::config()
+{
+    NSWindow* window = (NSWindow*)m_webview->window().value();
     int32_t x = CW_USEDEFAULT;
     int32_t y = CW_USEDEFAULT;
     int32_t nWidth = CW_USEDEFAULT;
@@ -105,72 +150,72 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
     bool _maximize = false;
     bool _fullscreen = false;
 
-    if (opt) {
+    if (m_opt) {
         Variant v;
 
-        if (opt->get("left", v) == 0)
+        if (m_opt->get("left", v) == 0)
             x = v.intVal();
-        if (opt->get("top", v) == 0)
+        if (m_opt->get("top", v) == 0)
             y = v.intVal();
-        if (opt->get("width", v) == 0)
+        if (m_opt->get("width", v) == 0)
             nWidth = v.intVal();
-        if (opt->get("height", v) == 0)
+        if (m_opt->get("height", v) == 0)
             nHeight = v.intVal();
 
-        if (!(opt->get("border", v) == 0 && !v.boolVal())) {
-            if (!(opt->get("caption", v) == 0 && !v.boolVal()))
+        if (!(m_opt->get("frame", v) == 0 && !v.boolVal())) {
+            if (!(m_opt->get("caption", v) == 0 && !v.boolVal()))
                 mask |= NSWindowStyleMaskTitled;
 
-            if (!(opt->get("resizable", v) == 0 && !v.boolVal()))
+            if (!(m_opt->get("resizable", v) == 0 && !v.boolVal()))
                 mask |= NSWindowStyleMaskResizable;
         } else
             mask |= NSWindowStyleMaskBorderless | NSWindowStyleMaskFullSizeContentView;
 
-        if (opt->get("maximize", v) == 0 && v.boolVal())
+        if (m_opt->get("maximize", v) == 0 && v.boolVal())
             _maximize = true;
 
-        if (opt->get("fullscreen", v) == 0 && v.boolVal()) {
+        if (m_opt->get("fullscreen", v) == 0 && v.boolVal()) {
             mask = NSWindowStyleMaskResizable;
             _fullscreen = true;
         }
     } else
         mask |= NSWindowStyleMaskResizable | NSWindowStyleMaskTitled;
 
-    s_screen_rect = [[NSScreen mainScreen] frame];
+    NSRect screen_rect = [[NSScreen mainScreen] frame];
 
     if (nWidth == CW_USEDEFAULT)
-        nWidth = s_screen_rect.size.width * 3 / 4;
+        nWidth = screen_rect.size.width * 3 / 4;
 
     if (nHeight == CW_USEDEFAULT)
-        nHeight = s_screen_rect.size.height * 3 / 4;
+        nHeight = screen_rect.size.height * 3 / 4;
 
     if (x == CW_USEDEFAULT)
-        x = (s_screen_rect.size.width - nWidth) / 2;
+        x = (screen_rect.size.width - nWidth) / 2;
 
     if (y == CW_USEDEFAULT)
-        y = (s_screen_rect.size.height - nHeight) / 2;
-    y = s_screen_rect.size.height - (nHeight + y);
+        y = (screen_rect.size.height - nHeight) / 2;
+
+    x = screen_rect.origin.x + x;
+    y = screen_rect.size.height + screen_rect.origin.y - (nHeight + y);
 
     window.styleMask = mask;
-
-    if (_maximize)
-        [window setFrame:[[NSScreen mainScreen] visibleFrame] display:YES];
-    else
-        [window setFrame:CGRectMake(x, y, nWidth, nHeight) display:YES];
 
     if (_fullscreen) {
         [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
         [window toggleFullScreen:nil];
-    }
+    } else if (_maximize)
+        [window setFrame:[[NSScreen mainScreen] visibleFrame] display:YES];
+    else
+        [window setFrame:CGRectMake(x, y, nWidth, nHeight) display:YES];
 
-    objc_setAssociatedObject(window, "webview", (id)webview, OBJC_ASSOCIATION_ASSIGN);
+    objc_setAssociatedObject(window, "webview", (id)this, OBJC_ASSOCIATION_ASSIGN);
     [window setDelegate:[GuiWindowDelegate new]];
 
     [window makeKeyAndOrderFront:window];
     [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
 
-    webview->Ref();
-    webview->_emit("open");
+    Ref();
+    _emit("open");
 }
 }
 

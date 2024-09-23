@@ -3,3 +3,5 @@ make,dpkg -s
 cmake,dpkg -s
 ccache,dpkg -s
 libx11-dev,dpkg -s
+libgtk-3-dev,dpkg -s
+libwebkit2gtk-4.0-dev,dpkg -s

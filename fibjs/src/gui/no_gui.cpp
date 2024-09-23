@@ -5,13 +5,10 @@
  *      Author: lion
  */
 
-#ifdef OS_DESKTOP
+#ifndef OS_DESKTOP
 
 #include "object.h"
 #include "ifs/gui.h"
-
-#include "WebView.h"
-
 namespace fibjs {
 
 DECLARE_MODULE(gui);
@@ -24,27 +21,21 @@ void run_gui(int argc, char* argv[])
     exlib::OSThread th;
     th.bindCurrent();
 
-    Runtime rt(NULL);
+    th.suspend();
+}
 
-    s_gui.wait();
-    s_gui_ready.set();
-
-    WebView::run_os_gui();
+void putGuiPool(AsyncEvent* ac)
+{
 }
 
 result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
-    s_gui.set();
-    s_gui_ready.wait();
-
-    return WebView::open(url, opt, retVal);
+    return Runtime::setError("Webview not supported in this platform");
 }
 
 result_t gui_base::open(v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
-    exlib::string url = "about:blank";
-    GetConfigValue(Isolate::current(opt), opt, "url", url);
-    return open(url, opt, retVal);
+    return Runtime::setError("Webview not supported in this platform");
 }
 
 }

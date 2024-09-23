@@ -1,19 +1,18 @@
-/*! @brief 浏览器窗口对象
- WebView 是一个嵌入浏览器的窗口组件，目前仅支持 windows, macOS(10.10+). 在 windows 使用 IE/Edge 内核, 在 macOS 使用 WKWebView.
+/*! @brief 浏览器窗口对象，WebView 是一个嵌入浏览器的窗口组件.
  
  由于 WebView 内的 JavaScript 程序与 fibjs 并不在同一个引擎内，所以如果需要与宿主程序进行通讯，需要通过消息进行。
 
- WebView 用于通讯的对象是 external，external 支持一个方法 postMessage 和两个事件 onmessage、onclose。
+ WebView 用于通讯的对象是 window，支持方法 postMessage 和 message 事件。
 
  一个简单的通讯示例代码如下：
  ```JavaScript 
  // index.js
  var gui = require('gui');
- var webview = gui.open('fs://index.html');
+ var webview = gui.open('https://fibjs.org/index.html');
 
- webview.onmessage = msg => console.log(msg);
+ webview.addEventListener("message", function (msg) { console.log(msg); });
  
- webview.onload = evt => webview.postMessage("hello from fibjs");
+ webview.postMessage("hello from fibjs");
 
  webview.wait();
  ```
@@ -21,40 +20,25 @@
  index.html 的内容如下：
  ```html
  <script>
-     external.onclose = function() {
-     }
-
-     external.onmessage = function(msg){ 
+     window.addEventListener("message", function (msg) { 
          external.postMessage("send back: " + msg);
-     };
+     });
  </script>
  ```
  
-在用户窗口关闭之前，会触发 external.onclose 事件，external.onclose 可以决定是否关闭。如果 external.onclose 返回 false，则此次操作取消，否则将关闭窗口。
-
- 以下的例子，会在用户点关闭后等待 5 秒后再关闭窗口。
+ 如果需要在 WebView 内关闭窗口，可以调用 window.close。
  ```html
  <script lang="JavaScript">
-     var bClose = false;
-     external.onclose = function () {
-         if (!bClose) {
-             setTimeout(function () {
-                 bClose = true;
-                 window.close();
-             }, 5000);
-             return false;
-         }
-     }
+    window.close();
  </script>
  ```
- 上面的代码中，因为 window.close 本身也会触发 onclose 事件，所以需要增加一个开关变量，用于识别是否需要处理此次事件。
  */
 interface WebView : EventEmitter
 {
     /*! @brief 加载指定 url 的页面
 	 @param url 指定的 url
 	 */
-    loadUrl(String url) async;
+    loadURL(String url) async;
 
     /*! @brief 查询当前页面的 url
 	 @return 返回当前页面的 url
@@ -66,24 +50,10 @@ interface WebView : EventEmitter
 	 */
     setHtml(String html) async;
 
-    /*! @brief 刷新当前页面 */
-    reload() async;
-
-    /*! @brief 退回到上一个页面 */
-    goBack() async;
-
-    /*! @brief 前进到下一个页面 */
-    goForward() async;
-
-    /*! @brief 打印当前窗口文档
-	 @param mode 打印参数，0: 快速打印; 1: 标准打印; 2: 打印预览。缺省为 1
-	 */
-    print(Integer mode = 1) async;
-
     /*! @brief 在当前窗口运行一段 JavaScript 代码
 	 @param code 指定要执行的 JavaScript 代码
 	 */
-    executeJavaScript(String code) async;
+    eval(String code) async;
 
     /*! @brief 关闭当前窗口 */
     close() async;
@@ -96,15 +66,6 @@ interface WebView : EventEmitter
 
     /*! @brief 查询和绑定加载成功事件，相当于 on("open", func); */
     Function onopen;
-
-    /*! @brief 查询和绑定加载成功事件，相当于 on("load", func); */
-    Function onload;
-
-    /*! @brief 查询和绑定页面地址变化事件，相当于 on("address", func); */
-    Function onaddress;
-
-    /*! @brief 查询和绑定页面标题改变事件，相当于 on("title", func); */
-    Function ontitle;
 
     /*! @brief 查询和绑定窗口移动事件，相当于 on("move", func); 
 
@@ -131,11 +92,8 @@ interface WebView : EventEmitter
     Function onresize;
 
     /*! @brief 查询和绑定窗口关闭事件，WebView 关闭后会触发此时间，相当于 on("closed", func); */
-    Function onclosed;
+    Function onclose;
 
     /*! @brief 查询和绑定接受 webview 内 postMessage 消息事件，相当于 on("message", func); */
     Function onmessage;
-
-    /*! @brief 查询和绑定接受 webview 内下载事务状态变化事件，相当于 on("download", func); */
-    Function ondownload;
 };

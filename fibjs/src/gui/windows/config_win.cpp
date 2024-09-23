@@ -5,14 +5,50 @@
  *      Author: lion
  */
 
+#include <exlib/include/osconfig.h>
+#if defined(Windows) && defined(OS_DESKTOP)
+
 #include "object.h"
 #include "EventInfo.h"
-#include "ifs/WebView.h"
+#include "WebView.h"
 
-#ifdef WIN32
 #include <commctrl.h>
 
 namespace fibjs {
+
+static exlib::LockedList<AsyncEvent> s_uiPool;
+static uint32_t s_thread;
+
+void putGuiPool(AsyncEvent* ac)
+{
+    s_uiPool.putTail(ac);
+    PostThreadMessage(s_thread, WM_USER + 1000, 0, 0);
+}
+
+void WebView::run_os_gui()
+{
+    exlib::OSThread* _thGUI = exlib::OSThread::current();
+    s_thread = _thGUI->thread_id;
+
+    OleInitialize(NULL);
+
+    while (true) {
+        MSG msg;
+        while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+
+        AsyncEvent* p = s_uiPool.getHead();
+        if (p)
+            p->invoke();
+
+        GetMessage(&msg, NULL, 0, 0);
+
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+}
 
 void GetDPI(HWND hWndParent, int* dpix, int* dpiy)
 {
@@ -24,7 +60,7 @@ void GetDPI(HWND hWndParent, int* dpix, int* dpiy)
 
 LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 {
-    WebView_base* webView1 = (WebView_base*)dwRefData;
+    WebView* webview = (WebView*)dwRefData;
     switch (uMsg) {
     case WM_MOVE: {
         RECT rcWin;
@@ -33,11 +69,11 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         int dpix = 0, dpiy = 0;
         GetDPI(hWnd, &dpix, &dpiy);
 
-        obj_ptr<EventInfo> ei = new EventInfo(webView1, "move");
+        obj_ptr<EventInfo> ei = new EventInfo(webview, "move");
         ei->add("left", (int32_t)rcWin.left * 96 / dpix);
         ei->add("top", (int32_t)rcWin.top * 96 / dpiy);
 
-        webView1->_emit("move", ei);
+        webview->_emit("move", ei);
         break;
     }
     case WM_SIZE: {
@@ -47,56 +83,57 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         int dpix = 0, dpiy = 0;
         GetDPI(hWnd, &dpix, &dpiy);
 
-        obj_ptr<EventInfo> ei = new EventInfo(webView1, "resize");
+        obj_ptr<EventInfo> ei = new EventInfo(webview, "resize");
         ei->add("width", (int32_t)(rcWin.right - rcWin.left) * 96 / dpix);
         ei->add("height", (int32_t)(rcWin.bottom - rcWin.top) * 96 / dpiy);
 
-        webView1->_emit("resize", ei);
+        webview->_emit("resize", ei);
         break;
     }
     case WM_CLOSE:
-        if (webView1->close(NULL))
-            DestroyWindow(hWnd);
-        return 0;
-    case WM_DESTROY:
-        webView1->_emit("closed");
-        webView1->isolate_unref();
-        webView1->Unref();
+        webview->release();
         break;
     }
 
     return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 }
 
-void os_config_window(WebView_base* webview, void* _window, NObject* opt)
+void WebView::internal_close()
 {
-    HWND hWndParent = (HWND)_window;
+    HWND hWndParent = (HWND)m_webview->window().value();
+    SendMessage(hWndParent, WM_CLOSE, 0, 0);
+}
+
+void WebView::config()
+{
+    HWND hWndParent = (HWND)m_webview->window().value();
     DWORD dwStyle = WS_OVERLAPPED;
     int x = CW_USEDEFAULT;
     int y = CW_USEDEFAULT;
     int nWidth = CW_USEDEFAULT;
     int nHeight = CW_USEDEFAULT;
+    bool _maximize = false;
     bool _fullscreen = false;
 
-    if (opt) {
+    if (m_opt) {
         Variant v;
 
-        if (opt->get("left", v) == 0)
+        if (m_opt->get("left", v) == 0)
             x = v.intVal();
-        if (opt->get("top", v) == 0)
+        if (m_opt->get("top", v) == 0)
             y = v.intVal();
-        if (opt->get("width", v) == 0)
+        if (m_opt->get("width", v) == 0)
             nWidth = v.intVal();
-        if (opt->get("height", v) == 0)
+        if (m_opt->get("height", v) == 0)
             nHeight = v.intVal();
 
-        if (!(opt->get("border", v) == 0 && !v.boolVal())) {
+        if (!(m_opt->get("frame", v) == 0 && !v.boolVal())) {
             dwStyle |= WS_BORDER | WS_THICKFRAME;
 
-            if (!(opt->get("caption", v) == 0 && !v.boolVal()))
+            if (!(m_opt->get("caption", v) == 0 && !v.boolVal()))
                 dwStyle |= WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
 
-            if (opt->get("resizable", v) == 0 && !v.boolVal()) {
+            if (m_opt->get("resizable", v) == 0 && !v.boolVal()) {
                 dwStyle &= ~(WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
 
                 HMENU hSysMenu = GetSystemMenu(hWndParent, FALSE);
@@ -107,10 +144,10 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
             }
         }
 
-        if (opt->get("maximize", v) == 0 && v.boolVal())
-            dwStyle |= WS_MAXIMIZE;
+        if (m_opt->get("maximize", v) == 0 && v.boolVal())
+            _maximize = true;
 
-        if (opt->get("fullscreen", v) == 0 && v.boolVal())
+        if (m_opt->get("fullscreen", v) == 0 && v.boolVal())
             _fullscreen = true;
     } else
         dwStyle = WS_OVERLAPPEDWINDOW;
@@ -145,6 +182,8 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
         dwStyle = WS_OVERLAPPED;
         SetWindowLong(hWndParent, GWL_STYLE, dwStyle);
         SetWindowPos(hWndParent, HWND_TOP, 0, 0, actualDesktop.right, actualDesktop.bottom, 0);
+    } else if (_maximize) {
+        dwStyle |= WS_MAXIMIZE;
     } else {
         SetWindowLong(hWndParent, GWL_STYLE, dwStyle);
         SetWindowPos(hWndParent, HWND_TOP, x, y, nWidth, nHeight, 0);
@@ -153,9 +192,9 @@ void os_config_window(WebView_base* webview, void* _window, NObject* opt)
     dwStyle |= WS_VISIBLE;
     SetWindowLong(hWndParent, GWL_STYLE, dwStyle);
 
-    SetWindowSubclass(hWndParent, &mySubClassProc, 1, (DWORD_PTR)webview);
-    webview->Ref();
-    webview->_emit("open");
+    SetWindowSubclass(hWndParent, &mySubClassProc, 1, (DWORD_PTR)this);
+    Ref();
+    _emit("open");
 }
 }
 
