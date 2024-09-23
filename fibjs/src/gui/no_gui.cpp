@@ -33,6 +33,11 @@ result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<We
     return Runtime::setError("Webview not supported in this platform");
 }
 
+result_t gui_base::openFile(exlib::string file, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
+{
+    return Runtime::setError("Webview not supported in this platform");
+}
+
 result_t gui_base::open(v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
     return Runtime::setError("Webview not supported in this platform");
