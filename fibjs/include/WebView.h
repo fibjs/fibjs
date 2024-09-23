@@ -16,19 +16,15 @@ class WebView : public WebView_base {
     FIBER_FREE();
 
 public:
-    WebView(exlib::string url, NObject* opt);
+    WebView(NObject* opt);
 
     EVENT_SUPPORT();
 
 public:
     // WebView_base
     virtual result_t loadURL(exlib::string url, AsyncEvent* ac);
-    virtual result_t getUrl(exlib::string& retVal, AsyncEvent* ac);
+    virtual result_t loadFile(exlib::string file, AsyncEvent* ac);
     virtual result_t setHtml(exlib::string html, AsyncEvent* ac);
-    virtual result_t reload(AsyncEvent* ac);
-    virtual result_t goBack(AsyncEvent* ac);
-    virtual result_t goForward(AsyncEvent* ac);
-    virtual result_t print(int32_t mode, AsyncEvent* ac);
     virtual result_t eval(exlib::string code, AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
@@ -38,7 +34,7 @@ public:
     void config();
 
 public:
-    static result_t open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal);
+    static result_t open(NObject* opt, obj_ptr<WebView_base>& retVal);
     static void run_os_gui();
 
 public:
@@ -68,7 +64,6 @@ public:
     int32_t m_height = 0;
 
 private:
-    exlib::string m_url;
     obj_ptr<NObject> m_opt;
 
     webview::webview* m_webview = nullptr;

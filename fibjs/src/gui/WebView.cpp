@@ -8,6 +8,7 @@
 #ifdef OS_DESKTOP
 
 #include "object.h"
+#include "ifs/url.h"
 #include "ifs/gui.h"
 #include "ifs/encoding.h"
 #include "WebView.h"
@@ -16,9 +17,8 @@
 
 namespace fibjs {
 
-WebView::WebView(exlib::string url, NObject* opt)
-    : m_url(url)
-    , m_opt(opt)
+WebView::WebView(NObject* opt)
+    : m_opt(opt)
 {
     isolate_ref();
 }
@@ -66,28 +66,22 @@ result_t WebView::open()
     });
     m_webview->init("window.__webview__.emitMessage = function(msg) { var e = new Event('message'); e.data = msg; window.dispatchEvent(e); }");
 
-    m_webview->navigate(m_url);
+    if (m_opt->get("url", v) == 0)
+        m_webview->navigate(v.string());
+    else if (m_opt->get("file", v) == 0) {
+        obj_ptr<UrlObject_base> u;
+        result_t hr = url_base::pathToFileURL(v.string(), u);
+        if (hr < 0)
+            return hr;
+
+        exlib::string url;
+        u->get_href(url);
+
+        m_webview->navigate(url);
+    } else
+        m_webview->navigate("about:blank");
 
     config();
-
-    return 0;
-}
-
-result_t WebView::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
-{
-    obj_ptr<NObject> o = new NObject();
-    o->add(opt);
-
-    obj_ptr<WebView> w = new WebView(url, o);
-    w->wrap();
-
-    w->Ref();
-    asyncCall([](WebView* w) {
-        w->open();
-        w->Unref();
-    },
-        w, CALL_E_GUICALL);
-    retVal = w;
 
     return 0;
 }
@@ -105,8 +99,24 @@ result_t WebView::loadURL(exlib::string url, AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::getUrl(exlib::string& retVal, AsyncEvent* ac)
+result_t WebView::loadFile(exlib::string file, AsyncEvent* ac)
 {
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_GUICALL);
+
+    if (m_closed)
+        return Runtime::setError("WebView: webview is closed");
+
+    obj_ptr<UrlObject_base> u;
+    result_t hr = url_base::pathToFileURL(file, u);
+    if (hr < 0)
+        return hr;
+
+    exlib::string url;
+    u->get_href(url);
+
+    m_webview->navigate(url);
+
     return 0;
 }
 
@@ -120,26 +130,6 @@ result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
 
     m_webview->set_html(html);
 
-    return 0;
-}
-
-result_t WebView::reload(AsyncEvent* ac)
-{
-    return 0;
-}
-
-result_t WebView::goBack(AsyncEvent* ac)
-{
-    return 0;
-}
-
-result_t WebView::goForward(AsyncEvent* ac)
-{
-    return 0;
-}
-
-result_t WebView::print(int32_t mode, AsyncEvent* ac)
-{
     return 0;
 }
 

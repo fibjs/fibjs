@@ -48,13 +48,13 @@ declare class Class_WebView extends Class_EventEmitter {
     loadURL(url: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 查询当前页面的 url
-     * 	 @return 返回当前页面的 url
-     * 	 
+     * @description 加载指定文件的页面
+     *      @param file 指定的文件
+     *      
      */
-    getUrl(): string;
+    loadFile(file: string): void;
 
-    getUrl(callback: (err: Error | undefined | null, retVal: string)=>any): void;
+    loadFile(file: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 设置 webview 的页面 html

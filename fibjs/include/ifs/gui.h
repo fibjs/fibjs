@@ -24,6 +24,7 @@ public:
     // gui_base
     static result_t open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal);
     static result_t open(v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal);
+    static result_t openFile(exlib::string file, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -36,6 +37,7 @@ public:
 
 public:
     static void s_static_open(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_openFile(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
@@ -45,7 +47,8 @@ namespace fibjs {
 inline ClassInfo& gui_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "open", s_static_open, true, ClassData::ASYNC_SYNC }
+        { "open", s_static_open, true, ClassData::ASYNC_SYNC },
+        { "openFile", s_static_openFile, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {
@@ -77,6 +80,22 @@ inline void gui_base::s_static_open(const v8::FunctionCallbackInfo<v8::Value>& a
     OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
 
     hr = open(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void gui_base::s_static_openFile(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<WebView_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    hr = openFile(v0, v1, vr);
 
     METHOD_RETURN();
 }

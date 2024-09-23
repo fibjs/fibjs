@@ -32,19 +32,50 @@ void run_gui(int argc, char* argv[])
     WebView::run_os_gui();
 }
 
-result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
+result_t WebView::open(NObject* opt, obj_ptr<WebView_base>& retVal)
 {
     s_gui.set();
     s_gui_ready.wait();
 
-    return WebView::open(url, opt, retVal);
+    obj_ptr<WebView> w = new WebView(opt);
+    w->wrap();
+
+    w->Ref();
+    asyncCall([](WebView* w) {
+        w->open();
+        w->Unref();
+    },
+        w, CALL_E_GUICALL);
+    retVal = w;
+
+    return 0;
+}
+
+result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
+{
+    obj_ptr<NObject> o = new NObject();
+    o->add(opt);
+    o->add("url", url);
+
+    return WebView::open(o, retVal);
+}
+
+result_t gui_base::openFile(exlib::string file, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
+{
+    obj_ptr<NObject> o = new NObject();
+    o->add(opt);
+    o->add("file", file);
+    o->remove("url");
+
+    return WebView::open(o, retVal);
 }
 
 result_t gui_base::open(v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
-    exlib::string url = "about:blank";
-    GetConfigValue(Isolate::current(opt), opt, "url", url);
-    return open(url, opt, retVal);
+    obj_ptr<NObject> o = new NObject();
+    o->add(opt);
+
+    return WebView::open(o, retVal);
 }
 
 }
