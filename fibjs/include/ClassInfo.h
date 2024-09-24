@@ -80,9 +80,6 @@ struct ClassData {
     bool has_async;
 };
 
-result_t promisify(Isolate* isolate, v8::Local<v8::Function> func, v8::Local<v8::Function>& retVal);
-result_t promisify(Isolate* isolate, v8::Local<v8::Function> func, v8::Local<v8::FunctionTemplate>& retVal);
-
 class ClassInfo {
 public:
     class cache {
@@ -239,6 +236,13 @@ public:
                     func->SetPrivate(_context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")), func);
                     func->SetPrivate(_context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_sync")), func);
 
+                    v8::Local<v8::Function> pfunc = isolate->NewFunction(m_cd.cms[i].name, m_cd.cms[i].invoker, v8::True(isolate->m_isolate));
+                    setAsyncFunctoin(pfunc);
+
+                    func->SetPrivate(_context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_promise")), pfunc);
+                    pfunc->SetPrivate(_context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")), func);
+                    pfunc->SetPrivate(_context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_sync")), func);
+
                     exlib::string name_sync(m_cd.cms[i].name);
                     name_sync.append("Sync");
                     v8::Local<v8::Name> _name_sync = get_prop_name(isolate, name_sync.c_str());
@@ -247,8 +251,6 @@ public:
                     name_async.append("Async");
                     v8::Local<v8::Name> _name_async = get_prop_name(isolate, name_async.c_str());
 
-                    v8::Local<v8::Function> pfunc;
-                    promisify(isolate, func, pfunc);
                     if (m_cd.cms[i].async_type == ClassData::ASYNC_ASYNC)
                         o->Set(_context, name, func).IsJust();
                     else
@@ -414,6 +416,15 @@ private:
                         func->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")), func);
                         func->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_sync")), func);
 
+                        v8::Local<v8::FunctionTemplate> pft = v8::FunctionTemplate::New(isolate->m_isolate, m_cd.cms[i].invoker, v8::True(isolate->m_isolate));
+                        v8::Local<v8::Function> pfunc = pft->GetFunction(context).FromMaybe(v8::Local<v8::Function>());
+
+                        setAsyncFunctoin(pfunc);
+
+                        func->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_promise")), pfunc);
+                        pfunc->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_async")), func);
+                        pfunc->SetPrivate(context, v8::Private::ForApi(isolate->m_isolate, isolate->NewString("_sync")), func);
+
                         exlib::string name_sync(m_cd.cms[i].name);
                         name_sync.append("Sync");
                         v8::Local<v8::Name> _name_sync = get_prop_name(isolate, name_sync.c_str());
@@ -422,8 +433,6 @@ private:
                         name_async.append("Async");
                         v8::Local<v8::Name> _name_async = get_prop_name(isolate, name_async.c_str());
 
-                        v8::Local<v8::FunctionTemplate> pft;
-                        promisify(isolate, ft->GetFunction(context).FromMaybe(v8::Local<v8::Function>()), pft);
                         if (m_cd.cms[i].async_type == ClassData::ASYNC_ASYNC)
                             pt->Set(name, ft);
                         else

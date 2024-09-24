@@ -400,7 +400,7 @@ private:
 class NType;
 class AsyncCallBack : public AsyncEvent {
 public:
-    AsyncCallBack(v8::Local<v8::Function> cb, object_base* pThis = NULL);
+    AsyncCallBack(v8::Local<v8::Object> cb, object_base* pThis = NULL);
     ~AsyncCallBack();
 
 public:
@@ -458,7 +458,8 @@ protected:
 
 protected:
     obj_ptr<object_base> m_pThis;
-    v8::Global<v8::Function> m_cb;
+    v8::Global<v8::Object> m_cb;
+    bool m_is_promise;
     obj_ptr<NType> m_result;
 
 private:

@@ -131,7 +131,7 @@ void AsyncEvent::async(int32_t type)
         putGuiPool(this);
 }
 
-AsyncCallBack::AsyncCallBack(v8::Local<v8::Function> cb, object_base* pThis)
+AsyncCallBack::AsyncCallBack(v8::Local<v8::Object> cb, object_base* pThis)
 {
     if (pThis) {
         m_pThis = pThis;
@@ -141,6 +141,7 @@ AsyncCallBack::AsyncCallBack(v8::Local<v8::Function> cb, object_base* pThis)
 
     m_isolate->Ref();
     m_cb.Reset(m_isolate->m_isolate, cb);
+    m_is_promise = !cb->IsFunction();
 }
 
 AsyncCallBack::~AsyncCallBack()
@@ -174,41 +175,75 @@ void AsyncCallBack::fillRetVal(std::vector<v8::Local<v8::Value>>& args, object_b
 void AsyncCallBack::fillRetVal(std::vector<v8::Local<v8::Value>>& args, NType* v)
 {
     m_result = v;
-    v->to_args(m_isolate, args);
+    if (!m_is_promise)
+        v->to_args(m_isolate, args);
 }
 
 int AsyncCallBack::syncFunc()
 {
     JSFiber::EnterJsScope s;
-
-    v8::Local<v8::Function> func = m_cb.Get(m_isolate->m_isolate);
-
     std::vector<v8::Local<v8::Value>> args;
 
-    if (m_v == CALL_RETURN_NULL) {
-        args.resize(2);
-        args[0] = v8::Undefined(m_isolate->m_isolate);
-        args[1] = v8::Null(m_isolate->m_isolate);
-    } else if (m_v >= 0) {
-        args.resize(1);
-        args[0] = v8::Undefined(m_isolate->m_isolate);
-        to_args(args);
+    if (m_is_promise) {
+        v8::Local<v8::Promise::Resolver> resolver = m_cb.Get(m_isolate->m_isolate).As<v8::Promise::Resolver>();
+
+        if (m_v == CALL_RETURN_NULL)
+            resolver->Resolve(m_isolate->context(), v8::Null(m_isolate->m_isolate)).IsJust();
+        else if (m_v == CALL_RETURN_UNDEFINED)
+            resolver->Resolve(m_isolate->context(), v8::Undefined(m_isolate->m_isolate)).IsJust();
+        else if (m_v >= 0) {
+            to_args(args);
+
+            v8::Local<v8::Value> result;
+            if (m_result)
+                m_result->valueOf(result);
+            else if (args.size() == 0)
+                result = v8::Undefined(m_isolate->m_isolate);
+            else {
+                result = args[0];
+
+                if (result->IsObject()) {
+                    v8::Local<v8::Object> o = result.As<v8::Object>();
+                    obj_ptr<object_base> obj = object_base::getInstance(o);
+                    if (obj) {
+                        ClassInfo& ci = obj->Classinfo();
+                        if (ci.hasAsync())
+                            o->SetPrototype(m_isolate->context(), ci.GetAsyncPrototype(m_isolate)).IsJust();
+                    }
+                }
+            }
+
+            resolver->Resolve(m_isolate->context(), result).IsJust();
+        } else
+            resolver->Reject(m_isolate->context(), FillError(m_v)).IsJust();
     } else {
-        if (m_v == CALL_E_EXCEPTION)
-            Runtime::setError(m_error);
+        v8::Local<v8::Function> func = m_cb.Get(m_isolate->m_isolate).As<v8::Function>();
 
-        args.resize(1);
-        args[0] = FillError(m_v);
+        if (m_v == CALL_RETURN_NULL) {
+            args.resize(2);
+            args[0] = v8::Undefined(m_isolate->m_isolate);
+            args[1] = v8::Null(m_isolate->m_isolate);
+        } else if (m_v >= 0) {
+            args.resize(1);
+            args[0] = v8::Undefined(m_isolate->m_isolate);
+            to_args(args);
+        } else {
+            if (m_v == CALL_E_EXCEPTION)
+                Runtime::setError(m_error);
+
+            args.resize(1);
+            args[0] = FillError(m_v);
+        }
+
+        v8::Local<v8::Value> oThis;
+        if (m_result != nullptr)
+            oThis = m_result->wrap(m_isolate);
+        else
+            oThis = v8::Undefined(m_isolate->m_isolate);
+
+        func->Call(func->GetCreationContextChecked(), oThis, (int32_t)args.size(), args.data())
+            .IsEmpty();
     }
-
-    v8::Local<v8::Value> oThis;
-    if (m_result != nullptr)
-        oThis = m_result->wrap(m_isolate);
-    else
-        oThis = v8::Undefined(m_isolate->m_isolate);
-
-    func->Call(func->GetCreationContextChecked(), oThis, (int32_t)args.size(), args.data())
-        .IsEmpty();
 
     delete this;
 
@@ -222,10 +257,11 @@ int32_t AsyncCallBack::check_result(int32_t hr, const v8::FunctionCallbackInfo<v
     else
         async_call(hr);
 
-    if (m_ctxo)
+    if (m_is_promise) {
+        v8::Local<v8::Promise::Resolver> resolver = m_cb.Get(m_isolate->m_isolate).As<v8::Promise::Resolver>();
+        args.GetReturnValue().Set(resolver->GetPromise());
+    } else if (m_ctxo)
         args.GetReturnValue().Set(GetReturnValue(m_isolate, m_ctxo));
-    else
-        args.GetReturnValue().SetUndefined();
 
     return CALL_RETURN_UNDEFINED;
 }

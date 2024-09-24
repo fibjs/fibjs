@@ -33,10 +33,10 @@
 	return ac.check_result(m(&ac)); \
 	}
 #define ASYNC_STATIC0_ACB(cls, m) \
-	static result_t acb_##m(v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) { \
+	static result_t acb_##m(v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) { \
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(v8::Local<v8::Function> cb) : \
+		_t(v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb) \
 		{} \
 		virtual void invoke() \
@@ -92,10 +92,10 @@
 	return ac.check_result(m(&ac)); \
 	}
 #define ASYNC_MEMBER0_ACB(cls, m) \
-	result_t acb_##m(v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) { \
+	result_t acb_##m(v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) { \
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, v8::Local<v8::Function> cb) : \
+		_t(cls* pThis, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb, pThis) \
 		{} \
 		virtual void invoke() \
@@ -153,10 +153,10 @@
 	return ac.check_result(m(v0, &ac)); \
 	}
 #define ASYNC_STATICVALUE1_ACB(cls, m, T0) \
-	static result_t acb_##m(v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) { \
+	static result_t acb_##m(v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) { \
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(v8::Local<v8::Function> cb) : \
+		_t(v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb) \
 		{} \
 		virtual void invoke() \
@@ -218,10 +218,10 @@
 	return ac.check_result(m(v0, &ac)); \
 	}
 #define ASYNC_MEMBERVALUE1_ACB(cls, m, T0) \
-	result_t acb_##m(v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) { \
+	result_t acb_##m(v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) { \
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, v8::Local<v8::Function> cb) : \
+		_t(cls* pThis, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb, pThis) \
 		{} \
 		virtual void invoke() \
@@ -284,10 +284,10 @@
 	}
 #define ASYNC_STATIC1_ACB(cls, m, T0) \
 	static result_t acb_##m( \
-		T0 v0, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(T0& v0, v8::Local<v8::Function> cb) : \
+		_t(T0& v0, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb), m_v0(v0) \
 		{} \
 		virtual void invoke() \
@@ -347,10 +347,10 @@
 	}
 #define ASYNC_MEMBER1_ACB(cls, m, T0) \
 	result_t acb_##m( \
-		T0 v0, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, v8::Local<v8::Function> cb) : \
+		_t(cls* pThis, T0& v0, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb, pThis), m_v0(v0) \
 		{} \
 		virtual void invoke() \
@@ -410,10 +410,10 @@
 	}
 #define ASYNC_STATICVALUE2_ACB(cls, m, T0, T1) \
 	static result_t acb_##m( \
-		T0 v0, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(T0& v0, v8::Local<v8::Function> cb) : \
+		_t(T0& v0, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb), m_v0(v0) \
 		{} \
 		virtual void invoke() \
@@ -477,10 +477,10 @@
 	}
 #define ASYNC_MEMBERVALUE2_ACB(cls, m, T0, T1) \
 	result_t acb_##m( \
-		T0 v0, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, v8::Local<v8::Function> cb) : \
+		_t(cls* pThis, T0& v0, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb, pThis), m_v0(v0) \
 		{} \
 		virtual void invoke() \
@@ -544,10 +544,10 @@
 	}
 #define ASYNC_STATIC2_ACB(cls, m, T0, T1) \
 	static result_t acb_##m( \
-		T0 v0, T1 v1, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(T0& v0, T1& v1, v8::Local<v8::Function> cb) : \
+		_t(T0& v0, T1& v1, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb), m_v0(v0), m_v1(v1) \
 		{} \
 		virtual void invoke() \
@@ -608,10 +608,10 @@
 	}
 #define ASYNC_MEMBER2_ACB(cls, m, T0, T1) \
 	result_t acb_##m( \
-		T0 v0, T1 v1, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, v8::Local<v8::Function> cb) : \
+		_t(cls* pThis, T0& v0, T1& v1, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb, pThis), m_v0(v0), m_v1(v1) \
 		{} \
 		virtual void invoke() \
@@ -672,10 +672,10 @@
 	}
 #define ASYNC_STATICVALUE3_ACB(cls, m, T0, T1, T2) \
 	static result_t acb_##m( \
-		T0 v0, T1 v1, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(T0& v0, T1& v1, v8::Local<v8::Function> cb) : \
+		_t(T0& v0, T1& v1, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb), m_v0(v0), m_v1(v1) \
 		{} \
 		virtual void invoke() \
@@ -740,10 +740,10 @@
 	}
 #define ASYNC_MEMBERVALUE3_ACB(cls, m, T0, T1, T2) \
 	result_t acb_##m( \
-		T0 v0, T1 v1, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, v8::Local<v8::Function> cb) : \
+		_t(cls* pThis, T0& v0, T1& v1, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb, pThis), m_v0(v0), m_v1(v1) \
 		{} \
 		virtual void invoke() \
@@ -808,10 +808,10 @@
 	}
 #define ASYNC_STATIC3_ACB(cls, m, T0, T1, T2) \
 	static result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(T0& v0, T1& v1, T2& v2, v8::Local<v8::Function> cb) : \
+		_t(T0& v0, T1& v1, T2& v2, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb), m_v0(v0), m_v1(v1), m_v2(v2) \
 		{} \
 		virtual void invoke() \
@@ -873,10 +873,10 @@
 	}
 #define ASYNC_MEMBER3_ACB(cls, m, T0, T1, T2) \
 	result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, v8::Local<v8::Function> cb) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb, pThis), m_v0(v0), m_v1(v1), m_v2(v2) \
 		{} \
 		virtual void invoke() \
@@ -938,10 +938,10 @@
 	}
 #define ASYNC_STATICVALUE4_ACB(cls, m, T0, T1, T2, T3) \
 	static result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(T0& v0, T1& v1, T2& v2, v8::Local<v8::Function> cb) : \
+		_t(T0& v0, T1& v1, T2& v2, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb), m_v0(v0), m_v1(v1), m_v2(v2) \
 		{} \
 		virtual void invoke() \
@@ -1007,10 +1007,10 @@
 	}
 #define ASYNC_MEMBERVALUE4_ACB(cls, m, T0, T1, T2, T3) \
 	result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, v8::Local<v8::Function> cb) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb, pThis), m_v0(v0), m_v1(v1), m_v2(v2) \
 		{} \
 		virtual void invoke() \
@@ -1076,10 +1076,10 @@
 	}
 #define ASYNC_STATIC4_ACB(cls, m, T0, T1, T2, T3) \
 	static result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(T0& v0, T1& v1, T2& v2, T3& v3, v8::Local<v8::Function> cb) : \
+		_t(T0& v0, T1& v1, T2& v2, T3& v3, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3) \
 		{} \
 		virtual void invoke() \
@@ -1142,10 +1142,10 @@
 	}
 #define ASYNC_MEMBER4_ACB(cls, m, T0, T1, T2, T3) \
 	result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, v8::Local<v8::Function> cb) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb, pThis), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3) \
 		{} \
 		virtual void invoke() \
@@ -1208,10 +1208,10 @@
 	}
 #define ASYNC_STATICVALUE5_ACB(cls, m, T0, T1, T2, T3, T4) \
 	static result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(T0& v0, T1& v1, T2& v2, T3& v3, v8::Local<v8::Function> cb) : \
+		_t(T0& v0, T1& v1, T2& v2, T3& v3, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3) \
 		{} \
 		virtual void invoke() \
@@ -1278,10 +1278,10 @@
 	}
 #define ASYNC_MEMBERVALUE5_ACB(cls, m, T0, T1, T2, T3, T4) \
 	result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, v8::Local<v8::Function> cb) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb, pThis), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3) \
 		{} \
 		virtual void invoke() \
@@ -1348,10 +1348,10 @@
 	}
 #define ASYNC_STATIC5_ACB(cls, m, T0, T1, T2, T3, T4) \
 	static result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, v8::Local<v8::Function> cb) : \
+		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4) \
 		{} \
 		virtual void invoke() \
@@ -1415,10 +1415,10 @@
 	}
 #define ASYNC_MEMBER5_ACB(cls, m, T0, T1, T2, T3, T4) \
 	result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, v8::Local<v8::Function> cb) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb, pThis), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4) \
 		{} \
 		virtual void invoke() \
@@ -1482,10 +1482,10 @@
 	}
 #define ASYNC_STATICVALUE6_ACB(cls, m, T0, T1, T2, T3, T4, T5) \
 	static result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, v8::Local<v8::Function> cb) : \
+		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4) \
 		{} \
 		virtual void invoke() \
@@ -1553,10 +1553,10 @@
 	}
 #define ASYNC_MEMBERVALUE6_ACB(cls, m, T0, T1, T2, T3, T4, T5) \
 	result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, v8::Local<v8::Function> cb) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb, pThis), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4) \
 		{} \
 		virtual void invoke() \
@@ -1624,10 +1624,10 @@
 	}
 #define ASYNC_STATIC6_ACB(cls, m, T0, T1, T2, T3, T4, T5) \
 	static result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, v8::Local<v8::Function> cb) : \
+		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5) \
 		{} \
 		virtual void invoke() \
@@ -1692,10 +1692,10 @@
 	}
 #define ASYNC_MEMBER6_ACB(cls, m, T0, T1, T2, T3, T4, T5) \
 	result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, v8::Local<v8::Function> cb) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb, pThis), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5) \
 		{} \
 		virtual void invoke() \
@@ -1760,10 +1760,10 @@
 	}
 #define ASYNC_STATICVALUE7_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	static result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, v8::Local<v8::Function> cb) : \
+		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5) \
 		{} \
 		virtual void invoke() \
@@ -1832,10 +1832,10 @@
 	}
 #define ASYNC_MEMBERVALUE7_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, v8::Local<v8::Function> cb) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb, pThis), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5) \
 		{} \
 		virtual void invoke() \
@@ -1904,10 +1904,10 @@
 	}
 #define ASYNC_STATIC7_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	static result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, v8::Local<v8::Function> cb) : \
+		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6) \
 		{} \
 		virtual void invoke() \
@@ -1973,10 +1973,10 @@
 	}
 #define ASYNC_MEMBER7_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6) \
 	result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, v8::Local<v8::Function> cb) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb, pThis), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6) \
 		{} \
 		virtual void invoke() \
@@ -2042,10 +2042,10 @@
 	}
 #define ASYNC_STATICVALUE8_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	static result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, v8::Local<v8::Function> cb) : \
+		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6) \
 		{} \
 		virtual void invoke() \
@@ -2115,10 +2115,10 @@
 	}
 #define ASYNC_MEMBERVALUE8_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, v8::Local<v8::Function> cb) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb, pThis), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6) \
 		{} \
 		virtual void invoke() \
@@ -2188,10 +2188,10 @@
 	}
 #define ASYNC_STATIC8_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	static result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, v8::Local<v8::Function> cb) : \
+		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7) \
 		{} \
 		virtual void invoke() \
@@ -2258,10 +2258,10 @@
 	}
 #define ASYNC_MEMBER8_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
 	result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, v8::Local<v8::Function> cb) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb, pThis), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7) \
 		{} \
 		virtual void invoke() \
@@ -2328,10 +2328,10 @@
 	}
 #define ASYNC_STATICVALUE9_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	static result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, v8::Local<v8::Function> cb) : \
+		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7) \
 		{} \
 		virtual void invoke() \
@@ -2402,10 +2402,10 @@
 	}
 #define ASYNC_MEMBERVALUE9_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, v8::Local<v8::Function> cb) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb, pThis), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7) \
 		{} \
 		virtual void invoke() \
@@ -2476,10 +2476,10 @@
 	}
 #define ASYNC_STATIC9_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	static result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8, v8::Local<v8::Function> cb) : \
+		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7), m_v8(v8) \
 		{} \
 		virtual void invoke() \
@@ -2547,10 +2547,10 @@
 	}
 #define ASYNC_MEMBER9_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
 	result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8, v8::Local<v8::Function> cb) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb, pThis), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7), m_v8(v8) \
 		{} \
 		virtual void invoke() \
@@ -2618,10 +2618,10 @@
 	}
 #define ASYNC_STATICVALUE10_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
 	static result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8, v8::Local<v8::Function> cb) : \
+		_t(T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7), m_v8(v8) \
 		{} \
 		virtual void invoke() \
@@ -2693,10 +2693,10 @@
 	}
 #define ASYNC_MEMBERVALUE10_ACB(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
 	result_t acb_##m( \
-		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
+		T0 v0, T1 v1, T2 v2, T3 v3, T4 v4, T5 v5, T6 v6, T7 v7, T8 v8, v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\
 	class _t: public AsyncCallBack { \
 	public: \
-		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8, v8::Local<v8::Function> cb) : \
+		_t(cls* pThis, T0& v0, T1& v1, T2& v2, T3& v3, T4& v4, T5& v5, T6& v6, T7& v7, T8& v8, v8::Local<v8::Object> cb) : \
 			AsyncCallBack(cb, pThis), m_v0(v0), m_v1(v1), m_v2(v2), m_v3(v3), m_v4(v4), m_v5(v5), m_v6(v6), m_v7(v7), m_v8(v8) \
 		{} \
 		virtual void invoke() \
