@@ -1,4 +1,5 @@
 /// <reference path="../_import/_fibjs.d.ts" />
+/// <reference path="../module/assert.d.ts" />
 /**
  * @description 控制台访问对象
  * 
@@ -405,12 +406,9 @@ declare module 'console' {
     function timeEnd(label?: string): void;
 
     /**
-     * @description 断言测试，如果测试值为假，则报错
-     *      @param value 测试的数值
-     *      @param msg 报错信息
-     *      
+     * @description 断言测试，如果测试值为假，则报错 
      */
-    function assert(value: any, msg?: string): void;
+    const assert: typeof import ('assert');
 
     /**
      * @description 向控制台输出格式化文本，输出内容不会记入日志系统，输出文本后不会自动换行，可连续输出

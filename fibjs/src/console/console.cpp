@@ -333,11 +333,6 @@ result_t console_base::timeEnd(exlib::string label)
     return 0;
 }
 
-result_t console_base::_assert(v8::Local<v8::Value> value, exlib::string msg)
-{
-    return assert_base::ok(value, msg);
-}
-
 result_t console_base::print(exlib::string fmt, OptArgs args)
 {
     _log(C_PRINT, fmt, args);

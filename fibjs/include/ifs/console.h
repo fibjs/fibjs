@@ -15,6 +15,8 @@
 
 namespace fibjs {
 
+class assert_base;
+
 class console_base : public object_base {
     DECLARE_CLASS(console_base);
 
@@ -66,7 +68,6 @@ public:
     static result_t time(exlib::string label);
     static result_t timeElapse(exlib::string label);
     static result_t timeEnd(exlib::string label);
-    static result_t _assert(v8::Local<v8::Value> value, exlib::string msg);
     static result_t print(exlib::string fmt, OptArgs args);
     static result_t print(OptArgs args);
     static result_t moveTo(int32_t row, int32_t column);
@@ -106,7 +107,6 @@ public:
     static void s_static_time(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_timeElapse(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_timeEnd(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static__assert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_print(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_moveTo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_hideCursor(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -120,6 +120,8 @@ public:
     ASYNC_STATICVALUE2(console_base, getpass, exlib::string, exlib::string);
 };
 }
+
+#include "ifs/assert.h"
 
 namespace fibjs {
 inline ClassInfo& console_base::class_info()
@@ -141,7 +143,6 @@ inline ClassInfo& console_base::class_info()
         { "time", s_static_time, true, ClassData::ASYNC_SYNC },
         { "timeElapse", s_static_timeElapse, true, ClassData::ASYNC_SYNC },
         { "timeEnd", s_static_timeEnd, true, ClassData::ASYNC_SYNC },
-        { "assert", s_static__assert, true, ClassData::ASYNC_SYNC },
         { "print", s_static_print, true, ClassData::ASYNC_SYNC },
         { "moveTo", s_static_moveTo, true, ClassData::ASYNC_SYNC },
         { "hideCursor", s_static_hideCursor, true, ClassData::ASYNC_SYNC },
@@ -149,6 +150,10 @@ inline ClassInfo& console_base::class_info()
         { "clear", s_static_clear, true, ClassData::ASYNC_SYNC },
         { "readLine", s_static_readLine, true, ClassData::ASYNC_ASYNC },
         { "getpass", s_static_getpass, true, ClassData::ASYNC_ASYNC }
+    };
+
+    static ClassData::ClassObject s_object[] = {
+        { "assert", assert_base::class_info }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -172,7 +177,7 @@ inline ClassInfo& console_base::class_info()
 
     static ClassData s_cd = {
         "console", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, ARRAYSIZE(s_property), s_property, ARRAYSIZE(s_const), s_const, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, ARRAYSIZE(s_property), s_property, ARRAYSIZE(s_const), s_const, NULL, NULL,
         &object_base::class_info(),
         true
     };
@@ -518,20 +523,6 @@ inline void console_base::s_static_timeEnd(const v8::FunctionCallbackInfo<v8::Va
     OPT_ARG(exlib::string, 0, "time");
 
     hr = timeEnd(v0);
-
-    METHOD_VOID();
-}
-
-inline void console_base::s_static__assert(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(2, 1);
-
-    ARG(v8::Local<v8::Value>, 0);
-    OPT_ARG(exlib::string, 1, "");
-
-    hr = _assert(v0, v1);
 
     METHOD_VOID();
 }

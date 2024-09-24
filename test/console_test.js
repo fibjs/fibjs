@@ -190,6 +190,10 @@ describe("console", () => {
         console.reset();
     });
 
+    it("console.assert is assert", () => {
+        assert.equal(console.assert, assert);
+    });
+
     it("fix: eval scriptname crash", () => {
         eval('console.log("Rock Lee")');
     })
