@@ -1729,6 +1729,9 @@ describe('util', () => {
                 assert.equal(fs.promises.open, util.promisify(fs.open));
                 assert.equal(util.callbackify(fs.promises.open), fs.open);
                 assert.equal(util.sync(fs.promises.open), fs.open);
+
+                assert.equal(fs.promises.open, fs.openAsync);
+                assert.equal(fs.promises.openAsync, fs.openAsync);
             });
         });
 
@@ -1749,6 +1752,9 @@ describe('util', () => {
                 assert.equal(f1.read, util.promisify(f.read));
                 assert.equal(util.callbackify(f1.read), f.read);
                 assert.equal(util.sync(f1.read), f.read);
+
+                assert.equal(f1.read, f.readAsync);
+                assert.equal(f1.readAsync, f.readAsync);
             });
         });
     });
