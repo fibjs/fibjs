@@ -60,8 +60,8 @@ function gen_stub(argn, bInst, bRet) {
         }
 
         txt.push('	class _t : public ' + AsyncCall + ' \\\n	{ \\\n	public: \\');
-        txt.push('		_t(void ** a' + (bCCall ? ', Isolate* isolate' : '') + ') : ' +
-            AsyncCall + '(a' + (bCCall ? ', isolate' : '') + ') {} \\');
+        txt.push('		_t(void ** a' + (bCCall ? ', Isolate* isolate' : ', Isolate* isolate') + ') : ' +
+            AsyncCall + '(a' + (bCCall ? ', isolate' : ', isolate') + ') {} \\');
 
         txt.push('		virtual void invoke() \\\n		{ \\\n			setAsync(); \\');
         txt.push('			result_t hr = ' + (bInst ? '((cls*)args[' + (argn) + '])->' : 'cls::') + 'm( \\');
@@ -93,9 +93,9 @@ function gen_stub(argn, bInst, bRet) {
             s += bInst ? 'this}; \\' : '}; \\';
             txt.push(s);
 
-            txt.push('	_t ac(args' + (bCCall ? ', isolate' : '') + '); \\');
+            txt.push('	_t ac(args' + (bCCall ? ', isolate' : bInst ? ', holder()' : ', Isolate::current()') + '); \\');
         } else
-            txt.push('	_t ac(NULL' + (bCCall ? ', isolate' : '') + '); \\');
+            txt.push('	_t ac(NULL' + (bCCall ? ', isolate' : bInst ? ', holder()' : ', Isolate::current()') + '); \\');
 
         s = '	return ac.check_result(m(';
         if (argn > 0) {

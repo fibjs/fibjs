@@ -79,8 +79,8 @@ private:
 
 class AsyncCall : public AsyncEvent {
 public:
-    AsyncCall(void** a)
-        : AsyncEvent(Isolate::current())
+    AsyncCall(void** a, Isolate* isolate)
+        : AsyncEvent(isolate)
         , args(a)
     {
     }

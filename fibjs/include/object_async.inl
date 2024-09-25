@@ -3,7 +3,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -12,7 +12,7 @@
 			if(hr != CALL_E_PENDDING)post(hr); \
 		} \
 	}; \
-	_t ac(NULL); \
+	_t ac(NULL, Isolate::current()); \
 	return ac.check_result(m(&ac)); \
 	}
 #define ASYNC_STATIC0_CC(cls, m) \
@@ -60,7 +60,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -70,7 +70,7 @@
 		} \
 	}; \
 	void* args[] = {this}; \
-	_t ac(args); \
+	_t ac(args, holder()); \
 	return ac.check_result(m(&ac)); \
 	}
 #define ASYNC_MEMBER0_CC(cls, m) \
@@ -120,7 +120,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -130,7 +130,7 @@
 		} \
 	}; \
 	void* args[] = {&v0}; \
-	_t ac(args); \
+	_t ac(args, Isolate::current()); \
 	return ac.check_result(m(v0, &ac)); \
 	}
 #define ASYNC_STATICVALUE1_CC(cls, m, T0) \
@@ -185,7 +185,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -195,7 +195,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, this}; \
-	_t ac(args); \
+	_t ac(args, holder()); \
 	return ac.check_result(m(v0, &ac)); \
 	}
 #define ASYNC_MEMBERVALUE1_CC(cls, m, T0) \
@@ -250,7 +250,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -260,7 +260,7 @@
 		} \
 	}; \
 	void* args[] = {&v0}; \
-	_t ac(args); \
+	_t ac(args, Isolate::current()); \
 	return ac.check_result(m(v0, &ac)); \
 	}
 #define ASYNC_STATIC1_CC(cls, m, T0) \
@@ -313,7 +313,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -323,7 +323,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, this}; \
-	_t ac(args); \
+	_t ac(args, holder()); \
 	return ac.check_result(m(v0, &ac)); \
 	}
 #define ASYNC_MEMBER1_CC(cls, m, T0) \
@@ -376,7 +376,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -386,7 +386,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1}; \
-	_t ac(args); \
+	_t ac(args, Isolate::current()); \
 	return ac.check_result(m(v0, v1, &ac)); \
 	}
 #define ASYNC_STATICVALUE2_CC(cls, m, T0, T1) \
@@ -443,7 +443,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -453,7 +453,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, this}; \
-	_t ac(args); \
+	_t ac(args, holder()); \
 	return ac.check_result(m(v0, v1, &ac)); \
 	}
 #define ASYNC_MEMBERVALUE2_CC(cls, m, T0, T1) \
@@ -510,7 +510,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -520,7 +520,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1}; \
-	_t ac(args); \
+	_t ac(args, Isolate::current()); \
 	return ac.check_result(m(v0, v1, &ac)); \
 	}
 #define ASYNC_STATIC2_CC(cls, m, T0, T1) \
@@ -574,7 +574,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -584,7 +584,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, this}; \
-	_t ac(args); \
+	_t ac(args, holder()); \
 	return ac.check_result(m(v0, v1, &ac)); \
 	}
 #define ASYNC_MEMBER2_CC(cls, m, T0, T1) \
@@ -638,7 +638,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -648,7 +648,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2}; \
-	_t ac(args); \
+	_t ac(args, Isolate::current()); \
 	return ac.check_result(m(v0, v1, v2, &ac)); \
 	}
 #define ASYNC_STATICVALUE3_CC(cls, m, T0, T1, T2) \
@@ -706,7 +706,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -716,7 +716,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, this}; \
-	_t ac(args); \
+	_t ac(args, holder()); \
 	return ac.check_result(m(v0, v1, v2, &ac)); \
 	}
 #define ASYNC_MEMBERVALUE3_CC(cls, m, T0, T1, T2) \
@@ -774,7 +774,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -784,7 +784,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2}; \
-	_t ac(args); \
+	_t ac(args, Isolate::current()); \
 	return ac.check_result(m(v0, v1, v2, &ac)); \
 	}
 #define ASYNC_STATIC3_CC(cls, m, T0, T1, T2) \
@@ -839,7 +839,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -849,7 +849,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, this}; \
-	_t ac(args); \
+	_t ac(args, holder()); \
 	return ac.check_result(m(v0, v1, v2, &ac)); \
 	}
 #define ASYNC_MEMBER3_CC(cls, m, T0, T1, T2) \
@@ -904,7 +904,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -914,7 +914,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3}; \
-	_t ac(args); \
+	_t ac(args, Isolate::current()); \
 	return ac.check_result(m(v0, v1, v2, v3, &ac)); \
 	}
 #define ASYNC_STATICVALUE4_CC(cls, m, T0, T1, T2, T3) \
@@ -973,7 +973,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -983,7 +983,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, this}; \
-	_t ac(args); \
+	_t ac(args, holder()); \
 	return ac.check_result(m(v0, v1, v2, v3, &ac)); \
 	}
 #define ASYNC_MEMBERVALUE4_CC(cls, m, T0, T1, T2, T3) \
@@ -1042,7 +1042,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -1052,7 +1052,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3}; \
-	_t ac(args); \
+	_t ac(args, Isolate::current()); \
 	return ac.check_result(m(v0, v1, v2, v3, &ac)); \
 	}
 #define ASYNC_STATIC4_CC(cls, m, T0, T1, T2, T3) \
@@ -1108,7 +1108,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -1118,7 +1118,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, this}; \
-	_t ac(args); \
+	_t ac(args, holder()); \
 	return ac.check_result(m(v0, v1, v2, v3, &ac)); \
 	}
 #define ASYNC_MEMBER4_CC(cls, m, T0, T1, T2, T3) \
@@ -1174,7 +1174,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -1184,7 +1184,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4}; \
-	_t ac(args); \
+	_t ac(args, Isolate::current()); \
 	return ac.check_result(m(v0, v1, v2, v3, v4, &ac)); \
 	}
 #define ASYNC_STATICVALUE5_CC(cls, m, T0, T1, T2, T3, T4) \
@@ -1244,7 +1244,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -1254,7 +1254,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, this}; \
-	_t ac(args); \
+	_t ac(args, holder()); \
 	return ac.check_result(m(v0, v1, v2, v3, v4, &ac)); \
 	}
 #define ASYNC_MEMBERVALUE5_CC(cls, m, T0, T1, T2, T3, T4) \
@@ -1314,7 +1314,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -1324,7 +1324,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4}; \
-	_t ac(args); \
+	_t ac(args, Isolate::current()); \
 	return ac.check_result(m(v0, v1, v2, v3, v4, &ac)); \
 	}
 #define ASYNC_STATIC5_CC(cls, m, T0, T1, T2, T3, T4) \
@@ -1381,7 +1381,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -1391,7 +1391,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, this}; \
-	_t ac(args); \
+	_t ac(args, holder()); \
 	return ac.check_result(m(v0, v1, v2, v3, v4, &ac)); \
 	}
 #define ASYNC_MEMBER5_CC(cls, m, T0, T1, T2, T3, T4) \
@@ -1448,7 +1448,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -1458,7 +1458,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5}; \
-	_t ac(args); \
+	_t ac(args, Isolate::current()); \
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, &ac)); \
 	}
 #define ASYNC_STATICVALUE6_CC(cls, m, T0, T1, T2, T3, T4, T5) \
@@ -1519,7 +1519,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -1529,7 +1529,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, this}; \
-	_t ac(args); \
+	_t ac(args, holder()); \
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, &ac)); \
 	}
 #define ASYNC_MEMBERVALUE6_CC(cls, m, T0, T1, T2, T3, T4, T5) \
@@ -1590,7 +1590,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -1600,7 +1600,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5}; \
-	_t ac(args); \
+	_t ac(args, Isolate::current()); \
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, &ac)); \
 	}
 #define ASYNC_STATIC6_CC(cls, m, T0, T1, T2, T3, T4, T5) \
@@ -1658,7 +1658,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -1668,7 +1668,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, this}; \
-	_t ac(args); \
+	_t ac(args, holder()); \
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, &ac)); \
 	}
 #define ASYNC_MEMBER6_CC(cls, m, T0, T1, T2, T3, T4, T5) \
@@ -1726,7 +1726,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -1736,7 +1736,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6}; \
-	_t ac(args); \
+	_t ac(args, Isolate::current()); \
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, &ac)); \
 	}
 #define ASYNC_STATICVALUE7_CC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
@@ -1798,7 +1798,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -1808,7 +1808,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, this}; \
-	_t ac(args); \
+	_t ac(args, holder()); \
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, &ac)); \
 	}
 #define ASYNC_MEMBERVALUE7_CC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
@@ -1870,7 +1870,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -1880,7 +1880,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6}; \
-	_t ac(args); \
+	_t ac(args, Isolate::current()); \
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, &ac)); \
 	}
 #define ASYNC_STATIC7_CC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
@@ -1939,7 +1939,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -1949,7 +1949,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, this}; \
-	_t ac(args); \
+	_t ac(args, holder()); \
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, &ac)); \
 	}
 #define ASYNC_MEMBER7_CC(cls, m, T0, T1, T2, T3, T4, T5, T6) \
@@ -2008,7 +2008,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -2018,7 +2018,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7}; \
-	_t ac(args); \
+	_t ac(args, Isolate::current()); \
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, &ac)); \
 	}
 #define ASYNC_STATICVALUE8_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
@@ -2081,7 +2081,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -2091,7 +2091,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, this}; \
-	_t ac(args); \
+	_t ac(args, holder()); \
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, &ac)); \
 	}
 #define ASYNC_MEMBERVALUE8_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
@@ -2154,7 +2154,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -2164,7 +2164,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7}; \
-	_t ac(args); \
+	_t ac(args, Isolate::current()); \
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, &ac)); \
 	}
 #define ASYNC_STATIC8_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
@@ -2224,7 +2224,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -2234,7 +2234,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, this}; \
-	_t ac(args); \
+	_t ac(args, holder()); \
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, &ac)); \
 	}
 #define ASYNC_MEMBER8_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7) \
@@ -2294,7 +2294,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -2304,7 +2304,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8}; \
-	_t ac(args); \
+	_t ac(args, Isolate::current()); \
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, &ac)); \
 	}
 #define ASYNC_STATICVALUE9_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
@@ -2368,7 +2368,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -2378,7 +2378,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, this}; \
-	_t ac(args); \
+	_t ac(args, holder()); \
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, &ac)); \
 	}
 #define ASYNC_MEMBERVALUE9_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
@@ -2442,7 +2442,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -2452,7 +2452,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8}; \
-	_t ac(args); \
+	_t ac(args, Isolate::current()); \
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, &ac)); \
 	}
 #define ASYNC_STATIC9_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
@@ -2513,7 +2513,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -2523,7 +2523,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, this}; \
-	_t ac(args); \
+	_t ac(args, holder()); \
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, &ac)); \
 	}
 #define ASYNC_MEMBER9_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8) \
@@ -2584,7 +2584,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -2594,7 +2594,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, &v9}; \
-	_t ac(args); \
+	_t ac(args, Isolate::current()); \
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, &ac)); \
 	}
 #define ASYNC_STATICVALUE10_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
@@ -2659,7 +2659,7 @@
 	class _t : public AsyncCall \
 	{ \
 	public: \
-		_t(void ** a) : AsyncCall(a) {} \
+		_t(void ** a, Isolate* isolate) : AsyncCall(a, isolate) {} \
 		virtual void invoke() \
 		{ \
 			setAsync(); \
@@ -2669,7 +2669,7 @@
 		} \
 	}; \
 	void* args[] = {&v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, &v9, this}; \
-	_t ac(args); \
+	_t ac(args, holder()); \
 	return ac.check_result(m(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, &ac)); \
 	}
 #define ASYNC_MEMBERVALUE10_CC(cls, m, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9) \
