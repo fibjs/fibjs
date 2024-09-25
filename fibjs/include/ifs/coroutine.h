@@ -38,8 +38,6 @@ public:
     static result_t get_spareFibers(int32_t& retVal);
     static result_t set_spareFibers(int32_t newVal);
     static result_t get_vmid(int32_t& retVal);
-    static result_t get_loglevel(int32_t& retVal);
-    static result_t set_loglevel(int32_t newVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -59,8 +57,6 @@ public:
     static void s_static_get_spareFibers(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_set_spareFibers(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_get_vmid(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_get_loglevel(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_set_loglevel(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATIC1(coroutine_base, sleep, int32_t);
@@ -95,8 +91,7 @@ inline ClassInfo& coroutine_base::class_info()
     static ClassData::ClassProperty s_property[] = {
         { "fibers", s_static_get_fibers, block_set, true },
         { "spareFibers", s_static_get_spareFibers, s_static_set_spareFibers, true },
-        { "vmid", s_static_get_vmid, block_set, true },
-        { "loglevel", s_static_get_loglevel, s_static_set_loglevel, true }
+        { "vmid", s_static_get_vmid, block_set, true }
     };
 
     static ClassData s_cd = {
@@ -243,31 +238,5 @@ inline void coroutine_base::s_static_get_vmid(const v8::FunctionCallbackInfo<v8:
     hr = get_vmid(vr);
 
     METHOD_RETURN();
-}
-
-inline void coroutine_base::s_static_get_loglevel(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    int32_t vr;
-
-    METHOD_ENTER();
-
-    METHOD_OVER(0, 0);
-
-    hr = get_loglevel(vr);
-
-    METHOD_RETURN();
-}
-
-inline void coroutine_base::s_static_set_loglevel(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 1);
-
-    ARG(int32_t, 0);
-
-    hr = set_loglevel(v0);
-
-    METHOD_VOID();
 }
 }

@@ -74,7 +74,6 @@ public:
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     {
-        CONSTRUCT_INIT();
         s__function(args);
     }
 

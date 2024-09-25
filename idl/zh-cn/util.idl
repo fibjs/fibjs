@@ -103,6 +103,36 @@ module util
      */
     static String inspect(Value obj, Object options = {});
 
+    /*! @brief 创建一个 Logger 对象，根据环境变量 NODE_DEBUG 有条件地输出调试信息
+     
+     @param section 指定的调试区域
+     @return 返回一个 Logger 对象
+     */
+    static Logger debuglog(String section);
+
+    /*! @brief 创建一个 Logger 对象，根据环境变量 NODE_DEBUG 有条件地输出调试信息
+
+     @param section 指定的调试区域
+     @param fn 第一次调用日志函数时调用的回调，其函数参数是一个更优化的日志函数
+     @return 返回一个 Logger 对象
+     */
+    static Logger debuglog(String section, Function fn);
+
+    /*! @brief 创建一个 Logger 对象，根据环境变量 NODE_DEBUG 有条件地输出调试信息。是 debuglog 的别名
+     
+     @param section 指定的调试区域
+     @return 返回一个 Logger 对象
+     */
+    static Logger debug(String section);
+
+    /*! @brief 创建一个 Logger 对象，根据环境变量 NODE_DEBUG 有条件地输出调试信息。是 debuglog 的别名
+
+     @param section 指定的调试区域
+     @param fn 第一次调用日志函数时调用的回调，其函数参数是一个更优化的日志函数
+     @return 返回一个 Logger 对象
+     */
+    static Logger debug(String section, Function fn);
+
     /*! @brief 封装给定的函数，本函数仅为兼容，并不输出警告
 
      @param fn 给定需要封装的函数

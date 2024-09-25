@@ -208,7 +208,7 @@ function gen_code(cls, def, baseFolder) {
                             if (is_func_new(ov, def))
                                 args_call.push('args.This()');
 
-                            if (ov.static || is_func_new(ov, def) || is_func_Function(ov, def))
+                            if (ov.static || is_func_new(ov, def))
                                 txts.push([
                                     `    hr = ${get_name(get_fname(ov, def), ov, def)}(${args_call.join(', ')});\n`,
                                 ].join(''));
@@ -222,9 +222,20 @@ function gen_code(cls, def, baseFolder) {
                 }
 
                 fncallee_ovs.slice(0, 1).forEach(ov => {
-                    txts.push(`inline void ${cls}_base::${get_stub_func_prefix(ov, def)}${get_name('_function', ov, def)}(const v8::FunctionCallbackInfo<v8::Value>& args)\n{`);
+                    if (ov.static) {
+                        txts.push(`inline void ${cls}_base::${get_stub_func_prefix(ov, def)}${get_name('_function', ov, def)}(const v8::FunctionCallbackInfo<v8::Value>& args)\n{`);
+                        if (ov.type) txts.push(`    ${get_rtype(ov.type)} vr;\n`);
+                    } else {
+                        txts.push(`inline void ${cls}_base::${get_stub_func_prefix(ov, def)}${get_name(get_fname(ov, def), ov, def)}(const v8::FunctionCallbackInfo<v8::Value>& args)\n{`);
 
-                    if (ov.type) txts.push(`    ${get_rtype(ov.type)} vr;\n`);
+                        if (ov.type) txts.push(`    ${get_rtype(ov.type)} vr;\n`);
+
+                        if (ov.async)
+                            txts.push(`    ASYNC_METHOD_INSTANCE(${cls}_base);`);
+                        else
+                            txts.push(`    METHOD_INSTANCE(${cls}_base);`);
+                    }
+
                     txts.push(`    METHOD_ENTER();\n`);
                     make_ov_params(fncallee_ovs);
 
@@ -712,7 +723,7 @@ function gen_code(cls, def, baseFolder) {
             else if (staticCallAsFunc)
                 txts.push([
                     "public:\n    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)\n    {\n",
-                    "        CONSTRUCT_INIT();\n        s__function(args);\n    }\n"
+                    "        s__function(args);\n    }\n"
                 ].join(''));
             else
                 txts.push([

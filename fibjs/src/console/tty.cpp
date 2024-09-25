@@ -57,8 +57,6 @@ result_t TTYInputStream::setRawMode(bool isRawMode, obj_ptr<TTYInputStream_base>
     return 0;
 }
 
-void asyncLog(int32_t priority, exlib::string msg);
-
 const char* TTYOutputStream::kClearToLineBeginning = "\x1b[1K";
 const char* TTYOutputStream::kClearToLineEnd = "\x1b[0K";
 const char* TTYOutputStream::kClearLine = "\x1b[2K";
@@ -68,13 +66,13 @@ result_t TTYOutputStream::clearLine(int32_t dir)
 {
     switch (dir) {
     case -1:
-        asyncLog(console_base::C_PRINT, kClearToLineBeginning);
+        outLog(console_base::C_PRINT, kClearToLineBeginning);
         break;
     case 1:
-        asyncLog(console_base::C_PRINT, kClearToLineEnd);
+        outLog(console_base::C_PRINT, kClearToLineEnd);
         break;
     case 0:
-        asyncLog(console_base::C_PRINT, kClearLine);
+        outLog(console_base::C_PRINT, kClearLine);
         break;
     default:
         return CHECK_ERROR(CALL_E_INVALIDARG);
@@ -85,7 +83,7 @@ result_t TTYOutputStream::clearLine(int32_t dir)
 
 result_t TTYOutputStream::clearScreenDown()
 {
-    asyncLog(console_base::C_PRINT, kClearScreenDown);
+    outLog(console_base::C_PRINT, kClearScreenDown);
 
     return 0;
 }
@@ -105,7 +103,7 @@ result_t TTYOutputStream::cursorTo(int32_t x, int32_t y, AsyncEvent* ac)
     else
         snprintf(numStr, sizeof(numStr), "\x1b[%dG", x + 1);
 
-    asyncLog(console_base::C_PRINT, numStr);
+    outLog(console_base::C_PRINT, numStr);
 
     return 0;
 }
@@ -128,7 +126,7 @@ result_t TTYOutputStream::moveCursor(int32_t dx, int32_t dy, AsyncEvent* ac)
     else if (dy > 0)
         data += snprintf(data, sizeof(numStr) / 2, "\x1b[%dB", dy);
 
-    asyncLog(console_base::C_PRINT, numStr);
+    outLog(console_base::C_PRINT, numStr);
 
     return 0;
 }

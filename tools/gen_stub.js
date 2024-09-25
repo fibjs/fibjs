@@ -127,16 +127,16 @@ function gen_stub(argn, bInst, bRet) {
                 a.push('T' + i + ' v' + i);
 
             s += a.join(', ');
-            s += ', v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\\';
+            s += ', v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) {\\';
             txt.push(s);
         } else
-            txt.push((bInst ? '	' : '	static ') + 'result_t acb_##m(v8::Local<v8::Function> cb, const v8::FunctionCallbackInfo<v8::Value>& args) { \\');
+            txt.push((bInst ? '	' : '	static ') + 'result_t acb_##m(v8::Local<v8::Object> cb, const v8::FunctionCallbackInfo<v8::Value>& args) { \\');
 
         txt.push('	class _t: public AsyncCallBack { \\\n	public: \\');
         s = '		_t(' + (bInst ? 'cls* pThis, ' : '');
         for (i = 0; i < argn1; i++)
             s += 'T' + i + '& v' + i + ', ';
-        s += 'v8::Local<v8::Function> cb) : \\';
+        s += 'v8::Local<v8::Object> cb) : \\';
         txt.push(s);
 
         s = '			AsyncCallBack(cb' + (bInst ? ', pThis' : '') + ')';

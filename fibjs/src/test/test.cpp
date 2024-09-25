@@ -25,8 +25,6 @@ class _case;
 
 static int32_t s_slow = 75;
 
-void asyncLog(int32_t priority, exlib::string msg);
-
 class TestData {
 public:
     obj_ptr<_case> m_root;
@@ -209,8 +207,8 @@ public:
                         str.append(COLOR_RESET);
 
                         if (stack.size() == 1)
-                            asyncLog(console_base::C_INFO, "");
-                        asyncLog(console_base::C_INFO, str);
+                            outLog(console_base::C_INFO, "");
+                        outLog(console_base::C_INFO, str);
                     }
 
                     stack.append(p1);
@@ -334,9 +332,9 @@ public:
                 }
 
                 if (!p1->m_status)
-                    asyncLog(console_base::C_INFO, logger::error() + str + COLOR_RESET);
+                    outLog(console_base::C_INFO, logger::error() + str + COLOR_RESET);
                 else if (mode > console_base::C_ERROR || (p1->m_level >= p->m_run_level && p1->m_level != _case::TEST_TODO))
-                    asyncLog(console_base::C_INFO, str);
+                    outLog(console_base::C_INFO, str);
 
                 if (p1->m_level >= p->m_run_level && p1->m_level != _case::TEST_TODO) {
                     v8::HandleScope handle_scope(isolate->m_isolate);
@@ -410,39 +408,39 @@ public:
             }
         }
 
-        asyncLog(console_base::C_INFO, "");
+        outLog(console_base::C_INFO, "");
 
         snprintf(buf, sizeof(buf),
             (logger::highLight() + "    %d tests completed" + COLOR_RESET + " (%dms)").c_str(),
             td->m_root->m_total, (int32_t)td->m_root->m_duration);
-        asyncLog(console_base::C_INFO, buf);
+        outLog(console_base::C_INFO, buf);
 
         if (td->m_root->m_pass) {
             snprintf(buf, sizeof(buf),
                 (logger::notice() + "  \xe2\x88\x9a %d tests passed" + COLOR_RESET).c_str(), td->m_root->m_pass);
-            asyncLog(console_base::C_INFO, buf);
+            outLog(console_base::C_INFO, buf);
         }
 
         if (td->m_root->m_fail) {
             snprintf(buf, sizeof(buf), (logger::error() + "  \xc3\x97 %d tests failed" + COLOR_RESET).c_str(), td->m_root->m_fail);
-            asyncLog(console_base::C_INFO, buf);
+            outLog(console_base::C_INFO, buf);
         }
 
         if (td->m_root->m_todo) {
             snprintf(buf, sizeof(buf), (COLOR_CYAN + "  \xe2\x98\x90 %d todo tests" + COLOR_RESET).c_str(), td->m_root->m_todo);
-            asyncLog(console_base::C_INFO, buf);
+            outLog(console_base::C_INFO, buf);
         }
 
         if (td->m_root->m_skip) {
             snprintf(buf, sizeof(buf), (COLOR_GREY + "  \xe2\x97\x8b %d tests skipped" + COLOR_RESET).c_str(), td->m_root->m_skip);
-            asyncLog(console_base::C_INFO, buf);
+            outLog(console_base::C_INFO, buf);
         }
 
-        asyncLog(console_base::C_INFO, "");
+        outLog(console_base::C_INFO, "");
 
         for (i = 0; i < (int32_t)msgs.size(); i++) {
-            asyncLog(console_base::C_INFO, names[i]);
-            asyncLog(console_base::C_INFO, logger::error() + msgs[i] + COLOR_RESET);
+            outLog(console_base::C_INFO, names[i]);
+            outLog(console_base::C_INFO, logger::error() + msgs[i] + COLOR_RESET);
         }
 
         retVal = td->m_root->m_retVal;

@@ -94,8 +94,4 @@ module coroutine
 
     /*! @brief 查询当前 vm 编号 */
     static readonly Integer vmid;
-
-    /*! @brief 修改和查询本 vm 的输出级别，用以过滤输出信息，缺省为 console.NOTSET，全部输出
-     */
-    static Integer loglevel;
 };

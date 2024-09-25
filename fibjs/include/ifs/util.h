@@ -18,6 +18,7 @@ namespace fibjs {
 class TextDecoder_base;
 class TextEncoder_base;
 class types_base;
+class Logger_base;
 class Buffer_base;
 
 class util_base : public object_base {
@@ -29,6 +30,10 @@ public:
     static result_t format(OptArgs args, exlib::string& retVal);
     static result_t inherits(v8::Local<v8::Value> constructor, v8::Local<v8::Value> superConstructor);
     static result_t inspect(v8::Local<v8::Value> obj, v8::Local<v8::Object> options, exlib::string& retVal);
+    static result_t debuglog(exlib::string section, obj_ptr<Logger_base>& retVal);
+    static result_t debuglog(exlib::string section, v8::Local<v8::Function> fn, obj_ptr<Logger_base>& retVal);
+    static result_t debug(exlib::string section, obj_ptr<Logger_base>& retVal);
+    static result_t debug(exlib::string section, v8::Local<v8::Function> fn, obj_ptr<Logger_base>& retVal);
     static result_t deprecate(v8::Local<v8::Function> fn, exlib::string msg, exlib::string code, v8::Local<v8::Function>& retVal);
     static result_t isEmpty(v8::Local<v8::Value> v, bool& retVal);
     static result_t isArray(v8::Local<v8::Value> v, bool& retVal);
@@ -100,6 +105,8 @@ public:
     static void s_static_format(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_inherits(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_inspect(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_debuglog(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_debug(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_deprecate(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_isEmpty(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_isArray(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -161,6 +168,7 @@ public:
 #include "ifs/TextDecoder.h"
 #include "ifs/TextEncoder.h"
 #include "ifs/types.h"
+#include "ifs/Logger.h"
 #include "ifs/Buffer.h"
 
 namespace fibjs {
@@ -170,6 +178,8 @@ inline ClassInfo& util_base::class_info()
         { "format", s_static_format, true, ClassData::ASYNC_SYNC },
         { "inherits", s_static_inherits, true, ClassData::ASYNC_SYNC },
         { "inspect", s_static_inspect, true, ClassData::ASYNC_SYNC },
+        { "debuglog", s_static_debuglog, true, ClassData::ASYNC_SYNC },
+        { "debug", s_static_debug, true, ClassData::ASYNC_SYNC },
         { "deprecate", s_static_deprecate, true, ClassData::ASYNC_SYNC },
         { "isEmpty", s_static_isEmpty, true, ClassData::ASYNC_SYNC },
         { "isArray", s_static_isArray, true, ClassData::ASYNC_SYNC },
@@ -292,6 +302,50 @@ inline void util_base::s_static_inspect(const v8::FunctionCallbackInfo<v8::Value
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
 
     hr = inspect(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_static_debuglog(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Logger_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = debuglog(v0, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Function>, 1);
+
+    hr = debuglog(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void util_base::s_static_debug(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Logger_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = debug(v0, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(v8::Local<v8::Function>, 1);
+
+    hr = debug(v0, v1, vr);
 
     METHOD_RETURN();
 }

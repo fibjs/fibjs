@@ -197,7 +197,7 @@ module console
      */
     static notice(...args);
 
-    /*! @brief 记录警告日志信息
+    /*! @brief 记录警告日志信息，与 warning 等同
 
      记录警告日志信息。通常用于输出警告性调试信息。重要。
      @param fmt 格式化字符串
@@ -205,12 +205,27 @@ module console
      */
     static warn(String fmt, ...args);
 
-    /*! @brief 记录警告日志信息
+    /*! @brief 记录警告日志信息，与 warning 等同
 
      记录警告日志信息。通常用于输出警告性调试信息。重要。
      @param args 可选参数列表
      */
     static warn(...args);
+
+    /*! @brief 记录警告日志信息
+
+     记录警告日志信息。通常用于输出警告性调试信息。重要。
+     @param fmt 格式化字符串
+     @param args 可选参数列表
+     */
+    static warning(String fmt, ...args);
+
+    /*! @brief 记录警告日志信息
+
+     记录警告日志信息。通常用于输出警告性调试信息。重要。
+     @param args 可选参数列表
+     */
+    static warning(...args);
 
     /*! @brief 记录错误日志信息
 
@@ -227,7 +242,7 @@ module console
      */
     static error(...args);
 
-    /*! @brief 记录关键错误日志信息
+    /*! @brief 记录关键错误日志信息，与 critical 等同
 
      记录用于关键错误日志信息。通常用于输出关键错误信息。非常重要。
      @param fmt 格式化字符串
@@ -235,12 +250,27 @@ module console
      */
     static crit(String fmt, ...args);
 
-    /*! @brief 记录关键错误日志信息
+    /*! @brief 记录关键错误日志信息，与 critical 等同
 
      记录用于关键错误日志信息。通常用于输出关键错误信息。非常重要。
      @param args 可选参数列表
      */
     static crit(...args);
+
+    /*! @brief 记录关键错误日志信息
+
+     记录用于关键错误日志信息。通常用于输出关键错误信息。非常重要。
+     @param fmt 格式化字符串
+     @param args 可选参数列表
+     */
+    static critical(String fmt, ...args);
+
+    /*! @brief 记录关键错误日志信息
+
+     记录用于关键错误日志信息。通常用于输出关键错误信息。非常重要。
+     @param args 可选参数列表
+     */
+    static critical(...args);
 
     /*! @brief 记录警报错误日志信息
 
@@ -302,27 +332,6 @@ module console
      */
     static table(Value obj, Array fields);
 
-    /*! @brief 启动一个计时器
-
-     @param label 标题，缺省为空字符串。
-     */
-    static time(String label = "time");
-
-    /*! @brief 输出指定计时器当前计时值
-
-     @param label 标题，缺省为空字符串。
-     */
-    static timeElapse(String label = "time");
-
-    /*! @brief 结束指定计时器，并输出最后计时值
-
-     @param label 标题，缺省为空字符串。
-     */
-    static timeEnd(String label = "time");
-
-    /*! @brief 断言测试，如果测试值为假，则报错 */
-    static assert;
-
     /*! @brief 向控制台输出格式化文本，输出内容不会记入日志系统，输出文本后不会自动换行，可连续输出
      @param fmt 格式化字符串
      @param args 可选参数列表
@@ -360,4 +369,25 @@ module console
      @return 返回用户输入的密码
      */
     static String getpass(String msg = "") async;
+
+    /*! @brief 启动一个计时器
+
+     @param label 标题，缺省为空字符串。
+     */
+    static time(String label = "time");
+
+    /*! @brief 输出指定计时器当前计时值
+
+     @param label 标题，缺省为空字符串。
+     */
+    static timeElapse(String label = "time");
+
+    /*! @brief 结束指定计时器，并输出最后计时值
+
+     @param label 标题，缺省为空字符串。
+     */
+    static timeEnd(String label = "time");
+
+    /*! @brief 断言测试，如果测试值为假，则报错 */
+    static assert;
 };

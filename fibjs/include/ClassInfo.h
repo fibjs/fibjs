@@ -141,6 +141,12 @@ public:
         return _init(isolate)->m_pcache.Get(isolate->m_isolate)->GetPrototype();
     }
 
+    v8::Local<v8::Value> GetPrototype(Isolate* isolate)
+    {
+        assert(!m_cd.module);
+        return _init(isolate)->m_cache.Get(isolate->m_isolate)->GetPrototype();
+    }
+
     bool hasAsync()
     {
         return m_cd.has_async;

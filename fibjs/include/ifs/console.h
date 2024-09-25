@@ -54,10 +54,14 @@ public:
     static result_t notice(OptArgs args);
     static result_t warn(exlib::string fmt, OptArgs args);
     static result_t warn(OptArgs args);
+    static result_t warning(exlib::string fmt, OptArgs args);
+    static result_t warning(OptArgs args);
     static result_t error(exlib::string fmt, OptArgs args);
     static result_t error(OptArgs args);
     static result_t crit(exlib::string fmt, OptArgs args);
     static result_t crit(OptArgs args);
+    static result_t critical(exlib::string fmt, OptArgs args);
+    static result_t critical(OptArgs args);
     static result_t alert(exlib::string fmt, OptArgs args);
     static result_t alert(OptArgs args);
     static result_t trace(exlib::string fmt, OptArgs args);
@@ -65,9 +69,6 @@ public:
     static result_t dir(v8::Local<v8::Value> obj, v8::Local<v8::Object> options);
     static result_t table(v8::Local<v8::Value> obj);
     static result_t table(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields);
-    static result_t time(exlib::string label);
-    static result_t timeElapse(exlib::string label);
-    static result_t timeEnd(exlib::string label);
     static result_t print(exlib::string fmt, OptArgs args);
     static result_t print(OptArgs args);
     static result_t moveTo(int32_t row, int32_t column);
@@ -76,6 +77,9 @@ public:
     static result_t clear();
     static result_t readLine(exlib::string msg, exlib::string& retVal, AsyncEvent* ac);
     static result_t getpass(exlib::string msg, exlib::string& retVal, AsyncEvent* ac);
+    static result_t time(exlib::string label);
+    static result_t timeElapse(exlib::string label);
+    static result_t timeEnd(exlib::string label);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -98,15 +102,14 @@ public:
     static void s_static_info(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_notice(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_warn(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_warning(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_error(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_crit(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_critical(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_alert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_trace(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_dir(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_table(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_time(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_timeElapse(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_static_timeEnd(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_print(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_moveTo(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_hideCursor(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -114,6 +117,9 @@ public:
     static void s_static_clear(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_readLine(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_getpass(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_time(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_timeElapse(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_timeEnd(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE2(console_base, readLine, exlib::string, exlib::string);
@@ -134,22 +140,24 @@ inline ClassInfo& console_base::class_info()
         { "info", s_static_info, true, ClassData::ASYNC_SYNC },
         { "notice", s_static_notice, true, ClassData::ASYNC_SYNC },
         { "warn", s_static_warn, true, ClassData::ASYNC_SYNC },
+        { "warning", s_static_warning, true, ClassData::ASYNC_SYNC },
         { "error", s_static_error, true, ClassData::ASYNC_SYNC },
         { "crit", s_static_crit, true, ClassData::ASYNC_SYNC },
+        { "critical", s_static_critical, true, ClassData::ASYNC_SYNC },
         { "alert", s_static_alert, true, ClassData::ASYNC_SYNC },
         { "trace", s_static_trace, true, ClassData::ASYNC_SYNC },
         { "dir", s_static_dir, true, ClassData::ASYNC_SYNC },
         { "table", s_static_table, true, ClassData::ASYNC_SYNC },
-        { "time", s_static_time, true, ClassData::ASYNC_SYNC },
-        { "timeElapse", s_static_timeElapse, true, ClassData::ASYNC_SYNC },
-        { "timeEnd", s_static_timeEnd, true, ClassData::ASYNC_SYNC },
         { "print", s_static_print, true, ClassData::ASYNC_SYNC },
         { "moveTo", s_static_moveTo, true, ClassData::ASYNC_SYNC },
         { "hideCursor", s_static_hideCursor, true, ClassData::ASYNC_SYNC },
         { "showCursor", s_static_showCursor, true, ClassData::ASYNC_SYNC },
         { "clear", s_static_clear, true, ClassData::ASYNC_SYNC },
         { "readLine", s_static_readLine, true, ClassData::ASYNC_ASYNC },
-        { "getpass", s_static_getpass, true, ClassData::ASYNC_ASYNC }
+        { "getpass", s_static_getpass, true, ClassData::ASYNC_ASYNC },
+        { "time", s_static_time, true, ClassData::ASYNC_SYNC },
+        { "timeElapse", s_static_timeElapse, true, ClassData::ASYNC_SYNC },
+        { "timeEnd", s_static_timeEnd, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -374,6 +382,26 @@ inline void console_base::s_static_warn(const v8::FunctionCallbackInfo<v8::Value
     METHOD_VOID();
 }
 
+inline void console_base::s_static_warning(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(-1, 1);
+
+    ARG(exlib::string, 0);
+    ARG_LIST(1);
+
+    hr = warning(v0, v1);
+
+    METHOD_OVER(-1, 0);
+
+    ARG_LIST(0);
+
+    hr = warning(v0);
+
+    METHOD_VOID();
+}
+
 inline void console_base::s_static_error(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_ENTER();
@@ -410,6 +438,26 @@ inline void console_base::s_static_crit(const v8::FunctionCallbackInfo<v8::Value
     ARG_LIST(0);
 
     hr = crit(v0);
+
+    METHOD_VOID();
+}
+
+inline void console_base::s_static_critical(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(-1, 1);
+
+    ARG(exlib::string, 0);
+    ARG_LIST(1);
+
+    hr = critical(v0, v1);
+
+    METHOD_OVER(-1, 0);
+
+    ARG_LIST(0);
+
+    hr = critical(v0);
 
     METHOD_VOID();
 }
@@ -484,45 +532,6 @@ inline void console_base::s_static_table(const v8::FunctionCallbackInfo<v8::Valu
     ARG(v8::Local<v8::Array>, 1);
 
     hr = table(v0, v1);
-
-    METHOD_VOID();
-}
-
-inline void console_base::s_static_time(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 0);
-
-    OPT_ARG(exlib::string, 0, "time");
-
-    hr = time(v0);
-
-    METHOD_VOID();
-}
-
-inline void console_base::s_static_timeElapse(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 0);
-
-    OPT_ARG(exlib::string, 0, "time");
-
-    hr = timeElapse(v0);
-
-    METHOD_VOID();
-}
-
-inline void console_base::s_static_timeEnd(const v8::FunctionCallbackInfo<v8::Value>& args)
-{
-    METHOD_ENTER();
-
-    METHOD_OVER(1, 0);
-
-    OPT_ARG(exlib::string, 0, "time");
-
-    hr = timeEnd(v0);
 
     METHOD_VOID();
 }
@@ -628,5 +637,44 @@ inline void console_base::s_static_getpass(const v8::FunctionCallbackInfo<v8::Va
         hr = ac_getpass(v0, vr);
 
     METHOD_RETURN();
+}
+
+inline void console_base::s_static_time(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(exlib::string, 0, "time");
+
+    hr = time(v0);
+
+    METHOD_VOID();
+}
+
+inline void console_base::s_static_timeElapse(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(exlib::string, 0, "time");
+
+    hr = timeElapse(v0);
+
+    METHOD_VOID();
+}
+
+inline void console_base::s_static_timeEnd(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(exlib::string, 0, "time");
+
+    hr = timeEnd(v0);
+
+    METHOD_VOID();
 }
 }

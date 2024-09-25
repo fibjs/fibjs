@@ -16,6 +16,8 @@
 
 namespace fibjs {
 
+void outLog(int32_t priority, exlib::string msg);
+
 #define LOGTIME true
 
 class logger : public AsyncEvent {

@@ -112,10 +112,7 @@ public:
     }
 } s_color_initer;
 
-extern std_logger* s_std;
-void asyncLog(int32_t priority, exlib::string msg);
-
-bool colors(int32_t type)
+static bool colors(int32_t type)
 {
     if (!Isolate::current()->m_console_colored)
         return false;
@@ -126,7 +123,7 @@ bool colors(int32_t type)
     return true;
 }
 
-void _log(int32_t type, exlib::string fmt, OptArgs args)
+static void _log(int32_t type, exlib::string fmt, OptArgs args)
 {
     int32_t level;
 
@@ -136,7 +133,7 @@ void _log(int32_t type, exlib::string fmt, OptArgs args)
         exlib::string str;
 
         util_format(Isolate::current(), fmt, args, colors(type), str);
-        asyncLog(type, str);
+        outLog(type, str);
     }
 }
 
@@ -200,6 +197,18 @@ result_t console_base::warn(OptArgs args)
     return 0;
 }
 
+result_t console_base::warning(exlib::string fmt, OptArgs args)
+{
+    _log(C_WARN, fmt, args);
+    return 0;
+}
+
+result_t console_base::warning(OptArgs args)
+{
+    _log(C_WARN, "", args);
+    return 0;
+}
+
 result_t console_base::error(exlib::string fmt, OptArgs args)
 {
     _log(C_ERROR, fmt, args);
@@ -219,6 +228,18 @@ result_t console_base::crit(exlib::string fmt, OptArgs args)
 }
 
 result_t console_base::crit(OptArgs args)
+{
+    _log(C_CRIT, "", args);
+    return 0;
+}
+
+result_t console_base::critical(exlib::string fmt, OptArgs args)
+{
+    _log(C_CRIT, fmt, args);
+    return 0;
+}
+
+result_t console_base::critical(OptArgs args)
 {
     _log(C_CRIT, "", args);
     return 0;
@@ -254,7 +275,7 @@ result_t console_base::trace(exlib::string fmt, OptArgs args)
 
         str.append(1, '\n');
         str.append(traceInfo(Isolate::current()->m_isolate, 10));
-        asyncLog(type, str);
+        outLog(type, str);
     }
 
     return 0;
@@ -270,7 +291,7 @@ result_t console_base::dir(v8::Local<v8::Value> obj, v8::Local<v8::Object> optio
     exlib::string strBuffer;
     util_base::inspect(obj, options, strBuffer);
 
-    asyncLog(C_INFO, strBuffer);
+    outLog(C_INFO, strBuffer);
     return 0;
 }
 
@@ -282,7 +303,19 @@ result_t console_base::table(v8::Local<v8::Value> obj)
 result_t console_base::table(v8::Local<v8::Value> obj, v8::Local<v8::Array> fields)
 {
     exlib::string strBuffer = table_format(Isolate::current(), obj, fields, colors(C_INFO), true);
-    asyncLog(C_INFO, strBuffer);
+    outLog(C_INFO, strBuffer);
+    return 0;
+}
+
+result_t console_base::print(exlib::string fmt, OptArgs args)
+{
+    _log(C_PRINT, fmt, args);
+    return 0;
+}
+
+result_t console_base::print(OptArgs args)
+{
+    _log(C_PRINT, "", args);
     return 0;
 }
 
@@ -309,7 +342,7 @@ result_t console_base::timeElapse(exlib::string label)
     strBuffer.append(numStr);
     strBuffer.append("ms", 2);
 
-    asyncLog(C_INFO, strBuffer);
+    outLog(C_INFO, strBuffer);
     return 0;
 }
 
@@ -329,19 +362,7 @@ result_t console_base::timeEnd(exlib::string label)
     strBuffer.append(numStr);
     strBuffer.append("ms", 2);
 
-    asyncLog(C_INFO, strBuffer);
-    return 0;
-}
-
-result_t console_base::print(exlib::string fmt, OptArgs args)
-{
-    _log(C_PRINT, fmt, args);
-    return 0;
-}
-
-result_t console_base::print(OptArgs args)
-{
-    _log(C_PRINT, "", args);
+    outLog(C_INFO, strBuffer);
     return 0;
 }
 
@@ -487,27 +508,27 @@ result_t console_base::moveTo(int32_t row, int32_t column)
     char numStr[64];
 
     snprintf(numStr, sizeof(numStr), "\x1b[%d;%dH", row, column);
-    asyncLog(C_PRINT, numStr);
+    outLog(C_PRINT, numStr);
 
     return 0;
 }
 
 result_t console_base::hideCursor()
 {
-    asyncLog(C_PRINT, "\x1b[?25l");
+    outLog(C_PRINT, "\x1b[?25l");
     return 0;
 }
 
 result_t console_base::showCursor()
 {
-    asyncLog(C_PRINT, "\x1b[?25h");
+    outLog(C_PRINT, "\x1b[?25h");
     return 0;
 }
 
 result_t console_base::clear()
 {
-    asyncLog(C_PRINT, "\x1b"
-                      "c");
+    outLog(C_PRINT, "\x1b"
+                    "c");
     return 0;
 }
 

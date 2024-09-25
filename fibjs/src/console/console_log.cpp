@@ -62,16 +62,6 @@ void errorLog(exlib::string msg)
     outLog(console_base::C_ERROR, msg);
 }
 
-void asyncLog(int32_t priority, exlib::string msg)
-{
-    Isolate* isolate = Isolate::current();
-
-    if (isolate && priority > isolate->m_loglevel)
-        return;
-
-    outLog(priority, msg);
-}
-
 void flushLog()
 {
     int32_t i;

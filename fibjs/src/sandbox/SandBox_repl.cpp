@@ -17,8 +17,6 @@
 
 namespace fibjs {
 
-void asyncLog(int32_t priority, exlib::string msg);
-
 void output(int32_t priority, exlib::string msg)
 {
     if (priority == console_base::C_ERROR)
@@ -27,7 +25,7 @@ void output(int32_t priority, exlib::string msg)
     if (priority != console_base::C_PRINT)
         msg += '\n';
 
-    asyncLog(console_base::C_PRINT, msg);
+    outLog(console_base::C_PRINT, msg);
 }
 
 result_t SandBox::repl(exlib::string src)
