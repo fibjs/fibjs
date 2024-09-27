@@ -134,9 +134,9 @@ inline void TcpServer_base::s_start(const v8::FunctionCallbackInfo<v8::Value>& a
 inline void TcpServer_base::s_stop(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(TcpServer_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
     if (!cb.IsEmpty())
         hr = pInst->acb_stop(cb, args);

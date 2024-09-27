@@ -273,9 +273,9 @@ inline void SecureContext_base::s_getSNIContext(const v8::FunctionCallbackInfo<v
     obj_ptr<SecureContext_base> vr;
 
     ASYNC_METHOD_INSTANCE(SecureContext_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
     OPT_ARG(bool, 1, false);

@@ -65,9 +65,9 @@ inline void dns_base::s_static_resolve(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<NArray> vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
     ARG(exlib::string, 0);
 
@@ -83,9 +83,9 @@ inline void dns_base::s_static_lookup(const v8::FunctionCallbackInfo<v8::Value>&
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
     ARG(exlib::string, 0);
 

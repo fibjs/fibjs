@@ -132,9 +132,9 @@ inline void ChildProcess_base::s_join(const v8::FunctionCallbackInfo<v8::Value>&
     int32_t vr;
 
     ASYNC_METHOD_INSTANCE(ChildProcess_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
     if (!cb.IsEmpty())
         hr = pInst->acb_join(cb, args);

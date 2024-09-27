@@ -174,9 +174,9 @@ inline void coroutine_base::s_static_current(const v8::FunctionCallbackInfo<v8::
 
 inline void coroutine_base::s_static_sleep(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 0);
+    METHOD_OVER(1, 0);
 
     OPT_ARG(int32_t, 0, 0);
 

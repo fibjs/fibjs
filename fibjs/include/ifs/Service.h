@@ -128,9 +128,9 @@ void Service_base::__new(const T& args)
 inline void Service_base::s_run(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(Service_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
     if (!cb.IsEmpty())
         hr = pInst->acb_run(cb, args);

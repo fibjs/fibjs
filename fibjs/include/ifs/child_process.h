@@ -186,9 +186,9 @@ inline void child_process_base::s_static_exec(const v8::FunctionCallbackInfo<v8:
 {
     obj_ptr<ExecType> vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
@@ -205,9 +205,9 @@ inline void child_process_base::s_static_execFile(const v8::FunctionCallbackInfo
 {
     obj_ptr<ExecFileType> vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
     ARG(exlib::string, 0);
     ARG(v8::Local<v8::Array>, 1);
@@ -218,7 +218,7 @@ inline void child_process_base::s_static_execFile(const v8::FunctionCallbackInfo
     else
         hr = ac_execFile(v0, v1, v2, vr);
 
-    ASYNC_METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
@@ -235,9 +235,9 @@ inline void child_process_base::s_static_spawnSync(const v8::FunctionCallbackInf
 {
     obj_ptr<SpawnSyncType> vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
     ARG(exlib::string, 0);
     ARG(v8::Local<v8::Array>, 1);
@@ -248,7 +248,7 @@ inline void child_process_base::s_static_spawnSync(const v8::FunctionCallbackInf
     else
         hr = ac_spawnSync(v0, v1, v2, vr);
 
-    ASYNC_METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
@@ -289,9 +289,9 @@ inline void child_process_base::s_static_run(const v8::FunctionCallbackInfo<v8::
 {
     int32_t vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
     ARG(exlib::string, 0);
     ARG(v8::Local<v8::Array>, 1);
@@ -302,7 +302,7 @@ inline void child_process_base::s_static_run(const v8::FunctionCallbackInfo<v8::
     else
         hr = ac_run(v0, v1, v2, vr);
 
-    ASYNC_METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));

@@ -570,9 +570,9 @@ inline void crypto_base::s_static_randomBytes(const v8::FunctionCallbackInfo<v8:
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 0);
+    METHOD_OVER(1, 0);
 
     OPT_ARG(int32_t, 0, 16);
 
@@ -588,9 +588,9 @@ inline void crypto_base::s_static_randomFill(const v8::FunctionCallbackInfo<v8::
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(3, 1);
+    METHOD_OVER(3, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(int32_t, 1, 0);
@@ -608,9 +608,9 @@ inline void crypto_base::s_static_generateKeyPair(const v8::FunctionCallbackInfo
 {
     obj_ptr<GenerateKeyPairType> vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
     OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
@@ -627,9 +627,9 @@ inline void crypto_base::s_static_hkdf(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(5, 5);
+    METHOD_OVER(5, 5);
 
     ARG(exlib::string, 0);
     ARG(obj_ptr<Buffer_base>, 1);
@@ -649,9 +649,9 @@ inline void crypto_base::s_static_pbkdf2(const v8::FunctionCallbackInfo<v8::Valu
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(5, 5);
+    METHOD_OVER(5, 5);
 
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(obj_ptr<Buffer_base>, 1);
@@ -791,9 +791,9 @@ inline void crypto_base::s_static_sign(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(3, 3);
+    METHOD_OVER(3, 3);
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(obj_ptr<Buffer_base>, 1);
@@ -804,7 +804,7 @@ inline void crypto_base::s_static_sign(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = ac_sign(v0, v1, v2, vr);
 
-    ASYNC_METHOD_OVER(3, 3);
+    METHOD_OVER(3, 3);
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(obj_ptr<Buffer_base>, 1);
@@ -815,7 +815,7 @@ inline void crypto_base::s_static_sign(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = ac_sign(v0, v1, v2, vr);
 
-    ASYNC_METHOD_OVER(3, 3);
+    METHOD_OVER(3, 3);
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(obj_ptr<Buffer_base>, 1);
@@ -833,9 +833,9 @@ inline void crypto_base::s_static_verify(const v8::FunctionCallbackInfo<v8::Valu
 {
     bool vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(4, 4);
+    METHOD_OVER(4, 4);
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(obj_ptr<Buffer_base>, 1);
@@ -847,7 +847,7 @@ inline void crypto_base::s_static_verify(const v8::FunctionCallbackInfo<v8::Valu
     else
         hr = ac_verify(v0, v1, v2, v3, vr);
 
-    ASYNC_METHOD_OVER(4, 4);
+    METHOD_OVER(4, 4);
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(obj_ptr<Buffer_base>, 1);
@@ -859,7 +859,7 @@ inline void crypto_base::s_static_verify(const v8::FunctionCallbackInfo<v8::Valu
     else
         hr = ac_verify(v0, v1, v2, v3, vr);
 
-    ASYNC_METHOD_OVER(4, 4);
+    METHOD_OVER(4, 4);
 
     ARG(v8::Local<v8::Value>, 0);
     ARG(obj_ptr<Buffer_base>, 1);
@@ -894,9 +894,9 @@ inline void crypto_base::s_static_bbsSign(const v8::FunctionCallbackInfo<v8::Val
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
     ARG(v8::Local<v8::Array>, 0);
     ARG(obj_ptr<Buffer_base>, 1);
@@ -906,7 +906,7 @@ inline void crypto_base::s_static_bbsSign(const v8::FunctionCallbackInfo<v8::Val
     else
         hr = ac_bbsSign(v0, v1, vr);
 
-    ASYNC_METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
     ARG(v8::Local<v8::Array>, 0);
     ARG(obj_ptr<KeyObject_base>, 1);
@@ -916,7 +916,7 @@ inline void crypto_base::s_static_bbsSign(const v8::FunctionCallbackInfo<v8::Val
     else
         hr = ac_bbsSign(v0, v1, vr);
 
-    ASYNC_METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
     ARG(v8::Local<v8::Array>, 0);
     ARG(v8::Local<v8::Object>, 1);
@@ -933,9 +933,9 @@ inline void crypto_base::s_static_bbsVerify(const v8::FunctionCallbackInfo<v8::V
 {
     bool vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(3, 3);
+    METHOD_OVER(3, 3);
 
     ARG(v8::Local<v8::Array>, 0);
     ARG(obj_ptr<Buffer_base>, 1);
@@ -946,7 +946,7 @@ inline void crypto_base::s_static_bbsVerify(const v8::FunctionCallbackInfo<v8::V
     else
         hr = ac_bbsVerify(v0, v1, v2, vr);
 
-    ASYNC_METHOD_OVER(3, 3);
+    METHOD_OVER(3, 3);
 
     ARG(v8::Local<v8::Array>, 0);
     ARG(obj_ptr<KeyObject_base>, 1);
@@ -957,7 +957,7 @@ inline void crypto_base::s_static_bbsVerify(const v8::FunctionCallbackInfo<v8::V
     else
         hr = ac_bbsVerify(v0, v1, v2, vr);
 
-    ASYNC_METHOD_OVER(3, 3);
+    METHOD_OVER(3, 3);
 
     ARG(v8::Local<v8::Array>, 0);
     ARG(v8::Local<v8::Object>, 1);
@@ -975,9 +975,9 @@ inline void crypto_base::s_static_proofGen(const v8::FunctionCallbackInfo<v8::Va
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(4, 4);
+    METHOD_OVER(4, 4);
 
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(v8::Local<v8::Array>, 1);
@@ -989,7 +989,7 @@ inline void crypto_base::s_static_proofGen(const v8::FunctionCallbackInfo<v8::Va
     else
         hr = ac_proofGen(v0, v1, v2, v3, vr);
 
-    ASYNC_METHOD_OVER(4, 4);
+    METHOD_OVER(4, 4);
 
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(v8::Local<v8::Array>, 1);
@@ -1001,7 +1001,7 @@ inline void crypto_base::s_static_proofGen(const v8::FunctionCallbackInfo<v8::Va
     else
         hr = ac_proofGen(v0, v1, v2, v3, vr);
 
-    ASYNC_METHOD_OVER(4, 4);
+    METHOD_OVER(4, 4);
 
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(v8::Local<v8::Array>, 1);
@@ -1020,9 +1020,9 @@ inline void crypto_base::s_static_proofVerify(const v8::FunctionCallbackInfo<v8:
 {
     bool vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(4, 4);
+    METHOD_OVER(4, 4);
 
     ARG(v8::Local<v8::Array>, 0);
     ARG(v8::Local<v8::Array>, 1);
@@ -1034,7 +1034,7 @@ inline void crypto_base::s_static_proofVerify(const v8::FunctionCallbackInfo<v8:
     else
         hr = ac_proofVerify(v0, v1, v2, v3, vr);
 
-    ASYNC_METHOD_OVER(4, 4);
+    METHOD_OVER(4, 4);
 
     ARG(v8::Local<v8::Array>, 0);
     ARG(v8::Local<v8::Array>, 1);
@@ -1046,7 +1046,7 @@ inline void crypto_base::s_static_proofVerify(const v8::FunctionCallbackInfo<v8:
     else
         hr = ac_proofVerify(v0, v1, v2, v3, vr);
 
-    ASYNC_METHOD_OVER(4, 4);
+    METHOD_OVER(4, 4);
 
     ARG(v8::Local<v8::Array>, 0);
     ARG(v8::Local<v8::Array>, 1);

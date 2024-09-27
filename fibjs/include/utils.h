@@ -210,49 +210,24 @@ enum {
     do {                                                    \
         do {
 
-#define METHOD_OVER(c, o)                                                                     \
-    }                                                                                         \
-    while (0)                                                                                 \
-        ;                                                                                     \
-    if (hr > CALL_E_MIN_ARG && hr < CALL_E_MAX)                                               \
-        do {                                                                                  \
-            hr = 0;                                                                           \
-            int32_t argc1 = args.Length();                                                    \
-            int32_t argc = argc1;                                                             \
-            while (argc > (o) && (args[argc - 1]->IsUndefined() || args[argc - 1]->IsNull())) \
-                argc--;                                                                       \
-            if ((c) >= 0 && argc > (c)) {                                                     \
-                hr = CALL_E_BADPARAMCOUNT;                                                    \
-                break;                                                                        \
-            }                                                                                 \
-            if ((o) > 0 && argc < (o)) {                                                      \
-                hr = setRuntimeError(CALL_E_PARAMNOTOPTIONAL);                                \
-                break;                                                                        \
-            }
-
-#define ASYNC_METHOD_OVER(c, o)                                                                                    \
-    }                                                                                                              \
-    while (0)                                                                                                      \
-        ;                                                                                                          \
-    if (hr > CALL_E_MIN_ARG && hr < CALL_E_MAX)                                                                    \
-        do {                                                                                                       \
-            hr = 0;                                                                                                \
-            int32_t argc1 = args.Length();                                                                         \
-            v8::Local<v8::Object> cb;                                                                              \
-            if (args.Data()->IsTrue())                                                                             \
-                cb = v8::Promise::Resolver::New(isolate->context()).FromMaybe(v8::Local<v8::Promise::Resolver>()); \
-            else if (argc1 > 0 && args[argc1 - 1]->IsFunction())                                                   \
-                cb = args[--argc1].As<v8::Object>();                                                               \
-            int32_t argc = argc1;                                                                                  \
-            while (argc > (o) && (args[argc - 1]->IsUndefined() || args[argc - 1]->IsNull()))                      \
-                argc--;                                                                                            \
-            if ((c) >= 0 && argc > (c)) {                                                                          \
-                hr = CALL_E_BADPARAMCOUNT;                                                                         \
-                break;                                                                                             \
-            }                                                                                                      \
-            if ((o) > 0 && argc < (o)) {                                                                           \
-                hr = setRuntimeError(CALL_E_PARAMNOTOPTIONAL);                                                     \
-                break;                                                                                             \
+#define METHOD_OVER(c, o)                                                                         \
+    }                                                                                             \
+    while (0)                                                                                     \
+        ;                                                                                         \
+    if (hr > CALL_E_MIN_ARG && hr < CALL_E_MAX)                                                   \
+        do {                                                                                      \
+            hr = 0;                                                                               \
+            int32_t argc = argc1;                                                                 \
+            if (!bStrict)                                                                         \
+                while (argc > (o) && (args[argc - 1]->IsUndefined() || args[argc - 1]->IsNull())) \
+                    argc--;                                                                       \
+            if ((c) >= 0 && argc > (c)) {                                                         \
+                hr = CALL_E_BADPARAMCOUNT;                                                        \
+                break;                                                                            \
+            }                                                                                     \
+            if ((o) > 0 && argc < (o)) {                                                          \
+                hr = setRuntimeError(CALL_E_PARAMNOTOPTIONAL);                                    \
+                break;                                                                            \
             }
 
 #define METHOD_ENTER()                                      \
@@ -260,7 +235,22 @@ enum {
     V8_SCOPE(isolate->m_isolate);                           \
     result_t hr = CALL_E_BADPARAMCOUNT;                     \
     bool bStrict = true;                                    \
+    int32_t argc1 = args.Length();                          \
     do {                                                    \
+        do {
+
+#define ASYNC_METHOD_ENTER()                                                                               \
+    Isolate* isolate = Isolate::current(args.GetIsolate());                                                \
+    V8_SCOPE(isolate->m_isolate);                                                                          \
+    result_t hr = CALL_E_BADPARAMCOUNT;                                                                    \
+    bool bStrict = true;                                                                                   \
+    int32_t argc1 = args.Length();                                                                         \
+    v8::Local<v8::Object> cb;                                                                              \
+    if (args.Data()->IsTrue())                                                                             \
+        cb = v8::Promise::Resolver::New(isolate->context()).FromMaybe(v8::Local<v8::Promise::Resolver>()); \
+    else if (argc1 > 0 && args[argc1 - 1]->IsFunction())                                                   \
+        cb = args[--argc1].As<v8::Object>();                                                               \
+    do {                                                                                                   \
         do {
 
 #define CONSTRUCT_INIT()                       \

@@ -134,9 +134,9 @@ void TLSSocket_base::__new(const T& args)
 inline void TLSSocket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(TLSSocket_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
     ARG(obj_ptr<Stream_base>, 0);
     OPT_ARG(exlib::string, 1, "");
@@ -152,9 +152,9 @@ inline void TLSSocket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>&
 inline void TLSSocket_base::s_accept(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(TLSSocket_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
     ARG(obj_ptr<Stream_base>, 0);
 

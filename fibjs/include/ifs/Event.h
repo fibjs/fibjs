@@ -144,9 +144,9 @@ inline void Event_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& args)
 inline void Event_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(Event_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
     if (!cb.IsEmpty())
         hr = pInst->acb_wait(cb, args);

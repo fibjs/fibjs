@@ -255,9 +255,9 @@ inline void zlib_base::s_static_deflate(const v8::FunctionCallbackInfo<v8::Value
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(int32_t, 1, C_DEFAULT_COMPRESSION);
@@ -272,9 +272,9 @@ inline void zlib_base::s_static_deflate(const v8::FunctionCallbackInfo<v8::Value
 
 inline void zlib_base::s_static_deflateTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(obj_ptr<Stream_base>, 1);
@@ -285,7 +285,7 @@ inline void zlib_base::s_static_deflateTo(const v8::FunctionCallbackInfo<v8::Val
     else
         hr = ac_deflateTo(v0, v1, v2);
 
-    ASYNC_METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
     ARG(obj_ptr<Stream_base>, 0);
     ARG(obj_ptr<Stream_base>, 1);
@@ -303,9 +303,9 @@ inline void zlib_base::s_static_inflate(const v8::FunctionCallbackInfo<v8::Value
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(int32_t, 1, -1);
@@ -320,9 +320,9 @@ inline void zlib_base::s_static_inflate(const v8::FunctionCallbackInfo<v8::Value
 
 inline void zlib_base::s_static_inflateTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(obj_ptr<Stream_base>, 1);
@@ -333,7 +333,7 @@ inline void zlib_base::s_static_inflateTo(const v8::FunctionCallbackInfo<v8::Val
     else
         hr = ac_inflateTo(v0, v1, v2);
 
-    ASYNC_METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
     ARG(obj_ptr<Stream_base>, 0);
     ARG(obj_ptr<Stream_base>, 1);
@@ -351,9 +351,9 @@ inline void zlib_base::s_static_gzip(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
 
@@ -367,9 +367,9 @@ inline void zlib_base::s_static_gzip(const v8::FunctionCallbackInfo<v8::Value>& 
 
 inline void zlib_base::s_static_gzipTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(obj_ptr<Stream_base>, 1);
@@ -379,7 +379,7 @@ inline void zlib_base::s_static_gzipTo(const v8::FunctionCallbackInfo<v8::Value>
     else
         hr = ac_gzipTo(v0, v1);
 
-    ASYNC_METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
     ARG(obj_ptr<Stream_base>, 0);
     ARG(obj_ptr<Stream_base>, 1);
@@ -396,9 +396,9 @@ inline void zlib_base::s_static_gunzip(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(int32_t, 1, -1);
@@ -413,9 +413,9 @@ inline void zlib_base::s_static_gunzip(const v8::FunctionCallbackInfo<v8::Value>
 
 inline void zlib_base::s_static_gunzipTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(obj_ptr<Stream_base>, 1);
@@ -426,7 +426,7 @@ inline void zlib_base::s_static_gunzipTo(const v8::FunctionCallbackInfo<v8::Valu
     else
         hr = ac_gunzipTo(v0, v1, v2);
 
-    ASYNC_METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
     ARG(obj_ptr<Stream_base>, 0);
     ARG(obj_ptr<Stream_base>, 1);
@@ -444,9 +444,9 @@ inline void zlib_base::s_static_deflateRaw(const v8::FunctionCallbackInfo<v8::Va
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(int32_t, 1, C_DEFAULT_COMPRESSION);
@@ -461,9 +461,9 @@ inline void zlib_base::s_static_deflateRaw(const v8::FunctionCallbackInfo<v8::Va
 
 inline void zlib_base::s_static_deflateRawTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(obj_ptr<Stream_base>, 1);
@@ -474,7 +474,7 @@ inline void zlib_base::s_static_deflateRawTo(const v8::FunctionCallbackInfo<v8::
     else
         hr = ac_deflateRawTo(v0, v1, v2);
 
-    ASYNC_METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
     ARG(obj_ptr<Stream_base>, 0);
     ARG(obj_ptr<Stream_base>, 1);
@@ -492,9 +492,9 @@ inline void zlib_base::s_static_inflateRaw(const v8::FunctionCallbackInfo<v8::Va
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(int32_t, 1, -1);
@@ -509,9 +509,9 @@ inline void zlib_base::s_static_inflateRaw(const v8::FunctionCallbackInfo<v8::Va
 
 inline void zlib_base::s_static_inflateRawTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(obj_ptr<Stream_base>, 1);
@@ -522,7 +522,7 @@ inline void zlib_base::s_static_inflateRawTo(const v8::FunctionCallbackInfo<v8::
     else
         hr = ac_inflateRawTo(v0, v1, v2);
 
-    ASYNC_METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
     ARG(obj_ptr<Stream_base>, 0);
     ARG(obj_ptr<Stream_base>, 1);

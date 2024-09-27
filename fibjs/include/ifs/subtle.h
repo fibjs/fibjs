@@ -89,9 +89,9 @@ inline void subtle_base::s_static_digest(const v8::FunctionCallbackInfo<v8::Valu
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
     ARG(obj_ptr<Buffer_base>, 1);
@@ -101,7 +101,7 @@ inline void subtle_base::s_static_digest(const v8::FunctionCallbackInfo<v8::Valu
     else
         hr = ac_digest(v0, v1, vr);
 
-    ASYNC_METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
     ARG(v8::Local<v8::Object>, 0);
     ARG(obj_ptr<Buffer_base>, 1);
@@ -118,9 +118,9 @@ inline void subtle_base::s_static_exportKey(const v8::FunctionCallbackInfo<v8::V
 {
     Variant vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
     ARG(exlib::string, 0);
     ARG(obj_ptr<CryptoKey_base>, 1);
@@ -137,9 +137,9 @@ inline void subtle_base::s_static_generateKey(const v8::FunctionCallbackInfo<v8:
 {
     Variant vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(3, 3);
+    METHOD_OVER(3, 3);
 
     ARG(v8::Local<v8::Object>, 0);
     ARG(bool, 1);
@@ -157,9 +157,9 @@ inline void subtle_base::s_static_importKey(const v8::FunctionCallbackInfo<v8::V
 {
     obj_ptr<CryptoKey_base> vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(5, 5);
+    METHOD_OVER(5, 5);
 
     ARG(exlib::string, 0);
     ARG(v8::Local<v8::Value>, 1);
@@ -179,9 +179,9 @@ inline void subtle_base::s_static_sign(const v8::FunctionCallbackInfo<v8::Value>
 {
     obj_ptr<Buffer_base> vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(3, 3);
+    METHOD_OVER(3, 3);
 
     ARG(v8::Local<v8::Object>, 0);
     ARG(obj_ptr<CryptoKey_base>, 1);
@@ -199,9 +199,9 @@ inline void subtle_base::s_static_verify(const v8::FunctionCallbackInfo<v8::Valu
 {
     bool vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(4, 4);
+    METHOD_OVER(4, 4);
 
     ARG(v8::Local<v8::Object>, 0);
     ARG(obj_ptr<CryptoKey_base>, 1);

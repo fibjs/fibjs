@@ -278,9 +278,9 @@ inline void Message_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args
     obj_ptr<Buffer_base> vr;
 
     ASYNC_METHOD_INSTANCE(Message_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 0);
+    METHOD_OVER(1, 0);
 
     OPT_ARG(int32_t, 0, -1);
 
@@ -297,9 +297,9 @@ inline void Message_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& a
     obj_ptr<Buffer_base> vr;
 
     ASYNC_METHOD_INSTANCE(Message_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
     if (!cb.IsEmpty())
         hr = pInst->acb_readAll(cb, args);
@@ -312,9 +312,9 @@ inline void Message_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& a
 inline void Message_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(Message_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
 
@@ -421,9 +421,9 @@ inline void Message_base::s_clear(const v8::FunctionCallbackInfo<v8::Value>& arg
 inline void Message_base::s_sendTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(Message_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
     ARG(obj_ptr<Stream_base>, 0);
 
@@ -438,9 +438,9 @@ inline void Message_base::s_sendTo(const v8::FunctionCallbackInfo<v8::Value>& ar
 inline void Message_base::s_readFrom(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(Message_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
     ARG(obj_ptr<Stream_base>, 0);
 

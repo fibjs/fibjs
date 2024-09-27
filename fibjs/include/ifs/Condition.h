@@ -95,9 +95,9 @@ inline void Condition_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& ar
     bool vr;
 
     ASYNC_METHOD_INSTANCE(Condition_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 0);
+    METHOD_OVER(1, 0);
 
     OPT_ARG(int32_t, 0, -1);
 

@@ -156,9 +156,9 @@ inline void TTYOutputStream_base::s_clearScreenDown(const v8::FunctionCallbackIn
 inline void TTYOutputStream_base::s_cursorTo(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(TTYOutputStream_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
     ARG(int32_t, 0);
     OPT_ARG(int32_t, 1, -1);
@@ -174,9 +174,9 @@ inline void TTYOutputStream_base::s_cursorTo(const v8::FunctionCallbackInfo<v8::
 inline void TTYOutputStream_base::s_moveCursor(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(TTYOutputStream_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 2);
+    METHOD_OVER(2, 2);
 
     ARG(int32_t, 0);
     ARG(int32_t, 1);

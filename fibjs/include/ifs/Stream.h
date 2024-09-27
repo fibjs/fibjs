@@ -102,9 +102,9 @@ inline void Stream_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
     obj_ptr<Buffer_base> vr;
 
     ASYNC_METHOD_INSTANCE(Stream_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 0);
+    METHOD_OVER(1, 0);
 
     OPT_ARG(int32_t, 0, -1);
 
@@ -119,9 +119,9 @@ inline void Stream_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args)
 inline void Stream_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(Stream_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
 
@@ -136,9 +136,9 @@ inline void Stream_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args
 inline void Stream_base::s_flush(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(Stream_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
     if (!cb.IsEmpty())
         hr = pInst->acb_flush(cb, args);
@@ -151,9 +151,9 @@ inline void Stream_base::s_flush(const v8::FunctionCallbackInfo<v8::Value>& args
 inline void Stream_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(Stream_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
     if (!cb.IsEmpty())
         hr = pInst->acb_close(cb, args);
@@ -168,9 +168,9 @@ inline void Stream_base::s_copyTo(const v8::FunctionCallbackInfo<v8::Value>& arg
     int64_t vr;
 
     ASYNC_METHOD_INSTANCE(Stream_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
     ARG(obj_ptr<Stream_base>, 0);
     OPT_ARG(int64_t, 1, -1);

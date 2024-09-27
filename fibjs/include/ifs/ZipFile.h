@@ -106,9 +106,9 @@ inline void ZipFile_base::s_namelist(const v8::FunctionCallbackInfo<v8::Value>& 
     obj_ptr<NArray> vr;
 
     ASYNC_METHOD_INSTANCE(ZipFile_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
     if (!cb.IsEmpty())
         hr = pInst->acb_namelist(cb, args);
@@ -123,9 +123,9 @@ inline void ZipFile_base::s_infolist(const v8::FunctionCallbackInfo<v8::Value>& 
     obj_ptr<NArray> vr;
 
     ASYNC_METHOD_INSTANCE(ZipFile_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
     if (!cb.IsEmpty())
         hr = pInst->acb_infolist(cb, args);
@@ -140,9 +140,9 @@ inline void ZipFile_base::s_getinfo(const v8::FunctionCallbackInfo<v8::Value>& a
     obj_ptr<NObject> vr;
 
     ASYNC_METHOD_INSTANCE(ZipFile_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
     ARG(exlib::string, 0);
 
@@ -159,9 +159,9 @@ inline void ZipFile_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& args
     obj_ptr<Buffer_base> vr;
 
     ASYNC_METHOD_INSTANCE(ZipFile_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
     OPT_ARG(exlib::string, 1, "");
@@ -179,9 +179,9 @@ inline void ZipFile_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& a
     obj_ptr<NArray> vr;
 
     ASYNC_METHOD_INSTANCE(ZipFile_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 0);
+    METHOD_OVER(1, 0);
 
     OPT_ARG(exlib::string, 0, "");
 
@@ -196,9 +196,9 @@ inline void ZipFile_base::s_readAll(const v8::FunctionCallbackInfo<v8::Value>& a
 inline void ZipFile_base::s_extract(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(ZipFile_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
     ARG(exlib::string, 0);
     ARG(exlib::string, 1);
@@ -209,7 +209,7 @@ inline void ZipFile_base::s_extract(const v8::FunctionCallbackInfo<v8::Value>& a
     else
         hr = pInst->ac_extract(v0, v1, v2);
 
-    ASYNC_METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
     ARG(exlib::string, 0);
     ARG(obj_ptr<SeekableStream_base>, 1);
@@ -226,9 +226,9 @@ inline void ZipFile_base::s_extract(const v8::FunctionCallbackInfo<v8::Value>& a
 inline void ZipFile_base::s_extractAll(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(ZipFile_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(2, 1);
+    METHOD_OVER(2, 1);
 
     ARG(exlib::string, 0);
     OPT_ARG(exlib::string, 1, "");
@@ -244,9 +244,9 @@ inline void ZipFile_base::s_extractAll(const v8::FunctionCallbackInfo<v8::Value>
 inline void ZipFile_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(ZipFile_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
     ARG(exlib::string, 0);
     ARG(exlib::string, 1);
@@ -257,7 +257,7 @@ inline void ZipFile_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& arg
     else
         hr = pInst->ac_write(v0, v1, v2);
 
-    ASYNC_METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
     ARG(obj_ptr<Buffer_base>, 0);
     ARG(exlib::string, 1);
@@ -268,7 +268,7 @@ inline void ZipFile_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& arg
     else
         hr = pInst->ac_write(v0, v1, v2);
 
-    ASYNC_METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
     ARG(obj_ptr<SeekableStream_base>, 0);
     ARG(exlib::string, 1);
@@ -285,9 +285,9 @@ inline void ZipFile_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& arg
 inline void ZipFile_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(ZipFile_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
     if (!cb.IsEmpty())
         hr = pInst->acb_close(cb, args);

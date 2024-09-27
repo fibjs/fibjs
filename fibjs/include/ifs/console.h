@@ -607,9 +607,9 @@ inline void console_base::s_static_readLine(const v8::FunctionCallbackInfo<v8::V
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 0);
+    METHOD_OVER(1, 0);
 
     OPT_ARG(exlib::string, 0, "");
 
@@ -625,9 +625,9 @@ inline void console_base::s_static_getpass(const v8::FunctionCallbackInfo<v8::Va
 {
     exlib::string vr;
 
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 0);
+    METHOD_OVER(1, 0);
 
     OPT_ARG(exlib::string, 0, "");
 

@@ -227,9 +227,9 @@ inline void Socket_base::s_set_timeout(const v8::FunctionCallbackInfo<v8::Value>
 inline void Socket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(Socket_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(3, 2);
+    METHOD_OVER(3, 2);
 
     ARG(exlib::string, 0);
     ARG(int32_t, 1);
@@ -285,9 +285,9 @@ inline void Socket_base::s_accept(const v8::FunctionCallbackInfo<v8::Value>& arg
     obj_ptr<Socket_base> vr;
 
     ASYNC_METHOD_INSTANCE(Socket_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
     if (!cb.IsEmpty())
         hr = pInst->acb_accept(cb, args);
@@ -302,9 +302,9 @@ inline void Socket_base::s_recv(const v8::FunctionCallbackInfo<v8::Value>& args)
     obj_ptr<Buffer_base> vr;
 
     ASYNC_METHOD_INSTANCE(Socket_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 0);
+    METHOD_OVER(1, 0);
 
     OPT_ARG(int32_t, 0, -1);
 
@@ -319,9 +319,9 @@ inline void Socket_base::s_recv(const v8::FunctionCallbackInfo<v8::Value>& args)
 inline void Socket_base::s_send(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(Socket_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
 

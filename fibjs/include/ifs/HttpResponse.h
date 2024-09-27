@@ -290,9 +290,9 @@ inline void HttpResponse_base::s_redirect(const v8::FunctionCallbackInfo<v8::Val
 inline void HttpResponse_base::s_sendHeader(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(HttpResponse_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
     ARG(obj_ptr<Stream_base>, 0);
 

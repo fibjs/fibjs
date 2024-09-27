@@ -150,9 +150,9 @@ inline void SeekableStream_base::s_readAll(const v8::FunctionCallbackInfo<v8::Va
     obj_ptr<Buffer_base> vr;
 
     ASYNC_METHOD_INSTANCE(SeekableStream_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
     if (!cb.IsEmpty())
         hr = pInst->acb_readAll(cb, args);
@@ -165,9 +165,9 @@ inline void SeekableStream_base::s_readAll(const v8::FunctionCallbackInfo<v8::Va
 inline void SeekableStream_base::s_truncate(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(SeekableStream_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
     ARG(int64_t, 0);
 
@@ -198,9 +198,9 @@ inline void SeekableStream_base::s_stat(const v8::FunctionCallbackInfo<v8::Value
     obj_ptr<Stat_base> vr;
 
     ASYNC_METHOD_INSTANCE(SeekableStream_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
     if (!cb.IsEmpty())
         hr = pInst->acb_stat(cb, args);

@@ -104,9 +104,9 @@ inline void FileHandle_base::s_get_fd(const v8::FunctionCallbackInfo<v8::Value>&
 inline void FileHandle_base::s_chmod(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(FileHandle_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
     ARG(int32_t, 0);
 
@@ -123,9 +123,9 @@ inline void FileHandle_base::s_stat(const v8::FunctionCallbackInfo<v8::Value>& a
     obj_ptr<Stat_base> vr;
 
     ASYNC_METHOD_INSTANCE(FileHandle_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
     if (!cb.IsEmpty())
         hr = pInst->acb_stat(cb, args);
@@ -140,9 +140,9 @@ inline void FileHandle_base::s_read(const v8::FunctionCallbackInfo<v8::Value>& a
     int32_t vr;
 
     ASYNC_METHOD_INSTANCE(FileHandle_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(4, 1);
+    METHOD_OVER(4, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(int32_t, 1, 0);
@@ -162,9 +162,9 @@ inline void FileHandle_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& 
     int32_t vr;
 
     ASYNC_METHOD_INSTANCE(FileHandle_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(4, 1);
+    METHOD_OVER(4, 1);
 
     ARG(obj_ptr<Buffer_base>, 0);
     OPT_ARG(int32_t, 1, 0);
@@ -176,7 +176,7 @@ inline void FileHandle_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& 
     else
         hr = pInst->ac_write(v0, v1, v2, v3, vr);
 
-    ASYNC_METHOD_OVER(3, 1);
+    METHOD_OVER(3, 1);
 
     ARG(exlib::string, 0);
     OPT_ARG(int32_t, 1, -1);
@@ -193,9 +193,9 @@ inline void FileHandle_base::s_write(const v8::FunctionCallbackInfo<v8::Value>& 
 inline void FileHandle_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(FileHandle_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
     if (!cb.IsEmpty())
         hr = pInst->acb_close(cb, args);

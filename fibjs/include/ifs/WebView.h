@@ -111,9 +111,9 @@ inline ClassInfo& WebView_base::class_info()
 inline void WebView_base::s_loadURL(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(WebView_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
     ARG(exlib::string, 0);
 
@@ -128,9 +128,9 @@ inline void WebView_base::s_loadURL(const v8::FunctionCallbackInfo<v8::Value>& a
 inline void WebView_base::s_loadFile(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(WebView_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
     ARG(exlib::string, 0);
 
@@ -145,9 +145,9 @@ inline void WebView_base::s_loadFile(const v8::FunctionCallbackInfo<v8::Value>& 
 inline void WebView_base::s_setHtml(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(WebView_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
     ARG(exlib::string, 0);
 
@@ -162,9 +162,9 @@ inline void WebView_base::s_setHtml(const v8::FunctionCallbackInfo<v8::Value>& a
 inline void WebView_base::s_eval(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(WebView_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
     ARG(exlib::string, 0);
 
@@ -179,9 +179,9 @@ inline void WebView_base::s_eval(const v8::FunctionCallbackInfo<v8::Value>& args
 inline void WebView_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(WebView_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(0, 0);
+    METHOD_OVER(0, 0);
 
     if (!cb.IsEmpty())
         hr = pInst->acb_close(cb, args);
@@ -194,9 +194,9 @@ inline void WebView_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& arg
 inline void WebView_base::s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(WebView_base);
-    METHOD_ENTER();
+    ASYNC_METHOD_ENTER();
 
-    ASYNC_METHOD_OVER(1, 1);
+    METHOD_OVER(1, 1);
 
     ARG(exlib::string, 0);
 
