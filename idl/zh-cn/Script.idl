@@ -32,4 +32,9 @@ interface Script : object
      @return 返回运行结果
     */
     Value runInThisContext(Object opts = {});
+
+    /*! @brief 根据当前 Script 对象创建代码缓存
+     @return 返回代码缓存数据
+    */
+    Buffer createCachedData();
 };

@@ -15,6 +15,8 @@
 
 namespace fibjs {
 
+class Buffer_base;
+
 class Script_base : public object_base {
     DECLARE_CLASS(Script_base);
 
@@ -24,6 +26,7 @@ public:
     virtual result_t runInContext(v8::Local<v8::Object> contextifiedObject, v8::Local<v8::Object> opts, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t runInNewContext(v8::Local<v8::Object> contextObject, v8::Local<v8::Object> opts, v8::Local<v8::Value>& retVal) = 0;
     virtual result_t runInThisContext(v8::Local<v8::Object> opts, v8::Local<v8::Value>& retVal) = 0;
+    virtual result_t createCachedData(obj_ptr<Buffer_base>& retVal) = 0;
 
 public:
     template <typename T>
@@ -34,8 +37,11 @@ public:
     static void s_runInContext(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_runInNewContext(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_runInThisContext(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_createCachedData(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
+
+#include "ifs/Buffer.h"
 
 namespace fibjs {
 inline ClassInfo& Script_base::class_info()
@@ -43,7 +49,8 @@ inline ClassInfo& Script_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "runInContext", s_runInContext, false, ClassData::ASYNC_SYNC },
         { "runInNewContext", s_runInNewContext, false, ClassData::ASYNC_SYNC },
-        { "runInThisContext", s_runInThisContext, false, ClassData::ASYNC_SYNC }
+        { "runInThisContext", s_runInThisContext, false, ClassData::ASYNC_SYNC },
+        { "createCachedData", s_createCachedData, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {
@@ -126,6 +133,20 @@ inline void Script_base::s_runInThisContext(const v8::FunctionCallbackInfo<v8::V
     OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
 
     hr = pInst->runInThisContext(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Script_base::s_createCachedData(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    METHOD_INSTANCE(Script_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->createCachedData(vr);
 
     METHOD_RETURN();
 }

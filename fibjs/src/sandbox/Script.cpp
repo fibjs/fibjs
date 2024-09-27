@@ -9,6 +9,7 @@
 #include "ifs/vm.h"
 #include "Script.h"
 #include "SandBox.h"
+#include "Buffer.h"
 #include "Timer.h"
 
 namespace fibjs {
@@ -48,10 +49,24 @@ result_t Script::init(exlib::string code, v8::Local<v8::Object> opts)
     if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
         return hr;
 
+    obj_ptr<Buffer_base> cachedData;
+    hr = GetConfigValue(isolate, opts, "cachedData", cachedData, true);
+    if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    v8::ScriptCompiler::CompileOptions compile_options = v8::ScriptCompiler::kNoCompileOptions;
+    v8::ScriptCompiler::CachedData* cached_data = nullptr;
+    if (cachedData != nullptr) {
+        obj_ptr<Buffer> cachedData_ = cachedData.As<Buffer>();
+        cached_data = new v8::ScriptCompiler::CachedData(cachedData_->data(), cachedData_->length());
+        compile_options = v8::ScriptCompiler::kConsumeCodeCache;
+    }
+
     v8::ScriptOrigin origin(isolate->NewString(filename), lineOffset, columnOffset);
-    v8::ScriptCompiler::Source source(isolate->NewString(code), origin);
+    v8::ScriptCompiler::Source source(isolate->NewString(code), origin, cached_data);
+
     v8::MaybeLocal<v8::UnboundScript> maybe_ub_script
-        = v8::ScriptCompiler::CompileUnboundScript(isolate->m_isolate, &source);
+        = v8::ScriptCompiler::CompileUnboundScript(isolate->m_isolate, &source, compile_options);
 
     v8::Local<v8::UnboundScript> ub_script;
     if (maybe_ub_script.IsEmpty() || !maybe_ub_script.ToLocal(&ub_script))
@@ -122,6 +137,18 @@ result_t Script::runInThisContext(v8::Local<v8::Object> opts, v8::Local<v8::Valu
 
     if (result.IsEmpty() || !result.ToLocal(&retVal))
         return CALL_E_JAVASCRIPT;
+
+    return 0;
+}
+
+result_t Script::createCachedData(obj_ptr<Buffer_base>& retVal)
+{
+    Isolate* isolate = holder();
+    v8::Local<v8::UnboundScript> ub_script = v8::Local<v8::UnboundScript>::New(isolate->m_isolate, m_script);
+
+    std::unique_ptr<v8::ScriptCompiler::CachedData> new_cached_data;
+    new_cached_data.reset(v8::ScriptCompiler::CreateCodeCache(ub_script));
+    retVal = new Buffer(new_cached_data->data, new_cached_data->length);
 
     return 0;
 }

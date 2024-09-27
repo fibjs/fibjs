@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/object.d.ts" />
+/// <reference path="../interface/Buffer.d.ts" />
 /**
  * @description Script 脚本编译和运行对象
  * 
@@ -43,6 +44,13 @@ declare class Class_Script extends Class_object {
      *     
      */
     runInThisContext(opts?: FIBJS.GeneralObject): any;
+
+    /**
+     * @description 根据当前 Script 对象创建代码缓存
+     *      @return 返回代码缓存数据
+     *     
+     */
+    createCachedData(): Class_Buffer;
 
 }
 
