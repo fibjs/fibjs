@@ -42,6 +42,8 @@ declare class Class_Semaphore extends Class_Lock {
      */
     wait(timeout?: number): boolean;
 
+    wait(timeout?: number, callback?: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
     /**
      * @description 释放一个信号量，等同于 release() 
      */

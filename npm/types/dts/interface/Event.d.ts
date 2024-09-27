@@ -63,5 +63,7 @@ declare class Class_Event extends Class_Lock {
      */
     wait(): void;
 
+    wait(callback: (err: Error | undefined | null)=>any): void;
+
 }
 

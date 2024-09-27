@@ -15,7 +15,7 @@ class Lock : public Lock_base {
     FIBER_FREE();
 
 public:
-    virtual result_t acquire(bool blocking, bool& retVal);
+    virtual result_t acquire(bool blocking, bool& retVal, AsyncEvent* ac);
     virtual result_t release();
     virtual result_t count(int32_t& retVal);
 };

@@ -256,7 +256,7 @@ public:
                             p1->m_errors.append(GetException(try_catch, 0, false, true));
                         } else
                             for (int32_t i = 0; i < p1->m_evs.size(); i++)
-                                p1->m_evs[i]->wait();
+                                p1->m_evs[i]->ac_wait();
 
                         td->m_running = NULL;
                     }

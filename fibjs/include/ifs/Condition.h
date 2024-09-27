@@ -25,7 +25,7 @@ public:
     // Condition_base
     static result_t _new(obj_ptr<Condition_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
     static result_t _new(Lock_base* lock, obj_ptr<Condition_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t wait(int32_t timeout, bool& retVal) = 0;
+    virtual result_t wait(int32_t timeout, bool& retVal, AsyncEvent* ac) = 0;
     virtual result_t notify() = 0;
     virtual result_t notifyAll() = 0;
 
@@ -38,6 +38,9 @@ public:
     static void s_wait(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_notify(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_notifyAll(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+public:
+    ASYNC_MEMBERVALUE2(Condition_base, wait, int32_t, bool);
 };
 }
 
@@ -45,7 +48,7 @@ namespace fibjs {
 inline ClassInfo& Condition_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "wait", s_wait, false, ClassData::ASYNC_SYNC },
+        { "wait", s_wait, false, ClassData::ASYNC_ASYNC },
         { "notify", s_notify, false, ClassData::ASYNC_SYNC },
         { "notifyAll", s_notifyAll, false, ClassData::ASYNC_SYNC }
     };
@@ -54,7 +57,7 @@ inline ClassInfo& Condition_base::class_info()
         "Condition", false, s__new, NULL,
         ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
         &Lock_base::class_info(),
-        false
+        true
     };
 
     static ClassInfo s_ci(s_cd);
@@ -91,14 +94,17 @@ inline void Condition_base::s_wait(const v8::FunctionCallbackInfo<v8::Value>& ar
 {
     bool vr;
 
-    METHOD_INSTANCE(Condition_base);
+    ASYNC_METHOD_INSTANCE(Condition_base);
     METHOD_ENTER();
 
-    METHOD_OVER(1, 0);
+    ASYNC_METHOD_OVER(1, 0);
 
     OPT_ARG(int32_t, 0, -1);
 
-    hr = pInst->wait(v0, vr);
+    if (!cb.IsEmpty())
+        hr = pInst->acb_wait(v0, cb, args);
+    else
+        hr = pInst->ac_wait(v0, vr);
 
     METHOD_RETURN();
 }

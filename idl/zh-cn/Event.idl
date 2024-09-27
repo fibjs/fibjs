@@ -46,5 +46,5 @@ interface Event : Lock
     clear();
 
     /*! @brief 等待一个事件 */
-    wait();
+    wait() async;
 };

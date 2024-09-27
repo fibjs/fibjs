@@ -17,7 +17,7 @@ class Event : public Event_base {
 
 public:
     // Lock_base
-    virtual result_t acquire(bool blocking, bool& retVal);
+    virtual result_t acquire(bool blocking, bool& retVal, AsyncEvent* ac);
     virtual result_t release();
     virtual result_t count(int32_t& retVal);
 
@@ -27,7 +27,7 @@ public:
     virtual result_t set();
     virtual result_t pulse();
     virtual result_t clear();
-    virtual result_t wait();
+    virtual result_t wait(AsyncEvent* ac);
 
 private:
     exlib::Event m_event;

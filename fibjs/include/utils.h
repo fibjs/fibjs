@@ -363,12 +363,10 @@ enum {
     }                                                                      \
     NAMED_THROW_ERROR()
 
-#define METHOD_VOID()                         \
-    CHECK_ARGUMENT()                          \
-    if (hr >= 0) {                            \
-        args.GetReturnValue().SetUndefined(); \
-        return;                               \
-    }                                         \
+#define METHOD_VOID() \
+    CHECK_ARGUMENT()  \
+    if (hr >= 0)      \
+        return;       \
     THROW_ERROR()
 
 #define NAMED_METHOD_VOID()          \

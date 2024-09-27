@@ -19,7 +19,7 @@ result_t Event_base::_new(bool value, obj_ptr<Event_base>& retVal, v8::Local<v8:
     return 0;
 }
 
-result_t Event::acquire(bool blocking, bool& retVal)
+result_t Event::acquire(bool blocking, bool& retVal, AsyncEvent* ac)
 {
     if (!blocking) {
         retVal = m_event.isSet();
@@ -27,7 +27,7 @@ result_t Event::acquire(bool blocking, bool& retVal)
     }
 
     retVal = true;
-    return wait();
+    return wait(ac);
 }
 
 result_t Event::release()
@@ -66,13 +66,15 @@ result_t Event::clear()
     return 0;
 }
 
-result_t Event::wait()
+result_t Event::wait(AsyncEvent* ac)
 {
     if (m_event.isSet())
         return 0;
 
-    Isolate::LeaveJsScope _rt(holder());
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
+
     m_event.wait();
-    return _rt.is_terminating() ? CALL_E_TIMEOUT : 0;
+    return 0;
 }
 }

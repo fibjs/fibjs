@@ -43,7 +43,7 @@ interface Lock : object
      @param blocking 指定是否等待，为 true 时等待，缺省为真
      @return 返回是否成功获取锁，为 true 表示成功获取
      */
-    Boolean acquire(Boolean blocking = true);
+    Boolean acquire(Boolean blocking = true) async;
 
     /*! @brief 释放锁的拥有权
 

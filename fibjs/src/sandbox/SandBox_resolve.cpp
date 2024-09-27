@@ -33,7 +33,7 @@ result_t SandBox::wait_module(v8::Local<v8::Object> module, v8::Local<v8::Value>
             obj_ptr<Lock_base> lock = Lock_base::getInstance(l);
             if (lock) {
                 bool is_lock = false;
-                lock->acquire(true, is_lock);
+                lock->ac_acquire(true, is_lock);
                 lock->release();
             }
         }

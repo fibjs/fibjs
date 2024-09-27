@@ -52,7 +52,7 @@ result_t SandBox::installScript(exlib::string srcname, Buffer_base* script,
     mod->SetPrivate(_context, strPendding, lock->wrap()).IsJust();
 
     bool is_lock = false;
-    lock->acquire(true, is_lock);
+    lock->ac_acquire(true, is_lock);
 
     std::vector<ExtLoader::arg> extarg;
     hr = l->run_module(&context, script, srcname, mod, exports, extarg, in_cjs);

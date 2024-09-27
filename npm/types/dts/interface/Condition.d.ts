@@ -63,6 +63,8 @@ declare class Class_Condition extends Class_Lock {
      */
     wait(timeout?: number): boolean;
 
+    wait(timeout?: number, callback?: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
     /**
      * @description 通知一个被阻塞的纤程（最后加入纤程池的）向下继续执行 
      */

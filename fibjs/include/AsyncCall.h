@@ -137,7 +137,7 @@ private:
 
 class CAsyncCall : public AsyncEvent {
 public:
-    CAsyncCall(void** a, Isolate* isolate = NULL)
+    CAsyncCall(void** a, Isolate* isolate)
         : AsyncEvent(isolate)
         , args(a)
     {

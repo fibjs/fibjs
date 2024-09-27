@@ -33,7 +33,7 @@ interface Semaphore : Lock
      @param timeout 指定超时时间，单位毫秒，缺省为 -1，表示永不超时。
      @return 获取成功则返回 true，超时返回 false
     */
-    Boolean wait(Integer timeout = -1);
+    Boolean wait(Integer timeout = -1) async;
 
     /*! @brief 释放一个信号量，等同于 release() */
     post();

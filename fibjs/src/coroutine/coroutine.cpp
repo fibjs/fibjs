@@ -81,7 +81,7 @@ private:
                 return _worker();
             });
 
-        m_event->wait();
+        m_event->ac_wait();
 
         m_datas.Reset();
         m_func.Reset();

@@ -25,9 +25,9 @@ result_t Condition_base::_new(Lock_base* lock, obj_ptr<Condition_base>& retVal,
     return 0;
 }
 
-result_t Condition::acquire(bool blocking, bool& retVal)
+result_t Condition::acquire(bool blocking, bool& retVal, AsyncEvent* ac)
 {
-    return m_lockCond->acquire(blocking, retVal);
+    return m_lockCond->acquire(blocking, retVal, ac);
 }
 
 result_t Condition::release()
@@ -41,15 +41,13 @@ result_t Condition::count(int32_t& retVal)
     return 0;
 }
 
-result_t Condition::wait(int32_t timeout, bool& retVal)
+result_t Condition::wait(int32_t timeout, bool& retVal, AsyncEvent* ac)
 {
-    if (!m_lockCond->m_lock.owned())
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
-    Isolate::LeaveJsScope _rt(holder());
     retVal = m_cond.wait(m_lockCond->m_lock, timeout);
-
-    return _rt.is_terminating() ? CALL_E_TIMEOUT : 0;
+    return 0;
 }
 
 result_t Condition::notify()

@@ -28,13 +28,13 @@ public:
 
 public:
     // Lock_base
-    virtual result_t acquire(bool blocking, bool& retVal);
+    virtual result_t acquire(bool blocking, bool& retVal, AsyncEvent* ac);
     virtual result_t release();
     virtual result_t count(int32_t& retVal);
 
 public:
     // Condition_base
-    virtual result_t wait(int32_t timeout, bool& retVal);
+    virtual result_t wait(int32_t timeout, bool& retVal, AsyncEvent* ac);
     virtual result_t notify();
     virtual result_t notifyAll();
 

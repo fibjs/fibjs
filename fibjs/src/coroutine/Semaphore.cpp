@@ -21,14 +21,14 @@ result_t Semaphore_base::_new(int32_t value, obj_ptr<Semaphore_base>& retVal,
     return 0;
 }
 
-result_t Semaphore::acquire(bool blocking, bool& retVal)
+result_t Semaphore::acquire(bool blocking, bool& retVal, AsyncEvent* ac)
 {
     if (!blocking) {
         retVal = m_sem.trywait();
         return 0;
     }
 
-    return wait(-1, retVal);
+    return wait(-1, retVal, ac);
 }
 
 result_t Semaphore::release()
@@ -44,17 +44,18 @@ result_t Semaphore::count(int32_t& retVal)
     return 0;
 }
 
-result_t Semaphore::wait(int32_t timeout, bool& retVal)
+result_t Semaphore::wait(int32_t timeout, bool& retVal, AsyncEvent* ac)
 {
     if (m_sem.trywait()) {
         retVal = true;
         return 0;
     }
 
-    Isolate::LeaveJsScope _rt(holder());
-    retVal = m_sem.wait(timeout);
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
-    return _rt.is_terminating() ? CALL_E_TIMEOUT : 0;
+    retVal = m_sem.wait(timeout);
+    return 0;
 }
 
 result_t Semaphore::post()

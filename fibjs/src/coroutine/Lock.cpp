@@ -17,31 +17,29 @@ result_t Lock_base::_new(obj_ptr<Lock_base>& retVal, v8::Local<v8::Object> This)
     return 0;
 }
 
-result_t Lock::acquire(bool blocking, bool& retVal)
+result_t Lock::acquire(bool blocking, bool& retVal, AsyncEvent* ac)
 {
-    if (!blocking) {
-        retVal = m_lock.trylock();
+    if (m_lock.trylock()) {
+        retVal = true;
         return 0;
     }
 
-    if (!m_lock.trylock()) {
-        Isolate::LeaveJsScope _rt(holder());
-        m_lock.lock();
-        return _rt.is_terminating() ? CALL_E_TIMEOUT : 0;
+    if (!blocking) {
+        retVal = false;
+        return 0;
     }
 
-    retVal = true;
+    if (ac->isSync())
+        return CHECK_ERROR(CALL_E_NOSYNC);
 
+    retVal = true;
+    m_lock.lock();
     return 0;
 }
 
 result_t Lock::release()
 {
-    if (!m_lock.owned())
-        return CHECK_ERROR(CALL_E_INVALID_CALL);
-
     m_lock.unlock();
-
     return 0;
 }
 
