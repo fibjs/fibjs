@@ -3,8 +3,6 @@ cmake_minimum_required(VERSION 3.5)
 set(name "fibjs")
 project(${name})
 
-add_definitions(-DOPENSSL_DEV_NO_ATOMICS)
-
 include(../vender/v8/cmake/options.cmake)
 include(../vender/build_tools/cmake/option.cmake)
 
