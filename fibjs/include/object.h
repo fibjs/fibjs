@@ -34,14 +34,22 @@ public:
         , m_nExtMemoryDelay(0)
         , m_holding(false)
     {
-        object_base::class_info().Ref();
+        if (g_track_native_object) {
+            m_in_trace = true;
+            object_base::class_info().RefClass();
+        }
     }
 
     virtual ~object_base()
     {
         clear_handle();
-        object_base::class_info().Unref();
+
+        if (m_in_trace)
+            object_base::class_info().UnrefClass();
     }
+
+public:
+    bool m_in_trace = false;
 
 public:
     virtual void Unref()

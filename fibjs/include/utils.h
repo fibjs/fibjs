@@ -420,16 +420,18 @@ public:                                                        \
         return getInstance((object_base*)unwrap(o));           \
     }
 
-#define DECLARE_CLASS(c)         \
-public:                          \
-    c()                          \
-    {                            \
-        c::class_info().Ref();   \
-    }                            \
-    virtual ~c()                 \
-    {                            \
-        c::class_info().Unref(); \
-    }                            \
+#define DECLARE_CLASS(c)                  \
+public:                                   \
+    c()                                   \
+    {                                     \
+        if (m_in_trace)                   \
+            c::class_info().RefClass();   \
+    }                                     \
+    virtual ~c()                          \
+    {                                     \
+        if (m_in_trace)                   \
+            c::class_info().UnrefClass(); \
+    }                                     \
     DECLARE_CLASSINFO(c)
 
 #define DECLARE_MODULE(name)                      \

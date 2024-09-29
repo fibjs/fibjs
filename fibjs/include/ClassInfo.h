@@ -300,16 +300,14 @@ public:
     }
 
 public:
-    void Ref()
+    void RefClass()
     {
-        if (g_track_native_object)
-            refs_.inc();
+        refs_.inc();
     }
 
-    void Unref()
+    void UnrefClass()
     {
-        if (g_track_native_object)
-            refs_.dec();
+        refs_.dec();
     }
 
     ClassData& data()
