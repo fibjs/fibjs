@@ -47,13 +47,13 @@ SQLRETURN SQL_API SQLFreeEnv(SQLHENV EnvironmentHandle)
     return s_SQLFreeEnv(EnvironmentHandle);
 }
 
-SQLRETURN SQL_API SQLDriverConnect(SQLHDBC hdbc, SQLHWND hwnd,
+SQLRETURN SQL_API SQLDriverConnectA(SQLHDBC hdbc, SQLHWND hwnd,
     SQLCHAR* szConnStrIn, SQLSMALLINT cbConnStrIn,
     SQLCHAR* szConnStrOut, SQLSMALLINT cbConnStrOutMax, SQLSMALLINT* pcbConnStrOut,
     SQLUSMALLINT fDriverCompletion)
 {
-    odbc_func(SQLDriverConnect);
-    return s_SQLDriverConnect(hdbc, hwnd, szConnStrIn, cbConnStrIn,
+    odbc_func(SQLDriverConnectA);
+    return s_SQLDriverConnectA(hdbc, hwnd, szConnStrIn, cbConnStrIn,
         szConnStrOut, cbConnStrOutMax, pcbConnStrOut, fDriverCompletion);
 }
 
@@ -63,22 +63,16 @@ SQLRETURN SQL_API SQLDisconnect(SQLHDBC hdbc)
     return s_SQLDisconnect(hdbc);
 }
 
-SQLRETURN SQL_API SQLPrepare(SQLHSTMT StatementHandle, SQLCHAR* StatementText, SQLINTEGER TextLength)
-{
-    odbc_func(SQLPrepare);
-    return s_SQLPrepare(StatementHandle, StatementText, TextLength);
-}
-
 SQLRETURN SQL_API SQLExecute(SQLHSTMT StatementHandle)
 {
     odbc_func(SQLExecute);
     return s_SQLExecute(StatementHandle);
 }
 
-SQLRETURN SQL_API SQLExecDirect(SQLHSTMT StatementHandle, SQLCHAR* StatementText, SQLINTEGER TextLength)
+SQLRETURN SQL_API SQLExecDirectA(SQLHSTMT StatementHandle, SQLCHAR* StatementText, SQLINTEGER TextLength)
 {
-    odbc_func(SQLExecDirect);
-    return s_SQLExecDirect(StatementHandle, StatementText, TextLength);
+    odbc_func(SQLExecDirectA);
+    return s_SQLExecDirectA(StatementHandle, StatementText, TextLength);
 }
 
 SQLRETURN SQL_API SQLExecDirectW(SQLHSTMT StatementHandle, SQLWCHAR* StatementText, SQLINTEGER TextLength)
@@ -93,13 +87,13 @@ SQLRETURN SQL_API SQLNumResultCols(SQLHSTMT StatementHandle, SQLSMALLINT* Column
     return s_SQLNumResultCols(StatementHandle, ColumnCount);
 }
 
-SQLRETURN SQL_API SQLColAttributes(SQLHSTMT StatementHandle, SQLUSMALLINT ColumnNumber,
-    SQLUSMALLINT FieldIdentifier, SQLPOINTER CharacterAttribute, SQLSMALLINT BufferLength,
-    SQLSMALLINT* StringLength, SQLLEN* NumericAttribute)
+
+SQLRETURN SQL_API SQLColAttributesW(SQLHSTMT hstmt, SQLUSMALLINT icol,
+    SQLUSMALLINT fDescType, SQLPOINTER rgbDesc, SQLSMALLINT cbDescMax,
+    SQLSMALLINT* pcbDesc, SQLLEN* pfDesc)
 {
-    odbc_func(SQLColAttributes);
-    return s_SQLColAttributes(StatementHandle, ColumnNumber, FieldIdentifier,
-        CharacterAttribute, BufferLength, StringLength, NumericAttribute);
+    odbc_func(SQLColAttributesW);
+    return s_SQLColAttributesW(hstmt, icol, fDescType, rgbDesc, cbDescMax, pcbDesc, pfDesc);
 }
 
 SQLRETURN SQL_API SQLRowCount(SQLHSTMT StatementHandle, SQLLEN* RowCount)
@@ -128,21 +122,21 @@ SQLRETURN SQL_API SQLMoreResults(SQLHSTMT hstmt)
     return s_SQLMoreResults(hstmt);
 }
 
-SQLRETURN SQL_API SQLGetDiagField(SQLSMALLINT HandleType, SQLHANDLE Handle,
+SQLRETURN SQL_API SQLGetDiagFieldA(SQLSMALLINT HandleType, SQLHANDLE Handle,
     SQLSMALLINT RecNumber, SQLSMALLINT DiagIdentifier,
     SQLPOINTER DiagInfo, SQLSMALLINT BufferLength, SQLSMALLINT* StringLength)
 {
-    odbc_func(SQLGetDiagField);
-    return s_SQLGetDiagField(HandleType, Handle, RecNumber, DiagIdentifier,
+    odbc_func(SQLGetDiagFieldA);
+    return s_SQLGetDiagFieldA(HandleType, Handle, RecNumber, DiagIdentifier,
         DiagInfo, BufferLength, StringLength);
 }
 
-SQLRETURN SQL_API SQLGetDiagRec(SQLSMALLINT HandleType, SQLHANDLE Handle,
+SQLRETURN SQL_API SQLGetDiagRecA(SQLSMALLINT HandleType, SQLHANDLE Handle,
     SQLSMALLINT RecNumber, SQLCHAR* Sqlstate,
     SQLINTEGER* NativeError, SQLCHAR* MessageText,
     SQLSMALLINT BufferLength, SQLSMALLINT* TextLength)
 {
-    odbc_func(SQLGetDiagRec);
-    return s_SQLGetDiagRec(HandleType, Handle, RecNumber, Sqlstate,
+    odbc_func(SQLGetDiagRecA);
+    return s_SQLGetDiagRecA(HandleType, Handle, RecNumber, Sqlstate,
         NativeError, MessageText, BufferLength, TextLength);
 }

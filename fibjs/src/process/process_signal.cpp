@@ -96,7 +96,7 @@ static HANDLE CreateUniqueDumpFile()
     HANDLE hFile;
 
     puts("core dump....");
-    l = GetCurrentDirectory(MAX_PATH, fname);
+    l = GetCurrentDirectoryA(MAX_PATH, fname);
     memcpy(fname + l, "\\core.", 6);
     l += 6;
 
@@ -105,7 +105,7 @@ static HANDLE CreateUniqueDumpFile()
         memcpy(fname + l + (i > 999 ? 4 : (i > 99 ? 3 : (i > 9 ? 2 : 1))),
             ".dmp", 5);
 
-        hFile = CreateFile(fname, GENERIC_READ | GENERIC_WRITE, 0, NULL,
+        hFile = CreateFileA(fname, GENERIC_READ | GENERIC_WRITE, 0, NULL,
             CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
         if (hFile != INVALID_HANDLE_VALUE)
             return hFile;
@@ -170,7 +170,7 @@ static BOOL WINAPI ConsoleCtrlHandler(DWORD ctrlType)
 void init_signal()
 {
     HMODULE hDll;
-    if (hDll = ::LoadLibrary("DBGHELP.DLL")) {
+    if (hDll = ::LoadLibraryA("DBGHELP.DLL")) {
         s_pDump = (MINIDUMPWRITEDUMP)::GetProcAddress(hDll,
             "MiniDumpWriteDump");
         if (s_pDump)

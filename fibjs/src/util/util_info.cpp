@@ -14,7 +14,6 @@
 #include <ev/ev.h>
 #include <pcre/pcre.h>
 #include <openssl/opensslv.h>
-#include <snappy/include/snappy.h>
 #include <leveldb/db.h>
 #include <expat/include/expat.h>
 #include <uv/include/uv/version.h>

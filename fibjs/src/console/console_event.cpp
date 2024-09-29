@@ -13,7 +13,7 @@ namespace fibjs {
 
 event_logger::event_logger()
 {
-    m_event = RegisterEventSource(NULL, "fibjs");
+    m_event = RegisterEventSourceW(NULL, L"fibjs");
 }
 
 event_logger::~event_logger()
@@ -41,8 +41,9 @@ result_t event_logger::write(AsyncEvent* ac)
     while ((p1 = m_workinglogs.getHead()) != 0) {
         if (p1->m_priority != console_base::C_PRINT) {
             exlib::string str = p1->full(false);
-            const char* ptr = str.c_str();
-            ReportEvent(m_event, s_levels[p1->m_priority], 0, 0,
+            exlib::wstring wstr = utf8to16String(str.c_str());
+            const wchar_t* ptr = (const wchar_t*)wstr.c_str();
+            ReportEventW(m_event, s_levels[p1->m_priority], 0, 0,
                 NULL, 1, 0, &ptr, NULL);
         }
 

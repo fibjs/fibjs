@@ -72,13 +72,13 @@ exlib::string odbc_error(int32_t handleType, void* handle)
     SQLINTEGER statusRecCount;
     exlib::string result;
 
-    SQLGetDiagField(handleType, handle, 0, SQL_DIAG_NUMBER, &statusRecCount, SQL_IS_INTEGER, &len);
+    SQLGetDiagFieldA(handleType, handle, 0, SQL_DIAG_NUMBER, &statusRecCount, SQL_IS_INTEGER, &len);
     for (int32_t i = 0; i < statusRecCount; i++) {
         char errorSQLState[14];
         char errorMessage[2048];
         SQLINTEGER native;
-        hr = SQLGetDiagRec(handleType, handle, (SQLSMALLINT)(i + 1), (SQLTCHAR*)errorSQLState, &native,
-            (SQLTCHAR*)errorMessage, sizeof(errorMessage), &len);
+        hr = SQLGetDiagRecA(handleType, handle, (SQLSMALLINT)(i + 1), (SQLCHAR*)errorSQLState, &native,
+            (SQLCHAR*)errorMessage, sizeof(errorMessage), &len);
         if (hr == SQL_NO_DATA || hr < 0)
             break;
 
@@ -185,7 +185,7 @@ result_t odbc_connect(const char* driver, const char* host, int32_t port, const 
         }
     }
 
-    hr = SQLDriverConnect(conn, NULL, (SQLCHAR*)conn_str.c_str(), (SQLSMALLINT)conn_str.length(),
+    hr = SQLDriverConnectA(conn, NULL, (SQLCHAR*)conn_str.c_str(), (SQLSMALLINT)conn_str.length(),
         NULL, 0, NULL, SQL_DRIVER_NOPROMPT);
     if (hr < 0) {
         exlib::string err = odbc_error(SQL_HANDLE_DBC, conn);
@@ -244,7 +244,7 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
         bool more = false;
 
         if (codec == "utf8" || codec == "utf-8") {
-            hr = SQLExecDirect(stmt, (SQLCHAR*)sql.c_str(), (SQLINTEGER)sql.length());
+            hr = SQLExecDirectA(stmt, (SQLCHAR*)sql.c_str(), (SQLINTEGER)sql.length());
         } else {
             exlib::wstring wsql(utf8to16String(sql));
             hr = SQLExecDirectW(stmt, (SQLWCHAR*)wsql.c_str(), (SQLINTEGER)wsql.length());
@@ -270,18 +270,18 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
             types.resize(columns);
             res = new DBResult(columns, affected);
             for (int32_t i = 0; i < columns; i++) {
-                char buf[SQL_MAX_COLUMN_NAME_LEN];
+                wchar_t buf[SQL_MAX_COLUMN_NAME_LEN];
                 SQLSMALLINT buflen;
 
-                hr = SQLColAttributes(stmt, i + 1, SQL_DESC_NAME, buf, SQL_MAX_COLUMN_NAME_LEN, &buflen, NULL);
+                hr = SQLColAttributesW(stmt, i + 1, SQL_DESC_NAME, buf, SQL_MAX_COLUMN_NAME_LEN, &buflen, NULL);
                 if (hr < 0)
                     break;
 
-                hr = SQLColAttributes(stmt, i + 1, SQL_DESC_TYPE, NULL, 0, NULL, &types[i]);
+                hr = SQLColAttributesW(stmt, i + 1, SQL_DESC_TYPE, NULL, 0, NULL, &types[i]);
                 if (hr < 0)
                     break;
 
-                res->setField(i, exlib::string(buf, buflen));
+                res->setField(i, utf16to8String((const char16_t*)buf, buflen));
             }
             if (hr < 0)
                 break;
