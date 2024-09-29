@@ -45,10 +45,24 @@ interface WebView : EventEmitter
      */
     loadFile(String file) async;
 
+    /*! @brief 查询当前页面的 url
+	 @return 返回当前页面的 url
+	 */
+    String getUrl() async;
+
     /*! @brief 设置 webview 的页面 html
 	 @param html 设置的 html
 	 */
     setHtml(String html) async;
+
+    /*! @brief 刷新当前页面 */
+    reload() async;
+
+    /*! @brief 退回到上一个页面 */
+    goBack() async;
+
+    /*! @brief 前进到下一个页面 */
+    goForward() async;
 
     /*! @brief 在当前窗口运行一段 JavaScript 代码
 	 @param code 指定要执行的 JavaScript 代码

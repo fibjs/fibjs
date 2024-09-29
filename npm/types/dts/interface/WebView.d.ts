@@ -57,6 +57,15 @@ declare class Class_WebView extends Class_EventEmitter {
     loadFile(file: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 查询当前页面的 url
+     * 	 @return 返回当前页面的 url
+     * 	 
+     */
+    getUrl(): string;
+
+    getUrl(callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    /**
      * @description 设置 webview 的页面 html
      * 	 @param html 设置的 html
      * 	 
@@ -64,6 +73,27 @@ declare class Class_WebView extends Class_EventEmitter {
     setHtml(html: string): void;
 
     setHtml(html: string, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 刷新当前页面 
+     */
+    reload(): void;
+
+    reload(callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 退回到上一个页面 
+     */
+    goBack(): void;
+
+    goBack(callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 前进到下一个页面 
+     */
+    goForward(): void;
+
+    goForward(callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 在当前窗口运行一段 JavaScript 代码

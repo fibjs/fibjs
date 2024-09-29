@@ -142,6 +142,12 @@ void gtk_window_fullscreen(GtkWindow* window)
     s_gtk_window_fullscreen(window);
 }
 
+void gtk_widget_show_all(GtkWidget* widget)
+{
+    gtk_func(gtk_widget_show_all);
+    s_gtk_widget_show_all(widget);
+}
+
 void gtk_widget_show(GtkWidget* widget)
 {
     gtk_func(gtk_widget_show);

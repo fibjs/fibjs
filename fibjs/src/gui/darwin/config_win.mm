@@ -5,8 +5,7 @@
  *      Author: lion
  */
 
-#include <exlib/include/osconfig.h>
-#if defined(Darwin) && defined(OS_DESKTOP)
+#if defined(OS_DESKTOP)
 
 #import <Cocoa/Cocoa.h>
 #import <objc/runtime.h>
@@ -77,28 +76,22 @@ static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
 
 namespace fibjs {
 
-NSEvent* getEmptyCustomNSEvent()
-{
-    return [NSEvent otherEventWithType:NSEventTypeApplicationDefined
-                              location:NSMakePoint(0, 0)
-                         modifierFlags:0
-                             timestamp:0.0
-                          windowNumber:0
-                               context:nil
-                               subtype:0
-                                 data1:0
-                                 data2:0];
-}
-
 static exlib::LockedList<AsyncEvent> s_uiPool;
 
 void putGuiPool(AsyncEvent* ac)
 {
     s_uiPool.putTail(ac);
 
-    [[NSApplication sharedApplication]
-        postEvent:getEmptyCustomNSEvent()
-          atStart:YES];
+    NSEvent* event = [NSEvent otherEventWithType:NSEventTypeApplicationDefined
+                                        location:NSZeroPoint
+                                   modifierFlags:0
+                                       timestamp:0
+                                    windowNumber:0
+                                         context:nil
+                                         subtype:0
+                                           data1:0
+                                           data2:0];
+    [[NSApplication sharedApplication] postEvent:event atStart:YES];
 }
 
 id fetchEventFromNSRunLoop(int blocking)
@@ -122,28 +115,31 @@ void WebView::run_os_gui(exlib::Event& gui_ready)
 
         gui_ready.set();
 
+        AsyncEvent* p;
+        while (p = s_uiPool.getHead())
+            p->invoke();
+
         while (true) {
-            AsyncEvent* p = s_uiPool.getHead();
-
-            if (p)
+            NSEvent* event = fetchEventFromNSRunLoop(1);
+            if ([event type] == NSEventTypeApplicationDefined) {
+                p = s_uiPool.getHead();
                 p->invoke();
-
-            id event = fetchEventFromNSRunLoop(1);
-            [[NSApplication sharedApplication] sendEvent:event];
+            } else
+                [[NSApplication sharedApplication] sendEvent:event];
         }
     }
 }
 
 void WebView::internal_close()
 {
-    NSWindow* window = (NSWindow*)m_webview->window().value();
+    NSWindow* window = (NSWindow*)m_window;
     [window close];
 }
 
 #define CW_USEDEFAULT -1
 void WebView::config()
 {
-    NSWindow* window = (NSWindow*)m_webview->window().value();
+    NSWindow* window = (NSWindow*)m_window;
     int32_t x = CW_USEDEFAULT;
     int32_t y = CW_USEDEFAULT;
     int32_t nWidth = CW_USEDEFAULT;
@@ -217,6 +213,7 @@ void WebView::config()
     [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
 
     Ref();
+    m_ready->set();
     _emit("open");
 }
 }

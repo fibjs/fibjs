@@ -8,6 +8,10 @@
 #include <exlib/include/osconfig.h>
 #if defined(Linux) && defined(OS_DESKTOP)
 
+#define _GLIB_TEST_OVERFLOW_FALLBACK
+#include <glib.h>
+#include <gtk/gtk.h>
+
 #include "object.h"
 #include "ifs/gui.h"
 #include "EventInfo.h"
@@ -23,8 +27,7 @@ void putGuiPool(AsyncEvent* ac)
     s_uiPool.putTail(ac);
     g_idle_add([](void*) -> gboolean {
         AsyncEvent* p = s_uiPool.getHead();
-        if (p)
-            p->invoke();
+        p->invoke();
 
         return G_SOURCE_REMOVE;
     },
@@ -33,7 +36,9 @@ void putGuiPool(AsyncEvent* ac)
 
 void WebView::run_os_gui(exlib::Event& gui_ready)
 {
+    gtk_init_check(nullptr, nullptr);
     main_loop = g_main_loop_new(NULL, FALSE);
+
     gui_ready.set();
 
     g_main_loop_run(main_loop);
@@ -82,14 +87,14 @@ static gboolean on_configure_event(GtkWidget* widget, GdkEventConfigure* event, 
 
 void WebView::internal_close()
 {
-    GtkWindow* window = (GtkWindow*)m_webview->window().value();
+    GtkWindow* window = (GtkWindow*)m_window;
     gtk_window_close(window);
 }
 
 #define CW_USEDEFAULT -1
 void WebView::config()
 {
-    GtkWindow* window = (GtkWindow*)m_webview->window().value();
+    GtkWindow* window = (GtkWindow*)m_window;
     int32_t x = CW_USEDEFAULT;
     int32_t y = CW_USEDEFAULT;
     int32_t nWidth = CW_USEDEFAULT;
@@ -154,10 +159,13 @@ void WebView::config()
     gtk_window_get_position(window, &m_x, &m_y);
     gtk_window_get_size(window, &m_width, &m_height);
 
+    gtk_widget_show_all(GTK_WIDGET(window));
+
     g_signal_connect(window, "delete-event", G_CALLBACK(on_close), this);
     g_signal_connect(window, "configure-event", G_CALLBACK(on_configure_event), this);
 
     Ref();
+    m_ready->set();
     _emit("open");
 }
 

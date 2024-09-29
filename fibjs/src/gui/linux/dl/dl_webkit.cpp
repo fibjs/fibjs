@@ -22,6 +22,18 @@ GtkWidget* webkit_web_view_new()
     return s_webkit_web_view_new();
 }
 
+GtkWidget* webkit_web_view_new_with_user_content_manager(WebKitUserContentManager* user_content_manager)
+{
+    webkit_func(webkit_web_view_new_with_user_content_manager);
+    return s_webkit_web_view_new_with_user_content_manager(user_content_manager);
+}
+
+WebKitUserContentManager* webkit_user_content_manager_new(void)
+{
+    webkit_func(webkit_user_content_manager_new);
+    return s_webkit_user_content_manager_new();
+}
+
 void webkit_web_view_load_html(WebKitWebView* web_view, const gchar* content, const gchar* base_uri)
 {
     webkit_func(webkit_web_view_load_html);
@@ -136,6 +148,24 @@ const gchar* webkit_web_view_get_uri(WebKitWebView* web_view)
 {
     webkit_func(webkit_web_view_get_uri);
     return s_webkit_web_view_get_uri(web_view);
+}
+
+void webkit_web_view_reload(WebKitWebView* web_view)
+{
+    webkit_func(webkit_web_view_reload);
+    s_webkit_web_view_reload(web_view);
+}
+
+void webkit_web_view_go_back(WebKitWebView* web_view)
+{
+    webkit_func(webkit_web_view_go_back);
+    s_webkit_web_view_go_back(web_view);
+}
+
+void webkit_web_view_go_forward(WebKitWebView* web_view)
+{
+    webkit_func(webkit_web_view_go_forward);
+    s_webkit_web_view_go_forward(web_view);
 }
 
 #endif
