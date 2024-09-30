@@ -76,12 +76,8 @@ static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
 
 namespace fibjs {
 
-static exlib::LockedList<AsyncEvent> s_uiPool;
-
 void putGuiPool(AsyncEvent* ac)
 {
-    s_uiPool.putTail(ac);
-
     NSEvent* event = [NSEvent otherEventWithType:NSEventTypeApplicationDefined
                                         location:NSZeroPoint
                                    modifierFlags:0
@@ -89,7 +85,7 @@ void putGuiPool(AsyncEvent* ac)
                                     windowNumber:0
                                          context:nil
                                          subtype:0
-                                           data1:0
+                                           data1:(NSInteger)ac
                                            data2:0];
     [[NSApplication sharedApplication] postEvent:event atStart:YES];
 }
@@ -115,14 +111,10 @@ void WebView::run_os_gui(exlib::Event& gui_ready)
 
         gui_ready.set();
 
-        AsyncEvent* p;
-        while (p = s_uiPool.getHead())
-            p->invoke();
-
         while (true) {
             NSEvent* event = fetchEventFromNSRunLoop(1);
             if ([event type] == NSEventTypeApplicationDefined) {
-                p = s_uiPool.getHead();
+                AsyncEvent* p = (AsyncEvent*)[event data1];
                 p->invoke();
             } else
                 [[NSApplication sharedApplication] sendEvent:event];

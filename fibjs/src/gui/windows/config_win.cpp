@@ -18,19 +18,18 @@
 
 #include <commctrl.h>
 
-
 namespace fibjs {
 
 const wchar_t* szWndClassMain = L"fibjs_window";
 ICoreWebView2Environment* g_env = nullptr;
 
-static exlib::LockedList<AsyncEvent> s_uiPool;
 static uint32_t s_thread;
+
+#define WM_ASYNC_EVENT (WM_USER + 1000)
 
 void putGuiPool(AsyncEvent* ac)
 {
-    s_uiPool.putTail(ac);
-    PostThreadMessage(s_thread, WM_USER + 1000, 0, 0);
+    PostThreadMessage(s_thread, WM_ASYNC_EVENT, 0, (LPARAM)ac);
 }
 
 static void RegMainClass()
@@ -84,29 +83,15 @@ void WebView::run_os_gui(exlib::Event& gui_ready)
     while (true) {
         MSG msg;
 
-        while (true) {
-            bool has_event = false;
-
-            while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+        while (GetMessage(&msg, NULL, 0, 0)) {
+            if (msg.message == WM_ASYNC_EVENT) {
+                AsyncEvent* ac = (AsyncEvent*)msg.lParam;
+                ac->invoke();
+            } else {
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
-                has_event = true;
             }
-
-            AsyncEvent* p = s_uiPool.getHead();
-            if (p) {
-                p->invoke();
-                has_event = true;
-            }
-
-            if (!has_event)
-                break;
         }
-
-        GetMessage(&msg, NULL, 0, 0);
-
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
     }
 }
 

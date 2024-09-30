@@ -19,19 +19,17 @@
 
 namespace fibjs {
 
-static exlib::LockedList<AsyncEvent> s_uiPool;
 static GMainLoop* main_loop = nullptr;
 
 void putGuiPool(AsyncEvent* ac)
 {
-    s_uiPool.putTail(ac);
-    g_idle_add([](void*) -> gboolean {
-        AsyncEvent* p = s_uiPool.getHead();
+    g_idle_add([](void* _p) -> gboolean {
+        AsyncEvent* p = (AsyncEvent*)_p;
         p->invoke();
 
         return G_SOURCE_REMOVE;
     },
-        nullptr);
+        ac);
 }
 
 void WebView::run_os_gui(exlib::Event& gui_ready)
