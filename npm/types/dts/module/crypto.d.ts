@@ -652,7 +652,7 @@ declare module 'crypto' {
      *      @param signature 指定 BBS 签名
      *      @param messages 指定要签名的一组消息
      *      @param index 指定要选择的证明的索引
-     *      @param privateKey 指定私钥，必须是 Bls12381G2 的公钥
+     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
      *      @return 返回证明数据
      *     
      */
@@ -665,7 +665,7 @@ declare module 'crypto' {
      *      @param signature 指定 BBS 签名
      *      @param messages 指定要签名的一组消息
      *      @param index 指定要选择的证明的索引
-     *      @param privateKey 指定私钥，必须是 Bls12381G2 的公钥
+     *      @param publicKey 指定公钥，必须是 Bls12381G2 的公钥
      *      @return 返回证明数据
      *     
      */

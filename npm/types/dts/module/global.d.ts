@@ -59,6 +59,9 @@ declare module 'global' {
      */
     const performance: typeof import ('performance');
 
+    /**
+     * @description w3c webcrypto 标准的加密模块 
+     */
     const crypto: typeof import ('webcrypto');
 
     /**

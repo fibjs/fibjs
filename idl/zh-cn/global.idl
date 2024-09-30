@@ -28,7 +28,7 @@ module global
     /*! @brief 基础性能监控模块 */
     static performance;
 
-    /**/
+    /*! @brief w3c webcrypto 标准的加密模块 */
     static webcrypto new crypto();
 
     /*! @brief 全局对象 */
