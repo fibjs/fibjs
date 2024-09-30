@@ -47,13 +47,13 @@ SQLRETURN SQL_API SQLFreeEnv(SQLHENV EnvironmentHandle)
     return s_SQLFreeEnv(EnvironmentHandle);
 }
 
-SQLRETURN SQL_API SQLDriverConnectA(SQLHDBC hdbc, SQLHWND hwnd,
-    SQLCHAR* szConnStrIn, SQLSMALLINT cbConnStrIn,
-    SQLCHAR* szConnStrOut, SQLSMALLINT cbConnStrOutMax, SQLSMALLINT* pcbConnStrOut,
+SQLRETURN SQL_API SQLDriverConnectW(SQLHDBC hdbc, SQLHWND hwnd,
+    SQLWCHAR* szConnStrIn, SQLSMALLINT cbConnStrIn,
+    SQLWCHAR* szConnStrOut, SQLSMALLINT cbConnStrOutMax, SQLSMALLINT* pcbConnStrOut,
     SQLUSMALLINT fDriverCompletion)
 {
-    odbc_func(SQLDriverConnectA);
-    return s_SQLDriverConnectA(hdbc, hwnd, szConnStrIn, cbConnStrIn,
+    odbc_func(SQLDriverConnectW);
+    return s_SQLDriverConnectW(hdbc, hwnd, szConnStrIn, cbConnStrIn,
         szConnStrOut, cbConnStrOutMax, pcbConnStrOut, fDriverCompletion);
 }
 
@@ -69,12 +69,6 @@ SQLRETURN SQL_API SQLExecute(SQLHSTMT StatementHandle)
     return s_SQLExecute(StatementHandle);
 }
 
-SQLRETURN SQL_API SQLExecDirectA(SQLHSTMT StatementHandle, SQLCHAR* StatementText, SQLINTEGER TextLength)
-{
-    odbc_func(SQLExecDirectA);
-    return s_SQLExecDirectA(StatementHandle, StatementText, TextLength);
-}
-
 SQLRETURN SQL_API SQLExecDirectW(SQLHSTMT StatementHandle, SQLWCHAR* StatementText, SQLINTEGER TextLength)
 {
     odbc_func(SQLExecDirectW);
@@ -86,7 +80,6 @@ SQLRETURN SQL_API SQLNumResultCols(SQLHSTMT StatementHandle, SQLSMALLINT* Column
     odbc_func(SQLNumResultCols);
     return s_SQLNumResultCols(StatementHandle, ColumnCount);
 }
-
 
 SQLRETURN SQL_API SQLColAttributesW(SQLHSTMT hstmt, SQLUSMALLINT icol,
     SQLUSMALLINT fDescType, SQLPOINTER rgbDesc, SQLSMALLINT cbDescMax,

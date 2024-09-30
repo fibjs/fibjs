@@ -413,7 +413,8 @@ public:
                     char str[32];
 
                     snprintf(str, sizeof(str), "%d", size);
-                    _fields.append("VARCHAR(");
+                    _fields.append(impl::data_type().VARCHAR);
+                    _fields.append(1, '(');
                     _fields.append((const char*)str);
                     _fields.append(1, ')');
                 } else

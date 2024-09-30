@@ -183,9 +183,12 @@ result_t odbc_connect(const char* driver, const char* host, int32_t port, const 
             conn_str.append(safe_conn_string(password));
             conn_str.append(1, ';');
         }
+
+        conn_str.append("TrustServerCertificate=Yes;");
     }
 
-    hr = SQLDriverConnectA(conn, NULL, (SQLCHAR*)conn_str.c_str(), (SQLSMALLINT)conn_str.length(),
+    exlib::wstring wstr(utf8to16String(conn_str));
+    hr = SQLDriverConnectW(conn, NULL, (SQLWCHAR*)wstr.c_str(), (SQLSMALLINT)wstr.length(),
         NULL, 0, NULL, SQL_DRIVER_NOPROMPT);
     if (hr < 0) {
         exlib::string err = odbc_error(SQL_HANDLE_DBC, conn);
@@ -225,7 +228,7 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
         u->m_pathname.length() > 0 ? u->m_pathname.c_str() + 1 : "", conn);
 }
 
-result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac, exlib::string codec)
+result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
 {
     if (!conn)
         return CHECK_ERROR(CALL_E_INVALID_CALL);
@@ -243,12 +246,8 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
     do {
         bool more = false;
 
-        if (codec == "utf8" || codec == "utf-8") {
-            hr = SQLExecDirectA(stmt, (SQLCHAR*)sql.c_str(), (SQLINTEGER)sql.length());
-        } else {
-            exlib::wstring wsql(utf8to16String(sql));
-            hr = SQLExecDirectW(stmt, (SQLWCHAR*)wsql.c_str(), (SQLINTEGER)wsql.length());
-        }
+        exlib::wstring wsql(utf8to16String(sql));
+        hr = SQLExecDirectW(stmt, (SQLWCHAR*)wsql.c_str(), (SQLINTEGER)wsql.length());
         if (hr < 0)
             break;
 
@@ -270,18 +269,17 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
             types.resize(columns);
             res = new DBResult(columns, affected);
             for (int32_t i = 0; i < columns; i++) {
-                SQLWCHAR buf[SQL_MAX_COLUMN_NAME_LEN];
                 SQLSMALLINT buflen;
-
+                SQLWCHAR buf[SQL_MAX_COLUMN_NAME_LEN];
                 hr = SQLColAttributesW(stmt, i + 1, SQL_DESC_NAME, buf, SQL_MAX_COLUMN_NAME_LEN, &buflen, NULL);
                 if (hr < 0)
                     break;
 
+                res->setField(i, utf16to8String((const char16_t*)buf, buflen / sizeof(SQLWCHAR)));
+
                 hr = SQLColAttributesW(stmt, i + 1, SQL_DESC_TYPE, NULL, 0, NULL, &types[i]);
                 if (hr < 0)
                     break;
-
-                res->setField(i, utf16to8String((const char16_t*)buf, buflen / sizeof(SQLWCHAR)));
             }
             if (hr < 0)
                 break;
@@ -354,34 +352,7 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                         }
                         break;
                     }
-                    case SQL_CHAR:
-                    case SQL_VARCHAR:
-                    case SQL_LONGVARCHAR: {
-                        exlib::string value;
-                        hr = SQLGetData(stmt, i + 1, SQL_C_CHAR, value.data(), 1, &len);
-                        if (hr < 0)
-                            break;
-                        if (len == SQL_NULL_DATA)
-                            v.setNull();
-                        else {
-                            value.resize(len);
-                            hr = SQLGetData(stmt, i + 1, SQL_C_CHAR, value.data(), len + 1, &len);
-                            if (hr >= 0) {
-                                if (codec == "utf8" || codec == "utf-8") {
-                                    v = value;
-                                } else {
-                                    exlib::string value1;
-                                    encoding_iconv(codec).decode(value, value1);
-                                    v = value1;
-                                }
-                            }
-                        }
-                        break;
-                    }
-                    case SQL_WCHAR:
-                    case SQL_WVARCHAR:
-                    case SQL_WLONGVARCHAR:
-                    case SQL_SS_VARIANT: {
+                    default: {
                         exlib::wstring value;
                         hr = SQLGetData(stmt, i + 1, SQL_C_WCHAR, value.data(), 2, &len);
                         if (hr < 0)
@@ -393,28 +364,6 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                             hr = SQLGetData(stmt, i + 1, SQL_C_WCHAR, value.data(), len + 2, &len);
                             if (hr >= 0)
                                 v = utf16to8String(value);
-                        }
-                        break;
-                    }
-                    default: {
-                        exlib::string value;
-                        hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.data(), 0, &len);
-                        if (hr < 0)
-                            break;
-                        if (len == SQL_NULL_DATA)
-                            v.setNull();
-                        else {
-                            value.resize(len);
-                            hr = SQLGetData(stmt, i + 1, SQL_C_BINARY, value.data(), len, &len);
-                            if (hr >= 0) {
-                                if (codec == "utf8" || codec == "utf-8") {
-                                    v = value;
-                                } else {
-                                    exlib::string value1;
-                                    encoding_iconv(codec).decode(value, value1);
-                                    v = value1;
-                                }
-                            }
                         }
                         break;
                     }

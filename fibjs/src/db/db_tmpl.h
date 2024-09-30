@@ -358,6 +358,7 @@ public:
         const char* FLOAT;
         const char* DOUBLE;
         const char* DATETIME;
+        const char* VARCHAR;
         const char* TEXT;
         const char* BLOB;
         const char* LONGBLOB;
@@ -369,6 +370,7 @@ public:
             "FLOAT",
             "DOUBLE",
             "DATETIME",
+            "VARCHAR",
             "TEXT",
             "BLOB",
             "LONGBLOB"

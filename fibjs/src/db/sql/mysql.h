@@ -95,6 +95,7 @@ public:
             "FLOAT",
             "DOUBLE",
             "DATETIME",
+            "VARCHAR",
             "LONGTEXT",
             "BLOB",
             "LONGBLOB"

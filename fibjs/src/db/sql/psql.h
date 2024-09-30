@@ -37,7 +37,7 @@ public:
 
     virtual result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
     {
-        return odbc_execute(m_conn, sql, retVal, ac, m_codec);
+        return odbc_execute(m_conn, sql, retVal, ac);
     }
 
 public:
@@ -84,6 +84,7 @@ public:
             "REAL",
             "FLOAT",
             "TIMESTAMP",
+            "VARCHAR",
             "TEXT",
             "BYTEA",
             "BYTEA"

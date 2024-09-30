@@ -37,7 +37,7 @@ public:
 
     virtual result_t execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent* ac)
     {
-        return odbc_execute(m_conn, sql, retVal, ac, m_codec);
+        return odbc_execute(m_conn, sql, retVal, ac);
     }
 
     virtual result_t begin(exlib::string point, AsyncEvent* ac)
@@ -90,6 +90,42 @@ public:
     }
 
 public:
+    static exlib::string escape_string(exlib::string v)
+    {
+        const char* str = v.c_str();
+        int32_t sz = (int32_t)v.length();
+        int32_t len, l;
+        const char* src;
+        char* bstr;
+        char ch;
+        exlib::string retVal;
+
+        for (len = 0, src = str, l = sz; l > 0; len++, l--) {
+            ch = (unsigned char)*src++;
+
+            if (ch == '\'')
+                len++;
+        }
+
+        retVal.resize(len + 3);
+
+        bstr = retVal.data();
+        *bstr++ = 'N';
+        *bstr++ = '\'';
+
+        for (src = str, l = sz; l > 0; l--) {
+            ch = (unsigned char)*src++;
+
+            if (ch == '\'')
+                *bstr++ = '\'';
+            *bstr++ = ch;
+        }
+
+        *bstr++ = '\'';
+
+        return retVal;
+    }
+
     static exlib::string escape_binary(Buffer* bin)
     {
         exlib::string retVal;
@@ -132,7 +168,8 @@ public:
             "REAL",
             "FLOAT",
             "DATETIME",
-            "VARCHAR(MAX)",
+            "NVARCHAR",
+            "NVARCHAR(MAX)",
             "VARBINARY(MAX)",
             "IMAGE"
         };

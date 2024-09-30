@@ -1,6 +1,0 @@
-/*! @brief Odbc 数据库连接对象*/
-interface Odbc : DbConnection
-{
-    /*! @brief 查询和设置数据库编码，缺省 "utf8" */
-    String codec;
-};
