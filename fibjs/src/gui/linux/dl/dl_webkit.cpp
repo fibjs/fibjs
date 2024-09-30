@@ -150,6 +150,12 @@ const gchar* webkit_web_view_get_uri(WebKitWebView* web_view)
     return s_webkit_web_view_get_uri(web_view);
 }
 
+const gchar* webkit_web_view_get_title(WebKitWebView* web_view)
+{
+    webkit_func(webkit_web_view_get_title);
+    return s_webkit_web_view_get_title(web_view);
+}
+
 void webkit_web_view_reload(WebKitWebView* web_view)
 {
     webkit_func(webkit_web_view_reload);

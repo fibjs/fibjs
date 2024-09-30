@@ -6,6 +6,8 @@ project(${name})
 include(../../vender/v8/cmake/options.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/../../vender/build_tools/cmake/option.cmake)
 
+include_directories("${PROJECT_SOURCE_DIR}/../../vender/uv/include")
+
 set(VENDER_PATH ${BIN_PATH})
 
 if("$ENV{USE_VENDER_DIST}" STREQUAL "1")

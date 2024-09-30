@@ -31,6 +31,8 @@ public:
     virtual result_t goBack(AsyncEvent* ac) = 0;
     virtual result_t goForward(AsyncEvent* ac) = 0;
     virtual result_t eval(exlib::string code, AsyncEvent* ac) = 0;
+    virtual result_t setTitle(exlib::string title, AsyncEvent* ac) = 0;
+    virtual result_t getTitle(exlib::string& retVal, AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac) = 0;
     virtual result_t get_onopen(v8::Local<v8::Function>& retVal) = 0;
@@ -62,6 +64,8 @@ public:
     static void s_goBack(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_goForward(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_eval(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_setTitle(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getTitle(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_onopen(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -84,6 +88,8 @@ public:
     ASYNC_MEMBER0(WebView_base, goBack);
     ASYNC_MEMBER0(WebView_base, goForward);
     ASYNC_MEMBER1(WebView_base, eval, exlib::string);
+    ASYNC_MEMBER1(WebView_base, setTitle, exlib::string);
+    ASYNC_MEMBERVALUE1(WebView_base, getTitle, exlib::string);
     ASYNC_MEMBER0(WebView_base, close);
     ASYNC_MEMBER1(WebView_base, postMessage, exlib::string);
 };
@@ -101,6 +107,8 @@ inline ClassInfo& WebView_base::class_info()
         { "goBack", s_goBack, false, ClassData::ASYNC_ASYNC },
         { "goForward", s_goForward, false, ClassData::ASYNC_ASYNC },
         { "eval", s_eval, false, ClassData::ASYNC_ASYNC },
+        { "setTitle", s_setTitle, false, ClassData::ASYNC_ASYNC },
+        { "getTitle", s_getTitle, false, ClassData::ASYNC_ASYNC },
         { "close", s_close, false, ClassData::ASYNC_ASYNC },
         { "postMessage", s_postMessage, false, ClassData::ASYNC_ASYNC }
     };
@@ -252,6 +260,40 @@ inline void WebView_base::s_eval(const v8::FunctionCallbackInfo<v8::Value>& args
         hr = pInst->ac_eval(v0);
 
     METHOD_VOID();
+}
+
+inline void WebView_base::s_setTitle(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_INSTANCE(WebView_base);
+    ASYNC_METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_setTitle(v0, cb, args);
+    else
+        hr = pInst->ac_setTitle(v0);
+
+    METHOD_VOID();
+}
+
+inline void WebView_base::s_getTitle(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    ASYNC_METHOD_INSTANCE(WebView_base);
+    ASYNC_METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_getTitle(cb, args);
+    else
+        hr = pInst->ac_getTitle(vr);
+
+    METHOD_RETURN();
 }
 
 inline void WebView_base::s_close(const v8::FunctionCallbackInfo<v8::Value>& args)

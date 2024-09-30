@@ -105,6 +105,24 @@ declare class Class_WebView extends Class_EventEmitter {
     eval(code: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 设置窗口的标题
+     *      @param title 指定窗口的标题
+     *     
+     */
+    setTitle(title: string): void;
+
+    setTitle(title: string, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 查询窗口的标题
+     *      @return 返回窗口的标题
+     *     
+     */
+    getTitle(): string;
+
+    getTitle(callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    /**
      * @description 关闭当前窗口 
      */
     close(): void;

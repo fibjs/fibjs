@@ -108,6 +108,7 @@ describe("gui", () => {
             });
 
             var last_received_message;
+            var get_url;
             for (var i = 0; i < 1000; i++) {
                 win.eval(`window.postMessage(window.location.href);`);
                 coroutine.sleep(100);
@@ -117,9 +118,12 @@ describe("gui", () => {
                 last_received_message = received_message;
             }
 
+            get_url = win.getUrl();
+
             win.close();
 
             assert.equal(received_message.toLowerCase(), url.toLowerCase());
+            assert.equal(get_url.toLowerCase(), url.toLowerCase());
         }
 
         it("open url", () => {
@@ -291,6 +295,73 @@ describe("gui", () => {
 
             assert.greaterThan(size1.height, size2.height);
         });
+    });
+
+    it("change title", () => {
+        const win = gui.open({
+            width: 100,
+            height: 100
+        });
+
+        for (var i = 0; i < 100; i++) {
+            if (win.getTitle() == "")
+                break;
+            coroutine.sleep(100);
+        }
+        assert.equal(win.getTitle(), "");
+
+        win.eval(`window.document.title = "Hello World";`);
+
+        for (var i = 0; i < 100; i++) {
+            if (win.getTitle() == "Hello World")
+                break;
+            coroutine.sleep(100);
+        }
+        assert.equal(win.getTitle(), "Hello World");
+
+        win.setTitle("Hello World 2");
+        assert.equal(win.getTitle(), "Hello World 2");
+
+        win.close();
+    });
+
+    it("multilanguage", () => {
+        var langs = [
+            "Hello World",
+            "你好，世界",
+            "こんにちは世界",
+            "안녕하세요 세계",
+            "Привет, мир",
+            "Hola Mundo",
+            "Bonjour le monde",
+            "Hallo Welt",
+            "Ciao mondo",
+            "Olá Mundo",
+            "Hej världen",
+            "Hei maailma",
+            "Merhaba Dünya",
+            "Hallå världen"
+        ];
+
+        const win = gui.open({
+            width: 100,
+            height: 100
+        });
+
+        for (var i = 0; i < 100; i++) {
+            if (win.getTitle() == "")
+                break;
+            coroutine.sleep(100);
+        }
+        assert.equal(win.getTitle(), "");
+
+        langs.forEach(lang => {
+            console.log(lang);
+            win.setTitle(lang);
+            assert.equal(win.getTitle(), lang);
+        });
+
+        win.close();
     });
 });
 

@@ -5,19 +5,19 @@
  *      Author: lion
  */
 
-#include <exlib/include/osconfig.h>
-#if defined(Windows) && defined(OS_DESKTOP)
+#ifdef _WIN32
+
+#include <uv/include/uv.h>
+#include <windows.h>
+#include <wrl.h>
+#include "loader/WebView2.h"
 
 #include "object.h"
 #include "EventInfo.h"
 #include "WebView.h"
-#include "loader/WebView2.h"
-#include <shellscalingapi.h>
 
 #include <commctrl.h>
 
-#pragma comment(lib, "shcore.lib")
-extern "C" HRESULT SetProcessDpiAwareness(PROCESS_DPI_AWARENESS);
 
 namespace fibjs {
 
@@ -33,93 +33,18 @@ void putGuiPool(AsyncEvent* ac)
     PostThreadMessage(s_thread, WM_USER + 1000, 0, 0);
 }
 
-class EnvironmentCompletedHandler : public ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler {
-public:
-    EnvironmentCompletedHandler()
-        : m_refCount(1)
-    {
-    }
-
-    HRESULT STDMETHODCALLTYPE Invoke(HRESULT result, ICoreWebView2Environment* env) override
-    {
-        if (FAILED(result)) {
-            printf("Failed to create WebView2 environment. Error: 0x%08X\n", result);
-            exit(-1);
-        }
-
-        g_env = env;
-        g_env->AddRef();
-
-        return S_OK;
-    }
-
-    ULONG STDMETHODCALLTYPE AddRef() override
-    {
-        return InterlockedIncrement(&m_refCount);
-    }
-
-    ULONG STDMETHODCALLTYPE Release() override
-    {
-        ULONG refCount = InterlockedDecrement(&m_refCount);
-        if (refCount == 0) {
-            delete this;
-        }
-        return refCount;
-    }
-
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override
-    {
-        if (riid == __uuidof(IUnknown) || riid == __uuidof(ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler)) {
-            *ppv = static_cast<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler*>(this);
-            AddRef();
-            return S_OK;
-        }
-        *ppv = nullptr;
-        return E_NOINTERFACE;
-    }
-
-private:
-    ULONG m_refCount;
-};
-
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    switch (uMsg) {
-    case WM_SIZE: {
-        ICoreWebView2Controller* controller = (ICoreWebView2Controller*)GetWindowLongPtr(hwnd, 0);
-        if (controller != nullptr) {
-            RECT bounds;
-            GetClientRect(hwnd, &bounds);
-            controller->put_Bounds(bounds);
-        }
-        return 0;
-    }
-    case WM_CLOSE: {
-        ICoreWebView2Controller* controller = (ICoreWebView2Controller*)GetWindowLongPtr(hwnd, 0);
-        if (controller != nullptr) {
-            controller->Release();
-            SetWindowLongPtr(hwnd, 0, 0);
-        }
-    }
-    }
-    return DefWindowProc(hwnd, uMsg, wParam, lParam);
-}
-
 static void RegMainClass()
 {
     HINSTANCE hInstance = GetModuleHandle(NULL);
 
-    WNDCLASSW wc;
-    wc.cbClsExtra = 0;
+    WNDCLASSW wc = {};
     wc.cbWndExtra = sizeof(void*);
     wc.hbrBackground = (HBRUSH)COLOR_WINDOW;
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(1));
     wc.hInstance = hInstance;
-    wc.lpfnWndProc = WindowProc;
+    wc.lpfnWndProc = DefWindowProc;
     wc.lpszClassName = szWndClassMain;
-    wc.lpszMenuName = NULL;
-    wc.style = 0;
 
     RegisterClassW(&wc);
 }
@@ -129,13 +54,25 @@ void WebView::run_os_gui(exlib::Event& gui_ready)
     exlib::OSThread* _thGUI = exlib::OSThread::current();
     s_thread = _thGUI->thread_id;
 
-    SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+    SetProcessDPIAware();
     RegMainClass();
 
     OleInitialize(NULL);
 
     HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, nullptr,
-        new EnvironmentCompletedHandler());
+        Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
+            [](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
+                if (FAILED(result)) {
+                    printf("Failed to create WebView2 environment. Error: 0x%08X\n", result);
+                    exit(-1);
+                }
+
+                g_env = env;
+                g_env->AddRef();
+
+                return S_OK;
+            })
+            .Get());
     if (FAILED(hr)) {
         printf("Failed to create WebView2 environment. Error: 0x%08X\n", hr);
         CoUninitialize();
@@ -211,11 +148,24 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         ei->add("height", (int32_t)(rcWin.bottom - rcWin.top) * 96 / dpiy);
 
         webview->_emit("resize", ei);
+
+        ICoreWebView2Controller* controller = (ICoreWebView2Controller*)GetWindowLongPtr(hWnd, 0);
+        if (controller != nullptr) {
+            RECT bounds;
+            GetClientRect(hWnd, &bounds);
+            controller->put_Bounds(bounds);
+        }
         break;
     }
-    case WM_CLOSE:
-        webview->release();
+    case WM_CLOSE: {
+        ICoreWebView2Controller* controller = (ICoreWebView2Controller*)GetWindowLongPtr(hWnd, 0);
+        if (controller != nullptr) {
+            controller->Release();
+            SetWindowLongPtr(hWnd, 0, 0);
+            webview->release();
+        }
         break;
+    }
     }
 
     return DefSubclassProc(hWnd, uMsg, wParam, lParam);

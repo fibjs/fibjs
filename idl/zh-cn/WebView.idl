@@ -69,6 +69,16 @@ interface WebView : EventEmitter
 	 */
     eval(String code) async;
 
+    /*! @brief 设置窗口的标题
+     @param title 指定窗口的标题
+    */
+    setTitle(String title) async;
+
+    /*! @brief 查询窗口的标题
+     @return 返回窗口的标题
+    */
+    String getTitle() async;
+
     /*! @brief 关闭当前窗口 */
     close() async;
 

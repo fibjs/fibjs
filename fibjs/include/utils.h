@@ -10,20 +10,18 @@
  @author Leo Hoo <lion@9465.net>
  */
 
-#include <exlib/include/osconfig.h>
+#include <uv/include/uv.h>
 #include <errno.h>
+
+static_assert(sizeof(wchar_t) == 2, "wchar_t size is not 2 bytes");
 
 #ifdef _WIN32
 
-#include <ws2tcpip.h>
-#include <winsock2.h>
-#include <mstcpip.h>
+#include <windows.h>
 
 #ifndef IPV6_V6ONLY
 #define IPV6_V6ONLY 27
 #endif // IPV6_V6ONLY
-
-#include <windows.h>
 
 #ifndef EWOULDBLOCK
 #define EINPROGRESS WSAEWOULDBLOCK

@@ -40,6 +40,12 @@ void gtk_window_set_resizable(GtkWindow* window, gboolean resizable)
     s_gtk_window_set_resizable(window, resizable);
 }
 
+const char* gtk_window_get_title(GtkWindow* window)
+{
+    gtk_func(gtk_window_get_title);
+    return s_gtk_window_get_title(window);
+}
+
 void gtk_window_set_title(GtkWindow* window, const char* title)
 {
     gtk_func(gtk_window_set_title);

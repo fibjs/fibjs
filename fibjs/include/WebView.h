@@ -53,6 +53,8 @@ public:
     virtual result_t goBack(AsyncEvent* ac);
     virtual result_t goForward(AsyncEvent* ac);
     virtual result_t eval(exlib::string code, AsyncEvent* ac);
+    virtual result_t setTitle(exlib::string title, AsyncEvent* ac);
+    virtual result_t getTitle(exlib::string& retVal, AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
 
