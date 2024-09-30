@@ -14,11 +14,11 @@ var sql_server = {
     // for running test locally, uncomment configurations below and change it accordingly to your DB server.
     // mysql: {
     //     desc: '[mysql] sql db universal test',
-    //     conn_str: `mysql://root@localhost:3306/${DBNAME}`,
+    //     conn_str: `mysql://root@localhost/${DBNAME}`,
     // },
     // psql: {
     //     desc: '[psql] sql db universal test',
-    //     conn_str: `psql://postgres@localhost:5432/${DBNAME}`,
+    //     conn_str: `psql://postgres@localhost/${DBNAME}`,
     // },
     // mssql: {
     //     desc: '[mssql] sql db universal test',
@@ -1133,6 +1133,20 @@ describe("db", () => {
         it("update/affected", () => {
             var rs = conn.execute("update test set t2='test101.1' where t1=1123");
             assert.equal(rs.affected, 1);
+        });
+
+        it("multilanguage", () => {
+            const field_names = [
+                "field",
+                "字段",
+                "フィールド",
+                "필드"
+            ];
+
+            field_names.forEach((field_name) => {
+                var rs = conn.execute(`select '${field_name}' as "${field_name}";`);
+                assert.equal(rs[0][field_name], field_name);
+            });
         });
 
         it("binary", () => {

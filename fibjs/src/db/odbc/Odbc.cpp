@@ -270,7 +270,7 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
             types.resize(columns);
             res = new DBResult(columns, affected);
             for (int32_t i = 0; i < columns; i++) {
-                wchar_t buf[SQL_MAX_COLUMN_NAME_LEN];
+                SQLWCHAR buf[SQL_MAX_COLUMN_NAME_LEN];
                 SQLSMALLINT buflen;
 
                 hr = SQLColAttributesW(stmt, i + 1, SQL_DESC_NAME, buf, SQL_MAX_COLUMN_NAME_LEN, &buflen, NULL);
@@ -281,7 +281,7 @@ result_t odbc_execute(void* conn, exlib::string sql, obj_ptr<NArray>& retVal, As
                 if (hr < 0)
                     break;
 
-                res->setField(i, utf16to8String((const char16_t*)buf, buflen));
+                res->setField(i, utf16to8String((const char16_t*)buf, buflen / sizeof(SQLWCHAR)));
             }
             if (hr < 0)
                 break;

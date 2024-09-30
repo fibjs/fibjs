@@ -46,6 +46,24 @@ module db
     /*! @brief 打开一个 PostgresSQL 数据库
 
      为了建立与 PostgresSQL 的连接，必须安装 PostgresSQL 的 odbc 驱动。
+     在 ubuntu 下，使用以下命令安装 PostgresSQL 的 odbc 驱动：
+     ```bash
+     apt install unixodbc unixodbc-dev odbc-postgresql
+     ```
+     在 mac 下，使用以下命令安装 PostgresSQL 的 odbc 驱动：
+     ```bash
+     brew install unixodbc psqlodbc
+     ```
+     同时，你需要将 brew 安装的 odbc 驱动的路径添加到环境变量中。通常是 /usr/local/lib 或者 /opt/homebrew/lib。你可以使用 find 来查找 libodbc.dylib 所在的路径：
+    ```bash
+    find /usr/local/ -name libodbc.dylib
+    find /opt/homebrew/ -name libodbc.dylib
+    ```
+     编辑 ~/.zshrc，添加以下内容：
+     ```bash
+     export DYLD_LIBRARY_PATH=/opt/homebrew/lib:$DYLD_LIBRARY_PATH
+     ```
+
      @param connString 数据库描述，如：psql://user:pass@host/db
      @return 返回数据库连接对象
      */
