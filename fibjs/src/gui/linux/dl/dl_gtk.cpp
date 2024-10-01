@@ -22,18 +22,6 @@ gboolean gtk_init_check(int* argc, char*** argv)
     return s_gtk_init_check(argc, argv);
 }
 
-void gtk_widget_grab_focus(GtkWidget* widget)
-{
-    gtk_func(gtk_widget_grab_focus);
-    s_gtk_widget_grab_focus(widget);
-}
-
-void gtk_window_set_geometry_hints(GtkWindow* window, GtkWidget* geometry_widget, GdkGeometry* geometry, GdkWindowHints geom_mask)
-{
-    gtk_func(gtk_window_set_geometry_hints);
-    s_gtk_window_set_geometry_hints(window, geometry_widget, geometry, geom_mask);
-}
-
 void gtk_window_set_resizable(GtkWindow* window, gboolean resizable)
 {
     gtk_func(gtk_window_set_resizable);
@@ -70,12 +58,6 @@ void gtk_container_add(GtkContainer* container, GtkWidget* widget)
     s_gtk_container_add(container, widget);
 }
 
-void gtk_container_remove(GtkContainer* container, GtkWidget* widget)
-{
-    gtk_func(gtk_container_remove);
-    s_gtk_container_remove(container, widget);
-}
-
 GType gtk_container_get_type(void)
 {
     gtk_func(gtk_container_get_type);
@@ -86,12 +68,6 @@ GType gtk_widget_get_type(void)
 {
     gtk_func(gtk_widget_get_type);
     return s_gtk_widget_get_type();
-}
-
-void gtk_widget_set_size_request(GtkWidget* widget, gint width, gint height)
-{
-    gtk_func(gtk_widget_set_size_request);
-    s_gtk_widget_set_size_request(widget, width, height);
 }
 
 GtkWidget* gtk_window_new(GtkWindowType type)
@@ -154,18 +130,6 @@ void gtk_widget_show_all(GtkWidget* widget)
     s_gtk_widget_show_all(widget);
 }
 
-void gtk_widget_show(GtkWidget* widget)
-{
-    gtk_func(gtk_widget_show);
-    s_gtk_widget_show(widget);
-}
-
-void gtk_widget_hide(GtkWidget* widget)
-{
-    gtk_func(gtk_widget_hide);
-    s_gtk_widget_hide(widget);
-}
-
 GdkScreen* gtk_window_get_screen(GtkWindow* window)
 {
     gtk_func(gtk_window_get_screen);
@@ -194,12 +158,6 @@ void gtk_window_set_titlebar(GtkWindow* window, GtkWidget* titlebar)
 {
     gtk_func(gtk_window_set_titlebar);
     s_gtk_window_set_titlebar(window, titlebar);
-}
-
-gboolean g_main_context_iteration(GMainContext* context, gboolean may_block)
-{
-    gtk_func(g_main_context_iteration);
-    return s_g_main_context_iteration(context, may_block);
 }
 
 GMainLoop* g_main_loop_new(GMainContext* context, gboolean is_running)

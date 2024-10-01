@@ -16,25 +16,6 @@
 static void* gobj_handle = NULL;
 #define gobj_func(func) dl_def_func(gobj_handle, "libgobject-2.0.so", func)
 
-gpointer g_object_ref_sink(gpointer object)
-{
-    gobj_func(g_object_ref_sink);
-    return s_g_object_ref_sink(object);
-}
-
-void g_object_unref(gpointer object)
-{
-    gobj_func(g_object_unref);
-    s_g_object_unref(object);
-}
-
-guint g_signal_handlers_disconnect_matched(gpointer instance, GSignalMatchType mask,
-    guint signal_id, GQuark detail, GClosure* closure, gpointer func, gpointer data)
-{
-    gobj_func(g_signal_handlers_disconnect_matched);
-    return s_g_signal_handlers_disconnect_matched(instance, mask, signal_id, detail, closure, func, data);
-}
-
 GTypeInstance* g_type_check_instance_cast(GTypeInstance* instance, GType iface_type)
 {
     gobj_func(g_type_check_instance_cast);

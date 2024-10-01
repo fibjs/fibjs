@@ -17,21 +17,11 @@ include_directories("${PROJECT_SOURCE_DIR}/include"
 	"${PROJECT_SOURCE_DIR}/../vender/openssl/include"
 	"${CMAKE_CURRENT_BINARY_DIR}")
 
-if("${BUILD_OS}" STREQUAL "Linux")
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(GTK REQUIRED gtk+-3.0)
-    pkg_check_modules(WEBKIT REQUIRED webkit2gtk-4.0)
-
-    include_directories(${GTK_INCLUDE_DIRS} ${WEBKIT_INCLUDE_DIRS})
-    link_directories(${GTK_LIBRARY_DIRS} ${WEBKIT_LIBRARY_DIRS})
-    add_definitions(${GTK_CFLAGS_OTHER} ${WEBKIT_CFLAGS_OTHER})
-endif()
-
-if("${BUILD_OS}" MATCHES "Windows|Darwin|Linux")
+if("${BUILD_OS}" MATCHES "Windows|Darwin|Linux|Alpine")
 	add_definitions(-DOS_DESKTOP)
 endif()
 
-if("${BUILD_OS}" STREQUAL "Linux")
+if("${BUILD_OS}" MATCHES "Linux|Alpine")
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(GTK REQUIRED gtk+-3.0)
     pkg_check_modules(WEBKIT REQUIRED webkit2gtk-4.0)
