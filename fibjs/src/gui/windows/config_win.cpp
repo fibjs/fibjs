@@ -23,13 +23,23 @@ namespace fibjs {
 const wchar_t* szWndClassMain = L"fibjs_window";
 ICoreWebView2Environment* g_env = nullptr;
 
-static uint32_t s_thread;
+static HWND s_worker;
 
 #define WM_ASYNC_EVENT (WM_USER + 1000)
 
 void putGuiPool(AsyncEvent* ac)
 {
-    PostThreadMessage(s_thread, WM_ASYNC_EVENT, 0, (LPARAM)ac);
+    PostMessage(s_worker, WM_ASYNC_EVENT, 0, (LPARAM)ac);
+}
+
+LRESULT CALLBACK WorkerProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+{
+    if (uMsg == WM_ASYNC_EVENT) {
+        AsyncEvent* ac = (AsyncEvent*)lParam;
+        ac->invoke();
+    }
+
+    return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 }
 
 static void RegMainClass()
@@ -46,12 +56,15 @@ static void RegMainClass()
     wc.lpszClassName = szWndClassMain;
 
     RegisterClassW(&wc);
+
+    s_worker = CreateWindowExW(0, szWndClassMain, L"", 0,
+        CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
+    SetWindowSubclass(s_worker, WorkerProc, 0, 0);
 }
 
 void WebView::run_os_gui(exlib::Event& gui_ready)
 {
     exlib::OSThread* _thGUI = exlib::OSThread::current();
-    s_thread = _thGUI->thread_id;
 
     SetProcessDPIAware();
     RegMainClass();
@@ -80,18 +93,10 @@ void WebView::run_os_gui(exlib::Event& gui_ready)
 
     gui_ready.set();
 
-    while (true) {
-        MSG msg;
-
-        while (GetMessage(&msg, NULL, 0, 0)) {
-            if (msg.message == WM_ASYNC_EVENT) {
-                AsyncEvent* ac = (AsyncEvent*)msg.lParam;
-                ac->invoke();
-            } else {
-                TranslateMessage(&msg);
-                DispatchMessage(&msg);
-            }
-        }
+    MSG msg;
+    while (GetMessage(&msg, NULL, 0, 0)) {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
     }
 }
 

@@ -76,18 +76,10 @@ static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
 
 namespace fibjs {
 
+static dispatch_queue_t mainQueue = dispatch_get_main_queue();
 void putGuiPool(AsyncEvent* ac)
 {
-    NSEvent* event = [NSEvent otherEventWithType:NSEventTypeApplicationDefined
-                                        location:NSZeroPoint
-                                   modifierFlags:0
-                                       timestamp:0
-                                    windowNumber:0
-                                         context:nil
-                                         subtype:0
-                                           data1:(NSInteger)ac
-                                           data2:0];
-    [[NSApplication sharedApplication] postEvent:event atStart:YES];
+    dispatch_async(mainQueue, ^{ ac->invoke(); });
 }
 
 id fetchEventFromNSRunLoop(int blocking)
@@ -104,21 +96,14 @@ id fetchEventFromNSRunLoop(int blocking)
 void WebView::run_os_gui(exlib::Event& gui_ready)
 {
     @autoreleasepool {
-        [NSApplication sharedApplication];
-        [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
-        [[NSApplication sharedApplication] finishLaunching];
-        [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
+        NSApplication* app = [NSApplication sharedApplication];
+        [app setActivationPolicy:NSApplicationActivationPolicyRegular];
+        [app finishLaunching];
+        [app activateIgnoringOtherApps:YES];
 
         gui_ready.set();
 
-        while (true) {
-            NSEvent* event = fetchEventFromNSRunLoop(1);
-            if ([event type] == NSEventTypeApplicationDefined) {
-                AsyncEvent* p = (AsyncEvent*)[event data1];
-                p->invoke();
-            } else
-                [[NSApplication sharedApplication] sendEvent:event];
-        }
+        [app run];
     }
 }
 
