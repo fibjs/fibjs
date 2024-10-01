@@ -16,6 +16,6 @@
 #ifdef __APPLE__
 #define ODBC_LIB "libodbc.dylib"
 #else
-#define ODBC_LIB "libodbc.so"
+#define ODBC_LIB "libodbc.so.2"
 #endif
 #endif
