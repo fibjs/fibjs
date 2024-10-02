@@ -95,6 +95,31 @@ describe("gui", () => {
         assert.equal(received_message, "send from browser: Hello World");
     });
 
+    it("post non-string message", () => {
+        const win = gui.open({
+            width: 100,
+            height: 100
+        });
+
+        var received_message;
+        win.on("message", (msg) => {
+            received_message = msg.data;
+        });
+
+        win.eval(`window.postMessage({num:1});`);
+        win.eval(`window.postMessage("Hello World");`);
+
+        for (var i = 0; i < 1000; i++) {
+            coroutine.sleep(10);
+            if (received_message) {
+                break;
+            }
+        }
+        win.close();
+
+        assert.equal(received_message, "Hello World");
+    });
+
     describe("load", () => {
         const path1 = path.join(__dirname, "gui_files", "test.html");
         const path2 = path.join(__dirname, "gui_files", "test2.html");

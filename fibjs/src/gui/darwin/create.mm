@@ -42,9 +42,11 @@
 - (void)userContentController:(WKUserContentController*)userContentController didReceiveScriptMessage:(WKScriptMessage*)message
 {
     if ([message.name isEqualToString:@"fibjs"]) {
-        fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(_webView, "message");
-        ei->add("data", [message.body UTF8String]);
-        _webView->_emit("message", ei);
+        if ([message.body isKindOfClass:[NSString class]]) {
+            fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(_webView, "message");
+            ei->add("data", [message.body UTF8String]);
+            _webView->_emit("message", ei);
+        }
     } else if ([message.name isEqualToString:@"close"]) {
         _webView->internal_close();
     }
@@ -86,7 +88,6 @@ result_t WebView::createWebView()
     [m_webview addObserver:messageHandler forKeyPath:@"title" options:NSKeyValueObservingOptionNew context:nil];
 
     exlib::string url;
-
     if (m_options->url.has_value())
         url = m_options->url.value();
     else if (m_options->file.has_value()) {
