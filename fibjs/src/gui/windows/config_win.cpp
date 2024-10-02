@@ -12,11 +12,13 @@
 #include <wrl.h>
 #include "loader/WebView2.h"
 
+#include <commctrl.h>
+#include <shlobj.h>
+
 #include "object.h"
 #include "EventInfo.h"
 #include "WebView.h"
 
-#include <commctrl.h>
 
 namespace fibjs {
 
@@ -40,6 +42,15 @@ LRESULT CALLBACK WorkerProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, 
     }
 
     return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+}
+
+std::wstring GetUserDataFolderPath()
+{
+    wchar_t path[MAX_PATH];
+    if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, path))) {
+        return std::wstring(path) + L"\\.fibjs";
+    }
+    return L"";
 }
 
 static void RegMainClass()
@@ -71,7 +82,8 @@ void WebView::run_os_gui(exlib::Event& gui_ready)
 
     OleInitialize(NULL);
 
-    HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, nullptr,
+    std::wstring userDataFolder = GetUserDataFolderPath();
+    HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(nullptr, userDataFolder.c_str(), nullptr,
         Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
             [](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
                 if (FAILED(result)) {
