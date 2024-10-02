@@ -125,36 +125,31 @@ void WebView::config()
     bool _maximize = false;
     bool _fullscreen = false;
 
-    if (m_opt) {
-        Variant v;
+    if (m_options->left.has_value())
+        x = m_options->left.value();
+    if (m_options->top.has_value())
+        y = m_options->top.value();
+    if (m_options->width.has_value())
+        nWidth = m_options->width.value();
+    if (m_options->height.has_value())
+        nHeight = m_options->height.value();
 
-        if (m_opt->get("left", v) == 0)
-            x = v.intVal();
-        if (m_opt->get("top", v) == 0)
-            y = v.intVal();
-        if (m_opt->get("width", v) == 0)
-            nWidth = v.intVal();
-        if (m_opt->get("height", v) == 0)
-            nHeight = v.intVal();
+    if (!m_options->frame.has_value() || m_options->frame.value()) {
+        if (!m_options->caption.has_value() || m_options->caption.value())
+            mask |= NSWindowStyleMaskTitled;
 
-        if (!(m_opt->get("frame", v) == 0 && !v.boolVal())) {
-            if (!(m_opt->get("caption", v) == 0 && !v.boolVal()))
-                mask |= NSWindowStyleMaskTitled;
-
-            if (!(m_opt->get("resizable", v) == 0 && !v.boolVal()))
-                mask |= NSWindowStyleMaskResizable;
-        } else
-            mask |= NSWindowStyleMaskBorderless | NSWindowStyleMaskFullSizeContentView;
-
-        if (m_opt->get("maximize", v) == 0 && v.boolVal())
-            _maximize = true;
-
-        if (m_opt->get("fullscreen", v) == 0 && v.boolVal()) {
-            mask = NSWindowStyleMaskResizable;
-            _fullscreen = true;
-        }
+        if (!m_options->resizable.has_value() || m_options->resizable.value())
+            mask |= NSWindowStyleMaskResizable;
     } else
-        mask |= NSWindowStyleMaskResizable | NSWindowStyleMaskTitled;
+        mask |= NSWindowStyleMaskBorderless | NSWindowStyleMaskFullSizeContentView;
+
+    if (m_options->maximize.has_value())
+        _maximize = m_options->maximize.value();
+
+    if (m_options->fullscreen.has_value() && m_options->fullscreen.value()) {
+        mask = NSWindowStyleMaskResizable;
+        _fullscreen = true;
+    }
 
     NSRect screen_rect = [[NSScreen mainScreen] frame];
 

@@ -49,7 +49,7 @@ static void handle_title_change(WebKitWebView* webview, GParamSpec* pspec, gpoin
     gtk_window_set_title(GTK_WINDOW(_webView->m_window), title);
 }
 
-result_t WebView::open()
+result_t WebView::createWebView()
 {
     GtkWidget* window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     m_window = window;
@@ -74,13 +74,11 @@ result_t WebView::open()
     gtk_container_add(GTK_CONTAINER(window), webview);
 
     exlib::string url;
-    Variant v;
-
-    if (m_opt->get("url", v) == 0)
-        url = v.string();
-    else if (m_opt->get("file", v) == 0) {
+    if (m_options->url.has_value())
+        url = m_options->url.value();
+    else if (m_options->file.has_value()) {
         obj_ptr<UrlObject_base> u;
-        result_t hr = url_base::pathToFileURL(v.string(), u);
+        result_t hr = url_base::pathToFileURL(m_options->file.value(), u);
         if (hr < 0)
             return hr;
 

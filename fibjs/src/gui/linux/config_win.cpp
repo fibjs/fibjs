@@ -100,34 +100,30 @@ void WebView::config()
     bool _maximize = false;
     bool _fullscreen = false;
 
-    if (m_opt) {
-        Variant v;
+    if (m_options->left.has_value())
+        x = m_options->left.value();
+    if (m_options->top.has_value())
+        y = m_options->top.value();
+    if (m_options->width.has_value())
+        nWidth = m_options->width.value();
+    if (m_options->height.has_value())
+        nHeight = m_options->height.value();
 
-        if (m_opt->get("left", v) == 0)
-            x = v.intVal();
-        if (m_opt->get("top", v) == 0)
-            y = v.intVal();
-        if (m_opt->get("width", v) == 0)
-            nWidth = v.intVal();
-        if (m_opt->get("height", v) == 0)
-            nHeight = v.intVal();
+    if (m_options->frame.has_value() && !m_options->frame.value())
+        gtk_window_set_decorated(window, FALSE);
+    else {
+        if (m_options->caption.has_value() && !m_options->caption.value())
+            gtk_window_set_titlebar(window, gtk_header_bar_new());
 
-        if (m_opt->get("frame", v) == 0 && !v.boolVal())
-            gtk_window_set_decorated(window, FALSE);
-        else {
-            if (m_opt->get("caption", v) == 0 && !v.boolVal())
-                gtk_window_set_titlebar(window, gtk_header_bar_new());
-
-            if (m_opt->get("resizable", v) == 0 && !v.boolVal())
-                gtk_window_set_resizable(window, FALSE);
-        }
-
-        if (m_opt->get("maximize", v) == 0 && v.boolVal())
-            _maximize = true;
-
-        if (m_opt->get("fullscreen", v) == 0 && v.boolVal())
-            _fullscreen = true;
+        if (m_options->resizable.has_value() && !m_options->resizable.value())
+            gtk_window_set_resizable(window, FALSE);
     }
+
+    if (m_options->maximize.has_value())
+        _maximize = m_options->maximize.value();
+
+    if (m_options->fullscreen.has_value())
+        _fullscreen = m_options->fullscreen.value();
 
     GdkScreen* screen = gtk_window_get_screen(window);
     int screen_width = gdk_screen_get_width(screen);

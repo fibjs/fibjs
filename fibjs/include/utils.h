@@ -981,12 +981,6 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::L
     return 0;
 }
 
-template <typename T>
-inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, T& vr, bool bStrict = false)
-{
-    return GetArgumentValue(v, vr, bStrict);
-}
-
 result_t setRuntimeError(result_t code, const char* err = nullptr);
 
 template <typename T>
@@ -997,6 +991,19 @@ result_t GetConfigValue(Isolate* isolate, v8::Local<v8::Object> o, const char* k
         return setRuntimeError(CALL_E_PARAMNOTOPTIONAL, key);
 
     return GetArgumentValue(isolate, v, n, bStrict);
+}
+
+template <typename T>
+result_t GetConfigValue(Isolate* isolate, v8::Local<v8::Object> o, const char* key, std::optional<T>& n, bool bStrict = false)
+{
+    T n1;
+    result_t hr = GetConfigValue(isolate, o, key, n1, bStrict);
+    if (hr >= 0)
+        n = n1;
+    else if (hr != CALL_E_PARAMNOTOPTIONAL)
+        return hr;
+
+    return 0;
 }
 
 template <typename T>

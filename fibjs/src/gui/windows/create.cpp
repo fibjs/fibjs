@@ -24,7 +24,7 @@ namespace fibjs {
 extern ICoreWebView2Environment* g_env;
 extern const wchar_t* szWndClassMain;
 
-result_t WebView::open()
+result_t WebView::createWebView()
 {
     HINSTANCE hInstance = GetModuleHandle(NULL);
     m_window = CreateWindowExW(0, szWndClassMain, L"",
@@ -47,13 +47,11 @@ result_t WebView::open()
                 controller->AddRef();
 
                 exlib::string url;
-                Variant v;
-
-                if (m_opt->get("url", v) == 0)
-                    url = v.string();
-                else if (m_opt->get("file", v) == 0) {
+                if (m_options->url.has_value())
+                    url = m_options->url.value();
+                else if (m_options->file.has_value()) {
                     obj_ptr<UrlObject_base> u;
-                    result_t hr = url_base::pathToFileURL(v.string(), u);
+                    result_t hr = url_base::pathToFileURL(m_options->file.value(), u);
                     if (hr < 0)
                         return hr;
 

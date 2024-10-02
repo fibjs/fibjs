@@ -15,6 +15,7 @@ include_directories("${PROJECT_SOURCE_DIR}/include"
 	"${PROJECT_SOURCE_DIR}/../vender/zlib/include"
 	"${PROJECT_SOURCE_DIR}/../vender/msgpack/include"
 	"${PROJECT_SOURCE_DIR}/../vender/openssl/include"
+	"${PROJECT_SOURCE_DIR}/../vender/boost/preprocessor/include"
 	"${CMAKE_CURRENT_BINARY_DIR}")
 
 if("${BUILD_OS}" MATCHES "Windows|Darwin|Linux|Alpine")

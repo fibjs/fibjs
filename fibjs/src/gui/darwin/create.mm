@@ -29,10 +29,10 @@
     return self;
 }
 
-- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context
+- (void)observeValueForKeyPath:(NSString*)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey, id>*)change context:(void*)context
 {
     if ([keyPath isEqualToString:@"title"] && object == _webView->m_webview) {
-        NSString *newTitle = change[NSKeyValueChangeNewKey];
+        NSString* newTitle = change[NSKeyValueChangeNewKey];
         [_webView->m_window setTitle:newTitle];
     } else {
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
@@ -53,7 +53,7 @@
 
 namespace fibjs {
 
-result_t WebView::open()
+result_t WebView::createWebView()
 {
     NSWindow* window = [[NSWindow alloc] initWithContentRect:CGRectZero
                                                    styleMask:(NSWindowStyleMaskTitled
@@ -86,13 +86,12 @@ result_t WebView::open()
     [m_webview addObserver:messageHandler forKeyPath:@"title" options:NSKeyValueObservingOptionNew context:nil];
 
     exlib::string url;
-    Variant v;
 
-    if (m_opt->get("url", v) == 0)
-        url = v.string();
-    else if (m_opt->get("file", v) == 0) {
+    if (m_options->url.has_value())
+        url = m_options->url.value();
+    else if (m_options->file.has_value()) {
         obj_ptr<UrlObject_base> u;
-        result_t hr = url_base::pathToFileURL(v.string(), u);
+        result_t hr = url_base::pathToFileURL(m_options->file.value(), u);
         if (hr < 0)
             return hr;
 
