@@ -1409,7 +1409,7 @@ describe("http", () => {
             var rep = hfh_test("http_autoindex/");
             assert.equal(404, rep.statusCode);
 
-            hfHandler = new http.fileHandler(baseFolder, {}, true);
+            hfHandler = new http.fileHandler(baseFolder, true);
 
             var re = /<a href=\"t.*\">/g;
             var rep = hfh_test("http_autoindex/");

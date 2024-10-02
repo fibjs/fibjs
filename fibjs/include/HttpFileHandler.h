@@ -30,12 +30,9 @@ public:
     virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal,
         AsyncEvent* ac);
 
-    result_t set_mimes(v8::Local<v8::Object> mimes);
-
 private:
     exlib::string m_root;
     bool m_autoIndex;
-    std::unordered_map<exlib::string, exlib::string> m_mimes;
 };
 
 } /* namespace fibjs */

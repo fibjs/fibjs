@@ -33,6 +33,7 @@ void importBuiltinModule()
     IMPORT_MODULE(iconv);
     IMPORT_MODULE(io);
     IMPORT_MODULE(json);
+    IMPORT_MODULE(mime);
     IMPORT_MODULE(msgpack);
     IMPORT_MODULE(mq);
     IMPORT_MODULE(multibase);

@@ -165,12 +165,11 @@ declare module 'http' {
      *      fileHandler 支持 gzip 预压缩，当请求接受 gzip 编码，且相同路径下 filename.ext.gz 文件存在时，将直接返回此文件，
      *      从而避免重复压缩带来服务器负载。
      *      @param root 文件根路径
-     *      @param mimes 扩展 mime 设置
      *      @param autoIndex 是否支持浏览目录文件，缺省为 false，不支持
      *      @return 返回一个静态文件处理器用于处理 http 消息
      *      
      */
-    function fileHandler(root: string, mimes?: FIBJS.GeneralObject, autoIndex?: boolean): Class_Handler;
+    function fileHandler(root: string, autoIndex?: boolean): Class_Handler;
 
     /**
      * @description 发送 http 请求到指定的流对象，并返回结果
