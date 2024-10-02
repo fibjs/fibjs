@@ -35,15 +35,15 @@ result_t WebView::open(NObject* opt, obj_ptr<WebView_base>& retVal)
     s_gui.set();
     s_gui_ready.wait();
 
-    obj_ptr<WebView> w = new WebView(opt);
+    WebView* w = new WebView(opt);
     w->wrap();
 
     w->Ref();
-    asyncCall([](WebView* w) {
+    async([w]() {
         w->open();
         w->Unref();
     },
-        w, CALL_E_GUICALL);
+        CALL_E_GUICALL);
     retVal = w;
 
     return 0;

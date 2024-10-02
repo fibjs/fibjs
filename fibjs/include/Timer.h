@@ -56,7 +56,9 @@ public:
     // exlib::Task_base
     virtual void resume()
     {
-        asyncCall(_callback, this);
+        async([this]() -> int {
+            return callback();
+        });
     }
 
     void sleep()

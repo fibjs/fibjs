@@ -64,7 +64,9 @@ result_t SQLite::open(const char* file)
 SQLite::~SQLite()
 {
     if (m_conn)
-        asyncCall(sqlite3_close, (sqlite3*)m_conn);
+        async([conn = (sqlite3*)m_conn]() {
+            sqlite3_close(conn);
+        });
 }
 
 result_t SQLite::get_type(exlib::string& retVal)
@@ -199,20 +201,20 @@ result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncEvent*
                             const char* type = sqlite3_column_decltype(stmt, i);
                             if (type
                                 && (!qstricmp(type, "blob", 4)
-                                       || !qstricmp(type, "tinyblob", 8)
-                                       || !qstricmp(type, "mediumblob", 10)
-                                       || !qstricmp(type, "longblob", 8)
-                                       || !qstricmp(type, "binary", 6)
-                                       || !qstricmp(type, "varbinary", 9))) {
+                                    || !qstricmp(type, "tinyblob", 8)
+                                    || !qstricmp(type, "mediumblob", 10)
+                                    || !qstricmp(type, "longblob", 8)
+                                    || !qstricmp(type, "binary", 6)
+                                    || !qstricmp(type, "varbinary", 9))) {
                                 const char* data = (const char*)sqlite3_column_blob(stmt, i);
                                 int32_t size = sqlite3_column_bytes(stmt, i);
 
                                 v = new Buffer(data, size);
                             } else if (type
                                 && (!qstricmp(type, "datetime")
-                                       || !qstricmp(type, "timestamp")
-                                       || !qstricmp(type, "date")
-                                       || !qstricmp(type, "time"))) {
+                                    || !qstricmp(type, "timestamp")
+                                    || !qstricmp(type, "date")
+                                    || !qstricmp(type, "time"))) {
                                 const char* data = (const char*)sqlite3_column_text(stmt, i);
                                 int32_t size = sqlite3_column_bytes(stmt, i);
 

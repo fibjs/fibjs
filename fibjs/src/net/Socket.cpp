@@ -29,7 +29,9 @@ result_t Socket_base::_new(int32_t family, obj_ptr<Socket_base>& retVal,
 Socket::~Socket()
 {
     if (m_aio.m_fd != INVALID_SOCKET)
-        asyncCall(::closesocket, m_aio.m_fd);
+        async([fd = m_aio.m_fd]() {
+            ::closesocket(fd);
+        });
 }
 
 #ifdef _WIN32

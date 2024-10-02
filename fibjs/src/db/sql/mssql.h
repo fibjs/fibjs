@@ -19,7 +19,9 @@ public:
     ~mssql()
     {
         if (m_conn)
-            asyncCall(odbc_disconnect, m_conn);
+            async([conn = m_conn]() {
+                odbc_disconnect(conn);
+            });
     }
 
 public:

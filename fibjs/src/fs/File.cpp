@@ -25,7 +25,9 @@ namespace fibjs {
 File::~File()
 {
     if (m_fd != -1)
-        asyncCall(::_close, m_fd);
+        async([fd = m_fd]() {
+            ::_close(fd);
+        });
 }
 
 result_t File::read(int32_t bytes, obj_ptr<Buffer_base>& retVal,

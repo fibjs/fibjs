@@ -40,18 +40,6 @@ static void _InterruptCallback(v8::Isolate* v8_isolate, void* data)
         process_base::exit(1);
 }
 
-static result_t async_signal(const char* name)
-{
-    Isolate* isolate = Isolate::main();
-
-    if (isolate)
-        isolate->RequestInterrupt(_InterruptCallback, (void*)name);
-    else
-        _exit(1);
-
-    return 0;
-}
-
 static void on_signal(int32_t s)
 {
     const char* name = NULL;
@@ -78,7 +66,14 @@ static void on_signal(int32_t s)
 
     if (s_check_callback.CompareAndSwap(0, 1) != 0)
         _exit(1);
-    asyncCall(async_signal, name);
+    async([name]() {
+        Isolate* isolate = Isolate::main();
+
+        if (isolate)
+            isolate->RequestInterrupt(_InterruptCallback, (void*)name);
+        else
+            _exit(1);
+    });
 }
 
 #ifdef _WIN32

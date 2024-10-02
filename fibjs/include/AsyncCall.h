@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <functional>
 #include <exlib/include/fiber.h>
 #include "utils.h"
 #include "Runtime.h"
@@ -303,31 +304,7 @@ private:
     }                                                \
     int32_t _##fn(int32_t n)
 
-template <typename T, typename T1>
-class AsyncFunc : public AsyncEvent {
-public:
-    AsyncFunc(T func, T1 v)
-        : m_func(func)
-        , m_v(v)
-    {
-    }
-
-    virtual void invoke()
-    {
-        m_func(m_v);
-        delete this;
-    }
-
-private:
-    T m_func;
-    T1 m_v;
-};
-
-template <typename T, typename T1>
-void asyncCall(T func, T1 v, int32_t mode = CALL_E_NOSYNC)
-{
-    (new AsyncFunc<T, T1>(func, v))->async(mode);
-}
+void async(std::function<void(void)> func, int32_t mode = CALL_E_NOSYNC);
 
 template <typename T>
 class _at {

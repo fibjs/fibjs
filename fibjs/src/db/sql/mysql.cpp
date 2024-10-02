@@ -184,17 +184,13 @@ result_t db_base::openMySQL(exlib::string connString, obj_ptr<MySQL_base>& retVa
     return 0;
 }
 
-static result_t close_conn(UMConnection conn)
-{
-    UMConnection_Close(conn);
-    UMConnection_Destroy(conn);
-    return 0;
-}
-
 mysql::~mysql()
 {
     if (m_conn)
-        asyncCall(close_conn, m_conn);
+        async([conn = m_conn]() {
+            UMConnection_Close(conn);
+            UMConnection_Destroy(conn);
+        });
 }
 
 result_t mysql::connect(const char* host, int32_t port, const char* username,

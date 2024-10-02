@@ -169,7 +169,9 @@ public:
             jobs[i].k = k;
 
             if (i > 0)
-                asyncCall(search_thread, &jobs[i], CALL_E_LONGSYNC);
+                async([jobs, i]() {
+                    search_thread(&jobs[i]);
+                }, CALL_E_LONGSYNC);
         }
 
         search_thread(&jobs[0]);

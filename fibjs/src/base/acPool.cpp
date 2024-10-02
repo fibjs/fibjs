@@ -271,4 +271,27 @@ void InitializeAcPool()
     s_lsPool = new acPool(2, true);
     s_acPool = new acPool(2);
 }
+
+void async(std::function<void(void)> func, int32_t mode)
+{
+    class AsyncFunc : public AsyncEvent {
+    public:
+        AsyncFunc(std::function<void(void)> func)
+            : m_func(func)
+        {
+        }
+
+        virtual void invoke()
+        {
+            m_func();
+            delete this;
+        }
+
+    private:
+        std::function<void(void)> m_func;
+    };
+
+    (new AsyncFunc(func))->async(mode);
+}
+
 }

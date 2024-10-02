@@ -218,59 +218,51 @@ public:
     };
 
 public:
-    static result_t asyncQueryStat(StatsWatcher* m_pThis)
-    {
-        if (m_pThis->m_closed)
-            return 0;
-
-        result_t hr;
-        bool existed;
-        bool ready = m_pThis->m_bStarted;
-        if (!ready)
-            m_pThis->m_bStarted = true;
-
-        hr = fs_base::cc_exists(m_pThis->m_target, existed, m_pThis->holder());
-        if (hr < 0) {
-            return CHECK_ERROR(hr);
-        }
-
-        if (existed) {
-            obj_ptr<Stat_base> fileStat;
-            hr = fs_base::cc_stat(m_pThis->m_target, fileStat, m_pThis->holder());
-
-            if (hr < 0) {
-                return CHECK_ERROR(hr);
-            }
-
-            m_pThis->prev = m_pThis->cur;
-            m_pThis->cur = fileStat;
-
-            double pt;
-            m_pThis->prev->get_mtimeMs(pt);
-            double ct;
-            m_pThis->cur->get_mtimeMs(ct);
-
-            if (pt == ct) {
-                return 0;
-            }
-        } else if (ready)
-            return 0;
-
-        Variant args[2];
-        args[0] = m_pThis->cur;
-        args[1] = m_pThis->prev;
-
-        m_pThis->_emit("change", args, 2);
-
-        return 0;
-    }
-
     result_t checkStatsChangeOnTimerCb()
     {
         if (m_closed)
             return 0;
 
-        asyncCall(asyncQueryStat, this);
+        async([this]() {
+            if (m_closed)
+                return;
+
+            result_t hr;
+            bool existed;
+            bool ready = m_bStarted;
+            if (!ready)
+                m_bStarted = true;
+
+            hr = fs_base::cc_exists(m_target, existed, holder());
+            if (hr < 0)
+                return;
+
+            if (existed) {
+                obj_ptr<Stat_base> fileStat;
+                hr = fs_base::cc_stat(m_target, fileStat, holder());
+                if (hr < 0)
+                    return;
+
+                prev = cur;
+                cur = fileStat;
+
+                double pt;
+                prev->get_mtimeMs(pt);
+                double ct;
+                cur->get_mtimeMs(ct);
+
+                if (pt == ct) {
+                    return;
+                }
+            } else if (ready)
+                return;
+
+            Variant args[2];
+            args[0] = cur;
+            args[1] = prev;
+
+            _emit("change", args, 2);
+        });
 
         return 0;
     }
