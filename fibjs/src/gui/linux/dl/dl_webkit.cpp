@@ -115,6 +115,18 @@ GType webkit_web_view_get_type(void)
     return s_webkit_web_view_get_type();
 }
 
+WebKitSettings* webkit_web_view_get_settings(WebKitWebView* web_view)
+{
+    webkit_func(webkit_web_view_get_settings);
+    return s_webkit_web_view_get_settings(web_view);
+}
+
+void webkit_settings_set_enable_developer_extras(WebKitSettings* settings, gboolean enable)
+{
+    webkit_func(webkit_settings_set_enable_developer_extras);
+    s_webkit_settings_set_enable_developer_extras(settings, enable);
+}
+
 const gchar* webkit_web_view_get_uri(WebKitWebView* web_view)
 {
     webkit_func(webkit_web_view_get_uri);

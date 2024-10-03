@@ -122,6 +122,12 @@ result_t WebView::createWebView()
     configuration.userContentController = userContentController;
     [configuration setURLSchemeHandler:messageHandler forURLScheme:@"fs"];
 
+    if (m_options->devtools.has_value() && m_options->devtools.value()) {
+        WKPreferences* preferences = [[WKPreferences alloc] init];
+        [preferences setValue:@YES forKey:@"developerExtrasEnabled"];
+        configuration.preferences = preferences;
+    }
+
     WKWebView* webView = [[WKWebView alloc] initWithFrame:CGRectZero configuration:configuration];
     [webView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
     [window.contentView addSubview:webView];

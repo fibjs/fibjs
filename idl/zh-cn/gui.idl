@@ -21,7 +21,7 @@ module gui
          "resizable": true, // specify whether the window is resizable, default is true
          "maximize": false, // specify whether the window is maximized, default is false
          "fullscreen": false, // specify whether the window is fullscreen, default is false
-         "debug": false, // specify whether the DevTools in WebView is enabled, default is false
+         "devtools": false, // specify whether the DevTools in WebView is enabled, default is false
      }
      ```
      当设定 width 和 height，而未设定 left 或 right 时，窗口将自动居中
@@ -45,7 +45,7 @@ module gui
          "resizable": true, // specify whether the window is resizable, default is true
          "maximize": false, // specify whether the window is maximized, default is false
          "fullscreen": false, // specify whether the window is fullscreen, default is false
-         "debug": false, // specify whether the DevTools in WebView is enabled, default is false
+         "devtools": false, // specify whether the DevTools in WebView is enabled, default is false
      }
      ```
      当设定 width 和 height，而未设定 left 或 right 时，窗口将自动居中
@@ -71,7 +71,7 @@ module gui
          "resizable": true, // specify whether the window is resizable, default is true
          "maximize": false, // specify whether the window is maximized, default is false
          "fullscreen": false, // specify whether the window is fullscreen, default is false
-         "debug": false, // specify whether the DevTools in WebView is enabled, default is false
+         "devtools": false, // specify whether the DevTools in WebView is enabled, default is false
      }
      ```
      当设定 width 和 height，而未设定 left 或 right 时，窗口将自动居中

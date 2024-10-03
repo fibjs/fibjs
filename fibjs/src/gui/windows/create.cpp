@@ -69,6 +69,13 @@ result_t WebView::createWebView()
                 ICoreWebView2* webView = nullptr;
                 controller->get_CoreWebView2(&webView);
 
+                if (!m_options->devtools.has_value() || !m_options->devtools.value()) {
+                    ICoreWebView2Settings* settings = nullptr;
+                    webView->get_Settings(&settings);
+                    settings->put_AreDevToolsEnabled(FALSE);
+                    settings->Release();
+                }
+
                 webView->add_WebMessageReceived(
                     Microsoft::WRL::Callback<ICoreWebView2WebMessageReceivedEventHandler>(
                         [this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {

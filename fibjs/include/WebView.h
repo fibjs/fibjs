@@ -80,7 +80,7 @@ public:
 public:
     class OpenOptions : public obj_base {
     public:
-        LOAD(OpenOptions, (width)(height)(left)(top)(url)(file)(frame)(caption)(resizable)(fullscreen)(maximize));
+        LOAD(OpenOptions, (width)(height)(left)(top)(url)(file)(frame)(caption)(resizable)(fullscreen)(maximize)(devtools));
 
     public:
         std::optional<int32_t> width;
@@ -94,6 +94,7 @@ public:
         std::optional<bool> resizable;
         std::optional<bool> fullscreen;
         std::optional<bool> maximize;
+        std::optional<bool> devtools;
     };
 
 public:

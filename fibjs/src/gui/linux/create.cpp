@@ -73,6 +73,11 @@ result_t WebView::createWebView()
 
     gtk_container_add(GTK_CONTAINER(window), webview);
 
+    if (m_options->devtools.has_value() && m_options->devtools.value()) {
+        WebKitSettings* settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(webview));
+        webkit_settings_set_enable_developer_extras(settings, TRUE);
+    }
+
     exlib::string url;
     if (m_options->url.has_value())
         url = m_options->url.value();
