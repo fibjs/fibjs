@@ -149,8 +149,8 @@ void WebView::config()
     if (m_options->frame.has_value() && !m_options->frame.value())
         gtk_window_set_decorated(window, FALSE);
     else {
-        if (m_options->caption.has_value() && !m_options->caption.value())
-            gtk_window_set_titlebar(window, gtk_header_bar_new());
+        // if (m_options->caption.has_value() && !m_options->caption.value())
+        //     gtk_window_set_titlebar(window, gtk_header_bar_new());
 
         if (m_options->resizable.has_value() && !m_options->resizable.value())
             gtk_window_set_resizable(window, FALSE);

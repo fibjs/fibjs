@@ -3,6 +3,7 @@
 /**
  * @description 浏览器窗口对象，WebView 是一个嵌入浏览器的窗口组件.
  *  
+ *  ### 消息通信
  *  由于 WebView 内的 JavaScript 程序与 fibjs 并不在同一个引擎内，所以如果需要与宿主程序进行通讯，需要通过消息进行。
  * 
  *  WebView 用于通讯的对象是 window，支持方法 postMessage 和 message 事件。
@@ -28,11 +29,24 @@
  *      });
  *  </script>
  *  ```
- *  
+ *  ### 关闭窗口
  *  如果需要在 WebView 内关闭窗口，可以调用 window.close。
  *  ```html
  *  <script lang="JavaScript">
- *     window.close();
+ *     document.getElementById('close').addEventListener('click', function () {
+ *         window.close();
+ *     });
+ *  </script>
+ *  ```
+ *  ### 拖动窗口
+ *  在有些应用里，需要在 WebView 内实现拖动窗口的功能，可以通过以下代码实现：
+ *  ```html
+ *  <script>
+ *     document.getElementById('dragRegion').addEventListener('mousedown', function (event) {
+ *         if (event.button === 0) { // Check if the left mouse button is pressed
+ *             window.drag();
+ *         }
+ *     });
  *  </script>
  *  ```
  *  

@@ -21,11 +21,11 @@ declare module 'gui' {
      *          "width": 100, // specify the width of the window, default is system auto set
      *          "height": 100, // specify the height of the window, default is system auto set
      *          "frame": true, // specify whether the window has frame, default is true
-     *          "caption": true, // specify whether the window has caption, default is true
+     *          "caption": true, // specify whether the window has caption, default is true, not work in linux
      *          "resizable": true, // specify whether the window is resizable, default is true
      *          "maximize": false, // specify whether the window is maximized, default is false
      *          "fullscreen": false, // specify whether the window is fullscreen, default is false
-     *          "debug": false, // specify whether the DevTools in WebView is enabled, default is false
+     *          "devtools": false, // specify whether the DevTools in WebView is enabled, default is false
      *      }
      *      ```
      *      当设定 width 和 height，而未设定 left 或 right 时，窗口将自动居中
@@ -47,11 +47,11 @@ declare module 'gui' {
      *          "width": 100, // specify the width of the window, default is system auto set
      *          "height": 100, // specify the height of the window, default is system auto set
      *          "frame": true, // specify whether the window has frame, default is true
-     *          "caption": true, // specify whether the window has caption, default is true
+     *          "caption": true, // specify whether the window has caption, default is true, not work in linux
      *          "resizable": true, // specify whether the window is resizable, default is true
      *          "maximize": false, // specify whether the window is maximized, default is false
      *          "fullscreen": false, // specify whether the window is fullscreen, default is false
-     *          "debug": false, // specify whether the DevTools in WebView is enabled, default is false
+     *          "devtools": false, // specify whether the DevTools in WebView is enabled, default is false
      *      }
      *      ```
      *      当设定 width 和 height，而未设定 left 或 right 时，窗口将自动居中
@@ -75,11 +75,11 @@ declare module 'gui' {
      *          "width": 100, // specify the width of the window, default is system auto set
      *          "height": 100, // specify the height of the window, default is system auto set
      *          "frame": true, // specify whether the window has frame, default is true
-     *          "caption": true, // specify whether the window has caption, default is true
+     *          "caption": true, // specify whether the window has caption, default is true, not work in linux
      *          "resizable": true, // specify whether the window is resizable, default is true
      *          "maximize": false, // specify whether the window is maximized, default is false
      *          "fullscreen": false, // specify whether the window is fullscreen, default is false
-     *          "debug": false, // specify whether the DevTools in WebView is enabled, default is false
+     *          "devtools": false, // specify whether the DevTools in WebView is enabled, default is false
      *      }
      *      ```
      *      当设定 width 和 height，而未设定 left 或 right 时，窗口将自动居中

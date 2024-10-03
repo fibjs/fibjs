@@ -21,7 +21,7 @@
 
 namespace fibjs {
 
-static void handle_script_message(WebKitUserContentManager* manager, WebKitJavascriptResult* js_result,
+static void handle_message(WebKitUserContentManager* manager, WebKitJavascriptResult* js_result,
     gpointer user_data)
 {
     JSCValue* value = webkit_javascript_result_get_js_value(js_result);
@@ -35,11 +35,26 @@ static void handle_script_message(WebKitUserContentManager* manager, WebKitJavas
     g_free(value_str);
 }
 
-static void handle_close(WebKitUserContentManager* manager, WebKitJavascriptResult* js_result,
+static void handle_command(WebKitUserContentManager* manager, WebKitJavascriptResult* js_result,
     gpointer user_data)
 {
-    WebView* _webView = (WebView*)user_data;
-    _webView->internal_close();
+    JSCValue* value = webkit_javascript_result_get_js_value(js_result);
+    gchar* value_str = jsc_value_to_string(value);
+
+    if (strcmp(value_str, "close") == 0) {
+        WebView* _webView = (WebView*)user_data;
+        _webView->internal_close();
+    } else if (strcmp(value_str, "drag") == 0) {
+        GdkDisplay* display = gdk_display_get_default();
+        GdkSeat* seat = gdk_display_get_default_seat(display);
+        GdkDevice* device = gdk_seat_get_pointer(seat);
+
+        gint x, y;
+        gdk_device_get_position(device, NULL, &x, &y);
+
+        WebView* _webView = (WebView*)user_data;
+        gtk_window_begin_move_drag(GTK_WINDOW(_webView->m_window), 1, x, y, 0);
+    }
 }
 
 static void handle_title_change(WebKitWebView* webview, GParamSpec* pspec, gpointer user_data)
@@ -56,14 +71,15 @@ result_t WebView::createWebView()
 
     WebKitUserContentManager* manager = webkit_user_content_manager_new();
 
-    webkit_user_content_manager_register_script_message_handler(manager, "fibjs");
-    g_signal_connect(manager, "script-message-received::fibjs", G_CALLBACK(handle_script_message), this);
+    webkit_user_content_manager_register_script_message_handler(manager, "message");
+    g_signal_connect(manager, "script-message-received::message", G_CALLBACK(handle_message), this);
 
-    webkit_user_content_manager_register_script_message_handler(manager, "close");
-    g_signal_connect(manager, "script-message-received::close", G_CALLBACK(handle_close), this);
+    webkit_user_content_manager_register_script_message_handler(manager, "command");
+    g_signal_connect(manager, "script-message-received::command", G_CALLBACK(handle_command), this);
 
-    const gchar* custom_js = "window.postMessage = function(message) { window.webkit.messageHandlers.fibjs.postMessage(message); };"
-                             "window.close = function() { window.webkit.messageHandlers.close.postMessage(''); };";
+    const gchar* custom_js = "window.postMessage = function(message) { window.webkit.messageHandlers.message.postMessage(message); };"
+                             "window.close = function() { window.webkit.messageHandlers.command.postMessage('close'); };"
+                             "window.drag = function() { window.webkit.messageHandlers.command.postMessage('drag'); };";
     webkit_user_content_manager_add_script(manager, webkit_user_script_new(custom_js, WEBKIT_USER_CONTENT_INJECT_ALL_FRAMES, WEBKIT_USER_SCRIPT_INJECT_AT_DOCUMENT_START, NULL, NULL));
 
     GtkWidget* webview = webkit_web_view_new_with_user_content_manager(manager);

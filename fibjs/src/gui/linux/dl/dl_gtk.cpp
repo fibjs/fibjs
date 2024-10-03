@@ -130,6 +130,36 @@ void gtk_widget_show_all(GtkWidget* widget)
     s_gtk_widget_show_all(widget);
 }
 
+GdkDisplay* gdk_display_get_default(void)
+{
+    gtk_func(gdk_display_get_default);
+    return s_gdk_display_get_default();
+}
+
+GdkSeat* gdk_display_get_default_seat(GdkDisplay* display)
+{
+    gtk_func(gdk_display_get_default_seat);
+    return s_gdk_display_get_default_seat(display);
+}
+
+GdkDevice* gdk_seat_get_pointer(GdkSeat* seat)
+{
+    gtk_func(gdk_seat_get_pointer);
+    return s_gdk_seat_get_pointer(seat);
+}
+
+void gdk_device_get_position(GdkDevice* device, GdkScreen** screen, gint* x, gint* y)
+{
+    gtk_func(gdk_device_get_position);
+    s_gdk_device_get_position(device, screen, x, y);
+}
+
+void gtk_window_begin_move_drag(GtkWindow* window, gint button, gint root_x, gint root_y, guint32 timestamp)
+{
+    gtk_func(gtk_window_begin_move_drag);
+    s_gtk_window_begin_move_drag(window, button, root_x, root_y, timestamp);
+}
+
 GdkScreen* gtk_window_get_screen(GtkWindow* window)
 {
     gtk_func(gtk_window_get_screen);

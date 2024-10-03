@@ -91,11 +91,14 @@ result_t WebView::createWebView()
                             } else {
                                 hr = args->get_WebMessageAsJson(&message);
                                 if (SUCCEEDED(hr)) {
-                                    bool is_close = !qstrcmp(message, LR"({"type":"close"})");
-                                    CoTaskMemFree(message);
-
-                                    if (is_close)
+                                    if (!qstrcmp(message, LR"({"type":"close"})"))
                                         internal_close();
+                                    else if (!qstrcmp(message, LR"({"type":"drag"})")) {
+                                        ReleaseCapture();
+                                        PostMessage((HWND)m_window, WM_NCLBUTTONDOWN, HTCAPTION, 0);
+                                    }
+
+                                    CoTaskMemFree(message);
                                 }
                             }
                             return S_OK;
@@ -121,7 +124,8 @@ result_t WebView::createWebView()
                     Microsoft::WRL::Callback<ICoreWebView2NavigationCompletedEventHandler>(
                         [this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
                             const wchar_t* script = L"window.postMessage = function(message) { window.chrome.webview.postMessage(message); };"
-                                                    "window.close = function() { window.chrome.webview.postMessage({type:'close'}); };";
+                                                    "window.close = function() { window.chrome.webview.postMessage({type:'close'}); };"
+                                                    "window.drag = function() { window.chrome.webview.postMessage({type:'drag'}); };";
                             sender->ExecuteScript(script, nullptr);
 
                             m_webview = sender;

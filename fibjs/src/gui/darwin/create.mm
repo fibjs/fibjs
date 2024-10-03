@@ -44,14 +44,17 @@
 
 - (void)userContentController:(WKUserContentController*)userContentController didReceiveScriptMessage:(WKScriptMessage*)message
 {
-    if ([message.name isEqualToString:@"fibjs"]) {
-        if ([message.body isKindOfClass:[NSString class]]) {
+    if ([message.body isKindOfClass:[NSString class]]) {
+        if ([message.name isEqualToString:@"message"]) {
             fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(_webView, "message");
             ei->add("data", [message.body UTF8String]);
             _webView->_emit("message", ei);
+        } else if ([message.name isEqualToString:@"command"]) {
+            if ([message.body isEqualToString:@"close"])
+                _webView->internal_close();
+            else if ([message.body isEqualToString:@"drag"])
+                [_webView->m_window performWindowDragWithEvent:[_webView->m_window currentEvent]];
         }
-    } else if ([message.name isEqualToString:@"close"]) {
-        _webView->internal_close();
     }
 }
 
@@ -111,11 +114,12 @@ result_t WebView::createWebView()
     WKUserContentController* userContentController = [[WKUserContentController alloc] init];
 
     MessageHandler* messageHandler = [[MessageHandler alloc] initWithWebView:this];
-    [userContentController addScriptMessageHandler:messageHandler name:@"fibjs"];
-    [userContentController addScriptMessageHandler:messageHandler name:@"close"];
+    [userContentController addScriptMessageHandler:messageHandler name:@"message"];
+    [userContentController addScriptMessageHandler:messageHandler name:@"command"];
 
-    NSString* jsCode = @"window.postMessage = function(message) { window.webkit.messageHandlers.fibjs.postMessage(message); };"
-                        "window.close = function() { window.webkit.messageHandlers.close.postMessage(''); };";
+    NSString* jsCode = @"window.postMessage = function(message) { window.webkit.messageHandlers.message.postMessage(message); };"
+                        "window.close = function() { window.webkit.messageHandlers.command.postMessage('close'); };"
+                        "window.drag = function() { window.webkit.messageHandlers.command.postMessage('drag'); };";
     WKUserScript* userScript = [[WKUserScript alloc] initWithSource:jsCode injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
     [userContentController addUserScript:userScript];
 
