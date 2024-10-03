@@ -91,7 +91,7 @@ const gchar* webkit_uri_scheme_request_get_path(WebKitURISchemeRequest* request)
     return s_webkit_uri_scheme_request_get_path(request);
 }
 
-void webkit_uri_scheme_request_finish(WebKitURISchemeRequest* request, GInputStream* stream, gssize stream_length, const gchar* mime_type)
+void webkit_uri_scheme_request_finish(WebKitURISchemeRequest* request, GInputStream* stream, gint64 stream_length, const gchar* mime_type)
 {
     webkit_func(webkit_uri_scheme_request_finish);
     s_webkit_uri_scheme_request_finish(request, stream, stream_length, mime_type);
