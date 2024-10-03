@@ -8,13 +8,16 @@
 #if defined(OS_DESKTOP)
 
 #include "object.h"
+#include "ifs/fs.h"
 #include "ifs/url.h"
+#include "ifs/mime.h"
 #include "ifs/gui.h"
 #include "WebView.h"
+#include "Buffer.h"
 #include "EventInfo.h"
 #import <WebKit/WebKit.h>
 
-@interface MessageHandler : NSObject <WKScriptMessageHandler>
+@interface MessageHandler : NSObject <WKScriptMessageHandler, WKURLSchemeHandler>
 @property (nonatomic, assign) fibjs::WebView* webView;
 - (instancetype)initWithWebView:(fibjs::WebView*)webView;
 @end
@@ -51,6 +54,44 @@
         _webView->internal_close();
     }
 }
+
+- (void)webView:(WKWebView*)webView startURLSchemeTask:(id<WKURLSchemeTask>)urlSchemeTask
+{
+    NSURLRequest* request = [urlSchemeTask request];
+    NSURL* url = [request URL];
+
+    exlib::string fname = [[url path] UTF8String];
+    fibjs::async([fname, url, urlSchemeTask]() {
+        fibjs::Variant var;
+        fibjs::result_t hr = fibjs::fs_base::cc_readFile(fname, "", var, fibjs::Isolate::main());
+
+        if (hr >= 0) {
+            fibjs::async([fname, url, urlSchemeTask, var]() {
+                fibjs::Buffer* _buf = (fibjs::Buffer*)var.object();
+                NSData* data = _buf ? [NSData dataWithBytes:_buf->data() length:_buf->length()] : [NSData data];
+
+                exlib::string mtype;
+                fibjs::mime_base::getType(fname, mtype);
+
+                NSURLResponse* response = [[NSURLResponse alloc] initWithURL:url MIMEType:[NSString stringWithUTF8String:mtype.c_str()] expectedContentLength:[data length] textEncodingName:nil];
+                [urlSchemeTask didReceiveResponse:response];
+                [urlSchemeTask didReceiveData:data];
+                [urlSchemeTask didFinish];
+            },
+                CALL_E_GUICALL);
+        } else {
+            fibjs::async([fname, urlSchemeTask]() {
+                NSString* errorHTML = [NSString stringWithFormat:@"<html><body><h1>Error</h1><p>File not found at path:<br>%@</p></body></html>", [NSString stringWithUTF8String:fname.c_str()]];
+                NSData* data = [errorHTML dataUsingEncoding:NSUTF8StringEncoding];
+                NSURLResponse* response = [[NSURLResponse alloc] initWithURL:[NSURL URLWithString:@""] MIMEType:@"text/html" expectedContentLength:[data length] textEncodingName:@"UTF-8"];
+                [urlSchemeTask didReceiveResponse:response];
+                [urlSchemeTask didReceiveData:data];
+                [urlSchemeTask didFinish];
+            },
+                CALL_E_GUICALL);
+        }
+    });
+}
 @end
 
 namespace fibjs {
@@ -79,6 +120,7 @@ result_t WebView::createWebView()
     [userContentController addUserScript:userScript];
 
     configuration.userContentController = userContentController;
+    [configuration setURLSchemeHandler:messageHandler forURLScheme:@"fs"];
 
     WKWebView* webView = [[WKWebView alloc] initWithFrame:CGRectZero configuration:configuration];
     [webView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
@@ -95,6 +137,9 @@ result_t WebView::createWebView()
         result_t hr = url_base::pathToFileURL(m_options->file.value(), u);
         if (hr < 0)
             return hr;
+
+        u->set_protocol("fs:");
+        u->set_slashes(true);
 
         u->get_href(url);
     } else

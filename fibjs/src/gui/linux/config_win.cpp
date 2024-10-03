@@ -11,11 +11,15 @@
 #define _GLIB_TEST_OVERFLOW_FALLBACK
 #include <glib.h>
 #include <gtk/gtk.h>
+#include <webkit2/webkit2.h>
 
 #include "object.h"
 #include "ifs/gui.h"
+#include "ifs/fs.h"
+#include "ifs/mime.h"
 #include "EventInfo.h"
 #include "WebView.h"
+#include "Buffer.h"
 
 namespace fibjs {
 
@@ -32,10 +36,43 @@ void putGuiPool(AsyncEvent* ac)
         ac);
 }
 
+static void fs_scheme_request_callback(WebKitURISchemeRequest* request, gpointer user_data)
+{
+    exlib::string fname = webkit_uri_scheme_request_get_path(request);
+    async([fname, request]() {
+        Variant var;
+        result_t hr = fs_base::cc_readFile(fname, "", var, Isolate::main());
+
+        if (hr >= 0) {
+            async([fname, request, var]() {
+                Buffer* _buf = (Buffer*)var.object();
+                GInputStream* stream = _buf ? g_memory_input_stream_new_from_data(_buf->data(), _buf->length(), NULL)
+                                            : g_memory_input_stream_new_from_data("", 0, NULL);
+
+                exlib::string mtype;
+                mime_base::getType(fname, mtype);
+
+                webkit_uri_scheme_request_finish(request, stream, _buf ? _buf->length() : 0, mtype.c_str());
+                g_object_unref(stream);
+            },
+                CALL_E_GUICALL);
+        } else {
+            async([fname, request]() {
+                exlib::string page = "<html><body><h1>Error</h1><p>File not found at path:<br>" + fname + "</p></body></html>";
+                GError* error = g_error_new(G_IO_ERROR, G_IO_ERROR_NOT_FOUND, page.c_str());
+                webkit_uri_scheme_request_finish_error(request, error);
+                g_error_free(error);
+            },
+                CALL_E_GUICALL);
+        }
+    });
+}
+
 void WebView::run_os_gui(exlib::Event& gui_ready)
 {
     gtk_init_check(nullptr, nullptr);
     main_loop = g_main_loop_new(NULL, FALSE);
+    webkit_web_context_register_uri_scheme(webkit_web_context_get_default(), "fs", fs_scheme_request_callback, NULL, NULL);
 
     gui_ready.set();
 

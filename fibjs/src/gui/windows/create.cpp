@@ -10,19 +10,39 @@
 #include <uv/include/uv.h>
 #include <windows.h>
 #include <wrl.h>
+#include <shlwapi.h>
 #include "loader/WebView2.h"
 
 #include "object.h"
 #include "ifs/gui.h"
+#include "ifs/fs.h"
 #include "ifs/encoding.h"
+#include "ifs/mime.h"
 #include "utf8.h"
 #include "WebView.h"
 #include "EventInfo.h"
+#include "Buffer.h"
 
 namespace fibjs {
 
 extern ICoreWebView2Environment* g_env;
 extern const wchar_t* szWndClassMain;
+
+exlib::string fs_url_to_path(const exlib::string& url)
+{
+    obj_ptr<UrlObject_base> u;
+
+    result_t hr = url_base::parse(url, false, false, u);
+    if (hr < 0)
+        return "";
+
+    u->set_protocol("file:");
+
+    exlib::string path;
+    url_base::fileURLToPath(u, path);
+
+    return path;
+}
 
 result_t WebView::createWebView()
 {
@@ -46,24 +66,8 @@ result_t WebView::createWebView()
                 SetWindowLongPtr((HWND)m_window, 0, (LONG_PTR)controller);
                 controller->AddRef();
 
-                exlib::string url;
-                if (m_options->url.has_value())
-                    url = m_options->url.value();
-                else if (m_options->file.has_value()) {
-                    obj_ptr<UrlObject_base> u;
-                    result_t hr = url_base::pathToFileURL(m_options->file.value(), u);
-                    if (hr < 0)
-                        return hr;
-
-                    u->get_href(url);
-                } else
-                    url = "about:blank";
-
                 ICoreWebView2* webView = nullptr;
                 controller->get_CoreWebView2(&webView);
-
-                exlib::wstring wurl = utf8to16String(url);
-                webView->Navigate((LPCWSTR)wurl.c_str());
 
                 webView->add_WebMessageReceived(
                     Microsoft::WRL::Callback<ICoreWebView2WebMessageReceivedEventHandler>(
@@ -122,6 +126,97 @@ result_t WebView::createWebView()
                         .Get(),
                     nullptr);
 
+                webView->add_WebResourceRequested(
+                    Microsoft::WRL::Callback<ICoreWebView2WebResourceRequestedEventHandler>(
+                        [](ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args) -> HRESULT {
+                            Microsoft::WRL::ComPtr<ICoreWebView2WebResourceRequest> request;
+                            args->get_Request(&request);
+
+                            LPWSTR uri = nullptr;
+                            request->get_Uri(&uri);
+                            exlib::string url = utf16to8String((const char16_t*)uri);
+                            CoTaskMemFree(uri);
+
+                            ICoreWebView2Deferral* deferral;
+                            args->GetDeferral(&deferral);
+
+                            args->AddRef();
+                            async([url, args, deferral]() {
+                                exlib::string fname = fs_url_to_path(url);
+                                Variant var;
+                                result_t hr = fs_base::cc_readFile(fname, "", var, Isolate::main());
+
+                                if (hr >= 0) {
+                                    async([fname, args, deferral, var]() {
+                                        Buffer* _buf = (Buffer*)var.object();
+
+                                        Microsoft::WRL::ComPtr<IStream> responseStream;
+                                        responseStream = _buf ? SHCreateMemStream(_buf->data(), _buf->length())
+                                                              : SHCreateMemStream((const BYTE*)"", 0);
+
+                                        exlib::string mtype;
+                                        mime_base::getType(fname, mtype);
+
+                                        mtype = "Content-Type: " + mtype;
+                                        exlib::wstring wmtype = utf8to16String(mtype);
+
+                                        Microsoft::WRL::ComPtr<ICoreWebView2WebResourceResponse> response;
+                                        g_env->CreateWebResourceResponse(
+                                            responseStream.Get(), 200, L"OK", (LPCWSTR)wmtype.c_str(), &response);
+
+                                        args->put_Response(response.Get());
+                                        deferral->Complete();
+
+                                        args->Release();
+                                        deferral->Release();
+                                    },
+                                        CALL_E_GUICALL);
+                                } else {
+                                    async([fname, args, deferral]() {
+                                        exlib::string page = "<html><body><h1>Error</h1><p>File not found at path:<br>" + fname + "</p></body></html>";
+                                        Microsoft::WRL::ComPtr<IStream> responseStream;
+                                        responseStream = SHCreateMemStream((const BYTE*)page.c_str(), page.length());
+
+                                        Microsoft::WRL::ComPtr<ICoreWebView2WebResourceResponse> response;
+                                        g_env->CreateWebResourceResponse(
+                                            responseStream.Get(), 404, L"Not Found", L"Content-Type: text/html", &response);
+
+                                        args->put_Response(response.Get());
+                                        deferral->Complete();
+
+                                        args->Release();
+                                        deferral->Release();
+                                    },
+                                        CALL_E_GUICALL);
+                                }
+                            });
+
+                            return S_OK;
+                        })
+                        .Get(),
+                    nullptr);
+
+                webView->AddWebResourceRequestedFilter(L"fs:*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
+
+                exlib::string url;
+                if (m_options->url.has_value())
+                    url = m_options->url.value();
+                else if (m_options->file.has_value()) {
+                    obj_ptr<UrlObject_base> u;
+                    result_t hr = url_base::pathToFileURL(m_options->file.value(), u);
+                    if (hr < 0)
+                        return hr;
+
+                    u->set_protocol("fs:");
+                    u->set_slashes(true);
+
+                    u->get_href(url);
+                } else
+                    url = "about:blank";
+
+                exlib::wstring wurl = utf8to16String(url);
+                webView->Navigate((LPCWSTR)wurl.c_str());
+
                 return S_OK;
             })
             .Get());
@@ -130,7 +225,6 @@ result_t WebView::createWebView()
 
     return 0;
 }
-
 }
 
 #endif

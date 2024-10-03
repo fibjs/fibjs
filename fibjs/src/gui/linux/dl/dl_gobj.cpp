@@ -35,4 +35,32 @@ gulong g_signal_connect_data(gpointer instance, const gchar* detailed_signal, GC
     return s_g_signal_connect_data(instance, detailed_signal, c_handler, data, destroy_data, connect_flags);
 }
 
+void g_object_unref(gpointer object)
+{
+    gobj_func(g_object_unref);
+    s_g_object_unref(object);
+}
+
+GError* g_error_new_valist(GQuark domain, gint code, const gchar* format, va_list args)
+{
+    gobj_func(g_error_new_valist);
+    return s_g_error_new_valist(domain, code, format, args);
+}
+
+GError* g_error_new(GQuark domain, gint code, const gchar* format, ...)
+{
+    gobj_func(g_error_new);
+    va_list args;
+    va_start(args, format);
+    GError* ret = g_error_new_valist(domain, code, format, args);
+    va_end(args);
+    return ret;
+}
+
+void g_error_free(GError* error)
+{
+    gobj_func(g_error_free);
+    s_g_error_free(error);
+}
+
 #endif

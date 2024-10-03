@@ -28,7 +28,7 @@ static void handle_script_message(WebKitUserContentManager* manager, WebKitJavas
     gchar* value_str = jsc_value_to_string(value);
 
     WebView* _webView = (WebView*)user_data;
-    fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(_webView, "message");
+    obj_ptr<EventInfo> ei = new EventInfo(_webView, "message");
     ei->add("data", (char*)value_str);
     _webView->_emit("message", ei);
 
@@ -81,6 +81,9 @@ result_t WebView::createWebView()
         result_t hr = url_base::pathToFileURL(m_options->file.value(), u);
         if (hr < 0)
             return hr;
+
+        u->set_protocol("fs:");
+        u->set_slashes(true);
 
         u->get_href(url);
     } else

@@ -178,4 +178,16 @@ guint g_idle_add(GSourceFunc function, gpointer data)
     return s_g_idle_add(function, data);
 }
 
+GInputStream* g_memory_input_stream_new_from_data(const void* data, gssize len, GDestroyNotify destroy)
+{
+    gtk_func(g_memory_input_stream_new_from_data);
+    return s_g_memory_input_stream_new_from_data(data, len, destroy);
+}
+
+GQuark g_io_error_quark(void)
+{
+    gtk_func(g_io_error_quark);
+    return s_g_io_error_quark();
+}
+
 #endif

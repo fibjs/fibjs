@@ -78,6 +78,37 @@ void webkit_web_view_load_html(WebKitWebView* web_view, const gchar* content, co
     s_webkit_web_view_load_html(web_view, content, base_uri);
 }
 
+void webkit_web_context_register_uri_scheme(WebKitWebContext* context, const gchar* scheme,
+    WebKitURISchemeRequestCallback callback, gpointer user_data, GDestroyNotify user_data_destroy_func)
+{
+    webkit_func(webkit_web_context_register_uri_scheme);
+    s_webkit_web_context_register_uri_scheme(context, scheme, callback, user_data, user_data_destroy_func);
+}
+
+const gchar* webkit_uri_scheme_request_get_path(WebKitURISchemeRequest* request)
+{
+    webkit_func(webkit_uri_scheme_request_get_path);
+    return s_webkit_uri_scheme_request_get_path(request);
+}
+
+void webkit_uri_scheme_request_finish(WebKitURISchemeRequest* request, GInputStream* stream, gssize stream_length, const gchar* mime_type)
+{
+    webkit_func(webkit_uri_scheme_request_finish);
+    s_webkit_uri_scheme_request_finish(request, stream, stream_length, mime_type);
+}
+
+void webkit_uri_scheme_request_finish_error(WebKitURISchemeRequest* request, GError* error)
+{
+    webkit_func(webkit_uri_scheme_request_finish_error);
+    s_webkit_uri_scheme_request_finish_error(request, error);
+}
+
+WebKitWebContext* webkit_web_context_get_default(void)
+{
+    webkit_func(webkit_web_context_get_default);
+    return s_webkit_web_context_get_default();
+}
+
 GType webkit_web_view_get_type(void)
 {
     webkit_func(webkit_web_view_get_type);

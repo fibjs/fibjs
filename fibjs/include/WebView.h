@@ -57,6 +57,9 @@ public:
         if (hr < 0)
             return hr;
 
+        u->set_protocol("fs:");
+        u->set_slashes(true);
+
         exlib::string url;
         u->get_href(url);
 

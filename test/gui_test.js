@@ -123,8 +123,10 @@ describe("gui", () => {
     describe("load", () => {
         const path1 = path.join(__dirname, "gui_files", "test.html");
         const path2 = path.join(__dirname, "gui_files", "test2.html");
-        const url1 = url.pathToFileURL(path1).href;
-        const url2 = url.pathToFileURL(path2).href;
+        const zpath1 = path.join(__dirname, "gui_files", "test.html.zip$/test.html");
+        const url1 = url.pathToFileURL(path1).href.replace(/file:/, "fs:");
+        const url2 = url.pathToFileURL(path2).href.replace(/file:/, "fs:");
+        const zurl1 = url.pathToFileURL(zpath1).href.replace(/file:/, "fs:");
 
         function assert_url(win, url) {
             var received_message;
@@ -135,7 +137,7 @@ describe("gui", () => {
             var last_received_message;
             var get_url;
             for (var i = 0; i < 1000; i++) {
-                win.eval(`window.postMessage(window.location.href);`);
+                win.eval(`window.postMessage(window.document.title + "|" +window.location.href);`);
                 coroutine.sleep(100);
                 if (received_message && received_message != "about:blank" && last_received_message == received_message) {
                     break;
@@ -147,7 +149,7 @@ describe("gui", () => {
 
             win.close();
 
-            assert.equal(received_message.toLowerCase(), url.toLowerCase());
+            assert.equal(received_message.toLowerCase(), "test|" + url.toLowerCase());
             assert.equal(get_url.toLowerCase(), url.toLowerCase());
         }
 
@@ -249,6 +251,17 @@ describe("gui", () => {
             win.loadFile(path1);
 
             assert_url(win, url1);
+        });
+
+        it("load file in zip", () => {
+            const win = gui.open({
+                width: 100,
+                height: 100
+            });
+
+            win.loadFile(zpath1);
+
+            assert_url(win, zurl1);
         });
     });
 

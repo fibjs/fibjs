@@ -11,6 +11,7 @@
 #include <windows.h>
 #include <wrl.h>
 #include "loader/WebView2.h"
+#include "loader/WebView2EnvironmentOptions.h"
 
 #include <commctrl.h>
 #include <shlobj.h>
@@ -72,6 +73,25 @@ static void RegMainClass()
     SetWindowSubclass(s_worker, WorkerProc, 0, 0);
 }
 
+Microsoft::WRL::ComPtr<CoreWebView2EnvironmentOptions> GetWebView2Options()
+{
+    auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
+    Microsoft::WRL::ComPtr<ICoreWebView2EnvironmentOptions4> options4;
+    if (SUCCEEDED(options.As(&options4))) {
+        auto scheme = Microsoft::WRL::Make<CoreWebView2CustomSchemeRegistration>(L"fs");
+        const wchar_t* everything = L"*";
+        scheme->SetAllowedOrigins(1, &everything);
+        scheme->put_TreatAsSecure(TRUE);
+        scheme->put_HasAuthorityComponent(TRUE);
+
+        std::vector<ICoreWebView2CustomSchemeRegistration*> registrations;
+        registrations.push_back(scheme.Get());
+        options4->SetCustomSchemeRegistrations(registrations.size(),
+            registrations.data());
+    }
+    return options;
+}
+
 void WebView::run_os_gui(exlib::Event& gui_ready)
 {
     exlib::OSThread* _thGUI = exlib::OSThread::current();
@@ -82,7 +102,8 @@ void WebView::run_os_gui(exlib::Event& gui_ready)
     OleInitialize(NULL);
 
     std::wstring userDataFolder = GetUserDataFolderPath();
-    HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(nullptr, userDataFolder.c_str(), nullptr,
+    auto options = GetWebView2Options();
+    HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(nullptr, userDataFolder.c_str(), options.Get(),
         Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
             [](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
                 if (FAILED(result)) {
