@@ -137,6 +137,11 @@ void WebView::config()
     if (!m_options->frame.has_value() || m_options->frame.value()) {
         if (!m_options->caption.has_value() || m_options->caption.value())
             mask |= NSWindowStyleMaskTitled;
+        else {
+            window.contentView.wantsLayer = YES;
+            window.contentView.layer.cornerRadius = 10.0;
+            window.backgroundColor = [NSColor clearColor];
+        }
 
         if (!m_options->resizable.has_value() || m_options->resizable.value())
             mask |= NSWindowStyleMaskResizable;
