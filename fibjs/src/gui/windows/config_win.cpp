@@ -82,7 +82,7 @@ Microsoft::WRL::ComPtr<CoreWebView2EnvironmentOptions> GetWebView2Options()
         const wchar_t* everything = L"*";
         scheme->SetAllowedOrigins(1, &everything);
         scheme->put_TreatAsSecure(TRUE);
-        scheme->put_HasAuthorityComponent(TRUE);
+        scheme->put_HasAuthorityComponent(FALSE);
 
         std::vector<ICoreWebView2CustomSchemeRegistration*> registrations;
         registrations.push_back(scheme.Get());
