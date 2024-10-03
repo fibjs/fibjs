@@ -23,10 +23,12 @@
         "dgram",
         "dns",
         "http",
+        "mime",
         "mq",
         "net",
         "punycode",
         "querystring",
+        "rtc",
         "tls",
         "url",
         "ws"
@@ -70,6 +72,7 @@
     "Constants": [
         "constants",
         "fs_constants",
-        "crypto_constants"
+        "crypto_constants",
+        "zlib_constants"
     ]
 }

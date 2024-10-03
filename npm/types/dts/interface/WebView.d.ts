@@ -25,7 +25,7 @@
  *  ```html
  *  <script>
  *      window.addEventListener("message", function (msg) { 
- *          external.postMessage("send back: " + msg);
+ *          window.postMessage("send back: " + msg);
  *      });
  *  </script>
  *  ```
