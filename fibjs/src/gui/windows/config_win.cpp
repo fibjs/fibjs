@@ -143,12 +143,38 @@ void GetDPI(HWND hWndParent, int* dpix, int* dpiy)
 static int dpix = 0, dpiy = 0;
 LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 {
-
     WebView* webview = (WebView*)dwRefData;
     switch (uMsg) {
     case WM_DPICHANGED: {
         GetDPI(hWnd, &dpix, &dpiy);
         break;
+    }
+    case WM_NCCALCSIZE:
+        if (wParam == TRUE) {
+            DefSubclassProc(hWnd, WM_NCCALCSIZE, wParam, lParam);
+
+            DWORD dwStyle = GetWindowLong(hWnd, GWL_STYLE);
+            if ((dwStyle & (WS_CAPTION | WS_THICKFRAME)) == WS_THICKFRAME) {
+                RECT borderThickness;
+                SetRectEmpty(&borderThickness);
+                AdjustWindowRectEx(&borderThickness, dwStyle, FALSE, NULL);
+
+                NCCALCSIZE_PARAMS* sz = reinterpret_cast<NCCALCSIZE_PARAMS*>(lParam);
+                sz->rgrc[0].top += borderThickness.top + dpiy / 96;
+            }
+
+            return 0;
+        }
+        break;
+    case WM_NCHITTEST: {
+        LRESULT hit = DefSubclassProc(hWnd, uMsg, wParam, lParam);
+        if (webview->m_options->resizable.has_value() && !webview->m_options->resizable.value()) {
+            if (hit == HTBOTTOM || hit == HTBOTTOMLEFT || hit == HTBOTTOMRIGHT || hit == HTLEFT
+                || hit == HTRIGHT || hit == HTTOP || hit == HTTOPLEFT || hit == HTTOPRIGHT) {
+                hit = 0;
+            }
+        }
+        return hit;
     }
     case WM_MOVE: {
         RECT rcWin;
@@ -220,13 +246,13 @@ void WebView::config()
         nHeight = m_options->height.value();
 
     if (!m_options->frame.has_value() || m_options->frame.value()) {
-        dwStyle |= WS_BORDER | WS_THICKFRAME;
+        dwStyle |= WS_THICKFRAME;
 
         if (!m_options->caption.has_value() || m_options->caption.value())
             dwStyle |= WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
 
         if (m_options->resizable.has_value() && !m_options->resizable.value()) {
-            dwStyle &= ~(WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
+            dwStyle &= ~(WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
 
             HMENU hSysMenu = GetSystemMenu(hWndParent, FALSE);
             RemoveMenu(hSysMenu, SC_RESTORE, MF_BYCOMMAND);
@@ -267,6 +293,8 @@ void WebView::config()
     else
         y = (actualDesktop.bottom - nHeight) / 2;
 
+    SetWindowSubclass(hWndParent, &mySubClassProc, 1, (DWORD_PTR)this);
+
     if (_fullscreen) {
         dwStyle = WS_OVERLAPPED;
         SetWindowLong(hWndParent, GWL_STYLE, dwStyle);
@@ -281,7 +309,6 @@ void WebView::config()
     dwStyle |= WS_VISIBLE;
     SetWindowLong(hWndParent, GWL_STYLE, dwStyle);
 
-    SetWindowSubclass(hWndParent, &mySubClassProc, 1, (DWORD_PTR)this);
     Ref();
 }
 }
