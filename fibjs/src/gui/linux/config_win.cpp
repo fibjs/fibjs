@@ -90,10 +90,14 @@ static gboolean on_configure_event(GtkWidget* widget, GdkEventConfigure* event, 
 {
     WebView* webview = (WebView*)data;
 
-    int32_t x = event->x;
-    int32_t y = event->y;
-    int32_t width = event->width;
-    int32_t height = event->height;
+    int32_t x, y, width, height;
+    gtk_window_get_position(GTK_WINDOW(webview->m_window), &x, &y);
+    gtk_window_get_size(GTK_WINDOW(webview->m_window), &width, &height);
+
+    // int32_t x = event->x;
+    // int32_t y = event->y;
+    // int32_t width = event->width;
+    // int32_t height = event->height;
 
     if (x != webview->m_x || y != webview->m_y) {
         webview->m_x = x;
@@ -219,10 +223,10 @@ void WebView::config()
     else
         gtk_window_resize(window, nWidth, nHeight);
 
+    gtk_widget_show_all(GTK_WIDGET(window));
+
     gtk_window_get_position(window, &m_x, &m_y);
     gtk_window_get_size(window, &m_width, &m_height);
-
-    gtk_widget_show_all(GTK_WIDGET(window));
 
     g_signal_connect(window, "delete-event", G_CALLBACK(on_close), this);
     g_signal_connect(window, "configure-event", G_CALLBACK(on_configure_event), this);
