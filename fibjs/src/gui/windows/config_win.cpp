@@ -306,18 +306,18 @@ void WebView::config()
     SetWindowSubclass(hWndParent, &mySubClassProc, 1, (DWORD_PTR)this);
 
     if (_fullscreen) {
-        dwStyle = WS_OVERLAPPED;
-        SetWindowLong(hWndParent, GWL_STYLE, dwStyle);
         SetWindowPos(hWndParent, HWND_TOP, 0, 0, actualDesktop.right, actualDesktop.bottom, 0);
-    } else if (_maximize) {
-        dwStyle |= WS_MAXIMIZE;
+        dwStyle = WS_VISIBLE;
+        SetWindowLong(hWndParent, GWL_STYLE, dwStyle);
     } else {
         SetWindowLong(hWndParent, GWL_STYLE, dwStyle);
         SetWindowPos(hWndParent, HWND_TOP, x, y, nWidth, nHeight, 0);
-    }
 
-    dwStyle |= WS_VISIBLE;
-    SetWindowLong(hWndParent, GWL_STYLE, dwStyle);
+        if (_maximize)
+            ShowWindow(hWndParent, SW_MAXIMIZE);
+        else
+            ShowWindow(hWndParent, SW_SHOWNORMAL);
+    }
 
     Ref();
 }

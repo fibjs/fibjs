@@ -326,11 +326,7 @@ describe("gui", () => {
                 maximize: true
             });
 
-            if (process.platform == "win32")
-                assert.greaterThan(size1.width, size2.width);
-            else
-                assert.equal(size1.width, size2.width);
-
+            assert.equal(size1.width, size2.width);
             assert.greaterThan(size1.height, size2.height);
         });
     });
