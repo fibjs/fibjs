@@ -100,6 +100,46 @@ static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
 }
 @end
 
+@interface GuiApplication : NSApplication
+@end
+
+@implementation GuiApplication
+
+- (void)sendEvent:(NSEvent*)event
+{
+    if (event.type == NSKeyDown) {
+        NSString* inputKey = [event.charactersIgnoringModifiers lowercaseString];
+        if ((event.modifierFlags & NSDeviceIndependentModifierFlagsMask) == NSCommandKeyMask
+            || (event.modifierFlags & NSDeviceIndependentModifierFlagsMask) == (NSCommandKeyMask | NSAlphaShiftKeyMask)) {
+            if ([inputKey isEqualToString:@"x"]) {
+                if ([self sendAction:@selector(cut:) to:nil from:self])
+                    return;
+            } else if ([inputKey isEqualToString:@"c"]) {
+                if ([self sendAction:@selector(copy:) to:nil from:self])
+                    return;
+            } else if ([inputKey isEqualToString:@"v"]) {
+                if ([self sendAction:@selector(paste:) to:nil from:self])
+                    return;
+            } else if ([inputKey isEqualToString:@"a"]) {
+                if ([self sendAction:@selector(selectAll:) to:nil from:self])
+                    return;
+            } else if ([inputKey isEqualToString:@"z"]) {
+                if ([self sendAction:NSSelectorFromString(@"undo:") to:nil from:self])
+                    return;
+            }
+        } else if ((event.modifierFlags & NSDeviceIndependentModifierFlagsMask) == (NSCommandKeyMask | NSShiftKeyMask)
+            || (event.modifierFlags & NSDeviceIndependentModifierFlagsMask) == (NSCommandKeyMask | NSShiftKeyMask | NSAlphaShiftKeyMask)) {
+            if ([inputKey isEqualToString:@"z"]) {
+                if ([self sendAction:NSSelectorFromString(@"redo:") to:nil from:self])
+                    return;
+            }
+        }
+    }
+    [super sendEvent:event];
+}
+
+@end
+
 namespace fibjs {
 
 static dispatch_queue_t mainQueue = dispatch_get_main_queue();
@@ -112,7 +152,7 @@ id fetchEventFromNSRunLoop(int blocking)
 {
     id until = blocking ? [NSDate distantFuture] : [NSDate distantPast];
 
-    return [[NSApplication sharedApplication]
+    return [[GuiApplication sharedApplication]
         nextEventMatchingMask:NSEventMaskAny
                     untilDate:until
                        inMode:@"kCFRunLoopDefaultMode"
@@ -122,7 +162,7 @@ id fetchEventFromNSRunLoop(int blocking)
 void WebView::run_os_gui(exlib::Event& gui_ready)
 {
     @autoreleasepool {
-        NSApplication* app = [NSApplication sharedApplication];
+        GuiApplication* app = [GuiApplication sharedApplication];
         [app setActivationPolicy:NSApplicationActivationPolicyRegular];
         [app finishLaunching];
         [app activateIgnoringOtherApps:YES];
@@ -220,7 +260,7 @@ void WebView::config()
     [window setDelegate:[GuiWindowDelegate new]];
 
     [window makeKeyAndOrderFront:window];
-    [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
+    [[GuiApplication sharedApplication] activateIgnoringOtherApps:YES];
 
     Ref();
     m_ready->set();
