@@ -129,6 +129,12 @@ interface WebView : EventEmitter
 	*/
     Function onresize;
 
+    /*! @brief 查询和绑定窗口获得焦点事件，相当于 on("focus", func); */
+    Function onfocus;
+
+    /*! @brief 查询和绑定窗口失去焦点事件，相当于 on("blur", func); */
+    Function onblur;
+
     /*! @brief 查询和绑定窗口关闭事件，WebView 关闭后会触发此时间，相当于 on("closed", func); */
     Function onclose;
 

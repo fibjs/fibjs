@@ -187,6 +187,16 @@ declare class Class_WebView extends Class_EventEmitter {
     onresize: (...args: any[])=>any;
 
     /**
+     * @description 查询和绑定窗口获得焦点事件，相当于 on("focus", func); 
+     */
+    onfocus: (...args: any[])=>any;
+
+    /**
+     * @description 查询和绑定窗口失去焦点事件，相当于 on("blur", func); 
+     */
+    onblur: (...args: any[])=>any;
+
+    /**
      * @description 查询和绑定窗口关闭事件，WebView 关闭后会触发此时间，相当于 on("closed", func); 
      */
     onclose: (...args: any[])=>any;

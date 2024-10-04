@@ -176,6 +176,16 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         }
         return hit;
     }
+    case WM_ACTIVATE: {
+        if (wParam == WA_ACTIVE || wParam == WA_CLICKACTIVE) {
+            obj_ptr<EventInfo> ei = new EventInfo(webview, "focus");
+            webview->_emit("focus", ei);
+        } else if (wParam == WA_INACTIVE) {
+            obj_ptr<EventInfo> ei = new EventInfo(webview, "blur");
+            webview->_emit("blur", ei);
+        }
+        break;
+    }
     case WM_MOVE: {
         RECT rcWin;
         GetWindowRect(hWnd, &rcWin);

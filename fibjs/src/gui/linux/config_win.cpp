@@ -120,6 +120,34 @@ static gboolean on_configure_event(GtkWidget* widget, GdkEventConfigure* event, 
     return FALSE;
 }
 
+static gboolean on_focus_event(GtkWidget* widget, GdkEvent* event, gpointer data)
+{
+    if (event->type == GDK_FOCUS_CHANGE) {
+        GdkEventFocus* focus_event = (GdkEventFocus*)event;
+        if (focus_event->in) {
+            WebView* webview = (WebView*)data;
+
+            obj_ptr<EventInfo> ei = new EventInfo(webview, "focus");
+            webview->_emit("focus", ei);
+        }
+    }
+    return FALSE;
+}
+
+static gboolean on_blur_event(GtkWidget* widget, GdkEvent* event, gpointer data)
+{
+    if (event->type == GDK_FOCUS_CHANGE) {
+        GdkEventFocus* focus_event = (GdkEventFocus*)event;
+        if (!focus_event->in) {
+            WebView* webview = (WebView*)data;
+
+            obj_ptr<EventInfo> ei = new EventInfo(webview, "blur");
+            webview->_emit("blur", ei);
+        }
+    }
+    return FALSE;
+}
+
 void WebView::internal_close()
 {
     GtkWindow* window = (GtkWindow*)m_window;
@@ -149,8 +177,12 @@ void WebView::config()
     if (m_options->frame.has_value() && !m_options->frame.value())
         gtk_window_set_decorated(window, FALSE);
     else {
-        // if (m_options->caption.has_value() && !m_options->caption.value())
-        //     gtk_window_set_titlebar(window, gtk_header_bar_new());
+        GtkWidget* titlebar = gtk_header_bar_new();
+        gtk_header_bar_set_show_close_button((GtkHeaderBar*)titlebar, TRUE);
+        gtk_window_set_titlebar(window, titlebar);
+
+        // if (m_options->caption.has_value() && !m_options->caption.value()) {
+        // }
 
         if (m_options->resizable.has_value() && !m_options->resizable.value())
             gtk_window_set_resizable(window, FALSE);
@@ -194,6 +226,8 @@ void WebView::config()
 
     g_signal_connect(window, "delete-event", G_CALLBACK(on_close), this);
     g_signal_connect(window, "configure-event", G_CALLBACK(on_configure_event), this);
+    g_signal_connect(window, "focus-in-event", G_CALLBACK(on_focus_event), this);
+    g_signal_connect(window, "focus-out-event", G_CALLBACK(on_blur_event), this);
 
     Ref();
     m_ready->set();

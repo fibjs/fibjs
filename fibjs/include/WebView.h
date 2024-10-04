@@ -143,6 +143,8 @@ public:
     EVENT_FUNC(open);
     EVENT_FUNC(move);
     EVENT_FUNC(resize);
+    EVENT_FUNC(focus);
+    EVENT_FUNC(blur);
     EVENT_FUNC(close);
     EVENT_FUNC(message);
 

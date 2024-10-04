@@ -23,6 +23,8 @@ static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
 - (void)windowWillClose:(NSNotification*)willCloseNotification;
 - (void)windowDidMove:(NSNotification*)didMoveNotification;
 - (void)windowDidResize:(NSNotification*)notification;
+- (void)windowDidBecomeMain:(NSNotification*)notification;
+- (void)windowDidResignMain:(NSNotification*)notification;
 @end
 
 @implementation GuiWindowDelegate
@@ -71,6 +73,30 @@ static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
     ei->add("height", (int32_t)ws.height);
 
     wv->_emit("resize", ei);
+}
+
+- (void)windowDidBecomeMain:(NSNotification*)notification
+{
+    NSWindow* currentWindow = notification.object;
+    fibjs::WebView* wv = getWebViewFromNSWindow(currentWindow);
+
+    if (wv == NULL)
+        return;
+
+    fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(wv, "focus");
+    wv->_emit("focus", ei);
+}
+
+- (void)windowDidResignMain:(NSNotification*)notification
+{
+    NSWindow* currentWindow = notification.object;
+    fibjs::WebView* wv = getWebViewFromNSWindow(currentWindow);
+
+    if (wv == NULL)
+        return;
+
+    fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(wv, "blur");
+    wv->_emit("blur", ei);
 }
 @end
 
@@ -143,23 +169,24 @@ void WebView::config()
     } else
         mask |= NSWindowStyleMaskBorderless | NSWindowStyleMaskFullSizeContentView;
 
-    if (!(mask & NSWindowStyleMaskTitled)) {
-        mask |= NSWindowStyleMaskTitled | NSFullSizeContentViewWindowMask;
-        window.titlebarAppearsTransparent = true;
-        window.titleVisibility = NSWindowTitleHidden;
-
-        [[window standardWindowButton:NSWindowFullScreenButton] setHidden:YES];
-        [[window standardWindowButton:NSWindowMiniaturizeButton] setHidden:YES];
-        [[window standardWindowButton:NSWindowCloseButton] setHidden:YES];
-        [[window standardWindowButton:NSWindowZoomButton] setHidden:YES];
-    }
-
     if (m_options->maximize.has_value())
         _maximize = m_options->maximize.value();
 
     if (m_options->fullscreen.has_value() && m_options->fullscreen.value()) {
         mask = NSWindowStyleMaskResizable;
         _fullscreen = true;
+    }
+
+    if ((mask & NSWindowStyleMaskTitled) == 0) {
+        mask |= NSWindowStyleMaskTitled | NSFullSizeContentViewWindowMask;
+
+        window.titlebarAppearsTransparent = true;
+        window.titleVisibility = NSWindowTitleHidden;
+
+        [[window standardWindowButton:NSWindowCloseButton] setHidden:YES];
+        [[window standardWindowButton:NSWindowMiniaturizeButton] setHidden:YES];
+        [[window standardWindowButton:NSWindowZoomButton] setHidden:YES];
+        [[window standardWindowButton:NSWindowFullScreenButton] setHidden:YES];
     }
 
     NSRect screen_rect = [[NSScreen mainScreen] frame];

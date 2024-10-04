@@ -401,6 +401,96 @@ describe("gui", () => {
 
         win.close();
     });
+
+    describe("focus/blur event", () => {
+        function test_focus(opts) {
+            const win = gui.open({
+                ...opts,
+                left: 100,
+                top: 100,
+                width: 100,
+                height: 100
+            });
+
+            var focus = 0;
+            var blur = 0;
+            var last_focus, last_blur;
+
+            win.on("focus", () => {
+                focus++;
+            });
+
+            win.on("blur", () => {
+                blur++;
+            });
+
+            last_focus = focus;
+            for (var i = 0; i < 100; i++) {
+                if (focus > last_focus)
+                    break;
+                coroutine.sleep(100);
+            }
+
+            assert.equal(focus, last_focus + 1);
+
+            last_blur = blur;
+            const win1 = gui.open({
+                left: 200,
+                top: 200,
+                width: 100,
+                height: 100
+            });
+
+            for (var i = 0; i < 100; i++) {
+                if (blur > last_blur)
+                    break;
+                coroutine.sleep(100);
+            }
+
+            assert.equal(blur, last_blur + 1);
+
+            last_focus = focus;
+
+            win1.close();
+            for (var i = 0; i < 100; i++) {
+                if (focus > last_focus)
+                    break;
+                coroutine.sleep(100);
+            }
+
+            assert.equal(focus, last_focus + 1);
+
+            win.close();
+        }
+
+        it("normal window", () => {
+            test_focus({});
+        });
+
+        it("no caption", () => {
+            test_focus({
+                caption: false
+            });
+        });
+
+        it("maximize", () => {
+            test_focus({
+                maximize: true
+            });
+        });
+
+        it("no frame", () => {
+            test_focus({
+                frame: false
+            });
+        });
+
+        it("fullscreen", () => {
+            test_focus({
+                fullscreen: true
+            });
+        });
+    });
 });
 
 require.main === module && test.run(console.DEBUG);

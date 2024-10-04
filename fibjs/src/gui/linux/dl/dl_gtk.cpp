@@ -184,6 +184,24 @@ GtkWidget* gtk_header_bar_new(void)
     return s_gtk_header_bar_new();
 }
 
+void gtk_header_bar_set_show_close_button(GtkHeaderBar* header_bar, gboolean setting)
+{
+    gtk_func(gtk_header_bar_set_show_close_button);
+    s_gtk_header_bar_set_show_close_button(header_bar, setting);
+}
+
+GtkWidget* gtk_box_new(GtkOrientation orientation, gint spacing)
+{
+    gtk_func(gtk_box_new);
+    return s_gtk_box_new(orientation, spacing);
+}
+
+void gtk_widget_hide(GtkWidget* widget)
+{
+    gtk_func(gtk_widget_hide);
+    s_gtk_widget_hide(widget);
+}
+
 void gtk_window_set_titlebar(GtkWindow* window, GtkWidget* titlebar)
 {
     gtk_func(gtk_window_set_titlebar);
