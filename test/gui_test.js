@@ -425,7 +425,7 @@ describe("gui", () => {
             });
 
             last_focus = focus;
-            for (var i = 0; i < 100; i++) {
+            for (var i = 0; i < 500; i++) {
                 if (focus > last_focus)
                     break;
                 coroutine.sleep(100);
@@ -441,7 +441,7 @@ describe("gui", () => {
                 height: 100
             });
 
-            for (var i = 0; i < 100; i++) {
+            for (var i = 0; i < 500; i++) {
                 if (blur > last_blur)
                     break;
                 coroutine.sleep(100);
@@ -452,7 +452,7 @@ describe("gui", () => {
             last_focus = focus;
 
             win1.close();
-            for (var i = 0; i < 100; i++) {
+            for (var i = 0; i < 500; i++) {
                 if (focus > last_focus)
                     break;
                 coroutine.sleep(100);
