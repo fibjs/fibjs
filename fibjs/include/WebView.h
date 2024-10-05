@@ -36,9 +36,6 @@ public:
     };
 
 public:
-    FIBER_FREE();
-
-public:
     WebView()
     {
         m_ready = new Event();
