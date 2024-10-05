@@ -10,11 +10,22 @@ var win32 = process.platform === "win32";
 var darwin64 = process.platform === "darwin";
 
 describe("gui", () => {
+    var wins = [];
+
+    after(() => {
+        wins.forEach(win => {
+            try {
+                win.close();
+            } catch (e) { }
+        });
+    });
+
     it("open and close", () => {
         const win = gui.open({
             width: 100,
             height: 100
         });
+        wins.push(win);
 
         var closed = false;
         win.on("close", () => {
@@ -38,6 +49,7 @@ describe("gui", () => {
             width: 100,
             height: 100
         });
+        wins.push(win);
 
         win.close();
 
@@ -51,6 +63,7 @@ describe("gui", () => {
             width: 100,
             height: 100
         });
+        wins.push(win);
 
         var closed = false;
         win.on("close", () => {
@@ -74,6 +87,7 @@ describe("gui", () => {
             width: 100,
             height: 100
         });
+        wins.push(win);
 
         win.eval(`window.addEventListener("message", function (msg) { window.postMessage("send from browser: " + msg.data); });`);
 
@@ -100,6 +114,7 @@ describe("gui", () => {
             width: 100,
             height: 100
         });
+        wins.push(win);
 
         var received_message;
         win.on("message", (msg) => {
@@ -158,6 +173,7 @@ describe("gui", () => {
                 width: 100,
                 height: 100
             });
+            wins.push(win);
 
             assert_url(win, url1);
         });
@@ -168,6 +184,7 @@ describe("gui", () => {
                 width: 100,
                 height: 100
             });
+            wins.push(win);
 
             assert_url(win, url1);
         });
@@ -178,6 +195,7 @@ describe("gui", () => {
                 width: 100,
                 height: 100
             });
+            wins.push(win);
 
             assert_url(win, url1);
         });
@@ -187,6 +205,7 @@ describe("gui", () => {
                 width: 100,
                 height: 100
             });
+            wins.push(win);
 
             assert_url(win, url1);
         });
@@ -197,6 +216,7 @@ describe("gui", () => {
                 width: 100,
                 height: 100
             });
+            wins.push(win);
 
             assert_url(win, url1);
         });
@@ -207,6 +227,7 @@ describe("gui", () => {
                 width: 100,
                 height: 100
             });
+            wins.push(win);
 
             assert_url(win, url1);
         });
@@ -217,6 +238,7 @@ describe("gui", () => {
                 width: 100,
                 height: 100
             });
+            wins.push(win);
 
             assert_url(win, url1);
         });
@@ -227,6 +249,7 @@ describe("gui", () => {
                 width: 100,
                 height: 100
             });
+            wins.push(win);
 
             assert_url(win, url1);
         });
@@ -236,6 +259,7 @@ describe("gui", () => {
                 width: 100,
                 height: 100
             });
+            wins.push(win);
 
             win.loadURL(url1);
 
@@ -247,6 +271,7 @@ describe("gui", () => {
                 width: 100,
                 height: 100
             });
+            wins.push(win);
 
             win.loadFile(path1);
 
@@ -258,6 +283,7 @@ describe("gui", () => {
                 width: 100,
                 height: 100
             });
+            wins.push(win);
 
             win.loadFile(zpath1);
 
@@ -268,6 +294,7 @@ describe("gui", () => {
     describe("window style", () => {
         function fetch_size(opt) {
             const win = gui.open(opt);
+            wins.push(win);
 
             var received_message;
             win.on("message", (msg) => {
@@ -336,6 +363,7 @@ describe("gui", () => {
             width: 100,
             height: 100
         });
+        wins.push(win);
 
         for (var i = 0; i < 100; i++) {
             if (win.getTitle() == "")
@@ -381,6 +409,7 @@ describe("gui", () => {
             width: 100,
             height: 100
         });
+        wins.push(win);
 
         for (var i = 0; i < 100; i++) {
             if (win.getTitle() == "")
@@ -407,6 +436,7 @@ describe("gui", () => {
                 width: 100,
                 height: 100
             });
+            wins.push(win);
 
             var focus = 0;
             var blur = 0;
@@ -436,6 +466,7 @@ describe("gui", () => {
                 width: 100,
                 height: 100
             });
+            wins.push(win1);
 
             for (var i = 0; i < 500; i++) {
                 if (blur > last_blur)
