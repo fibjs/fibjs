@@ -235,6 +235,22 @@ void WebView::internal_close()
     SendMessage(hWndParent, WM_CLOSE, 0, 0);
 }
 
+void WebView::internal_minimize()
+{
+    HWND hWndParent = (HWND)m_window;
+    ShowWindow(hWndParent, SW_MINIMIZE);
+}
+
+void WebView::internal_maximize()
+{
+    HWND hWndParent = (HWND)m_window;
+
+    if (IsZoomed(hWndParent))
+        ShowWindow(hWndParent, SW_RESTORE);
+    else
+        ShowWindow(hWndParent, SW_MAXIMIZE);
+}
+
 void WebView::config()
 {
     HWND hWndParent = (HWND)m_window;

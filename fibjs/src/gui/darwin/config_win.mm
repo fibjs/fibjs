@@ -184,6 +184,18 @@ void WebView::internal_close()
     [window close];
 }
 
+void WebView::internal_minimize()
+{
+    NSWindow* window = (NSWindow*)m_window;
+    [window miniaturize:nil];
+}
+
+void WebView::internal_maximize()
+{
+    NSWindow* window = (NSWindow*)m_window;
+    [window zoom:nil];
+}
+
 #define CW_USEDEFAULT -1
 void WebView::config()
 {

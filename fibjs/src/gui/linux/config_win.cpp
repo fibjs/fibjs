@@ -158,6 +158,22 @@ void WebView::internal_close()
     gtk_window_close(window);
 }
 
+void WebView::internal_minimize()
+{
+    GtkWindow* window = (GtkWindow*)m_window;
+    gtk_window_iconify(window);
+}
+
+void WebView::internal_maximize()
+{
+    GtkWindow* window = (GtkWindow*)m_window;
+
+    if (gtk_window_is_maximized(window))
+        gtk_window_unmaximize(window);
+    else
+        gtk_window_maximize(window);
+}
+
 #define CW_USEDEFAULT -1
 void WebView::config()
 {

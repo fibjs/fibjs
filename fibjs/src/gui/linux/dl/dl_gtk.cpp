@@ -106,10 +106,28 @@ void gtk_window_set_default_size(GtkWindow* window, int width, int height)
     s_gtk_window_set_default_size(window, width, height);
 }
 
+void gtk_window_iconify(GtkWindow* window)
+{
+    gtk_func(gtk_window_iconify);
+    s_gtk_window_iconify(window);
+}
+
 void gtk_window_maximize(GtkWindow* window)
 {
     gtk_func(gtk_window_maximize);
     s_gtk_window_maximize(window);
+}
+
+void gtk_window_unmaximize(GtkWindow* window)
+{
+    gtk_func(gtk_window_unmaximize);
+    s_gtk_window_unmaximize(window);
+}
+
+gboolean gtk_window_is_maximized(GtkWindow* window)
+{
+    gtk_func(gtk_window_is_maximized);
+    return s_gtk_window_is_maximized(window);
 }
 
 void gtk_window_set_decorated(GtkWindow* window, gboolean setting)

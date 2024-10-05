@@ -52,6 +52,10 @@
         } else if ([message.name isEqualToString:@"command"]) {
             if ([message.body isEqualToString:@"close"])
                 _webView->internal_close();
+            else if ([message.body isEqualToString:@"minimize"])
+                _webView->internal_minimize();
+            else if ([message.body isEqualToString:@"maximize"])
+                _webView->internal_maximize();
             else if ([message.body isEqualToString:@"drag"])
                 [_webView->m_window performWindowDragWithEvent:[_webView->m_window currentEvent]];
         }
@@ -119,6 +123,8 @@ result_t WebView::createWebView()
 
     NSString* jsCode = @"window.postMessage = function(message) { window.webkit.messageHandlers.message.postMessage(message); };"
                         "window.close = function() { window.webkit.messageHandlers.command.postMessage('close'); };"
+                        "window.minimize = function() { window.webkit.messageHandlers.command.postMessage('minimize'); };"
+                        "window.maximize = function() { window.webkit.messageHandlers.command.postMessage('maximize'); };"
                         "window.drag = function() { window.webkit.messageHandlers.command.postMessage('drag'); };";
     WKUserScript* userScript = [[WKUserScript alloc] initWithSource:jsCode injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
     [userContentController addUserScript:userScript];

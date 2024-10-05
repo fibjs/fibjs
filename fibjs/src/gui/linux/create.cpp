@@ -44,6 +44,12 @@ static void handle_command(WebKitUserContentManager* manager, WebKitJavascriptRe
     if (strcmp(value_str, "close") == 0) {
         WebView* _webView = (WebView*)user_data;
         _webView->internal_close();
+    } else if (strcmp(value_str, "minimize") == 0) {
+        WebView* _webView = (WebView*)user_data;
+        _webView->internal_minimize();
+    } else if (strcmp(value_str, "maximize") == 0) {
+        WebView* _webView = (WebView*)user_data;
+        _webView->internal_maximize();
     } else if (strcmp(value_str, "drag") == 0) {
         GdkDisplay* display = gdk_display_get_default();
         GdkSeat* seat = gdk_display_get_default_seat(display);
@@ -79,6 +85,8 @@ result_t WebView::createWebView()
 
     const gchar* custom_js = "window.postMessage = function(message) { window.webkit.messageHandlers.message.postMessage(message); };"
                              "window.close = function() { window.webkit.messageHandlers.command.postMessage('close'); };"
+                             "window.minimize = function() { window.webkit.messageHandlers.command.postMessage('minimize'); };"
+                             "window.maximize = function() { window.webkit.messageHandlers.command.postMessage('maximize'); };"
                              "window.drag = function() { window.webkit.messageHandlers.command.postMessage('drag'); };";
     webkit_user_content_manager_add_script(manager, webkit_user_script_new(custom_js, WEBKIT_USER_CONTENT_INJECT_ALL_FRAMES, WEBKIT_USER_SCRIPT_INJECT_AT_DOCUMENT_START, NULL, NULL));
 

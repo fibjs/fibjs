@@ -93,6 +93,10 @@ result_t WebView::createWebView()
                                 if (SUCCEEDED(hr)) {
                                     if (!qstrcmp(message, LR"({"type":"close"})"))
                                         internal_close();
+                                    else if (!qstrcmp(message, LR"({"type":"minimize"})"))
+                                        internal_minimize();
+                                    else if (!qstrcmp(message, LR"({"type":"maximize"})"))
+                                        internal_maximize();
                                     else if (!qstrcmp(message, LR"({"type":"drag"})")) {
                                         ReleaseCapture();
                                         PostMessage((HWND)m_window, WM_NCLBUTTONDOWN, HTCAPTION, 0);
@@ -125,6 +129,8 @@ result_t WebView::createWebView()
                         [this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
                             const wchar_t* script = L"window.postMessage = function(message) { window.chrome.webview.postMessage(message); };"
                                                     "window.close = function() { window.chrome.webview.postMessage({type:'close'}); };"
+                                                    "window.minimize = function() { window.chrome.webview.postMessage({type:'minimize'}); };"
+                                                    "window.maximize = function() { window.chrome.webview.postMessage({type:'maximize'}); };"
                                                     "window.drag = function() { window.chrome.webview.postMessage({type:'drag'}); };";
                             sender->ExecuteScript(script, nullptr);
 

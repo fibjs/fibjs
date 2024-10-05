@@ -94,6 +94,8 @@ public:
 
 public:
     void internal_close();
+    void internal_minimize();
+    void internal_maximize();
 
     result_t check_status(AsyncEvent* ac)
     {
