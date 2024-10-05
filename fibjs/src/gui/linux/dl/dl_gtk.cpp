@@ -232,6 +232,36 @@ void gtk_widget_destroy(GtkWidget* widget)
     s_gtk_widget_destroy(widget);
 }
 
+GtkCssProvider* gtk_css_provider_new(void)
+{
+    gtk_func(gtk_css_provider_new);
+    return s_gtk_css_provider_new();
+}
+
+gboolean gtk_css_provider_load_from_data(GtkCssProvider* provider, const gchar* data, gssize length, GError** error)
+{
+    gtk_func(gtk_css_provider_load_from_data);
+    return s_gtk_css_provider_load_from_data(provider, data, length, error);
+}
+
+GType gtk_style_provider_get_type(void)
+{
+    gtk_func(gtk_style_provider_get_type);
+    return s_gtk_style_provider_get_type();
+}
+
+void gtk_style_context_add_provider(GtkStyleContext* context, GtkStyleProvider* provider, guint priority)
+{
+    gtk_func(gtk_style_context_add_provider);
+    s_gtk_style_context_add_provider(context, provider, priority);
+}
+
+GtkStyleContext* gtk_widget_get_style_context(GtkWidget* widget)
+{
+    gtk_func(gtk_widget_get_style_context);
+    return s_gtk_widget_get_style_context(widget);
+}
+
 GMainLoop* g_main_loop_new(GMainContext* context, gboolean is_running)
 {
     gtk_func(g_main_loop_new);

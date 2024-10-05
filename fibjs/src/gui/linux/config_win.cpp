@@ -204,6 +204,13 @@ void WebView::config()
         if (m_options->caption.has_value() && !m_options->caption.value()) {
             gtk_widget_hide(titlebar);
             gtk_widget_destroy(titlebar);
+
+            GtkCssProvider* provider = gtk_css_provider_new();
+            gtk_css_provider_load_from_data(provider, "* { border-radius: 0px; }", -1, NULL);
+            GtkStyleContext* context = gtk_widget_get_style_context(GTK_WIDGET(window));
+            gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(provider),
+                GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+            g_object_unref(provider);
         }
 
         if (m_options->resizable.has_value() && !m_options->resizable.value())
