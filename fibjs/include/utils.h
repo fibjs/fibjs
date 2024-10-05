@@ -629,6 +629,22 @@ public:                                                  \
     {                                                    \
     }
 
+#define LOAD_OPTION_MEMBER(r, data, elem)                                          \
+    hr = GetConfigValue(isolate, opt, BOOST_PP_STRINGIZE(elem), data->elem, true); \
+    if (hr < 0)                                                                    \
+        return hr;
+
+#define LOAD_OPTIONS(Class, Members)                                        \
+    static result_t load(v8::Local<v8::Object> opt, obj_ptr<Class>& retVal) \
+    {                                                                       \
+        Isolate* isolate = Isolate::current(opt);                           \
+        obj_ptr<Class> o = new Class();                                     \
+        result_t hr = 0;                                                    \
+        BOOST_PP_SEQ_FOR_EACH(LOAD_OPTION_MEMBER, o, Members)               \
+        retVal = o;                                                         \
+        return 0;                                                           \
+    }
+
 #ifndef ARRAYSIZE
 #define ARRAYSIZE(a) \
     ((sizeof(a) / sizeof(*(a))) / static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))

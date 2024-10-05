@@ -10,27 +10,32 @@
 #include "ifs/WebView.h"
 #include "ifs/url.h"
 #include "Event.h"
-#include "boost/preprocessor.hpp"
-
-#define LOAD_MEMBER(r, data, elem)                                                 \
-    hr = GetConfigValue(isolate, opt, BOOST_PP_STRINGIZE(elem), data->elem, true); \
-    if (hr < 0)                                                                    \
-        return hr;
-
-#define LOAD(Class, Members)                                                \
-    static result_t load(v8::Local<v8::Object> opt, obj_ptr<Class>& retVal) \
-    {                                                                       \
-        Isolate* isolate = Isolate::current(opt);                           \
-        obj_ptr<Class> o = new Class();                                     \
-        result_t hr = 0;                                                    \
-        BOOST_PP_SEQ_FOR_EACH(LOAD_MEMBER, o, Members)                      \
-        retVal = o;                                                         \
-        return 0;                                                           \
-    }
+#include <boost/preprocessor.hpp>
 
 namespace fibjs {
 
 class WebView : public WebView_base {
+public:
+    class OpenOptions : public obj_base {
+    public:
+        LOAD_OPTIONS(OpenOptions, (width)(height)(left)(top)(url)(file)(frame)(caption)(resizable)(fullscreen)(maximize)(devtools));
+
+    public:
+        std::optional<int32_t> width;
+        std::optional<int32_t> height;
+        std::optional<int32_t> left;
+        std::optional<int32_t> top;
+        std::optional<exlib::string> url;
+        std::optional<exlib::string> file;
+        std::optional<bool> frame;
+        std::optional<bool> caption;
+        std::optional<bool> resizable;
+        std::optional<bool> fullscreen;
+        std::optional<bool> maximize;
+        std::optional<bool> devtools;
+    };
+
+public:
     FIBER_FREE();
 
 public:
@@ -76,26 +81,6 @@ public:
     virtual result_t getTitle(exlib::string& retVal, AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
-
-public:
-    class OpenOptions : public obj_base {
-    public:
-        LOAD(OpenOptions, (width)(height)(left)(top)(url)(file)(frame)(caption)(resizable)(fullscreen)(maximize)(devtools));
-
-    public:
-        std::optional<int32_t> width;
-        std::optional<int32_t> height;
-        std::optional<int32_t> left;
-        std::optional<int32_t> top;
-        std::optional<exlib::string> url;
-        std::optional<exlib::string> file;
-        std::optional<bool> frame;
-        std::optional<bool> caption;
-        std::optional<bool> resizable;
-        std::optional<bool> fullscreen;
-        std::optional<bool> maximize;
-        std::optional<bool> devtools;
-    };
 
 public:
     result_t createWebView();
