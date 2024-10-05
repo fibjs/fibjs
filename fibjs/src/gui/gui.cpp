@@ -79,64 +79,6 @@ result_t WebView::openFile(exlib::string file, v8::Local<v8::Object> opt)
     return async_open();
 }
 
-static result_t check_options(v8::Local<v8::Object> opt, obj_ptr<NObject>& retVal)
-{
-    const char* num_keys[] = {
-        "width",
-        "height",
-        "left",
-        "top"
-    };
-
-    const char* str_keys[] = {
-        "url",
-        "file"
-    };
-
-    const char* bool_keys[] = {
-        "frame",
-        "caption",
-        "resizable",
-        "fullscreen",
-        "maximize"
-    };
-
-    Isolate* isolate = Isolate::current(opt);
-    obj_ptr<NObject> o = new NObject();
-    result_t hr = 0;
-
-    for (int i = 0; i < ARRAYSIZE(num_keys); i++) {
-        int32_t v;
-        hr = GetConfigValue(isolate, opt, num_keys[i], v, true);
-        if (hr >= 0)
-            o->add(num_keys[i], v);
-        else if (hr != CALL_E_PARAMNOTOPTIONAL)
-            return hr;
-    }
-
-    for (int i = 0; i < ARRAYSIZE(str_keys); i++) {
-        exlib::string v;
-        hr = GetConfigValue(isolate, opt, str_keys[i], v, true);
-        if (hr >= 0)
-            o->add(str_keys[i], v);
-        else if (hr != CALL_E_PARAMNOTOPTIONAL)
-            return hr;
-    }
-
-    for (int i = 0; i < ARRAYSIZE(bool_keys); i++) {
-        bool v;
-        hr = GetConfigValue(isolate, opt, bool_keys[i], v, true);
-        if (hr >= 0)
-            o->add(bool_keys[i], v);
-        else if (hr < 0 && hr != CALL_E_PARAMNOTOPTIONAL)
-            return hr;
-    }
-
-    retVal = o;
-
-    return 0;
-}
-
 result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
     obj_ptr<WebView> webview = new WebView();
@@ -157,6 +99,7 @@ result_t gui_base::open(v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal
     retVal = webview;
     return webview->open(opt);
 }
+
 }
 
 #endif
