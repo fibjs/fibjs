@@ -14,6 +14,8 @@
 #include "EventInfo.h"
 #include "WebView.h"
 
+static int32_t s_window_count = 0;
+
 static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
 {
     return (fibjs::WebView*)objc_getAssociatedObject(win, "webview");
@@ -37,6 +39,9 @@ static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
         return;
 
     webview->release();
+
+    if (--s_window_count == 0)
+        [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyAccessory];
 }
 
 - (void)windowDidMove:(NSNotification*)didMoveNotification
@@ -163,7 +168,7 @@ void WebView::run_os_gui(exlib::Event& gui_ready)
 {
     @autoreleasepool {
         GuiApplication* app = [GuiApplication sharedApplication];
-        [app setActivationPolicy:NSApplicationActivationPolicyRegular];
+        [app setActivationPolicy:NSApplicationActivationPolicyAccessory];
         [app finishLaunching];
         [app activateIgnoringOtherApps:YES];
 
@@ -260,6 +265,10 @@ void WebView::config()
     [window setDelegate:[GuiWindowDelegate new]];
 
     [window makeKeyAndOrderFront:window];
+
+    if (++s_window_count == 1)
+        [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
+
     [[GuiApplication sharedApplication] activateIgnoringOtherApps:YES];
 
     Ref();
