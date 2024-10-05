@@ -185,8 +185,10 @@ void WebView::config()
         gtk_header_bar_set_show_close_button((GtkHeaderBar*)titlebar, TRUE);
         gtk_window_set_titlebar(window, titlebar);
 
-        // if (m_options->caption.has_value() && !m_options->caption.value()) {
-        // }
+        if (m_options->caption.has_value() && !m_options->caption.value()) {
+            gtk_widget_hide(titlebar);
+            gtk_widget_destroy(titlebar);
+        }
 
         if (m_options->resizable.has_value() && !m_options->resizable.value())
             gtk_window_set_resizable(window, FALSE);

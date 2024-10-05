@@ -208,6 +208,12 @@ void gtk_window_set_titlebar(GtkWindow* window, GtkWidget* titlebar)
     s_gtk_window_set_titlebar(window, titlebar);
 }
 
+void gtk_widget_destroy(GtkWidget* widget)
+{
+    gtk_func(gtk_widget_destroy);
+    s_gtk_widget_destroy(widget);
+}
+
 GMainLoop* g_main_loop_new(GMainContext* context, gboolean is_running)
 {
     gtk_func(g_main_loop_new);
