@@ -219,24 +219,26 @@ void WebView::config()
         mask = NSWindowStyleMaskResizable;
     else {
         if (m_options->frame.value()) {
-            mask |= NSWindowStyleMaskTitled;
-            if (!m_options->caption.value()) {
-                mask |= NSFullSizeContentViewWindowMask;
-
-                window.titlebarAppearsTransparent = true;
-                window.titleVisibility = NSWindowTitleHidden;
-
-                [[window standardWindowButton:NSWindowCloseButton] setHidden:YES];
-                [[window standardWindowButton:NSWindowMiniaturizeButton] setHidden:YES];
-                [[window standardWindowButton:NSWindowZoomButton] setHidden:YES];
-                [[window standardWindowButton:NSWindowFullScreenButton] setHidden:YES];
-            }
+            if (m_options->caption.value())
+                mask |= NSWindowStyleMaskTitled;
 
             if (m_options->resizable.value())
                 mask |= NSWindowStyleMaskResizable;
 
         } else
             mask |= NSWindowStyleMaskBorderless | NSWindowStyleMaskFullSizeContentView;
+    }
+
+    if ((mask & NSWindowStyleMaskTitled) == 0) {
+        mask |= NSWindowStyleMaskTitled | NSFullSizeContentViewWindowMask;
+
+        window.titlebarAppearsTransparent = true;
+        window.titleVisibility = NSWindowTitleHidden;
+
+        [[window standardWindowButton:NSWindowCloseButton] setHidden:YES];
+        [[window standardWindowButton:NSWindowMiniaturizeButton] setHidden:YES];
+        [[window standardWindowButton:NSWindowZoomButton] setHidden:YES];
+        [[window standardWindowButton:NSWindowFullScreenButton] setHidden:YES];
     }
 
     NSRect screen_rect = [[NSScreen mainScreen] frame];
@@ -259,6 +261,7 @@ void WebView::config()
     window.styleMask = mask;
 
     if (m_options->fullscreen.value()) {
+        [window setFrame:[[NSScreen mainScreen] visibleFrame] display:YES];
         [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
         [window toggleFullScreen:nil];
     } else if (m_options->maximize.value())
