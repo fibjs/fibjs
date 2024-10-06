@@ -14,7 +14,7 @@
 #include <jsc/jsc.h>
 
 static void* js_handle = NULL;
-#define js_func(func) dl_def_func(js_handle, "libjavascriptcoregtk-4.0.so", func)
+#define js_func(func) dl_def_func(js_handle, func, "libjavascriptcoregtk-4.0.so", "libjavascriptcoregtk-4.1.so")
 
 char* jsc_value_to_string(JSCValue* value)
 {

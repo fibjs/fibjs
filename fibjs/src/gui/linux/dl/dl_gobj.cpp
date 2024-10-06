@@ -14,7 +14,7 @@
 #include <glib-object.h>
 
 static void* gobj_handle = NULL;
-#define gobj_func(func) dl_def_func(gobj_handle, "libgobject-2.0.so", func)
+#define gobj_func(func) dl_def_func(gobj_handle, func, "libgobject-2.0.so")
 
 GTypeInstance* g_type_check_instance_cast(GTypeInstance* instance, GType iface_type)
 {

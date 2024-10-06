@@ -14,7 +14,7 @@
 #include <webkit2/webkit2.h>
 
 static void* webkit_handle = NULL;
-#define webkit_func(func) dl_def_func(webkit_handle, "libwebkit2gtk-4.0.so", func)
+#define webkit_func(func) dl_def_func(webkit_handle, func, "libwebkit2gtk-4.0.so", "libwebkit2gtk-4.1.so")
 
 GtkWidget* webkit_web_view_new()
 {

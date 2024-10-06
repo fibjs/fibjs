@@ -14,7 +14,7 @@
 #include <gtk/gtk.h>
 
 static void* gtk_handle = NULL;
-#define gtk_func(func) dl_def_func(gtk_handle, "libgtk-3.so", func)
+#define gtk_func(func) dl_def_func(gtk_handle, func, "libgtk-3.so")
 
 gboolean gtk_init_check(int* argc, char*** argv)
 {

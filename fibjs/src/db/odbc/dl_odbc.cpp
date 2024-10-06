@@ -9,7 +9,7 @@
 #include "dl_odbc.h"
 
 static void* odbc_handle;
-#define odbc_func(func) dl_def_func(odbc_handle, ODBC_LIB, func)
+#define odbc_func(func) dl_def_func(odbc_handle, func, ODBC_LIB)
 
 SQLRETURN SQL_API SQLAllocEnv(SQLHENV* EnvironmentHandle)
 {
