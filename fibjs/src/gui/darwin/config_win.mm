@@ -205,8 +205,6 @@ void WebView::config()
     int32_t nWidth = CW_USEDEFAULT;
     int32_t nHeight = CW_USEDEFAULT;
     NSWindowStyleMask mask = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable;
-    bool _maximize = false;
-    bool _fullscreen = false;
 
     if (m_options->left.has_value())
         x = m_options->left.value();
@@ -217,33 +215,28 @@ void WebView::config()
     if (m_options->height.has_value())
         nHeight = m_options->height.value();
 
-    if (!m_options->frame.has_value() || m_options->frame.value()) {
-        if (!m_options->caption.has_value() || m_options->caption.value())
-            mask |= NSWindowStyleMaskTitled;
-
-        if (!m_options->resizable.has_value() || m_options->resizable.value())
-            mask |= NSWindowStyleMaskResizable;
-    } else
-        mask |= NSWindowStyleMaskBorderless | NSWindowStyleMaskFullSizeContentView;
-
-    if (m_options->maximize.has_value())
-        _maximize = m_options->maximize.value();
-
-    if (m_options->fullscreen.has_value() && m_options->fullscreen.value()) {
+    if (m_options->fullscreen.value())
         mask = NSWindowStyleMaskResizable;
-        _fullscreen = true;
-    }
+    else {
+        if (m_options->frame.value()) {
+            mask |= NSWindowStyleMaskTitled;
+            if (!m_options->caption.value()) {
+                mask |= NSFullSizeContentViewWindowMask;
 
-    if ((mask & NSWindowStyleMaskTitled) == 0) {
-        mask |= NSWindowStyleMaskTitled | NSFullSizeContentViewWindowMask;
+                window.titlebarAppearsTransparent = true;
+                window.titleVisibility = NSWindowTitleHidden;
 
-        window.titlebarAppearsTransparent = true;
-        window.titleVisibility = NSWindowTitleHidden;
+                [[window standardWindowButton:NSWindowCloseButton] setHidden:YES];
+                [[window standardWindowButton:NSWindowMiniaturizeButton] setHidden:YES];
+                [[window standardWindowButton:NSWindowZoomButton] setHidden:YES];
+                [[window standardWindowButton:NSWindowFullScreenButton] setHidden:YES];
+            }
 
-        [[window standardWindowButton:NSWindowCloseButton] setHidden:YES];
-        [[window standardWindowButton:NSWindowMiniaturizeButton] setHidden:YES];
-        [[window standardWindowButton:NSWindowZoomButton] setHidden:YES];
-        [[window standardWindowButton:NSWindowFullScreenButton] setHidden:YES];
+            if (m_options->resizable.value())
+                mask |= NSWindowStyleMaskResizable;
+
+        } else
+            mask |= NSWindowStyleMaskBorderless | NSWindowStyleMaskFullSizeContentView;
     }
 
     NSRect screen_rect = [[NSScreen mainScreen] frame];
@@ -265,10 +258,10 @@ void WebView::config()
 
     window.styleMask = mask;
 
-    if (_fullscreen) {
+    if (m_options->fullscreen.value()) {
         [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
         [window toggleFullScreen:nil];
-    } else if (_maximize)
+    } else if (m_options->maximize.value())
         [window setFrame:[[NSScreen mainScreen] visibleFrame] display:YES];
     else
         [window setFrame:CGRectMake(x, y, nWidth, nHeight) display:YES];

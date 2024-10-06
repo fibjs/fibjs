@@ -27,12 +27,12 @@ public:
         std::optional<int32_t> top;
         std::optional<exlib::string> url;
         std::optional<exlib::string> file;
-        std::optional<bool> frame;
-        std::optional<bool> caption;
-        std::optional<bool> resizable;
-        std::optional<bool> fullscreen;
-        std::optional<bool> maximize;
-        std::optional<bool> devtools;
+        std::optional<bool> frame = true;
+        std::optional<bool> caption = true;
+        std::optional<bool> resizable = true;
+        std::optional<bool> fullscreen = false;
+        std::optional<bool> maximize = false;
+        std::optional<bool> devtools = false;
     };
 
 public:

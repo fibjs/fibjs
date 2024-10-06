@@ -168,7 +168,7 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         break;
     case WM_NCHITTEST: {
         LRESULT hit = DefSubclassProc(hWnd, uMsg, wParam, lParam);
-        if (webview->m_options->resizable.has_value() && !webview->m_options->resizable.value()) {
+        if (!webview->m_options->resizable.value()) {
             if (hit == HTBOTTOM || hit == HTBOTTOMLEFT || hit == HTBOTTOMRIGHT || hit == HTLEFT
                 || hit == HTRIGHT || hit == HTTOP || hit == HTTOPLEFT || hit == HTTOPRIGHT) {
                 hit = 0;
@@ -259,8 +259,6 @@ void WebView::config()
     int y = CW_USEDEFAULT;
     int nWidth = CW_USEDEFAULT;
     int nHeight = CW_USEDEFAULT;
-    bool _maximize = false;
-    bool _fullscreen = false;
 
     if (m_options->left.has_value())
         x = m_options->left.value();
@@ -271,28 +269,24 @@ void WebView::config()
     if (m_options->height.has_value())
         nHeight = m_options->height.value();
 
-    if (!m_options->frame.has_value() || m_options->frame.value()) {
-        dwStyle |= WS_THICKFRAME;
+    if (!m_options->fullscreen.value()) {
+        if (m_options->frame.value()) {
+            dwStyle |= WS_THICKFRAME;
 
-        if (!m_options->caption.has_value() || m_options->caption.value())
-            dwStyle |= WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
+            if (m_options->caption.value())
+                dwStyle |= WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
 
-        if (m_options->resizable.has_value() && !m_options->resizable.value()) {
-            dwStyle &= ~(WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
+            if (!m_options->resizable.value()) {
+                dwStyle &= ~(WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
 
-            HMENU hSysMenu = GetSystemMenu(hWndParent, FALSE);
-            RemoveMenu(hSysMenu, SC_RESTORE, MF_BYCOMMAND);
-            RemoveMenu(hSysMenu, SC_MAXIMIZE, MF_BYCOMMAND);
-            RemoveMenu(hSysMenu, SC_MINIMIZE, MF_BYCOMMAND);
-            RemoveMenu(hSysMenu, SC_SIZE, MF_BYCOMMAND);
+                HMENU hSysMenu = GetSystemMenu(hWndParent, FALSE);
+                RemoveMenu(hSysMenu, SC_RESTORE, MF_BYCOMMAND);
+                RemoveMenu(hSysMenu, SC_MAXIMIZE, MF_BYCOMMAND);
+                RemoveMenu(hSysMenu, SC_MINIMIZE, MF_BYCOMMAND);
+                RemoveMenu(hSysMenu, SC_SIZE, MF_BYCOMMAND);
+            }
         }
     }
-
-    if (m_options->maximize.has_value())
-        _maximize = m_options->maximize.value();
-
-    if (m_options->fullscreen.has_value())
-        _fullscreen = m_options->fullscreen.value();
 
     GetDPI(hWndParent, &dpix, &dpiy);
 
@@ -321,7 +315,7 @@ void WebView::config()
 
     SetWindowSubclass(hWndParent, &mySubClassProc, 1, (DWORD_PTR)this);
 
-    if (_fullscreen) {
+    if (m_options->fullscreen.value()) {
         SetWindowPos(hWndParent, HWND_TOP, 0, 0, actualDesktop.right, actualDesktop.bottom, 0);
         dwStyle = WS_VISIBLE;
         SetWindowLong(hWndParent, GWL_STYLE, dwStyle);
@@ -329,7 +323,7 @@ void WebView::config()
         SetWindowLong(hWndParent, GWL_STYLE, dwStyle);
         SetWindowPos(hWndParent, HWND_TOP, x, y, nWidth, nHeight, 0);
 
-        if (_maximize)
+        if (m_options->maximize.value())
             ShowWindow(hWndParent, SW_MAXIMIZE);
         else
             ShowWindow(hWndParent, SW_SHOWNORMAL);

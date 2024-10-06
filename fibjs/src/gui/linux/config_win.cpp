@@ -182,8 +182,6 @@ void WebView::config()
     int32_t y = CW_USEDEFAULT;
     int32_t nWidth = CW_USEDEFAULT;
     int32_t nHeight = CW_USEDEFAULT;
-    bool _maximize = false;
-    bool _fullscreen = false;
 
     if (m_options->left.has_value())
         x = m_options->left.value();
@@ -194,34 +192,30 @@ void WebView::config()
     if (m_options->height.has_value())
         nHeight = m_options->height.value();
 
-    if (m_options->frame.has_value() && !m_options->frame.value())
-        gtk_window_set_decorated(window, FALSE);
-    else {
-        GtkWidget* titlebar = gtk_header_bar_new();
-        gtk_header_bar_set_show_close_button((GtkHeaderBar*)titlebar, TRUE);
-        gtk_window_set_titlebar(window, titlebar);
+    if (!m_options->fullscreen.value()) {
+        if (!m_options->frame.value())
+            gtk_window_set_decorated(window, FALSE);
+        else {
+            GtkWidget* titlebar = gtk_header_bar_new();
+            gtk_header_bar_set_show_close_button((GtkHeaderBar*)titlebar, TRUE);
+            gtk_window_set_titlebar(window, titlebar);
 
-        if (m_options->caption.has_value() && !m_options->caption.value()) {
-            gtk_widget_hide(titlebar);
-            gtk_widget_destroy(titlebar);
+            if (!m_options->caption.value()) {
+                gtk_widget_hide(titlebar);
+                gtk_widget_destroy(titlebar);
 
-            GtkCssProvider* provider = gtk_css_provider_new();
-            gtk_css_provider_load_from_data(provider, "* { border-radius: 0px; }", -1, NULL);
-            GtkStyleContext* context = gtk_widget_get_style_context(GTK_WIDGET(window));
-            gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(provider),
-                GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-            g_object_unref(provider);
+                GtkCssProvider* provider = gtk_css_provider_new();
+                gtk_css_provider_load_from_data(provider, "* { border-radius: 0px; }", -1, NULL);
+                GtkStyleContext* context = gtk_widget_get_style_context(GTK_WIDGET(window));
+                gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(provider),
+                    GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+                g_object_unref(provider);
+            }
+
+            if (!m_options->resizable.value())
+                gtk_window_set_resizable(window, FALSE);
         }
-
-        if (m_options->resizable.has_value() && !m_options->resizable.value())
-            gtk_window_set_resizable(window, FALSE);
     }
-
-    if (m_options->maximize.has_value())
-        _maximize = m_options->maximize.value();
-
-    if (m_options->fullscreen.has_value())
-        _fullscreen = m_options->fullscreen.value();
 
     GdkScreen* screen = gtk_window_get_screen(window);
     int screen_width = gdk_screen_get_width(screen);
@@ -241,9 +235,9 @@ void WebView::config()
 
     gtk_window_move(window, x, y);
     gtk_window_set_default_size(window, nWidth, nHeight);
-    if (_fullscreen)
+    if (m_options->fullscreen.value())
         gtk_window_fullscreen(window);
-    else if (_maximize)
+    else if (m_options->maximize.value())
         gtk_window_maximize(window);
     else
         gtk_window_resize(window, nWidth, nHeight);

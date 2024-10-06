@@ -69,7 +69,7 @@ result_t WebView::createWebView()
                 ICoreWebView2* webView = nullptr;
                 controller->get_CoreWebView2(&webView);
 
-                if (!m_options->devtools.has_value() || !m_options->devtools.value()) {
+                if (!m_options->devtools.value()) {
                     ICoreWebView2Settings* settings = nullptr;
                     webView->get_Settings(&settings);
                     settings->put_AreDevToolsEnabled(FALSE);
