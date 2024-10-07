@@ -6,7 +6,8 @@
  *      Author: lion
  */
 
-#if defined(OS_DESKTOP) && !defined(_WIN32) && !defined(__APPLE__)
+#include <exlib/include/osconfig.h>
+#if defined(Linux) && defined(OS_DESKTOP)
 
 #include <exlib/include/dl_func.h>
 
@@ -14,7 +15,7 @@
 #include <gtk/gtk.h>
 
 static void* gtk_handle = NULL;
-#define gtk_func(func) dl_def_func(gtk_handle, func, "libgtk-3.so")
+#define gtk_func(func) dl_def_func(gtk_handle, func, "libgtk-3.so.0")
 
 gboolean gtk_init_check(int* argc, char*** argv)
 {

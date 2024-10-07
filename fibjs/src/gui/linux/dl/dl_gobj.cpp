@@ -6,15 +6,18 @@
  *      Author: lion
  */
 
-#if defined(OS_DESKTOP) && !defined(_WIN32) && !defined(__APPLE__)
+#include <exlib/include/osconfig.h>
+#if defined(Linux) && defined(OS_DESKTOP)
 
 #include <exlib/include/dl_func.h>
+#include "ldconfig.h"
 
 #define _GLIB_TEST_OVERFLOW_FALLBACK
 #include <glib-object.h>
 
+static std::string gobj_lib = ldconfig("gobject-2.");
 static void* gobj_handle = NULL;
-#define gobj_func(func) dl_def_func(gobj_handle, func, "libgobject-2.0.so")
+#define gobj_func(func) dl_def_func(gobj_handle, func, gobj_lib.c_str())
 
 GTypeInstance* g_type_check_instance_cast(GTypeInstance* instance, GType iface_type)
 {

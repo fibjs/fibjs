@@ -6,15 +6,18 @@
  *      Author: lion
  */
 
-#if defined(OS_DESKTOP) && !defined(_WIN32) && !defined(__APPLE__)
+#include <exlib/include/osconfig.h>
+#if defined(Linux) && defined(OS_DESKTOP)
 
 #include <exlib/include/dl_func.h>
+#include "ldconfig.h"
 
 #define _GLIB_TEST_OVERFLOW_FALLBACK
 #include <webkit2/webkit2.h>
 
+static std::string webkit_lib = ldconfig("webkit2gtk-4.");
 static void* webkit_handle = NULL;
-#define webkit_func(func) dl_def_func(webkit_handle, func, "libwebkit2gtk-4.0.so", "libwebkit2gtk-4.1.so")
+#define webkit_func(func) dl_def_func(webkit_handle, func, webkit_lib.c_str())
 
 GtkWidget* webkit_web_view_new()
 {
