@@ -18,21 +18,32 @@ class WebView : public WebView_base {
 public:
     class OpenOptions : public obj_base {
     public:
-        LOAD_OPTIONS(OpenOptions, (width)(height)(left)(top)(url)(file)(frame)(caption)(resizable)(fullscreen)(maximize)(devtools));
+        LOAD_OPTIONS(OpenOptions, (url)(file)(width)(height)(left)(top)(frame)(caption)(resizable)(fullscreen)(maximize)(devtools)(onopen)(onclose)(onmove)(onresize)(onfocus)(onblur)(onmessage));
 
     public:
+        std::optional<exlib::string> url;
+        std::optional<exlib::string> file;
+
         std::optional<int32_t> width;
         std::optional<int32_t> height;
         std::optional<int32_t> left;
         std::optional<int32_t> top;
-        std::optional<exlib::string> url;
-        std::optional<exlib::string> file;
+
         std::optional<bool> frame = true;
         std::optional<bool> caption = true;
         std::optional<bool> resizable = true;
         std::optional<bool> fullscreen = false;
         std::optional<bool> maximize = false;
+
         std::optional<bool> devtools = false;
+
+        std::optional<v8::Local<v8::Function>> onopen;
+        std::optional<v8::Local<v8::Function>> onclose;
+        std::optional<v8::Local<v8::Function>> onmove;
+        std::optional<v8::Local<v8::Function>> onresize;
+        std::optional<v8::Local<v8::Function>> onfocus;
+        std::optional<v8::Local<v8::Function>> onblur;
+        std::optional<v8::Local<v8::Function>> onmessage;
     };
 
 public:
@@ -80,6 +91,18 @@ public:
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
 
 public:
+    EVENT_FUNC(open);
+    EVENT_FUNC(move);
+    EVENT_FUNC(resize);
+    EVENT_FUNC(focus);
+    EVENT_FUNC(blur);
+    EVENT_FUNC(close);
+    EVENT_FUNC(message);
+
+public:
+    static void run_os_gui(exlib::Event& gui_ready);
+
+public:
     result_t createWebView();
     void config();
 
@@ -88,9 +111,23 @@ public:
     result_t open(v8::Local<v8::Object> opt);
     result_t openFile(exlib::string file, v8::Local<v8::Object> opt);
     result_t async_open();
-
-public:
-    static void run_os_gui(exlib::Event& gui_ready);
+    void set_event()
+    {
+        if (m_options->onopen.has_value())
+            set_onopen(m_options->onopen.value());
+        if (m_options->onclose.has_value())
+            set_onclose(m_options->onclose.value());
+        if (m_options->onmove.has_value())
+            set_onmove(m_options->onmove.value());
+        if (m_options->onresize.has_value())
+            set_onresize(m_options->onresize.value());
+        if (m_options->onfocus.has_value())
+            set_onfocus(m_options->onfocus.value());
+        if (m_options->onblur.has_value())
+            set_onblur(m_options->onblur.value());
+        if (m_options->onmessage.has_value())
+            set_onmessage(m_options->onmessage.value());
+    }
 
 public:
     void internal_close();
@@ -122,15 +159,6 @@ public:
             Unref();
         }
     }
-
-public:
-    EVENT_FUNC(open);
-    EVENT_FUNC(move);
-    EVENT_FUNC(resize);
-    EVENT_FUNC(focus);
-    EVENT_FUNC(blur);
-    EVENT_FUNC(close);
-    EVENT_FUNC(message);
 
 public:
     obj_ptr<OpenOptions> m_options;

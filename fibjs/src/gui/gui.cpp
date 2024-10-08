@@ -55,6 +55,7 @@ result_t WebView::open(exlib::string url, v8::Local<v8::Object> opt)
 
     m_options->url = url;
 
+    set_event();
     return async_open();
 }
 
@@ -64,6 +65,7 @@ result_t WebView::open(v8::Local<v8::Object> opt)
     if (hr < 0)
         return hr;
 
+    set_event();
     return async_open();
 }
 
@@ -76,6 +78,7 @@ result_t WebView::openFile(exlib::string file, v8::Local<v8::Object> opt)
     m_options->file = file;
     m_options->url.reset();
 
+    set_event();
     return async_open();
 }
 
