@@ -58,11 +58,6 @@ std::string ldconfig(const char* pkg)
 
     if (!allLibraries.empty()) {
         std::sort(allLibraries.begin(), allLibraries.end());
-
-        for (const auto& lib : allLibraries) {
-            std::cout << lib << std::endl;
-        }
-
         return allLibraries.back();
     }
 
