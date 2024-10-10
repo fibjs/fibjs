@@ -624,6 +624,23 @@ describe("db", () => {
                     assert.deepEqual(rs[0].v, v);
             });
 
+            it('typed array', () => {
+                var v = new Uint8Array([1, 2, 3]);
+                var rs = conn.execute('select ? as v', v);
+                assert.deepEqual(rs[0].v, v);
+            });
+
+            it('array buffer', () => {
+                const encodedData = new TextEncoder("utf-8").encode("hello world");
+                const buffer = new ArrayBuffer(encodedData.length);
+                const v = new Uint8Array(buffer);
+                v.set(encodedData);
+
+                var rs = conn.execute('select ? as v', buffer);
+                const value = new TextDecoder("utf-8").decode(rs[0].v);
+                assert.deepEqual(value, "hello world");
+            });
+
             it('field', () => {
                 var res = [];
                 for (var i = 0x21; i < 0x7f; i++) {
