@@ -43,7 +43,7 @@ result_t gui_base::open(v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal
     return Runtime::setError("Webview not supported in this platform");
 }
 
-result_t gui_base::createMenu(v8::Local<v8::Object> opt, obj_ptr<Menu_base>& retVal)
+result_t gui_base::createMenu(v8::Local<v8::Array> items, obj_ptr<Menu_base>& retVal)
 {
     return Runtime::setError("Menu not supported in this platform");
 }

@@ -292,6 +292,7 @@ void g_list_free(GList* list)
     s_g_list_free(list);
 }
 
+#undef g_object_ref
 gpointer g_object_ref(gpointer object)
 {
     gtk_func(g_object_ref);
