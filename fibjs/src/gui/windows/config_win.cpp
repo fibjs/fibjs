@@ -19,6 +19,7 @@
 #include "object.h"
 #include "EventInfo.h"
 #include "WebView.h"
+#include "image.h"
 
 namespace fibjs {
 
@@ -61,7 +62,7 @@ static void RegMainClass()
     wc.cbWndExtra = sizeof(void*);
     wc.hbrBackground = (HBRUSH)COLOR_WINDOW;
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(1));
+    wc.hIcon = nullptr;
     wc.hInstance = hInstance;
     wc.lpfnWndProc = DefWindowProc;
     wc.lpszClassName = szWndClassMain;
@@ -268,6 +269,12 @@ void WebView::config()
         nWidth = m_options->width.value();
     if (m_options->height.has_value())
         nHeight = m_options->height.value();
+
+    if (m_icon) {
+        HICON hIcon = LoadPngIcon(m_icon->data(), m_icon->length());
+        if (hIcon)
+            SendMessage(hWndParent, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+    }
 
     if (!m_options->fullscreen.value()) {
         if (m_options->frame.value()) {

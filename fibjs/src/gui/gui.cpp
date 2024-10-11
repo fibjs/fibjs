@@ -9,6 +9,7 @@
 
 #include "object.h"
 #include "ifs/gui.h"
+#include "ifs/fs.h"
 
 #include "WebView.h"
 
@@ -46,39 +47,70 @@ result_t WebView::async_open()
 
     return 0;
 }
+result_t WebView::setup(v8::Local<v8::Object> opt)
+{
+    result_t hr = OpenOptions::load(opt, m_options);
+    if (hr < 0)
+        return hr;
+
+    if (m_options->icon.has_value()) {
+        Variant var;
+        hr = fs_base::ac_readFile(m_options->icon.value(), "", var);
+        if (hr)
+            return hr;
+
+        m_icon = (Buffer*)var.object();
+        if (!m_icon)
+            return Runtime::setError("Window icon is empty");
+    }
+
+    if (m_options->onopen.has_value())
+        set_onopen(m_options->onopen.value());
+    if (m_options->onclose.has_value())
+        set_onclose(m_options->onclose.value());
+    if (m_options->onmove.has_value())
+        set_onmove(m_options->onmove.value());
+    if (m_options->onresize.has_value())
+        set_onresize(m_options->onresize.value());
+    if (m_options->onfocus.has_value())
+        set_onfocus(m_options->onfocus.value());
+    if (m_options->onblur.has_value())
+        set_onblur(m_options->onblur.value());
+    if (m_options->onmessage.has_value())
+        set_onmessage(m_options->onmessage.value());
+
+    return 0;
+}
 
 result_t WebView::open(exlib::string url, v8::Local<v8::Object> opt)
 {
-    result_t hr = OpenOptions::load(opt, m_options);
+    result_t hr = setup(opt);
     if (hr < 0)
         return hr;
 
     m_options->url = url;
 
-    set_event();
     return async_open();
 }
 
 result_t WebView::open(v8::Local<v8::Object> opt)
 {
-    result_t hr = OpenOptions::load(opt, m_options);
+    result_t hr = setup(opt);
     if (hr < 0)
         return hr;
 
-    set_event();
     return async_open();
 }
 
 result_t WebView::openFile(exlib::string file, v8::Local<v8::Object> opt)
 {
-    result_t hr = OpenOptions::load(opt, m_options);
+    result_t hr = setup(opt);
     if (hr < 0)
         return hr;
 
     m_options->file = file;
     m_options->url.reset();
 
-    set_event();
     return async_open();
 }
 

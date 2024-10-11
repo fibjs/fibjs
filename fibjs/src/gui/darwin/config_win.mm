@@ -88,6 +88,15 @@ static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
     if (wv == NULL)
         return;
 
+    if (wv->m_icon) {
+        NSImage* icon = [[NSImage alloc]
+            initWithData:[NSData dataWithBytes:wv->m_icon->data() length:wv->m_icon->length()]];
+        if (icon) {
+            [[NSApplication sharedApplication] setApplicationIconImage:icon];
+            [icon release];
+        }
+    }
+
     fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(wv, "focus");
     wv->_emit("focus", ei);
 }
@@ -168,7 +177,6 @@ void WebView::run_os_gui(exlib::Event& gui_ready)
 {
     @autoreleasepool {
         GuiApplication* app = [GuiApplication sharedApplication];
-        [app setActivationPolicy:NSApplicationActivationPolicyAccessory];
         [app finishLaunching];
         [app activateIgnoringOtherApps:YES];
 
@@ -278,6 +286,15 @@ void WebView::config()
         [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
 
     [[GuiApplication sharedApplication] activateIgnoringOtherApps:YES];
+
+    if (m_icon) {
+        NSImage* icon = [[NSImage alloc]
+            initWithData:[NSData dataWithBytes:m_icon->data() length:m_icon->length()]];
+        if (icon) {
+            [[NSApplication sharedApplication] setApplicationIconImage:icon];
+            [icon release];
+        }
+    }
 
     Ref();
     m_ready->set();

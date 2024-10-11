@@ -16,6 +16,7 @@ declare module 'gui' {
      *      支持以下参数:
      *      ```JavaScript
      *      {
+     *          "icon": "/path/to/file.png", // specify the icon of the window, default is system auto set
      *          "left": 100, // specify the left position of the window, default is system auto set
      *          "right": 100, // spcify the top position of the window, default is system auto set
      *          "width": 100, // specify the width of the window, default is system auto set
@@ -42,6 +43,7 @@ declare module 'gui' {
      *      支持以下参数:
      *      ```JavaScript
      *      {
+     *          "icon": "/path/to/file.png", // specify the icon of the window, default is system auto set
      *          "left": 100, // specify the left position of the window, default is system auto set
      *          "right": 100, // spcify the top position of the window, default is system auto set
      *          "width": 100, // specify the width of the window, default is system auto set
@@ -70,6 +72,7 @@ declare module 'gui' {
      *      {
      *          "url": , // specify the url of the window, default is about:blank
      *          "file": , // specify the file of the window
+     *          "icon": "/path/to/file.png", // specify the icon of the window, default is system auto set
      *          "left": 100, // specify the left position of the window, default is system auto set
      *          "right": 100, // spcify the top position of the window, default is system auto set
      *          "width": 100, // specify the width of the window, default is system auto set

@@ -10,6 +10,7 @@
 #include "ifs/WebView.h"
 #include "ifs/url.h"
 #include "Event.h"
+#include "Buffer.h"
 #include <boost/preprocessor.hpp>
 
 namespace fibjs {
@@ -18,12 +19,13 @@ class WebView : public WebView_base {
 public:
     class OpenOptions : public obj_base {
     public:
-        LOAD_OPTIONS(OpenOptions, (url)(file)(width)(height)(left)(top)(frame)(caption)(resizable)(fullscreen)(maximize)(devtools)(onopen)(onclose)(onmove)(onresize)(onfocus)(onblur)(onmessage));
+        LOAD_OPTIONS(OpenOptions, (url)(file)(icon)(width)(height)(left)(top)(frame)(caption)(resizable)(fullscreen)(maximize)(devtools)(onopen)(onclose)(onmove)(onresize)(onfocus)(onblur)(onmessage));
 
     public:
         std::optional<exlib::string> url;
         std::optional<exlib::string> file;
 
+        std::optional<exlib::string> icon;
         std::optional<int32_t> width;
         std::optional<int32_t> height;
         std::optional<int32_t> left;
@@ -107,27 +109,11 @@ public:
     void config();
 
 public:
+    result_t setup(v8::Local<v8::Object> opt);
     result_t open(exlib::string url, v8::Local<v8::Object> opt);
     result_t open(v8::Local<v8::Object> opt);
     result_t openFile(exlib::string file, v8::Local<v8::Object> opt);
     result_t async_open();
-    void set_event()
-    {
-        if (m_options->onopen.has_value())
-            set_onopen(m_options->onopen.value());
-        if (m_options->onclose.has_value())
-            set_onclose(m_options->onclose.value());
-        if (m_options->onmove.has_value())
-            set_onmove(m_options->onmove.value());
-        if (m_options->onresize.has_value())
-            set_onresize(m_options->onresize.value());
-        if (m_options->onfocus.has_value())
-            set_onfocus(m_options->onfocus.value());
-        if (m_options->onblur.has_value())
-            set_onblur(m_options->onblur.value());
-        if (m_options->onmessage.has_value())
-            set_onmessage(m_options->onmessage.value());
-    }
 
 public:
     void internal_close();
@@ -162,6 +148,8 @@ public:
 
 public:
     obj_ptr<OpenOptions> m_options;
+
+    obj_ptr<Buffer> m_icon;
 
     void* m_window = nullptr;
     void* m_webview = nullptr;
