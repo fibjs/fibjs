@@ -21,6 +21,8 @@
 #include "WebView.h"
 #include "Buffer.h"
 
+extern void dl_init();
+
 namespace fibjs {
 
 static GMainLoop* main_loop = nullptr;
@@ -70,6 +72,7 @@ static void fs_scheme_request_callback(WebKitURISchemeRequest* request, gpointer
 
 void WebView::run_os_gui(exlib::Event& gui_ready)
 {
+    dl_init();
     gtk_init_check(nullptr, nullptr);
     main_loop = g_main_loop_new(NULL, FALSE);
     webkit_web_context_register_uri_scheme(webkit_web_context_get_default(), "fs", fs_scheme_request_callback, NULL, NULL);

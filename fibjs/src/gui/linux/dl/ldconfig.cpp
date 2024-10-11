@@ -1,11 +1,9 @@
-
 /*
  * ldconfig.h
  *
  *  Created on: Oct 7, 2024
  *      Author: lion
  */
-
 
 #include <exlib/include/osconfig.h>
 #if defined(Linux) && defined(OS_DESKTOP)
@@ -19,28 +17,25 @@
 #include <fstream>
 #include <iostream>
 
-static std::string ldSoCacheContent;
-static bool isCacheInitialized = false;
+static std::string s_ldSoCacheContent;
 
 std::vector<std::string> searchSharedLibraries(const std::string& libraryName)
 {
-    std::vector<std::string> foundLibraries;
-
-    if (!isCacheInitialized) {
-        isCacheInitialized = true;
+    if (s_ldSoCacheContent.empty()) {
         std::ifstream ldSoCache("/etc/ld.so.cache", std::ios::binary);
-
-        if (ldSoCache.is_open()) {
-            ldSoCacheContent.assign((std::istreambuf_iterator<char>(ldSoCache)), std::istreambuf_iterator<char>());
-        }
+        if (ldSoCache.is_open())
+            s_ldSoCacheContent.assign((std::istreambuf_iterator<char>(ldSoCache)), std::istreambuf_iterator<char>());
     }
 
-    if (ldSoCacheContent.empty()) {
+    std::string ldSoCacheContent;
+    ldSoCacheContent.assign(s_ldSoCacheContent.c_str(), s_ldSoCacheContent.size());
+
+    std::vector<std::string> foundLibraries;
+    if (ldSoCacheContent.empty())
         return foundLibraries;
-    }
 
-    std::string escapedLibraryName = std::regex_replace(libraryName, std::regex("\\."), "\\.");
-    std::regex libRegex("lib" + escapedLibraryName + R"([\d\.]*\.so(\.\d+)*)");
+    std::string escapedLibraryName = "lib" + std::regex_replace(libraryName, std::regex("\\."), "\\.") + R"([\d\.]*\.so(\.\d+)*)";
+    std::regex libRegex(escapedLibraryName);
     std::smatch match;
     std::string content = ldSoCacheContent;
 

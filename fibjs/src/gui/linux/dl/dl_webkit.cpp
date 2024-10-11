@@ -15,9 +15,18 @@
 #define _GLIB_TEST_OVERFLOW_FALLBACK
 #include <webkit2/webkit2.h>
 
-static std::string webkit_lib = ldconfig("webkit2gtk-4.");
+const char* webkit_str()
+{
+    static std::string str = ldconfig("webkit2gtk-4.");
+    return str.c_str();
+}
+
 static void* webkit_handle = NULL;
-#define webkit_func(func) dl_def_func(webkit_handle, func, webkit_lib.c_str())
+#define webkit_func(func) dl_def_func(webkit_handle, func, webkit_str())
+
+void dl_webkit_init()
+{
+}
 
 GtkWidget* webkit_web_view_new()
 {

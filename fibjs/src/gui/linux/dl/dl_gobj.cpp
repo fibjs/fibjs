@@ -15,9 +15,18 @@
 #define _GLIB_TEST_OVERFLOW_FALLBACK
 #include <glib-object.h>
 
-static std::string gobj_lib = ldconfig("gobject-2.");
+const char* gobj_str()
+{
+    static std::string str = ldconfig("gobject-2.");
+    return str.c_str();
+}
+
 static void* gobj_handle = NULL;
-#define gobj_func(func) dl_def_func(gobj_handle, func, gobj_lib.c_str())
+#define gobj_func(func) dl_def_func(gobj_handle, func, gobj_str())
+
+void dl_gobj_init()
+{
+}
 
 GTypeInstance* g_type_check_instance_cast(GTypeInstance* instance, GType iface_type)
 {

@@ -15,9 +15,18 @@
 #define _GLIB_TEST_OVERFLOW_FALLBACK
 #include <jsc/jsc.h>
 
-static std::string js_lib = ldconfig("javascriptcoregtk-4.");
+const char* js_str()
+{
+    static std::string str = ldconfig("javascriptcoregtk-4.");
+    return str.c_str();
+}
+
 static void* js_handle = NULL;
-#define js_func(func) dl_def_func(js_handle, func, js_lib.c_str())
+#define js_func(func) dl_def_func(js_handle, func, js_str())
+
+void dl_js_init()
+{
+}
 
 char* jsc_value_to_string(JSCValue* value)
 {

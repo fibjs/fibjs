@@ -10,12 +10,23 @@
 #if defined(Linux) && defined(OS_DESKTOP)
 
 #include <exlib/include/dl_func.h>
+#include "ldconfig.h"
 
 #define _GLIB_TEST_OVERFLOW_FALLBACK
 #include <gtk/gtk.h>
 
+const char* gtk_str()
+{
+    static std::string str = ldconfig("gtk-3");
+    return str.c_str();
+}
+
 static void* gtk_handle = NULL;
-#define gtk_func(func) dl_def_func(gtk_handle, func, "libgtk-3.so.0")
+#define gtk_func(func) dl_def_func(gtk_handle, func, gtk_str())
+
+void dl_gtk_init()
+{
+}
 
 gboolean gtk_init_check(int* argc, char*** argv)
 {
