@@ -114,6 +114,16 @@ result_t WebView::openFile(exlib::string file, v8::Local<v8::Object> opt)
     return async_open();
 }
 
+result_t WebView::getMenu(obj_ptr<Menu_base>& retVal)
+{
+    if (m_options->menu.has_value()) {
+        retVal = m_options->menu.value();
+        return 0;
+    }
+
+    return CALL_RETURN_NULL;
+}
+
 result_t gui_base::open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal)
 {
     obj_ptr<WebView> webview = new WebView();

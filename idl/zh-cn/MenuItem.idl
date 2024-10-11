@@ -1,0 +1,30 @@
+/*! @brief 菜单项接口，继承自 EventEmitter。 */
+interface MenuItem : EventEmitter
+{
+    /*! @brief 菜单项的唯一标识符。 */
+    String id;
+
+    /*! @brief 菜单项的类型。 */
+    readonly String type;
+
+    /*! @brief 菜单项的图标。 */
+    String icon;
+
+    /*! @brief 菜单项的标签。 */
+    String label;
+
+    /*! @brief 菜单项的提示信息。 */
+    String tooltip;
+
+    /*! @brief 菜单项是否启用。 */
+    Boolean enabled;
+
+    /*! @brief 菜单项是否被选中。 */
+    Boolean checked;
+
+    /*! @brief 子菜单。 */
+    readonly Menu submenu;
+
+    /*! @brief 菜单项的点击事件处理函数。 */
+    Function onclick;
+};

@@ -88,6 +88,15 @@ static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
     if (wv == NULL)
         return;
 
+    if (wv->m_options->menu.has_value()) {
+        NSMenu* menu = (NSMenu*)wv->m_options->menu.value()->create_os_menu(false);
+        if (menu) {
+            [[NSApplication sharedApplication] setMainMenu:menu];
+        } else {
+            NSLog(@"Failed to create menu");
+        }
+    }
+
     if (wv->m_icon) {
         NSImage* icon = [[NSImage alloc]
             initWithData:[NSData dataWithBytes:wv->m_icon->data() length:wv->m_icon->length()]];
@@ -177,6 +186,7 @@ void WebView::run_os_gui(exlib::Event& gui_ready)
 {
     @autoreleasepool {
         GuiApplication* app = [GuiApplication sharedApplication];
+        [app setActivationPolicy:NSApplicationActivationPolicyRegular];
         [app finishLaunching];
         [app activateIgnoringOtherApps:YES];
 
@@ -279,6 +289,15 @@ void WebView::config()
 
     objc_setAssociatedObject(window, "webview", (id)this, OBJC_ASSOCIATION_ASSIGN);
     [window setDelegate:[GuiWindowDelegate new]];
+
+    if (m_options->menu.has_value()) {
+        NSMenu* menu = (NSMenu*)m_options->menu.value()->create_os_menu(false);
+        if (menu) {
+            [[NSApplication sharedApplication] setMainMenu:menu];
+        } else {
+            NSLog(@"Failed to create menu");
+        }
+    }
 
     [window makeKeyAndOrderFront:window];
 

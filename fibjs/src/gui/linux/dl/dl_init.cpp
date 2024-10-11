@@ -12,6 +12,7 @@ extern void dl_gobj_init();
 extern void dl_gtk_init();
 extern void dl_webkit_init();
 extern void dl_js_init();
+extern void dl_pango_init();
 
 void dl_init()
 {
@@ -19,6 +20,7 @@ void dl_init()
     dl_gtk_init();
     dl_webkit_init();
     dl_js_init();
+    dl_pango_init();
 }
 
 #endif

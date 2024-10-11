@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/EventEmitter.d.ts" />
+/// <reference path="../interface/Menu.d.ts" />
 /**
  * @description 浏览器窗口对象，WebView 是一个嵌入浏览器的窗口组件.
  *  
@@ -135,6 +136,13 @@ declare class Class_WebView extends Class_EventEmitter {
     getTitle(): string;
 
     getTitle(callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    /**
+     * @description 查询窗口的菜单
+     *      @return 返回窗口的菜单
+     *     
+     */
+    getMenu(): Class_Menu;
 
     /**
      * @description 关闭当前窗口 

@@ -93,6 +93,11 @@ interface WebView : EventEmitter
     */
     String getTitle() async;
 
+    /*! @brief 查询窗口的菜单
+     @return 返回窗口的菜单
+    */
+    Menu getMenu();
+
     /*! @brief 关闭当前窗口 */
     close() async;
 

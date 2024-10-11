@@ -245,6 +245,13 @@ void WebView::config()
     else
         gtk_window_resize(window, nWidth, nHeight);
 
+    if (m_options->menu.has_value()) {
+        GtkWidget* menu = (GtkWidget*)m_options->menu.value()->create_os_menu(false);
+        GtkWidget* vbox = gtk_bin_get_child(GTK_BIN(window));
+        gtk_box_pack_start(GTK_BOX(vbox), menu, FALSE, FALSE, 0);
+        gtk_box_reorder_child(GTK_BOX(vbox), menu, 0);
+    }
+
     if (m_icon) {
         GdkPixbufLoader* loader = gdk_pixbuf_loader_new();
         gdk_pixbuf_loader_write(loader, m_icon->data(), m_icon->length(), NULL);

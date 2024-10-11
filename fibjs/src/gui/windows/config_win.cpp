@@ -19,7 +19,6 @@
 #include "object.h"
 #include "EventInfo.h"
 #include "WebView.h"
-#include "image.h"
 
 namespace fibjs {
 
@@ -27,8 +26,11 @@ const wchar_t* szWndClassMain = L"fibjs_window";
 ICoreWebView2Environment* g_env = nullptr;
 
 static HWND s_worker;
+void on_click_menu(uint32_t id);
 
 #define WM_ASYNC_EVENT (WM_USER + 1000)
+
+HICON LoadPngIcon(const BYTE* pngData, size_t pngSize);
 
 void putGuiPool(AsyncEvent* ac)
 {
@@ -146,6 +148,10 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 {
     WebView* webview = (WebView*)dwRefData;
     switch (uMsg) {
+    case WM_COMMAND: {
+        on_click_menu(LOWORD(wParam));
+        break;
+    }
     case WM_DPICHANGED: {
         GetDPI(hWnd, &dpix, &dpiy);
         break;
@@ -270,12 +276,6 @@ void WebView::config()
     if (m_options->height.has_value())
         nHeight = m_options->height.value();
 
-    if (m_icon) {
-        HICON hIcon = LoadPngIcon(m_icon->data(), m_icon->length());
-        if (hIcon)
-            SendMessage(hWndParent, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
-    }
-
     if (!m_options->fullscreen.value()) {
         if (m_options->frame.value()) {
             dwStyle |= WS_THICKFRAME;
@@ -321,6 +321,18 @@ void WebView::config()
         y = (actualDesktop.bottom - nHeight) / 2;
 
     SetWindowSubclass(hWndParent, &mySubClassProc, 1, (DWORD_PTR)this);
+
+    if (m_options->menu.has_value()) {
+        HMENU hMenu = (HMENU)m_options->menu.value()->create_os_menu(false);
+        if (hMenu)
+            SetMenu(hWndParent, hMenu);
+    }
+
+    if (m_icon) {
+        HICON hIcon = LoadPngIcon(m_icon->data(), m_icon->length());
+        if (hIcon)
+            SendMessage(hWndParent, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+    }
 
     if (m_options->fullscreen.value()) {
         SetWindowPos(hWndParent, HWND_TOP, 0, 0, actualDesktop.right, actualDesktop.bottom, 0);

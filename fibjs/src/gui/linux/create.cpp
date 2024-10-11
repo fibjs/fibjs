@@ -95,7 +95,9 @@ result_t WebView::createWebView()
 
     g_signal_connect(webview, "notify::title", G_CALLBACK(handle_title_change), this);
 
-    gtk_container_add(GTK_CONTAINER(window), webview);
+    GtkWidget* vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), webview, TRUE, TRUE, 0);
+    gtk_container_add(GTK_CONTAINER(window), vbox);
 
     if (m_options->devtools.value()) {
         WebKitSettings* settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(webview));

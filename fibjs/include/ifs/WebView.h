@@ -17,6 +17,7 @@
 namespace fibjs {
 
 class EventEmitter_base;
+class Menu_base;
 
 class WebView_base : public EventEmitter_base {
     DECLARE_CLASS(WebView_base);
@@ -33,6 +34,7 @@ public:
     virtual result_t eval(exlib::string code, AsyncEvent* ac) = 0;
     virtual result_t setTitle(exlib::string title, AsyncEvent* ac) = 0;
     virtual result_t getTitle(exlib::string& retVal, AsyncEvent* ac) = 0;
+    virtual result_t getMenu(obj_ptr<Menu_base>& retVal) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac) = 0;
     virtual result_t get_onopen(v8::Local<v8::Function>& retVal) = 0;
@@ -70,6 +72,7 @@ public:
     static void s_eval(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setTitle(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getTitle(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getMenu(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_onopen(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -103,6 +106,8 @@ public:
 };
 }
 
+#include "ifs/Menu.h"
+
 namespace fibjs {
 inline ClassInfo& WebView_base::class_info()
 {
@@ -117,6 +122,7 @@ inline ClassInfo& WebView_base::class_info()
         { "eval", s_eval, false, ClassData::ASYNC_ASYNC },
         { "setTitle", s_setTitle, false, ClassData::ASYNC_ASYNC },
         { "getTitle", s_getTitle, false, ClassData::ASYNC_ASYNC },
+        { "getMenu", s_getMenu, false, ClassData::ASYNC_SYNC },
         { "close", s_close, false, ClassData::ASYNC_ASYNC },
         { "postMessage", s_postMessage, false, ClassData::ASYNC_ASYNC }
     };
@@ -302,6 +308,20 @@ inline void WebView_base::s_getTitle(const v8::FunctionCallbackInfo<v8::Value>& 
         hr = pInst->acb_getTitle(cb, args);
     else
         hr = pInst->ac_getTitle(vr);
+
+    METHOD_RETURN();
+}
+
+inline void WebView_base::s_getMenu(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Menu_base> vr;
+
+    METHOD_INSTANCE(WebView_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->getMenu(vr);
 
     METHOD_RETURN();
 }

@@ -280,6 +280,240 @@ GtkStyleContext* gtk_widget_get_style_context(GtkWidget* widget)
     return s_gtk_widget_get_style_context(widget);
 }
 
+GType gtk_box_get_type(void)
+{
+    gtk_func(gtk_box_get_type);
+    return s_gtk_box_get_type();
+}
+
+void g_list_free(GList* list)
+{
+    gtk_func(g_list_free);
+    s_g_list_free(list);
+}
+
+gpointer g_object_ref(gpointer object)
+{
+    gtk_func(g_object_ref);
+    return s_g_object_ref(object);
+}
+
+gboolean g_type_check_instance_is_a(GTypeInstance* instance, GType iface_type)
+{
+    gtk_func(g_type_check_instance_is_a);
+    return s_g_type_check_instance_is_a(instance, iface_type);
+}
+
+int gdk_pixbuf_get_height(const GdkPixbuf* pixbuf)
+{
+    gtk_func(gdk_pixbuf_get_height);
+    return s_gdk_pixbuf_get_height(pixbuf);
+}
+
+int gdk_pixbuf_get_width(const GdkPixbuf* pixbuf)
+{
+    gtk_func(gdk_pixbuf_get_width);
+    return s_gdk_pixbuf_get_width(pixbuf);
+}
+
+gboolean gdk_pixbuf_loader_close(GdkPixbufLoader* loader, GError** error)
+{
+    gtk_func(gdk_pixbuf_loader_close);
+    return s_gdk_pixbuf_loader_close(loader, error);
+}
+
+GdkPixbuf* gdk_pixbuf_loader_get_pixbuf(GdkPixbufLoader* loader)
+{
+    gtk_func(gdk_pixbuf_loader_get_pixbuf);
+    return s_gdk_pixbuf_loader_get_pixbuf(loader);
+}
+
+GdkPixbufLoader* gdk_pixbuf_loader_new(void)
+{
+    gtk_func(gdk_pixbuf_loader_new);
+    return s_gdk_pixbuf_loader_new();
+}
+
+gboolean gdk_pixbuf_loader_write(GdkPixbufLoader* loader, const guchar* buf, gsize count, GError** error)
+{
+    gtk_func(gdk_pixbuf_loader_write);
+    return s_gdk_pixbuf_loader_write(loader, buf, count, error);
+}
+
+GdkPixbuf* gdk_pixbuf_scale_simple(const GdkPixbuf* src, int dest_width, int dest_height, GdkInterpType interp_type)
+{
+    gtk_func(gdk_pixbuf_scale_simple);
+    return s_gdk_pixbuf_scale_simple(src, dest_width, dest_height, interp_type);
+}
+
+GtkWidget* gtk_bin_get_child(GtkBin* bin)
+{
+    gtk_func(gtk_bin_get_child);
+    return s_gtk_bin_get_child(bin);
+}
+
+GType gtk_bin_get_type(void)
+{
+    gtk_func(gtk_bin_get_type);
+    return s_gtk_bin_get_type();
+}
+
+void gtk_box_pack_start(GtkBox* box, GtkWidget* child, gboolean expand, gboolean fill, guint padding)
+{
+    gtk_func(gtk_box_pack_start);
+    s_gtk_box_pack_start(box, child, expand, fill, padding);
+}
+
+void gtk_box_reorder_child(GtkBox* box, GtkWidget* child, gint position)
+{
+    gtk_func(gtk_box_reorder_child);
+    s_gtk_box_reorder_child(box, child, position);
+}
+
+gboolean gtk_check_menu_item_get_active(GtkCheckMenuItem* check_menu_item)
+{
+    gtk_func(gtk_check_menu_item_get_active);
+    return s_gtk_check_menu_item_get_active(check_menu_item);
+}
+
+GType gtk_check_menu_item_get_type(void)
+{
+    gtk_func(gtk_check_menu_item_get_type);
+    return s_gtk_check_menu_item_get_type();
+}
+
+GtkWidget* gtk_check_menu_item_new(void)
+{
+    gtk_func(gtk_check_menu_item_new);
+    return s_gtk_check_menu_item_new();
+}
+
+void gtk_check_menu_item_set_active(GtkCheckMenuItem* check_menu_item, gboolean is_active)
+{
+    gtk_func(gtk_check_menu_item_set_active);
+    s_gtk_check_menu_item_set_active(check_menu_item, is_active);
+}
+
+GList* gtk_container_get_children(GtkContainer* container)
+{
+    gtk_func(gtk_container_get_children);
+    return s_gtk_container_get_children(container);
+}
+
+GtkWidget* gtk_image_new_from_pixbuf(GdkPixbuf* pixbuf)
+{
+    gtk_func(gtk_image_new_from_pixbuf);
+    return s_gtk_image_new_from_pixbuf(pixbuf);
+}
+
+GType gtk_label_get_type(void)
+{
+    gtk_func(gtk_label_get_type);
+    return s_gtk_label_get_type();
+}
+
+GtkWidget* gtk_label_new(const gchar* str)
+{
+    gtk_func(gtk_label_new);
+    return s_gtk_label_new(str);
+}
+
+void gtk_label_set_text(GtkLabel* label, const gchar* str)
+{
+    gtk_func(gtk_label_set_text);
+    s_gtk_label_set_text(label, str);
+}
+
+GtkWidget* gtk_menu_bar_new(void)
+{
+    gtk_func(gtk_menu_bar_new);
+    return s_gtk_menu_bar_new();
+}
+
+GType gtk_menu_item_get_type(void)
+{
+    gtk_func(gtk_menu_item_get_type);
+    return s_gtk_menu_item_get_type();
+}
+
+GtkWidget* gtk_menu_item_new(void)
+{
+    gtk_func(gtk_menu_item_new);
+    return s_gtk_menu_item_new();
+}
+
+void gtk_menu_item_set_submenu(GtkMenuItem* menu_item, GtkWidget* submenu)
+{
+    gtk_func(gtk_menu_item_set_submenu);
+    s_gtk_menu_item_set_submenu(menu_item, submenu);
+}
+
+GtkWidget* gtk_menu_new(void)
+{
+    gtk_func(gtk_menu_new);
+    return s_gtk_menu_new();
+}
+
+void gtk_menu_shell_append(GtkMenuShell* menu_shell, GtkWidget* child)
+{
+    gtk_func(gtk_menu_shell_append);
+    s_gtk_menu_shell_append(menu_shell, child);
+}
+
+GType gtk_menu_shell_get_type(void)
+{
+    gtk_func(gtk_menu_shell_get_type);
+    return s_gtk_menu_shell_get_type();
+}
+
+GtkWidget* gtk_separator_menu_item_new(void)
+{
+    gtk_func(gtk_separator_menu_item_new);
+    return s_gtk_separator_menu_item_new();
+}
+
+const PangoFontDescription* gtk_style_context_get_font(GtkStyleContext* context, GtkStateFlags state)
+{
+    gtk_func(gtk_style_context_get_font);
+    return s_gtk_style_context_get_font(context, state);
+}
+
+void gtk_widget_override_font(GtkWidget* widget, const PangoFontDescription* font_desc)
+{
+    gtk_func(gtk_widget_override_font);
+    s_gtk_widget_override_font(widget, font_desc);
+}
+
+void gtk_widget_set_margin_bottom(GtkWidget* widget, gint margin)
+{
+    gtk_func(gtk_widget_set_margin_bottom);
+    s_gtk_widget_set_margin_bottom(widget, margin);
+}
+
+void gtk_widget_set_margin_top(GtkWidget* widget, gint margin)
+{
+    gtk_func(gtk_widget_set_margin_top);
+    s_gtk_widget_set_margin_top(widget, margin);
+}
+
+void gtk_widget_set_sensitive(GtkWidget* widget, gboolean sensitive)
+{
+    gtk_func(gtk_widget_set_sensitive);
+    s_gtk_widget_set_sensitive(widget, sensitive);
+}
+
+void gtk_widget_set_tooltip_text(GtkWidget* widget, const gchar* text)
+{
+    gtk_func(gtk_widget_set_tooltip_text);
+    s_gtk_widget_set_tooltip_text(widget, text);
+}
+
+void gtk_widget_show(GtkWidget* widget)
+{
+    gtk_func(gtk_widget_show);
+    s_gtk_widget_show(widget);
+}
+
 GMainLoop* g_main_loop_new(GMainContext* context, gboolean is_running)
 {
     gtk_func(g_main_loop_new);

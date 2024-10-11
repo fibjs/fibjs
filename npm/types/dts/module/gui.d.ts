@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/WebView.d.ts" />
+/// <reference path="../interface/Menu.d.ts" />
 /**
  * @description gui 模块
  * 
@@ -91,6 +92,42 @@ declare module 'gui' {
      * 	
      */
     function open(opt?: FIBJS.GeneralObject): Class_WebView;
+
+    /**
+     * @description 创建一个菜单对象
+     * 
+     *     菜单项支持以下类型：
+     *     - normal
+     *         - type: "normal"
+     *         - label: 必需
+     *         - tooltip, icon, enabled: 可选
+     *         - 不能有 submenu 或 checked
+     *     - checkbox
+     *         - type: "checkbox"
+     *         - label: 必需
+     *         - checked: 可选
+     *         - tooltip, icon, enabled: 可选
+     *         - 不能有 submenu
+     *     - submenu
+     *         - type: "submenu"
+     *         - label, submenu: 必需
+     *         - tooltip, icon, enabled: 可选
+     *         - 不能有 checked
+     *     - separator
+     *         - type: "separator"
+     *         - 不能有 label、submenu、checked、icon 或 tooltip
+     * 
+     *     如果菜单项未指定 type，则根据其它属性自动判断类型。识别策略如下：
+     *     - 如果存在 submenu 属性，则将 type 设置为 "submenu"。
+     *     - 如果存在 checked 属性，则将 type 设置为 "checkbox"。
+     *     - 如果传入的对象为空，则将 type 设置为 "separator"。
+     *     - 如果以上条件都不满足，则将 type 设置为 "normal"。
+     * 
+     *      @param items 菜单项数组
+     *      @return 返回创建的菜单对象
+     *     
+     */
+    function createMenu(items?: any[]): Class_Menu;
 
 }
 
