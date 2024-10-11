@@ -17,6 +17,7 @@ namespace fibjs {
 
 class WebView_base;
 class Menu_base;
+class Tray_base;
 
 class gui_base : public object_base {
     DECLARE_CLASS(gui_base);
@@ -27,6 +28,7 @@ public:
     static result_t open(v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal);
     static result_t openFile(exlib::string file, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal);
     static result_t createMenu(v8::Local<v8::Array> items, obj_ptr<Menu_base>& retVal);
+    static result_t createTray(v8::Local<v8::Object> opt, obj_ptr<Tray_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -41,11 +43,13 @@ public:
     static void s_static_open(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_openFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createMenu(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_createTray(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 }
 
 #include "ifs/WebView.h"
 #include "ifs/Menu.h"
+#include "ifs/Tray.h"
 
 namespace fibjs {
 inline ClassInfo& gui_base::class_info()
@@ -53,7 +57,8 @@ inline ClassInfo& gui_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "open", s_static_open, true, ClassData::ASYNC_SYNC },
         { "openFile", s_static_openFile, true, ClassData::ASYNC_SYNC },
-        { "createMenu", s_static_createMenu, true, ClassData::ASYNC_SYNC }
+        { "createMenu", s_static_createMenu, true, ClassData::ASYNC_SYNC },
+        { "createTray", s_static_createTray, true, ClassData::ASYNC_SYNC }
     };
 
     static ClassData s_cd = {
@@ -116,6 +121,21 @@ inline void gui_base::s_static_createMenu(const v8::FunctionCallbackInfo<v8::Val
     OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate->m_isolate));
 
     hr = createMenu(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void gui_base::s_static_createTray(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Tray_base> vr;
+
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+
+    hr = createTray(v0, vr);
 
     METHOD_RETURN();
 }

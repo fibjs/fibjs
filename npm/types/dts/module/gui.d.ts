@@ -1,6 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/WebView.d.ts" />
 /// <reference path="../interface/Menu.d.ts" />
+/// <reference path="../interface/Tray.d.ts" />
 /**
  * @description gui 模块
  * 
@@ -128,6 +129,24 @@ declare module 'gui' {
      *     
      */
     function createMenu(items?: any[]): Class_Menu;
+
+    /**
+     * @description 创建一个状态图标对象
+     * 
+     *      支持以下参数:
+     *      ```JavaScript
+     *      {
+     *          "icon": "/path/to/file.png", // specify the icon of the tray, must be a png file
+     *          "title": "", // specify the title of the tray, if not set, it will not be displayed
+     *          "tooltip": "", // specify the tooltip of the tray, if not set, it will not be displayed
+     *          "menu": menu, // specify the menu of the tray, default is null
+     *      }
+     *      ```
+     *      @param opt 创建状态图标参数
+     *      @return 返回创建的状态图标对象
+     *     
+     */
+    function createTray(opt?: FIBJS.GeneralObject): Class_Tray;
 
 }
 

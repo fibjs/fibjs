@@ -467,6 +467,12 @@ GType gtk_menu_shell_get_type(void)
     return s_gtk_menu_shell_get_type();
 }
 
+GType gtk_menu_get_type(void)
+{
+    gtk_func(gtk_menu_get_type);
+    return s_gtk_menu_get_type();
+}
+
 GtkWidget* gtk_separator_menu_item_new(void)
 {
     gtk_func(gtk_separator_menu_item_new);

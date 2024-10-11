@@ -48,6 +48,11 @@ result_t gui_base::createMenu(v8::Local<v8::Array> items, obj_ptr<Menu_base>& re
     return Runtime::setError("Menu not supported in this platform");
 }
 
+result_t gui_base::createTray(v8::Local<v8::Object> opt, obj_ptr<Tray_base>& retVal)
+{
+    return Runtime::setError("Tray not supported in this platform");
+}
+
 }
 
 #endif

@@ -1,0 +1,11 @@
+/*! @brief 系统状态图标，用于在系统托盘中显示一个图标 */
+interface Tray : EventEmitter
+{
+    /*! @brief 查询状态图标的菜单
+     @return 返回状态图标的菜单
+    */
+    Menu getMenu();
+
+    /*! @brief 关闭状态图标 */
+    close() async;
+};

@@ -186,7 +186,6 @@ void WebView::run_os_gui(exlib::Event& gui_ready)
 {
     @autoreleasepool {
         GuiApplication* app = [GuiApplication sharedApplication];
-        [app setActivationPolicy:NSApplicationActivationPolicyRegular];
         [app finishLaunching];
         [app activateIgnoringOtherApps:YES];
 
@@ -276,6 +275,9 @@ void WebView::config()
     x = screen_rect.origin.x + x;
     y = screen_rect.size.height + screen_rect.origin.y - (nHeight + y);
 
+    if (++s_window_count == 1)
+        [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
+
     window.styleMask = mask;
 
     if (m_options->fullscreen.value()) {
@@ -300,9 +302,6 @@ void WebView::config()
     }
 
     [window makeKeyAndOrderFront:window];
-
-    if (++s_window_count == 1)
-        [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
 
     [[GuiApplication sharedApplication] activateIgnoringOtherApps:YES];
 
