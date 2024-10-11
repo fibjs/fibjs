@@ -34,6 +34,12 @@ gboolean gtk_init_check(int* argc, char*** argv)
     return s_gtk_init_check(argc, argv);
 }
 
+void gtk_window_set_icon(GtkWindow* window, GdkPixbuf* icon)
+{
+    gtk_func(gtk_window_set_icon);
+    s_gtk_window_set_icon(window, icon);
+}
+
 void gtk_window_set_resizable(GtkWindow* window, gboolean resizable)
 {
     gtk_func(gtk_window_set_resizable);

@@ -245,6 +245,16 @@ void WebView::config()
     else
         gtk_window_resize(window, nWidth, nHeight);
 
+    if (m_icon) {
+        GdkPixbufLoader* loader = gdk_pixbuf_loader_new();
+        gdk_pixbuf_loader_write(loader, m_icon->data(), m_icon->length(), NULL);
+        gdk_pixbuf_loader_close(loader, NULL);
+        GdkPixbuf* pixbuf = gdk_pixbuf_loader_get_pixbuf(loader);
+        if (pixbuf)
+            gtk_window_set_icon(GTK_WINDOW(window), pixbuf);
+        g_object_unref(loader);
+    }
+
     gtk_widget_show_all(GTK_WIDGET(window));
 
     gtk_window_get_position(window, &m_x, &m_y);
