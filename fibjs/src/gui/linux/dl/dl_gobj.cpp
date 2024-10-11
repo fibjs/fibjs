@@ -40,6 +40,12 @@ void g_free(gpointer mem)
     s_g_free(mem);
 }
 
+void* g_malloc(gsize n_bytes)
+{
+    gobj_func(g_malloc);
+    return s_g_malloc(n_bytes);
+}
+
 gulong g_signal_connect_data(gpointer instance, const gchar* detailed_signal, GCallback c_handler,
     gpointer data, GClosureNotify destroy_data, GConnectFlags connect_flags)
 {

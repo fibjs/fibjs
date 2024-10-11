@@ -78,6 +78,18 @@ JSCValue* webkit_javascript_result_get_js_value(WebKitJavascriptResult* js_resul
     return s_webkit_javascript_result_get_js_value(js_result);
 }
 
+JSGlobalContextRef webkit_javascript_result_get_global_context(WebKitJavascriptResult* js_result)
+{
+    webkit_func(webkit_javascript_result_get_global_context);
+    return s_webkit_javascript_result_get_global_context(js_result);
+}
+
+JSValueRef webkit_javascript_result_get_value(WebKitJavascriptResult* js_result)
+{
+    webkit_func(webkit_javascript_result_get_value);
+    return s_webkit_javascript_result_get_value(js_result);
+}
+
 void webkit_web_view_load_uri(WebKitWebView* web_view, const gchar* uri)
 {
     webkit_func(webkit_web_view_load_uri);

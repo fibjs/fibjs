@@ -12,6 +12,7 @@
 #include <glib.h>
 #include <gtk/gtk.h>
 #include <webkit2/webkit2.h>
+#include <JavaScriptCore/JavaScript.h>
 
 #include "object.h"
 #include "ifs/gui.h"
@@ -21,11 +22,28 @@
 
 namespace fibjs {
 
+static char* get_string_from_js_result(WebKitJavascriptResult* r)
+{
+    char* s;
+
+    // JSCValue* value = webkit_javascript_result_get_js_value(r);
+    // s = jsc_value_to_string(value);
+
+    JSGlobalContextRef ctx = webkit_javascript_result_get_global_context(r);
+    JSValueRef value = webkit_javascript_result_get_value(r);
+    JSStringRef js = JSValueToStringCopy(ctx, value, nullptr);
+    size_t n = JSStringGetMaximumUTF8CStringSize(js);
+    s = g_new(char, n);
+    JSStringGetUTF8CString(js, s, n);
+    JSStringRelease(js);
+
+    return s;
+}
+
 static void handle_message(WebKitUserContentManager* manager, WebKitJavascriptResult* js_result,
     gpointer user_data)
 {
-    JSCValue* value = webkit_javascript_result_get_js_value(js_result);
-    gchar* value_str = jsc_value_to_string(value);
+    gchar* value_str = get_string_from_js_result(js_result);
 
     WebView* _webView = (WebView*)user_data;
     obj_ptr<EventInfo> ei = new EventInfo(_webView, "message");
@@ -38,8 +56,7 @@ static void handle_message(WebKitUserContentManager* manager, WebKitJavascriptRe
 static void handle_command(WebKitUserContentManager* manager, WebKitJavascriptResult* js_result,
     gpointer user_data)
 {
-    JSCValue* value = webkit_javascript_result_get_js_value(js_result);
-    gchar* value_str = jsc_value_to_string(value);
+    gchar* value_str = get_string_from_js_result(js_result);
 
     if (strcmp(value_str, "close") == 0) {
         WebView* _webView = (WebView*)user_data;
@@ -61,6 +78,8 @@ static void handle_command(WebKitUserContentManager* manager, WebKitJavascriptRe
         WebView* _webView = (WebView*)user_data;
         gtk_window_begin_move_drag(GTK_WINDOW(_webView->m_window), 1, x, y, 0);
     }
+
+    g_free(value_str);
 }
 
 static void handle_title_change(WebKitWebView* webview, GParamSpec* pspec, gpointer user_data)
