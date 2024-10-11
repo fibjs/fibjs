@@ -10,19 +10,12 @@
 #if defined(Linux) && defined(OS_DESKTOP)
 
 #include <exlib/include/dl_func.h>
-#include "ldconfig.h"
 
 #define _GLIB_TEST_OVERFLOW_FALLBACK
 #include "app-indicator.h"
 
-const char* appindicator_str()
-{
-    static std::string str = ldconfig("appindicator3");
-    return str.c_str();
-}
-
 static void* appindicator_handle = NULL;
-#define appindicator_func(func) dl_def_func(appindicator_handle, func, appindicator_str())
+#define appindicator_func(func) dl_def_func(appindicator_handle, func, "libappindicator3.so.1")
 
 void dl_appindicator_init()
 {
