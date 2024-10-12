@@ -18,14 +18,15 @@ declare module 'gui' {
      *      支持以下参数:
      *      ```JavaScript
      *      {
-     *          "icon": "/path/to/file.png", // specify the icon of the window, default is system auto set
-     *          "left": 100, // specify the left position of the window, default is system auto set
-     *          "right": 100, // spcify the top position of the window, default is system auto set
+     *          "icon": "/path/to/file.png", // specify the icon of the window, not work in gtk4
+     *          "left": 100, // specify the left position of the window, default position is center of the screen, not work in gtk4
+     *          "right": 100, // spcify the top position of the window, default position is center of the screen, not work in gtk4
      *          "width": 100, // specify the width of the window, default is system auto set
      *          "height": 100, // specify the height of the window, default is system auto set
      *          "frame": true, // specify whether the window has frame, default is true
      *          "caption": true, // specify whether the window has caption, default is true, not work in linux
      *          "resizable": true, // specify whether the window is resizable, default is true
+     *          "menu": menu, // specify the menu of the window, can be a Menu object or a menu item array, default is null
      *          "maximize": false, // specify whether the window is maximized, default is false
      *          "fullscreen": false, // specify whether the window is fullscreen, default is false
      *          "devtools": false, // specify whether the DevTools in WebView is enabled, default is false
@@ -45,14 +46,15 @@ declare module 'gui' {
      *      支持以下参数:
      *      ```JavaScript
      *      {
-     *          "icon": "/path/to/file.png", // specify the icon of the window, default is system auto set
-     *          "left": 100, // specify the left position of the window, default is system auto set
-     *          "right": 100, // spcify the top position of the window, default is system auto set
+     *          "icon": "/path/to/file.png", // specify the icon of the window, not work in gtk4
+     *          "left": 100, // specify the left position of the window, default position is center of the screen, not work in gtk4
+     *          "right": 100, // spcify the top position of the window, default position is center of the screen, not work in gtk4
      *          "width": 100, // specify the width of the window, default is system auto set
      *          "height": 100, // specify the height of the window, default is system auto set
      *          "frame": true, // specify whether the window has frame, default is true
      *          "caption": true, // specify whether the window has caption, default is true, not work in linux
      *          "resizable": true, // specify whether the window is resizable, default is true
+     *          "menu": menu, // specify the menu of the window, can be a Menu object or a menu item array, default is null
      *          "maximize": false, // specify whether the window is maximized, default is false
      *          "fullscreen": false, // specify whether the window is fullscreen, default is false
      *          "devtools": false, // specify whether the DevTools in WebView is enabled, default is false
@@ -74,14 +76,15 @@ declare module 'gui' {
      *      {
      *          "url": , // specify the url of the window, default is about:blank
      *          "file": , // specify the file of the window
-     *          "icon": "/path/to/file.png", // specify the icon of the window, default is system auto set
-     *          "left": 100, // specify the left position of the window, default is system auto set
-     *          "right": 100, // spcify the top position of the window, default is system auto set
+     *          "icon": "/path/to/file.png", // specify the icon of the window, not work in gtk4
+     *          "left": 100, // specify the left position of the window, default position is center of the screen, not work in gtk4
+     *          "right": 100, // spcify the top position of the window, default position is center of the screen, not work in gtk4
      *          "width": 100, // specify the width of the window, default is system auto set
      *          "height": 100, // specify the height of the window, default is system auto set
      *          "frame": true, // specify whether the window has frame, default is true
      *          "caption": true, // specify whether the window has caption, default is true, not work in linux
      *          "resizable": true, // specify whether the window is resizable, default is true
+     *          "menu": menu, // specify the menu of the window, can be a Menu object or a menu item array, default is null
      *          "maximize": false, // specify whether the window is maximized, default is false
      *          "fullscreen": false, // specify whether the window is fullscreen, default is false
      *          "devtools": false, // specify whether the DevTools in WebView is enabled, default is false
