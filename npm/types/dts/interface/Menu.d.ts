@@ -1,5 +1,6 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/EventEmitter.d.ts" />
+/// <reference path="../interface/MenuItem.d.ts" />
 /**
  * @description 菜单管理对象，用于窗口显示菜单
  * 
@@ -82,6 +83,14 @@ declare class Class_Menu extends Class_EventEmitter {
      * @description 获取菜单项数量 
      */
     readonly length: number;
+
+    /**
+     * @description 获取菜单项，通过 id 获取菜单中的菜单项。
+     *      @param id 菜单项的 id
+     *      @return 菜单项对象，如果没有找到返回 null
+     *      
+     */
+    getMenuItemById(id: string): Class_MenuItem;
 
 
 }

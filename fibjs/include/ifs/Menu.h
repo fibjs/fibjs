@@ -28,6 +28,7 @@ public:
     virtual result_t insert(int32_t pos, v8::Local<v8::Object> item) = 0;
     virtual result_t remove(int32_t pos) = 0;
     virtual result_t get_length(int32_t& retVal) = 0;
+    virtual result_t getMenuItemById(exlib::string id, obj_ptr<MenuItem_base>& retVal) = 0;
     virtual result_t _indexed_getter(uint32_t index, obj_ptr<MenuItem_base>& retVal) = 0;
 
 public:
@@ -44,6 +45,7 @@ public:
     static void s_insert(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_remove(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_length(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getMenuItemById(const v8::FunctionCallbackInfo<v8::Value>& args);
     static v8::Intercepted i_IndexedGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& args);
 };
 }
@@ -56,7 +58,8 @@ inline ClassInfo& Menu_base::class_info()
     static ClassData::ClassMethod s_method[] = {
         { "append", s_append, false, ClassData::ASYNC_SYNC },
         { "insert", s_insert, false, ClassData::ASYNC_SYNC },
-        { "remove", s_remove, false, ClassData::ASYNC_SYNC }
+        { "remove", s_remove, false, ClassData::ASYNC_SYNC },
+        { "getMenuItemById", s_getMenuItemById, false, ClassData::ASYNC_SYNC }
     };
 
     static ClassData::ClassProperty s_property[] = {
@@ -131,6 +134,22 @@ inline void Menu_base::s_get_length(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_OVER(0, 0);
 
     hr = pInst->get_length(vr);
+
+    METHOD_RETURN();
+}
+
+inline void Menu_base::s_getMenuItemById(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<MenuItem_base> vr;
+
+    METHOD_INSTANCE(Menu_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = pInst->getMenuItemById(v0, vr);
 
     METHOD_RETURN();
 }

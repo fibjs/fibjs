@@ -915,6 +915,23 @@ describe("gui", () => {
                 assert.equal(menu[0].label, "Item 1");
                 assert.equal(menu[1].label, "Item 2");
             });
+
+            it("getMenuItemById", () => {
+                menu = gui.createMenu([
+                    { label: "Item 1", id: "item1" },
+                    { label: "Item 2", id: "item2" },
+                    {
+                        label: "submenu",
+                        submenu: [
+                            { label: "Item 3", id: "item3" }
+                        ]
+                    }
+
+                ]);
+                assert.equal(menu.getMenuItemById("item1").label, "Item 1");
+                assert.equal(menu.getMenuItemById("item2").label, "Item 2");
+                assert.equal(menu.getMenuItemById("item3").label, "Item 3");
+            });
         });
     });
 });

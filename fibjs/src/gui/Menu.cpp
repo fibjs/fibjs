@@ -324,6 +324,24 @@ result_t Menu::get_length(int32_t& retVal)
     return 0;
 }
 
+result_t Menu::getMenuItemById(exlib::string id, obj_ptr<MenuItem_base>& retVal)
+{
+    for (auto& item : m_items) {
+        if (item->id.value() == id) {
+            retVal = item;
+            return 0;
+        }
+
+        if (item->submenu.has_value()) {
+            result_t hr = item->submenu.value()->getMenuItemById(id, retVal);
+            if (hr == 0)
+                return 0;
+        }
+    }
+
+    return CALL_RETURN_NULL;
+}
+
 result_t Menu::_indexed_getter(uint32_t index, obj_ptr<MenuItem_base>& retVal)
 {
     if (index >= m_items.size())

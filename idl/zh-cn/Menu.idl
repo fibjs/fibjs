@@ -72,6 +72,12 @@ interface Menu : EventEmitter
     /*! @brief 获取菜单项数量 */
     readonly Integer length;
 
+    /*! @brief 获取菜单项，通过 id 获取菜单中的菜单项。
+     @param id 菜单项的 id
+     @return 菜单项对象，如果没有找到返回 null
+     */
+    MenuItem getMenuItemById(String id);
+
     /*! @brief 获取菜单项，通过索引获取菜单中的菜单项。
      @param index 菜单项的索引
      @return 菜单项对象

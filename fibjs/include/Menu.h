@@ -98,6 +98,7 @@ public:
     virtual result_t insert(int32_t pos, v8::Local<v8::Object> item);
     virtual result_t remove(int32_t pos);
     virtual result_t get_length(int32_t& retVal);
+    virtual result_t getMenuItemById(exlib::string id, obj_ptr<MenuItem_base>& retVal);
     virtual result_t _indexed_getter(uint32_t index, obj_ptr<MenuItem_base>& retVal);
 
 public:
