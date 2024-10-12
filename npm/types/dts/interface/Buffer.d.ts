@@ -694,6 +694,33 @@ declare class Class_Buffer extends Class_object {
     indexOf(v: string, offset?: number): number;
 
     /**
+     * @description 返回某个指定数据在 Buffer 中最后出现的位置
+     *      @param v 待查找数据，如果未指定 offset，默认从起始位开始
+     *      @param offset 起始查找位置
+     *      @return 返回查找到的位置，未找到返回 -1
+     *      
+     */
+    lastIndexOf(v: number, offset?: number): number;
+
+    /**
+     * @description 返回某个指定数据在 Buffer 中最后出现的位置
+     *      @param v 待查找数据，如果未指定 offset，默认从起始位开始
+     *      @param offset 起始查找位置
+     *      @return 返回查找到的位置，未找到返回 -1
+     *      
+     */
+    lastIndexOf(v: Class_Buffer, offset?: number): number;
+
+    /**
+     * @description 返回某个指定数据在 Buffer 中最后出现的位置
+     *      @param v 待查找数据，如果未指定 offset，默认从起始位开始
+     *      @param offset 起始查找位置
+     *      @return 返回查找到的位置，未找到返回 -1
+     *      
+     */
+    lastIndexOf(v: string, offset?: number): number;
+
+    /**
      * @description 返回一个新缓存对象，包含指定起始到缓存结尾的数据
      *      @param start 指定范围的起始，缺省从头开始
      *      @return 返回新的缓存对象

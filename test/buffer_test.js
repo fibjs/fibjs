@@ -1089,6 +1089,26 @@ describe('Buffer', () => {
 
     });
 
+    it('lastIndexOf', () => {
+        var buf = new Buffer([0x31, 0x32, 0x33, 0x34, 0x00]);
+        assert.equal(buf.lastIndexOf(0x33), 2);
+        assert.equal(buf.lastIndexOf(0x00), 4);
+
+        buf = new Buffer("cacdbfcde");
+
+        assert.equal(buf.lastIndexOf("cd"), 2);
+        assert.equal(buf.lastIndexOf(new Buffer("de")), 7);
+
+        buf = new Buffer('123456');
+        assert.equal(buf.lastIndexOf(0x33), 2);
+
+        buf = new Buffer([0x31, 0x32, 0x33, 0x34, 0x05, 0x36]);
+        assert.equal(buf.lastIndexOf(0x38, 3), -1);
+
+        buf = new Buffer([0x31, 0x32, 0x33, 0x34, 0x05, 0x00, 0x36, 0x37]);
+        assert.equal(buf.lastIndexOf(new Buffer([0x00, 0x36])), 5);
+    });
+
     var fixtures = [{
         "a": "ffff00",
         "expected": "00ffff"

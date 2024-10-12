@@ -98,6 +98,9 @@ public:
     virtual result_t indexOf(int32_t v, int32_t offset, int32_t& retVal) = 0;
     virtual result_t indexOf(Buffer_base* v, int32_t offset, int32_t& retVal) = 0;
     virtual result_t indexOf(exlib::string v, int32_t offset, int32_t& retVal) = 0;
+    virtual result_t lastIndexOf(int32_t v, int32_t offset, int32_t& retVal) = 0;
+    virtual result_t lastIndexOf(Buffer_base* v, int32_t offset, int32_t& retVal) = 0;
+    virtual result_t lastIndexOf(exlib::string v, int32_t offset, int32_t& retVal) = 0;
     virtual result_t slice(int32_t start, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal) = 0;
     virtual result_t equals(object_base* expected, bool& retVal) = 0;
@@ -172,6 +175,7 @@ public:
     static void s_writeDoubleLE(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_writeDoubleBE(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_indexOf(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_lastIndexOf(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_slice(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_equals(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_toString(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -242,6 +246,7 @@ inline ClassInfo& Buffer_base::class_info()
         { "writeDoubleLE", s_writeDoubleLE, false, ClassData::ASYNC_SYNC },
         { "writeDoubleBE", s_writeDoubleBE, false, ClassData::ASYNC_SYNC },
         { "indexOf", s_indexOf, false, ClassData::ASYNC_SYNC },
+        { "lastIndexOf", s_lastIndexOf, false, ClassData::ASYNC_SYNC },
         { "slice", s_slice, false, ClassData::ASYNC_SYNC },
         { "equals", s_equals, false, ClassData::ASYNC_SYNC },
         { "toString", s_toString, false, ClassData::ASYNC_SYNC },
@@ -1370,6 +1375,37 @@ inline void Buffer_base::s_indexOf(const v8::FunctionCallbackInfo<v8::Value>& ar
     OPT_ARG(int32_t, 1, 0);
 
     hr = pInst->indexOf(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void Buffer_base::s_lastIndexOf(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    METHOD_INSTANCE(Buffer_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(int32_t, 0);
+    OPT_ARG(int32_t, 1, 0);
+
+    hr = pInst->lastIndexOf(v0, v1, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<Buffer_base>, 0);
+    OPT_ARG(int32_t, 1, 0);
+
+    hr = pInst->lastIndexOf(v0, v1, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(int32_t, 1, 0);
+
+    hr = pInst->lastIndexOf(v0, v1, vr);
 
     METHOD_RETURN();
 }

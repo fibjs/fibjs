@@ -248,6 +248,9 @@ public:
     virtual result_t indexOf(int32_t v, int32_t offset, int32_t& retVal);
     virtual result_t indexOf(Buffer_base* v, int32_t offset, int32_t& retVal);
     virtual result_t indexOf(exlib::string v, int32_t offset, int32_t& retVal);
+    virtual result_t lastIndexOf(int32_t v, int32_t offset, int32_t& retVal);
+    virtual result_t lastIndexOf(Buffer_base* v, int32_t offset, int32_t& retVal);
+    virtual result_t lastIndexOf(exlib::string v, int32_t offset, int32_t& retVal);
     virtual result_t slice(int32_t start, obj_ptr<Buffer_base>& retVal);
     virtual result_t slice(int32_t start, int32_t end, obj_ptr<Buffer_base>& retVal);
     virtual result_t toString(exlib::string codec, int32_t offset, int32_t end, exlib::string& retVal);
@@ -281,6 +284,7 @@ private:
     static void proto_compare(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void proto_equals(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void proto_indexOf(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void proto_lastIndexOf(const v8::FunctionCallbackInfo<v8::Value>& args);
 
     static void proto_copy(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void proto_fill(const v8::FunctionCallbackInfo<v8::Value>& args);

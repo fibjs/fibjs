@@ -244,6 +244,7 @@ v8::Local<v8::Value> Buffer::load_module()
     js_buffer_proto->Set(context, isolate->NewString("compare"), isolate->NewFunction("compare", proto_compare)).IsJust();
     js_buffer_proto->Set(context, isolate->NewString("equals"), isolate->NewFunction("equals", proto_equals)).IsJust();
     js_buffer_proto->Set(context, isolate->NewString("indexOf"), isolate->NewFunction("indexOf", proto_indexOf)).IsJust();
+    js_buffer_proto->Set(context, isolate->NewString("lastIndexOf"), isolate->NewFunction("lastIndexOf", proto_indexOf)).IsJust();
 
     v8::Local<v8::Object> js_buffer_class = _buffer.As<v8::Object>();
     js_buffer_class->Set(context, isolate->NewString("compare"), isolate->NewFunction("compare", s_static_compare)).IsJust();
@@ -462,6 +463,37 @@ void Buffer::proto_indexOf(const v8::FunctionCallbackInfo<v8::Value>& args)
     OPT_ARG(int32_t, 1, 0);
 
     hr = pInst->indexOf(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+void Buffer::proto_lastIndexOf(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    int32_t vr;
+
+    BUFFER_INSTANCE();
+    METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(int32_t, 0);
+    OPT_ARG(int32_t, 1, 0);
+
+    hr = pInst->lastIndexOf(v0, v1, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(obj_ptr<Buffer>, 0);
+    OPT_ARG(int32_t, 1, 0);
+
+    hr = pInst->lastIndexOf(v0, v1, vr);
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(int32_t, 1, 0);
+
+    hr = pInst->lastIndexOf(v0, v1, vr);
 
     METHOD_RETURN();
 }
@@ -1054,7 +1086,7 @@ result_t Buffer::readNumber(int32_t offset, char* buf, int32_t size,
     if (hr < 0)                                                     \
         return hr;                                                  \
     if ((sz < 8) && (v & (((t)1) << (8 * sz - 1))))                 \
-        v |= ((t)-1) << (8 * sz);                                   \
+        v |= ((t) - 1) << (8 * sz);                                 \
     retVal = v;                                                     \
     return 0;
 
@@ -1358,6 +1390,69 @@ result_t Buffer::indexOf(exlib::string v, int32_t offset, int32_t& retVal)
         (const uint8_t*)v.c_str(), v.length());
 
     retVal = find ? (int32_t)(find - data()) : -1;
+    return 0;
+}
+
+result_t Buffer::lastIndexOf(int32_t v, int32_t offset, int32_t& retVal)
+{
+    int32_t buf_length = (int32_t)length();
+    result_t hr = validOffset(buf_length, offset);
+    if (hr < 0)
+        return CHECK_ERROR(hr);
+
+    const uint8_t* _data = data();
+
+    for (int32_t i = buf_length - 1; i >= offset; --i) {
+        if (_data[i] == (v & 255)) {
+            retVal = i;
+            return 0;
+        }
+    }
+
+    retVal = -1;
+    return 0;
+}
+
+result_t Buffer::lastIndexOf(Buffer_base* v, int32_t offset, int32_t& retVal)
+{
+    result_t hr = validOffset((int32_t)length(), offset);
+    if (hr < 0)
+        return CHECK_ERROR(hr);
+
+    Buffer* v_data = Buffer::Cast(v);
+    const uint8_t* _data = data();
+    const uint8_t* v_data_ptr = v_data->data();
+    int32_t v_length = v_data->length();
+
+    for (int32_t i = length() - v_length; i >= offset; --i) {
+        if (memcmp(_data + i, v_data_ptr, v_length) == 0) {
+            retVal = i;
+            return 0;
+        }
+    }
+
+    retVal = -1;
+    return 0;
+}
+
+result_t Buffer::lastIndexOf(exlib::string v, int32_t offset, int32_t& retVal)
+{
+    result_t hr = validOffset((int32_t)length(), offset);
+    if (hr < 0)
+        return CHECK_ERROR(hr);
+
+    const uint8_t* _data = data();
+    const uint8_t* v_data = (const uint8_t*)v.c_str();
+    int32_t v_length = v.length();
+
+    for (int32_t i = length() - v_length; i >= offset; --i) {
+        if (memcmp(_data + i, v_data, v_length) == 0) {
+            retVal = i;
+            return 0;
+        }
+    }
+
+    retVal = -1;
     return 0;
 }
 
