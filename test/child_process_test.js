@@ -176,6 +176,32 @@ describe("child_process", () => {
         assert.equal(stdout.readLine(), "hello, exec1");
     });
 
+    it("exec", () => {
+        var ret = child_process.exec("export a = 100");
+        assert.equal(ret.stdout, null);
+
+        if (process.platform == "win32") {
+            var ret = child_process.exec("echo hello");
+            assert.equal(ret.stdout, "hello\r\n");
+
+            var ret = child_process.exec(`echo "hello world"`);
+            assert.equal(ret.stdout, `"hello world"\r\n`);
+
+            var ret = child_process.exec(`echo "hello "world""`);
+            assert.equal(ret.stdout, `"hello "world""\r\n`);
+        }else
+        {
+            var ret = child_process.exec("echo hello");
+            assert.equal(ret.stdout, "hello\n");
+
+            var ret = child_process.exec(`echo "hello world"`);
+            assert.equal(ret.stdout, `hello world\n`);
+
+            var ret = child_process.exec(`echo "hello "world""`);
+            assert.equal(ret.stdout, `hello world\n`);
+        }
+    });
+
     xit("stdin/stdout stream", () => {
         var bs = child_process.spawn(cmd, [path.join(__dirname, 'process', 'exec.chargeable.js')]);
         var stdout = new io.BufferedStream(bs.stdout);

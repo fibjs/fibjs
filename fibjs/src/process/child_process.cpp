@@ -169,27 +169,50 @@ result_t child_process_base::execFile(exlib::string command, v8::Local<v8::Objec
 result_t child_process_base::exec(exlib::string command, v8::Local<v8::Object> options,
     obj_ptr<ExecType>& retVal, AsyncEvent* ac)
 {
+#ifdef _WIN32
+    const char* shell = "cmd.exe";
+#elif defined(__ANDROID__)
+    const char* shell = "/system/bin/sh";
+#else
+    const char* shell = "/bin/sh";
+#endif
+
     obj_ptr<ExecFileType>& _retVal = *((obj_ptr<ExecFileType>*)&retVal);
 
     if (ac->isSync()) {
         Isolate* isolate = Isolate::current(options);
         v8::Local<v8::Context> context = isolate->context();
-        obj_ptr<NArray> _args;
-        exlib::string cmd;
         v8::Local<v8::Array> args = v8::Array::New(isolate->m_isolate);
-        size_t i;
+        v8::Local<v8::Object> opts;
 
-        util_base::parseArgs(command, _args);
-        if (_args->m_array.size()) {
-            cmd = _args->m_array[0].string();
-            for (i = 1; i < _args->m_array.size(); i++)
-                args->Set(context, (int32_t)i - 1, _args->m_array[i]).IsJust();
-        }
+#ifdef _WIN32
+        args->Set(context, 0, isolate->NewString("/d")).IsJust();
+        args->Set(context, 1, isolate->NewString("/s")).IsJust();
+        args->Set(context, 2, isolate->NewString("/c")).IsJust();
+        args->Set(context, 3, isolate->NewString(command)).IsJust();
 
-        return execFile(cmd, args, options, _retVal, ac);
+        v8::Local<v8::String> windowsVerbatimArguments = isolate->NewString("windowsVerbatimArguments");
+        if (!options->Has(context, windowsVerbatimArguments).FromMaybe(false)) {
+            v8::Local<v8::Value> opts_;
+            obj_ptr<ChildProcess_base> cp;
+
+            util_base::clone(options, opts_);
+
+            opts = opts_.As<v8::Object>();
+            opts->Set(context, windowsVerbatimArguments, v8::True(isolate->m_isolate)).IsJust();
+        } else
+            opts = options;
+#else
+        args->Set(context, 0, isolate->NewString("-c")).IsJust();
+        args->Set(context, 1, isolate->NewString(command)).IsJust();
+
+        opts = options;
+#endif
+
+        return execFile(shell, args, opts, _retVal, ac);
     }
 
-    return execFile(command, v8::Local<v8::Array>(), options, _retVal, ac);
+    return execFile(shell, v8::Local<v8::Array>(), options, _retVal, ac);
 }
 
 result_t child_process_base::spawnSync(exlib::string command, v8::Local<v8::Array> args,
