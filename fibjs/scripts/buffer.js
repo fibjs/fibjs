@@ -1182,32 +1182,10 @@ class Buffer extends Uint8Array {
     }
 
     indexOf(val, byteOffset) {
-        if (typeof val === 'number')
-            return super.indexOf(val, byteOffset);
+        return -1;
+    }
 
-        if (typeof val === 'string')
-            val = encoding.decode(val);
-
-        let arrLength = this.length;
-        let valLength = val.length;
-
-        if (byteOffset === undefined)
-            byteOffset = 0;
-
-        let foundIndex = -1;
-        for (let i = byteOffset; i < arrLength; i++) {
-            if (this[i] === val[foundIndex === -1 ? 0 : i - foundIndex]) {
-                if (foundIndex === -1)
-                    foundIndex = i;
-                if (i - foundIndex + 1 === valLength)
-                    return foundIndex;
-            } else {
-                if (foundIndex !== -1)
-                    i -= i - foundIndex;
-                foundIndex = -1;
-            }
-        }
-
+    lastIndexOf(val, byteOffset) {
         return -1;
     }
 
