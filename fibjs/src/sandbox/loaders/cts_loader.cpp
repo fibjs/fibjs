@@ -21,7 +21,7 @@ result_t cts_Loader::ts_compile(Isolate* isolate, Buffer_base* src, obj_ptr<Buff
         _aramo = isolate->m_amaro.Get(isolate->m_isolate);
     else {
         v8::Local<v8::Value> _amaro_module;
-        isolate->m_topSandbox->require("amaro", "/builtin", _amaro_module);
+        isolate->m_topSandbox->require("internal/amaro", "/builtin", _amaro_module);
 
         _aramo = _amaro_module.As<v8::Object>()->Get(isolate->context(), isolate->NewString("transform")).FromMaybe(v8::Local<v8::Value>()).As<v8::Function>();
         isolate->m_amaro.Reset(isolate->m_isolate, _aramo);

@@ -24,7 +24,7 @@ declare module 'gui' {
      *          "width": 100, // specify the width of the window, default is system auto set
      *          "height": 100, // specify the height of the window, default is system auto set
      *          "frame": true, // specify whether the window has frame, default is true
-     *          "caption": true, // specify whether the window has caption, default is true, not work in linux
+     *          "caption": true, // specify whether the window has caption, default is true
      *          "resizable": true, // specify whether the window is resizable, default is true
      *          "menu": menu, // specify the menu of the window, can be a Menu object or a menu item array, default is null
      *          "maximize": false, // specify whether the window is maximized, default is false
@@ -52,7 +52,7 @@ declare module 'gui' {
      *          "width": 100, // specify the width of the window, default is system auto set
      *          "height": 100, // specify the height of the window, default is system auto set
      *          "frame": true, // specify whether the window has frame, default is true
-     *          "caption": true, // specify whether the window has caption, default is true, not work in linux
+     *          "caption": true, // specify whether the window has caption, default is true
      *          "resizable": true, // specify whether the window is resizable, default is true
      *          "menu": menu, // specify the menu of the window, can be a Menu object or a menu item array, default is null
      *          "maximize": false, // specify whether the window is maximized, default is false
@@ -82,7 +82,7 @@ declare module 'gui' {
      *          "width": 100, // specify the width of the window, default is system auto set
      *          "height": 100, // specify the height of the window, default is system auto set
      *          "frame": true, // specify whether the window has frame, default is true
-     *          "caption": true, // specify whether the window has caption, default is true, not work in linux
+     *          "caption": true, // specify whether the window has caption, default is true
      *          "resizable": true, // specify whether the window is resizable, default is true
      *          "menu": menu, // specify the menu of the window, can be a Menu object or a menu item array, default is null
      *          "maximize": false, // specify whether the window is maximized, default is false
