@@ -180,26 +180,49 @@ describe("child_process", () => {
         var ret = child_process.exec("export a = 100");
         assert.equal(ret.stdout, null);
 
-        if (process.platform == "win32") {
-            var ret = child_process.exec("echo hello");
-            assert.equal(ret.stdout, "hello\r\n");
+        var ret = child_process.exec("echo hello");
+        assert.equal(ret.stdout, "hello" + os.EOL);
 
+        if (process.platform == "win32") {
             var ret = child_process.exec(`echo "hello world"`);
             assert.equal(ret.stdout, `"hello world"\r\n`);
 
             var ret = child_process.exec(`echo "hello "world""`);
             assert.equal(ret.stdout, `"hello "world""\r\n`);
-        }else
-        {
-            var ret = child_process.exec("echo hello");
-            assert.equal(ret.stdout, "hello\n");
-
+        } else {
             var ret = child_process.exec(`echo "hello world"`);
             assert.equal(ret.stdout, `hello world\n`);
 
             var ret = child_process.exec(`echo "hello "world""`);
             assert.equal(ret.stdout, `hello world\n`);
         }
+    });
+
+    it("sh", () => {
+        const $ = child_process.sh;
+
+        var ret = $`echo hello`;
+        assert.equal(ret, "hello");
+
+        var word = "world";
+        var ret = $`echo ${word}`;
+        assert.equal(ret, "world");
+
+        var hello = "hello";
+        var ret = $`echo ${hello} ${word}`;
+        assert.equal(ret, "hello world");
+
+        var o = { a: 1, b: 2 };
+        var ret = $`echo ${o}`;
+        assert.equal(ret, '[object Object]');
+
+        var a = [1, 2, 3];
+        var ret = $`echo ${a}`;
+        assert.equal(ret, '1 2 3');
+
+        assert.throws(() => {
+            $`echo1 100`;
+        });
     });
 
     xit("stdin/stdout stream", () => {

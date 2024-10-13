@@ -28,17 +28,20 @@ public:
             v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
             retVal->Set(context, isolate->NewString("stdout"), GetReturnValue(isolate, stdout)).Check();
             retVal->Set(context, isolate->NewString("stderr"), GetReturnValue(isolate, stderr)).Check();
+            retVal->Set(context, isolate->NewString("exitCode"), GetReturnValue(isolate, exitCode)).Check();
         }
 
         virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
         {
             args.push_back(GetReturnValue(isolate, stdout));
             args.push_back(GetReturnValue(isolate, stderr));
+            args.push_back(GetReturnValue(isolate, exitCode));
         }
 
     public:
         Variant stdout;
         Variant stderr;
+        int32_t exitCode;
     };
     class ExecFileType : public NType {
     public:
@@ -47,17 +50,20 @@ public:
             v8::Local<v8::Context> context = retVal->GetCreationContextChecked();
             retVal->Set(context, isolate->NewString("stdout"), GetReturnValue(isolate, stdout)).Check();
             retVal->Set(context, isolate->NewString("stderr"), GetReturnValue(isolate, stderr)).Check();
+            retVal->Set(context, isolate->NewString("exitCode"), GetReturnValue(isolate, exitCode)).Check();
         }
 
         virtual void to_args(Isolate* isolate, std::vector<v8::Local<v8::Value>>& args)
         {
             args.push_back(GetReturnValue(isolate, stdout));
             args.push_back(GetReturnValue(isolate, stderr));
+            args.push_back(GetReturnValue(isolate, exitCode));
         }
 
     public:
         Variant stdout;
         Variant stderr;
+        int32_t exitCode;
     };
     class SpawnSyncType : public NType {
     public:
@@ -104,6 +110,7 @@ public:
     static result_t fork(exlib::string module, v8::Local<v8::Object> options, obj_ptr<ChildProcess_base>& retVal);
     static result_t run(exlib::string command, v8::Local<v8::Array> args, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac);
     static result_t run(exlib::string command, v8::Local<v8::Object> options, int32_t& retVal, AsyncEvent* ac);
+    static result_t sh(v8::Local<v8::Array> strings, OptArgs args, exlib::string& retVal, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -121,6 +128,7 @@ public:
     static void s_static_spawnSync(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_fork(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_run(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_sh(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
     ASYNC_STATICVALUE3(child_process_base, exec, exlib::string, v8::Local<v8::Object>, obj_ptr<ExecType>);
@@ -130,6 +138,7 @@ public:
     ASYNC_STATICVALUE3(child_process_base, spawnSync, exlib::string, v8::Local<v8::Object>, obj_ptr<SpawnSyncType>);
     ASYNC_STATICVALUE4(child_process_base, run, exlib::string, v8::Local<v8::Array>, v8::Local<v8::Object>, int32_t);
     ASYNC_STATICVALUE3(child_process_base, run, exlib::string, v8::Local<v8::Object>, int32_t);
+    ASYNC_STATICVALUE3(child_process_base, sh, v8::Local<v8::Array>, OptArgs, exlib::string);
 };
 }
 
@@ -144,7 +153,8 @@ inline ClassInfo& child_process_base::class_info()
         { "execFile", s_static_execFile, true, ClassData::ASYNC_ASYNC },
         { "spawnSync", s_static_spawnSync, true, ClassData::ASYNC_ASYNC },
         { "fork", s_static_fork, true, ClassData::ASYNC_SYNC },
-        { "run", s_static_run, true, ClassData::ASYNC_ASYNC }
+        { "run", s_static_run, true, ClassData::ASYNC_ASYNC },
+        { "sh", s_static_sh, true, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData s_cd = {
@@ -311,6 +321,25 @@ inline void child_process_base::s_static_run(const v8::FunctionCallbackInfo<v8::
         hr = acb_run(v0, v1, cb, args);
     else
         hr = ac_run(v0, v1, vr);
+
+    METHOD_RETURN();
+}
+
+inline void child_process_base::s_static_sh(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    ASYNC_METHOD_ENTER();
+
+    METHOD_OVER(-1, 1);
+
+    ARG(v8::Local<v8::Array>, 0);
+    ARG_LIST(1);
+
+    if (!cb.IsEmpty())
+        hr = acb_sh(v0, v1, cb, args);
+    else
+        hr = ac_sh(v0, v1, vr);
 
     METHOD_RETURN();
 }

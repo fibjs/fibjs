@@ -1,5 +1,5 @@
 /*
- * StringArray.h
+ * StringBuffer.h
  *
  *  Created on: Aug 2, 2012
  *      Author: lion
