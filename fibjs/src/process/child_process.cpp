@@ -12,6 +12,7 @@
 #include "ifs/child_process.h"
 #include "ChildProcess.h"
 #include "AsyncUV.h"
+#include <uv/include/uv.h>
 #include "MemoryStream.h"
 #include "encoding.h"
 #include "StringBuffer.h"
@@ -191,10 +192,39 @@ result_t child_process_base::exec(exlib::string command, v8::Local<v8::Object> o
         v8::Local<v8::Object> opts;
 
 #ifdef _WIN32
-        args->Set(context, 0, isolate->NewString("/d")).IsJust();
-        args->Set(context, 1, isolate->NewString("/s")).IsJust();
-        args->Set(context, 2, isolate->NewString("/c")).IsJust();
-        args->Set(context, 3, isolate->NewString(command)).IsJust();
+        static bool init = false;
+        static bool is_cmd_exe = false;
+
+        if (!init) {
+            size_t sz = 4096;
+            char* env_shell = (char*)malloc(sz);
+
+            if (uv_os_getenv("ComSpec", env_shell, &sz) == 0)
+                shell = env_shell;
+            else
+                free(env_shell);
+
+            int32_t len = strlen(shell);
+            if (len >= 7 && stricmp(shell + len - 7, "cmd.exe") == 0) {
+                if (len == 7 || isPathSlash(shell[len - 8]))
+                    is_cmd_exe = true;
+            } else if (len >= 3 && stricmp(shell + len - 3, "cmd") == 0) {
+                if (len == 3 || isPathSlash(shell[len - 4]))
+                    is_cmd_exe = true;
+            }
+
+            init = true;
+        }
+
+        if (is_cmd_exe) {
+            args->Set(context, 0, isolate->NewString("/d")).IsJust();
+            args->Set(context, 1, isolate->NewString("/s")).IsJust();
+            args->Set(context, 2, isolate->NewString("/c")).IsJust();
+            args->Set(context, 3, isolate->NewString(command)).IsJust();
+        } else {
+            args->Set(context, 0, isolate->NewString("/c")).IsJust();
+            args->Set(context, 1, isolate->NewString(command)).IsJust();
+        }
 
         v8::Local<v8::String> windowsVerbatimArguments = isolate->NewString("windowsVerbatimArguments");
         if (!options->Has(context, windowsVerbatimArguments).FromMaybe(false)) {
