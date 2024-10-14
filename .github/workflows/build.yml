@@ -152,4 +152,6 @@ jobs:
         # only test for release version now, some test cases cannot passed in debug mode
         if: ${{ matrix.type == 'release' && matrix.test != 'skip' }}
         shell: bash
+        env:
+          FORCE_COLOR: '1'
         run: . ./.github/workflows/test.sh

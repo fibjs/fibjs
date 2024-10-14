@@ -84,9 +84,27 @@ class color_initer {
 public:
     color_initer()
     {
-        bool isatty = false;
-        tty_base::isatty(_fileno(stdout), isatty);
-        if (isatty) {
+        bool color = false;
+        tty_base::isatty(_fileno(stdout), color);
+
+        char buf[4096];
+        size_t sz = sizeof(buf);
+        if (uv_os_getenv("NO_COLOR", buf, &sz) == 0) {
+            if (buf[0] != '\0')
+                color = false;
+
+            uv_os_unsetenv("NO_COLOR");
+        }
+
+        sz = sizeof(buf);
+        if (uv_os_getenv("FORCE_COLOR", buf, &sz) == 0) {
+            if (buf[0] != '\0')
+                color = true;
+
+            uv_os_unsetenv("FORCE_COLOR");
+        }
+
+        if (color) {
             COLOR_RESET = "\x1b[0m";
             COLOR_BLACK = "\x1b[0;30m"; /* Black */
             COLOR_RED = "\x1b[0;31m"; /* Red */
