@@ -9,15 +9,16 @@ var child_process = require('child_process');
 var zip = require('zip');
 var util = require('util');
 var coroutine = require('coroutine');
+var postject = require('./_helpers/postject');
 
 var execPath = process.execPath;
-var testPath = path.join(__dirname, path.basename(execPath));
-var unicodeTestPath = path.join(__dirname, "测试" + path.basename(execPath));
+const $ = child_process.sh;
+
+var inject = util.sync(postject.inject);
 
 describe("selfzip", () => {
     var path_cnt = 0;
     var paths = [];
-
 
     after(() => {
         paths.forEach(p => {
@@ -43,7 +44,12 @@ describe("selfzip", () => {
             ms.rewind();
 
             fs.copyFile(execPath, testPath);
-            fs.appendFile(testPath, ms.readAll());
+            inject(testPath, 'APP', ms.readAll(), {
+                sentinelFuse: "FIBJS_FUSE_fe21d3488eb4cdf267e5ea624f2006ce",
+                overwrite: true
+            });
+            if (process.platform === 'darwin')
+                $`codesign -s - ${testPath}`;
 
             if (process.platform !== 'win32')
                 fs.chmod(testPath, 511);
@@ -82,7 +88,12 @@ describe("selfzip", () => {
             ms.rewind();
 
             fs.copyFile(execPath, testPath);
-            fs.appendFile(testPath, ms.readAll());
+            inject(testPath, 'APP', ms.readAll(), {
+                sentinelFuse: "FIBJS_FUSE_fe21d3488eb4cdf267e5ea624f2006ce",
+                overwrite: true
+            });
+            if (process.platform === 'darwin')
+                $`codesign -s - ${testPath}`;
 
             if (process.platform !== 'win32')
                 fs.chmod(testPath, 511);

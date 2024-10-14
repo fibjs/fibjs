@@ -6,13 +6,19 @@
  */
 
 #include "object.h"
+#include "ifs/os.h"
+#include "ifs/fs.h"
+#include "ifs/process.h"
 #include "options.h"
 #include "Runtime.h"
 #include "fibjs.h"
-#include "ifs/os.h"
-#include "ifs/process.h"
+#include "Buffer.h"
 #include <locale.h>
 #include "include/libplatform/libplatform.h"
+
+#define POSTJECT_SENTINEL_FUSE "FIBJS_FUSE_fe21d3488eb4cdf267e5ea624f2006ce"
+#include "postject-api.h"
+#undef POSTJECT_SENTINEL_FUSE
 
 namespace fibjs {
 
@@ -83,14 +89,15 @@ void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), Isolat
             int32_t argc = m_argc;
             char** argv = m_argv.data();
 
+            const void* sea_data = nullptr;
+            size_t sea_size = 0;
+            if (postject_has_resource())
+                sea_data = postject_find_resource("APP", &sea_size, nullptr);
+
             exlib::string exePath;
             std::vector<char*> ptrArg;
-
-            process_base::get_execPath(exePath);
-
-            bool bZip;
-            ifZipFile(exePath, bZip);
-            if (bZip) {
+            if (sea_size > 0) {
+                process_base::get_execPath(exePath);
 
                 exePath.append(1, '$');
                 ptrArg.resize(argc + 1);
@@ -129,7 +136,15 @@ void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), Isolat
             init_argv(argc, argv);
 
             Isolate* isolate = new Isolate(m_fibjsEntry, g_exec_code);
-            isolate->sync([this, isolate]() -> int {
+            isolate->sync([this, isolate, sea_data, sea_size]() -> int {
+                if (sea_size > 0) {
+                    exlib::string exePath;
+                    process_base::get_execPath(exePath);
+
+                    obj_ptr<Buffer> data = new Buffer((const uint8_t*)sea_data, (int32_t)sea_size);
+                    fs_base::setZipFS(exePath, data);
+                }
+
                 return m_jsFiber(isolate);
             });
             exlib::Service::dispatch();
