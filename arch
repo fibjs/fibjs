@@ -2,4 +2,11 @@
 
 CUR=$(pwd)
 WORKS_DIR=$(dirname "$CUR")
-docker run -ti --rm -v ${WORKS_DIR}:${WORKS_DIR} fibjs/linux-build-env:$1 bash -c "cd ${CUR} && bash"
+
+if [ "$2" == "alpine" ]; then
+    IMAGE="fibjs/alpine-build-env:$1"
+else
+    IMAGE="fibjs/linux-build-env:$1"
+fi
+
+docker run -ti --rm -v ${WORKS_DIR}:${WORKS_DIR} $IMAGE bash -c "cd ${CUR} && bash"
