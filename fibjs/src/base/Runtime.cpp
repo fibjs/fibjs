@@ -91,12 +91,14 @@ void start(int32_t argc, char** argv, result_t (*jsEntryFiber)(Isolate*), Isolat
 
             const void* sea_data = nullptr;
             size_t sea_size = 0;
-            if (postject_has_resource())
+            char marker = postject_resource_marker();
+
+            if (marker == '1')
                 sea_data = postject_find_resource("APP", &sea_size, nullptr);
 
             exlib::string exePath;
             std::vector<char*> ptrArg;
-            if (sea_size > 0) {
+            if (sea_size > 0 || marker == '2') {
                 process_base::get_execPath(exePath);
 
                 exePath.append(1, '$');
