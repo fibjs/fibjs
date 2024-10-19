@@ -17,3 +17,4 @@ idl/__snapshots__
 tools/node_modules
 test/opt_tools_test/install_from_pkgjson/node_modules
 test/opt_tools_test/install_from_pkgjson/target_folder/node_modules
+test/_helpers/fib-inject/addon/fib-inject.node

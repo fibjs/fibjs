@@ -6,6 +6,7 @@
  */
 
 #include "object.h"
+#include <regex>
 #include "SandBox.h"
 #include "Buffer.h"
 #include "path.h"
@@ -65,6 +66,23 @@ result_t SandBox::run_main(exlib::string fname, v8::Local<v8::Array> argv)
         os_resolve(fname);
 
         hr = resolveFile(fname, "", bin, kCommonJS, fname, NULL);
+
+#ifdef _WIN32
+        if (hr >= 0) {
+            Buffer* b = Buffer::Cast(bin);
+            std::string str((const char*)b->data(), b->length());
+            std::regex pattern("\"\\$basedir\/([^\"]+)\" \"\\$@\"");
+            std::smatch match;
+
+            if (std::regex_search(str, match, pattern)) {
+                fname = "node_modules/.bin/" + match[1].str();
+                os_resolve(fname);
+
+                hr = loadFile(fname, bin);
+            }
+        }
+#endif
+
         if (hr >= 0) {
             Buffer* b = Buffer::Cast(bin);
             const char* pdata = (const char*)b->data();

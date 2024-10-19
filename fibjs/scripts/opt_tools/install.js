@@ -14,6 +14,7 @@ const untar = require('internal/helpers/untar');
 const helpers_pkg = require('internal/helpers/package');
 const helpers_string = require('internal/helpers/string');
 const versioning = require('internal/helpers/versioning');
+const win32_cli = require('internal/helpers/win32_cli');
 const CST = require('internal/constant');
 
 const DEPENDENCIES = 'dependencies';
@@ -611,9 +612,25 @@ function download_module() {
                         fs.mkdir(bin_path, { recursive: true });
 
                         try {
-                            fs.symlink(cli_file_r, cli_link);
-                            fs.chmod(cli_file, 0755);
-                        } catch (e) { }
+                            if (process.platform === 'win32') {
+                                const regex = /^#!\/usr\/bin\/(?:env\s+)?([^\s]+)$/gm;
+                                const script = fs.readTextFile(cli_file);
+                                const match = regex.exec(script);
+                                const sh = match ? match[1] : 'fibjs';
+
+                                const scripts = win32_cli(sh, cli_file_r);
+
+                                fs.writeFile(cli_link, scripts.sh);
+                                fs.writeFile(cli_link + ".cmd", scripts.cmd);
+                                fs.writeFile(cli_link + ".ps1", scripts.ps1);
+                            } else {
+                                fs.symlink(cli_file_r, cli_link);
+                                fs.chmod(cli_file, 0755);
+                            }
+                        } catch (e) {
+                            console.log(e);
+                        }
+
                         install_log("install cli:", cli_link);
                     });
                 }
