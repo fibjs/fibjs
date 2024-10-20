@@ -94,7 +94,7 @@ describe("selfzip", () => {
 
     function test_suite(name, compile, legacy) {
         if (!legacy) {
-            if (process.arch === 'mips64' || process.arch === 'loong64')
+            if (process.arch === 'mips64' || process.arch === 'loong64' || process.arch === 'riscv64')
                 return;
 
             if (process.versions.musl && process.arch === 'arm64')

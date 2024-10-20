@@ -1,6 +1,6 @@
 {
   "name": "fib-inject",
-  "version": "1.0.2",
+  "version": "2.0.1",
   "description": "fibjs binding for inject representation and classification.",
   "main": "index.js",
   "scripts": {
