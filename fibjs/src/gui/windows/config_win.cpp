@@ -187,6 +187,13 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         if (wParam == WA_ACTIVE || wParam == WA_CLICKACTIVE) {
             obj_ptr<EventInfo> ei = new EventInfo(webview, "focus");
             webview->_emit("focus", ei);
+
+            ICoreWebView2Controller* controller = (ICoreWebView2Controller*)GetWindowLongPtr(hWnd, 0);
+            if (controller != nullptr) {
+                DefSubclassProc(hWnd, uMsg, wParam, lParam);
+                controller->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC);
+                return 0;
+            }
         } else if (wParam == WA_INACTIVE) {
             obj_ptr<EventInfo> ei = new EventInfo(webview, "blur");
             webview->_emit("blur", ei);

@@ -69,6 +69,8 @@ result_t WebView::createWebView()
                 ICoreWebView2* webView = nullptr;
                 controller->get_CoreWebView2(&webView);
 
+                controller->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC);
+
                 if (!m_options->devtools.value()) {
                     ICoreWebView2Settings* settings = nullptr;
                     webView->get_Settings(&settings);

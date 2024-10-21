@@ -519,6 +519,71 @@ describe("gui", () => {
                 });
             });
         });
+
+        it("auto focus html", () => {
+            const win = gui.open({
+                width: 100,
+                height: 100
+            });
+            wins.push(win);
+
+            var received_message;
+            win.on("message", (msg) => {
+                received_message = msg.data;
+            });
+
+            win.eval(`window.postMessage(document.hasFocus()?"True":"False");`);
+
+            for (var i = 0; i < 1000; i++) {
+                coroutine.sleep(100);
+                win.eval(`window.postMessage(document.hasFocus()?"True":"False");`);
+                if (received_message == "True") {
+                    break;
+                }
+            }
+            win.close();
+
+            assert.equal(received_message, "True");
+        });
+
+        it("auto focus html after blur", () => {
+            const win = gui.open({
+                left: 100,
+                top: 100,
+                width: 100,
+                height: 100
+            });
+            wins.push(win);
+
+            win.setTitle("Test");
+
+            const win1 = gui.open({
+                left: 200,
+                top: 200,
+                width: 100,
+                height: 100
+            });
+            wins.push(win1);
+            win1.close();
+
+            var received_message;
+            win.on("message", (msg) => {
+                received_message = msg.data;
+            });
+
+            win.eval(`window.postMessage(document.hasFocus()?"True":"False");`);
+
+            for (var i = 0; i < 1000; i++) {
+                coroutine.sleep(100);
+                win.eval(`window.postMessage(document.hasFocus()?"True":"False");`);
+                if (received_message == "True") {
+                    break;
+                }
+            }
+            win.close();
+
+            assert.equal(received_message, "True");
+        });
     });
 
     describe("menu", () => {
