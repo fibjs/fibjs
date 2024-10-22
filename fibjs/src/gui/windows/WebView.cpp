@@ -62,6 +62,30 @@ result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
     return 0;
 }
 
+result_t WebView::getHtml(exlib::string& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    ICoreWebView2* webView = (ICoreWebView2*)m_webview;
+    webView->ExecuteScript(L"document.documentElement.outerHTML.toString()",
+        Microsoft::WRL::Callback<ICoreWebView2ExecuteScriptCompletedHandler>(
+            [&retVal, ac](HRESULT errorCode, LPCWSTR resultObjectAsJson) -> HRESULT {
+                if (SUCCEEDED(errorCode)) {
+                    std::string resultStr = utf16to8String((const char16_t*)resultObjectAsJson);
+                    nlohmann::json jsonResult = nlohmann::json::parse(resultStr);
+
+                    retVal = jsonResult.get<std::string>();
+                }
+                ac->post(0);
+                return S_OK;
+            })
+            .Get());
+
+    return CALL_E_PENDDING;
+}
+
 result_t WebView::reload(AsyncEvent* ac)
 {
     result_t hr = check_status(ac);

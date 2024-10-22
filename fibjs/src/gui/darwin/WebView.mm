@@ -54,6 +54,23 @@ result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
     return 0;
 }
 
+result_t WebView::getHtml(exlib::string& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    WKWebView* webView = (WKWebView*)m_webview;
+    [webView evaluateJavaScript:@"document.documentElement.outerHTML.toString()"
+              completionHandler:^(NSString* html, NSError* error) {
+                  if (error == nil)
+                      retVal = [html UTF8String];
+                  ac->post(0);
+              }];
+
+    return CALL_E_PENDDING;
+}
+
 result_t WebView::reload(AsyncEvent* ac)
 {
     result_t hr = check_status(ac);

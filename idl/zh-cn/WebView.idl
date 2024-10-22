@@ -69,6 +69,11 @@ interface WebView : EventEmitter
 	 */
     setHtml(String html) async;
 
+    /*! @brief 获取 webview 的页面 html
+     @return 返回 webview 的页面 html
+    */
+    String getHtml() async;
+
     /*! @brief 刷新当前页面 */
     reload() async;
 

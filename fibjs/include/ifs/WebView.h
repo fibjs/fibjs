@@ -28,6 +28,7 @@ public:
     virtual result_t loadFile(exlib::string file, AsyncEvent* ac) = 0;
     virtual result_t getUrl(exlib::string& retVal, AsyncEvent* ac) = 0;
     virtual result_t setHtml(exlib::string html, AsyncEvent* ac) = 0;
+    virtual result_t getHtml(exlib::string& retVal, AsyncEvent* ac) = 0;
     virtual result_t reload(AsyncEvent* ac) = 0;
     virtual result_t goBack(AsyncEvent* ac) = 0;
     virtual result_t goForward(AsyncEvent* ac) = 0;
@@ -72,6 +73,7 @@ public:
     static void s_loadFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getUrl(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setHtml(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getHtml(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_reload(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_goBack(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_goForward(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -107,6 +109,7 @@ public:
     ASYNC_MEMBER1(WebView_base, loadFile, exlib::string);
     ASYNC_MEMBERVALUE1(WebView_base, getUrl, exlib::string);
     ASYNC_MEMBER1(WebView_base, setHtml, exlib::string);
+    ASYNC_MEMBERVALUE1(WebView_base, getHtml, exlib::string);
     ASYNC_MEMBER0(WebView_base, reload);
     ASYNC_MEMBER0(WebView_base, goBack);
     ASYNC_MEMBER0(WebView_base, goForward);
@@ -134,6 +137,7 @@ inline ClassInfo& WebView_base::class_info()
         { "loadFile", s_loadFile, false, ClassData::ASYNC_ASYNC },
         { "getUrl", s_getUrl, false, ClassData::ASYNC_ASYNC },
         { "setHtml", s_setHtml, false, ClassData::ASYNC_ASYNC },
+        { "getHtml", s_getHtml, false, ClassData::ASYNC_ASYNC },
         { "reload", s_reload, false, ClassData::ASYNC_ASYNC },
         { "goBack", s_goBack, false, ClassData::ASYNC_ASYNC },
         { "goForward", s_goForward, false, ClassData::ASYNC_ASYNC },
@@ -238,6 +242,23 @@ inline void WebView_base::s_setHtml(const v8::FunctionCallbackInfo<v8::Value>& a
         hr = pInst->ac_setHtml(v0);
 
     METHOD_VOID();
+}
+
+inline void WebView_base::s_getHtml(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    exlib::string vr;
+
+    ASYNC_METHOD_INSTANCE(WebView_base);
+    ASYNC_METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_getHtml(cb, args);
+    else
+        hr = pInst->ac_getHtml(vr);
+
+    METHOD_RETURN();
 }
 
 inline void WebView_base::s_reload(const v8::FunctionCallbackInfo<v8::Value>& args)

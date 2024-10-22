@@ -90,6 +90,15 @@ declare class Class_WebView extends Class_EventEmitter {
     setHtml(html: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
+     * @description 获取 webview 的页面 html
+     *      @return 返回 webview 的页面 html
+     *     
+     */
+    getHtml(): string;
+
+    getHtml(callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    /**
      * @description 刷新当前页面 
      */
     reload(): void;

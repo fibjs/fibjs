@@ -86,6 +86,7 @@ public:
 
     virtual result_t getUrl(exlib::string& retVal, AsyncEvent* ac);
     virtual result_t setHtml(exlib::string html, AsyncEvent* ac);
+    virtual result_t getHtml(exlib::string& retVal, AsyncEvent* ac);
     virtual result_t reload(AsyncEvent* ac);
     virtual result_t goBack(AsyncEvent* ac);
     virtual result_t goForward(AsyncEvent* ac);

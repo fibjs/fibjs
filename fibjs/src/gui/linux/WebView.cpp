@@ -56,6 +56,50 @@ result_t WebView::setHtml(exlib::string html, AsyncEvent* ac)
     return 0;
 }
 
+struct gethtml_callback_data {
+public:
+    gethtml_callback_data(exlib::string& retVal, AsyncEvent* ac)
+        : m_retVal(retVal)
+        , m_ac(ac)
+    {
+    }
+
+    exlib::string& m_retVal;
+    AsyncEvent* m_ac;
+};
+
+void gethtml_cb(GObject* object, GAsyncResult* result, gpointer user_data)
+{
+    WebKitJavascriptResult* js_result = webkit_web_view_run_javascript_finish(WEBKIT_WEB_VIEW(object), result, nullptr);
+    gethtml_callback_data* data = static_cast<gethtml_callback_data*>(user_data);
+
+    if (js_result) {
+        JSCValue* value = webkit_javascript_result_get_js_value(js_result);
+        if (jsc_value_is_string(value)) {
+            gchar* str_value = jsc_value_to_string(value);
+            data->m_retVal = str_value;
+            g_free(str_value);
+        }
+        webkit_javascript_result_unref(js_result);
+    }
+
+    data->m_ac->post(0);
+
+    delete data;
+}
+
+result_t WebView::getHtml(exlib::string& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    WebKitWebView* webView = WEBKIT_WEB_VIEW(m_webview);
+    webkit_web_view_run_javascript(webView, "document.documentElement.outerHTML.toString()", nullptr, gethtml_cb, new gethtml_callback_data(retVal, ac));
+
+    return CALL_E_PENDDING;
+}
+
 result_t WebView::reload(AsyncEvent* ac)
 {
     result_t hr = check_status(ac);
@@ -88,18 +132,6 @@ result_t WebView::goForward(AsyncEvent* ac)
 
     return 0;
 }
-
-struct eval_callback_data {
-public:
-    eval_callback_data(Variant& retVal, AsyncEvent* ac)
-        : m_retVal(retVal)
-        , m_ac(ac)
-    {
-    }
-
-    Variant& m_retVal;
-    AsyncEvent* m_ac;
-};
 
 void jsc2Variant(JSCValue* value, Variant& retVal)
 {
@@ -136,6 +168,18 @@ void jsc2Variant(JSCValue* value, Variant& retVal)
         retVal = obj;
     }
 }
+
+struct eval_callback_data {
+public:
+    eval_callback_data(Variant& retVal, AsyncEvent* ac)
+        : m_retVal(retVal)
+        , m_ac(ac)
+    {
+    }
+
+    Variant& m_retVal;
+    AsyncEvent* m_ac;
+};
 
 void eval_cb(GObject* object, GAsyncResult* result, gpointer user_data)
 {

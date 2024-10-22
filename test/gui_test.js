@@ -59,6 +59,25 @@ describe("gui", () => {
             });
         });
 
+        it("html", () => {
+            const win = gui.open({
+                width: 100,
+                height: 100
+            });
+            wins.push(win);
+
+            win.setHtml("hello");
+
+            for (var i = 0; i < 1000; i++) {
+                coroutine.sleep(10);
+                if (win.getHtml().indexOf('hello') != -1) {
+                    break;
+                }
+            }
+
+            assert.equal(win.getHtml(), '<html><head></head><body>hello</body></html>');
+        });
+
         describe("eval", () => {
             it("eval and result", () => {
                 const o = {
