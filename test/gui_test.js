@@ -20,6 +20,10 @@ describe("gui", () => {
         });
     });
 
+    beforeEach(() => {
+        coroutine.sleep(100);
+    });
+
     describe("webview", () => {
         it("open and close", () => {
             const win = gui.open({
