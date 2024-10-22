@@ -177,6 +177,22 @@ declare class Class_WebView extends Class_EventEmitter {
     getPosition(callback: (err: Error | undefined | null, retVal: any[])=>any): void;
 
     /**
+     * @description 查询窗口是否是激活窗口
+     *      @return 返回窗口是否是激活窗口
+     *     
+     */
+    isActived(): boolean;
+
+    isActived(callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    /**
+     * @description 激活窗口 
+     */
+    active(): void;
+
+    active(callback: (err: Error | undefined | null)=>any): void;
+
+    /**
      * @description 查询窗口的菜单
      *      @return 返回窗口的菜单
      *     

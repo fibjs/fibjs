@@ -38,6 +38,8 @@ public:
     virtual result_t getSize(obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
     virtual result_t setPosition(int32_t left, int32_t top, AsyncEvent* ac) = 0;
     virtual result_t getPosition(obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t isActived(bool& retVal, AsyncEvent* ac) = 0;
+    virtual result_t active(AsyncEvent* ac) = 0;
     virtual result_t getMenu(obj_ptr<Menu_base>& retVal) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac) = 0;
@@ -80,6 +82,8 @@ public:
     static void s_getSize(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setPosition(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getPosition(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isActived(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_active(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getMenu(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -113,6 +117,8 @@ public:
     ASYNC_MEMBERVALUE1(WebView_base, getSize, obj_ptr<NArray>);
     ASYNC_MEMBER2(WebView_base, setPosition, int32_t, int32_t);
     ASYNC_MEMBERVALUE1(WebView_base, getPosition, obj_ptr<NArray>);
+    ASYNC_MEMBERVALUE1(WebView_base, isActived, bool);
+    ASYNC_MEMBER0(WebView_base, active);
     ASYNC_MEMBER0(WebView_base, close);
     ASYNC_MEMBER1(WebView_base, postMessage, exlib::string);
 };
@@ -138,6 +144,8 @@ inline ClassInfo& WebView_base::class_info()
         { "getSize", s_getSize, false, ClassData::ASYNC_ASYNC },
         { "setPosition", s_setPosition, false, ClassData::ASYNC_ASYNC },
         { "getPosition", s_getPosition, false, ClassData::ASYNC_ASYNC },
+        { "isActived", s_isActived, false, ClassData::ASYNC_ASYNC },
+        { "active", s_active, false, ClassData::ASYNC_ASYNC },
         { "getMenu", s_getMenu, false, ClassData::ASYNC_SYNC },
         { "close", s_close, false, ClassData::ASYNC_ASYNC },
         { "postMessage", s_postMessage, false, ClassData::ASYNC_ASYNC }
@@ -398,6 +406,38 @@ inline void WebView_base::s_getPosition(const v8::FunctionCallbackInfo<v8::Value
         hr = pInst->ac_getPosition(vr);
 
     METHOD_RETURN();
+}
+
+inline void WebView_base::s_isActived(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    ASYNC_METHOD_INSTANCE(WebView_base);
+    ASYNC_METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_isActived(cb, args);
+    else
+        hr = pInst->ac_isActived(vr);
+
+    METHOD_RETURN();
+}
+
+inline void WebView_base::s_active(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_INSTANCE(WebView_base);
+    ASYNC_METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_active(cb, args);
+    else
+        hr = pInst->ac_active();
+
+    METHOD_VOID();
 }
 
 inline void WebView_base::s_getMenu(const v8::FunctionCallbackInfo<v8::Value>& args)

@@ -116,6 +116,14 @@ interface WebView : EventEmitter
     */
     NArray getPosition() async;
 
+    /*! @brief 查询窗口是否是激活窗口
+     @return 返回窗口是否是激活窗口
+    */
+    Boolean isActived() async;
+
+    /*! @brief 激活窗口 */
+    active() async;
+
     /*! @brief 查询窗口的菜单
      @return 返回窗口的菜单
     */

@@ -238,6 +238,28 @@ result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncEvent* ac)
     return 0;
 }
 
+result_t WebView::isActived(bool& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    retVal = [(NSWindow*)m_window isKeyWindow];
+
+    return 0;
+}
+
+result_t WebView::active(AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    [(NSWindow*)m_window makeKeyAndOrderFront:nil];
+
+    return 0;
+}
+
 result_t WebView::close(AsyncEvent* ac)
 {
     result_t hr = check_status(ac);

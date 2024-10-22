@@ -70,6 +70,18 @@ void gtk_window_get_size(GtkWindow* window, gint* width, gint* height)
     s_gtk_window_get_size(window, width, height);
 }
 
+gboolean gtk_window_is_active(GtkWindow* window)
+{
+    gtk_func(gtk_window_is_active);
+    return s_gtk_window_is_active(window);
+}
+
+void gtk_window_present(GtkWindow* window)
+{
+    gtk_func(gtk_window_present);
+    s_gtk_window_present(window);
+}
+
 void gtk_container_add(GtkContainer* container, GtkWidget* widget)
 {
     gtk_func(gtk_container_add);

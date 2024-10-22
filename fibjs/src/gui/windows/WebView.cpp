@@ -253,6 +253,30 @@ result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncEvent* ac)
     return 0;
 }
 
+result_t WebView::isActived(bool& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    HWND hwnd = (HWND)m_window;
+    retVal = (GetForegroundWindow() == hwnd);
+
+    return 0;
+}
+
+result_t WebView::active(AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    HWND hwnd = (HWND)m_window;
+    SetForegroundWindow(hwnd);
+
+    return 0;
+}
+
 result_t WebView::close(AsyncEvent* ac)
 {
     result_t hr = check_status(ac);

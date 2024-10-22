@@ -261,6 +261,30 @@ result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncEvent* ac)
     return 0;
 }
 
+result_t WebView::isActived(bool& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    GtkWindow* window = GTK_WINDOW(m_window);
+    retVal = (gtk_window_is_active(window) != 0);
+
+    return 0;
+}
+
+result_t WebView::active(AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    GtkWindow* window = GTK_WINDOW(m_window);
+    gtk_window_present(window);
+
+    return 0;
+}
+
 result_t WebView::close(AsyncEvent* ac)
 {
     result_t hr = check_status(ac);

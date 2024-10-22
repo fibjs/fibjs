@@ -440,7 +440,7 @@ describe("gui", () => {
             });
             wins.push(win);
 
-            for(var i = 0; i < 100; i++) {
+            for (var i = 0; i < 100; i++) {
                 if (win.getSize()[0] === 300)
                     break;
                 coroutine.sleep(100);
@@ -449,7 +449,7 @@ describe("gui", () => {
 
             win.setSize(400, 300);
 
-            for(var i = 0; i < 100; i++) {
+            for (var i = 0; i < 100; i++) {
                 if (win.getSize()[0] === 400)
                     break;
                 coroutine.sleep(100);
@@ -469,7 +469,7 @@ describe("gui", () => {
             });
             wins.push(win);
 
-            for(var i = 0; i < 100; i++) {
+            for (var i = 0; i < 100; i++) {
                 if (win.getPosition()[0] === 100)
                     break;
                 coroutine.sleep(100);
@@ -478,7 +478,7 @@ describe("gui", () => {
 
             win.setPosition(200, 200);
 
-            for(var i = 0; i < 100; i++) {
+            for (var i = 0; i < 100; i++) {
                 if (win.getPosition()[0] === 200)
                     break;
                 coroutine.sleep(100);
@@ -618,6 +618,52 @@ describe("gui", () => {
                     fullscreen: true
                 });
             });
+        });
+
+        it("active", () => {
+            const win = gui.open({
+                width: 100,
+                height: 100
+            });
+            wins.push(win);
+
+            for (var i = 0; i < 1000; i++) {
+                coroutine.sleep(100);
+                if (win.isActived()) {
+                    break;
+                }
+            }
+            assert.equal(win.isActived(), true);
+
+            const win1 = gui.open({
+                left: 100,
+                top: 100,
+                width: 100,
+                height: 100
+            });
+            wins.push(win1);
+
+            for (var i = 0; i < 1000; i++) {
+                coroutine.sleep(100);
+                if (win1.isActived()) {
+                    break;
+                }
+            }
+            assert.equal(win1.isActived(), true);
+            assert.equal(win.isActived(), false);
+
+            win.active();
+            for (var i = 0; i < 1000; i++) {
+                coroutine.sleep(100);
+                if (win.isActived()) {
+                    break;
+                }
+            }
+            assert.equal(win.isActived(), true);
+            assert.equal(win1.isActived(), false);
+
+            win1.close();
+            win.close();
         });
 
         it("auto focus html", () => {
