@@ -94,6 +94,28 @@ interface WebView : EventEmitter
     */
     String getTitle() async;
 
+    /*! @brief 设置窗口的尺寸
+     @param width 指定窗口的宽度
+     @param height 指定窗口的高度
+    */
+    setSize(Integer width, Integer height) async;
+
+    /*! @brief 查询窗口的尺寸
+     @return 返回窗口的尺寸，返回值为一个数组，第一个元素为宽度，第二个元素为高度
+    */
+    NArray getSize() async;
+
+    /*! @brief 设置窗口的位置
+     @param left 指定窗口的左上角 x 坐标
+     @param top 指定窗口的左上角 y 坐标
+    */
+    setPosition(Integer left, Integer top) async;
+
+    /*! @brief 查询窗口的位置
+     @return 返回窗口的位置，返回值为一个数组，第一个元素为 x 坐标，第二个元素为 y 坐标
+    */
+    NArray getPosition() async;
+
     /*! @brief 查询窗口的菜单
      @return 返回窗口的菜单
     */

@@ -175,6 +175,69 @@ result_t WebView::getTitle(exlib::string& retVal, AsyncEvent* ac)
     return 0;
 }
 
+result_t WebView::setSize(int32_t width, int32_t height, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    NSRect frame = [(NSWindow*)m_window frame];
+    frame.size = NSMakeSize(width, height);
+    [(NSWindow*)m_window setFrame:frame display:YES animate:NO];
+
+    return 0;
+}
+
+result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    NSSize size = [(NSWindow*)m_window frame].size;
+
+    retVal = new NArray();
+    retVal->append(size.width);
+    retVal->append(size.height);
+
+    return 0;
+}
+
+result_t WebView::setPosition(int32_t left, int32_t top, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    NSRect screen_rect = [[NSScreen mainScreen] frame];
+    NSRect frame = [(NSWindow*)m_window frame];
+
+    left = screen_rect.origin.x + left;
+    top = screen_rect.size.height + screen_rect.origin.y - (frame.size.height + top);
+
+    frame.origin = NSMakePoint(left, top);
+    [(NSWindow*)m_window setFrame:frame display:YES animate:NO];
+
+    return 0;
+}
+
+result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    NSRect frame = [(NSWindow*)m_window frame];
+
+    NSRect screen_rect = [[NSScreen mainScreen] frame];
+
+    retVal = new NArray();
+    retVal->append((int32_t)(frame.origin.x - screen_rect.origin.x));
+    retVal->append((int32_t)(screen_rect.size.height + screen_rect.origin.y - (frame.size.height + frame.origin.y)));
+
+    return 0;
+}
+
 result_t WebView::close(AsyncEvent* ac)
 {
     result_t hr = check_status(ac);

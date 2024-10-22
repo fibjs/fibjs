@@ -197,6 +197,62 @@ result_t WebView::getTitle(exlib::string& retVal, AsyncEvent* ac)
     return 0;
 }
 
+extern int dpix, dpiy;
+
+result_t WebView::setSize(int32_t width, int32_t height, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    SetWindowPos((HWND)m_window, nullptr, 0, 0, width * dpix / 96, height * dpiy / 96, SWP_NOZORDER | SWP_NOMOVE);
+
+    return 0;
+}
+
+result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    RECT rect;
+    GetWindowRect((HWND)m_window, &rect);
+
+    retVal = new NArray();
+    retVal->append((int32_t)(rect.right - rect.left) * 96 / dpix);
+    retVal->append((int32_t)(rect.bottom - rect.top) * 96 / dpiy);
+
+    return 0;
+}
+
+result_t WebView::setPosition(int32_t left, int32_t top, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    SetWindowPos((HWND)m_window, nullptr, left * dpix / 96, top * dpiy / 96, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+
+    return 0;
+}
+
+result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    RECT rect;
+    GetWindowRect((HWND)m_window, &rect);
+
+    retVal = new NArray();
+    retVal->append((int32_t)rect.left * 96 / dpix);
+    retVal->append((int32_t)rect.top * 96 / dpiy);
+
+    return 0;
+}
+
 result_t WebView::close(AsyncEvent* ac)
 {
     result_t hr = check_status(ac);

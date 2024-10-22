@@ -139,6 +139,44 @@ declare class Class_WebView extends Class_EventEmitter {
     getTitle(callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
+     * @description 设置窗口的尺寸
+     *      @param width 指定窗口的宽度
+     *      @param height 指定窗口的高度
+     *     
+     */
+    setSize(width: number, height: number): void;
+
+    setSize(width: number, height: number, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 查询窗口的尺寸
+     *      @return 返回窗口的尺寸，返回值为一个数组，第一个元素为宽度，第二个元素为高度
+     *     
+     */
+    getSize(): any[];
+
+    getSize(callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+
+    /**
+     * @description 设置窗口的位置
+     *      @param left 指定窗口的左上角 x 坐标
+     *      @param top 指定窗口的左上角 y 坐标
+     *     
+     */
+    setPosition(left: number, top: number): void;
+
+    setPosition(left: number, top: number, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 查询窗口的位置
+     *      @return 返回窗口的位置，返回值为一个数组，第一个元素为 x 坐标，第二个元素为 y 坐标
+     *     
+     */
+    getPosition(): any[];
+
+    getPosition(callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+
+    /**
      * @description 查询窗口的菜单
      *      @return 返回窗口的菜单
      *     

@@ -34,6 +34,10 @@ public:
     virtual result_t eval(exlib::string code, Variant& retVal, AsyncEvent* ac) = 0;
     virtual result_t setTitle(exlib::string title, AsyncEvent* ac) = 0;
     virtual result_t getTitle(exlib::string& retVal, AsyncEvent* ac) = 0;
+    virtual result_t setSize(int32_t width, int32_t height, AsyncEvent* ac) = 0;
+    virtual result_t getSize(obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
+    virtual result_t setPosition(int32_t left, int32_t top, AsyncEvent* ac) = 0;
+    virtual result_t getPosition(obj_ptr<NArray>& retVal, AsyncEvent* ac) = 0;
     virtual result_t getMenu(obj_ptr<Menu_base>& retVal) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac) = 0;
@@ -72,6 +76,10 @@ public:
     static void s_eval(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setTitle(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getTitle(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_setSize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getSize(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_setPosition(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_getPosition(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getMenu(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -101,6 +109,10 @@ public:
     ASYNC_MEMBERVALUE2(WebView_base, eval, exlib::string, Variant);
     ASYNC_MEMBER1(WebView_base, setTitle, exlib::string);
     ASYNC_MEMBERVALUE1(WebView_base, getTitle, exlib::string);
+    ASYNC_MEMBER2(WebView_base, setSize, int32_t, int32_t);
+    ASYNC_MEMBERVALUE1(WebView_base, getSize, obj_ptr<NArray>);
+    ASYNC_MEMBER2(WebView_base, setPosition, int32_t, int32_t);
+    ASYNC_MEMBERVALUE1(WebView_base, getPosition, obj_ptr<NArray>);
     ASYNC_MEMBER0(WebView_base, close);
     ASYNC_MEMBER1(WebView_base, postMessage, exlib::string);
 };
@@ -122,6 +134,10 @@ inline ClassInfo& WebView_base::class_info()
         { "eval", s_eval, false, ClassData::ASYNC_ASYNC },
         { "setTitle", s_setTitle, false, ClassData::ASYNC_ASYNC },
         { "getTitle", s_getTitle, false, ClassData::ASYNC_ASYNC },
+        { "setSize", s_setSize, false, ClassData::ASYNC_ASYNC },
+        { "getSize", s_getSize, false, ClassData::ASYNC_ASYNC },
+        { "setPosition", s_setPosition, false, ClassData::ASYNC_ASYNC },
+        { "getPosition", s_getPosition, false, ClassData::ASYNC_ASYNC },
         { "getMenu", s_getMenu, false, ClassData::ASYNC_SYNC },
         { "close", s_close, false, ClassData::ASYNC_ASYNC },
         { "postMessage", s_postMessage, false, ClassData::ASYNC_ASYNC }
@@ -310,6 +326,76 @@ inline void WebView_base::s_getTitle(const v8::FunctionCallbackInfo<v8::Value>& 
         hr = pInst->acb_getTitle(cb, args);
     else
         hr = pInst->ac_getTitle(vr);
+
+    METHOD_RETURN();
+}
+
+inline void WebView_base::s_setSize(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_INSTANCE(WebView_base);
+    ASYNC_METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_setSize(v0, v1, cb, args);
+    else
+        hr = pInst->ac_setSize(v0, v1);
+
+    METHOD_VOID();
+}
+
+inline void WebView_base::s_getSize(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<NArray> vr;
+
+    ASYNC_METHOD_INSTANCE(WebView_base);
+    ASYNC_METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_getSize(cb, args);
+    else
+        hr = pInst->ac_getSize(vr);
+
+    METHOD_RETURN();
+}
+
+inline void WebView_base::s_setPosition(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_INSTANCE(WebView_base);
+    ASYNC_METHOD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(int32_t, 0);
+    ARG(int32_t, 1);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_setPosition(v0, v1, cb, args);
+    else
+        hr = pInst->ac_setPosition(v0, v1);
+
+    METHOD_VOID();
+}
+
+inline void WebView_base::s_getPosition(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<NArray> vr;
+
+    ASYNC_METHOD_INSTANCE(WebView_base);
+    ASYNC_METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_getPosition(cb, args);
+    else
+        hr = pInst->ac_getPosition(vr);
 
     METHOD_RETURN();
 }

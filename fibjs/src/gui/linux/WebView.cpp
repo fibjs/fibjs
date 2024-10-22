@@ -207,6 +207,60 @@ result_t WebView::getTitle(exlib::string& retVal, AsyncEvent* ac)
     return 0;
 }
 
+result_t WebView::setSize(int32_t width, int32_t height, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    gtk_window_resize(GTK_WINDOW(m_window), width, height);
+
+    return 0;
+}
+
+result_t WebView::getSize(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    int width, height;
+    gtk_window_get_size(GTK_WINDOW(m_window), &width, &height);
+
+    retVal = new NArray();
+    retVal->append(width);
+    retVal->append(height);
+
+    return 0;
+}
+
+result_t WebView::setPosition(int32_t left, int32_t top, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    gtk_window_move(GTK_WINDOW(m_window), left, top);
+
+    return 0;
+}
+
+result_t WebView::getPosition(obj_ptr<NArray>& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    int left, top;
+    gtk_window_get_position(GTK_WINDOW(m_window), &left, &top);
+
+    retVal = new NArray();
+    retVal->append(left);
+    retVal->append(top);
+
+    return 0;
+}
+
 result_t WebView::close(AsyncEvent* ac)
 {
     result_t hr = check_status(ac);

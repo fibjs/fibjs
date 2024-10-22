@@ -143,7 +143,7 @@ void GetDPI(HWND hWndParent, int* dpix, int* dpiy)
     ::ReleaseDC(hWndParent, hdc);
 }
 
-static int dpix = 0, dpiy = 0;
+int dpix = 0, dpiy = 0;
 LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 {
     WebView* webview = (WebView*)dwRefData;

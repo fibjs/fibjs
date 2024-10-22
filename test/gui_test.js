@@ -433,6 +433,61 @@ describe("gui", () => {
             win.close();
         });
 
+        it("size", () => {
+            const win = gui.open({
+                width: 300,
+                height: 200
+            });
+            wins.push(win);
+
+            for(var i = 0; i < 100; i++) {
+                if (win.getSize()[0] === 300)
+                    break;
+                coroutine.sleep(100);
+            }
+            assert.deepEqual(win.getSize(), [300, 200]);
+
+            win.setSize(400, 300);
+
+            for(var i = 0; i < 100; i++) {
+                if (win.getSize()[0] === 400)
+                    break;
+                coroutine.sleep(100);
+            }
+            assert.deepEqual(win.getSize(), [400, 300]);
+
+            win.close();
+
+        });
+
+        it("position", () => {
+            const win = gui.open({
+                left: 100,
+                top: 100,
+                width: 300,
+                height: 200
+            });
+            wins.push(win);
+
+            for(var i = 0; i < 100; i++) {
+                if (win.getPosition()[0] === 100)
+                    break;
+                coroutine.sleep(100);
+            }
+            assert.deepEqual(win.getPosition(), [100, 100]);
+
+            win.setPosition(200, 200);
+
+            for(var i = 0; i < 100; i++) {
+                if (win.getPosition()[0] === 200)
+                    break;
+                coroutine.sleep(100);
+            }
+            assert.deepEqual(win.getPosition(), [200, 200]);
+
+            win.close();
+        });
+
         it("multilanguage", () => {
             var langs = [
                 "Hello World",

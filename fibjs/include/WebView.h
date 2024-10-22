@@ -92,6 +92,10 @@ public:
     virtual result_t eval(exlib::string code, Variant& retVal, AsyncEvent* ac);
     virtual result_t setTitle(exlib::string title, AsyncEvent* ac);
     virtual result_t getTitle(exlib::string& retVal, AsyncEvent* ac);
+    virtual result_t setSize(int32_t width, int32_t height, AsyncEvent* ac);
+    virtual result_t getSize(obj_ptr<NArray>& retVal, AsyncEvent* ac);
+    virtual result_t setPosition(int32_t left, int32_t top, AsyncEvent* ac);
+    virtual result_t getPosition(obj_ptr<NArray>& retVal, AsyncEvent* ac);
     virtual result_t getMenu(obj_ptr<Menu_base>& retVal);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
