@@ -65,6 +65,12 @@ GError* g_error_new_valist(GQuark domain, gint code, const gchar* format, va_lis
     return s_g_error_new_valist(domain, code, format, args);
 }
 
+gboolean g_error_matches(const GError* error, GQuark domain, gint code)
+{
+    gobj_func(g_error_matches);
+    return s_g_error_matches(error, domain, code);
+}
+
 GError* g_error_new(GQuark domain, gint code, const gchar* format, ...)
 {
     gobj_func(g_error_new);
@@ -73,6 +79,12 @@ GError* g_error_new(GQuark domain, gint code, const gchar* format, ...)
     GError* ret = g_error_new_valist(domain, code, format, args);
     va_end(args);
     return ret;
+}
+
+void g_clear_error(GError** error)
+{
+    gobj_func(g_clear_error);
+    s_g_clear_error(error);
 }
 
 void g_error_free(GError* error)

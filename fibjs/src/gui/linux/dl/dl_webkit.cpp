@@ -72,6 +72,24 @@ void webkit_web_view_run_javascript(WebKitWebView* web_view, const gchar* script
     s_webkit_web_view_run_javascript(web_view, script, cancellable, callback, user_data);
 }
 
+WebKitJavascriptResult* webkit_web_view_run_javascript_finish(WebKitWebView* web_view, GAsyncResult* result, GError** error)
+{
+    webkit_func(webkit_web_view_run_javascript_finish);
+    return s_webkit_web_view_run_javascript_finish(web_view, result, error);
+}
+
+GQuark webkit_javascript_error_quark(void)
+{
+    webkit_func(webkit_javascript_error_quark);
+    return s_webkit_javascript_error_quark();
+}
+
+void webkit_javascript_result_unref(WebKitJavascriptResult* js_result)
+{
+    webkit_func(webkit_javascript_result_unref);
+    s_webkit_javascript_result_unref(js_result);
+}
+
 JSCValue* webkit_javascript_result_get_js_value(WebKitJavascriptResult* js_result)
 {
     webkit_func(webkit_javascript_result_get_js_value);

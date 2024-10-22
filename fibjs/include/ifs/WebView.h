@@ -31,7 +31,7 @@ public:
     virtual result_t reload(AsyncEvent* ac) = 0;
     virtual result_t goBack(AsyncEvent* ac) = 0;
     virtual result_t goForward(AsyncEvent* ac) = 0;
-    virtual result_t eval(exlib::string code, AsyncEvent* ac) = 0;
+    virtual result_t eval(exlib::string code, Variant& retVal, AsyncEvent* ac) = 0;
     virtual result_t setTitle(exlib::string title, AsyncEvent* ac) = 0;
     virtual result_t getTitle(exlib::string& retVal, AsyncEvent* ac) = 0;
     virtual result_t getMenu(obj_ptr<Menu_base>& retVal) = 0;
@@ -98,7 +98,7 @@ public:
     ASYNC_MEMBER0(WebView_base, reload);
     ASYNC_MEMBER0(WebView_base, goBack);
     ASYNC_MEMBER0(WebView_base, goForward);
-    ASYNC_MEMBER1(WebView_base, eval, exlib::string);
+    ASYNC_MEMBERVALUE2(WebView_base, eval, exlib::string, Variant);
     ASYNC_MEMBER1(WebView_base, setTitle, exlib::string);
     ASYNC_MEMBERVALUE1(WebView_base, getTitle, exlib::string);
     ASYNC_MEMBER0(WebView_base, close);
@@ -263,6 +263,8 @@ inline void WebView_base::s_goForward(const v8::FunctionCallbackInfo<v8::Value>&
 
 inline void WebView_base::s_eval(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
+    Variant vr;
+
     ASYNC_METHOD_INSTANCE(WebView_base);
     ASYNC_METHOD_ENTER();
 
@@ -273,9 +275,9 @@ inline void WebView_base::s_eval(const v8::FunctionCallbackInfo<v8::Value>& args
     if (!cb.IsEmpty())
         hr = pInst->acb_eval(v0, cb, args);
     else
-        hr = pInst->ac_eval(v0);
+        hr = pInst->ac_eval(v0, vr);
 
-    METHOD_VOID();
+    METHOD_RETURN();
 }
 
 inline void WebView_base::s_setTitle(const v8::FunctionCallbackInfo<v8::Value>& args)

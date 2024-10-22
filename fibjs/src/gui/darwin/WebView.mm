@@ -87,15 +87,68 @@ result_t WebView::goForward(AsyncEvent* ac)
     return 0;
 }
 
-result_t WebView::eval(exlib::string code, AsyncEvent* ac)
+static void js2Variant(id result, Variant& retVal)
+{
+    if ([result isKindOfClass:[NSArray class]]) {
+        obj_ptr<NArray> array = new NArray();
+        for (id obj in result) {
+            Variant v;
+            js2Variant(obj, v);
+            array->append(v);
+        }
+        retVal = array;
+    } else if ([result isKindOfClass:[NSDictionary class]]) {
+        obj_ptr<NObject> obj = new NObject();
+        for (id key in result) {
+            Variant v;
+            js2Variant(result[key], v);
+            obj->add([key UTF8String], v);
+        }
+        retVal = obj;
+    } else if ([result isKindOfClass:[NSDate class]]) {
+        retVal = (date_t)(1000 * [(NSDate*)result timeIntervalSince1970]);
+    } else if ([result isKindOfClass:[NSNumber class]]) {
+        const char* type = [result objCType];
+        if (strcmp(type, @encode(int)) == 0) {
+            retVal = [result intValue];
+        } else if (strcmp(type, @encode(double)) == 0) {
+            retVal = [result doubleValue];
+        } else if (strcmp(type, @encode(char)) == 0) {
+            retVal = [result boolValue];
+        } else {
+            retVal = [result UTF8String];
+        }
+    } else if ([result isKindOfClass:[NSString class]]) {
+        retVal = [result UTF8String];
+    } else if ([result isKindOfClass:[NSNull class]]) {
+        retVal.setNull();
+    }
+}
+
+static NSString* const WKJavaScriptExceptionMessage = @"WKJavaScriptExceptionMessage";
+result_t WebView::eval(exlib::string code, Variant& retVal, AsyncEvent* ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)
         return hr;
 
-    [(WKWebView*)m_webview evaluateJavaScript:[NSString stringWithUTF8String:code.c_str()] completionHandler:nil];
+    [(WKWebView*)m_webview evaluateJavaScript:[NSString stringWithUTF8String:code.c_str()]
+                            completionHandler:^(id result, NSError* error) {
+                                if (error) {
+                                    NSString* jsExceptionMessage = error.userInfo[WKJavaScriptExceptionMessage];
+                                    if (jsExceptionMessage) {
+                                        ac->post(Runtime::setError([jsExceptionMessage UTF8String]));
+                                    } else {
+                                        NSString* errorDescription = [error localizedDescription];
+                                        ac->post(Runtime::setError([errorDescription UTF8String]));
+                                    }
+                                } else {
+                                    js2Variant(result, retVal);
+                                    ac->post(0);
+                                }
+                            }];
 
-    return 0;
+    return CALL_E_PENDDING;
 }
 
 result_t WebView::setTitle(exlib::string title, AsyncEvent* ac)

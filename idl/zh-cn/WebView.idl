@@ -80,8 +80,9 @@ interface WebView : EventEmitter
 
     /*! @brief 在当前窗口运行一段 JavaScript 代码
 	 @param code 指定要执行的 JavaScript 代码
+     @return 返回执行结果
 	 */
-    eval(String code) async;
+    Variant eval(String code) async;
 
     /*! @brief 设置窗口的标题
      @param title 指定窗口的标题

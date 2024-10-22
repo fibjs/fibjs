@@ -113,11 +113,12 @@ declare class Class_WebView extends Class_EventEmitter {
     /**
      * @description 在当前窗口运行一段 JavaScript 代码
      * 	 @param code 指定要执行的 JavaScript 代码
+     *      @return 返回执行结果
      * 	 
      */
-    eval(code: string): void;
+    eval(code: string): any;
 
-    eval(code: string, callback: (err: Error | undefined | null)=>any): void;
+    eval(code: string, callback: (err: Error | undefined | null, retVal: any)=>any): void;
 
     /**
      * @description 设置窗口的标题

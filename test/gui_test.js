@@ -59,6 +59,63 @@ describe("gui", () => {
             });
         });
 
+        describe("eval", () => {
+            it("eval and result", () => {
+                const o = {
+                    a: 100,
+                    b: "bbbb",
+                    c: true,
+                    d: [1, 2, 3],
+                    e: { a: 1, b: 2 },
+                    f: null
+                }
+
+                const win = gui.open({
+                    width: 100,
+                    height: 100
+                });
+                wins.push(win);
+
+                const o1 = win.eval(`(${JSON.stringify(o)})`);
+
+                win.close();
+
+                assert.deepEqual(o1, o);
+            });
+
+            it("fail eval", () => {
+                const win = gui.open({
+                    width: 100,
+                    height: 100
+                });
+                wins.push(win);
+
+                assert.throws(() => {
+                    win.eval(`abc`);
+                });
+
+                assert.throws(() => {
+                    win.eval(`"abc`);
+                });
+
+                win.close();
+            });
+
+            it("unknown type", () => {
+                const win = gui.open({
+                    width: 100,
+                    height: 100
+                });
+                wins.push(win);
+
+                const r1 = win.eval(`(new RegExp())`);
+
+                win.close();
+
+                assert.deepEqual(r1, {});
+            });
+        });
+
         it("close from inside", () => {
             const win = gui.open({
                 width: 100,
@@ -145,27 +202,22 @@ describe("gui", () => {
             const zurl1 = url.pathToFileURL(zpath1).href.replace(/file:/, "fs:");
 
             function assert_url(win, url) {
-                var received_message;
-                win.on("message", (msg) => {
-                    received_message = msg.data;
-                });
-
                 var last_received_message;
                 var get_url;
                 for (var i = 0; i < 1000; i++) {
-                    win.eval(`window.postMessage(window.document.title + "|" +window.location.href);`);
                     coroutine.sleep(100);
-                    if (received_message && received_message != "|about:blank" && last_received_message == received_message) {
+                    var result = win.eval(`window.document.title + "|" +window.location.href`);
+                    if (result && result != "|about:blank" && last_received_message == result) {
                         break;
                     }
-                    last_received_message = received_message;
+                    last_received_message = result;
                 }
 
                 get_url = win.getUrl();
 
                 win.close();
 
-                assert.equal(received_message.toLowerCase(), "test|" + url.toLowerCase());
+                assert.equal(result.toLowerCase(), "test|" + url.toLowerCase());
                 assert.equal(get_url.toLowerCase(), url.toLowerCase());
             }
 
@@ -297,25 +349,18 @@ describe("gui", () => {
                 const win = gui.open(opt);
                 wins.push(win);
 
-                var received_message;
-                win.on("message", (msg) => {
-                    received_message = msg.data;
-                });
-
-                win.eval(`window.postMessage(window.innerWidth + "|" + window.innerHeight);`);
-
                 var last_received_message;
                 for (var i = 0; i < 1000; i++) {
-                    win.eval(`window.postMessage(window.innerWidth + "|" + window.innerHeight);`);
                     coroutine.sleep(100);
-                    if (received_message && received_message != "0|0" && last_received_message == received_message) {
+                    var result = win.eval(`window.innerWidth + "|" + window.innerHeight`);
+                    if (result && result != "0|0" && last_received_message == result) {
                         break;
                     }
-                    last_received_message = received_message;
+                    last_received_message = result;
                 }
                 win.close();
 
-                var size = received_message.split("|");
+                var size = result.split("|");
                 var width = Number(size[0]);
                 var height = Number(size[1]);
 
@@ -527,23 +572,16 @@ describe("gui", () => {
             });
             wins.push(win);
 
-            var received_message;
-            win.on("message", (msg) => {
-                received_message = msg.data;
-            });
-
-            win.eval(`window.postMessage(document.hasFocus()?"True":"False");`);
-
             for (var i = 0; i < 1000; i++) {
                 coroutine.sleep(100);
-                win.eval(`window.postMessage(document.hasFocus()?"True":"False");`);
-                if (received_message == "True") {
+                var result = win.eval(`document.hasFocus()?"True":"False"`);
+                if (result == "True") {
                     break;
                 }
             }
             win.close();
 
-            assert.equal(received_message, "True");
+            assert.equal(result, "True");
         });
 
         it("auto focus html after blur", () => {
@@ -566,23 +604,16 @@ describe("gui", () => {
             wins.push(win1);
             win1.close();
 
-            var received_message;
-            win.on("message", (msg) => {
-                received_message = msg.data;
-            });
-
-            win.eval(`window.postMessage(document.hasFocus()?"True":"False");`);
-
             for (var i = 0; i < 1000; i++) {
                 coroutine.sleep(100);
-                win.eval(`window.postMessage(document.hasFocus()?"True":"False");`);
-                if (received_message == "True") {
+                var result = win.eval(`document.hasFocus()?"True":"False"`);
+                if (result == "True") {
                     break;
                 }
             }
             win.close();
 
-            assert.equal(received_message, "True");
+            assert.equal(result, "True");
         });
     });
 
