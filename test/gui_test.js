@@ -84,6 +84,7 @@ describe("gui", () => {
                     a: 100,
                     b: "bbbb",
                     c: true,
+                    c1: false,
                     d: [1, 2, 3],
                     e: { a: 1, b: 2 },
                     f: null

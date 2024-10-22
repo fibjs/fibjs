@@ -131,7 +131,7 @@ static void js2Variant(id result, Variant& retVal)
         } else if (strcmp(type, @encode(double)) == 0) {
             retVal = [result doubleValue];
         } else if (strcmp(type, @encode(char)) == 0) {
-            retVal = [result boolValue];
+            retVal = [result boolValue] ? true : false;
         } else {
             retVal = [result UTF8String];
         }
