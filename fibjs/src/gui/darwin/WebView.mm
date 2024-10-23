@@ -152,12 +152,16 @@ result_t WebView::eval(exlib::string code, Variant& retVal, AsyncEvent* ac)
     [(WKWebView*)m_webview evaluateJavaScript:[NSString stringWithUTF8String:code.c_str()]
                             completionHandler:^(id result, NSError* error) {
                                 if (error) {
-                                    NSString* jsExceptionMessage = error.userInfo[WKJavaScriptExceptionMessage];
-                                    if (jsExceptionMessage) {
-                                        ac->post(Runtime::setError([jsExceptionMessage UTF8String]));
+                                    if (NSInternalSpecifierError == error.code) {
+                                        ac->post(0);
                                     } else {
-                                        NSString* errorDescription = [error localizedDescription];
-                                        ac->post(Runtime::setError([errorDescription UTF8String]));
+                                        NSString* jsExceptionMessage = error.userInfo[WKJavaScriptExceptionMessage];
+                                        if (jsExceptionMessage) {
+                                            ac->post(Runtime::setError([jsExceptionMessage UTF8String]));
+                                        } else {
+                                            NSString* errorDescription = [error localizedDescription];
+                                            ac->post(Runtime::setError([errorDescription UTF8String]));
+                                        }
                                     }
                                 } else {
                                     js2Variant(result, retVal);
