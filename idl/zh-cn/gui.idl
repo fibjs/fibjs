@@ -7,6 +7,9 @@ var gui = require('gui');
  */
 module gui
 {
+    /*! @brief 浏览器窗口对象，WebView 是一个嵌入浏览器的窗口组件 */
+    static WebView;
+
     /*! @brief 打开一个窗口并访问指定网址
 
      支持以下参数:

@@ -61,9 +61,13 @@ inline ClassInfo& gui_base::class_info()
         { "createTray", s_static_createTray, true, ClassData::ASYNC_SYNC }
     };
 
+    static ClassData::ClassObject s_object[] = {
+        { "WebView", WebView_base::class_info }
+    };
+
     static ClassData s_cd = {
         "gui", true, s__new, NULL,
-        ARRAYSIZE(s_method), s_method, 0, NULL, 0, NULL, 0, NULL, NULL, NULL,
+        ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, 0, NULL, NULL, NULL,
         &object_base::class_info(),
         false
     };

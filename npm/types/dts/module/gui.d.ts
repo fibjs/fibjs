@@ -13,6 +13,11 @@
  */
 declare module 'gui' {
     /**
+     * @description 浏览器窗口对象，WebView 是一个嵌入浏览器的窗口组件 
+     */
+    const WebView: typeof Class_WebView;
+
+    /**
      * @description 打开一个窗口并访问指定网址
      * 
      *      支持以下参数:
