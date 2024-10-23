@@ -103,6 +103,28 @@
 
 namespace fibjs {
 
+std::string readSafariVersion()
+{
+    CFURLRef appURL = CFURLCreateWithString(kCFAllocatorDefault, CFSTR("/Applications/Safari.app"), NULL);
+    if (appURL) {
+        CFDictionaryRef infoDict = CFBundleCopyInfoDictionaryForURL(appURL);
+        if (infoDict) {
+            CFStringRef versionString = (CFStringRef)CFDictionaryGetValue(infoDict, CFSTR("CFBundleShortVersionString"));
+            if (versionString) {
+                NSString* version = (__bridge NSString*)versionString;
+                CFRelease(infoDict);
+                CFRelease(appURL);
+
+                return "Version/" + std::string([version UTF8String]) + " Safari/605.1.15";
+            }
+            CFRelease(infoDict);
+        }
+        CFRelease(appURL);
+    }
+
+    return "Version/17.0 Safari/605.1.15";
+}
+
 result_t WebView::createWebView()
 {
     NSWindow* window = [[NSWindow alloc] initWithContentRect:CGRectZero
@@ -137,6 +159,9 @@ result_t WebView::createWebView()
         [preferences setValue:@YES forKey:@"developerExtrasEnabled"];
         configuration.preferences = preferences;
     }
+
+    static std::string safariVersion = readSafariVersion();
+    configuration.applicationNameForUserAgent = [NSString stringWithUTF8String:safariVersion.c_str()];
 
     WKWebView* webView = [[WKWebView alloc] initWithFrame:CGRectZero configuration:configuration];
     [webView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];

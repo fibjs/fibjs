@@ -46,6 +46,18 @@ WebKitUserContentManager* webkit_user_content_manager_new(void)
     return s_webkit_user_content_manager_new();
 }
 
+const gchar* webkit_settings_get_user_agent(WebKitSettings* settings)
+{
+    webkit_func(webkit_settings_get_user_agent);
+    return s_webkit_settings_get_user_agent(settings);
+}
+
+void webkit_settings_set_user_agent(WebKitSettings* settings, const gchar* user_agent)
+{
+    webkit_func(webkit_settings_set_user_agent);
+    s_webkit_settings_set_user_agent(settings, user_agent);
+}
+
 WebKitUserScript* webkit_user_script_new(const gchar* source, WebKitUserContentInjectedFrames injected_frames,
     WebKitUserScriptInjectionTime injection_time, const gchar* const* whitelist, const gchar* const* blacklist)
 {

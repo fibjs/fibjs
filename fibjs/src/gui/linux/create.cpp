@@ -19,6 +19,7 @@
 #include "ifs/encoding.h"
 #include "WebView.h"
 #include "EventInfo.h"
+#include <regex>
 
 namespace fibjs {
 
@@ -82,6 +83,17 @@ static void handle_command(WebKitUserContentManager* manager, WebKitJavascriptRe
     g_free(value_str);
 }
 
+std::string filterUserAgent(const std::string& userAgent)
+{
+    std::regex androidRegex("; like Android [0-9]+\\.[0-9]+");
+    std::regex mobileRegex(" Mobile");
+
+    std::string filteredAgent = std::regex_replace(userAgent, androidRegex, "");
+    filteredAgent = std::regex_replace(filteredAgent, mobileRegex, "");
+
+    return filteredAgent;
+}
+
 static void handle_title_change(WebKitWebView* webview, GParamSpec* pspec, gpointer user_data)
 {
     WebView* _webView = (WebView*)user_data;
@@ -112,6 +124,12 @@ result_t WebView::createWebView()
     GtkWidget* webview = webkit_web_view_new_with_user_content_manager(manager);
     m_webview = webview;
 
+    WebKitSettings* settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(webview));
+
+    const char* current_agent = webkit_settings_get_user_agent(settings);
+    std::string filtered_agent = filterUserAgent(current_agent);
+    webkit_settings_set_user_agent(settings, filtered_agent.c_str());
+
     g_signal_connect(webview, "notify::title", G_CALLBACK(handle_title_change), this);
 
     GtkWidget* vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
@@ -119,7 +137,6 @@ result_t WebView::createWebView()
     gtk_container_add(GTK_CONTAINER(window), vbox);
 
     if (m_options->devtools.value()) {
-        WebKitSettings* settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(webview));
         webkit_settings_set_enable_developer_extras(settings, TRUE);
     }
 
