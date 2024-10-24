@@ -11,7 +11,9 @@
 #include <windows.h>
 #include <wrl.h>
 #include <shlwapi.h>
+#include <shlobj.h>
 #include "loader/WebView2.h"
+#include "loader/WebView2EnvironmentOptions.h"
 
 #include "object.h"
 #include "ifs/gui.h"
@@ -25,7 +27,7 @@
 
 namespace fibjs {
 
-extern ICoreWebView2Environment* g_env;
+ICoreWebView2Environment* g_env = nullptr;
 extern const wchar_t* szWndClassMain;
 
 exlib::string fs_url_to_path(const exlib::string& url)
@@ -44,8 +46,64 @@ exlib::string fs_url_to_path(const exlib::string& url)
     return path;
 }
 
+std::wstring GetUserDataFolderPath()
+{
+    wchar_t path[MAX_PATH];
+    if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, path))) {
+        return std::wstring(path) + L"\\.fibjs";
+    }
+    return L"";
+}
+
+Microsoft::WRL::ComPtr<CoreWebView2EnvironmentOptions> GetWebView2Options()
+{
+    auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
+    Microsoft::WRL::ComPtr<ICoreWebView2EnvironmentOptions4> options4;
+    if (SUCCEEDED(options.As(&options4))) {
+        auto scheme = Microsoft::WRL::Make<CoreWebView2CustomSchemeRegistration>(L"fs");
+        const wchar_t* everything = L"*";
+        scheme->SetAllowedOrigins(1, &everything);
+        scheme->put_TreatAsSecure(TRUE);
+        scheme->put_HasAuthorityComponent(FALSE);
+
+        std::vector<ICoreWebView2CustomSchemeRegistration*> registrations;
+        registrations.push_back(scheme.Get());
+        options4->SetCustomSchemeRegistrations(registrations.size(),
+            registrations.data());
+    }
+    return options;
+}
+
+void init_WebView_Environment()
+{
+    if (!g_env) {
+        std::wstring userDataFolder = GetUserDataFolderPath();
+        auto options = GetWebView2Options();
+        HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(nullptr, userDataFolder.c_str(), options.Get(),
+            Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
+                [](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
+                    if (FAILED(result)) {
+                        printf("Failed to create WebView2 environment. Error: 0x%08X\n", result);
+                        exit(-1);
+                    }
+
+                    g_env = env;
+                    g_env->AddRef();
+
+                    return S_OK;
+                })
+                .Get());
+        if (FAILED(hr)) {
+            printf("Failed to create WebView2 environment. Error: 0x%08X\n", hr);
+            exit(-1);
+        }
+    }
+}
+
 result_t WebView::createWebView()
 {
+    init_WebView_Environment();
+
     HINSTANCE hInstance = GetModuleHandle(NULL);
     m_window = CreateWindowExW(0, szWndClassMain, L"",
         WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
