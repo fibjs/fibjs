@@ -274,7 +274,6 @@ void WebView::config()
 
     Ref();
     m_ready->set();
-    _emit("open");
 }
 
 }

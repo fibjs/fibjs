@@ -101,6 +101,30 @@ static void handle_title_change(WebKitWebView* webview, GParamSpec* pspec, gpoin
     gtk_window_set_title(GTK_WINDOW(_webView->m_window), title);
 }
 
+static void handle_load_changed(WebKitWebView* webview, WebKitLoadEvent load_event, gpointer user_data)
+{
+    WebView* _webView = (WebView*)user_data;
+
+    switch (load_event) {
+    case WEBKIT_LOAD_STARTED: {
+        obj_ptr<EventInfo> ei = new EventInfo(_webView, "loading");
+        ei->add("url", webkit_web_view_get_uri(webview));
+        _webView->_emit("loading", ei);
+
+        break;
+    }
+    case WEBKIT_LOAD_FINISHED: {
+        obj_ptr<EventInfo> ei = new EventInfo(_webView, "load");
+        ei->add("url", webkit_web_view_get_uri(webview));
+        _webView->_emit("load", ei);
+
+        break;
+    }
+    default:
+        break;
+    }
+}
+
 result_t WebView::createWebView()
 {
     GtkWidget* window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -131,6 +155,7 @@ result_t WebView::createWebView()
     webkit_settings_set_user_agent(settings, filtered_agent.c_str());
 
     g_signal_connect(webview, "notify::title", G_CALLBACK(handle_title_change), this);
+    g_signal_connect(webview, "load-changed", G_CALLBACK(handle_load_changed), this);
 
     GtkWidget* vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_box_pack_start(GTK_BOX(vbox), webview, TRUE, TRUE, 0);

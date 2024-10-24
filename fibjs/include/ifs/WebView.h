@@ -47,8 +47,10 @@ public:
     virtual result_t capturePage(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac) = 0;
-    virtual result_t get_onopen(v8::Local<v8::Function>& retVal) = 0;
-    virtual result_t set_onopen(v8::Local<v8::Function> newVal) = 0;
+    virtual result_t get_onloading(v8::Local<v8::Function>& retVal) = 0;
+    virtual result_t set_onloading(v8::Local<v8::Function> newVal) = 0;
+    virtual result_t get_onload(v8::Local<v8::Function>& retVal) = 0;
+    virtual result_t set_onload(v8::Local<v8::Function> newVal) = 0;
     virtual result_t get_onmove(v8::Local<v8::Function>& retVal) = 0;
     virtual result_t set_onmove(v8::Local<v8::Function> newVal) = 0;
     virtual result_t get_onresize(v8::Local<v8::Function>& retVal) = 0;
@@ -94,8 +96,10 @@ public:
     static void s_capturePage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_get_onopen(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void s_set_onopen(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onloading(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onloading(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_get_onload(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_set_onload(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_onmove(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_set_onmove(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_onresize(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -166,7 +170,8 @@ inline ClassInfo& WebView_base::class_info()
     };
 
     static ClassData::ClassProperty s_property[] = {
-        { "onopen", s_get_onopen, s_set_onopen, false },
+        { "onloading", s_get_onloading, s_set_onloading, false },
+        { "onload", s_get_onload, s_set_onload, false },
         { "onmove", s_get_onmove, s_set_onmove, false },
         { "onresize", s_get_onresize, s_set_onresize, false },
         { "onfocus", s_get_onfocus, s_set_onfocus, false },
@@ -551,7 +556,7 @@ inline void WebView_base::s_postMessage(const v8::FunctionCallbackInfo<v8::Value
     METHOD_VOID();
 }
 
-inline void WebView_base::s_get_onopen(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void WebView_base::s_get_onloading(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     v8::Local<v8::Function> vr;
 
@@ -560,12 +565,12 @@ inline void WebView_base::s_get_onopen(const v8::FunctionCallbackInfo<v8::Value>
 
     METHOD_OVER(0, 0);
 
-    hr = pInst->get_onopen(vr);
+    hr = pInst->get_onloading(vr);
 
     METHOD_RETURN();
 }
 
-inline void WebView_base::s_set_onopen(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void WebView_base::s_set_onloading(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     METHOD_INSTANCE(WebView_base);
     METHOD_ENTER();
@@ -574,7 +579,35 @@ inline void WebView_base::s_set_onopen(const v8::FunctionCallbackInfo<v8::Value>
 
     ARG(v8::Local<v8::Function>, 0);
 
-    hr = pInst->set_onopen(v0);
+    hr = pInst->set_onloading(v0);
+
+    METHOD_VOID();
+}
+
+inline void WebView_base::s_get_onload(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    v8::Local<v8::Function> vr;
+
+    METHOD_INSTANCE(WebView_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = pInst->get_onload(vr);
+
+    METHOD_RETURN();
+}
+
+inline void WebView_base::s_set_onload(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    METHOD_INSTANCE(WebView_base);
+    METHOD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = pInst->set_onload(v0);
 
     METHOD_VOID();
 }

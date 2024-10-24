@@ -130,16 +130,23 @@ result_t WebView::createWebView()
                     Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
                         [this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
                             m_isLoading = true;
+
+                            obj_ptr<EventInfo> ei = new EventInfo(this, "loading");
+
+                            LPWSTR uri = nullptr;
+                            args->get_Uri(&uri);
+                            ei->add("url", utf16to8String((const char16_t*)uri));
+                            CoTaskMemFree(uri);
+
+                            _emit("loading", ei);
                             return S_OK;
                         })
                         .Get(),
                     nullptr);
 
-                webView->add_NavigationCompleted(
-                    Microsoft::WRL::Callback<ICoreWebView2NavigationCompletedEventHandler>(
-                        [this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
-                            m_isLoading = false;
-
+                webView->add_ContentLoading(
+                    Microsoft::WRL::Callback<ICoreWebView2ContentLoadingEventHandler>(
+                        [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
                             const wchar_t* script = L"window.postMessage = function(message) { window.chrome.webview.postMessage(message); };"
                                                     "window.close = function() { window.chrome.webview.postMessage({type:'close'}); };"
                                                     "window.minimize = function() { window.chrome.webview.postMessage({type:'minimize'}); };"
@@ -149,8 +156,24 @@ result_t WebView::createWebView()
 
                             m_webview = sender;
                             m_ready->set();
-                            _emit("open");
 
+                            return S_OK;
+                        })
+                        .Get(),
+                    nullptr);
+
+                webView->add_NavigationCompleted(
+                    Microsoft::WRL::Callback<ICoreWebView2NavigationCompletedEventHandler>(
+                        [this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
+                            m_isLoading = false;
+                            obj_ptr<EventInfo> ei = new EventInfo(this, "load");
+
+                            LPWSTR uri = nullptr;
+                            sender->get_Source(&uri);
+                            ei->add("url", utf16to8String((const char16_t*)uri));
+                            CoTaskMemFree(uri);
+
+                            _emit("load", ei);
                             return S_OK;
                         })
                         .Get(),

@@ -245,9 +245,14 @@ declare class Class_WebView extends Class_EventEmitter {
     postMessage(msg: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
-     * @description 查询和绑定加载成功事件，相当于 on("open", func); 
+     * @description 查询和绑定窗口开始加载事件，相当于 on("loading", func); 
      */
-    onopen: (...args: any[])=>any;
+    onloading: (...args: any[])=>any;
+
+    /**
+     * @description 查询和绑定窗口加载 完成事件，相当于 on("load", func); 
+     */
+    onload: (...args: any[])=>any;
 
     /**
      * @description 查询和绑定窗口移动事件，相当于 on("move", func); 

@@ -20,7 +20,7 @@ class WebView : public WebView_base {
 public:
     class OpenOptions : public obj_base {
     public:
-        LOAD_OPTIONS(OpenOptions, (url)(file)(icon)(width)(height)(left)(top)(frame)(caption)(resizable)(fullscreen)(maximize)(menu)(devtools)(onopen)(onclose)(onmove)(onresize)(onfocus)(onblur)(onmessage));
+        LOAD_OPTIONS(OpenOptions, (url)(file)(icon)(width)(height)(left)(top)(frame)(caption)(resizable)(fullscreen)(maximize)(menu)(devtools)(onloading)(onload)(onclose)(onmove)(onresize)(onfocus)(onblur)(onmessage));
 
     public:
         std::optional<exlib::string> url;
@@ -42,7 +42,8 @@ public:
 
         std::optional<bool> devtools = false;
 
-        std::optional<v8::Local<v8::Function>> onopen;
+        std::optional<v8::Local<v8::Function>> onloading;
+        std::optional<v8::Local<v8::Function>> onload;
         std::optional<v8::Local<v8::Function>> onclose;
         std::optional<v8::Local<v8::Function>> onmove;
         std::optional<v8::Local<v8::Function>> onresize;
@@ -106,7 +107,8 @@ public:
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
 
 public:
-    EVENT_FUNC(open);
+    EVENT_FUNC(loading);
+    EVENT_FUNC(load);
     EVENT_FUNC(move);
     EVENT_FUNC(resize);
     EVENT_FUNC(focus);

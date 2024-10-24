@@ -153,8 +153,11 @@ interface WebView : EventEmitter
 	*/
     postMessage(String msg) async;
 
-    /*! @brief 查询和绑定加载成功事件，相当于 on("open", func); */
-    Function onopen;
+    /*! @brief 查询和绑定窗口开始加载事件，相当于 on("loading", func); */
+    Function onloading;
+
+    /*! @brief 查询和绑定窗口加载 完成事件，相当于 on("load", func); */
+    Function onload;
 
     /*! @brief 查询和绑定窗口移动事件，相当于 on("move", func); 
 

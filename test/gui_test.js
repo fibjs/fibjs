@@ -174,6 +174,12 @@ describe("gui", () => {
             });
             wins.push(win);
 
+            for (var i = 0; i < 1000; i++) {
+                if (win.isReady() && win.eval(`window.location.href`) == "about:blank")
+                    break;
+                coroutine.sleep(1);
+            }
+
             var closed = false;
             win.on("close", () => {
                 closed = true;
@@ -229,6 +235,44 @@ describe("gui", () => {
             }
 
             assert.equal(closed, true);
+        });
+
+        it("loading and load event", () => {
+            const win = gui.open({
+                width: 100,
+                height: 100
+            });
+            wins.push(win);
+
+            for (var i = 0; i < 1000; i++) {
+                if (win.isReady() && win.eval(`window.location.href`) == "about:blank")
+                    break;
+                coroutine.sleep(1);
+            }
+
+            var loading_url;
+            win.on("loading", ev => {
+                loading_url = ev.url;
+            });
+
+            var loaded_url;
+            win.on("load", ev => {
+                loaded_url = ev.url;
+            });
+
+            win.loadURL("https://fibjs.org");
+
+            for (var i = 0; i < 1000; i++) {
+                coroutine.sleep(10);
+                if (loaded_url !== undefined && loading_url !== undefined) {
+                    break;
+                }
+            }
+
+            assert.equal(loading_url, "https://fibjs.org/");
+            assert.equal(loaded_url, "https://fibjs.org/");
+
+            win.close();
         });
 
         it("post message", () => {

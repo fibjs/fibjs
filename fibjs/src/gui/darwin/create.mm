@@ -17,7 +17,7 @@
 #include "EventInfo.h"
 #import <WebKit/WebKit.h>
 
-@interface MessageHandler : NSObject <WKScriptMessageHandler, WKURLSchemeHandler>
+@interface MessageHandler : NSObject <WKScriptMessageHandler, WKURLSchemeHandler, WKNavigationDelegate>
 @property (nonatomic, assign) fibjs::WebView* webView;
 - (instancetype)initWithWebView:(fibjs::WebView*)webView;
 @end
@@ -60,6 +60,20 @@
                 [_webView->m_window performWindowDragWithEvent:[_webView->m_window currentEvent]];
         }
     }
+}
+
+- (void)webView:(WKWebView*)webView didStartProvisionalNavigation:(WKNavigation*)navigation
+{
+    fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(_webView, "loading");
+    ei->add("url", [[[webView URL] absoluteString] UTF8String]);
+    _webView->_emit("loading", ei);
+}
+
+- (void)webView:(WKWebView*)webView didFinishNavigation:(WKNavigation*)navigation
+{
+    fibjs::obj_ptr<fibjs::EventInfo> ei = new fibjs::EventInfo(_webView, "load");
+    ei->add("url", [[[webView URL] absoluteString] UTF8String]);
+    _webView->_emit("load", ei);
 }
 
 - (void)webView:(WKWebView*)webView startURLSchemeTask:(id<WKURLSchemeTask>)urlSchemeTask
@@ -169,6 +183,7 @@ result_t WebView::createWebView()
     m_webview = webView;
 
     [m_webview addObserver:messageHandler forKeyPath:@"title" options:NSKeyValueObservingOptionNew context:nil];
+    [webView setNavigationDelegate:messageHandler];
 
     exlib::string url;
     if (m_options->url.has_value())
