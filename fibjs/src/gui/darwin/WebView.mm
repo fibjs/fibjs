@@ -71,6 +71,24 @@ result_t WebView::getHtml(exlib::string& retVal, AsyncEvent* ac)
     return CALL_E_PENDDING;
 }
 
+result_t WebView::isReady(bool& retVal, AsyncEvent* ac)
+{
+    bool is_win_ready = false;
+    m_ready->isSet(is_win_ready);
+    if (!is_win_ready) {
+        retVal = false;
+        return 0;
+    }
+
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    retVal = [(WKWebView*)m_webview isLoading] == NO;
+
+    return 0;
+}
+
 result_t WebView::reload(AsyncEvent* ac)
 {
     result_t hr = check_status(ac);
@@ -279,6 +297,32 @@ result_t WebView::active(AsyncEvent* ac)
     [(NSWindow*)m_window makeKeyAndOrderFront:nil];
 
     return 0;
+}
+
+result_t WebView::capturePage(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    WKSnapshotConfiguration* snapshotConfig = [[WKSnapshotConfiguration alloc] init];
+    snapshotConfig.rect = [(NSView*)m_webview bounds];
+
+    [(WKWebView*)m_webview takeSnapshotWithConfiguration:snapshotConfig
+                                       completionHandler:^(NSImage* snapshotImage, NSError* error) {
+                                           if (snapshotImage) {
+                                               NSBitmapImageRep* rep = [[NSBitmapImageRep alloc] initWithData:[snapshotImage TIFFRepresentation]];
+                                               NSData* data = [rep representationUsingType:NSBitmapImageFileTypePNG properties:@ {}];
+
+                                               retVal = new Buffer([data bytes], [data length]);
+                                               ac->post(0);
+
+                                               [snapshotConfig release];
+                                               [rep release];
+                                           }
+                                       }];
+
+    return CALL_E_PENDDING;
 }
 
 result_t WebView::close(AsyncEvent* ac)

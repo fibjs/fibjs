@@ -1,6 +1,7 @@
 /// <reference path="../_import/_fibjs.d.ts" />
 /// <reference path="../interface/EventEmitter.d.ts" />
 /// <reference path="../interface/Menu.d.ts" />
+/// <reference path="../interface/Buffer.d.ts" />
 /**
  * @description 浏览器窗口对象，WebView 是一个嵌入浏览器的窗口组件.
  *  
@@ -97,6 +98,15 @@ declare class Class_WebView extends Class_EventEmitter {
     getHtml(): string;
 
     getHtml(callback: (err: Error | undefined | null, retVal: string)=>any): void;
+
+    /**
+     * @description 查询当前页面是否加载完成
+     *      @return 返回当前页面是否加载完成
+     *     
+     */
+    isReady(): boolean;
+
+    isReady(callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
     /**
      * @description 刷新当前页面 
@@ -207,6 +217,15 @@ declare class Class_WebView extends Class_EventEmitter {
      *     
      */
     getMenu(): Class_Menu;
+
+    /**
+     * @description 截取当前窗口的图像
+     *      @return 返回截取的图像
+     *     
+     */
+    capturePage(): Class_Buffer;
+
+    capturePage(callback: (err: Error | undefined | null, retVal: Class_Buffer)=>any): void;
 
     /**
      * @description 关闭当前窗口 

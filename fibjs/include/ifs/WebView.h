@@ -18,6 +18,7 @@ namespace fibjs {
 
 class EventEmitter_base;
 class Menu_base;
+class Buffer_base;
 
 class WebView_base : public EventEmitter_base {
     DECLARE_CLASS(WebView_base);
@@ -29,6 +30,7 @@ public:
     virtual result_t getUrl(exlib::string& retVal, AsyncEvent* ac) = 0;
     virtual result_t setHtml(exlib::string html, AsyncEvent* ac) = 0;
     virtual result_t getHtml(exlib::string& retVal, AsyncEvent* ac) = 0;
+    virtual result_t isReady(bool& retVal, AsyncEvent* ac) = 0;
     virtual result_t reload(AsyncEvent* ac) = 0;
     virtual result_t goBack(AsyncEvent* ac) = 0;
     virtual result_t goForward(AsyncEvent* ac) = 0;
@@ -42,6 +44,7 @@ public:
     virtual result_t isActived(bool& retVal, AsyncEvent* ac) = 0;
     virtual result_t active(AsyncEvent* ac) = 0;
     virtual result_t getMenu(obj_ptr<Menu_base>& retVal) = 0;
+    virtual result_t capturePage(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac) = 0;
     virtual result_t close(AsyncEvent* ac) = 0;
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac) = 0;
     virtual result_t get_onopen(v8::Local<v8::Function>& retVal) = 0;
@@ -74,6 +77,7 @@ public:
     static void s_getUrl(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setHtml(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getHtml(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_isReady(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_reload(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_goBack(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_goForward(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -87,6 +91,7 @@ public:
     static void s_isActived(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_active(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getMenu(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_capturePage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_postMessage(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_get_onopen(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -110,6 +115,7 @@ public:
     ASYNC_MEMBERVALUE1(WebView_base, getUrl, exlib::string);
     ASYNC_MEMBER1(WebView_base, setHtml, exlib::string);
     ASYNC_MEMBERVALUE1(WebView_base, getHtml, exlib::string);
+    ASYNC_MEMBERVALUE1(WebView_base, isReady, bool);
     ASYNC_MEMBER0(WebView_base, reload);
     ASYNC_MEMBER0(WebView_base, goBack);
     ASYNC_MEMBER0(WebView_base, goForward);
@@ -122,12 +128,14 @@ public:
     ASYNC_MEMBERVALUE1(WebView_base, getPosition, obj_ptr<NArray>);
     ASYNC_MEMBERVALUE1(WebView_base, isActived, bool);
     ASYNC_MEMBER0(WebView_base, active);
+    ASYNC_MEMBERVALUE1(WebView_base, capturePage, obj_ptr<Buffer_base>);
     ASYNC_MEMBER0(WebView_base, close);
     ASYNC_MEMBER1(WebView_base, postMessage, exlib::string);
 };
 }
 
 #include "ifs/Menu.h"
+#include "ifs/Buffer.h"
 
 namespace fibjs {
 inline ClassInfo& WebView_base::class_info()
@@ -138,6 +146,7 @@ inline ClassInfo& WebView_base::class_info()
         { "getUrl", s_getUrl, false, ClassData::ASYNC_ASYNC },
         { "setHtml", s_setHtml, false, ClassData::ASYNC_ASYNC },
         { "getHtml", s_getHtml, false, ClassData::ASYNC_ASYNC },
+        { "isReady", s_isReady, false, ClassData::ASYNC_ASYNC },
         { "reload", s_reload, false, ClassData::ASYNC_ASYNC },
         { "goBack", s_goBack, false, ClassData::ASYNC_ASYNC },
         { "goForward", s_goForward, false, ClassData::ASYNC_ASYNC },
@@ -151,6 +160,7 @@ inline ClassInfo& WebView_base::class_info()
         { "isActived", s_isActived, false, ClassData::ASYNC_ASYNC },
         { "active", s_active, false, ClassData::ASYNC_ASYNC },
         { "getMenu", s_getMenu, false, ClassData::ASYNC_SYNC },
+        { "capturePage", s_capturePage, false, ClassData::ASYNC_ASYNC },
         { "close", s_close, false, ClassData::ASYNC_ASYNC },
         { "postMessage", s_postMessage, false, ClassData::ASYNC_ASYNC }
     };
@@ -257,6 +267,23 @@ inline void WebView_base::s_getHtml(const v8::FunctionCallbackInfo<v8::Value>& a
         hr = pInst->acb_getHtml(cb, args);
     else
         hr = pInst->ac_getHtml(vr);
+
+    METHOD_RETURN();
+}
+
+inline void WebView_base::s_isReady(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    ASYNC_METHOD_INSTANCE(WebView_base);
+    ASYNC_METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_isReady(cb, args);
+    else
+        hr = pInst->ac_isReady(vr);
 
     METHOD_RETURN();
 }
@@ -471,6 +498,23 @@ inline void WebView_base::s_getMenu(const v8::FunctionCallbackInfo<v8::Value>& a
     METHOD_OVER(0, 0);
 
     hr = pInst->getMenu(vr);
+
+    METHOD_RETURN();
+}
+
+inline void WebView_base::s_capturePage(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<Buffer_base> vr;
+
+    ASYNC_METHOD_INSTANCE(WebView_base);
+    ASYNC_METHOD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    if (!cb.IsEmpty())
+        hr = pInst->acb_capturePage(cb, args);
+    else
+        hr = pInst->ac_capturePage(vr);
 
     METHOD_RETURN();
 }

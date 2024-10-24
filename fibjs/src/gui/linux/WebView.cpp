@@ -19,6 +19,7 @@
 #include "ifs/encoding.h"
 #include "WebView.h"
 #include "EventInfo.h"
+#include "StringBuffer.h"
 
 namespace fibjs {
 
@@ -98,6 +99,24 @@ result_t WebView::getHtml(exlib::string& retVal, AsyncEvent* ac)
     webkit_web_view_run_javascript(webView, "document.documentElement.outerHTML.toString()", nullptr, gethtml_cb, new gethtml_callback_data(retVal, ac));
 
     return CALL_E_PENDDING;
+}
+
+result_t WebView::isReady(bool& retVal, AsyncEvent* ac)
+{
+    bool is_win_ready = false;
+    m_ready->isSet(is_win_ready);
+    if (!is_win_ready) {
+        retVal = false;
+        return 0;
+    }
+
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    retVal = webkit_web_view_is_loading(WEBKIT_WEB_VIEW(m_webview)) == FALSE;
+
+    return 0;
 }
 
 result_t WebView::reload(AsyncEvent* ac)
@@ -327,6 +346,66 @@ result_t WebView::active(AsyncEvent* ac)
     gtk_window_present(window);
 
     return 0;
+}
+
+struct capture_callback_data {
+public:
+    capture_callback_data(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+        : m_retVal(retVal)
+        , m_ac(ac)
+    {
+    }
+
+    StringBuffer m_strs;
+
+    obj_ptr<Buffer_base>& m_retVal;
+    AsyncEvent* m_ac;
+};
+
+void capture_cb(GObject* source_object, GAsyncResult* res, gpointer user_data)
+{
+    GError* error = NULL;
+    cairo_surface_t* surface = webkit_web_view_get_snapshot_finish(WEBKIT_WEB_VIEW(source_object), res, &error);
+    capture_callback_data* cb_data = static_cast<capture_callback_data*>(user_data);
+
+    if (error) {
+        cb_data->m_ac->post(Runtime::setError(error->message));
+        delete cb_data;
+
+        g_error_free(error);
+        return;
+    }
+
+    if (surface) {
+        cairo_surface_write_to_png_stream(surface, [](void* closure, const unsigned char* data, unsigned int length) -> cairo_status_t {
+            capture_callback_data* cb_data = static_cast<capture_callback_data*>(closure);
+            cb_data->m_strs.append((const char*)data, length);
+            return CAIRO_STATUS_SUCCESS; }, user_data);
+
+        cairo_surface_destroy(surface);
+
+        cb_data->m_retVal = cb_data->m_strs.buffer();
+        cb_data->m_ac->post(0);
+        delete cb_data;
+    } else {
+        cb_data->m_ac->post(Runtime::setError("capturePage failed"));
+        delete cb_data;
+    }
+}
+
+result_t WebView::capturePage(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    WebKitWebView* webView = WEBKIT_WEB_VIEW(m_webview);
+    WebKitSnapshotRegion region = WEBKIT_SNAPSHOT_REGION_VISIBLE;
+    WebKitSnapshotOptions options = WEBKIT_SNAPSHOT_OPTIONS_NONE;
+
+    webkit_web_view_get_snapshot(webView, region, options, NULL, capture_cb, new capture_callback_data(retVal, ac));
+
+    return CALL_E_PENDDING;
 }
 
 result_t WebView::close(AsyncEvent* ac)

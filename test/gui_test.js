@@ -690,7 +690,7 @@ describe("gui", () => {
             win.close();
         });
 
-        it("auto focus html", () => {
+        it("auto focus webview", () => {
             const win = gui.open({
                 width: 100,
                 height: 100
@@ -709,7 +709,7 @@ describe("gui", () => {
             assert.equal(result, "True");
         });
 
-        it("auto focus html after blur", () => {
+        it("auto focus webview after blur", () => {
             const win = gui.open({
                 left: 100,
                 top: 100,
@@ -739,6 +739,43 @@ describe("gui", () => {
             win.close();
 
             assert.equal(result, "True");
+        });
+
+        it("isReady", () => {
+            const win = gui.open();
+            wins.push(win);
+
+            win.loadURL("http://fibjs.org");
+
+            var isReady = false;
+
+            for (var i = 0; i < 1000; i++) {
+                isReady = win.isReady();
+                if (!isReady) break;
+                coroutine.sleep(1);
+            }
+
+            assert.isFalse(isReady);
+
+            for (var i = 0; i < 1000; i++) {
+                isReady = win.isReady();
+                if (isReady) break;
+                coroutine.sleep(10);
+            }
+
+            assert.isTrue(isReady);
+
+            win.close();
+        });
+
+        it("capturePage", () => {
+            const win = gui.open();
+            wins.push(win);
+
+            var buf = win.capturePage();
+            assert.isObject(buf);
+
+            win.close();
         });
     });
 

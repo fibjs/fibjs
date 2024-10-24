@@ -86,6 +86,24 @@ result_t WebView::getHtml(exlib::string& retVal, AsyncEvent* ac)
     return CALL_E_PENDDING;
 }
 
+result_t WebView::isReady(bool& retVal, AsyncEvent* ac)
+{
+    bool is_win_ready = false;
+    m_ready->isSet(is_win_ready);
+    if (!is_win_ready) {
+        retVal = false;
+        return 0;
+    }
+
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    retVal = !m_isLoading;
+
+    return 0;
+}
+
 result_t WebView::reload(AsyncEvent* ac)
 {
     result_t hr = check_status(ac);
@@ -163,35 +181,40 @@ result_t WebView::eval(exlib::string code, Variant& retVal, AsyncEvent* ac)
     encoding_base::jsstr(code, false, code);
     code = "try{({result:eval(\"" + code + "\")})}catch(e){({error:e.message});}";
     exlib::wstring wcode = utf8to16String(code);
-    ((ICoreWebView2*)m_webview)->ExecuteScript((LPCWSTR)wcode.c_str(), Microsoft::WRL::Callback<ICoreWebView2ExecuteScriptCompletedHandler>([&retVal, ac](HRESULT errorCode, LPCWSTR resultObjectAsJson) -> HRESULT {
-        if (FAILED(errorCode)) {
-            _com_error err(errorCode);
-            ac->post(Runtime::setError(utf16to8String((const char16_t*)err.ErrorMessage())));
-            return errorCode;
-        }
 
-        if (resultObjectAsJson == nullptr) {
-            ac->post(Runtime::setError("The result is null"));
-            return E_FAIL;
-        }
+    ICoreWebView2* webView = (ICoreWebView2*)m_webview;
+    webView->ExecuteScript((LPCWSTR)wcode.c_str(),
+        Microsoft::WRL::Callback<ICoreWebView2ExecuteScriptCompletedHandler>(
+            [&retVal, ac](HRESULT errorCode, LPCWSTR resultObjectAsJson) -> HRESULT {
+                if (FAILED(errorCode)) {
+                    _com_error err(errorCode);
+                    ac->post(Runtime::setError(utf16to8String((const char16_t*)err.ErrorMessage())));
+                    return errorCode;
+                }
 
-        try {
-            std::string resultStr = utf16to8String((const char16_t*)resultObjectAsJson);
-            nlohmann::json jsonResult = nlohmann::json::parse(resultStr);
+                if (resultObjectAsJson == nullptr) {
+                    ac->post(Runtime::setError("The result is null"));
+                    return E_FAIL;
+                }
 
-            if (jsonResult.contains("error")) {
-                ac->post(Runtime::setError(jsonResult["error"].get<std::string>()));
-            } else {
-                if (jsonResult.contains("result"))
-                    json2Variant(jsonResult["result"], retVal);
-                ac->post(0);
-            }
-        } catch (const std::exception& e) {
-            ac->post(Runtime::setError(e.what()));
-        }
+                try {
+                    std::string resultStr = utf16to8String((const char16_t*)resultObjectAsJson);
+                    nlohmann::json jsonResult = nlohmann::json::parse(resultStr);
 
-        return S_OK;
-    }).Get());
+                    if (jsonResult.contains("error")) {
+                        ac->post(Runtime::setError(jsonResult["error"].get<std::string>()));
+                    } else {
+                        if (jsonResult.contains("result"))
+                            json2Variant(jsonResult["result"], retVal);
+                        ac->post(0);
+                    }
+                } catch (const std::exception& e) {
+                    ac->post(Runtime::setError(e.what()));
+                }
+
+                return S_OK;
+            })
+            .Get());
 
     return CALL_E_PENDDING;
 }
@@ -299,6 +322,49 @@ result_t WebView::active(AsyncEvent* ac)
     SetForegroundWindow(hwnd);
 
     return 0;
+}
+
+result_t WebView::capturePage(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    ICoreWebView2* webView = (ICoreWebView2*)m_webview;
+
+    IStream* imageStream = nullptr;
+    CreateStreamOnHGlobal(NULL, TRUE, &imageStream);
+    webView->CapturePreview(COREWEBVIEW2_CAPTURE_PREVIEW_IMAGE_FORMAT_PNG, imageStream,
+        Microsoft::WRL::Callback<ICoreWebView2CapturePreviewCompletedHandler>(
+            [&retVal, ac, imageStream](HRESULT errorCode) -> HRESULT {
+                if (FAILED(errorCode)) {
+                    ac->post(Runtime::setError("Failed to capture preview"));
+                    imageStream->Release();
+                    return errorCode;
+                }
+
+                STATSTG stat;
+                imageStream->Stat(&stat, STATFLAG_NONAME);
+
+                ULONG size = stat.cbSize.LowPart;
+                ULONG read = 0;
+
+                LARGE_INTEGER li = {};
+                imageStream->Seek(li, STREAM_SEEK_SET, NULL);
+
+                Buffer* buf = new Buffer(nullptr, size);
+                imageStream->Read(buf->data(), size, &read);
+
+                retVal = buf;
+                ac->post(0);
+
+                imageStream->Release();
+
+                return S_OK;
+            })
+            .Get());
+
+    return CALL_E_PENDDING;
 }
 
 result_t WebView::close(AsyncEvent* ac)

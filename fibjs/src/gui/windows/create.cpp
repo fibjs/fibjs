@@ -126,9 +126,20 @@ result_t WebView::createWebView()
                         .Get(),
                     nullptr);
 
+                webView->add_NavigationStarting(
+                    Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
+                        [this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
+                            m_isLoading = true;
+                            return S_OK;
+                        })
+                        .Get(),
+                    nullptr);
+
                 webView->add_NavigationCompleted(
                     Microsoft::WRL::Callback<ICoreWebView2NavigationCompletedEventHandler>(
                         [this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
+                            m_isLoading = false;
+
                             const wchar_t* script = L"window.postMessage = function(message) { window.chrome.webview.postMessage(message); };"
                                                     "window.close = function() { window.chrome.webview.postMessage({type:'close'}); };"
                                                     "window.minimize = function() { window.chrome.webview.postMessage({type:'minimize'}); };"

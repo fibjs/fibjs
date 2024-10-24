@@ -87,6 +87,7 @@ public:
     virtual result_t getUrl(exlib::string& retVal, AsyncEvent* ac);
     virtual result_t setHtml(exlib::string html, AsyncEvent* ac);
     virtual result_t getHtml(exlib::string& retVal, AsyncEvent* ac);
+    virtual result_t isReady(bool& retVal, AsyncEvent* ac);
     virtual result_t reload(AsyncEvent* ac);
     virtual result_t goBack(AsyncEvent* ac);
     virtual result_t goForward(AsyncEvent* ac);
@@ -100,6 +101,7 @@ public:
     virtual result_t isActived(bool& retVal, AsyncEvent* ac);
     virtual result_t active(AsyncEvent* ac);
     virtual result_t getMenu(obj_ptr<Menu_base>& retVal);
+    virtual result_t capturePage(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac);
     virtual result_t close(AsyncEvent* ac);
     virtual result_t postMessage(exlib::string msg, AsyncEvent* ac);
 
@@ -166,6 +168,10 @@ public:
     void* m_webview = nullptr;
 
     obj_ptr<Event_base> m_ready;
+
+#ifdef _WIN32
+    bool m_isLoading = false;
+#endif
 
 public:
     int32_t m_x = 0;

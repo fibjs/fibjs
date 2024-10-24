@@ -10,6 +10,7 @@
 #include "QuickArray.h"
 #include <string>
 #include <string.h>
+#include "Buffer.h"
 
 namespace fibjs {
 
@@ -47,6 +48,34 @@ public:
         }
 
         return s;
+    }
+
+    Buffer* buffer()
+    {
+        Buffer* buf;
+        int32_t i, p = 0;
+
+        if (m_size > 0) {
+            if (m_array.size() == 1)
+                buf = new Buffer(m_array[0].c_str(), m_array[0].length());
+            else {
+                buf = new Buffer(nullptr, m_size);
+                uint8_t* _s = buf->data();
+
+                for (i = 0; i < (int32_t)m_array.size(); i++) {
+                    exlib::string& s1 = m_array[i];
+                    size_t len = s1.length();
+
+                    memcpy(&_s[p], s1.c_str(), len);
+                    p += (int32_t)len;
+                }
+            }
+
+            m_size = 0;
+            m_array.resize(0);
+        }
+
+        return buf;
     }
 
     size_t size()

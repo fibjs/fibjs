@@ -58,6 +58,12 @@ void webkit_settings_set_user_agent(WebKitSettings* settings, const gchar* user_
     s_webkit_settings_set_user_agent(settings, user_agent);
 }
 
+gboolean webkit_web_view_is_loading(WebKitWebView* web_view)
+{
+    webkit_func(webkit_web_view_is_loading);
+    return s_webkit_web_view_is_loading(web_view);
+}
+
 WebKitUserScript* webkit_user_script_new(const gchar* source, WebKitUserContentInjectedFrames injected_frames,
     WebKitUserScriptInjectionTime injection_time, const gchar* const* whitelist, const gchar* const* blacklist)
 {
@@ -209,6 +215,31 @@ void webkit_web_view_go_forward(WebKitWebView* web_view)
 {
     webkit_func(webkit_web_view_go_forward);
     s_webkit_web_view_go_forward(web_view);
+}
+
+void webkit_web_view_get_snapshot(WebKitWebView* web_view, WebKitSnapshotRegion region, WebKitSnapshotOptions options,
+    GCancellable* cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    webkit_func(webkit_web_view_get_snapshot);
+    s_webkit_web_view_get_snapshot(web_view, region, options, cancellable, callback, user_data);
+}
+
+cairo_surface_t* webkit_web_view_get_snapshot_finish(WebKitWebView* web_view, GAsyncResult* result, GError** error)
+{
+    webkit_func(webkit_web_view_get_snapshot_finish);
+    return s_webkit_web_view_get_snapshot_finish(web_view, result, error);
+}
+
+cairo_status_t cairo_surface_write_to_png_stream(cairo_surface_t* surface, cairo_write_func_t write_func, void* closure)
+{
+    webkit_func(cairo_surface_write_to_png_stream);
+    return s_cairo_surface_write_to_png_stream(surface, write_func, closure);
+}
+
+void cairo_surface_destroy(cairo_surface_t* surface)
+{
+    webkit_func(cairo_surface_destroy);
+    s_cairo_surface_destroy(surface);
 }
 
 #endif

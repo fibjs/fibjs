@@ -74,6 +74,11 @@ interface WebView : EventEmitter
     */
     String getHtml() async;
 
+    /*! @brief 查询当前页面是否加载完成
+     @return 返回当前页面是否加载完成
+    */
+    Boolean isReady() async;
+
     /*! @brief 刷新当前页面 */
     reload() async;
 
@@ -133,6 +138,11 @@ interface WebView : EventEmitter
      @return 返回窗口的菜单
     */
     Menu getMenu();
+
+    /*! @brief 截取当前窗口的图像
+     @return 返回截取的图像
+    */
+    Buffer capturePage() async;
 
     /*! @brief 关闭当前窗口 */
     close() async;
