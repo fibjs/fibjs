@@ -37,8 +37,6 @@
     if ([keyPath isEqualToString:@"title"] && object == _webView->m_webview) {
         NSString* newTitle = change[NSKeyValueChangeNewKey];
         [_webView->m_window setTitle:newTitle];
-    } else {
-        [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     }
 }
 
