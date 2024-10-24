@@ -117,9 +117,6 @@ public:
     EVENT_FUNC(message);
 
 public:
-    static void run_os_gui(exlib::Event& gui_ready);
-
-public:
     result_t createWebView();
     void config();
 

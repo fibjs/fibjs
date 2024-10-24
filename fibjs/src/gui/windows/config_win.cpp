@@ -17,6 +17,7 @@
 #include <shlobj.h>
 
 #include "object.h"
+#include "../gui.h"
 #include "EventInfo.h"
 #include "WebView.h"
 
@@ -66,7 +67,7 @@ static void RegMainClass()
     SetWindowSubclass(s_worker, WorkerProc, 0, 0);
 }
 
-void WebView::run_os_gui(exlib::Event& gui_ready)
+void run_os_gui()
 {
     exlib::OSThread* _thGUI = exlib::OSThread::current();
 
@@ -75,7 +76,7 @@ void WebView::run_os_gui(exlib::Event& gui_ready)
 
     OleInitialize(NULL);
 
-    gui_ready.set();
+    g_gui_ready.set();
 
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0)) {

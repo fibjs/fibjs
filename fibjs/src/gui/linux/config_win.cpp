@@ -14,6 +14,7 @@
 #include <webkit2/webkit2.h>
 
 #include "object.h"
+#include "../gui.h"
 #include "ifs/gui.h"
 #include "ifs/fs.h"
 #include "ifs/mime.h"
@@ -70,14 +71,14 @@ static void fs_scheme_request_callback(WebKitURISchemeRequest* request, gpointer
     });
 }
 
-void WebView::run_os_gui(exlib::Event& gui_ready)
+void run_os_gui()
 {
     dl_init();
     gtk_init_check(nullptr, nullptr);
     main_loop = g_main_loop_new(NULL, FALSE);
     webkit_web_context_register_uri_scheme(webkit_web_context_get_default(), "fs", fs_scheme_request_callback, NULL, NULL);
 
-    gui_ready.set();
+    g_gui_ready.set();
 
     g_main_loop_run(main_loop);
 }

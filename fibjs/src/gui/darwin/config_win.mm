@@ -11,6 +11,7 @@
 #import <objc/runtime.h>
 
 #include "object.h"
+#include "../gui.h"
 #include "EventInfo.h"
 #include "WebView.h"
 #import <WebKit/WebKit.h>
@@ -187,14 +188,14 @@ id fetchEventFromNSRunLoop(int blocking)
                       dequeue:YES];
 }
 
-void WebView::run_os_gui(exlib::Event& gui_ready)
+void run_os_gui()
 {
     @autoreleasepool {
         GuiApplication* app = [GuiApplication sharedApplication];
         [app finishLaunching];
         [app activateIgnoringOtherApps:YES];
 
-        gui_ready.set();
+        g_gui_ready.set();
 
         [app run];
     }

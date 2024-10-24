@@ -10,6 +10,7 @@
 #include "object.h"
 #include "ifs/gui.h"
 #include "ifs/fs.h"
+#include "gui.h"
 
 #include "WebView.h"
 #include "Tray.h"
@@ -19,7 +20,13 @@ namespace fibjs {
 DECLARE_MODULE(gui);
 
 static exlib::Event s_gui;
-static exlib::Event s_gui_ready;
+exlib::Event g_gui_ready;
+
+void start_gui()
+{
+    s_gui.set();
+    g_gui_ready.wait();
+}
 
 void run_gui(int argc, char* argv[])
 {
@@ -29,13 +36,12 @@ void run_gui(int argc, char* argv[])
     Runtime rt(NULL);
 
     s_gui.wait();
-    WebView::run_os_gui(s_gui_ready);
+    run_os_gui();
 }
 
 result_t WebView::async_open()
 {
-    s_gui.set();
-    s_gui_ready.wait();
+    start_gui();
 
     wrap();
 
@@ -160,8 +166,7 @@ result_t Tray::getMenu(obj_ptr<Menu_base>& retVal)
 
 result_t Tray::async_open()
 {
-    s_gui.set();
-    s_gui_ready.wait();
+    start_gui();
 
     wrap();
 

@@ -13,9 +13,6 @@ namespace fibjs {
 
 DECLARE_MODULE(gui);
 
-static exlib::Event s_gui;
-static exlib::Event s_gui_ready;
-
 void run_gui(int argc, char* argv[])
 {
     exlib::OSThread th;
