@@ -82,6 +82,33 @@ describe("gui", () => {
             assert.equal(win.getHtml(), '<html><head></head><body>hello</body></html>');
         });
 
+        it("isReady", () => {
+            const win = gui.open();
+            wins.push(win);
+
+            win.loadURL("http://fibjs.org");
+
+            var isReady = false;
+
+            for (var i = 0; i < 1000; i++) {
+                isReady = win.isReady();
+                if (!isReady) break;
+                coroutine.sleep(1);
+            }
+
+            assert.isFalse(isReady);
+
+            for (var i = 0; i < 1000; i++) {
+                isReady = win.isReady();
+                if (isReady) break;
+                coroutine.sleep(10);
+            }
+
+            assert.isTrue(isReady);
+
+            win.close();
+        });
+
         describe("eval", () => {
             it("eval and result", () => {
                 const o = {
@@ -146,6 +173,46 @@ describe("gui", () => {
                 height: 100
             });
             wins.push(win);
+
+            var closed = false;
+            win.on("close", () => {
+                closed = true;
+            });
+
+            win.eval(`window.close();`);
+
+            for (var i = 0; i < 1000; i++) {
+                coroutine.sleep(10);
+                if (closed) {
+                    break;
+                }
+            }
+
+            assert.equal(closed, true);
+        });
+
+        it("close from inside after reload", () => {
+            const win = gui.open({
+                width: 100,
+                height: 100
+            });
+            wins.push(win);
+
+            for (var i = 0; i < 1000; i++) {
+                if (win.isReady() && win.eval(`window.location.href`) == "about:blank")
+                    break;
+                coroutine.sleep(1);
+            }
+
+            win.loadURL("data:text/html;charset=utf-8,helloworld");
+
+            for (var i = 0; i < 1000; i++) {
+                if (win.isReady() && win.eval(`window.location.href`) !== "about:blank")
+                    break;
+                coroutine.sleep(1);
+            }
+
+            assert.equal(win.eval(`window.location.href`), "data:text/html;charset=utf-8,helloworld");
 
             var closed = false;
             win.on("close", () => {
@@ -739,33 +806,6 @@ describe("gui", () => {
             win.close();
 
             assert.equal(result, "True");
-        });
-
-        it("isReady", () => {
-            const win = gui.open();
-            wins.push(win);
-
-            win.loadURL("http://fibjs.org");
-
-            var isReady = false;
-
-            for (var i = 0; i < 1000; i++) {
-                isReady = win.isReady();
-                if (!isReady) break;
-                coroutine.sleep(1);
-            }
-
-            assert.isFalse(isReady);
-
-            for (var i = 0; i < 1000; i++) {
-                isReady = win.isReady();
-                if (isReady) break;
-                coroutine.sleep(10);
-            }
-
-            assert.isTrue(isReady);
-
-            win.close();
         });
 
         it("capturePage", () => {
