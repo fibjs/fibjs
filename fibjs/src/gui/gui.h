@@ -16,4 +16,14 @@ extern exlib::Event g_gui_ready;
 void start_gui();
 void run_os_gui();
 
+inline result_t check_gui(AsyncEvent* ac)
+{
+    if (ac->isSync()) {
+        start_gui();
+        return CHECK_ERROR(CALL_E_GUICALL);
+    }
+
+    return 0;
+}
+
 } // namespace fibjs

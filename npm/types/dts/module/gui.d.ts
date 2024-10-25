@@ -159,23 +159,42 @@ declare module 'gui' {
     /**
      * @description 弹出一个消息框
      *      @param message 消息内容
-     *      @param title 消息标题，默认为空
      *     
      */
-    function alert(message: string, title?: string): void;
+    function alert(message: string): void;
 
-    function alert(message: string, title?: string, callback?: (err: Error | undefined | null)=>any): void;
+    function alert(message: string, callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 弹出一个消息框
+     *      @param title 消息标题
+     *      @param message 消息内容
+     *     
+     */
+    function alert(title: string, message: string): void;
+
+    function alert(title: string, message: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 弹出一个确认框
      *      @param message 消息内容
-     *      @param title 消息标题，默认为空
      *      @return 返回用户的选择结果
      *     
      */
-    function confirm(message: string, title?: string): boolean;
+    function confirm(message: string): boolean;
 
-    function confirm(message: string, title?: string, callback?: (err: Error | undefined | null, retVal: boolean)=>any): void;
+    function confirm(message: string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    /**
+     * @description 弹出一个确认框
+     *      @param title 消息标题
+     *      @param message 消息内容
+     *      @return 返回用户的选择结果
+     *     
+     */
+    function confirm(title: string, message: string): boolean;
+
+    function confirm(title: string, message: string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
 }
 

@@ -29,8 +29,10 @@ public:
     static result_t openFile(exlib::string file, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal);
     static result_t createMenu(v8::Local<v8::Array> items, obj_ptr<Menu_base>& retVal);
     static result_t createTray(v8::Local<v8::Object> opt, obj_ptr<Tray_base>& retVal);
-    static result_t alert(exlib::string message, exlib::string title, AsyncEvent* ac);
-    static result_t confirm(exlib::string message, exlib::string title, bool& retVal, AsyncEvent* ac);
+    static result_t alert(exlib::string message, AsyncEvent* ac);
+    static result_t alert(exlib::string title, exlib::string message, AsyncEvent* ac);
+    static result_t confirm(exlib::string message, bool& retVal, AsyncEvent* ac);
+    static result_t confirm(exlib::string title, exlib::string message, bool& retVal, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -50,7 +52,9 @@ public:
     static void s_static_confirm(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
+    ASYNC_STATIC1(gui_base, alert, exlib::string);
     ASYNC_STATIC2(gui_base, alert, exlib::string, exlib::string);
+    ASYNC_STATICVALUE2(gui_base, confirm, exlib::string, bool);
     ASYNC_STATICVALUE3(gui_base, confirm, exlib::string, exlib::string, bool);
 };
 }
@@ -158,10 +162,19 @@ inline void gui_base::s_static_alert(const v8::FunctionCallbackInfo<v8::Value>& 
 {
     ASYNC_METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER(1, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
+
+    if (!cb.IsEmpty())
+        hr = acb_alert(v0, cb, args);
+    else
+        hr = ac_alert(v0);
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
 
     if (!cb.IsEmpty())
         hr = acb_alert(v0, v1, cb, args);
@@ -177,10 +190,19 @@ inline void gui_base::s_static_confirm(const v8::FunctionCallbackInfo<v8::Value>
 
     ASYNC_METHOD_ENTER();
 
-    METHOD_OVER(2, 1);
+    METHOD_OVER(1, 1);
 
     ARG(exlib::string, 0);
-    OPT_ARG(exlib::string, 1, "");
+
+    if (!cb.IsEmpty())
+        hr = acb_confirm(v0, cb, args);
+    else
+        hr = ac_confirm(v0, vr);
+
+    METHOD_OVER(2, 2);
+
+    ARG(exlib::string, 0);
+    ARG(exlib::string, 1);
 
     if (!cb.IsEmpty())
         hr = acb_confirm(v0, v1, cb, args);

@@ -13,12 +13,16 @@
 
 namespace fibjs {
 
-result_t gui_base::alert(exlib::string message, exlib::string title, AsyncEvent* ac)
+result_t gui_base::alert(exlib::string message, AsyncEvent* ac)
 {
-    if (ac->isSync()) {
-        start_gui();
-        return CHECK_ERROR(CALL_E_GUICALL);
-    }
+    return alert("", message, ac);
+}
+
+result_t gui_base::alert(exlib::string title, exlib::string message, AsyncEvent* ac)
+{
+    result_t hr = check_gui(ac);
+    if (hr < 0)
+        return hr;
 
     exlib::Event ev;
     async([&message, &title, &ev]() {
@@ -32,12 +36,16 @@ result_t gui_base::alert(exlib::string message, exlib::string title, AsyncEvent*
     return 0;
 }
 
-result_t gui_base::confirm(exlib::string message, exlib::string title, bool& retVal, AsyncEvent* ac)
+result_t gui_base::confirm(exlib::string message, bool& retVal, AsyncEvent* ac)
 {
-    if (ac->isSync()) {
-        start_gui();
-        return CHECK_ERROR(CALL_E_GUICALL);
-    }
+    return confirm("", message, retVal, ac);
+}
+
+result_t gui_base::confirm(exlib::string title, exlib::string message, bool& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_gui(ac);
+    if (hr < 0)
+        return hr;
 
     exlib::Event ev;
     async([&message, &title, &retVal, &ev]() {

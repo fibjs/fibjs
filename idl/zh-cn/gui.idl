@@ -141,14 +141,25 @@ module gui
 
     /*! @brief 弹出一个消息框
      @param message 消息内容
-     @param title 消息标题，默认为空
     */
-    static alert(String message, String title = "") async;
+    static alert(String message) async;
+
+    /*! @brief 弹出一个消息框
+     @param title 消息标题
+     @param message 消息内容
+    */
+    static alert(String title, String message) async;
 
     /*! @brief 弹出一个确认框
      @param message 消息内容
-     @param title 消息标题，默认为空
      @return 返回用户的选择结果
     */
-    static Boolean confirm(String message, String title = "") async;
+    static Boolean confirm(String message) async;
+
+    /*! @brief 弹出一个确认框
+     @param title 消息标题
+     @param message 消息内容
+     @return 返回用户的选择结果
+    */
+    static Boolean confirm(String title, String message) async;
 };
