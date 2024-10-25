@@ -28,6 +28,8 @@ void dl_pango_init()
 {
 }
 
+extern "C" {
+
 PangoFontDescription* pango_font_description_copy(const PangoFontDescription* desc)
 {
     pango_func(pango_font_description_copy);
@@ -50,6 +52,8 @@ void pango_font_description_free(PangoFontDescription* desc)
 {
     pango_func(pango_font_description_free);
     s_pango_font_description_free(desc);
+}
+
 }
 
 #endif

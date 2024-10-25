@@ -28,6 +28,8 @@ void dl_webkit_init()
 {
 }
 
+extern "C" {
+
 GtkWidget* webkit_web_view_new()
 {
     webkit_func(webkit_web_view_new);
@@ -240,6 +242,8 @@ void cairo_surface_destroy(cairo_surface_t* surface)
 {
     webkit_func(cairo_surface_destroy);
     s_cairo_surface_destroy(surface);
+}
+
 }
 
 #endif

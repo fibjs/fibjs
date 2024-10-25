@@ -138,4 +138,17 @@ module gui
      @return 返回创建的状态图标对象
     */
     static Tray createTray(Object opt = {});
+
+    /*! @brief 弹出一个消息框
+     @param message 消息内容
+     @param title 消息标题，默认为空
+    */
+    static alert(String message, String title = "") async;
+
+    /*! @brief 弹出一个确认框
+     @param message 消息内容
+     @param title 消息标题，默认为空
+     @return 返回用户的选择结果
+    */
+    static Boolean confirm(String message, String title = "") async;
 };

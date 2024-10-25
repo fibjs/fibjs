@@ -29,6 +29,8 @@ void dl_js_init()
 {
 }
 
+extern "C" {
+
 char* jsc_value_to_string(JSCValue* value)
 {
     js_func(jsc_value_to_string);
@@ -153,6 +155,8 @@ void jsc_context_clear_exception(JSCContext* ctx)
 {
     js_func(jsc_context_clear_exception);
     s_jsc_context_clear_exception(ctx);
+}
+
 }
 
 #endif

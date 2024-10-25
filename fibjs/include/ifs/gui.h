@@ -29,6 +29,8 @@ public:
     static result_t openFile(exlib::string file, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal);
     static result_t createMenu(v8::Local<v8::Array> items, obj_ptr<Menu_base>& retVal);
     static result_t createTray(v8::Local<v8::Object> opt, obj_ptr<Tray_base>& retVal);
+    static result_t alert(exlib::string message, exlib::string title, AsyncEvent* ac);
+    static result_t confirm(exlib::string message, exlib::string title, bool& retVal, AsyncEvent* ac);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -44,6 +46,12 @@ public:
     static void s_static_openFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createMenu(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_createTray(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_alert(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_confirm(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+public:
+    ASYNC_STATIC2(gui_base, alert, exlib::string, exlib::string);
+    ASYNC_STATICVALUE3(gui_base, confirm, exlib::string, exlib::string, bool);
 };
 }
 
@@ -58,7 +66,9 @@ inline ClassInfo& gui_base::class_info()
         { "open", s_static_open, true, ClassData::ASYNC_SYNC },
         { "openFile", s_static_openFile, true, ClassData::ASYNC_SYNC },
         { "createMenu", s_static_createMenu, true, ClassData::ASYNC_SYNC },
-        { "createTray", s_static_createTray, true, ClassData::ASYNC_SYNC }
+        { "createTray", s_static_createTray, true, ClassData::ASYNC_SYNC },
+        { "alert", s_static_alert, true, ClassData::ASYNC_ASYNC },
+        { "confirm", s_static_confirm, true, ClassData::ASYNC_ASYNC }
     };
 
     static ClassData::ClassObject s_object[] = {
@@ -69,7 +79,7 @@ inline ClassInfo& gui_base::class_info()
         "gui", true, s__new, NULL,
         ARRAYSIZE(s_method), s_method, ARRAYSIZE(s_object), s_object, 0, NULL, 0, NULL, NULL, NULL,
         &object_base::class_info(),
-        false
+        true
     };
 
     static ClassInfo s_ci(s_cd);
@@ -140,6 +150,42 @@ inline void gui_base::s_static_createTray(const v8::FunctionCallbackInfo<v8::Val
     OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
 
     hr = createTray(v0, vr);
+
+    METHOD_RETURN();
+}
+
+inline void gui_base::s_static_alert(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    ASYNC_METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "");
+
+    if (!cb.IsEmpty())
+        hr = acb_alert(v0, v1, cb, args);
+    else
+        hr = ac_alert(v0, v1);
+
+    METHOD_VOID();
+}
+
+inline void gui_base::s_static_confirm(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    bool vr;
+
+    ASYNC_METHOD_ENTER();
+
+    METHOD_OVER(2, 1);
+
+    ARG(exlib::string, 0);
+    OPT_ARG(exlib::string, 1, "");
+
+    if (!cb.IsEmpty())
+        hr = acb_confirm(v0, v1, cb, args);
+    else
+        hr = ac_confirm(v0, v1, vr);
 
     METHOD_RETURN();
 }

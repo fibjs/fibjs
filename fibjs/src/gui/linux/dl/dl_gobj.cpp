@@ -28,6 +28,8 @@ void dl_gobj_init()
 {
 }
 
+extern "C" {
+
 GTypeInstance* g_type_check_instance_cast(GTypeInstance* instance, GType iface_type)
 {
     gobj_func(g_type_check_instance_cast);
@@ -91,6 +93,8 @@ void g_error_free(GError* error)
 {
     gobj_func(g_error_free);
     s_g_error_free(error);
+}
+
 }
 
 #endif

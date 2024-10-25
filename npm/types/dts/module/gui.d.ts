@@ -156,5 +156,26 @@ declare module 'gui' {
      */
     function createTray(opt?: FIBJS.GeneralObject): Class_Tray;
 
+    /**
+     * @description 弹出一个消息框
+     *      @param message 消息内容
+     *      @param title 消息标题，默认为空
+     *     
+     */
+    function alert(message: string, title?: string): void;
+
+    function alert(message: string, title?: string, callback?: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 弹出一个确认框
+     *      @param message 消息内容
+     *      @param title 消息标题，默认为空
+     *      @return 返回用户的选择结果
+     *     
+     */
+    function confirm(message: string, title?: string): boolean;
+
+    function confirm(message: string, title?: string, callback?: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
 }
 

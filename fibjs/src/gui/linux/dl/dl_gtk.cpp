@@ -28,6 +28,8 @@ void dl_gtk_init()
 {
 }
 
+extern "C" {
+
 gboolean gtk_init_check(int* argc, char*** argv)
 {
     gtk_func(gtk_init_check);
@@ -533,6 +535,30 @@ void gtk_widget_show(GtkWidget* widget)
     s_gtk_widget_show(widget);
 }
 
+GtkWidget* gtk_message_dialog_new_(GtkWindow* parent, GtkDialogFlags flags, GtkMessageType type, GtkButtonsType buttons, const gchar* message)
+{
+    gtk_func(gtk_message_dialog_new);
+    return s_gtk_message_dialog_new(parent, flags, type, buttons, "%s", message);
+}
+
+GType gtk_dialog_get_type(void)
+{
+    gtk_func(gtk_dialog_get_type);
+    return s_gtk_dialog_get_type();
+}
+
+gint gtk_dialog_run(GtkDialog* dialog)
+{
+    gtk_func(gtk_dialog_run);
+    return s_gtk_dialog_run(dialog);
+}
+
+void gtk_window_set_modal(GtkWindow* window, gboolean modal)
+{
+    gtk_func(gtk_window_set_modal);
+    s_gtk_window_set_modal(window, modal);
+}
+
 GMainLoop* g_main_loop_new(GMainContext* context, gboolean is_running)
 {
     gtk_func(g_main_loop_new);
@@ -561,6 +587,7 @@ GQuark g_io_error_quark(void)
 {
     gtk_func(g_io_error_quark);
     return s_g_io_error_quark();
+}
 }
 
 #endif

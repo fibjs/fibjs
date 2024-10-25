@@ -16,7 +16,7 @@
 #include "WebView.h"
 #import <WebKit/WebKit.h>
 
-static int32_t s_window_count = 0;
+int32_t s_window_count = 0;
 
 static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
 {
