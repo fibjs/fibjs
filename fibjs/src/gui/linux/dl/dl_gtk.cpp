@@ -174,6 +174,12 @@ void gtk_window_fullscreen(GtkWindow* window)
     s_gtk_window_fullscreen(window);
 }
 
+void gtk_window_set_geometry_hints(GtkWindow* window, GtkWidget* geometry_widget, GdkGeometry* geometry, GdkWindowHints geom_mask)
+{
+    gtk_func(gtk_window_set_geometry_hints);
+    s_gtk_window_set_geometry_hints(window, geometry_widget, geometry, geom_mask);
+}
+
 void gtk_widget_show_all(GtkWidget* widget)
 {
     gtk_func(gtk_widget_show_all);

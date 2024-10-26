@@ -133,6 +133,17 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         }
         return hit;
     }
+    case WM_GETMINMAXINFO: {
+        MINMAXINFO* pMinMaxInfo = (MINMAXINFO*)lParam;
+        pMinMaxInfo->ptMinTrackSize.x = webview->m_options->minWidth.value() * dpix / 96;
+        pMinMaxInfo->ptMinTrackSize.y = webview->m_options->minHeight.value() * dpiy / 96;
+
+        if (webview->m_options->maxWidth.has_value())
+            pMinMaxInfo->ptMaxTrackSize.x = webview->m_options->maxWidth.value() * dpix / 96;
+        if (webview->m_options->maxHeight.has_value())
+            pMinMaxInfo->ptMaxTrackSize.y = webview->m_options->maxHeight.value() * dpiy / 96;
+        return 0;
+    }
     case WM_ACTIVATE: {
         if (wParam == WA_ACTIVE || wParam == WA_CLICKACTIVE) {
             obj_ptr<EventInfo> ei = new EventInfo(webview, "focus");

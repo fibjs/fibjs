@@ -286,6 +286,9 @@ void WebView::config()
 
     window.styleMask = mask;
 
+    [window setContentMinSize:NSMakeSize(m_options->minWidth.value(), m_options->minHeight.value())];
+    [window setContentMaxSize:NSMakeSize(m_options->maxWidth.value_or(__INT32_MAX__), m_options->maxHeight.value_or(__INT32_MAX__))];
+
     if (m_options->fullscreen.value()) {
         [window setFrame:[[NSScreen mainScreen] visibleFrame] display:YES];
         [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];

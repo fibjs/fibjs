@@ -237,6 +237,13 @@ void WebView::config()
     if (y == CW_USEDEFAULT)
         y = (screen_height - nHeight) / 2;
 
+    GdkGeometry hints;
+    hints.min_width = m_options->minWidth.value();
+    hints.min_height = m_options->minHeight.value();
+    hints.max_width = m_options->maxWidth.value_or(__INT32_MAX__);
+    hints.max_height = m_options->maxHeight.value_or(__INT32_MAX__);
+    gtk_window_set_geometry_hints(GTK_WINDOW(window), NULL, &hints, (GdkWindowHints)(GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE));
+
     gtk_window_move(window, x, y);
     gtk_window_set_default_size(window, nWidth, nHeight);
     if (m_options->fullscreen.value())
