@@ -18,7 +18,7 @@ extern int32_t s_window_count;
 
 namespace fibjs {
 
-result_t WebView::loadURL(exlib::string url, AsyncEvent* ac)
+result_t WebView::loadUrl(exlib::string url, AsyncEvent* ac)
 {
     result_t hr = check_status(ac);
     if (hr < 0)

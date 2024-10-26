@@ -25,7 +25,7 @@ class WebView_base : public EventEmitter_base {
 
 public:
     // WebView_base
-    virtual result_t loadURL(exlib::string url, AsyncEvent* ac) = 0;
+    virtual result_t loadUrl(exlib::string url, AsyncEvent* ac) = 0;
     virtual result_t loadFile(exlib::string file, AsyncEvent* ac) = 0;
     virtual result_t getUrl(exlib::string& retVal, AsyncEvent* ac) = 0;
     virtual result_t setHtml(exlib::string html, AsyncEvent* ac) = 0;
@@ -77,7 +77,7 @@ public:
     }
 
 public:
-    static void s_loadURL(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_loadUrl(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_loadFile(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_getUrl(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_setHtml(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -120,7 +120,7 @@ public:
     static void s_set_onmessage(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 public:
-    ASYNC_MEMBER1(WebView_base, loadURL, exlib::string);
+    ASYNC_MEMBER1(WebView_base, loadUrl, exlib::string);
     ASYNC_MEMBER1(WebView_base, loadFile, exlib::string);
     ASYNC_MEMBERVALUE1(WebView_base, getUrl, exlib::string);
     ASYNC_MEMBER1(WebView_base, setHtml, exlib::string);
@@ -154,7 +154,7 @@ namespace fibjs {
 inline ClassInfo& WebView_base::class_info()
 {
     static ClassData::ClassMethod s_method[] = {
-        { "loadURL", s_loadURL, false, ClassData::ASYNC_ASYNC },
+        { "loadUrl", s_loadUrl, false, ClassData::ASYNC_ASYNC },
         { "loadFile", s_loadFile, false, ClassData::ASYNC_ASYNC },
         { "getUrl", s_getUrl, false, ClassData::ASYNC_ASYNC },
         { "setHtml", s_setHtml, false, ClassData::ASYNC_ASYNC },
@@ -203,7 +203,7 @@ inline ClassInfo& WebView_base::class_info()
     return s_ci;
 }
 
-inline void WebView_base::s_loadURL(const v8::FunctionCallbackInfo<v8::Value>& args)
+inline void WebView_base::s_loadUrl(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     ASYNC_METHOD_INSTANCE(WebView_base);
     ASYNC_METHOD_ENTER();
@@ -213,9 +213,9 @@ inline void WebView_base::s_loadURL(const v8::FunctionCallbackInfo<v8::Value>& a
     ARG(exlib::string, 0);
 
     if (!cb.IsEmpty())
-        hr = pInst->acb_loadURL(v0, cb, args);
+        hr = pInst->acb_loadUrl(v0, cb, args);
     else
-        hr = pInst->ac_loadURL(v0);
+        hr = pInst->ac_loadUrl(v0);
 
     METHOD_VOID();
 }

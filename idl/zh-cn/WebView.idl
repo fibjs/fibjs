@@ -49,7 +49,7 @@ interface WebView : EventEmitter
     /*! @brief 加载指定 url 的页面
 	 @param url 指定的 url
 	 */
-    loadURL(String url) async;
+    loadUrl(String url) async;
 
     /*! @brief 加载指定文件的页面
      @param file 指定的文件

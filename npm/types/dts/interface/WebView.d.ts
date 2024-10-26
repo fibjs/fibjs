@@ -56,9 +56,9 @@ declare class Class_WebView extends Class_EventEmitter {
      * 	 @param url 指定的 url
      * 	 
      */
-    loadURL(url: string): void;
+    loadUrl(url: string): void;
 
-    loadURL(url: string, callback: (err: Error | undefined | null)=>any): void;
+    loadUrl(url: string, callback: (err: Error | undefined | null)=>any): void;
 
     /**
      * @description 加载指定文件的页面
@@ -156,7 +156,7 @@ declare class Class_WebView extends Class_EventEmitter {
 
     /**
      * @description 设置窗口是否可见
-     *      @param visible 指定窗口是否可见
+     *      @return 返回窗口是否可见
      *     
      */
     isVisible(): boolean;

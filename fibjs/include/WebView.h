@@ -70,7 +70,7 @@ public:
 
 public:
     // WebView_base
-    virtual result_t loadURL(exlib::string url, AsyncEvent* ac);
+    virtual result_t loadUrl(exlib::string url, AsyncEvent* ac);
 
     virtual result_t loadFile(exlib::string file, AsyncEvent* ac)
     {
@@ -89,7 +89,7 @@ public:
         exlib::string url;
         u->get_href(url);
 
-        return loadURL(url, ac);
+        return loadUrl(url, ac);
     }
 
     virtual result_t getUrl(exlib::string& retVal, AsyncEvent* ac);

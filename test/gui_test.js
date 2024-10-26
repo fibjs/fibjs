@@ -86,7 +86,7 @@ describe("gui", () => {
             const win = gui.open();
             wins.push(win);
 
-            win.loadURL("http://fibjs.org");
+            win.loadUrl("http://fibjs.org");
 
             var isReady = false;
 
@@ -235,7 +235,7 @@ describe("gui", () => {
                 coroutine.sleep(1);
             }
 
-            win.loadURL("data:text/html;charset=utf-8,helloworld");
+            win.loadUrl("data:text/html;charset=utf-8,helloworld");
 
             for (var i = 0; i < 1000; i++) {
                 if (win.isReady() && win.eval(`window.location.href`) !== "about:blank")
@@ -285,7 +285,7 @@ describe("gui", () => {
                 loaded_url = ev.url;
             });
 
-            win.loadURL("https://fibjs.org");
+            win.loadUrl("https://fibjs.org");
 
             for (var i = 0; i < 1000; i++) {
                 coroutine.sleep(10);
@@ -474,7 +474,7 @@ describe("gui", () => {
                 });
                 wins.push(win);
 
-                win.loadURL(url1);
+                win.loadUrl(url1);
 
                 assert_url(win, url1);
             });
