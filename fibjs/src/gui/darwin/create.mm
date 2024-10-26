@@ -49,7 +49,7 @@
             _webView->_emit("message", ei);
         } else if ([message.name isEqualToString:@"command"]) {
             if ([message.body isEqualToString:@"close"])
-                _webView->internal_close();
+                [_webView->m_window performClose:nil];
             else if ([message.body isEqualToString:@"minimize"])
                 _webView->internal_minimize();
             else if ([message.body isEqualToString:@"maximize"])
