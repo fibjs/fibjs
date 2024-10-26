@@ -244,6 +244,46 @@ result_t WebView::getTitle(exlib::string& retVal, AsyncEvent* ac)
     return 0;
 }
 
+result_t WebView::isVisible(bool& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    retVal = IsWindowVisible((HWND)m_window);
+
+    return 0;
+}
+
+result_t WebView::show(AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    if (!IsWindowVisible((HWND)m_window)) {
+        ShowWindow((HWND)m_window, SW_SHOW);
+
+        ICoreWebView2Controller* controller = (ICoreWebView2Controller*)GetWindowLongPtr((HWND)m_window, 0);
+        controller->put_IsVisible(TRUE);
+    }
+
+    return 0;
+}
+
+result_t WebView::hide(AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    if (IsWindowVisible((HWND)m_window)) {
+        ShowWindow((HWND)m_window, SW_HIDE);
+    }
+
+    return 0;
+}
+
 extern int dpix, dpiy;
 
 result_t WebView::setSize(int32_t width, int32_t height, AsyncEvent* ac)

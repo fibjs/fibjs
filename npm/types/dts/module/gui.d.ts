@@ -28,6 +28,7 @@ declare module 'gui' {
      *          "right": 100, // spcify the top position of the window, default position is center of the screen, not work in gtk4
      *          "width": 100, // specify the width of the window, default is system auto set
      *          "height": 100, // specify the height of the window, default is system auto set
+     *          "visible": true, // specify whether the window is visible, default is true
      *          "minWidth": 0, // specify the minimum width of the window, default is 0
      *          "minHeight": 0, // specify the minimum height of the window, default is 0
      *          "maxWidth": 0, // specify the maximum width of the window, default is no limit
@@ -60,6 +61,7 @@ declare module 'gui' {
      *          "right": 100, // spcify the top position of the window, default position is center of the screen, not work in gtk4
      *          "width": 100, // specify the width of the window, default is system auto set
      *          "height": 100, // specify the height of the window, default is system auto set
+     *          "visible": true, // specify whether the window is visible, default is true
      *          "minWidth": 0, // specify the minimum width of the window, default is 0
      *          "minHeight": 0, // specify the minimum height of the window, default is 0
      *          "maxWidth": 0, // specify the maximum width of the window, default is no limit
@@ -94,6 +96,7 @@ declare module 'gui' {
      *          "right": 100, // spcify the top position of the window, default position is center of the screen, not work in gtk4
      *          "width": 100, // specify the width of the window, default is system auto set
      *          "height": 100, // specify the height of the window, default is system auto set
+     *          "visible": true, // specify whether the window is visible, default is true
      *          "minWidth": 0, // specify the minimum width of the window, default is 0
      *          "minHeight": 0, // specify the minimum height of the window, default is 0
      *          "maxWidth": 0, // specify the maximum width of the window, default is no limit

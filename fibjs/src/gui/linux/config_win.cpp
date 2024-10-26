@@ -270,7 +270,8 @@ void WebView::config()
         g_object_unref(loader);
     }
 
-    gtk_widget_show_all(GTK_WIDGET(window));
+    if (m_options->visible.value())
+        gtk_widget_show_all(GTK_WIDGET(window));
 
     gtk_window_get_position(window, &m_x, &m_y);
     gtk_window_get_size(window, &m_width, &m_height);

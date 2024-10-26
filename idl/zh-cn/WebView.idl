@@ -101,6 +101,17 @@ interface WebView : EventEmitter
     */
     String getTitle() async;
 
+    /*! @brief 设置窗口是否可见
+     @return 返回窗口是否可见
+    */
+    Boolean isVisible() async;
+
+    /*! @brief 显示窗口 */
+    show() async;
+
+    /*! @brief 隐藏窗口 */
+    hide() async;
+
     /*! @brief 设置窗口的尺寸
      @param width 指定窗口的宽度
      @param height 指定窗口的高度

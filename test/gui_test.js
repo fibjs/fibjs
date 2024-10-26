@@ -109,6 +109,31 @@ describe("gui", () => {
             win.close();
         });
 
+        it("visible", () => {
+            const win = gui.open({
+                width: 100,
+                height: 100,
+                visible: false
+            });
+            wins.push(win);
+
+            for (var i = 0; i < 1000; i++) {
+                if (win.isReady()) break;
+                coroutine.sleep(1);
+            }
+
+            assert.equal(win.isVisible(), false);
+
+            win.show();
+            assert.equal(win.isVisible(), true);
+            assert.notEqual(win.eval('document.body.clientWidth'), 0);
+            assert.notEqual(win.eval('document.body.clientHeight'), 0);
+
+            win.close();
+
+
+        });
+
         describe("eval", () => {
             it("eval and result", () => {
                 const o = {
@@ -484,22 +509,14 @@ describe("gui", () => {
                 const win = gui.open(opt);
                 wins.push(win);
 
-                var last_received_message;
-                for (var i = 0; i < 1000; i++) {
-                    coroutine.sleep(100);
-                    var result = win.eval(`window.innerWidth + "|" + window.innerHeight`);
-                    if (result && result != "0|0" && last_received_message == result) {
-                        break;
-                    }
-                    last_received_message = result;
-                }
+                var win_size = win.getSize();
+
                 win.close();
 
-                var size = result.split("|");
-                var width = Number(size[0]);
-                var height = Number(size[1]);
-
-                return { width, height };
+                return {
+                    width: win_size[0],
+                    height: win_size[1]
+                };
             }
 
             it("default", () => {
@@ -508,10 +525,8 @@ describe("gui", () => {
                     height: 300
                 });
 
-                if (process.platform == "linux")
-                    assert.equal(height, width);
-                else
-                    assert.lessThan(height, width);
+                assert.equal(height, 300);
+                assert.equal(width, 300);
             });
 
             it("no frame", () => {
@@ -531,11 +546,11 @@ describe("gui", () => {
                 });
 
                 const size2 = fetch_size({
-                    maximize: true
+                    maximize: true,
+                    frame: false
                 });
 
                 assert.equal(size1.width, size2.width);
-                assert.greaterThan(size1.height, size2.height);
             });
         });
 

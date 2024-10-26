@@ -304,16 +304,20 @@ void WebView::config()
 
     if (m_options->fullscreen.value()) {
         SetWindowPos(hWndParent, HWND_TOP, 0, 0, actualDesktop.right, actualDesktop.bottom, 0);
-        dwStyle = WS_VISIBLE;
+
+        if (m_options->visible.value())
+            dwStyle = WS_VISIBLE;
         SetWindowLong(hWndParent, GWL_STYLE, dwStyle);
     } else {
         SetWindowLong(hWndParent, GWL_STYLE, dwStyle);
         SetWindowPos(hWndParent, HWND_TOP, x, y, nWidth, nHeight, 0);
 
-        if (m_options->maximize.value())
-            ShowWindow(hWndParent, SW_MAXIMIZE);
-        else
-            ShowWindow(hWndParent, SW_SHOWNORMAL);
+        if (m_options->visible.value()) {
+            if (m_options->maximize.value())
+                ShowWindow(hWndParent, SW_MAXIMIZE);
+            else
+                ShowWindow(hWndParent, SW_SHOWNORMAL);
+        }
     }
 
     Ref();

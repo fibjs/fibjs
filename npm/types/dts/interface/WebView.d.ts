@@ -155,6 +155,29 @@ declare class Class_WebView extends Class_EventEmitter {
     getTitle(callback: (err: Error | undefined | null, retVal: string)=>any): void;
 
     /**
+     * @description 设置窗口是否可见
+     *      @param visible 指定窗口是否可见
+     *     
+     */
+    isVisible(): boolean;
+
+    isVisible(callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
+
+    /**
+     * @description 显示窗口 
+     */
+    show(): void;
+
+    show(callback: (err: Error | undefined | null)=>any): void;
+
+    /**
+     * @description 隐藏窗口 
+     */
+    hide(): void;
+
+    hide(callback: (err: Error | undefined | null)=>any): void;
+
+    /**
      * @description 设置窗口的尺寸
      *      @param width 指定窗口的宽度
      *      @param height 指定窗口的高度

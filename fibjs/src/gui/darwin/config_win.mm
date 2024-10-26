@@ -281,8 +281,10 @@ void WebView::config()
     x = screen_rect.origin.x + x;
     y = screen_rect.size.height + screen_rect.origin.y - (nHeight + y);
 
-    if (++s_window_count == 1)
-        [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
+    if (m_options->visible.value()) {
+        if (++s_window_count == 1)
+            [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
+    }
 
     window.styleMask = mask;
 
@@ -304,21 +306,24 @@ void WebView::config()
     if (m_options->menu.has_value()) {
         NSMenu* menu = (NSMenu*)m_options->menu.value()->create_os_menu(false);
         if (menu) {
-            [[NSApplication sharedApplication] setMainMenu:menu];
+            if (m_options->visible.value())
+                [[NSApplication sharedApplication] setMainMenu:menu];
         } else {
             NSLog(@"Failed to create menu");
         }
     }
 
-    [window makeKeyAndOrderFront:window];
-
-    [[GuiApplication sharedApplication] activateIgnoringOtherApps:YES];
+    if (m_options->visible.value()) {
+        [window makeKeyAndOrderFront:window];
+        [[GuiApplication sharedApplication] activateIgnoringOtherApps:YES];
+    }
 
     if (m_icon) {
         NSImage* icon = [[NSImage alloc]
             initWithData:[NSData dataWithBytes:m_icon->data() length:m_icon->length()]];
         if (icon) {
-            [[NSApplication sharedApplication] setApplicationIconImage:icon];
+            if (m_options->visible.value())
+                [[NSApplication sharedApplication] setApplicationIconImage:icon];
             [icon release];
         }
     }

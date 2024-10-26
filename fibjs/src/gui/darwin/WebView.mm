@@ -14,6 +14,8 @@
 #include "WebView.h"
 #import <WebKit/WebKit.h>
 
+extern int32_t s_window_count;
+
 namespace fibjs {
 
 result_t WebView::loadURL(exlib::string url, AsyncEvent* ac)
@@ -210,6 +212,47 @@ result_t WebView::getTitle(exlib::string& retVal, AsyncEvent* ac)
 
     NSString* nsTitle = [(NSWindow*)m_window title];
     retVal = [nsTitle UTF8String];
+
+    return 0;
+}
+
+result_t WebView::isVisible(bool& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    retVal = [(NSWindow*)m_window isVisible];
+    return 0;
+}
+
+result_t WebView::show(AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    if (![(NSWindow*)m_window isVisible]) {
+        if (++s_window_count == 1)
+            [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
+        [(NSWindow*)m_window makeKeyAndOrderFront:nil];
+        [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
+    }
+
+    return 0;
+}
+
+result_t WebView::hide(AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    if ([(NSWindow*)m_window isVisible]) {
+        [(NSWindow*)m_window orderOut:nil];
+        if (--s_window_count == 0)
+            [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyAccessory];
+    }
 
     return 0;
 }

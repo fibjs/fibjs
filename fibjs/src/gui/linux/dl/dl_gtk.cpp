@@ -180,6 +180,12 @@ void gtk_window_set_geometry_hints(GtkWindow* window, GtkWidget* geometry_widget
     s_gtk_window_set_geometry_hints(window, geometry_widget, geometry, geom_mask);
 }
 
+gboolean gtk_widget_get_visible(GtkWidget* widget)
+{
+    gtk_func(gtk_widget_get_visible);
+    return s_gtk_widget_get_visible(widget);
+}
+
 void gtk_widget_show_all(GtkWidget* widget)
 {
     gtk_func(gtk_widget_show_all);

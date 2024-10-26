@@ -270,6 +270,43 @@ result_t WebView::getTitle(exlib::string& retVal, AsyncEvent* ac)
     return 0;
 }
 
+result_t WebView::isVisible(bool& retVal, AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    retVal = gtk_widget_get_visible(GTK_WIDGET(m_window)) != 0;
+
+    return 0;
+}
+
+result_t WebView::show(AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    if (!gtk_widget_get_visible(GTK_WIDGET(m_window))) {
+        gtk_widget_show_all(GTK_WIDGET(m_window));
+    }
+
+    return 0;
+}
+
+result_t WebView::hide(AsyncEvent* ac)
+{
+    result_t hr = check_status(ac);
+    if (hr < 0)
+        return hr;
+
+    if (gtk_widget_get_visible(GTK_WIDGET(m_window))) {
+        gtk_widget_hide(GTK_WIDGET(m_window));
+    }
+
+    return 0;
+}
+
 result_t WebView::setSize(int32_t width, int32_t height, AsyncEvent* ac)
 {
     result_t hr = check_status(ac);
