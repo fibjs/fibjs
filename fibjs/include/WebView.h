@@ -20,19 +20,20 @@ class WebView : public WebView_base {
 public:
     class OpenOptions : public obj_base {
     public:
-        LOAD_OPTIONS(OpenOptions, (url)(file)(icon)(left)(top)(width)(height)(visible)(minWidth)(minHeight)(maxWidth)(maxHeight)(frame)(caption)(resizable)(fullscreen)(maximize)(menu)(devtools)(onloading)(onload)(onclose)(onmove)(onresize)(onfocus)(onblur)(onmessage));
+        LOAD_OPTIONS(OpenOptions, (url)(file)(icon)(left)(top)(width)(height)(visible)(hideOnClose)(minWidth)(minHeight)(maxWidth)(maxHeight)(frame)(caption)(resizable)(fullscreen)(maximize)(menu)(devtools)(onloading)(onload)(onclose)(onmove)(onresize)(onfocus)(onblur)(onmessage));
 
     public:
         std::optional<exlib::string> url;
         std::optional<exlib::string> file;
-
         std::optional<exlib::string> icon;
+
         std::optional<int32_t> left;
         std::optional<int32_t> top;
         std::optional<int32_t> width;
         std::optional<int32_t> height;
 
         std::optional<bool> visible = true;
+        std::optional<bool> hideOnClose = false;
 
         std::optional<int32_t> minWidth = 0;
         std::optional<int32_t> minHeight = 0;

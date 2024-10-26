@@ -193,6 +193,11 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     case WM_CLOSE: {
         ICoreWebView2Controller* controller = (ICoreWebView2Controller*)GetWindowLongPtr(hWnd, 0);
         if (controller != nullptr) {
+            if (webview->m_options->hideOnClose.value()) {
+                ShowWindow(hWnd, SW_HIDE);
+                return 0;
+            }
+
             controller->Release();
             SetWindowLongPtr(hWnd, 0, 0);
             webview->release();

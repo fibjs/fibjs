@@ -413,6 +413,7 @@ result_t WebView::close(AsyncEvent* ac)
     if (hr < 0)
         return hr;
 
+    m_options->hideOnClose = false;
     internal_close();
 
     return 0;

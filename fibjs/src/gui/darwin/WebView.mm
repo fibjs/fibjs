@@ -374,6 +374,7 @@ result_t WebView::close(AsyncEvent* ac)
     if (hr < 0)
         return hr;
 
+    m_options->hideOnClose = false;
     [(NSWindow*)m_window close];
 
     return 0;

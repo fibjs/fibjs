@@ -29,6 +29,7 @@ declare module 'gui' {
      *          "width": 100, // specify the width of the window, default is system auto set
      *          "height": 100, // specify the height of the window, default is system auto set
      *          "visible": true, // specify whether the window is visible, default is true
+     *          "hideOnClose": false, // specify whether the window is hidden when closed, default is false
      *          "minWidth": 0, // specify the minimum width of the window, default is 0
      *          "minHeight": 0, // specify the minimum height of the window, default is 0
      *          "maxWidth": 0, // specify the maximum width of the window, default is no limit
@@ -64,6 +65,7 @@ declare module 'gui' {
      *          "width": 100, // specify the width of the window, default is system auto set
      *          "height": 100, // specify the height of the window, default is system auto set
      *          "visible": true, // specify whether the window is visible, default is true
+     *          "hideOnClose": false, // specify whether the window is hidden when closed, default is false
      *          "minWidth": 0, // specify the minimum width of the window, default is 0
      *          "minHeight": 0, // specify the minimum height of the window, default is 0
      *          "maxWidth": 0, // specify the maximum width of the window, default is no limit
@@ -96,6 +98,7 @@ declare module 'gui' {
      *          "width": 100, // specify the width of the window, default is system auto set
      *          "height": 100, // specify the height of the window, default is system auto set
      *          "visible": true, // specify whether the window is visible, default is true
+     *          "hideOnClose": false, // specify whether the window is hidden when closed, default is false
      *          "minWidth": 0, // specify the minimum width of the window, default is 0
      *          "minHeight": 0, // specify the minimum height of the window, default is 0
      *          "maxWidth": 0, // specify the maximum width of the window, default is no limit

@@ -86,6 +86,14 @@ void run_os_gui()
 static gboolean on_close(GObject* object, GParamSpec* pspec, gpointer data)
 {
     WebView* webview = (WebView*)data;
+
+    if (webview->m_options->hideOnClose.value()) {
+        if (gtk_widget_get_visible(GTK_WIDGET(webview->m_window))) {
+            gtk_widget_hide(GTK_WIDGET(webview->m_window));
+        }
+        return TRUE;
+    }
+
     webview->release();
     return FALSE;
 }

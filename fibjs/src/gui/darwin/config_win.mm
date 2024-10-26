@@ -24,6 +24,7 @@ static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
 }
 
 @interface GuiWindowDelegate : NSObject <NSWindowDelegate>
+- (BOOL)windowShouldClose:(id)sender;
 - (void)windowWillClose:(NSNotification*)willCloseNotification;
 - (void)windowDidMove:(NSNotification*)didMoveNotification;
 - (void)windowDidResize:(NSNotification*)notification;
@@ -32,6 +33,27 @@ static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
 @end
 
 @implementation GuiWindowDelegate
+
+- (BOOL)windowShouldClose:(id)sender
+{
+    NSWindow* currentWindow = (NSWindow*)sender;
+    fibjs::WebView* webview = getWebViewFromNSWindow(currentWindow);
+
+    if (webview == NULL)
+        return YES;
+
+    if (webview->m_options->hideOnClose.value()) {
+        if ([currentWindow isVisible]) {
+            [currentWindow orderOut:nil];
+            if (--s_window_count == 0)
+                [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyAccessory];
+        }
+
+        return NO;
+    }
+    return YES;
+}
+
 - (void)windowWillClose:(NSNotification*)willCloseNotification
 {
     NSWindow* currentWindow = willCloseNotification.object;
@@ -46,8 +68,10 @@ static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
 
     webview->release();
 
-    if (--s_window_count == 0)
-        [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyAccessory];
+    if ([currentWindow isVisible]) {
+        if (--s_window_count == 0)
+            [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyAccessory];
+    }
 }
 
 - (void)windowDidMove:(NSNotification*)didMoveNotification
