@@ -43,8 +43,8 @@ public:
     virtual result_t get_modules(v8::Local<v8::Object>& retVal) = 0;
 
 public:
-    template <typename T>
-    static void __new(const T& args);
+    static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<SandBox_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -107,8 +107,7 @@ inline void SandBox_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args
     __new(args);
 }
 
-template <typename T>
-void SandBox_base::__new(const T& args)
+inline void SandBox_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<SandBox_base> vr;
 
@@ -143,6 +142,43 @@ void SandBox_base::__new(const T& args)
     hr = _new(v0, v1, v2, vr, args.This());
 
     CONSTRUCT_RETURN();
+}
+
+inline result_t SandBox_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<SandBox_base>& retVal)
+{
+    obj_ptr<SandBox_base> vr;
+
+    LOAD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+
+    hr = _new(v0, vr, args.This());
+
+    METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Function>, 1);
+
+    hr = _new(v0, v1, vr, args.This());
+
+    METHOD_OVER(2, 2);
+
+    ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Object>, 1);
+
+    hr = _new(v0, v1, vr, args.This());
+
+    METHOD_OVER(3, 3);
+
+    ARG(v8::Local<v8::Object>, 0);
+    ARG(v8::Local<v8::Function>, 1);
+    ARG(v8::Local<v8::Object>, 2);
+
+    hr = _new(v0, v1, v2, vr, args.This());
+
+    LOAD_RETURN();
 }
 
 inline void SandBox_base::s_addBuiltinModules(const v8::FunctionCallbackInfo<v8::Value>& args)

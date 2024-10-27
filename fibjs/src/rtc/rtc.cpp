@@ -127,7 +127,8 @@ result_t rtc_base::setSctpSettings(v8::Local<v8::Object> settings)
     };
 
     obj_ptr<SctpOptions> options;
-    result_t hr = SctpOptions::load(settings, options);
+    Isolate* isolate = Isolate::current(settings);
+    result_t hr = SctpOptions::load(isolate, settings, options);
     if (hr < 0)
         return hr;
 

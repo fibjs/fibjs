@@ -26,8 +26,8 @@ public:
     virtual result_t count(int32_t& retVal) = 0;
 
 public:
-    template <typename T>
-    static void __new(const T& args);
+    static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Lock_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -66,8 +66,7 @@ inline void Lock_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     __new(args);
 }
 
-template <typename T>
-void Lock_base::__new(const T& args)
+inline void Lock_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Lock_base> vr;
 
@@ -78,6 +77,19 @@ void Lock_base::__new(const T& args)
     hr = _new(vr, args.This());
 
     CONSTRUCT_RETURN();
+}
+
+inline result_t Lock_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Lock_base>& retVal)
+{
+    obj_ptr<Lock_base> vr;
+
+    LOAD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = _new(vr, args.This());
+
+    LOAD_RETURN();
 }
 
 inline void Lock_base::s_acquire(const v8::FunctionCallbackInfo<v8::Value>& args)

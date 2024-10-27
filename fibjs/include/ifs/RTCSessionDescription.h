@@ -25,8 +25,8 @@ public:
     virtual result_t get_sdp(exlib::string& retVal) = 0;
 
 public:
-    template <typename T>
-    static void __new(const T& args);
+    static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<RTCSessionDescription_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -60,8 +60,7 @@ inline void RTCSessionDescription_base::s__new(const v8::FunctionCallbackInfo<v8
     __new(args);
 }
 
-template <typename T>
-void RTCSessionDescription_base::__new(const T& args)
+inline void RTCSessionDescription_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<RTCSessionDescription_base> vr;
 
@@ -74,6 +73,21 @@ void RTCSessionDescription_base::__new(const T& args)
     hr = _new(v0, vr, args.This());
 
     CONSTRUCT_RETURN();
+}
+
+inline result_t RTCSessionDescription_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<RTCSessionDescription_base>& retVal)
+{
+    obj_ptr<RTCSessionDescription_base> vr;
+
+    LOAD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(v8::Local<v8::Object>, 0, v8::Object::New(isolate->m_isolate));
+
+    hr = _new(v0, vr, args.This());
+
+    LOAD_RETURN();
 }
 
 inline void RTCSessionDescription_base::s_get_type(const v8::FunctionCallbackInfo<v8::Value>& args)

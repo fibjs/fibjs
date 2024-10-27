@@ -29,8 +29,8 @@ public:
     virtual result_t get_end(int64_t& retVal) = 0;
 
 public:
-    template <typename T>
-    static void __new(const T& args);
+    static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<RangeStream_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -64,8 +64,7 @@ inline void RangeStream_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& 
     __new(args);
 }
 
-template <typename T>
-void RangeStream_base::__new(const T& args)
+inline void RangeStream_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<RangeStream_base> vr;
 
@@ -87,6 +86,30 @@ void RangeStream_base::__new(const T& args)
     hr = _new(v0, v1, v2, vr, args.This());
 
     CONSTRUCT_RETURN();
+}
+
+inline result_t RangeStream_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<RangeStream_base>& retVal)
+{
+    obj_ptr<RangeStream_base> vr;
+
+    LOAD_ENTER();
+
+    METHOD_OVER(2, 2);
+
+    ARG(obj_ptr<SeekableStream_base>, 0);
+    ARG(exlib::string, 1);
+
+    hr = _new(v0, v1, vr, args.This());
+
+    METHOD_OVER(3, 3);
+
+    ARG(obj_ptr<SeekableStream_base>, 0);
+    ARG(int64_t, 1);
+    ARG(int64_t, 2);
+
+    hr = _new(v0, v1, v2, vr, args.This());
+
+    LOAD_RETURN();
 }
 
 inline void RangeStream_base::s_get_begin(const v8::FunctionCallbackInfo<v8::Value>& args)

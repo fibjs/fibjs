@@ -28,8 +28,8 @@ public:
     virtual result_t get_encoding(exlib::string& retVal) = 0;
 
 public:
-    template <typename T>
-    static void __new(const T& args);
+    static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<TextDecoder_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -68,8 +68,7 @@ inline void TextDecoder_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& 
     __new(args);
 }
 
-template <typename T>
-void TextDecoder_base::__new(const T& args)
+inline void TextDecoder_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<TextDecoder_base> vr;
 
@@ -83,6 +82,22 @@ void TextDecoder_base::__new(const T& args)
     hr = _new(v0, v1, vr, args.This());
 
     CONSTRUCT_RETURN();
+}
+
+inline result_t TextDecoder_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<TextDecoder_base>& retVal)
+{
+    obj_ptr<TextDecoder_base> vr;
+
+    LOAD_ENTER();
+
+    METHOD_OVER(2, 0);
+
+    OPT_ARG(exlib::string, 0, "utf8");
+    OPT_ARG(v8::Local<v8::Object>, 1, v8::Object::New(isolate->m_isolate));
+
+    hr = _new(v0, v1, vr, args.This());
+
+    LOAD_RETURN();
 }
 
 inline void TextDecoder_base::s_decode(const v8::FunctionCallbackInfo<v8::Value>& args)

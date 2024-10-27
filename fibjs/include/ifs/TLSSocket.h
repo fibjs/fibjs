@@ -41,8 +41,8 @@ public:
     virtual result_t get_localPort(int32_t& retVal) = 0;
 
 public:
-    template <typename T>
-    static void __new(const T& args);
+    static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<TLSSocket_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -104,8 +104,7 @@ inline void TLSSocket_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& ar
     __new(args);
 }
 
-template <typename T>
-void TLSSocket_base::__new(const T& args)
+inline void TLSSocket_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<TLSSocket_base> vr;
 
@@ -129,6 +128,32 @@ void TLSSocket_base::__new(const T& args)
     hr = _new(v0, v1, vr, args.This());
 
     CONSTRUCT_RETURN();
+}
+
+inline result_t TLSSocket_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<TLSSocket_base>& retVal)
+{
+    obj_ptr<TLSSocket_base> vr;
+
+    LOAD_ENTER();
+
+    METHOD_OVER(0, 0);
+
+    hr = _new(vr, args.This());
+
+    METHOD_OVER(1, 1);
+
+    ARG(obj_ptr<SecureContext_base>, 0);
+
+    hr = _new(v0, vr, args.This());
+
+    METHOD_OVER(2, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
+    OPT_ARG(bool, 1, false);
+
+    hr = _new(v0, v1, vr, args.This());
+
+    LOAD_RETURN();
 }
 
 inline void TLSSocket_base::s_connect(const v8::FunctionCallbackInfo<v8::Value>& args)

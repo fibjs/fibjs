@@ -27,8 +27,8 @@ public:
     virtual result_t invoke(object_base* v, obj_ptr<Handler_base>& retVal, AsyncEvent* ac) = 0;
 
 public:
-    template <typename T>
-    static void __new(const T& args);
+    static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Handler_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -63,8 +63,7 @@ inline void Handler_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args
     __new(args);
 }
 
-template <typename T>
-void Handler_base::__new(const T& args)
+inline void Handler_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Handler_base> vr;
 
@@ -95,6 +94,39 @@ void Handler_base::__new(const T& args)
     hr = _new(v0, vr, args.This());
 
     CONSTRUCT_RETURN();
+}
+
+inline result_t Handler_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Handler_base>& retVal)
+{
+    obj_ptr<Handler_base> vr;
+
+    LOAD_ENTER();
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Array>, 0);
+
+    hr = _new(v0, vr, args.This());
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Object>, 0);
+
+    hr = _new(v0, vr, args.This());
+
+    METHOD_OVER(1, 1);
+
+    ARG(v8::Local<v8::Function>, 0);
+
+    hr = _new(v0, vr, args.This());
+
+    METHOD_OVER(1, 1);
+
+    ARG(exlib::string, 0);
+
+    hr = _new(v0, vr, args.This());
+
+    LOAD_RETURN();
 }
 
 inline void Handler_base::s_invoke(const v8::FunctionCallbackInfo<v8::Value>& args)

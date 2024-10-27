@@ -56,7 +56,8 @@ result_t WebView::async_open()
 }
 result_t WebView::setup(v8::Local<v8::Object> opt)
 {
-    result_t hr = OpenOptions::load(opt, m_options);
+    Isolate* isolate = Isolate::current(opt);
+    result_t hr = OpenOptions::load(isolate, opt, m_options);
     if (hr < 0)
         return hr;
 
@@ -187,7 +188,8 @@ result_t gui_base::createTray(v8::Local<v8::Object> opt, obj_ptr<Tray_base>& ret
     obj_ptr<Tray> tray = new Tray();
     retVal = tray;
 
-    result_t hr = Tray::OpenOptions::load(opt, tray->m_options);
+    Isolate* isolate = Isolate::current(opt);
+    result_t hr = Tray::OpenOptions::load(isolate, opt, tray->m_options);
     if (hr < 0)
         return hr;
 

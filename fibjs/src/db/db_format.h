@@ -613,9 +613,9 @@ private:
         v8::Local<v8::Context> context = isolate->context();
 
         if (IsJSBuffer(v) || v->IsArrayBuffer() || v->IsArrayBufferView() || v->IsTypedArray()) {
-            obj_ptr<Buffer> bin;
+            obj_ptr<Buffer_base> bin;
             GetArgumentValue(isolate, v, bin);
-            str.append(impl::escape_binary(bin));
+            str.append(impl::escape_binary(bin.As<Buffer>()));
         } else if (v->IsArray()) {
             v8::Local<v8::Array> a = v.As<v8::Array>();
             int32_t len = a->Length();

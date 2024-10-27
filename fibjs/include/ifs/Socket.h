@@ -42,8 +42,8 @@ public:
     virtual result_t send(Buffer_base* data, AsyncEvent* ac) = 0;
 
 public:
-    template <typename T>
-    static void __new(const T& args);
+    static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Socket_base>& retVal);
 
 public:
     static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -110,8 +110,7 @@ inline void Socket_base::s__new(const v8::FunctionCallbackInfo<v8::Value>& args)
     __new(args);
 }
 
-template <typename T>
-void Socket_base::__new(const T& args)
+inline void Socket_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     obj_ptr<Socket_base> vr;
 
@@ -124,6 +123,21 @@ void Socket_base::__new(const T& args)
     hr = _new(v0, vr, args.This());
 
     CONSTRUCT_RETURN();
+}
+
+inline result_t Socket_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Socket_base>& retVal)
+{
+    obj_ptr<Socket_base> vr;
+
+    LOAD_ENTER();
+
+    METHOD_OVER(1, 0);
+
+    OPT_ARG(int32_t, 0, net_base::C_AF_INET);
+
+    hr = _new(v0, vr, args.This());
+
+    LOAD_RETURN();
 }
 
 inline void Socket_base::s_get_family(const v8::FunctionCallbackInfo<v8::Value>& args)

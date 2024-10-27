@@ -248,14 +248,19 @@ function gen_code(cls, def, baseFolder) {
 
                 new_ovs.slice(0, 1).forEach(ov => {
                     txts.push(`inline void ${cls}_base::${get_stub_func_prefix(ov, def)}${get_name('_new', ov, def)}(const v8::FunctionCallbackInfo<v8::Value>& args)\n{`);
-
                     txts.push('    CONSTRUCT_INIT();\n    __new(args);\n}\n');
-                    txts.push(`template <typename T>\nvoid ${cls}_base::__new(const T& args)\n{`);
 
+                    txts.push(`inline void ${cls}_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)\n{`);
                     txts.push(`    ${get_rtype(def.declare.name)} vr;\n`);
                     txts.push(`    CONSTRUCT_ENTER();\n`);
                     make_ov_params(new_ovs);
                     txts.push('    CONSTRUCT_RETURN();\n}\n');
+
+                    txts.push(`inline result_t ${cls}_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<${cls}_base>& retVal)\n{`);
+                    txts.push(`    ${get_rtype(def.declare.name)} vr;\n`);
+                    txts.push(`    LOAD_ENTER();\n`);
+                    make_ov_params(new_ovs);
+                    txts.push('    LOAD_RETURN();\n}\n');
                 });
 
                 const recorder_statics = record_exist();
@@ -290,11 +295,11 @@ function gen_code(cls, def, baseFolder) {
                         txts.push(`    ASYNC_METHOD_INSTANCE(${cls}_base);`);
                     else
                         txts.push(`    METHOD_INSTANCE(${cls}_base);`);
-                        if (ov.async)
-                            txts.push(`    ASYNC_METHOD_ENTER();\n`);
-                        else
-                            txts.push(`    METHOD_ENTER();\n`);
-                        make_ov_params(inst_mem_ovs);
+                    if (ov.async)
+                        txts.push(`    ASYNC_METHOD_ENTER();\n`);
+                    else
+                        txts.push(`    METHOD_ENTER();\n`);
+                    make_ov_params(inst_mem_ovs);
 
                     if (ov.type) txts.push('    METHOD_RETURN();\n}\n');
                     else txts.push('    METHOD_VOID();\n}\n');
@@ -727,20 +732,26 @@ function gen_code(cls, def, baseFolder) {
 
         function gen_cls_new() {
             txts.push("");
-            if (hasNew)
-                txts.push("public:\n    template <typename T>\n    static void __new(const T& args);\n");
+            if (hasNew) {
+                txts.push("public:\n    static void __new(const v8::FunctionCallbackInfo<v8::Value>& args);");
+                txts.push(`    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<${cls}_base>& retVal);\n`);
+            }
             else if (staticCallAsFunc)
                 txts.push([
                     "public:\n    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)\n    {\n",
                     "        s__function(args);\n    }\n"
                 ].join(''));
-            else
+            else {
                 txts.push([
                     "public:\n    static void s__new(const v8::FunctionCallbackInfo<v8::Value>& args)\n    {\n",
                     "        CONSTRUCT_INIT();\n\n",
                     "        isolate->m_isolate->ThrowException(\n",
                     "            isolate->NewString(\"not a constructor\"));\n    }\n"
                 ].join(''));
+
+                txts.push(`    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<${cls}_base>& retVal)`);
+                txts.push(`    { return CALL_E_TYPEMISMATCH; }\n`);
+            }
         }
 
         function gen_cls_member_stubs() {

@@ -29,6 +29,9 @@ public:
         isolate->m_isolate->ThrowException(
             isolate->NewString("not a constructor"));
     }
+
+    static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<XmlComment_base>& retVal)
+    { return CALL_E_TYPEMISMATCH; }
 };
 }
 
