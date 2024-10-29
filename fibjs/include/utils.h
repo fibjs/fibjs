@@ -961,6 +961,35 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, v8::L
     return 0;
 }
 
+template <class T>
+inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, std::vector<T>& vr, bool bStrict = false)
+{
+    if (v.IsEmpty())
+        return CALL_E_TYPEMISMATCH;
+
+    if (!v->IsArray())
+        return CALL_E_TYPEMISMATCH;
+
+    v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(v);
+    v8::Local<v8::Context> context = isolate->context();
+
+    std::vector<T> r = std::vector<T>();
+
+    for (uint32_t i = 0; i < arr->Length(); i++) {
+        v8::Local<v8::Value> v1 = arr->Get(context, i).ToLocalChecked();
+        T n;
+        result_t hr = GetArgumentValue(isolate, v1, n, bStrict);
+        if (hr < 0)
+            return hr;
+
+        r.push_back(n);
+    }
+
+    vr = r;
+
+    return 0;
+}
+
 result_t setRuntimeError(result_t code, const char* err = nullptr);
 
 template <typename T>

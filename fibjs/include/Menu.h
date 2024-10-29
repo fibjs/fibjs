@@ -106,12 +106,12 @@ public:
     virtual result_t toJSON(exlib::string key, v8::Local<v8::Value>& retVal);
 
 public:
-    static result_t create(v8::Local<v8::Array> items, obj_ptr<Menu>& retVal);
+    static result_t create(std::vector<v8::Local<v8::Object>>& items, obj_ptr<Menu>& retVal);
     void* create_os_menu(bool is_popup = true);
     void release_os_menu();
 
 public:
-    result_t _append_items(v8::Local<v8::Array> items);
+    result_t _append_items(std::vector<v8::Local<v8::Object>>& items);
 
 public:
     std::vector<obj_ptr<MenuItem>> m_items;
@@ -123,8 +123,11 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, obj_p
 {
     vr = (Menu*)Menu_base::getInstance(v);
     if (vr == NULL) {
-        if (v->IsArray())
-            return Menu::create(v.As<v8::Array>(), vr);
+        if (v->IsArray()) {
+            std::vector<v8::Local<v8::Object>> items;
+            result_t hr = GetArgumentValue(isolate, v, items, bStrict);
+            return Menu::create(items, vr);
+        }
 
         return CALL_E_TYPEMISMATCH;
     }

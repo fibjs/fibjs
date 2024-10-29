@@ -27,7 +27,7 @@ public:
     static result_t open(exlib::string url, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal);
     static result_t open(v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal);
     static result_t openFile(exlib::string file, v8::Local<v8::Object> opt, obj_ptr<WebView_base>& retVal);
-    static result_t createMenu(v8::Local<v8::Array> items, obj_ptr<Menu_base>& retVal);
+    static result_t createMenu(std::vector<v8::Local<v8::Object>>& items, obj_ptr<Menu_base>& retVal);
     static result_t createTray(v8::Local<v8::Object> opt, obj_ptr<Tray_base>& retVal);
     static result_t alert(exlib::string message, AsyncEvent* ac);
     static result_t alert(exlib::string title, exlib::string message, AsyncEvent* ac);
@@ -139,7 +139,7 @@ inline void gui_base::s_static_createMenu(const v8::FunctionCallbackInfo<v8::Val
 
     METHOD_OVER(1, 0);
 
-    OPT_ARG(v8::Local<v8::Array>, 0, v8::Array::New(isolate->m_isolate));
+    OPT_ARG(std::vector<v8::Local<v8::Object>>, 0, std::vector<v8::Local<v8::Object>>());
 
     hr = createMenu(v0, vr);
 

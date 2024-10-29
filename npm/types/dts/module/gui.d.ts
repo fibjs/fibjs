@@ -154,7 +154,7 @@ declare module 'gui' {
      *      @return 返回创建的菜单对象
      *     
      */
-    function createMenu(items?: any[]): Class_Menu;
+    function createMenu(items?: FIBJS.GeneralObject): Class_Menu;
 
     /**
      * @description 创建一个状态图标对象

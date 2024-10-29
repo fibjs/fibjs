@@ -172,9 +172,10 @@ paramopt
   }
 
 paramitem
-  = _* type:type _* name:Identifier def:def? {
+  = _* type:type _* name:Identifier _* isarray:("[" _* "]")? def:def? {
     return {
       type: type,
+      isarray: isarray,
       name: name,
       default:def
     }

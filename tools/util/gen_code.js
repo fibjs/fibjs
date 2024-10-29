@@ -82,7 +82,7 @@ function gen_code(cls, def, baseFolder) {
                         ov.params.forEach(p => {
                             if (p.name == "...")
                                 ps.push("const v8::FunctionCallbackInfo<v8::Value>& args");
-                            else ps.push(get_type(p.type) + " " + p.name);
+                            else ps.push(get_type(p) + " " + p.name);
                         });
 
                     if (ov.type)
@@ -169,19 +169,21 @@ function gen_code(cls, def, baseFolder) {
                                 } else if (p.default) {
                                     var defValue;
                                     opts--;
-                                    if (p.default.value)
+                                    if(p.isarray)
+                                        defValue = `${get_vtype(p)}()`;
+                                    else if (p.default.value)
                                         defValue = p.default.value;
                                     else if (util.isArray(p.default.const))
                                         defValue = p.default.const[0] + '_base::C_' + p.default.const[1];
                                     else
                                         defValue = 'C_' + p.default.const;
 
-                                    params.push(`    OPT_ARG(${get_rtype(p.type) + ', ' + params.length}, ` + defValue + `);`);
+                                    params.push(`    OPT_ARG(${get_vtype(p) + ', ' + params.length}, ` + defValue + `);`);
                                 } else {
                                     if (is_func_new(ov, def) && params.length == 0 && ov.params.length == 1 && p.type == ftype)
-                                        params.push(`    STRICT_ARG(${get_rtype(p.type) + ', ' + params.length});`);
+                                        params.push(`    STRICT_ARG(${get_vtype(p) + ', ' + params.length});`);
                                     else
-                                        params.push(`    ARG(${get_rtype(p.type) + ', ' + params.length});`);
+                                        params.push(`    ARG(${get_vtype(p) + ', ' + params.length});`);
                                 }
                             });
                         }
@@ -335,7 +337,7 @@ function gen_code(cls, def, baseFolder) {
                         fns += get_name(fname, fn, def);
                         fns += "(";
 
-                        fns += get_type(fn.type) + " newVal";
+                        fns += get_type(fn) + " newVal";
 
                         fns += fstatic ? ");" : ") = 0;";
 
@@ -376,7 +378,7 @@ function gen_code(cls, def, baseFolder) {
                     txts.push(`inline void ${cls}_base::${get_stub_func_prefix(fn, def)}set_${get_name(fname, fn, def)}(const v8::FunctionCallbackInfo<v8::Value>& args)\n{`);
                     if (!fstatic)
                         txts.push(`    METHOD_INSTANCE(${cls}_base);`);
-                    txts.push(`    METHOD_ENTER();\n\n    METHOD_OVER(1, 1);\n\n    ARG(${get_rtype(fn.type)}, 0);\n`);
+                    txts.push(`    METHOD_ENTER();\n\n    METHOD_OVER(1, 1);\n\n    ARG(${get_vtype(fn)}, 0);\n`);
 
                     if (fn.deprecated)
                         txts.push(`    DEPRECATED_SOON("${cls}.${fn.symbol}${fname}");\n`);
@@ -407,14 +409,14 @@ function gen_code(cls, def, baseFolder) {
                     txts.push(`    virtual result_t _named_getter(exlib::string property, ${get_rtype(fn.type)}& retVal) = 0;`);
                     txts.push(`    virtual result_t _named_enumerator(v8::Local<v8::Array>& retVal) = 0;`);
                     if (!fn.readonly) {
-                        txts.push(`    virtual result_t _named_setter(exlib::string property, ${get_type(fn.type)} newVal) = 0;`);
+                        txts.push(`    virtual result_t _named_setter(exlib::string property, ${get_type(fn)} newVal) = 0;`);
                         txts.push(`    virtual result_t _named_deleter(exlib::string property, v8::Local<v8::Boolean>& retVal) = 0;`);
                     }
                 } else {
                     fnIndexed = fn;
                     txts.push(`    virtual result_t _indexed_getter(uint32_t index, ${get_rtype(fn.type)}& retVal) = 0;`);
                     if (!fn.readonly) {
-                        txts.push(`    virtual result_t _indexed_setter(uint32_t index, ${get_type(fn.type)} newVal) = 0;`);
+                        txts.push(`    virtual result_t _indexed_setter(uint32_t index, ${get_type(fn)} newVal) = 0;`);
                     }
                 }
             },
@@ -520,8 +522,18 @@ function gen_code(cls, def, baseFolder) {
         }
     }
 
-    function get_type(t) {
-        return typeMap[t] || (t + "_base*");
+    function get_type(p) {
+        var t = typeMap[p.type] || (p.type + "_base*");
+        if (p.isarray)
+            t = `std::vector<${t}>&`;
+        return t;
+    }
+
+    function get_vtype(p) {
+        var t = typeMap[p.type] || (`obj_ptr<${p.type}_base>`);
+        if (p.isarray)
+            t = `std::vector<${t}>`;
+        return t;
     }
 
     function get_rtype(t) {
@@ -778,7 +790,7 @@ function gen_code(cls, def, baseFolder) {
 
                             if (ov.params) {
                                 pn = ov.params.length;
-                                ov.params.forEach(p => ps.push(get_type(p.type)));
+                                ov.params.forEach(p => ps.push(get_type(p)));
                             }
 
                             fns += (ov.static ? "STATIC" : "MEMBER");

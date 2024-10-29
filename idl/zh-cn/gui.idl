@@ -139,7 +139,7 @@ module gui
      @param items 菜单项数组
      @return 返回创建的菜单对象
     */
-    static Menu createMenu(Array items = []);
+    static Menu createMenu(Object items[] = []);
 
     /*! @brief 创建一个状态图标对象
 
