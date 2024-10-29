@@ -20,24 +20,18 @@
 
 namespace fibjs {
 
-result_t get_index(Variant& idx, size_t msg_len, std::vector<int32_t>& idx_i, std::vector<int32_t>& idx_j)
+result_t get_index(std::vector<int32_t>& index, size_t msg_len, std::vector<int32_t>& idx_i, std::vector<int32_t>& idx_j)
 {
-    obj_ptr<NArray> _idx = (NArray*)idx.object();
-
-    if (_idx->length() > msg_len)
+    if (index.size() > msg_len)
         return Runtime::setError("crypto: index array length must be less than or equal to messages length");
 
-    idx_i.reserve(_idx->length());
-    idx_j.reserve(msg_len - _idx->length());
+    idx_i.reserve(index.size());
+    idx_j.reserve(msg_len - index.size());
 
     size_t pos_j = 0;
 
-    for (size_t i = 0; i < _idx->length(); i++) {
-        Variant v;
-
-        _idx->_indexed_getter(i, v);
-
-        int32_t n = v.intVal();
+    for (size_t i = 0; i < index.size(); i++) {
+        int32_t n = index[i];
         if (n < pos_j)
             return Runtime::setError("crypto: index array must be sorted");
         if (n >= msg_len)
@@ -83,20 +77,15 @@ static void blst_hash_to_scalar(blst_scalar* out, const byte* msg, size_t msg_le
     blst_scalar_from_be_bytes(out, buf, G1_COMPRESSED_SIZE);
 }
 
-static std::vector<blst_scalar> messagesToFr(Variant& _msgs, int32_t suite)
+static std::vector<blst_scalar> messagesToFr(std::vector<obj_ptr<Buffer_base>>& messages, int32_t suite)
 {
-    const NArray* msgs = (NArray*)_msgs.object();
-    size_t sz = msgs->length();
+    size_t sz = messages.size();
     std::vector<blst_scalar> fr_messages;
 
     fr_messages.resize(sz);
 
     for (size_t i = 0; i < sz; i++) {
-        Variant v;
-
-        msgs->_indexed_getter(i, v);
-
-        Buffer* buf = Buffer::Cast((Buffer_base*)v.object());
+        Buffer* buf = messages[i].As<Buffer>();
         blst_hash_to_scalar(&fr_messages[i], buf->data(), buf->length(), DST(MSG_TO_SCALAR, suite), suite);
     }
 
@@ -179,13 +168,13 @@ static blst_scalar generate_random_scalar()
     return s;
 }
 
-static result_t bbsSign_(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+static result_t bbsSign_(std::vector<obj_ptr<Buffer_base>>& messages, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     int suite = ac->m_ctx[1].intVal();
-    std::vector<blst_scalar> fr_messages = messagesToFr(ac->m_ctx[2], suite);
+    std::vector<blst_scalar> fr_messages = messagesToFr(messages, suite);
     Generators gens(fr_messages.size(), suite);
 
-    blst_scalar domain = calculate_domain(get_pk(ac->m_ctx[0].object()), gens, (Buffer_base*)ac->m_ctx[4].object(), suite);
+    blst_scalar domain = calculate_domain(get_pk(ac->m_ctx[0].object()), gens, (Buffer_base*)ac->m_ctx[2].object(), suite);
     blst_p1 b = gens.compute_b(fr_messages.data(), domain, suite);
 
     Signature s;
@@ -196,35 +185,35 @@ static result_t bbsSign_(obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t crypto_base::bbsSign(v8::Local<v8::Array> messages, Buffer_base* privateKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t crypto_base::bbsSign(std::vector<obj_ptr<Buffer_base>>& messages, Buffer_base* privateKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
-        return bbs_get_args(messages, v8::Local<v8::Array>(), privateKey, true, ac);
+        return bbs_get_args(privateKey, true, ac);
 
-    return bbsSign_(retVal, ac);
+    return bbsSign_(messages, retVal, ac);
 }
 
-result_t crypto_base::bbsSign(v8::Local<v8::Array> messages, KeyObject_base* privateKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t crypto_base::bbsSign(std::vector<obj_ptr<Buffer_base>>& messages, KeyObject_base* privateKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
-        return bbs_get_args(messages, v8::Local<v8::Array>(), privateKey, true, ac);
+        return bbs_get_args(privateKey, true, ac);
 
-    return bbsSign_(retVal, ac);
+    return bbsSign_(messages, retVal, ac);
 }
 
-result_t crypto_base::bbsSign(v8::Local<v8::Array> messages, v8::Local<v8::Object> key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+result_t crypto_base::bbsSign(std::vector<obj_ptr<Buffer_base>>& messages, v8::Local<v8::Object> key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
-        return bbs_get_args(messages, v8::Local<v8::Array>(), key, true, ac);
+        return bbs_get_args(key, true, ac);
 
-    return bbsSign_(retVal, ac);
+    return bbsSign_(messages, retVal, ac);
 }
 
-static result_t bbsVerify_(Buffer_base* signature, bool& retVal, AsyncEvent* ac)
+static result_t bbsVerify_(std::vector<obj_ptr<Buffer_base>>& messages, Buffer_base* signature, bool& retVal, AsyncEvent* ac)
 {
     blst_p2 pk = get_pk(ac->m_ctx[0].object());
     int suite = ac->m_ctx[1].intVal();
-    std::vector<blst_scalar> fr_messages = messagesToFr(ac->m_ctx[2], suite);
+    std::vector<blst_scalar> fr_messages = messagesToFr(messages, suite);
 
     Signature s;
     if (!s.parse(signature)) {
@@ -233,7 +222,7 @@ static result_t bbsVerify_(Buffer_base* signature, bool& retVal, AsyncEvent* ac)
     }
 
     Generators gens(fr_messages.size(), suite);
-    blst_scalar domain = calculate_domain(pk, gens, (Buffer_base*)ac->m_ctx[4].object(), suite);
+    blst_scalar domain = calculate_domain(pk, gens, (Buffer_base*)ac->m_ctx[2].object(), suite);
     blst_p1 b = gens.compute_b(fr_messages.data(), domain, suite);
 
     retVal = s.verify(pk, b);
@@ -241,31 +230,31 @@ static result_t bbsVerify_(Buffer_base* signature, bool& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t crypto_base::bbsVerify(v8::Local<v8::Array> messages, Buffer_base* publicKey, Buffer_base* signature, bool& retVal, AsyncEvent* ac)
+result_t crypto_base::bbsVerify(std::vector<obj_ptr<Buffer_base>>& messages, Buffer_base* publicKey, Buffer_base* signature, bool& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
-        return bbs_get_args(messages, v8::Local<v8::Array>(), publicKey, false, ac);
+        return bbs_get_args(publicKey, false, ac);
 
-    return bbsVerify_(signature, retVal, ac);
+    return bbsVerify_(messages, signature, retVal, ac);
 }
 
-result_t crypto_base::bbsVerify(v8::Local<v8::Array> messages, KeyObject_base* publicKey, Buffer_base* signature, bool& retVal, AsyncEvent* ac)
+result_t crypto_base::bbsVerify(std::vector<obj_ptr<Buffer_base>>& messages, KeyObject_base* publicKey, Buffer_base* signature, bool& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
-        return bbs_get_args(messages, v8::Local<v8::Array>(), publicKey, false, ac);
+        return bbs_get_args(publicKey, false, ac);
 
-    return bbsVerify_(signature, retVal, ac);
+    return bbsVerify_(messages, signature, retVal, ac);
 }
 
-result_t crypto_base::bbsVerify(v8::Local<v8::Array> messages, v8::Local<v8::Object> key, Buffer_base* signature, bool& retVal, AsyncEvent* ac)
+result_t crypto_base::bbsVerify(std::vector<obj_ptr<Buffer_base>>& messages, v8::Local<v8::Object> key, Buffer_base* signature, bool& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
-        return bbs_get_args(messages, v8::Local<v8::Array>(), key, false, ac);
+        return bbs_get_args(key, false, ac);
 
-    return bbsVerify_(signature, retVal, ac);
+    return bbsVerify_(messages, signature, retVal, ac);
 }
 
-static result_t proofGen_(Buffer_base* signature, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
+static result_t proofGen_(Buffer_base* signature, std::vector<obj_ptr<Buffer_base>>& messages, std::vector<int32_t>& index, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     Signature s;
     if (!s.parse(signature))
@@ -273,18 +262,18 @@ static result_t proofGen_(Buffer_base* signature, obj_ptr<Buffer_base>& retVal, 
 
     blst_p2 pk = get_pk(ac->m_ctx[0].object());
     int suite = ac->m_ctx[1].intVal();
-    std::vector<blst_scalar> fr_messages = messagesToFr(ac->m_ctx[2], suite);
+    std::vector<blst_scalar> fr_messages = messagesToFr(messages, suite);
     size_t msg_len = fr_messages.size();
 
     std::vector<int32_t> idx_i;
     std::vector<int32_t> idx_j;
 
-    result_t hr = get_index(ac->m_ctx[3], msg_len, idx_i, idx_j);
+    result_t hr = get_index(index, msg_len, idx_i, idx_j);
     if (hr < 0)
         return hr;
 
     Generators gens(msg_len, suite);
-    blst_scalar domain = calculate_domain(pk, gens, (Buffer_base*)ac->m_ctx[4].object(), suite);
+    blst_scalar domain = calculate_domain(pk, gens, (Buffer_base*)ac->m_ctx[2].object(), suite);
 
     blst_scalar r1 = generate_random_scalar();
     blst_scalar r2 = generate_random_scalar();
@@ -336,7 +325,7 @@ static result_t proofGen_(Buffer_base* signature, obj_ptr<Buffer_base>& retVal, 
         fr_messages_i.push_back(fr_messages[idx_i[i]]);
 
     p.c = calculate_challenge(p.abar, p.bbar, p.d, T1, T2,
-        idx_i, fr_messages_i, domain, (Buffer_base*)ac->m_ctx[5].object(), suite);
+        idx_i, fr_messages_i, domain, (Buffer_base*)ac->m_ctx[3].object(), suite);
 
     // r3 = r2^-1 (mod r)
     blst_fr_inverse(&fr3, &fr2);
@@ -370,34 +359,34 @@ static result_t proofGen_(Buffer_base* signature, obj_ptr<Buffer_base>& retVal, 
     return 0;
 }
 
-result_t crypto_base::proofGen(Buffer_base* signature, v8::Local<v8::Array> messages, v8::Local<v8::Array> index,
+result_t crypto_base::proofGen(Buffer_base* signature, std::vector<obj_ptr<Buffer_base>>& messages, std::vector<int32_t>& index,
     Buffer_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
-        return bbs_get_args(messages, index, publicKey, false, ac);
+        return bbs_get_args(publicKey, false, ac);
 
-    return proofGen_(signature, retVal, ac);
+    return proofGen_(signature, messages, index, retVal, ac);
 }
 
-result_t crypto_base::proofGen(Buffer_base* signature, v8::Local<v8::Array> messages, v8::Local<v8::Array> index,
+result_t crypto_base::proofGen(Buffer_base* signature, std::vector<obj_ptr<Buffer_base>>& messages, std::vector<int32_t>& index,
     KeyObject_base* publicKey, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
-        return bbs_get_args(messages, index, publicKey, false, ac);
+        return bbs_get_args(publicKey, false, ac);
 
-    return proofGen_(signature, retVal, ac);
+    return proofGen_(signature, messages, index, retVal, ac);
 }
 
-result_t crypto_base::proofGen(Buffer_base* signature, v8::Local<v8::Array> messages, v8::Local<v8::Array> index,
+result_t crypto_base::proofGen(Buffer_base* signature, std::vector<obj_ptr<Buffer_base>>& messages, std::vector<int32_t>& index,
     v8::Local<v8::Object> key, obj_ptr<Buffer_base>& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
-        return bbs_get_args(messages, index, key, false, ac);
+        return bbs_get_args(key, false, ac);
 
-    return proofGen_(signature, retVal, ac);
+    return proofGen_(signature, messages, index, retVal, ac);
 }
 
-static result_t proofVerify_(Buffer_base* proof, bool& retVal, AsyncEvent* ac)
+static result_t proofVerify_(std::vector<obj_ptr<Buffer_base>>& messages, std::vector<int32_t>& index, Buffer_base* proof, bool& retVal, AsyncEvent* ac)
 {
     blst_p2 pk = get_pk(ac->m_ctx[0].object());
     int suite = ac->m_ctx[1].intVal();
@@ -408,13 +397,13 @@ static result_t proofVerify_(Buffer_base* proof, bool& retVal, AsyncEvent* ac)
         return 0;
     }
 
-    std::vector<blst_scalar> fr_messages = messagesToFr(ac->m_ctx[2], suite);
+    std::vector<blst_scalar> fr_messages = messagesToFr(messages, suite);
     size_t msg_len = fr_messages.size() + p.mhat.size();
 
     std::vector<int32_t> idx_i;
     std::vector<int32_t> idx_j;
 
-    result_t hr = get_index(ac->m_ctx[3], msg_len, idx_i, idx_j);
+    result_t hr = get_index(index, msg_len, idx_i, idx_j);
     if (hr < 0) {
         retVal = false;
         return 0;
@@ -426,7 +415,7 @@ static result_t proofVerify_(Buffer_base* proof, bool& retVal, AsyncEvent* ac)
     }
 
     Generators gens(msg_len, suite);
-    blst_scalar domain = calculate_domain(pk, gens, (Buffer_base*)ac->m_ctx[4].object(), suite);
+    blst_scalar domain = calculate_domain(pk, gens, (Buffer_base*)ac->m_ctx[2].object(), suite);
 
     // T1 = Bbar * c + Abar * e^ + D * r1^
     blst_p1 T1;
@@ -449,7 +438,7 @@ static result_t proofVerify_(Buffer_base* proof, bool& retVal, AsyncEvent* ac)
         add_mul(T2, gens.h[idx_j[i]], p.mhat[i]);
 
     blst_scalar cv = calculate_challenge(p.abar, p.bbar, p.d, T1, T2,
-        idx_i, fr_messages, domain, (Buffer_base*)ac->m_ctx[5].object(), suite);
+        idx_i, fr_messages, domain, (Buffer_base*)ac->m_ctx[3].object(), suite);
 
     if (memcmp(&cv, &p.c, sizeof(blst_scalar))) {
         retVal = false;
@@ -461,31 +450,31 @@ static result_t proofVerify_(Buffer_base* proof, bool& retVal, AsyncEvent* ac)
     return 0;
 }
 
-result_t crypto_base::proofVerify(v8::Local<v8::Array> messages, v8::Local<v8::Array> index, Buffer_base* publicKey,
+result_t crypto_base::proofVerify(std::vector<obj_ptr<Buffer_base>>& messages, std::vector<int32_t>& index, Buffer_base* publicKey,
     Buffer_base* proof, bool& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
-        return bbs_get_args(messages, index, publicKey, false, ac);
+        return bbs_get_args(publicKey, false, ac);
 
-    return proofVerify_(proof, retVal, ac);
+    return proofVerify_(messages, index, proof, retVal, ac);
 }
 
-result_t crypto_base::proofVerify(v8::Local<v8::Array> messages, v8::Local<v8::Array> index, KeyObject_base* publicKey,
+result_t crypto_base::proofVerify(std::vector<obj_ptr<Buffer_base>>& messages, std::vector<int32_t>& index, KeyObject_base* publicKey,
     Buffer_base* proof, bool& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
-        return bbs_get_args(messages, index, publicKey, false, ac);
+        return bbs_get_args(publicKey, false, ac);
 
-    return proofVerify_(proof, retVal, ac);
+    return proofVerify_(messages, index, proof, retVal, ac);
 }
 
-result_t crypto_base::proofVerify(v8::Local<v8::Array> messages, v8::Local<v8::Array> index, v8::Local<v8::Object> key,
+result_t crypto_base::proofVerify(std::vector<obj_ptr<Buffer_base>>& messages, std::vector<int32_t>& index, v8::Local<v8::Object> key,
     Buffer_base* proof, bool& retVal, AsyncEvent* ac)
 {
     if (ac->isSync())
-        return bbs_get_args(messages, index, key, false, ac);
+        return bbs_get_args(key, false, ac);
 
-    return proofVerify_(proof, retVal, ac);
+    return proofVerify_(messages, index, proof, retVal, ac);
 }
 
 }

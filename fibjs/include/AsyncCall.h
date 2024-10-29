@@ -350,6 +350,28 @@ private:
     obj_ptr<T> m_v;
 };
 
+template <typename T>
+class _at<std::vector<T>> {
+public:
+    _at(std::vector<T>& v)
+        : m_v(std::move(v))
+    {
+    }
+
+    std::vector<T>& c_value()
+    {
+        return m_v;
+    }
+
+    std::vector<T>& value()
+    {
+        return m_v;
+    }
+
+private:
+    std::vector<T> m_v;
+};
+
 template <>
 class _at<v8::Local<v8::Object>> {
 public:

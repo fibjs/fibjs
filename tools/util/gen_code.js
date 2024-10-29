@@ -523,10 +523,9 @@ function gen_code(cls, def, baseFolder) {
     }
 
     function get_type(p) {
-        var t = typeMap[p.type] || (p.type + "_base*");
         if (p.isarray)
-            t = `std::vector<${t}>&`;
-        return t;
+            return `std::vector<${typeMap[p.type] || (`obj_ptr<${p.type}_base>`)}>&`;
+        return typeMap[p.type] || (p.type + "_base*");
     }
 
     function get_vtype(p) {
@@ -790,7 +789,7 @@ function gen_code(cls, def, baseFolder) {
 
                             if (ov.params) {
                                 pn = ov.params.length;
-                                ov.params.forEach(p => ps.push(get_type(p)));
+                                ov.params.forEach(p => ps.push(get_type(p).replace(/&/g, "")));
                             }
 
                             fns += (ov.static ? "STATIC" : "MEMBER");
