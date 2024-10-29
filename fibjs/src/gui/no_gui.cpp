@@ -70,6 +70,11 @@ result_t gui_base::confirm(exlib::string title, exlib::string message, bool& ret
     return Runtime::setError("Confirm not supported in this platform");
 }
 
+result_t gui_base::chooseFile(v8::Local<v8::Object> options, obj_ptr<NArray>& retVal, AsyncEvent* ac)
+{
+    return Runtime::setError("ChooseFile not supported in this platform");
+}
+
 }
 
 #endif

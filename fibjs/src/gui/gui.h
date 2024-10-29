@@ -8,6 +8,7 @@
 #include "object.h"
 #include "ifs/gui.h"
 #include "ifs/fs.h"
+#include <boost/preprocessor.hpp>
 
 namespace fibjs {
 
@@ -25,5 +26,27 @@ inline result_t check_gui(AsyncEvent* ac)
 
     return 0;
 }
+
+class DialogOptions : public obj_base {
+public:
+    class FilterItem : public obj_base {
+    public:
+        LOAD_OPTIONS(FilterItem, (name)(extensions))
+
+    public:
+        exlib::string name;
+        std::vector<exlib::string> extensions;
+    };
+
+public:
+    LOAD_OPTIONS(DialogOptions, (title)(type)(defaultPath)(filters)(multiSelections))
+
+public:
+    std::optional<exlib::string> title;
+    std::optional<exlib::string> type = "openFile";
+    std::optional<exlib::string> defaultPath;
+    std::optional<std::vector<obj_ptr<FilterItem>>> filters;
+    std::optional<bool> multiSelections = false;
+};
 
 } // namespace fibjs

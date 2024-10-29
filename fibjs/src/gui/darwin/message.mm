@@ -72,14 +72,15 @@ result_t gui_base::confirm(exlib::string title, exlib::string message, bool& ret
     [[NSRunningApplication currentApplication] activateWithOptions:NSApplicationActivateIgnoringOtherApps];
 
     NSModalResponse response = [alert runModal];
+
+    if (--s_window_count == 0)
+        [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyAccessory];
+
     if (response == NSAlertFirstButtonReturn) {
         retVal = true;
     } else {
         retVal = false;
     }
-
-    if (--s_window_count == 0)
-        [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyAccessory];
 
     return 0;
 }

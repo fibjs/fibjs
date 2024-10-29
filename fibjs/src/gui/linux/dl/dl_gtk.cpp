@@ -505,6 +505,67 @@ GtkWidget* gtk_separator_menu_item_new(void)
     return s_gtk_separator_menu_item_new();
 }
 
+GtkWidget* gtk_file_chooser_dialog_new_(const char* title, GtkWindow* parent,
+    GtkFileChooserAction action, const char* b1, GtkResponseType t1, const char* b2, GtkResponseType t2)
+{
+    gtk_func(gtk_file_chooser_dialog_new);
+    return s_gtk_file_chooser_dialog_new(title, parent, action, b1, t1, b2, t2, NULL);
+}
+
+GType gtk_file_chooser_get_type(void)
+{
+    gtk_func(gtk_file_chooser_get_type);
+    return s_gtk_file_chooser_get_type();
+}
+
+gboolean gtk_file_chooser_set_current_folder(GtkFileChooser* chooser, const gchar* filename)
+{
+    gtk_func(gtk_file_chooser_set_current_folder);
+    return s_gtk_file_chooser_set_current_folder(chooser, filename);
+}
+
+void gtk_file_chooser_set_select_multiple(GtkFileChooser* chooser, gboolean select_multiple)
+{
+    gtk_func(gtk_file_chooser_set_select_multiple);
+    s_gtk_file_chooser_set_select_multiple(chooser, select_multiple);
+}
+
+GSList* gtk_file_chooser_get_filenames(GtkFileChooser* chooser)
+{
+    gtk_func(gtk_file_chooser_get_filenames);
+    return s_gtk_file_chooser_get_filenames(chooser);
+}
+
+char* gtk_file_chooser_get_filename(GtkFileChooser* chooser)
+{
+    gtk_func(gtk_file_chooser_get_filename);
+    return s_gtk_file_chooser_get_filename(chooser);
+}
+
+void gtk_file_chooser_add_filter(GtkFileChooser* chooser, GtkFileFilter* filter)
+{
+    gtk_func(gtk_file_chooser_add_filter);
+    s_gtk_file_chooser_add_filter(chooser, filter);
+}
+
+GtkFileFilter* gtk_file_filter_new(void)
+{
+    gtk_func(gtk_file_filter_new);
+    return s_gtk_file_filter_new();
+}
+
+void gtk_file_filter_set_name(GtkFileFilter* filter, const gchar* name)
+{
+    gtk_func(gtk_file_filter_set_name);
+    s_gtk_file_filter_set_name(filter, name);
+}
+
+void gtk_file_filter_add_pattern(GtkFileFilter* filter, const gchar* pattern)
+{
+    gtk_func(gtk_file_filter_add_pattern);
+    s_gtk_file_filter_add_pattern(filter, pattern);
+}
+
 const PangoFontDescription* gtk_style_context_get_font(GtkStyleContext* context, GtkStateFlags state)
 {
     gtk_func(gtk_style_context_get_font);

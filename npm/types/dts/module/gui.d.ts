@@ -214,5 +214,23 @@ declare module 'gui' {
 
     function confirm(title: string, message: string, callback: (err: Error | undefined | null, retVal: boolean)=>any): void;
 
+    /**
+     * @description 弹出一个选择文件对话框
+     * 
+     *      options 支持以下参数:
+     *       - title: 对话框标题
+     *       - type: 对话框类型，"openFile"、"openDirectory"、"saveFile"，默认为 "openFile"
+     *       - defaultPath: 默认打开的路径
+     *       - multiple: 是否允许多选，默认为 false
+     *       - filters: 文件过滤器数组，每个元素为一个对象，包含 name 和 extensions 两个属性，extensions 为一个扩展名数组
+     * 
+     *      @param options 选择文件对话框参数
+     *      @return 返回用户选择的文件数组
+     *     
+     */
+    function chooseFile(options: FIBJS.GeneralObject): any[];
+
+    function chooseFile(options: FIBJS.GeneralObject, callback: (err: Error | undefined | null, retVal: any[])=>any): void;
+
 }
 

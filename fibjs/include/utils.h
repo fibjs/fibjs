@@ -651,6 +651,7 @@ public:                                                  \
         return hr;
 
 #define LOAD_OPTIONS(Class, Members)                                                       \
+    static Class* getInstance(v8::Local<v8::Value> v) { return nullptr; }                  \
     static result_t load(Isolate* isolate, v8::Local<v8::Value> v, obj_ptr<Class>& retVal) \
     {                                                                                      \
         if (!IsJSObject(v))                                                                \

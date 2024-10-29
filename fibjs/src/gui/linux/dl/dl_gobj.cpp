@@ -61,6 +61,12 @@ void g_object_unref(gpointer object)
     s_g_object_unref(object);
 }
 
+void g_slist_free(GSList* list)
+{
+    gobj_func(g_slist_free);
+    s_g_slist_free(list);
+}
+
 GError* g_error_new_valist(GQuark domain, gint code, const gchar* format, va_list args)
 {
     gobj_func(g_error_new_valist);
@@ -94,7 +100,6 @@ void g_error_free(GError* error)
     gobj_func(g_error_free);
     s_g_error_free(error);
 }
-
 }
 
 #endif

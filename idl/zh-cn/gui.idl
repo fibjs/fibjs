@@ -180,4 +180,18 @@ module gui
      @return 返回用户的选择结果
     */
     static Boolean confirm(String title, String message) async;
+
+    /*! @brief 弹出一个选择文件对话框
+
+     options 支持以下参数:
+      - title: 对话框标题
+      - type: 对话框类型，"openFile"、"openDirectory"、"saveFile"，默认为 "openFile"
+      - defaultPath: 默认打开的路径
+      - multiple: 是否允许多选，默认为 false
+      - filters: 文件过滤器数组，每个元素为一个对象，包含 name 和 extensions 两个属性，extensions 为一个扩展名数组
+
+     @param options 选择文件对话框参数
+     @return 返回用户选择的文件数组
+    */
+    static NArray chooseFile(Object options) async;
 };
