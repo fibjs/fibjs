@@ -10,7 +10,7 @@ if (win) {
         before(() => {
             try {
                 registry.del(registry.CURRENT_USER, "Software\\fibjs_test");
-            } catch (e) {}
+            } catch (e) { }
         });
 
         xit("get", () => {
@@ -56,6 +56,14 @@ if (win) {
                 "ms",
                 "s"
             ]);
+        });
+
+        it("has", () => {
+            assert.equal(registry.has(registry.CURRENT_USER, "Software\\fibjs_test\\test_key\\a"), true);
+            assert.equal(registry.has(registry.CURRENT_USER, "Software\\fibjs_test\\test_key\\b"), true);
+            assert.equal(registry.has(registry.CURRENT_USER, "Software\\fibjs_test\\test_key\\ms"), true);
+            assert.equal(registry.has(registry.CURRENT_USER, "Software\\fibjs_test\\test_key\\s"), true);
+            assert.equal(registry.has(registry.CURRENT_USER, "Software\\fibjs_test\\test_key\\not_exist"), false);
         });
 
         it("del", () => {
