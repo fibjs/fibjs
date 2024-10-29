@@ -46,6 +46,8 @@ module.exports = function (defs, docsFolder) {
                 if (m.params) {
                     for (var i = 0; i < m.params.length && i < m.doc.params.length; i++) {
                         if (m.params[i].type && m.params[i].name === m.doc.params[i].name) {
+                            if (m.params[i].isarray)
+                                m.doc.params[i].name += '[]';
                             m.doc.params[i].descript = m.params[i].type + ", " + m.doc.params[i].descript;
                         }
                     }
