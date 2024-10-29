@@ -9,7 +9,7 @@ declare class Class_Handler extends Class_object {
      *      @param hdlrs 处理器数组
      *      
      */
-    constructor(hdlrs: any[]);
+    constructor(hdlrs: Class_Handler);
 
     /**
      * @description 创建一个消息处理器路由对象

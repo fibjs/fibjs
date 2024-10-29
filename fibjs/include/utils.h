@@ -978,7 +978,7 @@ inline result_t GetArgumentValue(Isolate* isolate, v8::Local<v8::Value> v, std::
     for (uint32_t i = 0; i < arr->Length(); i++) {
         v8::Local<v8::Value> v1 = arr->Get(context, i).ToLocalChecked();
         T n;
-        result_t hr = GetArgumentValue(isolate, v1, n, bStrict);
+        result_t hr = GetArgumentValue(isolate, v1, n, false);
         if (hr < 0)
             return hr;
 

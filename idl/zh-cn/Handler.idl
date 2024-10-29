@@ -4,7 +4,7 @@ interface Handler : object
     /*! @brief 构造一个消息处理器链处理对象
      @param hdlrs 处理器数组
      */
-    Handler(Array hdlrs);
+    Handler(Handler hdlrs[]);
 
     /*! @brief 创建一个消息处理器路由对象
      @param map 初始化路由参数

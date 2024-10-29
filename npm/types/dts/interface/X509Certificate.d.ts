@@ -32,7 +32,7 @@ declare class Class_X509Certificate extends Class_object {
      *     @return 返回一个 X509Certificate 对象
      *     
      */
-    constructor(certs: any[]);
+    constructor(certs: Class_Buffer);
 
     /**
      * @description 证书的主题 

@@ -19,12 +19,12 @@ interface Chain : Handler
     /*! @brief 构造一个消息处理器链处理对象
      @param hdlrs 处理器数组
      */
-    Chain(Array hdlrs);
+    Chain(Handler hdlrs[]);
 
     /*! @brief 添加处理器数组
      @param hdlrs 处理器数组
      */
-    append(Array hdlrs);
+    append(Handler hdlrs[]);
 
     /*! @brief 添加处理器
      @param hdlr 内置消息处理器，处理函数，链式处理数组，路由对象，详见 mq.Handler

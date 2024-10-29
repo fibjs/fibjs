@@ -23,8 +23,8 @@ class Chain_base : public Handler_base {
 
 public:
     // Chain_base
-    static result_t _new(v8::Local<v8::Array> hdlrs, obj_ptr<Chain_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t append(v8::Local<v8::Array> hdlrs) = 0;
+    static result_t _new(std::vector<obj_ptr<Handler_base>>& hdlrs, obj_ptr<Chain_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t append(std::vector<obj_ptr<Handler_base>>& hdlrs) = 0;
     virtual result_t append(Handler_base* hdlr) = 0;
 
 public:
@@ -69,7 +69,7 @@ inline void Chain_base::__new(const v8::FunctionCallbackInfo<v8::Value>& args)
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG(std::vector<obj_ptr<Handler_base>>, 0);
 
     hr = _new(v0, vr, args.This());
 
@@ -84,7 +84,7 @@ inline result_t Chain_base::load(Isolate* isolate, v8::Local<v8::Value> v, obj_p
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG(std::vector<obj_ptr<Handler_base>>, 0);
 
     hr = _new(v0, vr, args.This());
 
@@ -98,7 +98,7 @@ inline void Chain_base::s_append(const v8::FunctionCallbackInfo<v8::Value>& args
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG(std::vector<obj_ptr<Handler_base>>, 0);
 
     hr = pInst->append(v0);
 

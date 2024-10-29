@@ -25,8 +25,8 @@ class HttpRepeater_base : public Handler_base {
 public:
     // HttpRepeater_base
     static result_t _new(exlib::string url, obj_ptr<HttpRepeater_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    static result_t _new(v8::Local<v8::Array> urls, obj_ptr<HttpRepeater_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
-    virtual result_t load(v8::Local<v8::Array> urls) = 0;
+    static result_t _new(std::vector<exlib::string>& urls, obj_ptr<HttpRepeater_base>& retVal, v8::Local<v8::Object> This = v8::Local<v8::Object>());
+    virtual result_t load(std::vector<exlib::string>& urls) = 0;
     virtual result_t get_urls(obj_ptr<NArray>& retVal) = 0;
     virtual result_t get_client(obj_ptr<HttpClient_base>& retVal) = 0;
 
@@ -87,7 +87,7 @@ inline void HttpRepeater_base::__new(const v8::FunctionCallbackInfo<v8::Value>& 
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG(std::vector<exlib::string>, 0);
 
     hr = _new(v0, vr, args.This());
 
@@ -108,7 +108,7 @@ inline result_t HttpRepeater_base::load(Isolate* isolate, v8::Local<v8::Value> v
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG(std::vector<exlib::string>, 0);
 
     hr = _new(v0, vr, args.This());
 
@@ -122,7 +122,7 @@ inline void HttpRepeater_base::s_load(const v8::FunctionCallbackInfo<v8::Value>&
 
     METHOD_OVER(1, 1);
 
-    ARG(v8::Local<v8::Array>, 0);
+    ARG(std::vector<exlib::string>, 0);
 
     hr = pInst->load(v0);
 

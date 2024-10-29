@@ -11,9 +11,8 @@
 
 namespace fibjs {
 
-result_t Chain_base::_new(v8::Local<v8::Array> hdlrs,
-    obj_ptr<Chain_base>& retVal,
-    v8::Local<v8::Object> This)
+result_t Chain_base::_new(std::vector<obj_ptr<Handler_base>>& hdlrs,
+    obj_ptr<Chain_base>& retVal, v8::Local<v8::Object> This)
 {
     obj_ptr<Chain_base> chain = new Chain();
     chain->wrap(This);
@@ -52,23 +51,16 @@ result_t Chain::append(Handler_base* hdlr)
     return 0;
 }
 
-result_t Chain::append(v8::Local<v8::Array> hdlrs)
+result_t Chain::append(std::vector<obj_ptr<Handler_base>>& hdlrs)
 {
     Isolate* isolate = holder();
     v8::Local<v8::Context> context = isolate->context();
-    int32_t len = hdlrs->Length();
+    int32_t len = hdlrs.size();
     int32_t i;
     result_t hr;
 
     for (i = 0; i < len; i++) {
-        JSValue v = hdlrs->Get(context, i);
-        obj_ptr<Handler_base> hdlr;
-
-        hr = GetArgumentValue(isolate, v, hdlr);
-        if (hr < 0)
-            return hr;
-
-        hr = append(hdlr);
+        hr = append(hdlrs[i]);
         if (hr < 0)
             return hr;
     }

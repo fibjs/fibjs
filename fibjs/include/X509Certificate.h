@@ -55,7 +55,7 @@ public:
 public:
     void LoadRootCerts();
     result_t load_cert(Buffer_base* cert);
-    result_t load_cert(v8::Local<v8::Array> certs);
+    result_t load_cert(std::vector<obj_ptr<Buffer_base>>& certs);
     result_t get_x509_array(int32_t nid, const char** names, v8::Local<v8::Array>& retVal);
 
     X509Certificate* next()
