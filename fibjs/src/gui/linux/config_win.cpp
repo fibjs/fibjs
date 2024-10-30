@@ -119,7 +119,7 @@ static gboolean on_configure_event(GtkWidget* widget, GdkEventConfigure* event, 
         ei->add("left", x);
         ei->add("top", y);
 
-        webview->_emit("move", ei);
+        ei->emit();
     }
 
     if (width != webview->m_width || height != webview->m_height) {
@@ -130,7 +130,7 @@ static gboolean on_configure_event(GtkWidget* widget, GdkEventConfigure* event, 
         ei->add("width", width);
         ei->add("height", height);
 
-        webview->_emit("resize", ei);
+        ei->emit();
     }
 
     return FALSE;
@@ -142,9 +142,7 @@ static gboolean on_focus_event(GtkWidget* widget, GdkEvent* event, gpointer data
         GdkEventFocus* focus_event = (GdkEventFocus*)event;
         if (focus_event->in) {
             WebView* webview = (WebView*)data;
-
-            obj_ptr<EventInfo> ei = new EventInfo(webview, "focus");
-            webview->_emit("focus", ei);
+            (new EventInfo(webview, "focus"))->emit();
         }
     }
     return FALSE;
@@ -156,9 +154,7 @@ static gboolean on_blur_event(GtkWidget* widget, GdkEvent* event, gpointer data)
         GdkEventFocus* focus_event = (GdkEventFocus*)event;
         if (!focus_event->in) {
             WebView* webview = (WebView*)data;
-
-            obj_ptr<EventInfo> ei = new EventInfo(webview, "blur");
-            webview->_emit("blur", ei);
+            (new EventInfo(webview, "blur"))->emit();
         }
     }
     return FALSE;

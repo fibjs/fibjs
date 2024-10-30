@@ -21,8 +21,7 @@ namespace fibjs {
 static void on_menu_item_click(GtkWidget* widget, gpointer data)
 {
     MenuItem* item = static_cast<MenuItem*>(data);
-    obj_ptr<EventInfo> ei = new EventInfo(item, "click");
-    item->_emit("click", ei);
+    (new EventInfo(item, "click"))->emit();
 }
 
 static void on_menu_item_toggled(GtkCheckMenuItem* checkMenuItem, gpointer data)

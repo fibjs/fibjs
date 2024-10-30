@@ -49,7 +49,7 @@ static void handle_message(WebKitUserContentManager* manager, WebKitJavascriptRe
     WebView* _webView = (WebView*)user_data;
     obj_ptr<EventInfo> ei = new EventInfo(_webView, "message");
     ei->add("data", (char*)value_str);
-    _webView->_emit("message", ei);
+    ei->emit();
 
     g_free(value_str);
 }
@@ -109,14 +109,14 @@ static void handle_load_changed(WebKitWebView* webview, WebKitLoadEvent load_eve
     case WEBKIT_LOAD_STARTED: {
         obj_ptr<EventInfo> ei = new EventInfo(_webView, "loading");
         ei->add("url", webkit_web_view_get_uri(webview));
-        _webView->_emit("loading", ei);
+        ei->emit();
 
         break;
     }
     case WEBKIT_LOAD_FINISHED: {
         obj_ptr<EventInfo> ei = new EventInfo(_webView, "load");
         ei->add("url", webkit_web_view_get_uri(webview));
-        _webView->_emit("load", ei);
+        ei->emit();
 
         break;
     }

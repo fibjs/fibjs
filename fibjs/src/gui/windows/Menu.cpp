@@ -38,8 +38,7 @@ void on_click_menu(uint32_t id)
             CheckMenuItem((HMENU)item->m_menu_item, item->m_id, MF_BYCOMMAND | uCheck);
         }
 
-        obj_ptr<EventInfo> ei = new EventInfo(item, "click");
-        item->_emit("click", ei);
+        (new EventInfo(item, "click"))->emit();
     }
 }
 

@@ -196,7 +196,7 @@ result_t WebView::createWebView()
                             ei->add("url", utf16to8String((const char16_t*)uri));
                             CoTaskMemFree(uri);
 
-                            _emit("loading", ei);
+                            ei->emit();
                             return S_OK;
                         })
                         .Get(),
@@ -231,7 +231,7 @@ result_t WebView::createWebView()
                             ei->add("url", utf16to8String((const char16_t*)uri));
                             CoTaskMemFree(uri);
 
-                            _emit("load", ei);
+                            ei->emit();
                             return S_OK;
                         })
                         .Get(),

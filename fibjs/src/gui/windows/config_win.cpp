@@ -146,8 +146,7 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case WM_ACTIVATE: {
         if (wParam == WA_ACTIVE || wParam == WA_CLICKACTIVE) {
-            obj_ptr<EventInfo> ei = new EventInfo(webview, "focus");
-            webview->_emit("focus", ei);
+            (new EventInfo(webview, "focus"))->emit();
 
             ICoreWebView2Controller* controller = (ICoreWebView2Controller*)GetWindowLongPtr(hWnd, 0);
             if (controller != nullptr) {
@@ -156,8 +155,7 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
                 return 0;
             }
         } else if (wParam == WA_INACTIVE) {
-            obj_ptr<EventInfo> ei = new EventInfo(webview, "blur");
-            webview->_emit("blur", ei);
+            (new EventInfo(webview, "blur"))->emit();
         }
         break;
     }
@@ -169,7 +167,7 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         ei->add("left", (int32_t)rcWin.left * 96 / dpix);
         ei->add("top", (int32_t)rcWin.top * 96 / dpiy);
 
-        webview->_emit("move", ei);
+        ei->emit();
         break;
     }
     case WM_SIZE: {
@@ -180,7 +178,7 @@ LRESULT CALLBACK mySubClassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         ei->add("width", (int32_t)(rcWin.right - rcWin.left) * 96 / dpix);
         ei->add("height", (int32_t)(rcWin.bottom - rcWin.top) * 96 / dpiy);
 
-        webview->_emit("resize", ei);
+        ei->emit();
 
         ICoreWebView2Controller* controller = (ICoreWebView2Controller*)GetWindowLongPtr(hWnd, 0);
         if (controller != nullptr) {
