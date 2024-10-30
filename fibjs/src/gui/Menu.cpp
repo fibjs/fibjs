@@ -259,6 +259,8 @@ result_t Menu::_append_items(std::vector<v8::Local<v8::Object>>& items)
         if (hr < 0)
             return hr;
     }
+
+    return 0;
 }
 
 result_t Menu::append(v8::Local<v8::Object> item)
