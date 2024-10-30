@@ -64,6 +64,7 @@ static fibjs::WebView* getWebViewFromNSWindow(NSWindow* win)
 
     WKWebView* webView = (WKWebView*)webview->m_webview;
     [webView stopLoading];
+    [webView removeFromSuperview];
     webView.navigationDelegate = nil;
 
     webview->release();
