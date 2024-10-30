@@ -28,7 +28,7 @@
  *      });
  *  </script>
  *  ```
- *  如果需要在 WebView 内关闭窗口，可以调用 window.close。
+ *  如果需要在 WebView 内关闭窗口，可以调用 window.close。需要注意，在 mac 下的 fullscreen 窗口会因为 mac 的机制而阻止 close。
  *  ```html
  *  <script lang="JavaScript">
  *     document.getElementById('close').addEventListener('click', function () {
