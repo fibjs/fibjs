@@ -19,6 +19,8 @@ namespace fibjs {
 
 DECLARE_MODULE(registry);
 
+#define MAX_KEY_LENGTH 255
+
 class Registry {
 public:
     Registry()
@@ -32,7 +34,7 @@ public:
             RegCloseKey(hKey);
     }
 
-    result_t open(int32_t root, exlib::string key, bool bWrite = false, bool bCreate = false)
+    result_t open(int32_t root, exlib::string path, exlib::string sk, bool bWrite = false, bool bCreate = false)
     {
         static HKEY s_hkeys[] = {
             HKEY_CLASSES_ROOT,
@@ -46,23 +48,14 @@ public:
         if (root < registry_base::C_CLASSES_ROOT || root > registry_base::C_CURRENT_CONFIG)
             return CHECK_ERROR(CALL_E_INVALIDARG);
 
-        exlib::string path;
-        exlib::string sk;
-
-        if ((key.length() > 0) && (key.c_str()[key.length() - 1] == '\\'))
-            path = key.substr(0, key.length() - 1);
-        else {
-            path_base::dirname(key, path);
-            path_base::basename(key, "", sk);
-            skey = utf8to16String(sk);
-        }
+        skey = utf8to16String(sk);
 
         if (path == "\\") {
             hKey = s_hkeys[root];
             return 0;
         }
 
-        int32_t type = bWrite ? KEY_WRITE | KEY_SET_VALUE : KEY_READ;
+        int32_t type = bWrite ? KEY_ALL_ACCESS : KEY_READ;
         exlib::wstring wpath = utf8to16String(path);
 
         LONG lResult = RegOpenKeyExW(s_hkeys[root], (const wchar_t*)wpath.c_str(), 0, type, &hKey);
@@ -98,12 +91,177 @@ public:
         return 0;
     }
 
+    result_t open(int32_t root, exlib::string key, bool bWrite = false, bool bCreate = false)
+    {
+        exlib::string path;
+        exlib::string sk;
+
+        if ((key.length() > 0) && (key.c_str()[key.length() - 1] == '\\'))
+            path = key.substr(0, key.length() - 1);
+        else {
+            path_base::dirname(key, path);
+            path_base::basename(key, "", sk);
+            skey = utf8to16String(sk);
+        }
+
+        return open(root, path, sk, bWrite, bCreate);
+    }
+
+    result_t listSubKey(obj_ptr<NArray>& retVal)
+    {
+        wchar_t achClass[MAX_PATH] = L"";
+        DWORD cchClassName = MAX_PATH, cSubKeys = 0;
+        DWORD cbMaxSubKey, cchMaxClass, cValues;
+        DWORD cchMaxValue, cbMaxValueData, cbSecurityDescriptor;
+        FILETIME ftLastWriteTime;
+        DWORD i, retCode;
+
+        retCode = RegQueryInfoKeyW(hKey, achClass, &cchClassName, NULL, &cSubKeys,
+            &cbMaxSubKey, &cchMaxClass, &cValues, &cchMaxValue,
+            &cbMaxValueData, &cbSecurityDescriptor,
+            &ftLastWriteTime);
+
+        wchar_t achValue[MAX_KEY_LENGTH];
+        DWORD cchValue;
+
+        obj_ptr<NArray> l = new NArray();
+
+        if (cSubKeys)
+            for (i = 0; i < cSubKeys; i++) {
+                cchValue = MAX_KEY_LENGTH;
+                retCode = RegEnumKeyExW(hKey, i, achValue, &cchValue, NULL,
+                    NULL, NULL, &ftLastWriteTime);
+                if (retCode == ERROR_SUCCESS)
+                    l->append(utf16to8String((const char16_t*)achValue, cchValue));
+            }
+
+        retVal = l;
+
+        return 0;
+    }
+
+    result_t listValue(obj_ptr<NArray>& retVal)
+    {
+        wchar_t achClass[MAX_PATH] = L"";
+        DWORD cchClassName = MAX_PATH, cSubKeys = 0;
+        DWORD cbMaxSubKey, cchMaxClass, cValues;
+        DWORD cchMaxValue, cbMaxValueData, cbSecurityDescriptor;
+        FILETIME ftLastWriteTime;
+        DWORD i, retCode;
+
+        retCode = RegQueryInfoKeyW(hKey, achClass, &cchClassName, NULL, &cSubKeys,
+            &cbMaxSubKey, &cchMaxClass, &cValues, &cchMaxValue,
+            &cbMaxValueData, &cbSecurityDescriptor,
+            &ftLastWriteTime);
+
+        wchar_t achValue[MAX_KEY_LENGTH];
+        DWORD cchValue;
+
+        obj_ptr<NArray> l = new NArray();
+
+        if (cValues)
+            for (i = 0; i < cValues; i++) {
+                cchValue = MAX_KEY_LENGTH;
+                retCode = RegEnumValueW(hKey, i, achValue, &cchValue, NULL,
+                    NULL, NULL, NULL);
+                if (retCode == ERROR_SUCCESS)
+                    l->append(utf16to8String((const char16_t*)achValue, cchValue));
+            }
+
+        retVal = l;
+
+        return 0;
+    }
+
+    result_t get(v8::Local<v8::Value>& retVal)
+    {
+        DWORD dwType = 0, dwSize = 0;
+
+        LONG lResult = RegQueryValueExW(hKey, (const wchar_t*)skey.c_str(), NULL, &dwType, NULL, &dwSize);
+        if (lResult != ERROR_SUCCESS)
+            return CHECK_ERROR(-lResult);
+
+        switch (dwType) {
+        case REG_DWORD: {
+            Isolate* isolate = Isolate::current();
+            int32_t value = 0;
+            dwSize = sizeof(value);
+
+            RegQueryValueExW(hKey, (const wchar_t*)skey.c_str(), NULL, &dwType, (LPBYTE)&value, &dwSize);
+            retVal = GetReturnValue(isolate, value);
+            break;
+        }
+        case REG_QWORD: {
+            Isolate* isolate = Isolate::current();
+            int64_t value = 0;
+            dwSize = sizeof(value);
+
+            RegQueryValueExW(hKey, (const wchar_t*)skey.c_str(), NULL, &dwType, (LPBYTE)&value, &dwSize);
+            retVal = GetReturnValue(isolate, value);
+            break;
+        }
+        case REG_SZ:
+        case REG_EXPAND_SZ: {
+            Isolate* isolate = Isolate::current();
+            exlib::wstring buf;
+            exlib::string sbuf;
+
+            buf.resize(dwSize / 2 - 1);
+            RegQueryValueExW(hKey, (const wchar_t*)skey.c_str(), NULL, &dwType, (LPBYTE)buf.data(), &dwSize);
+
+            sbuf = utf16to8String(buf);
+            retVal = GetReturnValue(isolate, sbuf);
+            break;
+        }
+        case REG_MULTI_SZ: {
+            Isolate* isolate = Isolate::current();
+            v8::Local<v8::Context> context = isolate->context();
+            exlib::wstring buf;
+            exlib::string sbuf;
+
+            buf.resize(dwSize / 2);
+            RegQueryValueExW(hKey, (const wchar_t*)skey.c_str(), NULL, &dwType, (LPBYTE)buf.data(), &dwSize);
+
+            v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate);
+            int32_t n = 0;
+
+            const wchar_t* p1 = (const wchar_t*)buf.c_str();
+            const wchar_t* pn = p1 + dwSize / 2;
+            while ((p1 < pn) && *p1) {
+                const wchar_t* p2 = p1;
+                while (*p2)
+                    p2++;
+
+                sbuf = utf16to8String((const char16_t*)p1, (int32_t)(p2 - p1));
+                arr->Set(context, n++, GetReturnValue(isolate, sbuf));
+                p1 = p2 + 1;
+            }
+
+            retVal = arr;
+            break;
+        }
+        case REG_BINARY:
+        case REG_NONE: {
+            obj_ptr<Buffer> buf;
+
+            buf = new Buffer(NULL, dwSize);
+            RegQueryValueExW(hKey, (const wchar_t*)skey.c_str(), NULL, &dwType, buf->data(), &dwSize);
+
+            buf->valueOf(retVal);
+
+            break;
+        }
+        default:
+            return CHECK_ERROR(CALL_E_RETURN_TYPE);
+        }
+
+        return 0;
+    }
+
 public:
     HKEY hKey;
     exlib::wstring skey;
 };
-
-#define MAX_KEY_LENGTH 255
 
 result_t registry_base::listSubKey(int32_t root, exlib::string key, obj_ptr<NArray>& retVal)
 {
@@ -112,35 +270,7 @@ result_t registry_base::listSubKey(int32_t root, exlib::string key, obj_ptr<NArr
     if (hr < 0)
         return hr;
 
-    wchar_t achClass[MAX_PATH] = L"";
-    DWORD cchClassName = MAX_PATH, cSubKeys = 0;
-    DWORD cbMaxSubKey, cchMaxClass, cValues;
-    DWORD cchMaxValue, cbMaxValueData, cbSecurityDescriptor;
-    FILETIME ftLastWriteTime;
-    DWORD i, retCode;
-
-    retCode = RegQueryInfoKeyW(r.hKey, achClass, &cchClassName, NULL, &cSubKeys,
-        &cbMaxSubKey, &cchMaxClass, &cValues, &cchMaxValue,
-        &cbMaxValueData, &cbSecurityDescriptor,
-        &ftLastWriteTime);
-
-    wchar_t achValue[MAX_KEY_LENGTH];
-    DWORD cchValue;
-
-    obj_ptr<NArray> l = new NArray();
-
-    if (cSubKeys)
-        for (i = 0; i < cSubKeys; i++) {
-            cchValue = MAX_KEY_LENGTH;
-            retCode = RegEnumKeyExW(r.hKey, i, achValue, &cchValue, NULL,
-                NULL, NULL, &ftLastWriteTime);
-            if (retCode == ERROR_SUCCESS)
-                l->append(utf16to8String((const char16_t*)achValue, cchValue));
-        }
-
-    retVal = l;
-
-    return 0;
+    return r.listSubKey(retVal);
 }
 
 result_t registry_base::listValue(int32_t root, exlib::string key, obj_ptr<NArray>& retVal)
@@ -150,35 +280,7 @@ result_t registry_base::listValue(int32_t root, exlib::string key, obj_ptr<NArra
     if (hr < 0)
         return hr;
 
-    wchar_t achClass[MAX_PATH] = L"";
-    DWORD cchClassName = MAX_PATH, cSubKeys = 0;
-    DWORD cbMaxSubKey, cchMaxClass, cValues;
-    DWORD cchMaxValue, cbMaxValueData, cbSecurityDescriptor;
-    FILETIME ftLastWriteTime;
-    DWORD i, retCode;
-
-    retCode = RegQueryInfoKeyW(r.hKey, achClass, &cchClassName, NULL, &cSubKeys,
-        &cbMaxSubKey, &cchMaxClass, &cValues, &cchMaxValue,
-        &cbMaxValueData, &cbSecurityDescriptor,
-        &ftLastWriteTime);
-
-    wchar_t achValue[MAX_KEY_LENGTH];
-    DWORD cchValue;
-
-    obj_ptr<NArray> l = new NArray();
-
-    if (cValues)
-        for (i = 0; i < cValues; i++) {
-            cchValue = MAX_KEY_LENGTH;
-            retCode = RegEnumValueW(r.hKey, i, achValue, &cchValue, NULL,
-                NULL, NULL, NULL);
-            if (retCode == ERROR_SUCCESS)
-                l->append(utf16to8String((const char16_t*)achValue, cchValue));
-        }
-
-    retVal = l;
-
-    return 0;
+    return r.listValue(retVal);
 }
 
 result_t registry_base::get(int32_t root, exlib::string key, v8::Local<v8::Value>& retVal)
@@ -188,87 +290,17 @@ result_t registry_base::get(int32_t root, exlib::string key, v8::Local<v8::Value
     if (hr < 0)
         return hr;
 
-    DWORD dwType = 0, dwSize = 0;
+    return r.get(retVal);
+}
 
-    LONG lResult = RegQueryValueExW(r.hKey, (const wchar_t*)r.skey.c_str(), NULL, &dwType, NULL, &dwSize);
-    if (lResult != ERROR_SUCCESS)
-        return CHECK_ERROR(-lResult);
+result_t registry_base::get(int32_t root, exlib::string key, exlib::string name, v8::Local<v8::Value>& retVal)
+{
+    Registry r;
+    result_t hr = r.open(root, key, name);
+    if (hr < 0)
+        return hr;
 
-    switch (dwType) {
-    case REG_DWORD: {
-        Isolate* isolate = Isolate::current();
-        int32_t value = 0;
-        dwSize = sizeof(value);
-
-        RegQueryValueExW(r.hKey, (const wchar_t*)r.skey.c_str(), NULL, &dwType, (LPBYTE)&value, &dwSize);
-        retVal = GetReturnValue(isolate, value);
-        break;
-    }
-    case REG_QWORD: {
-        Isolate* isolate = Isolate::current();
-        int64_t value = 0;
-        dwSize = sizeof(value);
-
-        RegQueryValueExW(r.hKey, (const wchar_t*)r.skey.c_str(), NULL, &dwType, (LPBYTE)&value, &dwSize);
-        retVal = GetReturnValue(isolate, value);
-        break;
-    }
-    case REG_SZ:
-    case REG_EXPAND_SZ: {
-        Isolate* isolate = Isolate::current();
-        exlib::wstring buf;
-        exlib::string sbuf;
-
-        buf.resize(dwSize / 2 - 1);
-        RegQueryValueExW(r.hKey, (const wchar_t*)r.skey.c_str(), NULL, &dwType, (LPBYTE)buf.data(), &dwSize);
-
-        sbuf = utf16to8String(buf);
-        retVal = GetReturnValue(isolate, sbuf);
-        break;
-    }
-    case REG_MULTI_SZ: {
-        Isolate* isolate = Isolate::current();
-        v8::Local<v8::Context> context = isolate->context();
-        exlib::wstring buf;
-        exlib::string sbuf;
-
-        buf.resize(dwSize / 2);
-        RegQueryValueExW(r.hKey, (const wchar_t*)r.skey.c_str(), NULL, &dwType, (LPBYTE)buf.data(), &dwSize);
-
-        v8::Local<v8::Array> arr = v8::Array::New(isolate->m_isolate);
-        int32_t n = 0;
-
-        const wchar_t* p1 = (const wchar_t*)buf.c_str();
-        const wchar_t* pn = p1 + dwSize / 2;
-        while ((p1 < pn) && *p1) {
-            const wchar_t* p2 = p1;
-            while (*p2)
-                p2++;
-
-            sbuf = utf16to8String((const char16_t*)p1, (int32_t)(p2 - p1));
-            arr->Set(context, n++, GetReturnValue(isolate, sbuf));
-            p1 = p2 + 1;
-        }
-
-        retVal = arr;
-        break;
-    }
-    case REG_BINARY:
-    case REG_NONE: {
-        obj_ptr<Buffer> buf;
-
-        buf = new Buffer(NULL, dwSize);
-        RegQueryValueExW(r.hKey, (const wchar_t*)r.skey.c_str(), NULL, &dwType, buf->data(), &dwSize);
-
-        buf->valueOf(retVal);
-
-        break;
-    }
-    default:
-        return CHECK_ERROR(CALL_E_RETURN_TYPE);
-    }
-
-    return 0;
+    return r.get(retVal);
 }
 
 result_t set_reg(int32_t root, exlib::string key, int32_t type, const void* data,
@@ -334,6 +366,69 @@ result_t registry_base::set(int32_t root, exlib::string key, Buffer_base* value)
     return set_reg(root, key, REG_BINARY, data.c_str(), (int32_t)data.length());
 }
 
+result_t set_reg(int32_t root, exlib::string key, exlib::string name, int32_t type, const void* data,
+    int32_t size)
+{
+    Registry r;
+    result_t hr = r.open(root, key, name, true, true);
+    if (hr < 0)
+        return hr;
+
+    LONG lResult = RegSetValueExW(r.hKey, (const wchar_t*)r.skey.c_str(), 0, type, (const BYTE*)data, size);
+    if (lResult != ERROR_SUCCESS)
+        return CHECK_ERROR(-lResult);
+
+    return 0;
+}
+
+result_t registry_base::set(int32_t root, exlib::string key, exlib::string name, double value, int32_t type)
+{
+    if (type != REG_DWORD && type != REG_QWORD)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    int64_t v = (int64_t)value;
+    return set_reg(root, key, name, type, &v,
+        type == REG_DWORD ? sizeof(int32_t) : sizeof(int64_t));
+}
+
+result_t registry_base::set(int32_t root, exlib::string key, exlib::string name, exlib::string value, int32_t type)
+{
+    if (type != REG_SZ && type != REG_EXPAND_SZ)
+        return CHECK_ERROR(CALL_E_INVALIDARG);
+
+    exlib::wstring wvalue = utf8to16String(value);
+    return set_reg(root, key, name, type, wvalue.c_str(),
+        (int32_t)(sizeof(wchar_t) * (wvalue.length() + 1)));
+}
+
+result_t registry_base::set(int32_t root, exlib::string key, exlib::string name, std::vector<exlib::string>& values)
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+    int32_t len = values.size();
+    int32_t i;
+    result_t hr;
+    exlib::wstring data;
+
+    for (i = 0; i < len; i++) {
+        exlib::wstring wv;
+
+        wv = utf8to16String(values[i]);
+        data.append(wv.c_str(), wv.length() + 1);
+    }
+
+    return set_reg(root, key, name, REG_MULTI_SZ, data.c_str(),
+        (int32_t)(sizeof(wchar_t) * (data.length() + 1)));
+}
+
+result_t registry_base::set(int32_t root, exlib::string key, exlib::string name, Buffer_base* value)
+{
+    exlib::string data;
+
+    value->toString(data);
+    return set_reg(root, key, name, REG_BINARY, data.c_str(), (int32_t)data.length());
+}
+
 result_t registry_base::has(int32_t root, exlib::string key, bool& retVal)
 {
     Registry r;
@@ -354,10 +449,47 @@ result_t registry_base::has(int32_t root, exlib::string key, bool& retVal)
     return 0;
 }
 
+result_t registry_base::has(int32_t root, exlib::string key, exlib::string name, bool& retVal)
+{
+    Registry r;
+    result_t hr = r.open(root, key, name);
+    if (hr < 0) {
+        retVal = false;
+        return 0;
+    }
+
+    DWORD dwType = 0;
+    LONG lResult = RegQueryValueExW(r.hKey, (const wchar_t*)r.skey.c_str(), NULL, &dwType, NULL, NULL);
+    if (lResult != ERROR_SUCCESS) {
+        retVal = false;
+        return 0;
+    }
+
+    retVal = true;
+    return 0;
+}
+
 result_t registry_base::del(int32_t root, exlib::string key)
 {
     Registry r;
     result_t hr = r.open(root, key, true);
+    if (hr < 0)
+        return hr;
+
+    LONG lResult = RegDeleteValueW(r.hKey, (const wchar_t*)r.skey.c_str());
+    if (lResult == ERROR_FILE_NOT_FOUND)
+        lResult = RegDeleteKeyW(r.hKey, (const wchar_t*)r.skey.c_str());
+
+    if (lResult != ERROR_SUCCESS)
+        return CHECK_ERROR(-lResult);
+
+    return 0;
+}
+
+result_t registry_base::del(int32_t root, exlib::string key, exlib::string name)
+{
+    Registry r;
+    result_t hr = r.open(root, key, name, true);
     if (hr < 0)
         return hr;
 

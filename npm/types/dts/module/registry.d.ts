@@ -99,6 +99,16 @@ declare module 'registry' {
     function get(root: number, key: string): any;
 
     /**
+     * @description 查询指定键值的数值
+     *      @param root 指定注册表根
+     *      @param key 指定键值
+     *      @param name 指定数值名称
+     *      @return 返回指定键值的数值
+     *      
+     */
+    function get(root: number, key: string, name: string): any;
+
+    /**
      * @description 设置指定键值为数字
      *      @param root 指定注册表根
      *      @param key 指定键值
@@ -137,6 +147,48 @@ declare module 'registry' {
     function set(root: number, key: string, value: Class_Buffer): void;
 
     /**
+     * @description 设置指定键值为数字
+     *      @param root 指定注册表根
+     *      @param key 指定键值
+     *      @param name 指定数值名称
+     *      @param value 指定数字
+     *      @param type 指定类型，允许的类型为 DWORD 和 QWORD，缺省为 DWORD
+     *      
+     */
+    function set(root: number, key: string, name: string, value: number, type: number): void;
+
+    /**
+     * @description 设置指定键值为字符串
+     *      @param root 指定注册表根
+     *      @param key 指定键值
+     *      @param name 指定数值名称
+     *      @param value 指定字符串
+     *      @param type 指定类型，允许的类型为 SZ 和 EXPAND_SZ，缺省为 SZ
+     *      
+     */
+    function set(root: number, key: string, name: string, value: string, type: number): void;
+
+    /**
+     * @description 设置指定键值为多字符串
+     *      @param root 指定注册表根
+     *      @param key 指定键值
+     *      @param name 指定数值名称
+     *      @param value 指定多字符串数组
+     *      
+     */
+    function set(root: number, key: string, name: string, values: string): void;
+
+    /**
+     * @description 设置指定键值为二进制
+     *      @param root 指定注册表根
+     *      @param key 指定键值
+     *      @param name 指定数值名称
+     *      @param value 指定二进制数据
+     *      
+     */
+    function set(root: number, key: string, name: string, value: Class_Buffer): void;
+
+    /**
      * @description 检查指定键值是否存在
      *      @param root 指定注册表根
      *      @param key 指定键值
@@ -146,12 +198,31 @@ declare module 'registry' {
     function has(root: number, key: string): boolean;
 
     /**
+     * @description 检查指定键值是否存在
+     *      @param root 指定注册表根
+     *      @param key 指定键值
+     *      @param name 指定数值名称
+     *      @return 返回键值是否存在
+     *      
+     */
+    function has(root: number, key: string, name: string): boolean;
+
+    /**
      * @description 删除指定键值的数值
      *      @param root 指定注册表根
      *      @param key 指定键值
      *      
      */
     function del(root: number, key: string): void;
+
+    /**
+     * @description 删除指定键值的数值
+     *      @param root 指定注册表根
+     *      @param key 指定键值
+     *      @param name 指定数值名称
+     *      
+     */
+    function del(root: number, key: string, name: string): void;
 
 }
 
